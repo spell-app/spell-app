@@ -8,8 +8,8 @@ import { classes } from "./classes.parser"
 import { type MethodBody } from "./classes.shared"
 
 /**
- * `draw_side` rule:  `to "draw its front":` then markup, in a type's outline body -- one SIDE of a thing, as markup
- * (plan doc `outline-spell`, P3;  Q14):
+ * `draw_side` rule:  one SIDE of a thing, as markup, in a type's outline body:
+ * `to "draw its front":` then markup (plan doc `outline-spell`, P3;  Q14).
  *
  * ```spell
  * - to "draw its front":
@@ -19,7 +19,7 @@ import { type MethodBody } from "./classes.shared"
  * ```
  * - Compiles to a getter, the side's name:  `get front() { return <markup> }` -- `its front` reads it.
  * - Once a type has BOTH `front` and `back`, the second also gives it `draw()`, picking one by its direction:
- *   `return this.direction === 'down' ? this.back : this.front` -- what `draw the card` calls.
+ *   `return this.direction === "down" ? this.back : this.front` -- what `draw the card` calls.
  *   So `its direction` should be `up or down`;  no direction draws the front.
  * - The body is one line of markup, inline or indented:  it IS the side, no `return` needed.
  */
@@ -82,7 +82,7 @@ export class DrawSide extends SpellStatement<"alias|body?", { side?: string; dra
       const isDown = new P.ASTInfixExpression(match, {
         lhs: facing("direction"),
         operator: "exactly equals",
-        rhs: new P.ASTConstantExpression(match, { name: "down", output: "'down'" })
+        rhs: new P.ASTConstantExpression(match, { name: "down", value: "down" })
       })
       statements.push(
         new P.ASTPropertyDefinition(match, {

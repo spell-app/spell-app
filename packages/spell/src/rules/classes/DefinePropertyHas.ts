@@ -2,17 +2,18 @@ import { pluralize, proto, upperFirst } from "$/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 import { Priority } from "$/spell/rules/rules.types"
-// Through the folder, not its own file:  `outline_specifier_enum` registers AFTER us, and importing its file would
-// load it first, changing the registration order.  Read only when called, once the folder has loaded.
+// Through the folder, not its own file:  importing its file would load it first,
+// but `outline_specifier_enum` registers AFTER us, and the registration order must not change.
+// Read only when called, once the folder has loaded.
 import { OutlineSpecifierEnum } from "$/spell/rules/classes"
 // Import directly to avoid circular import
 import { SpellStatement } from "$/spell/rules/Statement"
 import { classes } from "./classes.parser"
 
 /**
- * `define_property_has` rule:  `a card has a suit as one of clubs, diamonds, hearts, spades` /
- * `todos have a title as text` -- declares an instance property on `type`, optionally constrained/initialized by a
- * `type_specifier`.
+ * `define_property_has` rule:  declares an instance property on `type`,
+ * optionally constrained/initialized by a `type_specifier`.
+ * - e.g. `a card has a suit as one of clubs, diamonds, hearts, spades`, `todos have a title as text`
  * - `Priority.declaration`, so this wins over other `{type} has|have ...` -ish statement rules.
  * - SIDE EFFECT: stubs `type` into `scope.types` if not yet declared -- see `P.TypeScope.getOrStub()`.
  * - SIDE EFFECT: when `specifier` is an enumeration, also:
@@ -21,11 +22,12 @@ import { classes } from "./classes.parser"
  *   - adds string values to `scope.constants`
  * - Its name is `member_words`, e.g. `a card has short rank as text`;  the article is optional.
  * - With no type, e.g. `a calculator has an input`, it asks for one:  a warning -- see `warnUntyped()`.
- * - Compiles to a reactive getter / setter pair in its class, its type declared in the class's schema -- see
- *   `P.ASTReactiveProperty` -- e.g. `a player has a name as text` =>
- *   `static { this.declareProp('name', { type: 'text' }) }` + `get name() { return this.getProp('name') }` +
- *   `set name(value) { this.setProp('name', value) }`
- * - An enumeration's values also go on the class, e.g. `static Suits = ['clubs', ...]` -- see `class_member`.
+ * - Compiles to a reactive getter / setter pair in its class, its type declared in the class's schema:
+ *   see `P.ASTReactiveProperty`.  e.g. `a player has a name as text` =>
+ *   - `static { this.declareProp("name", { type: "text" }) }`
+ *   - `get name() { return this.getProp("name") }`
+ *   - `set name(value) { this.setProp("name", value) }`
+ * - An enumeration's values also go on the class, e.g. `static Suits = ["clubs", ...]` -- see `class_member`.
  */
 export class DefinePropertyHas extends SpellStatement<"type|property|specifier?", { valueType?: P.TypeScope }> {
   @proto static priority = Priority.declaration
@@ -34,10 +36,11 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
 
   /**
    * Refused on a built-in type -- see `SpellStatement.refuseBuiltInType()`.
-   * - Notes the type its specifier names, e.g. `Suit` for `its "suit" is a suit`:  if it's a VALUE kind, its setter
-   *   checks against its list -- see `value_kind`.
-   *   - The type's RECORD, read when compiling:  a value kind may be declared further down, e.g. the deck below the
-   *     card, so here it's still a stub (plan doc `outline-spell`, issue I3).  As a call reads `data.method.returns`.
+   * - Notes the type its specifier names, e.g. `Suit` for `its "suit" is a suit`:
+   *   if it's a VALUE kind, its setter checks against its list -- see `value_kind`.
+   *   - The type's RECORD, read when compiling, as a call reads `data.method.returns`.
+   *   - Why:  a value kind may be declared further down, e.g. the deck below the card,
+   *     so here it's still a stub (plan doc `outline-spell`, issue I3).
    */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -88,7 +91,7 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
       const varProps: P.ScopeVariableProps & { enumeration: Array<string | number> } = {
         name: groupName,
         enumeration: values,
-        initializer: `[${values.join(", ")}]`,
+        initializer: P.enumerationInitializer(values),
         declaredBy: match
       }
       // Add variables to scope for lookup elsewhere
@@ -103,8 +106,9 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
   }
 
   /**
-   * `its "rank" is a number` => `a card has a rank as a number`;  `its direction is up or down` =>
-   * `a card has a direction as one of up or down` -- see `SpellStatement.getLongForm()`.
+   * The long form of an outline line -- see `SpellStatement.getLongForm()`:
+   * - `its "rank" is a number` => `a card has a rank as a number`
+   * - `its direction is up or down` => `a card has a direction as one of up or down`
    */
   getLongForm(match: P.Match): string | undefined {
     const typeWords = SpellStatement.subjectWords(match)
@@ -150,11 +154,11 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
     }
     // type
     else if (specifier) {
-      // Only `type_specifier_datatype`/`type_specifier_yes_or_no` can produce a `specifier` that
-      // reaches here, both of which return a `TypeExpression` -- not statically provable, since
+      // Only `type_specifier_datatype`/`type_specifier_yes_or_no` can produce a `specifier` that reaches here,
+      // both of which return a `TypeExpression`.  Not statically provable:
       // `type_specifier`'s `getAST()` can only be typed as returning `ASTNode` in general.
       const typeExpression = specifier as P.ASTTypeExpression
-      // checked at runtime by its class's name -- see `P.ASTTypeExpression.runtimeName`
+      // checked at runtime by its class's name (see `P.ASTTypeExpression.runtimeName`),
       // a text value, so a writer can read the type:  `P.TSWriter` types the property from it
       check.addProp("type", new P.ASTStringLiteral(match, { value: typeExpression.runtimeName, quote: "'" }))
     }

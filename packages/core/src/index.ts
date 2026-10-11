@@ -41,6 +41,7 @@ export { on, off, once, trigger }
 // Helpers compiled and hand-written code import by name, e.g. `positionOf(Card.Ranks, this.rank)`.
 // `itemOf`:  its old name, for TypeScript compiled before epic `output-targets` P16 -- see `deprecated.ts`.
 export { positionOf } from "./collection-core"
+export type { StartAt } from "./positions"
 export { itemOf } from "./deprecated"
 // The decorators compiled TypeScript (`ts/solid`) writes, e.g. `@prop({ oneOf: RANKS }) accessor rank!: Rank`:
 // `$/util`'s shared reactive ones, spell's `@thing`, and `@drawn` (`drawing.ts`).  Compiled JavaScript has none.
@@ -48,8 +49,8 @@ export { prop, state, derived, thing } from "$/util"
 export { drawn } from "./drawing"
 export { elementTagFor, type ElementDefiner, type ElementApi } from "./elements"
 // What compiled JavaScript draws with:  Solid's own `h()`, the copy core draws with (epic `output-targets` P20).
-// `import { spellCore, Thing, h } from "@spell/core"`, then `h("span", { class: "suit" }, () => this.shortSuit)`;
-// see `drawing.ts`.
+// - e.g. `import { spellCore, Thing, h } from "@spell/core"`, then `h("span", { class: "suit" }, () => this.shortSuit)`
+// - see `drawing.ts`
 export { h } from "./drawing"
 export { SPELL_CORE_MODULE, SPELL_CORE_NAMES, type SpellCore, type PropCheck } from "./spellCore.types"
 export * from "./classes"

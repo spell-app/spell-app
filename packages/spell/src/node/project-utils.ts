@@ -23,16 +23,16 @@ type Response = SRV.Reply
 SP.SpellLocation.useRegistry = false
 
 /**
- * Add a getter to figure out `serverPath` for a `SP.SpellLocation` -- client-side `SpellLocation.serverPath`
- * just throws, this monkey-patches in the real (server-only) implementation for this install.
- * - SECURITY: this is the ONLY place a client-supplied path turns into a real on-disk path -- it relies
- *   entirely on `SpellLocation`'s own constructor having already validated `owner` / `domain` / `projectName`
- *   / `filePath` segments (see `SpellLocation.isValidPathSegment()` -- blocks `.` / `..` segments and anything
- *   outside `[\w\d-$. ]`) before we ever get here.  Every `request_*` handler below reaches this via
- *   `SP.SpellLocation.getFileLocation()` / `getProjectLocation()` / `getProjectRoot()`, which construct
- *   a fresh `SpellLocation` from request params/body -- so validation always re-runs server-side even
- *   though the client validates too.
- * - `fileUtils.normalizePath()` additionally collapses any stray `.`/`..`/`//` that validation missed,
+ * The real, server-only `serverPath` getter for a `SP.SpellLocation`:  where it is on disk, for this install.
+ * - Client-side, `SpellLocation.serverPath` just throws:  this monkey-patches in the implementation.
+ * - SECURITY: this is the ONLY place a client-supplied path turns into a real on-disk path.
+ *   - It relies entirely on `SpellLocation`'s own constructor having already validated its segments,
+ *     `owner` / `domain` / `projectName` / `filePath`, before we ever get here.
+ *   - That's `SpellLocation.isValidPathSegment()`:  it blocks `.` / `..` segments, and anything outside `[\w\d-$. ]`.
+ *   - Every `request_*` handler below reaches this through a fresh `SpellLocation`, built from request params/body:
+ *     `SP.SpellLocation.getFileLocation()`, `getProjectLocation()` or `getProjectRoot()`.
+ *     So validation always re-runs server-side, even though the client validates too.
+ * - `fileUtils.normalizePath()` also collapses any stray `.`/`..`/`//` that validation missed,
  *   as defense in depth.
  */
 Object.defineProperty(SP.SpellLocation.prototype, "serverPath", {
@@ -49,8 +49,8 @@ Object.defineProperty(SP.SpellLocation.prototype, "serverPath", {
  * Folder on disk holding project root `rootPath`'s projects, one sub-folder each.
  * - A root added at runtime says where with `spec.serverPath`.
  * - A built-in root lives in its `folder` -- default its `domain` -- under its `owner`'s files root:
- *   `environment.systemFilesRoot`, `testFilesRoot`, else `userFilesRoot`.  e.g. `projects/system/examples`,
- *   or `projects/user` itself.
+ *   `environment.systemFilesRoot`, `testFilesRoot`, else `userFilesRoot`.
+ *   e.g. `projects/system/examples`, or `projects/user` itself.
  * - Throws if `rootPath` isn't a known root.
  */
 export function serverPathForRoot(rootPath: SP.ProjectRootPath): string {
@@ -75,8 +75,8 @@ const DEFAULT_FILE = {
 /**
  * Return list of client projects for `domainId` (a `projectRoot` path like `@user:projects`) as JSON blob.
  * - Format: `[ "<project-path>"... ]`, e.g. `["@user:projects:myProject", ...]`.
- * - Lists (non-empty) subfolders of `domain`'s `serverPath` as project names -- so a "project" is just
- *   a folder on disk.
+ * - Lists (non-empty) subfolders of `domain`'s `serverPath` as project names:
+ *   a "project" is just a folder on disk.
  * - A root whose folder doesn't exist yet has no projects:  `[]`, e.g. `@system:guides` before its first guide.
  *   Creating a project makes the folder.
  */
@@ -105,13 +105,13 @@ export const request_getProjectList = respondWithJSON(async (request) => {
 
 /**
  * Given a file `name`, return `true` if we should add it to the manifest.
- * - RENAME: identical body to `isPreloadFile()` below -- currently the same list serves both purposes,
- *   but they're kept as separate functions/constants presumably so they CAN diverge later.
+ * - RENAME: shares its extension list with `isPreloadFile()` below, kept a separate function so they CAN diverge.
+ *   They have:  this one also leaves out compiled output, snapshots, scope packs and words files.
  */
 const manifestExtensions = [".spell", ".css", ".js", ".jsx"]
 function isManifestFile(name: string, projectName = "") {
-  // NOT a project's compiled output, e.g. `Solitaire.compiled.js`, nor a test fixture's snapshot of it,
-  // nor its scope pack, nor its words, e.g. `Solitaire.en.js` -- `getIndex()` would make it an import
+  // NOT a project's compiled output, e.g. `Solitaire.compiled.js`:  `getIndex()` would make it an import.
+  // Nor a test fixture's snapshot of it, its scope pack, or its words, e.g. `Solitaire.en.js`.
   if ([SP.COMPILED_JS_SUFFIX, SP.SNAPSHOT_JS_SUFFIX, SP.SCOPES_JS_SUFFIX].some((suffix) => name.endsWith(suffix))) {
     return false
   }
@@ -227,8 +227,8 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
   )
 
   // return manifest and imports
-  const { version, exports, targets } = importsFile
-  return { imports: importsFile.imports, manifest, version, exports, targets }
+  const { version, exports, targets, listsStartAt } = importsFile
+  return { imports: importsFile.imports, manifest, version, exports, targets, listsStartAt }
 }
 
 /**
@@ -248,12 +248,14 @@ export const request_getIndex = respondWithJSON(async (request) => {
 
 /**
  * `GET /api/projects/file/:projectId/:filePath*` -- fetch raw contents of one project file.
- * - Client sends: `projectId` and `filePath` route params (`filePath*` is a wildcard, so it can include
- *   `/`-separated nested folders).
- * - Returns: raw file body via `SRV.Reply.sendFile()` (mime type set from extension); `{ dotfiles: "allow" }`
- *   so dotfiles can be fetched too.
- * - Failure: 404 (via `responseUtils.sendFile()`) if file not found; 500 if `projectId`/`filePath` don't
- *   resolve to a valid file path (thrown by `SpellLocation.getFileLocation()`) or if the send itself fails.
+ * - Client sends: `projectId` and `filePath` route params.
+ *   `filePath*` is a wildcard, so it can include `/`-separated nested folders.
+ * - Returns: raw file body via `SRV.Reply.sendFile()` (mime type set from extension).
+ *   `{ dotfiles: "allow" }`, so dotfiles can be fetched too.
+ * - Failure:
+ *   - 404 (via `responseUtils.sendFile()`) if file not found
+ *   - 500 if `projectId`/`filePath` don't resolve to a valid file path (thrown by `SpellLocation.getFileLocation()`),
+ *     or if the send itself fails
  * - NOTE: deliberately NOT wrapped in `respondWithJSON` -- that would send a JSON body on top of the file
  *   we already streamed.  We catch by hand instead so a rejection can't go unhandled and hang the client.
  * - TODO: return proper file type according to mime-type and/or request???!
@@ -272,8 +274,9 @@ export const request_getFile = async (request: Request, response: Response) => {
 
 /**
  * Return project `projectId`'s compiled JS, `<Project>.compiled.js`, as a JS module.
- * - What a runner fetches for `@spell/project/<projectId>`, so one project's compiled output can `import`
- *   another's -- see `SP.SPELL_PROJECT_MODULE`, and `runCompiled()` in `src/app/runner/`.
+ * - What a runner fetches for `@spell/project/<projectId>`,
+ *   so one project's compiled output can `import` another's.
+ * - See `SP.SPELL_PROJECT_MODULE`, and `runCompiled()` in `$/app/runner/runCompiled`.
  * - Not found => 404:  that project has never been compiled.
  */
 export const request_getCompiled = (request: Request, response: Response) =>
@@ -287,15 +290,17 @@ export const request_getScopes = (request: Request, response: Response) =>
   sendProjectFile(request, response, SP.SCOPES_JS_SUFFIX, "text/javascript")
 
 /**
- * Send project `projectId`'s declarations, `<Project>.declarations.json` -- 404 if it hasn't been compiled since
- * they had a file of their own.  What a runner's Type Explorer finds each declaration's code by.
+ * Send project `projectId`'s declarations, `<Project>.declarations.json`.
+ * - 404 if it hasn't been compiled since they had a file of their own.
+ * - What a runner's Type Explorer finds each declaration's code by.
  */
 export const request_getDeclarations = (request: Request, response: Response) =>
   sendProjectFile(request, response, SP.DECLARATIONS_JSON_SUFFIX, "application/json")
 
 /**
- * Send project `projectId`'s words, `<Project>.en.js`, as javascript -- 404 if it hasn't been compiled since they
- * had a file.  What a runner's Thing Explorer labels things' members by:  see `SP.SpellWords`.
+ * Send project `projectId`'s words, `<Project>.en.js`, as javascript.
+ * - 404 if it hasn't been compiled since they had a file.
+ * - What a runner's Thing Explorer labels things' members by:  see `SP.SpellWords`.
  */
 export const request_getWords = (request: Request, response: Response) =>
   sendProjectFile(request, response, SP.WORDS_JS_SUFFIX, "text/javascript")
@@ -317,9 +322,9 @@ async function sendProjectFile(request: Request, response: Response, suffix: str
 
 /**
  * Save a file in a project, creating intervening folders as needed (see `fileUtils.saveFile()`).
- * - NOTE: comment here used to say "non-nested!", but `filePath` CAN include folder segments --
- *   `SpellLocation.getFileLocation()` and `fileUtils.saveFile()` both handle it; doc corrected to match code.
- * - SIDE EFFECT: overwrites file wholesale, no locking against concurrent writers (see `lock-utils.ts`).
+ * - NOTE: `filePath` CAN include folder segments:
+ *   `SpellLocation.getFileLocation()` and `fileUtils.saveFile()` both handle it.
+ * - SIDE EFFECT: overwrites file wholesale, no locking against concurrent writers.
  * - TODO: format according to extension!!!
  */
 export const saveFile = async (projectId: string, filePath: string, contents: any) => {
@@ -329,8 +334,8 @@ export const saveFile = async (projectId: string, filePath: string, contents: an
 
 /**
  * `POST /api/projects/file/:projectId/:filePath*` -- save/overwrite one project file.
- * - Client sends: `projectId` / `filePath` route params, raw body as file contents (text or JSON per
- *   `Content-Type`, see `bodyParser` setup in `server/index.ts`).
+ * - Client sends: `projectId` / `filePath` route params, raw body as file contents.
+ *   Text or JSON per `Content-Type`:  see `bodyParser` setup in `server/index.ts`.
  * - Returns: `true` on success.
  * - Failure: 500 (via `respondWithJSON`) on invalid path or write error.
  */
@@ -352,8 +357,9 @@ export const createProject = async (projectId: string, filePath: string, content
 
 /**
  * `POST /api/projects/create/project` -- create a new project.
- * - Client sends body: `{ projectId, filePath?, contents? }` -- `projectId` is the new project's full
- *   path, e.g. `@user:projects:myProject`; `filePath`/`contents` default to `DEFAULT_FILE`.
+ * - Client sends body: `{ projectId, filePath?, contents? }`.
+ *   - `projectId`:  the new project's full path, e.g. `@user:projects:myProject`
+ *   - `filePath` / `contents`:  default to `DEFAULT_FILE`
  * - Returns: updated project list (see `getProjectList()`) for `projectId`'s `projectRoot`.
  * - Failure: 500 if `projectId` is invalid, or on write error.
  */
@@ -393,8 +399,8 @@ export const renameApp = async (projectId: string, newProjectId: string) => {
  * `POST /api/projects/rename/project` -- rename an existing project.
  * - Client sends body: `{ projectId, newProjectId }`.
  * - Returns: updated project list for `projectId`'s `projectRoot`.
- * - Failure: 500 if either id is invalid, or if `fse.move()` rejects (e.g. `newProjectId` already exists --
- *   no `overwrite` option passed here).
+ * - Failure: 500 if either id is invalid, or if `fse.move()` rejects,
+ *   e.g. `newProjectId` already exists (no `overwrite` option passed here).
  */
 export const request_renameApp = respondWithJSON(async (request) => {
   const { projectId, newProjectId } = request.body
@@ -410,12 +416,13 @@ export const deleteApp = async (projectId: string) => {
 
 /**
  * `DELETE /api/projects/remove/project` -- permanently delete a project.
- * - Client sends body: `{ projectId }` -- NOTE: a `DELETE` request carrying a JSON body, which
- *   `SpellProjectRoot.deleteApp()` on the client relies on; works here because body parsers in
- *   `server/index.ts` are mounted unconditionally, not just for `POST`.
+ * - Client sends body: `{ projectId }`.
+ *   - NOTE: a `DELETE` request carrying a JSON body, which `SpellProjectRoot.deleteApp()` on the client relies on.
+ *   - It works here because body parsers in `server/index.ts` are mounted unconditionally, not just for `POST`.
  * - Returns: updated project list for `projectId`'s `projectRoot`.
- * - Failure: 500 if `projectId` is invalid.  No confirmation/undo server-side -- deletion is immediate
- *   and permanent; the client's `confirm()` prompt is the only safety net.
+ * - Failure: 500 if `projectId` is invalid.
+ * - No confirmation/undo server-side:  deletion is immediate and permanent.
+ *   The client's `confirm()` prompt is the only safety net.
  */
 export const request_deleteApp = respondWithJSON(async (request) => {
   const { projectId } = request.body
@@ -437,8 +444,8 @@ export const createFile = async (projectId: string, filePath: string, contents: 
  * - Client sends body: `{ projectId, filePath, contents }`.
  * - Returns: updated `ProjectIndexJSON` -- `getIndex()` will pick up new file and `import` it at the end.
  * - Failure: 500 if `projectId`/`filePath` invalid, or on write error.
- * - NOTE: no check that file doesn't already exist -- this silently overwrites (client-side
- *   `SpellProject.createFile()` checks first, but nothing stops another caller skipping that).
+ * - NOTE: no check that file doesn't already exist:  this silently overwrites.
+ *   Client-side `SpellProject.createFile()` checks first, but nothing stops another caller skipping that.
  */
 export const request_createFile = respondWithJSON(async (request) => {
   const { projectId, filePath, contents } = request.body
@@ -488,8 +495,9 @@ export const deleteFile = async (projectId: string, filePath: string) => {
  * `DELETE /api/projects/remove/file` -- delete a file from a project.
  * - Client sends body: `{ projectId, filePath }` (see `request_deleteApp` for the `DELETE`-with-body note).
  * - Returns: updated `ProjectIndexJSON`.
- * - Failure: 500 if `projectId`/`filePath` invalid.  No server-side check this isn't the project's
- *   last file -- that guard lives only in client's `SpellProject.deleteFile()`.
+ * - Failure: 500 if `projectId`/`filePath` invalid.
+ * - No server-side check this isn't the project's last file:
+ *   that guard lives only in client's `SpellProject.deleteFile()`.
  */
 export const request_deleteFile = respondWithJSON(async (request) => {
   const { projectId, filePath } = request.body
@@ -509,8 +517,9 @@ export const compileFile = async (fileContents: string) => {
 
 /**
  * `GET|POST /api/compile/file` -- compile arbitrary Spell source, unrelated to any saved project/file.
- * - Client sends: for `POST`, raw Spell source as body; `GET` ignores body and compiles
- *   `DEFAULT_FILE_CONTENTS` instead (handy for hitting the route from a browser URL bar).
+ * - Client sends: for `POST`, raw Spell source as body.
+ *   `GET` ignores body and compiles `DEFAULT_FILE_CONTENTS` instead:
+ *   handy for hitting the route from a browser URL bar.
  * - Returns: compiled JS as a string.
  * - Failure: 500 (via `respondWithJSON`) with compiler error + stack trace if source doesn't parse/compile.
  */

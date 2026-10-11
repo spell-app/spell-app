@@ -87,7 +87,7 @@ export class Card extends Thing {
   get shortRank() {
     if (this.rank === undefined) return "?"
     if (typeof this.rank === "number") return `${this.rank}`
-    return `${spellCore.getItemAt(this.rank, 1) ?? ""}`.toLocaleUpperCase() ?? "?"
+    return `${spellCore.getItemAt(this.rank, 1) ?? ""}`.toLocaleUpperCase()
   }
 
   get shortDirection() {

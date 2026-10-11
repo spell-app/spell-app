@@ -61,7 +61,7 @@ describe("describeOverview()", () => {
   })
 
   test("inherited members only when asked, with where from", () => {
-    const stock = find("Solitaire.spell", "Stock_Pile") as LSP.ScopeNode
+    const stock = find("Solitaire.spell", "StockPile") as LSP.ScopeNode
     const file = { ...(find("Solitaire.spell") as LSP.ScopeNode), children: [stock] }
     expect(CLI.describeOverview(file, options).join("\n")).not.toContain("(Pile)")
     expect(CLI.describeOverview(file, { ...options, inherited: true }).join("\n")).toContain("color (Pile)")

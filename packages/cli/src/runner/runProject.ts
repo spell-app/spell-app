@@ -1,11 +1,13 @@
 /**
  * Child process of `spell run` / `spell test`:  runs one compiled spell project under node.
- * - Started by `runCommand.ts` as `node --import tsx --import hooks.mjs runProject.ts`, with a `CLI.RunSpec` in
- *   env var `SPELL_RUN`.  A fresh process per run, so every run gets a fresh `spellCore`.
+ * - Started by `runCommand.ts` as `node --import tsx --import hooks.mjs runProject.ts`,
+ *   with a `CLI.RunSpec` in env var `SPELL_RUN`.
+ *   A fresh process per run, so every run gets a fresh `spellCore`.
  * - Headless:  what needs a browser does nothing, and says so -- see `headless()`.
- * - `run`:  loads the project, which runs its top-level statements.  Its `print`s go straight to the terminal.
- * - `test`:  loads it quietly, then calls each `test ...` function it exports which hasn't already run, and
- *   reports each one:  ✓, or ✗ with the checks that failed.  Exits 1 if any failed.
+ * - `run`:  loads the project, which runs its top-level statements.
+ *   Its `print`s go straight to the terminal:  its data to stdout, a dump of a thing (`print the card`) to stderr.
+ * - `test`:  loads it quietly, then calls each `test ...` function it exports which hasn't already run,
+ *   and reports each one:  ✓, or ✗ with the checks that failed.  Exits 1 if any failed.
  * - NEVER imports `$/cli`'s values:  this process needs only spell's runtime.
  */
 import chalk from "chalk"
@@ -22,6 +24,11 @@ if (spec.dom) await fakeDom()
 else headless()
 // a fresh state bag + event hub for the project, e.g. for `on card-click` -- as the app's runners do
 spellCore.resetRuntime()
+// `--seed`, and the core contract:  the same random numbers every run, so a shuffle deals the same cards
+if (spec.seed !== undefined) spellCore.seedRandom(spec.seed)
+// a dump of a thing (`print the card`) to stderr, so stdout holds only the program's data
+// (plan doc python-target, Q17);  at call time, so `quiet()` silences it too
+spellCore.console.printDump = (...message) => console.error(...message)
 // output piped into e.g. `head`, which closed it:  nothing more to say
 process.stdout.on("error", (error: NodeJS.ErrnoException) => error.code === "EPIPE" && process.exit(0))
 
@@ -52,8 +59,8 @@ async function runProject() {
 
 /**
  * Load the project quietly, then run each `test ...` function it exports, and report.
- * - Tests the project runs ITSELF as it loads count, and don't run again:  a second run would start
- *   from what the first left behind, e.g. a dealt deck.
+ * - Tests the project runs ITSELF as it loads count, and don't run again:
+ *   a second run would start from what the first left behind, e.g. a dealt deck.
  * - `spec.filter`:  only tests whose names contain it, e.g. `deck` -- ignoring case, and spaces ~== `-` ~== `_`.
  */
 async function testProject() {
@@ -173,9 +180,8 @@ function headless() {
  * linkedom's `document`, and `App.start()` draws into it.
  * - When the program is done, prints the page's `<body>`:  what it drew, to compare.
  *   Each tag's attributes are sorted first (`withSortedAttributes()`).
- * - `Math.random()` is SEEDED, so a shuffle comes out the same every run, on every target:
- *   by `hooks.mjs`, before lodash loads and keeps its own reference to it.
  * - Only for the core contract test, `contract.test.ts`:  a real browser is `spell run`'s.
+ *   The contract seeds the random numbers too (`spec.seed`), so a shuffle deals the same cards on every target.
  */
 async function fakeDom() {
   const { parseHTML } = await import("linkedom")

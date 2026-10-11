@@ -12,12 +12,13 @@ import { fixturePath } from "$/spell/test"
 /**
  * The real `spell` command, end to end:  `bin/spell.mjs` run as a separate process, as a user would.
  * - No terminal:  stdin / stdout are pipes, so nothing asks questions or draws screens.
- * - NEVER writes into a fixture:  compiles use `--stdout`.  Projects to break live in a temp folder -- see `tempProject()`.
+ * - NEVER writes into a fixture:  compiles use `--stdout`.
+ *   Projects to break live in a temp folder -- see `tempProject()`.
  */
 const SPELL = resolve(import.meta.dirname, "..", "bin", "spell.mjs")
 
-// each `spell` run starts node and loads spell's source through `tsx`, ~2s;  a test making two or three runs is over
-// vitest's 5s default, worse under the load of every test file at once
+// each `spell` run starts node and loads spell's source through `tsx`, ~2s;
+// a test making two or three runs is over vitest's 5s default, worse under the load of every test file at once
 vi.setConfig({ testTimeout: 30_000 })
 
 /** This checkout:  its page server is the one `spell serve` uses. */
@@ -424,7 +425,7 @@ describe("spell describe", () => {
   test("one thing, by name -- ignoring case, and spaces ~== `_`", () => {
     const { status, stdout } = spell(["describe", ".", "STOCK pile"], fixturePath("Solitaire"))
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^type Stock_Pile is a Pile\nSolitaire\.spell:\d+\n/)
+    expect(stdout).toMatch(/^type StockPile is a Pile\nSolitaire\.spell:\d+\n/)
   })
 
   test("a member of a thing", () => {
@@ -600,7 +601,7 @@ describe("spell projects", () => {
   test("lists the roots, with the name to type for each", () => {
     const { status, stdout } = spell(["projects"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +5 projects$/m)
+    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +6 projects$/m)
     expect(stdout).toMatch(/^@user +@user:projects /m)
   })
 
@@ -608,6 +609,7 @@ describe("spell projects", () => {
     const { stdout } = spell(["projects", "@test", "--json"])
     expect(JSON.parse(stdout)).toEqual([
       { name: "@test/Cards", id: "@test:fixtures:Cards" },
+      { name: "@test/CardsFromZero", id: "@test:fixtures:CardsFromZero" },
       { name: "@test/FizzBuzz", id: "@test:fixtures:FizzBuzz" },
       { name: "@test/Klondike", id: "@test:fixtures:Klondike" },
       { name: "@test/OutlineSolitaire", id: "@test:fixtures:OutlineSolitaire" },

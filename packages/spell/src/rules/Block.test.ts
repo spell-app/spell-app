@@ -88,7 +88,7 @@ describe("compiling docstrings and headings", () => {
     expect(property.slice(propertyDoc, propertyDoc + 5)).toEqual([
       "  /** card ranks */",
       "  /*! SPELL: DECLARES {",
-      '    property: "rank", classVariable: "Ranks", of: "Card", enumeration: ["\'ace\'", "\'king\'"],',
+      '    property: "rank", classVariable: "Ranks", of: "Card", enumeration: ["ace", "king"],',
       "  } */",
       '  static Ranks = ["ace", "king"]'
     ])

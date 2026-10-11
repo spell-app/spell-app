@@ -7,7 +7,7 @@ import { describe, test, expect } from "vite-plus/test"
 import { P } from "$/parser"
 import { buildTsx } from "$/spell/node/buildTsx"
 import { SP } from "$/spell"
-import { compiledFixture, fixtureImports, fixtureProjectNames } from "$/spell/test"
+import { PYTHON_FIXTURES, compiledFixture, fixtureImports, fixtureProjectNames } from "$/spell/test"
 import { CLI } from "$/cli"
 
 /**
@@ -16,20 +16,28 @@ import { CLI } from "$/cli"
  * - What it prints is pinned in `__snapshots__/contract/<Project>.out.txt`.
  * - So a target's core is right when it prints what the snapshot says.
  *   - `js/solid` and `ts/solid` share `@spell/core` today.
- *   - Python's core (a later epic) must print the same.
+ *   - Python's core, `spell_core` (`packages/core/py`), prints the same
+ *     for the fixtures its writer writes so far, `PYTHON_FIXTURES` (epic `python-target`).
  *   - What a core must HAVE is `SC.SpellCore` (`packages/core/src/spellCore.types.ts`).
  * - The snapshot catches a broken core method, which both targets would share.
  * - A fixture that imports another (`Klondike` imports `Cards`)
  *   runs with that one compiled for the same target, as its `@spell/project/<id>`.
  * - Each runs in a FAKE PAGE (linkedom, `RunSpec.dom`) that `start the game` draws into.
  *   What it drew is printed last, so drawing is compared too.
- * - `Math.random()` is seeded, so Solitaire deals the same cards every run.
+ * - Its random numbers start from seed 1 (`spellCore.seedRandom()`), so Solitaire deals the same cards every run,
+ *   on every target.
+ * - Only STDOUT is compared:  the program's own output, as data.
+ *   A dump of a thing (`print the card`) goes to stderr, as do warnings (plan doc python-target, Q17):
+ *   how a thing looks dumped is each target's own business.
  * - Changed on purpose:  `yarn vp test run src/contract.test.ts -u`, then read the diff.
  */
-const TARGET_FILES: Record<string, string> = { "js/solid": ".mjs", "ts/solid": ".tsx" }
+const TARGET_FILES: Record<string, string> = { "js/solid": ".mjs", "ts/solid": ".tsx", py: ".py", "py/asyncio": ".py" }
+
+/** The seed every contract run starts its random numbers from. */
+const CONTRACT_SEED = 1
 
 /**
- * What fixture `name` prints when its `target` code runs, as `spell run` would run it.
+ * What fixture `name` prints to stdout when its `target` code runs, as `spell run --seed 1` would run it.
  * - `code`:  that code, unless given.
  */
 async function printed(name: string, target: string, code = compiledFixture(name, target)): Promise<string> {
@@ -37,17 +45,26 @@ async function printed(name: string, target: string, code = compiledFixture(name
   const folder = mkdtempSync(join(tmpdir(), "spell-contract-"))
   try {
     const projects = await importedProjects(name, target, folder)
-    const { exitCode, output } = await CLI.runCode("run", name, code, { extension, projects, capture: true, dom: true })
+    const { exitCode, output, stdout } = await CLI.runCode("run", name, code, {
+      extension,
+      projects,
+      capture: true,
+      dom: true,
+      seed: CONTRACT_SEED,
+      // only what's printed matters:  Python needn't wait at a pause (javascript's run as they are)
+      pauses: false
+    })
     expect(exitCode, `${name} on ${target} exited ${exitCode}:\n${output}`).toBe(CLI.EXIT.OK)
-    return output
+    return stdout
   } finally {
     rmSync(folder, { recursive: true, force: true })
   }
 }
 
 /**
- * Each fixture `name` imports, and what THEY import, compiled for `target` into `folder`:  by project id, its file's
- * URL, as `CLI.runCode()` takes them.  TypeScript is built first (`buildTsx()`), as `runCode()` builds its own.
+ * Each fixture `name` imports, and what THEY import, compiled for `target` into `folder`:
+ * by project id, its file's URL, as `CLI.runCode()` takes them.
+ * - TypeScript is built first (`buildTsx()`), as `runCode()` builds its own.
  */
 async function importedProjects(
   name: string,
@@ -60,7 +77,9 @@ async function importedProjects(
     if (projects[projectId]) continue
     let code = compiledFixture(fixture, target)
     if (TARGET_FILES[target] === ".tsx") code = await buildTsx(code, { filename: `${fixture}.compiled.tsx` })
-    const file = join(folder, `${fixture}.compiled.mjs`)
+    // Python imports another project as a module of its name, `from cards import Card`
+    const isPython = TARGET_FILES[target] === ".py"
+    const file = join(folder, isPython ? `${P.PyWriter.projectModule(module)}.py` : `${fixture}.compiled.mjs`)
     writeFileSync(file, code)
     projects[projectId] = pathToFileURL(file).href
     await importedProjects(fixture, target, folder, projects)
@@ -77,8 +96,14 @@ describe("the core contract:  every target prints the same", () => {
     test(
       name,
       async () => {
-        const [js, ts] = await Promise.all([printed(name, "js/solid"), printed(name, "ts/solid")])
-        expect(ts.split("\n")).toEqual(js.split("\n"))
+        // Python only where its writer writes the fixture so far -- see `PYTHON_FIXTURES`
+        const targets = Object.keys(SP.TARGETS).filter(
+          (target) => !target.startsWith("py") || PYTHON_FIXTURES.has(name)
+        )
+        const [js, ...others] = await Promise.all(targets.map((target) => printed(name, target)))
+        for (const [index, other] of others.entries()) {
+          expect(other!.split("\n"), `${name} on ${targets[index + 1]}`).toEqual(js!.split("\n"))
+        }
         await expect(js).toMatchFileSnapshot(resolve(import.meta.dirname, `__snapshots__/contract/${name}.out.txt`))
       },
       60_000
@@ -87,8 +112,8 @@ describe("the core contract:  every target prints the same", () => {
 })
 
 /**
- * `spellCore`'s names before epic `output-targets` P16, by their new ones:  a program compiled before then calls the
- * old ones, and nothing recompiles it.  See `deprecated.ts` in `$/core`.
+ * `spellCore`'s names before epic `output-targets` P16, by their new ones:
+ * a program compiled before then calls the old ones, and nothing recompiles it.  See `deprecated.ts` in `$/core`.
  */
 const OLD_NAMES: Record<string, string> = {
   positionOf: "itemOf",
@@ -146,11 +171,11 @@ table.start()
 `
 
 describe("drawing with h() from @spell/core, as `spell run` runs it", () => {
-  /** What `code` prints, run headless in a fake page:  ending with what it drew. */
+  /** What `code` prints to stdout, run headless in a fake page:  ending with what it drew. */
   async function drawn(code: string): Promise<string> {
-    const { exitCode, output } = await CLI.runCode("run", "Table", code, { capture: true, dom: true })
+    const { exitCode, output, stdout } = await CLI.runCode("run", "Table", code, { capture: true, dom: true })
     expect(exitCode, output).toBe(CLI.EXIT.OK)
-    return output.trim()
+    return stdout.trim()
   }
 
   test("draws a card table:  a cell per card, in the page's spellings", async () => {

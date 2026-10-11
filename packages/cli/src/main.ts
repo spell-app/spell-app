@@ -3,8 +3,9 @@
  * - `consoleGuard` comes FIRST, and everything else only after it, via dynamic `import()`:
  *   modules log as they load, e.g. `environment.ts`.
  * - Each command is `CLI.<name>Command(session, args, options)`, resolving to the exit code.
- * - `spell dev ...` (and the deprecated `spell plan-doc` / `spell goals`) start in the lean `devMain.ts`
- *   instead, which loads no spell;  its commands that need spell come back here.  Their tree:  `devProgram.ts`.
+ * - `spell dev ...` (and the deprecated `spell plan-doc` / `spell goals`) start in the lean `devMain.ts` instead,
+ *   which loads no spell;  its commands that need spell come back here.
+ *   Their tree:  `devProgram.ts`.
  */
 import "./consoleGuard"
 // Defines `__PACKAGE_VERSION__` -- the PARSER's, which `spell --version` prints -- before anything reads it
@@ -32,6 +33,9 @@ Projects:
 /** Help for a command's project argument(s):  a project, or a lone spell file, which counts as one. */
 const PROJECT_ARG = "a spell file, project folder, or @root/project -- default the project here, else asks"
 const PROJECTS_ARG = "spell files, project folders, or @roots/projects -- default the project here, else asks"
+
+/** Help for `--seed`, which `spell run` and `spell test` share. */
+const SEED_HELP = "start the random numbers from this whole number (1 to 2147483646):  the same deal every run"
 
 const program = spellProgram().version(globalThis.__PACKAGE_VERSION__).addHelpText("after", PROJECT_HELP)
 
@@ -82,6 +86,7 @@ program
   .argument("[project]", PROJECT_ARG)
   .option("--browser", "open it in a browser even if it shows no UI")
   .option("--no-browser", "never open a browser:  just skip what needs one")
+  .option("--seed <n>", SEED_HELP, Number)
   .action((project: string | undefined, _options, command) =>
     run(CLI.runCommand, project ? [project] : [], command.optsWithGlobals())
   )
@@ -92,6 +97,7 @@ program
   .argument("[projects...]", PROJECTS_ARG)
   .option("--name <text>", 'only tests whose names contain this, e.g. "deck creation"')
   .option("--watch", "run them again whenever a project changes -- spell watch --test")
+  .option("--seed <n>", SEED_HELP, Number)
   .action((projects: string[], _options, command) => run(CLI.testCommand, projects, command.optsWithGlobals()))
 
 program
@@ -255,8 +261,9 @@ program
   .helpOption(false)
   .action(() => runLean(CLI.planDocCommand, rawArgs("plan-doc")))
 
-// `spell dev ...`:  the repo's own tools.  `bin/spell.mjs` runs them through the lean `devMain.ts`;  here for
-// `spell --help` / `spell help dev`, and a command line it didn't route there, e.g. `spell --verbose dev ...`
+// `spell dev ...`:  the repo's own tools.
+// `bin/spell.mjs` runs them through the lean `devMain.ts`;  here they're for `spell --help` / `spell help dev`,
+// and a command line it didn't route there, e.g. `spell --verbose dev ...`
 devProgram(program, (name, args, options) => run(CLI[name] as BarrelCommandFn, args, options))
 
 await program.parseAsync()
