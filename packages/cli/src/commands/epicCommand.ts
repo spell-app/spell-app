@@ -4,18 +4,28 @@ import { CLI } from "$/cli"
 
 /**
  * `spell epic <verb> ...`:  working with epics from any session (epic `epic-workflow`).
- * - `send <epic> --text "..." | --file f [--images N] [--context "..."]`:  write a request into `<epic>`
+ * - `send [<epic>] --text "..." | --file f [--images N] [--context "..."]`:  write a request into `<epic>`
  *   (`epics/<epic>/requests/r3/`), with the newest N screenshots pasted into this session;  then print its id and
  *   the epic's running sessions to tell (`SendMessage`), or the command that opens its window when none runs
+ *   - no `<epic>`:  the tooling home's (`home`)
  * - `requests <epic> [--json]`:  every request sent to `<epic>`, and where each went
  * - `file <epic> <id> "<where>"`:  mark a request filed, saying where it went (`"P7 · Comment Threads"`)
- * - The logic:  `src/epic/requests.ts`.
+ * - `home [<epic>]`:  the tooling home, the epic dev-tooling requests go to;  with `<epic>`, set it
+ * - The logic:  `src/epic/requests.ts` and `home.ts`.
  */
 export async function epicCommand(session: CLI.CliSession, args: string[], options: CLI.EpicOptions): Promise<number> {
-  const [verb, epic, ...rest] = args
+  const [verb, named, ...rest] = args
   if (!verb) throw new CLI.CliError(`which verb?  ${VERBS}`)
-  if (!epic) throw new CLI.CliError(`${verb}:  which epic?`)
   const root = CLI.findCheckout(CHECKOUT_MARKER)
+  if (verb === "home") {
+    if (named) CLI.setEpicHome(root, named)
+    session.out(CLI.epicHome(root) ?? "no tooling home:  spell epic home <epic> sets one")
+    return CLI.EXIT.OK
+  }
+  // no epic named:  the tooling home's (`send` only:  the other verbs say which epic)
+  const epic = named ?? (verb === "send" ? CLI.epicHome(root) : null)
+  if (!epic)
+    throw new CLI.CliError(`${verb}:  which epic?${verb === "send" ? "  (no tooling home is set either)" : ""}`)
   switch (verb) {
     case "send":
       return send(session, root, epic, options)
@@ -63,10 +73,10 @@ function send(session: CLI.CliSession, root: string, epic: string, options: CLI.
       session.out(`tell:  ${receiver.name ?? receiver.sessionId}  (${receiver.status ?? "running"})`)
     }
   } else if (sent.fromEpic) {
-    session.out(`this session is ${epic}'s own:  take ${request.id} up here (/epic request ${request.id})`)
+    session.out(`this session is ${epic}'s own:  take ${request.id} up here (/epic request ${epic} ${request.id})`)
   } else {
     session.out(`no session of ${epic} is running:  open one with`)
-    session.out(`  spell dev window launch ${epic} --prompt "/epic request ${request.id}"`)
+    session.out(`  spell dev window launch ${epic} --prompt "/epic request ${epic} ${request.id}"`)
   }
   return CLI.EXIT.OK
 }
@@ -79,7 +89,7 @@ function requestLine(request: CLI.EpicRequest): string {
 }
 
 /** The verbs, for errors. */
-const VERBS = "send, requests or file"
+const VERBS = "send, requests, file or home"
 
 /** What marks a checkout with epics (`findCheckout()`):  the docs tools, as for `spell dev plan-doc`. */
 const CHECKOUT_MARKER = "packages/docs/tools/plan-doc.js"
