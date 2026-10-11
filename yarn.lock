@@ -1737,6 +1737,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@spell-app/py@workspace:*, @spell-app/py@workspace:packages/py":
+  version: 0.0.0-use.local
+  resolution: "@spell-app/py@workspace:packages/py"
+  dependencies:
+    "@spell-app/parser": "workspace:*"
+    "@spell-app/util": "workspace:*"
+    "@types/node": "npm:^22.20.4"
+    typescript: "npm:^7.0.2"
+    vite: "catalog:"
+    vite-plus: "catalog:"
+  languageName: unknown
+  linkType: soft
+
 "@spell-app/server@workspace:*, @spell-app/server@workspace:packages/server":
   version: 0.0.0-use.local
   resolution: "@spell-app/server@workspace:packages/server"
@@ -1759,6 +1772,7 @@ __metadata:
     "@solidjs/compiler": "npm:2.0.0-rc.13"
     "@spell-app/core": "workspace:*"
     "@spell-app/parser": "workspace:*"
+    "@spell-app/py": "workspace:*"
     "@spell-app/server": "workspace:*"
     "@spell-app/util": "workspace:*"
     "@types/fs-extra": "npm:^11.0.4"

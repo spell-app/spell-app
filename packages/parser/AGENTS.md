@@ -52,26 +52,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - It extends `P.JSWriter`, adding only what's TypeScript's own:
       - real JSX, decorators, the types spell knows
       - `!` where `?.` can't go
-  - `P.PyWriter`:  Python, on `P.ProgramWriter`
-    - It writes the Python target's `<Project>.compiled.py` (epic `python-target`).
-    - It writes Python as a person would:
-      - PEP 8's names, e.g. `Card.RANKS`, and `class_` for a keyword
-      - Python's own words:  `for number in range(1, 101):`, `x is None`, f-strings
-      - type hints where spell knows the kind
-    - `spell_core`'s one object, `core`, only where Python has no word for what spell says.
-  - `P.PyAsyncWriter`:  Python on `asyncio`
-    - It writes the `py/asyncio` target's `<Project>.compiled.asyncio.py`.
-    - It extends `P.PyWriter`:  a function that waits is `async def`, and every call of it awaits it.
-  - `P.ElementsWriter`:  a Python program's DRAWING half, in javascript, `<Project>.elements.js` (P19)
-    - For a page that draws the program running in Python, from the state Python sends.
-    - It extends `P.JSWriter`:  the classes as they are, the program's top-level steps left out,
-      each thing it keeps an `export let` bound from the state (`adopt()`).
-    - A top-level function, a call in a drawing's handler and an event:  a message to Python, by Python's names.
-  - [jsShapes.ts](src/writers/jsShapes.ts):  the pure helpers every program writer shares (not in the barrel)
+  - Python's writers (`PY.PyWriter`, `PY.ElementsWriter` ...) are `$/py`'s, on `P.ProgramWriter` and `P.JSWriter`:
+    see [py's AGENTS.md](../py/AGENTS.md).
+  - [jsShapes.ts](src/writers/jsShapes.ts):  the pure helpers every program writer shares, `P.jsShapes`
   - `P.jsText`:  javascript's and TypeScript's punctuation
-  - `P.pyText`:  Python's punctuation
-    - blocks by their indent, text in quotes, docstrings
-    - a long call broken one item a line, as Black (Python's usual formatter) does
 - No UI framework, no JSX, no DOM.
   - Node tools run the parser's SOURCE through `tsx` / esbuild / Vite's oxc,
     none of which compile Solid's JSX.

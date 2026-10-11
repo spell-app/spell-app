@@ -1,8 +1,8 @@
 # spell_quart:  a Python spell program served as a web app on Quart, Flask's asyncio twin (epic python-target P20).
 # - A program compiled to `py/asyncio` runs here, a game per visitor;  its page draws it in javascript.
 # - Run from the repo root:
-#   - its tests:  `uv run --directory packages/core/py-quart pytest`
-#   - tidy it:  `uv run --directory packages/core/py-quart ruff check --fix` and `... ruff format`
+#   - its tests:  `uv run --directory packages/py/quart pytest`
+#   - tidy it:  `uv run --directory packages/py/quart ruff check --fix` and `... ruff format`
 # - Core's own `yarn test` runs the tests too (its package.json), so `yarn review` does.
 # - spell_core, beside it, stays standard library only:  the web is this package's.
 
@@ -14,7 +14,7 @@ requires-python = ">=3.12"
 dependencies = ["spell-core", "quart==0.22.0"]
 
 [tool.uv.sources]
-spell-core = { path = "../py", editable = true }
+spell-core = { path = "../core", editable = true }
 
 [dependency-groups]
 dev = ["pytest==9.1.1", "pytest-asyncio==1.4.0", "ruff==0.17.0"]

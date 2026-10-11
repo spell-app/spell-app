@@ -25,6 +25,7 @@
   "dependencies": {
     "@spell-app/core": "workspace:*",
     "@spell-app/parser": "workspace:*",
+    "@spell-app/py": "workspace:*",
     "@spell-app/server": "workspace:*",
     "@spell-app/util": "workspace:*",
     "browser-or-node": "^3.0.0",

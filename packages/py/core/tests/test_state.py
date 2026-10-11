@@ -13,7 +13,7 @@ from pathlib import Path
 
 from spell_core import List, StateMirror, StateWriter, Thing, core, prop
 
-EXPECTED = json.loads((Path(__file__).parents[2] / "stateById.expected.json").read_text(encoding="utf-8"))
+EXPECTED = json.loads((Path(__file__).parents[3] / "core" / "stateById.expected.json").read_text(encoding="utf-8"))
 
 
 class Chip(Thing):

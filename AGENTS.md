@@ -49,6 +49,7 @@ Each folder links to its own `AGENTS.md`:  read it before working there.
 | [parser](packages/parser/AGENTS.md) | `@spell-app/parser` | `$/parser` | `P` | the generic rule-based parser;  Rulex is an opt-in side-effect import, `$/parser/rulex` |
 | [markdown](packages/markdown/AGENTS.md) | `@spell-app/markdown` | `$/markdown` | `MD` | GitHub-flavoured markdown on the parser, drawing `ui-*` markup |
 | [core](packages/core/AGENTS.md) | `@spell-app/core` | `$/core` | `SC` | the runtime compiled spell runs on |
+| [py](packages/py/AGENTS.md) | `@spell-app/py` | `$/py` | `PY` | everything for Python:  the writers (`ts/`), `spell_core` (`core/`) and `spell_quart` (`quart/`), the latter two uv projects |
 | [spell](packages/spell/AGENTS.md) | `@spell-app/spell` | `$/spell` | `SP` | the spell LANGUAGE on the parser, every spell project (`projects/`), `PARSING.md` and `readme.md` |
 | [lsp](packages/lsp/AGENTS.md) | `@spell-app/lsp` | `$/lsp` | `LSP` | spell's language server (browser-safe) |
 | [app](packages/app/AGENTS.md) | `@spell-app/app` | `$/app` | `UI` | the web app, its server, the runner, and the `<spell-app>` / `<spell-editor>` web components;  `yarn start` / `build*` live here |
@@ -85,6 +86,7 @@ One change may touch several packages, but dependencies flow ONE way:
 ```text
 docs -> anything          (its experiments import any package, and nothing imports docs)
 cli -> app -> lsp -> spell -> parser / core -> util
+spell -> py -> parser     (Python's writers;  its Python, `py/core` and `py/quart`, imports no package)
 app / lsp -> markdown -> parser
 brand -> ui / server
 ui -> util

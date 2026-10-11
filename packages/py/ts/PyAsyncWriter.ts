@@ -1,9 +1,9 @@
 import { P } from "$/parser"
 // Import directly to avoid circular import
 import { PyWriter } from "./PyWriter"
-import { forEachNode } from "./WriterProject"
-import { isCoreCall, unwrapped } from "./jsShapes"
 import * as pyText from "./pyText"
+
+const { isCoreCall, unwrapped } = P.jsShapes
 
 /****************
  * ### `PyAsyncWriter`
@@ -72,7 +72,7 @@ export class PyAsyncWriter extends PyWriter {
    */
   protected findWaiting(files: P.ASTNode[][]): void {
     const named = new Map<P.ASTMethodDefinition, string | undefined>()
-    forEachNode(files, (node) => {
+    P.forEachNode(files, (node) => {
       if (node instanceof P.ASTPropertyDefinition && node.method) named.set(node.method, node.property.value)
       else if (node instanceof P.ASTStaticMethod) named.set(node.method, node.name)
       else if (node instanceof P.ASTMethodDefinition && !named.has(node)) named.set(node, node.methodName)

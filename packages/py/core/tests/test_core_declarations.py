@@ -17,7 +17,7 @@ from spell_core import core
 
 # The JavaScript core's method list:  see `coreDeclarations.ts`.
 DECLARATIONS: dict[str, Any] = json.loads(
-    (Path(__file__).parents[2] / "spellCore.declarations.json").read_text(encoding="utf-8")
+    (Path(__file__).parents[3] / "core" / "spellCore.declarations.json").read_text(encoding="utf-8")
 )
 
 # What spell_core doesn't have yet, by the JavaScript name.  Take a name out as it's ported.

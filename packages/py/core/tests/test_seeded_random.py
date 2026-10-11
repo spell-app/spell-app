@@ -27,7 +27,7 @@ DECK = [f"{rank}-{suit}" for suit in ["clubs", "diamonds", "hearts", "spades"] f
 
 # What each seed must give:  shared with the JavaScript core's tests.
 EXPECTED: dict[str, Any] = json.loads(
-    (Path(__file__).parents[2] / "seededRandom.expected.json").read_text(encoding="utf-8")
+    (Path(__file__).parents[3] / "core" / "seededRandom.expected.json").read_text(encoding="utf-8")
 )
 SEEDS = [pytest.param(each, id=f"seed {each['seed']}") for each in EXPECTED["seeds"]]
 

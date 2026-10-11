@@ -1,9 +1,8 @@
 import { P } from "$/parser"
 // Import directly to avoid circular import
-import { ProgramWriter } from "./ProgramWriter"
-import { Naming } from "./Naming"
 import * as pyText from "./pyText"
-import { attributeName, isCoreCall, kindFromDatatype, unwrapped } from "./jsShapes"
+
+const { attributeName, isCoreCall, kindFromDatatype, unwrapped } = P.jsShapes
 
 /****************
  * ### `PyWriter`
@@ -19,12 +18,12 @@ import { attributeName, isCoreCall, kindFromDatatype, unwrapped } from "./jsShap
  *   A kind it can't write yet throws, naming it.
  * - A block is its indent (`pyText`):  a statement's text may span lines, each block indented under its `:`.
  ****************/
-export class PyWriter extends ProgramWriter {
+export class PyWriter extends P.ProgramWriter {
   /** The writer with no project, e.g. for one file in the editor. */
   static readonly instance = new PyWriter()
 
   /** PEP 8's names, a keyword stepping aside with a trailing `_` -- see `Naming.PYTHON`. */
-  naming = new Naming(Naming.PYTHON, Naming.PYTHON_CLASHES)
+  naming = new P.Naming(P.Naming.PYTHON, P.Naming.PYTHON_CLASHES)
 
   /** Between each source file's code:  a comment line, two blank lines either side, as PEP 8 spaces top-level code. */
   readonly fileSeparator = "\n\n\n# -----------\n\n\n"
@@ -58,7 +57,7 @@ export class PyWriter extends ProgramWriter {
   static projectModule(module: string): string {
     const id = module.replace(/^@spell\/project\//, "")
     const name = (id.split(":").at(-1) ?? id).replace(/[^\w$]+/g, "_")
-    return new Naming({ all: "snake_case" }).nameOf(name, "variable")
+    return new P.Naming({ all: "snake_case" }).nameOf(name, "variable")
   }
 
   /**
@@ -422,7 +421,7 @@ export class PyWriter extends ProgramWriter {
       if (written !== undefined) return written
       const args = (node.args.args ?? []).map((arg) => this.bare(arg))
       if (this.takesStartAt(node.methodName, node.args.args ?? [])) {
-        while (args.length < ProgramWriter.START_AT_ARG[node.methodName]!) args.push("None")
+        while (args.length < P.ProgramWriter.START_AT_ARG[node.methodName]!) args.push("None")
         args.push("0")
       }
       return pyText.call(`core.${this.nameOf(node.methodName)}`, args)

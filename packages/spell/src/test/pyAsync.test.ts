@@ -1,16 +1,16 @@
 import { writeFileSync } from "fs"
 import { describe, test, expect } from "vite-plus/test"
 
-import { P } from "$/parser"
+import { PY } from "$/py"
 import { compiledFixture } from "$/spell/test"
 
 /**
- * The `py/asyncio` target's writer, `P.PyAsyncWriter` (epic `python-target` P11):  a function that waits is
+ * The `py/asyncio` target's writer, `PY.PyAsyncWriter` (epic `python-target` P11):  a function that waits is
  * `async def`, and everything that calls it awaits it -- javascript calls them without waiting.
  * - Its whole output is pinned by the fixtures' `.snapshot.asyncio.py`, and run by the core contract.
  */
 describe("Python on asyncio", () => {
-  const cards = compiledFixture("Cards", P.PyAsyncWriter.instance)
+  const cards = compiledFixture("Cards", PY.PyAsyncWriter.instance)
   if (process.env.SPELL_DUMP_ASYNC) writeFileSync(process.env.SPELL_DUMP_ASYNC, cards)
 
   test("a method that pauses waits:  `async def`, `await core.sleep(...)`", () => {

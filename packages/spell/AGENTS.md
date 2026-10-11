@@ -52,8 +52,8 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
     - with a words file of its own, by Python's names:  `<Project>.py.en.json`
   - `py/asyncio`:  the same Python on `asyncio`, checked by pyright
   - Both Python targets write a page file too, when the program draws:  `<Project>.elements.js`,
-    its drawing half in javascript (`elementsSuffix`, `P.ElementsWriter`)
-  - `py/asyncio` writes a web app as well, `<Project>.app.py` on Quart (`appSuffix`, [quartApp.ts](src/quartApp.ts)):
+    its drawing half in javascript (`elementsSuffix`, `PY.ElementsWriter`)
+  - `py/asyncio` writes a web app as well, `<Project>.app.py` on Quart (`appSuffix`, `$/py`'s [quartApp.ts](../py/ts/quartApp.ts)):
     rewritten by each compile only while nobody has edited it
   - A project lists the others it wants in `project.json`'s `"targets"`.
     `spell compile --target <name>` picks one for a single run.

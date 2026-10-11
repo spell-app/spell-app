@@ -15,7 +15,7 @@ import { afterAll, beforeAll, describe, expect, test } from "vite-plus/test"
  */
 const PACKAGES = resolve(import.meta.dirname, "../..")
 const SPELL = resolve(PACKAGES, "cli/bin/spell.mjs")
-const SPELL_QUART = resolve(PACKAGES, "core/py-quart")
+const SPELL_QUART = resolve(PACKAGES, "py/quart")
 
 let folder: string
 let server: ChildProcess
