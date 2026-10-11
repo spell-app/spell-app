@@ -106,13 +106,14 @@ export const request_getProjectList = respondWithJSON(async (request) => {
 /**
  * Given a file `name`, return `true` if we should add it to the manifest.
  * - RENAME: shares its extension list with `isPreloadFile()` below, kept a separate function so they CAN diverge.
- *   They have:  this one also leaves out compiled output, snapshots, scope packs and words files.
+ *   They have:  this one also leaves out compiled output, snapshots, scope packs, page files and words files.
  */
 const manifestExtensions = [".spell", ".css", ".js", ".jsx"]
 function isManifestFile(name: string, projectName = "") {
   // NOT a project's compiled output, e.g. `Solitaire.compiled.js`:  `getIndex()` would make it an import.
-  // Nor a test fixture's snapshot of it, its scope pack, or its words, e.g. `Solitaire.en.js`.
-  if ([SP.COMPILED_JS_SUFFIX, SP.SNAPSHOT_JS_SUFFIX, SP.SCOPES_JS_SUFFIX].some((suffix) => name.endsWith(suffix))) {
+  // Nor a test fixture's snapshot of it, its scope pack, its page file, or its words, e.g. `Solitaire.en.js`.
+  const generated = [SP.COMPILED_JS_SUFFIX, SP.SNAPSHOT_JS_SUFFIX, SP.SCOPES_JS_SUFFIX, SP.ELEMENTS_JS_SUFFIX]
+  if (generated.some((suffix) => name.endsWith(suffix))) {
     return false
   }
   if (SP.SpellWords.isWordsFile(name, projectName)) return false

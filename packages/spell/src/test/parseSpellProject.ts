@@ -107,6 +107,11 @@ export function compiledFixture(projectName: string, target: string | P.ProgramW
   return compileFixture(projectName, target).code
 }
 
+/** Does fixture `projectName` draw:  hold a drawing (JSX) anywhere?  Then a Python target writes its page too. */
+export function fixtureDraws(projectName: string): boolean {
+  return compileFixture(projectName).draws
+}
+
 /** Fixture `projectName`'s declarations, as its `<Project>.declarations.json` would hold them -- see `compileFixture()`. */
 export function fixtureDeclarations(projectName: string): string {
   return JSON.stringify(compileFixture(projectName).declarations, null, 2) + "\n"
@@ -131,11 +136,12 @@ export function fixtureWords(projectName: string): string {
  *   NOT their code:  that's theirs.
  * - `version` / `exports` / `listsStartAt` from its `project.json`, as a compile would.
  * - `target`'s writer writes it, `js/solid`'s by default -- or `target` itself, a writer.
+ * - `draws`:  does it hold a drawing -- see `SP.SpellProject.draws()`.
  */
 function compileFixture(
   projectName: string,
   target: string | P.ProgramWriter = SP.RUNNING_TARGET
-): { code: string; declarations: SP.SpellDeclarationsData } {
+): { code: string; declarations: SP.SpellDeclarationsData; draws: boolean } {
   const projectDir = fixturePath(projectName)
   const { version, exports, imports, listsStartAt } = readProjectFile(projectDir)
   const parentScope = fixtureImportScope(projectName)
@@ -152,7 +158,7 @@ function compileFixture(
   const importLines = SP.SpellProject.importHeaderFor(scope, writer)
   const marked =
     errors.join("") + SP.SpellProject.combineCompiled(parts, writer, importLines, scope, { listsStartAt }) + "\n"
-  return SP.SpellDeclarations.split(marked, scope, { version, exports })
+  return { ...SP.SpellDeclarations.split(marked, scope, { version, exports }), draws: SP.SpellProject.draws(parts) }
 }
 
 /**

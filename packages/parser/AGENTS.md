@@ -62,6 +62,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `P.PyAsyncWriter`:  Python on `asyncio`
     - It writes the `py/asyncio` target's `<Project>.compiled.asyncio.py`.
     - It extends `P.PyWriter`:  a function that waits is `async def`, and every call of it awaits it.
+  - `P.ElementsWriter`:  a Python program's DRAWING half, in javascript, `<Project>.elements.js` (P19)
+    - For a page that draws the program running in Python, from the state Python sends.
+    - It extends `P.JSWriter`:  the classes as they are, the program's top-level steps left out,
+      each thing it keeps an `export let` bound from the state (`adopt()`).
+    - A top-level function, a call in a drawing's handler and an event:  a message to Python, by Python's names.
   - [jsShapes.ts](src/writers/jsShapes.ts):  the pure helpers every program writer shares (not in the barrel)
   - `P.jsText`:  javascript's and TypeScript's punctuation
   - `P.pyText`:  Python's punctuation

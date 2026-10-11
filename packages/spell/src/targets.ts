@@ -1,5 +1,7 @@
 import { P } from "$/parser"
 
+import { ELEMENTS_JS_SUFFIX } from "./spell.types"
+
 /**
  * The TARGETS spell compiles to:  a language and the runtime its code runs on, e.g. `js/solid`.
  * - Each target has:
@@ -33,6 +35,12 @@ export type Target = {
    * - `js/solid`'s words are `<Project>.en.js`, which every runner loads -- see `SP.SpellProject.wordsFile`.
    */
   wordsSuffix?: string
+  /**
+   * End of the name of its PAGE's file, beside its output, e.g. `.elements.js`:  a program that draws, its drawing half
+   * in javascript (`P.ElementsWriter`), for a page that mirrors the program running here (epic `python-target` P19).
+   * - Written only for a project that draws.
+   */
+  elementsSuffix?: string
 }
 
 /** What a target's runtime can do -- checked while compiling, so a project asks only what its targets give. */
@@ -61,6 +69,7 @@ export const TARGETS: Record<string, Target> = {
     suffix: ".compiled.py",
     can: { draw: "html" },
     wordsSuffix: ".py.en.json",
+    elementsSuffix: ELEMENTS_JS_SUFFIX,
     checkedBy: "pyright"
   },
   // The same Python on `asyncio`:  a function that pauses is `async def`, and its callers await it
@@ -70,6 +79,7 @@ export const TARGETS: Record<string, Target> = {
     writer: P.PyAsyncWriter.instance,
     suffix: ".compiled.asyncio.py",
     can: { draw: "html" },
+    elementsSuffix: ELEMENTS_JS_SUFFIX,
     checkedBy: "pyright"
   }
 }

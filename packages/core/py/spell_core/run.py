@@ -25,9 +25,10 @@ import random
 import runpy
 import sys
 from pathlib import Path
+from typing import Any
 
-from spell_core import StateWriter, core
-from spell_core.things import SpellObject
+from spell_core import core
+from spell_core.page import PageSession
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -39,16 +40,24 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--page", action="store_true", help="print what the program drew, as HTML, when it ends")
     parser.add_argument("--state", action="store_true", help="print its state, as JSON by id, when it ends")
     args = parser.parse_args(argv)
-    core.pauses = not args.no_pauses
-    # unseeded:  a different game each run, as JavaScript's core does
-    core.seed_random(args.seed if args.seed is not None else random.SystemRandom().randint(1, 2147483646))
-    program = Path(args.program).resolve()
-    sys.path.insert(0, str(program.parent))
-    names = runpy.run_path(str(program), run_name="__main__")
+    names = run_program(args.program, seed=args.seed, pauses=not args.no_pauses)
     if args.page:
         print_page()
     if args.state:
         print_state(names)
+
+
+def run_program(path: str | Path, seed: int | None = None, pauses: bool = True) -> dict[str, Any]:
+    """Run the compiled program at `path`, seeded with `seed`:  its top level as it ended, by name.
+
+    - Unseeded, a different game each run, as JavaScript's core does.
+    - Its folder is first on the import path:  a project it imports sits beside it.
+    """
+    core.pauses = pauses
+    core.seed_random(seed if seed is not None else random.SystemRandom().randint(1, 2147483646))
+    program = Path(path).resolve()
+    sys.path.insert(0, str(program.parent))
+    return runpy.run_path(str(program), run_name="__main__")
 
 
 def print_page() -> None:
@@ -66,8 +75,7 @@ def print_state(names: dict[str, object]) -> None:
 
     - `names`:  the program's top level, as it ended.
     """
-    state = {name: value for name, value in names.items() if isinstance(value, SpellObject)}
-    sys.stdout.write(f"\n{json.dumps(StateWriter().state_of(state), ensure_ascii=False)}\n")
+    sys.stdout.write(f"\n{json.dumps(PageSession(names).state(), ensure_ascii=False)}\n")
 
 
 if __name__ == "__main__":

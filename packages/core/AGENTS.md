@@ -136,6 +136,12 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `StateMirror.read()` reads each state INTO the things it read before, by id:  the same objects, changed.
   - `fromJSON()` reads through a new mirror, so JSON with ids keeps each thing as one.
   - Python's twin is `spell_core.state`:  both write [stateById.expected.json](stateById.expected.json), and read it.
+- A PAGE drawing a program that runs elsewhere, e.g. in Python ([page.ts](src/page.ts), P19):
+  - `startPage()` mirrors the program's state, binds its things in its drawing half (`<Project>.elements.js`'s
+    `adopt()`), and starts its app;  `receive()` reads each patch after.
+  - `sendCall()` / `sendTrigger()`:  what the drawing half sends back, each thing by its id.
+  - The state names properties as Python does:  read as javascript names them (`javascriptName()`).
+  - Python's side is `spell_core.page`'s `PageSession`.
 
 ## The Python core
 
@@ -162,6 +168,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     cli's [`runPython()`](../cli/src/commands/runCommand.ts).
   - `--no-pauses`:  a pause doesn't wait;  `--page`:  print what it drew, as HTML, when it ends.
   - `--state`:  print its state when it ends, as JSON by id:  each thing at its top level, by its name there.
+- `PageSession` (`spell_core.page`) is a program's side of a page that draws it:
+  its state to start from, then each message the page sends, run, answered by a patch.
+  - `python -m spell_core.page <program> --seed n` talks to a page over stdin and stdout, a JSON line each.
 - Four checks keep it in step with this package:
   - the core's method list:  every name in `spellCore.declarations.json`, or listed as not ported yet
   - seeded random:  both read `seededRandom.expected.json`, so one seed deals the same cards
