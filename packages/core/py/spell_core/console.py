@@ -79,11 +79,17 @@ class SpellConsole:
         self._indent += GROUP_INDENT
 
     def group_collapsed(self, *values: object) -> None:
-        """The same as `group()`:  a terminal can't fold a group.  Compiled from `print collapsed group`."""
+        """The same as `group()`:  a terminal can't fold a group.
+
+        - Compiled from `print collapsed group`.
+        """
         self.group(*values)
 
     def group_end(self) -> None:
-        """End the innermost group:  lines after it go back out 2 spaces.  Compiled from `end print group`."""
+        """End the innermost group:  lines after it go back out 2 spaces.
+
+        - Compiled from `end print group`.
+        """
         self._indent = self._indent[: -len(GROUP_INDENT)]
 
     def _stream_for(self, values: tuple[object, ...]) -> TextIO:

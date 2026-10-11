@@ -4,8 +4,8 @@
  *   (`writeCoreDeclarations.ts`).
  *   - `coreDeclarations.test.ts` fails when that file and the core differ.
  *   - Python's core reads it in a test, to find what it hasn't ported yet (`py/tests/test_core_declarations.py`).
- * - In the format projects write their own declarations in (`<Project>.declarations.json`, see
- *   `SP.SpellDeclarationsData`), with one key more, `module`:  the core's file that has it.
+ * - In the format projects write their own declarations in (`<Project>.declarations.json`),
+ *   see `SP.SpellDeclarationsData`, with one key more, `module`:  the core's file that has it.
  * - Read from the core itself, as it runs:  each module's methods object, so nothing is listed by hand.
  *   - Parameters by name, from each function's own source:  `getItemAt(collection, position, startAt)`.
  * - Left out:
@@ -32,8 +32,8 @@ import { classesMethods } from "./classes"
 import { deprecatedMethods } from "./deprecated"
 
 /**
- * Each part of `spellCore`, by the file it's in (under `src/`):  every module `SC.SpellCore` is made from,
- * except `deprecated`.
+ * Each part of `spellCore`, by the file it's in (under `src/`):
+ * every module `SC.SpellCore` is made from, except `deprecated`.
  */
 const CORE_MODULES: Record<string, object> = {
   core: coreMethods,
@@ -132,8 +132,8 @@ function isClass(value: unknown): value is AnyFunction {
 }
 
 /**
- * The names of `method`'s parameters, from its source:  `getItemAt(collection, position, startAt = 1)`
- * => `["collection", "position", "startAt"]`.
+ * The names of `method`'s parameters, from its source:
+ * `getItemAt(collection, position, startAt = 1)` => `["collection", "position", "startAt"]`.
  * - A rest parameter keeps its dots, as javascript writes it:  `...things`.
  * - A destructured one has no name:  `options`.
  * - Defaults are dropped, with everything nested in them, e.g. `units = "seconds"`.

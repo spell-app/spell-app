@@ -5,13 +5,14 @@ import { describePyrightError, pyright, type PyrightResult } from "$/spell/node/
 import { PYTHON_FIXTURES, compiledFixture, fixtureImports, fixturePath } from "$/spell/test"
 
 /**
- * The fixtures compiled to Python (the `py` target, `P.PyWriter`), checked by pyright against `spell_core`'s source
- * -- see `pyright()` -- what it reports, against `projects/test/<Project>/<Project>.snapshot.pyright.txt`
- * (epic `python-target` P13).
- * - So every place the hinted Python falls short shows, as a line of that file:  a change is a diff to read.
- *   Blessed with the fixtures:  `yarn test:fixtures:bless`.
- * - Each fixture's error count is printed on every run, e.g. `Cards:  0 pyright errors`, on stderr.
+ * The Python fixtures' compiled Python (the `py` target, `P.PyWriter`), type-checked by pyright:  see `pyright()`.
+ * - What pyright reports is a snapshot beside each fixture, one error a line:
+ *   `projects/test/<Project>/<Project>.snapshot.pyright.txt`.
+ *   So every place the type-hinted Python falls short shows there:  a change is a diff to read.
+ * - Refresh it after a deliberate change:  `yarn test:fixtures:bless`.
+ * - Each fixture's error count is printed on stderr on every run, e.g. `Cards:  0 pyright errors`.
  * - Each is checked as its own module, `cards.py`, beside the fixtures it imports.
+ * - Epic `python-target` P13.
  */
 let result: PyrightResult
 

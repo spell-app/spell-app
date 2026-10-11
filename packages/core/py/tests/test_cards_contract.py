@@ -4,7 +4,7 @@
   the contract between the writer and spell_core (plan doc python-target, P10).
 - Its tests' lines must be the JavaScript run's, character for character:
   the contract's own `Cards.out.txt` (`packages/cli/src/__snapshots__/contract/`).
-- `pause for 50 msec` is left out:  pauses are P11's.
+- `pause for 50 msec` is left out:  this program was written in P10, before pauses (P11).
 - Its `to test` methods are named without `test_`, so pytest runs them only inside `core.test()`, as spell does.
 """
 
@@ -22,15 +22,15 @@ class Card(Thing):
     """Definition of a Card with nice english aliases for working with it."""
 
     # card ranks
-    RANKS = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"]  # noqa: RUF012 -- a list, as the writer emits it
+    RANKS = ("ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king")
     rank = prop(one_of=RANKS)
 
     # card suits
-    SUITS = ["clubs", "diamonds", "hearts", "spades"]  # noqa: RUF012 -- a list, as the writer emits it
+    SUITS = ("clubs", "diamonds", "hearts", "spades")
     suit = prop(one_of=SUITS)
 
     # card direction:  up or down
-    DIRECTIONS = ["up", "down"]  # noqa: RUF012 -- a list, as the writer emits it
+    DIRECTIONS = ("up", "down")
     direction = prop(one_of=DIRECTIONS)
 
     @property

@@ -11,8 +11,11 @@ import { SP } from "$/spell"
  * - Lives in `<Project>.en.js`, beside its compiled output -- see `SP.SpellProject.wordsFile`.
  *   - As a Spell UI element keeps its words in its own vocabulary file, e.g. `UIForm.en.ts`.
  *   - Another language is another file of the same shape, e.g. `Solitaire.es.js`:  NOT written yet.
- * - Written from the declarations the compiler already gathers (`of()`), keyed by the names the writer ACTUALLY
- *   writes (`P.JSWriter.nameOf()`):  a reader never works out how a name was camelCased.
+ *   - A target with words of its own writes them as JSON, by its own names:
+ *     Python's `<Project>.py.en.json` -- see `json()`.
+ * - Written from the declarations the compiler already gathers (`of()`),
+ *   keyed by the names the writer ACTUALLY writes (`P.JSWriter.nameOf()`):
+ *   a reader never works out how a name was camelCased.
  * - The compiled code doesn't import it:  a runner loads it beside the scope pack.
  * - `script()` writes it;  `read()` reads its text back, without running it.
  */
@@ -23,12 +26,12 @@ export class SpellWords {
 
   /**
    * The words of a project with `declarations`, in English:  each member of each of its types, by its compiled name.
-   * - Methods by their wording, e.g. `move (a card) to (a pile)`;  one read as a property without its quotes,
-   *   e.g. `is face up` for `"is face up"`.
+   * - Methods by their wording, e.g. `move (a card) to (a pile)`.
+   *   One read as a property loses its quotes, e.g. `is face up` for `"is face up"`.
    * - Properties by their words as written (`asWritten`), e.g. `is-set-up`, else their name, e.g. `rank`.
    * - Left out:  top-level functions, and class variables, e.g. `Ranks` -- the Thing Explorer shows neither.
    * - Types in the order they're declared;  one with no members is left out.
-   * - `writer`:  whose names the compiled code uses -- javascript's, as that's what runs.
+   * - `writer`:  whose names the compiled code uses -- javascript's by default, as that's what runs.
    */
   static of(declarations: SP.SpellDeclarationsData, writer: SpellWordsWriter = P.JSWriter.instance): SP.SpellWordsData {
     const types: Record<string, Record<string, string>> = {}
@@ -121,8 +124,10 @@ export class SpellWords {
   }
 
   /**
-   * `words` as a target's own words file holds them, e.g. Python's `<Project>.py.en.json`:  plain JSON, keyed by that
-   * target's names (`of(declarations, writer)`), for a reader in any language (epic `python-target` P14).
+   * `words` as a target's own words file holds them, e.g. Python's `<Project>.py.en.json`.
+   * - Plain JSON, for a reader in any language.
+   * - Keyed by that target's names:  `of(declarations, writer)`.
+   * - Epic `python-target` P14.
    *
    * ```json
    * { "lang": "en", "types": { "Card": { "move_to_pile": "move (a card) to (a pile)" } } }

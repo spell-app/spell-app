@@ -8,14 +8,16 @@ import { CLI } from "$/cli"
 
 /**
  * `spell compile <project...>`:  compile each project (or lone spell file), showing progress and errors on stderr.
- * - A project:  writes `<Project>.compiled.js`, `<Project>.declarations.json` and its words, `<Project>.en.js`
- *   (`SP.SpellWords`), as the app does, plus each other
- *   target's output, e.g. `<Project>.compiled.tsx` -- see `SP.TARGETS` -- or, with `--stdout`, prints one and
- *   writes nothing.  `--target <name>`:  that target, this run, instead of `project.json`'s.
- *   A target checked by `tsc` (`ts/solid`) is checked once written:  its errors are listed, but don't fail the
- *   compile -- see `typecheckTargets()`.
- *   Compiled with no errors, it also writes `<Project>.scopes.js`, as the language server does -- see
- *   `SpellDiskWorkspace.writeScopes()`.
+ * - A project:  writes what the app does, plus each other target's output:
+ *   - `<Project>.compiled.js`, `<Project>.declarations.json`
+ *   - its words, `<Project>.en.js` (`SP.SpellWords`)
+ *   - each other target's, e.g. `<Project>.compiled.tsx` -- see `SP.TARGETS`
+ *   - `--target <name>`:  that target, this run, instead of `project.json`'s
+ *   - `--stdout`:  prints one (the target asked for, else the one that runs), and writes nothing
+ * - A target with a checker is checked once written:  `tsc` on `ts/solid`, `pyright` on `py`.
+ *   Its errors are listed, but don't fail the compile -- see `typecheckTargets()`.
+ * - Compiled with no errors, it also writes `<Project>.scopes.js`, as the language server does:
+ *   see `SpellDiskWorkspace.writeScopes()`.
  * - A `.spell` file:  prints its compiled javascript.  Writes nothing.
  * - Projects it imports that have never been compiled are compiled first -- see `CliSession.compileImports()`.
  *   `--force`:  ALL of them, even those already compiled.
@@ -91,11 +93,13 @@ async function compileProject(
 }
 
 /**
- * Each of `project`'s targets' checker on it, as just written:  `tsc` on `ts/solid`, `pyright` on `py` (epic
- * `python-target` P13).  Its errors, as lines under the project, e.g. `Solitaire.compiled.tsx:135:18  TS18048 ...`;
- * how many, by checker.
- * - Shown, NOT counted as the project's errors:  most come from the core's loose types, not the spell (epic
- *   `output-targets`, C5) -- the exit code stays the spell's.
+ * Each of `project`'s targets' checker on it, as just written:
+ * `tsc` on `ts/solid`, `pyright` on `py` (epic `python-target` P13).
+ * - Returns its errors, as lines under the project, e.g. `Solitaire.compiled.tsx:135:18  TS18048 ...`,
+ *   and how many, by checker.
+ * - Shown, NOT counted as the project's errors:
+ *   most come from the core's loose types, not the spell (epic `output-targets`, C5).
+ *   The exit code stays the spell's.
  */
 function typecheckTargets(
   session: CLI.CliSession,

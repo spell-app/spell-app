@@ -7,17 +7,21 @@ import { classes } from "./classes.parser"
 import { TypeSpecifierEnum } from "./TypeSpecifierEnum"
 
 /**
- * `value_kind` rule:  `"suits" as one of clubs, diamonds, hearts or spades` in a type's outline body:  a list of values
- * which is a KIND of thing of its own, `suit`, kept by the type the body is about (plan doc `outline-spell`, P2;  was
- * todo T7 of `precedence-and-types`).
+ * `value_kind` rule:  in a type's outline body, a list of values which is a KIND of thing of its own,
+ * kept by the type the body is about.
+ * - e.g. `"suits" as one of clubs, diamonds, hearts or spades` makes the kind `suit`
  * - So another type can say `its "suit" is a suit`, and the kind can have properties:
  *   `the "color" of a suit is: ...` -- see `property_value_getter`.
- * - SIDE EFFECT:  on the body's type, e.g. `Deck`, the class variable `Suits` and its instance twin, as
- *   `define_property_has` gives an enumerated property's;  each value a project constant;  and the kind's
- *   `P.TypeScope`, e.g. `Suit`, with `valueKind` -- claiming a stub of it, e.g. from `its "suit" is a suit` above.
+ * - SIDE EFFECT:  declares
+ *   - on the body's type, e.g. `Deck`, the class variable `Suits` and its instance twin,
+ *     as `define_property_has` gives an enumerated property's
+ *   - each value, as a project constant
+ *   - the kind's `P.TypeScope`, e.g. `Suit`, with `valueKind`:
+ *     claiming a stub of it, e.g. from `its "suit" is a suit` above
  * - Compiles to the list, then the kind's class, which holds its properties:
- *   `Deck.Suits = ['clubs', ...]` + `export class Suit {}`.  Its values stay plain text (plan doc Q10).
+ *   `Deck.Suits = ["clubs", ...]` + `export class Suit {}`.  Its values stay plain text (plan doc Q10).
  * - The name MUST be quoted:  see the registration.
+ * - Plan doc `outline-spell`, P2;  was todo T7 of `precedence-and-types`.
  */
 export class ValueKind extends SpellStatement<"values|specifier", ValueKindData> {
   @proto static priority = Priority.declaration
@@ -80,8 +84,8 @@ export class ValueKind extends SpellStatement<"values|specifier", ValueKindData>
     return pluralize(upperFirst(`${(match.groups as { values: P.Match }).values.value}`))
   }
 }
-// quoted only:  unquoted, `{values:member_words}` matches any words at a line's start, e.g. completion offered
-// `as one of ...` after `set y`
+// quoted only:  unquoted, `{values:member_words}` matches any words at a line's start,
+// e.g. completion offered `as one of ...` after `set y`
 classes.addRule(ValueKind, {
   syntax: "{values:quoted_member} {specifier:type_specifier}"
 })

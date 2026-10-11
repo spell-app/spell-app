@@ -18,8 +18,8 @@ card.to_json()  # {"@type": "Card", "rank": "queen"}
 - Setting one checks it against what `prop()` declared, and warns on `core.console` if it isn't:
   the value is set anyway, as in JavaScript.
 - Its values are kept in a plain dict, in the order they were first set:  that's the order `to_json()` writes.
-- Unlike the JavaScript core's things, nothing is reactive:  Python's page is drawn only when it's written
-  (`core.page`), so it shows each thing as it is then.
+- Unlike the JavaScript core's things, nothing is reactive:
+  Python's page (`core.page`) is drawn only when it's written, so it shows each thing as it is then.
 - The classes are known by name as soon as they're defined, so `core.from_json()` can make them again.
 - The twin of the JavaScript core's `Thing` (`classes/Thing.ts`) and `Observable` (`$/util`).
 - Imports `core` only inside functions:  `core.py` imports this module, to build `core`.
@@ -174,11 +174,11 @@ class SpellObject:
     """What a thing and a spell list share:  declared properties, set-up, their type, their JSON.
 
     - Made with keyword properties:  `Card(rank="queen", suit="spades")`.
-      Each is set as `card.rank = "queen"` would be, checked.
-      A name the class doesn't declare becomes a plain attribute, NOT a property:  `to_json()` leaves it out.
+      - each is set as `card.rank = "queen"` would be, checked
+      - a name the class doesn't declare becomes a plain attribute, NOT a property:  `to_json()` leaves it out
     - A name it doesn't declare, and nobody set, reads as nothing, `None`:  `pile.name` with no `name` declared.
-      As in spell, and JavaScript's `undefined`.
-      A dunder or `_private` name still throws `AttributeError`, as Python's own.
+      - as in spell, and JavaScript's `undefined`
+      - a dunder or `_private` name still throws `AttributeError`, as Python's own
     - Then `create()` runs, once:  spell's `to set up a card`.
     - A class is known by name as soon as it's defined:  `core.things.class_named("Card")`.
     - Equality is identity:  two cards are two cards, however alike.  `core.equals()` looks inside.

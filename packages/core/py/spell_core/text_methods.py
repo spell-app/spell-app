@@ -4,7 +4,7 @@
 core.upper_case(core.get_item_at(self.rank, 1))   # "Q" for "queen";  "" for no rank
 ```
 
-- Python's own `.upper()` is the word where the writer knows it has text.
+- Python's own `.upper()` is the word where the Python writer knows it has text.
 - The twins of the JavaScript core's `string.ts`.
 """
 
@@ -17,10 +17,14 @@ class TextMethods:
     def upper_case(self, text: object) -> str:
         """`text` as text, in UPPER CASE:  `{x} as upper case`.
 
-        - `None` is `""`, as JavaScript's `${x ?? ""}`.  Anything else as JavaScript writes it:  `True` is `TRUE`.
+        - `None` is `""`, as JavaScript's `${x ?? ""}`.
+        - Anything else as JavaScript writes it:  `True` is `TRUE`.
         """
         return "" if text is None else js_string(text).upper()
 
     def lower_case(self, text: object) -> str:
-        """`text` as text, in lower case:  `{x} as lower case`.  `None` is `""`."""
+        """`text` as text, in lower case:  `{x} as lower case`.
+
+        - `None` is `""`.
+        """
         return "" if text is None else js_string(text).lower()

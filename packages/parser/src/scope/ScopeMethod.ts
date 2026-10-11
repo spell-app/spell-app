@@ -25,8 +25,9 @@ export class ScopeMethod {
   /** Type it's a method of, e.g. `Card` -- `undefined` for a free function. */
   declare of: string | undefined
   /**
-   * Does it wait, e.g. `pause for 50 msec`?  Known for one IMPORTED (from its declarations), so a target that awaits
-   * what waits (Python's `py/asyncio`) awaits it too -- see `P.PyAsyncWriter`.
+   * Does it wait, e.g. `pause for 50 msec`?
+   * - Known for one IMPORTED (from its declarations),
+   *   so a target that awaits what waits (Python's `py/asyncio`) awaits it too -- see `P.PyAsyncWriter`.
    */
   declare waits: boolean | undefined
   /** `"static"` for a class method -- see `TypeScope.classMethods`. */

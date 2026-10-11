@@ -12,12 +12,13 @@ import { fixturePath } from "$/spell/test"
 /**
  * The real `spell` command, end to end:  `bin/spell.mjs` run as a separate process, as a user would.
  * - No terminal:  stdin / stdout are pipes, so nothing asks questions or draws screens.
- * - NEVER writes into a fixture:  compiles use `--stdout`.  Projects to break live in a temp folder -- see `tempProject()`.
+ * - NEVER writes into a fixture:  compiles use `--stdout`.
+ *   Projects to break live in a temp folder -- see `tempProject()`.
  */
 const SPELL = resolve(import.meta.dirname, "..", "bin", "spell.mjs")
 
-// each `spell` run starts node and loads spell's source through `tsx`, ~2s;  a test making two or three runs is over
-// vitest's 5s default, worse under the load of every test file at once
+// each `spell` run starts node and loads spell's source through `tsx`, ~2s;
+// a test making two or three runs is over vitest's 5s default, worse under the load of every test file at once
 vi.setConfig({ testTimeout: 30_000 })
 
 /** This checkout:  its page server is the one `spell serve` uses. */

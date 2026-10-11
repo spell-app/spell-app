@@ -22,8 +22,8 @@ const NEVER_WRITTEN = new Set([
 
 /**
  * What `PyWriter` can't write YET:  none since P10 (classes, members, objects, text, drawing).
- * - A new kind of tree node goes here until its phase writes it;  the test fails if one is written that's still
- *   listed, so the list stays true.
+ * - A new kind of tree node goes here until its phase writes it.
+ * - The test fails if one is written that's still listed, so the list stays true.
  */
 const NOT_YET = new Set<string>([])
 

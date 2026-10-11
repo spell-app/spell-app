@@ -30,7 +30,8 @@ import { Naming } from "./Naming"
  *   - Plain javascript only:  it runs as is, no build step -- so no JSX, decorators or types, which are TypeScript's
  *   - Those need to know what a value is:
  *     `kindOf()`, from what the whole project says (`forProject()`, a `WriterProject`).
- *     Shared with the TypeScript writer, so both say the same things the same way.
+ *     It's `P.ProgramWriter`'s, shared with the TypeScript and Python writers,
+ *     so each says the same things the same way.
  * - Tidy, as a person writes it, and as the TypeScript writer writes it too (P22):
  *   - `const` unless it's set again
  *   - parentheses only where javascript needs them, or a reader would want them -- see `operand()`
@@ -770,8 +771,8 @@ export class JSWriter extends ProgramWriter {
   ////////////////
 
   /**
-   * `function name(args) {...}`, or as an object property `name(args) {...}` -- `async` when it awaits, `export`
-   * when `exported`.
+   * `function name(args) {...}`, or as an object property `name(args) {...}`.
+   * - `async` when it awaits, `export` when `exported`.
    * - Inline, as an arrow:  `(card) => card.play()`, or `name: (card) => ...` as an object property -- see `arrow()`.
    * - A bare `return` in it is its own, even in a loop's body.
    * - SIDE EFFECT:  `console.warn`s if `asProperty` is set but `methodName` is missing.
@@ -1042,8 +1043,8 @@ export class JSWriter extends ProgramWriter {
   }
 
   /**
-   * `{ variables } = thing`;  new ones, `const { variables } = thing`, `let` if any is set again
-   * -- see `destructured()`.
+   * `{ variables } = thing` -- see `destructured()`.
+   * - New ones:  `const { variables } = thing`, `let` if any is set again.
    */
   ASTDestructuredAssignment(node: P.ASTDestructuredAssignment): string {
     const declarator = !node.isNewVariable ? "" : this.isReassigned(node.variables) ? "let " : "const "

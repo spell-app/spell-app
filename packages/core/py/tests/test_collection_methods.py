@@ -1,7 +1,7 @@
 """`core`'s list words on plain lists, tuples, text and dicts:  what compiled Python calls for an unknown value.
 
-- Positions from 1, or from 0 with `start_at=0`, as the JavaScript core's `collection-core.test.ts` and
-  `collection-other.test.ts` check them.
+- Positions from 1, or from 0 with `start_at=0`,
+  as the JavaScript core's `collection-core.test.ts` and `collection-other.test.ts` check them.
 - Each test uses its own `core` (`conftest.py`), except where a spell list asks the program's.
 """
 

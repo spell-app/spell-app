@@ -115,7 +115,7 @@ function Drawn({ node, onClicked }: { node: Child; onClicked: () => void }) {
 }
 
 function Plain({ node, onClicked, focused }: { node: Element; onClicked: () => void; focused: boolean }) {
-  // the page stacks these pile's cards on top of each other (position: absolute):  only the last shows
+  // the page stacks a `stacked` pile's cards on top of each other (position: absolute):  only the last shows
   const children = hasClass(node, "stacked") ? node.children.slice(-1) : node.children
   if (holdsOnlyText(node) && children.length) {
     const card = hasClass(node, "Card")

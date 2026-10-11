@@ -49,8 +49,8 @@ export { prop, state, derived, thing } from "$/util"
 export { drawn } from "./drawing"
 export { elementTagFor, type ElementDefiner, type ElementApi } from "./elements"
 // What compiled JavaScript draws with:  Solid's own `h()`, the copy core draws with (epic `output-targets` P20).
-// `import { spellCore, Thing, h } from "@spell/core"`, then `h("span", { class: "suit" }, () => this.shortSuit)`;
-// see `drawing.ts`.
+// - e.g. `import { spellCore, Thing, h } from "@spell/core"`, then `h("span", { class: "suit" }, () => this.shortSuit)`
+// - see `drawing.ts`
 export { h } from "./drawing"
 export { SPELL_CORE_MODULE, SPELL_CORE_NAMES, type SpellCore, type PropCheck } from "./spellCore.types"
 export * from "./classes"

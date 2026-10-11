@@ -1,8 +1,8 @@
 //
 //  ## Shared types for the express server.
 //
-//  NOTE: JSON payload shapes exchanged with the client live here; the file/folder helpers that
-//  produce them stay in their topical modules (`./file-utils`, `./project-utils`).
+//  NOTE: JSON payload shapes exchanged with the client live here;
+//  the file/folder helpers that produce them stay in their topical modules (`./file-utils`, `./project-utils`).
 //
 
 ////////////////
@@ -33,11 +33,11 @@ export type GetFolderContentsOptions = {
 
 /**
  * One entry in a project's `imports` list -- both on disk (`project.json`) and in `ProjectIndexJSON`.
- * - `path` -- file path relative to project, e.g. `/foo.spell` -- a leading `@` instead means it refers
- *   to another project.
+ * - `path` -- file path relative to project, e.g. `/foo.spell`.
+ *   A leading `@` instead means it refers to another project.
  * - `active` -- `true` if file should be included in compilation.
- * - `contents` -- preloaded file contents for `active` files with a preloadable extension.  `undefined`/`null`
- *   otherwise.
+ * - `contents` -- preloaded file contents for `active` files with a preloadable extension.
+ *   `undefined`/`null` otherwise.
  */
 export type ImportEntryJSON = {
   path: string
@@ -63,12 +63,12 @@ export type ProjectFileJSON = {
   /** Targets it compiles to, e.g. `["js/solid", "ts/solid"]` -- default `["js/solid"]`:  see `SP.TARGETS`. */
   targets?: string[]
   /**
-   * Where its lists start counting:  `1` (the default) or `0`, as javascript and Python do (epic `python-target` P2).
+   * Where its lists start counting:  `1` (the default), or `0` as javascript and Python do (epic `python-target` P2).
    * - Applied when compiling, on every target:  `card 0 of the deck` is its first card.
    * - Ordinal words don't follow it:  `the first card` is the first either way.
    */
   listsStartAt?: 0 | 1
-  /** Files it compiles, in order -- and, later, other projects it imports. */
+  /** Files it compiles, in order -- and other projects it imports. */
   imports: ImportEntryJSON[]
 }
 
@@ -83,9 +83,9 @@ export type ManifestEntryJSON = { created: number; modified: number; size: numbe
 export type ManifestJSON = Record<string, ManifestEntryJSON>
 
 /**
- * Response shape for `GET /api/projects/index/:projectId` (and other project-file routes that return
- * the updated index) -- see `project-utils.getIndex()`.
- * - `manifest` -- current on-disk manifest -- NOT persisted, always freshly computed from file system.
+ * Response shape for `GET /api/projects/index/:projectId` -- see `project-utils.getIndex()`.
+ * - And for other project-file routes that return the updated index.
+ * - `manifest` -- current on-disk manifest:  NOT persisted, always freshly computed from file system.
  * - `imports` -- import list, synced with `manifest` and persisted back to `project.json` when it changes.
  * - `version` / `exports` / `targets` / `listsStartAt` -- straight from `project.json`, see `ProjectFileJSON`.
  */

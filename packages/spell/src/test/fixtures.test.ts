@@ -11,10 +11,15 @@ import {
 } from "$/spell/test"
 
 /**
- * Every fixture project in `projects/test/` compiled, against its snapshot beside it:
- * `projects/test/<Project>/<Project>.snapshot.js`, and its declarations against `<Project>.snapshot.declarations.json`;
- * as TypeScript (the `ts/solid` target), against `<Project>.snapshot.tsx`;  its words against `<Project>.en.snapshot.js`.
- * - Why beside it:  a change shows up as a diff of a real `.js` file, in VS Code's Source Control.
+ * Every fixture project in `projects/test/` compiled, against the snapshots beside it,
+ * in `projects/test/<Project>/`:
+ * - `<Project>.snapshot.js`:  the javascript (`js/solid` target)
+ * - `<Project>.snapshot.declarations.json`:  its declarations
+ * - `<Project>.en.snapshot.js`:  its words
+ * - `<Project>.snapshot.tsx`:  the TypeScript (`ts/solid` target)
+ * - `<Project>.snapshot.py`, `<Project>.snapshot.asyncio.py`:  the Python (`py`, `py/asyncio` targets)
+ *   - only for the fixtures in `PYTHON_FIXTURES`
+ * - Why beside it:  a change shows up as a diff of a real `.js` or `.py` file, in VS Code's Source Control.
  * - New fixture:  copy a project into `projects/test/`, then `yarn test:fixtures:bless` writes its snapshot.
  * - Changed on purpose:  `yarn test:fixtures:bless`, then read the diff before committing it.
  * - See `compiledFixture()` for what's in each.

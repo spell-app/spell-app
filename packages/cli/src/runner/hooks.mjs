@@ -1,6 +1,6 @@
 /**
- * Node module hooks for `runProject.ts`, the child process of `spell run` / `spell test`:  they do the job of
- * the browser's import map, so compiled spell runs under node.
+ * Node module hooks for `runProject.ts`, the child process of `spell run` / `spell test`:
+ * they do the job of the browser's import map, so compiled spell runs under node.
  * - `@spell/core` => spell's runtime, `core`'s `src/index.ts` -- run through `tsx`, which loads first.
  * - `@spell/project/<id>` => that project's compiled javascript, for a project which imports another.
  * - Solid's packages => their browser builds, which the runtime draws with (`SOLID`).

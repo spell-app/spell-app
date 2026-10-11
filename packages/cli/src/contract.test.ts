@@ -16,8 +16,8 @@ import { CLI } from "$/cli"
  * - What it prints is pinned in `__snapshots__/contract/<Project>.out.txt`.
  * - So a target's core is right when it prints what the snapshot says.
  *   - `js/solid` and `ts/solid` share `@spell/core` today.
- *   - Python's core, `spell_core` (`packages/core/py`), prints the same:  the fixtures its writer writes so far,
- *     `PYTHON_FIXTURES` (epic `python-target`).
+ *   - Python's core, `spell_core` (`packages/core/py`), prints the same
+ *     for the fixtures its writer writes so far, `PYTHON_FIXTURES` (epic `python-target`).
  *   - What a core must HAVE is `SC.SpellCore` (`packages/core/src/spellCore.types.ts`).
  * - The snapshot catches a broken core method, which both targets would share.
  * - A fixture that imports another (`Klondike` imports `Cards`)
@@ -62,8 +62,9 @@ async function printed(name: string, target: string, code = compiledFixture(name
 }
 
 /**
- * Each fixture `name` imports, and what THEY import, compiled for `target` into `folder`:  by project id, its file's
- * URL, as `CLI.runCode()` takes them.  TypeScript is built first (`buildTsx()`), as `runCode()` builds its own.
+ * Each fixture `name` imports, and what THEY import, compiled for `target` into `folder`:
+ * by project id, its file's URL, as `CLI.runCode()` takes them.
+ * - TypeScript is built first (`buildTsx()`), as `runCode()` builds its own.
  */
 async function importedProjects(
   name: string,
@@ -111,8 +112,8 @@ describe("the core contract:  every target prints the same", () => {
 })
 
 /**
- * `spellCore`'s names before epic `output-targets` P16, by their new ones:  a program compiled before then calls the
- * old ones, and nothing recompiles it.  See `deprecated.ts` in `$/core`.
+ * `spellCore`'s names before epic `output-targets` P16, by their new ones:
+ * a program compiled before then calls the old ones, and nothing recompiles it.  See `deprecated.ts` in `$/core`.
  */
 const OLD_NAMES: Record<string, string> = {
   positionOf: "itemOf",

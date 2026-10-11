@@ -5,8 +5,8 @@ import { SpellConstant } from "./SpellConstant"
 
 /**
  * `known_constant` rule:  single-word constant that MUST already be known in `scope.constants` -- fails otherwise.
- * - Defined as an `expression`, unlike plain `constant`, precisely because it only matches when
- *   resolvable, so it can't spuriously eat an unrelated identifier.
+ * - Defined as an `expression`, unlike plain `constant`, precisely because it only matches when resolvable:
+ *   it can't spuriously eat an unrelated identifier.
  * - Compiles to the constant's own `output` if it set one, else a quoted string literal of its name.
  */
 export class KnownConstant extends SpellConstant {
@@ -24,8 +24,8 @@ constants.addRule(KnownConstant, {
     {
       compileAs: "known_constant", // TODO: to "expression"
       beforeEach(scope: P.Scope) {
-        // `Scope.constants` is typed narrowly (`ScopeList<ScopeConstant>`); the concrete `RootScope`
-        // accepts a plain name string or `ScopeConstantProps` too -- see report.
+        // `Scope.constants` is typed narrowly (`ScopeList<ScopeConstant>`);
+        // the concrete `RootScope` accepts a plain name string or `ScopeConstantProps` too
         const { constants } = scope as P.RootScope
         constants.add("red")
         constants.add({ name: "green", value: "#00FF00" })

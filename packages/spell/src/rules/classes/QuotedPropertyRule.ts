@@ -5,10 +5,10 @@ import { InfixOperatorSuffix, Precedence, SuffixLeft, type SpellExpressionProps 
 import { placeholderData, type QuotedPropertyFormulaBits } from "./classes.shared"
 
 /**
- * `is not? the queen of spades` -- calls a quoted property formula's generated method, e.g.
- * `card.is_the_$rank_of_$suits('queen', 'spades')`.
- * - Never registered as is:  `quoted_property_formula` makes one per formula, with
- *   `QuotedPropertyRule.specialize({ output, ruleData })`.
+ * Calls a quoted property formula's generated method:
+ * `is not? the queen of spades` => `card.is_the_$rank_of_$suits('queen', 'spades')`.
+ * - Never registered as is:
+ *   `quoted_property_formula` makes one per formula, with `QuotedPropertyRule.specialize({ output, ruleData })`.
  * - Reads ONLY its statics, so a project's declarations can rebuild it elsewhere -- see `P.Rule.specialize()`.
  */
 export class QuotedPropertyRule extends InfixOperatorSuffix {
@@ -35,11 +35,12 @@ export class QuotedPropertyRule extends InfixOperatorSuffix {
   declare thisType: P.Datatype | undefined
   /**
    * Calls generated method `output`, e.g. `is_a_$suit` -- also our `ruleName`.
-   * - `values`:  each `(var)` placeholder's enumerated values, in order, e.g. `{ suit: ["'clubs'", ...] }` --
-   *   `ruleData` is worked out from them, see `placeholderData()`.
-   * - `kinds`:  a placeholder whose values aren't known yet, by its VALUE kind, e.g. `{ suit: "Suit" }` for a card
-   *   above the deck declaring suits (plan doc `outline-spell`, P3):  its `values` are `[]`, and `parse()` checks the
-   *   word against the kind's values where the phrase is USED -- see `kindValue()`.
+   * - `values`:  each `(var)` placeholder's enumerated values, in order, e.g. `{ suit: ["'clubs'", ...] }`.
+   *   `ruleData` is worked out from them -- see `placeholderData()`.
+   * - `kinds`:  a placeholder whose values aren't known yet, by its VALUE kind,
+   *   e.g. `{ suit: "Suit" }` for a card above the deck declaring suits (plan doc `outline-spell`, P3).
+   *   Its `values` are `[]`, and `parse()` checks the word against the kind's values where the phrase is USED:
+   *   see `kindValue()`.
    * - What a project's `SPELL: DECLARES` comment holds for us -- see `SP.SpellDeclarations`.
    */
   static specialize<T extends AbstractClass<P.Rule>>(this: T, declared: P.SpecializeWith<T>): T {
@@ -60,8 +61,9 @@ export class QuotedPropertyRule extends InfixOperatorSuffix {
   }
 
   /**
-   * Match -- and for a placeholder of a value kind (see `specialize()`), only a word which is one of the kind's
-   * values, e.g. `spade` for `(suit)`, noted as `data.kindArgs` for `compileASTExpression()`.
+   * Match -- and for a placeholder of a value kind (see `specialize()`),
+   * only a word which is one of the kind's values, e.g. `spade` for `(suit)`.
+   * - Noted as `data.kindArgs`, for `compileASTExpression()`.
    * - A lookup WHERE THE PHRASE IS USED, e.g. `if the card is a spade`:  by then the kind's list is known.
    */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
@@ -80,8 +82,8 @@ export class QuotedPropertyRule extends InfixOperatorSuffix {
   }
 
   /**
-   * The value of placeholder `data`'s kind that `arg` says, as compiled, e.g. `'spades'` for `spade` --
-   * `undefined` if it's none of them, or the kind isn't known.
+   * The value of placeholder `data`'s kind that `arg` says, as compiled, e.g. `'spades'` for `spade`.
+   * - `undefined` if it's none of them, or the kind isn't known.
    */
   private static kindValue(
     scope: P.Scope,
@@ -101,12 +103,11 @@ export class QuotedPropertyRule extends InfixOperatorSuffix {
     match: P.Match,
     { lhs, rhs }: { lhs?: P.ASTExpression; rhs?: unknown }
   ): P.ASTScopedMethodInvocation {
-    // This dynamically-generated rule's syntax repeats the `expression` group name (once per
-    // `$var` in the quoted alias), and each of those groups matches a plain keyword literal with
-    // no `getAST()` -- so the shunting-yard algorithm's `compile()` helper (`CompoundExpression`
-    // in expressions/CompoundExpression.ts) leaves `rhs` as the raw `P.Match[]` rather than resolving it to an
-    // `Expression`. Neither shape is representable in `OperatorOperands`, which assumes a single
-    // already-resolved `Expression`.
+    // `rhs` is the raw `P.Match[]` here, not resolved to an `Expression`:
+    // - this generated rule's syntax repeats the `expression` group name, once per `$var` in the quoted alias
+    // - each of those groups matches a plain keyword literal, with no `getAST()`
+    // - so the shunting-yard algorithm's `compile()` helper (`CompoundExpression`, in `expressions/`) leaves it as is
+    // Neither shape (`P.Match`, `P.Match[]`) fits `OperatorOperands`, which assumes ONE already-resolved `Expression`.
     const rhsMatches = (Array.isArray(rhs) ? rhs : [rhs]) as P.Match[]
     const { kindArgs } = match.data as QuotedPropertyRuleData
     const args = rhsMatches
@@ -118,9 +119,9 @@ export class QuotedPropertyRule extends InfixOperatorSuffix {
           return new P.ASTConstantExpression(arg, { name: `${arg.value}`, value: P.spellValueOf(kindArg) })
         }
         if (typeof arg.value === "string") {
-          // Handle singular input values mapping to plural internal values
-          // `enumeration` will be: "club", "spade", etc
-          // `values` will be: `clubs`, `spades`, etc -- quoted (`'clubs'`) in older declarations
+          // Handle singular input values mapping to plural internal values:
+          // - `enumeration`:  "club", "spade", etc
+          // - `values`:  `clubs`, `spades`, etc -- quoted (`'clubs'`) in older declarations
           const { enumeration, values } = this.ruleData[index]!
           const valueIndex = enumeration.indexOf(arg.value)
           return new P.ASTConstantExpression(arg, {

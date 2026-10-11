@@ -23,10 +23,10 @@ const PY = ".py"
 const SPELL_CORE_PY_DIR = resolve(environment.spellCoreDir, "..", "py")
 
 /**
- * Run `code`, project `name` compiled to Python, as `python -m spell_core.run` -- through `uv`, in `spell_core`'s
- * own project, so its Python and `spell_core` are there (epic `python-target` P9).
- * - `projects`:  what it imports, by id:  each a `.py` module's file URL, e.g. `.../cards.py`.  Their folders go on
- *   the import path, so `from cards import Card` finds it.
+ * Run `code`, project `name` compiled to Python, as `python -m spell_core.run` (epic `python-target` P9).
+ * - Through `uv`, in `spell_core`'s own project, so its Python and `spell_core` are there.
+ * - `projects`:  what it imports, by id:  each a `.py` module's file URL, e.g. `.../cards.py`.
+ *   Their folders go on the import path, so `from cards import Card` finds it.
  * - `seed`:  its random numbers start from it, as the javascript's do.
  * - `pauses`:  `false` and a pause doesn't wait, e.g. in the core contract, where only what's printed matters.
  * - `dom`:  when it ends, print what it drew, as the javascript's fake page does (`spell_core.run --page`).
@@ -64,8 +64,8 @@ async function runPython(
 
 /**
  * `spell run [project]`:  compile one project and run it under node -- its `print`s show as they happen.
- * - What needs a browser, e.g. `start the game`, is skipped there -- see `runProject.ts` -- and the project then
- *   opens in a browser instead, until `Ctrl-C`.  See `runInBrowser()`.
+ * - What needs a browser, e.g. `start the game`, is skipped there (see `runProject.ts`),
+ *   and the project then opens in a browser instead, until `Ctrl-C`.  See `runInBrowser()`.
  * - `--browser`:  open it in a browser anyway;  `--no-browser`:  never.
  * - `--seed <n>`:  the same random numbers every run, e.g. the same deal -- see `checkSeed()`.
  * - Returns the program's exit code.
@@ -130,8 +130,9 @@ async function runProjectAs(
 }
 
 /**
- * Throw if `seed`, from `--seed`, isn't a whole number from 1 to 2,147,483,646:  the seeds `spellCore.seedRandom()`
- * gives a stream of random numbers for.  Left out is fine:  random, as in a browser.
+ * Throw if `seed`, from `--seed`, isn't a whole number from 1 to 2,147,483,646:
+ * the seeds `spellCore.seedRandom()` gives a stream of random numbers for.
+ * - Left out is fine:  random, as in a browser.
  */
 function checkSeed(seed: number | undefined): void {
   if (seed === undefined || (Number.isInteger(seed) && seed >= 1 && seed <= LARGEST_SEED)) return
@@ -142,12 +143,12 @@ function checkSeed(seed: number | undefined): void {
 const LARGEST_SEED = 2147483646
 
 /**
- * Run `project` as last compiled -- its `outputFile.contents` -- or its tests, in `runProject.ts`, a fresh node
- * process.  See `runProjectAs()`.
+ * Run `project`, or its tests, as last compiled (its `outputFile.contents`),
+ * in `runProject.ts`, a fresh node process.  See `runProjectAs()`.
  * - Its javascript goes to a temp file, removed after.
  * - `capture`:  collect the child's output, rather than streaming it to our terminal -- e.g. for `spell watch --test`.
- * - Resolves to its exit code;  with `capture`, what it wrote -- see `ChildResult`;  and, for `run`, what
- *   it skipped which needs a browser -- see `CLI.RunReport`.
+ * - Resolves to its exit code;  with `capture`, what it wrote -- see `ChildResult`;
+ *   and, for `run`, what it skipped which needs a browser -- see `CLI.RunReport`.
  */
 export async function runCompiled(
   mode: CLI.RunSpec["mode"],
@@ -162,8 +163,9 @@ export async function runCompiled(
 
 /**
  * Run `code`, project `name` compiled for any target, in `runProject.ts` -- see `runCompiled()`.
- * - `extension`:  of the temp file it runs from, `.mjs`.  A `.tsx` (the `ts/solid` target's Solid TypeScript) is
- *   built first, to a `.mjs`:  its decorators lowered and its JSX compiled by Solid's compiler -- see `buildTsx()`.
+ * - `extension`:  of the temp file it runs from, `.mjs`.
+ *   A `.tsx` (the `ts/solid` target's Solid TypeScript) is built first, to a `.mjs`:
+ *   its decorators lowered and its JSX compiled by Solid's compiler -- see `buildTsx()`.
  * - `projects`:  what it imports, by id -- see `importedOutputs()`.
  * - `dom`:  in a fake page, printing what it draws -- see `CLI.RunSpec`.
  * - `seed`:  its random numbers start from it -- see `CLI.RunSpec`.
@@ -219,8 +221,9 @@ export async function runCode(
 /**
  * How a `runProject.ts` child went -- see `runCompiled()`.
  * - `output`:  what it wrote to stdout and stderr, together, in the order it wrote them
- * - `stdout`:  only what it wrote to stdout:  the program's own output, e.g. for the core contract, which
- *   compares only this.  A dump of a thing (`print the card`) goes to stderr, see `SC.SpellConsole.printDump()`.
+ * - `stdout`:  only what it wrote to stdout, the program's own output:
+ *   e.g. for the core contract, which compares only this.
+ *   A dump of a thing (`print the card`) goes to stderr, see `SC.SpellConsole.printDump()`.
  * - `stderr`:  only what it wrote to stderr:  warnings, errors, dumps
  * - The three are empty without `capture`.
  */
@@ -243,10 +246,11 @@ export function importedOutputs(
 }
 
 /**
- * Run `runProject.ts` for `spec` in a child node process, sharing our terminal -- or, with `capture`, collecting
- * its output.  Resolves to its exit code, what it captured, and what it skipped.
+ * Run `runProject.ts` for `spec` in a child node process, sharing our terminal,
+ * or, with `capture`, collecting its output.
+ * - Resolves to its exit code, what it captured, and what it skipped.
  * - `run` gets an IPC channel, for its `CLI.RunReport`.
- * - `tsx` compiles the runner and spell's runtime, with OUR `tsconfig.json` for `~/` paths --
+ * - `tsx` compiles the runner and spell's runtime, with OUR `tsconfig.json` for the `$/` aliases,
  *   whatever the current folder.
  * - NOTE: `--verbose` reaches the child as `spec.verbose`:  ITS console isn't guarded, see `consoleGuard.ts`.
  */

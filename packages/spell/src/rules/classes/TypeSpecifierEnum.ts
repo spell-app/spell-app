@@ -3,9 +3,10 @@ import { P } from "$/parser"
 import { classes } from "./classes.parser"
 
 /**
- * `type_specifier_enum` rule:  `as either red or black` / `as one of clubs, diamonds, hearts, spades` -- specifies a
- * property's allowed values as an enumeration, for use by `define_property_has` below.
- * - Compiles (via `getAST()`) to a `P.ASTEnumeration` array literal, e.g. `['red', 'black']`.
+ * `type_specifier_enum` rule:  specifies a property's allowed values as an enumeration,
+ * for use by `define_property_has`.
+ * - e.g. `as either red or black`, `as one of clubs, diamonds, hearts, spades`
+ * - Compiles (via `getAST()`) to a `P.ASTEnumeration` array literal, e.g. `["red", "black"]`.
  */
 export class TypeSpecifierEnum extends P.Sequence<"enumeration"> {
   @proto static alias = "type_specifier"
@@ -21,11 +22,12 @@ export class TypeSpecifierEnum extends P.Sequence<"enumeration"> {
 }
 
 /**
- * An enumeration's value as spell's scopes keep it:  spell's own, `clubs`, `2` -- no quotes, so each writer
- * quotes it its own way (epic `python-target` P3, output-targets' T4;  it was `'clubs'`, javascript's).
+ * An enumeration's value as spell's scopes keep it:  spell's own, `clubs`, `2`.
+ * - No quotes, so each writer quotes it its own way (epic `python-target` P3, output-targets' T4).
+ *   It was `'clubs'`, javascript's.
  * - Every item here comes from `identifier_list`, which only ever matches `known_variable`, `constant` or `number`
- *   leaves -- all `Literal` subclasses whose `compile()` returns the underlying primitive value, but the base
- *   `ASTNode.compile()` is typed as `unknown`.
+ *   leaves:  all `Literal` subclasses whose `compile()` returns the underlying primitive value.
+ *   But the base `ASTNode.compile()` is typed as `unknown`.
  */
 function valueOf(literal: P.ASTExpression): string | number {
   return P.spellValueOf(literal.compile() as string | number)

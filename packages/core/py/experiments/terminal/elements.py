@@ -2,7 +2,7 @@
 The element tree a spell program's `to draw` methods make, as a TREE rather than HTML text.
 
 Epic `python-target`, P15 · Terminal Drawing Study:  a prototype, not part of spell_core.
-- P12's `h()` (spell_core) turns each element into HTML text at once.
+- spell_core's own `h()` (P12) turns each element into HTML text at once.
 - This one keeps the element:  its tag, its props (`class`, `onClick` ...) and its children.
   - So one tree can be drawn three ways:  as HTML (`to_html()`, below), with Rich, or with Textual.
 - The calls are the ones the Python writer makes (PyWriter's `ASTJSXElement()`):
@@ -10,8 +10,8 @@ Epic `python-target`, P15 · Terminal Drawing Study:  a prototype, not part of s
       h("div", {"class": "Pile Tableau staggered"}, draw_items(self))
       h("thead", h("tr", ...))          # no props:  the children come straight after the tag
 
-- `on()` / `trigger()` stand in for spell's events (`on card-click with a card`, `fire event card-click ...`),
-  which spell_core doesn't have yet.
+- `on()` / `trigger()` stand in for spell's events (`on card-click with a card`, `fire event card-click ...`):
+  spell_core had none when this study was written (P11 added them).
 """
 
 from __future__ import annotations
@@ -106,7 +106,7 @@ def draw_items(items: Iterable[Any]) -> list[Element]:
 
 
 def to_html(node: Element | str) -> str:
-    """The tree as HTML text, as P12's `h()` writes it:  handlers left out, since a page can't call them back."""
+    """The tree as HTML text, as spell_core's `h()` writes it:  handlers left out, since a page can't call them back."""
     if isinstance(node, str):
         return escape(node)
     attrs = "".join(

@@ -7,13 +7,18 @@ import environment from "$/spell/node/environment"
 import { nodeBinary } from "$/spell/node/typecheck"
 
 /**
- * `pyright` on compiled spell's Python (the `py` target):  what it says is wrong, by file (epic `python-target` P13).
- * - Checked against `spell_core`'s source (`packages/core/py`), Python 3.12, pyright's `basic` mode:  what VS Code's
- *   Python extension checks by default.
- * - `files`:  each module's file name, e.g. `solitaire.py` or `cards.py`, and its code.  Written to a temp folder,
- *   checked together, so one may import another (`from cards import Card`).
+ * Type-check compiled spell's Python (the `py` target) with pyright:  the errors it finds, by file.
+ * - `files`:  each module's file name and its code, e.g. `solitaire.py` or `cards.py`.
+ *   They're written to a temporary folder and checked together,
+ *   so one may import another (`from cards import Card`).
+ * - Checked:
+ *   - against `spell_core`'s source (`packages/core/py`)
+ *   - as Python 3.12
+ *   - in pyright's `basic` mode, what VS Code's Python extension checks by default
  * - Used by spell's `python.test.ts`, as `typecheck()` is for TypeScript.
- * - NODE-ONLY:  runs the workspace's `pyright` (an npm package:  no Python needed to check) in a child process.
+ * - NODE-ONLY:  runs the workspace's `pyright` in a child process.
+ *   It's an npm package, so checking needs no Python.
+ * - Epic `python-target` P13.
  */
 export function pyright(files: Record<string, string>): PyrightResult {
   const folder = mkdtempSync(join(tmpdir(), "spell-pyright-"))

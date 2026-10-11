@@ -15,8 +15,9 @@ Epic `python-target`, P15 · Terminal Drawing Study.
   - `<tr>`:  a row, its cells side by side
   - an element holding only text (`<div class="Card">Q <span>♠️</span></div>`):  one line of styled text
   - anything else (`<div>`, `<table>`, `<td>` ...):  a box, its children one under another
-  - each keeps its classes, and gets its tag as one more (`el-td`):  so the style sheet below, Textual's own CSS,
-    picks them out as `styles.css` does the page's (`.Card.red`, `.Pile.stacked`)
+  - each keeps its classes, and gets its tag as one more (`el-td`),
+    so the style sheet below (Textual's own CSS) picks them out
+    as `styles.css` does the page's (`.Card.red`, `.Pile.stacked`)
 - A click calls the element's `onClick`, as the page does:  a card's fires `card-click` with the card.
   - Then the whole board is drawn again, since this tree doesn't track what changed (Solid's does, on the page).
 """

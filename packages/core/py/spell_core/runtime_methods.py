@@ -1,9 +1,9 @@
 """`core`'s side of the running program:  its events, its processes, and pauses (epic python-target, P11).
 
 - The twin of the JavaScript core's `runtime.ts` and `ui.ts`'s `pauseFor()`.
-- A pause sleeps:  compiled Python is plain functions, not `async` (decision Q3);  the `py/asyncio` target waits with
-  `asyncio.sleep()` instead.  `core.pauses = False` skips them, e.g. in a test run (`python -m spell_core.run
-  --no-pauses`).
+- A pause sleeps:  compiled Python is plain functions, not `async` (decision Q3).
+  - The `py/asyncio` target waits with `asyncio.sleep()` instead.
+  - `core.pauses = False` skips them, e.g. in a test run (`python -m spell_core.run --no-pauses`).
 - Processes are names with a flag, "!" (running alone) or a count:  `start exclusive process deal the cards`.
 """
 
@@ -47,9 +47,9 @@ class RuntimeMethods:
         self.RUNTIME = SpellRuntime()
 
     async def sleep(self, number: float, units: str = "seconds") -> None:
-        """Wait `number` `units` without stopping the program's other work:  the `py/asyncio` target's pause,
-        `await core.sleep(50, "msec")`.
+        """Wait `number` `units` without stopping the program's other work:  `await core.sleep(50, "msec")`.
 
+        - The `py/asyncio` target's pause.
         - As `pause_for()`:  an unknown unit is seconds;  no wait at all when `pauses` is off.
         """
         if not self.pauses:
@@ -108,7 +108,7 @@ class RuntimeMethods:
         return self.get_runtime_state("process_flags", dict)
 
     def start_process(self, name: str, exclusively: str | None = None) -> None:
-        """Start process `name`:  `"EXCLUSIVE"` running alone, else one more of it running."""
+        """Start process `name`:  running alone when `exclusively` (`"EXCLUSIVE"`), else one more of it running."""
         flags = self.get_process_flags()
         if exclusively:
             flags[name] = "!"
