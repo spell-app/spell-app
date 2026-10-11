@@ -45,7 +45,7 @@ Owen has lost the thread:  hand it back in one screen.
   - A branch from before 2026-10-02 still has it under `plans/<name>/`.
   - `spell dev plan-doc summary <name> --json`:
     phases with status, next phase, open questions / issues / caveats / todos
-  - its links:  `spell dev docs link <ABSOLUTE path> --hash <id>`:  the side bar link, then `(_browser_)`
+  - its links:  `spell dev docs link <ABSOLUTE path> --hash <id>`:  the side bar link, then `• 🌐` (browser)
 - `/bedtime` run:  `spell dev plan-doc summary <name> --json`, `bedtime`.
   - The phases it's running (`P3-P6`) while it goes;  `null` once it's over.
   - What it decided shows red in the doc (judgement calls, issues).

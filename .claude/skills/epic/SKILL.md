@@ -57,7 +57,7 @@ Plan, then build, in worktree `<name>`, keeping the PLAN DOC current the whole t
 - Naming a doc in a reply (the plan doc, a durable doc, any `packages/docs` page):
   paste what `spell dev docs link` prints, run in the checkout the doc is in.
   - In full:  `spell dev docs link <ABSOLUTE path> --hash <id> [--text "..."]`.
-  - It prints the side bar link, then `(_browser_)`
+  - It prints the side bar link, then `• 🌐` (the browser link)
     ([the details skill](.claude/skills/details/SKILL.md), "Links to pages").
   - `--hash`:  the id of what you mean (`p2`, `q3`, `t4`).
   - A worktree's doc goes on the MAIN server when that one has the route, else the worktree's own.
