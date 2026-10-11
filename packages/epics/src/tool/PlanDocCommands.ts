@@ -130,7 +130,8 @@ export class PlanDocCommands {
         return this.edit(file, (plan) =>
           plan.addPhaseUpdate(
             Number(need(rest[0], "a phase number")),
-            flags.file ? readFileSync(flags.file as string, "utf8") : need(rest[1], "what changed (html)")
+            flags.file ? readFileSync(flags.file as string, "utf8") : need(rest[1], "what changed (html)"),
+            { summary: typeof flags.summary === "string" ? flags.summary : undefined }
           )
         )
       case "standing":
@@ -807,8 +808,11 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    PN, the to-do phases from N on (and links to them) move down
   phase-body <name> <N> [--symptom html] [--changes html] [--goal html] [--files html] [--verify html]
                                                    set (or "" removes) a phase's body fields
-  updated <name> <N> "html" | --file path          a change to phase N's plan, in its Plan changes box (kept;
-                                                   while N isn't done, its folded title says it changed)
+  updated <name> <N> "html" | --file path [--summary "..."]
+                                                   a change to phase N's plan:  an <epic-update> block at the
+                                                   end of its description, "Update: <summary>" and the date
+                                                   (summary:  the html's first sentence unless given);  kept;
+                                                   while N isn't done, its folded title says it changed
   rename <name> <P6 | id> "New title" [--html]     retitle a phase or an item;  links to it that say the old
                                                    title ("P6 · Old", "Old") say the new one;  logged;
                                                    --html (last):  the title is HTML (<code> ...)
@@ -818,7 +822,8 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    field (spell epic file writes it;  epic epic-workflow)
   estimate <name> <N> "1-2h"                       set a phase's estimate;  the Overview's total follows
   phase <name> <N> todo|active|done [--done html] [--no-open]
-                                                   set a phase's status;  done drops its UPDATE markers, and
+                                                   set a phase's status;  done drops its UPDATE markers
+                                                   (labels, prose updates;  its plan changes stay), and
                                                    --done writes its Done field (a <ul> of what was built);
                                                    brings the doc forward in VS Code (it updates itself)
   add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details html] [--calm]

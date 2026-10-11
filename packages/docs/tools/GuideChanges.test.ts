@@ -84,14 +84,16 @@ describe("GuideChanges.gather()", () => {
     expect(changes.waiting()).toEqual([])
   })
 
-  test("a page with its phase still open gets an Updated block;  another page its own phase;  one page alone", async () => {
+  test("a page with its phase still open gets an update;  another page its own phase;  one page alone", async () => {
     const more = comment("guides/memory/memory.html", "And the second table?")
     const other = comment("guides/plain.html", "A picture here")
     expect(await changes.gather(["guides/plain.html"])).toMatchObject([{ page: "guides/plain.html", phase: 2 }])
     expect(await changes.gather()).toMatchObject([
       { page: "guides/memory/memory.html", phase: 1, as: "update", comments: [more] }
     ])
-    expect(epicText()).toMatch(/<epic-updated[^>]*>[\s\S]*1 comment more from Owen[\s\S]*And the second table\?/)
+    expect(epicText()).toMatch(
+      /<epic-update[^>]*summary="1 comment more from Owen"[^>]*>[\s\S]*1 comment more from Owen[\s\S]*And the second table\?/
+    )
     expect(other).toBe("cm1")
   })
 })

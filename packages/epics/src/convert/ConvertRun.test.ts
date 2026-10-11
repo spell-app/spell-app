@@ -102,8 +102,9 @@ describe("ConvertRun", () => {
     expect(upgraded!.conversion).toMatchObject({ pass: 2, problems: [], proof: { clean: true } })
     expect(upgraded!.written.length).toBe(11)
     expect(ConvertRun.report([upgraded!])).toEqual([
+      // an UPDATE note moved after the prose it's about (`updates-as-epic-update`):  its unit reordered, nothing lost
       expect.stringMatching(
-        /^ok {4}converted \(second pass\):  ids \d+, links \d+, words \d+;  split -> 10 parts;  \d+ notes;  wrote 11$/
+        /^ok {4}converted \(second pass\):  ids \d+, links \d+, words \d+;  split -> 10 parts;  1 units reordered;  \d+ notes;  wrote 11$/
       ),
       expect.stringMatching(/^ {6}5 net effect, 3 question, .*;  kept:  2 net effect in other words, /),
       "",

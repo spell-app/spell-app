@@ -111,8 +111,12 @@ describe("Converter.convert():  the newest layout, split", () => {
     const children = (id: string) =>
       Array.from(document.querySelector(id)!.children, (it) => it.getAttribute("name") ?? it.localName)
     expect(children("#p1")).toEqual(["goal", "done", "epic-commit", "files", "verify", "to-review"])
-    expect(children("#p2")).toEqual(["symptom", "changes", "epic-updated", "files", "verify"])
-    expect(data(document, "#p2 > epic-updated")).toEqual({ at: "2026-10-06 14:30", phase: 1 })
+    expect(children("#p2")).toEqual(["symptom", "changes", "epic-update", "files", "verify"])
+    expect(data(document, "#p2 > epic-update")).toEqual({
+      at: "2026-10-06 14:30",
+      phase: 1,
+      summary: "moved the log first"
+    })
     expect(document.querySelector("#p1 epic-commit")!.getAttribute("sha")).toBe(
       "2c71ac57aaaabbbbccccddddeeeeffff00001111"
     )
@@ -123,13 +127,13 @@ describe("Converter.convert():  the newest layout, split", () => {
     expect(document.querySelector("#phases > ui-progress, #phases > ui-message")).toBeNull()
   })
 
-  test("Plan changes:  the old box dropped;  each phase's lines in its `changes` slot, counted, as the tool writes them", async () => {
+  test("Plan changes:  the old box dropped;  each phase's lines <epic-update>s at the end of its description, counted", async () => {
     const conversion = await convert("split/split.plan.html")
     const document = whole(conversion)
-    expect(document.querySelectorAll("#phases > epic-updated")).toHaveLength(0)
-    const lines = document.querySelectorAll("#p2 > epic-updated[slot='changes']")
+    expect(document.querySelectorAll("#phases > epic-updated, epic-updated")).toHaveLength(0)
+    const lines = document.querySelectorAll("#p2 > epic-update")
     expect(Array.from(lines, (line) => [Markup.read(line), line.textContent!.trim()])).toEqual([
-      [{ at: "2026-10-06 14:30", phase: 1 }, "moved the log first"]
+      [{ at: "2026-10-06 14:30", phase: 1, summary: "moved the log first" }, "moved the log first"]
     ])
     // the count in the skeleton, not a part:  the folded phase's title says its plan changed
     expect(document.querySelector("#p2")!.getAttribute("changes")).toBe("1")

@@ -1,8 +1,10 @@
 /**
  * Check P10's page header and section tools on preview copies (`preview-epics/<name>/`), in a real browser:  the
  * review line, the step label (the state in it), the Phases section's `open/all` badge (against the items and phases in
- * the doc), the state filter (a chip hides its items and says how many), and the phases' plan changes:  no box above
- * the phases (Owen, 2026-10-11), each changed phase's pen while it isn't done, and the first one's own Plan changes box.
+ * the doc), the state filter (a chip hides its items and says how many), and the phases' plan changes (Owen,
+ * 2026-10-11:  "lose the "Plan changes" surround"):  no box above the phases nor in a phase, each changed phase's pen
+ * while it isn't done, and the first one's `<epic-update>` blocks after its Goal, each `Update: <summary>` with its
+ * date on the title row's right.
  * Usage (from the repo root):
  *   node packages/epics/demo/check-header-epics.mjs [--doc <name>]... [outDir]
  * - the docs:  `review-review` (plan changes) and `epic-components` (items in every state) unless named
@@ -113,7 +115,7 @@ async function check(doc) {
       summary[where] = facts.summary
       for (const problem of facts.problems) problems.push(`${where}:  ${problem}`)
 
-      // the Phases section, open:  no Plan changes box above the phases (Owen, 2026-10-11);  each phase's own instead
+      // the Phases section, open:  no Plan changes box above the phases, nor in one (Owen, 2026-10-11)
       await page.evaluate(() => document.querySelector("#phases").setAttribute("open", ""))
       await page.waitForTimeout(600)
       const marks = await page.evaluate(() => {
@@ -131,28 +133,48 @@ async function check(doc) {
         return { found, first: first?.id ?? null }
       })
       for (const problem of marks.found) problems.push(`${where}:  ${problem}`)
-      // the first changed phase still to do, open:  its Plan changes box, atop its body, in the window
+      // the first changed phase still to do, open:  its `<epic-update>` blocks, each its own, its date in the window
       if (marks.first) {
         await page.evaluate((id) => document.getElementById(id).setAttribute("open", ""), marks.first)
         await page.waitForFunction(
-          (id) => document.getElementById(id).shadowRoot.querySelector('[part~="changes"]'),
+          (id) => document.getElementById(id).querySelector(":scope > epic-update")?.shadowRoot?.querySelector("time"),
           marks.first,
           { timeout: 10_000 }
         )
-        const box = await page.evaluate((id) => {
+        await page.waitForTimeout(300)
+        const drawn = await page.evaluate((id) => {
           const phase = document.getElementById(id)
-          const drawn = phase.shadowRoot.querySelector('[part~="changes"]')
-          const lines = phase.querySelectorAll(':scope > epic-updated[slot="changes"]').length
+          const updates = Array.from(phase.querySelectorAll(":scope > epic-update"))
           return {
-            lines,
-            count: drawn.querySelector(".count")?.textContent ?? "",
-            right: drawn.getBoundingClientRect().right
+            box: Boolean(phase.shadowRoot.querySelector('[part~="changes"], .changes')),
+            count: phase.getAttribute("changes"),
+            updates: updates.map((update) => {
+              const title = update.shadowRoot.querySelector('[part~="title"]')
+              const time = update.shadowRoot.querySelector('[part~="time"]')
+              const titleBox = title.getBoundingClientRect()
+              const timeBox = time?.getBoundingClientRect()
+              return {
+                title: title.textContent,
+                after: update.previousElementSibling?.getAttribute("name") ?? update.previousElementSibling?.localName,
+                right: timeBox?.right ?? 0,
+                onFirstLine: timeBox ? Math.abs(timeBox.top - titleBox.top) < 6 : false
+              }
+            })
           }
         }, marks.first)
-        if (String(box.lines) !== box.count)
-          problems.push(`${where}:  #${marks.first}'s box counts ${box.count}, holds ${box.lines}`)
-        if (box.right > width + 0.5) problems.push(`${where}:  #${marks.first}'s Plan changes box runs past the window`)
-        await page.locator(`#${marks.first}`).scrollIntoViewIfNeeded()
+        if (drawn.box) problems.push(`${where}:  #${marks.first} draws a Plan changes box`)
+        if (String(drawn.updates.length) !== drawn.count)
+          problems.push(`${where}:  #${marks.first} counts ${drawn.count}, holds ${drawn.updates.length} updates`)
+        for (const [index, update] of drawn.updates.entries()) {
+          const which = `#${marks.first}'s update ${index + 1}`
+          if (!/^Update(: .+)?$/.test(update.title)) problems.push(`${where}:  ${which} is titled "${update.title}"`)
+          if (index === 0 && !["goal", "epic-reply", "requests", "changes", "symptom"].includes(update.after))
+            problems.push(`${where}:  ${which} comes after ${update.after}, not the phase's description`)
+          if (!update.onFirstLine) problems.push(`${where}:  ${which}'s date isn't on its title's first line`)
+          if (update.right > width + 0.5) problems.push(`${where}:  ${which}'s date runs past the window`)
+        }
+        summary[where].updates = drawn.updates.map((update) => update.title)
+        await page.locator(`#${marks.first} > epic-update`).first().scrollIntoViewIfNeeded()
       } else await page.locator("#phases").scrollIntoViewIfNeeded()
       summary[where].changed = marks.first
       await page.screenshot({ path: name("phases") })

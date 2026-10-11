@@ -2,13 +2,15 @@
  * BLOCK ANCHORS:  where a COMMENT sits on its page (epic `airplane`, P11).
  * - A comment is Owen's, on one MAJOR BLOCK of a docs page or plan doc (`BLOCK_KINDS`):
  *   - a docs page's:  a section, a table, an aside, a code block, a message, a set of cards or steps, a top-level list
- *   - a plan doc's:  an item, a phase's field, the summary, Overview prose, and its tables, asides and code
+ *   - a plan doc's:  an item, a phase's field, an update (`<epic-update>`, even inside an item or a field), the
+ *     summary, Overview prose, and its tables, asides and code
  *   - or the whole page (`PAGE_ANCHOR`)
  * - Its ANCHOR finds that block again, also after the page changed:
  *   - the block's own `id`, when it has one (every section and plan item has)
- *   - else the nearest CONTAINER's id (a section, a phase, an Overview part:  `CONTAINERS`), the block's kind and its
- *     place among that container's blocks of that kind:  `memory#table-2`, the second table of section `memory`;
- *     `p3#field-2`, phase 3's second field;  `page#list-1` before the first section
+ *   - else the nearest CONTAINER's id (a section, a phase, an Overview part, an item:  `CONTAINERS`), the block's kind
+ *     and its place among that container's blocks of that kind:  `memory#table-2`, the second table of section
+ *     `memory`;  `p3#field-2`, phase 3's second field;  `p3#update-1`, its first update;  `page#list-1` before the
+ *     first section
  *   - plus an EXCERPT, its first words (`excerptOf()`):  a block that moved within the page is found by them
  *     (`findBlock()`)
  * - A comment on SELECTED TEXT keeps the text (`quote`) and where it starts in its block's text (`offset`,
@@ -20,12 +22,14 @@
 /**
  * The major blocks of a page, by kind:  `[kind, selector]`, the first match naming an element's kind.
  * - only the OUTERMOST counts:  a table in an aside is the aside's, a list in a plan item the item's;
- *   docs sections nest, so every one counts
+ *   docs sections nest, so every one counts;  so do updates (`NESTED_BLOCKS`)
+ * - an update:  `<epic-update>` drawn as a block, with its date (`at`);  a bare UPDATE label isn't one
  */
 export const BLOCK_KINDS = [
   ["section", "ui-section"],
   ["item", "epic-item"],
   ["field", "epic-field"],
+  ["update", "epic-update[at]"],
   ["summary", "epic-summary"],
   ["prose", "epic-section > p, epic-overview > p"],
   ["table", "ui-table, table"],
@@ -38,7 +42,7 @@ export const BLOCK_KINDS = [
 ]
 
 /** What a block's anchor counts from:  the nearest of these with an id (docs sections, plan doc parts). */
-export const CONTAINERS = "ui-section[id], epic-overview[id], epic-section[id], epic-phase[id]"
+export const CONTAINERS = "ui-section[id], epic-overview[id], epic-section[id], epic-phase[id], epic-item[id]"
 
 /** The anchor of a comment on the whole page;  its block is the sticky page header (`pageHeadIn()`). */
 export const PAGE_ANCHOR = "page"
@@ -49,6 +53,12 @@ export const EXCERPT_LENGTH = 80
 /** Any major block. */
 const ANY_BLOCK = BLOCK_KINDS.map(([, selector]) => selector).join(", ")
 
+/**
+ * Blocks that count even inside another block (Owen, 2026-10-11:  updates are "bullhorn-able"):  an update in an
+ * item's details or a phase's field gets its own bullhorn, beside its item's or field's.
+ */
+const NESTED_BLOCKS = "epic-update[at]"
+
 /** A block that holds its own blocks:  every kind but a docs section. */
 const OUTER_BLOCK = BLOCK_KINDS.filter(([kind]) => kind !== "section")
   .map(([, selector]) => selector)
@@ -57,7 +67,7 @@ const OUTER_BLOCK = BLOCK_KINDS.filter(([kind]) => kind !== "section")
 /** Not the page's own content:  its header, notes, what the runtime adds (comments, bullhorns ...). */
 const NOT_CONTENT = "spell-notes, [data-spell-added], .spell-page-head, ui-sticky.spell-h1, nav, footer"
 
-/** A plan doc's parts that aren't its text:  the log, commits, the plan changes box's copies. */
+/** A plan doc's parts that aren't its text:  the log, commits, an older doc's plan changes copies. */
 const NOT_PLAN_TEXT = "epic-event, epic-commit, epic-updated[slot], [slot='status']"
 
 /** A positional anchor:  `<container id | page>#<kind>-<n>`. */
@@ -73,7 +83,7 @@ export function blocksIn(main) {
   return Array.from(main.querySelectorAll(ANY_BLOCK)).filter((element) => {
     if (element.closest(NOT_CONTENT) || element.closest(NOT_PLAN_TEXT)) return false
     const outer = element.parentElement?.closest(OUTER_BLOCK)
-    return !outer || !main.contains(outer)
+    return !outer || !main.contains(outer) || element.matches(NESTED_BLOCKS)
   })
 }
 

@@ -7,6 +7,7 @@ import { expectAccessible } from "$/ui/test/A11y"
 import "$/ui/components/ui-section"
 import "$/epics/components/epic-section"
 import "$/epics/components/epic-phase"
+import "$/epics/components/epic-update"
 
 /** `host`'s inner `<ui-section>`. */
 function inner(host: Element): E.DOMElement {
@@ -69,61 +70,52 @@ describe("<epic-phase>", () => {
   })
 })
 
-describe("<epic-phase> plan changes (epic `epic-workflow` P6)", () => {
-  /** A phase of `status`, its plan changed twice:  `changes="2"`, and (`lines`) the two lines loaded. */
+describe("<epic-phase> plan changes (Owen, 2026-10-11:  no Plan changes surround)", () => {
+  /** A phase of `status`, its plan changed twice:  `changes="2"`, and (`lines`) the two updates loaded. */
   function changed(status: string, { lines = true } = {}) {
     const body = lines
-      ? `<epic-field name="symptom">Broken.</epic-field>` +
-        `<epic-updated slot="changes" at="2026-10-07 10:00" phase="1"><p>Split it.</p></epic-updated>` +
-        `<epic-updated slot="changes" at="2026-10-08 11:00" phase="1"><p>Joined again.</p></epic-updated>`
+      ? `<epic-field name="symptom">Broken.</epic-field><epic-field name="goal">Fixed.</epic-field>` +
+        `<epic-update at="2026-10-07 10:00" summary="Split it" phase="1"><p>Split it.</p></epic-update>` +
+        `<epic-update at="2026-10-08 11:00" summary="Joined again" phase="1"><p>Joined again.</p></epic-update>`
       : ""
     return `<epic-phase id="p2" title="Two" status="${status}" changes="2" open>${body}</epic-phase>`
   }
 
-  test("its lines in a Plan changes box atop its body:  open while it isn't done, folding by its heading", async () => {
+  test("its updates are plain children, each its own block after Goal:  no box around them", async () => {
     const host = await render(changed("todo"))
-    const box = host.shadowRoot!.querySelector('[part~="changes"]')!
-    expect(box.textContent!.replace(/\s+/g, " ").trim()).toBe("Plan changes2")
-    for (const line of host.querySelectorAll("epic-updated")) expect(line.assignedSlot?.name).toBe("changes")
-    // a pen in the box's heading and in the title's mark:  one glyph node each (a node shows in one place);
-    // the icon pack loads first
-    await vi.waitFor(() =>
-      expect([box.querySelector(".icon svg"), host.shadowRoot!.querySelector('[part~="changed"] svg')]).not.toContain(
-        null
-      )
-    )
-    // atop its body:  before the slot of its fields
-    const body = host.shadowRoot!.querySelector('[part~="body"]')!
-    expect(box.compareDocumentPosition(body.querySelector("slot:not([name])")!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
-    const heading = box.querySelector("button")!
-    expect(heading.getAttribute("aria-expanded")).toBe("true")
-    heading.click()
+    expect(host.shadowRoot!.querySelector('[part~="changes"], .changes')).toBeNull()
+    const updates = Array.from(host.querySelectorAll("epic-update"))
+    for (const update of updates) expect(update.assignedSlot?.name).toBe("")
     await ElementFixture.tick()
-    expect(heading.getAttribute("aria-expanded")).toBe("false")
-    expect(box.querySelector(".changes-body")!.getAttribute("hidden")).toBe("until-found")
+    expect(updates.map((update) => update.shadowRoot!.querySelector('[part~="title"]')!.textContent)).toEqual([
+      "Update: Split it",
+      "Update: Joined again"
+    ])
     await expectAccessible(host)
   })
 
-  test("its title says its plan changed while it isn't done, folded too (`changes`, its lines not loaded)", async () => {
+  test("its title says its plan changed while it isn't done, folded too (`changes`, its updates not loaded)", async () => {
     const host = await render(changed("active", { lines: false }))
     const mark = host.shadowRoot!.querySelector('[part~="changed"]')!
     expect(mark.textContent).toBe("2")
     await vi.waitFor(() => expect(mark.querySelector("svg")).not.toBeNull())
-    expect(mark.getAttribute("title")).toContain("2 × Updated")
-    expect(host.shadowRoot!.querySelector('[part~="changes"]')).toBeNull()
+    expect(mark.getAttribute("title")).toContain("2 × Update")
     host.setAttribute("status", "done")
     await ElementFixture.tick()
     expect(host.shadowRoot!.querySelector('[part~="changed"]')).toBeNull()
   })
 
-  test("a done phase:  no mark;  its box folded to start (history);  collapse-all folds an open one", async () => {
-    const done = await render(changed("done"))
-    expect(done.shadowRoot!.querySelector('[part~="changed"]')).toBeNull()
-    expect(done.shadowRoot!.querySelector('[part~="changes"] button')!.getAttribute("aria-expanded")).toBe("false")
-    const todo = await render<E.DOMElement & { component: { collapseAll(): number } }>(changed("todo"))
-    todo.component.collapseAll()
-    await ElementFixture.tick()
-    expect(todo.shadowRoot!.querySelector('[part~="changes"] button')!.getAttribute("aria-expanded")).toBe("false")
+  test('an older doc\'s lines (`slot="changes"`) still show, unboxed, at the end of its body', async () => {
+    const host = await render(
+      `<epic-phase id="p2" title="Two" status="todo" open><epic-field name="goal">Fixed.</epic-field>` +
+        `<epic-updated slot="changes" at="2026-10-07 10:00" phase="1"><p>Split it.</p></epic-updated></epic-phase>`
+    )
+    const line = host.querySelector("epic-updated")!
+    expect(line.assignedSlot?.name).toBe("changes")
+    const body = host.shadowRoot!.querySelector('[part~="body"]')!
+    expect(body.querySelector("slot:not([name])")!.compareDocumentPosition(line.assignedSlot!)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    )
   })
 })
 
@@ -167,8 +159,8 @@ describe("<epic-field>", () => {
   })
 })
 
-describe("<epic-updated>", () => {
-  test("fenced:  its icon, `Updated`, its time to the minute (`10/6/26 14:30`) and the phase, then its prose", async () => {
+describe("<epic-updated> (retired:  migrated to <epic-update>)", () => {
+  test("an older doc's, fenced:  its icon, `Updated`, its time to the minute (`10/6/26 14:30`) and the phase, then its prose", async () => {
     const host = await render(`<epic-updated at="2026-10-06T14:30:12" phase="3"><p>Changed.</p></epic-updated>`)
     const label = host.shadowRoot!.querySelector('[part~="label"]')!
     expect(label.textContent!.replace(/\s+/g, " ").trim()).toBe("Updated 10/6/26 14:30during P3")

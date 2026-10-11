@@ -11,8 +11,8 @@ import { PART_COMMENT, PART_EXT, PART_SOURCE, PARTS_DIR, PlanParts, type PartRea
  * `PlanParts`).
  * - hosts (`HOSTS`):  an Overview sub-section, a phase, an item with details, the log.  A host's body is every child
  *   but its slotted ones (`slot="title"`):  the title stays in the skeleton, so the line shows without the body
- *   - but a phase's plan changes (`<epic-updated slot="changes">`) are body:  bulky, drawn only once it's open;
- *     its `changes` count, in the skeleton, says so while it's folded
+ *   - but an older doc's plan changes (`<epic-updated slot="changes">`, until migrated) are body all the same;
+ *     a phase's `changes` count, in the skeleton, says it changed while it's folded
  * - in the skeleton a host carries `source="parts/<id>.html"`, `part-ids` (the ids inside, so a link to one loads the
  *   body first) and `commits` (its body lists commits):  set through `Markup`, never by hand.  No placeholder line:
  *   a `<p>` isn't allowed in a phase or the log, and the element loads its own body (Q12).
@@ -115,7 +115,7 @@ function bodyNodes(host: Element): ChildNode[] {
   })
 }
 
-/** Slots whose children are body all the same:  a phase's plan changes (`<epic-updated slot="changes">`). */
+/** Slots whose children are body all the same:  an older doc's plan changes (`<epic-updated slot="changes">`). */
 const BODY_SLOTS = ["changes"]
 
 /** Does `node` hold anything:  an element, or text that isn't only whitespace? */
