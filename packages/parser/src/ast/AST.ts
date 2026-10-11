@@ -196,6 +196,19 @@ export class ASTStringLiteral extends ASTLiteral {
 }
 
 /**
+ * TypeNameLiteral -- a type's name as TEXT in the compiled code, e.g. `"Pile"` in:
+ *   - a new list's item type:  `new List({ instanceType: "Pile" })`
+ *   - a declared property's type:  `declareProp('pile', { type: "Pile" })`
+ *   - a type check left to the runtime:  `spellCore.isOfType(x, "List")`
+ * - `value` is spell's name for the type;  each writer writes it as it writes a type's name,
+ *   e.g. `"bank_account"` for a language naming types in snake_case.
+ * - Why a node of its own:  the rules that write a type's name as text mark it,
+ *   so no writer has to guess which text is a type's name (epic `drawable-thing`, J29).
+ * - A text value like any other otherwise:  `instanceof ASTStringLiteral` holds.
+ */
+export class ASTTypeNameLiteral extends ASTStringLiteral {}
+
+/**
  * TemplateString -- text with values inside, e.g. spell's `"images/[rank]-of-[suit].png"`:
  * `` `images/${this.rank}-of-${this.suit}.png` ``.
  * - `parts` (required):  in order, each plain text (as written between the quotes, its escapes kept) or an
@@ -212,6 +225,23 @@ export class ASTTemplateString extends ASTExpression {
   constructor(match: P.AnyMatch, props: ASTTemplateStringProps) {
     super(match, props)
     this.assertArrayType("parts", ["string", ASTExpression])
+  }
+}
+
+/**
+ * TaggedTemplate -- a template handed to a function, its `tag`, e.g. a drawable type's style sheet:
+ * `` css`.red { color: crimson }` `` (epic `drawable-thing`, P10).
+ * - `tag` (required):  the function's name, e.g. `css`.
+ * - `parts`:  as `ASTTemplateString`'s.
+ * - What it is is up to its tag, e.g. `css` hands back text.
+ */
+export type ASTTaggedTemplateProps = Prettify<ASTTemplateStringProps & { tag: string }>
+
+export class ASTTaggedTemplate extends ASTTemplateString {
+  declare tag: string
+  constructor(match: P.AnyMatch, props: ASTTaggedTemplateProps) {
+    super(match, props)
+    this.assertType("tag", "string")
   }
 }
 
