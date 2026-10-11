@@ -319,6 +319,29 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
+   * Request `id` (`r3`, epic `epic-workflow`) into phase `n`'s Requests field, as one labelled block:  `html` (his
+   * words, the sender, the screenshots), under the label `r3 · <from>`.
+   * - the field is made, after Symptom / Changes and their Updated lines, when the phase has none
+   * - a block already there for `id` is replaced:  filing a request again moves nothing
+   * - URLs in `html` are the page's (`requests/r3/image-1.png`):  a split doc's part file rebases them
+   * - SIDE EFFECT:  logs it
+   */
+  addPhaseRequest(n: number, id: string, from: string, html: string): void {
+    const phase = this.phase(n)
+    let field = phase.querySelector(':scope > epic-field[name="requests"]')
+    if (!field) {
+      field = this.make("epic-field", { name: "requests" }, [])
+      Markup.place(phase, field)
+    }
+    const label = `${id} · ${from}`
+    for (const block of field.querySelectorAll(":scope > epic-field[label]")) {
+      if (block.getAttribute("label")!.split(" · ")[0] === id) block.remove()
+    }
+    Markup.append(field, [this.make("epic-field", { label }, this.incoming(html))])
+    this.log(`${id} filed into P${n}`)
+  }
+
+  /**
    * The Phases section's Plan changes (T14):  a COPY of each `<epic-updated>` of every phase still to do (not
    * `done`), in phase order, as `<epic-updated slot="changes" of="N">` first in the section;
    * `<epic-section kind="phases">` draws them as a box above the phases.  Rewritten whole;  changed?

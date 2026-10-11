@@ -117,6 +117,14 @@ export const epicPhaseVocabulary = {
     },
     { tag: "epic-updated", description: "Changes to the phase's plan, one dated line each, oldest first." },
     {
+      tag: "epic-field",
+      where: { attribute: "name", values: ["requests"] },
+      max: 1,
+      description:
+        "Requests:  what Owen sent this phase from other sessions (epic `epic-workflow`), one labelled block each:  " +
+        "his words, the sender, his screenshots (`spell epic file`)."
+    },
+    {
       tag: "epic-reply",
       description:
         "Owen's notes on the phase from the page, kept once Claude took them (`inbox done | clear`), oldest first."

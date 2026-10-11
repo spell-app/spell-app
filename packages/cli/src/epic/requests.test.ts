@@ -120,6 +120,25 @@ describe("epicRequests() and fileRequest()", () => {
   })
 })
 
+describe("requestHTML()", () => {
+  test("quotes his words (escaped), then the context, when, and each screenshot", () => {
+    const html = CLI.requestHTML({
+      id: "r3",
+      epic: "tooling",
+      from: "🚧 python (sender11)",
+      at: "2026-10-11T06:10-04:00",
+      status: "new",
+      text: "the <b> box\n\ncovers it",
+      context: "P4",
+      images: ["image-1.png"]
+    })
+    expect(html).toContain("<blockquote><p>the &lt;b&gt; box</p><p>covers it</p></blockquote>")
+    expect(html).toContain("<p>Looking at:  P4</p>")
+    expect(html).toContain('<a href="requests/r3/request.md">')
+    expect(html).toContain('<img src="requests/r3/image-1.png" alt="r3, screenshot 1"')
+  })
+})
+
 describe("epicHome() and setEpicHome()", () => {
   test("none until set;  only an epic with a plan doc", () => {
     expect(CLI.epicHome(ROOT)).toBeNull()

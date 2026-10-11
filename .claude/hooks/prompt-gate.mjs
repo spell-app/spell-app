@@ -19,6 +19,8 @@
  *   `/epic future <name> ...` writes an idea down as a future epic (no worktree):  only renamed, `📅 <name>`.
  *   `phase` and `start` too (epic `skillz` P4):  `/epic phase [ids] ...` adds a phase to THIS session's epic,
  *   `/epic start <phase | ids> ...` works one:  nothing to gate, no rename.
+ *   `request` too (epic `epic-workflow`):  `/epic request <epic> <rN>` takes up a request sent from another session:
+ *   only renamed, `🚧 <epic>`, as a resume is;  refused in a session titled for another epic (step 0).
  *   A look right after the name (`/epic x -purple`, epic `windows-and-review` P5) is the window's, not the plan's:
  *   left out of the text saved below.
  *   `<name>` is lower-kebab-cased as the skills do (`"Docs Index"` -> `docs-index`).
@@ -115,19 +117,20 @@ export function gate(input, window) {
 
 
 /**
- * Why `/epic review <name>` must not run in this session, or `null` (epic `airplane` P12, Q10 B):  a session
- * titled for a DIFFERENT epic refuses it.
+ * Why `/epic review <name>` (or `/epic request <name> <rN>`) must not run in this session, or `null` (epic `airplane`
+ * P12, Q10 B;  `request`:  epic `epic-workflow`):  a session titled for a DIFFERENT epic refuses it.
  * - "titled for an epic":  its title starts with one of `TITLE_ICONS` (`🚧 seo`);  the rest is the epic's name
  * - an untitled session, or one titled some other way (a main session's own words):  allowed
  * - `/epic review` alone (this session's own epic) is never refused
  */
 export function reviewRefusal(input) {
-  const match = /^\s*\/epic\s+review\s+(?:(["'])(.+?)\1|(\S+))/.exec(input.prompt ?? "")
+  const match = /^\s*\/epic\s+(review|request)\s+(?:(["'])(.+?)\2|(\S+))/.exec(input.prompt ?? "")
   if (!match) return null
-  const name = kebab(match[2] ?? match[3])
+  const [, verb] = match
+  const name = kebab(match[3] ?? match[4])
   const epic = epicOfTitle(input.session_title)
   if (!name || !epic || epic === name) return null
-  return `This session is titled for epic \`${epic}\`, not \`${name}\`:  run \`/epic review ${name}\` in ${name}'s own session (or a main one).`
+  return `This session is titled for epic \`${epic}\`, not \`${name}\`:  run \`/epic ${verb} ${name}\` in ${name}'s own session (or a main one).`
 }
 
 /** The epic session title `title` names (`🚧 seo` -> `seo`), or `null` when it isn't an epic's title. */
@@ -193,6 +196,12 @@ export function parseCommand(prompt) {
   if (skill === "epic" && name === "future") {
     const later = parseCommand(`/unpark ${rest}`)
     return later && { ...later, skill: "epic future" }
+  }
+  // `/epic request <epic> <rN>`:  a request sent from another session (epic `epic-workflow`):  renamed `<epic>`, as a
+  // resume is, so later requests reach this session;  alone, this session's own epic's:  nothing to gate
+  if (skill === "epic" && name === "request") {
+    const asked = parseCommand(`/unpark ${rest}`)
+    return asked && { ...asked, skill: "epic request" }
   }
   // `/epic resume <name>`:  renamed `<name>`, as `/unpark <name>` is;  alone, it asks which epic
   if (skill === "epic" && name === "resume") {

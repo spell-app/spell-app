@@ -184,6 +184,32 @@ describe("PlanDoc phases", () => {
     expect(bare.overview.hasAttribute("estimate")).toBe(false)
   })
 
+  test("a request files into its phase's Requests field, after Changes;  filing it again replaces its block", () => {
+    const plan = freshPlan()
+    plan.addPhase("One", { symptom: "broken", changes: "fixed", goal: "<ul><li>works</li></ul>" })
+    plan.addPhaseUpdate(1, "<p>widened</p>")
+    const words =
+      '<blockquote><p>the box covers the text</p></blockquote><img src="requests/r3/image-1.png" alt="r3, 1">'
+    plan.addPhaseRequest(1, "r3", "🚧 python", words)
+    plan.addPhaseRequest(1, "r4", "🚧 seo", "<blockquote><p>and the notch</p></blockquote>")
+    plan.addPhaseRequest(1, "r3", "🚧 python", "<blockquote><p>the box, again</p></blockquote>")
+    expect(kids(el(plan, "p1"))).toEqual([
+      "field:symptom",
+      "field:changes",
+      "epic-updated",
+      "field:requests",
+      "field:goal",
+      "field:files",
+      "field:verify"
+    ])
+    const blocks = Array.from(el(plan, "p1").querySelectorAll('epic-field[name="requests"] > epic-field'))
+    expect(blocks.map((block) => [block.getAttribute("label"), block.textContent])).toEqual([
+      ["r4 · 🚧 seo", "and the notch"],
+      ["r3 · 🚧 python", "the box, again"]
+    ])
+    expect(problems(plan)).toEqual([])
+  })
+
   test("--before inserts a phase, moving the later to-do phases and what points at them down one", () => {
     const plan = freshPlan()
     for (const name of ["One", "Two", "Three", "Four"]) plan.addPhase(name)
