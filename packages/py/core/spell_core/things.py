@@ -243,17 +243,51 @@ class SpellObject:
         if check is not None:
             program_core().check_prop(name, value, check)
 
-    def __getattr__(self, name: str) -> object:
+    def __getattr__(self, name: str) -> Any:
         """A name we don't declare:  spell reads a property nobody set or declared as nothing, `None`.
 
         - A property set but not declared, e.g. one `core.from_json()` read, gives its value.
         - Python asks only for a name it found nowhere else:  a declared property never comes here.
+        - Typed `Any`:  spell knows nothing of it, so neither does pyright (epic python-target P25, Q30).
         - throws `AttributeError` for a dunder (`__deepcopy__`) or a `_private` name, as Python does:
           so `copy`, `pickle` and `hasattr()` checks for them behave.
         """
         if name.startswith("_"):
             raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
         return self.__dict__.get("_props", {}).get(name)
+
+    @classmethod
+    def add_method[F: Callable[..., Any]](cls, name: str) -> Callable[[F], F]:
+        """A decorator:  the function below is our method `name` too, said from outside our class.
+
+        ```python
+        @Card.add_method("play")
+        def _card_play(self) -> bool | None: ...
+        ```
+
+        - What a project writes for a class of ANOTHER project's, Klondike's `to play a card` for Cards' `Card`
+          (epic python-target P25):  its own classes have it in their bodies.
+        - Not `Card.play = _card_play`, which pyright refuses:  a class gains no attribute by assignment.
+        """
+
+        def add(function: F) -> F:
+            setattr(cls, name, function)
+            return function
+
+        return add
+
+    @classmethod
+    def add_property[F: Callable[..., Any]](cls, name: str) -> Callable[[F], F]:
+        """A decorator:  the function below is our getter `name` too, `@property`, said from outside our class.
+
+        - As `add_method()`:  `@Card.add_property("pile")`.
+        """
+
+        def add(function: F) -> F:
+            setattr(cls, name, property(function))
+            return function
+
+        return add
 
     def is_of_type(self, type_name: str) -> bool:
         """Are we of the type named `type_name`, or of a type that inherits from it?  A joker is a `card`.

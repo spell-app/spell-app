@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from typing import Any
 
 from spell_core import core, Thing, List, prop, h, spell_position
 
@@ -53,15 +54,15 @@ class Card(Thing):
         """`card is a face card`"""
         return self.rank in ["jack", "queen", "king"]
 
-    def is_a_suit(self, suit) -> bool:
+    def is_a_suit(self, suit: Any) -> bool:
         """\"card is a spade", "...is a club" etc"""
         return self.suit == suit
 
-    def is_a_rank(self, rank) -> bool:
+    def is_a_rank(self, rank: Any) -> bool:
         """\"card is a queen", "...is an ace" etc"""
         return self.rank == rank
 
-    def is_the_rank_of_suits(self, rank, suit) -> bool:
+    def is_the_rank_of_suits(self, rank: Any, suit: Any) -> bool:
         """\"card is the queen of spades" etc"""
         return self.rank == rank and self.suit == suit
 
@@ -129,7 +130,7 @@ class Card(Thing):
             await self.turn_face_up()
         await core.pause_for(50, "msec")
 
-    def draw(self):
+    def draw(self) -> Any:
         class_name = f"Card face-{self.direction} {self.rank} {self.suit} ui button compact fluid "
         if self.is_face_down:
             return h(
@@ -152,7 +153,7 @@ class Card(Thing):
         return Pile.owner_of(self)
 
 
-async def test_card_setup():
+async def test_card_setup() -> Any:
     """create a card instance with default properties"""
     with core.test("test card setup"):
         core.echo_test_action(
@@ -240,7 +241,7 @@ class Deck(List):
     is_set_up = prop(type="choice")
 
 
-def test_deck_creation():
+def test_deck_creation() -> Any:
     with core.test("test deck creation"):
         core.echo_test_action("the deck is a new deck")
         deck = Deck()
@@ -291,16 +292,16 @@ class Pile(List):
     item_type = Card
 
     @property
-    def color(self) -> str | None:
+    def color(self) -> str:
         if not self:
             return "none"
-        return getattr(self.last_item, "color", None)
+        return self.last_item.color
 
     @property
-    def value(self) -> float | None:
+    def value(self) -> float:
         if not self:
             return 0
-        return getattr(self.last_item, "value", None)
+        return self.last_item.value
 
     @property
     def state(self) -> str:

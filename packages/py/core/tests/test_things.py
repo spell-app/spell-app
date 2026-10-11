@@ -209,3 +209,20 @@ def test_repr_is_its_class_and_properties() -> None:
     player = Player()
     player.card = player  # type: ignore[assignment]
     assert repr(player) == "Player(card=...)"
+
+
+def test_a_method_or_getter_added_from_outside_its_class() -> None:
+    class Gem(Thing):
+        shine = prop(type="number", default=1)
+
+    @Gem.add_method("polish")
+    def _gem_polish(self: Gem) -> None:
+        self.shine = self.shine + 1
+
+    @Gem.add_property("is_bright")
+    def _gem_is_bright(self: Gem) -> bool:
+        return self.shine > 1
+
+    gem = Gem()
+    gem.polish()
+    assert gem.is_bright is True

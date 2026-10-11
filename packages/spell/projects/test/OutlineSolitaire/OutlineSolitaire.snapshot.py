@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from typing import Any
 
 from spell_core import core, Thing, List, App, prop, h, position, spell_position
 
@@ -17,7 +18,7 @@ class Deck(List):
     """
 
     @staticmethod
-    def instance_type():
+    def instance_type() -> Any:
         return Card
 
     # Dealing:  what a deck does -- after `Card.spell`, as it reads a card's names
@@ -46,7 +47,7 @@ class Deck(List):
 
 class Suit:
     @staticmethod
-    def color(suit):
+    def color(suit: Any) -> Any:
         if suit in ["diamonds", "hearts"]:
             return "red"
         return "black"
@@ -54,7 +55,7 @@ class Suit:
 
 class Rank:
     @staticmethod
-    def is_a_face_card(rank) -> bool:
+    def is_a_face_card(rank: Any) -> bool:
         return rank in ["jack", "queen", "king"]
 
 
@@ -68,20 +69,20 @@ class Card(Thing):
     suit = prop(one_of=lambda: Deck.SUITS)
 
     @property
-    def color(self):
+    def color(self) -> Any:
         return Suit.color(self.suit)
 
-    def is_a_suit(self, suit) -> bool:
+    def is_a_suit(self, suit: Any) -> bool:
         """e.g. "the card is a spade\""""
         return self.suit == suit
 
     rank = prop(one_of=lambda: Deck.RANKS)
 
-    def is_a_rank(self, rank) -> bool:
+    def is_a_rank(self, rank: Any) -> bool:
         """e.g. "the card is a queen\""""
         return self.rank == rank
 
-    def is_the_rank_of_suits(self, rank, suit) -> bool:
+    def is_the_rank_of_suits(self, rank: Any, suit: Any) -> bool:
         """e.g. "the card is the queen of spades\""""
         return self.rank == rank and self.suit == suit
 
@@ -145,7 +146,7 @@ class Card(Thing):
         return self.short_rank + self.icon + self.short_direction
 
     @property
-    def front(self):
+    def front(self) -> Any:
         """drawing"""
         return h(
             "div",
@@ -158,7 +159,7 @@ class Card(Thing):
         )
 
     @property
-    def back(self):
+    def back(self) -> Any:
         return h(
             "div",
             {
@@ -168,7 +169,7 @@ class Card(Thing):
             h("i", {"class": "fitted bicycle icon"}),
         )
 
-    def draw(self):
+    def draw(self) -> Any:
         return self.back if self.direction == "down" else self.front
 
     # actions -- the sentence style, beside the outline
@@ -198,6 +199,7 @@ class Card(Thing):
 
     async def play(self) -> bool | None:
         start_pile = self.pile
+        assert start_pile is not None
         if not core.can_give_up(start_pile, self):
             return False
 
@@ -232,7 +234,7 @@ class Card(Thing):
         return Pile.owner_of(self)
 
 
-async def test_card_setup():
+async def test_card_setup() -> Any:
     """create a card instance with default properties"""
     with core.test("test card setup"):
         core.echo_test_action(
@@ -296,7 +298,7 @@ asyncio.run(test_card_setup())
 # -----------
 
 
-def test_deck_creation():
+def test_deck_creation() -> Any:
     with core.test("test deck creation"):
         core.echo_test_action("the deck is a new deck")
         deck = Deck()
@@ -347,16 +349,16 @@ class Pile(List):
     item_type = Card
 
     @property
-    def color(self):
+    def color(self) -> Any:
         if not self:
             return "none"
-        return getattr(self.last_item, "color", None)
+        return self.last_item.color
 
     @property
-    def value(self) -> float | None:
+    def value(self) -> float:
         if not self:
             return 0
-        return getattr(self.last_item, "value", None)
+        return self.last_item.value
 
     @property
     def state(self) -> str:
@@ -396,14 +398,14 @@ class Game(App):
             state.append(pile.state)
         return state
 
-    def draw(self):
-        async def _each_1(event):
+    def draw(self) -> Any:
+        async def _each_1(event: Any) -> Any:
             return await auto_play()
 
-        async def _each_2(event):
+        async def _each_2(event: Any) -> Any:
             return await cheat()
 
-        async def _each_3(event):
+        async def _each_3(event: Any) -> Any:
             return await reset_the_game()
 
         return h(
@@ -486,8 +488,8 @@ class StockPile(Pile):
     def can_give_up(self, card: Card) -> bool:
         return card == self.last_item
 
-    def draw(self):
-        async def _each_1(event):
+    def draw(self) -> Any:
+        async def _each_1(event: Any) -> Any:
             return await play_from_the_stock_pile()
 
         return h(
@@ -508,7 +510,7 @@ class DiscardPile(Pile):
     def can_give_up(self, card: Card) -> bool:
         return card == self.last_item
 
-    def draw(self):
+    def draw(self) -> Any:
         return h("div", {"class": "Pile Discards stacked"}, core.draw_thing(self.last_item))
 
 
@@ -524,6 +526,7 @@ class Foundation(Pile):
 
     def can_take(self, card: Card) -> bool:
         """one card at a time:  the last of its pile"""
+        assert card.pile is not None
         if card != card.pile.last_item:
             return False
         return self.name == card.suit and self.value + 1 == card.value
@@ -533,7 +536,7 @@ class Foundation(Pile):
 
     # note: tableaus just draw as a (vertical) list of cards
 
-    def draw(self):
+    def draw(self) -> Any:
         color = "red" if self.name == "diamonds" or self.name == "hearts" else "black"
         return h(
             "div",
@@ -570,7 +573,7 @@ class Tableau(Pile):
             return card.is_a_rank("king")
         return self.color != card.color and self.value == card.value + 1
 
-    def draw(self):
+    def draw(self) -> Any:
         return h("div", {"class": "Pile Tableau staggered"}, core.draw_items(self))
 
 
@@ -645,7 +648,7 @@ async def deal_the_cards() -> None:
 
 
 @core.on("card-click")
-async def on_card_click(event) -> None:
+async def on_card_click(event: Any) -> None:
     card = event.card
     await card.play()
 
@@ -663,7 +666,7 @@ async def auto_play() -> None:
         if not pile:
             continue
         test_card = pile.last_item
-        foundation = foundations.filter(lambda pile: pile.name == getattr(test_card, "suit", None)).first_item
+        foundation = foundations.filter(lambda pile: pile.name == test_card.suit).first_item
         if core.can_take(foundation, test_card):
             anything_changed = True
             await test_card.play()

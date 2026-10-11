@@ -248,7 +248,8 @@ export class PyWriter extends PyBaseWriter {
     // after `from __future__ import ...`, which must come first
     const future = written.startsWith(PyBaseWriter.FUTURE) ? `${PyBaseWriter.FUTURE}\n` : ""
     const rest = written.slice(future ? PyBaseWriter.FUTURE.length : 0).replace(/^\n+/, "")
-    return `${future}import asyncio\n${/^import \w+\n/.test(rest) ? "" : "\n"}${rest}`
+    // beside the standard library's other imports, if any (`import math`, `from typing import Any`)
+    return `${future}import asyncio\n${/^(?:import \w+|from typing import)/.test(rest) ? "" : "\n"}${rest}`
   }
 }
 

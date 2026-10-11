@@ -1,2 +1,0 @@
-164 reportCallIssue Object of type "object" is not callable
-509 reportOptionalOperand Operator "+" not supported for "None"

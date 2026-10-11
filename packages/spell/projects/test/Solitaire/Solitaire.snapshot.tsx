@@ -301,12 +301,12 @@ export class Pile extends List<Card> {
 
   get color() {
     if (this.isEmpty) return "none"
-    return this.lastItem?.color ?? "none"
+    return this.lastItem.color
   }
 
   get value() {
     if (this.isEmpty) return 0
-    return this.lastItem?.value ?? 0
+    return this.lastItem.value
   }
 
   @derived
@@ -600,10 +600,10 @@ export async function autoPlay() {
   for (const pile of tableaus) {
     if (pile.isEmpty) continue
     const testCard = pile.lastItem
-    const foundation = foundations.filter((pile) => pile.name == testCard?.suit).firstItem
-    if (foundation?.canPlayCard(testCard!)) {
+    const foundation = foundations.filter((pile) => pile.name == testCard.suit).firstItem
+    if (foundation?.canPlayCard(testCard)) {
       anythingChanged = true
-      await testCard?.play()
+      await testCard.play()
       await spellCore.pauseFor(100, "msec")
     }
   }
@@ -613,8 +613,8 @@ export async function autoPlay() {
     const faceUpCards = pile.filter((card) => card.isFaceUp)
     if (faceUpCards.isEmpty) continue
     const testCard = faceUpCards.firstItem
-    if (testCard?.isARank("king") && testCard === pile.firstItem) continue
-    if (await testCard?.play()) {
+    if (testCard.isARank("king") && testCard === pile.firstItem) continue
+    if (await testCard.play()) {
       anythingChanged = true
       await spellCore.pauseFor(500, "msec")
     }
