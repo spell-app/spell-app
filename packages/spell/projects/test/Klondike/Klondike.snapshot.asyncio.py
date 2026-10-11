@@ -274,7 +274,7 @@ async def deal_the_cards() -> None:
         core.stop_process("deal_the_cards")
 
 
-async def play(self) -> bool | None:
+async def _card_play(self) -> bool | None:
     start_pile = self.pile
     if not core.can_give_up(start_pile, self):
         return False
@@ -304,6 +304,9 @@ async def play(self) -> bool | None:
     elif start_pile == discards:
         game.score = game.score + 5
     return True
+
+
+Card.play = _card_play
 
 
 @core.on("card-click")

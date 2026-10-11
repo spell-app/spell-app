@@ -11,6 +11,20 @@ from spell_core.console import SpellConsole
 from spell_core.core import SpellCore, core
 from spell_core.drawing import h
 from spell_core.lists import List
+from spell_core.state import StateMirror, StateWriter
 from spell_core.things import Thing, prop
 
-__all__ = ["App", "Drawable", "DrawableList", "List", "SpellConsole", "SpellCore", "Thing", "core", "h", "prop"]
+__all__ = [
+    "App",
+    "Drawable",
+    "DrawableList",
+    "List",
+    "SpellConsole",
+    "SpellCore",
+    "StateMirror",
+    "StateWriter",
+    "Thing",
+    "core",
+    "h",
+    "prop",
+]

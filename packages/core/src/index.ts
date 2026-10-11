@@ -48,6 +48,8 @@ export { itemOf } from "./deprecated"
 export { prop, state, derived, thing } from "$/util"
 export { drawn } from "./drawing"
 export { elementTagFor, type ElementDefiner, type ElementApi } from "./elements"
+// A program's state as JSON by id, for a page that mirrors it (epic `python-target` P17):  see `state.ts`.
+export { StateWriter, StateMirror, ID_KEY } from "./state"
 // What compiled JavaScript draws with:  Solid's own `h()`, the copy core draws with (epic `output-targets` P20).
 // - e.g. `import { spellCore, Thing, h } from "@spell/core"`, then `h("span", { class: "suit" }, () => this.shortSuit)`
 // - see `drawing.ts`

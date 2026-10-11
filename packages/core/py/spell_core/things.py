@@ -27,8 +27,9 @@ card.to_json()  # {"@type": "Card", "rank": "queen"}
 
 import builtins
 import reprlib
+import weakref
 from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Protocol
 
 from spell_core.events import Eventful
 from spell_core.kinds import is_same
@@ -42,6 +43,25 @@ TYPE_KEY = "@type"
 ITEMS_KEY = "@items"
 # Defaults that would be ONE object shared by every instance:  `init=list` makes one each.
 SHARED_DEFAULTS = (list, dict, set)
+
+
+class ChangeWatcher(Protocol):
+    """What's told of each change to a thing or a spell list:  a `StateWriter`, to send only what changed."""
+
+    def note_change(self, changed: "SpellObject") -> None:
+        """`changed` has a property set or unset, or new items."""
+
+
+# Each one told of every change, as long as it lives:  see `note_change()`.
+CHANGE_WATCHERS: "weakref.WeakSet[ChangeWatcher]" = weakref.WeakSet()
+
+
+def note_change(changed: "SpellObject") -> None:
+    """SIDE EFFECT:  tell each of `CHANGE_WATCHERS` that `changed` changed:  a property, or a list's items."""
+    if not CHANGE_WATCHERS:
+        return
+    for watcher in list(CHANGE_WATCHERS):
+        watcher.note_change(changed)
 
 
 def prop(
@@ -116,6 +136,7 @@ class Prop:
         if value is None:
             return self.default
         props[self.name] = value
+        note_change(instance)
         return value
 
     def __set__(self, instance: "SpellObject", value: object) -> None:
@@ -212,11 +233,13 @@ class SpellObject:
         """
         props = self._props
         if value is None:
-            props.pop(name, None)
+            if props.pop(name, None) is not None:
+                note_change(self)
             return
         if name in props and is_same(props[name], value):
             return
         props[name] = value
+        note_change(self)
         if check is not None:
             program_core().check_prop(name, value, check)
 

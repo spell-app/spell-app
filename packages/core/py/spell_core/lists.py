@@ -24,7 +24,7 @@ from typing import Any, ClassVar, Self, SupportsIndex, overload
 from spell_core.js_text import is_plain_number, js_string
 from spell_core.kinds import is_same
 from spell_core.positions import StartAt, from_start_at, to_start_at, zero_index_of
-from spell_core.things import ITEMS_KEY, SpellObject, program_core, to_json_value
+from spell_core.things import ITEMS_KEY, SpellObject, note_change, program_core, to_json_value
 
 # What a list method calls for each item, e.g. `filter()`'s condition:  `(value, position, list)`.
 # - It may take fewer:  `lambda card: card.rank == "queen"` is called with the card alone.
@@ -580,6 +580,7 @@ class List(SpellObject, MutableSequence[Any]):
         family = self._family
         previous = self._items
         self._items = next_items
+        note_change(self)
         if family is None:
             return
         kept = {id(item) for item in next_items}
