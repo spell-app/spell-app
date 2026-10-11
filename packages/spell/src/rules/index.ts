@@ -1,12 +1,12 @@
 /**
  * Assembles every spell language rule module into the single `spellParser` instance.
- * - Not a plain re-export barrel: this folder is a list of independent rule modules, each exporting
- *   its rule classes plus a `SpellParser` which registers them -- this file combines those parsers
- *   via `spellParser.import(...)`.
+ * - Not a plain re-export barrel:  this folder is a list of independent rule modules.
+ *   - Each exports its rule classes, plus a `SpellParser` which registers them.
+ *   - This file combines those parsers, via `spellParser.import(...)`.
  * - A module is a folder, one rule per file, e.g. `events/`:
  *   see "Parser rules" in spell's `AGENTS.md`.
  * - NOTE: import order matters in a few places -- see the comment above the `ParseError` import.
- *   Structural rules (`blank_line` / `block` / `line` / `parse_error`) are added directly, below.
+ * - Structural rules (`blank_line` / `block` / `line` / `parse_error`) are added directly, below.
  */
 import { P } from "$/parser"
 import { SpellParser } from "$/spell/SpellParser"

@@ -13,11 +13,11 @@ import type { DOMSpellAppElement } from "$/app/components/spell-app"
 /**
  * The Solid runners, in the browser:
  * `<SpellAppRunner>` running compiled spell into its app root, live, and the `<spell-app>` element around it.
- * - The runtime:  `spellRuntime.ts` as vite serves it, imported by its URL --
- *   ALSO the program's `@spell/core`, so the program and the runner share its `spellCore`,
- *   as with a real `spell-runtime.js` copy.
- *   `loadRuntime()`'s `blob:` copy can't load in dev:
- *   vite's imports are root-relative, which a `blob:` URL can't resolve.
+ * - The runtime:  `spellRuntime.ts` as vite serves it, imported by its URL.
+ *   - It's ALSO the program's `@spell/core`, so the program and the runner share its `spellCore`,
+ *     as with a real `spell-runtime.js` copy.
+ *   - `loadRuntime()`'s `blob:` copy can't load in dev:
+ *     vite's imports are root-relative, which a `blob:` URL can't resolve.
  * - The program draws with Solid, into the runner's app root:  `h()` from `@spell/core`.
  *   As compiled spell writes it, a value that can change is a function (`() => this.count`).
  * - `adoptShadowStyles()` is stubbed:  the test server doesn't serve `static/` (Semantic UI, Lato).
@@ -64,10 +64,14 @@ setTimeout(() => late.start(), 50)
 `
 
 /**
- * A card game, as compiled spell draws it:  a card's `draw()` chooses its face by an `if` (read OUTSIDE its live
- * values), its rank is a live value, the pile draws its cards with `drawItems()`, and one card can't draw.
- * - Solid's own `h()`, from `@spell/core`, in the page's spellings (`class`, `colspan`), as the javascript writer
- *   writes them (epic `output-targets` P20).  `draw()` returns `h()`'s thunk:  the error boundary makes it.
+ * A card game, as compiled spell draws it:
+ * - a card's `draw()` chooses its face by an `if` (read OUTSIDE its live values)
+ * - its rank is a live value
+ * - the pile draws its cards with `drawItems()`
+ * - one card can't draw
+ * - Drawn with Solid's own `h()`, from `@spell/core`, in the page's spellings (`class`, `colspan`),
+ *   as the javascript writer writes them (epic `output-targets` P20).
+ *   `draw()` returns `h()`'s thunk:  the error boundary makes it.
  */
 const CARDS = `
 import { spellCore, Thing, List, App, h } from "@spell/core"

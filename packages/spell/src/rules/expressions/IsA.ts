@@ -14,7 +14,7 @@ import { expressions } from "./expressions.parser"
  *     See `P.TypeScope.getOrStub()`.
  * - `shouldNegateOutput()` handles `is not a`.
  * - Compiles to `spellCore.isOfType(lhs, 'TypeName')`, the type's name as text (`P.ASTTypeNameLiteral`):
- *   its RUNTIME name, which differs for a type imported renamed.  See `P.ASTTypeExpression.runtimeName`.
+ *   its RUNTIME name, which differs for a type imported renamed -- see `P.ASTTypeExpression.runtimeName`.
  *   - A writer may test it its own way, e.g. javascript's `lhs instanceof TypeName`.
  */
 export class IsA extends InfixOperatorSuffix<"operator|expression"> {

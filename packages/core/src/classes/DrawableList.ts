@@ -13,7 +13,8 @@ import { List } from "./List"
  *   By default, just that slot.
  *   - Spell writes that slot `<children/>`, and compiles it to the web's `<slot>`.
  *   - A second, named place, `<children name="header"/>`, is filled by children written `in="header"`
- *     (`slot="header"` on the page).  The list's own items always go in the unnamed one.
+ *     (`slot="header"` on the page).
+ *   - The list's own items always go in the unnamed one.
  * - The element comes from `spellCore.defineElement()`, as a `Drawable`'s does.
  * - Everything else as a `List`.
  */

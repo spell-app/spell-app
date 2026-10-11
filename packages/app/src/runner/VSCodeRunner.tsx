@@ -17,23 +17,25 @@ import "./VSCodeRunner.css"
 
 /****************
  * ### `<VSCodeRunner>`
- * Runs a spell project inside the VS Code extension's "Run Project" webview:  a toolbar, then two panes, one above
- * the other, split by a bar you drag.
+ * Runs a spell project inside the VS Code extension's "Run Project" webview:
+ * a toolbar, then two panes, one above the other, split by a bar you drag.
  * - A program with an `app`:  the app on top, then, if the console's shown, a pane switching between
  *   "Type Explorer", "Thing Explorer" and "Program Output".
  * - One with NO `app` has nothing else to show (see `hasApp`):
  *   "Program Output" on top, the explorers below, and no "Show Console" button.
  * - One that starts its app AFTER the run finished, e.g. from a timer, shows it once it draws.
- * - Runs whatever the extension sends in a `run` message, afresh each time, on its OWN copy of the spell runtime
- *   -- see `loadRuntime()`.  One sent before that's loaded runs once it is.
+ * - Runs whatever the extension sends in a `run` message, on its OWN copy of the spell runtime -- see `loadRuntime()`.
+ *   - One sent before that's loaded runs once it is.
+ *   - Each run keeps the program's things, e.g. the game in progress:  only Restart starts afresh (see `run()`).
  * - Its Thing Explorer shows things' members in spell's words, from the `words` message after each run:
  *   the project's `<Project>.en.js` (`SP.SpellWords`).
  * - The program draws with the page's Solid (`App.start()` makes its own root) into `appRoot`, a `<div>` drawn once.
  * - NEVER imports `$/core`:  it'd be bundled beside this, a second copy -- see `spellRuntime.ts`.
  * - Says `ready` once listening, so the extension knows to compile.  Messages sent before then are lost.
- * - How it's shown -- console, tab, split, the explorers' state -- comes from the extension, which remembers
- *   it in the project's `settings.json5`.  See `ProjectSettings`.
- * - `post` and `runtimeUrl` are read once.  Its `<ui-*>` tags are the caller's to define (`$/app/solid/loadUI`),
+ * - How it's shown comes from the extension, which remembers it in the project's `settings.json5`:
+ *   console, tab, split, the explorers' state.  See `ProjectSettings`.
+ * - `post` and `runtimeUrl` are read once.
+ * - Its `<ui-*>` tags are the caller's to define (`$/app/solid/loadUI`),
  *   with Fomantic's icon names (`<ui-root icons="fomantic">` in the webview's HTML).
  ****************/
 export function VSCodeRunner(props: VSCodeRunnerProps) {
@@ -54,7 +56,8 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
   const detailsWaiting = new Map<string, Array<(details: LSP.ScopeDetails | null) => void>>()
   // what the last `run` message sent, if it came before the runtime -- run once that's loaded
   let toRun: string | undefined
-  // Restart was pressed:  the `run` it brings starts afresh, a new deal -- every other run keeps the program's things
+  // Restart was pressed:  the `run` it brings starts afresh, a new deal.
+  // Every other run keeps the program's things.
   let startAfresh = false
 
   // NOTE: the app's pane is ALWAYS first, just hidden without an app -- so its mount point is never redrawn.

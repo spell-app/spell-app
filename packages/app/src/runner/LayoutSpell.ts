@@ -35,12 +35,14 @@ import {
  *   3. the page:  each drawable tag with an `id` is a name, e.g. `T1`
  *   4. the program:  its top-level things, its functions and types -- from its declarations
  * - A hole is any spell EXPRESSION;  an action or a handler, any spell statements (Q11).
- * - Any element in the layout may handle events (P12), a Spell UI tag, a plain one or a drawable one:
- *   - in a `<spell>` block inside it:  `when clicked: play a song`, or the statements indented under `when clicked`;
- *     `on drag:` as well as `when dragged:`;  an event in several words, `when double clicked`
+ * - Any element in the layout may handle events (P12):  a Spell UI tag, a plain one or a drawable one.
+ *   - in a `<spell>` block inside it:
+ *     `when clicked: play a song`, or the statements indented under `when clicked`
+ *     - `on drag:` as well as `when dragged:`
+ *     - an event in several words:  `when double clicked`
  *   - in an attribute:  `on-click="{play a song}"` or `when-clicked="{play a song}"` (Q20 C)
  *   - `it` is the drawable tag's thing, on one;  elsewhere the page's and the program's names are what's seen.
- *   A hole is spell exactly, as everywhere else:  `{the score of the game}`, never `{score of the game}` (J26).
+ * - A hole is spell exactly, as everywhere else:  `{the score of the game}`, never `{score of the game}` (J26).
  * - Kept live by Solid effects:  a hole re-runs when what it read changes.
  * - Holds spell's PARSER:  the runner loads it lazily, only for a layout with spell in it (`layoutHasSpell()`).
  * - `bind()` returns what takes it all back:  the layout's markup as it was written.
@@ -146,8 +148,10 @@ export class LayoutSpell {
   }
 
   /**
-   * `element`'s attributes written as a hole, `value={...}`:  live;  `action={...}`:  run on a click;
-   * `on-click={...}` / `when-clicked={...}`:  run on that event (P12).
+   * `element`'s attributes written as a hole, bound:
+   * - `value={...}`:  live
+   * - `action={...}`:  run on a click
+   * - `on-click={...}` / `when-clicked={...}`:  run on that event (P12)
    */
   private bindAttributes(element: Element): void {
     for (const { name, value } of LayoutSpell.holeAttributes(element)) {
@@ -171,11 +175,12 @@ export class LayoutSpell {
   }
 
   /**
-   * `element`'s attributes, each hole written WITHOUT quotes put back together:
-   * `on-click={play a song}` reaches us as three attributes, `on-click="{play"`, `a` and `song}`.
+   * `element`'s attributes, each hole written WITHOUT quotes put back together.
+   * - `on-click={play a song}` reaches us as three attributes:  `on-click="{play"`, `a` and `song}`.
    * - Its `name` is the first attribute's;  its `parts`, every attribute it was made of.
    * - The browser keeps only the first of two attributes of the same name, so a repeated word is lost:
-   *   `{the score of the game}` unquoted reads as `{the score of game}` (C15).  Quotes keep it whole.
+   *   `{the score of the game}` unquoted reads as `{the score of game}` (C15).
+   *   Quotes keep it whole.
    */
   static holeAttributes(element: Element): Array<{ name: string; value: string; parts: string[] }> {
     const attributes = [...element.attributes]
@@ -317,8 +322,8 @@ export class LayoutSpell {
   ////////////////
 
   /**
-   * `spell` compiled, in the scope of the component around `place`, as a function of `it` --
-   * `undefined` if it can't be read:  then `show` shows `⚠`, and the program's console says why.
+   * `spell` compiled, in the scope of the component around `place`, as a function of `it`.
+   * - `undefined` if it can't be read:  then `show` shows `⚠`, and the program's console says why.
    */
   private compileOrShow(
     spell: string,
@@ -460,7 +465,10 @@ const IT = "it"
 /** Each hole in text, its spell captured -- for `split()`. */
 const HOLES = /\{([^{}]+)\}/
 
-/** A handler's first line:  `when` or `on`, its event's words, then any statement after a colon -- `when clicked: play`. */
+/**
+ * A handler's first line:  `when` or `on`, its event's words, then any statement after a colon.
+ * - e.g. `when clicked: play`
+ */
 const WHEN = /^(when|on)\s+([a-z][\w-]*(?:\s+[a-z][\w-]*)*)\s*(?::\s*(.*))?$/i
 
 /** An attribute that handles an event, the event captured:  `on-click`, `when-double-clicked`. */

@@ -11,9 +11,9 @@ import { monaco } from "./monaco"
  * - Blocks of another language are coloured as that language, by Monaco's own colouring (`EMBEDDED_BLOCKS`):
  *   - a type's `<css>` block as CSS -- see `LSP.SpellCSS`
  *   - a `<markdown>` block as markdown, in a drawing or a type's outline -- see spell's `markdown_block`
- *   - the only state carried between lines is which block we're in, if any (`SPELL_LINE`, `CSS_LINE` ...)
- *   - each of its lines is coloured on its own too,
- *     so a CSS comment or a fenced code block over several lines colours its first line only
+ * - The only state carried between lines is which block we're in, if any (`SPELL_LINE`, `CSS_LINE` ...).
+ * - A block's lines are each coloured on their own too,
+ *   so a CSS comment or a fenced code block over several lines colours its first line only.
  * - NEVER throws:  a line the tokenizer chokes on just goes uncoloured.
  */
 export class SpellTokensProvider implements monaco.languages.TokensProvider {
@@ -26,7 +26,9 @@ export class SpellTokensProvider implements monaco.languages.TokensProvider {
 
   /**
    * The blocks of another language spell holds, each alone on its lines:  `<css>` ... `</css>`.
-   * - `tag`:  its tag;  `language`:  Monaco's language that colours it;  `state`:  the state inside it
+   * - `tag`:  its tag
+   * - `language`:  Monaco's language that colours it
+   * - `state`:  the state inside it
    * - `open` / `close`:  its first and last lines
    */
   static EMBEDDED_BLOCKS: EmbeddedBlock[] = [

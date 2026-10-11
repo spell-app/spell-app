@@ -9,8 +9,9 @@ import { installSpellElements } from "./SpellElement"
 import "$/app/solid/cellsBridge"
 
 /**
- * A drawable thing's own element (epic `drawable-thing`, P3):  a project's last line defines its drawable classes'
- * elements, and each draws its `thing` in its own shadow root, as a Spell UI element does.
+ * A drawable thing's own element (epic `drawable-thing`, P3).
+ * - A project's last line defines its drawable classes' elements,
+ *   and each draws its `thing` in its own shadow root, as a Spell UI element does.
  */
 describe("SpellElement", () => {
   installSpellElements(spellCore)

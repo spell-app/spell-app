@@ -1289,7 +1289,7 @@ export class SpellLanguageService {
   /**
    * Spell's own JSX tags, while one is being typed at the end of `lineText` -- `undefined` if no tag is.
    * - e.g. `children` for `return <div><chi`:  spell's word for the web's `<slot>` (`SP.SPELL_TAG_NAMES`).
-   *   The web's own tags aren't offered.
+   * - The web's own tags aren't offered.
    * - A tag is a `<` right before a word:  `x < y` isn't one.
    */
   private tagItems(lineText: string): CompletionItem[] | undefined {

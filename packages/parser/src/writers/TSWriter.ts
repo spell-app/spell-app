@@ -472,8 +472,9 @@ export class TSWriter extends JSWriter {
   }
 
   /**
-   * A value kind's parameter named for it, e.g. `suit` in `static color(suit)` on `Suit`:  one of its values,
-   * `(typeof SUITS)[number]` -- see `WriterProject.valueKinds`.  `undefined` for any other.
+   * A value kind's parameter named for it, e.g. `suit` in `static color(suit)` on `Suit`:
+   * one of its values, `(typeof SUITS)[number]` -- see `WriterProject.valueKinds`.
+   * - `undefined` for any other.
    */
   valueKindType(arg: P.ASTVariableExpression): string | undefined {
     const list = this.currentClass ? this.project.valueKinds.get(this.currentClass) : undefined
@@ -702,8 +703,8 @@ export class TSWriter extends JSWriter {
    * What method (or getter) `method` of class `typeName` returns, in TypeScript's words, for its signature --
    * `undefined` if spell can't tell.
    * - Spell's datatype for it, if it knows it.
-   * - Else what its `return`s give (`returnedKinds()`), each alike or not:  `boolean | undefined` for
-   *   `return false`, `return` and `return true`.
+   * - Else what its `return`s give (`returnedKinds()`), each alike or not:
+   *   `boolean | undefined` for `return false`, `return` and `return true`.
    * - One that waits, a promise of it:  `Promise<boolean | undefined>` (epic `output-targets`, T24).
    */
   returnType(typeName: string, method: P.ASTMethodDefinition): string | undefined {

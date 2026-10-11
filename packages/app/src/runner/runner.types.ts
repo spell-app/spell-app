@@ -8,12 +8,14 @@ import type { UI } from "$/app/ui"
 
 /**
  * Message from the extension to the runner webview.
- * - `run`:  run `compiled`, the project's javascript, afresh
+ * - `run`:  run `compiled`, the project's javascript
+ *   - keeping the program's things, unless it answers our `restart` -- see `<VSCodeRunner>`'s `run()`
  * - `scopes`:  live scope tree to show in the Type Explorer, as the language server's `spell/scopes`
  * - `settings`:  the project's `settings.json5`, as the extension read it -- sent on `ready`, before anything else
  * - `details`:  answer to our `details` -- as the language server's `spell/scopeDetails`
- * - `words`:  the project's words file, `<Project>.en.js`, as text -- for the Thing Explorer's labels, see
- *   `SP.SpellWords`.  Sent after each `run`;  `undefined` if it has none.
+ * - `words`:  the project's words file, `<Project>.en.js`, as text -- for the Thing Explorer's labels
+ *   - see `SP.SpellWords`
+ *   - sent after each `run`;  `undefined` if it has none
  */
 export type ToRunnerMessage =
   | { type: "run"; compiled: string }
@@ -79,8 +81,8 @@ export const SPELL_COMPILED_EVENT = "spell-compiled"
 
 /**
  * What a `<spell-editor>` compiled, for `<spell-app>`s to run -- see `SPELL_COMPILED_EVENT`.
- * - A NEW object per compile:  an app runs each one once, however it hears of it -- its `editor` attribute AND the
- *   editor's `app` attribute can both name it.
+ * - A NEW object per compile:  an app runs each one once, however it hears of it.
+ *   Its `editor` attribute AND the editor's `app` attribute can both name it.
  */
 export type SpellCompiled = {
   /** Project compiled, e.g. `@system:examples:Solitaire` -- where its imports and sources come from. */
@@ -115,7 +117,7 @@ export const LAYOUT_WHOLE_HOLE = /^\s*\{([\s\S]+)\}\s*$/
 
 /**
  * Does `root`'s layout have spell in it:  a hole, an action, a handler, a `<spell>` block or a `<markdown>` block?
- * See `LayoutSpell`.
+ * - See `LayoutSpell`.
  */
 export function layoutHasSpell(root: Element): boolean {
   if (root.querySelector(`${LAYOUT_SPELL_TAG}, ${LAYOUT_MARKDOWN_TAG}`)) return true

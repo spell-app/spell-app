@@ -25,15 +25,18 @@ import type { NamedThing, ThingClass, ThingLike } from "./things"
 
 export const carryMethods = defineSpellCoreModule({
   /**
-   * Is a recompiled program loading, to take over the last run's things?  Set by the runner around the load.
-   * - While it is, a `pause for ...` never ends:  the program's start, e.g. a deal with a pause between cards,
-   *   stops at its first pause, and `carryOver()` puts the last run's things in place of what it made.
+   * Is a recompiled program loading, to take over the last run's things?
+   * - Set by the runner around the load.
+   * - While it is, a `pause for ...` never ends:
+   *   the program's start, e.g. a deal with a pause between cards, stops at its first pause,
+   *   and `carryOver()` puts the last run's things in place of what it made.
    */
   isCarryingOver: false,
 
   /**
-   * Put the last run's things in place of the new run's:  `previous`, its top-level things, by name,
-   * into `exports`, the new program's module -- see the file's header.
+   * Put the last run's things in place of the new run's -- see the file's header.
+   * - `previous`:  the last run's top-level things, by name.
+   * - `exports`:  the new program's module, which they go into.
    * - Each top-level thing of the same name and type takes the old one's state, in place:
    *   the new program's own variables, e.g. `stock`, keep pointing at it.
    * - The things they hold come over as new things of the new classes, each once.
@@ -142,7 +145,8 @@ class CarryOver {
    * Copy `thing`'s state onto `target`, of its new class:  its props, through their setters, and a list's items.
    * - A prop its new class no longer declares, or only computes:  dropped (`keeps()`).
    * - A prop only `target` has:  left as it is, its own starting value.
-   * - `in place`:  `target` is one of the new run's top-level things -- what it held is forgotten, unless carried.
+   * - `in place`:  `target` is one of the new run's top-level things:
+   *   what it held is forgotten, unless carried over.
    */
   private fill(thing: ThingLike, target: ThingLike, how: "in place" | "new") {
     const Class = target.constructor as ThingClass

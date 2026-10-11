@@ -31,8 +31,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `h()` returns a thunk:  the error boundary makes it, once, and a throw while it's made shows the stand-in.
     - `spellCore.element()`, what it called before, is gone (epic `output-targets` P22):
       every committed example is recompiled, and a program compiled before P20 no longer draws.
-- A drawable thing's own element (`<solitaire-card>`):  [elements.ts](src/elements.ts) names its tag;
-  the page makes the element (`spellCore.elementDefiner`, app's `SpellElement.tsx`).  Core never imports Spell UI.
+- A drawable thing's own element, e.g. `<solitaire-card>`:
+  - Core names its tag, in [elements.ts](src/elements.ts).
+  - The page makes the element, through `spellCore.elementDefiner`:
+    app's [SpellElement.tsx](../app/src/runner/SpellElement.tsx) fills it in.
+  - Core never imports Spell UI.
 
 ## Who may value-import it
 
@@ -106,10 +109,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     or once a runner hands it the program's modules (`addClasses()`).
   - A list's items are SET (`writeItems()`), so a pile owns its cards.
   - An unknown `"@type"`:  a plain object.
-- `spellCore.carryOver()` ([carry.ts](src/carry.ts)) does the same for a recompile, object to object, keeping identity:
-  the last run's things come over as the new program's classes, so the game in progress stays (epic `drawable-thing` P16).
+- `spellCore.carryOver()` ([carry.ts](src/carry.ts)) does the same for a recompile:
+  the game in progress stays when the program changes (epic `drawable-thing` P16).
+  - The last run's things come over as the new program's classes.
+  - Object to object, not through JSON text, so each thing keeps its identity.
   - The runner asks for it on every recompile but Restart:  `runCompiled()`'s `keepThings`.
-  - While the new program loads, `pause for ...` never ends (`isCarryingOver`):  its start, e.g. a new deal, stops there.
+  - While the new program loads, `pause for ...` never ends (`isCarryingOver`):
+    its start, e.g. a new deal, stops there.
 
 ## Decorators
 

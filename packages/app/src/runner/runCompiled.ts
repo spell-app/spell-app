@@ -10,8 +10,8 @@
 import { spellCore, SPELL_CORE_MODULE } from "$/core"
 
 /**
- * Run `compiled` spell javascript:  previous app unmounted, new `spellCore.RUNTIME`, empty console --
- * unless `keepConsole`.
+ * Run `compiled` spell javascript.
+ * - First:  previous app unmounted, new `spellCore.RUNTIME`, empty console -- unless `keepConsole`.
  * - Afresh, unless `keepThings`:  then the last run's things carry over into the new one, e.g. the game in progress,
  *   and the program's start stops at its first pause -- see `spellCore.carryOver()` (epic `drawable-thing` P16).
  * - Imports it as a module from a NEW `blob:` URL each time -- the browser caches modules by URL,
@@ -41,8 +41,8 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions)
   const linked = new Map<string, Promise<string>>()
   const urls: string[] = []
   try {
-    // NOTE: the URL first, THEN `import()` it:  vite wraps `import(...)` in an arrow for its preloading, so an
-    // `await` in its argument would end up in a function that isn't `async` -- a syntax error in the bundle
+    // NOTE: the URL first, THEN `import()` it:  vite wraps `import(...)` in an arrow for its preloading,
+    // so an `await` in its argument would end up in a function that isn't `async` -- a syntax error in the bundle
     const url = await link(compiled, [])
     spellCore.isCarryingOver = !!previous
     let program: Record<string, unknown>
@@ -72,8 +72,9 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions)
   }
 
   /**
-   * `blob:` URL of `source` linked:  its `@spell/core` onto `coreUrl`, each project it imports onto its own,
-   * linked first.  `chain` is the projects we're linking this for, to catch projects importing each other.
+   * `blob:` URL of `source`, linked:  its `@spell/core` onto `coreUrl`, each project it imports onto its own.
+   * - Each project it imports is linked first.
+   * - `chain`:  the projects we're linking this for, to catch projects importing each other.
    */
   async function link(source: string, chain: string[]): Promise<string> {
     const imports: Record<string, string> = {}
@@ -92,8 +93,9 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions)
 /** Options for `runCompiled()`. */
 export type RunCompiledOptions = {
   /**
-   * URL of the module compiled spell's `@spell/core` import is pointed at:  the runtime copy it runs on --
-   * see `loadRuntime()`.  MUST be the copy this `runCompiled()` is from, so the program's `spellCore` is ours.
+   * URL of the module compiled spell's `@spell/core` import is pointed at:  the runtime copy it runs on.
+   * - See `loadRuntime()`.
+   * - MUST be the copy this `runCompiled()` is from, so the program's `spellCore` is ours.
    */
   coreUrl: string
   /** Compiled javascript of project `projectId`, which the program imports. */

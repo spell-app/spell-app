@@ -87,8 +87,9 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
    *   each class member moves into its class's body, if that's in this block -- see `SP.hoistClassMembers()`.
    * - A `##` heading followed by a regular comment compiles as a banner -- see `P.ASTBannerComment`.
    * - A heading at a FILE's top level also says so as the program runs, just above its own lines:
-   *   `spellCore.heading("set up all piles")` -- so the Thing Explorer knows which heading's code made each
-   *   thing.  See `P.ASTHeadingInvocation`.
+   *   `spellCore.heading("set up all piles")`.
+   *   - So the Thing Explorer knows which heading's code made each thing.
+   *   - See `P.ASTHeadingInvocation`.
    * - A FILE also declares each property a `set` in it declared, as its type never did:
    *   once, at its top -- or right after its type's declaration, if that's in this file.
    *   - Never moved into a class:  it mustn't change another file's output.
@@ -170,8 +171,9 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
   }
 
   /**
-   * `statement`'s nested body's statements, if its rule compiles that body FLAT -- e.g. an outline-style type's
-   * bulleted body -- so they go in the block holding `statement`, after it.  See `SpellStatement.flatBody`.
+   * `statement`'s nested body's statements, if its rule compiles that body FLAT:
+   * they go in the block holding `statement`, after it -- see `SpellStatement.flatBody`.
+   * - e.g. an outline-style type's bulleted body.
    * - `[]` for any other statement.
    * - Duck-typed:  `Block` can't import `SpellStatement` without a cycle.
    */
