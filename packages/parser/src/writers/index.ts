@@ -6,6 +6,7 @@
 
 export * from "./writers.types"
 export * from "./Writer"
+export * from "./ProgramWriter"
 export * from "./JSWriter"
 export * from "./WriterProject"
 export * from "./Naming"

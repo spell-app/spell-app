@@ -14,7 +14,7 @@ export type Target = {
   /** Its name, LANGUAGE/RUNTIME, e.g. `js/solid`. */
   name: string
   /** Writes its code. */
-  writer: P.Writer
+  writer: P.ProgramWriter
   /** End of its compiled output file's name, e.g. `.compiled.js`. */
   suffix: string
   /** What its runtime can do. */

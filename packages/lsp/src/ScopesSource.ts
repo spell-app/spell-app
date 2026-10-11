@@ -322,7 +322,7 @@ function startOfDocComment(lines: string[]): number {
 const DECLARES = /\/\*! SPELL: DECLARES \{[\s\S]*?\} \*\//g
 
 /**
- * Between each file's code in a project's compiled output -- `SP.SpellProject.FILE_SEPARATOR`.
+ * Between each file's code in a project's compiled javascript -- `P.JSWriter.FILE_SEPARATOR`.
  * - NOTE: a copy, NOT imported:  `$/spell` would pull the whole parser into the bundle.
  */
 const FILE_SEPARATOR = "\n// -----------\n"

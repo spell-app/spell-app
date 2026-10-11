@@ -22,6 +22,19 @@ export type TreeNode = {
 }
 
 /**
+ * What a module imports from ONE module, by name -- see `ProgramWriter.importsHeader()`.
+ * - e.g. `{ module: "@spell/core", names: ["spellCore", "Thing"] }`;
+ *   `{ module: "@spell/project/@system:library:cards", names: ["Card as Playingcard", "Deck"] }`
+ * - A name may say what it's called here:  `Card as Playingcard`.
+ */
+export type ModuleImport = {
+  /** The module, as compiled spell names it:  `@spell/core`, or `@spell/project/<project id>`. */
+  module: string
+  /** What it imports from there, each `name` or `name as localName`. */
+  names: string[]
+}
+
+/**
  * What a writer is told about the project it writes, besides its code -- see `Writer.forProject()`.
  * - From the project's `project.json`.
  */

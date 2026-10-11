@@ -88,7 +88,7 @@ export function fixtureProjectNames(): string[] {
  * - `target`:  compiled for that target, e.g. `ts/solid` (see `SP.TARGETS`);
  *   or a writer itself, e.g. a test's own.
  */
-export function compiledFixture(projectName: string, target: string | P.Writer = SP.RUNNING_TARGET): string {
+export function compiledFixture(projectName: string, target: string | P.ProgramWriter = SP.RUNNING_TARGET): string {
   return compileFixture(projectName, target).code
 }
 
@@ -118,7 +118,7 @@ export function fixtureWords(projectName: string): string {
  */
 function compileFixture(
   projectName: string,
-  target: string | P.Writer = SP.RUNNING_TARGET
+  target: string | P.ProgramWriter = SP.RUNNING_TARGET
 ): { code: string; declarations: SP.SpellDeclarationsData } {
   const projectDir = fixturePath(projectName)
   const { version, exports, imports, listsStartAt } = readProjectFile(projectDir)
@@ -132,8 +132,8 @@ function compileFixture(
       const file = files.find((it) => it.path === path)!
       return file.match?.AST instanceof P.ASTStatementGroup ? file.match.AST : file.compiled
     })
-  const importLines = SP.SpellProject.importHeaderFor(scope)
   const writer = typeof target === "string" ? SP.targetFor(target).writer : target
+  const importLines = SP.SpellProject.importHeaderFor(scope, writer)
   const marked =
     errors.join("") + SP.SpellProject.combineCompiled(parts, writer, importLines, scope, { listsStartAt }) + "\n"
   return SP.SpellDeclarations.split(marked, scope, { version, exports })

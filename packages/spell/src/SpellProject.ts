@@ -368,7 +368,8 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
                     params: { target: target.name }
                   })
                 }
-                const marked = SpellProject.combineCompiled(parts, target.writer, this.importHeader(), this.scope, {
+                const header = this.importHeader(target.writer)
+                const marked = SpellProject.combineCompiled(parts, target.writer, header, this.scope, {
                   listsStartAt: this.contents?.listsStartAt
                 })
                 // each declaring statement's marker comes out, into our declarations -- see `SP.SpellDeclarations`
@@ -403,11 +404,8 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
     })
   }
 
-  /** Between each file's code in our compiled output -- see "Combining output" in `compiler`. */
-  static FILE_SEPARATOR = "\n// -----------\n"
-
   /**
-   * A project's files' code as ONE module, in order, `FILE_SEPARATOR` between each.
+   * A project's files' code as ONE module, in order, the writer's `fileSeparator` between each.
    * - Each `part` is a `.spell` file's AST, or code as is, e.g. a `.css` file's.
    * - Each class gets its members from EVERY file, e.g. `Card.move_to_$pile` from `Pile.spell` goes in
    *   `Card.spell`'s `class Card` -- see `SP.hoistClassMembers()`.  Each file's own were moved in by `SP.Block`.
@@ -420,7 +418,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    */
   static combineCompiled(
     parts: Array<P.ASTStatementGroup | string | undefined>,
-    writer: P.Writer = P.JSWriter.instance,
+    writer: P.ProgramWriter = P.JSWriter.instance,
     header = "",
     scope?: P.Scope,
     options?: P.WriterOptions
@@ -432,7 +430,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
         if (typeof part !== "object") return part ?? ""
         return String(projectWriter.write(new P.ASTStatementGroup(part.match, { statements: hoisted[index] })))
       })
-      .join(SpellProject.FILE_SEPARATOR)
+      .join(projectWriter.fileSeparator)
     return projectWriter.module(header + code)
   }
 
@@ -718,21 +716,25 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    * - Why:  compiled spell reaches everything it didn't declare through `import`s -- NO globals.
    * - A runner rewrites each specifier onto the module it means -- see `runCompiled()` in `src/app/runner/`.
    * - A `source` import needs none:  its files compile into our output.
+   * - `writer`:  the target's, which spells them in its language -- see `P.ProgramWriter.importsHeader()`.
    */
-  importHeader(): string {
-    return SpellProject.importHeaderFor(this.scope)
+  importHeader(writer: P.ProgramWriter = P.JSWriter.instance): string {
+    return SpellProject.importHeaderFor(this.scope, writer)
   }
 
   /** `importHeader()` of a project parsed in `scope` -- also for one parsed headlessly, e.g. a test fixture. */
-  static importHeaderFor(scope: P.Scope | undefined): string {
-    const lines = [`import { ${SPELL_CORE_NAMES.join(", ")} } from "${SPELL_CORE_MODULE}"`]
-    const imports = scope?.parentScope
-    if (imports instanceof P.ImportScope) {
-      for (const [module, names] of imports.modules) {
-        if (names.length) lines.push(`import { ${names.join(", ")} } from "${module}"`)
-      }
+  static importHeaderFor(scope: P.Scope | undefined, writer: P.ProgramWriter = P.JSWriter.instance): string {
+    return writer.importsHeader(SpellProject.importsOf(scope))
+  }
+
+  /** What a project parsed in `scope` imports, by module:  spell's runtime first, then other projects'. */
+  static importsOf(scope: P.Scope | undefined): P.ModuleImport[] {
+    const imports: P.ModuleImport[] = [{ module: SPELL_CORE_MODULE, names: [...SPELL_CORE_NAMES] }]
+    const importScope = scope?.parentScope
+    if (importScope instanceof P.ImportScope) {
+      for (const [module, names] of importScope.modules) imports.push({ module, names })
     }
-    return `${lines.join("\n")}\n\n`
+    return imports
   }
 
   /**
