@@ -12,7 +12,8 @@ mirror.read(writer.state_of(game))          # after that:  the SAME things, chan
 mirror.read(writer.patch())                 # or only what changed since:  the same, sent smaller
 ```
 
-- The same JSON as `to_json()`, plus an `"@id"` on each thing and spell list, after its `"@type"`.
+- The same JSON as `to_json()`, plus an `"@id"` on each thing and spell list, after its `"@type"`,
+  and its plain fields after its properties:  what it was made with and doesn't declare, e.g. a foundation's `symbol`.
   - The first mention of one is whole;  each later one is `{"@id": "3"}` alone:
     so a card in two places is one card, read back.
   - `"@id"` as JSON-LD spells it, beside its `"@type"`.
@@ -50,9 +51,15 @@ class StateWriter:
         """
         # by Python's `id()`, holding the thing too, so its `id()` is never another's
         self._ids: dict[int, tuple[SpellObject, str]] = {}
+        # each thing by the id it was given
+        self._things: dict[str, SpellObject] = {}
         # what changed since it last wrote, of the things it has given ids, by `id()`, in the order they changed
         self._changed: dict[int, SpellObject] = {}
         CHANGE_WATCHERS.add(self)
+
+    def thing_with_id(self, the_id: str) -> SpellObject | None:
+        """The thing this writer gave `the_id`, if any:  what a page's message names, `{"@id": "3"}`."""
+        return self._things.get(the_id)
 
     def note_change(self, changed: SpellObject) -> None:
         """SIDE EFFECT:  `changed` goes in the next `patch()`, if it has an id:  one never written is new to a page."""
@@ -65,6 +72,7 @@ class StateWriter:
         if known is None:
             known = (thing, str(len(self._ids) + 1))
             self._ids[id(thing)] = known
+            self._things[known[1]] = thing
         return known[1]
 
     def state_of(self, value: object) -> Any:
@@ -105,6 +113,8 @@ class StateWriter:
         json: dict[str, object] = {TYPE_KEY: type(thing).__name__, ID_KEY: self.id_of(thing)}
         for name, prop in thing._props.items():
             json[name] = self._write(prop, written)
+        for name, field in _fields(thing).items():
+            json.setdefault(name, self._write(field, written))
         if isinstance(thing, List):
             json[ITEMS_KEY] = [self._write(item, written) for item in thing._items]
         return json
@@ -163,6 +173,15 @@ class StateMirror:
             items = value.get(ITEMS_KEY)
             made.items = [self._read(item) for item in items] if isinstance(items, list) else []
         return made
+
+
+def _fields(thing: SpellObject) -> dict[str, object]:
+    """`thing`'s plain fields, not its properties:  what its constructor was given and doesn't declare.
+
+    - `Foundation(symbol="♣️")`, with no `symbol` declared:  `{"symbol": "♣️"}`, as javascript keeps it too.
+    - Never a `_private` one, or a function.
+    """
+    return {name: value for name, value in vars(thing).items() if not name.startswith("_") and not callable(value)}
 
 
 def _set(thing: SpellObject, key: str, value: object) -> None:

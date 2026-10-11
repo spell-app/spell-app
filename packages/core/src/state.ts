@@ -13,7 +13,8 @@
  * mirror.read(later)   // after that:  the SAME things, changed in place, so what draws them redraws
  * ```
  *
- * - The same JSON as `toJSON()`, plus an `"@id"` on each thing and list, after its `"@type"`.
+ * - The same JSON as `toJSON()`, plus an `"@id"` on each thing and list, after its `"@type"`,
+ *   and its plain fields after its props:  what it was made with and doesn't declare, e.g. a foundation's `symbol`.
  *   - The first mention of one is whole;  each later one is `{ "@id": "3" }` alone:
  *     so a card in two places is one card, read back.
  *   - `"@id"` as JSON-LD spells it, beside its `"@type"`.
@@ -69,6 +70,8 @@ export class StateWriter {
       written.add(value)
       const json: Record<string, unknown> = { [TYPE_KEY]: value.constructor.name, [ID_KEY]: id }
       for (const key of keysOf(value)) json[key] = this.write(getProp(value, key), written)
+      for (const [key, field] of Object.entries(fieldsOf(value)))
+        if (!(key in json)) json[key] = this.write(field, written)
       if (value instanceof List) json[ITEMS_KEY] = value.items.map((item) => this.write(item, written))
       return json
     }
@@ -85,9 +88,29 @@ export class StateMirror {
   /** What it read, by id. */
   protected byId = new Map<string, SpellObject>()
 
+  /**
+   * A mirror holding nothing yet.
+   * - `nameOf`:  our name for each property the states name, e.g. Python's `is_set_up` => `isSetUp`;
+   *   as they are, by default.
+   */
+  constructor({ nameOf }: { nameOf?: (name: string) => string } = {}) {
+    if (nameOf) this.nameOf = nameOf
+  }
+
+  /** Our name for a property a state names:  see the constructor. */
+  protected nameOf = (name: string): string => name
+
+  /** The id of each thing it read:  what the page sends, to name one. */
+  protected ids = new WeakMap<SpellObject, string>()
+
   /** The thing read with `id`, if any:  what a click on the page names. */
   thingWithId(id: string): SpellObject | undefined {
     return this.byId.get(id)
+  }
+
+  /** The id `thing` was read with, if any:  `"3"`. */
+  idOf(thing: SpellObject): string | undefined {
+    return this.ids.get(thing)
   }
 
   /**
@@ -107,7 +130,8 @@ export class StateMirror {
     const type = state[TYPE_KEY]
     const Class = typeof type === "string" ? spellCore.things.classNamed(type) : undefined
     if (!Class) return Object.fromEntries(Object.entries(state).map(([key, value]) => [key, this.read(value)]))
-    const { [TYPE_KEY]: _type, [ID_KEY]: _id, [ITEMS_KEY]: items, ...fields } = state
+    const { [TYPE_KEY]: _type, [ID_KEY]: _id, [ITEMS_KEY]: items, ...named } = state
+    const fields = Object.fromEntries(Object.entries(named).map(([key, value]) => [this.nameOf(key), value]))
     const known = typeof id === "string" ? this.byId.get(id) : undefined
     let made = known instanceof Class ? known : undefined
     let rest = fields
@@ -124,18 +148,45 @@ export class StateMirror {
     // kept BEFORE its fields are read:  a field may mention it, `{ "@id": ... }`
     if (typeof id === "string") {
       this.byId.set(id, made)
+      this.ids.set(made, id)
       for (const key of keysOf(made)) if (!(key in fields)) setProp(made, key, undefined)
     }
-    for (const [key, value] of Object.entries(rest)) set(made, key, this.read(value))
+    for (const [key, value] of Object.entries(rest)) set(made, key, this.read(value), typeof id === "string")
     if (made instanceof List) made.items = Array.isArray(items) ? items.map((item) => this.read(item)) : []
     return made
   }
 }
 
-/** Set `thing`'s `key` to `value`:  through its setter, else as a plain prop. */
-function set(thing: SpellObject, key: string, value: unknown): void {
-  if (hasSetter(Object.getPrototypeOf(thing) as object, key)) (thing as unknown as Record<string, unknown>)[key] = value
+/**
+ * Set `thing`'s `key` to `value`:  through its setter, else as a prop.
+ * - `fromState`:  read from a state, which holds plain fields too (`StateWriter`):
+ *   a key it has no accessor or prop for is one, as its constructor set it (`Foundation({ symbol })`).
+ *   `toJSON()`'s JSON holds props only.
+ */
+function set(thing: SpellObject, key: string, value: unknown, fromState: boolean): void {
+  const proto = Object.getPrototypeOf(thing) as object
+  const isField = fromState && !hasAccessor(proto, key) && !keysOf(thing).includes(key)
+  if (isField || hasSetter(proto, key)) (thing as unknown as Record<string, unknown>)[key] = value
   else setProp(thing, key, value)
+}
+
+/**
+ * `thing`'s plain fields, not its props:  what its constructor was given and doesn't declare,
+ * e.g. `{ symbol: "♣️" }` for `new Foundation({ symbol: "♣️" })`.  Never a `_private` one, or a function.
+ */
+function fieldsOf(thing: SpellObject): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(thing).filter(([key, value]) => !key.startsWith("_") && typeof value !== "function")
+  )
+}
+
+/** Does `proto`, or one up its chain, have a getter or setter for `key`? */
+function hasAccessor(proto: object | null, key: string): boolean {
+  for (; proto; proto = Object.getPrototypeOf(proto) as object | null) {
+    const descriptor = Object.getOwnPropertyDescriptor(proto, key)
+    if (descriptor) return !!(descriptor.get || descriptor.set)
+  }
+  return false
 }
 
 /** Is `value` a thing or a list? */

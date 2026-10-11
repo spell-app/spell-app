@@ -1,5 +1,5 @@
 import { spawnSync } from "child_process"
-import { mkdtempSync, rmSync, writeFileSync } from "fs"
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
 import { join, resolve } from "path"
 import { pathToFileURL } from "url"
@@ -216,6 +216,78 @@ describe("the core contract:  a game's patches give its whole state, click by cl
           })
           expect(status, `${name}:\n${stderr}`).toBe(0)
           expect(stdout).toMatch(/[1-9]\d* of 300 clicks changed something;  every patch matched/)
+        } finally {
+          rmSync(folder, { recursive: true, force: true })
+        }
+      },
+      60_000
+    )
+  }
+})
+
+/**
+ * A page draws a Python program as javascript draws it (epic `python-target` P19):
+ * each game run on the `py` target, seeded, its state (`--state`) drawn in the fake page by its drawing half,
+ * `<Project>.elements.js` (`P.ElementsWriter`), started by `@spell/core`'s `startPage()`.
+ * - The board it draws is the javascript run's, the last line of its contract snapshot.
+ * - A click on a face-up card sends Python the event, the card by its id;  Python's session runs it.
+ */
+describe("the core contract:  a page draws a Python game as javascript does", () => {
+  for (const name of GAMES) {
+    test(
+      name,
+      async () => {
+        const folder = mkdtempSync(join(tmpdir(), "spell-page-"))
+        try {
+          await importedProjects(name, "py", folder)
+          const program = join(folder, `${name}.compiled.py`)
+          writeFileSync(program, compiledFixture(name, "py"))
+          const run = ["run", "--quiet", "--project", SPELL_CORE, "python", "-m"]
+          const ran = spawnSync("uv", [...run, "spell_core.run", program, "--seed", "1", "--no-pauses", "--state"], {
+            encoding: "utf8"
+          })
+          expect(ran.status, `${name}:\n${ran.stderr}`).toBe(0)
+          const state = ran.stdout.trimEnd().split("\n").at(-1)!
+
+          // the page:  its drawing half, and those of the projects it imports, as modules beside it
+          const elements = join(folder, `${name}.elements.mjs`)
+          writeFileSync(elements, compiledFixture(name, P.ElementsWriter.instance))
+          const projects: Record<string, string> = {}
+          const modules = [`import * as program from ${JSON.stringify(pathToFileURL(elements).href)}`]
+          for (const [module, fixture] of Object.entries(fixtureImports(name))) {
+            const file = join(folder, `${fixture}.elements.mjs`)
+            writeFileSync(file, compiledFixture(fixture, P.ElementsWriter.instance))
+            projects[decodeURI(module.slice(SP.SPELL_PROJECT_MODULE.length))] = pathToFileURL(file).href
+            modules.push(`import * as ${fixture.toLowerCase()} from ${JSON.stringify(module)}`)
+          }
+          const imported = Object.values(fixtureImports(name)).map((fixture) => fixture.toLowerCase())
+          const page = [
+            'import { startPage } from "@spell/core"',
+            ...modules,
+            "const sent = []",
+            `startPage({ modules: [${[...imported, "program"].join(", ")}], state: ${state}, send: (message) => sent.push(message) })`,
+            'document.querySelector(".Card.face-up").dispatchEvent(new Event("click", { bubbles: true }))',
+            "console.log(JSON.stringify(sent))"
+          ].join("\n")
+          const { exitCode, output, stdout } = await CLI.runCode("run", `${name}Page`, page, {
+            projects,
+            capture: true,
+            dom: true
+          })
+          expect(exitCode, `${name}'s page:\n${output}`).toBe(CLI.EXIT.OK)
+          const [messages, , drawn] = stdout.trimEnd().split("\n").slice(-3)
+          const snapshot = readFileSync(resolve(import.meta.dirname, `__snapshots__/contract/${name}.out.txt`), "utf8")
+          expect(drawn).toBe(snapshot.trimEnd().split("\n").at(-1))
+
+          // the click:  the event, its card by id, which Python's session runs
+          const [click] = JSON.parse(messages!) as Array<{ trigger: string; details: { card: { "@id": string } } }>
+          expect(click).toEqual({ trigger: "card-click", details: { card: { "@id": expect.any(String) } } })
+          const session = spawnSync("uv", [...run, "spell_core.page", program, "--seed", "1", "--no-pauses"], {
+            encoding: "utf8",
+            input: `${JSON.stringify(click)}\n`
+          })
+          expect(session.status, `${name}'s session:\n${session.stderr}`).toBe(0)
+          expect(JSON.parse(session.stdout.trimEnd().split("\n").at(-1)!)).toBeInstanceOf(Array)
         } finally {
           rmSync(folder, { recursive: true, force: true })
         }

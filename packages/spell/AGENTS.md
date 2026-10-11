@@ -51,6 +51,8 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
   - `py`:  Python on `spell_core`, checked by pyright
     - with a words file of its own, by Python's names:  `<Project>.py.en.json`
   - `py/asyncio`:  the same Python on `asyncio`, checked by pyright
+  - Both Python targets write a page file too, when the program draws:  `<Project>.elements.js`,
+    its drawing half in javascript (`elementsSuffix`, `P.ElementsWriter`)
   - A project lists the others it wants in `project.json`'s `"targets"`.
     `spell compile --target <name>` picks one for a single run.
   - The writers are `$/parser`'s:  "Compile" in `PARSING.md`.
@@ -73,6 +75,7 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
     - `<Project>.snapshot.py`:  the Python target
     - `<Project>.snapshot.asyncio.py`:  the Python-on-asyncio target
     - `<Project>.snapshot.pyright.txt`:  what pyright says of the Python ([python.test.ts](src/test/python.test.ts))
+    - `<Project>.elements.snapshot.js`:  the Python targets' page file, for a fixture that draws
     - The Python ones only for the fixtures in `PYTHON_FIXTURES` (every fixture, so far).
     - Add a fixture by copying a project in.
     - After a deliberate change, `yarn test:fixtures:bless`, and read the diff.
