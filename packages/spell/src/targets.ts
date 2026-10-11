@@ -40,7 +40,10 @@ export const TARGETS: Record<string, Target> = {
     suffix: ".compiled.tsx",
     can: { draw: "dom" },
     checkedBy: "tsc"
-  }
+  },
+  // Python as a person writes it, PEP 8's names, on `spell_core` (`packages/core/py`) -- epic `python-target`.
+  // Draws HTML text:  Python has no page (Q2)
+  py: { name: "py", writer: P.PyWriter.instance, suffix: ".compiled.py", can: { draw: "html" } }
 }
 
 /** The target everything runs:  always compiled -- see the module docs. */

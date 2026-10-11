@@ -26,7 +26,7 @@ import { CLI } from "$/cli"
  * - `Math.random()` is seeded, so Solitaire deals the same cards every run.
  * - Changed on purpose:  `yarn vp test run src/contract.test.ts -u`, then read the diff.
  */
-const TARGET_FILES: Record<string, string> = { "js/solid": ".mjs", "ts/solid": ".tsx" }
+const TARGET_FILES: Record<string, string> = { "js/solid": ".mjs", "ts/solid": ".tsx", py: ".py" }
 
 /**
  * What fixture `name` prints when its `target` code runs, as `spell run` would run it.

@@ -35,5 +35,16 @@ describe("fixture projects compile to their snapshots", () => {
     test(`${name} as TypeScript`, async () => {
       await expect(compiledFixture(name, "ts/solid")).toMatchFileSnapshot(fixturePath(name, `${name}.snapshot.tsx`))
     })
+
+    // the `py` target's (epic `python-target`):  the fixtures its writer writes so far
+    test.runIf(PYTHON_FIXTURES.has(name))(`${name} as Python`, async () => {
+      await expect(compiledFixture(name, "py")).toMatchFileSnapshot(fixturePath(name, `${name}.snapshot.py`))
+    })
   }
 })
+
+/**
+ * The fixtures the Python writer writes, so far:  each later phase of epic `python-target` adds the ones it makes
+ * write (things and lists, pauses and events, drawing).
+ */
+const PYTHON_FIXTURES = new Set(["FizzBuzz"])
