@@ -20,3 +20,15 @@ export type TreeNode = {
   /** Its children, left to right. */
   children?: TreeNode[]
 }
+
+/**
+ * What a writer is told about the project it writes, besides its code -- see `Writer.forProject()`.
+ * - From the project's `project.json`.
+ */
+export type WriterOptions = {
+  /**
+   * Where the project's lists start counting:  `1`, spell's own (the default), or `0` (`"listsStartAt": 0`,
+   * epic `python-target` P2).  Ordinal words don't follow it:  "the first card" is the first either way.
+   */
+  listsStartAt?: 0 | 1
+}

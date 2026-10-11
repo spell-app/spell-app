@@ -368,7 +368,9 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
                     params: { target: target.name }
                   })
                 }
-                const marked = SpellProject.combineCompiled(parts, target.writer, this.importHeader(), this.scope)
+                const marked = SpellProject.combineCompiled(parts, target.writer, this.importHeader(), this.scope, {
+                  listsStartAt: this.contents?.listsStartAt
+                })
                 // each declaring statement's marker comes out, into our declarations -- see `SP.SpellDeclarations`
                 const { code, declarations } = SP.SpellDeclarations.split(marked, this.scope!, { version, exports })
                 this.outputFileFor(target).contents = code
@@ -414,15 +416,17 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    *   (`P.Writer.forProject()`), and finishes the module last (`P.Writer.module()`).
    * - `header`:  what the module starts with, e.g. `importHeaderFor()`'s imports.
    * - `scope`:  the project's, which the writer may read what it imports from (`P.Writer.forProject()`).
+   * - `options`:  what its `project.json` says that changes the code, e.g. where its lists start (`P.WriterOptions`).
    */
   static combineCompiled(
     parts: Array<P.ASTStatementGroup | string | undefined>,
     writer: P.Writer = P.JSWriter.instance,
     header = "",
-    scope?: P.Scope
+    scope?: P.Scope,
+    options?: P.WriterOptions
   ): string {
     const hoisted = SP.hoistClassMembers(parts.map((part) => (typeof part === "object" ? (part.statements ?? []) : [])))
-    const projectWriter = writer.forProject(hoisted, scope)
+    const projectWriter = writer.forProject(hoisted, scope, options)
     const code = parts
       .map((part, index) => {
         if (typeof part !== "object") return part ?? ""

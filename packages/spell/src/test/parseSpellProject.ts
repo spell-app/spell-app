@@ -113,7 +113,7 @@ export function fixtureWords(projectName: string): string {
  * - Parse errors lead its code, as comments, so a snapshot of it shows them too.
  * - Against the fixtures it imports, e.g. `@test:fixtures:Cards`:  their declarations, as a compiled import's --
  *   see `fixtureImportScope()`.  NOT their code:  that's theirs.
- * - `version` / `exports` from its `project.json`, as a compile would.
+ * - `version` / `exports` / `listsStartAt` from its `project.json`, as a compile would.
  * - `target`'s writer writes it, `js/solid`'s by default -- or `target` itself, a writer.
  */
 function compileFixture(
@@ -121,7 +121,7 @@ function compileFixture(
   target: string | P.Writer = SP.RUNNING_TARGET
 ): { code: string; declarations: SP.SpellDeclarationsData } {
   const projectDir = fixturePath(projectName)
-  const { version, exports, imports } = readProjectFile(projectDir)
+  const { version, exports, imports, listsStartAt } = readProjectFile(projectDir)
   const parentScope = fixtureImportScope(projectName)
   const { scope, files } = parseSpellProject(loadFixtureProject(projectName), { parentScope })
   const errors = files.flatMap(({ path, errors }) => errors.map((error) => `// PARSE ERROR ${path}:${error}\n`))
@@ -134,7 +134,7 @@ function compileFixture(
     })
   const importLines = SP.SpellProject.importHeaderFor(scope)
   const writer = typeof target === "string" ? SP.targetFor(target).writer : target
-  const marked = errors.join("") + SP.SpellProject.combineCompiled(parts, writer, importLines, scope) + "\n"
+  const marked = errors.join("") + SP.SpellProject.combineCompiled(parts, writer, importLines, scope, { listsStartAt }) + "\n"
   return SP.SpellDeclarations.split(marked, scope, { version, exports })
 }
 
@@ -199,6 +199,7 @@ function readProjectFile(projectDir: string): {
   version?: string
   exports?: string[]
   imports: Array<{ path: string; active?: boolean; import?: string[] }>
+  listsStartAt?: 0 | 1
 } {
   return JSON.parse(readFileSync(resolve(projectDir, SP.PROJECT_FILE), "utf8"))
 }

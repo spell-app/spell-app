@@ -227,8 +227,8 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
   )
 
   // return manifest and imports
-  const { version, exports, targets } = importsFile
-  return { imports: importsFile.imports, manifest, version, exports, targets }
+  const { version, exports, targets, listsStartAt } = importsFile
+  return { imports: importsFile.imports, manifest, version, exports, targets, listsStartAt }
 }
 
 /**

@@ -587,6 +587,16 @@ const READ_AS_TEMPLATE =
 // ## Lookups
 ////////////////
 
+/**
+ * Built-in docs `text`, for a project whose lists start at `startAt` (`project.json`'s `"listsStartAt"`):
+ * counting from 0, "counts from 1" says 0, and `card 1 of the deck` says `card 0` (epic `python-target` P2).
+ * - As it is otherwise.
+ */
+export function docsCountingFrom(text: string, startAt: 0 | 1 = 1): string {
+  if (startAt !== 0) return text
+  return text.replace(/([Cc])ounts from 1/g, "$1ounts from 0").replace(/`card 1 of the deck`/g, "`card 0 of the deck`")
+}
+
 /** Table entry of built-in type `name`, however written, e.g. `List` or `list` -- `undefined` if it has none. */
 export function builtInTypeEntry(name: string): SP.BuiltInType | undefined {
   const datatype = typeName(name)

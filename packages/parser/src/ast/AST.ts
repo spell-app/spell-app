@@ -164,6 +164,14 @@ export class ASTNumericLiteral extends ASTLiteral {
   }
 }
 
+/**
+ * A position said with an ordinal word, e.g. `the first card` => `1`, `the last card` => `-1`.
+ * - Always counted from 1, whatever the project's lists start at:  "the first card" is the first either way.
+ *   A writer for a project counting from 0 writes it as such, e.g. `first` => `0` (epic `python-target` P2).
+ * - Otherwise a plain number:  writers with nothing to say about it write it as `ASTNumericLiteral`.
+ */
+export class ASTOrdinalLiteral extends ASTNumericLiteral {}
+
 /** A quote a text literal is written in:  double, single or a back tick. */
 export type ASTQuote = '"' | "'" | "`"
 
