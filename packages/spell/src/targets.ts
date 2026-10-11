@@ -68,24 +68,15 @@ export const TARGETS: Record<string, Target> = {
     can: { draw: "dom" },
     checkedBy: "tsc"
   },
-  // Python as a person writes it, with PEP 8's names, on `spell_core` (`packages/py/core`).
-  // Draws HTML as text:  Python has no page (epic `python-target`, Q2)
+  // Python as a person writes it, with PEP 8's names, on `spell_core` (`packages/py/core`), on asyncio:
+  // a function that pauses is `async def`, and its callers await it (epic `python-target`, one target since P22).
+  // Draws HTML as text (Q2);  a program that draws also gets its page, `.elements.js`, and its web app, `.app.py`
   py: {
     name: "py",
     writer: PY.PyWriter.instance,
     suffix: ".compiled.py",
     can: { draw: "html" },
     wordsSuffix: ".py.en.json",
-    elementsSuffix: ELEMENTS_JS_SUFFIX,
-    checkedBy: "pyright"
-  },
-  // The same Python on `asyncio`:  a function that pauses is `async def`, and its callers await it
-  // (epic `python-target`, Q3 B and Q18)
-  "py/asyncio": {
-    name: "py/asyncio",
-    writer: PY.PyAsyncWriter.instance,
-    suffix: ".compiled.asyncio.py",
-    can: { draw: "html" },
     elementsSuffix: ELEMENTS_JS_SUFFIX,
     appSuffix: ".app.py",
     checkedBy: "pyright"

@@ -25,7 +25,7 @@ const { unwrapped } = P.jsShapes
  *   - in a drawing's event handler (`onClick`), a call of a thing's method asks Python too:
  *     `this.turnOver()` => `sendCall("turn_over", [], this)`
  *   - an event, ANYWHERE, goes to Python's handlers:  `trigger("card-click", { card: this })` => `sendTrigger(...)`
- * - Python's names in what it sends, `Naming.PYTHON`:  the same for the `py` and `py/asyncio` targets.
+ * - Python's names in what it sends, `Naming.PYTHON`, as the `py` target writes them.
  * - A thing in a message is sent by its id:  see `sendCall()` in `@spell/core`'s `page.ts`.
  ****************/
 export class ElementsWriter extends P.JSWriter {

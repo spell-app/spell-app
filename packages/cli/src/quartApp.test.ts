@@ -7,7 +7,7 @@ import { chromium, type Browser, type Page } from "playwright"
 import { afterAll, beforeAll, describe, expect, test } from "vite-plus/test"
 
 /**
- * A Python spell app in a real browser (epic `python-target` P20):  Solitaire compiled to `py/asyncio`,
+ * A Python spell app in a real browser (epic `python-target` P20):  Solitaire compiled to `py`,
  * served by the app compiling writes, `Solitaire.app.py`, on Quart, played in headless Chromium.
  * - A temp copy of the fixture:  tests never write into `projects/test/`.
  * - Seeded (`$SPELL_SEED`), so its deal is the javascript run's, the core contract's snapshot.
@@ -50,10 +50,10 @@ afterAll(async () => {
 })
 
 describe("a Python spell app, in a real browser", () => {
-  test("compiling to py/asyncio writes the program, its drawing half and its app", () => {
+  test("compiling to py writes the program, its drawing half and its app", () => {
     const files = readdirSync(join(folder, "Solitaire"))
     expect(files).toEqual(
-      expect.arrayContaining(["Solitaire.compiled.asyncio.py", "Solitaire.elements.js", "Solitaire.app.py"])
+      expect.arrayContaining(["Solitaire.compiled.py", "Solitaire.elements.js", "Solitaire.app.py"])
     )
   })
 
@@ -123,9 +123,9 @@ async function opened(): Promise<{ page: Page; sizes: number[] }> {
   return { page, sizes }
 }
 
-/** SIDE EFFECT:  compile the temp Solitaire to `py/asyncio`. */
+/** SIDE EFFECT:  compile the temp Solitaire to `py`. */
 function compile(): void {
-  const compiled = spawnSync("node", [SPELL, "compile", join(folder, "Solitaire"), "--target", "py/asyncio"], {
+  const compiled = spawnSync("node", [SPELL, "compile", join(folder, "Solitaire"), "--target", "py"], {
     encoding: "utf8"
   })
   expect(compiled.status, compiled.stderr).toBe(0)

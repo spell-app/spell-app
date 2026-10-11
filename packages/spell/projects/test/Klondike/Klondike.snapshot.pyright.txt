@@ -1,3 +1,3 @@
-161 reportOptionalMemberAccess "last_item" is not a known attribute of "None"
-163 reportOptionalOperand Operator "+" not supported for "None"
-313 reportAttributeAccessIssue Cannot assign to attribute "play" for class "type[Card]"
+157 reportOptionalMemberAccess "last_item" is not a known attribute of "None"
+159 reportOptionalOperand Operator "+" not supported for "None"
+309 reportAttributeAccessIssue Cannot assign to attribute "play" for class "type[Card]"

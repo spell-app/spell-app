@@ -27,7 +27,7 @@ export class ScopeMethod {
   /**
    * Does it wait, e.g. `pause for 50 msec`?
    * - Known for one IMPORTED (from its declarations),
-   *   so a target that awaits what waits (Python's `py/asyncio`) awaits it too -- see `P.PyAsyncWriter`.
+   *   so a target that awaits what waits (Python's `py`) awaits it too -- see `PY.PyWriter`.
    */
   declare waits: boolean | undefined
   /** `"static"` for a class method -- see `TypeScope.classMethods`. */

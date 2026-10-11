@@ -111,7 +111,7 @@ class Eventful:
 def _call(handler: Handler, args: tuple[object, ...]) -> object:
     """`handler(*args)`, given only as many arguments as it takes:  a handler may take the event alone, or nothing.
 
-    - An `async def` handler (the `py/asyncio` target's) runs too:
+    - An `async def` handler (one that waits) runs too:
       - while the program's loop is running, as a task, so it goes on beside it, as javascript's does
       - else to its end, there and then
     """

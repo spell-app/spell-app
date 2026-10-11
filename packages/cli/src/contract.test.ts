@@ -33,7 +33,7 @@ import { CLI } from "$/cli"
  *   how a thing looks dumped is each target's own business.
  * - Changed on purpose:  `yarn vp test run src/contract.test.ts -u`, then read the diff.
  */
-const TARGET_FILES: Record<string, string> = { "js/solid": ".mjs", "ts/solid": ".tsx", py: ".py", "py/asyncio": ".py" }
+const TARGET_FILES: Record<string, string> = { "js/solid": ".mjs", "ts/solid": ".tsx", py: ".py" }
 
 /** The seed every contract run starts its random numbers from. */
 const CONTRACT_SEED = 1

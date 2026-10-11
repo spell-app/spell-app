@@ -48,13 +48,12 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
   Each is a language, the runtime its code runs on, and the writer that writes it:
   - `js/solid`:  ALWAYS compiled, as the editor, the runners and `spell run` run it
   - `ts/solid`:  TypeScript on Solid, checked by `tsc`
-  - `py`:  Python on `spell_core`, checked by pyright
+  - `py`:  Python on `spell_core`, on asyncio (a function that waits is `async def`), checked by pyright
     - with a words file of its own, by Python's names:  `<Project>.py.en.json`
-  - `py/asyncio`:  the same Python on `asyncio`, checked by pyright
-  - Both Python targets write a page file too, when the program draws:  `<Project>.elements.js`,
-    its drawing half in javascript (`elementsSuffix`, `PY.ElementsWriter`)
-  - `py/asyncio` writes a web app as well, `<Project>.app.py` on Quart (`appSuffix`, `$/py`'s [quartApp.ts](../py/ts/quartApp.ts)):
-    rewritten by each compile only while nobody has edited it
+    - a program that draws also gets its page file, `<Project>.elements.js`, its drawing half in javascript
+      (`elementsSuffix`, `PY.ElementsWriter`), and its web app, `<Project>.app.py` on Quart
+      (`appSuffix`, `$/py`'s [quartApp.ts](../py/ts/quartApp.ts)):  rewritten by each compile only while nobody has
+      edited it
   - A project lists the others it wants in `project.json`'s `"targets"`.
     `spell compile --target <name>` picks one for a single run.
   - The writers are `$/parser`'s:  "Compile" in `PARSING.md`.
@@ -75,7 +74,6 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
     - `<Project>.snapshot.tsx`:  the TypeScript target
     - `<Project>.snapshot.tsc.txt`:  what `tsc` says of it ([typescript.test.ts](src/test/typescript.test.ts))
     - `<Project>.snapshot.py`:  the Python target
-    - `<Project>.snapshot.asyncio.py`:  the Python-on-asyncio target
     - `<Project>.snapshot.pyright.txt`:  what pyright says of the Python ([python.test.ts](src/test/python.test.ts))
     - `<Project>.elements.snapshot.js`:  the Python targets' page file, for a fixture that draws
     - The Python ones only for the fixtures in `PYTHON_FIXTURES` (every fixture, so far).

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+
 from spell_core import core, Thing, List, prop, h
 
 
@@ -104,28 +106,28 @@ class Card(Thing):
 
     # actions
 
-    def turn_face_up(self) -> None:
+    async def turn_face_up(self) -> None:
         """
         Turn card face up or face down
         Note that this will animate if you `wait for turn the card face up`
         """
         self.direction = "up"
-        core.pause_for(50, "msec")
+        await core.pause_for(50, "msec")
 
-    def turn_face_down(self) -> None:
+    async def turn_face_down(self) -> None:
         self.direction = "down"
-        core.pause_for(50, "msec")
+        await core.pause_for(50, "msec")
 
-    def turn_over(self) -> None:
+    async def turn_over(self) -> None:
         """
         Flip card to opposite direction
         Note that this will animate if you `wait for turn the card face up`
         """
         if self.direction == "up":
-            self.turn_face_down()
+            await self.turn_face_down()
         else:
-            self.turn_face_up()
-        core.pause_for(50, "msec")
+            await self.turn_face_up()
+        await core.pause_for(50, "msec")
 
     def draw(self):
         class_name = f"Card face-{self.direction} {self.rank} {self.suit} ui button compact fluid "
@@ -150,7 +152,7 @@ class Card(Thing):
         return Pile.owner_of(self)
 
 
-def test_card_setup():
+async def test_card_setup():
     """create a card instance with default properties"""
     with core.test("test card setup"):
         core.echo_test_action(
@@ -200,15 +202,15 @@ def test_card_setup():
         )
 
         core.echo_test_action("turn the card face down")
-        card.turn_face_down()
+        await card.turn_face_down()
         core.expect(card.direction, "the direction of the card", "down", "down")
 
         core.echo_test_action("turn the card over")
-        card.turn_over()
+        await card.turn_over()
         core.expect(card.is_face_up, "the card is face up", True, "true")
 
 
-test_card_setup()
+asyncio.run(test_card_setup())
 
 
 # -----------

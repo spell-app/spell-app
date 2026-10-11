@@ -58,7 +58,7 @@ class PageSession:
         return self.writer.patch()
 
     async def handle_async(self, message: dict[str, Any]) -> list[dict[str, object]]:
-        """As `handle()`, on asyncio:  a handler or function that's `async def` (the `py/asyncio` target's) is awaited.
+        """As `handle()`, on asyncio:  a handler or function that's `async def` (one that waits) is awaited.
 
         - So the patch has all it changed, after any pause in it.
           A pause on the way sends what changed so far, through `core.before_pause`:  see `spell_quart`.
