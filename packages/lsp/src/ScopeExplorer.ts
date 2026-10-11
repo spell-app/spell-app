@@ -146,7 +146,7 @@ export class ScopeExplorer {
         tree.typePaths.set(type, LSP.scopePath(parentPath, "type", type.name))
       }
     }
-    this.addBuiltIns(tree)
+    this.addBuiltIns(tree, project.contents?.listsStartAt)
     const builtIns = tree.entries
     tree.entries = []
     projects.forEach((it, index) => this.addProject(it, tree, index < projects.length - 1 ? "imported" : undefined))
@@ -192,8 +192,10 @@ export class ScopeExplorer {
    *   with their docs and the built-in rules which spell them.
    * - Why the table:  the types are javascript, so there's no spell to find their docs in.
    * - A type with no entry shows bare, as its scope has it.
+   * - `startAt`:  where the project's lists start counting, so a list's docs say "counts from 0" in a project that
+   *   does -- see `SP.docsCountingFrom()`.
    */
-  private addBuiltIns(tree: Tree) {
+  private addBuiltIns(tree: Tree, startAt: 0 | 1 = 1) {
     for (const type of ScopeExplorer.builtInTypes()) {
       const table = SP.builtInTypeEntry(type.name)
       if (!table) {
@@ -206,9 +208,10 @@ export class ScopeExplorer {
       tree.entries.push({
         path,
         ...(superPath ? { super: superPath } : {}),
-        ...(table.detail ? { detail: table.detail } : {})
+        ...(table.detail ? { detail: SP.docsCountingFrom(table.detail, startAt) } : {})
       })
-      tree.details.set(path, () => ScopeExplorer.builtInDetails(table))
+      const docstring = table.docstring && SP.docsCountingFrom(table.docstring, startAt)
+      tree.details.set(path, () => ScopeExplorer.builtInDetails({ ...table, docstring }))
       for (const member of table.members) {
         const name = member.kind === "property" ? SP.builtInMemberName(member.words) : member.words
         const memberPath = LSP.scopePath(path, member.kind, name)

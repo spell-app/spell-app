@@ -12,7 +12,6 @@ import {
   attributeName,
   isCoreCall,
   isKnownType,
-  isNumber,
   isTight,
   kindFromDatatype,
   kindOfType,
@@ -58,6 +57,13 @@ export class JSWriter extends Writer {
   /** How we write each kind of name, e.g. a type in PascalCase -- see `Naming`. */
   naming = new Naming(Naming.JAVASCRIPT)
 
+  /**
+   * Where the project's lists start counting, 1 or 0 (`project.json`'s `"listsStartAt"`) -- see `forProject()`.
+   * - Counting from 0, a position is written as javascript says it where it can (`deck.at(n)`), else
+   *   `spellCore`'s helper is told so with a last `0`:  `spellCore.removeItemAt(deck, n, 0)`.
+   */
+  listsStartAt: 0 | 1 = 1
+
   /** The class we're writing, e.g. `Tableau`:  what `this` is -- see `kindOf()`. */
   protected currentClass: string | undefined
   /** `@spell/core`'s helpers the code calls by name, e.g. `on`, `trigger`, `positionOf`:  imported by `module()`. */
@@ -80,11 +86,12 @@ export class JSWriter extends Writer {
    * A writer of our class for the project whose files' statements are `files`, parsed in `scope`:
    * see `WriterProject`.
    */
-  forProject(files: P.ASTNode[][], scope?: P.Scope): this {
+  forProject(files: P.ASTNode[][], scope?: P.Scope, options?: P.WriterOptions): this {
     const Class = this.constructor as new (project: WriterProject) => this
     const writer = new Class(WriterProject.of(files, scope))
     // our language's names, as set on us
     writer.naming = this.naming
+    writer.listsStartAt = options?.listsStartAt ?? 1
     return writer
   }
 
@@ -216,6 +223,14 @@ export class JSWriter extends Writer {
   /** The literal's own value, as is:  NOTE: not always a string (`ASTNumericLiteral`, `ASTRegExpLiteral`). */
   ASTLiteral(node: P.ASTLiteral): string {
     return node.value as string
+  }
+
+  /**
+   * A position said with an ordinal word, e.g. `the first card`'s `1`:  as the project counts it, so one less
+   * counting from 0 (`listsStartAt`), `0`.  Negative ones count from the end either way:  as they are.
+   */
+  ASTOrdinalLiteral(node: P.ASTOrdinalLiteral): number {
+    return this.listsStartAt === 0 && node.value > 0 ? node.value - 1 : node.value
   }
 
   /**
@@ -546,9 +561,67 @@ export class JSWriter extends Writer {
     if (node.thing instanceof P.ASTSpellCoreExpression) {
       const written = this.coreCall(node)
       if (written !== undefined) return written
+      return `${this.memberObject(node.thing)}.${this.nameOf(node.methodName)}${this.startAtArgs(node, this.argsOf(node))}`
     }
     const dot = this.mayBeNothing(node.thing) ? "?." : "."
     return `${this.memberObject(node.thing)}${dot}${this.nameOf(node.methodName)}${this.argsOf(node)}`
+  }
+
+  /**
+   * `spellCore`'s helpers that take or give a position, and where their last `startAt` goes:
+   * the argument a project counting from 0 passes, `0` -- see `startAtArgs()`.
+   * - A loop's only when its callback takes the position too:  `for item, index in my-list`.
+   */
+  static START_AT_ARG: Record<string, number> = {
+    getItemAt: 2,
+    setItemAt: 3,
+    removeItemAt: 2,
+    positionOf: 2,
+    rangeBetween: 3,
+    removeRangeBetween: 3,
+    rangeStartingAt: 3,
+    map: 2,
+    forEach: 2,
+    forEachSequential: 2
+  }
+
+  /**
+   * `args`, a `spellCore` helper's written arguments, e.g. `(deck, n)`, with `0` last when the project counts from 0
+   * and the helper takes a position:  `(deck, n, 0)`.  As they are otherwise.
+   * - Arguments left out before it are written `undefined`:  `rangeStartingAt(deck, n, undefined, 0)`.
+   */
+  startAtArgs(node: P.ASTScopedMethodInvocation, args: string): string {
+    if (!this.takesStartAt(node.methodName, node.args.args ?? [])) return args
+    const at = JSWriter.START_AT_ARG[node.methodName]!
+    const missing = Math.max(0, at - (node.args.args?.length ?? 0))
+    return `${args.slice(0, -1)}${", undefined".repeat(missing)}, 0)`
+  }
+
+  /**
+   * Does `spellCore`'s helper `name`, given `args`, take a last `startAt` in this project:  does the project count
+   * from 0, and is it a position, or a loop that hands its callback the position?
+   */
+  takesStartAt(name: string, args: P.ASTExpression[]): boolean {
+    if (this.listsStartAt !== 0 || !(name in JSWriter.START_AT_ARG)) return false
+    if (name !== "map" && name !== "forEach" && name !== "forEachSequential") return true
+    const callback = args[1] && unwrapped(args[1])
+    return callback instanceof P.ASTMethodDefinition && (callback.args?.length ?? 0) >= 2
+  }
+
+  /** `, 0` when `spellCore`'s helper `name` takes a last `startAt` with `args` -- see `takesStartAt()`. */
+  startAtArg(name: string, args: P.ASTExpression[]): string {
+    return this.takesStartAt(name, args) ? ", 0" : ""
+  }
+
+  /**
+   * The position `node` says as a number, as we write it:  an ordinal counted as the project counts
+   * (`first` is `0` counting from 0), a number as is -- `undefined` for anything else.
+   */
+  writtenPosition(node: P.ASTExpression | undefined): number | undefined {
+    const inner = node && unwrapped(node)
+    if (inner instanceof P.ASTOrdinalLiteral) return this.ASTOrdinalLiteral(inner)
+    if (inner instanceof P.ASTNumericLiteral) return Number(inner.value)
+    return undefined
   }
 
   /** What a member is read from, ready for a `.` or `?.` after it:  in parentheses unless it binds as tightly. */
@@ -605,7 +678,7 @@ export class JSWriter extends Writer {
     }
     if (IMPORTED_HELPERS.has(name)) {
       this.coreImports.add(name)
-      return `${name}${this.write(node.args)}`
+      return `${name}${this.startAtArgs(node, String(this.write(node.args)))}`
     }
     return undefined
   }
@@ -642,6 +715,8 @@ export class JSWriter extends Writer {
     const [second, third] = rest
     const callback = () => this.callback(second)
     const found = (arg: P.ASTExpression) => this.foundArg(arg)
+    // a project counting from 0:  the list's method told so, `deck.between(1, 3, 0)` -- see `takesStartAt()`
+    const startAt = () => this.startAtArg(name, [list, ...rest])
     switch (name) {
       case "filter":
       case "all":
@@ -650,14 +725,17 @@ export class JSWriter extends Writer {
         return second ? `${self}.${name}(${callback()})` : undefined
       case "map":
       case "forEach":
-        return second ? `${self}.${isStatement ? "forEach" : name}(${callback()})` : undefined
+        return second ? `${self}.${isStatement ? "forEach" : name}(${callback()}${startAt()})` : undefined
       case "forEachSequential":
-        return second ? `${self}.forEachSequential(${callback()})` : undefined
-      case "getItemAt":
+        return second ? `${self}.forEachSequential(${callback()}${startAt()})` : undefined
+      case "getItemAt": {
         if (rest.length !== 1) return undefined
-        if (isNumber(second, 1)) return `${self}.firstItem`
-        if (isNumber(second, -1)) return `${self}.lastItem`
-        return `${self}.getItem(${this.bare(second!)})`
+        const position = this.writtenPosition(second)
+        if (position === this.listsStartAt) return `${self}.firstItem`
+        if (position === -1) return `${self}.lastItem`
+        // counting from 0, as an array does:  `deck.at(n)`
+        return `${self}.${this.listsStartAt === 0 ? "at" : "getItem"}(${this.bare(second!)})`
+      }
       case "randomItemOf":
         return `${self}.randomItem()`
       case "randomItemsOf":
@@ -672,7 +750,7 @@ export class JSWriter extends Writer {
         return `${self}.min`
       case "positionOf":
       case "remove":
-        return rest.length === 1 ? `${self}.${name}(${found(second!)})` : undefined
+        return rest.length === 1 ? `${self}.${name}(${found(second!)}${startAt()})` : undefined
       case "includes":
       case "includesAny":
       case "append":
@@ -693,9 +771,11 @@ export class JSWriter extends Writer {
           if (ofList && item && this.write(ofList) === this.write(list))
             return `${self}.startingWith(${this.bare(item)})`
         }
-        return `${self}.startingFrom(${this.bare(second!)})`
+        return `${self}.startingFrom(${this.bare(second!)}${startAt()})`
       case "rangeBetween":
-        return rest.length === 2 ? `${self}.between(${this.bare(second!)}, ${this.bare(third!)})` : undefined
+        return rest.length === 2
+          ? `${self}.between(${this.bare(second!)}, ${this.bare(third!)}${startAt()})`
+          : undefined
       case "duplicateList": {
         if (!(second instanceof P.ASTTypeExpression)) return `${self}.clone()`
         // already that class, e.g. a `DiscardPile` is a `Pile`:  a copy of its own class (Q36)

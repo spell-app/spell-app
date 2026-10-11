@@ -11,6 +11,7 @@ import { spellCore } from "./core"
 import { assert, List } from "$/core"
 import { defineSpellCoreModule } from "./spellCore.types"
 import type { CollectionOf } from "./collection-core"
+import { fromStartAt, toStartAt, type StartAt } from "./positions"
 
 /** A valid `{ start, end }` 1-based range, as computed by the `_validateRange*` helpers. */
 export type Range = {
@@ -217,9 +218,12 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * NOTE: this is positive numbers only, `rangeStartingAt()` deals with negatives. (???)
    * - Nothing in range:  an empty one of its kind -- see `emptyRangeOf()`.
    * - Compiles from `item 1 to 2 of my-list` -- see `rules/lists/RangeBetweenExpression.ts`.
+   * - `startAt`:  where the project's positions count from, 1 or 0 -- see `fromStartAt()`.
    */
-  rangeBetween(collection?: unknown, start?: number | null, end?: number | null): unknown {
+  rangeBetween(collection?: unknown, start?: number | null, end?: number | null, startAt: StartAt = 1): unknown {
     if (!assert.isArrayLike(collection, "spellCore.rangeBetween(collection)")) return []
+    start = fromStartAt(start, startAt)
+    end = fromStartAt(end, startAt)
     const range = spellCore._validateRangeBetween(start, end, spellCore.itemCountOf(collection))
     if (!range) return emptyRangeOf(collection)
     const results = spellCore.newThingLike(collection)
@@ -235,9 +239,12 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Slides other items into the gaps.
    * - A `List` removes each through its own `removeItem()`, last first, so it keeps its owners -- see `List`.
    * - Compiles from `remove items 2 to 4 of my-list` -- see `rules/lists/ListRemoveRange.ts`.
+   * - `startAt`:  where the project's positions count from, 1 or 0 -- see `fromStartAt()`.
    */
-  removeRangeBetween(collection?: unknown, start?: number | null, end?: number | null): void {
+  removeRangeBetween(collection?: unknown, start?: number | null, end?: number | null, startAt: StartAt = 1): void {
     if (!assert.isArrayLike(collection, "spellCore.removeRangeBetween(collection)")) return
+    start = fromStartAt(start, startAt)
+    end = fromStartAt(end, startAt)
     const range = spellCore._validateRangeBetween(start, end, spellCore.itemCountOf(collection))
     if (!range) return
     if (typeof (collection as { removeItem?: unknown }).removeItem === "function") {
@@ -273,9 +280,11 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Compiles from `top 2 items of my-list` / `first 2 words in "..."` / `last two cards from deck`
    *   -- see `rules/lists/RangeCountExpression.ts`.
    * - Typed as its collection:  a range of a `Pile` is a `Pile`.
+   * - `startAt`:  where the project's positions count from, 1 or 0 -- see `fromStartAt()`.
    */
-  rangeStartingAt<C>(collection?: C, start?: number | null, count?: number | null): C {
+  rangeStartingAt<C>(collection?: C, start?: number | null, count?: number | null, startAt: StartAt = 1): C {
     if (!assert.isArrayLike(collection, "spellCore.rangeStartingAt(collection)")) return [] as C
+    start = fromStartAt(start, startAt)
     const range = spellCore._validateRangeStartingAt(start, count, spellCore.itemCountOf(collection))
     if (!range) return emptyRangeOf(collection) as C
     return spellCore.rangeBetween(collection, range.start, range.end) as C
@@ -285,14 +294,22 @@ export const collectionOtherMethods = defineSpellCoreModule({
   // ## iteration
   ////////////////
 
-  /** Execute `method` for each item in `collection`, ignoring results. */
-  forEach<T = unknown>(collection?: CollectionOf<T>, method?: CollectionIterationCallback<NoInfer<T>>): void {
+  /**
+   * Execute `method` for each item in `collection`, ignoring results.
+   * - `method` gets `(value, position, collection)`, the position from `startAt`, 1 unless the project counts from 0.
+   */
+  forEach<T = unknown>(
+    collection?: CollectionOf<T>,
+    method?: CollectionIterationCallback<NoInfer<T>>,
+    startAt: StartAt = 1
+  ): void {
     if (!assert.isDefined(collection, "spellCore.forEach(collection)")) return
     if (!method) return
     const iterator = spellCore.getIteratorFor(collection)
     let result = iterator.next()
     while (!result.done) {
-      method(...result.value)
+      const [value, position, coll] = result.value
+      method(value, toStartAt(position, startAt), coll)
       result = iterator.next()
     }
   },
@@ -301,17 +318,20 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * Execute `method` for each item of map, `await`ing method's completion.
    * - The entire thing will finish when all waiting is done.
    * - Results are ignored.
+   * - `method` gets `(value, position, collection)`, the position from `startAt`, as `forEach()`.
    */
   async forEachSequential<T = unknown>(
     collection?: CollectionOf<T>,
-    method?: CollectionIterationCallback<NoInfer<T>>
+    method?: CollectionIterationCallback<NoInfer<T>>,
+    startAt: StartAt = 1
   ): Promise<void> {
     if (!assert.isDefined(collection, "spellCore.forEachSequential(collection)")) return
     if (!method) return
     const iterator = spellCore.getIteratorFor(collection)
     let result = iterator.next()
     while (!result.done) {
-      await method(...result.value)
+      const [value, position, coll] = result.value
+      await method(value, toStartAt(position, startAt), coll)
       result = iterator.next()
     }
   },
@@ -320,14 +340,19 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * Execute `method` for each item in `collection`, returning results in same type as `collection`.
    * - Compiles from `for each number from 1 to 10: ...` / `repeat 3 times: ...` as
    *   `spellCore.map(spellCore.getRange(...), (number) => { ... })` -- see `rules/lists/`.
+   * - `method` gets `(value, position, collection)`, the position from `startAt`, as `forEach()`.
    * TODO: rename???
    */
-  map<T = unknown>(collection?: CollectionOf<T>, method?: CollectionIterationCallback<NoInfer<T>>): unknown {
+  map<T = unknown>(
+    collection?: CollectionOf<T>,
+    method?: CollectionIterationCallback<NoInfer<T>>,
+    startAt: StartAt = 1
+  ): unknown {
     if (!assert.isDefined(collection, "spellCore.map(collection)")) return undefined
     const results = spellCore.newThingLike(collection)
     if (!method) return results
     spellCore.forEach(collection, (value, position, coll) => {
-      spellCore.setItemAt(results, position, method(value, position, coll))
+      spellCore.setItemAt(results, position, method(value, toStartAt(position, startAt), coll))
     })
     return results
   },

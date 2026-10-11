@@ -133,3 +133,15 @@ function isA(value: unknown, datatype: P.Datatype | undefined): boolean {
   if (P.itemTypeOf(datatype)) return spellCore.isArrayLike(value)
   return spellCore.isOfType(value, datatype)
 }
+
+describe("SP.docsCountingFrom()", () => {
+  test("a project counting from 0:  the list's docs say so", () => {
+    const list = SP.builtInTypeEntry("list")!
+    expect(SP.docsCountingFrom(list.detail!, 0)).toBe("counts from 0")
+    expect(SP.docsCountingFrom(list.docstring!, 0)).toContain("Counts from 0:  `card 0 of the deck` is the first.")
+  })
+  test("counting from 1:  as they are", () => {
+    const list = SP.builtInTypeEntry("list")!
+    expect(SP.docsCountingFrom(list.docstring!, 1)).toBe(list.docstring)
+  })
+})

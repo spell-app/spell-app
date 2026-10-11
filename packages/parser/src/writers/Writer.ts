@@ -50,8 +50,9 @@ export abstract class Writer<Output = string> {
    * - Called once per compile by `SP.SpellProject.combineCompiled()`, with each file's statements, members already
    *   moved into their classes, and the project's `scope` when there is one:  what it imports is in its import layer.
    * - NEVER changes this writer:  a writer that keeps something per project returns a NEW one.
+   * - `options`:  what the project's `project.json` says that changes the code, e.g. where its lists start.
    */
-  forProject(files: P.ASTNode[][], scope?: P.Scope): this {
+  forProject(files: P.ASTNode[][], scope?: P.Scope, options?: P.WriterOptions): this {
     return this
   }
 

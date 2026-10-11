@@ -82,6 +82,8 @@ export type ProjectManifestJSON5 = {
   exports?: string[]
   /** Targets it compiles to, from its `project.json`, e.g. `["ts/solid"]` -- `js/solid` always:  see `SP.TARGETS`. */
   targets?: string[]
+  /** Where its lists start counting, from its `project.json`:  `1` (the default) or `0` -- see `P.WriterOptions`. */
+  listsStartAt?: 0 | 1
 }
 
 /** A single entry in `contents.manifest`, augmented with `path`/`location`/`file` once loaded. */
