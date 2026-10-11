@@ -323,10 +323,31 @@ describe("compiled spell draws with Solid", () => {
     const stock = host.querySelector<Element>("drawable-solitaire-stock-pile")!
     expect(getComputedStyle(stock.lastElementChild!).position).toBe("absolute")
 
+    // each card shows its thing's rank, suit and direction as attributes, for the inspector (P13)
+    for (const card of cards()) {
+      const face = card.shadowRoot!.querySelector(".card")!
+      expect(face.classList.contains(`face-${card.getAttribute("direction")}`)).toBe(true)
+      expect(face.classList.contains(card.getAttribute("suit")!)).toBe(true)
+      expect(face.classList.contains(card.getAttribute("rank")!)).toBe(true)
+    }
+    expect(tableaus().map((tableau) => tableau.getAttribute("name"))).toEqual([
+      "T1",
+      "T2",
+      "T3",
+      "T4",
+      "T5",
+      "T6",
+      "T7"
+    ])
+
     const discards = () => host.querySelector("drawable-solitaire-discard-pile")!.children.length
     expect(discards()).toBe(0)
-    ;(stock.lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>(".card")!.click()
+    const played = stock.lastElementChild as HTMLElement
+    expect(played.getAttribute("direction")).toBe("down")
+    played.shadowRoot!.querySelector<HTMLElement>(".card")!.click()
     await waitFor(() => discards() > 0)
+    // ... and they follow as the game plays:  the card played from the stock is face up
+    await waitFor(() => played.getAttribute("direction") === "up")
   })
 
   test("`Drawable Solitaire` run again, edited, on the same page:  its tags stay, its cards take the new <css>", async () => {
