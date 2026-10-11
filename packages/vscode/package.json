@@ -217,7 +217,8 @@
         "scopeName": "source.spell",
         "path": "./syntaxes/spell.tmLanguage.json",
         "embeddedLanguages": {
-          "meta.embedded.block.css": "css"
+          "meta.embedded.block.css": "css",
+          "meta.embedded.block.markdown": "markdown"
         }
       }
     ],

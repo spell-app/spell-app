@@ -838,6 +838,24 @@ describe("SpellLanguageService", () => {
     })
   })
 
+  describe("<markdown> blocks (spell's `markdown_description`, `markdown_block`)", () => {
+    // the card type's description, as markdown in its outline -- with markdown's own `#`, `*`, `<` and braces;
+    // its `##` comment docstring blanked, which would win
+    const withBlock = cardText.replace(
+      /^## .*\na card is a thing\n/,
+      "\na card is a thing:\n\t<markdown>\n\t\t# A card\n\t\tA *playing* card <b>{rank}</b>.\n\t</markdown>\n"
+    )
+
+    test("no errors, and no spell colouring inside;  hover on the type shows it as its description", async () => {
+      await withCardText(withBlock, () => {
+        expect(errorsIn(service, card)).toEqual([])
+        expect(describeTokens(card, [4, 5])).toEqual([])
+        const markdown = (service.hover(deck, at(deck, 9, "card"))!.contents as { value: string }).value
+        expect(markdown).toContain("type **Card** is a Thing\n\n# A card\nA *playing* card <b>{rank}</b>.")
+      })
+    })
+  })
+
   describe("membership and guards", () => {
     // the fixture's cards made to belong to one pile, as the live examples are -- plus a guard
     const pileUri = pathToFileURL(resolve(dir, "Solitaire/Pile.spell")).href

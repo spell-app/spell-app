@@ -104,15 +104,21 @@ export type SpellCompiled = {
 /** The tag of a block of spell in a layout:  `<spell> when clicked ... </spell>`. */
 export const LAYOUT_SPELL_TAG = "spell"
 
+/** The tag of formatted text in a layout, drawn by `<ui-markdown>`:  `<markdown> ## Rules </markdown>`. */
+export const LAYOUT_MARKDOWN_TAG = "markdown"
+
 /** A hole in a layout's text:  `{...}`, no braces inside. */
 export const LAYOUT_HOLE = /\{[^{}]+\}/
 
 /** An attribute that's all one hole, `{...}`, its spell captured. */
 export const LAYOUT_WHOLE_HOLE = /^\s*\{([\s\S]+)\}\s*$/
 
-/** Does `root`'s layout have spell in it:  a hole, an action or a `<spell>` block?  See `LayoutSpell`. */
+/**
+ * Does `root`'s layout have spell in it:  a hole, an action, a `<spell>` block, or a `<markdown>` block?
+ * See `LayoutSpell`.
+ */
 export function layoutHasSpell(root: Element): boolean {
-  if (root.querySelector(LAYOUT_SPELL_TAG)) return true
+  if (root.querySelector(`${LAYOUT_SPELL_TAG}, ${LAYOUT_MARKDOWN_TAG}`)) return true
   if (LAYOUT_HOLE.test(root.textContent ?? "")) return true
   return [...root.querySelectorAll("*")].some((element) =>
     [...element.attributes].some((attribute) => LAYOUT_WHOLE_HOLE.test(attribute.value))

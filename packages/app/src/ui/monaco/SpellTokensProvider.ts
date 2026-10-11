@@ -8,9 +8,12 @@ import { monaco } from "./monaco"
  * Instant colouring for spell, line by line, from its TOKENS:  words, symbols, numbers, comments, text.
  * - Needs no parse, so it's there from the first keystroke;  colouring from the parse (semantic tokens) goes on top.
  * - Each spell line tokenizes on its own.
- * - A type's `<css>` block is coloured as CSS, by Monaco's own CSS colouring -- see `LSP.SpellCSS`:
- *   - the only state carried between lines is whether we're in one (`SPELL_LINE` / `CSS_LINE`)
- *   - each CSS line is coloured on its own too, so a CSS comment over several lines colours its first line only
+ * - Blocks of another language are coloured as that language, by Monaco's own colouring (`EMBEDDED_BLOCKS`):
+ *   - a type's `<css>` block as CSS -- see `LSP.SpellCSS`
+ *   - a `<markdown>` block as markdown, in a drawing or a type's outline -- see spell's `markdown_block`
+ *   - the only state carried between lines is which block we're in, if any (`SPELL_LINE`, `CSS_LINE` ...)
+ *   - each of its lines is coloured on its own too,
+ *     so a CSS comment or a fenced code block over several lines colours its first line only
  * - NEVER throws:  a line the tokenizer chokes on just goes uncoloured.
  */
 export class SpellTokensProvider implements monaco.languages.TokensProvider {
@@ -18,6 +21,30 @@ export class SpellTokensProvider implements monaco.languages.TokensProvider {
   static SPELL_LINE = SpellTokensProvider.lineState()
   /** State after a `<css>` line, or a line of CSS in its block. */
   static CSS_LINE = SpellTokensProvider.lineState()
+  /** State after a `<markdown>` line, or a line of markdown in its block. */
+  static MARKDOWN_LINE = SpellTokensProvider.lineState()
+
+  /**
+   * The blocks of another language spell holds, each alone on its lines:  `<css>` ... `</css>`.
+   * - `tag`:  its tag;  `language`:  Monaco's language that colours it;  `state`:  the state inside it
+   * - `open` / `close`:  its first and last lines
+   */
+  static EMBEDDED_BLOCKS: EmbeddedBlock[] = [
+    {
+      tag: "css",
+      language: "css",
+      state: SpellTokensProvider.CSS_LINE,
+      open: LSP.SpellCSS.OPEN_LINE,
+      close: LSP.SpellCSS.CLOSE_LINE
+    },
+    {
+      tag: "markdown",
+      language: "markdown",
+      state: SpellTokensProvider.MARKDOWN_LINE,
+      open: /^\s*<markdown>\s*$/,
+      close: /^\s*<\/markdown>\s*$/
+    }
+  ]
 
   getInitialState(): monaco.languages.IState {
     return SpellTokensProvider.SPELL_LINE
@@ -25,15 +52,17 @@ export class SpellTokensProvider implements monaco.languages.TokensProvider {
 
   /**
    * Tokens of `line`, by where each starts, and the state the next line starts in.
-   * - `<css>` alone on a line starts a CSS block, `</css>` ends it.
+   * - `<css>` alone on a line starts a CSS block, `</css>` ends it;  likewise `<markdown>`.
    */
   tokenize(line: string, state: monaco.languages.IState): monaco.languages.ILineTokens {
-    const { SPELL_LINE, CSS_LINE } = SpellTokensProvider
-    if (state === CSS_LINE) {
-      if (LSP.SpellCSS.CLOSE_LINE.test(line)) return { tokens: this.tagTokens(line), endState: SPELL_LINE }
-      return { tokens: this.cssTokens(line), endState: CSS_LINE }
+    const { SPELL_LINE, EMBEDDED_BLOCKS } = SpellTokensProvider
+    const inside = EMBEDDED_BLOCKS.find((block) => block.state === state)
+    if (inside) {
+      if (inside.close.test(line)) return { tokens: this.tagTokens(line, inside.tag), endState: SPELL_LINE }
+      return { tokens: this.embeddedTokens(line, inside.language), endState: inside.state }
     }
-    if (LSP.SpellCSS.OPEN_LINE.test(line)) return { tokens: this.tagTokens(line), endState: CSS_LINE }
+    const opened = EMBEDDED_BLOCKS.find((block) => block.open.test(line))
+    if (opened) return { tokens: this.tagTokens(line, opened.tag), endState: opened.state }
     return { tokens: this.spellTokens(line), endState: SPELL_LINE }
   }
 
@@ -57,24 +86,30 @@ export class SpellTokensProvider implements monaco.languages.TokensProvider {
     return tokens
   }
 
-  /** Tokens of a line of CSS, from Monaco's CSS colouring:  its token types (`attribute.name.css` ...) as scopes. */
-  private cssTokens(line: string): monaco.languages.IToken[] {
+  /**
+   * Tokens of a line of an embedded block, from Monaco's colouring of `language`:
+   * its token types (`attribute.name.css` ...) as scopes.
+   * - Markdown's line is coloured without its indent:  a `#` heading or a `>` quote counts only at the start.
+   */
+  private embeddedTokens(line: string, language: string): monaco.languages.IToken[] {
+    const indent = language === "markdown" ? line.length - line.trimStart().length : 0
     try {
-      return (monaco.editor.tokenize(line, "css")[0] ?? []).map(({ offset, type }) => ({
-        startIndex: offset,
+      const tokens = (monaco.editor.tokenize(line.slice(indent), language)[0] ?? []).map(({ offset, type }) => ({
+        startIndex: offset + indent,
         scopes: type
       }))
+      return indent ? [{ startIndex: 0, scopes: "" }, ...tokens] : tokens
     } catch (error) {
-      console.warn("SpellTokensProvider.tokenize():  couldn't tokenize CSS", { line, error })
+      console.warn(`SpellTokensProvider.tokenize():  couldn't tokenize ${language}`, { line, error })
       return []
     }
   }
 
-  /** Tokens of a `<css>` or `</css>` line, coloured as a tag. */
-  private tagTokens(line: string): monaco.languages.IToken[] {
+  /** Tokens of a block's opening or closing line, e.g. `<css>` or `</css>`, coloured as a tag. */
+  private tagTokens(line: string, tag: string): monaco.languages.IToken[] {
     const open = line.indexOf("<")
     const close = line.indexOf(">")
-    const name = line.indexOf("css", open)
+    const name = line.indexOf(tag, open)
     return [
       { startIndex: 0, scopes: "" },
       { startIndex: open, scopes: "delimiter" },
@@ -99,4 +134,18 @@ export class SpellTokensProvider implements monaco.languages.TokensProvider {
     const state: monaco.languages.IState = { clone: () => state, equals: (other) => other === state }
     return state
   }
+}
+
+/** A block of another language in spell, coloured as that language -- see `SpellTokensProvider.EMBEDDED_BLOCKS`. */
+type EmbeddedBlock = {
+  /** Its tag, e.g. `css`. */
+  tag: string
+  /** Monaco's language which colours it, e.g. `css`. */
+  language: string
+  /** The state inside it. */
+  state: monaco.languages.IState
+  /** Its first line:  its tag alone, e.g. `<css>`. */
+  open: RegExp
+  /** Its last line, e.g. `</css>`. */
+  close: RegExp
 }

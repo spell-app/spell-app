@@ -144,6 +144,63 @@ describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", (
   })
 })
 
+describe("<markdown> blocks:  drawn by <ui-markdown>, their holes live (P14, Q22, Q23, Q24)", () => {
+  /** A game with a score, a function that bumps it, and a rules panel in its drawing. */
+  const RULES = [
+    "a game is an app",
+    "a game has a score as a number",
+    "set the game to a new game",
+    "set the score of the game to 3",
+    "to bump the score",
+    "\tset the score of the game to the score of the game + 1",
+    "to draw a game",
+    '\treturn <div className="rules">',
+    '\t\t<button className="bump" onClick={bump the score}>Bump</button>',
+    "\t\t<markdown>",
+    "\t\t\t## Klondike",
+    "\t\t\tBuild each pile **down**.  Score:  **{the score of the game}**",
+    "\t\t</markdown>",
+    "\t</div>",
+    "start the game"
+  ].join("\n")
+
+  /** The markdown `<ui-markdown>` drew, in `root`. */
+  const articleIn = (root: ParentNode | null | undefined) =>
+    root?.querySelector("ui-markdown")?.shadowRoot?.querySelector("article")
+  /** The text of each bold bit in `article`. */
+  const boldIn = (article: Element | null | undefined) =>
+    [...(article?.querySelectorAll("strong") ?? [])].map((bold) => bold.textContent)
+
+  test("a drawn rules panel shows the heading and the bold text;  a hole follows its value", async () => {
+    const app = await mountApp(`<spell-app></spell-app>`)
+    app.run({ projectId: "@test:fixtures:Rules", ...(await compiledProject(RULES)) } satisfies SpellCompiled)
+    const article = () => articleIn(app.shadowRoot!.querySelector(".rules"))
+    await waitFor(() => article()?.querySelector("h2")?.textContent === "Klondike", 10_000)
+    expect(boldIn(article())).toEqual(["down", "3"])
+
+    app.shadowRoot!.querySelector<HTMLElement>(".bump")!.click()
+    await waitFor(() => boldIn(article())[1] === "4")
+  })
+
+  test("in a layout:  drawn by <ui-markdown> too, its holes live", async () => {
+    const app = await mountApp(
+      `<spell-app>` +
+        `<markdown>\n  ## Rules\n  Score:  **{score of the game}**, and \`{code}\` keeps its braces\n</markdown>` +
+        `<button class="bump" action="{bump the score}">Bump</button>` +
+        `</spell-app>`
+    )
+    app.run({ projectId: "@test:fixtures:Rules", ...(await compiledProject(RULES)) } satisfies SpellCompiled)
+    const article = () => articleIn(app)
+    await waitFor(() => article()?.querySelector("h2")?.textContent === "Rules", 10_000)
+    expect(boldIn(article())).toEqual(["3"])
+    expect(article()!.querySelector("code")!.textContent).toBe("{code}")
+    expect(app.querySelector("markdown")).toBeNull()
+
+    app.querySelector<HTMLElement>(".bump")!.click()
+    await waitFor(() => boldIn(article())[0] === "4")
+  })
+})
+
 /**
  * Spell project `text`, one file, compiled as a project is:  its javascript, and its declarations.
  * - Spell imported only now:  imported with the file, it loads before `<spell-app>`'s own setup has run.
