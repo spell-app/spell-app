@@ -206,6 +206,21 @@ program
   .argument("[words...]", "what the pony says")
   .action((words: string[], _options, command) => run(CLI.ponyCommand, words, command.optsWithGlobals()))
 
+program
+  .command("epic")
+  .description("epics from any session:  send one a request (words, screenshots), list its requests, file one")
+  .argument("[verb]", "send | requests | file")
+  .argument("[args...]", 'the epic, then the verb\'s arguments, e.g. send epic-workflow --text "..." --images 1')
+  .option("--text <words>", "send:  Owen's words, verbatim")
+  .option("--file <file>", "send:  Owen's words, from a file (quotes and all)")
+  .option("--images <count>", "send:  keep the newest <count> screenshots pasted into this session")
+  .option("--context <words>", "send:  what this session was looking at:  a page, a file, an item id")
+  .option("--from <session>", "send:  the sending session's id (default:  this one, CLAUDE_CODE_SESSION_ID)")
+  .option("--json", "print the result as JSON")
+  .action((verb: string | undefined, args: string[], _options, command) =>
+    run(CLI.epicCommand, verb ? [verb, ...args] : [], command.optsWithGlobals())
+  )
+
 // our own `help`, not commander's:  an unknown command is a mistake, not a reason to print the general help
 program.helpCommand(false)
 program
