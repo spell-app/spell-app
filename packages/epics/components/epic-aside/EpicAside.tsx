@@ -7,6 +7,7 @@ import { EpicPanel } from "./EpicPanel"
 
 import panelCSS from "./EpicPanel.css?inline"
 import asideCSS from "./EpicAside.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicAside`
@@ -18,7 +19,7 @@ import asideCSS from "./EpicAside.css?inline"
 export class EpicAside extends EpicPanel<typeof epicAsideVocabulary> {
   @E.proto static vocabulary = epicAsideVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-panel": panelCSS, "epic-aside": asideCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-panel": panelCSS, "epic-aside": asideCSS },
     // `disabled`:  unusable, its fold button too;  `loading`:  the shared spinner
     disabled: "unusable",
     loading: "loader"

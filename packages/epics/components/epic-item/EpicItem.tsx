@@ -57,6 +57,7 @@ import {
 
 import collapseAllCSS from "./CollapseAll.css?inline"
 import itemCSS from "./EpicItem.css?inline"
+import tooltipCSS from "./Tooltip.css?inline"
 
 /****************
  * ### `EpicItem`
@@ -120,7 +121,7 @@ import itemCSS from "./EpicItem.css?inline"
 export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   @E.proto static vocabulary = epicItemVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-item": itemCSS, "epic-collapse-all": collapseAllCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-item": itemCSS, "epic-collapse-all": collapseAllCSS },
     DOMElement: E.DOMLoadableBodyElement,
     // a container:  a click on its text must not jump to the fold button or a link inside
     delegatesFocus: false

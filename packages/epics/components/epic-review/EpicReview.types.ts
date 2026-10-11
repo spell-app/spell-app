@@ -286,6 +286,7 @@ export const REVIEW_TEXTS = [
   { key: "asked", text: "asked · waiting for Claude to take it", description: "A Do Now not taken yet." },
   { key: "working", text: "Claude is on it · click to call it off", description: "A button whose work is under way." },
   { key: "callOff", text: "{label}:  click to call it off", description: "A spinning button's tooltip." },
+  { key: "buttonTip", text: "{label}:  {what}", description: "A review button's tooltip:  its name, what it does." },
   { key: "chosenSent", text: "sent · click to clear", description: "A chosen button, its mark sent." },
   { key: "chosenUnsent", text: "not sent yet · click to clear", description: "A chosen button, its mark not sent." },
   { key: "pickedSent", text: "Picked {letter} · sent", description: "The pick's letter, sent." },
@@ -321,7 +322,8 @@ export const REVIEW_TEXTS = [
   { key: "howSkip", text: "skip", description: "A marked note's kind:  the note box's x." },
   { key: "saidSent", text: "{how} · sent {time}", description: "A marked note:  sent." },
   { key: "saidUnsent", text: "{how} · not sent yet", description: "A marked note:  not sent." },
-  { key: "edit", text: "Edit", description: "A marked note's button:  back into the note box." }
+  { key: "edit", text: "Edit", description: "A marked note's button:  back into the note box." },
+  { key: "editTip", text: "Edit:  put your note back in the box", description: "A marked note's button:  tooltip." }
 ] as const
 
 // the tags the review controls draw, and its own (drawn by the families it belongs to)

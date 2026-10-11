@@ -76,6 +76,8 @@ export const epicOverviewVocabulary = {
   ],
   states: [...FOLD_STATES],
   texts: [
+    { key: "promptTip", text: "Fold or unfold the kickoff prompt", description: "The prompt fold's tooltip." },
+
     ...FOLD_TEXTS,
     { key: "title", text: "Overview", description: "Its title, after its number." },
     { key: "prompt", text: "Kickoff prompt", description: "The folded prompt's title." },

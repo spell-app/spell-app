@@ -28,6 +28,9 @@ export const epicPromptVocabulary = {
     { name: "quote", description: "The card around the prompt, shown unfolded." }
   ],
   states: [],
-  texts: [{ key: "title", text: "Kickoff prompt", description: "The fold's title." }],
+  texts: [
+    { key: "toggleTip", text: "Fold or unfold the kickoff prompt", description: "The fold's tooltip." },
+    { key: "title", text: "Kickoff prompt", description: "The fold's title." }
+  ],
   children: [{ tag: "flow", description: "The prompt, as typed." }]
 } as const satisfies EpicVocabulary
