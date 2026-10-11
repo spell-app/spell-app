@@ -9,7 +9,8 @@
  * - Why data (plan doc D25):  no `.spell` file to parse at startup, and no statics on runtime classes --
  *   the parser never imports `spellCore`'s code.
  * - Adding a member:  one entry here, and the `spellCore` method or javascript property its `readAs` names.
- *   `builtinTypes.test.ts` pins each one.  See "Built-in types" in `PARSING.md`.
+ *   - `builtinTypes.test.ts` pins each one.
+ *   - See "Built-in types" in `PARSING.md`.
  * - NOTE:  a type's NAME and super-type are `P.BUILT_IN_TYPES`' (the parser's vocabulary):
  *   `superType` here MUST agree, which the test checks.
  *   - A built-in type with no entry here, e.g. `number`, has no members yet.
@@ -536,7 +537,7 @@ export function typeName(written: string): P.Datatype {
  * - Each type's `itemType`, e.g. `character` for `text`, so `the first character of the name` is a `character`.
  * - Each member with a `readAs` template, as a `P.ScopeVariable` holding it:
  *   `TypeScope.getMember()` finds it, for `the X of Y` / `its X`, and editors list it.
- *   - A member only built-in RULES spell is docs alone.
+ *   - A member spelled only by built-in RULES (no `readAs`) is docs alone.
  * - Throws for a type the scope doesn't have, or a template `parseReadAsTemplate()` can't read.
  * - SIDE EFFECT:  changes the shared root's types, once -- `SpellParser.rootScope` calls it as it builds.
  */
@@ -586,6 +587,17 @@ const READ_AS_TEMPLATE =
 ////////////////
 // ## Lookups
 ////////////////
+
+/**
+ * Built-in docs `text`, for a project whose lists start at `startAt` (`project.json`'s `"listsStartAt"`).
+ * - Counting from 0:  "counts from 1" says 0, and `card 1 of the deck` says `card 0`.
+ * - Counting from 1:  `text` as it is.
+ * - Epic `python-target` P2.
+ */
+export function docsCountingFrom(text: string, startAt: 0 | 1 = 1): string {
+  if (startAt !== 0) return text
+  return text.replace(/([Cc])ounts from 1/g, "$1ounts from 0").replace(/`card 1 of the deck`/g, "`card 0 of the deck`")
+}
 
 /** Table entry of built-in type `name`, however written, e.g. `List` or `list` -- `undefined` if it has none. */
 export function builtInTypeEntry(name: string): SP.BuiltInType | undefined {

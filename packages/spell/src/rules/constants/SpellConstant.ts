@@ -4,8 +4,8 @@ import { identifierBlacklist } from "$/spell/rules/identifier-blacklist"
 
 /**
  * Base pattern rule for matching a single-word constant identifier (alpha-numeric, dashes/underscores).
- * - Sets `match.data.scopeConstant` to the existing `ScopeConstant` looked up by `scope.constants`, if any --
- *   subclasses (e.g. `known_constant`) use this to require/reject a known constant.
+ * - Sets `match.data.scopeConstant` to the existing `ScopeConstant` looked up by `scope.constants`, if any.
+ *   Subclasses (e.g. `known_constant`) use this to require/reject a known constant.
  * - Other rules read it as `if (match.is(SpellConstant)) match.data.scopeConstant`.
  */
 export class SpellConstant extends P.Pattern<never, ConstantMatchData> {
@@ -36,16 +36,16 @@ export class SpellConstant extends P.Pattern<never, ConstantMatchData> {
     const name: string = scopeConst ? scopeConst.name : match.value
     return new P.ASTConstantExpression(match, {
       name,
-      output: (scopeConst || new P.ScopeConstant(name)).toString(),
+      value: scopeConst ? scopeConst.value : name,
       constant: scopeConst
     })
   }
 
   /**
-   * SIDE EFFECT:  if `constant` is an unknown constant's match, declares it in the project's constants, by
-   * `statement` -- and records it on the match, for `getAST()`.
-   * - e.g. `red` in `the color of a card is red if ...`, or in `red if it is diamonds or hearts`:  later lines
-   *   then know `red`, e.g. `expect the color of the card to be red`.
+   * SIDE EFFECT:  if `constant` is an unknown constant's match, declares it in the project's constants,
+   * by `statement` -- and records it on the match, for `getAST()`.
+   * - e.g. `red` in `the color of a card is red if ...`, or in `red if it is diamonds or hearts`:
+   *   later lines then know `red`, e.g. `expect the color of the card to be red`.
    * - Anything else, e.g. an expression's match:  nothing.  Call it from `mutateScope()`.
    */
   static declareValue(statement: P.Match, constant: P.Match | undefined) {

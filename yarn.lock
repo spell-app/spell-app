@@ -5319,6 +5319,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pyright@npm:1.1.414":
+  version: 1.1.414
+  resolution: "pyright@npm:1.1.414"
+  dependencies:
+    fsevents: "npm:~2.3.3"
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    pyright: index.js
+    pyright-langserver: langserver.index.js
+  checksum: 10c0/3c20a4c391edae433141d4e89ee35bffb9db844da3d736f5c4303b0c7052154cf729305db82485481eccbe7fab2bc312cf025291242b9f11a035916ef29a38b5
+  languageName: node
+  linkType: hard
+
 "quansync@npm:^0.2.11":
   version: 0.2.11
   resolution: "quansync@npm:0.2.11"
@@ -5675,6 +5690,7 @@ __metadata:
   dependencies:
     "@vitest/browser-playwright": "catalog:"
     playwright: "npm:1.63.0"
+    pyright: "npm:1.1.414"
     vite: "catalog:"
     vite-plus: "catalog:"
     vitest: "catalog:"

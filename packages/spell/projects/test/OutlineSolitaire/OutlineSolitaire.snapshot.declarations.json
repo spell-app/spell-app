@@ -68,10 +68,10 @@
       "classVariable": "Suits",
       "of": "Deck",
       "enumeration": [
-        "'clubs'",
-        "'diamonds'",
-        "'hearts'",
-        "'spades'"
+        "clubs",
+        "diamonds",
+        "hearts",
+        "spades"
       ],
       "defined": "/Deck.spell:311-362"
     },
@@ -97,7 +97,7 @@
       "classVariable": "Ranks",
       "of": "Deck",
       "enumeration": [
-        "'ace'",
+        "ace",
         2,
         3,
         4,
@@ -107,9 +107,9 @@
         8,
         9,
         10,
-        "'jack'",
-        "'queen'",
-        "'king'"
+        "jack",
+        "queen",
+        "king"
       ],
       "defined": "/Deck.spell:447-499"
     },
@@ -127,18 +127,18 @@
     {
       "type": "Card",
       "superType": "Thing",
-      "defined": "/Card.spell:84-1728"
+      "defined": "/Card.spell:84-1672"
     },
     {
       "property": "suit",
       "of": "Card",
       "datatype": "Suit",
-      "defined": "/Card.spell:133-165"
+      "defined": "/Card.spell:127-160"
     },
     {
       "property": "color",
       "of": "Card",
-      "defined": "/Card.spell:169-205"
+      "defined": "/Card.spell:164-200"
     },
     {
       "syntax": "{operator:is} (a|an) (expression:club|diamond|heart|spade)",
@@ -149,19 +149,19 @@
       "name": "\"is a (suit)\"",
       "values": {
         "suit": [
-          "'clubs'",
-          "'diamonds'",
-          "'hearts'",
-          "'spades'"
+          "clubs",
+          "diamonds",
+          "hearts",
+          "spades"
         ]
       },
-      "defined": "/Card.spell:209-225"
+      "defined": "/Card.spell:204-220"
     },
     {
       "property": "rank",
       "of": "Card",
       "datatype": "Rank",
-      "defined": "/Card.spell:280-312"
+      "defined": "/Card.spell:275-307"
     },
     {
       "syntax": "{operator:is} (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)",
@@ -172,7 +172,7 @@
       "name": "\"is a (rank)\"",
       "values": {
         "rank": [
-          "'ace'",
+          "ace",
           2,
           3,
           4,
@@ -182,12 +182,12 @@
           8,
           9,
           10,
-          "'jack'",
-          "'queen'",
-          "'king'"
+          "jack",
+          "queen",
+          "king"
         ]
       },
-      "defined": "/Card.spell:316-332"
+      "defined": "/Card.spell:311-327"
     },
     {
       "syntax": "{operator:is} the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)",
@@ -198,7 +198,7 @@
       "name": "\"is the (rank) of (suits)\"",
       "values": {
         "rank": [
-          "'ace'",
+          "ace",
           2,
           3,
           4,
@@ -208,18 +208,18 @@
           8,
           9,
           10,
-          "'jack'",
-          "'queen'",
-          "'king'"
+          "jack",
+          "queen",
+          "king"
         ],
         "suits": [
-          "'clubs'",
-          "'diamonds'",
-          "'hearts'",
-          "'spades'"
+          "clubs",
+          "diamonds",
+          "hearts",
+          "spades"
         ]
       },
-      "defined": "/Card.spell:387-416"
+      "defined": "/Card.spell:382-411"
     },
     {
       "syntax": "{operator:is} a face card",
@@ -229,23 +229,23 @@
       "kind": "method",
       "name": "\"is a face card\"",
       "returns": "choice",
-      "defined": "/Card.spell:470-516"
+      "defined": "/Card.spell:465-511"
     },
     {
       "property": "value",
       "of": "Card",
       "datatype": "number",
-      "defined": "/Card.spell:520-573"
+      "defined": "/Card.spell:515-568"
     },
     {
       "property": "direction",
       "classVariable": "Directions",
       "of": "Card",
       "enumeration": [
-        "'up'",
-        "'down'"
+        "up",
+        "down"
       ],
-      "defined": "/Card.spell:592-619"
+      "defined": "/Card.spell:587-614"
     },
     {
       "syntax": "{operator:is} face up",
@@ -255,7 +255,7 @@
       "kind": "method",
       "name": "\"is face up\"",
       "returns": "choice",
-      "defined": "/Card.spell:623-661"
+      "defined": "/Card.spell:618-656"
     },
     {
       "syntax": "{operator:is} face down",
@@ -265,57 +265,56 @@
       "kind": "method",
       "name": "\"is face down\"",
       "returns": "choice",
-      "defined": "/Card.spell:665-707"
+      "defined": "/Card.spell:660-702"
     },
     {
       "property": "name",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:722-765"
+      "defined": "/Card.spell:717-760"
     },
     {
-      "property": "short_suit",
-      "asWritten": "short suit",
+      "property": "icon",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:769-927"
+      "defined": "/Card.spell:764-889"
     },
     {
       "property": "short_rank",
       "asWritten": "short rank",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:931-1088"
+      "defined": "/Card.spell:893-1050"
     },
     {
       "property": "short_direction",
       "asWritten": "short direction",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:1092-1166"
+      "defined": "/Card.spell:1054-1128"
     },
     {
       "property": "short_name",
       "asWritten": "short name",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:1170-1222"
+      "defined": "/Card.spell:1132-1178"
     },
     {
       "property": "state",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:1226-1295"
+      "defined": "/Card.spell:1182-1245"
     },
     {
       "property": "front",
       "of": "Card",
-      "defined": "/Card.spell:1312-1543"
+      "defined": "/Card.spell:1262-1487"
     },
     {
       "property": "back",
       "of": "Card",
-      "defined": "/Card.spell:1547-1728"
+      "defined": "/Card.spell:1491-1672"
     },
     {
       "syntax": "turn {thisArg:expression} face up",
@@ -328,7 +327,8 @@
       ],
       "kind": "method",
       "name": "turn a card face up",
-      "defined": "/Card.spell:1889-1956"
+      "waits": true,
+      "defined": "/Card.spell:1833-1900"
     },
     {
       "syntax": "turn {thisArg:expression} face down",
@@ -341,7 +341,8 @@
       ],
       "kind": "method",
       "name": "turn a card face down",
-      "defined": "/Card.spell:1957-2028"
+      "waits": true,
+      "defined": "/Card.spell:1901-1972"
     },
     {
       "syntax": "turn {thisArg:expression} over",
@@ -354,7 +355,8 @@
       ],
       "kind": "method",
       "name": "turn a card over",
-      "defined": "/Card.spell:2136-2246"
+      "waits": true,
+      "defined": "/Card.spell:2080-2190"
     },
     {
       "syntax": "play {thisArg:expression}",
@@ -367,6 +369,7 @@
       ],
       "kind": "method",
       "name": "play a card",
+      "waits": true,
       "defined": "/Solitaire.spell:3429-4421"
     },
     {
@@ -376,7 +379,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "card setup",
-      "defined": "/Card.spell:2298-3416"
+      "defined": "/Card.spell:2242-3354"
     },
     {
       "syntax": "test deck creation",
@@ -556,6 +559,7 @@
         "expression"
       ],
       "kind": "function",
+      "waits": true,
       "defined": "/Solitaire.spell:2652-2839"
     },
     {
@@ -567,6 +571,7 @@
         "expression"
       ],
       "kind": "function",
+      "waits": true,
       "defined": "/Solitaire.spell:2841-3427"
     },
     {
@@ -578,6 +583,7 @@
         "expression"
       ],
       "kind": "function",
+      "waits": true,
       "defined": "/Solitaire.spell:4465-5543"
     },
     {
@@ -601,6 +607,7 @@
       ],
       "kind": "function",
       "returns": "nothing",
+      "waits": true,
       "defined": "/Solitaire.spell:5612-5988"
     }
   ],

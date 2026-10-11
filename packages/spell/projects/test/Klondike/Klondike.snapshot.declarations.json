@@ -148,6 +148,7 @@
         "expression"
       ],
       "kind": "function",
+      "waits": true,
       "defined": "/Solitaire.spell:2652-2839"
     },
     {
@@ -159,6 +160,7 @@
         "expression"
       ],
       "kind": "function",
+      "waits": true,
       "defined": "/Solitaire.spell:2841-3427"
     },
     {
@@ -172,6 +174,7 @@
       ],
       "kind": "method",
       "name": "play a card",
+      "waits": true,
       "defined": "/Solitaire.spell:3429-4421"
     },
     {
@@ -183,6 +186,7 @@
         "expression"
       ],
       "kind": "function",
+      "waits": true,
       "defined": "/Solitaire.spell:4465-5543"
     },
     {
@@ -206,6 +210,7 @@
       ],
       "kind": "function",
       "returns": "nothing",
+      "waits": true,
       "defined": "/Solitaire.spell:5612-5988"
     }
   ],

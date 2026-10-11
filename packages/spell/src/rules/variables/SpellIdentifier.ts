@@ -5,9 +5,9 @@ import { type IdentifierMatchData } from "./variables.shared"
 
 /**
  * Single word variable name, known or unknown.
- * - Looks the word up in `scope.variables` WHILE PARSING, as `match.data.scopeVar` -- if found, you can override
- *   what's output with `variable.output`.  NOT when building the AST:  scope may have changed by then,
- *   e.g. `it` redefined by a later `get`.
+ * - Looks the word up in `scope.variables` WHILE PARSING, as `match.data.scopeVar`:
+ *   if found, you can override what's output with `variable.output`.
+ *   NOT when building the AST:  scope may have changed by then, e.g. `it` redefined by a later `get`.
  * - Its `datatype` is the scope variable's -- see `getDatatype()`.
  * - TODO: higher priority if variable is known?
  */
@@ -38,10 +38,6 @@ export class SpellIdentifier<MatchData extends P.AnyMatchData = P.AnyMatchData> 
     return `${value}`.replace(/-/g, "_").replace(/\s/g, "_") as T
   }
 
-  /**
-   * Build `P.ASTVariableExpression`, resolving `match.value` to the scope variable it named when parsed, if any.
-   * - AST only knows singular / plural, so `"either"` goes out as `"singular"`.
-   */
   /** Match a word, remembering the scope variable it names as `match.data.scopeVar` -- see class docs. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -55,10 +51,18 @@ export class SpellIdentifier<MatchData extends P.AnyMatchData = P.AnyMatchData> 
     return scopeVar === NONE ? undefined : scopeVar?.datatype
   }
 
-  getAST(match: P.MatchFor<this>): P.ASTVariableExpression {
+  /**
+   * Build `P.ASTVariableExpression`, resolving `match.value` to the scope variable it named when parsed, if any.
+   * - A name that means the thing a method runs on (`it` in a card's method, or the method's own `(a card)`):
+   *   the self literal, which each writer spells its way, `this` or `self`.
+   *   Epic `python-target` P3, output-targets' T4.
+   * - AST only knows singular / plural, so `"either"` goes out as `"singular"`.
+   */
+  getAST(match: P.MatchFor<this>): P.ASTVariableExpression | P.ASTSelfLiteral {
     // Scope variable it named when parsed, if any
     const { scopeVar } = match.data
     const variable = scopeVar === NONE ? undefined : scopeVar
+    if (variable?.output === "this") return new P.ASTSelfLiteral(match, { value: "this", raw: match.raw })
     // Allow variable to override name if it wants to (e.g. "it")
     const name = variable && variable.output ? variable.output : match.value
     const plurality = this.getPlurality(match) === "plural" ? "plural" : "singular"

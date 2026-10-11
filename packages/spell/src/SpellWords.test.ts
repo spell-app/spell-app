@@ -1,5 +1,6 @@
 import { describe, test, expect } from "vite-plus/test"
 
+import { P } from "$/parser"
 import { SP } from "$/spell"
 import { fixtureWords } from "$/spell/test"
 
@@ -25,6 +26,21 @@ describe("SpellWords", () => {
     expect(words).toEqual({
       lang: "en",
       types: { Card: { moveToPile: "move (a card) to (a pile)", turnOver: "turn (a card) over" } }
+    })
+  })
+
+  test("by another target's names, e.g. Python's, as plain JSON (epic `python-target` P14)", () => {
+    const words = SP.SpellWords.of(
+      declarationsOf(
+        { type: "Card", superType: "Thing" },
+        { output: "move_to_$pile", of: "Card", kind: "method", name: "move (a card) to (a pile)" },
+        { property: "is_set_up", asWritten: "is-set-up", of: "Card" }
+      ),
+      P.PyWriter.instance
+    )
+    expect(JSON.parse(SP.SpellWords.json(words))).toEqual({
+      lang: "en",
+      types: { Card: { move_to_pile: "move (a card) to (a pile)", is_set_up: "is-set-up" } }
     })
   })
 

@@ -1,7 +1,12 @@
 /**
  * Primitive collection methods for `spell` -- the accessors/setters every other collection method
  * (here and in `collection-other.ts`) is built from.
- * - All array iteration is 1-based.
+ * - All array iteration is 1-based, inside.
+ *   - A project may count from 0 (`project.json`'s `"listsStartAt": 0`, epic `python-target` P2):
+ *     each method that takes or gives a position takes a last `startAt` too, which compiled code passes.
+ *   - Per call, not one switch for the whole core:
+ *     a library counting from 1 and a program counting from 0 share one core.
+ *     See `fromStartAt()`, `toStartAt()`.
  * - Collection methods work with objects as well as arrays, unless specified.
  *   - For objects: use natural key order for position.
  * - TODO: collections for `words`, `lines`, etc?
@@ -10,6 +15,7 @@ import _ from "lodash"
 import { spellCore } from "./core"
 import { assert, type List } from "$/core"
 import { defineSpellCoreModule } from "./spellCore.types"
+import { fromStartAt, toStartAt, zeroIndexOf, type StartAt } from "./positions"
 
 /**
  * Loose shape for the duck-typed "collection" concept used throughout `spellCore`:
@@ -46,11 +52,11 @@ export type CollectionLike = {
 /**
  * ANY collection argument -- its items `T`, when TypeScript can tell:  a `List<T>` or a `T[]`.
  * - Else `T` is `unknown`, e.g. for a `List` with no item type, a plain object, `unknown` or `any`.
- * - `NonNullable<unknown> | null | undefined` is `unknown`, spelled out so `T` is still INFERRED from a list or an
- *   array -- `this` in a `List<Card>` sub-class too, which a conditional type (`C extends List<infer T>`) leaves
- *   unresolved.
- * - A list as its `getItem()` only, NOT all of `List<T>`:  inferring from `this` in a sub-class's `draw()` would
- *   read `draw()` itself, a circular inference (TS7023).
+ * - `NonNullable<unknown> | null | undefined` is `unknown`, spelled out so `T` is still INFERRED
+ *   from a list or an array -- `this` in a `List<Card>` sub-class too,
+ *   which a conditional type (`C extends List<infer T>`) leaves unresolved.
+ * - A list as its `getItem()` only, NOT all of `List<T>`:
+ *   inferring from `this` in a sub-class's `draw()` would read `draw()` itself, a circular inference (TS7023).
  * - Taken by the helpers whose result or callback follows their collection, e.g. `getItemAt()`, `forEach()`.
  */
 export type CollectionOf<T = unknown> =
@@ -141,31 +147,43 @@ export const collectionCoreMethods = defineSpellCoreModule({
 
   /**
    * The item at `position` of `collection`.
-   * - For array: `position` counts from 1.
+   * - For array: `position` counts from `startAt`, 1 unless the project counts from 0;  negative from the end.
    * - For object: `position` is its string key.
    * - Compiles from `item 1 of my-list` / `the first item of my-list` -- see `rules/lists/`.
    * - Typed by `collection`:  a `List<Card>`'s is a `Card`, if it has one -- see `CollectionOf`.
    */
-  getItemAt<T = unknown>(collection?: CollectionOf<T>, position?: string | number): T | undefined {
+  getItemAt<T = unknown>(
+    collection?: CollectionOf<T>,
+    position?: string | number,
+    startAt: StartAt = 1
+  ): T | undefined {
     if (!assert.isDefined(collection, "spellCore.getItemAt(collection)")) return undefined
     const coll = asCollection(collection)
+    position = fromStartAt(position, startAt)
     if (typeof coll.getItem === "function") return coll.getItem(position as string | number) as T | undefined
-    if (spellCore.isArrayLike(collection)) return coll[(position as number) - 1] as T | undefined
+    if (spellCore.isArrayLike(collection)) {
+      const index = zeroIndexOf(position as number, spellCore.itemCountOf(collection))
+      return index === undefined ? undefined : (coll[index] as T | undefined)
+    }
     return coll[position as string] as T | undefined
   },
 
   /**
    * Set the item at `position` of `collection` to `value`.
-   * - For array: `position` counts from 1.
+   * - For array: `position` counts from `startAt`, 1 unless the project counts from 0;  negative from the end.
+   *   No such position (`0`, counting from 1):  nothing changes.
    * - For object: `position` is its string key.
    */
-  setItemAt(collection?: unknown, position?: string | number, value?: unknown): unknown {
+  setItemAt(collection?: unknown, position?: string | number, value?: unknown, startAt: StartAt = 1): unknown {
     if (!assert.isDefined(collection, "spellCore.setItemAt(collection)")) return undefined
     const coll = asCollection(collection)
+    position = fromStartAt(position, startAt)
     if (typeof coll.setItem === "function") return coll.setItem(position as string | number, value)
 
-    if (spellCore.isArrayLike(collection)) coll[(position as number) - 1] = value
-    else coll[position as string] = value
+    if (spellCore.isArrayLike(collection)) {
+      const index = zeroIndexOf(position as number, spellCore.itemCountOf(collection))
+      if (index !== undefined) coll[index] = value
+    } else coll[position as string] = value
     return value
   },
 
@@ -188,19 +206,24 @@ export const collectionCoreMethods = defineSpellCoreModule({
 
   /**
    * Remove the item at `position` of `collection`.
-   * - For array: `position` counts from 1;  the items after it slide back into place.
+   * - For array: `position` counts from `startAt`, 1 unless the project counts from 0;  negative from the end.
+   *   - The items after it slide back into place.
+   *   - No such position:  nothing changes.
    * - For object: `position` is its string key, which is deleted.
    * - Compiles from `remove last card of deck` / `remove item 4 of my-list` -- see `rules/lists/`.
    */
-  removeItemAt(collection?: unknown, position?: string | number): void {
+  removeItemAt(collection?: unknown, position?: string | number, startAt: StartAt = 1): void {
     if (!assert.isDefined(collection, "spellCore.removeItemAt(collection)")) return
     const coll = asCollection(collection)
+    position = fromStartAt(position, startAt)
     if (coll.removeItem) {
       coll.removeItem(position as string | number)
       return
     }
-    if (spellCore.isArrayLike(collection)) Array.prototype.splice.call(collection, (position as number) - 1, 1)
-    else delete coll[position as string]
+    if (spellCore.isArrayLike(collection)) {
+      const index = zeroIndexOf(position as number, spellCore.itemCountOf(collection))
+      if (index !== undefined) Array.prototype.splice.call(collection, index, 1)
+    } else delete coll[position as string]
   },
 
   /**
@@ -270,26 +293,29 @@ export const collectionCoreMethods = defineSpellCoreModule({
 Object.assign(spellCore, collectionCoreMethods)
 
 /**
- * Position of `thing` in `collection`, from 1 -- `undefined` if it isn't there.  A plain object's:  its key.
- * - Hand-written TypeScript imports it by name:  `import { positionOf } from "@spell/core"`, then
- *   `positionOf(Card.Ranks, this.rank)`.  Compiled JavaScript calls it as `spellCore.positionOf(...)`:  the SAME
- *   function.
- * - Typed `number` when `thing` is of an array's own item type, e.g. a `Rank` in `Card.Ranks` (`as const`):  a value
- *   of an enumeration's type is always in it.  TYPES ONLY:  it's the same call.
+ * Position of `thing` in `collection`, from `startAt` (1 unless the project counts from 0):
+ * `undefined` if it isn't there, never `-1`.
+ * - In a plain object:  its key.
+ * - Hand-written TypeScript imports it by name, `import { positionOf } from "@spell/core"`,
+ *   then calls `positionOf(Card.Ranks, this.rank)`.
+ *   Compiled JavaScript calls it as `spellCore.positionOf(...)`:  the SAME function.
+ * - Typed `number` when `thing` is of an array's own item type, e.g. a `Rank` in `Card.Ranks` (`as const`):
+ *   a value of an enumeration's type is always in it.
+ *   TYPES ONLY:  it's the same call.
  *   - Else typed by `collection`, see `KeyOf`:  a `List`'s is `number | undefined` either way.
  * - Was `itemOf()` before epic `output-targets` P16, and still answers to it:  see `deprecated.ts`.
  */
-export function positionOf<T>(collection: readonly T[], thing: NoInfer<T>): number
-export function positionOf<C>(collection?: C, thing?: unknown): KeyOf<C> | undefined
-export function positionOf<C>(collection?: C, thing?: unknown): KeyOf<C> | undefined {
+export function positionOf<T>(collection: readonly T[], thing: NoInfer<T>, startAt?: StartAt): number
+export function positionOf<C>(collection?: C, thing?: unknown, startAt?: StartAt): KeyOf<C> | undefined
+export function positionOf<C>(collection?: C, thing?: unknown, startAt: StartAt = 1): KeyOf<C> | undefined {
   if (!assert.isDefined(collection, "spellCore.positionOf(collection)")) return undefined
   const coll = asCollection(collection)
-  if (typeof coll.positionOf === "function") return coll.positionOf(thing) as KeyOf<C> | undefined
+  if (typeof coll.positionOf === "function") return toStartAt(coll.positionOf(thing) as KeyOf<C> | undefined, startAt)
   const iterator = spellCore.getIteratorFor(collection)
   let result = iterator.next()
   while (!result.done) {
     const [value, position] = result.value
-    if (value === thing) return position as KeyOf<C>
+    if (value === thing) return toStartAt(position as KeyOf<C>, startAt)
     result = iterator.next()
   }
   return undefined

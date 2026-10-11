@@ -2,9 +2,11 @@ import { P } from "$/parser"
 
 /**
  * The TARGETS spell compiles to:  a language and the runtime its code runs on, e.g. `js/solid`.
- * - Each has its WRITER (`P.Writer`:  the tree as that language's code), the file its code goes in, and what its
- *   runtime can do.
- * - A project lists its own in `project.json`, `"targets": ["js/solid", "ts/solid"]` -- see `SpellProject.targets`;
+ * - Each target has:
+ *   - its WRITER (a `P.ProgramWriter`), which writes the parsed tree as that language's code
+ *   - the file its code goes in
+ *   - what its runtime can do
+ * - A project lists its own in `project.json`, `"targets": ["js/solid", "ts/solid"]` -- see `SpellProject.targets`.
  *   `spell compile --target <name>` picks one for a single run.
  * - `js/solid` is ALWAYS compiled:  it's what the editor, the runners and `spell run` run.
  */
@@ -14,13 +16,23 @@ export type Target = {
   /** Its name, LANGUAGE/RUNTIME, e.g. `js/solid`. */
   name: string
   /** Writes its code. */
-  writer: P.Writer
+  writer: P.ProgramWriter
   /** End of its compiled output file's name, e.g. `.compiled.js`. */
   suffix: string
   /** What its runtime can do. */
   can: TargetAbilities
-  /** What checks its output after `spell compile`, e.g. `tsc` -- see `typecheck()` in `$/spell/node/typecheck`. */
-  checkedBy?: "tsc"
+  /**
+   * What checks its output after `spell compile`, a function in `$/spell/node`:
+   * - `tsc`:  `typecheck()`
+   * - `pyright`:  `pyright()`
+   */
+  checkedBy?: "tsc" | "pyright"
+  /**
+   * End of the name of its own words file, beside its output, e.g. `.py.en.json`:  spell's wording of each member,
+   * keyed by THIS target's names (`move_to_pile`) -- see `SP.SpellWords.json()`.
+   * - `js/solid`'s words are `<Project>.en.js`, which every runner loads -- see `SP.SpellProject.wordsFile`.
+   */
+  wordsSuffix?: string
 }
 
 /** What a target's runtime can do -- checked while compiling, so a project asks only what its targets give. */
@@ -32,14 +44,33 @@ export type TargetAbilities = {
 /** Every target, by name. */
 export const TARGETS: Record<string, Target> = {
   "js/solid": { name: "js/solid", writer: P.JSWriter.instance, suffix: ".compiled.js", can: { draw: "dom" } },
-  // Solid TypeScript, as a person writes it:  JSX, decorators (`@prop`, `@drawn`), on the same runtime.  Checked by
-  // `tsc`;  never run as is -- it needs a build first (`buildTsx()` in `$/spell/node/buildTsx`)
+  // Solid TypeScript, as a person writes it:  JSX, decorators (`@prop`, `@drawn`), on the same runtime.
+  // Checked by `tsc`;  never run as is:  it needs a build first (`buildTsx()` in `$/spell/node/buildTsx`)
   "ts/solid": {
     name: "ts/solid",
     writer: P.TSWriter.instance,
     suffix: ".compiled.tsx",
     can: { draw: "dom" },
     checkedBy: "tsc"
+  },
+  // Python as a person writes it, with PEP 8's names, on `spell_core` (`packages/core/py`).
+  // Draws HTML as text:  Python has no page (epic `python-target`, Q2)
+  py: {
+    name: "py",
+    writer: P.PyWriter.instance,
+    suffix: ".compiled.py",
+    can: { draw: "html" },
+    wordsSuffix: ".py.en.json",
+    checkedBy: "pyright"
+  },
+  // The same Python on `asyncio`:  a function that pauses is `async def`, and its callers await it
+  // (epic `python-target`, Q3 B and Q18)
+  "py/asyncio": {
+    name: "py/asyncio",
+    writer: P.PyAsyncWriter.instance,
+    suffix: ".compiled.asyncio.py",
+    can: { draw: "html" },
+    checkedBy: "pyright"
   }
 }
 

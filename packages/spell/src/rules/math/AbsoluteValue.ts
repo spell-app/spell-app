@@ -16,7 +16,7 @@ export class AbsoluteValue extends SpellExpression<"operator|expression"> {
     const { expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       datatype: "number",
-      methodName: "absoluteValue", // TODO: implement in spellCore
+      methodName: "absoluteValue",
       args: [P.asAST<P.ASTExpression>(expression.AST)]
     })
   }

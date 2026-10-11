@@ -1,0 +1,2 @@
+161 reportOptionalMemberAccess "last_item" is not a known attribute of "None"
+163 reportOptionalOperand Operator "+" not supported for "None"

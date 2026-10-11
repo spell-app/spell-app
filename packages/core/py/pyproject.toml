@@ -1,0 +1,41 @@
+# spell_core:  the Python twin of `@spell-app/core`, what Python compiled from spell imports.
+# - Run from the repo root:
+#   - its tests:  `uv run --directory packages/core/py pytest`
+#   - the terminal study's (not in the run above):  `uv run --directory packages/core/py --group study pytest experiments/terminal`
+#   - tidy it:  `uv run --directory packages/core/py ruff check --fix` and `... ruff format`
+# - Core's own `yarn test` runs the tests too (its package.json), so `yarn review` does.
+
+[project]
+name = "spell-core"
+version = "0.8.0"
+description = "What Python compiled from spell imports, to do what Python has no word of its own for."
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = ["pytest==9.1.1", "ruff==0.17.0"]
+# P15's terminal study (experiments/terminal/):  never what spell_core itself needs, which is standard library only
+study = ["rich==15.0.0", "textual==8.2.8"]
+
+[build-system]
+requires = ["uv_build>=0.12.13,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+# the package is `spell_core/`, beside this file, not under `src/`
+module-root = ""
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--strict-markers"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+# pycodestyle, pyflakes, import order, pyupgrade, bugbear, naming, simplify, ruff's own
+select = ["E", "W", "F", "I", "UP", "B", "N", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+# characters that look like others are the point of these:  ✅, ❌, ♠️
+"tests/*" = ["RUF001", "RUF003"]

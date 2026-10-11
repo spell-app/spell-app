@@ -1,0 +1,1648 @@
+{
+  "provides": [
+    "spellCore",
+    "Thing",
+    "List",
+    "App",
+    "Drawable",
+    "DrawableList",
+    "h",
+    "positionOf",
+    "on",
+    "off",
+    "once",
+    "trigger"
+  ],
+  "statements": [
+    {
+      "kind": "method",
+      "name": "doNothing",
+      "of": "spellCore",
+      "module": "core"
+    },
+    {
+      "kind": "method",
+      "name": "flush",
+      "of": "spellCore",
+      "module": "core"
+    },
+    {
+      "kind": "method",
+      "name": "checkProp",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "property"
+        },
+        {
+          "name": "value"
+        },
+        {
+          "name": "check"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "newThingLike",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "newScratch",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "constructor"
+        }
+      ]
+    },
+    {
+      "property": "TYPE_NAME_CONVERSIONS",
+      "of": "spellCore",
+      "module": "core"
+    },
+    {
+      "kind": "method",
+      "name": "typeOf",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ]
+    },
+    {
+      "property": "IS_OF_TYPE_SPECIALS",
+      "of": "spellCore",
+      "module": "core"
+    },
+    {
+      "kind": "method",
+      "name": "typesOf",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "isOfType",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        },
+        {
+          "name": "type"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "matchesType",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        },
+        {
+          "name": "otherThing"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "isANumber",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "isAnInteger",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "isArrayLike",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "isTruthy",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "value"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "isDefined",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "value"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "get",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        },
+        {
+          "name": "path"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "set",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        },
+        {
+          "name": "path"
+        },
+        {
+          "name": "value"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "equals",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        },
+        {
+          "name": "otherThing"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "absoluteValue",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "number"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "seedRandom",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "seed"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "random",
+      "of": "spellCore",
+      "module": "core"
+    },
+    {
+      "kind": "method",
+      "name": "randomNumber",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "min"
+        },
+        {
+          "name": "max"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "shuffled",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "items"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "countTo",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "count"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "getRange",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "start"
+        },
+        {
+          "name": "end"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "repeat",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "count"
+        },
+        {
+          "name": "callback"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "itemCountOf",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "isEmpty",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "keysOf",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "valuesOf",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "positionOf",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "thing"
+        },
+        {
+          "name": "startAt"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "getItemAt",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "position"
+        },
+        {
+          "name": "startAt"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "setItemAt",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "position"
+        },
+        {
+          "name": "value"
+        },
+        {
+          "name": "startAt"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "addAtPosition",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "start"
+        },
+        {
+          "name": "...things"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "removeItemAt",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "position"
+        },
+        {
+          "name": "startAt"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "clear",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "getIteratorFor",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "includes",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "...values"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "includesAny",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "...values"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "duplicateList",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "constructor"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "mergeListsInto",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "destination"
+        },
+        {
+          "name": "...sources"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "mergeLists",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collections"
+        },
+        {
+          "name": "constructor"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "startsWith",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "thing"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "endsWith",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "thing"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "prepend",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "...things"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "append",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "...things"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "addBefore",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "item"
+        },
+        {
+          "name": "...things"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "addAfter",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "item"
+        },
+        {
+          "name": "...things"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "setItemsOf",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "start"
+        },
+        {
+          "name": "...values"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "reverse",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "rangeBetween",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "start"
+        },
+        {
+          "name": "end"
+        },
+        {
+          "name": "startAt"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "removeRangeBetween",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "start"
+        },
+        {
+          "name": "end"
+        },
+        {
+          "name": "startAt"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "rangeStartingAt",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "start"
+        },
+        {
+          "name": "count"
+        },
+        {
+          "name": "startAt"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "forEach",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "method"
+        },
+        {
+          "name": "startAt"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "forEachSequential",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "method"
+        },
+        {
+          "name": "startAt"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "map",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "method"
+        },
+        {
+          "name": "startAt"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "filter",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "condition"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "all",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "condition"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "any",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "condition"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "removeItemsAt",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "...positions"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "remove",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "...things"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "removeWhere",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "condition"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "move",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "thing"
+        },
+        {
+          "name": "collection"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "canTake",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "thing"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "canGiveUp",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "thing"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "randomItemOf",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "randomItemsOf",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "count"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "randomize",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "smallestOf",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "largestOf",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "doubleQuote",
+      "of": "spellCore",
+      "module": "string",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "backTickQuote",
+      "of": "spellCore",
+      "module": "string",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "upperCase",
+      "of": "spellCore",
+      "module": "string",
+      "params": [
+        {
+          "name": "string"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "lowerCase",
+      "of": "spellCore",
+      "module": "string",
+      "params": [
+        {
+          "name": "string"
+        }
+      ]
+    },
+    {
+      "property": "TIME_UNITS_MAP",
+      "of": "spellCore",
+      "module": "ui"
+    },
+    {
+      "kind": "method",
+      "name": "pauseFor",
+      "of": "spellCore",
+      "module": "ui",
+      "params": [
+        {
+          "name": "number"
+        },
+        {
+          "name": "units"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "notify",
+      "of": "spellCore",
+      "module": "ui",
+      "params": [
+        {
+          "name": "message"
+        },
+        {
+          "name": "closeText"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "alert",
+      "of": "spellCore",
+      "module": "ui",
+      "params": [
+        {
+          "name": "message"
+        },
+        {
+          "name": "okText"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "confirm",
+      "of": "spellCore",
+      "module": "ui",
+      "params": [
+        {
+          "name": "message"
+        },
+        {
+          "name": "okText"
+        },
+        {
+          "name": "cancelText"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "prompt",
+      "of": "spellCore",
+      "module": "ui",
+      "params": [
+        {
+          "name": "message"
+        },
+        {
+          "name": "value"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "installStyles",
+      "of": "spellCore",
+      "module": "ui",
+      "params": [
+        {
+          "name": "name"
+        },
+        {
+          "name": "safeCSS"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "drawThing",
+      "of": "spellCore",
+      "module": "drawing",
+      "params": [
+        {
+          "name": "drawable"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "drawOwn",
+      "of": "spellCore",
+      "module": "drawing",
+      "params": [
+        {
+          "name": "drawable"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "drawItems",
+      "of": "spellCore",
+      "module": "drawing",
+      "params": [
+        {
+          "name": "list"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "mountApp",
+      "of": "spellCore",
+      "module": "drawing",
+      "params": [
+        {
+          "name": "app"
+        },
+        {
+          "name": "element"
+        }
+      ]
+    },
+    {
+      "property": "elementDefiner",
+      "of": "spellCore",
+      "module": "elements"
+    },
+    {
+      "kind": "method",
+      "name": "defineElement",
+      "of": "spellCore",
+      "module": "elements",
+      "params": [
+        {
+          "name": "Class"
+        },
+        {
+          "name": "project"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "elementFor",
+      "of": "spellCore",
+      "module": "elements",
+      "params": [
+        {
+          "name": "drawable"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "elementApiOf",
+      "of": "spellCore",
+      "module": "elements",
+      "params": [
+        {
+          "name": "Class"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "thingFor",
+      "of": "spellCore",
+      "module": "elements",
+      "params": [
+        {
+          "name": "Class"
+        },
+        {
+          "name": "name"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "elementTagOf",
+      "of": "spellCore",
+      "module": "elements",
+      "params": [
+        {
+          "name": "drawable"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "getPath",
+      "of": "spellCore",
+      "module": "paths",
+      "params": [
+        {
+          "name": "object"
+        },
+        {
+          "name": "path"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "setPath",
+      "of": "spellCore",
+      "module": "paths",
+      "params": [
+        {
+          "name": "object"
+        },
+        {
+          "name": "path"
+        },
+        {
+          "name": "value"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "splitPath",
+      "of": "spellCore",
+      "module": "paths",
+      "params": [
+        {
+          "name": "path"
+        }
+      ]
+    },
+    {
+      "property": "ACTIVE_TEST",
+      "of": "spellCore",
+      "module": "tests"
+    },
+    {
+      "kind": "method",
+      "name": "test",
+      "of": "spellCore",
+      "module": "tests",
+      "params": [
+        {
+          "name": "message"
+        },
+        {
+          "name": "testMethod"
+        },
+        {
+          "name": "collapse"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "startTest",
+      "of": "spellCore",
+      "module": "tests",
+      "params": [
+        {
+          "name": "message"
+        },
+        {
+          "name": "collapse"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "echo",
+      "of": "spellCore",
+      "module": "tests",
+      "params": [
+        {
+          "name": "message"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "echoTestAction",
+      "of": "spellCore",
+      "module": "tests",
+      "params": [
+        {
+          "name": "message"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "endTest",
+      "of": "spellCore",
+      "module": "tests"
+    },
+    {
+      "kind": "method",
+      "name": "expect",
+      "of": "spellCore",
+      "module": "tests",
+      "params": [
+        {
+          "name": "thing"
+        },
+        {
+          "name": "thingSource"
+        },
+        {
+          "name": "otherThing"
+        },
+        {
+          "name": "otherSource"
+        }
+      ]
+    },
+    {
+      "property": "console",
+      "of": "spellCore",
+      "module": "console"
+    },
+    {
+      "property": "DEBUG_RUNTIME",
+      "of": "spellCore",
+      "module": "runtime"
+    },
+    {
+      "property": "DEBUG_PROCESSES",
+      "of": "spellCore",
+      "module": "runtime"
+    },
+    {
+      "kind": "method",
+      "name": "on",
+      "of": "spellCore",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "eventType"
+        },
+        {
+          "name": "callback"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "off",
+      "of": "spellCore",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "eventType"
+        },
+        {
+          "name": "callback"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "once",
+      "of": "spellCore",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "eventType"
+        },
+        {
+          "name": "callback"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "trigger",
+      "of": "spellCore",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "event"
+        },
+        {
+          "name": "props"
+        }
+      ]
+    },
+    {
+      "property": "RUNTIME",
+      "of": "spellCore",
+      "module": "runtime"
+    },
+    {
+      "kind": "method",
+      "name": "resetRuntime",
+      "of": "spellCore",
+      "module": "runtime"
+    },
+    {
+      "kind": "method",
+      "name": "clearRuntime",
+      "of": "spellCore",
+      "module": "runtime"
+    },
+    {
+      "kind": "method",
+      "name": "getRuntimeState",
+      "of": "spellCore",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "name"
+        },
+        {
+          "name": "initializer"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "clearRuntimeState",
+      "of": "spellCore",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "name"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "getProcessFlags",
+      "of": "spellCore",
+      "module": "runtime"
+    },
+    {
+      "kind": "method",
+      "name": "startProcess",
+      "of": "spellCore",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "name"
+        },
+        {
+          "name": "exclusively"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "processIsRunning",
+      "of": "spellCore",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "name"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "stopProcess",
+      "of": "spellCore",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "name"
+        }
+      ]
+    },
+    {
+      "property": "things",
+      "of": "spellCore",
+      "module": "things"
+    },
+    {
+      "kind": "method",
+      "name": "heading",
+      "of": "spellCore",
+      "module": "things",
+      "params": [
+        {
+          "name": "text"
+        }
+      ]
+    },
+    {
+      "kind": "method",
+      "name": "fromJSON",
+      "of": "spellCore",
+      "module": "json",
+      "params": [
+        {
+          "name": "json"
+        }
+      ]
+    },
+    {
+      "property": "BASE_TYPES",
+      "of": "spellCore",
+      "module": "classes"
+    },
+    {
+      "property": "appLayout",
+      "of": "spellCore",
+      "module": "classes"
+    },
+    {
+      "property": "REACT_APP_ROOT_ID",
+      "of": "spellCore",
+      "module": "classes"
+    },
+    {
+      "property": "appRoot",
+      "of": "spellCore",
+      "module": "classes"
+    },
+    {
+      "kind": "method",
+      "name": "appElement",
+      "of": "spellCore",
+      "module": "classes"
+    },
+    {
+      "kind": "method",
+      "name": "domRoot",
+      "of": "spellCore",
+      "module": "classes"
+    },
+    {
+      "type": "Thing",
+      "module": "classes/Thing"
+    },
+    {
+      "type": "List",
+      "module": "classes/List"
+    },
+    {
+      "type": "App",
+      "superType": "Thing",
+      "module": "classes/App"
+    },
+    {
+      "type": "Drawable",
+      "superType": "Thing",
+      "module": "classes/Drawable"
+    },
+    {
+      "type": "DrawableList",
+      "superType": "List",
+      "module": "classes/DrawableList"
+    },
+    {
+      "kind": "function",
+      "name": "h",
+      "module": "drawing",
+      "params": [
+        {
+          "name": "...rawArgs"
+        }
+      ]
+    },
+    {
+      "kind": "function",
+      "name": "positionOf",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "thing"
+        },
+        {
+          "name": "startAt"
+        }
+      ]
+    },
+    {
+      "kind": "function",
+      "name": "on",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "eventType"
+        },
+        {
+          "name": "callback"
+        }
+      ]
+    },
+    {
+      "kind": "function",
+      "name": "off",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "eventType"
+        },
+        {
+          "name": "callback"
+        }
+      ]
+    },
+    {
+      "kind": "function",
+      "name": "once",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "eventType"
+        },
+        {
+          "name": "callback"
+        }
+      ]
+    },
+    {
+      "kind": "function",
+      "name": "trigger",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "event"
+        },
+        {
+          "name": "props"
+        }
+      ]
+    }
+  ]
+}
