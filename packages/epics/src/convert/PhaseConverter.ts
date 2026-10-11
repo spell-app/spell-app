@@ -1,5 +1,4 @@
 import type { EpicData } from "$/epics/definitions"
-import { PlanDoc } from "$/epics/tool/PlanDoc"
 import { PlanMarkup } from "$/epics/tool/PlanMarkup"
 
 import {
@@ -21,12 +20,13 @@ import type { Converter } from "./Converter"
  * `<epic-phase id title status estimate>`, its body's fields `<epic-field name>`s, its Updated lines
  * `<epic-updated>`s and its commits `<epic-commit>`s -- in the content model's order (Symptom, Changes, Updated,
  * Goal, Done, Commits, Files, Verify, To review), whatever order the old body had.
+ * - The Updated lines are made `<epic-update at summary>` blocks at the end of their phase's description, as the
+ *   pass writes its files (`DocPass.output()`, the migration `updates-as-epic-update`):  one shape both ways.
  * - A field the vocabulary has no name for (`Judgement calls:`, `Outcome:`) is kept whole, label and all, at the end
  *   of the phase's Done (else its Goal):  `EXTRA_FIELD_HOSTS`.
  * - Dropped, as chrome:  the progress bar, status icons.
- * - The old Plan changes box (a copy of the Updated lines of the phases still to do) is dropped:  each phase's lines
- *   go in its `changes` slot, counted in its `changes`, as the plan-doc tool writes them on every edit
- *   (`PlanDoc.writePlanChanges()`):  the same markup both ways.
+ * - The old Plan changes box (a copy of the Updated lines of the phases still to do) is dropped:  each phase counts
+ *   its own in its `changes`, as the plan-doc tool writes it on every edit (`PlanDoc.writeChangeCounts()`).
  ****************/
 export class PhaseConverter {
   /** The converter it works for:  STATIC for its life. */
@@ -49,9 +49,7 @@ export class PhaseConverter {
         throw this.owner.error("Phases holds something other than phases", child)
       phases.push(this.phase(child))
     }
-    const converted = this.owner.element("epic-section", { id: "phases", kind: "phases" }, phases, section)
-    PlanDoc.writePlanChanges(converted)
-    return converted
+    return this.owner.element("epic-section", { id: "phases", kind: "phases" }, phases, section)
   }
 
   /** `<epic-phase>` from a phase section. */

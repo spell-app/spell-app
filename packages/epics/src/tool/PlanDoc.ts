@@ -55,6 +55,8 @@ import { PlanItem } from "./PlanItem"
 import { PlanMarkup } from "./PlanMarkup"
 import { PlanReader } from "./PlanReader"
 import { PlanTime } from "./PlanTime"
+import { UpdateSummary } from "./UpdateSummary"
+import { Migrations } from "./migrations"
 import { SUMMARY_ID } from "./ReviewInbox"
 
 /****************
@@ -353,8 +355,9 @@ export class PlanDoc extends PlanReader {
 
   /**
    * Set phase `n` to `status` (`todo` / `active` / `done`).
-   * - `done` removes the phase's UPDATE markers (`<epic-update phase="N">`):
-   *   once it's finished, its changes are just the plan
+   * - `done` removes the phase's UPDATE markers (`removeUpdateMarkers()`):  the bare labels on items, and the
+   *   updates to prose outside a phase;  once it's finished, those changes are just the plan.
+   *   A phase's own plan changes stay.
    * - `done` with `{ done }` (HTML:  a `<ul>` of what was built, what Owen will ask about first):  its Done field
    * - throws on any other status
    * - SIDE EFFECT:  logs the change
@@ -392,23 +395,29 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * A change to phase `n`'s plan, `html` (what changed, and why), as one dated `<epic-updated slot="changes">`, after
-   * the ones before it:  the phase draws them in its Plan changes box.
-   * - in the file, under its Symptom / Changes (where the content model lists an unslotted line), though a slotted
-   *   child is never ordered:  the source reads as the page did
+   * A change to phase `n`'s plan, `html` (what changed, and why), as one `<epic-update at summary>` block at the END of
+   * the phase's description (Owen, 2026-10-11:  "The updated blocks themselves go at the end of the phase
+   * description"), after the ones before it.
+   * - where:  after Goal (and Owen's kept notes), before Done, the commits, Files, Verify and To review
+   *   (`Markup.place()`, the vocabulary's order)
    * - `at`:  now, `YYYY-MM-DD HH:MM`;  `phase`:  the phase active when it was written, if any
+   * - `summary`:  as given, else the first sentence of `html` (`UpdateSummary`);  drawn `Update: <summary>`
    * - it STAYS when a phase is done (unlike the UPDATE markers);  the phase's `changes` counts it
-   *   (`writePlanChanges()`, every edit)
+   *   (`writeChangeCounts()`, every edit)
    * - old prose shapes in `html` (a Net effect paragraph, a code accordion ...) become elements (`IncomingHtml`)
    * - SIDE EFFECT:  logs it
    */
-  addPhaseUpdate(n: number, html: string): void {
+  addPhaseUpdate(n: number, html: string, { summary }: { summary?: string } = {}): void {
     const phase = this.phase(n)
-    const data = { at: PlanTime.clockTime(this.now), phase: this.activePhase }
-    const line = this.make("epic-updated", data, this.incoming(html))
-    Markup.place(phase, line)
-    line.setAttribute("slot", PLAN_CHANGES_SLOT)
-    this.log(`P${n} plan updated`)
+    const nodes = this.incoming(html)
+    const given = PlanMarkup.squeeze(summary ?? "")
+    const data = {
+      at: PlanTime.clockTime(this.now),
+      phase: this.activePhase,
+      summary: given || UpdateSummary.of(nodes) || undefined
+    }
+    Markup.place(phase, this.make("epic-update", data, nodes))
+    this.log(`P${n} plan updated${data.summary ? `:  ${data.summary}` : ""}`)
   }
 
   /**
@@ -435,50 +444,53 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * Each phase's Plan changes (epic `epic-workflow` P6;  Owen, 2026-10-11:  "plan changes should go in their phase
-   * with same presentation, rather than above phase list");  changed?
-   * - its `<epic-updated>` lines in its `changes` slot (`slot="changes"`):  `<epic-phase>` draws them in its Plan
-   *   changes box, atop its body;  an older doc's unslotted lines are slotted where they stand
-   * - how many in its `changes` (none:  no attribute):  in the skeleton, so a folded phase's title says its plan
-   *   changed while its body, a part, isn't loaded (the reason the Phases section listed COPIES, T14)
-   * - an older doc's copies in the Phases section (`<epic-updated slot="changes" of="N">`) go
-   * - STATIC:  the converter writes the same (`PhaseConverter`);  `section` must hold its phases' lines (an
-   *   ASSEMBLED doc:  a skeleton alone would read as no changes)
+   * How many plan changes each phase holds, in its `changes` (none:  no attribute);  changed?
+   * - its `<epic-update>` blocks (and an older doc's `<epic-updated>` lines, until migrated)
+   * - in the skeleton, so a folded phase's title says its plan changed while its body, a part, isn't loaded
+   * - STATIC:  the converter writes the same (`DocPass`);  `section` must hold its phases' updates (an ASSEMBLED doc:
+   *   a skeleton alone would read as no changes)
    */
-  static writePlanChanges(section: Element): boolean {
+  static writeChangeCounts(section: Element): boolean {
     let changed = false
-    for (const copy of section.querySelectorAll(`:scope > epic-updated[slot="${PLAN_CHANGES_SLOT}"]`)) {
-      copy.remove()
-      changed = true
-    }
     for (const phase of section.querySelectorAll(":scope > epic-phase")) {
-      const lines = Array.from(phase.querySelectorAll(":scope > epic-updated"))
-      for (const line of lines.filter((each) => each.getAttribute("slot") !== PLAN_CHANGES_SLOT)) {
-        line.setAttribute("slot", PLAN_CHANGES_SLOT)
-        changed = true
-      }
-      const count = lines.length ? String(lines.length) : null
-      if (phase.getAttribute("changes") === count) continue
-      Markup.set<"epic-phase">(phase, { changes: lines.length || undefined })
+      const count = phase.querySelectorAll(PLAN_CHANGES).length
+      if (phase.getAttribute("changes") === (count ? String(count) : null)) continue
+      Markup.set<"epic-phase">(phase, { changes: count || undefined })
       changed = true
     }
     return changed
   }
 
-  /** The Plan changes of this doc's phases (`writePlanChanges()`);  changed? */
-  updatePlanChanges(): boolean {
+  /** How many plan changes each of this doc's phases holds (`writeChangeCounts()`);  changed? */
+  updateChangeCounts(): boolean {
     const section = this.findSection("phases")
-    return section ? PlanDoc.writePlanChanges(section) : false
-  }
-
-  /** UPDATE markers of phase `n`:  every `<epic-update phase="N">`, labels and notes. */
-  updateMarkers(n: number): Element[] {
-    return Array.from(this.document.querySelectorAll(`epic-update[phase="${n}"]`))
+    return section ? PlanDoc.writeChangeCounts(section) : false
   }
 
   /**
-   * Remove phase `n`'s UPDATE markers;  a title slot left with plain text goes back to a `title` (as the converter
-   * writes a title without markup).
+   * Bring this doc's markup up to today's (`Migrations`:  every step, idempotent);  returns the steps that changed
+   * something.
+   * - SIDE EFFECT:  logs them, `migrated:  updates-as-epic-update`
+   */
+  migrate(): string[] {
+    const ran = Migrations.run(this.document, { now: this.now })
+    if (ran.length) this.log(`migrated:  ${ran.join(", ")}`)
+    return ran
+  }
+
+  /**
+   * UPDATE markers of phase `n`:  every `<epic-update phase="N">` but a phase's own plan changes
+   * (`epic-phase > epic-update`, kept for good):  the bare labels, and the updates to prose.
+   */
+  updateMarkers(n: number): Element[] {
+    return Array.from(this.document.querySelectorAll(`epic-update[phase="${n}"]`)).filter(
+      (update) => update.parentElement?.localName !== "epic-phase"
+    )
+  }
+
+  /**
+   * Remove phase `n`'s UPDATE markers (`updateMarkers()`);  a title slot left with plain text goes back to a `title`
+   * (as the converter writes a title without markup).
    */
   removeUpdateMarkers(n: number): void {
     for (const marker of this.updateMarkers(n)) {
@@ -1333,7 +1345,7 @@ export class PlanDoc extends PlanReader {
    * - the page's `recent-since`:  from `recentSince` when it was passed in
    * - each item's `state` (`itemState()`):  what the page colours its id chip by
    * - each phase's "To review" field (`updateToReview()`)
-   * - each phase's Plan changes, and their count (`updatePlanChanges()`)
+   * - how many plan changes each phase holds (`updateChangeCounts()`)
    */
   updateStates(): number {
     let changed = 0
@@ -1350,7 +1362,7 @@ export class PlanDoc extends PlanReader {
       changed++
     }
     for (const phase of this.phaseElements) if (this.updateToReview(phase)) changed++
-    if (this.updatePlanChanges()) changed++
+    if (this.updateChangeCounts()) changed++
     return changed
   }
 
@@ -1849,10 +1861,10 @@ function cardSetWords(choices: number | undefined): string {
 }
 
 /**
- * A phase's slot for its plan changes (`<epic-updated slot="changes">`, `PlanDoc.writePlanChanges()`);  an older
- * doc's copies in the Phases section are in a slot of that name too (T14), which the tool removes.
+ * A phase's plan changes, counted in its `changes` (`PlanDoc.writeChangeCounts()`):  its `<epic-update>` blocks, and
+ * an older doc's `<epic-updated>` lines until they're migrated.
  */
-const PLAN_CHANGES_SLOT = "changes"
+const PLAN_CHANGES = ":scope > epic-update[at], :scope > epic-update[summary], :scope > epic-updated"
 
 /** The tags whose `phase` names a phase by number:  renumbered with it (`PlanDoc.makeRoomForPhase()`). */
 const PHASE_POINTERS = ["epic-item", "epic-update", "epic-updated"]

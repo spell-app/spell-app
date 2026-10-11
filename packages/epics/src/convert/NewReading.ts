@@ -56,6 +56,10 @@ export class NewReading extends DocReading {
         if (element.getAttribute("slot") === "changes" && element.parentElement?.localName === "epic-section")
           return { children: false }
         return { pieces: [text("at")] }
+      case "epic-update":
+        // a phase's plan change keeps its old Updated line's time;  a note's `at` and any `summary` are made from
+        // the doc (its dates, its first sentence), so they're not words the old doc had
+        return { pieces: [element.parentElement?.localName === "epic-phase" ? text("at") : undefined] }
       case "epic-event":
         return { pieces: [shownTime(text("at"))] }
       default:

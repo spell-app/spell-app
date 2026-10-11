@@ -8,7 +8,8 @@ import type { EpicVocabulary } from "$/epics/definitions"
 
 /****************
  * ### `<epic-updated>`
- * One change to a phase's plan, fenced, in its phase's Plan changes box.
+ * RETIRED (2026-10-11):  one change to a phase's plan, in an older doc.  `<epic-update at summary>` replaces it;
+ * the plan-doc tool's next write migrates each (`updates-as-epic-update`).
  ****************/
 export const epicUpdatedVocabulary = {
   tag: "epic-updated",
@@ -17,8 +18,9 @@ export const epicUpdatedVocabulary = {
   noun: "updated",
   ui: false,
   description:
-    "One change to a phase's plan (after Owen's feedback, or found while building):  a dated line in its " +
-    'phase\'s Plan changes box (`slot="changes"`), kept once the phase is done.',
+    "RETIRED (Owen, 2026-10-11):  an older doc's change to a phase's plan, a dated fence.  Still drawn, until the " +
+    "plan-doc tool's next write makes it an `<epic-update at summary>` block at the end of its phase's " +
+    "description (`updates-as-epic-update`).",
   attributes: [
     {
       name: "at",

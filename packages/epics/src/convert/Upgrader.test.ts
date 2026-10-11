@@ -188,9 +188,14 @@ describe("Upgrader.upgrade():  a converted doc", () => {
       { state: "update", title: "partly fixed by J1, 2026-10-06" },
       { state: "done", title: "2026-10-06" }
     ])
-    // the script's, for a phase (`data-phase`):  the phase's marker, as the tool's way in makes it (J74)
-    expect(data(document, "#p1 epic-field[name='symptom'] > epic-update")).toEqual({ phase: 1 })
-    expect(data(document, "#o1 > epic-update")).toEqual({ phase: 7 })
+    // the script's, for a phase (`data-phase`):  the phase's update, as the tool's way in makes it (J74), then
+    // migrated as the tool's next write would (`updates-as-epic-update`):  dated, summed up, after its block
+    expect(data(document, "#p1 epic-field[name='symptom'] > epic-update")).toEqual({
+      at: "2026-10-08",
+      phase: 1,
+      summary: "The pins moved to the catalog"
+    })
+    expect(data(document, "#o1 > epic-update")).toMatchObject({ phase: 7, at: expect.any(String) })
     expect(document.querySelector("#o1 > epic-update > p")!.textContent).toMatch(/^P7 moved/)
     expect(document.querySelector("#o1 > ui-message.plan-update")!.getAttribute("header")).toBe("DEFERRED")
   })

@@ -17,7 +17,8 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 /****************
  * ### `EpicUpdated`
  * The component behind `<epic-updated>`:
- * one dated change to a phase's plan, FENCED (a dashed orange box), in its phase's Plan changes box.
+ * RETIRED (2026-10-11):  an older doc's dated change to a phase's plan, FENCED (a dashed orange box);
+ * `<epic-update>` replaces it, and the plan-doc tool's next write migrates it (`updates-as-epic-update`).
  * - its heading:  the fold chevron, its icon, `Updated` and the time (`at`, to the minute), the phase under way then
  * - under them:  what changed (its children)
  * - Folds by its heading row (Owen, 2026-10-08:  everything in a section box folds):

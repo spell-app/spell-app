@@ -341,12 +341,15 @@ The filling goes to a background agent, `<name>-plan-doc`, as if Owen had typed 
    - An item talked through with Owen (he answered, accepted, or said leave it):
      `review <name> <id> "outcome"`, so the next `/epic review` doesn't bring it up again ("7. Review").
    - Changed a phase's PLAN (Owen's feedback, or something found while building):
-     - `updated <name> <N> "<p>what changed, and why</p>"`:
-       a dated line in its fenced Updated block, under Symptom / Changes.
+     - `updated <name> <N> "<p>what changed, and why</p>" [--summary "one line"]`:
+       an `<epic-update>` block at the end of the phase's description, after Goal:  **Update**: <summary>, dated.
        Never an "Updated" word in the text.
      - Then `phase-body <name> <N> --changes ...` (or `--goal` ...), to make the fields say the new plan.
-   - Changed a prose block:  put `<epic-update phase="N"><p>what changed</p></epic-update>` just before it.
-     - The script marks items itself;  `phase <name> N done` drops it.
+   - Changed a prose block:  put
+     `<epic-update at="YYYY-MM-DD HH:MM" summary="what changed, one line" phase="N"><p>why</p></epic-update>`
+     right AFTER it (an update to a whole Overview sub-section:  last inside it).
+     - The script marks items itself (a bare label in the title);  `phase <name> N done` drops both.
+     - Its plan changes (`updated`) stay.
      - A note that should stay:  `<epic-note state="update" title="...">` (`plan-doc.md`, "UPDATE markers").
 3. Subagents:  named and listed, as the root `CLAUDE.md`'s "Delegated work" says
    (`spell dev agents add` / `done`).
@@ -913,10 +916,10 @@ new <name> [--title "Title"] [--prompt "..." | --prompt-file f] [--future]
 add-phase <name> "Short Name" --symptom .. --changes .. [--goal ..] [--files ..] [--verify ..] [--estimate 2h]
           [--before N]                              --before:  inserted as PN;  the to-do phases from N move down
 phase-body <name> <N> [--symptom ..] [--changes ..] [--goal ..] [--files ..] [--verify ..]   set ("" removes) fields
-updated <name> <N> "<p>what changed</p>"            a change to phase N's plan:  fenced, dated, under Symptom / Changes
+updated <name> <N> "<p>what changed</p>" [--summary ".."]   phase N's plan changed:  <epic-update>, after Goal
 request <name> <N> <rN> --from "..." --file f     a request into phase N's Requests field (`spell epic file` runs it)
 estimate <name> <N> "1-2h"                          change a phase's estimate;  the Overview's total follows
-phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the VS Code tab
+phase <name> <N> todo|active|done [--no-open]       done drops UPDATE labels / prose updates;  reloads the tab
 add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details "<p>html</p>"] [--calm]   prints the id (C3)
 calm <name> <id>... [--loud]                        calls / issues not urgent (yellow);  --loud:  red again
 decide <name> <Q id> "answer" [--details html]     answer a question, INTO it:  prints its id (Q3)
