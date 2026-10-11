@@ -10,8 +10,10 @@
 import { spellCore, SPELL_CORE_MODULE } from "$/core"
 
 /**
- * Run `compiled` spell javascript afresh:  previous app unmounted, new `spellCore.RUNTIME`, empty console --
+ * Run `compiled` spell javascript:  previous app unmounted, new `spellCore.RUNTIME`, empty console --
  * unless `keepConsole`.
+ * - Afresh, unless `keepThings`:  then the last run's things carry over into the new one, e.g. the game in progress,
+ *   and the program's start stops at its first pause -- see `spellCore.carryOver()` (epic `drawable-thing` P16).
  * - Imports it as a module from a NEW `blob:` URL each time -- the browser caches modules by URL,
  *   so re-importing one would hand back the old module without running anything.
  * - Each project it imports comes from `options.loadImport()`, linked onto its own `blob:` URL:
@@ -23,6 +25,9 @@ import { spellCore, SPELL_CORE_MODULE } from "$/core"
  * - Answers the error message if it threw, else `undefined`.
  */
 export async function runCompiled(compiled: string, options: RunCompiledOptions): Promise<string | undefined> {
+  // the last run's things:  read before the reset forgets them
+  const previous = options.keepThings ? lastRun() : undefined
+  carryAfterFailure = undefined
   unmountApp()
   spellCore.resetRuntime()
   if (!options.keepConsole) spellCore.console.clear()
@@ -39,7 +44,13 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions)
     // NOTE: the URL first, THEN `import()` it:  vite wraps `import(...)` in an arrow for its preloading, so an
     // `await` in its argument would end up in a function that isn't `async` -- a syntax error in the bundle
     const url = await link(compiled, [])
-    const program = (await import(/* @vite-ignore */ url)) as Record<string, unknown>
+    spellCore.isCarryingOver = !!previous
+    let program: Record<string, unknown>
+    try {
+      program = (await import(/* @vite-ignore */ url)) as Record<string, unknown>
+    } finally {
+      spellCore.isCarryingOver = false
+    }
     // the classes of each project it imports, e.g. Solitaire's `Card`, for `spellCore.fromJSON()`:
     // the program imported them already, so this runs nothing again
     for (const projectUrl of linked.values()) {
@@ -47,8 +58,11 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions)
       spellCore.things.addClasses((await import(/* @vite-ignore */ project)) as Record<string, unknown>)
     }
     spellCore.things.setTopLevel(program)
+    if (previous) carryOver(previous, program)
     return undefined
   } catch (error) {
+    // the next recompile carries the last good run's things over, not this broken one's
+    carryAfterFailure = previous
     // Log too, so devtools show the stack.
     console.error(error)
     return error instanceof Error ? error.message : String(error)
@@ -86,7 +100,46 @@ export type RunCompiledOptions = {
   loadImport?: (projectId: string) => Promise<string>
   /** Keep what's on the console, e.g. the app's own "Compiling ..." lines, above the program's. */
   keepConsole?: boolean
+  /**
+   * Carry the last run's things over, e.g. the game in progress -- for a recompile of the same program.
+   * - Never for Restart, which starts afresh on purpose (Q25), nor for another program.
+   */
+  keepThings?: boolean
 }
+
+/**
+ * The last run's things, to carry over into the next -- `undefined` if it left none.
+ * - After a run that threw:  the run before it's, kept in `carryAfterFailure`.
+ */
+function lastRun(): LastRun | undefined {
+  const things = spellCore.things.topLevel()
+  if (!things.length) return carryAfterFailure
+  const app = (spellCore.appElement() as AppElement | null)?.spellRoot?.app
+  return { things, app }
+}
+
+/**
+ * Put `previous`'s things in place of what `program` made -- see `spellCore.carryOver()`.
+ * - Its app, if its start never got to start it (it stopped at a pause before):  started now, as it was.
+ */
+function carryOver(previous: LastRun, program: Record<string, unknown>) {
+  const kept = spellCore.carryOver(previous.things, program)
+  if (!previous.app || appIsMounted()) return
+  const name = previous.things.find(({ thing }) => thing === previous.app)?.name
+  const app = name && kept.includes(name) ? (program[name] as { start?: () => void }) : undefined
+  app?.start?.()
+}
+
+/** What a run left, for the next to carry over -- see `lastRun()`. */
+type LastRun = {
+  /** Its top-level things, by name. */
+  things: ReturnType<typeof spellCore.things.topLevel>
+  /** The app it drew, if any. */
+  app?: object
+}
+
+/** The things of the last run that ran to its end, while the runs after it throw -- see `lastRun()`. */
+let carryAfterFailure: LastRun | undefined
 
 /** Take down the app the last run started, if any -- e.g. before showing another project. */
 export function unmountApp() {
@@ -133,4 +186,4 @@ const SPELL_IMPORT = /(\bfrom\s*)"(@spell\/[^"]+)"/g
 const PROJECT_MODULE = "@spell/project/"
 
 /** The app's mount point, with the mounted app `App.start()` leaves on it. */
-type AppElement = HTMLElement & { spellRoot?: { unmount(): void } }
+type AppElement = HTMLElement & { spellRoot?: { app?: object; unmount(): void } }

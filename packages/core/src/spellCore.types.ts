@@ -11,6 +11,7 @@ import type { consoleMethods } from "./console"
 import type { runtimeMethods } from "./runtime"
 import type { thingsMethods } from "./things"
 import type { jsonMethods } from "./json"
+import type { carryMethods } from "./carry"
 import type { classesMethods } from "./classes"
 import type { deprecatedMethods } from "./deprecated"
 
@@ -62,6 +63,7 @@ export type SpellCore = typeof coreMethods &
   typeof runtimeMethods &
   typeof thingsMethods &
   typeof jsonMethods &
+  typeof carryMethods &
   typeof classesMethods &
   typeof deprecatedMethods
 

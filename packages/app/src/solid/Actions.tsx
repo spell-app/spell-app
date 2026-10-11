@@ -151,7 +151,7 @@ export const Actions = {
     <Action title="Publish" icon="world" onClick={() => editor.publishApp()} {...props} />
   ),
   restartApp: (props: ActionProps) => (
-    <Action title="Restart" icon="redo" onClick={() => editor.compileApp()} {...props} />
+    <Action title="Restart" icon="redo" onClick={() => editor.restartApp()} {...props} />
   ),
 
   ////////////////
