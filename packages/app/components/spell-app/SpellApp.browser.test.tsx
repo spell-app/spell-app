@@ -116,7 +116,7 @@ describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", (
   test("holes show the program's values, live;  an action runs on a click;  a <spell> block handles its element's", async () => {
     const app = await mountApp(
       `<spell-app>` +
-        `<p class="score">Score {score of the game}</p>` +
+        `<p class="score">Score {the score of the game}</p>` +
         `<button class="bump" action="{bump the score}">Bump</button>` +
         `<test-project-tile id="T1"><spell>\n  when clicked\n    set its count to its count + 1\n</spell></test-project-tile>` +
         `<p class="count">{the count of T1} left</p>` +
@@ -137,10 +137,13 @@ describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", (
     expect(app.shadowRoot!.querySelector(".own-drawing")).toBeNull()
   })
 
-  test("spell that doesn't read shows ⚠ where it was", async () => {
-    const app = await mountApp(`<spell-app><p class="bad">{no such thing at all}</p></spell-app>`)
+  test("spell that doesn't read shows ⚠ where it was -- a hole that leaves out `the` too (J26)", async () => {
+    const app = await mountApp(
+      `<spell-app><p class="bad">{no such thing at all}</p><p class="short">{score of the game}</p></spell-app>`
+    )
     app.run({ projectId: "@test:fixtures:Game", ...(await compiledProject(GAME)) } satisfies SpellCompiled)
     await waitFor(() => app.querySelector(".bad")?.textContent === "⚠", 10_000)
+    expect(app.querySelector(".short")?.textContent).toBe("⚠")
   })
 })
 
