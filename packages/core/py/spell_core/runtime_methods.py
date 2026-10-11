@@ -7,6 +7,7 @@
 - Processes are names with a flag, "!" (running alone) or a count:  `start exclusive process deal the cards`.
 """
 
+import asyncio
 import time
 from typing import Any, ClassVar
 
@@ -45,6 +46,20 @@ class RuntimeMethods:
         """Start the program again:  no handlers, no processes."""
         self.RUNTIME = SpellRuntime()
 
+    async def sleep(self, number: float, units: str = "seconds") -> None:
+        """Wait `number` `units` without stopping the program's other work:  the `py/asyncio` target's pause,
+        `await core.sleep(50, "msec")`.
+
+        - As `pause_for()`:  an unknown unit is seconds;  no wait at all when `pauses` is off.
+        """
+        if not self.pauses:
+            return
+        await asyncio.sleep(self._milliseconds(number, units) / 1000)
+
+    def _milliseconds(self, number: float, units: str) -> float:
+        """`number` `units` in milliseconds, rounded;  0 for not a number, or less than 0."""
+        return max(round(number * self.TIME_UNITS_MAP.get(units, 1000)), 0) if number == number else 0
+
     def pause_for(self, number: float, units: str = "seconds") -> None:
         """Wait `number` `units`:  `pause for 50 msec`.
 
@@ -52,8 +67,7 @@ class RuntimeMethods:
         """
         if not self.pauses:
             return
-        milliseconds = round(number * self.TIME_UNITS_MAP.get(units, 1000)) if number == number else 0
-        time.sleep(max(milliseconds, 0) / 1000)
+        time.sleep(self._milliseconds(number, units) / 1000)
 
     def on(self, event_type: str, handler: Handler | None = None) -> Any:
         """Call `handler` each time the program triggers `event_type`;  with no handler, a decorator:

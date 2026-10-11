@@ -306,6 +306,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "output": "turn_face_up",
       "rule": "method_call",
       "syntax": "turn {thisArg:expression} face up",
+      "waits": true,
     },
     {
       "alias": [
@@ -319,6 +320,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "output": "turn_face_down",
       "rule": "method_call",
       "syntax": "turn {thisArg:expression} face down",
+      "waits": true,
     },
     {
       "alias": [
@@ -332,6 +334,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "output": "turn_over",
       "rule": "method_call",
       "syntax": "turn {thisArg:expression} over",
+      "waits": true,
     },
     {
       "alias": [
@@ -364,6 +367,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       ],
       "rule": "method_call",
       "syntax": "move {thisArg:expression} to {callArgs:expression}",
+      "waits": true,
     },
     {
       "alias": [
@@ -377,6 +381,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "output": "play",
       "rule": "method_call",
       "syntax": "play {thisArg:expression}",
+      "waits": true,
     },
     {
       "autoDeclared": true,
@@ -703,6 +708,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "output": "play_from_the_stock_pile",
       "rule": "method_call",
       "syntax": "play from the stock pile",
+      "waits": true,
     },
     {
       "alias": [
@@ -714,6 +720,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "output": "deal_the_cards",
       "rule": "method_call",
       "syntax": "deal the cards",
+      "waits": true,
     },
     {
       "alias": [
@@ -725,6 +732,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "output": "auto_play",
       "rule": "method_call",
       "syntax": "auto-play",
+      "waits": true,
     },
     {
       "alias": [
@@ -748,6 +756,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "returns": "nothing",
       "rule": "method_call",
       "syntax": "cheat",
+      "waits": true,
     },
   ],
   "version": "1.0.0",

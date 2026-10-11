@@ -29,7 +29,8 @@ const SPELL_CORE_PY_DIR = resolve(environment.spellCoreDir, "..", "py")
  *   the import path, so `from cards import Card` finds it.
  * - `seed`:  its random numbers start from it, as the javascript's do.
  * - `pauses`:  `false` and a pause doesn't wait, e.g. in the core contract, where only what's printed matters.
- * - It prints straight to stdout and stderr:  no fake page, no `RunReport` (nothing is skipped).
+ * - `dom`:  when it ends, print what it drew, as the javascript's fake page does (`spell_core.run --page`).
+ * - It prints straight to stdout and stderr:  no `RunReport` (nothing is skipped).
  */
 async function runPython(
   name: string,
@@ -38,8 +39,9 @@ async function runPython(
     projects,
     capture,
     seed,
-    pauses = true
-  }: { projects: Record<string, string>; capture: boolean; seed?: number; pauses?: boolean }
+    pauses = true,
+    dom = false
+  }: { projects: Record<string, string>; capture: boolean; seed?: number; pauses?: boolean; dom?: boolean }
 ): Promise<ChildResult> {
   const folder = mkdtempSync(resolve(tmpdir(), "spell-run-"))
   try {
@@ -49,6 +51,7 @@ async function runPython(
     const args = ["run", "--quiet", "--project", SPELL_CORE_PY_DIR, "python", "-m", "spell_core.run", entry]
     if (seed !== undefined) args.push("--seed", String(seed))
     if (!pauses) args.push("--no-pauses")
+    if (dom) args.push("--page")
     const env = { ...process.env, PYTHONPATH: [...new Set(imports)].join(delimiter) }
     const stdio: ("ignore" | "pipe" | "inherit")[] = capture
       ? ["ignore", "pipe", "pipe"]
@@ -187,7 +190,7 @@ export async function runCode(
     pauses?: boolean
   } = {}
 ): Promise<ChildResult> {
-  if (extension === PY) return runPython(name, code, { projects, capture, seed: options.seed, pauses })
+  if (extension === PY) return runPython(name, code, { projects, capture, seed: options.seed, pauses, dom })
   const folder = mkdtempSync(resolve(tmpdir(), "spell-run-"))
   try {
     if (extension === TSX) {

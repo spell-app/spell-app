@@ -47,6 +47,7 @@
   "devDependencies": {
     "@vitest/browser-playwright": "catalog:",
     "playwright": "1.63.0",
+    "pyright": "1.1.414",
     "vite": "catalog:",
     "vite-plus": "catalog:",
     "vitest": "catalog:"

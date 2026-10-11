@@ -414,13 +414,13 @@ export class SpellDeclarations {
     declaration: SP.SpellDeclaration,
     declaredAt: P.DeclaredAt | undefined
   ) {
-    const { kind, output, of, params, returns, syntax } = declaration
+    const { kind, output, of, params, returns, syntax, waits } = declaration
     if ((kind !== "method" && kind !== "function") || !output) return
     const owner = of ?? output
     if (!names.has(owner)) return
     const methods = of ? scope.types.get(of, "LOCAL_ONLY")?.methods : scope.methods
     const asWritten = declaration.name ?? syntax
-    methods?.add(definedOnly({ name: output, asWritten, params, returns, of, declaredAt }))
+    methods?.add(definedOnly({ name: output, asWritten, params, returns, of, waits, declaredAt }))
   }
 
   /**
@@ -581,8 +581,8 @@ export class SpellDeclarations {
    * A method's record as props:  its `params` and what it `returns` -- only what's known.
    * - Its name, owner and syntax come from its rule -- see `ruleDeclaration()`.
    */
-  private static methodDeclaration({ params, returns }: P.ScopeMethod): SP.SpellDeclaration {
-    return definedOnly({ params: params.length ? params : undefined, returns })
+  private static methodDeclaration({ params, returns, declaredBy }: P.ScopeMethod): SP.SpellDeclaration {
+    return definedOnly({ params: params.length ? params : undefined, returns, waits: waits(declaredBy) || undefined })
   }
 
   /**
@@ -689,6 +689,7 @@ const PROP_ORDER = [
   "exclusive",
   "params",
   "returns",
+  "waits",
   "initializer",
   "constants",
   "constantOutputs",
@@ -754,6 +755,18 @@ function literalKey(key: string): string {
 }
 
 /** Constants enumerated values declare:  their strings, e.g. `["up", 2]` => `["up"]` (older `["'up'"]` too). */
+/**
+ * Does the method `declaredBy` declares wait, e.g. `pause for 50 msec`?  Its definition's `isAsync`, which says it
+ * has an `await` (epic `python-target` P11).
+ */
+function waits(declaredBy: P.Match | undefined): boolean {
+  let found: P.ASTMethodDefinition | undefined
+  P.forEachNode(declaredBy?.AST, (node) => {
+    if (!found && node instanceof P.ASTMethodDefinition) found = node
+  })
+  return !!found?.isAsync
+}
+
 function enumerationConstants(enumeration: Array<string | number> | undefined): string[] {
   return (enumeration ?? []).filter((value): value is string => typeof value === "string").map(P.spellValueOf)
 }

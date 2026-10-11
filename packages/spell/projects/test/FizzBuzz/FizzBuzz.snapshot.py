@@ -1,4 +1,6 @@
-def play_fizzbuzz():
+from __future__ import annotations
+
+def play_fizzbuzz() -> None:
     """File FizzBuzz.spell"""
     for number in range(1, 101):
         if (number / 15).is_integer():

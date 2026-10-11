@@ -77,7 +77,14 @@ export function fixtureProjectId(projectName: string): string {
  * The fixtures the Python writer writes, so far (epic `python-target`):  their `.snapshot.py`, and the core contract
  * runs them under Python.  Each phase adds the ones it makes write -- things and lists, pauses, drawing.
  */
-export const PYTHON_FIXTURES = new Set(["Cards", "CardsFromZero", "FizzBuzz"])
+export const PYTHON_FIXTURES = new Set([
+  "Cards",
+  "CardsFromZero",
+  "FizzBuzz",
+  "Klondike",
+  "OutlineSolitaire",
+  "Solitaire"
+])
 
 /** Name of each fixture project:  each folder of `FIXTURES_DIR` with a `project.json`, alphabetically. */
 export function fixtureProjectNames(): string[] {

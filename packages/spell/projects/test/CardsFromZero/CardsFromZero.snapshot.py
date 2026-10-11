@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from spell_core import core, Thing, List, prop, h
 
 
@@ -16,14 +18,14 @@ class Card(Thing):
     suit = prop(one_of=SUITS)
 
     @property
-    def color(self):
+    def color(self) -> str:
         """color as derivation of suit"""
         if self.suit in ["diamonds", "hearts"]:
             return "red"
         return "black"
 
     @property
-    def value(self):
+    def value(self) -> float:
         """value as a derivation of rank"""
         return core.position_of(Card.RANKS, self.rank, 0)
 
@@ -36,38 +38,38 @@ class Card(Thing):
     ############
 
     @property
-    def is_face_up(self):
+    def is_face_up(self) -> bool:
         """\"card is face up/down\""""
         return self.direction == "up"
 
     @property
-    def is_face_down(self):
+    def is_face_down(self) -> bool:
         return self.direction == "down"
 
     @property
-    def is_a_face_card(self):
+    def is_a_face_card(self) -> bool:
         """`card is a face card`"""
         return self.rank in ["jack", "queen", "king"]
 
-    def is_a_suit(self, suit):
+    def is_a_suit(self, suit) -> bool:
         """\"card is a spade", "...is a club" etc"""
         return self.suit == suit
 
-    def is_a_rank(self, rank):
+    def is_a_rank(self, rank) -> bool:
         """\"card is a queen", "...is an ace" etc"""
         return self.rank == rank
 
-    def is_the_rank_of_suits(self, rank, suit):
+    def is_the_rank_of_suits(self, rank, suit) -> bool:
         """\"card is the queen of spades" etc"""
         return self.rank == rank and self.suit == suit
 
     @property
-    def name(self):
+    def name(self) -> str:
         """name as a derivation of name/suit"""
         return f"{self.rank}-of-{self.suit}"
 
     @property
-    def short_suit(self):
+    def short_suit(self) -> str:
         if self.is_a_suit("clubs"):
             return "♣️"
         if self.is_a_suit("diamonds"):
@@ -79,7 +81,7 @@ class Card(Thing):
         return "?"
 
     @property
-    def short_rank(self):
+    def short_rank(self) -> str:
         if self.rank is None:
             return "?"
         if isinstance(self.rank, (int, float)):
@@ -87,22 +89,22 @@ class Card(Thing):
         return core.upper_case(core.get_item_at(self.rank, 0, 0))
 
     @property
-    def short_direction(self):
+    def short_direction(self) -> str:
         if self.direction == "up":
             return "+"
         return "—"
 
     @property
-    def short_name(self):
+    def short_name(self) -> str:
         return self.short_rank + self.short_suit
 
     @property
-    def state(self):
+    def state(self) -> str:
         return self.short_rank + self.short_suit + self.short_direction
 
     # actions
 
-    def turn_face_up(self):
+    def turn_face_up(self) -> None:
         """
         Turn card face up or face down
         Note that this will animate if you `wait for turn the card face up`
@@ -110,11 +112,11 @@ class Card(Thing):
         self.direction = "up"
         core.pause_for(50, "msec")
 
-    def turn_face_down(self):
+    def turn_face_down(self) -> None:
         self.direction = "down"
         core.pause_for(50, "msec")
 
-    def turn_over(self):
+    def turn_over(self) -> None:
         """
         Flip card to opposite direction
         Note that this will animate if you `wait for turn the card face up`
@@ -144,7 +146,7 @@ class Card(Thing):
         )
 
     @property
-    def pile(self):
+    def pile(self) -> Pile | None:
         return Pile.owner_of(self)
 
 
@@ -218,7 +220,7 @@ test_card_setup()
 class Deck(List):
     item_type = Card
 
-    def set_up(self):
+    def set_up(self) -> None:
         if self.is_set_up:
             return
         for rank in Card.RANKS:
@@ -227,7 +229,7 @@ class Deck(List):
                 self.append(it)
         self.is_set_up = True
 
-    def display(self):
+    def display(self) -> None:
         card_names = List()
         for card in self:
             card_names.append(card.short_name)
@@ -375,19 +377,19 @@ class Pile(List):
     item_type = Card
 
     @property
-    def color(self):
+    def color(self) -> str | None:
         if not self:
             return "none"
         return getattr(self.last_item, "color", None)
 
     @property
-    def value(self):
+    def value(self) -> float | None:
         if not self:
             return 0
         return getattr(self.last_item, "value", None)
 
     @property
-    def state(self):
+    def state(self) -> str:
         state = f"{self.name or "pile"}:"
         for card in self:
             state = f"{state} {card.state}"
