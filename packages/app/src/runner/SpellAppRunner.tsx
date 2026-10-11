@@ -57,12 +57,11 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
 
   // what takes back the last run's layout spell -- see `bindLayout()`.  Up here:  a run may start before the end
   let unbindLayout: (() => void) | undefined
+  /** What we ran last:  a new compile of the same program keeps its things;  an older run's late words aren't shown. */
+  let lastSource: SpellAppSource | undefined
 
   // what takes back the last run's `in="header"` slots -- see `slotsFromIn()`.  Up here, as above
   let unslot: (() => void) | undefined
-
-  // the source the latest `run()` runs:  an older run's words, arriving late, aren't shown.  Up here, as above
-  let running: SpellAppSource | undefined
 
   // NOTE: ALWAYS here, just hidden without an app -- so its mount point is never redrawn
   const appRoot = (<div class="App" />) as HTMLDivElement
@@ -95,11 +94,12 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
     }
   )
 
-  // run the program -- once the runtime's loaded, and again for each new `source`
+  // run the program -- once the runtime's loaded, and again for each new `source`:
+  // a new compile of the same program keeps its things, e.g. the game in progress (epic `drawable-thing` P16)
   createEffect(
     () => [loaded(), props.source] as const,
     ([copy, source]) => {
-      if (copy) void run(copy, source)
+      if (copy) void run(copy, source, "keep things")
     }
   )
 
@@ -176,23 +176,27 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
     return tabs.includes(pane()) ? pane() : tabs[0]!
   }
 
-  /** Run the program again, afresh -- once the runtime's loaded. */
+  /** Run the program again, afresh, on purpose:  a new deal (Q25) -- once the runtime's loaded. */
   function restart() {
     const copy = loaded()
-    if (copy) void run(copy, props.source)
+    if (copy) void run(copy, props.source, "afresh")
   }
 
-  /** Run `source` afresh in `copy` -- see `runProgram()` -- and show how it went. */
-  async function run(copy: LoadedRuntime, source: SpellAppSource) {
+  /**
+   * Run `source` in `copy` -- see `runProgram()` -- and show how it went.
+   * - `keep things`:  when it's the program that ran last, its things carry over;  else it starts afresh.
+   */
+  async function run(copy: LoadedRuntime, source: SpellAppSource, how: "afresh" | "keep things") {
     unbindLayout?.()
     unbindLayout = undefined
     unslot?.()
     unslot = undefined
     // read props before waiting:  by then, whoever handed them to us may be gone (`<spell-app>` dropping its source)
     const layout = props.layout
-    running = source
     if (layout) unslot = slotsFromIn(layout)
-    const ran = await runProgram(copy, source, appRoot, !!layout)
+    const keepThings = how === "keep things" && isSameProgram(lastSource, source)
+    lastSource = source
+    const ran = await runProgram(copy, source, appRoot, { layout: !!layout, keepThings })
     compiledRef.current = ran.compiled
     setError(ran.error)
     setHasApp(ran.hasApp)
@@ -207,7 +211,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
       [...ran.compiled.keys()].filter((id) => id !== MAIN_PROJECT)
     )
     // a newer source's run may have started meanwhile:  its words are its own
-    if (source === running) setWords(loaded)
+    if (source === lastSource) setWords(loaded)
   }
 
   /** The Type Explorer, read-only, if there's a scope pack. */
@@ -378,8 +382,9 @@ type SpellAppToolbarProps = {
 ////////////////
 
 /**
- * Run `source`'s program afresh in runtime copy `copy`, drawing into `appRoot`:
+ * Run `source`'s program in runtime copy `copy`, drawing into `appRoot`:
  * fetched again, with each project it imports.
+ * - Afresh, unless `keepThings`:  then the last run's things carry over (`runCompiled()`).
  * - NOTE: its own javascript is NOT fetched if it's in memory, `source.compiled` -- its imports still are.
  * - Answers how it went, and the compiled javascript it loaded, by project id --
  *   the program's own under `MAIN_PROJECT` -- for the Type Explorer's "Compiled Output".
@@ -388,7 +393,7 @@ async function runProgram(
   copy: LoadedRuntime,
   source: SpellAppSource,
   appRoot: HTMLElement,
-  layout: boolean
+  { layout, keepThings }: { layout: boolean; keepThings: boolean }
 ): Promise<Ran> {
   const compiled = new Map<string, string>()
   try {
@@ -397,6 +402,7 @@ async function runProgram(
     const error = await copy.runtime.runApp(text, {
       appRoot,
       layout,
+      keepThings,
       coreUrl: copy.coreUrl,
       loadImport: async (projectId) => {
         const imported = await fetchText(source.importUrl(projectId))
@@ -422,6 +428,14 @@ async function bindLayout(copy: LoadedRuntime, source: SpellAppSource, root: Ele
   ])
   const { spellCore } = copy.runtime
   return new LayoutSpell({ root, projectId: source.name, declarations, spellCore }).bind()
+}
+
+/**
+ * Is `source` the same program as `last`, compiled again?  The same name, from the same place.
+ * - `undefined` (nothing ran yet):  no.
+ */
+function isSameProgram(last: SpellAppSource | undefined, source: SpellAppSource): boolean {
+  return !!last && last.name === source.name && last.compiledUrl === source.compiledUrl
 }
 
 /** How a run went -- see `runProgram()`. */

@@ -54,6 +54,8 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
   const detailsWaiting = new Map<string, Array<(details: LSP.ScopeDetails | null) => void>>()
   // what the last `run` message sent, if it came before the runtime -- run once that's loaded
   let toRun: string | undefined
+  // Restart was pressed:  the `run` it brings starts afresh, a new deal -- every other run keeps the program's things
+  let startAfresh = false
 
   // NOTE: the app's pane is ALWAYS first, just hidden without an app -- so its mount point is never redrawn.
   const appRoot = (<div class="App" />) as HTMLDivElement
@@ -96,7 +98,10 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
     <div class="VSCodeRunner">
       <VSCodeRunnerToolbar
         error={error()}
-        onRestart={() => post({ type: "restart" })}
+        onRestart={() => {
+          startAfresh = true
+          post({ type: "restart" })
+        }}
         showConsole={hasApp() ? showConsole() : undefined}
         onToggleConsole={() => save({ runner: { ...settings().runner, showConsole: !showConsole() } })}
       />
@@ -148,9 +153,15 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
     }
   }
 
-  /** Run `compiled` afresh in `copy`, drawing into `appRoot`, and show how it went. */
+  /**
+   * Run `compiled` in `copy`, drawing into `appRoot`, and show how it went.
+   * - The panel's project compiled again:  its things carry over (epic `drawable-thing` P16) --
+   *   unless Restart asked for a fresh start (Q25).
+   */
   function run(copy: LoadedRuntime, compiled: string) {
-    void copy.runtime.runApp(compiled, { appRoot, coreUrl: copy.coreUrl }).then((problem) => {
+    const keepThings = !startAfresh
+    startAfresh = false
+    void copy.runtime.runApp(compiled, { appRoot, coreUrl: copy.coreUrl, keepThings }).then((problem) => {
       setError(problem)
       setHasApp(copy.runtime.appIsMounted())
     })

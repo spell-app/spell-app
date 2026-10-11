@@ -193,6 +193,20 @@ describe("<SpellAppRunner>", () => {
     expect(error.textContent).toBe("oops")
   })
 
+  test("a recompile keeps the program's things:  a counter keeps its count;  restart starts afresh (P16)", async () => {
+    let controls: SpellAppControls | undefined
+    const { host, setSource } = await mountSettable(source(COUNTER), (it) => (controls = it))
+    ;(await waitFor(() => host.querySelector<HTMLButtonElement>("button.count"))).click()
+    await waitFor(() => host.querySelector("button.count")?.textContent === "Count: 2")
+
+    // edited:  a new label, and its start still sets the count to 1
+    setSource(source(COUNTER.replace('"Count: "', '"Clicks: "')))
+    await waitFor(() => host.querySelector("button.count")?.textContent === "Clicks: 2")
+
+    controls!.restart()
+    await waitFor(() => host.querySelector("button.count")?.textContent === "Clicks: 1")
+  })
+
   test("restart runs it afresh;  a new source runs that", async () => {
     let controls: SpellAppControls | undefined
     const [first] = [source(COUNTER)]
@@ -323,10 +337,31 @@ describe("compiled spell draws with Solid", () => {
     const stock = host.querySelector<Element>("drawable-solitaire-stock-pile")!
     expect(getComputedStyle(stock.lastElementChild!).position).toBe("absolute")
 
+    // each card shows its thing's rank, suit and direction as attributes, for the inspector (P13)
+    for (const card of cards()) {
+      const face = card.shadowRoot!.querySelector(".card")!
+      expect(face.classList.contains(`face-${card.getAttribute("direction")}`)).toBe(true)
+      expect(face.classList.contains(card.getAttribute("suit")!)).toBe(true)
+      expect(face.classList.contains(card.getAttribute("rank")!)).toBe(true)
+    }
+    expect(tableaus().map((tableau) => tableau.getAttribute("name"))).toEqual([
+      "T1",
+      "T2",
+      "T3",
+      "T4",
+      "T5",
+      "T6",
+      "T7"
+    ])
+
     const discards = () => host.querySelector("drawable-solitaire-discard-pile")!.children.length
     expect(discards()).toBe(0)
-    ;(stock.lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>(".card")!.click()
+    const played = stock.lastElementChild as HTMLElement
+    expect(played.getAttribute("direction")).toBe("down")
+    played.shadowRoot!.querySelector<HTMLElement>(".card")!.click()
     await waitFor(() => discards() > 0)
+    // ... and they follow as the game plays:  the card played from the stock is face up
+    await waitFor(() => played.getAttribute("direction") === "up")
   })
 
   test('a drawable list\'s frame:  its cards in its <children/>, a child written in="header" in its <children name="header"/>', async () => {
@@ -368,6 +403,63 @@ describe("compiled spell draws with Solid", () => {
     expect(backs.length).toBeGreaterThan(0)
     // one sheet per tag:  the old program's cards take the edit too
     for (const back of backs) expect(getComputedStyle(back).backgroundImage).toContain("rgb(51, 102, 170)")
+  })
+
+  test("`Drawable Solitaire` dealt and played, then recompiled with a new card back:  the same game, drawn the new way (P16)", async () => {
+    const program = await exampleCompiled("Drawable Solitaire")
+    const { host, setSource } = await mountSettable(source(program, "Solitaire"))
+    type Element = HTMLElement & { ready: Promise<void> }
+    const tableaus = () => [...host.querySelectorAll<Element>("drawable-solitaire-tableau")]
+    await waitFor(() => tableaus()[6]?.children.length === 7, 10_000)
+    const stock = () => host.querySelector<Element>("drawable-solitaire-stock-pile")!
+    const discards = () => host.querySelector<Element>("drawable-solitaire-discard-pile")!
+    await ElementFixture.settle(host)
+    // played:  a card from the stock to the discards, face up
+    ;(stock().lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>(".card")!.click()
+    await waitFor(() => discards().children.length === 2)
+    await ElementFixture.settle(host)
+
+    /** Each pile's cards, in order, as their tags say:  `ace spades up`. */
+    const game = () =>
+      [
+        ...host.querySelectorAll(
+          "drawable-solitaire-stock-pile, drawable-solitaire-discard-pile, drawable-solitaire-foundation, drawable-solitaire-tableau"
+        )
+      ].map((pile) =>
+        [...pile.children].map((card) => ["rank", "suit", "direction"].map((name) => card.getAttribute(name)).join(" "))
+      )
+    const before = game()
+    expect(before.flat()).toHaveLength(52)
+
+    // the card's back, edited:  a new colour in its <css>
+    const edited = program.replace("#3a6, #3a6 4px, #285 4px, #285 8px", "#36a, #36a 4px, #258 4px, #258 8px")
+    const said = vi.spyOn(console, "info")
+    cleanups.push(() => said.mockRestore())
+    setSource(source(edited, "Solitaire"))
+    await waitFor(
+      () => host.querySelector("drawable-solitaire-tableau")?.children.length === 1 && game().flat().length === 52
+    )
+    await ElementFixture.settle(host)
+    expect(game()).toEqual(before)
+    const back = [...host.querySelectorAll("drawable-solitaire-card")]
+      .map((card) => card.shadowRoot!.querySelector(".card.face-down"))
+      .find((face) => !!face)!
+    expect(getComputedStyle(back).backgroundImage).toContain("rgb(51, 102, 170)")
+
+    // no new deal:  the start stopped at its first pause, and nothing moves on
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    expect(game()).toEqual(before)
+    // ONE card each, held by the deck AND its pile;  the cards the new run dealt are gone
+    const { spellCore } = (await testRuntime()).runtime
+    const { deck, allPiles } = spellCore.things.exported as Record<string, { items: Array<{ items: unknown[] }> }>
+    const inPiles = new Set(allPiles!.items.flatMap((pile) => pile.items))
+    expect(deck!.items.every((card) => inPiles.has(card))).toBe(true)
+    expect(spellCore.things.all().filter((thing) => thing.type === "Card")).toHaveLength(52)
+    expect(said.mock.calls.flat().join()).toContain("Kept allPiles, deck, discards, foundations, game, stock, tableaus")
+
+    // and the game plays on:  another card from the stock
+    ;(stock().lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>(".card")!.click()
+    await waitFor(() => discards().children.length === 3)
   })
 
   test("`Todos - Form Based`:  ticking a task shows in the debug JSON;  Active / Completed show only those tasks", async () => {

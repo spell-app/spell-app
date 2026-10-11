@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vite-plus/test"
+import { describe, expect, test, vi } from "vite-plus/test"
 import { flush } from "solid-js"
 import h from "@solidjs/h"
 
@@ -294,6 +294,171 @@ describe("SpellElement", () => {
       spellCore.flush()
       flush()
       expect(card.shadowRoot!.querySelector(".face")!.textContent).toBe("back")
+    })
+  })
+
+  describe("the element and its thing agree, both ways (P13)", () => {
+    /** A card:  its rank (one of ace, 2, 3, 12), suit, direction (up or down) and whether it's marked. */
+    class Deuce extends Drawable {
+      static elementTag = spellCore.defineElement(this, "Agree")
+      get rank() {
+        return this.getProp("rank")
+      }
+      set rank(value) {
+        this.setProp("rank", value)
+      }
+      get suit() {
+        return this.getProp("suit")
+      }
+      set suit(value) {
+        this.setProp("suit", value)
+      }
+      get direction() {
+        return this.getProp("direction")
+      }
+      set direction(value) {
+        this.setProp("direction", value)
+      }
+      get marked() {
+        return this.getProp("marked")
+      }
+      set marked(value) {
+        this.setProp("marked", value)
+      }
+      turn_over() {
+        this.direction = this.direction === "up" ? "down" : "up"
+      }
+      draw(): ReturnType<Drawable["draw"]> {
+        const text = () => (this.direction === "up" ? `${this.rank} of ${this.suit}` : "back")
+        return (h("span", { class: "face" }, text) as unknown as () => ReturnType<Drawable["draw"]>)()
+      }
+    }
+    Deuce.declareProp("rank", { oneOf: ["ace", 2, 3, 12] })
+    Deuce.declareProp("suit", { type: "text" })
+    Deuce.declareProp("direction", { oneOf: ["up", "down"] })
+    Deuce.declareProp("marked", { type: "choice" })
+
+    /** A card's element, as a page's script sees it. */
+    type CardElement = HTMLElement & {
+      rank: unknown
+      direction: unknown
+      turnOver(): void
+      component?: { currentThing?: Deuce }
+    }
+
+    /** Let the thing's and Solid's changes run. */
+    function settle() {
+      spellCore.flush()
+      flush()
+    }
+
+    /** The attribute changes `element` hears while `act()` runs, as `name=value`, in order. */
+    function attributeChangesDuring(element: HTMLElement, act: () => void): string[] {
+      const observer = new MutationObserver(() => {})
+      observer.observe(element, { attributes: true })
+      act()
+      return observer
+        .takeRecords()
+        .map((record) => `${record.attributeName}=${element.getAttribute(record.attributeName!)}`)
+    }
+
+    test("ace.turnOver() sets direction on the tag;  reading ace.direction gives the thing's, at once", async () => {
+      const ace = await ElementFixture.render<CardElement>(
+        '<agree-deuce rank="ace" suit="spades" direction="up"></agree-deuce>'
+      )
+      await ElementFixture.settle(ace)
+      settle()
+      const thing = ace.component!.currentThing!
+      // the tag's attributes won:  the thing it made took them
+      expect([thing.rank, thing.suit, thing.direction]).toEqual(["ace", "spades", "up"])
+      expect(ace.shadowRoot!.querySelector(".face")!.textContent).toBe("ace of spades")
+
+      const changes = attributeChangesDuring(ace, () => {
+        ace.turnOver()
+        expect(ace.direction).toBe("down")
+        settle()
+      })
+      expect(ace.getAttribute("direction")).toBe("down")
+      expect(ace.shadowRoot!.querySelector(".face")!.textContent).toBe("back")
+      // written once, never bounced back
+      expect(changes).toEqual(["direction=down"])
+    })
+
+    test("setting the attribute still writes the thing and redraws;  a number reads back as the number", async () => {
+      const ace = await ElementFixture.render<CardElement>(
+        '<agree-deuce rank="ace" suit="spades" direction="up"></agree-deuce>'
+      )
+      await ElementFixture.settle(ace)
+      settle()
+      const thing = ace.component!.currentThing!
+      const writes = vi.spyOn(thing, "setProp")
+
+      const changes = attributeChangesDuring(ace, () => {
+        ace.setAttribute("rank", "2")
+        expect(thing.rank).toBe(2)
+        expect(ace.rank).toBe(2)
+        settle()
+      })
+      expect(ace.shadowRoot!.querySelector(".face")!.textContent).toBe("2 of spades")
+      expect(changes).toEqual(["rank=2"])
+      expect(writes.mock.calls).toEqual([["rank", 2]])
+
+      ace.rank = 12
+      settle()
+      expect(ace.getAttribute("rank")).toBe("12")
+      expect(thing.rank).toBe(12)
+    })
+
+    test("a yes / no property is its attribute there or not;  nothing is no attribute", async () => {
+      const card = await ElementFixture.render<CardElement>('<agree-deuce rank="3"></agree-deuce>')
+      await ElementFixture.settle(card)
+      settle()
+      const thing = card.component!.currentThing!
+      expect(card.hasAttribute("suit")).toBe(false)
+      expect(card.hasAttribute("marked")).toBe(false)
+
+      thing.marked = true
+      settle()
+      expect(card.getAttribute("marked")).toBe("")
+      thing.marked = false
+      settle()
+      expect(card.hasAttribute("marked")).toBe(false)
+
+      thing.suit = "hearts"
+      settle()
+      expect(card.getAttribute("suit")).toBe("hearts")
+      card.removeAttribute("suit")
+      expect(thing.suit).toBeUndefined()
+    })
+
+    test("a card the program draws shows its thing's values as attributes, and they follow it", async () => {
+      /** Two cards on a table. */
+      class Felt extends App {
+        cards = [new Deuce({ rank: 2, suit: "clubs", direction: "down", marked: false }), new Deuce({ rank: "ace" })]
+        draw(): ReturnType<Drawable["draw"]> {
+          const children = this.cards.map((card) => () => spellCore.drawThing(card))
+          return (h("div", {}, ...children) as unknown as () => ReturnType<Drawable["draw"]>)()
+        }
+      }
+      const felt = new Felt()
+      const root = document.createElement("div")
+      document.body.append(root)
+      spellCore.mountApp(felt, root)
+      flush()
+      await ElementFixture.settle(root)
+      settle()
+      const [first, second] = [...root.querySelectorAll<CardElement>("agree-deuce")]
+      expect(["rank", "suit", "direction"].map((name) => first!.getAttribute(name))).toEqual(["2", "clubs", "down"])
+      expect(first!.hasAttribute("marked")).toBe(false)
+      expect(second!.getAttribute("rank")).toBe("ace")
+      expect(second!.hasAttribute("suit")).toBe(false)
+      // the element's empty values were never written to the thing it was handed
+      expect(felt.cards[1]!.marked).toBeUndefined()
+
+      felt.cards[0]!.turn_over()
+      settle()
+      expect(first!.getAttribute("direction")).toBe("up")
+      root.remove()
     })
   })
 })

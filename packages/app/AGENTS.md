@@ -112,6 +112,8 @@ when working with code in this package, `@spell-app/app`.
     - The app loads it once (`editor.loadRuntime()`), and so does the VS Code runner.
     - Each `<spell-app>` loads its OWN copy (`loadRuntime()`), so apps on a page don't share a `spellCore`.
     - No import map:  `runCompiled()` links each program's imports.
+    - A recompile of the same program keeps its things, e.g. the game in progress (`keepThings`, epic `drawable-thing` P16).
+      Only Restart starts afresh, on purpose:  each runner's own (`restart()`, `editor.restartApp()`).
   - So ONLY `spellRuntime.ts` may value-import `$/core`.
     - The program finds its elements through `spellCore.domRoot()`, never `document`.
     - SEE [core's AGENTS.md](../core/AGENTS.md), "Who may value-import it".
