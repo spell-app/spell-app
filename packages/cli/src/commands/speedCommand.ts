@@ -241,7 +241,11 @@ function linkModules(from: string, to: string, eachPackage = false): void {
  */
 function removeCheckout(folder: string): void {
   const packages = resolve(folder, "packages")
-  const links = [folder, ...(existsSync(packages) ? readdirSync(packages).map((it) => resolve(packages, it)) : [])]
+  // folders only:  `packages/` holds files too, e.g. `goals.zip`
+  const dirs = existsSync(packages)
+    ? readdirSync(packages, { withFileTypes: true }).filter((it) => it.isDirectory())
+    : []
+  const links = [folder, ...dirs.map((it) => resolve(packages, it.name))]
   for (const dir of links) {
     const modules = resolve(dir, "node_modules")
     if (lstatSync(modules, { throwIfNoEntry: false })?.isSymbolicLink()) unlinkSync(modules)
