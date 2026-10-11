@@ -1233,6 +1233,7 @@ export class SpellLanguageService {
   /**
    * What could be typed at `position`:
    * - in a `<css>` block:  CSS, e.g. `color` for `col` -- see `LSP.SpellCSS`
+   * - typing a JSX tag (`<chi`):  spell's own tags, e.g. `children` -- see `tagItems()`
    * - mid-statement:  what can come NEXT, if the parser can say -- see `expectedNext()`
    * - otherwise, names visible there:  variables declared before it, types, constants
    * - at the start of a statement:  the first words of every kind of statement (`to`, `if`, `set`...),
@@ -1246,6 +1247,8 @@ export class SpellLanguageService {
     if (cssItems) return cssItems
     if (!file.match) return []
     const lineText = text.slice(text.lastIndexOf("\n", offset - 1) + 1, offset)
+    const tagItems = this.tagItems(lineText)
+    if (tagItems) return tagItems
     const atStatementStart = /^\s*[\w-]*$/.test(lineText)
     if (!atStatementStart) {
       const expected = this.expectedNext(file, position)
@@ -1264,6 +1267,21 @@ export class SpellLanguageService {
       }
     }
     return items
+  }
+
+  /**
+   * Spell's own JSX tags, while one is being typed at the end of `lineText` -- `undefined` if no tag is.
+   * - e.g. `children` for `return <div><chi`:  spell's word for the web's `<slot>` (`SP.SPELL_TAG_NAMES`).
+   *   The web's own tags aren't offered.
+   * - A tag is a `<` right before a word:  `x < y` isn't one.
+   */
+  private tagItems(lineText: string): CompletionItem[] | undefined {
+    if (!JSX_TAG_TYPED.test(lineText)) return undefined
+    return [...SP.SPELL_TAG_NAMES].map(([tag, webTag]) => ({
+      label: tag,
+      kind: CompletionItemKind.Keyword,
+      detail: `spell's word for <${webTag}>`
+    }))
   }
 
   /**
@@ -2243,3 +2261,6 @@ type CommentStyle = {
   /** In a code span:  coloured as a `string`. */
   code?: boolean
 }
+
+/** A JSX tag being typed at the end of a line:  `<` right before a word, after a space, `>`, `(` or `{`, e.g. `<div><chi`. */
+const JSX_TAG_TYPED = /(?:^|[\s>({])<[a-z][\w-]*$/

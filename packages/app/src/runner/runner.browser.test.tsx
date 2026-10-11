@@ -308,7 +308,7 @@ describe("compiled spell draws with Solid", () => {
     await waitFor(() => cards().length === 52)
     await ElementFixture.settle(host)
     expect(host.querySelector(".spell-draw-error")).toBeNull()
-    // each pile holds its cards' elements, shown through its frame's <slot>
+    // each pile holds its cards' elements, shown through its frame's <children/>, a <slot> on the page
     const tableaus = () => [...host.querySelectorAll<Element>("drawable-solitaire-tableau")]
     // dealt with a pause between cards:  wait for the last
     await waitFor(() => tableaus()[6]?.children.length === 7, 10_000)
@@ -327,6 +327,25 @@ describe("compiled spell draws with Solid", () => {
     expect(discards()).toBe(0)
     ;(stock.lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>(".card")!.click()
     await waitFor(() => discards() > 0)
+  })
+
+  test('a drawable list\'s frame:  its cards in its <children/>, a child written in="header" in its <children name="header"/>', async () => {
+    const host = await mount(source(await fixtureCompiled("CardTable"), "Table"))
+    type Element = HTMLElement & { ready: Promise<void> }
+    const piles = () => [...host.querySelectorAll<Element>("test-project-pile")]
+    await waitFor(() => piles().length === 2 && piles().every((pile) => pile.shadowRoot?.querySelector(".pile")))
+    await ElementFixture.settle(host)
+    expect(host.querySelector(".spell-draw-error")).toBeNull()
+    const [drawn, byHand] = piles()
+    // the pile spell drew:  its cards are its children, shown through the unnamed slot
+    const cards = [...drawn!.children]
+    expect(cards.map((card) => card.localName)).toEqual(["test-project-card", "test-project-card"])
+    for (const card of cards) expect(card.assignedSlot?.name).toBe("")
+    // the pile written by hand:  its <h3 in="header"> is written slot="header", and shows in the header place
+    const header = byHand!.querySelector("h3")!
+    expect(header.getAttribute("slot")).toBe("header")
+    expect(header.assignedSlot?.name).toBe("header")
+    expect(header.assignedSlot?.parentElement?.className).toBe("header")
   })
 
   test("`Drawable Solitaire` run again, edited, on the same page:  its tags stay, its cards take the new <css>", async () => {
@@ -533,6 +552,13 @@ async function todosExample(): Promise<string> {
 /** Example `name`'s committed compiled javascript, as text:  Vite serves a file by its path. */
 async function exampleCompiled(name: string): Promise<string> {
   const file = new URL(`../../../spell/projects/system/examples/${name}/${name}.compiled.js`, import.meta.url).pathname
+  const { default: compiled } = (await import(/* @vite-ignore */ `${file}?raw`)) as { default: string }
+  return compiled
+}
+
+/** Fixture project `name`'s compiled javascript, as text:  its blessed snapshot, `<name>.snapshot.js`. */
+async function fixtureCompiled(name: string): Promise<string> {
+  const file = new URL(`../../../spell/projects/test/${name}/${name}.snapshot.js`, import.meta.url).pathname
   const { default: compiled } = (await import(/* @vite-ignore */ `${file}?raw`)) as { default: string }
   return compiled
 }

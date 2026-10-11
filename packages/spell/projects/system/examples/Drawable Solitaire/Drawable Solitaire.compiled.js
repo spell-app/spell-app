@@ -488,7 +488,7 @@ export class Foundation extends Pile {
   //##############
   //## rendering the bits
 
-  // each pile draws its outside:  its cards show in its <slot/>, each card its own element
+  // each pile draws its outside:  its cards show where it says <children/>, each card its own element
 
   draw() {
     const color = this.name === "diamonds" || this.name === "hearts" ? "red" : "black"
