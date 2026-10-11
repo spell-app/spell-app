@@ -184,6 +184,16 @@ describe("PlanDoc phases", () => {
     expect(bare.overview.hasAttribute("estimate")).toBe(false)
   })
 
+  test("standing:  <epic-page standing> on and off, in the summary, logged", () => {
+    const plan = freshPlan()
+    expect([plan.standing, plan.summary().standing]).toEqual([false, false])
+    plan.setStanding(true)
+    expect([plan.standing, plan.summary().standing, plan.page.hasAttribute("standing")]).toEqual([true, true, true])
+    plan.setStanding(false)
+    expect(plan.page.hasAttribute("standing")).toBe(false)
+    expect(problems(plan)).toEqual([])
+  })
+
   test("a request files into its phase's Requests field, after Changes;  filing it again replaces its block", () => {
     const plan = freshPlan()
     plan.addPhase("One", { symptom: "broken", changes: "fixed", goal: "<ul><li>works</li></ul>" })

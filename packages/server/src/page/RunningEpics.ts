@@ -338,6 +338,7 @@ function remark(card: string, { running, favorite, now }: { running: boolean; fa
       updated: dataOf(card, "updated"),
       urgent: (dataOf(card, "urgent") ?? "").split(" ").filter(Boolean),
       future: dataOf(card, "future") !== undefined,
+      standing: dataOf(card, "standing") !== undefined,
       // the meta line:  `P2 · Site Map · epics/seo/seo.plan.html`
       // (oxfmt may break it over lines)
       active: decode(/<ui-meta>([^<]*) · /.exec(card)?.[1]?.replace(/\s+/g, " ").trim() ?? "") || undefined,
@@ -372,6 +373,7 @@ function isAlive(pid: number): boolean {
  * - `updated`:  the doc's "updated" date (`YYYY-MM-DD`), if any:  with phases left, no session running and no update
  *   for a few days, it's paused (`$/server/site/EpicState`)
  * - `future`:  written down with `/epic future`, not planned yet
+ * - `standing`:  open for good, every phase merging on its own (epic `epic-workflow`)
  * - `urgent`:  the ids of the items that need Owen (red and orange chips:  `URGENT_STATES`):
  *   every phase done with some left, it has errors
  * - `worked`:  when it was last worked on, as the doc says:  the latest of its `updated` day and its log lines' times
@@ -388,6 +390,7 @@ export type RunningEpic = {
   active?: string
   updated?: string
   future?: boolean
+  standing?: boolean
   urgent?: string[]
   worked?: string
 }
@@ -456,7 +459,7 @@ function folders(dir: string): string[] {
  */
 function read(
   file: string
-): Pick<RunningEpic, "title" | "phases" | "done" | "total" | "active" | "updated" | "future" | "urgent" | "worked"> {
+): Pick<RunningEpic, "title" | "phases" | "done" | "total" | "active" | "updated" | "future" | "standing" | "urgent" | "worked"> {
   const html = readFileSync(file, "utf8")
   // drop the `Epic: ` plan docs' titles start with (since 2026-10-04):  the card is in the Epics list already
   const title = (/<title>([^<]*)<\/title>/.exec(html)?.[1]?.trim() ?? "").replace(/^Epic:\s*/, "")
@@ -470,6 +473,7 @@ function read(
   const active = phases.find((phase) => phase.status === "active")?.header
   const updated = /^\d{4}-\d\d-\d\d$/.exec(attribute(page, "updated") ?? "")?.[0]
   const future = /\sfuture(?=[\s=>])/.test(page)
+  const standing = /\sstanding(?=[\s=>])/.test(page)
   const urgent = tags(/<epic-item\b[^>]*>/g)
     .filter((tag) => (URGENT_STATES as readonly string[]).includes(attribute(tag, "state") ?? ""))
     .map((tag) => attribute(tag, "id") ?? "")
@@ -485,6 +489,7 @@ function read(
     ...(active && { active: decode(active) }),
     ...(updated && { updated }),
     ...(future && { future }),
+    ...(standing && { standing }),
     ...(urgent.length > 0 && { urgent }),
     ...(worked && { worked: worked.toISOString() })
   }

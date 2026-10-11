@@ -110,6 +110,11 @@ export class PlanDoc extends PlanReader {
     return Boolean(this.document.querySelector("epic-page")?.hasAttribute("future"))
   }
 
+  /** A STANDING epic (epic `epic-workflow`):  `<epic-page standing>`, open for good;  every phase done is NOT done. */
+  get standing(): boolean {
+    return Boolean(this.document.querySelector("epic-page")?.hasAttribute("standing"))
+  }
+
   /** The phases a `/bedtime` run is on:  `<epic-page bedtime>`, `null` when none is. */
   get bedtimeRun(): string | null {
     return this.document.querySelector("epic-page")?.getAttribute("bedtime") || null
@@ -1361,6 +1366,17 @@ export class PlanDoc extends PlanReader {
    */
   makeFuture(): void {
     Markup.set(this.page, { future: true, branch: undefined, worktree: undefined })
+  }
+
+  /**
+   * Make this epic standing (`on`), or an ordinary one again:  `<epic-page standing>` (epic `epic-workflow`).
+   * - standing:  open for good;  each phase merges into `main` on its own, and every phase done is NOT done
+   *   (the docs index, `/epics` and its step label say STANDING, not DONE)
+   * - SIDE EFFECT:  logs it
+   */
+  setStanding(on: boolean): void {
+    Markup.set(this.page, { standing: on })
+    this.log(on ? "standing:  open for good, each phase merging on its own" : "no longer standing")
   }
 
   /**

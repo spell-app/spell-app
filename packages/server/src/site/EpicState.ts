@@ -33,6 +33,7 @@ export type EpicStateName = (typeof EPIC_STATES)[number]
  * - `phases`:  each `<epic-phase>`'s `status` (`done`, `active`, `todo`), in order
  * - `updated`:  `<epic-page updated>`, `YYYY-MM-DD`:  the plan-doc tool stamps it on every write
  * - `future`:  `<epic-page future>`
+ * - `standing`:  `<epic-page standing>`:  open for good (epic `epic-workflow`):  every phase done is NOT done
  * - `urgent`:  the ids of the items that need Owen (`URGENT_SELECTOR`), e.g. `["q3", "j12"]`
  * - `running`:  a Claude session is running for it (in its worktree, or titled for it)
  * - `active`:  the phase under way's label (`P8 · Review Polish`), for the tooltip
@@ -41,6 +42,7 @@ export type EpicFacts = {
   phases: readonly string[]
   updated?: string | null
   future?: boolean
+  standing?: boolean
   urgent?: readonly string[]
   running?: boolean
   active?: string
@@ -98,12 +100,14 @@ const KINDS: Record<string, readonly [string, string]> = {
  *   no `updated` counts as lately (nothing to go by)
  */
 export function epicStateFor(facts: EpicFacts, now: Date = new Date()): EpicState {
-  const { phases, updated, future = false, urgent = [], running = false, active } = facts
+  const { phases, updated, future = false, standing = false, urgent = [], running = false, active } = facts
   const done = phases.filter((status) => status === "done").length
   const count = phases.length ? `${done}/${phases.length}` : ""
   if (future && !phases.length) return stateOf("future", "not planned yet")
   if (phases.length && done === phases.length) {
     if (urgent.length) return stateOf("errors", `every phase done, but ${urgentWords(urgent)} need you`)
+    // a standing epic is never done:  it waits for the next request
+    if (standing) return stateOf("progress", `standing:  every phase merged, open for requests (${count})`)
     return stateOf("done", "every phase done, nothing needs you")
   }
   const idle = idleDays(updated, now)

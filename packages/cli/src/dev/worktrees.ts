@@ -62,7 +62,10 @@ export function nameStatus(name: string, ids?: string[], main = CLI.mainRoot()):
     for (const record of live) if (!ids.includes(record.sessionId) && goesBy(record, name)) ids.push(record.sessionId)
   }
   const pids = new Map(live.map((record) => [record.sessionId, record.pid]))
-  const why = merged ? "merged into main" : plan.done ? "plan all done" : null
+  // a STANDING epic (epic `epic-workflow`) merges after every phase, and is never finished
+  const file = plan.folder ? planFile(name, worktree, main) : null
+  const standing = !!file && existsSync(file) && planFacts(file).standing
+  const why = standing ? null : merged ? "merged into main" : plan.done ? "plan all done" : null
   return {
     name,
     worktree: existsSync(worktree) ? worktree : null,
@@ -89,6 +92,7 @@ export function planFacts(file: string): {
   phases: string[]
   updated: string | null
   future: boolean
+  standing: boolean
   urgent: string[]
 } {
   const html = readFileSync(file, "utf8")
@@ -103,6 +107,7 @@ export function planFacts(file: string): {
     phases: tags("epic-phase").map((tag) => attribute(tag, "status") ?? "todo"),
     updated: attribute(page, "updated") ?? null,
     future: /\sfuture\b/.test(page),
+    standing: /\sstanding\b/.test(page),
     urgent
   }
 }

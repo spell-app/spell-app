@@ -564,6 +564,8 @@ export type PlanSummary = {
   bedtime: string | null
   /** a future epic:  not planned yet */
   future: boolean
+  /** a standing epic:  open for good, never done (epic `epic-workflow`) */
+  standing: boolean
   /** each kind's open items, in `OPEN_KINDS`' order */
   open: Record<OpenKind, ItemSummary[]>
 }

@@ -132,6 +132,8 @@ As `plan-doc.md`, "Ids":
   - A split doc's parts follow (written under the new ids).
   - Prose naming a phase without a link isn't changed.
   - Refused while a phase from N on has started (done or active):  its commits and log say its number.
+- `<epic-page standing>` (epic `epic-workflow`):  a STANDING epic, open for good;  each phase merges into `main` on its
+  own, and every phase done is NOT done (STANDING, not DONE).  `standing <name> [on|off]` sets it.
 - Requests (epic `epic-workflow`):  what Owen sent the phase from other sessions, one labelled block per request.
   - Written by `request <name> <N> <rN> --from "..." --file f`, which `spell epic file <epic> <rN> <N>` runs.
   - The block:  his words quoted, what the sender was looking at, when, a link to `requests/<rN>/request.md`, and
