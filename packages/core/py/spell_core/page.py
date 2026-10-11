@@ -21,6 +21,7 @@ session.handle({"trigger": "card-click", "details": {"card": {"@id": "12"}}})
 """
 
 import argparse
+import inspect
 import json
 import re
 import sys
@@ -53,14 +54,33 @@ class PageSession:
 
         - throws `ValueError` for a message that's neither a call nor an event, or names nothing the program has.
         """
+        self.run(message)
+        return self.writer.patch()
+
+    async def handle_async(self, message: dict[str, Any]) -> list[dict[str, object]]:
+        """As `handle()`, on asyncio:  a handler or function that's `async def` (the `py/asyncio` target's) is awaited.
+
+        - So the patch has all it changed, after any pause in it.
+          A pause on the way sends what changed so far, through `core.before_pause`:  see `spell_quart`.
+        """
+        await self.run_async(message)
+        return self.writer.patch()
+
+    async def run_async(self, message: dict[str, Any]) -> None:
+        """Run `message` to its end, awaiting what's `async def` -- see `handle_async()`."""
+        for result in self.run(message):
+            if inspect.isawaitable(result):
+                await result
+
+    def run(self, message: dict[str, Any]) -> list[object]:
+        """Run `message`:  what it returned, each handler's for an event -- see `handle()`."""
         if "trigger" in message:
             details = message.get("details") or {}
-            core.trigger(message["trigger"], **{python_name(key): self.read(value) for key, value in details.items()})
-        elif "call" in message:
-            self.callable(message)(*[self.read(arg) for arg in message.get("args") or []])
-        else:
-            raise ValueError(f"A page's message is a call or an event:  {message!r}")
-        return self.writer.patch()
+            props = {python_name(key): self.read(value) for key, value in details.items()}
+            return core.trigger(message["trigger"], **props)
+        if "call" in message:
+            return [self.callable(message)(*[self.read(arg) for arg in message.get("args") or []])]
+        raise ValueError(f"A page's message is a call or an event:  {message!r}")
 
     def callable(self, message: dict[str, Any]) -> Any:
         """What `message`'s `"call"` names:  a function of the program's, or a method of the thing it's `"on"`."""

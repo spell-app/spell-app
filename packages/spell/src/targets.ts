@@ -41,6 +41,12 @@ export type Target = {
    * - Written only for a project that draws.
    */
   elementsSuffix?: string
+  /**
+   * End of the name of its web APP's file, beside its output, e.g. `.app.py`:  a Quart app serving the program,
+   * a game per visitor (epic `python-target` P20, `SP.quartApp()`).
+   * - Written only for a project that draws, and only while nobody has edited it (`SP.isUneditedApp()`).
+   */
+  appSuffix?: string
 }
 
 /** What a target's runtime can do -- checked while compiling, so a project asks only what its targets give. */
@@ -80,6 +86,7 @@ export const TARGETS: Record<string, Target> = {
     suffix: ".compiled.asyncio.py",
     can: { draw: "html" },
     elementsSuffix: ELEMENTS_JS_SUFFIX,
+    appSuffix: ".app.py",
     checkedBy: "pyright"
   }
 }

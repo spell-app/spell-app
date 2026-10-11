@@ -1,0 +1,40 @@
+# spell_quart:  a Python spell program served as a web app on Quart, Flask's asyncio twin (epic python-target P20).
+# - A program compiled to `py/asyncio` runs here, a game per visitor;  its page draws it in javascript.
+# - Run from the repo root:
+#   - its tests:  `uv run --directory packages/core/py-quart pytest`
+#   - tidy it:  `uv run --directory packages/core/py-quart ruff check --fix` and `... ruff format`
+# - Core's own `yarn test` runs the tests too (its package.json), so `yarn review` does.
+# - spell_core, beside it, stays standard library only:  the web is this package's.
+
+[project]
+name = "spell-quart"
+version = "0.1.0"
+description = "A Python spell program served as a web app, on Quart:  its page draws it, a game per visitor."
+requires-python = ">=3.12"
+dependencies = ["spell-core", "quart==0.22.0"]
+
+[tool.uv.sources]
+spell-core = { path = "../py", editable = true }
+
+[dependency-groups]
+dev = ["pytest==9.1.1", "pytest-asyncio==1.4.0", "ruff==0.17.0"]
+
+[build-system]
+requires = ["uv_build>=0.12.13,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+# the package is `spell_quart/`, beside this file, not under `src/`
+module-root = ""
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--strict-markers"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+# pycodestyle, pyflakes, import order, pyupgrade, bugbear, naming, simplify, ruff's own
+select = ["E", "W", "F", "I", "UP", "B", "N", "SIM", "RUF"]

@@ -56,7 +56,8 @@ def run_program(path: str | Path, seed: int | None = None, pauses: bool = True) 
     core.pauses = pauses
     core.seed_random(seed if seed is not None else random.SystemRandom().randint(1, 2147483646))
     program = Path(path).resolve()
-    sys.path.insert(0, str(program.parent))
+    if str(program.parent) not in sys.path:
+        sys.path.insert(0, str(program.parent))
     return runpy.run_path(str(program), run_name="__main__")
 
 
