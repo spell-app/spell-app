@@ -106,6 +106,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     or once a runner hands it the program's modules (`addClasses()`).
   - A list's items are SET (`writeItems()`), so a pile owns its cards.
   - An unknown `"@type"`:  a plain object.
+- `spellCore.carryOver()` ([carry.ts](src/carry.ts)) does the same for a recompile, object to object, keeping identity:
+  the last run's things come over as the new program's classes, so the game in progress stays (epic `drawable-thing` P16).
+  - The runner asks for it on every recompile but Restart:  `runCompiled()`'s `keepThings`.
+  - While the new program loads, `pause for ...` never ends (`isCarryingOver`):  its start, e.g. a new deal, stops there.
 
 ## Decorators
 

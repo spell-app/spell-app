@@ -32,8 +32,11 @@ export const uiMethods = defineSpellCoreModule({
    * Return promise which resolves after `number` `units` have elapsed.
    * - `units` looked up in `TIME_UNITS_MAP`; unrecognized `units` fall back to seconds.
    * - Compiles from spell `pause for {number} {units}` (see `rules/async/Pause.ts`); caller `await`s it.
+   * - NEVER resolves while a recompiled program loads to take over the last run's things (`isCarryingOver`):
+   *   its start stops at its first pause, e.g. a new deal, and the game in progress carries on instead.
    */
   pauseFor(number: number, units = "seconds"): Promise<void> {
+    if (spellCore.isCarryingOver) return new Promise(() => {})
     const multiplier = spellCore.TIME_UNITS_MAP[units] || 1000
     // default to 0 if `isNaN`
     const delay = Math.round(number * multiplier) || 0

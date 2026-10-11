@@ -317,8 +317,25 @@ export class EditorStore extends Observable {
   }
 
   /**
-   * Run already-`compiled` current `project` afresh, on the runtime programs run on -- logging how it went to
+   * Compile current `project` and run it afresh, on purpose:  the Restart button, a new deal (Q25).
+   * - Every other compile keeps the program's things, e.g. the game in progress -- see `executeCompiledApp()`.
+   */
+  async restartApp(): Promise<void> {
+    editor.startAfresh = true
+    await editor.compileApp()
+  }
+
+  /** Does the next run start afresh?  Set by `restartApp()`, and cleared as the run starts. */
+  startAfresh = false
+
+  /** Path of the project run last:  a compile of the same project keeps its things. */
+  lastExecutedPath: string | undefined = undefined
+
+  /**
+   * Run already-`compiled` current `project`, on the runtime programs run on -- logging how it went to
    * `runtimeConsole()`.  See `runCompiled()`.
+   * - The project run last, compiled again:  its things carry over, e.g. the game in progress (epic `drawable-thing`
+   *   P16) -- unless `restartApp()` asked for a fresh start.
    * - Runs what it wrote to `<Project>.compiled.js`:  its declarations are in `<Project>.declarations.json`.
    * - Each project it imports is fetched afresh, so a recompiled library shows at once.
    * - An error's stack goes to devtools too -- `runCompiled()` logs it.
@@ -330,10 +347,14 @@ export class EditorStore extends Observable {
     const runtime = await editor.loadRuntime()
     const output = runtime.spellCore.console
     output.group(`Executing ${project.type}`)
+    const keepThings = !editor.startAfresh && editor.lastExecutedPath === project.path
+    editor.startAfresh = false
+    editor.lastExecutedPath = project.path
     const error = await runtime.runApp(compiled, {
       appRoot,
       coreUrl: runtimeUrl(),
       keepConsole: true,
+      keepThings,
       loadImport: fetchCompiled
     })
     output.groupEnd()

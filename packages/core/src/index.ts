@@ -6,7 +6,7 @@
  *   each sibling module here does `Object.assign(spellCore, <module>Methods)`
  *   as a top-level side effect when its file first loads -- see `defineSpellCoreModule()` in `spellCore.types.ts`.
  *   - The modules:  `collection-core`, `collection-other`, `deprecated`, `paths`, `string`, `tests`,
- *     `console`, `runtime`, `things`, `json`, `ui`, `drawing`, `elements`, plus `core` itself.
+ *     `console`, `runtime`, `things`, `json`, `carry`, `ui`, `drawing`, `elements`, plus `core` itself.
  * - NOTE: most of those modules are imported here ONLY for that side effect (bare `import "./x"`, no named import):
  *   importing this barrel (or anything that transitively imports `$/core`) is what triggers the assembly.
  *   `SpellCore` (the assembled TYPE) is exported separately as a `type`-only export, so it costs nothing at runtime.
@@ -29,6 +29,7 @@ import "./console"
 import { on, off, once, trigger } from "./runtime"
 import "./things"
 import "./json"
+import "./carry"
 import "./ui"
 import "./drawing"
 import "./elements"

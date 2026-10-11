@@ -49,7 +49,8 @@ export {
 }
 
 /**
- * Run `compiled` spell javascript afresh in this copy, drawing any app into `appRoot` -- see `runCompiled()`.
+ * Run `compiled` spell javascript in this copy, drawing any app into `appRoot` -- see `runCompiled()`.
+ * - Afresh, unless `keepThings`:  then the last run's things carry over, e.g. the game in progress.
  * - No `appRoot`:  wherever it last drew -- else `#spell-app-root`, see `spellCore.appElement()`.
  * - `coreUrl` MUST be this copy's own URL, so the program's `@spell/core` is this `spellCore`.
  * - Answers the error message if it threw, else `undefined`.
