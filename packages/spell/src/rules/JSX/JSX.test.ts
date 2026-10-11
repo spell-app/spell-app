@@ -17,6 +17,15 @@ describe("testing spell module JSX", () => {
     ])
   })
 
+  test("a markdown hole that doesn't read is reported with the block's parse errors;  a real one isn't", () => {
+    const scope = spellParser.getScope("jsx-markdown-hole")
+    const block = scope.parse("set foo to 1\nprint <markdown>\n\t{foo} and {foo bar baz}\n</markdown>", "block")!
+    const errors = (block.data as { errors?: P.Match[] }).errors ?? []
+    expect(errors.map((error) => error.message)).toEqual([
+      `Don't understand "{foo bar baz}" in <markdown>:  a hole is spell, e.g. {the score of the game};  write \\{ for a brace`
+    ])
+  })
+
   describe("`{...}` contents sit at their file positions", () => {
     test("a parse error inside `{...}` starts where its text is", () => {
       const scope = spellParser.getScope("jsx-error-offset")

@@ -1,5 +1,6 @@
 import { proto } from "$/util"
 import { P } from "$/parser"
+import { rawTextOf } from "$/spell/rules/JSX/JSX.shared"
 import { Priority } from "$/spell/rules/rules.types"
 // Import directly to avoid circular import
 import { SpellStatement } from "$/spell/rules/Statement"
@@ -42,7 +43,7 @@ export class CSSBlock extends P.TokenType<never, CSSBlockData> {
       return SpellStatement.refuse(match, `Only a drawable type has its own <css>:  ${where}`)
     }
     match.data.typeName = type.name
-    match.data.css = CSSBlock.cssOf(element)
+    match.data.css = rawTextOf(element)
     return match
   }
 
@@ -54,19 +55,6 @@ export class CSSBlock extends P.TokenType<never, CSSBlockData> {
       name: "css",
       value: new P.ASTStringLiteral(match, { value: css, quote: "`" })
     })
-  }
-
-  /** The CSS inside `element`, its common indent taken off, blank lines at either end dropped. */
-  static cssOf(element: P.JSXElementToken): string {
-    const text = ((element.children ?? []) as P.Token[])
-      .filter((child): child is P.JSXTextToken => child instanceof P.JSXTextToken)
-      .map((child) => `${child.value}`)
-      .join("")
-    const lines = text.split("\n")
-    while (lines.length && !lines[0]!.trim()) lines.shift()
-    while (lines.length && !lines.at(-1)!.trim()) lines.pop()
-    const indent = Math.min(...lines.filter((line) => line.trim()).map((line) => /^\s*/.exec(line)![0].length))
-    return lines.map((line) => line.slice(Number.isFinite(indent) ? indent : 0)).join("\n")
   }
 }
 classes.addRule(CSSBlock, {

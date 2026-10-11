@@ -1108,6 +1108,16 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - spell's own colouring skips the block
   - editors colour it as CSS themselves:
     VS Code through the grammar's embedded CSS, the app's Monaco through its own (`SpellTokensProvider`)
+- A `<markdown>` block is markdown, not spell:  raw text too (`rawTextTags`), its common indent taken off.
+  - in a drawing, `markdown_block` (in `rules/JSX/`):  drawn by Spell UI's `<ui-markdown>`, the markdown as its text
+    - a `{hole}` is a spell expression, live;  code keeps its braces, and `\{` is a brace
+    - a hole that doesn't read is a parse error, reported as JSX's are (`SpellJSX.parseErrorsIn()`)
+  - in a type's outline, `markdown_description` (in `rules/classes/`):  the type's description
+    - compiled to the class's `static description`
+    - hover and the Type Explorer show it when the type has no comment docstring (`SpellLanguageService.docsOf()`)
+  - in a `<spell-app>` layout:  app's `LayoutSpell`, which splits holes as `markdown_block` does
+  - no diagnostics inside;  editors colour it as markdown, VS Code through the grammar's embedded markdown,
+    the app's Monaco through its own (`SpellTokensProvider`)
 - Formatting is `P.TokenFormatter` ([the tokenizer folder](../parser/src/tokenizer/)):
   whitespace only, from the tokens, indenting with TABS always.
   - No pretty-printer:  the AST is a javascript tree.

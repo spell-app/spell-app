@@ -42,3 +42,24 @@ export type JSXMatchData = {
   /** (`jsxAttribute`) A text value's `[name]` fill-ins, if it has any -- see `parseFillIns()`. */
   fillIns?: FillInParts
 }
+
+/**
+ * The text inside raw-text element `element`, e.g. a `<css>` or `<markdown>` block's:
+ * its common indent taken off, blank lines at either end dropped.
+ * - So the block can sit indented in an outline or a drawing.
+ * - Raw text:  the tokenizer reads the element's whole contents as ONE text token (`P.Tokenizer.rawTextTags`).
+ */
+export function rawTextOf(element: P.JSXElementToken): string {
+  const text = ((element.children ?? []) as P.Token[])
+    .filter((child): child is P.JSXTextToken => child instanceof P.JSXTextToken)
+    .map((child) => `${child.value}`)
+    .join("")
+  const lines = text.split("\n")
+  while (lines.length && !lines[0]!.trim()) lines.shift()
+  while (lines.length && !lines.at(-1)!.trim()) lines.pop()
+  const indent = Math.min(...lines.filter((line) => line.trim()).map((line) => /^\s*/.exec(line)![0].length))
+  return lines.map((line) => line.slice(Number.isFinite(indent) ? indent : 0)).join("\n")
+}
+
+/** The tag of a markdown block:  drawn in a drawing (`markdown_block`), a type's description in its outline. */
+export const MARKDOWN_TAG = "markdown"
