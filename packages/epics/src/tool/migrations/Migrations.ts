@@ -1,4 +1,5 @@
 import type { Migration, MigrationContext } from "./migrations.types"
+import { ReaderIsYou } from "./ReaderIsYou"
 import { UpdatesAsEpicUpdate } from "./UpdatesAsEpicUpdate"
 
 /****************
@@ -15,7 +16,7 @@ import { UpdatesAsEpicUpdate } from "./UpdatesAsEpicUpdate"
  ****************/
 export class Migrations {
   /** Every step, in the order they run. */
-  static readonly all: readonly Migration[] = [new UpdatesAsEpicUpdate()]
+  static readonly all: readonly Migration[] = [new UpdatesAsEpicUpdate(), new ReaderIsYou()]
 
   /** The step called `name` (`updates-as-epic-update`);  `undefined` for none. */
   static named(name: string): Migration | undefined {

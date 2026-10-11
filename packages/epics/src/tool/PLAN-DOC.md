@@ -599,6 +599,8 @@ Named, idempotent steps that bring an older doc's markup up to today's (`migrati
     - an UPDATE note before a block -> moved after it, dated (its item's `changed`, else the page's `updated`) and
       summed up;  left where it is when the next sibling is a card with a fixed place
     - a bare label -> left alone
+  - `owen-types-to-you-type` (2026-10-11):  prose says "You type" / "you type", not "Owen types":  the pages speak
+    to whoever reads them (Owen:  "so it's not me-specific").  Never in his quoted words, code, the log or the prompt.
 - A new step:  a class implementing `Migration` in `migrations/`, its instance added LAST to `Migrations.all`.
 
 ## Log
