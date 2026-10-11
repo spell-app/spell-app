@@ -30,7 +30,7 @@ import { LAYOUT_HOLE as HOLE, LAYOUT_SPELL_TAG as SPELL_TAG, LAYOUT_WHOLE_HOLE a
  *   3. the page:  each drawable tag with an `id` is a name, e.g. `T1`
  *   4. the program:  its top-level things, its functions and types -- from its declarations
  * - A hole is any spell EXPRESSION;  an action or a handler, any spell statements (Q11).
- *   A hole that doesn't read as written is tried again with `the` before it:  `{score of the game}`.
+ *   A hole is spell exactly, as everywhere else:  `{the score of the game}`, never `{score of the game}` (J26).
  * - Kept live by Solid effects:  a hole re-runs when what it read changes.
  * - Holds spell's PARSER:  the runner loads it lazily, only for a layout with spell in it (`layoutHasSpell()`).
  * - `bind()` returns what takes it all back:  the layout's markup as it was written.
@@ -234,7 +234,7 @@ export class LayoutSpell {
    * - throws if it doesn't read, or reads with errors.
    */
   private compile(spell: string, rule: "expression" | "block", scope: P.Scope): (it: unknown) => unknown {
-    const match = this.parsed(spell, rule, scope) ?? (rule === "expression" && this.parsed(`the ${spell}`, rule, scope))
+    const match = this.parsed(spell, rule, scope)
     if (!match) throw new SyntaxError(`spell doesn't read:  "${spell}"`)
     const javascript = String(match.compile())
     const names = [...this.names.keys()].filter((name) => name !== IT && P.jsText.isLegalIdentifier(name))
