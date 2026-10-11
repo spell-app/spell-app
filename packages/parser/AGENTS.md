@@ -31,7 +31,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - `src/writers/` writes ASTs out as a target's code.
   The AST classes never write output themselves.
   - `P.Writer`:  one method per AST class, found by class name (so `keepNames`, below)
-  - `P.JSWriter`:  javascript;  what `ASTNode.compile()` calls
+  - `P.ProgramWriter`:  what every PROGRAM's writer shares, whatever its language (epic `python-target` P4)
+    - what the whole project says (`forProject()`, a `P.WriterProject`), and so what each value is (`kindOf()`)
+    - what may be nothing (`mayBeNothing()`), where lists start counting (`listsStartAt`), names (`naming`)
+    - each language says its own file separator and import lines (`fileSeparator`, `importsHeader()`)
+  - `P.JSWriter`:  javascript, on `P.ProgramWriter`;  what `ASTNode.compile()` calls
     - It writes javascript as a person would, with no build step (epic `output-targets`, P19, P22):
       - every name camelCase, stored properties too (`nameOf()`)
       - a `List`'s own methods
