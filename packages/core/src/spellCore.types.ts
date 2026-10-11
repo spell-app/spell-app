@@ -27,6 +27,17 @@ import type { deprecatedMethods } from "./deprecated"
 export const SPELL_CORE_MODULE = "@spell/core"
 
 /**
+ * ES module specifier compiled TypeScript imports a drawable type's element class's base from:
+ * `import { E, SpellElement } from "@spell/elements"` (epic `drawable-thing` P10, J41).
+ * - A name of its own, since core never imports Spell UI:  app's `SpellElement` is behind it.
+ * - Resolved in three places:
+ *   - a runner points it at the runtime copy, as `SPELL_CORE_MODULE`:  `linkModule()` in app's `runCompiled.ts`
+ *   - the type check maps it to app's source:  `typecheck()` in spell's `node/typecheck.ts`
+ *   - the headless run (`spell run`, the core contract) maps it to a stand-in:  cli's `runner/hooks.mjs`
+ */
+export const SPELL_ELEMENTS_MODULE = "@spell/elements"
+
+/**
  * Spell's own classes, from `spellCore/classes`:  what a project's types are made from, e.g. `a card is a thing`.
  * - What a Type Explorer lists as built in -- see `LSP.ScopeExplorer`.
  */

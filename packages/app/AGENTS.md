@@ -147,6 +147,11 @@ when working with code in this package, `@spell-app/app`.
       Its `thing` is the card, which the element draws inside (`drawOwn()`).
     - The example:  `@examples/Drawable Solitaire`, each card its own element, styled by its `<css>`.
     - ONE tag per type per page, shared by every runtime copy (`SPELL_ELEMENTS`, on `globalThis`).
+    - Compiled TypeScript writes each type's element class itself, `class CardElement extends SpellElement<Card>`,
+      saying only its attributes, methods and sheet, and hands it over:  `spellCore.useElement(Card, CardElement)`.
+      - The page builds the tag on it (`defineFor()`), adding what it left out, so both targets draw the same element.
+      - It imports `SpellElement` as `@spell/elements` ([spellElements.ts](src/runner/spellElements.ts)):
+        the runtime exports it, and `runCompiled()` points that name at the runtime too.
   - Its Type Explorer reads scope packs, `<Project>.scopes.js` (`LSP.ScopePack`):  no parser in the page.
     - `yarn scopes [--compile] <projectId...>` (in `../lsp`) writes them.
     - So does the language server, after each clean compile.

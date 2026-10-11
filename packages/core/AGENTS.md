@@ -35,6 +35,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Core names its tag, in [elements.ts](src/elements.ts).
   - The page makes the element, through `spellCore.elementDefiner`:
     app's [SpellElement.tsx](../app/src/runner/SpellElement.tsx) fills it in.
+  - Compiled TypeScript hands the page its own element class too, `spellCore.useElement(Card, CardElement)`,
+    which the page builds the tag on (epic `drawable-thing` P10).
+    It imports that class's base as `@spell/elements` (`SPELL_ELEMENTS_MODULE`), not from core.
   - Core never imports Spell UI.
 - A thing named in text, its REFERENCE:  `Tableau#T1` by its name, `Tableau#1` by its place (epic `drawable-thing` P18).
   - In [references.ts](src/references.ts):  `thingForReference()`, `thingNamed()`, `thingAtPlace()`, `referenceFor()`.

@@ -1,3 +1,4 @@
+import { drawableAttributeFor, elementTagFor } from "$/util"
 import { P } from "$/parser"
 // Import directly to avoid circular import
 import { JSWriter } from "./JSWriter"
@@ -36,6 +37,8 @@ import { forEachNode, listNamedBy, typeCaseOf, type TSUndeclared, type WriterPro
  *   - a method written outside its class, from what it returns:
  *     `play(): Promise<boolean | undefined>` (`returnType()`, epic `output-targets`, T24)
  *   - a value kind's parameter, from its values:  `static color(suit: (typeof SUITS)[number])` (`valueKindType()`)
+ * - A drawable type's element class, after its class:  `class CardElement extends SpellElement<Card>`,
+ *   handed to the page with `spellCore.useElement(Card, CardElement)` -- see `elementClassFor()`.
  * - Spell's own built-ins stay `spellCore` calls, so both targets print the same:
  *   `getItemAt(rank, 1)` counts from 1 (the core contract, `contract.test.ts` in `$/cli`).
  * - Sees the whole project first (`forProject()`, a `P.WriterProject`).
@@ -82,6 +85,8 @@ export class TSWriter extends JSWriter {
   private passedAsFound = false
   /** While writing a callback a list's own method takes:  its item is typed by the list -- see `callback()`. */
   private untypedItems = false
+  /** Each drawable type's tag, e.g. `solitaire-card`, by its element class's name:  see `elementClassFor()`. */
+  private elementTags = new Map<string, string>()
 
   /**
    * The finished module, as javascript's (`JSWriter.module()`), plus:
@@ -90,10 +95,16 @@ export class TSWriter extends JSWriter {
    * - a member it adds to a class it imports is declared in that project's module,
    *   `declare module "..." { interface Card {...} }`:
    *   TypeScript refuses an `interface` merged with an import (`TS2440`)
+   * - with a drawable type's element class:  `@spell/elements` imported below `@spell/core`,
+   *   and each drawable type's tag declared for the JSX, last (`elementTagsDeclaration()`)
    */
   module(code: string): string {
     const solid = SOLID_COMPONENTS.filter((name) => new RegExp(`<${name}[\\s>]`).test(code))
     code = super.module(code)
+    if (this.elementTags.size) {
+      code = this.withElementsImport(code)
+      code = `${code.replace(/\n*$/, "")}\n\n${this.elementTagsDeclaration()}`
+    }
     // what this project gives a class it imports, for TypeScript only (Q25):  declared in that project's module
     for (const [type, undeclared] of this.project.undeclared) {
       if (!this.project.importedMembers.has(type)) continue
@@ -453,13 +464,18 @@ export class TSWriter extends JSWriter {
 
   /** `name: type`, or `name: type = default`. */
   param(arg: P.ASTVariableExpression): string {
-    const type =
+    const declared = `${this.variableName(arg)}: ${this.paramType(arg)}`
+    return arg.default ? `${declared} = ${this.bare(arg.default)}` : declared
+  }
+
+  /** The type of parameter `arg`, e.g. `Card` -- `UNKNOWN` if spell can't tell. */
+  paramType(arg: P.ASTVariableExpression): string {
+    return (
       this.typeFor(arg.datatype ?? arg.variable?.datatype ?? arg.default?.datatype) ??
       this.slotType(arg) ??
       this.valueKindType(arg) ??
       TSWriter.UNKNOWN
-    const declared = `${this.variableName(arg)}: ${type}`
-    return arg.default ? `${declared} = ${this.bare(arg.default)}` : declared
+    )
   }
 
   /**
@@ -518,7 +534,10 @@ export class TSWriter extends JSWriter {
       if (methods.length) {
         body = `${body}\nexport interface ${this.typeNameOf(type.name)} {\n${indented(methods.join("\n"))}\n}`
       }
-      return hasCreate(declaration) ? `@thing\n${body}` : body
+      if (hasCreate(declaration)) body = `@thing\n${body}`
+      // a drawable type's element class, with the line handing it to the page
+      const element = this.elementClassFor(declaration)
+      return element ? `${body}\n\n${element}` : body
     } finally {
       this.currentClass = previousClass
     }
@@ -738,6 +757,254 @@ export class TSWriter extends JSWriter {
     })
     return `(${params.join(", ")})`
   }
+
+  ////////////////
+  // ## A drawable type's element class (epic `drawable-thing` P10, J41)
+  ////////////////
+
+  /**
+   * The element class of drawable class `node`, written after it, and the line handing it to the page --
+   * `undefined` for a class that isn't drawable (no `static elementTag = spellCore.defineElement(...)`).
+   *
+   * ```ts
+   * export class CardElement extends SpellElement<Card> {
+   *   @E.proto static vocabulary = SpellElement.vocabularyFor("solitaire-card", "card", [
+   *     { name: "rank", kind: "string", description: "Its rank." }
+   *   ])
+   *   @E.protoMerged static elementSetup = {
+   *     styleSheets: { "solitaire-card": Card.css }
+   *   } satisfies Partial<E.ElementSetup>
+   *
+   *   turnOver() {
+   *     return this.currentThing?.turnOver()
+   *   }
+   * }
+   * spellCore.useElement(Card, CardElement)
+   * ```
+   * - On the runtime's own element, `SpellElement`, from `@spell/elements`:  what every drawable thing's element does
+   *   (drawing its thing, the two agreeing, a layout's lookup) stays there.
+   * - It says only what's the type's own:
+   *   - an attribute per property the type declares (`elementAttributes()`)
+   *   - its sheet, the type's own `<css>`, when it has one
+   *   - a method per method of the type's, calling its thing's (`elementMethods()`)
+   * - The page defines the tag with it (`spellCore.useElement()`):  the class never calls `define()`,
+   *   so a tag is never defined twice.  What it leaves out, e.g. a super-type's properties, the page adds,
+   *   as it does for javascript:  both targets draw the same element.
+   * - Javascript writes none:  the page makes its element from the class.
+   */
+  elementClassFor(node: P.ASTClassDeclaration): string | undefined {
+    const project = elementProjectOf(node)
+    if (project === undefined) return undefined
+    const typeName = this.typeNameOf(node.type.name)
+    const name = this.elementClassName(typeName)
+    const tag = elementTagFor(project, typeName)
+    this.elementTags.set(name, tag)
+    const words = wordsOf(typeName)
+    const attributes = this.elementAttributes(node)
+    const vocabulary = attributes.length
+      ? `SpellElement.vocabularyFor(${this.quoted(tag)}, ${this.quoted(words)}, [\n${indented(attributes.join(",\n"))}\n])`
+      : `SpellElement.vocabularyFor(${this.quoted(tag)}, ${this.quoted(words)}, [])`
+    const members = [`@E.proto static vocabulary = ${vocabulary}`]
+    const hasCSS = node.members?.some((member) => member instanceof P.ASTStaticDefinition && member.name === "css")
+    if (hasCSS) {
+      const setup = `{\n${indented(`styleSheets: { ${this.quoted(tag)}: ${typeName}.css }`)}\n}`
+      members.push(`@E.protoMerged static elementSetup = ${setup} satisfies Partial<E.ElementSetup>`)
+    }
+    const methods = this.elementMethods(node)
+    const body = methods.length ? `${members.join("\n")}\n\n${methods.join("\n\n")}` : members.join("\n")
+    const docstring = [
+      "/**",
+      ` * \`<${tag}>\`:  ${a(words)} ${words}, drawn in its own element, e.g. by \`draw the ${words}\`.`,
+      ` * - The page defines its tag with this class:  \`spellCore.useElement()\`, below.`,
+      ` * - Its attributes are its ${words}'s properties;  its methods call its ${words}'s.`,
+      ` * - What every drawable thing's element does, e.g. drawing its ${words}, is \`SpellElement\`'s.`,
+      " */"
+    ].join("\n")
+    const declaration = `export class ${name} extends SpellElement<${typeName}> {\n${indented(body)}\n}`
+    return `${docstring}\n${declaration}\nspellCore.useElement(${typeName}, ${name})`
+  }
+
+  /** Name of the element class of class `typeName`, e.g. `CardElement` -- one the project's types don't have. */
+  private elementClassName(typeName: string): string {
+    let name = `${typeName}Element`
+    while (this.project.isClass(name)) name = `${name}Element`
+    return name
+  }
+
+  /**
+   * An attribute for each property drawable class `node` declares itself, as its element's vocabulary says it:
+   * `{ name: "rank", kind: "string", description: "Its rank." }` -- named as the page names them,
+   * see `drawableAttributeFor()` in `$/util`.
+   * - Not a super-type's, nor the list holding it (`a card belongs to one pile`):  the page adds those.
+   * - None for a name the page or Spell UI already means something by, e.g. `id`.
+   */
+  elementAttributes(node: P.ASTClassDeclaration): string[] {
+    const attributes: string[] = []
+    for (const member of node.members ?? []) {
+      if (!(member instanceof P.ASTReactiveProperty)) continue
+      const attribute = drawableAttributeFor(String(this.write(member.property)), this.declaredTypeOf(member))
+      if (!attribute) continue
+      const { name, kind, description } = attribute
+      attributes.push(
+        `{ name: ${this.quoted(name)}, kind: ${this.quoted(kind)}, description: ${this.quoted(description)} }`
+      )
+    }
+    return attributes
+  }
+
+  /**
+   * The type property `node` is declared as, as its class's schema keeps it, e.g. `number`, `Pile`:
+   * its `check`'s `type`;  else `list` for one made when first read;  else `undefined`, text.
+   */
+  private declaredTypeOf(node: P.ASTReactiveProperty): string | undefined {
+    for (const property of node.check?.properties ?? []) {
+      if (!(property instanceof P.ASTObjectLiteralProperty) || property.property.value !== "type") continue
+      if (!(property.value instanceof P.ASTStringLiteral)) continue
+      const type = property.value.value
+      return this.project.isClass(type) ? this.typeNameOf(type) : type
+    }
+    return node.initializer ? "list" : undefined
+  }
+
+  /**
+   * A method for each method drawable class `node` has itself, calling its thing's:
+   * `turnOver() { return this.currentThing?.turnOver() }`.
+   * - So a page's `card.turnOver()` calls it, typed.
+   * - Not a getter, nor `draw()`.  Its super-types' come from their classes, through the page.
+   * - None for a name the element itself has (`ELEMENT_MEMBERS`), e.g. `send()`:  the page's still calls the thing's.
+   */
+  elementMethods(node: P.ASTClassDeclaration): string[] {
+    const methods = new Map<string, string>()
+    for (const member of node.members ?? []) {
+      if (!(member instanceof P.ASTPropertyDefinition) || !member.method || member.get) continue
+      const name = this.nameOf(member.property.value)
+      if (name === "draw" || name.includes("$") || TSWriter.ELEMENT_MEMBERS.has(name) || methods.has(name)) continue
+      const args = (member.method.args ?? []).map((arg) => this.variableName(arg))
+      const call = `return this.currentThing?.${name}(${args.join(", ")})`
+      methods.set(name, `${name}${this.forwardedParams(member.method)} {\n${indented(call)}\n}`)
+    }
+    return [...methods.values()]
+  }
+
+  /**
+   * Parameters of a method passing them on to `method`:  typed as `method`'s, one with a default optional --
+   * `(card: Card, message?: string)`.
+   */
+  private forwardedParams(method: P.ASTMethodDefinition): string {
+    const destructured = this.destructuredParam(method)
+    const params = (method.args ?? []).map((arg) => {
+      const type = destructured?.arg === arg ? destructured.shape.replace(/(\w+): /g, "$1?: ") : this.paramType(arg)
+      return `${this.variableName(arg)}${arg.default ? "?" : ""}: ${type}`
+    })
+    return `(${params.join(", ")})`
+  }
+
+  /** `code` with `@spell/elements` imported, below its `@spell/core` import. */
+  private withElementsImport(code: string): string {
+    const line = `import { E, SpellElement } from "@spell/elements"`
+    const replaced = code.replace(/^import .* from "@spell\/core"$/m, (core) => `${core}\n${line}`)
+    return replaced !== code ? replaced : `${line}\n${code}`
+  }
+
+  /**
+   * Each drawable type's tag, declared for the program's JSX (epic `drawable-thing` I7):
+   * so a tag written by hand, e.g. `<solitaire-pile>`, type-checks.
+   * - Loose, as app types `<ui-*>` tags:  HTML attributes, plus any attribute or `prop:` its element defines.
+   */
+  private elementTagsDeclaration(): string {
+    const tags = [...this.elementTags].map(
+      ([name, tag]) =>
+        `/** \`${name}\` */\n${this.quoted(tag)}: HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }`
+    )
+    const intrinsic = `interface IntrinsicElements {\n${indented(tags.join("\n"))}\n}`
+    return [
+      "// each drawable type's tag, for the JSX",
+      `declare module "@solidjs/web/types/jsx.js" {\n${indented(`namespace JSX {\n${indented(intrinsic)}\n}`)}\n}`
+    ].join("\n")
+  }
+
+  /**
+   * What a drawable type's element can't have as a method:  its own members, `SpellElement`'s and Spell UI's.
+   * - A type's method of one of these names is left out of its element class (`elementMethods()`).
+   * - Its own attribute `thing`, too.
+   * - Pinned by app's `SpellElement.browser.test.tsx`:  every member an element has is here.
+   */
+  static readonly ELEMENT_MEMBERS = new Set<string>([
+    "$",
+    "adoptStyleSheets",
+    "agree",
+    "animationToRun",
+    "appContext",
+    "attributes",
+    "boundThing",
+    "classNoun",
+    "classValue",
+    "cssStates",
+    "currentThing",
+    "domElement",
+    "drawing",
+    "elementDefinition",
+    "elementSetup",
+    "elementValueOf",
+    "entry",
+    "extraClass",
+    "formIsDisabled",
+    "handedThing",
+    "hasInertContent",
+    "internalState",
+    "isConnected",
+    "isControlledByPage",
+    "isDisabled",
+    "isEnabled",
+    "isHidden",
+    "isHiding",
+    "isInLayout",
+    "isMarkedDisabled",
+    "isMarkedLoading",
+    "isMotionOff",
+    "isReady",
+    "isStill",
+    "isVisible",
+    "keepThingAndElementAgreeing",
+    "missingText",
+    "on",
+    "onConnect",
+    "onDisconnect",
+    "onFormAssociated",
+    "onFormDisabled",
+    "onFormReset",
+    "onFormStateRestore",
+    "onMount",
+    "onReadyChanged",
+    "onRuntimeLoaded",
+    "onSharedStatesChanged",
+    "onSlotChangeForParts",
+    "onVisibleChange",
+    "onVisibleOrReadyChanged",
+    "ownThing",
+    "pageWrote",
+    "partForName",
+    "referencedThing",
+    "render",
+    "requestChange",
+    "rootClass",
+    "runVisibleChange",
+    "send",
+    "shownValueOf",
+    "showsLoader",
+    "slotForName",
+    "startListeners",
+    "styleSheetNames",
+    "thing",
+    "thingReference",
+    "translationForKey",
+    "typeProperties",
+    "vocabulary",
+    "wrapperClass",
+    "writeElement",
+    "writeReference",
+    "writeThing"
+  ])
 
   ////////////////
   // ## Lists
@@ -1066,3 +1333,29 @@ function docstringAbove(member: P.ASTNode, members: P.ASTNode[]): P.ASTDocCommen
 
 /** `text` with every non-blank line indented once. */
 const indented = jsText.indented
+
+/**
+ * The project drawable class `node` is in, as its `static elementTag = spellCore.defineElement(this, "Solitaire")`
+ * names it, e.g. `Solitaire` -- `undefined` for a class that isn't drawable.
+ */
+function elementProjectOf(node: P.ASTClassDeclaration): string | undefined {
+  for (const member of node.members ?? []) {
+    if (!(member instanceof P.ASTStaticDefinition) || member.name !== "elementTag") continue
+    const found = member.value instanceof P.ASTStringLiteral && DEFINE_ELEMENT.exec(member.value.value)
+    if (found) return JSON.parse(found[1]!) as string
+  }
+  return undefined
+}
+
+/** What a drawable class's `elementTag` is:  `spellCore.defineElement(this, "<project>")`. */
+const DEFINE_ELEMENT = /^spellCore\.defineElement\(this, ("(?:[^"\\]|\\.)*")\)$/
+
+/** A type's name in words, e.g. `stock pile` for `StockPile`. */
+function wordsOf(typeName: string): string {
+  return typeName.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase()
+}
+
+/** `a` or `an`, for `words`. */
+function a(words: string): string {
+  return /^[aeiou]/.test(words) ? "an" : "a"
+}

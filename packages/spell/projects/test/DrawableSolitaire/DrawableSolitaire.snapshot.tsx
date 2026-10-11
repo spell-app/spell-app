@@ -1,5 +1,6 @@
 import { Show } from "solid-js"
 import { spellCore, Thing, List, App, Drawable, DrawableList, prop, derived, drawn, css, positionOf, trigger, on } from "@spell/core"
+import { E, SpellElement } from "@spell/elements"
 
 spellCore.heading("definition of a Card with nice english aliases for working with it")
 ////////////////////////////////////////////////////////////////////////
@@ -222,6 +223,52 @@ export class Card extends Drawable {
   }
 }
 
+/**
+ * `<test-project-card>`:  a card, drawn in its own element, e.g. by `draw the card`.
+ * - The page defines its tag with this class:  `spellCore.useElement()`, below.
+ * - Its attributes are its card's properties;  its methods call its card's.
+ * - What every drawable thing's element does, e.g. drawing its card, is `SpellElement`'s.
+ */
+export class CardElement extends SpellElement<Card> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-card", "card", [
+    { name: "rank", kind: "string", description: "Its rank." },
+    { name: "suit", kind: "string", description: "Its suit." },
+    { name: "direction", kind: "string", description: "Its direction." }
+  ])
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "test-project-card": Card.css }
+  } satisfies Partial<E.ElementSetup>
+
+  isASuit(suit: Suit) {
+    return this.currentThing?.isASuit(suit)
+  }
+
+  isARank(rank: Rank) {
+    return this.currentThing?.isARank(rank)
+  }
+
+  isTheRankOfSuits(rank: Rank, suit: Suit) {
+    return this.currentThing?.isTheRankOfSuits(rank, suit)
+  }
+
+  turnFaceUp() {
+    return this.currentThing?.turnFaceUp()
+  }
+
+  turnFaceDown() {
+    return this.currentThing?.turnFaceDown()
+  }
+
+  turnOver() {
+    return this.currentThing?.turnOver()
+  }
+
+  play() {
+    return this.currentThing?.play()
+  }
+}
+spellCore.useElement(Card, CardElement)
+
 spellCore.heading("create a card instance with default properties")
 /** create a card instance with default properties */
 export function testCardSetup() {
@@ -388,6 +435,22 @@ export interface Pile {
   canGiveUp(card: Card): boolean
   canTake(card: Card): boolean
 }
+
+/**
+ * `<test-project-pile>`:  a pile, drawn in its own element, e.g. by `draw the pile`.
+ * - The page defines its tag with this class:  `spellCore.useElement()`, below.
+ * - Its attributes are its pile's properties;  its methods call its pile's.
+ * - What every drawable thing's element does, e.g. drawing its pile, is `SpellElement`'s.
+ */
+export class PileElement extends SpellElement<Pile> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-pile", "pile", [
+    { name: "name", kind: "string", description: "Its name." }
+  ])
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "test-project-pile": Pile.css }
+  } satisfies Partial<E.ElementSetup>
+}
+spellCore.useElement(Pile, PileElement)
 /** a card is in one pile at a time:  putting it on another pile takes it off this one */
 // -----------
 spellCore.heading("Klondike Solitaire Card Game")
@@ -487,6 +550,21 @@ export class StockPile extends Pile {
     )
   }
 }
+
+/**
+ * `<test-project-stock-pile>`:  a stock pile, drawn in its own element, e.g. by `draw the stock pile`.
+ * - The page defines its tag with this class:  `spellCore.useElement()`, below.
+ * - Its attributes are its stock pile's properties;  its methods call its stock pile's.
+ * - What every drawable thing's element does, e.g. drawing its stock pile, is `SpellElement`'s.
+ */
+export class StockPileElement extends SpellElement<StockPile> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-stock-pile", "stock pile", [])
+
+  canGiveUp(card: Card) {
+    return this.currentThing?.canGiveUp(card)
+  }
+}
+spellCore.useElement(StockPile, StockPileElement)
 export const stock = new StockPile({ name: "stock", droppable: false })
 allPiles.append(stock)
 
@@ -507,6 +585,21 @@ export class DiscardPile extends Pile {
     )
   }
 }
+
+/**
+ * `<test-project-discard-pile>`:  a discard pile, drawn in its own element, e.g. by `draw the discard pile`.
+ * - The page defines its tag with this class:  `spellCore.useElement()`, below.
+ * - Its attributes are its discard pile's properties;  its methods call its discard pile's.
+ * - What every drawable thing's element does, e.g. drawing its discard pile, is `SpellElement`'s.
+ */
+export class DiscardPileElement extends SpellElement<DiscardPile> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-discard-pile", "discard pile", [])
+
+  canGiveUp(card: Card) {
+    return this.currentThing?.canGiveUp(card)
+  }
+}
+spellCore.useElement(DiscardPile, DiscardPileElement)
 export const discards = new DiscardPile({ name: "discards", droppable: false })
 allPiles.append(discards)
 
@@ -544,6 +637,25 @@ export class Foundation extends Pile {
 
   declare symbol: string
 }
+
+/**
+ * `<test-project-foundation>`:  a foundation, drawn in its own element, e.g. by `draw the foundation`.
+ * - The page defines its tag with this class:  `spellCore.useElement()`, below.
+ * - Its attributes are its foundation's properties;  its methods call its foundation's.
+ * - What every drawable thing's element does, e.g. drawing its foundation, is `SpellElement`'s.
+ */
+export class FoundationElement extends SpellElement<Foundation> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-foundation", "foundation", [])
+
+  canGiveUp(card: Card) {
+    return this.currentThing?.canGiveUp(card)
+  }
+
+  canTake(card: Card) {
+    return this.currentThing?.canTake(card)
+  }
+}
+spellCore.useElement(Foundation, FoundationElement)
 const it = new Foundation({
   name: "clubs",
   symbol: "♣️",
@@ -603,6 +715,28 @@ export class Tableau extends Pile {
     )
   }
 }
+
+/**
+ * `<test-project-tableau>`:  a tableau, drawn in its own element, e.g. by `draw the tableau`.
+ * - The page defines its tag with this class:  `spellCore.useElement()`, below.
+ * - Its attributes are its tableau's properties;  its methods call its tableau's.
+ * - What every drawable thing's element does, e.g. drawing its tableau, is `SpellElement`'s.
+ */
+export class TableauElement extends SpellElement<Tableau> {
+  @E.proto static vocabulary = SpellElement.vocabularyFor("test-project-tableau", "tableau", [])
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "test-project-tableau": Tableau.css }
+  } satisfies Partial<E.ElementSetup>
+
+  canGiveUp(card: Card) {
+    return this.currentThing?.canGiveUp(card)
+  }
+
+  canTake(card: Card) {
+    return this.currentThing?.canTake(card)
+  }
+}
+spellCore.useElement(Tableau, TableauElement)
 spellCore.getRange(1, 7).forEach((number) => {
   const it5 = new Tableau({ name: `T${number}`, droppable: true })
   tableaus.append(it5)
@@ -739,3 +873,23 @@ resetTheGame()
 game.start()
 // -----------
 spellCore.installStyles(undefined, `/* File styles.css:  the board's own styles.  The cards and piles style themselves:  their <css>. */¬`)
+
+// each drawable type's tag, for the JSX
+declare module "@solidjs/web/types/jsx.js" {
+  namespace JSX {
+    interface IntrinsicElements {
+      /** `CardElement` */
+      "test-project-card": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `PileElement` */
+      "test-project-pile": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `StockPileElement` */
+      "test-project-stock-pile": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `DiscardPileElement` */
+      "test-project-discard-pile": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `FoundationElement` */
+      "test-project-foundation": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+      /** `TableauElement` */
+      "test-project-tableau": HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }
+    }
+  }
+}

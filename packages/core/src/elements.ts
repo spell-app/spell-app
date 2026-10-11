@@ -7,10 +7,12 @@
  *   - The page plugs in through `spellCore.elementDefiner`, which app's `SpellElement.tsx` fills in.
  *   - Why:  core never imports Spell UI.
  *   - No definer (a runner without Spell UI, a test):  the tag is named, nothing is defined.
+ * - Compiled TypeScript also writes each type's element class, and hands it over:
+ *   `spellCore.useElement(Card, CardElement)` (P10).  The page builds the tag on that class.
  * - Part of `spellCore`:  imported by `$/core`'s barrel for its side effect.
  */
 
-import { instanceCase, kebabCase, schemaOf, singularize, type Schema } from "$/util"
+import { elementTagFor, instanceCase, schemaOf, type Schema } from "$/util"
 
 import { spellCore } from "./core"
 import { defineSpellCoreModule } from "./spellCore.types"
@@ -43,6 +45,31 @@ export const elementsMethods = defineSpellCoreModule({
     Object.defineProperty(Class, ELEMENT_TAG, { value: tag, configurable: true })
     queueMicrotask(() => tellDefiner(Class, tag))
     return tag
+  },
+
+  /**
+   * Hand the page `ElementClass`, the element class compiled TypeScript writes for drawable class `Class`
+   * (epic `drawable-thing` P10, J41):
+   * `spellCore.useElement(Card, CardElement)`, right after `class CardElement extends SpellElement<Card>`.
+   * - The page's `elementDefiner` builds `Class`'s tag on it, instead of on a bare element of its own.
+   *   So the page stays the ONE place a tag is defined:  the compiled class never calls `define()`.
+   * - Before the definer hears of `Class`:  that waits for a microtask, or the first draw (`defineElement()`).
+   * - No definer (no page, e.g. `spell run`, the core contract):  only kept, so it prints what javascript prints.
+   * - Nothing, for a class that isn't drawable.
+   * - SIDE EFFECT:  `Class` keeps it, as its own -- see `elementClassOf()`.
+   */
+  useElement(Class: unknown, ElementClass: Function): void {
+    if (!isDrawableClass(Class)) return
+    Object.defineProperty(Class, ELEMENT_CLASS, { value: ElementClass, configurable: true })
+  },
+
+  /**
+   * The element class handed for drawable class `Class` (`useElement()`) -- `undefined` if none was.
+   * - `Class`'s OWN:  a sub-class with none of its own, e.g. a javascript `Tableau` below a TypeScript `Pile`,
+   *   doesn't take its super-class's.
+   */
+  elementClassOf(Class: Function): Function | undefined {
+    return Object.getOwnPropertyDescriptor(Class, ELEMENT_CLASS)?.value as Function | undefined
   },
 
   /**
@@ -118,34 +145,8 @@ export const elementsMethods = defineSpellCoreModule({
 })
 Object.assign(spellCore, elementsMethods)
 
-/**
- * Tag of the element for class `className` in project `project`:
- * the project's name made singular, then the class's, kebab-cased.
- * - e.g. `Solitaire`, `Card` => `solitaire-card`;  `games`, `BankAccount` => `game-bank-account`
- * - The word "drawable" in the project's name is left out, so its tags don't all say it (epic `drawable-thing` P18):
- *   `Drawable Solitaire`, `Tableau` => `solitaire-tableau`, never `drawable-solitaire-tableau`.
- * - Only letters, digits and dashes, starting with a letter:  always a valid custom element name, as it has a dash.
- */
-export function elementTagFor(project: string, className: string): string {
-  const projectWords = tagWords(project)
-    .split("-")
-    .filter((word) => !DRAWABLE_WORD.test(word))
-    .join("-")
-  const prefix = singularize(tagWords(projectWords)) || "spell"
-  return `${prefix}-${tagWords(className)}`
-}
-
-/** The word left out of a project's name in its tags:  "drawable", or "drawables". */
-const DRAWABLE_WORD = /^drawables?$/
-
-/** `name` as a tag's words:  kebab-case, lowercase, only letters, digits and single dashes. */
-function tagWords(name: string): string {
-  return kebabCase(name.replace(/_/g, "-"))
-    .toLowerCase()
-    .replace(/[^a-z0-9-]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^[^a-z]+|-+$/g, "")
-}
+// where every side names a drawable type's tag alike:  core, app's `SpellElement`, the TypeScript writer
+export { elementTagFor }
 
 /**
  * A drawable type's style sheet, as TEXT:  what its `<css>` block compiles to (epic `drawable-thing`, P10, J14).
@@ -261,3 +262,6 @@ export type ElementDefiner = (tag: string, Class: Function) => void
 
 /** Where a drawable class keeps its tag. */
 const ELEMENT_TAG = Symbol.for("@spell-app/element-tag")
+
+/** Where a drawable class keeps the element class compiled TypeScript handed for it -- see `useElement()`. */
+const ELEMENT_CLASS = Symbol.for("@spell-app/element-class")

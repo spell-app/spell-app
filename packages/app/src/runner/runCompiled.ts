@@ -1,13 +1,15 @@
 /**
  * Running compiled spell javascript -- in every runner:  the app, the VS Code runner's webview, and `<spell-app>`.
  * - Compiled spell `import`s `@spell/core`, and any projects it imports as `@spell/project/<projectId>`.
+ *   - Compiled TypeScript's element classes also import `@spell/elements` (epic `drawable-thing` P10):
+ *     the runtime exports that too.
  *   - We rewrite them onto URLs -- the runtime's own, and a `blob:` URL per project -- see `linkModule()`.
  *   - NO import map:  a page has one, but each runner needs its own `@spell/core`.
  * - Part of `spell-runtime.js`, NOT the runners themselves:
  *   it runs on the `spellCore` of the runtime copy it's in -- see `spellRuntime.ts`'s `runApp()`.
  */
 
-import { spellCore, SPELL_CORE_MODULE } from "$/core"
+import { spellCore, SPELL_CORE_MODULE, SPELL_ELEMENTS_MODULE } from "$/core"
 
 /**
  * Run `compiled` spell javascript.
@@ -160,11 +162,13 @@ export function appIsMounted(): boolean {
 /**
  * `source` with its imports pointed at URLs:
  * `@spell/core` at `coreUrl`, and each `@spell/project/<projectId>` at `imports[projectId]`.
+ * - `@spell/elements` at `coreUrl` too:  the runtime copy exports `SpellElement` (`spellRuntime.ts`).
  * - Pure.  A project not in `imports` is left as it was.
  */
 export function linkModule(source: string, coreUrl: string, imports: Record<string, string> = {}): string {
   return source.replace(SPELL_IMPORT, (whole, from: string, specifier: string) => {
-    const url = specifier === SPELL_CORE_MODULE ? coreUrl : imports[specifier.slice(PROJECT_MODULE.length)]
+    const isRuntime = specifier === SPELL_CORE_MODULE || specifier === SPELL_ELEMENTS_MODULE
+    const url = isRuntime ? coreUrl : imports[specifier.slice(PROJECT_MODULE.length)]
     return url ? `${from}"${url}"` : whole
   })
 }

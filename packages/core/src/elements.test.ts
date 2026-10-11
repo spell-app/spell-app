@@ -51,6 +51,20 @@ describe("drawable things' elements", () => {
     spellCore.defineElement(Card, "games")
     expect(spellCore.elementTagOf(new Card())).toBe("game-card")
   })
+
+  test("useElement() keeps the element class compiled TypeScript hands over, for the definer to build on (P10)", () => {
+    class Card extends Drawable {}
+    class Joker extends Card {}
+    class Note extends Thing {}
+    class CardElement {}
+    spellCore.useElement(Card, CardElement)
+    spellCore.useElement(Note, CardElement)
+    expect(spellCore.elementClassOf(Card)).toBe(CardElement)
+    // its own only:  a sub-class with none doesn't take its super-class's
+    expect(spellCore.elementClassOf(Joker)).toBeUndefined()
+    // not drawable:  nothing kept
+    expect(spellCore.elementClassOf(Note)).toBeUndefined()
+  })
 })
 
 describe("elementApiOf():  what a drawable class shows on its element", () => {

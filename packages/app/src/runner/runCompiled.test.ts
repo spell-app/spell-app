@@ -40,6 +40,11 @@ describe("linkModule()", () => {
     expect(linked).toContain(`from "blob:core"`)
   })
 
+  test("points `@spell/elements` at the runtime too:  it exports `SpellElement` (P10)", () => {
+    const linked = linkModule(`import { E, SpellElement } from "@spell/elements"`, "blob:core")
+    expect(linked).toBe(`import { E, SpellElement } from "blob:core"`)
+  })
+
   test('handles minified `from"..."`', () => {
     expect(linkModule(`import{spellCore}from"@spell/core"`, "blob:core")).toBe(`import{spellCore}from"blob:core"`)
   })

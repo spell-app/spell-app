@@ -2,6 +2,7 @@ import { createEffect } from "solid-js"
 import { insert, type JSX } from "@solidjs/web"
 
 import { E, UI } from "$/ui/core"
+import { drawableAttributeFor } from "$/util"
 import type { ElementApi, SpellCore } from "$/core"
 import { spellElementVocabulary } from "./SpellElement.en"
 
@@ -28,10 +29,14 @@ import { spellElementVocabulary } from "./SpellElement.en"
  *   - English names only, for now
  * - ONE tag per drawable type, defined the first time a program defines its elements (`defineFor()`).
  *   What the tag draws with is looked up when it draws (`SPELL_ELEMENTS`), so a program run again takes it over.
+ * - Compiled TypeScript writes each type's own class on it, saying only what's the type's (epic `drawable-thing` P10):
+ *   `class CardElement extends SpellElement<Card>`, with its attributes, its methods and its sheet.
+ *   The page builds the tag on that class (`spellCore.useElement()`), so both targets draw the same element.
+ *   - It reaches compiled code as `@spell/elements`:  see `spellElements.ts`.
  * - Part of `spell-runtime.js`:  NEVER value-imports `$/core`.
  *   Each runtime copy hands itself over in `installSpellElements()`.
  ****************/
-export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
+export class SpellElement<Thing extends object = object> extends E.UIComponent<typeof spellElementVocabulary> {
   @E.proto static vocabulary = spellElementVocabulary
   @E.protoMerged static elementSetup: Partial<E.ElementSetup> = { delegatesFocus: false }
 
@@ -50,8 +55,9 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
    * What we draw:  the thing the program handed us;  else the one our `thing` attribute names (`referencedThing`);
    * else, in a layout, the program's (`boundThing`);  else the one we made.
    */
-  get currentThing(): object | undefined {
-    return this.handedThing ?? (this.thingReference ? this.referencedThing : (this.boundThing ?? this.ownThing))
+  get currentThing(): Thing | undefined {
+    const thing = this.handedThing ?? (this.thingReference ? this.referencedThing : (this.boundThing ?? this.ownThing))
+    return thing as Thing | undefined
   }
 
   /** The thing the program handed us, e.g. `draw the card` -- not a reference written in our `thing` attribute. */
@@ -315,7 +321,15 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
 
   /**
    * Make `tag` the element of drawable class `Class`, from `spellCore`'s program, e.g. `solitaire-card` for `Card`.
-   * - The first time:  a component class for the tag, its vocabulary ours under that tag, defined on the page.
+   * - The first time:  a component class for the tag, defined on the page, built on:
+   *   - the element class compiled TypeScript handed for `Class`, e.g. `CardElement` (`spellCore.useElement()`, P10)
+   *   - else a bare `SpellElement`, as for compiled javascript
+   * - Its vocabulary is ours under that tag, plus an attribute per property its type declares (`typePropertiesOf()`):
+   *   - an attribute the handed class names is its own, as written
+   *   - one it doesn't, e.g. a super-type's property or the list holding it, is added as for javascript
+   *   - so both targets' tags have the same attributes, and behave the same
+   * - Its methods are its type's (`addMethods()`).
+   * - Its sheet is its type's (`sheetFor()`).
    * - Again (a program run again after an edit, or another `<spell-app>` running the same project):
    *   the platform can't define a tag twice, so it stays, and what's behind it is swapped (epic `drawable-thing` P7):
    *   - it draws with the latest `spellCore` from then on (`SPELL_ELEMENTS`)
@@ -324,50 +338,106 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
    */
   static defineFor(tag: string, Class: Function, spellCore: SpellCore): void {
     SPELL_ELEMENTS.set(tag, { Class, spellCore })
+    const Base = (spellCore.elementClassOf(Class) ?? SpellElement) as typeof SpellElement
     // never "":  `UI.styles.register()` takes that as "unregister", and the tag's elements would lose the sheet
-    const css = SpellElement.cssOf(Class) || `/* <${tag}>:  no styles of its own */`
+    const css = SpellElement.sheetFor(tag, Class, Base) || `/* <${tag}>:  no styles of its own */`
     if (customElements.get(tag)) return SpellElement.restyle(tag, css)
     const api = spellCore.elementApiOf(Class)
-    const properties = SpellElement.typePropertiesOf(api)
+    const written = SpellElement.writtenAttributesOf(Base)
+    const properties = SpellElement.typePropertiesOf(api, written)
+    const derived = new Set(properties.map((property) => property.spec.name))
     // our names under its tag, then its type's:  typed as ours, whose tag is a literal
     const vocabulary = {
       ...spellElementVocabulary,
       tag,
-      noun: Class.name,
-      attributes: [...spellElementVocabulary.attributes, ...properties.map((property) => property.spec)]
+      noun: Object.hasOwn(Base, "vocabulary") ? Base.vocabulary.noun : Class.name,
+      attributes: [
+        ...spellElementVocabulary.attributes,
+        ...properties.map((property) => property.spec),
+        // one the handed class adds that's none of its type's properties:  a plain attribute
+        ...written.filter((attribute) => !derived.has(attribute.name))
+      ]
     } as unknown as typeof spellElementVocabulary
-    const Component = class extends SpellElement {
+    const Component = class extends Base {
       @E.proto static vocabulary = vocabulary
       @E.proto static typeProperties = properties
       // the sheet is named for the tag, so `restyle()` can replace it
-      @E.protoMerged static elementSetup: Partial<E.ElementSetup> = { styleSheets: { [tag]: css } }
+      @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
+        styleSheets: { ...Base.prototype.elementSetup.styleSheets, [tag]: css }
+      }
     }
     const TagClass = Component.define()
     SpellElement.readThroughThing(TagClass, properties)
-    SpellElement.addMethods(TagClass, api.methods)
+    SpellElement.addMethods(TagClass, api.methods, Base)
   }
 
   /**
-   * The attributes of a type's properties, from its `api`, e.g. `short-rank` for `short_rank`.
+   * The vocabulary of a drawable type's element class, as compiled TypeScript writes it (P10):
+   * ours under its `tag`, called by its `noun`, with `attributes` after ours.
+   *
+   * ```ts
+   * @E.proto static vocabulary = SpellElement.vocabularyFor("solitaire-card", "card", [
+   *   { name: "rank", kind: "string", description: "Its rank." }
+   * ])
+   * ```
+   * - The page defines the tag with it, adding each attribute it leaves out:  see `defineFor()`.
+   * - Typed as ours, whose tag is a literal.
+   */
+  static vocabularyFor(tag: string, noun: string, attributes: E.AttributeSpec[]): typeof spellElementVocabulary {
+    const vocabulary = {
+      ...spellElementVocabulary,
+      tag,
+      noun,
+      attributes: [...spellElementVocabulary.attributes, ...attributes]
+    }
+    return vocabulary as unknown as typeof spellElementVocabulary
+  }
+
+  /**
+   * The attributes element class `Base`'s own vocabulary adds to ours, e.g. `rank` for `CardElement`:
+   * none for ours, or for a class that names none.
+   */
+  static writtenAttributesOf(Base: typeof SpellElement): E.AttributeSpec[] {
+    if (Base === SpellElement || !Object.hasOwn(Base, "vocabulary")) return []
+    const ours = new Set<string>(spellElementVocabulary.attributes.map((attribute) => attribute.name))
+    return (Base.vocabulary.attributes as readonly E.AttributeSpec[]).filter((attribute) => !ours.has(attribute.name))
+  }
+
+  /**
+   * The sheet of `tag`, drawable class `Class`'s element built on element class `Base`:
+   * - `Base`'s own sheet under `tag`, if it has one (compiled TypeScript's `styleSheets: { "solitaire-card": Card.css }`),
+   *   after its super-types' (`cssOf()`)
+   * - else `Class`'s, its super-types' first (`cssOf()`), as for javascript
+   * - `""` if neither has any.
+   */
+  static sheetFor(tag: string, Class: Function, Base: typeof SpellElement): string {
+    const written = Base.prototype.elementSetup.styleSheets?.[tag]
+    if (written === undefined) return SpellElement.cssOf(Class)
+    return [SpellElement.cssOf(Object.getPrototypeOf(Class)), written].filter(Boolean).join("\n")
+  }
+
+  /**
+   * The attributes of a type's properties, from its `api`, e.g. `short-rank` for `short_rank`:
+   * see `drawableAttributeFor()` in `$/util`.
    * - Text, a number or a choice:  an attribute and a property.
    * - A thing, e.g. a pile:  an attribute holding its reference, `pile="Tableau#T1"` (P18).
    *   So is the list holding it, for `a card belongs to one pile`.
    * - Anything else, e.g. a list:  a property only.
    * - A name the page or Spell UI already means something by (`id`, `hidden`, `disabled` ...) is left out.
+   * - `written`:  attributes an element class names itself (`writtenAttributesOf()`):  one of them is used as written.
    */
-  static typePropertiesOf(api: ElementApi): TypeProperty[] {
+  static typePropertiesOf(api: ElementApi, written: E.AttributeSpec[] = []): TypeProperty[] {
     const properties: TypeProperty[] = []
     for (const { name, type, values, owner } of api.properties) {
-      const attribute = E.kebabCase(name.replace(/_/g, "-"))
-      if (TAKEN_ATTRIBUTES.has(attribute)) continue
-      const reference = owner ? "owner" : type && THING_TYPE.test(type) ? "thing" : undefined
-      const kind = reference ? "string" : (ATTRIBUTE_KINDS[type ?? "text"] ?? "json")
+      const attribute = drawableAttributeFor(name, type, owner)
+      if (!attribute) continue
+      const { kind, description, reference } = attribute
       properties.push({
         name,
-        property: E.camelCase(attribute),
+        property: attribute.property,
         values,
         ...(reference ? { reference } : {}),
-        spec: { name: attribute, kind, description: `Its ${name.replace(/_/g, " ")}.` }
+        spec: written.find((spec) => spec.name === attribute.name) ?? { name: attribute.name, kind, description }
       })
     }
     return properties
@@ -375,21 +445,34 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
 
   /**
    * Give `TagClass`'s elements a method for each of `methods`, calling its thing's:  `turnOver()` => `turn_over()`.
+   * - One element class `Base` has itself, e.g. compiled TypeScript's `CardElement.turnOver()`, is called instead:
+   *   so a method written there runs, for a page's `card.turnOver()`.
    * - A name the element already has (`remove`, `click` ...) is left out.
    */
-  static addMethods(TagClass: CustomElementConstructor, methods: string[]): void {
+  static addMethods(TagClass: CustomElementConstructor, methods: string[], Base = SpellElement): void {
     const { prototype } = TagClass as unknown as { prototype: Record<string, unknown> }
     for (const method of methods) {
       const name = E.camelCase(method.replace(/_/g, "-"))
       if (name in prototype) continue
+      const isWritten = SpellElement.hasOwnMethod(Base, name)
       Object.defineProperty(prototype, name, {
         configurable: true,
         value(this: { component?: SpellElement }, ...args: unknown[]) {
-          const thing = this.component?.currentThing as Record<string, (...args: unknown[]) => unknown> | undefined
+          const { component } = this
+          if (isWritten) return (component as unknown as Record<string, (...args: unknown[]) => unknown>)?.[name]?.(...args)
+          const thing = component?.currentThing as Record<string, (...args: unknown[]) => unknown> | undefined
           return thing?.[method]?.(...args)
         }
       })
     }
+  }
+
+  /** Does element class `Base`, or a class between it and us, have a method `name` of its own? */
+  private static hasOwnMethod(Base: typeof SpellElement, name: string): boolean {
+    for (let at = Base.prototype; at && at !== SpellElement.prototype; at = Object.getPrototypeOf(at)) {
+      if (typeof Object.getOwnPropertyDescriptor(at, name)?.value === "function") return true
+    }
+    return false
   }
 
   /** The drawable class `element`'s tag is for, e.g. `Card` for `<solitaire-card>` -- `undefined` for any other tag. */
@@ -435,7 +518,9 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
 }
 
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
-export interface SpellElement extends E.AttributeValues<typeof spellElementVocabulary> {}
+export interface SpellElement<Thing extends object = object> extends E.AttributeValues<
+  typeof spellElementVocabulary
+> {}
 
 /**
  * Let `spellCore` define its drawable classes' elements:  sets `spellCore.elementDefiner`.
@@ -462,42 +547,6 @@ type TypeProperty = {
   /** Its attribute, as a vocabulary declares it. */
   spec: E.AttributeSpec
 }
-
-/**
- * The kind of attribute for each type a property is declared as.
- * - A thing, e.g. a pile, is a reference instead (`THING_TYPE`);  any other type, e.g. a list:  `json`.
- */
-const ATTRIBUTE_KINDS: Record<string, E.AttributeKind> = {
-  text: "string",
-  character: "string",
-  date: "string",
-  number: "number",
-  integer: "number",
-  choice: "boolean"
-}
-
-/** A declared type that's a thing's, e.g. `Pile`:  a class's name, where spell's own types are lowercase (`text`). */
-const THING_TYPE = /^[A-Z]/
-
-/** Attributes the page or Spell UI already means something by:  never a type's. */
-const TAKEN_ATTRIBUTES = new Set([
-  "thing",
-  "id",
-  "class",
-  "style",
-  "slot",
-  "part",
-  "is",
-  "lang",
-  "dir",
-  "title",
-  "hidden",
-  "inert",
-  "disabled",
-  "loading",
-  "visible",
-  "animation"
-])
 
 /** What a drawable type's tag draws with:  its class, and the runtime of the program that defined it last. */
 type SpellElementEntry = {
