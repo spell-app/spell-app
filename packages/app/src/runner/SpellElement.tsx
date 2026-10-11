@@ -14,8 +14,9 @@ import { spellElementVocabulary } from "./SpellElement.en"
  * - It draws its `thing`, through the program's runtime:  `spellCore.drawOwn()`, in the thing's error boundary.
  * - Its outside is its type's (epic `drawable-thing` P8), named as Spell UI names its own elements' API:
  *   - each property its type declares is an attribute and a property:  `<game-card rank="1">`, `card.rank = 12`
- *   - the element and its thing agree, both ways (P13):  the page's change is written to the thing,
- *     and the thing's change to the element's attribute, so the inspector shows it -- see `keepThingAndElementAgreeing()`
+ *   - the element and its thing agree, both ways (P13):
+ *     the page's change is written to the thing, and the thing's change to the element's attribute,
+ *     so the inspector shows it -- see `keepThingAndElementAgreeing()`
  *   - each method of its type is a method:  `card.turnOver()` calls its thing's `turn_over()`
  *   - written by hand, with no `thing` set, it makes its own:  a new thing of its type, once mounted
  *   - in a `<spell-app>`'s layout, it's the program's thing of its type with its `id` as its name instead:
@@ -52,8 +53,9 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
   }
 
   /**
-   * In a layout:  the program's thing of our type named by our `id`, e.g. the tableau named `T1` --
-   * or, with no `id`, its one thing of our type.  `undefined` if there's none (yet).
+   * In a layout:  the program's thing of our type named by our `id`, e.g. the tableau named `T1`.
+   * - With no `id`:  its one thing of our type.
+   * - `undefined` if there's none (yet).
    * - Tracked:  found as soon as the program makes it.  See `spellCore.thingFor()`.
    */
   get boundThing(): object | undefined {
@@ -81,6 +83,7 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
   }
 
   /**
+   * Once on the page:  find or make our thing, and keep it and the element agreeing.
    * - Written by hand (no `thing` set):  make a thing of our type, once.
    * - Each of our type's properties stays the same on our thing and our element:  `keepThingAndElementAgreeing()`.
    * - A drawable list the page wrote puts its own items in, as its children:  in a layout, nothing else draws it.
@@ -96,8 +99,9 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
         }
       }
     )
-    // a drawable list the PAGE wrote (its thing found in a layout, or made here):  nobody draws it, so it puts its
-    // own items in, as its children -- after any the page gave it.  The program's own draw puts them in itself.
+    // a drawable list the PAGE wrote (its thing found in a layout, or made here):
+    // nobody draws it, so it puts its own items in, as its children -- after any the page gave it.
+    // The program's own draw puts them in itself.
     insert(
       this.domElement,
       () => {
@@ -170,8 +174,8 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
   }
 
   /**
-   * Write `thing`'s value of `property` to the element's property, so its attribute shows it --
-   * nothing when they agree already.
+   * Write `thing`'s value of `property` to the element's property, so its attribute shows it.
+   * - Nothing when they agree already.
    * - A property holding a thing or a list has no attribute:  its element property reads the thing's (`readThroughThing()`).
    * - Through the element's own property, which Spell UI writes back to the attribute:
    *   `rank="2"`, `face-up` when yes and gone when no, no attribute for nothing.
@@ -329,8 +333,8 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
   }
 
   /**
-   * The CSS of drawable class `Class`:  each class's own `static css` (its type's `<css>`), its super-types' first --
-   * `""` if none has any.
+   * The CSS of drawable class `Class`:  each class's own `static css` (its type's `<css>`), its super-types' first.
+   * - `""` if none has any.
    */
   static cssOf(Class: Function): string {
     const sheets: string[] = []

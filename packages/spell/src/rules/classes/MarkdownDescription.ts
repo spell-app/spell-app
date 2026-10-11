@@ -24,7 +24,7 @@ import { classes } from "./classes.parser"
  * - Compiles to its class's `static description = "..."`:  the program has it too.
  * - Plain text:  a `{...}` in it is NOT a hole, since there's no thing to read it from.
  * - Only in a type's outline:  anywhere else, a parse error that says where it goes.
- *   In a drawing, a `<markdown>` block is drawn instead:  `markdown_block`.
+ *   - In a drawing, a `<markdown>` block is drawn instead:  `markdown_block`.
  */
 export class MarkdownDescription extends P.TokenType<never, MarkdownDescriptionData> {
   @proto static alias = "statement"

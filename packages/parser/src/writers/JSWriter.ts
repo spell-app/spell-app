@@ -229,8 +229,9 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * A type's name as text, e.g. `"Pile"` in `new List({ instanceType: "Pile" })`:
-   * one of the project's own types as we write a type's name (`typeNameOf()`), any other as written, e.g. `"List"`.
+   * A type's name as text, e.g. `"Pile"` in `new List({ instanceType: "Pile" })`.
+   * - One of the project's own types:  as we write a type's name (`typeNameOf()`).
+   * - Any other:  as written, e.g. `"List"`.
    * - So a language writing types in its own case, e.g. `pile`, says the same name in its class and its text.
    */
   ASTTypeNameLiteral(node: P.ASTTypeNameLiteral): string {
@@ -1106,8 +1107,8 @@ export class JSWriter extends Writer {
   ////////////////
 
   /**
-   * `function name(args) {...}`, or as an object property `name(args) {...}` -- `async` when it awaits, `export`
-   * when `exported`.
+   * `function name(args) {...}`, or as an object property `name(args) {...}`.
+   * - `async` when it awaits, `export` when `exported`.
    * - Inline, as an arrow:  `(card) => card.play()`, or `name: (card) => ...` as an object property -- see `arrow()`.
    * - A bare `return` in it is its own, even in a loop's body.
    * - SIDE EFFECT:  `console.warn`s if `asProperty` is set but `methodName` is missing.
@@ -1371,8 +1372,8 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * `{ variables } = thing`;  new ones, `const { variables } = thing`, `let` if any is set again
-   * -- see `destructured()`.
+   * `{ variables } = thing` -- see `destructured()`.
+   * - New ones:  `const { variables } = thing`, or `let` if any is set again.
    */
   ASTDestructuredAssignment(node: P.ASTDestructuredAssignment): string {
     const declarator = !node.isNewVariable ? "" : this.isReassigned(node.variables) ? "let " : "const "

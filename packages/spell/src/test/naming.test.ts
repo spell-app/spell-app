@@ -21,8 +21,8 @@ describe("a writer's naming map", () => {
     ["javascript", () => new P.JSWriter()],
     ["TypeScript", () => new P.TSWriter()]
   ])("%s, types in snake_case:  no type's PascalCase name is left in the code", (_language, makeWriter) => {
-    // comments and text say what they like (a heading, a class attribute):  only code counts,
-    // and the text the runtime reads as a type's name, `type: "Card"`
+    // comments and text say what they like (a heading, a class attribute):
+    // only code counts, and the text the runtime reads as a type's name, `type: "Card"`
     const code = typedIn("snake_case", makeWriter())
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/\/\/.*$/gm, "")

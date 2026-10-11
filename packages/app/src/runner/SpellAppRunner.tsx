@@ -23,16 +23,20 @@ import "./SpellAppRunner.css"
  * an optional toolbar, the app, and a "debug" pane below it --
  * the Type Explorer, the Thing Explorer, and the program's console.
  * - Runs on its OWN copy of the spell runtime -- see `loadRuntime()` -- so many can run on a page at once.
- * - Runs `source` when the runtime's loaded, again when `source` changes -- a NEW object -- and on Restart.
- *   Restart fetches the program afresh, so a recompiled one shows -- or runs `source.compiled` again, if set.
+ * - Runs `source`:
+ *   - when the runtime's loaded
+ *   - again when `source` changes (a NEW object)
+ *   - and on Restart, which fetches the program afresh, so a recompiled one shows
+ *     -- or runs `source.compiled` again, if set
  * - The program draws with Solid (`App.start()` mounts its own root, `spellCore.mountApp()`):
  *   we only hand it `appRoot`, a `<div>` drawn once and never touched again.
  *   The app it mounted is unmounted with us.
  * - A program with NO app shows its console on top instead, and the explorers below.
  *   One that starts its app AFTER the run finished, e.g. from a timer, shows it once it draws.
  * - The Type Explorer is read-only, and shows only if there's a scope pack -- see `ScopesSource`.
- * - The Thing Explorer shows things' members in spell's words, if the program and what it imports have words
- *   files -- see `SP.SpellWords`.  Loaded afresh after each run, as its imports are.
+ * - The Thing Explorer shows things' members in spell's words,
+ *   if the program and what it imports have words files -- see `SP.SpellWords`.
+ *   They're loaded afresh after each run, as its imports are.
  * - `debug` and `fluid` are read once, to start;  `runtimeUrl` once per copy loaded.
  * - Its `<ui-*>` tags are the caller's to define, with Fomantic's icon names:
  *   `<spell-app>` is a root that loads them as they appear;  the VS Code runner imports `$/app/solid/loadUI`.
@@ -55,12 +59,13 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
   // compiled javascript of each project the last run loaded, by id -- for the Type Explorer's "Compiled Output"
   const compiledRef: CompiledRef = { current: new Map() }
 
-  // what takes back the last run's layout spell -- see `bindLayout()`.  Up here:  a run may start before the end
+  // what takes back the last run's layout spell -- see `bindLayout()`.
+  // Declared up here:  a run may start before this function reaches its end.
   let unbindLayout: (() => void) | undefined
   /** What we ran last:  a new compile of the same program keeps its things;  an older run's late words aren't shown. */
   let lastSource: SpellAppSource | undefined
 
-  // what takes back the last run's `in="header"` slots -- see `slotsFromIn()`.  Up here, as above
+  // what takes back the last run's `in="header"` slots -- see `slotsFromIn()`.  Up here, as above.
   let unslot: (() => void) | undefined
 
   // NOTE: ALWAYS here, just hidden without an app -- so its mount point is never redrawn
@@ -476,8 +481,9 @@ async function loadScopes(
 }
 
 /**
- * The Thing Explorer's words for `source`:  its own -- `source.words` if set, else loaded from `source.wordsUrl` --
- * then those of each project it imported, `importIds`, as one.  `undefined` if none of them has any.
+ * The Thing Explorer's words for `source`, as one:  its own, then those of each project it imported (`importIds`).
+ * - Its own:  `source.words` if set, else loaded from `source.wordsUrl`.
+ * - `undefined` if none of them has any.
  * - NEVER throws:  words are optional, as a scope pack is.
  */
 async function loadWords(source: SpellAppSource, importIds: string[]): Promise<SP.SpellWordsData | undefined> {
@@ -497,8 +503,9 @@ async function loadWords(source: SpellAppSource, importIds: string[]): Promise<S
 ////////////////
 
 /**
- * What a `<spell-app>` runs for `pushed`, code an editor compiled:  `base` -- its project's source, for its imports
- * and sources -- with `pushed`'s javascript, scope pack, declarations and words in memory.
+ * What a `<spell-app>` runs for `pushed`, code an editor compiled.
+ * - `base` (its project's source, for its imports and sources),
+ *   with `pushed`'s javascript, scope pack, declarations and words in memory.
  * - A NEW object, so `<SpellAppRunner>` re-runs it.
  * - `name`, the app's `name` attribute, wins over `base`'s, if set.
  */
@@ -514,8 +521,8 @@ export function pushedSource(base: SpellAppSource, pushed: SpellCompiled, name?:
 }
 
 /**
- * What code pushed to a `<spell-app>` was pushed FOR:  the app's `project`, `src`, `scopes`, `name` and `editor` then
- * (`PUSHED_FOR`), as one string.
+ * What code pushed to a `<spell-app>` was pushed FOR, as one string:
+ * the app's `PUSHED_FOR` attributes then -- `project`, `src`, `scopes`, `name` and `editor`.
  * - Pushed code counts only while the app's are the same:
  *   a change of what it runs, or of which editor feeds it, drops it.
  * - NOT `toolbar`, `debug`, `width`, `height`, `assets`:  they change how it looks, and NEVER re-run it.
@@ -599,8 +606,8 @@ type AppElement = HTMLElement & { spellRoot?: { unmount(): void } }
 type CompiledRef = { current: Map<string, string> }
 
 /**
- * Spell's `in="header"` on a layout's tags, as the web writes it:  `slot="header"` (Q21 B, J35) --
- * so a child the page writes by hand lands in its frame's `<children name="header"/>`.
+ * Spell's `in="header"` on a layout's tags, written the web's way:  `slot="header"` (Q21 B, J35).
+ * - So a child the page writes by hand lands in its frame's `<children name="header"/>`.
  * - A tag with a `slot` of its own keeps it.
  * - Returns what takes the slots back.
  */

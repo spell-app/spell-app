@@ -2,17 +2,18 @@ import { P } from "$/parser"
 import type { FillInParts } from "$/spell/rules/core"
 
 /**
- * Spell's own tag words in JSX, by the web's tag each becomes -- renamed as the element's AST is built,
- * so both writers write the web's.
+ * Spell's own tag words in JSX, by the web's tag each becomes.
+ * - Renamed as the element's AST is built, so both writers write the web's.
  * - `<children/>` => `<slot/>`:  where a drawable list's items show, in its `to draw`
- * - `<children name="header"/>` => `<slot name="header"/>`:  a second, named place,
- *   filled by a child written `in="header"` (`SPELL_ATTRIBUTE_NAMES`)
+ * - `<children name="header"/>` => `<slot name="header"/>`:
+ *   a second, named place, filled by a child written `in="header"` (`SPELL_ATTRIBUTE_NAMES`)
  * - The web's own `<slot/>` keeps working.
  */
 export const SPELL_TAG_NAMES = new Map([["children", "slot"]])
 
 /**
- * Spell's own attribute words in JSX, by the web's attribute each becomes -- on any tag, renamed as its AST is built.
+ * Spell's own attribute words in JSX, by the web's attribute each becomes.
+ * - On any tag, renamed as its AST is built.
  * - `<h3 in="header">` => `<h3 slot="header">`:  "put me in the frame's `header` children"
  * - The web's own `slot="header"` keeps working.
  */

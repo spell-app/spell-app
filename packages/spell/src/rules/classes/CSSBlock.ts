@@ -19,8 +19,8 @@ import { classes } from "./classes.parser"
  * ```
  *
  * - The CSS is never read as spell:  the tokenizer takes a `<css>` element's contents as raw text (`rawTextTags`).
- * - Compiles to its class's `static css = css`...``, `@spell/core`'s tag:  its element adopts it in its shadow root,
- *   after the page's theme -- see app's `SpellElement`.
+ * - Compiles to its class's `static css = css`...``, `@spell/core`'s tag.
+ *   - Its element adopts it in its shadow root, after the page's theme -- see app's `SpellElement`.
  * - Only in a DRAWABLE type's outline:  anywhere else, a parse error that says where it goes.
  * - Editors colour it, complete it and check it as CSS:  see lsp's `SpellCSS`.
  */

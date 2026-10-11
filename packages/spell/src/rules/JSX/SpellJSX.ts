@@ -18,7 +18,8 @@ import { SpellJSXContent } from "./SpellJSXContent"
  *   - On a `ui-*` tag, a value that can change is a property, `prop:value`.
  * - A dotted tag, `<UI.Form>`, is an error:  `P.ASTJSXElement.tagError()`.
  * - Spell's own words become the web's as the AST is built, so both writers write the web's:
- *   - `<children/>` => `h("slot")`, `<children name="header"/>` => `h("slot", { name: "header" })`
+ *   - `<children/>` => `h("slot")`
+ *   - `<children name="header"/>` => `h("slot", { name: "header" })`
  *   - `<h3 in="header">` => `h("h3", { slot: "header" })`, in `SpellJSXAttribute`
  *   - see `SPELL_TAG_NAMES`, `SPELL_ATTRIBUTE_NAMES`
  * - NOTE: rule name is `jsxElement`, kept distinct from class name `SpellJSX` (pre-existing convention).

@@ -20,7 +20,8 @@ import type { deprecatedMethods } from "./deprecated"
 /**
  * ES module specifier compiled spell imports its runtime from:  `import { spellCore, Thing } from "@spell/core"`.
  * - Every runner -- the app, VS Code's, `<spell-app>` -- points it at the copy of the runtime the program runs on,
- *   by rewriting it -- see `linkModule()` in `src/app/runner/runCompiled.ts`.  No import map.
+ *   by rewriting it:  see `linkModule()` in app's `runner/runCompiled.ts`.
+ * - No import map.
  */
 export const SPELL_CORE_MODULE = "@spell/core"
 
@@ -43,12 +44,14 @@ export const SPELL_CORE_NAMES = ["spellCore", ...SPELL_CLASSES]
 export const SPELL_BASE_TYPES = ["Object", ...SPELL_CLASSES]
 
 /**
- * Assembled type of the `spellCore` singleton -- built by accretion: each module below does
- * `Object.assign(spellCore, { ...methods })` at runtime (see `index.ts` for the side-effect import
- * order), so this is the intersection of every module's methods.
- * - It's the CORE CONTRACT too:  what another target's core must have (Python's, later -- epic `output-targets`), and
- *   what it must print is pinned by the `cli`'s `contract.test.ts`.
- *   - Except `deprecatedMethods`:  old names, for programs compiled before they changed.  A new core has none.
+ * The type of the `spellCore` singleton:  every module's methods, together.
+ * - Built by accretion:  each module below does `Object.assign(spellCore, { ...methods })` at runtime,
+ *   so this is the intersection of every module's methods.
+ *   `index.ts` has the side-effect imports, in order.
+ * - It's the CORE CONTRACT too:  what another target's core must have (Python's, later -- epic `output-targets`).
+ *   - What it must print is pinned by the `cli`'s `contract.test.ts`.
+ *   - Except `deprecatedMethods`:  old names, for programs compiled before they changed.
+ *     A new core has none.
  */
 export type SpellCore = typeof coreMethods &
   typeof collectionCoreMethods &
@@ -87,11 +90,11 @@ export type PropCheck = {
 // ## Modules
 
 /**
- * Identity helper used to wrap each module's methods object.
- * NOTE: this intentionally does NOT try to type `this` as `SpellCore` (e.g. via `ThisType<SpellCore>`):
- * `SpellCore` is itself assembled from `typeof <module>Methods` for every module, so a signature here
- * that mentions `SpellCore` would make every module's methods type circularly depend on itself.
- * Module method bodies call sibling methods via the imported `spellCore` singleton instead of `this`.
+ * Wrap a module's methods object, returning it as is:  marks it as part of `spellCore`.
+ * - Module method bodies call sibling methods through the imported `spellCore` singleton, not `this`.
+ * - NOTE: this intentionally does NOT try to type `this` as `SpellCore` (e.g. via `ThisType<SpellCore>`):
+ *   `SpellCore` is itself assembled from `typeof <module>Methods` for every module,
+ *   so a signature here that mentions `SpellCore` would make every module's methods type depend on itself.
  */
 export function defineSpellCoreModule<T extends object>(methods: T): T {
   return methods

@@ -3,9 +3,10 @@
  * - A drawable class defines its element as it's declared, in a static field spell writes in it:
  *   `static elementTag = spellCore.defineElement(this, "Solitaire")` -- so before the program draws anything.
  * - Core only names the tag and keeps it on the class.
- *   The element itself is Spell UI's, made by the page running the program:  `spellCore.elementDefiner`,
- *   which app's `spellElements.ts` fills in.  Why:  core never imports Spell UI.
- *   No definer (a runner without Spell UI, a test):  the tag is named, nothing is defined.
+ *   - The element itself is Spell UI's, made by the page running the program.
+ *   - The page plugs in through `spellCore.elementDefiner`, which app's `SpellElement.tsx` fills in.
+ *   - Why:  core never imports Spell UI.
+ *   - No definer (a runner without Spell UI, a test):  the tag is named, nothing is defined.
  * - Part of `spellCore`:  imported by `$/core`'s barrel for its side effect.
  */
 
@@ -29,8 +30,9 @@ export const elementsMethods = defineSpellCoreModule({
    * Name the element of drawable class `Class`, in project `project`, e.g. `<solitaire-card>` -- its tag.
    * - What a drawable class's static field calls as it's declared:
    *   `static elementTag = spellCore.defineElement(this, "Solitaire")`.
-   * - The page's `elementDefiner` hears of it once its class is whole:  when one of its things is first drawn
-   *   (`elementFor()`), else in a microtask.  Not now:  the class's later statics, e.g. its `css`, aren't set yet.
+   * - The page's `elementDefiner` hears of it once its class is whole:
+   *   when one of its things is first drawn (`elementFor()`), else in a microtask.
+   *   Not now:  the class's later statics, e.g. its `css`, aren't set yet.
    * - `undefined`, doing nothing, for a class that isn't drawable.
    * - SIDE EFFECT:  the class keeps its tag (`elementTagOf()`).
    */
@@ -43,9 +45,11 @@ export const elementsMethods = defineSpellCoreModule({
   },
 
   /**
-   * Tag of `drawable`'s element, defined on the page -- `undefined` if its class has none, or the page can't
-   * define one (no `elementDefiner`):  then it draws as any thing does.
-   * - What `drawThing()` asks.  SIDE EFFECT:  the page's `elementDefiner` hears of its class, if it hasn't yet.
+   * Tag of `drawable`'s element, defined on the page.
+   * - `undefined` if its class has none, or the page can't define one (no `elementDefiner`):
+   *   then it draws as any thing does.
+   * - What `drawThing()` asks.
+   * - SIDE EFFECT:  the page's `elementDefiner` hears of its class, if it hasn't yet.
    */
   elementFor(drawable: unknown): string | undefined {
     const tag = spellCore.elementTagOf(drawable)

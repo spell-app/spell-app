@@ -22,14 +22,16 @@ import { MARKDOWN_TAG, rawTextOf } from "./JSX.shared"
  * - The markdown is never read as spell:  the tokenizer takes a `<markdown>` element's contents as raw text
  *   (`rawTextTags`), so its `*`, `#`, `<` reach the page as written.
  * - The indent its lines share comes off, so the block can sit indented in a drawing.
- * - A `{hole}` shows a LIVE value, as a `<spell-app>` layout's text does:  the markdown is drawn again
- *   when a value it shows changes.
- *   - A hole is a spell expression, read as a text fill-in is (`parseFillIn()`):  `{rank}` ~== `{its rank}`
- *     in a card's drawing;  spell exactly, as everywhere else:  `{the score of the game}`, not `{score of the game}` (J26).
+ * - A `{hole}` shows a LIVE value, as a `<spell-app>` layout's text does:
+ *   the markdown is drawn again when a value it shows changes.
+ *   - A hole is a spell expression, read as a text fill-in is (`parseFillIn()`):
+ *     `{rank}` ~== `{its rank}` in a card's drawing.
+ *   - It's spell exactly, as everywhere else:  `{the score of the game}`, not `{score of the game}` (J26).
  *   - A hole that still doesn't read is a parse error:  write `\{` for a real brace (markdown shows `{`).
  *   - Code keeps its braces:  a fenced code block, or a `` `code` `` span.
  * - Compiles to `<ui-markdown>` with the markdown as its TEXT (Q24:  no markdown parser in the compiler):
- *   `h("ui-markdown", "## Klondike\n...")`, or a template string inside `() => ...` with holes.
+ *   - no holes:  `h("ui-markdown", "## Klondike\n...")`
+ *   - with holes:  a template string inside `() => ...`
  * - In a type's outline, a `<markdown>` block is the type's description instead:  `markdown_description`.
  */
 export class MarkdownBlock extends P.TokenType<never, MarkdownBlockData> {
