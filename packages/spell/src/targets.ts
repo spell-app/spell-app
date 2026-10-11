@@ -21,6 +21,12 @@ export type Target = {
   can: TargetAbilities
   /** What checks its output after `spell compile`, e.g. `tsc` -- see `typecheck()` in `$/spell/node/typecheck`. */
   checkedBy?: "tsc"
+  /**
+   * End of the name of its own words file, beside its output, e.g. `.py.en.json`:  spell's wording of each member,
+   * keyed by THIS target's names (`move_to_pile`) -- see `SP.SpellWords.json()`.
+   * - `js/solid`'s words are `<Project>.en.js`, which every runner loads -- see `SP.SpellProject.wordsFile`.
+   */
+  wordsSuffix?: string
 }
 
 /** What a target's runtime can do -- checked while compiling, so a project asks only what its targets give. */
@@ -43,7 +49,13 @@ export const TARGETS: Record<string, Target> = {
   },
   // Python as a person writes it, PEP 8's names, on `spell_core` (`packages/core/py`) -- epic `python-target`.
   // Draws HTML text:  Python has no page (Q2)
-  py: { name: "py", writer: P.PyWriter.instance, suffix: ".compiled.py", can: { draw: "html" } }
+  py: {
+    name: "py",
+    writer: P.PyWriter.instance,
+    suffix: ".compiled.py",
+    can: { draw: "html" },
+    wordsSuffix: ".py.en.json"
+  }
 }
 
 /** The target everything runs:  always compiled -- see the module docs. */

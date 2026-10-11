@@ -253,6 +253,15 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
+   * File for `target`'s own words, beside its output, e.g. `Solitaire.py.en.json` -- `undefined` for a target with
+   * none (`SP.Target.wordsSuffix`).
+   */
+  wordsFileFor(target: SP.Target): SP.SpellJSFile | undefined {
+    if (!target.wordsSuffix) return undefined
+    return new SP.SpellJSFile(this.getFileLocation(`${this.projectName}${target.wordsSuffix}`)!.path)
+  }
+
+  /**
    * Return base `ProjectScope` for this project, given `parentScope`.
    * - Clones `parentScope`'s parser scoped to `this.path`, so rules added within project
    *   (e.g. custom types/macros) don't leak out to `parentScope` or sibling projects.
@@ -375,6 +384,9 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
                 // each declaring statement's marker comes out, into our declarations -- see `SP.SpellDeclarations`
                 const { code, declarations } = SP.SpellDeclarations.split(marked, this.scope!, { version, exports })
                 this.outputFileFor(target).contents = code
+                // a target with words of its own, keyed by its names, e.g. Python's `move_to_pile`
+                const wordsFile = this.wordsFileFor(target)
+                if (wordsFile) wordsFile.contents = SP.SpellWords.json(SP.SpellWords.of(declarations, target.writer))
                 if (target.name !== SP.RUNNING_TARGET) continue
                 this.setState("compiled", code)
                 this.declarationsFile.contents = JSON.stringify(declarations, null, 2)
@@ -395,7 +407,10 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
               if (!this.saveCompiled) return this.outputFile.contents
               await this.declarationsFile.save(undefined)
               await this.wordsFile.save(undefined)
-              for (const target of this.targets.slice(1)) await this.outputFileFor(target).save(undefined)
+              for (const target of this.targets.slice(1)) {
+                await this.outputFileFor(target).save(undefined)
+                await this.wordsFileFor(target)?.save(undefined)
+              }
               return await this.outputFile.save(undefined)
             }
           })

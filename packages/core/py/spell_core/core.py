@@ -23,6 +23,7 @@ from spell_core.seeded_random import DEFAULT_SEED, ParkMiller, RandomMethods
 from spell_core.spell_tests import SpellTestMethods
 from spell_core.text_methods import TextMethods
 from spell_core.thing_methods import ThingMethods
+from spell_core.word_methods import WordMethods
 
 
 class SpellCore(
@@ -34,6 +35,7 @@ class SpellCore(
     ThingMethods,
     TextMethods,
     RuntimeMethods,
+    WordMethods,
 ):
     """Everything compiled Python calls on `core`, each part in a module of its own:
 
@@ -45,6 +47,7 @@ class SpellCore(
     - checking a thing's properties, the program's classes, spell's JSON:  `thing_methods.py`
     - text:  `text_methods.py`
     - the running program's events and processes, and pauses:  `runtime_methods.py`, `events.py`
+    - spell's wording of a program's members, for reflection:  `word_methods.py`
     - the console, `core.console`:  `console.py`
     - the classes compiled Python extends, `Thing` and `List`:  `things.py`, `lists.py`
 
