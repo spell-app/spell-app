@@ -58,6 +58,9 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
   // what takes back the last run's layout spell -- see `bindLayout()`.  Up here:  a run may start before the end
   let unbindLayout: (() => void) | undefined
 
+  // the source the latest `run()` runs:  an older run's words, arriving late, aren't shown.  Up here, as above
+  let running: SpellAppSource | undefined
+
   // NOTE: ALWAYS here, just hidden without an app -- so its mount point is never redrawn
   const appRoot = (<div class="App" />) as HTMLDivElement
   // a layout in markup is the app's drawing:  shown through a slot, its `to draw` not drawn (epic `drawable-thing` P9)
@@ -180,11 +183,13 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
   async function run(copy: LoadedRuntime, source: SpellAppSource) {
     unbindLayout?.()
     unbindLayout = undefined
-    const ran = await runProgram(copy, source, appRoot, !!props.layout)
+    // read props before waiting:  by then, whoever handed them to us may be gone (`<spell-app>` dropping its source)
+    const layout = props.layout
+    running = source
+    const ran = await runProgram(copy, source, appRoot, !!layout)
     compiledRef.current = ran.compiled
     setError(ran.error)
     setHasApp(ran.hasApp)
-    const layout = props.layout
     if (layout && !ran.error && layoutHasSpell(layout)) {
       bindLayout(copy, source, layout).then(
         (unbind) => (unbindLayout = unbind),
@@ -196,7 +201,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
       [...ran.compiled.keys()].filter((id) => id !== MAIN_PROJECT)
     )
     // a newer source's run may have started meanwhile:  its words are its own
-    if (source === untrack(() => props.source)) setWords(loaded)
+    if (source === running) setWords(loaded)
   }
 
   /** The Type Explorer, read-only, if there's a scope pack. */
