@@ -22,7 +22,7 @@ import { REPO_ROOT, findCheckout } from "$/cli/findCheckout"
  * - `airplane`:  airplane mode and its pre-flight check (`packages/docs/tools/airplane.ts`), in the caller's folder
  * - `notes`:  page notes (`packages/docs/tools/notes.ts`), in the caller's folder (`answer --file` is from there)
  * - `comments`:  comments on docs pages (`packages/docs/tools/comments.ts`), likewise
- * - NOTE: `goals` has its own lookup (`goalsCommand()`);  `vscode` runs yarn itself (`vscodeSteps()`);
+ * - NOTE: `vscode` runs yarn itself (`vscodeSteps()`);
  *   `plan-doc` runs in this process (`planDocCommand()`, epic `epic-components` P7)
  */
 export const TOOLS = {
@@ -88,7 +88,7 @@ export const TSX_LOADER = pathToFileURL(join(REPO_ROOT, "node_modules", "tsx", "
 /**
  * Run `command` with `args` as a child, with this terminal attached, and resolve to its exit code.
  * - `Ctrl-C` reaches the child from the terminal itself, so this process ignores it until the child is done:
- *   a foreground server (`server serve`, `goals serve`) gets to stop cleanly, and we exit with its code
+ *   a foreground server (`server serve`) gets to stop cleanly, and we exit with its code
  * - `SIGTERM` / `SIGHUP` sent to us alone are passed on
  * - killed by a signal:  `128 +` its number, as a shell reports it;  failed to start:  `EXIT.ERRORS`, saying why
  */

@@ -57,6 +57,13 @@ export const epicPageVocabulary = {
         "`details/analysis.html`."
     },
     {
+      name: "standing",
+      kind: "boolean",
+      description:
+        "A STANDING epic (epic `epic-workflow`):  open for good, a home that requests from other sessions keep " +
+        "adding phases to;  each phase merges into `main` on its own, and every phase done is NOT done."
+    },
+    {
       name: "bedtime",
       kind: "string",
       description: "A `/bedtime` run is on, and what it runs (`P3-P6`):  items it changes are `recent`."
@@ -228,6 +235,11 @@ export const epicPageVocabulary = {
     { key: "durable", text: "Durable doc:", description: "Meta line:  before the durable doc's link." },
     { key: "done", text: "DONE", description: "Step label:  every phase is done." },
     { key: "future", text: "FUTURE", description: "Step label:  a future epic." },
+    {
+      key: "standing",
+      text: "STANDING",
+      description: "Step label:  a standing epic with every phase done:  open for requests."
+    },
     { key: "next", text: "Next:  ", description: "Step label's tooltip, before the next phase." },
     { key: "bedtime", text: "Bedtime {phases}", description: "The bedtime label:  a `/bedtime` run is on." },
     {

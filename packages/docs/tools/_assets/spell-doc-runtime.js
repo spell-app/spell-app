@@ -2734,11 +2734,18 @@ const HEADLINE_CHARS = 40
 /** How long after the page's content changes (a plan doc's part loading) the comments draw again, ms. */
 const REDRAW_MS = 150
 
+/**
+ * What a bullhorn moves left of, in the shadow root of the block it's over (`makeRoom()`):  a plan doc item's review
+ * pills and Do Now, an update's date.
+ */
+const MAKES_ROOM = '[part~="review-buttons"], [part~="time"]'
+
 /** What a block kind is called in the bullhorn's tooltip and the comment box. */
 const KIND_NAMES = {
   section: "section",
   item: "item",
   field: "field",
+  update: "update",
   summary: "summary",
   prose: "paragraph",
   table: "table",
@@ -2940,7 +2947,8 @@ class PageComments {
   /**
    * Keep every block's bullhorn off other buttons (Owen, 2026-10-10:  "Overlap in bullhorn buttons"):  a bullhorn
    * sits over its block's top right corner, so
-   * - a plan doc item's own review pills and Do Now are there too:  the bullhorn moves left of them
+   * - a plan doc item's own review pills and Do Now are there too:  the bullhorn moves left of them;  so does an
+   *   update's date (`<epic-update>`'s `time` part, at its title row's right)
    * - a thread just under a short block (a folded item, a one-line paragraph) can lie under it:  that thread's
    *   header leaves room on its right, its buttons moving left
    */
@@ -2949,7 +2957,7 @@ class PageComments {
     const marks = this.main.querySelectorAll(".spell-comment-mark.at-block")
     for (const mark of marks) {
       const horn = mark.querySelector(":scope > ui-button")
-      const controls = mark.nextElementSibling?.shadowRoot?.querySelectorAll('[part~="review-buttons"]') ?? []
+      const controls = mark.nextElementSibling?.shadowRoot?.querySelectorAll(MAKES_ROOM) ?? []
       if (!horn) continue
       horn.style.right = ""
       const rect = horn.getBoundingClientRect()

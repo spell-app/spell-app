@@ -89,6 +89,9 @@ export abstract class PlanReader {
   /** A FUTURE epic (`/epic future <name>`):  an idea written down, not planned yet. */
   abstract get future(): boolean
 
+  /** A STANDING epic (epic `epic-workflow`):  open for good, each phase merging on its own;  never done. */
+  abstract get standing(): boolean
+
   /** The phases a `/bedtime` run is on (`P3-P6`);  `null` when none is. */
   abstract get bedtimeRun(): string | null
 
@@ -186,6 +189,7 @@ export abstract class PlanReader {
       estimate: this.estimate,
       bedtime: this.bedtimeRun,
       future: this.future,
+      standing: this.standing,
       open
     }
   }

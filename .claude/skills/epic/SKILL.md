@@ -1,7 +1,7 @@
 ---
 name: epic
-description: Run a planning session against a live plan doc, `epics/<name>/<name>.plan.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  open a plan doc in the side bar's Review tab, where Owen marks items on the page, and listen:  act on his marks (approvals, picks, todos), write details and replies in the background, talk revisits over ("review the seo epic", "go through unified-server's caveats").  `/epic resume [<name>]`:  pick an epic back up in a new session, in the right worktree and window, where its plan doc says it stopped ("resume the seo epic", "carry on with windows-and-review").  `/epic future <name> [idea]`:  write an idea down as a FUTURE epic, not planned yet:  a stub plan doc and an analysis page of its high-level open questions, answered in the Review tab;  no worktree ("save this as a future epic", "an epic for later").  `/epic phase [ids] [name]`:  add a phase to this session's epic, from its items (`/epic phase J1 J5, t3`) or from scratch;  `/epic start <P1 | ids>`:  work a phase, or a block of its items, now.  `/epic done`:  the same as `/isolate done`.
-argument-hint: <name> [what to plan] | done | review [<name>] | resume [<name>] | future <name> [idea] | phase [ids] [name] | start <P1 | ids> | color <look>
+description: Run a planning session against a live plan doc, `epics/<name>/<name>.plan.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  open a plan doc in the side bar's Review tab, where Owen marks items on the page, and listen:  act on his marks (approvals, picks, todos), write details and replies in the background, talk revisits over ("review the seo epic", "go through unified-server's caveats").  `/epic resume [<name>]`:  pick an epic back up in a new session, in the right worktree and window, where its plan doc says it stopped ("resume the seo epic", "carry on with windows-and-review").  `/epic future <name> [idea]`:  write an idea down as a FUTURE epic, not planned yet:  a stub plan doc and an analysis page of its high-level open questions, answered in the Review tab;  no worktree ("save this as a future epic", "an epic for later").  `/epic phase [ids] [name]`:  add a phase to this session's epic, from its items (`/epic phase J1 J5, t3`) or from scratch;  `/epic start <P1 | ids>`:  work a phase, or a block of its items, now.  `/epic request <epic> [<rN>]`:  take up a request Owen sent from another session (`/send`), into a phase.  `/epic done`:  the same as `/isolate done`.
+argument-hint: <name> [what to plan] | done | review [<name>] | resume [<name>] | future <name> [idea] | phase [ids] [name] | start <P1 | ids> | request <epic> [<rN>] | color <look>
 ---
 
 # /epic
@@ -57,7 +57,7 @@ Plan, then build, in worktree `<name>`, keeping the PLAN DOC current the whole t
 - Naming a doc in a reply (the plan doc, a durable doc, any `packages/docs` page):
   paste what `spell dev docs link` prints, run in the checkout the doc is in.
   - In full:  `spell dev docs link <ABSOLUTE path> --hash <id> [--text "..."]`.
-  - It prints the side bar link, then `(_browser_)`
+  - It prints the side bar link, then `• 🌐` (the browser link)
     ([the details skill](.claude/skills/details/SKILL.md), "Links to pages").
   - `--hash`:  the id of what you mean (`p2`, `q3`, `t4`).
   - A worktree's doc goes on the MAIN server when that one has the route, else the worktree's own.
@@ -84,6 +84,8 @@ Plan, then build, in worktree `<name>`, keeping the PLAN DOC current the whole t
   - `start`:  `/epic start <P1 | ids>` works a phase, or a block of items in it.
     Go to "11. Start".
   - `phase` and `start`:  epic `skillz` P4.
+  - `request`:  `/epic request <epic> [<rN>...]` takes up a request Owen sent from another session.
+    Go to "12. Request" (epic `epic-workflow`).
   - `done`:  `/epic done` is `/isolate done`, word for word.
     Follow [the isolate skill](.claude/skills/isolate/SKILL.md)'s "Finish", and skip everything else here.
     - The same steps "6. Doc Review" ends with.
@@ -339,12 +341,18 @@ The filling goes to a background agent, `<name>-plan-doc`, as if Owen had typed 
    - An item talked through with Owen (he answered, accepted, or said leave it):
      `review <name> <id> "outcome"`, so the next `/epic review` doesn't bring it up again ("7. Review").
    - Changed a phase's PLAN (Owen's feedback, or something found while building):
-     - `updated <name> <N> "<p>what changed, and why</p>"`:
-       a dated line in its fenced Updated block, under Symptom / Changes.
+     - `updated <name> <N> "<p>what changed, and why</p>" --summary "..."`:
+       an `<epic-update>` block at the end of the phase's description, after Goal:  **Update**: <summary>, dated.
        Never an "Updated" word in the text.
+     - ALWAYS pass `--summary`:  5-10 words saying WHAT changed (Owen, 2026-10-11).
+       Never who or when ("From Owen's comment CM2 ...", "Owen, 2026-10-11:"):  the text says who, the block shows when.
+       E.g. `--summary "Tab labelled App/UI, right after App"`.
      - Then `phase-body <name> <N> --changes ...` (or `--goal` ...), to make the fields say the new plan.
-   - Changed a prose block:  put `<epic-update phase="N"><p>what changed</p></epic-update>` just before it.
-     - The script marks items itself;  `phase <name> N done` drops it.
+   - Changed a prose block:  put
+     `<epic-update at="YYYY-MM-DD HH:MM" summary="what changed, one line" phase="N"><p>why</p></epic-update>`
+     right AFTER it (an update to a whole Overview sub-section:  last inside it).
+     - The script marks items itself (a bare label in the title);  `phase <name> N done` drops both.
+     - Its plan changes (`updated`) stay.
      - A note that should stay:  `<epic-note state="update" title="...">` (`plan-doc.md`, "UPDATE markers").
 3. Subagents:  named and listed, as the root `CLAUDE.md`'s "Delegated work" says
    (`spell dev agents add` / `done`).
@@ -364,6 +372,21 @@ The filling goes to a background agent, `<name>-plan-doc`, as if Owen had typed 
    - After the phase's commit:  `spell dev plan-doc commits <name> --backfill`, which finds them by subject.
      - The plan doc is never in that commit:
        it's shared content, committed for you (see "Shared content" at the top).
+   - A STANDING epic (`<epic-page standing>`, `plan-doc summary --json`'s `standing`;  epic `epic-workflow`):
+     the phase goes onto `main` AT ONCE, once its commit is made and its checks pass (Q8 of `epic-workflow`).
+     - Its own short doc pass comes first, in place of one Doc Review at the end:
+       `/fussbudget` on the files the phase changed, and the durable doc brought in line, before the commit.
+     - Then, no asking (the standing epic is the ask):
+       1. `main` moved (`git log --oneline HEAD..main` not empty):  `spell dev worktree merge-main`.
+       2. `ExitWorktree` with `action: "keep"`:  a worktree session can't move `main`.
+       3. `spell epic merge <name>`, in the main checkout:  checks it's on `main` and clean, then fast-forwards.
+          It refuses, saying why (`main` moved again, uncommitted work there):  `add <name> issue`, and go on.
+       4. `EnterWorktree` with `path: ".claude/worktrees/<name>"`:  back, the window and session unchanged.
+       5. The changelog:  the epic's entry, under "3. Merged into main", gets the phase's bullets.
+     - Never `/isolate done`:  the worktree, the window and the session stay, for the next request.
+     - In bedtime mode, nothing merges:  `add <name> todo "merge P<n>"`, as `/bedtime` says.
+     - `spell dev plan-doc standing <name> [on|off]` makes an epic standing, or not;
+       the docs index, `/epics` and its step label then never call it done (STANDING, when every phase is).
 5. Reply:  a short bulleted list (done, issues, caveats, next), and the "complete.  Next is" line (see the top).
    - THEN AskUserQuestion, so the user picks without copying anything.
      Options, most useful first:
@@ -718,7 +741,8 @@ Write an idea down as a FUTURE epic (epic `epic-future`, 2026-10-07).
 - A stub plan doc and an analysis page;  NO plan, worktree, window or phases.
 - `/epic <name>` plans it later, from what this leaves.
 
-- Runs from ANY window, `main` or a worktree:  the prompt hook lets it through, and titles the session `📅 <name>`.
+- Runs from ANY window, `main` or a worktree:  the prompt hook lets it through, and titles the session `📅 <name>`;
+  not one titled for another epic, which keeps its title (epic-workflow I5).
   - No worktree, no plan mode, no move.
 1. Name, collisions, kickoff prompt:  as "1. Name".
    - The rest of the text is the idea, kept verbatim in `~/.spell/prompts/<name>.md` until the doc holds it.
@@ -843,6 +867,49 @@ Owen starts work in THIS epic, in one block:  a phase, or a handful of its items
   - Reply as a phase's end does:  what was done per item (in words, ids after), checks with numbers, what's next.
 - Bedtime mode on (`spell dev plan-doc summary <name> --json`, `bedtime`):  no modals, as `/bedtime` says.
 
+## 12. Request:  `/epic request <epic> [<rN>...]`
+
+A REQUEST is something Owen asked for in another session, sent here instead of done there
+(the `/send` skill, [.claude/skills/send/SKILL.md](.claude/skills/send/SKILL.md);  epic `epic-workflow`).
+- It's a folder, `epics/<epic>/requests/r3/`:  `request.md` (his words verbatim, the sender, what it was looking at)
+  and the screenshots he pasted.
+- It reaches this session one of three ways:
+  - a message from the sender:  "New request r3 for epic `<epic>` ...":  the same steps
+  - a NEW session in the epic's window, `/epic request <epic> r3` typed in (the epic's session wasn't running):
+    first `EnterWorktree` with `path: ".claude/worktrees/<epic>"`, as "Launched" does
+  - the sender IS this epic's session:  it follows these steps itself
+- The prompt hook titled the session `🚧 <epic>` (so later requests reach it), and refuses `/epic request` in a session
+  titled for another epic.
+- No `<rN>`:  every request still `new` (`spell epic requests <epic>`).
+
+```
+/epic request epic-workflow r3        take up r3
+/epic request epic-workflow           every new one
+```
+
+1. `spell epic requests <epic> --json`:  the request(s), status `new`.
+   - Read each `request.md`, and look at each screenshot (`Read` on the image).
+2. One line, at once:  "taking r3 (from `🚧 python`):  <his first words>".
+3. The filing goes to a background `<epic>-plan-doc` agent (root `CLAUDE.md`, "Delegated work"), the session free.
+   Its prompt, per request (Q3 of `epic-workflow`:  join a matching phase, else a new one):
+   1. read the request, and every to-do phase (`spell dev plan-doc summary <epic> --json`, each one's part file)
+   2. a phase still TO DO (never active or done) about the SAME thing:  the request JOINS it
+      - its goal gets a bullet, Owen's ask in short, linked:  `<a href="requests/r3/request.md">r3</a>`
+        (`phase-body <epic> N --goal ...`, the old bullets kept)
+      - `updated <epic> N "<p>r3 joined:  ...</p>"`
+   3. else a NEW phase, drafted as "10. Add a phase" drafts one, his words as Owen's input
+      - `--before <Doc Review's number>` while Doc Review is still to do;  else last
+   4. `spell epic file <epic> r3 <N>`:  his words, the context and the screenshots go into phase N's Requests field,
+      and the request is marked filed (`P<N>`)
+   5. `spell dev plan-doc check <epic>`;  report one line per request:  "r3 joined P6 · Comment Threads" or
+      "r3:  new P8 · Retry Logic"
+4. Its report back:
+   - one line per request, with the phase's link pair (`spell dev docs link <doc> --hash p<N> --review`)
+   - then, when no phase is under way and bedtime mode is off:  "5. Each phase", step 5's modal,
+     "Start P<N> · <Name>" first
+   - a phase under way:  no modal;  the new work waits its turn.
+- A request that needs no phase (already done, a duplicate):  `spell epic file <epic> r3 "<why>"`, and say so.
+
 ## Cheat sheet (`spell dev plan-doc ...`, from anywhere in the repo)
 
 ```
@@ -852,14 +919,16 @@ new <name> [--title "Title"] [--prompt "..." | --prompt-file f] [--future]
 add-phase <name> "Short Name" --symptom .. --changes .. [--goal ..] [--files ..] [--verify ..] [--estimate 2h]
           [--before N]                              --before:  inserted as PN;  the to-do phases from N move down
 phase-body <name> <N> [--symptom ..] [--changes ..] [--goal ..] [--files ..] [--verify ..]   set ("" removes) fields
-updated <name> <N> "<p>what changed</p>"            a change to phase N's plan:  fenced, dated, under Symptom / Changes
+updated <name> <N> "<p>what changed</p>" [--summary ".."]   phase N's plan changed:  <epic-update>, after Goal
+request <name> <N> <rN> --from "..." --file f     a request into phase N's Requests field (`spell epic file` runs it)
 estimate <name> <N> "1-2h"                          change a phase's estimate;  the Overview's total follows
-phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the VS Code tab
+phase <name> <N> todo|active|done [--no-open]       done drops UPDATE labels / prose updates;  reloads the tab
 add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details "<p>html</p>"] [--calm]   prints the id (C3)
 calm <name> <id>... [--loud]                        calls / issues not urgent (yellow);  --loud:  red again
 decide <name> <Q id> "answer" [--details html]     answer a question, INTO it:  prints its id (Q3)
 commit <name> <sha> --phase N | --item <id> "..."   list a commit under a phase or an item
 commits <name> --backfill                           every phase / item commit (`P3:`, `<name> I3:`), once
+standing <name> [on|off]                            a standing epic:  each phase merges on its own, never done
 close <name> <id>  /  reopen <name> <id>            close (done) / open again, never delete
 cancel <name> <id> ["why"]                          made moot by another decision:  struck;  reopen undoes it
 log <name> "text"                                   timestamped line in the doc's log

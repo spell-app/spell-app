@@ -3,6 +3,8 @@ import { parseHTML } from "linkedom"
 import type { EpicData, EpicTag } from "$/epics/definitions"
 import { Markup, type MarkupContent, type MarkupProblem } from "$/epics/markup"
 import { EpicParts } from "$/epics/tool/EpicParts"
+import { Migrations } from "$/epics/tool/migrations"
+import { PlanDoc } from "$/epics/tool/PlanDoc"
 import { PART_EXT, PARTS_DIR, PlanParts } from "$/epics/tool/PlanParts"
 import { PlanMarkup } from "$/epics/tool/PlanMarkup"
 
@@ -69,11 +71,16 @@ export abstract class DocPass {
   /**
    * The working document as the doc's files:  validated, split (`EpicParts`), each file formatted as `vp fmt` would,
    * and read back as a reader of the files would (`after`, for the proof).
+   * - first today's markup for what a pass wrote in an older shape (`Migrations`, as the plan-doc tool's next write
+   *   would):  plan changes and UPDATE notes as `<epic-update at summary>`;  then each phase's `changes` count
    * - `problems`:  what `Markup.validate()` found, in the document and in the files read back (none allowed)
-   * - changes `document` (split, ampersands escaped):  call it last
+   * - changes `document` (migrated, split, ampersands escaped):  call it last
    */
   protected async output(): Promise<PassOutput> {
     const { document } = this
+    Migrations.run(document, { now: new Date() })
+    const phases = document.querySelector("epic-section[kind='phases']")
+    if (phases) PlanDoc.writeChangeCounts(phases)
     const problems = Markup.validate(document).map(describeProblem)
     const docName = `${this.name}.plan.html`
     PlanMarkup.escapeAmpersands(document)

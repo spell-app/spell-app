@@ -51,9 +51,15 @@ export class NewReading extends DocReading {
       case "epic-reply":
         return { pieces: [text("from"), text("at"), text("re")] }
       case "epic-updated":
-        // a Plan changes copy (T14):  chrome, as the old box was (`OldReading` skips it)
-        if (element.getAttribute("slot") === "changes") return { children: false }
+        // an older doc's Plan changes copy in the Phases section (T14):  chrome, as the old box was (`OldReading`
+        // skips it);  a line in its phase's `changes` slot is the line itself
+        if (element.getAttribute("slot") === "changes" && element.parentElement?.localName === "epic-section")
+          return { children: false }
         return { pieces: [text("at")] }
+      case "epic-update":
+        // a phase's plan change keeps its old Updated line's time;  a note's `at` and any `summary` are made from
+        // the doc (its dates, its first sentence), so they're not words the old doc had
+        return { pieces: [element.parentElement?.localName === "epic-phase" ? text("at") : undefined] }
       case "epic-event":
         return { pieces: [shownTime(text("at"))] }
       default:

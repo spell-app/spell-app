@@ -139,6 +139,32 @@ describe("PlanDocFiles", () => {
     expect(readFileSync(file, "utf8")).toBe(before)
   })
 
+  test("an edit migrates an older split doc first (`updates-as-epic-update`):  its phase's part rewritten, logged", async () => {
+    const file = await oneFile()
+    await FILES.edit(
+      file,
+      (plan) => {
+        const old = '<epic-updated slot="changes" at="2026-10-01 08:00" phase="1"><p>Split it. Why.</p></epic-updated>'
+        plan.phase(1).insertAdjacentHTML("afterbegin", old)
+        plan.findSection("phases")!.insertAdjacentHTML("afterbegin", old.replace('phase="1"', 'phase="1" of="1"'))
+      },
+      { split: true }
+    )
+    // written as the tool wrote it until 2026-10-11:  the line in the phase's part, the copy in the skeleton
+    expect(readFileSync(join(file, "..", "parts", "p1.html"), "utf8")).toContain("<epic-updated")
+    await FILES.edit(file, (plan) => plan.addPhaseUpdate(1, "<p>Joined again.</p>"))
+    const part = readFileSync(join(file, "..", "parts", "p1.html"), "utf8")
+    expect(part).not.toContain("<epic-updated")
+    expect(part.match(/<epic-update\b[^>]*>/g)).toEqual([
+      expect.stringMatching(/at="2026-10-01 08:00"[^>]*summary="Split it"/),
+      expect.stringMatching(/summary="Joined again"/)
+    ])
+    const skeleton = readFileSync(file, "utf8")
+    expect(skeleton).not.toContain("<epic-updated")
+    expect(skeleton).toMatch(/<epic-phase\s+id="p1"[^>]*changes="2"/)
+    expect(FILES.read(file).document.querySelector("#log")!.textContent).toMatch(/migrated:\s+updates-as-epic-update/)
+  })
+
   test("& in an attribute survives a write and a read (I2)", async () => {
     const file = await oneFile()
     await FILES.edit(file, (plan) => plan.addItem("todo", "A &lt; B & C"))
