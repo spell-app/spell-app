@@ -120,6 +120,18 @@ export class SpellWords {
     return file.startsWith(`${projectName}.`) && LANGUAGE_JS.test(file.slice(projectName.length + 1))
   }
 
+  /**
+   * `words` as a target's own words file holds them, e.g. Python's `<Project>.py.en.json`:  plain JSON, keyed by that
+   * target's names (`of(declarations, writer)`), for a reader in any language (epic `python-target` P14).
+   *
+   * ```json
+   * { "lang": "en", "types": { "Card": { "move_to_pile": "move (a card) to (a pile)" } } }
+   * ```
+   */
+  static json(words: SP.SpellWordsData): string {
+    return `${JSON.stringify(words, null, 2)}\n`
+  }
+
   /** Language the compiler writes words in:  English, spell's own. */
   static LANG = "en"
 }
