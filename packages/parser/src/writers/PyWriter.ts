@@ -779,7 +779,10 @@ export class PyWriter extends ProgramWriter {
     if (statement instanceof P.ASTMethodDefinition) return this.methodDefinition(statement, doc)
     if (statement instanceof P.ASTClassDeclaration)
       return this.classDeclaration(this.withProjectMembers(statement), doc)
-    if (statement instanceof P.ASTPropertyDefinition) return this.memberDefinition(statement, doc)
+    if (statement instanceof P.ASTPropertyDefinition) {
+      // outside a class body:  a class of another project, e.g. Klondike's `to play a card` for Cards' `Card`
+      return this.inClassBody ? this.memberDefinition(statement, doc) : this.ASTPropertyDefinition(statement, doc)
+    }
     if (statement instanceof P.ASTStaticMethod) return this.staticMethod(statement, doc)
     if (statement instanceof P.ASTExpression) {
       const handler = this.handlerBlock(statement)
@@ -1193,14 +1196,18 @@ export class PyWriter extends ProgramWriter {
     return this.methodDefinition(node.method!, doc, { name, first: "self" })
   }
 
-  /** From outside its class:  its function, then set on the class -- `Card.pile = property(_card_pile)`. */
-  ASTPropertyDefinition(node: P.ASTPropertyDefinition): string {
+  /**
+   * From outside its class:  its function, then set on the class -- `Card.pile = property(_card_pile)`.
+   * - For a class of another project:  a class of this one has it in its body (`withProjectMembers()`).
+   * - `doc`:  its docstring, if any.
+   */
+  ASTPropertyDefinition(node: P.ASTPropertyDefinition, doc?: P.ASTDocComment): string {
     const type = this.typeNameOf(node.typeName)
     const name = this.nameOf(node.property.value)
     const helper = `_${this.nameOf(node.typeName, "variable")}_${name}`
     return this.inClass(node.typeName, () => {
       const method = node.get ?? node.method!
-      const def = this.methodDefinition(method, undefined, { name: helper, first: "self" })
+      const def = this.methodDefinition(method, doc, { name: helper, first: "self" })
       const value = node.get ? `property(${helper})` : helper
       return `${def}\n\n\n${type}.${name} = ${value}`
     })

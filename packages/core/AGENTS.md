@@ -128,6 +128,14 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     or once a runner hands it the program's modules (`addClasses()`).
   - A list's items are SET (`writeItems()`), so a pile owns its cards.
   - An unknown `"@type"`:  a plain object.
+- A program's STATE, for a page that mirrors it ([state.ts](src/state.ts), epic `python-target` P17):
+  the same JSON, each thing and list with an `"@id"` after its `"@type"`.
+  - `StateWriter.stateOf()` writes a thing whole the first time, then `{ "@id": "3" }` alone:
+    a card in two places is one card.
+  - Each writer keeps the ids it gave:  one writer per page.
+  - `StateMirror.read()` reads each state INTO the things it read before, by id:  the same objects, changed.
+  - `fromJSON()` reads through a new mirror, so JSON with ids keeps each thing as one.
+  - Python's twin is `spell_core.state`:  both write [stateById.expected.json](stateById.expected.json), and read it.
 
 ## The Python core
 
@@ -153,9 +161,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `spell run` does that for a Python target, through uv in this project:
     cli's [`runPython()`](../cli/src/commands/runCommand.ts).
   - `--no-pauses`:  a pause doesn't wait;  `--page`:  print what it drew, as HTML, when it ends.
-- Three checks keep it in step with this package:
+  - `--state`:  print its state when it ends, as JSON by id:  each thing at its top level, by its name there.
+- Four checks keep it in step with this package:
   - the core's method list:  every name in `spellCore.declarations.json`, or listed as not ported yet
   - seeded random:  both read `seededRandom.expected.json`, so one seed deals the same cards
+  - state by id:  both write and read `stateById.expected.json`
   - the core contract (cli's [contract.test.ts](../cli/src/contract.test.ts)):
     a compiled program prints exactly what javascript prints, on both Python targets, `py` and `py/asyncio`
 - The terminal-drawing study (P15 of epic `python-target`) is in `py/experiments/terminal`.

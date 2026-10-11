@@ -1,3 +1,4 @@
+import { spawnSync } from "child_process"
 import { mkdtempSync, rmSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
 import { join, resolve } from "path"
@@ -185,4 +186,41 @@ describe("drawing with h() from @spell/core, as `spell run` runs it", () => {
         `</tr></table></div>`
     )
   }, 60_000)
+})
+
+/** The fixtures that are games:  a `deck` of cards, and a `card-click` handler. */
+const GAMES = ["Solitaire", "Klondike", "OutlineSolitaire"]
+
+/** `spell_core`'s uv project, where its tests' scripts live. */
+const SPELL_CORE = resolve(import.meta.dirname, "../../core/py")
+
+/**
+ * Only what changed, sent click by click, gives the same state as sending it whole (epic `python-target` P18):
+ * each game played on the `py` target, seeded, 300 clicks, a mirror reading each `patch()`.
+ * - The player:  `patches_in_a_game.py`, in `spell_core`'s tests.
+ */
+describe("the core contract:  a game's patches give its whole state, click by click", () => {
+  for (const name of GAMES) {
+    test(
+      name,
+      async () => {
+        const folder = mkdtempSync(join(tmpdir(), "spell-patches-"))
+        try {
+          await importedProjects(name, "py", folder)
+          const program = join(folder, `${name}.compiled.py`)
+          writeFileSync(program, compiledFixture(name, "py"))
+          const player = join(SPELL_CORE, "tests/patches_in_a_game.py")
+          const args = ["run", "--quiet", "--project", SPELL_CORE, "python", player, program]
+          const { status, stdout, stderr } = spawnSync("uv", [...args, "--seed", String(CONTRACT_SEED)], {
+            encoding: "utf8"
+          })
+          expect(status, `${name}:\n${stderr}`).toBe(0)
+          expect(stdout).toMatch(/[1-9]\d* of 300 clicks changed something;  every patch matched/)
+        } finally {
+          rmSync(folder, { recursive: true, force: true })
+        }
+      },
+      60_000
+    )
+  }
 })

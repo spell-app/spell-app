@@ -40,3 +40,24 @@ def test_unseeded_it_starts_somewhere_else(tmp_path: Path) -> None:
     finally:
         # the shared core, as every other test expects it:  seeded with 1
         core.seed_random(1)
+
+
+def test_state_prints_its_top_level_things_by_id(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    program = tmp_path / "Bag.compiled.py"
+    program.write_text(
+        "from spell_core import List, Thing, prop\n"
+        "class Marble(Thing):\n    color = prop(type='text')\n"
+        "class Bag(List): pass\n"
+        "marble = Marble(color='red')\n"
+        "bag = Bag([marble])\n"
+        "count = 1\n"
+    )
+    try:
+        main([str(program), "--state"])
+    finally:
+        # the shared core, as every other test expects it:  seeded with 1
+        core.seed_random(1)
+    assert capsys.readouterr().out == (
+        '\n{"marble": {"@type": "Marble", "@id": "1", "color": "red"}, '
+        '"bag": {"@type": "Bag", "@id": "2", "@items": [{"@id": "1"}]}}\n'
+    )

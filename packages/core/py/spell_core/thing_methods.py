@@ -13,8 +13,8 @@ from typing import TYPE_CHECKING, Any
 
 from spell_core.js_text import js_string
 from spell_core.kinds import is_same
-from spell_core.lists import List
-from spell_core.things import ITEMS_KEY, TYPE_KEY, Prop, SpellObject, ThingRegistry, things
+from spell_core.state import StateMirror
+from spell_core.things import Prop, ThingRegistry, things
 
 if TYPE_CHECKING:
     from spell_core.console import SpellConsole
@@ -62,10 +62,11 @@ class ThingMethods:
         - A spell list:  its own properties as above, then its items from `"@items"`, each made again.
           So an exclusive list, e.g. a `Pile`, owns its cards;  what its `create()` added is replaced.
         - An `"@type"` no class has:  a plain dict, its `"@type"` kept.  NEVER throws for one.
-        - NOTE:  JSON keeps no identity:  a card in two places comes back as two cards.
+        - JSON with ids, a `StateWriter`'s (`state.py`):  a thing mentioned twice comes back as one.
+          Without them, JSON keeps no identity:  a card in two places comes back as two cards.
         - throws `json.JSONDecodeError` for text that isn't JSON.
         """
-        return _rebuild(json.loads(data) if isinstance(data, str) else data)
+        return StateMirror().read(json.loads(data) if isinstance(data, str) else data)
 
     # from `TypeMethods`, which `SpellCore` mixes in beside us
     if TYPE_CHECKING:
@@ -80,41 +81,3 @@ def _check_of(check: Prop | Mapping[str, Any] | None) -> tuple[str | None, Any]:
     if isinstance(check, Prop):
         return check.type, check.one_of
     return check.get("type"), check.get("one_of", check.get("oneOf"))
-
-
-def _rebuild(value: object) -> Any:
-    """`value`, read from JSON, made again:  see `from_json()`."""
-    if isinstance(value, list):
-        return [_rebuild(item) for item in value]
-    if not isinstance(value, dict):
-        return value
-    type_name = value.get(TYPE_KEY)
-    cls = things.class_named(type_name) if isinstance(type_name, str) else None
-    if cls is None:
-        return {key: _rebuild(field) for key, field in value.items()}
-    fields = {key: field for key, field in value.items() if key != TYPE_KEY}
-    if not issubclass(cls, List):
-        return _make(cls, fields)
-    items = fields.pop(ITEMS_KEY, None)
-    made = _make(cls, fields)
-    made.items = [_rebuild(item) for item in items] if isinstance(items, list) else []
-    return made
-
-
-def _make[Made: SpellObject](cls: type[Made], fields: dict[str, object]) -> Made:
-    """A new `cls`, its properties `fields`, each made again:  through what it declares, the rest after."""
-    declared = {key: _rebuild(field) for key, field in fields.items() if _has_setter(cls, key)}
-    made = cls(**declared)
-    for key, field in fields.items():
-        if key not in declared:
-            made._props[key] = _rebuild(field)
-    return made
-
-
-def _has_setter(cls: type, key: str) -> bool:
-    """Does `cls` say how to set `key`:  a `prop()`, or a `@property` with a setter?  The nearest class decides."""
-    for ancestor in cls.__mro__:
-        if key in vars(ancestor):
-            found = vars(ancestor)[key]
-            return isinstance(found, Prop) or (isinstance(found, property) and found.fset is not None)
-    return False
