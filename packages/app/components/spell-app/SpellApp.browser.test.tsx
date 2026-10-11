@@ -178,6 +178,26 @@ describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", (
     expect(app.shadowRoot!.querySelector(".own-drawing")).toBeNull()
   })
 
+  test("a hole names one thing by its name or place:  {the count of tile T1}, {the count of the first tile} (P19)", async () => {
+    const app = await mountApp(
+      `<spell-app>` +
+        `<test-project-tile id="T1"><spell>\n  when clicked\n    set its count to its count + 1\n</spell></test-project-tile>` +
+        `<p class="named">{the count of tile T1}</p>` +
+        `<p class="placed">{the name of the first tile}:  {the count of the last tile}</p>` +
+        `</spell-app>`
+    )
+    app.run({ projectId: "@test:fixtures:Game", ...(await compiledProject(GAME)) } satisfies SpellCompiled)
+    const text = (selector: string) => app.querySelector(selector)?.textContent
+    // its count:  2 as made, or more, kept from an earlier test's run of the same program (P16)
+    const count = Number(await waitFor(() => /^\d+$/.exec(text(".named") ?? "")?.[0], 10_000))
+    expect(count).toBeGreaterThanOrEqual(2)
+    expect(text(".placed")).toBe(`T1:  ${count}`)
+
+    app.querySelector<HTMLElement>("test-project-tile")!.click()
+    await waitFor(() => text(".named") === `${count + 1}`)
+    expect(text(".placed")).toBe(`T1:  ${count + 1}`)
+  })
+
   test("any element handles events (P12):  a one-line handler, `on`, several words, and on-click= / when-clicked=", async () => {
     const app = await mountApp(
       `<spell-app>` +
