@@ -14,14 +14,20 @@ import { findCheckout } from "$/cli/findCheckout"
  *   first use (a dynamic `import()`), so other `spell dev` commands don't pay for linkedom and oxfmt.
  * - Returns the tool's exit code, once its output is written:  `runLean()` exits at once, and a pipe on macOS takes
  *   its writes asynchronously.
+ * - Gives the tool an epic's RUNNING sessions (`sessionsOf()`), for `migrate --notify` (epic `epic-workflow` P8):
+ *   the sessions are the CLI's to find, and `epics` may not import the CLI
  */
 export async function planDocCommand(args: string[]): Promise<number> {
   const [{ PlanDocCommands }, { PlanDocFiles }] = (await Promise.all([import(COMMANDS), import(FILES)])) as [
-    { PlanDocCommands: new (props: { files: unknown }) => { run(argv: string[]): Promise<number> } },
+    {
+      PlanDocCommands: new (props: { files: unknown; sessionsOf: typeof sessionsOf }) => {
+        run(argv: string[]): Promise<number>
+      }
+    },
     { PlanDocFiles: new (props: { root: string }) => unknown }
   ]
   const files = new PlanDocFiles({ root: findCheckout(CHECKOUT_MARKER) })
-  const exitCode = await new PlanDocCommands({ files }).run(args)
+  const exitCode = await new PlanDocCommands({ files, sessionsOf }).run(args)
   await flushed()
   return exitCode
 }
@@ -54,4 +60,19 @@ function flushed(): Promise<void> {
   return Promise.all(streams.map((stream) => new Promise<void>((done) => stream.write("", () => done())))).then(
     () => undefined
   )
+}
+
+/**
+ * The running Claude sessions working on epic `epic`, as `spell epic send` finds its receivers (`epicSessions()`:
+ * titled `<epic>`, with or without its icon):  each one's `name`, the address `SendMessage` takes, and its id.
+ * - loaded on first use:  `requests.ts` reaches the `$/cli` barrel, which loads spell;  `consoleGuard` first, as
+ *   `main.ts` loads it, so spell's logging stays off the terminal (the tool itself never writes through `console`)
+ */
+async function sessionsOf(epic: string): Promise<{ name: string; sessionId: string }[]> {
+  await import("$/cli/consoleGuard")
+  const { epicSessions } = await import("$/cli/epic/requests")
+  return epicSessions(epic).map((session) => ({
+    name: session.name ?? session.sessionId,
+    sessionId: session.sessionId
+  }))
 }

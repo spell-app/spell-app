@@ -46,7 +46,7 @@ from pathlib import Path
 
 from quart import Quart, make_response, request, send_from_directory, websocket
 
-from spell_quart import ASSETS_URL, SpellSessions, assets_folder, page_html, remember_visitor, visitor_of
+from spell_quart import ASSETS_URL, SpellSessions, assets_folder, fresh, page_html, remember_visitor, visitor_of
 
 HERE = Path(__file__).parent
 
@@ -69,13 +69,13 @@ async def elements(name: str):
     """The program's drawing half, and each imported project's."""
     if f"{name}.elements.js" not in ${py(files)}:
         return "Not found", 404
-    return await send_from_directory(HERE, f"{name}.elements.js", mimetype="text/javascript")
+    return fresh(await send_from_directory(HERE, f"{name}.elements.js", mimetype="text/javascript"))
 
 
 @app.get(f"{ASSETS_URL}/<path:path>")
 async def assets(path: str):
     """The javascript core, Solid, Spell UI and Semantic UI."""
-    return await send_from_directory(assets_folder(), path)
+    return fresh(await send_from_directory(assets_folder(), path))
 
 
 @app.websocket("/ws")
@@ -93,7 +93,8 @@ async def ws():
 
 if __name__ == "__main__":
     # $PORT, if set:  5000 is often taken on a Mac (AirPlay)
-    app.run(port=int(os.environ.get("PORT", "5000")))
+    # no reloader:  a restart ends every visitor's game, and Quart's restarts this as a module it can't find
+    app.run(port=int(os.environ.get("PORT", "5000")), use_reloader=False)
 `
   return `${HASH_LINE}${hashOf(body)}:  edit below, and compiling again leaves this file be.\n${body}`
 }

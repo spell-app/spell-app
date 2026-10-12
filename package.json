@@ -35,12 +35,17 @@
     "docs:index": "node packages/cli/bin/spell.mjs dev docs index",
     "docs:new": "node packages/cli/bin/spell.mjs dev docs new",
     "docs:open": "node packages/cli/bin/spell.mjs dev docs open",
+    "epic": "node packages/cli/bin/epic.mjs",
+    "ask": "node packages/cli/bin/epic.mjs ask",
     "plan-doc": "node packages/cli/bin/spell.mjs dev plan-doc",
     "details": "node packages/cli/bin/spell.mjs dev details",
     "docs:link": "node packages/cli/bin/spell.mjs dev docs link",
     "window": "node packages/cli/bin/spell.mjs dev window",
     "server": "node packages/cli/bin/spell.mjs dev server",
     "serve": "node packages/cli/bin/spell.mjs dev server start --all",
+    "dev": "cd \"$INIT_CWD\" && node \"$PROJECT_CWD/packages/cli/bin/spell.mjs\" run",
+    "dev:ts": "cd \"$INIT_CWD\" && node \"$PROJECT_CWD/packages/cli/bin/spell.mjs\" run --target ts",
+    "dev:py": "cd \"$INIT_CWD\" && node \"$PROJECT_CWD/packages/cli/bin/spell.mjs\" run --target py",
     "commands:check": "node packages/cli/bin/spell.mjs dev commands check"
   },
   "devDependencies": {

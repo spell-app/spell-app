@@ -179,7 +179,7 @@ export async function run([verb = "status"]: string[], flags: Record<string, str
     }
     default:
       console.error(
-        "usage:  spell dev airplane on | off | status [--json] | check [--fix] [--json] | inbox [--since <iso>] [--json]"
+        "usage:  epic airplane on | off | status [--json] | check [--fix] [--json] | inbox [--since <iso>] [--json]"
       )
       return 2
   }
