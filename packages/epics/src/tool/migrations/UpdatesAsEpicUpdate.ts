@@ -27,6 +27,9 @@ import type { Migration, MigrationContext } from "./migrations.types"
  ****************/
 export class UpdatesAsEpicUpdate implements Migration {
   readonly name = "updates-as-epic-update"
+  readonly kind = "epic"
+  readonly date = "2026-10-11"
+  readonly everyEdit = true
   readonly description =
     "a phase's <epic-updated> lines and the UPDATE notes become <epic-update at summary> blocks, after what they changed"
 

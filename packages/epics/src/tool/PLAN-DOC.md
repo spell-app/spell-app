@@ -586,22 +586,59 @@ easily"), `components/epic-update/`:
 
 ## Migrations
 
-Named, idempotent steps that bring an older doc's markup up to today's (`migrations/`, `Migrations`).
-- The tool runs them all on every write, first (`PlanDocFiles.edit()` -> `PlanDoc.migrate()`), logged:
-  `migrated:  updates-as-epic-update`.
-- A migration that would break the doc refuses the edit, writing nothing, as any change does.
-- `epic migrate` (a later phase of epic `epic-workflow`) runs them on every epic page on command:
-  `Migrations.run(document, { now })`, or one step, `Migrations.named("updates-as-epic-update")`.
-- The steps:
-  - `updates-as-epic-update` (2026-10-11):  every older update shape becomes `<epic-update at summary>`
+Named, dated, idempotent steps that bring an older page's markup up to today's, by page KIND
+(`migrations/`, `Migrations`;  epic `epic-workflow` P8, J44).
+- Each step names its kind (`epic` for every step here), the day it was added, and a one-line why.
+  - The epic page's steps:  `Migrations.all`, here.
+  - The other kinds' (guide, cheatsheet, command page ...):  the docs package's `packages/docs/tools/migrate.js`.
+  - The kinds:  `PAGE_KINDS` (`migrations.types.ts`), the names P14 proposes;  the docs tool's `KINDS` is the same list.
+- `spell dev plan-doc migrate` runs them on command (`MigrateCommands`;  `epic migrate` once the `epic` command splits):
+
+  ```text
+  migrate [<kind>] [<epic>... | --all] [--file <page>] [--step <name>] [--dry-run] [--notify] [--list]
+  ```
+
+  - alone:  every kind, every page;  `<kind>`:  one kind;  `--file`:  one page (its kind found unless given)
+  - `<epic>...` or `--all`:  epic pages:  those, or every one `list` lists
+  - every step, oldest first (`--step`:  one), each page under its lock (`PlanDocFiles.migrate()`):
+    it waits for a writer, and works on the page as the writer left it
+  - a report per page:  `seo:  up to date`, or the steps that changed it and what each fixed or found;  then a total
+    by step.  The docs tool lists only the pages that changed, then a total per kind.
+  - `--dry-run`:  the same report, nothing written
+  - a migrated epic page is logged (`migrated:  links-agree`) and recoloured, but NOT stamped `updated`:
+    nobody worked on the epic
+  - a migration that would break the doc refuses that page, writing nothing, as any edit does
+  - `--notify` (J39):  an epic whose session is RUNNING (titled for it, found as `spell epic send` finds its receivers)
+    is only dry-run, and printed under `TELL:` with the one line to send it;  the idle ones are migrated there and then.
+    The command can't send a `SendMessage`:  the session that ran it sends each line (the epic skill's "Migrations").
+- Every edit also runs the cheap markup steps (`everyEdit`), first (`PlanDocFiles.edit()` -> `PlanDoc.migrate()`),
+  logged:  `migrated:  updates-as-epic-update`.  A step that reports, or rewrites more than markup, runs only on command.
+- The epic page's steps:
+  - `updates-as-epic-update` (2026-10-11, every edit):  every older update shape becomes `<epic-update at summary>`
     - a phase's `<epic-updated>` lines (slotted or not) -> blocks at the end of its description, children kept
     - their copies in the Phases section -> removed
     - an UPDATE note before a block -> moved after it, dated (its item's `changed`, else the page's `updated`) and
       summed up;  left where it is when the next sibling is a card with a fixed place
     - a bare label -> left alone
-  - `owen-types-to-you-type` (2026-10-11):  prose says "You type" / "you type", not "Owen types":  the pages speak
-    to whoever reads them (Owen:  "so it's not me-specific").  Never in his quoted words, code, the log or the prompt.
-- A new step:  a class implementing `Migration` in `migrations/`, its instance added LAST to `Migrations.all`.
+    - P8's goal named `plan-changes-in-phase` (P6's move of a phase's Plan changes into it):  no step of its own,
+      since this one takes every `<epic-updated>` line, wherever it is
+  - `owen-types-to-you-type` (2026-10-11, every edit):  prose says "You type" / "you type", not "Owen types":  the pages
+    speak to whoever reads them (Owen:  "so it's not me-specific").  Never in his quoted words, code, the log or the prompt.
+  - `links-agree` (2026-10-11, on command;  Owen on I7):  every `#id` link and comment anchor against today's ids and
+    titles (`LinksAgree`)
+    - fixes:  a link's words naming a title its target had before (the log's `renamed` lines say which), a phase link
+      naming another phase's title (an insert moved it:  `#p10 P10 · Doc Review` -> `#p11 P11 · Doc Review`), a comment
+      whose block only moved (found by its excerpt, `PlanAnchors`:  BlockAnchors.js's rules, copied), moved in the
+      inbox after the page
+    - reports, for Claude or Owen:  a link to an id that's gone, a comment or mark on one, a comment whose block's words
+      changed
+    - never the log, nor an Original Discussion:  history
+    - also run by `rename` and `add-phase --before`, right after their change (what it says goes to stderr)
+    - Goals Foundation (P15) adds stable phase ids, `<epic-link>` and `GOAL:/` links:  their checks come with it
+- A new step:  a class implementing `Migration` in `migrations/`, its instance added LAST to `Migrations.all`, in the
+  SAME commit as the markup change it follows (epics' `AGENTS.md`, "Rules").  Another kind's:  an entry in the docs
+  tool's `STEPS`, last.  Either way:  idempotent, every word kept, and a test (a before page becomes the after page,
+  and a second run changes nothing).
 
 ## Log
 
