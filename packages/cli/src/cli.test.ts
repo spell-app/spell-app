@@ -522,6 +522,28 @@ describe("spell run", () => {
     expect(existsSync(fixturePath("FizzBuzz", `FizzBuzz${SP.COMPILED_JS_SUFFIX}`))).toBe(false)
   })
 
+  test("--target py and ts:  the same prints, from the Python and the TypeScript -- writing nothing into the project", () => {
+    const javascript = spell(["run", "@test/FizzBuzz"]).stdout
+    for (const target of ["py", "ts"]) {
+      const { status, stdout } = spell(["run", "@test/FizzBuzz", "--target", target])
+      expect(stdout, target).toBe(javascript)
+      expect(status, target).toBe(0)
+    }
+    expect(existsSync(fixturePath("FizzBuzz", "FizzBuzz.compiled.py"))).toBe(false)
+  })
+
+  test("--target ts on a program that draws:  runs what it can, and says it can't open in a browser yet", () => {
+    const { status, stderr } = spell(["run", "@test/Solitaire", "--target", "ts", "--seed", "1"])
+    expect(stderr).toContain("Solitaire draws:  its ts/solid can't open in a browser yet")
+    expect(status).toBe(0)
+  })
+
+  test("--target with a name no target has:  says which there are, exit 1", () => {
+    const { status, stderr } = spell(["run", "@test/FizzBuzz", "--target", "rust"])
+    expect(stderr).toContain('--target takes js, ts or py, not "rust"')
+    expect(status).not.toBe(0)
+  })
+
   test("--no-browser:  skips what needs a browser, and says so", () => {
     const { status, stderr } = spell(["run", "@test/Solitaire", "--no-browser"])
     expect(stderr).toContain("Solitaire shows a UI (start the game), which needs a browser")

@@ -5,6 +5,7 @@
   "repository": "https://github.com/spell-app/spell-app",
   "type": "module",
   "scripts": {
+    "dev": "cd \"$INIT_CWD\" && node \"$PROJECT_CWD/packages/cli/bin/spell.mjs\" run",
     "/////// CORRECTNESS": "",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
     "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC'; yarn tsc && echo '<< TSC PASSED\n'",

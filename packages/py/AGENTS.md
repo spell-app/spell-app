@@ -105,6 +105,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     then a patch after each message and at each pause (`core.before_pause`).
 - `page_html()`:  the page.
   - It loads the page side (app's `yarn build:page`, into `dist-page/`), and the program's drawing half.
+- `spell run <project> --target py` (`yarn dev:py` in a project's folder) serves one:
+  cli's [runTarget.ts](../cli/src/runTarget.ts) compiles it into a temp folder with its imports, builds the page side
+  if it's stale, and runs its app under uv here, until `Ctrl-C`.
 - cli's [quartApp.test.ts](../cli/src/quartApp.test.ts) plays Solitaire through a compiled app, in headless Chromium.
 
 ## Types / Exports

@@ -180,6 +180,31 @@ describe("a Python spell app, in a real browser", () => {
     await first.page.context().close()
   }, 60_000)
 
+  test("spell run --target py:  serves the app, until Ctrl-C, writing nothing into the project", async () => {
+    const child = spawn(process.execPath, [SPELL, "run", join(folder, "Solitaire"), "--target", "py", "--seed", "1"], {
+      env: { ...process.env, SPELL_NO_BROWSER: "1" },
+      stdio: ["ignore", "pipe", "pipe"]
+    })
+    let out = ""
+    child.stdout!.on("data", (data) => (out += data))
+    await expect
+      .poll(() => /http:\/\/127\.0\.0\.1:\d+\//.exec(out)?.[0], { timeout: 60_000, interval: 500 })
+      .toBeTruthy()
+    const served = /http:\/\/127\.0\.0\.1:\d+\//.exec(out)![0]
+    const page = await (await browser.newContext()).newPage()
+    await page.goto(served)
+    await page.locator(".Pile.Stock").waitFor({ timeout: 20_000 })
+    await page.context().close()
+    child.kill("SIGINT")
+    expect(await new Promise((done) => child.on("exit", done))).toBe(0)
+    // the app came from a temp folder:  the project has only what compiling wrote before
+    expect(
+      readdirSync(join(folder, "Solitaire"))
+        .filter((file) => file.endsWith(".py"))
+        .sort()
+    ).toEqual(["Solitaire.app.py", "Solitaire.compiled.py"])
+  }, 120_000)
+
   test("compiling again leaves an edited app be, and rewrites an unedited one", () => {
     const app = appFile()
     const written = readFileSync(app, "utf8")
