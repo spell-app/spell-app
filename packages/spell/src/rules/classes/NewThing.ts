@@ -52,7 +52,7 @@ export class NewThing extends SpellStatement<"type|props?"> {
    * Remember that `statement` names the thing it makes, when its `value` is a new thing given a name in so many words,
    * e.g. `set t1 to a new tableau with name = "T1"`, `get a new foundation with name = "clubs"`.
    * - Called from those statements' `mutateScope()`:  `assignment` and `get`.
-   *   A new thing made anywhere else, e.g. added straight to a list, isn't counted:  the warning stays careful.
+   *   - A new thing made anywhere else, e.g. added straight to a list, isn't counted:  the warning stays careful.
    * - Kept for its type, and each super-type the project declares:  so `pile T1` counts a tableau named T1.
    * - Journaled, as any scope change:  incremental parsing takes it back.
    * - An earlier parse of the same statement is replaced, not counted twice (`P.TypeScope.sameStatement()`).

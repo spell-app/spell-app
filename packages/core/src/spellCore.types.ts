@@ -27,7 +27,7 @@ import type { deprecatedMethods } from "./deprecated"
 export const SPELL_CORE_MODULE = "@spell/core"
 
 /**
- * ES module specifier compiled TypeScript imports a drawable type's element class's base from:
+ * Where compiled TypeScript imports the base class of each drawable type's element from, as a module name:
  * `import { E, SpellElement } from "@spell/elements"` (epic `drawable-thing` P10, J41).
  * - A name of its own, since core never imports Spell UI:  app's `SpellElement` is behind it.
  * - Resolved in three places:

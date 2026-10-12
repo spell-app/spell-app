@@ -37,8 +37,9 @@ import { forEachNode, listNamedBy, typeCaseOf, type TSUndeclared, type WriterPro
  *   - a method written outside its class, from what it returns:
  *     `play(): Promise<boolean | undefined>` (`returnType()`, epic `output-targets`, T24)
  *   - a value kind's parameter, from its values:  `static color(suit: (typeof SUITS)[number])` (`valueKindType()`)
- * - A drawable type's element class, after its class:  `class CardElement extends SpellElement<Card>`,
- *   handed to the page with `spellCore.useElement(Card, CardElement)` -- see `elementClassFor()`.
+ * - A drawable type's element class, after its class -- see `elementClassFor()`:
+ *   `class CardElement extends SpellElement<Card>`,
+ *   handed to the page with `spellCore.useElement(Card, CardElement)`.
  * - Spell's own built-ins stay `spellCore` calls, so both targets print the same:
  *   `getItemAt(rank, 1)` counts from 1 (the core contract, `contract.test.ts` in `$/cli`).
  * - Sees the whole project first (`forProject()`, a `P.WriterProject`).
@@ -95,8 +96,9 @@ export class TSWriter extends JSWriter {
    * - a member it adds to a class it imports is declared in that project's module,
    *   `declare module "..." { interface Card {...} }`:
    *   TypeScript refuses an `interface` merged with an import (`TS2440`)
-   * - with a drawable type's element class:  `@spell/elements` imported below `@spell/core`,
-   *   and each drawable type's tag declared for the JSX, last (`elementTagsDeclaration()`)
+   * - with a drawable type's element class:
+   *   - `@spell/elements` imported below `@spell/core`
+   *   - each drawable type's tag declared for the JSX, last (`elementTagsDeclaration()`)
    */
   module(code: string): string {
     const solid = SOLID_COMPONENTS.filter((name) => new RegExp(`<${name}[\\s>]`).test(code))
@@ -802,15 +804,19 @@ export class TSWriter extends JSWriter {
    * }
    * spellCore.useElement(Card, CardElement)
    * ```
-   * - On the runtime's own element, `SpellElement`, from `@spell/elements`:  what every drawable thing's element does
-   *   (drawing its thing, the two agreeing, a layout's lookup) stays there.
+   * - Built on the runtime's own element, `SpellElement`, from `@spell/elements`,
+   *   which does what every drawable thing's element does:
+   *   - drawing its thing
+   *   - keeping the thing's properties and the element's attributes the same
+   *   - finding its thing, for a tag in a page's layout
    * - It says only what's the type's own:
    *   - an attribute per property the type declares (`elementAttributes()`)
    *   - its sheet, the type's own `<css>`, when it has one
    *   - a method per method of the type's, calling its thing's (`elementMethods()`)
-   * - The page defines the tag with it (`spellCore.useElement()`):  the class never calls `define()`,
-   *   so a tag is never defined twice.  What it leaves out, e.g. a super-type's properties, the page adds,
-   *   as it does for javascript:  both targets draw the same element.
+   * - The page defines the tag with it (`spellCore.useElement()`):
+   *   the class never calls `define()`, so a tag is never defined twice.
+   * - What it leaves out, e.g. a super-type's properties, the page adds, as it does for javascript:
+   *   both targets draw the same element.
    * - Javascript writes none:  the page makes its element from the class.
    */
   elementClassFor(node: P.ASTClassDeclaration): string | undefined {
@@ -854,8 +860,8 @@ export class TSWriter extends JSWriter {
 
   /**
    * An attribute for each property drawable class `node` declares itself, as its element's vocabulary says it:
-   * `{ name: "rank", kind: "string", description: "Its rank." }` -- named as the page names them,
-   * see `drawableAttributeFor()` in `$/util`.
+   * `{ name: "rank", kind: "string", description: "Its rank." }`.
+   * - Named as the page names them:  see `drawableAttributeFor()` in `$/util`.
    * - Not a super-type's, nor the list holding it (`a card belongs to one pile`):  the page adds those.
    * - None for a name the page or Spell UI already means something by, e.g. `id`.
    */
@@ -947,7 +953,7 @@ export class TSWriter extends JSWriter {
   /**
    * What a drawable type's element can't have as a method:  its own members, `SpellElement`'s and Spell UI's.
    * - A type's method of one of these names is left out of its element class (`elementMethods()`).
-   * - Its own attribute `thing`, too.
+   * - Its own property `thing`, too.
    * - Pinned by app's `SpellElement.browser.test.tsx`:  every member an element has is here.
    */
   static readonly ELEMENT_MEMBERS = new Set<string>([

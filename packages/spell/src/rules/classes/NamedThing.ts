@@ -7,16 +7,18 @@ import { NewThing } from "./NewThing"
 import { ThingName } from "./ThingName"
 
 /**
- * `named_thing` rule:  one thing, by its type and its name -- `tableau T1` is the tableau named T1
- * (epic `drawable-thing` P19, Owen's J23).
+ * `named_thing` rule:  one thing, by its type and its name (epic `drawable-thing` P19, Owen's J23).
+ * - `tableau T1` is the tableau named T1.
  * - e.g. `the count of tableau T1`, `move the card to tableau T1`, `foundation "clubs"`
  * - A sub-type's thing too:  `pile T1` finds the tableau named T1, since a tableau is a pile.
  * - The name:  a word starting with a capital letter (`thing_name`), or any text in quotes.
  * - Compiles to core's `spellCore.thingNamed(Tableau, "T1")`:  the reference `Tableau#T1`.
  *   Nothing (`undefined`) when the program has no such thing (yet).
- * - Warns, carefully, when the project gives two things that name in so many words,
- *   e.g. `set a to a new tableau with name = "T1"` twice:  then it finds the first one made.
- *   See `NewThing.namesGiven()`.  A name worked out as the program runs (`"T" + the number`) is never counted.
+ * - Warns, carefully, when the project gives two things that name in so many words:
+ *   e.g. `set a to a new tableau with name = "T1"` twice.
+ *   - Then it finds the first one made.
+ *   - The names it counts:  see `NewThing.namesGiven()`.
+ *   - A name worked out as the program runs (`"T" + the number`) is never counted.
  */
 export class NamedThing extends SpellExpression<"type|name"> {
   /**

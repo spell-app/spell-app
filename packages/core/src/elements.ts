@@ -7,8 +7,9 @@
  *   - The page plugs in through `spellCore.elementDefiner`, which app's `SpellElement.tsx` fills in.
  *   - Why:  core never imports Spell UI.
  *   - No definer (a runner without Spell UI, a test):  the tag is named, nothing is defined.
- * - Compiled TypeScript also writes each type's element class, and hands it over:
- *   `spellCore.useElement(Card, CardElement)` (P10).  The page builds the tag on that class.
+ * - Compiled TypeScript also writes each type's element class, and hands it over (P10):
+ *   `spellCore.useElement(Card, CardElement)`.
+ *   The page builds the tag on that class.
  * - Part of `spellCore`:  imported by `$/core`'s barrel for its side effect.
  */
 
@@ -53,8 +54,10 @@ export const elementsMethods = defineSpellCoreModule({
    * `spellCore.useElement(Card, CardElement)`, right after `class CardElement extends SpellElement<Card>`.
    * - The page's `elementDefiner` builds `Class`'s tag on it, instead of on a bare element of its own.
    *   So the page stays the ONE place a tag is defined:  the compiled class never calls `define()`.
-   * - Before the definer hears of `Class`:  that waits for a microtask, or the first draw (`defineElement()`).
-   * - No definer (no page, e.g. `spell run`, the core contract):  only kept, so it prints what javascript prints.
+   * - Must come before the page's definer hears of `Class`:
+   *   a microtask after `defineElement()`, or the first draw.
+   * - No definer (no page, e.g. `spell run`, the core contract):
+   *   only kept, so the run prints what the same program compiled to javascript prints.
    * - Nothing, for a class that isn't drawable.
    * - SIDE EFFECT:  `Class` keeps it, as its own -- see `elementClassOf()`.
    */
@@ -91,8 +94,8 @@ export const elementsMethods = defineSpellCoreModule({
    * - `properties`:  each property it declares (`a card has a rank as a number`), its own and its super-types',
    *   with its declared type, e.g. `{ name: "rank", type: "number" }`
    *   - a list it makes for itself, e.g. `a hand has cards as a list of cards`, is `type: "list"`
-   *   - then each list it belongs to (`a card belongs to one pile`):  `{ name: "pile", type: "Pile", owner: true }`,
-   *     the list holding it (P18) -- see `ownerPropertiesOf()`
+   *   - then each list it belongs to, the list holding it (P18) -- see `ownerPropertiesOf()`:
+   *     `a card belongs to one pile` is `{ name: "pile", type: "Pile", owner: true }`
    * - `methods`:  each method it has, its own and its super-types', down to `Drawable` / `DrawableList`,
    *   e.g. `turn_over` -- NOT `draw()`, nor a method of several words with values in them (`is_a_$suit`)
    * - Names as compiled:  the page names them as it likes, e.g. `turnOver()`.
@@ -123,8 +126,8 @@ export const elementsMethods = defineSpellCoreModule({
   },
 
   /**
-   * The program's thing of class `Class` that a tag's `id` names, e.g. the tableau named `T1` for
-   * `<solitaire-tableau id="T1">` (epic `drawable-thing` P9, J43).
+   * The program's thing of class `Class` that a tag's `id` names (epic `drawable-thing` P9, J43):
+   * e.g. the tableau named `T1` for `<solitaire-tableau id="T1">`.
    * - With `id`:  the thing `thingCalled()` finds, as for the reference `Tableau#T1`:
    *   - a sub-class's too:  `<solitaire-pile id="stock">` finds the stock, a `StockPile` (P18)
    *   - digits are a place:  `<solitaire-tableau id="1">` is the first tableau made
@@ -201,14 +204,15 @@ export type ElementApi = {
 /**
  * The lists of `Class`'s things that each hold one at most, as properties of `Class`:
  * `a card belongs to one pile` is `{ name: "pile", type: "Pile", owner: true }` on `Card`.
- * - Compiled spell gives the card a getter for it, `the pile of a card` (`Pile.ownerOf(card)`), but declares nothing:
- *   so it's found here, from the program's classes.
- *   - an exclusive list class, the root of its family:  `Pile.exclusive = true`
- *   - whose items are `Class`, or a type it extends:  `Pile.instanceType = Card`
- *   - and `Class`'s things have the getter, named as spell names it:  `pile`
+ * - Compiled spell gives the card a getter for it, `the pile of a card` (`Pile.ownerOf(card)`),
+ *   but declares nothing:  so it's found here, from the program's classes.
+ * - Each is a list class that's:
+ *   - exclusive, the root of its family:  `Pile.exclusive = true`
+ *   - for items of `Class`, or of a type it extends:  `Pile.instanceType = Card`
+ *   - read by a getter on `Class`'s things, named as spell names it:  `pile`
  * - Only the list classes the program's registry knows of so far (`spellCore.things.knownClasses()`):
  *   a class is known once one of its things is made, or the program has run.
- *   A drawable class's element asks once the program's code has run, so in practice they're all known.
+ *   - A drawable class's element asks once the program's code has run, so in practice they're all known.
  */
 function ownerPropertiesOf(Class: Function): ElementApi["properties"] {
   const owners: ElementApi["properties"] = []

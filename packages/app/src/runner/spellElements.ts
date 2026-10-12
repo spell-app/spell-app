@@ -13,7 +13,8 @@
  *
  * - `SpellElement`:  the element every drawable thing draws as, which the class builds on.
  * - `E`:  Spell UI's element core, for its decorators (`@E.proto`) and types (`E.ElementSetup`).
- * - A module name of its own, since core never imports Spell UI.  It's resolved in three places:
+ * - A module name of its own, since core never imports Spell UI.
+ * - It's resolved in three places:
  *   - a page:  the runtime exports `SpellElement` too, and `E`'s two decorators (`spellRuntime.ts`),
  *     and `runCompiled()` points the name at it
  *   - the type check:  this file (`typecheck()` in spell's `node/typecheck.ts`)

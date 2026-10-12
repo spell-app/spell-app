@@ -464,19 +464,23 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 ## One thing by name or place:  `tableau T1`, `the first tableau`
 
 - Two expression rules name ONE of the program's things (epic `drawable-thing` P19), in [classes/](src/rules/classes/):
-  - [`named_thing`](src/rules/classes/NamedThing.ts):  `tableau T1`, `foundation "clubs"`
-    => `spellCore.thingNamed(Tableau, "T1")`
+  - [`named_thing`](src/rules/classes/NamedThing.ts), by its name:
+    - e.g. `tableau T1`, `foundation "clubs"`
+    - compiles to `spellCore.thingNamed(Tableau, "T1")`
     - the name:  one word starting with a capital (`thing_name`), or text in quotes
     - a sub-type's thing too:  `pile T1` finds a tableau
-  - [`thing_at_place`](src/rules/classes/ThingAtPlace.ts):  `the first tableau`, `the last tableau`
-    => `spellCore.thingAtPlace(Tableau, 1)`, in the order the program made them
-  - Both are core's thing references, `Tableau#T1` and `Tableau#1`:  core's `references.ts`.
+  - [`thing_at_place`](src/rules/classes/ThingAtPlace.ts), by its place, in the order the program made them:
+    - e.g. `the first tableau`, `the last tableau`
+    - compiles to `spellCore.thingAtPlace(Tableau, 1)`
+  - Both are core's thing references, `Tableau#T1` and `Tableau#1`:  [references.ts](../core/src/references.ts).
   - The writers read off either with `?.`:  the program may not have made it (`ProgramWriter.ITEM_READS`).
-- `named_thing` has its own quick `test()`:  a name within `SpellType.MAX_NAME_WORDS` of its start.
+- `named_thing` has its own quick `test()`:  a name near its start.
+  - Near:  within `SpellType.MAX_NAME_WORDS` words.
   - Without it, `{type}` is a subrule, so the plain test would pass any line with text in quotes on it.
 - It warns when two things are given the name it reads, in so many words:
   `set a to a new tableau with name = "T1"` twice.
-  - `assignment` and `get` count each such name, in `mutateScope()`:  `NewThing.noteNameGiven()`.
+  - `assignment` and `get` count each such name, as they change scope.
+    - The code:  `NewThing.noteNameGiven()`, called from their `mutateScope()`.
     - Kept per type and each super-type the project declares, journaled.
     - A name worked out as the program runs, `"T" + the number`, isn't counted.
   - The warning is noted with `SpellWarnings.noteIf()`:  asked again once the whole project has parsed,
@@ -1183,11 +1187,13 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - Why:  as the program runs, the Thing Explorer knows which heading's code made each thing.
   - NOT in a plain block, e.g. a rule test's.
   - NOT for a heading with no text, e.g. `##########`.
-- A line of the program's START, at a FILE's top level, runs only when the program starts afresh:
-  `if (!spellCore.isCarryingOver) game.start()` (epic `drawable-thing` P17).
-  - Its lines:  calling one of its tests, `test card setup`, and starting its app, `start the game`.
-    Each rule says so:  `SpellStatement.startsTheProgram()`.
-  - It's a `P.ASTProgramStart`, an `if`:  [`Block`](src/rules/Block.ts) wraps the line's code.
+- A line of the program's START, at a FILE's top level, runs only when the program starts afresh
+  (epic `drawable-thing` P17):  `if (!spellCore.isCarryingOver) game.start()`.
+  - Its lines:
+    - calling one of its tests:  `test card setup`
+    - starting its app:  `start the game`
+    - Each rule says so:  `SpellStatement.startsTheProgram()`.
+  - [`Block`](src/rules/Block.ts) wraps the line's code in a `P.ASTProgramStart`:  an if statement.
   - Why:  when an edit keeps the last run's things, the runner loads the program with its start skipped,
     so its tests don't print again, and the game in progress isn't started again.
   - NOT in a method, nor in a plain block, e.g. a rule test's.

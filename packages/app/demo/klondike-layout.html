@@ -4,8 +4,9 @@
   - Served by the dev server at `/demo/klondike-layout.html`, after `yarn build:element` (epic `drawable-thing`, P9).
   - The `<spell-app>`'s markup IS the app's drawing:  the game's own `to draw` isn't drawn.
   - Each drawable tag is the program's thing its `id` names, as the part of a reference after its `#` (P18, J43):
-    `T1` ... the tableaus;  `clubs` ... the foundations;  `<solitaire-pile id="discards">` is the discards,
-    a discard-pile, which is a pile -- `Pile#discards`.
+    - `T1` ... the tableaus
+    - `clubs` ... the foundations
+    - `<solitaire-pile id="discards">` is the discards, a discard-pile, which is a pile:  `Pile#discards`
     - With no `id`:  its one thing of that type (the stock).
   - Each card the program draws is named after its card, by its id, e.g. `id="queen-of-hearts"`.
   - A tag's name leaves out the project's word "drawable":  `<solitaire-tableau>`, not `<drawable-solitaire-tableau>`.

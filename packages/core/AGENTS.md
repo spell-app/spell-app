@@ -59,16 +59,24 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - [elements.ts](src/elements.ts) names its tag.
   - The page makes the element, through `spellCore.elementDefiner`:
     app's [SpellElement.tsx](../app/src/runner/SpellElement.tsx) sets it.
-  - Compiled TypeScript hands the page its own element class too, `spellCore.useElement(Card, CardElement)`,
-    which the page builds the tag on (epic `drawable-thing` P10).
-    It imports that class's base as `@spell/elements` (`SPELL_ELEMENTS_MODULE`), not from core.
+  - Compiled TypeScript hands the page its own element class too (epic `drawable-thing` P10):
+    `spellCore.useElement(Card, CardElement)`, which the page builds the tag on.
+    - It imports that class's base as `@spell/elements` (`SPELL_ELEMENTS_MODULE`), not from core.
   - Core never imports Spell UI.
-- A thing named in text, its REFERENCE:  `Tableau#T1` by its name, `Tableau#1` by its place (epic `drawable-thing` P18).
-  - In [references.ts](src/references.ts):  `thingForReference()`, `thingNamed()`, `thingAtPlace()`, `referenceFor()`.
+- A thing's REFERENCE names one thing of the program in text, its type then its name or place
+  (epic `drawable-thing` P18):
+  - by its name:  `Tableau#T1`
+  - by its place:  `Tableau#1`, the first tableau made
   - A name finds a sub-type's thing too:  `Pile#T1` is the tableau T1.
-    A place counts the type's own things, in the order they were made.
-  - A drawable element's attribute holds one (`pile="Tableau#T1"`), and so do spell's words for one thing
-    (`tableau T1`, `the first tableau`).
+  - A place counts the type's own things, in the order they were made.
+  - Where they show up:
+    - a drawable element's attribute:  `pile="Tableau#T1"`
+    - spell's words for one thing:  `tableau T1`, `the first tableau`
+  - [references.ts](src/references.ts) reads and writes them:
+    - `thingForReference()`
+    - `thingNamed()`
+    - `thingAtPlace()`
+    - `referenceFor()`
 
 ## Who may value-import it
 
@@ -148,10 +156,12 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Object to object, not through JSON text, so each thing keeps its identity.
   - The runner asks for it on every recompile but Restart:  `runCompiled()`'s `keepThings`.
   - While the new program loads (`isCarryingOver`, P17):
-    - its start is skipped:  its top-level test calls, and starting its app,
-      compiled as `if (!spellCore.isCarryingOver) game.start()`
-    - `pause for ...` never ends:  what the rest of its top level sets going, e.g. a new deal, stops there
-  - `carryProblems()` says first which things can't come over:  then the runner starts afresh instead.
+    - its start is skipped:  its top-level test calls, and starting its app
+      - compiled as `if (!spellCore.isCarryingOver) game.start()`
+    - `pause for ...` never ends:
+      what the rest of its top level sets going, e.g. a new deal, stops there
+  - `carryProblems()` says first which things can't come over:
+    then the runner starts afresh instead.
 - A program's STATE, for a page that mirrors it ([state.ts](src/state.ts), epic `python-target` P17):
   the same JSON, each thing and list with an `"@id"` after its `"@type"`.
   - `StateWriter.stateOf()` writes a thing whole the first time, then `{ "@id": "3" }` alone:

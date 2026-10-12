@@ -4,8 +4,8 @@
   - Served by the dev server at `/demo/drawable-elements.html`, after `yarn build:element` (epic `drawable-thing`, P8).
   - The hidden `<spell-app>` runs `@examples/Drawable Solitaire`, which defines its tags:
     `<solitaire-card>`, `<solitaire-pile>` ...
-  - The tags below are written by hand:  each makes its own card or pile from its attributes,
-    except the tableau, whose id names the hidden game's tableau T1:  `id="T1"` is `Tableau#T1` (P18, J43).
+  - The tags below are written by hand:  each makes its own card or pile from its attributes.
+    - Except the tableau, whose id names the hidden game's tableau T1:  `id="T1"` is `Tableau#T1` (P18, J43).
     - So a tag that makes its own thing has no id:  the ace is found by its class instead.
   - The tableau's cards are the game's own, drawn by the program:  each is named after its card by its id,
     e.g. `id="queen-of-hearts"`, as the inspector shows.

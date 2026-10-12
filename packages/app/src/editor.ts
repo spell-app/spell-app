@@ -343,8 +343,9 @@ export class EditorStore extends Observable {
    * Run current `project`, already `compiled`, on the runtime programs run on.
    * - Logs how it went to `runtimeConsole()`.  See `runCompiled()`.
    * - The project run last, compiled again:  its things carry over, e.g. the game in progress
-   *   (epic `drawable-thing` P16) -- unless `restartApp()` asked for a fresh start,
-   *   or the edit changed the program's start (`runCompiled()`, P17).
+   *   (epic `drawable-thing` P16), unless:
+   *   - `restartApp()` asked for a fresh start
+   *   - or the edit changed the program's start (`runCompiled()`, P17)
    * - Runs what it wrote to `<Project>.compiled.js`:  its declarations are in `<Project>.declarations.json`.
    * - Each project it imports is fetched afresh, so a recompiled library shows at once.
    * - An error's stack goes to devtools too -- `runCompiled()` logs it.

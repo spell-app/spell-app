@@ -12,8 +12,9 @@
  *   - a property whose declared type changed, or a type renamed or gone:
  *     each top-level thing holding one starts afresh (keeps what the new run made), and the console says so
  * - The runner decides when (`runCompiled()`'s `keepThings`):  every recompile but Restart, which starts afresh.
- *   - And not when the edit changed the program's start (the file that starts its app),
- *     nor when one of its things can't come over (`carryProblems()`):  then it starts afresh too (P17).
+ *   - Nor when the edit changed the program's start, the file that starts its app (P17).
+ *   - Nor when one of its things can't come over (`carryProblems()`).
+ *   - Either way the program starts afresh too.
  * - Part of `spellCore`:  imported by `$/core`'s barrel for its side effect.
  */
 import { getProps, schemaOf, setProp, type PropInfo } from "$/util"
@@ -32,7 +33,8 @@ export const carryMethods = defineSpellCoreModule({
    * - While it is:
    *   - the program's start is skipped:  its top-level test calls, and starting its app
    *     (`if (!spellCore.isCarryingOver) game.start()`, epic `drawable-thing` P17)
-   *   - a `pause for ...` never ends:  what the rest of its top level sets going stops at its first pause,
+   *   - a `pause for ...` never ends:
+   *     what the rest of its top level sets going stops at its first pause,
    *     e.g. Drawable Solitaire's `reset the game` deals a card, then stops
    * - Then `carryOver()` puts the last run's things in place of what it made,
    *   and the runner starts the app again, as it was.
@@ -70,8 +72,10 @@ export const carryMethods = defineSpellCoreModule({
   /**
    * Why each of the last run's things that `carryOver()` would start afresh can't come over -- `[]` if they all can.
    * - One line each, e.g. `stock:  Card's rank changed its type`.
-   * - The runner asks first:  if any can't, the program starts afresh as a whole, as Restart does
-   *   (epic `drawable-thing` P17).  Its start skipped, a thing on its own would miss what the start does to it.
+   * - The runner asks first (epic `drawable-thing` P17):
+   *   if any can't, the program starts afresh as a whole, as Restart does.
+   * - Why:  the new program's start is skipped,
+   *   so a thing starting afresh on its own would miss what the start does to it.
    * - Changes nothing.  NEVER throws.
    */
   carryProblems(previous: NamedThing[], exports: Record<string, unknown>): string[] {

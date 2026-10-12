@@ -1785,14 +1785,15 @@ export class ASTElseStatement extends ASTStatement {
 }
 
 /**
- * ProgramStart:  a line of a program's START, which runs only when the program starts afresh --
+ * ProgramStart:  a line of a program's START, which runs only when the program starts afresh:
  * `if (!spellCore.isCarryingOver) game.start()`.
- * - Its lines:  a file's top-level call of one of its tests, `test card setup`,
- *   and starting its app, `start the game` (epic `drawable-thing` P17, Q26).
- *   `SP.Block` wraps them, at a file's top level.
+ * - Its lines, at a file's top level (epic `drawable-thing` P17, Q26):
+ *   - a call of one of the file's tests:  `test card setup`
+ *   - starting its app:  `start the game`
+ *   - `SP.Block` wraps them.
  * - Skipped when an edit keeps the last run's things (`spellCore.isCarryingOver`):
  *   the tests don't print again, and the game in progress isn't started again.
- *   Every other line still runs.
+ *   - Every other line still runs.
  * - It IS an `if`, so every writer writes it as one.
  * - `statement`:  the line's own code, e.g. `game.start()`.
  */

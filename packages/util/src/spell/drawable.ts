@@ -42,8 +42,8 @@ function tagWords(name: string): string {
 /**
  * The attribute a drawable type's property `name` is on its element, e.g. `short-rank` for `shortRank` --
  * `undefined` for a name the page or Spell UI already means something by (`id`, `hidden` ...).
- * - `type`:  the property's declared type, as `spellCore.elementApiOf()` gives it, e.g. `number`, `Pile`, `list`;
- *   none is text.
+ * - `type`:  the property's declared type, as `spellCore.elementApiOf()` gives it:
+ *   e.g. `number`, `Pile`, `list`;  none is text.
  * - `owner`:  is it the list holding the thing, e.g. a card's `pile` for `a card belongs to one pile`?
  * - Its kind, as a Spell UI vocabulary says it:
  *   - text, a number or a choice:  `string`, `number`, `boolean` -- an attribute and a property
@@ -84,7 +84,8 @@ export type DrawableAttribute = {
 
 /**
  * The kind of attribute for each type a property is declared as.
- * - A thing, e.g. a pile, is a reference instead (`THING_TYPE`);  any other type, e.g. a list:  `json`.
+ * - A thing, e.g. a pile, is a reference instead (`THING_TYPE`).
+ * - Any other type, e.g. a list:  `json`.
  */
 const ATTRIBUTE_KINDS: Record<string, DrawableAttribute["kind"]> = {
   text: "string",

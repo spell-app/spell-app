@@ -159,8 +159,9 @@ export class PyBaseWriter extends P.ProgramWriter {
   }
 
   /**
-   * A type's name as text, e.g. `prop(type="Pile")`:  one of the project's own types as we write a type's name,
-   * else as written (epic `drawable-thing`, J29).
+   * A type's name as text, e.g. `prop(type="Pile")` (epic `drawable-thing`, J29):
+   * - one of the project's own types:  as we write a type's name
+   * - else as written
    */
   ASTTypeNameLiteral(node: P.ASTTypeNameLiteral): string {
     return this.project.isClass(node.value) ? this.quoted(this.typeNameOf(node.value)) : this.ASTStringLiteral(node)
@@ -904,9 +905,11 @@ export class PyBaseWriter extends P.ProgramWriter {
 
   /**
    * A line of the program's start, e.g. `start the game`:  the line alone, `game.start()`.
-   * - javascript skips it while an edit keeps the last run's things, `if (!spellCore.isCarryingOver)`
-   *   (epic `drawable-thing` P17);  a Python program never keeps them, so it always runs.
-   * - Written as its statement is at this level:  at the top, one that waits still runs through `asyncio.run()`.
+   * - javascript skips it while an edit keeps the last run's things (epic `drawable-thing` P17):
+   *   `if (!spellCore.isCarryingOver)`.
+   *   A Python program never keeps them, so here it always runs.
+   * - Written as its statement is at this level:
+   *   at the top, one that waits still runs through `asyncio.run()`.
    */
   ASTProgramStart(node: P.ASTProgramStart): string {
     const [statement] = node.statements.statements ?? []

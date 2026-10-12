@@ -14,8 +14,8 @@ import { spellCore, SPELL_CORE_MODULE, SPELL_ELEMENTS_MODULE } from "$/core"
 /**
  * Run `compiled` spell javascript.
  * - First:  previous app unmounted, new `spellCore.RUNTIME`, empty console -- unless `keepConsole`.
- * - Afresh, unless `keepThings`:  then the last run's things carry over into the new one, e.g. the game in progress
- *   -- see `spellCore.carryOver()` (epic `drawable-thing` P16, P17).
+ * - Afresh, unless `keepThings` (epic `drawable-thing` P16, P17):
+ *   then the last run's things carry over into the new one, e.g. the game in progress -- see `spellCore.carryOver()`.
  *   - The program's start is skipped:  its top-level test calls, and starting its app (`spellCore.isCarryingOver`).
  *     Its app starts again as the last run had it.
  *   - Afresh after all, saying why on the console, when:
@@ -145,7 +145,7 @@ function lastRun(): LastRun | undefined {
 
 /**
  * Put `previous`'s things in place of what `program` made -- see `spellCore.carryOver()`.
- * - Its app, as it was:  started now, as the program's start, which would have, was skipped.
+ * - Its app, as it was:  started now, since the program's start, which would have started it, was skipped.
  */
 function carryOver(previous: LastRun, program: Record<string, unknown>) {
   const kept = spellCore.carryOver(previous.things, program)
@@ -156,8 +156,8 @@ function carryOver(previous: LastRun, program: Record<string, unknown>) {
 }
 
 /**
- * What puts the console back as it is now:  the lines in its open group, or at its top -- e.g. a run's output,
- * when the run starts again afresh.
+ * What puts the console back as it is now, e.g. a run's output, when the run starts again afresh:
+ * the lines in its open group, or at its top.
  * - Lines are replaced, never changed in place (`SpellConsole.lines`):  the old array is what was there.
  */
 function consoleRestorer(): () => void {
@@ -188,10 +188,11 @@ let carryAfterFailure: LastRun | undefined
 let lastCompiled: string | undefined
 
 /**
- * Does `after`, a program compiled again, change its START from `before`?  Then it runs afresh, as Restart does
- * (Owen, epic `drawable-thing` P17).
- * - A project of several files:  when the file that starts its app changed, e.g. Solitaire's,
- *   which says `start the game`.  An edit to a file of types, e.g. Card's, keeps the game in progress.
+ * Does `after`, a program compiled again, change its START from `before`?
+ * Then it runs afresh, as Restart does (Owen, epic `drawable-thing` P17).
+ * - A project of several files:  when the file that starts its app changed,
+ *   e.g. Solitaire's, which says `start the game`.
+ *   - An edit to a file of types, e.g. Card's, keeps the game in progress.
  * - A project of one file:  when its start's own lines changed -- starting its app, or which tests it runs.
  * - When it has a file more or less:  yes.
  * - No app started:  never, as nothing tells which file starts it.
