@@ -13,7 +13,7 @@ page_html("Solitaire", elements="/Solitaire.elements.js")
   the page arrives, before any script has loaded;  it fades out once the app draws its first thing.
 - Each frame to and from the program is written to the browser's console, folded, one line each, its badge coloured:
   `SENDING  >  event card-click (#26)` (blue), `RECEIVED <  patch:  Card #26, StockPile #3` (green);
-  and anything that goes wrong, `< ERROR >` (red).
+  and anything that goes wrong, `< ERROR  >` (red).
 """
 
 import html

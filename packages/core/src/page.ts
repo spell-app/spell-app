@@ -111,7 +111,7 @@ function byId(value: unknown, mirror: StateMirror): unknown {
  *   talk, each line starting with a coloured badge:
  *   - `SENDING  >  event card-click (#26)`, in blue
  *   - `RECEIVED <  patch:  Card #26, StockPile #3`, in green
- * - Errors show whether or not `log` is on, as `< ERROR >`, in red (`logError()`):
+ * - Errors show whether or not `log` is on, as `< ERROR  >`, in red (`logError()`):
  *   - a message the program failed to run, which it answers with `{ "error": "..." }` (`ERROR_KEY`)
  *   - a frame the page couldn't read, and the connection failing or closing
  */
@@ -173,10 +173,10 @@ function isErrorFrame(frame: unknown): frame is { [ERROR_KEY]: string } {
 
 /** Each badge:  its words, its colour. */
 const BADGES = {
-  // "SENDING" is a letter shorter than "RECEIVED":  a second space lines the two badges up
+  // all three the width of "RECEIVED <":  a second space before the mark lines them up
   sent: ["SENDING  >", "#2185d0"],
   received: ["RECEIVED <", "#21ba45"],
-  error: ["< ERROR >", "#db2828"]
+  error: ["< ERROR  >", "#db2828"]
 } as const
 
 /** The console style of `badge`:  its words in white, on its colour. */
@@ -200,7 +200,7 @@ export function logFrame(direction: "sent" | "received", frame: unknown, size: n
   console.groupEnd()
 }
 
-/** SIDE EFFECT:  what went wrong between a page and its program, in the console:  a red `< ERROR >` badge, then `what`. */
+/** SIDE EFFECT:  what went wrong between a page and its program, in the console:  a red `< ERROR  >` badge, then `what`. */
 export function logError(what: string, detail: unknown): void {
   console.error(`%c${BADGES.error[0]}%c  ${what}`, badgeStyle("error"), "", detail)
 }

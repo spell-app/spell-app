@@ -15,7 +15,7 @@ async def ws():
 - Each page, a tab, gets the whole state when it opens, then a patch after each of its messages,
   and at each pause (`core.before_pause`):  so a game animates.
 - A message that fails is logged, and the page goes on:
-  it's sent `{"error": "ValueError: ...", "message": {...}}`, which its console shows as `< ERROR >`.
+  it's sent `{"error": "ValueError: ...", "message": {...}}`, which its console shows as `< ERROR  >`.
 """
 
 import asyncio
@@ -120,7 +120,7 @@ class SpellSessions:
                         await page.run_async(message)
                     except Exception as error:
                         log.exception("spell_quart:  the page's message %r failed", message)
-                        # the page shows it in its console, `< ERROR >`:  see `connectPage()` in the core's `page.ts`
+                        # the page shows it in its console, `< ERROR  >`:  see `connectPage()` in the core's `page.ts`
                         await send(json.dumps({ERROR_KEY: f"{type(error).__name__}: {error}", "message": message}))
                     await visit.send_changes()
             finally:
