@@ -61,13 +61,13 @@ describe("logFrame()", () => {
 })
 
 describe("logError()", () => {
-  test("the red < ERROR > badge, what went wrong, and the detail", () => {
+  test("the red < ERROR  > badge, what went wrong, and the detail", () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => {})
     try {
       const frame = { error: "ValueError: no such card" }
       logError("the program couldn't run a message:  ValueError: no such card", frame)
       const [line, badge, , detail] = error.mock.calls[0]!
-      expect(line).toBe("%c< ERROR >%c  the program couldn't run a message:  ValueError: no such card")
+      expect(line).toBe("%c< ERROR  >%c  the program couldn't run a message:  ValueError: no such card")
       expect(badge).toContain("background: #db2828")
       expect(detail).toBe(frame)
     } finally {

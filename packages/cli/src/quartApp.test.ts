@@ -116,13 +116,13 @@ describe("a Python spell app, in a real browser", () => {
     await page.page.context().close()
   }, 60_000)
 
-  test("a message the program can't run comes back as an error:  < ERROR > in the console", async () => {
+  test("a message the program can't run comes back as an error:  < ERROR  > in the console", async () => {
     const page = await opened()
     // what a stand-in in the drawing half would send, for a function the program doesn't have
     // (a string:  vitest would rewrite a function's `import()`)
     await page.page.evaluate(`import("@spell/core").then((core) => core.sendCall("no_such_function", []))`)
     await expect
-      .poll(() => page.logged.find((line) => line.startsWith("%c< ERROR >%c")), { timeout: 5000 })
+      .poll(() => page.logged.find((line) => line.startsWith("%c< ERROR  >%c")), { timeout: 5000 })
       .toMatch(/the program couldn't run a message: {2}ValueError: The program has no function 'no_such_function'/)
     // and the page goes on:  a click still plays
     const discards = await page.page.locator(".Pile.Discards").innerHTML()
