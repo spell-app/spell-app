@@ -3,7 +3,7 @@ import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync }
 import { createServer } from "net"
 import { tmpdir } from "os"
 import { join, resolve } from "path"
-import { chromium, type Browser, type Page } from "playwright"
+import { chromium, type Browser, type BrowserContext, type Page } from "playwright"
 import { afterAll, beforeAll, describe, expect, test } from "vite-plus/test"
 
 /**
@@ -113,6 +113,29 @@ describe("a Python spell app, in a real browser", () => {
     await bob.page.context().close()
   }, 60_000)
 
+  test("a visitor's tabs share one game, each following the other's clicks, both ways", async () => {
+    const first = await opened()
+    const second = await opened(first.page.context())
+    for (const [clicked, other] of [
+      [first, second],
+      [second, first]
+    ]) {
+      // the last click done everywhere:  both tabs sent the same frames, nothing still on its way
+      await expect.poll(() => clicked!.received.length === other!.received.length, { timeout: 5000 }).toBe(true)
+      await clicked!.page.waitForLoadState("networkidle")
+      const discards = await clicked!.page.locator(".Pile.Discards").innerHTML()
+      expect(await other!.page.locator(".Pile.Discards").innerHTML()).toBe(discards)
+      await clicked!.page.locator(".Pile.Stock .Card").last().click()
+      // the click shows in both tabs, and both draw the same board
+      await expect.poll(() => clicked!.page.locator(".Pile.Discards").innerHTML(), { timeout: 5000 }).not.toBe(discards)
+      await expect.poll(() => other!.page.locator(".Pile.Discards").innerHTML(), { timeout: 5000 }).not.toBe(discards)
+      await expect
+        .poll(() => other!.page.locator(".Pile.Discards").innerHTML(), { timeout: 5000 })
+        .toBe(await clicked!.page.locator(".Pile.Discards").innerHTML())
+    }
+    await first.page.context().close()
+  }, 60_000)
+
   test("compiling again leaves an edited app be, and rewrites an unedited one", () => {
     const app = appFile()
     const written = readFileSync(app, "utf8")
@@ -126,12 +149,12 @@ describe("a Python spell app, in a real browser", () => {
 })
 
 /**
- * A new visitor's page, open on the app:
+ * A new visitor's page, open on the app -- or, given `context`, another tab of that browser's:
  * its board drawn, with each message it sent and each frame it received, read as JSON.
  * - Received:  the whole state first, then a patch, a list of the things that changed (epic `python-target` P30).
  */
-async function opened(): Promise<{ page: Page; sent: unknown[]; received: unknown[] }> {
-  const page = await (await browser.newContext()).newPage()
+async function opened(context?: BrowserContext): Promise<{ page: Page; sent: unknown[]; received: unknown[] }> {
+  const page = await (context ?? (await browser.newContext())).newPage()
   const sent: unknown[] = []
   const received: unknown[] = []
   const read = (payload: string | Buffer) => JSON.parse(String(payload)) as unknown

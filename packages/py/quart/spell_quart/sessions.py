@@ -98,11 +98,14 @@ class SpellSessions:
     async def serve(self, socket: Socket, visitor: str) -> None:
         """Serve one page of `visitor`'s over `socket`, until it closes:  see the module's docs."""
         visit = await self.visit(visitor)
+        # the connection itself, not Quart's `websocket`, which means whichever page's code is running:
+        # another tab's click sends this page its changes, from that tab's task
+        connection = socket._get_current_object() if hasattr(socket, "_get_current_object") else socket
         with using_core(visit.core):
             page = PageSession(visit.names)
 
             async def send(data: str) -> None:
-                await socket.send(data)
+                await connection.send(data)
 
             await send(json.dumps(page.state(), ensure_ascii=False))
             visit.pages.append((page, send))
