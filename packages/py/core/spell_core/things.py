@@ -76,9 +76,10 @@ def prop(
       `"text"`, `"number"`, `"choice"` (yes / no), `"list"`, or a class, or its name (`"Card"`).
     - `one_of`:  the values it may have, e.g. `Card.RANKS`;
       or a function giving them, for a list on a class defined after this one:  `lambda: Deck.SUITS`.
-    - `default`:  its value while it's unset.  NOT stored, so `to_json()` leaves it out.
+    - `default`:  its value while it's unset.
+      - NOT stored, so `to_json()` leaves it out
     - `init`:  makes its value the first time it's read, once per thing, e.g. `init=Deck`.
-      Stored, so `to_json()` writes it.
+      - stored, so `to_json()` writes it
     - throws `TypeError` for a list, dict or set `default`:
       every thing would share that one object.  Pass `init=list` instead.
     """

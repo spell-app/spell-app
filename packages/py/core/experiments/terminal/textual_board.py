@@ -67,6 +67,7 @@ class Clicked(Message):
     """An element with an `onClick` was clicked:  sent to the app, which calls the handler and draws again."""
 
     def __init__(self, handler: Callable[[], Any]) -> None:
+        """A click on the element whose `onClick` is `handler`."""
         super().__init__()
         self.handler = handler
 
@@ -77,6 +78,7 @@ class Node:
     handler: Callable[[], Any] | None = None
 
     def on_click(self, event: events.Click) -> None:
+        """Textual's click:  tell the app to call our handler, if we have one, and stop the click there."""
         if self.handler is None:
             return
         event.stop()
@@ -137,10 +139,12 @@ class Board(Vertical):
     DEFAULT_CSS = "Board { height: auto; }"
 
     def __init__(self, draw: Callable[[], Element]) -> None:
+        """A board drawn by `draw()`, the app's own."""
         super().__init__()
         self.draw = draw
 
     def compose(self) -> ComposeResult:
+        """The widgets for the tree `draw()` makes now."""
         yield build(self.draw())
 
 
@@ -151,10 +155,12 @@ class SpellApp(App):
     BINDINGS = [Binding("q", "quit", "Quit")]  # noqa: RUF012 -- Textual's own way to declare them
 
     def __init__(self, draw: Callable[[], Element]) -> None:
+        """An app showing what `draw()` makes:  `game.draw`, say."""
         super().__init__()
         self.draw = draw
 
     def compose(self) -> ComposeResult:
+        """The board, its only widget."""
         yield Board(self.draw)
 
     async def on_clicked(self, message: Clicked) -> None:
@@ -164,6 +170,7 @@ class SpellApp(App):
 
 
 def solitaire_app() -> SpellApp:
+    """The sample Solitaire game (`sample_solitaire.py`), as a Textual app."""
     import sample_solitaire
 
     return SpellApp(lambda: sample_solitaire.game.draw())

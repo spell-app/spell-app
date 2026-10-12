@@ -1,6 +1,6 @@
 """A program's state as JSON by id (`state.py`):  written by a `StateWriter`, read into a `StateMirror`.
 
-- `stateById.expected.json`, beside `py/`, holds the state these tests write.
+- `stateById.expected.json`, in the JavaScript core's package, holds the state these tests write.
   The JavaScript core's `state.test.ts` writes the same things and reads the same file, so the two cores agree.
 - The classes are what spell compiles from:
   - `a chip is a thing` + `a chip has a color as text` + `a chip has a value as a number`

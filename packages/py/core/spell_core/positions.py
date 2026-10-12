@@ -1,7 +1,5 @@
 """Positions:  the core counts from 0, as Python does, and knows nothing of where a spell project counts from.
 
-- Plan doc python-target, P23 (Owen:  "listsStartAt is a *spell language* thing,
-  emitted code is canonical for platform").
 - An index counts from 0;  a negative one from the end, `-1` the last item.
 - Spell code counting from 1 (the default) is turned into indexes as it COMPILES:
   - a number written out is folded:  "item 4 of the deck" is `deck[3]`
@@ -11,6 +9,8 @@
   - a loop handing its function the position, through `with_spell_positions()`
 - Compiled code imports these by name:  `from spell_core import position`.
 - The twin of the JavaScript core's `positions.ts`.
+- Plan doc python-target, P23 (Owen:  "listsStartAt is a *spell language* thing,
+  emitted code is canonical for platform").
 """
 
 import functools

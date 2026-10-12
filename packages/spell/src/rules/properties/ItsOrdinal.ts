@@ -8,7 +8,8 @@ import { properties } from "./properties.parser"
  * `its_ordinal` rule:  `its {ordinal} {arg}` -- possessive-plus-ordinal shorthand, e.g. `its third card`.
  * - Tracks `it`:  `get it` / `put its foo in the bar`.
  * - Synonym for `this` if `it` is not (yet) defined in scope.
- * - Compiles to `spellCore.getItemAt(object, ordinal)` rather than a plain property access.
+ * - Compiles to `spellCore.getItemAt(object, index)` rather than a plain property access:
+ *   `its third card` => `spellCore.getItemAt(it, 2)`.
  */
 export class ItsOrdinal extends SpellExpression<"ordinal|arg", ItsMatchData & { itemType?: P.Datatype }> {
   /** Note `it`, and what it holds, while we can look them up. */

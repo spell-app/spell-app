@@ -24,8 +24,9 @@ def page_html(title: str, elements: str, projects: dict[str, str] | None = None,
     """The page:  see the module's docs.
 
     - `elements`:  the URL of the program's drawing half, e.g. `/Solitaire.elements.js`.
-    - `projects`:  each project it imports, by the module its drawing half imports it as, and the URL of that one's,
-      e.g. `{"@spell/project/@system:library:cards": "/cards.elements.js"}`.
+    - `projects`:  the URL of each imported project's drawing half,
+      by the module name the program's drawing half imports it as:
+      `{"@spell/project/@system:library:cards": "/cards.elements.js"}`.
     - `socket`:  the path of the WebSocket it connects to.
     """
     projects = projects or {}

@@ -13,44 +13,55 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - [ts/](ts/index.ts):  the TypeScript that writes Python, `$/py` (`PY`)
   - [core/](core/pyproject.toml):  `spell_core`, what compiled Python imports
   - [quart/](quart/pyproject.toml):  `spell_quart`, a Python spell program served as a web app on Quart
-- ONE yarn workspace, `@spell-app/py`:  its TypeScript is in `ts/`, not the usual `src/`.
-  - The alias table (`tsconfig.base.json`) points `$/py` at `ts/`.
+- ONE yarn workspace, `@spell-app/py`.
+  - Its TypeScript is in `ts/`, not the usual `src/`:
+    [the alias table](../../tsconfig.base.json) points `$/py` there.
   - `core/` and `quart/` are uv projects of their own, beside it:  yarn doesn't look in them.
-- Imports `$/parser` (`P`) and `$/util` only.  `spell` imports this, for its targets (`SP.TARGETS`).
-  - Parser's helpers the writers share come through its barrel:  `P.ProgramWriter`, `P.JSWriter`, `P.Naming`,
-    `P.forEachNode()`, and `P.jsShapes` (`unwrapped()`, `isCoreCall()` ...).
-- `yarn review` here covers all three:  tsc, oxlint / oxfmt and vitest on `ts/`, then ruff and pytest in each uv
-  project.
+- It imports only `$/parser` (`P`) and `$/util`.
+  - The parser's helpers the writers share come through its barrel:
+    - `P.ProgramWriter`
+    - `P.JSWriter`
+    - `P.Naming`
+    - `P.forEachNode()`
+    - `P.jsShapes` (`unwrapped()`, `isCoreCall()` ...)
+- `spell` imports it, for its targets (`SP.TARGETS`).
+- `yarn review` here covers all three:
+  - `ts/`:  tsc, oxlint / oxfmt and vitest
+  - then each uv project:  ruff and pytest
 
 ## The writers (`ts/`)
 
-- `PY.PyWriter`:  Python, on asyncio:  the `py` target's writer, `<Project>.compiled.py`
+- `PY.PyWriter`:  the `py` target's writer, Python on asyncio
+  - It writes `<Project>.compiled.py`.
   - It builds on `PY.PyBaseWriter` (on `P.ProgramWriter`), which writes all but waiting.
   - It writes Python as a person would:
     - PEP 8's names, e.g. `Card.RANKS`, and `class_` for a keyword
     - Python's own words:  `for number in range(1, 101):`, `x is None`, f-strings
     - type hints where spell knows the kind
-  - `spell_core`'s one object, `core`, only where Python has no word for what spell says.
-  - A function that waits is `async def`, and every call of it awaits it;  a program that never waits is plain
-    Python (one target since P22).
+  - It calls `spell_core`'s one object, `core`, only where Python has no word for what spell says.
+  - A function that waits is `async def`, and every call of it awaits it.
+    A program that never waits is plain Python (one target since P22).
 - `PY.ElementsWriter`:  a Python program's DRAWING half, in javascript, `<Project>.elements.js` (P19)
   - For a page that draws the program running in Python, from the state Python sends.
-  - It extends `P.JSWriter`:  the classes as they are, the program's top-level steps left out,
-    each thing it keeps an `export let` bound from the state (`adopt()`).
-  - A top-level function, a call in a drawing's handler and an event:  a message to Python, by Python's names.
+  - It extends `P.JSWriter`:
+    - the classes as they are
+    - the program's top-level steps left out
+    - each thing it keeps:  an `export let`, bound from the state (`adopt()`)
+  - A top-level function, a call in a drawing's handler, and an event:
+    each is a message to Python, by Python's names.
 - `PY.pyText`:  Python's punctuation
   - blocks by their indent, text in quotes, docstrings
   - a long call broken one item a line, as Black (Python's usual formatter) does
-- `PY.quartApp()`:  a program's web app, `<Project>.app.py` (P20), and `PY.isUneditedApp()`:
-  each compile rewrites it only while nobody has edited it.
+- `PY.quartApp()`:  a program's web app, `<Project>.app.py` (P20)
+  - Each compile rewrites it only while nobody has edited it (`PY.isUneditedApp()`).
 
 ## `spell_core` (`core/`)
 
 - What spell compiled to Python imports, for what Python has no word of its own for.
   - Compiled code imports `core`, and the classes it extends:  `from spell_core import core, Thing, List, App, prop, h`.
   - That `core` has the JavaScript core's methods, snake_cased, e.g. `random_item_of()`.
-  - Each module is the twin of one in `@spell-app/core`, e.g. `positions.py` of
-    [positions.ts](../core/src/positions.ts).
+  - Each module is the twin of one in `@spell-app/core`,
+    e.g. `positions.py` of [positions.ts](../core/src/positions.ts).
   - `core` stands in for the running program's own core (`using_core()`):  one per web visitor.
   - Standard library only (decision Q33):  any standard module is fine;  a package from outside it, ask Owen first.
 - A uv project, [pyproject.toml](core/pyproject.toml) with its `uv.lock`:  Python 3.12 or later.
@@ -65,18 +76,20 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 - It runs a compiled program with `python -m spell_core.run <program> --seed n`.
   - cli's [`runPython()`](../cli/src/commands/runCommand.ts) runs it through uv in this project.
-  - `--no-pauses`:  a pause doesn't wait;  `--page`:  print what it drew, as HTML;
-    `--state`:  print its state as JSON by id.
+  - Its flags:
+    - `--no-pauses`:  a pause doesn't wait
+    - `--page`:  print what it drew, as HTML
+    - `--state`:  print its state as JSON by id
 - `PageSession` (`spell_core.page`):  a program's side of a page that draws it.
   - `python -m spell_core.page <program> --seed n` talks to a page over stdin and stdout, a JSON line each.
 - `play_page()` (`spell_core.playing`, P30):  a test plays a program the way its page does, by the page's messages.
   - `game.trigger("card-click", card=game.ref(card))`, `game.call("deal_the_cards")`:  each answered by its patch.
   - `game.thing(id)`, `game.named("stock")`:  what the page holds now, by id.
   - After each, the patches so far must add up to the whole state, else `PatchMismatchError`.
-  - The contract's 300 clicks per game play through it (`tests/patches_in_a_game.py`).
-- Four checks keep it in step with the javascript core (`packages/core`):
-  - the core's method list:  every name in [spellCore.declarations.json](../core/spellCore.declarations.json),
-    or listed, with why, in [not_ported_yet.json](core/not_ported_yet.json)
+  - The contract's 300 clicks per game play through it ([patches_in_a_game.py](core/tests/patches_in_a_game.py)).
+- Four checks keep it in step with the javascript core ([core's AGENTS.md](../core/AGENTS.md)):
+  - the core's method list ([spellCore.declarations.json](../core/spellCore.declarations.json)):
+    `spell_core` has each name, or lists it, with why, in [not_ported_yet.json](core/not_ported_yet.json)
   - seeded random:  both read [seededRandom.expected.json](../core/seededRandom.expected.json)
   - state by id:  both write and read [stateById.expected.json](../core/stateById.expected.json)
   - the core contract (cli's [contract.test.ts](../cli/src/contract.test.ts)):
@@ -87,10 +100,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 ## `spell_quart` (`quart/`)
 
 - A Python spell program served as a web app on Quart (P20):  a uv project depending on `spell_core` and Quart.
-- `SpellSessions`:  a game per visitor (a cookie), the program run once for each on a core of its own;
-  a page per WebSocket:  the state down when it opens, a patch after each message and at each pause
-  (`core.before_pause`).
-- `page_html()`:  the page, loading the page side (app's `yarn build:page`, `dist-page/`) and the drawing half.
+- `SpellSessions`:  a game per visitor (a cookie), the program run once for each, on a core of its own.
+  - A page per WebSocket:  the state down when it opens,
+    then a patch after each message and at each pause (`core.before_pause`).
+- `page_html()`:  the page.
+  - It loads the page side (app's `yarn build:page`, into `dist-page/`), and the program's drawing half.
 - cli's [quartApp.test.ts](../cli/src/quartApp.test.ts) plays Solitaire through a compiled app, in headless Chromium.
 
 ## Types / Exports

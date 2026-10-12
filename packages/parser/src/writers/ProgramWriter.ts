@@ -30,7 +30,10 @@ export abstract class ProgramWriter extends Writer {
   /** What we know of the project we're writing -- see `WriterProject`. */
   readonly project: WriterProject
 
-  /** How we write each kind of name, e.g. a type in PascalCase:  each language's writer sets its own -- see `Naming`. */
+  /**
+   * How we write each kind of name, e.g. a type in PascalCase.
+   * - Each language's writer sets its own -- see `Naming`.
+   */
   abstract naming: Naming
 
   /**
@@ -92,8 +95,9 @@ export abstract class ProgramWriter extends Writer {
   }
 
   /**
-   * `match`'s code, a file's, a statement's or a rule test's, written as if it were the whole project, in its scope
-   * (`forProject()`):  so a getter its project declares, or imports, is read by its member name, `card.isFaceUp`.
+   * `match`'s code (a file's, a statement's or a rule test's), written as if it were the whole project.
+   * - In its scope (`forProject()`):
+   *   so a getter its project declares, or imports, is read by its member name, `card.isFaceUp`.
    * - For code alone, e.g. the editor's view of one file, a hover, a rule test:
    *   a project's is written whole, by `SP.SpellProject.combineCompiled()`.
    * - A rule with no tree compiles itself.
@@ -221,8 +225,8 @@ export abstract class ProgramWriter extends Writer {
   }
 
   /**
-   * `callback`, a loop's function, written:  counting from 1, one that takes the position too gets spell's,
-   * `withSpellPositions((card, position) => ...)`.
+   * `callback`, a loop's function, written.
+   * - Counting from 1, one that takes the position too gets spell's:  `withSpellPositions((card, position) => ...)`.
    */
   positionedCallback(callback: P.ASTExpression | undefined, written: string): string {
     const method = callback && unwrapped(callback)
@@ -239,8 +243,10 @@ export abstract class ProgramWriter extends Writer {
   }
 
   /**
-   * `spellCore` helper `name`'s `args`, written, its positions as indexes -- see `POSITION_ARGS`;
-   * a loop's function as `positionedCallback()` says;  a range's open end as `nothing`.
+   * `spellCore` helper `name`'s `args`, written:
+   * - its positions as indexes -- see `POSITION_ARGS`
+   * - a loop's function as `positionedCallback()` says
+   * - a range's open end as `nothing`
    */
   positionArgs(name: string, args: P.ASTExpression[]): string[] {
     const kinds = ProgramWriter.POSITION_ARGS[name] ?? []
@@ -587,7 +593,7 @@ export abstract class ProgramWriter extends Writer {
     const condition = unwrapped(node.condition)
     const [only] = (node.statements.statements ?? []).filter((it) => !(it instanceof P.ASTBlankLine))
     if (!(only instanceof P.ASTReturnStatement)) return
-    // `if the pile is empty return 0`:  after it, the pile has items, its first and last there (epic `python-target` P25)
+    // after `if the pile is empty return 0`, the pile has items, its first and last there (epic `python-target` P25)
     if (isCoreCall(condition) && (condition as P.ASTScopedMethodInvocation).methodName === "isEmpty") {
       const [list] = (condition as P.ASTScopedMethodInvocation).args.args ?? []
       if (list) this.locals.at(-1)!.set(ProgramWriter.nonEmptyKey(this.bare(list)), ProgramWriter.FOUND)

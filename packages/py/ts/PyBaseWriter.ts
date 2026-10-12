@@ -6,8 +6,8 @@ const { attributeName, isCoreCall, kindFromDatatype, unwrapped } = P.jsShapes
 
 /****************
  * ### `PyBaseWriter`
- * Writes a spell tree as Python, all but waiting:  what `PY.PyWriter`, the `py` target's writer, builds on
- * (epic `python-target`).
+ * Writes a spell tree as Python, all but waiting (epic `python-target`):
+ * what `PY.PyWriter`, the `py` target's writer, builds on.
  * - As idiomatic as Python can be (Owen, Q8):  what a Python programmer would write by hand.
  *   - names as PEP 8 says:  `play_fizzbuzz`, `Card`, `Card.RANKS`, a keyword stepping aside as `class_` (`naming`)
  *   - Python's own words where it has them:
@@ -491,8 +491,8 @@ export class PyBaseWriter extends P.ProgramWriter {
         return first && second ? this.typeTest(first, second) : undefined
       case "getRange":
         return this.range(first, second)
-      // Python's own rounding (Owen, on Q29):  `round` as javascript's `Math.round()`, a half up, not Python's
-      // `round()`, which rounds a half to the even number (2.5 is 2)
+      // Python's own rounding (Owen, on Q29):  `round` as javascript's `Math.round()`, a half up,
+      // not Python's `round()`, which rounds a half to the even number (2.5 is 2)
       case "round":
         return first ? `math.floor(${this.operand(first, "plus", "lhs")} + 0.5)` : undefined
       case "roundUp":
@@ -661,7 +661,10 @@ export class PyBaseWriter extends P.ProgramWriter {
     return pyText.block(`with core.test(${this.bare(name)})`, block)
   }
 
-  /** `range(start, end + 1)` for spell's range of whole numbers from `start` to `end`, counting up;  else `undefined`. */
+  /**
+   * `range(start, end + 1)` for spell's range of whole numbers from `start` to `end`, counting up.
+   * - Else `undefined`.
+   */
   range(start: P.ASTExpression | undefined, end: P.ASTExpression | undefined): string | undefined {
     const from = start && unwrapped(start)
     const to = end && unwrapped(end)
@@ -811,9 +814,10 @@ export class PyBaseWriter extends P.ProgramWriter {
   protected asserts: string[] | undefined
 
   /**
-   * SIDE EFFECT:  `object`, written `written`, is read off:  if its hint says it may be nothing (`X | None`, e.g.
-   * a card's `pile`), the statement says first that it isn't, `assert card.pile is not None`, so pyright knows
-   * (epic python-target P25, Owen's Q31 D:  "spell's knowledge, else assert").
+   * SIDE EFFECT:  `object`, written `written`, is read off:
+   * if its hint says it may be nothing (`X | None`, e.g. a card's `pile`),
+   * the statement says first that it isn't, `assert card.pile is not None`, so pyright knows.
+   * - Why, in Owen's words (epic `python-target` P25, Q31 D):  "spell's knowledge, else assert".
    * - Once a block:  after it, pyright knows.
    * - Only for a name or a path of names, `start_pile`, `card.pile`.
    */
@@ -1276,8 +1280,8 @@ export class PyBaseWriter extends P.ProgramWriter {
   }
 
   /**
-   * From outside its class:  its function, set on the class by `spell_core`'s decorator --
-   *   `@Card.add_method("play")` above `def _card_play(self)`, `@Card.add_property("pile")` for a getter.
+   * From outside its class:  its function, set on the class by `spell_core`'s decorator.
+   * - `@Card.add_method("play")` above `def _card_play(self)`;  `@Card.add_property("pile")` for a getter.
    * - For a class of another project:  a class of this one has it in its body (`withProjectMembers()`).
    * - `doc`:  its docstring, if any.
    */
@@ -1287,14 +1291,16 @@ export class PyBaseWriter extends P.ProgramWriter {
     const helper = `_${this.nameOf(node.typeName, "variable")}_${name}`
     return this.inClass(node.typeName, () => {
       const method = node.get ?? node.method!
-      // set on its class by `spell_core`'s decorator:  pyright refuses `Card.play = _card_play` (epic python-target P25)
+      // set on its class by `spell_core`'s decorator:
+      // pyright refuses `Card.play = _card_play` (epic `python-target` P25)
       const decorator = `${type}.${node.get ? "add_property" : "add_method"}(${this.quoted(name)})`
       return this.methodDefinition(method, doc, { name: helper, first: "self", decorators: [decorator] })
     })
   }
 
   /**
-   * In its class's body:  `rank = prop(one_of=RANKS)`, a stored property, made by `spell_core`'s `prop()` (a descriptor).
+   * A stored property in its class's body:  `rank = prop(one_of=RANKS)`.
+   * - Made by `spell_core`'s `prop()` (a descriptor).
    * - its check's keys as keywords:  `oneOf` => `one_of`
    * - its first value:  `default=` (a value) or `init=` (made new for each thing)
    */
@@ -1448,7 +1454,10 @@ function flattened(group: P.ASTStatementGroup): P.ASTNode[] {
   )
 }
 
-/** Is `node` an event's handler, `spellCore.on("card-click", (event) => {...})`?  Written as a `def` -- see `handlerBlock()`. */
+/**
+ * Is `node` an event's handler, `spellCore.on("card-click", (event) => {...})`?
+ * - Written as a `def` -- see `handlerBlock()`.
+ */
 function isHandlerCall(node: P.ASTNode): boolean {
   const call = node instanceof P.ASTExpression ? unwrapped(node) : undefined
   if (!call || !isCoreCall(call)) return false

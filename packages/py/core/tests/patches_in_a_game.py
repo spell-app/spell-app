@@ -7,8 +7,8 @@
 - Each click is a `card-click`, as `onClick` triggers one:
   every other one on the top card of the game's `stock`, if it has one, turning a card over;
   the rest on a card of its `deck`, picked by the seeded random.
-- Played by the page's own messages (`spell_core.playing`):  after each, the patches so far must add up to the
-  game's whole state.
+- Played by the page's own messages (`spell_core.playing`):
+  after each, the patches so far must add up to the game's whole state.
 - Prints how many clicks changed something;  exits 1 at the first that doesn't match.
 """
 

@@ -1,4 +1,4 @@
-"""Playing a program the way its page does (epic python-target, P30):  by the page's messages, checking each patch.
+"""Playing a program the way its page does:  by the page's messages, checking each patch.
 
 ```python
 game = play_page("Solitaire.compiled.py", seed=1)
@@ -9,13 +9,16 @@ assert game.thing(stock["@id"])["@items"] == stock["@items"][:-1]
 ```
 
 - What a test sees is what a page sees:  the state it started from, then each patch, by id (`spell_core.state`).
-  - `thing(the_id)`:  a thing as the page holds it now, its JSON;  `named(name)`:  one the program keeps at its top
-    level.  Each patch has each thing that changed, whole, so the latest JSON for an id is the thing.
-- Each message is the page's own, run by its `PageSession` on asyncio, to its end:  a function that waits is
-  awaited.  Pauses don't wait unless asked (`pauses=True`).
-- After each, a check that nothing was left out:  a mirror reads every patch so far, and must hold the program's
-  whole state;  else `PatchMismatchError`.
+  - `thing(the_id)`:  a thing as the page holds it now, its JSON
+  - `named(name)`:  one the program keeps at its top level
+  - Each patch has each thing that changed, whole, so the latest JSON for an id is the thing.
+- Each message is the page's own, run by its `PageSession` on asyncio, to its end:
+  a function that waits is awaited.
+  - Pauses don't wait unless asked (`pauses=True`).
+- After each, a check that nothing was left out:
+  a mirror reads every patch so far, and must hold the program's whole state;  else `PatchMismatchError`.
 - A thing is named by its id, `{"@id": "12"}` (`ref()`), as the page names one today.
+- Epic python-target, P30.
 """
 
 import asyncio

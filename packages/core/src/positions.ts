@@ -1,7 +1,8 @@
 /**
- * Positions:  the core counts from 0, as javascript does, and knows nothing of where a spell project counts from
- * (epic `python-target` P23, Owen's Q28:  "listsStartAt is a *spell language* thing, emitted code is canonical
- * for platform").
+ * Positions:  the core counts from 0, as javascript does,
+ * and knows nothing of where a spell project counts from.
+ * - Why, in Owen's words (epic `python-target` P23, Q28):
+ *   "listsStartAt is a *spell language* thing, emitted code is canonical for platform"
  * - An index counts from 0;  a negative one from the end, `-1` the last item.
  * - spell code counting from 1 (the default) is turned into indexes as it COMPILES:
  *   - a number written out is folded:  "item 4 of the deck" is `deck.getItem(3)`
@@ -33,10 +34,12 @@ export function spellPosition<P>(index: P): P {
 }
 
 /**
- * spell's END position `n`, from 1 and included in its range ("items 2 to 4"), as the end of a `slice()`,
- * which isn't:  `endPosition(4)` is `4`, so "items 2 to 4" is `slice(1, 4)`.
- * - `-1`, the last item:  `undefined`, to the end.  Other negatives:  one more, `-2` is `-1`.
- * - `0`:  `0`, an empty range.  Anything but a number:  `undefined`.
+ * spell's END position `n` as the end of a `slice()`:  `endPosition(4)` is `4`, so "items 2 to 4" is `slice(1, 4)`.
+ * - spell's end counts from 1, and its range includes it ("items 2 to 4");  a `slice()` stops before its end.
+ * - `-1`, the last item:  `undefined`, to the end.
+ * - Other negatives:  one more, `-2` is `-1`.
+ * - `0`:  `0`, an empty range.
+ * - Anything but a number:  `undefined`.
  */
 export function endPosition(n: unknown): number | undefined {
   if (typeof n !== "number") return undefined

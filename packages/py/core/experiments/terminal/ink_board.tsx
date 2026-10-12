@@ -7,7 +7,7 @@
  *   an element with an `onClick` is FOCUSED with Tab, and Enter clicks it.
  * - Run it with the CLI's own Ink (5, on React 18), from the repo root:
  *
- *       node_modules/.bin/tsx packages/core/py/experiments/terminal/ink_board.tsx
+ *       node_modules/.bin/tsx packages/py/core/experiments/terminal/ink_board.tsx
  *
  *   In a terminal:  Tab moves between the clickable elements, Enter clicks, `q` quits.
  *   Piped (`... | cat`):  it draws once and stops.

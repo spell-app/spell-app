@@ -1,8 +1,8 @@
 """`core`'s side of the running program:  its events, its processes, and pauses (epic python-target, P11).
 
 - The twin of the JavaScript core's `runtime.ts` and `ui.ts`'s `pauseFor()`.
-- A pause waits without stopping the program's other work:  `await core.pause_for(50, "msec")`, on asyncio
-  (one Python target since P22).
+- A pause waits without stopping the program's other work:  `await core.pause_for(50, "msec")`.
+  - It's asyncio's:  the one Python target, since P22.
   - `core.pauses = False` skips them, e.g. in a test run (`python -m spell_core.run --no-pauses`).
 - Processes are names with a flag, "!" (running alone) or a count:  `start exclusive process deal the cards`.
 """
@@ -19,6 +19,7 @@ class SpellRuntime(Eventful):
     """The running program:  its events (`core.on()`, `core.trigger()`) and its state, e.g. its processes."""
 
     def __init__(self) -> None:
+        """A program with no handlers yet, and nothing in its state."""
         self.state: dict[str, Any] = {}
 
 

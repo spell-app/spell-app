@@ -499,8 +499,8 @@ export class JSWriter extends ProgramWriter {
   }
 
   /**
-   * A `spellCore` helper's `(args)`, its positions as indexes (`positionArgs()`):  `(deck, 3)` for `item 4 of deck`;
-   * as `argsOf()` writes them when it takes none.
+   * A `spellCore` helper's `(args)`, its positions as indexes (`positionArgs()`):  `(deck, 3)` for `item 4 of deck`.
+   * - One that takes no positions:  as `argsOf()` writes them.
    */
   helperArgs(node: P.ASTScopedMethodInvocation): string {
     const name = node.methodName

@@ -3,8 +3,9 @@ import { describe, test, expect } from "vite-plus/test"
 import { PY } from "$/py"
 
 /**
- * `PY.quartApp()`:  a Python spell program's web app, `<Project>.app.py`, and `PY.isUneditedApp()`, which says
- * whether compiling again may rewrite it.  The app itself is run in cli's `quartApp.test.ts`.
+ * `PY.quartApp()`:  a Python spell program's web app, `<Project>.app.py`;
+ * and `PY.isUneditedApp()`, which says whether compiling again may rewrite it.
+ * - The app itself is run in cli's `quartApp.test.ts`.
  */
 const SPEC = { projectName: "Solitaire", program: "Solitaire.compiled.py", elements: "Solitaire.elements.js" }
 

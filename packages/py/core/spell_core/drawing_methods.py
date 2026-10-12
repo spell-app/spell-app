@@ -9,8 +9,10 @@ h("td", core.draw_thing(stock))   # the stock's own draw(), or nothing for None
 game.start()                      # the game is drawn on `core.page`, when the page is written
 ```
 
-- The twins of the JavaScript core's `drawing.ts` (`drawThing()`, `drawOwn()`, `drawItems()`, `mountApp()`),
-  `installStyles()` (`ui.ts`) and `appElement()` (`classes/index.ts`).
+- The twins of the JavaScript core's:
+  - `drawThing()`, `drawOwn()`, `drawItems()` and `mountApp()`, in `drawing.ts`
+  - `installStyles()`, in `ui.ts`
+  - `appElement()`, in `classes/index.ts`
 - Python has no page to draw on:  `core.page` stands in for the JavaScript run's fake one.
   - An app mounted on it is drawn each time the page is WRITTEN, not when it starts:
     so it shows its things as they are then, as a live page would.

@@ -1,6 +1,6 @@
 /**
- * A program's state as JSON, each thing by its id:  what a page mirrors, so a click names the thing a program holds
- * (epic `python-target`, P17).
+ * A program's state as JSON, each thing by its id (epic `python-target`, P17):
+ * what a page mirrors, so a click names the thing a program holds.
  *
  * ```ts
  * const writer = new StateWriter()

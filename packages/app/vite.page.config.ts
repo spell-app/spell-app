@@ -3,15 +3,17 @@ import { defineConfig } from "vite"
 import { appConfig, sharedSolid } from "./vite.shared.ts"
 
 /**
- * Build the page side of a program running elsewhere, e.g. a Python program served by Quart (epic `python-target`
- * P20):  `yarn build:page` => `dist-page/`, after `vite.solid.config.ts --outDir dist-page` (which empties the folder).
- * - One entry, to a FIXED name, so a page's import map can name it:  `spell-page.js`, the page's `@spell/core` --
- *   see `src/runner/spellPage.ts`.
- * - Solid and `@spell-app/ui` come from `spell-solid.js` / `spell-ui.js` beside it (`sharedSolid()`), as in
- *   `dist-runner/`.
+ * Build the page side of a program running elsewhere,
+ * e.g. a Python program served by Quart (epic `python-target` P20).
+ * - `yarn build:page` builds it into `dist-page/`,
+ *   after `vite.solid.config.ts --outDir dist-page` (which empties the folder).
+ * - One entry, to a FIXED name, so a page's import map can name it:
+ *   `spell-page.js`, the page's `@spell/core` -- see `src/runner/spellPage.ts`.
+ * - Solid and `@spell-app/ui` come from `spell-solid.js` / `spell-ui.js` beside it (`sharedSolid()`),
+ *   as in `dist-runner/`.
  * - `static/` is copied in, so Semantic UI and Lato sit beside it, for the page to link.
- * - Plugins, aliases, dedupe and CSS:  `appConfig()`, as `vite.config.ts`.  `keepNames` MUST stay on --
- *   see `parser/build.test.ts`.
+ * - Plugins, aliases, dedupe and CSS:  `appConfig()`, as `vite.config.ts`.
+ *   `keepNames` MUST stay on -- see `parser/build.test.ts`.
  */
 const shared = appConfig()
 export default defineConfig({

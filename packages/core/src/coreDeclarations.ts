@@ -3,13 +3,14 @@
  * - Written to `spellCore.declarations.json`, at the package's root, by `yarn gen:declarations`
  *   (`writeCoreDeclarations.ts`).
  *   - `coreDeclarations.test.ts` fails when that file and the core differ.
- *   - Python's core reads it in a test, to find what it hasn't ported yet (`py/tests/test_core_declarations.py`).
+ *   - Python's core reads it in a test, to find what it hasn't ported yet
+ *     (`packages/py/core/tests/test_core_declarations.py`).
  * - In the format projects write their own declarations in (`<Project>.declarations.json`),
  *   see `SP.SpellDeclarationsData`, with one key more, `module`:  the core's file that has it.
  * - Read from the core itself, as it runs:  each module's methods object, so nothing is listed by hand.
  *   - Parameters by name, from each function's own source:  `getItemAt(collection, position, startAt)`.
- *   - Its section and description, from the module's source file (`docsIn()`):  what the core reference page shows
- *     (`guides/targets/core-reference.html`, epic `python-target` P29).
+ *   - Its section and description, from the module's source file (`docsIn()`):
+ *     what the core reference page shows (`guides/targets/core-reference.html`, epic `python-target` P29).
  * - Left out:
  *   - `deprecated.ts`:  old names, for programs compiled before they changed.  A new core has none.
  *   - members starting with `_`, e.g. `_randomKeyOf()`:  the core's own helpers, which compiled code never calls.
@@ -201,8 +202,9 @@ const MODULE_DOCS = new Map<string, Map<string, MemberDocs>>()
  * The docs of each name `module`'s source declares, from its file under `src/`:
  * - `description`:  its docstring's lead, up to its first bullet, on one line
  * - `section`:  the `// ## Heading` it's under, e.g. `Events -- the running program's, on RUNTIME`
- * - A name declared twice (an overload, an interface's member, a getter and its setter) keeps its first docstring
- *   under a heading, else its first:  `spellCore.addAtPosition()`'s, not the custom collection interface's above it.
+ * - A name declared twice (an overload, an interface's member, a getter and its setter):
+ *   its first docstring under a heading, else its first.
+ *   E.g. `spellCore.addAtPosition()`'s, not the custom collection interface's above it.
  * - Its file:  `src/<module>.ts`, or a folder's `src/<module>/index.ts` (`classes`);  none, no docs.
  */
 export function docsIn(module: string): Map<string, MemberDocs> {

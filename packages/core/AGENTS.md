@@ -14,23 +14,24 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - console, assertions
   - `spellCore.scopes.js`
   - Compiled programs link against a bundled copy of it, `spell-runtime.js`, NOT this source directly.
-- Its Python twin, `spell_core`, is in [packages/py/core](../py/AGENTS.md):  what spell compiled to Python imports
-  ("The Python core", below).
+- Its Python twin is `spell_core`, what spell compiled to Python imports ("The Python core", below).
 - [spellCore.scopes.js](src/spellCore.scopes.js) is GENERATED:  the built-in types' docs, for pages with no parser.
   - Built from spell's table of built-in types, `BUILT_IN_TYPE_TABLE` ([builtinTypes.ts](../spell/src/builtinTypes.ts)).
   - By `yarn scopes --builtins`, in `../lsp`.
   - NEVER edit it by hand:  edit the table, run that.
 - [spellCore.declarations.json](spellCore.declarations.json) is GENERATED too:
-  the core's method list, what another target's core must have (Python's, in `packages/py/core`).
+  the core's method list, what another target's core must have (Python's `spell_core`, say).
   - Read from the running core by [`coreDeclarations()`](src/coreDeclarations.ts).
-  - Each name's `section` and `description` come from its docstring's lead, in the module's source:
-    what the core reference page shows (`guides/targets/core-reference.html`, epic `python-target` P29).
-    A name with no docstring fails `coreDeclarations.test.ts`.
+  - Each name's `section` and `description` come from the lead of its docstring, in the module's source.
+    - They're what [the core reference page](../../guides/targets/core-reference.html) shows
+      (epic `python-target` P29).
+    - A name with no docstring fails `coreDeclarations.test.ts`.
   - Written by `yarn gen:declarations` ([writeCoreDeclarations.ts](src/writeCoreDeclarations.ts)).
   - [coreDeclarations.test.ts](src/coreDeclarations.test.ts) fails until you run it,
     after adding, renaming or removing anything on `spellCore`.
   - Python's [test_core_declarations.py](../py/core/tests/test_core_declarations.py) checks `spell_core` against it:
-    a new name fails there too, until it's ported or listed in py's `core/not_ported_yet.json`.
+    a new name fails there too,
+    until it's ported or listed in py's [not_ported_yet.json](../py/core/not_ported_yet.json).
 - Random numbers come from the core's own generator, [`ParkMiller`](src/ParkMiller.ts), NEVER `Math.random()`:
   - `spellCore.seedRandom(n)` makes everything random after it repeat;  unseeded, each run differs.
   - `spellCore.shuffled()` is lodash's shuffle, step for step.
@@ -140,17 +141,22 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `fromJSON()` reads through a new mirror, so JSON with ids keeps each thing as one.
   - Python's twin is `spell_core.state`:  both write [stateById.expected.json](stateById.expected.json), and read it.
 - A PAGE drawing a program that runs elsewhere, e.g. in Python ([page.ts](src/page.ts), P19):
-  - `startPage()` mirrors the program's state, binds its things in its drawing half (`<Project>.elements.js`'s
-    `adopt()`), and starts its app;  `receive()` reads each patch after.
+  - `startPage()`:
+    - mirrors the program's state
+    - binds its things in the program's drawing half (`adopt()`, in `<Project>.elements.js`)
+    - starts its app
+  - `receive()` reads each patch after.
   - `sendCall()` / `sendTrigger()`:  what the drawing half sends back, each thing by its id.
-  - The state names properties as Python does:  read as javascript names them (`javascriptName()`).
+  - The state names properties as Python does:  the page reads each by its javascript name (`javascriptName()`).
   - Python's side is `spell_core.page`'s `PageSession`.
 
 ## The Python core
 
-- Its Python twin, `spell_core`, is `@spell-app/py`'s, in [packages/py/core](../py/AGENTS.md) (epic `python-target` P21).
-  - The three files both cores read stay here:  `spellCore.declarations.json`, `seededRandom.expected.json`,
-    `stateById.expected.json`.
+- Its Python twin, `spell_core`, is in `@spell-app/py` ([py's AGENTS.md](../py/AGENTS.md), epic `python-target` P21).
+  - The three files both cores read stay here:
+    - [spellCore.declarations.json](spellCore.declarations.json)
+    - [seededRandom.expected.json](seededRandom.expected.json)
+    - [stateById.expected.json](stateById.expected.json)
 
 ## Decorators
 

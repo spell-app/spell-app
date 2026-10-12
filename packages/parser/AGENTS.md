@@ -52,8 +52,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - It extends `P.JSWriter`, adding only what's TypeScript's own:
       - real JSX, decorators, the types spell knows
       - `!` where `?.` can't go
-  - Python's writers (`PY.PyWriter`, `PY.ElementsWriter` ...) are `$/py`'s, on `P.ProgramWriter` and `P.JSWriter`:
-    see [py's AGENTS.md](../py/AGENTS.md).
+  - Python's writers are `$/py`'s ([py's AGENTS.md](../py/AGENTS.md)), built on these:
+    - `PY.PyWriter`, on `P.ProgramWriter`
+    - `PY.ElementsWriter`, on `P.JSWriter`
   - [jsShapes.ts](src/writers/jsShapes.ts):  the pure helpers every program writer shares, `P.jsShapes`
   - `P.jsText`:  javascript's and TypeScript's punctuation
 - No UI framework, no JSX, no DOM.
@@ -69,7 +70,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   because a rule's name is worked out from its class name.
   - e.g. `ListAddRelative` => `list_add_relative`
   - `P.Rule.ruleNameFor()` works it out.
-  - The builds:  app's [vite.config.ts](../app/vite.config.ts) and [vite.editor.config.ts](../app/vite.editor.config.ts).
+  - The builds:
+    app's [vite.config.ts](../app/vite.config.ts) and [vite.editor.config.ts](../app/vite.editor.config.ts).
   - Pinned by app's [build.test.ts](../app/src/build.test.ts).
 
 ## Imports

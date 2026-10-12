@@ -9,7 +9,7 @@
  *     `console`, `runtime`, `things`, `json`, `ui`, `drawing`, `elements`, plus `core` itself.
  * - NOTE: most of those modules are imported here ONLY for that side effect (bare `import "./x"`, no named import):
  *   importing this barrel (or anything that transitively imports `$/core`) is what triggers the assembly.
- *   `SpellCore` (the assembled TYPE) is exported separately as a `type`-only export, so it costs nothing at runtime.
+ * - `SpellCore` (the assembled TYPE) is exported separately as a `type`-only export, so it costs nothing at runtime.
  * - NOTE: `SC` ~== `$/core`, this sub-system's self-namespace.
  * - NOTE: `classes/` (`Thing`, `List`, ...) is flattened in via `export * from "./classes"`,
  *   rather than getting its own namespace.

@@ -296,8 +296,9 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * Each target's web app as compiling last wrote it, by target name:  saved only over an unedited one
-   * (`saveAppFor()`).  Not in the app file itself, which holds what's on disk.
+   * Each target's web app as compiling last wrote it, by target name.
+   * - Saved only over an unedited one (`saveAppFor()`).
+   * - Not in the app file itself, which holds what's on disk.
    */
   protected appTexts = new Map<string, string>()
 

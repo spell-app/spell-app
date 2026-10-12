@@ -10,10 +10,11 @@
   - a blank line, then the page's HTML on one line
   - nothing when the program drew nothing, or when it failed
 - `--state`:  when the program ends, print its state as JSON, each thing by its id (`StateWriter`):
-  what a page mirrors.  After `--page`'s HTML, if both.
+  what a page mirrors.
   - its state:  each thing or spell list it keeps at its top level, by its name there,
     e.g. `{"game": {...}, "stock": {...}, "deck": {...}}`
   - a blank line, then the JSON on one line
+  - after `--page`'s HTML, if both
   - nothing when it failed
 - The program's own folder is first on the import path:
   another project it imports (`from cards import Card`) sits beside it.

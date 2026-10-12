@@ -5,7 +5,8 @@ Epic `python-target`, P15 · Terminal Drawing Study.
 - Its `draw()` methods make the same elements as the test project's (`projects/test/Solitaire/*.spell`):
   the same tags, the same classes, the same `onClick`s.
   - Written as the Python writer writes `to draw (a card)`:  `h("div", {"class": ..., "onClick": lambda: ...}, ...)`.
-- Hand-written rather than compiled:  the study came before Python compiled Solitaire (P12).  Its rules are cut down:
+- Hand-written rather than compiled:  the study came before Python compiled Solitaire (P12).
+- Its rules are cut down:
   - a card goes to its foundation, or onto a tableau's last card (one lower, the other colour),
     or a king to an empty tableau
   - clicking the stock turns its top card onto the discards, or turns the discards back over when it's empty

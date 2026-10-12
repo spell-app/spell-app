@@ -32,12 +32,13 @@ import { URGENT_STATES, epicStateFor, epicStateMark } from "$/server/site/EpicSt
  *   so a plan doc's relative assets come from its own worktree.
  * - `/_server/epics`:  the list, as JSON (`RunningEpic[]`).
  * - The Epics list page (`epics/index.html`;  the docs home until claude-design P5), on each request (`render()`):
- *   - running and merged epics in ONE list, in the page's five groups (`$/server/site/EpicCards`:  Favorites,
- *     Active, Planning, Urgent, Done), each card's title after its state's mark (`$/server/site/EpicState`)
+ *   - running and merged epics in ONE list, in the page's five groups (`$/server/site/EpicCards`):
+ *     Favorites, Active, Planning, Urgent, Done
+ *   - each card's title after its state's mark (`$/server/site/EpicState`)
  *   - the running epics' cards join the docs index's between its markers (`EPIC_CARDS_START` / `_END`)
- *   - EVERY card marked again:  a session running for it, and today's date, decide in progress or paused, which the
- *     docs index can't know when it writes the page;  its star from the favourites as they are now
- *     (`FAVORITES_FILE`), and the groups rebuilt by them
+ *   - EVERY card marked again, as the docs index can't know when it writes the page:
+ *     - in progress or paused:  decided by a session running for it, and today's date
+ *     - its star:  from the favourites as they are now (`FAVORITES_FILE`), and the groups rebuilt by them
  *   - opened from disk:  the groups, marks and stars as the docs index wrote them
  * - Live:  a plan doc's change reloads its page and the list page (`watch()`).
  * - Which docs:  `<name>` === `<w>` (the epic the worktree is for), or any `<name>` the main checkout lacks.
@@ -145,12 +146,13 @@ export class RunningEpics {
    * `page` (the Epics list page) with every card marked as of now, the running epics' cards added, and the cards in
    * their groups by the favourites as they are now.
    * - no `MARKER`:  as is
-   * - each card the docs index wrote (its `data-phases` ...):  its state's mark again, with a session running for it
-   *   (`runningNames()`) and today's date, and its star (`favorites()`);  a card without them (an older index) as is
+   * - each card the docs index wrote (its `data-phases` ...):  its state's mark again, and its star (`favorites()`)
+   *   - the mark from a session running for it (`runningNames()`) and today's date
+   *   - a card without them (an older index):  as is
    * - a merged epic's card of the same name (`data-epic`) goes:  the worktree's doc is the live one;
    *   its last-worked moment (`data-worked`:  it may hold the branch's last commit) carries over to the running card
-   * - between the markers (`EPIC_CARDS_START` / `_END`, the docs index writes them):  every card regrouped
-   *   (`epicGroupsHtml()`);  a starred one under Favorites, else in its own group (`data-group`)
+   * - between the markers (`EPIC_CARDS_START` / `_END`, the docs index writes them):
+   *   every card regrouped (`epicGroupsHtml()`);  a starred one under Favorites, else in its own group (`data-group`)
    * - an index without the end marker (written before the groups):  the running cards at the marker, as before
    * - the cards' markup:  `$/server/site/EpicCards` `epicCardHtml()`, as the docs index draws them
    */
@@ -187,8 +189,9 @@ export class RunningEpics {
 
   /**
    * Running epic `epic`'s card (`epicCardHtml()`), linking its plan doc where it runs, its worktree in the meta line.
-   * - `running`:  the names sessions run for;  `favorites`:  the starred epics;  `worked`:  the merged cards'
-   *   `data-worked`, by name (`render()`)
+   * - `running`:  the names sessions run for
+   * - `favorites`:  the starred epics
+   * - `worked`:  the merged cards' `data-worked`, by name (`render()`)
    */
   private runningCard(
     epic: RunningEpic,
@@ -324,9 +327,9 @@ function dataOf(card: string, name: string): string | undefined {
 }
 
 /**
- * Epic card `card` (as the docs index wrote it) with its state's mark and `data-status` as of `now`, a session
- * `running` for it or not, and its star as `favorite` says;
- * as is without its facts (`data-phases`:  an index written before 2026-10-10).
+ * Epic card `card` (as the docs index wrote it) with its state's mark and `data-status` as of `now`,
+ * a session `running` for it or not, and its star as `favorite` says.
+ * - As is without its facts (`data-phases`:  an index written before 2026-10-10).
  */
 function remark(card: string, { running, favorite, now }: { running: boolean; favorite: boolean; now: Date }): string {
   const phases = dataOf(card, "phases")
@@ -339,8 +342,7 @@ function remark(card: string, { running, favorite, now }: { running: boolean; fa
       urgent: (dataOf(card, "urgent") ?? "").split(" ").filter(Boolean),
       future: dataOf(card, "future") !== undefined,
       standing: dataOf(card, "standing") !== undefined,
-      // the meta line:  `P2 · Site Map · epics/seo/seo.plan.html`
-      // (oxfmt may break it over lines)
+      // the meta line, which oxfmt may break over lines:  `P2 · Site Map · epics/seo/seo.plan.html`
       active: decode(/<ui-meta>([^<]*) · /.exec(card)?.[1]?.replace(/\s+/g, " ").trim() ?? "") || undefined,
       running
     },
@@ -370,8 +372,8 @@ function isAlive(pid: number): boolean {
  * - `title`:  the doc's `<title>`
  * - `phases`:  each phase's status, in order;  `done` / `total`:  how many phases are done, of all
  * - `active`:  the active phase's header (`P2 · Name`), if any
- * - `updated`:  the doc's "updated" date (`YYYY-MM-DD`), if any:  with phases left, no session running and no update
- *   for a few days, it's paused (`$/server/site/EpicState`)
+ * - `updated`:  the doc's "updated" date (`YYYY-MM-DD`), if any
+ *   - with phases left, no session running and no update for a few days, it's paused (`$/server/site/EpicState`)
  * - `future`:  written down with `/epic future`, not planned yet
  * - `standing`:  open for good, every phase merging on its own (epic `epic-workflow`)
  * - `urgent`:  the ids of the items that need Owen (red and orange chips:  `URGENT_STATES`):
@@ -449,12 +451,14 @@ function folders(dir: string): string[] {
 }
 
 /**
- * Title, phases and urgent items of the plan doc at `file`, by pattern:  the server is a leaf, so no HTML parser or
- * plan-doc tool.
- * - attributes in any order, across lines:  each `<epic-phase id="pN" title="..." status="S">` (the label
- *   `PN · <title>`), `<epic-page updated future>`, each `<epic-item id="q3" state="attention">`
- * - a doc still in the old markup (no `<epic-page>`:  one restored from an old backup) reads as an empty plan:  the
- *   plan-doc tool refuses it until it's converted (epic `epic-components` P15)
+ * Title, phases and urgent items of the plan doc at `file`, by pattern:
+ * the server is a leaf, so no HTML parser or plan-doc tool.
+ * - attributes in any order, across lines:
+ *   - each `<epic-phase id="pN" title="..." status="S">` (the label `PN · <title>`)
+ *   - `<epic-page updated future>`
+ *   - each `<epic-item id="q3" state="attention">`
+ * - a doc still in the old markup (no `<epic-page>`:  one restored from an old backup) reads as an empty plan:
+ *   the plan-doc tool refuses it until it's converted (epic `epic-components` P15)
  * - urgent items as `$/server/site/EpicState` `URGENT_SELECTOR` finds them (the docs index, `<epic-page>`)
  */
 function read(

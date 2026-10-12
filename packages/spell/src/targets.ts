@@ -37,8 +37,9 @@ export type Target = {
    */
   wordsSuffix?: string
   /**
-   * End of the name of its PAGE's file, beside its output, e.g. `.elements.js`:  a program that draws, its drawing half
-   * in javascript (`PY.ElementsWriter`), for a page that mirrors the program running here (epic `python-target` P19).
+   * End of the name of its PAGE's file, beside its output, e.g. `.elements.js` (epic `python-target` P19):
+   * a program that draws, its drawing half in javascript (`PY.ElementsWriter`),
+   * for a page that mirrors the program running here.
    * - Written only for a project that draws.
    */
   elementsSuffix?: string
