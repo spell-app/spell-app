@@ -166,7 +166,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - binds its things in the program's drawing half (`adopt()`, in `<Project>.elements.js`)
     - starts its app
   - `receive()` reads each patch after.
-  - `sendCall()` / `sendTrigger()`:  what the drawing half sends back, each thing by its id.
+  - `sendCall()` / `sendTrigger()`:  what the drawing half sends back, each thing by its reference
+    (`Card#ace-of-hearts`, P27), else by its id:  an event's thing as its `"target"`, a call's as its `"on"`.
   - The state names properties as Python does:  the page reads each by its javascript name (`javascriptName()`).
   - Python's side is `spell_core.page`'s `PageSession`.
 
