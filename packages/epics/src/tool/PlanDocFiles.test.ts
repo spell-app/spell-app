@@ -123,7 +123,7 @@ describe("PlanDocFiles", () => {
     const html = readFileSync(join(FIXTURES, "plan.html"), "utf8").replaceAll("{{title}}", "Old")
     writeFileSync(file, html)
     expect(() => FILES.read(file)).toThrow(
-      /is in the old markup, which the tool no longer reads:  convert it first \(spell dev plan-doc convert old --out <folder>/
+      /is in the old markup, which the tool no longer reads:  convert it first \(epic convert old --out <folder>/
     )
     expect(() => FILES.requireNewMarkup(file)).toThrow(PlanDocError)
     await expect(FILES.edit(file, (doc) => doc.log("x"))).rejects.toThrow(/old markup/)

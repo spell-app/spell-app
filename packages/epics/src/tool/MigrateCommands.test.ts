@@ -229,7 +229,7 @@ describe("migrate --notify", () => {
   test("the message:  one line, what to run, when, and that it may commit it", () => {
     const message = MigrateCommands.message("seo", ["links-agree"])
     expect(message).not.toMatch(/\n/)
-    expect(message).toMatch(/spell dev plan-doc migrate seo/)
+    expect(message).toMatch(/epic migrate seo/)
     expect(message).toMatch(/end of the phase/)
     expect(message).toMatch(/commit .* without asking/)
   })

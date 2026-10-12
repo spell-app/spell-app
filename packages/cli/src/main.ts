@@ -3,9 +3,10 @@
  * - `consoleGuard` comes FIRST, and everything else only after it, via dynamic `import()`:
  *   modules log as they load, e.g. `environment.ts`.
  * - Each command is `CLI.<name>Command(session, args, options)`, resolving to the exit code.
- * - `spell dev ...` (and the deprecated `spell plan-doc`) start in the lean `devMain.ts` instead,
- *   which loads no spell;  its commands that need spell come back here.
- *   Their tree:  `devProgram.ts`.
+ * - `spell dev ...` starts in the lean `devMain.ts` instead, which loads no spell;
+ *   its commands that need spell come back here.  Their tree:  `devProgram.ts`.
+ * - `epic ...` (and its old spelling, `spell epic ...`) starts in the lean `epicMain.ts`;
+ *   its verbs that need spell (`send`, `requests` ...) come back here, as `spell epic <verb>`.
  */
 import "./consoleGuard"
 // Defines `__PACKAGE_VERSION__` -- the PARSER's, which `spell --version` prints -- before anything reads it
@@ -15,7 +16,7 @@ import type { CliSession, GlobalOptions } from "$/cli"
 
 const { default: chalk } = await import("chalk")
 const { CLI } = await import("$/cli")
-const { devProgram, rawArgs, runLean, spellProgram } = await import("$/cli/devProgram")
+const { devProgram, spellProgram } = await import("$/cli/devProgram")
 
 // output piped into e.g. `head`, which closed it:  nothing more to say
 process.stdout.on("error", (error: NodeJS.ErrnoException) => error.code === "EPIPE" && process.exit(0))
@@ -36,6 +37,9 @@ const PROJECTS_ARG = "spell files, project folders, or @roots/projects -- defaul
 
 /** Help for `--seed`, which `spell run` and `spell test` share. */
 const SEED_HELP = "start the random numbers from this whole number (1 to 2147483646):  the same deal every run"
+
+/** The `epic` verbs that need the barrel (the session helpers), so `epicMain.ts` hands them to `main.ts`. */
+const EPIC_BARREL_VERBS = ["send", "requests", "file", "home", "merge"]
 
 const program = spellProgram().version(globalThis.__PACKAGE_VERSION__).addHelpText("after", PROJECT_HELP)
 
@@ -214,11 +218,8 @@ program
 
 program
   .command("epic")
-  .description(
-    "epics from any session:  send one a request (words, screenshots), list or file its requests, the tooling home, " +
-      "merge a standing epic's phase"
-  )
-  .argument("[verb]", "send | requests | file | home | merge")
+  .description("the epic tools moved to their own command, `epic` (epic --help);  spell epic <verb> still runs them")
+  .argument("[verb]", "an epic verb, e.g. send, summary, add")
   .argument("[args...]", 'the epic, then the verb\'s arguments, e.g. send epic-workflow --text "..." --images 1')
   .option("--text <words>", "send:  Owen's words, verbatim")
   .option("--file <file>", "send:  Owen's words, from a file (quotes and all)")
@@ -226,9 +227,15 @@ program
   .option("--context <words>", "send:  what this session was looking at:  a page, a file, an item id")
   .option("--from <session>", "send:  the sending session's id (default:  this one, CLAUDE_CODE_SESSION_ID)")
   .option("--json", "print the result as JSON")
-  .action((verb: string | undefined, args: string[], _options, command) =>
-    run(CLI.epicCommand, verb ? [verb, ...args] : [], command.optsWithGlobals())
-  )
+  .allowUnknownOption()
+  .action(async (verb: string | undefined, args: string[], _options, command) => {
+    // the verbs that need spell:  `epicMain.ts` hands them here
+    if (verb && EPIC_BARREL_VERBS.includes(verb))
+      return run(CLI.epicCommand, [verb, ...args], command.optsWithGlobals())
+    // any other (`spell --verbose epic summary seo`):  the lean `epic` program, as `epic <verb> ...`
+    process.argv.splice(2, process.argv.indexOf("epic", 2) - 1)
+    await import("$/cli/epicMain")
+  })
 
 // our own `help`, not commander's:  an unknown command is a mistake, not a reason to print the general help
 program.helpCommand(false)
@@ -244,14 +251,6 @@ program
     }
     command.outputHelp()
   })
-
-program
-  .command("plan-doc")
-  .description("deprecated:  spell dev plan-doc")
-  .argument("[args...]", "a plan-doc command and its arguments, e.g. summary seo")
-  .allowUnknownOption()
-  .helpOption(false)
-  .action(() => runLean(CLI.planDocCommand, rawArgs("plan-doc")))
 
 // `spell dev ...`:  the repo's own tools.
 // `bin/spell.mjs` runs them through the lean `devMain.ts`;  here they're for `spell --help` / `spell help dev`,

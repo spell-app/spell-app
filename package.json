@@ -35,6 +35,8 @@
     "docs:index": "node packages/cli/bin/spell.mjs dev docs index",
     "docs:new": "node packages/cli/bin/spell.mjs dev docs new",
     "docs:open": "node packages/cli/bin/spell.mjs dev docs open",
+    "epic": "node packages/cli/bin/epic.mjs",
+    "ask": "node packages/cli/bin/epic.mjs ask",
     "plan-doc": "node packages/cli/bin/spell.mjs dev plan-doc",
     "details": "node packages/cli/bin/spell.mjs dev details",
     "docs:link": "node packages/cli/bin/spell.mjs dev docs link",

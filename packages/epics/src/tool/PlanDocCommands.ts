@@ -199,7 +199,7 @@ export class PlanDocCommands {
       case "commit":
         return this.commit(file, rest, flags)
       case "commits":
-        if (!flags.backfill) throw new PlanDocError(`commits what?  --backfill\n${USAGE}`)
+        if (!flags.backfill) throw new PlanDocError(`commits what?  --backfill  (${USAGE_HINT})`)
         return this.backfillCommits(file)
       case "close":
       case "reopen":
@@ -259,7 +259,7 @@ export class PlanDocCommands {
       case "check":
         return this.check(file, flags)
       case "open":
-        return this.open(file)
+        return this.open(file, flags)
       case "inbox":
         return this.inbox.run(name, file, rest, flags)
       case "details":
@@ -418,7 +418,7 @@ export class PlanDocCommands {
     if (ReviewInbox.read(ReviewInbox.pathFor(file)).isCanceled(id))
       throw new PlanDocError(
         `${id.toUpperCase()}:  Owen called this request off on the page ("nevermind"):  nothing written.  ` +
-          `\`plan-doc inbox ${name} done ${id}\` and stop.`
+          `\`epic inbox ${name}#${id} done\` and stop.`
       )
     if (flags.append && flags.more) throw new PlanDocError("--append or --more, not both")
     return this.edit(file, (plan) => {
@@ -458,7 +458,7 @@ export class PlanDocCommands {
       title = await this.edit(file, (plan) => plan.noteStatus(id, what))
       said = "noted"
     } else if (state === "done") title = await this.edit(file, (plan) => plan.finishStatus(id, text))
-    else throw new PlanDocError(`status ${id} underway | done | noted, not '${state ?? ""}'\n${USAGE}`)
+    else throw new PlanDocError(`status ${id} underway | done | noted, not '${state ?? ""}'  (${USAGE_HINT})`)
     this.inbox.setWorking(file, id, state === "underway")
     this.print(`${id.toUpperCase()} ${said}:  ${title}`)
   }
@@ -485,7 +485,7 @@ export class PlanDocCommands {
    * that day, logging the evidence.
    */
   private async backfill(name: string | undefined, { all, apply }: Flags): Promise<void> {
-    if (!name && !all) throw new PlanDocError(`backfill needs a name, or --all\n${USAGE}`)
+    if (!name && !all) throw new PlanDocError(`backfill needs a name, or --all  (${USAGE_HINT})`)
     const { files } = this
     const epics = all ? files.listEpics() : [{ name: name!, file: files.findDoc(name!) }]
     const main = files.mainRoot()
@@ -530,7 +530,7 @@ export class PlanDocCommands {
    * - loaded on first use:  the converter is big, and no other command needs it
    */
   private async convert(names: string[], { all, dryRun, out, verbose }: Flags): Promise<number | void> {
-    if (!all && !names.length) throw new PlanDocError(`convert which docs?  <name> ... | --all\n${USAGE}`)
+    if (!all && !names.length) throw new PlanDocError(`convert which docs?  <name> ... | --all  (${USAGE_HINT})`)
     const { ConvertRun } = await import("$/epics/convert/ConvertRun")
     const run = new ConvertRun({ root: this.files.root })
     const results = await run.run({
@@ -642,22 +642,28 @@ export class PlanDocCommands {
     if (problems.length || !browserOk) return 1
   }
 
-  /** `open`:  show the doc in VS Code's Review tab (Owen's rule, 2026-10-07), reusing it (`openInVSCode()`). */
-  private open(file: string): void {
+  /**
+   * `open <name> [--docs]`:  show the doc in VS Code's side bar, reusing it (`openInVSCode()`):
+   * the Review tab (Owen's rule, 2026-10-07), or with `--docs` the Spell Docs tab
+   * - `epic open seo` passes `--docs`, and `epic open seo --review` doesn't (Owen, 2026-10-12)
+   */
+  private open(file: string, { docs }: Flags): void {
     this.read(file)
-    this.openInVSCode(file)
+    this.openInVSCode(file, docs ? "docs" : "review")
   }
 
   /**
    * Show `file` in VS Code's doc preview, in the right side bar's Review tab (a plan doc's place, Owen's rule
-   * 2026-10-07), or Chrome when not run from VS Code:  `packages/docs/tools/open.js --review <file>`, a child `node` with this terminal attached, which starts the page
-   * server and asks the session's window (`pages.js` `openInVSCode()`).
+   * 2026-10-07), or its Spell Docs tab (`view` `docs`), or Chrome when not run from VS Code:
+   * `packages/docs/tools/open.js --review <file>` (`--vs` for Spell Docs), a child `node` with this terminal
+   * attached, which starts the page server and asks the session's window (`pages.js` `openInVSCode()`).
    * - a child, not an import:  `epics` may not import `docs`, nor the repo root's `scripts/window.mjs`
    * - NEVER throws, nor fails the command:  as before, a doc not shown is no error
    */
-  openInVSCode(file: string): void {
+  openInVSCode(file: string, view: "review" | "docs" = "review"): void {
     const { files } = this
-    spawnSync(process.execPath, [join(files.docsTools, "open.js"), "--review", resolve(file)], {
+    const flag = view === "docs" ? "--vs" : "--review"
+    spawnSync(process.execPath, [join(files.docsTools, "open.js"), flag, resolve(file)], {
       cwd: files.docsPackage,
       stdio: "inherit"
     })
@@ -820,7 +826,8 @@ export type Flags = Record<string, string | true>
 type CreateFlags = { title?: string; prompt?: string; promptFile?: string; future?: boolean }
 
 /** Usage, printed with no command or a bad one. */
-export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics/<name>/<name>.plan.html)
+export const USAGE = `usage:  spell dev plan-doc <command> <name> ...    (doc:  epics/<name>/<name>.plan.html)
+  The old spelling of the epic command:  \`epic --help\` lists today's names (\`epic close seo#J3\` ...).
   new <name> [--title "Title"] [--prompt "text" | --prompt-file path] [--future]
                                                    copy the template, fill it in, update the docs index;
                                                    --future:  an epic not planned yet (/epic future);  new on
@@ -843,7 +850,7 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
   standing <name> [on|off]                         a standing epic:  open for good, each phase merging on its own,
                                                    never done (epic epic-workflow)
   request <name> <N> <rN> --from "..." --file path a request sent from another session, into phase N's Requests
-                                                   field (spell epic file writes it;  epic epic-workflow)
+                                                   field (epic file writes it;  epic epic-workflow)
   estimate <name> <N> "1-2h"                       set a phase's estimate;  the Overview's total follows
   phase <name> <N> todo|active|done [--done html] [--no-open]
                                                    set a phase's status;  done drops its UPDATE markers
@@ -887,7 +894,7 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
   items <name> [--section issues] [--filter unreviewed|open|reviewed|queued|all] [--json]
                                                    what a review walks:  sections, counts, items, the queue
   items <name> --section issues --spec <file>      the review's item picker, a details page spec:
-                                                   \`yarn details new <slug> --from <file>\`
+                                                   \`epic ask new <slug> --from <file>\`
   list [--json]                                    every epic:  status, where it runs, not reviewed / all
   backfill <name> | --all [--apply]                items Owen already went through, from past sessions;
                                                    a dry run unless --apply (review-backfill.js)
@@ -896,7 +903,8 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
   check <name> [--no-browser] [--links]            ids, #id links, phases, parts (a split doc whole);  its
                                                    links (doc-links), failing only with --links;  then
                                                    check-spell.js
-  open <name>                                      show in VS Code's doc preview (right side bar)
+  open <name> [--docs]                             show in VS Code's side bar:  the Review tab, or --docs the
+                                                   Spell Docs tab (epic open seo ~== open seo --docs)
   migrate [<kind>] [<epic>... | --all] [--file <page>] [--step <name>] [--dry-run] [--notify] [--list]
                                                    bring pages up to today's markup:  every step of their kind,
                                                    oldest first, each page under its lock;  safe to run again.
@@ -962,7 +970,7 @@ convert it first (convert <name> --out <folder>, then copy the converted doc bac
 
 /** What `relayout` says now:  the converter replaced it. */
 function replaced(command: string): string {
-  return `${command} is gone:  the converter replaced it, \`spell dev plan-doc convert <name>\` (old markup -> <epic-*>)`
+  return `${command} is gone:  the converter replaced it, \`epic convert <name>\` (old markup -> <epic-*>)`
 }
 
 /** `summary`'s mark for a phase's status. */
@@ -1031,11 +1039,14 @@ function camel(flag: string): string {
   return flag.replace(/-(\w)/g, (_, letter: string) => letter.toUpperCase())
 }
 
-/** `value`, or a usage error naming what's missing. */
+/** `value`, or a usage error naming what's missing, and where the usage is. */
 function need(value: string | undefined, what: string): string {
-  if (value === undefined || value === "") throw new PlanDocError(`missing ${what}\n${USAGE}`)
+  if (value === undefined || value === "") throw new PlanDocError(`missing ${what}  (${USAGE_HINT})`)
   return value
 }
+
+/** Where a usage error points:  the whole `USAGE` is long, and every error printing it buried the message. */
+const USAGE_HINT = "`epic <verb> --help`;  `spell dev plan-doc` alone lists the old spellings"
 
 /**
  * A flag's phase number (`--before 3` is 3);  `undefined` without the flag.

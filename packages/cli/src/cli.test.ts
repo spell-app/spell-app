@@ -27,6 +27,8 @@ import { fixturePath } from "$/spell/test"
  *   Projects to break live in a temp folder -- see `tempProject()`.
  */
 const SPELL = resolve(import.meta.dirname, "..", "bin", "spell.mjs")
+/** The `epic` command:  `bin/epic.mjs`, the CLI's second bin. */
+const EPIC = resolve(import.meta.dirname, "..", "bin", "epic.mjs")
 
 // each `spell` run starts node and loads spell's source through `tsx`, ~2s;
 // a test making two or three runs is over vitest's 5s default, worse under the load of every test file at once
@@ -58,6 +60,12 @@ function tempProject(name: string, source: string): string {
 /** Run `spell ...args` from `cwd`. */
 function spell(args: string[], cwd = fixturePath()) {
   const { status, stdout, stderr } = spawnSync(process.execPath, [SPELL, ...args], { cwd, encoding: "utf8" })
+  return { status, stdout, stderr }
+}
+
+/** Run `epic ...args` from `cwd`. */
+function epic(args: string[], cwd = REPO_ROOT) {
+  const { status, stdout, stderr } = spawnSync(process.execPath, [EPIC, ...args], { cwd, encoding: "utf8" })
   return { status, stdout, stderr }
 }
 
@@ -95,38 +103,70 @@ describe("spell dev plan-doc", () => {
     expect(stdout).toMatch(/^Unified Server\n {2}\[x\] P1 · Library Core/)
   })
 
-  test("spell plan-doc:  the deprecated alias, still working", () => {
-    const { status, stdout } = spell(["plan-doc", "summary", "unified-server"])
+  test("spell plan-doc, the old top-level alias, is gone", () => {
+    expect(spell(["plan-doc", "summary", "unified-server"]).status).not.toBe(0)
+  })
+})
+
+describe("epic", () => {
+  test("--help lists the verbs under headings, and how to name an item", () => {
+    const { status, stdout } = epic(["--help"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^Unified Server\n/)
+    expect(stdout).toMatch(/^Usage: epic <verb> <epic>\[#<id>\] \[arguments\]\n/)
+    for (const heading of ["Requests from other sessions:", "Epic page:  items:", "Pages Owen answers on"])
+      expect(stdout).toContain(heading)
+    expect(stdout).toMatch(/^ {2}update +set a phase's or an item's fields/m)
+    expect(stdout).toMatch(/^ {2}seo#J3 +an item/m)
+  })
+
+  test("<verb> --help:  its usage, plain", () => {
+    const { status, stdout } = epic(["close", "--help"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^Usage: epic close <epic>#J3\n/)
+  })
+
+  test("an epic page's verb runs the plan-doc tool", () => {
+    const { status, stdout } = epic(["summary", "unified-server"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^Unified Server\n {2}\[x\] P1 · Library Core/)
+  })
+
+  test("a target the verb can't take:  a usage error, exit 2", () => {
+    const { status, stderr } = epic(["summary", "unified-server#J3"])
+    expect(status).toBe(2)
+    expect(stderr).toContain("takes an epic, not unified-server#J3")
+  })
+
+  test("the old spellings run the same:  spell epic <verb>, spell dev plan-doc", () => {
+    expect(spell(["epic", "summary", "unified-server"]).stdout).toMatch(/^Unified Server\n/)
+    expect(spell(["dev", "plan-doc", "summary", "unified-server"]).stdout).toMatch(/^Unified Server\n/)
+  })
+
+  test("a verb that needs spell (home) is handed to main.ts, and still answers", () => {
+    const { status } = epic(["home"])
+    expect(status).toBe(0)
   })
 })
 
 describe("spell dev", () => {
-  test("--help lists its nouns, the pass-throughs too", () => {
+  test("--help lists the plumbing, the pass-throughs too, and points to epic for the epic tools", () => {
     const { status, stdout } = spell(["dev", "--help"])
     expect(status).toBe(0)
-    const nouns = [
-      "plan-doc",
-      "goals",
-      "docs",
-      "details",
-      "choices",
-      "server",
-      "window",
-      "vscode",
-      "commands",
-      "session"
-    ]
-    for (const noun of nouns) {
+    for (const noun of ["docs", "server", "window", "vscode", "commands", "session"]) {
       expect(stdout).toMatch(new RegExp(`^ {2}${noun} `, "m"))
     }
+    // the old spellings still run, but aren't listed
+    for (const noun of ["plan-doc", "goals", "details", "choices", "comments", "notes", "agents", "airplane"]) {
+      expect(stdout).not.toMatch(new RegExp(`^ {2}${noun} `, "m"))
+    }
+    expect(stdout).toContain("The epic tools moved to their own command, `epic` (epic --help)")
   })
 
-  test("spell --help still lists dev, and the aliases as deprecated", () => {
+  test("spell --help lists dev, and epic as moved", () => {
     const { stdout } = spell(["--help"])
     expect(stdout).toMatch(/^ {2}dev /m)
-    expect(stdout).toMatch(/^ {2}plan-doc \[args\.\.\.\] +deprecated: {2}spell dev plan-doc$/m)
+    expect(stdout).toMatch(/^ {2}epic .*moved to their own command/m)
+    expect(stdout).not.toMatch(/^ {2}plan-doc /m)
   })
 
   test("a command that loads spell runs through main.ts, as before", () => {
@@ -165,6 +205,7 @@ process.exit(3)
       "packages/docs/tools/details.js",
       "packages/docs/tools/choices.js",
       "packages/docs/tools/notes.ts",
+      "packages/docs/tools/comments.ts",
       "packages/server/src/page/cli.ts"
     ]) {
       mkdirSync(resolve(CHECKOUT, tool, ".."), { recursive: true })
@@ -214,6 +255,22 @@ process.exit(3)
       args: ["new", "x", "--rows", "r.json"]
     })
     expect(realpathSync(choices.cwd)).toBe(resolve(CHECKOUT, "packages/docs"))
+  })
+
+  test("epic's groups pass through the same:  ask (details pages), choices and comments list <epic>", () => {
+    const run = (args: string[]) => {
+      const { status, stdout } = epic(args, INSIDE)
+      return { status, ...(stdout ? JSON.parse(stdout) : {}) }
+    }
+    expect(run(["ask", "list"])).toMatchObject({ status: 3, tool: "packages/docs/tools/details.js", args: ["list"] })
+    expect(run(["choices", "list", "seo"])).toMatchObject({
+      tool: "packages/docs/tools/choices.js",
+      args: ["list", "seo"]
+    })
+    expect(run(["comments", "list", "seo"])).toMatchObject({
+      tool: "packages/docs/tools/comments.ts",
+      args: ["list", "seo"]
+    })
   })
 
   test("notes:  under tsx, in THIS folder, so `answer --file` is from here", () => {

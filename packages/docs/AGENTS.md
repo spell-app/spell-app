@@ -162,13 +162,13 @@ In `tools/`:
   - It fixes the `_assets` paths for the page's depth, and lists it in the index.
 - Every page (templates too) starts its `<body>` with the site header, `<spell-site-header root="../..">`.
   - `root` is the path from the page's folder to the REPO root.
-  - The template tools (`docs new`, `plan-doc new`, `goals new`) set it.
+  - The template tools (`docs new`, `epic new`, `goals new`) set it.
   - Everything that sticks or lands starts below it:
     `siteHeaderHeight()` in `spell-doc-runtime.js`, and its header's "Landing".
   - The element itself is `$/server/site`'s `SiteHeader`, bundled into `spell-ui.js`.
 - NEVER inline copies of `_assets`:  improve the shared files instead, and every page gets it.
 - Pages MUST still open straight from disk (`file://`):  no ES modules, hence the one classic bundle.
-  - But the openers (`docs open`, `plan-doc open`) show them from this checkout's PAGE SERVER
+  - But the openers (`docs open`, `epic open`) show them from this checkout's PAGE SERVER
     (`spell dev server`, see [server's AGENTS.md](../server/AGENTS.md)).
     - It adds live reload, edit mode, and the server-only properties (Spell UI, Editor).
   - The exceptions:  a `commands` page, and the core reference page, fetch their JSON,
@@ -196,7 +196,7 @@ In `tools/`:
   - The OLD markup is for the goals pages only;  the runtime still drives it.
     - It's `section.s2|s3` > `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>`.
     - `node tools/to-ui-section.js <page>` converts a page.
-    - A plan doc goes to `<epic-*>` markup instead:  `spell dev plan-doc convert <name>` (see "Plan docs").
+    - A plan doc goes to `<epic-*>` markup instead:  `epic convert <name>` (see "Plan docs").
 - The runtime builds the page from that markup:
   - NO contents list (Owen, 2026-10-08:  "remove the Contents thing entirely ... it is useless").
     - NEVER hand-write one, or a "Contents" button.
@@ -401,14 +401,14 @@ In `tools/`:
   - a card may carry `<ui-meta>` (since when) and `<ui-extra>` (a docs link)
 - Plan docs have no template here.
   - The old `plan.html`, in `templates/epics/`, retired at the switch (P12 of `epic-components`).
-  - `spell dev plan-doc new <name>` copies the tool's own, in `<epic-*>` markup
+  - `epic new <name>` copies the tool's own, in `<epic-*>` markup
     ([the tool's plan template](../epics/src/tool/templates/plan.html)).
   - How to write one:  [the plan-doc guide](../../templates/epics/plan-doc.md).
 - [details.html](../../templates/details.html):  a details page.
-  - NEVER copy by hand:  `spell dev details new <slug>`.
+  - NEVER copy by hand:  `epic ask new <slug>`.
 - [syntax-choices.html](../../templates/syntax-choices.html):  a syntax-choices page.
   - `syntax-choices.rows.json` beside it is a small working example.
-  - NEVER copy by hand:  `spell dev choices new <slug> --rows <rows.json>`.
+  - NEVER copy by hand:  `epic choices new <slug> --rows <rows.json>`.
 - [review.html](../../templates/review.html), "Review":  a details page reviewing a finished run's calls.
   - one question each (keep, change, talk over), then "Where first?"
   - saved from `ui-docs-rework`'s morning review, as the model
@@ -438,15 +438,15 @@ In `tools/`:
 - A plan doc is `<epic-*>` markup, drawn by the `epics` component pack (epic `epic-components`).
   Its code lives in `packages/epics`, NOT here:
   - the elements, the review client, and the plan-doc tool ([the tool's folder](../epics/src/tool/),
-    which `spell dev plan-doc` runs):  [epics' AGENTS.md](../epics/AGENTS.md)
+    which `epic` runs):  [epics' AGENTS.md](../epics/AGENTS.md)
   - what the tool writes, and the rules for a doc's DATA in that markup (ids, phases, items, log, parts):
     [PLAN-DOC.md](../epics/src/tool/PLAN-DOC.md)
   - how to write one (rules, ids, prose, explaining a question, the review loop):
     [the plan-doc guide](../../templates/epics/plan-doc.md)
   - Every shared doc is in `<epic-*>` markup since the switch (P12 of `epic-components`, 2026-10-08).
     - A doc still in the OLD `ui-*` markup is read, never edited.
-    - "Convert it first":  `spell dev plan-doc convert <name>`.
-- Edit through `spell dev plan-doc <command>` wherever a command exists (phase status, items, log).
+    - "Convert it first":  `epic convert <name>`.
+- Edit through `epic <verb>` wherever a command exists (phase status, items, log).
   It keeps ids, icons and UPDATE markers consistent.
 - SPLIT docs (P3 of `claude-design`;  new docs start split):  a skeleton, plus part files, `parts/<id>.html`.
   - The code:
@@ -490,7 +490,7 @@ In `tools/`:
     - Never sent, counted, or work for a waiting session.
   - `canceled`:  requests Owen called off ("nevermind", `cancelNow()`).
     - `wait` hands them over once:  stop that item's agent.
-    - `plan-doc details` refuses a write for one.
+    - `epic details` refuses a write for one.
     - `inbox done | clear`, or a new request, ends it.
   - One mark per item (or phase, Overview sub-section, the summary:  `summary`).
     - A question's pick with a remark is ONE revisit mark carrying `pick`:
@@ -498,14 +498,14 @@ In `tools/`:
     - It's talked over, never applied by itself.
   - A new todo or question asked for from the page (epic `airplane` P2):  a mark under its own key, `new1` ...
     - `setNew()`:  `{ action: "new", kind, title, note?, near? }`
-    - `plan-doc inbox apply` makes the item.
+    - `epic inbox <name> apply` makes the item.
   - `comments`:  Owen's comments on the doc's blocks, and on selected text (P11, see "Comments"):  `cm1` ...
     - Written through the comments route.
     - Sent with Send, as marks are (Owen, 2026-10-10:  he keeps Send as the way comments reach Claude).
       - Unsent (`unsentComments`):  waiting for Claude, and Owen's last words on the thread newer than `sent`.
       - A new comment, or his reply on a thread, turns Send blue;  its tooltip counts both ("2 marks, 1 comment").
       - `wait` hands each over once (`takeWork()`'s `sent.comments`), until Owen speaks on its thread again.
-    - Waiting until answered (`plan-doc inbox done cm3`).
+    - Waiting until answered (`epic inbox <name>#cm3 done`).
   - `listening.seen`:  the session's heartbeat (`LISTEN_HEARTBEAT_MS`, 30s, from `wait`).
     - Older than `LISTEN_STALE_MS` (90s), the session is gone:  `liveListener()` returns `null`.
 - The page reads and writes through ONE `ReviewClient` ([the review client](../epics/src/review/)).
@@ -533,10 +533,10 @@ In `tools/`:
 - Unsent:  marks newer than `sent` (the last "send to Claude").
   - Never an immediate one (`details`, revisit `now`).
   - And waiting comments whose last words from Owen are newer than `sent` (`unsentComments`).
-- `spell dev plan-doc inbox <name> [--json]` prints it:
+- `epic inbox <name> [--json]` prints it:
   - marks by action, with their items' titles, sent or not
   - the `now` queue, agents at work, the session listening
-- Claude's side, `spell dev plan-doc inbox <name> ...`
+- Claude's side, `epic inbox <name>[#<id>] ...`
   (the loop, step by step:  [the plan-doc guide](../../templates/epics/plan-doc.md), "Review inbox"):
   - `listen` / `unlisten`:  a session waits on it, or stopped
   - `wait`:  run in the background;  it stamps the heartbeat while it waits
@@ -545,11 +545,11 @@ In `tools/`:
     - exits 2 on timeout
   - `apply [ids]`:  the sent approve / pick / todo marks, into the doc (`PlanDoc.applyMark()`), then cleared
     - A revisit with a pick is left, "to talk over".
-  - `working <id> on|off`
-  - `done <id>...`:  keeps a mark Owen changed meanwhile
-  - `clear <id>...`
+  - `<name>#<id> working on|off`
+  - `<name>#<id> done`:  keeps a mark Owen changed meanwhile
+  - `<name>#<id> clear`
   - These and `apply` stamp the heartbeat too.
-  - An agent writes into ONE item with `spell dev plan-doc details <name> <id> --file <html> [--append]`.
+  - An agent writes into ONE item with `epic details <name>#<id> --file <html> [--append]`.
     - It's under the doc's lock, so it never races the session's other edits.
 
 ## Details pages
@@ -558,13 +558,13 @@ In `tools/`:
 - The commands ([details.js](tools/details.js)):
 
   ```sh
-  spell dev details new | show [--wait] | wait | answer | list | sweep
+  epic ask new | show [--wait] | wait | answer | list | sweep
   ```
 
   - `show` opens a page in the side bar's "Review" tab (epic `windows-and-review` P6).
 - Owen's answer:  the page posts it to the page server's route module, [detailsRoutes.ts](tools/detailsRoutes.ts).
   - That writes `<slug>.answer.json`, beside the page.
-  - `spell dev details wait`, run in the background, exits with it, and so wakes the session.
+  - `epic ask wait`, run in the background, exits with it, and so wakes the session.
 - `findPages()` skips every `details/` folder:  not in the index, not checked by `docs update`.
 - Colours (the scheme:  "Colours" above):
   - recommended:  a violet thumbs-up after an option's title, no word
@@ -591,14 +591,14 @@ In `tools/`:
 - The commands ([choices.js](tools/choices.js);  the rows' shape is in its comment):
 
   ```sh
-  spell dev choices new <slug> --rows <rows.json> | show [--wait] | wait | answer | list
+  epic choices new <slug> --rows <rows.json> | show [--wait] | wait | answer | list
   ```
 
   - Pages go where details pages do.
   - `<slug>.rows.json`, beside the page, holds the rows.
 - The page server's route module, [choicesRoutes.ts](tools/choicesRoutes.ts):
   - the draft:  `<slug>.draft.json`, saved 5s after typing stops, never wakes anyone
-  - the answer:  `<slug>.answer.json`, which `spell dev choices wait` exits with
+  - the answer:  `<slug>.answer.json`, which `epic choices wait` exits with
 
 ## Comments
 
@@ -817,10 +817,10 @@ In `tools/`:
 - Claude's side, for docs pages ([comments.ts](tools/comments.ts), [GuideChanges.ts](tools/GuideChanges.ts)):
 
   ```sh
-  spell dev comments list [--all] [--json]
-  spell dev comments answer <page> <id> --file <html> [--commit <sha>]
-  spell dev comments working <page> <id> on | off
-  spell dev comments gather [<page>... | --all] [--epic <name>] [--json]
+  epic comments list [--all] [--json]
+  epic comments answer <page> <id> --file <html> [--commit <sha>]
+  epic comments working <page> <id> on | off
+  epic comments gather [<page>... | --all] [--epic <name>] [--json]
   ```
 
   - `working ... on` as Claude starts on a comment:  its thread shows "Claude: thinking…".
@@ -835,13 +835,13 @@ In `tools/`:
     - a reply rides along under its comment ("Owen replied on the thread")
     - each comment then `taken`
     - `/airplane land` runs it.
-- Claude's side, for plan docs:  `spell dev plan-doc inbox <name>` lists them, and Owen's replies under them.
+- Claude's side, for plan docs:  `epic inbox <name>` lists them, and Owen's replies under them.
   - They reach Claude with the page's SEND, as marks do (see "Review inbox"):
     a send with only comments wakes `wait`, which prints them.
-  - `plan-doc inbox <name> working cm3 on | off`:  the thinking stub, as `comments working`.
+  - `epic inbox <name>#cm3 working on | off`:  the thinking stub, as `comments working`.
     With an item's id:  its spinner, as before.
   - Answered like a revisit's note, then:
-    - `plan-doc inbox <name> done cm3 [--file <html>] [--commit <sha>]`, or `clear cm3`
+    - `epic inbox <name>#cm3 done [--file <html>] [--commit <sha>]`, or `<name>#cm3 clear`
     - `done` turns `working` off.
   - `--file`:  the answer on the thread too.  Without it, "Answered in the plan doc".
 
@@ -849,7 +849,7 @@ In `tools/`:
 
 - Before P11 (comments), Owen left notes on docs pages (epic `airplane`, P3).
   - A bubble on each section's title, and a Note pill in the page header:  both gone since.
-  - The notes written still show, read only, and `spell dev notes` still answers them.
+  - The notes written still show, read only, and `epic notes` still answers them.
 - The note is written INTO the page's HTML, so the shared repo commits it with the next turn.
   - The markup:
     - `<spell-notes for="<section id> | page">` groups
@@ -863,12 +863,12 @@ In `tools/`:
 - Claude's side ([notes.ts](tools/notes.ts)):
 
   ```sh
-  spell dev notes list [--all] [--json]
-  spell dev notes answer <page> <id> --file <html>
-  spell dev notes done <page> <id>
+  epic notes list [--all] [--json]
+  epic notes answer <page> <id> --file <html>
+  epic notes done <page> <id>
   ```
 
-  - `spell dev comments gather` takes the `new` ones into `guide-changes`, with the comments.
+  - `epic comments gather` takes the `new` ones into `guide-changes`, with the comments.
 - Regenerated pages keep their notes:
   `index.js` puts the groups of the part it rewrites back into their sections (`replaceBetween()`).
 
@@ -960,20 +960,20 @@ In this order, from `packages/docs`:
   - `--review`:  its "Review" tab (`/epic review`)
   - Each tab keeps its own page.
     Showing the page a tab already has doesn't reload it:  the page updates itself.
-- `spell dev details` ([details.js](tools/details.js)):  details pages (see "Details pages").
+- `epic ask` ([details.js](tools/details.js)):  details pages (see "Details pages").
   - [detailsRoutes.ts](tools/detailsRoutes.ts):  the page server's route module for their answers
-- `spell dev choices` ([choices.js](tools/choices.js)):  syntax-choices pages (see "Syntax-choices pages").
+- `epic choices` ([choices.js](tools/choices.js)):  syntax-choices pages (see "Syntax-choices pages").
   - [choicesRoutes.ts](tools/choicesRoutes.ts):  their drafts and answers
-- `spell dev comments list | gather | answer` ([comments.ts](tools/comments.ts)):  comments on docs pages.
+- `epic comments list | gather | answer` ([comments.ts](tools/comments.ts)):  comments on docs pages.
   - See "Comments".
   - [commentsRoutes.ts](tools/commentsRoutes.ts):  the pages' bullhorns
-- `spell dev notes list | answer | done` ([notes.ts](tools/notes.ts)):  page notes, from before comments.
+- `epic notes list | answer | done` ([notes.ts](tools/notes.ts)):  page notes, from before comments.
   - See "Page notes".
 - Forwarders to the plan-doc tool (see "Plan docs"):  `plan-doc.js`, `plan-parts.js`, `inbox.js`, `review-backfill.js`.
   - The tool:  `PlanDoc`, `PlanParts`, `ReviewInbox`, `ReviewBackfill`, in [the tool's folder](../epics/src/tool/).
   - For old imports, and callers on older code.
   - The review routes are [reviewRoutes.ts](../epics/src/tool/reviewRoutes.ts).
-- `spell dev agents add | set | done | list | wait | told` ([agents.ts](tools/agents.ts)):
+- `epic agents add | set | done | list | wait | told` ([agents.ts](tools/agents.ts)):
   the running-agents list (epic `skillz`), on [AgentList.ts](tools/AgentList.ts).
   - Every background agent a Claude session started, by name, while it runs.
   - The file:
@@ -1062,7 +1062,7 @@ In this order, from `packages/docs`:
   - Idempotent;  it refuses goals pages.
   - Also the migration step `ui-section` (below).
 - [migrate.js](tools/migrate.js):  the MIGRATION steps of every page kind but the epic page's (epic `epic-workflow` P8).
-  - `spell dev plan-doc migrate [<kind>] [--file <page>]` runs it as a child, beside the epic page's own steps
+  - `epic migrate [<kind>] [--file <page>]` runs it as a child, beside the epic page's own steps
     ([PLAN-DOC.md](../epics/src/tool/PLAN-DOC.md), "Migrations").
   - `KINDS`:  the page kinds, the same list as the plan-doc tool's `PAGE_KINDS` (its test checks);  `pageKind()`:  a
     page's kind, from where it lives and what it loads.
