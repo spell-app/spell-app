@@ -313,6 +313,10 @@ export const fmtConfig = {
     "**/ui/site/_assets/**",
     "**/ui/site/_data/**",
     "**/brand/_data/**",
+    // App UI's generated data (`yarn site:data` in `packages/app`):  the bytes stay the generator's
+    // (`**/components/...`:  matched from the root AND from `packages/app`, whose `vp fmt .` runs there)
+    "**/components/_data/components.json",
+    "**/components/_data/search.json",
     // Spell UI's hand-laid-out pages and their `search.json`:  the shared `ui/` at the root (claude-design P6)
     "ui/**",
     "**/vendor/**",

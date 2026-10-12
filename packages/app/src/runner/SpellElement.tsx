@@ -40,6 +40,7 @@ import { spellElementVocabulary } from "./SpellElement.en"
  *   - It reaches compiled code as `@spell/elements`:  see `spellElements.ts`.
  * - Part of `spell-runtime.js`:  NEVER value-imports `$/core`.
  *   Each runtime copy hands itself over in `installSpellElements()`.
+ * - SEE:  its App UI page, `packages/app/components/spell-element.html` (`/app-ui/spell-element.html`).
  ****************/
 export class SpellElement<Thing extends object = object> extends E.UIComponent<typeof spellElementVocabulary> {
   @E.proto static vocabulary = spellElementVocabulary

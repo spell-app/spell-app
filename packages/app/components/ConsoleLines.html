@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>ConsoleLines</title>
+    <meta
+      name="description"
+      content="Console lines, groups and logged values:  what every console draws its lines with."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="ConsoleLines">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../packages/app/src/solid/ConsoleLines.tsx"
+              icon="code"
+              aria-label="Its code, ConsoleLines.tsx"
+              title="Its code, ConsoleLines.tsx"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            ConsoleLines
+            <ui-header>Console lines, groups and logged values: what every console draws its lines with.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <p class="lede">
+            The lines of a spell program's console, such as what its <code>print</code> statements say, drawn as a tree:
+            a group of lines opens and closes under its own line. Every console in the app draws its lines with it, the
+            editor's and each runner's.
+          </p>
+          <ui-list class="spell-meta">
+            <ui-item icon="user">Written for: anyone changing a console in the app, or reading its code</ui-item>
+            <ui-item icon="play">Live: a real <code>&lt;spell-app&gt;</code>, showing its console</ui-item>
+          </ui-list>
+
+          <ui-section id="1-example" header="1. Example" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="eye"></ui-icon>
+            <p>
+              FizzBuzz, a program that only prints, so its runner shows its console where an app would be: every line in
+              it is drawn by these components. The numbers are numbers, so they're coloured as numbers; the words are
+              text.
+            </p>
+            <ui-docs-example description="FizzBuzz:  a program with no app, so its console in the app's place.">
+              <spell-app project="@examples/FizzBuzz" toolbar height="420px"></spell-app>
+            </ui-docs-example>
+            <p class="meta">
+              Live, from <code>/element/spell.pack.js</code> (<code>yarn build:element</code> in
+              <a href="../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >), which this set's pages load.
+            </p>
+          </ui-section>
+
+          <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="code"></ui-icon>
+            <p>
+              A console hands it its lines, and keeps them live. The runners' console, under every
+              <a href="spell-app.html" target="src-packages-app-components-spell-app-html"
+                ><code>&lt;spell-app&gt;</code></a
+              >, is little more than this:
+            </p>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>RunnerConsole.tsx · a runner's console · 10 lines</ui-title>
+              <ui-content>
+                <ui-code language="typescript"
+                  ><script type="text/plain">
+                    export function RunnerConsole(props: RunnerConsoleProps) {
+                      const console = props.console
+                      const lines = tracked(() => console.lines)
+                      return (
+                        <div class="RunnerConsole ConsoleViewer scrolling">
+                          <div class="stretcher">
+                            <ConsoleLines lines={lines()} indent={0} />
+                          </div>
+                        </div>
+                      )
+                    }
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+            <ul>
+              <li>
+                <code>ConsoleLines</code> draws a list of lines: each one a <a href="#ConsoleLine">ConsoleLine</a>, or,
+                for a group, a <a href="#ConsoleGroup">ConsoleGroup</a>.
+              </li>
+              <li>
+                A group is its own line with an arrow, then its lines under it, one step further in. Click the arrow to
+                open or close it. The editor's console logs its compiling and running as groups.
+              </li>
+              <li>
+                Each value a line logs is a <a href="#ConsoleObject">ConsoleObject</a>, which picks how to show it: a
+                number, some text, a date, "Array(3)" for a list. It draws it as a
+                <a href="#ConsoleValue">ConsoleValue</a>, styled by its kind.
+              </li>
+              <li>
+                Click an object's value to log it to the browser's devtools as <code>it</code>. In the editor, a parsed
+                piece of spell is selected in the code too.
+              </li>
+              <li>
+                <code>lines</code> is a plain list: the caller keeps it live, as above. A new line logged adds just its
+                own row.
+              </li>
+              <li>
+                It needs nothing of the editor's or the parser's, so a runner can show a console without them. The
+                editor's
+                <a href="ConsoleViewer.html" target="src-packages-app-components-consoleviewer-html">ConsoleViewer</a>
+                adds what it knows, such as parsed spell.
+              </li>
+              <li>Its look assumes it's inside a box with the <code>ConsoleViewer</code> class, as above.</li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="3-props" header="3. Props, and where it's drawn" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="list check"></ui-icon>
+            <ui-docs-api family="ConsoleLines"></ui-docs-api>
+            <p class="meta">
+              From its code, by <code>yarn site:data</code> in
+              <a href="../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="4-its-code" header="4. Its code" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="folder open"></ui-icon>
+            <ul>
+              <li>
+                <a
+                  href="../packages/app/src/solid/ConsoleLines.tsx"
+                  target="src-packages-app-src-solid-consolelines-tsx"
+                  ><code title="packages/app/src/solid/ConsoleLines.tsx">ConsoleLines.tsx</code></a
+                >: all five components, and their props
+              </li>
+              <li>
+                <a
+                  href="../packages/app/src/solid/ConsoleLines.css"
+                  target="src-packages-app-src-solid-consolelines-css"
+                  ><code title="packages/app/src/solid/ConsoleLines.css">ConsoleLines.css</code></a
+                >: their look
+              </li>
+              <li>
+                Its tests, with the editor's console's:
+                <a
+                  href="../packages/app/src/solid/ConsoleViewer.browser.test.tsx"
+                  target="src-packages-app-src-solid-consoleviewer-browser-test-tsx"
+                  ><code title="packages/app/src/solid/ConsoleViewer.browser.test.tsx"
+                    >ConsoleViewer.browser.test.tsx</code
+                  ></a
+                >
+              </li>
+              <li>
+                The consoles that draw it:
+                <a
+                  href="../packages/app/src/runner/RunnerConsole.tsx"
+                  target="src-packages-app-src-runner-runnerconsole-tsx"
+                  ><code title="packages/app/src/runner/RunnerConsole.tsx">RunnerConsole.tsx</code></a
+                >,
+                <a
+                  href="../packages/app/src/solid/ConsoleViewer.tsx"
+                  target="src-packages-app-src-solid-consoleviewer-tsx"
+                  ><code title="packages/app/src/solid/ConsoleViewer.tsx">ConsoleViewer.tsx</code></a
+                >
+              </li>
+            </ul>
+          </ui-section>
+
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">Last checked 2026-10-12 against branch <code>epic-workflow</code>.</p>
+          </footer>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>FileEditor</title>
+    <meta name="description" content="A Monaco editor on one spell file, kept in step with it." />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="FileEditor">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../packages/app/src/solid/monaco/FileEditor.tsx"
+              icon="code"
+              aria-label="Its code, FileEditor.tsx"
+              title="Its code, FileEditor.tsx"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            FileEditor
+            <ui-header>A Monaco editor on one spell file, kept in step with it.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <p class="lede">
+            Where you type spell in the editor: a
+            <a href="MonacoEditor.html" target="src-packages-app-components-monacoeditor-html">MonacoEditor</a> showing
+            one file. What you type goes straight into the file, and a file loaded or reloaded shows in the editor.
+          </p>
+          <ui-list class="spell-meta">
+            <ui-item icon="user">Written for: anyone changing the spell app's editor, or reading its code</ui-item>
+            <ui-item icon="image">A picture, not live: it edits the editor's open file</ui-item>
+          </ui-list>
+
+          <ui-section id="1-what-it-looks-like" header="1. What it looks like" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="image"></ui-icon>
+            <p>
+              The editor's input pane, on the Solitaire example's cards: everything under the toolbar is a FileEditor on
+              the open file.
+            </p>
+            <ui-image
+              src="_images/InputEditor.png"
+              alt="The input pane: a File dropdown and actions above a Monaco editor showing Card.spell, coloured as spell"
+              bordered
+              rounded
+            >
+            </ui-image>
+            <p class="meta">
+              A picture, taken by <code>yarn site:pictures</code> in
+              <a href="../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="code"></ui-icon>
+            <p>
+              The <a href="InputEditor.html" target="src-packages-app-components-inputeditor-html">InputEditor</a> draws
+              a new one for each file, once Monaco has loaded:
+            </p>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>InputEditor.tsx · a fresh editor per file · 5 lines</ui-title>
+              <ui-content>
+                <ui-code language="typescript"
+                  ><script type="text/plain">
+                    <Loading fallback={<LazyMonaco.Loading />}>
+                      <Show when={key()} keyed>
+                        {(_key) => <LazyMonaco.FileEditor file={file()} onMount={didMount} onUnmount={editor.onInputWillUnmount} />}
+                      </Show>
+                    </Loading>
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+            <ul>
+              <li>
+                It shows the file's Monaco model, which the app's spell models keep in step with the file both ways.
+              </li>
+              <li>With no <code>file</code> yet, it says "Loading".</li>
+              <li>Draw a new one per file for a fresh editor each, as the <code>keyed</code> above does.</li>
+              <li>
+                <code>onMount</code> hands out the editor once it's made, and Monaco itself, which loads late: the app
+                adds its keys and follows the cursor there.
+              </li>
+              <li>
+                Monaco is most of the app's code, so it's loaded on first use: draw it through
+                <code>LazyMonaco</code>, inside a <code>&lt;Loading&gt;</code>, never by importing it.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="3-props" header="3. Props, and where it's drawn" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="list check"></ui-icon>
+            <ui-docs-api family="FileEditor"></ui-docs-api>
+            <p class="meta">
+              From its code, by <code>yarn site:data</code> in
+              <a href="../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="4-its-code" header="4. Its code" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="folder open"></ui-icon>
+            <ul>
+              <li>
+                <a
+                  href="../packages/app/src/solid/monaco/FileEditor.tsx"
+                  target="src-packages-app-src-solid-monaco-fileeditor-tsx"
+                  ><code title="packages/app/src/solid/monaco/FileEditor.tsx">FileEditor.tsx</code></a
+                >: the component, and its props
+              </li>
+              <li>
+                <a
+                  href="../packages/app/src/ui/monaco/SpellModels.ts"
+                  target="src-packages-app-src-ui-monaco-spellmodels-ts"
+                  ><code title="packages/app/src/ui/monaco/SpellModels.ts">SpellModels.ts</code></a
+                >: a Monaco model per file, kept in step with it
+              </li>
+              <li>
+                <a href="../packages/app/src/solid/LazyMonaco.tsx" target="src-packages-app-src-solid-lazymonaco-tsx"
+                  ><code title="packages/app/src/solid/LazyMonaco.tsx">LazyMonaco.tsx</code></a
+                >: loads it on first use
+              </li>
+              <li>
+                <a
+                  href="../packages/app/src/solid/InputEditor.browser.test.tsx"
+                  target="src-packages-app-src-solid-inputeditor-browser-test-tsx"
+                  ><code title="packages/app/src/solid/InputEditor.browser.test.tsx"
+                    >InputEditor.browser.test.tsx</code
+                  ></a
+                >: its tests, through the input editor
+              </li>
+              <li>
+                In the app's Monaco editors, <code>$/app/solid/monaco</code>:
+                <a href="../packages/app/src/solid/monaco/" target="src-packages-app-src-solid-monaco"
+                  ><code title="packages/app/src/solid/monaco/">src/solid/monaco/</code></a
+                >
+              </li>
+            </ul>
+          </ui-section>
+
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">Last checked 2026-10-12 against branch <code>epic-workflow</code>.</p>
+          </footer>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

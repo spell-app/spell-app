@@ -21,18 +21,24 @@
  *   - a plan doc's open item (`<epic-item>`, epic `windows-and-review` Q6) whose line doesn't stick right under its
  *     section's stuck title while its details are read;  at desktop and phone width (`checkItemLine()`)
  * - loads the page from `file://`, or from the page server when its `<body>` says `data-spell-needs-server`
+ * - a component set's page (`packages/epic-components/`:  `COMPONENT_SETS` in `$/server/page`) from the page server at
+ *   its short address (`/epic-ui/...`), since it loads Spell UI's site bundle from there;  `--base <url>` checks it
+ *   on another server, e.g. the main checkout's `http://localhost:4747/worktrees/<w>`
+ *   - it has Spell UI's page shape, no toolbar:  the toolbar checks find no top-level section, and pass
  * - reports, never fails on:  icons with no `<svg>` drawn in their shadow tree (no reliable "done loading" signal)
  * - prints a JSON summary on stdout (last thing written), problems on stderr
  * - Look at the screenshots too:  the checks can't see overlap, clipping or ugly wrapping.
  */
 import { mkdtempSync, mkdirSync, readFileSync } from "node:fs"
 import { tmpdir } from "node:os"
-import { join, resolve } from "node:path"
+import { join, relative, resolve, sep } from "node:path"
 import { pathToFileURL } from "node:url"
 
 import { chromium } from "playwright"
 
-import { ensurePageServer, pageFile, serverUrl } from "./pages.js"
+// By path, its types stripped by `node` itself:  this tool runs under plain `node`, so no `$/` alias
+import { COMPONENT_SETS } from "../../server/src/page/page.types.ts"
+import { ROOT, ensurePageServer, pageFile, serverUrl } from "./pages.js"
 
 /**
  * Elements the page's packs define, as `ui-*` (Spell UI) and `epic-*` (the `epics` pack, plan docs):  a tag that
@@ -43,7 +49,9 @@ const PACK_TAG = /^(ui|epic)-/
 /** The page's navigation:  its toolbar, a plan doc's or any other page's (`spell-doc-runtime.js` `buildNavigation()`). */
 const NAV = "nav.spell-toolbar"
 
-const [docArg, outArg] = process.argv.slice(2)
+const baseAt = process.argv.indexOf("--base")
+const baseArg = baseAt > 0 ? process.argv[baseAt + 1] : undefined
+const [docArg, outArg] = process.argv.slice(2).filter((arg, at, args) => arg !== "--base" && args[at - 1] !== "--base")
 if (!docArg) {
   console.error(
     "usage:  node tools/check-spell.js <page> [outDir]   (e.g. guides/solid/solid-2.html:  `pages.js` `pageFile()`)"
@@ -135,11 +143,19 @@ process.exit(problems.length ? 1 : 0)
  */
 function pageUrl(file) {
   const local = pathToFileURL(resolve(file)).href
-  if (!/<body\b[^>]*\bdata-spell-needs-server\b/.test(readFileSync(file, "utf8"))) return local
-  const served = ensurePageServer()
-  if (served) return serverUrl(served.base, file)
+  const inSet = setAddress(file)
+  if (!inSet && !/<body\b[^>]*\bdata-spell-needs-server\b/.test(readFileSync(file, "utf8"))) return local
+  const served = baseArg ? { base: baseArg.replace(/\/$/, "") } : ensurePageServer()
+  if (served) return inSet ? `${served.base}${inSet}` : serverUrl(served.base, file)
   problem("page needs the page server, and it didn't start")
   return local
+}
+
+/** A component set's page `file` at its short address (`/epic-ui/elements/x.html`);  `undefined` for any other page. */
+function setAddress(file) {
+  const path = relative(ROOT, resolve(file)).split(sep).join("/")
+  const set = COMPONENT_SETS.find((each) => path.startsWith(`${each.dir}/`))
+  return set && `${set.prefix}${path.slice(set.dir.length).replace(/\/index\.html$/, "/")}`
 }
 
 /**
@@ -322,7 +338,8 @@ function foldTarget() {
     const best = blocks.find((block) => filled(block) && block.open) ?? blocks.find(filled) ?? blocks[0]
     return { id: best.id, kind: "epic" }
   }
-  const sections = [...document.querySelectorAll("main > ui-section[collapsible][id]")]
+  // a docs page's top-level sections;  a Spell UI-shaped page's (a component set's) are in its article
+  const sections = [...document.querySelectorAll(":is(main, main .site-article) > ui-section[collapsible][id]")]
   if (sections.length) {
     const best =
       sections.find((section) => filled(section) && !section.hasAttribute("collapsed")) ??
@@ -457,14 +474,16 @@ function openBiggestSection() {
 }
 
 /**
- * Scroll into the middle top-level section (`main > ui-section`, a plan doc's top-level block, or `section.s2`),
+ * Scroll into the middle top-level section (`main > ui-section` or a Spell UI-shaped page's article's, a plan doc's
+ * top-level block, or `section.s2`),
  * part way down, and return its id (the h2's, for `section.s2`) and what it is.
  * - only sections that can scroll up to the top:  a short page's last section never sticks
  */
 function scrollToMiddleSection() {
   const room = document.documentElement.scrollHeight - innerHeight
   // a section barely taller than its title (an empty "Todos" in a new plan doc) has no middle to stick over:  skip it
-  const top = "main > ui-section, main epic-page > :is(epic-overview, epic-section), section.s2"
+  const top =
+    ":is(main, main .site-article) > ui-section, main epic-page > :is(epic-overview, epic-section), section.s2"
   // how far past its top the check scrolls:  the page must have room for all of it, or the title stays where it
   // is, never stuck (epic `epic-workflow` I1:  a new plan doc's Questions failed so, the page too short to scroll)
   const into = (s) => Math.min(600, s.offsetHeight / 2)

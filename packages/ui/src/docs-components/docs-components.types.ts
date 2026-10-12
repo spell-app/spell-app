@@ -87,6 +87,37 @@ export type SiteDataFile = {
    * its title and the families it touches (`tools/ThemeFamilies.ts`);  `<ui-docs-themes>` titles and filters by it
    */
   readonly themes: readonly SiteTheme[]
+  /**
+   * another site's own side-column links (a component set served with this site's bundle:  Epic UI, `/epic-ui/`);
+   * absent:  Spell UI's (`TOP_PAGES`, `FOUNDATION_PAGES` in `<ui-docs-nav>`)
+   */
+  readonly nav?: SiteNav
+}
+
+/**
+ * A site's own links in `<ui-docs-nav>`, around its component list:  the start pages above, the "Foundation" ones
+ * below, and the bands' titles.
+ * - For a site other than Spell UI's that loads this site's bundle (`COMPONENT_SETS` in `$/server/page`).
+ */
+export type SiteNav = {
+  /** the links above the components (Spell UI:  Overview, Getting started ...) */
+  readonly start: readonly SiteNavPage[]
+  /** the links below them (Spell UI:  Theming, Utilities ...);  may be empty */
+  readonly foundation: readonly SiteNavPage[]
+  /** the bands' titles, where they aren't the vocabulary's ("Get started", "Components", "Foundation") */
+  readonly titles?: { readonly start?: string; readonly components?: string; readonly foundation?: string }
+}
+
+/** One of a site's own links in `<ui-docs-nav>`. */
+export type SiteNavPage = {
+  /** what `current` names it by:  its file name without `.html`, e.g. `index` */
+  readonly id: string
+  /** its file, relative to the site root;  may climb out of it, e.g. `../guides/x/x.html` */
+  readonly file: string
+  /** its row's text, e.g. `Overview` */
+  readonly label: string
+  /** its row's icon (the default `fa7-free` pack), e.g. `house` */
+  readonly icon: string
 }
 
 /** One theme sheet:  its title, and which families it restyles. */
@@ -150,6 +181,34 @@ export type SiteTag = {
   readonly parts: readonly SiteNamed[]
   readonly states: readonly SiteNamed[]
   readonly texts: readonly SiteText[]
+  /**
+   * a FUNCTION component's props, in the order its props type declares them:
+   * the spell app's Solid components (`packages/app`'s App UI set, `yarn site:data` there);
+   * absent for a custom element, whose API is its attributes
+   */
+  readonly props?: readonly SiteProp[]
+  /** where it's drawn:  each component that draws it, and that component's file, A-Z;  absent for none found */
+  readonly usedIn?: readonly SiteUse[]
+}
+
+/** One prop of a function component, as its props type declares it. */
+export type SiteProp = {
+  /** e.g. `autoHide`;  `...ChooserModalProps` for a props type it takes whole, from another file */
+  readonly name: string
+  /** its type, as written, e.g. `boolean`, `(element: HTMLDivElement) => void` */
+  readonly type: string
+  /** `true`:  the caller must pass it (no `?`) */
+  readonly required?: boolean
+  /** its docstring */
+  readonly description: string
+}
+
+/** One place a component is drawn:  the component (or page) that draws it, and its file. */
+export type SiteUse = {
+  /** e.g. `RunnerPane`, `<spell-app>` */
+  readonly name: string
+  /** from the repo root, e.g. `packages/app/src/runner/RunnerPane.tsx` */
+  readonly file: string
 }
 
 /** One attribute of a tag, as its vocabulary declares it. */

@@ -88,12 +88,29 @@ def test_an_event_reaches_the_programs_handlers_its_things_by_id(session: PageSe
     assert session.names["clicks"] == [session.writer.thing_with_id("2")]
 
 
+def test_an_event_names_its_target_by_reference(session: PageSession) -> None:
+    session.state()
+    # the second lamp, by place:  the handler gets it as `event.lamp`, and as `event.target`
+    patch = session.handle({"trigger": "lamp-click", "target": "Lamp#2"})
+    assert patch == [{"@type": "Lamp", "@id": "3", "is_on": True}]
+    assert session.names["clicks"] == [session.writer.thing_with_id("3")]
+
+
+def test_a_call_on_a_thing_by_reference(session: PageSession) -> None:
+    session.state()
+    assert session.handle({"call": "switch", "on": "Lamp#1", "args": [True]}) == [
+        {"@type": "Lamp", "@id": "2", "is_on": True}
+    ]
+
+
 def test_what_isnt_there_throws(session: PageSession) -> None:
     session.state()
     with pytest.raises(ValueError, match="no function 'switch_off'"):
         session.handle({"call": "switch_off", "args": []})
     with pytest.raises(ValueError, match="doesn't have"):
         session.handle({"call": "switch", "on": {"@id": "99"}, "args": [True]})
+    with pytest.raises(ValueError, match="doesn't have"):
+        session.handle({"trigger": "lamp-click", "target": "Lamp#9"})
     with pytest.raises(ValueError, match="a call or an event"):
         session.handle({"wave": True})
 

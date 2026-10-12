@@ -4,7 +4,8 @@
  * - Built by `yarn build:page` into `dist-page/`, after `vite.solid.config.ts`:  see `vite.page.config.ts`.
  * - It IS the page's `@spell/core`:  the program's drawing half, `<Project>.elements.js`, imports from it,
  *   through the page's import map.
- * - It exports what `spell-runtime.js` exports, plus the page's side (`page.ts` in `$/core`):
+ * - It exports what `spell-runtime.js` exports for compiled javascript (`spellPage.test.ts` pins it),
+ *   plus the page's side (`page.ts` in `$/core`):
  *   `connectPage()`, `startPage()`, `sendCall()`, `sendTrigger()`.
  * - Unlike a runner's, it sets up the page itself:  Spell UI's elements, Solid following spell's cells,
  *   and a drawable thing's own element, e.g. `<solitaire-card>`.
@@ -28,6 +29,7 @@ import {
   Drawable,
   DrawableList,
   h,
+  css,
   on,
   off,
   once,
@@ -55,6 +57,7 @@ export {
   Drawable,
   DrawableList,
   h,
+  css,
   on,
   off,
   once,

@@ -378,12 +378,13 @@ export class UIRoot<V extends E.ComponentVocabulary = RootVocabulary> extends E.
   /**
    * Load every new pack inside, and import the family of every undefined `ui-*` tag;  resolves once each settled.
    * - An undefined tag of a registered pack is `unknown` when its catalog doesn't list it, else `failed`:
-   *   the pack defines every tag it lists as it registers.
+   *   the pack defines every tag it lists as it registers.  Unless its `define()` still runs (it loads its families
+   *   first):  then it waits for it (`ComponentPacks.whileDefining()`).
    */
   private loadUndefined(): Promise<void> {
     const loads = this.loadPacks()
     for (const tag of this.undefinedTags()) {
-      const load = this.ownTagLoader(tag)?.() ?? RootLoader.loadTag(tag)
+      const load = this.ownTagLoader(tag)?.() ?? RootLoader.loadTag(tag) ?? ComponentPacks.whileDefining(tag)
       if (load) loads.push(load.catch((error: unknown) => this.fail({ tag, reason: "failed", error })))
       else if (RootLoader.entryOf(tag))
         this.fail({ tag, reason: "failed", error: new Error("its pack didn't define it") })

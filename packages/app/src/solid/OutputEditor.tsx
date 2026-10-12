@@ -48,6 +48,7 @@ export function OutputToolbar() {
  * ### `<OutputEditor>`
  * Read-only Monaco showing `editor.file`'s compiled javascript, guarded by an `<ErrorBoundary>`.
  * - Coloured by Monaco's own javascript highlighting;  it doesn't follow the cursor in `<InputEditor>`.
+ * - SEE:  its App UI page, `packages/app/components/OutputEditor.html` (`/app-ui/OutputEditor.html`).
  ****************/
 export function OutputEditor(props: OutputEditorProps) {
   const compiled = tracked(() => {

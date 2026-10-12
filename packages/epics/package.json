@@ -8,12 +8,13 @@
   "scripts": {
     "pack:build": "node ../cli/bin/spell.mjs dev pack build epics",
     "pack:check": "node ../cli/bin/spell.mjs dev pack check epics",
+    "site:data": "tsx scripts/site-data.ts",
     "/////// CORRECTNESS": "",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
     "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc && echo '<< TSC PASSED\n'",
-    "lint": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT' && vp lint --report-unused-disable-directives --max-warnings 0 src components && echo '<< OXLINT PASSED\n'",
-    "lint:fix": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT --fix' && vp lint --fix src components && echo '<< OXLINT PASSED\n'",
-    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && vp fmt src components vite.config.ts vitest.config.ts && echo '<< OXFMT PASSED\n'",
+    "lint": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT' && vp lint --report-unused-disable-directives --max-warnings 0 src components scripts && echo '<< OXLINT PASSED\n'",
+    "lint:fix": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT --fix' && vp lint --fix src components scripts && echo '<< OXLINT PASSED\n'",
+    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && vp fmt src components scripts vite.config.ts vitest.config.ts && echo '<< OXFMT PASSED\n'",
     "/////// TESTING": "",
     "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vp test run && echo '<< TESTS PASSED\n'"
   },
@@ -26,6 +27,7 @@
     "@solidjs/web": "2.0.0-rc.13",
     "@types/node": "^22.20.4",
     "solid-js": "2.0.0-rc.13",
+    "tsx": "4.20.3",
     "typescript": "^7.0.2",
     "vite": "catalog:",
     "vite-plus": "catalog:"

@@ -41,7 +41,11 @@ The shared folders:
   `PAGES`, `GUIDES`, `EPICS`, `TEMPLATES`.
 - [The docs home](../../pages/index.html):  a routing page (P5 of `claude-design`).
   - One card per area, in the top bar's order, each with its count:
-    Epics · Guides · Brand · Spell UI · Templates · Goals · App
+    Guides · Goals · Epics · Epic/UI · Spell/UI · App · App/UI · Brand · Templates
+    - Owen's order (2026-10-11, epic `epic-workflow` J40);  the slashed names are the tabs' labels (J41).
+    - Epic/UI and App/UI are the COMPONENT SETS (`COMPONENT_SETS` in `$/server/page`):  tracked package folders
+      (`packages/epic-components/`, `packages/app/components/`) served at `/epic-ui/` and `/app-ui/`, in Spell UI's
+      page shape.
   - `spell dev docs index` writes the cards, between `<!-- areas:start -->` / `<!-- areas:end -->`.
     Edit only outside the markers.
   - NOT `index:start` / `index:end`:  on those, an older checkout's `index.js` would stop on the shared home,
@@ -810,6 +814,10 @@ In `tools/`:
   - A page served under `/worktrees/<w>/` redraws on its inbox's change too:  the server announces a shared
     folder's files without that prefix (`inboxPaths`).
   - pages under `guides/`, `pages/`, `epics/` (plan docs too)
+  - a component set's pages, at its short address (`/epic-ui/...`):  their inbox beside each, in the set's tracked
+    folder, git-ignored there.
+    - NOTE:  those pages load Spell UI's site bundle, not `spell-ui.js`, so no bullhorn draws on them yet:
+      the route takes their comments, the page can't make one (epic `epic-workflow` P10).
   - NOT:
     - a plan doc's `parts/`
     - details pages with questions, syntax-choices pages

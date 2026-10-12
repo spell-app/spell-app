@@ -46,6 +46,7 @@ import {
   parseFavorites
 } from "../../server/src/site/EpicCards.ts"
 import { URGENT_SELECTOR } from "../../server/src/site/EpicState.ts"
+import { COMPONENT_SETS } from "../../server/src/page/page.types.ts"
 import { PageNotes } from "./PageNotes.js"
 import { BRAND, EPICS, GOALS, GUIDES, HOME, LIST_PAGES, ROOT, TEMPLATES, UI_PAGES, findPages, tidy } from "./pages.js"
 
@@ -311,14 +312,19 @@ function epicFacts(page) {
 ////////////////
 
 /**
- * The home's cards, in the top bar's order (Owen, 2026-10-05, Q6 of `claude-design`):
- * Epics, Guides, Brand, Spell UI, Templates, Goals, App.
+ * The home's cards, in the top bar's order (Owen, 2026-10-11, J40 of `epic-workflow`):
+ * Guides, Goals, Epics, Epic/UI, Spell/UI, App, App/UI, Brand, Templates.
+ * - Owen's words:  "Docs toolbar:  Guides Goals Epics Epic/UI Spell/UI App App/UI";  Brand and Templates "At the end"
+ * - the slashed titles are the tabs' labels as he typed them (J41);  prose keeps "Epic UI", "Spell UI", "App UI"
+ * - (before, claude-design Q6, 2026-10-05:  Epics, Guides, Brand, Spell UI, Templates, Goals, App)
  * Each `{ id, title, icon, href?, count?, description, meta? }`.
  * - `id`:  the card's id, so the old `pages/index.html#epics` / `#guides` / `#templates` links land on its card
  * - `href`:  from the home's folder;  none for the App, which only the page server has (`/editor/`):
  *   a link there would break from `file://`, and `doc-links.js --check` can't resolve it
  * - Spell UI:  its site's own page (`ui/index.html`, shared;  its bundle needs the page server);
  *   the top bar's tab opens it at `/ui/`
+ * - Epic UI, App UI (`COMPONENT_SETS`):  their home in their package folder (`packages/epic-components/index.html`),
+ *   which the page server sends on to the short address (`/epic-ui/`);  their page counts from their folders
  * - `pages`:  every page `describe()`d, so the counts come from the same data as the list pages;
  *   the Epics count by the Epics page's groups, `favorites` the starred epics' names (`readFavorites()`)
  */
@@ -326,7 +332,24 @@ export function areaCards(pages, favorites = readFavorites()) {
   const of = (id) => pages.filter((page) => LISTS.find((list) => list.id === id).has(page.path))
   const groups = of("epics").map((page) => epicCard(page, "epics", favorites).group)
   const counts = EPIC_GROUPS.map((name) => [name, groups.filter((group) => group === name).length])
+  const [epicUI, appUI] = COMPONENT_SETS
   return [
+    {
+      id: "guides",
+      title: "Guides",
+      icon: "book open",
+      href: "../guides/index.html",
+      count: plural(of("guides").length, "guide"),
+      description: "Design notes, references and how-tos:  how each part of spell works, and why."
+    },
+    {
+      id: "goals",
+      title: "Goals",
+      icon: "bullseye",
+      href: "../goals/index.html",
+      count: plural(goalSets(), "goal set"),
+      description: "The plan for each project:  goals by topic, the questions still open, Owen's thoughts on them."
+    },
     {
       id: "epics",
       title: "Epics",
@@ -339,12 +362,40 @@ export function areaCards(pages, favorites = readFavorites()) {
       description: "Plan docs, one per /epic session:  phases, questions, decisions and the log of the work."
     },
     {
-      id: "guides",
-      title: "Guides",
-      icon: "book open",
-      href: "../guides/index.html",
-      count: plural(of("guides").length, "guide"),
-      description: "Design notes, references and how-tos:  how each part of spell works, and why."
+      id: "epic-ui",
+      title: "Epic/UI",
+      icon: "sitemap",
+      href: `../${epicUI.dir}/index.html`,
+      count: plural(setPages(epicUI, "elements"), "element page"),
+      description:
+        "The <epic-*> elements a plan doc is made of:  how they nest, and a page for each, with live examples.",
+      meta: `served at ${epicUI.prefix}/, by the page server`
+    },
+    {
+      id: "spell-ui",
+      title: "Spell/UI",
+      icon: "puzzle piece",
+      href: "../ui/index.html",
+      count: plural(htmlFiles(UI_COMPONENTS).filter((name) => name !== "index.html").length, "component page"),
+      description: "Fomantic UI reborn as ui-* custom elements, on Solid 2:  every element, with examples and its API.",
+      meta: "served at /ui/, by the page server"
+    },
+    {
+      id: "app",
+      title: "App",
+      icon: "wand magic sparkles",
+      description: "The spell editor:  write and run spell in the browser.",
+      meta: "Page server only:  /editor/, the top bar's App tab (spell dev server ensure)"
+    },
+    {
+      id: "app-ui",
+      title: "App/UI",
+      icon: "window maximize",
+      href: `../${appUI.dir}/index.html`,
+      count: plural(setPages(appUI), "component page"),
+      description:
+        "The spell app's own components:  what each draws and takes, with live examples where one draws alone.",
+      meta: `served at ${appUI.prefix}/, by the page server`
     },
     {
       id: "brand",
@@ -356,38 +407,22 @@ export function areaCards(pages, favorites = readFavorites()) {
         "Spell's brand:  Claude Design's pages beside their Spell UI copies, the ui-brand-* elements, and the pony."
     },
     {
-      id: "spell-ui",
-      title: "Spell UI",
-      icon: "puzzle piece",
-      href: "../ui/index.html",
-      count: plural(htmlFiles(UI_COMPONENTS).filter((name) => name !== "index.html").length, "component page"),
-      description: "Fomantic UI reborn as ui-* custom elements, on Solid 2:  every element, with examples and its API.",
-      meta: "served at /ui/, by the page server"
-    },
-    {
       id: "templates",
       title: "Templates",
       icon: "copy",
       href: "../templates/index.html",
       count: plural(of("templates").length, "template"),
       description: "A starting point for every kind of page, and the notes on writing docs."
-    },
-    {
-      id: "goals",
-      title: "Goals",
-      icon: "bullseye",
-      href: "../goals/index.html",
-      count: plural(goalSets(), "goal set"),
-      description: "The plan for each project:  goals by topic, the questions still open, Owen's thoughts on them."
-    },
-    {
-      id: "app",
-      title: "App",
-      icon: "wand magic sparkles",
-      description: "The spell editor:  write and run spell in the browser.",
-      meta: "Page server only:  /editor/, the top bar's App tab (spell dev server ensure)"
     }
   ]
+}
+
+/**
+ * How many pages a component set has (`COMPONENT_SETS`), besides its home:  the `.html` files of its folder, or of its
+ * `folder` there (Epic UI's `elements/`);  its layout and footer (`_parts/`) never count.
+ */
+function setPages(set, folder = "") {
+  return htmlFiles(join(ROOT, set.dir, folder)).filter((name) => name !== "index.html").length
 }
 
 /** The home's one section:  the area cards in a grid. */
