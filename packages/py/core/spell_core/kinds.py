@@ -121,6 +121,7 @@ class TypeMethods:
           - not-a-number equals not-a-number
           - a list and a tuple with the same items are equal
           - two things of the same class are equal when their fields are
+          - but a thing's `id`:  two people alike are equal, whatever their ids (`compared_fields()`)
         - A class with its own `==` (`__eq__`) decides for itself.
         """
         return deep_equals(thing, other_thing)
@@ -144,8 +145,23 @@ def deep_equals(thing: object, other: object) -> bool:
     if type(thing).__eq__ is not object.__eq__:
         return bool(thing == other)
     if hasattr(thing, "__dict__"):
-        return deep_equals(vars(thing), vars(other))
+        return deep_equals(compared_fields(thing), compared_fields(other))
     return False
+
+
+def compared_fields(thing: object) -> dict[str, object]:
+    """`thing`'s fields, as `equals()` compares them:  all of them, but a thing's `id`.
+
+    - A thing keeps its properties in a dict, `_props`:  its `id` is one of them, once it's read or set.
+    - Left out, as JavaScript's `equals()` never sees it:
+      lodash's `isEqual()` doesn't look where a thing keeps its properties, so an id never mattered there
+      (epic `people-and-orgs`, I1).
+    """
+    fields = dict(vars(thing))
+    props = fields.get("_props")
+    if isinstance(props, dict) and "id" in props:
+        fields["_props"] = {key: value for key, value in props.items() if key != "id"}
+    return fields
 
 
 def is_same(thing: object, other: object) -> bool:

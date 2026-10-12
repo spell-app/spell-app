@@ -1,23 +1,7 @@
 import { describe, test, expect } from "vite-plus/test"
 
-import {
-  spellCore,
-  Thing,
-  List,
-  App,
-  on,
-  off,
-  once,
-  trigger,
-  positionOf,
-  position,
-  spellPosition,
-  endPosition,
-  withSpellPositions
-} from "$/core"
-import { P } from "$/parser"
-import { SP } from "$/spell"
-import { parseSpellProject } from "$/spell/test"
+import type { List } from "$/core"
+import { runSpell } from "$/spell/test"
 
 /**
  * Membership and guards END TO END:  spell compiled, then RUN on `core`'s source.
@@ -126,31 +110,6 @@ describe("membership, compiled and run", () => {
  *   returning the top-level variables `names` lists, e.g. `"deck, card"`.
  * - Fails on any parse error:  these programs MUST parse.
  */
-function runSpell(lines: string[]) {
-  const { files } = parseSpellProject([{ path: "/Test.spell", contents: lines.join("\n") }])
-  const [file] = files
-  expect(file!.errors).toEqual([])
-  const parts = files.map(({ match, compiled }) => (match?.AST instanceof P.ASTStatementGroup ? match.AST : compiled))
-  const code = SP.SpellProject.combineCompiled(parts)
-    .split("\n")
-    .filter((line) => !line.startsWith("import "))
-    .join("\n")
-    .replace(/^export /gm, "")
-  return (names: string) => {
-    // each top-level variable by spell's name, e.g. `first_pile`:  compiled javascript calls it `firstPile`
-    const named = names
-      .split(/,\s*/)
-      .filter(Boolean)
-      .map((name) => `${name}: ${P.JSWriter.instance.nameOf(name)}`)
-    const body = `${code}\nreturn { ${named.join(", ")} }`
-    // `@spell/core`'s helpers it imports by name, e.g. `trigger()`, as the import it lost would give them
-    const imported = { on, off, once, trigger, positionOf, position, spellPosition, endPosition, withSpellPositions }
-    // oxlint-disable-next-line no-implied-eval -- running compiled spell, as a runner does, is the test
-    const fn = new Function("spellCore", "Thing", "List", "App", ...Object.keys(imported), body)
-    const run = () => fn(spellCore, Thing, List, App, ...Object.values(imported))
-    return spellCore.things.quietly(run) as Record<string, unknown>
-  }
-}
 
 /** Each card's `name` in `list`. */
 function names(list: unknown): string[] {

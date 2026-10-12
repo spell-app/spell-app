@@ -174,7 +174,7 @@ function set(thing: SpellObject, key: string, value: unknown, fromState: boolean
  * `thing`'s plain fields, not its props:  what its constructor was given and doesn't declare,
  * e.g. `{ symbol: "♣️" }` for `new Foundation({ symbol: "♣️" })`.  Never a `_private` one, or a function.
  */
-function fieldsOf(thing: SpellObject): Record<string, unknown> {
+export function fieldsOf(thing: SpellObject): Record<string, unknown> {
   return Object.fromEntries(
     Object.entries(thing).filter(([key, value]) => !key.startsWith("_") && typeof value !== "function")
   )
@@ -190,19 +190,19 @@ function hasAccessor(proto: object | null, key: string): boolean {
 }
 
 /** Is `value` a thing or a list? */
-function isSpellObject(value: unknown): value is SpellObject {
+export function isSpellObject(value: unknown): value is SpellObject {
   return value instanceof Thing || value instanceof List
 }
 
 /** Is `value` a plain object, as `JSON.parse()` makes:  NOT an array, a thing, or `null`? */
-function isPlainObject(value: unknown): value is Record<string, unknown> {
+export function isPlainObject(value: unknown): value is Record<string, unknown> {
   if (typeof value !== "object" || value === null) return false
   const proto = Object.getPrototypeOf(value) as unknown
   return proto === Object.prototype || proto === null
 }
 
 /** Does `proto`, or one up its chain, have a setter for `key`?  The nearest accessor decides. */
-function hasSetter(proto: object | null, key: string): boolean {
+export function hasSetter(proto: object | null, key: string): boolean {
   for (; proto; proto = Object.getPrototypeOf(proto) as object | null) {
     const descriptor = Object.getOwnPropertyDescriptor(proto, key)
     if (descriptor) return !!descriptor.set

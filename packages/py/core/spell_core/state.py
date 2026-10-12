@@ -114,7 +114,7 @@ class StateWriter:
         json: dict[str, object] = {TYPE_KEY: type(thing).__name__, ID_KEY: self.id_of(thing)}
         for name, prop in thing._props.items():
             json[name] = self._write(prop, written)
-        for name, field in _fields(thing).items():
+        for name, field in plain_fields(thing).items():
             json.setdefault(name, self._write(field, written))
         if isinstance(thing, List):
             json[ITEMS_KEY] = [self._write(item, written) for item in thing._items]
@@ -169,24 +169,28 @@ class StateMirror:
         for key in [key for key in made._props if isinstance(the_id, str) and key not in value]:
             made.set_prop(key, None)
         for key, field in fields.items():
-            _set(made, key, self._read(field))
+            set_prop_of(made, key, self._read(field))
         if isinstance(made, List):
             items = value.get(ITEMS_KEY)
             made.items = [self._read(item) for item in items] if isinstance(items, list) else []
         return made
 
 
-def _fields(thing: SpellObject) -> dict[str, object]:
+def plain_fields(thing: SpellObject) -> dict[str, object]:
     """`thing`'s plain fields, not its properties:  what its constructor was given and doesn't declare.
 
     - `Foundation(symbol="♣️")`, with no `symbol` declared:  `{"symbol": "♣️"}`, as javascript keeps it too.
     - Never a `_private` one, or a function.
+    - A saved entry writes them too (`saving.py`).
     """
     return {name: value for name, value in vars(thing).items() if not name.startswith("_") and not callable(value)}
 
 
-def _set(thing: SpellObject, key: str, value: object) -> None:
-    """Set `thing`'s `key` to `value`:  through what its class declares for it, else as a plain property."""
+def set_prop_of(thing: SpellObject, key: str, value: object) -> None:
+    """Set `thing`'s `key` to `value`:  through what its class declares for it, else as a plain property.
+
+    - What a saved entry read back sets too (`saving.py`), once its plain values have made the thing.
+    """
     if _has_setter(type(thing), key):
         setattr(thing, key, value)
     elif not (key in thing._props and is_same(thing._props[key], value)):
