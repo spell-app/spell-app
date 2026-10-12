@@ -4,7 +4,7 @@
  * - Which view:  `docs` (the "Spell Docs" tab, the default) or `review` (the "Review" tab:  `/epic review`).
  *   `review` is ALWAYS the side bar's "Review" tab:  the setting moves only `docs`.
  * - Opened by URI:  `vscode://spell-app.spell-language/doc-preview?file=<absolute path>[&view=review]` --
- *   what `packages/docs/tools/pages.js` `openInVSCode()` opens (`spell dev plan-doc open`, `spell dev plan-doc phase`).
+ *   what `packages/docs/tools/pages.js` `openInVSCode()` opens (`epic open`, `epic phase`).
  * - Or `?url=<http://127.0.0.1:port/...>`:  a page some local server already serves, shown as is --
  *   the page server's live pages (`/goals-open-vs`).  Loopback URLs only;
  *   with a `file` too, the file is the fallback when the URL isn't loopback.

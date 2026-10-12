@@ -97,7 +97,9 @@ export class MigrateCommands {
     { step, dryRun, notify }: { step?: string; dryRun: boolean; notify: boolean }
   ): Promise<number> {
     if (notify && !this.sessionsOf)
-      throw new PlanDocError("--notify needs the running sessions, which only `spell dev plan-doc` can see")
+      throw new PlanDocError(
+        "--notify needs the running sessions, which only the `epic` command (or `spell dev plan-doc`) can see"
+      )
     const only = step ? [step] : undefined
     const counts = new Map<string, number>()
     const tell: { epic: string; sessions: string[]; steps: string[] }[] = []
@@ -154,7 +156,7 @@ export class MigrateCommands {
   static message(epic: string, steps: string[]): string {
     const what = steps.length === 1 ? `step ${steps[0]}` : `steps ${steps.join(", ")}`
     return (
-      `New epic page migration ${what} for your epic page:  run \`spell dev plan-doc migrate ${epic}\` at your ` +
+      `New epic page migration ${what} for your epic page:  run \`epic migrate ${epic}\` at your ` +
       `leisure (now if you're idle or between phases, else at the end of the phase you're in);  you may commit ` +
       `what it changes without asking (\`${epic} migrate ${steps[0]}:  ...\`).`
     )

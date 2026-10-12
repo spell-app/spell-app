@@ -207,7 +207,7 @@ ui -> util
   - The `spell` link runs the MAIN checkout's CLI, which has its packages.
   - `yarn window` couldn't:  yarn runs no script there before `yarn install`.
 - A doc shown while the move is pending waits, then shows beside the session in the window it moved to.
-  - That's `spell dev plan-doc open` or `spell dev window show`.
+  - That's `epic open <name> --review` or `spell dev window show`.
 - A running epic's plan doc is shared (see "Shared content"):  ONE file, the same in every checkout.
   - So the MAIN checkout's page server shows it too,
     listed in the docs index's Epics section with the merged ones.
@@ -290,7 +290,7 @@ ui -> util
   - A worktree session's Edit / Write refuses a path through the links, before any hook could step in.
     It says "Edit the worktree copy of this file instead of the shared-checkout path":
     there is no worktree copy.
-  - Reading and tools (`spell dev plan-doc`, the page server) use the links as usual.
+  - Reading and tools (`epic`, the page server) use the links as usual.
 - The manifest has two parts:
   - the root `package.json`'s `"shared": { "dir", "links" }`
   - the `# shared:start` ... `# shared:end` block in `.gitignore`

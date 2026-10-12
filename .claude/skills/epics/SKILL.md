@@ -17,12 +17,12 @@ Owen runs several epics at once:  one screen saying where each stands.
   It may have none:  planned on `main`, or merged and removed.
 - A worktree cut before 2026-10-04 that hasn't run `spell dev shared migrate <name>` still has its own old copy
   (`packages/docs/epics/<name>/`).
-  `plan-doc` reads that one for it.
+  `epic` reads that one for it.
 
 ## Steps
 
 1. Gather, in parallel (one Bash call each, from the repo root or any worktree):
-   - `spell dev plan-doc list --json`:  every epic once, in progress first.
+   - `epic list --json`:  every epic once, in progress first.
      - Each:  `{ name, title, status, checkout, notReviewed, total, file }`.
      - `status`:
        - `in progress`:  while any phase isn't done (or there are none yet)
@@ -34,7 +34,7 @@ Owen runs several epics at once:  one screen saying where each stands.
 2. Keep the open ones (`/epics all`:  every one):
    `in progress`, `future`, or `done` with a worktree whose branch has work not in `main`.
    Then, for those:
-   - `spell dev plan-doc summaries <file> ...`, every `file` in one call.
+   - `epic summaries <file> ...`, every `file` in one call.
      - It gives JSON `{ <file>: summary }`, or `{ error }`.
      - Each summary has `phases[]` (`n`, `name`, `status`), `active`, `next`, and `open` (items by kind).
      - And `bedtime`:  the phases a `/bedtime` run is on, while it goes.
@@ -81,7 +81,7 @@ Owen runs several epics at once:  one screen saying where each stands.
 
 ## Notes
 
-- A plan doc `plan-doc` can't read shows as `unreadable`, with its error:  say so, don't guess its state.
-- State comes from the plan doc's phase statuses (`spell dev plan-doc phase`),
+- A plan doc `epic` can't read shows as `unreadable`, with its error:  say so, don't guess its state.
+- State comes from the plan doc's phase statuses (`epic phase`),
   so a phase nobody marked done reads as not done.
   Doubt it:  `/wtf <name>` reads the session.

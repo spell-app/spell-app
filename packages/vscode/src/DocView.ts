@@ -3,7 +3,7 @@
  * (VS Code's secondary side bar), beside the editor AND the Claude tab, instead of taking an editor column.
  * Two of them, each in its own view container, so the side bar shows them as two tabs, each keeping its own page:
  * - "Spell Docs" (`spell.docView`, the spell hat):  where `DocPreview` shows pages by default
- *   (`spell.docPreview.location`:  `sidebar`):  `/spell-docs`, `spell dev plan-doc open`, `/goals-open-vs`
+ *   (`spell.docPreview.location`:  `sidebar`):  `/spell-docs`, `epic open`, `/goals-open-vs`
  * - "Review" (`spell.reviewView`, a circle-check):
  *   the page being reviewed (`/epic review`, `spell dev docs open <page> --review`)
  * - Each is a webview holding ONE iframe of the page's loopback URL, as Simple Browser does.

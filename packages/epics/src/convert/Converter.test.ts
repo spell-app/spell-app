@@ -335,6 +335,6 @@ describe("Converter.convert():  older generations", () => {
     const skeleton =
       '<!doctype html><html><body><main><section class="s2" id="overview"></section></main></body></html>'
     await expect(new Converter({ name: "old", skeleton }).convert()).rejects.toThrow(ConvertError)
-    await expect(new Converter({ name: "old", skeleton }).convert()).rejects.toThrow(/spell dev plan-doc migrate old/)
+    await expect(new Converter({ name: "old", skeleton }).convert()).rejects.toThrow(/epic migrate old/)
   })
 })

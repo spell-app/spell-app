@@ -74,9 +74,9 @@ function isMissingFile(error: unknown): boolean {
 /** Say how it's used;  returns the usage exit code. */
 function usage(): number {
   console.error(
-    "usage:  spell dev notes list [--all] [--json]\n" +
-      "        spell dev notes answer <page> <id> --file <reply.html>\n" +
-      "        spell dev notes done <page> <id>"
+    "usage:  epic notes list [--all] [--json]\n" +
+      "        epic notes answer <page> <id> --file <reply.html>\n" +
+      "        epic notes done <page> <id>"
   )
   return 2
 }

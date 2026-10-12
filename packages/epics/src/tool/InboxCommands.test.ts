@@ -285,9 +285,9 @@ test("wait:  a send with ONLY comments wakes it, and prints each comment and Owe
     /CM1 {2}on j1 \(item\) {2}quoting "a real choice" {2}"Why\?"[^\n]*\n {6}Owen replied:  "Say more"/
   )
   expect(said).toMatch(/CM2 {2}on p1#field-1 \(field\) {2}"Is this hooked up\?"/)
-  expect(said).toMatch(/inbox x working <cm id> on/)
+  expect(said).toMatch(/epic inbox x#<cm id> working on/)
   // nothing to apply:  no line saying so
-  expect(said).not.toMatch(/inbox x apply/)
+  expect(said).not.toMatch(/epic inbox x apply/)
   // handed over:  the next wait has nothing until Owen speaks again
   expect(ReviewInbox.read(inboxFile).hasWork).toBe(false)
 })
