@@ -484,7 +484,9 @@ class CollectionMethods:
 
     def new_scratch(self, cls: Callable[[], Any]) -> Any:
         """A new `cls()`, for a helper's result:  a spell list owns nothing, even an exclusive one (`as_scratch()`)."""
-        made = cls()
+        # never one of the program's things:  a place counts only those (`core.things_made()`)
+        with self.quietly():  # type: ignore[attr-defined]
+            made = cls()
         if isinstance(made, List):
             made.as_scratch()
         return made

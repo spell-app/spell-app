@@ -101,6 +101,26 @@ describe("ComponentPacks.register()", () => {
   })
 })
 
+describe("ComponentPacks.whileDefining()", () => {
+  it("waits for a pack still defining its tags (its families first);  none once it has, nor for another tag", async () => {
+    let finish!: () => void
+    const families = new Promise<void>((resolve) => (finish = resolve))
+    registerPack({
+      name: "slow",
+      prefix: "slow-",
+      catalog: { "slow-card": { folder: "slow-card" } },
+      define: () => families
+    })
+    const waiting = ComponentPacks.whileDefining("slow-card")
+    expect(waiting).toBeInstanceOf(Promise)
+    expect(ComponentPacks.whileDefining("slow-other")).toBeUndefined()
+    expect(ComponentPacks.whileDefining("ui-card")).toBeUndefined()
+    finish()
+    await waiting
+    expect(ComponentPacks.whileDefining("slow-card")).toBeUndefined()
+  })
+})
+
 describe("ComponentPacks.nameFor()", () => {
   it("names a pack by its file:  `epics.pack.js` => `epics`", () => {
     expect(ComponentPacks.nameFor("https://example.com/packages/epics/pack/epics.pack.js")).toBe("epics")

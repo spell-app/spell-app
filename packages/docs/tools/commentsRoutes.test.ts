@@ -44,7 +44,10 @@ const PAGES: Record<string, string> = {
   "pages/details/asks.html": PAGE.replace("<p>Body.</p>", '<div class="spell-question">Q1</div>'),
   "pages/details/plain.html": PAGE,
   "templates/durable.html": PAGE,
-  "goals/spell/index.html": PAGE
+  "goals/spell/index.html": PAGE,
+  // a component set (Epic UI), served at /epic-ui/ from its package folder
+  "packages/epic-components/elements/epic-item.html": PAGE,
+  "packages/epic-components/_parts/layout.html": PAGE
 }
 
 /** A comment on the second table of section `model`. */
@@ -246,6 +249,23 @@ test("a worktree's page through /worktrees/, an epic's own page, a details page 
   for (const page of ["/worktrees/w/guides/far.html", "/epics/big/notes.html", "/pages/details/plain.html"])
     expect((await post({ page, action: "add", ...ON_TABLE, text: "x" })).status).toBe(200)
   expect(inboxOf(".claude/worktrees/w/guides/far.html").comments.cm1.text).toBe("x")
+})
+
+test("a component set's page, at its short address:  its inbox beside it in the set's folder;  never its _parts", async () => {
+  const page = "/epic-ui/elements/epic-item.html"
+  const { status, answer } = await post({ page, action: "add", ...ON_TABLE, text: "Show a reply too?" })
+  expect(status).toBe(200)
+  expect(answer.id).toBe("cm1")
+  expect(inboxOf("packages/epic-components/elements/epic-item.html")).toMatchObject({
+    comments: { cm1: { text: "Show a reply too?", status: "new" } }
+  })
+  const read = JSON.parse((await ask(port, "GET", `/api/comments?page=${page}`)).text)
+  expect(read).toMatchObject({ takesComments: true, comments: [{ id: "cm1" }] })
+  const layout = JSON.parse((await ask(port, "GET", "/api/comments?page=/epic-ui/_parts/layout.html")).text)
+  expect(layout.takesComments).toBe(false)
+  expect((await post({ page: "/epic-ui/elements/missing.html", action: "add", ...ON_TABLE, text: "x" })).status).toBe(
+    404
+  )
 })
 
 test("a plan doc's comments go in the epic's REVIEW INBOX, beside its marks;  a quote rides along", async () => {

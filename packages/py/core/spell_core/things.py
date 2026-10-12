@@ -207,7 +207,11 @@ class SpellObject:
     """
 
     def __init__(self, **props: object) -> None:
-        """Set `props`, each as `thing.name = value` would, then run `create()`."""
+        """Set `props`, each as `thing.name = value` would, then run `create()`.
+
+        - Counted among the program's things, in the order made:  `core.things_made()`.
+        """
+        program_core().note_made(self)
         self._props: dict[str, object] = {}
         for name, value in props.items():
             setattr(self, name, value)

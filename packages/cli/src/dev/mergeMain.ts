@@ -163,7 +163,19 @@ export const GENERATORS: Generator[] = [
     cwd: "packages/brand",
     run: ["yarn", "site:data"]
   },
-  { name: "epics pack",               outputs: ["packages/epics/pack/**"],                              cwd: "packages/epics",  run: ["yarn", "pack:build"] }
+  { name: "epics pack",               outputs: ["packages/epics/pack/**"],                              cwd: "packages/epics",  run: ["yarn", "pack:build"] },
+  {
+    name: "Epic UI data",
+    outputs: ["packages/epic-components/_data/{components,search}.json"],
+    cwd: "packages/epics",
+    run: ["yarn", "site:data"]
+  },
+  {
+    name: "App UI data",
+    outputs: ["packages/app/components/_data/{components,search}.json"],
+    cwd: "packages/app",
+    run: ["yarn", "site:data"]
+  }
 ]
 
 /**

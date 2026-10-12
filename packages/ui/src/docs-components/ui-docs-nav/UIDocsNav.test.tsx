@@ -264,6 +264,37 @@ describe("<ui-docs-nav> lists", () => {
   })
 })
 
+describe("<ui-docs-nav> on another site", () => {
+  /** The test data as a component set's (Epic UI's):  its own links and band titles, no Foundation pages. */
+  const SET: SiteDataFile = {
+    ...DATA,
+    nav: {
+      start: [{ id: "index", file: "index.html", label: "The Epic Elements", icon: "house" }],
+      foundation: [],
+      titles: { components: "Elements" }
+    }
+  }
+
+  it("lists the site's own links and band titles from its data, and no empty Foundation band", async () => {
+    SiteData.url = serve(SET)
+    const nav = await render(`current="index"`)
+    expect(links(nav)).toEqual(["index", "ui-button", "ui-buttons", "ui-calendar", "ui-checkbox", "ui-input"])
+    expect(find(nav, '[data-nav-link="index"]').textContent).toBe("The Epic Elements")
+    expect(find(nav, '[data-nav-link="index"]').getAttribute("aria-current")).toBe("page")
+    expect([...nav.shadowRoot!.querySelectorAll(".group .band")].map((band) => band.textContent)).toEqual([
+      "Get started",
+      "Elements5"
+    ])
+  })
+
+  it("keeps stored favourites it doesn't list when one is starred:  the sites share the key", async () => {
+    localStorage.setItem(STORAGE_KEYS.favorites, JSON.stringify(["ui-elsewhere"]))
+    const nav = await render()
+    await click(nav, '[data-nav-star="ui-input"]')
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.favorites)!)).toEqual(["ui-input", "ui-elsewhere"])
+  })
+})
+
 describe("<ui-docs-nav> topics", () => {
   it("starts on Topics when neither the page nor the viewer chose a view", async () => {
     localStorage.removeItem(STORAGE_KEYS.view)

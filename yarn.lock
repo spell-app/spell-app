@@ -1675,6 +1675,7 @@ __metadata:
     "@types/node": "npm:^22.20.4"
     linkedom: "npm:^0.18.13"
     solid-js: "npm:2.0.0-rc.13"
+    tsx: "npm:4.20.3"
     typescript: "npm:^7.0.2"
     vite: "catalog:"
     vite-plus: "catalog:"

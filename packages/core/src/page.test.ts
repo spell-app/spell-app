@@ -12,6 +12,16 @@ describe("frameSummary()", () => {
     expect(frameSummary({ call: "turn_over", on: { "@id": "3" }, args: [] })).toBe("call turn_over() on #3")
     expect(frameSummary({ trigger: "card-click", details: { card: { "@id": "26" } } })).toBe("event card-click (#26)")
     expect(frameSummary({ trigger: "reset", details: {} })).toBe("event reset")
+    // by reference (P27):  its target, and a thing under another name in its details
+    expect(frameSummary({ trigger: "card-click", target: "Card#ace-of-hearts", details: {} })).toBe(
+      "event card-click (Card#ace-of-hearts)"
+    )
+    expect(frameSummary({ trigger: "card-move", target: "Card#3", details: { from: "Tableau#T1", count: 1 } })).toBe(
+      "event card-move (Card#3, Tableau#T1)"
+    )
+    expect(frameSummary({ call: "turn_over", on: "Card#queen-of-spades", args: [] })).toBe(
+      "call turn_over() on Card#queen-of-spades"
+    )
   })
 
   test("the program's:  its state, by name;  a patch, each thing by type and id", () => {

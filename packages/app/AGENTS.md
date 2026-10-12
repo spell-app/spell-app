@@ -68,6 +68,8 @@ when working with code in this package, `@spell-app/app`.
       - their pack, `spell.pack.js`
     - `yarn build:page`:  `dist-page/`, the page side of a Python spell app (epic `python-target` P20)
       - `spell-page.js` ([spellPage.ts](src/runner/spellPage.ts)):  the page's `@spell/core`
+        - It exports what `spell-runtime.js` does, `css` included:
+          [spellPage.test.ts](src/runner/spellPage.test.ts) fails on one it leaves out.
       - It sets the page up itself.
       - py's `spell_quart` serves it ([py's AGENTS.md](../py/AGENTS.md)).
   - ONE Solid per page, across those bundles.
@@ -210,6 +212,27 @@ when working with code in this package, `@spell-app/app`.
     - Never a second copy (T3).
   - Leaving the page releases each (`domElement.dispose()`) a microtask later.
     A move in one go keeps it.
+- `components/` is also App UI (epic `epic-workflow` P11):  the docs pages of the app's components, served at `/app-ui/`.
+  - A page per documented component, `<Name>.html`, beside the two web components' folders;
+    its home `index.html`;  `_parts/` (the layout and footer), `_data/`, `_images/`.
+  - Spell UI's page shape, on Spell UI's site bundle:  the page server lays its `_assets/` over the folder
+    (`COMPONENT_SETS`, [the page server's types](../server/src/page/page.types.ts)).
+  - What it documents, and in which group:  [the hand-kept facts](components/_data/pages.json).
+  - Each page's props, attributes and "Used in" tables come from the code:  `yarn site:data`.
+    - [The data builder](tools/AppUIDataBuilder.ts) reads each listed file's exported components with a banner
+      (`### `<Name>``) and their props types ([ComponentSource](tools/ComponentSource.ts)), and every JSX use in the app.
+    - The web components and the drawable thing's element:  their vocabularies, by Spell UI's own builder.
+    - Writes `_data/components.json` and `search.json`, COMMITTED;  [its test](tools/AppUIDataBuilder.test.ts) fails
+      while they're stale, while a listed page is missing, unlinked from the home, or its component's banner
+      doesn't point at it.
+    - So rerun it after changing a documented component's banner, props or uses.
+  - Pictures, for what needs the whole editor around it:  `yarn site:pictures [name...]`,
+    headless screenshots of this checkout's running editor, into `_images/` ([its script](scripts/site-pictures.ts)).
+    - Opening the editor compiles its project, which may rewrite a `*.compiled.js`:  check `git status` after.
+  - Live examples (the web components, the runner's pieces) need `yarn build:element`:
+    the layout loads `/element/spell.pack.js`.
+  - A new page:  its entry in `pages.json`, `yarn site:data`, then a copy of a page like it
+    (`Notice.html` for a picture, `spell-app.html` for a live one), linked from `index.html`.
 - `src/spellEditor/` is `<spell-editor>`'s pane:  the app's Monaco editor, as a web component.
   - `yarn build:element` => `spell-editor.js`
   - its demo:  `/demo/spell-editor.html`

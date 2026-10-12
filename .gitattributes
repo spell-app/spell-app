@@ -23,6 +23,12 @@ packages/ui/site/_data/icons.json                             linguist-generated
 packages/ui/site/_data/custom-elements.json                   linguist-generated merge=binary
 packages/ui/site/_data/html-custom-data.json                  linguist-generated merge=binary
 
+# the component sets' data (`yarn site:data` in packages/epics and packages/app);  `pages.json` is hand-kept
+packages/epic-components/_data/components.json                linguist-generated merge=binary
+packages/epic-components/_data/search.json                    linguist-generated merge=binary
+packages/app/components/_data/components.json                 linguist-generated merge=binary
+packages/app/components/_data/search.json                     linguist-generated merge=binary
+
 # docs:  the single-file bundle for docs pages (`node tools/bundle-spell-ui.js`)
 packages/docs/tools/_assets/spell-ui.js                       linguist-generated merge=binary -diff
 packages/docs/tools/_assets/emoji/**                          linguist-generated merge=binary -diff
