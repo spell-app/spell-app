@@ -1622,6 +1622,7 @@ __metadata:
     vscode-languageserver: "npm:^10.1.2"
     wrap-ansi: "npm:^9"
   bin:
+    epic: bin/epic.mjs
     spell: bin/spell.mjs
   languageName: unknown
   linkType: soft

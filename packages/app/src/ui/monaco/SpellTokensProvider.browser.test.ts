@@ -23,8 +23,8 @@ describe("SpellTokensProvider", () => {
     })
   }
 
-  // Monaco's CSS colouring loads lazily
-  beforeAll(() => monaco.editor.colorize("", "css", {}))
+  // Monaco's CSS and markdown colouring load lazily
+  beforeAll(() => Promise.all([monaco.editor.colorize("", "css", {}), monaco.editor.colorize("", "markdown", {})]))
 
   test("spell lines colour by their tokens", () => {
     expect(colour(['set x to "hi" // greet'])).toEqual([
@@ -37,6 +37,21 @@ describe("SpellTokensProvider", () => {
     expect(open).toEqual(['"<" delimiter', '"css" tag', '">" delimiter'])
     expect(css!.slice(0, 3)).toEqual(['".red" tag.css', '"{" delimiter.bracket.css', '"color:" attribute.name.css'])
     expect(close).toEqual(['"</" delimiter', '"css" tag', '">" delimiter'])
+    expect(after).toContain('"3" number')
+  })
+
+  test("a <markdown> block colours as markdown, indented in a drawing, and spell picks up after it", () => {
+    const [open, heading, bold, close, after] = colour([
+      "\t\t<markdown>",
+      "\t\t\t## Klondike",
+      "\t\t\tBuild each pile **down**",
+      "\t\t</markdown>",
+      "set x to 3"
+    ])
+    expect(open).toEqual(['"<" delimiter', '"markdown" tag', '">" delimiter'])
+    expect(heading).toEqual(['"## Klondike" keyword.md'])
+    expect(bold).toContain('"**down**" strong.md')
+    expect(close).toEqual(['"</" delimiter', '"markdown" tag', '">" delimiter'])
     expect(after).toContain('"3" number')
   })
 })

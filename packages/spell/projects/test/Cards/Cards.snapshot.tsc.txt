@@ -1,2 +1,0 @@
-261:12 TS2532 Object is possibly 'undefined'.
-266:12 TS2532 Object is possibly 'undefined'.

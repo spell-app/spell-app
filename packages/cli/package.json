@@ -4,8 +4,8 @@
   "description": "`spell` command line:  compile, check, describe, explore, watch, run and test spell projects",
   "license": "MIT",
   "bin": {
-    "spell": "bin/spell.mjs",
-    "epic": "bin/epic.mjs"
+    "epic": "bin/epic.mjs",
+    "spell": "bin/spell.mjs"
   },
   "type": "module",
   "scripts": {

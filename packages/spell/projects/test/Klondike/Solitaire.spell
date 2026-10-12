@@ -2,7 +2,10 @@
 -- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for rules & naming conventions.
 
 ## Game bits
-a game is an app
+a game is an app:
+	<markdown>
+		A game of **Klondike**:  its piles, and its score.
+	</markdown>
 a game has a score as a number
 set the game to a new game
 print the game
@@ -253,6 +256,13 @@ to draw a game
 					</tr>
 				</tbody>
 			</table>
+		</div>
+		<div className="rules">
+			<markdown>
+				## How to play
+				Build each tableau **down**, alternating colours, and each foundation *up* from its ace.
+				Score:  **{the score of the game}**
+			</markdown>
 		</div>
 	</div>
 	

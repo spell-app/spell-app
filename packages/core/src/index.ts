@@ -6,7 +6,8 @@
  *   each sibling module here does `Object.assign(spellCore, <module>Methods)`
  *   as a top-level side effect when its file first loads -- see `defineSpellCoreModule()` in `spellCore.types.ts`.
  *   - The modules:  `collection-core`, `collection-other`, `deprecated`, `paths`, `string`, `tests`,
- *     `console`, `runtime`, `things`, `json`, `ui`, `drawing`, `elements`, plus `core` itself.
+ *     `console`, `runtime`, `things`, `json`, `carry`, `ui`, `drawing`, `elements`, `references`,
+ *     plus `core` itself.
  * - NOTE: most of those modules are imported here ONLY for that side effect (bare `import "./x"`, no named import):
  *   importing this barrel (or anything that transitively imports `$/core`) is what triggers the assembly.
  * - `SpellCore` (the assembled TYPE) is exported separately as a `type`-only export, so it costs nothing at runtime.
@@ -29,9 +30,11 @@ import "./console"
 import { on, off, once, trigger } from "./runtime"
 import "./things"
 import "./json"
+import "./carry"
 import "./ui"
 import "./drawing"
 import "./elements"
+import "./references"
 
 export { spellCore, assert, SpellEvent, Eventful }
 // Events, imported by name:  `trigger("card-click", { card: this })`.
@@ -48,7 +51,8 @@ export { itemOf } from "./deprecated"
 // `$/util`'s shared reactive ones, spell's `@thing`, and `@drawn` (`drawing.ts`).  Compiled JavaScript has none.
 export { prop, state, derived, thing } from "$/util"
 export { drawn } from "./drawing"
-export { elementTagFor, type ElementDefiner, type ElementApi } from "./elements"
+// The tag a drawable type's `<css>` block compiles to:  its style sheet, as text (epic `drawable-thing` P10).
+export { elementTagFor, css, type ElementDefiner, type ElementApi } from "./elements"
 // A program's state as JSON by id, for a page that mirrors it (epic `python-target` P17):  see `state.ts`.
 export { StateWriter, StateMirror, ID_KEY } from "./state"
 // A page drawing a program that runs elsewhere, e.g. in Python (P19):  see `page.ts`.
@@ -69,5 +73,11 @@ export {
 // - e.g. `import { spellCore, Thing, h } from "@spell/core"`, then `h("span", { class: "suit" }, () => this.shortSuit)`
 // - see `drawing.ts`
 export { h } from "./drawing"
-export { SPELL_CORE_MODULE, SPELL_CORE_NAMES, type SpellCore, type PropCheck } from "./spellCore.types"
+export {
+  SPELL_CORE_MODULE,
+  SPELL_ELEMENTS_MODULE,
+  SPELL_CORE_NAMES,
+  type SpellCore,
+  type PropCheck
+} from "./spellCore.types"
 export * from "./classes"

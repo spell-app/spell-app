@@ -7,6 +7,7 @@
     "Drawable",
     "DrawableList",
     "h",
+    "css",
     "positionOf",
     "on",
     "off",
@@ -1199,7 +1200,7 @@
         }
       ],
       "section": "Talking to the person",
-      "description": "Ask for some text in a dialog:  what was typed, or `undefined` if cancelled -- compiled from `prompt \"Name?\" with \"Untitled\"` (`await`ed), `value` its starting text."
+      "description": "Ask for some text in a dialog:  what was typed, or `undefined` if cancelled."
     },
     {
       "kind": "method",
@@ -1295,6 +1296,33 @@
     },
     {
       "kind": "method",
+      "name": "useElement",
+      "of": "spellCore",
+      "module": "elements",
+      "params": [
+        {
+          "name": "Class"
+        },
+        {
+          "name": "ElementClass"
+        }
+      ],
+      "description": "Hand the page `ElementClass`, the element class compiled TypeScript writes for drawable class `Class` (epic `drawable-thing` P10, J41): `spellCore.useElement(Card, CardElement)`, right after `class CardElement extends SpellElement<Card>`."
+    },
+    {
+      "kind": "method",
+      "name": "elementClassOf",
+      "of": "spellCore",
+      "module": "elements",
+      "params": [
+        {
+          "name": "Class"
+        }
+      ],
+      "description": "The element class handed for drawable class `Class` (`useElement()`) -- `undefined` if none was."
+    },
+    {
+      "kind": "method",
       "name": "elementFor",
       "of": "spellCore",
       "module": "elements",
@@ -1303,7 +1331,7 @@
           "name": "drawable"
         }
       ],
-      "description": "Tag of `drawable`'s element, defined on the page -- `undefined` if its class has none, or the page can't define one (no `elementDefiner`):  then it draws as any thing does."
+      "description": "Tag of `drawable`'s element, defined on the page."
     },
     {
       "kind": "method",
@@ -1327,10 +1355,10 @@
           "name": "Class"
         },
         {
-          "name": "name"
+          "name": "id"
         }
       ],
-      "description": "The program's thing of class `Class` named `name`, e.g. the tableau named `T1` -- for a tag in a page's layout, `<solitaire-tableau id=\"T1\">` (epic `drawable-thing` P9, Q9)."
+      "description": "The program's thing of class `Class` that a tag's `id` names, e.g. the tableau named `T1` for `<solitaire-tableau id=\"T1\">` (epic `drawable-thing` P9, J43)."
     },
     {
       "kind": "method",
@@ -1343,6 +1371,87 @@
         }
       ],
       "description": "Tag of `drawable`'s element, e.g. `solitaire-card` -- `undefined` if its class has none."
+    },
+    {
+      "kind": "method",
+      "name": "thingForReference",
+      "of": "spellCore",
+      "module": "references",
+      "params": [
+        {
+          "name": "reference"
+        }
+      ],
+      "description": "The program's thing `reference` names, e.g. the tableau named T1 for `Tableau#T1` -- `undefined` if none."
+    },
+    {
+      "kind": "method",
+      "name": "thingCalled",
+      "of": "spellCore",
+      "module": "references",
+      "params": [
+        {
+          "name": "Class"
+        },
+        {
+          "name": "text"
+        }
+      ],
+      "description": "The program's thing of class `Class` that `text` names, as the part of a reference after its `#` -- `undefined` if none:"
+    },
+    {
+      "kind": "method",
+      "name": "thingNamed",
+      "of": "spellCore",
+      "module": "references",
+      "params": [
+        {
+          "name": "Class"
+        },
+        {
+          "name": "name"
+        }
+      ],
+      "description": "The program's thing of class `Class`, or of a sub-class, named `name` -- `undefined` if none."
+    },
+    {
+      "kind": "method",
+      "name": "thingAtPlace",
+      "of": "spellCore",
+      "module": "references",
+      "params": [
+        {
+          "name": "Class"
+        },
+        {
+          "name": "place"
+        }
+      ],
+      "description": "The program's thing of class `Class` at place `place`, in the order it made them, counting from 1 -- `undefined` if there's none there."
+    },
+    {
+      "kind": "method",
+      "name": "referenceFor",
+      "of": "spellCore",
+      "module": "references",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ],
+      "description": "The reference that finds `thing` again, e.g. `Tableau#T1` -- `undefined` if no reference does."
+    },
+    {
+      "kind": "method",
+      "name": "elementIdFor",
+      "of": "spellCore",
+      "module": "references",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ],
+      "description": "The `id` an element the program draws for `thing` takes:  its name, e.g. `queen-of-spades` (J43) -- `undefined` for a thing with no name."
     },
     {
       "kind": "method",
@@ -1697,6 +1806,42 @@
       "description": "`json` read back as what it was:  each object with a `\"@type\"` rebuilt as the program's class of that name, each of its props rebuilt the same way, and so on down."
     },
     {
+      "property": "isCarryingOver",
+      "of": "spellCore",
+      "module": "carry",
+      "description": "Is a recompiled program loading, to take over the last run's things?"
+    },
+    {
+      "kind": "method",
+      "name": "carryOver",
+      "of": "spellCore",
+      "module": "carry",
+      "params": [
+        {
+          "name": "previous"
+        },
+        {
+          "name": "exports"
+        }
+      ],
+      "description": "Put the last run's things in place of the new run's -- see the file's header."
+    },
+    {
+      "kind": "method",
+      "name": "carryProblems",
+      "of": "spellCore",
+      "module": "carry",
+      "params": [
+        {
+          "name": "previous"
+        },
+        {
+          "name": "exports"
+        }
+      ],
+      "description": "Why each of the last run's things that `carryOver()` would start afresh can't come over -- `[]` if they all can."
+    },
+    {
       "property": "BASE_TYPES",
       "of": "spellCore",
       "module": "classes",
@@ -1772,6 +1917,20 @@
         }
       ],
       "description": "Solid's own `h()`, what compiled JavaScript draws with:  `import { h } from \"@spell/core\"`."
+    },
+    {
+      "kind": "function",
+      "name": "css",
+      "module": "elements",
+      "params": [
+        {
+          "name": "strings"
+        },
+        {
+          "name": "...values"
+        }
+      ],
+      "description": "A drawable type's style sheet, as TEXT:  what its `<css>` block compiles to (epic `drawable-thing`, P10, J14)."
     },
     {
       "kind": "function",

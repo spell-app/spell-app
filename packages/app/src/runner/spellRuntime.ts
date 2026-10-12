@@ -13,6 +13,9 @@
  *   - `spellCore`, `Thing`, `List`, `App`, `Drawable`, `DrawableList`
  *   - Solid's `h()`, which it draws with
  *   - the helpers it calls by name:  `on()`, `trigger()`, `positionOf()` ...
+ *   - the `css` tag a drawable type's style sheet is written with
+ * - It's a program's `@spell/elements` too, for compiled TypeScript's element classes (epic `drawable-thing` P10):
+ *   `SpellElement`, and Spell UI's `E` as they use it -- see `spellElements.ts`.
  * - Programs draw with Solid, on the page's Spell UI:  `<ui-form>`, `<ui-button>` ... by their own tags.
  * - A drawable thing draws as its own Spell UI element, e.g. `<solitaire-card>`:  see `SpellElement`.
  * - MUST be the only module in a bundle that imports `spellCore`'s code,
@@ -26,6 +29,7 @@ import {
   Drawable,
   DrawableList,
   h,
+  css,
   on,
   off,
   once,
@@ -38,9 +42,18 @@ import {
 } from "$/core"
 import { runCompiled, appIsMounted, unmountApp, type RunCompiledOptions } from "./runCompiled"
 import { installSpellElements } from "./SpellElement"
+import { E as UIElements, SpellElement } from "./spellElements"
 
 // a drawable thing's element, e.g. `<solitaire-card>`:  Spell UI's, which core can't make itself
 installSpellElements(spellCore)
+
+/**
+ * Spell UI's `E`, as compiled TypeScript's element classes use it as they run:  its two decorators,
+ * `@E.proto static vocabulary = ...`, `@E.protoMerged static elementSetup = ...` (epic `drawable-thing` P10).
+ * - Not the whole of `E`:  re-exporting Spell UI's namespace puts copies of its files in this bundle (`build.test.ts`).
+ * - Its types are the whole `E`'s, for the type check:  see `spellElements.ts`.
+ */
+const E = { proto: UIElements.proto, protoMerged: UIElements.protoMerged }
 
 // What compiled spell imports, e.g. `import { spellCore, Thing, List, App, h } from "@spell/core"`.
 // - `Drawable`, `DrawableList`:  what a drawable type extends (epic `drawable-thing`).
@@ -48,6 +61,9 @@ installSpellElements(spellCore)
 // - `h`:  what compiled spell draws with (P20), Solid's own.
 //   The PAGE's one copy, taken through `spell-solid-shared.js` as core's drawing takes it,
 //   never one of its own (`element.build.test.ts`).
+// - `css`:  the tag a drawable type's `<css>` block compiles to (epic `drawable-thing` P10).
+// - `E`, `SpellElement`:  what compiled TypeScript's element classes build on, imported as `@spell/elements` (P10).
+//   Spell UI's core comes from `spell-solid-shared.js`, as `SpellElement`'s does:  never a copy of its own.
 export {
   spellCore,
   Thing,
@@ -56,6 +72,7 @@ export {
   Drawable,
   DrawableList,
   h,
+  css,
   on,
   off,
   once,
@@ -66,11 +83,14 @@ export {
   endPosition,
   withSpellPositions,
   appIsMounted,
-  unmountApp
+  unmountApp,
+  E,
+  SpellElement
 }
 
 /**
- * Run `compiled` spell javascript afresh in this copy, drawing any app into `appRoot` -- see `runCompiled()`.
+ * Run `compiled` spell javascript in this copy, drawing any app into `appRoot` -- see `runCompiled()`.
+ * - Afresh, unless `keepThings`:  then the last run's things carry over, e.g. the game in progress.
  * - No `appRoot`:  wherever it last drew -- else `#spell-app-root`, see `spellCore.appElement()`.
  * - `coreUrl` MUST be this copy's own URL, so the program's `@spell/core` is this `spellCore`.
  * - Answers the error message if it threw, else `undefined`.

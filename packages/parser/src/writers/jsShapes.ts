@@ -125,6 +125,9 @@ export const EVENTS = new Set(["on", "off", "once", "trigger"])
 /** `spellCore` helpers worth importing by name, e.g. `positionOf(Card.Ranks, this.rank)`. */
 export const IMPORTED_HELPERS = new Set(["positionOf"])
 
+/** `@spell/core`'s template tags, imported by name, e.g. `css` for a drawable type's style sheet. */
+export const TEMPLATE_TAGS = new Set(["css"])
+
 ////////////////
 // ## Drawing
 ////////////////

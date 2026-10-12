@@ -201,7 +201,7 @@ export function testCardSetup() {
     spellCore.expect(card.isFaceUp, `the card is face up`, true, `true`)
   })
 }
-testCardSetup()
+if (!spellCore.isCarryingOver) testCardSetup()
 // -----------
 spellCore.heading("Deck:   US standard card deck (without jokers currently)")
 //## Deck:   US standard card deck (without jokers currently)
@@ -249,7 +249,7 @@ export function testDeckCreation() {
     spellCore.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs")!, `the first card of the deck is the ace of clubs`, true, `yes`)
   })
 }
-testDeckCreation()
+if (!spellCore.isCarryingOver) testDeckCreation()
 // -----------
 spellCore.heading("Pile of playing cards")
 /** Pile of playing cards */
@@ -258,12 +258,12 @@ export class Pile extends List<Card> {
 
   get color() {
     if (this.isEmpty) return "none"
-    return this.lastItem.color
+    return this.lastItem!.color
   }
 
   get value() {
     if (this.isEmpty) return 0
-    return this.lastItem.value
+    return this.lastItem!.value
   }
 
   @derived

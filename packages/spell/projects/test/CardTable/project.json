@@ -1,0 +1,8 @@
+{
+  "imports": [
+    {
+      "path": "/CardTable.spell",
+      "active": true
+    }
+  ]
+}

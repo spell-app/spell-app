@@ -461,6 +461,27 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 - Runtime:  `core`'s `List` keeps the owners.
   See [core's AGENTS.md](../core/AGENTS.md), "Membership and guards".
 
+## One thing by name or place:  `tableau T1`, `the first tableau`
+
+- Two expression rules name ONE of the program's things (epic `drawable-thing` P19), in [classes/](src/rules/classes/):
+  - [`named_thing`](src/rules/classes/NamedThing.ts):  `tableau T1`, `foundation "clubs"`
+    => `spellCore.thingNamed(Tableau, "T1")`
+    - the name:  one word starting with a capital (`thing_name`), or text in quotes
+    - a sub-type's thing too:  `pile T1` finds a tableau
+  - [`thing_at_place`](src/rules/classes/ThingAtPlace.ts):  `the first tableau`, `the last tableau`
+    => `spellCore.thingAtPlace(Tableau, 1)`, in the order the program made them
+  - Both are core's thing references, `Tableau#T1` and `Tableau#1`:  core's `references.ts`.
+  - The writers read off either with `?.`:  the program may not have made it (`ProgramWriter.ITEM_READS`).
+- `named_thing` has its own quick `test()`:  a name within `SpellType.MAX_NAME_WORDS` of its start.
+  - Without it, `{type}` is a subrule, so the plain test would pass any line with text in quotes on it.
+- It warns when two things are given the name it reads, in so many words:
+  `set a to a new tableau with name = "T1"` twice.
+  - `assignment` and `get` count each such name, in `mutateScope()`:  `NewThing.noteNameGiven()`.
+    - Kept per type and each super-type the project declares, journaled.
+    - A name worked out as the program runs, `"T" + the number`, isn't counted.
+  - The warning is noted with `SpellWarnings.noteIf()`:  asked again once the whole project has parsed,
+    so a reference written above the things it names warns too.
+
 ## Guards:  `a tableau can take a card if: ...`
 
 - [`list_guard`](src/rules/classes/ListGuard.ts):
@@ -807,6 +828,8 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
     - numbered from the visible `it`'s `output`, skipping names in use
     - so callbacks keep the `it` they captured
   - each new variable holds its value's `datatype`:  see "Datatypes"
+  - both also count a name a new thing is given in so many words, `set t1 to a new tableau with name = "T1"`:
+    see "One thing by name or place"
   - types:
     - [`create_type`](src/rules/classes/CreateType.ts)
     - [`create_list_type`](src/rules/classes/CreateListType.ts), which sets `itemType` too
@@ -1160,6 +1183,14 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - Why:  as the program runs, the Thing Explorer knows which heading's code made each thing.
   - NOT in a plain block, e.g. a rule test's.
   - NOT for a heading with no text, e.g. `##########`.
+- A line of the program's START, at a FILE's top level, runs only when the program starts afresh:
+  `if (!spellCore.isCarryingOver) game.start()` (epic `drawable-thing` P17).
+  - Its lines:  calling one of its tests, `test card setup`, and starting its app, `start the game`.
+    Each rule says so:  `SpellStatement.startsTheProgram()`.
+  - It's a `P.ASTProgramStart`, an `if`:  [`Block`](src/rules/Block.ts) wraps the line's code.
+  - Why:  when an edit keeps the last run's things, the runner loads the program with its start skipped,
+    so its tests don't print again, and the game in progress isn't started again.
+  - NOT in a method, nor in a plain block, e.g. a rule test's.
 - Classes compile as a hand-written class would:  each MEMBER in its class's body, wherever it was declared.
   - A member is a `P.ASTClassMember`.
     It knows its class (`typeName`), and compiles two ways:
@@ -1253,6 +1284,20 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - spell's own colouring skips the block
   - editors colour it as CSS themselves:
     VS Code through the grammar's embedded CSS, the app's Monaco through its own (`SpellTokensProvider`)
+- A `<markdown>` block is markdown, not spell:  read as raw text too (`rawTextTags`), its common indent taken off.
+  - in a drawing:  [`markdown_block`](src/rules/JSX/MarkdownBlock.ts)
+    - drawn by Spell UI's `<ui-markdown>`, the markdown as its text
+    - a `{hole}` is a spell expression, live
+    - code in the markdown keeps its braces, and `\{` is a brace
+    - a hole that doesn't read is a parse error, reported as JSX's are (`SpellJSX.parseErrorsIn()`)
+  - in a type's outline:  [`markdown_description`](src/rules/classes/MarkdownDescription.ts), the type's description
+    - compiled to the class's `static description`
+    - hover and the Type Explorer show it when the type has no comment docstring (`SpellLanguageService.docsOf()`)
+  - in a `<spell-app>` layout:  the app's `LayoutSpell`
+    - it splits holes as `markdown_block` does
+  - no diagnostics inside
+  - editors colour it as markdown themselves:
+    VS Code through the grammar's embedded markdown, the app's Monaco through its own (`SpellTokensProvider`)
 - Formatting is `P.TokenFormatter` ([the tokenizer folder](../parser/src/tokenizer/)):
   whitespace only, from the tokens, indenting with TABS always.
   - No pretty-printer:  the AST is a javascript tree.

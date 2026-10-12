@@ -189,7 +189,7 @@ export function testCardSetup() {
     spellCore.expect(card.isFaceUp, `the card is face up`, true, `true`)
   })
 }
-testCardSetup()
+if (!spellCore.isCarryingOver) testCardSetup()
 // -----------
 spellCore.heading("Deck:   US standard card deck (without jokers currently)")
 //## Deck:   US standard card deck (without jokers currently)
@@ -239,7 +239,7 @@ export function testDeckCreation() {
     spellCore.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs"), `the first card of the deck is the ace of clubs`, true, `yes`)
   })
 }
-testDeckCreation()
+if (!spellCore.isCarryingOver) testDeckCreation()
 
 spellCore.heading("this project's lists start at 0 (project.json):  numbers count from 0, ordinal words don't change")
 /** this project's lists start at 0 (project.json):  numbers count from 0, ordinal words don't change */
@@ -276,7 +276,7 @@ export function testCountingFromZero() {
     spellCore.expect(deck.firstItem?.name, `the name of the first card of the deck`, "ace-of-diamonds", `"ace-of-diamonds"`)
   })
 }
-testCountingFromZero()
+if (!spellCore.isCarryingOver) testCountingFromZero()
 // -----------
 spellCore.heading("Pile of playing cards")
 /** Pile of playing cards */
