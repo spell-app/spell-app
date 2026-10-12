@@ -71,7 +71,7 @@ describe("outline style", () => {
     }
   })
 
-  test("`it is saved inline` and `its \"dates\" is a list of ...` compile as their sentences do", () => {
+  test('`it is saved inline` and `its "dates" is a list of ...` compile as their sentences do', () => {
     const sentences = [
       "a person is a thing",
       "a dated-event is a thing",
@@ -81,7 +81,7 @@ describe("outline style", () => {
     ]
     const outline = [
       "a person is a thing where:",
-      "\t- its \"dates\" is a list of dated-events",
+      '\t- its "dates" is a list of dated-events',
       "a dated-event is a thing where:",
       "\t- it has a label as text",
       "\t- it is saved inline"

@@ -165,6 +165,14 @@ def test_equality_is_identity() -> None:
     assert core.equals(one, other)
 
 
+def test_equals_leaves_out_a_things_id() -> None:
+    one, other = ThingCard(rank="ace"), ThingCard(rank="ace")
+    assert one.id != other.id
+    assert core.equals(one, other)
+    assert core.equals(ThingCard(id="a", rank="ace"), ThingCard(id="b", rank="ace"))
+    assert not core.equals(ThingCard(id="a", rank="ace"), ThingCard(id="a", rank="king"))
+
+
 def test_an_undeclared_name_reads_as_none_but_a_private_one_raises() -> None:
     card = ThingCard()
     assert card.colour is None

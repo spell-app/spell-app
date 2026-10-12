@@ -87,11 +87,12 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `game.thing(id)`, `game.named("stock")`:  what the page holds now, by id.
   - After each, the patches so far must add up to the whole state, else `PatchMismatchError`.
   - The contract's 300 clicks per game play through it ([patches_in_a_game.py](core/tests/patches_in_a_game.py)).
-- Four checks keep it in step with the javascript core ([core's AGENTS.md](../core/AGENTS.md)):
+- Five checks keep it in step with the javascript core ([core's AGENTS.md](../core/AGENTS.md)):
   - the core's method list ([spellCore.declarations.json](../core/spellCore.declarations.json)):
     `spell_core` has each name, or lists it, with why, in [not_ported_yet.json](core/not_ported_yet.json)
   - seeded random:  both read [seededRandom.expected.json](../core/seededRandom.expected.json)
   - state by id:  both write and read [stateById.expected.json](../core/stateById.expected.json)
+  - saved by id:  both write and read [savedById.expected.json](../core/savedById.expected.json)
   - the core contract (cli's [contract.test.ts](../cli/src/contract.test.ts)):
     a compiled program prints exactly what javascript prints
 - The terminal-drawing study (P15) is in `core/experiments/terminal`.

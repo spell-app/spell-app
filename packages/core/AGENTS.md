@@ -140,6 +140,14 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `StateMirror.read()` reads each state INTO the things it read before, by id:  the same objects, changed.
   - `fromJSON()` reads through a new mirror, so JSON with ids keeps each thing as one.
   - Python's twin is `spell_core.state`:  both write [stateById.expected.json](stateById.expected.json), and read it.
+- SAVING things by id ([saving.ts](src/saving.ts), epic `people-and-orgs` P2):  what lasts, as opposed to a page's state.
+  - `new Saver().save(thing)`:  every thing it reaches, each an entry of its own by key, `"Person/owen"`.
+    - What holds a thing writes a reference to it, `{ "@ref": "Person/matt" }`:  a card in two piles is one card.
+    - A kind saved inline (`static savedInline = true`, from `a dated-event is saved inline`) is written whole instead.
+    - A property's plain list is its items, a JSON array.
+  - `new Loader({ entryFor }).load(key)`:  each entry made once, however many references name it.
+  - The keys are `refOf`'s:  the people store names entries by address.
+  - Python's twin is `spell_core.saving`:  both write [savedById.expected.json](savedById.expected.json), and read it.
 - A PAGE drawing a program that runs elsewhere, e.g. in Python ([page.ts](src/page.ts), P19):
   - `startPage()`:
     - mirrors the program's state
@@ -153,10 +161,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 ## The Python core
 
 - Its Python twin, `spell_core`, is in `@spell-app/py` ([py's AGENTS.md](../py/AGENTS.md), epic `python-target` P21).
-  - The three files both cores read stay here:
+  - The four files both cores read stay here:
     - [spellCore.declarations.json](spellCore.declarations.json)
     - [seededRandom.expected.json](seededRandom.expected.json)
     - [stateById.expected.json](stateById.expected.json)
+    - [savedById.expected.json](savedById.expected.json)
 
 ## Decorators
 
