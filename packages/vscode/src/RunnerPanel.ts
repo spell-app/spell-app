@@ -21,8 +21,8 @@ import type { LanguageClient } from "vscode-languageclient/node"
  * - `<Project>.compiled.js` changing on disk runs it too, unless it has parse errors -- see `compiledChanged()`.
  * - A failed compile sends nothing, so the last good app keeps running.
  * - Runs the same javascript only ONCE, unless asked to -- a compile both notifies AND rewrites the file.
- * - Remembers how the runner shows the project -- console, tab, Type Explorer -- in the project's
- *   `settings.json5`, and sends it back on `ready`.  See `readSettings()`.
+ * - Remembers how the runner shows the project (console, tab, Type Explorer)
+ *   in the project's `settings.json5`, and sends it back on `ready`.  See `readSettings()`.
  ****************/
 export class RunnerPanel {
   /** Open panels, by project id. */
@@ -157,8 +157,8 @@ export class RunnerPanel {
   /**
    * Our `<Project>.compiled.js` at `uri` changed on disk:  run it, unless it has parse errors.
    * - Catches compiles from anywhere, e.g. the web app.  Our own compiles rewrite it too -- `run()` skips those.
-   * - NOTE: spots parse errors by the `PARSE ERROR` comment they compile to -- whoever compiled it,
-   *   that's all the file can tell us.
+   * - NOTE: spots parse errors by the `PARSE ERROR` comment they compile to.
+   *   Whoever compiled it, that's all the file can tell us.
    */
   async compiledChanged(uri: vscode.Uri): Promise<void> {
     const compiled = new TextDecoder().decode(await vscode.workspace.fs.readFile(uri))
@@ -167,7 +167,8 @@ export class RunnerPanel {
   }
 
   /**
-   * Run `compiled`, the project's javascript, afresh in the webview -- then send its Type Explorer the scopes.
+   * Run `compiled`, the project's javascript, in the webview -- then send its Type Explorer the scopes.
+   * - The webview keeps the program's things across runs, e.g. the game in progress:  only its Restart starts afresh.
    * - Skipped if it's what we last ran, unless `force`.
    */
   run(compiled: string, force = false): void {
@@ -287,8 +288,8 @@ export class RunnerPanel {
    *   `index.html`).  Its packs load from `runner`'s `icon-packs/`, beside `@spell-app/ui`'s chunks.
    * - CSP allows, all from `runner` (inside `localResourceRoots`):
    *   - `blob:` scripts:  how the runner imports its copy of the spell runtime and the project's javascript
-   *   - scripts:  the bundle's lazy chunks -- `@spell-app/ui`'s families and runtime, emoji data, each icon pack's
-   *     `pack.js`
+   *   - scripts:  the bundle's lazy chunks
+   *     - `@spell-app/ui`'s families and runtime, emoji data, each icon pack's `pack.js`
    *   - fetching:  the runtime's source, for its copy, and the icons' SVG files
    *   - inline styles:  `spellCore.installStyles()` adds them, and `<ui-*>` elements set inline styles (their sheets
    *     are constructable, adopted by their shadow roots)
@@ -385,8 +386,8 @@ type FromRunnerMessage =
 type SetDescriptionParams = { uri: string; line?: number; file?: boolean; text: string }
 
 /**
- * A project's `settings.json5`, as `ProjectSettings` in `src/app/runner/runner.types.ts` -- its top-level sections,
- * which we just hold and write, NOT read.
+ * A project's `settings.json5`, as `ProjectSettings` in app's `runner.types.ts`:
+ * its top-level sections, which we just hold and write, NOT read.
  */
 type ProjectSettings = Record<string, unknown>
 

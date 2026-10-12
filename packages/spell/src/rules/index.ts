@@ -1,12 +1,12 @@
 /**
  * Assembles every spell language rule module into the single `spellParser` instance.
- * - Not a plain re-export barrel: this folder is a list of independent rule modules, each exporting
- *   its rule classes plus a `SpellParser` which registers them -- this file combines those parsers
- *   via `spellParser.import(...)`.
+ * - Not a plain re-export barrel:  this folder is a list of independent rule modules.
+ *   - Each exports its rule classes, plus a `SpellParser` which registers them.
+ *   - This file combines those parsers, via `spellParser.import(...)`.
  * - A module is a folder, one rule per file, e.g. `events/`:
  *   see "Parser rules" in spell's `AGENTS.md`.
  * - NOTE: import order matters in a few places -- see the comment above the `ParseError` import.
- *   Structural rules (`blank_line` / `block` / `line` / `parse_error`) are added directly, below.
+ * - Structural rules (`blank_line` / `block` / `line` / `parse_error`) are added directly, below.
  */
 import { P } from "$/parser"
 import { SpellParser } from "$/spell/SpellParser"
@@ -25,13 +25,13 @@ import { assignment } from "./assignment"
 import { expressions, Negatable } from "./expressions"
 import { statements } from "./statements"
 import { _if_ } from "./if"
-import { JSX, type JSXMatchData } from "./JSX"
+import { JSX, SPELL_TAG_NAMES, type JSXMatchData, MarkdownBlock } from "./JSX"
 import { lists } from "./lists"
 import { math } from "./math"
 import { properties } from "./properties"
 import { events } from "./events"
 import { UI } from "./UI"
-import { classes } from "./classes"
+import { classes, MarkdownDescription } from "./classes"
 import { methods } from "./methods"
 import { _async } from "./async"
 import { draw } from "./draw"
@@ -75,6 +75,13 @@ export { Block, BlockLine }
  * -- e.g. for UI code that reads them.
  */
 export type { JSXMatchData }
+/** Export so editors can offer spell's own JSX tags, e.g. `<children/>` -- see `SPELL_TAG_NAMES`. */
+export { SPELL_TAG_NAMES }
+
+/** Export so editors can show a type's `<markdown>` description where its docstring shows -- e.g. hover. */
+export { MarkdownDescription }
+/** Export so a `<spell-app>` layout's `<markdown>` splits its holes as a drawing's does -- see `MarkdownBlock.partsOf()`. */
+export { MarkdownBlock }
 
 // Structural rules.  `SpellBlankLine` and `BlockLine` set `static ruleName`:  their class names don't give them.
 spellParser.addRule(SpellBlankLine)

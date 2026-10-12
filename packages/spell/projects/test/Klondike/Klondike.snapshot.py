@@ -16,6 +16,8 @@ from cards import Card, Deck, Pile
 class Game(App):
     """Game bits"""
 
+    description = "A game of **Klondike**:  its piles, and its score."
+
     score = prop(type="number")
 
     # actions
@@ -97,6 +99,14 @@ class Game(App):
                             h("td", core.draw_thing(tableaus[6])),
                         ),
                     ),
+                ),
+            ),
+            h(
+                "div",
+                {"class": "rules"},
+                h(
+                    "ui-markdown",
+                    f"## How to play\nBuild each tableau **down**, alternating colours, and each foundation *up* from its ace.\nScore:  **{self.score}**",
                 ),
             ),
         )

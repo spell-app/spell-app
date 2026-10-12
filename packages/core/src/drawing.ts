@@ -59,7 +59,7 @@ export const drawingMethods = defineSpellCoreModule({
    * - A DRAWABLE thing (`a card is a drawable thing`) is its element, e.g. `<solitaire-card>`, the card set as its
    *   `thing`:  it draws itself in there, with `drawOwn()`.  When the page can define it -- see `elementFor()`.
    *   - A drawable LIST's items are its element's children, e.g. `<game-pile>` holding `<game-card>`s,
-   *     shown in its drawing's `<slot>`.
+   *     shown in its drawing's `<slot>` (spell's `<children/>`).
    * - Anything else:  its own drawing, here -- see `drawOwn()`.
    */
   drawThing(drawable?: unknown): Drawing | null {
@@ -124,6 +124,7 @@ export const drawingMethods = defineSpellCoreModule({
     // otherwise own the app's drawing -- and hold or re-run it with the host's
     const dispose = runWithOwner(null, () => render(() => spellCore.drawThing(app), element))
     const mounted: MountedApp = {
+      app,
       unmount() {
         dispose()
         if ((element as AppElement).spellRoot === mounted) delete (element as AppElement).spellRoot
@@ -193,6 +194,8 @@ function isDrawn(draw: Function): boolean {
 
 /** A mounted app, as `mountApp()` returns it and leaves on its element (`spellRoot`). */
 export type MountedApp = {
+  /** The app drawn, e.g. the game:  a recompile that keeps the program's things starts it again (`carryOver()`). */
+  app: Drawable
   /** Take the app's drawing down, emptying its element. */
   unmount(): void
 }

@@ -1,44 +1,46 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList, h, positionOf, spellPosition, trigger, position, on } from "@spell/core"
+import { spellCore, Thing, List, App, Drawable, DrawableList, h, css, positionOf, spellPosition, trigger, position, on } from "@spell/core"
 
 spellCore.heading("definition of a Card with nice english aliases for working with it")
 ////////////////////////////////////////////////////////////////////////
 // ## definition of a Card with nice english aliases for working with it
 ////////////////////////////////////////////////////////////////////////
-/** a drawable thing:  each card draws in its own element, <drawable-solitaire-card>, with its own styles */
+/** a drawable thing:  each card draws in its own element, <solitaire-card>, with its own styles */
 export class Card extends Drawable {
   static elementTag = spellCore.defineElement(this, "Drawable Solitaire")
 
-  static css = `:host {
-  	display: block;
-  	position: relative;
-  }
-  .card {
-  	box-sizing: border-box;
-  	height: 30px;
-  	padding: 0.2em 0.4em;
-  	border: 1px solid #b0b0b0;
-  	border-radius: 4px;
-  	background: white;
-  	font-weight: bold;
-  	text-align: center;
-  	cursor: pointer;
-  	user-select: none;
-  }
-  .card.red {
-  	color: crimson;
-  }
-  .card.black {
-  	color: #222;
-  }
-  .card.face-down {
-  	background: repeating-linear-gradient(45deg, #3a6, #3a6 4px, #285 4px, #285 8px);
-  }
-  .suit {
-  	position: relative;
-  	font-size: 1.2rem;
-  	vertical-align: top;
-  	top: -0.1rem;
-  }`
+  static css = css`
+    :host {
+    	display: block;
+    	position: relative;
+    }
+    .card {
+    	box-sizing: border-box;
+    	height: 30px;
+    	padding: 0.2em 0.4em;
+    	border: 1px solid #b0b0b0;
+    	border-radius: 4px;
+    	background: white;
+    	font-weight: bold;
+    	text-align: center;
+    	cursor: pointer;
+    	user-select: none;
+    }
+    .card.red {
+    	color: crimson;
+    }
+    .card.black {
+    	color: #222;
+    }
+    .card.face-down {
+    	background: repeating-linear-gradient(45deg, #3a6, #3a6 4px, #285 4px, #285 8px);
+    }
+    .suit {
+    	position: relative;
+    	font-size: 1.2rem;
+    	vertical-align: top;
+    	top: -0.1rem;
+    }
+  `
 
   /////////////////////////
   // ## properties of cards
@@ -252,7 +254,7 @@ export function testCardSetup() {
     spellCore.expect(card.isFaceUp, `the card is face up`, true, `true`)
   })
 }
-testCardSetup()
+if (!spellCore.isCarryingOver) testCardSetup()
 // -----------
 spellCore.heading("Deck:   US standard card deck (without jokers currently)")
 //## Deck:   US standard card deck (without jokers currently)
@@ -302,48 +304,50 @@ export function testDeckCreation() {
     spellCore.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs"), `the first card of the deck is the ace of clubs`, true, `yes`)
   })
 }
-testDeckCreation()
+if (!spellCore.isCarryingOver) testDeckCreation()
 // -----------
 spellCore.heading("Pile of playing cards")
 ///////////////////////////
 // ## Pile of playing cards
 ///////////////////////////
-/** a drawable list:  each pile is its own element, <drawable-solitaire-pile>, holding its cards' elements */
+/** a drawable list:  each pile is its own element, <solitaire-pile>, holding its cards' elements */
 export class Pile extends DrawableList {
   static instanceType = Card
   static elementTag = spellCore.defineElement(this, "Drawable Solitaire")
 
-  static css = `:host {
-  	display: block;
-  	position: relative;
-  	min-height: 30px;
-  }
-  .pile {
-  	position: relative;
-  	min-height: 30px;
-  }
-  /* its cards, stacked:  the last on top */
-  ::slotted(*) {
-  	position: absolute;
-  	left: 0;
-  	top: 0;
-  	width: 100%;
-  }
-  .placeholder {
-  	box-sizing: border-box;
-  	height: 30px;
-  	border: 1px dashed #b0b0b0;
-  	border-radius: 4px;
-  	text-align: center;
-  	cursor: pointer;
-  }
-  .placeholder.red {
-  	color: crimson;
-  }
-  .placeholder .suit {
-  	font-size: 1.4rem;
-  	line-height: 28px;
-  }`
+  static css = css`
+    :host {
+    	display: block;
+    	position: relative;
+    	min-height: 30px;
+    }
+    .pile {
+    	position: relative;
+    	min-height: 30px;
+    }
+    /* its cards, stacked:  the last on top */
+    ::slotted(*) {
+    	position: absolute;
+    	left: 0;
+    	top: 0;
+    	width: 100%;
+    }
+    .placeholder {
+    	box-sizing: border-box;
+    	height: 30px;
+    	border: 1px dashed #b0b0b0;
+    	border-radius: 4px;
+    	text-align: center;
+    	cursor: pointer;
+    }
+    .placeholder.red {
+    	color: crimson;
+    }
+    .placeholder .suit {
+    	font-size: 1.4rem;
+    	line-height: 28px;
+    }
+  `
 
   static { this.declareProp("name", { type: "text" }) }
   get name() { return this.getProp("name") }
@@ -351,12 +355,12 @@ export class Pile extends DrawableList {
 
   get color() {
     if (this.isEmpty) return "none"
-    return this.lastItem?.color
+    return this.lastItem.color
   }
 
   get value() {
     if (this.isEmpty) return 0
-    return this.lastItem?.value
+    return this.lastItem.value
   }
 
   get state() {
@@ -488,7 +492,7 @@ export class Foundation extends Pile {
   //##############
   //## rendering the bits
 
-  // each pile draws its outside:  its cards show in its <slot/>, each card its own element
+  // each pile draws its outside:  its cards show where it says <children/>, each card its own element
 
   draw() {
     const color = this.name === "diamonds" || this.name === "hearts" ? "red" : "black"
@@ -530,14 +534,16 @@ foundations.forEach((pile) => allPiles.append(pile))
 export class Tableau extends Pile {
   static elementTag = spellCore.defineElement(this, "Drawable Solitaire")
 
-  static css = `:host {
-  	min-height: 500px;
-  }
-  /* its cards, one below the other */
-  ::slotted(*) {
-  	position: relative;
-  	margin-bottom: 8px;
-  }`
+  static css = css`
+    :host {
+    	min-height: 500px;
+    }
+    /* its cards, one below the other */
+    ::slotted(*) {
+    	position: relative;
+    	margin-bottom: 8px;
+    }
+  `
 
   canGiveUp(card) {
     return card.isFaceUp
@@ -646,10 +652,10 @@ export async function autoPlay() {
   for (const pile of tableaus) {
     if (pile.isEmpty) continue
     const testCard = pile.lastItem
-    const foundation = foundations.filter((pile) => pile.name == testCard?.suit).firstItem
+    const foundation = foundations.filter((pile) => pile.name == testCard.suit).firstItem
     if (spellCore.canTake(foundation, testCard)) {
       anythingChanged = true
-      await testCard?.play()
+      await testCard.play()
       await spellCore.pauseFor(100, "msec")
     }
   }
@@ -659,8 +665,8 @@ export async function autoPlay() {
     const faceUpCards = pile.filter((card) => card.isFaceUp)
     if (faceUpCards.isEmpty) continue
     const testCard = faceUpCards.firstItem
-    if (testCard?.isARank("king") && testCard === pile.firstItem) continue
-    if (await testCard?.play()) {
+    if (testCard.isARank("king") && testCard === pile.firstItem) continue
+    if (await testCard.play()) {
       anythingChanged = true
       await spellCore.pauseFor(500, "msec")
     }
@@ -688,6 +694,6 @@ export async function cheat() {
 
 spellCore.heading("rendering the bits")
 resetTheGame()
-game.start()
+if (!spellCore.isCarryingOver) game.start()
 // -----------
 spellCore.installStyles(undefined, `/* File styles.css:  the board's own styles.  The cards and piles style themselves:  their <css>. */¬`)

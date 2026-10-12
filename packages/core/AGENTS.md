@@ -56,9 +56,19 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `spellCore.element()`, what it called before, is gone (epic `output-targets` P22):
       every committed example is recompiled, and a program compiled before P20 no longer draws.
 - A drawable thing's own element, e.g. `<solitaire-card>`:
-  - [elements.ts](src/elements.ts) names its tag
-  - the page makes the element, through `spellCore.elementDefiner`, which app's `SpellElement.tsx` sets
+  - [elements.ts](src/elements.ts) names its tag.
+  - The page makes the element, through `spellCore.elementDefiner`:
+    app's [SpellElement.tsx](../app/src/runner/SpellElement.tsx) sets it.
+  - Compiled TypeScript hands the page its own element class too, `spellCore.useElement(Card, CardElement)`,
+    which the page builds the tag on (epic `drawable-thing` P10).
+    It imports that class's base as `@spell/elements` (`SPELL_ELEMENTS_MODULE`), not from core.
   - Core never imports Spell UI.
+- A thing named in text, its REFERENCE:  `Tableau#T1` by its name, `Tableau#1` by its place (epic `drawable-thing` P18).
+  - In [references.ts](src/references.ts):  `thingForReference()`, `thingNamed()`, `thingAtPlace()`, `referenceFor()`.
+  - A name finds a sub-type's thing too:  `Pile#T1` is the tableau T1.
+    A place counts the type's own things, in the order they were made.
+  - A drawable element's attribute holds one (`pile="Tableau#T1"`), and so do spell's words for one thing
+    (`tableau T1`, `the first tableau`).
 
 ## Who may value-import it
 
@@ -132,6 +142,16 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     or once a runner hands it the program's modules (`addClasses()`).
   - A list's items are SET (`writeItems()`), so a pile owns its cards.
   - An unknown `"@type"`:  a plain object.
+- `spellCore.carryOver()` ([carry.ts](src/carry.ts)) does the same for a recompile:
+  the game in progress stays when the program changes (epic `drawable-thing` P16).
+  - The last run's things come over as the new program's classes.
+  - Object to object, not through JSON text, so each thing keeps its identity.
+  - The runner asks for it on every recompile but Restart:  `runCompiled()`'s `keepThings`.
+  - While the new program loads (`isCarryingOver`, P17):
+    - its start is skipped:  its top-level test calls, and starting its app,
+      compiled as `if (!spellCore.isCarryingOver) game.start()`
+    - `pause for ...` never ends:  what the rest of its top level sets going, e.g. a new deal, stops there
+  - `carryProblems()` says first which things can't come over:  then the runner starts afresh instead.
 - A program's STATE, for a page that mirrors it ([state.ts](src/state.ts), epic `python-target` P17):
   the same JSON, each thing and list with an `"@id"` after its `"@type"`.
   - `StateWriter.stateOf()` writes a thing whole the first time, then `{ "@id": "3" }` alone:
@@ -146,7 +166,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - binds its things in the program's drawing half (`adopt()`, in `<Project>.elements.js`)
     - starts its app
   - `receive()` reads each patch after.
-  - `sendCall()` / `sendTrigger()`:  what the drawing half sends back, each thing by its id.
+  - `sendCall()` / `sendTrigger()`:  what the drawing half sends back, each thing by its reference
+    (`Card#ace-of-hearts`, P27), else by its id:  an event's thing as its `"target"`, a call's as its `"on"`.
   - The state names properties as Python does:  the page reads each by its javascript name (`javascriptName()`).
   - Python's side is `spell_core.page`'s `PageSession`.
 

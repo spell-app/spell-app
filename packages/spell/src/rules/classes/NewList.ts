@@ -28,7 +28,7 @@ export class NewList extends SpellStatement<"instanceType?"> {
           properties: [
             new P.ASTObjectLiteralProperty(instanceType, {
               property: "instanceType",
-              value: new P.ASTStringLiteral(instanceType, { value: String(instanceType.value), quote: '"' })
+              value: new P.ASTTypeNameLiteral(instanceType, { value: String(instanceType.value), quote: '"' })
             })
           ]
         })

@@ -1,29 +1,29 @@
 import { describe, test, expect } from "vite-plus/test"
 
+import { describeTypecheckError, typecheck } from "$/spell/node/typecheck"
 import { P } from "$/parser"
-import { SP } from "$/spell"
-import { loadFixtureProject, parseSpellProject } from "$/spell/test"
+import { compiledFixture } from "$/spell/test"
 
 /**
  * Each output language names things by its own map (`P.Naming`, epic `drawable-thing` P11):
  * a writer that writes TYPES in snake_case leaves no type's PascalCase name anywhere in its code --
- * not as code (`class Card`), nor as text the runtime reads (`isOfType(x, 'Card')`, `instanceType: "Card"`).
+ * not as code (`class Card`, TypeScript's `card: Card`, `List<Card>`),
+ * nor as text the runtime reads (`isOfType(x, 'Card')`, `instanceType: "Card"`).
  */
 describe("a writer's naming map", () => {
-  /** Solitaire, compiled by a javascript writer whose types are `snake_case`. */
-  function snakeTyped(): string {
-    const { scope, files } = parseSpellProject(loadFixtureProject("Solitaire"))
-    const writer = new P.JSWriter()
-    writer.naming = new P.Naming({ ...P.Naming.JAVASCRIPT, type: "snake_case" })
-    const parts = files.map(({ match, compiled }) => (match?.AST instanceof P.ASTStatementGroup ? match.AST : compiled))
-    const marked = SP.SpellProject.combineCompiled(parts, writer, SP.SpellProject.importHeaderFor(scope), scope)
-    return SP.SpellDeclarations.split(marked, scope).code
+  /** Solitaire, compiled by `writer` (javascript's or TypeScript's) with its types in `typeCase`. */
+  function typedIn(typeCase: P.NameCase, writer: P.JSWriter): string {
+    writer.naming = new P.Naming({ ...P.Naming.JAVASCRIPT, type: typeCase })
+    return compiledFixture("Solitaire", writer)
   }
 
-  test("types in snake_case:  no type's PascalCase name is left in the code", () => {
+  test.each([
+    ["javascript", () => new P.JSWriter()],
+    ["TypeScript", () => new P.TSWriter()]
+  ])("%s, types in snake_case:  no type's PascalCase name is left in the code", (_language, makeWriter) => {
     // only code counts, and the text the runtime reads as a type's name (`type: "Card"`):
     // comments and other text say what they like (a heading, a class attribute)
-    const code = snakeTyped()
+    const code = typedIn("snake_case", makeWriter())
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/\/\/.*$/gm, "")
       .replace(/(?<!\b(?:type|instanceType):\s*)"[^"\n]*"/g, '""')
@@ -35,6 +35,13 @@ describe("a writer's naming map", () => {
     })
     expect(left).toEqual([])
   })
+
+  // so every place TypeScript names a type agrees:  annotations, `List<Card>`, interfaces, the text.
+  // NOT snake_case:  there `const card = new card()` takes the class's name (epic `drawable-thing`, P11's Done list)
+  test("TypeScript, types in SCREAMING_SNAKE_CASE:  still checks clean with tsc, as Solitaire does", () => {
+    const { errors } = typecheck({ "Solitaire.tsx": typedIn("SCREAMING_SNAKE_CASE", new P.TSWriter()) })
+    expect(errors["Solitaire.tsx"]!.map(describeTypecheckError)).toEqual([])
+  }, 60_000)
 
   test("javascript's own map writes what spell always wrote", () => {
     const naming = new P.Naming(P.Naming.JAVASCRIPT)

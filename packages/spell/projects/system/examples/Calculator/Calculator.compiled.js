@@ -150,4 +150,4 @@ export class Calculator extends App {
 
 export const calculator = new Calculator()
 calculator.clear()
-calculator.start()
+if (!spellCore.isCarryingOver) calculator.start()

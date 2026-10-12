@@ -68,6 +68,22 @@ classes.addRule(CreateType, {
             "export class Card extends Drawable {",
             '  static elementTag = spellCore.defineElement(this, "test_classes")',
             "}"
+          ],
+          [
+            "export class Card extends Drawable {",
+            '  static elementTag = spellCore.defineElement(this, "test_classes")',
+            "}",
+            "",
+            "/**",
+            " * `<test-class-card>`:  a card, drawn in its own element, e.g. by `draw the card`.",
+            " * - The page defines its tag with this class:  `spellCore.useElement()`, below.",
+            " * - Its attributes are its card's properties;  its methods call its card's.",
+            " * - What every drawable thing's element does, e.g. drawing its card, is `SpellElement`'s.",
+            " */",
+            "export class CardElement extends SpellElement<Card> {",
+            '  @E.proto static vocabulary = SpellElement.vocabularyFor("test-class-card", "card", [])',
+            "}",
+            "spellCore.useElement(Card, CardElement)"
           ]
         ],
         [
@@ -76,6 +92,22 @@ classes.addRule(CreateType, {
             "export class Card extends Drawable {",
             '  static elementTag = spellCore.defineElement(this, "test_classes")',
             "}"
+          ],
+          [
+            "export class Card extends Drawable {",
+            '  static elementTag = spellCore.defineElement(this, "test_classes")',
+            "}",
+            "",
+            "/**",
+            " * `<test-class-card>`:  a card, drawn in its own element, e.g. by `draw the card`.",
+            " * - The page defines its tag with this class:  `spellCore.useElement()`, below.",
+            " * - Its attributes are its card's properties;  its methods call its card's.",
+            " * - What every drawable thing's element does, e.g. drawing its card, is `SpellElement`'s.",
+            " */",
+            "export class CardElement extends SpellElement<Card> {",
+            '  @E.proto static vocabulary = SpellElement.vocabularyFor("test-class-card", "card", [])',
+            "}",
+            "spellCore.useElement(Card, CardElement)"
           ]
         ],
         [
@@ -84,6 +116,22 @@ classes.addRule(CreateType, {
             "export class Pile extends DrawableList {",
             '  static elementTag = spellCore.defineElement(this, "test_classes")',
             "}"
+          ],
+          [
+            "export class Pile extends DrawableList {",
+            '  static elementTag = spellCore.defineElement(this, "test_classes")',
+            "}",
+            "",
+            "/**",
+            " * `<test-class-pile>`:  a pile, drawn in its own element, e.g. by `draw the pile`.",
+            " * - The page defines its tag with this class:  `spellCore.useElement()`, below.",
+            " * - Its attributes are its pile's properties;  its methods call its pile's.",
+            " * - What every drawable thing's element does, e.g. drawing its pile, is `SpellElement`'s.",
+            " */",
+            "export class PileElement extends SpellElement<Pile> {",
+            '  @E.proto static vocabulary = SpellElement.vocabularyFor("test-class-pile", "pile", [])',
+            "}",
+            "spellCore.useElement(Pile, PileElement)"
           ]
         ]
       ]

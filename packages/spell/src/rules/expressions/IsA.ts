@@ -13,8 +13,9 @@ import { expressions } from "./expressions.parser"
  *   - or mentioned earlier -- a `stub`, e.g. by `a joker has a color ...` above `a joker is a card`.
  *     See `P.TypeScope.getOrStub()`.
  * - `shouldNegateOutput()` handles `is not a`.
- * - Compiles to `spellCore.isOfType(lhs, 'TypeName')`, wrapping type name via `QuotedExpression`:
- *   its RUNTIME name, which differs for a type imported renamed.  See `P.ASTTypeExpression.runtimeName`.
+ * - Compiles to `spellCore.isOfType(lhs, 'TypeName')`, the type's name as text (`P.ASTTypeNameLiteral`):
+ *   its RUNTIME name, which differs for a type imported renamed -- see `P.ASTTypeExpression.runtimeName`.
+ *   - A writer may test it its own way, e.g. javascript's `lhs instanceof TypeName`.
  */
 export class IsA extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.comparison
@@ -26,7 +27,7 @@ export class IsA extends InfixOperatorSuffix<"operator|expression"> {
     // a type's class, by the name it has when the code runs -- see `P.ASTTypeExpression.runtimeName`
     const type =
       rhs instanceof P.ASTTypeExpression
-        ? new P.ASTQuotedExpression(match, rhs.runtimeName)
+        ? new P.ASTTypeNameLiteral(match, { value: rhs.runtimeName, quote: "'" })
         : new P.ASTQuotedExpression(match, { expression: rhs! })
     return new P.ASTCoreMethodInvocation(match, { methodName: "isOfType", args: [lhs!, type] })
   }
