@@ -1,13 +1,5 @@
 ✅ test card setup
   ▶️ Executing   `the card is a new card whose rank is queen, suit is spades and direction is up`
-  Card {
-    Symbol(props): Map(3) { 'rank' => 'queen', 'suit' => 'spades', 'direction' => 'up' },
-    Symbol(state): null,
-    Symbol(propCells): null,
-    Symbol(stateCells): null,
-    Symbol(keys): null,
-    Symbol(derived): null
-  }
   ✅ As expected `the rank of the card` is `queen`
   ✅ As expected `the suit of the card` is `spades`
   ✅ As expected `the name of the card` is `"queen-of-spades"`
@@ -46,13 +38,5 @@
   ▶️ Executing   `display the deck`
   deck: A♣️, A♦️, A♥️, A♠️, 2♣️, 2♦️, 2♥️, 2♠️, 3♣️, 3♦️, 3♥️, 3♠️, 4♣️, 4♦️, 4♥️, 4♠️, 5♣️, 5♦️, 5♥️, 5♠️, 6♣️, 6♦️, 6♥️, 6♠️, 7♣️, 7♦️, 7♥️, 7♠️, 8♣️, 8♦️, 8♥️, 8♠️, 9♣️, 9♦️, 9♥️, 9♠️, 10♣️, 10♦️, 10♥️, 10♠️, J♣️, J♦️, J♥️, J♠️, Q♣️, Q♦️, Q♥️, Q♠️, K♣️, K♦️, K♥️, K♠️
   ✅ As expected `the first card of the deck is the ace of clubs` is `yes`
-Game {
-  Symbol(props): Map(0) {},
-  Symbol(state): null,
-  Symbol(propCells): null,
-  Symbol(stateCells): null,
-  Symbol(keys): null,
-  Symbol(derived): null
-}
 
 <div id="spell-app-root"><div class="ui container"><div class="board"><table class="ui table fixed"><thead><tr><th class="left aligned" colspan="2">Klondike Solitaire</th><th class="right aligned">Score: 0</th><th><div class="tiny fluid ui button compact">AutoPlay</div></th><th><div class="tiny fluid ui button compact">Cheat</div></th><th><div class="tiny fluid ui button compact">Debug</div></th><th><div class="tiny fluid ui button compact">Restart</div></th></tr></thead><tbody><tr><td><div class="pile stock"><div class="placeholder"></div><slot></slot></div></td><td><div class="pile discards"><slot></slot></div></td><td></td><td><div class="pile foundation"><div class="placeholder black clubs"><div class="suit clubs">♣️</div></div><slot></slot></div></td><td><div class="pile foundation"><div class="placeholder red diamonds"><div class="suit diamonds">♦️</div></div><slot></slot></div></td><td><div class="pile foundation"><div class="placeholder red hearts"><div class="suit hearts">♥️</div></div><slot></slot></div></td><td><div class="pile foundation"><div class="placeholder black spades"><div class="suit spades">♠️</div></div><slot></slot></div></td></tr><tr><td><div class="pile tableau"><slot></slot></div></td><td><div class="pile tableau"><slot></slot></div></td><td><div class="pile tableau"><slot></slot></div></td><td><div class="pile tableau"><slot></slot></div></td><td><div class="pile tableau"><slot></slot></div></td><td><div class="pile tableau"><slot></slot></div></td><td><div class="pile tableau"><slot></slot></div></td></tr></tbody></table></div></div></div>

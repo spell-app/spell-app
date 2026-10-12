@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList, h, css, positionOf, trigger, on } from "@spell/core"
+import { spellCore, Thing, List, App, Drawable, DrawableList, h, css, positionOf, spellPosition, trigger, position, on } from "@spell/core"
 
 spellCore.heading("definition of a Card with nice english aliases for working with it")
 ////////////////////////////////////////////////////////////////////////
@@ -65,7 +65,7 @@ export class Card extends Drawable {
 
   /** value as a derivation of rank */
   get value() {
-    return positionOf(Card.Ranks, this.rank)
+    return spellPosition(positionOf(Card.Ranks, this.rank))
   }
 
   /** card direction:  up or down */
@@ -122,7 +122,7 @@ export class Card extends Drawable {
   get shortRank() {
     if (this.rank === undefined) return "?"
     if (typeof this.rank === "number") return `${this.rank}`
-    return `${spellCore.getItemAt(this.rank, 1) ?? ""}`.toLocaleUpperCase()
+    return `${spellCore.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
   }
 
   get shortDirection() {
@@ -355,12 +355,12 @@ export class Pile extends DrawableList {
 
   get color() {
     if (this.isEmpty) return "none"
-    return this.lastItem?.color
+    return this.lastItem.color
   }
 
   get value() {
     if (this.isEmpty) return 0
-    return this.lastItem?.value
+    return this.lastItem.value
   }
 
   get state() {
@@ -414,18 +414,18 @@ export class Game extends App {
               h("td", () => spellCore.drawThing(discards)),
               h("td"),
               h("td", () => spellCore.drawThing(foundations.firstItem)),
+              h("td", () => spellCore.drawThing(foundations.getItem(1))),
               h("td", () => spellCore.drawThing(foundations.getItem(2))),
-              h("td", () => spellCore.drawThing(foundations.getItem(3))),
-              h("td", () => spellCore.drawThing(foundations.getItem(4)))
+              h("td", () => spellCore.drawThing(foundations.getItem(3)))
             ),
             h("tr",
               h("td", () => spellCore.drawThing(tableaus.firstItem)),
+              h("td", () => spellCore.drawThing(tableaus.getItem(1))),
               h("td", () => spellCore.drawThing(tableaus.getItem(2))),
               h("td", () => spellCore.drawThing(tableaus.getItem(3))),
               h("td", () => spellCore.drawThing(tableaus.getItem(4))),
               h("td", () => spellCore.drawThing(tableaus.getItem(5))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(6))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(7)))
+              h("td", () => spellCore.drawThing(tableaus.getItem(6)))
             )
           )
         )
@@ -621,7 +621,7 @@ export async function dealTheCards() {
     for (const row of spellCore.getRange(1, 7)) {
       stock.lastItem?.turnFaceUp()
       for (const column of spellCore.getRange(row, 7)) {
-        tableaus.getItem(column)?.append(stock.lastItem)
+        tableaus.getItem(position(column))?.append(stock.lastItem)
         await spellCore.pauseFor(50, "msec")
       }
     }
@@ -652,10 +652,10 @@ export async function autoPlay() {
   for (const pile of tableaus) {
     if (pile.isEmpty) continue
     const testCard = pile.lastItem
-    const foundation = foundations.filter((pile) => pile.name == testCard?.suit).firstItem
+    const foundation = foundations.filter((pile) => pile.name == testCard.suit).firstItem
     if (spellCore.canTake(foundation, testCard)) {
       anythingChanged = true
-      await testCard?.play()
+      await testCard.play()
       await spellCore.pauseFor(100, "msec")
     }
   }
@@ -665,8 +665,8 @@ export async function autoPlay() {
     const faceUpCards = pile.filter((card) => card.isFaceUp)
     if (faceUpCards.isEmpty) continue
     const testCard = faceUpCards.firstItem
-    if (testCard?.isARank("king") && testCard === pile.firstItem) continue
-    if (await testCard?.play()) {
+    if (testCard.isARank("king") && testCard === pile.firstItem) continue
+    if (await testCard.play()) {
       anythingChanged = true
       await spellCore.pauseFor(500, "msec")
     }

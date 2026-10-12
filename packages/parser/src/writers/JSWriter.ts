@@ -1386,7 +1386,6 @@ export class JSWriter extends ProgramWriter {
     return unwrapped(node.expression) instanceof P.ASTObjectLiteral ? `() => (${value})` : `() => ${value}`
   }
 
-
   /** What's being set, while it's written:  never read off with `?.`, which can't be set. */
   private settingNow: P.ASTNode | undefined
 

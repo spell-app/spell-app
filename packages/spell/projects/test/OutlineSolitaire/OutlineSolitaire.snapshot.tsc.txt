@@ -1,6 +1,0 @@
-303:12 TS2532 Object is possibly 'undefined'.
-308:12 TS2532 Object is possibly 'undefined'.
-611:66 TS18048 'testCard' is possibly 'undefined'.
-614:13 TS18048 'testCard' is possibly 'undefined'.
-624:9 TS18048 'testCard' is possibly 'undefined'.
-625:15 TS18048 'testCard' is possibly 'undefined'.

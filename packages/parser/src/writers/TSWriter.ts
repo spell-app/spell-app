@@ -220,7 +220,28 @@ export class TSWriter extends JSWriter {
     const [first] = node.args.args ?? []
     if (node.methodName === "drawThing") return this.drawThing(first)
     if (node.methodName === "drawItems") return first && this.drawItems(first)
-    return super.coreCall(node)
+    const written = super.coreCall(node)
+    // the first or last item of a list a guard found has items:  there, so read as found -- see `isFoundItem()`
+    return written !== undefined && this.isFoundItem(node) ? `${written}!` : written
+  }
+
+  /**
+   * Is `node` an item read spell knows is there, though TypeScript types it `Card | undefined`?
+   * - The first or last item of a list a guard found has items:  `if (pile.isEmpty) continue`, then `pile.lastItem!`.
+   * - javascript reads off it with `.` (`ProgramWriter.mayBeNothing()`);  TypeScript needs the `!` to agree.
+   */
+  isFoundItem(node: P.ASTScopedMethodInvocation): boolean {
+    return JSWriter.ITEM_READS.has(node.methodName) && !this.mayBeNothing(node)
+  }
+
+  /** As javascript's;  a found item compared needs no `!`, `card !== this.lastItem`:  see `isFoundItem()`. */
+  operand(operand: P.ASTExpression, operator: P.ASTOperator, side: "lhs" | "rhs"): string {
+    const written = super.operand(operand, operator, side)
+    const inner = unwrapped(operand)
+    const isCompared = operator === "equals" || operator === "not equals"
+    return isCompared && isCoreCall(inner) && this.isFoundItem(inner as P.ASTScopedMethodInvocation)
+      ? written.replace(/!$/, "")
+      : written
   }
 
   /** `callback`, the function a list's own method takes:  its item typed by the list, so bare -- see `listCall()`. */
