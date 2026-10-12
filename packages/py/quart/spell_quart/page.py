@@ -12,7 +12,7 @@ page_html("Solitaire", elements="/Solitaire.elements.js")
 - Until it does, a "Loading <title>" block with a spinner (`LOADING`):  plain HTML and CSS, so it shows the moment
   the page arrives, before any script has loaded;  it fades out once the app draws its first thing.
 - Each frame to and from the program is written to the browser's console, folded, one line each, its badge coloured:
-  `SENDING >  event card-click (#26)` (blue), `RECEIVED <  patch:  Card #26, StockPile #3` (green);
+  `SENDING  >  event card-click (#26)` (blue), `RECEIVED <  patch:  Card #26, StockPile #3` (green);
   and anything that goes wrong, `< ERROR >` (red).
 """
 

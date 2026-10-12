@@ -109,7 +109,7 @@ function byId(value: unknown, mirror: StateMirror): unknown {
  * - `modules`:  as `startPage()`'s.
  * - `log`:  write each frame to the browser's console, both ways (`logFrame()`), to watch the page and its program
  *   talk, each line starting with a coloured badge:
- *   - `SENDING >  event card-click (#26)`, in blue
+ *   - `SENDING  >  event card-click (#26)`, in blue
  *   - `RECEIVED <  patch:  Card #26, StockPile #3`, in green
  * - Errors show whether or not `log` is on, as `< ERROR >`, in red (`logError()`):
  *   - a message the program failed to run, which it answers with `{ "error": "..." }` (`ERROR_KEY`)
@@ -173,7 +173,8 @@ function isErrorFrame(frame: unknown): frame is { [ERROR_KEY]: string } {
 
 /** Each badge:  its words, its colour. */
 const BADGES = {
-  sent: ["SENDING >", "#2185d0"],
+  // "SENDING" is a letter shorter than "RECEIVED":  a second space lines the two badges up
+  sent: ["SENDING  >", "#2185d0"],
   received: ["RECEIVED <", "#21ba45"],
   error: ["< ERROR >", "#db2828"]
 } as const
@@ -185,7 +186,7 @@ function badgeStyle(badge: keyof typeof BADGES): string {
 
 /**
  * SIDE EFFECT:  one frame between a page and its program, in the browser's console:
- * folded, its line a coloured badge (`SENDING >` or `RECEIVED <`), what it is (`frameSummary()`) and its size;
+ * folded, its line a coloured badge (`SENDING  >` or `RECEIVED <`), what it is (`frameSummary()`) and its size;
  * the JSON inside.
  */
 export function logFrame(direction: "sent" | "received", frame: unknown, size: number): void {
