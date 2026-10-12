@@ -83,9 +83,9 @@ describe("a Python spell app, in a real browser", () => {
     expect(joined!["@items"].at(-1)).toEqual({ "@id": cardId })
 
     // the console shows each frame, both ways, its badge first:  the state, the click up, the two patches down
-    const frames = page.logged.filter((line) => /^%c(SENDING >|RECEIVED <)%c/.test(line))
+    const frames = page.logged.filter((line) => /^%c(SENDING  >|RECEIVED <)%c/.test(line))
     expect(frames[0]).toMatch(/^%cRECEIVED <%c {2}state: {2}game, /)
-    expect(frames).toContainEqual(expect.stringMatching(`^%cSENDING >%c  event card-click \\(#${cardId}\\)`))
+    expect(frames).toContainEqual(expect.stringMatching(`^%cSENDING  >%c  event card-click \\(#${cardId}\\)`))
     expect(frames).toContainEqual(
       expect.stringMatching(`^%cRECEIVED <%c  patch:  StockPile #\\d+, Card #${cardId}, DiscardPile #`)
     )

@@ -26,13 +26,13 @@ describe("frameSummary()", () => {
 })
 
 describe("logFrame()", () => {
-  test("a frame sent:  the blue SENDING > badge", () => {
+  test("a frame sent:  the blue SENDING  > badge", () => {
     const group = vi.spyOn(console, "groupCollapsed").mockImplementation(() => {})
     const log = vi.spyOn(console, "log").mockImplementation(() => {})
     const end = vi.spyOn(console, "groupEnd").mockImplementation(() => {})
     try {
       logFrame("sent", { trigger: "card-click", details: { card: { "@id": "26" } } }, 58)
-      expect(group.mock.calls[0]![0]).toBe("%cSENDING >%c  event card-click (#26)  %c58 characters")
+      expect(group.mock.calls[0]![0]).toBe("%cSENDING  >%c  event card-click (#26)  %c58 characters")
       expect(group.mock.calls[0]![1]).toContain("background: #2185d0")
     } finally {
       group.mockRestore()
