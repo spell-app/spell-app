@@ -10,8 +10,8 @@ import { TypeDeclaration } from "./TypeDeclaration"
  * - SIDE EFFECT: adds `type` to `scope.types`, unless it's already defined (no redefinition/merge) --
  *   see `TypeDeclaration.declareType()`.
  * - Compiles to an exported class declaration, e.g. `a card is a thing` => `export class Card extends Thing {}`.
- *   A drawable one defines its element in it -- see `TypeDeclaration.elementMember()`.
- *   Another project reaches it by `import`ing it -- no globals.
+ *   - A drawable one defines its element in it -- see `TypeDeclaration.elementMember()`.
+ *   - Another project reaches it by `import`ing it -- no globals.
  */
 export class CreateType extends TypeDeclaration<
   "type|aka?|superType|with_nested_statements?|body?",

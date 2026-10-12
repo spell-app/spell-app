@@ -3,8 +3,8 @@
  * they do the job of the browser's import map, so compiled spell runs under node.
  * - `@spell/core` => spell's runtime, `core`'s `src/index.ts` -- run through `tsx`, which loads first.
  * - `@spell/project/<id>` => that project's compiled javascript, for a project which imports another.
- * - `@spell/elements` => a stand-in, `spellElements.mjs`:  what compiled TypeScript's element classes build on,
- *   with no Spell UI, which can't load here (epic `drawable-thing` P10).
+ * - `@spell/elements` => a stand-in, `spellElements.mjs` (epic `drawable-thing` P10):
+ *   what compiled TypeScript's element classes build on, with no Spell UI, which can't load here.
  * - Solid's packages => their browser builds, which the runtime draws with (`SOLID`).
  *   - Found from `@spell/core`'s folder, whoever imports them.
  *   - So a program built from Solid TypeScript (`ts/solid`, see `buildTsx()`), in a temp folder outside the repo,

@@ -158,8 +158,9 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
 
   /**
    * Run `compiled` in `copy`, drawing into `appRoot`, and show how it went.
-   * - The panel's project compiled again:  its things carry over (epic `drawable-thing` P16) --
-   *   unless Restart asked for a fresh start (Q25), or the edit changed its start (`runCompiled()`, P17).
+   * - The panel's project compiled again:  its things carry over (epic `drawable-thing` P16), unless:
+   *   - Restart asked for a fresh start (Q25)
+   *   - or the edit changed its start (`runCompiled()`, P17)
    */
   function run(copy: LoadedRuntime, compiled: string) {
     const keepThings = !startAfresh

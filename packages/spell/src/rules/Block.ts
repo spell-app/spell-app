@@ -173,8 +173,9 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
   }
 
   /**
-   * `item`'s code:  its AST, as a `P.ASTProgramStart` if it's a line of the program's start -- at a file's top
-   * level, a statement whose rule says so (`SpellStatement.startsTheProgram()`), e.g. `start the game`.
+   * `item`'s code:  its AST, as a `P.ASTProgramStart` if it's a line of the program's start.
+   * - A line of the start, at a file's top level:
+   *   a statement whose rule says so (`SpellStatement.startsTheProgram()`), e.g. `start the game`.
    * - Then it runs only when the program starts afresh:  NOT when an edit keeps the last run's things.
    * - Its own code only:  a comment at the line's end stays outside, below it.
    * - Duck-typed:  `Block` can't import `SpellStatement` without a cycle.

@@ -1,8 +1,8 @@
 /**
- * A stand-in for `@spell/elements` in the headless run (`spell run`, the core contract):  what compiled TypeScript's
- * element classes build on, with no Spell UI (epic `drawable-thing` P10, J41).
+ * A stand-in for `@spell/elements` in the headless run (`spell run`, the core contract):
+ * what compiled TypeScript's element classes build on, with no Spell UI (epic `drawable-thing` P10, J41).
  * - The real one is app's `src/runner/spellElements.ts`:  `SpellElement` and Spell UI's `E`.
- *   Spell UI can't load under node:  its core imports its own CSS files, which only Vite loads.
+ * - Spell UI can't load under node:  its core imports its own CSS files, which only Vite loads.
  * - Enough for `class CardElement extends SpellElement<Card> { @E.proto static vocabulary = ... }` to load:
  *   - `SpellElement`:  an empty class, with the one helper an element class calls as it's made, `vocabularyFor()`
  *   - `E`:  the two decorators an element class uses, doing nothing

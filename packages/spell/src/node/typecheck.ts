@@ -7,17 +7,18 @@ import environment from "$/spell/node/environment"
 
 /**
  * `tsc` on compiled spell's TypeScript (the `ts/solid` target):  what it says is wrong, by file.
- * - Checked against `@spell/core`'s SOURCE, with `core`'s own `strict` settings, `strictFunctionTypes` too:  a
- *   collection helper's callback takes its collection's item type (`CollectionOf`), e.g. a `Card` for a
- *   `List<Card>` (epic `output-targets`, J14, T7).
- * - Solid's JSX, as `app` checks its own (`jsx: "preserve"`, `jsxImportSource: "@solidjs/web"`), with `<ui-*>`
- *   tags typed as `app` types them (`UI_JSX_TYPES`).  Standard decorators (`@prop`, `@drawn`), never
- *   `experimentalDecorators`.
- * - A drawable type's element class, `class CardElement extends SpellElement<Card>`, checked against app's
- *   `SpellElement` and Spell UI's source:  `@spell/elements` is app's `spellElements.ts` (epic `drawable-thing` P10).
- *   With the 2023 javascript library, which Spell UI's own files use (`toReversed()`, `findLast()`).
- * - `files`:  each file's name, e.g. `Solitaire.tsx`, and its code.  Written to a temp folder, checked together.
- *   The folder links the repo's `node_modules`, so `solid-js` and `@solidjs/web` resolve from it.
+ * - Checked against `@spell/core`'s SOURCE, with `core`'s own `strict` settings, `strictFunctionTypes` too:
+ *   a collection helper's callback takes its collection's item type (`CollectionOf`),
+ *   e.g. a `Card` for a `List<Card>` (epic `output-targets`, J14, T7).
+ * - Solid's JSX, as `app` checks its own (`jsx: "preserve"`, `jsxImportSource: "@solidjs/web"`),
+ *   with `<ui-*>` tags typed as `app` types them (`UI_JSX_TYPES`).
+ * - Standard decorators (`@prop`, `@drawn`), never `experimentalDecorators`.
+ * - A drawable type's element class, `class CardElement extends SpellElement<Card>` (epic `drawable-thing` P10):
+ *   checked against app's `SpellElement` and Spell UI's source, as `@spell/elements` is app's `spellElements.ts`.
+ *   - With the 2023 javascript library, which Spell UI's own files use (`toReversed()`, `findLast()`).
+ * - `files`:  each file's name, e.g. `Solitaire.tsx`, and its code.
+ *   - Written to a temp folder, checked together.
+ *   - The folder links the repo's `node_modules`, so `solid-js` and `@solidjs/web` resolve from it.
  * - `projects`:  each project they import, `@spell/project/<id>`, as the path of its compiled output.
  * - Used by `spell compile` (on a `ts/solid` target) and spell's `typescript.test.ts`.
  * - NODE-ONLY:  runs the workspace's `tsc` (TypeScript 7) in a child process.

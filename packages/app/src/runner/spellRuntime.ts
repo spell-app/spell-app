@@ -48,8 +48,8 @@ import { E as UIElements, SpellElement } from "./spellElements"
 installSpellElements(spellCore)
 
 /**
- * Spell UI's `E`, as compiled TypeScript's element classes use it as they run:  its two decorators,
- * `@E.proto static vocabulary = ...`, `@E.protoMerged static elementSetup = ...` (epic `drawable-thing` P10).
+ * Spell UI's `E`, as compiled TypeScript's element classes use it as they run (epic `drawable-thing` P10):
+ * its two decorators, `@E.proto static vocabulary = ...` and `@E.protoMerged static elementSetup = ...`.
  * - Not the whole of `E`:  re-exporting Spell UI's namespace puts copies of its files in this bundle (`build.test.ts`).
  * - Its types are the whole `E`'s, for the type check:  see `spellElements.ts`.
  */

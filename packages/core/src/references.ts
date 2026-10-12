@@ -47,8 +47,8 @@ export const referencesMethods = defineSpellCoreModule({
   },
 
   /**
-   * The program's thing of class `Class` that `text` names, as the part of a reference after its `#` -- `undefined`
-   * if none:
+   * The program's thing of class `Class` that `text` names -- `undefined` if none.
+   * - `text` is the part of a reference after its `#`:
    * - digits:  its place, as `thingAtPlace()` finds it, e.g. `thingCalled(Tableau, "1")` for the first tableau
    * - else its name, as `thingNamed()` finds it, so a sub-class's thing too:  `thingCalled(Pile, "T1")`
    * - What a tag's `id` names (J43):  `<solitaire-tableau id="T1">` is `Tableau#T1`.

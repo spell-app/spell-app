@@ -15,25 +15,28 @@ import { spellElementVocabulary } from "./SpellElement.en"
  * - It draws its `thing`, through the program's runtime:  `spellCore.drawOwn()`, in the thing's error boundary.
  * - Its outside is its type's (epic `drawable-thing` P8), named as Spell UI names its own elements' API:
  *   - each property its type declares is an attribute and a property:  `<game-card rank="1">`, `card.rank = 12`
- *   - the element and its thing agree, both ways (P13):
- *     the page's change is written to the thing, and the thing's change to the element's attribute,
- *     so the inspector shows it -- see `keepThingAndElementAgreeing()`
+ *   - each property stays the same on the element and its thing, both ways (P13):
+ *     - the page's change is written to the thing
+ *     - the thing's change is written to the element's attribute, so the inspector shows it
+ *     - see `keepThingAndElementAgreeing()`
  *   - each method of its type is a method:  `card.turnOver()` calls its thing's `turn_over()`
- *   - drawn by the program, its `thing` is handed over, and its `id` is that thing's name:
- *     `<solitaire-card id="queen-of-spades">` (J43) -- see `nameAfterHandedThing()`
- *   - written by hand with an `id`, on any page, it's the program's thing the id names,
- *     as the part of a reference after its `#`:  `<solitaire-tableau id="T1">` is `Tableau#T1` (P9, J43) --
- *     see `boundThing`
+ *   - a property holding a thing shows as the thing's reference, and follows it (P18):
+ *     `<solitaire-card pile="Tableau#T1">`
+ *     - setting it sets the property, or, for the list holding it, moves the card -- see `writeReference()`
+ *   - English names only, for now
+ * - Which thing it draws (P9, J43):
+ *   - drawn by the program:  the thing it's handed, and its `id` is that thing's name --
+ *     `<solitaire-card id="queen-of-spades">`, see `nameAfterHandedThing()`
+ *   - written by hand with an `id`, on any page:  the program's thing the id names,
+ *     as the part of a reference after its `#` -- see `boundThing`
+ *     - `<solitaire-tableau id="T1">` is `Tableau#T1`
  *   - written by hand with no `id`:  in a `<spell-app>`'s layout, the program's one thing of its type;
  *     elsewhere it makes its own, a new thing of its type, once mounted
- *   - a property holding a thing shows as the thing's reference, and follows it:  `<solitaire-card pile="Tableau#T1">`
- *     (P18);  setting it sets the property, or moves the card, for the list holding it -- see `writeReference()`
- *   - English names only, for now
  * - ONE tag per drawable type, defined the first time a program defines its elements (`defineFor()`).
  *   What the tag draws with is looked up when it draws (`SPELL_ELEMENTS`), so a program run again takes it over.
  * - Compiled TypeScript writes each type's own class on it, saying only what's the type's (epic `drawable-thing` P10):
  *   `class CardElement extends SpellElement<Card>`, with its attributes, its methods and its sheet.
- *   The page builds the tag on that class (`spellCore.useElement()`), so both targets draw the same element.
+ *   - The page builds the tag on that class (`spellCore.useElement()`), so both targets draw the same element.
  *   - It reaches compiled code as `@spell/elements`:  see `spellElements.ts`.
  * - Part of `spell-runtime.js`:  NEVER value-imports `$/core`.
  *   Each runtime copy hands itself over in `installSpellElements()`.
@@ -54,8 +57,10 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   }
 
   /**
-   * What we draw:  the thing the program handed us;  else the program's thing our `id` names, or in a layout its one
-   * thing of our type (`boundThing`);  else the one we made.
+   * What we draw, the first of these there is:
+   * - the thing the program handed us
+   * - the program's thing our `id` names, or in a layout its one thing of our type (`boundThing`)
+   * - the one we made
    * - The handed thing always wins:  our `id` is never looked up while we have one,
    *   so the id we take from it (`nameAfterHandedThing()`) can't make us draw another.
    */
@@ -162,8 +167,8 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   }
 
   /**
-   * Handed a thing by the program:  our `id` is its name, so the browser's inspector says which thing we draw,
-   * `<solitaire-card id="queen-of-spades">` (J43).
+   * Handed a thing by the program:  our `id` is its name (J43),
+   * so the browser's inspector says which thing we draw:  `<solitaire-card id="queen-of-spades">`.
    * - A second of the program's things with that name, e.g. from a second deck:  `queen-of-spades-2`.
    *   Which is which is the program's to say:  see `spellCore.elementIdFor()`.
    * - It follows the thing's name:  a card whose rank changes changes its id.
@@ -250,8 +255,8 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   /**
    * Write the thing reference `text`, e.g. `"Tableau#T1"`, to `thing`'s property `property` (P18):
    * - a property holding a thing:  set to the thing the reference finds;  no attribute is nothing
-   * - the list holding it, e.g. a card's `pile`:  moved to the list the reference finds, as a move in spell is --
-   *   so the lists' rules are asked (`spellCore.move()`)
+   * - the list holding it, e.g. a card's `pile`:  moved to the list the reference finds,
+   *   as a move in spell is, so the lists' rules are asked (`spellCore.move()`)
    *   - a move they refuse, or no attribute:  it stays where it is, and the attribute shows that list again
    * - A reference that finds nothing (yet) changes nothing, and the attribute stays as written.
    */
@@ -319,8 +324,9 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
    * - With no thing yet, the element's own value, as Spell UI keeps it.
    * - Writing one is Spell UI's own setter:  it converts, stores and writes the attribute back,
    *   and the thing hears of it (`keepThingAndElementAgreeing()`).
-   * - A property holding a thing reads as its reference, `card.pile` is `"Tableau#T1"`,
-   *   and takes a reference or the thing itself:  `card.pile = tableau` is `card.pile = "Tableau#T1"` (P18).
+   * - A property holding a thing (P18):
+   *   - reads as its reference:  `card.pile` is `"Tableau#T1"`
+   *   - takes a reference or the thing itself:  `card.pile = tableau` is `card.pile = "Tableau#T1"`
    */
   static readThroughThing(TagClass: CustomElementConstructor, properties: TypeProperty[]): void {
     const { prototype } = TagClass as unknown as { prototype: object }
@@ -430,8 +436,8 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
 
   /**
    * The sheet of `tag`, drawable class `Class`'s element built on element class `Base`:
-   * - `Base`'s own sheet under `tag`, if it has one (compiled TypeScript's `styleSheets: { "solitaire-card": Card.css }`),
-   *   after its super-types' (`cssOf()`)
+   * - `Base`'s own sheet under `tag`, if it has one, after its super-types' (`cssOf()`):
+   *   compiled TypeScript's `styleSheets: { "solitaire-card": Card.css }`
    * - else `Class`'s, its super-types' first (`cssOf()`), as for javascript
    * - `""` if neither has any.
    */
@@ -449,7 +455,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
    *   So is the list holding it, for `a card belongs to one pile`.
    * - Anything else, e.g. a list:  a property only.
    * - A name the page or Spell UI already means something by (`id`, `hidden`, `disabled` ...) is left out.
-   * - `written`:  attributes an element class names itself (`writtenAttributesOf()`):  one of them is used as written.
+   * - `written`:  attributes an element class names itself (`writtenAttributesOf()`), each used as written.
    */
   static typePropertiesOf(api: ElementApi, written: E.AttributeSpec[] = []): TypeProperty[] {
     const properties: TypeProperty[] = []

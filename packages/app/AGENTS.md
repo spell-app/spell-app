@@ -137,27 +137,33 @@ when working with code in this package, `@spell-app/app`.
       (`keepThings`, epic `drawable-thing` P16).
       - Restart starts afresh, on purpose:  each runner's own (`restart()`, `editor.restartApp()`).
       - The program's start is skipped:  its top-level test calls, and starting its app (P17).
-      - It starts afresh when the edit changed the file that starts its app, or a thing can't come over
-        (`runCompiled()`).
+      - It starts afresh, all the same, when (`runCompiled()`):
+        - the edit changed the file that starts its app
+        - or one of its things can't come over
   - So ONLY `spellRuntime.ts` may value-import `$/core`.
     - The program finds its elements through `spellCore.domRoot()`, never `document`.
     - SEE [core's AGENTS.md](../core/AGENTS.md), "Who may value-import it".
     - Mind barrels:  `$/app/runner` holds `runCompiled()`, so a bundle's entry imports its runner's file directly.
-  - A drawable thing (`a card is a drawable thing`) draws as its own Spell UI element, e.g. `<solitaire-card>`:
-    [SpellElement.tsx](src/runner/SpellElement.tsx) (epic `drawable-thing`).
+  - A drawable thing draws as its own Spell UI element (epic `drawable-thing`).
+    - e.g. `a card is a drawable thing` draws as `<solitaire-card>`.
+    - The element:  [SpellElement.tsx](src/runner/SpellElement.tsx).
     - A drawable class names its tag as it's declared:
       `static elementTag = spellCore.defineElement(this, ...)`.
       - Core asks `spellCore.elementDefiner` once the class is whole.
       - `installSpellElements()` fills that in, per runtime copy.
-    - `draw the card` then draws `<solitaire-card>`, with the card as its `thing`.
-      The element draws the card inside it (`drawOwn()`).
+    - `draw the card` then draws `<solitaire-card>`.
+      Its `thing` is the card, which the element draws inside it (`drawOwn()`).
     - The example:  `@examples/Drawable Solitaire`, each card its own element, styled by its `<css>`.
     - ONE tag per type per page, shared by every runtime copy (`SPELL_ELEMENTS`, on `globalThis`).
-    - Compiled TypeScript writes each type's element class itself, `class CardElement extends SpellElement<Card>`,
-      saying only its attributes, methods and sheet, and hands it over:  `spellCore.useElement(Card, CardElement)`.
-      - The page builds the tag on it (`defineFor()`), adding what it left out, so both targets draw the same element.
-      - It imports `SpellElement` as `@spell/elements` ([spellElements.ts](src/runner/spellElements.ts)):
-        the runtime exports it, and `runCompiled()` points that name at the runtime too.
+    - Compiled TypeScript writes each type's element class itself (P10):
+      - e.g. `class CardElement extends SpellElement<Card>`
+      - saying only its attributes, methods and sheet
+      - and hands it over:  `spellCore.useElement(Card, CardElement)`
+      - The page builds the tag on it (`defineFor()`), adding what it left out:
+        so both targets draw the same element.
+      - It imports `SpellElement` by the name `@spell/elements` ([spellElements.ts](src/runner/spellElements.ts)):
+        - the runtime exports it
+        - `runCompiled()` points that name at the runtime too
   - Its Type Explorer reads scope packs, `<Project>.scopes.js` (`LSP.ScopePack`):  no parser in the page.
     - `yarn scopes [--compile] <projectId...>` (in `../lsp`) writes them.
     - So does the language server, after each clean compile.
