@@ -30,6 +30,9 @@
  *   Which pages take comments (`commentsPage()`):
  *   - any `.html` under `guides/`, `pages/` (the docs home, details pages) and `epics/` (plan docs, an epic's own
  *     pages)
+ *   - a component set's pages, at its short address (`/epic-ui/...`, `/app-ui/...`:  `COMPONENT_SETS`, epic
+ *     `epic-workflow` P10 / P11), but not its `_parts/`:  kept in `<page>.inbox.json` beside each, in the set's
+ *     tracked folder, git-ignored there (the repo's `.gitignore`)
  *   - NOT a split plan doc's `parts/` (they're shown inside their doc), nor a plan doc's pre-2026-10-04 name
  *   - NOT a details page with questions, or a syntax-choices page:  they're answered on the page
  *   - NOT `templates/`, the goals pages (they have thoughts), Spell UI's docs or the brand pages
@@ -43,7 +46,7 @@
 import { existsSync, readFileSync } from "node:fs"
 
 import { SRV } from "$/server"
-import type { RouteModule } from "$/server/page"
+import { COMPONENT_SETS, type RouteModule } from "$/server/page"
 import {
   CommentList,
   CommentsError,
@@ -62,11 +65,22 @@ const API = "/api/comments"
 /** Biggest body accepted:  a comment is a few paragraphs. */
 const MAX_BODY = 64 * 1024
 
-/** A page that may take comments, by URL path:  under `guides/`, `pages/` or `epics/`, on any checkout's mount. */
-const COMMENTS_PAGE = /^\/(?:worktrees\/[^/]+\/)?(?:guides|pages|epics)\/(?:[^/]+\/)*[^/]+\.html$/
+/** The address folders of the component sets (`epic-ui`, `app-ui`):  their pages take comments too. */
+const SET_FOLDERS = COMPONENT_SETS.map((set) => set.prefix.slice(1)).join("|")
 
-/** Pages under those that don't:  a split plan doc's parts, a plan doc's old name (`<name>/<name>.html`). */
-const NO_COMMENTS = /\/parts\/[^/]+\.html$|\/epics\/([^/]+)\/\1\.html$/
+/**
+ * A page that may take comments, by URL path:  under `guides/`, `pages/` or `epics/`, or a component set's short
+ * address, on any checkout's mount.
+ */
+const COMMENTS_PAGE = new RegExp(
+  `^/(?:worktrees/[^/]+/)?(?:guides|pages|epics|${SET_FOLDERS})/(?:[^/]+/)*[^/]+\\.html$`
+)
+
+/**
+ * Pages under those that don't:  a split plan doc's parts, a plan doc's old name (`<name>/<name>.html`), a component
+ * set's layout and footer (`_parts/`).
+ */
+const NO_COMMENTS = /\/parts\/[^/]+\.html$|\/_parts\/[^/]+\.html$|\/epics\/([^/]+)\/\1\.html$/
 
 /** A plan doc, by its file:  its comments go in the epic's review inbox. */
 const PLAN_DOC = /\.plan\.html$/

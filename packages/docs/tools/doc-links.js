@@ -9,6 +9,9 @@
  *   its command line, on files.
  * - Runs under `tsx`, which maps `$/assembler` through this package's `tsconfig.json`:  plain `node` can't.  The
  *   tools that run it (`update.js`, `pages.js` `tidy()`, goals' check) go through `pages.js` `docLinksRun()`.
+ * - A component set's pages (`packages/epic-components/`, served at `/epic-ui/`:  `COMPONENT_SETS` in
+ *   `$/server/page`) link as from their SERVED address, so their links hold at `/worktrees/<w>/epic-ui/` too:  their
+ *   links are written and checked from there (`Linker`'s `served`, `servedDir()`).
  * - NOTE:  ported from `doc-links.py` on 2026-10-03;  makes the same edits to every page.
  */
 import { readFileSync, writeFileSync } from "node:fs"
@@ -16,11 +19,15 @@ import { basename, dirname, resolve as resolvePath } from "node:path"
 import { pathToFileURL } from "node:url"
 
 import { AS } from "$/assembler"
+import { COMPONENT_SETS } from "$/server/page/page.types"
 
 import { ROOT } from "./pages.js"
 
+/** The component sets' folders, by the address folder each is served at:  `{ "epic-ui": "packages/epic-components" }`. */
+const SERVED = Object.fromEntries(COMPONENT_SETS.map((set) => [set.prefix.slice(1), set.dir]))
+
 /** One linker for this checkout:  its bare-name index is built once per process. */
-const linker = new AS.Linker(ROOT)
+const linker = new AS.Linker(ROOT, { served: SERVED })
 
 ////////////////
 // ## Linking
@@ -38,9 +45,12 @@ export function linkify(path) {
   for (const span of unresolved) console.log(`    ${span}`)
 }
 
-/** `text` (a page in `docDir`) with its code spans linked and every link given a target:  `Linker.link()`. */
+/**
+ * `text` (a page in `docDir`) with its code spans linked and every link given a target:  `Linker.link()`.
+ * - a component set's page:  from its served address (`servedDir()`)
+ */
 export function linkText(text, docDir) {
-  return linker.link(text, docDir)
+  return linker.link(text, linker.servedDir(docDir))
 }
 
 ////////////////
@@ -55,9 +65,9 @@ export function check(path) {
   return !problems.length
 }
 
-/** The links of `text` (a page in `docDir`), outside `<pre>`:  `Linker.check()`. */
+/** The links of `text` (a page in `docDir`, or served from its address), outside `<pre>`:  `Linker.check()`. */
 export function checkText(text, docDir) {
-  return linker.check(text, docDir)
+  return linker.check(text, linker.servedDir(docDir))
 }
 
 ////////////////

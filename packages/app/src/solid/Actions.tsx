@@ -14,6 +14,7 @@ import { tracked } from "$/app/solid"
  * - Inside a `<MoreMenu>` (a `<ui-dropdown>`) the item is DATA:  the dropdown draws it from its attributes and
  *   text (`icon` included).  Keep `title` TEXT:  an item with element children is a "rich" option.
  * - Reactivity is the caller's:  pass values read from `tracked()` accessors (see `Actions`).
+ * - SEE:  its App UI page, `packages/app/components/Actions.html` (`/app-ui/Actions.html`).
  ****************/
 export function Action(props: ActionProps) {
   const rest = omit(props, "title", "button", "icon", "active")

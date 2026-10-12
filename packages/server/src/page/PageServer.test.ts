@@ -8,8 +8,10 @@ import {
   AirplaneMode,
   HIGHLIGHT_JS,
   PageServer,
+  componentSetPath,
   findById,
   movedDocsPage,
+  movedSetPage,
   movedUiPage,
   renamedPlanDoc,
   replaceById,
@@ -247,6 +249,95 @@ describe("PageServer", () => {
     expect((await ask(port, "GET", "/packages/ui/site/_assets/site.js")).status).toBe(200)
     expect(movedUiPage("/worktrees/w/packages/ui/site/button.html", root)).toBe("/worktrees/w/ui/button.html")
     expect(movedUiPage("/packages/ui/site/missing.html", root)).toBeUndefined()
+  })
+
+  it("serves a component set at its short address:  its own folder, with Spell UI's site bundle as its _assets/", async () => {
+    const set = join(root, "packages", "epic-components")
+    mkdirSync(join(set, "elements"), { recursive: true })
+    mkdirSync(join(set, "_data"), { recursive: true })
+    writeFileSync(join(set, "index.html"), "<!doctype html><head></head><p>Epic UI</p>\n")
+    writeFileSync(join(set, "elements", "epic-item.html"), "<!doctype html><head></head><p>item</p>\n")
+    writeFileSync(join(set, "_data", "components.json"), `{"from":"epic-ui"}\n`)
+    const home = await ask(port, "GET", "/epic-ui/")
+    expect(home.status).toBe(200)
+    expect(home.text).toContain("<p>Epic UI</p>")
+    expect(home.text).toContain(`<script src="/_server/live.js" defer></script>`)
+    expect((await ask(port, "GET", "/epic-ui/elements/epic-item.html")).text).toContain("<p>item</p>")
+    expect((await ask(port, "GET", "/epic-ui/_data/components.json")).text).toBe(`{"from":"epic-ui"}\n`)
+    // the bundle is the sets' build of Spell UI's site, one for every set
+    mkdirSync(join(root, "packages", "ui", "site", "_assets", "sets"), { recursive: true })
+    writeFileSync(join(root, "packages", "ui", "site", "_assets", "sets", "site.js"), "// sets\n")
+    expect((await ask(port, "GET", "/epic-ui/_assets/site.js")).text).toBe("// sets\n")
+    expect((await ask(port, "GET", "/epic-ui/missing.html")).status).toBe(404)
+    const bare = await ask(port, "GET", "/epic-ui?a=1")
+    expect(bare.status).toBe(302)
+    expect(bare.headers.location).toBe("/epic-ui/?a=1")
+    // App UI's folder is the app's components:  one entry, the same route
+    expect(componentSetPath("/app-ui/spell-app.html")).toBe("/packages/app/components/spell-app.html")
+    expect(componentSetPath("/worktrees/w/epic-ui/_assets/site.js")).toBe(
+      "/worktrees/w/packages/ui/site/_assets/sets/site.js"
+    )
+    expect(componentSetPath("/worktrees/w/epic-ui/x.html")).toBe("/worktrees/w/packages/epic-components/x.html")
+    expect(componentSetPath("/epic-ui")).toBeUndefined()
+    expect(componentSetPath("/ui/x.html")).toBeUndefined()
+  })
+
+  it("serves a worktree's component set from the worktree, at /worktrees/<w>/epic-ui/", async () => {
+    const worktree = join(root, ".claude", "worktrees", "w")
+    mkdirSync(join(worktree, "packages", "epic-components"), { recursive: true })
+    mkdirSync(join(worktree, "packages", "ui", "site", "_assets", "sets"), { recursive: true })
+    writeFileSync(join(worktree, "packages", "epic-components", "index.html"), "<!doctype html><head></head><p>W</p>\n")
+    writeFileSync(join(worktree, "packages", "ui", "site", "_assets", "sets", "site.js"), "// w\n")
+    expect((await ask(port, "GET", "/worktrees/w/epic-ui/")).text).toContain("<p>W</p>")
+    expect((await ask(port, "GET", "/worktrees/w/epic-ui/_assets/site.js")).text).toBe("// w\n")
+  })
+
+  it("redirects a component set's long address to its short one:  pages only", async () => {
+    const set = join(root, "packages", "epic-components")
+    mkdirSync(join(set, "elements"), { recursive: true })
+    mkdirSync(join(set, "_data"), { recursive: true })
+    writeFileSync(join(set, "index.html"), "<p>home</p>\n")
+    writeFileSync(join(set, "elements", "epic-item.html"), "<p>item</p>\n")
+    writeFileSync(join(set, "_data", "components.json"), "{}\n")
+    writeFileSync(join(set, "README.md"), "# set\n")
+    const page = await ask(port, "GET", "/packages/epic-components/elements/epic-item.html?a=1")
+    expect(page.status).toBe(302)
+    expect(page.headers.location).toBe("/epic-ui/elements/epic-item.html?a=1")
+    expect((await ask(port, "GET", "/packages/epic-components/")).headers.location).toBe("/epic-ui/")
+    // its data, parts and other files stay where they are;  a missing page is a 404
+    expect((await ask(port, "GET", "/packages/epic-components/_data/components.json")).status).toBe(200)
+    expect((await ask(port, "GET", "/packages/epic-components/README.md")).status).toBe(200)
+    expect((await ask(port, "GET", "/packages/epic-components/elements/missing.html")).status).toBe(404)
+    // a worktree's long address, to its short one there;  none without the page
+    expect(movedSetPage("/worktrees/w/packages/epic-components/", root)).toBe("/worktrees/w/epic-ui/")
+    expect(movedSetPage("/worktrees/none/packages/epic-components/", root)).toBeUndefined()
+    // App UI's folder holds code too:  a code folder with no page isn't redirected
+    expect(movedSetPage("/packages/app/components/spell-app/", root)).toBeUndefined()
+  })
+
+  it("redirects Epic UI's old element pages in the guides, once they're gone and the new ones are there", async () => {
+    const set = join(root, "packages", "epic-components")
+    const guides = join(root, "guides", "epic-components")
+    mkdirSync(join(set, "elements"), { recursive: true })
+    mkdirSync(join(guides, "elements"), { recursive: true })
+    writeFileSync(join(set, "index.html"), "<p>home</p>\n")
+    writeFileSync(join(set, "elements", "epic-phase.html"), "<p>phase</p>\n")
+    // the old copies still there (until the merge):  served as they are
+    writeFileSync(join(guides, "elements", "epic-phase.html"), "<p>old phase</p>\n")
+    writeFileSync(join(guides, "elements.html"), "<p>old overview</p>\n")
+    expect((await ask(port, "GET", "/guides/epic-components/elements/epic-phase.html")).status).toBe(200)
+    expect((await ask(port, "GET", "/guides/epic-components/elements.html")).status).toBe(200)
+    // gone:  redirected
+    rmSync(join(guides, "elements", "epic-phase.html"))
+    rmSync(join(guides, "elements.html"))
+    const old = await ask(port, "GET", "/guides/epic-components/elements/epic-phase.html?a=1")
+    expect(old.status).toBe(302)
+    expect(old.headers.location).toBe("/epic-ui/elements/epic-phase.html?a=1")
+    expect((await ask(port, "GET", "/guides/epic-components/elements.html")).headers.location).toBe("/epic-ui/")
+    // a page the set doesn't have:  no redirect;  the guides that stay are served
+    expect((await ask(port, "GET", "/guides/epic-components/elements/epic-gone.html")).status).toBe(404)
+    writeFileSync(join(guides, "review.html"), "<p>review</p>\n")
+    expect((await ask(port, "GET", "/guides/epic-components/review.html")).status).toBe(200)
   })
 
   it("reloads /ui/ pages when their files change, and when the bundle does", async () => {

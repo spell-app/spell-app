@@ -1,4 +1,4 @@
-import type { SiteDataFile, SiteTag } from "$/ui/docs-components/docs-components.types"
+import type { SiteDataFile, SiteNav, SiteTag } from "$/ui/docs-components/docs-components.types"
 
 import { INDEX_PAGE, PAGE_EXTENSION, SEARCH_SEPARATOR, type NavRow, type NavTopic } from "./UIDocsNav.types"
 
@@ -10,6 +10,7 @@ import { INDEX_PAGE, PAGE_EXTENSION, SEARCH_SEPARATOR, type NavRow, type NavTopi
  * - Rows:  `components` only;  the doc-only `<ui-docs-*>` tags (`docs`) are never listed.
  * - Topics:  in the data's order (`ValueSets.topics`:  newcomer topics first, Fomantic's groups last);
  *   a tag sits under EACH of its topics;  a topic no tag uses is left out.
+ * - A site other than Spell UI's (a component set, `/epic-ui/`) brings its own start and Foundation links (`nav`).
  * - Search:  blind to case, spacing, dashes and other punctuation (`date time` ~== `Date & Time` ~== `date-time`);
  *   matches a substring of the name, the tag, a topic (id or title) or another name (`aka`).
  * - Plain data, no Solid:  the element keeps the query in a signal and asks `matching()`.
@@ -21,10 +22,14 @@ export class NavIndex {
   /** Every topic with a tag, in the data's order, its rows A-Z. */
   readonly topics: readonly NavTopic[]
 
+  /** The site's own links and band titles, when it isn't Spell UI's (`SiteDataFile.nav`). */
+  readonly nav: SiteNav | undefined
+
   /** Rows by tag. */
   private readonly byTag: ReadonlyMap<string, NavRow>
 
   constructor(data: SiteDataFile) {
+    this.nav = data.nav
     const titles = new Map(data.topics.map((topic) => [topic.id, topic.title]))
     this.rows = [...data.components]
       .sort((a, b) => a.name.localeCompare(b.name))

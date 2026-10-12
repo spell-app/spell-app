@@ -1,0 +1,755 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>epic-section</title>
+    <meta
+      name="description"
+      content="The &lt;epic-section&gt; element: one section of a plan doc (Phases, Questions ... Log), an Overview sub-section, or a report."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="&lt;epic-section&gt;">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../../packages/epics/src/tool/PLAN-DOC.md"
+              icon="book"
+              aria-label="The markup rules, PLAN-DOC.md"
+              title="The markup rules, PLAN-DOC.md"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            &lt;epic-section&gt;
+            <ui-header
+              >The &lt;epic-section&gt; element: one section of a plan doc (Phases, Questions ... Log), an Overview
+              sub-section, or a report.</ui-header
+            >
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <p class="lede"><code>&lt;epic-section&gt;</code> is one section of a plan doc.</p>
+          <ul>
+            <li>
+              Its <code>kind</code> says what it holds: the phases, one kind of item (questions, todos ...), the log, an
+              Overview sub-section's prose, or a run's report.
+            </li>
+            <li>It draws the numbered title, the kind's icon, the fold, the count, and the state filter.</li>
+          </ul>
+          <!-- no ui-list.spell-meta here:  any ui-item element on the page leaves epic-item unstyled (issue I9 of epic-components) -->
+          <p class="meta">
+            Written for: anyone reading or writing a plan doc's markup, or changing this element.<br />
+            Status: <ui-label size="mini" color="green">built</ui-label> in
+            <a href="../../packages/epics/components/epic-section/" target="src-packages-epics-components-epic-section"
+              ><code title="packages/epics/components/epic-section/">epic-section/</code></a
+            >.<br />
+            Its vocabulary (attributes, slots, parts, children):
+            <a
+              href="../../packages/epics/components/epic-section/EpicSection.en.ts"
+              target="src-packages-epics-components-epic-section-epicsection-en-ts"
+              ><code title="packages/epics/components/epic-section/EpicSection.en.ts">EpicSection.en.ts</code></a
+            >.<br />
+            The component:
+            <a
+              href="../../packages/epics/components/epic-section/EpicSection.tsx"
+              target="src-packages-epics-components-epic-section-epicsection-tsx"
+              ><code title="packages/epics/components/epic-section/EpicSection.tsx">EpicSection.tsx</code></a
+            >.
+          </p>
+
+          <ui-section id="1-example" header="1. Example" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="eye"></ui-icon>
+
+            <epic-section id="decisions" kind="questions">
+              <epic-item id="q1" title="Which colour names can a window take?" status="open" state="attention">
+                <p>Which colour names the window command accepts.</p>
+              </epic-item>
+              <epic-item id="q2" title="Keep the old ids as anchors?" status="open" state="open">
+                <p>Talked over in a review; still open.</p>
+              </epic-item>
+              <epic-item id="q3" title="Where the code lives" status="decided" state="recent">
+                <p>
+                  A package of its own,
+                  <a href="../../packages/epics/" target="src-packages-epics" title="packages/epics"
+                    ><code>epics</code></a
+                  >.
+                </p>
+              </epic-item>
+            </epic-section>
+
+            <ui-accordion class="spell-code" styled>
+              <ui-title>The example above · 11 lines</ui-title>
+              <ui-content>
+                <ui-code language="html"
+                  ><script type="text/plain">
+                    <epic-section id="decisions" kind="questions">
+                      <epic-item id="q1" title="Which colour names can a window take?" status="open" state="attention">
+                        <p>Which colour names the window command accepts.</p>
+                      </epic-item>
+                      <epic-item id="q2" title="Keep the old ids as anchors?" status="open" state="open">
+                        <p>Talked over in a review;  still open.</p>
+                      </epic-item>
+                      <epic-item id="q3" title="Where the code lives" status="decided" state="recent">
+                        <p>A package of its own, <code>packages/epics</code>.</p>
+                      </epic-item>
+                    </epic-section>
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+            <ul>
+              <li>
+                Its title: <code>1. Questions</code> (its number is its place among the blocks around it), the question
+                icon, and the count <code>2/3</code>: two of three open.
+              </li>
+              <li>
+                At the title's end, the STATE FILTER: a grey filter chip, then one round chip per state its items are in
+                (red needs Owen, yellow open, green decided). Click a chip to hide that state's items.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="2-markup" header="2. Markup" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="code"></ui-icon>
+            <p>
+              From real plan docs: the Phases section (<a
+                href="../../epics/spell-element/spell-element.plan.html"
+                target="spell-element"
+                title="epics/spell-element/spell-element.plan.html"
+                ><code>spell-element.plan.html</code></a
+              >), and Overview sub-sections (<a
+                href="../../epics/epic-components/epic-components.plan.html"
+                target="epic-components"
+                title="epics/epic-components/epic-components.plan.html"
+                ><code>epic-components.plan.html</code></a
+              >), cut short:
+            </p>
+
+            <ui-accordion class="spell-code" styled>
+              <ui-title>Sections · 11 lines</ui-title>
+              <ui-content>
+                <ui-code language="html"
+                  ><script type="text/plain">
+                    <epic-section id="o1" kind="overview-part" title="Structure" source="parts/o1.html"></epic-section>
+
+                    <epic-section id="phases" kind="phases">
+                      <epic-phase id="p1" title="Component Packs" status="done" estimate="3-4h" source="parts/p1.html" commits></epic-phase>
+                    </epic-section>
+
+                    <epic-section id="decisions" kind="questions">...<epic-item>s...</epic-section>
+                    <epic-section id="log" kind="log" source="parts/log.html"></epic-section>
+
+                    <epic-section id="overnight" kind="report" title="Overnight · 2026-10-04">...prose...</epic-section>
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+            <ul>
+              <li>
+                The page's sections have FIXED ids, one per kind: <code>phases</code>, <code>decisions</code> (Questions
+                kept its old id), <code>judgements</code>, <code>caveats</code>, <code>todos</code>,
+                <code>issues</code>, <code>tests</code>, <code>log</code>. An Overview sub-section is <code>o1</code>,
+                <code>o2</code> ...; a report has its own.
+              </li>
+              <li>
+                The page's sections draw their own titles; an Overview sub-section and a report need <code>title</code>.
+              </li>
+              <li>
+                The last line is the report's shape, from
+                <a
+                  href="../../packages/epics/src/tool/PLAN-DOC.md"
+                  target="src-packages-epics-src-tool-plan-doc-md"
+                  title="packages/epics/src/tool/PLAN-DOC.md"
+                  ><code>PLAN-DOC.md</code></a
+                >: no live doc has one today.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="3-where-it-goes" header="3. Where it goes" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="compass"></ui-icon>
+
+            <ui-section id="epic-section-parents" header="Its parents" sticky collapsible dividing collapsed>
+              <ui-table celled compact striped unstackable>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Parent</th>
+                      <th>How</th>
+                      <th>How many</th>
+                      <th>As</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <a href="epic-page.html" target="src-packages-epic-components-elements-epic-page-html"
+                          ><code>&lt;epic-page&gt;</code></a
+                        >
+                      </td>
+                      <td>as <code>kind="report"</code></td>
+                      <td>any number</td>
+                      <td>
+                        Reports a run wrote (an overnight <code>/bedtime</code> report), after the Overview: unnumbered.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="epic-page.html" target="src-packages-epic-components-elements-epic-page-html"
+                          ><code>&lt;epic-page&gt;</code></a
+                        >
+                      </td>
+                      <td>as <code>kind="phases"</code></td>
+                      <td>one at most</td>
+                      <td>2. Phases.</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="epic-page.html" target="src-packages-epic-components-elements-epic-page-html"
+                          ><code>&lt;epic-page&gt;</code></a
+                        >
+                      </td>
+                      <td>as <code>kind="questions"</code></td>
+                      <td>one at most</td>
+                      <td>3. Questions.</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="epic-page.html" target="src-packages-epic-components-elements-epic-page-html"
+                          ><code>&lt;epic-page&gt;</code></a
+                        >
+                      </td>
+                      <td>as <code>kind="judgements"</code></td>
+                      <td>one at most</td>
+                      <td>4. Judgement calls.</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="epic-page.html" target="src-packages-epic-components-elements-epic-page-html"
+                          ><code>&lt;epic-page&gt;</code></a
+                        >
+                      </td>
+                      <td>as <code>kind="caveats"</code></td>
+                      <td>one at most</td>
+                      <td>5. Caveats.</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="epic-page.html" target="src-packages-epic-components-elements-epic-page-html"
+                          ><code>&lt;epic-page&gt;</code></a
+                        >
+                      </td>
+                      <td>as <code>kind="todos"</code></td>
+                      <td>one at most</td>
+                      <td>6. Todos.</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="epic-page.html" target="src-packages-epic-components-elements-epic-page-html"
+                          ><code>&lt;epic-page&gt;</code></a
+                        >
+                      </td>
+                      <td>as <code>kind="issues"</code></td>
+                      <td>one at most</td>
+                      <td>7. Issues.</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="epic-page.html" target="src-packages-epic-components-elements-epic-page-html"
+                          ><code>&lt;epic-page&gt;</code></a
+                        >
+                      </td>
+                      <td>as <code>kind="tests"</code></td>
+                      <td>one at most</td>
+                      <td>8. To test.</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="epic-page.html" target="src-packages-epic-components-elements-epic-page-html"
+                          ><code>&lt;epic-page&gt;</code></a
+                        >
+                      </td>
+                      <td>as <code>kind="log"</code></td>
+                      <td>one at most</td>
+                      <td>9. Log.</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="epic-overview.html" target="src-packages-epic-components-elements-epic-overview-html"
+                          ><code>&lt;epic-overview&gt;</code></a
+                        >
+                      </td>
+                      <td>as <code>kind="overview-part"</code></td>
+                      <td>any number</td>
+                      <td>The sub-sections, <code>o1</code>, <code>o2</code> ...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ui-table>
+            </ui-section>
+
+            <ui-section id="epic-section-children" header="Its children" sticky collapsible dividing collapsed>
+              <p>What it takes depends on its <code>kind</code>:</p>
+              <ui-table celled compact striped unstackable>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Child</th>
+                      <th>Where</th>
+                      <th>How many</th>
+                      <th>What it is</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>prose</td>
+                      <td><code>slot="title"</code></td>
+                      <td>one at most</td>
+                      <td>A title with markup.</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="epic-updated.html" target="src-packages-epic-components-elements-epic-updated-html"
+                          ><code>&lt;epic-updated&gt;</code></a
+                        >
+                      </td>
+                      <td><code>slot="changes"</code>, only when its <code>kind</code> is <code>phases</code></td>
+                      <td>any number</td>
+                      <td>
+                        An older doc's Plan changes (until 2026-10-11): a copy of each
+                        <code>&lt;epic-updated&gt;</code> of a phase still to do, its phase in <code>of</code>. Not
+                        drawn: each phase draws its own now, and the tool removes these on its next write.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>prose</td>
+                      <td>only when its <code>kind</code> is <code>overview-part</code> or <code>report</code></td>
+                      <td>any number</td>
+                      <td>An Overview sub-section's prose, or a report's.</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="epic-status.html" target="src-packages-epic-components-elements-epic-status-html"
+                          ><code>&lt;epic-status&gt;</code></a
+                        >
+                      </td>
+                      <td><code>slot="status"</code>, only when its <code>kind</code> is <code>overview-part</code></td>
+                      <td>any number</td>
+                      <td>
+                        An Overview sub-section's status cards from Claude, oldest first (<code>plan-doc status</code>).
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="epic-phase.html" target="src-packages-epic-components-elements-epic-phase-html"
+                          ><code>&lt;epic-phase&gt;</code></a
+                        >
+                      </td>
+                      <td>only when its <code>kind</code> is <code>phases</code></td>
+                      <td>any number</td>
+                      <td>The phases, in order.</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="epic-item.html" target="src-packages-epic-components-elements-epic-item-html"
+                          ><code>&lt;epic-item&gt;</code></a
+                        >
+                      </td>
+                      <td>
+                        only when its <code>kind</code> is <code>questions</code> or <code>judgements</code> or
+                        <code>caveats</code> or <code>todos</code> or <code>issues</code> or <code>tests</code>
+                      </td>
+                      <td>any number</td>
+                      <td>The items, their id's letter the section's (<code>q</code> in Questions).</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="epic-event.html" target="src-packages-epic-components-elements-epic-event-html"
+                          ><code>&lt;epic-event&gt;</code></a
+                        >
+                      </td>
+                      <td>only when its <code>kind</code> is <code>log</code></td>
+                      <td>any number</td>
+                      <td>The log, oldest first.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ui-table>
+            </ui-section>
+          </ui-section>
+
+          <ui-section id="4-attributes" header="4. Attributes" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="table columns"></ui-icon>
+
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Values</th>
+                    <th>Meaning</th>
+                    <th>Required</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <code>id</code><br /><span class="meta">JS property: <code>epicId</code></span>
+                    </td>
+                    <td>text: anchor</td>
+                    <td>
+                      Its id, which links use: FIXED per kind (<code>phases</code>, <code>decisions</code> for Questions
+                      ...); <code>o1</code>, <code>o2</code> ... for an Overview sub-section; a report's own
+                      (<code>overnight</code>).
+                    </td>
+                    <td>yes</td>
+                  </tr>
+                  <tr>
+                    <td><code>kind</code></td>
+                    <td>
+                      <code>overview-part</code>, <code>phases</code>, <code>questions</code>, <code>judgements</code>,
+                      <code>caveats</code>, <code>todos</code>, <code>issues</code>, <code>tests</code>,
+                      <code>log</code>, <code>report</code>
+                    </td>
+                    <td>
+                      What it holds: <code>phases</code> its <code>&lt;epic-phase&gt;</code>s;
+                      <code>questions</code> ... <code>tests</code> its <code>&lt;epic-item&gt;</code>s;
+                      <code>log</code> its <code>&lt;epic-event&gt;</code>s; <code>overview-part</code> and
+                      <code>report</code> prose.
+                    </td>
+                    <td>yes</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <code>title</code><br /><span class="meta">JS property: <code>epicTitle</code></span>
+                    </td>
+                    <td>text</td>
+                    <td>
+                      An Overview sub-section's title, WITHOUT its number (<code>Structure</code>, drawn as
+                      <code>1.1 Structure</code>), or a report's (<code>Overnight · 2026-10-04</code>): required there
+                      (or a <code>slot="title"</code> child, for a title with markup). The page's sections draw their
+                      own.
+                    </td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><code>source</code></td>
+                    <td>text</td>
+                    <td>
+                      Its body's part file (<code>parts/o3.html</code>, <code>parts/log.html</code>), loaded into its
+                      children when it opens.
+                    </td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><code>part-ids</code></td>
+                    <td>text: ids</td>
+                    <td>The ids inside its part file: a link to one loads the body first, then lands.</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><code>open</code></td>
+                    <td>boolean: there or not</td>
+                    <td>
+                      Unfolded: PAGE state, never written in a doc (plan docs open folded). A click on the title, a link
+                      to it (or into it) and find-in-page set it; set it from code to open it.
+                    </td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ui-section id="epic-section-slots" header="Slots" sticky collapsible dividing collapsed>
+              <p>Where its children show: a child goes in a slot by its <code>slot</code> attribute.</p>
+              <ui-table celled compact striped unstackable>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Slot</th>
+                      <th>What goes in it</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>(default)</td>
+                      <td>Its phases, items, log events or prose.</td>
+                    </tr>
+                    <tr>
+                      <td><code>title</code></td>
+                      <td>A title with markup, in place of <code>title</code>.</td>
+                    </tr>
+                    <tr>
+                      <td><code>changes</code></td>
+                      <td>
+                        An older doc's Plan changes copies in the Phases section (until 2026-10-11:
+                        <code>&lt;epic-updated slot="changes" of="3" at="..."&gt;</code>). Not drawn: each phase draws
+                        its own Plan changes box now, and the plan-doc tool removes these on its next write.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><code>status</code></td>
+                      <td>
+                        An Overview sub-section's status cards from Claude (<code
+                          >&lt;epic-status slot="status"&gt;</code
+                        >, P13): at the end of its body, above the note box.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ui-table>
+            </ui-section>
+
+            <ui-section id="epic-section-parts" header="Parts" sticky collapsible dividing collapsed>
+              <p>Pieces of what it draws, which a page's CSS can style from outside with <code>::part(name)</code>.</p>
+              <ui-table celled compact striped unstackable>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Part</th>
+                      <th>What it is</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>base</code></td>
+                      <td>The element's box.</td>
+                    </tr>
+                    <tr>
+                      <td><code>section</code></td>
+                      <td>
+                        The <code>&lt;ui-section&gt;</code> drawing the title bar and fold: its own parts through
+                        <code>::part()</code> from inside.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><code>body</code></td>
+                      <td>Around its children: sets <code>--epic-stack</code> for them.</td>
+                    </tr>
+                    <tr>
+                      <td><code>note</code></td>
+                      <td>The <code>Loads from parts/x.html ...</code> line, when its part can't load.</td>
+                    </tr>
+                    <tr>
+                      <td><code>tools</code></td>
+                      <td>
+                        At the title's end: the Phases section's Files / Verify toggles; an item section's state filter;
+                        an Overview sub-section's review buttons.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><code>filter</code></td>
+                      <td>
+                        An item section's state filter: a grey filter chip (show all / only what needs you), then one
+                        round chip per state its items are in, filled while that state's items show.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><code>hidden-note</code></td>
+                      <td>Under a filtered list: "3 hidden · show all".</td>
+                    </tr>
+                    <tr>
+                      <td><code>empty</code></td>
+                      <td>An item section with no items: "None yet".</td>
+                    </tr>
+                    <tr>
+                      <td><code>review-buttons</code></td>
+                      <td>
+                        The review buttons (P9): the note bubble, a pick's letter, Approve / Revisit / Make Todo, then
+                        Do Now. Only while the page is reviewed (served by the page server, its inbox answering).
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><code>note-box</code></td>
+                      <td>The note box: the note, then Revisit Later and Make Todo.</td>
+                    </tr>
+                    <tr>
+                      <td><code>said</code></td>
+                      <td>A note marked and closed: <code>You · revisit soon · sent 10:42</code>, the note, Edit.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ui-table>
+            </ui-section>
+
+            <ui-section id="epic-section-states" header="States" sticky collapsible dividing collapsed>
+              <p>Custom states: CSS can match them with <code>epic-section:state(name)</code>.</p>
+              <ui-table celled compact striped unstackable>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>State</th>
+                      <th>When</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>:state(open)</code></td>
+                      <td>Unfolded.</td>
+                    </tr>
+                    <tr>
+                      <td><code>:state(loaded)</code></td>
+                      <td>Its <code>source</code> part is in.</td>
+                    </tr>
+                    <tr>
+                      <td><code>:state(error)</code></td>
+                      <td>Its <code>source</code> part couldn't be loaded.</td>
+                    </tr>
+                    <tr>
+                      <td><code>:state(tools)</code></td>
+                      <td>Its title has tools: the Phases toggles, or a state filter (items in it).</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ui-table>
+            </ui-section>
+
+            <ui-section id="epic-section-events" header="Events" sticky collapsible dividing collapsed>
+              <ui-table celled compact striped unstackable>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Event</th>
+                      <th>Cancelable</th>
+                      <th>When</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>ui-open</code></td>
+                      <td>yes</td>
+                      <td>About to unfold: its title was clicked. Cancel to stay folded. After the fact for a link.</td>
+                    </tr>
+                    <tr>
+                      <td><code>ui-close</code></td>
+                      <td>yes</td>
+                      <td>About to fold: its title was clicked. Cancel to stay open.</td>
+                    </tr>
+                    <tr>
+                      <td><code>ui-load</code></td>
+                      <td></td>
+                      <td>
+                        The <code>source</code> part arrived and is in its children (as
+                        <code>&lt;ui-section source&gt;</code>'s).
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><code>ui-error</code></td>
+                      <td>yes</td>
+                      <td>The <code>source</code> part couldn't be loaded; its note says so unless cancelled.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ui-table>
+            </ui-section>
+          </ui-section>
+
+          <ui-section id="5-how-it-looks" header="5. How it looks" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="palette"></ui-icon>
+            <ul>
+              <li>
+                <b>Its title:</b> numbered by its place among the page's blocks (<code>3. Questions</code>); an Overview
+                sub-section by its parent's (<code>1.2 Why</code>); a report not at all, so the sections after it keep
+                their numbers. The kind's icon: <code>phases</code> layers, <code>questions</code> a file with a
+                question mark, <code>judgements</code> a gavel, <code>caveats</code> a warning triangle,
+                <code>todos</code> a checklist, <code>issues</code> a bug, <code>tests</code> a flask,
+                <code>log</code> a clock turning back.
+              </li>
+              <li>
+                <b>The count</b>, on the title: <code>open/all</code> of its items or phases; open means any status but
+                <code>done</code>, <code>decided</code> or <code>canceled</code>. None when it holds nothing. Counted
+                again whenever an item comes, goes or changes.
+              </li>
+              <li>
+                <b>The state filter</b> (item sections): in
+                <a href="../../guides/epic-components/colours.html" target="src-guides-epic-components-colours-html"
+                  >the colour scheme</a
+                >, red needs Owen, blue Claude is working on it, yellow open, green decided or done, grey no longer
+                relevant. A chip is FILLED while its items show. The grey chip flips between everything and only what
+                needs Owen. A filtered list says <code>3 hidden · show all</code> under it. Remembered per page.
+              </li>
+              <li>
+                <b>Phases</b>: its title holds the Files and Verify toggles (show or hide those fields in every phase,
+                remembered per page). No box above the phases since 2026-10-11: each phase shows its own changes, in a
+                <b>Plan changes</b> box atop its body (<a
+                  href="epic-phase.html"
+                  target="src-packages-epic-components-elements-epic-phase-html"
+                  ><code>&lt;epic-phase&gt;</code></a
+                >).
+              </li>
+              <li><b>An empty item section</b> says "None yet".</li>
+              <li>
+                <b>An Overview sub-section</b> sits on the row band; while the page is reviewed it has review buttons
+                (Revisit, Make Todo, Do Now) and a note box, with Claude's status cards above the note box.
+              </li>
+              <li>
+                <b>Folding:</b> a click on the title folds it; on a plan doc every section starts folded, and the page
+                remembers what you opened. With <code>source</code>, its body loads from its part file the first time it
+                opens. Opened from disk, it can't load, and says
+                <code>Loads from parts/x.html when opened (needs the page server)</code>.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="6-written-by" header="6. Written by" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="terminal"></ui-icon>
+            <ul>
+              <li>
+                <code>spell dev plan-doc new</code>: the template's sections, each kind once, in order, with its fixed
+                id; and one Overview sub-section, <code>o1</code>.
+              </li>
+              <li>
+                Its children, by kind: <code>spell dev plan-doc add-phase</code> (phases),
+                <code>spell dev plan-doc add</code> and <code>spell dev plan-doc decide</code> (items),
+                <code>spell dev plan-doc log</code> and every command that logs (the log).
+              </li>
+              <li>
+                An older doc's Plan changes copies (<code>slot="changes"</code>): removed by the tool on its next write,
+                which puts each phase's changes in that phase instead.
+              </li>
+              <li>
+                <code>spell dev plan-doc status &lt;name&gt; o3 underway | done</code>: Claude's status cards on an
+                Overview sub-section.
+              </li>
+              <li>
+                <code>spell dev plan-doc split</code> / <code>spell dev plan-doc join</code>: move a body into a part
+                file (<code>source</code>, <code>part-ids</code>) and back.
+              </li>
+              <li>
+                <code>spell dev plan-doc overnight &lt;name&gt; remove</code>: removes an older doc's Overnight report
+                once read.
+              </li>
+              <li>An Overview sub-section's prose: by hand, by the Claude session planning the epic.</li>
+            </ul>
+          </ui-section>
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">
+              Last checked 2026-10-11 against branch <code>epic-workflow</code>: the tables come from its vocabulary
+              file, so they change with it.
+            </p>
+          </footer>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

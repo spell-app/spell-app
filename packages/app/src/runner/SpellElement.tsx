@@ -24,6 +24,7 @@ import { spellElementVocabulary } from "./SpellElement.en"
  *   What the tag draws with is looked up when it draws (`SPELL_ELEMENTS`), so a program run again takes it over.
  * - Part of `spell-runtime.js`:  NEVER value-imports `$/core`.
  *   Each runtime copy hands itself over in `installSpellElements()`.
+ * - SEE:  its App UI page, `packages/app/components/spell-element.html` (`/app-ui/spell-element.html`).
  ****************/
 export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
   @E.proto static vocabulary = spellElementVocabulary

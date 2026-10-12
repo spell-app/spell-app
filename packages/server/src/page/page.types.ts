@@ -72,6 +72,42 @@ export const UI_SITE = {
 } as const
 
 /**
+ * A COMPONENT SET:  the docs pages of one set of elements, in Spell UI's page shape, kept in a package folder beside
+ * (or near) the elements' code and served at a short address of its own (epic `epic-workflow`, P10 / P11, J30).
+ * - `name`:  what prose calls it, e.g. `Epic UI`
+ * - `prefix`:  the address it's served at, e.g. `/epic-ui` (and `/worktrees/<w>/epic-ui` for a worktree's)
+ * - `dir`:  its folder, relative to the checkout, e.g. `packages/epic-components`:  tracked, versioned with its branch
+ */
+export type ComponentSet = {
+  readonly name: string
+  readonly prefix: string
+  readonly dir: string
+}
+
+/**
+ * Every component set besides Spell UI (`UI_SITE`), in the top bar's order.
+ * - Served by the page server through ONE overlay (`componentSetPath()`):
+ *   - `<prefix>/_assets/...`:  the sets' build of Spell UI's site (`SETS_BUNDLE`), so a set's pages load `site.js`
+ *     and `site.css` as Spell UI's do, and its shell (`SiteShell`, `SiteRouter`) takes the set's folder as its root
+ *   - `<prefix>/...`:  the set's own folder:  its pages, `_parts/` (its layout), `_data/` (its side column's data)
+ * - Its pages' links are written as from their SERVED address (`/epic-ui/elements/x.html`), so they hold at
+ *   `/worktrees/<w>/epic-ui/` too;  `doc-links.js` checks them that way (`Linker`'s `served`)
+ * - The long address (`/packages/epic-components/x.html`) redirects to the short one:  one address per page
+ * - Comments:  the comment route takes its pages, kept in `<page>.inbox.json` beside each (git-ignored)
+ */
+export const COMPONENT_SETS = [
+  { name: "Epic UI", prefix: "/epic-ui", dir: "packages/epic-components" },
+  { name: "App UI", prefix: "/app-ui", dir: "packages/app/components" }
+] as const satisfies readonly ComponentSet[]
+
+/**
+ * The component sets' bundle, relative to the checkout:  Spell UI's site built again from `site/_src/sets.ts`, with
+ * `globalThis.SpellUI` for the component packs their examples use (`SitePacks`);  a folder of Spell UI's bundle, so
+ * built, ignored and waited for with it.
+ */
+export const SETS_BUNDLE = "packages/ui/site/_assets/sets"
+
+/**
  * The bundles' folders, relative to the checkout:  built on demand, never committed (git-ignored).
  * - so the page server builds the stale ones when it starts (`BundleBuild`),
  *   and a request for a file in one waits while that runs

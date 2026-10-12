@@ -309,6 +309,8 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
    * Star or un-star `tag`;  remembered, `ui-favorite`.
    * - Un-starring from the Favourites list removes the clicked row:
    *   focus moves to the tag's star in the list below, else the search box.
+   * - Stored tags this site doesn't list stay stored:  every site on this bundle shares the key (`STORAGE_KEYS`), so
+   *   starring an `<epic-*>` element on Epic UI's pages keeps the viewer's Spell UI favourites.
    */
   private toggleFavorite({ tag, star, event }: { tag: string; star: Element; event: Event }) {
     const favorites = new Set(this.favorites)
@@ -318,7 +320,8 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
     this.starredTags = favorites
     const rows = this.navIndex?.rows ?? []
     const list = rows.filter((row) => favorites.has(row.tag)).map((row) => row.tag)
-    NavPreferences.setFavorites(list)
+    const elsewhere = NavPreferences.favorites().filter((stored) => !this.navIndex?.row(stored))
+    NavPreferences.setFavorites([...list, ...elsewhere])
     this.send("ui-favorite", { tag, favorite: isFavorite, favorites: list, originalEvent: event })
     if (isFavorite || !star.closest(`.${FAVORITES}`)) return
     E.afterSolidUpdate(() => {
@@ -495,7 +498,7 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
           part={this.partForName("menu")}
           aria-label={this.attributes["aria-label"] ?? this.translationForKey("navLabel")}
         >
-          {this.group({ group: "start", title: "getStarted", body: this.pages(TOP_PAGES) })}
+          {this.group({ group: "start", title: "getStarted", body: this.pages(this.startPages) })}
           <Show when={this.favoriteRows.length}>
             {this.group({
               group: FAVORITES,
@@ -508,7 +511,9 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
             })}
           </Show>
           {this.group({ group: "components", title: "components", body: this.components(), extra: this.count() })}
-          {this.group({ group: "foundation", title: "foundation", body: this.pages(FOUNDATION_PAGES) })}
+          <Show when={this.foundationPages.length}>
+            {this.group({ group: "foundation", title: "foundation", body: this.pages(this.foundationPages) })}
+          </Show>
           <Show when={this.slots.hasContent(this.slotForName("footer"))}>
             <div class={[SLOTTED, FOOTER]}>
               <slot name={this.slotForName("footer")} />
@@ -569,7 +574,7 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
             aria-expanded={isOpen() ? "true" : "false"}
             aria-controls={fold}
           >
-            <span class={UIT.TITLE}>{this.translationForKey(title)}</span>
+            <span class={UIT.TITLE}>{this.groupTitle(group, title)}</span>
             {extra}
             {this.chevron()}
           </button>
@@ -728,6 +733,26 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
     )
   }
 
+  /**
+   * The links above the components:  the site's own (`SiteDataFile.nav`), else Spell UI's (`TOP_PAGES`).
+   * - None until the data has loaded (Spell UI's if it fails), so another site never shows Spell UI's for a moment.
+   */
+  get startPages(): readonly NavPage[] {
+    return this.navIndex ? (this.navIndex.nav?.start ?? TOP_PAGES) : this.loadError ? TOP_PAGES : []
+  }
+
+  /** The links below the components, as `startPages`:  the site's own, else Spell UI's (`FOUNDATION_PAGES`). */
+  get foundationPages(): readonly NavPage[] {
+    return this.navIndex ? (this.navIndex.nav?.foundation ?? FOUNDATION_PAGES) : this.loadError ? FOUNDATION_PAGES : []
+  }
+
+  /** `group`'s band title:  the site's own (`SiteNav.titles`), else the vocabulary's `title`. */
+  private groupTitle(group: NavGroup, title: DocsNavText): string {
+    const titles = this.navIndex?.nav?.titles
+    const own = group === "favorites" ? undefined : titles?.[group]
+    return own ?? this.translationForKey(title)
+  }
+
   /** A list of hand-written pages' rows. */
   private pages(pages: readonly NavPage[]): JSX.Element {
     return (
@@ -752,7 +777,7 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
           <span class={UIT.ICON}>
             <ui-icon name={page.icon} />
           </span>
-          <span class={NAME}>{this.translationForKey(page.text)}</span>
+          <span class={NAME}>{page.label ?? (page.text ? this.translationForKey(page.text) : page.id)}</span>
         </a>
       </li>
     )

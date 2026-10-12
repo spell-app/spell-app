@@ -9,24 +9,28 @@ function litTab(path: string): string | undefined {
 }
 
 describe("the site header's tabs", () => {
-  it("are in Owen's order (claude-design Q6), each list page its tab's home", () => {
+  it("are in Owen's order (epic-workflow J40), each list page its tab's home", () => {
     expect(PROPERTIES.map((property) => property.name)).toEqual([
-      "Epics",
       "Guides",
-      "Brand",
-      "Spell UI",
-      "Templates",
       "Goals",
-      "App"
+      "Epics",
+      "Epic/UI",
+      "Spell/UI",
+      "App",
+      "App/UI",
+      "Brand",
+      "Templates"
     ])
     expect(PROPERTIES.map((property) => property.path)).toEqual([
-      "epics/index.html",
       "guides/index.html",
-      "brand/index.html",
-      "/ui/",
-      "templates/index.html",
       "goals/index.html",
-      "/editor/"
+      "epics/index.html",
+      "/epic-ui/",
+      "/ui/",
+      "/editor/",
+      "/app-ui/",
+      "brand/index.html",
+      "templates/index.html"
     ])
     expect(SITE_HOME).toBe("pages/index.html")
   })
@@ -43,10 +47,22 @@ describe("the site header's tabs", () => {
     ["/brand/compare.html", "Brand"],
     ["/brand/spell-design-system/Logo.spell.html", "Brand"],
     ["/brand/components/ui-brand-logo.html", "Brand"],
-    ["/ui/", "Spell UI"],
-    ["/ui/components/ui-card.html", "Spell UI"],
-    ["/packages/ui/site/index.html", "Spell UI"],
-    ["/worktrees/w/ui/components/ui-card.html", "Spell UI"],
+    ["/ui/", "Spell/UI"],
+    ["/ui/components/ui-card.html", "Spell/UI"],
+    ["/packages/ui/site/index.html", "Spell/UI"],
+    ["/worktrees/w/ui/components/ui-card.html", "Spell/UI"],
+    // the component sets:  their short address, a worktree's, and their folder's long one (a file:// page too)
+    ["/epic-ui/", "Epic/UI"],
+    ["/epic-ui/elements/epic-item.html", "Epic/UI"],
+    ["/worktrees/w/epic-ui/elements/epic-item.html", "Epic/UI"],
+    ["/packages/epic-components/elements/epic-item.html", "Epic/UI"],
+    ["/Users/owen/www/spell-app/spell-app/packages/epic-components/index.html", "Epic/UI"],
+    ["/app-ui/", "App/UI"],
+    ["/app-ui/spell-app.html", "App/UI"],
+    ["/worktrees/w/app-ui/", "App/UI"],
+    ["/packages/app/components/index.html", "App/UI"],
+    // Epic UI's old element pages, until the merge:  guides
+    ["/guides/epic-components/elements/epic-item.html", "Guides"],
     ["/templates/index.html", "Templates"],
     // the plan template is a template, not an epic;  the goals templates aren't goals
     ["/templates/epics/plan.html", "Templates"],

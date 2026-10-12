@@ -13,6 +13,7 @@ import "./RunnerPane.css"
  *   and gives it Fomantic's icon names (`<ui-root icons="fomantic">`, `<spell-app>`'s default `icons`).
  * - HACK: each tab's icon is a slotted `<ui-icon>`, not the item's `icon`:
  *   `<ui-menu>` draws that at 0 x 0 (plan doc I1, as `$/app/solid`'s `<Action>`).
+ * - SEE:  its App UI page, `packages/app/components/RunnerPane.html` (`/app-ui/RunnerPane.html`).
  ****************/
 export function RunnerPane<Id extends string>(props: RunnerPaneProps<Id>) {
   return (
