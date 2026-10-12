@@ -447,7 +447,7 @@ function planDocsIn(dir) {
  * each, takes over one older than a minute (a crashed holder's).
  * - plain node:  this script runs without the alias table, so it can't import `$/server`
  */
-function withLocks(files, fn) {
+export function withLocks(files, fn) {
   const held = []
   try {
     for (const file of files) {

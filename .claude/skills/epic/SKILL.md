@@ -910,6 +910,28 @@ A REQUEST is something Owen asked for in another session, sent here instead of d
    - a phase under way:  no modal;  the new work waits its turn.
 - A request that needs no phase (already done, a duplicate):  `spell epic file <epic> r3 "<why>"`, and say so.
 
+## Migrations:  bringing epic pages up to today's markup
+
+Epic `epic-workflow` P8.  `spell dev plan-doc migrate` runs named, dated steps over pages, by page kind
+([PLAN-DOC.md](../../../packages/epics/src/tool/PLAN-DOC.md), "Migrations").
+- After ANY change to epic page markup (or another page kind's):  its step goes in the same commit (epics'
+  `AGENTS.md`, "Rules").  Before merging:  `spell dev plan-doc migrate --all --dry-run`, its report in the phase's
+  summary.
+- Once it's on `main` (a standing epic:  right after the phase merges):
+  1. `spell dev plan-doc migrate --all --notify`:  idle epics are migrated there and then;  each epic with a RUNNING
+     session is skipped, and printed under `TELL:` with its line.
+  2. Send each `TELL:` line, as is, with `SendMessage` to the session it names (`to 🚧 seo:  ...`):  the command
+     can't send them itself.  One message each, never a request (`spell epic send`):  it's a chore, not a phase.
+  3. Report one line:  "migrated N epics;  told seo, docs".
+- A session RECEIVING a migrate message ("New epic page migration step ... run `spell dev plan-doc migrate <epic>`"):
+  - run it on its OWN epic only, at its leisure:  now if idle or between phases;  else at the end of the phase under
+    way, when running it now would disrupt that work
+  - it may commit what changed WITHOUT asking (Owen's standing OK, 2026-10-11), as `<epic> migrate <step>:  ...`
+    - epic pages are shared content, committed by the turn-end hook:  usually nothing is left for the branch
+    - "commit" means the branch's own changes, when a step touched tracked files
+  - what the report leaves for a person ("left for you":  a link to a gone id, a comment whose words changed):
+    fix it in the doc, or bring it up at the next review
+
 ## Cheat sheet (`spell dev plan-doc ...`, from anywhere in the repo)
 
 ```
@@ -935,8 +957,10 @@ log <name> "text"                                   timestamped line in the doc'
 bedtime <name> start "P3-P6" | done "summary"       bedtime mode on / off:  the run's changes stay green (`/bedtime`)
 overnight <name> remove                             an older doc's Overnight report (before 2026-10-05), once read
 prompt <name> "text" | --file f                     set the prompt quoted in the Overview
-migrate <name>                                      an older doc (any layout) into the current one;  its D
-                                                    items merge into its questions
+migrate [<kind>] [<name>... | --all] [--file f] [--step s] [--dry-run] [--notify] [--list]
+                                                    pages up to today's markup, every step of their kind, oldest
+                                                    first, safe to run again;  alone:  every kind, every page;
+                                                    --notify:  running epics told (TELL lines), idle ones migrated
 summary <name> [--json]                             phases, next phase, open questions/issues/caveats/todos
 check <name> [--no-browser]                         ids, links, phases, then the browser check
 open <name>                                         show in the side bar's Review tab
