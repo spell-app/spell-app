@@ -14,7 +14,8 @@ async def ws():
   - Their game lives in this process's memory:  a restart ends it.
 - Each page, a tab, gets the whole state when it opens, then a patch after each of its messages,
   and at each pause (`core.before_pause`):  so a game animates.
-- A message that fails is logged, and the page goes on.
+- A message that fails is logged, and the page goes on:
+  it's sent `{"error": "ValueError: ...", "message": {...}}`, which its console shows as `< ERROR >`.
 """
 
 import asyncio
@@ -29,6 +30,9 @@ from typing import Any, Protocol
 from spell_core.core import SpellCore, using_core
 from spell_core.page import PageSession
 from spell_core.run import run_program
+
+# What an error frame names its message by:  `{"error": "ValueError: ..."}` -- the javascript core's `ERROR_KEY`.
+ERROR_KEY = "error"
 
 # The cookie naming a visitor:  see `visitor_of()`.
 VISITOR_COOKIE = "spell-visitor"
@@ -114,8 +118,10 @@ class SpellSessions:
                     message = json.loads(await socket.receive())
                     try:
                         await page.run_async(message)
-                    except Exception:
+                    except Exception as error:
                         log.exception("spell_quart:  the page's message %r failed", message)
+                        # the page shows it in its console, `< ERROR >`:  see `connectPage()` in the core's `page.ts`
+                        await send(json.dumps({ERROR_KEY: f"{type(error).__name__}: {error}", "message": message}))
                     await visit.send_changes()
             finally:
                 visit.pages.remove((page, send))

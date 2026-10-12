@@ -9,6 +9,9 @@ page_html("Solitaire", elements="/Solitaire.elements.js")
 - The program's drawing half, `<Project>.elements.js`, and those of the projects it imports (`projects`).
 - Semantic UI's CSS, which spell's drawings use (`ui button`), and the program's own, in its drawing half.
 - Its app draws into `<div id="spell-app-root">`, as `App.start()` draws.
+- Each frame to and from the program is written to the browser's console, folded, one line each, its badge coloured:
+  `SENDING >  event card-click (#26)` (blue), `RECEIVED <  patch:  Card #26, StockPile #3` (green);
+  and anything that goes wrong, `< ERROR >` (red).
 """
 
 import html
@@ -20,7 +23,9 @@ from pathlib import Path
 ASSETS_URL = "/spell"
 
 
-def page_html(title: str, elements: str, projects: dict[str, str] | None = None, socket: str = "/ws") -> str:
+def page_html(
+    title: str, elements: str, projects: dict[str, str] | None = None, socket: str = "/ws", log_frames: bool = True
+) -> str:
     """The page:  see the module's docs.
 
     - `elements`:  the URL of the program's drawing half, e.g. `/Solitaire.elements.js`.
@@ -28,6 +33,8 @@ def page_html(title: str, elements: str, projects: dict[str, str] | None = None,
       by the module name the program's drawing half imports it as:
       `{"@spell/project/@system:library:cards": "/cards.elements.js"}`.
     - `socket`:  the path of the WebSocket it connects to.
+    - `log_frames`:  write each frame to the browser's console, both ways, to watch the page and the program talk
+      (`logFrame()`, in the javascript core's `page.ts`).  `?frames=off` on the page's address turns it off.
     """
     projects = projects or {}
     imports = {"@spell/core": f"{ASSETS_URL}/spell-page.js", **projects}
@@ -49,7 +56,8 @@ def page_html(title: str, elements: str, projects: dict[str, str] | None = None,
       {chr(10).join(modules)}
       import * as program from {json.dumps(elements)}
       const url = `${{location.protocol === "https:" ? "wss" : "ws"}}://${{location.host}}{socket}`
-      connectPage({{ modules: [{", ".join(names)}], url }})
+      const log = {json.dumps(log_frames)} && new URLSearchParams(location.search).get("frames") !== "off"
+      connectPage({{ modules: [{", ".join(names)}], url, log }})
     </script>
   </body>
 </html>

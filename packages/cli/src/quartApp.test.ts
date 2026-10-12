@@ -82,12 +82,35 @@ describe("a Python spell app, in a real browser", () => {
     expect(card).toMatchObject({ "@id": cardId, pile: { "@id": joined!["@id"] } })
     expect(joined!["@items"].at(-1)).toEqual({ "@id": cardId })
 
+    // the console shows each frame, both ways, its badge first:  the state, the click up, the two patches down
+    const frames = page.logged.filter((line) => /^%c(SENDING >|RECEIVED <)%c/.test(line))
+    expect(frames[0]).toMatch(/^%cRECEIVED <%c {2}state: {2}game, /)
+    expect(frames).toContainEqual(expect.stringMatching(`^%cSENDING >%c  event card-click \\(#${cardId}\\)`))
+    expect(frames).toContainEqual(
+      expect.stringMatching(`^%cRECEIVED <%c  patch:  StockPile #\\d+, Card #${cardId}, DiscardPile #`)
+    )
+
     // each patch a small part of the whole state
     const size = (frame: unknown) => JSON.stringify(frame).length
     for (const each of patches) expect(size(each)).toBeLessThan(size(state) / 4)
     process.stderr.write(
       `Solitaire's frames:  the state ${size(state)} characters, then patches of ${patches.map(size).join(", ")}\n`
     )
+    await page.page.context().close()
+  }, 60_000)
+
+  test("a message the program can't run comes back as an error:  < ERROR > in the console", async () => {
+    const page = await opened()
+    // what a stand-in in the drawing half would send, for a function the program doesn't have
+    // (a string:  vitest would rewrite a function's `import()`)
+    await page.page.evaluate(`import("@spell/core").then((core) => core.sendCall("no_such_function", []))`)
+    await expect
+      .poll(() => page.logged.find((line) => line.startsWith("%c< ERROR >%c")), { timeout: 5000 })
+      .toMatch(/the program couldn't run a message: {2}ValueError: The program has no function 'no_such_function'/)
+    // and the page goes on:  a click still plays
+    const discards = await page.page.locator(".Pile.Discards").innerHTML()
+    await page.page.locator(".Pile.Stock .Card").last().click()
+    await expect.poll(() => page.page.locator(".Pile.Discards").innerHTML(), { timeout: 5000 }).not.toBe(discards)
     await page.page.context().close()
   }, 60_000)
 
@@ -152,11 +175,16 @@ describe("a Python spell app, in a real browser", () => {
  * A new visitor's page, open on the app -- or, given `context`, another tab of that browser's:
  * its board drawn, with each message it sent and each frame it received, read as JSON.
  * - Received:  the whole state first, then a patch, a list of the things that changed (epic `python-target` P30).
+ * - Logged:  each line the page wrote to its console, e.g. each frame, both ways (`logFrame()`).
  */
-async function opened(context?: BrowserContext): Promise<{ page: Page; sent: unknown[]; received: unknown[] }> {
+async function opened(
+  context?: BrowserContext
+): Promise<{ page: Page; sent: unknown[]; received: unknown[]; logged: string[] }> {
   const page = await (context ?? (await browser.newContext())).newPage()
   const sent: unknown[] = []
   const received: unknown[] = []
+  const logged: string[] = []
+  page.on("console", (message) => logged.push(message.text()))
   const read = (payload: string | Buffer) => JSON.parse(String(payload)) as unknown
   page.on("websocket", (socket) => {
     socket.on("framesent", ({ payload }) => sent.push(read(payload)))
@@ -164,7 +192,7 @@ async function opened(context?: BrowserContext): Promise<{ page: Page; sent: unk
   })
   await page.goto(url)
   await page.locator(".Pile.Stock").waitFor({ timeout: 20_000 })
-  return { page, sent, received }
+  return { page, sent, received, logged }
 }
 
 /** SIDE EFFECT:  compile the temp Solitaire to `py`. */
