@@ -93,7 +93,8 @@ async def ws():
 
 if __name__ == "__main__":
     # $PORT, if set:  5000 is often taken on a Mac (AirPlay)
-    app.run(port=int(os.environ.get("PORT", "5000")))
+    # no reloader:  a restart ends every visitor's game, and Quart's restarts this as a module it can't find
+    app.run(port=int(os.environ.get("PORT", "5000")), use_reloader=False)
 `
   return `${HASH_LINE}${hashOf(body)}:  edit below, and compiling again leaves this file be.\n${body}`
 }
