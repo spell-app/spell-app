@@ -333,6 +333,8 @@ export type BuiltInType = {
  *   - loaded into its type's `TypeScope` as a `P.ScopeVariable`, so `TypeScope.getMember()` finds it
  * - With `rules` (and no `readAs`):  docs for what built-in rules already say, e.g. `shuffle (a list)`.
  *   - Their rules compile them;  NOT loaded into scope -- see `loadBuiltInTypes()`.
+ * - `stored`:  a property every one of the type HAS, read and set like a declared one, e.g. `the id of the card`.
+ *   - Loaded into its type's `TypeScope`, so reads find it and nobody declares it again.
  */
 export type BuiltInMember = {
   /**
@@ -354,6 +356,12 @@ export type BuiltInMember = {
    * - Pinned to a real property or method by `builtinTypes.test.ts`.  See `parseReadAsTemplate()`.
    */
   readAs?: string
+  /**
+   * A property the runtime class keeps, read and set as `{it}.name`, e.g. `id`:  `the id of the card` => `card.id`.
+   * - Unlike `readAs`, a `set` of it is allowed.
+   * - Pinned to a real property of the runtime class by `builtinTypes.test.ts`.
+   */
+  stored?: true
   /** Built-in rules which spell it, by name, e.g. `list_shuffle` -- their syntax shows in the Type Explorer. */
   rules?: string[]
   /** Its docs, as markdown. */

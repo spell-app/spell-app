@@ -4,6 +4,7 @@ import { Priority } from "$/spell/rules/rules.types"
 // Import directly to avoid circular import
 import { SpellStatement } from "$/spell/rules/Statement"
 import { classes } from "./classes.parser"
+import { isDrawableType } from "./classes.shared"
 
 /**
  * `css_block` rule:  a drawable type's own styles, in its outline (epic `drawable-thing`, P4).
@@ -35,7 +36,7 @@ export class CSSBlock extends P.TokenType<never, CSSBlockData> {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (!match) return undefined
     const type = scope instanceof P.SubjectScope ? scope.subjectType : undefined
-    if (!type || !DRAWABLE_TYPES.some((base) => type.isA(base))) {
+    if (!type || !isDrawableType(type)) {
       const where = type
         ? `"${type.name}" isn't drawable:  say "a ... is a drawable thing"`
         : "put it in a type's outline"
@@ -99,6 +100,3 @@ type CSSBlockData = {
 
 /** The tag of a type's own styles. */
 const CSS_TAG = "css"
-
-/** The built-in types whose sub-types have their own styles:  they draw as their own elements. */
-const DRAWABLE_TYPES = ["drawable", "drawable list"]

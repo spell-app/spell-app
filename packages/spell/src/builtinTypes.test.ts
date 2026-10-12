@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vite-plus/test"
 
 import { P } from "$/parser"
-import { spellCore, List } from "$/core"
+import { spellCore, List, Thing } from "$/core"
 import { SP } from "$/spell"
 
 /**
@@ -62,6 +62,28 @@ describe("built-in type table", () => {
     expect(list.getMember("shuffle (a list)")).toBeUndefined()
     // a sub-type finds it too, e.g. `a deck is a list of cards`
     expect(SP.SpellParser.rootScope.types.get("text")!.itemType).toBe("character")
+  })
+
+  test("a `stored` member is in its type's scope, and a REAL property of its runtime class, which keeps a set value", () => {
+    const stored = SP.BUILT_IN_TYPE_TABLE.flatMap((entry) =>
+      entry.members.filter((member) => member.stored).map((member) => ({ entry, member }))
+    )
+    expect(stored.map(({ entry, member }) => `${entry.name}'s ${member.words}`)).toEqual(["thing's id", "list's id"])
+    const runtime: Record<string, () => Record<string, unknown>> = {
+      thing: () => new Thing() as unknown as Record<string, unknown>,
+      list: () => new List({}) as unknown as Record<string, unknown>
+    }
+    for (const { entry, member } of stored) {
+      const where = `${entry.name}'s ${member.words}`
+      const name = SP.builtInMemberName(member.words)
+      expect(SP.SpellParser.rootScope.types.get(entry.name)!.getMember(name), where).toMatchObject({ name })
+      expect(SP.isBuiltInStoredMember(member.words), where).toBe(true)
+      const value = runtime[entry.name]!()
+      value[name] = "kept"
+      expect(value[name], where).toBe("kept")
+    }
+    // any other name is a type's own to declare
+    expect(SP.isBuiltInStoredMember("name")).toBe(false)
   })
 
   test("a template that's none of the forms is refused", () => {

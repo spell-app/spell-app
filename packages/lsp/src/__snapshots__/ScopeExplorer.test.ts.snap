@@ -58,6 +58,7 @@ exports[`ScopeExplorer > a type's members:  in document order, by file then line
   "method move (a card) to (a pile)",
   "property pile",
   "method play (a card)",
+  "property id",
   "method (a thing) belongs to one (list)",
   "method draw (a thing)",
 ]
@@ -66,9 +67,11 @@ exports[`ScopeExplorer > a type's members:  in document order, by file then line
 exports[`ScopeExplorer > root holds the built-in types, then the project:  its files, and what each declares 1`] = `
 "root Spell (built in)
   type Thing (base type)
+    property id (text)
     method (a thing) belongs to one (list)
     method draw (a thing)
   type List (counts from 1)
+    property id (text)
     property length (number)
     property size (number)
     method (a list) can give up (a thing)
@@ -140,9 +143,11 @@ exports[`ScopeExplorer > root holds the built-in types, then the project:  its f
 exports[`ScopeExplorer of a project importing another, compiled > the imported project shows, with its own files and types, ahead of ours 1`] = `
 "root Spell (built in)
   type Thing (base type)
+    property id (text)
     method (a thing) belongs to one (list)
     method draw (a thing)
   type List (counts from 1)
+    property id (text)
     property length (number)
     property size (number)
     method (a list) can give up (a thing)

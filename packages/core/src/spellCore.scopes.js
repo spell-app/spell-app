@@ -14,6 +14,11 @@
       ]
     },
     {
+      path: "type:Thing/property:id",
+      detail: "text",
+      description: "What names it among the others of its kind, e.g. `the id of the person`.\n- Every thing and list has one:  nobody declares it, and a type can't declare its own.\n- Made up the first time it's read, e.g. `person-k3x9q2mf`, unless you set it first:\n  `a new person with id = \"owen\"`, or `set the id of the person to \"owen\"`.\n- Saving uses it:  a thing saved in its own file is referred to by it."
+    },
+    {
       path: "type:Thing/method:(a thing) belongs to one (list)",
       description: "In ONE list of a kind at a time, e.g. `a card belongs to one pile`:\n- putting the card on one pile takes it off the other, tableaus and other piles included\n- `the pile of the card` is the pile it's in, or nothing\n- a list of another kind, e.g. a deck, doesn't count:  a card can be in the deck AND one pile\n- say it after both types, e.g. after `a pile is a list of cards`\n- `a card can belong to many piles`:  the opposite, which lists do anyway",
       rules: [
@@ -39,6 +44,11 @@
         { name: "create_list_type", syntax: "(a|an) {type:quoted_type} is (a|an) list of {instanceType:type} {with_nested_statements}?" },
         { name: "new_list", syntax: "a new (list|List) of {instanceType:type}?" }
       ]
+    },
+    {
+      path: "type:List/property:id",
+      detail: "text",
+      description: "What names it among the others of its kind, e.g. `the id of the person`.\n- Every thing and list has one:  nobody declares it, and a type can't declare its own.\n- Made up the first time it's read, e.g. `person-k3x9q2mf`, unless you set it first:\n  `a new person with id = \"owen\"`, or `set the id of the person to \"owen\"`.\n- Saving uses it:  a thing saved in its own file is referred to by it."
     },
     {
       path: "type:List/property:length",

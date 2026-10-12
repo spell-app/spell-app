@@ -77,6 +77,12 @@ export class WriterProject {
    */
   readonly importedMembers = new Map<string, Set<string>>()
   /**
+   * Each built-in runtime class, by its name in compiled code, e.g. `Thing`, and its type in the root scope.
+   * - Its members are every class's below it, e.g. `id` (epic `people-and-orgs`):
+   *   never one a class gets for TypeScript only.  See `isBuiltInMember()`.
+   */
+  readonly builtInTypes = new Map<string, P.TypeScope>()
+  /**
    * Each `<Class>.<member>` that says which list of a family holds it (epic `python-target` P25),
    * e.g. `Card.pile` from `a card belongs to one pile`:  nothing while it's in none.
    * - An imported class's, from its declarations' `exclusive` properties;  our own are getters (`getterOf()`).
@@ -102,6 +108,7 @@ export class WriterProject {
     for (let layer = scope; layer; layer = layer.parentScope) {
       if (layer instanceof P.ImportScope) project.noteTypes(layer)
       else if (layer instanceof P.ProjectScope || layer instanceof P.FileScope) projectLayers.push(layer)
+      else if (layer instanceof P.RootScope) project.noteBuiltInTypes(layer)
     }
     const classes = new Map<string, P.ASTClassDeclaration>()
     for (const statements of files) {
@@ -123,6 +130,18 @@ export class WriterProject {
     project.noteUndeclared(classes)
     for (const statements of files) project.noteModuleValues(statements)
     return project
+  }
+
+  /**
+   * Does the built-in class `typeName` comes from have member `name`, e.g. `id` for `Person`, from `Thing`?
+   * - Walks up to the first built-in class:  `Person` => `Thing`, `Pile` => `List`.
+   */
+  isBuiltInMember(typeName: string, name: string): boolean {
+    for (let type: string | undefined = typeName; type; type = this.superTypes.get(type)) {
+      const builtIn = this.builtInTypes.get(type)
+      if (builtIn) return !!builtIn.getMember(name)
+    }
+    return false
   }
 
   /** Does a class ABOVE class `typeName` declare member `name`, e.g. a card's `color` getter, above a joker? */
@@ -206,6 +225,14 @@ export class WriterProject {
   ////////////////
   // ## Working it out
   ////////////////
+
+  /** SIDE EFFECT:  notes each built-in runtime class's type in `root`, in `builtInTypes`. */
+  private noteBuiltInTypes(root: P.RootScope) {
+    for (const [datatype, className] of Object.entries(P.BUILT_IN_CLASS_NAMES)) {
+      const type = root.types.get(datatype, "LOCAL_ONLY")
+      if (type) this.builtInTypes.set(className, type)
+    }
+  }
 
   /**
    * SIDE EFFECT:  notes what the types `layer` declares say they have.
@@ -315,7 +342,8 @@ export class WriterProject {
     }
     const shared = (types: string[]) =>
       chainOf(types[0]!).find((it) => types.every((type) => chainOf(type).includes(it)))
-    const isDeclaredAbove = (type: string, name: string) => chainOf(type).some((it) => declared.get(it)?.has(name))
+    const isDeclaredAbove = (type: string, name: string) =>
+      chainOf(type).some((it) => declared.get(it)?.has(name)) || this.isBuiltInMember(type, name)
     const add = (type: string, undeclared: TSUndeclared) => {
       this.undeclared.set(type, [...(this.undeclared.get(type) ?? []), undeclared])
       declared.get(type)!.add(undeclared.name)

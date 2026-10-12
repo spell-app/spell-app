@@ -45,7 +45,7 @@ describe("drawable things' elements", () => {
 })
 
 describe("elementApiOf():  what a drawable class shows on its element", () => {
-  test("its declared properties and its methods, its super-types' too;  not draw(), nor a method with values in it", () => {
+  test("its declared properties and its methods, its super-types' too;  not draw(), nor a method with values in it, nor the built-in `id`", () => {
     class Card extends Drawable {
       draw() {
         return null

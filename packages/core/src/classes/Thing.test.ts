@@ -116,3 +116,63 @@ describe("`setProp()` check", () => {
     expect(deck.name).toBe(7)
   })
 })
+
+describe("Thing.id (people-and-orgs P1)", () => {
+  /** `a dated-event is a thing`:  its kind, in its made-up id, is `dated-event`. */
+  class DatedEvent extends Thing {}
+
+  test("made on first read, then kept:  its kind in lower kebab case, then 8 random base-36 characters", () => {
+    const event = new DatedEvent()
+    expect(event.id).toMatch(/^dated-event-[0-9a-z]{8}$/)
+    expect(event.id).toBe(event.id)
+    expect(event.keys()).toEqual(["id"])
+  })
+
+  test("a set id wins:  by constructor props, or set later", () => {
+    expect(new Task({ id: "owen" }).id).toBe("owen")
+    const task = new Task({ title: "Write tests" })
+    const madeUp = task.id
+    task.id = "write-tests"
+    expect(task.id).toBe("write-tests")
+    expect(task.id).not.toBe(madeUp)
+  })
+
+  test("two things NEVER share a made-up id, even in runs seeded the same", () => {
+    spellCore.seedRandom(7)
+    const first = new Task().id
+    spellCore.seedRandom(7)
+    const second = new Task().id
+    const ids = new Set(Array.from({ length: 1000 }, () => new Task().id))
+    expect(second).not.toBe(first)
+    expect(ids.size).toBe(1000)
+  })
+
+  test("JSON has an id ONLY once it's read or set:  existing JSON doesn't change", () => {
+    const task = new Task({ title: "Write tests" })
+    expect(task.toJSON()).toEqual({ "@type": "Task", title: "Write tests" })
+    const id = task.id
+    expect(task.toJSON()).toEqual({ "@type": "Task", title: "Write tests", id })
+    expect(new Task({ id: "owen" }).toJSON()).toEqual({ "@type": "Task", id: "owen" })
+  })
+
+  test("a list has one too, as a thing has", () => {
+    const deck = new Deck({ name: "spare" })
+    expect(deck.toJSON()).toEqual({ "@type": "Deck", name: "spare", "@items": [] })
+    expect(deck.id).toMatch(/^deck-[0-9a-z]{8}$/)
+    expect(new Deck({ id: "spare-deck" }).id).toBe("spare-deck")
+  })
+
+  test("not a text:  warns, as any declared prop does, and is stored anyway", () => {
+    const warn = vi.spyOn(spellCore.console, "warn").mockImplementation(() => {})
+    const task = new Task({ id: 42 })
+    expect(warn).toHaveBeenCalledWith("Expected id to be type 'text', got:", 42)
+    expect(task.id).toBe(42)
+  })
+
+  test("`savedInline`:  no by default, set per class, inherited", () => {
+    class Note extends DatedEvent {}
+    expect([Thing.savedInline, List.savedInline, DatedEvent.savedInline]).toEqual([false, false, false])
+    DatedEvent.savedInline = true
+    expect([Thing.savedInline, DatedEvent.savedInline, Note.savedInline]).toEqual([false, true, true])
+  })
+})

@@ -5,7 +5,7 @@ import { Priority } from "$/spell/rules/rules.types"
 // Through the folder, not its own file:  importing its file would load it first,
 // but `outline_specifier_enum` registers AFTER us, and the registration order must not change.
 // Read only when called, once the folder has loaded.
-import { OutlineSpecifierEnum } from "$/spell/rules/classes"
+import { OutlineSpecifierEnum, OutlineSpecifierList } from "$/spell/rules/classes"
 // Import directly to avoid circular import
 import { SpellStatement } from "$/spell/rules/Statement"
 import { classes } from "./classes.parser"
@@ -109,6 +109,7 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
    * The long form of an outline line -- see `SpellStatement.getLongForm()`:
    * - `its "rank" is a number` => `a card has a rank as a number`
    * - `its direction is up or down` => `a card has a direction as one of up or down`
+   * - `its "people" is a list of people` => `a friend-list has a people as a new list of people`
    */
   getLongForm(match: P.Match): string | undefined {
     const typeWords = SpellStatement.subjectWords(match)
@@ -119,7 +120,9 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
       ? ""
       : specifier!.is(OutlineSpecifierEnum) && !/^(either|one of)\b/i.test(said)
         ? ` as one of ${said}`
-        : ` as ${said}`
+        : specifier!.is(OutlineSpecifierList)
+          ? ` as ${said.replace(/^a (?!new\b)/i, "a new ")}`
+          : ` as ${said}`
     return `a ${typeWords} has a ${property.raw}${as}`
   }
 
@@ -138,9 +141,11 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
       statements.push(new P.ASTStaticDefinition(match, { type: typeAST, name, value: specifier }))
       check.addProp("oneOf", new P.ASTPropertyExpression(match, { object: typeAST, property: name }))
     }
-    // instance specifier:  a default, made once per instance
+    // instance specifier:  a default, made once per instance -- a list's says what it holds, for saving
     else if (specifier instanceof P.ASTNewInstanceExpression) {
       initializer = specifier
+      const itemType = DefinePropertyHas.itemTypeOf(specifier)
+      if (itemType) check.addProp("itemType", itemType)
     }
     // a value kind, e.g. `a suit`:  one of its list, e.g. `Deck.Suits` -- its values are plain text.  Read when set:
     // the list's class names ours (`static instanceType = Card`), so one of the two is defined second
@@ -172,6 +177,21 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
       })
     )
     return new P.ASTStatementGroup(match, { statements })
+  }
+
+  /**
+   * What a new list holds, as its schema says it:  `'Task'` for `new List({ instanceType: "Task" })`.
+   * - So saving knows a list of people holds people, before it holds any (epic `people-and-orgs`, P1).
+   * - `undefined` for a new thing, or a list that doesn't say.
+   */
+  private static itemTypeOf(made: P.ASTNewInstanceExpression): P.ASTStringLiteral | undefined {
+    if (made.type.name !== "List") return undefined
+    const said = made.props?.properties.find(
+      (it): it is P.ASTObjectLiteralProperty =>
+        it instanceof P.ASTObjectLiteralProperty && it.property.value === "instanceType"
+    )?.value
+    if (!(said instanceof P.ASTStringLiteral)) return undefined
+    return new P.ASTStringLiteral(said.match, { value: said.value, quote: "'" })
   }
 }
 classes.addRule(DefinePropertyHas, {
@@ -249,6 +269,61 @@ classes.addRule(DefinePropertyHas, {
           ["const it = new Card()", "spellCore.console.log(Card.Suits)"]
         ],
         ["print bank-account account-types", "spellCore.console.log(BankAccount.AccountTypes)"]
+      ]
+    },
+    {
+      title: "every thing has an `id`, built in:  no type declares its own (epic `people-and-orgs`, Q9)",
+      compileAs: "block",
+      beforeEach(scope: P.Scope) {
+        scope.compile(["a person is a thing", "a club is a list of people"].join("\n"), "block")
+      },
+      tests: [
+        {
+          input: "a person has an id as text",
+          js: '/* PARSE ERROR: Can\'t add "id" to Person:  every thing has one, built in */'
+        },
+        { input: "a club has an id", js: '/* PARSE ERROR: Can\'t add "id" to Club:  every thing has one, built in */' },
+        {
+          input: ["person = a new person", "print the id of the person"],
+          js: ["export const person = new Person()", "spellCore.console.log(person.id)"]
+        },
+        {
+          input: ["person = a new person", 'set the id of the person to "owen"'],
+          js: ["export const person = new Person()", 'person.id = "owen"']
+        },
+        {
+          input: ["club = a new club", "print the id of the club"],
+          js: ["export const club = new Club()", "spellCore.console.log(club.id)"]
+        }
+      ]
+    },
+    {
+      title: "a list says what it holds, so saving knows before it holds any",
+      compileAs: "block",
+      beforeEach(scope: P.Scope) {
+        scope.compile("a friend-list is a thing", "block")
+      },
+      tests: [
+        {
+          input: "a friend-list has people as a new list of people",
+          js: [
+            'FriendList.declareProp("people", { itemType: "Person", init: () => new List({ instanceType: "Person" }) })',
+            'Object.defineProperty(FriendList.prototype, "people", {',
+            '  get() { return this.getProp("people") },',
+            '  set(value) { this.setProp("people", value) },',
+            "  configurable: true",
+            "})"
+          ],
+          ts: [
+            "export interface FriendList { people: List<Person> }",
+            'FriendList.declareProp("people", { itemType: "Person", init: () => new List<Person>({ instanceType: "Person" }) })',
+            'Object.defineProperty(FriendList.prototype, "people", {',
+            '  get(this: FriendList): List<Person> { return this.getProp("people") as List<Person> },',
+            '  set(this: FriendList, value: List<Person>) { this.setProp("people", value) },',
+            "  configurable: true",
+            "})"
+          ]
+        }
       ]
     },
     {

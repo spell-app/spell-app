@@ -10,6 +10,8 @@ import type { Drawing } from "$/core/drawing"
 import type { PropCheck } from "$/core/spellCore.types"
 import { zeroIndexOf } from "$/core/positions"
 
+import { ID_PROP } from "./ids"
+
 /**
  * `List`: our array concept -- what `a deck is a list` extends.
  * - Counted from 0, as an array is (epic `python-target` P23):
@@ -43,6 +45,16 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
    * - Set it before making a list of the family:  what a list held already has no owner.
    */
   static exclusive = false
+
+  /**
+   * Is a list of this class saved INSIDE its owner, rather than in a file of its own?  See `Thing.savedInline`.
+   * - Compiled from `a hand is saved inline.`, as `static savedInline = true` in its class.
+   */
+  static savedInline = false
+
+  static {
+    this.declareProp("id", ID_PROP)
+  }
 
   /**
    * The list of our family holding `item`, if any -- tracked:  a reader re-runs when it changes.
@@ -102,6 +114,17 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
    * - NOTE: same timing as `Thing.create()`:  a hand-written subclass with fields MUST be `@thing`.
    */
   create(): void {}
+
+  /**
+   * Our id, as a thing's:  a list is a thing in spell -- see `Thing.id`.
+   * - Made the first time it's read, then kept;  set it to choose one.
+   */
+  get id(): string {
+    return this.getProp<string>("id")
+  }
+  set id(id: string) {
+    this.setProp("id", id)
+  }
 
   /** Default `type` to the name of our constructor.  Instances can override via the setter. */
   get type(): string {

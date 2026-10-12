@@ -85,6 +85,7 @@ export const PYTHON_FIXTURES = new Set([
   "FizzBuzz",
   "Klondike",
   "OutlineSolitaire",
+  "People",
   "Solitaire"
 ])
 

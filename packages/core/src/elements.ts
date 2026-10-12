@@ -58,6 +58,8 @@ export const elementsMethods = defineSpellCoreModule({
    * What drawable class `Class` shows on the outside of its element (epic `drawable-thing` P8):
    * - `properties`:  each property it declares (`a card has a rank as a number`), its own and its super-types',
    *   with its declared type, e.g. `{ name: "rank", type: "number" }`
+   *   - down to `Drawable` / `DrawableList`:  NOT what every thing has built in, its `id`,
+   *     which would clash with the element's own `id`, the name a page's layout finds a thing by (`thingFor()`)
    * - `methods`:  each method it has, its own and its super-types', down to `Drawable` / `DrawableList`,
    *   e.g. `turn_over` -- NOT `draw()`, nor a method of several words with values in them (`is_a_$suit`)
    * - Names as compiled:  the page names them as it likes, e.g. `turnOver()`.
@@ -65,7 +67,9 @@ export const elementsMethods = defineSpellCoreModule({
   elementApiOf(Class: Function): ElementApi {
     const properties: ElementApi["properties"] = []
     const seen = new Set<string>()
-    for (let schema: Schema | undefined = schemaOf(Class); schema; schema = schema.parent) {
+    const baseSchemas = [schemaOf(Drawable), schemaOf(DrawableList)]
+    for (let schema = schemaOf(Class) as Schema | undefined; schema; schema = schema.parent) {
+      if (baseSchemas.includes(schema)) break
       for (const [name, info] of schema.declared) {
         if (seen.has(name)) continue
         seen.add(name)

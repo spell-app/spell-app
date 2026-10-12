@@ -1,0 +1,81 @@
+import { spellCore, Thing, List, App, Drawable, DrawableList } from "@spell/core"
+
+spellCore.heading("People, and what they keep about each other (epic `people-and-orgs`, P1)")
+//////////////////////////////////////////////////////////////////////////////
+// ## People, and what they keep about each other (epic `people-and-orgs`, P1)
+//////////////////////////////////////////////////////////////////////////////
+// Every thing has an `id`, built in:  nobody declares it.
+// A property or list of a kind holds that kind's things, each saved in its own file;
+// `it is saved inline` keeps a small thing inside what holds it instead.
+
+export class Person extends Thing {
+  static { this.declareProp("name", { type: "text" }) }
+  get name() { return this.getProp("name") }
+  set name(value) { this.setProp("name", value) }
+
+  static { this.declareProp("nickname", { type: "text" }) }
+  get nickname() { return this.getProp("nickname") }
+  set nickname(value) { this.setProp("nickname", value) }
+
+  static { this.declareProp("emails", { itemType: "text", init: () => new List({ instanceType: "text" }) }) }
+  get emails() { return this.getProp("emails") }
+  set emails(value) { this.setProp("emails", value) }
+
+  static { this.declareProp("dates", { itemType: "DatedEvent", init: () => new List({ instanceType: "DatedEvent" }) }) }
+  get dates() { return this.getProp("dates") }
+  set dates(value) { this.setProp("dates", value) }
+}
+
+export class DatedEvent extends Thing {
+  static { this.declareProp("label", { type: "text" }) }
+  get label() { return this.getProp("label") }
+  set label(value) { this.setProp("label", value) }
+
+  static { this.declareProp("day", { type: "date" }) }
+  get day() { return this.getProp("day") }
+  set day(value) { this.setProp("day", value) }
+
+  static savedInline = true
+}
+
+export class Note extends Thing {
+  static { this.declareProp("body", { type: "text" }) }
+  get body() { return this.getProp("body") }
+  set body(value) { this.setProp("body", value) }
+}
+
+export class Relationship extends Thing {
+  static { this.declareProp("kind", { type: "text" }) }
+  get kind() { return this.getProp("kind") }
+  set kind(value) { this.setProp("kind", value) }
+
+  static { this.declareProp("person", { type: "Person" }) }
+  get person() { return this.getProp("person") }
+  set person(value) { this.setProp("person", value) }
+
+  static { this.declareProp("notes", { itemType: "Note", init: () => new List({ instanceType: "Note" }) }) }
+  get notes() { return this.getProp("notes") }
+  set notes(value) { this.setProp("notes", value) }
+}
+
+export class FriendList extends Thing {
+  static { this.declareProp("name", { type: "text" }) }
+  get name() { return this.getProp("name") }
+  set name(value) { this.setProp("name", value) }
+
+  static { this.declareProp("relationships", { itemType: "Relationship", init: () => new List({ instanceType: "Relationship" }) }) }
+  get relationships() { return this.getProp("relationships") }
+  set relationships(value) { this.setProp("relationships", value) }
+}
+
+spellCore.heading("Using them")
+/** Using them */
+export const owen = new Person({ id: "owen", name: "Owen" })
+export const matt = new Person({ id: "matt", name: "Matt" })
+matt.nickname = "Matty"
+
+export const family = new FriendList({ name: "family" })
+spellCore.append(family.relationships, new Relationship({ kind: "brother", person: matt }))
+
+spellCore.console.log(owen.id)
+spellCore.map(family.relationships, (relationship) => spellCore.console.log(relationship.person.id))

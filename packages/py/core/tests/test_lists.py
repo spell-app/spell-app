@@ -5,6 +5,7 @@
 - Spell's words:  each beside its `core` twin, as the JavaScript core's `List.test.ts` checks them.
 """
 
+import re
 from collections.abc import Callable, Iterator
 from typing import Any
 
@@ -179,6 +180,15 @@ def test_props_and_items_together() -> None:
     assert (deck.name, list(deck), deck.type) == ("spare", ["a"], "Deck")
     assert deck.colour is None
     assert deck.is_of_type("list")
+
+
+def test_an_id_as_a_things_none_until_read_then_a_property_before_its_items() -> None:
+    deck = Deck(["a"], name="spare")
+    assert deck.to_json() == {"@type": "Deck", "name": "spare", "@items": ["a"]}
+    assert re.fullmatch(r"deck-[0-9a-z]{8}", deck.id)
+    assert list(deck.to_json()) == ["@type", "name", "id", "@items"]
+    assert deck[0:1].id != deck.id
+    assert Deck(id="spare-deck").id == "spare-deck"
 
 
 ####################

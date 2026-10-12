@@ -7,6 +7,8 @@ import type { Drawing } from "$/core/drawing"
 import { Eventful } from "$/core/SpellEvent"
 import type { PropCheck } from "$/core/spellCore.types"
 
+import { ID_PROP } from "./ids"
+
 /**
  * `Thing`: base for all object-like things in spell -- what `a task is a thing` extends.
  * All things can be drawn, with Solid (`drawing.ts`), e.g.:
@@ -21,8 +23,23 @@ import type { PropCheck } from "$/core/spellCore.types"
  *  ```
  * - `Eventful(Observable)` gives every `Thing` `on`/`off`/`once`/`trigger` for spell's event
  *   syntax, on top of `Observable`'s reactive `props`/`state` -- see `SpellEvent.ts`.
+ * - Every thing has an `id`, built in:  made the first time it's read, or set -- see `id`.
  */
 export class Thing extends Eventful(Observable) {
+  /**
+   * Is a thing of this class saved INSIDE its owner, rather than in a file of its own?
+   * - Compiled from `a dated-event is saved inline.`, as `static savedInline = true` in its class:
+   *   sub-classes inherit it.
+   * - The saver writes such a thing whole, inside the thing holding it;
+   *   every other thing, as a reference to its own file, by its `id`.
+   * - A drawable kind is never saved inline.
+   */
+  static savedInline = false
+
+  static {
+    this.declareProp("id", ID_PROP)
+  }
+
   /**
    * SIDE EFFECT:  registers itself in `spellCore.things`, for the Thing Explorer.
    * - `props` optional:  `a new game` compiles to `new Game()`.
@@ -57,6 +74,19 @@ export class Thing extends Eventful(Observable) {
   /** A declared prop was set:  warn on the PROGRAM's console if `value` isn't what `info` declares -- see `checkProp()`. */
   protected checkPropType(property: string, value: unknown, info: PropInfo): void {
     spellCore.checkProp(property, value, info)
+  }
+
+  /**
+   * Our id:  what we're saved and referred to by, e.g. `dated-event-k3x9q2mf` -- see `newThingId()`.
+   * - Made the first time it's read, then kept:  a thing whose id is never read has none, nor has its JSON.
+   * - Set it to choose one:  `new Person({ id: "owen" })`, `person.id = "owen"`.
+   * - Built in:  a program never declares it.  Same as `List.id`.
+   */
+  get id(): string {
+    return this.getProp<string>("id")
+  }
+  set id(id: string) {
+    this.setProp("id", id)
   }
 
   /** Default `type` to the name of our constructor.  Instances can override via the setter. */

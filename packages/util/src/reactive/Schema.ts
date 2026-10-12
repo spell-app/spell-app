@@ -138,8 +138,8 @@ export function spellTypeOf(value: unknown): string {
 
 /**
  * What a schema knows about a prop.
- * - Compiled spell declares `type` / `oneOf` (what its setter warns about) and `init`;  hand-written classes may use
- *   any of them through `@prop`.
+ * - Compiled spell declares `type` / `oneOf` (what its setter warns about), `init` and `itemType`;
+ *   hand-written classes may use any of them through `@prop`.
  */
 export type PropInfo = {
   /** Declared type, as the runtime names it, e.g. `text`, `number`, `choice`, `Card`. */
@@ -156,6 +156,13 @@ export type PropInfo = {
    * - Called with `this` ~== the instance.
    */
   init?: (this: any) => unknown
+  /**
+   * What a LIST prop holds, as the runtime names it:  a class name, e.g. `"Task"` for
+   *   `a project has tasks as a new list of tasks`, or a value's type, e.g. `"text"`.
+   * - Compiled spell:  `this.declareProp("tasks", { itemType: "Task", init: () => new List() })`.
+   * - For the saver (epic `people-and-orgs`), which needs each item's kind:  nothing checks it yet.
+   */
+  itemType?: string
 }
 
 ////////////////
