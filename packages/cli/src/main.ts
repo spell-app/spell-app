@@ -91,6 +91,7 @@ program
   .option("--browser", "open it in a browser even if it shows no UI")
   .option("--no-browser", "never open a browser:  just skip what needs one")
   .option("--seed <n>", SEED_HELP, Number)
+  .option("--target <name>", "run it as `ts` or `py` compiles it -- a Python app that draws is served on Quart")
   .action((project: string | undefined, _options, command) =>
     run(CLI.runCommand, project ? [project] : [], command.optsWithGlobals())
   )
