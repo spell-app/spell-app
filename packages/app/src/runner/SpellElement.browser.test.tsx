@@ -541,22 +541,38 @@ describe("SpellElement", () => {
       expect(customElements.get("drawable-board-column")).toBeUndefined()
     })
 
-    test("thing=Column#C1, Column#1 and Stack#C1 each find the column C1;  one that finds nothing says so", async () => {
+    test("a tag's id is its thing's reference:  id=C1 and id=1 find column C1, <board-stack id=C1> too;  one that finds nothing says so", async () => {
       const root = await ElementFixture.render<HTMLElement>(
         "<div>" +
-          '<board-column thing="Column#C1"></board-column>' +
-          '<board-column thing="Column#1"></board-column>' +
-          '<board-stack thing="Stack#C1"></board-stack>' +
-          '<board-column thing="Column#2"></board-column>' +
-          '<board-column thing="Column#C9"></board-column>' +
+          '<board-column id="C1"></board-column>' +
+          '<board-column id="1"></board-column>' +
+          '<board-stack id="C1"></board-stack>' +
+          '<board-column id="2"></board-column>' +
+          '<board-column id="C9"></board-column>' +
           "</div>"
       )
       await ElementFixture.settle(root)
       settle()
-      const drawn = [...root.children].map((element) => element.shadowRoot?.textContent)
-      expect(drawn).toEqual(["C1", "C1", "C1", "C2", "⚠ no Column#C9"])
+      const drawn = () => [...root.children].map((element) => element.shadowRoot?.textContent)
+      expect(drawn()).toEqual(["C1", "C1", "C1", "C2", '⚠ no Column named "C9"'])
       const things = [...root.children].map((element) => SpellElement.thingOf(element))
       expect(things.slice(0, 3)).toEqual([c1, c1, c1])
+
+      // the page changes an id:  the tag draws the thing the new id names
+      root.lastElementChild!.id = "C2"
+      await ElementFixture.settle(root)
+      settle()
+      expect(drawn()[4]).toBe("C2")
+      expect(SpellElement.thingOf(root.lastElementChild!)).toBe(c2)
+    })
+
+    test("a thing attribute written in markup names nothing:  the tag makes its own thing, as one with no id does", async () => {
+      const column = await ElementFixture.render<HTMLElement>('<board-column thing="Column#C1"></board-column>')
+      await ElementFixture.settle(column)
+      settle()
+      const thing = SpellElement.thingOf(column)
+      expect(thing).toBeInstanceOf(Column)
+      expect(thing).not.toBe(c1)
     })
 
     test("a chip's stack shows as that stack's reference and follows it;  setting it moves the chip, if the stack takes it", async () => {
@@ -604,6 +620,116 @@ describe("SpellElement", () => {
 
       chip.removeAttribute("home")
       expect(thing.home).toBeUndefined()
+    })
+  })
+
+  describe("an element the program draws is named after its thing, by its id (J43)", () => {
+    /** A playing card, named for its rank and suit as Drawable Solitaire's is;  drawn as its name. */
+    class Playing extends Drawable {
+      static elementTag = spellCore.defineElement(this, "Drawable Parlor")
+      get rank(): string | undefined {
+        return this.getProp("rank") as string | undefined
+      }
+      set rank(value) {
+        this.setProp("rank", value)
+      }
+      get suit(): string | undefined {
+        return this.getProp("suit") as string | undefined
+      }
+      set suit(value) {
+        this.setProp("suit", value)
+      }
+      get name() {
+        return this.rank === undefined ? undefined : `${this.rank}-of-${this.suit}`
+      }
+      draw(): ReturnType<Drawable["draw"]> {
+        return (h("i", {}, () => `${this.name ?? "blank"}`) as unknown as () => ReturnType<Drawable["draw"]>)()
+      }
+    }
+    Playing.declareProp("rank", { type: "text" })
+    Playing.declareProp("suit", { type: "text" })
+    /** A table with two decks' queens of one suit, and a blank card with no name -- see `parlorOf()`. */
+    class Parlor extends App {
+      cards: Playing[] = []
+      draw(): ReturnType<Drawable["draw"]> {
+        const children = this.cards.map((card) => () => spellCore.drawThing(card))
+        return (h("div", {}, ...children) as unknown as () => ReturnType<Drawable["draw"]>)()
+      }
+    }
+
+    /** Let the things' and Solid's changes run. */
+    function settle() {
+      spellCore.flush()
+      flush()
+    }
+
+    /**
+     * A table with two queens of `suit`, from two decks, and a blank card.
+     * - A suit of its own per test:  the program's things outlive a test, and count when ids are numbered.
+     */
+    function parlorOf(suit: string): Parlor {
+      const parlor = new Parlor()
+      parlor.cards = [new Playing({ rank: "queen", suit }), new Playing({ rank: "queen", suit }), new Playing()]
+      return parlor
+    }
+
+    /** `app` drawn in a new root on the page, settled:  the root, and its card elements. */
+    async function drawn(app: Drawable) {
+      const root = document.createElement("div")
+      document.body.append(root)
+      spellCore.mountApp(app, root)
+      flush()
+      await ElementFixture.settle(root)
+      settle()
+      return { root, cards: [...root.querySelectorAll<HTMLElement>("parlor-playing")] }
+    }
+
+    test("each card's id is its thing's name;  a second deck's queen is -2;  a card with no name has no id", async () => {
+      const { root, cards } = await drawn(parlorOf("spades"))
+      expect(cards.map((card) => card.id)).toEqual(["queen-of-spades", "queen-of-spades-2", ""])
+      expect(cards[2]!.hasAttribute("id")).toBe(false)
+      root.remove()
+    })
+
+    test("its id follows its thing's name;  another element drawing the same thing has the same id", async () => {
+      const parlor = parlorOf("clubs")
+      const { root, cards } = await drawn(parlor)
+      expect(cards[0]!.id).toBe("queen-of-clubs")
+      parlor.cards[0]!.rank = "king"
+      settle()
+      expect(cards[0]!.id).toBe("king-of-clubs")
+      // the blank card gets a name:  it gets an id
+      parlor.cards[2]!.rank = "ace"
+      parlor.cards[2]!.suit = "hearts"
+      settle()
+      expect(cards[2]!.id).toBe("ace-of-hearts")
+
+      // drawn again elsewhere, as a card moved to another pile is:  the same id, never a new number
+      const again = await drawn(parlor.cards[1]!)
+      expect(again.root.firstElementChild!.id).toBe(cards[1]!.id)
+      root.remove()
+      again.root.remove()
+    })
+
+    test("the handed thing always wins:  an id never makes it draw another thing;  an id the page writes is kept", async () => {
+      const parlor = parlorOf("diamonds")
+      const { root, cards } = await drawn(parlor)
+      const [first, second] = cards as [HTMLElement, HTMLElement]
+      expect(second.id).toBe("queen-of-diamonds-2")
+      // a hand-written tag with this id would draw the FIRST deck's queen:  the second's element keeps its own
+      second.id = "queen-of-diamonds"
+      await ElementFixture.settle(root)
+      settle()
+      expect(SpellElement.thingOf(second)).toBe(parlor.cards[1])
+      expect(second.shadowRoot!.textContent).toBe("queen-of-diamonds")
+      // the page's id stays, even when the thing's name changes
+      parlor.cards[1]!.rank = "jack"
+      settle()
+      expect(second.id).toBe("queen-of-diamonds")
+      expect(second.shadowRoot!.textContent).toBe("jack-of-diamonds")
+      // writing ids never wrote the things:  each element shows its own card's values
+      expect([first, second].map((card) => card.getAttribute("rank"))).toEqual(["queen", "jack"])
+      root.remove()
     })
   })
 
@@ -723,7 +849,11 @@ describe("SpellElement", () => {
       const element = await ElementFixture.render<TileTag>("<board-tile></board-tile>")
       await ElementFixture.settle(element)
       const names = new Set(Object.getOwnPropertyNames(element.component))
-      for (let at: object | null = SpellElement.prototype; at && at !== Object.prototype; at = Object.getPrototypeOf(at)) {
+      for (
+        let at: object | null = SpellElement.prototype;
+        at && at !== Object.prototype;
+        at = Object.getPrototypeOf(at)
+      ) {
         for (const name of Object.getOwnPropertyNames(at)) names.add(name)
       }
       names.delete("constructor")

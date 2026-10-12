@@ -12,10 +12,15 @@
  * - A reference reads like CSS's `tag#id`:  the type's name, `#`, then the thing's name or its place.
  * - What it's for:
  *   - a drawable element's attribute can hold a thing:  `<solitaire-card pile="Tableau#T1">`
- *   - a page's layout can say which thing a tag draws:  `<solitaire-pile thing="Pile#stock">`
+ *   - a tag's `id` is the part after the `#`, its tag saying the type (J43):
+ *     `<solitaire-tableau id="T1">` draws `Tableau#T1` -- see `thingCalled()`
  *   - spell's words for one thing, `tableau T1` and `the first tableau`, compile to `thingNamed()` and `thingAtPlace()`
+ * - And the other way:  an element the program draws takes its thing's name as its `id`,
+ *   `<solitaire-card id="queen-of-spades">` -- see `elementIdFor()`.
  * - Part of `spellCore`:  imported by `$/core`'s barrel for its side effect.
  */
+
+import { untrackCells } from "$/util"
 
 import { spellCore } from "./core"
 import { defineSpellCoreModule } from "./spellCore.types"
@@ -38,8 +43,20 @@ export const referencesMethods = defineSpellCoreModule({
     if (!parts) return undefined
     const [, type, name] = parts as unknown as [string, string, string]
     const Class = spellCore.things.classNamed(type)
-    if (!Class) return undefined
-    return PLACE.test(name) ? spellCore.thingAtPlace(Class, Number(name)) : spellCore.thingNamed(Class, name)
+    return Class ? spellCore.thingCalled(Class, name) : undefined
+  },
+
+  /**
+   * The program's thing of class `Class` that `text` names, as the part of a reference after its `#` -- `undefined`
+   * if none:
+   * - digits:  its place, as `thingAtPlace()` finds it, e.g. `thingCalled(Tableau, "1")` for the first tableau
+   * - else its name, as `thingNamed()` finds it, so a sub-class's thing too:  `thingCalled(Pile, "T1")`
+   * - What a tag's `id` names (J43):  `<solitaire-tableau id="T1">` is `Tableau#T1`.
+   * - Tracked, as `thingForReference()`.
+   */
+  thingCalled(Class: abstract new (...args: never[]) => unknown, text: string): object | undefined {
+    const thing = PLACE.test(text) ? spellCore.thingAtPlace(Class, Number(text)) : spellCore.thingNamed(Class, text)
+    return thing as object | undefined
   },
 
   /**
@@ -95,6 +112,31 @@ export const referencesMethods = defineSpellCoreModule({
       .filter((each) => each.constructor === Class)
       .indexOf(thing)
     return place < 0 ? undefined : `${Class.name}#${place + 1}`
+  },
+
+  /**
+   * The `id` an element the program draws for `thing` takes:  its name, e.g. `queen-of-spades` (J43) --
+   * `undefined` for a thing with no name.
+   * - So the browser's inspector says which thing an element draws:  `<solitaire-card id="queen-of-spades">`.
+   * - Two of the program's drawable things with one name, e.g. a game with two decks:
+   *   the first made is `queen-of-spades`, the second `queen-of-spades-2`, the third `-3`.
+   *   - Counted among every drawable thing the program made, of any type:  ids are the page's.
+   *   - A thing keeps the id it got while it keeps its name,
+   *     so each element drawing it says the same, even after an earlier thing is gone.
+   * - A space in its name is a dash, as an `id` has none:  `discard pile` => `discard-pile`.
+   * - Tracked:  follows the thing's name, so a card's id changes with its rank.
+   *   Nothing else is followed:  a thing made later never changes an id given.
+   */
+  elementIdFor(thing: unknown): string | undefined {
+    if (!thing || typeof thing !== "object") return undefined
+    const name = idNameOf(thing)
+    if (!name) return undefined
+    const kept = ELEMENT_IDS.get(thing)
+    if (kept?.name === name) return kept.id
+    const earlier = untrackCells(() => earlierNamed(thing, name))
+    const id = earlier ? `${name}-${earlier + 1}` : name
+    ELEMENT_IDS.set(thing, { name, id })
+    return id
   }
 })
 Object.assign(spellCore, referencesMethods)
@@ -104,6 +146,34 @@ const REFERENCE = /^([A-Za-z_$][\w$]*)#(.+)$/
 
 /** A place in a reference:  digits, counting from 1. */
 const PLACE = /^[1-9]\d*$/
+
+/**
+ * The id each thing drawn as an element was given, and the name it was given for -- see `elementIdFor()`.
+ * - Held weakly:  a thing thrown away takes its entry with it.
+ * - One per runtime copy, as `spellCore` is:  each `<spell-app>`'s program numbers its own things.
+ */
+const ELEMENT_IDS = new WeakMap<object, { name: string; id: string }>()
+
+/**
+ * How many drawable things the program made before `thing` whose name, as an id, is `name` --
+ * `0` if `thing` isn't the program's.
+ */
+function earlierNamed(thing: object, name: string): number {
+  const { things } = spellCore
+  const number = things.numberOf(thing as Parameters<typeof things.numberOf>[0])
+  if (number === undefined) return 0
+  let count = 0
+  for (const each of things.all()) {
+    if ((things.numberOf(each) ?? 0) >= number) break
+    if (spellCore.elementTagOf(each) && idNameOf(each) === name) count++
+  }
+  return count
+}
+
+/** `thing`'s name as an id's text, a dash for each run of spaces:  `discard-pile` -- `undefined` if it has none. */
+function idNameOf(thing: object): string | undefined {
+  return nameOf(thing)?.trim().replace(/\s+/g, "-") || undefined
+}
 
 /** `thing`'s name, as text -- `undefined` if it has none, or reading it throws. */
 function nameOf(thing: object): string | undefined {

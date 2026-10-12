@@ -123,16 +123,17 @@ export const elementsMethods = defineSpellCoreModule({
   },
 
   /**
-   * The program's thing of class `Class` named `name`, e.g. the tableau named `T1` -- for a tag in a page's layout,
-   * `<solitaire-tableau id="T1">` (epic `drawable-thing` P9, Q9).
-   * - With `name`:  the thing `thingNamed()` finds, so a sub-class's too:
-   *   `<solitaire-pile id="stock">` finds the stock, a `StockPile` (P18).
-   * - No `name`:  its one thing of `Class` EXACTLY, if it made exactly one.
+   * The program's thing of class `Class` that a tag's `id` names, e.g. the tableau named `T1` for
+   * `<solitaire-tableau id="T1">` (epic `drawable-thing` P9, J43).
+   * - With `id`:  the thing `thingCalled()` finds, as for the reference `Tableau#T1`:
+   *   - a sub-class's too:  `<solitaire-pile id="stock">` finds the stock, a `StockPile` (P18)
+   *   - digits are a place:  `<solitaire-tableau id="1">` is the first tableau made
+   * - No `id`:  its one thing of `Class` EXACTLY, if it made exactly one -- for a tag in a page's layout.
    * - `undefined` if none matches.
    * - Reads the registry's `version`:  a reader re-runs as things are made.
    */
-  thingFor(Class: Function, name?: string): object | undefined {
-    if (name !== undefined) return spellCore.thingNamed(Class as abstract new () => object, name)
+  thingFor(Class: Function, id?: string): object | undefined {
+    if (id !== undefined) return spellCore.thingCalled(Class as abstract new () => object, id)
     const things = spellCore.things.all().filter((thing) => thing.constructor === Class)
     return things.length === 1 ? things[0] : undefined
   },

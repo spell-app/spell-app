@@ -390,6 +390,10 @@ describe("compiled spell draws with Solid", () => {
       [1, 2, 3, 4, 5, 6, 7].map((count, index) => Array<string>(count).fill(`Tableau#T${index + 1}`))
     )
     expect(stock.lastElementChild!.getAttribute("pile")).toBe("StockPile#stock")
+    // ... and each element is named after its thing, by its id (J43):  the inspector says which card it is
+    expect(tableaus().map((tableau) => tableau.id)).toEqual(tableaus().map((tableau) => tableau.getAttribute("name")))
+    expect(stock.id).toBe("stock")
+    for (const card of cards()) expect(card.id).toBe(`${card.getAttribute("rank")}-of-${card.getAttribute("suit")}`)
 
     const discards = () => host.querySelector("solitaire-discard-pile")!.children.length
     expect(discards()).toBe(0)
