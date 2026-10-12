@@ -11,6 +11,9 @@ import type { Migration } from "./migrations.types"
  ****************/
 export class ReaderIsYou implements Migration {
   readonly name = "owen-types-to-you-type"
+  readonly kind = "epic"
+  readonly date = "2026-10-11"
+  readonly everyEdit = true
   readonly description = 'prose says "you type", not "Owen types":  the pages speak to whoever reads them'
 
   run(document: Document): boolean {

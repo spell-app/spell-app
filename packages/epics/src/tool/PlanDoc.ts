@@ -468,12 +468,13 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * Bring this doc's markup up to today's (`Migrations`:  every step, idempotent);  returns the steps that changed
-   * something.
+   * Bring this doc's markup up to today's, as every edit does (`Migrations.everyEdit`:  the cheap markup steps,
+   * idempotent);  returns the steps that changed something.
+   * - the rest (`links-agree`) run only on command:  `spell dev plan-doc migrate` (`MigrateCommands`)
    * - SIDE EFFECT:  logs them, `migrated:  updates-as-epic-update`
    */
   migrate(): string[] {
-    const ran = Migrations.run(this.document, { now: this.now })
+    const ran = Migrations.run(this.document, { now: this.now }, undefined, Migrations.everyEdit)
     if (ran.length) this.log(`migrated:  ${ran.join(", ")}`)
     return ran
   }

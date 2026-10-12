@@ -1060,6 +1060,17 @@ In this order, from `packages/docs`:
     - Run it after touching the folds, the landing, or `holdWhileFolding()`.
 - `tools/to-ui-section.js <page>...`:  converts old `section.s2|s3` pages to `<ui-section>`, ids kept.
   - Idempotent;  it refuses goals pages.
+  - Also the migration step `ui-section` (below).
+- [migrate.js](tools/migrate.js):  the MIGRATION steps of every page kind but the epic page's (epic `epic-workflow` P8).
+  - `spell dev plan-doc migrate [<kind>] [--file <page>]` runs it as a child, beside the epic page's own steps
+    ([PLAN-DOC.md](../epics/src/tool/PLAN-DOC.md), "Migrations").
+  - `KINDS`:  the page kinds, the same list as the plan-doc tool's `PAGE_KINDS` (its test checks);  `pageKind()`:  a
+    page's kind, from where it lives and what it loads.
+  - `STEPS`, oldest first, each named and dated, each page under its lock (`withLocks()`, from `relocate.js`).
+    Today:  `ui-section` (`to-ui-section.js`).
+  - The shared-content repair (`relocate.js`) is NOT a step:  it moves files between folders, and
+    `spell dev shared commit` runs its reorg every turn.
+  - A change to a page kind's markup adds its step here, in the same commit.
 - [doc-links.js](tools/doc-links.js):  see "Links".
   - Text and regexes, not a DOM:  it edits only what it links.
   - Its page arguments are from where it runs:  from `packages/docs`, `../../guides/x.html`.
