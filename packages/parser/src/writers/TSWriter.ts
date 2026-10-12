@@ -3,7 +3,15 @@ import { P } from "$/parser"
 // Import directly to avoid circular import
 import { JSWriter } from "./JSWriter"
 import * as jsText from "./jsText"
-import { attributeName, importedClasses, isCoreCall, isTight, newListItemName, unwrapped } from "./jsShapes"
+import {
+  attributeName,
+  elementProjectOf,
+  importedClasses,
+  isCoreCall,
+  isTight,
+  newListItemName,
+  unwrapped
+} from "./jsShapes"
 import { forEachNode, listNamedBy, typeCaseOf, type TSUndeclared, type WriterProject } from "./WriterProject"
 
 /****************
@@ -1354,22 +1362,6 @@ function docstringAbove(member: P.ASTNode, members: P.ASTNode[]): P.ASTDocCommen
 
 /** `text` with every non-blank line indented once. */
 const indented = jsText.indented
-
-/**
- * The project drawable class `node` is in, as its `static elementTag = spellCore.defineElement(this, "Solitaire")`
- * names it, e.g. `Solitaire` -- `undefined` for a class that isn't drawable.
- */
-function elementProjectOf(node: P.ASTClassDeclaration): string | undefined {
-  for (const member of node.members ?? []) {
-    if (!(member instanceof P.ASTStaticDefinition) || member.name !== "elementTag") continue
-    const found = member.value instanceof P.ASTStringLiteral && DEFINE_ELEMENT.exec(member.value.value)
-    if (found) return JSON.parse(found[1]!) as string
-  }
-  return undefined
-}
-
-/** What a drawable class's `elementTag` is:  `spellCore.defineElement(this, "<project>")`. */
-const DEFINE_ELEMENT = /^spellCore\.defineElement\(this, ("(?:[^"\\]|\\.)*")\)$/
 
 /** A type's name in words, e.g. `stock pile` for `StockPile`. */
 function wordsOf(typeName: string): string {

@@ -801,6 +801,8 @@ export class PyBaseWriter extends P.ProgramWriter {
 
   /** One statement:  a class member in its class's body, a loop as Python says it (`loop()`), else as written. */
   statement(statement: P.ASTNode): string {
+    // a drawable type's `elementTag`, javascript's for its page:  the program here has no page
+    if (P.jsShapes.elementTagProject(statement) !== undefined) return ""
     if (statement instanceof P.ASTClassMember) return String(this.writeAsMember(statement))
     const expression = statement instanceof P.ASTExpression ? statement : undefined
     const previous = this.asserts

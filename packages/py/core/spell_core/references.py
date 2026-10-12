@@ -51,11 +51,7 @@ def thing_for_reference(
     cls = class_named(parts.group(1), listed, kept)
     if cls is None:
         return None
-    things = listed
-    text = parts.group(2)
-    if PLACE.match(text):
-        return thing_at_place(cls, int(text), things)
-    return thing_named(cls, text, things, kept)
+    return thing_called(cls, parts.group(2), listed, kept)
 
 
 def class_named(name: str, things: Iterable[SpellObject], kept: Mapping[str, Any] | None = None) -> type | None:
@@ -69,6 +65,13 @@ def class_named(name: str, things: Iterable[SpellObject], kept: Mapping[str, Any
             if cls.__name__ == name and issubclass(cls, SpellObject):
                 return cls
     return None
+
+
+def thing_called(
+    cls: type, text: str, things: Iterable[SpellObject], kept: Mapping[str, Any] | None = None
+) -> SpellObject | None:
+    """The thing of class `cls` that `text` names, as the part of a reference after its `#`:  a place, or a name."""
+    return thing_at_place(cls, int(text), things) if PLACE.match(text) else thing_named(cls, text, things, kept)
 
 
 def thing_named(

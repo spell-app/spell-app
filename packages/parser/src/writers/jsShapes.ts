@@ -182,3 +182,29 @@ export function importedClasses(code: string): Map<string, [string, string]> {
   }
   return imported
 }
+
+/**
+ * The project drawable class `node` is in, as its `static elementTag = spellCore.defineElement(this, "Solitaire")`
+ * names it, e.g. `Solitaire` -- `undefined` for a class that isn't drawable (epic `drawable-thing` P10).
+ */
+export function elementProjectOf(node: P.ASTClassDeclaration): string | undefined {
+  for (const member of node.members ?? []) {
+    const project = elementTagProject(member)
+    if (project !== undefined) return project
+  }
+  return undefined
+}
+
+/**
+ * The project `member` names, when it's a drawable class's `static elementTag = spellCore.defineElement(this, "...")`:
+ * the line the page defines the type's element from -- `undefined` for any other member.
+ * - Javascript's own, written as it is:  a target with no page of its own leaves it out (Python's program side).
+ */
+export function elementTagProject(member: P.ASTNode): string | undefined {
+  if (!(member instanceof P.ASTStaticDefinition) || member.name !== "elementTag") return undefined
+  const found = member.value instanceof P.ASTStringLiteral && DEFINE_ELEMENT.exec(member.value.value)
+  return found ? (JSON.parse(found[1]!) as string) : undefined
+}
+
+/** What a drawable class's `elementTag` is:  `spellCore.defineElement(this, "<project>")`. */
+const DEFINE_ELEMENT = /^spellCore\.defineElement\(this, ("(?:[^"\\]|\\.)*")\)$/

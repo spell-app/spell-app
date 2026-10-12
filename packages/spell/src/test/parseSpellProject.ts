@@ -80,12 +80,15 @@ export function fixtureProjectId(projectName: string): string {
  * - Each phase adds the ones it makes write:  things and lists, pauses, drawing.
  */
 export const PYTHON_FIXTURES = new Set([
+  "CardTable",
   "Cards",
   "CardsFromZero",
+  "DrawableSolitaire",
   "FizzBuzz",
   "Klondike",
   "OutlineSolitaire",
-  "Solitaire"
+  "Solitaire",
+  "ThingReferences"
 ])
 
 /** Name of each fixture project:  each folder of `FIXTURES_DIR` with a `project.json`, alphabetically. */
