@@ -25,7 +25,9 @@ export const spellElementVocabulary = {
     {
       name: "thing",
       kind: "json",
-      description: "The thing it draws:  set by the program that draws it, e.g. `draw the card`."
+      description:
+        "The thing it draws:  set by the program that draws it, e.g. `draw the card`.  " +
+        'A tag written in markup names the program\'s thing by its `id` instead:  `<solitaire-tableau id="T1">`.'
     }
   ],
   events: [],

@@ -204,6 +204,19 @@ export class ASTStringLiteral extends ASTLiteral {
 }
 
 /**
+ * TypeNameLiteral -- a type's name as TEXT in the compiled code, e.g. `"Pile"` in:
+ *   - a new list's item type:  `new List({ instanceType: "Pile" })`
+ *   - a declared property's type:  `declareProp('pile', { type: "Pile" })`
+ *   - a type check left to the runtime:  `spellCore.isOfType(x, "List")`
+ * - `value` is spell's name for the type;  each writer writes it as it writes a type's name,
+ *   e.g. `"bank_account"` for a language naming types in snake_case.
+ * - Why a node of its own:  the rules that write a type's name as text mark it,
+ *   so no writer has to guess which text is a type's name (epic `drawable-thing`, J29).
+ * - A text value like any other otherwise:  `instanceof ASTStringLiteral` holds.
+ */
+export class ASTTypeNameLiteral extends ASTStringLiteral {}
+
+/**
  * TemplateString -- text with values inside, e.g. spell's `"images/[rank]-of-[suit].png"`:
  * `` `images/${this.rank}-of-${this.suit}.png` ``.
  * - `parts` (required):  in order, each plain text (as written between the quotes, its escapes kept) or an
@@ -220,6 +233,23 @@ export class ASTTemplateString extends ASTExpression {
   constructor(match: P.AnyMatch, props: ASTTemplateStringProps) {
     super(match, props)
     this.assertArrayType("parts", ["string", ASTExpression])
+  }
+}
+
+/**
+ * TaggedTemplate -- a template handed to a function, its `tag`, e.g. a drawable type's style sheet:
+ * `` css`.red { color: crimson }` `` (epic `drawable-thing`, P10).
+ * - `tag` (required):  the function's name, e.g. `css`.
+ * - `parts`:  as `ASTTemplateString`'s.
+ * - What it is is up to its tag, e.g. `css` hands back text.
+ */
+export type ASTTaggedTemplateProps = Prettify<ASTTemplateStringProps & { tag: string }>
+
+export class ASTTaggedTemplate extends ASTTemplateString {
+  declare tag: string
+  constructor(match: P.AnyMatch, props: ASTTaggedTemplateProps) {
+    super(match, props)
+    this.assertType("tag", "string")
   }
 }
 
@@ -1751,6 +1781,34 @@ export class ASTElseStatement extends ASTStatement {
   constructor(match: P.AnyMatch, props?: ASTElseStatementProps) {
     super(match, props)
     this.statements = convertStatementsToBlock(this.match, this.statements)
+  }
+}
+
+/**
+ * ProgramStart:  a line of a program's START, which runs only when the program starts afresh --
+ * `if (!spellCore.isCarryingOver) game.start()`.
+ * - Its lines:  a file's top-level call of one of its tests, `test card setup`,
+ *   and starting its app, `start the game` (epic `drawable-thing` P17, Q26).
+ *   `SP.Block` wraps them, at a file's top level.
+ * - Skipped when an edit keeps the last run's things (`spellCore.isCarryingOver`):
+ *   the tests don't print again, and the game in progress isn't started again.
+ *   Every other line still runs.
+ * - It IS an `if`, so every writer writes it as one.
+ * - `statement`:  the line's own code, e.g. `game.start()`.
+ */
+export type ASTProgramStartProps = { statement: ASTStatement | ASTExpression }
+
+export class ASTProgramStart extends ASTIfStatement {
+  constructor(match: P.AnyMatch, { statement }: ASTProgramStartProps) {
+    const carryingOver = new ASTPropertyExpression(match, {
+      object: new ASTSpellCoreExpression(match),
+      property: "isCarryingOver"
+    })
+    super(match, {
+      condition: new ASTNotExpression(match, { expression: carryingOver }),
+      // a call is an expression:  a block holds either
+      statements: new ASTStatementBlock(match, { statements: [statement] })
+    })
   }
 }
 

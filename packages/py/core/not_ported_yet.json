@@ -3,7 +3,12 @@
   "groups": [
     {
       "why": "Pauses and events (P11):  Python's runtime hasn't needed these",
-      "names": ["forEachSequential", "DEBUG_RUNTIME", "DEBUG_PROCESSES", "clearRuntime"]
+      "names": [
+        "forEachSequential",
+        "DEBUG_RUNTIME",
+        "DEBUG_PROCESSES",
+        "clearRuntime"
+      ]
     },
     {
       "why": "A browser's only:  a drawable thing's own element (<solitaire-card>), a page's markup, its shadow root",
@@ -15,7 +20,24 @@
         "thingFor",
         "elementTagOf",
         "appLayout",
-        "domRoot"
+        "domRoot",
+        "useElement",
+        "elementClassOf",
+        "css"
+      ]
+    },
+    {
+      "why": "A recompile keeping the last run's things (epic drawable-thing P16, P17):  the page's runners only;  a Python program never keeps them",
+      "names": [
+        "isCarryingOver",
+        "carryOver",
+        "carryProblems"
+      ]
+    },
+    {
+      "why": "An element's id on the page (epic drawable-thing P18):  the page's own javascript gives it, never the program",
+      "names": [
+        "elementIdFor"
       ]
     },
     {

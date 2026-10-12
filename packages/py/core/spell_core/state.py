@@ -62,6 +62,10 @@ class StateWriter:
         """The thing this writer gave `the_id`, if any:  what a page's message names, `{"@id": "3"}`."""
         return self._things.get(the_id)
 
+    def things_given_ids(self) -> list[SpellObject]:
+        """Every thing this writer gave an id, in the order it gave them:  the order a page made its copies in."""
+        return list(self._things.values())
+
     def note_change(self, changed: SpellObject) -> None:
         """SIDE EFFECT:  `changed` goes in the next `patch()`, if it has an id:  one never written is new to a page."""
         if id(changed) in self._ids:

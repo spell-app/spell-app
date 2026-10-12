@@ -192,6 +192,17 @@ describe("drawing with h() from @spell/core, as `spell run` runs it", () => {
 /** The fixtures that are games:  a `deck` of cards, and a `card-click` handler. */
 const GAMES = ["Solitaire", "Klondike", "OutlineSolitaire"]
 
+/**
+ * Where the board a run draws last starts, in its output's `lines`:  the last `<div id="spell-app-root">`.
+ * - The board is the rest:  text drawn in it may have lines of its own, e.g. Klondike's `<markdown>` rules.
+ */
+function boardAt(lines: string[]): number {
+  for (let index = lines.length - 1; index >= 0; index--) {
+    if (lines[index]!.startsWith('<div id="spell-app-root">')) return index
+  }
+  return -1
+}
+
 /** `spell_core`'s uv project, where its tests' scripts live. */
 const SPELL_CORE = resolve(import.meta.dirname, "../../py/core")
 
@@ -276,13 +287,21 @@ describe("the core contract:  a page draws a Python game as javascript does", ()
             dom: true
           })
           expect(exitCode, `${name}'s page:\n${output}`).toBe(CLI.EXIT.OK)
-          const [messages, , drawn] = stdout.trimEnd().split("\n").slice(-3)
+          const lines = stdout.trimEnd().split("\n")
+          const board = boardAt(lines)
+          // the messages sent, then a blank line, then the board
+          const [messages, drawn] = [lines[board - 2], lines.slice(board).join("\n")]
           const snapshot = readFileSync(resolve(import.meta.dirname, `__snapshots__/contract/${name}.out.txt`), "utf8")
-          expect(drawn).toBe(snapshot.trimEnd().split("\n").at(-1))
+          const expected = snapshot.trimEnd().split("\n")
+          expect(drawn).toBe(expected.slice(boardAt(expected)).join("\n"))
 
-          // the click:  the event, its card by id, which Python's session runs
-          const [click] = JSON.parse(messages!) as Array<{ trigger: string; details: { card: { "@id": string } } }>
-          expect(click).toEqual({ trigger: "card-click", details: { card: { "@id": expect.any(String) } } })
+          // the click:  the event, its card by reference (`Card#3-of-diamonds`), which Python's session runs
+          const [click] = JSON.parse(messages!) as Array<{ trigger: string; target: string; details: object }>
+          expect(click).toEqual({
+            trigger: "card-click",
+            target: expect.stringMatching(/^Card#\w+-of-\w+$/),
+            details: {}
+          })
           const session = spawnSync("uv", [...run, "spell_core.page", program, "--seed", "1", "--no-pauses"], {
             encoding: "utf8",
             input: `${JSON.stringify(click)}\n`

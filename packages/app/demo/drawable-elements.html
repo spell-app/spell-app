@@ -1,11 +1,17 @@
 <!doctype html>
 <!--
-  A spell project's drawable types, used on a plain page by their tags -- served by the dev server at
-  `/demo/drawable-elements.html`, after `yarn build:element` (epic `drawable-thing`, P8).
+  A spell project's drawable types, used on a plain page by their tags.
+  - Served by the dev server at `/demo/drawable-elements.html`, after `yarn build:element` (epic `drawable-thing`, P8).
   - The hidden `<spell-app>` runs `@examples/Drawable Solitaire`, which defines its tags:
-    `<drawable-solitaire-card>`, `<drawable-solitaire-pile>` ...
-  - The tags below are written by hand:  each makes its own card or pile from its attributes.
+    `<solitaire-card>`, `<solitaire-pile>` ...
+  - The tags below are written by hand:  each makes its own card or pile from its attributes,
+    except the tableau, whose id names the hidden game's tableau T1:  `id="T1"` is `Tableau#T1` (P18, J43).
+    - So a tag that makes its own thing has no id:  the ace is found by its class instead.
+  - The tableau's cards are the game's own, drawn by the program:  each is named after its card by its id,
+    e.g. `id="queen-of-hearts"`, as the inspector shows.
   - Its buttons call a card's methods and set its properties, as any page's script could.
+  - The ace's tag is shown below them, live:  its attributes follow its thing both ways (P13),
+    so `ace.turnOver()` changes `direction` on the tag, as the browser's inspector shows too.
 -->
 <html lang="en">
   <head>
@@ -27,6 +33,11 @@
       .table > * {
         width: 80px;
       }
+      #ace-tag {
+        padding: 8px;
+        background: white;
+        font-size: 14px;
+      }
     </style>
   </head>
   <body>
@@ -36,20 +47,40 @@
 
     <h2>Cards, written by hand</h2>
     <div class="table">
-      <drawable-solitaire-card id="ace" rank="ace" suit="spades" direction="up"></drawable-solitaire-card>
-      <drawable-solitaire-card rank="queen" suit="hearts" direction="up"></drawable-solitaire-card>
-      <drawable-solitaire-card rank="7" suit="clubs" direction="down"></drawable-solitaire-card>
+      <solitaire-card class="ace" rank="ace" suit="spades" direction="up"></solitaire-card>
+      <solitaire-card rank="queen" suit="hearts" direction="up"></solitaire-card>
+      <solitaire-card rank="7" suit="clubs" direction="down"></solitaire-card>
     </div>
 
     <h2>A pile holding cards</h2>
     <div class="table">
-      <drawable-solitaire-pile>
-        <drawable-solitaire-card rank="king" suit="diamonds" direction="up"></drawable-solitaire-card>
-      </drawable-solitaire-pile>
+      <solitaire-pile>
+        <solitaire-card rank="king" suit="diamonds" direction="up"></solitaire-card>
+      </solitaire-pile>
+    </div>
+
+    <h2>The hidden game's tableau T1, named by its id</h2>
+    <!-- its cards are the game's own:  each is named after its card, id="...", and shows the pile holding it -->
+    <div class="table">
+      <solitaire-tableau id="T1"></solitaire-tableau>
     </div>
 
     <h2>A card's methods and properties, from the page's script</h2>
-    <button onclick="document.getElementById('ace').turnOver()">ace.turnOver()</button>
-    <button onclick="document.getElementById('ace').rank = 'jack'">ace.rank = "jack"</button>
+    <button onclick="document.querySelector('.ace').turnOver()">ace.turnOver()</button>
+    <button onclick="document.querySelector('.ace').rank = 'jack'">ace.rank = "jack"</button>
+    <button onclick="document.querySelector('.ace').setAttribute('rank', '2')">ace.setAttribute("rank", "2")</button>
+
+    <h2>The ace's tag, as the inspector shows it</h2>
+    <pre id="ace-tag"></pre>
+    <script>
+      // the tag's opening, rewritten on each change of its attributes:  the thing's changes show here
+      const ace = document.querySelector(".ace")
+      const showTag = () => {
+        const attributes = [...ace.attributes].map(({ name, value }) => (value ? `${name}="${value}"` : name))
+        document.getElementById("ace-tag").textContent = `<${ace.localName} ${attributes.join(" ")}>`
+      }
+      new MutationObserver(showTag).observe(ace, { attributes: true })
+      showTag()
+    </script>
   </body>
 </html>

@@ -828,19 +828,36 @@ export class SpellLanguageService {
    * Docstring of what `subject` names:  the comments documenting its declaration -- see `SP.Block.getDocComments()`.
    * - Only if that declaration really names it:  an argument's `declaredBy` is its METHOD, whose docs aren't its own.
    * - Properties only when we know which type they're on.
+   * - A type with no comments:  the `<markdown>` block in its outline, if it has one -- see `outlineDescriptionOf()`.
    */
   docsOf(subject: LSP.SpellSubject): string | undefined {
     const builtIn = SpellLanguageService.builtInDoc(subject)
     if (builtIn) return builtIn
-    return subject.record && this.docsOfRecord(subject.record, subject.kind === "method")
+    if (!subject.record) return undefined
+    return this.docsOfRecord(subject.record, subject.kind === "method") ?? this.outlineDescriptionOf(subject.record)
   }
 
-  /** Docstring of what `subject` names, as markdown -- see `docMarkdown()`. */
+  /** Docstring of what `subject` names, as markdown -- see `docMarkdown()`, and `docsOf()` for a type's. */
   docMarkdownOf(subject: LSP.SpellSubject): string | undefined {
     const builtIn = SpellLanguageService.builtInDoc(subject)
     if (builtIn) return builtIn
-    const doc = subject.record && this.docCommentOfRecord(subject.record, subject.kind === "method")
-    return doc && SpellLanguageService.docMarkdown(doc)
+    if (!subject.record) return undefined
+    const doc = this.docCommentOfRecord(subject.record, subject.kind === "method")
+    return doc ? SpellLanguageService.docMarkdown(doc) : this.outlineDescriptionOf(subject.record)
+  }
+
+  /**
+   * The `<markdown>` description in type `record`'s outline, if it has one -- see `SP.MarkdownDescription`.
+   * - `undefined` for anything but a type.
+   */
+  private outlineDescriptionOf(record: { name: string; declaredBy?: P.Match }): string | undefined {
+    if (!(record instanceof P.TypeScope) || !record.declaredBy) return undefined
+    let description: string | undefined
+    this.walk(record.declaredBy, (match) => {
+      if (description === undefined && match.is(SP.MarkdownDescription) && match.data.typeName === record.name)
+        description = SP.MarkdownDescription.descriptionOf(match)
+    })
+    return description
   }
 
   /**
@@ -1233,6 +1250,7 @@ export class SpellLanguageService {
   /**
    * What could be typed at `position`:
    * - in a `<css>` block:  CSS, e.g. `color` for `col` -- see `LSP.SpellCSS`
+   * - typing a JSX tag (`<chi`):  spell's own tags, e.g. `children` -- see `tagItems()`
    * - mid-statement:  what can come NEXT, if the parser can say -- see `expectedNext()`
    * - otherwise, names visible there:  variables declared before it, types, constants
    * - at the start of a statement:  the first words of every kind of statement (`to`, `if`, `set`...),
@@ -1246,6 +1264,8 @@ export class SpellLanguageService {
     if (cssItems) return cssItems
     if (!file.match) return []
     const lineText = text.slice(text.lastIndexOf("\n", offset - 1) + 1, offset)
+    const tagItems = this.tagItems(lineText)
+    if (tagItems) return tagItems
     const atStatementStart = /^\s*[\w-]*$/.test(lineText)
     if (!atStatementStart) {
       const expected = this.expectedNext(file, position)
@@ -1264,6 +1284,21 @@ export class SpellLanguageService {
       }
     }
     return items
+  }
+
+  /**
+   * Spell's own JSX tags, while one is being typed at the end of `lineText` -- `undefined` if no tag is.
+   * - e.g. `children` for `return <div><chi`:  spell's word for the web's `<slot>` (`SP.SPELL_TAG_NAMES`).
+   * - The web's own tags aren't offered.
+   * - A tag is a `<` right before a word:  `x < y` isn't one.
+   */
+  private tagItems(lineText: string): CompletionItem[] | undefined {
+    if (!JSX_TAG_TYPED.test(lineText)) return undefined
+    return [...SP.SPELL_TAG_NAMES].map(([tag, webTag]) => ({
+      label: tag,
+      kind: CompletionItemKind.Keyword,
+      detail: `spell's word for <${webTag}>`
+    }))
   }
 
   /**
@@ -2243,3 +2278,6 @@ type CommentStyle = {
   /** In a code span:  coloured as a `string`. */
   code?: boolean
 }
+
+/** A JSX tag being typed at the end of a line:  `<` right before a word, after a space, `>`, `(` or `{`, e.g. `<div><chi`. */
+const JSX_TAG_TYPED = /(?:^|[\s>({])<[a-z][\w-]*$/

@@ -76,8 +76,9 @@ export type CheckOptions = GlobalOptions & {
 }
 
 /**
- * `name` for comparing as people would:  lower case, with spaces, `-`, `_` and a capital inside a word all one space.
- * - So `stock pile` finds `StockPile` (a type's name since epic `drawable-thing` P11), and `short-suit` `short_suit`.
+ * `name` for comparing as people would:  lower case, with spaces, `-`, `_` and a word's capital all one space.
+ * - So `stock pile` finds `StockPile` (a type's name since epic `drawable-thing` P11),
+ *   and `short-suit` finds `short_suit` and `shortSuit`.
  */
 export function normalizedName(name: string): string {
   return name
@@ -101,13 +102,17 @@ export type WatchOptions = GlobalOptions & {
 
 /**
  * `spell run` flags.
- * - `browser`:  `true` opens the project in a browser even if it shows no UI;  `false` never does.
- *   Left out:  only if it tried to show one.
+ * - `browser`:
+ *   - `true` opens the project in a browser even if it shows no UI
+ *   - `false` never does
+ *   - left out:  only if it tried to show one
  * - `seed`:  see `SeedOptions`
  */
 export type RunOptions = GlobalOptions &
   SeedOptions & {
     browser?: boolean
+    /** `ts` or `py` (or a target's full name):  run as that target compiles it -- see `runTarget()` */
+    target?: string
   }
 
 /**
@@ -285,7 +290,7 @@ export type NewOptions = GlobalOptions & {
 
 /**
  * What `runProject.ts` -- the child process `spell run` / `spell test` start -- is to do.
- * Passed as JSON, in env var `SPELL_RUN`.
+ * - Passed as JSON, in env var `SPELL_RUN`.
  * - `mode`:  `run` the project, or run its `test ...` functions and report
  * - `name`:  the project's, for messages
  * - `entry`:  URL of its compiled javascript -- a temp file, never in the project

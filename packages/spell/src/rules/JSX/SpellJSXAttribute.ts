@@ -4,6 +4,7 @@ import { fillInsAST, parseFillIns } from "$/spell/rules/core"
 // Import directly to avoid circular import
 import { commitStatement } from "$/spell/rules/Statement"
 import { JSX } from "./JSX.parser"
+import { SPELL_ATTRIBUTE_NAMES } from "./JSX.shared"
 import { SpellJSXContent } from "./SpellJSXContent"
 
 /**
@@ -12,6 +13,8 @@ import { SpellJSXContent } from "./SpellJSXContent"
  * - `on*` attribute names (e.g. `onClick`) parse `value` as a `statement` inside a `MethodScope` with
  *   an implicit `event` argument, producing an inline event-handler method rather than an expression.
  * - Falls back to `parse_error` if neither an `expression` nor `on*` `statement` consumes the whole value.
+ * - Spell's own attribute words become the web's as the AST is built:
+ *   `in="header"` => `slot="header"` (`SPELL_ATTRIBUTE_NAMES`).
  * - NOTE: rule name is `jsxAttribute`, kept distinct from class name `SpellJSXAttribute` (pre-existing convention).
  */
 export class SpellJSXAttribute extends SpellJSXContent {
@@ -77,6 +80,7 @@ export class SpellJSXAttribute extends SpellJSXContent {
    * Build `P.ASTJSXAttribute`.
    * - `statement` value becomes an inline `P.ASTMethodDefinition` (with an `event` arg for `on*` names).
    * - Missing `value` (bare attribute, e.g. `<input disabled/>`) becomes `true`.
+   * - Spell's own attribute words as the web's:  `in` => `slot` (`SPELL_ATTRIBUTE_NAMES`).
    */
   getAST(match: P.MatchFor<this>) {
     const { attribute, expression, statement, error, fillIns } = match.data
@@ -104,7 +108,7 @@ export class SpellJSXAttribute extends SpellJSXContent {
       valueAST = new P.ASTNothingLiteral(match)
     }
     return new P.ASTJSXAttribute(match, {
-      name: attribute!,
+      name: SPELL_ATTRIBUTE_NAMES.get(attribute!) ?? attribute!,
       value: valueAST,
       error: error?.AST as P.ASTParseError | undefined
     })

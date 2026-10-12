@@ -43,6 +43,9 @@
     "window": "node packages/cli/bin/spell.mjs dev window",
     "server": "node packages/cli/bin/spell.mjs dev server",
     "serve": "node packages/cli/bin/spell.mjs dev server start --all",
+    "dev": "cd \"$INIT_CWD\" && node \"$PROJECT_CWD/packages/cli/bin/spell.mjs\" run",
+    "dev:ts": "cd \"$INIT_CWD\" && node \"$PROJECT_CWD/packages/cli/bin/spell.mjs\" run --target ts",
+    "dev:py": "cd \"$INIT_CWD\" && node \"$PROJECT_CWD/packages/cli/bin/spell.mjs\" run --target py",
     "commands:check": "node packages/cli/bin/spell.mjs dev commands check"
   },
   "devDependencies": {

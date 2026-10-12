@@ -89,7 +89,7 @@ Longer notes on some of them follow the table.
 | `spell describe <project> [name] [member]` | What the Type Explorer shows, as text.  E.g. `spell describe Card.spell Card color`.  `--compiled`, `--inherited`, `--json`. |
 | `spell explore [project]` | Full-screen Type Explorer.  Reloads as files change. |
 | `spell watch [projects...]` | Recompiles on every save, with a live list of errors.  `q` / `Ctrl-C` stops it. |
-| `spell run [project]` | Compiles and runs the project under node.  Its `print`s show as they happen. |
+| `spell run [project]` | Compiles and runs the project under node.  Its `print`s show as they happen.  `--target ts` / `py` runs it as that target compiles it:  a Python program that draws is served as its web app.  `yarn dev`, `dev:ts`, `dev:py` from a project's folder. |
 | `spell test [projects...]` | Runs each `to test ...` and reports ✓, or ✗ with the checks that failed. |
 | `spell format <projects...>` | Tidies `.spell` files' whitespace, as VS Code's Format Document does. |
 | `spell projects [root]` | Lists the project roots, or one root's projects, with the names to type.  `--json`. |

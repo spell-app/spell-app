@@ -18,7 +18,10 @@ async function named(arg: string, cwd?: string) {
 const FIZZBUZZ = fixtureProjectId("FizzBuzz")
 const SOLITAIRE = fixtureProjectId("Solitaire")
 const CARD = `${SOLITAIRE}/Card.spell`
-const ALL_FIXTURES = fixtureProjectNames().map(fixtureProjectId)
+// in the order a root lists its projects:  by name, letter case aside (`Cards` before `CardTable`)
+const ALL_FIXTURES = fixtureProjectNames()
+  .map(fixtureProjectId)
+  .sort((a, b) => a.localeCompare(b))
 
 describe("resolveProject()", () => {
   describe("spell paths", () => {

@@ -158,6 +158,14 @@ export class PyBaseWriter extends P.ProgramWriter {
     return node.quote ? this.quoted(node.value) : node.value
   }
 
+  /**
+   * A type's name as text, e.g. `prop(type="Pile")`:  one of the project's own types as we write a type's name,
+   * else as written (epic `drawable-thing`, J29).
+   */
+  ASTTypeNameLiteral(node: P.ASTTypeNameLiteral): string {
+    return this.project.isClass(node.value) ? this.quoted(this.typeNameOf(node.value)) : this.ASTStringLiteral(node)
+  }
+
   ASTBooleanLiteral(node: P.ASTBooleanLiteral): string {
     return node.value ? "True" : "False"
   }
@@ -793,6 +801,8 @@ export class PyBaseWriter extends P.ProgramWriter {
 
   /** One statement:  a class member in its class's body, a loop as Python says it (`loop()`), else as written. */
   statement(statement: P.ASTNode): string {
+    // a drawable type's `elementTag`, javascript's for its page:  the program here has no page
+    if (P.jsShapes.elementTagProject(statement) !== undefined) return ""
     if (statement instanceof P.ASTClassMember) return String(this.writeAsMember(statement))
     const expression = statement instanceof P.ASTExpression ? statement : undefined
     const previous = this.asserts
@@ -894,6 +904,17 @@ export class PyBaseWriter extends P.ProgramWriter {
     return parts.join(pyText.NEWLINE)
   }
 
+  /**
+   * A line of the program's start, e.g. `start the game`:  the line alone, `game.start()`.
+   * - javascript skips it while an edit keeps the last run's things, `if (!spellCore.isCarryingOver)`
+   *   (epic `drawable-thing` P17);  a Python program never keeps them, so it always runs.
+   * - Written as its statement is at this level:  at the top, one that waits still runs through `asyncio.run()`.
+   */
+  ASTProgramStart(node: P.ASTProgramStart): string {
+    const [statement] = node.statements.statements ?? []
+    return statement ? this.statement(statement) : ""
+  }
+
   /** `if condition:` and its statements. */
   ASTIfStatement(node: P.ASTIfStatement): string {
     const written = pyText.block(`if ${this.condition(node.condition)}`, this.blockBody(node.statements))
@@ -973,9 +994,13 @@ export class PyBaseWriter extends P.ProgramWriter {
     return `${key}: ${value}`
   }
 
-  /** Text with values in it:  an f-string, `f"{self.rank}-of-{self.suit}"`. */
+  /**
+   * Text with values in it:  an f-string, `f"{self.rank}-of-{self.suit}"`.
+   * - Its text parts are as written, escapes and all (`\n`):  read first, so Python quotes the text itself.
+   * - A drawable type's style sheet, javascript's `` css`...` `` (epic `drawable-thing` P10), is its text:  a plain string.
+   */
   ASTTemplateString(node: P.ASTTemplateString): string {
-    return this.fString(node.parts.map((part) => (typeof part === "string" ? part : { value: part })))
+    return this.fString(node.parts.map((part) => (typeof part === "string" ? unescaped(part) : { value: part })))
   }
 
   /** Spell source quoted in a test's line, e.g. `` `the rank of the card` ``:  plain text, or an f-string. */
@@ -1513,3 +1538,8 @@ function collapseBlankLines(text: string, topLevel: boolean): string {
 
 /** `spell_core`'s functions imported only when the code CALLS them:  a variable may be named `position` too. */
 const CALLED = new Set(["position", "spell_position", "end_position", "with_spell_positions"])
+
+/** Text written with javascript's escapes, as a template's part is (`a\nb`), read:  the text itself. */
+function unescaped(written: string): string {
+  return written.replace(/\\([\s\S])/g, (_escape, char: string) => ({ n: "\n", t: "\t", r: "\r" })[char] ?? char)
+}

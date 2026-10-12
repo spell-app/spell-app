@@ -92,7 +92,8 @@ export class ThingRegistry {
     this.entries.set(number, new WeakRef(thing))
     this.numbers.set(thing, number)
     if (this.currentHeading) this.headings.set(number, this.currentHeading)
-    this.finalizer?.register(thing, number)
+    // the thing is its own token, so `forget()` and `clear()` can unregister it
+    this.finalizer?.register(thing, number, thing)
     this.changed()
   }
 
@@ -119,6 +120,21 @@ export class ThingRegistry {
    */
   get exported(): Readonly<Record<string, unknown>> {
     return this.exports
+  }
+
+  /**
+   * Forget `thing`, at once:  it drops out of the Thing Explorer without waiting to be garbage-collected.
+   * - e.g. the cards a recompiled program dealt, replaced by the last run's (`spellCore.carryOver()`).
+   * - Nothing, for a thing never registered.
+   */
+  forget(thing: ThingLike): void {
+    const number = this.numbers.get(thing)
+    if (number === undefined) return
+    this.finalizer?.unregister(thing)
+    this.numbers.delete(thing)
+    this.headings.delete(number)
+    this.entries.delete(number)
+    this.changed()
   }
 
   /** Forget everything, e.g. as a new run starts -- see `resetRuntime()`. */
@@ -179,6 +195,15 @@ export class ThingRegistry {
    */
   classNamed(name: string): ThingClass | undefined {
     return this.classes.get(name) ?? BUILT_IN_CLASSES.find((Class) => Class.name === name)
+  }
+
+  /**
+   * Every class `addClass()` has seen:  the program's own, e.g. `Card`, `Pile`, `Tableau` -- NOT spell's own.
+   * - e.g. for what a drawable class's element shows:  `spellCore.elementApiOf()` looks for the lists
+   *   a card belongs to.
+   */
+  knownClasses(): ThingClass[] {
+    return [...new Set(this.classes.values())]
   }
 
   /**
