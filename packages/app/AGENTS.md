@@ -68,6 +68,8 @@ when working with code in this package, `@spell-app/app`.
       - their pack, `spell.pack.js`
     - `yarn build:page`:  `dist-page/`, the page side of a Python spell app (epic `python-target` P20)
       - `spell-page.js` ([spellPage.ts](src/runner/spellPage.ts)):  the page's `@spell/core`
+        - It exports what `spell-runtime.js` does, `css` included:
+          [spellPage.test.ts](src/runner/spellPage.test.ts) fails on one it leaves out.
       - It sets the page up itself.
       - py's `spell_quart` serves it ([py's AGENTS.md](../py/AGENTS.md)).
   - ONE Solid per page, across those bundles.
