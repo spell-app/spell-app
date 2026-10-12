@@ -74,6 +74,12 @@ Only what's local is below;  a section named like a WWOD rule extends it.
         `<epic-agents>`, in its shadow root, before its blocks (not a section).
       - Both clients POST and watch through the same code, a `ServerLink` each:
         the token, its one refresh on a 403, the poll and `spell-server:file`.
+  - `site/` -- `EpicUISite`:  the data of Epic UI, the elements' docs set (`packages/epic-components/`, at `/epic-ui/`;
+    epic `epic-workflow` P10), in Spell UI's site shapes:
+    - `_data/components.json`:  one entry per element from `Definitions.all`, filed by the set's hand-kept
+      `_data/pages.json` groups (a new element:  under Other, `planned` until its page exists), plus the side column's
+      own links;  `_data/search.json`:  every page's sections, for its search
+    - written by `yarn site:data` ([its script](scripts/site-data.ts));  `EpicUISite.test.ts` fails while stale
   - `convert/` -- the converter, old markup => `<epic-*>` (`Converter`, `ConvertRun`).
     - A `ConversionProof` per doc:  every id, link target and word kept.
     - Every live doc was converted at the switch (P12 of epic `epic-components`).
@@ -123,6 +129,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     `epic migrate --all --notify`:  idle epics are migrated, running ones are told (the epic skill's
     "Migrations" says what the receiving session does).
   - How a step is written:  [PLAN-DOC.md](src/tool/PLAN-DOC.md), "Migrations".
+- Every element has a page in Epic UI, [`packages/epic-components/`](../epic-components/README.md), served at
+  `/epic-ui/` (epic `epic-workflow` P10):  change it in the SAME commit as the element, then `yarn site:data`.
+  - Its pages are tracked here, per branch:  a worktree's show at `/worktrees/<w>/epic-ui/` until it merges.
 - A pack drawn by pages EVERY checkout shows (the shared `epics/`, `guides/` ...):
   those pages load `main`'s `pack/`, through the main checkout's page server.  So:
   - small fixes straight on `main`
@@ -132,6 +141,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 - `yarn pack:build` ~== `spell dev pack build epics` -- the catalog, the entry and the script, into `pack/`
 - `yarn pack:check` ~== `spell dev pack check epics` -- exits 1 while `pack/` is stale
+- `yarn site:data [--check]` -- Epic UI's data (`src/site/EpicUISite.ts`, `scripts/site-data.ts`):  rerun after
+  changing an element or a page's sections, and commit `packages/epic-components/_data/`
 - `yarn test` -- `node` (`src/`) and `browser` (`components/`, chromium);
   the root's `yarn test` runs them as `epics:node` / `epics:browser`
 - `yarn ts`, `yarn lint`, `yarn format`, `yarn review`

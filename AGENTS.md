@@ -52,7 +52,7 @@ Each folder links to its own `AGENTS.md`:  read it before working there.
 | [py](packages/py/AGENTS.md) | `@spell-app/py` | `$/py` | `PY` | everything for Python:  the writers (`ts/`), `spell_core` (`core/`) and `spell_quart` (`quart/`), the latter two uv projects |
 | [spell](packages/spell/AGENTS.md) | `@spell-app/spell` | `$/spell` | `SP` | the spell LANGUAGE on the parser, every spell project (`projects/`), `PARSING.md` and `readme.md` |
 | [lsp](packages/lsp/AGENTS.md) | `@spell-app/lsp` | `$/lsp` | `LSP` | spell's language server (browser-safe) |
-| [app](packages/app/AGENTS.md) | `@spell-app/app` | `$/app` | `UI` | the web app, its server, the runner, and the `<spell-app>` / `<spell-editor>` web components;  `yarn start` / `build*` live here |
+| [app](packages/app/AGENTS.md) | `@spell-app/app` | `$/app` | `UI` | the web app, its server, the runner, and the `<spell-app>` / `<spell-editor>` web components;  `yarn start` / `build*` live here;  App UI, the docs pages of its components, beside them in `components/` (at `/app-ui/`) |
 | `packages/vscode/` | | | | the VS Code extension (below) |
 | [ui](packages/ui/AGENTS.md) | `@spell-app/ui` | `$/ui` | | Fomantic UI reborn as `ui-*` custom elements, on Solid 2 |
 | [cli](packages/cli/AGENTS.md) | `@spell-app/cli` | `$/cli` | `CLI` | the `spell` command-line tool, running the spell-family packages' SOURCE through `tsx`;  see its [README](packages/cli/README.md) too |
@@ -60,8 +60,15 @@ Each folder links to its own `AGENTS.md`:  read it before working there.
 | [server](packages/server/AGENTS.md) | `@spell-app/server` | `$/server` | `SRV` | serving pages locally (below) |
 | [assembler](packages/assembler/AGENTS.md) | `@spell-app/assembler` | `$/assembler` | `AS` | assembling pages, for every tool that writes them (below) |
 | [brand](packages/brand/AGENTS.md) | `@spell-app/brand` | `$/brand` | | Spell's brand, the site header's Brand tab (below) |
+| [epic-components](packages/epic-components/README.md) | | | | PAGES, not a workspace:  Epic UI, the `<epic-*>` elements' docs set, served at `/epic-ui/` (below) |
 
 More on some of them:
+- epic-components:  a COMPONENT SET (epic `epic-workflow` P10):  docs pages in Spell UI's page shape, tracked with
+  their branch, beside the code they describe.
+  - Served at `/epic-ui/` by the page server, which lays the sets' build of Spell UI's site over the folder
+    (`COMPONENT_SETS`, [server's AGENTS.md](packages/server/AGENTS.md)).
+  - App UI is the other set:  the app's components' pages, in `packages/app/components/`, at `/app-ui/`.
+  - The top bar's Epic/UI and App/UI tabs.
 - `packages/vscode/` is its own yarn project (own `package.json` + `yarn.lock`), NOT a workspace.
   - `spell dev vscode` builds and installs it.
   - Or its two steps:  `spell dev vscode build`, then `install`.

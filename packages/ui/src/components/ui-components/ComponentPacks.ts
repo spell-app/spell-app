@@ -28,6 +28,9 @@ export class ComponentPacks {
   /** Loads whose script hasn't registered its pack yet. */
   private static readonly pending = new Set<PendingPack>()
 
+  /** Pack name => its `define()` while it still runs (it loads its families first):  its tags are listed, not yet defined. */
+  private static readonly defining = new Map<string, Promise<unknown>>()
+
   ////////////////
   // ## Registering and loading
   ////////////////
@@ -64,6 +67,9 @@ export class ComponentPacks {
       pending?.resolve(pack)
       return
     }
+    ComponentPacks.defining.set(pack.name, defined)
+    const settled = () => ComponentPacks.defining.delete(pack.name)
+    defined.then(settled, settled)
     defined.then(
       () => pending?.resolve(pack),
       (error: unknown) => {
@@ -103,6 +109,19 @@ export class ComponentPacks {
   /** The catalog entry of `tag`, from the registered packs;  `undefined` for a tag no pack lists. */
   static entryOf(tag: string): RootCatalogEntry | undefined {
     return ComponentPacks.catalog.get(tag)
+  }
+
+  /**
+   * While `tag`'s pack is still defining its tags (an async `define()`):  resolves once it's done;  else `undefined`.
+   * - So a root that finds one of them undefined in that time waits for it, rather than calling it failed.
+   */
+  static whileDefining(tag: string): Promise<void> | undefined {
+    if (!ComponentPacks.catalog.has(tag)) return undefined
+    for (const [name, defining] of ComponentPacks.defining) {
+      const prefix = ComponentPacks.packs.get(name)?.prefix
+      if (prefix && tag.startsWith(prefix)) return defining.then(() => undefined)
+    }
+    return undefined
   }
 
   /** Does `tag` have a registered pack's prefix?  Then a root loads (or reports) it, as it does `ui-*` tags. */
