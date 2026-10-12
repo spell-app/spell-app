@@ -1228,6 +1228,14 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - Why:  as the program runs, the Thing Explorer knows which heading's code made each thing.
   - NOT in a plain block, e.g. a rule test's.
   - NOT for a heading with no text, e.g. `##########`.
+- A line of the program's START, at a FILE's top level, runs only when the program starts afresh:
+  `if (!spellCore.isCarryingOver) game.start()` (epic `drawable-thing` P17).
+  - Its lines:  calling one of its tests, `test card setup`, and starting its app, `start the game`.
+    Each rule says so:  `SpellStatement.startsTheProgram()`.
+  - It's a `P.ASTProgramStart`, an `if`:  [`Block`](src/rules/Block.ts) wraps the line's code.
+  - Why:  when an edit keeps the last run's things, the runner loads the program with its start skipped,
+    so its tests don't print again, and the game in progress isn't started again.
+  - NOT in a method, nor in a plain block, e.g. a rule test's.
 - Classes compile as a hand-written class would:  each MEMBER in its class's body, wherever it was declared.
   - A member is a `P.ASTClassMember`.
     It knows its class (`typeName`), and compiles two ways:

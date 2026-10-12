@@ -90,6 +90,8 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
    *   `spellCore.heading("set up all piles")`.
    *   - So the Thing Explorer knows which heading's code made each thing.
    *   - See `P.ASTHeadingInvocation`.
+   * - A line of the program's START at a FILE's top level runs only when it starts afresh:
+   *   `if (!spellCore.isCarryingOver) game.start()` -- see `codeOf()`.
    * - A FILE also declares each property a `set` in it declared, as its type never did:
    *   once, at its top -- or right after its type's declaration, if that's in this file.
    *   - Never moved into a class:  it mustn't change another file's output.
@@ -153,7 +155,7 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
       // a comment-only line that's part of a docstring compiles with its statement, below
       const comment = this.commentOnlyLine(item)
       if (comment && docComments.has(comment)) return statements
-      if (!declarations) statements.push(item.AST as P.ASTStatement)
+      if (!declarations) statements.push(this.codeOf(item, statement, isFileTopLevel))
       else if (item.AST) statements.push(new P.ASTStatementGroup(item, { statements: [declarations, item.AST] }))
       else statements.push(declarations)
       return statements
@@ -168,6 +170,22 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
     }
     statements.push(new P.ASTStatementGroup(item, { statements: declaring }))
     return statements
+  }
+
+  /**
+   * `item`'s code:  its AST, as a `P.ASTProgramStart` if it's a line of the program's start -- at a file's top
+   * level, a statement whose rule says so (`SpellStatement.startsTheProgram()`), e.g. `start the game`.
+   * - Then it runs only when the program starts afresh:  NOT when an edit keeps the last run's things.
+   * - Its own code only:  a comment at the line's end stays outside, below it.
+   * - Duck-typed:  `Block` can't import `SpellStatement` without a cycle.
+   */
+  private codeOf(item: P.Match, statement: P.Match | undefined, isFileTopLevel: boolean): P.ASTStatement {
+    const rule = statement?.rule as { startsTheProgram?(match: P.Match): boolean } | undefined
+    if (!isFileTopLevel || !statement?.AST || !rule?.startsTheProgram?.(statement)) return item.AST as P.ASTStatement
+    const start = new P.ASTProgramStart(statement, { statement: statement.AST as P.ASTStatement })
+    if (item.AST === statement.AST) return start
+    const rest = item.matched.filter((it): it is P.Match => it instanceof P.Match && it !== statement && !!it.AST)
+    return new P.ASTStatementGroup(item, { statements: [start, ...rest.map((it) => it.AST as P.ASTComment)] })
   }
 
   /**

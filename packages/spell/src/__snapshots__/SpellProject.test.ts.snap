@@ -297,7 +297,7 @@ export function testCardSetup() {
     spellCore.expect(card.isFaceUp, \`the card is face up\`, true, \`true\`)
   })
 }
-testCardSetup()",
+if (!spellCore.isCarryingOver) testCardSetup()",
     "errors": [],
     "path": "/Card.spell",
     "warnings": [],
@@ -376,7 +376,7 @@ export function testDeckCreation() {
     spellCore.expect(it?.isTheRankOfSuits("ace", "clubs"), \`it is the ace of clubs\`, true, \`yes\`)
   })
 }
-testDeckCreation()",
+if (!spellCore.isCarryingOver) testDeckCreation()",
     "errors": [],
     "path": "/Deck.spell",
     "warnings": [
@@ -919,7 +919,7 @@ export async function cheat() {
 
 spellCore.heading("rendering the bits")
 resetTheGame()
-game.start()",
+if (!spellCore.isCarryingOver) game.start()",
     "errors": [],
     "path": "/Solitaire.spell",
     "warnings": [

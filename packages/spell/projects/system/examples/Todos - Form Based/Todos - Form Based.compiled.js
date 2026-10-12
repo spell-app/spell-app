@@ -113,5 +113,5 @@ createANewTask({ title: "Create todos app", completed: true })
 createANewTask({ title: "Teach it to draw" })
 createANewTask({ title: "Test app" })
 
-app.start()
+if (!spellCore.isCarryingOver) app.start()
 spellCore.console.log(app)

@@ -201,7 +201,7 @@ export function testCardSetup() {
     spellCore.expect(card.isFaceUp, `the card is face up`, true, `true`)
   })
 }
-testCardSetup()
+if (!spellCore.isCarryingOver) testCardSetup()
 // -----------
 spellCore.heading("Deck:   US standard card deck (without jokers currently)")
 //## Deck:   US standard card deck (without jokers currently)
@@ -249,7 +249,7 @@ export function testDeckCreation() {
     spellCore.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs")!, `the first card of the deck is the ace of clubs`, true, `yes`)
   })
 }
-testDeckCreation()
+if (!spellCore.isCarryingOver) testDeckCreation()
 // -----------
 spellCore.heading("Pile of playing cards")
 /** Pile of playing cards */

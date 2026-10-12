@@ -47,6 +47,30 @@ spellCore.console.log("started")
 counter.start()
 `
 
+/**
+ * The counter, as spell compiles a program with a test (epic `drawable-thing` P17):
+ * - its start, skipped when an edit keeps its things:  calling its test, and starting its app
+ * - a print at its top level, which isn't part of its start
+ */
+const TESTED_COUNTER = `
+import { spellCore, Thing, App, h } from "@spell/core"
+export class Counter extends App {
+  get count() { return this.getProp('count') }
+  set count(value) { this.setProp('count', value) }
+  draw() {
+    return h("button", { class: "count", onClick: (event) => { this.count = this.count + 1 } }, "Count: ", () => this.count)
+  }
+}
+export let counter = new Counter()
+counter.count = 1
+export function testTheCounter() {
+  return spellCore.test("test the counter", function testTheCounter() { spellCore.console.log("testing the counter") })
+}
+if (!spellCore.isCarryingOver) testTheCounter()
+spellCore.console.log("printed at the top")
+if (!spellCore.isCarryingOver) counter.start()
+`
+
 /** A program with no app:  it only prints. */
 const PRINTER = `
 import { spellCore } from "@spell/core"
@@ -505,10 +529,73 @@ describe("compiled spell draws with Solid", () => {
     expect(deck!.items.every((card) => inPiles.has(card))).toBe(true)
     expect(spellCore.things.all().filter((thing) => thing.type === "Card")).toHaveLength(52)
     expect(said.mock.calls.flat().join()).toContain("Kept allPiles, deck, discards, foundations, game, stock, tableaus")
+    // its start skipped:  its tests don't print again (P17)
+    const printed = consoleText()
+    expect(printed).toContain("Kept allPiles")
+    expect(printed).not.toContain("test card setup")
+    expect(printed).not.toContain("test deck creation")
 
     // and the game plays on:  another card from the stock
     ;(stock().lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>(".card")!.click()
     await waitFor(() => discards().children.length === 3)
+  })
+
+  test("`Drawable Solitaire` played, then its app's own file edited:  a fresh game, as Restart deals (P17)", async () => {
+    const program = await exampleCompiled("Drawable Solitaire")
+    const { host, setSource } = await mountSettable(source(program, "Solitaire"))
+    type Element = HTMLElement & { ready: Promise<void> }
+    const tableaus = () => [...host.querySelectorAll<Element>("solitaire-tableau")]
+    const stock = () => host.querySelector<Element>("solitaire-stock-pile")!
+    const discards = () => host.querySelector<Element>("solitaire-discard-pile")!
+    await waitFor(() => tableaus()[6]?.children.length === 7, 10_000)
+    await ElementFixture.settle(host)
+    ;(stock().lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>(".card")!.click()
+    await waitFor(() => discards().children.length === 2)
+    expect(consoleText()).toContain("test card setup")
+
+    // Solitaire's own file, which says `start the game`:  a new score to start from
+    const edited = program.replace("  game.score = 0\n", "  game.score = 1\n")
+    expect(edited).not.toBe(program)
+    setSource(source(edited, "Solitaire"))
+    await waitFor(() => consoleText().includes("Started afresh:  the program's start changed"))
+    // dealt again:  the tests print again, and the deal ends with one card turned onto the discards
+    await waitFor(() => tableaus()[6]?.children.length === 7 && discards().children.length === 1, 10_000)
+    expect(consoleText()).toContain("test card setup")
+    expect(consoleText()).not.toContain("Kept")
+  })
+
+  test("a program's tests and its app's start don't run again on an edit;  its other lines do, a print too (P17)", async () => {
+    let controls: SpellAppControls | undefined
+    const { host, setSource } = await mountSettable(source(TESTED_COUNTER), (it) => (controls = it))
+    ;(await waitFor(() => host.querySelector<HTMLButtonElement>("button.count"))).click()
+    await waitFor(() => host.querySelector("button.count")?.textContent === "Count: 2")
+    expect(consoleText()).toContain("testing the counter")
+
+    // edited:  a new label
+    setSource(source(TESTED_COUNTER.replace('"Count: "', '"Clicks: "')))
+    await waitFor(() => host.querySelector("button.count")?.textContent === "Clicks: 2")
+    const printed = consoleText()
+    expect(printed).toContain("printed at the top")
+    expect(printed).toContain("Kept counter")
+    expect(printed).not.toContain("testing the counter")
+
+    controls!.restart()
+    await waitFor(() => host.querySelector("button.count")?.textContent === "Clicks: 1")
+    expect(consoleText()).toContain("testing the counter")
+  })
+
+  test("a thing that can't come over:  the program starts afresh as a whole, and the console says why (P17)", async () => {
+    const { host, setSource } = await mountSettable(source(TESTED_COUNTER))
+    ;(await waitFor(() => host.querySelector<HTMLButtonElement>("button.count"))).click()
+    await waitFor(() => host.querySelector("button.count")?.textContent === "Count: 2")
+
+    // the counter is a `Tally` now:  its type changed, and its start didn't
+    setSource(source(TESTED_COUNTER.replace("class Counter", "class Tally").replace("new Counter", "new Tally")))
+    await waitFor(() => consoleText().includes("Started afresh:  counter:  its type was Counter, now Tally."))
+    await waitFor(() => host.querySelector("button.count")?.textContent === "Count: 1")
+    const printed = consoleText()
+    expect(printed).toContain("testing the counter")
+    expect(printed.split("printed at the top")).toHaveLength(2)
   })
 
   test("`Todos - Form Based`:  ticking a task shows in the debug JSON;  Active / Completed show only those tasks", async () => {
@@ -682,8 +769,20 @@ describe("<spell-app>", () => {
 async function testRuntime() {
   const url = new URL("/src/runner/spellRuntime.ts", location.href).href
   const runtime = (await import(/* @vite-ignore */ url)) as typeof import("./spellRuntime")
+  testSpellCore = runtime.spellCore
   return { runtime, coreUrl: url, release: () => {} }
 }
+
+/** What the runtime's console holds, as text:  every line's message, in groups too. */
+function consoleText(): string {
+  type Line = { message?: unknown[]; lines?: Line[] }
+  const textOf = (lines: Line[]): string[] =>
+    lines.flatMap((line) => [(line.message ?? []).map(String).join(" "), ...textOf(line.lines ?? [])])
+  return textOf(testSpellCore!.console.lines as Line[]).join("\n")
+}
+
+/** The test runtime's `spellCore`, once a runner has loaded it -- see `testRuntime()`. */
+let testSpellCore: (typeof import("./spellRuntime"))["spellCore"] | undefined
 
 /** The `Todos - Form Based` example's committed compiled javascript, as text. */
 async function todosExample(): Promise<string> {

@@ -12,6 +12,8 @@
  *   - a property whose declared type changed, or a type renamed or gone:
  *     each top-level thing holding one starts afresh (keeps what the new run made), and the console says so
  * - The runner decides when (`runCompiled()`'s `keepThings`):  every recompile but Restart, which starts afresh.
+ *   - And not when the edit changed the program's start (the file that starts its app),
+ *     nor when one of its things can't come over (`carryProblems()`):  then it starts afresh too (P17).
  * - Part of `spellCore`:  imported by `$/core`'s barrel for its side effect.
  */
 import { getProps, schemaOf, setProp, type PropInfo } from "$/util"
@@ -27,9 +29,13 @@ export const carryMethods = defineSpellCoreModule({
   /**
    * Is a recompiled program loading, to take over the last run's things?
    * - Set by the runner around the load.
-   * - While it is, a `pause for ...` never ends:
-   *   the program's start, e.g. a deal with a pause between cards, stops at its first pause,
-   *   and `carryOver()` puts the last run's things in place of what it made.
+   * - While it is:
+   *   - the program's start is skipped:  its top-level test calls, and starting its app
+   *     (`if (!spellCore.isCarryingOver) game.start()`, epic `drawable-thing` P17)
+   *   - a `pause for ...` never ends:  what the rest of its top level sets going stops at its first pause,
+   *     e.g. Drawable Solitaire's `reset the game` deals a card, then stops
+   * - Then `carryOver()` puts the last run's things in place of what it made,
+   *   and the runner starts the app again, as it was.
    */
   isCarryingOver: false,
 
@@ -59,6 +65,17 @@ export const carryMethods = defineSpellCoreModule({
       spellCore.console.error("Couldn't keep the last run's things:", error)
       return []
     }
+  },
+
+  /**
+   * Why each of the last run's things that `carryOver()` would start afresh can't come over -- `[]` if they all can.
+   * - One line each, e.g. `stock:  Card's rank changed its type`.
+   * - The runner asks first:  if any can't, the program starts afresh as a whole, as Restart does
+   *   (epic `drawable-thing` P17).  Its start skipped, a thing on its own would miss what the start does to it.
+   * - Changes nothing.  NEVER throws.
+   */
+  carryProblems(previous: NamedThing[], exports: Record<string, unknown>): string[] {
+    return new CarryOver().problems(previous, exports).map(({ name, problem }) => `${name}:  ${problem}`)
   }
 })
 Object.assign(spellCore, carryMethods)
@@ -77,13 +94,11 @@ class CarryOver {
   /** Carry `previous` over into `exports` -- see `spellCore.carryOver()`;  answers the names kept. */
   run(previous: NamedThing[], exports: Record<string, unknown>): string[] {
     const targets: Array<[ThingLike, ThingLike]> = []
+    const problems = new Map(this.problems(previous, exports).map(({ name, problem }) => [name, problem]))
     for (const { name, thing } of previous) {
       const target = exports[name]
       if (!isThingLike(target)) continue
-      const problem =
-        target.constructor.name === thing.constructor.name
-          ? this.problemIn(thing, new Set())
-          : `its type was ${thing.constructor.name}, now ${target.constructor.name}`
+      const problem = problems.get(name)
       if (problem) {
         spellCore.console.warn(`${name} starts afresh:  ${problem}`)
         continue
@@ -94,6 +109,24 @@ class CarryOver {
     for (const [thing, target] of targets) this.fill(thing, target, "in place")
     this.forgetReplaced()
     return previous.filter(({ thing }) => this.carried.has(thing)).map(({ name }) => name)
+  }
+
+  /**
+   * Each of `previous`'s things that can't come over into the thing of its name in `exports`, and why.
+   * - A thing `exports` doesn't have, or has as something other than a thing, isn't one:  it's simply not carried.
+   */
+  problems(previous: NamedThing[], exports: Record<string, unknown>): Array<{ name: string; problem: string }> {
+    const found: Array<{ name: string; problem: string }> = []
+    for (const { name, thing } of previous) {
+      const target = exports[name]
+      if (!isThingLike(target)) continue
+      const problem =
+        target.constructor.name === thing.constructor.name
+          ? this.problemIn(thing, new Set())
+          : `its type was ${thing.constructor.name}, now ${target.constructor.name}`
+      if (problem) found.push({ name, problem })
+    }
+    return found
   }
 
   /**

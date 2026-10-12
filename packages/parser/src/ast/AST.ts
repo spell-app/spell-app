@@ -1761,6 +1761,34 @@ export class ASTElseStatement extends ASTStatement {
   }
 }
 
+/**
+ * ProgramStart:  a line of a program's START, which runs only when the program starts afresh --
+ * `if (!spellCore.isCarryingOver) game.start()`.
+ * - Its lines:  a file's top-level call of one of its tests, `test card setup`,
+ *   and starting its app, `start the game` (epic `drawable-thing` P17, Q26).
+ *   `SP.Block` wraps them, at a file's top level.
+ * - Skipped when an edit keeps the last run's things (`spellCore.isCarryingOver`):
+ *   the tests don't print again, and the game in progress isn't started again.
+ *   Every other line still runs.
+ * - It IS an `if`, so every writer writes it as one.
+ * - `statement`:  the line's own code, e.g. `game.start()`.
+ */
+export type ASTProgramStartProps = { statement: ASTStatement | ASTExpression }
+
+export class ASTProgramStart extends ASTIfStatement {
+  constructor(match: P.AnyMatch, { statement }: ASTProgramStartProps) {
+    const carryingOver = new ASTPropertyExpression(match, {
+      object: new ASTSpellCoreExpression(match),
+      property: "isCarryingOver"
+    })
+    super(match, {
+      condition: new ASTNotExpression(match, { expression: carryingOver }),
+      // a call is an expression:  a block holds either
+      statements: new ASTStatementBlock(match, { statements: [statement] })
+    })
+  }
+}
+
 /** TernaryExpression:  `(condition ? trueValue : falseValue)`.
  * - `condition` is an Expression.
  * - `trueValue` is an Expression.

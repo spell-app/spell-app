@@ -297,3 +297,42 @@ describe("headings, as the program runs:  `spellCore.heading()`", () => {
     ])
   })
 })
+
+describe("the program's start:  skipped when an edit keeps its things (epic `drawable-thing` P17)", () => {
+  /** `text` compiled as a FILE's top level -- no `SPELL: DECLARES` comments -- as lines. */
+  function fileCode(text: string): string[] {
+    const scope = new P.FileScope({ name: "Game.spell", parentScope: spellParser.getScope("program-start") })
+    const compiled = scope.parse(text, "block")!.compile() as string
+    return SP.SpellDeclarations.stripComments(compiled).split("\n")
+  }
+
+  const GAME = ["a game is an app", "set the game to a new game"]
+
+  test("starting its app, and calling a test, at a file's top level:  each runs only when it starts afresh", () => {
+    const text = [...GAME, "to test the game", '\tprint "testing"', "test the game", "start the game"]
+    const code = fileCode(text.join("\n"))
+    expect(code).toContain("if (!spellCore.isCarryingOver) testTheGame()")
+    expect(code).toContain("if (!spellCore.isCarryingOver) game.start()")
+  })
+
+  test("NOT any other line:  a print, a call of the program's own function, making a thing", () => {
+    const text = [...GAME, "to reset the game", "\tprint 1", "reset the game", 'print "hello"']
+    const code = fileCode(text.join("\n"))
+    expect(code).toContain("resetTheGame()")
+    expect(code).toContain('spellCore.console.log("hello")')
+    expect(code.join("\n")).not.toContain("isCarryingOver")
+  })
+
+  test("NOT inside a method, nor in a plain block, e.g. a rule test's", () => {
+    const text = [...GAME, "to test the game", '\tprint "testing"', "to begin", "\ttest the game", "\tstart the game"]
+    expect(fileCode(text.join("\n")).join("\n")).not.toContain("isCarryingOver")
+    expect(compile([...GAME, "start the game"].join("\n")).join("\n")).not.toContain("isCarryingOver")
+  })
+
+  test("a comment at the line's end stays below it", () => {
+    expect(fileCode([...GAME, "start the game // off we go"].join("\n")).slice(-2)).toEqual([
+      "if (!spellCore.isCarryingOver) game.start()",
+      "// off we go"
+    ])
+  })
+})
