@@ -21,6 +21,18 @@ import { P } from "$/parser"
 import { SP } from "$/spell"
 
 /**
+ * The docs of `id`, which every thing and list has (epic `people-and-orgs`, Q9):
+ * nobody declares it, and saving refers to a thing by it.
+ */
+const ID_DOCSTRING = md(
+  "What names it among the others of its kind, e.g. `the id of the person`.",
+  "- Every thing and list has one:  nobody declares it, and a type can't declare its own.",
+  "- Made up the first time it's read, e.g. `person-k3x9q2mf`, unless you set it first:",
+  '  `a new person with id = "owen"`, or `set the id of the person to "owen"`.',
+  "- Saving uses it:  a thing saved in its own file is referred to by it."
+)
+
+/**
  * Spell's built-in types, in the order the Type Explorer lists them -- see `SP.BuiltInType`.
  * - TODO:  members still to add:
  *   - `number`'s `absolute value` and `round`:  their rules (`math/`) compile to `spellCore` methods
@@ -51,6 +63,13 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
     ),
     rules: ["create_type", "new_thing", "create_thing"],
     members: [
+      {
+        words: "id",
+        kind: "property",
+        datatype: "text",
+        stored: true,
+        docstring: ID_DOCSTRING
+      },
       {
         words: "(a thing) belongs to one (list)",
         kind: "method",
@@ -100,6 +119,13 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
     ),
     rules: ["create_list_type", "new_list"],
     members: [
+      {
+        words: "id",
+        kind: "property",
+        datatype: "text",
+        stored: true,
+        docstring: ID_DOCSTRING
+      },
       {
         words: "length",
         kind: "property",
@@ -537,6 +563,7 @@ export function typeName(written: string): P.Datatype {
  * - Each type's `itemType`, e.g. `character` for `text`, so `the first character of the name` is a `character`.
  * - Each member with a `readAs` template, as a `P.ScopeVariable` holding it:
  *   `TypeScope.getMember()` finds it, for `the X of Y` / `its X`, and editors list it.
+ *   - A `stored` member too, with no template:  it reads and sets like a declared property, e.g. `id`.
  *   - A member spelled only by built-in RULES (no `readAs`) is docs alone.
  * - Throws for a type the scope doesn't have, or a template `parseReadAsTemplate()` can't read.
  * - SIDE EFFECT:  changes the shared root's types, once -- `SpellParser.rootScope` calls it as it builds.
@@ -547,6 +574,11 @@ export function loadBuiltInTypes(scope: P.RootScope): void {
     if (!type) throw new TypeError(`Built-in type '${entry.name}' isn't in the root scope:  see P.BUILT_IN_TYPES`)
     if (entry.itemType) type.itemType = entry.itemType
     for (const member of entry.members) {
+      if (member.stored) {
+        const { words, datatype, docstring } = member
+        type.variables.add({ name: builtInMemberName(words), datatype, docstring })
+        continue
+      }
       if (!member.readAs) continue
       if (!parseReadAsTemplate(member.readAs)) {
         throw new TypeError(`Built-in ${entry.name}'s '${member.words}':  can't read template '${member.readAs}'`)
@@ -622,6 +654,17 @@ export function builtInMembersOfRule(ruleName: string): Array<{ type: SP.BuiltIn
  */
 export function isBuiltInTypeScope(type: P.TypeScope | undefined): boolean {
   return !!type && SP.SpellParser.rootScope.types.get(type.name, "LOCAL_ONLY") === type
+}
+
+/**
+ * Is `name` a property every thing or list has, built in (a `stored` member), e.g. `id`?
+ * - So no type may declare its own:  `a person has an id as text` is refused -- see `SpellStatement.refuseBuiltInType()`.
+ */
+export function isBuiltInStoredMember(name: string): boolean {
+  const memberName = builtInMemberName(name)
+  return BUILT_IN_TYPE_TABLE.some((entry) =>
+    entry.members.some((member) => member.stored && builtInMemberName(member.words) === memberName)
+  )
 }
 
 ////////////////

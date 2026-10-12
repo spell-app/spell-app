@@ -112,16 +112,23 @@ export class SpellStatement<
    *   and no project's journal records.  A property there would leak into every other project,
    *   and outlive its edit.  Its members are spell's own, in `SP.BUILT_IN_TYPE_TABLE`.
    * - A METHOD of a built-in type is fine:  its record goes in the project's `methods` -- see `MethodDefinition`.
+   * - ALSO refused:  a property every thing has built in, e.g. `a person has an id as text`
+   *   (epic `people-and-orgs`, Q9) -- see `SP.isBuiltInStoredMember()`.
    * - A lookup:  call it WHILE PARSING, e.g. from `DefinePropertyHas.parse()`.
    */
   static refuseBuiltInType(match: P.Match, type: P.Match, property: P.Match | undefined): P.Match {
-    if (!SP.isBuiltInTypeScope(match.scope.types?.get(`${type.value}`))) return match
     const words = property ? `"${property.raw}"` : "a property"
     const typeName = SP.typeName(`${type.value}`)
-    return SpellStatement.refuse(
-      match,
-      `Can't add ${words} to ${typeName}:  it's built in, and every project shares it`
-    )
+    if (SP.isBuiltInTypeScope(match.scope.types?.get(`${type.value}`))) {
+      return SpellStatement.refuse(
+        match,
+        `Can't add ${words} to ${typeName}:  it's built in, and every project shares it`
+      )
+    }
+    if (property && SP.isBuiltInStoredMember(`${property.value}`)) {
+      return SpellStatement.refuse(match, `Can't add ${words} to ${typeName}:  every thing has one, built in`)
+    }
+    return match
   }
 
   /**

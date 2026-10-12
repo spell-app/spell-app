@@ -26,10 +26,13 @@ card.to_json()  # {"@type": "Card", "rank": "queen"}
 """
 
 import builtins
+import re
 import reprlib
+import secrets
+import string
 import weakref
 from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, ClassVar, Protocol
 
 from spell_core.events import Eventful
 from spell_core.kinds import is_same
@@ -43,6 +46,12 @@ TYPE_KEY = "@type"
 ITEMS_KEY = "@items"
 # Defaults that would be ONE object shared by every instance:  `init=list` makes one each.
 SHARED_DEFAULTS = (list, dict, set)
+# Characters a made-up id's random part is written in:  base 36, lower case.
+ID_ALPHABET = string.digits + string.ascii_lowercase
+# How many random characters a made-up id ends with.
+ID_LENGTH = 8
+# The words of a class's name, as the JavaScript core's lodash finds them:  `DatedEvent` is `Dated`, `Event`.
+CLASS_NAME_WORDS = re.compile(r"[A-Z]+(?![a-z])|[A-Z]?[a-z]+|\d+")
 
 
 class ChangeWatcher(Protocol):
@@ -69,6 +78,7 @@ def prop(
     one_of: Sequence[object] | Callable[[], Sequence[object]] | None = None,
     default: object = None,
     init: Callable[[], object] | None = None,
+    item_type: str | builtins.type | None = None,
 ) -> "Prop":
     """Declare a property of a thing or a list, in its class body:  `rank = prop(one_of=RANKS)`.
 
@@ -80,14 +90,20 @@ def prop(
       - NOT stored, so `to_json()` leaves it out
     - `init`:  makes its value the first time it's read, once per thing, e.g. `init=Deck`.
       - stored, so `to_json()` writes it
+    - `item_type`:  the class a LIST property holds, or its name, e.g. `"Task"` for `as a new list of tasks`.
+      - for the saver (epic `people-and-orgs`), which needs each item's kind:  nothing checks it yet
     - throws `TypeError` for a list, dict or set `default`:
       every thing would share that one object.  Pass `init=list` instead.
     """
     if isinstance(default, SHARED_DEFAULTS):
         kind = builtins.type(default).__name__
         raise TypeError(f"prop():  a {kind} default would be shared by every instance;  pass init={kind} instead")
-    type_name = type.__name__ if isinstance(type, builtins.type) else type
-    return Prop(type_name, one_of, default, init)
+    return Prop(_type_name(type), one_of, default, init, _type_name(item_type))
+
+
+def _type_name(type: str | builtins.type | None) -> str | None:
+    """`type` as spell names it:  a class's name, `"Card"`, or the name given."""
+    return type.__name__ if isinstance(type, builtins.type) else type
 
 
 class Prop:
@@ -104,6 +120,7 @@ class Prop:
         one_of: Sequence[object] | Callable[[], Sequence[object]] | None,
         default: object,
         init: Callable[[], object] | None,
+        item_type: str | None = None,
     ) -> None:
         """A property with what `prop()` was told:  its name comes when its class is made (`__set_name__()`)."""
         # its name in the class body, e.g. `rank`
@@ -116,6 +133,8 @@ class Prop:
         self.default = default
         # makes its value on first read
         self.init = init
+        # the class name of what a list property holds, e.g. `Task`
+        self.item_type = item_type
 
     def __set_name__(self, owner: type, name: str) -> None:
         """Python tells us our name as the class is made:  `rank = prop(...)` is `rank`."""
@@ -131,14 +150,20 @@ class Prop:
         props = instance._props
         if self.name in props:
             return props[self.name]
-        if self.init is None:
-            return self.default
-        value = self.init()
+        value = self.first_value(instance)
         if value is None:
             return self.default
         props[self.name] = value
         note_change(instance)
         return value
+
+    def first_value(self, instance: "SpellObject") -> object:
+        """What it's set to the first time it's read on `instance`, unset:  `init()`'s value, or `None` for none.
+
+        - `None`:  it reads as its default, NOT stored.
+        - `ThingIdProp` makes an id instead, from `instance`.
+        """
+        return None if self.init is None else self.init()
 
     def __set__(self, instance: "SpellObject", value: object) -> None:
         """Set it on `instance`, checked:  see `SpellObject.set_prop()`."""
@@ -164,7 +189,39 @@ def _declared_parts(declared: Prop) -> list[tuple[str, object]]:
         ("one_of", declared._one_of),
         ("default", declared.default),
         ("init", declared.init),
+        ("item_type", declared.item_type),
     ]
+
+
+class ThingIdProp(Prop):
+    """`id`, built into every thing and spell list:  text, made the first time it's read, then kept.
+
+    - Made by `new_thing_id()`, e.g. `dated-event-k3x9q2mf`.
+    - A thing whose id nobody reads has none:  `to_json()` leaves it out.
+    - Set it to choose one:  `Person(id="owen")`, `person.id = "owen"`.
+    - A `Prop` of its own, not `prop(init=...)`:  `init` is called with nothing (`init=Deck`),
+      and an id needs its thing, whose kind it starts with.
+    """
+
+    def __init__(self) -> None:
+        """Text, with no default:  its value is made on first read."""
+        super().__init__("text", None, None, None)
+
+    def first_value(self, instance: "SpellObject") -> object:
+        """A new id for `instance`:  see `new_thing_id()`."""
+        return new_thing_id(instance)
+
+
+def new_thing_id(thing: object) -> str:
+    """A new id for `thing`:  its kind, then 8 random base-36 characters, e.g. `dated-event-k3x9q2mf`.
+
+    - Its kind is its class's name in lower kebab case:  `DatedEvent` is `dated-event`.
+    - Random from `secrets`, NEVER the core's seeded random (`ParkMiller`):
+      ids get saved, so they must differ from run to run, even when a seeded run repeats everything else.
+    - The twin of the JavaScript core's `newThingId()`.
+    """
+    kind = "-".join(CLASS_NAME_WORDS.findall(builtins.type(thing).__name__)).lower() or "thing"
+    return f"{kind}-{''.join(secrets.choice(ID_ALPHABET) for _ in range(ID_LENGTH))}"
 
 
 class ThingRegistry:
@@ -204,7 +261,17 @@ class SpellObject:
     - Then `create()` runs, once:  spell's `to set up a card`.
     - A class is known by name as soon as it's defined:  `core.things.class_named("Card")`.
     - Equality is identity:  two cards are two cards, however alike.  `core.equals()` looks inside.
+    - Every one has an `id`, built in:  made the first time it's read, or set (`ThingIdProp`).
     """
+
+    # Is a thing of this class saved INSIDE its owner, rather than in a file of its own?
+    # - Compiled from `a dated-event is saved inline.`, as `DatedEvent.saved_inline = True`:  sub-classes inherit it.
+    # - The saver writes such a thing whole, inside the thing holding it;
+    #   every other thing, as a reference to its own file, by its `id`.
+    # - A drawable kind is never saved inline.
+    saved_inline: ClassVar[bool] = False
+    # Our id:  what we're saved and referred to by, e.g. `dated-event-k3x9q2mf`.
+    id = ThingIdProp()
 
     def __init__(self, **props: object) -> None:
         """Set `props`, each as `thing.name = value` would, then run `create()`."""

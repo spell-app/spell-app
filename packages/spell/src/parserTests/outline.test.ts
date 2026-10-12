@@ -71,6 +71,27 @@ describe("outline style", () => {
     }
   })
 
+  test("`it is saved inline` and `its \"dates\" is a list of ...` compile as their sentences do", () => {
+    const sentences = [
+      "a person is a thing",
+      "a dated-event is a thing",
+      "a dated-event has a label as text",
+      "a dated-event is saved inline",
+      "a person has dates as a new list of dated-events"
+    ]
+    const outline = [
+      "a person is a thing where:",
+      "\t- its \"dates\" is a list of dated-events",
+      "a dated-event is a thing where:",
+      "\t- it has a label as text",
+      "\t- it is saved inline"
+    ]
+    const expected = compile(sentences)
+    expect(compile(outline)).toBe(expected)
+    expect(expected).toContain("static savedInline = true")
+    expect(expected).toContain('itemType: "DatedEvent"')
+  })
+
   test("`it` inside a getter's body is the instance, not the type", () => {
     const outline = ["a card is a thing where:", "\t- it has a rank as a number", '\t- its "double" is: its rank * 2']
     expect(compile(outline)).toContain("return this.rank * 2")

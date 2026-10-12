@@ -7,11 +7,12 @@
 
 import copy
 import json
+import re
 
 import pytest
 
-from spell_core import Thing, core, prop
-from spell_core.things import things
+from spell_core import List, Thing, core, prop
+from spell_core.things import new_thing_id, things
 
 RANKS = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"]
 
@@ -226,3 +227,77 @@ def test_a_method_or_getter_added_from_outside_its_class() -> None:
     gem = Gem()
     gem.polish()
     assert gem.is_bright is True
+
+
+####################
+# ## Ids (epic people-and-orgs P1)
+####################
+
+
+class DatedEvent(Thing):
+    """`a dated-event is a thing`:  its kind, in its made-up id, is `dated-event`."""
+
+
+def test_an_id_is_made_on_first_read_then_kept() -> None:
+    event = DatedEvent()
+    assert event.to_json() == {"@type": "DatedEvent"}
+    assert re.fullmatch(r"dated-event-[0-9a-z]{8}", event.id)
+    assert event.id == event.id
+    assert event.to_json() == {"@type": "DatedEvent", "id": event.id}
+
+
+def test_its_kind_is_its_class_name_in_lower_kebab_case_as_javascripts() -> None:
+    class HTTPServer(Thing):
+        """Capitals together are one word, as lodash's `kebabCase()` reads them."""
+
+    class Player2(Thing):
+        """A number is a word of its own."""
+
+    assert new_thing_id(HTTPServer()).startswith("http-server-")
+    assert new_thing_id(Player2()).startswith("player-2-")
+
+
+def test_a_set_id_wins_by_keyword_or_set_later() -> None:
+    assert ThingCard(id="owen").id == "owen"
+    assert ThingCard(id="owen").to_json() == {"@type": "ThingCard", "id": "owen"}
+    card = ThingCard(rank="ace")
+    made_up = card.id
+    card.id = "ace-of-spades"
+    assert card.id == "ace-of-spades" != made_up
+
+
+def test_two_things_never_share_a_made_up_id_even_in_runs_seeded_the_same() -> None:
+    core.seed_random(7)
+    first = ThingCard().id
+    core.seed_random(7)
+    second = ThingCard().id
+    core.seed_random(1)
+    assert first != second
+    assert len({ThingCard().id for _ in range(1000)}) == 1000
+
+
+def test_an_id_that_is_not_text_warns_and_is_set(capsys: pytest.CaptureFixture[str]) -> None:
+    card = ThingCard(id=42)
+    assert capsys.readouterr().err == "Expected id to be type 'text', got: 42\n"
+    assert card.id == 42
+
+
+def test_saved_inline_is_no_by_default_set_per_class_and_inherited() -> None:
+    class Note(DatedEvent):
+        """`a note is a dated-event`."""
+
+    assert (Thing.saved_inline, List.saved_inline, DatedEvent.saved_inline) == (False, False, False)
+    DatedEvent.saved_inline = True
+    assert (Thing.saved_inline, DatedEvent.saved_inline, Note.saved_inline) == (False, True, True)
+    DatedEvent.saved_inline = False
+
+
+def test_item_type_is_kept_on_the_prop_by_name() -> None:
+    class Project(Thing):
+        """`a project has tasks as a new list of tasks`."""
+
+        tasks = prop(item_type="Task", init=List)
+        cards = prop(item_type=ThingCard, init=List)
+
+    assert (Project.tasks.item_type, Project.cards.item_type) == ("Task", "ThingCard")
+    assert repr(Project.tasks).startswith("prop(") and "item_type='Task'" in repr(Project.tasks)

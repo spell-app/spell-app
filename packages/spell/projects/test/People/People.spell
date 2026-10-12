@@ -1,0 +1,39 @@
+## People, and what they keep about each other (epic `people-and-orgs`, P1)
+// Every thing has an `id`, built in:  nobody declares it.
+// A property or list of a kind holds that kind's things, each saved in its own file;
+// `it is saved inline` keeps a small thing inside what holds it instead.
+
+a person is a thing where:
+	- it has a name as text
+	- it has a nickname as text
+	- its "emails" is a list of text
+	- its "dates" is a list of dated-events
+
+a dated-event is a thing where:
+	- it has a label as text
+	- it has a day as a date
+	- it is saved inline
+
+a note is a thing where:
+	- it has a body as text
+
+a relationship is a thing where:
+	- it has a kind as text
+	- it has a person as a person
+	- its "notes" is a list of notes
+
+a friend-list is a thing where:
+	- it has a name as text
+	- its "relationships" is a list of relationships
+
+## Using them
+owen = a new person with id = "owen", name = "Owen"
+matt = a new person with id = "matt", name = "Matt"
+set the nickname of matt to "Matty"
+
+family = a new friend-list with name = "family"
+add a new relationship with kind = "brother", person = matt to the relationships of family
+
+print the id of owen
+for each relationship in the relationships of family
+	print the id of the person of the relationship

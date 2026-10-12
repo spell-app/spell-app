@@ -74,3 +74,14 @@ export type QuotedPropertyFormulaBits = {
   /** Generated method/property name, e.g. `"is_the_$rank_of_$suits"`. */
   property: string
 }
+
+/**
+ * Is `type` drawn as its own element:  made from `drawable` or `drawable list`, e.g. `a card is a drawable thing`?
+ * - Such a type defines its element, has its own styles, and is never saved inline.
+ */
+export function isDrawableType(type: P.TypeScope): boolean {
+  return DRAWABLE_TYPES.some((base) => type.isA(base))
+}
+
+/** The built-in types whose sub-types draw as their own elements -- see `isDrawableType()`. */
+const DRAWABLE_TYPES = ["drawable", "drawable list"]

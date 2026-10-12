@@ -1,6 +1,7 @@
 import { proto } from "$/util"
 import { P } from "$/parser"
 import { classes } from "./classes.parser"
+import { isDrawableType } from "./classes.shared"
 import { TypeDeclaration } from "./TypeDeclaration"
 
 /**
@@ -27,7 +28,7 @@ export class CreateType extends TypeDeclaration<
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (!match) return undefined
     const { scopeType } = (match.groups.superType as P.Match<P.MatchGroups, { scopeType?: unknown }>).data
-    if (scopeType instanceof P.TypeScope && DRAWABLE_TYPES.some((base) => scopeType.isA(base))) {
+    if (scopeType instanceof P.TypeScope && isDrawableType(scopeType)) {
       match.data.elementProject = TypeDeclaration.projectNameOf(scope)
     }
     return this.refuseTakenNames(match)
@@ -115,6 +116,3 @@ classes.addRule(CreateType, {
     { compileAs: "block", tests: [['a "card" is a thing where:', "export class Card extends Thing {}"]] }
   ]
 })
-
-/** The built-in types whose sub-types draw as their own elements. */
-const DRAWABLE_TYPES = ["drawable", "drawable list"]

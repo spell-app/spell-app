@@ -379,6 +379,14 @@ describe("JSON (output-targets Q49)", () => {
     })
   })
 
+  test('its `id` (people-and-orgs P1):  none until read, then a prop like any, before `"@items"`', () => {
+    const pile = new Pile({}).append(ranked("A"))
+    expect(Object.keys(pile.toJSON())).toEqual(["@type", "@items"])
+    expect(pile.id).toMatch(/^pile-[0-9a-z]{8}$/)
+    expect(JSON.stringify(pile)).toBe(`{"@type":"Pile","id":"${pile.id}","@items":[{"@type":"RankedCard","rank":"A"}]}`)
+    expect(pile.filter(() => true).id).not.toBe(pile.id)
+  })
+
   test('neither `"@type"` nor `"@items"` is a prop:  `keys()` lists only its own', () => {
     const deck = new NamedDeck({ name: "spare" }).append(ranked("A"))
     JSON.stringify(deck)

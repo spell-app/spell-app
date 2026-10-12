@@ -257,6 +257,27 @@ describe("property types", () => {
     expect(schemaOf(Joker).info("color")?.oneOf).toEqual(["red", "black"])
     expect(schemaOf(Card).info("color")).toBeUndefined()
   })
+
+  test("`itemType`:  the class a list prop holds, kept in the schema -- nothing checks it yet", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+    class Project extends Observable {
+      static {
+        this.declareProp("tasks", { itemType: "Task", init: () => [] })
+      }
+      get tasks(): unknown[] {
+        return this.getProp("tasks")
+      }
+      set tasks(tasks: unknown[]) {
+        this.setProp("tasks", tasks)
+      }
+    }
+    const project = new Project({})
+    expect(schemaOf(Project).info("tasks")?.itemType).toBe("Task")
+    expect(project.tasks).toEqual([])
+    project.tasks = ["not a task"]
+    expect(warn).not.toHaveBeenCalled()
+    expect(project.tasks).toEqual(["not a task"])
+  })
 })
 
 describe("updates only on differences:  the equality cutoff", () => {

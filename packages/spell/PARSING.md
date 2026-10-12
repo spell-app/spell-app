@@ -401,6 +401,13 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
     - `the length of the deck` => `spellCore.itemCountOf(deck)`
   - Its datatype is the member's.
   - An unknown type still reads loose:  `x.length`.
+- A `stored` member is a property the runtime class KEEPS:  `id`, on `thing` and `list`.
+  - Loaded into scope with no template, so it reads and sets like a declared property:
+    - `the id of the person` => `person.id`
+    - `set the id of the person to "owen"` => `person.id = "owen"`:  allowed, unlike a `readAs` member
+  - No type may declare its own:  `a person has an id as text` is refused
+    (`SpellStatement.refuseBuiltInType()`, through `SP.isBuiltInStoredMember()`).
+  - See "Ids and saving" below.
 - A member with only `rules` (no `readAs`) is DOCS, for what built-in rules already spell.
   - e.g. `shuffle (a list)` => `list_shuffle`
   - Their rules compile it, and it's NOT loaded into scope:
@@ -460,6 +467,24 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - Picking `Card` brings `Pile`, as any property's datatype does.
 - Runtime:  `core`'s `List` keeps the owners.
   See [core's AGENTS.md](../core/AGENTS.md), "Membership and guards".
+
+## Ids and saving:  `a dated-event is saved inline`
+
+Every thing and list has an `id`, built in, and is saved in a file of its own;
+what holds it saves a reference to it (epic `people-and-orgs`, Q9).
+- The `id` is a `stored` built-in member (see "Built-in types"):
+  - nobody declares it, and declaring one is refused
+  - the runtime makes one up on first read, e.g. `person-k3x9q2mf`, unless it was set first
+- A list says what it holds, so saving knows before it holds anything:
+  - `a person has dates as a new list of dated-events`
+  - or in its outline body, `- its "dates" is a list of dated-events` ([`outline_specifier_list`](src/rules/classes/OutlineSpecifierList.ts))
+  - both compile to `this.declareProp("dates", { itemType: "DatedEvent", init: () => new List(...) })`
+- [`saved_inline`](src/rules/classes/SavedInline.ts):  `a dated-event is saved inline`, or `- it is saved inline`
+  in its outline body.
+  - A dated event is then saved INSIDE what holds it, not in a file of its own.
+  - It compiles to `static savedInline = true` in the class:  `Thing` says `false`.
+  - Refused for a drawable type (a card is always its own thing), and for a built-in type.
+  - Nothing goes in scope:  the class says it when the code runs.
 
 ## Guards:  `a tableau can take a card if: ...`
 
@@ -625,7 +650,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - `quoted_member`:  `its "short rank" is ...`, in a body
   - After `its "x" is` comes an `outline_specifier`.
     It's a type specifier without the `as` word.
-    - e.g. `one of ...`, `a number`, `yes or no`
+    - e.g. `one of ...`, `a number`, `yes or no`, `a list of people`
   - A declaration names them without quotes:  `Rule.declaredText()`.
     - `SubjectRule` also overrides it:  `card`, not `it`.
 - Bullets:  on ANY line, a starting `- ` is dropped before the statement is read.
