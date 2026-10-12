@@ -12,6 +12,7 @@ async def ws():
   - Each plays their own game:  the program runs once for them, on a core of their own (`using_core()`).
   - Their tabs share it:  a click in one shows in every one.
   - Their game lives in this process's memory:  a restart ends it.
+- The program's own start runs with its pauses skipped:  no page draws it yet, so they'd only delay the first one.
 - Each page, a tab, gets the whole state when it opens, then a patch after each of its messages,
   and at each pause (`core.before_pause`):  so a game animates.
 - A message that fails is logged, and the page goes on:
@@ -92,8 +93,12 @@ class SpellSessions:
         if visit is None:
             core = SpellCore()
             with using_core(core):
-                # in a thread:  the program's top level may run `asyncio.run()`, which this loop can't
-                names = await asyncio.to_thread(run_program, self.program, self.seed, self.pauses)
+                # in a thread:  the program's top level may run `asyncio.run()`, which this loop can't;
+                # its pauses skipped:  no page is drawing it yet, so its opening (Solitaire's deal) would only
+                # keep the visitor waiting behind the loading card, ~7s
+                names = await asyncio.to_thread(run_program, self.program, self.seed, False)
+            # pauses wait from here on:  a click's animation shows
+            core.pauses = self.pauses
             visit = Visit(core, names)
             core.before_pause.append(visit.send_changes)
             self.visits[visitor] = visit
