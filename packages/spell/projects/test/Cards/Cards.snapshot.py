@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from spell_core import core, Thing, List, prop, h
+import asyncio
+from typing import Any
+
+from spell_core import core, Thing, List, prop, h, spell_position
 
 
 class Card(Thing):
@@ -27,7 +30,7 @@ class Card(Thing):
     @property
     def value(self) -> float:
         """value as a derivation of rank"""
-        return core.position_of(Card.RANKS, self.rank)
+        return spell_position(core.position_of(Card.RANKS, self.rank))
 
     # card direction:  up or down
     DIRECTIONS = ("up", "down")
@@ -51,15 +54,15 @@ class Card(Thing):
         """`card is a face card`"""
         return self.rank in ["jack", "queen", "king"]
 
-    def is_a_suit(self, suit) -> bool:
+    def is_a_suit(self, suit: Any) -> bool:
         """\"card is a spade", "...is a club" etc"""
         return self.suit == suit
 
-    def is_a_rank(self, rank) -> bool:
+    def is_a_rank(self, rank: Any) -> bool:
         """\"card is a queen", "...is an ace" etc"""
         return self.rank == rank
 
-    def is_the_rank_of_suits(self, rank, suit) -> bool:
+    def is_the_rank_of_suits(self, rank: Any, suit: Any) -> bool:
         """\"card is the queen of spades" etc"""
         return self.rank == rank and self.suit == suit
 
@@ -86,7 +89,7 @@ class Card(Thing):
             return "?"
         if isinstance(self.rank, (int, float)):
             return f"{self.rank}"
-        return core.upper_case(core.get_item_at(self.rank, 1))
+        return core.upper_case(core.get_item_at(self.rank, 0))
 
     @property
     def short_direction(self) -> str:
@@ -104,30 +107,30 @@ class Card(Thing):
 
     # actions
 
-    def turn_face_up(self) -> None:
+    async def turn_face_up(self) -> None:
         """
         Turn card face up or face down
         Note that this will animate if you `wait for turn the card face up`
         """
         self.direction = "up"
-        core.pause_for(50, "msec")
+        await core.pause_for(50, "msec")
 
-    def turn_face_down(self) -> None:
+    async def turn_face_down(self) -> None:
         self.direction = "down"
-        core.pause_for(50, "msec")
+        await core.pause_for(50, "msec")
 
-    def turn_over(self) -> None:
+    async def turn_over(self) -> None:
         """
         Flip card to opposite direction
         Note that this will animate if you `wait for turn the card face up`
         """
         if self.direction == "up":
-            self.turn_face_down()
+            await self.turn_face_down()
         else:
-            self.turn_face_up()
-        core.pause_for(50, "msec")
+            await self.turn_face_up()
+        await core.pause_for(50, "msec")
 
-    def draw(self):
+    def draw(self) -> Any:
         class_name = f"Card face-{self.direction} {self.rank} {self.suit} ui button compact fluid "
         if self.is_face_down:
             return h(
@@ -150,7 +153,7 @@ class Card(Thing):
         return Pile.owner_of(self)
 
 
-def test_card_setup():
+async def test_card_setup() -> Any:
     """create a card instance with default properties"""
     with core.test("test card setup"):
         core.echo_test_action(
@@ -200,15 +203,15 @@ def test_card_setup():
         )
 
         core.echo_test_action("turn the card face down")
-        card.turn_face_down()
+        await card.turn_face_down()
         core.expect(card.direction, "the direction of the card", "down", "down")
 
         core.echo_test_action("turn the card over")
-        card.turn_over()
+        await card.turn_over()
         core.expect(card.is_face_up, "the card is face up", True, "true")
 
 
-test_card_setup()
+asyncio.run(test_card_setup())
 
 
 # -----------
@@ -238,7 +241,7 @@ class Deck(List):
     is_set_up = prop(type="choice")
 
 
-def test_deck_creation():
+def test_deck_creation() -> Any:
     with core.test("test deck creation"):
         core.echo_test_action("the deck is a new deck")
         deck = Deck()
@@ -289,16 +292,16 @@ class Pile(List):
     item_type = Card
 
     @property
-    def color(self) -> str | None:
+    def color(self) -> str:
         if not self:
             return "none"
-        return getattr(self.last_item, "color", None)
+        return self.last_item.color
 
     @property
-    def value(self) -> float | None:
+    def value(self) -> float:
         if not self:
             return 0
-        return getattr(self.last_item, "value", None)
+        return self.last_item.value
 
     @property
     def state(self) -> str:

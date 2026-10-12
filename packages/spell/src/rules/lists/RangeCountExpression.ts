@@ -7,7 +7,7 @@ import { lists } from "./lists.parser"
  * `range_count_expression` rule:  alternative form of range expression.
  * - `{arg}` (e.g. `items`) captured for readability only, unused in output.
  * - Returns a new list.
- * - e.g. `top 2 items of my-list` => `spellCore.rangeStartingAt(myList, 1, 2)`.
+ * - e.g. `top 2 items of my-list` => `spellCore.rangeStartingAt(myList, 0, 2)`.
  * - Counting from the end, the range ENDS at the ordinal:
  *   `last two cards of deck` starts at `-2`, the two last cards.
  *   - Before epic `python-target` P2 it started at `-1`, so it held one card.
@@ -36,8 +36,8 @@ lists.addRule(RangeCountExpression, {
         scope.variables?.add("deck")
       },
       tests: [
-        ["top 2 items of my-list", "spellCore.rangeStartingAt(myList, 1, 2)"],
-        [`first 2 words in "some other words"`, `spellCore.rangeStartingAt("some other words", 1, 2)`],
+        ["top 2 items of my-list", "spellCore.rangeStartingAt(myList, 0, 2)"],
+        [`first 2 words in "some other words"`, 'spellCore.rangeStartingAt("some other words", 0, 2)'],
         ["last two cards from deck", "spellCore.rangeStartingAt(deck, -2, 2)"],
         ["penultimate two cards from deck", "spellCore.rangeStartingAt(deck, -3, 2)"]
       ]

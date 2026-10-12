@@ -1,10 +1,12 @@
 import { describe, test, expect } from "vite-plus/test"
 
+import { PY } from "$/py"
 import { SP } from "$/spell"
 import {
   PYTHON_FIXTURES,
   compiledFixture,
   fixtureDeclarations,
+  fixtureDraws,
   fixturePath,
   fixtureProjectNames,
   fixtureWords
@@ -17,7 +19,7 @@ import {
  * - `<Project>.snapshot.declarations.json`:  its declarations
  * - `<Project>.en.snapshot.js`:  its words
  * - `<Project>.snapshot.tsx`:  the TypeScript (`ts/solid` target)
- * - `<Project>.snapshot.py`, `<Project>.snapshot.asyncio.py`:  the Python (`py`, `py/asyncio` targets)
+ * - `<Project>.snapshot.py`:  the Python (the `py` target)
  *   - only for the fixtures in `PYTHON_FIXTURES`
  * - Why beside it:  a change shows up as a diff of a real `.js` or `.py` file, in VS Code's Source Control.
  * - New fixture:  copy a project into `projects/test/`, then `yarn test:fixtures:bless` writes its snapshot.
@@ -53,10 +55,11 @@ describe("fixture projects compile to their snapshots", () => {
       await expect(compiledFixture(name, "py")).toMatchFileSnapshot(fixturePath(name, `${name}.snapshot.py`))
     })
 
-    // the `py/asyncio` target's:  the same Python, a function that pauses `async def` and awaited
-    test.runIf(PYTHON_FIXTURES.has(name))(`${name} as Python on asyncio`, async () => {
-      await expect(compiledFixture(name, "py/asyncio")).toMatchFileSnapshot(
-        fixturePath(name, `${name}.snapshot.asyncio.py`)
+    // the Python targets' page, when it draws:  the drawing half in javascript (`PY.ElementsWriter`, `.elements.js`);
+    // `.elements.snapshot.js`, ending as a snapshot does, so it isn't one of the fixture's files
+    test.runIf(PYTHON_FIXTURES.has(name) && fixtureDraws(name))(`${name}'s page, for Python`, async () => {
+      await expect(compiledFixture(name, PY.ElementsWriter.instance)).toMatchFileSnapshot(
+        fixturePath(name, `${name}.elements${SP.SNAPSHOT_JS_SUFFIX}`)
       )
     })
   }

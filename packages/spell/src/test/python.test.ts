@@ -1,11 +1,11 @@
 import { beforeAll, describe, test, expect } from "vite-plus/test"
 
-import { P } from "$/parser"
+import { PY } from "$/py"
 import { describePyrightError, pyright, type PyrightResult } from "$/spell/node/pyright"
 import { PYTHON_FIXTURES, compiledFixture, fixtureImports, fixturePath } from "$/spell/test"
 
 /**
- * The Python fixtures' compiled Python (the `py` target, `P.PyWriter`), type-checked by pyright:  see `pyright()`.
+ * The Python fixtures' compiled Python (the `py` target, `PY.PyWriter`), type-checked by pyright:  see `pyright()`.
  * - What pyright reports is a snapshot beside each fixture, one error a line:
  *   `projects/test/<Project>/<Project>.snapshot.pyright.txt`.
  *   So every place the type-hinted Python falls short shows there:  a change is a diff to read.
@@ -18,7 +18,7 @@ let result: PyrightResult
 
 /** Fixture `name`'s module file name, as another imports it:  `Cards` => `cards.py`. */
 function moduleFile(name: string): string {
-  return `${P.PyWriter.projectModule(`@spell/project/${name}`)}.py`
+  return `${PY.PyWriter.projectModule(`@spell/project/${name}`)}.py`
 }
 
 beforeAll(() => {

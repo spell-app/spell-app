@@ -4,6 +4,7 @@ build
 dist
 dist-runner
 dist-element
+dist-page
 settings.json5
 
 # vitest browser mode:  screenshots of failures, attachments

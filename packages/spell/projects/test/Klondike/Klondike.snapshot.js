@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList, h, on } from "@spell/core"
+import { spellCore, Thing, List, App, Drawable, DrawableList, h, position, on } from "@spell/core"
 import { Card, Deck, Pile } from "@spell/project/@test:fixtures:Cards"
 
 spellCore.heading("Klondike Solitaire Card Game")
@@ -42,18 +42,18 @@ export class Game extends App {
               h("td", () => spellCore.drawThing(discards)),
               h("td"),
               h("td", () => spellCore.drawThing(foundations.firstItem)),
+              h("td", () => spellCore.drawThing(foundations.getItem(1))),
               h("td", () => spellCore.drawThing(foundations.getItem(2))),
-              h("td", () => spellCore.drawThing(foundations.getItem(3))),
-              h("td", () => spellCore.drawThing(foundations.getItem(4)))
+              h("td", () => spellCore.drawThing(foundations.getItem(3)))
             ),
             h("tr",
               h("td", () => spellCore.drawThing(tableaus.firstItem)),
+              h("td", () => spellCore.drawThing(tableaus.getItem(1))),
               h("td", () => spellCore.drawThing(tableaus.getItem(2))),
               h("td", () => spellCore.drawThing(tableaus.getItem(3))),
               h("td", () => spellCore.drawThing(tableaus.getItem(4))),
               h("td", () => spellCore.drawThing(tableaus.getItem(5))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(6))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(7)))
+              h("td", () => spellCore.drawThing(tableaus.getItem(6)))
             )
           )
         )
@@ -230,7 +230,7 @@ export async function dealTheCards() {
     for (const row of spellCore.getRange(1, 7)) {
       stock.lastItem?.turnFaceUp()
       for (const column of spellCore.getRange(row, 7)) {
-        tableaus.getItem(column)?.append(stock.lastItem)
+        tableaus.getItem(position(column))?.append(stock.lastItem)
         await spellCore.pauseFor(50, "msec")
       }
     }
@@ -291,10 +291,10 @@ export async function autoPlay() {
   for (const pile of tableaus) {
     if (pile.isEmpty) continue
     const testCard = pile.lastItem
-    const foundation = foundations.filter((pile) => pile.name == testCard?.suit).firstItem
+    const foundation = foundations.filter((pile) => pile.name == testCard.suit).firstItem
     if (spellCore.canTake(foundation, testCard)) {
       anythingChanged = true
-      await testCard?.play()
+      await testCard.play()
       await spellCore.pauseFor(100, "msec")
     }
   }
@@ -304,8 +304,8 @@ export async function autoPlay() {
     const faceUpCards = pile.filter((card) => card.isFaceUp)
     if (faceUpCards.isEmpty) continue
     const testCard = faceUpCards.firstItem
-    if (testCard?.isARank("king") && testCard === pile.firstItem) continue
-    if (await testCard?.play()) {
+    if (testCard.isARank("king") && testCard === pile.firstItem) continue
+    if (await testCard.play()) {
       anythingChanged = true
       await spellCore.pauseFor(500, "msec")
     }

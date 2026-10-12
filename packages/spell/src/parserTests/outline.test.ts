@@ -1,6 +1,20 @@
 import { describe, test, expect, vi } from "vite-plus/test"
 
-import { spellCore, Thing, List, App, on, off, once, trigger, positionOf } from "$/core"
+import {
+  spellCore,
+  Thing,
+  List,
+  App,
+  on,
+  off,
+  once,
+  trigger,
+  positionOf,
+  position,
+  spellPosition,
+  endPosition,
+  withSpellPositions
+} from "$/core"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 import { loadFixtureProject, parseSpellProject } from "$/spell/test"
@@ -456,7 +470,7 @@ function runSpellFiles(sources: Array<{ path: string; contents: string }>) {
       .map((name) => `${name}: ${P.JSWriter.instance.nameOf(name)}`)
     const body = `${code}\nreturn { ${named.join(", ")} }`
     // `@spell/core`'s helpers it imports by name, e.g. `trigger()`, as the import it lost would give them
-    const imported = { on, off, once, trigger, positionOf }
+    const imported = { on, off, once, trigger, positionOf, position, spellPosition, endPosition, withSpellPositions }
     // oxlint-disable-next-line no-implied-eval -- running compiled spell, as a runner does, is the test
     const fn = new Function("spellCore", "Thing", "List", "App", ...Object.keys(imported), body)
     const run = () => fn(spellCore, Thing, List, App, ...Object.values(imported))

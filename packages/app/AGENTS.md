@@ -14,8 +14,8 @@ when working with code in this package, `@spell-app/app`.
 - The top of the chain (below `cli`):  the web app, its server, and the embeddable web components.
   - Everything else is a package it imports:  `$/spell`, `$/lsp`, `$/parser`, `$/util`, `@spell-app/ui` ...
 - The app is Solid 2 (READ the root's Solid 2 pointer for Solid work).
-  - So is what compiled spell draws:  `core`'s [drawing.ts](../core/src/drawing.ts),
-    on the page's Spell UI (epic `output-targets` P10-P11).
+  - So is what compiled spell draws, on the page's Spell UI (epic `output-targets` P10-P11):
+    `core`'s [drawing.ts](../core/src/drawing.ts).
   - No React:  every `.tsx` is Solid.
   - `build.test.ts` pins that no chunk holds React, `spell-runtime.js` included.
   - Two test projects (`vitest.config.ts`):
@@ -43,19 +43,25 @@ when working with code in this package, `@spell-app/app`.
 - `index.html`, `demo/`, `static/` and the `vite*.config.ts` files are here too.
 - Scripts run HERE (`cd packages/app`):
   - The editor (vite, port 3000 if free, else any) is the PAGE SERVER's child.
-    - [appRoutes.ts](src/server/appRoutes.ts), a route module (see `packages/server`), starts it with `EditorServer`
-      once the page server listens.
-      It stops it with the page server.
+    - [appRoutes.ts](src/server/appRoutes.ts) starts it (`EditorServer`) once the page server listens,
+      and stops it with the page server.
+      - It's a route module ([server's AGENTS.md](../server/AGENTS.md)).
     - So `spell dev server` (repo root) runs the API AND the editor.
-      - its URL:  in `<root>/.spell-server.editor.json`
+      - its URL:  in `.spell-server.editor.json`, at the checkout's root
       - its output:  in `.spell-server.editor.log`
     - `SPELL_NO_EDITOR=1` skips it.
-  - `yarn start`:  restarts the page server, then `spell serve --headless`, which waits for the editor and prints its URL.
+  - `yarn start`:  restarts the page server, then runs `spell serve --headless`,
+    which waits for the editor and prints its URL.
     - `yarn stop` stops vite:  an orphan, or the page server's (then restart the page server).
-    - `yarn start:server` / `start:server:prod` still run the API alone, on port 3001 ([its entry](src/server/index.ts)).
+    - `yarn start:server` / `start:server:prod` still run the API alone,
+      on port 3001 ([its entry](src/server/index.ts)).
   - `yarn build`:  the app.
     - `yarn build:runner`:  `dist-runner/`, VS Code's "Run Project" webview
     - `yarn build:element`:  `dist-element/`, `<spell-app>` and `<spell-editor>`, and their pack, `spell.pack.js`
+    - `yarn build:page`:  `dist-page/`, the page side of a Python spell app (epic `python-target` P20)
+      - `spell-page.js` ([spellPage.ts](src/runner/spellPage.ts)):  the page's `@spell/core`
+      - It sets the page up itself.
+      - py's `spell_quart` serves it ([py's AGENTS.md](../py/AGENTS.md)).
   - ONE Solid per page, across those bundles.
     - `vite.solid.config.ts` builds FIRST, into each folder:
       - `spell-solid.js`:  Solid, `ui`'s element core (`$/ui/core`) and its root family,
@@ -118,9 +124,12 @@ when working with code in this package, `@spell-app/app`.
     - Mind barrels:  `$/app/runner` holds `runCompiled()`, so a bundle's entry imports its runner's file directly.
   - A drawable thing (`a card is a drawable thing`) draws as its own Spell UI element, e.g. `<solitaire-card>`:
     [SpellElement.tsx](src/runner/SpellElement.tsx) (epic `drawable-thing`).
-    - A drawable class names its tag as it's declared (`static elementTag = spellCore.defineElement(this, ...)`);
-      core asks `spellCore.elementDefiner` once the class is whole:  `installSpellElements()` fills it in, per runtime copy.
-    - `draw the card` then draws `<solitaire-card>`, the card as its `thing`;  the element draws it inside (`drawOwn()`).
+    - A drawable class names its tag as it's declared:
+      `static elementTag = spellCore.defineElement(this, ...)`.
+      - Core asks `spellCore.elementDefiner` once the class is whole.
+      - `installSpellElements()` fills that in, per runtime copy.
+    - `draw the card` then draws `<solitaire-card>`, with the card as its `thing`.
+      The element draws the card inside it (`drawOwn()`).
     - The example:  `@examples/Drawable Solitaire`, each card its own element, styled by its `<css>`.
     - ONE tag per type per page, shared by every runtime copy (`SPELL_ELEMENTS`, on `globalThis`).
   - Its Type Explorer reads scope packs, `<Project>.scopes.js` (`LSP.ScopePack`):  no parser in the page.
@@ -129,10 +138,13 @@ when working with code in this package, `@spell-app/app`.
   - Its Thing Explorer reads the runtime copy's `spellCore.things` (`ThingRegistry`).
     - Each `Thing`, and each instance of a `List` sub-class, registers itself as it's made.
     - The program's exports are its top-level things.
-    - It labels their properties and actions in spell's words, `move (a card) to (a pile)`:
-      the project's words file, `<Project>.en.js` beside its compiled output (`SP.SpellWords`, `runner/words.ts`).
-      - Each runner loads it beside the scope pack:  `<spell-app>` by URL, VS Code's from the extension's `words`
-        message, an editor's in what it pushes.
+    - It labels their properties and actions in spell's words, `move (a card) to (a pile)`.
+      - The words come from the project's words file, `<Project>.en.js`, beside its compiled output.
+      - The code:  `SP.SpellWords`, and the runner's [words.ts](src/runner/words.ts).
+      - Each runner loads the file beside the scope pack:
+        - `<spell-app>`, by URL
+        - VS Code's, from the extension's `words` message
+        - an editor's, in what it pushes
       - No words file:  each by its name, `move to pile`.
 - `components/`:  `<spell-app>` and `<spell-editor>` (epic `spell-element`, P4).
   - They're Spell UI components, written as a component pack's families are ([epics' AGENTS.md](../epics/AGENTS.md)).

@@ -52,21 +52,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - It extends `P.JSWriter`, adding only what's TypeScript's own:
       - real JSX, decorators, the types spell knows
       - `!` where `?.` can't go
-  - `P.PyWriter`:  Python, on `P.ProgramWriter`
-    - It writes the Python target's `<Project>.compiled.py` (epic `python-target`).
-    - It writes Python as a person would:
-      - PEP 8's names, e.g. `Card.RANKS`, and `class_` for a keyword
-      - Python's own words:  `for number in range(1, 101):`, `x is None`, f-strings
-      - type hints where spell knows the kind
-    - `spell_core`'s one object, `core`, only where Python has no word for what spell says.
-  - `P.PyAsyncWriter`:  Python on `asyncio`
-    - It writes the `py/asyncio` target's `<Project>.compiled.asyncio.py`.
-    - It extends `P.PyWriter`:  a function that waits is `async def`, and every call of it awaits it.
-  - [jsShapes.ts](src/writers/jsShapes.ts):  the pure helpers every program writer shares (not in the barrel)
+  - Python's writers are `$/py`'s ([py's AGENTS.md](../py/AGENTS.md)), built on these:
+    - `PY.PyWriter`, on `P.ProgramWriter`
+    - `PY.ElementsWriter`, on `P.JSWriter`
+  - [jsShapes.ts](src/writers/jsShapes.ts):  the pure helpers every program writer shares, `P.jsShapes`
   - `P.jsText`:  javascript's and TypeScript's punctuation
-  - `P.pyText`:  Python's punctuation
-    - blocks by their indent, text in quotes, docstrings
-    - a long call broken one item a line, as Black (Python's usual formatter) does
 - No UI framework, no JSX, no DOM.
   - Node tools run the parser's SOURCE through `tsx` / esbuild / Vite's oxc,
     none of which compile Solid's JSX.
@@ -80,7 +70,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   because a rule's name is worked out from its class name.
   - e.g. `ListAddRelative` => `list_add_relative`
   - `P.Rule.ruleNameFor()` works it out.
-  - The builds:  app's [vite.config.ts](../app/vite.config.ts) and [vite.editor.config.ts](../app/vite.editor.config.ts).
+  - The builds:
+    app's [vite.config.ts](../app/vite.config.ts) and [vite.editor.config.ts](../app/vite.editor.config.ts).
   - Pinned by app's [build.test.ts](../app/src/build.test.ts).
 
 ## Imports

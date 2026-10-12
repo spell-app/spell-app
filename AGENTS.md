@@ -4,8 +4,8 @@ This file guides AI coding agents (Claude Code, Codex, and others)
 working with code in this repository.
 
 **ALWAYS, before any code:  READ [WWOD](agents/wwod/WWOD.md), "What Would Owen Do?", the house style.**
-- It covers process, style, naming, imports, errors, comments, functions, types, classes, decorators, CSS,
-  tests ...
+- It covers process, style, naming, imports, errors, comments,
+  functions, types, classes, decorators, CSS, tests ...
 - Its table names the spoke to read for what you're touching.
 
 **If working with Solid (2.0):  READ [the Solid 2 rules](guides/solid/solid-2.md) IN FULL FIRST.**
@@ -49,6 +49,7 @@ Each folder links to its own `AGENTS.md`:  read it before working there.
 | [parser](packages/parser/AGENTS.md) | `@spell-app/parser` | `$/parser` | `P` | the generic rule-based parser;  Rulex is an opt-in side-effect import, `$/parser/rulex` |
 | [markdown](packages/markdown/AGENTS.md) | `@spell-app/markdown` | `$/markdown` | `MD` | GitHub-flavoured markdown on the parser, drawing `ui-*` markup |
 | [core](packages/core/AGENTS.md) | `@spell-app/core` | `$/core` | `SC` | the runtime compiled spell runs on |
+| [py](packages/py/AGENTS.md) | `@spell-app/py` | `$/py` | `PY` | everything for Python:  the writers (`ts/`), `spell_core` (`core/`) and `spell_quart` (`quart/`), the latter two uv projects |
 | [spell](packages/spell/AGENTS.md) | `@spell-app/spell` | `$/spell` | `SP` | the spell LANGUAGE on the parser, every spell project (`projects/`), `PARSING.md` and `readme.md` |
 | [lsp](packages/lsp/AGENTS.md) | `@spell-app/lsp` | `$/lsp` | `LSP` | spell's language server (browser-safe) |
 | [app](packages/app/AGENTS.md) | `@spell-app/app` | `$/app` | `UI` | the web app, its server, the runner, and the `<spell-app>` / `<spell-editor>` web components;  `yarn start` / `build*` live here |
@@ -85,6 +86,7 @@ One change may touch several packages, but dependencies flow ONE way:
 ```text
 docs -> anything          (its experiments import any package, and nothing imports docs)
 cli -> app -> lsp -> spell -> parser / core -> util
+spell -> py -> parser     (Python's writers;  its Python, `py/core` and `py/quart`, imports no package)
 app / lsp -> markdown -> parser
 brand -> ui / server
 ui -> util
@@ -235,7 +237,8 @@ ui -> util
     - the brand pages':  `_assets/ui/`, in [brand](packages/brand/)
     - They're git-ignored.
       The page server builds the stale ones when it starts, and a page waits for them.
-    - `spell dev bundles build [--stale]` / `check`;  `Bundle` in `$/assembler`.
+    - By hand:  `spell dev bundles build [--stale]`, or `check`.
+    - The code:  `Bundle`, in `$/assembler`.
     - A merge untracks any `main` still commits.
   - It reports snapshot entries with a value NEITHER side had:
     new behaviour nobody reviewed;  show them to Owen.
@@ -267,7 +270,8 @@ ui -> util
   - `brand/` -- the Brand tab's pages ([brand's AGENTS.md](packages/brand/AGENTS.md)):
     Claude Design's exports and their Spell UI copies
   - `goals/` -- the goal sets, PARKED since 2026-10-11 (epic `epic-workflow` P6):  read only, buttons saying TODO.
-    Their tooling is in `packages/goals.zip`;  epic `epic-goals` rebuilds it ([the goals guide](guides/goals/goals.html)).
+    Their tooling is in `packages/goals.zip`;
+    epic `epic-goals` rebuilds it ([the goals guide](guides/goals/goals.html)).
   - `agents/` -- one copy of the rules for every branch:
     - the three logs:
       [PAPERCUTS.md](agents/PAPERCUTS.md), [SUSPECTED-BUGS.md](agents/SUSPECTED-BUGS.md),
@@ -429,14 +433,15 @@ ui -> util
     yarn ts + yarn lint:fix + yarn format + yarn test
     ```
 
-- `yarn oxfmt` / `yarn oxlint` no longer work in a package (not its own deps);  `yarn vitest` still does.
+- In a package, `yarn oxfmt` and `yarn oxlint` no longer work:  they're not its own deps.
+  - `yarn vitest` still does.
 - Configs import from `vite-plus` (lint rule `vite-plus/prefer-vite-plus-imports`).
   - Tests:  WWOD §20 › "Test APIs come from Vite+".
 - `yarn tsc`, never `npx tsc`:  yarn picks the workspace's TypeScript 7.
   - Why:  a dependency's own TypeScript can take `.bin/tsc`.
-  - `ui`'s `vite-plugin-dts` needs `@typescript/typescript6`.
-  - Hoisting makes it the root's 7 today, by luck of the hoister
-    ([the papercuts log](agents/PAPERCUTS.md), "## ui").
+    - E.g. `ui`'s `vite-plugin-dts` needs TypeScript 6 (`@typescript/typescript6`).
+    - Today `.bin/tsc` is the root's 7, but only by luck of the hoister
+      ([the papercuts log](agents/PAPERCUTS.md), "## ui").
 - NEVER hard-code `<package>/node_modules/<dep>`:  yarn hoists to the root.
   - Node code resolves the package instead (in `ui`:  [NodePackage](packages/ui/tools/NodePackage.ts)).
 - Lint / format settings:  the repo root's `vite.lint.ts`.
@@ -452,7 +457,7 @@ ui -> util
   - `review` runs one at a time:  its tests flake under load.
   - NEVER `vp run --cache` a plain script.
     Its file tracking misses TS 7's native `tsc`, so it replays a stale pass.
-  - A cached task needs `run.tasks` with explicit `cache.input` (`epics/vite-plus`, I1).
+  - A cached task needs `run.tasks` with explicit `cache.input` (epic `vite-plus`, I1).
   - Flags go BEFORE the task name (`vp run --cache -r ts`):  after it, they go to the task.
 
 ## Long-term debt

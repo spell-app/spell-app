@@ -36,6 +36,9 @@
       "$/markdown/*": ["./packages/markdown/src/*"],
       "$/core": ["./packages/core/src/index.ts"],
       "$/core/*": ["./packages/core/src/*"],
+      // Python's writers, in `py/ts/` (its Python is `py/core/` and `py/quart/`, uv projects beside it)
+      "$/py": ["./packages/py/ts/index.ts"],
+      "$/py/*": ["./packages/py/ts/*"],
       "$/spell": ["./packages/spell/src/index.ts"],
       "$/spell/*": ["./packages/spell/src/*"],
       "$/lsp": ["./packages/lsp/src/index.ts"],

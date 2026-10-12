@@ -8,10 +8,12 @@ import { spellCore } from "$/core/core"
 import type { CollectionIterationCallback } from "$/core/collection-other"
 import type { Drawing } from "$/core/drawing"
 import type { PropCheck } from "$/core/spellCore.types"
-import { fromStartAt, toStartAt, zeroIndexOf, type StartAt } from "$/core/positions"
+import { zeroIndexOf } from "$/core/positions"
 
 /**
- * `List`: our array concept (1-based) -- what `a deck is a list` extends.
+ * `List`: our array concept -- what `a deck is a list` extends.
+ * - Counted from 0, as an array is (epic `python-target` P23):
+ *   spell code counting from 1 is turned into indexes as it compiles -- see `positions.ts`.
  * - Backed by reactive `items` state rather than a raw JS array, so mutations (`add`, `setItem`, ...)
  *   trigger re-renders of anything observing this `List`.
  * - Copy on write:  each mutation sets `items` to a NEW array --
@@ -138,13 +140,9 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
     spellCore.append(this, ...items)
   }
 
-  /**
-   * Given a `oneIndex`, return the appropriate `zeroIndex`:  `undefined` for no item.
-   * - Negative counts from the end:  `-1` is the last item.
-   * - `0` is no item:  spell counts from 1 (epic `python-target` P2;  it was the SECOND item, marked `???`).
-   */
-  _getZeroIndex(oneIndex: number): number | undefined {
-    return zeroIndexOf(oneIndex, this.items.length)
+  /** The index `index` reaches in our items:  `undefined` for none.  Negative counts from the end, `-1` the last. */
+  _getZeroIndex(index: number): number | undefined {
+    return zeroIndexOf(index, this.items.length)
   }
 
   ////////////////
@@ -155,66 +153,61 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   itemCount(): number {
     return this.items.length || 0
   }
-  /** Return array of `oneIndex`es for each of our items. */
+  /** Our indexes, from 0. */
   getKeys(): number[] {
-    return _.range(1, this.length + 1)
+    return _.range(0, this.length)
   }
   /** Return a CLONE of our `items` as a normal `Array`. */
   getValues(): T[] {
     return [...this.items]
   }
   /**
-   * Return the position of the first `thing` in our list -- `the position of card in the pile`.
-   * - From `startAt`:  1, or 0 for a project counting from 0.
+   * The index of the first `thing` in our list, from 0 -- `the position of card in the pile`.
    * - `undefined` if we don't hold it, never `-1`.
    */
-  positionOf(thing: unknown, startAt: StartAt = 1): number | undefined {
+  positionOf(thing: unknown): number | undefined {
     // widened:  we may be asked for anything
-    const zeroIndex = (this.items as unknown[]).indexOf(thing)
-    if (zeroIndex === -1) return undefined
-    return toStartAt(zeroIndex + 1, startAt)
+    const index = (this.items as unknown[]).indexOf(thing)
+    return index === -1 ? undefined : index
   }
   /** @deprecated  `positionOf()`, since epic `output-targets` P16:  TypeScript compiled before it calls this. */
   itemOf(thing: unknown): number | undefined {
     return this.positionOf(thing)
   }
   /**
-   * Return the item at `position` or `undefined`.
-   * - From `startAt`:  1, or 0 for a project counting from 0.  Negative counts from the end.
+   * The item at `index`, from 0, or `undefined`.  Negative counts from the end:  `-1` is the last.
+   * - Not a whole number, e.g. `position(0)`'s `NaN`:  none.
    */
-  getItem(position: number, startAt: StartAt = 1): T | undefined {
-    const zeroIndex = this._getZeroIndex(fromStartAt(position, startAt))
+  getItem(index: number): T | undefined {
+    const zeroIndex = this._getZeroIndex(index)
     return zeroIndex === undefined ? undefined : this.items[zeroIndex]
   }
-  /**
-   * The item at `index`, counting from 0 as javascript does:  `-1` is the last -- as an array's `at()`.
-   * - What javascript compiled for a project counting from 0 says:  `deck.at(n)`.
-   */
+  /** The item at `index`, as an array's `at()` -- `getItem()`, which it is. */
   at(index: number): T | undefined {
-    return this.getItem(index, 0)
+    return this.getItem(index)
   }
   /**
-   * Set item at `position` to `value`.  Replaces whatever was there;  no such position:  nothing changes.
-   * - From `startAt`:  1, or 0 for a project counting from 0.  Negative counts from the end.
+   * Set the item at `index` to `value`.  Replaces whatever was there;  no such index:  nothing changes.
+   * - From 0;  negative counts from the end.
    * - NOTE: an exclusive list may hold an item twice for a moment,
    *   e.g. while `reverse()` sets each position in turn.
    */
-  setItem(position: number, value: T, startAt: StartAt = 1): void {
-    const zeroIndex = this._getZeroIndex(fromStartAt(position, startAt))
+  setItem(index: number, value: T): void {
+    const zeroIndex = this._getZeroIndex(index)
     if (zeroIndex === undefined) return
     const items = [...this.items]
     items[zeroIndex] = value
     this.writeItems(items)
   }
   /**
-   * Add one or more `things` to our items starting at oneIndex `start`.
-   * - Pushes any items after `start` over to make room.
+   * Add one or more `things` to our items at index `start`, from 0, as `splice()` adds them.
+   * - Pushes the items from `start` on over to make room;  past the end:  at the end.
    * - Exclusive:  one we hold already MOVES here -- we hold each item once.
    */
   addAtPosition(start: number, ...things: T[]): void {
     let items = [...this.items]
-    // `0`, as a plain array's:  at the front;  further back than the front:  the front
-    let itemStart = start === 0 ? 0 : (this._getZeroIndex(start) ?? 0)
+    // past the end:  at the end;  negative from the end;  further back than the front:  the front
+    let itemStart = start >= items.length ? items.length : (this._getZeroIndex(start) ?? 0)
     if (this.family) {
       const moving = new Set<unknown>(things.filter(isOwnable))
       itemStart -= items.slice(0, itemStart).filter((item) => moving.has(item)).length
@@ -224,11 +217,11 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
     this.writeItems(items)
   }
   /**
-   * Remove the item at `position`, pulling in other objects to fill the gap.  No such position:  nothing changes.
-   * - From `startAt`:  1, or 0 for a project counting from 0.  Negative counts from the end.
+   * Remove the item at `index`, pulling in other objects to fill the gap.  No such index:  nothing changes.
+   * - From 0;  negative counts from the end.
    */
-  removeItem(position: number, startAt: StartAt = 1): void {
-    const zeroIndex = this._getZeroIndex(fromStartAt(position, startAt))
+  removeItem(index: number): void {
+    const zeroIndex = this._getZeroIndex(index)
     if (zeroIndex === undefined || zeroIndex >= this.items.length) return
     const items = [...this.items]
     items.splice(zeroIndex, 1)
@@ -244,7 +237,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   //  What hand-written TypeScript calls, e.g. `allPiles.filter((pile) => pile.droppable)`
   //  (epic `output-targets`, Q33, Q35).
   //  Each does EXACTLY what its `spellCore` twin does, by calling it:  one copy of the logic.
-  //  - every position counts from 1, as in spell
+  //  - every position is an index, from 0, as an array's
   //  - a list result is SCRATCH, of our class, and owns nothing:
   //    filtering the piles never takes a card out of its pile -- see `asScratch()`
   //  - a callback gets `(value, position, list)`, as `spellCore.forEach()`'s does
@@ -253,7 +246,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
 
   /** First item, `undefined` if we're empty -- `the first item of my-list`. */
   get firstItem(): T | undefined {
-    return this.getItem(1)
+    return this.getItem(0)
   }
 
   /** Last item, `undefined` if we're empty -- `the last item of my-list`. */
@@ -279,7 +272,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   /**
    * Our items, as a new plain array -- see `getValues()`.
    * - NOTE:  no `keys` getter beside it:  `keys()` is `Observable`'s, a list's PROPS, which the Thing Explorer reads.
-   *   Our positions are `getKeys()`, `[1, 2, ... length]`.
+   *   Our indexes are `getKeys()`, `[0, 1, ... length - 1]`.
    */
   get values(): T[] {
     return this.getValues()
@@ -332,17 +325,16 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
    * Call `callback` for each item, in order -- `for each card in the pile: ...`.
    * - Doesn't wait for one that returns a promise:  write a `for (const card of pile)` loop for that.
    */
-  forEach(callback: ListCallback<T, this>, startAt: StartAt = 1): void {
-    spellCore.forEach<T>(this, callback as Callback<T>, startAt)
+  forEach(callback: ListCallback<T, this>): void {
+    spellCore.forEach<T>(this, callback as Callback<T>)
   }
 
   /**
    * What `callback` answers for each item, in a scratch list of our class -- see `spellCore.map()`.
    * - NOTE:  typed as a plain `List<R>`:  TypeScript can't say "our class, holding `R`".
-   * - `startAt`:  where the position `callback` gets counts from, 1 or 0, as `forEach()`.
    */
-  map<R>(callback: ListCallback<T, this, R>, startAt: StartAt = 1): List<R> {
-    return spellCore.map<T>(this, callback as Callback<T>, startAt) as List<R>
+  map<R>(callback: ListCallback<T, this, R>): List<R> {
+    return spellCore.map<T>(this, callback as Callback<T>) as List<R>
   }
 
   /**
@@ -368,7 +360,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * SIDE EFFECT:  add `things` at `position`, pushing what was there down.  Returns us.
+   * SIDE EFFECT:  add `things` at index `position`, pushing what was there down.  Returns us.
    * - `add card to the pile at position 2`, see `spellCore.addAtPosition()`.
    */
   addAt(position: number, ...things: T[]): this {
@@ -409,8 +401,9 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * SIDE EFFECT:  take out the items from position `start` to `end`, inclusive.  Returns us.
-   * - `remove items 2 to 4 of my-list`, see `spellCore.removeRangeBetween()`.
+   * SIDE EFFECT:  take out the items from index `start` up to, not including, `end`, as `slice()` reads them.
+   * - Returns us.
+   * - `remove items 2 to 4 of my-list`, its indexes worked out, see `spellCore.removeRangeBetween()`.
    */
   removeBetween(start: number, end: number): this {
     spellCore.removeRangeBetween(this, start, end)
@@ -439,12 +432,12 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * The items from `position` to the end, in a scratch list of our class.
-   * - A negative `position` counts from the end:  `-2` is the last two.
+   * The items from index `index` to the end, in a scratch list of our class.
+   * - A negative `index` counts from the end:  `-2` is the last two.
    * - See `spellCore.rangeStartingAt()`.
    */
-  startingFrom(position: number, startAt: StartAt = 1): this {
-    return spellCore.rangeStartingAt(this, position, undefined, startAt)
+  startingFrom(index: number): this {
+    return spellCore.rangeStartingAt(this, index, undefined)
   }
 
   /**
@@ -457,13 +450,12 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * The items from position `start` to `end`, inclusive, in a scratch list of our class.
-   * - Out of range:  an empty one.
-   * - `item 1 to 2 of my-list`, see `spellCore.rangeBetween()`.
-   * - `startAt`:  where `start` and `end` count from, 1 or 0 for a project counting from 0.
+   * The items from index `start` up to, not including, `end`, in a scratch list of our class, as an array's `slice()`.
+   * - Negative counts from the end;  no `end`:  to the end.  Out of range:  an empty one.
+   * - `items 1 to 2 of my-list` compiles to `myList.slice(0, 2)` -- see `spellCore.rangeBetween()`.
    */
-  between(start: number, end: number, startAt: StartAt = 1): this {
-    return spellCore.rangeBetween(this, start, end, startAt) as this
+  slice(start?: number, end?: number): this {
+    return spellCore.rangeBetween(this, start, end) as this
   }
 
   /** Is `thing` our first item?  `false` for `undefined` -- see `spellCore.startsWith()`. */
@@ -626,7 +618,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
 
 /**
  * What a `List` method calls for each item, e.g. `filter()`'s condition:  `(value, position, list)`.
- * - `position` counts from 1;  `list` is the list it was called on, typed as it is:  a `Pile`'s is a `Pile`.
+ * - `position` is an index, from 0;  `list` is the list it was called on, typed as it is:  a `Pile`'s is a `Pile`.
  * - `R`:  what it answers -- `map()`'s result items, else anything (tested for truth).
  */
 export type ListCallback<T, L, R = unknown> = (value: T, position: number, list: L) => R

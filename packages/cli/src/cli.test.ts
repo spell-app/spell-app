@@ -1,5 +1,16 @@
 import { spawn, spawnSync } from "child_process"
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "fs"
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  statSync,
+  writeFileSync
+} from "fs"
 import { createServer } from "net"
 import { tmpdir } from "os"
 import { basename, resolve } from "path"
@@ -26,6 +37,11 @@ const REPO_ROOT = resolve(import.meta.dirname, "..", "..", "..")
 /** Temp folder holding `tempProject()`s -- its REAL path:  on macOS `tmpdir()` is a symlink, and spell reports real paths. */
 const TEMP = realpathSync(mkdtempSync(resolve(tmpdir(), "spell-cli-")))
 afterAll(() => rmSync(TEMP, { recursive: true, force: true }))
+
+/** Each file in `folder`, by name, with when it last changed:  to see a run wrote nothing there. */
+function filesIn(folder: string): Record<string, number> {
+  return Object.fromEntries(readdirSync(folder).map((name) => [name, statSync(resolve(folder, name)).mtimeMs]))
+}
 
 /** A throwaway project `name` in `TEMP`, of one file `<name>.spell` holding `source`.  Returns its folder. */
 function tempProject(name: string, source: string): string {
@@ -456,9 +472,8 @@ describe("spell run", () => {
   })
 
   test("a UI project runs in the browser, in <spell-app>, until interrupted -- writing nothing into it", async () => {
-    // the fixture keeps a compiled copy:  it must come out untouched
-    const output = fixturePath("Solitaire", `Solitaire${SP.COMPILED_JS_SUFFIX}`)
-    const before = readFileSync(output, "utf8")
+    // the fixture's files, each by when it last changed:  none added or written by the run
+    const before = filesIn(fixturePath("Solitaire"))
     const child = spawn(process.execPath, [SPELL, "run", "@test/Solitaire"], {
       cwd: fixturePath(),
       env: { ...process.env, SPELL_NO_BROWSER: "1" },
@@ -477,7 +492,7 @@ describe("spell run", () => {
 
     child.kill("SIGINT")
     expect(await new Promise((done) => child.on("exit", done))).toBe(0)
-    expect(readFileSync(output, "utf8")).toBe(before)
+    expect(filesIn(fixturePath("Solitaire"))).toEqual(before)
   }, 180_000)
 })
 

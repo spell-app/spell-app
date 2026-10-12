@@ -1,5 +1,5 @@
 import { Show, For } from "solid-js"
-import { spellCore, Thing, List, App, Drawable, DrawableList, prop, derived, drawn, positionOf, trigger, on } from "@spell/core"
+import { spellCore, Thing, List, App, Drawable, DrawableList, prop, derived, drawn, positionOf, spellPosition, trigger, position, on } from "@spell/core"
 
 spellCore.heading("definition of a Card with nice english aliases for working with it")
 /** card ranks */
@@ -33,7 +33,7 @@ export class Card extends Thing {
 
   /** value as a derivation of rank */
   get value() {
-    return positionOf(Card.Ranks, this.rank)
+    return spellPosition(positionOf(Card.Ranks, this.rank))
   }
 
   static Directions = DIRECTIONS
@@ -87,7 +87,7 @@ export class Card extends Thing {
   get shortRank() {
     if (this.rank === undefined) return "?"
     if (typeof this.rank === "number") return `${this.rank}`
-    return `${spellCore.getItemAt(this.rank, 1) ?? ""}`.toLocaleUpperCase()
+    return `${spellCore.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
   }
 
   get shortDirection() {
@@ -301,12 +301,12 @@ export class Pile extends List<Card> {
 
   get color() {
     if (this.isEmpty) return "none"
-    return this.lastItem?.color ?? "none"
+    return this.lastItem.color
   }
 
   get value() {
     if (this.isEmpty) return 0
-    return this.lastItem?.value ?? 0
+    return this.lastItem.value
   }
 
   @derived
@@ -375,18 +375,18 @@ export class Game extends App {
                 <td>{discards.draw()}</td>
                 <td />
                 <td>{foundations.firstItem?.draw()}</td>
+                <td>{foundations.getItem(1)?.draw()}</td>
                 <td>{foundations.getItem(2)?.draw()}</td>
                 <td>{foundations.getItem(3)?.draw()}</td>
-                <td>{foundations.getItem(4)?.draw()}</td>
               </tr>
               <tr>
                 <td>{tableaus.firstItem?.draw()}</td>
+                <td>{tableaus.getItem(1)?.draw()}</td>
                 <td>{tableaus.getItem(2)?.draw()}</td>
                 <td>{tableaus.getItem(3)?.draw()}</td>
                 <td>{tableaus.getItem(4)?.draw()}</td>
                 <td>{tableaus.getItem(5)?.draw()}</td>
                 <td>{tableaus.getItem(6)?.draw()}</td>
-                <td>{tableaus.getItem(7)?.draw()}</td>
               </tr>
             </tbody>
           </table>
@@ -573,7 +573,7 @@ export async function dealTheCards() {
     for (const row of spellCore.getRange(1, 7)) {
       stock.lastItem?.turnFaceUp()
       for (const column of spellCore.getRange(row, 7)) {
-        await stock.lastItem?.moveToPile(tableaus.getItem(column)!)
+        await stock.lastItem?.moveToPile(tableaus.getItem(position(column))!)
       }
     }
 
@@ -600,10 +600,10 @@ export async function autoPlay() {
   for (const pile of tableaus) {
     if (pile.isEmpty) continue
     const testCard = pile.lastItem
-    const foundation = foundations.filter((pile) => pile.name == testCard?.suit).firstItem
-    if (foundation?.canPlayCard(testCard!)) {
+    const foundation = foundations.filter((pile) => pile.name == testCard.suit).firstItem
+    if (foundation?.canPlayCard(testCard)) {
       anythingChanged = true
-      await testCard?.play()
+      await testCard.play()
       await spellCore.pauseFor(100, "msec")
     }
   }
@@ -613,8 +613,8 @@ export async function autoPlay() {
     const faceUpCards = pile.filter((card) => card.isFaceUp)
     if (faceUpCards.isEmpty) continue
     const testCard = faceUpCards.firstItem
-    if (testCard?.isARank("king") && testCard === pile.firstItem) continue
-    if (await testCard?.play()) {
+    if (testCard.isARank("king") && testCard === pile.firstItem) continue
+    if (await testCard.play()) {
       anythingChanged = true
       await spellCore.pauseFor(500, "msec")
     }

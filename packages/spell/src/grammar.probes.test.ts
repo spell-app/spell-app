@@ -214,7 +214,7 @@ describe("grammar probes", () => {
 
   test("P8d  Card.spell:46 without its parens", () => {
     expect(probe("print the first character of the name of the card as uppercase")).toMatchInlineSnapshot(
-      `"spellCore.console.log(spellCore.getItemAt(card.name, 1)?.toLocaleUpperCase())"`
+      `"spellCore.console.log(spellCore.getItemAt(card.name, 0)?.toLocaleUpperCase())"`
     )
   })
 

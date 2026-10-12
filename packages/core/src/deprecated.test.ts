@@ -22,11 +22,11 @@ describe("spellCore's old names, for programs compiled before P16", () => {
 
   test("they still work, as a program compiled before calls them", () => {
     const list = ["a", "b", "c", "d"]
-    expect(spellCore.itemOf(list, "c")).toBe(3)
-    expect(spellCore.getItemOf(list, 4)).toBe("d")
-    spellCore.setItemOf(list, 1, "A")
-    spellCore.removeItemOf(list, 2)
-    spellCore.removeItemsOf(list, 1, 2)
+    expect(spellCore.itemOf(list, "c")).toBe(2)
+    expect(spellCore.getItemOf(list, 3)).toBe("d")
+    spellCore.setItemOf(list, 0, "A")
+    spellCore.removeItemOf(list, 1)
+    spellCore.removeItemsOf(list, 0, 1)
     expect(list).toEqual(["d"])
     const copy = spellCore.duplicateCollection(list)
     spellCore.mergeCollectionsInto(copy, ["e"])
