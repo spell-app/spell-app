@@ -99,6 +99,23 @@ describe("a Python spell app, in a real browser", () => {
     await page.page.context().close()
   }, 60_000)
 
+  test("the page loads cleanly:  a loading card first, its icon, nothing red in its console, files checked before reuse", async () => {
+    const page = await opened()
+    await page.page.waitForLoadState("networkidle")
+    expect(page.errors).toEqual([])
+    // the page side's files keep their names when built again:  a browser must ask before reusing one
+    const asset = await fetch(new URL("spell/spell-page.js", url))
+    expect(asset.headers.get("cache-control")).toContain("no-cache")
+    expect((await fetch(new URL("spell/favicon/favicon.svg", url))).status).toBe(200)
+    // "Loading Solitaire":  in the page ahead of every script, so it shows at once;  gone once the board is drawn
+    const html = await (await fetch(url)).text()
+    expect(html.indexOf('id="spell-loading"')).toBeGreaterThan(0)
+    expect(html.indexOf('id="spell-loading"')).toBeLessThan(html.indexOf('<script type="module"'))
+    expect(html).toContain("<h1>Loading Solitaire</h1>")
+    await expect.poll(() => page.page.locator("#spell-loading").count(), { timeout: 5000 }).toBe(0)
+    await page.page.context().close()
+  }, 60_000)
+
   test("a message the program can't run comes back as an error:  < ERROR > in the console", async () => {
     const page = await opened()
     // what a stand-in in the drawing half would send, for a function the program doesn't have
@@ -176,15 +193,21 @@ describe("a Python spell app, in a real browser", () => {
  * its board drawn, with each message it sent and each frame it received, read as JSON.
  * - Received:  the whole state first, then a patch, a list of the things that changed (epic `python-target` P30).
  * - Logged:  each line the page wrote to its console, e.g. each frame, both ways (`logFrame()`).
+ * - Errors:  each console error, a failed load (`404`) among them, and each error the page didn't catch.
  */
 async function opened(
   context?: BrowserContext
-): Promise<{ page: Page; sent: unknown[]; received: unknown[]; logged: string[] }> {
+): Promise<{ page: Page; sent: unknown[]; received: unknown[]; logged: string[]; errors: string[] }> {
   const page = await (context ?? (await browser.newContext())).newPage()
   const sent: unknown[] = []
   const received: unknown[] = []
   const logged: string[] = []
-  page.on("console", (message) => logged.push(message.text()))
+  const errors: string[] = []
+  page.on("console", (message) => {
+    logged.push(message.text())
+    if (message.type() === "error") errors.push(message.text())
+  })
+  page.on("pageerror", (error) => errors.push(String(error)))
   const read = (payload: string | Buffer) => JSON.parse(String(payload)) as unknown
   page.on("websocket", (socket) => {
     socket.on("framesent", ({ payload }) => sent.push(read(payload)))
@@ -192,7 +215,7 @@ async function opened(
   })
   await page.goto(url)
   await page.locator(".Pile.Stock").waitFor({ timeout: 20_000 })
-  return { page, sent, received, logged }
+  return { page, sent, received, logged, errors }
 }
 
 /** SIDE EFFECT:  compile the temp Solitaire to `py`. */
