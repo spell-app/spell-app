@@ -207,6 +207,25 @@ describe("spellCore.carryOver():  a recompile keeps the program's things", () =>
     ])
   })
 
+  test("carryProblems():  which things can't come over, and why -- changing nothing", () => {
+    spellCore.resetRuntime()
+    const before = dealt(cardGame())
+    const previous = Object.entries(before).map(([name, thing]) => ({ name, thing }))
+    spellCore.resetRuntime()
+    const game = cardGame({ rank: { type: "number" } })
+    const after = { ...dealt(game), ...game }
+    expect(spellCore.carryProblems(previous, after)).toEqual([
+      "deck:  Card's rank changed its type",
+      "stock:  Card's rank changed its type",
+      "discards:  Card's rank changed its type"
+    ])
+    expect(cardsOf(after.stock)).toEqual(["ace clubs", 2 + " hearts"])
+    expect(after.stock.items[0]).toBeInstanceOf(after.Card)
+    // the same classes:  nothing
+    const same = cardGame()
+    expect(spellCore.carryProblems(previous, { ...dealt(same), ...same })).toEqual([])
+  })
+
   test("while a recompiled program loads, a pause never ends:  its start stops there", async () => {
     let paused = false
     spellCore.isCarryingOver = true

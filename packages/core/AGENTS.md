@@ -123,8 +123,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - The last run's things come over as the new program's classes.
   - Object to object, not through JSON text, so each thing keeps its identity.
   - The runner asks for it on every recompile but Restart:  `runCompiled()`'s `keepThings`.
-  - While the new program loads, `pause for ...` never ends (`isCarryingOver`):
-    its start, e.g. a new deal, stops there.
+  - While the new program loads (`isCarryingOver`, P17):
+    - its start is skipped:  its top-level test calls, and starting its app,
+      compiled as `if (!spellCore.isCarryingOver) game.start()`
+    - `pause for ...` never ends:  what the rest of its top level sets going, e.g. a new deal, stops there
+  - `carryProblems()` says first which things can't come over:  then the runner starts afresh instead.
 
 ## Decorators
 

@@ -131,7 +131,10 @@ when working with code in this package, `@spell-app/app`.
     - No import map:  `runCompiled()` links each program's imports.
     - A recompile of the same program keeps its things, e.g. the game in progress
       (`keepThings`, epic `drawable-thing` P16).
-      Only Restart starts afresh, on purpose:  each runner's own (`restart()`, `editor.restartApp()`).
+      - Restart starts afresh, on purpose:  each runner's own (`restart()`, `editor.restartApp()`).
+      - The program's start is skipped:  its top-level test calls, and starting its app (P17).
+      - It starts afresh when the edit changed the file that starts its app, or a thing can't come over
+        (`runCompiled()`).
   - So ONLY `spellRuntime.ts` may value-import `$/core`.
     - The program finds its elements through `spellCore.domRoot()`, never `document`.
     - SEE [core's AGENTS.md](../core/AGENTS.md), "Who may value-import it".

@@ -14,8 +14,13 @@ import { spellCore, SPELL_CORE_MODULE, SPELL_ELEMENTS_MODULE } from "$/core"
 /**
  * Run `compiled` spell javascript.
  * - First:  previous app unmounted, new `spellCore.RUNTIME`, empty console -- unless `keepConsole`.
- * - Afresh, unless `keepThings`:  then the last run's things carry over into the new one, e.g. the game in progress,
- *   and the program's start stops at its first pause -- see `spellCore.carryOver()` (epic `drawable-thing` P16).
+ * - Afresh, unless `keepThings`:  then the last run's things carry over into the new one, e.g. the game in progress
+ *   -- see `spellCore.carryOver()` (epic `drawable-thing` P16, P17).
+ *   - The program's start is skipped:  its top-level test calls, and starting its app (`spellCore.isCarryingOver`).
+ *     Its app starts again as the last run had it.
+ *   - Afresh after all, saying why on the console, when:
+ *     - the edit changed the program's start:  the file that starts its app -- see `startChanged()`
+ *     - one of the last run's things can't come over, e.g. its type changed -- see `spellCore.carryProblems()`
  * - Imports it as a module from a NEW `blob:` URL each time -- the browser caches modules by URL,
  *   so re-importing one would hand back the old module without running anything.
  * - Each project it imports comes from `options.loadImport()`, linked onto its own `blob:` URL:
@@ -28,11 +33,17 @@ import { spellCore, SPELL_CORE_MODULE, SPELL_ELEMENTS_MODULE } from "$/core"
  */
 export async function runCompiled(compiled: string, options: RunCompiledOptions): Promise<string | undefined> {
   // the last run's things:  read before the reset forgets them
-  const previous = options.keepThings ? lastRun() : undefined
+  const last = options.keepThings ? lastRun() : undefined
+  const isNewStart = !!last && startChanged(last.compiled, compiled)
+  const previous = isNewStart ? undefined : last
   carryAfterFailure = undefined
   unmountApp()
   spellCore.resetRuntime()
   if (!options.keepConsole) spellCore.console.clear()
+  if (isNewStart)
+    spellCore.console.info(`Started afresh:  the program's start changed, in the file that starts its app.`)
+  // what's on the console now:  put back if the run starts again afresh, below
+  const restoreConsole = consoleRestorer()
 
   const { loadImport } = options
   if (!loadImport && projectImportsOf(compiled).length) {
@@ -53,18 +64,28 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions)
     } finally {
       spellCore.isCarryingOver = false
     }
-    // the classes of each project it imports, e.g. Solitaire's `Card`, for `spellCore.fromJSON()`:
+    // the classes of each project it imports, e.g. Solitaire's `Card`, for `spellCore.fromJSON()` and carrying over:
     // the program imported them already, so this runs nothing again
     for (const projectUrl of linked.values()) {
       const project = await projectUrl
       spellCore.things.addClasses((await import(/* @vite-ignore */ project)) as Record<string, unknown>)
     }
     spellCore.things.setTopLevel(program)
+    const problems = previous ? spellCore.carryProblems(previous.things, program) : []
+    if (problems.length) {
+      // with its start skipped, a thing that starts afresh by itself would miss what the start does to it
+      restoreConsole()
+      spellCore.console.info(`Started afresh:  ${problems.join(";  ")}.`)
+      const problem = await runCompiled(compiled, { ...options, keepThings: false, keepConsole: true })
+      if (problem) carryAfterFailure = previous
+      return problem
+    }
     if (previous) carryOver(previous, program)
+    lastCompiled = compiled
     return undefined
   } catch (error) {
     // the next recompile carries the last good run's things over, not this broken one's
-    carryAfterFailure = previous
+    carryAfterFailure = last
     // Log too, so devtools show the stack.
     console.error(error)
     return error instanceof Error ? error.message : String(error)
@@ -117,14 +138,14 @@ export type RunCompiledOptions = {
  */
 function lastRun(): LastRun | undefined {
   const things = spellCore.things.topLevel()
-  if (!things.length) return carryAfterFailure
+  if (!things.length || lastCompiled === undefined) return carryAfterFailure
   const app = (spellCore.appElement() as AppElement | null)?.spellRoot?.app
-  return { things, app }
+  return { things, app, compiled: lastCompiled }
 }
 
 /**
  * Put `previous`'s things in place of what `program` made -- see `spellCore.carryOver()`.
- * - Its app, if its start never got to start it (it stopped at a pause before):  started now, as it was.
+ * - Its app, as it was:  started now, as the program's start, which would have, was skipped.
  */
 function carryOver(previous: LastRun, program: Record<string, unknown>) {
   const kept = spellCore.carryOver(previous.things, program)
@@ -134,16 +155,97 @@ function carryOver(previous: LastRun, program: Record<string, unknown>) {
   app?.start?.()
 }
 
+/**
+ * What puts the console back as it is now:  the lines in its open group, or at its top -- e.g. a run's output,
+ * when the run starts again afresh.
+ * - Lines are replaced, never changed in place (`SpellConsole.lines`):  the old array is what was there.
+ */
+function consoleRestorer(): () => void {
+  const { console: output } = spellCore
+  const groups = [...output.groups]
+  const into = groups[0] ?? output
+  const { lines } = into
+  return () => {
+    output.groups = groups
+    into.lines = lines
+  }
+}
+
 /** What a run left, for the next to carry over -- see `lastRun()`. */
 type LastRun = {
   /** Its top-level things, by name. */
   things: ReturnType<typeof spellCore.things.topLevel>
   /** The app it drew, if any. */
   app?: object
+  /** The javascript it ran, to tell whether the next changes the program's start -- see `startChanged()`. */
+  compiled: string
 }
 
 /** The things of the last run that ran to its end, while the runs after it throw -- see `lastRun()`. */
 let carryAfterFailure: LastRun | undefined
+
+/** The javascript of the last run that ran to its end. */
+let lastCompiled: string | undefined
+
+/**
+ * Does `after`, a program compiled again, change its START from `before`?  Then it runs afresh, as Restart does
+ * (Owen, epic `drawable-thing` P17).
+ * - A project of several files:  when the file that starts its app changed, e.g. Solitaire's,
+ *   which says `start the game`.  An edit to a file of types, e.g. Card's, keeps the game in progress.
+ * - A project of one file:  when its start's own lines changed -- starting its app, or which tests it runs.
+ * - When it has a file more or less:  yes.
+ * - No app started:  never, as nothing tells which file starts it.
+ * - Reads the compiled javascript, which every runner has:  a file's code is between two `FILE_SEPARATOR`s.
+ *   - NOTE: a method one file declares on another's type is compiled into that type's class, in ITS file:
+ *     Solitaire's `to play a card` is in Card's code, so an edit to it keeps things.
+ *   - The lines `import`ing from the runtime don't count:  they change with what any file uses.
+ * - Pure.
+ */
+export function startChanged(before: string, after: string): boolean {
+  const [was, now] = [filesOf(before), filesOf(after)]
+  if (was.length !== now.length) return true
+  if (now.filter((code) => code.some((line) => !STYLES_LINE.test(line))).length <= 1) {
+    return startLinesOf(was).join("\n") !== startLinesOf(now).join("\n")
+  }
+  return now.some((code, index) => {
+    const startsApp = [code, was[index]!].some((file) => file.some((line) => APP_START_LINE.test(line)))
+    return startsApp && code.join("\n") !== was[index]!.join("\n")
+  })
+}
+
+/** Each file's code in `compiled`, as its lines:  without blank lines, or those importing from the runtime. */
+function filesOf(compiled: string): string[][] {
+  return compiled
+    .split(FILE_SEPARATOR)
+    .map((code) => code.split("\n").filter((line) => line.trim() && !RUNTIME_IMPORT_LINE.test(line)))
+}
+
+/** The lines of `files` that are part of the program's start:  its tests' calls, starting its app. */
+function startLinesOf(files: string[][]): string[] {
+  return files.flat().filter((line) => line.startsWith(START_LINE))
+}
+
+/**
+ * How a line of the program's start begins, as compiled -- `P.ASTProgramStart`:
+ * `if (!spellCore.isCarryingOver) game.start()`.
+ * - NOTE: a copy, NOT imported:  `$/parser` would pull the whole parser into the runner bundle.
+ */
+const START_LINE = "if (!spellCore.isCarryingOver) "
+
+/** A line of the program's start that starts its app:  `if (!spellCore.isCarryingOver) game.start()`. */
+const APP_START_LINE = /^if \(!spellCore\.isCarryingOver\) .+\??\.start\(\)$/
+
+/** A line that only installs a stylesheet:  a `.css` file's code. */
+const STYLES_LINE = /^spellCore\.installStyles\(/
+
+/** A line importing from the runtime, `import { spellCore, ... } from "@spell/core"`. */
+const RUNTIME_IMPORT_LINE = /^import .* from "@spell\/(core|elements)"$/
+
+/**
+ * Between each file's code in compiled javascript -- `SP.SpellProject.FILE_SEPARATOR`.
+ * - NOTE: a copy, NOT imported:  `$/spell` would pull the whole parser into the runner bundle.
+ */
+const FILE_SEPARATOR = "\n// -----------\n"
 
 /** Take down the app the last run started, if any -- e.g. before showing another project. */
 export function unmountApp() {

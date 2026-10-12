@@ -49,4 +49,4 @@ export const pile = new Pile({ name: "Pile 1" })
 pile.append(new Card({ rank: "A" }))
 pile.append(new Card({ rank: "K" }))
 
-table.start()
+if (!spellCore.isCarryingOver) table.start()

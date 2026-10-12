@@ -234,7 +234,7 @@ export function testCardSetup() {
     spellCore.expect(card.isTheColorJoker("red"), `the card is the red joker`, false, `no`)
   })
 }
-testCardSetup()
+if (!spellCore.isCarryingOver) testCardSetup()
 // -----------
 spellCore.heading("Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes")
 //## Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes
@@ -304,7 +304,7 @@ export function testDeckCreation() {
     deck.display()
   })
 }
-testDeckCreation()
+if (!spellCore.isCarryingOver) testDeckCreation()
 
 export function testDeckWithJokers() {
   return spellCore.test("test deck with jokers", function testDeckWithJokers() {
@@ -320,7 +320,7 @@ export function testDeckWithJokers() {
     spellCore.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs"), `the first card of the deck is the ace of clubs`, true, `yes`)
   })
 }
-testDeckWithJokers()
+if (!spellCore.isCarryingOver) testDeckWithJokers()
 // -----------
 spellCore.heading("Pile of playing cards")
 /** Pile of playing cards */

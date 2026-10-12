@@ -5,6 +5,9 @@ import { SpellStatement, type SpellStatementProps } from "$/spell/rules/Statemen
 import { MethodDefinition } from "./MethodDefinition"
 import type { MethodRuleDeclared } from "./methods.shared"
 
+/** A test's method name:  `test_card_setup`, from `to test card setup`. */
+const TEST_METHOD = /^test_/
+
 /**
  * Rule `constructor` for a plain (non-instance, non-operator) dynamically-defined method's CALL SITE,
  * e.g. matching `notify 1` after `to notify (message): ...` defined it.
@@ -71,6 +74,17 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
     if (!match || !this.argumentsFit(match)) return undefined
     match.data.method = MethodDefinition.findMethod(scope, this.methodName, match.groups.thisArg?.datatype)
     return match
+  }
+
+  /**
+   * Do we call a TEST, `test card setup`?  Then a top-level call is part of the program's start,
+   * skipped when an edit keeps its things.
+   * - A test is a method defined `to test ...`:  its name starts `test_`, and it's a statement only
+   *   (`MethodDefinition.getRule()`).
+   * - The same tests `spell test` finds:  every exported function named `test...`.
+   */
+  startsTheProgram(): boolean {
+    return this.alias === "statement" && TEST_METHOD.test(this.methodName)
   }
 
   /** Could each of `match`'s arguments be what we take?  See `parse()`. */
