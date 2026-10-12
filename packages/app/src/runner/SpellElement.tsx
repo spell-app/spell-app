@@ -19,11 +19,13 @@ import { spellElementVocabulary } from "./SpellElement.en"
  *     the page's change is written to the thing, and the thing's change to the element's attribute,
  *     so the inspector shows it -- see `keepThingAndElementAgreeing()`
  *   - each method of its type is a method:  `card.turnOver()` calls its thing's `turn_over()`
- *   - written by hand, with no `thing` set, it makes its own:  a new thing of its type, once mounted
- *   - in a `<spell-app>`'s layout, it's the program's thing of its type with its `id` as its name instead:
- *     `<solitaire-tableau id="T1">` (P9, Q9) -- see `boundThing`
- *   - or the thing a reference in its `thing` attribute names, anywhere:  `<solitaire-pile thing="Pile#stock">` (P18)
- *     -- see `referencedThing`
+ *   - drawn by the program, its `thing` is handed over, and its `id` is that thing's name:
+ *     `<solitaire-card id="queen-of-spades">` (J43) -- see `nameAfterHandedThing()`
+ *   - written by hand with an `id`, on any page, it's the program's thing the id names,
+ *     as the part of a reference after its `#`:  `<solitaire-tableau id="T1">` is `Tableau#T1` (P9, J43) --
+ *     see `boundThing`
+ *   - written by hand with no `id`:  in a `<spell-app>`'s layout, the program's one thing of its type;
+ *     elsewhere it makes its own, a new thing of its type, once mounted
  *   - a property holding a thing shows as the thing's reference, and follows it:  `<solitaire-card pile="Tableau#T1">`
  *     (P18);  setting it sets the property, or moves the card, for the list holding it -- see `writeReference()`
  *   - English names only, for now
@@ -52,35 +54,29 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   }
 
   /**
-   * What we draw:  the thing the program handed us;  else the one our `thing` attribute names (`referencedThing`);
-   * else, in a layout, the program's (`boundThing`);  else the one we made.
+   * What we draw:  the thing the program handed us;  else the program's thing our `id` names, or in a layout its one
+   * thing of our type (`boundThing`);  else the one we made.
+   * - The handed thing always wins:  our `id` is never looked up while we have one,
+   *   so the id we take from it (`nameAfterHandedThing()`) can't make us draw another.
    */
   get currentThing(): Thing | undefined {
-    const thing = this.handedThing ?? (this.thingReference ? this.referencedThing : (this.boundThing ?? this.ownThing))
+    const thing = this.handedThing ?? (this.idName || this.isInLayout ? this.boundThing : this.ownThing)
     return thing as Thing | undefined
   }
 
-  /** The thing the program handed us, e.g. `draw the card` -- not a reference written in our `thing` attribute. */
+  /** The thing the program handed us, e.g. `draw the card`:  our `thing` property. */
   private get handedThing(): object | undefined {
     const { thing } = this
     return thing && typeof thing === "object" ? thing : undefined
   }
 
-  /** The reference our `thing` attribute holds, e.g. `Pile#stock` for `thing="Pile#stock"` -- `undefined` if none. */
-  private get thingReference(): string | undefined {
-    const { thing } = this
-    return typeof thing === "string" && thing.trim() ? thing.trim() : undefined
-  }
-
   /**
-   * The program's thing our `thing` attribute names, e.g. the stock for `thing="Pile#stock"` (epic `drawable-thing` P18).
-   * - In a layout or on any page:  the program that defined our tag last is asked.
-   * - `undefined` if it has none (yet).
-   * - Tracked:  found as soon as the program makes it.  See `spellCore.thingForReference()`.
+   * Our tag's `id`, e.g. `T1` -- `undefined` if it has none.
+   * - Watched:  a page changing it makes a tag written by hand draw the thing the new id names.
    */
-  get referencedThing(): object | undefined {
-    const reference = this.thingReference
-    return reference ? this.entry?.spellCore.thingForReference(reference) : undefined
+  @E.watches({ attributes: true, attributeFilter: ["id"] })
+  get idName(): string | undefined {
+    return this.domElement.id || undefined
   }
 
   /** What our tag draws with:  its class, and the runtime of the program that defined it last. */
@@ -94,60 +90,61 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   }
 
   /**
-   * In a layout:  the program's thing of our type named by our `id`, e.g. the tableau named `T1`.
+   * The program's thing our `id` names, e.g. the tableau named `T1` for `<solitaire-tableau id="T1">` (J43):
+   * as the reference `Tableau#T1` finds it, on any page.
    * - A sub-type's thing too (P18):  `<solitaire-pile id="stock">` is the stock, a stock-pile.
-   * - With no `id`:  its one thing of our type exactly.
+   * - Digits are a place:  `<solitaire-tableau id="1">` is the first tableau.
+   * - With no `id`, in a layout:  its one thing of our type exactly.
+   * - The program asked is the one that defined our tag last.
    * - `undefined` if there's none (yet).
    * - Tracked:  found as soon as the program makes it.  See `spellCore.thingFor()`.
    */
   get boundThing(): object | undefined {
-    if (!this.isInLayout) return undefined
-    const { entry } = this
-    return entry?.spellCore.thingFor(entry.Class, this.domElement.id || undefined)
+    const { entry, idName } = this
+    if (!idName && !this.isInLayout) return undefined
+    return entry?.spellCore.thingFor(entry.Class, idName)
   }
 
   /**
    * Our thing's drawing -- nothing before our tag's runtime is known.
-   * - In a layout, or with a reference in our `thing` attribute, and no thing of ours in the program:
-   *   a stand-in saying so, not a blank (Q9).
+   * - In a layout, or with an `id`, and no thing of ours in the program:  a stand-in saying so, not a blank (Q9).
    */
   get drawing(): JSX.Element {
     const thing = this.currentThing
     const { entry } = this
     if (!entry) return null
     if (thing) return entry.spellCore.drawOwn(thing) as JSX.Element
-    const isMissing = this.isInLayout || this.thingReference
+    const isMissing = this.isInLayout || this.idName
     return isMissing ? <span class="spell-draw-error">{this.missingText(entry)}</span> : null
   }
 
   /**
    * What our stand-in says, when the program has no thing for us:
-   * e.g. `⚠ no Tableau named "T9"`, or `⚠ no Pile#T9` for a reference.
+   * e.g. `⚠ no Tableau named "T9"`, or `⚠ no Tableau, or more than one:  give it an id`.
    */
   private missingText(entry: SpellElementEntry): string {
-    const reference = this.thingReference
-    if (reference) return `⚠ no ${reference}`
-    const { id } = this.domElement
-    return id ? `⚠ no ${entry.Class.name} named "${id}"` : `⚠ no ${entry.Class.name}, or more than one:  give it an id`
+    const { idName } = this
+    const { name } = entry.Class
+    return idName ? `⚠ no ${name} named "${idName}"` : `⚠ no ${name}, or more than one:  give it an id`
   }
 
   /**
    * Once on the page:  find or make our thing, and keep it and the element agreeing.
-   * - Written by hand (no `thing` set):  make a thing of our type, once.
+   * - Written by hand, handed no thing and with no `id`, outside a layout:  make a thing of our type, once.
+   * - Handed a thing:  our `id` is its name (`nameAfterHandedThing()`).
    * - Each of our type's properties stays the same on our thing and our element:  `keepThingAndElementAgreeing()`.
    * - A drawable list the page wrote puts its own items in, as its children:  in a layout, nothing else draws it.
    */
   onMount() {
     createEffect(
-      () => this.thing,
-      (thing) => {
+      () => !this.handedThing && !this.idName && !this.isInLayout,
+      (isOnItsOwn) => {
         const { entry } = this
-        // in a layout, or named by a reference, the program's thing is ours:  never one of our own
-        if (!thing && !this.ownThing && entry && !this.isInLayout) {
-          this.ownThing = new (entry.Class as new () => object)()
-        }
+        // named by an id, or in a layout, the program's thing is ours:  never one of our own
+        if (isOnItsOwn && !this.ownThing && entry) this.ownThing = new (entry.Class as new () => object)()
       }
     )
+    this.nameAfterHandedThing()
     // a drawable list the PAGE wrote (its thing found in a layout, or made here):
     // nobody draws it, so it puts its own items in, as its children -- after any the page gave it.
     // The program's own draw puts them in itself.
@@ -162,6 +159,34 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
     )
     this.keepThingAndElementAgreeing()
     return super.onMount()
+  }
+
+  /**
+   * Handed a thing by the program:  our `id` is its name, so the browser's inspector says which thing we draw,
+   * `<solitaire-card id="queen-of-spades">` (J43).
+   * - A second of the program's things with that name, e.g. from a second deck:  `queen-of-spades-2`.
+   *   Which is which is the program's to say:  see `spellCore.elementIdFor()`.
+   * - It follows the thing's name:  a card whose rank changes changes its id.
+   * - A thing with no name:  no id.
+   * - An id the page gave the tag itself is kept.
+   * - Never read back:  while we have a handed thing, our `id` is never looked up (`currentThing`).
+   *   Spell UI doesn't hear `id` either:  it's none of our vocabulary's attributes.
+   */
+  private nameAfterHandedThing() {
+    let written: string | undefined
+    createEffect(
+      () => {
+        const thing = this.handedThing
+        return thing && this.entry?.spellCore.elementIdFor(thing)
+      },
+      (id) => {
+        const element = this.domElement
+        if (element.id && element.id !== written) return
+        if (id) element.id = id
+        else element.removeAttribute("id")
+        written = id
+      }
+    )
   }
 
   ////////////////
@@ -459,7 +484,8 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
         configurable: true,
         value(this: { component?: SpellElement }, ...args: unknown[]) {
           const { component } = this
-          if (isWritten) return (component as unknown as Record<string, (...args: unknown[]) => unknown>)?.[name]?.(...args)
+          if (isWritten)
+            return (component as unknown as Record<string, (...args: unknown[]) => unknown>)?.[name]?.(...args)
           const thing = component?.currentThing as Record<string, (...args: unknown[]) => unknown> | undefined
           return thing?.[method]?.(...args)
         }
@@ -478,6 +504,15 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
   /** The drawable class `element`'s tag is for, e.g. `Card` for `<solitaire-card>` -- `undefined` for any other tag. */
   static classOf(element: Element): Function | undefined {
     return SPELL_ELEMENTS.get(element.localName)?.Class
+  }
+
+  /**
+   * Was drawable tag `element` handed its thing by the program, e.g. by `draw the card`, rather than written by hand?
+   * - Its `id` then is its thing's name, not a name the page gave it (`nameAfterHandedThing()`).
+   */
+  static isHandedAThing(element: Element): boolean {
+    const { thing } = element as Element & { thing?: unknown }
+    return !!thing && typeof thing === "object"
   }
 
   /** The thing drawable tag `element` draws, if any -- see `currentThing`. */
@@ -518,9 +553,7 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
 }
 
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
-export interface SpellElement<Thing extends object = object> extends E.AttributeValues<
-  typeof spellElementVocabulary
-> {}
+export interface SpellElement<Thing extends object = object> extends E.AttributeValues<typeof spellElementVocabulary> {}
 
 /**
  * Let `spellCore` define its drawable classes' elements:  sets `spellCore.elementDefiner`.

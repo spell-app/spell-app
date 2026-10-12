@@ -93,7 +93,7 @@ describe("<spell-app> laid out in markup (epic `drawable-thing` P9)", () => {
   })
 })
 
-describe("<spell-app>'s layout:  a tag says which thing it draws with a reference (P18)", () => {
+describe("<spell-app>'s layout:  a tag's id is its thing's reference (P18, J43)", () => {
   /** Two piles, a sub-type's:  a tableau is a pile.  The project's word "drawable" stays out of its tags. */
   const PILES = `
 import { spellCore, App, Drawable, h } from "@spell/core"
@@ -117,20 +117,20 @@ export let board = new Board()
 board.start()
 `
 
-  test("thing=Tableau#T1, Tableau#1 and Pile#T1 each find tableau T1;  id= finds a sub-type's thing too", async () => {
+  test("<floor-tableau id=T1>, id=1 and <floor-pile id=T1> each find tableau T1, as Tableau#T1, Tableau#1 and Pile#T1 do", async () => {
     const app = await mountApp(
       `<spell-app>` +
-        `<floor-tableau thing="Tableau#T1"></floor-tableau>` +
-        `<floor-tableau thing="Tableau#1"></floor-tableau>` +
-        `<floor-pile thing="Pile#T1"></floor-pile>` +
+        `<floor-tableau id="T1"></floor-tableau>` +
+        `<floor-tableau id="1"></floor-tableau>` +
+        `<floor-pile id="T1"></floor-pile>` +
         `<floor-pile id="T2"></floor-pile>` +
-        `<floor-tableau thing="Tableau#9"></floor-tableau>` +
+        `<floor-tableau id="9"></floor-tableau>` +
         `</spell-app>`
     )
     app.run({ projectId: "@test:fixtures:Floor", compiled: PILES } satisfies SpellCompiled)
     const drawn = () => [...app.children].map((tag) => tag.shadowRoot?.textContent)
     await waitFor(() => drawn()[0] === "T1")
-    expect(drawn()).toEqual(["T1", "T1", "T1", "T2", "⚠ no Tableau#9"])
+    expect(drawn()).toEqual(["T1", "T1", "T1", "T2", '⚠ no Tableau named "9"'])
   })
 })
 

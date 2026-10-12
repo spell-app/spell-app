@@ -32,7 +32,7 @@ import {
  * - Names resolve innermost first (Q18):
  *   1. the component:  `it` / `its`, the drawable tag the spell sits in
  *   2. its class:  through `it`, its type's members
- *   3. the page:  each drawable tag with an `id` is a name, e.g. `T1`
+ *   3. the page:  each drawable tag written with an `id` is a name, e.g. `T1`;  not one the program drew
  *   4. the program:  its top-level things, its functions and types -- from its declarations
  * - A hole is any spell EXPRESSION;  an action or a handler, any spell statements (Q11).
  * - Any element in the layout may handle events (P12):  a Spell UI tag, a plain one or a drawable one.
@@ -87,7 +87,8 @@ export class LayoutSpell {
     this.pageScope = new P.BlockScope({ name: "page", parentScope: this.programScope, parser: imports.parser })
     for (const element of root.querySelectorAll("[id]")) {
       const Class = SpellElement.classOf(element)
-      if (!Class) continue
+      // a tag the program drew is named after its thing (`queen-of-spades`):  that's no name the page gave
+      if (!Class || SpellElement.isHandedAThing(element)) continue
       this.pageScope.variables.add({ name: element.id, datatype: Class.name })
       this.names.set(P.JSWriter.instance.nameOf(element.id), () => SpellElement.thingOf(element))
     }
