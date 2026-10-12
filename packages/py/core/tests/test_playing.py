@@ -46,6 +46,15 @@ def test_a_click_on_the_stocks_top_card_turns_it_onto_the_discards(game: PagePla
     assert ids(game.named("discards")) == [*discards, top]
 
 
+def test_a_click_names_its_card_by_reference(game: PagePlayer) -> None:
+    top = ids(game.named("stock"))[-1]
+    reference = game.reference(top)
+    assert reference is not None and reference.startswith("Card#") and "-of-" in reference
+    patch = game.trigger("card-click", target=reference)
+    assert [thing["@type"] for thing in patch] == ["Card", "StockPile", "DiscardPile"]
+    assert ids(game.named("discards"))[-1] == top
+
+
 def test_a_call_of_a_function_plays_from_the_stock(game: PagePlayer) -> None:
     top = ids(game.named("stock"))[-1]
     patch = game.call("play_from_the_stock_pile")

@@ -17,7 +17,7 @@ assert game.thing(stock["@id"])["@items"] == stock["@items"][:-1]
   - Pauses don't wait unless asked (`pauses=True`).
 - After each, a check that nothing was left out:
   a mirror reads every patch so far, and must hold the program's whole state;  else `PatchMismatchError`.
-- A thing is named by its id, `{"@id": "12"}` (`ref()`), as the page names one today.
+- A thing is named by its id, `{"@id": "12"}` (`ref()`), or by a reference, `"Card#queen-of-spades"` (`reference()`).
 - Epic python-target, P30.
 """
 
@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Any
 
 from spell_core.page import PageSession
+from spell_core.references import reference_for
 from spell_core.run import run_program
 from spell_core.state import ID_KEY, StateMirror, StateWriter
 
@@ -67,9 +68,22 @@ class PagePlayer:
         """How a message names `thing` (its JSON, or its id):  `{"@id": "12"}`."""
         return {ID_KEY: thing if isinstance(thing, str) else thing[ID_KEY]}
 
-    def trigger(self, event: str, **details: Any) -> list[dict[str, Any]]:
-        """Send the event the page sends for `event`, e.g. a click:  what it changed, the patch."""
-        return self.send({"trigger": event, "details": details})
+    def reference(self, the_id: str) -> str | None:
+        """How a page names the thing with `the_id` by reference (P27):  `Card#queen-of-spades`, `Tableau#3`."""
+        session = self.session
+        return reference_for(session.writer.thing_with_id(the_id), session.writer.things_given_ids(), session.things)
+
+    def trigger(self, event: str, target: str | list[str] | None = None, **details: Any) -> list[dict[str, Any]]:
+        """Send the event the page sends for `event`, e.g. a click:  what it changed, the patch.
+
+        - `target`:  what it happened to, by reference, `"Card#queen-of-spades"` (`reference()`);
+          its handler gets it as `event.target`, and as `event.card`.
+        - `details`:  the rest, each thing by `ref()` or reference.
+        """
+        message: dict[str, Any] = {"trigger": event, "details": details}
+        if target is not None:
+            message["target"] = target
+        return self.send(message)
 
     def call(self, name: str, *args: Any, on: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         """Send a call of the program's function `name`, or of the method `name` of the thing `on`:  the patch."""

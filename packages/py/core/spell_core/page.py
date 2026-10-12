@@ -11,10 +11,15 @@ session.handle({"trigger": "card-click", "details": {"card": {"@id": "12"}}})
   it writes the state first, then reads each message, writing what it changed.
 - The page draws with the program's drawing half in javascript, `<Project>.elements.js`, from the state it's sent;
   see `startPage()` in the JavaScript core's `page.ts`.
-- What it sends, each thing in it by its id (`{"@id": "3"}`):
+- What it sends, each thing in it by its id (`{"@id": "3"}`), or by a reference (`"Card#queen-of-spades"`, P27):
   - a call of one of the program's functions:  `{"call": "play_from_the_stock_pile", "args": []}`
-  - a call of a thing's method:  `{"call": "turn_over", "on": {"@id": "3"}, "args": []}`
-  - an event, for the program's handlers:  `{"trigger": "card-click", "details": {"card": {"@id": "3"}}}`
+  - a call of a thing's method:  `{"call": "turn_over", "on": "Card#3", "args": []}`
+  - an event, for the program's handlers:  `{"trigger": "card-click", "target": "Card#queen-of-spades"}`
+    - `target`:  what it happened to, a reference or a list of them (`spell_core.references`):
+      the handler gets it as `event.target`, and a single thing by its type's name too, `event.card`
+    - `details`:  anything else about it, `{"count": 2}`;  each thing in them by its id or reference
+  - A reference's place (`Tableau#1`) counts the things this page was sent, in the order it was sent them:
+    the order its copies were made in.
 - Each message is run, then answered with what it changed (`StateWriter.patch()`).
 - A page's messages use Python's names:  its javascript was written with them (`PY.ElementsWriter`).
   - Except an event's details, which are javascript's (`camelCase`):  read as Python's (`snake_case`).
@@ -29,6 +34,7 @@ import sys
 from typing import Any
 
 from spell_core.core import core
+from spell_core.references import is_reference, thing_for_reference
 from spell_core.state import ID_KEY, StateWriter
 from spell_core.things import SpellObject
 
@@ -78,6 +84,14 @@ class PageSession:
         if "trigger" in message:
             details = message.get("details") or {}
             props = {python_name(key): self.read(value) for key, value in details.items()}
+            if "target" in message:
+                target = self.read(message["target"])
+                if target is None:
+                    raise ValueError(f"The page named a thing the program doesn't have:  {message['target']!r}")
+                props["target"] = target
+                # a single thing by its type's name too:  `event.card`, as `trigger card-click with the card` names it
+                if isinstance(target, SpellObject):
+                    props.setdefault(python_name(type(target).__name__), target)
             return core.trigger(message["trigger"], **props)
         if "call" in message:
             return [self.callable(message)(*[self.read(arg) for arg in message.get("args") or []])]
@@ -97,7 +111,12 @@ class PageSession:
         return found
 
     def read(self, value: Any) -> Any:
-        """`value` from a page's message:  each `{"@id": ...}` the thing with that id;  the rest as it is."""
+        """`value` from a page's message:  each `{"@id": ...}`, or reference (`"Card#3"`), the thing it names.
+
+        - The rest as it is.
+        """
+        if is_reference(value):
+            return thing_for_reference(value, self.writer.things_given_ids(), self.things)
         if isinstance(value, dict):
             if set(value) == {ID_KEY}:
                 return self.writer.thing_with_id(value[ID_KEY])
