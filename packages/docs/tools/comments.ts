@@ -10,7 +10,8 @@
  *     guides/solid/solid-2.html  ->  guide-changes P4 (new phase):  cm3
  *     spell dev comments answer guides/solid/solid-2.html cm3 --file /tmp/reply.html
  *
- * - `list [--all] [--json]` (default):  every comment still waiting, on every docs page, by page
+ * - `list [<epic>] [--all] [--json]` (default):  every comment still waiting, on every docs page, by page
+ *   - `<epic>`:  only that epic's:  on its own pages (`epics/<epic>/`), or taken into it
  *   - `--all`:  taken and answered ones too
  *   - `--json`:  `[{ page, id, anchor, kind, label, excerpt, quote?, text, at, status, ... }]`
  * - `gather [<page>... | --all] [--epic <name>] [--json]`:  every waiting comment (and page note still `new`) into
@@ -46,7 +47,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
 /** Run verb `positional[0]` with its arguments;  returns the exit code. */
 export async function run([verb = "list", ...rest]: string[], flags: Record<string, string | true>): Promise<number> {
   try {
-    if (verb === "list") return list(flags)
+    if (verb === "list") return list(flags, rest[0])
     if (verb === "gather") return await gather(rest, flags)
     if (verb === "working") return working(rest)
     if (verb !== "answer") return usage()
@@ -75,13 +76,17 @@ function working([page, id, on]: string[]): number {
   return 0
 }
 
-/** Print the comments:  waiting ones unless `--all`;  as JSON with `--json`. */
-function list(flags: Record<string, string | true>): number {
+/**
+ * Print the comments:  waiting ones unless `--all`;  as JSON with `--json`.
+ * - `epic`:  only epic `epic`'s:  on a page under `epics/<epic>/`, or taken into one of its phases
+ */
+function list(flags: Record<string, string | true>, epic?: string): number {
   const changes = new GuideChanges({ root: ROOT })
   const comments = changes.inboxFiles().flatMap((file) => {
     const page = relative(ROOT, file).replace(/\.inbox\.json$/, ".html")
     const { commentList } = GuideInbox.read(file)
-    return (flags.all ? commentList.all : commentList.waiting).map((comment) => ({ page, ...comment }))
+    const shown = (flags.all ? commentList.all : commentList.waiting).map((comment) => ({ page, ...comment }))
+    return epic ? shown.filter((comment) => page.startsWith(`epics/${epic}/`) || comment.taken?.epic === epic) : shown
   })
   if (flags.json) console.log(JSON.stringify(comments, null, 2))
   else if (!comments.length) console.log(flags.all ? "no comments" : "no comments waiting")
@@ -126,10 +131,10 @@ function isMissingFile(error: unknown): boolean {
 /** Say how it's used;  returns the usage exit code. */
 function usage(): number {
   console.error(
-    "usage:  spell dev comments list [--all] [--json]\n" +
-      "        spell dev comments gather [<page>... | --all] [--epic <name>] [--json]\n" +
-      "        spell dev comments answer <page> <id> --file <reply.html> [--commit <sha>]\n" +
-      "        spell dev comments working <page> <id> on | off"
+    "usage:  epic comments list [<epic>] [--all] [--json]\n" +
+      "        epic comments gather [<page>... | --all] [--epic <name>] [--json]\n" +
+      "        epic comments answer <page> <id> --file <reply.html> [--commit <sha>]\n" +
+      "        epic comments working <page> <id> on | off"
   )
   return 2
 }

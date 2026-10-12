@@ -1,5 +1,6 @@
 /**
- * `yarn cli:install`:  put `spell` on your `PATH`, as a symlink to `bin/spell.mjs` in this checkout.
+ * `yarn cli:install`:  put `spell` and `epic` on your `PATH`, as symlinks to `bin/spell.mjs` and `bin/epic.mjs` in
+ * this checkout (the package's `bin`).
  * - Links into the first of these that's on your `PATH` and writable:
  *   - `~/.local/bin`
  *   - npm's global `bin` (`npm prefix -g`) -- NOT on `PATH` under volta, which only puts its shims there
@@ -7,7 +8,7 @@
  * - None of them:  `~/.local/bin`, with a note to add it to `PATH`.
  * - `SPELL_BIN_DIR=/some/dir yarn cli:install` links there instead.
  * - NOT `npm link`:  that runs an npm install over this yarn project.
- * - Run it again after moving this checkout:  the link holds its full path.
+ * - Run it again after moving this checkout:  each link holds its full path.
  */
 import { execSync } from "node:child_process"
 import {
@@ -17,6 +18,7 @@ import {
   existsSync,
   lstatSync,
   mkdirSync,
+  readFileSync,
   readlinkSync,
   symlinkSync,
   unlinkSync
@@ -25,25 +27,36 @@ import { homedir } from "node:os"
 import { delimiter, dirname, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
-const target = resolve(dirname(fileURLToPath(import.meta.url)), "..", "bin", "spell.mjs")
+const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const onPath = (process.env.PATH ?? "").split(delimiter)
 const localBin = resolve(homedir(), ".local", "bin")
 const binDir = process.env.SPELL_BIN_DIR ?? chooseBinDir()
-const link = resolve(binDir, "spell")
 
-chmodSync(target, 0o755)
+/** The commands to link, by name:  the package's `bin`, `{ spell: "bin/spell.mjs", epic: "bin/epic.mjs" }`. */
+const COMMANDS = JSON.parse(readFileSync(resolve(packageRoot, "package.json"), "utf8")).bin
+
 mkdirSync(binDir, { recursive: true })
-if (existsSync(link) || isSymlink(link)) {
-  if (!isSymlink(link)) {
-    console.error(`${link} exists and isn't a symlink -- not replacing it.`)
-    process.exit(1)
-  }
-  unlinkSync(link)
-}
-symlinkSync(target, link)
-console.log(`Linked ${link} -> ${target}`)
+for (const [name, file] of Object.entries(COMMANDS)) linkCommand(name, resolve(packageRoot, file))
 if (!onPath.includes(binDir)) {
-  console.log(`NOTE: ${binDir} isn't on your PATH -- add it to use \`spell\`.`)
+  console.log(`NOTE: ${binDir} isn't on your PATH -- add it to use \`spell\` and \`epic\`.`)
+}
+
+/**
+ * Link command `name` in `binDir` to script `target`, replacing an older link.
+ * - exits 1 when something that isn't a symlink is in the way:  never replaced
+ */
+function linkCommand(name, target) {
+  const link = resolve(binDir, name)
+  chmodSync(target, 0o755)
+  if (existsSync(link) || isSymlink(link)) {
+    if (!isSymlink(link)) {
+      console.error(`${link} exists and isn't a symlink -- not replacing it.`)
+      process.exit(1)
+    }
+    unlinkSync(link)
+  }
+  symlinkSync(target, link)
+  console.log(`Linked ${link} -> ${target}`)
 }
 
 /** First folder we can link into that's on `PATH` -- see the header. */

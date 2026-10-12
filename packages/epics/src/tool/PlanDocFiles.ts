@@ -181,8 +181,7 @@ export class PlanDocFiles {
    * - SIDE EFFECT:  names each missing part on stderr
    */
   read(file: string, options?: PlanDocOptions): PlanDoc {
-    if (!existsSync(file))
-      throw new PlanDocError(`no plan doc ${relative(this.root, file)}:  \`spell dev plan-doc new\` first`)
+    if (!existsSync(file)) throw new PlanDocError(`no plan doc ${relative(this.root, file)}:  \`epic new\` first`)
     const html = readFileSync(file, "utf8")
     if (!isEpicMarkup(html)) throw this.oldMarkup(file)
     const plan = PlanDoc.parse(html, undefined, options)
@@ -337,7 +336,7 @@ export class PlanDocFiles {
     const name = basename(file).replace(/(\.plan)?\.html$/, "")
     return new PlanDocError(
       `${relative(this.root, file)} is in the old markup, which the tool no longer reads:  convert it first ` +
-        `(spell dev plan-doc convert ${name} --out <folder>, then copy the converted doc back)`
+        `(epic convert ${name} --out <folder>, then copy the converted doc back)`
     )
   }
 

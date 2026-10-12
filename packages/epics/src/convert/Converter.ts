@@ -68,8 +68,7 @@ export class Converter extends DocPass {
   private convertMarkup() {
     const { document } = this
     const old = document.querySelector(OLD_LAYOUTS)
-    if (old)
-      throw this.error(`a layout from before 2026-10-02:  run \`spell dev plan-doc migrate ${this.name}\` first`, old)
+    if (old) throw this.error(`a layout from before 2026-10-02:  run \`epic migrate ${this.name}\` first`, old)
     const main = document.querySelector("main")
     if (!main) throw this.error("no <main>")
     const page = this.page.convert(main)

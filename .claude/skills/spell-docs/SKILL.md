@@ -17,7 +17,7 @@ argument-hint: "[page]"
    - It starts the page server first (live reload).
      Then it asks THIS session's window, through the spell extension, to show the page in the doc preview:
      the "Spell Docs" tab, in the right (secondary) side bar.
-     - ONE page at a time, shared with `spell dev plan-doc open`.
+     - ONE page at a time, shared with `epic open`.
      - The "Review" tab beside it keeps its own (`--review`, `/epic review`).
      - Setting `spell.docPreview.location` to `beside`:  Simple Browser beside the editor, instead.
    - Its title bar:  back, forward, reload, restart the page server, open in the browser.

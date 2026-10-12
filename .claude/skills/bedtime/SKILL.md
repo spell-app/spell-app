@@ -16,11 +16,11 @@ The PLAN DOC is the record, as on any day:
 - So no morning report (D5 of `review-review`):  in the morning, `/epic review <name>` goes through what's red.
 
 - `<name>`:  the plan doc's name.
-- Bedtime mode:  `spell dev plan-doc bedtime <name> start "P<a>-P<b>"` turns it on, `... done "<summary>"` off.
+- Bedtime mode:  `epic bedtime <name> start "P<a>-P<b>"` turns it on, `... done "<summary>"` off.
   Both go in the log.
   - While it's on, every item a command touches is marked the night's:  green until reviewed (D2).
     Unless it waits on Owen (an open judgement call or issue):  red beats green.
-  - And `spell dev plan-doc summary <name> --json` has `"bedtime": "P<a>-P<b>"` (`null` when off):
+  - And `epic summary <name> --json` has `"bedtime": "P<a>-P<b>"` (`null` when off):
     that's how a compacted session knows it's still running.
 - Style:  as in `/epic`:
   the plan doc written for Owen coming back cold ([plan-doc.md](templates/epics/plan-doc.md), "Rules").
@@ -28,7 +28,7 @@ The PLAN DOC is the record, as on any day:
 ## 1. Find the phases
 
 - Plan doc (`epics/<name>/`, or the one this session has been keeping):
-  `spell dev plan-doc summary <name> --json`.
+  `epic summary <name> --json`.
   - To-do phases:  every one whose `status` isn't `done`.
 - No plan doc (only a plan drafted in this session):  make one FIRST, as `/epic` does mid-session, which isolates it too.
   - That's [the epic skill](.claude/skills/epic/SKILL.md), "Mid-session":  "make this a plan doc".
@@ -54,9 +54,9 @@ so he answers everything in one sitting.
   - then every real question of step 3, each with its options, one `recommended`
 - `--epic <name>`, slug `bedtime-<date>`, so the page stays with the plan doc.
 - Make it, show it, and END THE TURN with the page's link pair (`spell dev docs link <page>`):
-  - `spell dev details new <slug> --from <spec.json>`:  the spec in the scratchpad.
+  - `epic ask new <slug> --from <spec.json>`:  the spec in the scratchpad.
     Its shape:  `DetailsSpec`, in [details.js](packages/docs/tools/details.js).
-  - Then `spell dev details show <slug> --wait`, with Bash `run_in_background: true`.
+  - Then `epic ask show <slug> --wait`, with Bash `run_in_background: true`.
   - Owen's Send wakes the session with the answers as text.
     See [the details skill](.claude/skills/details/SKILL.md);  write it as "Writing for Owen" there says.
 - Woken:  record the answers (step 3's "Record the answers"), then step 3's "Then", and on into the night.
@@ -86,12 +86,12 @@ Then ask, in one or more AskUserQuestion calls (4 questions each, recommended op
     A question asked now beats a judgement call made at 3am.
 
 Record the answers:
-- the doc's questions:  `spell dev plan-doc decide <name> <Q id> ...`
-- the rest:  `add <name> decision ...`
+- the doc's questions:  `epic decide <name>#<Q id> ...`
+- the rest:  `add <name>#D ...`
 
 Then:
 - Isolate if chosen:  [the isolate skill](.claude/skills/isolate/SKILL.md), "Start" (step 0 too).
-- `spell dev plan-doc bedtime <name> start "P<a>-P<b>"`:  bedtime mode on.
+- `epic bedtime <name> start "P<a>-P<b>"`:  bedtime mode on.
 - One line:
   "Bedtime:  P<a>-P<b> in `<name>`, commits on branch `<branch>`.
   Runs unattended only if permission prompts won't stop it (auto mode or allow-rules)."
@@ -105,7 +105,7 @@ Until the run ends (step 6), these OVERRIDE the root rules and memory:
   Stage the phase's files by name, never `git add -A`.
 - Don't stop between phases for review.
 - NEVER merge into `main`, push, `/isolate done`, `ExitWorktree`, or delete anything outside the worktree.
-  Something needing those:  `add <name> todo`, and go on.
+  Something needing those:  `add <name>#T`, and go on.
 
 Owen writing in this session mid-run means he's awake:  bedtime mode ends there.
 - Say which phase it was on.
@@ -121,13 +121,13 @@ Everything else stands:
 
 ## 5. Each phase, in plan order
 
-1. `spell dev plan-doc phase <name> <N> active`.
+1. `epic phase <name>#P<N> active`.
 2. Do the work, and run its verify and the touched packages' checks (`yarn ts`, `yarn test`).
 3. JUDGEMENT CALL (a choice Owen might have made differently):
    pick the option the plan and code best support, then record it, with the options and why:
 
    ```sh
-   add <name> judgement "<the call>" --details "<p>chose ... over ... because ...</p><epic-choices>...</epic-choices><epic-net-effect>...</epic-net-effect>"
+   epic add <name>#J "<the call>" --details "<p>chose ... over ... because ...</p><epic-choices>...</epic-choices><epic-net-effect>...</epic-net-effect>"
    ```
 
    - It prints the id (`J4`).
@@ -151,28 +151,28 @@ Everything else stands:
    - Agents you start record theirs the same way:  put the command in their prompt.
 4. Checks fail, and you can't fix them:
    - commit what's there as `WIP P<n>:  <name>`
-   - `add <name> issue "P<n> WIP:  <what fails>" ...`:  red in the doc until Owen reviews it
+   - `add <name>#I "P<n> WIP:  <what fails>" ...`:  red in the doc until Owen reviews it
    - go on only with later phases that don't build on this one
    - skip the rest, saying why in the skipped phase's log line:  `log <name> "P<m> skipped:  builds on WIP P<n> (I<k>)"`
-5. `spell dev plan-doc phase <name> <N> done --done "<ul>...</ul>"`:  what was built, as `/epic` writes it.
+5. `epic phase <name>#P<N> done --done "<ul>...</ul>"`:  what was built, as `/epic` writes it.
    Not for a WIP phase:  it stays `active`.
-6. `spell dev plan-doc log <name> "P<n> done|WIP:  <what was built>;  checks:  <results>;  J4, J5"`,
+6. `epic log <name> "P<n> done|WIP:  <what was built>;  checks:  <results>;  J4, J5"`,
    with the ids of its judgement calls.
 7. Commit:  `P<n>:  <Name> -- <one-line summary>`.
    - `WIP P<n>:  ...` for WIP;  an item fix:  `<name> I3:  ...`.
    - The plan doc is never in it:  it's shared content (`epics/`, a link into `../spell-app-dev`),
      committed for you at the turn's end.
-8. `spell dev plan-doc commit <name> <sha> --phase <N> "<what was built>"`:  the commit, under the phase's Commits.
+8. `epic commit <name>#P<N> <sha> "<what was built>"`:  the commit, under the phase's Commits.
 
 ## 6. At the end
 
 - Bedtime mode off:
 
   ```sh
-  spell dev plan-doc bedtime <name> done "<done / WIP / skipped counts>;  <n> judgement calls;  branch <branch>"
+  epic bedtime <name> done "<done / WIP / skipped counts>;  <n> judgement calls;  branch <branch>"
   ```
 
-- `spell dev plan-doc check <name>`, then `spell dev plan-doc open <name>`.
+- `epic check <name>`, then `epic open <name> --review`.
   - Owen wakes to the doc, the night's calls and issues red.
   - Nothing to commit for the doc (shared content, committed for you).
 - Final reply:  the summary, the judgement calls by phase (in words, ids after), and the problems.
@@ -182,13 +182,13 @@ Everything else stands:
   - "Later":  `/epic review <name>` any time.
 - Do NOT merge.
 
-## Cheat sheet (`spell dev plan-doc ... <name>`)
+## Cheat sheet (`epic ... <name>`)
 
 ```
 bedtime <name> start "P3-P6"            bedtime mode on;  logs "Bedtime started"
-phase <name> <N> active|done            each phase;  done --done "<ul>...</ul>" writes its Done list
-add <name> judgement|issue|todo ...     every call, problem, loose end:  an item (--calm unless it'd surprise Owen)
-commit <name> <sha> --phase <N> "..."   the phase's commit, under its Commits
+phase <name>#P<N> active|done           each phase;  done --done "<ul>...</ul>" writes its Done list
+add <name>#J|#I|#T ...                  every call, problem, loose end:  an item (--calm unless it'd surprise Owen)
+commit <name>#P<N> <sha> "..."          the phase's commit, under its Commits
 log <name> "P<n> done|WIP|skipped ..."  what happened, timestamped
 bedtime <name> done "summary"           bedtime mode off;  logs "Bedtime done"
 ```

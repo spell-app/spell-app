@@ -72,18 +72,18 @@ function packageNames(root: string): Set<string> {
   return names
 }
 
-/** A yarn command's page name, `<package> <script>`:  not a skill (`/name`) or a `spell` command. */
+/** A yarn command's page name, `<package> <script>`:  not a skill (`/name`), a `spell` or an `epic` command. */
 function isYarnName(name: string): boolean {
-  return !name.startsWith("/") && !name.startsWith("spell ")
+  return !name.startsWith("/") && !name.startsWith("spell ") && !name.startsWith("epic ")
 }
 
 /**
  * Every command in checkout `root`, sorted by surface then name, each in the page's name form.
  * - yarn:  `<package> <script>` for the root's `package.json` (`root`), each `packages/*` one (its folder's name)
  *   and `packages/ui/site`'s (`ui-site`);  keys starting with `/` are section labels, not scripts
- * - CLI:  `spell <command>` / `spell dev <command>`, read from `CLI_SOURCES`' `program.command(...)` /
- *   `dev.command(...)` calls.  NOTE: the SOURCE, not this process's commander program:
- *   the checkout checked may not be the one `spell` runs from.
+ * - CLI:  `spell <command>` / `spell dev <command>` / `epic <verb>`, read from `CLI_SOURCES`'
+ *   `program.command(...)` / `dev.command(...)` / `epic.command(...)` calls.  NOTE: the SOURCE, not this process's
+ *   commander program:  the checkout checked may not be the one `spell` runs from.
  * - skills:  `/<name>` for each `SKILL.md` in `.claude/skills/*`, plus
  *   `sources.userSkills` found in `~/.claude/skills`;  minus `sources.ignore`
  */
@@ -102,8 +102,10 @@ export function commandSources(root: string, sources: CommandsData["sources"] = 
   for (const file of CLI_SOURCES) {
     const path = join(root, "packages", "cli", "src", file)
     if (!existsSync(path)) continue
-    for (const [, owner, name] of readFileSync(path, "utf8").matchAll(/\b(program|dev)\s*\.command\("([\w-]+)"/g)) {
-      found.push({ surface: "cli", name: owner === "dev" ? `spell dev ${name}` : `spell ${name}` })
+    for (const [, owner, name] of readFileSync(path, "utf8").matchAll(
+      /\b(program|dev|epic)\s*\.command\("([\w-]+)"/g
+    )) {
+      found.push({ surface: "cli", name: `${OWNER_PREFIX[owner as keyof typeof OWNER_PREFIX]}${name}` })
     }
   }
   const skillFolders = [join(root, ".claude", "skills")]
@@ -124,10 +126,15 @@ export function commandSources(root: string, sources: CommandsData["sources"] = 
 }
 
 /**
- * The files in `packages/cli/src/` whose `program.command(...)` / `dev.command(...)` calls are the CLI's commands.
+ * The files in `packages/cli/src/` whose `program.command(...)` / `dev.command(...)` / `epic.command(...)` calls
+ * are the CLI's commands.
  * - `devProgram.ts`:  the `spell dev` tree, since 2026-10-04;  `main.ts` held it before
+ * - `epicProgram.ts`:  the `epic` command's verbs (epic `epic-workflow` P9, 2026-10-12)
  */
-const CLI_SOURCES = ["main.ts", "devProgram.ts"]
+const CLI_SOURCES = ["main.ts", "devProgram.ts", "epicProgram.ts"]
+
+/** Each receiver's commands, as the page names them:  `program.command("compile")` is `spell compile`. */
+const OWNER_PREFIX = { program: "spell ", dev: "spell dev ", epic: "epic " }
 
 /** Every command name the page's rows give, in any surface's `names`. */
 export function pageNames(data: CommandsData): Set<string> {
