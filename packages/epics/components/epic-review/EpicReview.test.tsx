@@ -222,19 +222,20 @@ describe("<epic-item> review controls", () => {
     await settle()
     expect(routes.inbox.marks.t4?.action).toBe("next")
     const chip = deep(host).querySelector<HTMLElement>("[part~='id']")!
+    // the chip keeps its state's colour, the mark's fill (2026-10-11)
     expect([button(host, "next").dataset.fill, chip.dataset.color, chip.dataset.fill]).toEqual([
       "dashed",
-      "green",
+      undefined,
       "dashed"
     ])
-    // the x:  the latest mark wins, grey
+    // the x:  the latest mark wins
     button(host, "drop").click()
     await settle()
     expect(routes.inbox.marks.t4?.action).toBe("drop")
     expect([button(host, "next").dataset.fill, button(host, "drop").dataset.fill, chip.dataset.color]).toEqual([
       "none",
       "dashed",
-      "grey"
+      undefined
     ])
     button(host, "drop").click()
     await settle()
@@ -297,7 +298,7 @@ describe("<epic-item> review controls", () => {
     expect(actions(done).map((action) => button(done, action).dataset.fill)).toEqual(["none", "none", "none", "none"])
   })
 
-  test("the id chip matches the chosen button:  its colour and fill;  no mark, its state's;  light and dark", async () => {
+  test("a mark in flight:  the id chip keeps its STATE's colour, with the mark's fill;  no mark, solid;  light and dark", async () => {
     const before = new Date(Date.now() - 60_000).toISOString()
     routes.inbox.marks.v2 = { action: "approve", at: new Date().toISOString() }
     routes.inbox.marks.j8 = { action: "revisit", when: "soon", note: "why?", at: before }
@@ -313,15 +314,20 @@ describe("<epic-item> review controls", () => {
       return { box, chip, button, fill: chip.dataset.fill, color: chip.dataset.color, border: style.borderTopStyle }
     }
     const approved = await look(`<epic-item id="v2" title="Picked" status="open" state="open"></epic-item>`)
-    expect([approved.fill, approved.color, approved.border]).toEqual(["dashed", "green", "dashed"])
+    // Owen, 2026-10-11 (J3 of epic-workflow):  the chip keeps the state the section's counts count, not the button's colour
+    expect([approved.fill, approved.color, approved.border]).toEqual(["dashed", undefined, "dashed"])
     expect([approved.button?.dataset.fill, approved.button?.dataset.color]).toEqual(["dashed", "green"])
     expect(approved.chip.title).toMatch(/you chose Approve · not sent yet/)
     const revisited = await look(`<epic-item id="j8" title="Talk" status="open" state="attention"></epic-item>`)
-    expect([revisited.fill, revisited.color, revisited.border]).toEqual(["outline", "blue", "solid"])
+    expect([revisited.fill, revisited.color, revisited.border]).toEqual(["outline", undefined, "solid"])
+    // a red item marked Revisit stays red:  its outline is the state's colour
+    const red = getComputedStyle(revisited.chip).borderTopColor
+    const solid = await look(`<epic-item id="j99" title="Unmarked" status="open" state="attention"></epic-item>`)
+    expect(red).toBe(getComputedStyle(solid.chip).backgroundColor)
     const picked = await look(`<epic-item id="q9" title="Which?" status="open" state="attention"></epic-item>`)
     expect([picked.fill, picked.color, picked.chip.title]).toEqual([
       "outline",
-      "green",
+      undefined,
       expect.stringMatching(/you chose pick B · sent/)
     ])
     // no mark, or one Claude handled (`review-as`, its buttons cleared):  the state's colour, solid -- the result
@@ -367,7 +373,7 @@ describe("<epic-item> review controls", () => {
     expect([button(host, "details").dataset.fill, button(host, "revisit").dataset.fill]).toEqual(["dashed", "none"])
   })
 
-  test("the note box's x, Skip This (Owen, 2026-10-09):  in place of Make Todo;  a skip mark, the chip dashed grey", async () => {
+  test("the note box's x, Skip This (Owen, 2026-10-09):  in place of Make Todo;  a skip mark, the chip dashed in its state's colour", async () => {
     await adoptClient()
     const host = await render(`<epic-item id="j9" title="A call" status="open" open><p>Text</p></epic-item>`)
     const x = deep(host).querySelector<HTMLButtonElement>("[part~='note-box'] >>> button[data-how='skip']")!
@@ -387,7 +393,7 @@ describe("<epic-item> review controls", () => {
     expect(routes.inbox.marks.j9).toMatchObject({ action: "skip", note: "covered by P3" })
     expect(deep(host).querySelector("[part~='said'] >>> [part~='base']")!.textContent).toContain("skip · not sent yet")
     const chip = deep(host).querySelector<HTMLElement>("[part~='id']")!
-    expect([chip.dataset.color, chip.dataset.fill]).toEqual(["grey", "dashed"])
+    expect([chip.dataset.color, chip.dataset.fill]).toEqual([undefined, "dashed"])
     expect(chip.title).toMatch(/you chose Skip this · not sent yet/)
     // none of the line's buttons wears it
     expect(actions(host).map((action) => button(host, action).dataset.fill)).toEqual(["none", "none", "none", "none"])

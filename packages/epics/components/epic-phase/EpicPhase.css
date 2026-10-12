@@ -3,6 +3,8 @@
  * - A nested block:  its title on the row band, reaching past the Phases section's inset, edge to edge;  a small
  *   gap below it open, none folded (a rule instead).
  * - The status icon in its status's colour;  a done phase's title quieter.
+ * - Its plan changed:  the title's orange pen and count while it isn't done (the changes themselves are
+ *   `<epic-update>` blocks among its children, which draw themselves).
  * - Public tokens (`--epic-phase-*`) are never declared here:  read through private aliases.
  */
 
@@ -42,5 +44,28 @@
      widen the page at phone width */
   .body {
     overflow-wrap: anywhere;
+  }
+
+  /*
+   * ## Plan changed:  the title's mark while it isn't done, an orange pen and how many times
+   * - its own pointer events (the title's words let them through to the fold button):  its tooltip shows
+   */
+  .changed {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-left: 8px;
+    color: var(--ui-orange-text, var(--ui-orange));
+    font-size: 0.8em;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    vertical-align: 0.05em;
+    pointer-events: auto;
+  }
+  .changed svg {
+    display: block;
+    width: auto;
+    height: 0.95em;
+    fill: currentColor;
   }
 }

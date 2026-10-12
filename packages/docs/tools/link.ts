@@ -1,8 +1,8 @@
 /**
  * `spell dev docs link <page> [--hash <id>] [--text "..."] [--review] [--show]`:  the markdown link Claude gives Owen for a
- * page:  a SIDE BAR link, then a `(_browser_)` one.
+ * page:  a SIDE BAR link, then a browser one, `🌐` after a `•` (Owen, 2026-10-11).
  *
- *     [Details Pages](http://127.0.0.1:4747/api/docs/show?path=...&window=123) (_[browser](http://127.0.0.1:4747/...)_)
+ *     [Details Pages](http://127.0.0.1:4747/api/docs/show?path=...&window=123) • [🌐](http://127.0.0.1:4747/...)
  *
  * - Both go through the page server's `GET /api/docs/show` (`scripts/showRoutes.ts`):  the Claude panel follows only
  *   http(s) links (a `vscode://` one does nothing), and opens a plain `localhost` link in a VS Code tab, not Chrome.  `window` is THIS session's VS Code
@@ -65,7 +65,7 @@ export async function markdownLink(
       ...(view && { view })
     })
     const browser = new URLSearchParams({ path: url.pathname, ...(hash && { hash }), in: "browser" })
-    return `[${title}](${url.origin}/api/docs/show?${query}) (_[browser](${url.origin}/api/docs/show?${browser})_)`
+    return `[${title}](${url.origin}/api/docs/show?${query}) • [🌐](${url.origin}/api/docs/show?${browser})`
   }
   console.error(
     "no page server here can show pages in the side bar yet (restart it:  spell dev server stop && spell dev server ensure)"

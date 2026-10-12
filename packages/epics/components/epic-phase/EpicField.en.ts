@@ -24,10 +24,10 @@ export const epicFieldVocabulary = {
     {
       name: "name",
       kind: "enum",
-      values: ["symptom", "changes", "goal", "done", "files", "verify", "to-review"],
+      values: ["symptom", "changes", "requests", "goal", "done", "files", "verify", "to-review"],
       description:
         "A phase's field (every field in a phase has one):  `symptom` (one line), `changes` (two or three), `goal` " +
-        "(a bullet per outcome), `done` (what was built), `files`, `verify` (both hidden until the Phases title's " +
+        "(a bullet per outcome), `requests` (what Owen sent it from other sessions:  `spell epic file`), `done` (what was built), `files`, `verify` (both hidden until the Phases title's " +
         "toggles), `to-review` (the script's)."
     },
     {
@@ -49,6 +49,7 @@ export const epicFieldVocabulary = {
   texts: [
     { key: "symptom", text: "Symptom:" },
     { key: "changes", text: "Changes:" },
+    { key: "requests", text: "Requests:" },
     { key: "goal", text: "Goal:" },
     { key: "done", text: "Done:" },
     { key: "files", text: "Files:" },

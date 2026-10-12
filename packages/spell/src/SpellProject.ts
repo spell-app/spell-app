@@ -1,12 +1,14 @@
 import { JSON5File, $fetch, CONFIRM, TaskList, Task, getDier, type KnownFormatMimeType } from "$/util"
 import { P } from "$/parser"
-// Import directly, NOT through the `$/core` barrel:  a project MUST NOT load `spellCore` itself -- each
-// runner runs its own copy.  See `spellRuntime.ts`.
+import { PY } from "$/py"
+// Import directly, NOT through the `$/core` barrel:  a project MUST NOT load `spellCore` itself --
+// each runner runs its own copy.  See `spellRuntime.ts`.
 import { SPELL_CORE_MODULE, SPELL_CORE_NAMES } from "$/core/spellCore.types"
 import { SP } from "$/spell"
 
 /**
- * Controller for a `SpellProject`.
+ * One spell project, e.g. `@user:projects:myProject`:  its files, and parsing and compiling them.
+ * - Its `contents` are the project's index from the server:  its files (`manifest`), and what its `project.json` says.
  * - NOTE: these are singleton instances -- you'll always get same object back for a given `path`.
  */
 export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
@@ -142,8 +144,8 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * File for this project's declarations, beside `outputFile`, e.g. `Solitaire.declarations.json`:  what it offers
-   * projects importing it -- see `SP.SpellDeclarations`.
+   * File for this project's declarations, beside `outputFile`, e.g. `Solitaire.declarations.json`:
+   * what it offers projects importing it -- see `SP.SpellDeclarations`.
    * - A `SpellJSFile`:  any text file, loaded and saved the same way.
    */
   /*@memoize*/
@@ -155,8 +157,11 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * File for this project's words, beside `outputFile`, e.g. `Solitaire.en.js`:  spell's wording of each member of
-   * its types, by the name its compiled code uses -- see `SP.SpellWords`.  For a runner's Thing Explorer.
+   * File for this project's words, beside `outputFile`, e.g. `Solitaire.en.js`:
+   * spell's wording of each member of its types, by the name its compiled code uses -- see `SP.SpellWords`.
+   * - For a runner's Thing Explorer.
+   * - A target with words of its own writes another file, e.g. `Solitaire.py.en.json`:  see `wordsFileFor()`.
+   *   One whose page draws in javascript, its drawing half too, `Solitaire.elements.js`:  see `elementsFileFor()`.
    */
   /*@memoize*/
   get wordsFile(): SP.SpellJSFile {
@@ -206,8 +211,8 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
 
   /**
    * Parse project: cancel any in-flight parse, then run `this.parser` `TaskList`.
-   * - NOTE: `parser` arg is actually `parentScope` to parse from -- passed straight through
-   *   to `this.parser.start()`, which calls `getScope(parentScope)` for the first task.
+   * - NOTE: `parser` arg is actually `parentScope` to parse from:
+   *   passed straight through to `this.parser.start()`, which calls `getScope(parentScope)` for the first task.
    */
   parse(parser?: P.Scope): Promise<unknown> {
     this.parser.cancel()
@@ -237,8 +242,8 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   targetsThisRun: string[] | undefined
 
   /**
-   * Targets we compile to:  `js/solid` -- `SP.RUNNING_TARGET`, always, as it's what everything runs -- then the rest
-   * of `project.json`'s `targets` (or the running `compile()`'s), in order.
+   * Targets we compile to:  `js/solid` first, always (`SP.RUNNING_TARGET`, as it's what everything runs),
+   * then the rest of `project.json`'s `targets` (or the running `compile()`'s), in order.
    * - throws if one names no target -- see `SP.targetFor()`
    */
   get targets(): SP.Target[] {
@@ -250,6 +255,60 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   outputFileFor(target: SP.Target): SP.SpellJSFile {
     if (target.name === SP.RUNNING_TARGET) return this.outputFile
     return new SP.SpellJSFile(this.getFileLocation(`${this.projectName}${target.suffix}`)!.path)
+  }
+
+  /**
+   * File for `target`'s own words, beside its output, e.g. `Solitaire.py.en.json`.
+   * - `undefined` for a target with none (`SP.Target.wordsSuffix`).
+   */
+  wordsFileFor(target: SP.Target): SP.SpellJSFile | undefined {
+    if (!target.wordsSuffix) return undefined
+    return new SP.SpellJSFile(this.getFileLocation(`${this.projectName}${target.wordsSuffix}`)!.path)
+  }
+
+  /**
+   * File for `target`'s page, beside its output, e.g. `Solitaire.elements.js`:  its drawing half, in javascript.
+   * - `undefined` for a target with none (`SP.Target.elementsSuffix`).
+   */
+  elementsFileFor(target: SP.Target): SP.SpellJSFile | undefined {
+    if (!target.elementsSuffix) return undefined
+    return new SP.SpellJSFile(this.getFileLocation(`${this.projectName}${target.elementsSuffix}`)!.path)
+  }
+
+  /**
+   * SIDE EFFECT:  save `target`'s web app, if it has one written, and the one there is unedited (or there's none):
+   * an app someone has edited is theirs -- see `PY.isUneditedApp()`.
+   */
+  protected async saveAppFor(target: SP.Target): Promise<void> {
+    const appFile = this.appFileFor(target)
+    const text = this.appTexts.get(target.name)
+    if (!appFile || text === undefined) return
+    let there: string | undefined
+    try {
+      // what's on disk NOW, not what we hold:  a query of its own each time gets past the file's cache
+      there = (await appFile.load({ query: { fresh: Date.now() } })) as string | undefined
+    } catch {
+      there = undefined
+    }
+    if (!PY.isUneditedApp(there)) return
+    appFile.contents = text
+    await appFile.save(undefined)
+  }
+
+  /**
+   * Each target's web app as compiling last wrote it, by target name.
+   * - Saved only over an unedited one (`saveAppFor()`).
+   * - Not in the app file itself, which holds what's on disk.
+   */
+  protected appTexts = new Map<string, string>()
+
+  /**
+   * File for `target`'s web app, beside its output, e.g. `Solitaire.app.py`.
+   * - `undefined` for a target with none (`SP.Target.appSuffix`).
+   */
+  appFileFor(target: SP.Target): SP.SpellJSFile | undefined {
+    if (!target.appSuffix) return undefined
+    return new SP.SpellJSFile(this.getFileLocation(`${this.projectName}${target.appSuffix}`)!.path)
   }
 
   /**
@@ -368,10 +427,37 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
                     params: { target: target.name }
                   })
                 }
-                const marked = SpellProject.combineCompiled(parts, target.writer, this.importHeader(), this.scope)
+                const header = this.importHeader(target.writer)
+                const marked = SpellProject.combineCompiled(parts, target.writer, header, this.scope, {
+                  listsStartAt: this.contents?.listsStartAt
+                })
                 // each declaring statement's marker comes out, into our declarations -- see `SP.SpellDeclarations`
                 const { code, declarations } = SP.SpellDeclarations.split(marked, this.scope!, { version, exports })
                 this.outputFileFor(target).contents = code
+                // a target with words of its own, keyed by its names, e.g. Python's `move_to_pile`
+                const wordsFile = this.wordsFileFor(target)
+                if (wordsFile) wordsFile.contents = SP.SpellWords.json(SP.SpellWords.of(declarations, target.writer))
+                // a target whose page draws in javascript, e.g. Python's:  the drawing half, `Solitaire.elements.js`
+                const elementsFile = this.elementsFileFor(target)
+                if (elementsFile && SpellProject.draws(parts)) {
+                  const writer = PY.ElementsWriter.instance
+                  const elements = SpellProject.combineCompiled(parts, writer, this.importHeader(writer), this.scope, {
+                    listsStartAt: this.contents?.listsStartAt
+                  })
+                  elementsFile.contents = SP.SpellDeclarations.split(elements, this.scope!, { version, exports }).code
+                  // and its web app, `Solitaire.app.py`, for a target with one
+                  if (target.appSuffix) {
+                    const name = this.projectName ?? this.projectId
+                    this.appTexts.set(
+                      target.name,
+                      PY.quartApp({
+                        projectName: name,
+                        program: `${name}${target.suffix}`,
+                        elements: `${name}${target.elementsSuffix}`
+                      })
+                    )
+                  }
+                }
                 if (target.name !== SP.RUNNING_TARGET) continue
                 this.setState("compiled", code)
                 this.declarationsFile.contents = JSON.stringify(declarations, null, 2)
@@ -392,7 +478,13 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
               if (!this.saveCompiled) return this.outputFile.contents
               await this.declarationsFile.save(undefined)
               await this.wordsFile.save(undefined)
-              for (const target of this.targets.slice(1)) await this.outputFileFor(target).save(undefined)
+              for (const target of this.targets.slice(1)) {
+                await this.outputFileFor(target).save(undefined)
+                await this.wordsFileFor(target)?.save(undefined)
+                const elementsFile = this.elementsFileFor(target)
+                if (elementsFile?.contents) await elementsFile.save(undefined)
+                await this.saveAppFor(target)
+              }
               return await this.outputFile.save(undefined)
             }
           })
@@ -401,40 +493,41 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
     })
   }
 
-  /** Between each file's code in our compiled output -- see "Combining output" in `compiler`. */
-  static FILE_SEPARATOR = "\n// -----------\n"
-
   /**
-   * A project's files' code as ONE module, in order, `FILE_SEPARATOR` between each.
+   * A project's files' code as ONE module, in order, the writer's `fileSeparator` between each.
    * - Each `part` is a `.spell` file's AST, or code as is, e.g. a `.css` file's.
-   * - Each class gets its members from EVERY file, e.g. `Card.move_to_$pile` from `Pile.spell` goes in
-   *   `Card.spell`'s `class Card` -- see `SP.hoistClassMembers()`.  Each file's own were moved in by `SP.Block`.
+   * - Each class gets its members from EVERY file -- see `SP.hoistClassMembers()`:
+   *   e.g. `Card.move_to_$pile` from `Pile.spell` goes in `Card.spell`'s `class Card`.
+   *   Each file's own were moved in by `SP.Block`.
    * - Also how a fixture compiles -- see `compiledFixture()` in `$/spell/test`.
-   * - `writer`:  the target's, default javascript's -- see `SP.TARGETS`.  It sees the whole project first
-   *   (`P.Writer.forProject()`), and finishes the module last (`P.Writer.module()`).
+   * - `writer`:  the target's, javascript's by default -- see `SP.TARGETS`.
+   *   It sees the whole project first (`P.ProgramWriter.forProject()`),
+   *   and finishes the module last (`P.Writer.module()`).
    * - `header`:  what the module starts with, e.g. `importHeaderFor()`'s imports.
-   * - `scope`:  the project's, which the writer may read what it imports from (`P.Writer.forProject()`).
+   * - `scope`:  the project's, which the writer may read what it imports from (`P.ProgramWriter.forProject()`).
+   * - `options`:  what its `project.json` says that changes the code, e.g. where its lists start (`P.WriterOptions`).
    */
   static combineCompiled(
     parts: Array<P.ASTStatementGroup | string | undefined>,
-    writer: P.Writer = P.JSWriter.instance,
+    writer: P.ProgramWriter = P.JSWriter.instance,
     header = "",
-    scope?: P.Scope
+    scope?: P.Scope,
+    options?: P.WriterOptions
   ): string {
     const hoisted = SP.hoistClassMembers(parts.map((part) => (typeof part === "object" ? (part.statements ?? []) : [])))
-    const projectWriter = writer.forProject(hoisted, scope)
+    const projectWriter = writer.forProject(hoisted, scope, options)
     const code = parts
       .map((part, index) => {
-        if (typeof part !== "object") return part ?? ""
+        if (typeof part !== "object") return projectWriter.codePart(part ?? "")
         return String(projectWriter.write(new P.ASTStatementGroup(part.match, { statements: hoisted[index] })))
       })
-      .join(SpellProject.FILE_SEPARATOR)
+      .join(projectWriter.fileSeparator)
     return projectWriter.module(header + code)
   }
 
   /**
-   * Does any of `parts` draw a UI -- hold a JSX element anywhere?  For a target that can't draw:  see
-   * `SP.TargetAbilities`.
+   * Does any of `parts` draw a UI -- hold a JSX element anywhere?
+   * - For a target that can't draw:  see `SP.TargetAbilities`.
    */
   static draws(parts: Array<P.ASTStatementGroup | string | undefined>): boolean {
     return parts.some((part) => typeof part === "object" && containsJSX(part))
@@ -442,8 +535,8 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
 
   /**
    * One of our `file`s has updated its contents, e.g. on each keystroke:  re-parse as little as possible.
-   * - A spell file we've parsed => `incremental` re-parses what changed:  maybe just one indented body, else from
-   *   the first changed line on, plus every later file.  Each changed file gets its new `match`.
+   * - A spell file we've parsed => `incremental` re-parses what changed, and each changed file gets its new `match`:
+   *   maybe just one indented body, else from the first changed line on, plus every later file.
    * - Otherwise, or if that throws, has ALL of our files `resetCompiled()` so they'll parse + compile again.
    */
   updatedContentsFor(file: SP.AnySpellFile): void {
@@ -469,8 +562,9 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    * An editor changed `file`'s text to `text`, e.g. on a keystroke:  take it, and re-parse as little as possible.
    * - Returns the spell files whose parse changed -- one edit can change LATER files, e.g. by renaming a type.
    * - A file we don't parse (see `SpellFile.isActive`) just takes the text, so it's there if it becomes active.
-   * - If the incremental parse couldn't cope, parses from scratch straight away, rather than leaving every file
-   *   without a `match` until the next `compile()`.  A crash there is left in `parseError`, NOT thrown.
+   * - If the incremental parse couldn't cope, parses from scratch straight away,
+   *   rather than leaving every file without a `match` until the next `compile()`.
+   *   A crash there is left in `parseError`, NOT thrown.
    * - Does NOT mark `file` dirty or save it:  that's the editor's business.
    */
   async updateText(file: SP.SpellFile, text: string): Promise<SP.SpellFile[]> {
@@ -494,8 +588,9 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
 
   /**
    * HACK:  when our `contents` are updated, re-calculate the derived properties below at once.
-   * - Was:  to dodge `react-easy-state` rendering errors.  Kept so the caches fill HERE, not inside whatever
-   *   reads them first, e.g. a Solid computation, which would then be the one making our files.
+   * - So the caches fill HERE, not inside whatever reads them first, e.g. a Solid computation,
+   *   which would then be the one making our files.
+   * - First added to dodge `react-easy-state` rendering errors.
    */
   onContentsUpdated(): void {
     // Which files we have, or their order, may have changed:  parse from scratch next time.
@@ -518,14 +613,15 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * Return `manifest` map from our `contents`.  Returns `{}` if not loaded or index malformed.
-   * Returned objects have:
-   * - `path` string
-   * - `location` as `SpellLocation` for its `path`
-   * - `file` as pointer to `SpellFile` (etc) for its `path`
-   * - `created` as created timestamp
-   * - `modified` as last modified timestamp
-   * - `size` as file size in bytes
+   * Our `manifest` map, from our `contents`:  each of our files, by path.
+   * - `{}` if not loaded, or the index is malformed.
+   * - Each entry has:
+   *   - `path` string
+   *   - `location` as `SpellLocation` for its `path`
+   *   - `file` as pointer to `SpellFile` (etc) for its `path`
+   *   - `created` as created timestamp
+   *   - `modified` as last modified timestamp
+   *   - `size` as file size in bytes
    */
   /*@memoizeForProp("contents")*/
   get manifest(): Record<string, SP.ProjectManifestEntry> {
@@ -561,13 +657,15 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * Return full ordered `imports` list from our `contents`, including inactive items.
-   * Returns `[]` if not loaded or index is malformed.  Returned objects have:
-   * - `path` full path string
-   * - `active` boolean, `true` if file should be included in compilation
-   * - `location` as `SpellLocation` for its `path`
-   * - `file` as pointer to `SpellFile` (etc) for its `path`
-   * - `contents` as file contents (NOTE: only for text files with certain extensions!)
+   * Our full ordered `imports` list, from our `contents`, inactive items included.
+   * - `[]` if not loaded, or the index is malformed.
+   * - Another project's entry isn't here:  see `projectImports`.
+   * - Each entry has:
+   *   - `path` full path string
+   *   - `active` boolean, `true` if file should be included in compilation
+   *   - `location` as `SpellLocation` for its `path`
+   *   - `file` as pointer to `SpellFile` (etc) for its `path`
+   * - The index's preloaded `contents` (only for text files with certain extensions) are left out.
    */
   /*@memoizeForProp("contents")*/
   get imports(): SP.ProjectImportRef[] {
@@ -692,8 +790,9 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * Compiled `project`'s declarations:  its `declarationsFile`, else -- compiled before that file existed -- the
-   * comments in its `outputFile`.  `undefined` if neither has any.
+   * Compiled `project`'s declarations, from its `declarationsFile`.
+   * - Else from the comments in its `outputFile`, for a project compiled before that file existed.
+   * - `undefined` if neither has any.
    * - Fresh each time:  another project's compile may have changed them since we last looked.
    */
   static async declarationsOf(project: SpellProject): Promise<SP.SpellDeclarationsData | undefined> {
@@ -712,28 +811,33 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    *   `import { spellCore, Thing, List, App, Drawable, DrawableList } from "@spell/core"`
    *   `import { Card as Playingcard, Deck, Pile } from "@spell/project/@system:library:cards"`
    * - Why:  compiled spell reaches everything it didn't declare through `import`s -- NO globals.
-   * - A runner rewrites each specifier onto the module it means -- see `runCompiled()` in `src/app/runner/`.
+   * - A runner rewrites each specifier onto the module it means -- see `runCompiled()` in `$/app/runner/runCompiled`.
    * - A `source` import needs none:  its files compile into our output.
+   * - `writer`:  the target's, which spells them in its language -- see `P.ProgramWriter.importsHeader()`.
    */
-  importHeader(): string {
-    return SpellProject.importHeaderFor(this.scope)
+  importHeader(writer: P.ProgramWriter = P.JSWriter.instance): string {
+    return SpellProject.importHeaderFor(this.scope, writer)
   }
 
   /** `importHeader()` of a project parsed in `scope` -- also for one parsed headlessly, e.g. a test fixture. */
-  static importHeaderFor(scope: P.Scope | undefined): string {
-    const lines = [`import { ${SPELL_CORE_NAMES.join(", ")} } from "${SPELL_CORE_MODULE}"`]
-    const imports = scope?.parentScope
-    if (imports instanceof P.ImportScope) {
-      for (const [module, names] of imports.modules) {
-        if (names.length) lines.push(`import { ${names.join(", ")} } from "${module}"`)
-      }
+  static importHeaderFor(scope: P.Scope | undefined, writer: P.ProgramWriter = P.JSWriter.instance): string {
+    return writer.importsHeader(SpellProject.importsOf(scope))
+  }
+
+  /** What a project parsed in `scope` imports, by module:  spell's runtime first, then other projects'. */
+  static importsOf(scope: P.Scope | undefined): P.ModuleImport[] {
+    const imports: P.ModuleImport[] = [{ module: SPELL_CORE_MODULE, names: [...SPELL_CORE_NAMES] }]
+    const importScope = scope?.parentScope
+    if (importScope instanceof P.ImportScope) {
+      for (const [module, names] of importScope.modules) imports.push({ module, names })
     }
-    return `${lines.join("\n")}\n\n`
+    return imports
   }
 
   /**
-   * Project id an `imports` entry's `path` names:  a root's alias expanded, e.g. `@library/cards` ~==
-   * `@system:library:cards` -- else a full `@owner:domain:name` as is.  See `SP.SpellSetup.expandAlias()`.
+   * Project id an `imports` entry's `path` names -- see `SP.SpellSetup.expandAlias()`:
+   * - a root's alias expanded, e.g. `@library/cards` ~== `@system:library:cards`
+   * - else a full `@owner:domain:name` as is
    */
   static projectIdForImport(path: string): string {
     return SP.SpellSetup.expandAlias(path)

@@ -14,9 +14,11 @@ export {
   fixtureProjectNames,
   compiledFixture,
   fixtureDeclarations,
+  fixtureDraws,
   fixtureWords,
   fixtureImports,
   FIXTURES_DIR,
+  PYTHON_FIXTURES,
   summarize,
   describeParseErrors,
   describeWarnings

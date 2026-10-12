@@ -154,7 +154,7 @@ classes.addRule(PropertyValueGetter, {
           js: [
             'Object.defineProperty(Card.prototype, "shortName", {',
             "  get() {",
-            "    return spellCore.getItemAt(this.name, 1)",
+            "    return spellCore.getItemAt(this.name, 0)",
             "  },",
             "  configurable: true",
             "})"
@@ -163,7 +163,7 @@ classes.addRule(PropertyValueGetter, {
             "export interface Card { readonly shortName: any /* spell: type unknown */ }",
             'Object.defineProperty(Card.prototype, "shortName", {',
             "  get(this: Card) {",
-            "    return spellCore.getItemAt(this.name, 1)",
+            "    return spellCore.getItemAt(this.name, 0)",
             "  },",
             "  configurable: true",
             "})"
@@ -175,7 +175,7 @@ classes.addRule(PropertyValueGetter, {
           js: [
             'Object.defineProperty(Card.prototype, "shortName", {',
             "  get() {",
-            "    return spellCore.getItemAt(this.name, 1)",
+            "    return spellCore.getItemAt(this.name, 0)",
             "  },",
             "  configurable: true",
             "})",
@@ -185,7 +185,7 @@ classes.addRule(PropertyValueGetter, {
             "export interface Card { readonly shortName: any /* spell: type unknown */ }",
             'Object.defineProperty(Card.prototype, "shortName", {',
             "  get(this: Card) {",
-            "    return spellCore.getItemAt(this.name, 1)",
+            "    return spellCore.getItemAt(this.name, 0)",
             "  },",
             "  configurable: true",
             "})",

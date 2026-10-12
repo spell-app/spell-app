@@ -12,7 +12,8 @@
  * - `wait <page> [--timeout 8h]` -- block until Owen presses "Do it" (an answer NEWER than the wait's start), print
  *   it as plain text, exit 0.  Run it in the BACKGROUND:  its exit wakes the session.  Timeout:  exit 2
  * - `answer <page>` -- print the answer already sent (exit 1 if none)
- * - `list` -- every syntax-choices page:  answered, draft (typed, not sent) or waiting
+ * - `list [<epic>]` -- every syntax-choices page:  answered, draft (typed, not sent) or waiting;  with an epic, only
+ *   that epic's (`epics/<epic>/details/`)
  * - `<page>`:  a slug, `<epic>/<slug>`, or a path, as `spell dev details` takes them
  * - Beside the page (`<slug>.html`):
  *   - `<slug>.rows.json` -- the rows (`ChoicesData`, below), written by `new`;  the page fetches it, so it needs the
@@ -70,7 +71,8 @@ async function main(argv) {
       return answer ? 0 : 1
     }
     if (command === "list") {
-      for (const file of listPages(ROOT).filter(isChoicesPage)) console.log(`${status(file)}  ${relative(ROOT, file)}`)
+      const pages = listPages(ROOT).filter((file) => isChoicesPage(file) && (!target || isEpicsPage(file, target)))
+      for (const file of pages) console.log(`${status(file)}  ${relative(ROOT, file)}`)
       return 0
     }
     console.error(USAGE)
@@ -81,12 +83,17 @@ async function main(argv) {
   }
 }
 
-/** `spell dev choices` with no or a wrong command. */
-const USAGE = `usage:  spell dev choices new <slug> --rows <rows.json> [--title "..."] [--epic <name>] [--description "..."]
-        spell dev choices show <page> [--wait] [--timeout 8h]
-        spell dev choices wait <page> [--timeout 8h]
-        spell dev choices answer <page>
-        spell dev choices list`
+/** Is `file` one of epic `epic`'s own pages (under `epics/<epic>/`)? */
+function isEpicsPage(file, epic) {
+  return relative(join(ROOT, "epics", epic), file).split("/")[0] !== ".."
+}
+
+/** `epic choices` with no or a wrong command. */
+const USAGE = `usage:  epic choices new <slug> --rows <rows.json> [--title "..."] [--epic <name>] [--description "..."]
+        epic choices show <page> [--wait] [--timeout 8h]
+        epic choices wait <page> [--timeout 8h]
+        epic choices answer <page>
+        epic choices list [<epic>]`
 
 ////////////////
 // ## Pages
@@ -124,7 +131,10 @@ export function createPage(docs, slug, { title, epic, description, data } = {}) 
   fillPage(document, checked)
   mkdirSync(folder, { recursive: true })
   writeFileSync(file, serialize(document))
-  writeFileSync(rowsFile(file), `${JSON.stringify({ sections: checked.sections, rows: checked.rows }, null, 2)}\n`)
+  const { sections, rows, fileColumn, stacked } = checked
+  // the layout flags, kept only when they change the default (`syntax-choices.js` reads them)
+  const kept = { ...(fileColumn === false && { fileColumn }), ...(stacked === true && { stacked }), sections, rows }
+  writeFileSync(rowsFile(file), `${JSON.stringify(kept, null, 2)}\n`)
   return file
 }
 
@@ -153,6 +163,10 @@ export function checkData(data) {
   if (!data || typeof data !== "object") throw new Error("rows:  not a JSON object")
   const sections = data.sections
   if (!Array.isArray(sections) || !sections.length) throw new Error("rows:  no sections")
+  if (data.fileColumn !== undefined && typeof data.fileColumn !== "boolean")
+    throw new Error(`rows:  fileColumn is true or false:  ${json(data.fileColumn)}`)
+  if (data.stacked !== undefined && typeof data.stacked !== "boolean")
+    throw new Error(`rows:  stacked is true or false:  ${json(data.stacked)}`)
   for (const section of sections)
     if (!section?.id || !section.title) throw new Error(`rows:  a section needs an id and a title:  ${json(section)}`)
   const known = new Set(sections.map((section) => section.id))
@@ -285,15 +299,21 @@ async function waitAndPrint(file, flags) {
 }
 
 /**
- * What `new --rows` reads:  a whole page as data.  `new` writes `sections` and `rows` (ids filled in) beside the
- * page as `<slug>.rows.json`;  the rest goes into the page.
+ * What `new --rows` reads:  a whole page as data.  `new` writes `sections` and `rows` (ids filled in), and
+ * `fileColumn` when false and `stacked` when true, beside the page as `<slug>.rows.json`;  the rest goes into the page.
  * - `title`, `lede`, `askedBy` (`session <code>x</code>, while ...`);  HTML allowed except in `title`
+ * - `fileColumn`:  `false` drops the page's File column, for rows whose place in the code doesn't matter to the
+ *   reader (a list of commands, epic `epic-workflow` CM4);  the rows still name their `file` and `line`, which
+ *   `answer` / `wait` print for Claude.  Default:  shown
+ * - `stacked`:  `true` puts Current and Recommended in one Syntax column, today's text over the box (Owen, 2026-10-11,
+ *   the epic command's review page).  Default:  two columns
  * - `where`:  `{ epic, justNow, decides }`, the "Where we are" box, as a details page's
  * - `sections[]`:  `{ id, title, description? }`, in page order;  `description`:  one line saying which question it
  *   answers and the recommended rule;  `` `code` `` in it is shown as code
  * - `rows[]`:  `{ id?, section, file, line, purpose, current, recommended, note? }`
  *   - `file`:  repo-relative;  `line`:  1-based, current at the branch's HEAD:  the page links `file:line` into VS Code
- *   - `purpose`:  1-3 words, what it's for;  `current`:  as a reader sees it at a use site (`this.isOpen()`);
+ *   - `purpose`:  what it's for, in words a reader new to it follows:  1-3 words for a name, or a short sentence
+ *     and when it's used, for a command;  `current`:  as a reader sees it at a use site (`this.isOpen()`);
  *     `recommended`:  that use site as Claude would write it (equal to `current` for a row that stays)
  *   - `note`:  a short why, shown under the purpose;  `` `code` `` as in `description`
  * - plain JS:  no type, this comment is the spec

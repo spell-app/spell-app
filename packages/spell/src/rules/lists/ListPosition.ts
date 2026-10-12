@@ -7,8 +7,8 @@ import { lists } from "./lists.parser"
 
 /**
  * `list_position` rule:  return position of an item in a list,
- * e.g. `position of thing in my-list` => `positionOf(myList, thing)`, imported from `@spell/core`.
- * - NOTE: position returned is **1-based**.
+ * e.g. `position of thing in my-list` => `spellPosition(positionOf(myList, thing))`, imported from `@spell/core`.
+ * - NOTE: position returned is **1-based**:  `positionOf()` gives an index, from 0, which `spellPosition()` turns back.
  * - Returns `undefined` if item is not found.
  * - `Priority.mostSpecific` -- preferred over lower-priority expression rules when tokens are ambiguous.
  * TODO: `positions`, `last position`, `after...`
@@ -36,9 +36,9 @@ lists.addRule(ListPosition, {
         scope.variables?.add("bar")
       },
       tests: [
-        ["position of thing in my-list", "positionOf(myList, thing)"],
-        ["the position of thing in the foo of the bar", "positionOf(bar.foo, thing)"],
-        [`the position of "a" in ["a", "b", "c"]`, 'positionOf(["a", "b", "c"], "a")']
+        ["position of thing in my-list", "spellPosition(positionOf(myList, thing))"],
+        ["the position of thing in the foo of the bar", "spellPosition(positionOf(bar.foo, thing))"],
+        [`the position of "a" in ["a", "b", "c"]`, 'spellPosition(positionOf(["a", "b", "c"], "a"))']
       ]
     }
   ]

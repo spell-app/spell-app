@@ -97,7 +97,7 @@ Work in worktree `.claude/worktrees/<name>`, so this session's edits never colli
      - `continue` is typed into its input
      - this window closes its tab
    - The move itself is the `Stop` hook's ([handoff.mjs](.claude/hooks/handoff.mjs)).
-   - A doc shown from here on (`spell dev plan-doc open`) waits for the move,
+   - A doc shown from here on (`epic open`) waits for the move,
      then shows beside the session in the new window.
    - It fails:  say so in one line, and do "Continue" now, in this window.
 6. END THE TURN now, so the move happens at once.
@@ -155,6 +155,15 @@ The session MUST stay titled `🚧 <name>` while its work is under way.
   - Renamed:  one line, "session renamed `🚧 <name>` (was "<old>");  shows on your next message".
   - `spell dev session title` alone shows the current title, and any queued one.
 - `<name>`:  the worktree's (`.claude/worktrees/<name>`), which is the branch's and the plan doc's.
+
+## Merge, keep:  a standing epic
+
+A STANDING epic (`<epic-page standing>`, epic `epic-workflow`) merges each phase into `main` at once, and never
+leaves its worktree:  NOT "Finish" below.
+- The steps:  [the epic skill](.claude/skills/epic/SKILL.md), "5. Each phase", step 4 ("A STANDING epic").
+- In short:  `merge-main` if `main` moved, `ExitWorktree` (keep), `epic merge <name>` in the main checkout,
+  `EnterWorktree` back with `path`.
+- `/isolate done` in a standing epic's session:  say it stands, and ask first ("Stop standing, and finish?").
 
 ## Finish:  `/isolate done`
 

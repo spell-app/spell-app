@@ -10,7 +10,7 @@
  *     plus `core` itself.
  * - NOTE: most of those modules are imported here ONLY for that side effect (bare `import "./x"`, no named import):
  *   importing this barrel (or anything that transitively imports `$/core`) is what triggers the assembly.
- *   `SpellCore` (the assembled TYPE) is exported separately as a `type`-only export, so it costs nothing at runtime.
+ * - `SpellCore` (the assembled TYPE) is exported separately as a `type`-only export, so it costs nothing at runtime.
  * - NOTE: `SC` ~== `$/core`, this sub-system's self-namespace.
  * - NOTE: `classes/` (`Thing`, `List`, ...) is flattened in via `export * from "./classes"`,
  *   rather than getting its own namespace.
@@ -44,6 +44,8 @@ export { on, off, once, trigger }
 // Helpers compiled and hand-written code import by name, e.g. `positionOf(Card.Ranks, this.rank)`.
 // `itemOf`:  its old name, for TypeScript compiled before epic `output-targets` P16 -- see `deprecated.ts`.
 export { positionOf } from "./collection-core"
+// spell code counting from 1, compiled:  its positions turned into indexes as it runs, `deck.getItem(position(n))`
+export { position, spellPosition, endPosition, withSpellPositions } from "./positions"
 export { itemOf } from "./deprecated"
 // The decorators compiled TypeScript (`ts/solid`) writes, e.g. `@prop({ oneOf: RANKS }) accessor rank!: Rank`:
 // `$/util`'s shared reactive ones, spell's `@thing`, and `@drawn` (`drawing.ts`).  Compiled JavaScript has none.
@@ -51,9 +53,25 @@ export { prop, state, derived, thing } from "$/util"
 export { drawn } from "./drawing"
 // The tag a drawable type's `<css>` block compiles to:  its style sheet, as text (epic `drawable-thing` P10).
 export { elementTagFor, css, type ElementDefiner, type ElementApi } from "./elements"
+// A program's state as JSON by id, for a page that mirrors it (epic `python-target` P17):  see `state.ts`.
+export { StateWriter, StateMirror, ID_KEY } from "./state"
+// A page drawing a program that runs elsewhere, e.g. in Python (P19):  see `page.ts`.
+export {
+  startPage,
+  connectPage,
+  sendCall,
+  sendTrigger,
+  frameSummary,
+  logFrame,
+  logError,
+  ERROR_KEY,
+  type Page,
+  type PageMessage,
+  type PageSpec
+} from "./page"
 // What compiled JavaScript draws with:  Solid's own `h()`, the copy core draws with (epic `output-targets` P20).
-// `import { spellCore, Thing, h } from "@spell/core"`, then `h("span", { class: "suit" }, () => this.shortSuit)`;
-// see `drawing.ts`.
+// - e.g. `import { spellCore, Thing, h } from "@spell/core"`, then `h("span", { class: "suit" }, () => this.shortSuit)`
+// - see `drawing.ts`
 export { h } from "./drawing"
 export { SPELL_CORE_MODULE, SPELL_ELEMENTS_MODULE, SPELL_CORE_NAMES, type SpellCore, type PropCheck } from "./spellCore.types"
 export * from "./classes"

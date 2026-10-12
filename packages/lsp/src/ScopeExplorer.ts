@@ -6,21 +6,23 @@ import { LSP } from "$/lsp"
 
 /**
  * The live scope tree a project parses in, as plain `LSP.ScopeNode`s -- for scope explorers in editors.
- * - Top-down, though scopes only know their PARENT:  spell's root scope holds its built-in types,
- *   then each project imported compiled, then the project itself.
- * - A project holds its files, a file what's declared in it -- types, functions, variables -- and a type
- *   its properties, methods and constants, wherever they were declared.
- * - Worked out as FLAT `LSP.ScopeEntry`s, each with a `path` saying where it is -- then built into a tree by
- *   `LSP.buildScopeTree()`, which works out the rest, e.g. what a type inherits.  A scope pack holds the same
- *   entries, so a page with no parser builds the same tree -- see `exportPack()`.
+ * - Top-down, though scopes only know their PARENT:
+ *   spell's root scope holds its built-in types, then each project imported compiled, then the project itself.
+ * - A project holds its files, a file what's declared in it -- types, functions, variables --
+ *   and a type its properties, methods and constants, wherever they were declared.
+ * - Worked out as FLAT `LSP.ScopeEntry`s, each with a `path` saying where it is,
+ *   then built into a tree by `LSP.buildScopeTree()`, which works out the rest, e.g. what a type inherits.
+ *   - A scope pack holds the same entries, so a page with no parser builds the same tree -- see `exportPack()`.
  * - A compiled import's own scope holds just its declarations:  no sources, so no docs or locations.
- *   So its node shows that project's OWN parse instead -- the caller MUST parse those first, see `importedProjects()`
- *   -- and a type of ours inheriting from one of its types inherits from that project's own, e.g. its methods.
- * - Without its sources -- a compiled-only library -- its types show below the project importing them, with
- *   members from the declarations alone:  names, kinds and owners, and where they were declared.
+ *   - So its node shows that project's OWN parse instead:
+ *     the caller MUST parse those first, see `importedProjects()`.
+ *   - A type of ours inheriting from one of its types inherits from that project's own, e.g. its methods.
+ * - Without its sources -- a compiled-only library -- its types show below the project importing them,
+ *   with members from the declarations alone:  names, kinds and owners, and where they were declared.
  *   See `P.ImportedRuleDeclared`, `P.DeclaredAt`.
- * - The tree is just what the tree shows.  A node's details -- docstring, spell, compiled javascript,
- *   rules -- come from `details()`, when an explorer shows it.
+ * - The tree is just what the tree shows.
+ *   A node's details -- docstring, spell, compiled javascript, rules --
+ *   come from `details()`, when an explorer shows it.
  */
 export class ScopeExplorer {
   /** Describes scope records, as hover would. */
@@ -96,8 +98,8 @@ export class ScopeExplorer {
   /**
    * `entry` with its `details`, for a pack -- keys in `PACK_KEYS` order, so every entry reads, and diffs, alike:
    * where it is first, then what it says.
-   * - NOT its `spell` or `compiled`:  a page shows them from the sources and compiled output -- see
-   *   `LSP.ScopeDetails`.
+   * - NOT its `spell` or `compiled`:
+   *   a page shows them from the sources and compiled output -- see `LSP.ScopeDetails`.
    */
   private static packEntry(entry: LSP.ScopeEntry, details?: LSP.ScopeDetails | null): LSP.ScopeEntry {
     const all: Record<string, unknown> = { ...entry, ...details }
@@ -146,7 +148,7 @@ export class ScopeExplorer {
         tree.typePaths.set(type, LSP.scopePath(parentPath, "type", type.name))
       }
     }
-    this.addBuiltIns(tree)
+    this.addBuiltIns(tree, project.contents?.listsStartAt)
     const builtIns = tree.entries
     tree.entries = []
     projects.forEach((it, index) => this.addProject(it, tree, index < projects.length - 1 ? "imported" : undefined))
@@ -192,8 +194,10 @@ export class ScopeExplorer {
    *   with their docs and the built-in rules which spell them.
    * - Why the table:  the types are javascript, so there's no spell to find their docs in.
    * - A type with no entry shows bare, as its scope has it.
+   * - `startAt`:  where the project's lists start counting,
+   *   so a list's docs say "counts from 0" in a project that does -- see `SP.docsCountingFrom()`.
    */
-  private addBuiltIns(tree: Tree) {
+  private addBuiltIns(tree: Tree, startAt: 0 | 1 = 1) {
     for (const type of ScopeExplorer.builtInTypes()) {
       const table = SP.builtInTypeEntry(type.name)
       if (!table) {
@@ -206,9 +210,10 @@ export class ScopeExplorer {
       tree.entries.push({
         path,
         ...(superPath ? { super: superPath } : {}),
-        ...(table.detail ? { detail: table.detail } : {})
+        ...(table.detail ? { detail: SP.docsCountingFrom(table.detail, startAt) } : {})
       })
-      tree.details.set(path, () => ScopeExplorer.builtInDetails(table))
+      const docstring = table.docstring && SP.docsCountingFrom(table.docstring, startAt)
+      tree.details.set(path, () => ScopeExplorer.builtInDetails({ ...table, docstring }))
       for (const member of table.members) {
         const name = member.kind === "property" ? SP.builtInMemberName(member.words) : member.words
         const memberPath = LSP.scopePath(path, member.kind, name)
@@ -264,8 +269,8 @@ export class ScopeExplorer {
   }
 
   /**
-   * Entries for `file`:  the file, then the types, functions and variables it declares, in the order it declares
-   * them -- each type followed by its members, wherever they're declared.
+   * Entries for `file`:  the file, then the types, functions and variables it declares,
+   * in the order it declares them -- each type followed by its members, wherever they're declared.
    * - Its description is the `#` heading comments at its top -- see `SpellLanguageService.fileDescription()`.
    */
   private addFile(project: SP.SpellProject, file: SP.SpellFile, tree: Tree) {
@@ -304,10 +309,10 @@ export class ScopeExplorer {
 
   /**
    * Entries for `type`, then what it declares below it -- properties, methods and constants -- in document order.
-   * - What has no source, e.g. a compiled import's, after the rest:  its properties, then its methods, each
-   *   alphabetical, then its constants -- see `addConstants()`.
-   * - Its `super` is its super-type's entry -- a compiled import's type swapped for that project's own, see
-   *   `sourceType()` -- so it inherits that one's members.  See `LSP.buildScopeTree()`.
+   * - What has no source, e.g. a compiled import's, after the rest:
+   *   its properties, then its methods, each alphabetical, then its constants -- see `addConstants()`.
+   * - Its `super` is its super-type's entry -- a compiled import's type swapped for that project's own,
+   *   see `sourceType()` -- so it inherits that one's members.  See `LSP.buildScopeTree()`.
    */
   private addType(type: P.TypeScope, tree: Tree) {
     const path = tree.typePaths.get(type)!
@@ -356,8 +361,8 @@ export class ScopeExplorer {
   }
 
   /**
-   * `type`, or -- if it's from a compiled import, with just its declarations -- the same type in that project's
-   * own parse, with its sources:  docs, locations, methods.  Else `type`.
+   * `type`, or -- if it's from a compiled import, with just its declarations --
+   * the same type in that project's own parse, with its sources:  docs, locations, methods.  Else `type`.
    */
   private sourceType(type: P.TypeScope, tree: Tree): P.TypeScope {
     if (!ScopeExplorer.isImported(type)) return type
@@ -369,9 +374,10 @@ export class ScopeExplorer {
   ////////////////
 
   /**
-   * How to add entries for the constants `type` owns -- those a statement about it declared, e.g. `ace` and
-   * `clubs` by `cards have a rank as one of ace, 2, 3 ...` -- for `addType()` to sort into document order:
-   * - each enumeration, then the constants the same statement made, in the order it declared them -- one `add()`
+   * How to add entries for the constants `type` owns -- those a statement about it declared --
+   * for `addType()` to sort into document order:
+   * - each enumeration, then the constants the same statement made, in the order it declared them:
+   *   one `add()`, e.g. `ace` and `clubs` by `cards have a rank as one of ace, 2, 3 ...`
    * - then any other constants, alphabetical, e.g. `red` from `the color of a card is red if ...`
    */
   private constantsOf(type: P.TypeScope, typePath: string, tree: Tree): DeclaredEntries[] {
@@ -482,8 +488,8 @@ export class ScopeExplorer {
   }
 
   /**
-   * Where `record` -- imported from compiled declarations, so with no `declaredBy` -- was declared, as its
-   * `declaredAt` says.  See `P.DeclaredAt`.
+   * Where `record` was declared, as its `declaredAt` says -- see `P.DeclaredAt`.
+   * - `record` is imported from compiled declarations, so has no `declaredBy`.
    * - Only if that file's text is loaded, to turn offsets into lines:  a compiled-only library's usually isn't.
    */
   private importedLocation(record: LSP.ScopeRecord["record"]): { uri: string; line: LSP.ScopeLine } | undefined {
@@ -496,8 +502,9 @@ export class ScopeExplorer {
   }
 
   /**
-   * Remember how to work out the details of `path`, with `work()` -- cached per parse of the file `fileMatch`
-   * roots, if any.  Built-ins have no file, and aren't worth caching.
+   * Remember how to work out the details of `path`, with `work()`:
+   * cached per parse of the file `fileMatch` roots, if any.
+   * - Built-ins have no file, and aren't worth caching.
    * - The FILE, not the statement:  a docstring edit re-parses its comment line, but not the statement it documents.
    */
   private addDetails(tree: Tree, path: string, fileMatch: P.Match | undefined, work: () => LSP.ScopeDetails) {
@@ -512,8 +519,9 @@ export class ScopeExplorer {
   }
 
   /**
-   * Spell source of statement `declaredBy` -- whole lines, and its body if any -- the line(s) it's on, what it
-   * compiles to, and the rules it made.  Nothing if it isn't in a spell file.
+   * Spell source of statement `declaredBy` -- whole lines, and its body if any --
+   * the line(s) it's on, what it compiles to, and the rules it made.
+   * - Nothing if it isn't in a spell file.
    */
   private sourceOf(
     declaredBy: P.Match | undefined,
@@ -578,8 +586,8 @@ export class ScopeExplorer {
   }
 
   /**
-   * What `rule`'s declaring statement declares -- from the statement if we have it, else, for a rule imported
-   * from compiled declarations, from what those say.  See `P.ImportedRuleDeclared`.
+   * What `rule`'s declaring statement declares:  from the statement if we have it,
+   * else, for a rule imported from compiled declarations, from what those say.  See `P.ImportedRuleDeclared`.
    */
   private static declarationOf(rule: P.ScopeRule): Omit<P.Declaration, "nameMatch"> | undefined {
     return rule.declaredBy ? rule.declaredBy.rule.getDeclaration(rule.declaredBy) : rule.declared?.declaration

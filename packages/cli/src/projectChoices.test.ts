@@ -25,6 +25,7 @@ describe("projectChoices()", () => {
   test("a root:  its projects, to go into", async () => {
     expect(await values("@test/")).toEqual([
       "@test/Cards/",
+      "@test/CardsFromZero/",
       "@test/CardTable/",
       "@test/DrawableSolitaire/",
       "@test/FizzBuzz/",

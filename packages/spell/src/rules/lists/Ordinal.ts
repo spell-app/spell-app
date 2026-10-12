@@ -28,9 +28,10 @@ export class Ordinal extends P.Pattern {
     bottom: -1
   }
 
-  getAST(match: P.MatchFor<this>): P.ASTNumericLiteral {
+  /** An ordinal literal, not a plain number:  "the first card" is the first, whatever the project counts from. */
+  getAST(match: P.MatchFor<this>): P.ASTOrdinalLiteral {
     const { value, raw } = match
-    return new P.ASTNumericLiteral(match, { value, raw })
+    return new P.ASTOrdinalLiteral(match, { value, raw })
   }
 }
 lists.addRule(Ordinal, {

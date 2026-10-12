@@ -194,6 +194,18 @@ describe("spellCore.isTruthy()", () => {
   })
 })
 
+describe("spellCore.absoluteValue()", () => {
+  test("drops a number's sign", () => {
+    expect(spellCore.absoluteValue(-3)).toBe(3)
+    expect(spellCore.absoluteValue(2.5)).toBe(2.5)
+    expect(spellCore.absoluteValue(0)).toBe(0)
+  })
+  test("asserts and returns undefined if not a number", () => {
+    expect(spellCore.absoluteValue("three" as unknown as number)).toBe(undefined)
+    expect(assert.failed).toHaveBeenCalled()
+  })
+})
+
 describe("spellCore.randomNumber()", () => {
   test("asserts and returns undefined if min is not a number", () => {
     expect(spellCore.randomNumber()).toBe(undefined)

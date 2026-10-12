@@ -30,8 +30,9 @@ const FLUKE_RATIO = 1.25
  * `spell speed [module]`:  time the parser's rule tests, `SP.spellParser.speedTest()` -- warm-up, then 20 runs --
  * in `--runs` fresh processes (default 3), and print the combined times as a table.
  * - `module`:  only that module's rules, e.g. `if`.
- * - `--against <ref>`, e.g. `HEAD`:  time that commit too, as "Previous", in a temp git worktree -- see
- *   `checkoutOf()`.  The two sides take turns, run by run, so a busy moment hits both alike.
+ * - `--against <ref>`, e.g. `HEAD`:  time that commit too, as "Previous", in a temp git worktree
+ *   -- see `checkoutOf()`.
+ *   The two sides take turns, run by run, so a busy moment hits both alike.
  * - Combining a side's runs -- see `combined()`:  the mean of their averages, the lowest min, the highest max;
  *   with 3 or more runs, one fluke (an average 25% over the median) is dropped.
  * - `--json`:  each side's combined results instead.
@@ -140,8 +141,8 @@ function timeOnce(side: Side, module: string): Promise<RunResult> {
 
 /**
  * `runs` combined:  the mean of their averages, the lowest min, the highest max.
- * - With 3 or more runs, ONE fluke is dropped first:  the slowest, if its average is over `FLUKE_RATIO` times the
- *   median.
+ * - With 3 or more runs, ONE fluke is dropped first:
+ *   the slowest, if its average is over `FLUKE_RATIO` times the median.
  */
 export function combined(runs: RunResult[]): Omit<SideTotal, "label"> {
   let kept = runs
@@ -241,7 +242,11 @@ function linkModules(from: string, to: string, eachPackage = false): void {
  */
 function removeCheckout(folder: string): void {
   const packages = resolve(folder, "packages")
-  const links = [folder, ...(existsSync(packages) ? readdirSync(packages).map((it) => resolve(packages, it)) : [])]
+  // folders only:  `packages/` holds files too, e.g. `goals.zip`
+  const dirs = existsSync(packages)
+    ? readdirSync(packages, { withFileTypes: true }).filter((it) => it.isDirectory())
+    : []
+  const links = [folder, ...dirs.map((it) => resolve(packages, it.name))]
   for (const dir of links) {
     const modules = resolve(dir, "node_modules")
     if (lstatSync(modules, { throwIfNoEntry: false })?.isSymbolicLink()) unlinkSync(modules)

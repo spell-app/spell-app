@@ -3,7 +3,7 @@
  * (VS Code's secondary side bar), beside the editor AND the Claude tab, instead of taking an editor column.
  * Two of them, each in its own view container, so the side bar shows them as two tabs, each keeping its own page:
  * - "Spell Docs" (`spell.docView`, the spell hat):  where `DocPreview` shows pages by default
- *   (`spell.docPreview.location`:  `sidebar`):  `/spell-docs`, `spell dev plan-doc open`, `/goals-open-vs`
+ *   (`spell.docPreview.location`:  `sidebar`):  `/spell-docs`, `epic open`, `/goals-open-vs`
  * - "Review" (`spell.reviewView`, a circle-check):
  *   the page being reviewed (`/epic review`, `spell dev docs open <page> --review`)
  * - Each is a webview holding ONE iframe of the page's loopback URL, as Simple Browser does.
@@ -250,10 +250,17 @@ export class DocView implements vscode.WebviewViewProvider {
     return DocView.all.get(name as DocViewName) ?? DocView.all.get("docs")!
   }
 
-  /** Show the docs index, in the "Spell Docs" view, or in `view`. */
+  /**
+   * Show the docs home, in the "Spell Docs" view, or in `view`:  the Home button on both views' title bars, right of
+   * Reload (epic `epic-workflow` r2).
+   * - a FRESH view (`rebuild()`), not a navigation:  a page that stopped responding ignores the view's messages, so
+   *   Home is the way back from it (Owen, 2026-10-12:  "spell doc's page is wedged")
+   */
   static async goHome(view: DocViewName = "docs"): Promise<void> {
     const url = await DocView.home?.()
-    if (url) await DocView.of(view).show(url)
+    if (!url) return
+    const docView = DocView.of(view)
+    if (!docView.rebuild(stamped(url))) await docView.show(url)
   }
 
   /** The page in view:  as last reported, else as last shown. */
@@ -312,16 +319,16 @@ export class DocView implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Rebuild the view from scratch:  new html, so a new iframe, at the page in view (fresh `?t=` stamp);
+   * Rebuild the view from scratch:  new html, so a new iframe, at the page in view (fresh `?t=` stamp), or at `to`;
    * resolves to that URL, `undefined` when the view hasn't been shown yet (nothing to rebuild).
    * - for a view gone wrong in a way a reload doesn't fix (clicks no longer reaching the page, PAPERCUTS `vscode`,
    *   2026-10-06):  `spell dev window reload-view`.  The reload button only navigates the SAME iframe.
    * - NOT a fix for pages stuck on their placeholders (6 docs pages holding every connection to a host):
    *   live reload moved to websockets for that (`packages/server/src/webSocket.ts`)
    */
-  rebuild(): string | undefined {
+  rebuild(to?: string): string | undefined {
     if (!this.view) return undefined
-    const url = this.here && stamped(this.here)
+    const url = to ?? (this.here && stamped(this.here))
     this.url = url
     this.current = undefined
     this.view.webview.html = this.html(url)

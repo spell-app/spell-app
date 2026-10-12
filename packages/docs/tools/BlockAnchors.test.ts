@@ -107,6 +107,30 @@ describe("blocksIn() on a plan doc", () => {
     ])
     expect(excerptOf(main.querySelector("#q3"))).toBe("Which file?")
   })
+
+  test("updates (`<epic-update at>`):  their own blocks, in a phase, an item or an Overview part;  never a bare label", () => {
+    const main = mainOf(`<main><epic-page>
+      <epic-overview id="overview"><epic-section id="o1" title="What works"><p>One.</p>
+        <epic-update at="2026-10-11 09:00" summary="One changed"><p>Why <ul><li>x</li></ul></p></epic-update>
+        </epic-section></epic-overview>
+      <epic-section id="questions"><epic-item id="q3"><span slot="title">Which? <epic-update phase="1"></epic-update></span>
+        <p>Body</p><epic-update at="2026-10-11 09:05" summary="Body changed"><p>Because.</p></epic-update></epic-item>
+      </epic-section>
+      <epic-section id="phases"><epic-phase id="p3" title="Notes"><epic-field name="goal">Win.</epic-field>
+        <epic-update at="2026-10-11 10:00" summary="Split"><p>Split it.</p></epic-update></epic-phase></epic-section>
+    </epic-page></main>`)
+    expect(blocksIn(main).map((block: Element) => `${kindOf(block)} ${anchorOf(block, main)}`)).toEqual([
+      "prose o1#prose-1",
+      "update o1#update-1",
+      "item q3",
+      "update q3#update-1",
+      "field p3#field-1",
+      "update p3#update-1"
+    ])
+    const split = main.querySelector("#p3 > epic-update")!
+    expect(excerptOf(split)).toBe("Split it.")
+    expect(findBlock(main, { anchor: "p3#update-1", excerpt: "Split it." })).toEqual({ block: split, exact: true })
+  })
 })
 
 describe("offsetIn() and quoteIn()", () => {

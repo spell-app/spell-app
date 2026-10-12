@@ -184,6 +184,42 @@ describe("PlanDoc phases", () => {
     expect(bare.overview.hasAttribute("estimate")).toBe(false)
   })
 
+  test("standing:  <epic-page standing> on and off, in the summary, logged", () => {
+    const plan = freshPlan()
+    expect([plan.standing, plan.summary().standing]).toEqual([false, false])
+    plan.setStanding(true)
+    expect([plan.standing, plan.summary().standing, plan.page.hasAttribute("standing")]).toEqual([true, true, true])
+    plan.setStanding(false)
+    expect(plan.page.hasAttribute("standing")).toBe(false)
+    expect(problems(plan)).toEqual([])
+  })
+
+  test("a request files into its phase's Requests field, after Changes;  filing it again replaces its block", () => {
+    const plan = freshPlan()
+    plan.addPhase("One", { symptom: "broken", changes: "fixed", goal: "<ul><li>works</li></ul>" })
+    plan.addPhaseUpdate(1, "<p>widened</p>")
+    const words =
+      '<blockquote><p>the box covers the text</p></blockquote><img src="requests/r3/image-1.png" alt="r3, 1">'
+    plan.addPhaseRequest(1, "r3", "🚧 python", words)
+    plan.addPhaseRequest(1, "r4", "🚧 seo", "<blockquote><p>and the notch</p></blockquote>")
+    plan.addPhaseRequest(1, "r3", "🚧 python", "<blockquote><p>the box, again</p></blockquote>")
+    expect(kids(el(plan, "p1"))).toEqual([
+      "field:symptom",
+      "field:changes",
+      "field:requests",
+      "field:goal",
+      "epic-update",
+      "field:files",
+      "field:verify"
+    ])
+    const blocks = Array.from(el(plan, "p1").querySelectorAll('epic-field[name="requests"] > epic-field'))
+    expect(blocks.map((block) => [block.getAttribute("label"), block.textContent])).toEqual([
+      ["r4 · 🚧 seo", "and the notch"],
+      ["r3 · 🚧 python", "the box, again"]
+    ])
+    expect(problems(plan)).toEqual([])
+  })
+
   test("--before inserts a phase, moving the later to-do phases and what points at them down one", () => {
     const plan = freshPlan()
     for (const name of ["One", "Two", "Three", "Four"]) plan.addPhase(name)
@@ -192,7 +228,7 @@ describe("PlanDoc phases", () => {
     plan.addPhaseUpdate(4, "<p>four changed</p>")
     const item = plan.addItem("todo", "after four", { details: '<p>see <a href="#p4">P4 · Four</a></p>' })
     Markup.set<"epic-item">(el(plan, item), { phase: 4 })
-    plan.updatePlanChanges()
+    plan.updateChangeCounts()
     expect(plan.addPhase("Inserted", { before: 3, estimate: "1h" })).toBe(3)
     expect(plan.phases.map((phase) => `${phase.n} ${phase.name} ${phase.status}`)).toEqual([
       "1 One done",
@@ -203,12 +239,11 @@ describe("PlanDoc phases", () => {
     ])
     expect(plan.phaseElements.map((phase) => phase.id)).toEqual(["p1", "p2", "p3", "p4", "p5"])
     expect(Markup.read(el(plan, "p3"))).toEqual({ id: "p3", title: "Inserted", status: "todo", estimate: "1h" })
-    // the line keeps the phase ACTIVE when it was written (P2, not moved);  its Plan changes copy names its new phase
-    const line = el(plan, "p5").querySelector(":scope > epic-updated")!
+    // the update keeps the phase ACTIVE when it was written (P2, not moved), and moves with its phase, counted there
+    const line = el(plan, "p5").querySelector(":scope > epic-update")!
     expect([line.textContent, line.getAttribute("phase")]).toEqual(["four changed", "2"])
-    expect(
-      Array.from(plan.document.querySelectorAll('epic-updated[slot="changes"]'), (copy) => copy.getAttribute("of"))
-    ).toEqual(["5"])
+    plan.updateStates()
+    expect(plan.phaseElements.map((phase) => phase.getAttribute("changes"))).toEqual([null, null, null, null, "1"])
     const link = el(plan, item).querySelector('a[href^="#p"]')!
     expect([link.getAttribute("href"), link.textContent]).toEqual(["#p5", "P5 · Four"])
     expect(el(plan, item).getAttribute("phase")).toBe("5")
@@ -238,32 +273,36 @@ describe("PlanDoc phases", () => {
       expect(PlanTime.parseDuration(bad)).toBeUndefined()
   })
 
-  test("updated:  dated <epic-updated> lines under Symptom / Changes, in order, kept when done", () => {
+  test("updated:  <epic-update at summary> blocks at the end of the phase's description (after Goal), kept when done", () => {
     const plan = freshPlan()
     plan.addPhase("One", { symptom: "s", changes: "c" })
-    plan.addPhase("Two", { symptom: "s", changes: "c" })
+    plan.addPhase("Two", { symptom: "s", changes: "c", goal: "<ul><li>g</li></ul>" })
     plan.setPhase(1, "active")
-    plan.addPhaseUpdate(2, "<p>Make Todo dropped (Owen)</p>")
-    plan.addPhaseUpdate(2, "split in two")
+    plan.addPhaseUpdate(2, "<p>Make Todo dropped (Owen). The rest stays.</p>")
+    plan.addPhaseUpdate(2, "split in two", { summary: "Split  P2 " })
+    plan.setDone(2, "<ul><li>built</li></ul>")
     expect(kids(el(plan, "p2"))).toEqual([
       "field:symptom",
       "field:changes",
-      "epic-updated",
-      "epic-updated",
+      "field:goal",
+      "epic-update",
+      "epic-update",
+      "field:done",
       "field:files",
       "field:verify"
     ])
-    const lines = Array.from(el(plan, "p2").querySelectorAll("epic-updated"), (line) => Markup.read(line))
-    expect(lines).toEqual([
-      { at: "2026-10-01 09:05", phase: 1 },
-      { at: "2026-10-01 09:05", phase: 1 }
+    const updates = Array.from(el(plan, "p2").querySelectorAll(":scope > epic-update"), (line) => Markup.read(line))
+    expect(updates).toEqual([
+      { at: "2026-10-01 09:05", phase: 1, summary: "Make Todo dropped (Owen)" },
+      { at: "2026-10-01 09:05", phase: 1, summary: "Split P2" }
     ])
     plan.setPhase(2, "done")
-    expect(el(plan, "p2").querySelectorAll("epic-updated").length).toBe(2)
+    expect(el(plan, "p2").querySelectorAll(":scope > epic-update")).toHaveLength(2)
+    expect(plan.document.querySelector("epic-event:last-of-type")).not.toBeNull()
     expect(problems(plan)).toEqual([])
   })
 
-  test("Plan changes (T14):  the whole-doc pass copies every line of a phase still to do into the Phases section", () => {
+  test("plan changes:  counted in each phase's `changes`;  a phase done keeps them and its count", () => {
     const plan = freshPlan()
     plan.addPhase("One", { symptom: "s", changes: "c" })
     plan.addPhase("Two", { symptom: "s", changes: "c" })
@@ -271,28 +310,103 @@ describe("PlanDoc phases", () => {
     plan.setPhase(1, "active")
     plan.addPhaseUpdate(1, '<p>Kept <a id="anchor" href="#q1">small</a></p>')
     plan.addPhaseUpdate(3, "split in two")
+    plan.addPhaseUpdate(3, "and again")
     plan.updateStates()
-    const section = plan.findSection("phases")!
-    const copies = () => Array.from(section.querySelectorAll(':scope > epic-updated[slot="changes"]'))
-    expect(copies().map((copy) => [Markup.read(copy), copy.textContent])).toEqual([
-      [{ at: "2026-10-01 09:05", phase: 1, of: 1 }, "Kept small"],
-      [{ at: "2026-10-01 09:05", phase: 1, of: 3 }, "split in two"]
-    ])
-    // first in the section;  an id inside isn't copied:  links land on the line in its phase
-    expect(section.firstElementChild).toBe(copies()[0])
+    const counts = () => plan.phaseElements.map((phase) => phase.getAttribute("changes"))
+    expect(counts()).toEqual(["1", null, "2"])
     expect(plan.document.querySelectorAll("#anchor")).toHaveLength(1)
     expect(problems(plan)).toEqual([])
-    // the same again:  nothing to change
-    expect(plan.updatePlanChanges()).toBe(false)
-    // a phase done:  its changes are just the plan now;  none left:  no copies
+    // the same again:  nothing to change;  a phase done keeps its updates and its count (the element hides its mark)
+    expect(plan.updateChangeCounts()).toBe(false)
     plan.setPhase(1, "done")
     plan.updateStates()
-    expect(copies().map((copy) => Markup.read(copy).of)).toEqual([3])
-    plan.setPhase(3, "done")
-    plan.updateStates()
-    expect(copies()).toEqual([])
-    const reread = PlanDoc.parse(plan.toString(), NOW)
-    expect(reread.updatePlanChanges()).toBe(false)
+    expect(counts()).toEqual(["1", null, "2"])
+    expect(PlanDoc.parse(plan.toString(), NOW).updateChangeCounts()).toBe(false)
+  })
+
+  test("migrate:  an older doc's plan changes (lines, slotted or not;  copies above the phases) as <epic-update>s", () => {
+    const plan = freshPlan()
+    plan.addPhase("One", { symptom: "s", changes: "c" })
+    plan.addPhase("Two", { symptom: "s", changes: "c" })
+    // as the tool wrote it until 2026-10-11:  copies in the section (T14), a line in no slot, a line in the slot (P6)
+    const section = plan.findSection("phases")!
+    section.insertAdjacentHTML(
+      "afterbegin",
+      '<epic-updated slot="changes" at="2026-10-01 09:00" phase="1" of="2"><p>split in two</p></epic-updated>'
+    )
+    el(plan, "p2")
+      .querySelector(':scope > epic-field[name="changes"]')!
+      .insertAdjacentHTML(
+        "afterend",
+        '<epic-updated at="2026-10-01 09:00" phase="1"><p>Split in two. Then more.</p></epic-updated>' +
+          '<epic-updated slot="changes" at="2026-10-02 10:00"><p>joined again</p></epic-updated>'
+      )
+    Markup.set<"epic-phase">(el(plan, "p2"), { changes: 2 })
+    // read without errors as it is
+    expect(problems(plan)).toEqual([])
+    expect(plan.check()).toEqual([])
+
+    expect(plan.migrate()).toEqual(["updates-as-epic-update"])
+    expect(section.querySelectorAll("epic-updated")).toHaveLength(0)
+    expect(kids(el(plan, "p2"))).toEqual([
+      "field:symptom",
+      "field:changes",
+      "epic-update",
+      "epic-update",
+      "field:files",
+      "field:verify"
+    ])
+    const updates = Array.from(el(plan, "p2").querySelectorAll(":scope > epic-update"), (update) => [
+      Markup.read(update),
+      update.textContent
+    ])
+    expect(updates).toEqual([
+      [{ at: "2026-10-01 09:00", phase: 1, summary: "Split in two" }, "Split in two. Then more."],
+      [{ at: "2026-10-02 10:00", summary: "joined again" }, "joined again"]
+    ])
+    expect(plan.document.querySelector("epic-event:last-of-type")!.textContent).toBe(
+      "migrated:  updates-as-epic-update"
+    )
+    expect(problems(plan)).toEqual([])
+    // idempotent:  nothing left to migrate, and the count stands
+    expect(plan.migrate()).toEqual([])
+    expect(plan.updateChangeCounts()).toBe(false)
+  })
+
+  test("migrate:  an older UPDATE note moves AFTER the prose it stood before, dated and summed up;  a bare label stays", () => {
+    const plan = freshPlan()
+    plan.addPhase("One")
+    plan.setPhase(1, "active")
+    const id = plan.addItem("judgement", "a call", { details: "<p>First.</p><p>Second.</p>" })
+    const item = el(plan, id)
+    Markup.set<"epic-item">(item, { changed: "2026-10-04T12:46:05-04:00" })
+    const second = item.querySelectorAll(":scope > p")[1]!
+    second.insertAdjacentHTML("beforebegin", '<epic-update phase="1"><p>Rewritten after P1. Why.</p></epic-update>')
+    const label = item.querySelector('[slot="title"] > epic-update')!
+    expect(plan.migrate()).toEqual(["updates-as-epic-update"])
+    expect(kids(item).slice(-3)).toEqual(["p", "p", "epic-update"])
+    const note = item.querySelector(":scope > epic-update")!
+    expect(Markup.read(note)).toEqual({ at: "2026-10-04T12:46:05-04:00", summary: "Rewritten after P1", phase: 1 })
+    expect(note.previousElementSibling).toBe(second)
+    expect(label.isConnected && !label.hasAttribute("at")).toBe(true)
+    expect(problems(plan)).toEqual([])
+    expect(plan.migrate()).toEqual([])
+  })
+
+  test("phase N done:  drops its bare labels and its prose updates;  a phase's own plan changes stay", () => {
+    const plan = freshPlan()
+    plan.addPhase("One", { symptom: "s", changes: "c" })
+    plan.setPhase(1, "active")
+    plan.addPhaseUpdate(1, "<p>widened</p>")
+    const id = plan.addItem("todo", "found")
+    el(plan, id).insertAdjacentHTML(
+      "beforeend",
+      '<p>Text.</p><epic-update at="2026-10-01 09:05" summary="Text" phase="1"><p>changed</p></epic-update>'
+    )
+    expect(plan.updateMarkers(1)).toHaveLength(2)
+    plan.setPhase(1, "done")
+    expect(plan.document.querySelectorAll("epic-update")).toHaveLength(1)
+    expect(el(plan, "p1").querySelector(":scope > epic-update")).not.toBeNull()
   })
 
   test("UPDATE markers:  in an item's title while a phase is active;  done removes that phase's, the title back", () => {
@@ -317,6 +431,98 @@ describe("PlanDoc phases", () => {
       null
     ])
     expect(problems(plan)).toEqual([])
+  })
+})
+
+describe("PlanDoc rename (epic-workflow)", () => {
+  /** The words of every link to `#id` in `plan`, in page order. */
+  function linkWords(plan: PlanDoc, id: string) {
+    return Array.from(plan.document.querySelectorAll(`a[href="#${id}"]`), (link) => link.textContent)
+  }
+
+  /** The last log line of `plan`. */
+  function lastLog(plan: PlanDoc) {
+    return Array.from(plan.document.querySelectorAll("#log > epic-event")).at(-1)!.textContent
+  }
+
+  test("a phase:  its title, the links saying it, a queued todo's work;  other words and history stay;  logged", () => {
+    const plan = freshPlan()
+    for (const name of ["One", "Two"]) plan.addPhase(name)
+    const links = (words: string) => `<p><a href="#p2">${words}</a>, <a href="#p2">Two</a>, <a href="#p2">P2</a></p>`
+    const todo = plan.addItem("todo", "see two", { details: links("P2 · Two") })
+    // the first text goes into the Original Discussion:  its link is history
+    plan.setDetails(todo, `${links("p2 · Two")}<p><a href="#p2">the <b>next</b> phase</a></p>`)
+    plan.queue(todo, "P2 · Two")
+
+    expect(plan.renameEntry("P2", "  Second  Phase ")).toEqual({
+      id: "p2",
+      was: "Two",
+      title: "Second Phase",
+      links: 2
+    })
+    expect(plan.phases.map((phase) => phase.name)).toEqual(["One", "Second Phase"])
+    expect(el(plan, "p2").getAttribute("title")).toBe("Second Phase")
+    // the text first, then its Original Discussion's history, as it was
+    expect(linkWords(plan, "p2")).toEqual([
+      "p2 · Second Phase",
+      "Second Phase",
+      "P2",
+      "the next phase",
+      "P2 · Two",
+      "Two",
+      "P2"
+    ])
+    expect(el(plan, todo).getAttribute("work")).toBe("P2 · Second Phase")
+    expect(lastLog(plan)).toBe('P2 renamed:  "Two" -> "Second Phase" (2 links)')
+    // a phase's number alone finds it too
+    expect(plan.renameEntry("2", "Two").links).toBe(2)
+    expect(problems(plan)).toEqual([])
+    expect(plan.check()).toEqual([])
+  })
+
+  test("an item:  its title slot's words, its UPDATE marker kept;  links saying `J1 · title` or the title;  HTML", () => {
+    const plan = freshPlan()
+    plan.addPhase("One")
+    const call = plan.addItem("judgement", "Old call")
+    plan.setPhase(1, "active")
+    const details =
+      `<p><a href="#${call}">J1 · Old call</a>, <a href="#${call}">Old call</a>, <a href="#${call}">J1</a>, ` +
+      `<a href="#${call}">see <code>Old call</code></a></p>`
+    plan.addItem("todo", "links", { details })
+
+    const renamed = plan.renameEntry("J1", "New call")
+    expect(renamed).toEqual({ id: call, was: "Old call", title: "New call", links: 2 })
+    const item = el(plan, call)
+    // a change while P1 is under way:  stamped and flagged, the marker riding in its title slot
+    expect(PlanItem.titleOf(item)).toBe("New call")
+    expect(item.querySelector(':scope > [slot="title"] > epic-update')?.getAttribute("phase")).toBe("1")
+    expect(item.getAttribute("changed")).toBeTruthy()
+    expect(linkWords(plan, call)).toEqual(["J1 · New call", "New call", "J1", "see Old call"])
+
+    plan.renameEntry(call, "The <code>x</code> call", { html: true })
+    expect(PlanItem.titleOf(item)).toBe("The x call")
+    expect(item.querySelector(':scope > [slot="title"] > code')?.textContent).toBe("x")
+    expect(item.querySelectorAll(':scope > [slot="title"] > epic-update')).toHaveLength(1)
+    expect(linkWords(plan, call)).toEqual(["J1 · The x call", "The x call", "J1", "see Old call"])
+
+    // plain again, the phase done (its marker gone):  back to a `title`
+    plan.renameEntry(call, "Plain call")
+    plan.setPhase(1, "done")
+    expect([item.getAttribute("title"), item.querySelector(':scope > [slot="title"]')]).toEqual(["Plain call", null])
+    expect(problems(plan)).toEqual([])
+    expect(plan.check()).toEqual([])
+  })
+
+  test("refuses no such phase or item, an empty title, or the title it has, changing nothing", () => {
+    const plan = freshPlan()
+    plan.addPhase("One")
+    plan.addItem("todo", "A todo")
+    const before = plan.toString()
+    expect(() => plan.renameEntry("P9", "X")).toThrow(/no phase 9/)
+    expect(() => plan.renameEntry("t7", "X")).toThrow(/no item "t7"/)
+    expect(() => plan.renameEntry("t1", "  ")).toThrow(/the new title is empty/)
+    expect(() => plan.renameEntry("p1", "One")).toThrow(/P1 is titled "One" already/)
+    expect(plan.toString()).toBe(before)
   })
 })
 
@@ -498,7 +704,7 @@ describe("PlanDoc questions and decisions", () => {
     plan.addPhase("One", { goal: "<p><b>Net effect:</b></p><ul><li>g</li></ul>" })
     plan.addPhaseUpdate(1, '<ui-message class="plan-update" header="DONE · J1"><p>moved</p></ui-message>')
     expect(kids(el(plan, "p1").querySelector('epic-field[name="goal"]')!)).toEqual(["epic-net-effect"])
-    expect(kids(el(plan, "p1").querySelector("epic-updated")!)).toEqual(["epic-note"])
+    expect(kids(el(plan, "p1").querySelector("epic-update")!)).toEqual(["epic-note"])
     expect(problems(plan)).toEqual([])
   })
 
@@ -1131,7 +1337,7 @@ describe("PlanDoc review inbox", () => {
     })
     plan.keepNote("p1", { note: "too big?", action: "revisit", when: "soon", at: "2026-10-01T09:10:00" })
     plan.keepNote("p1", { note: "too big?", action: "revisit", when: "soon", at: "2026-10-01T09:10:00" })
-    expect(kids(phase).slice(0, 4)).toEqual(["field:symptom", "field:changes", "epic-updated", "epic-reply"])
+    expect(kids(phase).slice(0, 4)).toEqual(["field:symptom", "field:changes", "epic-reply", "epic-update"])
     const reply = phase.querySelector(":scope > epic-reply")!
     expect([reply.getAttribute("from"), reply.getAttribute("re"), reply.textContent]).toEqual([
       "Owen",

@@ -95,7 +95,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "classVariable": "Ranks",
       "defined": "/Card.spell:126-206",
       "enumeration": [
-        "'ace'",
+        "ace",
         2,
         3,
         4,
@@ -105,9 +105,9 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
         8,
         9,
         10,
-        "'jack'",
-        "'queen'",
-        "'king'",
+        "jack",
+        "queen",
+        "king",
       ],
       "of": "Card",
       "property": "rank",
@@ -116,10 +116,10 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "classVariable": "Suits",
       "defined": "/Card.spell:222-283",
       "enumeration": [
-        "'clubs'",
-        "'diamonds'",
-        "'hearts'",
-        "'spades'",
+        "clubs",
+        "diamonds",
+        "hearts",
+        "spades",
       ],
       "of": "Card",
       "property": "suit",
@@ -143,8 +143,8 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "classVariable": "Directions",
       "defined": "/Card.spell:534-577",
       "enumeration": [
-        "'up'",
-        "'down'",
+        "up",
+        "down",
       ],
       "of": "Card",
       "property": "direction",
@@ -189,10 +189,10 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "syntax": "{operator:is} (a|an) (expression:club|diamond|heart|spade)",
       "values": {
         "suit": [
-          "'clubs'",
-          "'diamonds'",
-          "'hearts'",
-          "'spades'",
+          "clubs",
+          "diamonds",
+          "hearts",
+          "spades",
         ],
       },
     },
@@ -206,7 +206,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "syntax": "{operator:is} (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)",
       "values": {
         "rank": [
-          "'ace'",
+          "ace",
           2,
           3,
           4,
@@ -216,9 +216,9 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
           8,
           9,
           10,
-          "'jack'",
-          "'queen'",
-          "'king'",
+          "jack",
+          "queen",
+          "king",
         ],
       },
     },
@@ -232,7 +232,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "syntax": "{operator:is} the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)",
       "values": {
         "rank": [
-          "'ace'",
+          "ace",
           2,
           3,
           4,
@@ -242,15 +242,15 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
           8,
           9,
           10,
-          "'jack'",
-          "'queen'",
-          "'king'",
+          "jack",
+          "queen",
+          "king",
         ],
         "suits": [
-          "'clubs'",
-          "'diamonds'",
-          "'hearts'",
-          "'spades'",
+          "clubs",
+          "diamonds",
+          "hearts",
+          "spades",
         ],
       },
     },
@@ -306,6 +306,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "output": "turn_face_up",
       "rule": "method_call",
       "syntax": "turn {thisArg:expression} face up",
+      "waits": true,
     },
     {
       "alias": [
@@ -319,6 +320,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "output": "turn_face_down",
       "rule": "method_call",
       "syntax": "turn {thisArg:expression} face down",
+      "waits": true,
     },
     {
       "alias": [
@@ -332,6 +334,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "output": "turn_over",
       "rule": "method_call",
       "syntax": "turn {thisArg:expression} over",
+      "waits": true,
     },
     {
       "alias": [
@@ -364,6 +367,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       ],
       "rule": "method_call",
       "syntax": "move {thisArg:expression} to {callArgs:expression}",
+      "waits": true,
     },
     {
       "alias": [
@@ -377,6 +381,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "output": "play",
       "rule": "method_call",
       "syntax": "play {thisArg:expression}",
+      "waits": true,
     },
     {
       "autoDeclared": true,
@@ -703,6 +708,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "output": "play_from_the_stock_pile",
       "rule": "method_call",
       "syntax": "play from the stock pile",
+      "waits": true,
     },
     {
       "alias": [
@@ -714,6 +720,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "output": "deal_the_cards",
       "rule": "method_call",
       "syntax": "deal the cards",
+      "waits": true,
     },
     {
       "alias": [
@@ -725,6 +732,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "output": "auto_play",
       "rule": "method_call",
       "syntax": "auto-play",
+      "waits": true,
     },
     {
       "alias": [
@@ -748,6 +756,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "returns": "nothing",
       "rule": "method_call",
       "syntax": "cheat",
+      "waits": true,
     },
   ],
   "version": "1.0.0",

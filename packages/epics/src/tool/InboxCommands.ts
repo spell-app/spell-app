@@ -268,14 +268,12 @@ export class InboxCommands {
     if (canceled.length) {
       lines.push(
         `canceled (${canceled.length}):  Owen said "nevermind":  stop each one's background agent (TaskStop), then ` +
-          `\`yarn plan-doc inbox ${name} done <id>\``
+          `\`epic inbox ${name}#<id> done\``
       )
       for (const each of canceled) lines.push(`  - ${line(each)}  (${each.action})`)
     }
     if (now.length) {
-      lines.push(
-        `now (${now.length}):  start a background agent for each;  \`yarn plan-doc inbox ${name} done <id>\` after`
-      )
+      lines.push(`now (${now.length}):  start a background agent for each;  \`epic inbox ${name}#<id> done\` after`)
       for (const each of now) {
         lines.push(`  - ${line(each)}`)
         if (each.action === "details") lines.push("      Add Details")
@@ -311,17 +309,17 @@ export class InboxCommands {
       const talk = sent.marks.filter((mark) => mark.action === "revisit")
       if (sent.marks.length || sent.urgency.length)
         lines.push(
-          `next:  \`yarn plan-doc inbox ${name} apply\` (approve, pick, todo, a todo's next phase or drop, skip, new, ` +
+          `next:  \`epic inbox ${name} apply\` (approve, pick, todo, a todo's next phase or drop, skip, new, ` +
             `urgency)`
         )
       if (talk.length)
         lines.push(
-          `then talk over ${talk.map((mark) => mark.id).join(", ")} in the chat;  \`yarn plan-doc inbox ${name} clear <id>\` after each`
+          `then talk over ${talk.map((mark) => mark.id).join(", ")} in the chat;  \`epic inbox ${name}#<id> clear\` after each`
         )
       if (sent.comments.length)
         lines.push(
-          `then each comment:  \`yarn plan-doc inbox ${name} working <cm id> on\`, answer it in the doc, ` +
-            `then \`yarn plan-doc inbox ${name} done <cm id> --file <answer.html>\``
+          `then each comment:  \`epic inbox ${name}#<cm id> working on\`, answer it in the doc, ` +
+            `then \`epic inbox ${name}#<cm id> done --file <answer.html>\``
         )
     }
     this.owner.print(lines.join("\n"))
@@ -399,9 +397,7 @@ export class InboxCommands {
     for (const id of want ?? [])
       if (!marks.some((mark) => mark.id === id) && !urgency.some((entry) => entry.id === id))
         lines.push(`  ${id.toUpperCase()}:  no sent mark`)
-    this.owner.print(
-      lines.length ? lines.join("\n") : `nothing to apply:  no sent marks (\`yarn plan-doc inbox ${name}\`)`
-    )
+    this.owner.print(lines.length ? lines.join("\n") : `nothing to apply:  no sent marks (\`epic inbox ${name}\`)`)
   }
 
   /**

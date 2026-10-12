@@ -65,9 +65,9 @@
       "classVariable": "Filters",
       "of": "TodosApp",
       "enumeration": [
-        "'all'",
-        "'active'",
-        "'completed'"
+        "all",
+        "active",
+        "completed"
       ],
       "defined": "/todo.spell:323-382"
     },

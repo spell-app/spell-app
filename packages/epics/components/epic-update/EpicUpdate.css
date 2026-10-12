@@ -1,21 +1,32 @@
 /*
- * `<epic-update>` (EpicUpdate.tsx):  the UPDATE marker.
- * - Empty:  an inline orange label, its text centred, sitting on the text's middle.
- * - A note (`:state(note)`):  a block, warning-tinted,
- *   the fold chevron and the label as its heading, the children inside;
- *   it folds by its heading (`fold.button()`, `Fold.css`).
+ * `<epic-update>` (EpicUpdate.tsx):  an UPDATE.
+ * - A block (`:state(block)`):  a faint orange box (orange is "changed since you looked").
+ *   - Its title row:  the fold chevron, then the words:  `Update: <summary>`, the date floating right of its FIRST
+ *     line, the lines under it running the full width (as a comment thread's message keeps room for its time).
+ *   - The date as a comment thread's message shows its time (`spell-doc.css`, `.spell-thread-when`):
+ *     smaller, tabular figures, muted;  its float takes the title's font, so its line box and baseline are the
+ *     title's first line's, and the smaller date sits on that baseline.
+ *   - What changed below the title row, folded `until-found` (findable).
+ * - A bare label:  an inline orange `UPDATE`, its text centred, sitting on the text's middle.
  * - Public tokens (`--epic-update-*`) are never declared here:  read through private aliases.
+ *   - `--epic-update-accent`:  the orange of the box, its outline and the label (default `--ui-orange`)
+ *   - `--epic-update-background`:  the box's ground (default the accent, 8% into the page's)
  */
 
 @layer ui.components.epic-update.types, ui.components.epic-update.content;
 
 @layer ui.components.epic-update.types {
   :host {
+    --_epic-update-accent: var(--epic-update-accent, var(--ui-orange));
+    --_epic-update-background: var(
+      --epic-update-background,
+      color-mix(in srgb, var(--_epic-update-accent) 8%, var(--epic-bg, var(--ui-background)))
+    );
     display: inline-block;
     vertical-align: middle;
     line-height: 1;
   }
-  :host(:state(note)) {
+  :host(:state(block)) {
     display: block;
     margin: 8px 0;
     line-height: inherit;
@@ -26,6 +37,50 @@
 }
 
 @layer ui.components.epic-update.content {
+  /* ## The block */
+  .block {
+    display: block;
+    padding: 6px 10px;
+    border: 1px solid color-mix(in srgb, var(--_epic-update-accent) 45%, transparent);
+    border-radius: 8px;
+    background: var(--_epic-update-background);
+  }
+  /* the title row:  the chevron (one line tall, on the first line), then the words */
+  .head {
+    display: flex;
+    align-items: flex-start;
+  }
+  .words {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .when {
+    float: right;
+    margin-inline-start: 12px;
+  }
+  .time {
+    color: var(--epic-muted, var(--ui-text-muted));
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .body {
+    display: block;
+    margin-top: 4px;
+  }
+  .body[hidden="until-found"] {
+    display: block;
+    margin-top: 0;
+    content-visibility: hidden;
+  }
+  ::slotted(:first-child) {
+    margin-top: 0;
+  }
+  ::slotted(:last-child) {
+    margin-bottom: 0;
+  }
+
+  /* ## The bare label */
   .label {
     display: inline-flex;
     align-items: center;
@@ -33,38 +88,9 @@
     height: 18px;
     padding: 0 6px;
     border-radius: 4px;
-    background: var(--ui-orange);
+    background: var(--_epic-update-accent);
     color: var(--ui-orange-on);
     font: 700 10px/1 var(--epic-sans, var(--ui-font-family));
     letter-spacing: 0.06em;
-  }
-  :host(:state(note)) [part~="base"] {
-    display: block;
-    padding: 8px 12px;
-    border: 1px solid color-mix(in srgb, var(--ui-orange) 45%, transparent);
-    border-radius: 8px;
-    background: color-mix(in srgb, var(--ui-orange) 8%, var(--epic-bg, var(--ui-background)));
-  }
-  /* a note's heading:  the fold chevron, then the label;  its text below, folded `until-found` (findable) */
-  :host(:state(note)) .head {
-    display: flex;
-    align-items: center;
-    margin-bottom: 4px;
-  }
-  :host(:state(note)) .head:has(+ .body[hidden]) {
-    margin-bottom: 0;
-  }
-  :host(:state(note)) .body {
-    display: block;
-  }
-  .body[hidden="until-found"] {
-    display: block;
-    content-visibility: hidden;
-  }
-  ::slotted(p) {
-    margin: 4px 0 0;
-  }
-  ::slotted(:first-child) {
-    margin-top: 0;
   }
 }

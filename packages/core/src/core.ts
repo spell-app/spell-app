@@ -1,8 +1,10 @@
 /**
  * `spell` base runtime library for use with classes created with spell.
- * - Meta-programming (`checkProp`, `newThingLike`), type checks, get/set-by-path
- *   stubs, `equals`, math and primitive iteration all live here -- collection-shaped methods
- *   (`itemCountOf`, `forEach`, etc) live in `collection-core.ts` / `collection-other.ts` instead.
+ * - What lives here:
+ *   - meta-programming (`checkProp`, `newThingLike`), type checks
+ *   - get/set-by-path stubs, `equals`
+ *   - math, random numbers and primitive iteration
+ * - Collection-shaped methods (`itemCountOf`, `forEach`, etc) live in `collection-core.ts` / `collection-other.ts`.
  */
 import _isArrayLike from "lodash/isArrayLike"
 import isEqual from "lodash/isEqual"
@@ -10,13 +12,21 @@ import isEqual from "lodash/isEqual"
 import { flushCells } from "$/util"
 import { assert } from "$/core"
 import { defineSpellCoreModule, type PropCheck, type SpellCore } from "./spellCore.types"
+import { ParkMiller } from "./ParkMiller"
 
 /** Special methods for `isOfType()`, keyed by type name. */
 type IsOfTypeSpecials = Record<string, (thing: unknown) => boolean>
 
 /**
- * Random integer between `min` and `max` inclusive.
- * - Pass just one number and we'll treat it as `max`, ranging `1..max`.
+ * Where every random number in the core comes from:  `spellCore.random()` reads it, `seedRandom()` replaces it.
+ * - Unseeded, it starts from a seed picked with `Math.random()`, so each run deals differently.
+ */
+let generator = new ParkMiller(ParkMiller.randomSeed())
+
+/**
+ * Random whole number from `min` to `max`, BOTH included.
+ * - One number only:  from 1 to it, so `randomNumber(6)` rolls a die.
+ * - Comes from `spellCore.random()`, so `seedRandom()` makes it repeatable.
  */
 export function randomNumber(): number | undefined
 export function randomNumber(max: number): number | undefined
@@ -32,15 +42,15 @@ export function randomNumber(min?: number, max?: number): number | undefined {
     )
   )
     return undefined
-  return Math.floor(Math.random() * (max! - min! + 1)) + min!
+  return Math.floor(spellCore.random() * (max! - min! + 1)) + min!
 }
 
 /**
  * The `spellCore` singleton -- compiled `spell` code calls `spellCore.foo(...)` for every built-in.
- * - Built from an instance of an inline class (rather than a plain object) purely so it prints as
- *   `spellCore {...}` -- not `Object {...}` -- when logged / inspected while debugging.
- * - Cast to `SpellCore` since its real shape is assembled piecemeal by every module's `Object.assign()`
- *   call below (and in `collection-core.ts`, `collection-other.ts`, etc) -- see `spellCore.types.ts`.
+ * - Built from an instance of an inline class (rather than a plain object)
+ *   purely so it prints as `spellCore {...}` -- not `Object {...}` -- when logged / inspected while debugging.
+ * - Cast to `SpellCore` since its real shape is assembled piecemeal by every module's `Object.assign()` call:
+ *   below, and in `collection-core.ts`, `collection-other.ts`, etc -- see `spellCore.types.ts`.
  */
 export const spellCore = new (class spellCore {})() as SpellCore
 
@@ -50,10 +60,10 @@ export const coreMethods = defineSpellCoreModule({
   doNothing(): void {},
 
   /**
-   * Settle everything that follows spell state NOW:  pending derived checks, then the host's Solid -- see
-   * `flushCells()` in `$/util`.
-   * - Spell state itself never needs it:  a read right after a write sees the write.  It's for what DRAWS it:  a
-   *   test asserting on the DOM, imperative code measuring it.
+   * Settle everything that follows spell state NOW:  pending derived checks, then the host's Solid.
+   * - See `flushCells()` in `$/util`.
+   * - Spell state itself never needs it:  a read right after a write sees the write.
+   *   It's for what DRAWS it:  a test asserting on the DOM, imperative code measuring it.
    * - NEVER Solid's `flush()` directly:  a reader of only a derived value hears of a change on a microtask.
    */
   flush(): void {
@@ -86,8 +96,8 @@ export const coreMethods = defineSpellCoreModule({
   /**
    * Create an new, "empty" instance of `thing.constructor`.
    * - What collection helpers build their results in, e.g. `map()`, `filter()`, `duplicateList()`.
-   * - NOT registered for the Thing Explorer -- see `ThingRegistry.quietly()` -- so a copy the program keeps
-   *   doesn't show either.  See `agents/CODE-DEBT.md`.
+   * - NOT registered for the Thing Explorer (see `ThingRegistry.quietly()`),
+   *   so a copy the program keeps doesn't show either.  See `agents/CODE-DEBT.md`.
    * - A SCRATCH list:  an exclusive one, e.g. a `Pile`, owns nothing -- see `spellCore.newScratch()`.
    * - TODO: number? string?  non-constructable thing???
    */
@@ -126,8 +136,9 @@ export const coreMethods = defineSpellCoreModule({
   } as Record<string, string>,
 
   /**
-   * Return string "type" of `thing`, as shown to `spell` users -- e.g. `"text"` for a string,
-   * `"list"` for an array, or the lowercased constructor name for a custom class.
+   * Return string "type" of `thing`, as shown to `spell` users:
+   * - e.g. `"text"` for a string, `"list"` for an array
+   * - the lowercased constructor name for a custom class
    * TODO:  Return type aliases, e.g. ["number", "integer"]
    * TODO:  Return inherited class types ?
    * TODO:  NaN => `unknown` ???
@@ -152,8 +163,8 @@ export const coreMethods = defineSpellCoreModule({
   } as IsOfTypeSpecials,
 
   /**
-   * Types `thing` is, most specific first:  its `typeOf()`, then each super-class's -- e.g. a joker is
-   * `["joker", "card", "thing", ...]`, for `a joker is a card`.
+   * Types `thing` is, most specific first:  its `typeOf()`, then each super-class's.
+   * - e.g. a joker is `["joker", "card", "thing", ...]`, for `a joker is a card`.
    * - Up its prototype chain, stopping before plain `Object`, which every object would be.
    * - By class NAME, lowercased and converted as `typeOf()` does -- skipping any unnamed class, e.g. a mixin's.
    */
@@ -261,7 +272,63 @@ export const coreMethods = defineSpellCoreModule({
   // ## math
   ////////////////
 
+  /**
+   * `number` without its sign:  `-3` => `3`.
+   * - Compiles from `the absolute value of the difference` -- see `rules/math/AbsoluteValue.ts`.
+   * - Not a number:  a failed assertion, and `undefined`.
+   */
+  absoluteValue(number: number): number | undefined {
+    if (!assert(spellCore.isANumber(number), "spellCore.absoluteValue(): you must pass a number, got", number)) {
+      return undefined
+    }
+    return Math.abs(number)
+  },
+
+  ////////////////
+  // ## random numbers
+  ////////////////
+
+  /**
+   * Start the random numbers again from `seed`:  everything random after it repeats, run after run.
+   * - `seed`:  a whole number from 1 to 2,147,483,646.  NOT checked:  0 gives only 0s.
+   * - Called by `spell run --seed <n>`, and by the core contract (seed 1), before the program loads.
+   * - The same seed gives the same numbers in Python's core, `core.seed_random()` (plan doc python-target, Q13).
+   */
+  seedRandom(seed: number): void {
+    generator = new ParkMiller(seed)
+  },
+
+  /**
+   * The next random number:  at least 0 and less than 1 -- the core's own `Math.random()`.
+   * - Every random thing in the core draws from it:  `randomNumber()`, `randomItemOf()`, `shuffled()` ...
+   * - NEVER `Math.random()` in the core:  `seedRandom()` couldn't repeat it.
+   */
+  random(): number {
+    return generator.random()
+  },
+
   randomNumber,
+
+  /**
+   * A new array of `items`, in a random order:  `items` itself doesn't change.
+   * - lodash's `shuffle()`, step for step, on our own numbers (plan doc python-target, J8):
+   *   walk from the front, swapping each item with a random one at or after it.
+   * - Takes one random number for EVERY item, even the last, as lodash does.
+   * - The deal Python's `core.shuffled()` makes from the same seed.
+   */
+  shuffled<T>(items: readonly T[]): T[] {
+    const shuffled = [...items]
+    const count = shuffled.length
+    for (let index = 0; index < count; index++) {
+      const swap = index + Math.floor(spellCore.random() * (count - index))
+      ;[shuffled[index], shuffled[swap]] = [shuffled[swap]!, shuffled[index]!]
+    }
+    return shuffled
+  },
+
+  ////////////////
+  // ## ranges
+  ////////////////
 
   /**
    * `[1, 2, ... count]`:  one number per time round a `repeat {count} times` loop -- `[]` if `count` is under 1.

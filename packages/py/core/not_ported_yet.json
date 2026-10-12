@@ -1,0 +1,43 @@
+{
+  "about": "What spell_core doesn't have yet of the core's method list (packages/core/spellCore.declarations.json), by the JavaScript name, grouped by why.  Read by tests/test_core_declarations.py, and by the core reference page (guides/targets/core-reference.html).  Take a name out as it's ported.",
+  "groups": [
+    {
+      "why": "Pauses and events (P11):  Python's runtime hasn't needed these",
+      "names": ["forEachSequential", "DEBUG_RUNTIME", "DEBUG_PROCESSES", "clearRuntime"]
+    },
+    {
+      "why": "A browser's only:  a drawable thing's own element (<solitaire-card>), a page's markup, its shadow root",
+      "names": [
+        "elementDefiner",
+        "defineElement",
+        "elementFor",
+        "elementApiOf",
+        "thingFor",
+        "elementTagOf",
+        "appLayout",
+        "domRoot"
+      ]
+    },
+    {
+      "why": "Not decided yet:  a word of Python's own, a browser's only, or ported when a program needs it",
+      "names": [
+        "doNothing",
+        "flush",
+        "TYPE_NAME_CONVERSIONS",
+        "IS_OF_TYPE_SPECIALS",
+        "get",
+        "set",
+        "absoluteValue",
+        "repeat",
+        "doubleQuote",
+        "getPath",
+        "setPath",
+        "splitPath",
+        "notify",
+        "alert",
+        "confirm",
+        "prompt"
+      ]
+    }
+  ]
+}

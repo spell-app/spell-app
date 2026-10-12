@@ -25,7 +25,7 @@
   },
   // `../../types/app.d.ts`:  the repo's ambient helper types (`Prettify` ...), which `epics` uses bare
   "include": ["../../types/app.d.ts", "tools", "vitest.config.ts"],
-  // the page assets are browser code (`spell-ui.entry.js` pulls in UI source);  the goals tools aren't type-checked;
+  // the page assets are browser code (`spell-ui.entry.js` pulls in UI source);
   // `tools/vendor` is minified third-party code (Claude Design's runtime, for `check-design-bundle.js`)
-  "exclude": ["tools/_assets", "tools/goals", "tools/vendor"]
+  "exclude": ["tools/_assets", "tools/vendor"]
 }

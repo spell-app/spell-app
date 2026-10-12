@@ -77,7 +77,8 @@ export type CheckOptions = GlobalOptions & {
 
 /**
  * `name` for comparing as people would:  lower case, with spaces, `-`, `_` and a word's capital all one space.
- * - So `stock pile` finds `StockPile`, and `short-suit` finds `short_suit` and `shortSuit`.
+ * - So `stock pile` finds `StockPile` (a type's name since epic `drawable-thing` P11),
+ *   and `short-suit` finds `short_suit` and `shortSuit`.
  */
 export function normalizedName(name: string): string {
   return name
@@ -105,19 +106,35 @@ export type WatchOptions = GlobalOptions & {
  *   - `true` opens the project in a browser even if it shows no UI
  *   - `false` never does
  *   - left out:  only if it tried to show one
+ * - `seed`:  see `SeedOptions`
  */
-export type RunOptions = GlobalOptions & {
-  browser?: boolean
-}
+export type RunOptions = GlobalOptions &
+  SeedOptions & {
+    browser?: boolean
+    /** `ts` or `py` (or a target's full name):  run as that target compiles it -- see `runTarget()` */
+    target?: string
+  }
 
 /**
  * `spell test` flags.
  * - `name`:  only tests whose names contain it, e.g. `deck` -- ignoring case, and spaces ~== `-` ~== `_`
  * - `watch`:  run them again whenever the project changes -- `spell watch --test`
+ * - `seed`:  see `SeedOptions`
  */
-export type TestOptions = GlobalOptions & {
-  name?: string
-  watch?: boolean
+export type TestOptions = GlobalOptions &
+  SeedOptions & {
+    name?: string
+    watch?: boolean
+  }
+
+/**
+ * The flag `spell run` and `spell test` share.
+ * - `seed`:  start the program's random numbers from it, so every run deals the same cards --
+ *   a whole number from 1 to 2147483646, see `spellCore.seedRandom()`.
+ *   Left out:  a different deal each run.
+ */
+export type SeedOptions = {
+  seed?: number
 }
 
 /**
@@ -282,6 +299,8 @@ export type NewOptions = GlobalOptions & {
  * - `verbose`:  `test` shows every check, and anything printed, not just failures
  * - `filter`:  `test` runs only tests whose names contain it -- see `runProject.ts`
  * - `dom`:  run in a fake page, drawing what it draws, and print it -- see `fakeDom()` in `runProject.ts`
+ * - `seed`:  start its random numbers from it, before it loads -- see `spellCore.seedRandom()`.
+ *   Left out:  random, as in a browser.
  */
 export type RunSpec = {
   mode: "run" | "test"
@@ -292,6 +311,7 @@ export type RunSpec = {
   verbose?: boolean
   filter?: string
   dom?: boolean
+  seed?: number
 }
 
 /**
@@ -303,8 +323,9 @@ export type RunReport = {
 }
 
 /**
- * One shared stylesheet of a `spell static` job:  where it goes, the pages that link it (indices in the job), and
- * what the sheet already there covered (its first line), for the build to keep.
+ * One shared stylesheet of a `spell static` job:
+ * where it goes, the pages that link it (indices in the job),
+ * and what the sheet already there covered (its first line), for the build to keep.
  */
 export type StaticSheetJob = {
   path: string
@@ -315,8 +336,8 @@ export type StaticSheetJob = {
 /**
  * What `spell static` and its child process, `runner/renderStatic.ts`, say to each other over IPC, in order:
  * - `ready`:  child to parent, once its Vite server is up
- * - `job`:  parent to child, once:  each page's HTML and stylesheet options, and the shared stylesheets (`sheets`)
- *   to build afterwards, `minify`d or not
+ * - `job`:  parent to child, once:  each page's HTML and stylesheet options,
+ *   and the shared stylesheets (`sheets`) to build afterwards, `minify`d or not
  * - `page`:  child to parent, one per page in `job` order (`index`):  its `result`, or the `error` that stopped it
  * - `stylesheet`:  child to parent, after the pages, one per `sheets` entry (`path`)
  * - `done`, or `failed` with the error that stopped the whole job

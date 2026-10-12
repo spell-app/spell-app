@@ -2,8 +2,9 @@ import { pluralize, proto, upperFirst } from "$/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 import { Priority } from "$/spell/rules/rules.types"
-// Through the folder, not its own file:  `outline_specifier_enum` registers AFTER us, and importing its file would
-// load it first, changing the registration order.  Read only when called, once the folder has loaded.
+// Through the folder, not its own file:  importing its file would load it first,
+// but `outline_specifier_enum` registers AFTER us, and the registration order must not change.
+// Read only when called, once the folder has loaded.
 import { OutlineSpecifierEnum } from "$/spell/rules/classes"
 // Import directly to avoid circular import
 import { SpellStatement } from "$/spell/rules/Statement"
@@ -25,10 +26,10 @@ import { classes } from "./classes.parser"
  * - Compiles to a reactive getter / setter pair in its class, its type declared in the class's schema:
  *   see `P.ASTReactiveProperty`.
  *   - e.g. `a player has a name as text` =>
- *     - `static { this.declareProp('name', { type: 'text' }) }`
- *     - `get name() { return this.getProp('name') }`
- *     - `set name(value) { this.setProp('name', value) }`
- * - An enumeration's values also go on the class, e.g. `static Suits = ['clubs', ...]` -- see `class_member`.
+ *     - `static { this.declareProp("name", { type: "text" }) }`
+ *     - `get name() { return this.getProp("name") }`
+ *     - `set name(value) { this.setProp("name", value) }`
+ * - An enumeration's values also go on the class, e.g. `static Suits = ["clubs", ...]` -- see `class_member`.
  */
 export class DefinePropertyHas extends SpellStatement<"type|property|specifier?", { valueType?: P.TypeScope }> {
   @proto static priority = Priority.declaration
@@ -37,10 +38,11 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
 
   /**
    * Refused on a built-in type -- see `SpellStatement.refuseBuiltInType()`.
-   * - Notes the type its specifier names, e.g. `Suit` for `its "suit" is a suit`:  if it's a VALUE kind, its setter
-   *   checks against its list -- see `value_kind`.
-   *   - The type's RECORD, read when compiling:  a value kind may be declared further down, e.g. the deck below the
-   *     card, so here it's still a stub (plan doc `outline-spell`, issue I3).  As a call reads `data.method.returns`.
+   * - Notes the type its specifier names, e.g. `Suit` for `its "suit" is a suit`:
+   *   if it's a VALUE kind, its setter checks against its list -- see `value_kind`.
+   *   - The type's RECORD, read when compiling, as a call reads `data.method.returns`.
+   *   - Why:  a value kind may be declared further down, e.g. the deck below the card,
+   *     so here it's still a stub (plan doc `outline-spell`, issue I3).
    */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -91,7 +93,7 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
       const varProps: P.ScopeVariableProps & { enumeration: Array<string | number> } = {
         name: groupName,
         enumeration: values,
-        initializer: `[${values.join(", ")}]`,
+        initializer: P.enumerationInitializer(values),
         declaredBy: match
       }
       // Add variables to scope for lookup elsewhere
@@ -106,7 +108,7 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
   }
 
   /**
-   * The long form of a short one -- see `SpellStatement.getLongForm()`.
+   * The long form of an outline line -- see `SpellStatement.getLongForm()`:
    * - `its "rank" is a number` => `a card has a rank as a number`
    * - `its direction is up or down` => `a card has a direction as one of up or down`
    */

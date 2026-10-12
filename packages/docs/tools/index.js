@@ -272,6 +272,7 @@ function branchCommits() {
  *   plan-doc tool refuses it until it's converted (epic `epic-components` P15)
  * - `updated`:  the plan-doc tool's "updated" stamp (`touch()`):  how long since anyone worked on it
  * - `future`:  an epic written down with `/epic future`, not planned yet
+ * - `standing`:  open for good, every phase merging on its own (epic `epic-workflow`):  never shown done
  * - `urgent`:  the ids of the items that need Owen (`URGENT_SELECTOR`:  their red and orange chips)
  */
 export function planOf(document) {
@@ -288,6 +289,7 @@ export function planOf(document) {
     phases,
     updated: page.getAttribute("updated") || null,
     future: page.hasAttribute("future"),
+    standing: page.hasAttribute("standing"),
     urgent: Array.from(document.querySelectorAll(URGENT_SELECTOR), (item) => item.id)
   }
 }
@@ -298,6 +300,7 @@ function epicFacts(page) {
     phases: page.phases.map((phase) => phase.status),
     updated: page.updated,
     future: page.future,
+    standing: page.standing,
     urgent: page.urgent,
     active: page.phases.find((phase) => phase.status === "active")?.label
   }

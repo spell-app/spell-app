@@ -15,6 +15,7 @@ export class IsGtLt extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.comparison
   @proto static parenthesize = true
 
+  // CLAUDE VOCAB: engish-specific
   getOperator({ value }: P.Match): P.ASTOperator {
     const greater = String(value).includes("greater")
     if (String(value).includes("equal")) return greater ? "at least" : "at most"

@@ -41,7 +41,7 @@ class Card extends Thing {
   @prop({ type: "text", default: "hearts" }) accessor suit!: string
   @prop({ type: "choice", default: false }) accessor isBroken!: boolean
 
-  /** Its position in `Card.Ranks`:  `positionOf()` takes a read-only list. */
+  /** Its index in `Card.Ranks`:  `positionOf()` takes a read-only list. */
   get value() {
     return spellCore.positionOf(Card.Ranks, this.rank)
   }
@@ -249,6 +249,6 @@ describe("@drawn", () => {
   })
 
   test("@prop takes a read-only `as const` list", () => {
-    expect(new Card({ rank: "king" }).value).toBe(4)
+    expect(new Card({ rank: "king" }).value).toBe(3)
   })
 })

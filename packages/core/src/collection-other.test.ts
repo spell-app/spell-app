@@ -1,4 +1,3 @@
-import _ from "lodash"
 import { describe, test, expect, beforeEach, afterEach, vi } from "vite-plus/test"
 import { spellCore, assert, List } from "$/core"
 
@@ -230,22 +229,22 @@ describe("spellCore.setItemsOf()", () => {
   })
   test("doesn't add anything if no things", () => {
     const collection: unknown[] = []
-    spellCore.setItemsOf(collection, 1)
+    spellCore.setItemsOf(collection, 0)
     expect(collection).toEqual([])
   })
   test("adds single item correctly to empty list", () => {
     const collection: unknown[] = []
-    spellCore.setItemsOf(collection, 1, "a")
+    spellCore.setItemsOf(collection, 0, "a")
     expect(collection).toEqual(["a"])
   })
   test("overwrites single item correctly in non-empty list", () => {
     const collection = ["a"]
-    spellCore.setItemsOf(collection, 1, "A")
+    spellCore.setItemsOf(collection, 0, "A")
     expect(collection).toEqual(["A"])
   })
   test("overwrites multiple items correctly", () => {
     const collection = ["a", "b"]
-    spellCore.setItemsOf(collection, 2, "B", "C", "D")
+    spellCore.setItemsOf(collection, 1, "B", "C", "D")
     expect(collection).toEqual(["a", "B", "C", "D"])
   })
 })
@@ -273,33 +272,33 @@ describe("spellCore.reverse()", () => {
 
 describe("spellCore._validateRangeBetween()", () => {
   describe("when start is missing", () => {
-    test("returns 1...end if start not provided", () => {
-      expect(spellCore._validateRangeBetween(null, 3, 5)).toEqual({ start: 1, end: 3 })
+    test("returns 0...end if start not provided", () => {
+      expect(spellCore._validateRangeBetween(null, 3, 5)).toEqual({ start: 0, end: 3 })
     })
     test("returns start...count if start and end not provided", () => {
-      expect(spellCore._validateRangeBetween(null, null, 5)).toEqual({ start: 1, end: 5 })
+      expect(spellCore._validateRangeBetween(null, null, 5)).toEqual({ start: 0, end: 5 })
     })
   })
   test("returns undefined if itemCount is 0", () => {
-    expect(spellCore._validateRangeBetween(1, 1, 0)).toEqual(undefined)
+    expect(spellCore._validateRangeBetween(0, 1, 0)).toEqual(undefined)
   })
   describe("for positive starts", () => {
     test("returns start...count if end not provided", () => {
-      expect(spellCore._validateRangeBetween(2, null, 5)).toEqual({ start: 2, end: 5 })
+      expect(spellCore._validateRangeBetween(1, null, 5)).toEqual({ start: 1, end: 5 })
     })
     test("returns undefined if end < start", () => {
-      expect(spellCore._validateRangeBetween(5, 1, 5)).toEqual(undefined)
+      expect(spellCore._validateRangeBetween(4, 1, 5)).toEqual(undefined)
     })
     test("returns undefined if start > count", () => {
-      expect(spellCore._validateRangeBetween(10, 1, 5)).toEqual(undefined)
+      expect(spellCore._validateRangeBetween(9, 1, 5)).toEqual(undefined)
     })
     test("returns proper range for valid start", () => {
-      expect(spellCore._validateRangeBetween(2, 3, 5)).toEqual({ start: 2, end: 3 })
+      expect(spellCore._validateRangeBetween(1, 3, 5)).toEqual({ start: 1, end: 3 })
     })
   })
   describe("for negative starts", () => {
     test("returns (count+start)...count if end not provided", () => {
-      expect(spellCore._validateRangeBetween(-2, null, 5)).toEqual({ start: 4, end: 5 })
+      expect(spellCore._validateRangeBetween(-2, null, 5)).toEqual({ start: 3, end: 5 })
     })
     test("returns undefined if end < -start", () => {
       expect(spellCore._validateRangeBetween(-2, 1, 5)).toEqual(undefined)
@@ -308,10 +307,10 @@ describe("spellCore._validateRangeBetween()", () => {
       expect(spellCore._validateRangeBetween(-10, 1, 5)).toEqual(undefined)
     })
     test("returns proper range for valid start", () => {
-      expect(spellCore._validateRangeBetween(-2, 5, 5)).toEqual({ start: 4, end: 5 })
+      expect(spellCore._validateRangeBetween(-2, 5, 5)).toEqual({ start: 3, end: 5 })
     })
     test("returns proper range for valid start and end too large", () => {
-      expect(spellCore._validateRangeBetween(-2, 10, 5)).toEqual({ start: 4, end: 5 })
+      expect(spellCore._validateRangeBetween(-2, 10, 5)).toEqual({ start: 3, end: 5 })
     })
   })
 })
@@ -326,22 +325,22 @@ describe("spellCore.rangeBetween()", () => {
     expect(assert.failed).toHaveBeenCalled()
   })
   test("returns empty array if start > count", () => {
-    expect(spellCore.rangeBetween([1, 2, 3], 5)).toEqual([])
+    expect(spellCore.rangeBetween([1, 2, 3], 4)).toEqual([])
   })
   test("returns empty array if end < start", () => {
     expect(spellCore.rangeBetween([1, 2, 3], 2, 1)).toEqual([])
   })
   test("defaults end to collection length if not specified", () => {
-    expect(spellCore.rangeBetween([1, 2, 3], 1)).toEqual([1, 2, 3])
+    expect(spellCore.rangeBetween([1, 2, 3], 0)).toEqual([1, 2, 3])
   })
   test("defaults end to collection length if > collection length", () => {
-    expect(spellCore.rangeBetween([1, 2, 3], 1, 5)).toEqual([1, 2, 3])
+    expect(spellCore.rangeBetween([1, 2, 3], 0, 5)).toEqual([1, 2, 3])
   })
-  test("defaults start to 1 if not specified", () => {
+  test("defaults start to 0 if not specified", () => {
     expect(spellCore.rangeBetween([1, 2, 3])).toEqual([1, 2, 3])
   })
   test("subsets properly with internal range", () => {
-    expect(spellCore.rangeBetween([1, 2, 3, 4, 5], 2, 4)).toEqual([2, 3, 4])
+    expect(spellCore.rangeBetween([1, 2, 3, 4, 5], 1, 4)).toEqual([2, 3, 4])
   })
   test("a `List` out of range:  an EMPTY list of its class, not `[]`", () => {
     const list = new Pile()
@@ -364,7 +363,7 @@ describe("spellCore.removeRangeBetween()", () => {
   })
   test("returns same values if start > count", () => {
     const collection = [1, 2]
-    spellCore.removeRangeBetween(collection, 3)
+    spellCore.removeRangeBetween(collection, 2)
     expect(collection).toEqual([1, 2])
   })
   test("returns same values if end < start", () => {
@@ -374,28 +373,28 @@ describe("spellCore.removeRangeBetween()", () => {
   })
   test("defaults end to collection length if not specified", () => {
     const collection = [1, 2, 3]
-    spellCore.removeRangeBetween(collection, 2)
+    spellCore.removeRangeBetween(collection, 1)
     expect(collection).toEqual([1])
   })
   test("defaults end to collection length if > collection length", () => {
     const collection = [1, 2, 3]
-    spellCore.removeRangeBetween(collection, 2, 5)
+    spellCore.removeRangeBetween(collection, 1, 5)
     expect(collection).toEqual([1])
   })
-  test("defaults start to 1 if not specified", () => {
+  test("defaults start to 0 if not specified", () => {
     const collection = [1, 2, 3]
     spellCore.removeRangeBetween(collection)
     expect(collection).toEqual([])
   })
   test("subsets properly with internal range", () => {
     const collection = [1, 2, 3]
-    spellCore.removeRangeBetween(collection, 2, 2)
+    spellCore.removeRangeBetween(collection, 1, 2)
     expect(collection).toEqual([1, 3])
   })
   test("a `List` too:  through its own `removeItem()` (it used to throw)", () => {
     const list = new Pile()
     list.add(1, 2, 3, 4)
-    spellCore.removeRangeBetween(list, 2, 3)
+    spellCore.removeRangeBetween(list, 1, 3)
     expect(list.getValues()).toEqual([1, 4])
   })
 })
@@ -403,44 +402,44 @@ describe("spellCore.removeRangeBetween()", () => {
 describe("spellCore._validateRangeStartingAt()", () => {
   describe("when start is missing", () => {
     test("returns start...itemCount if start and count not provided", () => {
-      expect(spellCore._validateRangeStartingAt(null, null, 5)).toEqual({ start: 1, end: 5 })
+      expect(spellCore._validateRangeStartingAt(null, null, 5)).toEqual({ start: 0, end: 5 })
     })
-    test("returns 1...count if start not provided", () => {
-      expect(spellCore._validateRangeStartingAt(null, 3, 5)).toEqual({ start: 1, end: 3 })
+    test("returns 0...count if start not provided", () => {
+      expect(spellCore._validateRangeStartingAt(null, 3, 5)).toEqual({ start: 0, end: 3 })
     })
   })
   describe("for positive starts", () => {
     test("returns undefined if count is 0", () => {
-      expect(spellCore._validateRangeStartingAt(2, 0, 5)).toEqual(undefined)
+      expect(spellCore._validateRangeStartingAt(1, 0, 5)).toEqual(undefined)
     })
     test("returns start...itemCount if count not provided", () => {
-      expect(spellCore._validateRangeStartingAt(2, null, 5)).toEqual({ start: 2, end: 5 })
+      expect(spellCore._validateRangeStartingAt(1, null, 5)).toEqual({ start: 1, end: 5 })
     })
     test("returns undefined if count < start", () => {
-      expect(spellCore._validateRangeStartingAt(5, 1, 5)).toEqual({ start: 5, end: 5 })
+      expect(spellCore._validateRangeStartingAt(4, 1, 5)).toEqual({ start: 4, end: 5 })
     })
     test("returns undefined if start > itemCount", () => {
-      expect(spellCore._validateRangeStartingAt(10, 1, 5)).toEqual(undefined)
+      expect(spellCore._validateRangeStartingAt(9, 1, 5)).toEqual(undefined)
     })
     test("returns proper range for valid start", () => {
-      expect(spellCore._validateRangeStartingAt(2, 3, 5)).toEqual({ start: 2, end: 4 })
+      expect(spellCore._validateRangeStartingAt(1, 3, 5)).toEqual({ start: 1, end: 4 })
     })
   })
   describe("for negative starts", () => {
     test("returns undefined if count is 0", () => {
-      expect(spellCore._validateRangeStartingAt(2, 0, 5)).toEqual(undefined)
+      expect(spellCore._validateRangeStartingAt(1, 0, 5)).toEqual(undefined)
     })
     test("returns (itemCount+start)...itemCount if count not provided", () => {
-      expect(spellCore._validateRangeStartingAt(-2, null, 5)).toEqual({ start: 4, end: 5 })
+      expect(spellCore._validateRangeStartingAt(-2, null, 5)).toEqual({ start: 3, end: 5 })
     })
     test("returns undefined if -start > itemCount", () => {
       expect(spellCore._validateRangeStartingAt(-10, 1, 5)).toEqual(undefined)
     })
     test("returns proper range for valid start", () => {
-      expect(spellCore._validateRangeStartingAt(-2, 5, 5)).toEqual({ start: 4, end: 5 })
+      expect(spellCore._validateRangeStartingAt(-2, 5, 5)).toEqual({ start: 3, end: 5 })
     })
     test("returns proper range for valid start and count too large", () => {
-      expect(spellCore._validateRangeStartingAt(-2, 10, 5)).toEqual({ start: 4, end: 5 })
+      expect(spellCore._validateRangeStartingAt(-2, 10, 5)).toEqual({ start: 3, end: 5 })
     })
   })
 })
@@ -455,22 +454,22 @@ describe("spellCore.rangeStartingAt()", () => {
     expect(assert.failed).toHaveBeenCalled()
   })
   test("returns empty array if start > itemCount", () => {
-    expect(spellCore.rangeStartingAt([1, 2, 3], 5, 1)).toEqual([])
+    expect(spellCore.rangeStartingAt([1, 2, 3], 4, 1)).toEqual([])
   })
   test("returns empty array if -start > itemCount", () => {
     expect(spellCore.rangeStartingAt([1, 2, 3], -5, 1)).toEqual([])
   })
   test("returns empty array if count 0", () => {
-    expect(spellCore.rangeStartingAt([1, 2, 3], 2, 0)).toEqual([])
+    expect(spellCore.rangeStartingAt([1, 2, 3], 1, 0)).toEqual([])
   })
   test("returns empty array if count < 0", () => {
-    expect(spellCore.rangeStartingAt([1, 2, 3], 2, -1)).toEqual([])
+    expect(spellCore.rangeStartingAt([1, 2, 3], 1, -1)).toEqual([])
   })
   test("subsets properly for normal positive range", () => {
-    expect(spellCore.rangeStartingAt([1, 2, 3], 2, 2)).toEqual([2, 3])
+    expect(spellCore.rangeStartingAt([1, 2, 3], 1, 2)).toEqual([2, 3])
   })
   test("subsets properly for positive start with count > itemCount", () => {
-    expect(spellCore.rangeStartingAt([1, 2, 3], 2, 10)).toEqual([2, 3])
+    expect(spellCore.rangeStartingAt([1, 2, 3], 1, 10)).toEqual([2, 3])
   })
   test("subsets properly for normal negative range", () => {
     expect(spellCore.rangeStartingAt([1, 2, 3], -2, 2)).toEqual([2, 3])
@@ -499,8 +498,8 @@ describe("spellCore.forEach()", () => {
       const collection = ["a", "b"]
       spellCore.forEach(collection, method)
       expect(method.mock.calls.length).toBe(2)
-      expect(method.mock.calls[0]).toEqual(["a", 1, collection])
-      expect(method.mock.calls[1]).toEqual(["b", 2, collection])
+      expect(method.mock.calls[0]).toEqual(["a", 0, collection])
+      expect(method.mock.calls[1]).toEqual(["b", 1, collection])
     })
   })
   describe("for objects", () => {
@@ -539,8 +538,8 @@ describe("spellCore.map()", () => {
       const collection = ["a", "b"]
       expect(spellCore.map(collection, method)).toEqual(["A", "B"])
       expect(method.mock.calls.length).toEqual(2)
-      expect(method.mock.calls[0]).toEqual(["a", 1, collection])
-      expect(method.mock.calls[1]).toEqual(["b", 2, collection])
+      expect(method.mock.calls[0]).toEqual(["a", 0, collection])
+      expect(method.mock.calls[1]).toEqual(["b", 1, collection])
     })
   })
   describe("for objects", () => {
@@ -582,8 +581,8 @@ describe("spellCore.filter()", () => {
       const collection = ["a", "b"]
       expect(spellCore.filter(collection, method)).toEqual(["b"])
       expect(method.mock.calls.length).toEqual(2)
-      expect(method.mock.calls[0]).toEqual(["a", 1, collection])
-      expect(method.mock.calls[1]).toEqual(["b", 2, collection])
+      expect(method.mock.calls[0]).toEqual(["a", 0, collection])
+      expect(method.mock.calls[1]).toEqual(["b", 1, collection])
     })
   })
   describe("for objects", () => {
@@ -625,7 +624,7 @@ describe("spellCore.all()", () => {
       const collection = ["a", "b"]
       expect(spellCore.all(collection, method)).toEqual(false)
       expect(method.mock.calls.length).toEqual(1)
-      expect(method.mock.calls[0]).toEqual(["a", 1, collection])
+      expect(method.mock.calls[0]).toEqual(["a", 0, collection])
     })
   })
   describe("for objects", () => {
@@ -666,16 +665,16 @@ describe("spellCore.any()", () => {
       const collection = ["a", "b"]
       expect(spellCore.any(collection, method)).toEqual(true)
       expect(method.mock.calls.length).toEqual(2)
-      expect(method.mock.calls[0]).toEqual(["a", 1, collection])
-      expect(method.mock.calls[1]).toEqual(["b", 2, collection])
+      expect(method.mock.calls[0]).toEqual(["a", 0, collection])
+      expect(method.mock.calls[1]).toEqual(["b", 1, collection])
     })
     test("falls through to false if nothing matches", () => {
       const method = vi.fn((str) => str > "b")
       const collection = ["a", "b"]
       expect(spellCore.any(collection, method)).toEqual(false)
       expect(method.mock.calls.length).toEqual(2)
-      expect(method.mock.calls[0]).toEqual(["a", 1, collection])
-      expect(method.mock.calls[1]).toEqual(["b", 2, collection])
+      expect(method.mock.calls[0]).toEqual(["a", 0, collection])
+      expect(method.mock.calls[1]).toEqual(["b", 1, collection])
     })
   })
   describe("for objects", () => {
@@ -706,12 +705,12 @@ describe("spellCore.removeItemsAt()", () => {
   describe("for arrays", () => {
     test("no change for empty array", () => {
       const collection: unknown[] = []
-      spellCore.removeItemsAt(collection, 1)
+      spellCore.removeItemsAt(collection, 0)
       expect(collection).toEqual([])
     })
     test("removes properly for non-empty array, regardless of order", () => {
       const collection = ["a", "b", "c", "d", "e"]
-      spellCore.removeItemsAt(collection, 1, 3, 5)
+      spellCore.removeItemsAt(collection, 0, 2, 4)
       expect(collection).toEqual(["b", "d"])
     })
   })
@@ -784,8 +783,8 @@ describe("spellCore.removeWhere()", () => {
       spellCore.removeWhere(collection, method)
       expect(collection).toEqual(["a"])
       expect(method.mock.calls.length).toEqual(2)
-      expect(method.mock.calls[0]).toEqual(["a", 1, collection])
-      expect(method.mock.calls[1]).toEqual(["b", 2, collection])
+      expect(method.mock.calls[0]).toEqual(["a", 0, collection])
+      expect(method.mock.calls[1]).toEqual(["b", 1, collection])
     })
   })
   describe("for objects", () => {
@@ -823,11 +822,11 @@ describe("spellCore._randomKeyOf()", () => {
       expect(spellCore._randomKeyOf([])).toBe(undefined)
     })
     test("returns key for single-value array", () => {
-      expect(spellCore._randomKeyOf(["a"])).toBe(1)
+      expect(spellCore._randomKeyOf(["a"])).toBe(0)
     })
     test("returns value in range for multi-item array", () => {
       vi.spyOn(spellCore, "randomNumber").mockImplementation(() => 2)
-      expect(spellCore._randomKeyOf(["a", "b", "c"])).toBe(2)
+      expect(spellCore._randomKeyOf(["a", "b", "c"])).toBe(1)
     })
   })
   describe("for objects", () => {
@@ -891,11 +890,11 @@ describe("spellCore.randomItemsOf()", () => {
       expect(spellCore.randomItemsOf(["a"])).toEqual(["a"])
     })
     test("returns all values if count not specified", () => {
-      vi.spyOn(_, "shuffle").mockImplementation(() => [2, 3, 1])
+      vi.spyOn(spellCore, "shuffled").mockImplementation(() => [1, 2, 0])
       expect(spellCore.randomItemsOf(["a", "b", "c"])).toEqual(["b", "c", "a"])
     })
     test("returns value in range for multi-item array", () => {
-      vi.spyOn(_, "shuffle").mockImplementation(() => [2, 3, 1])
+      vi.spyOn(spellCore, "shuffled").mockImplementation(() => [1, 2, 0])
       expect(spellCore.randomItemsOf(["a", "b", "c"], 2)).toEqual(["b", "c"])
     })
   })
@@ -910,11 +909,11 @@ describe("spellCore.randomItemsOf()", () => {
       expect(spellCore.randomItemsOf({ a: 1 })).toEqual({ a: 1 })
     })
     test("returns all keys if count not specified", () => {
-      vi.spyOn(_, "shuffle").mockImplementation(() => ["b", "c", "a"])
+      vi.spyOn(spellCore, "shuffled").mockImplementation(() => ["b", "c", "a"])
       expect(spellCore.randomItemsOf({ a: 1, b: 2, c: 3 })).toEqual({ b: 2, c: 3, a: 1 })
     })
     test("returns key in range for multi-item object", () => {
-      vi.spyOn(_, "shuffle").mockImplementation(() => ["b", "c", "a"])
+      vi.spyOn(spellCore, "shuffled").mockImplementation(() => ["b", "c", "a"])
       expect(spellCore.randomItemsOf({ a: 1, b: 2, c: 3 }, 2)).toEqual({ b: 2, c: 3 })
     })
   })
@@ -932,7 +931,7 @@ describe("spellCore.randomize()", () => {
       expect(collection).toEqual([])
     })
     test("returns all values for multi-item array", () => {
-      vi.spyOn(_, "shuffle").mockImplementation(() => [2, 3, 1])
+      vi.spyOn(spellCore, "shuffled").mockImplementation(() => [1, 2, 0])
       const collection = ["a", "b", "c"]
       spellCore.randomize(collection)
       expect(collection).toEqual(["b", "c", "a"])

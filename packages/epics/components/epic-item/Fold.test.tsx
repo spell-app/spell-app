@@ -23,7 +23,7 @@ const CARDS = [
     html: `<epic-status state="done" at="2026-10-08 14:20" done-at="2026-10-08 14:34"><p>Text</p><p slot="summary">Sum</p></epic-status>`
   },
   { tag: "epic-note", html: `<epic-note state="update" title="partly fixed"><p>Text</p></epic-note>` },
-  { tag: "epic-update", html: `<epic-update phase="2"><p>Text</p></epic-update>` },
+  { tag: "epic-update", html: `<epic-update at="2026-10-11 09:00" summary="Sum" phase="2"><p>Text</p></epic-update>` },
   { tag: "epic-updated", html: `<epic-updated at="2026-10-06T14:30" phase="3"><p>Text</p></epic-updated>` }
 ] as const
 
@@ -72,7 +72,7 @@ describe("every card folds from its heading (fold.button())", () => {
       const host = await card(html)
       const button = find(host, "[part~='toggle']")
       const body = find(host, `#${button.getAttribute("aria-controls")}`)
-      find(host, "[part~='label'], [part~='who']").click()
+      find(host, "[part~='label'], [part~='who'], [part~='title']").click()
       await ElementFixture.tick()
       expect(body.getAttribute("hidden")).toBe("until-found")
       body.dispatchEvent(new Event("beforematch"))
@@ -116,9 +116,13 @@ describe("every card folds from its heading (fold.button())", () => {
     }
   })
 
-  test("a link in the heading doesn't fold (`<epic-updated of>`'s phase link)", async () => {
-    const host = await card(`<epic-updated at="2026-10-06T14:30" of="5"><p>Text</p></epic-updated>`)
-    const link = find(host, "a.of")
+  test("a link in the heading doesn't fold", async () => {
+    // no card draws one since a Plan changes copy's phase link went (epic `epic-workflow` P6):  one put in by hand
+    const host = await card(`<epic-updated at="2026-10-06T14:30" phase="3"><p>Text</p></epic-updated>`)
+    const link = document.createElement("a")
+    link.href = "#p5"
+    link.textContent = "P5"
+    find(host, ".head").append(link)
     link.addEventListener("click", (event) => event.preventDefault())
     link.click()
     await ElementFixture.tick()

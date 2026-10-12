@@ -51,7 +51,7 @@ Dense, terse pages make him ask "what do you mean?" (2026-10-03), so:
 
 ## 2. Make the page
 
-1. `spell dev details new <slug> --title "<Title>"`:  prints the page's path.
+1. `epic ask new <slug> --title "<Title>"`:  prints the page's path.
    - Many questions of one shape (a list to pick from):  `--from <spec.json>` builds the whole page from data instead.
      - The data:  title, lede, "Where we are", context, questions and their options.
      - Its shape:  `DetailsSpec`, in [details.js](packages/docs/tools/details.js).
@@ -103,11 +103,11 @@ Dense, terse pages make him ask "what do you mean?" (2026-10-03), so:
 
 ## 3. Show it, and wait
 
-- Answer page:  `spell dev details show <slug> --wait`, with Bash `run_in_background: true`.
+- Answer page:  `epic ask show <slug> --wait`, with Bash `run_in_background: true`.
   - Then END THE TURN with the page's link pair (`spell dev docs link <page>`, below):
     "answer in the side bar:  <link>".
   - Don't also ask in chat or the modal.
-- Picture page:  `spell dev details show <slug>` (foreground), then AskUserQuestion.
+- Picture page:  `epic ask show <slug>` (foreground), then AskUserQuestion.
 - Outside VS Code (a CLI session in a terminal):  `show` opens Chrome instead;  same flow.
 
 ## Links to pages
@@ -116,7 +116,7 @@ Any page you name to Owen (a details page, a plan doc, any docs page):
 `spell dev docs link <page> --hash <id> --show`, and paste what it prints.
 - It shows the page in this session's side bar NOW (`--show`), and prints two links:
   - the title opens it in the side bar (again)
-  - `(_browser_)` opens it in Chrome
+  - `🌐`, after a `•`, opens it in Chrome:  `Title • 🌐` (Owen, 2026-10-11)
   - Both go through the page server ([showRoutes.ts](packages/docs/tools/showRoutes.ts)):
     the Claude panel ignores `vscode://` links, and opens `localhost` ones in a VS Code tab.
 - `--hash`:  ALWAYS the id of what you mean (`q2`, `t4`, `p3` ...).
@@ -139,19 +139,19 @@ Any page you name to Owen (a details page, a plan doc, any docs page):
 
   Act on it.
   - Epic:  record it, linking the page (`<a href="details/<slug>.html">`):
-    `spell dev plan-doc decide <name> Q<n> "..."`, or `add <name> decision`.
+    `epic decide <name>#Q<n> "..."`, or `epic add <name>#D`.
   - "(not decided yet)":  Owen hasn't picked.
     Never read it as "no", or as the recommended one.
   - "(new)":  changed since his send before.
     Act on those;  the rest you've seen.
   - comments:  answer each (in chat, or on the page when it's a fix to the page)
 - A PARTIAL answer (anything "not decided yet"):  act on what's there, then wait again at once.
-  - `spell dev details wait <slug>`, Bash `run_in_background: true`:  every Send wakes you.
+  - `epic ask wait <slug>`, Bash `run_in_background: true`:  every Send wakes you.
   - Stop once every question is decided, or Owen says he's done.
 - Exit 2:  no answer in 8 hours.
   One line saying so;  ask again only if it still matters.
 - Owen answered in chat instead:  stop the waiter (`TaskStop`), or it wakes you later with a stale answer.
-- He sent again while no waiter ran:  `spell dev details answer <slug>` prints the latest.
+- He sent again while no waiter ran:  `epic ask answer <slug>` prints the latest.
 
 ## 5. When it fails
 
@@ -165,7 +165,7 @@ Any page you name to Owen (a details page, a plan doc, any docs page):
 - `show` couldn't reach VS Code:  `spell dev vscode`, and reload the window.
   Meanwhile the page's URL (`spell dev server url <ABSOLUTE path>`) works in any browser.
 
-## Commands (`spell dev details ...`, from anywhere in the repo)
+## Commands (`epic ask ...`, from anywhere in the repo)
 
 ```
 new <slug> [--title "..."] [--epic <name>] [--description "..."] [--from <spec.json>]
