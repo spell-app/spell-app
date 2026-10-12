@@ -23569,7 +23569,7 @@
         "args table",
         "reference"
       ],
-      "description": "An API reference lists a tag's attributes, properties, events, slots, parts, states and texts as tables, from the site's generated data.",
+      "description": "An API reference lists a tag's attributes, properties, events, slots, parts, states and texts as tables, from the site's generated data;  for a function component, its props and where it's drawn.",
       "noun": "api",
       "attributes": [
         {
@@ -23728,6 +23728,11 @@
       ],
       "texts": [
         {
+          "key": "props",
+          "text": "Props",
+          "description": "Title of a function component's props table."
+        },
+        {
           "key": "attributes",
           "text": "Attributes",
           "description": "Title of the attributes table."
@@ -23763,6 +23768,11 @@
           "description": "Title of the translatable texts table."
         },
         {
+          "key": "usedIn",
+          "text": "Used in",
+          "description": "Title of the table of where a function component is drawn."
+        },
+        {
           "key": "propertiesNote",
           "text": "Rich data:  set as JS properties, never as attributes.",
           "description": "Line under the properties title;  `` `x` `` becomes code."
@@ -23786,6 +23796,31 @@
           "key": "textsNote",
           "text": "Every string the element shows, translatable through `UI.i18n`.",
           "description": "Line under the texts title."
+        },
+        {
+          "key": "usedInNote",
+          "text": "Every component that draws it, as the source shows.",
+          "description": "Line under the used-in title."
+        },
+        {
+          "key": "prop",
+          "text": "Prop",
+          "description": "Column header."
+        },
+        {
+          "key": "type",
+          "text": "Type",
+          "description": "Column header:  a prop's type, as written."
+        },
+        {
+          "key": "component",
+          "text": "Component",
+          "description": "Column header of the used-in table."
+        },
+        {
+          "key": "file",
+          "text": "File",
+          "description": "Column header of the used-in table."
         },
         {
           "key": "attribute",
@@ -23871,6 +23906,11 @@
           "key": "notReflected",
           "text": "not reflected",
           "description": "Note:  the property isn't written back."
+        },
+        {
+          "key": "required",
+          "text": "required",
+          "description": "Note:  the caller must pass the prop."
         },
         {
           "key": "cancelable",

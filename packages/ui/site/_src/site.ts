@@ -21,6 +21,9 @@
  *      `display="when-ready"` shows the whole page at once, already themed;  every OTHER family, `<ui-docs-*>`
  *      included, is a lazy chunk it imports on first use
  *   8. `SiteRouter`:  links to other pages swap only the `main`, the layout stays
+ * - The component sets' pages (Epic UI, App UI) load this through `sets.ts`, their own build, which sets
+ *   `globalThis.SpellUI` first (`SitePacks`) for the component packs their examples use;  the root's module joins its
+ *   `packModules` here, once imported
  * - Lazy, by `import()`:  families, the runtime, icon packs (`_assets/icon-packs/`), emoji names, `<ui-code>`'s and
  *   `<ui-markdown>`'s engines, spell's highlighter, the Temporal polyfill.
  * - `window.UI`:  the runtime (`UI.load()` works at once;  the rest after it), for poking in DevTools.
@@ -41,7 +44,11 @@ import { SiteShell } from "./SiteShell"
 /** This bundle's folder, `.../_assets/`:  a string slice, NOT `new URL(".", import.meta.url)` (Vite would inline it). */
 const ASSETS = import.meta.url.slice(0, import.meta.url.lastIndexOf("/") + 1)
 
-/** The site's root (`/ui/`):  the folder above `_assets/`. */
+/**
+ * The site's root (`/ui/`):  the folder above `_assets/`.
+ * - Another set served with this bundle laid over it (`/epic-ui/`:  `COMPONENT_SETS` in `$/server/page`) is its own
+ *   root:  its layout (`_parts/`), its data (`_data/`), its routable pages
+ */
 const SITE_ROOT = new URL("../", ASSETS)
 
 E.BuiltInPacks.base = ASSETS
@@ -69,6 +76,9 @@ void SiteShell.mount(SITE_ROOT).then(async (content) => {
   router?.land(new URL(location.href), { isFirst: true })
   // the theme's sheet in place BEFORE the root shows the page:  no restyle (and reflow) after first paint
   await theme
-  await import("$/ui/components/ui-root")
+  const root = await import("$/ui/components/ui-root")
+  // a component set's page (`sets.ts`):  a pack's script may share the root's module too (`SitePacks`)
+  const packModules = (globalThis as { SpellUI?: { packModules?: Record<string, unknown> } }).SpellUI?.packModules
+  if (packModules) packModules["$/ui/components/ui-root"] = root
   router?.start()
 })

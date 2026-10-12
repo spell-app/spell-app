@@ -201,7 +201,7 @@ to cheat
 ##############
 ## rendering the bits
 
-// each pile draws its outside:  its cards show in its <slot/>, each card its own element
+// each pile draws its outside:  its cards show where it says <children/>, each card its own element
 
 to draw a foundation:
 	set color to "red" if its name is diamonds or its name is hearts otherwise "black"
@@ -209,23 +209,23 @@ to draw a foundation:
 		<div className={"placeholder " + color + " " + its name}>
 			<div className={"suit " + its name}>{its symbol}</div>
 		</div>
-		<slot/>
+		<children/>
 	</div>
 
 to draw a tableau:
 	return <div className="pile tableau">
-		<slot/>
+		<children/>
 	</div>
 
 to draw a stock-pile:
 	return <div className="pile stock">
 		<div className="placeholder" onClick={play from the stock pile}/>
-		<slot/>
+		<children/>
 	</div>
 
 to draw a discard-pile:
 	return <div className="pile discards">
-		<slot/>
+		<children/>
 	</div>
 
 to draw a game

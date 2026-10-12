@@ -18,14 +18,20 @@ export type DocsNavText = DocsNavVocabulary["texts"][number]["key"]
 // ## Pages
 ////////////////
 
-/** One hand-written page of the site:  a top link or a Foundation link. */
+/**
+ * One hand-written page of the site:  a top link or a Foundation link.
+ * - Spell UI's are built in (`TOP_PAGES`, `FOUNDATION_PAGES`), labelled by vocabulary text;  another site's come from
+ *   its data (`SiteDataFile.nav`), labelled as written there
+ */
 export type NavPage = {
   /** what `current` names it by:  its file name without `.html`, e.g. `getting-started` */
   readonly id: string
   /** its file, relative to the site root */
   readonly file: string
-  /** the vocabulary text of its label */
-  readonly text: DocsNavText
+  /** the vocabulary text of its label (Spell UI's pages) */
+  readonly text?: DocsNavText
+  /** its label as written (another site's pages, from its data);  wins over `text` */
+  readonly label?: string
   /** its row's icon (the default `fa7-free` pack), as the brand's nav rows have */
   readonly icon: string
 }

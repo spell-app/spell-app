@@ -1,5 +1,6 @@
 import { proto } from "$/util"
 import { P } from "$/parser"
+import { NewThing } from "$/spell/rules/classes"
 // Import directly to avoid circular import
 import { SpellStatement } from "$/spell/rules/Statement"
 import { assignment } from "./assignment.parser"
@@ -16,11 +17,16 @@ export class Get extends SpellStatement<"value", GetMatchData> {
   @proto static alias = ["assignment", "statement"]
   @proto static changesScope: P.ScopeChanges = "internal"
 
-  /** Declare a new `it`, holding what `value` is -- see `AssignmentStatement.declareIt()`. */
+  /**
+   * Declare a new `it`, holding what `value` is -- see `AssignmentStatement.declareIt()`.
+   * - And count a new thing's name given in so many words -- see `NewThing.noteNameGiven()`.
+   */
   mutateScope(match: P.MatchFor<this>) {
     // `match.scope` is typed as `P.Scope`, whose `.variables` getter can be `undefined` -- we know it's a block.
     const scope = match.scope as P.BlockScope
     match.data.itVar = AssignmentStatement.declareIt(scope, match, match.groups.value.datatype)
+    // `get a new foundation with name = "clubs"`:  for `foundation "clubs"`'s warning -- see `NewThing.noteNameGiven()`
+    NewThing.noteNameGiven(match.groups.value, match)
   }
   /** Build `P.ASTAssignmentStatement` declaring our new `it` as `value`. */
   getAST(match: P.MatchFor<this>): P.ASTAssignmentStatement {

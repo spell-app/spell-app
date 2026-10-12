@@ -401,6 +401,14 @@ describe("SpellLanguageService", () => {
       }
       const labels = (items: CompletionItem[]) => items.map(({ label }) => label)
 
+      test("typing a JSX tag, `<div><chi` => spell's own tags:  `children`, its word for `<slot>`", async () => {
+        await typed("print <div><chi", (items) => {
+          expect(items).toEqual([expect.objectContaining({ label: "children", detail: "spell's word for <slot>" })])
+        })
+        // a comparison isn't a tag
+        await typed("if 1 < 2", (items) => expect(labels(items)).not.toContain("children"))
+      })
+
       test("`set y ` => `to`", async () => {
         await typed("set y ", (items) => expect(labels(items)).toContain("to"))
       })
@@ -834,6 +842,24 @@ describe("SpellLanguageService", () => {
       await withCardText(withBlock, () => {
         expect(describeTokens(card, [3, 4, 5])).toEqual([])
         expect(service.foldingRanges(card)).toContainEqual({ startLine: 2, endLine: 4 })
+      })
+    })
+  })
+
+  describe("<markdown> blocks (spell's `markdown_description`, `markdown_block`)", () => {
+    // the card type's description, as markdown in its outline -- with markdown's own `#`, `*`, `<` and braces;
+    // its `##` comment docstring blanked, which would win
+    const withBlock = cardText.replace(
+      /^## .*\na card is a thing\n/,
+      "\na card is a thing:\n\t<markdown>\n\t\t# A card\n\t\tA *playing* card <b>{rank}</b>.\n\t</markdown>\n"
+    )
+
+    test("no errors, and no spell colouring inside;  hover on the type shows it as its description", async () => {
+      await withCardText(withBlock, () => {
+        expect(errorsIn(service, card)).toEqual([])
+        expect(describeTokens(card, [4, 5])).toEqual([])
+        const markdown = (service.hover(deck, at(deck, 9, "card"))!.contents as { value: string }).value
+        expect(markdown).toContain("type **Card** is a Thing\n\n# A card\nA *playing* card <b>{rank}</b>.")
       })
     })
   })

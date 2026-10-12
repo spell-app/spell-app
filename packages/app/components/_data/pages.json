@@ -1,0 +1,220 @@
+{
+  "$comment": "Hand-kept facts of the App UI docs set (epic `epic-workflow`, P11):  the side column's groups, and one entry per page (title, summary, status, group;  `file`:  a Solid component file, from packages/app/).  Read by `yarn site:data` (packages/app, tools/AppUIDataBuilder.ts), never written.  Shape:  `AppUIPagesFile` in tools/tools.types.ts.  A new page:  add its entry here, run `yarn site:data`, then write its page as a copy of one like it (Notice.html:  a picture;  spell-app.html:  live), and link it from index.html.",
+  "nav": {
+    "start": [{ "id": "index", "file": "index.html", "label": "Overview", "icon": "house" }],
+    "foundation": [],
+    "titles": { "start": "App UI", "components": "Components" }
+  },
+  "groups": [
+    { "id": "web components", "title": "Web components" },
+    { "id": "shell", "title": "Page shell" },
+    { "id": "panes", "title": "Panes" },
+    { "id": "editors", "title": "Editors" },
+    { "id": "menus and dialogs", "title": "Menus and dialogs" },
+    { "id": "notices", "title": "Notices" },
+    { "id": "runner", "title": "The runner's pieces" }
+  ],
+  "families": {
+    "spell-app": {
+      "title": "<spell-app>",
+      "summary": "Runs a spell project in any page, in its own shadow root.",
+      "status": "done",
+      "group": "web components"
+    },
+    "spell-editor": {
+      "title": "<spell-editor>",
+      "summary": "Edits a spell project in any page, and runs it in the apps beside it.",
+      "status": "done",
+      "group": "web components"
+    },
+    "SpellPage": {
+      "title": "SpellPage",
+      "summary": "A whole page's box:  its look, and its children laid out down or across it.",
+      "status": "done",
+      "group": "shell",
+      "file": "src/solid/SpellPage.tsx"
+    },
+    "SplitPanel": {
+      "title": "SplitPanel",
+      "summary": "Panes side by side or one above the other, with bars to drag between them.",
+      "status": "done",
+      "group": "shell",
+      "file": "src/solid/SplitPanel.tsx"
+    },
+    "AppRoot": {
+      "title": "AppRoot",
+      "summary": "The running program in the editor's pages, under its toolbar.",
+      "status": "done",
+      "group": "shell",
+      "file": "src/solid/AppRoot.tsx"
+    },
+    "AppContainer": {
+      "title": "AppContainer",
+      "summary": "The box a compiled spell program draws in.",
+      "status": "done",
+      "group": "shell",
+      "file": "src/solid/AppContainer.tsx"
+    },
+    "chrome": {
+      "title": "Chrome",
+      "summary": "The menus and toolbars around the panes:  bars, sections, springs, \"...\" menus.",
+      "status": "done",
+      "group": "shell",
+      "file": "src/solid/chrome.tsx",
+      "mainTag": "AppMenu"
+    },
+    "ThingExplorer": {
+      "title": "ThingExplorer",
+      "summary": "The things a running program has made, live, with their properties and actions.",
+      "status": "done",
+      "group": "panes",
+      "file": "src/solid/ThingExplorer.tsx"
+    },
+    "TypeExplorer": {
+      "title": "TypeExplorer",
+      "summary": "The scopes a project parses in, as a tree, with the details of the one picked.",
+      "status": "done",
+      "group": "panes",
+      "file": "src/solid/TypeExplorer.tsx"
+    },
+    "TreeViewer": {
+      "title": "TreeViewer",
+      "summary": "The spell tree of the line the cursor is on.",
+      "status": "done",
+      "group": "panes",
+      "file": "src/solid/TreeViewer.tsx"
+    },
+    "ConsoleViewer": {
+      "title": "ConsoleViewer",
+      "summary": "What running programs print, in the editor's console pane.",
+      "status": "done",
+      "group": "panes",
+      "file": "src/solid/ConsoleViewer.tsx"
+    },
+    "ConsoleLines": {
+      "title": "ConsoleLines",
+      "summary": "Console lines, groups and logged values:  what every console draws its lines with.",
+      "status": "done",
+      "group": "panes",
+      "file": "src/solid/ConsoleLines.tsx"
+    },
+    "ScopeDetailsPane": {
+      "title": "ScopeDetailsPane",
+      "summary": "The details of a scope picked in the Type Explorer:  where it is, its members and docs.",
+      "status": "done",
+      "group": "panes",
+      "file": "src/solid/ScopeDetailsPane.tsx"
+    },
+    "Markdown": {
+      "title": "Markdown",
+      "summary": "Markdown text, such as a docstring, drawn as HTML.",
+      "status": "done",
+      "group": "panes",
+      "file": "src/solid/Markdown.tsx"
+    },
+    "InputEditor": {
+      "title": "InputEditor",
+      "summary": "The spell source editor on the open file, with its toolbar.",
+      "status": "done",
+      "group": "editors",
+      "file": "src/solid/InputEditor.tsx"
+    },
+    "OutputEditor": {
+      "title": "OutputEditor",
+      "summary": "The open file's compiled javascript, read only.",
+      "status": "done",
+      "group": "editors",
+      "file": "src/solid/OutputEditor.tsx"
+    },
+    "MonacoEditor": {
+      "title": "MonacoEditor",
+      "summary": "A Monaco editor, filling its parent:  what every code editor in the app is.",
+      "status": "done",
+      "group": "editors",
+      "file": "src/solid/monaco/MonacoEditor.tsx"
+    },
+    "FileEditor": {
+      "title": "FileEditor",
+      "summary": "A Monaco editor on one spell file, kept in step with it.",
+      "status": "done",
+      "group": "editors",
+      "file": "src/solid/monaco/FileEditor.tsx"
+    },
+    "FileDropdown": {
+      "title": "FileDropdown",
+      "summary": "The open project's files, as a dropdown showing the open one.",
+      "status": "done",
+      "group": "menus and dialogs",
+      "file": "src/solid/FileDropdown.tsx"
+    },
+    "ProjectDropdown": {
+      "title": "ProjectDropdown",
+      "summary": "Every project, as a dropdown or a menu of links.",
+      "status": "done",
+      "group": "menus and dialogs",
+      "file": "src/solid/ProjectDropdown.tsx"
+    },
+    "Actions": {
+      "title": "Actions",
+      "summary": "The editor's actions, each as a menu item or a button.",
+      "status": "done",
+      "group": "menus and dialogs",
+      "file": "src/solid/Actions.tsx"
+    },
+    "Chooser": {
+      "title": "Chooser",
+      "summary": "A dialog to choose one value from a list, or several.",
+      "status": "done",
+      "group": "menus and dialogs",
+      "file": "src/solid/modals/Chooser.tsx"
+    },
+    "Notice": {
+      "title": "Notice",
+      "summary": "A success message near the top of the page, which hides itself.",
+      "status": "done",
+      "group": "notices",
+      "file": "src/solid/Notice.tsx"
+    },
+    "ErrorNotice": {
+      "title": "ErrorNotice",
+      "summary": "An error as a message:  inline, or over the page.",
+      "status": "done",
+      "group": "notices",
+      "file": "src/solid/ErrorNotice.tsx"
+    },
+    "ErrorBoundary": {
+      "title": "ErrorBoundary",
+      "summary": "Shows an error in place of what it guards, when that throws.",
+      "status": "done",
+      "group": "notices",
+      "file": "src/solid/ErrorBoundary.tsx"
+    },
+    "RunnerPane": {
+      "title": "RunnerPane",
+      "summary": "One of a runner's panes:  a toolbar of tabs, and what the chosen tab shows.",
+      "status": "done",
+      "group": "runner",
+      "file": "src/runner/RunnerPane.tsx"
+    },
+    "RunnerSplit": {
+      "title": "RunnerSplit",
+      "summary": "A runner's two panes, one above the other, with a bar to drag between them.",
+      "status": "done",
+      "group": "runner",
+      "file": "src/runner/RunnerSplit.tsx"
+    },
+    "RunnerConsole": {
+      "title": "RunnerConsole",
+      "summary": "One running program's console, in a runner.",
+      "status": "done",
+      "group": "runner",
+      "file": "src/runner/RunnerConsole.tsx"
+    },
+    "spell-element": {
+      "title": "SpellElement",
+      "summary": "A drawable thing, drawn as an element of its own, one tag per type.",
+      "status": "done",
+      "group": "runner"
+    }
+  }
+}

@@ -11,7 +11,7 @@
       path: "project:Drawable Solitaire/file:Card.spell/type:Card", line: [3, 36],
       super: "type:Drawable",
       section: "definition of a Card with nice english aliases for working with it",
-      description: "a drawable thing:  each card draws in its own element, <drawable-solitaire-card>, with its own styles"
+      description: "a drawable thing:  each card draws in its own element, <solitaire-card>, with its own styles"
     },
     {
       path: "project:Drawable Solitaire/file:Card.spell/type:Card/property:rank", line: 40,
@@ -278,7 +278,7 @@
       path: "project:Drawable Solitaire/file:Pile.spell/type:Pile", line: [3, 36],
       super: "type:DrawableList",
       section: "Pile of playing cards",
-      description: "a drawable list:  each pile is its own element, <drawable-solitaire-pile>, holding its cards' elements"
+      description: "a drawable list:  each pile is its own element, <solitaire-pile>, holding its cards' elements"
     },
     {
       path: "project:Drawable Solitaire/file:Pile.spell/type:Pile/property:name", line: 39,

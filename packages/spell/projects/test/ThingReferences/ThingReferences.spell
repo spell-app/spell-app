@@ -1,0 +1,37 @@
+## Thing references:  one thing by its type and its name, or its place
+-- epic `drawable-thing` P19:  `tableau T1` is the tableau named T1;  `the first tableau` the first one made.
+
+a pile is a list of things
+a pile has a name as text
+a tableau is a pile
+a foundation is a pile
+a discard-pile is a pile
+
+// two tableaus named T1:  a reference to T1 below warns, and finds the first
+set first-t1 to a new tableau with name = "T1"
+set second-t1 to a new tableau with name = "T1"
+set t2 to a new tableau with name = "T2"
+
+// foundations, each its own name:  no warning
+get a new foundation with name = "clubs"
+get a new foundation with name = "hearts"
+
+// two discard piles named "spare", but nothing names one by its name:  no warning
+set spare to a new discard-pile with name = "spare"
+set other-spare to a new discard-pile with name = "spare"
+
+// names worked out as the program runs are never counted
+for each number from 3 to 4
+	get a new tableau with name = ("T" + the number)
+
+## by name
+print the name of tableau T1
+print the name of tableau T2
+print the name of foundation "hearts"
+// a tableau is a pile:  `pile T2` finds it
+print the name of pile T2
+
+## by place
+print the name of the first tableau
+print the name of the second foundation
+print the name of the last tableau

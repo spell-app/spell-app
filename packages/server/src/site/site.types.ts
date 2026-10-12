@@ -8,6 +8,7 @@
  * - `path`:  home page, relative to the repo root (`pages/index.html`), or server-absolute (`/ui/`)
  * - `serverOnly`:  only exists when served by the page server
  *   - `/ui/`:  the shared pages with the branch's built bundle laid over them (`UI_SITE`)
+ *   - `/epic-ui/`, `/app-ui/`:  a component set's tracked folder, with Spell UI's bundle laid over it (`COMPONENT_SETS`)
  *   - `/editor/`:  the app
  * - `ownTab`:  always opens in its own browser tab (`target`), never in place
  *   - the app is a whole program, too big for VS Code's side bar
@@ -29,8 +30,13 @@ export type SiteProperty = {
 export const SITE_HOME = "pages/index.html"
 
 /**
- * Every property, in header order (Owen, 2026-10-05, Q6 of epic `claude-design`):
- * Epics · Guides · Brand · Spell UI · Templates · Goals · App.
+ * Every property, in header order (Owen, 2026-10-11, epic `epic-workflow` J40):
+ * Guides · Goals · Epics · Epic/UI · Spell/UI · App · App/UI · Brand · Templates.
+ * - Owen's words:  "Docs toolbar:  Guides Goals Epics Epic/UI Spell/UI App App/UI";  asked where Brand and
+ *   Templates go, "At the end"
+ * - the slashed names are the tab labels as he typed them (J41):  "the UI set of Epic", "of Spell", "of the app";
+ *   prose and folders keep "Epic UI", "Spell UI", "App UI" and `epic-ui/`, `ui/`, `app-ui/`
+ * - (before, claude-design Q6, 2026-10-05:  Epics · Guides · Brand · Spell UI · Templates · Goals · App)
  * - the home's cards are in the same order (`packages/docs/tools/index.js` `areaCards()`)
  * - each docs area's tab lights on its own pages (`docsArea()`):
  *   - a plan doc:  Epics
@@ -38,21 +44,35 @@ export const SITE_HOME = "pages/index.html"
  *   - a template (the plan template under `templates/epics/` too):  Templates
  *   - the home and the scratch details pages:  none
  * - each area's list page is its tab's home (`<area>/index.html`)
+ * - the component sets (Epic/UI, App/UI:  `COMPONENT_SETS` in `$/server/page`) light on their short address and on
+ *   their folder's long one;  App means the editor, opened in its own browser tab
  */
 export const PROPERTIES: SiteProperty[] = [
-  { name: "Epics", path: "epics/index.html", match: (path) => docsArea(path) === "epics" },
   { name: "Guides", path: "guides/index.html", match: (path) => docsArea(path) === "guides" },
-  // Brand:  the shared `brand/` pages, moved from `packages/brand` (claude-design P11);  its home is the Brand index
-  { name: "Brand", path: "brand/index.html", match: (path) => docsArea(path) === "brand" },
+  { name: "Goals", path: "goals/index.html", match: (path) => docsArea(path) === "goals" },
+  { name: "Epics", path: "epics/index.html", match: (path) => docsArea(path) === "epics" },
   {
-    name: "Spell UI",
+    name: "Epic/UI",
+    path: "/epic-ui/",
+    serverOnly: true,
+    match: (path) => /^(?:\/worktrees\/[^/]+)?\/epic-ui(\/|$)|\/packages\/epic-components\//.test(path)
+  },
+  {
+    name: "Spell/UI",
     path: "/ui/",
     serverOnly: true,
     match: (path) => /^(?:\/worktrees\/[^/]+)?\/ui(\/|$)|\/packages\/ui\/site\//.test(path)
   },
-  { name: "Templates", path: "templates/index.html", match: (path) => docsArea(path) === "templates" },
-  { name: "Goals", path: "goals/index.html", match: (path) => docsArea(path) === "goals" },
-  { name: "App", path: "/editor/", serverOnly: true, ownTab: true, match: (path) => /^\/editor(\/|$)/.test(path) }
+  { name: "App", path: "/editor/", serverOnly: true, ownTab: true, match: (path) => /^\/editor(\/|$)/.test(path) },
+  {
+    name: "App/UI",
+    path: "/app-ui/",
+    serverOnly: true,
+    match: (path) => /^(?:\/worktrees\/[^/]+)?\/app-ui(\/|$)|\/packages\/app\/components\//.test(path)
+  },
+  // Brand:  the shared `brand/` pages, moved from `packages/brand` (claude-design P11);  its home is the Brand index
+  { name: "Brand", path: "brand/index.html", match: (path) => docsArea(path) === "brand" },
+  { name: "Templates", path: "templates/index.html", match: (path) => docsArea(path) === "templates" }
 ]
 
 /** A docs area:  a root folder of the checkout (each a link into the shared content repo) with a tab of its own. */

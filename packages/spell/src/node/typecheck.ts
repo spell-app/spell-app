@@ -7,14 +7,18 @@ import environment from "$/spell/node/environment"
 
 /**
  * `tsc` on compiled spell's TypeScript (the `ts/solid` target):  what it says is wrong, by file.
- * - Checked against `@spell/core`'s SOURCE, with `core`'s own `strict` settings, `strictFunctionTypes` too:  a
- *   collection helper's callback takes its collection's item type (`CollectionOf`), e.g. a `Card` for a
- *   `List<Card>` (epic `output-targets`, J14, T7).
- * - Solid's JSX, as `app` checks its own (`jsx: "preserve"`, `jsxImportSource: "@solidjs/web"`), with `<ui-*>`
- *   tags typed as `app` types them (`UI_JSX_TYPES`).  Standard decorators (`@prop`, `@drawn`), never
- *   `experimentalDecorators`.
- * - `files`:  each file's name, e.g. `Solitaire.tsx`, and its code.  Written to a temp folder, checked together.
- *   The folder links the repo's `node_modules`, so `solid-js` and `@solidjs/web` resolve from it.
+ * - Checked against `@spell/core`'s SOURCE, with `core`'s own `strict` settings, `strictFunctionTypes` too:
+ *   a collection helper's callback takes its collection's item type (`CollectionOf`),
+ *   e.g. a `Card` for a `List<Card>` (epic `output-targets`, J14, T7).
+ * - Solid's JSX, as `app` checks its own (`jsx: "preserve"`, `jsxImportSource: "@solidjs/web"`),
+ *   with `<ui-*>` tags typed as `app` types them (`UI_JSX_TYPES`).
+ * - Standard decorators (`@prop`, `@drawn`), never `experimentalDecorators`.
+ * - A drawable type's element class, `class CardElement extends SpellElement<Card>` (epic `drawable-thing` P10):
+ *   checked against app's `SpellElement` and Spell UI's source, as `@spell/elements` is app's `spellElements.ts`.
+ *   - With the 2023 javascript library, which Spell UI's own files use (`toReversed()`, `findLast()`).
+ * - `files`:  each file's name, e.g. `Solitaire.tsx`, and its code.
+ *   - Written to a temp folder, checked together.
+ *   - The folder links the repo's `node_modules`, so `solid-js` and `@solidjs/web` resolve from it.
  * - `projects`:  each project they import, `@spell/project/<id>`, as the path of its compiled output.
  * - Used by `spell compile` (on a `ts/solid` target) and spell's `typescript.test.ts`.
  * - NODE-ONLY:  runs the workspace's `tsc` (TypeScript 7) in a child process.
@@ -89,8 +93,15 @@ function nodeModulesDir(): string {
 const UI_JSX_TYPES = "app/src/solid/solid.types.ts"
 
 /**
+ * What compiled TypeScript imports as `@spell/elements`:  app's `SpellElement`, and Spell UI's `E`.
+ * - Its source, for its types:  nothing of `app`'s runs here.
+ */
+const SPELL_ELEMENTS_SOURCE = "app/src/runner/spellElements.ts"
+
+/**
  * A `tsconfig.json` checking `names`, with `@spell/core` pointing at `core`'s source.
  * - `core`'s settings, plus Solid's JSX and `<ui-*>`'s JSX types -- see `typecheck()`.
+ * - `@spell/elements` pointing at app's source, and the aliases Spell UI's files import each other by.
  */
 function tsconfig(names: string[], projects: Record<string, string>) {
   const { packagesDir, spellCoreDir } = environment
@@ -105,8 +116,12 @@ function tsconfig(names: string[], projects: Record<string, string>) {
         "$/util/*": [`${packagesDir}/util/src/*`],
         "$/core": [`${spellCoreDir}/index.ts`],
         "$/core/*": [`${spellCoreDir}/*`],
+        "@spell/elements": [resolve(packagesDir, SPELL_ELEMENTS_SOURCE)],
+        "$/ui": [`${packagesDir}/ui/src/index.ts`],
+        "$/ui/*": [`${packagesDir}/ui/src/*`],
         ...imported
       },
+      lib: ["ES2023", "DOM", "DOM.Iterable"],
       jsx: "preserve",
       jsxImportSource: "@solidjs/web",
       // `vite/client`:  `core` uses none of it

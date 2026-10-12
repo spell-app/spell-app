@@ -25,6 +25,34 @@ describe("ApiModel.sectionsFor()", () => {
     expect(sections.find((section) => section.id === "properties")!.rows.map((row) => row.key)).toEqual(["options"])
     expect(sections.find((section) => section.id === "attributes")!.rows.map((row) => row.key)).not.toContain("options")
   })
+
+  test("puts a function component's props FIRST and where it's drawn LAST", () => {
+    const notice = tagOf("Notice", {
+      props: [{ name: "autoHide", type: "boolean", description: "Hide after 3s." }],
+      parts: [{ name: "message", description: "The message." }],
+      usedIn: [{ name: "AppRoot", file: "packages/app/src/solid/AppRoot.tsx" }]
+    })
+    const sections = ApiModel.sectionsFor(notice)
+    expect(sections.map((section) => section.id)).toEqual(["props", "parts", "usedIn"])
+    expect(sections[0]!.rows[0]!.cells).toEqual([
+      { type: "name", code: "autoHide", notes: [] },
+      { type: "text", text: "`boolean`" },
+      { type: "text", text: "Hide after 3s." }
+    ])
+    expect(sections[2]!.rows[0]!.cells).toEqual([
+      { type: "name", code: "AppRoot", notes: [] },
+      { type: "text", text: "`packages/app/src/solid/AppRoot.tsx`" }
+    ])
+  })
+
+  test("notes a required prop", () => {
+    const pane = tagOf("RunnerPane", { props: [{ name: "id", type: "Id", required: true, description: "Its id." }] })
+    expect(ApiModel.sectionsFor(pane)[0]!.rows[0]!.cells[0]).toEqual({
+      type: "name",
+      code: "id",
+      notes: [{ key: "required" }]
+    })
+  })
 })
 
 describe("ApiModel.propertyFor()", () => {

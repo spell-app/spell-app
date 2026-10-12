@@ -314,6 +314,19 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
     - NEVER edit.
   - `site/_src/`:  the bundle's entry (`site.ts`:  what's in it and why), and the site's layout-glue CSS (`site.css`).
     - Its config:  `vite.site.config.ts`.
+    - Listed in `package.json`'s `sideEffects`:  `site.ts`, `snapshot.ts`, `SitePacks.ts`, imported for what they do.
+      Before 2026-10-12 `snapshot.ts` wasn't, and the build dropped its snapshot (epic `epic-workflow` P10).
+  - The COMPONENT SETS' build (epic `epic-workflow` P10):  the same site again, from `site/_src/sets.ts`, into
+    `site/_assets/sets/` (`yarn site:bundle` builds both;  mode `sets` in `vite.site.config.ts`).
+    - For Epic UI (`/epic-ui/`) and App UI (`/app-ui/`):  pages in Spell UI's shape, in their own package folders
+      (`COMPONENT_SETS` in `$/server/page`), which the page server serves with this build as their `_assets/`.
+    - It adds `SitePacks.ts`:  `globalThis.SpellUI` (`registerPack`, `packModules`), so a component pack's script
+      shares the page's Solid and Spell UI;  a pack's `define()` waits for every family first, as its elements draw
+      Spell UI's in their shadow roots.
+    - Its own build, NOT a lazy chunk of Spell UI's:  the pack modules stay whole, which cost Spell UI's pages
+      +118 KB (36 KB gzipped) when shared.
+    - Each set's side column reads its own `_data/`:  `SiteDataFile.nav` gives `<ui-docs-nav>` its own start and
+      Foundation links and band titles (absent:  Spell UI's).
   - `site/_data/`:  `components.json` and `icons.json` (the icon browser's search terms), GENERATED, committed.
     - Written by `yarn site:data`.
     - Their shapes, `SiteDataFile` / `SiteIconsFile`:  [the docs components' types](src/docs-components/docs-components.types.ts).
@@ -962,7 +975,9 @@ THE LINT GUARD (epic `spell-element` P10):  `yarn lint` holds component files to
   - A pack's events keep their own names (`spell-open`).
     - Only Spell UI's `ui-*` ones take a translated tag's prefix (`Vocabulary`;  [the translation doc](docs/translation.md)).
   - `registerPack()`:  exported from `$/ui` (`@spell-app/ui`) and the family's barrel.
-    The docs bundle puts it on `window.SpellUI`.
+    The docs bundle puts it on `window.SpellUI`;  so does the site's component sets' build (`site/_src/SitePacks.ts`).
+  - A `define()` still running (it loads its families first):  a root that finds one of the pack's tags undefined
+    meanwhile waits for it (`ComponentPacks.whileDefining()`), rather than calling it failed.
 - The root (`UIRoot`, `RootLoader`):
   - its first settle round also waits for its packs
   - `RootLoader.undefinedTags()` / `entryOf()` know registered prefixes and catalogs
@@ -974,8 +989,9 @@ THE LINT GUARD (epic `spell-element` P10):  `yarn lint` holds component files to
 - Modules a pack shares with the page are `SpellUI.packModules`:
   the EXACT specifier its build leaves external => the page's module.
   - `solid-js`, `@solidjs/web`, `$/ui/core`, `$/ui/forms`
-  - Built in [the docs bundle's entry](../docs/tools/_assets/spell-ui.entry.js), NOT in `ui`.
-    - It's the one place a Solid package is `import * as`'d, on purpose:
+  - Built in [the docs bundle's entry](../docs/tools/_assets/spell-ui.entry.js), and in the site's component sets'
+    build ([SitePacks.ts](site/_src/SitePacks.ts)), never in the library or Spell UI's own site.
+    - The two places a Solid package is `import * as`'d, on purpose:
       a pack may use any export, so they must all stay ("One Solid per page" above).
   - A new specifier goes there AND in the pack build's externals.
   - So a pack's elements extend the page's own `UIComponent` / `DOMElement`.

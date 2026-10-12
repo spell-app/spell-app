@@ -89,8 +89,8 @@ export type FillInParts = Array<string | P.Match>
 /**
  * `inner`, the text between a string's quotes, split into plain pieces and parsed `[...]` fill-ins
  * (plan doc `outline-spell`, P4):
- * - `[x]`:  `x` is an expression, e.g. `[rank + 1]`;  inside a method, a bare property name is the thing's,
- *   `[rank]` ~== `[its rank]`
+ * - `[x]`:  `x` is an expression, e.g. `[rank + 1]`
+ *   - inside a method, a bare property name is the thing's:  `[rank]` ~== `[its rank]`
  * - a real bracket:  `[[` or `\[` for `[`, `]]` for `]` (Q15:  both)
  * - `undefined`:  no brackets at all, the text stays as written;  `null`:  a fill-in that doesn't parse
  * - Parses each fill-in on its own, so a fill-in's tokens don't map back onto the file:  no hover inside, yet.
@@ -126,10 +126,12 @@ export function parseFillIns(scope: P.Scope, inner: string): FillInParts | undef
 }
 
 /**
- * One fill-in's words, parsed as an expression -- `its <words>` if they're a property of `it`'s type,
- * e.g. `[rank]` in a card's getter.  `undefined` if it doesn't parse, whole.
+ * One fill-in's words, parsed as an expression.
+ * - `its <words>` if they're a property of `it`'s type, e.g. `[rank]` in a card's getter.
+ * - `undefined` if it doesn't parse, whole.
+ * - Markdown's `{holes}` read the same way:  see `markdown_block`.
  */
-function parseFillIn(scope: P.Scope, words: string): P.Match | undefined {
+export function parseFillIn(scope: P.Scope, words: string): P.Match | undefined {
   if (!words) return undefined
   const itType = scope.getType(scope.variables?.get("it")?.datatype)
   const source = itType?.getMember(words) ? `its ${words}` : words

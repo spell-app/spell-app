@@ -2,6 +2,7 @@ import { proto } from "$/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 import { MemberReadExpression } from "$/spell/rules/properties"
+import { NewThing } from "$/spell/rules/classes"
 // Import directly to avoid circular import
 import { SpellStatement } from "$/spell/rules/Statement"
 import { assignment } from "./assignment.parser"
@@ -22,6 +23,8 @@ import { assignment } from "./assignment.parser"
  * - A new variable holds what `value` is, its `datatype`, e.g. `Card` for `the card is a new card`.
  *   An existing one keeps its own:  the first datatype wins.
  * - SIDE EFFECT: `set the X of Y to V` declares property `X` if `Y`'s type doesn't -- see `declareProperty()`.
+ * - SIDE EFFECT: a new thing given a name in so many words, `set t1 to a new tableau with name = "T1"`,
+ *   is counted for `tableau T1`'s warning -- see `NewThing.noteNameGiven()`.
  * - Asks for a type its value doesn't say, with a warning (see `SP.SpellWarnings`):
  *   - a new variable's list of nothing said, `set state to []`
  *   - a property it declares from a value which doesn't say what it is
@@ -67,6 +70,8 @@ export class AssignmentStatement extends SpellStatement<"thing|value", Assignmen
    */
   mutateScope(match: P.MatchFor<this>) {
     const { thing, value } = match.groups
+    // `set t1 to a new tableau with name = "T1"`:  for `tableau T1`'s warning about a name two things share
+    NewThing.noteNameGiven(value, match)
     // If `thing` is a variable...
     // TODO: this is not necessarily the best check...
     if (thing.rule.name === "variable" || thing.rule.name?.endsWith("_variable")) {

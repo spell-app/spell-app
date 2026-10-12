@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>InputEditor</title>
+    <meta name="description" content="The spell source editor on the open file, with its toolbar." />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="InputEditor">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../packages/app/src/solid/InputEditor.tsx"
+              icon="code"
+              aria-label="Its code, InputEditor.tsx"
+              title="Its code, InputEditor.tsx"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            InputEditor
+            <ui-header>The spell source editor on the open file, with its toolbar.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <p class="lede">
+            Where you write spell in the editor: the open file, coloured as spell, top left, with a toolbar to pick
+            another file, compile, save, reload or make a new one. It's a
+            <a href="MonacoEditor.html" target="src-packages-app-components-monacoeditor-html">Monaco editor</a> on the
+            file, so it has hovers, references and "go to definition" too.
+          </p>
+          <ui-list class="spell-meta">
+            <ui-item icon="user">Written for: anyone changing the spell app's editor, or reading its code</ui-item>
+            <ui-item icon="image">A picture, not live: it needs the whole editor, and a project open in it</ui-item>
+          </ui-list>
+
+          <ui-section id="1-what-it-looks-like" header="1. What it looks like" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="image"></ui-icon>
+            <p>The editor's code pane on Solitaire's Card.spell: its toolbar, then the code.</p>
+            <ui-image
+              src="_images/InputEditor.png"
+              alt="The code pane:  a toolbar with File Card.spell, Compile, Save, Reload and New File, over spell code"
+              bordered
+              rounded
+            >
+            </ui-image>
+            <p class="meta">
+              A picture, taken by <code>yarn site:pictures</code> in
+              <a href="../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="code"></ui-icon>
+            <p>
+              The editor's page draws it as <code>InputRoot</code>, its toolbar on top, above the program's output on
+              the left:
+            </p>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>SpellEditor.tsx · the editor's page · 4 lines</ui-title>
+              <ui-content>
+                <ui-code language="typescript"
+                  ><script type="text/plain">
+                    <SplitPanel id="spellEditor-left" rows="85%" resizable rounded>
+                      <InputRoot />
+                      <ConsoleRoot />
+                    </SplitPanel>
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+            <ul>
+              <li>
+                <a href="#InputRoot">InputRoot</a> is the pane: an <a href="#InputToolbar">InputToolbar</a> above an
+                <code>InputEditor</code>.
+              </li>
+              <li>
+                The toolbar: the
+                <a href="FileDropdown.html" target="src-packages-app-components-filedropdown-html">file dropdown</a> on
+                the left; Compile, Save, Reload, New File and the file's "..." menu on the right.
+              </li>
+              <li>
+                <code>InputEditor</code> edits the editor's open file. Monaco loads the first time it's needed, so it
+                says "Loading editor…" till then, and a fresh editor is made for each file.
+              </li>
+              <li>
+                Once it's made, the editor gets it: for its save, reload and compile keys, and to follow the cursor and
+                scrolling. It selects where the file asked to open, such as a definition jumped to.
+              </li>
+              <li>
+                On an error, <code>showError</code> is told, and a plain editor with no spell colouring takes over, in
+                case the colouring is what failed. It comes back by itself when what failed changes.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="3-props" header="3. Props, and where it's drawn" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="list check"></ui-icon>
+            <ui-docs-api family="InputEditor"></ui-docs-api>
+            <p class="meta">
+              From its code, by <code>yarn site:data</code> in
+              <a href="../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="4-its-code" header="4. Its code" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="folder open"></ui-icon>
+            <ul>
+              <li>
+                <a href="../packages/app/src/solid/InputEditor.tsx" target="src-packages-app-src-solid-inputeditor-tsx"
+                  ><code title="packages/app/src/solid/InputEditor.tsx">InputEditor.tsx</code></a
+                >: the pane, its toolbar and the editor, and their props
+              </li>
+              <li>
+                <a href="../packages/app/src/solid/InputEditor.css" target="src-packages-app-src-solid-inputeditor-css"
+                  ><code title="packages/app/src/solid/InputEditor.css">InputEditor.css</code></a
+                >: its look
+              </li>
+              <li>
+                Its tests:
+                <a
+                  href="../packages/app/src/solid/InputEditor.browser.test.tsx"
+                  target="src-packages-app-src-solid-inputeditor-browser-test-tsx"
+                  ><code title="packages/app/src/solid/InputEditor.browser.test.tsx"
+                    >InputEditor.browser.test.tsx</code
+                  ></a
+                >
+              </li>
+              <li>
+                What it edits with: a
+                <a href="FileEditor.html" target="src-packages-app-components-fileeditor-html">FileEditor</a>, a
+                <a href="MonacoEditor.html" target="src-packages-app-components-monacoeditor-html">MonacoEditor</a> on a
+                file, loaded by
+                <a href="../packages/app/src/solid/LazyMonaco.tsx" target="src-packages-app-src-solid-lazymonaco-tsx"
+                  ><code title="packages/app/src/solid/LazyMonaco.tsx">LazyMonaco.tsx</code></a
+                >
+              </li>
+              <li>
+                Where it's drawn:
+                <a href="../packages/app/src/pages/SpellEditor.tsx" target="src-packages-app-src-pages-spelleditor-tsx"
+                  ><code title="packages/app/src/pages/SpellEditor.tsx">SpellEditor.tsx</code></a
+                >
+              </li>
+            </ul>
+          </ui-section>
+
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">Last checked 2026-10-12 against branch <code>epic-workflow</code>.</p>
+          </footer>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

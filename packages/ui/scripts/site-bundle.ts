@@ -9,13 +9,15 @@
  *   follows it;  a static deploy must copy through it (`cp -RL`).
  * - Sizes:  every file but the packs, raw and gzipped;  EAGER is `site.css` + `site.js` and the chunks it imports
  *   statically (what a page loads before any `import()`).
+ * - Then the component sets' build (mode `sets`, `site/_src/sets.ts`) into `site/_assets/sets/`, with its own packs
+ *   link:  the page server serves it as a set's `_assets/` (`/epic-ui/_assets/`, epic `epic-workflow` P10).
  */
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, symlinkSync } from "node:fs"
 import path from "node:path"
 import { gzipSync } from "node:zlib"
 import { build } from "vite"
 
-import { SITE_ASSETS } from "../vite.site.config.ts"
+import { SETS_ASSETS, SETS_MODE, SITE_ASSETS } from "../vite.site.config.ts"
 import { Terminal } from "../tools/Terminal.ts"
 
 /** The packs link's name inside `_assets/`:  the one entry a rebuild keeps. */
@@ -27,6 +29,10 @@ const PACKS = path.join(SITE_ASSETS, PACKS_NAME)
 /** Where the packs link points:  relative, so the checkout can move. */
 const PACKS_TARGET = "../../src/icons/icon-packs"
 
+/** The sets' build's packs link, one folder deeper. */
+const SETS_PACKS = path.join(SETS_ASSETS, PACKS_NAME)
+const SETS_PACKS_TARGET = `../${PACKS_TARGET}`
+
 /** A static `import ... from "./x.js"` / `import "./x.js"` in minified output (never `import("./x.js")`). */
 const STATIC_IMPORT = /(?:^|[;}\n])\s*(?:import|export)(?:[^"'();]*?from)?\s*["'](\.\.?\/[^"']+)["']/g
 
@@ -35,12 +41,22 @@ for (const entry of readdirSync(SITE_ASSETS)) {
   if (entry !== PACKS_NAME) rmSync(path.join(SITE_ASSETS, entry), { recursive: true, force: true })
 }
 const started = performance.now()
-await build({ configFile: path.resolve(import.meta.dirname, "../vite.site.config.ts") })
-if (!existsSync(PACKS) && !isLink(PACKS)) symlinkSync(PACKS_TARGET, PACKS, "dir")
-if (!statSync(PACKS).isDirectory()) {
-  throw new Error(`site:bundle:  ${PACKS} doesn't lead to the icon packs;  delete it, and rerun to link it again`)
+const configFile = path.resolve(import.meta.dirname, "../vite.site.config.ts")
+await build({ configFile })
+link(PACKS, PACKS_TARGET)
+report((performance.now() - started) / 1000, SITE_ASSETS)
+const setsStarted = performance.now()
+await build({ configFile, mode: SETS_MODE })
+link(SETS_PACKS, SETS_PACKS_TARGET)
+report((performance.now() - setsStarted) / 1000, SETS_ASSETS)
+
+/** Link the icon packs at `packs` (to `target`), unless linked;  throws when the link leads nowhere. */
+function link(packs: string, target: string): void {
+  if (!existsSync(packs) && !isLink(packs)) symlinkSync(target, packs, "dir")
+  if (!statSync(packs).isDirectory()) {
+    throw new Error(`site:bundle:  ${packs} doesn't lead to the icon packs;  delete it, and rerun to link it again`)
+  }
 }
-report((performance.now() - started) / 1000)
 
 /** Is `file` a symlink (even a broken one)? */
 function isLink(file: string): boolean {
@@ -51,16 +67,17 @@ function isLink(file: string): boolean {
   }
 }
 
-/** Print the bundle's sizes:  eager files, totals, the biggest lazy chunks. */
-function report(seconds: number): void {
-  const files = walk(SITE_ASSETS).filter((file) => !file.startsWith(`${PACKS_NAME}/`))
+/** Print the sizes of the bundle in `folder`:  eager files, totals, the biggest lazy chunks. */
+function report(seconds: number, folder: string): void {
+  // the sets' build is a folder of Spell UI's:  never counted in Spell UI's sizes
+  const files = walk(folder).filter((file) => !file.startsWith(`${PACKS_NAME}/`) && !file.startsWith("sets/"))
   const sizes = files.map((file) => {
-    const bytes = readFileSync(path.join(SITE_ASSETS, file))
+    const bytes = readFileSync(path.join(folder, file))
     return { file, raw: bytes.length, gzip: gzipSync(bytes).length }
   })
-  const eagerFiles = new Set(["site.css", ...staticGraph("site.js")])
+  const eagerFiles = new Set(["site.css", ...staticGraph(folder, "site.js")])
   const eager = sizes.filter((size) => eagerFiles.has(size.file)).sort((a, b) => b.raw - a.raw)
-  Terminal.out(`site bundle (${seconds.toFixed(1)}s):  ${path.relative(process.cwd(), SITE_ASSETS)}/`)
+  Terminal.out(`site bundle (${seconds.toFixed(1)}s):  ${path.relative(process.cwd(), folder)}/`)
   for (const size of eager.slice(0, 4))
     Terminal.out(`  ${size.file.padEnd(28)} ${kb(size.raw).padStart(10)}  gz ${kb(size.gzip)}`)
   Terminal.out(
@@ -76,13 +93,13 @@ function report(seconds: number): void {
   )
 }
 
-/** `entry` and every chunk it imports STATICALLY, transitively:  what a page loads before any `import()`. */
-function staticGraph(entry: string, seen = new Set<string>()): Set<string> {
+/** `entry` (in `folder`) and every chunk it imports STATICALLY, transitively:  what a page loads before any `import()`. */
+function staticGraph(folder: string, entry: string, seen = new Set<string>()): Set<string> {
   if (seen.has(entry)) return seen
   seen.add(entry)
-  const code = readFileSync(path.join(SITE_ASSETS, entry), "utf8")
+  const code = readFileSync(path.join(folder, entry), "utf8")
   for (const match of code.matchAll(STATIC_IMPORT)) {
-    staticGraph(path.posix.join(path.posix.dirname(entry), match[1]!), seen)
+    staticGraph(folder, path.posix.join(path.posix.dirname(entry), match[1]!), seen)
   }
   return seen
 }

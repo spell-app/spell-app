@@ -186,9 +186,9 @@ describe("testing spell module classes", () => {
         "\t</css>"
       ])
       expect(errors).toEqual([])
-      // the class's body indents its lines:  only whitespace, which CSS ignores
-      const css = /static css = `([^`]*)`/.exec(code)?.[1]?.replace(/\s+/g, " ")
-      expect(css).toBe(":host { display: inline-block } .red { color: crimson }")
+      // a `css` template, its lines indented inside the class:  `@spell/core`'s `css` tag takes the indent off
+      const css = /static css = css`([^`]*)`/.exec(code)?.[1]
+      expect(css).toBe("\n    :host { display: inline-block }\n    .red {\n    \tcolor: crimson\n    }\n  ")
     })
 
     test("anywhere else, an error that says where it goes", () => {

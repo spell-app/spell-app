@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Chooser</title>
+    <meta name="description" content="A dialog to choose one value from a list, or several." />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Chooser">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../packages/app/src/solid/modals/Chooser.tsx"
+              icon="code"
+              aria-label="Its code, Chooser.tsx"
+              title="Its code, Chooser.tsx"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Chooser
+            <ui-header>A dialog to choose one value from a list, or several.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <p class="lede">
+            The dialog the editor shows when it needs a person to pick from a short list. It's a list of radio buttons
+            (or checkboxes, to pick several), with Cancel and OK, and it hands back what was picked.
+          </p>
+          <ui-list class="spell-meta">
+            <ui-item icon="user">Written for: anyone asking a question in the spell app's editor</ui-item>
+            <ui-item icon="image"
+              >A picture, not live: it's opened by the editor's <code>editor.choose()</code></ui-item
+            >
+          </ui-list>
+
+          <ui-section id="1-what-it-looks-like" header="1. What it looks like" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="image"></ui-icon>
+            <p>
+              Over the editor, opened from the "choose" button on the console's toolbar, a demo: "Pick one" of A, B and
+              C.
+            </p>
+            <ui-image
+              src="_images/Chooser.png"
+              alt="A dialog headed Pick one: a message, three radio buttons A, B and C, then Cancel and OK"
+              bordered
+              rounded
+            ></ui-image>
+            <p class="meta">
+              A picture, taken by <code>yarn site:pictures</code> in
+              <a href="../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="code"></ui-icon>
+            <p>
+              Nobody draws it in JSX: ask the editor, with <code>editor.choose()</code>, and wait for the answer. The
+              console's toolbar has two demo buttons that do:
+            </p>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>ConsoleViewer.tsx · the two demo buttons · 9 lines</ui-title>
+              <ui-content>
+                <ui-code language="typescript"
+                  ><script type="text/plain">
+                    <Actions.choose title="" header="Pick one" message="Message" options={["A", "B", "C"]} />
+                    <Actions.choose
+                      title=""
+                      header="Pick many"
+                      message="Message"
+                      options={{ a: "Option A", b: "Option B", c: "Option C" }}
+                      multiple
+                      defaultValue={["a", "b"]}
+                    />
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>From code · asking the editor · 1 line</ui-title>
+              <ui-content>
+                <ui-code language="typescript"
+                  ><script type="text/plain">
+                    const pick = await editor.choose({ message: "Which deck?", options: ["Red", "Blue"] })
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+            <ul>
+              <li>
+                <code>editor.choose()</code> needs a <code>message</code> and <code>options</code>, and opens it with
+                <code>openChooser()</code>, which adds it to the page and takes it away once it's closed.
+              </li>
+              <li>
+                <code>options</code> can be plain values, <code>{ value, text }</code> objects, or a map of value to
+                text. The answer is the caller's own value: a number option answers a number.
+              </li>
+              <li>
+                The answer, once the dialog has gone: OK gives the value picked (with <code>multiple</code>, a list of
+                them); Cancel or Escape gives <code>undefined</code>.
+              </li>
+              <li>
+                <code>defaultValue</code> picks some to start with. Enter anywhere in it is OK; a click outside it does
+                nothing.
+              </li>
+              <li>
+                It looks like the editor's other dialogs: small, Cancel first. It's a plain list, fine for a handful of
+                options; a long one would want a searchable dropdown.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="3-props" header="3. Props, and where it's drawn" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="list check"></ui-icon>
+            <ui-docs-api family="Chooser"></ui-docs-api>
+            <p class="meta">
+              From its code, by <code>yarn site:data</code> in
+              <a href="../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="4-its-code" header="4. Its code" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="folder open"></ui-icon>
+            <ul>
+              <li>
+                <a
+                  href="../packages/app/src/solid/modals/Chooser.tsx"
+                  target="src-packages-app-src-solid-modals-chooser-tsx"
+                  ><code title="packages/app/src/solid/modals/Chooser.tsx">Chooser.tsx</code></a
+                >: the dialog, <code>openChooser()</code>, and how options are read
+              </li>
+              <li>
+                <a
+                  href="../packages/app/src/solid/modals/modals.types.ts"
+                  target="src-packages-app-src-solid-modals-modals-types-ts"
+                  ><code title="packages/app/src/solid/modals/modals.types.ts">modals.types.ts</code></a
+                >: what <code>editor.choose()</code> takes, and the other dialogs'
+              </li>
+              <li>
+                <a
+                  href="../packages/app/src/solid/modals/dialogs.ts"
+                  target="src-packages-app-src-solid-modals-dialogs-ts"
+                  ><code title="packages/app/src/solid/modals/dialogs.ts">dialogs.ts</code></a
+                >: the editor's dialogs, this one among them
+              </li>
+              <li>
+                <a
+                  href="../packages/app/src/solid/modals/modals.browser.test.tsx"
+                  target="src-packages-app-src-solid-modals-modals-browser-test-tsx"
+                  ><code title="packages/app/src/solid/modals/modals.browser.test.tsx">modals.browser.test.tsx</code></a
+                >: its tests, with the other dialogs'
+              </li>
+            </ul>
+          </ui-section>
+
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">Last checked 2026-10-12 against branch <code>epic-workflow</code>.</p>
+          </footer>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

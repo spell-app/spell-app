@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>ErrorBoundary</title>
+    <meta name="description" content="Shows an error in place of what it guards, when that throws." />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="ErrorBoundary">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../packages/app/src/solid/ErrorBoundary.tsx"
+              icon="code"
+              aria-label="Its code, ErrorBoundary.tsx"
+              title="Its code, ErrorBoundary.tsx"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            ErrorBoundary
+            <ui-header>Shows an error in place of what it guards, when that throws.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <p class="lede">
+            A guard around one of the editor's panes. When drawing what's inside it goes wrong, the pane shows the error
+            instead, and the rest of the page keeps working.
+          </p>
+          <ui-list class="spell-meta">
+            <ui-item icon="user">Written for: anyone writing or changing a pane of the spell app</ui-item>
+            <ui-item icon="image"
+              >A picture, not live: it draws nothing of its own until something throws, then an
+              <a href="ErrorNotice.html" target="src-packages-app-components-errornotice-html">ErrorDisplay</a></ui-item
+            >
+          </ui-list>
+
+          <ui-section id="1-what-it-looks-like" header="1. What it looks like" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="image"></ui-icon>
+            <p>
+              It looks like nothing while all is well. When what it guards throws, its default stand-in is an
+              <a href="ErrorNotice.html" target="src-packages-app-components-errornotice-html">ErrorDisplay</a> of the
+              error, which looks like this, in the pane rather than over the page:
+            </p>
+            <ui-image
+              src="_images/ErrorNotice.png"
+              alt="A red error message with a header, Error, and the error's text"
+              bordered
+              rounded
+            ></ui-image>
+            <p class="meta">
+              A picture, taken by <code>yarn site:pictures</code> in
+              <a href="../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="code"></ui-icon>
+            <p>
+              Each viewer wraps what it draws in one. The input editor falls back to a plain-text editor, and tells the
+              editor of the error:
+            </p>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>InputEditor.tsx · the code editor, guarded · 7 lines</ui-title>
+              <ui-content>
+                <ui-code language="typescript"
+                  ><script type="text/plain">
+                    <div class="InputEditor">
+                      <ErrorBoundary
+                        onError={(error) => props.showError?.(error)}
+                        fallback={() => <FallbackEditor />}
+                      >
+                        <FileInputEditor />
+                      </ErrorBoundary>
+                    </div>
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+            <ul>
+              <li>
+                WHY every pane wants one: an error nobody catches stops Solid updating the WHOLE page, not just the
+                pane.
+              </li>
+              <li>
+                It's Solid's <code>&lt;Errored&gt;</code>, with the app's defaults: an ErrorDisplay of the error, unless
+                you pass <code>fallback</code>.
+              </li>
+              <li>
+                It heals by itself: when the data underneath changes and its children draw, they come back.
+                <code>fallback</code> is also given <code>reset()</code>, to try again now.
+              </li>
+              <li>
+                <code>onError</code> hears of each error caught, to log it or show it with
+                <code>editor.showError()</code>. It may change the editor's state: it runs outside the drawing.
+              </li>
+              <li>A thrown value that isn't an <code>Error</code> is made into one.</li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="3-props" header="3. Props, and where it's drawn" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="list check"></ui-icon>
+            <ui-docs-api family="ErrorBoundary"></ui-docs-api>
+            <p class="meta">
+              From its code, by <code>yarn site:data</code> in
+              <a href="../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="4-its-code" header="4. Its code" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="folder open"></ui-icon>
+            <ul>
+              <li>
+                <a
+                  href="../packages/app/src/solid/ErrorBoundary.tsx"
+                  target="src-packages-app-src-solid-errorboundary-tsx"
+                  ><code title="packages/app/src/solid/ErrorBoundary.tsx">ErrorBoundary.tsx</code></a
+                >: the component, and its props
+              </li>
+              <li>
+                <a
+                  href="../packages/app/src/solid/sharedUI.browser.test.tsx"
+                  target="src-packages-app-src-solid-sharedui-browser-test-tsx"
+                  ><code title="packages/app/src/solid/sharedUI.browser.test.tsx">sharedUI.browser.test.tsx</code></a
+                >: its tests
+              </li>
+              <li>
+                In the app's Solid components, <code>$/app/solid</code>:
+                <a href="../packages/app/src/solid/" target="src-packages-app-src-solid"
+                  ><code title="packages/app/src/solid/">src/solid/</code></a
+                >
+              </li>
+            </ul>
+          </ui-section>
+
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">Last checked 2026-10-12 against branch <code>epic-workflow</code>.</p>
+          </footer>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

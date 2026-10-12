@@ -1,0 +1,56 @@
+<!doctype html>
+<!--
+  Epic UI's footer, shared by every page:  the layout's `<ui-include class="site-footer" source="footer.html"
+  page-styles load="visible">` (`_parts/layout.html`), shaped like Spell UI's (`ui/_parts/footer.html`).
+  - Relative links are rewritten against THIS file as served (`/epic-ui/_parts/`) by `<ui-include>`:  the set's pages
+    are `../x.html`, the checkout's root `../../`.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Epic UI site footer</title>
+  </head>
+  <body>
+    <ui-segment vertical class="site-footer-segment">
+      <ui-container>
+        <ui-grid stackable columns="3">
+          <ui-column>
+            <ui-header level="4">Epic UI</ui-header>
+            <ui-list link>
+              <ui-item href="../index.html" icon="layer group">The Epic Elements</ui-item>
+              <ui-item href="../elements/epic-page.html" icon="file lines">The page</ui-item>
+              <ui-item href="../elements/epic-item.html" icon="list">An item</ui-item>
+            </ui-list>
+          </ui-column>
+          <ui-column>
+            <ui-header level="4">Guides</ui-header>
+            <ui-list link>
+              <ui-item href="../../guides/epic-components/epic-components.html" icon="book open"
+                >Epic Pages as Components</ui-item
+              >
+              <ui-item href="../../guides/epic-components/review.html" icon="check">Reviewing a Plan Doc</ui-item>
+              <ui-item href="../../guides/epic-components/tool.html" icon="terminal">The Plan-Doc Tool</ui-item>
+            </ui-list>
+          </ui-column>
+          <ui-column>
+            <ui-header level="4">Project</ui-header>
+            <ui-list link>
+              <ui-item href="https://github.com/spell-app/spell-app" icon="github">GitHub repository</ui-item>
+              <ui-item href="https://github.com/spell-app/spell-app/tree/main/packages/epics" icon="code">
+                Source of the epics pack
+              </ui-item>
+              <ui-item href="https://github.com/spell-app/spell-app/tree/main/packages/epic-components" icon="code">
+                Source of these pages
+              </ui-item>
+            </ui-list>
+          </ui-column>
+        </ui-grid>
+        <ui-divider section></ui-divider>
+        <ui-list horizontal divided link size="small">
+          <ui-item>Epic UI: the <code>&lt;epic-*&gt;</code> elements a plan doc is made of</ui-item>
+          <ui-item>Spell UI's page shape, on Spell UI's site bundle</ui-item>
+        </ui-list>
+      </ui-container>
+    </ui-segment>
+  </body>
+</html>

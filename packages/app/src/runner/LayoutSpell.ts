@@ -5,7 +5,12 @@ import { P } from "$/parser"
 import { SP } from "$/spell"
 import type { SpellCore } from "$/core"
 import { SpellElement } from "./SpellElement"
-import { LAYOUT_HOLE as HOLE, LAYOUT_SPELL_TAG as SPELL_TAG, LAYOUT_WHOLE_HOLE as WHOLE_HOLE } from "./runner.types"
+import {
+  LAYOUT_HOLE as HOLE,
+  LAYOUT_MARKDOWN_TAG as MARKDOWN_TAG,
+  LAYOUT_SPELL_TAG as SPELL_TAG,
+  LAYOUT_WHOLE_HOLE as WHOLE_HOLE
+} from "./runner.types"
 
 /****************
  * ### `LayoutSpell`
@@ -27,10 +32,17 @@ import { LAYOUT_HOLE as HOLE, LAYOUT_SPELL_TAG as SPELL_TAG, LAYOUT_WHOLE_HOLE a
  * - Names resolve innermost first (Q18):
  *   1. the component:  `it` / `its`, the drawable tag the spell sits in
  *   2. its class:  through `it`, its type's members
- *   3. the page:  each drawable tag with an `id` is a name, e.g. `T1`
+ *   3. the page:  each drawable tag written with an `id` is a name, e.g. `T1`;  not one the program drew
  *   4. the program:  its top-level things, its functions and types -- from its declarations
  * - A hole is any spell EXPRESSION;  an action or a handler, any spell statements (Q11).
- *   A hole that doesn't read as written is tried again with `the` before it:  `{score of the game}`.
+ * - Any element in the layout may handle events (P12):  a Spell UI tag, a plain one or a drawable one.
+ *   - in a `<spell>` block inside it:
+ *     `when clicked: play a song`, or the statements indented under `when clicked`
+ *     - `on drag:` as well as `when dragged:`
+ *     - an event in several words:  `when double clicked`
+ *   - in an attribute:  `on-click="{play a song}"` or `when-clicked="{play a song}"` (Q20 C)
+ *   - `it` is the drawable tag's thing, on one;  elsewhere the page's and the program's names are what's seen.
+ * - A hole is spell exactly, as everywhere else:  `{the score of the game}`, never `{score of the game}` (J26).
  * - Kept live by Solid effects:  a hole re-runs when what it read changes.
  * - Holds spell's PARSER:  the runner loads it lazily, only for a layout with spell in it (`layoutHasSpell()`).
  * - `bind()` returns what takes it all back:  the layout's markup as it was written.
@@ -54,6 +66,9 @@ export class LayoutSpell {
   /** Every name the compiled spell may read but `it`, by its javascript name:  the page's, then the program's. */
   private names = new Map<string, () => unknown>()
 
+  /** The text of each `<markdown>` block drawn:  its holes are bound already -- see `bindMarkdown()`. */
+  private markdownTexts = new WeakSet<Text>()
+
   constructor(options: LayoutSpellOptions) {
     this.options = options
     const { root, declarations, projectId, spellCore } = options
@@ -72,7 +87,8 @@ export class LayoutSpell {
     this.pageScope = new P.BlockScope({ name: "page", parentScope: this.programScope, parser: imports.parser })
     for (const element of root.querySelectorAll("[id]")) {
       const Class = SpellElement.classOf(element)
-      if (!Class) continue
+      // a tag the program drew is named after its thing (`queen-of-spades`):  that's no name the page gave
+      if (!Class || SpellElement.isHandedAThing(element)) continue
       this.pageScope.variables.add({ name: element.id, datatype: Class.name })
       this.names.set(P.JSWriter.instance.nameOf(element.id), () => SpellElement.thingOf(element))
     }
@@ -87,6 +103,8 @@ export class LayoutSpell {
     createRoot((dispose) => {
       this.undoes.push(dispose)
       const { root } = this.options
+      // markdown first:  its holes are its own, not text's
+      for (const block of root.querySelectorAll(MARKDOWN_TAG)) this.bindMarkdown(block)
       for (const block of root.querySelectorAll(SPELL_TAG)) this.bindBlock(block)
       for (const element of root.querySelectorAll("*")) this.bindAttributes(element)
       for (const text of this.holeTexts(root)) this.bindText(text)
@@ -106,7 +124,7 @@ export class LayoutSpell {
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
       const text = node as Text
-      if (text.parentElement?.closest(`${SPELL_TAG}, script, style`)) continue
+      if (text.parentElement?.closest(`${SPELL_TAG}, script, style`) || this.markdownTexts.has(text)) continue
       if (HOLE.test(text.data)) texts.push(text)
     }
     return texts
@@ -130,21 +148,102 @@ export class LayoutSpell {
     })
   }
 
-  /** `element`'s attributes written as a hole, `value={...}`:  live;  `action={...}`:  run on a click. */
+  /**
+   * `element`'s attributes written as a hole, bound:
+   * - `value={...}`:  live
+   * - `action={...}`:  run on a click
+   * - `on-click={...}` / `when-clicked={...}`:  run on that event (P12)
+   */
   private bindAttributes(element: Element): void {
-    for (const { name, value } of [...element.attributes]) {
+    for (const { name, value } of LayoutSpell.holeAttributes(element)) {
       const spell = WHOLE_HOLE.exec(value)?.[1]
       if (!spell) continue
-      element.removeAttribute(name)
-      this.undoes.push(() => element.setAttribute(name, value))
+      this.undoes.push(LayoutSpell.takeAttributes(element, name))
       if (name === ACTION) {
         const run = this.compileOrShow(spell, "block", element.parentElement)
         if (run) this.listen(element, "click", run)
         continue
       }
+      const event = LayoutSpell.eventOfAttribute(name)
+      if (event) {
+        const run = this.compileOrShow(spell, "block", element)
+        if (run) this.listen(element, LayoutSpell.domEventFor(event), run)
+        continue
+      }
       const read = this.compileOrShow(spell, "expression", element.parentElement)
       if (read) this.live(read, (shown) => LayoutSpell.setAttribute(element, name, shown))
     }
+  }
+
+  /**
+   * `element`'s attributes, each hole written WITHOUT quotes put back together.
+   * - `on-click={play a song}` reaches us as three attributes:  `on-click="{play"`, `a` and `song}`.
+   * - Its `name` is the first attribute's;  its `parts`, every attribute it was made of.
+   * - The browser keeps only the first of two attributes of the same name, so a repeated word is lost:
+   *   `{the score of the game}` unquoted reads as `{the score of game}` (C15).
+   *   Quotes keep it whole.
+   */
+  static holeAttributes(element: Element): Array<{ name: string; value: string; parts: string[] }> {
+    const attributes = [...element.attributes]
+    const holes: Array<{ name: string; value: string; parts: string[] }> = []
+    for (let index = 0; index < attributes.length; index++) {
+      const { name, value } = attributes[index]!
+      if (!/^\s*\{/.test(value) || WHOLE_HOLE.test(value)) {
+        holes.push({ name, value, parts: [name] })
+        continue
+      }
+      // the rest of an unquoted hole:  the attributes after it, up to the one that ends with `}`
+      const words = [value]
+      const parts = [name]
+      while (index + 1 < attributes.length && !words.at(-1)!.endsWith("}")) {
+        const next = attributes[++index]!
+        words.push(next.value ? `${next.name}=${next.value}` : next.name)
+        parts.push(next.name)
+      }
+      holes.push({ name, value: words.join(" "), parts })
+    }
+    return holes
+  }
+
+  /** Take attribute `name` off `element` -- and, for an unquoted hole, the words after it;  returns what puts them back. */
+  static takeAttributes(element: Element, name: string): () => void {
+    const hole = LayoutSpell.holeAttributes(element).find((each) => each.name === name)
+    const taken = (hole?.parts ?? [name]).map((part) => [part, element.getAttribute(part) ?? ""] as const)
+    for (const [part] of taken) element.removeAttribute(part)
+    return () => {
+      for (const [part, value] of taken) element.setAttribute(part, value)
+    }
+  }
+
+  /** The event an attribute handles, by its name:  `on-click` => `click`, `when-double-clicked` => `double-clicked`. */
+  static eventOfAttribute(name: string): string | undefined {
+    return EVENT_ATTRIBUTE.exec(name)?.[1]
+  }
+
+  ////////////////
+  // ## `<markdown>` blocks
+  ////////////////
+
+  /**
+   * A `<markdown>` block, drawn by Spell UI's `<ui-markdown>` instead:  its holes live, as text's are (P14, Q22, Q23).
+   * - Its holes split as a drawing's `<markdown>` splits them (`SP.MarkdownBlock.partsOf()`):
+   *   code keeps its braces, and `\{` is a brace.
+   * - Its text is the page's:  the browser has read it as HTML, so a `<` in it is `&lt;`.
+   * - The whole markdown is drawn again when a hole's value changes.
+   */
+  private bindMarkdown(block: Element): void {
+    const drawn = document.createElement(UI_MARKDOWN_TAG)
+    const text = document.createTextNode("")
+    drawn.append(text)
+    this.markdownTexts.add(text)
+    const reads = SP.MarkdownBlock.partsOf(block.textContent ?? "").map((part) =>
+      typeof part === "string" ? part : this.compileOrShow(part.hole, "expression", block.parentElement)
+    )
+    block.replaceWith(drawn)
+    this.undoes.push(() => drawn.replaceWith(block))
+    const read = () =>
+      reads.map((part) => (typeof part === "string" ? part : part ? this.textOf(part(undefined)) : "⚠")).join("")
+    this.live(read, (shown) => (text.data = shown as string))
   }
 
   ////////////////
@@ -153,7 +252,7 @@ export class LayoutSpell {
 
   /**
    * A `<spell>` block's handlers, each listening on the element it sits in:
-   * `when clicked` then its statements, indented under it.
+   * `when clicked: play a song` on one line, or `when clicked` then its statements, indented under it.
    * - Hidden:  it's spell, not something to show.
    * - Anything but a handler is an error, for now:  a method or variable it makes belongs to its element (Q12),
    *   which needs more than this.
@@ -174,6 +273,9 @@ export class LayoutSpell {
 
   /**
    * The handlers in a `<spell>` block's `text`:  `when <event>` lines, each with the lines indented under it.
+   * - Or on one line:  `when clicked: play a song`, the statement after the colon.
+   * - `on <event>` as well as `when <event>`:  `on drag:` is `when dragged:`.
+   * - An event may be several words, joined with dashes:  `when double clicked` is `double-clicked`.
    * - Indents are tabs to spell:  each run of the first indent's spaces is a tab.
    */
   static handlersIn(text: string): Array<{ event: string; body: string; error?: string }> {
@@ -184,8 +286,8 @@ export class LayoutSpell {
     const handlers: Array<{ event: string; body: string; error?: string }> = []
     for (const line of outdented) {
       if (!/^\s/.test(line)) {
-        const event = WHEN.exec(line)?.[1]
-        if (event) handlers.push({ event, body: "" })
+        const [, , words, inline] = WHEN.exec(line) ?? []
+        if (words) handlers.push({ event: LayoutSpell.eventOf(words), body: inline?.trim() ?? "" })
         else handlers.push({ event: "", body: "", error: `a <spell> block holds "when <event>" handlers:  "${line}"` })
         continue
       }
@@ -199,7 +301,19 @@ export class LayoutSpell {
     return handlers
   }
 
-  /** The DOM event a handler's word means:  `clicked` => `click`, `double-clicked` => `dblclick`, else as is. */
+  /** An event written in `words`, as we look it up:  lower case, joined with dashes -- `Double Clicked` => `double-clicked`. */
+  static eventOf(words: string): string {
+    return words
+      .trim()
+      .toLowerCase()
+      .split(/[\s-]+/)
+      .join("-")
+  }
+
+  /**
+   * The DOM event a handler's `event` means:  `clicked` => `click`, `double-clicked` => `dblclick`;
+   * any other, the browser's own name as written (`drag`, `keydown`), or an event the program triggers.
+   */
   static domEventFor(event: string): string {
     return DOM_EVENTS[event] ?? event
   }
@@ -209,8 +323,8 @@ export class LayoutSpell {
   ////////////////
 
   /**
-   * `spell` compiled, in the scope of the component around `place`, as a function of `it` --
-   * `undefined` if it can't be read:  then `show` shows `⚠`, and the program's console says why.
+   * `spell` compiled, in the scope of the component around `place`, as a function of `it`.
+   * - `undefined` if it can't be read:  then `show` shows `⚠`, and the program's console says why.
    */
   private compileOrShow(
     spell: string,
@@ -234,7 +348,7 @@ export class LayoutSpell {
    * - throws if it doesn't read, or reads with errors.
    */
   private compile(spell: string, rule: "expression" | "block", scope: P.Scope): (it: unknown) => unknown {
-    const match = this.parsed(spell, rule, scope) ?? (rule === "expression" && this.parsed(`the ${spell}`, rule, scope))
+    const match = this.parsed(spell, rule, scope)
     if (!match) throw new SyntaxError(`spell doesn't read:  "${spell}"`)
     const javascript = String(match.compile())
     const names = [...this.names.keys()].filter((name) => name !== IT && P.jsText.isLegalIdentifier(name))
@@ -343,22 +457,41 @@ export type LayoutSpellOptions = {
 /** The attribute a click runs. */
 const ACTION = "action"
 
+/** Spell UI's markdown element, which draws a `<markdown>` block. */
+const UI_MARKDOWN_TAG = "ui-markdown"
+
 /** What `it` is called, to spell and in the compiled javascript. */
 const IT = "it"
 
 /** Each hole in text, its spell captured -- for `split()`. */
 const HOLES = /\{([^{}]+)\}/
 
-/** A handler's first line, its event captured:  `when clicked`. */
-const WHEN = /^when\s+([a-z][\w-]*)\s*:?\s*$/i
+/**
+ * A handler's first line:  `when` or `on`, its event's words, then any statement after a colon.
+ * - e.g. `when clicked: play`
+ */
+const WHEN = /^(when|on)\s+([a-z][\w-]*(?:\s+[a-z][\w-]*)*)\s*(?::\s*(.*))?$/i
 
-/** DOM events a handler's word means, when not the word itself. */
+/** An attribute that handles an event, the event captured:  `on-click`, `when-double-clicked`. */
+const EVENT_ATTRIBUTE = /^(?:on|when)-([a-z][\w-]*)$/
+
+/** DOM events a handler's words mean, when not the words themselves. */
 const DOM_EVENTS: Record<string, string> = {
   clicked: "click",
   "double-clicked": "dblclick",
+  "double-click": "dblclick",
+  "right-clicked": "contextmenu",
+  "right-click": "contextmenu",
   hovered: "mouseenter",
+  hover: "mouseenter",
+  unhovered: "mouseleave",
   focused: "focus",
-  changed: "change"
+  blurred: "blur",
+  changed: "change",
+  typed: "input",
+  submitted: "submit",
+  dragged: "drag",
+  dropped: "drop"
 }
 
 /** `async function`'s constructor:  an action's statements may `await`. */

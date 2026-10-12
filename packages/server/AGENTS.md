@@ -55,9 +55,20 @@ Only what's local is below;  a section named like a WWOD rule extends it.
         the branch's built `_assets/` and `_data/`, from [ui's site](../ui/site/).
       - The same at `/worktrees/<w>/ui/`.
       - Old `/packages/ui/site/<page>` URLs redirect there (`movedUiPage()`).
+    - And the COMPONENT SETS (`COMPONENT_SETS`, `page.types.ts`;  epic `epic-workflow` P10 / P11):
+      docs sets in Spell UI's page shape, kept in tracked package folders.
+      - Epic UI:  `packages/epic-components/` at `/epic-ui/`;  App UI:  `packages/app/components/` at `/app-ui/`.
+        A new set is one more entry.
+      - ONE overlay (`componentSetPath()`):  `<prefix>/_assets/` is the sets' build of Spell UI's site
+        (`SETS_BUNDLE`, `packages/ui/site/_assets/sets/`), the rest the set's own folder.
+      - The same at `/worktrees/<w>/<prefix>/`.
+      - Redirects (`movedSetPage()`):  `<prefix>` to `<prefix>/`;  a set's page at its long address
+        (`/packages/epic-components/x.html`) to its short one;  Epic UI's old element pages in the guides
+        (`/guides/epic-components/elements/...`), once they're gone.
+      - Live reload watches each set's folder, reporting its changes at its short address.
     - `BundleBuild` -- the bundles it serves are NOT committed, so it builds them.
       - They're `BUNDLE_FOLDERS`:
-        - Spell UI's site:  `packages/ui/site/_assets/`
+        - Spell UI's site:  `packages/ui/site/_assets/` (the component sets' build in its `sets/`)
         - the brand pages':  `packages/brand/_assets/ui/`
       - On `start()`, it runs the checkout's own `spell dev bundles build --stale`, as a child.
         `$/assembler`'s `Bundle` does the work;  the server only spawns it.

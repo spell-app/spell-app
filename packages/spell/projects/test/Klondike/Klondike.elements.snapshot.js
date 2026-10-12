@@ -8,6 +8,8 @@ import { Card, Deck, Pile } from "@spell/project/@test:fixtures:Cards"
 
 /** Game bits */
 export class Game extends App {
+  static description = "A game of **Klondike**:  its piles, and its score."
+
   static { this.declareProp("score", { type: "number" }) }
   get score() { return this.getProp("score") }
   set score(value) { this.setProp("score", value) }
@@ -54,6 +56,11 @@ export class Game extends App {
               h("td", () => spellCore.drawThing(tableaus.getItem(6)))
             )
           )
+        )
+      ),
+      h("div", { class: "rules" },
+        h("ui-markdown",
+          () => `## How to play\nBuild each tableau **down**, alternating colours, and each foundation *up* from its ace.\nScore:  **${this.score}**`
         )
       )
     )

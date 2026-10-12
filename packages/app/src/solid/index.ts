@@ -22,6 +22,7 @@
  *   - `./modals`:  `editor.ts` imports it on first use (`import()`), so the editor never loads Solid up front
  * - NOTE: runner bundles import the files they need DIRECTLY (`$/app/solid/ThingExplorer`, `.../loadUI`):  this
  *   barrel pulls in the editor.
+ * - Their docs:  App UI, a page per component at `/app-ui/` (`packages/app/components/`, `yarn site:data`).
  * - NOTE: no namespace of its own (the app's are `UI` and `F`):  import by name,
  *   e.g. `import { tracked, PanelMenu } from "$/app/solid"`.
  */
