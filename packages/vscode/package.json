@@ -75,7 +75,7 @@
       },
       {
         "command": "spell.docView.home",
-        "title": "Docs Index",
+        "title": "Docs Home:  a fresh view at the docs home, for a page that stopped responding",
         "category": "Spell",
         "icon": "$(home)"
       },
@@ -119,7 +119,7 @@
       },
       {
         "command": "spell.reviewView.home",
-        "title": "Review:  Docs Index",
+        "title": "Review:  Docs Home (a fresh view at the docs home)",
         "category": "Spell",
         "icon": "$(home)"
       },
@@ -285,14 +285,19 @@
           "group": "navigation@3"
         },
         {
-          "command": "spell.docView.restartServer",
+          "command": "spell.docView.home",
           "when": "view == spell.docView",
           "group": "navigation@4"
         },
         {
-          "command": "spell.docView.openExternal",
+          "command": "spell.docView.restartServer",
           "when": "view == spell.docView",
           "group": "navigation@5"
+        },
+        {
+          "command": "spell.docView.openExternal",
+          "when": "view == spell.docView",
+          "group": "navigation@6"
         },
         {
           "command": "spell.reviewView.back",
@@ -310,14 +315,19 @@
           "group": "navigation@3"
         },
         {
-          "command": "spell.reviewView.restartServer",
+          "command": "spell.reviewView.home",
           "when": "view == spell.reviewView",
           "group": "navigation@4"
         },
         {
-          "command": "spell.reviewView.openExternal",
+          "command": "spell.reviewView.restartServer",
           "when": "view == spell.reviewView",
           "group": "navigation@5"
+        },
+        {
+          "command": "spell.reviewView.openExternal",
+          "when": "view == spell.reviewView",
+          "group": "navigation@6"
         },
         {
           "command": "spell.reviewView.openEpic",
@@ -327,12 +337,12 @@
         {
           "command": "spell.docView.inspect",
           "when": "view == spell.docView || view == spell.reviewView",
-          "group": "navigation@6"
+          "group": "navigation@7"
         },
         {
           "command": "spell.docView.showConsole",
           "when": "view == spell.docView || view == spell.reviewView",
-          "group": "navigation@7"
+          "group": "navigation@8"
         }
       ],
       "webview/context": [

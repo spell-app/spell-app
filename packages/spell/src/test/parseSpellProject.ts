@@ -73,6 +73,21 @@ export function fixtureProjectId(projectName: string): string {
   return `${SP.SpellProjectRoot.fixtures.path}:${projectName}`
 }
 
+/**
+ * The fixtures the Python writer writes, so far (epic `python-target`).
+ * - Their Python snapshots are checked:  `.snapshot.py`, `.snapshot.pyright.txt`, and their page's `.elements.snapshot.js`.
+ * - The core contract runs them under Python.
+ * - Each phase adds the ones it makes write:  things and lists, pauses, drawing.
+ */
+export const PYTHON_FIXTURES = new Set([
+  "Cards",
+  "CardsFromZero",
+  "FizzBuzz",
+  "Klondike",
+  "OutlineSolitaire",
+  "Solitaire"
+])
+
 /** Name of each fixture project:  each folder of `FIXTURES_DIR` with a `project.json`, alphabetically. */
 export function fixtureProjectNames(): string[] {
   return readdirSync(FIXTURES_DIR, { withFileTypes: true })
@@ -88,8 +103,13 @@ export function fixtureProjectNames(): string[] {
  * - `target`:  compiled for that target, e.g. `ts/solid` (see `SP.TARGETS`);
  *   or a writer itself, e.g. a test's own.
  */
-export function compiledFixture(projectName: string, target: string | P.Writer = SP.RUNNING_TARGET): string {
+export function compiledFixture(projectName: string, target: string | P.ProgramWriter = SP.RUNNING_TARGET): string {
   return compileFixture(projectName, target).code
+}
+
+/** Does fixture `projectName` draw:  hold a drawing (JSX) anywhere?  Then a Python target writes its page too. */
+export function fixtureDraws(projectName: string): boolean {
+  return compileFixture(projectName).draws
 }
 
 /** Fixture `projectName`'s declarations, as its `<Project>.declarations.json` would hold them -- see `compileFixture()`. */
@@ -98,8 +118,8 @@ export function fixtureDeclarations(projectName: string): string {
 }
 
 /**
- * Fixture `projectName`'s words, as its `<Project>.en.js` would hold them:  from its declarations, by javascript's
- * names -- see `SP.SpellWords`.
+ * Fixture `projectName`'s words, as its `<Project>.en.js` would hold them:
+ * from its declarations, by javascript's names -- see `SP.SpellWords`.
  */
 export function fixtureWords(projectName: string): string {
   return SP.SpellWords.script(SP.SpellWords.of(compileFixture(projectName).declarations), projectName)
@@ -111,17 +131,19 @@ export function fixtureWords(projectName: string): string {
  *   and split through the same `SP.SpellDeclarations.split()`.
  * - Its `.css` files compile as `SpellCSSFile` does:  the whole text through the root scope's `css` rule.
  * - Parse errors lead its code, as comments, so a snapshot of it shows them too.
- * - Against the fixtures it imports, e.g. `@test:fixtures:Cards`:  their declarations, as a compiled import's --
- *   see `fixtureImportScope()`.  NOT their code:  that's theirs.
- * - `version` / `exports` from its `project.json`, as a compile would.
+ * - Against the fixtures it imports, e.g. `@test:fixtures:Cards`:
+ *   their declarations, as a compiled import's (see `fixtureImportScope()`).
+ *   NOT their code:  that's theirs.
+ * - `version` / `exports` / `listsStartAt` from its `project.json`, as a compile would.
  * - `target`'s writer writes it, `js/solid`'s by default -- or `target` itself, a writer.
+ * - `draws`:  does it hold a drawing -- see `SP.SpellProject.draws()`.
  */
 function compileFixture(
   projectName: string,
-  target: string | P.Writer = SP.RUNNING_TARGET
-): { code: string; declarations: SP.SpellDeclarationsData } {
+  target: string | P.ProgramWriter = SP.RUNNING_TARGET
+): { code: string; declarations: SP.SpellDeclarationsData; draws: boolean } {
   const projectDir = fixturePath(projectName)
-  const { version, exports, imports } = readProjectFile(projectDir)
+  const { version, exports, imports, listsStartAt } = readProjectFile(projectDir)
   const parentScope = fixtureImportScope(projectName)
   const { scope, files } = parseSpellProject(loadFixtureProject(projectName), { parentScope })
   const errors = files.flatMap(({ path, errors }) => errors.map((error) => `// PARSE ERROR ${path}:${error}\n`))
@@ -132,10 +154,11 @@ function compileFixture(
       const file = files.find((it) => it.path === path)!
       return file.match?.AST instanceof P.ASTStatementGroup ? file.match.AST : file.compiled
     })
-  const importLines = SP.SpellProject.importHeaderFor(scope)
   const writer = typeof target === "string" ? SP.targetFor(target).writer : target
-  const marked = errors.join("") + SP.SpellProject.combineCompiled(parts, writer, importLines, scope) + "\n"
-  return SP.SpellDeclarations.split(marked, scope, { version, exports })
+  const importLines = SP.SpellProject.importHeaderFor(scope, writer)
+  const marked =
+    errors.join("") + SP.SpellProject.combineCompiled(parts, writer, importLines, scope, { listsStartAt }) + "\n"
+  return { ...SP.SpellDeclarations.split(marked, scope, { version, exports }), draws: SP.SpellProject.draws(parts) }
 }
 
 /**
@@ -158,8 +181,9 @@ export function fixtureImports(projectName: string): Record<string, string> {
 }
 
 /**
- * The import layer fixture `projectName` parses under:  the declarations of each fixture it imports, as
- * `SpellProject.loadImportScope()` loads a compiled import's -- or the root scope, if it imports none.
+ * The import layer fixture `projectName` parses under:  the declarations of each fixture it imports,
+ * as `SpellProject.loadImportScope()` loads a compiled import's.
+ * - Imports none:  the root scope.
  */
 function fixtureImportScope(projectName: string): P.Scope {
   const { imports } = readProjectFile(fixturePath(projectName))
@@ -199,6 +223,7 @@ function readProjectFile(projectDir: string): {
   version?: string
   exports?: string[]
   imports: Array<{ path: string; active?: boolean; import?: string[] }>
+  listsStartAt?: 0 | 1
 } {
   return JSON.parse(readFileSync(resolve(projectDir, SP.PROJECT_FILE), "utf8"))
 }

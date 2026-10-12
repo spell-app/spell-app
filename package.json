@@ -15,6 +15,7 @@
     "packages/spell",
     "packages/app",
     "packages/core",
+    "packages/py",
     "packages/server",
     "packages/ui",
     "packages/util",
@@ -34,19 +35,23 @@
     "docs:index": "node packages/cli/bin/spell.mjs dev docs index",
     "docs:new": "node packages/cli/bin/spell.mjs dev docs new",
     "docs:open": "node packages/cli/bin/spell.mjs dev docs open",
+    "epic": "node packages/cli/bin/epic.mjs",
+    "ask": "node packages/cli/bin/epic.mjs ask",
     "plan-doc": "node packages/cli/bin/spell.mjs dev plan-doc",
     "details": "node packages/cli/bin/spell.mjs dev details",
     "docs:link": "node packages/cli/bin/spell.mjs dev docs link",
-    "goals": "node packages/cli/bin/spell.mjs dev goals",
-    "goals:test": "TSX_TSCONFIG_PATH=packages/docs/tsconfig.json node --import tsx --test packages/docs/tools/goals/goalsRoutes.test.ts packages/docs/tools/goals/page.test.js",
     "window": "node packages/cli/bin/spell.mjs dev window",
     "server": "node packages/cli/bin/spell.mjs dev server",
     "serve": "node packages/cli/bin/spell.mjs dev server start --all",
+    "dev": "cd \"$INIT_CWD\" && node \"$PROJECT_CWD/packages/cli/bin/spell.mjs\" run",
+    "dev:ts": "cd \"$INIT_CWD\" && node \"$PROJECT_CWD/packages/cli/bin/spell.mjs\" run --target ts",
+    "dev:py": "cd \"$INIT_CWD\" && node \"$PROJECT_CWD/packages/cli/bin/spell.mjs\" run --target py",
     "commands:check": "node packages/cli/bin/spell.mjs dev commands check"
   },
   "devDependencies": {
     "@vitest/browser-playwright": "catalog:",
     "playwright": "1.63.0",
+    "pyright": "1.1.414",
     "vite": "catalog:",
     "vite-plus": "catalog:",
     "vitest": "catalog:"
@@ -65,7 +70,6 @@
   "packageManager": "yarn@4.18.0",
   "pageServer": {
     "routes": [
-      "packages/docs/tools/goals/goalsRoutes.ts",
       "packages/docs/tools/detailsRoutes.ts",
       "packages/docs/tools/choicesRoutes.ts",
       "packages/docs/tools/commentsRoutes.ts",

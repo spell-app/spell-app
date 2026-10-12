@@ -1,5 +1,5 @@
 import { For } from "solid-js"
-import { spellCore, Thing, List, App, Drawable, DrawableList, prop, derived, drawn, positionOf, trigger, on } from "@spell/core"
+import { spellCore, Thing, List, App, Drawable, DrawableList, prop, derived, drawn, positionOf, spellPosition, trigger, position, on } from "@spell/core"
 
 spellCore.heading("Deck:  US standard card deck (without jokers) -- in the outline style")
 ///////////////////////////////////////////////////////////////////////////
@@ -89,7 +89,7 @@ export class Card extends Thing {
   }
 
   get value() {
-    return positionOf(Deck.Ranks, this.rank)
+    return spellPosition(positionOf(Deck.Ranks, this.rank))
   }
 
   static Directions = DIRECTIONS
@@ -108,7 +108,7 @@ export class Card extends Thing {
     return `${this.rank}-of-${this.suit}`
   }
 
-  get shortSuit() {
+  get icon() {
     if (this.isASuit("clubs")) return "♣️"
     if (this.isASuit("diamonds")) return "♦️"
     if (this.isASuit("hearts")) return "♥️"
@@ -119,7 +119,7 @@ export class Card extends Thing {
   get shortRank() {
     if (this.rank === undefined) return "?"
     if (typeof this.rank === "number") return `${this.rank}`
-    return `${spellCore.getItemAt(this.rank, 1) ?? ""}`.toLocaleUpperCase() ?? "?"
+    return `${spellCore.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
   }
 
   get shortDirection() {
@@ -128,11 +128,11 @@ export class Card extends Thing {
   }
 
   get shortName() {
-    return this.shortRank + this.shortSuit
+    return this.shortRank + this.icon
   }
 
   get state() {
-    return this.shortRank + this.shortSuit + this.shortDirection
+    return this.shortRank + this.icon + this.shortDirection
   }
 
   /** drawing */
@@ -141,7 +141,7 @@ export class Card extends Thing {
     return (
       <div class={`Card face-up ${this.rank} ${this.suit} ui button compact fluid ${this.color}`} onClick={() => trigger("card-click", { card: this })}>
         {`${this.shortRank} `}
-        <span class="suit">{this.shortSuit}</span>
+        <span class="suit">{this.icon}</span>
       </div>
     )
   }
@@ -236,7 +236,7 @@ export function testCardSetup() {
     spellCore.expect(card.name, `the name of the card`, "queen-of-spades", `"queen-of-spades"`)
     spellCore.expect(card.color, `the color of the card`, "black", `black`)
     spellCore.expect(card.value, `the value of the card`, 12, `12`)
-    spellCore.expect(card.shortSuit, `the short suit of the card`, "♠️", `"♠️"`)
+    spellCore.expect(card.icon, `the icon of the card`, "♠️", `"♠️"`)
     spellCore.expect(card.shortRank, `the short rank of the card`, "Q", `"Q"`)
     spellCore.expect(card.shortName, `the short name of the card`, "Q♠️", `"Q♠️"`)
 
@@ -300,12 +300,12 @@ export class Pile extends List<Card> {
 
   get color() {
     if (this.isEmpty) return "none"
-    return this.lastItem?.color ?? "none"
+    return this.lastItem.color
   }
 
   get value() {
     if (this.isEmpty) return 0
-    return this.lastItem?.value ?? 0
+    return this.lastItem.value
   }
 
   @derived
@@ -377,18 +377,18 @@ export class Game extends App {
                 <td>{discards.draw()}</td>
                 <td />
                 <td>{foundations.firstItem?.draw()}</td>
+                <td>{foundations.getItem(1)?.draw()}</td>
                 <td>{foundations.getItem(2)?.draw()}</td>
                 <td>{foundations.getItem(3)?.draw()}</td>
-                <td>{foundations.getItem(4)?.draw()}</td>
               </tr>
               <tr>
                 <td>{tableaus.firstItem?.draw()}</td>
+                <td>{tableaus.getItem(1)?.draw()}</td>
                 <td>{tableaus.getItem(2)?.draw()}</td>
                 <td>{tableaus.getItem(3)?.draw()}</td>
                 <td>{tableaus.getItem(4)?.draw()}</td>
                 <td>{tableaus.getItem(5)?.draw()}</td>
                 <td>{tableaus.getItem(6)?.draw()}</td>
-                <td>{tableaus.getItem(7)?.draw()}</td>
               </tr>
             </tbody>
           </table>
@@ -580,7 +580,7 @@ export async function dealTheCards() {
     for (const row of spellCore.getRange(1, 7)) {
       stock.lastItem?.turnFaceUp()
       for (const column of spellCore.getRange(row, 7)) {
-        tableaus.getItem(column)?.append(stock.lastItem!)
+        tableaus.getItem(position(column))?.append(stock.lastItem!)
         await spellCore.pauseFor(50, "msec")
       }
     }
@@ -608,10 +608,10 @@ export async function autoPlay() {
   for (const pile of tableaus) {
     if (pile.isEmpty) continue
     const testCard = pile.lastItem
-    const foundation = foundations.filter((pile) => pile.name == testCard?.suit).firstItem
-    if (spellCore.canTake(foundation!, testCard!)) {
+    const foundation = foundations.filter((pile) => pile.name == testCard.suit).firstItem
+    if (spellCore.canTake(foundation!, testCard)) {
       anythingChanged = true
-      await testCard?.play()
+      await testCard.play()
       await spellCore.pauseFor(100, "msec")
     }
   }
@@ -621,8 +621,8 @@ export async function autoPlay() {
     const faceUpCards = pile.filter((card) => card.isFaceUp)
     if (faceUpCards.isEmpty) continue
     const testCard = faceUpCards.firstItem
-    if (testCard?.isARank("king") && testCard === pile.firstItem) continue
-    if (await testCard?.play()) {
+    if (testCard.isARank("king") && testCard === pile.firstItem) continue
+    if (await testCard.play()) {
       anythingChanged = true
       await spellCore.pauseFor(500, "msec")
     }

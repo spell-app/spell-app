@@ -2,9 +2,12 @@
  * Check that folding never moves what was clicked (I7 of epic `airplane`), in a real browser:
  * the line or title folded stays where it is on screen, to the pixel, from the click until 1.5s after.
  * Usage (from the repo root):
- *   node packages/epics/demo/check-fold-epics.mjs [--doc <name>] [--item <id>] [--guide <path>] [outDir]
+ *   node packages/epics/demo/check-fold-epics.mjs [--doc <name>] [--from <folder>] [--item <id>] [--guide <path>]
+ *     [outDir]
  * - the plan doc:  a SCRATCH COPY of `epics/<name>/` (default `airplane`), in `demo/shots/fold/epics/<name>/`
  *   (git-ignored):  the review routes take plan docs only (`epics/<name>/<name>.plan.html`)
+ *   - `--from <folder>` (from the root):  copied from `<folder>/<name>/` instead, e.g. a doc the tool migrated
+ *     under `preview-epics/`;  it must sit two folders under the root, as `epics/<name>/` does
  *   - one reply is made on it (the reply case);  its inbox file is deleted at the end
  *   - REFUSES to run while the copy's inbox file exists (a run killed half way:  delete it)
  * - the item:  `--item <id>` (default:  the first item with details in a Todos or Questions section);
@@ -69,8 +72,9 @@ const args = process.argv.slice(2)
 const flagValue = (name) => (args.includes(name) ? args[args.indexOf(name) + 1] : undefined)
 const docName = flagValue("--doc") ?? "airplane"
 const guide = flagValue("--guide") ?? "guides/solid/solid-2.html"
+const from = flagValue("--from") ?? "epics"
 const flagged = new Set(
-  ["--doc", "--item", "--guide"].flatMap((name) => (args.includes(name) ? [args.indexOf(name) + 1] : []))
+  ["--doc", "--from", "--item", "--guide"].flatMap((name) => (args.includes(name) ? [args.indexOf(name) + 1] : []))
 )
 const out = args.find((arg, index) => !arg.startsWith("--") && !flagged.has(index)) ?? join(HERE, "shots/fold")
 const SIZES = [
@@ -411,8 +415,8 @@ async function finish(page, logs, where, shot) {
  * a real doc sits two folders under the root, the copy seven.  Never its inbox, agents or details.
  */
 function copyDoc() {
-  const from = join(ROOT, "epics", docName)
-  const skeleton = join(from, `${docName}.plan.html`)
+  const source = join(ROOT, from, docName)
+  const skeleton = join(source, `${docName}.plan.html`)
   if (!existsSync(skeleton)) {
     console.error(`check-fold-epics:  no ${skeleton}`)
     process.exit(2)
@@ -423,7 +427,7 @@ function copyDoc() {
     join(folder, `${docName}.plan.html`),
     readFileSync(skeleton, "utf8").replaceAll('"../../', '"../../../../../../../')
   )
-  const parts = join(from, "parts")
+  const parts = join(source, "parts")
   if (!existsSync(parts)) return
   mkdirSync(join(folder, "parts"))
   for (const name of readdirSync(parts)) {

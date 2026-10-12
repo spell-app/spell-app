@@ -26,7 +26,7 @@ export const words = {
       isFaceUp: "is face up",
       isFaceDown: "is face down",
       name: "name",
-      shortSuit: "short suit",
+      icon: "icon",
       shortRank: "short rank",
       shortDirection: "short direction",
       shortName: "short name",

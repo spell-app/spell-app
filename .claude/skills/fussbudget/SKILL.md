@@ -39,7 +39,7 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 - `epic <name>`:  the plan doc's prose:  Overview, phases, items' details.
   - Through its part files, at the shared REAL path:
     `/Users/owen/www/spell-app/spell-app-dev/epics/<name>/parts/<id>.html`.
-  - Never its structure:  no ids, no sections, no item lines, nothing `spell dev plan-doc` writes.
+  - Never its structure:  no ids, no sections, no item lines, nothing `epic` writes.
 - `branch`:  every file this branch changed or added since `main`, WHOLE.
   - The files:
     - `git diff --name-only main...HEAD` and `git diff --name-only HEAD`
@@ -79,7 +79,7 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 2. Is anyone else editing it?
    - `spell dev worktree list`:  another session (not this one, not the one that started you)
      working in this checkout.
-   - `spell dev agents list`:  another agent whose task names these files.
+   - `epic agents list`:  another agent whose task names these files.
      For a plan doc:  any other plan-doc agent (`<epic>-plan-doc`).
    - Either:  say who, and STOP.  A mixed diff can't be reviewed.
 3. The scope, as "Forms" says:  a list of files.
@@ -101,7 +101,7 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
    - The diff IS the proposal:  Owen reviews it in Source Control,
      and discards a file or a hunk he doesn't like.
    - A plan doc has no branch diff:  each turn's edits are one `auto:` commit in `spell-app-dev`,
-     which can be reverted whole.  Then `spell dev plan-doc check <name>`.
+     which can be reverted whole.  Then `epic check <name>`.
 8. The checker again:  the count AFTER.
    - A miss left on purpose (a false hit, a line that can't break better):  name it in the report.
 9. Report ("Report").
@@ -139,10 +139,10 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
   - Why:  one voice per package, and the session stays free.
 - Each one NAMED and LISTED, as the root `CLAUDE.md`'s "Delegated work" says
   ([the bg skill](.claude/skills/bg/SKILL.md), "Names"):
-  - `spell dev agents add fussbudget-<folder> "<its task>"`:  prints its full name
+  - `epic agents add fussbudget-<folder> "<its task>"`:  prints its full name
   - an `Agent` call (`general-purpose`, `run_in_background: true`),
     its `description` starting with that full name
-  - `spell dev agents done fussbudget-<folder>` when it's back
+  - `epic agents done fussbudget-<folder>` when it's back
 - Its prompt carries:
   - its files, and the checker line for them
   - "Read `agents/wwod/WWOD.md` §6 and `agents/wwod/writing.md` WHOLE, first."

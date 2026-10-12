@@ -106,9 +106,8 @@ export const epicSectionVocabulary = {
     {
       name: "changes",
       description:
-        "The Phases section's Plan changes:  a copy of each `<epic-updated>` of a phase still to do " +
-        '(`<epic-updated slot="changes" of="3" at="...">`), written by the plan-doc tool on every edit;  drawn as a ' +
-        "box above the phases.  None:  no box."
+        "An OLDER doc's Plan changes copies in the Phases section (T14, until 2026-10-11).  NOT drawn:  no slot of " +
+        "the shadow root takes them, since each phase draws its own;  the plan-doc tool removes them on its next write."
     },
     {
       name: "status",
@@ -132,7 +131,6 @@ export const epicSectionVocabulary = {
         "state's items show, outlined while hidden."
     },
     { name: "hidden-note", description: 'Under a filtered list:  "3 hidden · show all".' },
-    { name: "changes", description: "The Phases section's Plan changes box, above its phases." },
     { name: "empty", description: 'An item section with no items:  "None yet".' },
     ...REVIEW_PARTS,
     {
@@ -151,8 +149,6 @@ export const epicSectionVocabulary = {
     { name: "tools", description: "Its title has tools:  the Phases toggles, or a state filter (items in it)." }
   ],
   texts: [
-    { key: "foldTip", text: "Fold the plan changes", description: "Tooltip of its fold button while open." },
-    { key: "unfoldTip", text: "Unfold the plan changes", description: "Tooltip of its fold button while folded." },
     {
       key: "hiddenTip",
       text: "Show everything:  clear the filter",
@@ -176,7 +172,6 @@ export const epicSectionVocabulary = {
     { key: "count", text: "{open} open of {total}", description: "The count badge's tooltip:  `3/7` in words." },
     ...FILTER_TEXTS,
     { key: "hiddenNote", text: "{count} hidden · show all", description: "Under a filtered list;  a click shows all." },
-    { key: "changesTitle", text: "Plan changes", description: "The Phases section's box of changes to phases to do." },
     ...NEW_KIND_TEXTS,
     ...NEW_LIST_TEXTS
   ],
@@ -187,8 +182,8 @@ export const epicSectionVocabulary = {
       slot: "changes",
       when: { attribute: "kind", values: ["phases"] },
       description:
-        "The Plan changes:  a copy of each `<epic-updated>` of a phase still to do, its phase in `of`;  the tool " +
-        "rewrites them on every edit."
+        "An OLDER doc's Plan changes (T14, until 2026-10-11):  a copy of each `<epic-updated>` of a phase still to " +
+        "do, its phase in `of`.  Never drawn:  each phase draws its own now;  the tool removes them on its next write."
     },
     {
       tag: "flow",

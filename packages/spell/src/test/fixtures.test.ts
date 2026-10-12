@@ -1,13 +1,27 @@
 import { describe, test, expect } from "vite-plus/test"
 
+import { PY } from "$/py"
 import { SP } from "$/spell"
-import { compiledFixture, fixtureDeclarations, fixturePath, fixtureProjectNames, fixtureWords } from "$/spell/test"
+import {
+  PYTHON_FIXTURES,
+  compiledFixture,
+  fixtureDeclarations,
+  fixtureDraws,
+  fixturePath,
+  fixtureProjectNames,
+  fixtureWords
+} from "$/spell/test"
 
 /**
- * Every fixture project in `projects/test/` compiled, against its snapshot beside it:
- * `projects/test/<Project>/<Project>.snapshot.js`, and its declarations against `<Project>.snapshot.declarations.json`;
- * as TypeScript (the `ts/solid` target), against `<Project>.snapshot.tsx`;  its words against `<Project>.en.snapshot.js`.
- * - Why beside it:  a change shows up as a diff of a real `.js` file, in VS Code's Source Control.
+ * Every fixture project in `projects/test/` compiled, against the snapshots beside it,
+ * in `projects/test/<Project>/`:
+ * - `<Project>.snapshot.js`:  the javascript (`js/solid` target)
+ * - `<Project>.snapshot.declarations.json`:  its declarations
+ * - `<Project>.en.snapshot.js`:  its words
+ * - `<Project>.snapshot.tsx`:  the TypeScript (`ts/solid` target)
+ * - `<Project>.snapshot.py`:  the Python (the `py` target)
+ *   - only for the fixtures in `PYTHON_FIXTURES`
+ * - Why beside it:  a change shows up as a diff of a real `.js` or `.py` file, in VS Code's Source Control.
  * - New fixture:  copy a project into `projects/test/`, then `yarn test:fixtures:bless` writes its snapshot.
  * - Changed on purpose:  `yarn test:fixtures:bless`, then read the diff before committing it.
  * - See `compiledFixture()` for what's in each.
@@ -34,6 +48,19 @@ describe("fixture projects compile to their snapshots", () => {
     // the `ts/solid` target's, `tsc`-checked by `typescript.test.ts`
     test(`${name} as TypeScript`, async () => {
       await expect(compiledFixture(name, "ts/solid")).toMatchFileSnapshot(fixturePath(name, `${name}.snapshot.tsx`))
+    })
+
+    // the `py` target's (epic `python-target`):  the fixtures its writer writes so far
+    test.runIf(PYTHON_FIXTURES.has(name))(`${name} as Python`, async () => {
+      await expect(compiledFixture(name, "py")).toMatchFileSnapshot(fixturePath(name, `${name}.snapshot.py`))
+    })
+
+    // the Python targets' page, when it draws:  the drawing half in javascript (`PY.ElementsWriter`, `.elements.js`);
+    // `.elements.snapshot.js`, ending as a snapshot does, so it isn't one of the fixture's files
+    test.runIf(PYTHON_FIXTURES.has(name) && fixtureDraws(name))(`${name}'s page, for Python`, async () => {
+      await expect(compiledFixture(name, PY.ElementsWriter.instance)).toMatchFileSnapshot(
+        fixturePath(name, `${name}.elements${SP.SNAPSHOT_JS_SUFFIX}`)
+      )
     })
   }
 })

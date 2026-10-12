@@ -39,10 +39,13 @@ lists.addRule(RangeStartingWithExpression, {
         scope.variables?.add("thing")
       },
       tests: [
-        ["items in my-list starting with thing", "spellCore.rangeStartingAt(myList, positionOf(myList, thing))"],
+        [
+          "items in my-list starting with thing",
+          "spellCore.rangeStartingAt(myList, position(spellPosition(positionOf(myList, thing))))"
+        ],
         [
           `words in "some words" starting with "some"`,
-          'spellCore.rangeStartingAt("some words", positionOf("some words", "some"))'
+          'spellCore.rangeStartingAt("some words", position(spellPosition(positionOf("some words", "some"))))'
         ]
       ]
     }

@@ -50,7 +50,7 @@
  *     `.claude/hooks/prompt-gate.mjs`, sets it on `/isolate <name>`), else Claude's own.
  *     No single match (two sessions with one title):  it stays open, idle;  close it by hand.
  *   - Log:  `<registry>/handoffs/<session id>.log`.
- * - Docs shown while the move is pending (`show`, `spell dev plan-doc open`) wait for it, then show in the window the
+ * - Docs shown while the move is pending (`show`, `epic open`) wait for it, then show in the window the
  *   session moved to:  the window it's leaving is about to close its tab.
  * - Its file:  `workspaces/ongoing/<name>.code-workspace` in the main checkout, beside the package windows' files;
  *   git ignores `workspaces/ongoing/`.

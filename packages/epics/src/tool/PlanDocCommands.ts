@@ -8,6 +8,7 @@ import { EpicDocs, GROUPS, type EpicDecisions, type EpicDocList } from "./EpicDo
 import { EpicParts } from "./EpicParts"
 import { InboxCommands } from "./InboxCommands"
 import { ItemPicker } from "./ItemPicker"
+import { MigrateCommands, type SessionFinder } from "./MigrateCommands"
 import { PlanDoc } from "./PlanDoc"
 import { EPIC_STATUSES, PlanDocFiles, type EpicListing } from "./PlanDocFiles"
 import { PlanItem } from "./PlanItem"
@@ -24,15 +25,16 @@ import { LISTEN_HEARTBEAT_MS, LISTEN_STALE_MS, ReviewInbox } from "./ReviewInbox
  * edit the structured parts of a plan doc, `epics/<name>/<name>.plan.html`.
  * Used by the `/epic` skill and its agents.
  * - what's data:  `PLAN-DOC.md` beside this;  the elements:  `$/epics/definitions`
- * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `calm`, `decide`, `close`, `cancel`, `reopen`, `commit`,
- *   `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `docs`, `decisions`, `check`, `open`, `convert`,
- *   `split`, `join`, `inbox`, `details`, `status`, `original`
+ * - Commands:  `new`, `add-phase`, `phase`, `rename`, `estimate`, `add`, `calm`, `decide`, `close`, `cancel`,
+ *   `reopen`, `commit`, `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `docs`, `decisions`, `check`,
+ *   `open`, `migrate`, `convert`, `split`, `join`, `inbox`, `details`, `status`, `original`
  *   (`spell dev plan-doc` with no command lists them:  `USAGE`).
  * - `docs`, `decisions`:  the docs an epic wrote besides its plan doc, and what its plan doc settled
  *   (`EpicDocs`), for `/docs-check`
  * - the `<epic-*>` markup only:  every command refuses a doc still in the old markup
  *   (one restored from an old backup) before it writes anything:  `convert` it first (`PlanDocFiles.read()`)
- * - `migrate` and `relayout` are gone:  the converter (`convert`, `$/epics/convert`) replaced them
+ * - `migrate`:  pages brought up to today's markup, by page kind (`MigrateCommands`, epic `epic-workflow` P8);
+ *   `relayout` is gone:  the converter (`convert`, `$/epics/convert`) replaced it
  * - `inbox`:  the marks Owen left on the doc's page, waiting in `<name>.inbox.json` beside it (`ReviewInbox`):
  *   printed, waited on (`wait`, a background command that wakes the `/epic review` session), applied (`apply`),
  *   cleared (`InboxCommands`);  `details` writes an agent's details or reply into one item
@@ -54,9 +56,17 @@ export class PlanDocCommands {
   /** the `inbox` commands, on this object's files and output */
   readonly inbox: InboxCommands
 
-  constructor({ files = new PlanDocFiles() }: { files?: PlanDocFiles } = {}) {
+  /** the `migrate` command, on this object's files and output */
+  readonly migrator: MigrateCommands
+
+  /**
+   * - `files`:  the checkout's plan docs
+   * - `sessionsOf`:  an epic's running sessions, for `migrate --notify`;  the `spell` CLI gives it (`epicSessions()`)
+   */
+  constructor({ files = new PlanDocFiles(), sessionsOf }: { files?: PlanDocFiles; sessionsOf?: SessionFinder } = {}) {
     this.files = files
     this.inbox = new InboxCommands(this)
+    this.migrator = new MigrateCommands(this, sessionsOf)
   }
 
   ////////////////
@@ -84,7 +94,8 @@ export class PlanDocCommands {
     const [command, name, ...rest] = positional
     if (command === "list") return this.printEpics(this.files.listEpics(), Boolean(flags.json))
     if (command === "backfill") return this.backfill(name, flags)
-    if (command === "relayout" || command === "migrate") throw new PlanDocError(replaced(command))
+    if (command === "relayout") throw new PlanDocError(replaced(command))
+    if (command === "migrate") return this.migrator.run(positional.slice(1), flags)
     if (command === "convert") return this.convert(positional.slice(1), flags)
     if (command === "split" && flags.done) return this.splitDone(flags)
     if (!command || !name) return this.usage()
@@ -104,7 +115,9 @@ export class PlanDocCommands {
           plan.log(`P${added} added:  ${rest[0]}${moved}`)
           return added
         })
-        return this.print(`P${n}`)
+        this.print(`P${n}`)
+        // the phases after it moved:  links and comments follow them (`links-agree`)
+        return before === undefined ? undefined : this.agree(file)
       }
       case "phase":
         await this.edit(file, (plan) =>
@@ -130,9 +143,33 @@ export class PlanDocCommands {
         return this.edit(file, (plan) =>
           plan.addPhaseUpdate(
             Number(need(rest[0], "a phase number")),
-            flags.file ? readFileSync(flags.file as string, "utf8") : need(rest[1], "what changed (html)")
+            flags.file ? readFileSync(flags.file as string, "utf8") : need(rest[1], "what changed (html)"),
+            { summary: typeof flags.summary === "string" ? flags.summary : undefined }
           )
         )
+      case "standing":
+        return this.edit(file, (plan) => {
+          const value = rest[0] ?? "on"
+          if (value !== "on" && value !== "off") throw new PlanDocError(`standing:  on or off, not "${value}"`)
+          plan.setStanding(value === "on")
+        })
+      case "request":
+        return this.edit(file, (plan) =>
+          plan.addPhaseRequest(
+            Number(need(rest[0], "a phase number")),
+            need(rest[1], "a request id"),
+            need(flags.from as string | undefined, "--from (who sent it)"),
+            readFileSync(need(flags.file as string | undefined, "--file (the request as html)"), "utf8")
+          )
+        )
+      case "rename": {
+        const target = need(rest[0], "a phase (P6) or an item id")
+        const title = need(rest[1], "the new title")
+        const renamed = await this.edit(file, (plan) => plan.renameEntry(target, title, { html: !!flags.html }))
+        const links = renamed.links ? `;  ${renamed.links} link${renamed.links === 1 ? "" : "s"} rewritten` : ""
+        this.print(`${renamed.id.toUpperCase()} · ${renamed.title} (was "${renamed.was}"${links})`)
+        return this.agree(file)
+      }
       case "estimate":
         return this.edit(file, (plan) => {
           const n = Number(need(rest[0], "a phase number"))
@@ -162,7 +199,7 @@ export class PlanDocCommands {
       case "commit":
         return this.commit(file, rest, flags)
       case "commits":
-        if (!flags.backfill) throw new PlanDocError(`commits what?  --backfill\n${USAGE}`)
+        if (!flags.backfill) throw new PlanDocError(`commits what?  --backfill  (${USAGE_HINT})`)
         return this.backfillCommits(file)
       case "close":
       case "reopen":
@@ -222,7 +259,7 @@ export class PlanDocCommands {
       case "check":
         return this.check(file, flags)
       case "open":
-        return this.open(file)
+        return this.open(file, flags)
       case "inbox":
         return this.inbox.run(name, file, rest, flags)
       case "details":
@@ -273,6 +310,15 @@ export class PlanDocCommands {
   /** Change the doc at `file` under its lock, and write it:  `PlanDocFiles.edit()`. */
   edit<T>(file: string, change: (plan: PlanDoc) => T, options?: { split?: boolean }): Promise<T> {
     return this.files.edit(file, change, options)
+  }
+
+  /**
+   * After a rename or an insert:  the `links-agree` step on the doc at `file` (`PlanDocFiles.migrate()`), so links
+   * and Owen's comments follow what moved;  what it fixed or left, on stderr (stdout holds the command's answer).
+   */
+  private async agree(file: string): Promise<void> {
+    const { notes } = await this.files.migrate(file, { only: ["links-agree"] })
+    for (const note of notes) this.warn(note)
   }
 
   ////////////////
@@ -372,7 +418,7 @@ export class PlanDocCommands {
     if (ReviewInbox.read(ReviewInbox.pathFor(file)).isCanceled(id))
       throw new PlanDocError(
         `${id.toUpperCase()}:  Owen called this request off on the page ("nevermind"):  nothing written.  ` +
-          `\`plan-doc inbox ${name} done ${id}\` and stop.`
+          `\`epic inbox ${name}#${id} done\` and stop.`
       )
     if (flags.append && flags.more) throw new PlanDocError("--append or --more, not both")
     return this.edit(file, (plan) => {
@@ -412,7 +458,7 @@ export class PlanDocCommands {
       title = await this.edit(file, (plan) => plan.noteStatus(id, what))
       said = "noted"
     } else if (state === "done") title = await this.edit(file, (plan) => plan.finishStatus(id, text))
-    else throw new PlanDocError(`status ${id} underway | done | noted, not '${state ?? ""}'\n${USAGE}`)
+    else throw new PlanDocError(`status ${id} underway | done | noted, not '${state ?? ""}'  (${USAGE_HINT})`)
     this.inbox.setWorking(file, id, state === "underway")
     this.print(`${id.toUpperCase()} ${said}:  ${title}`)
   }
@@ -439,7 +485,7 @@ export class PlanDocCommands {
    * that day, logging the evidence.
    */
   private async backfill(name: string | undefined, { all, apply }: Flags): Promise<void> {
-    if (!name && !all) throw new PlanDocError(`backfill needs a name, or --all\n${USAGE}`)
+    if (!name && !all) throw new PlanDocError(`backfill needs a name, or --all  (${USAGE_HINT})`)
     const { files } = this
     const epics = all ? files.listEpics() : [{ name: name!, file: files.findDoc(name!) }]
     const main = files.mainRoot()
@@ -484,7 +530,7 @@ export class PlanDocCommands {
    * - loaded on first use:  the converter is big, and no other command needs it
    */
   private async convert(names: string[], { all, dryRun, out, verbose }: Flags): Promise<number | void> {
-    if (!all && !names.length) throw new PlanDocError(`convert which docs?  <name> ... | --all\n${USAGE}`)
+    if (!all && !names.length) throw new PlanDocError(`convert which docs?  <name> ... | --all  (${USAGE_HINT})`)
     const { ConvertRun } = await import("$/epics/convert/ConvertRun")
     const run = new ConvertRun({ root: this.files.root })
     const results = await run.run({
@@ -596,22 +642,28 @@ export class PlanDocCommands {
     if (problems.length || !browserOk) return 1
   }
 
-  /** `open`:  show the doc in VS Code's Review tab (Owen's rule, 2026-10-07), reusing it (`openInVSCode()`). */
-  private open(file: string): void {
+  /**
+   * `open <name> [--docs]`:  show the doc in VS Code's side bar, reusing it (`openInVSCode()`):
+   * the Review tab (Owen's rule, 2026-10-07), or with `--docs` the Spell Docs tab
+   * - `epic open seo` passes `--docs`, and `epic open seo --review` doesn't (Owen, 2026-10-12)
+   */
+  private open(file: string, { docs }: Flags): void {
     this.read(file)
-    this.openInVSCode(file)
+    this.openInVSCode(file, docs ? "docs" : "review")
   }
 
   /**
    * Show `file` in VS Code's doc preview, in the right side bar's Review tab (a plan doc's place, Owen's rule
-   * 2026-10-07), or Chrome when not run from VS Code:  `packages/docs/tools/open.js --review <file>`, a child `node` with this terminal attached, which starts the page
-   * server and asks the session's window (`pages.js` `openInVSCode()`).
+   * 2026-10-07), or its Spell Docs tab (`view` `docs`), or Chrome when not run from VS Code:
+   * `packages/docs/tools/open.js --review <file>` (`--vs` for Spell Docs), a child `node` with this terminal
+   * attached, which starts the page server and asks the session's window (`pages.js` `openInVSCode()`).
    * - a child, not an import:  `epics` may not import `docs`, nor the repo root's `scripts/window.mjs`
    * - NEVER throws, nor fails the command:  as before, a doc not shown is no error
    */
-  openInVSCode(file: string): void {
+  openInVSCode(file: string, view: "review" | "docs" = "review"): void {
     const { files } = this
-    spawnSync(process.execPath, [join(files.docsTools, "open.js"), "--review", resolve(file)], {
+    const flag = view === "docs" ? "--vs" : "--review"
+    spawnSync(process.execPath, [join(files.docsTools, "open.js"), flag, resolve(file)], {
       cwd: files.docsPackage,
       stdio: "inherit"
     })
@@ -774,7 +826,8 @@ export type Flags = Record<string, string | true>
 type CreateFlags = { title?: string; prompt?: string; promptFile?: string; future?: boolean }
 
 /** Usage, printed with no command or a bad one. */
-export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics/<name>/<name>.plan.html)
+export const USAGE = `usage:  spell dev plan-doc <command> <name> ...    (doc:  epics/<name>/<name>.plan.html)
+  The old spelling of the epic command:  \`epic --help\` lists today's names (\`epic close seo#J3\` ...).
   new <name> [--title "Title"] [--prompt "text" | --prompt-file path] [--future]
                                                    copy the template, fill it in, update the docs index;
                                                    --future:  an epic not planned yet (/epic future);  new on
@@ -782,14 +835,26 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
   add-phase <name> "Short Name" --symptom html --changes html [--goal html] [--files html] [--verify html]
             [--estimate 2h] [--before N]           a phase:  Symptom (one line), Changes (two or three), then
                                                    the details (goal, files, verify);  --before N:  inserted as
-                                                   PN, the to-do phases from N on (and links to them) move down
+                                                   PN, the to-do phases from N on (and links to them) move down;
+                                                   then links-agree:  comments on them follow (stderr says)
   phase-body <name> <N> [--symptom html] [--changes html] [--goal html] [--files html] [--verify html]
                                                    set (or "" removes) a phase's body fields
-  updated <name> <N> "html" | --file path          a change to phase N's plan, in its fenced Updated block
-                                                   (kept;  listed atop the phases while N is to do)
+  updated <name> <N> "html" | --file path [--summary "..."]
+                                                   a change to phase N's plan:  an <epic-update> block at the
+                                                   end of its description, "Update: <summary>" and the date
+                                                   (summary:  the html's first sentence unless given);  kept;
+                                                   while N isn't done, its folded title says it changed
+  rename <name> <P6 | id> "New title" [--html]     retitle a phase or an item;  links to it that say the old
+                                                   title ("P6 · Old", "Old") say the new one;  logged;  then
+                                                   links-agree (stderr);  --html (last):  the title is HTML
+  standing <name> [on|off]                         a standing epic:  open for good, each phase merging on its own,
+                                                   never done (epic epic-workflow)
+  request <name> <N> <rN> --from "..." --file path a request sent from another session, into phase N's Requests
+                                                   field (epic file writes it;  epic epic-workflow)
   estimate <name> <N> "1-2h"                       set a phase's estimate;  the Overview's total follows
   phase <name> <N> todo|active|done [--done html] [--no-open]
-                                                   set a phase's status;  done drops its UPDATE markers, and
+                                                   set a phase's status;  done drops its UPDATE markers
+                                                   (labels, prose updates;  its plan changes stay), and
                                                    --done writes its Done field (a <ul> of what was built);
                                                    brings the doc forward in VS Code (it updates itself)
   add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details html] [--calm]
@@ -829,7 +894,7 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
   items <name> [--section issues] [--filter unreviewed|open|reviewed|queued|all] [--json]
                                                    what a review walks:  sections, counts, items, the queue
   items <name> --section issues --spec <file>      the review's item picker, a details page spec:
-                                                   \`yarn details new <slug> --from <file>\`
+                                                   \`epic ask new <slug> --from <file>\`
   list [--json]                                    every epic:  status, where it runs, not reviewed / all
   backfill <name> | --all [--apply]                items Owen already went through, from past sessions;
                                                    a dry run unless --apply (review-backfill.js)
@@ -838,7 +903,16 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
   check <name> [--no-browser] [--links]            ids, #id links, phases, parts (a split doc whole);  its
                                                    links (doc-links), failing only with --links;  then
                                                    check-spell.js
-  open <name>                                      show in VS Code's doc preview (right side bar)
+  open <name> [--docs]                             show in VS Code's side bar:  the Review tab, or --docs the
+                                                   Spell Docs tab (epic open seo ~== open seo --docs)
+  migrate [<kind>] [<epic>... | --all] [--file <page>] [--step <name>] [--dry-run] [--notify] [--list]
+                                                   bring pages up to today's markup:  every step of their kind,
+                                                   oldest first, each page under its lock;  safe to run again.
+                                                   Alone:  every kind, every page;  <kind> (epic, guide,
+                                                   cheatsheet ...):  one kind, --file one page;  <epic>... or
+                                                   --all:  epic pages;  --step one step;  --dry-run:  the report
+                                                   only;  --list:  the steps;  --notify:  an epic whose session is
+                                                   running is told (TELL lines, for SendMessage), the rest migrated
   convert <name> ... | --all [--dry-run] [--out <folder>] [--verbose]
                                                    rewrite docs from the old markup into <epic-*> markup and
                                                    prove nothing was lost;  writes ONLY under --out (copies)
@@ -894,9 +968,9 @@ Every command reads <epic-*> markup only, and refuses a doc in the old markup (o
 convert it first (convert <name> --out <folder>, then copy the converted doc back).
 --here is no longer needed:  accepted and ignored.`
 
-/** What `migrate` and `relayout` say now:  the converter replaced them. */
+/** What `relayout` says now:  the converter replaced it. */
 function replaced(command: string): string {
-  return `${command} is gone:  the converter replaced it, \`spell dev plan-doc convert <name>\` (old markup -> <epic-*>)`
+  return `${command} is gone:  the converter replaced it, \`epic convert <name>\` (old markup -> <epic-*>)`
 }
 
 /** `summary`'s mark for a phase's status. */
@@ -965,11 +1039,14 @@ function camel(flag: string): string {
   return flag.replace(/-(\w)/g, (_, letter: string) => letter.toUpperCase())
 }
 
-/** `value`, or a usage error naming what's missing. */
+/** `value`, or a usage error naming what's missing, and where the usage is. */
 function need(value: string | undefined, what: string): string {
-  if (value === undefined || value === "") throw new PlanDocError(`missing ${what}\n${USAGE}`)
+  if (value === undefined || value === "") throw new PlanDocError(`missing ${what}  (${USAGE_HINT})`)
   return value
 }
+
+/** Where a usage error points:  the whole `USAGE` is long, and every error printing it buried the message. */
+const USAGE_HINT = "`epic <verb> --help`;  `spell dev plan-doc` alone lists the old spellings"
 
 /**
  * A flag's phase number (`--before 3` is 3);  `undefined` without the flag.

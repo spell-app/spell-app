@@ -14,10 +14,34 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - console, assertions
   - `spellCore.scopes.js`
   - Compiled programs link against a bundled copy of it, `spell-runtime.js`, NOT this source directly.
+- Its Python twin is `spell_core`, what spell compiled to Python imports ("The Python core", below).
 - [spellCore.scopes.js](src/spellCore.scopes.js) is GENERATED:  the built-in types' docs, for pages with no parser.
   - Built from spell's table of built-in types, `BUILT_IN_TYPE_TABLE` ([builtinTypes.ts](../spell/src/builtinTypes.ts)).
   - By `yarn scopes --builtins`, in `../lsp`.
   - NEVER edit it by hand:  edit the table, run that.
+- [spellCore.declarations.json](spellCore.declarations.json) is GENERATED too:
+  the core's method list, what another target's core must have (Python's `spell_core`, say).
+  - Read from the running core by [`coreDeclarations()`](src/coreDeclarations.ts).
+  - Each name's `section` and `description` come from the lead of its docstring, in the module's source.
+    - They're what [the core reference page](../../guides/targets/core-reference.html) shows
+      (epic `python-target` P29).
+    - A name with no docstring fails `coreDeclarations.test.ts`.
+  - Written by `yarn gen:declarations` ([writeCoreDeclarations.ts](src/writeCoreDeclarations.ts)).
+  - [coreDeclarations.test.ts](src/coreDeclarations.test.ts) fails until you run it,
+    after adding, renaming or removing anything on `spellCore`.
+  - Python's [test_core_declarations.py](../py/core/tests/test_core_declarations.py) checks `spell_core` against it:
+    a new name fails there too,
+    until it's ported or listed in py's [not_ported_yet.json](../py/core/not_ported_yet.json).
+- Random numbers come from the core's own generator, [`ParkMiller`](src/ParkMiller.ts), NEVER `Math.random()`:
+  - `spellCore.seedRandom(n)` makes everything random after it repeat;  unseeded, each run differs.
+  - `spellCore.shuffled()` is lodash's shuffle, step for step.
+  - Python's core deals the same from the same seed:
+    both read [seededRandom.expected.json](seededRandom.expected.json) in their tests.
+- Positions count from where a project's lists start:  1, spell's own, or 0 (`project.json`'s `"listsStartAt": 0`).
+  - The helpers that convert:  [positions.ts](src/positions.ts), used by `List` and the collection helpers.
+  - Negative positions count from the end either way:  `-1` is the last item.
+- The console sends a DUMP (a thing, a spell list ...) through `spellCore.console.printDump()`:
+  the page's console by default, stderr under `spell run`.
 - Depends only on `$/util`.
   NEVER import `$/spell` / `$/parser`, or anything above.
 - Drawing code here is Solid work:  READ the root's Solid 2 pointer first.
@@ -32,9 +56,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `spellCore.element()`, what it called before, is gone (epic `output-targets` P22):
       every committed example is recompiled, and a program compiled before P20 no longer draws.
 - A drawable thing's own element, e.g. `<solitaire-card>`:
-  - Core names its tag, in [elements.ts](src/elements.ts).
+  - [elements.ts](src/elements.ts) names its tag.
   - The page makes the element, through `spellCore.elementDefiner`:
-    app's [SpellElement.tsx](../app/src/runner/SpellElement.tsx) fills it in.
+    app's [SpellElement.tsx](../app/src/runner/SpellElement.tsx) sets it.
   - Compiled TypeScript hands the page its own element class too, `spellCore.useElement(Card, CardElement)`,
     which the page builds the tag on (epic `drawable-thing` P10).
     It imports that class's base as `@spell/elements` (`SPELL_ELEMENTS_MODULE`), not from core.
@@ -128,6 +152,31 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       compiled as `if (!spellCore.isCarryingOver) game.start()`
     - `pause for ...` never ends:  what the rest of its top level sets going, e.g. a new deal, stops there
   - `carryProblems()` says first which things can't come over:  then the runner starts afresh instead.
+- A program's STATE, for a page that mirrors it ([state.ts](src/state.ts), epic `python-target` P17):
+  the same JSON, each thing and list with an `"@id"` after its `"@type"`.
+  - `StateWriter.stateOf()` writes a thing whole the first time, then `{ "@id": "3" }` alone:
+    a card in two places is one card.
+  - Each writer keeps the ids it gave:  one writer per page.
+  - `StateMirror.read()` reads each state INTO the things it read before, by id:  the same objects, changed.
+  - `fromJSON()` reads through a new mirror, so JSON with ids keeps each thing as one.
+  - Python's twin is `spell_core.state`:  both write [stateById.expected.json](stateById.expected.json), and read it.
+- A PAGE drawing a program that runs elsewhere, e.g. in Python ([page.ts](src/page.ts), P19):
+  - `startPage()`:
+    - mirrors the program's state
+    - binds its things in the program's drawing half (`adopt()`, in `<Project>.elements.js`)
+    - starts its app
+  - `receive()` reads each patch after.
+  - `sendCall()` / `sendTrigger()`:  what the drawing half sends back, each thing by its id.
+  - The state names properties as Python does:  the page reads each by its javascript name (`javascriptName()`).
+  - Python's side is `spell_core.page`'s `PageSession`.
+
+## The Python core
+
+- Its Python twin, `spell_core`, is in `@spell-app/py` ([py's AGENTS.md](../py/AGENTS.md), epic `python-target` P21).
+  - The three files both cores read stay here:
+    - [spellCore.declarations.json](spellCore.declarations.json)
+    - [seededRandom.expected.json](seededRandom.expected.json)
+    - [stateById.expected.json](stateById.expected.json)
 
 ## Decorators
 

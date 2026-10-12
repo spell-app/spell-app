@@ -33,7 +33,8 @@ const PROMPT =
  *   - its inbox's comments still waiting (`GuideInbox`, `<page>.inbox.json`;  `CommentList` `waiting`)
  *   - its page notes still `new` (`<spell-note status="new">`, written before P11:  `notesOnDisk.ts`)
  * - ONE PHASE PER PAGE:  the comments its goal, each linked back to the page and its block, quoted;
- *   a page with a phase still open (to do or under way) gets an Updated block in it instead (`addPhaseUpdate()`)
+ *   a page with a phase still open (to do or under way) gets an update in it instead (`addPhaseUpdate()`):
+ *   an `<epic-update>` block at the end of its description, `Update: N comments more from Owen`
  *   - a page's phase is found by the link to it in the phase's Symptom
  * - the epic is made the first time (`plan-doc new guide-changes --title "Guide Changes"`)
  * - then each comment is marked taken (`taken:  { epic, phase }`), each note answered with a link to the phase:
@@ -78,7 +79,7 @@ export class GuideChanges {
   }
 
   /**
-   * Gather what's waiting (`waiting(pages)`) into the epic:  a phase per page, or an Updated block in its open phase;
+   * Gather what's waiting (`waiting(pages)`) into the epic:  a phase per page, or an update in its open phase;
    * then mark each comment taken and answer each note.  Resolves to what went where.
    * - nothing waiting:  `[]`, and no epic is made
    * - throws what the plan-doc tool throws;  nothing is marked taken until the doc is written
@@ -101,7 +102,9 @@ export class GuideChanges {
         let phase: number
         if (open) {
           phase = open.n
-          plan.addPhaseUpdate(phase, `<p>${many(count)} more from Owen:</p>${list}`)
+          plan.addPhaseUpdate(phase, `<p>${many(count)} more from Owen:</p>${list}`, {
+            summary: `${many(count)} more from Owen`
+          })
         } else {
           phase = plan.addPhase(page.title, {
             symptom: `Owen left ${many(count)} on <a href="${link}">${escape(page.title)}</a> (<code>${escape(page.page)}</code>).`,
@@ -233,7 +236,7 @@ export type Gathered = {
   epic: string
   /** the phase it went into */
   phase: number
-  /** `phase`:  a new phase;  `update`:  an Updated block in the page's open phase */
+  /** `phase`:  a new phase;  `update`:  an update (`<epic-update>`) in the page's open phase */
   as: "phase" | "update"
   /** the comments' ids, now taken */
   comments: string[]

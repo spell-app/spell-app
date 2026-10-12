@@ -26,12 +26,17 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  * - Its title line:
  *   - the status icon in its colour (grey to do, blue under way, green done)
  *   - `P3 · <title>` (`title`, or `slot="title"`);  a done phase's title reads quieter
+ *   - while it isn't done and its plan changed (`changes`, written by the tool):  an orange pen and how many times,
+ *     so a folded phase says so too (its body, a part, isn't loaded until it opens)
  *   - the estimate as a badge
- * - Its children, in order:
- *   - `<epic-field>`s (Symptom, Changes, Goal, Done, Files, Verify, To review)
- *   - `<epic-updated>` lines under Changes
- *   - Owen's kept notes (`<epic-reply>`)
- *   - `<epic-commit>`s
+ * - Its children, in order (the vocabulary's):
+ *   - `<epic-field>`s (Symptom, Changes, Requests, Goal), Owen's kept notes (`<epic-reply>`)
+ *   - its PLAN CHANGES, `<epic-update at summary>` blocks, at the end of its description, after Goal
+ *     (Owen, 2026-10-11:  "lose the "Plan changes" surround.  The updated blocks themselves go at the end of the
+ *     phase description"):  plain children, each its own block, with no box around them
+ *   - Done, `<epic-commit>`s, Files, Verify, To review
+ *   - An older doc's `<epic-updated>` lines (its `changes` slot, P6) show at the end of its body, unboxed,
+ *     until the plan-doc tool's next write migrates them (`updates-as-epic-update`)
  *   - Files and Verify show only while the Phases title's toggles say so;  commits while the page's git toggle does
  * - Its body is usually a part (`source="parts/p3.html"`), loaded the first time it opens.
  * - REVIEWED as an Overview sub-section is, only while the page is reviewed
@@ -65,6 +70,14 @@ export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {
   /** Its view of the review inbox, keyed by its id (`p3`):  is the page reviewed?  Has it a marked note? */
   readonly reviewState = new ReviewState(() => this.id)
 
+  /** The pen of its title's mark:  its plan changed. */
+  readonly changedGlyph = new E.IconGlyph({ owner: this, name: () => "pen to square" })
+
+  /** How many plan changes its title says it has:  `changes`, while it isn't done;  0 for none. */
+  get changedCount(): number {
+    return this.shownStatus === "done" ? 0 : (this.changes ?? 0)
+  }
+
   /**
    * The contents entry (`EpicFold.contentsEntry()`):  `P3 · <title>`, its status icon in its colour.
    * - From the attributes as they are NOW, read off the DOM element:  the live update reads it right after a patch
@@ -91,6 +104,7 @@ export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {
             {" · "}
           </span>
           <slot name={this.slotForName("title")}>{this.title}</slot>
+          {this.changedMark()}
         </>
       ),
       icon: () => (
@@ -108,12 +122,41 @@ export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {
       before: () => this.saidNote(),
       after: () => (
         <>
+          {/* an older doc's plan changes (`slot="changes"`, until the tool migrates them):  unboxed, at the end */}
+          <slot name={this.slotForName("changes")} />
           {/* Claude's status cards (P13):  at the end of its body, above the note box */}
           <slot name={this.slotForName(STATUS_SLOT)} />
           <Show when={this.reviewState.reviewing()}>{this.reviewControl("note", "note-box")}</Show>
         </>
       )
     })
+  }
+
+  ////////////////
+  // ## Plan changed
+  ////////////////
+
+  /**
+   * Its title's mark while it isn't done and its plan changed:  the pen and how many times, in orange;
+   * its name and tooltip say so (`changedTip`).
+   */
+  private changedMark(): JSX.Element {
+    return (
+      <Show when={this.changedCount}>
+        {(count) => (
+          <span
+            class={CHANGED}
+            part={this.partForName("changed")}
+            role="img"
+            aria-label={this.translationForKey("changedTip", { count: count() })}
+            title={this.translationForKey("changedTip", { count: count() })}
+          >
+            {this.changedGlyph.svg}
+            {count()}
+          </span>
+        )}
+      </Show>
+    )
   }
 
   ////////////////
@@ -149,6 +192,9 @@ export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {
 
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface EpicPhase extends E.AttributeValues<typeof epicPhaseVocabulary> {}
+
+/** Class of the shadow markup:  the title's mark, its plan changed. */
+const CHANGED = "changed"
 
 /** A phase's status => its icon (Spell UI's names, from the docs bundle's set). */
 const STATUS_ICONS = {

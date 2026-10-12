@@ -78,10 +78,12 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - A `ConversionProof` per doc:  every id, link target and word kept.
     - Every live doc was converted at the switch (P12 of epic `epic-components`).
     - It stays for a doc restored from an old backup, and writes only under `--out`.
-  - `tool/` -- the plan-doc tool (`spell dev plan-doc`), node only, never bundled into the pack.
+  - `tool/` -- the plan-doc tool (`epic`), node only, never bundled into the pack.
     - It reads and writes `<epic-*>` markup only (through `Markup`),
       and refuses a doc still in the old markup ("convert it first").
     - Its rules for a doc's DATA (ids, statuses, review marks, prose):  [PLAN-DOC.md](src/tool/PLAN-DOC.md)
+    - `migrations/`:  the named, dated steps that bring an older epic page up to today's markup (`Migrations`),
+      which `epic migrate` runs (`MigrateCommands`), by page kind (PLAN-DOC.md, "Migrations")
     - its template:  [plan.html](src/tool/templates/plan.html), in `tool/templates/`
     - The old hand-written prose shapes have ONE set of rules, `ProseShapes`:
       a `Net effect` paragraph, a code accordion, an option grid ...
@@ -114,6 +116,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Spell UI keeps ONE sheet per name for the whole page, and the first class to register a name wins.
   - So a bare `item` drew `<epic-item>` with `<ui-item>`'s sheet, on any page that had both (I9).
   - [The barrel's test](components/index.test.tsx) checks every class the barrel exports.
+- A change to epic page markup (what the tool writes, or what an element reads) adds its MIGRATION STEP in the SAME
+  commit (epic `epic-workflow` P8):  a class in [migrations/](src/tool/migrations/), last in `Migrations.all`, with
+  its test.  Another page kind's markup:  its step in the docs tool's `STEPS` ([migrate.js](../docs/tools/migrate.js)).
+  - Then `epic migrate --all --dry-run` to see what it would change, and once it's on `main`,
+    `epic migrate --all --notify`:  idle epics are migrated, running ones are told (the epic skill's
+    "Migrations" says what the receiving session does).
+  - How a step is written:  [PLAN-DOC.md](src/tool/PLAN-DOC.md), "Migrations".
 - A pack drawn by pages EVERY checkout shows (the shared `epics/`, `guides/` ...):
   those pages load `main`'s `pack/`, through the main checkout's page server.  So:
   - small fixes straight on `main`

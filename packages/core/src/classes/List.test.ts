@@ -182,7 +182,7 @@ describe("exclusive lists", () => {
     expect(itemsOf(pile)).toEqual([b, c, a])
     spellCore.prepend(pile, c)
     expect(itemsOf(pile)).toEqual([c, b, a])
-    spellCore.addAtPosition(pile, 3, c)
+    spellCore.addAtPosition(pile, 2, c)
     expect(itemsOf(pile)).toEqual([b, c, a])
     expect(a!.pile).toBe(pile)
   })
@@ -193,7 +193,7 @@ describe("exclusive lists", () => {
     spellCore.append(pile, a, b, c)
     spellCore.remove(pile, a)
     expect(a!.pile).toBe(undefined)
-    spellCore.removeItemAt(pile, 1)
+    spellCore.removeItemAt(pile, 0)
     expect(b!.pile).toBe(undefined)
     spellCore.clear(pile)
     expect(c!.pile).toBe(undefined)
@@ -206,7 +206,7 @@ describe("exclusive lists", () => {
     const other = new Pile({})
     spellCore.append(pile, a, b, c)
     spellCore.append(other, d)
-    spellCore.setItemAt(pile, 2, d)
+    spellCore.setItemAt(pile, 1, d)
     expect(itemsOf(pile)).toEqual([a, d, c])
     expect(itemsOf(other)).toEqual([])
     expect(d!.pile).toBe(pile)
@@ -248,7 +248,7 @@ describe("exclusive lists", () => {
     const results = [
       spellCore.filter(pile, () => true),
       spellCore.map(pile, (card) => card),
-      spellCore.rangeStartingAt(pile, 1),
+      spellCore.rangeStartingAt(pile, 0),
       spellCore.duplicateList(pile),
       spellCore.duplicateList(pile, asPile),
       spellCore.mergeLists([pile, tableau]),
@@ -393,7 +393,7 @@ describe("JSON (output-targets Q49)", () => {
       seen.push(JSON.stringify(deck.toJSON()["@items"]))
     })
     deck.add(ranked("K"))
-    deck.removeItem(1)
+    deck.removeItem(0)
     stop()
     expect(seen).toEqual([
       '[{"@type":"RankedCard","rank":"A"}]',
@@ -424,7 +424,7 @@ function numbers(...items: number[]): List<number> {
  * - Compared by `outcome()`.
  */
 const TWINS: Array<[string, (list: List<number>) => unknown, (list: List<number>) => unknown]> = [
-  ["firstItem", (list) => list.firstItem, (list) => spellCore.getItemAt(list, 1)],
+  ["firstItem", (list) => list.firstItem, (list) => spellCore.getItemAt(list, 0)],
   ["lastItem", (list) => list.lastItem, (list) => spellCore.getItemAt(list, -1)],
   ["isEmpty", (list) => list.isEmpty, (list) => spellCore.isEmpty(list)],
   ["max", (list) => list.max, (list) => spellCore.largestOf(list)],
@@ -446,13 +446,13 @@ const TWINS: Array<[string, (list: List<number>) => unknown, (list: List<number>
   ["filter", (list) => list.filter((it) => it % 2 === 1), (list) => spellCore.filter(list, (it) => it % 2 === 1)],
   ["append", (list) => list.append(7, 8), (list) => spellCore.append(list, 7, 8)],
   ["prepend", (list) => list.prepend(7, 8), (list) => spellCore.prepend(list, 7, 8)],
-  ["addAt", (list) => list.addAt(2, 7), (list) => spellCore.addAtPosition(list, 2, 7)],
+  ["addAt", (list) => list.addAt(1, 7), (list) => spellCore.addAtPosition(list, 1, 7)],
   ["addBefore", (list) => list.addBefore(3, 7), (list) => spellCore.addBefore(list, 3, 7)],
   ["addAfter", (list) => list.addAfter(3, 7), (list) => spellCore.addAfter(list, 3, 7)],
   ["remove", (list) => list.remove(2, 4), (list) => spellCore.remove(list, 2, 4)],
   ["removeWhere", (list) => list.removeWhere((it) => it > 2), (list) => spellCore.removeWhere(list, (it) => it > 2)],
-  ["removeBetween", (list) => list.removeBetween(2, 3), (list) => spellCore.removeRangeBetween(list, 2, 3)],
-  ["setItems", (list) => list.setItems(2, 7, 8), (list) => spellCore.setItemsOf(list, 2, 7, 8)],
+  ["removeBetween", (list) => list.removeBetween(1, 3), (list) => spellCore.removeRangeBetween(list, 1, 3)],
+  ["setItems", (list) => list.setItems(1, 7, 8), (list) => spellCore.setItemsOf(list, 1, 7, 8)],
   ["reverse", (list) => list.reverse(), (list) => spellCore.reverse(list)],
   ["startingFrom", (list) => list.startingFrom(-2), (list) => spellCore.rangeStartingAt(list, -2)],
   [
@@ -460,7 +460,7 @@ const TWINS: Array<[string, (list: List<number>) => unknown, (list: List<number>
     (list) => list.startingWith(3),
     (list) => spellCore.rangeStartingAt(list, spellCore.positionOf(list, 3))
   ],
-  ["between", (list) => list.between(2, 3), (list) => spellCore.rangeBetween(list, 2, 3)],
+  ["slice", (list) => list.slice(1, 3), (list) => spellCore.rangeBetween(list, 1, 3)],
   [
     "startsWith",
     (list) => [list.startsWith(1), list.startsWith(2)],
@@ -501,20 +501,20 @@ describe("List methods", () => {
     )
     expect(empty.isEmpty).toBe(true)
     expect(empty.all()).toBe(false)
-    for (const result of [empty.between(1, 2), empty.startingFrom(1), empty.filter(), empty.randomItems(2)]) {
+    for (const result of [empty.slice(0, 2), empty.startingFrom(0), empty.filter(), empty.randomItems(2)]) {
       expect(result).toBeInstanceOf(Deck)
       expect(result.getValues()).toEqual([])
     }
   })
 
-  test("callbacks get `(value, position, list)`, position counting from 1", () => {
+  test("callbacks get `(value, position, list)`, the position an index, from 0", () => {
     const deck = new Deck({}).append("a", "b", "c")
     const seen: unknown[] = []
     deck.forEach((value, position, list) => seen.push([value, position, list === deck]))
     expect(seen).toEqual([
-      ["a", 1, true],
-      ["b", 2, true],
-      ["c", 3, true]
+      ["a", 0, true],
+      ["b", 1, true],
+      ["c", 2, true]
     ])
   })
 
@@ -563,8 +563,8 @@ describe("List methods", () => {
     const results = [
       pile.filter(() => true),
       pile.map((card) => card),
-      pile.between(1, 2),
-      pile.startingFrom(1),
+      pile.slice(0, 2),
+      pile.startingFrom(0),
       pile.startingWith(b),
       pile.randomItems(),
       pile.clone(),
@@ -588,7 +588,7 @@ describe("List methods", () => {
     expect(itemsOf(pile)).toEqual([a])
     expect(itemsOf(tableau)).toEqual([b, c])
     expect(b!.pile).toBe(tableau)
-    tableau.removeBetween(1, 2)
+    tableau.removeBetween(0, 2)
     expect([b!.pile, c!.pile]).toEqual([undefined, undefined])
   })
 

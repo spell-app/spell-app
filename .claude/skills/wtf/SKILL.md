@@ -40,13 +40,13 @@ Owen has lost the thread:  hand it back in one screen.
   - `git status --short`
   - `git log --oneline main..HEAD` (a worktree), or the session's own commits (`main`)
 - Plan doc, if any:  the session's `/epic <name>`.
-  Else the worktree's name, if `spell dev plan-doc list` has it;  else one the session wrote to.
+  Else the worktree's name, if `epic list` has it;  else one the session wrote to.
   - ONE shared doc, in `epics/<name>/` of every checkout (a link into `../spell-app-dev`).
   - A branch from before 2026-10-02 still has it under `plans/<name>/`.
-  - `spell dev plan-doc summary <name> --json`:
+  - `epic summary <name> --json`:
     phases with status, next phase, open questions / issues / caveats / todos
-  - its links:  `spell dev docs link <ABSOLUTE path> --hash <id>`:  the side bar link, then `(_browser_)`
-- `/bedtime` run:  `spell dev plan-doc summary <name> --json`, `bedtime`.
+  - its links:  `spell dev docs link <ABSOLUTE path> --hash <id>`:  the side bar link, then `• 🌐` (browser)
+- `/bedtime` run:  `epic summary <name> --json`, `bedtime`.
   - The phases it's running (`P3-P6`) while it goes;  `null` once it's over.
   - What it decided shows red in the doc (judgement calls, issues).
     `/epic review <name>` goes through them.
@@ -91,7 +91,7 @@ Not ASK mode:  stop here.
   - the session's waiting modal, as it was asked
   - "commit?", for staged work
 - Answers:
-  - this session:  act on them as if asked directly (`decide <name> Q<n> "..."` for plan questions).
+  - this session:  act on them as if asked directly (`epic decide <name>#Q<n> "..."` for plan questions).
   - `<name>`:  that session owns the work, so relay, don't act.
     - `SendMessage` to it (its name from `ListAgents`), with each question and Owen's answer.
     - Not running, or not in `ListAgents`:

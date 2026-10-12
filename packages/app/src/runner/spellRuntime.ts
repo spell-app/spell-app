@@ -21,7 +21,25 @@
  * - MUST be the only module in a bundle that imports `spellCore`'s code,
  *   so it's all HERE, not in a shared chunk -- see `element.build.test.ts`, `parser/build.test.ts`.
  */
-import { spellCore, Thing, List, App, Drawable, DrawableList, h, css, on, off, once, trigger, positionOf } from "$/core"
+import {
+  spellCore,
+  Thing,
+  List,
+  App,
+  Drawable,
+  DrawableList,
+  h,
+  css,
+  on,
+  off,
+  once,
+  trigger,
+  positionOf,
+  position,
+  spellPosition,
+  endPosition,
+  withSpellPositions
+} from "$/core"
 import { runCompiled, appIsMounted, unmountApp, type RunCompiledOptions } from "./runCompiled"
 import { installSpellElements } from "./SpellElement"
 import { E as UIElements, SpellElement } from "./spellElements"
@@ -60,6 +78,10 @@ export {
   once,
   trigger,
   positionOf,
+  position,
+  spellPosition,
+  endPosition,
+  withSpellPositions,
   appIsMounted,
   unmountApp,
   E,

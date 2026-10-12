@@ -64,8 +64,8 @@ export class TodosApp extends App {
       h("br"),
       h("div",
         h("button", { onClick: () => createANewTask({ title: "Moar" }) }, "+ Add"),
-        h("button", { onClick: () => spellCore.removeItemAt(app.tasks, 1) }, "- Remove"),
-        h("button", { onClick: () => (spellCore.getItemAt(app.tasks, 1).title = "New title") }, "Change name"),
+        h("button", { onClick: () => spellCore.removeItemAt(app.tasks, 0) }, "- Remove"),
+        h("button", { onClick: () => (spellCore.getItemAt(app.tasks, 0).title = "New title") }, "Change name"),
         h("button", { onClick: () => spellCore.removeWhere(app.tasks, (item) => item.isComplete) },
           "Remove Completed"
         )

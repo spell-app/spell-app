@@ -1,8 +1,9 @@
 /**
  * The Type Explorer's data on a page with NO parser, e.g. in `<spell-app>`:  scope packs, loaded as scripts.
  * - See `LSP.ScopePack`.  A later source may parse in the page instead -- anything giving a `ScopesSource`.
- * - A pack leaves out each declaration's `spell` and `compiled`:  they're worked out when shown, from the
- *   project's sources and compiled output -- if we can have them.  See `ScopesSourceHooks`.
+ * - A pack leaves out each declaration's `spell` and `compiled`:
+ *   they're worked out when shown, from the project's sources and compiled output -- if we can have them.
+ *   See `ScopesSourceHooks`.
  */
 import JSON5 from "json5"
 
@@ -32,8 +33,8 @@ export type ScopesSourceHooks = {
   /** Compiled javascript of project `projectId`, e.g. `@system:examples:Solitaire` -- if it can be had. */
   loadCompiled?: (projectId: string) => Promise<string | undefined>
   /**
-   * Project `projectId`'s declarations, its `<Project>.declarations.json` -- if it can be had:  where each
-   * declaration's code starts in its compiled javascript.
+   * Project `projectId`'s declarations, its `<Project>.declarations.json` -- if it can be had:
+   * where each declaration's code starts in its compiled javascript.
    */
   loadDeclarations?: (projectId: string) => Promise<CompiledDeclarations | undefined>
 }
@@ -52,10 +53,11 @@ export type CompiledDeclarations = {
 /**
  * A `ScopesSource` of `packs` -- the built-ins' first.  See `LSP.scopeTreeFromPacks()`.
  * - A declaration's `spell` is its `line`s of its file, from `hooks.loadSource()`.
- * - Its `compiled` is its statement's code in its project's compiled output, from `hooks.loadCompiled()`:  found
- *   by the project's declarations (`hooks.loadDeclarations()`), whose `codeLines` say where each statement starts --
- *   the statement in the same file which declares it, e.g. `of: "Card"` + `property: "suit"` for
- *   `.../type:Card/property:suit`.  So NO source needed.  See `declaredPaths()`.
+ * - Its `compiled` is its statement's code in its project's compiled output, from `hooks.loadCompiled()`.
+ *   - Found by the project's declarations (`hooks.loadDeclarations()`), whose `codeLines` say where each starts:
+ *     the statement in the same file which declares it, e.g. `of: "Card"` + `property: "suit"`
+ *     for `.../type:Card/property:suit`.  See `declaredPaths()`.
+ *   - So NO source needed.
  *   - Compiled output from before declarations files has `/*! SPELL: DECLARES ... *\/` markers inline instead:
  *     read from those.
  * - Each file's text, and each project's markers, are asked for once.
@@ -162,10 +164,10 @@ type CompiledMarker = {
 
 /**
  * Every declaration marker in `compiled`, with its code after it -- see `declarationCode()`.
- * - Up to the next marker at its indent or less, or the end of its file.  A marker for a class member is
- *   indented in its class's body, so a class's code runs on past its members' markers.
- * - A marker says which file its statement's in as `defined: "/Card.spell:70-87"`, and what it declares as
- *   `SP.SpellDeclaration` props, e.g. `property: "suit", of: "Card"` -- see `declaredPaths()`.
+ * - Up to the next marker at its indent or less, or the end of its file.
+ *   A marker for a class member is indented in its class's body, so a class's code runs on past its members' markers.
+ * - A marker says which file its statement's in as `defined: "/Card.spell:70-87"`,
+ *   and what it declares as `SP.SpellDeclaration` props, e.g. `property: "suit", of: "Card"` -- see `declaredPaths()`.
  */
 function compiledMarkers(compiled: string): CompiledMarker[] {
   const found = [...compiled.matchAll(DECLARES)].map((match) => ({ match, indent: indentAt(compiled, match.index) }))
@@ -183,8 +185,8 @@ function compiledMarkers(compiled: string): CompiledMarker[] {
 }
 
 /**
- * Each of `declarations`' statements, with its code from `compiled` -- as `compiledMarkers()` does with markers, but
- * each statement starting at its `codeLines` line.
+ * Each of `declarations`' statements, with its code from `compiled`:
+ * as `compiledMarkers()` does with markers, but each statement starting at its `codeLines` line.
  * - Up to the next statement at its indent or less, or the end of its file.
  */
 function declaredCode(compiled: string, { statements, codeLines = [] }: CompiledDeclarations): CompiledMarker[] {
@@ -215,8 +217,8 @@ function parseMarker(comment: string): MarkerDeclaration | undefined {
 }
 
 /**
- * What a marker's statement declares, as the end of each one's path in a scope pack -- from its `type:`, or its
- * `file:` if it's not in a type -- e.g. `type:Card/property:suit` or `function:debug the game`.
+ * What a marker's statement declares, as the end of each one's path in a scope pack:
+ * from its `type:`, or its `file:` if it's not in a type, e.g. `type:Card/property:suit` or `function:debug the game`.
  * - As `LSP.ScopeExplorer` names them, e.g. a method by its `name` without its quotes.
  */
 function declaredPaths(declaration: MarkerDeclaration): string[] {
@@ -239,8 +241,9 @@ function declaredPaths(declaration: MarkerDeclaration): string[] {
 }
 
 /**
- * Method or function name, as `LSP.ScopeExplorer.methodName()` has it:  its `name` -- else its `syntax` -- without
- * quotes, e.g. `is face up` for `"is face up"`, and `test ` in front of a test's.
+ * Method or function name, as `LSP.ScopeExplorer.methodName()` has it:
+ * its `name` -- else its `syntax` -- without quotes, e.g. `is face up` for `"is face up"`,
+ * and `test ` in front of a test's.
  */
 function methodName({ name, syntax = "" }: MarkerDeclaration): string {
   const declared = (name ?? syntax).replace(/^"(.*)"$/, "$1")
@@ -248,8 +251,9 @@ function methodName({ name, syntax = "" }: MarkerDeclaration): string {
 }
 
 /**
- * End of `path` which a marker's `declaredPaths()` may hold -- below its `file:`, or its `project:` -- e.g.
- * `type:Card/property:suit`.  `undefined` for a project or file itself.
+ * End of `path` which a marker's `declaredPaths()` may hold, e.g. `type:Card/property:suit`:
+ * below its `file:`, or its `project:`.
+ * - `undefined` for a project or file itself.
  */
 function declaredPath(path: string): string | undefined {
   const segments = path.split("/")
@@ -322,7 +326,7 @@ function startOfDocComment(lines: string[]): number {
 const DECLARES = /\/\*! SPELL: DECLARES \{[\s\S]*?\} \*\//g
 
 /**
- * Between each file's code in a project's compiled output -- `SP.SpellProject.FILE_SEPARATOR`.
+ * Between each file's code in a project's compiled javascript -- `P.JSWriter.FILE_SEPARATOR`.
  * - NOTE: a copy, NOT imported:  `$/spell` would pull the whole parser into the bundle.
  */
 const FILE_SEPARATOR = "\n// -----------\n"

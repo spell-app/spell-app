@@ -22,8 +22,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - The barrel NEVER pulls it in.
 - `$/parser/test` ([src/test/](src/test/)) holds the helpers language packages use to test their rules:
   `unitTestModuleRules()` and others.
-  - Each rule test checks both writers, `{ input, js, ts }` (`P.RuleTest`).
-  - Blessing writes each test's `js` and `ts` into its source (`BLESS_RULE_TESTS=1`).
+  - Each rule test checks the javascript and TypeScript writers, `{ input, js, ts }` (`P.RuleTest`).
+  - Blessing writes each test's `js` and `ts` into its source.
+    - It runs when `BLESS_RULE_TESTS=1` is set.
     - [`RuleTestSource`](src/test/RuleTestSource.ts) does it:  node-only, loaded only then.
   - Tests that need the SPELL grammar are not here:  they're in spell's `src/parserTests/`.
 - Depends only on `$/util` (and what that re-exports).
@@ -31,7 +32,15 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - `src/writers/` writes ASTs out as a target's code.
   The AST classes never write output themselves.
   - `P.Writer`:  one method per AST class, found by class name (so `keepNames`, below)
-  - `P.JSWriter`:  javascript;  what `ASTNode.compile()` calls
+  - `P.ProgramWriter`:  what every PROGRAM's writer shares, whatever its language (epic `python-target` P4)
+    - what the whole project says:  `forProject()`, a `P.WriterProject`
+    - so, what each value is:  `kindOf()`
+    - what may be nothing:  `mayBeNothing()`
+    - where lists start counting:  `listsStartAt`
+    - how it writes spell's names:  `naming`, a `P.Naming`
+    - each language says its own file separator and import lines (`fileSeparator`, `importsHeader()`)
+  - `P.JSWriter`:  javascript, on `P.ProgramWriter`
+    - It's what `ASTNode.compile()` calls.
     - It writes javascript as a person would, with no build step (epic `output-targets`, P19, P22):
       - every name camelCase, stored properties too (`nameOf()`)
       - a `List`'s own methods
@@ -45,8 +54,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - `!` where `?.` can't go
       - a drawable type's element class, `class CardElement extends SpellElement<Card>`, from `@spell/elements`
         (`elementClassFor()`, epic `drawable-thing` P10)
-  - [jsShapes.ts](src/writers/jsShapes.ts):  the pure helpers both share (not in the barrel)
-  - `P.jsText`:  their punctuation
+  - Python's writers are `$/py`'s ([py's AGENTS.md](../py/AGENTS.md)), built on these:
+    - `PY.PyWriter`, on `P.ProgramWriter`
+    - `PY.ElementsWriter`, on `P.JSWriter`
+  - [jsShapes.ts](src/writers/jsShapes.ts):  the pure helpers every program writer shares, `P.jsShapes`
+  - `P.jsText`:  javascript's and TypeScript's punctuation
 - No UI framework, no JSX, no DOM.
   - Node tools run the parser's SOURCE through `tsx` / esbuild / Vite's oxc,
     none of which compile Solid's JSX.
@@ -58,8 +70,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - See also the top docstring in [Rule.ts](src/rules/Rule.ts).
 - `keepNames`:  every prod build MUST keep its class names (`output.keepNames`),
   because a rule's name is worked out from its class name.
-  - `ListAddRelative` => `list_add_relative`:  `P.Rule.ruleNameFor()`
-  - The builds:  app's [vite.config.ts](../app/vite.config.ts) and [vite.editor.config.ts](../app/vite.editor.config.ts).
+  - e.g. `ListAddRelative` => `list_add_relative`
+  - `P.Rule.ruleNameFor()` works it out.
+  - The builds:
+    app's [vite.config.ts](../app/vite.config.ts) and [vite.editor.config.ts](../app/vite.editor.config.ts).
   - Pinned by app's [build.test.ts](../app/src/build.test.ts).
 
 ## Imports

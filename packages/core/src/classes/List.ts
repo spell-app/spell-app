@@ -8,17 +8,21 @@ import { spellCore } from "$/core/core"
 import type { CollectionIterationCallback } from "$/core/collection-other"
 import type { Drawing } from "$/core/drawing"
 import type { PropCheck } from "$/core/spellCore.types"
+import { zeroIndexOf } from "$/core/positions"
 
 /**
- * `List`: our array concept (1-based) -- what `a deck is a list` extends.
+ * `List`: our array concept -- what `a deck is a list` extends.
+ * - Counted from 0, as an array is (epic `python-target` P23):
+ *   spell code counting from 1 is turned into indexes as it compiles -- see `positions.ts`.
  * - Backed by reactive `items` state rather than a raw JS array, so mutations (`add`, `setItem`, ...)
  *   trigger re-renders of anything observing this `List`.
- * - Copy on write:  each mutation sets `items` to a NEW array -- a spell cell notifies on a new value, never on a
- *   change made in place.
+ * - Copy on write:  each mutation sets `items` to a NEW array --
+ *   a spell cell notifies on a new value, never on a change made in place.
  * - Delegates JS collection duck-typing (`itemCount`, `getKeys`, `getItem`, ...) to `spellCore`'s
  *   generic collection methods -- see `CollectionLike` in `collection-core.ts`.
  * - Has its own list methods for hand-written TypeScript, e.g. `pile.filter(...)`, `pile.lastItem`:
- *   each calls its `spellCore` twin -- see "List methods" below.  Iterable:  `for (const card of pile)`.
+ *   each calls its `spellCore` twin -- see "List methods" below.
+ * - Iterable:  `for (const card of pile)`.
  * - EXCLUSIVE lists (`exclusive`, from `a card belongs to one pile`):
  *   an item is in at most ONE list of a FAMILY (plan doc D7, D8).
  *   - a family:  the exclusive class and its sub-classes, e.g. every `Pile`, `Tableau`, `Foundation`
@@ -80,8 +84,8 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * Set reactive `property` to `value` -- see `Thing.setProp()`, which this mirrors:  `check` is how compiled spell
-   * said it before the class schema, still honoured.
+   * Set reactive `property` to `value` -- see `Thing.setProp()`, which this mirrors.
+   * - `check`:  how compiled spell said it before the class schema, still honoured.
    */
   protected setProp<T>(property: string, value: T, check?: PropCheck) {
     if (check) spellCore.checkProp(property, value, check)
@@ -136,15 +140,9 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
     spellCore.append(this, ...items)
   }
 
-  /**
-   * Given a `oneIndex`, return the appropriate `zeroIndex`.
-   * - NOTE: `oneIndex === 0` returns zeroIndex `1` (the SECOND item), not `0`.
-   *   It looks off by one, but its first author marked it `???` too, rather than as a confirmed bug.
-   */
-  _getZeroIndex(oneIndex: number): number {
-    if (oneIndex === 0) return 1 // ???
-    if (oneIndex < 0) return this.items.length + oneIndex
-    return oneIndex - 1
+  /** The index `index` reaches in our items:  `undefined` for none.  Negative counts from the end, `-1` the last. */
+  _getZeroIndex(index: number): number | undefined {
+    return zeroIndexOf(index, this.items.length)
   }
 
   ////////////////
@@ -155,48 +153,61 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   itemCount(): number {
     return this.items.length || 0
   }
-  /** Return array of `oneIndex`es for each of our items. */
+  /** Our indexes, from 0. */
   getKeys(): number[] {
-    return _.range(1, this.length + 1)
+    return _.range(0, this.length)
   }
   /** Return a CLONE of our `items` as a normal `Array`. */
   getValues(): T[] {
     return [...this.items]
   }
-  /** Return the `oneIndex` for first occurance of `thing` in our list -- `the position of card in the pile`. */
+  /**
+   * The index of the first `thing` in our list, from 0 -- `the position of card in the pile`.
+   * - `undefined` if we don't hold it, never `-1`.
+   */
   positionOf(thing: unknown): number | undefined {
     // widened:  we may be asked for anything
-    const zeroIndex = (this.items as unknown[]).indexOf(thing)
-    if (zeroIndex === -1) return undefined
-    return zeroIndex + 1
+    const index = (this.items as unknown[]).indexOf(thing)
+    return index === -1 ? undefined : index
   }
   /** @deprecated  `positionOf()`, since epic `output-targets` P16:  TypeScript compiled before it calls this. */
   itemOf(thing: unknown): number | undefined {
     return this.positionOf(thing)
   }
-  /** Return item stored at `oneIndex` or `undefined`. */
-  getItem(oneIndex: number): T | undefined {
-    return this.items[this._getZeroIndex(oneIndex)]
+  /**
+   * The item at `index`, from 0, or `undefined`.  Negative counts from the end:  `-1` is the last.
+   * - Not a whole number, e.g. `position(0)`'s `NaN`:  none.
+   */
+  getItem(index: number): T | undefined {
+    const zeroIndex = this._getZeroIndex(index)
+    return zeroIndex === undefined ? undefined : this.items[zeroIndex]
+  }
+  /** The item at `index`, as an array's `at()` -- `getItem()`, which it is. */
+  at(index: number): T | undefined {
+    return this.getItem(index)
   }
   /**
-   * Set item at `oneIndex` to `value`.  Replaces whatever was there.
+   * Set the item at `index` to `value`.  Replaces whatever was there;  no such index:  nothing changes.
+   * - From 0;  negative counts from the end.
    * - NOTE: an exclusive list may hold an item twice for a moment,
    *   e.g. while `reverse()` sets each position in turn.
    */
-  setItem(oneIndex: number, value: T): void {
+  setItem(index: number, value: T): void {
+    const zeroIndex = this._getZeroIndex(index)
+    if (zeroIndex === undefined) return
     const items = [...this.items]
-    const zeroIndex = this._getZeroIndex(oneIndex)
     items[zeroIndex] = value
     this.writeItems(items)
   }
   /**
-   * Add one or more `things` to our items starting at oneIndex `start`.
-   * - Pushes any items after `start` over to make room.
+   * Add one or more `things` to our items at index `start`, from 0, as `splice()` adds them.
+   * - Pushes the items from `start` on over to make room;  past the end:  at the end.
    * - Exclusive:  one we hold already MOVES here -- we hold each item once.
    */
   addAtPosition(start: number, ...things: T[]): void {
     let items = [...this.items]
-    let itemStart = this._getZeroIndex(start)
+    // past the end:  at the end;  negative from the end;  further back than the front:  the front
+    let itemStart = start >= items.length ? items.length : (this._getZeroIndex(start) ?? 0)
     if (this.family) {
       const moving = new Set<unknown>(things.filter(isOwnable))
       itemStart -= items.slice(0, itemStart).filter((item) => moving.has(item)).length
@@ -205,10 +216,15 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
     items.splice(itemStart, 0, ...things)
     this.writeItems(items)
   }
-  /** Remove item at `oneIndex`, pulling in other objects to fill the gap. */
-  removeItem(oneIndex: number): void {
+  /**
+   * Remove the item at `index`, pulling in other objects to fill the gap.  No such index:  nothing changes.
+   * - From 0;  negative counts from the end.
+   */
+  removeItem(index: number): void {
+    const zeroIndex = this._getZeroIndex(index)
+    if (zeroIndex === undefined || zeroIndex >= this.items.length) return
     const items = [...this.items]
-    items.splice(this._getZeroIndex(oneIndex), 1)
+    items.splice(zeroIndex, 1)
     this.writeItems(items)
   }
   /** Clear all `items` from our list. */
@@ -218,18 +234,19 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
 
   ////////////////
   // ## List methods
-  //  What hand-written TypeScript calls, e.g. `allPiles.filter((pile) => pile.droppable)` (epic `output-targets`,
-  //  Q33, Q35):  each does EXACTLY what its `spellCore` twin does, by calling it -- one copy of the logic.
-  //  - every position counts from 1, as in spell
-  //  - a list result is SCRATCH, of our class, and owns nothing:  filtering the piles never takes a card out of
-  //    its pile -- see `asScratch()`
+  //  What hand-written TypeScript calls, e.g. `allPiles.filter((pile) => pile.droppable)`
+  //  (epic `output-targets`, Q33, Q35).
+  //  Each does EXACTLY what its `spellCore` twin does, by calling it:  one copy of the logic.
+  //  - every position is an index, from 0, as an array's
+  //  - a list result is SCRATCH, of our class, and owns nothing:
+  //    filtering the piles never takes a card out of its pile -- see `asScratch()`
   //  - a callback gets `(value, position, list)`, as `spellCore.forEach()`'s does
   //  - a change returns us, so calls chain:  `pile.append(card).reverse()`
   ////////////////
 
   /** First item, `undefined` if we're empty -- `the first item of my-list`. */
   get firstItem(): T | undefined {
-    return this.getItem(1)
+    return this.getItem(0)
   }
 
   /** Last item, `undefined` if we're empty -- `the last item of my-list`. */
@@ -254,8 +271,8 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
 
   /**
    * Our items, as a new plain array -- see `getValues()`.
-   * - NOTE:  no `keys` getter beside it:  `keys()` is `Observable`'s, a list's PROPS, which the Thing Explorer
-   *   reads.  Our positions are `getKeys()`, `[1, 2, ... length]`.
+   * - NOTE:  no `keys` getter beside it:  `keys()` is `Observable`'s, a list's PROPS, which the Thing Explorer reads.
+   *   Our indexes are `getKeys()`, `[0, 1, ... length - 1]`.
    */
   get values(): T[] {
     return this.getValues()
@@ -321,8 +338,9 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * The items `condition` says yes to, in a scratch list of our class:  a `Pile` filtered is a `Pile`, which owns
-   * none of them.  No `condition`:  the truthy ones.
+   * The items `condition` says yes to, in a scratch list of our class:
+   * a `Pile` filtered is a `Pile`, which owns none of them.
+   * - No `condition`:  the truthy ones.
    * - `words in "a word list" where ...`, see `spellCore.filter()`.
    */
   filter(condition?: ListCallback<T, this>): this {
@@ -342,7 +360,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * SIDE EFFECT:  add `things` at `position`, pushing what was there down.  Returns us.
+   * SIDE EFFECT:  add `things` at index `position`, pushing what was there down.  Returns us.
    * - `add card to the pile at position 2`, see `spellCore.addAtPosition()`.
    */
   addAt(position: number, ...things: T[]): this {
@@ -383,8 +401,9 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * SIDE EFFECT:  take out the items from position `start` to `end`, inclusive.  Returns us.
-   * - `remove items 2 to 4 of my-list`, see `spellCore.removeRangeBetween()`.
+   * SIDE EFFECT:  take out the items from index `start` up to, not including, `end`, as `slice()` reads them.
+   * - Returns us.
+   * - `remove items 2 to 4 of my-list`, its indexes worked out, see `spellCore.removeRangeBetween()`.
    */
   removeBetween(start: number, end: number): this {
     spellCore.removeRangeBetween(this, start, end)
@@ -413,12 +432,12 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * The items from `position` to the end, in a scratch list of our class.
-   * - A negative `position` counts from the end:  `-2` is the last two.
+   * The items from index `index` to the end, in a scratch list of our class.
+   * - A negative `index` counts from the end:  `-2` is the last two.
    * - See `spellCore.rangeStartingAt()`.
    */
-  startingFrom(position: number): this {
-    return spellCore.rangeStartingAt(this, position)
+  startingFrom(index: number): this {
+    return spellCore.rangeStartingAt(this, index, undefined)
   }
 
   /**
@@ -431,11 +450,11 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * The items from position `start` to `end`, inclusive, in a scratch list of our class.
-   * - Out of range:  an empty one.
-   * - `item 1 to 2 of my-list`, see `spellCore.rangeBetween()`.
+   * The items from index `start` up to, not including, `end`, in a scratch list of our class, as an array's `slice()`.
+   * - Negative counts from the end;  no `end`:  to the end.  Out of range:  an empty one.
+   * - `items 1 to 2 of my-list` compiles to `myList.slice(0, 2)` -- see `spellCore.rangeBetween()`.
    */
-  between(start: number, end: number): this {
+  slice(start?: number, end?: number): this {
     return spellCore.rangeBetween(this, start, end) as this
   }
 
@@ -450,8 +469,8 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * A scratch copy of us, of our class -- `a copy of discards`, or `a copy of discards as a pile` when a
-   * discard-pile already is a pile (Q36).
+   * A scratch copy of us, of our class:
+   * `a copy of discards`, or `a copy of discards as a pile` when a discard-pile already is a pile (Q36).
    */
   clone(): this {
     return spellCore.duplicateList(this)
@@ -470,7 +489,8 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
 
   /**
    * We're a list of lists:  their items, all in one scratch list -- `merge the piles`.
-   * - No `Class`:  of our first list's class, `undefined` if we're empty.  `merge the piles as a pile`:  `Class`.
+   * - No `Class`:  of our first list's class, `undefined` if we're empty.
+   * - `merge the piles as a pile`:  of `Class`.
    * - See `spellCore.mergeLists()`.
    */
   merged(): T | undefined
@@ -598,7 +618,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
 
 /**
  * What a `List` method calls for each item, e.g. `filter()`'s condition:  `(value, position, list)`.
- * - `position` counts from 1;  `list` is the list it was called on, typed as it is:  a `Pile`'s is a `Pile`.
+ * - `position` is an index, from 0;  `list` is the list it was called on, typed as it is:  a `Pile`'s is a `Pile`.
  * - `R`:  what it answers -- `map()`'s result items, else anything (tested for truth).
  */
 export type ListCallback<T, L, R = unknown> = (value: T, position: number, list: L) => R

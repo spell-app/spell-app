@@ -164,6 +164,14 @@ export class ASTNumericLiteral extends ASTLiteral {
   }
 }
 
+/**
+ * A position said with an ordinal word, e.g. `the first card` => `1`, `the last card` => `-1`.
+ * - Always counted from 1, whatever the project's lists start at:  "the first card" is the first either way.
+ *   A writer for a project counting from 0 writes it as such, e.g. `first` => `0` (epic `python-target` P2).
+ * - Otherwise a plain number:  writers with nothing to say about it write it as `ASTNumericLiteral`.
+ */
+export class ASTOrdinalLiteral extends ASTNumericLiteral {}
+
 /** A quote a text literal is written in:  double, single or a back tick. */
 export type ASTQuote = '"' | "'" | "`"
 
@@ -1062,10 +1070,23 @@ export class ASTPrototypeExpression extends ASTExpression {
  *  - `output` is constant string to output, including quotes.
  *  - `constant` is pointer to scope Constant, if there is one.
  */
-export type ASTConstantExpressionProps = Prettify<{ name: string; output: string; constant?: P.ScopeConstant }>
+export type ASTConstantExpressionProps = Prettify<{
+  name: string
+  /** Its value as spell says it, e.g. `up`, `2` -- default:  `output` unquoted (see `P.spellValueOf()`). */
+  value?: string | number
+  /** Its javascript, e.g. `'up'`:  only for older code and declarations -- writers read `value`. */
+  output?: string
+  constant?: P.ScopeConstant
+}>
 
+/**
+ * A constant, e.g. `up` in `set the direction of the card to up`.
+ * - `value` is spell's, with no quotes:  each writer quotes it its own way, e.g. javascript's `"up"`
+ *   (epic `python-target` P3, output-targets' T4).
+ */
 export class ASTConstantExpression extends ASTExpression {
   declare name: string
+  declare value: string | number
   declare output: string
   declare constant: P.ScopeConstant | undefined
   /*@readonly*/ /*@proto*/ get datatype(): string {
@@ -1077,6 +1098,8 @@ export class ASTConstantExpression extends ASTExpression {
   constructor(match: P.AnyMatch, props: ASTConstantExpressionProps) {
     super(match, props)
     this.assertType("name", "string")
+    if (this.value === undefined) this.value = this.output === undefined ? this.name : P.spellValueOf(this.output)
+    if (this.output === undefined) this.output = `'${this.value}'`
     this.assertType("output", "string")
   }
 }

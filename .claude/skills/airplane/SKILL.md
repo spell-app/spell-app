@@ -11,7 +11,7 @@ Airplane mode:  Owen works on the pages ALONE, with no internet and no Claude (e
 - Every page saves to this laptop's page server.
 - `/airplane` gets the laptop ready before;  `/airplane land` works through what he left, after.
 
-- The repo actions are `spell dev airplane ...` ([airplane.ts](packages/docs/tools/airplane.ts));
+- The repo actions are `epic airplane ...` ([airplane.ts](packages/docs/tools/airplane.ts));
   this skill holds the dialog.
 - The switch:  `~/.spell/airplane.json`, read by [`AirplaneMode`](packages/server/src/page/AirplaneMode.ts).
   - While it's on, the page server tells every page.
@@ -20,13 +20,13 @@ Airplane mode:  Owen works on the pages ALONE, with no internet and no Claude (e
   online").
   - Its commands act on the MAIN checkout:  its page server is the one the side bar uses.
   - So run each `spell dev ...` here from the main checkout's root:
-    `cd "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")" && spell dev airplane ...`.
+    `cd "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")" && epic airplane ...`.
   - The inboxes, plan docs and pages are shared content:  the same files from every checkout.
   - Only `/docs-check` (step 3) stays per checkout:  it checks epics merged into `main`, so it runs there too.
 
 ## `/airplane`:  before the flight
 
-1. `spell dev airplane check --fix`:  fixes what it can on the spot, then lists each check.
+1. `epic airplane check --fix`:  fixes what it can on the spot, then lists each check.
    - Each check's result:  `ok`, `fixed`, `fail` or `note`.
    - `page server`:  `--fix` starts it, or restarts one older than its code
    - `offline pages`:  `--fix` points every page's highlight.js at the repo's copy.
@@ -52,7 +52,7 @@ Airplane mode:  Owen works on the pages ALONE, with no internet and no Claude (e
      - Its diff waits in Source Control, to review on the plane;
        the shared docs it fixes are committed at the turn's end.
    - No:  go on.
-4. `spell dev airplane on`.
+4. `epic airplane on`.
 5. Reply, short, for Owen about to close the lid:
    - what was fixed, and anything still failing, in bold
    - `/docs-check`, when it ran:  how many fixes, and where to review them
@@ -78,16 +78,16 @@ Airplane mode:  Owen works on the pages ALONE, with no internet and no Claude (e
 
 Owen is back online.  Gather everything, work through it in the background, then hand him the review.
 
-1. `spell dev airplane inbox --json`:  everything waiting, by place:
+1. `epic airplane inbox --json`:  everything waiting, by place:
    - each epic's marks, sent or not, its drafts, Do Now requests, and new items from the page's `+`
    - new epics made from the Epics page, not started (`newEpics`)
    - each epic's comments (`comments`:  on its plan doc's blocks)
-   - comments on docs pages (`comments`);  page notes;  details answers since the flight;  goals thoughts
+   - comments on docs pages (`comments`);  page notes;  details answers since the flight;  (goals thoughts:  parked since 2026-10-11)
    - A comment is listed when it's Claude's turn on its THREAD:  a new one, or one Owen REPLIED on since Claude
      answered (his latest words:  the last of its `replies`, `by: "Owen"`).  Those he closed ("that's good",
      "skip it") aren't.
    - Run it FIRST, while the switch is on:  its `since` is when the flight began, which picks the details answers.
-2. `spell dev airplane off`.
+2. `epic airplane off`.
 2b. Bring every session back online:  `spell dev park list`, each entry still `parked`.
    - Its session running (`spell dev worktree status <name>`, `running: true`):
      `SendMessage` to it:  "Run `/unpark <name>` (asked by `/airplane land`)."
@@ -95,21 +95,21 @@ Owen is back online.  Gather everything, work through it in the background, then
    - Not running:  list it in the reply, with `/session <name>` to reopen it, then `/unpark <name>` there.
    - Nothing waiting AND nothing parked:  say so in one line, and stop.
 3. Reply at once, short:  the counts by place, and that the work runs in the background now.
-4. Per epic, in the session itself (quick):  `spell dev plan-doc inbox <name> apply --all`.
+4. Per epic, in the session itself (quick):  `epic inbox <name> apply --all`.
    - Into the doc go, sent or not (Owen's decision Q3 of `airplane`):
      - approvals, picks, todos, and new items
      - a todo's plane:  queued into the next phase
      - a todo's x:  dropped, canceled
      - a note box's x:  skipped, reviewed with nothing to do
 
-4b. Docs pages' comments, in the session itself (quick):  `spell dev comments gather --json`.
+4b. Docs pages' comments, in the session itself (quick):  `epic comments gather --json`.
    - Every waiting comment (and page note still new) goes into epic `guide-changes`, one phase per page.
      - The phase is made the first time.
      - A page whose phase is still open gets an Updated block in it.
      - A reply on a thread goes too, under its comment ("Owen replied on the thread").
    - Each is marked taken on its page.
-   - `/epic guide-changes` answers each on its thread:  `spell dev comments working <page> <id> on` as it starts
-     (the thread shows "Claude: thinking…"), then `spell dev comments answer <page> <id> --file <html>
+   - `/epic guide-changes` answers each on its thread:  `epic comments working <page> <id> on` as it starts
+     (the thread shows "Claude: thinking…"), then `epic comments answer <page> <id> --file <html>
      [--commit <sha>]`, which turns it off.
    - Say which pages, and that `/epic guide-changes` works them;  nothing else to do for them now.
 5. The rest goes to background agents, up to 5 at once.
@@ -122,13 +122,13 @@ Owen is back online.  Gather everything, work through it in the background, then
      - Never `done` (Owen, 2026-10-10:  a Done card means work was done).
      - The cards `apply --all` makes for picks, todos and new items are Noted already.
    - Each comment on a plan doc (`epics[].comments`):  as `/epic review` answers one ("7.3", step 3b).
-     - First `plan-doc inbox <name> working cm3 on`:  his thread shows "Claude: thinking…" until the answer lands.
-     - Into the item or phase it's on, then `plan-doc inbox <name> done cm3 --file <answer.html>`:  the answer on
+     - First `epic inbox <name>#cm3 working on`:  his thread shows "Claude: thinking…" until the answer lands.
+     - Into the item or phase it's on, then `epic inbox <name>#cm3 done --file <answer.html>`:  the answer on
        his thread too, his turn (and the thinking stub gone).  A reply of his:  answer his latest words.
    - Page notes were gathered in 4b with the comments.
      One written into a page since:  read the page and the note, and answer under it
-     (`spell dev notes answer <page> <id> --file`).
-   - Details answers and goals thoughts:  as `/details` and `/goals-update` take them.
+     (`epic notes answer <page> <id> --file`).
+   - Details answers:  as `/details` takes them.  (Goals thoughts:  goals is parked, epic `epic-goals`.)
    - Nothing is decided for Owen:  an answer that needs him ends in option cards, and the item stays red.
 
 5b. New epics (`newEpics`, made with the Epics page's New epic):  ask which to start, with CHECKBOXES
@@ -150,4 +150,4 @@ Owen is back online.  Gather everything, work through it in the background, then
 
 ## `/airplane status`
 
-`spell dev airplane status`, and `spell dev airplane inbox` when it's on:  one line each.
+`epic airplane status`, and `epic airplane inbox` when it's on:  one line each.

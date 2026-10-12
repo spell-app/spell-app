@@ -1622,6 +1622,7 @@ __metadata:
     vscode-languageserver: "npm:^10.1.2"
     wrap-ansi: "npm:^9"
   bin:
+    epic: bin/epic.mjs
     spell: bin/spell.mjs
   languageName: unknown
   linkType: soft
@@ -1737,6 +1738,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@spell-app/py@workspace:*, @spell-app/py@workspace:packages/py":
+  version: 0.0.0-use.local
+  resolution: "@spell-app/py@workspace:packages/py"
+  dependencies:
+    "@spell-app/parser": "workspace:*"
+    "@spell-app/util": "workspace:*"
+    "@types/node": "npm:^22.20.4"
+    typescript: "npm:^7.0.2"
+    vite: "catalog:"
+    vite-plus: "catalog:"
+  languageName: unknown
+  linkType: soft
+
 "@spell-app/server@workspace:*, @spell-app/server@workspace:packages/server":
   version: 0.0.0-use.local
   resolution: "@spell-app/server@workspace:packages/server"
@@ -1759,6 +1773,7 @@ __metadata:
     "@solidjs/compiler": "npm:2.0.0-rc.13"
     "@spell-app/core": "workspace:*"
     "@spell-app/parser": "workspace:*"
+    "@spell-app/py": "workspace:*"
     "@spell-app/server": "workspace:*"
     "@spell-app/util": "workspace:*"
     "@types/fs-extra": "npm:^11.0.4"
@@ -5319,6 +5334,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pyright@npm:1.1.414":
+  version: 1.1.414
+  resolution: "pyright@npm:1.1.414"
+  dependencies:
+    fsevents: "npm:~2.3.3"
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    pyright: index.js
+    pyright-langserver: langserver.index.js
+  checksum: 10c0/3c20a4c391edae433141d4e89ee35bffb9db844da3d736f5c4303b0c7052154cf729305db82485481eccbe7fab2bc312cf025291242b9f11a035916ef29a38b5
+  languageName: node
+  linkType: hard
+
 "quansync@npm:^0.2.11":
   version: 0.2.11
   resolution: "quansync@npm:0.2.11"
@@ -5675,6 +5705,7 @@ __metadata:
   dependencies:
     "@vitest/browser-playwright": "catalog:"
     playwright: "npm:1.63.0"
+    pyright: "npm:1.1.414"
     vite: "catalog:"
     vite-plus: "catalog:"
     vitest: "catalog:"

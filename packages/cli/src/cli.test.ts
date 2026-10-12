@@ -1,5 +1,16 @@
 import { spawn, spawnSync } from "child_process"
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "fs"
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  statSync,
+  writeFileSync
+} from "fs"
 import { createServer } from "net"
 import { tmpdir } from "os"
 import { basename, resolve } from "path"
@@ -12,12 +23,15 @@ import { fixturePath } from "$/spell/test"
 /**
  * The real `spell` command, end to end:  `bin/spell.mjs` run as a separate process, as a user would.
  * - No terminal:  stdin / stdout are pipes, so nothing asks questions or draws screens.
- * - NEVER writes into a fixture:  compiles use `--stdout`.  Projects to break live in a temp folder -- see `tempProject()`.
+ * - NEVER writes into a fixture:  compiles use `--stdout`.
+ *   Projects to break live in a temp folder -- see `tempProject()`.
  */
 const SPELL = resolve(import.meta.dirname, "..", "bin", "spell.mjs")
+/** The `epic` command:  `bin/epic.mjs`, the CLI's second bin. */
+const EPIC = resolve(import.meta.dirname, "..", "bin", "epic.mjs")
 
-// each `spell` run starts node and loads spell's source through `tsx`, ~2s;  a test making two or three runs is over
-// vitest's 5s default, worse under the load of every test file at once
+// each `spell` run starts node and loads spell's source through `tsx`, ~2s;
+// a test making two or three runs is over vitest's 5s default, worse under the load of every test file at once
 vi.setConfig({ testTimeout: 30_000 })
 
 /** This checkout:  its page server is the one `spell serve` uses. */
@@ -25,6 +39,11 @@ const REPO_ROOT = resolve(import.meta.dirname, "..", "..", "..")
 /** Temp folder holding `tempProject()`s -- its REAL path:  on macOS `tmpdir()` is a symlink, and spell reports real paths. */
 const TEMP = realpathSync(mkdtempSync(resolve(tmpdir(), "spell-cli-")))
 afterAll(() => rmSync(TEMP, { recursive: true, force: true }))
+
+/** Each file in `folder`, by name, with when it last changed:  to see a run wrote nothing there. */
+function filesIn(folder: string): Record<string, number> {
+  return Object.fromEntries(readdirSync(folder).map((name) => [name, statSync(resolve(folder, name)).mtimeMs]))
+}
 
 /** A throwaway project `name` in `TEMP`, of one file `<name>.spell` holding `source`.  Returns its folder. */
 function tempProject(name: string, source: string): string {
@@ -41,6 +60,12 @@ function tempProject(name: string, source: string): string {
 /** Run `spell ...args` from `cwd`. */
 function spell(args: string[], cwd = fixturePath()) {
   const { status, stdout, stderr } = spawnSync(process.execPath, [SPELL, ...args], { cwd, encoding: "utf8" })
+  return { status, stdout, stderr }
+}
+
+/** Run `epic ...args` from `cwd`. */
+function epic(args: string[], cwd = REPO_ROOT) {
+  const { status, stdout, stderr } = spawnSync(process.execPath, [EPIC, ...args], { cwd, encoding: "utf8" })
   return { status, stdout, stderr }
 }
 
@@ -78,38 +103,70 @@ describe("spell dev plan-doc", () => {
     expect(stdout).toMatch(/^Unified Server\n {2}\[x\] P1 · Library Core/)
   })
 
-  test("spell plan-doc:  the deprecated alias, still working", () => {
-    const { status, stdout } = spell(["plan-doc", "summary", "unified-server"])
+  test("spell plan-doc, the old top-level alias, is gone", () => {
+    expect(spell(["plan-doc", "summary", "unified-server"]).status).not.toBe(0)
+  })
+})
+
+describe("epic", () => {
+  test("--help lists the verbs under headings, and how to name an item", () => {
+    const { status, stdout } = epic(["--help"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^Unified Server\n/)
+    expect(stdout).toMatch(/^Usage: epic <verb> <epic>\[#<id>\] \[arguments\]\n/)
+    for (const heading of ["Requests from other sessions:", "Epic page:  items:", "Pages Owen answers on"])
+      expect(stdout).toContain(heading)
+    expect(stdout).toMatch(/^ {2}update +set a phase's or an item's fields/m)
+    expect(stdout).toMatch(/^ {2}seo#J3 +an item/m)
+  })
+
+  test("<verb> --help:  its usage, plain", () => {
+    const { status, stdout } = epic(["close", "--help"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^Usage: epic close <epic>#J3\n/)
+  })
+
+  test("an epic page's verb runs the plan-doc tool", () => {
+    const { status, stdout } = epic(["summary", "unified-server"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^Unified Server\n {2}\[x\] P1 · Library Core/)
+  })
+
+  test("a target the verb can't take:  a usage error, exit 2", () => {
+    const { status, stderr } = epic(["summary", "unified-server#J3"])
+    expect(status).toBe(2)
+    expect(stderr).toContain("takes an epic, not unified-server#J3")
+  })
+
+  test("the old spellings run the same:  spell epic <verb>, spell dev plan-doc", () => {
+    expect(spell(["epic", "summary", "unified-server"]).stdout).toMatch(/^Unified Server\n/)
+    expect(spell(["dev", "plan-doc", "summary", "unified-server"]).stdout).toMatch(/^Unified Server\n/)
+  })
+
+  test("a verb that needs spell (home) is handed to main.ts, and still answers", () => {
+    const { status } = epic(["home"])
+    expect(status).toBe(0)
   })
 })
 
 describe("spell dev", () => {
-  test("--help lists its nouns, the pass-throughs too", () => {
+  test("--help lists the plumbing, the pass-throughs too, and points to epic for the epic tools", () => {
     const { status, stdout } = spell(["dev", "--help"])
     expect(status).toBe(0)
-    const nouns = [
-      "plan-doc",
-      "goals",
-      "docs",
-      "details",
-      "choices",
-      "server",
-      "window",
-      "vscode",
-      "commands",
-      "session"
-    ]
-    for (const noun of nouns) {
+    for (const noun of ["docs", "server", "window", "vscode", "commands", "session"]) {
       expect(stdout).toMatch(new RegExp(`^ {2}${noun} `, "m"))
     }
+    // the old spellings still run, but aren't listed
+    for (const noun of ["plan-doc", "goals", "details", "choices", "comments", "notes", "agents", "airplane"]) {
+      expect(stdout).not.toMatch(new RegExp(`^ {2}${noun} `, "m"))
+    }
+    expect(stdout).toContain("The epic tools moved to their own command, `epic` (epic --help)")
   })
 
-  test("spell --help still lists dev, and the aliases as deprecated", () => {
+  test("spell --help lists dev, and epic as moved", () => {
     const { stdout } = spell(["--help"])
     expect(stdout).toMatch(/^ {2}dev /m)
-    expect(stdout).toMatch(/^ {2}plan-doc \[args\.\.\.\] +deprecated: {2}spell dev plan-doc$/m)
+    expect(stdout).toMatch(/^ {2}epic .*moved to their own command/m)
+    expect(stdout).not.toMatch(/^ {2}plan-doc /m)
   })
 
   test("a command that loads spell runs through main.ts, as before", () => {
@@ -148,6 +205,7 @@ process.exit(3)
       "packages/docs/tools/details.js",
       "packages/docs/tools/choices.js",
       "packages/docs/tools/notes.ts",
+      "packages/docs/tools/comments.ts",
       "packages/server/src/page/cli.ts"
     ]) {
       mkdirSync(resolve(CHECKOUT, tool, ".."), { recursive: true })
@@ -197,6 +255,22 @@ process.exit(3)
       args: ["new", "x", "--rows", "r.json"]
     })
     expect(realpathSync(choices.cwd)).toBe(resolve(CHECKOUT, "packages/docs"))
+  })
+
+  test("epic's groups pass through the same:  ask (details pages), choices and comments list <epic>", () => {
+    const run = (args: string[]) => {
+      const { status, stdout } = epic(args, INSIDE)
+      return { status, ...(stdout ? JSON.parse(stdout) : {}) }
+    }
+    expect(run(["ask", "list"])).toMatchObject({ status: 3, tool: "packages/docs/tools/details.js", args: ["list"] })
+    expect(run(["choices", "list", "seo"])).toMatchObject({
+      tool: "packages/docs/tools/choices.js",
+      args: ["list", "seo"]
+    })
+    expect(run(["comments", "list", "seo"])).toMatchObject({
+      tool: "packages/docs/tools/comments.ts",
+      args: ["list", "seo"]
+    })
   })
 
   test("notes:  under tsx, in THIS folder, so `answer --file` is from here", () => {
@@ -448,6 +522,28 @@ describe("spell run", () => {
     expect(existsSync(fixturePath("FizzBuzz", `FizzBuzz${SP.COMPILED_JS_SUFFIX}`))).toBe(false)
   })
 
+  test("--target py and ts:  the same prints, from the Python and the TypeScript -- writing nothing into the project", () => {
+    const javascript = spell(["run", "@test/FizzBuzz"]).stdout
+    for (const target of ["py", "ts"]) {
+      const { status, stdout } = spell(["run", "@test/FizzBuzz", "--target", target])
+      expect(stdout, target).toBe(javascript)
+      expect(status, target).toBe(0)
+    }
+    expect(existsSync(fixturePath("FizzBuzz", "FizzBuzz.compiled.py"))).toBe(false)
+  })
+
+  test("--target ts on a program that draws:  runs what it can, and says it can't open in a browser yet", () => {
+    const { status, stderr } = spell(["run", "@test/Solitaire", "--target", "ts", "--seed", "1"])
+    expect(stderr).toContain("Solitaire draws:  its ts/solid can't open in a browser yet")
+    expect(status).toBe(0)
+  })
+
+  test("--target with a name no target has:  says which there are, exit 1", () => {
+    const { status, stderr } = spell(["run", "@test/FizzBuzz", "--target", "rust"])
+    expect(stderr).toContain('--target takes js, ts or py, not "rust"')
+    expect(status).not.toBe(0)
+  })
+
   test("--no-browser:  skips what needs a browser, and says so", () => {
     const { status, stderr } = spell(["run", "@test/Solitaire", "--no-browser"])
     expect(stderr).toContain("Solitaire shows a UI (start the game), which needs a browser")
@@ -455,9 +551,8 @@ describe("spell run", () => {
   })
 
   test("a UI project runs in the browser, in <spell-app>, until interrupted -- writing nothing into it", async () => {
-    // the fixture keeps a compiled copy:  it must come out untouched
-    const output = fixturePath("Solitaire", `Solitaire${SP.COMPILED_JS_SUFFIX}`)
-    const before = readFileSync(output, "utf8")
+    // the fixture's files, each by when it last changed:  none added or written by the run
+    const before = filesIn(fixturePath("Solitaire"))
     const child = spawn(process.execPath, [SPELL, "run", "@test/Solitaire"], {
       cwd: fixturePath(),
       env: { ...process.env, SPELL_NO_BROWSER: "1" },
@@ -476,7 +571,7 @@ describe("spell run", () => {
 
     child.kill("SIGINT")
     expect(await new Promise((done) => child.on("exit", done))).toBe(0)
-    expect(readFileSync(output, "utf8")).toBe(before)
+    expect(filesIn(fixturePath("Solitaire"))).toEqual(before)
   }, 180_000)
 })
 
@@ -600,7 +695,7 @@ describe("spell projects", () => {
   test("lists the roots, with the name to type for each", () => {
     const { status, stdout } = spell(["projects"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +8 projects$/m)
+    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +9 projects$/m)
     expect(stdout).toMatch(/^@user +@user:projects /m)
   })
 
@@ -608,6 +703,7 @@ describe("spell projects", () => {
     const { stdout } = spell(["projects", "@test", "--json"])
     expect(JSON.parse(stdout)).toEqual([
       { name: "@test/Cards", id: "@test:fixtures:Cards" },
+      { name: "@test/CardsFromZero", id: "@test:fixtures:CardsFromZero" },
       { name: "@test/CardTable", id: "@test:fixtures:CardTable" },
       { name: "@test/DrawableSolitaire", id: "@test:fixtures:DrawableSolitaire" },
       { name: "@test/FizzBuzz", id: "@test:fixtures:FizzBuzz" },

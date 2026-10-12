@@ -99,13 +99,13 @@ lists.addRule(ListIteration, {
         ],
         [
           "for message, index in messages: add message + index to messages",
-          "spellCore.map(messages, (message, index) => spellCore.append(messages, message + index))",
-          "spellCore.map(messages, (message, index: number) => spellCore.append(messages, message + index))"
+          "spellCore.map(messages, withSpellPositions((message, index) => spellCore.append(messages, message + index)))",
+          "spellCore.map(messages, withSpellPositions((message, index: number) => spellCore.append(messages, message + index)))"
         ],
         [
           "for message, index in messages: add it + index to messages",
-          "spellCore.map(messages, (message, index) => spellCore.append(messages, message + index))",
-          "spellCore.map(messages, (message, index: number) => spellCore.append(messages, message + index))"
+          "spellCore.map(messages, withSpellPositions((message, index) => spellCore.append(messages, message + index)))",
+          "spellCore.map(messages, withSpellPositions((message, index: number) => spellCore.append(messages, message + index)))"
         ],
         [
           "for message, index in messages: set its list to messages",
@@ -127,14 +127,14 @@ lists.addRule(ListIteration, {
         [
           ["for message and index in messages:", "\tif index is greater than 2 add message to messages"],
           [
-            "spellCore.map(messages, (message, index) => {",
+            "spellCore.map(messages, withSpellPositions((message, index) => {",
             "  if (index > 2) spellCore.append(messages, message)",
-            "})"
+            "}))"
           ],
           [
-            "spellCore.map(messages, (message, index: number) => {",
+            "spellCore.map(messages, withSpellPositions((message, index: number) => {",
             "  if (index > 2) spellCore.append(messages, message)",
-            "})"
+            "}))"
           ]
         ]
       ]

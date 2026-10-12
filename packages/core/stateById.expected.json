@@ -1,0 +1,98 @@
+{
+  "about": [
+    "A program's state as JSON by id:  the JavaScript core (state.test.ts) and Python core (test_state.py) both write it, and both read it back.",
+    "The things:  a table of two stacks, left (a red chip, then a blue one) and right (empty), its top the red chip, written by one StateWriter.",
+    "first:  as made.  moved:  the same writer again, after the red chip moved to the right stack:  the same ids.  patch:  what that writer's patch() gives after the move, instead:  only the two stacks."
+  ],
+  "first": {
+    "@type": "Table",
+    "@id": "1",
+    "stacks": [
+      {
+        "@type": "Stack",
+        "@id": "2",
+        "name": "left",
+        "@items": [
+          {
+            "@type": "Chip",
+            "@id": "3",
+            "color": "red",
+            "value": 5
+          },
+          {
+            "@type": "Chip",
+            "@id": "4",
+            "color": "blue",
+            "value": 10
+          }
+        ]
+      },
+      {
+        "@type": "Stack",
+        "@id": "5",
+        "name": "right",
+        "@items": []
+      }
+    ],
+    "top": {
+      "@id": "3"
+    }
+  },
+  "moved": {
+    "@type": "Table",
+    "@id": "1",
+    "stacks": [
+      {
+        "@type": "Stack",
+        "@id": "2",
+        "name": "left",
+        "@items": [
+          {
+            "@type": "Chip",
+            "@id": "4",
+            "color": "blue",
+            "value": 10
+          }
+        ]
+      },
+      {
+        "@type": "Stack",
+        "@id": "5",
+        "name": "right",
+        "@items": [
+          {
+            "@type": "Chip",
+            "@id": "3",
+            "color": "red",
+            "value": 5
+          }
+        ]
+      }
+    ],
+    "top": {
+      "@id": "3"
+    }
+  },
+  "patch": [
+    {
+      "@type": "Stack",
+      "@id": "5",
+      "name": "right",
+      "@items": [
+        {
+          "@id": "3"
+        }
+      ]
+    },
+    {
+      "@type": "Stack",
+      "@id": "2",
+      "name": "left",
+      "@items": [
+        {
+          "@id": "4"
+        }
+      ]
+    }
+  ]
+}

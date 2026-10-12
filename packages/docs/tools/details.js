@@ -86,12 +86,13 @@ async function main(argv) {
 }
 
 /** `spell dev details` with no or a wrong command. */
-const USAGE = `usage:  spell dev details new <slug> [--title "..."] [--epic <name>] [--description "..."]
-        spell dev details show <page> [--wait] [--timeout 8h]
-        spell dev details wait <page> [--timeout 8h]
-        spell dev details answer <page>
-        spell dev details list
-        spell dev details sweep [--days 14]`
+const USAGE = `usage:  epic ask new <slug> [--title "..."] [--epic <name>] [--description "..."] [--from <questions.json>]
+        epic ask show <page> [--wait] [--timeout 8h]
+        epic ask wait <page> [--timeout 8h]
+        epic ask answer <page>
+        epic ask list
+        epic ask sweep [--days 14]
+(the old spelling, spell dev details, runs the same)`
 
 ////////////////
 // ## Pages

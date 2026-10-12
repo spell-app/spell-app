@@ -303,9 +303,7 @@ export type SectionCount = {
   attention: number
 }
 
-/** Classes of the filter's chips and its "hidden" line;  the Plan changes box and its heading. */
+/** Classes of the filter's chips and its "hidden" line. */
 export const FILTER = "filter"
 export const CHIP = "chip"
 export const HIDDEN_NOTE = "hidden-note"
-export const CHANGES = "changes"
-export const CHANGES_HEAD = "changes-head"
