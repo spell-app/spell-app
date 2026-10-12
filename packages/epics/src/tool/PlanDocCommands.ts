@@ -8,6 +8,7 @@ import { EpicDocs, GROUPS, type EpicDecisions, type EpicDocList } from "./EpicDo
 import { EpicParts } from "./EpicParts"
 import { InboxCommands } from "./InboxCommands"
 import { ItemPicker } from "./ItemPicker"
+import { MigrateCommands, type SessionFinder } from "./MigrateCommands"
 import { PlanDoc } from "./PlanDoc"
 import { EPIC_STATUSES, PlanDocFiles, type EpicListing } from "./PlanDocFiles"
 import { PlanItem } from "./PlanItem"
@@ -26,13 +27,14 @@ import { LISTEN_HEARTBEAT_MS, LISTEN_STALE_MS, ReviewInbox } from "./ReviewInbox
  * - what's data:  `PLAN-DOC.md` beside this;  the elements:  `$/epics/definitions`
  * - Commands:  `new`, `add-phase`, `phase`, `rename`, `estimate`, `add`, `calm`, `decide`, `close`, `cancel`,
  *   `reopen`, `commit`, `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `docs`, `decisions`, `check`,
- *   `open`, `convert`, `split`, `join`, `inbox`, `details`, `status`, `original`
+ *   `open`, `migrate`, `convert`, `split`, `join`, `inbox`, `details`, `status`, `original`
  *   (`spell dev plan-doc` with no command lists them:  `USAGE`).
  * - `docs`, `decisions`:  the docs an epic wrote besides its plan doc, and what its plan doc settled
  *   (`EpicDocs`), for `/docs-check`
  * - the `<epic-*>` markup only:  every command refuses a doc still in the old markup
  *   (one restored from an old backup) before it writes anything:  `convert` it first (`PlanDocFiles.read()`)
- * - `migrate` and `relayout` are gone:  the converter (`convert`, `$/epics/convert`) replaced them
+ * - `migrate`:  pages brought up to today's markup, by page kind (`MigrateCommands`, epic `epic-workflow` P8);
+ *   `relayout` is gone:  the converter (`convert`, `$/epics/convert`) replaced it
  * - `inbox`:  the marks Owen left on the doc's page, waiting in `<name>.inbox.json` beside it (`ReviewInbox`):
  *   printed, waited on (`wait`, a background command that wakes the `/epic review` session), applied (`apply`),
  *   cleared (`InboxCommands`);  `details` writes an agent's details or reply into one item
@@ -54,9 +56,17 @@ export class PlanDocCommands {
   /** the `inbox` commands, on this object's files and output */
   readonly inbox: InboxCommands
 
-  constructor({ files = new PlanDocFiles() }: { files?: PlanDocFiles } = {}) {
+  /** the `migrate` command, on this object's files and output */
+  readonly migrator: MigrateCommands
+
+  /**
+   * - `files`:  the checkout's plan docs
+   * - `sessionsOf`:  an epic's running sessions, for `migrate --notify`;  the `spell` CLI gives it (`epicSessions()`)
+   */
+  constructor({ files = new PlanDocFiles(), sessionsOf }: { files?: PlanDocFiles; sessionsOf?: SessionFinder } = {}) {
     this.files = files
     this.inbox = new InboxCommands(this)
+    this.migrator = new MigrateCommands(this, sessionsOf)
   }
 
   ////////////////
@@ -84,7 +94,8 @@ export class PlanDocCommands {
     const [command, name, ...rest] = positional
     if (command === "list") return this.printEpics(this.files.listEpics(), Boolean(flags.json))
     if (command === "backfill") return this.backfill(name, flags)
-    if (command === "relayout" || command === "migrate") throw new PlanDocError(replaced(command))
+    if (command === "relayout") throw new PlanDocError(replaced(command))
+    if (command === "migrate") return this.migrator.run(positional.slice(1), flags)
     if (command === "convert") return this.convert(positional.slice(1), flags)
     if (command === "split" && flags.done) return this.splitDone(flags)
     if (!command || !name) return this.usage()
@@ -104,7 +115,9 @@ export class PlanDocCommands {
           plan.log(`P${added} added:  ${rest[0]}${moved}`)
           return added
         })
-        return this.print(`P${n}`)
+        this.print(`P${n}`)
+        // the phases after it moved:  links and comments follow them (`links-agree`)
+        return before === undefined ? undefined : this.agree(file)
       }
       case "phase":
         await this.edit(file, (plan) =>
@@ -154,7 +167,8 @@ export class PlanDocCommands {
         const title = need(rest[1], "the new title")
         const renamed = await this.edit(file, (plan) => plan.renameEntry(target, title, { html: !!flags.html }))
         const links = renamed.links ? `;  ${renamed.links} link${renamed.links === 1 ? "" : "s"} rewritten` : ""
-        return this.print(`${renamed.id.toUpperCase()} · ${renamed.title} (was "${renamed.was}"${links})`)
+        this.print(`${renamed.id.toUpperCase()} · ${renamed.title} (was "${renamed.was}"${links})`)
+        return this.agree(file)
       }
       case "estimate":
         return this.edit(file, (plan) => {
@@ -296,6 +310,15 @@ export class PlanDocCommands {
   /** Change the doc at `file` under its lock, and write it:  `PlanDocFiles.edit()`. */
   edit<T>(file: string, change: (plan: PlanDoc) => T, options?: { split?: boolean }): Promise<T> {
     return this.files.edit(file, change, options)
+  }
+
+  /**
+   * After a rename or an insert:  the `links-agree` step on the doc at `file` (`PlanDocFiles.migrate()`), so links
+   * and Owen's comments follow what moved;  what it fixed or left, on stderr (stdout holds the command's answer).
+   */
+  private async agree(file: string): Promise<void> {
+    const { notes } = await this.files.migrate(file, { only: ["links-agree"] })
+    for (const note of notes) this.warn(note)
   }
 
   ////////////////
@@ -805,7 +828,8 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
   add-phase <name> "Short Name" --symptom html --changes html [--goal html] [--files html] [--verify html]
             [--estimate 2h] [--before N]           a phase:  Symptom (one line), Changes (two or three), then
                                                    the details (goal, files, verify);  --before N:  inserted as
-                                                   PN, the to-do phases from N on (and links to them) move down
+                                                   PN, the to-do phases from N on (and links to them) move down;
+                                                   then links-agree:  comments on them follow (stderr says)
   phase-body <name> <N> [--symptom html] [--changes html] [--goal html] [--files html] [--verify html]
                                                    set (or "" removes) a phase's body fields
   updated <name> <N> "html" | --file path [--summary "..."]
@@ -814,8 +838,8 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    (summary:  the html's first sentence unless given);  kept;
                                                    while N isn't done, its folded title says it changed
   rename <name> <P6 | id> "New title" [--html]     retitle a phase or an item;  links to it that say the old
-                                                   title ("P6 · Old", "Old") say the new one;  logged;
-                                                   --html (last):  the title is HTML (<code> ...)
+                                                   title ("P6 · Old", "Old") say the new one;  logged;  then
+                                                   links-agree (stderr);  --html (last):  the title is HTML
   standing <name> [on|off]                         a standing epic:  open for good, each phase merging on its own,
                                                    never done (epic epic-workflow)
   request <name> <N> <rN> --from "..." --file path a request sent from another session, into phase N's Requests
@@ -873,6 +897,14 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    links (doc-links), failing only with --links;  then
                                                    check-spell.js
   open <name>                                      show in VS Code's doc preview (right side bar)
+  migrate [<kind>] [<epic>... | --all] [--file <page>] [--step <name>] [--dry-run] [--notify] [--list]
+                                                   bring pages up to today's markup:  every step of their kind,
+                                                   oldest first, each page under its lock;  safe to run again.
+                                                   Alone:  every kind, every page;  <kind> (epic, guide,
+                                                   cheatsheet ...):  one kind, --file one page;  <epic>... or
+                                                   --all:  epic pages;  --step one step;  --dry-run:  the report
+                                                   only;  --list:  the steps;  --notify:  an epic whose session is
+                                                   running is told (TELL lines, for SendMessage), the rest migrated
   convert <name> ... | --all [--dry-run] [--out <folder>] [--verbose]
                                                    rewrite docs from the old markup into <epic-*> markup and
                                                    prove nothing was lost;  writes ONLY under --out (copies)
@@ -928,7 +960,7 @@ Every command reads <epic-*> markup only, and refuses a doc in the old markup (o
 convert it first (convert <name> --out <folder>, then copy the converted doc back).
 --here is no longer needed:  accepted and ignored.`
 
-/** What `migrate` and `relayout` say now:  the converter replaced them. */
+/** What `relayout` says now:  the converter replaced it. */
 function replaced(command: string): string {
   return `${command} is gone:  the converter replaced it, \`spell dev plan-doc convert <name>\` (old markup -> <epic-*>)`
 }
