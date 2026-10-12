@@ -57,6 +57,18 @@ export class SpellStatement<
   }
 
   /**
+   * Is `match`, at a file's top level, part of the program's START:  a line skipped when an edit keeps the last
+   * run's things?  `false` unless a rule says so.
+   * - The start (epic `drawable-thing` P17, Q26):  a call of one of the program's tests, and starting its app.
+   *   `start the game` (`StartApp`), `test card setup` (`DynamicMethodRule`).
+   * - `SP.Block` wraps such a line in a `P.ASTProgramStart`.
+   * - Reads only `match` and our statics:  `getAST()` may call it.
+   */
+  startsTheProgram(_match: P.Match): boolean {
+    return false
+  }
+
+  /**
    * If `rules` ends with a body keyword (or a choice of them), move it into `bodySpec` -- see `BODY_KEYWORDS`.
    * - A `leadIn` keyword stays in `rules` too:  it matches the words opening the body, e.g. `where:`.
    * - SIDE EFFECT: sets `rules` / `bodySpec`.  Only call before the rule is frozen, i.e. from the constructor.

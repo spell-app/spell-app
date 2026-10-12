@@ -8,11 +8,12 @@ import { tracked } from "$/app/solid"
 /****************
  * ### `<Action>`
  * One action as a menu item (`<ui-item link>`, the default) or a button (`<ui-button>`, with `button`).
- * - `title` is the text, `icon` an icon name (Fomantic's, see `loadUI.ts`), `active` highlights it:  the item's
- *   `selected`, the button's `active`.
+ * - `title` is the text, `icon` an icon name (Fomantic's, see `loadUI.ts`).
+ * - `active` highlights it:  the item's `selected`, the button's `active`.
  * - Everything else goes to the element as is:  `onClick`, `color`, `disabled`, `value`, `class` ...
- * - Inside a `<MoreMenu>` (a `<ui-dropdown>`) the item is DATA:  the dropdown draws it from its attributes and
- *   text (`icon` included).  Keep `title` TEXT:  an item with element children is a "rich" option.
+ * - Inside a `<MoreMenu>` (a `<ui-dropdown>`) the item is DATA:
+ *   the dropdown draws it from its attributes and text (`icon` included).
+ *   Keep `title` TEXT:  an item with element children is a "rich" option.
  * - Reactivity is the caller's:  pass values read from `tracked()` accessors (see `Actions`).
  ****************/
 export function Action(props: ActionProps) {
@@ -56,14 +57,16 @@ export type ActionProps = {
 } & Record<string, unknown>
 
 /**
- * The app's public actions, each a Solid component around `<Action>`:  `<Actions.saveFile />`, or
- * `<Actions.saveFile button />`.  Same names and behaviour as React's `UI.Actions` had.
+ * The app's public actions, each a Solid component around `<Action>`:
+ * `<Actions.saveFile />`, or `<Actions.saveFile button />`.
  * - Props given at the call site win over the entry's own (`title`, `icon`, `onClick` ...).
- * - An entry whose look depends on `editor` reads it through `tracked()`, in its own body, and reads the accessor
- *   in JSX.  (A plain `editor.x` read in JSX is reactive too, through the cells bridge:  `tracked()` names it.)
+ * - An entry whose look depends on `editor` reads it through `tracked()`, in its own body,
+ *   and reads the accessor in JSX.
+ *   (A plain `editor.x` read in JSX is reactive too, through the cells bridge:  `tracked()` names it.)
  * - Entries that only touch `editor` in `onClick` read nothing:  that runs after render.
- * - NOTE: `PROJECT_DROPDOWN_ACTIONS` / `FILE_DROPDOWN_ACTIONS` are COMPONENTS here (React's are element arrays):
+ * - NOTE: `PROJECT_DROPDOWN_ACTIONS` / `FILE_DROPDOWN_ACTIONS` are COMPONENTS, not element arrays:
  *   Solid JSX makes DOM nodes at once, and one node can only be in one place.
+ * - Same names and behaviour as the React app's `UI.Actions` had (its groups were element arrays).
  */
 export const Actions = {
   ////////////////
@@ -151,7 +154,7 @@ export const Actions = {
     <Action title="Publish" icon="world" onClick={() => editor.publishApp()} {...props} />
   ),
   restartApp: (props: ActionProps) => (
-    <Action title="Restart" icon="redo" onClick={() => editor.compileApp()} {...props} />
+    <Action title="Restart" icon="redo" onClick={() => editor.restartApp()} {...props} />
   ),
 
   ////////////////

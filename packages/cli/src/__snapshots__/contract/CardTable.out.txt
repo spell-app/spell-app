@@ -1,0 +1,2 @@
+
+<div id="spell-app-root"><div class="table"><div class="pile"><div class="header"><slot name="header"></slot></div><slot></slot></div><test-project-pile><h3 slot="header">Discards</h3></test-project-pile></div></div>

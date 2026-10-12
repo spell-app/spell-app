@@ -695,7 +695,7 @@ describe("spell projects", () => {
   test("lists the roots, with the name to type for each", () => {
     const { status, stdout } = spell(["projects"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +6 projects$/m)
+    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +9 projects$/m)
     expect(stdout).toMatch(/^@user +@user:projects /m)
   })
 
@@ -704,10 +704,13 @@ describe("spell projects", () => {
     expect(JSON.parse(stdout)).toEqual([
       { name: "@test/Cards", id: "@test:fixtures:Cards" },
       { name: "@test/CardsFromZero", id: "@test:fixtures:CardsFromZero" },
+      { name: "@test/CardTable", id: "@test:fixtures:CardTable" },
+      { name: "@test/DrawableSolitaire", id: "@test:fixtures:DrawableSolitaire" },
       { name: "@test/FizzBuzz", id: "@test:fixtures:FizzBuzz" },
       { name: "@test/Klondike", id: "@test:fixtures:Klondike" },
       { name: "@test/OutlineSolitaire", id: "@test:fixtures:OutlineSolitaire" },
-      { name: "@test/Solitaire", id: "@test:fixtures:Solitaire" }
+      { name: "@test/Solitaire", id: "@test:fixtures:Solitaire" },
+      { name: "@test/ThingReferences", id: "@test:fixtures:ThingReferences" }
     ])
   })
 })

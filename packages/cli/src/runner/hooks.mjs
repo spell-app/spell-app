@@ -3,6 +3,8 @@
  * they do the job of the browser's import map, so compiled spell runs under node.
  * - `@spell/core` => spell's runtime, `core`'s `src/index.ts` -- run through `tsx`, which loads first.
  * - `@spell/project/<id>` => that project's compiled javascript, for a project which imports another.
+ * - `@spell/elements` => a stand-in, `spellElements.mjs`:  what compiled TypeScript's element classes build on,
+ *   with no Spell UI, which can't load here (epic `drawable-thing` P10).
  * - Solid's packages => their browser builds, which the runtime draws with (`SOLID`).
  *   - Found from `@spell/core`'s folder, whoever imports them.
  *   - So a program built from Solid TypeScript (`ts/solid`, see `buildTsx()`), in a temp folder outside the repo,
@@ -23,12 +25,16 @@ const spec = JSON.parse(process.env.SPELL_RUN ?? "{}")
  */
 const SOLID = /^(solid-js|@solidjs\/(web|signals|h))(\/|$)/
 
-/** Resolve the two kinds of spell import, and Solid's packages;  leave everything else to node. */
+/** The stand-in for `@spell/elements`, beside us. */
+const SPELL_ELEMENTS = new URL("./spellElements.mjs", import.meta.url).href
+
+/** Resolve the three kinds of spell import, and Solid's packages;  leave everything else to node. */
 export async function resolve(specifier, context, next) {
   if (SOLID.test(specifier)) {
     return next(specifier, { ...context, parentURL: spec.spellCore, conditions: ["browser", ...context.conditions] })
   }
   if (specifier === "@spell/core") return next(spec.spellCore, context)
+  if (specifier === "@spell/elements") return { url: SPELL_ELEMENTS, shortCircuit: true }
   const project = specifier.startsWith("@spell/project/") && spec.projects?.[decodeURI(specifier.slice(15))]
   return project ? { url: project, shortCircuit: true } : next(specifier, context)
 }

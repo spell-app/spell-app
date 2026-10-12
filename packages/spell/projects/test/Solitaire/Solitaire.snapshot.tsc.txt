@@ -1,7 +1,0 @@
-304:12 TS2532 Object is possibly 'undefined'.
-309:12 TS2532 Object is possibly 'undefined'.
-603:66 TS18048 'testCard' is possibly 'undefined'.
-604:33 TS2345 Argument of type 'Card | undefined' is not assignable to parameter of type 'Card'.
-606:13 TS18048 'testCard' is possibly 'undefined'.
-616:9 TS18048 'testCard' is possibly 'undefined'.
-617:15 TS18048 'testCard' is possibly 'undefined'.

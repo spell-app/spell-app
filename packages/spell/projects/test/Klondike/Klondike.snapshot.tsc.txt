@@ -1,4 +1,0 @@
-319:66 TS18048 'testCard' is possibly 'undefined'.
-322:13 TS18048 'testCard' is possibly 'undefined'.
-332:9 TS18048 'testCard' is possibly 'undefined'.
-333:15 TS18048 'testCard' is possibly 'undefined'.

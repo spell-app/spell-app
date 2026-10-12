@@ -32,8 +32,12 @@ export const uiMethods = defineSpellCoreModule({
    * Return promise which resolves after `number` `units` have elapsed.
    * - `units` looked up in `TIME_UNITS_MAP`; unrecognized `units` fall back to seconds.
    * - Compiles from spell `pause for {number} {units}` (see `rules/async/Pause.ts`); caller `await`s it.
+   * - NEVER resolves while a recompiled program loads to take over the last run's things (`isCarryingOver`):
+   *   - what its top level sets going stops at its first pause, e.g. `reset the game`'s new deal
+   *   - and the game in progress carries on instead
    */
   pauseFor(number: number, units = "seconds"): Promise<void> {
+    if (spellCore.isCarryingOver) return new Promise(() => {})
     const multiplier = spellCore.TIME_UNITS_MAP[units] || 1000
     // default to 0 if `isNaN`
     const delay = Math.round(number * multiplier) || 0
@@ -43,8 +47,9 @@ export const uiMethods = defineSpellCoreModule({
   ////////////////
   // ## Talking to the person
   //
-  // On the page's Spell UI (its runtime, one per page):  a toast, or a dialog.  With no Spell UI -- under node,
-  // `spell run` -- each prints on the program's console instead, and a question takes its default answer.
+  // On the page's Spell UI (its runtime, one per page):  a toast, or a dialog.
+  // With no Spell UI -- under node, `spell run` -- each prints on the program's console instead,
+  // and a question takes its default answer.
   ////////////////
 
   /**
@@ -79,8 +84,8 @@ export const uiMethods = defineSpellCoreModule({
   },
 
   /**
-   * Ask for some text in a dialog:  what was typed, or `undefined` if cancelled -- compiled from
-   * `prompt "Name?" with "Untitled"` (`await`ed), `value` its starting text.
+   * Ask for some text in a dialog:  what was typed, or `undefined` if cancelled.
+   * - Compiled from `prompt "Name?" with "Untitled"` (`await`ed), `value` its starting text.
    * - No Spell UI:  `value`, printed with the question.
    */
   async prompt(message: unknown, value?: string): Promise<string | undefined> {
@@ -96,9 +101,10 @@ export const uiMethods = defineSpellCoreModule({
   /**
    * Create/initialize a `name`d stylesheet with specified `css` text.
    * - If you call this a second time with same `name`, it'll replace the element with that `name`.
-   * - Compiles from a bare (unquoted) CSS text literal, e.g. a spell `.css` file's contents; newlines
-   *   in `css` arrive escaped as `¬` (see the `css` rule, `rules/UI/CSSStyles.ts`), since they survived being embedded
-   *   in a backtick template literal -- unmunged back to `\n` here before use.
+   * - Compiles from a bare (unquoted) CSS text literal, e.g. a spell `.css` file's contents.
+   * - Newlines in `css` arrive escaped as `¬` (see the `css` rule, `rules/UI/CSSStyles.ts`),
+   *   since they survived being embedded in a backtick template literal:
+   *   unmunged back to `\n` here before use.
    * - Goes in `spellCore.domRoot()`:  the app's shadow root if it's in one, so its styles stay inside it --
    *   else `document`'s `<head>`.
    */

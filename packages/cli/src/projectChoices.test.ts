@@ -26,10 +26,13 @@ describe("projectChoices()", () => {
     expect(await values("@test/")).toEqual([
       "@test/Cards/",
       "@test/CardsFromZero/",
+      "@test/CardTable/",
+      "@test/DrawableSolitaire/",
       "@test/FizzBuzz/",
       "@test/Klondike/",
       "@test/OutlineSolitaire/",
-      "@test/Solitaire/"
+      "@test/Solitaire/",
+      "@test/ThingReferences/"
     ])
     expect(await values("@test/sol")).toEqual(["@test/Solitaire/"])
   })

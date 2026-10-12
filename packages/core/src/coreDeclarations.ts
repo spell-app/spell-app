@@ -20,7 +20,7 @@
 import { readFileSync } from "fs"
 import { resolve } from "path"
 
-import { App, Drawable, DrawableList, h, List, off, on, once, positionOf, spellCore, Thing, trigger } from "$/core"
+import { App, css, Drawable, DrawableList, h, List, off, on, once, positionOf, spellCore, Thing, trigger } from "$/core"
 import { coreMethods } from "./core"
 import { collectionCoreMethods } from "./collection-core"
 import { collectionOtherMethods } from "./collection-other"
@@ -28,12 +28,14 @@ import { stringMethods } from "./string"
 import { uiMethods } from "./ui"
 import { drawingMethods } from "./drawing"
 import { elementsMethods } from "./elements"
+import { referencesMethods } from "./references"
 import { pathMethods } from "./paths"
 import { testMethods } from "./tests"
 import { consoleMethods } from "./console"
 import { runtimeMethods } from "./runtime"
 import { thingsMethods } from "./things"
 import { jsonMethods } from "./json"
+import { carryMethods } from "./carry"
 import { classesMethods } from "./classes"
 import { deprecatedMethods } from "./deprecated"
 
@@ -49,12 +51,14 @@ const CORE_MODULES: Record<string, object> = {
   ui: uiMethods,
   drawing: drawingMethods,
   elements: elementsMethods,
+  references: referencesMethods,
   paths: pathMethods,
   tests: testMethods,
   console: consoleMethods,
   runtime: runtimeMethods,
   things: thingsMethods,
   json: jsonMethods,
+  carry: carryMethods,
   classes: classesMethods
 }
 
@@ -69,6 +73,7 @@ const CORE_EXPORTS: Record<string, { value: unknown; module: string }> = {
   Drawable: { value: Drawable, module: "classes/Drawable" },
   DrawableList: { value: DrawableList, module: "classes/DrawableList" },
   h: { value: h, module: "drawing" },
+  css: { value: css, module: "elements" },
   positionOf: { value: positionOf, module: "collection-core" },
   on: { value: on, module: "runtime" },
   off: { value: off, module: "runtime" },
