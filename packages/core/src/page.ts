@@ -14,8 +14,9 @@
  * - `state`:  the program's state, by id (`StateWriter`):  `{ "game": {...}, "stock": {...} }`.
  * - `send`:  where its messages go, as JSON, each thing in it by its id:
  *   - a call, `{ "call": "play_from_the_stock_pile", "args": [] }`,
- *     of a thing's method, `{ "call": "turn_over", "on": { "@id": "3" }, "args": [] }` -- see `sendCall()`
- *   - an event, `{ "trigger": "card-click", "details": { "card": { "@id": "3" } } }` -- see `sendTrigger()`
+ *     of a thing's method, `{ "call": "turn_over", "on": "Card#queen-of-spades", "args": [] }` -- see `sendCall()`
+ *   - an event, `{ "trigger": "card-click", "target": "Card#queen-of-spades" }` -- see `sendTrigger()`
+ *   - each thing by reference (epic `python-target` P27), else by its id, `{ "@id": "3" }`
  * - The state names properties as Python does:  read as javascript names them (`javascriptName()`).
  * - `receive()` reads what comes back, a state or a patch, into the same things:  what they draw follows.
  * - The app the state holds starts, drawn into the page as `App.start()` draws it.
@@ -29,8 +30,11 @@ import { ID_KEY, StateMirror } from "./state"
 
 /** What a page sends:  a call, or an event -- see the file's docs. */
 export type PageMessage =
-  | { call: string; on?: { [ID_KEY]: string }; args: unknown[] }
-  | { trigger: string; details: Record<string, unknown> }
+  | { call: string; on?: PageMessageThing; args: unknown[] }
+  | { trigger: string; target?: PageMessageThing | PageMessageThing[]; details: Record<string, unknown> }
+
+/** A thing in a page's message:  by reference, `"Card#ace-of-hearts"`, else by its id, `{ "@id": "3" }`. */
+export type PageMessageThing = string | { [ID_KEY]: string }
 
 /** What `startPage()` takes -- see the file's docs. */
 export type PageSpec = {
@@ -69,16 +73,39 @@ export function startPage({ modules, state, send }: PageSpec): Page {
 export function sendCall(name: string, args: unknown[], on?: Thing | List): void {
   if (!current) return
   const { mirror, send } = current
-  const message: PageMessage = { call: name, args: args.map((arg) => byId(arg, mirror)) as unknown[] }
-  if (on) message.on = byId(on, mirror) as { [ID_KEY]: string }
+  const message: PageMessage = { call: name, args: args.map((arg) => byReference(arg, mirror)) as unknown[] }
+  if (on) message.on = byReference(on, mirror) as PageMessageThing
   send(message)
 }
 
-/** SIDE EFFECT:  send event `name` to the program's handlers, with `details`:  `{ card: this }`. */
+/**
+ * SIDE EFFECT:  send event `name` to the program's handlers, with `details`:  `{ card: this }`.
+ * - What it happened to goes as its `target`, by reference (epic `python-target` P27):
+ *   `{ "trigger": "card-click", "target": "Card#ace-of-hearts" }`.
+ *   - Each thing in `details`, at its top:  one is the target, several a list of them.
+ *   - Left out of the details when its key is only its type's name (`card` for a Card):
+ *     the program's handler gets it by that name anyway (`event.card`).
+ *     Under any other key, `{ from: pile }`, it stays there too, by reference.
+ * - The rest of `details` as it is, each thing in it by reference.
+ */
 export function sendTrigger(name: string, details: Record<string, unknown> = {}): void {
   if (!current) return
   const { mirror, send } = current
-  send({ trigger: name, details: byId(details, mirror) as Record<string, unknown> })
+  const targets: unknown[] = []
+  const rest: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(details)) {
+    const isThing = value instanceof Thing || value instanceof List
+    if (isThing) targets.push(byReference(value, mirror))
+    if (!isThing || snakeCase(key) !== snakeCase(value.constructor.name)) rest[key] = byReference(value, mirror)
+  }
+  const message: Extract<PageMessage, { trigger: string }> = { trigger: name, details: rest }
+  if (targets.length) message.target = (targets.length === 1 ? targets[0] : targets) as PageMessageThing
+  send(message)
+}
+
+/** `name` in snake case, as Python names a type's thing:  `DiscardPile` and `discardPile` are `discard_pile`. */
+function snakeCase(name: string): string {
+  return name.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase()
 }
 
 /**
@@ -92,12 +119,18 @@ export function javascriptName(name: string): string {
 /** The core's own properties that Python's core names differently -- see `javascriptName()`. */
 const CORE_NAMES: Record<string, string> = { item_type: "instanceType" }
 
-/** `value`, each thing in it as its id, `{ "@id": "3" }`:  plain values, arrays and objects all the way down. */
-function byId(value: unknown, mirror: StateMirror): unknown {
-  if (value instanceof Thing || value instanceof List) return { [ID_KEY]: mirror.idOf(value) }
-  if (Array.isArray(value)) return value.map((item) => byId(item, mirror))
+/**
+ * `value`, each thing in it by reference, `"Card#ace-of-hearts"` (`spellCore.referenceFor()`, epic `python-target` P27):
+ * plain values, arrays and objects all the way down.
+ * - A thing no reference finds (no name, not the program's):  its id, `{ "@id": "3" }`.
+ */
+function byReference(value: unknown, mirror: StateMirror): unknown {
+  if (value instanceof Thing || value instanceof List) {
+    return spellCore.referenceFor(value) ?? { [ID_KEY]: mirror.idOf(value) }
+  }
+  if (Array.isArray(value)) return value.map((item) => byReference(item, mirror))
   if (typeof value === "object" && value !== null && Object.getPrototypeOf(value) === Object.prototype) {
-    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, byId(item, mirror)]))
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, byReference(item, mirror)]))
   }
   return value
 }
@@ -207,7 +240,8 @@ export function logError(what: string, detail: unknown): void {
 
 /**
  * What a frame is, in a line:
- * - the page's:  `call play_from_the_stock_pile()`, `call turn_over() on #3`, `event card-click (#26)`
+ * - the page's:  `call play_from_the_stock_pile()`, `call turn_over() on Card#3`,
+ *   `event card-click (Card#ace-of-hearts)`;  a thing by its id, `#26`
  * - the program's:  `state:  game, stock, discards ...` (its first), `patch:  Card #26, StockPile #3`
  */
 export function frameSummary(frame: unknown): string {
@@ -219,14 +253,29 @@ export function frameSummary(frame: unknown): string {
     return `call ${message.call}()${on}`
   }
   if (typeof message.trigger === "string") {
-    const things = Object.values((message.details ?? {}) as Record<string, unknown>).map(thingLabel)
+    const targets = [message.target ?? []].flat()
+    const named = Object.values((message.details ?? {}) as Record<string, unknown>).filter(isThingInFrame)
+    const things = [...targets, ...named].map(thingLabel)
     return `event ${message.trigger}${things.length ? ` (${things.join(", ")})` : ""}`
   }
   return `state:  ${Object.keys(message).join(", ")}`
 }
 
-/** A thing in a frame, by its type and id:  `Card #26`;  just `#26` when only its id is there. */
+/** Is `value` a thing in a frame:  a reference, `"Card#3"`, or an id, `{ "@id": "3" }`? */
+function isThingInFrame(value: unknown): boolean {
+  if (typeof value === "string") return REFERENCE_TEXT.test(value)
+  return typeof value === "object" && value !== null && ID_KEY in value
+}
+
+/** A reference's text:  `Card#ace-of-hearts`, `Tableau#1`. */
+const REFERENCE_TEXT = /^[A-Za-z_$][\w$]*#.+$/
+
+/**
+ * A thing in a frame:  a reference as it is, `Card#26`;  else by its type and id, `Card #26`,
+ * just `#26` when only its id is there.
+ */
 function thingLabel(value: unknown): string {
+  if (typeof value === "string" && REFERENCE_TEXT.test(value)) return value
   if (typeof value !== "object" || value === null) return JSON.stringify(value)
   const thing = value as Record<string, unknown>
   if (!(ID_KEY in thing)) return JSON.stringify(value)

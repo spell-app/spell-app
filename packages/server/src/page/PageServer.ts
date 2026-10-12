@@ -7,9 +7,11 @@ import { SRV, type ServerInfo } from "$/server"
 import {
   AirplaneMode,
   BundleBuild,
+  COMPONENT_SETS,
   HIGHLIGHT_JS,
   PageEditor,
   RunningEpics,
+  SETS_BUNDLE,
   UI_SITE,
   type PageServerSettings,
   type RouteModule
@@ -22,6 +24,8 @@ import {
  * - `/ui/` -> Spell UI's docs (`UI_SITE`), live-reloading like every page
  *   - the shared pages (`ui/`), with the branch's built `_assets/` and `_data/` (`packages/ui/site/`) laid over them
  *   - the same at `/worktrees/<w>/ui/`
+ * - `/epic-ui/`, `/app-ui/` -> the component sets (`COMPONENT_SETS`):  each a tracked package folder, in Spell UI's
+ *   page shape, loading Spell UI's site bundle (`componentSetPath()`);  the same at `/worktrees/<w>/<set>/`
  * - `/worktrees/<w>/` and `/_server/epics` -> running epics' plan docs (`RunningEpics`)
  * - the bundles it serves (Spell UI's site, the brand pages) aren't committed:
  *   `start()` builds the stale ones in the background (`BundleBuild`),
@@ -85,7 +89,7 @@ export class PageServer {
         ...(AirplaneMode.isOn && { airplane: true })
       })
     })
-    this.web.files.overlays.push(uiBuildPath)
+    this.web.files.overlays.push(uiBuildPath, componentSetPath)
     const router = this.web.router
     router.get("/", (_request, reply) => reply.redirect(DOCS_HOME))
     // redirects, so old links and open tabs still land;  302:  a 301 would be cached for good
@@ -97,11 +101,17 @@ export class PageServer {
     //   then the content split into root folders (2026-10-05, claude-design P4)
     // - plan docs renamed `epics/<n>/<n>.html` -> `<n>.plan.html` (2026-10-04)
     // - Spell UI's pages moved from `packages/ui/site/` to the shared `ui/` (2026-10-05, claude-design P6)
+    // - the component sets' pages:  their long address, and Epic UI's old element pages in the guides
+    //   (epic-workflow P10;  `movedSetPage()`)
     // - here, and in a worktree served from here (`/worktrees/<w>/`);  302 too
-    for (const prefix of ["/packages/docs/*", "/packages/ui/site/*", "/worktrees/*", "/epics/*"])
+    for (const prefix of REDIRECTED)
       router.get(prefix, (request, reply, next) => {
         const url = request.originalUrl
-        const moved = movedDocsPage(url, this.root) ?? renamedPlanDoc(url, this.root) ?? movedUiPage(url, this.root)
+        const moved =
+          movedDocsPage(url, this.root) ??
+          renamedPlanDoc(url, this.root) ??
+          movedUiPage(url, this.root) ??
+          movedSetPage(url, this.root)
         if (moved) reply.redirect(moved)
         else next()
       })
@@ -134,6 +144,8 @@ export class PageServer {
     this.web.live!.watch(join(this.root, UI_SITE.pages))
     // the build's changes as the pages load them:  `/ui/_assets/site.js`, so a rebuilt bundle reloads them
     this.web.live!.watch(join(this.root, UI_SITE.build), { ignore: UI_SITE.ignore, servedAt: UI_SITE.prefix })
+    // the component sets' pages, parts and data, as their short address loads them
+    for (const set of COMPONENT_SETS) this.web.live!.watch(join(this.root, set.dir), { servedAt: set.prefix })
     this.epics.watch(this.web.live!)
     if (routes) for (const path of settings.routes ?? []) await this.loadRoutes(path)
     const { port: actual } = await this.web.listen({ port })
@@ -258,6 +270,25 @@ function worktreeOf(file: string, root: string): { branch?: string; worktree?: s
 /** `worktreeOf()`'s cache, by worktree name. */
 const WORKTREES = new Map<string, { branch?: string; worktree?: string }>()
 
+/** Folder of a component set's address served from the sets' bundle (`SETS_BUNDLE`, `componentSetPath()`). */
+const SET_ASSETS = "_assets"
+
+/** A page of a component set, below its folder:  an `.html` file, or a folder (its `index.html`), not in a `_` folder. */
+const SET_PAGE = /^(?!\/_)(\/[^/]*)*?(\/[^/.]*|\/[^/]*\.html)$/
+
+/** Epic UI's old element pages, under `/guides/epic-components/`:  `[1]`, an element page's file (none:  the overview). */
+const OLD_ELEMENT_PAGE = /^\/guides\/epic-components\/elements(?:\.html|\/([^/]*\.html)?)?$/
+
+/** The URL prefixes the redirects listen on (`PageServer`'s constructor). */
+const REDIRECTED = [
+  "/packages/docs/*",
+  "/packages/ui/site/*",
+  "/worktrees/*",
+  "/epics/*",
+  "/guides/epic-components/*",
+  ...COMPONENT_SETS.flatMap((set) => [set.prefix, `/${set.dir}/*`])
+]
+
 /** The docs home's URL. */
 export const DOCS_HOME = "/pages/index.html"
 
@@ -365,6 +396,58 @@ export function movedUiPage(url: string, root: string): string | undefined {
   if (!before || !after || existsSync(servedFile(fileOf(before), root))) return undefined
   if (!existsSync(servedFile(fileOf(after), root))) return undefined
   return `${moved}${query === undefined ? "" : `?${query}`}`
+}
+
+/**
+ * The URL path a component set's short address serves (`COMPONENT_SETS`, epic `epic-workflow` P10);  else `undefined`.
+ * - `/epic-ui/_assets/<x>` -> `/packages/ui/site/_assets/sets/<x>`:  the sets' build of Spell UI's site
+ *   (`SETS_BUNDLE`), which then takes `/epic-ui/` as its site's root (the folder above its `_assets/`)
+ * - `/epic-ui/<x>` -> `/packages/epic-components/<x>`:  the set's pages, `_parts/` and `_data/`
+ * - the same under `/worktrees/<w>/` (that worktree's set and bundle)
+ * - a `StaticHandler` overlay:  served only when the file is there, else the path as asked (a 404)
+ */
+export function componentSetPath(path: string): string | undefined {
+  const match = /^((?:\/worktrees\/[^/]+)?)(\/[^/]+)(\/.*)$/.exec(path)
+  const set = match && COMPONENT_SETS.find((each) => each.prefix === match[2])
+  if (!match || !set) return undefined
+  const [, base = "", , rest = "/"] = match
+  return rest.startsWith(`/${SET_ASSETS}/`)
+    ? `${base}/${SETS_BUNDLE}${rest.slice(SET_ASSETS.length + 1)}`
+    : `${base}/${set.dir}${rest}`
+}
+
+/**
+ * The new URL of a component set's page asked for elsewhere (`COMPONENT_SETS`), query kept;  else `undefined`:
+ * - `/epic-ui` (no `/`) -> `/epic-ui/`, so its pages' relative links resolve
+ * - its LONG address, `/packages/epic-components/<page>` -> `/epic-ui/<page>`:  one address per page
+ *   - pages only (`.html`, or a folder with an `index.html`), when there:  its data and parts stay where they are
+ * - Epic UI's old element pages in the shared guides (P10, J24), once they're gone and the new ones are there:
+ *   - `/guides/epic-components/elements/<x>.html` -> `/epic-ui/elements/<x>.html`
+ *   - `/guides/epic-components/elements.html` (the overview) -> `/epic-ui/`
+ * - the same under `/worktrees/<w>/`
+ */
+export function movedSetPage(url: string, root: string): string | undefined {
+  const [path = "", query] = url.split("?")
+  const decoded = decode(path)
+  if (!decoded) return undefined
+  const tail = query === undefined ? "" : `?${query}`
+  const [, base = "", inside = ""] = /^((?:\/worktrees\/[^/]+)?)(\/.*)$/.exec(decoded) ?? []
+  if (COMPONENT_SETS.some((set) => inside === set.prefix)) return `${path}/${tail}`
+  const set = COMPONENT_SETS.find((each) => inside.startsWith(`/${each.dir}/`))
+  if (set) {
+    const rest = inside.slice(set.dir.length + 1)
+    if (!SET_PAGE.test(rest) || !existsSync(servedFile(`${base}${pageOf(`/${set.dir}${rest}`)}`, root)))
+      return undefined
+    return `${base}${set.prefix}${encodeURI(rest)}${tail}`
+  }
+  const old = OLD_ELEMENT_PAGE.exec(inside)
+  if (!old) return undefined
+  const [epicUI] = COMPONENT_SETS
+  const page = old[1] ? `elements/${old[1]}` : ""
+  const before = old[1] ? `/guides/epic-components/${page}` : "/guides/epic-components/elements.html"
+  if (existsSync(servedFile(`${base}${before}`, root))) return undefined
+  if (!existsSync(servedFile(`${base}/${epicUI.dir}/${page || "index.html"}`, root))) return undefined
+  return `${base}${epicUI.prefix}/${encodeURI(page)}${tail}`
 }
 
 /** The file URL path `served` names:  a folder (`/x/`) its `index.html`;  anything else itself. */

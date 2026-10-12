@@ -82,6 +82,17 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `--state`:  print its state as JSON by id
 - `PageSession` (`spell_core.page`):  a program's side of a page that draws it.
   - `python -m spell_core.page <program> --seed n` talks to a page over stdin and stdout, a JSON line each.
+- References (`spell_core.references`, P27):  a thing named in text, `Card#queen-of-spades`, `Tableau#1`.
+  - The javascript core's words (drawable-thing's `references.ts`), read the same way.
+  - A page's message may name things so:  an event's `"target"`, a call's `"on"`;  the handler gets the thing as
+    `event.target`, and as `event.card`.  `{"@id": ...}` still works.
+  - A place counts the things a page was sent, in the order it was sent them:  the order its copies were made in.
+  - The program's own core reads them too (`core.thing_for_reference()`, `thing_named()`, `thing_at_place()`,
+    `reference_for()`, in `spell_core.reference_methods`):  its places count the things that core made, in order.
+    - Not counted:  a plain `List`, a thing made inside a test, a helper's scratch result (made `core.quietly()`).
+    - A name falls back to a thing the program keeps at its top level, as javascript's does.
+- A drawable program (P28) draws its own elements (`<solitaire-card>`) on the page:  the page's javascript defines them,
+  so the Python leaves out the `elementTag` line.
 - `play_page()` (`spell_core.playing`, P30):  a test plays a program the way its page does, by the page's messages.
   - `game.trigger("card-click", card=game.ref(card))`, `game.call("deal_the_cards")`:  each answered by its patch.
   - `game.thing(id)`, `game.named("stock")`:  what the page holds now, by id.

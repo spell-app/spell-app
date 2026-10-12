@@ -11,6 +11,8 @@ spellCore.heading("Klondike Solitaire Card Game")
 spellCore.heading("Game bits")
 /** Game bits */
 export class Game extends App {
+  static description = "A game of **Klondike**:  its piles, and its score."
+
   @prop({ type: "number" }) accessor score!: number
 
   //## actions
@@ -67,6 +69,11 @@ export class Game extends App {
               </tr>
             </tbody>
           </table>
+        </div>
+        <div class="rules">
+          <ui-markdown>
+            {`## How to play\nBuild each tableau **down**, alternating colours, and each foundation *up* from its ace.\nScore:  **${this.score}**`}
+          </ui-markdown>
         </div>
       </div>
     )
@@ -315,7 +322,7 @@ export async function autoPlay() {
   // attempt to move bottom card of tableaus to foundations
   for (const pile of tableaus) {
     if (pile.isEmpty) continue
-    const testCard = pile.lastItem
+    const testCard = pile.lastItem!
     const foundation = foundations.filter((pile) => pile.name == testCard.suit).firstItem
     if (spellCore.canTake(foundation!, testCard)) {
       anythingChanged = true
@@ -328,7 +335,7 @@ export async function autoPlay() {
   for (const pile of tableaus) {
     const faceUpCards = pile.filter((card) => card.isFaceUp)
     if (faceUpCards.isEmpty) continue
-    const testCard = faceUpCards.firstItem
+    const testCard = faceUpCards.firstItem!
     if (testCard.isARank("king") && testCard === pile.firstItem) continue
     if (await testCard.play()) {
       anythingChanged = true
@@ -358,7 +365,7 @@ export async function cheat() {
 
 spellCore.heading("rendering the bits")
 resetTheGame()
-game.start()
+if (!spellCore.isCarryingOver) game.start()
 // -----------
 spellCore.installStyles(undefined, `/* File styles.css */¬.Card {¬	position: relative;¬	height: 30px;¬}¬¬.Card .suit {¬	position: relative;¬	font-size: 1.5rem;¬	padding-left: 1px;¬	vertical-align: top;¬	top: -0.15rem;¬}¬¬.Pile {¬	position: relative;¬	min-height: 30px;¬}¬¬.Pile.Tableau {¬	min-height: 500px;¬}¬¬.Pile.stacked .Card {¬	position: absolute;¬	left: 0;¬	top: 0;¬}¬¬.Pile.staggered .Card {¬	margin-bottom: 8px !important;¬}¬¬.Pile > .Placeholder {¬	position: relative;¬	height: 30px;¬}¬¬.Pile > .Placeholder .suit {¬	position: relative;¬	font-size: 1.6rem;¬}¬¬.Pile > .Placeholder .suit.diamonds,¬.Pile > .Placeholder .suit.spades {¬	font-size: 1.75rem;¬	top: -0.1rem;¬}`)
 declare module "@spell/project/@test:fixtures:Cards" {

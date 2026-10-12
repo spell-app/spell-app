@@ -23,7 +23,8 @@ void addAppIconsPageWide()
  * - `<Routes>` picks `<ProjectChooser>` / `<SpellEditor>` / `<SpellRunner>` by URL.
  * - `<Notice>` / `<ErrorNotice>` show `editor.notice` / `editor.error` over every page.  Dialogs need no root:  each
  *   `editor.alert()` / `choose()` ... opens its own `<ui-modal>`.
- * - A running program draws with REACT, in its own root on `<AppRoot>`'s element:  see `editor.setAppRoot()`.
+ * - A running program draws with the page's Solid, in its own root on `<AppRoot>`'s element:
+ *   see `editor.setAppRoot()`.
  */
 render(
   () => (

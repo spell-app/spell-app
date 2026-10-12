@@ -168,3 +168,35 @@ describe("Linker.check()", () => {
     ])
   })
 })
+
+describe("Linker served folders", () => {
+  /** A linker that serves `packages/server/src` at `/srv/`, as the page server serves a component set. */
+  const served = new AS.Linker(ROOT, { served: { srv: "packages/server/src" } })
+
+  /** A page in `packages/server/src/page/`, served at `/srv/page/`. */
+  const dir = served.servedDir(join(ROOT, "packages", "server", "src", "page"))
+
+  test("puts a page in a served folder at its address;  any other page stays where it is", () => {
+    expect(dir).toBe(join(ROOT, "srv", "page"))
+    expect(served.servedDir(PAGE_DIR)).toBe(PAGE_DIR)
+  })
+
+  test("writes its links as from its address:  out of the folder through the root, inside it as siblings", () => {
+    const { text } = served.link(
+      "<p><code>packages/docs/tools/pages.js</code> <code>packages/server/src/page/PageServer.ts</code></p>",
+      dir
+    )
+    expect(text).toBe(
+      '<p><a href="../../packages/docs/tools/pages.js" target="src-packages-docs-tools-pages-js">' +
+        "<code>packages/docs/tools/pages.js</code></a> " +
+        '<a href="PageServer.ts" target="src-packages-server-src-page-pageserver-ts">' +
+        "<code>packages/server/src/page/PageServer.ts</code></a></p>"
+    )
+    expect(served.check(text, dir)).toEqual({ destinations: 2, problems: [] })
+  })
+
+  test("checks its links from its address:  a link written from its file's folder is missing", () => {
+    const { problems } = served.check('<a href="../../../docs/tools/pages.js" target="x">p</a>', dir)
+    expect(problems).toEqual(["missing:  ../../../docs/tools/pages.js"])
+  })
+})

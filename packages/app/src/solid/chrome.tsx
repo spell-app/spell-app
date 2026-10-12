@@ -15,6 +15,7 @@ import "./chrome.css"
 /****************
  * ### `<AppMenu>`
  * Top-level app menu, attached to the top of the page.
+ * - SEE:  its App UI page, `packages/app/components/chrome.html` (`/app-ui/chrome.html`).
  ****************/
 export function AppMenu(props: MenuProps) {
   return (

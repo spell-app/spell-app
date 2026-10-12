@@ -52,6 +52,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - It extends `P.JSWriter`, adding only what's TypeScript's own:
       - real JSX, decorators, the types spell knows
       - `!` where `?.` can't go
+      - each drawable type's element class (epic `drawable-thing` P10).
+        - e.g. `class CardElement extends SpellElement<Card>`, its base imported from `@spell/elements`
+        - Written by `elementClassFor()`.
   - Python's writers are `$/py`'s ([py's AGENTS.md](../py/AGENTS.md)), built on these:
     - `PY.PyWriter`, on `P.ProgramWriter`
     - `PY.ElementsWriter`, on `P.JSWriter`

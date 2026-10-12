@@ -20,6 +20,10 @@ import type { AS } from "$/assembler"
  * - Knows the checkout's LAYOUT (`packages/*`, the shared areas `pages/`, `guides/`, `epics/`, `templates/`) as
  *   folder names only:  imports no other package, so `docs` and `epics` both import it.
  * - From `packages/docs/tools/doc-links.js` (epic `epic-components`, P7), which now runs its command line on this.
+ * - SERVED folders (`served`, epic `epic-workflow` P10):  a folder the page server serves at another address (a
+ *   component set:  `packages/epic-components/` at `/epic-ui/`) has its pages' links written as from that address,
+ *   so they hold under `/worktrees/<w>/` too.  Give such a page `servedDir()` of its folder as its `pageDir`:  links
+ *   then resolve, and are written, from there.
  */
 export class Linker {
   /** the checkout's root:  links resolve inside it, and a target is a slug of the path relative to it */
@@ -40,11 +44,22 @@ export class Linker {
   /** code spans that aren't paths but still have a home:  text -> path or URL */
   readonly special: Map<string, string>
 
+  /**
+   * the served folders, absolute:  `[address folder, the folder it serves]`, e.g.
+   * `[<root>/epic-ui, <root>/packages/epic-components]`
+   */
+  readonly served: readonly (readonly [string, string])[]
+
   /** basename -> paths under `indexRoots`, built on first use (`fileIndex`) */
   private index?: Map<string, string[]>
 
-  constructor(root: string) {
+  /**
+   * - `served`:  the address folder => the folder it serves, both relative to `root`, e.g.
+   *   `{ "epic-ui": "packages/epic-components" }` (`COMPONENT_SETS` in `$/server/page`, which this package can't import)
+   */
+  constructor(root: string, { served = {} }: { served?: Readonly<Record<string, string>> } = {}) {
     this.root = root
+    this.served = Object.entries(served).map(([address, dir]) => [join(root, address), join(root, dir)] as const)
     this.packages = join(root, "packages")
     this.ui = join(this.packages, "ui")
     this.home = join(root, "pages")
@@ -84,8 +99,8 @@ export class Linker {
         if (path.includes("/") || PATH_LIKE.test(path.trim())) unresolved.add(path)
         continue
       }
-      // `|| "."`:  the page's own folder
-      let href = URL_START.test(dest) ? dest : relative(pageDir, dest) || "."
+      // `|| "."`:  the page's own folder;  a served page's links are written from where it's served
+      let href = URL_START.test(dest) ? dest : relative(pageDir, this.virtual(dest)) || "."
       if (isDir(dest) && !href.endsWith("/")) href += "/"
       out.push(text.slice(last, m.index))
       out.push(`<a href="${escapeAttribute(href)}" target="${this.targetFor(dest)}">${m[0]}</a>`)
@@ -119,12 +134,44 @@ export class Linker {
    */
   private addTarget(tag: string, href: string, pageDir: string): string {
     if (href.startsWith("#")) return tag
-    const dest = URL_START.test(href) ? href : resolvePath(pageDir, href.split("#")[0])
+    const dest = URL_START.test(href) ? href : this.real(resolvePath(pageDir, href.split("#")[0]))
     if (tag.includes("target=")) {
       if (URL_START.test(dest) || !PLAN_DOC.test(relative(this.root, dest))) return tag
       return tag.replace(/target="[^"]*"/g, () => `target="${this.targetFor(dest)}"`)
     }
     return `${tag.slice(0, -1)} target="${this.targetFor(dest)}">`
+  }
+
+  ////////////////
+  // ## Served folders
+  ////////////////
+
+  /**
+   * The folder a page in `dir` is SERVED from:  in a served folder, its place under the address folder
+   * (`<root>/packages/epic-components/elements` => `<root>/epic-ui/elements`);  else `dir`.
+   * - What to pass `link()` / `check()` as a page's folder.
+   */
+  servedDir(dir: string): string {
+    return this.swap(resolvePath(dir), 1, 0)
+  }
+
+  /** `path`, resolved from a served place, as the file it is:  `<root>/epic-ui/x` => `<root>/packages/epic-components/x`. */
+  private real(path: string): string {
+    return this.swap(path, 0, 1)
+  }
+
+  /** `path`, a file, as the place it's served at:  `real()` turned round. */
+  private virtual(path: string): string {
+    return this.swap(path, 1, 0)
+  }
+
+  /** `path` with the first served pair's side `from` at its start swapped for side `to`;  else `path`. */
+  private swap(path: string, from: 0 | 1, to: 0 | 1): string {
+    for (const pair of this.served) {
+      if (path === pair[from]) return pair[to]
+      if (path.startsWith(`${pair[from]}/`)) return pair[to] + path.slice(pair[from].length)
+    }
+    return path
   }
 
   ////////////////
@@ -157,7 +204,9 @@ export class Linker {
     const bases = path.startsWith("node_modules/")
       ? [this.root, this.ui]
       : [this.root, this.packages, this.home, this.ui]
-    const candidates = [pageDir, join(pageDir, "experiments"), ...bases].map((base) => resolvePath(base, path))
+    const candidates = [pageDir, join(pageDir, "experiments"), ...bases].map((base) =>
+      this.real(resolvePath(base, path))
+    )
     const found = candidates.find((candidate) => existsSync(candidate))
     if (found) return found
     if (!path.replace(/\/+$/, "").includes("/")) {
@@ -216,7 +265,7 @@ export class Linker {
       if (!hrefMatch || hrefMatch[1].startsWith("#")) continue
       const href = decodeEntities(hrefMatch[1])
       const local = !URL_START.test(href)
-      const dest = local ? resolvePath(pageDir, href.split("#")[0]) : href
+      const dest = local ? this.real(resolvePath(pageDir, href.split("#")[0])) : href
       if (local && !existsSync(dest)) {
         if (!this.isGitIgnored(dest + (href.split("#")[0].endsWith("/") ? "/" : ""))) problems.push(`missing:  ${href}`)
       } else if (local && !this.isInside(dest)) problems.push(`outside repo:  ${href}`)

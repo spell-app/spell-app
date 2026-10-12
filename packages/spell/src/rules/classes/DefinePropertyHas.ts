@@ -13,7 +13,8 @@ import { classes } from "./classes.parser"
 /**
  * `define_property_has` rule:  declares an instance property on `type`,
  * optionally constrained/initialized by a `type_specifier`.
- * - e.g. `a card has a suit as one of clubs, diamonds, hearts, spades`, `todos have a title as text`
+ * - e.g. `a card has a suit as one of clubs, diamonds, hearts, spades`
+ * - e.g. `todos have a title as text`
  * - `Priority.declaration`, so this wins over other `{type} has|have ...` -ish statement rules.
  * - SIDE EFFECT: stubs `type` into `scope.types` if not yet declared -- see `P.TypeScope.getOrStub()`.
  * - SIDE EFFECT: when `specifier` is an enumeration, also:
@@ -23,10 +24,11 @@ import { classes } from "./classes.parser"
  * - Its name is `member_words`, e.g. `a card has short rank as text`;  the article is optional.
  * - With no type, e.g. `a calculator has an input`, it asks for one:  a warning -- see `warnUntyped()`.
  * - Compiles to a reactive getter / setter pair in its class, its type declared in the class's schema:
- *   see `P.ASTReactiveProperty`.  e.g. `a player has a name as text` =>
- *   - `static { this.declareProp("name", { type: "text" }) }`
- *   - `get name() { return this.getProp("name") }`
- *   - `set name(value) { this.setProp("name", value) }`
+ *   see `P.ASTReactiveProperty`.
+ *   - e.g. `a player has a name as text` =>
+ *     - `static { this.declareProp("name", { type: "text" }) }`
+ *     - `get name() { return this.getProp("name") }`
+ *     - `set name(value) { this.setProp("name", value) }`
  * - An enumeration's values also go on the class, e.g. `static Suits = ["clubs", ...]` -- see `class_member`.
  */
 export class DefinePropertyHas extends SpellStatement<"type|property|specifier?", { valueType?: P.TypeScope }> {
@@ -160,12 +162,12 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
     // type
     else if (specifier) {
       // Only `type_specifier_datatype`/`type_specifier_yes_or_no` can produce a `specifier` that reaches here,
-      // both of which return a `TypeExpression`.  Not statically provable:
-      // `type_specifier`'s `getAST()` can only be typed as returning `ASTNode` in general.
+      // both of which return a `TypeExpression`.
+      // Not statically provable:  `type_specifier`'s `getAST()` can only be typed as returning `ASTNode` in general.
       const typeExpression = specifier as P.ASTTypeExpression
-      // checked at runtime by its class's name (see `P.ASTTypeExpression.runtimeName`),
-      // a text value, so a writer can read the type:  `P.TSWriter` types the property from it
-      check.addProp("type", new P.ASTStringLiteral(match, { value: typeExpression.runtimeName, quote: "'" }))
+      // a type's name as text, so a writer can read the type:  `P.TSWriter` types the property from it.
+      // Checked at runtime by its class's name:  see `P.ASTTypeExpression.runtimeName`.
+      check.addProp("type", new P.ASTTypeNameLiteral(match, { value: typeExpression.runtimeName, quote: "'" }))
     }
 
     statements.push(

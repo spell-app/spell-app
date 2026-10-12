@@ -5,6 +5,9 @@ import { SpellStatement, type SpellStatementProps } from "$/spell/rules/Statemen
 import { MethodDefinition } from "./MethodDefinition"
 import type { MethodRuleDeclared } from "./methods.shared"
 
+/** A test's method name:  `test_card_setup`, from `to test card setup`. */
+const TEST_METHOD = /^test_/
+
 /**
  * Rule `constructor` for a plain (non-instance, non-operator) dynamically-defined method's CALL SITE,
  * e.g. matching `notify 1` after `to notify (message): ...` defined it.
@@ -13,10 +16,11 @@ import type { MethodRuleDeclared } from "./methods.shared"
  * - TYPED:  a call whose argument is KNOWN to be the wrong type isn't ours,
  *   so `put the chip on the pot` finds Chip's `put`, not Card's -- see `parse()`.
  * - As a statement, its LAST argument is a whole expression:  `notify x + y` => `notify(x + y)`.
- *   Inside an expression, an operand:  `if double x is 4` => `double(x) == 4`.  See `operandInExpressions`.
- * - NOTE: not made a generic pass-through like `MethodDefinition` -- every dynamically-generated rule built
- *   on top of it uses the same `thisArg`/`callArgs`/`props` syntax convention, so there's no subclass that
- *   needs a different `Groups`/`MatchData`.
+ *   - Inside an expression, an operand:  `if double x is 4` => `double(x) == 4`.
+ *   - See `operandInExpressions`.
+ * - NOTE: not made a generic pass-through like `MethodDefinition`:
+ *   every dynamically-generated rule built on top of it uses the same `thisArg`/`callArgs`/`props` syntax convention,
+ *   so there's no subclass that needs a different `Groups`/`MatchData`.
  */
 export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|props?", DynamicMethodData> {
   @proto static importableAs = "method_call"
@@ -73,6 +77,17 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
     return match
   }
 
+  /**
+   * Do we call a TEST, `test card setup`?
+   * Then a top-level call is part of the program's start, skipped when an edit keeps its things.
+   * - A test is a method defined `to test ...`:
+   *   its name starts `test_`, and it's a statement only (`MethodDefinition.getRule()`).
+   * - The same tests `spell test` finds:  every exported function named `test...`.
+   */
+  startsTheProgram(): boolean {
+    return this.alias === "statement" && TEST_METHOD.test(this.methodName)
+  }
+
   /** Could each of `match`'s arguments be what we take?  See `parse()`. */
   argumentsFit(match: P.MatchFor<this>): boolean {
     const { scope } = match
@@ -104,12 +119,13 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
     const { methodName } = this
     const { thisArg, callArgs, props } = match.groups
     const thing = thisArg?.AST as P.ASTExpression | undefined
-    // `match.AST` is typed as the generic `ASTNode` (from `Rule.getAST()`); `callArgs`/`props` are always
-    // parsed via `{callArgs:expression}` / `object_literal_properties`, so their AST is always an Expression.
+    // `match.AST` is typed as the generic `ASTNode` (from `Rule.getAST()`);
+    // `callArgs`/`props` are always parsed via `{callArgs:expression}` / `object_literal_properties`,
+    // so their AST is always an Expression.
     const args = (callArgs?.map((arg) => arg.AST) ?? []) as P.ASTExpression[]
     // Add `props` to the end of the args if found.
-    // NOTE: This assumes that all inline arguments are REQUIRED by the syntax.
-    //       If we decide to match syntax with optional args we'll need to update this.
+    // NOTE: This assumes that all inline arguments are REQUIRED by the syntax:
+    //       if we decide to match syntax with optional args we'll need to update this.
     if (props) args.push(props.AST as P.ASTExpression)
 
     // if `thing` is defined, method is scoped

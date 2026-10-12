@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>The App's Components</title>
+    <meta
+      name="description"
+      content="Every component the spell app is built from, by where it sits, and a page for each."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="The App's Components">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../packages/app/src/solid/"
+              icon="code"
+              aria-label="The components' code"
+              title="The components' code"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            The App's Components
+            <ui-header>Every component the spell app is built from, by where it sits, and a page for each.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <p class="lede">
+            The spell app is its editor, its runners, and two web components any page can embed. All of it is drawn by
+            the components below: Solid components on Spell UI's widgets, and the two web components on top.
+          </p>
+          <ui-list class="spell-meta">
+            <ui-item icon="user"
+              >Written for: anyone changing the spell app, or putting spell programs in a page</ui-item
+            >
+            <ui-item icon="play"
+              >Live where a component can be drawn alone (the web components, the runner's pieces); a picture of the
+              editor otherwise</ui-item
+            >
+            <ui-item icon="book"
+              >The app's notes:
+              <a href="../packages/app/AGENTS.md" target="src-packages-app-agents-md"
+                ><code title="packages/app/AGENTS.md">AGENTS.md</code></a
+              ></ui-item
+            >
+          </ui-list>
+
+          <ui-section id="1-web-components" header="1. Web components" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="puzzle piece"></ui-icon>
+            <p>The two tags a page can embed, with no editor app around them:</p>
+            <ul>
+              <li>
+                <a href="spell-app.html" target="src-packages-app-components-spell-app-html"
+                  ><code>&lt;spell-app&gt;</code></a
+                >: runs a spell project
+              </li>
+              <li>
+                <a href="spell-editor.html" target="src-packages-app-components-spell-editor-html"
+                  ><code>&lt;spell-editor&gt;</code></a
+                >: edits one, and runs it in the <code>&lt;spell-app&gt;</code>s beside it
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="2-page-shell" header="2. Page shell" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="table columns"></ui-icon>
+            <p>Every editor page is a box of panes, with menus along their tops:</p>
+            <ul>
+              <li>
+                <a href="SpellPage.html" target="src-packages-app-components-spellpage-html">SpellPage</a>: a whole
+                page's box
+              </li>
+              <li>
+                <a href="SplitPanel.html" target="src-packages-app-components-splitpanel-html">SplitPanel</a>: panes
+                side by side, or one above the other
+              </li>
+              <li>
+                <a href="AppRoot.html" target="src-packages-app-components-approot-html">AppRoot</a>: the running
+                program, under its toolbar
+              </li>
+              <li>
+                <a href="AppContainer.html" target="src-packages-app-components-appcontainer-html">AppContainer</a>: the
+                box the program draws in
+              </li>
+              <li>
+                <a href="chrome.html" target="src-packages-app-components-chrome-html">Chrome</a>: the menus and
+                toolbars around the panes
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="3-panes" header="3. Panes" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="window maximize"></ui-icon>
+            <p>What the panes show, besides the code:</p>
+            <ul>
+              <li>
+                <a href="ThingExplorer.html" target="src-packages-app-components-thingexplorer-html">ThingExplorer</a>:
+                the things a running program has made
+              </li>
+              <li>
+                <a href="TypeExplorer.html" target="src-packages-app-components-typeexplorer-html">TypeExplorer</a>: the
+                scopes a project parses in
+              </li>
+              <li>
+                <a href="ScopeDetailsPane.html" target="src-packages-app-components-scopedetailspane-html"
+                  >ScopeDetailsPane</a
+                >: the details of the scope picked there
+              </li>
+              <li>
+                <a href="Markdown.html" target="src-packages-app-components-markdown-html">Markdown</a>: a docstring,
+                drawn
+              </li>
+              <li>
+                <a href="TreeViewer.html" target="src-packages-app-components-treeviewer-html">TreeViewer</a>: the spell
+                tree of the line the cursor is on
+              </li>
+              <li>
+                <a href="ConsoleViewer.html" target="src-packages-app-components-consoleviewer-html">ConsoleViewer</a>:
+                what programs print, in the editor
+              </li>
+              <li>
+                <a href="ConsoleLines.html" target="src-packages-app-components-consolelines-html">ConsoleLines</a>: the
+                lines every console draws
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="4-editors" header="4. Editors" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="pen to square"></ui-icon>
+            <p>The code editors, all Monaco, loaded the first time one shows:</p>
+            <ul>
+              <li>
+                <a href="InputEditor.html" target="src-packages-app-components-inputeditor-html">InputEditor</a>: the
+                spell source of the open file
+              </li>
+              <li>
+                <a href="OutputEditor.html" target="src-packages-app-components-outputeditor-html">OutputEditor</a>: its
+                compiled javascript
+              </li>
+              <li>
+                <a href="MonacoEditor.html" target="src-packages-app-components-monacoeditor-html">MonacoEditor</a>: a
+                Monaco editor, which the others are
+              </li>
+              <li>
+                <a href="FileEditor.html" target="src-packages-app-components-fileeditor-html">FileEditor</a>: one on a
+                spell file, kept in step with it
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="5-menus-and-dialogs" header="5. Menus and dialogs" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="bars"></ui-icon>
+            <p>Picking a project or a file, and doing something with it:</p>
+            <ul>
+              <li>
+                <a href="FileDropdown.html" target="src-packages-app-components-filedropdown-html">FileDropdown</a>: the
+                open project's files
+              </li>
+              <li>
+                <a href="ProjectDropdown.html" target="src-packages-app-components-projectdropdown-html"
+                  >ProjectDropdown</a
+                >: every project
+              </li>
+              <li>
+                <a href="Actions.html" target="src-packages-app-components-actions-html">Actions</a>: the editor's
+                actions, as menu items or buttons
+              </li>
+              <li>
+                <a href="Chooser.html" target="src-packages-app-components-chooser-html">Chooser</a>: a dialog to choose
+                from a list
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="6-notices" header="6. Notices" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="bell"></ui-icon>
+            <p>Telling people what happened:</p>
+            <ul>
+              <li>
+                <a href="Notice.html" target="src-packages-app-components-notice-html">Notice</a>: something worked
+              </li>
+              <li>
+                <a href="ErrorNotice.html" target="src-packages-app-components-errornotice-html">ErrorNotice</a>:
+                something didn't
+              </li>
+              <li>
+                <a href="ErrorBoundary.html" target="src-packages-app-components-errorboundary-html">ErrorBoundary</a>:
+                a part of the page broke, and the rest goes on
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="7-the-runners-pieces" header="7. The runner's pieces" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="play"></ui-icon>
+            <p>
+              What every runner draws around a program: a <code>&lt;spell-app&gt;</code>, VS Code's "Run Project", and
+              the editor's own:
+            </p>
+            <ul>
+              <li>
+                <a href="RunnerSplit.html" target="src-packages-app-components-runnersplit-html">RunnerSplit</a>: the
+                program above, the debug pane below
+              </li>
+              <li>
+                <a href="RunnerPane.html" target="src-packages-app-components-runnerpane-html">RunnerPane</a>: a pane
+                with a toolbar of tabs
+              </li>
+              <li>
+                <a href="RunnerConsole.html" target="src-packages-app-components-runnerconsole-html">RunnerConsole</a>:
+                one program's console
+              </li>
+              <li>
+                <a href="spell-element.html" target="src-packages-app-components-spell-element-html">SpellElement</a>: a
+                drawable thing, drawn as its own element
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section
+            id="8-how-these-pages-work"
+            header="8. How these pages work"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle info"></ui-icon>
+            <p>
+              The pages live beside the web components' code, so a component's page changes in the same commit as the
+              component:
+            </p>
+            <ul>
+              <li>
+                Each page's props, attributes and "Used in" tables come from the code itself:
+                <code>yarn site:data</code> in
+                <a href="../packages/app/" target="src-packages-app"><code>packages/app</code></a> reads every
+                documented component's banner and props, and where the app draws it.
+              </li>
+              <li>
+                The pictures are headless screenshots of the editor: <code>yarn site:pictures</code>, with the editor
+                running.
+              </li>
+              <li>
+                The live examples need the app's element build:
+                <code>yarn build:element</code> in
+                <a href="../packages/app/" target="src-packages-app"><code>packages/app</code></a
+                >.
+              </li>
+              <li>
+                A new page: add it to the set's hand-kept facts,
+                <a
+                  href="../packages/app/components/_data/pages.json"
+                  target="src-packages-app-components-data-pages-json"
+                  ><code title="packages/app/components/_data/pages.json">pages.json</code></a
+                >, run <code>yarn site:data</code>, then copy a page like it (<a
+                  href="Notice.html"
+                  target="src-packages-app-components-notice-html"
+                  >Notice</a
+                >
+                for a picture,
+                <a href="spell-app.html" target="src-packages-app-components-spell-app-html">&lt;spell-app&gt;</a> for a
+                live one) and link it here.
+              </li>
+            </ul>
+          </ui-section>
+
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">Last checked 2026-10-12 against branch <code>epic-workflow</code>.</p>
+          </footer>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

@@ -45,8 +45,19 @@ export type ApiMessage = {
 /**
  * The tables, in the order they show;  a tag's empty ones are left out.
  * - `properties`:  the `json` attributes (rich data), split out of `attributes` as the old Astro table did.
+ * - `props` and `usedIn`:  a function component's (`SiteTag.props`, `SiteTag.usedIn`:  the spell app's App UI set).
  */
-export const ApiSectionIds = ["attributes", "properties", "events", "slots", "parts", "states", "texts"] as const
+export const ApiSectionIds = [
+  "props",
+  "attributes",
+  "properties",
+  "events",
+  "slots",
+  "parts",
+  "states",
+  "texts",
+  "usedIn"
+] as const
 
 /** One of `ApiSectionIds`. */
 export type ApiSectionId = (typeof ApiSectionIds)[number]
