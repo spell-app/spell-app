@@ -35,6 +35,17 @@ export class Naming {
   }
 
   /**
+   * javascript's names a spell name mustn't be:
+   * the core's position helpers (`position`, `spellPosition` ...;  epic `python-target` P23).
+   * - Compiled code imports them by name, so a variable of that name would hide them.
+   * - Only a variable steps aside, as Python's builtins do:  `position_`.
+   */
+  static readonly JAVASCRIPT_CLASHES: NameClashes = {
+    keywords: new Set(),
+    builtins: new Set(["position", "spellPosition", "endPosition", "withSpellPositions"])
+  }
+
+  /**
    * Python's map, PEP 8's (epic `python-target` P7):
    * - classes `PascalCase`
    * - constants `SCREAMING_SNAKE_CASE` (`Card.RANKS`)
@@ -47,8 +58,8 @@ export class Naming {
   }
 
   /**
-   * Python's names a spell name mustn't be, and how it steps aside:  PEP 8's single trailing underscore,
-   * "used by convention to avoid conflicts with Python keyword", e.g. `class_`.
+   * Python's names a spell name mustn't be, and how it steps aside:
+   * PEP 8's single trailing underscore, "used by convention to avoid conflicts with Python keyword", e.g. `class_`.
    * - `keywords`:  never a name, of any kind (`class`, `is`, `None`).
    *   Not the soft ones (`match`, `case`, `type`):
    *   they're names everywhere but at the start of their own statements.
@@ -70,7 +81,9 @@ export class Naming {
       (
         "abs all any bool bytes callable chr dict dir divmod enumerate filter float format frozenset getattr " +
         "hasattr hash help hex id input int isinstance issubclass iter len list map max min next object oct open " +
-        "ord pow print range repr reversed round set slice sorted str sum super tuple type vars zip self cls"
+        "ord pow print range repr reversed round set slice sorted str sum super tuple type vars zip self cls " +
+        // and `spell_core`'s position helpers, which compiled code imports by name (epic `python-target` P23)
+        "position spell_position end_position with_spell_positions"
       ).split(" ")
     )
   }

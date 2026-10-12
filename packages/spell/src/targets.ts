@@ -1,4 +1,7 @@
 import { P } from "$/parser"
+import { PY } from "$/py"
+
+import { ELEMENTS_JS_SUFFIX } from "./spell.types"
 
 /**
  * The TARGETS spell compiles to:  a language and the runtime its code runs on, e.g. `js/solid`.
@@ -33,6 +36,19 @@ export type Target = {
    * - `js/solid`'s words are `<Project>.en.js`, which every runner loads -- see `SP.SpellProject.wordsFile`.
    */
   wordsSuffix?: string
+  /**
+   * End of the name of its PAGE's file, beside its output, e.g. `.elements.js` (epic `python-target` P19):
+   * a program that draws, its drawing half in javascript (`PY.ElementsWriter`),
+   * for a page that mirrors the program running here.
+   * - Written only for a project that draws.
+   */
+  elementsSuffix?: string
+  /**
+   * End of the name of its web APP's file, beside its output, e.g. `.app.py`:  a Quart app serving the program,
+   * a game per visitor (epic `python-target` P20, `PY.quartApp()`).
+   * - Written only for a project that draws, and only while nobody has edited it (`PY.isUneditedApp()`).
+   */
+  appSuffix?: string
 }
 
 /** What a target's runtime can do -- checked while compiling, so a project asks only what its targets give. */
@@ -53,23 +69,17 @@ export const TARGETS: Record<string, Target> = {
     can: { draw: "dom" },
     checkedBy: "tsc"
   },
-  // Python as a person writes it, with PEP 8's names, on `spell_core` (`packages/core/py`).
-  // Draws HTML as text:  Python has no page (epic `python-target`, Q2)
+  // Python as a person writes it, with PEP 8's names, on `spell_core` (`packages/py/core`), on asyncio:
+  // a function that pauses is `async def`, and its callers await it (epic `python-target`, one target since P22).
+  // Draws HTML as text (Q2);  a program that draws also gets its page, `.elements.js`, and its web app, `.app.py`
   py: {
     name: "py",
-    writer: P.PyWriter.instance,
+    writer: PY.PyWriter.instance,
     suffix: ".compiled.py",
     can: { draw: "html" },
     wordsSuffix: ".py.en.json",
-    checkedBy: "pyright"
-  },
-  // The same Python on `asyncio`:  a function that pauses is `async def`, and its callers await it
-  // (epic `python-target`, Q3 B and Q18)
-  "py/asyncio": {
-    name: "py/asyncio",
-    writer: P.PyAsyncWriter.instance,
-    suffix: ".compiled.asyncio.py",
-    can: { draw: "html" },
+    elementsSuffix: ELEMENTS_JS_SUFFIX,
+    appSuffix: ".app.py",
     checkedBy: "pyright"
   }
 }

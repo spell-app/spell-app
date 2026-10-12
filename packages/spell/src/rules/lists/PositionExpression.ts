@@ -8,7 +8,7 @@ import { lists } from "./lists.parser"
  * - `{arg}` (e.g. `card`) captured for readability only, unused in output.
  * - NOTE: negative positions come from end of list, e.g. `card -1 of the pile`.
  * - NOTE: positions are **1-based** while Javascript is **0-based**, e.g. `item 1 of the array` => `array[0]`.
- * - Compiles to `spellCore.getItemAt(list, position)`.
+ * - Compiles to `spellCore.getItemAt(list, index)`:  `card 10 of deck` => `spellCore.getItemAt(deck, 9)`.
  */
 export class PositionExpression extends ListItemExpression<"arg|position|expression"> {
   @proto static listGroup = "expression"
@@ -32,9 +32,9 @@ lists.addRule(PositionExpression, {
         scope.variables?.add("n")
       },
       tests: [
-        ["item 1 of my-list", "spellCore.getItemAt(myList, 1)"],
-        ["card 10 of deck", "spellCore.getItemAt(deck, 10)"],
-        ["card n of the cards of the deck", "spellCore.getItemAt(deck.cards, n)"]
+        ["item 1 of my-list", "spellCore.getItemAt(myList, 0)"],
+        ["card 10 of deck", "spellCore.getItemAt(deck, 9)"],
+        ["card n of the cards of the deck", "spellCore.getItemAt(deck.cards, position(n))"]
       ]
     }
   ]

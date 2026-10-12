@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList, h, positionOf, trigger } from "@spell/core"
+import { spellCore, Thing, List, App, Drawable, DrawableList, h, positionOf, spellPosition, trigger } from "@spell/core"
 
 spellCore.heading("definition of a Card with nice english aliases for working with it")
 /** definition of a Card with nice english aliases for working with it */
@@ -26,7 +26,7 @@ export class Card extends Thing {
 
   /** value as a derivation of rank */
   get value() {
-    return positionOf(Card.Ranks, this.rank)
+    return spellPosition(positionOf(Card.Ranks, this.rank))
   }
 
   /** card direction:  up or down */
@@ -83,7 +83,7 @@ export class Card extends Thing {
   get shortRank() {
     if (this.rank === undefined) return "?"
     if (typeof this.rank === "number") return `${this.rank}`
-    return `${spellCore.getItemAt(this.rank, 1) ?? ""}`.toLocaleUpperCase()
+    return `${spellCore.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
   }
 
   get shortDirection() {
@@ -248,12 +248,12 @@ export class Pile extends List {
 
   get color() {
     if (this.isEmpty) return "none"
-    return this.lastItem?.color
+    return this.lastItem.color
   }
 
   get value() {
     if (this.isEmpty) return 0
-    return this.lastItem?.value
+    return this.lastItem.value
   }
 
   get state() {

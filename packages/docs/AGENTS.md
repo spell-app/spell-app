@@ -37,7 +37,8 @@ The pages live in SHARED root folders;  the tooling lives here (epics `shared-co
     `solid/solid-2.html` is a guide ([`pageFile()`](tools/pages.js)).
 
 The shared folders:
-- [pages.js](tools/pages.js) has a constant for each (`PAGES`, `GUIDES`, `EPICS`, `TEMPLATES`), and `findPages()` walks them.
+- [pages.js](tools/pages.js) has a constant for each, and `findPages()` walks them:
+  `PAGES`, `GUIDES`, `EPICS`, `TEMPLATES`.
 - [The docs home](../../pages/index.html):  a routing page (P5 of `claude-design`).
   - One card per area, in the top bar's order, each with its count:
     Epics · Guides · Brand · Spell UI · Templates · Goals · App
@@ -64,8 +65,8 @@ The shared folders:
         - Owen, 2026-10-10 (`airplane` J22):  "make it yellow".  The brand's gold-brown before.
         - The one yellow that doesn't mean "open".
       - A click stars or unstars it at once:  the runtime's `wireFavorites()` moves the card.
-      - Then `POST /api/epics/favorite` ([epicRoutes.ts](../epics/src/tool/epicRoutes.ts)) writes the ONE shared file,
-        `favorites.json` in `epics/`:  a JSON list of names.
+      - Then the page posts it to [epicRoutes.ts](../epics/src/tool/epicRoutes.ts) (`POST /api/epics/favorite`).
+        That writes the ONE shared file, `favorites.json` in `epics/`:  a JSON list of names.
       - The page server regroups by it as it serves the page.
       - From `file://` the stars show, disabled.
     - The day it was last worked on, bottom right, no year (`10/9`).
@@ -75,7 +76,8 @@ The shared folders:
         - its last log line (the `log.html` part)
         - its branch's last commit (one `git for-each-ref`)
       - A running epic's card keeps the docs index's date when it's later than its doc's.
-    - The docs home's Epics count is by the same groups:  `2 favorites · 5 active · 2 planning · 17 urgent · 7 done`.
+    - The docs home's Epics count is by the same groups:
+      `2 favorites · 5 active · 2 planning · 17 urgent · 7 done`.
   - The Templates page also holds the "Writing docs" notes;  the Brand page, its folder's files.
 - `guides/`:  every other page.
   - [The changelog](../../guides/changelog.html):  what the repo shipped, newest first.
@@ -94,8 +96,8 @@ The shared folders:
     - A worktree cut before keeps the old name until it merges `main`.
     - The page server redirects the old URL.
     - [plan-rename.js](tools/plan-rename.js) did the rename.
-  - A SPLIT doc's bodies are part files, `parts/<id>.html` in its folder, which the page loads when opened
-    (see "Plan docs").
+  - A SPLIT doc's bodies are part files, `parts/<id>.html` in its folder:
+    the page loads them when opened (see "Plan docs").
     - `.htm` before Q12 of `epic-components`:  read no more.
     - Every page walker skips `parts/` folders (`findPages()`, `relocate.js`, `spell static`),
       so a part is never taken for a page.
@@ -138,9 +140,15 @@ In `tools/`:
   - `commands.js`:  command reference pages ([the commands template](../../templates/commands.html)).
     - It draws their tables from the page's JSON, then loads `spell-ui.js` itself.
     - The page loads `commands.js` INSTEAD of the bundle.
+  - `core-reference.js`:  [the core reference page](../../guides/targets/core-reference.html) (epic `python-target` P29).
+    - It draws one table per core file, from two lists:
+      - core's [spellCore.declarations.json](../core/spellCore.declarations.json)
+      - py's [not_ported_yet.json](../py/core/not_ported_yet.json)
+    - Both are read from the checkout serving the page, so each branch shows its own core.
+    - Then it loads `spell-ui.js` itself, as `commands.js` does.
 - The scripts, `*.js` and `*.ts`:  see "Scripts".
-- The goals tooling:  PARKED (epic `epic-workflow` P6), in `packages/goals.zip`;  epic `epic-goals` rebuilds it
-  ([goals' AGENTS.md](../../goals/AGENTS.md), at the repo root).
+- The goals tooling:  PARKED (epic `epic-workflow` P6), in `packages/goals.zip`.
+  - Epic `epic-goals` rebuilds it ([goals' AGENTS.md](../../goals/AGENTS.md), at the repo root).
 
 ## Writing a page
 
@@ -163,8 +171,9 @@ In `tools/`:
   - But the openers (`docs open`, `plan-doc open`) show them from this checkout's PAGE SERVER
     (`spell dev server`, see [server's AGENTS.md](../server/AGENTS.md)).
     - It adds live reload, edit mode, and the server-only properties (Spell UI, Editor).
-  - The ONE exception:  a `commands` page fetches its JSON, so it draws its tables only from the page server.
-    - From `file://` it says so, where they'd go.
+  - The exceptions:  a `commands` page, and the core reference page, fetch their JSON,
+    so they draw their tables only from the page server.
+    - From `file://` each says so, where they'd go.
     - Its `<body data-spell-needs-server>` makes `check-spell.js` load it from the server.
     - Why:  Owen chose a plain JSON file over a JS data file, or tables rendered into the HTML (epic `commands`, D4).
 - Sections are `<ui-section>` elements.
@@ -192,7 +201,8 @@ In `tools/`:
   - NO contents list (Owen, 2026-10-08:  "remove the Contents thing entirely ... it is useless").
     - NEVER hand-write one, or a "Contents" button.
   - The TOOLBAR, the page's one navigation (`buildPageToolbar()`).
-    - Epic `airplane` P8, Owen 2026-10-10:  "Make the floating sidebar in guides a sticky top toolbar like the plan doc".
+    - Epic `airplane` P8, Owen 2026-10-10:
+      "Make the floating sidebar in guides a sticky top toolbar like the plan doc".
       Before it, a floating right-edge rail.
     - A row of the top-level sections' buttons:  the last row of the sticky page header (`.spell-page-head`).
       So it sticks with it, and the titles stick below it.
@@ -342,7 +352,8 @@ In `tools/`:
   - TOOLTIPS are the browser's own:  a `title` attribute.
     - Never a `<ui-tooltip>`, nor a `<ui-popup>` used as one.
     - Owen's standing rule, 2026-10-10:  a styled one only when he asks for "a ui-tooltip with ...".
-    - Older pages still have `<ui-popup inverted size="mini">` tooltips (`circle()`, in the goals pages' `goals-live.js`).
+    - Older pages still have `<ui-popup inverted size="mini">` tooltips:
+      `circle()`, in the goals pages' `goals-live.js`.
       Turn them into `title`s when touching that code.
     - `basic` for quiet tools (sidebars, toolbars);  `primary` for the one main action in a dialog.
   - An icon a page uses must be in `ICONS`, in [bundle-spell-ui.js](tools/bundle-spell-ui.js)
@@ -415,7 +426,8 @@ In `tools/`:
   - How to write one:  [PAGES.md](../../epics/spell-ui-pages/PAGES.md).
   - Checked by `yarn site:check` there (`docs update` skips it).
 - Every template but the goals pages and `spell-ui-docs.html` is `<ui-section>` markup (see "Writing a page").
-  - The goals pages keep the old `section.s2` markup until they migrate ([the code-debt log](../../agents/CODE-DEBT.md)).
+  - The goals pages keep the old `section.s2` markup
+    until they migrate ([the code-debt log](../../agents/CODE-DEBT.md)).
 - A new KIND of doc gets a template here.
   `spell dev docs index` gives it a card on the Templates page.
 
@@ -595,19 +607,21 @@ In `tools/`:
   - The BULLHORN beside each major block:
     - a section (in its title), table, aside, code block, message, cards, steps, top-level list
     - a plan doc's items, phase fields, summary and Overview prose
-    - a plan doc's updates (`<epic-update>` blocks;  Owen, 2026-10-11:  "Those items are bullhorn-able"),
-      even inside an item or a field:  each has its own bullhorn
+    - a plan doc's updates (`<epic-update>` blocks), even inside an item or a field:  each has its own bullhorn
+      (Owen, 2026-10-11:  "Those items are bullhorn-able")
     - the page header:  the whole page
     - Quiet until hovered, ALWAYS:  it only starts a new comment ("Comment on this item").
-    - No count, whatever the block has (Owen, 2026-10-10:  "Bullhorn to the far right is unnecessary"):  each comment
-      is a thread on the page, right there.
+    - No count, whatever the block has:  each comment is a thread on the page, right there.
+      Owen, 2026-10-10:  "Bullhorn to the far right is unnecessary".
       - Before 2026-10-10 a block with comments showed "📢 N" always, sitting at the end of its thread's header row,
         with an orange dot for news;  its click listed them (`openPicker()`, gone).
       - The toolbar's signals stay as they were.
-    - Over a plan doc item's own review pills and Do Now, it moves left of them (`makeRoom()`;  Owen, 2026-10-10:
-      "Overlap in bullhorn buttons"), over the end of the item's title, as a text block's does.
-      So it does of an update's date (its `time` part, `MAKES_ROOM`).
-      A thread right under a short block (a folded item) it would cover leaves room on its header's right.
+    - It makes room rather than cover what's there (`makeRoom()`;  Owen, 2026-10-10:  "Overlap in bullhorn buttons"):
+      - a plan doc item's own review pills and Do Now:  it moves left of them, over the end of the item's title,
+        as a text block's does
+      - an update's date:  the same (its `time` part, `MAKES_ROOM`)
+      - a thread right under a short block (a folded item), which it would cover:
+        the thread leaves room on its header's right
     - A click on a comment's highlighted quote opens its thread.
   - Or on SELECTED TEXT:  ⌘ / Ctrl I, or the bullhorn floating beside the selection.
     - The comment keeps the quote, highlighted softly on the page while the comment exists.
@@ -640,7 +654,8 @@ In `tools/`:
     - A toast says "Comment deleted", with Undo for 6s (`UNDO_MS`).
       - Undo puts it back as it was:  same block, quote and highlight, text, dates, state, Claude's answers.
       - Its id stays, unless a new comment took it meanwhile (`restore`, below).
-      - Before 2026-10-10 the trash took two clicks, the first turning it red:  Owen clicked once, and thought it broken.
+      - Before 2026-10-10 the trash took two clicks, the first turning it red:
+        Owen clicked once, and thought it broken.
     - `delete` while the comment waits for Claude;  `clear` once Claude has it (a taken one stays in its epic).
   - THREADS (Owen, 2026-10-10:  "the entire comment thread should be in one collapsable/accordion pane").
     EVERY comment shows as one, the runtime's `thread()`:
@@ -649,43 +664,51 @@ In `tools/`:
       - `owen`:  Claude spoke last.  Also a plan doc's comment answered in the doc, with no words on the thread.
       - `claude`:  Owen spoke last, his comment or his reply.  Claude may have taken it, not answered yet.
       - `done`:  Owen closed it.
-    - Where:  right after the smallest paragraph, list item, cell ... holding its quote (`holderOf()`;  inside a
-      list item or cell, at its end);  else under its block, a docs section's first in its body.
-      Owen, 2026-10-10:  "show them under the paragraph where they were defined".
-    - Folded to its header, except while it's Owen's turn, or Claude is thinking about it, or he opened it on this
-      visit, or he's writing in it.
-      Before threads, a comment had a card only while it had news Owen hadn't read.
+    - Where (Owen, 2026-10-10:  "show them under the paragraph where they were defined"):
+      - right after the smallest paragraph, list item, cell ... holding its quote (`holderOf()`)
+      - inside a list item or cell:  at its end
+      - else under its block;  a docs section's comes first in its body
+    - Folded to its header, except while:
+      - it's Owen's turn, or Claude is thinking about it
+      - he opened it on this visit, or he's writing in it
+      - Before threads, a comment had a card only while it had news Owen hadn't read.
     - Its EDGES (Owen, 2026-10-10:  "same indent as comment box"):
       - under a plan doc's item:  its note box's ("Your note:  a question ..."), the item's details' padding
         (`--epic-item-indent` left, 6px right);  so is a thread under a paragraph inside the item
       - else the block's it's under:  a guide's paragraph (its 72ch measure too), table, code ...;  a phase's field
       - Before 2026-10-10:  32px in from the text on each side.
   - A thread's LOOK (the mockup, `pages/details/comment-thread-mock.html`, and Owen's notes on it):
-    - ALL ivory, whoever spoke last:  the pane's `--spell-rail-bg`, outline and corners;  no shadow
-      ("Make the entire thing ivory").
-    - ORANGE while it's Owen's turn:  Claude spoke last, and he hasn't answered (✓, a reply, ×) (`unseen()`;  Owen,
-      2026-10-10:  "make the background of the entire bullhorn thread + the last claude reply orange", then, on one
-      that went ivory once looked at:  "I was expecting this to be orange, not ivory").
-      Looking at it no longer clears it:  the SEEN rule below only marks the reply read.
-      Orange is our colour for "changed since you looked".
+    - ALL ivory, whoever spoke last ("Make the entire thing ivory"):
+      the pane's `--spell-rail-bg`, outline and corners;  no shadow.
+    - ORANGE while it's Owen's turn:  Claude spoke last, and he hasn't answered (✓, a reply, ×) (`unseen()`).
+      - Owen, 2026-10-10:  "make the background of the entire bullhorn thread + the last claude reply orange".
+        Then, on one that went ivory once looked at:  "I was expecting this to be orange, not ivory".
+      - Looking at it no longer clears it:  the SEEN rule below only marks the reply read.
+      - Orange is our colour for "changed since you looked".
       - The whole thread's ground:  `--ui-orange` mixed into the ivory, 13% (22% in the dark, where less reads brown).
       - Claude's latest reply (`data-latest`):  a stronger mix, 30% (40% dark), with a faint orange ring.
       - Its outline and header stay as on any thread (before 2026-10-10, only those turned orange).
-      - SEEN:  he unfolds it (or opens it from its quote), or it's open with half of it (or
-        half the screen) on screen for 1.2s (`SEEN_MS`) while the page is in view.
-      - Remembered in this browser, per page:  `spell-comment-read:<path>`, `{ [comment id]: time of the latest
-        Claude reply seen }`, the store the news-only cards kept before threads.
+      - SEEN:  he unfolds it (or opens it from its quote),
+        or it's open with half of it (or half the screen) on screen for 1.2s (`SEEN_MS`) while the page is in view.
+      - Remembered in this browser, per page, in the store the news-only cards kept before threads:
+        `spell-comment-read:<path>`, `{ [comment id]: time of the latest Claude reply seen }`.
         A NEWER reply makes it orange again;  a closed thread never is.
-    - Its header:  a chevron, the bullhorn (a green check circle once done), the pane's summary (`headline()`:  the
-      quote's first words, else the block's;  its tooltip the full place).  No date:  each message has its time.
-    - Then OWEN'S ANSWER, while it's his turn:  a plan doc item's review pills (`<epic-review>` in `packages/epics`),
-      drawn with the same markup and look, since a guide doesn't load that pack ("same semantics/look as pills
-      in item header").
-      - ONE grouped pill of 24px square icon buttons, grey outlined, on the page's ground;  its colour under the
-        pointer.
-      - Tooltips (Owen, 2026-10-10:  "No tooltip on those same buttons"):  "That's good:  done", "Reply",
-        "Skip it:  done, nothing more to do".  Each `title` is copied onto the button inside the `<ui-button>`
-        (`titleInside()`), where the pointer lands, as the bullhorn's is.  See TOOLTIPS, below.
+    - Its header:
+      - a chevron
+      - the bullhorn (a green check circle once done)
+      - the pane's summary (`headline()`):  the quote's first words, else the block's;  its tooltip the full place
+      - No date:  each message has its time.
+    - Then OWEN'S ANSWER, while it's his turn:  a plan doc item's review pills
+      ("same semantics/look as pills in item header").
+      - They're `<epic-review>`'s (in `packages/epics`), drawn here with the same markup and look,
+        since a guide doesn't load that pack.
+      - ONE grouped pill of 24px square icon buttons, grey outlined, on the page's ground;
+        each button its colour under the pointer.
+      - Tooltips (Owen, 2026-10-10:  "No tooltip on those same buttons"):
+        "That's good:  done", "Reply", "Skip it:  done, nothing more to do".
+        - Each `title` is copied onto the button inside the `<ui-button>` (`titleInside()`), where the pointer lands,
+          as the bullhorn's is.
+        - See TOOLTIPS, below.
       - Approve's check (green):  "that's good".  The thread is done:  it folds, a check circle in its header.
       - Revisit's history (blue):  reply.  The cursor goes into the reply box at the thread's end.
       - The note box's x (grey):  "skip it".  Done, nothing more to do.
@@ -693,33 +716,36 @@ In `tools/`:
     - The pen, while his FIRST words wait and Claude hasn't had them:  they come back in a box to change.
       His pending reply needs none:  it's in the reply box.
     - The trash, always.
-    - The MESSAGES:  the colour says who, and a bold "You:" / "Claude:" starts each one's first line (Owen, 2026-10-10:
-      "Put You in bold, same line, before me and Claude: before yours";  earlier he'd dropped a separate name line).
+    - The MESSAGES:  the colour says who, and a bold "You:" / "Claude:" starts each one's first line.
+      - Owen, 2026-10-10:  "Put You in bold, same line, before me and Claude: before yours".
+        Earlier he'd dropped a separate name line.
     - Tight:  2px / 6px inside a message, 2px between them.
-    - SMALLER than the page's text (Owen, 2026-10-10:  "Make text in comments smaller"):  the last message 0.9em,
-      as are the reply box and the pane's field.
-      - Every message but the LAST smaller still, 0.8em, and quieter (Owen, 2026-10-10:  "Make font smaller for
-        "not current" things -- everything other than last message").
-        The "thinking…" stub and the Done line count as the last.  The times keep their size.
+    - SMALLER than the page's text (Owen, 2026-10-10:  "Make text in comments smaller"):
+      the last message 0.9em, as are the reply box and the pane's field.
+      - Every message but the LAST smaller still, 0.8em, and quieter.
+        - Owen, 2026-10-10:  "Make font smaller for "not current" things -- everything other than last message".
+        - The "thinking…" stub and the Done line count as the last.
+        - The times keep their size.
       - Owen's:  plain on the ivory, no box, but the same padding as a boxed one ("my text doesn't get bordered").
       - Claude's:  a light violet box (`--ui-violet` mixed light), no side bar.
-        Its outline only a faint violet ring drawn as a shadow, its border clear, so nothing moves (Owen,
-        2026-10-10:  "lighten border around your replies, make it just border-as-shadow").
-        Also "Taken into <epic> P<n>", and "Answered in the plan doc" for an answer with no words here.
+        - Its outline only a faint violet ring drawn as a shadow, its border clear, so nothing moves.
+          Owen, 2026-10-10:  "lighten border around your replies, make it just border-as-shadow".
+        - Also "Taken into <epic> P<n>", and "Answered in the plan doc" for an answer with no words here.
       - A green Done line once closed:  a check, "That's good." or "Skipped", the commit Claude named.
         A faint green ring, the same way.
-      - While Claude THINKS about it (the comment's `working`;  Owen, 2026-10-10:  "What does it look like when
-        you're thinking?  You could put in a stub and replace that when you've thought"):  "Claude: thinking…" last,
-        in Claude's box, its words violet and italic, a turning `circle notch`, its time when he started.
-        His answer takes its place.
-      - Each one's time in its top right corner, `position: absolute`.
-        The first's carries the day (`10/10 09:12`), the rest only the time, unless the day changed.
-        The full date and time is its tooltip.
-        A hidden copy floats there, so the first line's text stops short of it.
-  - The REPLY BOX (`replyBoxFor()`;  Owen, 2026-10-10:  "How do I reply?  Probably should have a comment box at the
-    bottom for me"):  last in EVERY open thread, no Revisit needed;  none once done, until Reopen.
-    - The pane's field (no placeholder, an `aria-label`), its floppy in the corner;  a line or two, growing with
-      its words.
+      - While Claude THINKS about it (the comment's `working`):  "Claude: thinking…" last, in Claude's box.
+        - its words violet and italic, a turning `circle notch`, its time when he started
+        - His answer takes its place.
+        - Owen, 2026-10-10:
+          "What does it look like when you're thinking?  You could put in a stub and replace that when you've thought".
+      - Each one's time in its top right corner, `position: absolute`:
+        - The first's carries the day (`10/10 09:12`), the rest only the time, unless the day changed.
+        - The full date and time is its tooltip.
+        - A hidden copy floats there, so the first line's text stops short of it.
+  - The REPLY BOX (`replyBoxFor()`):  last in EVERY open thread, no Revisit needed;  none once done, until Reopen.
+    - Owen, 2026-10-10:  "How do I reply?  Probably should have a comment box at the bottom for me".
+    - The pane's field (no placeholder, an `aria-label`), its floppy in the corner:
+      a line or two, growing with its words.
     - It saves itself as he types (`reply`):  his PENDING reply (the last entry, his, not taken since) changes,
       rather than adding another.
     - Claude's turn:  it still shows, holding his pending reply to change or add to.
@@ -727,27 +753,35 @@ In `tools/`:
         types is a new reply after them.
     - FOCUS LEAVING it (Tab, a click elsewhere) saves at once;  emptied, his pending reply goes.
     - Escape or ⌘ Enter saves, and the cursor leaves it.
-    - Kept across redraws while he's in it or it holds words not saved yet, the cursor with it;  else made again
-      from what the server holds.
+    - Kept across redraws while he's in it, or it holds words not saved yet, the cursor with it.
+      Else it's made again from what the server holds.
     - The pen's box edits his first words while the comment is `new` (`edit`), standing in for the reply box.
       - Focus leaving it, Escape or ⌘ Enter:  saved and closed.
       - Emptied, the comment goes only as the box closes, with Undo:  clearing it to type afresh never loses it.
     - A draft is kept in this browser while it differs from what's saved.
-  - Owen's icon buttons outside the pill (the pen, the trash, the pane's ×) are plain:  no ring, a tint under the
-    pointer.
-  - TOOLTIPS (Owen, 2026-10-10:  "The buttons don't have browser tooltips -- unclear what they do"):  the browser's
-    own (`title`), a few words each;  the longer wording is the `aria-label`.
-    - ✓ "That's good:  done", Revisit "Reply", × "Skip it:  done, nothing more to do", Reopen, the trash "Delete
-      this comment", the pen "Edit your last words", the pane's × "Close".
-    - Why they didn't show in VS Code's side bar:  Electron 38 and up, on macOS, mostly shows a `title`'s tooltip
-      only while the pointer is on the titled element ITSELF, not on a child of it
-      ([electron/electron#49843](https://github.com/electron/electron/issues/49843), open;  VS Code 1.141 runs
-      Electron 43).  The pointer was on each button's icon.
-    - So every icon inside a comment's buttons (the pill's, the pen, the trash, the fold, the pane's × and floppy, the
-      bullhorn) takes no pointer (`pointer-events: none`, spell-doc.css "TOOLTIPS that show"):  it lands on the
-      titled button.  Keep it so for any new comment button.
-    - A plain browser shows them either way;  headless Playwright can't show a native tooltip, only check what's under
-      the pointer.
+  - Owen's icon buttons outside the pill (the pen, the trash, the pane's ×) are plain:
+    no ring, a tint under the pointer.
+  - TOOLTIPS:  the browser's own (`title`), a few words each;  the longer wording is the `aria-label`.
+    - Owen, 2026-10-10:  "The buttons don't have browser tooltips -- unclear what they do".
+    - Each button's:
+      - ✓ "That's good:  done"
+      - Revisit "Reply"
+      - × "Skip it:  done, nothing more to do"
+      - Reopen
+      - the trash "Delete this comment"
+      - the pen "Edit your last words"
+      - the pane's × "Close"
+    - Why they didn't show in VS Code's side bar:  the pointer was on each button's icon.
+      - Electron 38 and up, on macOS, mostly shows a `title`'s tooltip
+        only while the pointer is on the titled element ITSELF, not on a child of it.
+      - [electron/electron#49843](https://github.com/electron/electron/issues/49843), open;
+        VS Code 1.141 runs Electron 43.
+    - So every icon inside a comment's buttons takes no pointer, and the pointer lands on the titled button:
+      - the pill's, the pen, the trash, the fold, the pane's × and floppy, the bullhorn
+      - `pointer-events: none`, in spell-doc.css's "TOOLTIPS that show"
+      - Keep it so for any new comment button.
+    - A plain browser shows them either way.
+      Headless Playwright can't show a native tooltip, only check what's under the pointer.
   - Built for reading offline, with no Claude:  only the page server writes them.
 - Where they're kept (git-ignored in the shared repo:  waiting work, per machine):
   - a docs page's:  its INBOX FILE, `<page>.inbox.json` beside it ([GuideInbox.ts](tools/GuideInbox.ts))
@@ -755,8 +789,9 @@ In `tools/`:
   - One shape for both, and every change:  [`CommentList`](../epics/src/tool/CommentList.ts).
   - ids `cm1`, `cm2` ... (`c1` is a caveat's)
 - Where a comment is:  its ANCHOR ([BlockAnchors.js](tools/BlockAnchors.js), shared by the runtime and the tools).
-  - the block's id, else `<nearest section or plan part id>#<kind>-<n>`:  `memory#table-2`, `p3#field-2`,
-    `p3#update-1` (an item counts as a container for the updates inside it:  `q3#update-1`)
+  - the block's id, else `<nearest section or plan part id>#<kind>-<n>`
+    - e.g. `memory#table-2`, `p3#field-2`, `p3#update-1`
+    - An item counts as a container for the updates inside it:  `q3#update-1`.
   - plus an excerpt, to find it again if the page changed
   - a text comment also has its `quote` and `offset`
 - The routes:  [commentsRoutes.ts](tools/commentsRoutes.ts)
@@ -788,8 +823,9 @@ In `tools/`:
   spell dev comments gather [<page>... | --all] [--epic <name>] [--json]
   ```
 
-  - `working ... on` as Claude starts on a comment:  its thread shows "Claude: thinking…" (`CommentList.setWorking()`,
-    the comment's `working`, since when).  `answer` turns it off.
+  - `working ... on` as Claude starts on a comment:  its thread shows "Claude: thinking…".
+    - It sets the comment's `working`, since when (`CommentList.setWorking()`).
+    - `answer` turns it off.
     - Not WAITING meanwhile, and Owen's words before it count as read.
   - WAITING (`CommentList.waiting`):  Claude's turn, not taken since Owen last spoke.
     So Owen's reply on a thread is new work, as a new comment is:  `list` shows it under the comment.
@@ -802,10 +838,11 @@ In `tools/`:
 - Claude's side, for plan docs:  `spell dev plan-doc inbox <name>` lists them, and Owen's replies under them.
   - They reach Claude with the page's SEND, as marks do (see "Review inbox"):
     a send with only comments wakes `wait`, which prints them.
-  - `plan-doc inbox <name> working cm3 on | off`:  the thinking stub, as `comments working` (an item's id:  its
-    spinner, as before).
-  - Answered like a revisit's note, then `plan-doc inbox <name> done cm3 [--file <html>] [--commit <sha>]`
-    (or `clear cm3`);  `done` turns `working` off.
+  - `plan-doc inbox <name> working cm3 on | off`:  the thinking stub, as `comments working`.
+    With an item's id:  its spinner, as before.
+  - Answered like a revisit's note, then:
+    - `plan-doc inbox <name> done cm3 [--file <html>] [--commit <sha>]`, or `clear cm3`
+    - `done` turns `working` off.
   - `--file`:  the answer on the thread too.  Without it, "Answered in the plan doc".
 
 ## Page notes
@@ -837,7 +874,8 @@ In `tools/`:
 
 ## Experiments
 
-- Claims backed by measurement:  scripts in `<topic>/experiments/`, e.g. `solid/experiments/`, `precedence/experiments/`.
+- Claims backed by measurement:
+  scripts in `<topic>/experiments/`, e.g. `solid/experiments/`, `precedence/experiments/`.
   - Each has a header comment, saying how it was run.
 - They live in the shared repo, so they DON'T run in place any more.
   - Node runs them from their real path in `../spell-app-dev`, where there's no `node_modules` and no `$/` aliases.
@@ -908,7 +946,8 @@ In this order, from `packages/docs`:
   - then a board under Claude Design's own runtime, whose `<ui-button onClick>` must count
     - the runtime:  [dc-runtime.js](tools/vendor/claude-design/dc-runtime.js), copied from claude.ai
   - Run it after touching the design target.
-- [design.js](tools/design.js) (`spell dev design pull | changed | pushed | state`):  the local half of the `/design` skill.
+- [design.js](tools/design.js) (`spell dev design pull | changed | pushed | state`):
+  the local half of the `/design` skill.
   - a Claude Design board, as a page
   - the push record:  `design-system.json` in `brand/`, shared
 - `spell dev docs index` ([index.js](tools/index.js)) rewrites:
@@ -934,8 +973,8 @@ In this order, from `packages/docs`:
   - The tool:  `PlanDoc`, `PlanParts`, `ReviewInbox`, `ReviewBackfill`, in [the tool's folder](../epics/src/tool/).
   - For old imports, and callers on older code.
   - The review routes are [reviewRoutes.ts](../epics/src/tool/reviewRoutes.ts).
-- `spell dev agents add | set | done | list | wait | told` ([agents.ts](tools/agents.ts), over [AgentList.ts](tools/AgentList.ts)):
-  the running-agents list (epic `skillz`).
+- `spell dev agents add | set | done | list | wait | told` ([agents.ts](tools/agents.ts)):
+  the running-agents list (epic `skillz`), on [AgentList.ts](tools/AgentList.ts).
   - Every background agent a Claude session started, by name, while it runs.
   - The file:
     - in an epic:  `agents.json` in the epic's folder (git-ignored in the shared repo)
@@ -965,7 +1004,10 @@ In this order, from `packages/docs`:
     - `phrase-split`:  a line ending in a new phrase's first 1-4 words
     - `dense`:  3+ sentences in one paragraph or bullet
     - `jargon`:  a package's banned words (`Fuss.JARGON`)
-  - It reads comments and docstrings in code, and Markdown;  in `.html` pages, only `dense` and `jargon`.
+    - `path-in-prose`:  a file path in a page's or Markdown's running text
+    - `code-dense`:  a sentence of 3+ code spans, in a page or Markdown
+  - It reads comments and docstrings in code, and Markdown.
+    In `.html` pages, everything but `phrase-split`:  the formatter wraps their lines.
   - Exits 1 on any miss.
   - Runs in the caller's folder, so its paths are from there.
 - [pages.js](tools/pages.js):  shared by the scripts.
@@ -1005,8 +1047,10 @@ In this order, from `packages/docs`:
     - They must keep the open item, a half-typed note and its focus, and the scroll.
     - Run it after touching `liveClient.ts`, or the runtime's "Live update".
   - `node packages/epics/demo/check-header-epics.mjs [--doc <name>]... [outDir]`, from the root:
-    - the page header, the review line, the Phases section's `open/all` badge (item sections show only their state chips),
-      the state filter, and each phase's title pen and plan changes (`<epic-update>` blocks, no box)
+    - the page header and the review line
+    - the Phases section's `open/all` badge (item sections show only their state chips)
+    - the state filter
+    - each phase's title pen and plan changes (`<epic-update>` blocks, no box)
     - at 280 / 900px, light and dark
   - `node packages/epics/demo/check-fold-epics.mjs [--doc <name>] [--item <id>] [--guide <path>] [outDir]`, from the root:
     - A fold never moves what was clicked:  the line or title stays put, within 1px, for 1.5s after the click.

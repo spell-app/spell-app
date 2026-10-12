@@ -12,7 +12,7 @@ import { nodeBinary } from "$/spell/node/typecheck"
  *   They're written to a temporary folder and checked together,
  *   so one may import another (`from cards import Card`).
  * - Checked:
- *   - against `spell_core`'s source (`packages/core/py`)
+ *   - against `spell_core`'s source (`packages/py/core`)
  *   - as Python 3.12
  *   - in pyright's `basic` mode, what VS Code's Python extension checks by default
  * - Used by spell's `python.test.ts`, as `typecheck()` is for TypeScript.
@@ -52,7 +52,7 @@ export function describePyrightError({ line, rule, message }: PyrightError): str
 const PYRIGHT_CONFIG = {
   pythonVersion: "3.12",
   typeCheckingMode: "basic",
-  extraPaths: [resolve(environment.spellCoreDir, "..", "py")]
+  extraPaths: [resolve(environment.packagesDir, "py", "core")]
 }
 
 /** One of pyright's diagnostics, as `--outputjson` writes it. */

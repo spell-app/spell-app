@@ -3,7 +3,7 @@ import { resolve } from "path"
 import { describe, test, expect } from "vite-plus/test"
 
 import { spellCore } from "$/core"
-import { coreDeclarations, paramNamesOf, unlistedCoreNames } from "./coreDeclarations"
+import { coreDeclarations, docsIn, paramNamesOf, unlistedCoreNames } from "./coreDeclarations"
 
 /** Where `yarn gen:declarations` writes the core's method list. */
 const DECLARATIONS_FILE = resolve(import.meta.dirname, "..", "spellCore.declarations.json")
@@ -34,21 +34,51 @@ describe("the core's method list, spellCore.declarations.json", () => {
   test("a method with its parameters, a property, a class and a function", () => {
     const { provides, statements } = coreDeclarations()
     expect(provides.slice(0, 2)).toEqual(["spellCore", "Thing"])
-    expect(statements).toContainEqual({
-      kind: "method",
-      name: "getItemAt",
-      of: "spellCore",
-      module: "collection-core",
-      params: [{ name: "collection" }, { name: "position" }, { name: "startAt" }]
-    })
-    expect(statements).toContainEqual({ property: "console", of: "spellCore", module: "console" })
-    expect(statements).toContainEqual({ type: "App", superType: "Thing", module: "classes/App" })
-    expect(statements).toContainEqual({
-      kind: "function",
-      name: "trigger",
-      module: "runtime",
-      params: [{ name: "event" }, { name: "props" }]
-    })
+    expect(statements).toContainEqual(
+      expect.objectContaining({
+        kind: "method",
+        name: "getItemAt",
+        of: "spellCore",
+        module: "collection-core",
+        params: [{ name: "collection" }, { name: "position" }]
+      })
+    )
+    expect(statements).toContainEqual(
+      expect.objectContaining({ property: "console", of: "spellCore", module: "console" })
+    )
+    expect(statements).toContainEqual(
+      expect.objectContaining({ type: "App", superType: "Thing", module: "classes/App" })
+    )
+    expect(statements).toContainEqual(
+      expect.objectContaining({
+        kind: "function",
+        name: "trigger",
+        module: "runtime",
+        params: [{ name: "event" }, { name: "props" }]
+      })
+    )
+  })
+
+  test("each name with its docstring's lead, and the section it's under:  what the core reference page shows", () => {
+    const { statements } = coreDeclarations()
+    expect(statements.filter((it) => !it.description).map((it) => it.name ?? it.property ?? it.type)).toEqual([])
+    expect(statements).toContainEqual(
+      expect.objectContaining({
+        name: "seedRandom",
+        section: "random numbers",
+        description: expect.stringMatching(/^Start the random numbers again from `seed`/)
+      })
+    )
+  })
+})
+
+describe("docsIn()", () => {
+  test("the lead, up to the first bullet, on one line;  a re-export;  a folder's index", () => {
+    expect(docsIn("drawing").get("h")?.description).toBe(
+      'Solid\'s own `h()`, what compiled JavaScript draws with:  `import { h } from "@spell/core"`.'
+    )
+    expect(docsIn("classes").size).toBeGreaterThan(0)
+    expect(docsIn("no-such-module").size).toBe(0)
   })
 })
 

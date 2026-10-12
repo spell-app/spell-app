@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vite-plus/test"
 
-import { P } from "$/parser"
+import { PY } from "$/py"
 import { SP } from "$/spell"
 import { fixtureWords } from "$/spell/test"
 
@@ -36,7 +36,7 @@ describe("SpellWords", () => {
         { output: "move_to_$pile", of: "Card", kind: "method", name: "move (a card) to (a pile)" },
         { property: "is_set_up", asWritten: "is-set-up", of: "Card" }
       ),
-      P.PyWriter.instance
+      PY.PyWriter.instance
     )
     expect(JSON.parse(SP.SpellWords.json(words))).toEqual({
       lang: "en",

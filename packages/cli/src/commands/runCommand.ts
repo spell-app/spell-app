@@ -19,8 +19,8 @@ const TSX = ".tsx"
 /** Extension of Python (`py`), which `runCode()` runs under Python -- see `runPython()`. */
 const PY = ".py"
 
-/** `spell_core`'s folder, the Python core:  a uv project, `packages/core/py`. */
-const SPELL_CORE_PY_DIR = resolve(environment.spellCoreDir, "..", "py")
+/** `spell_core`'s folder, the Python core:  a uv project, `packages/py/core`. */
+const SPELL_CORE_PY_DIR = resolve(environment.packagesDir, "py", "core")
 
 /**
  * Run `code`, project `name` compiled to Python, as `python -m spell_core.run` (epic `python-target` P9).

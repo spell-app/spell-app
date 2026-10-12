@@ -77,6 +77,12 @@ export class WriterProject {
    */
   readonly importedMembers = new Map<string, Set<string>>()
   /**
+   * Each `<Class>.<member>` that says which list of a family holds it (epic `python-target` P25),
+   * e.g. `Card.pile` from `a card belongs to one pile`:  nothing while it's in none.
+   * - An imported class's, from its declarations' `exclusive` properties;  our own are getters (`getterOf()`).
+   */
+  readonly owners = new Set<string>()
+  /**
    * Every value the program gives a member, by the member's name, e.g. `name` => `"stock"`, `"discards"` ...
    * - What types a property whose type the program never says (Q54):  see `JSWriter.givenKind()`.
    * - Given when one is made:  `a new stock-pile with name = "stock"`.
@@ -210,7 +216,10 @@ export class WriterProject {
     for (const type of layer.types?.get() ?? []) {
       const members = new Set<string>()
       for (const method of type.methods?.get() ?? []) members.add(method.name)
-      for (const variable of type.variables?.get() ?? []) members.add(variable.name)
+      for (const variable of type.variables?.get() ?? []) {
+        members.add(variable.name)
+        if (variable.exclusive) this.owners.add(`${type.name}.${variable.name}`)
+      }
       if (written.has(type.name) || this.importedMembers.has(type.name)) continue
       this.importedMembers.set(type.name, members)
       if (type.superType) this.superTypes.set(type.name, type.superType)

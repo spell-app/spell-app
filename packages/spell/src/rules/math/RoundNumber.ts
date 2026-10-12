@@ -13,7 +13,10 @@ export class RoundNumber extends SpellExpression<"expression|operator?"> {
   @proto static priority = Priority.preferred
   @proto static datatype = "number"
 
-  /** Maps `off`/`up`/`down` suffix to `round`/`roundUp`/`roundDown` spellCore method. */
+  /**
+   * Maps `off`/`up`/`down` suffix to `round`/`roundUp`/`roundDown`:  each writer says it as its platform does
+   * (epic `python-target` P24, Owen on Q29):  `Math.round(price)`, `math.floor(price + 0.5)`.
+   */
   getAST(match: P.MatchFor<this>) {
     const { expression, operator } = match.groups
     let methodName = "round"
@@ -21,7 +24,7 @@ export class RoundNumber extends SpellExpression<"expression|operator?"> {
     else if (operator?.value === "down") methodName = "roundDown"
     return new P.ASTCoreMethodInvocation(match, {
       datatype: "number",
-      methodName, // TODO: implement in spellCore
+      methodName,
       args: [P.asAST<P.ASTExpression>(expression.AST)]
     })
   }
@@ -35,10 +38,10 @@ math.addRule(RoundNumber, {
         scope.variables?.add("price")
       },
       tests: [
-        ["round price", "spellCore.round(price)"],
-        ["round price off", "spellCore.round(price)"],
-        ["round price up", "spellCore.roundUp(price)"],
-        ["round price down", "spellCore.roundDown(price)"]
+        ["round price", "Math.round(price)"],
+        ["round price off", "Math.round(price)"],
+        ["round price up", "Math.ceil(price)"],
+        ["round price down", "Math.floor(price)"]
       ]
     }
   ]

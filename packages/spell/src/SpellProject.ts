@@ -1,5 +1,6 @@
 import { JSON5File, $fetch, CONFIRM, TaskList, Task, getDier, type KnownFormatMimeType } from "$/util"
 import { P } from "$/parser"
+import { PY } from "$/py"
 // Import directly, NOT through the `$/core` barrel:  a project MUST NOT load `spellCore` itself --
 // each runner runs its own copy.  See `spellRuntime.ts`.
 import { SPELL_CORE_MODULE, SPELL_CORE_NAMES } from "$/core/spellCore.types"
@@ -160,6 +161,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    * spell's wording of each member of its types, by the name its compiled code uses -- see `SP.SpellWords`.
    * - For a runner's Thing Explorer.
    * - A target with words of its own writes another file, e.g. `Solitaire.py.en.json`:  see `wordsFileFor()`.
+   *   One whose page draws in javascript, its drawing half too, `Solitaire.elements.js`:  see `elementsFileFor()`.
    */
   /*@memoize*/
   get wordsFile(): SP.SpellJSFile {
@@ -262,6 +264,51 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   wordsFileFor(target: SP.Target): SP.SpellJSFile | undefined {
     if (!target.wordsSuffix) return undefined
     return new SP.SpellJSFile(this.getFileLocation(`${this.projectName}${target.wordsSuffix}`)!.path)
+  }
+
+  /**
+   * File for `target`'s page, beside its output, e.g. `Solitaire.elements.js`:  its drawing half, in javascript.
+   * - `undefined` for a target with none (`SP.Target.elementsSuffix`).
+   */
+  elementsFileFor(target: SP.Target): SP.SpellJSFile | undefined {
+    if (!target.elementsSuffix) return undefined
+    return new SP.SpellJSFile(this.getFileLocation(`${this.projectName}${target.elementsSuffix}`)!.path)
+  }
+
+  /**
+   * SIDE EFFECT:  save `target`'s web app, if it has one written, and the one there is unedited (or there's none):
+   * an app someone has edited is theirs -- see `PY.isUneditedApp()`.
+   */
+  protected async saveAppFor(target: SP.Target): Promise<void> {
+    const appFile = this.appFileFor(target)
+    const text = this.appTexts.get(target.name)
+    if (!appFile || text === undefined) return
+    let there: string | undefined
+    try {
+      // what's on disk NOW, not what we hold:  a query of its own each time gets past the file's cache
+      there = (await appFile.load({ query: { fresh: Date.now() } })) as string | undefined
+    } catch {
+      there = undefined
+    }
+    if (!PY.isUneditedApp(there)) return
+    appFile.contents = text
+    await appFile.save(undefined)
+  }
+
+  /**
+   * Each target's web app as compiling last wrote it, by target name.
+   * - Saved only over an unedited one (`saveAppFor()`).
+   * - Not in the app file itself, which holds what's on disk.
+   */
+  protected appTexts = new Map<string, string>()
+
+  /**
+   * File for `target`'s web app, beside its output, e.g. `Solitaire.app.py`.
+   * - `undefined` for a target with none (`SP.Target.appSuffix`).
+   */
+  appFileFor(target: SP.Target): SP.SpellJSFile | undefined {
+    if (!target.appSuffix) return undefined
+    return new SP.SpellJSFile(this.getFileLocation(`${this.projectName}${target.appSuffix}`)!.path)
   }
 
   /**
@@ -390,6 +437,27 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
                 // a target with words of its own, keyed by its names, e.g. Python's `move_to_pile`
                 const wordsFile = this.wordsFileFor(target)
                 if (wordsFile) wordsFile.contents = SP.SpellWords.json(SP.SpellWords.of(declarations, target.writer))
+                // a target whose page draws in javascript, e.g. Python's:  the drawing half, `Solitaire.elements.js`
+                const elementsFile = this.elementsFileFor(target)
+                if (elementsFile && SpellProject.draws(parts)) {
+                  const writer = PY.ElementsWriter.instance
+                  const elements = SpellProject.combineCompiled(parts, writer, this.importHeader(writer), this.scope, {
+                    listsStartAt: this.contents?.listsStartAt
+                  })
+                  elementsFile.contents = SP.SpellDeclarations.split(elements, this.scope!, { version, exports }).code
+                  // and its web app, `Solitaire.app.py`, for a target with one
+                  if (target.appSuffix) {
+                    const name = this.projectName ?? this.projectId
+                    this.appTexts.set(
+                      target.name,
+                      PY.quartApp({
+                        projectName: name,
+                        program: `${name}${target.suffix}`,
+                        elements: `${name}${target.elementsSuffix}`
+                      })
+                    )
+                  }
+                }
                 if (target.name !== SP.RUNNING_TARGET) continue
                 this.setState("compiled", code)
                 this.declarationsFile.contents = JSON.stringify(declarations, null, 2)
@@ -413,6 +481,9 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
               for (const target of this.targets.slice(1)) {
                 await this.outputFileFor(target).save(undefined)
                 await this.wordsFileFor(target)?.save(undefined)
+                const elementsFile = this.elementsFileFor(target)
+                if (elementsFile?.contents) await elementsFile.save(undefined)
+                await this.saveAppFor(target)
               }
               return await this.outputFile.save(undefined)
             }
