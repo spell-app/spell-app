@@ -3,7 +3,12 @@
   "groups": [
     {
       "why": "Pauses and events (P11):  Python's runtime hasn't needed these",
-      "names": ["forEachSequential", "DEBUG_RUNTIME", "DEBUG_PROCESSES", "clearRuntime"]
+      "names": [
+        "forEachSequential",
+        "DEBUG_RUNTIME",
+        "DEBUG_PROCESSES",
+        "clearRuntime"
+      ]
     },
     {
       "why": "A browser's only:  a drawable thing's own element (<solitaire-card>), a page's markup, its shadow root",
@@ -23,11 +28,17 @@
     },
     {
       "why": "A recompile keeping the last run's things (epic drawable-thing P16, P17):  the page's runners only;  a Python program never keeps them",
-      "names": ["isCarryingOver", "carryOver", "carryProblems"]
+      "names": [
+        "isCarryingOver",
+        "carryOver",
+        "carryProblems"
+      ]
     },
     {
-      "why": "Things by name or place, tableau T1 and the first tableau (epic drawable-thing P18, P19):  ported when a Python program needs them",
-      "names": ["thingForReference", "thingCalled", "thingNamed", "thingAtPlace", "referenceFor", "elementIdFor"]
+      "why": "An element's id on the page (epic drawable-thing P18):  the page's own javascript gives it, never the program",
+      "names": [
+        "elementIdFor"
+      ]
     },
     {
       "why": "Not decided yet:  a word of Python's own, a browser's only, or ported when a program needs it",

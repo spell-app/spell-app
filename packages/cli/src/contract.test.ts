@@ -295,9 +295,13 @@ describe("the core contract:  a page draws a Python game as javascript does", ()
           const expected = snapshot.trimEnd().split("\n")
           expect(drawn).toBe(expected.slice(boardAt(expected)).join("\n"))
 
-          // the click:  the event, its card by id, which Python's session runs
-          const [click] = JSON.parse(messages!) as Array<{ trigger: string; details: { card: { "@id": string } } }>
-          expect(click).toEqual({ trigger: "card-click", details: { card: { "@id": expect.any(String) } } })
+          // the click:  the event, its card by reference (`Card#3-of-diamonds`), which Python's session runs
+          const [click] = JSON.parse(messages!) as Array<{ trigger: string; target: string; details: object }>
+          expect(click).toEqual({
+            trigger: "card-click",
+            target: expect.stringMatching(/^Card#\w+-of-\w+$/),
+            details: {}
+          })
           const session = spawnSync("uv", [...run, "spell_core.page", program, "--seed", "1", "--no-pauses"], {
             encoding: "utf8",
             input: `${JSON.stringify(click)}\n`
