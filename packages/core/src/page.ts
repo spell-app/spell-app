@@ -107,14 +107,128 @@ function byId(value: unknown, mirror: StateMirror): unknown {
  * the first message is the whole state, which starts the page (`startPage()`);  each after it, a patch.
  * - What the page sends goes up the same socket, as JSON.
  * - `modules`:  as `startPage()`'s.
+ * - `log`:  write each frame to the browser's console, both ways (`logFrame()`), to watch the page and its program
+ *   talk, each line starting with a coloured badge:
+ *   - `SENDING >  event card-click (#26)`, in blue
+ *   - `RECEIVED <  patch:  Card #26, StockPile #3`, in green
+ * - Errors show whether or not `log` is on, as `< ERROR >`, in red (`logError()`):
+ *   - a message the program failed to run, which it answers with `{ "error": "..." }` (`ERROR_KEY`)
+ *   - a frame the page couldn't read, and the connection failing or closing
  */
-export function connectPage({ modules, url }: { modules: PageSpec["modules"]; url: string }): WebSocket {
+export function connectPage({
+  modules,
+  url,
+  log = false
+}: {
+  modules: PageSpec["modules"]
+  url: string
+  log?: boolean
+}): WebSocket {
   const socket = new WebSocket(url)
   let page: Page | undefined
+  const send = (message: PageMessage) => {
+    const text = JSON.stringify(message)
+    if (log) logFrame("sent", message, text.length)
+    socket.send(text)
+  }
   socket.addEventListener("message", (event: MessageEvent<string>) => {
-    const data = JSON.parse(event.data) as unknown
-    if (page) page.receive(data)
-    else page = startPage({ modules, state: data, send: (message) => socket.send(JSON.stringify(message)) })
+    let data: unknown
+    try {
+      data = JSON.parse(event.data)
+    } catch (error) {
+      logError(`a frame the page couldn't read:  ${String(error)}`, event.data)
+      return
+    }
+    if (isErrorFrame(data)) {
+      logError(`the program couldn't run a message:  ${data[ERROR_KEY]}`, data)
+      return
+    }
+    if (log) logFrame("received", data, event.data.length)
+    try {
+      if (page) page.receive(data)
+      else page = startPage({ modules, state: data, send })
+    } catch (error) {
+      logError(`the page couldn't take a frame in:  ${String(error)}`, { frame: data, error })
+    }
+  })
+  socket.addEventListener("error", () => logError(`the connection to the program failed:  ${url}`, socket))
+  socket.addEventListener("close", (event) => {
+    if (!event.wasClean) logError(`the connection to the program closed (${event.code})`, event)
   })
   return socket
+}
+
+/** What an error frame names its message by:  `{ "error": "ValueError: ..." }`, the program's answer to a failure. */
+export const ERROR_KEY = "error"
+
+/** Is `frame` the program's error frame, `{ "error": "..." }`, rather than a state or a patch? */
+function isErrorFrame(frame: unknown): frame is { [ERROR_KEY]: string } {
+  return (
+    typeof frame === "object" &&
+    frame !== null &&
+    !Array.isArray(frame) &&
+    typeof (frame as Record<string, unknown>)[ERROR_KEY] === "string"
+  )
+}
+
+/** Each badge:  its words, its colour. */
+const BADGES = {
+  sent: ["SENDING >", "#2185d0"],
+  received: ["RECEIVED <", "#21ba45"],
+  error: ["< ERROR >", "#db2828"]
+} as const
+
+/** The console style of `badge`:  its words in white, on its colour. */
+function badgeStyle(badge: keyof typeof BADGES): string {
+  return `background: ${BADGES[badge][1]}; color: white; font-weight: bold; padding: 1px 6px; border-radius: 3px`
+}
+
+/**
+ * SIDE EFFECT:  one frame between a page and its program, in the browser's console:
+ * folded, its line a coloured badge (`SENDING >` or `RECEIVED <`), what it is (`frameSummary()`) and its size;
+ * the JSON inside.
+ */
+export function logFrame(direction: "sent" | "received", frame: unknown, size: number): void {
+  console.groupCollapsed(
+    `%c${BADGES[direction][0]}%c  ${frameSummary(frame)}  %c${size} characters`,
+    badgeStyle(direction),
+    "",
+    "color: gray"
+  )
+  console.log(frame)
+  console.groupEnd()
+}
+
+/** SIDE EFFECT:  what went wrong between a page and its program, in the console:  a red `< ERROR >` badge, then `what`. */
+export function logError(what: string, detail: unknown): void {
+  console.error(`%c${BADGES.error[0]}%c  ${what}`, badgeStyle("error"), "", detail)
+}
+
+/**
+ * What a frame is, in a line:
+ * - the page's:  `call play_from_the_stock_pile()`, `call turn_over() on #3`, `event card-click (#26)`
+ * - the program's:  `state:  game, stock, discards ...` (its first), `patch:  Card #26, StockPile #3`
+ */
+export function frameSummary(frame: unknown): string {
+  if (Array.isArray(frame)) return `patch:  ${frame.map(thingLabel).join(", ")}`
+  if (typeof frame !== "object" || frame === null) return String(frame)
+  const message = frame as Record<string, unknown>
+  if (typeof message.call === "string") {
+    const on = message.on ? ` on ${thingLabel(message.on)}` : ""
+    return `call ${message.call}()${on}`
+  }
+  if (typeof message.trigger === "string") {
+    const things = Object.values((message.details ?? {}) as Record<string, unknown>).map(thingLabel)
+    return `event ${message.trigger}${things.length ? ` (${things.join(", ")})` : ""}`
+  }
+  return `state:  ${Object.keys(message).join(", ")}`
+}
+
+/** A thing in a frame, by its type and id:  `Card #26`;  just `#26` when only its id is there. */
+function thingLabel(value: unknown): string {
+  if (typeof value !== "object" || value === null) return JSON.stringify(value)
+  const thing = value as Record<string, unknown>
+  if (!(ID_KEY in thing)) return JSON.stringify(value)
+  const type = typeof thing["@type"] === "string" ? `${thing["@type"]} ` : ""
+  return `${type}#${String(thing[ID_KEY])}`
 }
