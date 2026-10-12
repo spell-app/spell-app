@@ -291,10 +291,10 @@ export async function autoPlay() {
   for (const pile of tableaus) {
     if (pile.isEmpty) continue
     const testCard = pile.lastItem
-    const foundation = foundations.filter((pile) => pile.name == testCard?.suit).firstItem
+    const foundation = foundations.filter((pile) => pile.name == testCard.suit).firstItem
     if (spellCore.canTake(foundation, testCard)) {
       anythingChanged = true
-      await testCard?.play()
+      await testCard.play()
       await spellCore.pauseFor(100, "msec")
     }
   }
@@ -304,8 +304,8 @@ export async function autoPlay() {
     const faceUpCards = pile.filter((card) => card.isFaceUp)
     if (faceUpCards.isEmpty) continue
     const testCard = faceUpCards.firstItem
-    if (testCard?.isARank("king") && testCard === pile.firstItem) continue
-    if (await testCard?.play()) {
+    if (testCard.isARank("king") && testCard === pile.firstItem) continue
+    if (await testCard.play()) {
       anythingChanged = true
       await spellCore.pauseFor(500, "msec")
     }

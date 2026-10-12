@@ -322,7 +322,7 @@ export async function autoPlay() {
   // attempt to move bottom card of tableaus to foundations
   for (const pile of tableaus) {
     if (pile.isEmpty) continue
-    const testCard = pile.lastItem
+    const testCard = pile.lastItem!
     const foundation = foundations.filter((pile) => pile.name == testCard.suit).firstItem
     if (spellCore.canTake(foundation!, testCard)) {
       anythingChanged = true
@@ -335,7 +335,7 @@ export async function autoPlay() {
   for (const pile of tableaus) {
     const faceUpCards = pile.filter((card) => card.isFaceUp)
     if (faceUpCards.isEmpty) continue
-    const testCard = faceUpCards.firstItem
+    const testCard = faceUpCards.firstItem!
     if (testCard.isARank("king") && testCard === pile.firstItem) continue
     if (await testCard.play()) {
       anythingChanged = true

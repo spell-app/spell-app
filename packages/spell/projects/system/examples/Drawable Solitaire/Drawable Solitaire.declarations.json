@@ -30,7 +30,7 @@
       "classVariable": "Ranks",
       "of": "Card",
       "enumeration": [
-        "'ace'",
+        "ace",
         2,
         3,
         4,
@@ -40,9 +40,9 @@
         8,
         9,
         10,
-        "'jack'",
-        "'queen'",
-        "'king'"
+        "jack",
+        "queen",
+        "king"
       ],
       "defined": "/Card.spell:830-910"
     },
@@ -51,10 +51,10 @@
       "classVariable": "Suits",
       "of": "Card",
       "enumeration": [
-        "'clubs'",
-        "'diamonds'",
-        "'hearts'",
-        "'spades'"
+        "clubs",
+        "diamonds",
+        "hearts",
+        "spades"
       ],
       "defined": "/Card.spell:926-987"
     },
@@ -78,8 +78,8 @@
       "classVariable": "Directions",
       "of": "Card",
       "enumeration": [
-        "'up'",
-        "'down'"
+        "up",
+        "down"
       ],
       "defined": "/Card.spell:1238-1281"
     },
@@ -122,10 +122,10 @@
       "name": "\"is a (suit)\"",
       "values": {
         "suit": [
-          "'clubs'",
-          "'diamonds'",
-          "'hearts'",
-          "'spades'"
+          "clubs",
+          "diamonds",
+          "hearts",
+          "spades"
         ]
       },
       "defined": "/Card.spell:1542-1576"
@@ -139,7 +139,7 @@
       "name": "\"is a (rank)\"",
       "values": {
         "rank": [
-          "'ace'",
+          "ace",
           2,
           3,
           4,
@@ -149,9 +149,9 @@
           8,
           9,
           10,
-          "'jack'",
-          "'queen'",
-          "'king'"
+          "jack",
+          "queen",
+          "king"
         ]
       },
       "defined": "/Card.spell:1618-1652"
@@ -165,7 +165,7 @@
       "name": "\"is the (rank) of (suits)\"",
       "values": {
         "rank": [
-          "'ace'",
+          "ace",
           2,
           3,
           4,
@@ -175,15 +175,15 @@
           8,
           9,
           10,
-          "'jack'",
-          "'queen'",
-          "'king'"
+          "jack",
+          "queen",
+          "king"
         ],
         "suits": [
-          "'clubs'",
-          "'diamonds'",
-          "'hearts'",
-          "'spades'"
+          "clubs",
+          "diamonds",
+          "hearts",
+          "spades"
         ]
       },
       "defined": "/Card.spell:1690-1751"
@@ -239,6 +239,7 @@
       ],
       "kind": "method",
       "name": "turn a card face up",
+      "waits": true,
       "defined": "/Card.spell:2511-2579"
     },
     {
@@ -252,6 +253,7 @@
       ],
       "kind": "method",
       "name": "turn a card face down",
+      "waits": true,
       "defined": "/Card.spell:2580-2652"
     },
     {
@@ -265,6 +267,7 @@
       ],
       "kind": "method",
       "name": "turn a card over",
+      "waits": true,
       "defined": "/Card.spell:2760-2870"
     },
     {
@@ -291,6 +294,7 @@
       ],
       "kind": "method",
       "name": "play a card",
+      "waits": true,
       "defined": "/Solitaire.spell:3603-4595"
     },
     {
@@ -521,6 +525,7 @@
         "expression"
       ],
       "kind": "function",
+      "waits": true,
       "defined": "/Solitaire.spell:2826-3013"
     },
     {
@@ -532,6 +537,7 @@
         "expression"
       ],
       "kind": "function",
+      "waits": true,
       "defined": "/Solitaire.spell:3015-3601"
     },
     {
@@ -543,6 +549,7 @@
         "expression"
       ],
       "kind": "function",
+      "waits": true,
       "defined": "/Solitaire.spell:4639-5717"
     },
     {
@@ -566,6 +573,7 @@
       ],
       "kind": "function",
       "returns": "nothing",
+      "waits": true,
       "defined": "/Solitaire.spell:5786-6162"
     }
   ],
