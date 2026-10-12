@@ -4,7 +4,10 @@
 card = core.from_json('{"@type": "Card", "rank": "queen"}')   # a Card again
 ```
 
-- The twins of the JavaScript core's `checkProp()` (`core.ts`), `things` (`things.ts`) and `fromJSON()` (`json.ts`).
+- The twins of the JavaScript core's:
+  - `checkProp()`, in `core.ts`
+  - `things`, in `things.ts`
+  - `fromJSON()`, in `json.ts`
 """
 
 import json

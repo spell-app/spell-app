@@ -162,8 +162,8 @@ export class PyWriter extends PyBaseWriter {
   }
 
   /**
-   * `await thing.method(args)` for a method that waits;  spell's pause, `await core.pause_for(50, "msec")`:
-   * `spell_core`'s, so a test run can skip it (`--no-pauses`).
+   * `await thing.method(args)` for a method that waits.
+   * - spell's pause:  `await core.pause_for(50, "msec")`, `spell_core`'s, so a test run can skip it (`--no-pauses`).
    */
   ASTScopedMethodInvocation(node: P.ASTScopedMethodInvocation): string {
     if (isCoreCall(node) && node.methodName === "pauseFor") {

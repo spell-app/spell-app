@@ -9,7 +9,7 @@ Math.random = random
 const _ = require("lodash").runInContext()
 ```
 
-- `seededRandom.expected.json`, beside `py/`, holds more of them, from several seeds.
+- `seededRandom.expected.json`, in the JavaScript core's package, holds more of them, from several seeds.
   The JavaScript core's `seededRandom.test.ts` reads the same file, so the two cores can't drift apart.
 """
 

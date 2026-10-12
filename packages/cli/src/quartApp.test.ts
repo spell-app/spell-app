@@ -7,8 +7,9 @@ import { chromium, type Browser, type Page } from "playwright"
 import { afterAll, beforeAll, describe, expect, test } from "vite-plus/test"
 
 /**
- * A Python spell app in a real browser (epic `python-target` P20):  Solitaire compiled to `py`,
- * served by the app compiling writes, `Solitaire.app.py`, on Quart, played in headless Chromium.
+ * A Python spell app in a real browser (epic `python-target` P20):
+ * Solitaire compiled to `py`, served on Quart by the app compiling writes (`Solitaire.app.py`),
+ * and played in headless Chromium.
  * - A temp copy of the fixture:  tests never write into `projects/test/`.
  * - Seeded (`$SPELL_SEED`), so its deal is the javascript run's, the core contract's snapshot.
  * - The page side, `packages/app/dist-page/`, is built first (`yarn build:page`, a few seconds):  never a stale one.
@@ -125,8 +126,8 @@ describe("a Python spell app, in a real browser", () => {
 })
 
 /**
- * A new visitor's page, open on the app:  its board drawn, with each message it sent and each frame it received,
- * read as JSON.
+ * A new visitor's page, open on the app:
+ * its board drawn, with each message it sent and each frame it received, read as JSON.
  * - Received:  the whole state first, then a patch, a list of the things that changed (epic `python-target` P30).
  */
 async function opened(): Promise<{ page: Page; sent: unknown[]; received: unknown[] }> {

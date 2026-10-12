@@ -1,7 +1,8 @@
 """`core`'s list words on plain lists, tuples, text and dicts:  what compiled Python calls for an unknown value.
 
-- Positions are indexes, from 0, and ranges are a slice's (plan doc python-target, P23),
-  as the JavaScript core's `collection-core.test.ts`, `collection-other.test.ts` and `positions.test.ts` check them.
+- Positions are indexes, from 0, and ranges are a slice's (plan doc python-target, P23).
+  - The JavaScript core's tests check the same:
+    `collection-core.test.ts`, `collection-other.test.ts`, `positions.test.ts`.
 - Each test uses its own `core` (`conftest.py`), except where a spell list asks the program's.
 """
 

@@ -53,8 +53,9 @@ class List(SpellObject, MutableSequence[Any]):
     - Equality is identity:  two decks are two decks, however alike.
 
     Spell's own words, the twins of the JavaScript core's `List` methods, in snake_case:
-    - positions are indexes, from 0, as Python's (`get_item()`, `position_of()` ...);  negative ones count from
-      the end.  Spell code counting from 1 is turned into indexes as it compiles:  see `positions.py`.
+    - positions are indexes, from 0, as Python's (`get_item()`, `position_of()` ...);
+      negative ones count from the end.
+      Spell code counting from 1 is turned into indexes as it compiles:  see `positions.py`.
     - a list result (`filter()`, `deck[1:3]` ...) is SCRATCH, of our class, and owns nothing
     - a callback gets `(value, position, list)`, or as many of those as it takes
 
@@ -76,7 +77,8 @@ class List(SpellObject, MutableSequence[Any]):
     A name it doesn't declare reads as `None`, as spell reads a missing property.
     """
 
-    # `True` on an exclusive list class, e.g. `Pile`:  the root of its family.  Sub-classes inherit it.
+    # `True` on an exclusive list class, e.g. `Pile`:  the root of its family.
+    # - Sub-classes inherit it.
     # - Set it before making a list of the family:  what a list holds already has no owner.
     exclusive: ClassVar[bool] = False
     # The class of what it holds, e.g. `Card` for `a deck is a list of cards`:  for a reader, nothing checks it.
@@ -188,7 +190,7 @@ class List(SpellObject, MutableSequence[Any]):
     def insert(self, index: int, value: Any) -> None:
         """`deck.insert(0, card)`:  add `value` before Python's index `index`, as a Python list's `insert()`.
 
-        - Past the end:  at the end.  Before the start:  at the start.
+        - Past the end:  at the end;  before the start:  at the start.
         - Exclusive:  one we hold already MOVES there.
         """
         count = len(self._items)
@@ -307,7 +309,8 @@ class List(SpellObject, MutableSequence[Any]):
         """SIDE EFFECT:  add `things` at `index`, from 0, pushing what was there down, as `insert()` does.  Returns us.
 
         - `add the card to the pile at position 2` is `pile.add_at(1, card)`.
-        - Past the end:  at the end.  Negative counts from the end;  further back than the front, or `None`:  the front.
+        - Past the end:  at the end.
+        - Negative counts from the end;  further back than the front, or `None`:  the front.
         - Exclusive:  one we hold already MOVES there -- we hold each item once.
         """
         count = len(self._items)
@@ -526,7 +529,8 @@ class List(SpellObject, MutableSequence[Any]):
         """Move `item` here, if the list holding it lets it go and we take it:  `move the card to the tableau`.
 
         - Returns whether it moved.  Refused:  nothing changes.
-        - The list holding it:  the one of our family, if we're exclusive.  Else none is asked:  just `can_take()`.
+        - The list holding it:  the one of our family, if we're exclusive.
+          Else no list is asked to give it up:  just `can_take()`.
         - Then added, as `append()`:  its owner changes ONCE.
         """
         family = self._family
@@ -584,7 +588,7 @@ class List(SpellObject, MutableSequence[Any]):
         """Make `next_items` our items:  EVERY change to them comes here, so an exclusive list keeps its owners.
 
         - NEVER changes a list of items in place:  each change writes a new one,
-          so a loop over the old one (`__iter__()`) sees what it started with.
+          so a loop over the list it replaced (`__iter__()`) sees what it started with.
         - An item going out, no longer anywhere in `next_items`, has no owner.
         - An item coming in is ours, THEN leaves the list of our family that held it.
         - SIDE EFFECT:  the list it left changes too.

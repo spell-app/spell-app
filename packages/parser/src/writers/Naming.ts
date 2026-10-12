@@ -35,8 +35,9 @@ export class Naming {
   }
 
   /**
-   * javascript's names a spell name mustn't be:  the core's position helpers compiled code imports by name
-   * (`position`, `spellPosition` ...;  epic `python-target` P23), which a variable of that name would hide.
+   * javascript's names a spell name mustn't be:
+   * the core's position helpers (`position`, `spellPosition` ...;  epic `python-target` P23).
+   * - Compiled code imports them by name, so a variable of that name would hide them.
    * - Only a variable steps aside, as Python's builtins do:  `position_`.
    */
   static readonly JAVASCRIPT_CLASHES: NameClashes = {
@@ -57,8 +58,8 @@ export class Naming {
   }
 
   /**
-   * Python's names a spell name mustn't be, and how it steps aside:  PEP 8's single trailing underscore,
-   * "used by convention to avoid conflicts with Python keyword", e.g. `class_`.
+   * Python's names a spell name mustn't be, and how it steps aside:
+   * PEP 8's single trailing underscore, "used by convention to avoid conflicts with Python keyword", e.g. `class_`.
    * - `keywords`:  never a name, of any kind (`class`, `is`, `None`).
    *   Not the soft ones (`match`, `case`, `type`):
    *   they're names everywhere but at the start of their own statements.

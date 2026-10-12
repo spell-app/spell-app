@@ -1,7 +1,8 @@
 /**
  * Composite / derived collection methods for `spell`,
  * built on the primitive accessors in `collection-core.ts` (`itemCountOf`, `getItemAt`, `getIteratorFor`, etc).
- * - An array's positions are its indexes, from 0, as javascript counts (epic `python-target` P23):  see `positions.ts`.
+ * - An array's positions are its indexes, from 0, as javascript counts (epic `python-target` P23):
+ *   see `positions.ts`.
  * - Collection methods work with objects as well as arrays, unless specified.
  *   - For objects: use natural key order for position.
  * - TODO: collections for `words`, `lines`, etc?
@@ -23,8 +24,9 @@ export type Range = {
  * Iteration callback shared by `forEach`/`map`/`filter`/`all`/`any`/etc: `(value, position, collection) => ...`
  * - `value`:  an item of the collection, `T` -- see `CollectionOf`.
  * - `position`:  where it is, an index from 0 -- a plain object's:  its key.
- * - Those helpers take it as `CollectionIterationCallback<NoInfer<T>>`:  ONLY the collection says what `T` is,
- *   so a callback taking a `Card` is checked against a `List<Card>`, and refused for a list of who-knows-what.
+ * - Those helpers take it as `CollectionIterationCallback<NoInfer<T>>`:
+ *   ONLY the collection says what `T` is, so a callback taking a `Card` is checked against a `List<Card>`,
+ *   and refused for a list of who-knows-what.
  */
 export type CollectionIterationCallback<T = unknown> = (
   value: T,
@@ -213,8 +215,8 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Array only.
    * - Negative counts from the end;  no `end`:  to the end.
    * - Nothing in range:  an empty one of its kind -- see `emptyRangeOf()`.
-   * - Compiles from `items 2 to 4 of my-list`, its indexes worked out:  `myList.slice(1, 4)` -- see
-   *   `rules/lists/RangeBetweenExpression.ts`.
+   * - Compiles from `items 2 to 4 of my-list`, its indexes worked out:
+   *   `myList.slice(1, 4)` -- see `rules/lists/RangeBetweenExpression.ts`.
    */
   rangeBetween(collection?: unknown, start?: number | null, end?: number | null): unknown {
     if (!assert.isArrayLike(collection, "spellCore.rangeBetween(collection)")) return []

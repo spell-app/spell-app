@@ -12,11 +12,11 @@ mirror.read(writer.state_of(game))          # after that:  the SAME things, chan
 mirror.read(writer.patch())                 # or only what changed since:  the same, sent smaller
 ```
 
-- The same JSON as `to_json()`, plus an `"@id"` on each thing and spell list, after its `"@type"`,
-  and its plain fields after its properties:  what it was made with and doesn't declare, e.g. a foundation's `symbol`.
-  - The first mention of one is whole;  each later one is `{"@id": "3"}` alone:
-    so a card in two places is one card, read back.
-  - `"@id"` as JSON-LD spells it, beside its `"@type"`.
+- The same JSON as `to_json()`, plus:
+  - an `"@id"` on each thing and spell list, after its `"@type"`, as JSON-LD spells it
+  - its plain fields, after its properties:  what it was made with and doesn't declare, e.g. a foundation's `symbol`
+- The first mention of a thing is whole;  each later one is `{"@id": "3"}` alone:
+  so a card in two places is one card, read back.
 - Each `StateWriter` gives a thing its id the first time it writes it, and keeps it:
   every state it writes after names that thing the same.
   - One writer per page:  ids are its own, counted from 1.
@@ -28,7 +28,8 @@ mirror.read(writer.patch())                 # or only what changed since:  the s
   a thing it has already gets the new properties, a list its new items.
   - A patch is a list of things with ids:  read as any state is.
 - The twin of the JavaScript core's `StateWriter` and `StateMirror` (`state.ts`).
-  Both write the same JSON for the same things:  `stateById.expected.json`, beside `py/`, holds one, read by both.
+  - Both write the same JSON for the same things:
+    `stateById.expected.json`, in the JavaScript core's package, holds one, read by both.
 """
 
 from typing import Any

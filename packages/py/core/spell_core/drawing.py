@@ -1,4 +1,4 @@
-"""Drawing as HTML text (epic python-target, P12, decision Q2):  `h()` builds elements, written out as HTML.
+"""Drawing as HTML text:  `h()` builds elements, written out as HTML.
 
 ```python
 h("div", {"class": "Card queen spades", "onClick": on_click}, "Q ", h("span", {"class": "suit"}, "♠️"))
@@ -9,9 +9,11 @@ h("div", {"class": "Card queen spades", "onClick": on_click}, "Q ", h("span", {"
   Python has no page:  `h()` builds an `Element`, and `str()` writes it as HTML text.
 - Written EXACTLY as the JavaScript run's fake page writes the same drawing,
   so the core contract compares the two line for line:
-  - that page is linkedom's, and the run sorts each tag's attributes (`withSortedAttributes()`, `runProject.ts`)
+  - that page is linkedom's (a DOM that runs in node, with no browser),
+    and the run sorts each tag's attributes (`withSortedAttributes()`, `runProject.ts`)
   - `tests/test_drawing.py` pins what linkedom wrote for a handful of tricky drawings
 - `Page` is that fake page's `<body>`:  what an app is drawn into (`core.page`, `App.start()`).
+- Epic python-target, P12, decision Q2.
 """
 
 import re

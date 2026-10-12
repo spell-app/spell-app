@@ -12,8 +12,8 @@ import { zeroIndexOf } from "$/core/positions"
 
 /**
  * `List`: our array concept -- what `a deck is a list` extends.
- * - Counted from 0, as an array is (epic `python-target` P23):  spell code counting from 1 is turned into indexes
- *   as it compiles -- see `positions.ts`.
+ * - Counted from 0, as an array is (epic `python-target` P23):
+ *   spell code counting from 1 is turned into indexes as it compiles -- see `positions.ts`.
  * - Backed by reactive `items` state rather than a raw JS array, so mutations (`add`, `setItem`, ...)
  *   trigger re-renders of anything observing this `List`.
  * - Copy on write:  each mutation sets `items` to a NEW array --
@@ -402,7 +402,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
 
   /**
    * SIDE EFFECT:  take out the items from index `start` up to, not including, `end`, as `slice()` reads them.
-   *   Returns us.
+   * - Returns us.
    * - `remove items 2 to 4 of my-list`, its indexes worked out, see `spellCore.removeRangeBetween()`.
    */
   removeBetween(start: number, end: number): this {

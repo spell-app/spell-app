@@ -1,6 +1,6 @@
 /**
- * A Python spell program's web app, `<Project>.app.py`:  what compiling to `py` writes beside a program that draws
- * (epic `python-target` P20, Q25 B).
+ * A Python spell program's web app, `<Project>.app.py` (epic `python-target` P20, Q25 B):
+ * what compiling to `py` writes beside a program that draws.
  * - A short Quart app, every route spelled out, for a Python programmer to read and grow:
  *   - `/`:  the page, which loads the javascript core and the program's drawing half, `<Project>.elements.js`
  *   - `/<Project>.elements.js`, and each imported project's:  served from beside the app

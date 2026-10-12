@@ -82,6 +82,7 @@ def h(tag: str, props: Any = None, *children: Any) -> Element:
 
 
 def _flatten(children: Iterable[Any]) -> Iterable[Element | str]:
+    """`children` as an element holds them:  lists opened up, numbers as text, `None`, `True` and `False` left out."""
     for child in children:
         if child is None or child is False or child is True:
             continue
@@ -119,6 +120,7 @@ def to_html(node: Element | str) -> str:
 # Events:  a stand-in for spell's `on <event>` and `fire event <event>`
 #####
 
+# each event's handlers, by its name
 _handlers: dict[str, list[Callable[..., Any]]] = {}
 
 

@@ -28,10 +28,12 @@ class SpellEvent:
     """An event:  its `type`, e.g. `card-click`, and what it carries, read as attributes -- `event.card`."""
 
     def __init__(self, type: str, **props: object) -> None:
+        """An event of `type`, carrying `props`:  `SpellEvent("card-click", card=card)`."""
         self.type = type
         self.__dict__.update(props)
 
     def __repr__(self) -> str:
+        """`SpellEvent('card-click', card=...)`:  its type and what it carries, for a reader in a debugger."""
         props = ", ".join(f"{key}={value!r}" for key, value in self.__dict__.items() if key != "type")
         return f"SpellEvent({self.type!r}{', ' + props if props else ''})"
 

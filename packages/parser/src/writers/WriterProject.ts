@@ -77,8 +77,8 @@ export class WriterProject {
    */
   readonly importedMembers = new Map<string, Set<string>>()
   /**
-   * Each `<Class>.<member>` that says which list of a family holds it, e.g. `Card.pile` from
-   * `a card belongs to one pile`:  nothing while it's in none (epic `python-target` P25).
+   * Each `<Class>.<member>` that says which list of a family holds it (epic `python-target` P25),
+   * e.g. `Card.pile` from `a card belongs to one pile`:  nothing while it's in none.
    * - An imported class's, from its declarations' `exclusive` properties;  our own are getters (`getterOf()`).
    */
   readonly owners = new Set<string>()

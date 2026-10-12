@@ -39,8 +39,13 @@ log = logging.getLogger("spell_quart")
 class Socket(Protocol):
     """What `serve()` needs of a WebSocket:  Quart's `websocket`."""
 
-    async def send(self, data: str) -> None: ...
-    async def receive(self) -> str | bytes: ...
+    async def send(self, data: str) -> None:
+        """Send the page `data`, JSON text."""
+        ...
+
+    async def receive(self) -> str | bytes:
+        """The page's next message, once it comes."""
+        ...
 
 
 class Visit:
@@ -67,7 +72,7 @@ class SpellSessions:
     def __init__(self, program: str | Path, seed: int | None = None, pauses: bool = True) -> None:
         """The visitors of `program`.
 
-        - `seed`:  where every visitor's random numbers start, so each is dealt the same game;  a test's.
+        - `seed`:  where every visitor's random numbers start, so each is dealt the same game, e.g. in a test.
           Left out:  `$SPELL_SEED`, if it's set;  else a different game each.
         - `pauses`:  do pauses wait?  Off in a test, where only what changes matters.
         """

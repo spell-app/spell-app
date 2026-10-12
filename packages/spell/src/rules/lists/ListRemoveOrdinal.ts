@@ -5,8 +5,8 @@ import { SpellStatement } from "$/spell/rules/Statement"
 import { lists } from "./lists.parser"
 
 /**
- * `list_remove_ordinal` rule:  remove one item from list by ordinal position, e.g. `remove last card of deck` =>
- * `spellCore.removeItemAt(deck, -1)`.
+ * `list_remove_ordinal` rule:  remove one item from list by ordinal position,
+ * e.g. `remove last card of deck` => `spellCore.removeItemAt(deck, -1)`.
  * - `{arg}` (e.g. `card`) captured for readability only, unused in output.
  */
 export class ListRemoveOrdinal extends SpellStatement<"position|arg|list"> {

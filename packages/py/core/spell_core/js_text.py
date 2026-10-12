@@ -1,8 +1,8 @@
 """How JavaScript writes values as text, so spell_core prints what the JavaScript core prints.
 
-- `js_string()`: what JavaScript's `String(value)` gives, e.g. inside a template string.
-- `inspect()`: what node's `console.log()` shows for a value that isn't text, e.g. `[ 1, 2, 3 ]`.
-- `format_line()`: a whole `console.log()` line, its values joined by single spaces.
+- `js_string()`:  what JavaScript's `String(value)` gives, e.g. inside a template string.
+- `inspect()`:  what node's `console.log()` shows for a value that isn't text, e.g. `[ 1, 2, 3 ]`.
+- `format_line()`:  a whole `console.log()` line, its values joined by single spaces.
 
 Python values stand in for JavaScript's:
 - `None` is `undefined`
@@ -41,6 +41,7 @@ LARGEST_PLAIN_NUMBER = 1e21
 PLAIN_KEY = re.compile(r"^[a-zA-Z_][a-zA-Z_0-9]*$")
 # A dict key JavaScript treats as a list position, and so lists first, in number order.
 POSITION_KEY = re.compile(r"^(0|[1-9][0-9]*)$")
+# The largest key that's still a position:  JavaScript's largest array index.
 LARGEST_POSITION = 2**32 - 2
 # How a character is written inside quotes, when it can't be written as itself.
 ESCAPES = {8: "\\b", 9: "\\t", 10: "\\n", 12: "\\f", 13: "\\r", 39: "\\'", 92: "\\\\"}

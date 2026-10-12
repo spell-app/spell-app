@@ -26,10 +26,10 @@ import { CLI } from "$/cli"
  *   runs with that one compiled for the same target, as its `@spell/project/<id>`.
  * - Each runs in a FAKE PAGE (linkedom, `RunSpec.dom`) that `start the game` draws into.
  *   What it drew is printed last, so drawing is compared too.
- * - Its random numbers start from seed 1 (`spellCore.seedRandom()`), so Solitaire deals the same cards every run,
- *   on every target.
+ * - Its random numbers start from seed 1 (`spellCore.seedRandom()`),
+ *   so Solitaire deals the same cards every run, on every target.
  * - Only STDOUT is compared:  the program's own output, as data.
- *   A dump of a thing (`print the card`) goes to stderr, as do warnings (plan doc python-target, Q17):
+ *   A dump of a thing (`print the card`) goes to stderr, as do warnings (epic `python-target`, Q17):
  *   how a thing looks dumped is each target's own business.
  * - Changed on purpose:  `yarn vp test run src/contract.test.ts -u`, then read the diff.
  */

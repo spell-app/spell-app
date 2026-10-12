@@ -47,6 +47,7 @@ def terminal_text(text: str) -> str:
 
 
 def style_of(node: Element) -> str:
+    """Rich's style for `node`, from the first row of `STYLES` whose classes it has:  `""` for none."""
     return next((style for classes, style in STYLES if node.has_class(*classes)), "")
 
 
@@ -95,6 +96,7 @@ def table(node: Element) -> Table:
     ]
 
     def cells(row: Element) -> list[RenderableType]:
+        """`row`'s cells, each spanned column after the first an empty one."""
         out: list[RenderableType] = []
         for cell in row.children:
             if isinstance(cell, Element):

@@ -7,8 +7,8 @@ import { lists } from "./lists.parser"
 /**
  * `list_remove_range` rule:  remove range of items from list, e.g. `remove items 2 to 4 of my-list`.
  * - `{arg}` (e.g. `items`) captured for readability only, unused in output.
- * - NOTE: `start` is **1-based**.
- * - NOTE: `end` is inclusive!
+ * - NOTE: `start` is **1-based** in spell, and `end` is inclusive!
+ *   Both compile to `slice()`'s indexes:  `spellCore.removeRangeBetween(myList, 1, 4)`.
  */
 export class ListRemoveRange extends SpellStatement<"arg|start|end|list"> {
   @proto static alias = "statement"

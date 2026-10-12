@@ -1,4 +1,4 @@
-"""A program's side of a page that draws it (epic python-target, P19):  its state for the page, the page's messages run.
+"""A program's side of a page that draws it:  it sends the page its state, and runs the page's messages.
 
 ```python
 session = PageSession(run_program("Solitaire.compiled.py", seed=1))
@@ -16,8 +16,9 @@ session.handle({"trigger": "card-click", "details": {"card": {"@id": "12"}}})
   - a call of a thing's method:  `{"call": "turn_over", "on": {"@id": "3"}, "args": []}`
   - an event, for the program's handlers:  `{"trigger": "card-click", "details": {"card": {"@id": "3"}}}`
 - Each message is run, then answered with what it changed (`StateWriter.patch()`).
-- Python's names in what it sends:  the page's javascript was written with them (`P.ElementsWriter`).
-  An event's details are javascript's (`camelCase`):  read as Python's (`snake_case`).
+- A page's messages use Python's names:  its javascript was written with them (`PY.ElementsWriter`).
+  - Except an event's details, which are javascript's (`camelCase`):  read as Python's (`snake_case`).
+- Epic python-target, P19.
 """
 
 import argparse

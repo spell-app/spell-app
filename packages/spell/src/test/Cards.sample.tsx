@@ -1,10 +1,13 @@
 /**
- * Solid TypeScript as the `ts/solid` target writes it (epic `output-targets` P12), written by hand:  a sample of
- * Solitaire's `Card`, a pile and a game, trimmed to run alone.
- * - Checks the plumbing around the writer, apart from the writer:  `typecheck()` (`typescript.test.ts`),
- *   building it (`buildTsx.test.ts`) and running it (`cli`'s `runCommand.test.ts`).
- * - Read with `solidSample()` (`$/spell/test`).  NOT part of spell's own `tsc`:  it imports `@spell/core`, as compiled
- *   spell does, which only those resolve (`tsconfig.json`'s `exclude`).
+ * Solid TypeScript as the `ts/solid` target writes it (epic `output-targets` P12), written by hand:
+ * a sample of Solitaire's `Card`, a pile and a game, trimmed to run alone.
+ * - Checks the plumbing around the writer, apart from the writer:
+ *   - `typecheck()` (`typescript.test.ts`)
+ *   - building it (`buildTsx.test.ts`)
+ *   - running it (`cli`'s `runCommand.test.ts`)
+ * - Read with `solidSample()` (`$/spell/test`).
+ * - NOT part of spell's own `tsc`:  it imports `@spell/core`, as compiled spell does,
+ *   which only those resolve (`tsconfig.json`'s `exclude`).
  */
 import { Show, For } from "solid-js"
 import { spellCore, List, App, Thing, prop, thing, drawn } from "@spell/core"

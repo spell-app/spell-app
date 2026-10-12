@@ -1,12 +1,13 @@
 /*
- * The core reference page (`guides/targets/core-reference.html`, epic `python-target` P29):  draws every name the
- * javascript core offers, file by file, with Python's name for each and whether spell_core has it yet;  then boots
- * the docs bundle.
- * - Loaded INSTEAD of `spell-ui.js`, as `commands.js` is:  the runtime builds the toolbar and the sticky titles from
- *   `main`'s sections once, at start, so the tables must be in the page before it runs.  This script fetches, draws,
- *   then adds `spell-ui.js` (same folder), whatever happened.
- * - The data, two JSON files, fetched from the checkout SERVING the page (paths relative to the page, in `<body>`'s
- *   data attributes), so the page shows that checkout's core and can't go stale:
+ * The core reference page (`guides/targets/core-reference.html`, epic `python-target` P29):
+ * draws every name the javascript core offers, file by file,
+ * with Python's name for each and whether spell_core has it yet;  then boots the docs bundle.
+ * - Loaded INSTEAD of `spell-ui.js`, as `commands.js` is:  the tables must be in the page before the runtime runs.
+ *   - The runtime builds the toolbar and the sticky titles from `main`'s sections once, at start.
+ *   - So this script fetches, draws, then adds `spell-ui.js` (same folder), whatever happened.
+ * - The data:  two JSON files, fetched from the checkout SERVING the page,
+ *   so the page shows that checkout's core and can't go stale.
+ *   Their paths are relative to the page, in `<body>`'s data attributes:
  *   - `data-core-declarations`:  `packages/core/spellCore.declarations.json`, the core's method list
  *     (`yarn gen:declarations` in `packages/core`, `coreDeclarations.ts`);  `{ provides, statements: [Statement] }`
  *   - `data-not-ported`:  `packages/py/core/not_ported_yet.json`, what spell_core doesn't have yet;
@@ -18,16 +19,18 @@
  *   - a function compiled code imports:  `{ kind: "function", name, module, params?, description? }`
  *   - `module`:  the core's file under `packages/core/src/`, without `.ts` (`classes` is `classes/index.ts`);
  *     `section`:  the `// ## Heading` it's under there
- * - Python's names, as `packages/py/core/tests/test_core_declarations.py` checks them:  `snakeCase()` of the
- *   javascript name;  a member is `core.get_item_at()`, a class keeps its name (`spell_core.Thing`)
+ * - Python's names, as `packages/py/core/tests/test_core_declarations.py` checks them:
+ *   `snakeCase()` of the javascript name
+ *   - a member is `core.get_item_at()`
+ *   - a class keeps its name (`spell_core.Thing`)
  * - Placeholders the page holds, all optional:
  *   - `[data-core-stats]` (a `ui-statistics`)
  *   - `[data-core-modules]`:  one nested `<ui-section>` per file, numbered after its parent section, each a table
  *     with a sub-heading row per heading of the file (`headingRuns()`)
  *   - `[data-core-filter]` (a `ui-input`):  hides rows without every typed word
  *   - `[data-core-not-ported]`:  spell_core's missing names, by why, each linked to its row
- * - From `file://` it shows a notice where the tables go:  the page needs the PAGE SERVER
- *   (`spell dev docs open <page>`).
+ * - From `file://` it shows a notice where the tables go:
+ *   the page needs the PAGE SERVER (`spell dev docs open <page>`).
  * - Classic script, no imports:  same rule as every docs asset.
  */
 ;(function () {
@@ -119,7 +122,8 @@
 
   /**
    * One file:  a nested `<ui-section>` with its table, a `<tbody>` per run of names under one heading.
-   * - a link to its source file in the title bar's `actions`, an icon (a phone has little room);  its count in the `badge`
+   * - a link to its source file in the title bar's `actions`, an icon (a phone has little room)
+   * - its count in the `badge`
    */
   function moduleHTML(module, statements, missing, prefix) {
     const file = sourceFile(module)
@@ -146,8 +150,8 @@
   /**
    * A file's names in the list's order (the file's), cut into runs under one heading:  `[{ heading, rows }]`.
    * - members of `spellCore` under their `section`;  one without, after one with, stays under the one before
-   *   (the list says no section for a few whose first declaration is above every heading:  an overload, an interface's
-   *   member)
+   *   - the list says no section for a few whose first declaration is above every heading:
+   *     an overload, an interface's member
    * - what compiled code imports by name, classes and functions, under "imported by name"
    */
   function headingRuns(statements) {

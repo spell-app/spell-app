@@ -1,11 +1,11 @@
 /**
- * Entry of `spell-page.js`:  a page that draws a program running ELSEWHERE, e.g. a Python program served by Quart
- * (epic `python-target` P20).
- * - `yarn build:page` => `dist-page/`, after `vite.solid.config.ts`:  see `vite.page.config.ts`.
+ * Entry of `spell-page.js`:  a page that draws a program running ELSEWHERE,
+ * e.g. a Python program served by Quart (epic `python-target` P20).
+ * - Built by `yarn build:page` into `dist-page/`, after `vite.solid.config.ts`:  see `vite.page.config.ts`.
  * - It IS the page's `@spell/core`:  the program's drawing half, `<Project>.elements.js`, imports from it,
  *   through the page's import map.
- * - It exports what `spell-runtime.js` exports, and the page's side:  `connectPage()`, `startPage()`,
- *   `sendCall()`, `sendTrigger()` (`page.ts` in `$/core`).
+ * - It exports what `spell-runtime.js` exports, plus the page's side (`page.ts` in `$/core`):
+ *   `connectPage()`, `startPage()`, `sendCall()`, `sendTrigger()`.
  * - Unlike a runner's, it sets up the page itself:  Spell UI's elements, Solid following spell's cells,
  *   and a drawable thing's own element, e.g. `<solitaire-card>`.
  *

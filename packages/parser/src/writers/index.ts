@@ -5,7 +5,8 @@
  *   - `JSWriter` writes javascript;  `TSWriter`, on it, TypeScript
  *   - Python's writers are `$/py`'s (`PY.PyWriter`, on `ProgramWriter`)
  *   - `TreeWriter`:  boxes for a diagram
- * - `jsText` stays a namespace (`P.jsText.InParens`):  its generic names (`Block`, `SPACE` ...) would collide flattened.
+ * - `jsText` stays a namespace (`P.jsText.InParens`):
+ *   its generic names (`Block`, `SPACE` ...) would collide flattened.
  * - `jsShapes`, the shapes every program writer reads (`P.jsShapes.unwrapped()`):  a namespace too, for `$/py`'s.
  */
 

@@ -4,8 +4,8 @@ const { unwrapped } = P.jsShapes
 
 /****************
  * ### `ElementsWriter`
- * Writes a Python program's DRAWING half as javascript, for a page that mirrors it:  `<Project>.elements.js`
- * (epic `python-target` P19, Q20 A).
+ * Writes a Python program's DRAWING half as javascript, `<Project>.elements.js`,
+ * for a page that mirrors it (epic `python-target` P19, Q20 A).
  * - Python keeps the program:  its state, its logic, its event handlers.
  *   The page draws it with these classes, as compiled javascript draws, from the state Python sends
  *   (`StateMirror`, in `@spell/core`).
