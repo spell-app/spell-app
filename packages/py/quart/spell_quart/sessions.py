@@ -12,9 +12,11 @@ async def ws():
   - Each plays their own game:  the program runs once for them, on a core of their own (`using_core()`).
   - Their tabs share it:  a click in one shows in every one.
   - Their game lives in this process's memory:  a restart ends it.
+- The program's own start runs with its pauses skipped:  no page draws it yet, so they'd only delay the first one.
 - Each page, a tab, gets the whole state when it opens, then a patch after each of its messages,
   and at each pause (`core.before_pause`):  so a game animates.
-- A message that fails is logged, and the page goes on.
+- A message that fails is logged, and the page goes on:
+  it's sent `{"error": "ValueError: ...", "message": {...}}`, which its console shows as `< ERROR  >`.
 """
 
 import asyncio
@@ -29,6 +31,9 @@ from typing import Any, Protocol
 from spell_core.core import SpellCore, using_core
 from spell_core.page import PageSession
 from spell_core.run import run_program
+
+# What an error frame names its message by:  `{"error": "ValueError: ..."}` -- the javascript core's `ERROR_KEY`.
+ERROR_KEY = "error"
 
 # The cookie naming a visitor:  see `visitor_of()`.
 VISITOR_COOKIE = "spell-visitor"
@@ -88,8 +93,12 @@ class SpellSessions:
         if visit is None:
             core = SpellCore()
             with using_core(core):
-                # in a thread:  the program's top level may run `asyncio.run()`, which this loop can't
-                names = await asyncio.to_thread(run_program, self.program, self.seed, self.pauses)
+                # in a thread:  the program's top level may run `asyncio.run()`, which this loop can't;
+                # its pauses skipped:  no page is drawing it yet, so its opening (Solitaire's deal) would only
+                # keep the visitor waiting behind the loading card, ~7s
+                names = await asyncio.to_thread(run_program, self.program, self.seed, False)
+            # pauses wait from here on:  a click's animation shows
+            core.pauses = self.pauses
             visit = Visit(core, names)
             core.before_pause.append(visit.send_changes)
             self.visits[visitor] = visit
@@ -98,11 +107,14 @@ class SpellSessions:
     async def serve(self, socket: Socket, visitor: str) -> None:
         """Serve one page of `visitor`'s over `socket`, until it closes:  see the module's docs."""
         visit = await self.visit(visitor)
+        # the connection itself, not Quart's `websocket`, which means whichever page's code is running:
+        # another tab's click sends this page its changes, from that tab's task
+        connection = socket._get_current_object() if hasattr(socket, "_get_current_object") else socket
         with using_core(visit.core):
             page = PageSession(visit.names)
 
             async def send(data: str) -> None:
-                await socket.send(data)
+                await connection.send(data)
 
             await send(json.dumps(page.state(), ensure_ascii=False))
             visit.pages.append((page, send))
@@ -111,8 +123,10 @@ class SpellSessions:
                     message = json.loads(await socket.receive())
                     try:
                         await page.run_async(message)
-                    except Exception:
+                    except Exception as error:
                         log.exception("spell_quart:  the page's message %r failed", message)
+                        # the page shows it in its console, `< ERROR  >`:  see `connectPage()` in the core's `page.ts`
+                        await send(json.dumps({ERROR_KEY: f"{type(error).__name__}: {error}", "message": message}))
                     await visit.send_changes()
             finally:
                 visit.pages.remove((page, send))

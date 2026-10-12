@@ -11,10 +11,12 @@ import { SRV } from "$/server"
 import { PlanDocError, type CommitLogEntry, type PlanDocOptions, type PlanDocParts } from "./planDoc.types"
 
 import { EpicParts } from "./EpicParts"
+import { Migrations, type AnchorMove, type InboxView, type Migration } from "./migrations"
 import { PlanCommits } from "./PlanCommits"
 import { PlanDoc } from "./PlanDoc"
 import { PlanMarkup } from "./PlanMarkup"
 import { PART_SOURCE, PARTS_DIR, PlanParts } from "./PlanParts"
+import { ReviewInbox } from "./ReviewInbox"
 
 /****************
  * ### `PlanDocFiles`
@@ -179,8 +181,7 @@ export class PlanDocFiles {
    * - SIDE EFFECT:  names each missing part on stderr
    */
   read(file: string, options?: PlanDocOptions): PlanDoc {
-    if (!existsSync(file))
-      throw new PlanDocError(`no plan doc ${relative(this.root, file)}:  \`spell dev plan-doc new\` first`)
+    if (!existsSync(file)) throw new PlanDocError(`no plan doc ${relative(this.root, file)}:  \`epic new\` first`)
     const html = readFileSync(file, "utf8")
     if (!isEpicMarkup(html)) throw this.oldMarkup(file)
     const plan = PlanDoc.parse(html, undefined, options)
@@ -227,6 +228,55 @@ export class PlanDocFiles {
       await this.writeDoc(file, plan, split ?? plan.parts!.split)
       return result
     })
+  }
+
+  /**
+   * Run the epic page MIGRATIONS on the doc at `file` (`Migrations`:  every step, or those named in `only`), under its
+   * lock, as an edit is;  resolves with what they did:  `{ ran, notes, moves, written }`.
+   * - `ran`:  the steps that changed the page;  `notes`:  what they fixed or found, a line each;  `moves`:  comments
+   *   whose block moved, written into the page's review inbox after the page (`links-agree`)
+   * - writes only when something changed, logged (`migrated:  links-agree`), the items recoloured
+   *   (`updateStates()`);  NOT stamped "updated":  nobody worked on the epic
+   * - `dryRun`:  the same report, nothing written
+   * - REFUSES, writing nothing, as `edit()` does:  a doc in the old markup;  a migration that would break the doc
+   * - `spell dev plan-doc migrate` (`MigrateCommands`), and `rename` / `add-phase --before` for `links-agree`
+   */
+  async migrate(
+    file: string,
+    { only, dryRun = false, now = new Date() }: { only?: readonly string[]; dryRun?: boolean; now?: Date } = {}
+  ): Promise<MigrateResult> {
+    const inboxFile = ReviewInbox.pathFor(file)
+    const result = await SRV.FileLock.runAsync(file, async (): Promise<MigrateResult> => {
+      const plan = this.read(file, { recentSince: this.recentSince(file) })
+      const context = { now, inbox: inboxView(ReviewInbox.read(inboxFile)), notes: [] as string[], moves: [] }
+      const before = new Set(plan.check())
+      const ran = Migrations.run(plan.document, context, only)
+      const done = { ran, notes: context.notes, moves: context.moves as AnchorMove[], written: false }
+      if (!ran.length || dryRun) return done
+      plan.log(`migrated:  ${ran.join(", ")}`)
+      plan.updateStates()
+      const broken = plan.check().filter((problem) => !before.has(problem))
+      if (broken.length)
+        throw new PlanDocError(
+          `${relative(this.root, file)}:  nothing written:  migrating would break the doc:\n  ${broken.join("\n  ")}`
+        )
+      await this.writeDoc(file, plan, plan.parts!.split)
+      return { ...done, written: true }
+    })
+    if (dryRun || !result.moves.length) return result
+    // after the page, under the inbox's own lock:  never both locks at once
+    await ReviewInbox.updateAsync(inboxFile, (inbox) => {
+      for (const move of result.moves) {
+        const comment = inbox.comments[move.id]
+        if (comment?.anchor === move.from) comment.anchor = move.to
+      }
+    })
+    return { ...result, written: true }
+  }
+
+  /** The migration steps `migrate()` can run, oldest first:  for listings and checking `--step`. */
+  static get migrations(): readonly Migration[] {
+    return Migrations.all
   }
 
   /**
@@ -286,7 +336,7 @@ export class PlanDocFiles {
     const name = basename(file).replace(/(\.plan)?\.html$/, "")
     return new PlanDocError(
       `${relative(this.root, file)} is in the old markup, which the tool no longer reads:  convert it first ` +
-        `(spell dev plan-doc convert ${name} --out <folder>, then copy the converted doc back)`
+        `(epic convert ${name} --out <folder>, then copy the converted doc back)`
     )
   }
 
@@ -407,6 +457,39 @@ export class PlanDocFiles {
         const [sha, ...subject] = line.split("\t")
         return { sha: sha!, subject: subject.join("\t") }
       })
+  }
+}
+
+/** What `PlanDocFiles.migrate()` did to one doc (or, a dry run, would do). */
+export type MigrateResult = {
+  /** the steps that changed the page, in order */
+  ran: string[]
+  /** what the steps fixed or found, one line each (`links-agree:  ...`) */
+  notes: string[]
+  /** comments moved to where their block is now (`links-agree`) */
+  moves: AnchorMove[]
+  /** was anything written:  the page, or its inbox */
+  written: boolean
+}
+
+/**
+ * What a migration reads of `inbox` (`InboxView`):  everything keyed by an item id, and each comment's place.
+ * - `now` (a list) by its requests' ids
+ */
+function inboxView(inbox: ReviewInbox): InboxView {
+  const now = Object.fromEntries(inbox.now.map((request) => [request.id, request]))
+  return {
+    keyed: {
+      mark: inbox.marks,
+      draft: inbox.drafts,
+      urgency: inbox.urgency,
+      "agent at work": inbox.working,
+      "called-off request": inbox.canceled,
+      "request for now": now
+    },
+    comments: Object.fromEntries(
+      Object.entries(inbox.comments).map(([id, comment]) => [id, { anchor: comment.anchor, excerpt: comment.excerpt }])
+    )
   }
 }
 

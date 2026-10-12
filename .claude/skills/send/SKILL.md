@@ -1,6 +1,6 @@
 ---
 name: send
-description: Send a request to another epic instead of doing it here -- Owen's words verbatim, the screenshots he pasted, what this session was looking at -- and wake that epic's session, or open its window.  Use for `/send [<epic>] <text>`, and BY ITSELF whenever Owen asks this session to change how he WORKS (dev tooling:  the plan doc page, comments, the Review tab, details pages, skills, hooks, windows, worktrees, `spell dev` / `spell epic`) rather than this session's own work -- the root `CLAUDE.md`'s "Tooling requests".  E.g. "fix this in the plan doc", "comment mechanism doesn't look right", a screenshot of the Review tab.
+description: Send a request to another epic instead of doing it here -- Owen's words verbatim, the screenshots he pasted, what this session was looking at -- and wake that epic's session, or open its window.  Use for `/send [<epic>] <text>`, and BY ITSELF whenever Owen asks this session to change how he WORKS (dev tooling:  the plan doc page, comments, the Review tab, details pages, skills, hooks, windows, worktrees, `spell dev` / `epic`) rather than this session's own work -- the root `CLAUDE.md`'s "Tooling requests".  E.g. "fix this in the plan doc", "comment mechanism doesn't look right", a screenshot of the Review tab.
 argument-hint: "[<epic>] <text>"
 ---
 
@@ -10,14 +10,14 @@ Owen says what he wants where he is;  it goes to the epic that owns it, and this
 (epic `epic-workflow`, Owen, 2026-10-11).
 - The request is written FIRST, into the epic's shared folder:  nothing is lost if that epic's session is closed.
 - The epic's session turns it into a phase:  [the epic skill](.claude/skills/epic/SKILL.md), "12. Request".
-- The command:  `spell epic send` ([epicCommand.ts](packages/cli/src/commands/epicCommand.ts)).
+- The command:  `epic send` ([epicCommand.ts](packages/cli/src/commands/epicCommand.ts)).
 
 ## When
 
 - `/send [<epic>] <text>`:  always.
 - By itself (no `/send`):  Owen asks for a change to DEV TOOLING, how he works, not what this session builds.
   - Dev tooling:  the plan doc page and its comments, marks and buttons;  the Review tab;  details pages;
-    every skill and hook;  windows, worktrees, the page server;  `spell dev` and `spell epic`.
+    every skill and hook;  windows, worktrees, the page server;  `spell dev` and `epic`.
   - Not:  this session's OWN epic's content.
     "Fix P4's file list in the plan doc" in `🚧 python` is python's job;
     "the plan doc's comment box covers the text" is tooling.
@@ -28,7 +28,7 @@ Owen says what he wants where he is;  it goes to the epic that owns it, and this
 
 1. Which epic:
    - the first word after `/send`, when `epics/<word>/<word>.plan.html` exists
-   - else the tooling home:  `spell epic home` prints it
+   - else the tooling home:  `epic home` prints it
 2. Owen's words, VERBATIM, into a scratchpad file (quotes and all survive a file, not a shell string):
    - `/send`:  the text after it (and the epic's name, if given)
    - by itself:  his whole message about it
@@ -42,10 +42,10 @@ Owen says what he wants where he is;  it goes to the epic that owns it, and this
 5. Send, from the repo:
 
    ```sh
-   spell epic send <epic> --file <words.md> --images <count> --context "<context>"
+   epic send <epic> --file <words.md> --images <count> --context "<context>"
    ```
 
-   - Until `spell epic` is on `main`:  `node <a checkout that has it>/packages/cli/bin/spell.mjs epic send ...`.
+   - Until `epic` is on `main`:  `node <a checkout that has it>/packages/cli/bin/epic.mjs send ...`.
 6. Wake the receiver, as `send` printed:
    - `tell:  <name>` (its session is running):  `SendMessage` to `<name>`:
      "New request `<rN>` for epic `<epic>`, from `<this session's title>`:  <his first line>.

@@ -21,9 +21,21 @@ function olderDoc(): Document {
 
 describe("Migrations", () => {
   test("every step by name, in order;  `named()` finds one", () => {
-    expect(Migrations.all.map((step) => step.name)).toEqual(["updates-as-epic-update", "owen-types-to-you-type"])
+    expect(Migrations.all.map((step) => step.name)).toEqual([
+      "updates-as-epic-update",
+      "owen-types-to-you-type",
+      "links-agree"
+    ])
     expect(Migrations.named("updates-as-epic-update")?.description).toMatch(/<epic-update at summary>/)
     expect(Migrations.named("nope")).toBeUndefined()
+  })
+
+  test("each step names its kind and its day;  every edit runs only the markup ones (`everyEdit`)", () => {
+    for (const step of Migrations.all) {
+      expect(step.kind).toBe("epic")
+      expect(step.date).toMatch(/^\d{4}-\d\d-\d\d$/)
+    }
+    expect(Migrations.everyEdit.map((step) => step.name)).toEqual(["updates-as-epic-update", "owen-types-to-you-type"])
   })
 
   test("`run()` names the steps that changed something;  a second run none (idempotent);  `only` picks steps", () => {

@@ -108,6 +108,8 @@ export type WatchOptions = GlobalOptions & {
 export type RunOptions = GlobalOptions &
   SeedOptions & {
     browser?: boolean
+    /** `ts` or `py` (or a target's full name):  run as that target compiles it -- see `runTarget()` */
+    target?: string
   }
 
 /**

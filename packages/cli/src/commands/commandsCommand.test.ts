@@ -18,6 +18,7 @@ write(ROOT, "packages/parser/package.json", { scripts: { test: "vitest run" } })
 write(ROOT, "packages/ui/site/package.json", { scripts: { dev: "astro dev" } })
 write(ROOT, "packages/cli/src/main.ts", 'program\n  .command("compile")\nprogram\n  .command("plan-doc")\n')
 write(ROOT, "packages/cli/src/devProgram.ts", 'const dev = program\n  .command("dev")\ndev\n  .command("commands")\n')
+write(ROOT, "packages/cli/src/epicProgram.ts", 'epic\n  .command("send")\npage(epic.command("close"), "close")\n')
 write(ROOT, ".claude/skills/isolate/SKILL.md", "---\nname: isolate\n---")
 write(ROOT, ".claude/skills/solid-2/SKILL.md", "---\nname: solid-2\n---")
 write(HOME, ".claude/skills/session/SKILL.md", "---\nname: session\n---")
@@ -28,6 +29,8 @@ describe("commandSources()", () => {
 
   test("every command, by surface then name, in the page's name form", () => {
     expect(names).toEqual([
+      "epic close",
+      "epic send",
       "spell compile",
       "spell dev",
       "spell dev commands",

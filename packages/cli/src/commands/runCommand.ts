@@ -68,6 +68,7 @@ async function runPython(
  *   and the project then opens in a browser instead, until `Ctrl-C`.  See `runInBrowser()`.
  * - `--browser`:  open it in a browser anyway;  `--no-browser`:  never.
  * - `--seed <n>`:  the same random numbers every run, e.g. the same deal -- see `checkSeed()`.
+ * - `--target ts | py`:  run as that target compiles it, e.g. Python's web app on Quart -- see `runTarget()`.
  * - Returns the program's exit code.
  */
 export async function runCommand(session: CLI.CliSession, args: string[], options: CLI.RunOptions): Promise<number> {
@@ -108,12 +109,14 @@ async function runProjectAs(
 ): Promise<number> {
   checkSeed(options.seed)
   const project = resolved.kind === "file" ? resolved.file.project : resolved.project
+  // `--target ts | py`:  run as that target compiles it -- see `runTarget()`
+  const target = mode === "run" ? CLI.targetNamed((options as CLI.RunOptions).target) : undefined
   const status = new CLI.StatusReporter(session.isInteractive)
   const row = status.start(`Compiling ${project.projectId}`)
   let problems: CLI.Problem[]
   try {
     await session.compileImports(project, status)
-    await project.compile(undefined, { save: false })
+    await project.compile(undefined, { save: false, targets: target ? [target.name] : undefined })
     problems = session.report(status, row, project)
   } catch (error) {
     status.done(row, "failed", error instanceof Error ? error.message : String(error))
@@ -123,6 +126,10 @@ async function runProjectAs(
     status.finish({ clear: status.rows.every((it) => it.state === "ok") })
   }
 
+  if (target) {
+    const exitCode = await CLI.runTarget(session, project, target, options)
+    return problems.length && exitCode === CLI.EXIT.OK ? CLI.EXIT.ERRORS : exitCode
+  }
   const { exitCode, skipped } = await runCompiled(mode, project, options)
   const wantsBrowser = mode === "run" && options.browser !== false && (options.browser || skipped.length > 0)
   if (wantsBrowser && exitCode === CLI.EXIT.OK) return CLI.runInBrowser(session, project)

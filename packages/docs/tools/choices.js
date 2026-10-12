@@ -12,7 +12,8 @@
  * - `wait <page> [--timeout 8h]` -- block until Owen presses "Do it" (an answer NEWER than the wait's start), print
  *   it as plain text, exit 0.  Run it in the BACKGROUND:  its exit wakes the session.  Timeout:  exit 2
  * - `answer <page>` -- print the answer already sent (exit 1 if none)
- * - `list` -- every syntax-choices page:  answered, draft (typed, not sent) or waiting
+ * - `list [<epic>]` -- every syntax-choices page:  answered, draft (typed, not sent) or waiting;  with an epic, only
+ *   that epic's (`epics/<epic>/details/`)
  * - `<page>`:  a slug, `<epic>/<slug>`, or a path, as `spell dev details` takes them
  * - Beside the page (`<slug>.html`):
  *   - `<slug>.rows.json` -- the rows (`ChoicesData`, below), written by `new`;  the page fetches it, so it needs the
@@ -70,7 +71,8 @@ async function main(argv) {
       return answer ? 0 : 1
     }
     if (command === "list") {
-      for (const file of listPages(ROOT).filter(isChoicesPage)) console.log(`${status(file)}  ${relative(ROOT, file)}`)
+      const pages = listPages(ROOT).filter((file) => isChoicesPage(file) && (!target || isEpicsPage(file, target)))
+      for (const file of pages) console.log(`${status(file)}  ${relative(ROOT, file)}`)
       return 0
     }
     console.error(USAGE)
@@ -81,12 +83,17 @@ async function main(argv) {
   }
 }
 
-/** `spell dev choices` with no or a wrong command. */
-const USAGE = `usage:  spell dev choices new <slug> --rows <rows.json> [--title "..."] [--epic <name>] [--description "..."]
-        spell dev choices show <page> [--wait] [--timeout 8h]
-        spell dev choices wait <page> [--timeout 8h]
-        spell dev choices answer <page>
-        spell dev choices list`
+/** Is `file` one of epic `epic`'s own pages (under `epics/<epic>/`)? */
+function isEpicsPage(file, epic) {
+  return relative(join(ROOT, "epics", epic), file).split("/")[0] !== ".."
+}
+
+/** `epic choices` with no or a wrong command. */
+const USAGE = `usage:  epic choices new <slug> --rows <rows.json> [--title "..."] [--epic <name>] [--description "..."]
+        epic choices show <page> [--wait] [--timeout 8h]
+        epic choices wait <page> [--timeout 8h]
+        epic choices answer <page>
+        epic choices list [<epic>]`
 
 ////////////////
 // ## Pages

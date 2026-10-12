@@ -105,7 +105,7 @@ function stringFlag(value: string | true | undefined): string | undefined {
 /** Print how to call it;  exit code 1. */
 function usage(): number {
   console.error(
-    'usage:  spell dev agents add <name> "<task>" [--status ...] [--task-id <id>] | set <name> [--status ...] ' +
+    'usage:  epic agents add <name> "<task>" [--status ...] [--task-id <id>] | set <name> [--status ...] ' +
       "[--task-id <id>] | done <name> | list [--json] | wait [--every <s>] [--max <s>] [--json] | told <name>   " +
       "(any verb:  [--epic <name>])"
   )
