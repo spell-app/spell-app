@@ -156,13 +156,17 @@ describe("a Python spell app, in a real browser", () => {
   test("a visitor's tabs share one game, each following the other's clicks, both ways", async () => {
     const first = await opened()
     const second = await opened(first.page.context())
-    for (const [clicked, other] of [
+    for (const [round, [clicked, other]] of [
       [first, second],
       [second, first]
-    ]) {
-      // the last click done everywhere:  both tabs sent the same frames, nothing still on its way
-      await expect.poll(() => clicked!.received.length === other!.received.length, { timeout: 5000 }).toBe(true)
-      await clicked!.page.waitForLoadState("networkidle")
+    ].entries()) {
+      // the last click done in both tabs:  the state, then two patches a click (the card turned up at its pause,
+      // then its move, sent at the move's own 50 msec pause)
+      for (const tab of [clicked, other]) {
+        await expect.poll(() => tab!.received.length, { timeout: 5000 }).toBe(1 + 2 * round)
+      }
+      // and past that last pause:  Solitaire plays from the stock one card at a time, ignoring a click meanwhile
+      await clicked!.page.waitForTimeout(250)
       const discards = await clicked!.page.locator(".Pile.Discards").innerHTML()
       expect(await other!.page.locator(".Pile.Discards").innerHTML()).toBe(discards)
       await clicked!.page.locator(".Pile.Stock .Card").last().click()
