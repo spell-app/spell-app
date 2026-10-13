@@ -192,6 +192,7 @@ async function start() {
   wirePaging(main)
   if (document.body.classList.contains("plan-doc")) wireJumpKey(go, canGo)
   wireFilter(main)
+  wireWideTables(main)
   // UI renders its shadow content a little after the definitions:  land once it has
   await nextFrames(2)
   sticky.measure()
@@ -207,6 +208,53 @@ async function start() {
     wireNewEpic(main)
     wireFavorites(main)
   })
+}
+
+/**
+ * The wide layout (`<body class="spell-wide">`, `spell-doc.css` "The wide layout"):  a table INSIDE prose (a list
+ * item, an epic item's details, a phase's field) runs the page's full width too, as a section's own table does
+ * (Owen, 2026-10-13:  "tables inside prose should be full width as well").
+ * - CSS can't know how far in a nested table starts (a list's indent, an item's inset), so this measures it:  each
+ *   table is moved out to the page's gutter and given the page's width, less the gutter on both sides
+ * - a table already a section's (or `<main>`'s) own child is left to the CSS;  inside a `<ui-table>`, the host moves
+ * - again whenever its parent changes size (a section or item opening, the window resizing), and for tables a part's
+ *   body or a live update adds later
+ */
+function wireWideTables(main) {
+  if (!document.body.classList.contains("spell-wide")) return
+  const DIRECT = ":is(main, ui-section) > :is(ui-table, table)"
+  const watched = new WeakSet()
+  const sizes = new ResizeObserver((entries) => {
+    for (const entry of entries) for (const box of boxesIn(entry.target)) place(box)
+  })
+  const place = (box) => {
+    const parent = box.parentElement
+    if (!parent || !box.isConnected || !parent.getClientRects().length) return
+    const page = main.getBoundingClientRect()
+    const gutter = parseFloat(getComputedStyle(main).getPropertyValue("--spell-gutter")) || 16
+    const style = getComputedStyle(parent)
+    const contentLeft =
+      parent.getBoundingClientRect().left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft)
+    box.style.maxWidth = "none"
+    box.style.width = `${page.width - 2 * gutter}px`
+    box.style.marginInlineStart = `${page.left + gutter - contentLeft}px`
+  }
+  // the box that moves:  a `<ui-table>` host, else the bare table
+  const boxesIn = (root) =>
+    [...root.querySelectorAll("table")]
+      .map((table) => table.closest("ui-table") ?? table)
+      .filter((box, at, all) => all.indexOf(box) === at && !box.matches(DIRECT))
+  const watch = () => {
+    for (const box of boxesIn(main)) {
+      if (watched.has(box)) continue
+      watched.add(box)
+      sizes.observe(box.parentElement)
+      place(box)
+    }
+  }
+  watch()
+  new MutationObserver(() => requestAnimationFrame(watch)).observe(main, { childList: true, subtree: true })
+  addEventListener("resize", () => requestAnimationFrame(() => boxesIn(main).forEach(place)))
 }
 
 /**

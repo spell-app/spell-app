@@ -36,6 +36,8 @@
   --spell-ink: var(--spell-text-body, var(--ui-text-color, CanvasText));
   --spell-muted: var(--spell-text-muted, var(--ui-text-muted, GrayText));
   --spell-rule: var(--spell-border-subtle, var(--ui-border-color, light-dark(#e3e0d8, #34343b)));
+  /* a table's cell borders:  stronger than the rule, so the grid reads (Owen, 2026-10-13:  "Lost table borders") */
+  --spell-table-rule: color-mix(in oklab, var(--spell-ink) 18%, transparent);
   --spell-doc-accent: var(--spell-text-accent, var(--ui-link, LinkText));
   --spell-doc-accent-soft: var(--spell-surface-selected, var(--ui-primary-background, light-dark(#e8eff8, #1f2b3b)));
   /* the brand's panels:  ivory for asides and answers, a lavender wash for side columns, the code well */
@@ -147,7 +149,8 @@ body {
  *   - BARS (the sticky page header and its toolbar, section titles, the footer, a bottom bar like the syntax guide's
  *     Send):  their background and rule edge to edge, their contents in the reading column
  *   - TABLES (`ui-table`, a bare `table`, as a section's or `<main>`'s own child):  the full width, less the page's
- *     16px gutter;  a table still scrolls inside its box when it's wider than the window
+ *     16px gutter;  a table still scrolls inside its box when it's wider than the window.  A table INSIDE prose (a list
+ *     item, an epic item's details) too:  the runtime measures how far in it starts (`wireWideTables()`)
  *   - everything else, PROSE and INSETS (paragraphs, lists, asides, code, messages, cards, comment threads):  the
  *     reading column, as wide as the narrow layout's text (`--spell-measure`), centred;  a paragraph keeps its 72ch
  *   - a block a page wants full width anyway:  `class="spell-full-width"`
@@ -1516,6 +1519,42 @@ ui-tab > pre {
 }
 .spell-doc-main ui-table :is(td, th) {
   vertical-align: top;
+}
+/* cell borders in `--spell-table-rule`, a bare table's and a `ui-table`'s alike */
+.spell-doc-main ui-table {
+  --ui-table-border-color: var(--spell-table-rule);
+  --ui-table-row-border: 1px solid var(--spell-table-rule);
+  --ui-table-cell-border: 1px solid var(--spell-table-rule);
+  --ui-table-header-border: 1px solid var(--spell-table-rule);
+}
+/* a bare `<table>` (an epic page's prose, a guide's):  celled, as a `ui-table celled compact` */
+.spell-doc-main table:not(ui-table table) {
+  border-collapse: collapse;
+  margin: 8px 0 12px;
+  font-size: 0.92rem;
+}
+.spell-doc-main table:not(ui-table table) :is(td, th) {
+  border: 1px solid var(--spell-table-rule);
+  padding: 6px 10px;
+  text-align: start;
+  vertical-align: top;
+  /* whole words, even where the prose around it breaks anywhere (an epic item's details) */
+  overflow-wrap: normal;
+  word-break: normal;
+}
+/* phone width:  it scrolls inside its own box, never squeezing its words or widening the page */
+@media (max-width: 600px) {
+  .spell-doc-main table:not(ui-table table) {
+    display: block;
+    overflow-x: auto;
+  }
+}
+.spell-doc-main table:not(ui-table table) th {
+  background: var(--spell-code-bg);
+  font: 500 0.72rem/1.4 var(--spell-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--spell-muted);
 }
 /* column heads as the brand's eyebrows:  small mono capitals, tracked, muted */
 .spell-doc-main ui-table :is(thead th, tr:not(:has(td)) > th) {

@@ -202,7 +202,10 @@ In `tools/`:
       - everything else, prose and insets (paragraphs, lists, asides, code, messages, cards, comment threads):
         the column, centred
       - a block that should run full width anyway:  `class="spell-full-width"`
-    - A table INSIDE prose (a list item, a plan doc item's details) stays in the column with it.
+    - A table INSIDE prose (a list item, a plan doc item's details) runs the full width too (Owen, 2026-10-13):
+      the runtime measures how far in it starts, and moves it out to the gutter (`wireWideTables()`).
+    - A bare `<table>` is celled like a `ui-table celled compact`;  both draw their cells in `--spell-table-rule`.
+      At phone width a bare table scrolls inside its own box.
     - A plan doc:  `<epic-page>`'s `--epic-inset` becomes the column's inset, so its bands run edge to edge
       and everything in them sits in the column.  The pack itself doesn't change.
     - `--spell-column-inset`:  from the window's edge to the column, at least 16px.
