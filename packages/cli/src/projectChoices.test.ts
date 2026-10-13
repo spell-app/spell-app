@@ -31,6 +31,7 @@ describe("projectChoices()", () => {
       "@test/FizzBuzz/",
       "@test/Klondike/",
       "@test/OutlineSolitaire/",
+      "@test/People/",
       "@test/Solitaire/",
       "@test/ThingReferences/"
     ])

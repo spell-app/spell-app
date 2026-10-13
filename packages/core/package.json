@@ -3,6 +3,9 @@
   "version": "0.8.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./model": "./src/model.ts"
+  },
   "scripts": {
     "/////// CORRECTNESS": "",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",

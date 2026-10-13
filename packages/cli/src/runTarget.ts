@@ -37,12 +37,15 @@ const SPELL_QUART_DIR = resolve(environment.packagesDir, "py", "quart")
 /**
  * The target `--target name` asks for:  `js`, `ts` or `py`, or a target's full name (`ts/solid`).
  * - `undefined` for none, or javascript:  `spell run`'s own path.
- * - throws `CLI.CliError` for a name no target has.
+ * - throws `CLI.CliError` for a name no target has, or one that doesn't run, e.g. a library (`js/lib`).
  */
 export function targetNamed(name: string | undefined): SP.Target | undefined {
   if (name === undefined) return undefined
   const target = SP.TARGETS[SHORT_NAMES[name] ?? name]
   if (!target) throw new CLI.CliError(`--target takes js, ts or py, not "${name}"`)
+  if (target.can.run === false) {
+    throw new CLI.CliError(`"${target.name}" doesn't run:  it's compiled for other code to import (\`spell compile\`)`)
+  }
   return target.name === SP.RUNNING_TARGET ? undefined : target
 }
 

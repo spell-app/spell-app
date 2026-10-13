@@ -76,7 +76,7 @@ export class ElementsWriter extends P.JSWriter {
     for (const statement of statements) {
       if (statement instanceof P.ASTStatementGroup && !(statement instanceof P.ASTTryCatchBlock)) {
         kept.push(...this.drawingHalf(statement.statements ?? []))
-      } else if (keptAsTheyAre().some((kind) => statement instanceof kind)) {
+      } else if (P.isDeclaration(statement)) {
         kept.push(statement)
       } else if (statement instanceof P.ASTMethodDefinition && statement.methodName) {
         this.standIns.add(statement)
@@ -180,24 +180,3 @@ export class ElementsWriter extends P.JSWriter {
     }
   }
 }
-
-/** Kept at the top level, as they are:  the classes, what's added to one, comments.  Made when first asked for. */
-function keptAsTheyAre(): Array<abstract new (...args: never[]) => P.ASTNode> {
-  return (KEPT ??= [
-    P.ASTClassDeclaration,
-    P.ASTPropertyDefinition,
-    P.ASTReactiveProperty,
-    P.ASTStaticDefinition,
-    P.ASTStaticMethod,
-    P.ASTPatchedMember,
-    P.ASTDocComment,
-    P.ASTPreservedComment,
-    P.ASTLineComment,
-    P.ASTBlockComment,
-    P.ASTBannerComment,
-    P.ASTBlankLine
-  ])
-}
-
-/** See `keptAsTheyAre()`:  made then, as the AST classes may not be loaded when this module is. */
-let KEPT: Array<abstract new (...args: never[]) => P.ASTNode> | undefined

@@ -51,5 +51,9 @@ packages/app/static/semantic-ui-css/**                        linguist-vendored 
 # yarn.lock stays a LINE merge:  `yarn install` resolves its conflict markers itself
 yarn.lock                                                     linguist-generated
 
+# spell:  its compiled libraries, the `js/lib` target (`spell compile @library`), and their types
+packages/spell/projects/system/library/**/*.lib.js            linguist-generated merge=binary
+packages/spell/projects/system/library/**/*.lib.d.ts          linguist-generated merge=binary
+
 # epics:  its component pack (`spell dev pack build epics`)
 packages/epics/pack/**                                        linguist-generated merge=binary -diff

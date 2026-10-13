@@ -92,6 +92,13 @@ export const PYTHON_FIXTURES = new Set([
   "ThingReferences"
 ])
 
+/**
+ * The fixtures compiled as a LIBRARY too (the `js/lib` target, epic `people-and-orgs` P3):  their `.lib.snapshot.js`,
+ * and its types, `.lib.snapshot.d.ts`, are checked.
+ * - Only fixtures that draw nothing:  a library can't.
+ */
+export const LIBRARY_FIXTURES = new Set(["People"])
+
 /** Name of each fixture project:  each folder of `FIXTURES_DIR` with a `project.json`, alphabetically. */
 export function fixtureProjectNames(): string[] {
   return readdirSync(FIXTURES_DIR, { withFileTypes: true })

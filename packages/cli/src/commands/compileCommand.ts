@@ -1,7 +1,7 @@
 import { basename } from "path"
 import { fileURLToPath } from "url"
 
-import { describeTypecheckError, typecheck } from "$/spell/node/typecheck"
+import { declarationsFor, describeTypecheckError, typecheck } from "$/spell/node/typecheck"
 import { describePyrightError, pyright } from "$/spell/node/pyright"
 import { SP } from "$/spell"
 import { CLI } from "$/cli"
@@ -12,6 +12,7 @@ import { CLI } from "$/cli"
  *   - `<Project>.compiled.js`, `<Project>.declarations.json`
  *   - its words, `<Project>.en.js` (`SP.SpellWords`)
  *   - each other target's, e.g. `<Project>.compiled.tsx` -- see `SP.TARGETS`
+ *   - a target with types, its `.d.ts` too, e.g. a library's `People.lib.d.ts` -- see `writeTypes()`
  *   - `--target <name>`:  that target, this run, instead of `project.json`'s
  *   - `--stdout`:  prints one (the target asked for, else the one that runs), and writes nothing
  * - A target with a checker is checked once written:  `tsc` on `ts/solid`, `pyright` on `py`.
@@ -77,6 +78,7 @@ async function compileProject(
   if (stdout) output.push(project.outputFileFor(printed).contents ?? "")
   const files = [...targets.map((it) => project.outputFileFor(it)), project.declarationsFile, project.wordsFile]
   const wrote = stdout ? [] : files.map((file) => file.location.serverPath)
+  if (!stdout) wrote.push(...(await writeTypes(project, targets)))
   // a CLEAN compile writes its scope pack too, as the language server does
   if (!stdout && !session.problems(project).length) {
     wrote.push(await session.workspace.writeScopes(project, session.explorer))
@@ -90,6 +92,31 @@ async function compileProject(
   ]
   const note = notes.filter(Boolean).join(" · ") || undefined
   return !session.report(status, row, project, { note, details: checked.details }).length
+}
+
+/**
+ * SIDE EFFECT:  write each of `project`'s targets' TYPES, as just compiled, e.g. a library's `People.lib.d.ts`
+ * (`SP.Target.types`, epic `people-and-orgs` P3).
+ * - `tsc` makes each from the TypeScript compiling kept (`project.typesSources`):  `declarationsFor()`.
+ * - Returns the paths it wrote.
+ */
+async function writeTypes(project: SP.SpellProject, targets: SP.Target[]): Promise<string[]> {
+  const wrote: string[] = []
+  const projects = Object.fromEntries(
+    Object.entries(CLI.importedOutputs(project)).map(([id, url]) => [id, fileURLToPath(url)])
+  )
+  for (const target of targets) {
+    const file = project.typesFileFor(target)
+    const source = project.typesSources.get(target.name)
+    if (!file || source === undefined) continue
+    const name = basename(file.location.serverPath).replace(/\.d\.ts$/, ".ts")
+    const types = (await declarationsFor({ [name]: source }, { projects }))[name]
+    if (types === undefined) continue
+    file.contents = types
+    await file.save(undefined)
+    wrote.push(file.location.serverPath)
+  }
+  return wrote
 }
 
 /**

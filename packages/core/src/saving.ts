@@ -30,7 +30,7 @@
  */
 import { getProp, ITEMS_KEY, keysOf, schemaOf, setProp, TYPE_KEY } from "$/util"
 
-import { spellCore } from "./core"
+import { programThings, spellCore } from "./core"
 import { fieldsOf, hasSetter, isPlainObject, isSpellObject } from "./state"
 // Import directly to avoid circular import
 import { List } from "./classes/List"
@@ -63,7 +63,10 @@ export type SaverOptions = {
 export type LoaderOptions = {
   /** The entry saved under `ref`, if there is one:  JSON as `Saver` wrote it. */
   entryFor: (ref: string) => Record<string, unknown> | undefined
-  /** The class an entry's `"@type"` names -- the program's, `spellCore.things.classNamed()`, by default. */
+  /**
+   * The class an entry's `"@type"` names:  the running program's (`spellCore.things.classNamed()`) by default.
+   * - Needed under `$/core/model`, which has no running program.
+   */
   classNamed?: (name: string) => SpellClass | undefined
 }
 
@@ -160,9 +163,18 @@ export class Loader {
   /** What it loaded, by key:  a second reference to one gets the same thing. */
   protected loaded = new Map<string, SpellObject>()
 
+  /**
+   * A loader reading entries through `entryFor`.
+   * - throws with no `classNamed`, and no running program to find classes in:
+   *   under `$/core/model` -- see `programThings()`
+   */
   constructor({ entryFor, classNamed }: LoaderOptions) {
     this.entryFor = entryFor
-    this.classNamed = classNamed ?? ((name) => spellCore.things.classNamed(name) as SpellClass | undefined)
+    const things = programThings()
+    if (!classNamed && !things) {
+      throw new TypeError("new Loader():  no running program to find classes in (`$/core/model`);  pass `classNamed`")
+    }
+    this.classNamed = classNamed ?? ((name) => things!.classNamed(name) as SpellClass | undefined)
   }
 
   /**

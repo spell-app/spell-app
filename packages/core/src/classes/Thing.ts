@@ -2,7 +2,7 @@
  * Base classes for spell.
  */
 import { Observable, runsCreate, typedJSON, type PropInfo } from "$/util"
-import { spellCore } from "$/core/core"
+import { registerThing, spellCore } from "$/core/core"
 import type { Drawing } from "$/core/drawing"
 import { Eventful } from "$/core/SpellEvent"
 import type { PropCheck } from "$/core/spellCore.types"
@@ -41,12 +41,12 @@ export class Thing extends Eventful(Observable) {
   }
 
   /**
-   * SIDE EFFECT:  registers itself in `spellCore.things`, for the Thing Explorer.
+   * SIDE EFFECT:  registers itself in `spellCore.things`, for the Thing Explorer -- see `registerThing()`.
    * - `props` optional:  `a new game` compiles to `new Game()`.
    */
   constructor(props?: Record<string, unknown>) {
     super(props)
-    spellCore.things.add(this)
+    registerThing(this)
     if (runsCreate(Thing, new.target)) this.create()
   }
 

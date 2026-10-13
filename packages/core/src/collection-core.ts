@@ -10,7 +10,9 @@
  */
 import _ from "lodash"
 import { spellCore } from "./core"
-import { assert, type List } from "$/core"
+// Import directly, never through the barrel:  `$/core/model` loads this file, and must not load drawing (Solid)
+import { assert } from "./assert"
+import type { List } from "./classes/List"
 import { defineSpellCoreModule } from "./spellCore.types"
 import { zeroIndexOf } from "./positions"
 

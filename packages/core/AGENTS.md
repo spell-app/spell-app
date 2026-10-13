@@ -91,6 +91,14 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - or the runtime's own API, e.g. `runtimeConsole()`
   - Pinned by two of app's tests:
     [element.build.test.ts](../app/src/runner/element.build.test.ts) and [build.test.ts](../app/src/build.test.ts).
+- The ONE other entry:  `$/core/model` ([model.ts](src/model.ts), epic `people-and-orgs` P3).
+  - The core with no drawing, so no Solid, and no running program's list of things.
+  - What a compiled LIBRARY imports (`People.lib.js`, the `js/lib` target), by the package's name:
+    `@spell-app/core/model`, the one export in `package.json`.
+  - So the server and the app may value-import it, through a library:
+    its things are plain data, belonging to no program, so a copy of its own is fine.
+  - Code it loads NEVER imports the barrel, and asks `programThings()` for the running program's things,
+    never `spellCore.things` itself.
 - It runs in a shadow root, so NEVER `document`:
   - `spellCore.appRoot` is where an app mounts
   - `spellCore.domRoot()` is where to look elements up, and add styles

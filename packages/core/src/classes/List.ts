@@ -4,7 +4,7 @@
 import _ from "lodash"
 
 import { Cell, isTrackingCells, ITEMS_KEY, Observable, runsCreate, typedJSON, type PropInfo } from "$/util"
-import { spellCore } from "$/core/core"
+import { registerThing, spellCore } from "$/core/core"
 import type { CollectionIterationCallback } from "$/core/collection-other"
 import type { Drawing } from "$/core/drawing"
 import type { PropCheck } from "$/core/spellCore.types"
@@ -67,12 +67,13 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * SIDE EFFECT:  a sub-class's instance, e.g. a `Deck`, registers itself in `spellCore.things`.
+   * SIDE EFFECT:  a sub-class's instance, e.g. a `Deck`, registers itself in `spellCore.things`:
+   *   see `registerThing()`.
    * - `props` optional:  `a new deck` compiles to `new Deck()`.
    */
   constructor(props?: Record<string, unknown>) {
     super(props)
-    spellCore.things.add(this)
+    registerThing(this)
     if (runsCreate(List, new.target)) this.create()
   }
 

@@ -20,6 +20,7 @@ export {
   fixtureImports,
   FIXTURES_DIR,
   PYTHON_FIXTURES,
+  LIBRARY_FIXTURES,
   summarize,
   describeParseErrors,
   describeWarnings

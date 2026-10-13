@@ -8,7 +8,9 @@
  * - TODO: collections for `words`, `lines`, etc?
  */
 import { spellCore } from "./core"
-import { assert, List } from "$/core"
+// Import directly, never through the barrel:  `$/core/model` loads this file, and must not load drawing (Solid)
+import { assert } from "./assert"
+import { List } from "./classes/List"
 import { defineSpellCoreModule } from "./spellCore.types"
 import type { CollectionOf } from "./collection-core"
 

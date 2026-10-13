@@ -89,9 +89,14 @@ async function importedProjects(
   return projects
 }
 
+/** Every target that runs a program:  all but a library (`js/lib`), which keeps only the classes. */
+const RUNNING_TARGETS = Object.values(SP.TARGETS)
+  .filter((target) => target.can.run !== false)
+  .map((target) => target.name)
+
 describe("the core contract:  every target prints the same", () => {
   test("every target has a file extension to run from", () => {
-    expect(Object.keys(SP.TARGETS).sort()).toEqual(Object.keys(TARGET_FILES).sort())
+    expect([...RUNNING_TARGETS].sort()).toEqual(Object.keys(TARGET_FILES).sort())
   })
 
   for (const name of fixtureProjectNames()) {
@@ -99,9 +104,7 @@ describe("the core contract:  every target prints the same", () => {
       name,
       async () => {
         // Python only where its writer writes the fixture so far -- see `PYTHON_FIXTURES`
-        const targets = Object.keys(SP.TARGETS).filter(
-          (target) => !target.startsWith("py") || PYTHON_FIXTURES.has(name)
-        )
+        const targets = RUNNING_TARGETS.filter((target) => !target.startsWith("py") || PYTHON_FIXTURES.has(name))
         const [js, ...others] = await Promise.all(targets.map((target) => printed(name, target)))
         for (const [index, other] of others.entries()) {
           expect(other!.split("\n"), `${name} on ${targets[index + 1]}`).toEqual(js!.split("\n"))

@@ -1,8 +1,9 @@
 import { execFileSync } from "child_process"
-import { existsSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "fs"
+import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
 import { dirname, join, resolve } from "path"
 
+import { formatHTML } from "$/assembler"
 import environment from "$/spell/node/environment"
 
 /**
@@ -27,12 +28,7 @@ export function typecheck(
   files: Record<string, string>,
   { projects = {} }: { projects?: Record<string, string> } = {}
 ): TypecheckResult {
-  const folder = mkdtempSync(join(tmpdir(), "spell-tsc-"))
-  try {
-    // a link, NOT a copy:  `rmSync()` below removes the link, never what it points to
-    symlinkSync(nodeModulesDir(), join(folder, "node_modules"), "dir")
-    for (const [name, code] of Object.entries(files)) writeFileSync(join(folder, name), code)
-    writeFileSync(join(folder, "tsconfig.json"), JSON.stringify(tsconfig(Object.keys(files), projects), null, 2))
+  return inTscFolder(files, projects, (folder) => {
     const result: TypecheckResult = {
       errors: Object.fromEntries(Object.keys(files).map((name) => [name, []])),
       other: []
@@ -44,9 +40,41 @@ export function typecheck(
       else result.other.push(line)
     }
     return result
-  } finally {
-    rmSync(folder, { recursive: true, force: true })
-  }
+  })
+}
+
+/**
+ * Each of `files`' DECLARATIONS, as `tsc` writes them, by its name:  `{ "People.lib.ts": "export declare class ..." }`.
+ * - What TypeScript code needs to import the javascript compiled from them,
+ *   e.g. a library's `People.lib.d.ts` (epic `people-and-orgs` P3, `SP.Target.types`).
+ * - Set up as `typecheck()` sets up, in a temp folder of its own;  type errors don't stop it.
+ * - Formatted as the repo formats its own files (`vp fmt`), not as `tsc` writes them.
+ * - A file `tsc` wrote nothing for is left out.
+ * - Used by `spell compile`, and spell's `fixtures.test.ts`.
+ * - NODE-ONLY:  as `typecheck()`.
+ */
+export async function declarationsFor(
+  files: Record<string, string>,
+  { projects = {} }: { projects?: Record<string, string> } = {}
+): Promise<Record<string, string>> {
+  const written = inTscFolder(files, projects, (folder) => {
+    const out = join(folder, "declarations")
+    // `tsc` writes a declaration for every source it reads, the core's too, each at its path under `rootDir`:
+    // MUST be the root of the disk, or a file outside it climbs out of `out`, into the repo (`../../core/...`)
+    runTsc(folder, ["--declaration", "--emitDeclarationOnly", "--noEmit", "false", "--rootDir", "/", "--outDir", out])
+    // ours, under `out`, at the temp folder's own path -- as `tsc` saw it (`/private/var/...` on a Mac)
+    const ours = join(out, realpathSync(folder))
+    const found: Record<string, string> = {}
+    for (const name of Object.keys(files)) {
+      const path = join(ours, `${name.replace(/\.tsx?$/, "")}.d.ts`)
+      if (existsSync(path)) found[name] = readFileSync(path, "utf8")
+    }
+    return found
+  })
+  const formatted = Object.entries(written).map(async ([name, text]) => {
+    return [name, await formatHTML(name.replace(/\.tsx?$/, ".d.ts"), text)] as const
+  })
+  return Object.fromEntries(await Promise.all(formatted))
 }
 
 /** What `typecheck()` found. */
@@ -134,10 +162,38 @@ function tsconfig(names: string[], projects: Record<string, string>) {
   }
 }
 
-/** `tsc`'s error lines for the project in `folder`, run there, so a file's are `Solitaire.tsx(...)`;  none if clean. */
-function runTsc(folder: string): string[] {
+/**
+ * `run(folder)`, with `files` written into a new temp folder, and a `tsconfig.json` for them (`tsconfig()`);
+ * the folder removed after.
+ * - The folder links the repo's `node_modules`, so `solid-js` and `@solidjs/web` resolve from it.
+ */
+function inTscFolder<T>(
+  files: Record<string, string>,
+  projects: Record<string, string>,
+  run: (folder: string) => T
+): T {
+  const folder = mkdtempSync(join(tmpdir(), "spell-tsc-"))
   try {
-    execFileSync(nodeBinary("tsc"), ["-p", "tsconfig.json", "--pretty", "false"], { cwd: folder, encoding: "utf8" })
+    // a link, NOT a copy:  `rmSync()` below removes the link, never what it points to
+    symlinkSync(nodeModulesDir(), join(folder, "node_modules"), "dir")
+    for (const [name, code] of Object.entries(files)) writeFileSync(join(folder, name), code)
+    writeFileSync(join(folder, "tsconfig.json"), JSON.stringify(tsconfig(Object.keys(files), projects), null, 2))
+    return run(folder)
+  } finally {
+    rmSync(folder, { recursive: true, force: true })
+  }
+}
+
+/**
+ * `tsc`'s error lines for the project in `folder`, run there, so a file's are `Solitaire.tsx(...)`;  none if clean.
+ * - `flags`:  more of `tsc`'s, e.g. to write declarations -- see `declarationsFor()`.
+ */
+function runTsc(folder: string, flags: string[] = []): string[] {
+  try {
+    execFileSync(nodeBinary("tsc"), ["-p", "tsconfig.json", "--pretty", "false", ...flags], {
+      cwd: folder,
+      encoding: "utf8"
+    })
     return []
   } catch (error) {
     const { stdout = "", stderr = "" } = error as { stdout?: string; stderr?: string }

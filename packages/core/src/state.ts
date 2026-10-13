@@ -28,7 +28,7 @@
  */
 import { getProp, ITEMS_KEY, keysOf, setProp, TYPE_KEY } from "$/util"
 
-import { spellCore } from "./core"
+import { programThings } from "./core"
 // Import directly to avoid circular import
 import { List } from "./classes/List"
 import { Thing } from "./classes/Thing"
@@ -128,7 +128,7 @@ export class StateMirror {
     const keys = Object.keys(state)
     if (typeof id === "string" && keys.length === 1) return this.byId.get(id)
     const type = state[TYPE_KEY]
-    const Class = typeof type === "string" ? spellCore.things.classNamed(type) : undefined
+    const Class = typeof type === "string" ? programThings()?.classNamed(type) : undefined
     if (!Class) return Object.fromEntries(Object.entries(state).map(([key, value]) => [key, this.read(value)]))
     const { [TYPE_KEY]: _type, [ID_KEY]: _id, [ITEMS_KEY]: items, ...named } = state
     const fields = Object.fromEntries(Object.entries(named).map(([key, value]) => [this.nameOf(key), value]))

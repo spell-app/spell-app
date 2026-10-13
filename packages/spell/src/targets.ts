@@ -49,12 +49,24 @@ export type Target = {
    * - Written only for a project that draws, and only while nobody has edited it (`PY.isUneditedApp()`).
    */
   appSuffix?: string
+  /**
+   * Its TYPES, for TypeScript code importing its output:  a `.d.ts` beside it, e.g. `People.lib.d.ts`
+   * (epic `people-and-orgs` P3).
+   * - `writer` writes the same module as TypeScript, which `tsc` turns into the `.d.ts`:
+   *   `spell compile` does, as it needs node (`declarationsFor()`, in `$/spell/node/typecheck`).
+   */
+  types?: { suffix: string; writer: P.ProgramWriter }
 }
 
 /** What a target's runtime can do -- checked while compiling, so a project asks only what its targets give. */
 export type TargetAbilities = {
   /** Draw a UI:  `dom` into the page, `html` as text (e.g. server pages), or not at all. */
   draw: "dom" | "html" | false
+  /**
+   * Run the program:  its top-level steps, e.g. `spell run`, and the core contract's runs.
+   * - `false` for a library (`js/lib`), which keeps only the classes;  every other target runs.
+   */
+  run?: false
 }
 
 /** Every target, by name. */
@@ -81,6 +93,16 @@ export const TARGETS: Record<string, Target> = {
     elementsSuffix: ELEMENTS_JS_SUFFIX,
     appSuffix: ".app.py",
     checkedBy: "pyright"
+  },
+  // A LIBRARY:  the project's classes alone, as plain javascript, for other code to import with no build step
+  // (epic `people-and-orgs` P3, Q11):  no drawing, no top-level steps, the core with no Solid (`$/core/model`).
+  // `People.lib.js`, and its types beside it, `People.lib.d.ts`;  both committed, marked generated
+  "js/lib": {
+    name: "js/lib",
+    writer: P.LibraryWriter.instance,
+    suffix: ".lib.js",
+    can: { draw: false, run: false },
+    types:{ suffix: ".lib.d.ts", writer: P.LibraryTSWriter.instance }
   }
 }
 
