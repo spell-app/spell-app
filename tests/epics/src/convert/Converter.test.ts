@@ -79,7 +79,7 @@ describe("Converter.convert():  the newest layout, split", () => {
       repo: "https://github.com/spell-app/spell-app"
     })
     expect(document.querySelector("body > ui-root > ui-components")!.getAttribute("source")).toBe(
-      "../../packages/epics/pack/epics.pack.js"
+      "../../packages/epics/components/__pack/epics.pack.js"
     )
     expect(document.querySelectorAll("body > script")).toHaveLength(2)
     expect(document.body.getAttribute("class")).toBe("spell-doc-page plan-doc")

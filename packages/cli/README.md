@@ -238,11 +238,11 @@ Longer notes on some of them follow the table.
     - Only the files it lacks;  `package.json` is merged.
     - The templates:  [the package templates](templates/pack/package/).
   - `element <pack> <tag>`:  adds one family, from [the element templates](templates/pack/element/).
-  - `build <pack>`:  writes `pack/`.
+  - `build <pack>`:  writes `components/__pack/`.
     - the catalog, from the vocabularies, by Spell UI's [`RootCatalog.ts`](../ui/tools/RootCatalog.ts)
     - the entry
     - ONE classic script, `<pack>.pack.js`
-  - `check [<pack>]`:  exits 1 when `pack/` is stale.  No pack:  every pack.
+  - `check [<pack>]`:  exits 1 when `components/__pack/` is stale.  No pack:  every pack.
   - Making a pack or an element builds it too, unless `--no-build`.
   - `--json`.
 - `dev window`:  runs [`window.mjs`](../../scripts/window.mjs).
@@ -409,7 +409,7 @@ Longer notes on some of them follow the table.
   src/dev/mergeMain.ts, and the shared commands page, guides/dev/commands/commands.json
   ```
 
-- `dev pack build` writes the pack's `pack/`.
+- `dev pack build` writes the pack's `components/__pack/`.
 
 ### `dev pack`
 

@@ -6,9 +6,9 @@ import { SiteDataBuilder } from "$/ui/tools/SiteDataBuilder"
 import { SITE_PAGES } from "$/ui/tools/tools.types"
 
 /**
- * The site's committed data (`site/_data/components.json`, `pages.json`, `icons.json`) and the shared
- * `ui/_data/search.json` are what `yarn site:data` would write now:  run it after changing a vocabulary, a family
- * sheet's tokens, `pages.json` or a page's sections (a page edit in ANY checkout:  the pages are shared).
+ * The site's committed data (`docs/__data/`:  `components.json`, `pages.json`, `icons.json`, `search.json`) is what
+ * `yarn site:data` would write now:  run it after changing a vocabulary, a family sheet's tokens, `pages.json` or a
+ * page's sections.
  */
 describe("SiteDataBuilder.build()", () => {
   it("is current (else run `yarn site:data`)", async () => {
@@ -27,9 +27,9 @@ describe("SiteDataBuilder.build()", () => {
       folder: "ui-button",
       mainTag: "ui-button",
       main: true,
-      href: "components/ui-button.html"
+      href: "ui-button.html"
     })
-    expect(data.components.find((entry) => entry.tag === "ui-or")!.href).toBe("components/ui-button.html#ui-or")
+    expect(data.components.find((entry) => entry.tag === "ui-or")!.href).toBe("ui-button.html#ui-or")
     expect(data.components.some((entry) => entry.tag.startsWith("ui-docs-"))).toBe(false)
     expect(data.docs.map((entry) => entry.tag)).toContain("ui-docs-example")
     expect(data.docs.every((entry) => entry.href === undefined)).toBe(true)
@@ -40,7 +40,7 @@ describe("SiteDataBuilder.build()", () => {
   it("links a sub-tag with a page of its own (pages.json `pages`) to that page", async () => {
     const { data } = await new SiteDataBuilder().build()
     const radio = data.components.find((entry) => entry.tag === "ui-radio")!
-    expect(radio).toMatchObject({ folder: "ui-checkbox", main: false, page: true, href: "components/ui-radio.html" })
+    expect(radio).toMatchObject({ folder: "ui-checkbox", main: false, page: true, href: "ui-radio.html" })
     expect(data.families["ui-checkbox"]!.pages!["ui-radio"]!.title).toBe("Radio")
     expect(data.components.find((entry) => entry.tag === "ui-or")!.page).toBe(false)
     expect(data.components.find((entry) => entry.tag === "ui-button")!.page).toBe(true)

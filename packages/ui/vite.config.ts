@@ -12,6 +12,9 @@ import { hotElements } from "./tools/HotElements.ts"
 /** Absolute path of `src/`. */
 const SRC = fileURLToPath(new URL("./src", import.meta.url))
 
+/** Absolute path of `components/`:  the families, outside `src/`, as every component set's are. */
+const COMPONENTS_DIR = fileURLToPath(new URL("./components", import.meta.url))
+
 /**
  * Browsers the CSS is compiled FOR:  the platform floor the plan commits to (anchor positioning everywhere).
  * - MUST stay modern:  with Vite's default (`baseline-widely-available`) Lightning CSS lowers `light-dark()`
@@ -21,7 +24,7 @@ const SRC = fileURLToPath(new URL("./src", import.meta.url))
  */
 export const CSS_TARGETS = { chrome: 125 << 16, safari: 26 << 16, firefox: 147 << 16 }
 
-/** Component families, one lib entry each (`src/components/ui-<name>/index.ts`), so each can be loaded and sized alone. */
+/** Component families, one lib entry each (`components/ui-<name>/index.ts`), so each can be loaded and sized alone. */
 export const COMPONENTS = [
   "ui-button",
   "ui-dropdown",
@@ -101,7 +104,7 @@ export const SHARED_ENTRIES = { core: `${SRC}/core.ts`, forms: `${SRC}/forms.ts`
  */
 export const ENTRIES: Record<string, string> = {
   ...SHARED_ENTRIES,
-  ...Object.fromEntries(COMPONENTS.map((name) => [name, `${SRC}/components/${name}/index.ts`])),
+  ...Object.fromEntries(COMPONENTS.map((name) => [name, `${COMPONENTS_DIR}/${name}/index.ts`])),
   styles: `${SRC}/styles/index.ts`,
   index: `${SRC}/index.ts`,
   api: `${SRC}/api.ts`
@@ -200,7 +203,7 @@ export default defineConfig(() => {
 })
 
 /**
- * Chunk file names:  an emoji data chunk (`src/components/ui-emoji/data/<set>/<letter>.json`) goes to
+ * Chunk file names:  an emoji data chunk (`components/ui-emoji/data/<set>/<letter>.json`) goes to
  * `emoji/<set>/<letter>-[hash].js`, so the two name sets' chunks are told apart -- by a reader of `dist/`, and by the
  * docs' single-file bundler, which loads them lazily instead of inlining them (`packages/epics/tools/bundle-spell-ui.js`).
  */
@@ -217,8 +220,10 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  * `dist/index.d.ts`, `dist/core.d.ts`, `dist/components/ui-<name>/index.d.ts` ... --
  * the paths `package.json` `exports` names.
  * - `src/` imports `$/util` (`../util/src`) and `$/spell-solid` (`../spell-solid/src`), OUTSIDE this package, so the
- *   program's root is `packages/` (`compilerOptions.rootDir`, else TS6059) and all three `src/` trees are included.
+ *   program's root is `packages/` (`compilerOptions.rootDir`, else TS6059) and all three `src/` trees are included,
+ *   with ui's `components/`.
  * - Then `beforeWriteFile` moves what the plugin wrote to `dist/ui/src/**` up to `dist/**`,
+ *   `dist/ui/components/**` to `dist/components/**` (where it was while the families lived in `src/components/`),
  *   `dist/util/src/**` to `dist/_util/**` (not `dist/util/`:  that's `src/util/`'s) and `dist/spell-solid/src/**` to
  *   `dist/_spell-solid/**`, and rewrites `$/util`, `$/spell-solid` and `$/ui` specifiers to relative ones (a
  *   `declare module` augmentation's too).  `pathsToAliases: false`:  the plugin's own rewrite measures from the layout
@@ -235,10 +240,10 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  */
 export function declarations(): PluginOptions {
   return {
-    include: ["src", "../util/src", "../spell-solid/src"],
+    include: ["src", "components", "../util/src", "../spell-solid/src"],
     exclude: [
       // visual-test hooks:  they import `test/test.types.ts`, whose `vitest` augmentations this program can't resolve
-      "src/**/*.visual.ts",
+      "components/**/*.visual.ts",
       "../util/src/spell/**",
       "../util/src/index.ts",
       // dev-only, never in a build
@@ -253,7 +258,7 @@ export function declarations(): PluginOptions {
 
 /**
  * `declarations()`'s `beforeWriteFile`:  where a `.d.ts` goes in `dist/`, and its imports made to match.
- * - Returns `false` (skip) for anything outside `ui/src`, `util/src` and `spell-solid/src`.
+ * - Returns `false` (skip) for anything outside `ui/src`, `ui/components`, `util/src` and `spell-solid/src`.
  * - Only import / export STATEMENTS are rewritten (`from "..."`, `import("...")`, `declare module "..."`):
  *   doc comments may mention aliases.
  * - A specifier is resolved against the SOURCE tree, then expressed in `dist/` terms.
@@ -301,13 +306,15 @@ function rewriteDeclaration(filePath: string, content: string) {
 }
 
 /**
- * The packages outside this one whose declarations ship inside `@spell-app/ui` (`rewriteDeclaration()`):
+ * The folders besides `src/` whose declarations ship inside `@spell-app/ui`, each into a `dist/` folder of its own
+ * (`rewriteDeclaration()`):  ui's `components/`, and the packages outside this one.
  * - `alias`:  how `src/` imports them
  * - `src`:  their source folder
  * - `written`:  where `vite-plugin-dts` writes their declarations, in `dist/`
  * - `folder`:  where they go instead
  */
 const OUTSIDE = [
+  { alias: "$/ui/components", src: path.resolve("components"), written: "ui/components/", folder: "components" },
   { alias: "$/util", src: path.resolve("../util/src"), written: "util/src/", folder: "_util" },
   {
     alias: "$/spell-solid",
@@ -334,7 +341,7 @@ function hotElementsPlugin(): Plugin {
 
 /**
  * Copies the built-in icon packs, `src/icons/icon-packs/**` (SVGs + each `pack.js`), to `<dir>/**` in the build output,
- * next to the chunks, where `BuiltInPacks` looks via `import.meta.url` (`docs/icons.md`, "Shipping icons").
+ * next to the chunks, where `BuiltInPacks` looks via `import.meta.url` (`notes/icons.md`, "Shipping icons").
  * - Library build:  `BuiltInPacks` lives in `dist/core.js` (the `core` entry re-exports `$/ui/icons`), so `dist/icon-packs/`.
  * - Docs site:  not this plugin:  `site/_assets/icon-packs` is a symlink to the source folder (`scripts/site-bundle.ts`).
  * - Copied as ASSETS, never bundled:  the runtime imports each `pack.js` by URL, on demand.

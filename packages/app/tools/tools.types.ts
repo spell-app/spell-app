@@ -11,7 +11,7 @@ import type { SiteDataBuilder } from "$/ui/tools/SiteDataBuilder"
 // ## The data file
 ////////////////
 
-/** `_data/components.json`:  Spell UI's `SiteDataFile`, as its builder makes it. */
+/** `__data/components.json`:  Spell UI's `SiteDataFile`, as its builder makes it. */
 export type AppUIData = Awaited<ReturnType<SiteDataBuilder["build"]>>["data"]
 
 /** One entry of the data file:  a web component's tag, or a Solid component. */
@@ -31,7 +31,7 @@ export type AppUIUse = NonNullable<AppUITag["usedIn"]>[number]
 ////////////////
 
 /**
- * `_data/pages.json`:  the set's hand-kept facts, which `yarn site:data` reads and never writes.
+ * `__data/pages.json`:  the set's hand-kept facts, which `yarn site:data` reads and never writes.
  * - Its `families` are Spell UI's page seeds too (`SitePagesFile`):  Spell UI's builder reads the two web
  *   components' entries from it.
  */
@@ -108,8 +108,11 @@ export type TypeSourceFinder = (from: string, specifier: string) => string | und
 // ## Paths
 ////////////////
 
-/** The set's folder, from `packages/app/`:  the web components' own folder (epic `epic-workflow`, J30). */
-export const APP_UI_FOLDER = "components"
+/** The set's folder, from `packages/app/`:  its docs pages, served at `/components/app/`. */
+export const APP_UI_FOLDER = "docs"
 
 /** The data folder, in the set's folder. */
-export const APP_UI_DATA = "_data"
+export const APP_UI_DATA = "__data"
+
+/** The web components' code, from `packages/app/`:  `components/<tag>/`. */
+export const APP_COMPONENTS = "components"

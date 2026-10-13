@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>SplitPanel</title>
+    <meta name="description" content="Panes side by side or one above the other, with bars to drag between them." />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="SplitPanel">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../../packages/app/src/solid/SplitPanel.tsx"
+              icon="code"
+              aria-label="Its code, SplitPanel.tsx"
+              title="Its code, SplitPanel.tsx"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            SplitPanel
+            <ui-header>Panes side by side or one above the other, with bars to drag between them.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <p class="lede">
+            How the editor cuts its page into panes: the code, the console, the running program, its compiled
+            javascript. Drag the bar between two panes to resize them, and the editor remembers the new sizes next time.
+          </p>
+          <ui-list class="spell-meta">
+            <ui-item icon="user">Written for: anyone changing the layout of the spell app's pages</ui-item>
+            <ui-item icon="image"
+              >A picture, not live: the editor's main split. A live <code>&lt;spell-app&gt;</code>'s panes don't use
+              it</ui-item
+            >
+          </ui-list>
+
+          <ui-section id="1-what-it-looks-like" header="1. What it looks like" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="image"></ui-icon>
+            <p>
+              The editor page: one SplitPanel of two columns, each a SplitPanel of rows. On the left, the code above the
+              program's output; on the right, the app above its javascript and its spell tree.
+            </p>
+            <ui-image
+              src="_images/SplitPanel.png"
+              alt="The editor split into five panes: the spell code and program output on the left, the app, javascript output and spell tree on the right"
+              bordered
+              rounded
+            ></ui-image>
+            <p class="meta">
+              A picture, taken by <code>yarn site:pictures</code> in
+              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="code"></ui-icon>
+            <p>The editor page nests three: two columns, then rows in each:</p>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>SpellEditor.tsx · the editor page's panes · 11 lines</ui-title>
+              <ui-content>
+                <ui-code language="typescript"
+                  ><script type="text/plain">
+                    <SplitPanel id="spellEditor-columns" columns resizable fluid spaced="tightly">
+                      <SplitPanel id="spellEditor-left" rows="85%" resizable rounded>
+                        <InputRoot />
+                        <ConsoleRoot />
+                      </SplitPanel>
+                      <SplitPanel id="spellEditor-right" rows="60%" resizable rounded>
+                        <AppRoot />
+                        <OutputRoot />
+                        <TreeRoot />
+                      </SplitPanel>
+                    </SplitPanel>
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+            <ul>
+              <li>
+                Give it EITHER <code>columns</code> (panes side by side) or <code>rows</code> (one above the other), and
+                their sizes:
+                <ul>
+                  <li><code>true</code>: every pane the same size</li>
+                  <li>a list, <code>"30%,2em"</code> or <code>["20%", "*", 100]</code></li>
+                  <li>a number, or <code>px</code> / <code>em</code> / <code>rem</code>: a fixed size</li>
+                  <li><code>%</code>: that share of the room the fixed panes leave</li>
+                  <li>
+                    <code>*</code>, or left out: an equal share of what's left, so <code>"85%"</code> for two panes
+                    means 85% and 15%
+                  </li>
+                </ul>
+              </li>
+              <li>
+                Each child becomes a pane, a <code>&lt;SplitPane&gt;</code> wearing the panel's look (bordered, padded,
+                light, rounded, scrolling). Write a SplitPane yourself to give one pane a look of its own; a nested
+                SplitPanel is a pane as it is.
+              </li>
+              <li>One pane per element a child draws: a component that draws two side by side makes two panes.</li>
+              <li>
+                <code>resizable</code> puts a <code>&lt;SplitSizer&gt;</code>, a bar to drag, between each two panes.
+                Without it, <code>spaced</code> puts a <code>&lt;SplitSpacer&gt;</code> there, just room.
+              </li>
+              <li>
+                With an <code>id</code>, a resizable panel remembers its sizes as a preference under that id: keep it
+                unique in the app.
+              </li>
+              <li>
+                Sizes are each pane's inline <code>flex</code>, written straight to the page: a drag rewrites them on
+                every mouse move.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="3-props" header="3. Props, and where it's drawn" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="list check"></ui-icon>
+            <ui-docs-api family="SplitPanel"></ui-docs-api>
+            <p class="meta">
+              From its code, by <code>yarn site:data</code> in
+              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="4-its-code" header="4. Its code" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="folder open"></ui-icon>
+            <ul>
+              <li>
+                <a href="../../packages/app/src/solid/SplitPanel.tsx" target="src-packages-app-src-solid-splitpanel-tsx"
+                  ><code title="packages/app/src/solid/SplitPanel.tsx">SplitPanel.tsx</code></a
+                >: SplitPanel, SplitPane, SplitSpacer and SplitSizer, and how sizes are read
+              </li>
+              <li>
+                <a href="../../packages/app/src/solid/SplitPanel.css" target="src-packages-app-src-solid-splitpanel-css"
+                  ><code title="packages/app/src/solid/SplitPanel.css">SplitPanel.css</code></a
+                >: their look
+              </li>
+              <li>
+                <a
+                  href="../../tests/app/src/solid/shell.browser.test.tsx"
+                  target="src-tests-app-src-solid-shell-browser-test-tsx"
+                  ><code title="tests/app/src/solid/shell.browser.test.tsx">shell.browser.test.tsx</code></a
+                >: its tests: sizes, and dragging a bar
+              </li>
+              <li>
+                In the app's Solid components, <code>$/app/solid</code>:
+                <a href="../../packages/app/src/solid/" target="src-packages-app-src-solid"
+                  ><code title="packages/app/src/solid/">src/solid/</code></a
+                >
+              </li>
+            </ul>
+          </ui-section>
+
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">Last checked 2026-10-12 against branch <code>epic-workflow</code>.</p>
+          </footer>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

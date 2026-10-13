@@ -373,8 +373,8 @@ describe("<ui-docs-search> shortcuts", () => {
 
 describe("<ui-docs-search> data", () => {
   it("searches the page shown when the site's data doesn't load", async () => {
-    SiteData.url = "/no-such-folder/_data/components.json"
-    SearchData.url = "/no-such-folder/_data/search.json"
+    SiteData.url = "/no-such-folder/__data/components.json"
+    SearchData.url = "/no-such-folder/__data/search.json"
     const { field } = await render()
     await type(field, "keyboard")
     expect(groups(field)).toEqual([{ label: "On this page", titles: ["Keyboard"] }])

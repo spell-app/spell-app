@@ -16,7 +16,7 @@ const UI_CORE = fileURLToPath(new URL("../ui/src/core.ts", import.meta.url))
  * `@spell-app/ui`'s root family, `$/ui/components/ui-root`:  in `SHARED_SOLID.solid`, as `<spell-app>` is a root.
  * - Its loader imports every other family on demand:  each a lazy chunk of `ui/`.
  */
-const UI_ROOT = fileURLToPath(new URL("../ui/src/components/ui-root/index.ts", import.meta.url))
+const UI_ROOT = fileURLToPath(new URL("../ui/components/ui-root/index.ts", import.meta.url))
 
 /** `@spell-app/ui`'s barrel, `$/ui`:  in `SHARED_SOLID.ui`. */
 const UI_BARREL = fileURLToPath(new URL("../ui/src/index.ts", import.meta.url))

@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>epic-option</title>
+    <meta
+      name="description"
+      content="One option card: its letter and title drawn in its header, its pros and cons its children."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="&lt;epic-option&gt;">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../../packages/epics/src/tool/PLAN-DOC.md"
+              icon="book"
+              aria-label="The markup rules, PLAN-DOC.md"
+              title="The markup rules, PLAN-DOC.md"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            &lt;epic-option&gt;
+            <ui-header
+              >One option card: its letter and title drawn in its header, its pros and cons its children.</ui-header
+            >
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <p class="lede">
+            One option card in a set of
+            <a href="epic-choices.html" target="src-packages-epics-docs-epic-choices-html"
+              ><code>&lt;epic-choices&gt;</code></a
+            >. It draws its header (the letter, the title, a thumbs-up when it's the recommended one) and holds the
+            option's pros and cons as its children.
+          </p>
+          <!-- no <ui-list class="spell-meta">:  its <ui-item>s take the "item" style sheet before the pack's
+               <epic-item> can, and the live items draw unstyled (issue I9 of epic-components) -->
+          <p class="meta">
+            For anyone reading or writing a plan doc's markup, or changing this element.<br />
+            <ui-label size="mini" color="green">built</ui-label> in
+            <a href="../../packages/epics/components/epic-choices/" target="src-packages-epics-components-epic-choices"
+              ><code title="packages/epics/components/epic-choices/">epic-choices/</code></a
+            >.<br />
+            Its vocabulary (every table below comes from it):
+            <a
+              href="../../packages/epics/components/epic-choices/EpicOption.en.ts"
+              target="src-packages-epics-components-epic-choices-epicoption-en-ts"
+              ><code title="packages/epics/components/epic-choices/EpicOption.en.ts">EpicOption.en.ts</code></a
+            >.<br />
+            The markup rules:
+            <a href="../../packages/epics/src/tool/PLAN-DOC.md" target="src-packages-epics-src-tool-plan-doc-md"
+              ><code title="packages/epics/src/tool/PLAN-DOC.md">PLAN-DOC.md</code></a
+            >.
+          </p>
+
+          <ui-section id="1-example" header="1. Example" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="eye"></ui-icon>
+            <p>Live: the real element, drawn by the epics pack this page loads.</p>
+            <ul>
+              <li>Click a line to unfold it.</li>
+              <li>The review buttons don't show here: they show only on a plan doc being reviewed.</li>
+            </ul>
+            <p>Option A recommended; the second set answered with B, so B is the chosen panel.</p>
+            <epic-item id="q1" title="Which colour names can a window take?" status="open" state="attention" open>
+              <epic-question
+                ><p>Which colour names <code>/epic &lt;name&gt; -&lt;color&gt;</code> accepts.</p></epic-question
+              >
+              <epic-choices>
+                <epic-option letter="A" title="A named palette" recommended
+                  ><ul>
+                    <li>12 names, each a dark title-bar shade</li>
+                    <li>an unknown name lists the 12</li>
+                  </ul></epic-option
+                >
+                <epic-option letter="B" title="Any CSS colour"
+                  ><ul>
+                    <li>anything goes</li>
+                    <li>a light colour makes the white title unreadable</li>
+                  </ul></epic-option
+                >
+              </epic-choices>
+            </epic-item>
+            <epic-item
+              id="q2"
+              title="Which four colours for the review buttons?"
+              status="decided"
+              state="recent"
+              answered
+              open
+            >
+              <epic-question><p>The four action colours.</p></epic-question>
+              <epic-choices chosen="B">
+                <epic-option letter="A" title="Fomantic's own"><p>no work; violet reads as a link</p></epic-option>
+                <epic-option letter="B" title="Calm colours, by meaning" recommended
+                  ><p>green = decided; none reads as an error</p></epic-option
+                >
+              </epic-choices>
+              <epic-answer title="Calm colours, by meaning"></epic-answer>
+            </epic-item>
+          </ui-section>
+
+          <ui-section id="2-markup" header="2. Markup" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="code"></ui-icon>
+            <p>
+              From Q13 of the <code>wwod</code> epic (<a
+                href="../../epics/wwod/parts/q13.html"
+                target="src-epics-wwod-parts-q13-html"
+                title="epics/wwod/parts/q13.html"
+                ><code>q13.html</code></a
+              >): one recommended, one not. A title with markup goes in a <code>&lt;span slot="title"&gt;</code> child
+              instead of <code>title</code>.
+            </p>
+            <ui-accordion class="spell-code" styled>
+              <ui-title title="epics/wwod/parts/q13.html">q13.html · 3 lines</ui-title>
+              <ui-content>
+                <ui-code language="html"
+                  ><script type="text/plain">
+                    <epic-option letter="A" title="Both, by kind" recommended
+                      ><p>Classes with behaviour subclass (ours); plain config / spec records spread (WWOD).</p></epic-option
+                    ><epic-option letter="B" title="Subclass"><p>Drop WWOD's rule.</p></epic-option>
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+
+          <ui-section id="3-where-it-goes" header="3. Where it goes" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="layer group"></ui-icon>
+            <p><b>Its parents:</b></p>
+            <ul>
+              <li>
+                <a href="epic-choices.html" target="src-packages-epics-docs-epic-choices-html"
+                  ><code>&lt;epic-choices&gt;</code></a
+                >, only
+              </li>
+            </ul>
+            <p>Its children:</p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Child</th>
+                    <th>How many</th>
+                    <th>What it holds</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>prose, <code>slot="title"</code></td>
+                    <td>one at most</td>
+                    <td>A title with markup.</td>
+                  </tr>
+                  <tr>
+                    <td>prose</td>
+                    <td>any number</td>
+                    <td>Its pros and cons.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+
+          <ui-section id="4-attributes" header="4. Attributes" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="table columns"></ui-icon>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Values</th>
+                    <th>Meaning</th>
+                    <th>Required</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>letter</code></td>
+                    <td>a capital letter, <code>A</code></td>
+                    <td>
+                      <code>A</code>, <code>B</code> ...: what <code>&lt;epic-choices chosen&gt;</code> and Owen's pick
+                      name.
+                    </td>
+                    <td>yes</td>
+                  </tr>
+                  <tr>
+                    <td><code>title</code></td>
+                    <td>text</td>
+                    <td>The option in a few words, WITHOUT its letter (<code>A named palette</code>).</td>
+                    <td>yes, or a <code>slot="title"</code> child</td>
+                  </tr>
+                  <tr>
+                    <td><code>recommended</code></td>
+                    <td>present or absent</td>
+                    <td>The one Claude recommends.</td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ui-section id="epic-option-slots" header="Slots" sticky collapsible dividing collapsed>
+              <p>
+                A slot is a place in the drawing that a child goes to: a child with <code>slot="name"</code> goes to
+                that name's place, every other child to the default one (shown as <i>default</i>).
+              </p>
+              <ui-table celled compact striped unstackable>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Slot</th>
+                      <th>What goes there</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><i>default</i></td>
+                      <td>Its pros and cons.</td>
+                    </tr>
+                    <tr>
+                      <td><code>title</code></td>
+                      <td>A title with markup, in place of <code>title</code>.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ui-table>
+            </ui-section>
+            <ui-section id="epic-option-parts" header="Parts" sticky collapsible dividing collapsed>
+              <p>
+                A part is a piece of what the element draws in its shadow root (its own hidden markup), named so a
+                stylesheet can reach it: <code>epic-option::part(header)</code>.
+              </p>
+              <ui-table celled compact striped unstackable>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Part</th>
+                      <th>What it is</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>base</code></td>
+                      <td>The card; answered, a panel.</td>
+                    </tr>
+                    <tr>
+                      <td><code>header</code></td>
+                      <td>Its header: letter, title, the recommended thumbs-up, the Choose pill.</td>
+                    </tr>
+                    <tr>
+                      <td><code>toggle</code></td>
+                      <td>
+                        The <code>&lt;button&gt;</code> that folds the card or panel (its header's text, the chevron
+                        first); a card with no pros and cons: a plain span.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><code>check</code></td>
+                      <td>Answered and chosen: the check before its letter.</td>
+                    </tr>
+                    <tr>
+                      <td><code>title</code></td>
+                      <td><code>A · A named palette</code>.</td>
+                    </tr>
+                    <tr>
+                      <td><code>recommended</code></td>
+                      <td>
+                        The recommended one's violet thumbs-up, after its title, labelled <code>Recommended</code>.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><code>actions</code></td>
+                      <td>While the page is reviewed: the box at the header's end holding the pill.</td>
+                    </tr>
+                    <tr>
+                      <td><code>choose</code></td>
+                      <td>
+                        The Choose pill (<code>&lt;button aria-pressed&gt;</code>): marks its letter as the item's pick
+                        in the page's review inbox; on the chosen option, solid and <code>aria-disabled</code>: the pick
+                        applied.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><code>body</code></td>
+                      <td>Its pros and cons; hidden (<code>until-found</code>) while folded.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ui-table>
+            </ui-section>
+            <ui-section id="epic-option-states" header="States" sticky collapsible dividing collapsed>
+              <p>
+                A state is a word the element sets on itself while something is true, for styling:
+                <code>epic-option:state(open)</code>. Never written in the file.
+              </p>
+              <ui-table celled compact striped unstackable>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>State</th>
+                      <th>When</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>answered</code></td>
+                      <td>Its question is answered: a panel under Choices.</td>
+                    </tr>
+                    <tr>
+                      <td><code>chosen</code></td>
+                      <td>Its <code>letter</code> is its <code>&lt;epic-choices chosen&gt;</code>.</td>
+                    </tr>
+                    <tr>
+                      <td><code>open</code></td>
+                      <td>Unfolded: a card starts so; an answered panel only when it's the chosen one (page state).</td>
+                    </tr>
+                    <tr>
+                      <td><code>picked</code></td>
+                      <td>
+                        Its letter is the item's pick in the review inbox, in its card set, not applied yet: framed
+                        green: dashed until sent, then outlined.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ui-table>
+            </ui-section>
+          </ui-section>
+
+          <ui-section id="5-how-it-looks" header="5. How it looks" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="palette"></ui-icon>
+            <p>
+              The colours mean the same on every doc page: the whole scheme is on
+              <a href="../../guides/epic-components/colours.html" target="src-guides-epic-components-colours-html"
+                >Plan Doc Colours</a
+              >
+              (its source:
+              <a
+                href="../../templates/epics/plan-doc.md"
+                target="src-templates-epics-plan-doc-md"
+                title="templates/epics/plan-doc.md"
+                ><code>plan-doc.md</code></a
+              >, "Colours").
+            </p>
+            <ul>
+              <li>
+                Its header reads <code>A · A named palette</code>; the recommended one adds a violet thumbs-up (violet:
+                Claude's voice), labelled <code>Recommended</code>.
+              </li>
+              <li>
+                It folds by its header (the chevron first), and starts open; a card with no pros and cons doesn't fold.
+              </li>
+              <li>
+                Answered: a panel under <code>Choices</code>. The chosen one has a check before its letter, green text,
+                and is the only panel open.
+              </li>
+              <li>
+                While the page is reviewed, a Choose pill at the header's end marks the letter as Owen's pick.
+                <ul>
+                  <li>It's green, since a pick is a decision: dashed until sent, outlined once sent.</li>
+                  <li>The card is framed to match.</li>
+                  <li>On the chosen option the pill is solid green: the pick applied.</li>
+                </ul>
+              </li>
+            </ul>
+            <p>
+              While a plan doc is being reviewed (<code>&lt;epic-page reviewing&gt;</code>, served by the page server),
+              its marks go to the doc's review inbox: the file of Owen's marks that Claude reads
+              (<code>&lt;name&gt;.inbox.json</code>).
+            </p>
+          </ui-section>
+
+          <ui-section id="6-written-by" header="6. Written by" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="terminal"></ui-icon>
+            <p>
+              Written with its
+              <a href="epic-choices.html" target="src-packages-epics-docs-epic-choices-html"
+                ><code>&lt;epic-choices&gt;</code></a
+              >: the same commands (<code>add --details</code>, <code>details --file</code>), and an old option grid is
+              turned into cards on the way in.
+            </p>
+            <ul>
+              <li>Mark ONE option <code>recommended</code>.</li>
+              <li>The pick isn't written on the option: it's the set's <code>chosen</code>.</li>
+            </ul>
+          </ui-section>
+
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">
+              Last checked 2026-10-09 against branch <code>epic-components</code>: the tables are its vocabulary's; the
+              rest from its component, its stylesheet and
+              <a
+                href="../../packages/epics/src/tool/PLAN-DOC.md"
+                target="src-packages-epics-src-tool-plan-doc-md"
+                title="packages/epics/src/tool/PLAN-DOC.md"
+                ><code>PLAN-DOC.md</code></a
+              >.
+            </p>
+          </footer>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

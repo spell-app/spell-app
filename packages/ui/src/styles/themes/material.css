@@ -3,7 +3,7 @@
  * `@layer ui.theme`.
  * - Applied ON TOP of `classic.css` (`ThemeSheets.apply("material")`):  only Material's differences live here.
  * - Two halves:  tokens on `:root` (they inherit into shadow roots), then class-grammar overrides, which reach
- *   component markup because the theme is adopted into every shadow root too (`docs/theming.md` "Themes").
+ *   component markup because the theme is adopted into every shadow root too (`notes/theming.md` "Themes").
  * - Touches:  site (Roboto, page background and text, palette, links, line heights), button, header, menu,
  *   dropdown, modal.
  * - Font:  Roboto (variable, latin), `material/roboto.woff2`, from Google Fonts (SIL OFL 1.1, `material/OFL.txt`),

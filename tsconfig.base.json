@@ -7,6 +7,8 @@
   // - Paths are fixed, never `${configDir}`:  `tsx` can't resolve it (4.20 throws, 4.23 ignores it).
   // - `$` means `packages/`:  `$/name` is a package's barrel, `$/name/...` a file in its `src/`, and `$/ui/test/...`
   //   `ui`'s test helpers.  It can't collide with an npm name (`@spell-app/...`) the way a bare `name/...` could.
+  //   A component set's elements live in its package's `components/`, outside `src/`:  `$/<set>/components/...`
+  //   (`ui`, `app`, `brand`, `epics`), longer than `$/<set>/*`, so it wins.
   // - From ANOTHER package, import the barrel only, except these entry points:  `$/parser/rulex` (opt-in),
   //   `$/parser/test` / `$/spell/test` (test helpers),
   //   `$/spell/node/...` (node-only:  `typecheck`, `pyright`, `buildTsx`, `packageVersion.node`, `spellSyntax`),
@@ -74,15 +76,19 @@
       "$/spell-solid": ["./packages/spell-solid/src/index.ts"],
       "$/spell-solid/*": ["./packages/spell-solid/src/*"],
 
-      // ## `ui`:  barrel, files, test helpers and node tools;  `$/ui/test/*` / `$/ui/tools/*` are longer than
-      // `$/ui/*`, so they win
+      // ## `ui`:  barrel, files, elements, test helpers and node tools;  its `<ui-*>` families live in
+      // `packages/ui/components/` (epic `people-and-orgs` P18), outside `src/`, as every component set's do;
+      // `$/ui/components/*`, `$/ui/test/*` and `$/ui/tools/*` are longer than `$/ui/*`, so they win.  No
+      // `$/ui/components` barrel:  `$/ui` is the one that registers every family
       "$/ui": ["./packages/ui/src/index.ts"],
       "$/ui/*": ["./packages/ui/src/*"],
+      "$/ui/components/*": ["./packages/ui/components/*"],
       "$/ui/test/*": ["./packages/ui/test/*"],
       "$/ui/tools/*": ["./packages/ui/tools/*"],
 
-      // ## `brand`:  barrel and files;  its `<ui-brand-*>` elements live in `packages/brand/components/` (Owen,
-      // 2026-10-04), outside `src/`, so `$/brand/components` is longer than `$/brand/*` and wins
+      // ## `brand`:  a component pack (`spell dev pack`);  barrel and files;  its `<brand-*>` elements live in
+      // `packages/brand/components/` (Owen, 2026-10-04), outside `src/`, so `$/brand/components` is longer than
+      // `$/brand/*` and wins
       "$/brand": ["./packages/brand/src/index.ts"],
       "$/brand/*": ["./packages/brand/src/*"],
       "$/brand/components": ["./packages/brand/components/index.ts"],

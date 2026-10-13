@@ -123,9 +123,9 @@ export const rootLintIgnore = [
   "coverage",
   "**/src/icons/icon-packs",
   "**/src/icons/data",
-  "**/src/components/ui-emoji/data",
+  "**/components/ui-emoji/data",
   "**/src/languages",
-  "**/src/components/ui-markdown/md.bundle.js",
+  "**/components/ui-markdown/md.bundle.js",
   "**/site/dist",
   "**/tools/frameworks/solid/dist",
   "**/tools/results",
@@ -150,7 +150,9 @@ export const rootLintIgnore = [
   // its own yarn project, with its own tools
   "packages/vscode",
   // `epics`'s component pack:  generated (`spell dev pack build epics`)
-  "packages/epics/pack"
+  "packages/epics/components/__pack",
+  // `brand`'s component pack:  generated (`spell dev pack build brand`)
+  "packages/brand/components/__pack"
 ]
 
 /**
@@ -167,15 +169,16 @@ export const testLint = {
 /**
  * The folders of COMPONENT files, by package (its folder under `packages/`):
  * `patternLint()` turns the `spell-ui/*` rules on there.
- * - Every set's elements, all written on `$/spell-solid`, held to the same patterns:
- *   Spell UI's, the epics', the brand's, and the app's own (`<spell-app>`, `<spell-editor>`, in its `components/`).
+ * - Every set's elements, all written on `$/spell-solid`, held to the same patterns, each in its package's
+ *   `components/`:  Spell UI's (and its docs site's widgets, `src/docs-components/`), the epics', the brand's, and
+ *   the app's own (`<spell-app>`, `<spell-editor>`).
  * - Not:
  *   - `app`'s `src/`:  WWOD §17's function components (Owen:  "other than app components")
  *   - the element core (`$/spell-solid`, and `ui`'s `src/elements/`):  the decorators and helpers themselves
  *   - tests (`testLint`)
  */
 export const PATTERN_FOLDERS: Record<string, string[]> = {
-  ui: ["src/components", "src/docs-components"],
+  ui: ["components", "src/docs-components"],
   epics: ["components"],
   brand: ["components"],
   app: ["components"]
@@ -241,6 +244,7 @@ export function rootLint() {
 /**
  * A package's `lint` block:  `lintBase`, plus `reactLint` when `react`.
  * - `ignorePatterns`:  the package's own, relative to its folder;  NOT inherited from the root's.
+ *   - Plus every component pack's generated folder, `components/__pack/` (`spell dev pack build`), always.
  * - `name`:  its folder under `packages/`, for the `spell-ui/*` rules in its `PATTERN_FOLDERS`.
  */
 export function packageLint({
@@ -251,11 +255,14 @@ export function packageLint({
   return {
     ...lintBase,
     plugins: react ? [...reactLint.plugins, ...lintBase.plugins] : lintBase.plugins,
-    ignorePatterns,
+    ignorePatterns: [...ignorePatterns, PACK_FOLDER],
     rules: react ? { ...lintBase.rules, ...reactLint.rules } : lintBase.rules,
     overrides: name && PATTERN_FOLDERS[name] ? [patternLint("", [name]), testLint] : [testLint]
   } satisfies OxlintConfig
 }
+
+/** A component pack's generated folder in its package (`spell dev pack build`):  never linted. */
+const PACK_FOLDER = "components/__pack"
 
 /** Options of `packageLint()`. */
 export type PackageLintProps = {
@@ -314,17 +321,19 @@ export const fmtConfig = {
     "**/reference/**",
     "**/src/icons/data/**",
     "**/src/icons/icon-packs/**",
-    "**/src/components/ui-emoji/data/**",
+    "**/components/ui-emoji/data/**",
     "**/src/languages/spell.*.js",
-    "**/src/components/ui-markdown/md.bundle.js",
+    "**/components/ui-markdown/md.bundle.js",
     "**/ui/site/_assets/**",
-    "**/ui/site/_data/**",
-    "**/brand/_data/**",
-    // App UI's generated data (`yarn site:data` in `packages/app`):  the bytes stay the generator's
-    // (`**/components/...`:  matched from the root AND from `packages/app`, whose `vp fmt .` runs there)
-    "**/components/_data/components.json",
-    "**/components/_data/search.json",
-    // Spell UI's hand-laid-out pages and their `search.json`:  the shared `ui/` at the root (claude-design P6)
+    // the brand set's data, ALL of it (`yarn site:data` in `packages/brand`):  `pages.json` too, which it rewrites
+    "**/brand/docs/__data/**",
+    // App UI's and Epic UI's generated data (`yarn site:data` in `packages/app`, `packages/epics`):  the bytes stay
+    // the generator's (`**/docs/...`:  matched from the root AND from the package, whose `vp fmt .` runs there)
+    "**/docs/__data/components.json",
+    "**/docs/__data/search.json",
+    // Spell UI's hand-laid-out pages, their parts and data (`packages/ui/docs/`;  the shared `ui/` at the root until
+    // epic `people-and-orgs` P18:  until it merges, that folder too)
+    "**/ui/docs/**",
     "ui/**",
     "**/vendor/**",
     "**/packages/*/dist/**",
@@ -332,6 +341,8 @@ export const fmtConfig = {
     "**/packages/*/*results.json",
     "**/tools/frameworks/solid/dist/**",
     "**/tools/results/**",
-    "**/packages/epics/pack/**"
+    // every component pack's generated folder (`spell dev pack build`):  `**/` first, so a package's own
+    // `vp fmt components` skips it too
+    "**/components/__pack/**"
   ]
 } satisfies OxfmtConfig

@@ -22,7 +22,7 @@ import { PAGE_MAIN } from "./site.types"
  * - Plain DOM, no Solid.
  ****************/
 export class SiteRouter {
-  /** The site's root URL (`/ui/`):  what's under it is routable. */
+  /** The site's root URL (`/components/ui/`):  what's under it is routable. */
   private readonly siteRoot: URL
 
   /** The layout's content box, holding the page's `main`. */
@@ -282,8 +282,8 @@ export class SiteRouter {
 
   /**
    * The page server's file for `url`, from the first page's:  the page's URL and file share their tail
-   * (`/ui/components/x.html` <=> `/ui/components/x.html`, the root's `ui` link;  a worktree's on the main
-   * server:  `/worktrees/<w>/ui/...` <=> `/.claude/worktrees/<w>/ui/...`).
+   * (`/components/ui/x.html` <=> `/packages/ui/docs/x.html`, through the page server's overlay;  a worktree's on
+   * the main server:  `/worktrees/<w>/components/ui/...` <=> `/.claude/worktrees/<w>/packages/ui/docs/...`).
    */
   private serverFile(url: URL): string | undefined {
     if (!this.firstFile) return undefined
@@ -291,7 +291,7 @@ export class SiteRouter {
     return siteFolder + this.tail(url.pathname)
   }
 
-  /** `path` below the site root, a folder as its `index.html`:  `/ui/` => `index.html`. */
+  /** `path` below the site root, a folder as its `index.html`:  `/components/ui/` => `index.html`. */
   private tail(path: string): string {
     const rest = path.slice(this.siteRoot.pathname.length)
     return rest === "" || rest.endsWith("/") ? `${rest}index.html` : rest
@@ -363,7 +363,7 @@ export class SiteRouter {
 
 /** What a `SiteRouter` routes:  the site's root, and the layout's box the pages swap in. */
 export type SiteRouterProps = {
-  /** the site's root URL (`/ui/`) */
+  /** the site's root URL (`/components/ui/`) */
   siteRoot: URL
   /** the layout's content box, holding the page's `main` */
   content: HTMLElement
@@ -378,7 +378,7 @@ export type LandOptions = {
 }
 
 /** Folders under the site root that hold no pages:  their links load normally. */
-const NOT_PAGES = ["_assets/", "_data/", "_parts/", "examples/", "images/"]
+const NOT_PAGES = ["_assets/", "__data/", "__parts/", "examples/", "images/", "_examples/", "_images/"]
 
 /** Dispatched on `document` after a swap (`SiteHeader.PAGE_EVENT`, spelled out:  the header's module is the server's). */
 const PAGE_EVENT = "spell-site:page"

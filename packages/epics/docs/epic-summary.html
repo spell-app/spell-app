@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>epic-summary</title>
+    <meta
+      name="description"
+      content="The &lt;epic-summary&gt; element: the Overview's two-sentence summary, drawn as a lede."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="&lt;epic-summary&gt;">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../../packages/epics/src/tool/PLAN-DOC.md"
+              icon="book"
+              aria-label="The markup rules, PLAN-DOC.md"
+              title="The markup rules, PLAN-DOC.md"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            &lt;epic-summary&gt;
+            <ui-header
+              >The &lt;epic-summary&gt; element: the Overview's two-sentence summary, drawn as a lede.</ui-header
+            >
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <p class="lede">
+            <code>&lt;epic-summary&gt;</code> is what the epic is, in two sentences, at the top of the Overview. It
+            draws its text as a LEDE: the opening paragraph, a size up, in the headings' ink.
+          </p>
+          <!-- no ui-list.spell-meta here:  any ui-item element on the page leaves epic-item unstyled (issue I9 of epic-components) -->
+          <p class="meta">
+            Written for: anyone reading or writing a plan doc's markup, or changing this element.<br />
+            Status: <ui-label size="mini" color="green">built</ui-label>, in the
+            <a href="../../packages/epics/components/epic-summary/" target="src-packages-epics-components-epic-summary"
+              ><code title="packages/epics/components/epic-summary/">epic-summary</code></a
+            >
+            folder of the epics package.<br />
+            Its vocabulary (attributes, slots, parts, children):
+            <a
+              href="../../packages/epics/components/epic-summary/EpicSummary.en.ts"
+              target="src-packages-epics-components-epic-summary-epicsummary-en-ts"
+              ><code title="packages/epics/components/epic-summary/EpicSummary.en.ts">EpicSummary.en.ts</code></a
+            >.<br />
+            The component:
+            <a
+              href="../../packages/epics/components/epic-summary/EpicSummary.tsx"
+              target="src-packages-epics-components-epic-summary-epicsummary-tsx"
+              ><code title="packages/epics/components/epic-summary/EpicSummary.tsx">EpicSummary.tsx</code></a
+            >.
+          </p>
+
+          <ui-section id="1-example" header="1. Example" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="eye"></ui-icon>
+
+            <epic-summary>
+              Plan docs drawn by Solid web components (<code>&lt;epic-page&gt;</code>,
+              <code>&lt;epic-item&gt;</code> ...) in a new package,
+              <a href="../../packages/epics/" target="src-packages-epics"><code>packages/epics</code></a
+              >, loaded by <code>&lt;ui-root&gt;</code> as a component pack, so a doc holds only its data and prose. The
+              plan-doc tool moves into the package as TypeScript, and all 26 docs switch over at once at the end: a
+              layout change becomes an element change, never a rewrite of every doc.
+            </epic-summary>
+
+            <ui-accordion class="spell-code" styled>
+              <ui-title>The example above · 6 lines</ui-title>
+              <ui-content>
+                <ui-code language="html"
+                  ><script type="text/plain">
+                    <epic-summary>
+                      Plan docs drawn by Solid web components (<code>&lt;epic-page&gt;</code>, <code>&lt;epic-item&gt;</code> ...) in a new
+                      package, <code>packages/epics</code>, loaded by <code>&lt;ui-root&gt;</code> as a component pack, so a doc holds only its
+                      data and prose. The plan-doc tool moves into the package as TypeScript, and all 26 docs switch over at once at the end:
+                      a layout change becomes an element change, never a rewrite of every doc.
+                    </epic-summary>
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+            <p>This epic's own summary. On a plan doc it sits first inside <code>1. Overview</code>.</p>
+          </ui-section>
+
+          <ui-section id="2-markup" header="2. Markup" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="code"></ui-icon>
+
+            <ui-accordion class="spell-code" styled>
+              <ui-title>The template's summary · 1 line</ui-title>
+              <ui-content>
+                <ui-code language="html"
+                  ><script type="text/plain">
+                    <epic-summary>Two sentences: what this plan does, and why.</epic-summary>
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+            <p>
+              From the tool's template (<a
+                href="../../packages/epics/src/tool/templates/plan.html"
+                target="src-packages-epics-src-tool-templates-plan-html"
+                ><code title="packages/epics/src/tool/templates/plan.html">plan.html</code></a
+              >): the session planning the epic replaces the placeholder. The text is plain text, or a
+              <code>&lt;p&gt;</code>.
+            </p>
+          </ui-section>
+
+          <ui-section id="3-where-it-goes" header="3. Where it goes" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="compass"></ui-icon>
+
+            <ui-section id="epic-summary-parents" header="Its parents" sticky collapsible dividing collapsed>
+              <ui-table celled compact striped unstackable>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Parent</th>
+                      <th>How</th>
+                      <th>How many</th>
+                      <th>As</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <a href="epic-overview.html" target="src-packages-epics-docs-epic-overview-html"
+                          ><code>&lt;epic-overview&gt;</code></a
+                        >
+                      </td>
+                      <td></td>
+                      <td>one at most</td>
+                      <td>The summary, two sentences.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ui-table>
+            </ui-section>
+
+            <ui-section id="epic-summary-children" header="Its children" sticky collapsible dividing collapsed>
+              <ui-table celled compact striped unstackable>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Child</th>
+                      <th>Where</th>
+                      <th>How many</th>
+                      <th>What it is</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>prose</td>
+                      <td></td>
+                      <td>any number</td>
+                      <td>The summary.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ui-table>
+            </ui-section>
+          </ui-section>
+
+          <ui-section id="4-attributes" header="4. Attributes" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="table columns"></ui-icon>
+            <p>None: it takes no attributes.</p>
+            <ui-section id="epic-summary-slots" header="Slots" sticky collapsible dividing collapsed>
+              <p>Where its children show: a child goes in a slot by its <code>slot</code> attribute.</p>
+              <ui-table celled compact striped unstackable>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Slot</th>
+                      <th>What goes in it</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>(default)</td>
+                      <td>The summary: text, or a <code>&lt;p&gt;</code>.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ui-table>
+            </ui-section>
+
+            <ui-section id="epic-summary-parts" header="Parts" sticky collapsible dividing collapsed>
+              <p>Pieces of what it draws, which a page's CSS can style from outside with <code>::part(name)</code>.</p>
+              <ui-table celled compact striped unstackable>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Part</th>
+                      <th>What it is</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>base</code></td>
+                      <td>The lede.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ui-table>
+            </ui-section>
+          </ui-section>
+
+          <ui-section id="5-how-it-looks" header="5. How it looks" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="palette"></ui-icon>
+            <ul>
+              <li>A paragraph in the body face, 17px, in the headings' ink, at most 72 characters wide.</li>
+              <li>The text stays the page's own: find-in-page and links in it work as anywhere else.</li>
+              <li>No colour, no fold: it shows whenever the Overview is open.</li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="6-written-by" header="6. Written by" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="terminal"></ui-icon>
+            <ul>
+              <li>
+                <code>spell dev plan-doc new</code>: the template's placeholder,
+                <code>Two sentences: what this plan does, and why.</code>
+              </li>
+              <li>Then by hand, by the Claude session planning the epic: no command writes its text.</li>
+              <li>
+                <code>spell dev plan-doc convert</code>'s second pass: an older doc's
+                <code>&lt;p slot="summary"&gt;</code> became one.
+              </li>
+            </ul>
+          </ui-section>
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">
+              Last checked 2026-10-09 against branch <code>epic-components</code>: the tables come from its vocabulary
+              file, so they change with it.
+            </p>
+          </footer>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

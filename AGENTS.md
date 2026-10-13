@@ -60,24 +60,29 @@ Each folder links to its own `AGENTS.md`:  read it before working there.
 | [spell](packages/spell/AGENTS.md) | `@spell-app/spell` | `$/spell` | `SP` | the spell LANGUAGE on the parser, `PARSING.md` and `readme.md` |
 | [spaces](packages/spaces/AGENTS.md) | `@spell-app/spaces` | `$/spaces` | `SPACES` | where projects and people live:  the built-in projects (`@spell/`), its models (`models/`, browser-safe:  spell's project groups and lists), projects on disk (`server/node/projects/`), and the servers that serve them, the editor's (`server/node/`) and Python's, `spell_quart` (`server/py/`, a uv project) |
 | [lsp](packages/lsp/AGENTS.md) | `@spell-app/lsp` | `$/lsp` | `LSP` | spell's language server (browser-safe) |
-| [app](packages/app/AGENTS.md) | `@spell-app/app` | `$/app` | `UI` | the web app, the runner, and the `<spell-app>` / `<spell-editor>` web components;  `yarn start` / `build*` live here;  App UI, the docs pages of its components, beside them in `components/` (at `/app-ui/`) |
+| [app](packages/app/AGENTS.md) | `@spell-app/app` | `$/app` | `UI` | the web app, the runner, and the `<spell-app>` / `<spell-editor>` web components;  `yarn start` / `build*` live here;  App UI, the docs pages of its components, in `docs/` (at `/components/app/`) |
 | `packages/vscode/` | | | | the VS Code extension (below) |
 | [spell-solid](packages/spell-solid/AGENTS.md) | `@spell-app/spell-solid` | `$/spell-solid` | `E` | what makes a custom element on Solid, for EVERY set's elements (Spell UI's, the epics', the app's, the brand's):  the component and DOM element bases, the reactive members' decorators, shadow events, hot reloading;  Spell UI's `core` carries it (below) |
 | [ui](packages/ui/AGENTS.md) | `@spell-app/ui` | `$/ui` | | Fomantic UI reborn as `ui-*` custom elements, on Solid 2, written on `$/spell-solid` |
 | [cli](packages/cli/AGENTS.md) | `@spell-app/cli` | `$/cli` | `CLI` | the `spell` command-line tool, running the spell-family packages' SOURCE through `tsx`;  see its [README](packages/cli/README.md) too |
-| [epics](packages/epics/AGENTS.md) | `@spell-app/epics` | `$/epics` | `EP` | plan docs' `<epic-*>` elements (a component pack) and their tool, `epic`;  AND every docs page's tooling:  `tools/`, the docs scripts and the `_assets` every page loads (tracked, versioned per branch) |
+| [epics](packages/epics/AGENTS.md) | `@spell-app/epics` | `$/epics` | `EP` | plan docs' `<epic-*>` elements (a component pack), their docs pages (Epic UI, `docs/`, at `/components/epics/`) and their tool, `epic`;  AND every docs page's tooling:  `tools/`, the docs scripts and the `_assets` every page loads (tracked, versioned per branch) |
 | [server](packages/server/AGENTS.md) | `@spell-app/server` | `$/server` | `SRV` | serving pages locally (below) |
 | [assembler](packages/assembler/AGENTS.md) | `@spell-app/assembler` | `$/assembler` | `AS` | assembling pages, for every tool that writes them (below) |
-| [brand](packages/brand/AGENTS.md) | `@spell-app/brand` | `$/brand` | | Spell's brand, the site header's Brand tab (below) |
-| [epic-components](packages/epic-components/README.md) | | | | PAGES, not a workspace:  Epic UI, the `<epic-*>` elements' docs set, served at `/epic-ui/` (below) |
+| [brand](packages/brand/AGENTS.md) | `@spell-app/brand` | `$/brand` | | Spell's brand, the site header's Brand tab (below);  its `<brand-*>` elements (a component pack) and their docs pages (Brand UI, `docs/`, at `/components/brand/`) |
 
 More on some of them:
-- epic-components:  a COMPONENT SET (epic `epic-workflow` P10):  docs pages in Spell UI's page shape, tracked with
-  their branch, beside the code they describe.
-  - Served at `/epic-ui/` by the page server, which lays the sets' build of Spell UI's site over the folder
-    (`COMPONENT_SETS`, [server's AGENTS.md](packages/server/AGENTS.md)).
-  - App UI is the other set:  the app's components' pages, in `packages/app/components/`, at `/app-ui/`.
-  - The top bar's Epic/UI and App/UI tabs.
+- COMPONENT SETS (epic `epic-workflow` P10;  one layout since `people-and-orgs` P18):  a set of elements and their
+  docs pages in Spell UI's page shape, tracked with their branch, beside the code they describe.
+  - `<package>/components/`:  the elements;  `<package>/docs/`:  ONE flat folder of pages (an element's page is its
+    tag, `epic-item.html`), with `__parts/` (every page's frame) and `__data/` (the side column's data).
+  - Served at `/components/<set>/` by the page server, which lays a build of Spell UI's site over the folder at
+    `_assets/` (`COMPONENT_SETS`, [server's AGENTS.md](packages/server/AGENTS.md)).
+  - Spell UI:  `packages/ui/docs/`, at `/components/ui/`;  Epic UI:  `packages/epics/docs/`, at `/components/epics/`;
+    App UI:  `packages/app/docs/`, at `/components/app/`;  Brand UI:  `packages/brand/docs/`, at `/components/brand/`.
+  - A set that's a component PACK (epics, brand) has it built into `components/__pack/` by `spell dev pack build`,
+    which writes the set's `docs/__data/` too.
+  - The top bar's Spell/UI, Epic/UI and App/UI tabs;  the brand's set lights the Brand tab.
+  - The old addresses (`/ui/`, `/epic-ui/`, `/app-ui/`, `/brand/components/`) answer "not found" (Q30).
 - `packages/vscode/` is its own yarn project (own `package.json` + `yarn.lock`), NOT a workspace.
   - `spell dev vscode` builds and installs it.
   - Or its two steps:  `spell dev vscode build`, then `install`.
@@ -100,7 +105,8 @@ More on some of them:
   - the bundles built on demand (`Bundle`)
   - later, the page server's assembly code
 - brand:  Claude Design's pages and tokens (never edited), and their Spell UI copies (`*.spell.html`).
-  - And the `<ui-brand-*>` elements those copies need.
+  - And the `<brand-*>` elements those copies need:  a component pack, prefix `brand-` (`<ui-brand-*>` before
+    `people-and-orgs` P18, Q26), with its docs set, Brand UI (`packages/brand/docs/`, at `/components/brand/`).
 
 ### Which package may import which
 
@@ -148,7 +154,7 @@ ui -> util
     from [the highlighter's browser entry](packages/spell/src/highlight/browser.ts).
   - `ui`'s source never imports `$/spell`.
   - Regenerate after changing spell's grammar.
-  - Likewise markdown:  [md.bundle.js](packages/ui/src/components/ui-markdown/md.bundle.js).
+  - Likewise markdown:  [md.bundle.js](packages/ui/components/ui-markdown/md.bundle.js).
     - `yarn gen:markdown` (in `packages/ui`) builds it
       from [markdown's browser entry](packages/markdown/src/browser.ts).
     - Regenerate after changing `markdown` or `parser`.
@@ -307,10 +313,9 @@ ui -> util
     with its `.md`, `.json`, `experiments/`
   - `templates/` -- one starting point per kind of page
   - `pages/` -- [the docs home](pages/index.html), and the scratch details pages, `pages/details/`
-  - `ui/` -- Spell UI's hand-written docs pages (claude-design P6), served at `/ui/`.
-    - Each branch's built `_assets/` and `_data/`, from [ui's site](packages/ui/site/), are laid over them.
-    - Those assets are built by the page server, not committed.
-    - More:  [ui's AGENTS.md](packages/ui/AGENTS.md), `site/`.
+  - `ui/` -- Spell UI's hand-written docs pages (claude-design P6), LEFT for the other checkouts:  since epic
+    `people-and-orgs` P18 they're in [ui's docs/](packages/ui/docs/), served at `/components/ui/`.
+    - This branch's page server answers "not found" for `/ui/`;  the merge removes the folder (that epic's T3).
   - `brand/` -- the Brand tab's pages ([brand's AGENTS.md](packages/brand/AGENTS.md)):
     Claude Design's exports and their Spell UI copies
   - `goals/` -- the goal sets, PARKED since 2026-10-11 (epic `epic-workflow` P6):  read only, buttons saying TODO.

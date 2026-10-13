@@ -25,10 +25,10 @@ describe("the site header's tabs", () => {
       "guides/index.html",
       "goals/index.html",
       "epics/index.html",
-      "/epic-ui/",
-      "/ui/",
+      "/components/epics/",
+      "/components/ui/",
       "/editor/",
-      "/app-ui/",
+      "/components/app/",
       "brand/index.html",
       "templates/index.html"
     ])
@@ -46,21 +46,29 @@ describe("the site header's tabs", () => {
     ["/brand/pony.html", "Brand"],
     ["/brand/compare.html", "Brand"],
     ["/brand/spell-design-system/Logo.spell.html", "Brand"],
-    ["/brand/components/ui-brand-logo.html", "Brand"],
-    ["/ui/", "Spell/UI"],
-    ["/ui/components/ui-card.html", "Spell/UI"],
+    // the component sets:  their address, a worktree's, and their folder's long one (a file:// page too)
+    ["/components/ui/", "Spell/UI"],
+    ["/components/ui/ui-card.html", "Spell/UI"],
     ["/packages/ui/site/index.html", "Spell/UI"],
-    ["/worktrees/w/ui/components/ui-card.html", "Spell/UI"],
-    // the component sets:  their short address, a worktree's, and their folder's long one (a file:// page too)
-    ["/epic-ui/", "Epic/UI"],
-    ["/epic-ui/elements/epic-item.html", "Epic/UI"],
-    ["/worktrees/w/epic-ui/elements/epic-item.html", "Epic/UI"],
-    ["/packages/epic-components/elements/epic-item.html", "Epic/UI"],
-    ["/Users/owen/www/spell-app/spell-app/packages/epic-components/index.html", "Epic/UI"],
-    ["/app-ui/", "App/UI"],
-    ["/app-ui/spell-app.html", "App/UI"],
-    ["/worktrees/w/app-ui/", "App/UI"],
-    ["/packages/app/components/index.html", "App/UI"],
+    ["/packages/ui/docs/ui-card.html", "Spell/UI"],
+    ["/worktrees/w/components/ui/ui-card.html", "Spell/UI"],
+    ["/components/epics/", "Epic/UI"],
+    ["/components/epics/epic-item.html", "Epic/UI"],
+    ["/worktrees/w/components/epics/epic-item.html", "Epic/UI"],
+    ["/packages/epics/docs/epic-item.html", "Epic/UI"],
+    ["/Users/owen/www/spell-app/spell-app/packages/epics/docs/index.html", "Epic/UI"],
+    ["/components/app/", "App/UI"],
+    ["/components/app/spell-app.html", "App/UI"],
+    ["/worktrees/w/components/app/", "App/UI"],
+    ["/packages/app/docs/index.html", "App/UI"],
+    // the brand's element set lights the Brand tab
+    ["/components/brand/", "Brand"],
+    ["/components/brand/brand-logo.html", "Brand"],
+    ["/packages/brand/docs/brand-logo.html", "Brand"],
+    // the old addresses:  no tab
+    ["/ui/components/ui-card.html", undefined],
+    ["/epic-ui/", undefined],
+    ["/packages/app/components/spell-app/SpellApp.tsx", undefined],
     // Epic UI's old element pages, until the merge:  guides
     ["/guides/epic-components/elements/epic-item.html", "Guides"],
     ["/templates/index.html", "Templates"],
@@ -89,7 +97,7 @@ describe("the site header's tabs", () => {
     ["/packages/docs/solid/solid-2.html", "Guides"],
     // other packages' files
     ["/packages/server/AGENTS.md", undefined],
-    ["/packages/ui/docs/guides/x.html", undefined]
+    ["/packages/ui/notes/plan.md", undefined]
   ])("light %s:  %s", (path, tab) => {
     expect(litTab(path)).toBe(tab)
   })

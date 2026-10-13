@@ -32,7 +32,7 @@ First public version:  Fomantic UI 2.9.4's vocabulary as `ui-*` custom elements 
 - **Theming**:  OKLCH tokens, `@layer`s, light / dark, and public `--ui-<component>-*` tokens that reach the box from
   the page, an ancestor, the host or `::part()`.
 - **Translation**:  every attribute, value, event, slot, part and text string comes from a vocabulary file, so tag
-  sets can be translated (design:  `docs/translation.md`).
+  sets can be translated (design:  `notes/translation.md`).
 - **Fallbacks**:  an element whose render throws shows a native fallback, gets `:state(errored)` and dispatches a
   cancelable `ui-error`;  siblings keep working.
 - **Invoker commands**:  `<ui-button commandfor command>` forwards to its inner `<button>`, with a JS fallback for
@@ -57,4 +57,4 @@ First public version:  Fomantic UI 2.9.4's vocabulary as `ui-*` custom elements 
 
 - Visual baselines exist for macOS only (chromium, firefox, webkit);  Linux baselines wait on a working Docker.
 - Average family size is 7.3 kB gzip own code (budget 8 kB);  the lazy runtime is 31 kB.
-- Open items:  `agents/SUSPECTED-BUGS.md` (`## ui`) and `docs/status.md` ("Deferred", "To review").
+- Open items:  `agents/SUSPECTED-BUGS.md` (`## ui`) and `notes/status.md` ("Deferred", "To review").

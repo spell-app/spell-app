@@ -7,9 +7,9 @@ import { fmtConfig, packageLint } from "../../vite.lint.ts"
  * - The pack's BUILD is the CLI's, the same for every pack:  `spell dev pack build __pack__`
  *   (`packages/cli/src/dev/packBuild.ts`), on Spell UI's `baseConfig()`.
  * - Tests:  `vitest.config.ts` beside this.
- * - `pack/` is generated:  not ours to lint.
+ * - `components/__pack/` is generated:  not ours to lint (`packageLint()` leaves it out).
  */
 export default defineConfig({
   fmt: fmtConfig,
-  lint: packageLint({ ignorePatterns: ["pack", "dist", ".vitest"] })
+  lint: packageLint({ ignorePatterns: ["dist", ".vitest"] })
 })

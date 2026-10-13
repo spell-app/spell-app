@@ -45,7 +45,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - NEVER make it import `epics`:  it imports this.
 - It knows the checkout's LAYOUT as folder names, never as imports:  `Linker` takes the checkout's root.
   - The folder names:
-    - `packages/*/src`
+    - `packages/*/src`, and `packages/*/components` (a component set's elements)
     - `tests/`, where every package's tests live
     - the shared areas:  `pages/`, `guides/`, `epics/`, `templates/`
     - the docs tools, `packages/epics/tools`

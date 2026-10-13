@@ -12,9 +12,9 @@
  *   control's ignores are that checkout's, so it should be a git repo with the repo's `.gitignore`
  * - Runs under `tsx`, which maps `$/assembler` through this package's `tsconfig.json`:  plain `node` can't.  The
  *   tools that run it (`update.js`, `pages.js` `tidy()`, goals' check) go through `pages.js` `docLinksRun()`.
- * - A component set's pages (`packages/epic-components/`, served at `/epic-ui/`:  `COMPONENT_SETS` in
- *   `$/server/page`) link as from their SERVED address, so their links hold at `/worktrees/<w>/epic-ui/` too:  their
- *   links are written and checked from there (`Linker`'s `served`, `servedDir()`).
+ * - A component set's pages (`packages/epics/docs/`, served at `/components/epics/`:  `COMPONENT_SETS` in
+ *   `$/server/page`) link as from their SERVED address, so their links hold at `/worktrees/<w>/components/epics/`
+ *   too:  their links are written and checked from there (`Linker`'s `served`, `servedDir()`).
  * - NOTE:  ported from `doc-links.py` on 2026-10-03;  makes the same edits to every page.
  */
 import { readFileSync, writeFileSync } from "node:fs"
@@ -26,7 +26,7 @@ import { COMPONENT_SETS } from "$/server/page/page.types"
 
 import { ROOT } from "./pages.js"
 
-/** The component sets' folders, by the address folder each is served at:  `{ "epic-ui": "packages/epic-components" }`. */
+/** The component sets' folders, by their address folder:  `{ "components/epics": "packages/epics/docs" }`. */
 const SERVED = Object.fromEntries(COMPONENT_SETS.map((set) => [set.prefix.slice(1), set.dir]))
 
 /**

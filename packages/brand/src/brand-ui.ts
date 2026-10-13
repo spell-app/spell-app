@@ -15,7 +15,7 @@
  *   2. `BuiltInPacks`:  pointed at `_assets/ui/icon-packs/` (a symlink to ui's packs) from THIS file's URL, so
  *      every Font Awesome 7 icon draws, offline
  *   3. (LAST, by `import()`:  after the hue, whatever the chunking)  every `ui-*` family (`$/ui`) and every
- *      `ui-brand-*` element (`$/brand/components`), defined at once:  brand
+ *      `brand-*` element (`$/brand/components`), defined at once:  brand
  *      pages are small and use many families
  *   4. the `spell-brand` theme (`UI.themes.apply()`), then the site header (`defineSite()`)
  * - Lazy, by `import()`:  the runtime, the theme sheets, `<ui-code>`'s and `<ui-markdown>`'s engines, emoji names.

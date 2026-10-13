@@ -4,7 +4,7 @@ import { join } from "node:path"
 import { createInterface } from "node:readline"
 
 import type { Handler } from "$/server"
-import { BUNDLE_WAIT_MS, componentSetPath, pageServerSettings, uiBuildPath } from "$/server/page"
+import { BUNDLE_WAIT_MS, componentSetPath, pageServerSettings } from "$/server/page"
 
 /**
  * Builds the bundles the page server serves, when the server starts.
@@ -124,8 +124,8 @@ export class BundleBuild {
    * The router handler:  while the build runs, a request for a missing file in a bundle's folder waits for it.
    * - this checkout's own bundles only, not `/worktrees/<w>/...`:
    *   - `/packages/brand/_assets/ui/...`
-   *   - `/packages/ui/site/_assets/...`, and the same laid over the pages at `/ui/_assets/...` (`uiBuildPath()`)
-   *     and at a component set's `/epic-ui/_assets/...` (`componentSetPath()`)
+   *   - `/packages/ui/site/_assets/...`, and the same laid over a component set's pages at
+   *     `/components/<set>/_assets/...` (`componentSetPath()`)
    */
   wait: Handler = async (request, _reply, next) => {
     if (!this.child || (request.method !== "GET" && request.method !== "HEAD")) return next()
@@ -134,11 +134,11 @@ export class BundleBuild {
     next()
   }
 
-  /** The file in a bundle's folder URL path `path` names, through the `/ui/` and set overlays;  else `undefined`. */
+  /** The file in a bundle's folder URL path `path` names, through the sets' overlay;  else `undefined`. */
   bundleFileFor(path: string): string | undefined {
     let served: string
     try {
-      served = decodeURIComponent(uiBuildPath(path) ?? componentSetPath(path) ?? path)
+      served = decodeURIComponent(componentSetPath(path) ?? path)
     } catch {
       return undefined
     }

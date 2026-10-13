@@ -1,3 +1,4 @@
+import { spawnSync } from "child_process"
 import { createHash } from "crypto"
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "fs"
 import { dirname, join, relative } from "path"
@@ -9,7 +10,8 @@ import type { PackBuildReport, PackCheckReport, PackInfo } from "$/cli/dev/dev.t
 import { RootCatalog } from "$/ui/tools/RootCatalog"
 
 /**
- * `spell dev pack build <pack>`:  a component pack's generated files, in `packages/<pack>/pack/`, from its sources.
+ * `spell dev pack build <pack>`:  a component pack's generated files, in `packages/<pack>/components/__pack/`,
+ * from its sources;  then its set's docs data, `docs/__data/` (`buildSiteData()`).
  * - `<pack>.catalog.ts`:  tag => family folder + skeleton, read from every vocabulary (`<Name>.en.ts`) in `components/`
  *   by Spell UI's own `RootCatalog` (as `yarn gen:root` builds `UIRoot.catalog.ts`);
  *   its second line records the sources' hash (`packHash()`), which `checkPack()` compares
@@ -32,12 +34,42 @@ export async function buildPack(root: string, name: string): Promise<PackBuildRe
   writeFileSync(files.catalog, catalogSource(pack, catalog, hash))
   writeFileSync(files.entry, entrySource(pack))
   const written = await bundle(root, pack, hash)
+  const data = buildSiteData(pack) ? [join(pack.dir, DOCS_DATA_FOLDER)] : []
   return {
     pack: name,
-    files: [files.catalog, files.entry, ...written].map((file) => relative(root, file)),
+    files: [files.catalog, files.entry, ...written, ...data].map((file) => relative(root, file)),
     tags: Object.keys(catalog).sort(),
     hash
   }
+}
+
+/**
+ * Write the set's docs data, `docs/__data/` (`components.json`, `search.json` ...), with the pack's OWN data builder:
+ * its `package.json`'s `site:data` script, run in the package (epic `people-and-orgs` P18).
+ * - One builder per set, since each reads its elements its own way:  Epic UI's from the pack's definitions, the
+ *   brand's through Spell UI's `SiteDataBuilder`.
+ * - `check`:  runs it with `--check`, writing nothing;  `false` when the data is stale.
+ * - `false` when there's no builder (no `site:data` script:  a pack without a docs set yet):  nothing written, and
+ *   nothing to check (`checkPack()` asks `hasSiteData()` first).
+ * - Throws `CliError` when the builder fails (not just stale).
+ */
+export function buildSiteData(pack: PackInfo, { check = false } = {}): boolean {
+  if (!hasSiteData(pack)) return false
+  const run = spawnSync("yarn", [SITE_DATA_SCRIPT, ...(check ? ["--check"] : [])], {
+    cwd: pack.dir,
+    encoding: "utf8"
+  })
+  if (run.status === 0) return true
+  if (check && run.status === 1) return false
+  throw new CliError(
+    `pack '${pack.name}':  \`yarn ${SITE_DATA_SCRIPT}\` failed (in packages/${pack.name}):\n${run.stdout}${run.stderr}`,
+    EXIT.ERRORS
+  )
+}
+
+/** Whether pack `pack` has a docs set to build data for:  a `site:data` script (`buildSiteData()`). */
+export function hasSiteData(pack: PackInfo): boolean {
+  return Boolean(packScripts(pack.dir)[SITE_DATA_SCRIPT])
 }
 
 /**
@@ -45,6 +77,7 @@ export async function buildPack(root: string, name: string): Promise<PackBuildRe
  * are now.  `stale` names each one that isn't, and why;  none means current.
  * - The catalog:  its recorded hash is the sources' (`packHash()`), and its text is what a build writes now (so a
  *   hand edit shows too);  the entry:  its text;  the script:  its banner's hash
+ * - And the set's docs data:  its builder's `--check` (`buildSiteData()`)
  * - Doesn't build:  fast enough for every `yarn test` (the pack's `src/pack.test.ts` runs it)
  */
 export async function checkPack(root: string, name: string): Promise<PackCheckReport> {
@@ -64,6 +97,9 @@ export async function checkPack(root: string, name: string): Promise<PackCheckRe
   const script = readText(files.script)
   if (script === undefined) stale.push(`${relative(root, files.script)}:  missing`)
   else if (recordedHash(script) !== hash) stale.push(`${relative(root, files.script)}:  built from older sources`)
+  if (hasSiteData(pack) && !buildSiteData(pack, { check: true })) {
+    stale.push(`${relative(root, join(pack.dir, DOCS_DATA_FOLDER))}:  not what \`yarn ${SITE_DATA_SCRIPT}\` writes now`)
+  }
   return { pack: name, hash, stale }
 }
 
@@ -97,11 +133,21 @@ export function packNames(root: string): string[] {
  * - NEVER throws:  no file, or bad JSON, is "not a pack".
  */
 export function packPrefix(dir: string): string | undefined {
+  const { spellPack } = packageJson(dir)
+  return typeof spellPack?.prefix === "string" ? spellPack.prefix : undefined
+}
+
+/** The yarn scripts of the package in folder `dir`;  none when it has no readable `package.json`.  NEVER throws. */
+function packScripts(dir: string): Record<string, string> {
+  return packageJson(dir).scripts ?? {}
+}
+
+/** The `package.json` in folder `dir`, as far as it's read here;  `{}` when there's none, or bad JSON.  NEVER throws. */
+function packageJson(dir: string): PackPackageJson {
   try {
-    const { spellPack } = JSON.parse(readFileSync(join(dir, "package.json"), "utf8")) as PackPackageJson
-    return typeof spellPack?.prefix === "string" ? spellPack.prefix : undefined
+    return JSON.parse(readFileSync(join(dir, "package.json"), "utf8")) as PackPackageJson
   } catch {
-    return undefined
+    return {}
   }
 }
 
@@ -172,17 +218,27 @@ const SHARED_IMPORT = /^\$\/(ui|spell-solid)(\/|$)|^solid-js(\/|$)|^@solidjs\/|^
 /** Version of what `buildPack()` writes:  bump it when the generated files change shape, so every pack goes stale. */
 const PACK_FORMAT = "spell-pack 1"
 
-/** The pack's generated folder, in its package. */
-const PACK_FOLDER = "pack"
-
 /** Its element families' folder. */
 const COMPONENTS_FOLDER = "components"
+
+/**
+ * The pack's generated folder, inside its families' folder (epic `people-and-orgs` P18, Q27 / Q33):
+ * it's built from that folder and nothing else, so it sits with it;
+ * `__` marks it as built, never a family (no tag starts with `_`).
+ */
+export const PACK_FOLDER = `${COMPONENTS_FOLDER}/__pack`
+
+/** The set's docs data, in its package:  what its pages' side column, search and API tables read. */
+const DOCS_DATA_FOLDER = "docs/__data"
+
+/** The yarn script of a pack's package that writes `DOCS_DATA_FOLDER` (`buildSiteData()`);  takes `--check`. */
+const SITE_DATA_SCRIPT = "site:data"
 
 /** Folders whose files a pack's script may be built from:  its elements, and code they share with node. */
 const SOURCE_FOLDERS = [COMPONENTS_FOLDER, "src"]
 
-/** Files under them that never reach the pack:  tests and their snapshots. */
-const NOT_SOURCE = /\.test\.[cm]?[jt]sx?$|[\\/]__snapshots__[\\/]/
+/** Files under them that never reach the pack:  tests, their snapshots, and the pack's own generated folder. */
+const NOT_SOURCE = /\.test\.[cm]?[jt]sx?$|[\\/]__snapshots__[\\/]|[\\/]components[\\/]__pack[\\/]/
 
 /** A file whose imports `packSources()` follows. */
 const SCRIPT = /\.[cm]?[jt]sx?$/
@@ -246,7 +302,8 @@ ${lines.join(",\n")}${lines.length ? "\n" : ""}}
 
 /** The text of `<pack>.entry.ts`. */
 function entrySource(pack: PackInfo): string {
-  const imports = packFamilies(pack).map((family) => `import("../${COMPONENTS_FOLDER}/${family}")`)
+  // the entry sits in `components/__pack/`, beside the families
+  const imports = packFamilies(pack).map((family) => `import("../${family}")`)
   const define = imports.length
     ? `() =>\n    Promise.all([\n      ${imports.join(",\n      ")}\n    ]).then(() => undefined)`
     : "() => Promise.resolve()"
@@ -384,4 +441,4 @@ function filesUnder(dir: string): string[] {
 }
 
 /** The part of a pack's `package.json` read here. */
-type PackPackageJson = { spellPack?: { prefix?: unknown } }
+type PackPackageJson = { spellPack?: { prefix?: unknown }; scripts?: Record<string, string> }

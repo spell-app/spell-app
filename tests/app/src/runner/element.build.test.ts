@@ -248,7 +248,7 @@ const PACKAGES = {
 const UI_COMPONENT = /\/packages\/spell-solid\/src\/UIComponent\.tsx$/
 
 /** `ui`'s root component, which `<spell-app>` extends. */
-const UI_ROOT = /\/packages\/ui\/src\/components\/ui-root\/UIRoot\.tsx$/
+const UI_ROOT = /\/packages\/ui\/components\/ui-root\/UIRoot\.tsx$/
 
 /** `<spell-editor>`'s component. */
 const SPELL_EDITOR = /\/components\/spell-editor\/SpellEditor\.tsx$/

@@ -10,8 +10,6 @@ import {
   COMPONENT_SETS,
   HIGHLIGHT_JS,
   PageEditor,
-  SETS_BUNDLE,
-  UI_SITE,
   pageServerSettings,
   type PageServerSettings,
   type RouteModule
@@ -29,18 +27,18 @@ import {
  *   - the rest come from route modules:  `/api/epics/...` and `/api/docs/...` (epics), `/api/projects/...` and
  *     `/api/spaces/...` (spaces)
  * - `/` -> the docs home (`pages/index.html`)
- * - `/ui/` -> Spell UI's docs (`UI_SITE`), live-reloading like every page
- *   - the shared pages (`ui/`), with the branch's built `_assets/` and `_data/` (`packages/ui/site/`) laid over them
- *   - the same at `/worktrees/<w>/ui/`
- * - `/epic-ui/`, `/app-ui/` -> the component sets (`COMPONENT_SETS`):  each a tracked package folder, in Spell UI's
- *   page shape, loading Spell UI's site bundle (`componentSetPath()`);  the same at `/worktrees/<w>/<set>/`
+ * - `/components/<set>/` -> the component sets' docs (`COMPONENT_SETS`):  Spell UI's, Epic UI's, App UI's, the brand's
+ *   - each its package's `docs/` folder, with Spell UI's site bundle laid over it at `_assets/` (`componentSetPath()`)
+ *   - live-reloading like every page;  the same at `/worktrees/<w>/components/<set>/`
  * - `/worktrees/<w>/...` -> worktree `<w>`'s checkout, with the same URLs inside (dot files still refused)
  * - the bundles it serves (Spell UI's site, the brand pages) aren't committed:
  *   `start()` builds the stale ones in the background (`BundleBuild`),
  *   and a request for one of their files waits while that runs
  * - route modules (`RouteModule`) from the root `package.json`'s `"pageServer"` add the rest, e.g. the running epics
  * - NO redirects for old URLs (epic `people-and-orgs`, Q30):  an old address answers "not found"
- *   - one exception until `people-and-orgs` merges into `main`:  the docs assets' old folder (`oldAssetsPath()`)
+ *   - until `people-and-orgs` merges into `main`, two temporary bridges for the SHARED pages, which every checkout
+ *     shows:  folders this branch moved still serve from their new place (`movedFolderPath()`), and folders it moved
+ *     out of the shared content answer "not found" here though the shared repo still holds them (`MOVED_OUT`)
  * - port:  `DEFAULT_PORT` (4747) if free, else any
  *   - the real one goes in `<root>/.spell-server.json`, where `spell dev server ensure` and the openers find it
  * - Run it with `spell dev server` (`page/cli.ts`), never by hand.
@@ -82,7 +80,6 @@ export class PageServer {
       root: this.root,
       token,
       live: true,
-      // `/ui/` too:  the root's `ui` link (`UI_SITE.pages`), with the build laid over it (`uiBuildPath()`, below)
       mounts: [
         { prefix: "/", dir: this.root },
         // every worktree's checkout, so the main server shows a running epic's plan doc (epics' running epics)
@@ -101,9 +98,13 @@ export class PageServer {
         ...(AirplaneMode.isOn && { airplane: true })
       })
     })
-    this.web.files.overlays.push(uiBuildPath, componentSetPath, oldAssetsPath)
+    this.web.files.overlays.push(componentSetPath, movedFolderPath)
     const router = this.web.router
     router.get("/", (_request, reply) => reply.redirect(DOCS_HOME))
+    // TEMPORARY (until the merge):  what this branch moved out of the shared folders, though they still hold it
+    for (const path of MOVED_OUT) {
+      router.use(path, (_request, reply) => reply.status(404).send(`${path}/ moved:  see ${COMPONENTS_HOME}`))
+    }
     // a component set's address without its slash:  with it, so its pages' relative links resolve
     // - the router takes a trailing `/` as optional, so the address WITH it passes on
     for (const set of COMPONENT_SETS)
@@ -137,11 +138,12 @@ export class PageServer {
     const settings = this.settings()
     for (const dir of settings.watch ?? DEFAULT_WATCH)
       this.web.live!.watch(join(this.root, dir), { ignore: /(^|\/)(scripts|experiments)\// })
-    this.web.live!.watch(join(this.root, UI_SITE.pages))
-    // the build's changes as the pages load them:  `/ui/_assets/site.js`, so a rebuilt bundle reloads them
-    this.web.live!.watch(join(this.root, UI_SITE.build), { ignore: UI_SITE.ignore, servedAt: UI_SITE.prefix })
-    // the component sets' pages, parts and data, as their short address loads them
-    for (const set of COMPONENT_SETS) this.web.live!.watch(join(this.root, set.dir), { servedAt: set.prefix })
+    // the component sets' pages, parts and data, and their site bundle (rebuilt by `yarn site:dev`), as their pages
+    // load them:  `/components/ui/_assets/site.js`, so a rebuilt bundle reloads them
+    for (const set of COMPONENT_SETS) {
+      this.web.live!.watch(join(this.root, set.dir), { servedAt: set.prefix })
+      this.web.live!.watch(join(this.root, set.assets), { servedAt: `${set.prefix}/${SET_ASSETS}` })
+    }
     if (routes) for (const path of settings.routes ?? []) await this.loadRoutes(path)
     const { port: actual } = await this.web.listen({ port })
     this.info.port = actual
@@ -260,58 +262,71 @@ function worktreeOf(file: string, root: string): { branch?: string; worktree?: s
 /** `worktreeOf()`'s cache, by worktree name. */
 const WORKTREES = new Map<string, { branch?: string; worktree?: string }>()
 
-/** Folder of a component set's address served from the sets' bundle (`SETS_BUNDLE`, `componentSetPath()`). */
+/** Folder of a component set's address served from its site bundle (`ComponentSet.assets`, `componentSetPath()`). */
 const SET_ASSETS = "_assets"
 
 /** The docs home's URL. */
 export const DOCS_HOME = "/pages/index.html"
 
+/** Spell UI's docs home:  every set is a tab of the top bar from there. */
+const COMPONENTS_HOME = `${COMPONENT_SETS[0].prefix}/`
+
 /** Folders the page server live-reloads when the root `package.json` names none:  the docs areas and their bundle. */
 const DEFAULT_WATCH = ["epics", "guides", "pages", "templates", "brand", "packages/epics/tools/_assets"]
 
 /**
- * The URL path Spell UI's built half lays over URL path `path` (`UI_SITE.overlays`);  else `undefined`.
- * - `/ui/_assets/<x>` -> `/packages/ui/site/_assets/<x>`
- * - `/ui/_data/<x>` likewise
- * - the same under `/worktrees/<w>/` (that worktree's build)
- * - a `StaticHandler` overlay:  served only when the build has the file, else the shared pages' own
- */
-export function uiBuildPath(path: string): string | undefined {
-  const match = /^((?:\/worktrees\/[^/]+)?)\/ui\/([^/]+)(\/.*)?$/.exec(path)
-  if (!match || !(UI_SITE.overlays as readonly string[]).includes(match[2]!)) return undefined
-  return `${match[1]}/${UI_SITE.build}/${match[2]}${match[3] ?? ""}`
-}
-
-/**
- * The URL path a component set's short address serves (`COMPONENT_SETS`, epic `epic-workflow` P10);  else `undefined`.
- * - `/epic-ui/_assets/<x>` -> `/packages/ui/site/_assets/sets/<x>`:  the sets' build of Spell UI's site
- *   (`SETS_BUNDLE`), which then takes `/epic-ui/` as its site's root (the folder above its `_assets/`)
- * - `/epic-ui/<x>` -> `/packages/epic-components/<x>`:  the set's pages, `_parts/` and `_data/`
+ * The URL path a component set's address serves (`COMPONENT_SETS`, epic `people-and-orgs` P18);  else `undefined`.
+ * - `/components/<set>/_assets/<x>` -> the set's site bundle (`assets`):  Spell UI's own for `/components/ui/`, the
+ *   sets' build for the others (`SETS_BUNDLE`);  the bundle then takes `/components/<set>/` as its site's root (the
+ *   folder above its `_assets/`)
+ * - `/components/<set>/<x>` -> its `docs/` folder:  the set's pages, `__parts/` and `__data/`
  * - the same under `/worktrees/<w>/` (that worktree's set and bundle)
  * - a `StaticHandler` overlay:  served only when the file is there, else the path as asked (a 404)
  */
 export function componentSetPath(path: string): string | undefined {
-  const match = /^((?:\/worktrees\/[^/]+)?)(\/[^/]+)(\/.*)$/.exec(path)
+  const match = /^((?:\/worktrees\/[^/]+)?)(\/[^/]+\/[^/]+)(\/.*)$/.exec(path)
   const set = match && COMPONENT_SETS.find((each) => each.prefix === match[2])
   if (!match || !set) return undefined
   const [, base = "", , rest = "/"] = match
   return rest.startsWith(`/${SET_ASSETS}/`)
-    ? `${base}/${SETS_BUNDLE}${rest.slice(SET_ASSETS.length + 1)}`
+    ? `${base}/${set.assets}${rest.slice(SET_ASSETS.length + 1)}`
     : `${base}/${set.dir}${rest}`
 }
 
 /**
- * The URL path the docs assets' OLD folder serves:  `/packages/docs/tools/_assets/<x>` ->
- * `/packages/epics/tools/_assets/<x>` (and the same under `/worktrees/<w>/`);  else `undefined`.
- * - TEMPORARY (epic `people-and-orgs`, P16, J49):  the docs tools moved from `packages/docs/` into `$/epics`, but the
- *   shared pages, which every checkout shows, keep linking the old folder until this branch merges into `main`;
- *   then a script rewrites their links (`relink-assets`) and this overlay goes (the epic's T3)
+ * The URL path a folder this branch MOVED serves from its new place (`MOVED_FOLDERS`, and the same under
+ * `/worktrees/<w>/`);  else `undefined`.
+ * - TEMPORARY (epic `people-and-orgs`, P16 J49, P18):  the shared pages, which every checkout shows, keep linking
+ *   the old folders until this branch merges into `main`;  then a script rewrites their links (`relocate.js
+ *   relink`, `relink-sets`) and this overlay goes (the epic's T3)
  * - a `StaticHandler` overlay:  served only when the file is there
  */
-export function oldAssetsPath(path: string): string | undefined {
-  const match = /^((?:\/worktrees\/[^/]+)?)\/packages\/docs\/tools\/_assets(\/.*)$/.exec(path)
-  return match ? `${match[1]}/packages/epics/tools/_assets${match[2]}` : undefined
+export function movedFolderPath(path: string): string | undefined {
+  const match = /^((?:\/worktrees\/[^/]+)?)(\/.*)$/.exec(path)
+  if (!match) return undefined
+  const [, base = "", rest = "/"] = match
+  const moved = MOVED_FOLDERS.find(([from]) => rest.startsWith(`${from}/`))
+  return moved && `${base}${moved[1]}${rest.slice(moved[0].length)}`
 }
+
+/**
+ * TEMPORARY (until the merge, T3):  folders this branch moved, as URL paths:  old => new.
+ * - the docs assets (P16, J49), into `$/epics`
+ * - the epics pack (P18), into its components' `__pack/`:  every shared plan doc loads it
+ */
+const MOVED_FOLDERS: readonly (readonly [from: string, to: string])[] = [
+  ["/packages/docs/tools/_assets", "/packages/epics/tools/_assets"],
+  ["/packages/epics/pack", "/packages/epics/components/__pack"]
+]
+
+/**
+ * TEMPORARY (until the merge, T3):  what this branch moved OUT of the shared folders into its packages, as URL paths.
+ * The shared repo still holds them for `main` and every other checkout, so the root mount would serve them:  here they
+ * answer "not found", as they will everywhere once this branch merges (Q30).
+ * - `/ui`:  Spell UI's docs, now `/components/ui/` (`packages/ui/docs/`)
+ * - `/brand/components`:  the brand elements' docs, now `/components/brand/` (`packages/brand/docs/`)
+ */
+const MOVED_OUT = ["/ui", "/brand/components"]
 
 /** Branch and worktree name of the checkout at `root`, when git knows. */
 function checkout(root: string): { branch?: string; worktree?: string } {

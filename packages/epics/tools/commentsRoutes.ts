@@ -30,12 +30,12 @@
  *   Which pages take comments (`commentsPage()`):
  *   - any `.html` under `guides/`, `pages/` (the docs home, details pages) and `epics/` (plan docs, an epic's own
  *     pages)
- *   - a component set's pages, at its short address (`/epic-ui/...`, `/app-ui/...`:  `COMPONENT_SETS`, epic
- *     `epic-workflow` P10 / P11), but not its `_parts/`:  kept in `<page>.inbox.json` beside each, in the set's
- *     tracked folder, git-ignored there (the repo's `.gitignore`)
+ *   - a component set's pages, at its address (`/components/epics/...`, `/components/app/...`:  `COMPONENT_SETS`,
+ *     epic `people-and-orgs` P18), but not its `__parts/`:  kept in `<page>.inbox.json` beside each, in the set's
+ *     tracked `docs/` folder, git-ignored there (the repo's `.gitignore`)
  *   - NOT a split plan doc's `parts/` (they're shown inside their doc), nor a plan doc's pre-2026-10-04 name
  *   - NOT a details page with questions, or a syntax-choices page:  they're answered on the page
- *   - NOT `templates/`, the goals pages (they have thoughts), Spell UI's docs or the brand pages
+ *   - NOT `templates/`, the goals pages (they have thoughts), or the Brand tab's own pages (`brand/`)
  *   - anything else:  `takesComments: false` to a GET, 403 to a POST;  no such page:  404;  bad input:  400
  * - every write:  under the inbox file's lock (`SRV.FileLock`), atomic;
  *   the page server announces the file's change, and every open copy of the page draws its comments again
@@ -65,12 +65,12 @@ const API = "/api/docs/comments"
 /** Biggest body accepted:  a comment is a few paragraphs. */
 const MAX_BODY = 64 * 1024
 
-/** The address folders of the component sets (`epic-ui`, `app-ui`):  their pages take comments too. */
+/** The component sets' address folders (`components/epics` ...):  their pages take comments too. */
 const SET_FOLDERS = COMPONENT_SETS.map((set) => set.prefix.slice(1)).join("|")
 
 /**
- * A page that may take comments, by URL path:  under `guides/`, `pages/` or `epics/`, or a component set's short
- * address, on any checkout's mount.
+ * A page that may take comments, by URL path:  under `guides/`, `pages/` or `epics/`, or a component set's address,
+ * on any checkout's mount.
  */
 const COMMENTS_PAGE = new RegExp(
   `^/(?:worktrees/[^/]+/)?(?:guides|pages|epics|${SET_FOLDERS})/(?:[^/]+/)*[^/]+\\.html$`
@@ -78,9 +78,9 @@ const COMMENTS_PAGE = new RegExp(
 
 /**
  * Pages under those that don't:  a split plan doc's parts, a plan doc's old name (`<name>/<name>.html`), a component
- * set's layout and footer (`_parts/`).
+ * set's layout and footer (`__parts/`).
  */
-const NO_COMMENTS = /\/parts\/[^/]+\.html$|\/_parts\/[^/]+\.html$|\/epics\/([^/]+)\/\1\.html$/
+const NO_COMMENTS = /\/parts\/[^/]+\.html$|\/__parts\/[^/]+\.html$|\/epics\/([^/]+)\/\1\.html$/
 
 /** A plan doc, by its file:  its comments go in the epic's review inbox. */
 const PLAN_DOC = /\.plan\.html$/

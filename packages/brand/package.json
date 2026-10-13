@@ -2,21 +2,24 @@
   "name": "@spell-app/brand",
   "version": "0.0.0",
   "private": true,
-  "description": "Spell's brand:  Claude Design's pages and tokens, their Spell UI copies, and the <ui-brand-*> elements they need",
+  "description": "Spell's brand:  Claude Design's pages and tokens, their Spell UI copies, and the <brand-*> elements they need (a component pack)",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "build": "tsx scripts/build.ts",
     "compare": "tsx scripts/compare.ts",
     "site:data": "tsx scripts/site-data.ts",
+    "rename:shared": "tsx scripts/rename-shared.ts",
     "/////// CORRECTNESS": "",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
     "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc && tsc -p ../../tests/brand && echo '<< TSC PASSED\n'",
     "lint": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT' && vp lint --report-unused-disable-directives --max-warnings 0 src components scripts && cd ../../tests/brand && vp lint --report-unused-disable-directives --max-warnings 0 . && echo '<< OXLINT PASSED\n'",
     "lint:fix": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT --fix' && vp lint --fix src components scripts && cd ../../tests/brand && vp lint --fix . && echo '<< OXLINT PASSED\n'",
-    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && vp fmt src components scripts vite.config.ts vite.design.config.ts vitest.config.ts _assets/brand-pages.js _assets/brand-pages.css _assets/brand-docs.css && cd ../../tests/brand && vp fmt . && echo '<< OXFMT PASSED\n'",
+    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && vp fmt src components scripts vite.config.ts vite.design.config.ts vitest.config.ts _assets/brand-pages.js _assets/brand-pages.css && cd ../../tests/brand && vp fmt . && echo '<< OXFMT PASSED\n'",
     "/////// TESTING": "",
-    "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vp test run && echo '<< TESTS PASSED\n'"
+    "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vp test run && echo '<< TESTS PASSED\n'",
+    "pack:build": "node ../cli/bin/spell.mjs dev pack build brand",
+    "pack:check": "node ../cli/bin/spell.mjs dev pack check brand"
   },
   "devDependencies": {
     "@solidjs/web": "2.0.0-rc.13",
@@ -31,5 +34,8 @@
     "node": ">=24.11"
   },
   "packageManager": "yarn@4.18.0",
-  "customElements": "_data/custom-elements.json"
+  "customElements": "docs/__data/custom-elements.json",
+  "spellPack": {
+    "prefix": "brand-"
+  }
 }

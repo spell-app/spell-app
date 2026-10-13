@@ -1,6 +1,6 @@
 /**
- * `yarn site:index [--check]`:  write the component index, `ui/components/index.html`'s card grid (the shared pages,
- * `SITE_PAGES`), from the site's data (`site/_data/components.json`, this branch's).
+ * `yarn site:index [--check]`:  write the component index, `docs/components.html`'s card grid (the site's pages,
+ * `SITE_PAGES`), from the site's data (`docs/__data/components.json`).
  * - One section per topic (`<ui-header level="2" dividing>`), each a `<ui-cards>` of `<ui-card href header meta
  *   description>`:  every COMPONENT tag, under EACH of its topics, A-Z.  The same groups and links as the sidebar's
  *   Topics view, because both come from `NavIndex`.
@@ -19,7 +19,7 @@ import { parseArgs } from "node:util"
 import type { SiteDataFile, SiteTag } from "../src/docs-components/docs-components.types.ts"
 import { NavIndex } from "../src/docs-components/ui-docs-nav/NavIndex.ts"
 import { Terminal } from "../tools/Terminal.ts"
-import { SITE_BUILD, SITE_PAGES } from "../tools/tools.types.ts"
+import { SITE_DATA, SITE_PAGES } from "../tools/tools.types.ts"
 
 import { STATUS_TEXT, escapeHtml, spliceGenerated, withoutTicks, writeOrCheck } from "./generatedFiles.ts"
 import { SiteSections } from "./site-sections.ts"
@@ -34,10 +34,10 @@ const UI = path.resolve(import.meta.dirname, "..")
  ****************/
 class ComponentIndexWriter {
   /** The page. */
-  readonly file = path.join(UI, SITE_PAGES, "components/index.html")
+  readonly file = path.join(UI, SITE_PAGES, "components.html")
 
   /** The site's data. */
-  readonly data: SiteDataFile = JSON.parse(readFileSync(path.join(UI, SITE_BUILD, "_data/components.json"), "utf8"))
+  readonly data: SiteDataFile = JSON.parse(readFileSync(path.join(UI, SITE_DATA, "components.json"), "utf8"))
 
   /** `page` with its generated block replaced by a fresh one. */
   render(page: string): string {
@@ -81,11 +81,11 @@ class ComponentIndexWriter {
   }
 
   /**
-   * `tag`'s page, relative to `components/`:  `ui-button.html`, `ui-radio.html` for a sub-tag with its own page,
+   * `tag`'s page, beside the index:  `ui-button.html`, `ui-radio.html` for a sub-tag with its own page,
    * `ui-button.html#ui-or` for one on its family's page.
    */
   private static href(tag: SiteTag): string {
-    return (tag.href ?? `components/${tag.folder}.html#${tag.tag}`).replace(/^components\//, "")
+    return tag.href ?? `${tag.folder}.html#${tag.tag}`
   }
 
   /** `date & time` => `date-time`. */

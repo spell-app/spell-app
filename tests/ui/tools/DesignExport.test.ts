@@ -11,7 +11,7 @@ import type { DesignExportResult, DesignTokensFile, ThemedValue } from "$/ui/too
 
 /**
  * The claude.ai design-system export (`yarn design:build`) keeps to the format's rules
- * (`artifact-type/reference/format.md` of the Design System type);  the brand's `<ui-brand-*>` cards come in
+ * (`artifact-type/reference/format.md` of the Design System type);  the brand's `<brand-*>` cards come in
  * as a "Brand" group (epic `claude-design`, P11).
  */
 
@@ -20,9 +20,9 @@ import type { DesignExportResult, DesignTokensFile, ThemedValue } from "$/ui/too
 ////////////////
 
 const UI = fileURLToPath(new URL("../../../packages/ui/", import.meta.url))
-const DATA = JSON.parse(readFileSync(join(UI, "site/_data/components.json"), "utf8")) as SiteDataFile
+const DATA = JSON.parse(readFileSync(join(UI, "docs/__data/components.json"), "utf8")) as SiteDataFile
 const BRAND = join(UI, "../brand")
-const BRAND_DATA = JSON.parse(readFileSync(join(BRAND, "_data/components.json"), "utf8")) as SiteDataFile
+const BRAND_DATA = JSON.parse(readFileSync(join(BRAND, "docs/__data/components.json"), "utf8")) as SiteDataFile
 /** Spell UI's site data with the brand's merged in, as the export sees it */
 let all: SiteDataFile
 let result: DesignExportResult
@@ -207,7 +207,7 @@ describe("DesignExport.build() brand cards", () => {
     )
     expect(result.families.at(-1)!.group).toBe("Brand")
     const logo = files.get("components/BrandLogo/preview.html")!
-    expect(logo).toContain("<ui-brand-logo")
+    expect(logo).toContain("<brand-logo")
     expect(files.get("README.md")).toContain("### Brand")
   })
 })

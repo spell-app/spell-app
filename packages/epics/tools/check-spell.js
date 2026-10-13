@@ -21,8 +21,8 @@
  *   - a plan doc's open item (`<epic-item>`, epic `windows-and-review` Q6) whose line doesn't stick right under its
  *     section's stuck title while its details are read;  at desktop and phone width (`checkItemLine()`)
  * - loads the page from `file://`, or from the page server when its `<body>` says `data-spell-needs-server`
- * - a component set's page (`packages/epic-components/`:  `COMPONENT_SETS` in `$/server/page`) from the page server at
- *   its short address (`/epic-ui/...`), since it loads Spell UI's site bundle from there;  `--base <url>` checks it
+ * - a component set's page (`packages/epics/docs/`:  `COMPONENT_SETS` in `$/server/page`) from the page server at
+ *   its address (`/components/epics/...`), since it loads its site bundle from there;  `--base <url>` checks it
  *   on another server, e.g. the main checkout's `http://localhost:4747/worktrees/<w>`
  *   - it has Spell UI's page shape, no toolbar:  the toolbar checks find no top-level section, and pass
  * - reports, never fails on:  icons with no `<svg>` drawn in their shadow tree (no reliable "done loading" signal)
@@ -90,7 +90,8 @@ if (middle.id && !stuck.stuck)
 if (desktop.topLevel && !stuck.active) problem("no toolbar entry marked current after scrolling")
 
 const fold = await checkFold(desk)
-if (fold.problem) problem(`fold:  ${fold.problem}`)
+// a component set's page with no section at all (a set's home, an element with one example) has nothing to fold
+if (fold.problem && (fold.target || !setAddress(docPath))) problem(`fold:  ${fold.problem}`)
 const itemLine = { desktop: await checkItemLine(desk) }
 
 const phone = await open({ width: 390, height: 844 })
@@ -151,7 +152,7 @@ function pageUrl(file) {
   return local
 }
 
-/** A component set's page `file` at its short address (`/epic-ui/elements/x.html`);  `undefined` for any other page. */
+/** A component set's page `file` at its address (`/components/epics/x.html`);  `undefined` for any other page. */
 function setAddress(file) {
   const path = relative(ROOT, resolve(file)).split(sep).join("/")
   const set = COMPONENT_SETS.find((each) => path.startsWith(`${each.dir}/`))
@@ -338,8 +339,13 @@ function foldTarget() {
     const best = blocks.find((block) => filled(block) && block.open) ?? blocks.find(filled) ?? blocks[0]
     return { id: best.id, kind: "epic" }
   }
-  // a docs page's top-level sections;  a Spell UI-shaped page's (a component set's) are in its article
-  const sections = [...document.querySelectorAll(":is(main, main .site-article) > ui-section[collapsible][id]")]
+  // a docs page's top-level sections;  a Spell UI-shaped page's (a component set's) are in its article, or in its
+  // article's tabs (Spell UI's element pages:  Examples, Usage ...)
+  const sections = [
+    ...document.querySelectorAll(
+      ":is(main, main .site-article, main .site-tabs > ui-tab) > ui-section[collapsible][id]"
+    )
+  ]
   if (sections.length) {
     const best =
       sections.find((section) => filled(section) && !section.hasAttribute("collapsed")) ??

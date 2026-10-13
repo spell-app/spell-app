@@ -41,7 +41,7 @@ const EXTRA_ENTRIES = { api: ENTRIES.api!, styles: ENTRIES.styles! }
 export const PACKAGE: PackageConfig = {
   name: "@spell-app/ui",
   root: ROOT,
-  entries: Object.fromEntries(COMPONENTS.map((name) => [name, `src/components/${name}/index.ts`])),
+  entries: Object.fromEntries(COMPONENTS.map((name) => [name, `components/${name}/index.ts`])),
   shared: [
     { name: "core", entry: SHARED_ENTRIES.core },
     { name: "forms", entry: SHARED_ENTRIES.forms, description: "form base, validation, menu options" }
@@ -75,7 +75,9 @@ function bucket(id: string): Bucket {
     return "library"
   }
   if (/\/node_modules\/(temporal-(polyfill|utils)|highlight\.js|marked|dompurify)\//.test(id)) return "data"
-  const src = /\/src\/(.+)$/.exec(id.split("?")[0]!)?.[1]
+  // a path under a `src/`, or under ui's `components/` (outside `src/`, kept as `components/...`)
+  const file = id.split("?")[0]!
+  const src = /\/packages\/ui\/(components\/.+)$/.exec(file)?.[1] ?? /\/src\/(.+)$/.exec(file)?.[1]
   if (!src) return "other"
   if (
     /^(forms\.ts|elements\/(FormComponent|DOMFormControl|Validator|MenuOptions|ControlLabels|LabelWatch)\.ts)$/.test(

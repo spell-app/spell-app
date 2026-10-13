@@ -21,7 +21,7 @@ import type { AS } from "$/assembler"
  *   folder names only:  imports no other package, so the docs tools and the plan-doc tool (`epics`) both import it.
  * - From `packages/epics/tools/doc-links.js` (epic `epic-components`, P7), which now runs its command line on this.
  * - SERVED folders (`served`, epic `epic-workflow` P10):  a folder the page server serves at another address (a
- *   component set:  `packages/epic-components/` at `/epic-ui/`) has its pages' links written as from that address,
+ *   component set:  `packages/epics/docs/` at `/components/epics/`) has its pages' links written as from that address,
  *   so they hold under `/worktrees/<w>/` too.  Give such a page `servedDir()` of its folder as its `pageDir`:  links
  *   then resolve, and are written, from there.
  */
@@ -46,7 +46,7 @@ export class Linker {
 
   /**
    * the served folders, absolute:  `[address folder, the folder it serves]`, e.g.
-   * `[<root>/epic-ui, <root>/packages/epic-components]`
+   * `[<root>/components/epics, <root>/packages/epics/docs]`
    */
   readonly served: readonly (readonly [string, string])[]
 
@@ -55,7 +55,8 @@ export class Linker {
 
   /**
    * - `served`:  the address folder => the folder it serves, both relative to `root`, e.g.
-   *   `{ "epic-ui": "packages/epic-components" }` (`COMPONENT_SETS` in `$/server/page`, which this package can't import)
+   *   `{ "components/epics": "packages/epics/docs" }` (`COMPONENT_SETS` in `$/server/page`, which this package can't
+   *   import)
    */
   constructor(root: string, { served = {} }: { served?: Readonly<Record<string, string>> } = {}) {
     this.root = root
@@ -148,14 +149,14 @@ export class Linker {
 
   /**
    * The folder a page in `dir` is SERVED from:  in a served folder, its place under the address folder
-   * (`<root>/packages/epic-components/elements` => `<root>/epic-ui/elements`);  else `dir`.
+   * (`<root>/packages/epics/docs` => `<root>/components/epics`);  else `dir`.
    * - What to pass `link()` / `check()` as a page's folder.
    */
   servedDir(dir: string): string {
     return this.swap(resolvePath(dir), 1, 0)
   }
 
-  /** `path`, resolved from a served place, as the file it is:  `<root>/epic-ui/x` => `<root>/packages/epic-components/x`. */
+  /** `path`, resolved from a served place, as the file it is:  `<root>/components/epics/x` => `<root>/packages/epics/docs/x`. */
   private real(path: string): string {
     return this.swap(path, 0, 1)
   }
@@ -218,19 +219,20 @@ export class Linker {
 
   /**
    * Where bare file names (`withSolid.ts`) are looked up:
-   * - every package's `src/`
+   * - every package's `src/`, and its `components/` (a component set's elements:  `UIButton.tsx`)
    * - the repo's `tests/`, where every package's tests live (`List.test.ts`)
-   * - the docs' pages (every area:  `pages/`, `guides/`, `epics/`, `templates/`) and tools, and UI's `docs/`
+   * - the docs' pages (every area:  `pages/`, `guides/`, `epics/`, `templates/`) and tools, and UI's design notes,
+   *   `notes/`
    */
   private get indexRoots(): string[] {
     return [
       ...readdirSync(this.packages)
-        .map((name) => join(this.packages, name, "src"))
+        .flatMap((name) => [join(this.packages, name, "src"), join(this.packages, name, "components")])
         .filter(isDir),
       ...[join(this.root, "tests")].filter(isDir),
       ...AREAS.map((area) => join(this.root, area)),
       join(this.packages, "epics", "tools"),
-      join(this.ui, "docs")
+      join(this.ui, "notes")
     ]
   }
 

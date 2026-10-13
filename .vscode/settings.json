@@ -33,11 +33,11 @@
 
   // Autocomplete and hover docs for every `<ui-*>` tag, attribute and value in `.html` files:  Spell UI's vocabularies
   // as VS Code HTML custom data, written by `yarn site:data` (packages/ui, `tools/ElementManifests.ts`);  the brand's
-  // `<ui-brand-*>` too, by its own `yarn site:data` (packages/brand).  Every package window's FIRST folder is this repo
+  // `<brand-*>` too, by its own `yarn site:data` (packages/brand).  Every package window's FIRST folder is this repo
   // root, so this file reaches them all.
   "html.customData": [
-    "./packages/ui/site/_data/html-custom-data.json",
-    "./packages/brand/_data/html-custom-data.json"
+    "./packages/ui/docs/__data/html-custom-data.json",
+    "./packages/brand/docs/__data/html-custom-data.json"
   ],
 
   // Quick Open (Cmd+P) and Find in Files skip these;  Explorer still shows them.  Generated files (the root's
@@ -51,8 +51,8 @@
     "packages/ui/src/icons/**": true,
     "packages/ui/test/visual/**": true,
     "packages/ui/src/languages/spell.*": true,
-    "packages/ui/src/components/ui-markdown/md.bundle.*": true,
-    "packages/ui/src/components/ui-emoji/data/**": true,
+    "packages/ui/components/ui-markdown/md.bundle.*": true,
+    "packages/ui/components/ui-emoji/data/**": true,
     "packages/app/static/semantic-ui-css/**": true,
     "yarn.lock": true
   },

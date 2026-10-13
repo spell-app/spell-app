@@ -148,7 +148,7 @@ export type DismissReason = "escape" | "outside" | "close-all"
  * - The component owns the entry object and passes the SAME object to `close()`.
  * - Defaults by `kind`:
  *   - `closeOnEscape`:  `true` except `toast`
- *   - `closeOnOutsideClick`:  `true` except `toast` (`<ui-modal>` sets its own, see `docs/runtime.md`)
+ *   - `closeOnOutsideClick`:  `true` except `toast` (`<ui-modal>` sets its own, see `notes/runtime.md`)
  *   - `modal` (scroll lock + keyboard scope):  `true` for `modal` / `flyout` / `dimmer`
  */
 export type OverlayEntry = {
@@ -242,7 +242,7 @@ export type StyleRegisterOptions = {
   shadow?: boolean
 }
 
-/** `id` of the ONE app stylesheet components adopt -- see `docs/runtime.md`. */
+/** `id` of the ONE app stylesheet components adopt -- see `notes/runtime.md`. */
 export const APP_STYLESHEET_ID = "ui-app-stylesheet"
 
 /**

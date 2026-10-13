@@ -72,7 +72,7 @@ const PACKAGE_ROOT = fileURLToPath(new URL("../", import.meta.url))
 // ## Markup
 ////////////////
 
-/** A family's `status` (`site/_data/pages.json`) as its label's words;  `done` shows none. */
+/** A family's `status` (`docs/__data/pages.json`) as its label's words;  `done` shows none. */
 export const STATUS_TEXT: Readonly<Record<string, string>> = { planned: "Planned", "in-progress": "In progress" }
 
 /** `text` safe inside an attribute or element. */

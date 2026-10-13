@@ -15,13 +15,16 @@ const BROWSERS = environment.isAllBrowsers ? (["chromium", "firefox", "webkit"] 
 /**
  * Where both projects find their tests:  the tests live in the repo's tests/ folder, at the same paths as the code.
  * - Absolute:  a relative `dir` is read from wherever the run starts (the repo root's run too).
- * - The globs below are relative to it;  `root` stays this package, so `/src/...` globs, `/test/fixtures/...` URLs
- *   and `setupFiles` still mean this package's files.
+ * - The globs below are relative to it;  `root` stays this package, so `/src/...` and `/components/...` globs,
+ *   `/test/fixtures/...` URLs and `setupFiles` still mean this package's files.
  */
 const TESTS = resolve(import.meta.dirname, "../../tests/ui")
 
+/** The folders of tests, as the code's:  `src/`, the families' `components/`, and the cross-family `test/`. */
+const TEST_FOLDERS = "{src,components,test}"
+
 /** Server-render tests:  `*.ssr.test.ts(x)`, anywhere. */
-const SSR_TESTS = ["src/**/*.ssr.test.{ts,tsx}", "test/**/*.ssr.test.{ts,tsx}"]
+const SSR_TESTS = [`${TEST_FOLDERS}/**/*.ssr.test.{ts,tsx}`]
 
 /** Node tooling tests (the pack builder) under `tools/`, run with the `ssr` project, in node. */
 const TOOL_TESTS = ["tools/**/*.test.ts"]
@@ -64,7 +67,7 @@ export function uiProjects({ prefix = "", root }: { prefix?: string; root?: stri
         name: `${prefix}browser`,
         sequence: { groupOrder: 1 },
         dir: TESTS,
-        include: ["src/**/*.test.{ts,tsx}", "test/**/*.test.{ts,tsx}"],
+        include: [`${TEST_FOLDERS}/**/*.test.{ts,tsx}`],
         exclude: [...configDefaults.exclude, ...SSR_TESTS],
         setupFiles: ["./test/setup.ts"],
         // a guard:  an element bug that halts rendering must fail its test, not hang the run

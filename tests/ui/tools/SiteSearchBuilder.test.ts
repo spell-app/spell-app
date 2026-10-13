@@ -3,7 +3,7 @@ import { describe, expect, it } from "vite-plus/test"
 import { SiteSearchBuilder } from "$/ui/tools/SiteSearchBuilder"
 
 /**
- * `SiteSearchBuilder`:  a page's entry in `site/_data/search.json`, from its markup.  (That the committed file is
+ * `SiteSearchBuilder`:  a page's entry in `docs/__data/search.json`, from its markup.  (That the committed file is
  * current:  `SiteDataBuilder.test.ts`.)
  */
 describe("SiteSearchBuilder.page()", () => {
@@ -26,8 +26,8 @@ describe("SiteSearchBuilder.page()", () => {
     </main></body></html>`
 
   it("reads the title, summary, tabs and every section with its parent and tab;  never a demo's", () => {
-    expect(SiteSearchBuilder.page("components/ui-divider.html", PAGE)).toEqual({
-      path: "components/ui-divider.html",
+    expect(SiteSearchBuilder.page("ui-divider.html", PAGE)).toEqual({
+      path: "ui-divider.html",
       title: "Divider",
       summary: "Segments content.",
       tag: "ui-divider",

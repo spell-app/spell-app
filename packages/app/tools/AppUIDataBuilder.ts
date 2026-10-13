@@ -3,6 +3,7 @@ import path from "node:path"
 
 import { SiteDataBuilder } from "$/ui/tools/SiteDataBuilder"
 import {
+  APP_COMPONENTS,
   APP_UI_DATA,
   APP_UI_FOLDER,
   type AppUIData,
@@ -16,13 +17,13 @@ import { ComponentSource } from "./ComponentSource.ts"
 
 /****************
  * ### `AppUIDataBuilder`
- * Builds the App UI docs set's data, `components/_data/components.json`:
+ * Builds the App UI docs set's data, `docs/__data/components.json`:
  * the side column's list, and each page's API tables (epic `epic-workflow`, P11);
  * and its search file, `search.json` (`searchText()`).
  * - Run by `yarn site:data` (`scripts/site-data.ts`);  `AppUIDataBuilder.test.ts` fails while the file is stale.
  * - The file is Spell UI's `SiteDataFile`, so the set's pages draw it with Spell UI's docs elements:
  *   `<ui-docs-nav>` lists it, `<ui-docs-api>` draws a page's tables.
- * - Three kinds of entry, one page each, as `_data/pages.json` (hand-kept, never written) lists them:
+ * - Three kinds of entry, one page each, as `__data/pages.json` (hand-kept, never written) lists them:
  *   - the web components, `<spell-app>` and `<spell-editor>`:  from their vocabularies, by Spell UI's own builder
  *     (`SiteDataBuilder`), as Epic UI's elements and the brand elements are
  *   - the drawable thing's element (`spell-element`):  its vocabulary too, read from `src/`
@@ -44,22 +45,22 @@ export class AppUIDataBuilder {
     this.root = root
   }
 
-  /** The set's data folder, `components/_data/`. */
+  /** The set's data folder, `docs/__data/`. */
   get dataFolder(): string {
     return path.join(this.root, APP_UI_FOLDER, APP_UI_DATA)
   }
 
-  /** `components/_data/components.json`. */
+  /** `docs/__data/components.json`. */
   get dataFile(): string {
     return path.join(this.dataFolder, "components.json")
   }
 
-  /** `components/_data/pages.json`. */
+  /** `docs/__data/pages.json`. */
   get pagesFile(): string {
     return path.join(this.dataFolder, "pages.json")
   }
 
-  /** `components/_data/search.json`:  every page's sections, for the side column's search. */
+  /** `docs/__data/search.json`:  every page's sections, for the side column's search. */
   get searchFile(): string {
     return path.join(this.dataFolder, "search.json")
   }
@@ -255,7 +256,7 @@ export class AppUIDataBuilder {
     let base: string | undefined
     if (specifier.startsWith("./")) base = path.posix.join(path.posix.dirname(from), specifier)
     else if (specifier.startsWith(COMPONENTS_ALIAS))
-      base = path.posix.join(APP_UI_FOLDER, specifier.slice(COMPONENTS_ALIAS.length))
+      base = path.posix.join(APP_COMPONENTS, specifier.slice(COMPONENTS_ALIAS.length))
     else if (specifier.startsWith(APP_ALIAS)) base = path.posix.join("src", specifier.slice(APP_ALIAS.length))
     if (!base) return undefined
     return SOURCE_EXTENSIONS.map((extension) => base + extension).find((file) => existsSync(path.join(this.root, file)))
@@ -269,10 +270,10 @@ const APP_ROOT = path.resolve(import.meta.dirname, "..")
 const REPO_PACKAGE = "packages/app"
 
 /** Where the vocabularies are, from `packages/app/`:  the web components, and the runner's drawable-thing element. */
-const VOCABULARY_FOLDERS = [APP_UI_FOLDER, "src"]
+const VOCABULARY_FOLDERS = [APP_COMPONENTS, "src"]
 
 /** Where the components that draw others are, from `packages/app/`. */
-const SOURCE_FOLDERS = ["src", APP_UI_FOLDER]
+const SOURCE_FOLDERS = ["src", APP_COMPONENTS]
 
 /** A test file's name. */
 const TEST_FILE = /\.test\.tsx$/

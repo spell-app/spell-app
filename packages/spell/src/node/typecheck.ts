@@ -126,6 +126,8 @@ function tsconfig(names: string[], projects: Record<string, string>) {
         "$/spell-solid/*": [`${packagesDir}/spell-solid/src/*`],
         "$/ui": [`${packagesDir}/ui/src/index.ts`],
         "$/ui/*": [`${packagesDir}/ui/src/*`],
+        // Spell UI's families, outside its `src/` (as `tsconfig.base.json`):  longer than `$/ui/*`, so it wins
+        "$/ui/components/*": [`${packagesDir}/ui/components/*`],
         ...imported
       },
       lib: ["ES2023", "DOM", "DOM.Iterable"],

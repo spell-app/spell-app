@@ -31,8 +31,10 @@ PARKED-*.md
 
 # the component sets' waiting comments (`<page>.inbox.json` beside a page, and its lock;  the comment route, epic
 # epic-workflow P10 / P11):  per machine, never the record, as the shared pages' are
-/packages/epic-components/**/*.inbox.json*
-/packages/app/components/**/*.inbox.json*
+/packages/epics/docs/**/*.inbox.json*
+/packages/app/docs/**/*.inbox.json*
+/packages/ui/docs/**/*.inbox.json*
+/packages/brand/docs/**/*.inbox.json*
 
 # `/details` scratch pages and review inboxes (`pages/details/`, `epics/*/*.inbox.json`):  ignored by the shared
 # content repo's own `.gitignore` (`../spell-app-dev`);  here the whole folders are ignored (`# shared:` block below)

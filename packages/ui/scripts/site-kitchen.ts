@@ -1,14 +1,14 @@
 /**
- * `yarn site:kitchen [--check]`:  write the kitchen sink's examples, `ui/kitchen-sink.html` (the shared pages,
+ * `yarn site:kitchen [--check]`:  write the kitchen sink's examples, `docs/kitchen-sink.html` (the site's pages,
  * `SITE_PAGES`), from every component family's MAIN example file:
- * `src/components/ui-<family>/examples/elements/types.html`, else its first `.html`.
+ * `components/ui-<family>/examples/elements/types.html`, else its first `.html`.
  * - Why generated:  the old Astro page read the same files at build time;  a static page would drift from them.
  *   The markup is the files' own (the families' tests render them), so it keeps their native bits (`<p>`, a
  *   `style=` box around a loader, `<div class="ui-stack">` around radios).
  * - Grouped as Fomantic's kitchen sink is:  Elements, Collections, Views, Modules (each family's Fomantic topic),
  *   then our own families;  A-Z by title inside a group.  Families without an element example (`item`:  `items`
  *   shows it) are left out.
- * - Example sources (`<ui-include source>` ...) point at the site's copies in `ui/examples/` (`SITE_SOURCES`).
+ * - Example sources (`<ui-include source>` ...) point at the site's copies in `docs/examples/` (`SITE_SOURCES`).
  * - `MAIN_FILES` names the file where `types.html` isn't the main one (`ui-parts`:  `header.html`).  Sections holding
  *   `stub-*` stand-ins (the tests' `StubOwner`, not real elements) are left out;  at most `MAX_SECTIONS` (3) per
  *   family, so the page stays scannable (the family's page has the rest).
@@ -28,7 +28,7 @@ import { parseArgs } from "node:util"
 
 import type { SiteDataFile, SiteFamily, SiteTag } from "../src/docs-components/docs-components.types.ts"
 import { Terminal } from "../tools/Terminal.ts"
-import { SITE_BUILD, SITE_PAGES } from "../tools/tools.types.ts"
+import { SITE_DATA, SITE_PAGES } from "../tools/tools.types.ts"
 
 import { escapeHtml, spliceGenerated, withoutTicks, writeOrCheck } from "./generatedFiles.ts"
 import { SiteSections } from "./site-sections.ts"
@@ -46,7 +46,7 @@ class KitchenSinkWriter {
   readonly file = path.join(UI, SITE_PAGES, "kitchen-sink.html")
 
   /** The site's data:  titles, summaries, topics. */
-  readonly data: SiteDataFile = JSON.parse(readFileSync(path.join(UI, SITE_BUILD, "_data/components.json"), "utf8"))
+  readonly data: SiteDataFile = JSON.parse(readFileSync(path.join(UI, SITE_DATA, "components.json"), "utf8"))
 
   /** `page` with its generated block replaced by a fresh one. */
   render(page: string): string {
@@ -78,7 +78,7 @@ class KitchenSinkWriter {
     const lines: string[] = []
     sections.forEach((section, index) => {
       if (index === 0) {
-        const page = `components/${family.mainTag}.html`
+        const page = `${family.mainTag}.html`
         lines.push(
           `${indent}<ui-docs-example header="${escapeHtml(family.title)}">`,
           `${indent}  <p slot="description">`,
@@ -108,13 +108,13 @@ class KitchenSinkWriter {
    */
   private static ownPages(family: SiteFamily): string[] {
     return Object.entries(family.pages ?? {}).map(
-      ([tag, page]) => `&middot; <a href="components/${tag}.html">${escapeHtml(page.title)} page</a>`
+      ([tag, page]) => `&middot; <a href="${tag}.html">${escapeHtml(page.title)} page</a>`
     )
   }
 
   /** `family`'s main example file:  `types.html`, else its first `.html`;  `undefined` without one. */
   private exampleFile(family: SiteFamily): string | undefined {
-    const folder = path.join(UI, "src/components", family.folder, "examples/elements")
+    const folder = path.join(UI, "components", family.folder, "examples/elements")
     if (!existsSync(folder)) return undefined
     const files = readdirSync(folder)
       .filter((name) => name.endsWith(".html"))
@@ -155,7 +155,7 @@ class KitchenSinkWriter {
   /** `line` with its dev-server example sources pointed at the site's copies (`examples/<file>`). */
   private static siteSources(line: string): string {
     return line.replace(
-      /source="\/src\/components\/[^/"]+\/examples\/sources\/([^"]+)"/g,
+      /source="\/components\/[^/"]+\/examples\/sources\/([^"]+)"/g,
       (_match, file: string) => `source="examples/${SITE_SOURCES[file] ?? file}"`
     )
   }
@@ -210,7 +210,7 @@ const MAIN_FILES: Readonly<Record<string, string>> = { "ui-parts": "header.html"
 
 /**
  * The site's copies of the example source files (`ui/examples/`), by the source's file name, where the name
- * differs;  a `source="/src/components/.../examples/sources/<file>"` (a dev-server path) points at the copy.
+ * differs;  a `source="/components/.../examples/sources/<file>"` (a dev-server path) points at the copy.
  */
 const SITE_SOURCES: Readonly<Record<string, string>> = { "notes.html": "release-notes.html" }
 

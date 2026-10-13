@@ -34,7 +34,7 @@ import "./ThingExplorer.css"
  * - NOTE: imports its peers directly, NOT the `$/app/solid` barrel:  a runner's bundle would get the whole editor
  *   through it (`Actions.tsx`).  So its `<ui-*>` tags are the CALLER's to define:  the barrel or `./loadUI`.  Not
  *   imported here:  `$/ui` can't load under node (`customElements`), and the `node` tests render this.
- * - SEE:  its App UI page, `packages/app/components/ThingExplorer.html` (`/app-ui/ThingExplorer.html`).
+ * - SEE:  its App UI page, `packages/app/docs/ThingExplorer.html` (`/components/app/ThingExplorer.html`).
  ****************/
 export function ThingExplorer(props: ThingExplorerProps) {
   const [state, setState] = createSignal<ThingExplorerState>(untrack(() => props.state) ?? {})

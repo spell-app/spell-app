@@ -22,7 +22,7 @@ const EXAMPLES = import.meta.glob<string>("/src/docs-components/ui-docs-api/exam
 
 /** The real `components.json`, as a served URL (the examples document real tags). */
 const REAL_DATA = Object.values(
-  import.meta.glob<string>("/site/_data/components.json", { query: "?url", import: "default", eager: true })
+  import.meta.glob<string>("/docs/__data/components.json", { query: "?url", import: "default", eager: true })
 )[0]!
 
 /** A tag entry with nothing but `overrides`. */

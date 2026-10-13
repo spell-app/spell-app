@@ -1,0 +1,77 @@
+{
+  "$comment": "HAND-KEPT facts of Epic UI's side column, read by `yarn site:data` in packages/epics (src/site/EpicUISite.ts), which writes components.json and search.json beside this.  `groups`:  the side column's groups, in order, as the set's home groups the elements;  an element no group names shows under Other.  `drawnOnly`:  elements drawn only inside other elements' shadow roots, never written in a doc:  no page, never listed.  `nav`:  the side column's own links (`file` relative to the set's root, `/components/epics/`) and band titles.  Shape:  `EpicUIPages` in packages/epics/src/site/EpicUISite.ts.",
+  "groups": [
+    {
+      "id": "page",
+      "title": "Page and sections",
+      "tags": [
+        "epic-page",
+        "epic-overview",
+        "epic-summary",
+        "epic-prompt",
+        "epic-section",
+        "epic-phase",
+        "epic-field",
+        "epic-updated",
+        "epic-update"
+      ]
+    },
+    {
+      "id": "items",
+      "title": "Items and cards",
+      "tags": [
+        "epic-item",
+        "epic-question",
+        "epic-choices",
+        "epic-option",
+        "epic-answer",
+        "epic-more",
+        "epic-reply",
+        "epic-status",
+        "epic-original",
+        "epic-version"
+      ]
+    },
+    {
+      "id": "prose",
+      "title": "Prose",
+      "tags": ["epic-net-effect", "epic-code", "epic-aside", "epic-note"]
+    },
+    {
+      "id": "log",
+      "title": "Log and commits",
+      "tags": ["epic-commit", "epic-event"]
+    }
+  ],
+  "drawnOnly": ["epic-review", "epic-new-item", "epic-agents"],
+  "nav": {
+    "start": [{ "id": "index", "file": "index.html", "label": "The Epic Elements", "icon": "layer group" }],
+    "foundation": [
+      {
+        "id": "epic-components",
+        "file": "../../guides/epic-components/epic-components.html",
+        "label": "Epic Pages as Components",
+        "icon": "book open"
+      },
+      {
+        "id": "review",
+        "file": "../../guides/epic-components/review.html",
+        "label": "Reviewing a Plan Doc",
+        "icon": "check"
+      },
+      {
+        "id": "tool",
+        "file": "../../guides/epic-components/tool.html",
+        "label": "The Plan-Doc Tool",
+        "icon": "terminal"
+      },
+      {
+        "id": "colours",
+        "file": "../../guides/epic-components/colours.html",
+        "label": "Plan Doc Colours",
+        "icon": "palette"
+      }
+    ],
+    "titles": { "start": "Start", "components": "Elements", "foundation": "Guides" }
+  }
+}

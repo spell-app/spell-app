@@ -1,0 +1,240 @@
+<!doctype html>
+<!--
+  A <brand-*> element's page in the brand's docs set (`packages/brand/docs/`, served at `/components/brand/`), in
+  Spell UI's component page shape:  masthead, then Examples / Usage / API / Theming tabs.
+  - The set's layout (`__parts/layout.html`) loads Spell UI's site bundle and the brand pack;  API and tokens come
+    from `__data/components.json` (`yarn site:data` in `packages/brand`).
+  - Example ids:  `<tab>-<section>-<example>`, as Spell UI's pages.
+  - What the examples need, styles and script, is INSIDE `main`:  the site swaps only `main` between its pages.
+    A script adds its listeners once (`window.<flag>`):  the site runs it again each time the page is shown.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Brand Color Range</title>
+    <meta
+      name="description"
+      content="<brand-color-range>:  a 17-step ladder of shades made from one base colour, the base colour's step ringed."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Brand Color Range">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../../packages/brand/components/brand-color-range/"
+              icon="code"
+              aria-label="Its code"
+              title="Its code"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Brand Color Range
+            <ui-label color="yellow" size="small">New</ui-label>
+            <ui-header>A 17-step ladder of shades from one base colour, as the Color Set Chooser makes it.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-ladder" header="Ladder" sticky collapsible dividing>
+                <ui-docs-example
+                  description="House of Owen, the brand's neutral, at 500:  17 shades, the base colour's ringed.  `name` names the chips `brand-25` ... `brand-975`;  `contrast` marks the shades text reads clearly on."
+                >
+                  <brand-color-range value="#8E96B5" anchor="500" name="brand" contrast></brand-color-range>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-anchored" header="Anchored" sticky collapsible dividing>
+                <ui-docs-example
+                  description="Spell Purple sits at 600 (`anchor`), with Aubergine at 925, as the brand's violet set.  The base colour lands EXACTLY on its step."
+                >
+                  <brand-color-range value="#6550CA" anchor="600" name="violet" contrast></brand-color-range>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-auto" header="Auto anchor" sticky collapsible dividing>
+                <ui-docs-example
+                  description='`anchor="auto"` (the default) puts the base colour on the step nearest its lightness:  Polished Ivory lands on 150.'
+                >
+                  <brand-color-range value="#F1E7D4" name="accent" contrast></brand-color-range>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-details" header="Details and copy" sticky collapsible dividing>
+                <ui-docs-example
+                  description='`details` gives every chip its tip (token, hex, OKLCH, contrast);  `copy="token"` copies `var(--violet-600)` on a click.'
+                >
+                  <brand-color-range
+                    value="#6550CA"
+                    anchor="600"
+                    name="violet"
+                    contrast
+                    details
+                    copy="token"
+                  ></brand-color-range>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-labels" header="Labels" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`label` puts text in every chip, as `<brand-color label>`:  here the hex."
+                >
+                  <brand-color-range value="#00B9A6" anchor="500" name="teal" label="hex"></brand-color-range>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-numbers" header="Numbers" sticky collapsible dividing>
+                <ui-docs-example
+                  description='`numbers="none"`:  no step numbers under the chips, nor their row.  For a page that stacks many ladders and numbers them once, in a header row, as the Color Palette page does;  each chip&apos;s name still says its step.'
+                >
+                  <div style="display: grid; gap: 0.5em">
+                    <brand-color-range value="#8E96B5" anchor="500" name="brand"></brand-color-range>
+                    <brand-color-range
+                      value="#6550CA"
+                      anchor="600"
+                      name="violet"
+                      numbers="none"
+                    ></brand-color-range>
+                    <brand-color-range
+                      value="#00B9A6"
+                      anchor="500"
+                      name="teal"
+                      numbers="none"
+                    ></brand-color-range>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-vibrancy" header="Vibrancy" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`vibrancy`:  percent of the base colour's colourfulness.  The same Spell Purple at 40%, 100% and 160%."
+                >
+                  <div style="display: grid; gap: 1em">
+                    <brand-color-range value="#6550CA" anchor="600" vibrancy="40"></brand-color-range>
+                    <brand-color-range value="#6550CA" anchor="600"></brand-color-range>
+                    <brand-color-range value="#6550CA" anchor="600" vibrancy="160"></brand-color-range>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-hue-shift" header="Hue shift" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`hue-shift`:  degrees the hue drifts toward the dark end.  Teal drifting toward green (-60°) and toward blue (+60°)."
+                >
+                  <div style="display: grid; gap: 1em">
+                    <brand-color-range value="#00B9A6" anchor="500" hue-shift="-60"></brand-color-range>
+                    <brand-color-range value="#00B9A6" anchor="500" hue-shift="60"></brand-color-range>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-strip" header="Strip" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`strip`:  17 small dots, as the Chooser's Variants header shows the ladder while folded."
+                >
+                  <div style="display: grid; gap: 0.5em">
+                    <brand-color-range value="#8E96B5" anchor="500" name="brand" strip></brand-color-range>
+                    <brand-color-range value="#6550CA" anchor="600" name="violet" strip></brand-color-range>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Give it a base colour (`value`) and a token prefix (`name`). It makes the 17 steps with the brand's
+                  own colour math (`Palette.generateScale()`), the same ladder as the Color Palette page.
+
+                  - `anchor`, `vibrancy` and `hue-shift` are the Chooser's Tweak sliders (its Hue drift slider's value
+                    times 2.5 is `hue-shift`).
+                  - `ui-change` (`{ value, scale, anchor }`) follows every change to the colours, not the first render.
+                  - Read the ladder from JS: `scale` (step to `#RRGGBB`), `anchorStep`, and `css()`, the ladder as CSS
+                    custom properties (`css("oklch")` for OKLCH values). They're right straight after a write.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const range = document.querySelector("brand-color-range")
+                  range.value = "#6550CA"
+                  range.name = "violet"
+                  range.anchor = "600"
+                  range.anchorStep // 600
+                  range.scale[925] // Aubergine
+                  range.css()
+                  // :root {
+                  //   /* violet — seed #6550CA @ 600 */
+                  //   --violet-25: #FCFCFF;
+                  //   ...
+                  // }
+                </script>
+              </ui-code>
+            </ui-section>
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  With `copy`, every chip is a button: Tab through them, Enter or Space copies. With `details` alone,
+                  every chip is a Tab stop that shows its tip.
+                </script>
+              </ui-markdown>
+            </ui-section>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - The ladder is a list named "brand: 17 shades of #8E96B5"; each chip is named by its token and colour.
+                  - The step numbers under the chips are hidden from screen readers: each chip's name says its step.
+                  - `strip` is one image, named for the ladder.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <ui-docs-api family="brand-color-range"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Set a `--brand-color-range-*` token on the range, any ancestor or `:root`; its chips take
+                  `--brand-color-*` (radius, ring ...). Edit a value below to try it.
+                </script>
+              </ui-markdown>
+              <ui-docs-tokens family="brand-color-range" playground>
+                <brand-color-range value="#8E96B5" anchor="500" name="brand" contrast></brand-color-range>
+              </ui-docs-tokens>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

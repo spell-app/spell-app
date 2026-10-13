@@ -1141,7 +1141,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * This component's whole vocabulary, for code that wants to look at it:  `UIButton.describe().topics`.
    * - Tag, attributes (kinds, values, defaults), events, slots, parts, states, texts, descriptions, `topics`, `aka`.
    * - The same object the element itself reads.
-   * - Every tag's summary at once:  `ComponentDefinitions` (`src/components/ComponentDefinitions.ts`).
+   * - Every tag's summary at once:  `ComponentDefinitions` (`components/ComponentDefinitions.ts`).
    */
   static describe<T extends { prototype: { vocabulary: E.ComponentVocabulary } }>(
     this: T

@@ -6,7 +6,7 @@ import { dirname, join, relative } from "path"
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
 import { CliError, EXIT } from "$/cli/cli.types"
 import type { PackInfo, PackScaffoldReport } from "$/cli/dev/dev.types"
-import { buildPack, packPrefix, readPack } from "$/cli/dev/packBuild"
+import { PACK_FOLDER, buildPack, packPrefix, readPack } from "$/cli/dev/packBuild"
 import { REPO_ROOT } from "$/cli/findCheckout"
 
 /**
@@ -138,15 +138,17 @@ const CUSTOM_TAG = /^[a-z][a-z0-9]*(-[a-z0-9]+)+$/
 /** The repo's own packages:  never a pack. */
 const CORE_PACKAGES = [
   "app",
-  "brand",
+  "assembler",
   "cli",
   "core",
-  "docs",
   "lsp",
   "markdown",
   "parser",
+  "py",
   "server",
+  "spaces",
   "spell",
+  "spell-solid",
   "ui",
   "util",
   "vscode"
@@ -267,11 +269,11 @@ function solidVersion(root: string): string {
 
 /**
  * Wire pack `pack` into checkout `root`, each step only when it isn't there yet (`report.updated`, else `skipped`):
- * - `package.json`:  a workspace, and `pack/` in `pageServer.watch` (pages reload when it's rebuilt)
+ * - `package.json`:  a workspace, and `components/__pack/` in `pageServer.watch` (pages reload when it's rebuilt)
  * - `tsconfig.base.json`:  `$/<name>`, `$/<name>/*`, `$/<name>/components`, `$/<name>/components/*`
  * - `vitest.config.ts`:  the pack's `node` + `browser` projects (`SPECIAL`)
- * - `vite.lint.ts`:  `pack/` out of lint and format
- * - `.gitattributes`:  `pack/**` generated, `merge=binary -diff`
+ * - `vite.lint.ts`:  `components/__pack/` out of lint and format
+ * - `.gitattributes`:  `components/__pack/**` generated, `merge=binary -diff`
  * - `packages/cli/src/dev/mergeMain.ts`:  a `GENERATORS` entry, `yarn pack:build`
  * - `guides/dev/commands/commands.json` (shared):  the pack's yarn scripts in the commands page's rows
  * - A file that isn't there is skipped, said so.  Text edits keep the files' own layout;  JSON is rewritten.
@@ -315,7 +317,8 @@ function wiringSteps(pack: PackInfo): WiringStep[] {
       edit: (text) => {
         const json = JSON.parse(text) as RootPackageJson
         const added =
-          addOnce(json.workspaces, `packages/${name}`) + addOnce(json.pageServer?.watch, `packages/${name}/pack`)
+          addOnce(json.workspaces, `packages/${name}`) +
+          addOnce(json.pageServer?.watch, `packages/${name}/${PACK_FOLDER}`)
         return added ? `${JSON.stringify(json, null, 2)}\n` : undefined
       }
     },
@@ -356,24 +359,31 @@ function wiringSteps(pack: PackInfo): WiringStep[] {
     },
     {
       file: "vite.lint.ts",
-      what: `packages/${name}/pack ignored`,
+      what: `packages/${name}/${PACK_FOLDER} ignored`,
       edit: (text) => {
-        if (text.includes(`"packages/${name}/pack"`)) return undefined
+        if (text.includes(`"packages/${name}/${PACK_FOLDER}"`)) return undefined
         const linted = addToList(
           text,
           ["export const rootLintIgnore = ["],
-          [`// \`${name}\`'s component pack:  generated (\`spell dev pack build ${name}\`)`, `"packages/${name}/pack"`]
+          [
+            `// \`${name}\`'s component pack:  generated (\`spell dev pack build ${name}\`)`,
+            `"packages/${name}/${PACK_FOLDER}"`
+          ]
         )
-        return addToList(linted, ["export const fmtConfig = {", "ignorePatterns: ["], [`"**/packages/${name}/pack/**"`])
+        return addToList(
+          linted,
+          ["export const fmtConfig = {", "ignorePatterns: ["],
+          [`"**/packages/${name}/${PACK_FOLDER}/**"`]
+        )
       }
     },
     {
       file: ".gitattributes",
-      what: `packages/${name}/pack/** generated`,
+      what: `packages/${name}/${PACK_FOLDER}/** generated`,
       edit: (text) => {
-        if (text.includes(`packages/${name}/pack/`)) return undefined
+        if (text.includes(`packages/${name}/${PACK_FOLDER}/`)) return undefined
         const column = /^\S+\s+(?=linguist-generated)/m.exec(text)?.[0].length ?? 0
-        const line = `${`packages/${name}/pack/**`.padEnd(column - 1)} linguist-generated merge=binary -diff`
+        const line = `${`packages/${name}/${PACK_FOLDER}/**`.padEnd(column - 1)} linguist-generated merge=binary -diff`
         return `${text.replace(/\n*$/, "\n")}\n# ${name}:  its component pack (\`spell dev pack build ${name}\`)\n${line}\n`
       }
     },
@@ -381,7 +391,7 @@ function wiringSteps(pack: PackInfo): WiringStep[] {
       file: "packages/cli/src/dev/mergeMain.ts",
       what: `GENERATORS:  ${name} pack`,
       edit: (text) =>
-        text.includes(`"packages/${name}/pack/**"`)
+        text.includes(`"packages/${name}/${PACK_FOLDER}/**"`)
           ? undefined
           : addToList(text, ["export const GENERATORS: Generator[] = ["], [generatorLine(text, name)])
     },
@@ -409,7 +419,7 @@ function generatorLine(text: string, name: string): string {
   const columns = ["outputs:", "cwd:", "run:"].map((field) => sample.indexOf(field))
   const fields = [
     `{ name: ${JSON.stringify(`${name} pack`)},`,
-    `outputs: [${JSON.stringify(`packages/${name}/pack/**`)}],`,
+    `outputs: [${JSON.stringify(`packages/${name}/${PACK_FOLDER}/**`)}],`,
     `cwd: ${JSON.stringify(`packages/${name}`)},`,
     `run: ["yarn", "pack:build"] }`
   ]

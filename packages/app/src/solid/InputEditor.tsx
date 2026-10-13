@@ -61,7 +61,7 @@ export function InputToolbar() {
  * - On an error:  `showError()` is told, and a plain-text `<FallbackEditor>` takes over.  It heals by itself when
  *   what threw changes (see `<ErrorBoundary>`).
  * - NOTE: React's `match` prop (never passed, it reset the error on change) is gone:  the boundary heals itself.
- * - SEE:  its App UI page, `packages/app/components/InputEditor.html` (`/app-ui/InputEditor.html`).
+ * - SEE:  its App UI page, `packages/app/docs/InputEditor.html` (`/components/app/InputEditor.html`).
  ****************/
 export function InputEditor(props: InputEditorProps) {
   return (

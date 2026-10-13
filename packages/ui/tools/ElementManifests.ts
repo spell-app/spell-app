@@ -4,9 +4,11 @@ import { join } from "node:path"
 import type { SiteAttribute, SiteDataFile, SiteTag } from "../src/docs-components/docs-components.types.ts"
 import type { CustomElementsManifest, HtmlCustomData } from "./tools.types.ts"
 
+import { FamilyFiles } from "./FamilyFiles.ts"
+
 /****************
  * ### `ElementManifests`
- * The two STANDARD element descriptions, from the site data (`site/_data/components.json`, every vocabulary):
+ * The two STANDARD element descriptions, from the site data (`docs/__data/components.json`, every vocabulary):
  * - `custom-elements.json`:  a Custom Elements Manifest (schema 2.1), what web-component tools read (Storybook, linters,
  *   IDE plugins, Claude);  `package.json`'s `customElements` points at it
  * - `html-custom-data.json`:  VS Code's HTML custom data (`html.customData`):  autocomplete and hover docs for every
@@ -25,17 +27,12 @@ export class ElementManifests {
   readonly data: SiteDataFile
   /** the package folder (`packages/ui`, `packages/brand`), absolute:  where element class files are looked up */
   readonly packageFolder: string
-  /** family folders, relative to `packageFolder`:  `src/components` (Spell UI), `components` (the brand) */
+  /** family folders, relative to `packageFolder`:  `components`, as every set lays them out (Spell UI's, the brand's) */
   readonly componentsPath: string
   /** the manifest's `readme` line */
   readonly readme: string
 
-  constructor({
-    data,
-    packageFolder,
-    componentsPath = "src/components",
-    readme = SPELL_UI_README
-  }: ElementManifestsProps) {
+  constructor({ data, packageFolder, componentsPath = "components", readme = SPELL_UI_README }: ElementManifestsProps) {
     this.data = data
     this.packageFolder = packageFolder
     this.componentsPath = componentsPath
@@ -43,8 +40,8 @@ export class ElementManifests {
   }
 
   /**
-   * Both files as `yarn site:data` writes them, `[path, text]`, into `dataFolder` (`site/_data/`).
-   * - `JSON.stringify(..., 2)`:  oxfmt skips `site/_data/`, so the bytes stay ours and the staleness test can compare.
+   * Both files as `yarn site:data` writes them, `[path, text]`, into `dataFolder` (`docs/__data/`).
+   * - `JSON.stringify(..., 2)`:  oxfmt skips a set's `docs/__data/`, so the bytes stay ours and the staleness test can compare.
    */
   outputs(dataFolder: string): [file: string, text: string][] {
     return [
@@ -155,16 +152,20 @@ export class ElementManifests {
   }
 
   /**
-   * `tag`'s class name:  `UI<Name>` by convention (`ui-breadcrumb-section` => `UIBreadcrumbSection`), checked against
-   * its family folder;  else the class the family barrel names ending in `<Name>` (`ui-event` => `UIFeedEvent`).
+   * `tag`'s class name, by `FamilyFiles.stem()`'s rule (`ui-breadcrumb-section` => `UIBreadcrumbSection`,
+   * `brand-blob` => `BrandBlob`), checked against its family folder;  else the class the family barrel names ending in
+   * `<Name>` (`ui-event` => `UIFeedEvent`).
    */
   className(tag: SiteTag): string {
-    const name = `UI${ElementManifests.pascal(tag.tag)}`
+    const name = FamilyFiles.stem(tag.tag)
     const folder = join(this.packageFolder, this.componentsPath, tag.folder)
     if ([".tsx", ".ts"].some((extension) => existsSync(join(folder, name + extension)))) return name
     const barrel = join(folder, "index.ts")
     if (!existsSync(barrel)) return name
-    const found = readFileSync(barrel, "utf8").match(new RegExp(`\\bUI\\w*${ElementManifests.pascal(tag.tag)}\\b`))
+    const first = tag.tag.startsWith("ui-") ? "UI" : ""
+    const found = readFileSync(barrel, "utf8").match(
+      new RegExp(`\\b${first}\\w*${ElementManifests.pascal(tag.tag)}\\b`)
+    )
     return found?.[0] ?? name
   }
 
@@ -270,7 +271,7 @@ export type ElementManifestsProps = {
   data: SiteDataFile
   /** the package folder, absolute */
   packageFolder: string
-  /** family folders, relative to the package folder;  default `src/components` (Spell UI's) */
+  /** family folders, relative to the package folder;  default `components` (Spell UI's) */
   componentsPath?: string
   /** the Custom Elements Manifest's `readme` line;  default Spell UI's */
   readme?: string

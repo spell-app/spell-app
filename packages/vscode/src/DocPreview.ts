@@ -11,9 +11,9 @@
  * - Simple Browser loads only http(s).
  *   For a `file`, the doc's checkout (git root:  the repo, or the worktree it's in) is served by:
  *   - its PAGE SERVER (`spell dev server`), when one runs:  found by its pid file, `<root>/.spell-server.json`.
- *     Live reload, page edits, goals' buttons, `/ui/`.
+ *     Live reload, page edits, goals' buttons, the component sets (`/components/<set>/`).
  *   - else a server of our own, in-process, on `127.0.0.1`, one per root, for as long as the extension runs:
- *     the same `$/server` `WebServer`, with live reload, but no route modules (no goals buttons, no `/ui/`)
+ *     the same `$/server` `WebServer`, with live reload, but no route modules (no goals buttons, no component sets)
  *   - NEVER starts the page server itself:  a GUI VS Code may have no `node` / `yarn` on its PATH.
  *     The scripts that open docs start it first (`pages.js` `ensurePageServer()`).
  * - Served from the ROOT, not the doc's folder:  docs link to source files all over the repo.

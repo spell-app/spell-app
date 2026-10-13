@@ -19,7 +19,7 @@ import { Terminal } from "./Terminal.ts"
 
 /****************
  * ### `ReportTables`
- * Rewrites the GENERATED tables of `docs/report.md` from the result files, with fixed headers, units and rounding.
+ * Rewrites the GENERATED tables of `notes/report.md` from the result files, with fixed headers, units and rounding.
  * - A table lives between `<!-- generated:<name> -->` and `<!-- /generated:<name> -->`;
  *   ONLY that content is replaced, prose around it is left alone.  Names are the keys of `TABLES` (`TableName`).
  * - Inputs, all in `tools/results/`:
@@ -36,7 +36,7 @@ export class ReportTables {
   /** folder of the result files, relative to the root */
   readonly results: string
 
-  constructor({ root, file = "docs/report.md", results = "tools/results" }: ReportTablesProps) {
+  constructor({ root, file = "notes/report.md", results = "tools/results" }: ReportTablesProps) {
     this.root = root
     this.file = file
     this.results = results
@@ -142,7 +142,7 @@ export class ReportTables {
       ]),
       ["runtime (`UIRuntime` + foundation CSS)", kB(results.lazy.runtime.min), kB(results.lazy.runtime.gzip), "lazy"],
       [
-        "icons (none bundled:  pack indexes and SVGs are separate files, `docs/icons.md`)",
+        "icons (none bundled:  pack indexes and SVGs are separate files, `notes/icons.md`)",
         kB(results.lazy.icons.min),
         kB(results.lazy.icons.gzip),
         "lazy"
@@ -383,7 +383,7 @@ export class ReportTables {
 export type ReportTablesProps = {
   /** repo root, absolute */
   root: string
-  /** report file, relative to the root;  default `docs/report.md` */
+  /** report file, relative to the root;  default `notes/report.md` */
   file?: string
   /** folder of the result files, relative to the root;  default `tools/results` */
   results?: string

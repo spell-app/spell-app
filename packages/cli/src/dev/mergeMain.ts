@@ -148,13 +148,13 @@ export const GENERATORS: Generator[] = [
   { name: "spell highlighter",        outputs: ["packages/ui/src/languages/spell.*"],                   cwd: "packages/ui",     run: ["yarn", "gen:spell"] },
   {
     name: "markdown bundle",
-    outputs: ["packages/ui/src/components/ui-markdown/md.bundle.*", "packages/ui/src/components/ui-markdown/MDBundle.ts"],
+    outputs: ["packages/ui/components/ui-markdown/md.bundle.*", "packages/ui/components/ui-markdown/MDBundle.ts"],
     cwd: "packages/ui",
     run: ["yarn", "gen:markdown"]
   },
   {
     name: "Spell UI site data",
-    outputs: ["packages/ui/site/_data/{components,icons,custom-elements,html-custom-data}.json"],
+    outputs: ["packages/ui/docs/__data/{components,icons,search,custom-elements,html-custom-data}.json"],
     cwd: "packages/ui",
     run: ["yarn", "site:data"]
   },
@@ -166,11 +166,11 @@ export const GENERATORS: Generator[] = [
   },
   {
     name: "brand data",
-    outputs: ["packages/brand/_data/{components,custom-elements,html-custom-data}.json"],
+    outputs: ["packages/brand/docs/__data/{components,custom-elements,html-custom-data,search}.json"],
     cwd: "packages/brand",
     run: ["yarn", "site:data"]
   },
-  { name: "epics pack",               outputs: ["packages/epics/pack/**"],                              cwd: "packages/epics",  run: ["yarn", "pack:build"] },
+  { name: "epics pack",               outputs: ["packages/epics/components/__pack/**"],                 cwd: "packages/epics",  run: ["yarn", "pack:build"] },
   {
     name: "spell libraries",
     outputs: ["packages/spaces/@spell/library/**/*.lib.ts"],
@@ -179,17 +179,18 @@ export const GENERATORS: Generator[] = [
   },
   {
     name: "Epic UI data",
-    outputs: ["packages/epic-components/_data/{components,search}.json"],
+    outputs: ["packages/epics/docs/__data/{components,search}.json"],
     cwd: "packages/epics",
     run: ["yarn", "site:data"]
   },
   {
     name: "App UI data",
-    outputs: ["packages/app/components/_data/{components,search}.json"],
+    outputs: ["packages/app/docs/__data/{components,search}.json"],
     cwd: "packages/app",
     run: ["yarn", "site:data"]
   },
-  { name: "spell syntax table",       outputs: ["packages/spell/spellSyntax.json"],                     cwd: "packages/spell",  run: ["yarn", "gen:syntax"] }
+  { name: "spell syntax table",       outputs: ["packages/spell/spellSyntax.json"],                     cwd: "packages/spell",  run: ["yarn", "gen:syntax"] },
+  { name: "brand pack",               outputs: ["packages/brand/components/__pack/**"],                 cwd: "packages/brand",  run: ["yarn", "pack:build"] }
 ]
 
 /**

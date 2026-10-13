@@ -3,7 +3,7 @@ import { describe, expect, it } from "vite-plus/test"
 import { ComponentTokens } from "$/ui/styles/ComponentTokens"
 
 /**
- * The component-token rule (`docs/theming.md` "Component tokens"):  a component sheet NEVER declares a public
+ * The component-token rule (`notes/theming.md` "Component tokens"):  a component sheet NEVER declares a public
  * `--ui-<tag>-*` token, of its own family or any other.  It reads each through a private alias declared where the
  * public one used to be (`--_ui-button-radius: var(--ui-button-radius, var(--ui-radius))`), so a value set on
  * `:root`, an ancestor, the host, `::part()` or in the app stylesheet reaches the box.
@@ -14,10 +14,10 @@ import { ComponentTokens } from "$/ui/styles/ComponentTokens"
  */
 
 /** Every component sheet, by path. */
-const SHEETS = import.meta.glob<string>("/src/components/*/*.css", { query: "?raw", import: "default", eager: true })
+const SHEETS = import.meta.glob<string>("/components/*/*.css", { query: "?raw", import: "default", eager: true })
 
 /** Every English vocabulary (the tags), by path. */
-const VOCABULARIES = import.meta.glob<string>("/src/components/*/*.en.ts", {
+const VOCABULARIES = import.meta.glob<string>("/components/*/*.en.ts", {
   query: "?raw",
   import: "default",
   eager: true
@@ -40,17 +40,17 @@ const EXCEPTIONS: Record<string, Record<string, string>> = {
 /** The real tags and foundation;  `ComponentTokens.test.ts` (beside the class) tests its methods. */
 const TOKENS = new ComponentTokens({ vocabularies: VOCABULARIES, foundation: Object.values(FOUNDATION) })
 
-/** `src/components/ui-button/UIButton.css` => `ui-button/UIButton.css` */
+/** `components/ui-button/UIButton.css` => `ui-button/UIButton.css` */
 function short(path: string): string {
-  return path.replace("/src/components/", "")
+  return path.replace("/components/", "")
 }
 
 describe("ui-*.css component tokens", () => {
   it.each(Object.keys(SHEETS).map(short))("%s never declares a public component token", (path) => {
     const allowed = EXCEPTIONS[path] ?? {}
-    const declared = TOKENS.publicDeclarations(SHEETS[`/src/components/${path}`]!)
+    const declared = TOKENS.publicDeclarations(SHEETS[`/components/${path}`]!)
     const found = declared.filter(({ name }) => !(name in allowed)).map(({ name, line }) => `${name} (line ${line})`)
-    expect(found, "declare `--_ui-x: var(--ui-x, <default>)` instead (docs/theming.md)").toEqual([])
+    expect(found, "declare `--_ui-x: var(--ui-x, <default>)` instead (notes/theming.md)").toEqual([])
     for (const name of Object.keys(allowed))
       expect(
         declared.map((declaration) => declaration.name),
@@ -59,7 +59,7 @@ describe("ui-*.css component tokens", () => {
   })
 
   it.each(Object.keys(SHEETS).map(short))("%s names every alias after the token it reads", (path) => {
-    const css = SHEETS[`/src/components/${path}`]!
+    const css = SHEETS[`/components/${path}`]!
     const mismatched = ComponentTokens.declarations(css)
       .filter(({ name, value }) => name.startsWith("--_ui-") && /^var\(\s*--ui-/.test(value))
       .map(({ name, value, line }) => ({ name, read: /^var\(\s*(--ui-[a-z0-9-]+)/.exec(value)![1]!, line }))
@@ -72,7 +72,7 @@ describe("ui-*.css component tokens", () => {
   })
 
   it.each(Object.keys(SHEETS).map(short))("%s reads its aliased tokens only through the alias", (path) => {
-    const css = ComponentTokens.stripComments(SHEETS[`/src/components/${path}`]!)
+    const css = ComponentTokens.stripComments(SHEETS[`/components/${path}`]!)
     const aliased = ComponentTokens.aliases(css).map(({ name }) => name)
     const bypasses: string[] = []
     for (const name of aliased) {

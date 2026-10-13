@@ -1,5 +1,5 @@
 /**
- * `yarn gen:icons`:  write the built-in icon packs under `src/icons/icon-packs/` (`docs/icons.md`, "Built-in packs")
+ * `yarn gen:icons`:  write the built-in icon packs under `src/icons/icon-packs/` (`notes/icons.md`, "Built-in packs")
  * from Font Awesome Free's own npm package, plus Fomantic-UI's icon vocabulary:
  * - `fa7-free/`:  FA's `solid/` and `regular/` SVGs, plus the brand extras (`scripts/iconExtras.ts`);  the default
  * - `fa7-brands/`:  FA's `brands/` SVGs
@@ -373,7 +373,7 @@ class IconGenerator {
 // ## Constants
 ////////////////
 
-/** Font Awesome Free release the packs are built from (and `docs/icons.md`'s jsDelivr URLs name). */
+/** Font Awesome Free release the packs are built from (and `notes/icons.md`'s jsDelivr URLs name). */
 const FA_VERSION = "7.3.1"
 
 /** Its npm tarball. */
@@ -386,7 +386,7 @@ const FA_LICENSE = `Font Awesome Free ${FA_VERSION} by @fontawesome - https://fo
  * Fomantic-UI class names that are genuine FA5 -> FA6+ renames Font Awesome's OWN `unicode` field can't
  * recover, because FA6 reassigned the codepoint (often to the plain ASCII character, e.g. `plus` -> `"+"`)
  * rather than keeping the legacy private-use codepoint Fomantic's LESS still references.  Each was verified
- * by hand against the metadata -- see `docs/icons.md`.  Keyed by the RAW (underscored) Fomantic class name.
+ * by hand against the metadata -- see `notes/icons.md`.  Keyed by the RAW (underscored) Fomantic class name.
  * - also holds a hand-picked stand-in for an icon FA dropped from Free (`vector_square`).
  */
 const MANUAL_OVERRIDES: Record<string, string> = {
@@ -425,7 +425,7 @@ const FOMANTIC_MAPS: { name: string; stripOutlineSuffix: boolean }[] = [
   { name: "icon-brand-aliases-map", stripOutlineSuffix: false }
 ]
 
-/** Solid search terms kept per icon, to fit `search.json`'s budget -- see `docs/icons.md`. */
+/** Solid search terms kept per icon, to fit `search.json`'s budget -- see `notes/icons.md`. */
 const SEARCH_TERMS_CAP = 5
 
 /** `search.json`'s size budget, in bytes (100 KB). */

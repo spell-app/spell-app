@@ -10,7 +10,7 @@
  * - Sizes:  every file but the packs, raw and gzipped;  EAGER is `site.css` + `site.js` and the chunks it imports
  *   statically (what a page loads before any `import()`).
  * - Then the component sets' build (mode `sets`, `site/_src/sets.ts`) into `site/_assets/sets/`, with its own packs
- *   link:  the page server serves it as a set's `_assets/` (`/epic-ui/_assets/`, epic `epic-workflow` P10).
+ *   link:  the page server serves it as a set's `_assets/` (`/components/epics/_assets/`, epic `epic-workflow` P10).
  */
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, symlinkSync } from "node:fs"
 import path from "node:path"

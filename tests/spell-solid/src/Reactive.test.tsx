@@ -779,7 +779,7 @@ describe("Reactive:  vocabulary getters vs base members", () => {
   const vocabularies = Object.values(
     import.meta.glob<Record<string, unknown>>(
       [
-        "../../../packages/ui/src/components/*/*.en.ts",
+        "../../../packages/ui/components/*/*.en.ts",
         "../../../packages/ui/src/docs-components/*/*.en.ts",
         "../../../packages/epics/components/*/*.en.ts",
         "../../../packages/brand/components/*/*.en.ts",

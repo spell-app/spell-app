@@ -5,6 +5,7 @@
   "include": [
     ".",
     "../../packages/ui/src",
+    "../../packages/ui/components",
     "../../packages/ui/test",
     "../../packages/ui/tools",
     "../../packages/ui/site/_src"

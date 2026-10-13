@@ -45,9 +45,9 @@ const PAGES: Record<string, string> = {
   "pages/details/plain.html": PAGE,
   "templates/durable.html": PAGE,
   "goals/spell/index.html": PAGE,
-  // a component set (Epic UI), served at /epic-ui/ from its package folder
-  "packages/epic-components/elements/epic-item.html": PAGE,
-  "packages/epic-components/_parts/layout.html": PAGE
+  // a component set (Epic UI), served at /components/epics/ from its package's docs/
+  "packages/epics/docs/epic-item.html": PAGE,
+  "packages/epics/docs/__parts/layout.html": PAGE
 }
 
 /** A comment on the second table of section `model`. */
@@ -272,19 +272,21 @@ test("a worktree's page through /worktrees/, an epic's own page, a details page 
   expect(inboxOf(".claude/worktrees/w/guides/far.html").comments.cm1.text).toBe("x")
 })
 
-test("a component set's page, at its short address:  its inbox beside it in the set's folder;  never its _parts", async () => {
-  const page = "/epic-ui/elements/epic-item.html"
+test("a component set's page, at its address:  its inbox beside it in the set's folder;  never its __parts", async () => {
+  const page = "/components/epics/epic-item.html"
   const { status, answer } = await post({ page, action: "add", ...ON_TABLE, text: "Show a reply too?" })
   expect(status).toBe(200)
   expect(answer.id).toBe("cm1")
-  expect(inboxOf("packages/epic-components/elements/epic-item.html")).toMatchObject({
+  expect(inboxOf("packages/epics/docs/epic-item.html")).toMatchObject({
     comments: { cm1: { text: "Show a reply too?", status: "new" } }
   })
   const read = JSON.parse((await ask(port, "GET", `/api/docs/comments?page=${page}`)).text)
   expect(read).toMatchObject({ takesComments: true, comments: [{ id: "cm1" }] })
-  const layout = JSON.parse((await ask(port, "GET", "/api/docs/comments?page=/epic-ui/_parts/layout.html")).text)
+  const layout = JSON.parse(
+    (await ask(port, "GET", "/api/docs/comments?page=/components/epics/__parts/layout.html")).text
+  )
   expect(layout.takesComments).toBe(false)
-  expect((await post({ page: "/epic-ui/elements/missing.html", action: "add", ...ON_TABLE, text: "x" })).status).toBe(
+  expect((await post({ page: "/components/epics/missing.html", action: "add", ...ON_TABLE, text: "x" })).status).toBe(
     404
   )
 })

@@ -52,13 +52,6 @@ export const DETAILS = join(PAGES, "details")
  */
 export const BRAND = join(ROOT, "brand")
 
-/**
- * `ui/`:  Spell UI's hand-written docs pages (claude-design P6), served at `/ui/` with the branch's built
- * `packages/ui/site/_assets/` and `_data/` laid over them.
- * - NOT in `AREAS`:  `packages/ui`'s `site:*` scripts make and check them (`yarn site:check`), not the docs' tools
- */
-export const UI_PAGES = join(ROOT, "ui")
-
 /** `goals/`:  the goal sets, `goals/<set>/index.html` (their tooling:  `tools/goals/`). */
 export const GOALS = join(ROOT, "goals")
 
@@ -233,7 +226,7 @@ export function ensurePageServer() {
  * `epics/a/a.plan.html` 2).
  * - rewrites whatever depth the template assumed:  `_assets` paths (`<up>packages/epics/tools/_assets/`), the docs
  *   home's paths (`<up>pages/index.html`), the areas' list pages (`<up>epics/index.html` ...), the site
- *   header's `root` (`<up>`:  the path up to the root), and the epics pack (`<up>packages/epics/pack/`)
+ *   header's `root` (`<up>`:  the path up to the root), and the epics pack (`<up>packages/epics/components/__pack/`;  its old folder, `pack/`, too)
  *   - `_assets` from wherever the template had them:  `tools/_assets/`, `packages/epics/tools/_assets/`, or the
  *     docs package's old `packages/docs/tools/_assets/` (before epic `people-and-orgs` P16)
  * - drops the template's `TEMPLATE:` how-to comment
@@ -242,7 +235,10 @@ export function ensurePageServer() {
 export function atDepth(html, depth) {
   const up = "../".repeat(depth)
   return html
-    .replace(/(source=")(?:\.\.\/)*packages\/epics\/pack\//g, `$1${up}packages/epics/pack/`)
+    .replace(
+      /(source=")(?:\.\.\/)*packages\/epics\/(?:components\/__)?pack\//g,
+      `$1${up}packages/epics/components/__pack/`
+    )
     .replace(
       /((?:href|src)=")(?:\.\.\/)*(?:packages\/(?:docs|epics)\/)?(?:tools\/)?_assets\//g,
       `$1${up}packages/epics/tools/_assets/`

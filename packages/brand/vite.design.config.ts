@@ -19,7 +19,7 @@ export const DESIGN_OUT = `${ROOT}dist`
  *   `$/ui/forms` to Spell UI's `dist/core.js` / `dist/forms.js`, and `$/spell-solid` to `dist/core.js` (which carries
  *   it), the same modules its own elements use, so there's ONE `UIComponent`, one `ValueSets` (the `accent` hue
  *   reaches every element) and one Solid.
- * - Everything else (`$/brand`, the sheets, `<ui-brand-logo>`'s lazy paths) is inlined:  the bundle can't load a file.
+ * - Everything else (`$/brand`, the sheets, `<brand-logo>`'s lazy paths) is inlined:  the bundle can't load a file.
  */
 export default defineConfig(() => {
   const base = baseConfig()

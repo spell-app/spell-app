@@ -21,8 +21,12 @@ import {
   docsEndMentions,
   docsEndPath,
   relinkDocsPackage,
+  relinkSets,
   reorgShared,
-  repairCheckout
+  repairCheckout,
+  setsLink,
+  setsLinkPath,
+  setsMentions
 } from "../../../packages/epics/tools/relocate.js"
 
 /**
@@ -329,5 +333,92 @@ describe("the docs package's end (people-and-orgs P16)", () => {
     expect(repairCheckout(root, { dryRun: true })).toEqual(none)
     put("checkout-end/packages/docs/tools/pages.js", "export {}\n")
     expect(repairCheckout(root, { dryRun: true })).toEqual({ ...none, leftovers: ["packages/docs/tools"] })
+  })
+})
+
+describe("the component sets' layout (people-and-orgs P18)", () => {
+  it("links a set's page at its address, and code at its new folder", () => {
+    expect(setsLinkPath("ui/components/ui-button.html")).toBe("components/ui/ui-button.html")
+    expect(setsLinkPath("ui/components/index.html")).toBe("components/ui/components.html")
+    expect(setsLinkPath("ui/components/")).toBe("components/ui/components.html")
+    expect(setsLinkPath("ui/theming.html")).toBe("components/ui/theming.html")
+    expect(setsLinkPath("ui/_parts/layout.html")).toBe("components/ui/__parts/layout.html")
+    expect(setsLinkPath("packages/epic-components/elements/epic-item.html")).toBe("components/epics/epic-item.html")
+    expect(setsLinkPath("epic-ui/")).toBe("components/epics")
+    expect(setsLinkPath("packages/app/components/Chooser.html")).toBe("components/app/Chooser.html")
+    expect(setsLinkPath("packages/app/components/_data/pages.json")).toBe("components/app/__data/pages.json")
+    expect(setsLinkPath("brand/components/ui-brand-logo.html")).toBe("components/brand/brand-logo.html")
+    expect(setsLinkPath("packages/ui/src/components/ui-button/UIButton.tsx")).toBe(
+      "packages/ui/components/ui-button/UIButton.tsx"
+    )
+    expect(setsLinkPath("packages/ui/docs/plan.md")).toBe("packages/ui/notes/plan.md")
+    expect(setsLinkPath("packages/epics/pack/epics.pack.js")).toBe("packages/epics/components/__pack/epics.pack.js")
+    expect(setsLinkPath("packages/brand/components/ui-brand-logo/UIBrandLogo.tsx")).toBe(
+      "packages/brand/components/brand-logo/BrandLogo.tsx"
+    )
+    // what didn't move
+    expect(setsLinkPath("packages/app/components/spell-app/SpellApp.tsx")).toBeUndefined()
+    expect(setsLinkPath("guides/epic-components/review.html")).toBeUndefined()
+    expect(setsLinkPath("brand/index.html")).toBeUndefined()
+  })
+
+  it("rewrites a page's links from where it sits:  relative and server-absolute, folders kept", () => {
+    expect(setsLink("../ui/components/ui-card.html#api", "guides/x.html")).toBe("../components/ui/ui-card.html#api")
+    expect(setsLink("../../ui/", "epics/e/e.plan.html")).toBe("../../components/ui/")
+    expect(setsLink("/ui/components/ui-panel.html", "brand/index.html")).toBe("/components/ui/ui-panel.html")
+    expect(setsLink("/worktrees/w/epic-ui/", "pages/index.html")).toBe("/worktrees/w/components/epics/")
+    expect(setsLink("components/ui-brand-field.html", "brand/index.html")).toBe("../components/brand/brand-field.html")
+    expect(setsLink("https://fomantic-ui.com/ui/", "guides/x.html")).toBe("https://fomantic-ui.com/ui/")
+    expect(setsLink("../brand/index.html", "guides/x.html")).toBe("../brand/index.html")
+  })
+
+  it("rewrites mentions as files, and old addresses as new ones;  never `$/ui/...`, a link, or the move's story", () => {
+    expect(
+      setsMentions(
+        "<code>packages/ui/src/components/ui-button/</code> and `ui/components/ui-card.html`\n" +
+          "served at `/ui/` and `/epic-ui/x.html`;  `$/ui/core` and `packages/ui/` stay\n" +
+          '<a href="../packages/ui/src/components/x.ts">x</a>\n' +
+          "moved from `ui/` to `/components/ui/`\n"
+      )
+    ).toBe(
+      "<code>packages/ui/components/ui-button/</code> and `packages/ui/docs/ui-card.html`\n" +
+        "served at `/components/ui/` and `/components/epics/x.html`;  `$/ui/core` and `packages/ui/` stay\n" +
+        '<a href="../packages/ui/src/components/x.ts">x</a>\n' +
+        "moved from `ui/` to `/components/ui/`\n"
+    )
+    // a plan doc keeps the addresses it was written with
+    expect(setsMentions("at `/ui/`", { addresses: false })).toBe("at `/ui/`")
+  })
+
+  it("relinks a shared repo once:  links, tab names and mentions;  skips what moved out, and Claude Design's export", () => {
+    const dir = join(temp, "relink-sets/dev")
+    put(
+      "relink-sets/dev/guides/x.html",
+      '<a href="../ui/components/ui-card.html" target="src-ui-components-ui-card-html">card</a>\n' +
+        '<a href="../packages/ui/docs/plan.md" target="src-packages-ui-docs-plan-md"><code>packages/ui/docs/plan.md</code></a>\n' +
+        "<p>served at <code>/ui/</code></p>\n"
+    )
+    put(
+      "relink-sets/dev/epics/e/e.plan.html",
+      '<ui-components source="../../packages/epics/pack/epics.pack.js"></ui-components>\n<p>then at `/ui/`</p>\n'
+    )
+    put("relink-sets/dev/ui/index.html", '<a href="components/ui-card.html">card</a>\n')
+    put("relink-sets/dev/brand/spell-design-system/Logo.dc.html", '<a href="../components/ui-brand-logo.html">x</a>\n')
+    put("relink-sets/dev/epics/people-and-orgs/parts/p18.html", "<code>packages/epic-components/</code> goes\n")
+
+    const dry = relinkSets(dir, { dryRun: true })
+    expect(dry.rewritten).toEqual(["epics/e/e.plan.html", "guides/x.html"])
+    expect(relinkSets(dir).rewritten).toEqual(dry.rewritten)
+    expect(readFileSync(join(dir, "guides/x.html"), "utf8")).toBe(
+      '<a href="../components/ui/ui-card.html" target="src-packages-ui-docs-ui-card-html">card</a>\n' +
+        '<a href="../packages/ui/notes/plan.md" target="src-packages-ui-notes-plan-md"><code>packages/ui/notes/plan.md</code></a>\n' +
+        "<p>served at <code>/components/ui/</code></p>\n"
+    )
+    expect(readFileSync(join(dir, "epics/e/e.plan.html"), "utf8")).toBe(
+      '<ui-components source="../../packages/epics/components/__pack/epics.pack.js"></ui-components>\n<p>then at `/ui/`</p>\n'
+    )
+    expect(readFileSync(join(dir, "ui/index.html"), "utf8")).toBe('<a href="components/ui-card.html">card</a>\n')
+    // idempotent
+    expect(relinkSets(dir).rewritten).toEqual([])
   })
 })

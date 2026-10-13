@@ -41,9 +41,9 @@ beforeAll(async () => {
 describe("CLI.buildPack() / CLI.checkPack()", () => {
   test("an unbuilt pack is STALE:  every generated file missing", async () => {
     expect((await CLI.checkPack(ROOT, "demo")).stale).toEqual([
-      "packages/demo/pack/demo.catalog.ts:  missing",
-      "packages/demo/pack/demo.entry.ts:  missing",
-      "packages/demo/pack/demo.pack.js:  missing"
+      "packages/demo/components/__pack/demo.catalog.ts:  missing",
+      "packages/demo/components/__pack/demo.entry.ts:  missing",
+      "packages/demo/components/__pack/demo.pack.js:  missing"
     ])
   })
 
@@ -53,12 +53,12 @@ describe("CLI.buildPack() / CLI.checkPack()", () => {
       pack: "demo",
       tags: ["demo-card"],
       files: [
-        "packages/demo/pack/demo.catalog.ts",
-        "packages/demo/pack/demo.entry.ts",
-        "packages/demo/pack/demo.pack.js"
+        "packages/demo/components/__pack/demo.catalog.ts",
+        "packages/demo/components/__pack/demo.entry.ts",
+        "packages/demo/components/__pack/demo.pack.js"
       ]
     })
-    const script = readFileSync(join(PACK, "pack", "demo.pack.js"), "utf8")
+    const script = readFileSync(join(PACK, "components", "__pack", "demo.pack.js"), "utf8")
     expect(script.split("\n")[0]).toBe(
       `/* GENERATED -- do not edit:  \`spell dev pack build demo\`.  sources:  ${report.hash} */`
     )
@@ -69,10 +69,12 @@ describe("CLI.buildPack() / CLI.checkPack()", () => {
     expect(script).not.toMatch(/\bimport\s*[{(*]|\bexport\s*\{/)
     expect(script).toContain("registerPack({name:`demo`,prefix:`demo-`")
     expect(script).toContain(":host")
-    const catalog = readFileSync(join(PACK, "pack", "demo.catalog.ts"), "utf8")
+    const catalog = readFileSync(join(PACK, "components", "__pack", "demo.catalog.ts"), "utf8")
     expect(catalog).toContain(`// sources:  ${report.hash}\n`)
     expect(catalog).toContain(`"demo-card": {"folder":"demo-card","skeleton":{"height":"2em"}}`)
-    expect(readFileSync(join(PACK, "pack", "demo.entry.ts"), "utf8")).toContain(`import("../components/demo-card")`)
+    expect(readFileSync(join(PACK, "components", "__pack", "demo.entry.ts"), "utf8")).toContain(
+      `import("../demo-card")`
+    )
   }, 60_000)
 
   // After an edit, through the CLI:  a fresh process reads the vocabularies again (`import()` caches them here)
@@ -83,17 +85,17 @@ describe("CLI.buildPack() / CLI.checkPack()", () => {
     const vocabulary = join(CARD, "DemoCard.en.ts")
     writeFileSync(vocabulary, readFileSync(vocabulary, "utf8").replace(`skeleton: "2 tall"`, `skeleton: "5 tall"`))
     expect((await CLI.checkPack(ROOT, "demo")).stale).toEqual([
-      "packages/demo/pack/demo.catalog.ts:  built from older sources",
-      "packages/demo/pack/demo.pack.js:  built from older sources"
+      "packages/demo/components/__pack/demo.catalog.ts:  built from older sources",
+      "packages/demo/components/__pack/demo.pack.js:  built from older sources"
     ])
     expect(spell("check")).toEqual({
       status: CLI.EXIT.ERRORS,
       out:
-        "demo:  STALE\n  packages/demo/pack/demo.catalog.ts:  built from older sources\n" +
-        "  packages/demo/pack/demo.pack.js:  built from older sources\nfix:  spell dev pack build demo\n"
+        "demo:  STALE\n  packages/demo/components/__pack/demo.catalog.ts:  built from older sources\n" +
+        "  packages/demo/components/__pack/demo.pack.js:  built from older sources\nfix:  spell dev pack build demo\n"
     })
     expect(spell("build", "demo").status).toBe(0)
-    expect(readFileSync(join(PACK, "pack", "demo.catalog.ts"), "utf8")).toContain(`"height":"5em"`)
+    expect(readFileSync(join(PACK, "components", "__pack", "demo.catalog.ts"), "utf8")).toContain(`"height":"5em"`)
     expect(spell("check", "demo").status).toBe(0)
   }, 60_000)
 
@@ -103,7 +105,7 @@ describe("CLI.buildPack() / CLI.checkPack()", () => {
   })
 
   test("a hand edit of the catalog is caught, though its hash still matches", () => {
-    const catalog = join(PACK, "pack", "demo.catalog.ts")
+    const catalog = join(PACK, "components", "__pack", "demo.catalog.ts")
     writeFileSync(catalog, readFileSync(catalog, "utf8").replace("5em", "6em"))
     expect(spell("check").out).toContain("demo.catalog.ts:  not what a build writes (edited by hand?)")
     expect(spell("build", "demo").status).toBe(0)

@@ -4,7 +4,7 @@
  * - Everything visible is a `<ui-*>` widget:  a rule here that changes a LOOK is a widget gap -- record it as a plan
  *   issue (`Gap:  <ui-tag> <what's missing>`) instead.  The few that do are marked `GAP` with their issue.
  * - In `@layer ui.app`, the page's own layer:  above the components, so a layout rule wins without `!important`.
- * - The chrome is `_parts/layout.html` (a page is its `main` alone:  `SiteShell`);  three columns:  nav, page,
+ * - The chrome is `__parts/layout.html` (a page is its `main` alone:  `SiteShell`);  three columns:  nav, page,
  *   aside ("On this page");  the measures are Fomantic's docs.css (the main column 3em from the nav), the nav column
  *   264px to hold the brand's nav panel docked with a margin;  the aside hidden on narrower screens.
  * - Breakpoints are `ui`'s `@custom-media` (`src/styles/media.css`, inlined at build time):  Fomantic's computer
@@ -33,7 +33,7 @@
 
   /*
    * ## Before the layout:  a page's file holds only its `main`;  hidden until `SiteShell` wraps it in
-   * `_parts/layout.html` (then `<ui-root display="when-ready">` hides it until ready).  Shown anyway after 4s, and
+   * `__parts/layout.html` (then `<ui-root display="when-ready">` hides it until ready).  Shown anyway after 4s, and
    * never hidden without scripting:  a page that can't mount still reads.
    */
   @media (scripting: enabled) {

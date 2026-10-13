@@ -1,5 +1,5 @@
 /**
- * `yarn dev` home page:  every example fragment of `src/components/ui-<name>/examples/` (class grammar, light DOM)
+ * `yarn dev` home page:  every example fragment of `components/ui-<name>/examples/` (class grammar, light DOM)
  * beside its element markup in `examples/elements/`, for every family that has examples.
  * - The originals need the component sheets on the PAGE (`FamilySheets`);  the runtime already puts the foundation
  *   there.
@@ -18,14 +18,14 @@ import { FamilySheets } from "./FamilySheets.ts"
 import "$/ui/index"
 
 /** Original fragments, by path. */
-const ORIGINALS = import.meta.glob<string>("/src/components/*/examples/*.html", {
+const ORIGINALS = import.meta.glob<string>("/components/*/examples/*.html", {
   query: "?raw",
   import: "default",
   eager: true
 })
 
 /** Element rewrites, by path. */
-const ELEMENTS = import.meta.glob<string>("/src/components/*/examples/elements/*.html", {
+const ELEMENTS = import.meta.glob<string>("/components/*/examples/elements/*.html", {
   query: "?raw",
   import: "default",
   eager: true
@@ -44,7 +44,7 @@ for (const [path, html] of Object.entries(ELEMENTS)) {
   const [, folder = "", file] = ELEMENT_EXAMPLE.exec(path) ?? []
   if (only && folder !== `ui-${only}`) continue
   const name = `${folder}/${file}`
-  const original = ORIGINALS[`/src/components/${folder}/examples/${file}`] ?? ""
+  const original = ORIGINALS[`/components/${folder}/examples/${file}`] ?? ""
   const pair = document.createElement("section")
   pair.className = "pair"
   pair.innerHTML = `<div><h3>${name} -- class grammar</h3>${original}</div><div><h3>${name} -- elements</h3>${html}</div>`

@@ -24,7 +24,7 @@ import "$/ui/components/ui-button"
 
 /** The committed site data, served by Vite. */
 const REAL_DATA = Object.values(
-  import.meta.glob<string>("/site/_data/components.json", { query: "?url", import: "default", eager: true })
+  import.meta.glob<string>("/docs/__data/components.json", { query: "?url", import: "default", eager: true })
 )[0]!
 
 /** Element-markup examples, by path. */

@@ -210,22 +210,26 @@ when working with code in this package, `@spell-app/app`.
     - Never a second copy (T3).
   - Leaving the page releases each (`domElement.dispose()`) a microtask later.
     A move in one go keeps it.
-- `components/` is also App UI (epic `epic-workflow` P11):  the docs pages of the app's components, served at `/app-ui/`.
-  - A page per documented component, `<Name>.html`, beside the two web components' folders;
-    its home `index.html`;  `_parts/` (the layout and footer), `_data/`, `_images/`.
+- `docs/` is App UI (epic `epic-workflow` P11):  the docs pages of the app's components, a COMPONENT SET, served at
+  `/components/app/` (laid out as every set is since P18 of `people-and-orgs`, the root's `AGENTS.md`).
+  - ONE flat folder:  a page per documented component, `<Name>.html` (the web components' `spell-app.html`
+    ...);  its home `index.html`;  `__parts/` (the layout and footer, every page's frame), `__data/`;
+    `_images/` (the pictures) and `_examples/` (snippets a page shows), which aren't frame or data, so keep one `_`.
   - Spell UI's page shape, on Spell UI's site bundle:  the page server lays its `_assets/` over the folder
     (`COMPONENT_SETS`, [the page server's types](../server/src/page/page.types.ts)).
-  - What it documents, and in which group:  [the hand-kept facts](components/_data/pages.json).
+  - Links are written as from the page's SERVED address (`/components/app/x.html`):  `../../` is the checkout's
+    root, `../ui/ui-button.html` a Spell UI page;  the layout and footer, in `__parts/`, one level deeper.
+  - What it documents, and in which group:  [the hand-kept facts](docs/__data/pages.json).
   - Each page's props, attributes and "Used in" tables come from the code:  `yarn site:data`.
     - [The data builder](tools/AppUIDataBuilder.ts) reads each listed file's exported components with a banner
       (`### `<Name>``) and their props types ([ComponentSource](tools/ComponentSource.ts)), and every JSX use in the app.
     - The web components and the drawable thing's element:  their vocabularies, by Spell UI's own builder.
-    - Writes `_data/components.json` and `search.json`, COMMITTED;  [its test](../../tests/app/tools/AppUIDataBuilder.test.ts) fails
+    - Writes `__data/components.json` and `search.json`, COMMITTED;  [its test](../../tests/app/tools/AppUIDataBuilder.test.ts) fails
       while they're stale, while a listed page is missing, unlinked from the home, or its component's banner
       doesn't point at it.
     - So rerun it after changing a documented component's banner, props or uses.
   - Pictures, for what needs the whole editor around it:  `yarn site:pictures [name...]`,
-    headless screenshots of this checkout's running editor, into `_images/` ([its script](scripts/site-pictures.ts)).
+    headless screenshots of this checkout's running editor, into `docs/_images/` ([its script](scripts/site-pictures.ts)).
     - Opening the editor compiles its project, which may rewrite its `*.declarations.json` / `*.en.js`:
       check `git status` after.  (Its `*.spell.js` goes in `build/`, never committed.)
   - Live examples (the web components, the runner's pieces) need `yarn build:element`:

@@ -5,10 +5,9 @@ import { SkeletonText } from "$/ui/vocabulary/SkeletonText"
 import { ROOT_CATALOG } from "$/ui/components/ui-root/UIRoot.catalog"
 
 /** Every family's English vocabulary module, by path:  the components' and the doc-only elements'. */
-const MODULES = import.meta.glob<Record<string, unknown>>(
-  ["/src/components/*/*.en.ts", "/src/docs-components/*/*.en.ts"],
-  { eager: true }
-)
+const MODULES = import.meta.glob<Record<string, unknown>>(["/components/*/*.en.ts", "/src/docs-components/*/*.en.ts"], {
+  eager: true
+})
 
 /** Every exported vocabulary (a `tag` and an `attributes` array). */
 const VOCABULARIES = Object.values(MODULES).flatMap((module) => Object.values(module).filter(isVocabulary))
@@ -63,8 +62,8 @@ describe("UI<Name>.en.ts kinds, across families", () => {
 /** Source of every vocabulary and family types file:  pure data, imported in node too (`yarn site:data`, `gen:root`). */
 const DATA_FILES = import.meta.glob<string>(
   [
-    "/src/components/*/*.en.ts",
-    "/src/components/*/*.types.ts",
+    "/components/*/*.en.ts",
+    "/components/*/*.types.ts",
     "/src/docs-components/*/*.en.ts",
     "/src/docs-components/*/*.types.ts"
   ],

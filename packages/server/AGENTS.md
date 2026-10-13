@@ -69,24 +69,24 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       redirects, Q30 of `people-and-orgs`).
     - It may use deps (`parse5`).
     - It serves the repo at `/`.
-      - TEMPORARY (J49 of `people-and-orgs`):  the docs assets' OLD folder, `/packages/docs/tools/_assets/<x>`,
-        serves `/packages/epics/tools/_assets/<x>` (`oldAssetsPath()`), until the shared pages are relinked when
-        that epic merges into `main`.
-    - And Spell UI's docs, as static pages at `/ui/` (`UI_SITE`, `page.types.ts`).
-      - No dev server:  they load the site bundle.
-      - The pages:  the shared pages, through the root's `ui/` link.
-      - Laid over them (`StaticHandler.overlays`, `uiBuildPath()`):
-        the branch's built `_assets/` and `_data/`, from [ui's site](../ui/site/).
-      - The same at `/worktrees/<w>/ui/`.
-    - And the COMPONENT SETS (`COMPONENT_SETS`, `page.types.ts`;  epic `epic-workflow` P10 / P11):
-      docs sets in Spell UI's page shape, kept in tracked package folders.
-      - Epic UI:  `packages/epic-components/` at `/epic-ui/`;  App UI:  `packages/app/components/` at `/app-ui/`.
-        A new set is one more entry.
-      - ONE overlay (`componentSetPath()`):  `<prefix>/_assets/` is the sets' build of Spell UI's site
-        (`SETS_BUNDLE`, `packages/ui/site/_assets/sets/`), the rest the set's own folder.
-      - The same at `/worktrees/<w>/<prefix>/`.
+      - TEMPORARY until `people-and-orgs` merges into `main` (its T3), for the SHARED pages every checkout shows:
+        - folders this branch moved still serve from their new place (`movedFolderPath()`):  the docs assets' old
+          folder, `/packages/docs/tools/_assets/<x>` (J49), and the epics pack's, `/packages/epics/pack/<x>` (P18)
+        - what it moved OUT of the shared folders answers "not found", though the shared repo still holds it for
+          the other checkouts (`MOVED_OUT`):  `/ui/` and `/brand/components/`
+        - At the merge, a script relinks the shared pages, and both go.
+    - And the COMPONENT SETS (`COMPONENT_SETS`, `page.types.ts`;  epic `epic-workflow` P10 / P11, one layout since
+      `people-and-orgs` P18):  the docs of each set of elements, in Spell UI's page shape, in its package's `docs/`.
+      - Each at `/components/<set>/`:  Spell UI (`packages/ui/docs/`) at `/components/ui/`, Epic UI
+        (`packages/epics/docs/`) at `/components/epics/`, App UI (`packages/app/docs/`) at `/components/app/`, the
+        brand's (`packages/brand/docs/`) at `/components/brand/`.  A new set is one more entry.
+      - No dev server:  the pages are static, loading Spell UI's site bundle.
+      - ONE overlay (`componentSetPath()`):  `<prefix>/_assets/` is the set's site bundle (`assets`:  Spell UI's own,
+        `SITE_BUNDLE`, for Spell UI;  the sets' build, `SETS_BUNDLE` in `packages/ui/site/_assets/sets/`, for the
+        others), the rest the set's own folder (its pages, `__parts/`, `__data/`).
+      - The same at `/worktrees/<w>/components/<set>/`.
       - `<prefix>` redirects to `<prefix>/`:  the one redirect left.
-      - Live reload watches each set's folder, reporting its changes at its short address.
+      - Live reload watches each set's folder and its bundle, reporting their changes at the set's address.
     - `BundleBuild` -- the bundles it serves are NOT committed, so it builds them.
       - They're the root `package.json`'s `"pageServer": { "bundles": [...] }`, read through `pageServerSettings()`
         (the assembler reads the same list):

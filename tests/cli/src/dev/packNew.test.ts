@@ -110,7 +110,7 @@ describe("CLI.newPack()", () => {
     ])
     const json = JSON.parse(read("package.json"))
     expect(json.workspaces.at(-1)).toBe("packages/my-pack")
-    expect(json.pageServer.watch.at(-1)).toBe("packages/my-pack/pack")
+    expect(json.pageServer.watch.at(-1)).toBe("packages/my-pack/components/__pack")
     expect(read("tsconfig.base.json")).toMatch(
       // its own block after the last alias, whichever package that is (the real file grows)
       /\],\n\n {6}\/\/ ## `my-pack`.*\n.*\n {6}"\$\/my-pack": \["\.\/packages\/my-pack\/src\/index\.ts"\],/
@@ -127,11 +127,11 @@ describe("CLI.newPack()", () => {
     const lint = read("vite.lint.ts")
     expect(lint).toMatch(
       // last in the list, whatever came before it (the real file grows)
-      /",\n {2}\/\/ `my-pack`'s component pack.*\n {2}"packages\/my-pack\/pack"\n\]/
+      /",\n {2}\/\/ `my-pack`'s component pack.*\n {2}"packages\/my-pack\/components\/__pack"\n\]/
     )
-    expect(lint).toMatch(/",\n {4}"\*\*\/packages\/my-pack\/pack\/\*\*"\n {2}\]/)
+    expect(lint).toMatch(/",\n {4}"\*\*\/packages\/my-pack\/components\/__pack\/\*\*"\n {2}\]/)
     expect(read(".gitattributes")).toMatch(
-      /\n# my-pack:.*\npackages\/my-pack\/pack\/\*\* +linguist-generated merge=binary -diff\n$/
+      /\n# my-pack:.*\npackages\/my-pack\/components\/__pack\/\*\* +linguist-generated merge=binary -diff\n$/
     )
     const generator = /^ *\{ name: "my-pack pack",.*$/m.exec(read("packages/cli/src/dev/mergeMain.ts"))![0]
     const yarnLock = /^ *\{ name: "yarn\.lock",.*$/m.exec(read("packages/cli/src/dev/mergeMain.ts"))![0]

@@ -46,8 +46,7 @@ describe("AppUIDataBuilder.build()", () => {
       ...VOCABULARY_FAMILY_FILES
     }
     const silent = Object.entries(files).filter(
-      ([family, file]) =>
-        !file || !readFileSync(path.join(BUILDER.root, file), "utf8").includes(`components/${family}.html`)
+      ([family, file]) => !file || !readFileSync(path.join(BUILDER.root, file), "utf8").includes(`docs/${family}.html`)
     )
     expect(silent.map(([family]) => family)).toEqual([])
   })

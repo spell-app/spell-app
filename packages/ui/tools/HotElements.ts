@@ -6,12 +6,12 @@ import type { EnvironmentModuleNode, Plugin } from "vite"
  * the Vite plugin for hot module replacement of `ui`'s elements in `yarn dev`, without reloading the page.
  * `vite.config.ts` adds it after the Solid plugin;
  * `hotDefinitions` is the absolute path of `HotDefinitions.ts`, in `packages/spell-solid/src/`.
- * - Component barrels (`src/components/ui-<name>/index.ts`, the modules that call `define()`) become HMR boundaries:
+ * - Component barrels (`components/ui-<name>/index.ts`, the modules that call `define()`) become HMR boundaries:
  *   the plugin imports `HotDefinitions` into each, and appends `import.meta.hot.accept(() => HotDefinitions.update())`.
  *   Vite re-runs the barrel, whose `define()` of a new version of a class re-defines its tags in place
  *   (`HotDefinitions`), then `update()` re-renders every live instance -- or, when the platform can't take the change
  *   (observed attributes ...), invalidates, and Vite reloads the page.
- * - Component sheets (`src/components/ui-<name>/UI<Name>.css?inline`) self-accept and hand the new text to
+ * - Component sheets (`components/ui-<name>/UI<Name>.css?inline`) self-accept and hand the new text to
  *   `HotDefinitions.updateStyle()`, which re-registers the sheet:  no re-render, shadow DOM nodes keep their identity.
  * - Shared code:  a changed module reaching MORE THAN ONE barrel (a base class, the runtime) makes Vite reload the
  *   page, instead of re-running every barrel against a fresh copy of the base class their live instances don't
@@ -100,10 +100,10 @@ function sheetAccept(id: string, handler: string): string {
 }
 
 /** A component barrel:  the module that calls `define()` for its family. */
-const BARREL = /\/src\/components\/[\w-]+\/index\.ts$/
+const BARREL = /\/components\/[\w-]+\/index\.ts$/
 
 /** A barrel's code calls `define()`. */
 const DEFINES = /\.define\(/
 
 /** A component sheet, as a component imports it (`UIButton.css?inline`). */
-const SHEET = /\/src\/components\/[\w-]+\/[\w-]+\.css\?inline$/
+const SHEET = /\/components\/[\w-]+\/[\w-]+\.css\?inline$/

@@ -238,7 +238,7 @@ const ICONS = {
 const SOLID = /^(solid-js|@solidjs\/[\w-]+)(\/.*)?$/
 
 /** UI's emoji name data:  `<set>/<letter>.json`, written out as lazy classic scripts (`writeEmojiChunks()`). */
-const EMOJI_DATA = join(UI_DIR, "src/components/ui-emoji/data")
+const EMOJI_DATA = join(UI_DIR, "components/ui-emoji/data")
 
 /** Where the emoji chunk scripts go, and their URL relative to the bundle. */
 const EMOJI_OUT = join(ASSETS, "emoji")
@@ -259,21 +259,21 @@ const LAZY = [
   {
     name: "code-engine",
     global: "__spellCodeEngine",
-    source: join(UI_DIR, "src/components/ui-code/CodeEngine.ts"),
+    source: join(UI_DIR, "components/ui-code/CodeEngine.ts"),
     chunk: /(?:^|\/)CodeEngine-[\w-]+\.js$/,
     hook: `CodeHighlighter.engineLoader = () => lazy("code-engine", "__spellCodeEngine")`
   },
   {
     name: "markdown-engine",
     global: "__spellMarkdownEngine",
-    source: join(UI_DIR, "src/components/ui-markdown/MarkdownEngine.ts"),
+    source: join(UI_DIR, "components/ui-markdown/MarkdownEngine.ts"),
     chunk: /(?:^|\/)MarkdownEngine-[\w-]+\.js$/,
     hook: `MarkdownRenderer.engineLoader = () => lazy("markdown-engine", "__spellMarkdownEngine")`
   },
   {
     name: "markdown-sanitizer",
     global: "__spellMarkdownSanitizer",
-    source: join(UI_DIR, "src/components/ui-markdown/MarkdownSanitizer.ts"),
+    source: join(UI_DIR, "components/ui-markdown/MarkdownSanitizer.ts"),
     chunk: /(?:^|\/)MarkdownSanitizer-[\w-]+\.js$/,
     hook: `MarkdownRenderer.sanitizerLoader = () => lazy("markdown-sanitizer", "__spellMarkdownSanitizer")`
   },

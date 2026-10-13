@@ -21,7 +21,7 @@
 ////////////////
 
 /**
- * How an attribute turns into Fomantic classes (see `ClassBuilder`, `docs/grammar.md`)
+ * How an attribute turns into Fomantic classes (see `ClassBuilder`, `notes/grammar.md`)
  * or, for the last six, into a plain property with no class.
  * - `keyOnly` -- `basic` => `basic`
  * - `valueAndKey` -- `floated="left"` => `left floated`;  bare `floated` => nothing
@@ -44,7 +44,7 @@
  *   - `site/_data/components.json`
  *   - `<ui-docs-api>`'s Kind column (`KIND_LABELS`)
  *   - `tools/ElementManifests.ts`
- *   - `docs/grammar.md` and the site's `grammar.html`
+ *   - `notes/grammar.md` and the site's `grammar.html`
  */
 export type AttributeKind =
   | "keyOnly"
@@ -211,7 +211,7 @@ export type ComponentVocabulary = {
   /**
    * What the tag is filed under, so people find it however they look:
    * `ValueSets.topics` ids, several per tag (`ui-button`:  `buttons`, `basic`, `controls`, `forms`, `elements`).
-   * - Rolled up in `src/components/ComponentDefinitions.ts`.
+   * - Rolled up in `components/ComponentDefinitions.ts`.
    * - A translation maps them (`Dictionary.values.topics`).
    */
   topics?: readonly ComponentTopic[]
@@ -332,7 +332,7 @@ export type NameMap = Readonly<Record<string, string>>
  *   `Vocabulary.define(prefix, dictionary)` adds the prefix (`ie-tarjeta`).
  * - Attribute, slot and part names map name to name (`header` => `encabezado`).
  * - NOT here:  states (a CSS contract), CSS classes, text strings (owned by `UI.i18n`).
- * - See `docs/translation.md`.
+ * - See `notes/translation.md`.
  */
 export type Dictionary = {
   /** BCP 47 language tag, e.g. `es`. */

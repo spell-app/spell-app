@@ -17,8 +17,8 @@ afterEach(() => (SiteData.url = undefined))
 
 describe("SiteData.root()", () => {
   test("defaults `base` to the site root above the data file", () => {
-    SiteData.url = "/somewhere/site/_data/components.json"
-    expect(SiteData.root()).toBe(`${location.origin}/somewhere/site/`)
+    SiteData.url = "/somewhere/docs/__data/components.json"
+    expect(SiteData.root()).toBe(`${location.origin}/somewhere/docs/`)
   })
 })
 

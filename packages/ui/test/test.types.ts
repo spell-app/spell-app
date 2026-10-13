@@ -1,5 +1,5 @@
 /**
- * Types shared by the test helpers and the example hooks under `src/components/ui-<family>/examples/`.
+ * Types shared by the test helpers and the example hooks under `components/ui-<family>/examples/`.
  * - MUST stay runtime-light:  `import type` only.  The visual spec (node) and the fixture page (browser) both
  *   import the `.visual.ts` hooks that use these.
  */
@@ -35,7 +35,7 @@ declare module "vitest/browser" {
  * Hooks of one element example for `yarn test:visual`:  the default export of
  * `examples/elements/<example>.visual.ts`, next to `<example>.html`.
  * - Optional:  an example without one gets its closed state captured, light and dark.
- * - Discovered by file name, so adding the file is all it takes (`docs/visual-testing.md`).
+ * - Discovered by file name, so adding the file is all it takes (`notes/visual-testing.md`).
  * - NOTE: the node side only reads the NAMES, `capture` and `mask`;  `open()` runs in the page.
  */
 export type VisualHooks = {

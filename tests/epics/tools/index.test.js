@@ -60,11 +60,8 @@ describe("the docs home's cards", () => {
       "Templates"
     ])
     const sets = cards.filter((card) => card.id === "epic-ui" || card.id === "app-ui")
-    expect(sets.map((card) => card.href)).toEqual([
-      "../packages/epic-components/index.html",
-      "../packages/app/components/index.html"
-    ])
-    expect(sets[0].meta).toBe("served at /epic-ui/, by the page server")
+    expect(sets.map((card) => card.href)).toEqual(["../components/epics/index.html", "../components/app/index.html"])
+    expect(sets[0].meta).toBe("served at /components/epics/, by the page server")
     const count = Object.fromEntries(cards.map((card) => [card.id, card.count]))
     // by the Epics page's groups (epic `airplane` P8):  `c` has no phases yet, so it's planning
     expect(count.epics).toBe("1 active · 1 planning · 1 done")

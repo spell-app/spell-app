@@ -348,7 +348,7 @@ export function liveClient(): void {
   /**
    * A link clicked in the frame:  send it where it should go.
    * - the frame may not open tabs:  docs links all name a `target`, and the view's sandbox blocks popups
-   * - a page on this server (`.html`, or a site page like `/ui/`):  here, in the frame, so back / forward work
+   * - a page on this server (`.html`, or a site page like `/components/ui/`):  here, in the frame, so back / forward work
    * - a source reference that isn't a page (`target="src-..."`, as `doc-links.js` names them):
    *   `{ spell: "open", url, kind: "file" }` to the parent, which opens it in VS Code (a folder:  in the Explorer)
    * - another site, or a link marked `data-spell-open="browser"` (the header's App):

@@ -89,7 +89,8 @@
       "brand",
       "packages/epics/tools/_assets",
       "packages/brand",
-      "packages/epics/pack"
+      "packages/epics/components/__pack",
+      "packages/brand/components/__pack"
     ],
     "writable": [
       "epics",

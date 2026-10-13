@@ -6,10 +6,10 @@ import { describe, expect, test } from "vite-plus/test"
 import type { SiteDataFile } from "$/ui/docs-components/docs-components.types"
 import { DesignBrand } from "$/ui/tools/DesignBrand"
 
-/** The brand package's committed site data. */
+/** The brand package's committed docs-set data. */
 const BRAND_DATA = JSON.parse(
   readFileSync(
-    join(fileURLToPath(new URL("../../../packages/brand/", import.meta.url)), "_data/components.json"),
+    join(fileURLToPath(new URL("../../../packages/brand/", import.meta.url)), "docs/__data/components.json"),
     "utf8"
   )
 ) as SiteDataFile
@@ -21,15 +21,15 @@ describe("DesignBrand.examples()", () => {
 <ui-tabs><ui-tab value="examples" label="Examples">
 <ui-section id="a" header="Types"><ui-section id="b" header="Phone">
 <ui-docs-example description="x">
-  <ui-brand-phone></ui-brand-phone>
+  <brand-phone></brand-phone>
 </ui-docs-example>
 </ui-section></ui-section>
 </ui-tab><ui-tab value="usage" label="Usage"><ui-docs-example><b>not this</b></ui-docs-example></ui-tab></ui-tabs>`
     const brand = new DesignBrand({ root: "/nowhere", data: BRAND_DATA })
-    ;(brand as unknown as { pages: Map<string, string> }).pages.set("ui-brand-phone", page)
-    expect(brand.examples("ui-brand-phone")).toEqual([
-      { title: "Phone", markup: "<ui-brand-phone></ui-brand-phone>", source: "brand/components/ui-brand-phone.html" }
+    ;(brand as unknown as { pages: Map<string, string> }).pages.set("brand-phone", page)
+    expect(brand.examples("brand-phone")).toEqual([
+      { title: "Phone", markup: "<brand-phone></brand-phone>", source: "packages/brand/docs/brand-phone.html" }
     ])
-    expect(brand.style("ui-brand-phone")).toBe(".stage { position: relative }")
+    expect(brand.style("brand-phone")).toBe(".stage { position: relative }")
   })
 })

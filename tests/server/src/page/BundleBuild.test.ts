@@ -7,7 +7,7 @@ import { PassThrough } from "node:stream"
 import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from "vite-plus/test"
 
 import { SRV } from "$/server"
-import { BundleBuild, uiBuildPath } from "$/server/page"
+import { BundleBuild, componentSetPath } from "$/server/page"
 import { ask } from "$/server/test/serve"
 
 ////////////////
@@ -61,12 +61,12 @@ describe("BundleBuild", () => {
     put(root, "guides/page.html", "<p>page</p>")
   })
 
-  /** a page server's shape:  the wait before the static files, the `/ui/` overlay;  `timeout` ms per wait */
+  /** a page server's shape:  the wait before the static files, the sets' overlay;  `timeout` ms per wait */
   async function serve(timeout?: number): Promise<number> {
     child = new FakeChild()
     build = new BundleBuild({ root, timeout, spawn: spawnOf(child) })
     web = new SRV.WebServer({ root, mounts: [{ prefix: "/", dir: root }] })
-    web.files.overlays.push(uiBuildPath)
+    web.files.overlays.push(componentSetPath)
     web.router.use(build.wait)
     return (await web.listen({ port: 0 })).port
   }
@@ -105,7 +105,7 @@ describe("BundleBuild", () => {
     vi.spyOn(console, "log").mockImplementation(() => {})
     build.start()
     let answered = false
-    const waiting = ask(port, "GET", "/ui/_assets/site.js").then((answer) => ((answered = true), answer))
+    const waiting = ask(port, "GET", "/components/ui/_assets/site.js").then((answer) => ((answered = true), answer))
     expect((await ask(port, "GET", "/packages/brand/_assets/ui/brand-ui.js")).text).toBe("export const OLD = 1")
     expect((await ask(port, "GET", "/guides/page.html")).status).toBe(200)
     expect(answered).toBe(false)
@@ -157,18 +157,23 @@ describe("BundleBuild.bundleFileFor()", () => {
 
   afterAll(() => rmSync(repo, { recursive: true, force: true }))
 
-  test("this checkout's bundle folders, through the `/ui/` overlay;  nothing else", () => {
+  test("this checkout's bundle folders, through the sets' overlay;  nothing else", () => {
     expect(build.folders).toEqual(BUNDLES)
-    expect(build.bundleFileFor("/ui/_assets/ui-button.js")).toBe(join(repo, "packages/ui/site/_assets/ui-button.js"))
+    expect(build.bundleFileFor("/components/ui/_assets/ui-button.js")).toBe(
+      join(repo, "packages/ui/site/_assets/ui-button.js")
+    )
     expect(build.bundleFileFor("/packages/ui/site/_assets/site.css")).toBe(
       join(repo, "packages/ui/site/_assets/site.css")
     )
     expect(build.bundleFileFor("/packages/brand/_assets/ui/a%20b.js")).toBe(
       join(repo, "packages/brand/_assets/ui/a b.js")
     )
-    expect(build.bundleFileFor("/ui/_data/components.json")).toBeUndefined()
+    expect(build.bundleFileFor("/components/ui/__data/components.json")).toBeUndefined()
+    expect(build.bundleFileFor("/components/epics/_assets/site.js")).toBe(
+      join(repo, "packages/ui/site/_assets/sets/site.js")
+    )
     expect(build.bundleFileFor("/packages/brand/_assets/brand-pages.js")).toBeUndefined()
-    expect(build.bundleFileFor("/worktrees/seo/ui/_assets/site.js")).toBeUndefined()
+    expect(build.bundleFileFor("/worktrees/seo/components/ui/_assets/site.js")).toBeUndefined()
     expect(build.bundleFileFor("/packages/brand/_assets/ui/../../../x")).toBeUndefined()
     expect(build.bundleFileFor("/packages/brand/_assets/ui/%E0%A4%A")).toBeUndefined()
   })

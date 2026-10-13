@@ -41,7 +41,7 @@ import { type GeneratedOutput, writeOrCheck } from "./generatedFiles.ts"
 /** `packages/ui/`. */
 const UI = path.resolve(import.meta.dirname, "..")
 
-/** The site's pages:  the shared `ui/` at the checkout's root (`SITE_PAGES`). */
+/** The site's pages:  `docs/` (`SITE_PAGES`). */
 const SITE = path.join(UI, SITE_PAGES)
 
 /****************
@@ -663,13 +663,11 @@ class HtmlParser {
 // ## Command line
 ////////////////
 
-/** Every page of the site:  `ui/*.html`, `ui/components/*.html`. */
+/** Every page of the site:  `docs/*.html`, in one folder. */
 function sitePages(): string[] {
-  const pages = (folder: string) =>
-    readdirSync(folder)
-      .filter((name) => name.endsWith(".html"))
-      .map((name) => path.join(folder, name))
-  return [...pages(SITE), ...pages(path.join(SITE, "components"))]
+  return readdirSync(SITE)
+    .filter((name) => name.endsWith(".html"))
+    .map((name) => path.join(SITE, name))
 }
 
 /**

@@ -8,7 +8,7 @@ const SPELL = fileURLToPath(new URL("../../../packages/cli/bin/spell.mjs", impor
 /** This package's folder. */
 const PACKAGE = fileURLToPath(new URL("../../../packages/epics/", import.meta.url))
 
-test("`pack/` is CURRENT:  built from the vocabularies and sources as they are -- `yarn pack:build` if not", () => {
+test("`components/__pack/` is CURRENT:  built from the vocabularies and sources as they are -- `yarn pack:build` if not", () => {
   const check = spawnSync(process.execPath, [SPELL, "dev", "pack", "check", "epics"], {
     cwd: PACKAGE,
     encoding: "utf8"

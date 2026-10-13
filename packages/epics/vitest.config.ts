@@ -6,7 +6,7 @@ import { baseConfig } from "../ui/vite.config.ts"
 
 /**
  * vitest config for `@spell-app/epics`, a component pack (`spell dev pack`):  two projects.
- * - `node` -- `src/**`:  the pack's own checks, `pack.test.ts` among them (`spell dev pack check epics`:  `pack/`
+ * - `node` -- `src/**`:  the pack's own checks, `pack.test.ts` among them (`spell dev pack check epics`:  `components/__pack/`
  *   is current);  and `tools/**`, the docs tools' own tests
  * - `browser` -- `components/**`:  the `<epic-*>` elements, in a REAL browser (Vitest browser mode + Playwright,
  *   chromium), as Spell UI's are.  `baseConfig()`:  Spell UI's plugins (decorators BEFORE Solid), Solid dedupe,

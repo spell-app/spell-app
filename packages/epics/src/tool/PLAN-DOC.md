@@ -25,7 +25,7 @@ once a plan doc is in the `<epic-*>` markup (epic `epic-components`, P8).
 
 ```html
 <ui-root>
-  <ui-components source="../../packages/epics/pack/epics.pack.js"></ui-components>
+  <ui-components source="../../packages/epics/components/__pack/epics.pack.js"></ui-components>
   <spell-site-header root="../.."></spell-site-header>
   <div class="spell-doc"><main class="spell-doc-main">
     <epic-page epic="seo" title="SEO" branch="seo" worktree="/.../seo" started="2026-10-01" updated="2026-10-07"

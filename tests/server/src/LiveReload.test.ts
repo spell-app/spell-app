@@ -26,7 +26,7 @@ describe("LiveReload", () => {
     live.close()
   })
 
-  // Spell UI's built half, laid over its pages at `/ui/` (claude-design P6)
+  // a folder laid over another's address (Spell UI's built half, at `/ui/` before epic `people-and-orgs` P18)
   it("reports a folder served at another URL path under that path (`servedAt`)", async () => {
     mkdirSync(join(temp, "at/packages/ui/site/_assets"), { recursive: true })
     const live = new SRV.LiveReload({ root: join(temp, "at"), debounce: 10, heartbeat: 0 })

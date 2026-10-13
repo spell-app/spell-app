@@ -6,9 +6,9 @@
  *   if it isn't running;  `spell dev server stop` stops it, and with it the rest.
  * - The EDITOR (vite, the spell app):  the page server's child (`EditorServer`, in spaces' routes), started
  *   once the page server listens;  this waits for its record, `.spell-server.editor.json`, to answer.
- * - SPELL UI's docs:  static pages the page server itself serves at `/ui/` (no dev server):  the shared
- *   pages, `ui/`, with this branch's built `packages/ui/site/_assets/` and `_data/` laid over them;  this checks its
- *   bundle answers (`/ui/_assets/site.js`:  not committed;  the page server builds it when it starts, if stale,
+ * - SPELL UI's docs:  static pages the page server itself serves at `/components/ui/` (no dev server):  the
+ *   pages, `packages/ui/docs/`, with this branch's built `packages/ui/site/_assets/` laid over them;  this checks its
+ *   bundle answers (`/components/ui/_assets/site.js`:  not committed;  the page server builds it when it starts, if stale,
  *   and the request waits for that).
  * - Prints one row per server:  name, port, URL, state.  Exit code 1 if any didn't come up.
  * - `node`, so it runs before `yarn install` too;  the page server itself needs this checkout's `node_modules`.
@@ -74,9 +74,9 @@ async function editorRow() {
 
 /** Spell UI docs' row, once its bundle answers -- or why not. */
 async function spellUIRow(base) {
-  const row = { name: "Spell UI docs", url: `${base}/ui/`, what: "static pages, served by the page server" }
+  const row = { name: "Spell UI docs", url: `${base}/components/ui/`, what: "static pages, served by the page server" }
   try {
-    const response = await fetch(`${base}/ui/_assets/site.js`, { signal: AbortSignal.timeout(UI_TIMEOUT_MS) })
+    const response = await fetch(`${base}/components/ui/_assets/site.js`, { signal: AbortSignal.timeout(UI_TIMEOUT_MS) })
     if (response.ok) return { ...row, state: "running" }
     return {
       ...row,

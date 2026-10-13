@@ -13,14 +13,11 @@ export const BRAND_ASSETS = `${ROOT}_assets/ui`
 /** The pages' entry:  `src/brand-ui.ts`. */
 export const BRAND_ENTRY = `${ROOT}src/brand-ui.ts`
 
-/** The docs pages' entry:  `src/brand-docs.ts` (`brand-ui.ts` + Spell UI's docs widgets). */
-export const DOCS_ENTRY = `${ROOT}src/brand-docs.ts`
-
 /**
  * The brand pages' bundle (`yarn build`, run by `scripts/build.ts`):
- * `src/brand-ui.ts` => `_assets/ui/brand-ui.js`,
- * and the docs pages' `src/brand-docs.ts` => `brand-docs.js` (the same chunks under it),
- * with `brand-ui.css` and lazy chunks.
+ * `src/brand-ui.ts` => `_assets/ui/brand-ui.js`, with `brand-ui.css` and lazy chunks.
+ * - Only the Brand tab's own pages load it;  the docs set's pages (`docs/`) load Spell UI's site bundle and the
+ *   brand pack instead (`docs/__parts/layout.html`).
  * See the entry for what's in it.
  * - Modelled on Spell UI's site bundle (`packages/ui/vite.site.config.ts`):
  *   `baseConfig()` (decorators BEFORE Solid, Solid dedupe, Lightning CSS targets),
@@ -30,13 +27,16 @@ export const DOCS_ENTRY = `${ROOT}src/brand-docs.ts`
  * - Aliases set here as well, as the site's config does:
  *   files outside a `tsconfig.json`'s `include` may not get `tsconfigPaths`.
  * - Also `vp lint` / `vp fmt`:  the repo root's `vite.lint.ts`;
- *   the built bundle and the design build are not ours to lint.
+ *   the built bundles (this one, the pack, the design build) are not ours to lint.
  */
 export default defineConfig(() => {
   const base = baseConfig()
   return {
     fmt: fmtConfig,
-    lint: packageLint({ name: "brand", ignorePatterns: ["_assets/ui", "dist", ".compare", ".vitest"] }),
+    lint: packageLint({
+      name: "brand",
+      ignorePatterns: ["_assets/ui", "components/__pack", "dist", ".compare", ".vitest"]
+    }),
     ...base,
     root: ROOT,
     base: "./",
@@ -49,6 +49,7 @@ export default defineConfig(() => {
         { find: /^\$\/brand\/components\//, replacement: `${ROOT}components/` },
         { find: /^\$\/brand$/, replacement: `${ROOT}src/index.ts` },
         { find: /^\$\/brand\//, replacement: `${ROOT}src/` },
+        { find: /^\$\/ui\/components\//, replacement: `${ROOT}../ui/components/` },
         { find: /^\$\/ui$/, replacement: `${ROOT}../ui/src/index.ts` },
         { find: /^\$\/ui\//, replacement: `${ROOT}../ui/src/` },
         { find: /^\$\/util$/, replacement: `${ROOT}../util/src/index.ts` },
@@ -68,7 +69,7 @@ export default defineConfig(() => {
       reportCompressedSize: false,
       chunkSizeWarningLimit: 1500,
       rolldownOptions: {
-        input: { "brand-ui": BRAND_ENTRY, "brand-docs": DOCS_ENTRY },
+        input: { "brand-ui": BRAND_ENTRY },
         preserveEntrySignatures: "allow-extension",
         output: {
           // custom element class names are read by dev-time warnings and the manifest (see ui's `vite.config.ts`)

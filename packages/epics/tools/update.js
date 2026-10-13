@@ -18,6 +18,9 @@ import { join, relative } from "node:path"
 
 import { ASSETS, ROOT, TOOLS, docLinksRun, findPages } from "./pages.js"
 
+/** A page loading a site bundle (Spell UI's, or a component set's), not `spell-ui.js`:  by its script's address. */
+const SITE_BUNDLE = /\b(?:(?:epic-|app-)?ui|components\/[^/"]+)\/(?:site\/)?_assets\/site\.js\b/
+
 const args = process.argv.slice(2)
 const skipUiBuild = args.includes("--skip-ui-build")
 const check = !args.includes("--no-check")
@@ -46,8 +49,9 @@ if (check) {
   for (const output of pages) {
     // a Spell UI site page (the `spell-ui-docs` template) loads the site bundle, not `spell-ui.js`:
     // `yarn site:check` (packages/ui) checks those.  `ui/_assets/` since the pages moved (claude-design P6);  a
-    // component set's (the `component-set-docs` template) loads its own, from `epic-ui/_assets/` (epic-workflow P10)
-    if (/\b(?:epic-|app-)?ui\/(?:site\/)?_assets\/site\.js\b/.test(readFileSync(join(ROOT, output), "utf8"))) continue
+    // component set's (the `component-set-docs` template) loads its own, from `components/<set>/_assets/` (before
+    // people-and-orgs P18, `epic-ui/_assets/`)
+    if (SITE_BUNDLE.test(readFileSync(join(ROOT, output), "utf8"))) continue
     const outDir = join(shots, output.replace(/\.html$/, "").replaceAll("/", "--"))
     const run = step(`check ${output}`, "node", [join(TOOLS, "check-spell.js"), output, outDir], {
       capture: true,

@@ -69,7 +69,7 @@ export interface DOMSpellEditorElement extends E.AttributeValues<typeof spellEdi
  * - Draws `<SpellEditorPane>` (no `<ui-*>`):  plain tabs and status line, styled by `spell-editor.css`, adopted
  *   from `assets` (default, beside its script).
  * - Leaving the page lets go of the project, a microtask later:  a move in one go keeps it.
- * - SEE:  its App UI page, `packages/app/components/spell-editor.html` (`/app-ui/spell-editor.html`).
+ * - SEE:  its App UI page, `packages/app/docs/spell-editor.html` (`/components/app/spell-editor.html`).
  ****************/
 export class SpellEditor extends E.UIComponent<typeof spellEditorVocabulary> {
   @E.proto static vocabulary = spellEditorVocabulary

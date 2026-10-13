@@ -308,10 +308,10 @@ describe("HotDefinitions.migrate()", () => {
 
 describe("HotDefinitions.updateStyle()", () => {
   test.each([
-    ["/src/components/ui-button/UIButton.css?inline", "button"],
-    ["/src/components/ui-tree/UITreeDiagram.css", "tree-diagram"],
+    ["/components/ui-button/UIButton.css?inline", "button"],
+    ["/components/ui-tree/UITreeDiagram.css", "tree-diagram"],
     ["UIDimmer.page.css", undefined],
-    ["/src/components/ui-button/button.css", undefined]
+    ["/components/ui-button/button.css", undefined]
   ])("re-registers %s's sheet as %s", async (id, name) => {
     // loaded, so the re-registration runs at once
     await UI.load()

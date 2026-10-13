@@ -9,7 +9,7 @@ import { ValueSets } from "./ValueSets"
  * - Why here, with no DOM and no Solid:
  *   - the elements and their native fallbacks need the SAME booleans / enums / widths semantics
  *   - frameworks send attributes in odd shapes:  Vue sends `open="false"` when it can't find a property,
- *     so `"false"` MUST mean false (`docs/plan.md`, "Framework consumption contract")
+ *     so `"false"` MUST mean false (`notes/plan.md`, "Framework consumption contract")
  * - Static and stateless:  converters run on every `attributeChangedCallback`.
  * - Attribute values arrive as `string | null` (`null` ~== absent);  properties may arrive as anything.
  * - `null` is the PLATFORM's here, so it stays (epic `wwod-spell-ui`, Q9):

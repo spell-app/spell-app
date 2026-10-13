@@ -64,8 +64,8 @@ export class LiveReload {
    * - `ignore`:  more paths (relative to `dir`, `/`-separated) never to report, e.g. `/(^|\/)experiments\//`
    * - `servedAt`:  the URL path the folder is served at, when that isn't its path from `root`
    *   (a folder laid over another, `StaticHandler.overlays`)
-   *   - its changes are reported there, e.g. `/ui/` for `packages/ui/site/`,
-   *     so a page loading `/ui/_assets/site.js` sees its script change
+   *   - its changes are reported there, e.g. `/components/ui/_assets/` for `packages/ui/site/_assets/`,
+   *     so a page loading `/components/ui/_assets/site.js` sees its script change
    * - a missing folder is skipped
    * - SIDE EFFECT:  an `fs.watch` per call, closed by `close()`
    */

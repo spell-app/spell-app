@@ -50,7 +50,7 @@ export class FamilySheets {
  * - NOTE: `UIPopup.anchored.css` is excluded:  Lightning CSS can't parse its `@container anchored(...)`
  *   (`agents/CODE-DEBT.md`), so it's imported `?raw` above.
  */
-const SHEETS = import.meta.glob<string>(["/src/components/*/*.css", "!**/UIPopup.anchored.css"], {
+const SHEETS = import.meta.glob<string>(["/components/*/*.css", "!**/UIPopup.anchored.css"], {
   query: "?inline",
   import: "default",
   eager: true

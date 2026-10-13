@@ -4,7 +4,7 @@ import type { TokenDeclaration } from "./styles.types"
  * ### `ComponentTokens`
  * Reads component sheets for their per-component tokens:  which `--ui-*` names belong to a component family, where
  * a sheet DECLARES them, the private aliases (`--_ui-x: var(--ui-x, <default>)`) that replace them, and the codemod
- * that converts a family.  See `docs/theming.md` "Component tokens".
+ * that converts a family.  See `notes/theming.md` "Component tokens".
  * - Pure text in, text out:  no DOM, no Vite, and nothing of `ui`'s but `styles.types` (types only), so the browser
  *   test (`test/componentTokens.test.ts`), the codemod (`yarn tokens:alias`, `scripts/tokens-alias.ts`) and the docs
  *   site's token tables (`tools/FamilyTokens.ts`, `tools/FoundationTokens.ts`, in node) share it.
@@ -51,7 +51,7 @@ export class ComponentTokens {
   }
 
   /**
-   * Every component token a sheet DECLARES:  the thing `docs/theming.md` forbids.
+   * Every component token a sheet DECLARES:  the thing `notes/theming.md` forbids.
    * - Style-query conditions (`@container style(--ui-x: 1)`) are reads, not declarations.
    */
   publicDeclarations(css: string): TokenDeclaration[] {
@@ -124,12 +124,14 @@ export class ComponentTokens {
   /**
    * Public tokens a sheet exposes through private aliases:  `--_ui-x: var(--ui-x, <default>)`, first one wins,
    * with the `/* comment *\/` right above as the description (the docs' token tables, `tools/FamilyTokens.ts`).
+   * - `prefix`:  the tokens' first word, `ui` (Spell UI's);  another set's own, `brand` (`--_brand-x: var(--brand-x)`)
    * - Static:  one sheet's text is all it reads, no vocabulary or foundation.
    */
-  static aliases(css: string): Array<{ name: string; default: string; description?: string }> {
+  static aliases(css: string, prefix = UI_PREFIX): Array<{ name: string; default: string; description?: string }> {
     const found = new Map<string, { name: string; default: string; description?: string }>()
-    for (const declaration of ComponentTokens.declarations(css)) {
-      const match = /^var\(\s*(--ui-[a-z0-9-]+)\s*,\s*([\s\S]*)\)$/.exec(declaration.value)
+    const alias = new RegExp(`^var\\(\\s*(--${prefix}-[a-z0-9-]+)\\s*,\\s*([\\s\\S]*)\\)$`)
+    for (const declaration of ComponentTokens.declarations(css, prefix)) {
+      const match = alias.exec(declaration.value)
       if (!match || declaration.name !== ComponentTokens.privateNameFor(match[1]!) || found.has(match[1]!)) continue
       if (!ComponentTokens.balanced(match[2]!)) continue
       found.set(match[1]!, {
@@ -143,14 +145,15 @@ export class ComponentTokens {
 
   /**
    * Every custom-property declaration in `css` (`--_ui-*` and `--ui-*`), in source order, outside comments.
+   * - `prefix`:  the tokens' first word, `ui`;  another set's own, `brand` (`--_brand-*`, `--brand-*`)
    * - `selector`:  the prelude of the enclosing rule;  `nested`:  inside an `@media` / `@container` / `@supports`.
    * - Static:  one sheet's text is all it reads;  the constructor reads the foundation with it, before an instance
    *   exists.
    */
-  static declarations(css: string): TokenDeclaration[] {
+  static declarations(css: string, prefix = UI_PREFIX): TokenDeclaration[] {
     const stripped = ComponentTokens.stripComments(css)
     const result: TokenDeclaration[] = []
-    for (const match of stripped.matchAll(/(?<=[{;]\s*)(--_?ui-[a-z0-9-]+)\s*:/g)) {
+    for (const match of stripped.matchAll(new RegExp(`(?<=[{;]\\s*)(--_?${prefix}-[a-z0-9-]+)\\s*:`, "g"))) {
       const valueStart = ComponentTokens.skipSpace(stripped, match.index + match[0].length)
       let depth = 0
       let end = valueStart
@@ -194,13 +197,13 @@ export class ComponentTokens {
   /**
    * Family folder of a sheet or vocabulary path:  the folder after `components/`, e.g. `ui-button`.
    * - Static:  the constructor reads it before the instance has its tags.
-   * - Throws a `TypeError` on a path outside `src/components/`:  every caller passes component files.
+   * - Throws a `TypeError` on a path outside `components/`:  every caller passes component files.
    */
   private static familyFor(path: string): string {
     const family = /components\/([^/]+)\//.exec(path)?.[1]
     if (!family) {
       throw new TypeError(
-        `ComponentTokens.familyFor():  \`${path}\` is no component path;  pass a file in \`src/components/<family>/\``
+        `ComponentTokens.familyFor():  \`${path}\` is no component path;  pass a file in \`components/<family>/\``
       )
     }
     return family
@@ -274,3 +277,6 @@ type Edit = {
 
 /** What every public token starts with:  `--ui-`.  A private alias adds `_`:  `--_ui-`. */
 const PUBLIC_PREFIX = "--ui-"
+
+/** Spell UI's tokens' first word, the default of `aliases()` / `declarations()`:  another set passes its own. */
+const UI_PREFIX = "ui"

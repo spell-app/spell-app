@@ -10,7 +10,7 @@
  *   - An open entry with entries of its own (nested `<ui-section>`s) is followed by the same pair again,
  *     one indent further.
  * - Public tokens (`--ui-docs-toc-*`) are never declared:  each is read through a private alias
- *   (`docs/theming.md` "Component tokens").
+ *   (`notes/theming.md` "Component tokens").
  */
 
 @layer ui.components.docs-toc.types, ui.components.docs-toc.content, ui.components.docs-toc.variations, ui.components.docs-toc.states;

@@ -19,22 +19,23 @@ import type { EpicTag, EpicVocabulary } from "$/epics/definitions"
 
 /****************
  * ### `EpicUISite`
- * The data of Epic UI, the docs set of the `<epic-*>` elements (`packages/epic-components/`, served at `/epic-ui/`;
- * epic `epic-workflow` P10):  what its side column, search and look controls read, in Spell UI's shapes, since its
- * pages load Spell UI's site bundle.
- * - `_data/components.json` (`SiteDataFile`):  one entry per element, from the pack's own definitions
- *   (`Definitions.all`:  each vocabulary as data), filed under the groups of the set's hand-kept `_data/pages.json`;
+ * The data of Epic UI, the docs set of the `<epic-*>` elements (`packages/epics/docs/`, served at
+ * `/components/epics/`;  epic `epic-workflow` P10):  what its side column, search and look controls read, in Spell UI's
+ * shapes, since its pages load Spell UI's site bundle.
+ * - The set's pages are ONE flat folder:  its home, `index.html`, and one page per element, `<tag>.html`.
+ * - `__data/components.json` (`SiteDataFile`):  one entry per element, from the pack's own definitions
+ *   (`Definitions.all`:  each vocabulary as data), filed under the groups of the set's hand-kept `__data/pages.json`;
  *   plus the set's own side-column links (`nav`)
  *   - a new element shows up by itself:  under "Other" until `pages.json` files it, `planned` until its page exists
  *   - the elements drawn only inside others' shadow roots (`pages.json` `drawnOnly`) are never listed
- * - `_data/search.json` (`SiteSearchFile`):  every page's title and sections, read from the page files by Spell UI's
+ * - `__data/search.json` (`SiteSearchFile`):  every page's title and sections, read from the page files by Spell UI's
  *   own rules (`PageOutline`), for the side column's search
  * - Written by `yarn site:data` (`scripts/site-data.ts`);  `EpicUISite.test.ts` fails while they're stale:  rerun
  *   after adding or changing an element, or a page's sections.
  * - Node only (`node:fs`, linkedom);  deterministic:  no dates.
  ****************/
 export class EpicUISite {
-  /** the set's folder, `packages/epic-components/` */
+  /** the set's folder, `packages/epics/docs/` */
   readonly folder: string
 
   constructor(folder = SET_FOLDER) {
@@ -72,7 +73,7 @@ export class EpicUISite {
     }
   }
 
-  /** The two files' text, by name in `_data/`:  2-space JSON. */
+  /** The two files' text, by name in `__data/`:  2-space JSON. */
   files(): Record<string, string> {
     return {
       [COMPONENTS_FILE]: `${JSON.stringify(this.data(), null, 2)}\n`,
@@ -80,17 +81,15 @@ export class EpicUISite {
     }
   }
 
-  /** Every page, relative to the set's folder:  `index.html`, then `elements/*.html` A-Z. */
+  /** Every page, relative to the set's folder:  `index.html`, then the element pages, `<tag>.html`, A-Z. */
   pageFiles(): string[] {
-    const elements = join(this.folder, ELEMENTS)
-    const files = existsSync(elements) ? readdirSync(elements).filter((file) => file.endsWith(".html")) : []
-    return [
-      ...(existsSync(join(this.folder, HOME)) ? [HOME] : []),
-      ...files.sort().map((file) => `${ELEMENTS}/${file}`)
-    ]
+    const files = existsSync(this.folder)
+      ? readdirSync(this.folder).filter((file) => file.endsWith(".html") && file !== HOME)
+      : []
+    return [...(existsSync(join(this.folder, HOME)) ? [HOME] : []), ...files.sort()]
   }
 
-  /** The hand-kept facts, `_data/pages.json`. */
+  /** The hand-kept facts, `__data/pages.json`. */
   private pages(): EpicUIPages {
     return JSON.parse(readFileSync(join(this.folder, DATA, PAGES_FILE), "utf8")) as EpicUIPages
   }
@@ -105,7 +104,7 @@ export class EpicUISite {
       mainTag: tag,
       main: true,
       page: true,
-      href: `${ELEMENTS}/${tag}.html`,
+      href: `${tag}.html`,
       topics: [group],
       aka: [...(vocabulary.aka ?? [])],
       ...(vocabulary.description && { description: vocabulary.description }),
@@ -162,7 +161,7 @@ export class EpicUISite {
     const { sections, tabs } = PageOutline.sections(main as unknown as Element)
     const title = main.getAttribute("data-toc-header")?.trim() || document.querySelector("title")?.textContent?.trim()
     const summary = EpicUISite.summaryOf(html)
-    const tag = path.startsWith(`${ELEMENTS}/`) ? path.slice(ELEMENTS.length + 1).replace(/\.html$/, "") : undefined
+    const tag = path === HOME ? undefined : path.replace(/\.html$/, "")
     return {
       path,
       title: title ?? path,
@@ -182,7 +181,7 @@ export class EpicUISite {
 }
 
 /**
- * The set's hand-kept facts, `_data/pages.json`.
+ * The set's hand-kept facts, `__data/pages.json`.
  * - `groups`:  the side column's groups, in order, each the tags filed under it
  * - `drawnOnly`:  elements drawn only inside other elements' shadow roots, never written in a doc:  no page
  * - `nav`:  the side column's own links and band titles (`SiteNav`)
@@ -193,17 +192,14 @@ export type EpicUIPages = {
   readonly nav: SiteNav
 }
 
-/** The set's folder:  `packages/epic-components/`, beside this package. */
-const SET_FOLDER = fileURLToPath(new URL("../../../epic-components/", import.meta.url))
+/** The set's folder:  this package's `docs/`. */
+const SET_FOLDER = fileURLToPath(new URL("../../docs/", import.meta.url))
 
-/** The set's home page. */
+/** The set's home page;  every other page in the folder is an element's. */
 const HOME = "index.html"
 
-/** The element pages' folder. */
-const ELEMENTS = "elements"
-
 /** The data folder, and its files. */
-const DATA = "_data"
+const DATA = "__data"
 const PAGES_FILE = "pages.json"
 const COMPONENTS_FILE = "components.json"
 const SEARCH_FILE = "search.json"

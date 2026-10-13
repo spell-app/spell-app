@@ -11,7 +11,7 @@ import type { VisualBrowser, VisualOs } from "./visual.types.ts"
  * - The per-run choices travel to Playwright as environment variables instead:  `VisualVariables` and
  *   `environment.visual` (`tools/environment.ts`).
  * - STATIC only:  constants and two pure lookups, no state.
- * - See `docs/visual-testing.md`.
+ * - See `notes/visual-testing.md`.
  */
 export class VisualSettings {
   /** repo root, with a trailing slash */
@@ -40,7 +40,7 @@ export class VisualSettings {
    */
   static readonly TIME = "2026-06-15T10:00:00Z"
   /**
-   * Screenshot comparison (`expect.toHaveScreenshot`), see `docs/visual-testing.md`, "Tolerances"
+   * Screenshot comparison (`expect.toHaveScreenshot`), see `notes/visual-testing.md`, "Tolerances"
    * - `threshold` -- per-pixel colour distance (pixelmatch, 0-1, YIQ) under which two pixels count as SAME.
    *   Measured on a basic button's 1px border (2026-09-30):  0.02 still sees a grey 0.02 OKLCH lightness step
    *   (~5 of 255) and a faint hue tint;  Playwright's default 0.2 misses a 0.05 step

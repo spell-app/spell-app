@@ -11,18 +11,18 @@ const UI = fileURLToPath(new URL("../../../packages/ui/", import.meta.url))
 const BRAND = join(UI, "../brand")
 
 /** The committed site data of each. */
-const DATA = JSON.parse(readFileSync(join(UI, "site/_data/components.json"), "utf8")) as SiteDataFile
-const BRAND_DATA = JSON.parse(readFileSync(join(BRAND, "_data/components.json"), "utf8")) as SiteDataFile
+const DATA = JSON.parse(readFileSync(join(UI, "docs/__data/components.json"), "utf8")) as SiteDataFile
+const BRAND_DATA = JSON.parse(readFileSync(join(BRAND, "docs/__data/components.json"), "utf8")) as SiteDataFile
 
 describe("ElementManifests.outputs()", () => {
   test("are current (else run `yarn site:data`)", () => {
-    for (const [file, text] of new ElementManifests({ data: DATA, packageFolder: UI }).outputs(join(UI, "site/_data")))
+    for (const [file, text] of new ElementManifests({ data: DATA, packageFolder: UI }).outputs(join(UI, "docs/__data")))
       expect(readFileSync(file, "utf8") === text, file).toBe(true)
   })
 
   test("leaves the brand's manifests current (else `yarn site:data` in packages/brand)", () => {
     const manifests = new ElementManifests({ data: BRAND_DATA, packageFolder: BRAND, componentsPath: "components" })
-    const [[elements], [custom]] = manifests.outputs(join(BRAND, "_data"))
+    const [[elements], [custom]] = manifests.outputs(join(BRAND, "docs/__data"))
     const written = JSON.parse(readFileSync(elements!, "utf8")) as { modules: unknown[] }
     expect(written.modules).toEqual(manifests.customElements().modules)
     expect(readFileSync(custom!, "utf8")).toBe(JSON.stringify(manifests.htmlCustomData(), null, 2) + "\n")

@@ -26,12 +26,12 @@ The names in `src/icons/icon-packs/fomantic/pack.js` are derived from
 > Copyright (c) Fomantic-UI (https://github.com/fomantic/Fomantic-UI)
 
 Only the NAME MAPPING (Fomantic class name -> Font Awesome 7 icon) is derived from that file -- no Fomantic code,
-CSS or font is copied into this package.  See `docs/icons.md` for how the mapping is built.
+CSS or font is copied into this package.  See `notes/icons.md` for how the mapping is built.
 
 ## Full attribution requirement
 
 Anything in this package that renders one of these icons satisfies Font Awesome's CC BY 4.0 attribution requirement
-via this file, the licence comment in each SVG, and `docs/icons.md`.  No per-icon attribution is needed in consuming
+via this file, the licence comment in each SVG, and `notes/icons.md`.  No per-icon attribution is needed in consuming
 apps -- Font Awesome's own FAQ treats a single project-level notice as sufficient.
 
 Other packs a page adds (`<ui-root icons>`, `UI.icons.use()`) carry their own licences;  a pack index has a `license` field for it.

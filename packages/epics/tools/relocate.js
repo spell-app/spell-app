@@ -18,6 +18,11 @@
  * - `reorg --shared <dir>`:  `reorgShared()` alone (`spell dev shared commit`, every turn)
  * - `relink --shared <dir> [--root <checkout>] [--dry-run] [--json]`:  `relinkDocsPackage()` alone (once, when
  *   `people-and-orgs` merges into `main`)
+ * - the COMPONENT SETS' layout (epic `people-and-orgs`, P18, 2026-10-13):  every set's pages in its package's `docs/`,
+ *   served at `/components/<set>/`;  Spell UI's elements in `components/`, its notes in `notes/`;  the packs in
+ *   `components/__pack/`;  the brand's tags `brand-` (`SETS_LINKS`, `relinkSets()`)
+ * - `relink-sets --shared <dir> [--dry-run] [--json]`:  `relinkSets()` (ONCE, when `people-and-orgs` merges into
+ *   `main`, after `relink`;  never by `repair`:  a later page's `packages/ui/docs/` means the new pages, not the notes)
  */
 import { spawnSync } from "node:child_process"
 import {
@@ -616,6 +621,260 @@ export function relinkDocsPackage(dir, { dryRun = false } = {}) {
 }
 
 ////////////////
+// ## The component sets' layout
+////////////////
+
+/**
+ * Where a link's target went in the component sets' layout (epic `people-and-orgs` P18, 2026-10-13):  `[pattern,
+ * replacement]` on the repo-relative path a link points at, first match wins.
+ * - a set's PAGES are linked at their SERVED address, `components/<set>/<page>` (the page server's `COMPONENT_SETS`):
+ *   a set's folder doesn't draw its pages at its own address, only there
+ *   - Spell UI's, from the shared `ui/` (its component index is `components.html` now, its pages flat);  Epic UI's,
+ *     from `packages/epic-components/` or `epic-ui/`;  App UI's, from `packages/app/components/` or `app-ui/`;  the
+ *     brand elements', from the shared `brand/components/`, their tags `brand-` now (Q26)
+ * - CODE moved too:  Spell UI's elements (`src/components/` -> `components/`, their tests likewise), its design notes
+ *   (`docs/` -> `notes/`), the sets' data (`_data/` -> `docs/__data/`), the epics pack (`pack/` ->
+ *   `components/__pack/`), the brand's families (`ui-brand-x/UIBrandX.tsx` -> `brand-x/BrandX.tsx`)
+ */
+const SETS_LINKS = [
+  [/^ui\/components(?:\/index\.html)?$/, "components/ui/components.html"],
+  [/^ui\/components\/(.+)$/, "components/ui/$1"],
+  [/^ui\/_parts(\/.*)?$/, "components/ui/__parts$1"],
+  [/^ui\/_data(\/.*)?$/, "components/ui/__data$1"],
+  [/^ui(\/.*)?$/, "components/ui$1"],
+  [/^(?:packages\/epic-components|epic-ui)\/elements(\/.*)?$/, "components/epics$1"],
+  [/^(?:packages\/epic-components|epic-ui)\/_parts(\/.*)?$/, "components/epics/__parts$1"],
+  [/^(?:packages\/epic-components|epic-ui)\/_data(\/.*)?$/, "components/epics/__data$1"],
+  [/^packages\/epic-components\/README\.md$/, "packages/epics/AGENTS.md"],
+  [/^(?:packages\/epic-components|epic-ui)(\/.*)?$/, "components/epics$1"],
+  [/^(?:packages\/app\/components|app-ui)\/_(parts|data)(\/.*)?$/, "components/app/__$1$2"],
+  [/^(?:packages\/app\/components|app-ui)\/(_images|_examples|[^/]+\.html)(\/.*)?$/, "components/app/$1$2"],
+  [/^app-ui(\/.*)?$/, "components/app$1"],
+  [/^brand\/components\/components\.spell\.html$/, "components/brand/index.html"],
+  [/^brand\/components\/ui-(brand-[\w-]+\.html)$/, "components/brand/$1"],
+  [/^brand\/components$/, "components/brand"],
+  ...codeMoves()
+]
+
+/** The CODE moves, for links and mentions alike:  `[pattern, replacement]` on a repo-relative path. */
+function codeMoves() {
+  return [
+    [/^packages\/ui\/src\/components(\/.*)?$/, "packages/ui/components$1"],
+    [/^tests\/ui\/src\/components(\/.*)?$/, "tests/ui/components$1"],
+    // its design notes (`*.md`) and the folder itself:  never a page (`packages/ui/docs/x.html` is one, since P18)
+    [/^packages\/ui\/docs(\/(?:[\w.-]+\.md)?)?$/, "packages/ui/notes$1"],
+    [/^packages\/ui\/site\/_data(\/.*)?$/, "packages/ui/docs/__data$1"],
+    [/^packages\/brand\/_data(\/.*)?$/, "packages/brand/docs/__data$1"],
+    [/^packages\/epics\/pack(\/.*)?$/, "packages/epics/components/__pack$1"],
+    [
+      /^((?:packages|tests)\/brand\/components\/)ui-(brand-[\w-]+)(\/.*)?$/,
+      (all, base, family, rest = "") => `${base}${family}${rest.replace(/\/UIBrand(?=\w)/g, "/Brand")}`
+    ]
+  ]
+}
+
+/**
+ * Where a MENTION of a moved path went (prose, code spans, `title`s):  the FILE, never a served address.
+ * - a set's page:  its file in its package's `docs/`;  the rest as `codeMoves()`
+ */
+const SETS_MENTIONS = [
+  [/^packages\/epic-components\/elements(\/.*)?$/, "packages/epics/docs$1"],
+  [/^packages\/epic-components\/_(parts|data)(\/.*)?$/, "packages/epics/docs/__$1$2"],
+  [/^packages\/epic-components\/README\.md$/, "packages/epics/AGENTS.md"],
+  [/^packages\/epic-components(\/.*)?$/, "packages/epics/docs$1"],
+  [/^packages\/app\/components\/_(parts|data)(\/.*)?$/, "packages/app/docs/__$1$2"],
+  [/^packages\/app\/components\/(_images|_examples|[^/]+\.html)(\/.*)?$/, "packages/app/docs/$1$2"],
+  [/^ui\/components\/index\.html$/, "packages/ui/docs/components.html"],
+  [/^ui\/components\/([^/]+\.html)$/, "packages/ui/docs/$1"],
+  [/^ui\/_(parts|data)(\/.*)?$/, "packages/ui/docs/__$1$2"],
+  [/^ui\/([^/]+\.html|examples(?:\/.*)?|images(?:\/.*)?)$/, "packages/ui/docs/$1"],
+  [/^brand\/components\/components\.spell\.html$/, "packages/brand/docs/index.html"],
+  [/^brand\/components\/ui-(brand-[\w-]+\.html)$/, "packages/brand/docs/$1"],
+  ...codeMoves()
+]
+
+/** `path` (repo-relative) after the first of `moves` that matches;  `undefined` when none does. */
+function setsMoved(path, moves) {
+  for (const [pattern, to] of moves) {
+    if (pattern.test(path)) return path.replace(pattern, to)
+  }
+  return undefined
+}
+
+/** Where repo path (or served address) `path` is linked now, in the sets' layout;  `undefined` when it didn't move. */
+export function setsLinkPath(path) {
+  return setsMoved(path.replace(/\/$/, ""), SETS_LINKS)
+}
+
+/** Where the file repo path `path` names is now, in the sets' layout;  `undefined` when it didn't move. */
+export function setsMentionPath(path) {
+  return setsMoved(path.replace(/\/$/, ""), SETS_MENTIONS)
+}
+
+/**
+ * `link`, in page `file` (repo-relative), pointing where its target is linked now in the sets' layout;  unchanged
+ * when its target didn't move.
+ * - relative links, and server-absolute ones (`/ui/x.html`, `/worktrees/<w>/epic-ui/`)
+ * - a folder link stays a folder link;  one whose folder became a page (`ui/components/`) links the page
+ */
+export function setsLink(link, file) {
+  const [, path = "", rest = ""] = /^([^?#]*)(.*)$/.exec(link)
+  if (!path) return link
+  const absolute = /^(\/(?:worktrees\/[^/]+\/)?)(.*)$/.exec(path)
+  if (path.startsWith("/")) {
+    const movedTo = setsLinkPath(absolute[2])
+    if (!movedTo) return link
+    return `${absolute[1]}${movedTo}${path.endsWith("/") && !movedTo.endsWith(".html") ? "/" : ""}${rest}`
+  }
+  if (!isRelative(link)) return link
+  const target = posix.normalize(posix.join(posix.dirname(file), path))
+  if (target.startsWith("..") || target === ".") return link
+  const movedTo = setsLinkPath(target)
+  if (!movedTo) return link
+  let out = posix.relative(posix.dirname(file), movedTo) || "."
+  if (path.endsWith("/") && !movedTo.endsWith(".html")) out += "/"
+  return out === path ? link : out + rest
+}
+
+/**
+ * A path mentioned in prose or code that the sets' layout moved, whole from the repo root (or the shared `ui/` or
+ * `brand/`), never the tail of a longer path or a URL:  `[0]` the path.
+ */
+const SETS_MENTION =
+  /(?<![\w./$@-])(?:packages\/(?:ui\/src\/components|ui\/docs|ui\/site\/_data|brand\/_data|epics\/pack|epic-components|app\/components\/(?:_parts|_data|_images|_examples|[\w-]+\.html)|brand\/components\/ui-brand-[\w-]+)|tests\/(?:ui\/src\/components|brand\/components\/ui-brand-[\w-]+)|ui\/(?:components\/[\w.-]+\.html|_parts|_data|[\w.-]+\.html|examples|images)|brand\/components\/(?:ui-brand-[\w-]+|components\.spell)\.html)(?:\/[\w.*{},-]+)*\/?(?![\w-])/g
+
+/** A server address of a set's old home, written in prose or code (`/ui/`, `/epic-ui/x`, `/app-ui/`). */
+const SETS_ADDRESS = /(?<![\w.$*"'-])\/(ui|epic-ui|app-ui)(?=\/)/g
+
+/** The sets' new addresses for `SETS_ADDRESS`'s homes. */
+const SETS_HOMES = { ui: "/components/ui", "epic-ui": "/components/epics", "app-ui": "/components/app" }
+
+/**
+ * `text` with every path it mentions that the sets' layout moved updated (`setsMentionPath()`), and the old
+ * addresses (`/ui/`, `/epic-ui/`, `/app-ui/`) the new ones.
+ * - a line naming the new places too is the move's story, and stays (`SETS_HISTORY`)
+ *   - `original`:  the text as it was before its links were moved, line for line, to tell it by:  a moved link is no
+ *     story
+ * - `addresses:  false`:  paths only, the old addresses stay (a plan doc:  what was served then, its record)
+ */
+export function setsMentions(text, { addresses = true, original = text } = {}) {
+  const story = original.split("\n").map((line) => SETS_HISTORY.test(line))
+  let index = -1
+  return text.replace(/^.*$/gm, (line) =>
+    story[++index]
+      ? line
+      : line
+          .replace(SETS_MENTION, (all) => {
+            const slash = all.endsWith("/") ? "/" : ""
+            const moved = setsMentionPath(all)
+            return moved ? moved + (moved.endsWith(".html") ? "" : slash) : all
+          })
+          .replace(SETS_ADDRESS, (all, home) => (addresses ? SETS_HOMES[home] : all))
+  )
+}
+
+/** A line telling the move's story:  it names the new places too, so its old paths stay. */
+const SETS_HISTORY = /\/components\/(?:ui|epics|app|brand)\/|packages\/(?:epics|app|brand)\/docs\/|components\/__pack/
+
+/** A link the sets' layout moved, for counting:  an attribute's or markdown's. */
+const SETS_LINK =
+  /(?:\b(?:href|src|source)="|\]\()(?:[^")\s]*\/)?(?:\.\.\/)*(?:ui\/|epic-ui\/|app-ui\/|packages\/(?:epic-components|ui\/src\/components|ui\/docs|ui\/site\/_data|brand\/_data|epics\/pack)\b|brand\/components\/)/g
+
+/** The tab names of links into a place that moved:  `setsRetarget()` renames them for where they point now. */
+const SETS_TARGET =
+  /^src-(?:ui(?:-|$)|epic-ui|app-ui|packages-epic-components|packages-ui-src-components|tests-ui-src-components|packages-ui-docs|packages-ui-site-data|packages-brand-data|packages-epics-pack|brand-components|packages-app-components-[^-]+-html|packages-brand-components-ui-brand|tests-brand-components-ui-brand)/
+
+/** Served set addresses => their folders, for naming a link's tab after the FILE it opens (`doc-links.js`'s way). */
+const SET_FOLDERS = [
+  ["components/ui", "packages/ui/docs"],
+  ["components/epics", "packages/epics/docs"],
+  ["components/app", "packages/app/docs"],
+  ["components/brand", "packages/brand/docs"]
+]
+
+/**
+ * `text` of page `file` with the tab name (`target`) of each link it points into a moved place named for the file it
+ * opens now, as `doc-links.js` names it (a set's page:  its file in the set's `docs/`).
+ */
+export function setsRetarget(text, file) {
+  return text.replace(
+    /<a\b([^>]*?)\bhref="([^"]*)"([^>]*?)\btarget="(src-[^"]*)"/g,
+    (all, before, link, between, old) => {
+      if (!SETS_TARGET.test(old) || !isRelative(link)) return all
+      let dest = posix.normalize(posix.join(posix.dirname(file), link.replace(/[?#].*$/, "")))
+      if (dest.startsWith("..")) return all
+      for (const [address, folder] of SET_FOLDERS) {
+        if (dest === address || dest.startsWith(`${address}/`)) dest = folder + dest.slice(address.length)
+      }
+      const name = `src-${dest
+        .replace(/[^a-zA-Z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .toLowerCase()
+        .slice(0, 80)}`
+      return `<a${before}href="${link}"${between}target="${name}"`
+    }
+  )
+}
+
+/**
+ * Shared pages that keep their old paths in prose:  `people-and-orgs`, which tells the move's story;  the changelog and
+ * the papercuts log, which are history.  Their LINKS are fixed all the same.
+ */
+const SETS_KEEP = /^(?:epics\/people-and-orgs\/|guides\/changelog\.html$|agents\/PAPERCUTS\.md$)/
+
+/**
+ * The component sets' layout, in shared repo `dir`:  ONCE, when `people-and-orgs` merges into `main`;  a second run
+ * changes nothing.
+ * Returns what it did (or, `dryRun`, would do):  `rewritten`, the files (repo-relative), and how many `links` and
+ * `mentions` changed.
+ * - every `.html` / `.htm` / `.md`:  links into a moved place point where it is now (`setsLink()`):  a set's page at
+ *   its address, `/components/<set>/`;  their tab names follow (`setsRetarget()`);  path mentions and old addresses
+ *   in prose and code too (`setsMentions()`), but a plan doc's addresses:  its record of what was served then;  a
+ *   `.json`:  its mentions only
+ * - the folders that moved OUT of the shared repo are skipped:  `ui/`, and `brand/components/` (delete them after,
+ *   T3);  Claude Design's export (`brand/spell-design-system/`, but its `.spell.html` copies) is never edited
+ * - `people-and-orgs`' own pages keep theirs:  they tell the move's story (`SETS_KEEP`)
+ * - plan docs, and their parts, are rewritten under the doc's lock, as `relinkDocsPackage()` does
+ * - the brand's TAGS (`<ui-brand-logo>` -> `<brand-logo>`) are the brand package's own script's
+ *   (`packages/brand/scripts/rename-shared.ts`)
+ */
+export function relinkSets(dir, { dryRun = false } = {}) {
+  const report = { rewritten: [], links: 0, mentions: 0 }
+  const count = (text, pattern) => (text.match(pattern) ?? []).length
+  for (const file of textFiles(dir)) {
+    if (SETS_SKIP.test(file)) continue
+    const fix = (text) => {
+      // links first:  a mention's rewrite must never reach into an old link before it's moved
+      let out = file.endsWith(".json")
+        ? text
+        : text
+            // `source`:  a `<ui-components>` naming a pack (every plan doc's), a `<ui-include>` ...
+            .replace(/\b(href|src|root|source)="([^"]*)"/g, (all, attr, link) => `${attr}="${setsLink(link, file)}"`)
+            .replace(/\]\(([^)\s]+)\)/g, (all, link) => `](${setsLink(link, file)})`)
+      if (!SETS_KEEP.test(file)) out = setsMentions(out, { addresses: !file.startsWith("epics/"), original: text })
+      if (/\.html?$/.test(file)) out = setsRetarget(out, file)
+      if (out !== text) {
+        report.links += Math.max(0, count(text, SETS_LINK) - count(out, SETS_LINK))
+        report.mentions += Math.max(0, count(text, SETS_MENTION) - count(out, SETS_MENTION))
+      }
+      return out
+    }
+    const full = join(dir, file)
+    const doc = planDocOf(file)
+    const changed = doc && !dryRun ? withLocks([join(dir, doc)], () => apply(full, fix)) : apply(full, fix, dryRun)
+    if (changed) report.rewritten.push(file)
+  }
+  return report
+}
+
+/**
+ * Shared files `relinkSets()` leaves alone:  the folders that moved out (`ui/`, `brand/components/`), the old content
+ * links, and Claude Design's export (everything under `brand/spell-design-system/` but the `.spell.html` copies).
+ */
+const SETS_SKIP =
+  /^(?:ui\/|brand\/components\/|packages\/docs\/content\/|brand\/spell-design-system\/(?!.*\.spell\.html$))/
+
+////////////////
 // ## Repair
 ////////////////
 
@@ -775,11 +1034,25 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     }
     process.exit(0)
   }
+  if (args[0] === "relink-sets" && shared) {
+    // the component sets' layout (people-and-orgs P18), once at its merge into `main`:  what it changed, the counts
+    const report = relinkSets(resolve(shared), { dryRun })
+    if (args.includes("--json")) console.log(JSON.stringify(report, null, 2))
+    else {
+      for (const path of report.rewritten) console.log(`relink-sets:  ${path}`)
+      console.log(
+        `${dryRun ? "dry run:  would change" : "changed"} ${report.rewritten.length} file(s):  ` +
+          `${report.links} link(s), ${report.mentions} mention(s)`
+      )
+    }
+    process.exit(0)
+  }
   if (args[0] !== "repair") {
     console.error(
       "usage:  node tools/relocate.js repair [--root <checkout>] [--shared <dir>] [--dry-run] [--json]\n" +
         "        node tools/relocate.js reorg --shared <dir> [--root <checkout>] [--dry-run]\n" +
-        "        node tools/relocate.js relink --shared <dir> [--dry-run] [--json]"
+        "        node tools/relocate.js relink --shared <dir> [--dry-run] [--json]\n" +
+        "        node tools/relocate.js relink-sets --shared <dir> [--dry-run] [--json]"
     )
     process.exit(2)
   }

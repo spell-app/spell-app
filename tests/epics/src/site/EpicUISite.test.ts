@@ -16,10 +16,10 @@ afterEach(() => {
 
 /** A set folder holding `pages` as its `pages.json`, and `files` (relative path => text). */
 function setFolder(pages: EpicUIPages, files: Record<string, string> = {}): string {
-  const folder = mkdtempSync(join(tmpdir(), "epic-ui-"))
+  const folder = mkdtempSync(join(tmpdir(), "epics-docs-"))
   made.push(folder)
-  mkdirSync(join(folder, "_data"), { recursive: true })
-  writeFileSync(join(folder, "_data", "pages.json"), JSON.stringify(pages))
+  mkdirSync(join(folder, "__data"), { recursive: true })
+  writeFileSync(join(folder, "__data", "pages.json"), JSON.stringify(pages))
   for (const [path, text] of Object.entries(files)) {
     mkdirSync(join(folder, path, ".."), { recursive: true })
     writeFileSync(join(folder, path), text)
@@ -44,13 +44,11 @@ describe("EpicUISite", () => {
   it("writes the committed data as it is:  `yarn site:data` in packages/epics if not", () => {
     const site = new EpicUISite()
     for (const [name, text] of Object.entries(site.files()))
-      expect(readFileSync(join(site.folder, "_data", name), "utf8"), `${name} is stale:  yarn site:data`).toBe(text)
+      expect(readFileSync(join(site.folder, "__data", name), "utf8"), `${name} is stale:  yarn site:data`).toBe(text)
   })
 
   it("lists every element of the pack's definitions but the drawn-only ones, A-Z, filed by pages.json", () => {
-    const data = new EpicUISite(
-      setFolder(PAGES, { "elements/epic-item.html": page("<epic-item>", "One item.") })
-    ).data()
+    const data = new EpicUISite(setFolder(PAGES, { "epic-item.html": page("<epic-item>", "One item.") })).data()
     const listed = Definitions.tags.filter((tag) => !PAGES.drawnOnly.includes(tag))
     expect(data.components.map((tag) => tag.tag)).toEqual([...listed].sort())
     expect(data.topics).toEqual([
@@ -58,7 +56,7 @@ describe("EpicUISite", () => {
       { id: "other", title: "Other" }
     ])
     const item = data.components.find((tag) => tag.tag === "epic-item")!
-    expect(item).toMatchObject({ name: "epic-item", href: "elements/epic-item.html", page: true, topics: ["items"] })
+    expect(item).toMatchObject({ name: "epic-item", href: "epic-item.html", page: true, topics: ["items"] })
     expect(item.attributes.find((spec) => spec.name === "status")?.values).toEqual([
       "open",
       "decided",
@@ -70,9 +68,7 @@ describe("EpicUISite", () => {
   })
 
   it("marks an element without a page `planned`;  one with a page takes its summary", () => {
-    const data = new EpicUISite(
-      setFolder(PAGES, { "elements/epic-item.html": page("<epic-item>", "One item.") })
-    ).data()
+    const data = new EpicUISite(setFolder(PAGES, { "epic-item.html": page("<epic-item>", "One item.") })).data()
     expect(data.families["epic-item"]).toMatchObject({ title: "<epic-item>", summary: "One item.", status: "done" })
     expect(data.families["epic-reply"]?.status).toBe("planned")
   })
@@ -80,15 +76,11 @@ describe("EpicUISite", () => {
   it("indexes the home, then each element page A-Z, with their sections", () => {
     const folder = setFolder(PAGES, {
       "index.html": page("The Epic Elements", "How they nest.", ["nesting"]),
-      "elements/epic-reply.html": page("<epic-reply>", "A reply.", ["examples"]),
-      "elements/epic-item.html": page("<epic-item>", "One item.", ["examples", "attributes"])
+      "epic-reply.html": page("<epic-reply>", "A reply.", ["examples"]),
+      "epic-item.html": page("<epic-item>", "One item.", ["examples", "attributes"])
     })
     const search = new EpicUISite(folder).search()
-    expect(search.pages.map((each) => each.path)).toEqual([
-      "index.html",
-      "elements/epic-item.html",
-      "elements/epic-reply.html"
-    ])
+    expect(search.pages.map((each) => each.path)).toEqual(["index.html", "epic-item.html", "epic-reply.html"])
     expect(search.pages[1]).toMatchObject({ title: "<epic-item>", summary: "One item.", tag: "epic-item" })
     expect(search.pages[1]!.sections.map((section) => section.id)).toEqual(["examples", "attributes"])
     expect(search.pages[0]!.tag).toBeUndefined()

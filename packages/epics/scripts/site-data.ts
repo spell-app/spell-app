@@ -1,5 +1,5 @@
 /**
- * `yarn site:data [--check]`:  Epic UI's data, `packages/epic-components/_data/components.json` and `search.json`,
+ * `yarn site:data [--check]`:  Epic UI's data, `packages/epics/docs/__data/components.json` and `search.json`,
  * from the epics pack's definitions and the set's pages (`EpicUISite`;  epic `epic-workflow` P10).
  * - `--check`:  write nothing;  exit 1 while either file is stale (`EpicUISite.test.ts` checks the same)
  * - Rerun after adding or changing an element, or a page's sections;  commit what it writes.
@@ -13,7 +13,7 @@ const site = new EpicUISite()
 const isCheck = process.argv.includes("--check")
 let stale = 0
 for (const [name, text] of Object.entries(site.files())) {
-  const file = join(site.folder, "_data", name)
+  const file = join(site.folder, "__data", name)
   const before = readOrEmpty(file)
   if (before === text) continue
   stale++

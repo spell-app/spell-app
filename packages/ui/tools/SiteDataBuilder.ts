@@ -15,7 +15,7 @@ import {
   type SiteTagPage
 } from "../src/docs-components/docs-components.types.ts"
 import type { AttributeSpec, ComponentVocabulary, ValueSetName } from "$/spell-solid/vocabulary.types"
-import { SITE_BUILD, SITE_PAGES } from "./tools.types.ts"
+import { SITE_DATA, SITE_PAGES } from "./tools.types.ts"
 import { FamilyTokens } from "./FamilyTokens.ts"
 import { FoundationTokens } from "./FoundationTokens.ts"
 import { SiteSearchBuilder } from "./SiteSearchBuilder.ts"
@@ -24,20 +24,20 @@ import { VocabularyFiles } from "./VocabularyFiles.ts"
 
 /****************
  * ### `SiteDataBuilder`
- * Builds the Spell UI site's data:  `site/_data/components.json` (`SiteDataFile`) from every vocabulary and family
- * sheet, and keeps `site/_data/pages.json` (`SitePagesFile`, the hand-kept per-family facts) complete.
+ * Builds the Spell UI site's data:  `docs/__data/components.json` (`SiteDataFile`) from every vocabulary and family
+ * sheet, and keeps `docs/__data/pages.json` (`SitePagesFile`, the hand-kept per-family facts) complete.
  * - Run by `yarn site:data` (`scripts/site-data.ts`), which writes both;
  *   `tools/SiteDataBuilder.test.ts` fails while either is stale.
  * - Reads the vocabulary FILES (`import()` each `UI<Name>.en.ts`), as `yarn gen:root` does:
  *   `ComponentDefinitions` needs Vite's `import.meta.glob`.
- *   Components from `src/components/`, doc-only elements from `src/docs-components/`.
+ *   Components from `components/`, doc-only elements from `src/docs-components/`.
  * - pages.json:  a family missing from it is SEEDED, once, from its vocabulary (title from the tag, summary its
  *   description, `done`);  after that the file is the source.  The first seeds came from the old Astro site's MDX
  *   pages (frontmatter + token-table props), deleted with it (epic `spell-ui-pages`, P7).
  * - Also the FOUNDATION tokens, grouped (`foundation`, `tools/FoundationTokens.ts`), for the theming page's tables.
  * - And the theme sheets (`themes`, `tools/ThemeFamilies.ts`):  title and the families each touches, for
  *   `<ui-docs-themes>`;  titles are pages.json's `themes`, seeded once per new sheet.
- * - And the search file, `ui/_data/search.json` (`searchText()`, `tools/SiteSearchBuilder.ts`):
+ * - And the search file, `docs/__data/search.json` (`searchText()`, `tools/SiteSearchBuilder.ts`):
  *   every page's sections, read from the pages' markup.
  * - Deterministic:  sorted, no dates, so a rebuild with nothing changed writes the same bytes.
  * - Node only;  imports `src/` data only (vocabularies, `ValueSets`, the site data's types), never the elements.
@@ -54,19 +54,19 @@ export class SiteDataBuilder {
     this.options = options
   }
 
-  /** `site/_data/` (`SITE_BUILD`), or `options.data`. */
+  /** `docs/__data/` (`SITE_DATA`), or `options.data`. */
   get dataFolder(): string {
-    return this.options.data ?? join(this.root, SITE_BUILD, "_data")
+    return this.options.data ?? join(this.root, SITE_DATA)
   }
 
-  /** The site's pages:  the shared `ui/` (`SITE_PAGES`), or `options.pages`. */
+  /** The site's pages:  `docs/` (`SITE_PAGES`), or `options.pages`. */
   get pagesFolder(): string {
     return this.options.pages ?? join(this.root, SITE_PAGES)
   }
 
-  /** Component families:  `src/components/`, or `options.components`. */
+  /** Component families:  `components/`, or `options.components`. */
   get componentsFolder(): string {
-    return this.options.components ?? join(this.root, "src", "components")
+    return this.options.components ?? join(this.root, "components")
   }
 
   /** Doc-only families:  `src/docs-components/`, or `options.docs`;  `undefined` when `options.docs` is `false`. */
@@ -75,28 +75,24 @@ export class SiteDataBuilder {
     return this.options.docs ?? join(this.root, "src", "docs-components")
   }
 
-  /** `site/_data/components.json`. */
+  /** `docs/__data/components.json`. */
   get dataFile(): string {
     return join(this.dataFolder, "components.json")
   }
 
-  /** `site/_data/pages.json`. */
+  /** `docs/__data/pages.json`. */
   get pagesFile(): string {
     return join(this.dataFolder, "pages.json")
   }
 
-  /** `site/_data/icons.json`. */
+  /** `docs/__data/icons.json`. */
   get iconsFile(): string {
     return join(this.dataFolder, "icons.json")
   }
 
-  /**
-   * `ui/_data/search.json`:  SHARED, beside the pages it's built from (claude-design P6), so one `yarn site:data` from
-   * any checkout brings it up to date for all;  the page server serves it at `/ui/_data/search.json` (the build has
-   * none to lay over it)
-   */
+  /** `docs/__data/search.json`:  beside the other data, built from the pages. */
   get searchFile(): string {
-    return join(this.pagesFolder, "_data", "search.json")
+    return join(this.dataFolder, "search.json")
   }
 
   /** The text of `search.json` (`SiteSearchFile`):  every page's sections, for `<ui-docs-search>`. */
@@ -167,7 +163,7 @@ export class SiteDataBuilder {
     const data: SiteDataFile = {
       $comment:
         "GENERATED by `yarn site:data` (packages/ui, scripts/site-data.ts) -- do not edit.  Shape:  " +
-        "`SiteDataFile` in src/docs-components/docs-components.types.ts;  hand-kept facts:  site/_data/pages.json.",
+        "`SiteDataFile` in src/docs-components/docs-components.types.ts;  hand-kept facts:  docs/__data/pages.json.",
       version: SITE_DATA_VERSION,
       topics: ValueSets.topics.map((id) => ({ id, title: SiteDataBuilder.topicTitle(id) })),
       components: SiteDataBuilder.finishTags(components, families),
@@ -270,8 +266,9 @@ export class SiteDataBuilder {
 
   /**
    * `tags` A-Z by name, each with what its family says:  main tag, and the docs page:
-   * `components/<tag>.html` for the main tag and a sub-tag with its own page (`SiteFamily.pages`),
-   * else `components/<main>.html#<tag>`;  none for a doc-only tag.
+   * `<tag>.html` for the main tag and a sub-tag with its own page (`SiteFamily.pages`),
+   * else `<main>.html#<tag>`;  none for a doc-only tag.
+   * - against the site's root:  every page sits in its one folder (epic `people-and-orgs` P18)
    */
   private static finishTags(tags: RawTag[], families: Record<string, SiteFamily>): SiteTag[] {
     return [...tags]
@@ -286,7 +283,7 @@ export class SiteDataBuilder {
           main,
           page,
           ...(!family.docs && {
-            href: page ? `components/${entry.tag}.html` : `components/${family.mainTag}.html#${entry.tag}`
+            href: page ? `${entry.tag}.html` : `${family.mainTag}.html#${entry.tag}`
           })
         }
       })
@@ -304,7 +301,7 @@ export class SiteDataBuilder {
       if (tag === mainTag || !tags.some((entry) => entry.tag === tag)) {
         throw new TypeError(
           `SiteDataBuilder.build():  pages.json's ${folder}.pages names ${tag}, not a sub-tag of the family;  ` +
-            "fix site/_data/pages.json"
+            "fix docs/__data/pages.json"
         )
       }
     }
@@ -370,13 +367,13 @@ export class SiteDataBuilder {
 export type SiteDataBuilderProps = {
   /** `packages/ui/`, with a trailing slash;  default:  this checkout's */
   root?: string
-  /** a folder of families laid out as `src/components/` (`<family>/UI<Name>.en.ts` + sheet) */
+  /** a folder of families laid out as `components/` (`<family>/UI<Name>.en.ts` + sheet) */
   components?: string
   /** doc-only families, as `src/docs-components/`;  `false`:  none */
   docs?: string | false
-  /** the folder of `components.json` and `pages.json`, as `site/_data/` */
+  /** the folder of `components.json`, `pages.json` and `search.json`, as `docs/__data/` */
   data?: string
-  /** the site's pages, as `ui/` (`SITE_PAGES`):  what `search.json` is read from, and where it goes */
+  /** the site's pages, as `docs/` (`SITE_PAGES`):  what `search.json` is read from */
   pages?: string
 }
 

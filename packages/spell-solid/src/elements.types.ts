@@ -314,7 +314,7 @@ export type ElementSetup = {
   /**
    * The plain-DOM stand-in this element shows when it breaks (`UI<Name>.fallback.ts`).
    * - Default none:  a broken element shows a bare `<slot>`, so its children stay visible.
-   * - Only form controls have one, so a broken control still submits, validates and resets (`docs/fallback.md`).
+   * - Only form controls have one, so a broken control still submits, validates and resets (`notes/fallback.md`).
    * - It can't use the component:  it runs after the component is gone.
    */
   Fallback: FallbackClass | undefined
