@@ -546,6 +546,20 @@ ui-button.spell-fold {
     mask-image: linear-gradient(to left, transparent, black 20px);
   }
 }
+/*
+ * Stuck titles on ONE row (the runtime's `wireStuckTrail()`;  Owen, 2026-10-13:  "This could collapse to one row
+ * when stickified"):  the top-level stuck title carries the nested ones' titles after its own, `› 2.1 The repo`;  the
+ * nested stuck titles hide, the text scrolling under their room
+ */
+.spell-doc-main ui-section[data-spell-merged]::part(title) {
+  visibility: hidden;
+}
+.spell-doc-main ui-section[data-spell-trail]::part(header)::after {
+  content: var(--spell-stuck-trail);
+  font-size: 0.72em;
+  font-weight: 600;
+  white-space: pre;
+}
 /* the `open/all` count:  big enough to read at a glance beside a title */
 .spell-doc-main ui-section {
   --ui-section-badge-font-size: 0.9em;

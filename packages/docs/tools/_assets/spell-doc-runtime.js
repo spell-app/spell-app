@@ -193,6 +193,7 @@ async function start() {
   if (document.body.classList.contains("plan-doc")) wireJumpKey(go, canGo)
   wireFilter(main)
   wireTableWidths(main)
+  wireStuckTrail(main)
   // UI renders its shadow content a little after the definitions:  land once it has
   await nextFrames(2)
   sticky.measure()
@@ -304,6 +305,85 @@ function wireTableWidths(main) {
   new MutationObserver(() => requestAnimationFrame(watch)).observe(main, { childList: true, subtree: true })
   addEventListener("resize", () => requestAnimationFrame(() => toggles.forEach((_toggle, box) => place(box))))
 }
+
+/**
+ * Stuck titles on ONE row (Owen, 2026-10-13:  "This could collapse to one row when stickified"):  while a nested
+ * section's title is stuck under its parent's, the top-level stuck title reads `2. Files on disk › 2.1 The repo`, and
+ * the nested stuck titles under it hide (their room shows the text scrolling under them).
+ * - the trail is the top-level title's `::part(header)::after`, from `--spell-stuck-trail` on it, with
+ *   `data-spell-trail`;  each hidden one has `data-spell-merged` (`spell-doc.css`, "Stuck titles on one row")
+ * - worked out again on every scroll and resize, a frame at a time, and once more as it settles:  `:state(stuck)`
+ *   (`<ui-section sticky>`'s) sends no event
+ * - every page's `<ui-section>`s;  an epic page draws its own sections, in its elements' shadow roots
+ */
+function wireStuckTrail(main) {
+  const marked = new Set()
+  const isStuck = (section) => section.matches("[sticky]") && section.matches(":state(stuck)")
+  // the sections directly under `section` (none between), as nesting goes
+  const childrenOf = (section) =>
+    [...section.querySelectorAll("ui-section")].filter((each) => each.parentElement.closest("ui-section") === section)
+  const titleOf = (section) =>
+    (section.getAttribute("header") ?? section.querySelector(':scope > [slot="header"]')?.textContent ?? "")
+      .replace(/\s+/g, " ")
+      .trim()
+  const update = () => {
+    const merged = new Set()
+    const trails = new Map()
+    for (const top of main.querySelectorAll("ui-section")) {
+      if (top.parentElement.closest("ui-section") || !isStuck(top)) continue
+      const trail = []
+      for (let at = top; ;) {
+        const child = childrenOf(at).find(isStuck)
+        if (!child) break
+        trail.push(titleOf(child))
+        merged.add(child)
+        at = child
+      }
+      if (trail.length) trails.set(top, JSON.stringify(` › ${trail.join(" › ")}`))
+    }
+    for (const section of marked) {
+      if (!merged.has(section)) section.removeAttribute("data-spell-merged")
+      if (!trails.has(section)) {
+        section.removeAttribute("data-spell-trail")
+        section.style.removeProperty("--spell-stuck-trail")
+      }
+    }
+    marked.clear()
+    for (const section of merged) {
+      if (!section.hasAttribute("data-spell-merged")) section.setAttribute("data-spell-merged", "")
+      marked.add(section)
+    }
+    for (const [section, trail] of trails) {
+      if (section.style.getPropertyValue("--spell-stuck-trail") !== trail)
+        section.style.setProperty("--spell-stuck-trail", trail)
+      if (!section.hasAttribute("data-spell-trail")) section.setAttribute("data-spell-trail", "")
+      marked.add(section)
+    }
+  }
+  let queued = false
+  const soon = () => {
+    if (queued) return
+    queued = true
+    requestAnimationFrame(() => {
+      queued = false
+      update()
+    })
+  }
+  // `:state(stuck)` follows a moment after the scroll (`StickyWatch` hears it from an observer):  so again once the
+  // scrolling settles, or the last frame would read the titles as they were
+  let settle
+  const later = () => {
+    soon()
+    clearTimeout(settle)
+    settle = setTimeout(soon, STUCK_SETTLE_MS)
+  }
+  addEventListener("scroll", later, { passive: true })
+  addEventListener("resize", later)
+  later()
+}
+
+/** How long after the last scroll the stuck titles are read again (`wireStuckTrail()`), ms. */
+const STUCK_SETTLE_MS = 120
 
 /**
  * A table's key, for remembering its width:  its id, else the nearest id above it and which table it is under that
