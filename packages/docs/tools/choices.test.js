@@ -169,6 +169,34 @@ test("the answer as text:  changed rows by section, the count accepted, the feed
   )
 })
 
+test("a docs page naming its own rows:  found by its path, its boxes printed by row", () => {
+  mkdirSync(join(docs, "guides/syntax"), { recursive: true })
+  const file = join(docs, "guides/syntax/syntax.html")
+  writeFileSync(file, '<body data-choices-rows="../../rules.json"><h1>Spell syntax</h1></body>')
+  expect(isChoicesPage(file)).toBe(true)
+  expect(findChoicesPage(docs, "guides/syntax/syntax.html")).toBe(file)
+  const text = formatAnswer(file, {
+    page: "/guides/syntax/syntax.html",
+    answered: "2026-10-12T21:00:00.000Z",
+    changes: 0,
+    values: { "IsGtLt.py": "salary > expenses", "IsGtLt.name": "IsGreaterOrLess", "Plus.js": " " },
+    feedback: ""
+  })
+  expect(text).toBe(
+    [
+      `Choices on "Spell syntax" (${file}), sent 2026-10-12T21:00:00.000Z:`,
+      `  Rows:  ${join(docs, "rules.json")}`,
+      "  Changed (3):",
+      "    IsGtLt",
+      "      py  =>  salary > expenses",
+      "      name  =>  IsGreaterOrLess",
+      "    Plus",
+      "      js  =>  (blank)",
+      "  Feedback:  (none)"
+    ].join("\n")
+  )
+})
+
 test("wait:  wakes on the answer, never on a draft", async () => {
   const file = join(docs, "epics/big/details/names.html")
   const since = Date.now() - 1

@@ -144,6 +144,13 @@ In `tools/`:
   - `commands.js`:  command reference pages ([the commands template](../../templates/commands.html)).
     - It draws their tables from the page's JSON, then loads `spell-ui.js` itself.
     - The page loads `commands.js` INSTEAD of the bundle.
+  - `spell-syntax.js`, `spell-syntax.css`:  [the spell syntax guide](../../guides/spell-syntax/spell-syntax.html).
+    - It draws one table per module of the base spell language, a row per rule class, from spell's generated
+      [spellSyntax.json](../spell/spellSyntax.json) (`yarn gen:syntax` in `packages/spell`).
+    - Built from elements, never markup in strings;  its boxes and toolbar are a syntax-choices page's
+      (`syntax-choices.css`, `choicesRoutes.ts`), the page naming its rows on `<body data-choices-rows>`.
+    - Each row's wand adds a comment on it ("Provide more details here"):  see "Comments".
+    - Then it loads `spell-ui.js` itself, as `commands.js` does.
   - `core-reference.js`:  [the core reference page](../../guides/targets/core-reference.html) (epic `python-target` P29).
     - It draws one table per core file, from two lists:
       - core's [spellCore.declarations.json](../core/spellCore.declarations.json)
@@ -175,7 +182,7 @@ In `tools/`:
   - But the openers (`docs open`, `epic open`) show them from this checkout's PAGE SERVER
     (`spell dev server`, see [server's AGENTS.md](../server/AGENTS.md)).
     - It adds live reload, edit mode, and the server-only properties (Spell UI, Editor).
-  - The exceptions:  a `commands` page, and the core reference page, fetch their JSON,
+  - The exceptions:  a `commands` page, the core reference page and the spell syntax guide fetch their JSON,
     so they draw their tables only from the page server.
     - From `file://` each says so, where they'd go.
     - Its `<body data-spell-needs-server>` makes `check-spell.js` load it from the server.
@@ -600,6 +607,11 @@ In `tools/`:
 
   - Pages go where details pages do.
   - `<slug>.rows.json`, beside the page, holds the rows.
+- A DOCS page may take choices too:  one that names its own rows on `<body data-choices-rows="...">`.
+  - The spell syntax guide does:  its rows are generated from the code, its boxes keyed `<Class>.<field>` (`IsGtLt.py`).
+  - Its draft and answer go beside it, as a choices page's;  its box ids aren't checked against the rows.
+  - `epic choices show | wait | answer <page>` take its path;  `list` covers only the `details/` folders.
+  - It still takes comments:  only a page with `<slug>.rows.json` beside it doesn't.
 - The page server's route module, [choicesRoutes.ts](tools/choicesRoutes.ts):
   - the draft:  `<slug>.draft.json`, saved 5s after typing stops, never wakes anyone
   - the answer:  `<slug>.answer.json`, which `epic choices wait` exits with
@@ -826,11 +838,15 @@ In `tools/`:
 
   ```sh
   epic comments list [--all] [--json]
+  epic comments wait [<page>...] [--timeout 8h]
   epic comments answer <page> <id> --file <html> [--commit <sha>]
   epic comments working <page> <id> on | off
   epic comments gather [<page>... | --all] [--epic <name>] [--json]
   ```
 
+  - `wait`, run in the background, wakes the session with a comment that starts waiting (on those pages, else any):
+    a new one, or Owen's reply on one.  It exits 2 on timeout.
+    - e.g. the spell syntax guide's wand, a comment on its row:  "Provide more details here:  `IsGtLt`."
   - `working ... on` as Claude starts on a comment:  its thread shows "Claude: thinking…".
     - It sets the comment's `working`, since when (`CommentList.setWorking()`).
     - `answer` turns it off.
@@ -972,7 +988,7 @@ In this order, from `packages/docs`:
   - [detailsRoutes.ts](tools/detailsRoutes.ts):  the page server's route module for their answers
 - `epic choices` ([choices.js](tools/choices.js)):  syntax-choices pages (see "Syntax-choices pages").
   - [choicesRoutes.ts](tools/choicesRoutes.ts):  their drafts and answers
-- `epic comments list | gather | answer` ([comments.ts](tools/comments.ts)):  comments on docs pages.
+- `epic comments list | wait | gather | answer` ([comments.ts](tools/comments.ts)):  comments on docs pages.
   - See "Comments".
   - [commentsRoutes.ts](tools/commentsRoutes.ts):  the pages' bullhorns
 - `epic notes list | answer | done` ([notes.ts](tools/notes.ts)):  page notes, from before comments.

@@ -46,6 +46,8 @@ when working with code in this package, `@spell-app/spell`.
     - `typecheck`:  `tsc` on the TypeScript target
     - `buildTsx`:  the TypeScript target's build
     - `pyright`:  pyright on the Python target
+  - And the spell syntax table (see "Parser rules"):  `spellSyntax`, and `writeSpellSyntax`, the script behind
+    `yarn gen:syntax`.
   - The barrel NEVER exports it.
   - Other packages may import these files by name:  one of the deep-import exceptions
     (WWOD §4 › "Package aliases, never `../`").
@@ -164,6 +166,12 @@ when working with code in this package, `@spell-app/spell`.
     - So the prod build keeps class names:  [parser's AGENTS.md](../parser/AGENTS.md), `keepNames`.
     - [ruleNames.test.ts](src/rules/ruleNames.test.ts) pins every rule's name, module and registration order:
       a renamed class that changes a rule's name fails it.
+  - The SPELL SYNTAX TABLE, [spellSyntax.json](spellSyntax.json):  every rule class, by module, with its first test
+    compiled by the javascript, TypeScript and Python writers, and its docstring's first sentence.
+    - What the spell syntax guide draws (`guides/spell-syntax/spell-syntax.html`).
+    - Generated:  `yarn gen:syntax`, after adding, renaming or changing a rule, its class docstring or its first test.
+      [spellSyntax.test.ts](src/node/spellSyntax.test.ts) fails until you do.
+    - So a class docstring's first sentence says what the rule is FOR, in plain words:  it's the guide's Purpose.
   - ONE `syntax` per registration.
     - A rule with several calls `addRule()` once per syntax, each with the `tests` for that syntax.
       - e.g. `assignment` (`AssignmentStatement`)

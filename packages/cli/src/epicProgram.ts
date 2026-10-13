@@ -252,10 +252,12 @@ export function epicProgram(handOver: () => Promise<never>): Command {
 
   epic
     .command("comments")
-    .description("comments Owen leaves on docs pages:  list them, gather them into an epic, mark one, answer it")
+    .description(
+      "comments Owen leaves on docs pages:  list them, wait for one, gather them into an epic, mark one, answer it"
+    )
     .usage(
-      "list [<epic>] [--all] [--json] | gather [<page>... | --all] [--epic <epic>] | working <page> <id> on | off | " +
-        "answer <page> <id> --file <reply.html>"
+      "list [<epic>] [--all] [--json] | wait [<page>...] [--timeout 8h] | gather [<page>... | --all] [--epic <epic>] | " +
+        "working <page> <id> on | off | answer <page> <id> --file <reply.html>"
     )
     .argument("[args...]")
     .allowUnknownOption()
