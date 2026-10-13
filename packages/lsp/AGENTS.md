@@ -39,7 +39,8 @@ when working with code in this package, `@spell-app/lsp`.
 ## Imports
 
 - As WWOD §4.
-- `barrel.test.ts` is the smoke test for circular imports through the barrel.
+- [barrel.test.ts](../../tests/lsp/src/barrel.test.ts) is the smoke test for circular imports through the barrel.
+  - The tests live in the repo's `tests/lsp/`, at the same paths as the code.
 
 ## Decorators
 

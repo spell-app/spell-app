@@ -103,6 +103,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 As WWOD §20, plus:
 
+- They live in the repo's `tests/cli/`, at the same paths as the code:
+  `src/contract.test.ts` is [`tests/cli/src/contract.test.ts`](../../tests/cli/src/contract.test.ts).
+  - The core contract's pinned outputs too:  `tests/cli/src/__snapshots__/contract/<Project>.out.txt`.
 - They read spell's frozen projects, `../spell/projects/test/` (`@test/<Project>`).
   See "Overview" in [spell's AGENTS.md](../spell/AGENTS.md).
   - NEVER write into one:  compile with `--stdout`, or make a temp project, as `cli.test.ts` does.

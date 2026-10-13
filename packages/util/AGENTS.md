@@ -61,6 +61,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - Spell's layer of reactivity:  `Observable`, and [spellDecorators.ts](src/spell/spellDecorators.ts) (`@thing`).
   - The engine under it is `src/reactive/` (below).
 - Tests:
+  - they live in the repo's `tests/util/`, at the same paths as the code (`tests/util/src/spell/...`)
   - the generic ones run in a real browser (`util:browser`)
   - `src/spell/**` and `src/reactive/**` run in node (`util:spell`)
   - `vitest.config.ts` exports `utilProjects()` for the root run

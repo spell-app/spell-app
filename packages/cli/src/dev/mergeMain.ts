@@ -1,5 +1,5 @@
 import { spawnSync } from "child_process"
-import { basename, dirname, join, matchesGlob } from "path"
+import { basename, dirname, join, matchesGlob, relative } from "path"
 
 import { CLI, type Generator, type MergeMainOptions, type MergeMainReport, type SnapshotReview } from "$/cli"
 
@@ -119,8 +119,15 @@ export function mergeMain(root: string, options: MergeMainOptions = {}): MergeMa
 /** The branch merged in. */
 const MAIN = "main"
 
-/** A Vitest snapshot file:  its test is `<dir>/../<name>` less `.snap`. */
-const SNAPSHOT = "packages/*/**/__snapshots__/*.snap"
+/**
+ * A Vitest snapshot file:  its test is `<dir>/../<name>` less `.snap`.
+ * - Under `tests/<package>/`, where each package's tests live (epic `people-and-orgs` P10);
+ *   or under `packages/`, for a branch from before that move.
+ */
+const SNAPSHOTS = ["tests/*/**/__snapshots__/*.snap", "packages/*/**/__snapshots__/*.snap"]
+
+/** Is `file` a Vitest snapshot file -- see `SNAPSHOTS`? */
+const isSnapshot = (file: string) => SNAPSHOTS.some((glob) => matchesGlob(file, glob))
 
 /** The command that updates the snapshots of `tests` (relative to their package), run in the package.
  * - `--update` AFTER the files:  it takes an optional value, so before them it swallows the first one
@@ -197,14 +204,15 @@ export function generatorsFor(
   const steps = generators
     .map((generator) => ({ generator, files: files.filter((file) => matchesAny(file, generator.outputs)) }))
     .filter((step) => step.files.length)
-  // By package, `packages/<name>`:  one run each
+  // By package, run in `packages/<name>` (a snapshot under `tests/<name>/` is that package's):  one run each
   const snapshots = new Map<string, string[]>()
-  for (const snap of files.filter((file) => matchesGlob(file, SNAPSHOT))) {
-    const cwd = snap.split("/").slice(0, 2).join("/")
+  for (const snap of files.filter(isSnapshot)) {
+    const cwd = `packages/${snap.split("/")[1]}`
     snapshots.set(cwd, [...(snapshots.get(cwd) ?? []), snap])
   }
   for (const [cwd, snaps] of snapshots) {
-    const tests = snaps.map((snap) => join(dirname(dirname(snap)), basename(snap, ".snap")).slice(cwd.length + 1))
+    // each test's path from the package:  `src/x.test.ts`, or `../../tests/<name>/src/x.test.ts`
+    const tests = snaps.map((snap) => relative(cwd, join(dirname(dirname(snap)), basename(snap, ".snap"))))
     const generator = { name: `${basename(cwd)} snapshots`, outputs: snaps, cwd, run: snapshotUpdate(tests) }
     steps.push({ generator, files: snaps })
   }
@@ -217,7 +225,7 @@ export function generatorsFor(
  */
 function reviewSnapshots(root: string, files: string[]): SnapshotReview[] {
   return files
-    .filter((file) => matchesGlob(file, SNAPSHOT))
+    .filter(isSnapshot)
     .map((file) => {
       const ours = snapshotEntries(CLI.git(["show", `HEAD:${file}`], root).out)
       const theirs = snapshotEntries(CLI.git(["show", `MERGE_HEAD:${file}`], root).out)

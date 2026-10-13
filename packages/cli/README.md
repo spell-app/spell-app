@@ -586,7 +586,7 @@ Longer notes on some of them follow the table.
 ### Review items
 
 - Not yet reviewed by a person.
-  - Tests:  54 in all, in `src/**/*.test.ts(x)`.
+  - Tests:  54 in all, in the repo's `tests/cli/src/**/*.test.ts(x)`.
     They include end-to-end runs of the bin script ([spell.mjs](bin/spell.mjs)).
 - The one thing it needs IN spell, in [`SpellProject.ts`](../spell/src/SpellProject.ts):
   `SpellProject.compile(parentScope, { save })`.

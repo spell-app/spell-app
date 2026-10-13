@@ -27,7 +27,7 @@ How the CSS foundation fits together:  tokens, remaps, layers, the app styleshee
 \* GENERATED, never edit them by hand.
 - Built from [the styles vocabulary](../src/styles/styles.en.ts) by `yarn gen:styles`.
 - The generated files are committed, so consumers need no build step.
-- [The styles test](../src/styles/styles.test.ts) fails when they're stale.
+- [The styles test](../../../tests/ui/src/styles/styles.test.ts) fails when they're stale.
 
 `$/ui/styles` exports each sheet as text (`tokensCSS` ...), plus two sets:
 - `foundationCSS`:  in adoption order, for the document AND every shadow root
@@ -144,7 +144,7 @@ What it picks:
 - Dark scheme (lighter `onDark` hues):  ink on everything but black.
 - `--ui-<colour>-inverted-on` is the dark-scheme pick, for the `-inverted` colour used whatever the scheme.
 - `-text` roles reach 4.5:1 on `--ui-background` in both schemes;  hue `-border`s reach 3:1 (UI boundaries).
-- [The contrast test](../src/styles/colors.contrast.test.ts) measures every pair from the COMPUTED tokens.
+- [The contrast test](../../../tests/ui/src/styles/colors.contrast.test.ts) measures every pair from the COMPUTED tokens.
   So a vocabulary change that breaks contrast fails a test, naming the colour.
 - A theme that changes a base (`--ui-red-on-light`) should re-check its `-on`:  it's data, not derived.
   - The classic theme keeps Fomantic's palette, and with it Fomantic's contrast failures.
@@ -208,7 +208,7 @@ A component sheet NEVER declares a public component token.
   - the remaps:  `--ui-color*`, `--ui-scale`, `--ui-inverted`, `--ui-scheme`, `--ui-variation-*`,
     a local `--ui-size-*` ladder
   - the global tokens
-- [The component tokens test](../test/componentTokens.test.ts) enforces it:
+- [The component tokens test](../../../tests/ui/test/componentTokens.test.ts) enforces it:
   - no sheet declares a `--ui-<tag>-*` name (any family's)
   - every alias is named after the token it reads
   - no sheet reads an aliased token bare
@@ -715,10 +715,10 @@ The references:
      - Fomantic's JS-added classes like `.focused`:  try the native state, e.g. `:focus-within`
 6. Assets the theme really uses go in `themes/<name>/`, referenced relatively.
    - images, a font it needs to look right
-7. Test:  append a `describe("<name>.css")` to [the themes test](../src/styles/themes/themes.test.ts).
+7. Test:  append a `describe("<name>.css")` to [the themes test](../../../tests/ui/src/styles/themes/themes.test.ts).
    - `ThemeHarness.use(name)`, then at least one COMPUTED style per touched component, INSIDE its shadow root.
    - `ThemeHarness.inner(html, selector)`, in [the theme harness](../test/ThemeHarness.ts).
-   - `UI.themes`' own tests ([the Themes test](../src/runtime/Themes.test.ts))
+   - `UI.themes`' own tests ([the Themes test](../../../tests/ui/src/runtime/Themes.test.ts))
      already check that the sheet is wholly `@layer ui.theme`.
 8. Look:  screenshot the touched components with the theme applied, light and dark,
    next to the theming page of fomantic-ui.com.

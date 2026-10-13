@@ -1,0 +1,6 @@
+{
+  // epics' tests:  epics' own settings (packages/epics/tsconfig.json), over this folder
+  "extends": "../../packages/epics/tsconfig.json",
+  // `../../types/app.d.ts`, as epics' own takes it:  not all of `../../types` (see there)
+  "include": [".", "../../types/app.d.ts"]
+}

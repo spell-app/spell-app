@@ -60,7 +60,7 @@ for (const bundle of AS.Bundle.all(root)) if (bundle.isStale) bundle.build()
 
 1. A class per capability, `src/<Name>.ts`, its types in `src/assembler.types.ts`.
 2. Export it from `src/index.ts`.
-3. Its test beside it, `src/<Name>.test.ts` (node).
+3. Its test in the repo's `tests/assembler/`, at the same path:  `tests/assembler/src/<Name>.test.ts` (node).
 4. A row in the files table above, and a line in `AGENTS.md` "Overview".
 
 ## Deferred

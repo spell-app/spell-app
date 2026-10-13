@@ -24,7 +24,7 @@
  * - A `StateMirror` keeps what it read by id, and reads each new state INTO it:
  *   a thing it has already gets the new props, a list its new items.
  * - The twin of Python's `spell_core.state`:  both write the same JSON for the same things.
- *   `stateById.expected.json`, beside `src/`, holds one, read by both.
+ *   `stateById.expected.json`, with the core's tests (`tests/core/`), holds one, read by both.
  */
 import { getProp, ITEMS_KEY, keysOf, setProp, TYPE_KEY } from "$/util"
 

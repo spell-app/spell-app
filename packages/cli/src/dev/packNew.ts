@@ -13,6 +13,7 @@ import { REPO_ROOT } from "$/cli/findCheckout"
  * `spell dev pack new <name> [--prefix x-]`:
  * make `packages/<name>/` a component pack, and wire it into checkout `root`.
  * - The package:  `templates/pack/package/` (this CLI's), each `__token__` filled in (`PackTokens`).
+ *   - Its tests:  `templates/pack/tests/`, into the repo's `tests/<name>/` (where every package's tests live).
  *   - A file already there is LEFT ALONE and listed in `skipped`, so it works on a folder that has some files.
  *   - `package.json` is MERGED:  the template's keys it lacks (`scripts`, `spellPack` ...) are added, its own kept.
  * - The checkout (`wirePack()`):  workspace, aliases, root vitest, lint / format ignores, `.gitattributes`, the
@@ -39,6 +40,8 @@ export async function newPack(root: string, name: string, options: NewPackOption
   const report: PackScaffoldReport = { pack: name, created: [], updated: [], skipped: [] }
   const tokens = packTokens(root, pack)
   writeTemplates(root, join(TEMPLATES, "package"), dir, tokens, report)
+  // its tests live in the repo's tests/ folder, at the same paths as the code (epic `people-and-orgs` P10)
+  writeTemplates(root, join(TEMPLATES, "tests"), join(root, "tests", name), tokens, report)
   mergePackageJson(
     root,
     join(dir, "package.json"),
@@ -54,7 +57,8 @@ export async function newPack(root: string, name: string, options: NewPackOption
  * `spell dev pack element <pack> <tag>`:
  * one element family, `packages/<pack>/components/<tag>/`, from `templates/pack/element/` --
  * `<Name>.tsx` (the component), `<Name>.en.ts` (its vocabulary:  topics + aka, skeleton text),
- * `<Name>.css`, `<Name>.test.tsx`, `index.ts` -- every file named for its component,
+ * `<Name>.css`, `index.ts` -- every file named for its component;  its test, `<Name>.test.tsx`, in the repo's
+ * `tests/<pack>/components/<tag>/` (`templates/pack/element-tests/`) --
  * as Spell UI's families are written (no native fallback:  only form controls have one);
  * then its line in `components/index.ts`.
  * - Files already there are left alone (`skipped`);  idempotent.
@@ -77,6 +81,13 @@ export async function newElement(
   const report: PackScaffoldReport = { pack: packName, created: [], updated: [], skipped: [] }
   const tokens = elementTokens(root, pack, tag)
   writeTemplates(root, join(TEMPLATES, "element"), join(pack.dir, "components", tag), tokens, report)
+  writeTemplates(
+    root,
+    join(TEMPLATES, "element-tests"),
+    join(root, "tests", packName, "components", tag),
+    tokens,
+    report
+  )
   const barrel = join(pack.dir, "components", "index.ts")
   if (!existsSync(barrel)) {
     writeFileSync(barrel, fillTokens(readTemplate("package/components/index.ts.template"), tokens))
@@ -103,7 +114,10 @@ export type NewElementOptions = { build?: boolean }
 // ## Templates
 ////////////////
 
-/** This CLI's templates:  `templates/pack/package/` (a pack) and `templates/pack/element/` (one family). */
+/**
+ * This CLI's templates:  `templates/pack/package/` (a pack) and `templates/pack/element/` (one family);
+ * their tests, `tests/` and `element-tests/`, go into the repo's `tests/<pack>/`.
+ */
 const TEMPLATES = join(REPO_ROOT, "packages", "cli", "templates", "pack")
 
 /** A template file's suffix, dropped from the file it writes:  so no tool (tsc, lint, vitest) reads a template. */

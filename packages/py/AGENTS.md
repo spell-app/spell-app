@@ -28,6 +28,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - `yarn review` here covers all three:
   - `ts/`:  tsc, oxlint / oxfmt and vitest
   - then each uv project:  ruff and pytest
+- Tests live in the repo's `tests/py/`, at the same paths as the code they test:
+  - `ts/PyWriter.ts` => `tests/py/ts/PyWriter.test.ts`, found by vitest (`vitest.config.ts` points there)
+  - `core/tests/` => `tests/py/core/tests/`, `quart/tests/` => `tests/py/quart/tests/`
+    - Each uv project's pytest finds them by its `testpaths`;  the yarn scripts hand ruff their folder too.
 
 ## The writers (`ts/`)
 
@@ -65,13 +69,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `core` stands in for the running program's own core (`using_core()`):  one per web visitor.
   - Standard library only (decision Q33):  any standard module is fine;  a package from outside it, ask Owen first.
 - A uv project, [pyproject.toml](core/pyproject.toml) with its `uv.lock`:  Python 3.12 or later.
-  - Tests are pytest's, in `core/tests/`;  lint and format, ruff.
+  - Tests are pytest's, in the repo's `tests/py/core/tests/`;  lint and format, ruff.
   - The yarn scripts here run them:
 
     ```sh
-    uv run --directory core pytest -q     # yarn test
-    uv run --directory core ruff check    # yarn lint, and --fix in yarn lint:fix
-    uv run --directory core ruff format   # yarn format
+    uv run --directory core pytest -q                                     # yarn test
+    uv run --directory core ruff check . ../../../tests/py/core/tests    # yarn lint, and --fix in yarn lint:fix
+    uv run --directory core ruff format . ../../../tests/py/core/tests   # yarn format
     ```
 
 - It runs a compiled program with `python -m spell_core.run <program> --seed n`.
@@ -97,14 +101,15 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `game.trigger("card-click", card=game.ref(card))`, `game.call("deal_the_cards")`:  each answered by its patch.
   - `game.thing(id)`, `game.named("stock")`:  what the page holds now, by id.
   - After each, the patches so far must add up to the whole state, else `PatchMismatchError`.
-  - The contract's 300 clicks per game play through it ([patches_in_a_game.py](core/tests/patches_in_a_game.py)).
+  - The contract's 300 clicks per game play through it ([patches_in_a_game.py](../../tests/py/core/tests/patches_in_a_game.py)).
 - Five checks keep it in step with the javascript core ([core's AGENTS.md](../core/AGENTS.md)):
   - the core's method list ([spellCore.declarations.json](../core/spellCore.declarations.json)):
     `spell_core` has each name, or lists it, with why, in [not_ported_yet.json](core/not_ported_yet.json)
-  - seeded random:  both read [seededRandom.expected.json](../core/seededRandom.expected.json)
-  - state by id:  both write and read [stateById.expected.json](../core/stateById.expected.json)
-  - saved by id:  both write and read [savedById.expected.json](../core/savedById.expected.json)
-  - the core contract (cli's [contract.test.ts](../cli/src/contract.test.ts)):
+  - seeded random:  both read [seededRandom.expected.json](../../tests/core/seededRandom.expected.json)
+  - state by id:  both write and read [stateById.expected.json](../../tests/core/stateById.expected.json)
+  - saved by id:  both write and read [savedById.expected.json](../../tests/core/savedById.expected.json)
+  - Those three are with the JavaScript core's tests (`tests/core/`).
+  - the core contract (cli's [contract.test.ts](../../tests/cli/src/contract.test.ts)):
     a compiled program prints exactly what javascript prints
 - The terminal-drawing study (P15) is in `core/experiments/terminal`.
   - Its tests need their own uv group, `study`, so the runs above leave them out.
@@ -120,7 +125,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - `spell run <project> --target py` (`yarn dev:py` in a project's folder) serves one:
   cli's [runTarget.ts](../cli/src/runTarget.ts) compiles it into a temp folder with its imports, builds the page side
   if it's stale, and runs its app under uv here, until `Ctrl-C`.
-- cli's [quartApp.test.ts](../cli/src/quartApp.test.ts) plays Solitaire through a compiled app, in headless Chromium.
+- cli's [quartApp.test.ts](../../tests/cli/src/quartApp.test.ts) plays Solitaire through a compiled app, in headless Chromium.
 
 ## Types / Exports
 

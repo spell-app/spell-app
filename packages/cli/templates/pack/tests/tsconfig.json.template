@@ -1,0 +1,6 @@
+{
+  // __pack__'s tests:  __pack__'s own settings (packages/__pack__/tsconfig.json), over this folder
+  "extends": "../../packages/__pack__/tsconfig.json",
+  // `../../types/app.d.ts`, as the pack's own takes it:  not all of `../../types` (see there)
+  "include": [".", "../../types/app.d.ts"]
+}

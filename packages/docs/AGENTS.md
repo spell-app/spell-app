@@ -26,6 +26,7 @@ The pages live in SHARED root folders;  the tooling lives here (epics `shared-co
     - The page server redirects the old URLs ([`reorgShared()`](tools/relocate.js)).
 - `tools/`:  the tooling, tracked here and versioned per branch.
   - the scripts (see "Scripts")
+  - their tests:  in the repo's `tests/docs/tools/`, by the same names (`tools/fuss.test.ts`)
   - `_assets/`
   - Run a script from `packages/docs`, or through its `yarn` script:
 

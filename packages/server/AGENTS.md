@@ -95,6 +95,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `$/server/test/...` -- test helpers (`serveHandler`, `ask`)
 - Commands:
   - `yarn review`, `yarn ts`, `yarn lint`, `yarn format`, `yarn test` (node)
+  - The tests live in the repo's `tests/server/`, at the same paths as the code;
+    their helpers are still here, in `test/`.
   - `yarn favicon [--hat 0.74]` after the hat mark changes (headless Chromium renders the PNGs)
 
 ## Express, on purpose

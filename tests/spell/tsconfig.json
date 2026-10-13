@@ -1,0 +1,5 @@
+{
+  // spell's tests:  spell's own settings (packages/spell/tsconfig.json), over this folder
+  "extends": "../../packages/spell/tsconfig.json",
+  "include": [".", "../../types"]
+}

@@ -1,3 +1,4 @@
+import { resolve } from "node:path"
 import { defineConfig } from "vite-plus"
 import { playwright } from "vite-plus/test/browser-playwright"
 
@@ -13,6 +14,8 @@ import { baseConfig } from "../ui/vite.config.ts"
 export default defineConfig({
   ...baseConfig(),
   test: {
+    // the tests live in the repo's tests/ folder, at the same paths as the code
+    dir: resolve(import.meta.dirname, "../../tests/brand"),
     include: ["components/**/*.test.{ts,tsx}", "src/**/*.test.{ts,tsx}"],
     testTimeout: 10_000,
     browser: {

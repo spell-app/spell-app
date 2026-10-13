@@ -46,9 +46,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - It knows the checkout's LAYOUT as folder names, never as imports:  `Linker` takes the checkout's root.
   - The folder names:
     - `packages/*/src`
+    - `tests/`, where every package's tests live
     - the shared areas:  `pages/`, `guides/`, `epics/`, `templates/`
     - the docs tools, `packages/docs/tools`
 - Commands:  `yarn review`, `yarn ts`, `yarn lint`, `yarn format`, `yarn test` (node).
+  - The tests live in the repo's `tests/assembler/`, at the same paths as the code.
 
 ## Imports
 

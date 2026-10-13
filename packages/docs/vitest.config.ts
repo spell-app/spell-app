@@ -1,3 +1,4 @@
+import { resolve } from "node:path"
 import { defineConfig } from "vite-plus"
 
 /**
@@ -9,6 +10,8 @@ import { defineConfig } from "vite-plus"
 export default defineConfig({
   resolve: { tsconfigPaths: true },
   test: {
+    // the tests live in the repo's tests/ folder, at the same paths as the code
+    dir: resolve(import.meta.dirname, "../../tests/docs"),
     include: ["tools/**/*.test.{js,ts}"],
     environment: "node"
   }

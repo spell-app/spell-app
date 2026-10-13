@@ -29,7 +29,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Every file named for its COMPONENT:
     - `<Name>.tsx` (the component, on `E.UIComponent`)
     - `<Name>.en.ts` (its tag's vocabulary:  topics + aka, skeleton text)
-    - `<Name>.css`, `<Name>.test.tsx`, `<Name>.types.ts` (only what several of its files share)
+    - `<Name>.css`, `<Name>.types.ts` (only what several of its files share)
+    - its test, `<Name>.test.tsx`, at the same path in the repo's `tests/epics/` (`tests/epics/components/<tag>/`)
     - `index.ts` (defines its tags:  SIDE EFFECT)
   - No native fallback:  only form controls have one.
   - A new one:  `spell dev pack element epics <tag>`, the tag starting `epic-`.
@@ -49,7 +50,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - The button is named by ids in the card's own shadow root.
       - The chevron shows in the first frame.
 - `src/` (`$/epics`, `EP`) -- code the elements and the node tools share.
-  Also `pack.test.ts`, which runs `spell dev pack check epics`.
+  Its test `pack.test.ts` (in the repo's `tests/epics/src/`) runs `spell dev pack check epics`.
   - `definitions/` -- the ONE description of every element:
     - `Definitions.all`:  each vocabulary as data, plus `children` (the content model)
     - Node-safe:  imports vocabulary files, never a family's barrel.
@@ -121,7 +122,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - Every sheet NAME starts `epic-` too:  `elementSetup = { styleSheets: { "epic-item": itemCSS } }`.
   - Spell UI keeps ONE sheet per name for the whole page, and the first class to register a name wins.
   - So a bare `item` drew `<epic-item>` with `<ui-item>`'s sheet, on any page that had both (I9).
-  - [The barrel's test](components/index.test.tsx) checks every class the barrel exports.
+  - [The barrel's test](../../tests/epics/components/index.test.tsx) checks every class the barrel exports.
 - A change to epic page markup (what the tool writes, or what an element reads) adds its MIGRATION STEP in the SAME
   commit (epic `epic-workflow` P8):  a class in [migrations/](src/tool/migrations/), last in `Migrations.all`, with
   its test.  Another page kind's markup:  its step in the docs tool's `STEPS` ([migrate.js](../docs/tools/migrate.js)).

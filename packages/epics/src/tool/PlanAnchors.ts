@@ -5,7 +5,7 @@
  * - an anchor is a block's id, `page`, or `<container id | page>#<kind>-<n>` (`p3#field-2`, phase 3's second field)
  * - the RULES are `packages/docs/tools/BlockAnchors.js`'s, which the page's runtime draws comments by:
  *   the same block kinds, containers and excerpts.  A COPY, because `epics` may not import `docs`;
- *   `packages/docs/tools/migrate.test.ts` checks the two agree on a page, so change both.
+ *   `tests/docs/tools/migrate.test.ts` checks the two agree on a page, so change both.
  * - only what an epic page holds:  no docs sections, cards or steps
  * - STATIC:  pure, on a parsed document (linkedom or the browser's)
  ****************/

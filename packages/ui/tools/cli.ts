@@ -121,23 +121,18 @@ function loc() {
     name: PACKAGE.name,
     root: PACKAGE.root,
     groups: {
-      "element core": ["src/elements/*.{ts,tsx}", "src/core.ts", "src/forms.ts", "!src/elements/*.test.{ts,tsx}"],
+      "element core": ["src/elements/*.{ts,tsx}", "src/core.ts", "src/forms.ts"],
       components: [
         "src/components/*/UI*.{ts,tsx}",
         "src/components/*/index.ts",
         "src/components/ui-dropdown/SlottedItems.ts",
-        "!src/components/**/*.test.{ts,tsx}",
         // a family's other files are named for its component too (`UIButton.en.ts`):  counted below
         "!src/components/*/*.{[a-z][a-z],fallback,types}.ts"
       ],
       "vocabularies & fallbacks": ["src/components/*/*.[a-z][a-z].ts", "src/components/*/*.fallback.ts"],
-      foundation: [
-        "src/{util,vocabulary,runtime,styles,icons}/*.ts",
-        "src/components/*.ts",
-        "src/index.ts",
-        "!src/**/*.test.ts"
-      ],
-      tests: ["src/**/*.test.{ts,tsx}", "test/**/*.{ts,tsx}"],
+      foundation: ["src/{util,vocabulary,runtime,styles,icons}/*.ts", "src/components/*.ts", "src/index.ts"],
+      // the tests live in the repo's tests/ folder;  their helpers in test/
+      tests: ["../../tests/ui/**/*.{ts,tsx}", "test/**/*.{ts,tsx}"],
       tooling: ["tools/**/*.{ts,tsx,js,html}", "vite.config.ts", "vitest.config.ts"]
     }
   }).count()

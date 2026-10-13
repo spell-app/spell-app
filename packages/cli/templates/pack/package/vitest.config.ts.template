@@ -1,3 +1,4 @@
+import { resolve } from "node:path"
 import { defineConfig, type TestProjectConfiguration } from "vite-plus"
 import { playwright } from "vite-plus/test/browser-playwright"
 
@@ -13,6 +14,9 @@ import { baseConfig } from "../ui/vite.config.ts"
  * - `prefix` / `root`:  the repo root's `vitest.config.ts` lists these as `__pack__:node` / `__pack__:browser`, `root`
  *   set to this package, since vitest doesn't nest `projects`.  Own run:  no prefix, `root` is this folder.
  */
+/** The tests live in the repo's tests/ folder, at the same paths as the code. */
+const TESTS = resolve(import.meta.dirname, "../../tests/__pack__")
+
 export function __packCamel__Projects({
   prefix = "",
   root
@@ -23,6 +27,7 @@ export function __packCamel__Projects({
       ...(root && { root }),
       test: {
         name: `${prefix}node`,
+        dir: TESTS,
         environment: "node",
         include: ["src/**/*.test.ts"]
       }
@@ -32,6 +37,7 @@ export function __packCamel__Projects({
       ...(root && { root }),
       test: {
         name: `${prefix}browser`,
+        dir: TESTS,
         include: ["components/**/*.test.{ts,tsx}"],
         testTimeout: 10_000,
         browser: {

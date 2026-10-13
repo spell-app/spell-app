@@ -1,3 +1,5 @@
+import { resolve } from "node:path"
+
 import { defineConfig } from "vite-plus"
 
 import { standardDecorators } from "../../vite.decorators.ts"
@@ -10,5 +12,7 @@ import { packageVersion } from "../../vite.packageVersion.ts"
  */
 export default defineConfig({
   plugins: [standardDecorators(), packageVersion()],
-  resolve: { tsconfigPaths: true }
+  resolve: { tsconfigPaths: true },
+  // the tests live in the repo's tests/ folder, at the same paths as the code
+  test: { dir: resolve(import.meta.dirname, "../../tests/parser") }
 })

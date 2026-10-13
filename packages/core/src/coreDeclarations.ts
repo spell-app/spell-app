@@ -4,7 +4,7 @@
  *   (`writeCoreDeclarations.ts`).
  *   - `coreDeclarations.test.ts` fails when that file and the core differ.
  *   - Python's core reads it in a test, to find what it hasn't ported yet
- *     (`packages/py/core/tests/test_core_declarations.py`).
+ *     (`tests/py/core/tests/test_core_declarations.py`).
  * - In the format projects write their own declarations in (`<Project>.declarations.json`),
  *   see `SP.SpellDeclarationsData`, with one key more, `module`:  the core's file that has it.
  * - Read from the core itself, as it runs:  each module's methods object, so nothing is listed by hand.

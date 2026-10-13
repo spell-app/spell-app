@@ -45,7 +45,7 @@ class UIThing extends HTMLElement {
   - Every `ui-*` tag inside loads its family on demand, once per page.
   - `RootLoader` does it, with a literal `import.meta.glob` per family.
   - Tag => family comes from `UIRoot.catalog.ts`, GENERATED from the vocabularies (`yarn gen:root`).
-    - [Its test](../src/components/ui-root/UIRoot.catalog.test.ts) fails while it's stale.
+    - [Its test](../../../tests/ui/src/components/ui-root/UIRoot.catalog.test.ts) fails while it's stale.
     - Never from `ComponentDefinitions`, which would put every vocabulary in the root's chunk.
 - Ready:  its families settled, then every element inside `ready` (an inner root:  its `settled`).
   - Or the `timeout` (5s).

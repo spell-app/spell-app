@@ -29,7 +29,7 @@ If you find yourself writing a second copy of any of these, stop and reuse.
 
 | Path | What |
 | --- | --- |
-| `components/<tag>/` | one element family:  component, vocabulary, sheet, test, barrel (files named for the component) |
+| `components/<tag>/` | one element family:  component, vocabulary, sheet, barrel (files named for the component);  its test is in `tests/epics/components/<tag>/` |
 | `components/index.ts` | `$/epics/components`:  every family barrel (defines every tag:  SIDE EFFECT) |
 | `src/index.ts` | `$/epics` (`EP`):  code the elements and the node tools share |
 | `src/definitions/` | the ONE description of every element:  its vocabulary as data, plus the children it takes |
@@ -37,10 +37,10 @@ If you find yourself writing a second copy of any of these, stop and reuse.
 | `src/review/` | the page's server clients, each POSTing and watching through a `ServerLink` (the token and its refresh):  the review inbox's, `ReviewClient` (reads and writes, polling, note-draft backups;  the elements' review controls use it);  the running agents', `AgentsClient` (`<epic-page>`'s "Agents running" panel) |
 | `src/convert/` | the converter:  a plan doc in the old markup => `<epic-*>` markup (`spell dev plan-doc convert`), with a proof that no id, link or word was lost.  Every live doc was converted at P12;  it stays for a doc restored from an old backup |
 | `src/tool/` | the plan-doc tool (`spell dev plan-doc`), node only;  not in the pack.  `PLAN-DOC.md`:  the rules for a doc's data.  `templates/plan.html`:  a new doc |
-| `src/pack.test.ts` | runs `spell dev pack check epics`:  `pack/` is current |
+| `tests/epics/src/pack.test.ts` (repo root) | runs `spell dev pack check epics`:  `pack/` is current |
 | `pack/` | GENERATED, committed:  `epics.catalog.ts`, `epics.entry.ts`, `epics.pack.js` |
 | `vite.config.ts` | lint and format only:  the build is the CLI's |
-| `vitest.config.ts` | `node` (`src/`) and `browser` (`components/`) projects |
+| `vitest.config.ts` | `node` (`src/`) and `browser` (`components/`) projects, over the repo's `tests/epics/` |
 
 ## Adding a new element
 

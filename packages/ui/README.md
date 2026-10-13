@@ -63,7 +63,7 @@ If you find yourself writing a second copy of any of these, stop and reuse.
 | `src/util/` | `$/ui/util`:  `$/util`'s generic files, re-exported, plus `Warnings` and the timing helpers (`timing.ts`:  `afterSolidUpdate()`, `after()` ...) |
 | `src/static/` | `$/ui/static` (`SSR`, node only):  the static server render, `ui-*` markup to plain HTML |
 | `src/languages/` | GENERATED (`yarn gen:spell`):  spell's pre-compiled highlighter |
-| `test/` | shared test helpers (`Fixture`, `ElementFixture`, `A11y` ...) and cross-family tests |
+| `test/` | shared test helpers (`Fixture`, `ElementFixture`, `A11y` ...);  the tests themselves are in the repo's [`tests/ui/`](../../tests/ui/), at the same paths as the code |
 | `tools/` | node tooling (classes):  measure, vendor, smoke, report, site data and checks, design export, visual tests;  see [`tools/README.md`](tools/README.md) |
 | `scripts/` | one file per yarn script, named for it (`site:data` -> `site-data.ts`), plus the helpers they share |
 | `site/` | the docs site's BUILT half:  bundle (`_assets/`), data (`_data/`), its entry (`_src/`);  the pages are the shared `ui/` |
@@ -95,15 +95,15 @@ Read ONLY in [`environment`](tools/environment.ts) (WWOD §11):  by `tools/`, `s
 2. Write one `UI<Name>.en.ts` per tag, with `topics` and `aka` included.
    - `topics`:  2+ ids from `ValueSets.topics`
    - `aka`:  other libraries' names
-   - [The component definitions test](src/components/ComponentDefinitions.test.ts) fails on a tag without them.
+   - [The component definitions test](../../tests/ui/src/components/ComponentDefinitions.test.ts) fails on a tag without them.
 3. Make it a lib entry:
    - `COMPONENTS` in `vite.config.ts`
    - `exports` and `sideEffects` in `package.json`
    - re-export it from [the package's entry](src/index.ts)
 4. `yarn gen:root`:  `<ui-root>`'s catalog of tag => family.
-   - [Its test](src/components/ui-root/UIRoot.catalog.test.ts) fails while it's stale.
+   - [Its test](../../tests/ui/src/components/ui-root/UIRoot.catalog.test.ts) fails while it's stale.
 5. `yarn site:data`:  the docs site's data.
-   - [Its test](tools/SiteDataBuilder.test.ts) fails while it's stale.
+   - [Its test](../../tests/ui/tools/SiteDataBuilder.test.ts) fails while it's stale.
    - Add the family's facts to [the pages data](site/_data/pages.json).
 6. `yarn site:new <tag>`:  its docs page, from the template.
    - Then `yarn site:build`, and `yarn site:check <tag>`.

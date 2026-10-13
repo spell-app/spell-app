@@ -28,7 +28,8 @@
  *   and gets no entry:  its own place saves it.  `parseRef()` reads one, `refText()` writes one (P4, Q18).
  *   - So an id may never hold an `@`:  saving one throws.
  * - Where entries live is the caller's:  a `Map` here, one file each in the people store.
- * - The twin of Python's `spell_core.saving`:  both write `savedById.expected.json`, beside `src/`, and read it.
+ * - The twin of Python's `spell_core.saving`:  both write `savedById.expected.json`, and read it.
+ *   It's with the core's tests, in `tests/core/`.
  * - Not the same as a page's state (`state.ts`):  that numbers things per page, and holds them in one message.
  */
 import { getProp, ITEMS_KEY, keysOf, schemaOf, setProp, TYPE_KEY } from "$/util"

@@ -219,6 +219,7 @@ export class Linker {
   /**
    * Where bare file names (`withSolid.ts`) are looked up:
    * - every package's `src/`
+   * - the repo's `tests/`, where every package's tests live (`List.test.ts`)
    * - the docs' pages (every area:  `pages/`, `guides/`, `epics/`, `templates/`) and tools, and UI's `docs/`
    */
   private get indexRoots(): string[] {
@@ -226,6 +227,7 @@ export class Linker {
       ...readdirSync(this.packages)
         .map((name) => join(this.packages, name, "src"))
         .filter(isDir),
+      ...[join(this.root, "tests")].filter(isDir),
       ...AREAS.map((area) => join(this.root, area)),
       join(this.packages, "docs", "tools"),
       join(this.ui, "docs")

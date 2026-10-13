@@ -222,7 +222,8 @@ export function rootLint() {
     ignorePatterns: rootLintIgnore,
     overrides: [
       {
-        files: REACT_PACKAGES.map((name) => `packages/${name}/**`),
+        // and their tests, in the repo's tests/ folder at the same paths (epic `people-and-orgs` P10)
+        files: REACT_PACKAGES.flatMap((name) => [`packages/${name}/**`, `tests/${name}/**`]),
         plugins: reactLint.plugins,
         rules: reactLint.rules
       },

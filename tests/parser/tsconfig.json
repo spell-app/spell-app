@@ -1,0 +1,5 @@
+{
+  // parser's tests:  parser's own settings (packages/parser/tsconfig.json), over this folder
+  "extends": "../../packages/parser/tsconfig.json",
+  "include": [".", "../../types"]
+}

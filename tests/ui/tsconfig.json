@@ -1,0 +1,12 @@
+{
+  // ui's tests:  ui's own settings (packages/ui/tsconfig.json), over this folder
+  "extends": "../../packages/ui/tsconfig.json",
+  // and ui's own folders, as its tsconfig includes them:  the JSX tags and Vitest types they declare reach the tests
+  "include": [
+    ".",
+    "../../packages/ui/src",
+    "../../packages/ui/test",
+    "../../packages/ui/tools",
+    "../../packages/ui/site/_src"
+  ]
+}

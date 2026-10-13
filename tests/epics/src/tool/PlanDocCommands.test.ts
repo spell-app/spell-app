@@ -1,0 +1,166 @@
+/**
+ * Tests of `PlanDocCommands` (`spell dev plan-doc ...`) on a scratch checkout:  the command line itself, its flags,
+ * output and log lines, on a doc written as a real one is (linked, formatted, split).
+ */
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
+import { fileURLToPath } from "node:url"
+
+import { afterAll, afterEach, beforeEach, describe, expect, test, vi } from "vite-plus/test"
+
+import { PlanDoc } from "$/epics/tool/PlanDoc"
+import { PlanDocCommands, movedDown } from "$/epics/tool/PlanDocCommands"
+import { PlanDocFiles } from "$/epics/tool/PlanDocFiles"
+
+/** The tool's test fixtures:  `epic-plan.html`, a fresh doc in `<epic-*>` markup. */
+const FIXTURES = fileURLToPath(new URL("fixtures", import.meta.url))
+
+const root = mkdtempSync(join(tmpdir(), "plan-doc-commands-"))
+const file = join(root, "epics", "x", "x.plan.html")
+const parts = join(root, "epics", "x", "parts")
+const FILES = new PlanDocFiles({ root })
+
+/** What the commands printed, on stdout and stderr. */
+let printed: string[]
+let warned: string[]
+
+/** The commands, on the scratch checkout, their output caught in `printed` / `warned`. */
+function commands() {
+  const owner = new PlanDocCommands({ files: FILES })
+  vi.spyOn(owner, "print").mockImplementation((text) => void printed.push(text))
+  vi.spyOn(owner, "warn").mockImplementation((text) => void warned.push(text))
+  return owner
+}
+
+beforeEach(async () => {
+  printed = []
+  warned = []
+  rmSync(join(root, "epics"), { recursive: true, force: true })
+  mkdirSync(join(root, "epics", "x"), { recursive: true })
+  const plan = PlanDoc.parse(readFileSync(join(FIXTURES, "epic-plan.html"), "utf8"))
+  for (const name of ["One", "Two", "Three"]) plan.addPhase(name, { goal: `<ul><li>${name}'s goal</li></ul>` })
+  plan.setPhase(1, "done")
+  await FILES.writeDoc(file, plan, true)
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
+afterAll(() => rmSync(root, { recursive: true, force: true }))
+
+describe("PlanDocCommands add-phase --before", () => {
+  test("inserts the phase, logs what moved, and each moved phase's part file follows its new id", async () => {
+    expect(await commands().run(["add-phase", "x", "Inserted", "--before", "2"])).toBe(0)
+    expect(printed).toEqual(["P2"])
+    const plan = FILES.read(file)
+    expect(plan.phases.map((phase) => `${phase.n} ${phase.name}`)).toEqual(["1 One", "2 Inserted", "3 Two", "4 Three"])
+    const last = Array.from(plan.document.querySelectorAll("#log > epic-event")).at(-1)!
+    // whitespace squeezed:  the written page's formatter folds the double spaces
+    expect(last.textContent!.replace(/\s+/g, " ")).toBe("P2 added: Inserted; P2-P3 moved down to P3-P4")
+    expect(movedDown(plan.phases, 3)).toBe("P3 · Three moved down to P4")
+    // every old name taken by the phase that moved onto it:  nothing stale
+    expect(
+      readdirSync(parts)
+        .filter((name) => /^p\d/.test(name))
+        .sort()
+    ).toEqual(["p1.html", "p2.html", "p3.html", "p4.html"])
+    expect(readFileSync(join(parts, "p4.html"), "utf8")).toMatch(/#p4's body[\s\S]*Three's goal/)
+    expect(readFileSync(join(parts, "p3.html"), "utf8")).toContain("Two's goal")
+    expect(readFileSync(join(parts, "p2.html"), "utf8")).toContain("TBD")
+    expect(readFileSync(file, "utf8")).toMatch(/<epic-phase\s+id="p4"\s+title="Three"[^>]*source="parts\/p4.html"/)
+  })
+
+  test("refuses a bare --before, one that isn't a number, or a started phase, writing nothing", async () => {
+    const skeleton = readFileSync(file, "utf8")
+    const owner = commands()
+    expect(await owner.run(["add-phase", "x", "Y", "--before"])).toBe(1)
+    expect(await owner.run(["add-phase", "x", "Y", "--before", "two"])).toBe(1)
+    expect(await owner.run(["add-phase", "x", "Y", "--before", "1"])).toBe(1)
+    expect(warned).toEqual([
+      "plan-doc:  --before needs a phase number",
+      'plan-doc:  --before needs a phase number, not "two"',
+      "plan-doc:  --before 1:  P1 has started;  only to-do phases move down"
+    ])
+    expect(readFileSync(file, "utf8")).toBe(skeleton)
+  })
+})
+
+describe("PlanDocCommands calm:  an existing call or issue not urgent, or urgent again (--loud)", () => {
+  test("sets `calm` on each id, prints and logs what it did, and says so when it already was", async () => {
+    const owner = commands()
+    await owner.run(["add", "x", "judgement", "A call"])
+    await owner.run(["add", "x", "issue", "An issue"])
+    const [call, issue] = printed
+    printed = []
+    expect(await owner.run(["calm", "x", call, issue.toLowerCase()])).toBe(0)
+    expect(printed).toEqual([`${call} not urgent:  A call\n${issue} not urgent:  An issue`])
+    const plan = FILES.read(file)
+    expect(plan.item(call).hasAttribute("calm")).toBe(true)
+    expect(plan.itemState(plan.item(issue))).toBe("open")
+    const log = Array.from(plan.document.querySelectorAll("#log > epic-event"), (each) => each.textContent!)
+    expect(log.at(-1)!.replace(/\s+/g, " ")).toBe(`${issue} not urgent: An issue`)
+
+    printed = []
+    expect(await owner.run(["calm", "x", call])).toBe(0)
+    expect(printed).toEqual([`${call} not urgent already:  A call`])
+    expect(await owner.run(["calm", "x", call, "--loud"])).toBe(0)
+    const loud = FILES.read(file)
+    expect(loud.item(call).hasAttribute("calm")).toBe(false)
+    expect(loud.itemState(loud.item(call))).toBe("attention")
+  })
+
+  test("refuses no id, an id the doc doesn't have, or an item that's never urgent, writing nothing", async () => {
+    const owner = commands()
+    await owner.run(["add", "x", "todo", "A todo"])
+    const doc = readFileSync(file, "utf8")
+    expect(await owner.run(["calm", "x"])).toBe(1)
+    expect(await owner.run(["calm", "x", "j99"])).toBe(1)
+    expect(await owner.run(["calm", "x", printed[0]])).toBe(1)
+    expect(readFileSync(file, "utf8")).toBe(doc)
+  })
+})
+
+describe("PlanDocCommands add --details:  a name and its path", () => {
+  test("written as the name, its path its tooltip, linked to the file (epic `airplane`)", async () => {
+    mkdirSync(join(root, "packages", "x", "src"), { recursive: true })
+    writeFileSync(join(root, "packages", "x", "src", "buildTsx.ts"), "export {}\n")
+    const details = "<p>Built:  <code>buildTsx()</code>, <code>packages/x/src/buildTsx.ts:4</code></p>"
+    expect(await commands().run(["add", "x", "judgement", "Built it", "--details", details])).toBe(0)
+    const part = readdirSync(parts).find((name) => /^j\d+\.html$/.test(name))!
+    expect(readFileSync(join(parts, part), "utf8")).toMatch(
+      /<a href="(?:\.\.\/){3}packages\/x\/src\/buildTsx\.ts" target="src-packages-x-src-buildtsx-ts"\s*>\s*<code title="packages\/x\/src\/buildTsx\.ts:4">buildTsx\(\)<\/code\s*>\s*<\/a\s*>/
+    )
+  })
+})
+
+describe("PlanDocCommands rename:  a phase's or an item's title (epic `epic-workflow`)", () => {
+  test("retitles it, rewrites the links saying the old title, prints and logs what it did", async () => {
+    const owner = commands()
+    await owner.run(["add", "x", "todo", "Linked", "--details", '<p><a href="#p2">P2 · Two</a></p>'])
+    printed = []
+    expect(await owner.run(["rename", "x", "p2", "Second"])).toBe(0)
+    expect(printed).toEqual(['P2 · Second (was "Two";  1 link rewritten)'])
+    expect(readFileSync(file, "utf8")).toMatch(/<epic-phase\s+id="p2"\s+title="Second"/)
+    const plan = FILES.read(file)
+    expect(plan.document.querySelector('a[href="#p2"]')!.textContent).toBe("P2 · Second")
+    const last = Array.from(plan.document.querySelectorAll("#log > epic-event")).at(-1)!
+    expect(last.textContent!.replace(/\s+/g, " ")).toBe('P2 renamed: "Two" -> "Second" (1 link)')
+
+    printed = []
+    expect(await owner.run(["rename", "x", "T1", "<code>Linked</code> todo", "--html"])).toBe(0)
+    expect(printed).toEqual(['T1 · Linked todo (was "Linked")'])
+    expect(FILES.read(file).item("t1").querySelector(':scope > [slot="title"] > code')!.textContent).toBe("Linked")
+  })
+
+  test("refuses no title, or no such phase, writing nothing", async () => {
+    const owner = commands()
+    const skeleton = readFileSync(file, "utf8")
+    expect(await owner.run(["rename", "x", "p2"])).toBe(1)
+    expect(await owner.run(["rename", "x", "p7", "Seven"])).toBe(1)
+    expect(warned[0]).toMatch(/^plan-doc:  missing the new title/)
+    expect(warned[1]).toBe("plan-doc:  no phase 7 in the doc")
+    expect(readFileSync(file, "utf8")).toBe(skeleton)
+  })
+})

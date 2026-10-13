@@ -1,5 +1,6 @@
 import { configDefaults, defineConfig, type TestProjectConfiguration } from "vite-plus"
 import { playwright } from "vite-plus/test/browser-playwright"
+import { resolve } from "node:path"
 
 import { environment } from "./tools/environment.ts"
 import { baseConfig } from "./vite.config.ts"
@@ -10,6 +11,14 @@ import { baseConfig } from "./vite.config.ts"
  *   `yarn test:browsers` once first.
  */
 const BROWSERS = environment.isAllBrowsers ? (["chromium", "firefox", "webkit"] as const) : (["chromium"] as const)
+
+/**
+ * Where both projects find their tests:  the tests live in the repo's tests/ folder, at the same paths as the code.
+ * - Absolute:  a relative `dir` is read from wherever the run starts (the repo root's run too).
+ * - The globs below are relative to it;  `root` stays this package, so `/src/...` globs, `/test/fixtures/...` URLs
+ *   and `setupFiles` still mean this package's files.
+ */
+const TESTS = resolve(import.meta.dirname, "../../tests/ui")
 
 /** Server-render tests:  `*.ssr.test.ts(x)`, anywhere. */
 const SSR_TESTS = ["src/**/*.ssr.test.{ts,tsx}", "test/**/*.ssr.test.{ts,tsx}"]
@@ -44,6 +53,7 @@ export function uiProjects({ prefix = "", root }: { prefix?: string; root?: stri
         environment: "node",
         // vitest stubs CSS imports by default;  the DSD string needs the real `?inline` sheets
         css: { include: [/.+/] },
+        dir: TESTS,
         include: [...SSR_TESTS, ...TOOL_TESTS]
       }
     },
@@ -53,6 +63,7 @@ export function uiProjects({ prefix = "", root }: { prefix?: string; root?: stri
       test: {
         name: `${prefix}browser`,
         sequence: { groupOrder: 1 },
+        dir: TESTS,
         include: ["src/**/*.test.{ts,tsx}", "test/**/*.test.{ts,tsx}"],
         exclude: [...configDefaults.exclude, ...SSR_TESTS],
         setupFiles: ["./test/setup.ts"],

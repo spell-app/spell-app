@@ -19,8 +19,10 @@ when working with code in this package, `@spell-app/app`.
   - No React:  every `.tsx` is Solid.
   - `build.test.ts` pins that no chunk holds React, `spell-runtime.js` included.
   - Two test projects (`vitest.config.ts`):
+    - Both read the repo's `tests/app/`, where the tests live at the same paths as the code
+      (`src/solid.test.tsx` is `tests/app/src/solid.test.tsx`).
     - `node`, for most tests:  there Solid is its SERVER build
-      (`renderToString`;  writes NOT staged, see [solid.test.tsx](src/solid.test.tsx))
+      (`renderToString`;  writes NOT staged, see [solid.test.tsx](../../tests/app/src/solid.test.tsx))
     - `browser` (chromium), for `*.browser.test.ts(x)`:  Solid's client build, as in the app
   - `$/app/solid` is the app's UI, all Solid (P8).
     - the pages' shell (`SpellPage`, `SplitPanel`, `AppRoot`)
@@ -69,7 +71,7 @@ when working with code in this package, `@spell-app/app`.
     - `yarn build:page`:  `dist-page/`, the page side of a Python spell app (epic `python-target` P20)
       - `spell-page.js` ([spellPage.ts](src/runner/spellPage.ts)):  the page's `@spell/core`
         - It exports what `spell-runtime.js` does, `css` included:
-          [spellPage.test.ts](src/runner/spellPage.test.ts) fails on one it leaves out.
+          [spellPage.test.ts](../../tests/app/src/runner/spellPage.test.ts) fails on one it leaves out.
       - It sets the page up itself.
       - py's `spell_quart` serves it ([py's AGENTS.md](../py/AGENTS.md)).
   - ONE Solid per page, across those bundles.
@@ -222,7 +224,7 @@ when working with code in this package, `@spell-app/app`.
     - [The data builder](tools/AppUIDataBuilder.ts) reads each listed file's exported components with a banner
       (`### `<Name>``) and their props types ([ComponentSource](tools/ComponentSource.ts)), and every JSX use in the app.
     - The web components and the drawable thing's element:  their vocabularies, by Spell UI's own builder.
-    - Writes `_data/components.json` and `search.json`, COMMITTED;  [its test](tools/AppUIDataBuilder.test.ts) fails
+    - Writes `_data/components.json` and `search.json`, COMMITTED;  [its test](../../tests/app/tools/AppUIDataBuilder.test.ts) fails
       while they're stale, while a listed page is missing, unlinked from the home, or its component's banner
       doesn't point at it.
     - So rerun it after changing a documented component's banner, props or uses.

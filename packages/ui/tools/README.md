@@ -47,7 +47,7 @@ measurement, vendoring, smoke, report, HMR, the docs site and the design export.
 | `DevServer.ts` | the package's Vite dev server started from node (`test:visual`, `test:hmr`, `screenshots`):  preferred port or the next free one, and its REAL `origin` |
 | `hmr.e2e.ts` | `yarn test:hmr`:  dev server + headless chromium + real file edits, 8 scenarios (`node:test`:  run as a plain script) |
 | `screenshots.ts` | `yarn screenshots [families]`:  one PNG per example pair of `demo/index.html`, for a quick look (no baselines;  regression tests are `visual/`) |
-| `*.test.ts` | `DesignExport`, `IconPackBuilder`, `SiteDataBuilder` (fails while `site/_data/` is stale), `SiteSearchBuilder`:  in the `ssr` project |
+| tests | in the repo's [`tests/ui/tools/`](../../../tests/ui/tools/):  `DesignExport`, `IconPackBuilder`, `SiteDataBuilder` (fails while `site/_data/` is stale), `SiteSearchBuilder` ...;  in the `ssr` project |
 | `results/` | what the tools write (git-ignored):  `measure-results.json`, `perf-results.json`, `site-check/`, `visual/` |
 | `frameworks/` | host pages `vanilla` / `react` (esm.sh) / `vue` (unpkg) / `solid` (Solid 2 app + `identity.js` probe), the shared round trip `check.js`, `perf.html` |
 | `smoke/` | extra import-map pages:  `compat-solid-1.9.html`, `translate.html`, `perf-adapter.js` |

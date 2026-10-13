@@ -19,7 +19,7 @@
  *   - a function compiled code imports:  `{ kind: "function", name, module, params?, description? }`
  *   - `module`:  the core's file under `packages/core/src/`, without `.ts` (`classes` is `classes/index.ts`);
  *     `section`:  the `// ## Heading` it's under there
- * - Python's names, as `packages/py/core/tests/test_core_declarations.py` checks them:
+ * - Python's names, as `tests/py/core/tests/test_core_declarations.py` checks them:
  *   `snakeCase()` of the javascript name
  *   - a member is `core.get_item_at()`
  *   - a class keeps its name (`spell_core.Thing`)
@@ -268,7 +268,7 @@
    * `name` as Python writes it:  `getItemAt` is `get_item_at`.
    * - capitals together stay one word:  `isANumber` is `is_a_number`, `fromJSON` `from_json`
    * - a name all in capitals is lowercased:  `ACTIVE_TEST` is `active_test`
-   * - SEE:  `snake_case()` in `packages/py/core/tests/test_core_declarations.py`, which this must match
+   * - SEE:  `snake_case()` in `tests/py/core/tests/test_core_declarations.py`, which this must match
    */
   function snakeCase(name) {
     if (/^[A-Z0-9_]+$/.test(name)) return name.toLowerCase()

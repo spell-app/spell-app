@@ -26,7 +26,7 @@ build-backend = "uv_build"
 module-root = ""
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["../../../tests/py/core/tests"]
 addopts = ["--strict-markers"]
 
 [tool.ruff]
@@ -38,4 +38,4 @@ select = ["E", "W", "F", "I", "UP", "B", "N", "SIM", "RUF"]
 
 [tool.ruff.lint.per-file-ignores]
 # characters that look like others are the point of these:  ✅, ❌, ♠️
-"tests/*" = ["RUF001", "RUF003"]
+"../../../tests/py/core/tests/*" = ["RUF001", "RUF003"]

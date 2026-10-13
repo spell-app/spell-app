@@ -143,16 +143,23 @@ Two words for the two objects behind every tag (epic `wwod-spell-ui`, P15):
   - Registers every family (side effect) and re-exports them,
     plus `UIT`, the runtime, styles and icons.
   - The namespaces `E` / `F` / `V` come from `core` / `forms` / the `api` entry.
-- [`test/`](test/):  shared test utils, and cross-family tests.
+- The tests:  in the repo's [`tests/ui/`](../../tests/ui/), at the same paths as the code they test
+  (epic `people-and-orgs` P10).
+  - `src/components/ui-button/UIButton.test.tsx` is `tests/ui/src/components/ui-button/UIButton.test.tsx`;
+    the cross-family tests are in `tests/ui/test/`, the tools' in `tests/ui/tools/`.
+  - Their helpers stay here, in `test/` (`$/ui/test/*`), for now.
+  - `packages/ui/vitest.config.ts` finds them there (`dir`);  `root` stays this package,
+    so a test's `/src/...` glob or `/test/fixtures/...` URL still means this package's files.
+  - Every test runs in a REAL browser (Vitest browser mode + Playwright, chromium by default),
+    except `*.ssr.test.tsx` (node).
+- [`test/`](test/):  shared test utils.
   - `Fixture.render(html)` (`Fixture.ts`);  `A11y.check(el)` / `expectAccessible(el)` (`A11y.ts`)
   - `ElementFixture`:  render, wait for `ready`, `flush()`;  `breakRender()`
   - `StubOwner`:  stand-in owners (card, feed ...)
   - `PerfRun` (the dropdown benchmark), `fallback.cases.ts`, `dictionary.es.ts`
   - `VisualOpen` + `test.types.ts`:  the visual tests' hooks
   - `visual/baselines/`:  the screenshots (`yarn test:visual`)
-  - the `fallback` / `isolation` / `translate` / SSR / DSD tests
-  - Every test runs in a REAL browser (Vitest browser mode + Playwright, chromium by default),
-    except `*.ssr.test.tsx` (node).
+  - `fixtures/`:  files the tests load (component packs, sources, an icon pack)
 - [`tools/`](tools/):  package tooling, node scripts run by `tsx` (see [the tools README](tools/README.md)).
   - bundle measurement, peer vendoring, import-map smoke pages (framework hosts), LOC, report tables
   - the HMR end-to-end test
@@ -227,10 +234,10 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
     - `aka`:  other libraries' and everyday names (`ui-modal`:  `dialog`, `lightbox`)
     - A NEW TAG MUST fill both.
       - [The component definitions](src/components/ComponentDefinitions.ts) roll them up, for the docs' component browser.
-      - [Its test](src/components/ComponentDefinitions.test.ts) fails on a tag without them.
+      - [Its test](../../tests/ui/src/components/ComponentDefinitions.test.ts) fails on a tag without them.
     - A new or moved tag also needs these two, and their tests fail while they're stale:
-      - `yarn gen:root`:  `<ui-root>`'s catalog of tag => family ([its test](src/components/ui-root/UIRoot.catalog.test.ts))
-      - `yarn site:data`:  the docs site's data ([its test](tools/SiteDataBuilder.test.ts))
+      - `yarn gen:root`:  `<ui-root>`'s catalog of tag => family ([its test](../../tests/ui/src/components/ui-root/UIRoot.catalog.test.ts))
+      - `yarn site:data`:  the docs site's data ([its test](../../tests/ui/tools/SiteDataBuilder.test.ts))
     - Live:  `UIButton.describe()`.
   - And `skeleton`:  what `<ui-root display="skeleton">` draws for the tag.
     - Written as SKELETON TEXT (`SkeletonText`, its grammar in its header):
@@ -240,7 +247,7 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
     - A component pack's vocabularies write it the same way.
     - [The root catalog](tools/RootCatalog.ts) parses it into the catalog:
       `yarn gen:root`, or `spell dev pack build` for a pack.
-    - [The vocabularies test](test/vocabularies.test.ts) parses every one, and fails on a typo or a stale catalog.
+    - [The vocabularies test](../../tests/ui/test/vocabularies.test.ts) parses every one, and fails on a typo or a stale catalog.
 - `UI<Name>.types.ts`:  the folder's loose constants, types and shared vocabulary pieces,
   when SEVERAL of its files use them.
   - A constant only one class uses is a module `const` below that class ("Classes").
@@ -258,10 +265,10 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
     (`import * as UIT from "$/ui/components/components.types"`)
   - Why:  core loads the element layer, which node can't,
     and `yarn site:data` / `yarn gen:root` import every vocabulary in node (tsx).
-  - [The vocabularies test](test/vocabularies.test.ts) enforces it.
+  - [The vocabularies test](../../tests/ui/test/vocabularies.test.ts) enforces it.
 - `UI<Name>.fallback.ts`:  the native fallback (plain DOM, no Solid), shown when the element's render throws.
   - FORM CONTROLS ONLY ("Native fallback", below).
-- Tests:
+- Tests, in the same folder under `tests/ui/` (`tests/ui/src/components/ui-<name>/`):
   - `UI<Name>.test.tsx`:  the component
   - `UI<Name>.css.test.ts`:  the sheet, on class-grammar markup
   - `UI<Name>.fallback.test.ts`, `UI<Name>.ssr.test.tsx`, `UI<Name>.a11y.test.ts`, `UI<Name>.perf.test.tsx`
@@ -343,7 +350,7 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
   - entries:  `core`, `forms`, one per family, `styles`, `index`;  and `dist/icon-packs/`
   - `.d.ts` files beside the `exports` paths, from `declarations()` in `vite.config.ts`
 - `yarn test`:  the `ssr` project, then `browser`.
-  - `ssr` first:  it writes `ssr-button.html` in `.cache/`, which [the DSD test](test/dsd.test.ts) reads.
+  - `ssr` first:  it writes `ssr-button.html` in `.cache/`, which [the DSD test](../../tests/ui/test/dsd.test.ts) reads.
 - `yarn test:all`:  chromium + firefox + webkit (`yarn test:browsers` once first).
 - `yarn test:visual`:  screenshot tests of every element example, light + dark,
   against [the baselines](test/visual/baselines/) (Playwright's `toHaveScreenshot`).
@@ -413,7 +420,7 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
   - Run `yarn site:data` first, after a vocabulary change.
     - It also writes `custom-elements.json` and `html-custom-data.json`, in `site/_data/`:
       VS Code's autocomplete for `<ui-*>` ([the element manifests](tools/ElementManifests.ts)).
-    - [The design export's test](tools/DesignExport.test.ts) fails while they're stale.
+    - [The design export's test](../../tests/ui/tools/DesignExport.test.ts) fails while they're stale.
 - `yarn site:check <page...> | --all` ([its script](scripts/site-check.ts), on [the site check](tools/SiteCheck.ts)):
   loads the `ui/` pages from the page server (Playwright).
   - It fails on:
@@ -507,7 +514,7 @@ As WWOD §18, plus:
   - So values set on the page, an ancestor, the element or `::part()` reach the box.
   - Owner switches are private (`--_ui-card-layout`).
   - See [the theming doc](docs/theming.md), "Component tokens".
-    [The component tokens test](test/componentTokens.test.ts) enforces it.
+    [The component tokens test](../../tests/ui/test/componentTokens.test.ts) enforces it.
   - Two private shapes, on purpose:
     - `--_ui-<tag>-*`:  a public token's ALIAS
     - `--_<tag>-*` (`--_button-*`):  variation plumbing no page sets
@@ -828,7 +835,7 @@ Components, DOM element classes AND `UI<Name>.fallback.ts` import:
   - The `forms` files are the exception's exception:  `extends E.UIComponent` / `@E.proto` are fine there.
     - Why:  the core never imports `forms`, and has always finished loading first.
     - A `forms` peer a class definition reads is still direct:  `FormComponent`'s `DOMFormControl`, `Validator`.
-  - [The barrel test](src/elements/barrel.test.ts) checks every export of both entries is live.
+  - [The barrel test](../../tests/ui/src/elements/barrel.test.ts) checks every export of both entries is live.
   - NEVER import an element-core leaf by path (`$/ui/elements/UIComponent`):  entering the cycle there breaks it.
 
 ### Writing reactive code
@@ -900,7 +907,7 @@ Components, DOM element classes AND `UI<Name>.fallback.ts` import:
     or [the Vite plugin](tools/HotElements.ts).
 - **One Solid per page:**  every Vite config dedupes `solid-js` / `@solidjs/web` (`SOLID_DEDUPE`).
   - NEVER `import * as` a Solid package in shipped code:  it pins every export into bundles and vendored copies.
-- SSR:  anything that reads the DOM in a constructor needs an `isServer` guard ([the SSR test](test/ssr.ssr.test.tsx)).
+- SSR:  anything that reads the DOM in a constructor needs an `isServer` guard ([the SSR test](../../tests/ui/test/ssr.ssr.test.tsx)).
   - Static render (`$/ui/static`):  as WWOD §12 › "Brand checks only where `instanceof` can't work", plus:
     - DOM elements are linkedom elements, and node has no such globals.
     - So NEVER `instanceof Element` / `Node` / `ShadowRoot` / `HTMLSlotElement` in shared code:  use `nodeType`, `localName`.
@@ -934,7 +941,7 @@ THE LINT GUARD (epic `spell-element` P10):  `yarn lint` holds component files to
   // oxlint-disable-next-line spell-ui/no-mutation-observer -- watches its PARENT, another element
   ```
 
-  - It also goes on the allow-list in [the lint patterns test](tools/LintPatterns.test.ts), with the same reason.
+  - It also goes on the allow-list in [the lint patterns test](../../tests/ui/tools/LintPatterns.test.ts), with the same reason.
   - The test fails on a disable comment the list doesn't name, so every exception is seen in review.
 
 ## Component packs
@@ -995,7 +1002,7 @@ THE LINT GUARD (epic `spell-element` P10):  `yarn lint` holds component files to
       a pack may use any export, so they must all stay ("One Solid per page" above).
   - A new specifier goes there AND in the pack build's externals.
   - So a pack's elements extend the page's own `UIComponent` / `DOMElement`.
-- Tests:  [the component packs test](src/components/ui-components/ComponentPacks.test.ts).
+- Tests:  [the component packs test](../../tests/ui/src/components/ui-components/ComponentPacks.test.ts).
   - On [the classic fixtures](test/fixtures/component-packs/), served by Vitest's dev server.
 
 ## Decorators
@@ -1191,7 +1198,7 @@ As WWOD §20, plus:
 
 - An element's tests describe as `describe("<ui-button> keyboard")`:  `ui`'s form of the call path.
 - Helper classes use the call path (`describe("SliderScale.ratio()")`),
-  and get their own test file beside them (epic `wwod-spell-ui`, Q8).
+  and get their own test file, at their path under `tests/ui/` (epic `wwod-spell-ui`, Q8).
 
 ## Out of scope for WWOD
 

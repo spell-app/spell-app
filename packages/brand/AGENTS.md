@@ -66,8 +66,8 @@ when working with code in this package, `@spell-app/brand`.
     - sRGB <-> OKLCH, contrast
     - `generateScale()`:  17-step ladders
     - `buildPalette()`
-    - `Palette.test.ts` pins it to Claude Design's `palette.json` (in `lib/`), copied as `Palette.fixture.json`:
-      a test can't read the shared folder.
+    - `Palette.test.ts` pins it to Claude Design's `palette.json` (in `lib/`), copied as `Palette.fixture.json`
+      beside it, in `tests/brand/src/`:  a test can't read the shared folder.
   - `brand.types.ts`
   - the bundles' entries:  `brand-ui.ts`, `brand-docs.ts`, `brand-design.ts`, `hues.ts` (what's in each, and why)
 - `components/` (`$/brand/components`):  the `<ui-brand-*>` elements, one folder per family.
@@ -117,6 +117,8 @@ when working with code in this package, `@spell-app/brand`.
   - into `.compare/` (git-ignored):  `dc.png`, `spell.png`, `side.png`, `diff.png`, `report.md`
   - A rough guide:  LOOK at `side.png`, or the Compare view (`/brand/compare.html`).
 - `yarn test`:  the elements' tests, in a real browser.
+  - They live in the repo's `tests/brand/`, at the same paths as the code:
+    `components/ui-brand-logo/UIBrandLogo.test.tsx` is `tests/brand/components/ui-brand-logo/UIBrandLogo.test.tsx`.
   - Vitest browser mode, chromium (`vitest.config.ts`)
   - with Spell UI's helpers:  `$/ui/test/ElementFixture`, `$/ui/test/a11y`
   - The root's `yarn test` runs them as `brand`.

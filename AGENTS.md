@@ -27,6 +27,12 @@ and suggest where it belongs before building it (see "Commands").
   - One yarn workspace per folder in `packages/`.
   - The root's yarn scripts of these names run each package's own script of that name:
     `yarn ts`, `yarn test`, and `yarn review`.
+  - Every package's TESTS live in `tests/<package>/`, at the same path as the code they test:
+    `packages/core/src/saving.ts` is tested by `tests/core/src/saving.test.ts`.
+    - With their snapshots and test data;  each package's `yarn test`, `yarn ts`, lint and format still cover them.
+    - Each package's Vitest finds them (its config's `dir`), and `tests/<package>/tsconfig.json` gives them the
+      package's own settings and the aliases.
+    - Test helpers (`$/spell/test`, `$/ui/test` ...) and spell's test projects stay in their packages, for now.
 - This file holds what's about THIS repo:  packages, worktrees, changelog, commands, toolchain, ledgers.
   - The house style every package shares is WWOD (`agents/wwod/`, above).
     It's shared content, like the ledgers.

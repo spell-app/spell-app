@@ -85,7 +85,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 ## Imports
 
 - As WWOD §4 (examples there are ours).  `import { P } from "$/parser"`.
-- `barrel.test.ts` is the smoke test for circular imports through the barrel:  run it after moving files.
+- [barrel.test.ts](../../tests/parser/src/barrel.test.ts) is the smoke test for circular imports through the barrel:
+  run it after moving files.
+  - The tests live in the repo's `tests/parser/`, at the same paths as the code.
 
 ## Decorators
 

@@ -60,7 +60,7 @@ So running a command twice changes nothing.
 Without it, these files would look like real code, and none of it works with `__token__`s in them:
 - `tsc` would type-check `__Class__.tsx`
 - lint and format would read it
-- vitest would run `__Class__.test.tsx`
+- vitest would run `__Class__.test.tsx` (it's in `element-tests/`, written into the repo's `tests/<pack>/`)
 
 With the suffix, no tool reads them;  only `packNew.ts` does.
 
@@ -72,5 +72,5 @@ With the suffix, no tool reads them;  only `packNew.ts` does.
 - Change one:  just edit it.
   Packs and elements made AFTER get the change;  existing ones keep their files.
 - Then run `yarn test` in `packages/cli`.
-  - [packNew.test.ts](../src/dev/packNew.test.ts) writes a pack and an element from these templates
+  - [packNew.test.ts](../../../tests/cli/src/dev/packNew.test.ts) writes a pack and an element from these templates
     into a temp folder, and checks every token was filled in.

@@ -40,7 +40,7 @@ A checklist of every component in [the plan](plan.md):  what's done, in progress
   - Built:
     - the base class, `reset.css`
     - the static render (`data-state`, ARIA)
-    - tests:  [the shared states test](../test/sharedStates.test.tsx)
+    - tests:  [the shared states test](../../../tests/ui/test/sharedStates.test.tsx)
 
 - **Component names** (2026-10-08, epic `wwod-spell-ui` P15):
   - the class behind a tag is its COMPONENT:  `UIComponent`, `FormComponent`, `LoadableComponent`, `PartComponent`

@@ -83,7 +83,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
     - `{space}` / `{spaces}` set the next part's
     - a symbol touching its flag repeats as a run (`#+`)
 - Cost, warm:
-  - Measured by a `BENCH=1` run of [the project tests](src/SpellProject.test.ts), 2026-10-04,
+  - Measured by a `BENCH=1` run of [the project tests](../../tests/spell/src/SpellProject.test.ts), 2026-10-04,
     after P3 of precedence-and-types halved it.
   - Card.spell (121 lines) ~12ms;  Solitaire.spell (259 lines) ~32ms;  the whole Solitaire project ~55ms
   - the whole project, after later phases:
@@ -134,7 +134,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
     - `If` => `if`
   - A class whose name doesn't give its rule name sets `static ruleName`.
     - e.g. `BlockLine` => `line`
-  - [ruleNames.test.ts](src/rules/ruleNames.test.ts) pins every rule's name, module and order.
+  - [ruleNames.test.ts](../../tests/spell/src/rules/ruleNames.test.ts) pins every rule's name, module and order.
 - A rule's tests, `{ input, js, ts }`, parse the input once and write it with the javascript and TypeScript writers:
   - `js`:  what `P.JSWriter` writes
   - `ts`:  what `P.TSWriter` writes, left out where it's the same
@@ -275,7 +275,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - A `MethodPostfixRule` checks nothing.
   - Declarations need nothing new:  `of` / `params` are the method record's, in the same comment.
     Loading hands `specialize()` the whole of it.
-- Probe ledger ([grammar.probes.test.ts](src/grammar.probes.test.ts)), "datatypes":
+- Probe ledger ([grammar.probes.test.ts](../../tests/spell/src/grammar.probes.test.ts)), "datatypes":
   what a set of expressions and sinks are.
 
 ## Adding an expression rule
@@ -297,7 +297,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - Leave it unset unless a probe shows a tie going wrong.
   - Then set it from the `Priority` table ([rules.types.ts](src/rules/rules.types.ts)), with a one-line why.
 - Always NAME a slot, so `match.groups` keeps its key.
-- Add one mixed-operator line to the probe ledger, [grammar.probes.test.ts](src/grammar.probes.test.ts).
+- Add one mixed-operator line to the probe ledger, [grammar.probes.test.ts](../../tests/spell/src/grammar.probes.test.ts).
 
 ## Type names:  `a bank account aka account is a thing`
 
@@ -426,7 +426,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
     - It's GENERATED from the table:  `yarn scopes --builtins` in `packages/lsp`.
     - A test fails until you do.
 - Adding a member:  ONE table entry, plus the `spellCore` method or javascript property its `readAs` names.
-  - [builtinTypes.test.ts](src/builtinTypes.test.ts) reads each one off a sample value, so it must be real.
+  - [builtinTypes.test.ts](../../tests/spell/src/builtinTypes.test.ts) reads each one off a sample value, so it must be real.
   - Then `yarn scopes --builtins`.
 - Adding a TYPE:  its name in `P.BUILT_IN_TYPES` first, then its entry.
 
@@ -541,7 +541,7 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
 - Probe ledger, `X1` ... `X9`:  `probeMembership()`.
   - It uses the frozen `Card` and `Deck`.
     Its `Pile.spell` is the probe's own.
-  - Compiled and RUN:  [membership.test.ts](src/parserTests/membership.test.ts).
+  - Compiled and RUN:  [membership.test.ts](../../tests/spell/src/parserTests/membership.test.ts).
 
 ## File => block => line => statement
 
@@ -647,7 +647,7 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
   ```
 
   - It compiles EXACTLY as the same lines in the sentence style do (`a card has a name as text` ...).
-  - [outline.test.ts](src/parserTests/outline.test.ts) pins it.
+  - [outline.test.ts](../../tests/spell/src/parserTests/outline.test.ts) pins it.
 - `create_type` / `create_list_type` share [`TypeDeclaration`](src/rules/classes/TypeDeclaration.ts).
   - A syntax ending `{with_nested_statements}?` takes the body.
     - That's `where:`, `with:` or `:`.
@@ -1171,11 +1171,11 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
   - comment, blank line or top-level statement, anywhere:  ~1-2ms
   - declaration edit near the END:  ~1ms
   - declaration edit near the START of the first file:  ~110ms (~= a full parse)
-- [IncrementalProject.test.ts](src/parserTests/IncrementalProject.test.ts) edits lines of every Solitaire file,
+- [IncrementalProject.test.ts](../../tests/spell/src/parserTests/IncrementalProject.test.ts) edits lines of every Solitaire file,
   on ONE project.
   - every line, with `INCREMENTAL_FULL=1`
   - After each edit, and after undoing it, it checks output, errors and token positions against a full parse.
-- [ParseJournal.test.ts](src/parserTests/ParseJournal.test.ts) checks a whole project's rewind / replay.
+- [ParseJournal.test.ts](../../tests/spell/src/parserTests/ParseJournal.test.ts) checks a whole project's rewind / replay.
 
 ## Compile
 
@@ -1288,7 +1288,7 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
   - it maps a `.spell` file to its project (the nearest `project.json`)
   - it parses the project on first sight, and reacts to disk changes
   - It's node-only, so it's NOT in the `$/lsp` barrel, which MUST stay browser-safe
-    ([barrel.test.ts](../lsp/src/barrel.test.ts)).
+    ([barrel.test.ts](../../tests/lsp/src/barrel.test.ts)).
 - `SpellLanguageService` answers from each file's current `match`, never re-parsing:
   - diagnostics:  its parse errors, then its warnings (`SP.SpellWarnings.in()`) as `DiagnosticSeverity.Warning`
   - positions from match / token OFFSETS, never `token.line` / `ch`
@@ -1378,7 +1378,7 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
   - [`parseSpellProject()`](src/test/parseSpellProject.ts)
   - `loadFixtureProject()`
   - `summarize()`:  the "same as a full parse" reference
-- [SpellProject.test.ts](src/SpellProject.test.ts) snapshots Solitaire's compiled output + errors,
+- [SpellProject.test.ts](../../tests/spell/src/SpellProject.test.ts) snapshots Solitaire's compiled output + errors,
   and benchmarks with `BENCH=1`.
 - Every fixture project compiles to every target it can, against the snapshots beside it:
   the `projects/` bullet in [AGENTS.md](AGENTS.md) lists them, and how to refresh them.

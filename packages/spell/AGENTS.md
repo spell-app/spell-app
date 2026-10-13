@@ -31,8 +31,12 @@ when working with code in this package, `@spell-app/spell`.
   - [cli](../cli/AGENTS.md):  the `spell` command line.
     It runs this package's SOURCE (and the others') through `tsx`.
 - `src/rules/`:  spell's rule modules (see "Parser rules" below).
-- `src/parserTests/`:  parser tests that need the spell grammar.
-  The generic ones are in `../parser`.
+- Tests live in the repo's `tests/spell/`, at the same paths as the code they test:
+  `src/SpellProject.ts` => `tests/spell/src/SpellProject.test.ts`.
+  - `yarn test` here runs them (`vitest.config.ts` points there).
+  - Their helpers stay here, in `src/test/` (`$/spell/test`), and the projects they read in `projects/test/`.
+  - `tests/spell/src/parserTests/`:  parser tests that need the spell grammar.
+    The generic ones are in `../parser`.
 - `src/node/` (`$/spell/node/...`) is NODE-ONLY.
   - Its files:
     - `environment`
@@ -93,15 +97,15 @@ when working with code in this package, `@spell-app/spell`.
       - `fixtureProjectId()`
     - NEVER update a fixture to follow its example.
   - Each fixture's compiled output is checked against the snapshots beside it
-    ([fixtures.test.ts](src/test/fixtures.test.ts)):
+    ([fixtures.test.ts](../../tests/spell/src/test/fixtures.test.ts)):
     - `<Project>.snapshot.js`:  the javascript target
     - `<Project>.snapshot.declarations.json`:  its declarations
     - `<Project>.en.snapshot.js`:  its words (`SP.SpellWords`)
       - Its name ends as a snapshot's does, which keeps it out of the project's files.
     - `<Project>.snapshot.tsx`:  the TypeScript target
-    - `<Project>.snapshot.tsc.txt`:  what `tsc` says of it ([typescript.test.ts](src/test/typescript.test.ts))
+    - `<Project>.snapshot.tsc.txt`:  what `tsc` says of it ([typescript.test.ts](../../tests/spell/src/test/typescript.test.ts))
     - `<Project>.snapshot.py`:  the Python target
-    - `<Project>.snapshot.pyright.txt`:  what pyright says of the Python ([python.test.ts](src/test/python.test.ts))
+    - `<Project>.snapshot.pyright.txt`:  what pyright says of the Python ([python.test.ts](../../tests/spell/src/test/python.test.ts))
     - `<Project>.elements.snapshot.js`:  the Python targets' page file, for a fixture that draws
     - The Python ones only for the fixtures in `PYTHON_FIXTURES` (every fixture, so far).
     - Add a fixture by copying a project in.
@@ -166,7 +170,7 @@ when working with code in this package, `@spell-app/spell`.
         - the globals:  `Number`, `Boolean`, `Text`, `Comment` ...
         - a parser class:  `Keyword`
     - So the prod build keeps class names:  [parser's AGENTS.md](../parser/AGENTS.md), `keepNames`.
-    - [ruleNames.test.ts](src/rules/ruleNames.test.ts) pins every rule's name, module and registration order:
+    - [ruleNames.test.ts](../../tests/spell/src/rules/ruleNames.test.ts) pins every rule's name, module and registration order:
       a renamed class that changes a rule's name fails it.
   - ONE `syntax` per registration.
     - A rule with several calls `addRule()` once per syntax, each with the `tests` for that syntax.
@@ -244,6 +248,8 @@ when working with code in this package, `@spell-app/spell`.
       <RuleClass>.ts        one rule class each
       <module>.shared.ts    what several of its rule files share, if anything
       index.ts              exports every file, in tie-break order
+
+    tests/spell/src/rules/<module>/   (from the repo root)
       <module>.test.ts      its tests
       __snapshots__/        its group specs
     ```
@@ -283,7 +289,8 @@ when working with code in this package, `@spell-app/spell`.
       `$/spell/rules/<module>`, or `./<module>` from that index.
   - `<module>.test.ts`:  MUST call `unitTestModuleRules()`, or its tests never run.
     - The call:  `unitTestModuleRules(spellParser, "<module>", ...)`, from `$/spell/test`.
-    - Its `__snapshots__` (the group specs) are beside it.
+    - It lives in `tests/spell/src/rules/<module>/`, its `__snapshots__` (the group specs) beside it.
+    - Blessing finds the module's source from there:  `packages/spell/src/rules/<module>/`.
 - A rule's `tests`, each a `P.RuleTest`:
   - `{ input, js, ts }`, or a tuple `[input, js, ts?]`
   - `js`:  what the javascript writer writes;  `ts`:  what the TypeScript writer writes.

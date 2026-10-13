@@ -1,0 +1,6 @@
+{
+  // docs' tests:  docs' own settings (packages/docs/tsconfig.json), over this folder
+  "extends": "../../packages/docs/tsconfig.json",
+  // `../../types/app.d.ts`, as docs' own takes it:  the repo's ambient helper types (`Prettify` ...)
+  "include": [".", "../../types/app.d.ts"]
+}

@@ -27,16 +27,16 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       (epic `python-target` P29).
     - A name with no docstring fails `coreDeclarations.test.ts`.
   - Written by `yarn gen:declarations` ([writeCoreDeclarations.ts](src/writeCoreDeclarations.ts)).
-  - [coreDeclarations.test.ts](src/coreDeclarations.test.ts) fails until you run it,
+  - [coreDeclarations.test.ts](../../tests/core/src/coreDeclarations.test.ts) fails until you run it,
     after adding, renaming or removing anything on `spellCore`.
-  - Python's [test_core_declarations.py](../py/core/tests/test_core_declarations.py) checks `spell_core` against it:
+  - Python's [test_core_declarations.py](../../tests/py/core/tests/test_core_declarations.py) checks `spell_core` against it:
     a new name fails there too,
     until it's ported or listed in py's [not_ported_yet.json](../py/core/not_ported_yet.json).
 - Random numbers come from the core's own generator, [`ParkMiller`](src/ParkMiller.ts), NEVER `Math.random()`:
   - `spellCore.seedRandom(n)` makes everything random after it repeat;  unseeded, each run differs.
   - `spellCore.shuffled()` is lodash's shuffle, step for step.
   - Python's core deals the same from the same seed:
-    both read [seededRandom.expected.json](seededRandom.expected.json) in their tests.
+    both read [seededRandom.expected.json](../../tests/core/seededRandom.expected.json) in their tests.
 - Positions count from where a project's lists start:  1, spell's own, or 0 (`project.json`'s `"listsStartAt": 0`).
   - The helpers that convert:  [positions.ts](src/positions.ts), used by `List` and the collection helpers.
   - Negative positions count from the end either way:  `-1` is the last item.
@@ -90,7 +90,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - its types:  `import type` from `$/core/spellCore.types`
     - or the runtime's own API, e.g. `runtimeConsole()`
   - Pinned by two of app's tests:
-    [element.build.test.ts](../app/src/runner/element.build.test.ts) and [build.test.ts](../app/src/build.test.ts).
+    [element.build.test.ts](../../tests/app/src/runner/element.build.test.ts) and [build.test.ts](../../tests/app/src/build.test.ts).
 - The ONE other entry:  `$/core/model` ([model.ts](src/model.ts), epic `people-and-orgs` P3).
   - The core with no drawing, so no Solid, and no running program's list of things.
   - What a compiled LIBRARY imports (`People.lib.ts`, the `ts/lib` target), by the package's name:
@@ -141,8 +141,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `spellCore.canTake()` / `canGiveUp()` ask without moving.
   - A plain array has no guards.
 - Tests:
-  - [List.test.ts](src/classes/List.test.ts)
-  - end to end, spell's [membership.test.ts](../spell/src/parserTests/membership.test.ts)
+  - [List.test.ts](../../tests/core/src/classes/List.test.ts)
+  - end to end, spell's [membership.test.ts](../../tests/spell/src/parserTests/membership.test.ts)
 
 ## JSON
 
@@ -177,7 +177,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Each writer keeps the ids it gave:  one writer per page.
   - `StateMirror.read()` reads each state INTO the things it read before, by id:  the same objects, changed.
   - `fromJSON()` reads through a new mirror, so JSON with ids keeps each thing as one.
-  - Python's twin is `spell_core.state`:  both write [stateById.expected.json](stateById.expected.json), and read it.
+  - Python's twin is `spell_core.state`:  both write [stateById.expected.json](../../tests/core/stateById.expected.json), and read it.
 - SAVING things by id ([saving.ts](src/saving.ts), epic `people-and-orgs` P2):  what lasts, as opposed to a page's state.
   - `new Saver().save(thing)`:  every thing it reaches, each an entry of its own by key, `"Person#owen"`.
     - What holds a thing writes a reference to it, `{ "$ref": "Person#matt" }`:  a card in two piles is one card.
@@ -185,7 +185,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - A property's plain list is its items, a JSON array.
   - `new Loader({ entryFor }).load(key)`:  each entry made once, however many references name it.
   - The keys are `refOf`'s:  the people store names entries by address.
-  - Python's twin is `spell_core.saving`:  both write [savedById.expected.json](savedById.expected.json), and read it.
+  - Python's twin is `spell_core.saving`:  both write [savedById.expected.json](../../tests/core/savedById.expected.json), and read it.
 - A PAGE drawing a program that runs elsewhere, e.g. in Python ([page.ts](src/page.ts), P19):
   - `startPage()`:
     - mirrors the program's state
@@ -200,11 +200,12 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 ## The Python core
 
 - Its Python twin, `spell_core`, is in `@spell-app/py` ([py's AGENTS.md](../py/AGENTS.md), epic `python-target` P21).
-  - The four files both cores read stay here:
+  - The four files both cores read stay in the JavaScript core:
+    its method list here, the three expected files with its tests (`tests/core/`):
     - [spellCore.declarations.json](spellCore.declarations.json)
-    - [seededRandom.expected.json](seededRandom.expected.json)
-    - [stateById.expected.json](stateById.expected.json)
-    - [savedById.expected.json](savedById.expected.json)
+    - [seededRandom.expected.json](../../tests/core/seededRandom.expected.json)
+    - [stateById.expected.json](../../tests/core/stateById.expected.json)
+    - [savedById.expected.json](../../tests/core/savedById.expected.json)
 
 ## Decorators
 

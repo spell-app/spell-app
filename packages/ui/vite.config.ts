@@ -235,11 +235,8 @@ export function declarations(): PluginOptions {
   return {
     include: ["src", "../util/src"],
     exclude: [
-      "src/**/*.test.ts",
-      "src/**/*.test.tsx",
       // visual-test hooks:  they import `test/test.types.ts`, whose `vitest` augmentations this program can't resolve
       "src/**/*.visual.ts",
-      "../util/src/**/*.test.ts",
       "../util/src/spell/**",
       "../util/src/index.ts"
     ],
