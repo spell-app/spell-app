@@ -189,18 +189,7 @@ export const epicPageVocabulary = {
       description:
         "A doc still planning (no phases, not future):  the folded `Plan hung?` aside, with the prompt to copy."
     },
-    {
-      name: "new-button",
-      description:
-        "The toolbar's New todo or question (comment dots, epic `airplane` P2):  opens the form.  Only while the page " +
-        "is reviewed."
-    },
-    {
-      name: "new-form",
-      description:
-        "The new todo or question form the toolbar button opened (an `<epic-new-item open>`):  a row of its own " +
-        "across the header."
-    },
+    { name: "expand-all", description: "The toolbar's expand-all button:  opens every section, phase and item." },
     {
       name: "agents",
       description:
@@ -220,14 +209,10 @@ export const epicPageVocabulary = {
 
     { key: "copyHeading", text: "Copy {command}", description: "The h1's name:  its tooltip." },
     {
-      key: "headingCopied",
-      text: "Copied {command}",
-      description: "The toast once the h1's name is clicked:  what went onto the clipboard."
-    },
-    {
-      key: "newButton",
-      text: "New todo or question",
-      description: "The toolbar's new item button (comment dots):  its name and tooltip."
+      key: "copiedText",
+      text: "Copied {text}",
+      description:
+        "The toast once something is copied (the h1's name, a meta line's code):  what went onto the clipboard."
     },
     { key: "crumbs", text: "Breadcrumb", description: "The crumbs, spoken." },
     { key: "crumbDocs", text: "Docs", description: "The crumbs' first:  the docs home." },
@@ -307,6 +292,11 @@ export const epicPageVocabulary = {
       key: "airplanePill",
       text: "Airplane mode:  this waits for",
       description: "The pill in airplane mode, before `/airplane land`."
+    },
+    {
+      key: "expandAll",
+      text: "Open every section, phase and item",
+      description: "The toolbar's expand-all button:  its name and tooltip."
     },
     {
       key: "collapseAll",

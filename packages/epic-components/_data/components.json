@@ -1861,12 +1861,8 @@
           "description": "A doc still planning (no phases, not future):  the folded `Plan hung?` aside, with the prompt to copy."
         },
         {
-          "name": "new-button",
-          "description": "The toolbar's New todo or question (comment dots, epic `airplane` P2):  opens the form.  Only while the page is reviewed."
-        },
-        {
-          "name": "new-form",
-          "description": "The new todo or question form the toolbar button opened (an `<epic-new-item open>`):  a row of its own across the header."
+          "name": "expand-all",
+          "description": "The toolbar's expand-all button:  opens every section, phase and item."
         },
         {
           "name": "agents",
@@ -1895,14 +1891,9 @@
           "description": "The h1's name:  its tooltip."
         },
         {
-          "key": "headingCopied",
-          "text": "Copied {command}",
-          "description": "The toast once the h1's name is clicked:  what went onto the clipboard."
-        },
-        {
-          "key": "newButton",
-          "text": "New todo or question",
-          "description": "The toolbar's new item button (comment dots):  its name and tooltip."
+          "key": "copiedText",
+          "text": "Copied {text}",
+          "description": "The toast once something is copied (the h1's name, a meta line's code):  what went onto the clipboard."
         },
         {
           "key": "crumbs",
@@ -2088,6 +2079,11 @@
           "key": "airplanePill",
           "text": "Airplane mode:  this waits for",
           "description": "The pill in airplane mode, before `/airplane land`."
+        },
+        {
+          "key": "expandAll",
+          "text": "Open every section, phase and item",
+          "description": "The toolbar's expand-all button:  its name and tooltip."
         },
         {
           "key": "collapseAll",
@@ -2763,7 +2759,11 @@
         },
         {
           "name": "new-item",
-          "description": "A Todos or Questions section's New todo / New question (an `<epic-new-item>`, epic `airplane` P2), at its end:  the button, or the form in its place.  Only while the page is reviewed."
+          "description": "A Todos, Questions, Issues or Tests section's New todo / question / issue / test (an `<epic-new-item>`, epic `airplane` P2), at its end:  the button, or the form in its place.  Only while the page is reviewed."
+        },
+        {
+          "name": "new-button",
+          "description": "The same sections' comment-dots button, on the title:  opens the section, then that form.  Only while reviewed."
         },
         {
           "name": "new-list",
@@ -2937,6 +2937,11 @@
           "description": "Under a filtered list;  a click shows all."
         },
         {
+          "key": "addNew",
+          "text": "New {kind}",
+          "description": "An item section's comment-dots button on its title:  its name and tooltip."
+        },
+        {
           "key": "newTodo",
           "text": "Todo",
           "description": "Kind:  a todo."
@@ -2945,6 +2950,16 @@
           "key": "newQuestion",
           "text": "Question",
           "description": "Kind:  a question."
+        },
+        {
+          "key": "newIssue",
+          "text": "Issue",
+          "description": "Kind:  an issue."
+        },
+        {
+          "key": "newTest",
+          "text": "Test",
+          "description": "Kind:  a test, for Owen to try by hand."
         },
         {
           "key": "newUnsent",

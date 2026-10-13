@@ -10,9 +10,8 @@ import { NOBODY_LISTENING, isAirplane, isImmediate } from "$/epics/review"
 // the page's view of the review inbox, as the review controls':  its file, not `epic-review`'s barrel
 import { ReviewState } from "$/epics/components/epic-review/ReviewState"
 // the fold and filter pieces the blocks share:  their files, not their families' barrels (which would define them here)
-import { Fold, foldAllUnder } from "$/epics/components/epic-item/Fold"
+import { Fold, expandAllUnder, foldAllUnder } from "$/epics/components/epic-item/Fold"
 import { StateFilter } from "$/epics/components/epic-section/StateFilter"
-import { NEW_BUTTON, NEW_CLOSED } from "$/epics/components/epic-new-item/EpicNewItem.types"
 import {
   CHIP,
   CHIP_CLICK_KEYS,
@@ -30,6 +29,7 @@ import {
   CRUMB_LINKS,
   CRUMBS,
   DONE,
+  COPIED_TOAST_ID,
   COPIED_TOAST_MS,
   FLASH_MS,
   GIT,
@@ -117,10 +117,8 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  * - THE PILL, under the review line, while marks or comments wait and nobody can take them:
  *   no session listening (solid orange, a warning), or airplane mode;  a click copies the review line's command,
  *   and, out of airplane mode, starts the review in the epic's own session (`ReviewClient.startReview()`)
- * - NEW TODO OR QUESTION (epic `airplane` P2), while reviewed:
- *   - the toolbar's comment-dots button opens the form (an `<epic-new-item open>`) on a row of its own
- *     in the toolbar's sticky bar;  saved or cancelled, it closes (`epic-new-closed`)
- *   - what's asked for waits in the inbox, drawn at the end of its section (Todos, Questions) until Claude makes it
+ * - NEW ITEMS (epic `airplane` P2):  each item section's own comment-dots button, on its title (`<epic-section>`);
+ *   the page's toolbar has none since 2026-10-13
  * - THE TOOLBAR (epic `airplane` P8):  the sticky bar's last row.
  *   - edge to edge, its own rule under it and none above (Owen, 2026-10-10)
  *   - the header's and the bar's measured heights (`top`, `--epic-stack`) take it in
@@ -196,9 +194,6 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
 
   /** Bumped when a section's filter changes (`ui-filter`) or the sections first draw:  the toolbar's chips follow. */
   @E.state accessor filterTick = 0
-
-  /** The header's new item form is open (its toolbar button clicked;  epic `airplane` P2). */
-  @E.state accessor isAdding = false
 
   /** The sticky header's measured height, px:  where the toolbar's bar sticks, below it (`measure()`). */
   @E.state accessor headHeight = 0
@@ -440,14 +435,6 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
       this.filterTick++
     })
 
-  /** The header's new item form closed (saved or cancelled):  the toolbar button's no longer pressed. */
-  @E.on(NEW_CLOSED, { target: "renderRoot" })
-  protected onNewClosed(event: Event) {
-    // its own form's only:  a section's comes through here too
-    if ((event.target as Node).getRootNode() !== event.currentTarget) return
-    this.isAdding = false
-  }
-
   /** Follow the review inbox while connected (kept alive:  a removed page stops). */
   @E.whileConnected
   protected followReviews() {
@@ -465,7 +452,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
               type="button"
               class={HEADING_COPY}
               title={this.translationForKey("copyHeading", { command: this.headingCommand() })}
-              onClick={() => void this.copyHeading()}
+              onClick={() => this.copyHeading()}
             >
               {this.epic}
             </button>
@@ -504,9 +491,6 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
           </span>
         </header>
         <div ref={(element) => (this.bar = element)} class={BAR} part={this.partForName("bar")}>
-          <Show when={this.isAdding && this.marks()}>
-            <epic-new-item open="" part={this.partForName("new-form")} />
-          </Show>
           {this.toolbar()}
         </div>
         {this.reviewLine()}
@@ -550,7 +534,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   /** The meta lines:  branch, worktree, dates, durable doc. */
   private metaLines(): JSX.Element {
     return (
-      <ul class={META} part={this.partForName("meta")}>
+      <ul class={META} part={this.partForName("meta")} onClick={(event) => this.copyMeta(event)}>
         <li>
           {this.icon(this.icons.branch)}
           <span>
@@ -606,8 +590,9 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   /**
    * The sticky bar's last row, the TOOLBAR (epic `airplane` P8), in its order:
    * - the docs runtime's section buttons (`slot="toolbar"`)
-   * - at the right, the page's state filter (`pageFilter()`), then collapse-all
-   * - while reviewed, a gap and the new todo or question button (comment dots;  Owen, 2026-10-10)
+   * - at the right, the page's state filter (`pageFilter()`), then expand-all and collapse-all
+   * - no new item button:  each item section has its own, on its title (Owen, 2026-10-13:  "Remove "comment" icon
+   *   from top header -- add it to question/todo/issue/test headers")
    */
   private toolbar(): JSX.Element {
     return (
@@ -615,35 +600,18 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
         <slot name={this.slotForName("toolbar")} />
         <span class={TOOLBAR_TOOLS}>
           {this.pageFilter()}
+          {Fold.expandAllButton({
+            label: this.translationForKey("expandAll"),
+            part: this.partForName("expand-all"),
+            onCollapse: () => this.expandAll()
+          })}
           {Fold.collapseAllButton({
             label: this.translationForKey("collapseAll"),
             part: this.partForName("collapse-all"),
             onCollapse: () => this.collapseAll()
           })}
-          <Show when={this.marks()}>{this.newButton()}</Show>
         </span>
       </div>
-    )
-  }
-
-  /**
-   * The new todo or question button (comment dots, round, its name the tooltip).
-   * - opens or closes the form on a row of its own in the toolbar's sticky bar (`<epic-new-item open>`)
-   * - pressed while it's open
-   */
-  private newButton(): JSX.Element {
-    return (
-      <button
-        type="button"
-        class={NEW_BUTTON}
-        part={this.partForName("new-button")}
-        aria-expanded={this.isAdding ? "true" : "false"}
-        aria-label={this.translationForKey("newButton")}
-        title={this.translationForKey("newButton")}
-        onClick={() => (this.isAdding = !this.isAdding)}
-      >
-        <ui-icon name="comment dots" />
-      </button>
     )
   }
 
@@ -936,6 +904,12 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     window.scrollTo({ top: 0, behavior: "instant" })
   }
 
+  /** The toolbar's expand-all:  every section, phase and item on the page opened (`expandAllUnder()`). */
+  @E.untracked
+  private expandAll() {
+    expandAllUnder(this.domElement)
+  }
+
   /** The sections below that have a state filter (`DOMEpicSectionElement`):  the item sections. */
   private filterHosts(): FilterHost[] {
     return Array.from(this.domElement.querySelectorAll<FilterHost>(SECTIONS))
@@ -950,7 +924,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   private async copyCommand() {
     const client = this.review.client
     if (client && !client.listening && !isAirplane()) void client.startReview()
-    if (!(await EpicPage.copyText(this.command()))) return
+    if (!(await this.copyAndSay(this.command()))) return
     // off first, so a second click flashes again
     this.isCopied = false
     this.flashTimer?.cancel()
@@ -958,19 +932,37 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     this.flashTimer = E.after((FLASH_MS + 600) / 1000, () => (this.isCopied = false))
   }
 
-  /** The heading's name, clicked:  copy `/epic resume <name>`, and a quiet toast says so. */
+  /** The heading's name, clicked:  copy `/epic resume <name>`. */
   @E.untracked
-  private async copyHeading() {
-    const command = this.headingCommand()
-    if (!(await EpicPage.copyText(command))) return
-    // the docs bundle defines `<ui-toast>`;  a page without it just copies
-    if (!customElements.get("ui-toast")) return
-    UI.toast({
-      id: "epic-heading-copied",
-      message: this.translationForKey("headingCopied", { command }),
-      position: "bottom right",
-      displayTime: COPIED_TOAST_MS
-    })
+  private copyHeading() {
+    void this.copyAndSay(this.headingCommand())
+  }
+
+  /** A meta line's command or path (its `<code>`), clicked:  copy its text. */
+  @E.untracked
+  private copyMeta(event: MouseEvent) {
+    const code = (event.target as Element).closest("code")
+    if (code?.textContent) void this.copyAndSay(code.textContent)
+  }
+
+  /**
+   * Copy `text`, and a quiet blue toast says so (Owen, 2026-10-13:  "copied toast in blue.  All file links and
+   * commands should be clickable to copy the text").  True when it was copied.
+   * - the docs bundle defines `<ui-toast>`;  a page without it just copies
+   */
+  @E.untracked
+  private async copyAndSay(text: string): Promise<boolean> {
+    if (!(await EpicPage.copyText(text))) return false
+    if (customElements.get("ui-toast")) {
+      UI.toast({
+        id: COPIED_TOAST_ID,
+        class: "blue",
+        message: this.translationForKey("copiedText", { text }),
+        position: "bottom right",
+        displayTime: COPIED_TOAST_MS
+      })
+    }
+    return true
   }
 
   /**

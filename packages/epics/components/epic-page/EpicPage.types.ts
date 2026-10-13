@@ -114,8 +114,9 @@ export const CRUMB_LINKS = {
  */
 export const OLD_CRUMBS = ":scope > .spell-crumbs"
 
-/** How long the toast saying the heading's name was copied shows, ms. */
+/** The toast saying something was copied (the heading's name, a meta line's code, the review line):  how long it shows, ms;  its id, so a second copy replaces it. */
 export const COPIED_TOAST_MS = 2500
+export const COPIED_TOAST_ID = "epic-copied"
 
 /** How long the review line flashes once copied, ms:  as the old runtime's (`FLASH_MS`). */
 export const FLASH_MS = 900

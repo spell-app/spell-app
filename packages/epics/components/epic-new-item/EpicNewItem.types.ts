@@ -11,7 +11,7 @@ import type { epicNewItemVocabulary } from "./EpicNewItem.en"
 export type EpicNewItemVocabulary = typeof epicNewItemVocabulary
 
 /** The kinds of new item, as its `adds` attribute takes them. */
-export const NEW_ITEM_KINDS = ["todo", "question"] as const satisfies readonly NewKind[]
+export const NEW_ITEM_KINDS = ["todo", "question", "issue", "test"] as const satisfies readonly NewKind[]
 
 /**
  * Each kind of new item Owen may ask for from the page:
@@ -30,7 +30,9 @@ export const NEW_KIND_LOOKS = {
     add: "addQuestion",
     tip: "newQuestionTip",
     section: "questions"
-  }
+  },
+  issue: { icon: "bug", label: "newIssue", add: "addIssue", tip: "newIssueTip", section: "issues" },
+  test: { icon: "flask", label: "newTest", add: "addTest", tip: "newTestTip", section: "tests" }
 } as const satisfies Record<
   NewKind,
   {
@@ -62,15 +64,19 @@ export const NEW_CLOSED = "epic-new-closed"
 /** The kinds' names:  `<epic-new-item>`'s (its form's kind buttons), and `<epic-section>`'s (its waiting cards). */
 export const NEW_KIND_TEXTS = [
   { key: "newTodo", text: "Todo", description: "Kind:  a todo." },
-  { key: "newQuestion", text: "Question", description: "Kind:  a question." }
+  { key: "newQuestion", text: "Question", description: "Kind:  a question." },
+  { key: "newIssue", text: "Issue", description: "Kind:  an issue." },
+  { key: "newTest", text: "Test", description: "Kind:  a test, for Owen to try by hand." }
 ] as const
 
 /** The rest of `<epic-new-item>`'s texts. */
 export const NEW_ITEM_TEXTS = [
-  { key: "newButton", text: "New todo or question", description: "The button's words without `adds`." },
+  { key: "newButton", text: "New todo, question, issue or test", description: "The button's words without `adds`." },
   { key: "addTodo", text: "New todo", description: "The Todos section's button, at its end." },
   { key: "addQuestion", text: "New question", description: "The Questions section's button, at its end." },
-  { key: "newForm", text: "A new todo or question, for Claude to add", description: "The form, for a screen reader." },
+  { key: "addIssue", text: "New issue", description: "The Issues section's button, at its end." },
+  { key: "addTest", text: "New test", description: "The Tests section's button, at its end." },
+  { key: "newForm", text: "A new item, for Claude to add", description: "The form, for a screen reader." },
   { key: "newKind", text: "What it is", description: "The form's kind buttons, for a screen reader." },
   { key: "newTitle", text: "Title:  what to do, or what to ask", description: "The title field's placeholder." },
   {
@@ -88,6 +94,8 @@ export const NEW_ITEM_TEXTS = [
   { key: "newCancel", text: "Cancel", description: "The form's button:  closes it, nothing saved." },
   { key: "newTodoTip", text: "Make it a todo", description: "Kind button:  its tooltip." },
   { key: "newQuestionTip", text: "Make it a question", description: "Kind button:  its tooltip." },
+  { key: "newIssueTip", text: "Make it an issue", description: "Kind button:  its tooltip." },
+  { key: "newTestTip", text: "Make it a test", description: "Kind button:  its tooltip." },
   { key: "newAddTip", text: "Add:  Claude puts it in the plan doc", description: "The form's Add:  its tooltip." },
   { key: "newSaveTip", text: "Save your changes", description: "The form's Save:  its tooltip." },
   { key: "newCancelTip", text: "Cancel:  close it, nothing saved", description: "The form's Cancel:  its tooltip." },

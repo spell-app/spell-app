@@ -591,7 +591,7 @@ describe("ReviewInbox phases, the summary, new items", () => {
 
   test("bad new items throw;  `new` only under a new key;  a new key never takes another action", () => {
     const inbox = new ReviewInbox()
-    expect(() => inbox.setNew(undefined, { kind: "issue", title: "x" })).toThrow(/a new what/)
+    expect(() => inbox.setNew(undefined, { kind: "decision", title: "x" })).toThrow(/a new what/)
     expect(() => inbox.setNew(undefined, { kind: "todo", title: "  " })).toThrow(/needs a title/)
     expect(() => inbox.setNew(undefined, { kind: "todo", title: "x".repeat(301) })).toThrow(/a title is a line/)
     expect(() => inbox.setNew(undefined, { kind: "todo", title: "x", note: 3 })).toThrow(/note is text/)

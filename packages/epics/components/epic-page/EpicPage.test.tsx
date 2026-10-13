@@ -307,7 +307,7 @@ describe("<epic-page>", () => {
     const host = await render(page("", ["todo"]))
     host.shadowRoot!.querySelector<HTMLButtonElement>("h1 button")!.click()
     await vi.waitFor(() =>
-      expect(document.getElementById("epic-heading-copied")?.getAttribute("message")).toBe("Copied /epic resume demo")
+      expect(document.getElementById("epic-copied")?.getAttribute("message")).toBe("Copied /epic resume demo")
     )
     expect(writeText).toHaveBeenCalledWith("/epic resume demo")
     writeText.mockRestore()
@@ -491,17 +491,21 @@ describe("<epic-page> Send and Review Now", () => {
   })
 
   // epic `airplane` P2;  in the toolbar since P8
-  test("the toolbar's comment-dots button opens the new item form in the toolbar's bar;  Add saves a todo, and Send shows it", async () => {
+  // Owen, 2026-10-13:  "Remove "comment" icon from top header -- add it to question/todo/issue/test headers"
+  test("no new item button in the toolbar;  an item section's, on its title, opens the section and its form;  Add saves a todo, and Send shows it", async () => {
     const routes = new FakeRoutes()
     // listening:  the orange pill has a contrast issue of its own (axe), not this test's
     const at = new Date().toISOString()
     routes.inbox.listening = { session: "s1", since: at, seen: at }
     await adoptClient(routes)
-    const host = await render(page("", ["todo"]))
-    await vi.waitFor(() => expect(host.shadowRoot!.querySelector('[part~="new-button"]')).not.toBeNull())
-    const button = host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="new-button"]')!
-    expect(button.title).toBe("New todo or question")
-    expect(button.closest('[part~="toolbar"]')).not.toBeNull()
+    const host = await render(page("", ["todo"], `<epic-section id="todos" kind="todos"></epic-section>`))
+    const todos = host.querySelector<E.DOMElement>("#todos")!
+    await vi.waitFor(() => expect(todos.shadowRoot!.querySelector('[part~="new-button"]')).not.toBeNull())
+    expect(host.shadowRoot!.querySelector('[part~="new-button"]')).toBeNull()
+    expect(host.shadowRoot!.querySelector('[part~="expand-all"]')).not.toBeNull()
+    const button = todos.shadowRoot!.querySelector<HTMLButtonElement>('[part~="new-button"]')!
+    expect(button.title).toBe("New Todo")
+    expect(button.closest('[part~="tools"]')).not.toBeNull()
     expect(button.querySelector("ui-icon")!.getAttribute("name")).toBe("comment dots")
     // nothing waiting:  both there, grey (so they're always in the same place), and no pill
     expect(headerButtons(host)).toEqual({
@@ -510,14 +514,15 @@ describe("<epic-page> Send and Review Now", () => {
     })
     expect(host.shadowRoot!.querySelector('[part~="pill"]')).toBeNull()
     button.click()
-    await ElementFixture.tick()
-    expect(button.getAttribute("aria-expanded")).toBe("true")
-    const newItem = host.shadowRoot!.querySelector<HTMLElement>('[part~="bar"] > [part~="new-form"]')!
-    const form = await vi.waitFor(() => newItem.shadowRoot!.querySelector<HTMLFormElement>('[part~="form"]')!)
-    // a row of its own across the toolbar's sticky bar, above the toolbar
-    const toolbar = host.shadowRoot!.querySelector('[part~="toolbar"]')!
-    expect(form.getBoundingClientRect().bottom).toBeLessThanOrEqual(toolbar.getBoundingClientRect().top + 1)
-    expect(Math.round(form.getBoundingClientRect().width)).toBeGreaterThan(300)
+    await vi.waitFor(() =>
+      expect(todos.hasAttribute("open") || (todos as unknown as { open: boolean }).open).toBe(true)
+    )
+    const newItem = todos.shadowRoot!.querySelector<HTMLElement>('[part~="new-item"]')!
+    const form = await vi.waitFor(() => {
+      const opened = newItem.shadowRoot?.querySelector<HTMLFormElement>('[part~="form"]')
+      expect(opened).toBeTruthy()
+      return opened!
+    })
     form.querySelector<HTMLInputElement>('[data-field="title"]')!.value = "check the wifi"
     form.requestSubmit()
     await vi.waitFor(() =>
@@ -527,9 +532,6 @@ describe("<epic-page> Send and Review Now", () => {
       ])
     )
     await vi.waitFor(() => expect(headerButtons(host).send?.[0]).toBe("unsent"))
-    // saved:  the form gone, the button no longer pressed
-    expect(host.shadowRoot!.querySelector('[part~="new-form"]')).toBeNull()
-    expect(button.getAttribute("aria-expanded")).toBe("false")
     await expectAccessible(host)
   })
 })

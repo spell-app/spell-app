@@ -247,10 +247,10 @@ body.plan-doc .spell-doc-main:not(:has(.spell-crumbs)) {
 body.spell-wide .spell-doc-main .spell-crumbs {
   margin: 0;
   padding: 10px var(--spell-column-inset) 2px;
-  background: var(--spell-rail-fill);
+  background: var(--spell-head-fill);
 }
 body.spell-wide .spell-doc-main .spell-page-head {
-  background: var(--spell-rail-fill);
+  background: var(--spell-head-fill);
 }
 body.spell-wide .spell-doc-main :is(.spell-page-head, .spell-filter, footer.spell-doc-footer) {
   margin-inline: 0;
@@ -1702,6 +1702,13 @@ ui-accordion.spell-aside::part(content) {
   --spell-rail-hover: color-mix(in srgb, var(--spell-rail-ink) 9%, var(--spell-rail-bg));
   --spell-rail-selected: color-mix(in srgb, var(--spell-rail-ink) 18%, var(--spell-rail-bg));
   --spell-rail-rule: color-mix(in srgb, var(--spell-rail-ink) 22%, transparent);
+  /*
+   * the page's head above the toolbar:  a lighter ivory;  the toolbar's edges:  a darker one, drawn as shadows
+   * (Owen, 2026-10-13:  "lighter beige", "Rule above/below should be darker beige -- use a shadow for it");
+   * `<epic-page>` reads them too (`--epic-head-fill`, `--epic-toolbar-edge`)
+   */
+  --spell-head-fill: color-mix(in oklab, var(--spell-rail-bg) 45%, var(--spell-bg));
+  --spell-rail-edge: color-mix(in oklab, var(--spell-rail-ink) 22%, var(--spell-rail-bg));
   /* the ivory over the opaque surface, in case a theme's is see-through:  text scrolls under the stuck bar */
   --spell-rail-fill: linear-gradient(var(--spell-rail-bg), var(--spell-rail-bg)) var(--ui-surface, Canvas);
 }
@@ -1829,7 +1836,7 @@ ui-accordion.spell-aside::part(content) {
   flex: 1 0 calc(100% + 2 * var(--_out));
   margin-inline: calc(-1 * var(--_out));
   /* the band's own rule, as the plan doc's:  the page's rule is all but white on the ivory */
-  border-bottom: 1px solid var(--spell-rail-rule);
+  box-shadow: 0 1px 0 var(--spell-rail-edge);
   background: var(--spell-rail-fill);
 }
 .spell-page-head:has(> .spell-toolbar-titled) {
@@ -1837,8 +1844,10 @@ ui-accordion.spell-aside::part(content) {
 }
 .spell-page-head > .spell-toolbar-titled {
   margin-bottom: -8px;
-  /* a rule between it and the title, as an epic page's (Owen, 2026-10-13) */
-  border-top: 1px solid var(--spell-rail-rule);
+  /* an edge between it and the title too, as an epic page's (Owen, 2026-10-13) */
+  box-shadow:
+    0 -1px 0 var(--spell-rail-edge),
+    0 1px 0 var(--spell-rail-edge);
 }
 .spell-filter:has(> .spell-toolbar-titled) {
   border-bottom: none;
