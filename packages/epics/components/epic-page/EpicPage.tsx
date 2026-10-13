@@ -72,7 +72,7 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  * The component behind `<epic-page>`:  a plan doc --
  * one epic's page, its data in attributes, its Overview and sections as children.
  * - Draws, top to bottom:
- *   - the sticky page header:  ONE line of crumbs, `DOCS / EPICS / <name>`, the name large and bold, the h1
+ *   - the sticky page header:  ONE line of crumbs, `DOCS / EPICS / <NAME>`, the name in their type, twice their size and bold, the h1
  *     (Owen, 2026-10-13:  "This is all redundant ... Just go with a single set of breadcrumbs")
  *     - a click on the name copies `/epic resume <name>`, and a quiet toast says so
  *     - no `DOCS / EPICS /` while the doc still holds its old `.spell-crumbs` before the page, nor narrow, 720px or

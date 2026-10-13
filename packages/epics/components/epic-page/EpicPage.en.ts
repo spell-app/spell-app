@@ -124,7 +124,7 @@ export const epicPageVocabulary = {
     {
       name: "heading",
       description:
-        "The h1:  the crumbs, then the epic's name, large and bold;  a click on the name copies `/epic resume <name>`."
+        "The h1:  the crumbs, then the epic's name in their type, twice their size and bold;  a click on the name copies `/epic resume <name>`."
     },
     {
       name: "bar",

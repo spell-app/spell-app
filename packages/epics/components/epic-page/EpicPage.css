@@ -117,22 +117,28 @@
     display: flex;
     align-items: center;
     gap: 6px 10px;
-    padding: 8px var(--epic-inset) 4px;
+    padding: 4px var(--epic-inset);
     /* ivory, as the toolbar under it:  one band from the site header down (Owen, 2026-10-13) */
     background: var(--epic-toolbar-fill);
   }
-  /* the h1, taking the row's free room:  the crumbs, then the epic's name, on one baseline */
+  /*
+   * the h1, taking the row's free room:  the crumbs, then the epic's name, centred on the row, at least as tall as the
+   * labels at its right;  the name in the crumbs' own type, all capitals, twice their size and bold (Owen, 2026-10-13:
+   * "same font and style / all caps, 1/2 the size, vertical align center, less vertical padding")
+   */
   .heading {
     flex: 1 1 12em;
     min-width: 0;
+    min-height: var(--epic-control-size, 28px);
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
+    align-items: center;
     gap: 0 6px;
     margin: 0;
     color: var(--epic-heading-ink);
-    font: 700 32px/1.15 var(--epic-serif);
-    letter-spacing: -0.022em;
+    font: 700 16px/1.2 var(--epic-mono);
+    letter-spacing: var(--spell-eyebrow-tracking, 0.14em);
+    text-transform: uppercase;
   }
   /* the epic's name:  a plain-looking heading that copies `/epic resume <name>` */
   .heading-copy {
@@ -143,6 +149,7 @@
     color: inherit;
     font: inherit;
     letter-spacing: inherit;
+    text-transform: inherit;
     text-align: start;
     overflow-wrap: anywhere;
     cursor: copy;
@@ -567,14 +574,13 @@
     /* the h1 shares its row with the labels while they fit (no row of their own:  the stuck header stays short) */
     .heading {
       flex-basis: 100%;
-      font-size: 24px;
     }
     /* the labels stay at the row's right, over the h1's end:  the header's own ground under them, fading left */
     .status {
       position: absolute;
-      top: 8px;
+      top: 4px;
       inset-inline-end: var(--epic-inset);
-      height: calc(24px * 1.15);
+      height: var(--epic-control-size, 28px);
       padding-inline-start: 6px;
       background: var(--epic-toolbar-fill);
       box-shadow: -10px 0 8px -2px var(--spell-rail-bg, var(--epic-warm));
