@@ -147,6 +147,8 @@ In `tools/`:
   - `spell-syntax.js`, `spell-syntax.css`:  [the spell syntax guide](../../guides/spell-syntax/spell-syntax.html).
     - It draws one table per module of the base spell language, a row per rule class, from spell's generated
       [spellSyntax.json](../spell/spellSyntax.json) (`yarn gen:syntax` in `packages/spell`).
+    - Each row:  the class's name, opening its source;  its syntaxes and aliases;  an example of each syntax in each
+      writer;  its purpose.  Every section starts open, with Expand all and Collapse all in the toolbar.
     - Built from elements, never markup in strings;  its boxes and toolbar are a syntax-choices page's
       (`syntax-choices.css`, `choicesRoutes.ts`), the page naming its rows on `<body data-choices-rows>`.
     - Each row's wand adds a comment on it ("Provide more details here"):  see "Comments".
@@ -199,6 +201,7 @@ In `tools/`:
     - EVERY one is `sticky collapsible dividing collapsed`:  a rule under every title, and every section folds.
   - They MUST start folded:  every section and sub-section `collapsed`, every code block and aside without `open`.
     - The reader opens what they want (Owen, 2026-10-03:  "default to closed, open on demand").
+    - The ONE exception:  the spell syntax guide starts with everything open (Owen, 2026-10-12), a comment in it says so.
     - The runtime remembers the reader's folds per page, and a link to an id unfolds what hides it.
   - its icon:  a `<ui-icon slot="icon" name="...">`, first inside it
   - a title with markup:  a `<span slot="header">`, instead of `header`
@@ -227,6 +230,7 @@ In `tools/`:
     - Titles that don't all fit end in `...`.
       - When each would get under 50px, they go:  icons only, the title as the button's tooltip (`fitTitles()`).
       - The row scrolls sideways if even that doesn't fit, never the page.
+    - The spell syntax guide adds Expand all and Collapse all at the band's right (`spell-syntax.js`, Owen 2026-10-12).
     - A page without a sticky page header:  the last row of its filter bar.
       Else a sticky bar of its own, before its first section (`.spell-toolbar-alone`:  the goals pages).
   - A PLAN DOC (`body.plan-doc`) has its own toolbar (`buildToolbar()`).

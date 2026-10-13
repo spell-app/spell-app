@@ -8,8 +8,8 @@ import { spellCore } from "$/core"
 import { spellParser } from "$/spell"
 
 /**
- * The spell syntax table:  every rule class of the base spell language, what it's for,
- * and what one example of it compiles to in each writer.
+ * The spell syntax table:  every rule class of the base spell language, what it's for, each syntax it's registered
+ * with, and what an example of each compiles to in each writer.
  * - Written to `spellSyntax.json`, at the package's root, by `yarn gen:syntax` (`writeSpellSyntax.ts`).
  *   - `spellSyntax.test.ts` fails when that file and the rules differ.
  *   - The spell syntax guide draws it (`guides/spell-syntax/spell-syntax.html`),
@@ -18,14 +18,18 @@ import { spellParser } from "$/spell"
  *   - a class registered once per syntax (`AssignmentStatement`) is one row, with each syntax
  *   - a class `specialize()`d into several rules (`Negatable`:  `is`, `can` ...) is one row, with each rule name
  *   - INTERNAL:  a rule class in `src/rules/` that's never registered itself, e.g. a base class (`SpellStatement`)
- * - The example:  the first test of the class's first registration that has one.
- *   Each writer writes it as its rule test would:  `js` and `ts` are what the rule's tests expect, once they pass.
+ *   - in a module, its internal rows first (by name), then its registered ones (in registration order)
+ * - Each syntax's example:  the first input of its own tests that compiles (`examplesOf()`).
+ *   - Each writer writes it as its rule test would:  `js` and `ts` are what the rule's tests expect, once they pass.
+ *   - Comments are left out of the example and of what the writers write (`withoutComments()`).
+ * - The aliases:  the other rule names it answers to, e.g. `expression` (`@proto static alias`).
  * - The purpose:  the class docstring's first sentence, without its "`is_gt_lt` rule:" lead.
  * - NODE-ONLY:  reads the rule files' source, for their docstrings.  NOT in the barrel.
  */
 export function spellSyntax(parser: P.Parser = spellParser): SpellSyntaxData {
   const sources = classSources()
   const registered = registeredClasses(parser)
+  const ancestors = ancestorClasses(registered)
   const modules = new Map<string, SpellSyntaxRule[]>()
   const rowFor = (module: string) => modules.get(module) ?? modules.set(module, []).get(module)!
   for (const [ruleClass, rules] of registered) {
@@ -36,12 +40,12 @@ export function spellSyntax(parser: P.Parser = spellParser): SpellSyntaxData {
       internal: false,
       ...where(source),
       purpose: purposeOf(source?.docstring),
-      syntax: unique(rules.map((rule) => rule.syntax).filter((syntax): syntax is string => !!syntax)),
-      ...examplesOf(parser, rules)
+      syntaxes: syntaxesOf(parser, rules),
+      aliases: aliasesOf(rules.map((rule) => rule.alias))
     })
   }
   const known = new Set([...registered.keys()].map((ruleClass) => ruleClass.name))
-  for (const source of internalClasses(sources, registered)) {
+  for (const source of internalClasses(sources, ancestors)) {
     if (known.has(source.className)) continue
     rowFor(source.module).push({
       className: source.className,
@@ -49,14 +53,15 @@ export function spellSyntax(parser: P.Parser = spellParser): SpellSyntaxData {
       internal: true,
       ...where(source),
       purpose: purposeOf(source.docstring),
-      syntax: []
+      syntaxes: [],
+      aliases: aliasesOf([(ancestors.get(source.className) as typeof P.Rule | undefined)?.alias])
     })
   }
   return {
     about: ABOUT,
     modules: [...modules].map(([module, rules]) => ({
       module,
-      rules: [...rules.filter((rule) => !rule.internal), ...sortedInternal(rules)]
+      rules: [...sortedInternal(rules), ...rules.filter((rule) => !rule.internal)]
     }))
   }
 }
@@ -91,20 +96,26 @@ function baseClassOf(ruleClass: P.RuleClass): P.RuleClass {
   return found
 }
 
-/**
- * The rule classes in `src/rules/` nobody registers:  base classes of registered ones (`InfixOperatorSuffix`),
- * and rule classes made while parsing (`DynamicMethodRule`).
- * - A class counts as a rule class when it extends one:  a registered class, one of their ancestors, a parser rule
- *   class (`P.Sequence`), or, in turn, another class found here.
- */
-function internalClasses(sources: Map<string, ClassSource>, registered: Map<P.RuleClass, P.Rule[]>): ClassSource[] {
-  const ruleClassNames = new Set<string>()
+/** Every registered class and each class it extends, short of `P.Rule` itself, by name. */
+function ancestorClasses(registered: Map<P.RuleClass, P.Rule[]>): Map<string, P.RuleClass> {
+  const ancestors = new Map<string, P.RuleClass>()
   for (const ruleClass of registered.keys()) {
     for (let each: unknown = ruleClass; typeof each === "function" && each !== P.Rule;) {
-      ruleClassNames.add((each as P.RuleClass).name)
+      if (!ancestors.has(each.name)) ancestors.set(each.name, each as P.RuleClass)
       each = Object.getPrototypeOf(each)
     }
   }
+  return ancestors
+}
+
+/**
+ * The rule classes in `src/rules/` nobody registers:  base classes of registered ones (`InfixOperatorSuffix`),
+ * and rule classes made while parsing (`DynamicMethodRule`).
+ * - A class counts as a rule class when it extends one:  a registered class, one of their `ancestors`, a parser rule
+ *   class (`P.Sequence`), or, in turn, another class found here.
+ */
+function internalClasses(sources: Map<string, ClassSource>, ancestors: Map<string, P.RuleClass>): ClassSource[] {
+  const ruleClassNames = new Set(ancestors.keys())
   const isParserRule = (name: string) => {
     const value = (P as Record<string, unknown>)[name]
     return typeof value === "function" && (value === P.Rule || value.prototype instanceof P.Rule)
@@ -128,35 +139,60 @@ function internalClasses(sources: Map<string, ClassSource>, registered: Map<P.Ru
   return [...found.values()]
 }
 
-/** `rules`'s internal rows, by class name, after the registered ones. */
+/** `rules`'s internal rows, by class name:  they go first. */
 function sortedInternal(rules: SpellSyntaxRule[]): SpellSyntaxRule[] {
   return rules.filter((rule) => rule.internal).sort((a, b) => a.className.localeCompare(b.className))
 }
 
+/**
+ * Each rule's `alias` (a name, a list of them, or none) as one list, without repeats:  `["statement", "expression"]`.
+ */
+function aliasesOf(aliases: (string | string[] | undefined)[]): string[] {
+  return unique(aliases.flat().filter((alias): alias is string => !!alias))
+}
+
 ////////////////
-// ## The example, in each writer
+// ## The syntaxes, and an example of each in each writer
 ////////////////
 
 /**
- * The first test of `rules` (in registration order) that has one, and what each writer writes for it;
- * `{}` when none has a test.
+ * Each syntax `rules` are registered with, in registration order, each with its example.
+ * - a syntax registered twice (two groups, say) is one, with the first example either gives
+ * - a registration with no syntax of its own (a token's, matched by its code) still shows its example
+ */
+function syntaxesOf(parser: P.Parser, rules: P.Rule[]): SpellSyntaxForm[] {
+  const forms = new Map<string, SpellSyntaxForm>()
+  for (const rule of rules) {
+    const key = rule.syntax ?? ""
+    if (forms.get(key)?.example) continue
+    const form = { ...(rule.syntax ? { syntax: rule.syntax } : {}), ...examplesOf(parser, rule) }
+    if (!forms.has(key) || form.example) forms.set(key, form)
+  }
+  return [...forms.values()].filter((form) => form.syntax || form.example)
+}
+
+/**
+ * The first input of `rule`'s own tests that compiles, and what each writer writes for it;  `{}` when none does.
  * - Blank and skipped tests don't count, as in the rule tests themselves (`unitTestModuleRules()`).
  * - Nor does a test of what must NOT compile:  its `js` is `undefined`, or a parse error.
+ * - Comments left out of the input shown, and of each writer's output (`withoutComments()`):
+ *   it's compiled as the test has it.
  */
-function examplesOf(parser: P.Parser, rules: P.Rule[]): Pick<SpellSyntaxRule, "example" | "outputs"> {
-  for (const rule of rules) {
-    for (const block of rule.tests ?? []) {
-      if (block.skip) continue
-      const test = block.tests
-        .map(P.normalizeRuleTest)
-        .find(
-          ({ skip, input, js }) =>
-            !skip && input !== "" && js !== undefined && !(typeof js === "string" && PARSE_ERROR.test(js))
-        )
-      if (!test) continue
-      const compileAs = block.compileAs ?? rule.name
-      if (!compileAs) continue
-      return { example: test.input, outputs: writeExample(parser, test.input, compileAs, block.beforeEach) }
+function examplesOf(parser: P.Parser, rule: P.Rule): Pick<SpellSyntaxForm, "example" | "outputs"> {
+  for (const block of rule.tests ?? []) {
+    if (block.skip) continue
+    const test = block.tests
+      .map(P.normalizeRuleTest)
+      .find(
+        ({ skip, input, js }) =>
+          !skip && input !== "" && js !== undefined && !(typeof js === "string" && PARSE_ERROR.test(js))
+      )
+    if (!test) continue
+    const compileAs = block.compileAs ?? rule.name
+    if (!compileAs) continue
+    return {
+      example: withoutComments(test.input, "spell"),
+      outputs: writeExample(parser, test.input, compileAs, block.beforeEach)
     }
   }
   return {}
@@ -193,17 +229,17 @@ function writeExample(
     return { js: failed, ts: failed, py: failed }
   }
   const parsed = match
-  const write = (writer: P.ProgramWriter): SpellSyntaxOutput => {
+  const write = (writer: P.ProgramWriter, language: CodeLanguage): SpellSyntaxOutput => {
     try {
-      return { code: codeOf(parser.normalizeTestOutput(writer.writeMatch(parsed))) }
+      return { code: withoutComments(codeOf(parser.normalizeTestOutput(writer.writeMatch(parsed))), language) }
     } catch (error) {
       return { error: firstLine((error as Error).message) }
     }
   }
   return {
-    js: write(P.JSWriter.instance),
-    ts: write(P.TSWriter.instance),
-    py: parsed.rule.getAST ? write(PY.PyWriter.instance) : { error: NO_PYTHON }
+    js: write(P.JSWriter.instance, "js"),
+    ts: write(P.TSWriter.instance, "js"),
+    py: parsed.rule.getAST ? write(PY.PyWriter.instance, "py") : { error: NO_PYTHON }
   }
 }
 
@@ -212,6 +248,62 @@ function codeOf(written: unknown): string {
   if (written === undefined || written === null) return ""
   if (Array.isArray(written)) return written.map(codeOf).join("\n")
   return typeof written === "object" ? JSON.stringify(written) : String(written as string | number | boolean)
+}
+
+/**
+ * `code` without its comments, e.g. a class's docstring the TypeScript writer writes, or `/* spell: type unknown *\/`.
+ * - `language`:  which comments and quotes it has
+ *   - `js` (javascript and TypeScript):  `// ...` and `/* ... *\/`;  quotes `"`, `'` and `` ` ``
+ *   - `py`:  `# ...`;  quotes `"""`, `'''`, `"` and `'`
+ *   - `spell`:  `// ...` and `/* ... *\/`;  quotes `"` only, as `isn't` is no quote
+ * - what's quoted is never a comment:  `"http://..."` stays
+ * - a line left blank by it goes;  blank lines left in a row, one;  spaces at a line's end, none
+ * - a comment that's ALL there is stays:  the comment rule's own example, `// foo`
+ */
+export function withoutComments(code: string, language: CodeLanguage): string {
+  const stripped = commentsBlanked(code, language).split("\n")
+  const lines = code.split("\n").flatMap((line, i) => {
+    const kept = stripped[i]!.trimEnd()
+    return kept || !line.trim() ? [kept] : []
+  })
+  const text = lines
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/^\n+|\n+$/g, "")
+  return text || code
+}
+
+/** `code` with each comment removed, its line breaks kept:  line `i` of the result is line `i` of `code`. */
+function commentsBlanked(code: string, language: CodeLanguage): string {
+  const { line, block, quotes } = COMMENT_SYNTAX[language]
+  let out = ""
+  for (let i = 0; i < code.length;) {
+    if (code.startsWith(line, i)) {
+      while (i < code.length && code[i] !== "\n") i++
+      continue
+    }
+    if (block && code.startsWith(block[0], i)) {
+      const end = code.indexOf(block[1], i + block[0].length)
+      let stop = end < 0 ? code.length : end + block[1].length
+      out += code.slice(i, stop).replace(/[^\n]/g, "")
+      // a comment between two words:  one space left between them, not two
+      if (out.endsWith(" ") && code[stop] === " ") stop++
+      i = stop
+      continue
+    }
+    const quote = quotes.find((each) => code.startsWith(each, i))
+    if (quote) {
+      let stop = i + quote.length
+      while (stop < code.length && !code.startsWith(quote, stop)) stop += code[stop] === "\\" ? 2 : 1
+      stop = Math.min(code.length, stop + quote.length)
+      out += code.slice(i, stop)
+      i = stop
+      continue
+    }
+    out += code[i]
+    i++
+  }
+  return out
 }
 
 ////////////////
@@ -349,6 +441,13 @@ const PARSE_ERROR = /PARSE ERROR/
 /** Why a rule has no Python:  it writes itself, not through a writer. */
 const NO_PYTHON = "writes itself, in javascript:  no Python writer"
 
+/** Each language's comments and quotes (longest quote first), for `withoutComments()`. */
+const COMMENT_SYNTAX: Record<CodeLanguage, { line: string; block?: [string, string]; quotes: string[] }> = {
+  js: { line: "//", block: ["/*", "*/"], quotes: ["`", '"', "'"] },
+  py: { line: "#", quotes: ['"""', "'''", '"', "'"] },
+  spell: { line: "//", block: ["/*", "*/"], quotes: ['"'] }
+}
+
 /** The file's own note, first in it. */
 const ABOUT =
   "GENERATED by `yarn gen:syntax` in packages/spell (src/node/writeSpellSyntax.ts):  never edit.  Drawn by guides/spell-syntax/spell-syntax.html."
@@ -365,7 +464,7 @@ export type SpellSyntaxData = {
   modules: SpellSyntaxModule[]
 }
 
-/** One module's rules:  its registered classes in registration order, then its internal ones by name. */
+/** One module's rules:  its internal classes by name, then its registered ones in registration order. */
 export type SpellSyntaxModule = {
   /** The module's name, e.g. `math`:  its folder in `src/rules/`. */
   module: string
@@ -387,11 +486,22 @@ export type SpellSyntaxRule = {
   line?: number
   /** One sentence:  what it's for, from its docstring;  none:  `""`. */
   purpose: string
-  /** Each syntax it's registered with, e.g. `(operator:is (greater|less) than ...) {expression:operand}`. */
-  syntax: string[]
-  /** The example:  its first test's input;  none:  left out. */
+  /** Each syntax it's registered with, in registration order, with an example of it;  internal:  none. */
+  syntaxes: SpellSyntaxForm[]
+  /** The other rule names it answers to, its `alias`, e.g. `["expression"]`;  none:  `[]`. */
+  aliases: string[]
+}
+
+/** One syntax of a rule, and an example of it from its tests. */
+export type SpellSyntaxForm = {
+  /**
+   * The syntax as registered, e.g. `{thing:expression} is less than {other:expression}`;
+   * left out for a rule its code matches (a token's).
+   */
+  syntax?: string
+  /** The example:  the first input of its tests that compiles, comments left out;  none:  left out. */
   example?: string
-  /** What each writer writes for the example. */
+  /** What each writer writes for the example, comments left out. */
   outputs?: SpellSyntaxOutputs
 }
 
@@ -400,6 +510,9 @@ export type SpellSyntaxOutputs = Record<"js" | "ts" | "py", SpellSyntaxOutput>
 
 /** One writer's output:  its code, or why there's none. */
 export type SpellSyntaxOutput = { code: string } | { error: string }
+
+/** The languages `withoutComments()` reads:  `js` is javascript and TypeScript. */
+export type CodeLanguage = "js" | "py" | "spell"
 
 /** A class declared in a rule file -- see `classSources()`. */
 type ClassSource = {

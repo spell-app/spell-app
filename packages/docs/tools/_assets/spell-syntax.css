@@ -1,24 +1,57 @@
 /*
  * The spell syntax guide (`guides/spell-syntax/spell-syntax.html`), on top of `spell-doc.css` and
- * `syntax-choices.css` (its boxes and toolbar are a syntax-choices page's):  the rules' tables `spell-syntax.js` draws.
+ * `syntax-choices.css` (its boxes and toolbar are a syntax-choices page's):  the rules' tables `spell-syntax.js` draws,
+ * and its Expand all and Collapse all in the page toolbar.
  * - Phone width:  each table scrolls inside its own box (`spell-doc.css`'s `ui-table` rule), never the page.
  */
+
+/*******************************
+   Expand all, Collapse all
+*******************************/
+
+/*
+ * At the right of the page toolbar's ivory band (`spell-doc.css`, "Every other page's toolbar"):  drawn as its section
+ * buttons, which take the room left
+ */
+.spell-toolbar-titled:has(> .spell-syntax-folds) {
+  display: flex;
+  align-items: center;
+}
+.spell-toolbar-titled > .spell-toolbar-items:has(+ .spell-syntax-folds) {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-inline-end: 0;
+}
+.spell-syntax-folds {
+  display: flex;
+  flex: none;
+  gap: 1px;
+  padding-inline-end: calc(var(--_out) - 7px);
+}
+.spell-doc-page button.spell-syntax-fold {
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+.spell-doc-page button.spell-syntax-fold:hover {
+  background: var(--spell-rail-hover);
+}
 
 /*******************************
             Tables
 *******************************/
 
-/* fixed columns, so the boxes stay in view:  long code wraps in its cell;  under 760px the table scrolls in its box */
+/* fixed columns, so the boxes stay in view:  long code wraps in its cell;  under 800px the table scrolls in its box */
 .spell-syntax-table table {
   table-layout: fixed;
   width: 100%;
-  min-width: 760px;
+  min-width: 800px;
 }
 .spell-syntax-table th:nth-child(1) {
-  width: 27%;
+  width: 32%;
 }
 .spell-syntax-table th:nth-child(2) {
-  width: 43%;
+  width: 41%;
 }
 .spell-syntax-table :is(td, th) {
   vertical-align: top;
@@ -29,44 +62,72 @@
           Rule name
 *******************************/
 
-/* the class's name:  a heading's weight, in its box */
-.spell-syntax-class .spell-choice-input {
-  font: 600 1em/1.35 var(--spell-mono);
-}
-/* its rule names, small and quiet, then the link to its source */
-.spell-syntax-rule {
-  margin-top: 3px;
-  font-size: 0.78em;
-  color: var(--spell-muted);
+/* the class's name, a heading's weight, opening its source;  its pencil beside it, quiet until hovered */
+.spell-syntax-class {
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 .spell-syntax-source {
-  color: var(--spell-muted);
+  font: 600 1em/1.35 var(--spell-mono);
+  color: var(--spell-ink);
+  text-decoration: none;
 }
-.spell-syntax-source:is(:hover, :focus-visible) {
+a.spell-syntax-source:is(:hover, :focus-visible) {
   color: var(--spell-doc-accent);
+  text-decoration: underline;
 }
-/* the example, as a bullet */
-.spell-syntax-example {
+.spell-syntax-rename:not([data-open], :hover, :focus-visible) {
+  opacity: 0.55;
+}
+/* the box to suggest another name, under it once its pencil is clicked */
+.spell-syntax-box[hidden] {
+  display: none;
+}
+.spell-syntax-name > .spell-syntax-box {
+  margin-top: 3px;
+}
+.spell-syntax-name .spell-choice-input[data-one-line] {
+  font: 600 1em/1.35 var(--spell-mono);
+}
+/* each syntax, a bullet;  then its aliases, small and quiet */
+.spell-syntax-syntaxes {
   margin: 4px 0 0;
   padding-left: 1.2em;
 }
-.spell-syntax-example code {
+.spell-syntax-syntaxes code {
   white-space: pre-wrap;
+}
+.spell-syntax-name > p {
+  margin: 4px 0 0;
+}
+.spell-syntax-aka {
+  font-size: 0.85em;
+  color: var(--spell-muted);
 }
 
 /*******************************
             Syntax
 *******************************/
 
-/* one line per writer:  its name, then its box */
+/* each example:  the spell, then one line per writer, its name and its box;  a rule between examples */
 .spell-syntax-writers {
   margin: 0;
   padding: 0;
   list-style: none;
 }
+.spell-syntax-writers + .spell-syntax-writers {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--spell-rule);
+}
+.spell-syntax-input code {
+  padding-top: 2px;
+  white-space: pre-wrap;
+}
 .spell-syntax-writers > li {
   display: grid;
-  grid-template-columns: 2em minmax(0, 1fr);
+  grid-template-columns: 2.5em minmax(0, 1fr);
   align-items: start;
   gap: 4px;
   margin: 0 0 4px;
@@ -74,6 +135,7 @@
 .spell-syntax-writers > li > b {
   padding-top: 3px;
   font: 600 0.85em/1.4 var(--spell-mono);
+  white-space: nowrap;
 }
 .spell-syntax-none {
   color: var(--spell-muted);
