@@ -110,10 +110,15 @@ body {
 /*
  * One content column, centred;  nothing beside it (the contents column went, Owen, 2026-10-08;  the floating rail
  * too:  the navigation is a toolbar in the sticky page header since epic `airplane` P8, "Toolbar").
+ * - `--spell-measure`:  the column's width, its 16px side padding included (`--spell-doc-pad-inline`), so its text is
+ *   848px at most;  the wide layout below centres its reading column by it too
  */
+:root {
+  --spell-measure: 880px;
+}
 .spell-doc {
   display: grid;
-  grid-template-columns: minmax(0, 880px);
+  grid-template-columns: minmax(0, var(--spell-measure));
   justify-content: center;
 }
 /*
@@ -133,6 +138,93 @@ body {
   --spell-doc-pad-end: max(96px, calc(100vh - var(--spell-site-header-height, 0px) - var(--spell-top, 0px)));
   min-width: 0;
   padding: 10px var(--spell-doc-pad-inline) var(--spell-doc-pad-end);
+}
+
+/*
+ * ## The wide layout (`<body class="spell-wide">`;  epic `epic-workflow`, Owen 2026-10-12:  "This is nice for reading
+ * prose, but horrible for tables").  Opt-in while Owen tries it on a few pages;  then every page's.
+ * - `<main>` runs the window's full width, with no side padding;  each kind of block places itself:
+ *   - BARS (the sticky page header and its toolbar, section titles, the footer, a bottom bar like the syntax guide's
+ *     Send):  their background and rule edge to edge, their contents in the reading column
+ *   - TABLES (`ui-table`, a bare `table`, as a section's or `<main>`'s own child):  the full width, less the page's
+ *     16px gutter;  a table still scrolls inside its box when it's wider than the window
+ *   - everything else, PROSE and INSETS (paragraphs, lists, asides, code, messages, cards, comment threads):  the
+ *     reading column, as wide as the narrow layout's text (`--spell-measure`), centred;  a paragraph keeps its 72ch
+ *   - a block a page wants full width anyway:  `class="spell-full-width"`
+ * - A plan doc:  `<epic-page>` insets everything by `--epic-inset`, and its bands already run edge to edge (epics'
+ *   `EpicPage.css`), so the inset becomes the reading column's (`--spell-column-inset`)
+ * - Phone width:  the column is the window less the 16px gutter, as the narrow layout's
+ * - `--spell-column-inset`:  from `<main>`'s edge to the reading column's text, at least the gutter.  Registered as a
+ *   length, so it's worked out once, in px, on `<main>`, and every block inherits the same number, inside shadow roots
+ *   too, however deep (a `%` would measure each block's own parent).  `100cqi`:  `.spell-doc`'s width, the window's.
+ */
+@property --spell-column-inset {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 16px;
+}
+body.spell-wide .spell-doc {
+  container-type: inline-size;
+  grid-template-columns: minmax(0, 1fr);
+}
+body.spell-wide .spell-doc-main {
+  --spell-gutter: 16px;
+  --spell-column-inset: max(var(--spell-gutter), (100cqi - var(--spell-measure)) / 2 + var(--spell-gutter));
+  --spell-doc-pad-inline: 0px;
+}
+/* PROSE and INSETS:  the reading column */
+body.spell-wide
+  :is(.spell-doc-main, .spell-doc-main ui-section)
+  > :not(
+    ui-section,
+    ui-sticky,
+    ui-table,
+    table,
+    epic-page,
+    footer,
+    .spell-full-width,
+    #choices-bar,
+    .spell-toolbar-alone,
+    .spell-comment-mark:has(+ :is(ui-table, table, .spell-full-width)),
+    [slot]
+  ) {
+  margin-inline: var(--spell-column-inset);
+}
+/* TABLES:  the full width, in the gutter */
+body.spell-wide :is(.spell-doc-main, .spell-doc-main ui-section) > :is(ui-table, table) {
+  margin-inline: var(--spell-gutter);
+}
+/* BARS:  edge to edge, their contents in the column */
+body.spell-wide .spell-doc-main :is(.spell-page-head, .spell-filter, footer.spell-doc-footer) {
+  margin-inline: 0;
+  padding-inline: var(--spell-column-inset);
+}
+body.spell-wide .spell-doc-main .spell-page-head > .spell-comment-mark.at-page {
+  inset-inline-end: var(--spell-column-inset);
+}
+body.spell-wide .spell-doc-main ui-section {
+  --ui-section-title-padding: var(--spell-title-top) var(--spell-column-inset) 8px;
+  --spell-fold-end: calc(var(--spell-column-inset) + 4px);
+}
+body.spell-wide .spell-doc-main ui-section ui-section {
+  --ui-section-title-padding: var(--spell-title-top) var(--spell-column-inset) 6px;
+}
+body.spell-wide .spell-doc-main ui-section::part(title) {
+  margin-inline: 0;
+}
+body.spell-wide .spell-doc-main .spell-toolbar.spell-toolbar-titled {
+  --_out: var(--spell-column-inset);
+}
+body.spell-wide .spell-doc-main .spell-toolbar.spell-toolbar-alone {
+  margin-inline: 0;
+}
+body.spell-wide .spell-doc-main #choices-bar.spell-choices-bar {
+  margin-inline: 0;
+  padding-inline: var(--spell-column-inset);
+}
+/* a plan doc:  everything in `<epic-page>` sits the column's inset in from its bands */
+body.spell-wide epic-page {
+  --epic-inset: var(--spell-column-inset);
 }
 
 /*******************************

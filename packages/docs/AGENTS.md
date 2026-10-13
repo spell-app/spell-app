@@ -189,6 +189,26 @@ In `tools/`:
     - From `file://` each says so, where they'd go.
     - Its `<body data-spell-needs-server>` makes `check-spell.js` load it from the server.
     - Why:  Owen chose a plain JSON file over a JS data file, or tables rendered into the HTML (epic `commands`, D4).
+- The MEASURE:  a page's reading column is `--spell-measure` wide (880px, its 16px side padding included), centred
+  (`spell-doc.css`, "Layout").
+  - Today it holds EVERYTHING in `<main>`:  nice for prose, "horrible for tables" (Owen, 2026-10-12).
+  - The WIDE LAYOUT, opt-in while Owen tries it:  `<body class="... spell-wide">`.
+    On the spell syntax guide and `epic-workflow`'s plan doc so far;  every page's once he approves
+    (that epic's todo, "Make the wide layout the default on every page").
+    - `<main>` runs the window's full width, and each kind of block places itself:
+      - BARS (the sticky page header and its toolbar, section titles, the footer, a bottom bar):
+        background and rule edge to edge, their contents in the column
+      - TABLES (`ui-table`, a bare `table`), a section's or `<main>`'s own child:  the full width, less a 16px gutter
+      - everything else, prose and insets (paragraphs, lists, asides, code, messages, cards, comment threads):
+        the column, centred
+      - a block that should run full width anyway:  `class="spell-full-width"`
+    - A table INSIDE prose (a list item, a plan doc item's details) stays in the column with it.
+    - A plan doc:  `<epic-page>`'s `--epic-inset` becomes the column's inset, so its bands run edge to edge
+      and everything in them sits in the column.  The pack itself doesn't change.
+    - `--spell-column-inset`:  from the window's edge to the column, at least 16px.
+      Worked out once in px, on `<main>`, so a block at any depth (shadow roots too) inherits the same number.
+    - Phone width looks as before:  a 16px gutter, nothing wider than the window.
+    - Not tried yet:  the goals pages' old `section.s2` markup, a cheatsheet's filter bar, `.spell-toolbar-alone`.
 - Sections are `<ui-section>` elements.
   - The page skeleton:  [spell-docs.md](../../guides/spell-docs/spell-docs.md), "Page skeleton".
   - Every piece of the markup:  [the ui-section test page](../../guides/spell-docs/ui-section-test.html).
