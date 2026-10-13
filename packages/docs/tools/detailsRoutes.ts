@@ -62,13 +62,27 @@ export default detailsRoutes
  * - 400:  not a path;  404:  no such page;  403:  outside a mount, or not a details page
  */
 export function detailsPage(files: SRV.StaticHandler, page: unknown): string {
+  const file = servedPage(files, page)
+  if (!isDetailsPage(file)) throw new SRV.HttpError(403, `not a details page:  ${String(page)}`)
+  return file
+}
+
+/**
+ * The file of the page at URL path `page`, through the server's mounts;  any page.
+ * - 400:  not a path, or a folder;  404:  no such page;  403:  outside a mount
+ */
+export function servedPage(files: SRV.StaticHandler, page: unknown): string {
   if (typeof page !== "string" || !page.startsWith("/")) throw new SRV.HttpError(400, "no page")
   const resolved = files.resolve(page)
   if (!resolved) throw new SRV.HttpError(403, `not served here:  ${page}`)
   if ("redirect" in resolved) throw new SRV.HttpError(400, `a folder, not a page:  ${page}`)
   if ("status" in resolved) throw new SRV.HttpError(resolved.status, resolved.message)
-  if (!DETAILS_PAGE.test(resolved.file)) throw new SRV.HttpError(403, `not a details page:  ${page}`)
   return resolved.file
+}
+
+/** Is `file` a details page:  in a `details/` folder (`DETAILS_PAGE`)? */
+export function isDetailsPage(file: string): boolean {
+  return DETAILS_PAGE.test(file)
 }
 
 /**

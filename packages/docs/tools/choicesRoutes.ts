@@ -10,10 +10,13 @@
  * - `GET /api/choices/answer?page=<path>` -- the answer sent, `{ answer: ChoicesAnswer | null }`
  * - `POST /api/choices/answer` `{ page, values, feedback }` -- "Do it":  writes `<slug>.answer.json` (and the draft,
  *   so a reload shows what was sent);  sent again, `changes` counts up.  `spell dev choices wait` exits with it
- * - `page`:  the page's URL path, as served (a worktree's `/worktrees/<w>/...` too);  ONLY a details-folder page
- *   (`detailsPage()`) with its `<slug>.rows.json` beside it:  anything else is a 403
- * - `values`:  row id -> what's in its box, ONLY the rows that differ from the recommendation;  ids not in the rows
- *   file are a 400 (a page older than its rows:  reload it)
+ * - `page`:  the page's URL path, as served (a worktree's `/worktrees/<w>/...` too);
+ *   ONLY a details-folder page with its `<slug>.rows.json` beside it,
+ *   or a docs page naming its rows (`<body data-choices-rows>`, e.g. the spell syntax guide):
+ *   anything else is a 403 (`choicesPage()`)
+ * - `values`:  row id -> what's in its box, ONLY the rows that differ from the recommendation;
+ *   ids not in the rows file are a 400 (a page older than its rows:  reload it)
+ *   - a page naming its rows keys its boxes as it likes (`IsGtLt.py`):  unchecked
  * - every POST needs the page server's token (`x-server-token`) and its own origin (`SRV.Guard`)
  * - Shares nothing with `choices.js` at runtime (that's plain node JS):  the file names are said again here.
  */
@@ -22,7 +25,7 @@ import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs"
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
 
-import { detailsPage } from "./detailsRoutes"
+import { isDetailsPage, servedPage } from "./detailsRoutes"
 
 /** Where the routes live. */
 const API = "/api/choices"
@@ -58,14 +61,31 @@ const choicesRoutes: RouteModule = {
 export default choicesRoutes
 
 /**
- * The syntax-choices page file URL path `page` names, through the server's mounts.
- * - 400:  not a path;  404:  no such page;  403:  outside a mount, not in a `details/` folder, or no rows beside it
+ * The syntax-choices page file URL path `page` names, through the server's mounts.  Either:
+ * - a details-folder page with its rows beside it, `<slug>.rows.json` (`spell dev choices new`)
+ * - or a docs page naming its own rows, on its `<body data-choices-rows="...">` (`declaredRows()`):
+ *   e.g. the spell syntax guide, whose rows are generated from the code, and whose boxes are keyed `<row>.<field>`
+ * - 400:  not a path;  404:  no such page;  403:  outside a mount, or neither of the above
  */
 export function choicesPage(files: SRV.StaticHandler, page: unknown): string {
-  const file = detailsPage(files, page)
-  if (!existsSync(rowsFile(file))) throw new SRV.HttpError(403, `not a syntax-choices page:  ${String(page)}`)
-  return file
+  const file = servedPage(files, page)
+  if (isDetailsPage(file) && existsSync(rowsFile(file))) return file
+  if (declaredRows(file)) return file
+  throw new SRV.HttpError(403, `not a syntax-choices page:  ${String(page)}`)
 }
+
+/**
+ * The rows a page names on its `<body data-choices-rows="...">`, from the page's folder;  none:  `undefined`.
+ * - e.g. `../../packages/spell/spellSyntax.json`:  the generated data the page draws its rows from
+ * - Its boxes are checked only as text:  the rows are the page's own business, kept by whatever generates them
+ */
+export function declaredRows(file: string): string | undefined {
+  if (!file.endsWith(".html")) return undefined
+  return DECLARED_ROWS.exec(readFileSync(file, "utf8"))?.[1] || undefined
+}
+
+/** A `<body>` naming its rows:  `data-choices-rows="<path>"`. */
+const DECLARED_ROWS = /<body\b[^>]*\bdata-choices-rows="([^"]*)"/
 
 /**
  * Save what was typed on page `file` to `<slug>.draft.json`;  return what was written.
@@ -105,10 +125,12 @@ function toChoices(files: SRV.StaticHandler, body: unknown) {
   const { page, values, feedback } = (body ?? {}) as { page?: unknown; values?: unknown; feedback?: unknown }
   const file = choicesPage(files, page)
   if (!values || typeof values !== "object" || Array.isArray(values)) throw new SRV.HttpError(400, "no values")
-  const ids = new Set(readJson<{ rows: { id: string }[] }>(rowsFile(file))?.rows.map((row) => row.id))
+  // a page naming its own rows (`declaredRows()`) has none beside it:  its ids aren't checked
+  const rows = readJson<{ rows: { id: string }[] }>(rowsFile(file))
+  const ids = rows && new Set(rows.rows.map((row) => row.id))
   for (const [id, value] of Object.entries(values)) {
     if (typeof value !== "string") throw new SRV.HttpError(400, `bad value for ${id}`)
-    if (!ids.has(id)) throw new SRV.HttpError(400, `no row '${id}' on this page:  reload it`)
+    if (ids && !ids.has(id)) throw new SRV.HttpError(400, `no row '${id}' on this page:  reload it`)
   }
   if (feedback !== undefined && typeof feedback !== "string") throw new SRV.HttpError(400, "bad feedback")
   return { file, page: page as string, values: values as ChoicesValues, feedback: (feedback ?? "").trim() }

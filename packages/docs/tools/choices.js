@@ -15,6 +15,9 @@
  * - `list [<epic>]` -- every syntax-choices page:  answered, draft (typed, not sent) or waiting;  with an epic, only
  *   that epic's (`epics/<epic>/details/`)
  * - `<page>`:  a slug, `<epic>/<slug>`, or a path, as `spell dev details` takes them
+ * - A DOCS page may take choices too, naming its own rows on its `<body data-choices-rows="...">` (`declaredRows()`):
+ *   the spell syntax guide (`guides/spell-syntax/spell-syntax.html`), whose rows are generated from the code.
+ *   `show`, `wait` and `answer` work on it by its path;  `list` covers only the `details/` folders
  * - Beside the page (`<slug>.html`):
  *   - `<slug>.rows.json` -- the rows (`ChoicesData`, below), written by `new`;  the page fetches it, so it needs the
  *     page server.  Why a file and not rows inlined in the page:  the page can't save without the server anyway,
@@ -25,7 +28,7 @@
  * - Shares `details.js`' page lookup, answer file and waiting:  a choices page lives in the same `details/` folders.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
-import { basename, join, relative, resolve } from "node:path"
+import { basename, dirname, join, relative, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { parseHTML } from "linkedom"
@@ -208,9 +211,21 @@ export function findChoicesPage(docs, target) {
   return file
 }
 
-/** Is `page` a syntax-choices page:  are its rows beside it? */
+/** Is `page` a syntax-choices page:  are its rows beside it, or does it name them (`declaredRows()`)? */
 export function isChoicesPage(page) {
-  return existsSync(rowsFile(page))
+  return existsSync(rowsFile(page)) || !!declaredRows(page)
+}
+
+/**
+ * The rows file `page` names on its `<body data-choices-rows="...">`, absolute;  none:  `undefined`.
+ * - A docs page whose rows are its own business, e.g. the spell syntax guide's, generated from the code:
+ *   its boxes are keyed `<row>.<field>` (`IsGtLt.py`), and `answer` prints them as typed
+ * - Said again from `choicesRoutes.ts` (`declaredRows()`), which shares nothing with this file at runtime
+ */
+export function declaredRows(page) {
+  if (!page.endsWith(".html") || !existsSync(page)) return undefined
+  const named = /<body\b[^>]*\bdata-choices-rows="([^"]*)"/.exec(readFileSync(page, "utf8"))?.[1]
+  return named ? resolve(dirname(page), named) : undefined
 }
 
 /** `page`'s state for `list`:  `answered`, `draft` (typed, not sent) or `waiting`. */
@@ -249,6 +264,7 @@ export function readRows(page) {
 export function formatAnswer(page, answer) {
   const { document } = parseHTML(readFileSync(page, "utf8"))
   const title = document.querySelector("h1")?.textContent?.trim() ?? basename(page)
+  if (!existsSync(rowsFile(page))) return formatDeclared(page, title, answer)
   const { sections, rows } = readRows(page)
   const values = answer.values ?? {}
   const lines = [`Choices on "${title}" (${shown(page)}), sent ${answer.answered}:`]
@@ -273,6 +289,32 @@ export function formatAnswer(page, answer) {
   lines.push(
     `  Unchanged (accepted as recommended):  ${accepted.length} -- ${renames} to rename, ${accepted.length - renames} to stay`
   )
+  lines.push(answer.feedback ? `  Feedback:\n${indent(answer.feedback, "    ")}` : "  Feedback:  (none)")
+  return lines.join("\n")
+}
+
+/**
+ * `answer` to a page naming its own rows (`declaredRows()`) as plain text, for Claude:  the page and when, its rows
+ * file, each box Owen changed by its row (`IsGtLt`), then `field  =>  typed`, then the feedback.
+ * - What each box held before is in the rows file:  the page's business, not this tool's
+ */
+function formatDeclared(page, title, answer) {
+  const values = answer.values ?? {}
+  const lines = [`Choices on "${title}" (${shown(page)}), sent ${answer.answered}:`]
+  if (answer.changes) lines[0] += `  (sent ${answer.changes + 1}×)`
+  lines.push(`  Rows:  ${declaredRows(page) ?? "(the page names none)"}`)
+  const byRow = new Map()
+  for (const [id, typed] of Object.entries(values)) {
+    const [row, field = ""] = id.split(/\.(.*)/s)
+    if (!byRow.has(row)) byRow.set(row, [])
+    byRow.get(row).push([field, typed])
+  }
+  lines.push(`  Changed (${Object.keys(values).length}):`)
+  for (const [row, fields] of byRow) {
+    lines.push(`    ${row}`)
+    for (const [field, typed] of fields) lines.push(`      ${field || "(box)"}  =>  ${typed.trim() || "(blank)"}`)
+  }
+  if (!byRow.size) lines.push("    (none)")
   lines.push(answer.feedback ? `  Feedback:\n${indent(answer.feedback, "    ")}` : "  Feedback:  (none)")
   return lines.join("\n")
 }

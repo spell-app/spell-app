@@ -21,6 +21,8 @@
  *   - `--json`:  `[{ page, epic, phase, as: "phase" | "update", comments, notes }]`
  * - `answer <page> <id> --file <html> [--commit <sha>]`:  Claude's answer on the comment's thread (the file's
  *   markup, as is);  `--commit`, the commit it was built in (the thread's Done line shows it)
+ * - `wait [<page>...] [--timeout 8h]`:  block until a comment starts waiting for Claude (on those pages, else on any),
+ *   print it as `list` does, exit 0;  timeout:  exit 2.  Run it in the background:  its exit wakes the session
  * - `working <page> <id> on | off`:  Claude is thinking about the comment (on), or stopped:  its thread shows a
  *   "Claude: thinking…" stub meanwhile;  `answer` turns it off
  * - a THREAD:  Owen answers Claude's answer on the page (that's good, reply, skip it:  `CommentList`);  his reply is
@@ -35,6 +37,7 @@ import { fileURLToPath } from "node:url"
 
 import { CommentList, CommentsError } from "$/epics/tool/CommentList"
 
+import { duration } from "./details.js"
 import { GUIDE_CHANGES, GuideChanges } from "./GuideChanges"
 import { GuideInbox } from "./GuideInbox"
 import { ROOT, pageFile, parseArgs } from "./pages.js"
@@ -49,6 +52,7 @@ export async function run([verb = "list", ...rest]: string[], flags: Record<stri
   try {
     if (verb === "list") return list(flags, rest[0])
     if (verb === "gather") return await gather(rest, flags)
+    if (verb === "wait") return await wait(rest, flags)
     if (verb === "working") return working(rest)
     if (verb !== "answer") return usage()
     const [page, id] = rest
@@ -81,31 +85,80 @@ function working([page, id, on]: string[]): number {
  * - `epic`:  only epic `epic`'s:  on a page under `epics/<epic>/`, or taken into one of its phases
  */
 function list(flags: Record<string, string | true>, epic?: string): number {
-  const changes = new GuideChanges({ root: ROOT })
-  const comments = changes.inboxFiles().flatMap((file) => {
-    const page = relative(ROOT, file).replace(/\.inbox\.json$/, ".html")
-    const { commentList } = GuideInbox.read(file)
-    const shown = (flags.all ? commentList.all : commentList.waiting).map((comment) => ({ page, ...comment }))
-    return epic ? shown.filter((comment) => page.startsWith(`epics/${epic}/`) || comment.taken?.epic === epic) : shown
-  })
-  if (flags.json) console.log(JSON.stringify(comments, null, 2))
-  else if (!comments.length) console.log(flags.all ? "no comments" : "no comments waiting")
-  else
-    for (const comment of comments) {
-      const where =
-        comment.kind === "section" ? comment.label : `${comment.kind}${comment.label ? ` in ${comment.label}` : ""}`
-      const state = comment.status === "new" ? "" : `  (${comment.status})`
-      console.log(`${comment.page}  ${comment.id}  ${where || comment.anchor}  ${comment.at}${state}`)
-      if (comment.quote) console.log(`  on "${comment.quote}"`)
-      for (const line of comment.text.split("\n")) console.log(line ? `  ${line}` : "")
-      // his reply on the thread since Claude answered:  the work now
-      const reply = CommentList.isWaiting(comment) && comment.replies?.findLast((each) => each.by === "Owen")
-      if (!reply) continue
-      console.log(`  Owen replied ${reply.at}:`)
-      for (const line of reply.text!.split("\n")) console.log(line ? `    ${line}` : "")
-    }
+  const comments = pageComments(new GuideChanges({ root: ROOT }).inboxFiles(), flags.all ? "all" : "waiting")
+  const shown = epic
+    ? comments.filter((comment) => comment.page.startsWith(`epics/${epic}/`) || comment.taken?.epic === epic)
+    : comments
+  if (flags.json) console.log(JSON.stringify(shown, null, 2))
+  else if (!shown.length) console.log(flags.all ? "no comments" : "no comments waiting")
+  else printComments(shown)
   return 0
 }
+
+/**
+ * `wait [<page>...] [--timeout 8h]`:
+ * block until a comment starts WAITING for Claude on one of `pages` (none:  any docs page),
+ * print it as `list` does, exit 0;  `--timeout` passes first:  exit 2.
+ * - Run it in the BACKGROUND:  its exit wakes the session, as `epic ask wait` does for a details page.
+ * - New:  a comment that wasn't waiting as it started, or Owen's newer reply on one that was.
+ * - e.g. the spell syntax guide's wand, which adds a comment on its row:  "Provide more details here"
+ */
+async function wait(pages: string[], flags: Record<string, string | true>): Promise<number> {
+  const timeout = duration(typeof flags.timeout === "string" ? flags.timeout : DEFAULT_TIMEOUT)
+  const inboxes = () =>
+    pages.length
+      ? pages.map((page) => GuideInbox.fileFor(pageFile(page)))
+      : new GuideChanges({ root: ROOT }).inboxFiles()
+  const known = new Set(pageComments(inboxes(), "waiting").map(waitingKey))
+  console.log(`waiting for a new comment on ${pages.length ? pages.join(", ") : "any docs page"}`)
+  for (const end = Date.now() + timeout; Date.now() < end;) {
+    await new Promise((done) => setTimeout(done, Math.min(WAIT_POLL_MS, Math.max(0, end - Date.now()))))
+    const fresh = pageComments(inboxes(), "waiting").filter((comment) => !known.has(waitingKey(comment)))
+    if (!fresh.length) continue
+    printComments(fresh)
+    return 0
+  }
+  console.log(`no new comment after ${String(flags.timeout ?? DEFAULT_TIMEOUT)}`)
+  return 2
+}
+
+/** The comments in inbox files `files` (`all`, or only those `waiting` for Claude), each with its page. */
+function pageComments(files: string[], which: "all" | "waiting") {
+  return files.flatMap((file) => {
+    const page = relative(ROOT, file).replace(/\.inbox\.json$/, ".html")
+    const { commentList } = GuideInbox.read(file)
+    return (which === "all" ? commentList.all : commentList.waiting).map((comment) => ({ page, ...comment }))
+  })
+}
+
+/** What makes a waiting comment new to `wait`:  its page, its id, and Owen's last words on it. */
+function waitingKey(comment: ReturnType<typeof pageComments>[number]): string {
+  const owen = comment.replies?.findLast((each) => each.by === "Owen")
+  return `${comment.page}#${comment.id}@${owen?.at ?? comment.at}`
+}
+
+/** Print `comments` as `list` does:  page, id, where, when;  the quote;  the text;  Owen's latest reply. */
+function printComments(comments: ReturnType<typeof pageComments>) {
+  for (const comment of comments) {
+    const where =
+      comment.kind === "section" ? comment.label : `${comment.kind}${comment.label ? ` in ${comment.label}` : ""}`
+    const state = comment.status === "new" ? "" : `  (${comment.status})`
+    console.log(`${comment.page}  ${comment.id}  ${where || comment.anchor}  ${comment.at}${state}`)
+    if (comment.quote) console.log(`  on "${comment.quote}"`)
+    for (const line of comment.text.split("\n")) console.log(line ? `  ${line}` : "")
+    // his reply on the thread since Claude answered:  the work now
+    const reply = CommentList.isWaiting(comment) && comment.replies?.findLast((each) => each.by === "Owen")
+    if (!reply) continue
+    console.log(`  Owen replied ${reply.at}:`)
+    for (const line of reply.text!.split("\n")) console.log(line ? `    ${line}` : "")
+  }
+}
+
+/** How long `wait` waits by default:  8 hours, as `epic ask wait`. */
+const DEFAULT_TIMEOUT = "8h"
+
+/** How often `wait` looks at the inbox files, ms. */
+const WAIT_POLL_MS = 2000
 
 /** Gather the waiting comments into the epic, one phase per page;  print what went where. */
 async function gather(pages: string[], flags: Record<string, string | true>): Promise<number> {
@@ -133,6 +186,7 @@ function usage(): number {
   console.error(
     "usage:  epic comments list [<epic>] [--all] [--json]\n" +
       "        epic comments gather [<page>... | --all] [--epic <name>] [--json]\n" +
+      "        epic comments wait [<page>...] [--timeout 8h]\n" +
       "        epic comments answer <page> <id> --file <reply.html> [--commit <sha>]\n" +
       "        epic comments working <page> <id> on | off"
   )
