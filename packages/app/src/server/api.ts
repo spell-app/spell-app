@@ -10,9 +10,17 @@ import JSON5 from "json5"
 import { SRV } from "$/server"
 import * as responseUtils from "$/spell/node/response-utils"
 import * as projectUtils from "$/spell/node/project-utils"
+import { SP } from "$/spell"
+import { ProjectBuild } from "./ProjectBuild"
 
 /** Router mounted at `/api` by `server/index.ts`:  `$/server`'s Express-shaped `SRV.Router`. */
 export const api = new SRV.Router()
+
+/**
+ * Compiles a project when a request needs a file it builds, and it isn't there -- see `ProjectBuild`.
+ * - The page server's route module (`appRoutes.ts`) also starts it compiling the built-in projects as it starts.
+ */
+export const projectBuild = new ProjectBuild()
 
 /** Stringify `object` as indented `JSON5`, re-indenting continuation lines to line up under `indent`. */
 function stringify(object: any, indent: string) {
@@ -57,13 +65,18 @@ api.delete("/projects/remove/file", projectUtils.request_deleteFile)
 // NOTE: `:filePath*` captures the REST of the URL including `/`s, so nested folder paths reach the handler as one
 // string (`SRV.Router`;  Express 4 kept only the first segment);  see `SpellLocation`/`fileUtils` for how that gets
 // validated and turned back into a real path.
+// A file spell BUILDS (`<Project>.spell.js` ...), missing, is compiled first:  `projectBuild.builtFirst()`.
 api.get("/projects/index/:projectId", projectUtils.request_getIndex)
-api.get("/projects/file/:projectId/:filePath*", projectUtils.request_getFile)
+api.get("/projects/file/:projectId/:filePath*", projectBuild.builtFirst(), projectUtils.request_getFile)
 api.post("/projects/file/:projectId/:filePath*", projectUtils.request_saveFile)
 // a project's compiled JS, as another project's compiled output `import`s it -- see `SP.SPELL_PROJECT_MODULE`
-api.get("/projects/compiled/:projectId", projectUtils.request_getCompiled)
+api.get(
+  "/projects/compiled/:projectId",
+  projectBuild.builtFirst(SP.COMPILED_JS_SUFFIX),
+  projectUtils.request_getCompiled
+)
 // a project's scope pack, what its Type Explorer shows -- see `LSP.ScopePack`
-api.get("/projects/scopes/:projectId", projectUtils.request_getScopes)
+api.get("/projects/scopes/:projectId", projectBuild.builtFirst(SP.SCOPES_JS_SUFFIX), projectUtils.request_getScopes)
 // a project's declarations, where its Type Explorer finds each one's code -- see `SP.SpellDeclarations`
 api.get("/projects/declarations/:projectId", projectUtils.request_getDeclarations)
 // a project's words, what its Thing Explorer labels things' members by -- see `SP.SpellWords`

@@ -8,7 +8,7 @@ import { fileURLToPath } from "url"
 
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
-import { api } from "./api"
+import { api, projectBuild } from "./api"
 import { EDITOR_FILE, EditorServer } from "./EditorServer"
 
 /**
@@ -24,6 +24,9 @@ import { EDITOR_FILE, EditorServer } from "./EditorServer"
  *   (vite takes seconds) or not running:  says so
  * - writes refuse a foreign `Origin` (another site posting into our projects):  the API has no token, since the
  *   editor calls it from vite's origin, through vite's proxy
+ * - as it starts:  compiles the built-in projects that are out of date (`@examples`, `@library`), in the background,
+ *   so the demo pages and App UI's live examples find their compiled output in `build/` (`ProjectBuild`, `start()`);
+ *   stopped with the page server
  */
 const appRoutes: RouteModule = {
   name: "app",
@@ -31,6 +34,8 @@ const appRoutes: RouteModule = {
     const editor = new EditorServer(root)
     onListening(() => editor.start(info.port))
     onStop(() => editor.stop())
+    projectBuild.start()
+    onStop(() => projectBuild.stop())
     router.use("/api", refuseForeignOrigins, SRV.parseBodies({ limit: 10 * 1024 * 1024, parseJson: JSON5.parse }), api)
     router.get("/hello", (_request, reply) => reply.json({ message: "Hello from the API!" }))
     router.use(new SRV.StaticHandler({ mounts: [{ prefix: "/element", dir: ELEMENT_DIR }] }).handle)

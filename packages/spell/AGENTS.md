@@ -80,6 +80,8 @@ when working with code in this package, `@spell-app/spell`.
   - What a target builds (`<Project>.spell.js`, `.spell.tsx`, `.spell.py`, `.elements.spell.js`, and the scope pack,
     `.scopes.js`) goes in the project's build folder, `build/` at the repo root, never committed;
     the rest (declarations, words, `.lib.ts`, `.app.py`) beside its source.  See "Projects" in [PARSING.md](PARSING.md).
+    - Built when needed:  the page server compiles `@examples` and `@library` as it starts,
+      and the app's API a project whose built file is missing;  by hand, `spell compile --stale`.
   - A project lists the others it wants in `project.json`'s `"targets"`.
     `spell compile --target <name>` picks one for a single run.
   - The writers are `$/parser`'s:  "Compile" in [PARSING.md](PARSING.md).
@@ -110,7 +112,8 @@ when working with code in this package, `@spell-app/spell`.
     - `<Project>.snapshot.py`:  the Python target
     - `<Project>.snapshot.pyright.txt`:  what pyright says of the Python ([python.test.ts](../../tests/spell/src/test/python.test.ts))
     - `<Project>.elements.snapshot.js`:  the Python targets' page file, for a fixture that draws
-    - The Python ones only for the fixtures in `PYTHON_FIXTURES` (every fixture, so far).
+    - The Python ones only for the fixtures in `PYTHON_FIXTURES` (every fixture but `TodosFormBased`, so far:
+      the Python writer can't write its method's named arguments yet).
     - Add a fixture by copying a project in.
     - After a deliberate change, `yarn test:fixtures:bless`, and read the diff.
 - [readme.md](readme.md) is the project's front page.

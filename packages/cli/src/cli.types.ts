@@ -47,10 +47,12 @@ export type GlobalOptions = {
  * `spell compile` flags.
  * - `stdout`:  print a project's compiled output rather than writing `<Project>.spell.js`.
  * - `force`:  recompile the projects it imports, too, even those already compiled
+ * - `stale`:  compile only the projects whose build is missing or out of date -- see `CLI.staleBecause()`
  */
 export type CompileOptions = GlobalOptions & {
   stdout?: boolean
   force?: boolean
+  stale?: boolean
   /** Compile to this target, this run, instead of `project.json`'s -- see `SP.TARGETS`. */
   target?: string
 }

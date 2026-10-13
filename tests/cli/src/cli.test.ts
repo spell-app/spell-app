@@ -17,6 +17,7 @@ import { basename, resolve } from "path"
 import { afterAll, beforeAll, describe, test, expect, vi } from "vite-plus/test"
 
 import { SRV } from "$/server"
+import { buildFolderFor } from "$/spell/node/project-utils"
 import { SP } from "$/spell"
 import { fixturePath } from "$/spell/test"
 
@@ -40,9 +41,21 @@ const REPO_ROOT = resolve(import.meta.dirname, "..", "..", "..")
 const TEMP = realpathSync(mkdtempSync(resolve(tmpdir(), "spell-cli-")))
 afterAll(() => rmSync(TEMP, { recursive: true, force: true }))
 
-/** Each file in `folder`, by name, with when it last changed:  to see a run wrote nothing there. */
+/** Each file in `folder`, by name, with when it last changed:  to see a run wrote nothing there.  None if it isn't there. */
 function filesIn(folder: string): Record<string, number> {
+  if (!existsSync(folder)) return {}
   return Object.fromEntries(readdirSync(folder).map((name) => [name, statSync(resolve(folder, name)).mtimeMs]))
+}
+
+/** Each file in fixture `name`'s folder AND its build folder (`buildFolderFor()`), by path:  see `filesIn()`. */
+function fixtureFiles(name: string): Record<string, number> {
+  const built = buildFolderFor(fixturePath(name))
+  return { ...filesIn(fixturePath(name)), ...prefixed("build/", filesIn(built)) }
+}
+
+/** `files`, each name starting with `prefix`. */
+function prefixed(prefix: string, files: Record<string, number>): Record<string, number> {
+  return Object.fromEntries(Object.entries(files).map(([name, modified]) => [`${prefix}${name}`, modified]))
 }
 
 /** A throwaway project `name` in `TEMP`, of one file `<name>.spell` holding `source`.  Returns its folder. */
@@ -514,22 +527,24 @@ describe("spell describe", () => {
 })
 
 describe("spell run", () => {
-  test("runs the program:  its prints on stdout -- and writes nothing into the project", () => {
+  test("runs the program:  its prints on stdout -- and writes nothing into the project, or its build folder", () => {
+    const before = fixtureFiles("FizzBuzz")
     const { status, stdout } = spell(["run", "@test/FizzBuzz"])
     expect(stdout).toMatch(/^1\n2\n3 fizz\n4\n5 buzz\n/)
     expect(stdout).toContain("15 fizzbuzz\n")
     expect(status).toBe(0)
-    expect(existsSync(fixturePath("FizzBuzz", `FizzBuzz${SP.COMPILED_JS_SUFFIX}`))).toBe(false)
+    expect(fixtureFiles("FizzBuzz")).toEqual(before)
   })
 
-  test("--target py and ts:  the same prints, from the Python and the TypeScript -- writing nothing into the project", () => {
+  test("--target py and ts:  the same prints, from the Python and the TypeScript -- writing nothing into the project, or its build folder", () => {
+    const before = fixtureFiles("FizzBuzz")
     const javascript = spell(["run", "@test/FizzBuzz"]).stdout
     for (const target of ["py", "ts"]) {
       const { status, stdout } = spell(["run", "@test/FizzBuzz", "--target", target])
       expect(stdout, target).toBe(javascript)
       expect(status, target).toBe(0)
     }
-    expect(existsSync(fixturePath("FizzBuzz", "FizzBuzz.spell.py"))).toBe(false)
+    expect(fixtureFiles("FizzBuzz")).toEqual(before)
   })
 
   test("--target ts on a program that draws:  runs what it can, and says it can't open in a browser yet", () => {
@@ -551,8 +566,8 @@ describe("spell run", () => {
   })
 
   test("a UI project runs in the browser, in <spell-app>, until interrupted -- writing nothing into it", async () => {
-    // the fixture's files, each by when it last changed:  none added or written by the run
-    const before = filesIn(fixturePath("Solitaire"))
+    // the fixture's files and its build folder's, each by when it last changed:  none added or written by the run
+    const before = fixtureFiles("Solitaire")
     const child = spawn(process.execPath, [SPELL, "run", "@test/Solitaire"], {
       cwd: fixturePath(),
       env: { ...process.env, SPELL_NO_BROWSER: "1" },
@@ -571,7 +586,7 @@ describe("spell run", () => {
 
     child.kill("SIGINT")
     expect(await new Promise((done) => child.on("exit", done))).toBe(0)
-    expect(filesIn(fixturePath("Solitaire"))).toEqual(before)
+    expect(fixtureFiles("Solitaire")).toEqual(before)
   }, 180_000)
 })
 
@@ -683,6 +698,46 @@ describe("spell compile --force", () => {
   })
 })
 
+describe("spell compile --stale", () => {
+  test("compiles only what's out of date:  never built, a source changed, or what it imports changed", () => {
+    const lib = tempProject("StaleLib", "a widget is a thing\n")
+    const app = resolve(TEMP, "StaleApp")
+    mkdirSync(app)
+    const imports = [
+      { path: `@workspace:${basename(TEMP)}:StaleLib`, active: true },
+      { path: "/StaleApp.spell", active: true }
+    ]
+    writeFileSync(resolve(app, SP.PROJECT_FILE), JSON.stringify({ imports }))
+    writeFileSync(resolve(app, "StaleApp.spell"), "print a new widget\n")
+
+    const first = spell(["compile", ".", "--stale"], app).stderr
+    expect(first).toMatch(/✓ @workspace:\S+:StaleLib {2}\(imported by StaleApp\) {2}no StaleLib\.spell\.js · wrote /)
+    expect(first).toMatch(/✓ @workspace:\S+:StaleApp {2}no StaleApp\.spell\.js · wrote /)
+
+    const again = spell(["compile", ".", "--stale"], app).stderr
+    expect(again).toMatch(/✓ @workspace:\S+:StaleApp {2}up to date\n/)
+    expect(again).not.toContain("imported by")
+
+    // saved, even unchanged, counts as changed
+    writeFileSync(resolve(app, "StaleApp.spell"), "print a new widget\n")
+    const edited = spell(["compile", ".", "--stale"], app).stderr
+    expect(edited).toMatch(/✓ @workspace:\S+:StaleApp {2}StaleApp\.spell changed since · wrote /)
+    expect(edited).not.toContain("imported by")
+
+    // the import's rebuilt first, so its declarations are newer than the app's build
+    writeFileSync(resolve(lib, "StaleLib.spell"), "a widget is a thing\n")
+    const imported = spell(["compile", ".", "--stale"], app).stderr
+    expect(imported).toMatch(/StaleLib {2}\(imported by StaleApp\) {2}StaleLib\.spell changed since · wrote /)
+    expect(imported).toMatch(/✓ @workspace:\S+:StaleApp {2}@workspace:\S+:StaleLib's declarations changed since/)
+  }, 60_000)
+
+  test("with --stdout:  says they don't go together, exit 2", () => {
+    const { status, stderr } = spell(["compile", "@test/FizzBuzz", "--stale", "--stdout"])
+    expect(stderr).toContain("--stale writes only what's out of date;  --stdout writes nothing")
+    expect(status).toBe(2)
+  })
+})
+
 describe("spell test --name", () => {
   test("only tests whose names contain it", () => {
     const { status, stdout } = spell(["test", "@test/Solitaire", "--name", "deck"])
@@ -695,7 +750,7 @@ describe("spell projects", () => {
   test("lists the roots, with the name to type for each", () => {
     const { status, stdout } = spell(["projects"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +10 projects$/m)
+    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +11 projects$/m)
     expect(stdout).toMatch(/^@user +@user:projects /m)
   })
 
@@ -711,7 +766,8 @@ describe("spell projects", () => {
       { name: "@test/OutlineSolitaire", id: "@test:fixtures:OutlineSolitaire" },
       { name: "@test/People", id: "@test:fixtures:People" },
       { name: "@test/Solitaire", id: "@test:fixtures:Solitaire" },
-      { name: "@test/ThingReferences", id: "@test:fixtures:ThingReferences" }
+      { name: "@test/ThingReferences", id: "@test:fixtures:ThingReferences" },
+      { name: "@test/TodosFormBased", id: "@test:fixtures:TodosFormBased" }
     ])
   })
 })

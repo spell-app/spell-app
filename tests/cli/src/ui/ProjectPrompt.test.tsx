@@ -33,7 +33,7 @@ describe("<ProjectPrompt>", () => {
   test("Tab completes as far as the choices agree", async () => {
     const { frame } = await prompt(["@te", KEY.tab])
     expect(frame).toMatch(
-      /^Which project or file\? {2}@test\/█\n❯ @test\/Cards\/\n {2}@test\/CardsFromZero\/\n {2}@test\/CardTable\/\n {2}@test\/DrawableSolitaire\/\n {2}@test\/FizzBuzz\/\n {2}@test\/Klondike\/\n {2}@test\/OutlineSolitaire\/\n {2}@test\/People\/\n {2}@test\/Solitaire\//
+      /^Which project or file\? {2}@test\/█\n❯ @test\/Cards\/\n {2}@test\/CardsFromZero\/\n {2}@test\/CardTable\/\n {2}@test\/DrawableSolitaire\/\n {2}@test\/FizzBuzz\/\n {2}@test\/Klondike\/\n {2}@test\/OutlineSolitaire\/\n {2}@test\/People\/\n {2}@test\/Solitaire\/\n {2}@test\/ThingReferences\/\n {2}\.\.\.11 in all/
     )
   })
 

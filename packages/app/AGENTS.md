@@ -43,6 +43,15 @@ when working with code in this package, `@spell-app/app`.
     - It's on `$/server`'s Express-shaped router and web server (it was Express).
       Those are `SRV.Router` and `SRV.WebServer`.
     - `api.test.ts` pins its behaviour over HTTP.
+    - It BUILDS projects when needed ([ProjectBuild.ts](src/server/ProjectBuild.ts)):
+      their compiled output and scope packs are in `build/`, never committed (epic `people-and-orgs` P11).
+      - A request for a built file that isn't there (`/api/projects/compiled/...`, `scopes/...`, a `file/...` of a
+        built name) compiles its project first, then serves it:  one compile per project at a time,
+        waiting at most `COMPILE_WAIT_MS`.
+      - The page server's route module starts `spell compile --stale --all @examples @library` as it starts,
+        in the background, as the page server builds its bundles:  the demo pages and App UI's live examples run them.
+      - A child process, the checkout's own `spell compile`:  it compiles as the CLI does,
+        and the page server keeps serving pages meanwhile.
   - The file / project helpers it calls are NOT here.
     They're node-only code in `$/spell/node/...`:
     - `project-utils`

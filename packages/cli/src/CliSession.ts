@@ -119,27 +119,37 @@ export class CliSession {
   /**
    * Compile each project `project` imports -- and what THEY import -- which has no `<Project>.spell.js` yet.
    * - Why:  a compiled import is read from that file, so parsing `project` fails without it.
-   * - NOTE: an existing one is used as is, even if its sources have changed since -- unless `force`
-   *   (`spell compile --force`), which recompiles them all, what they import first.
+   * - NOTE: an existing one is used as is, even if its sources have changed since -- unless:
+   *   - `stale` (`spell compile --stale`):  recompiles those that are out of date, see `CLI.staleBecause()`
+   *   - `force` (`spell compile --force`):  recompiles them all
+   *   - either way, what they import first
    * - Shows each on `status`, if given.
    */
   async compileImports(
     project: SP.SpellProject,
     status?: CLI.StatusReporter,
-    force = false,
+    { force = false, stale = false }: { force?: boolean; stale?: boolean } = {},
     seen = new Set<SP.SpellProject>()
   ) {
     await project.load(undefined)
     for (const imported of LSP.ScopeExplorer.importedProjects(project)) {
       if (seen.has(imported)) continue
       seen.add(imported)
-      if (!force && existsSync(imported.outputFile.location.serverPath)) continue
+      // what it imports first:  with `stale`, a rebuilt import makes this one out of date too
+      await this.compileImports(imported, status, { force, stale }, seen)
+      const why = force
+        ? "forced"
+        : stale
+          ? await CLI.staleBecause(imported)
+          : existsSync(imported.outputFile.location.serverPath)
+            ? undefined
+            : "never compiled"
+      if (!why) continue
 
       const row = status?.start(`${imported.projectId}  (imported by ${project.projectName})`)
-      await this.compileImports(imported, status, force, seen)
       await imported.compile()
-      if (row)
-        this.report(status!, row, imported, { note: `wrote ${this.relative(imported.outputFile.location.serverPath)}` })
+      const wrote = `wrote ${this.relative(imported.outputFile.location.serverPath)}`
+      if (row) this.report(status!, row, imported, { note: `${why} · ${wrote}` })
     }
   }
 

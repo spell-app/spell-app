@@ -21,6 +21,9 @@ import { CLI } from "$/cli"
  * - A `.spell` file:  prints its compiled javascript.  Writes nothing.
  * - Projects it imports that have never been compiled are compiled first -- see `CliSession.compileImports()`.
  *   `--force`:  ALL of them, even those already compiled.
+ * - `--stale`:  only the projects whose build is missing or out of date, and the same for what they import;
+ *   the rest are listed as up to date.  What counts:  `CLI.staleBecause()`.
+ *   What the page server runs when it starts, for `@examples` and `@library` (`ProjectBuild`, in `$/app`).
  * - Returns the exit code:  `EXIT.ERRORS` if anything had errors.
  *   Warnings, e.g. a property with no type (`SP.SpellWarnings`), are listed under the errors, never counted:
  *   a project with only warnings compiles clean, its scope pack too.
@@ -31,6 +34,8 @@ export async function compileCommand(
   args: string[],
   options: CLI.CompileOptions
 ): Promise<number> {
+  if (options.stale && options.stdout)
+    throw new CLI.CliError("--stale writes only what's out of date;  --stdout writes nothing")
   const resolvedProjects = await session.projects(args)
   const status = new CLI.StatusReporter(session.isInteractive)
   // printed once `status` is done, so the two don't interleave
@@ -60,12 +65,20 @@ async function compileProject(
   project: SP.SpellProject,
   status: CLI.StatusReporter,
   output: string[],
-  { stdout, force, target }: CLI.CompileOptions
+  { stdout, force, stale, target }: CLI.CompileOptions
 ): Promise<boolean> {
   const row = status.start(project.projectId)
   let targets: SP.Target[]
+  let why: string | undefined
   try {
-    await session.compileImports(project, status, force)
+    await session.compileImports(project, status, { force, stale })
+    if (stale) {
+      why = await CLI.staleBecause(project)
+      if (!why) {
+        status.done(row, "ok", "up to date")
+        return true
+      }
+    }
     await project.compile(undefined, { save: !stdout, targets: target ? [target] : undefined })
     targets = project.targets
   } catch (error) {
@@ -83,6 +96,7 @@ async function compileProject(
   }
   const checked = stdout ? { counts: {}, details: [] } : typecheckTargets(session, project, targets)
   const notes = [
+    why,
     ...Object.entries(checked.counts).map(
       ([checker, count]) => count && `${count} ${checker} error${count === 1 ? "" : "s"}`
     ),

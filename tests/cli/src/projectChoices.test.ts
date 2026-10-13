@@ -33,7 +33,8 @@ describe("projectChoices()", () => {
       "@test/OutlineSolitaire/",
       "@test/People/",
       "@test/Solitaire/",
-      "@test/ThingReferences/"
+      "@test/ThingReferences/",
+      "@test/TodosFormBased/"
     ])
     expect(await values("@test/sol")).toEqual(["@test/Solitaire/"])
   })

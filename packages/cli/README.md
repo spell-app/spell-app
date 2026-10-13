@@ -142,6 +142,12 @@ Longer notes on some of them follow the table.
   - With no errors, its scope pack, `<Project>.scopes.js`.
   - `--stdout` prints it and writes nothing.
   - `--force` recompiles the projects it imports, too.
+  - `--stale` compiles only the projects that are out of date, and the same for what they import;
+    the rest say "up to date".
+    - Out of date:  a file it builds is missing, or one of its files, its `project.json`,
+      an import's declarations or spell's compiler changed since its build (`CLI.staleBecause()`).
+    - The page server runs `spell compile --stale --all @examples @library` as it starts,
+      and the app's API compiles a project whose built file is missing:  nothing to run by hand in a fresh checkout.
   - A `.spell` file prints its javascript.
 - `explore`'s keys:
   - `↑↓` move, `←→` fold
@@ -366,6 +372,7 @@ Longer notes on some of them follow the table.
 
 - `compile` writes `<Project>.spell.js` into the project's build folder (`build/`), as the app does.
   - With no errors, also `<Project>.scopes.js` there, as the language server does.
+  - `--stale` writes only the projects that are out of date.
   - And its declarations and words beside its source, `<Project>.declarations.json` and `<Project>.en.js`.
   - `--stdout` writes neither.
   - `watch` the same after each rebuild, unless `--check-only`.

@@ -1014,6 +1014,17 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
     ONE mapping decides where it is on disk:  the server's `serverPath` (`isBuiltFile()`, `buildFolderFor()`,
     in [project-utils.ts](src/node/project-utils.ts)).
   - A project outside `packages/` (a temp `@workspace` root, `SPELL_PROJECTS_DIR`'s) keeps them beside its source.
+  - Built when needed, so a fresh checkout or worktree needs nothing run by hand:
+    - the page server, as it starts:  the built-in projects that are out of date, `@examples` and `@library`,
+      in the background (`spell compile --stale --all @examples @library`)
+    - the app's API:  a request for a built file that isn't there compiles its project first, then serves it
+      (`/api/projects/compiled/...`, `scopes/...`, and a `file/...` of a built name);
+      one compile per project at a time, a request waits at most a minute
+    - Both are `ProjectBuild`, in the app's server ([ProjectBuild.ts](../app/src/server/ProjectBuild.ts)),
+      running the checkout's own `spell compile` as a child.
+    - By hand:  `spell compile --all <root>`, or `--stale` for only what's out of date (`CLI.staleBecause()`):
+      a built file missing, or one of the project's files, its `project.json`, an import's declarations
+      or spell's compiler newer than its build.
   - Renaming or duplicating a project leaves its build folder behind:  its files are named for the old project,
     so the next compile writes the new one's.  Deleting a project deletes it.
   - A Python program's web app, `<Project>.app.py`, finds its program from its own folder:

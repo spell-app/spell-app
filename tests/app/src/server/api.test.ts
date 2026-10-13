@@ -446,6 +446,28 @@ describe("compiled, scopes and words files", () => {
     expect(reply.json().errors[0].message).toMatch(/^File not found: '.*Nope\.scopes\.js'$/)
   })
 
+  // `ProjectBuild`:  a child `spell compile`, so it takes a few seconds
+  it("a project never compiled:  compiled first, then served -- its scope pack too", async () => {
+    writeFixture("user/Fresh/project.json", JSON.stringify({ imports: [{ path: "/Fresh.spell", active: true }] }))
+    writeFixture("user/Fresh/Fresh.spell", 'print "fresh"\n')
+    const reply = await request("GET", "/api/projects/compiled/@user:projects:Fresh")
+    expect(reply.status).toBe(200)
+    expect(reply.contentType).toMatch(/^text\/javascript/)
+    expect(reply.text).toContain('"fresh"')
+    expect(readFixture("user/Fresh/Fresh.spell.js")).toBe(reply.text)
+    const scopes = await request("GET", "/api/projects/scopes/@user:projects:Fresh")
+    expect(scopes.status).toBe(200)
+    expect(scopes.text).toBe(readFixture("user/Fresh/Fresh.scopes.js"))
+  }, 60_000)
+
+  it("a built file asked for by name, never compiled:  compiled first too", async () => {
+    writeFixture("user/ByName/project.json", JSON.stringify({ imports: [{ path: "/ByName.spell", active: true }] }))
+    writeFixture("user/ByName/ByName.spell", 'print "by name"\n')
+    const reply = await request("GET", "/api/projects/file/@user:projects:ByName/ByName.spell.js")
+    expect(reply.status).toBe(200)
+    expect(reply.text).toContain('"by name"')
+  }, 60_000)
+
   it("GET /api/projects/words/:projectId => 200 text/javascript, its English words", async () => {
     writeFixture("user/Proj/Proj.en.js", 'export const words = { lang: "en", types: {} }\n')
     const reply = await request("GET", `/api/projects/words/${PROJECT}`)

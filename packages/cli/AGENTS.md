@@ -108,7 +108,8 @@ As WWOD §20, plus:
   - The core contract's pinned outputs too:  `tests/cli/src/__snapshots__/contract/<Project>.out.txt`.
 - They read spell's frozen projects, `../spell/projects/test/` (`@test/<Project>`).
   See "Overview" in [spell's AGENTS.md](../spell/AGENTS.md).
-  - NEVER write into one:  compile with `--stdout`, or make a temp project, as `cli.test.ts` does.
+  - NEVER write into one, nor into its build folder (`build/spell/projects/test/...`):
+    compile with `--stdout`, or make a temp project, as `cli.test.ts` does.
 - `cli.test.ts` runs the real bin scripts (`spell.mjs`, `epic.mjs`), as separate processes, with no terminal.
 - `epicProgram.test.ts` proves `epic` starts lean:  nothing `epicMain.ts` imports up front reaches the barrel or
   spell.

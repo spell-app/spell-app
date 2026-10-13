@@ -115,7 +115,7 @@ Notes:
 ```html
 <script type="module" src="/element/spell-app.js"></script>
 
-<!-- from the spell server, sources and all -->
+<!-- from the spell server, sources and all:  compiled first, if it never has been -->
 <spell-app project="@examples/Solitaire" toolbar debug="explorer" height="600px"></spell-app>
 
 <!-- from any static host:  its `Calculator.scopes.js`, and any project it imports, beside it -->
@@ -136,7 +136,9 @@ Notes:
 - Its Type Explorer reads the project's scope pack, `<Project>.scopes.js`.
   - `yarn scopes [--compile] <projectId...>` (in `packages/lsp`) writes it,
     e.g. `yarn scopes --compile @examples/Solitaire`.
-  - So does the VS Code extension, on each clean compile.
+  - So do `spell compile` and the VS Code extension, on each clean compile.
+  - From the spell server (`project=`), it's built when needed:  compiled output and scope packs are in `build/`,
+    never committed, and the server compiles a project whose files aren't there before serving them.
 - `src=` from another origin needs CORS on the compiled JS.
   Scope packs don't.
 

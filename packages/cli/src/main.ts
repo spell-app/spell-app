@@ -50,6 +50,7 @@ program
   .option("--stdout", "print a project's compiled output instead of writing it")
   .option("--target <name>", 'compile to this target too, e.g. ts/solid -- default project.json\'s "targets"')
   .option("--force", "recompile the projects it imports too, even those already compiled")
+  .option("--stale", "compile only the projects whose build is missing or older than what it's built from")
   .action((args: string[], _options, command) => run(CLI.compileCommand, args, command.optsWithGlobals()))
 
 program
