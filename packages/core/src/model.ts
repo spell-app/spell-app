@@ -36,6 +36,16 @@ export { positionOf } from "./collection-core"
 export { position, spellPosition, endPosition, withSpellPositions } from "./positions"
 // what compiled TypeScript's classes are declared with, e.g. `@prop({ type: "text" }) accessor name!: string`
 export { prop, state, derived, thing } from "$/util"
-export { Saver, Loader, REF_KEY, type Saved, type SaverOptions, type LoaderOptions } from "./saving"
+export {
+  Saver,
+  Loader,
+  REF_KEY,
+  parseRef,
+  refText,
+  type Saved,
+  type SavedRef,
+  type SaverOptions,
+  type LoaderOptions
+} from "./saving"
 export { SPELL_CORE_MODULE, type SpellCore, type PropCheck } from "./spellCore.types"
 export type { ListCallback } from "./classes/List"

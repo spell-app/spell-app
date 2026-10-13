@@ -25,13 +25,13 @@ def game() -> Iterator[PagePlayer]:
 
 def ids(pile: dict[str, object]) -> list[str]:
     """The ids of the cards in `pile`, as the page holds it."""
-    return [card["@id"] for card in pile["@items"]]  # type: ignore[index, union-attr]
+    return [card["$id"] for card in pile["$items"]]  # type: ignore[index, union-attr]
 
 
 def test_the_page_starts_with_the_whole_deal(game: PagePlayer) -> None:
     assert len(game.ids_of_type("Card")) == 52
     assert len(ids(game.named("stock"))) == 23
-    assert [len(ids(game.thing(pile["@id"]))) for pile in game.named("tableaus")["@items"]] == [1, 2, 3, 4, 5, 6, 7]
+    assert [len(ids(game.thing(pile["$id"]))) for pile in game.named("tableaus")["$items"]] == [1, 2, 3, 4, 5, 6, 7]
 
 
 def test_a_click_on_the_stocks_top_card_turns_it_onto_the_discards(game: PagePlayer) -> None:
@@ -39,7 +39,7 @@ def test_a_click_on_the_stocks_top_card_turns_it_onto_the_discards(game: PagePla
     top = stock[-1]
     patch = game.trigger("card-click", card=game.ref(top))
     # only what the click changed:  the card, the pile it left, the pile it joined
-    assert [thing["@type"] for thing in patch] == ["Card", "StockPile", "DiscardPile"]
+    assert [thing["$type"] for thing in patch] == ["Card", "StockPile", "DiscardPile"]
     assert game.thing(top)["direction"] == "up"
     assert game.thing(top)["pile"] == game.ref(game.named("discards"))
     assert ids(game.named("stock")) == stock[:-1]
@@ -51,14 +51,14 @@ def test_a_click_names_its_card_by_reference(game: PagePlayer) -> None:
     reference = game.reference(top)
     assert reference is not None and reference.startswith("Card#") and "-of-" in reference
     patch = game.trigger("card-click", target=reference)
-    assert [thing["@type"] for thing in patch] == ["Card", "StockPile", "DiscardPile"]
+    assert [thing["$type"] for thing in patch] == ["Card", "StockPile", "DiscardPile"]
     assert ids(game.named("discards"))[-1] == top
 
 
 def test_a_call_of_a_function_plays_from_the_stock(game: PagePlayer) -> None:
     top = ids(game.named("stock"))[-1]
     patch = game.call("play_from_the_stock_pile")
-    assert [thing["@type"] for thing in patch] == ["Card", "StockPile", "DiscardPile"]
+    assert [thing["$type"] for thing in patch] == ["Card", "StockPile", "DiscardPile"]
     assert ids(game.named("discards"))[-1] == top
 
 
@@ -67,12 +67,12 @@ def test_a_few_moves_each_patch_only_what_changed(game: PagePlayer) -> None:
         before = {the_id: dict(game.thing(the_id)) for the_id in game.ids_of_type("Card")}
         patch = game.call("play_from_the_stock_pile")
         changed = [the_id for the_id, card in before.items() if game.thing(the_id) != card]
-        assert changed == [thing["@id"] for thing in patch if thing["@type"] == "Card"]
+        assert changed == [thing["$id"] for thing in patch if thing["$type"] == "Card"]
     assert len(game.patches) == 5
 
 
 def test_a_face_down_card_that_cant_move_changes_nothing(game: PagePlayer) -> None:
-    last_tableau = game.thing(game.named("tableaus")["@items"][-1]["@id"])
+    last_tableau = game.thing(game.named("tableaus")["$items"][-1]["$id"])
     under = ids(last_tableau)[0]
     assert game.thing(under)["direction"] == "down"
     assert game.trigger("card-click", card=game.ref(under)) == []

@@ -88,8 +88,8 @@ def test_a_mirror_changes_what_it_holds_in_place() -> None:
 
 def test_a_mirror_unsets_what_a_thing_no_longer_has() -> None:
     mirror = StateMirror()
-    chip = mirror.read({"@type": "Chip", "@id": "1", "color": "red", "value": 5})
-    mirror.read({"@type": "Chip", "@id": "1", "color": "red"})
+    chip = mirror.read({"$type": "Chip", "$id": "1", "color": "red", "value": 5})
+    mirror.read({"$type": "Chip", "$id": "1", "color": "red"})
     assert chip.value is None
     assert "value" not in chip.to_json()
 
@@ -100,7 +100,7 @@ def test_from_json_reads_ids_too() -> None:
 
 
 def test_from_json_without_ids_makes_a_thing_each_time() -> None:
-    chips = core.from_json([{"@type": "Chip", "color": "red"}, {"@type": "Chip", "color": "red"}])
+    chips = core.from_json([{"$type": "Chip", "color": "red"}, {"$type": "Chip", "color": "red"}])
     assert chips[0] is not chips[1]
 
 
@@ -121,10 +121,10 @@ def test_a_patch_writes_a_new_thing_whole_inside_what_holds_it() -> None:
     table.stacks[1].append(Chip(color="green", value=25))
     assert writer.patch() == [
         {
-            "@type": "Stack",
-            "@id": "5",
+            "$type": "Stack",
+            "$id": "5",
             "name": "right",
-            "@items": [{"@type": "Chip", "@id": "6", "color": "green", "value": 25}],
+            "$items": [{"$type": "Chip", "$id": "6", "color": "green", "value": 25}],
         }
     ]
 

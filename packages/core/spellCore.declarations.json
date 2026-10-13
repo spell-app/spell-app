@@ -1803,7 +1803,7 @@
           "name": "json"
         }
       ],
-      "description": "`json` read back as what it was:  each object with a `\"@type\"` rebuilt as the program's class of that name, each of its props rebuilt the same way, and so on down."
+      "description": "`json` read back as what it was:  each object with a `\"$type\"` rebuilt as the program's class of that name, each of its props rebuilt the same way, and so on down."
     },
     {
       "property": "isCarryingOver",

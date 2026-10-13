@@ -11,7 +11,7 @@ import { isDrawableType } from "./classes.shared"
  * `saved_inline` rule:  `a dated-event is saved inline` -- a dated event is saved INSIDE what holds it,
  * not in a file of its own (epic `people-and-orgs`, Q9 and J1).
  * - Every other thing is saved in its own file, and what holds it saves a reference to it:
- *   `{ "@ref": "matt@spell" }`.
+ *   `{ "$ref": "matt@spell" }`.
  * - Say it of small things that only make sense inside their owner, e.g. a person's birthday.
  * - Refused for:
  *   - a drawable thing, e.g. a card:  drawable things are never saved inline, so a card in two piles stays one card

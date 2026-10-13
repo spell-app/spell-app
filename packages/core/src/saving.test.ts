@@ -2,7 +2,7 @@ import { readFileSync } from "fs"
 import { resolve } from "path"
 import { describe, test, expect } from "vite-plus/test"
 
-import { Loader, Saver, spellCore, Thing, List } from "$/core"
+import { Loader, parseRef, refText, Saver, spellCore, Thing, List } from "$/core"
 
 /**
  * Things saved by id (`saving.ts`):  written by a `Saver`, read back by a `Loader`.
@@ -122,7 +122,7 @@ describe("Saver", () => {
     const { entries } = new Saver().save(owenAndMatt())
     expect([...entries.keys()]).toEqual(["Person#owen", "Person#matt"])
     expect(entries.get("Person#owen")!.dates).toEqual([
-      { "@type": "DatedEvent", label: "birthday", day: "1970-01-01T00:00:00.000Z" }
+      { $type: "DatedEvent", label: "birthday", day: "1970-01-01T00:00:00.000Z" }
     ])
   })
 
@@ -136,7 +136,7 @@ describe("Saver", () => {
   test("what a thing was made with and doesn't declare is saved too, and read back:  a foundation's `symbol`", () => {
     const clubs = new Card({ id: "clubs", symbol: "♣️" })
     const { root, entries } = new Saver().save(clubs)
-    expect(entries.get(root)).toEqual({ "@type": "Card", id: "clubs", symbol: "♣️" })
+    expect(entries.get(root)).toEqual({ $type: "Card", id: "clubs", symbol: "♣️" })
     const loaded = loaderOf(entries).load(root) as unknown as { symbol: string }
     expect(loaded.symbol).toBe("♣️")
   })
@@ -144,7 +144,46 @@ describe("Saver", () => {
   test("`refOf` names entries and references:  the people store names them by address", () => {
     const { root, entries } = new Saver({ refOf: (thing) => `${thing.id}@spell` }).save(owenAndMatt())
     expect(root).toBe("owen@spell")
-    expect(entries.get("owen@spell")!.friends).toEqual([{ "@ref": "matt@spell" }])
+    expect(entries.get("owen@spell")!.friends).toEqual([{ $ref: "matt@spell" }])
+  })
+
+  test("`placeOf`:  a thing kept elsewhere is a reference with its place, and gets no entry here", () => {
+    const owen = owenAndMatt()
+    const placeOf = (thing: Thing | List) => (thing.id === "matt" ? "three-degrees" : undefined)
+    const { entries } = new Saver({ placeOf }).save(owen)
+    expect([...entries.keys()]).toEqual(["Person#owen"])
+    expect(entries.get("Person#owen")!.friends).toEqual([{ $ref: "Person#matt@three-degrees" }])
+  })
+
+  test("an id holding an @ is refused:  a reference couldn't say where it ends", () => {
+    expect(() => new Saver().save(new Person({ id: "matt@home" }))).toThrow(/holds an @/)
+  })
+})
+
+describe("parseRef() and refText()", () => {
+  test("Type#id, and Type#id@place, read and written back", () => {
+    for (const [text, ref] of [
+      ["Person#matt", { type: "Person", id: "matt" }],
+      ["Person#matt@three-degrees", { type: "Person", id: "matt", place: "three-degrees" }],
+      ["Person#owen@spell:library/people", { type: "Person", id: "owen", place: "spell:library/people" }]
+    ] as const) {
+      expect(parseRef(text)).toEqual(ref)
+      expect(refText(ref)).toBe(text)
+    }
+  })
+
+  test("the id ends at the FIRST @:  the place may hold an @ of its own", () => {
+    expect(parseRef("Card#26@matt@three-degrees:bubble-trouble")).toEqual({
+      type: "Card",
+      id: "26",
+      place: "matt@three-degrees:bubble-trouble"
+    })
+  })
+
+  test("not a reference:  no #, or nothing either side of it", () => {
+    for (const text of ["matt", "#matt", "Person#", "Person#@spell"]) {
+      expect(() => parseRef(text), text).toThrow(TypeError)
+    }
   })
 })
 
@@ -188,7 +227,7 @@ describe("Loader", () => {
     const warn = spellCore.console.warn
     spellCore.console.warn = (...message: unknown[]) => void warnings.push(message)
     try {
-      const entries = { "Person#owen": { ...EXPECTED.entries["Person#owen"], friends: [{ "@ref": "Person#nobody" }] } }
+      const entries = { "Person#owen": { ...EXPECTED.entries["Person#owen"], friends: [{ $ref: "Person#nobody" }] } }
       const owen = loaderOf(entries).load("Person#owen") as Person
       expect(owen.friends.items).toEqual([])
       expect(warnings).toEqual([['Loader.load():  nothing is saved as "Person#nobody"']])

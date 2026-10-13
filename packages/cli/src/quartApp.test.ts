@@ -72,15 +72,15 @@ describe("a Python spell app, in a real browser", () => {
     const [state, ...patches] = page.received as [unknown, ...Array<Array<Record<string, any>>>]
     // at the pause:  the card, turned up
     const turned = patches[0]![0]!
-    expect(patches[0]).toEqual([expect.objectContaining({ "@type": "Card", direction: "up" })])
-    const cardId = turned["@id"] as string
+    expect(patches[0]).toEqual([expect.objectContaining({ $type: "Card", direction: "up" })])
+    const cardId = turned["$id"] as string
     // what the page sent:  the click, naming the card by reference, its name (epic `python-target` P27)
     expect(page.sent).toEqual([{ trigger: "card-click", target: `Card#${turned.rank}-of-${turned.suit}`, details: {} }])
     // then its move:  the pile it left, the card, the pile it joined
-    expect(patches[1]!.map((thing) => thing["@type"])).toEqual(["StockPile", "Card", "DiscardPile"])
+    expect(patches[1]!.map((thing) => thing["$type"])).toEqual(["StockPile", "Card", "DiscardPile"])
     const [, card, joined] = patches[1]!
-    expect(card).toMatchObject({ "@id": cardId, pile: { "@id": joined!["@id"] } })
-    expect(joined!["@items"].at(-1)).toEqual({ "@id": cardId })
+    expect(card).toMatchObject({ $id: cardId, pile: { $id: joined!["$id"] } })
+    expect(joined!["$items"].at(-1)).toEqual({ $id: cardId })
 
     // the console shows each frame, both ways, its badge first:  the state, the click up, the two patches down
     const frames = page.logged.filter((line) => /^%c(SENDING  >|RECEIVED <)%c/.test(line))

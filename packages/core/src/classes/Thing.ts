@@ -107,9 +107,9 @@ export class Thing extends Eventful(Observable) {
   }
 
   /**
-   * Our JSON:  our class's name as `"@type"`, then our props -- `{ "@type": "Card", "rank": "ace", ... }`.
+   * Our JSON:  our class's name as `"$type"`, then our props -- `{ "$type": "Card", "rank": "ace", ... }`.
    * - So it reads back as what it was:  `spellCore.fromJSON()` (`json.ts`).
-   * - `"@type"` is our CLASS's name, even if this instance overrides `type`:  the class is what's rebuilt.
+   * - `"$type"` is our CLASS's name, even if this instance overrides `type`:  the class is what's rebuilt.
    * - Tracked:  a reader re-runs when a prop comes, goes or changes, e.g. `<ui-form debug>`.
    */
   toJSON(): Record<string, unknown> {

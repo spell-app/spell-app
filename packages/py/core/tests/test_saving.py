@@ -16,7 +16,9 @@ import re
 from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 
-from spell_core import List, Loader, Saver, SpellConsole, SpellCore, Thing, prop
+import pytest
+
+from spell_core import List, Loader, SavedRef, Saver, SpellConsole, SpellCore, Thing, parse_ref, prop, ref_text
 from spell_core.core import using_core
 from spell_core.saving import Entry, iso_text
 from spell_core.things import SpellObject
@@ -97,7 +99,7 @@ def test_a_kind_saved_inline_is_written_whole_inside_what_holds_it() -> None:
     entries = Saver().save(owen_and_matt()).entries
     assert list(entries) == ["Person#owen", "Person#matt"]
     assert entries["Person#owen"]["dates"] == [
-        {"@type": "DatedEvent", "label": "birthday", "day": "1970-01-01T00:00:00.000Z"}
+        {"$type": "DatedEvent", "label": "birthday", "day": "1970-01-01T00:00:00.000Z"}
     ]
 
 
@@ -111,7 +113,39 @@ def test_a_thing_with_no_id_is_given_one_as_its_saved_and_keeps_it() -> None:
 def test_ref_of_names_entries_and_references() -> None:
     saved = Saver(ref_of=lambda thing: f"{thing.id}@spell").save(owen_and_matt())
     assert saved.root == "owen@spell"
-    assert saved.entries["owen@spell"]["friends"] == [{"@ref": "matt@spell"}]
+    assert saved.entries["owen@spell"]["friends"] == [{"$ref": "matt@spell"}]
+
+
+def test_place_of_a_thing_kept_elsewhere_is_a_reference_with_its_place_and_no_entry() -> None:
+    saved = Saver(place_of=lambda thing: "three-degrees" if thing.id == "matt" else None).save(owen_and_matt())
+    assert list(saved.entries) == ["Person#owen"]
+    assert saved.entries["Person#owen"]["friends"] == [{"$ref": "Person#matt@three-degrees"}]
+
+
+def test_an_id_holding_an_at_is_refused() -> None:
+    with pytest.raises(ValueError, match="holds an @"):
+        Saver().save(Person(id="matt@home"))
+
+
+def test_parse_ref_and_ref_text_read_and_write_type_id_and_place() -> None:
+    for text, ref in [
+        ("Person#matt", SavedRef("Person", "matt")),
+        ("Person#matt@three-degrees", SavedRef("Person", "matt", "three-degrees")),
+        ("Person#owen@spell:library/people", SavedRef("Person", "owen", "spell:library/people")),
+    ]:
+        assert parse_ref(text) == ref
+        assert ref_text(ref) == text
+
+
+def test_the_id_ends_at_the_first_at_so_the_place_may_hold_one() -> None:
+    ref = parse_ref("Card#26@matt@three-degrees:bubble-trouble")
+    assert ref == SavedRef("Card", "26", "matt@three-degrees:bubble-trouble")
+
+
+def test_not_a_reference_raises() -> None:
+    for text in ["matt", "#matt", "Person#", "Person#@spell"]:
+        with pytest.raises(ValueError):
+            parse_ref(text)
 
 
 def test_a_date_is_its_iso_text_in_utc_to_the_millisecond_as_javascripts() -> None:
@@ -161,7 +195,7 @@ def test_saved_loaded_saved_again_gives_the_same_entries() -> None:
 
 def test_a_reference_to_nothing_saved_is_left_out_of_a_list_with_a_warning() -> None:
     warnings = io.StringIO()
-    entries = {"Person#owen": {**EXPECTED["entries"]["Person#owen"], "friends": [{"@ref": "Person#nobody"}]}}
+    entries = {"Person#owen": {**EXPECTED["entries"]["Person#owen"], "friends": [{"$ref": "Person#nobody"}]}}
     with using_core(SpellCore(SpellConsole(stderr=warnings))):
         owen = loader_of(entries).load("Person#owen")
     assert list(owen.friends) == []

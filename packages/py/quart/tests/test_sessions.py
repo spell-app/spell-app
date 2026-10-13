@@ -63,23 +63,23 @@ async def test_the_page_loads_the_core_and_the_programs_drawing_half(app: Quart)
 async def test_the_socket_sends_the_state_then_what_each_click_changed_pauses_and_all(app: Quart) -> None:
     async with app.test_client().websocket("/ws", headers={"Cookie": "spell-visitor=ann"}) as socket:
         state = json.loads(await socket.receive())
-        assert state["room"]["@items"] == [{"@type": "Lamp", "@id": "2"}, {"@type": "Lamp", "@id": "3"}]
-        await socket.send(json.dumps({"trigger": "lamp-click", "details": {"lamp": {"@id": "3"}}}))
+        assert state["room"]["$items"] == [{"$type": "Lamp", "$id": "2"}, {"$type": "Lamp", "$id": "3"}]
+        await socket.send(json.dumps({"trigger": "lamp-click", "details": {"lamp": {"$id": "3"}}}))
         # before the pause, then after it
-        assert json.loads(await socket.receive()) == [{"@type": "Lamp", "@id": "3", "is_on": True}]
-        assert json.loads(await socket.receive()) == [{"@type": "Lamp", "@id": "3", "is_on": True, "color": "red"}]
+        assert json.loads(await socket.receive()) == [{"$type": "Lamp", "$id": "3", "is_on": True}]
+        assert json.loads(await socket.receive()) == [{"$type": "Lamp", "$id": "3", "is_on": True, "color": "red"}]
 
 
 async def test_each_visitor_plays_their_own_game(app: Quart) -> None:
     client = app.test_client()
     async with client.websocket("/ws", headers={"Cookie": "spell-visitor=ann"}) as ann:
         await ann.receive()
-        await ann.send(json.dumps({"trigger": "lamp-click", "details": {"lamp": {"@id": "2"}}}))
+        await ann.send(json.dumps({"trigger": "lamp-click", "details": {"lamp": {"$id": "2"}}}))
         await ann.receive()
         await ann.receive()
     async with client.websocket("/ws", headers={"Cookie": "spell-visitor=bob"}) as bob:
         state = json.loads(await bob.receive())
-        assert state["room"]["@items"][0] == {"@type": "Lamp", "@id": "2"}
+        assert state["room"]["$items"][0] == {"$type": "Lamp", "$id": "2"}
     async with client.websocket("/ws", headers={"Cookie": "spell-visitor=ann"}) as again:
         state = json.loads(await again.receive())
-        assert state["room"]["@items"][0] == {"@type": "Lamp", "@id": "2", "is_on": True, "color": "red"}
+        assert state["room"]["$items"][0] == {"$type": "Lamp", "$id": "2", "is_on": True, "color": "red"}

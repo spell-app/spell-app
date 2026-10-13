@@ -56,11 +56,11 @@ def session(tmp_path: Path) -> Iterator[PageSession]:
 def test_the_state_is_the_programs_things_by_id(session: PageSession) -> None:
     assert session.state() == {
         "room": {
-            "@type": "Room",
-            "@id": "1",
-            "@items": [
-                {"@type": "Lamp", "@id": "2"},
-                {"@type": "Lamp", "@id": "3"},
+            "$type": "Room",
+            "$id": "1",
+            "$items": [
+                {"$type": "Lamp", "$id": "2"},
+                {"$type": "Lamp", "$id": "3"},
             ],
         }
     }
@@ -69,22 +69,22 @@ def test_the_state_is_the_programs_things_by_id(session: PageSession) -> None:
 def test_a_call_of_a_function_answers_what_it_changed(session: PageSession) -> None:
     session.state()
     assert session.handle({"call": "switch_all_on", "args": []}) == [
-        {"@type": "Lamp", "@id": "2", "is_on": True},
-        {"@type": "Lamp", "@id": "3", "is_on": True},
+        {"$type": "Lamp", "$id": "2", "is_on": True},
+        {"$type": "Lamp", "$id": "3", "is_on": True},
     ]
 
 
 def test_a_call_of_a_things_method(session: PageSession) -> None:
     session.state()
-    assert session.handle({"call": "switch", "on": {"@id": "3"}, "args": [True]}) == [
-        {"@type": "Lamp", "@id": "3", "is_on": True}
+    assert session.handle({"call": "switch", "on": {"$id": "3"}, "args": [True]}) == [
+        {"$type": "Lamp", "$id": "3", "is_on": True}
     ]
 
 
 def test_an_event_reaches_the_programs_handlers_its_things_by_id(session: PageSession) -> None:
     session.state()
-    patch = session.handle({"trigger": "lamp-click", "details": {"lamp": {"@id": "2"}}})
-    assert patch == [{"@type": "Lamp", "@id": "2", "is_on": True}]
+    patch = session.handle({"trigger": "lamp-click", "details": {"lamp": {"$id": "2"}}})
+    assert patch == [{"$type": "Lamp", "$id": "2", "is_on": True}]
     assert session.names["clicks"] == [session.writer.thing_with_id("2")]
 
 
@@ -92,14 +92,14 @@ def test_an_event_names_its_target_by_reference(session: PageSession) -> None:
     session.state()
     # the second lamp, by place:  the handler gets it as `event.lamp`, and as `event.target`
     patch = session.handle({"trigger": "lamp-click", "target": "Lamp#2"})
-    assert patch == [{"@type": "Lamp", "@id": "3", "is_on": True}]
+    assert patch == [{"$type": "Lamp", "$id": "3", "is_on": True}]
     assert session.names["clicks"] == [session.writer.thing_with_id("3")]
 
 
 def test_a_call_on_a_thing_by_reference(session: PageSession) -> None:
     session.state()
     assert session.handle({"call": "switch", "on": "Lamp#1", "args": [True]}) == [
-        {"@type": "Lamp", "@id": "2", "is_on": True}
+        {"$type": "Lamp", "$id": "2", "is_on": True}
     ]
 
 
@@ -108,7 +108,7 @@ def test_what_isnt_there_throws(session: PageSession) -> None:
     with pytest.raises(ValueError, match="no function 'switch_off'"):
         session.handle({"call": "switch_off", "args": []})
     with pytest.raises(ValueError, match="doesn't have"):
-        session.handle({"call": "switch", "on": {"@id": "99"}, "args": [True]})
+        session.handle({"call": "switch", "on": {"$id": "99"}, "args": [True]})
     with pytest.raises(ValueError, match="doesn't have"):
         session.handle({"trigger": "lamp-click", "target": "Lamp#9"})
     with pytest.raises(ValueError, match="a call or an event"):

@@ -9,8 +9,8 @@ import { frameSummary, logError, logFrame } from "$/core"
 describe("frameSummary()", () => {
   test("the page's:  a call, a call on a thing, an event with the things it names", () => {
     expect(frameSummary({ call: "play_from_the_stock_pile", args: [] })).toBe("call play_from_the_stock_pile()")
-    expect(frameSummary({ call: "turn_over", on: { "@id": "3" }, args: [] })).toBe("call turn_over() on #3")
-    expect(frameSummary({ trigger: "card-click", details: { card: { "@id": "26" } } })).toBe("event card-click (#26)")
+    expect(frameSummary({ call: "turn_over", on: { $id: "3" }, args: [] })).toBe("call turn_over() on #3")
+    expect(frameSummary({ trigger: "card-click", details: { card: { $id: "26" } } })).toBe("event card-click (#26)")
     expect(frameSummary({ trigger: "reset", details: {} })).toBe("event reset")
     // by reference (P27):  its target, and a thing under another name in its details
     expect(frameSummary({ trigger: "card-click", target: "Card#ace-of-hearts", details: {} })).toBe(
@@ -25,11 +25,11 @@ describe("frameSummary()", () => {
   })
 
   test("the program's:  its state, by name;  a patch, each thing by type and id", () => {
-    expect(frameSummary({ game: { "@type": "Game", "@id": "1" }, stock: { "@id": "3" } })).toBe("state:  game, stock")
+    expect(frameSummary({ game: { $type: "Game", $id: "1" }, stock: { $id: "3" } })).toBe("state:  game, stock")
     expect(
       frameSummary([
-        { "@type": "Card", "@id": "26", direction: "up" },
-        { "@type": "DiscardPile", "@id": "27", "@items": [] }
+        { $type: "Card", $id: "26", direction: "up" },
+        { $type: "DiscardPile", $id: "27", $items: [] }
       ])
     ).toBe("patch:  Card #26, DiscardPile #27")
   })
@@ -41,7 +41,7 @@ describe("logFrame()", () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {})
     const end = vi.spyOn(console, "groupEnd").mockImplementation(() => {})
     try {
-      logFrame("sent", { trigger: "card-click", details: { card: { "@id": "26" } } }, 58)
+      logFrame("sent", { trigger: "card-click", details: { card: { $id: "26" } } }, 58)
       expect(group.mock.calls[0]![0]).toBe("%cSENDING  >%c  event card-click (#26)  %c58 characters")
       expect(group.mock.calls[0]![1]).toContain("background: #2185d0")
     } finally {
@@ -56,7 +56,7 @@ describe("logFrame()", () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {})
     const end = vi.spyOn(console, "groupEnd").mockImplementation(() => {})
     try {
-      const frame = [{ "@type": "Card", "@id": "26" }]
+      const frame = [{ $type: "Card", $id: "26" }]
       logFrame("received", frame, 33)
       expect(group.mock.calls[0]![0]).toBe("%cRECEIVED <%c  patch:  Card #26  %c33 characters")
       expect(group.mock.calls[0]![1]).toContain("background: #21ba45")

@@ -616,14 +616,14 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * Our JSON:  our class's name as `"@type"`, our own props,
-   * then our items under `"@items"` (`ITEMS_KEY`), each by its own JSON (epic `output-targets`, Q49, J53).
+   * Our JSON:  our class's name as `"$type"`, our own props,
+   * then our items under `"$items"` (`ITEMS_KEY`), each by its own JSON (epic `output-targets`, Q49, J53).
    * ```
-   * { "@type": "Pile", "name": "stock", "@items": [{ "@type": "Card", ... }] }
+   * { "$type": "Pile", "name": "stock", "$items": [{ "$type": "Card", ... }] }
    * ```
-   * - A plain `List`, with no props, or a scratch list:  `{ "@type": "List", "@items": [...] }`.
+   * - A plain `List`, with no props, or a scratch list:  `{ "$type": "List", "$items": [...] }`.
    * - So it reads back as what it was:  `spellCore.fromJSON()` (`json.ts`).
-   * - `"@items"` never collides with a prop, as `"@type"` never does:  no prop is named `@...`.
+   * - `"$items"` never collides with a prop, as `"$type"` never does:  no prop is named `@...`.
    * - Tracked:  a reader re-runs when a prop or the items change (and, through each item's `toJSON()`, when they do).
    */
   toJSON(): Record<string, unknown> {

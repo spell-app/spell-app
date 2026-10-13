@@ -3,27 +3,30 @@
 ```python
 saved = Saver().save(owen)
 # saved.root:  "Person#owen"
-# saved.entries:  "Person#owen" => {"@type": "Person", "id": "owen", "name": "Owen",
-#                                   "dates": [{"@type": "DatedEvent", "label": "birthday", ...}],
-#                                   "friends": [{"@ref": "Person#matt"}]}
-#                 "Person#matt" => {"@type": "Person", "id": "matt", ...}
+# saved.entries:  "Person#owen" => {"$type": "Person", "id": "owen", "name": "Owen",
+#                                   "dates": [{"$type": "DatedEvent", "label": "birthday", ...}],
+#                                   "friends": [{"$ref": "Person#matt"}]}
+#                 "Person#matt" => {"$type": "Person", "id": "matt", ...}
 
 loader = Loader(entry_for=saved.entries.get)
 loader.load(saved.root)   # owen again;  his friend matt is loaded once, however many hold him
 ```
 
-- Every thing is saved in an entry of its own, and what holds it saves a REFERENCE, `{"@ref": "Person#matt"}`:
+- Every thing is saved in an entry of its own, and what holds it saves a REFERENCE, `{"$ref": "Person#matt"}`:
   so a card in two piles is one card, read back.
   - EXCEPT a kind saved inline (`a dated-event is saved inline`, `saved_inline = True`):
     written whole, inside what holds it.
   - A plain list a property holds (`its "dates" is a list of dated-events`) is its items alone, a JSON array:
     it's part of its owner.  A list TYPE (`a club is a list of people`) is a thing, saved on its own.
-- An entry is what `to_json()` writes:  `"@type"` first, then its `id`, then its other props, then a list's `"@items"`.
+- An entry is what `to_json()` writes:  `"$type"` first, then its `id`, then its other props, then a list's `"$items"`.
   - Its props by Python's names, as `to_json()` and a page's state (`state.py`) write them:  `is_set_up`.
   - Then its plain fields, what it was made with and doesn't declare, as a page's state writes them too.
   - A date (`datetime`) as its ISO text, as JavaScript's `toISOString()` writes it:  `1970-01-01T00:00:00.000Z`.
 - What an entry's key and a reference say is `ref_of`'s, `"Person#matt"` by default:
   the people store (P9) names them by address instead, `"matt@spell"`.
+- A thing kept in ANOTHER place (`place_of`) is a reference with that place, `"Person#matt@three-degrees"`,
+  and gets no entry:  its own place saves it.  `parse_ref()` reads one, `ref_text()` writes one (P4, Q18).
+  - So an id may never hold an `@`:  saving one raises.
 - Where entries live is the caller's:  a dict here, one file each in the people store.
 - The twin of the JavaScript core's `Saver` and `Loader` (`saving.ts`):
   both write `savedById.expected.json`, in the JavaScript core's package, and read it.
@@ -39,10 +42,10 @@ from spell_core.lists import List
 from spell_core.state import plain_fields, set_prop_of
 from spell_core.things import ITEMS_KEY, TYPE_KEY, Prop, SpellObject, program_core, things
 
-# The key a reference names its thing under:  `{"@ref": "Person#matt"}`.
-REF_KEY = "@ref"
+# The key a reference names its thing under:  `{"$ref": "Person#matt"}`.
+REF_KEY = "$ref"
 
-# An entry, as JSON:  `{"@type": "Person", "id": "owen", ...}`.
+# An entry, as JSON:  `{"$type": "Person", "id": "owen", ...}`.
 Entry = dict[str, Any]
 
 
@@ -59,9 +62,19 @@ class Saved:
 class Saver:
     """Writes a thing, and every thing it reaches, as entries by id:  see the module's docs."""
 
-    def __init__(self, ref_of: Callable[[SpellObject], str] | None = None) -> None:
-        """A saver naming entries and references by `ref_of`:  `"<Class>#<id>"` by default, `"Person#owen"`."""
+    def __init__(
+        self,
+        ref_of: Callable[[SpellObject], str] | None = None,
+        place_of: Callable[[SpellObject], str | None] | None = None,
+    ) -> None:
+        """A saver naming entries and references by `ref_of`:  `"<Class>#<id>"` by default, `"Person#owen"`.
+
+        - `place_of`:  where a thing is kept when it's NOT with what's being saved, e.g. `"three-degrees"`;
+          `None` when it's saved here.  A thing kept elsewhere is a reference with its place,
+          `{"$ref": "Person#matt@three-degrees"}`, and gets no entry here.
+        """
         self.ref_of = ref_of or default_ref_of
+        self.place_of = place_of or (lambda _thing: None)
 
     def save(self, root: SpellObject) -> Saved:
         """`root`, and every thing it reaches that isn't saved inline, each as an entry of its own.
@@ -74,7 +87,10 @@ class Saver:
         queued = {id(root)}
 
         def reference(thing: SpellObject) -> dict[str, str]:
-            """A reference to `thing`, saved in its turn."""
+            """A reference to `thing`, saved in its turn -- unless it's kept elsewhere."""
+            place = self.place_of(thing)
+            if place:
+                return {REF_KEY: ref_text(SavedRef(type(thing).__name__, thing.id, place))}
             if id(thing) not in queued:
                 queued.add(id(thing))
                 waiting.append(thing)
@@ -88,7 +104,7 @@ class Saver:
         return Saved(self.ref_of(root), entries)
 
     def _entry_of(self, thing: SpellObject, reference: Callable[[SpellObject], object]) -> Entry:
-        """`thing`'s own entry:  `"@type"`, `id`, its other props, a list's `"@items"`."""
+        """`thing`'s own entry:  `"$type"`, `id`, its other props, a list's `"$items"`."""
         entry: Entry = {TYPE_KEY: type(thing).__name__, "id": thing.id}
         return self._write_props(thing, entry, reference)
 
@@ -135,7 +151,7 @@ class Loader:
         """A loader reading entries from `entry_for`, each made as the class `class_named` gives.
 
         - `entry_for`:  the entry saved under a key, if there is one:  JSON as `Saver` wrote it.
-        - `class_named`:  the class an entry's `"@type"` names -- the program's, `things.class_named()`, by default.
+        - `class_named`:  the class an entry's `"$type"` names -- the program's, `things.class_named()`, by default.
         """
         self.entry_for = entry_for
         self.class_named = class_named or things.class_named
@@ -179,7 +195,7 @@ class Loader:
 
         - Made with its plain values (text, numbers ...) through its class, so its `create()` sees them;
           then its things and lists set, once it's kept:  one of them may hold it back, a person's friend's friend.
-        - Its class unknown:  the entry read as a plain dict, its `"@type"` kept.
+        - Its class unknown:  the entry read as a plain dict, its `"$type"` kept.
         """
         cls = self.class_named(str(json[TYPE_KEY]))
         if cls is None:
@@ -212,9 +228,53 @@ class Loader:
 ####################
 
 
+@dataclass
+class SavedRef:
+    """A saved reference's parts:  `Person#matt@three-degrees` -- see `parse_ref()` and `ref_text()`."""
+
+    # The thing's kind, e.g. `Person`.
+    type: str
+    # Its id, e.g. `matt`:  never holds an `@`.
+    id: str
+    # Where it's kept, when that's not here:  an address, which may hold an `@` of its own.
+    place: str | None = None
+
+
+def parse_ref(text: str) -> SavedRef:
+    """A saved reference read:  `Person#matt@three-degrees` => `SavedRef("Person", "matt", "three-degrees")`.
+
+    - The type runs up to the `#`;  the id from there to the FIRST `@`;  everything after that `@` is the place,
+      which may hold an `@` of its own (`Card#26@matt@three-degrees:bubble-trouble`).
+    - No `@`:  no place, the thing is kept here, `Person#matt`.
+    - raises `ValueError` with no `#`, or nothing before or after it
+    """
+    hash_at = text.find("#")
+    at = text.find("@", hash_at + 1)
+    kind = text[:hash_at]
+    the_id = text[hash_at + 1 :] if at < 0 else text[hash_at + 1 : at]
+    if hash_at < 0 or not kind or not the_id:
+        raise ValueError(f'parse_ref():  "{text}" isn\'t a reference;  write it as Type#id, or Type#id@place')
+    return SavedRef(kind, the_id) if at < 0 else SavedRef(kind, the_id, text[at + 1 :])
+
+
+def ref_text(ref: SavedRef) -> str:
+    """`ref` written as a saved reference:  `Person#matt`, or with its place, `Person#matt@three-degrees`.
+
+    - raises `ValueError` if the id holds an `@`:  a reader couldn't tell where the id ends and the place begins
+    """
+    if "@" in ref.id:
+        raise ValueError(
+            f"ref_text():  {ref.type}'s id \"{ref.id}\" holds an @, which a saved reference can't;  give it another id"
+        )
+    return f"{ref.type}#{ref.id}@{ref.place}" if ref.place else f"{ref.type}#{ref.id}"
+
+
 def default_ref_of(thing: SpellObject) -> str:
-    """`"<Class>#<id>"`, e.g. `"Person#owen"`:  a thing's key, until the people store names things by address."""
-    return f"{type(thing).__name__}#{thing.id}"
+    """`"<Class>#<id>"`, e.g. `"Person#owen"`:  a thing's key, until the people store names things by address.
+
+    - raises if its id holds an `@` -- see `ref_text()`
+    """
+    return ref_text(SavedRef(type(thing).__name__, thing.id))
 
 
 def iso_text(date: datetime) -> str:
@@ -232,7 +292,7 @@ def _is_plain_value(value: object) -> bool:
 
 
 def _is_reference(json: object) -> bool:
-    """Is `json` a reference alone, `{"@ref": ...}`?"""
+    """Is `json` a reference alone, `{"$ref": ...}`?"""
     return isinstance(json, dict) and isinstance(json.get(REF_KEY), str) and len(json) == 1
 
 

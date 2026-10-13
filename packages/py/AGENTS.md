@@ -85,7 +85,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - References (`spell_core.references`, P27):  a thing named in text, `Card#queen-of-spades`, `Tableau#1`.
   - The javascript core's words (drawable-thing's `references.ts`), read the same way.
   - A page's message may name things so:  an event's `"target"`, a call's `"on"`;  the handler gets the thing as
-    `event.target`, and as `event.card`.  `{"@id": ...}` still works.
+    `event.target`, and as `event.card`.  `{"$id": ...}` still works.
   - A place counts the things a page was sent, in the order it was sent them:  the order its copies were made in.
   - The program's own core reads them too (`core.thing_for_reference()`, `thing_named()`, `thing_at_place()`,
     `reference_for()`, in `spell_core.reference_methods`):  its places count the things that core made, in order.

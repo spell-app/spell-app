@@ -58,6 +58,6 @@ def test_state_prints_its_top_level_things_by_id(tmp_path: Path, capsys: pytest.
         # the shared core, as every other test expects it:  seeded with 1
         core.seed_random(1)
     assert capsys.readouterr().out == (
-        '\n{"marble": {"@type": "Marble", "@id": "1", "color": "red"}, '
-        '"bag": {"@type": "Bag", "@id": "2", "@items": [{"@id": "1"}]}}\n'
+        '\n{"marble": {"$type": "Marble", "$id": "1", "color": "red"}, '
+        '"bag": {"$type": "Bag", "$id": "2", "$items": [{"$id": "1"}]}}\n'
     )

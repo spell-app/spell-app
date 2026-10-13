@@ -31,13 +31,13 @@ describe("saving, compiled and run", () => {
     const { root, entries } = new Saver().save(owen)
     expect(Object.fromEntries(entries)).toEqual({
       "Person#owen": {
-        "@type": "Person",
+        $type: "Person",
         id: "owen",
         name: "Owen",
-        dates: [{ "@type": "DatedEvent", label: "birthday" }],
-        friends: [{ "@ref": "Person#matt" }]
+        dates: [{ $type: "DatedEvent", label: "birthday" }],
+        friends: [{ $ref: "Person#matt" }]
       },
-      "Person#matt": { "@type": "Person", id: "matt", name: "Matt", friends: [{ "@ref": "Person#owen" }] }
+      "Person#matt": { $type: "Person", id: "matt", name: "Matt", friends: [{ $ref: "Person#owen" }] }
     })
 
     const classes: Record<string, new () => Thing> = {

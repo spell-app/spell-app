@@ -3,8 +3,8 @@
 ```python
 writer = StateWriter()
 writer.state_of(game)
-# {"@type": "Game", "@id": "1", "piles": [{"@type": "Pile", "@id": "2", "name": "stock", "@items": [
-#     {"@type": "Card", "@id": "3", "rank": "ace"}]}], "top": {"@id": "3"}}
+# {"$type": "Game", "$id": "1", "piles": [{"$type": "Pile", "$id": "2", "name": "stock", "$items": [
+#     {"$type": "Card", "$id": "3", "rank": "ace"}]}], "top": {"$id": "3"}}
 
 mirror = StateMirror()
 game = mirror.read(writer.state_of(game))   # the first time:  made, as `core.from_json()` makes them
@@ -13,9 +13,9 @@ mirror.read(writer.patch())                 # or only what changed since:  the s
 ```
 
 - The same JSON as `to_json()`, plus:
-  - an `"@id"` on each thing and spell list, after its `"@type"`, as JSON-LD spells it
+  - an `"$id"` on each thing and spell list, after its `"$type"`, as JSON-LD spells it
   - its plain fields, after its properties:  what it was made with and doesn't declare, e.g. a foundation's `symbol`
-- The first mention of a thing is whole;  each later one is `{"@id": "3"}` alone:
+- The first mention of a thing is whole;  each later one is `{"$id": "3"}` alone:
   so a card in two places is one card, read back.
 - Each `StateWriter` gives a thing its id the first time it writes it, and keeps it:
   every state it writes after names that thing the same.
@@ -38,8 +38,8 @@ from spell_core.kinds import is_same
 from spell_core.lists import List
 from spell_core.things import CHANGE_WATCHERS, ITEMS_KEY, TYPE_KEY, Prop, SpellObject, note_change, things
 
-# The key a thing's id goes under:  `{"@type": "Card", "@id": "3", ...}`, or `{"@id": "3"}` alone, to mention it.
-ID_KEY = "@id"
+# The key a thing's id goes under:  `{"$type": "Card", "$id": "3", ...}`, or `{"$id": "3"}` alone, to mention it.
+ID_KEY = "$id"
 
 
 class StateWriter:
@@ -59,7 +59,7 @@ class StateWriter:
         CHANGE_WATCHERS.add(self)
 
     def thing_with_id(self, the_id: str) -> SpellObject | None:
-        """The thing this writer gave `the_id`, if any:  what a page's message names, `{"@id": "3"}`."""
+        """The thing this writer gave `the_id`, if any:  what a page's message names, `{"$id": "3"}`."""
         return self._things.get(the_id)
 
     def things_given_ids(self) -> list[SpellObject]:
@@ -81,7 +81,7 @@ class StateWriter:
         return known[1]
 
     def state_of(self, value: object) -> Any:
-        """`value` as JSON can hold it, each thing with its id:  whole the first time, then `{"@id": ...}` alone.
+        """`value` as JSON can hold it, each thing with its id:  whole the first time, then `{"$id": ...}` alone.
 
         - Lists, tuples and dicts all the way down, as `to_json()` writes them.
         - Covers every change so far:  the next `patch()` has only what changes after.
@@ -142,7 +142,7 @@ class StateMirror:
         - A thing we hold:  its properties set to the state's, and any it no longer has unset;
           a list's items set to the state's.
         - A new one:  made as `core.from_json()` makes one, through its properties, then its `create()`.
-        - `{"@id": ...}` alone:  the thing with that id.
+        - `{"$id": ...}` alone:  the thing with that id.
         - JSON with no ids (`to_json()`'s) reads as `core.from_json()` reads it:  a new thing each time.
         """
         return self._read(state)
@@ -168,7 +168,7 @@ class StateMirror:
             made = cls(**{key: self._read(field) for key, field in fields.items() if _has_setter(cls, key)})
             fields = {key: field for key, field in fields.items() if not _has_setter(cls, key)}
         if isinstance(the_id, str):
-            # kept BEFORE its fields are read:  a field may mention it, `{"@id": ...}`
+            # kept BEFORE its fields are read:  a field may mention it, `{"$id": ...}`
             self._by_id[the_id] = made
         for key in [key for key in made._props if isinstance(the_id, str) and key not in value]:
             made.set_prop(key, None)

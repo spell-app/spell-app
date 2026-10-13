@@ -5,19 +5,19 @@
  * ```ts
  * const writer = new StateWriter()
  * writer.stateOf(game)
- * // { "@type": "Game", "@id": "1", "piles": [{ "@type": "Pile", "@id": "2", "name": "stock", "@items": [
- * //     { "@type": "Card", "@id": "3", "rank": "ace" }] }], "top": { "@id": "3" } }
+ * // { "$type": "Game", "$id": "1", "piles": [{ "$type": "Pile", "$id": "2", "name": "stock", "$items": [
+ * //     { "$type": "Card", "$id": "3", "rank": "ace" }] }], "top": { "$id": "3" } }
  *
  * const mirror = new StateMirror()
  * mirror.read(state)   // the first time:  made, as `spellCore.fromJSON()` makes them
  * mirror.read(later)   // after that:  the SAME things, changed in place, so what draws them redraws
  * ```
  *
- * - The same JSON as `toJSON()`, plus an `"@id"` on each thing and list, after its `"@type"`,
+ * - The same JSON as `toJSON()`, plus an `"$id"` on each thing and list, after its `"$type"`,
  *   and its plain fields after its props:  what it was made with and doesn't declare, e.g. a foundation's `symbol`.
- *   - The first mention of one is whole;  each later one is `{ "@id": "3" }` alone:
+ *   - The first mention of one is whole;  each later one is `{ "$id": "3" }` alone:
  *     so a card in two places is one card, read back.
- *   - `"@id"` as JSON-LD spells it, beside its `"@type"`.
+ *   - `"$id"` as JSON-LD spells it, beside its `"$type"`.
  * - Each `StateWriter` gives a thing its id the first time it writes it, and keeps it:
  *   every state it writes after names that thing the same.
  *   - One writer per page:  ids are its own, counted from 1.
@@ -33,8 +33,8 @@ import { programThings } from "./core"
 import { List } from "./classes/List"
 import { Thing } from "./classes/Thing"
 
-/** Key a thing's id goes under:  `{ "@type": "Card", "@id": "3", ... }`, or `{ "@id": "3" }` alone, to mention it. */
-export const ID_KEY = "@id"
+/** Key a thing's id goes under:  `{ "$type": "Card", "$id": "3", ... }`, or `{ "$id": "3" }` alone, to mention it. */
+export const ID_KEY = "$id"
 
 /** A thing or a list:  what has an id in a state. */
 type SpellObject = Thing | List
@@ -55,7 +55,7 @@ export class StateWriter {
   }
 
   /**
-   * `value` as JSON can hold it, each thing with its id:  whole the first time, then `{ "@id": ... }` alone.
+   * `value` as JSON can hold it, each thing with its id:  whole the first time, then `{ "$id": ... }` alone.
    * - Arrays and plain objects all the way down, as `toJSON()` writes them.
    */
   stateOf(value: unknown): unknown {
@@ -118,7 +118,7 @@ export class StateMirror {
    * - A thing we hold:  its props set to the state's, and any it no longer has unset;
    *   a list's items set to the state's.
    * - A new one:  made as `spellCore.fromJSON()` makes one, through its setters, then its `create()`.
-   * - `{ "@id": ... }` alone:  the thing with that id.
+   * - `{ "$id": ... }` alone:  the thing with that id.
    * - JSON with no ids (`toJSON()`'s) reads as `spellCore.fromJSON()` reads it:  a new thing each time.
    */
   read(state: unknown): unknown {
@@ -145,7 +145,7 @@ export class StateMirror {
       }
       made = new Class(settable) as SpellObject
     }
-    // kept BEFORE its fields are read:  a field may mention it, `{ "@id": ... }`
+    // kept BEFORE its fields are read:  a field may mention it, `{ "$id": ... }`
     if (typeof id === "string") {
       this.byId.set(id, made)
       this.ids.set(made, id)

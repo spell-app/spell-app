@@ -146,10 +146,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## JSON
 
-- Every spell object's JSON says its class first, `"@type"`, then its props.
-  - `{ "@type": "Card", "rank": "ace" }`
-  - a list's adds its items, under `"@items"`, its `ITEMS_KEY`:
-    - `{ "@type": "Pile", "name": "stock", "@items": [...] }`
+- Every spell object's JSON says its class first, `"$type"`, then its props.
+  - `{ "$type": "Card", "rank": "ace" }`
+  - a list's adds its items, under `"$items"`, its `ITEMS_KEY`:
+    - `{ "$type": "Pile", "name": "stock", "$items": [...] }`
   - written by `$/util`'s `typedJSON()`
   - Neither key is ever a prop:  what the Thing Explorer lists (`keys()`) doesn't have them.
 - `spellCore.fromJSON()` ([json.ts](src/json.ts)) reads it back, each object as its class.
@@ -157,7 +157,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - That knows a class once one of its things is made,
     or once a runner hands it the program's modules (`addClasses()`).
   - A list's items are SET (`writeItems()`), so a pile owns its cards.
-  - An unknown `"@type"`:  a plain object.
+  - An unknown `"$type"`:  a plain object.
 - `spellCore.carryOver()` ([carry.ts](src/carry.ts)) does the same for a recompile:
   the game in progress stays when the program changes (epic `drawable-thing` P16).
   - The last run's things come over as the new program's classes.
@@ -171,8 +171,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `carryProblems()` says first which things can't come over:
     then the runner starts afresh instead.
 - A program's STATE, for a page that mirrors it ([state.ts](src/state.ts), epic `python-target` P17):
-  the same JSON, each thing and list with an `"@id"` after its `"@type"`.
-  - `StateWriter.stateOf()` writes a thing whole the first time, then `{ "@id": "3" }` alone:
+  the same JSON, each thing and list with an `"$id"` after its `"$type"`.
+  - `StateWriter.stateOf()` writes a thing whole the first time, then `{ "$id": "3" }` alone:
     a card in two places is one card.
   - Each writer keeps the ids it gave:  one writer per page.
   - `StateMirror.read()` reads each state INTO the things it read before, by id:  the same objects, changed.
@@ -180,7 +180,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Python's twin is `spell_core.state`:  both write [stateById.expected.json](stateById.expected.json), and read it.
 - SAVING things by id ([saving.ts](src/saving.ts), epic `people-and-orgs` P2):  what lasts, as opposed to a page's state.
   - `new Saver().save(thing)`:  every thing it reaches, each an entry of its own by key, `"Person#owen"`.
-    - What holds a thing writes a reference to it, `{ "@ref": "Person#matt" }`:  a card in two piles is one card.
+    - What holds a thing writes a reference to it, `{ "$ref": "Person#matt" }`:  a card in two piles is one card.
     - A kind saved inline (`static savedInline = true`, from `a dated-event is saved inline`) is written whole instead.
     - A property's plain list is its items, a JSON array.
   - `new Loader({ entryFor }).load(key)`:  each entry made once, however many references name it.

@@ -118,7 +118,7 @@ describe("spellCore.fromJSON()", () => {
     expect([stock!.length, card.pile]).toEqual([1, discards])
   })
 
-  test('takes what `JSON.parse()` answered, too;  a value with no `"@type"` stays as it is', () => {
+  test('takes what `JSON.parse()` answered, too;  a value with no `"$type"` stays as it is', () => {
     const read = spellCore.fromJSON(JSON.parse(JSON.stringify({ top: new Card({ rank: 3 }), count: 1 })))
     expect(read).toEqual({ top: expect.any(Card), count: 1 })
     expect((read as { top: Card }).top.rank).toBe(3)
@@ -126,23 +126,23 @@ describe("spellCore.fromJSON()", () => {
   })
 
   test("a plain list:  `List`, with its items", () => {
-    const read = spellCore.fromJSON('{ "@type": "List", "@items": [1, 2, 3] }') as List<number>
+    const read = spellCore.fromJSON('{ "$type": "List", "$items": [1, 2, 3] }') as List<number>
     expect(read.constructor).toBe(List)
     expect([...read]).toEqual([1, 2, 3])
   })
 
-  test('an unknown `"@type"`:  a plain object, its `"@type"` kept, what it holds read back as usual', () => {
+  test('an unknown `"$type"`:  a plain object, its `"$type"` kept, what it holds read back as usual', () => {
     const read = spellCore.fromJSON(
-      '{ "@type": "Spaceship", "name": "Zork", "crew": [{ "@type": "Card", "rank": "ace" }] }'
+      '{ "$type": "Spaceship", "name": "Zork", "crew": [{ "$type": "Card", "rank": "ace" }] }'
     ) as Record<string, unknown>
     expect(Object.getPrototypeOf(read)).toBe(Object.prototype)
-    expect(read).toEqual({ "@type": "Spaceship", name: "Zork", crew: [expect.any(Card)] })
+    expect(read).toEqual({ $type: "Spaceship", name: "Zork", crew: [expect.any(Card)] })
   })
 
   test("a class is found once one of its things is made, or it's added -- e.g. a project the program imports", () => {
     class Joker extends Card {}
-    const json = '{ "@type": "Joker", "rank": "ace" }'
-    expect(spellCore.fromJSON(json)).toEqual({ "@type": "Joker", rank: "ace" })
+    const json = '{ "$type": "Joker", "rank": "ace" }'
+    expect(spellCore.fromJSON(json)).toEqual({ $type: "Joker", rank: "ace" })
     spellCore.things.addClasses({ Joker, notAClass: 3, Thing })
     expect(spellCore.fromJSON(json)).toBeInstanceOf(Joker)
   })
@@ -154,7 +154,7 @@ describe("spellCore.fromJSON()", () => {
       }
     }
     void new Hand()
-    const read = spellCore.fromJSON('{ "@type": "Hand", "name": "mine", "@items": [{ "@type": "Card", "rank": 3 }] }')
+    const read = spellCore.fromJSON('{ "$type": "Hand", "name": "mine", "$items": [{ "$type": "Card", "rank": 3 }] }')
     expect((read as Hand).items.map((card) => card.rank)).toEqual([3])
   })
 
@@ -163,7 +163,7 @@ describe("spellCore.fromJSON()", () => {
     ;(card as unknown as { setProp(name: string, value: unknown): void }).setProp("nickname", "Lucky")
     const read = spellCore.fromJSON(JSON.stringify(card)) as Card
     expect(read.keys()).toEqual(["rank", "nickname"])
-    expect(read.toJSON()).toEqual({ "@type": "Card", rank: "ace", nickname: "Lucky" })
+    expect(read.toJSON()).toEqual({ $type: "Card", rank: "ace", nickname: "Lucky" })
   })
 
   test("throws on text that isn't JSON", () => {

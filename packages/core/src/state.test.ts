@@ -131,10 +131,10 @@ describe("a StateMirror:  reads states into what it read before", () => {
 
   test("unsets what a thing no longer has", () => {
     const mirror = new StateMirror()
-    const chip = mirror.read({ "@type": "Chip", "@id": "1", color: "red", value: 5 }) as Chip
-    mirror.read({ "@type": "Chip", "@id": "1", color: "red" })
+    const chip = mirror.read({ $type: "Chip", $id: "1", color: "red", value: 5 }) as Chip
+    mirror.read({ $type: "Chip", $id: "1", color: "red" })
     expect(chip.value).toBeUndefined()
-    expect(chip.toJSON()).toEqual({ "@type": "Chip", color: "red" })
+    expect(chip.toJSON()).toEqual({ $type: "Chip", color: "red" })
   })
 })
 
@@ -146,8 +146,8 @@ describe("spellCore.fromJSON()", () => {
 
   test("without ids, makes a thing each time", () => {
     const [first, second] = spellCore.fromJSON([
-      { "@type": "Chip", color: "red" },
-      { "@type": "Chip", color: "red" }
+      { $type: "Chip", color: "red" },
+      { $type: "Chip", color: "red" }
     ]) as Chip[]
     expect(first).not.toBe(second)
   })

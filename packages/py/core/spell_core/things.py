@@ -11,7 +11,7 @@ class Card(Thing):
 card = Card(rank="queen")
 card.rank       # "queen"
 card.name       # "", its default
-card.to_json()  # {"@type": "Card", "rank": "queen"}
+card.to_json()  # {"$type": "Card", "rank": "queen"}
 ```
 
 - A property is a `prop()` in the class body:  reading it gives its value, or its default while it's unset.
@@ -40,10 +40,10 @@ from spell_core.kinds import is_same
 if TYPE_CHECKING:
     from spell_core.core import SpellCore
 
-# The key a spell object's JSON names its class under:  `{"@type": "Card", ...}`.
-TYPE_KEY = "@type"
-# The key a spell list's JSON holds its items under:  `{"@type": "Deck", "@items": [...]}`.
-ITEMS_KEY = "@items"
+# The key a spell object's JSON names its class under:  `{"$type": "Card", ...}`.
+TYPE_KEY = "$type"
+# The key a spell list's JSON holds its items under:  `{"$type": "Deck", "$items": [...]}`.
+ITEMS_KEY = "$items"
 # Defaults that would be ONE object shared by every instance:  `init=list` makes one each.
 SHARED_DEFAULTS = (list, dict, set)
 # Characters a made-up id's random part is written in:  base 36, lower case.
@@ -369,15 +369,15 @@ class SpellObject:
         return program_core().is_of_type(self, type_name)
 
     def to_json(self) -> dict[str, object]:
-        """Our JSON:  our class's name as `"@type"`, then our properties in the order they were first set.
+        """Our JSON:  our class's name as `"$type"`, then our properties in the order they were first set.
 
         ```python
-        Card(rank="ace", suit="spades").to_json()  # {"@type": "Card", "rank": "ace", "suit": "spades"}
+        Card(rank="ace", suit="spades").to_json()  # {"$type": "Card", "rank": "ace", "suit": "spades"}
         ```
 
         - Each value as its own JSON, all the way down:  `json.dumps()` takes what this returns.
         - Python's names, as declared:  `is_set_up`, not JavaScript's `isSetUp`.
-        - `"@type"` is our CLASS's name, even if this one says otherwise (`type`):  the class is what's rebuilt.
+        - `"$type"` is our CLASS's name, even if this one says otherwise (`type`):  the class is what's rebuilt.
         - Reads back as what it was:  `core.from_json()`.
         """
         return {TYPE_KEY: type(self).__name__, **{name: to_json_value(value) for name, value in self._props.items()}}

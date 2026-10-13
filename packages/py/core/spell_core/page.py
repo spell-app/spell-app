@@ -3,7 +3,7 @@
 ```python
 session = PageSession(run_program("Solitaire.compiled.py", seed=1))
 session.state()        # the whole state, by id, for the page to start from
-session.handle({"trigger": "card-click", "details": {"card": {"@id": "12"}}})
+session.handle({"trigger": "card-click", "details": {"card": {"$id": "12"}}})
 # => the patch:  only what that click changed
 ```
 
@@ -11,7 +11,7 @@ session.handle({"trigger": "card-click", "details": {"card": {"@id": "12"}}})
   it writes the state first, then reads each message, writing what it changed.
 - The page draws with the program's drawing half in javascript, `<Project>.elements.js`, from the state it's sent;
   see `startPage()` in the JavaScript core's `page.ts`.
-- What it sends, each thing in it by its id (`{"@id": "3"}`), or by a reference (`"Card#queen-of-spades"`, P27):
+- What it sends, each thing in it by its id (`{"$id": "3"}`), or by a reference (`"Card#queen-of-spades"`, P27):
   - a call of one of the program's functions:  `{"call": "play_from_the_stock_pile", "args": []}`
   - a call of a thing's method:  `{"call": "turn_over", "on": "Card#3", "args": []}`
   - an event, for the program's handlers:  `{"trigger": "card-click", "target": "Card#queen-of-spades"}`
@@ -111,7 +111,7 @@ class PageSession:
         return found
 
     def read(self, value: Any) -> Any:
-        """`value` from a page's message:  each `{"@id": ...}`, or reference (`"Card#3"`), the thing it names.
+        """`value` from a page's message:  each `{"$id": ...}`, or reference (`"Card#3"`), the thing it names.
 
         - The rest as it is.
         """

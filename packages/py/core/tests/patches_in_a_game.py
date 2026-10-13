@@ -27,11 +27,11 @@ def main() -> None:
     parser.add_argument("--clicks", type=int, default=300)
     args = parser.parse_args()
     game = play_page(args.program, seed=args.seed)
-    cards = [card["@id"] for card in game.named("deck")["@items"]]
+    cards = [card["$id"] for card in game.named("deck")["$items"]]
     changed = 0
     for click in range(args.clicks):
-        stock = game.state.get("stock") and game.named("stock")["@items"]
-        card = stock[-1] if click % 2 == 0 and stock else {"@id": core.random_item_of(cards)}
+        stock = game.state.get("stock") and game.named("stock")["$items"]
+        card = stock[-1] if click % 2 == 0 and stock else {"$id": core.random_item_of(cards)}
         try:
             changed += bool(game.trigger("card-click", card=game.ref(card)))
         except PatchMismatchError:

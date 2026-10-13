@@ -102,7 +102,7 @@ export const TARGETS: Record<string, Target> = {
     writer: P.LibraryWriter.instance,
     suffix: ".lib.js",
     can: { draw: false, run: false },
-    types:{ suffix: ".lib.d.ts", writer: P.LibraryTSWriter.instance }
+    types: { suffix: ".lib.d.ts", writer: P.LibraryTSWriter.instance }
   }
 }
 

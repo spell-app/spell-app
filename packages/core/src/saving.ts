@@ -5,25 +5,28 @@
  * ```ts
  * const { root, entries } = new Saver().save(owen)
  * // root:  "Person#owen"
- * // entries:  "Person#owen" => { "@type": "Person", "id": "owen", "name": "Owen",
- * //                                "dates": [{ "@type": "DatedEvent", "label": "birthday", ... }],
- * //                                "friends": [{ "@ref": "Person#matt" }] }
- * //           "Person#matt" => { "@type": "Person", "id": "matt", ... }
+ * // entries:  "Person#owen" => { "$type": "Person", "id": "owen", "name": "Owen",
+ * //                                "dates": [{ "$type": "DatedEvent", "label": "birthday", ... }],
+ * //                                "friends": [{ "$ref": "Person#matt" }] }
+ * //           "Person#matt" => { "$type": "Person", "id": "matt", ... }
  *
  * const loader = new Loader({ entryFor: (ref) => entries.get(ref) })
  * loader.load(root)   // owen again;  his friend matt is loaded once, however many hold him
  * ```
  *
- * - Every thing is saved in an entry of its own, and what holds it saves a REFERENCE, `{ "@ref": "Person#matt" }`:
+ * - Every thing is saved in an entry of its own, and what holds it saves a REFERENCE, `{ "$ref": "Person#matt" }`:
  *   so a card in two piles is one card, read back.
  *   - EXCEPT a kind saved inline (`a dated-event is saved inline`, `static savedInline = true`):
  *     written whole, inside what holds it.
  *   - A plain list a property holds (`its "dates" is a list of dated-events`) is its items alone, a JSON array:
  *     it's part of its owner.  A list TYPE (`a club is a list of people`) is a thing, saved on its own.
- * - An entry is what `toJSON()` writes, `"@type"` first, then its `id`, then its other props,
- *   then the plain fields it was made with (a foundation's `symbol`), then a list's `"@items"`.
+ * - An entry is what `toJSON()` writes, `"$type"` first, then its `id`, then its other props,
+ *   then the plain fields it was made with (a foundation's `symbol`), then a list's `"$items"`.
  * - What an entry's key and a reference say is `refOf`'s, `"Person#matt"` by default:
  *   the people store (P9) names them by address instead, `"matt@spell"`.
+ * - A thing kept in ANOTHER place (`placeOf`) is a reference with that place, `"Person#matt@three-degrees"`,
+ *   and gets no entry:  its own place saves it.  `parseRef()` reads one, `refText()` writes one (P4, Q18).
+ *   - So an id may never hold an `@`:  saving one throws.
  * - Where entries live is the caller's:  a `Map` here, one file each in the people store.
  * - The twin of Python's `spell_core.saving`:  both write `savedById.expected.json`, beside `src/`, and read it.
  * - Not the same as a page's state (`state.ts`):  that numbers things per page, and holds them in one message.
@@ -36,8 +39,8 @@ import { fieldsOf, hasSetter, isPlainObject, isSpellObject } from "./state"
 import { List } from "./classes/List"
 import { Thing } from "./classes/Thing"
 
-/** Key a reference names its thing under:  `{ "@ref": "Person#matt" }`. */
-export const REF_KEY = "@ref"
+/** Key a reference names its thing under:  `{ "$ref": "Person#matt" }`. */
+export const REF_KEY = "$ref"
 
 /** A thing or a list:  what is saved by id. */
 type SpellObject = Thing | List
@@ -57,6 +60,26 @@ export type Saved = {
 export type SaverOptions = {
   /** The key of a thing's entry, and what a reference to it says -- `"<Class>#<id>"` by default, `"Person#owen"`. */
   refOf?: (thing: SpellObject) => string
+  /**
+   * Where `thing` is kept when it's NOT with what's being saved, e.g. in another project or someone else's space:
+   * its place's address, `three-degrees`, or `undefined` when it's saved here (epic `people-and-orgs` Q18).
+   * - A thing kept elsewhere is written as a reference with its place, `{ "$ref": "Person#matt@three-degrees" }`,
+   *   and gets no entry here:  its own place saves it.
+   */
+  placeOf?: (thing: SpellObject) => string | undefined
+}
+
+/**
+ * A saved reference's parts:  `Person#matt@three-degrees` is `{ type: "Person", id: "matt", place: "three-degrees" }`
+ * -- see `parseRef()` and `refText()`.
+ */
+export type SavedRef = {
+  /** The thing's kind, e.g. `Person`. */
+  type: string
+  /** Its id, e.g. `matt`:  never holds an `@`. */
+  id: string
+  /** Where it's kept, when that's not here:  an address, which may hold an `@` of its own (`matt@three-degrees:game`). */
+  place?: string
 }
 
 /** Options for a `Loader`. */
@@ -64,7 +87,7 @@ export type LoaderOptions = {
   /** The entry saved under `ref`, if there is one:  JSON as `Saver` wrote it. */
   entryFor: (ref: string) => Record<string, unknown> | undefined
   /**
-   * The class an entry's `"@type"` names:  the running program's (`spellCore.things.classNamed()`) by default.
+   * The class an entry's `"$type"` names:  the running program's (`spellCore.things.classNamed()`) by default.
    * - Needed under `$/core/model`, which has no running program.
    */
   classNamed?: (name: string) => SpellClass | undefined
@@ -77,9 +100,12 @@ export type LoaderOptions = {
 export class Saver {
   /** See `SaverOptions.refOf`. */
   readonly refOf: (thing: SpellObject) => string
+  /** See `SaverOptions.placeOf`. */
+  readonly placeOf: (thing: SpellObject) => string | undefined
 
-  constructor({ refOf }: SaverOptions = {}) {
+  constructor({ refOf, placeOf }: SaverOptions = {}) {
     this.refOf = refOf ?? defaultRefOf
+    this.placeOf = placeOf ?? (() => undefined)
   }
 
   /**
@@ -90,8 +116,10 @@ export class Saver {
     const entries = new Map<string, Record<string, unknown>>()
     const waiting: SpellObject[] = [root]
     const queued = new Set<SpellObject>(waiting)
-    // each thing reached:  a reference to it, and saved in its turn
+    // each thing reached:  a reference to it, and saved in its turn -- unless it's kept elsewhere
     const reference = (thing: SpellObject) => {
+      const place = this.placeOf(thing)
+      if (place) return { [REF_KEY]: refText({ type: thing.constructor.name, id: thing.id, place }) }
       if (!queued.has(thing)) {
         queued.add(thing)
         waiting.push(thing)
@@ -104,7 +132,7 @@ export class Saver {
     return { root: this.refOf(root), entries }
   }
 
-  /** `thing`'s own entry:  `"@type"`, `id`, its other props, a list's `"@items"`. */
+  /** `thing`'s own entry:  `"$type"`, `id`, its other props, a list's `"$items"`. */
   protected entryOf(thing: SpellObject, reference: (thing: SpellObject) => unknown): Record<string, unknown> {
     const entry: Record<string, unknown> = { [TYPE_KEY]: thing.constructor.name, id: thing.id }
     return this.writeProps(thing, entry, reference)
@@ -214,7 +242,7 @@ export class Loader {
    * A thing made from `json`, an entry or a thing saved inline -- kept as `ref`'s, if it's an entry.
    * - Made with its plain values (text, numbers ...) through its setters, so its `create()` sees them;
    *   then its things and lists set, once it's kept:  one of them may hold it back, a person's friend's friend.
-   * - Its class unknown:  the entry read as a plain object, its `"@type"` kept.
+   * - Its class unknown:  the entry read as a plain object, its `"$type"` kept.
    */
   protected make(json: Record<string, unknown>, ref?: string): unknown {
     const Class = this.classNamed(`${json[TYPE_KEY]}`)
@@ -248,9 +276,44 @@ export class Loader {
 // ## Helpers
 ////////////////
 
-/** `"<Class>#<id>"`, e.g. `"Person#owen"`:  a thing's key, until the people store names things by address. */
+/**
+ * A saved reference read:  `Person#matt@three-degrees` => `{ type: "Person", id: "matt", place: "three-degrees" }`.
+ * - The type runs up to the `#`;  the id from there to the FIRST `@`;  everything after that `@` is the place,
+ *   which may hold an `@` of its own:  `Card#26@matt@three-degrees:bubble-trouble`'s place is
+ *   `matt@three-degrees:bubble-trouble` (epic `people-and-orgs` Q18).
+ * - No `@`:  no place, the thing is kept here, `Person#matt`.
+ * - throws `TypeError` with no `#`, or nothing before or after it
+ */
+export function parseRef(text: string): SavedRef {
+  const hash = text.indexOf("#")
+  const at = text.indexOf("@", hash + 1)
+  const type = text.slice(0, hash)
+  const id = at < 0 ? text.slice(hash + 1) : text.slice(hash + 1, at)
+  if (hash < 0 || !type || !id) {
+    throw new TypeError(`parseRef():  "${text}" isn't a reference;  write it as Type#id, or Type#id@place`)
+  }
+  return at < 0 ? { type, id } : { type, id, place: text.slice(at + 1) }
+}
+
+/**
+ * `ref` written as a saved reference:  `Person#matt`, or with its place, `Person#matt@three-degrees`.
+ * - throws `TypeError` if the id holds an `@`:  a reader couldn't tell where the id ends and the place begins
+ */
+export function refText({ type, id, place }: SavedRef): string {
+  if (id.includes("@")) {
+    throw new TypeError(
+      `refText():  ${type}'s id "${id}" holds an @, which a saved reference can't;  give it another id`
+    )
+  }
+  return place ? `${type}#${id}@${place}` : `${type}#${id}`
+}
+
+/**
+ * `"<Class>#<id>"`, e.g. `"Person#owen"`:  a thing's key, until the people store names things by address.
+ * - throws if its id holds an `@` -- see `refText()`
+ */
 function defaultRefOf(thing: SpellObject): string {
-  return `${thing.constructor.name}#${thing.id}`
+  return refText({ type: thing.constructor.name, id: thing.id })
 }
 
 /** Is `thing`'s kind saved inside what holds it (`static savedInline = true`)? */
@@ -263,7 +326,7 @@ function isPlainValue(value: unknown): boolean {
   return value === null || typeof value !== "object"
 }
 
-/** Is `json` a reference alone, `{ "@ref": ... }`? */
+/** Is `json` a reference alone, `{ "$ref": ... }`? */
 function isReference(json: unknown): boolean {
   return isPlainObject(json) && typeof json[REF_KEY] === "string" && Object.keys(json).length === 1
 }

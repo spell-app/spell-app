@@ -188,13 +188,13 @@ describe("keys in creation order", () => {
 })
 
 describe("typed JSON (output-targets P15, Q49)", () => {
-  test('`typedJSON()`:  `"@type"`, the class\'s name, first -- then the props, in `keys()` order', () => {
+  test('`typedJSON()`:  `"$type"`, the class\'s name, first -- then the props, in `keys()` order', () => {
     const card = new Card({ suit: "clubs", rank: 3 })
-    expect(JSON.stringify(typedJSON(card))).toBe('{"@type":"Card","suit":"clubs","rank":3}')
+    expect(JSON.stringify(typedJSON(card))).toBe('{"$type":"Card","suit":"clubs","rank":3}')
     expect(typedJSON(card, "Joker")[TYPE_KEY]).toBe("Joker")
   })
 
-  test('`"@type"` is never a prop:  not in `keys()`, nor `getProps()`', () => {
+  test('`"$type"` is never a prop:  not in `keys()`, nor `getProps()`', () => {
     const card = new Card({ rank: 3 })
     typedJSON(card)
     expect(card.keys()).toEqual(["rank"])
@@ -210,7 +210,7 @@ describe("typed JSON (output-targets P15, Q49)", () => {
     })
     card.rank = 8
     stop()
-    expect(seen).toEqual(['{"@type":"Card","rank":7}', '{"@type":"Card","rank":8}'])
+    expect(seen).toEqual(['{"$type":"Card","rank":7}', '{"$type":"Card","rank":8}'])
   })
 })
 

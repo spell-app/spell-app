@@ -16,7 +16,7 @@
  *   - a call, `{ "call": "play_from_the_stock_pile", "args": [] }`,
  *     of a thing's method, `{ "call": "turn_over", "on": "Card#queen-of-spades", "args": [] }` -- see `sendCall()`
  *   - an event, `{ "trigger": "card-click", "target": "Card#queen-of-spades" }` -- see `sendTrigger()`
- *   - each thing by reference (epic `python-target` P27), else by its id, `{ "@id": "3" }`
+ *   - each thing by reference (epic `python-target` P27), else by its id, `{ "$id": "3" }`
  * - The state names properties as Python does:  read as javascript names them (`javascriptName()`).
  * - `receive()` reads what comes back, a state or a patch, into the same things:  what they draw follows.
  * - The app the state holds starts, drawn into the page as `App.start()` draws it.
@@ -33,7 +33,7 @@ export type PageMessage =
   | { call: string; on?: PageMessageThing; args: unknown[] }
   | { trigger: string; target?: PageMessageThing | PageMessageThing[]; details: Record<string, unknown> }
 
-/** A thing in a page's message:  by reference, `"Card#ace-of-hearts"`, else by its id, `{ "@id": "3" }`. */
+/** A thing in a page's message:  by reference, `"Card#ace-of-hearts"`, else by its id, `{ "$id": "3" }`. */
 export type PageMessageThing = string | { [ID_KEY]: string }
 
 /** What `startPage()` takes -- see the file's docs. */
@@ -122,7 +122,7 @@ const CORE_NAMES: Record<string, string> = { item_type: "instanceType" }
 /**
  * `value`, each thing in it by reference, `"Card#ace-of-hearts"` (`spellCore.referenceFor()`, epic `python-target` P27):
  * plain values, arrays and objects all the way down.
- * - A thing no reference finds (no name, not the program's):  its id, `{ "@id": "3" }`.
+ * - A thing no reference finds (no name, not the program's):  its id, `{ "$id": "3" }`.
  */
 function byReference(value: unknown, mirror: StateMirror): unknown {
   if (value instanceof Thing || value instanceof List) {
@@ -261,7 +261,7 @@ export function frameSummary(frame: unknown): string {
   return `state:  ${Object.keys(message).join(", ")}`
 }
 
-/** Is `value` a thing in a frame:  a reference, `"Card#3"`, or an id, `{ "@id": "3" }`? */
+/** Is `value` a thing in a frame:  a reference, `"Card#3"`, or an id, `{ "$id": "3" }`? */
 function isThingInFrame(value: unknown): boolean {
   if (typeof value === "string") return REFERENCE_TEXT.test(value)
   return typeof value === "object" && value !== null && ID_KEY in value
@@ -279,6 +279,6 @@ function thingLabel(value: unknown): string {
   if (typeof value !== "object" || value === null) return JSON.stringify(value)
   const thing = value as Record<string, unknown>
   if (!(ID_KEY in thing)) return JSON.stringify(value)
-  const type = typeof thing["@type"] === "string" ? `${thing["@type"]} ` : ""
+  const type = typeof thing["$type"] === "string" ? `${thing["$type"]} ` : ""
   return `${type}#${String(thing[ID_KEY])}`
 }

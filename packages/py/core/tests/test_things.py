@@ -61,7 +61,7 @@ def test_keyword_properties_then_create_once() -> None:
 def test_a_default_is_read_but_not_stored() -> None:
     card = ThingCard()
     assert card.name == ""
-    assert card.to_json() == {"@type": "ThingCard"}
+    assert card.to_json() == {"$type": "ThingCard"}
     assert Player().score == 0
 
 
@@ -71,7 +71,7 @@ def test_init_makes_a_value_once_per_thing_and_stores_it() -> None:
     one.hand.append("ace")
     assert one.hand == ["ace"]
     assert other.hand == []
-    assert one.to_json() == {"@type": "Player", "hand": ["ace"]}
+    assert one.to_json() == {"$type": "Player", "hand": ["ace"]}
 
 
 def test_a_shared_list_default_is_refused() -> None:
@@ -83,7 +83,7 @@ def test_setting_none_unsets_it() -> None:
     card = ThingCard(rank="ace", name="Ace")
     card.name = None
     assert card.name == ""
-    assert card.to_json() == {"@type": "ThingCard", "rank": "ace"}
+    assert card.to_json() == {"$type": "ThingCard", "rank": "ace"}
 
 
 def test_on_the_class_a_property_is_its_declaration() -> None:
@@ -149,7 +149,7 @@ def test_type_is_its_class_name_unless_set() -> None:
     assert card.type == "Joker"
     card.type = "Wild"
     assert card.type == "Wild"
-    assert card.to_json()["@type"] == "Joker"
+    assert card.to_json()["$type"] == "Joker"
 
 
 def test_is_of_type_its_class_and_each_it_extends() -> None:
@@ -186,7 +186,7 @@ def test_an_undeclared_name_reads_as_none_but_a_private_one_raises() -> None:
 def test_an_undeclared_keyword_is_a_plain_attribute_not_a_property() -> None:
     card = ThingCard(rank="ace", owner="Ann")
     assert card.owner == "Ann"
-    assert card.to_json() == {"@type": "ThingCard", "rank": "ace"}
+    assert card.to_json() == {"$type": "ThingCard", "rank": "ace"}
 
 
 def test_each_class_is_known_by_name_as_it_is_defined() -> None:
@@ -204,10 +204,10 @@ def test_each_class_is_known_by_name_as_it_is_defined() -> None:
 def test_json_is_its_type_then_its_properties_in_the_order_first_set() -> None:
     card = ThingCard(suit="hearts", rank="king")
     card.suit = "spades"
-    assert list(card.to_json()) == ["@type", "suit", "rank"]
+    assert list(card.to_json()) == ["$type", "suit", "rank"]
     player = Player(card=card)
     assert json.dumps(player.to_json()) == (
-        '{"@type": "Player", "card": {"@type": "ThingCard", "suit": "spades", "rank": "king"}}'
+        '{"$type": "Player", "card": {"$type": "ThingCard", "suit": "spades", "rank": "king"}}'
     )
 
 
@@ -248,10 +248,10 @@ class DatedEvent(Thing):
 
 def test_an_id_is_made_on_first_read_then_kept() -> None:
     event = DatedEvent()
-    assert event.to_json() == {"@type": "DatedEvent"}
+    assert event.to_json() == {"$type": "DatedEvent"}
     assert re.fullmatch(r"dated-event-[0-9a-z]{8}", event.id)
     assert event.id == event.id
-    assert event.to_json() == {"@type": "DatedEvent", "id": event.id}
+    assert event.to_json() == {"$type": "DatedEvent", "id": event.id}
 
 
 def test_its_kind_is_its_class_name_in_lower_kebab_case_as_javascripts() -> None:
@@ -267,7 +267,7 @@ def test_its_kind_is_its_class_name_in_lower_kebab_case_as_javascripts() -> None
 
 def test_a_set_id_wins_by_keyword_or_set_later() -> None:
     assert ThingCard(id="owen").id == "owen"
-    assert ThingCard(id="owen").to_json() == {"@type": "ThingCard", "id": "owen"}
+    assert ThingCard(id="owen").to_json() == {"$type": "ThingCard", "id": "owen"}
     card = ThingCard(rank="ace")
     made_up = card.id
     card.id = "ace-of-spades"

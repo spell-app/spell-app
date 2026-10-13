@@ -72,7 +72,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - spell CELLS:  `cells.ts` (the page-wide context, tracking, `flushCells()`), `Cell`, `Derived`, `Reaction`
   - the records, [extend.ts](src/reactive/extend.ts):
     - `getProp` / `setProp`, `getState` / `setState`, `derive()`
-    - `typedJSON()`:  an object's props, its class's name first, `"@type"` (what a spell object's JSON says)
+    - `typedJSON()`:  an object's props, its class's name first, `"$type"` (what a spell object's JSON says)
   - `Schema`:  per-class prop types
   - the decorators, [decorators.ts](src/reactive/decorators.ts):  `@prop`, `@state`, `@derived`
     - `{ equals }` on the last two

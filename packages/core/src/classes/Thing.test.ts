@@ -47,16 +47,16 @@ describe("compiled-style getter / setter properties", () => {
   test("constructor props go through the setter into reactive props", () => {
     const task = new Task({ title: "Write tests" })
     expect(task.title).toBe("Write tests")
-    expect(task.toJSON()).toEqual({ "@type": "Task", title: "Write tests" })
+    expect(task.toJSON()).toEqual({ $type: "Task", title: "Write tests" })
   })
 
-  test('JSON says its class first, `"@type"` -- which isn\'t a prop (output-targets Q49)', () => {
+  test('JSON says its class first, `"$type"` -- which isn\'t a prop (output-targets Q49)', () => {
     const task = new Task({ title: "Write tests", priority: "low" })
-    expect(JSON.stringify(task)).toBe('{"@type":"Task","title":"Write tests","priority":"low"}')
+    expect(JSON.stringify(task)).toBe('{"$type":"Task","title":"Write tests","priority":"low"}')
     expect(task.keys()).toEqual(["title", "priority"])
     // its CLASS's name, even when the instance says another `type`
     task.type = "Chore"
-    expect(task.toJSON()["@type"]).toBe("Task")
+    expect(task.toJSON()["$type"]).toBe("Task")
   })
 
   test("reads are tracked:  a later write re-runs an observer", () => {
@@ -149,15 +149,15 @@ describe("Thing.id (people-and-orgs P1)", () => {
 
   test("JSON has an id ONLY once it's read or set:  existing JSON doesn't change", () => {
     const task = new Task({ title: "Write tests" })
-    expect(task.toJSON()).toEqual({ "@type": "Task", title: "Write tests" })
+    expect(task.toJSON()).toEqual({ $type: "Task", title: "Write tests" })
     const id = task.id
-    expect(task.toJSON()).toEqual({ "@type": "Task", title: "Write tests", id })
-    expect(new Task({ id: "owen" }).toJSON()).toEqual({ "@type": "Task", id: "owen" })
+    expect(task.toJSON()).toEqual({ $type: "Task", title: "Write tests", id })
+    expect(new Task({ id: "owen" }).toJSON()).toEqual({ $type: "Task", id: "owen" })
   })
 
   test("a list has one too, as a thing has", () => {
     const deck = new Deck({ name: "spare" })
-    expect(deck.toJSON()).toEqual({ "@type": "Deck", name: "spare", "@items": [] })
+    expect(deck.toJSON()).toEqual({ $type: "Deck", name: "spare", $items: [] })
     expect(deck.id).toMatch(/^deck-[0-9a-z]{8}$/)
     expect(new Deck({ id: "spare-deck" }).id).toBe("spare-deck")
   })
