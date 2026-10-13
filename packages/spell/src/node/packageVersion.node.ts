@@ -14,6 +14,7 @@ export function readPackageVersion(): string {
 /**
  * SIDE EFFECT: defines `__PACKAGE_VERSION__` for code `tsx` runs rather than vite.
  * - Vite and vitest define it themselves -- see `vite.packageVersion.ts`.
- * - `src/server/index.ts` and `src/lsp/server.ts` import this FIRST, before anything reads it.
+ * - What `tsx` runs imports this FIRST, before anything reads it:  spaces' servers (`appRoutes.ts`, `cli.ts`),
+ *   lsp's `server.ts` and `scopes.ts`, the `spell` command (`main.ts`).
  */
 globalThis.__PACKAGE_VERSION__ ??= readPackageVersion()

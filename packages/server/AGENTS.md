@@ -78,7 +78,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - Only this checkout's:  a worktree's pages, served at `/worktrees/<w>/`,
         use the bundles that worktree's own page server built.
     - Spell projects' compiled output (`build/`, never committed) is built the same way, but by the app's route
-      module, not here:  `ProjectBuild`, in [the app's server](../app/src/server/ProjectBuild.ts), runs
+      module, not here:  `ProjectBuild`, in [spaces' routes](../spaces/src/server/node/routes/ProjectBuild.ts), runs
       `spell compile --stale --all @examples @library` as the page server starts.
       The page server knows nothing of spell projects.
   - `$/server/site/...` -- browser code:

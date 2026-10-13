@@ -12,11 +12,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - Everything spell has for Python, in one place (epic `python-target` P21):
   - [ts/](ts/index.ts):  the TypeScript that writes Python, `$/py` (`PY`)
   - [core/](core/pyproject.toml):  `spell_core`, what compiled Python imports
-  - [quart/](quart/pyproject.toml):  `spell_quart`, a Python spell program served as a web app on Quart
+  - NOT here:  `spell_quart`, Python's web server, which serves a program as a web app on Quart.
+    It's the spaces package's, in its `src/server/py/` ([spaces' AGENTS.md](../spaces/AGENTS.md);
+    epic `people-and-orgs` P14).
 - ONE yarn workspace, `@spell-app/py`.
   - Its TypeScript is in `ts/`, not the usual `src/`:
     [the alias table](../../tsconfig.base.json) points `$/py` there.
-  - `core/` and `quart/` are uv projects of their own, beside it:  yarn doesn't look in them.
+  - `core/` is a uv project of its own, beside it:  yarn doesn't look in it.
 - It imports only `$/parser` (`P`) and `$/util`.
   - The parser's helpers the writers share come through its barrel:
     - `P.ProgramWriter`
@@ -25,13 +27,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `P.forEachNode()`
     - `P.jsShapes` (`unwrapped()`, `isCoreCall()` ...)
 - `spell` imports it, for its targets (`SP.TARGETS`).
-- `yarn review` here covers all three:
+- `yarn review` here covers both:
   - `ts/`:  tsc, oxlint / oxfmt and vitest
-  - then each uv project:  ruff and pytest
+  - then `core/`:  ruff and pytest
 - Tests live in the repo's `tests/py/`, at the same paths as the code they test:
   - `ts/PyWriter.ts` => `tests/py/ts/PyWriter.test.ts`, found by vitest (`vitest.config.ts` points there)
-  - `core/tests/` => `tests/py/core/tests/`, `quart/tests/` => `tests/py/quart/tests/`
-    - Each uv project's pytest finds them by its `testpaths`;  the yarn scripts hand ruff their folder too.
+  - `core/tests/` => `tests/py/core/tests/`
+    - Its pytest finds them by its `testpaths`;  the yarn scripts hand ruff their folder too.
 
 ## The writers (`ts/`)
 
@@ -116,19 +118,6 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     a compiled program prints exactly what javascript prints
 - The terminal-drawing study (P15) is in `core/experiments/terminal`.
   - Its tests need their own uv group, `study`, so the runs above leave them out.
-
-## `spell_quart` (`quart/`)
-
-- A Python spell program served as a web app on Quart (P20):  a uv project depending on `spell_core` and Quart.
-- `SpellSessions`:  a game per visitor (a cookie), the program run once for each, on a core of its own.
-  - A page per WebSocket:  the state down when it opens,
-    then a patch after each message and at each pause (`core.before_pause`).
-- `page_html()`:  the page.
-  - It loads the page side (app's `yarn build:page`, into `dist-page/`), and the program's drawing half.
-- `spell run <project> --target py` (`yarn dev:py` in a project's folder) serves one:
-  cli's [runTarget.ts](../cli/src/runTarget.ts) compiles it into a temp folder with its imports, builds the page side
-  if it's stale, and runs its app under uv here, until `Ctrl-C`.
-- cli's [quartApp.test.ts](../../tests/cli/src/quartApp.test.ts) plays Solitaire through a compiled app, in headless Chromium.
 
 ## Types / Exports
 

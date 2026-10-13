@@ -1,5 +1,5 @@
 /**
- * HTTP-level CONTRACT tests for the app's server (`./index.ts` + `./api.ts`).
+ * HTTP-level CONTRACT tests for the app's server (`cli.ts` + `api.ts`, in spaces' `src/server/node/routes/`).
  * - Talk HTTP only:  spawn the server as a child process, never import the server framework, so the same
  *   file passes unchanged when the framework is swapped.
  * - Pins the behaviour, quirks and all (marked `QUIRK`);  a deliberate change fails here on purpose.
@@ -8,7 +8,7 @@
  *   text, and a bad body is JSON, not an HTML error page.
  * - SIDE EFFECT: starts a server on a free port with `SPELL_PROJECTS_DIR` pointing at a temp dir, so the real
  *   `packages/spell/projects` is never written.  Deleted afterwards.
- * - Node environment (vitest's default;  this package's config sets none).
+ * - Node environment (spaces' `vitest.config.ts`).
  */
 import { type ChildProcess, spawn } from "node:child_process"
 import fs from "node:fs"
@@ -20,8 +20,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
 /** Project used by every test, in the `@user:projects` root. */
 const PROJECT = "@user:projects:Proj"
-/** `app`'s folder:  where the server is launched from. */
-const appDir = path.resolve(import.meta.dirname, "../../../../packages/app")
+/** `spaces`' folder:  where the server is launched from (its `tsconfig.json` gives `tsx` the aliases). */
+const spacesDir = path.resolve(import.meta.dirname, "../../../../../../packages/spaces")
 
 let server: ChildProcess
 let baseUrl: string
@@ -97,8 +97,8 @@ beforeAll(async () => {
 
   const port = await freePort()
   baseUrl = `http://localhost:${port}`
-  server = spawn(process.execPath, ["--import", "tsx", "src/server/index.ts"], {
-    cwd: appDir,
+  server = spawn(process.execPath, ["--import", "tsx", "src/server/node/routes/cli.ts"], {
+    cwd: spacesDir,
     env: { ...process.env, PORT: String(port), SPELL_PROJECTS_DIR: projectsDir },
     stdio: "ignore"
   })

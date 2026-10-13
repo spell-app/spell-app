@@ -13,7 +13,7 @@ import * as projectUtils from "$/spell/node/project-utils"
 import { SP } from "$/spell"
 import { ProjectBuild } from "./ProjectBuild"
 
-/** Router mounted at `/api` by `server/index.ts`:  `$/server`'s Express-shaped `SRV.Router`. */
+/** Router mounted at `/api` by `./cli.ts` and `./appRoutes.ts`:  `$/server`'s Express-shaped `SRV.Router`. */
 export const api = new SRV.Router()
 
 /**

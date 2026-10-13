@@ -8,7 +8,7 @@ description: Start the spell web servers of this checkout that aren't running --
 1. From the checkout this session is in (a worktree has its OWN servers):
    `spell dev server start --all` ([serve.mjs](scripts/serve.mjs)).
    - It starts the page server if it isn't running (`spell dev server ensure`).
-     The page server starts the editor once it listens ([EditorServer.ts](packages/app/src/server/EditorServer.ts)).
+     The page server starts the editor once it listens ([EditorServer.ts](packages/spaces/src/server/node/routes/EditorServer.ts)).
    - It waits for the editor:  up to 90s, since vite may be building its dependency cache.
    - Then it checks Spell UI's docs, by asking for their bundle, `/ui/_assets/site.js`.
      - They're static pages the page server serves at `/ui/`:

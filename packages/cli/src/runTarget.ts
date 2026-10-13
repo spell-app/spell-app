@@ -31,8 +31,8 @@ const SHORT_NAMES: Record<string, string> = { js: "js/solid", ts: "ts/solid", py
 /** `app`, whose `yarn build:page` builds the page side a Python app's page loads:  `dist-page/`. */
 const APP_DIR = resolve(environment.packagesDir, "app")
 
-/** `spell_quart`'s uv project, which serves a Python app. */
-const SPELL_QUART_DIR = resolve(environment.packagesDir, "py", "quart")
+/** `spell_quart`'s uv project, which serves a Python app:  Python's web server, in spaces. */
+const SPELL_QUART_DIR = resolve(environment.packagesDir, "spaces", "src", "server", "py")
 
 /**
  * The target `--target name` asks for:  `js`, `ts` or `py`, or a target's full name (`ts/solid`).

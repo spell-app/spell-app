@@ -4,7 +4,7 @@
  * answers, and print where they are.  What `/spell-serve` runs, and `/spell-docs` before it shows a page.
  * - The PAGE SERVER (`spell dev server ensure`):  docs, epics, goals, the app's `/api`.  Started in the background
  *   if it isn't running;  `spell dev server stop` stops it, and with it the rest.
- * - The EDITOR (vite, the spell app):  the page server's child (`packages/app/src/server/EditorServer.ts`), started
+ * - The EDITOR (vite, the spell app):  the page server's child (`EditorServer`, in spaces' routes), started
  *   once the page server listens;  this waits for its record, `.spell-server.editor.json`, to answer.
  * - SPELL UI's docs:  static pages the page server itself serves at `/ui/` (no dev server):  the shared
  *   pages, `ui/`, with this branch's built `packages/ui/site/_assets/` and `_data/` laid over them;  this checks its

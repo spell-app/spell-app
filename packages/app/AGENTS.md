@@ -11,8 +11,9 @@ when working with code in this package, `@spell-app/app`.
 
 ## Overview
 
-- The top of the chain (below `cli`):  the web app, its server, and the embeddable web components.
+- The top of the chain (below `cli`):  the web app and the embeddable web components.
   - Everything else is a package it imports:  spell, lsp, parser, util, Spell UI ...
+  - Its server is spaces' (below).
 - The app is Solid 2 (READ the root's Solid 2 pointer for Solid work).
   - So is what compiled spell draws, on the page's Spell UI (epic `output-targets` P10-P11):
     `core`'s [drawing.ts](../core/src/drawing.ts).
@@ -39,29 +40,13 @@ when working with code in this package, `@spell-app/app`.
   - `spellEditor/`:  `<spell-editor>`'s pane (below)
   - `editor.ts`:  the editor's state and actions, ONE `editor` for the page
   - `index.tsx`:  the entry, drawing the app into `#app-root`
-  - `server/`:  its API server ([api.ts](src/server/api.ts), [its entry](src/server/index.ts))
-    - It's on `$/server`'s Express-shaped router and web server (it was Express).
-      Those are `SRV.Router` and `SRV.WebServer`.
-    - `api.test.ts` pins its behaviour over HTTP.
-    - It BUILDS projects when needed ([ProjectBuild.ts](src/server/ProjectBuild.ts)):
-      their compiled output and scope packs are in `build/`, never committed (epic `people-and-orgs` P11).
-      - A request for a built file that isn't there (`/api/projects/compiled/...`, `scopes/...`, a `file/...` of a
-        built name) compiles its project first, then serves it:  one compile per project at a time,
-        waiting at most `COMPILE_WAIT_MS`.
-      - The page server's route module starts `spell compile --stale --all @examples @library` as it starts,
-        in the background, as the page server builds its bundles:  the demo pages and App UI's live examples run them.
-      - A child process, the checkout's own `spell compile`:  it compiles as the CLI does,
-        and the page server keeps serving pages meanwhile.
-  - The file / project helpers it calls are NOT here.
-    They're node-only code in `$/spell/node/...`:
-    - `project-utils`
-    - `file-utils`
-    - `disk-fetch` ...
+- Its server is NOT here (epic `people-and-orgs` P14):  the API, the editor's route module and `ProjectBuild` are
+  spaces', in its `src/server/node/routes/` ([spaces' AGENTS.md](../spaces/AGENTS.md)).
 - `index.html`, `demo/`, `static/` and the `vite*.config.ts` files are here too.
 - Scripts run HERE (`cd packages/app`):
   - The editor (vite, port 3000 if free, else any) is the PAGE SERVER's child.
-    - [appRoutes.ts](src/server/appRoutes.ts) starts it (`EditorServer`) once the page server listens,
-      and stops it with the page server.
+    - Spaces' [appRoutes.ts](../spaces/src/server/node/routes/appRoutes.ts) starts it (`EditorServer`)
+      once the page server listens, and stops it with the page server.
       - It's a route module ([server's AGENTS.md](../server/AGENTS.md)).
     - So `spell dev server` (repo root) runs the API AND the editor.
       - its URL:  in `.spell-server.editor.json`, at the checkout's root
@@ -71,7 +56,7 @@ when working with code in this package, `@spell-app/app`.
     which waits for the editor and prints its URL.
     - `yarn stop` stops vite:  an orphan, or the page server's (then restart the page server).
     - `yarn start:server` / `start:server:prod` still run the API alone,
-      on port 3001 ([its entry](src/server/index.ts)).
+      on port 3001 ([its entry](../spaces/src/server/node/routes/cli.ts), in spaces).
   - `yarn build`:  the app.
     - `yarn build:runner`:  `dist-runner/`, VS Code's "Run Project" webview
     - `yarn build:element`:  `dist-element/`, the two web components and their pack
@@ -82,7 +67,7 @@ when working with code in this package, `@spell-app/app`.
         - It exports what `spell-runtime.js` does, `css` included:
           [spellPage.test.ts](../../tests/app/src/runner/spellPage.test.ts) fails on one it leaves out.
       - It sets the page up itself.
-      - py's `spell_quart` serves it ([py's AGENTS.md](../py/AGENTS.md)).
+      - spaces' `spell_quart`, Python's web server, serves it ([spaces' AGENTS.md](../spaces/AGENTS.md)).
   - ONE Solid per page, across those bundles.
     - `vite.solid.config.ts` builds FIRST, into each folder:
       - `spell-solid.js`:  Solid itself, plus
@@ -268,6 +253,7 @@ when working with code in this package, `@spell-app/app`.
   - e.g. `import { UI } from "$/app/ui"`
 - Nothing imports THIS package except `cli`.
   And the `<script>` entries in its own pages:  `index.html` and the demos.
+- It may import spaces' models, `$/spaces`;  NEVER `$/spaces/server/node/...`, which is node only.
 
 ## Decorators
 

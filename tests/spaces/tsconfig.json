@@ -1,0 +1,7 @@
+{
+  // spaces' tests:  spaces' own settings (packages/spaces/tsconfig.json), over this folder
+  "extends": "../../packages/spaces/tsconfig.json",
+  "include": [".", "../../types"],
+  // Python's web server's tests are pytest's
+  "exclude": ["src/server/py"]
+}

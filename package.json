@@ -17,6 +17,7 @@
     "packages/core",
     "packages/py",
     "packages/server",
+    "packages/spaces",
     "packages/ui",
     "packages/util",
     "packages/epics"
@@ -77,7 +78,7 @@
       "packages/epics/src/tool/epicRoutes.ts",
       "packages/docs/tools/agentRoutes.ts",
       "packages/docs/tools/showRoutes.ts",
-      "packages/app/src/server/appRoutes.ts"
+      "packages/spaces/src/server/node/routes/appRoutes.ts"
     ],
     "watch": [
       "epics",

@@ -7,14 +7,16 @@ import path from "path"
 import { SRV } from "$/server"
 import environment from "$/spell/node/environment"
 import { api } from "./api"
+import { APP_DIR } from "./EditorServer"
 
 /**
- * The app's API server, on `$/server`'s `WebServer` (it was Express):  `yarn start:server`.
+ * The app's API server, on `$/server`'s `WebServer` (it was Express):  `yarn start:server`, in `packages/app`.
  * - `/api/...` -- see `./api` for the route table;  `/hello` -- liveness
  * - bodies parse for EVERY verb (a `DELETE` with a JSON body too), as JSON5 (forgiving JSON), text or a form, up to
  *   10mb
  * - production (`NODE_ENV=production`):  `dist/`, and `index.html` for any other path (the SPA's client routing)
  * - development:  `/static`, `/element` (`<spell-app>`'s bundle) and `/demo`;  the editor UI itself is vite's
+ * - those folders are the app's (`APP_DIR`), wherever it's started from
  * - binds 0.0.0.0, as Express did:  vite (and a LAN device) reach it;  no `Host` check, since vite's proxy and the
  *   page server pass requests on with their own
  */
@@ -22,11 +24,11 @@ const server = new SRV.WebServer({
   checkHost: false,
   mounts:
     process.env.NODE_ENV === "production"
-      ? [{ prefix: "/", dir: path.join(process.cwd(), "dist") }]
+      ? [{ prefix: "/", dir: path.join(APP_DIR, "dist") }]
       : [
           { prefix: "/static", dir: environment.staticDir },
-          { prefix: "/element", dir: path.join(process.cwd(), "dist-element") },
-          { prefix: "/demo", dir: path.join(process.cwd(), "demo") }
+          { prefix: "/element", dir: path.join(APP_DIR, "dist-element") },
+          { prefix: "/demo", dir: path.join(APP_DIR, "demo") }
         ]
 })
 
@@ -40,7 +42,7 @@ server.router.use("/api", api)
 
 // Production:  `index.html` for every other path, so client-side (SPA) routing can take over.
 if (process.env.NODE_ENV === "production") {
-  server.fallback.get("*", (_request, reply) => reply.sendFile(path.join(process.cwd(), "dist", "index.html")))
+  server.fallback.get("*", (_request, reply) => reply.sendFile(path.join(APP_DIR, "dist", "index.html")))
 }
 
 await server.listen({ port: environment.expressPort, host: "0.0.0.0", fallback: false })

@@ -1020,7 +1020,7 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
     - the app's API:  a request for a built file that isn't there compiles its project first, then serves it
       (`/api/projects/compiled/...`, `scopes/...`, and a `file/...` of a built name);
       one compile per project at a time, a request waits at most a minute
-    - Both are `ProjectBuild`, in the app's server ([ProjectBuild.ts](../app/src/server/ProjectBuild.ts)),
+    - Both are `ProjectBuild`, in the editor's server ([ProjectBuild.ts](../spaces/src/server/node/routes/ProjectBuild.ts)),
       running the checkout's own `spell compile` as a child.
     - By hand:  `spell compile --all <root>`, or `--stale` for only what's out of date (`CLI.staleBecause()`):
       a built file missing, or one of the project's files, its `project.json`, an import's declarations

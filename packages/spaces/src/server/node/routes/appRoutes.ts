@@ -4,17 +4,17 @@ import "$/spell/node/packageVersion.node"
 import { existsSync, readFileSync } from "fs"
 import JSON5 from "json5"
 import { join } from "path"
-import { fileURLToPath } from "url"
 
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
 import { api, projectBuild } from "./api"
-import { EDITOR_FILE, EditorServer } from "./EditorServer"
+import { APP_DIR, EDITOR_FILE, EditorServer } from "./EditorServer"
 
 /**
  * The app on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`), listed in the repo root's
  * `package.json` `"pageServer": { "routes": [...] }`.  What `spell serve` runs everything on.
- * - `/api/...` -- the app's API, `./api` (as `index.ts` serves it alone, `yarn start:server`);  bodies as JSON5
+ * - It's spaces' (epic `people-and-orgs` P14):  where projects live, and the servers that serve them.
+ * - `/api/...` -- the app's API, `./api` (as `cli.ts` serves it alone, `yarn start:server`);  bodies as JSON5
  * - `/hello` -- liveness
  * - `/element/...` -- `<spell-app>` / `<spell-editor>`'s bundles, `dist-element/` (`yarn build:element`), for the
  *   demo pages, `/demo/spell-app.html` on the editor:  vite passes `/element` on to us, as it does `/api`
@@ -55,8 +55,8 @@ const appRoutes: RouteModule = {
 
 export default appRoutes
 
-/** `yarn build:element`'s output:  `packages/app/dist-element/`. */
-const ELEMENT_DIR = fileURLToPath(new URL("../../dist-element", import.meta.url))
+/** `yarn build:element`'s output, in the app's folder:  `packages/app/dist-element/`. */
+const ELEMENT_DIR = join(APP_DIR, "dist-element")
 
 /** The running editor's URL, from `EDITOR_FILE`, if it answers. */
 async function editorUrl(root: string): Promise<string | undefined> {

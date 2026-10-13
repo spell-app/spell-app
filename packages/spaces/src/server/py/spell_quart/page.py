@@ -76,7 +76,7 @@ def assets_folder() -> Path:
     - throws `FileNotFoundError` when there's none:  build it with `yarn build:page`, in `packages/app`.
     """
     named = os.environ.get("SPELL_PAGE_ASSETS")
-    folder = Path(named) if named else Path(__file__).resolve().parents[3] / "app" / "dist-page"
+    folder = Path(named) if named else Path(__file__).resolve().parents[5] / "app" / "dist-page"
     if not (folder / "spell-page.js").is_file():
         raise FileNotFoundError(f"No page side at {folder}:  build it with `yarn build:page`, in packages/app")
     return folder

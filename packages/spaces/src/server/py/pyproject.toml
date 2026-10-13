@@ -1,10 +1,11 @@
 # spell_quart:  a Python spell program served as a web app on Quart, Flask's asyncio twin (epic python-target P20).
 # - A program compiled to `py/asyncio` runs here, a game per visitor;  its page draws it in javascript.
+# - Python's web server, in the spaces package (epic people-and-orgs P14;  it was py's `quart/`).
 # - Run from the repo root:
-#   - its tests:  `uv run --directory packages/py/quart pytest`
-#   - tidy it:  `uv run --directory packages/py/quart ruff check --fix` and `... ruff format`
-# - Core's own `yarn test` runs the tests too (its package.json), so `yarn review` does.
-# - spell_core, beside it, stays standard library only:  the web is this package's.
+#   - its tests:  `uv run --directory packages/spaces/src/server/py pytest`
+#   - tidy it:  `uv run --directory packages/spaces/src/server/py ruff check --fix` and `... ruff format`
+# - Spaces' own `yarn test` runs the tests too (its package.json), so `yarn review` does.
+# - spell_core, in py's `core/`, stays standard library only:  the web is this package's.
 
 [project]
 name = "spell-quart"
@@ -14,7 +15,8 @@ requires-python = ">=3.12"
 dependencies = ["spell-core", "quart==0.22.0"]
 
 [tool.uv.sources]
-spell-core = { path = "../core", editable = true }
+# py's `core/`, from here
+spell-core = { path = "../../../../py/core", editable = true }
 
 [dependency-groups]
 dev = ["pytest==9.1.1", "pytest-asyncio==1.4.0", "ruff==0.17.0"]
@@ -28,7 +30,7 @@ build-backend = "uv_build"
 module-root = ""
 
 [tool.pytest.ini_options]
-testpaths = ["../../../tests/py/quart/tests"]
+testpaths = ["../../../../../tests/spaces/src/server/py/tests"]
 addopts = ["--strict-markers"]
 asyncio_mode = "auto"
 

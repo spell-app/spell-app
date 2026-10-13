@@ -95,8 +95,8 @@ export class EditorServer {
 /** Where the editor is recorded, relative to the checkout:  read by `appRoutes.ts`'s `/editor` and `spell serve`. */
 export const EDITOR_FILE = ".spell-server.editor.json"
 
-/** `packages/app`, where vite runs (its `vite.config.ts`). */
-const APP_DIR = join(environment.packagesDir, "app")
+/** `packages/app`, where vite runs (its `vite.config.ts`), and its builds are:  `dist/`, `dist-element/` ... */
+export const APP_DIR = join(environment.packagesDir, "app")
 
 /**
  * Vite+'s command-line script, as `packages/app` resolves it:  run as `vp dev`.

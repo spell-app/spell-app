@@ -6,9 +6,8 @@
  *   - `PY.ElementsWriter`:  a Python program's drawing half in javascript, `<Project>.elements.spell.js`
  *   - `PY.pyText`:  Python's punctuation
  *   - `PY.quartApp()`:  a program's web app, `<Project>.app.py`
- * - Beside it, uv projects of their own:
- *   - `core/`:  `spell_core`, what compiled Python imports
- *   - `quart/`:  `spell_quart`, a program served on Quart
+ * - Beside it, a uv project of its own, `core/`:  `spell_core`, what compiled Python imports.
+ *   - `spell_quart`, which serves a program on Quart, is the spaces package's (`packages/spaces/src/server/py/`).
  * - Imports `$/parser` (`P`) only:  `spell` imports this, for its targets.
  */
 export * as PY from "./"

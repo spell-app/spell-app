@@ -26,8 +26,9 @@ when working with code in this package, `@spell-app/spell`.
   - `../vscode`:  the VS Code extension that runs it.
     Its own yarn project, NOT a workspace.
   - [app](../app/AGENTS.md), `$/app`:  the web app.
-    - Also its server, the runner, and the `<spell-app>` / `<spell-editor>` elements.
+    - Also the runner, and the `<spell-app>` / `<spell-editor>` elements.
     - `yarn start` is run THERE.
+  - [spaces](../spaces/AGENTS.md), `$/spaces`:  the editor's server, and (from P15) where projects live.
   - [cli](../cli/AGENTS.md):  the `spell` command line.
     It runs this package's SOURCE (and the others') through `tsx`.
 - `src/rules/`:  spell's rule modules (see "Parser rules" below).
@@ -55,7 +56,7 @@ when working with code in this package, `@spell-app/spell`.
   - The barrel NEVER exports it.
   - Other packages may import these files by name:  one of the deep-import exceptions
     (WWOD §4 › "Package aliases, never `../`").
-    The app's server does.
+    Spaces' servers do.
   - Nothing reachable from `$/spell`'s barrel may import it (WWOD §8 › "Barrels").
 - `src/highlight/`:  `SpellHighlighter`.
   - It colours a snippet without a project, for `<ui-code language="spell">`.
@@ -120,7 +121,7 @@ when working with code in this package, `@spell-app/spell`.
     - After a deliberate change, `yarn test:fixtures:bless`, and read the diff.
 - [readme.md](readme.md) is the project's front page.
   Docs live in `packages/docs/` (see "Creating docs").
-- [The barrel](src/index.ts) is loaded in browsers AND the app's server (WWOD §8 › "Barrels").
+- [The barrel](src/index.ts) is loaded in browsers AND the editor's server, in spaces (WWOD §8 › "Barrels").
   - It imports `$/core`'s TYPES only, never its code.
 
 ## How parsing works
@@ -408,7 +409,7 @@ As WWOD §12, plus:
   - `$/parser` (`P`)
   - `$/core`, types only
   - `$/util`
-  - NEVER `$/lsp`, `$/app` or `$/cli`.
+  - NEVER `$/lsp`, `$/spaces`, `$/app` or `$/cli`.
 - A rule module imports the generic parser's rule classes from `$/parser`, and registers on `SpellParser` here.
 
 ## Types / Exports

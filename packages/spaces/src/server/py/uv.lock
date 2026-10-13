@@ -370,7 +370,7 @@ wheels = [
 [[package]]
 name = "spell-core"
 version = "0.8.0"
-source = { editable = "../core" }
+source = { editable = "../../../../py/core" }
 
 [package.metadata]
 
@@ -403,7 +403,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "quart", specifier = "==0.22.0" },
-    { name = "spell-core", editable = "../core" },
+    { name = "spell-core", editable = "../../../../py/core" },
 ]
 
 [package.metadata.requires-dev]

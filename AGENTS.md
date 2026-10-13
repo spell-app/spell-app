@@ -55,10 +55,11 @@ Each folder links to its own `AGENTS.md`:  read it before working there.
 | [parser](packages/parser/AGENTS.md) | `@spell-app/parser` | `$/parser` | `P` | the generic rule-based parser;  Rulex is an opt-in side-effect import, `$/parser/rulex` |
 | [markdown](packages/markdown/AGENTS.md) | `@spell-app/markdown` | `$/markdown` | `MD` | GitHub-flavoured markdown on the parser, drawing `ui-*` markup |
 | [core](packages/core/AGENTS.md) | `@spell-app/core` | `$/core` | `SC` | the runtime compiled spell runs on |
-| [py](packages/py/AGENTS.md) | `@spell-app/py` | `$/py` | `PY` | everything for Python:  the writers (`ts/`), `spell_core` (`core/`) and `spell_quart` (`quart/`), the latter two uv projects |
+| [py](packages/py/AGENTS.md) | `@spell-app/py` | `$/py` | `PY` | Python's writers (`ts/`) and `spell_core` (`core/`, a uv project) |
 | [spell](packages/spell/AGENTS.md) | `@spell-app/spell` | `$/spell` | `SP` | the spell LANGUAGE on the parser, every spell project (`projects/`), `PARSING.md` and `readme.md` |
+| [spaces](packages/spaces/AGENTS.md) | `@spell-app/spaces` | `$/spaces` | `SPACES` | where projects and people live:  its models (`models/`, browser-safe), and the servers that serve them, the editor's (`server/node/`) and Python's, `spell_quart` (`server/py/`, a uv project) |
 | [lsp](packages/lsp/AGENTS.md) | `@spell-app/lsp` | `$/lsp` | `LSP` | spell's language server (browser-safe) |
-| [app](packages/app/AGENTS.md) | `@spell-app/app` | `$/app` | `UI` | the web app, its server, the runner, and the `<spell-app>` / `<spell-editor>` web components;  `yarn start` / `build*` live here;  App UI, the docs pages of its components, beside them in `components/` (at `/app-ui/`) |
+| [app](packages/app/AGENTS.md) | `@spell-app/app` | `$/app` | `UI` | the web app, the runner, and the `<spell-app>` / `<spell-editor>` web components;  `yarn start` / `build*` live here;  App UI, the docs pages of its components, beside them in `components/` (at `/app-ui/`) |
 | `packages/vscode/` | | | | the VS Code extension (below) |
 | [ui](packages/ui/AGENTS.md) | `@spell-app/ui` | `$/ui` | | Fomantic UI reborn as `ui-*` custom elements, on Solid 2 |
 | [cli](packages/cli/AGENTS.md) | `@spell-app/cli` | `$/cli` | `CLI` | the `spell` command-line tool, running the spell-family packages' SOURCE through `tsx`;  see its [README](packages/cli/README.md) too |
@@ -98,14 +99,22 @@ One change may touch several packages, but dependencies flow ONE way:
 
 ```text
 docs -> anything          (its experiments import any package, and nothing imports docs)
-cli -> app -> lsp -> spell -> parser / core -> util
-spell -> py -> parser     (Python's writers;  its Python, `py/core` and `py/quart`, imports no package)
+cli -> app -> lsp -> spaces -> spell -> parser / core -> util
+app / cli -> spaces       (the app:  spaces' models only, never server/node)
+spaces -> core / server   (server/node:  its route modules, run by the page server)
+spaces -> ui              (models only;  allowed, not used yet)
+spaces' server/py -> py's spell_core   (Python, by path in its pyproject.toml)
+spell -> py -> parser     (Python's writers;  `py/core`'s Python imports no package)
 app / lsp -> markdown -> parser
 brand -> ui / server
 ui -> util
 ```
 
 - NEVER make `ui` import `spell` or any package above it:  `@spell-app/ui` lives on its own.
+- `spaces` (epic `people-and-orgs`):  where projects and people live, and the servers that serve them.
+  - NEVER make it import `app`, `lsp` or `cli`;  NEVER make `spell` import it.
+  - Its models (`$/spaces`) are safe in a browser;  `$/spaces/server/node/...` is node only, imported by path.
+  - The page server loads its route module by PATH (the root `package.json`'s `"pageServer"`), not by import.
 - `server` is a LEAF (node built-ins only, imports no package).
   - ANY package may import it, `ui`'s tools too.
 - `assembler` is node-only and imports no package (it uses linkedom and oxfmt).
