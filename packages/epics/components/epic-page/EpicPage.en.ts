@@ -172,7 +172,7 @@ export const epicPageVocabulary = {
     {
       name: "state",
       description:
-        "The step label while the epic has a state, its icon and colour the state's (`$/server/site/EpicState`):  " +
+        "The step label while the epic has a state, its icon and colour the state's (`$/epics/list/EpicState`):  " +
         "in progress (blue half circle), errors (red:  every phase done, items need you), paused (grey:  phases " +
         "left, untouched for days);  why on hover.  None for a future epic or a done one:  FUTURE or DONE says so."
     },

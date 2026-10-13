@@ -92,12 +92,13 @@ export const BUNDLE_RECORD = ".bundle.json"
 const SPELL_UI_SOURCES = ["packages/ui/src", "packages/ui/vite.config.ts", "packages/server/src/site", "yarn.lock"]
 
 /**
- * Every bundle built on demand.
+ * How each bundle built on demand is built.
+ * - WHICH are built:  the ones whose `output` folders the repo root's `package.json` names
+ *   (`"pageServer": { "bundles": [...] }`, `Bundle.specs()`), the list the page server reads too
  * - the page server builds the stale ones when it starts (`spell dev bundles build --stale`)
  * - `sources`:  generous, so a change never leaves one stale unnoticed;
  *   `Bundle.sourceFiles()` skips tests, snapshots, dot files and the icon packs
- * - their `output` folders are in the root `.gitignore`;  the page server's copy of the list:
- *   `BUNDLE_FOLDERS` (`packages/server/src/page/page.types.ts`)
+ * - their `output` folders are in the root `.gitignore`
  */
 export const BUNDLES: BundleSpec[] = [
   {

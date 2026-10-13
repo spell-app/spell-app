@@ -26,7 +26,7 @@ class FakeServer {
   posts: [string, Record<string, unknown>][] = []
   /** the next reply's status for a route, once */
   failures = new Map<string, { status: number; error: string }>()
-  /** what "start a review" answers (`POST /api/review/start`) */
+  /** what "start a review" answers (`POST /api/epics/review/start`) */
   started = { state: "sent", command: "/epic review sample", sessions: ["🚧 sample"], message: "Typed it." }
   /** a POST to this route waits for `release()` */
   private held: { route: string; release?: () => void } | undefined
@@ -34,8 +34,8 @@ class FakeServer {
   readonly fetch = vi.fn(async (input: string, init?: RequestInit): Promise<Response> => {
     const url = input
     if (url === PAGE) return new Response(`<script>window.SPELL_SERVER = {"token":"${this.token}"}</script>`)
-    if (url.startsWith("/api/review/inbox")) return json(this.inbox.forPage())
-    const route = url.replace("/api/review/", "")
+    if (url.startsWith("/api/epics/review/inbox")) return json(this.inbox.forPage())
+    const route = url.replace("/api/epics/review/", "")
     const body = JSON.parse(init!.body as string) as Record<string, unknown>
     this.posts.push([route, body])
     if (this.held?.route === route) await new Promise<void>((resolve) => (this.held!.release = resolve))

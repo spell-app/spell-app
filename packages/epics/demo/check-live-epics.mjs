@@ -5,7 +5,7 @@
  * - works on a COPY of a preview doc (`preview-epics/<name>/`, the converter's, git-ignored):
  *   `preview-epics/check-live/epics/<name>/` (a plan doc's own path:  the page asks the review routes only there),
  *   served by this checkout's page server;  deleted afterwards
- * - the page is REVIEWED:  the review routes (`/api/review/...`) are answered here, an empty inbox with a session
+ * - the page is REVIEWED:  the review routes (`/api/epics/review/...`) are answered here, an empty inbox with a session
  *   listening (the real routes refuse a page outside `epics/`), so the items draw their review controls
  * - the reader's state:
  *   - item `--item` (default `q2`:  one with a part, not approved) opened by a link to it (its part loads)
@@ -80,10 +80,10 @@ try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
   const errors = []
   page.on("pageerror", (error) => errors.push(String(error)))
-  await page.route("**/api/review/**", (route) => route.fulfill({ json: { ...INBOX, listening: listener() } }))
+  await page.route("**/api/epics/review/**", (route) => route.fulfill({ json: { ...INBOX, listening: listener() } }))
   if (bundle) {
     const script = readFileSync(resolve(bundle))
-    await page.route("**/packages/docs/tools/_assets/spell-ui.js", (route) =>
+    await page.route("**/packages/epics/tools/_assets/spell-ui.js", (route) =>
       route.fulfill({ body: script, contentType: "text/javascript" })
     )
   }

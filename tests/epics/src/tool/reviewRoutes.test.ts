@@ -1,7 +1,7 @@
 /**
  * Tests of the review route module on a real page server, over HTTP, in a scratch checkout:  its own plan doc, a
  * worktree's (as the main checkout's server serves it), and pages that aren't plan docs.
- * - From `packages/docs/tools/reviewRoutes.test.ts` (epic `epic-components`, P7):  every case.
+ * - From the docs tools' `reviewRoutes.test.ts` (epic `epic-components`, P7):  every case.
  */
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { createServer, type Server } from "node:http"
@@ -88,7 +88,7 @@ function headers(extra: Record<string, string> = {}) {
 
 /** POST `body` to route `route`;  the status and the inbox (or error) it answered */
 async function post(route: string, body: unknown, extra?: Record<string, string>) {
-  const answer = await ask(port, "POST", `/api/review/${route}`, {
+  const answer = await ask(port, "POST", `/api/epics/review/${route}`, {
     body: JSON.stringify(body),
     headers: headers(extra)
   })
@@ -108,11 +108,15 @@ function written(relative: string) {
 const PLAN_URL = `/${PAGES.plan}`
 
 test("GET:  an empty inbox before any mark, and no file", async () => {
-  const got = await ask(port, "GET", `/api/review/inbox?page=${encodeURIComponent(PLAN_URL)}`)
+  const got = await ask(port, "GET", `/api/epics/review/inbox?page=${encodeURIComponent(PLAN_URL)}`)
   expect(got.status).toBe(200)
   // the file's JSON, plus the comments Send would hand over (none)
   expect(JSON.parse(got.text)).toEqual({ ...new ReviewInbox().toRecord(), unsentComments: [] })
   expect(existsSync(inboxFile(PAGES.plan))).toBe(false)
+})
+
+test("the old path, `/api/review/...`, answers not found:  no alias (epic `people-and-orgs` P16)", async () => {
+  expect((await ask(port, "GET", `/api/review/inbox?page=${encodeURIComponent(PLAN_URL)}`)).status).toBe(404)
 })
 
 test("mark:  set (stamped here), replaced, removed;  every answer is the whole inbox", async () => {
@@ -188,13 +192,13 @@ test("a stale listening answers null;  a live one as written;  the file keeps it
   const old = new Date(Date.now() - 5 * 60_000).toISOString()
   const listening = { session: "gone", since: old, seen: old }
   writeFileSync(inboxFile(PAGES.plan), JSON.stringify({ ...new ReviewInbox().toRecord(), listening }))
-  const stale = await ask(port, "GET", `/api/review/inbox?page=${encodeURIComponent(PLAN_URL)}`)
+  const stale = await ask(port, "GET", `/api/epics/review/inbox?page=${encodeURIComponent(PLAN_URL)}`)
   expect(JSON.parse(stale.text).listening).toBeNull()
   expect((await post("send", { page: PLAN_URL })).body.listening).toBeNull()
   expect(written(PAGES.plan).listening).toEqual(listening)
   const fresh = { ...listening, seen: new Date().toISOString() }
   writeFileSync(inboxFile(PAGES.plan), JSON.stringify({ ...new ReviewInbox().toRecord(), listening: fresh }))
-  const live = await ask(port, "GET", `/api/review/inbox?page=${encodeURIComponent(PLAN_URL)}`)
+  const live = await ask(port, "GET", `/api/epics/review/inbox?page=${encodeURIComponent(PLAN_URL)}`)
   expect(JSON.parse(live.text).listening).toEqual(fresh)
 })
 
@@ -233,7 +237,7 @@ test("only plan docs:  403;  missing:  404;  not a path:  400", async () => {
   expect((await post("mark", { page: "/epics/gone/gone.plan.html", id: "j3", mark })).status).toBe(404)
   expect((await post("send", { page: "/epics/big/../big/notes.html" })).status).toBe(403)
   expect((await post("send", { page: "nope" })).status).toBe(400)
-  const get = await ask(port, "GET", `/api/review/inbox?page=${encodeURIComponent(`/${PAGES.other}`)}`)
+  const get = await ask(port, "GET", `/api/epics/review/inbox?page=${encodeURIComponent(`/${PAGES.other}`)}`)
   expect(get.status).toBe(403)
 })
 
@@ -288,7 +292,7 @@ test("new:  each under the next free key;  edited, removed;  `near` must be in t
 
 test("writes need the token, our origin and our host", async () => {
   const body = { page: PLAN_URL }
-  const bare = await ask(port, "POST", "/api/review/send", {
+  const bare = await ask(port, "POST", "/api/epics/review/send", {
     body: JSON.stringify(body),
     headers: { "content-type": "application/json" }
   })

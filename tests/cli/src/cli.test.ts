@@ -212,19 +212,19 @@ process.exit(3)
     for (const tool of [
       "scripts/window.mjs",
       "scripts/serve.mjs",
-      "packages/docs/tools/open.js",
-      "packages/docs/tools/link.ts",
-      "packages/docs/tools/fuss.ts",
-      "packages/docs/tools/details.js",
-      "packages/docs/tools/choices.js",
-      "packages/docs/tools/notes.ts",
-      "packages/docs/tools/comments.ts",
+      "packages/epics/tools/open.js",
+      "packages/epics/tools/link.ts",
+      "packages/epics/tools/fuss.ts",
+      "packages/epics/tools/details.js",
+      "packages/epics/tools/choices.js",
+      "packages/epics/tools/notes.ts",
+      "packages/epics/tools/comments.ts",
       "packages/server/src/page/cli.ts"
     ]) {
       mkdirSync(resolve(CHECKOUT, tool, ".."), { recursive: true })
       writeFileSync(resolve(CHECKOUT, tool), report)
     }
-    writeFileSync(resolve(CHECKOUT, "packages/docs/tsconfig.json"), "{}")
+    writeFileSync(resolve(CHECKOUT, "packages/epics/tsconfig.json"), "{}")
     writeFileSync(resolve(CHECKOUT, "packages/server/tsconfig.json"), "{}")
     mkdirSync(INSIDE, { recursive: true })
   })
@@ -243,31 +243,31 @@ process.exit(3)
     expect(run.tsconfig).toBeUndefined()
   })
 
-  test("docs <verb>:  its tool, in packages/docs as yarn ran it;  link under tsx", () => {
+  test("docs <verb>:  its tool, in packages/epics as yarn ran it;  link under tsx", () => {
     const open = passThrough(["docs", "open", "solid/solid-2", "--vs"])
-    expect(open).toMatchObject({ status: 3, tool: "packages/docs/tools/open.js", args: ["solid/solid-2", "--vs"] })
-    expect(realpathSync(open.cwd)).toBe(resolve(CHECKOUT, "packages/docs"))
+    expect(open).toMatchObject({ status: 3, tool: "packages/epics/tools/open.js", args: ["solid/solid-2", "--vs"] })
+    expect(realpathSync(open.cwd)).toBe(resolve(CHECKOUT, "packages/epics"))
     const link = passThrough(["docs", "link", "a.html", "--hash", "b"])
-    expect(link).toMatchObject({ status: 3, tool: "packages/docs/tools/link.ts", args: ["a.html", "--hash", "b"] })
-    expect(link.tsconfig).toBe(resolve(CHECKOUT, "packages/docs/tsconfig.json"))
+    expect(link).toMatchObject({ status: 3, tool: "packages/epics/tools/link.ts", args: ["a.html", "--hash", "b"] })
+    expect(link.tsconfig).toBe(resolve(CHECKOUT, "packages/epics/tsconfig.json"))
   })
 
   test("docs fuss:  under tsx, in THIS folder, so its paths are from here", () => {
     const fuss = passThrough(["docs", "fuss", "src", "--json"])
-    expect(fuss).toMatchObject({ status: 3, tool: "packages/docs/tools/fuss.ts", args: ["src", "--json"] })
+    expect(fuss).toMatchObject({ status: 3, tool: "packages/epics/tools/fuss.ts", args: ["src", "--json"] })
     expect(realpathSync(fuss.cwd)).toBe(INSIDE)
-    expect(fuss.tsconfig).toBe(resolve(CHECKOUT, "packages/docs/tsconfig.json"))
+    expect(fuss.tsconfig).toBe(resolve(CHECKOUT, "packages/epics/tsconfig.json"))
   })
 
   test("details, choices", () => {
-    expect(passThrough(["details", "list"])).toMatchObject({ status: 3, tool: "packages/docs/tools/details.js" })
+    expect(passThrough(["details", "list"])).toMatchObject({ status: 3, tool: "packages/epics/tools/details.js" })
     const choices = passThrough(["choices", "new", "x", "--rows", "r.json"])
     expect(choices).toMatchObject({
       status: 3,
-      tool: "packages/docs/tools/choices.js",
+      tool: "packages/epics/tools/choices.js",
       args: ["new", "x", "--rows", "r.json"]
     })
-    expect(realpathSync(choices.cwd)).toBe(resolve(CHECKOUT, "packages/docs"))
+    expect(realpathSync(choices.cwd)).toBe(resolve(CHECKOUT, "packages/epics"))
   })
 
   test("epic's groups pass through the same:  ask (details pages), choices and comments list <epic>", () => {
@@ -275,13 +275,13 @@ process.exit(3)
       const { status, stdout } = epic(args, INSIDE)
       return { status, ...(stdout ? JSON.parse(stdout) : {}) }
     }
-    expect(run(["ask", "list"])).toMatchObject({ status: 3, tool: "packages/docs/tools/details.js", args: ["list"] })
+    expect(run(["ask", "list"])).toMatchObject({ status: 3, tool: "packages/epics/tools/details.js", args: ["list"] })
     expect(run(["choices", "list", "seo"])).toMatchObject({
-      tool: "packages/docs/tools/choices.js",
+      tool: "packages/epics/tools/choices.js",
       args: ["list", "seo"]
     })
     expect(run(["comments", "list", "seo"])).toMatchObject({
-      tool: "packages/docs/tools/comments.ts",
+      tool: "packages/epics/tools/comments.ts",
       args: ["list", "seo"]
     })
   })
@@ -290,11 +290,11 @@ process.exit(3)
     const notes = passThrough(["notes", "answer", "guides/x.html", "n3", "--file", "reply.html"])
     expect(notes).toMatchObject({
       status: 3,
-      tool: "packages/docs/tools/notes.ts",
+      tool: "packages/epics/tools/notes.ts",
       args: ["answer", "guides/x.html", "n3", "--file", "reply.html"]
     })
     expect(realpathSync(notes.cwd)).toBe(INSIDE)
-    expect(notes.tsconfig).toBe(resolve(CHECKOUT, "packages/docs/tsconfig.json"))
+    expect(notes.tsconfig).toBe(resolve(CHECKOUT, "packages/epics/tsconfig.json"))
   })
 
   test("server <verb>:  the page server's cli, under tsx;  start --all:  serve.mjs", () => {

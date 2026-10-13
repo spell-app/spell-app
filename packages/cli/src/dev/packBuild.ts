@@ -159,7 +159,7 @@ export function packFamilies(pack: PackInfo): string[] {
  * external, each read from `globalThis.SpellUI.packModules[<specifier>]` (the docs bundle's, `spell-ui.entry.js`).
  * - Any other `$/ui...`, Solid or `@spell-app/...` import fails the build:  a second copy of Spell UI's core or Solid
  *   on a page breaks both.  Another one:  add it here AND to Spell UI's `packModules`, AND to the guides' copy
- *   (`packages/docs/tools/bundle-experiment.ts`, which builds a guide's live elements the same way).
+ *   (`packages/epics/tools/bundle-experiment.ts`, which builds a guide's live elements the same way).
  */
 export const PACK_MODULES = ["solid-js", "@solidjs/web", "$/ui/core", "$/ui/forms"]
 

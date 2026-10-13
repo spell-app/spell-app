@@ -110,14 +110,14 @@ describe("generatorsFor()", () => {
   test("the table's generators in order, then one snapshot run per package, with its test files", () => {
     const steps = CLI.generatorsFor([
       "packages/spell/src/rules/__snapshots__/lists.test.ts.snap",
-      "packages/docs/tools/_assets/lazy/spell-en.js",
+      "packages/epics/tools/_assets/lazy/spell-en.js",
       "packages/ui/src/languages/spell.en.bundle.js",
       "packages/spell/src/__snapshots__/SpellProject.test.ts.snap",
       "packages/ui/src/Thing.ts"
     ])
     expect(steps.map(({ generator, files }) => [generator.name, generator.cwd, files.length])).toEqual([
       ["spell highlighter", "packages/ui", 1],
-      ["docs bundle", "packages/docs", 1],
+      ["docs bundle", "packages/epics", 1],
       ["spell snapshots", "packages/spell", 2]
     ])
     expect(steps[2].generator.run).toEqual([

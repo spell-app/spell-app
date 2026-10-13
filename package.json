@@ -8,7 +8,6 @@
     "packages/assembler",
     "packages/brand",
     "packages/cli",
-    "packages/docs",
     "packages/lsp",
     "packages/markdown",
     "packages/parser",
@@ -71,13 +70,14 @@
   "packageManager": "yarn@4.18.0",
   "pageServer": {
     "routes": [
-      "packages/docs/tools/detailsRoutes.ts",
-      "packages/docs/tools/choicesRoutes.ts",
-      "packages/docs/tools/commentsRoutes.ts",
+      "packages/epics/tools/detailsRoutes.ts",
+      "packages/epics/tools/choicesRoutes.ts",
+      "packages/epics/tools/commentsRoutes.ts",
       "packages/epics/src/tool/reviewRoutes.ts",
       "packages/epics/src/tool/epicRoutes.ts",
-      "packages/docs/tools/agentRoutes.ts",
-      "packages/docs/tools/showRoutes.ts",
+      "packages/epics/src/list/runningRoutes.ts",
+      "packages/epics/tools/agentRoutes.ts",
+      "packages/epics/tools/showRoutes.ts",
       "packages/spaces/src/server/node/routes/appRoutes.ts"
     ],
     "watch": [
@@ -86,7 +86,7 @@
       "pages",
       "templates",
       "brand",
-      "packages/docs/tools/_assets",
+      "packages/epics/tools/_assets",
       "packages/brand",
       "packages/epics/pack"
     ],
@@ -96,6 +96,10 @@
       "pages",
       "templates",
       "brand"
+    ],
+    "bundles": [
+      "packages/ui/site/_assets",
+      "packages/brand/_assets/ui"
     ]
   },
   "shared": {

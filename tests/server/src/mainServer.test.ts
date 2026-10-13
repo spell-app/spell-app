@@ -32,6 +32,9 @@ describe("mainServerUrl()", () => {
     expect(await SRV.mainServerUrl(file)).toBeUndefined()
     const server = await new PageServer({ root }).start({ port: 0, routes: false })
     try {
+      // running, but without epics' route module:  no running epics, so not a server that shows worktrees
+      expect(await SRV.mainServerUrl(file)).toBeUndefined()
+      server.web.router.get(SRV.RUNNING_EPICS_API, (_request, reply) => reply.json([]))
       const url = await SRV.mainServerUrl(file)
       expect(url).toBe(`http://127.0.0.1:${server.info.port}/worktrees/seo/packages/docs/content/a%20b.html`)
     } finally {

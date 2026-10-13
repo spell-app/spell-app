@@ -10,10 +10,7 @@ import {
   PageServer,
   componentSetPath,
   findById,
-  movedDocsPage,
-  movedSetPage,
-  movedUiPage,
-  renamedPlanDoc,
+  oldAssetsPath,
   replaceById,
   uiBuildPath
 } from "$/server/page"
@@ -107,15 +104,20 @@ describe("PageServer", () => {
     return { "content-type": type, "x-server-token": server.web.guard.token, "if-match": etag }
   }
 
-  it("writes its pid file and answers ping", async () => {
+  it("writes its pid file and answers its info at /api/server", async () => {
     expect(JSON.parse(readFileSync(join(root, ".spell-server.json"), "utf8"))).toMatchObject({ port, root })
-    expect(JSON.parse((await ask(port, "GET", "/_server/ping")).text)).toMatchObject({ pid: process.pid, root })
+    expect(JSON.parse((await ask(port, "GET", "/api/server")).text)).toMatchObject({ pid: process.pid, root })
     expect(await server.pidFile.status()).toMatchObject({ port, base: `http://127.0.0.1:${port}` })
+  })
+
+  it("answers nothing at the old /_server/ calls:  no redirect, no alias", async () => {
+    for (const old of ["/_server/ping", "/_server/page?path=/docs/page.html", "/_server/live.js", "/_server/epics"])
+      expect((await ask(port, "GET", old)).status, old).toBe(404)
   })
 
   it("injects SPELL_SERVER and the live client into pages", async () => {
     const answer = await ask(port, "GET", "/docs/page.html")
-    expect(answer.text).toContain(`<script src="/_server/live.js" defer></script>`)
+    expect(answer.text).toContain(`<script src="/api/server/live.js" defer></script>`)
     const served = await config()
     expect(served).toMatchObject({ port, file: "/docs/page.html", token: server.web.guard.token })
     expect(served.etag).toBe(answer.headers.etag)
@@ -149,70 +151,11 @@ describe("PageServer", () => {
     expect(answer.headers.location).toBe("/pages/index.html")
   })
 
-  it("redirects old plan doc URLs from plans/ to epics/, query kept", async () => {
-    const answer = await ask(port, "GET", "/packages/docs/plans/x/x.html?a=1")
-    expect(answer.status).toBe(302)
-    expect(answer.headers.location).toBe("/epics/x/x.html?a=1")
-  })
-
-  it("redirects an old plan doc name, epics/x/x.html, to x.plan.html, but only while the old file is gone", async () => {
-    const plan = join(root, "epics/x")
-    mkdirSync(plan, { recursive: true })
-    writeFileSync(join(plan, "x.plan.html"), "<p>plan</p>")
-    const answer = await ask(port, "GET", "/epics/x/x.html?a=1")
-    expect(answer.status).toBe(302)
-    expect(answer.headers.location).toBe("/epics/x/x.plan.html?a=1")
-    // from before the reorg, and before the move into `content/`, in one hop
-    const old = await ask(port, "GET", "/packages/docs/content/epics/x/x.html?a=1")
-    expect(old.headers.location).toBe("/epics/x/x.plan.html?a=1")
-    const older = await ask(port, "GET", "/packages/docs/epics/x/x.html?a=1")
-    expect(older.headers.location).toBe("/epics/x/x.plan.html?a=1")
-    // a worktree not yet merged:  its old name is still there, and served
-    writeFileSync(join(plan, "x.html"), "<p>old</p>")
-    expect((await ask(port, "GET", "/epics/x/x.html")).status).toBe(200)
-    expect(renamedPlanDoc("/worktrees/w/epics/x/x.html", root)).toBeUndefined()
-  })
-
-  it("redirects old docs URLs to the reorg's folders, query kept", async () => {
-    mkdirSync(join(root, "guides/solid"), { recursive: true })
-    mkdirSync(join(root, "pages"), { recursive: true })
-    mkdirSync(join(root, "packages/docs"), { recursive: true })
-    writeFileSync(join(root, "pages/index.html"), "<p>home</p>")
-    writeFileSync(join(root, "guides/solid/solid-2.html"), "<p>solid</p>")
-    writeFileSync(join(root, "guides/solid/solid-2.md"), "# solid\n")
-    writeFileSync(join(root, "packages/docs/README.md"), "# docs\n")
-    writeFileSync(join(root, "packages/docs/package.json"), "{}\n")
-    // `packages/docs/content/<x>`:  always, even while the old path still resolves (an old-path link)
-    mkdirSync(join(root, "packages/docs/content/solid"), { recursive: true })
-    writeFileSync(join(root, "packages/docs/content/solid/solid-2.html"), "<p>old</p>")
-    const page = await ask(port, "GET", "/packages/docs/content/solid/solid-2.html?a=1")
-    expect(page.status).toBe(302)
-    expect(page.headers.location).toBe("/guides/solid/solid-2.html?a=1")
-    expect((await ask(port, "GET", "/packages/docs/content/solid/solid-2.md")).headers.location).toBe(
-      "/guides/solid/solid-2.md"
-    )
-    expect((await ask(port, "GET", "/packages/docs/content/index.html")).headers.location).toBe("/pages/index.html")
-    expect((await ask(port, "GET", "/packages/docs/content/")).headers.location).toBe("/pages/index.html")
-    // `packages/docs/<x>`, from before the move into `content/`:  in one hop, only while the old page is gone
-    expect((await ask(port, "GET", "/packages/docs/solid/solid-2.html")).headers.location).toBe(
-      "/guides/solid/solid-2.html"
-    )
-    expect((await ask(port, "GET", "/packages/docs/")).headers.location).toBe("/pages/index.html")
-    // the package's own files, new URLs and pages that don't exist anywhere:  as is
-    expect((await ask(port, "GET", "/packages/docs/README.md")).status).toBe(200)
-    expect((await ask(port, "GET", "/packages/docs/package.json")).status).toBe(200)
-    expect((await ask(port, "GET", "/guides/solid/solid-2.html")).status).toBe(200)
-    expect((await ask(port, "GET", "/packages/docs/missing.html")).status).toBe(404)
-    expect((await ask(port, "GET", "/packages/docs/content/missing.html")).status).toBe(404)
-    // a worktree on older code:  no root folders, so its old pages are served where they are
-    expect(movedDocsPage("/worktrees/w/packages/docs/content/solid/solid-2.html", root)).toBeUndefined()
-  })
-
   it("serves Spell UI's docs at /ui/:  the pages from ui/, live;  the build's _assets/ and _data/ laid over", async () => {
     const page = await ask(port, "GET", "/ui/button.html")
     expect(page.status).toBe(200)
     expect(page.text).toContain("<p>UI</p>")
-    expect(page.text).toContain(`<script src="/_server/live.js" defer></script>`)
+    expect(page.text).toContain(`<script src="/api/server/live.js" defer></script>`)
     expect(page.text).toContain(SRV.FAVICON_LINKS)
     const served = JSON.parse(/window\.SPELL_SERVER = (.*?)<\/script>/.exec(page.text)![1]!) as SRV.ServerConfig
     expect(served.file).toBe("/ui/button.html")
@@ -239,18 +182,6 @@ describe("PageServer", () => {
     expect(uiBuildPath("/ui/components/x.html")).toBeUndefined()
   })
 
-  it("redirects old Spell UI page URLs, packages/ui/site/<x>, to /ui/<x> once the old file is gone", async () => {
-    const page = await ask(port, "GET", "/packages/ui/site/button.html?a=1")
-    expect(page.status).toBe(302)
-    expect(page.headers.location).toBe("/ui/button.html?a=1")
-    writeFileSync(join(root, "ui", "index.html"), "<p>home</p>\n")
-    expect((await ask(port, "GET", "/packages/ui/site/")).headers.location).toBe("/ui/")
-    // the build stayed:  served where it is
-    expect((await ask(port, "GET", "/packages/ui/site/_assets/site.js")).status).toBe(200)
-    expect(movedUiPage("/worktrees/w/packages/ui/site/button.html", root)).toBe("/worktrees/w/ui/button.html")
-    expect(movedUiPage("/packages/ui/site/missing.html", root)).toBeUndefined()
-  })
-
   it("serves a component set at its short address:  its own folder, with Spell UI's site bundle as its _assets/", async () => {
     const set = join(root, "packages", "epic-components")
     mkdirSync(join(set, "elements"), { recursive: true })
@@ -261,7 +192,7 @@ describe("PageServer", () => {
     const home = await ask(port, "GET", "/epic-ui/")
     expect(home.status).toBe(200)
     expect(home.text).toContain("<p>Epic UI</p>")
-    expect(home.text).toContain(`<script src="/_server/live.js" defer></script>`)
+    expect(home.text).toContain(`<script src="/api/server/live.js" defer></script>`)
     expect((await ask(port, "GET", "/epic-ui/elements/epic-item.html")).text).toContain("<p>item</p>")
     expect((await ask(port, "GET", "/epic-ui/_data/components.json")).text).toBe(`{"from":"epic-ui"}\n`)
     // the bundle is the sets' build of Spell UI's site, one for every set
@@ -269,9 +200,12 @@ describe("PageServer", () => {
     writeFileSync(join(root, "packages", "ui", "site", "_assets", "sets", "site.js"), "// sets\n")
     expect((await ask(port, "GET", "/epic-ui/_assets/site.js")).text).toBe("// sets\n")
     expect((await ask(port, "GET", "/epic-ui/missing.html")).status).toBe(404)
-    const bare = await ask(port, "GET", "/epic-ui?a=1")
+    // its address without the slash:  with it, so its pages' relative links resolve
+    const bare = await ask(port, "GET", "/epic-ui")
     expect(bare.status).toBe(302)
-    expect(bare.headers.location).toBe("/epic-ui/?a=1")
+    expect(bare.headers.location).toBe("/epic-ui/")
+    // its long address is a plain folder now:  no redirect (Q30)
+    expect((await ask(port, "GET", "/packages/epic-components/index.html")).status).toBe(200)
     // App UI's folder is the app's components:  one entry, the same route
     expect(componentSetPath("/app-ui/spell-app.html")).toBe("/packages/app/components/spell-app.html")
     expect(componentSetPath("/worktrees/w/epic-ui/_assets/site.js")).toBe(
@@ -292,52 +226,17 @@ describe("PageServer", () => {
     expect((await ask(port, "GET", "/worktrees/w/epic-ui/_assets/site.js")).text).toBe("// w\n")
   })
 
-  it("redirects a component set's long address to its short one:  pages only", async () => {
-    const set = join(root, "packages", "epic-components")
-    mkdirSync(join(set, "elements"), { recursive: true })
-    mkdirSync(join(set, "_data"), { recursive: true })
-    writeFileSync(join(set, "index.html"), "<p>home</p>\n")
-    writeFileSync(join(set, "elements", "epic-item.html"), "<p>item</p>\n")
-    writeFileSync(join(set, "_data", "components.json"), "{}\n")
-    writeFileSync(join(set, "README.md"), "# set\n")
-    const page = await ask(port, "GET", "/packages/epic-components/elements/epic-item.html?a=1")
-    expect(page.status).toBe(302)
-    expect(page.headers.location).toBe("/epic-ui/elements/epic-item.html?a=1")
-    expect((await ask(port, "GET", "/packages/epic-components/")).headers.location).toBe("/epic-ui/")
-    // its data, parts and other files stay where they are;  a missing page is a 404
-    expect((await ask(port, "GET", "/packages/epic-components/_data/components.json")).status).toBe(200)
-    expect((await ask(port, "GET", "/packages/epic-components/README.md")).status).toBe(200)
-    expect((await ask(port, "GET", "/packages/epic-components/elements/missing.html")).status).toBe(404)
-    // a worktree's long address, to its short one there;  none without the page
-    expect(movedSetPage("/worktrees/w/packages/epic-components/", root)).toBe("/worktrees/w/epic-ui/")
-    expect(movedSetPage("/worktrees/none/packages/epic-components/", root)).toBeUndefined()
-    // App UI's folder holds code too:  a code folder with no page isn't redirected
-    expect(movedSetPage("/packages/app/components/spell-app/", root)).toBeUndefined()
-  })
-
-  it("redirects Epic UI's old element pages in the guides, once they're gone and the new ones are there", async () => {
-    const set = join(root, "packages", "epic-components")
-    const guides = join(root, "guides", "epic-components")
-    mkdirSync(join(set, "elements"), { recursive: true })
-    mkdirSync(join(guides, "elements"), { recursive: true })
-    writeFileSync(join(set, "index.html"), "<p>home</p>\n")
-    writeFileSync(join(set, "elements", "epic-phase.html"), "<p>phase</p>\n")
-    // the old copies still there (until the merge):  served as they are
-    writeFileSync(join(guides, "elements", "epic-phase.html"), "<p>old phase</p>\n")
-    writeFileSync(join(guides, "elements.html"), "<p>old overview</p>\n")
-    expect((await ask(port, "GET", "/guides/epic-components/elements/epic-phase.html")).status).toBe(200)
-    expect((await ask(port, "GET", "/guides/epic-components/elements.html")).status).toBe(200)
-    // gone:  redirected
-    rmSync(join(guides, "elements", "epic-phase.html"))
-    rmSync(join(guides, "elements.html"))
-    const old = await ask(port, "GET", "/guides/epic-components/elements/epic-phase.html?a=1")
-    expect(old.status).toBe(302)
-    expect(old.headers.location).toBe("/epic-ui/elements/epic-phase.html?a=1")
-    expect((await ask(port, "GET", "/guides/epic-components/elements.html")).headers.location).toBe("/epic-ui/")
-    // a page the set doesn't have:  no redirect;  the guides that stay are served
-    expect((await ask(port, "GET", "/guides/epic-components/elements/epic-gone.html")).status).toBe(404)
-    writeFileSync(join(guides, "review.html"), "<p>review</p>\n")
-    expect((await ask(port, "GET", "/guides/epic-components/review.html")).status).toBe(200)
+  it("serves the docs assets' OLD folder from epics' tools, until this epic merges (oldAssetsPath())", async () => {
+    mkdirSync(join(root, "packages", "epics", "tools", "_assets"), { recursive: true })
+    writeFileSync(join(root, "packages", "epics", "tools", "_assets", "runtime.js"), "// epics\n")
+    const old = await ask(port, "GET", "/packages/docs/tools/_assets/runtime.js")
+    expect(old.status).toBe(200)
+    expect(old.text).toBe("// epics\n")
+    expect((await ask(port, "GET", "/packages/docs/tools/_assets/missing.js")).status).toBe(404)
+    expect(oldAssetsPath("/worktrees/w/packages/docs/tools/_assets/a/b.js")).toBe(
+      "/worktrees/w/packages/epics/tools/_assets/a/b.js"
+    )
+    expect(oldAssetsPath("/packages/docs/tools/index.js")).toBeUndefined()
   })
 
   it("reloads /ui/ pages when their files change, and when the bundle does", async () => {
@@ -357,16 +256,16 @@ describe("PageServer", () => {
   })
 
   it("reads a page, or one element, with its ETag", async () => {
-    const whole = JSON.parse((await ask(port, "GET", "/_server/page?path=/docs/page.html")).text)
+    const whole = JSON.parse((await ask(port, "GET", "/api/pages?path=/docs/page.html")).text)
     expect(whole.html).toBe(readFileSync(page, "utf8"))
-    const two = JSON.parse((await ask(port, "GET", "/_server/page?path=docs/page.html&id=two&inner=1")).text)
+    const two = JSON.parse((await ask(port, "GET", "/api/pages?path=docs/page.html&id=two&inner=1")).text)
     expect(two).toMatchObject({ html: "Two", etag: whole.etag })
   })
 
   it("patches one section, keeping the rest", async () => {
     const before = readFileSync(page, "utf8")
     const { etag } = await config()
-    const answer = await ask(port, "PATCH", "/_server/page?path=/docs/page.html", {
+    const answer = await ask(port, "PATCH", "/api/pages?path=/docs/page.html", {
       headers: writeHeaders(etag!),
       body: JSON.stringify({ id: "two", html: "Zwei", inner: true })
     })
@@ -377,7 +276,7 @@ describe("PageServer", () => {
 
   it("refuses stale or missing If-Match, bad tokens, bad paths and bad ids", async () => {
     const body = JSON.stringify({ id: "two", html: "x", inner: true })
-    const path = "/_server/page?path=/docs/page.html"
+    const path = "/api/pages?path=/docs/page.html"
     const { etag } = await config()
     expect((await ask(port, "PATCH", path, { headers: writeHeaders(`"0-0"`), body })).status).toBe(409)
     const noMatch = { "content-type": "application/json", "x-server-token": server.web.guard.token }
@@ -390,16 +289,16 @@ describe("PageServer", () => {
     expect((await ask(port, "PATCH", path, { headers: writeHeaders(etag!), body: dup })).status).toBe(409)
     const missing = JSON.stringify({ id: "nope", html: "x" })
     expect((await ask(port, "PATCH", path, { headers: writeHeaders(etag!), body: missing })).status).toBe(404)
-    const outside = "/_server/page?path=/../etc/passwd"
+    const outside = "/api/pages?path=/../etc/passwd"
     expect((await ask(port, "PATCH", outside, { headers: writeHeaders(etag!), body })).status).toBe(403)
-    const json = "/_server/page?path=/package.json"
+    const json = "/api/pages?path=/package.json"
     expect((await ask(port, "PUT", json, { headers: writeHeaders(etag!), body: "{}" })).status).toBe(400)
   })
 
   it("puts a whole page, then tells live pages it changed", async () => {
     const events = await listen(port)
     const { etag } = await config()
-    const answer = await ask(port, "PUT", "/_server/page?path=/docs/page.html", {
+    const answer = await ask(port, "PUT", "/api/pages?path=/docs/page.html", {
       headers: writeHeaders(etag!, "text/html"),
       body: "<!doctype html><p id=x>new</p>\n"
     })
@@ -419,24 +318,45 @@ describe("PageServer", () => {
     const notes = join(root, "docs", "notes.md")
     writeFileSync(notes, "# Notes\n")
     const etag = (await ask(port, "GET", "/docs/notes.md")).headers.etag as string
-    const answer = await ask(port, "PUT", "/_server/page?path=/docs/notes.md", {
+    const answer = await ask(port, "PUT", "/api/pages?path=/docs/notes.md", {
       headers: writeHeaders(etag, "text/plain; charset=utf-8"),
       body: "# Notes\n\nSaved.\n"
     })
     expect(answer.status).toBe(200)
     expect(readFileSync(notes, "utf8")).toBe("# Notes\n\nSaved.\n")
     expect(JSON.parse(answer.text).etag).not.toBe(etag)
-    const stale = await ask(port, "PUT", "/_server/page?path=/docs/notes.md", {
+    const stale = await ask(port, "PUT", "/api/pages?path=/docs/notes.md", {
       headers: writeHeaders(etag, "text/plain"),
       body: "lost"
     })
     expect(stale.status).toBe(409)
     writeFileSync(join(root, "docs", "logo.png"), "x")
-    const binary = await ask(port, "PUT", "/_server/page?path=/docs/logo.png", {
+    const binary = await ask(port, "PUT", "/api/pages?path=/docs/logo.png", {
       headers: writeHeaders(etag, "text/plain"),
       body: "x"
     })
     expect(binary.status).toBe(400)
+  })
+
+  it("writes pages through /api/pages in its package.json's `writable` folders ONLY;  reads any", async () => {
+    const outside = join(root, "ui", "readme.md")
+    writeFileSync(outside, "# UI\n")
+    const etag = (await ask(port, "GET", "/ui/readme.md")).headers.etag as string
+    const read = await ask(port, "GET", "/api/pages?path=/ui/readme.md")
+    expect(JSON.parse(read.text)).toMatchObject({ html: "# UI\n", etag })
+    const put = await ask(port, "PUT", "/api/pages?path=/ui/readme.md", {
+      headers: writeHeaders(etag, "text/plain"),
+      body: "lost"
+    })
+    expect(put.status).toBe(403)
+    expect(readFileSync(outside, "utf8")).toBe("# UI\n")
+    const pageEtag = (await ask(port, "GET", "/ui/button.html", { headers: { "sec-fetch-dest": "empty" } })).headers
+      .etag as string
+    const patch = await ask(port, "PATCH", "/api/pages?path=/ui/button.html", {
+      headers: writeHeaders(pageEtag),
+      body: JSON.stringify({ id: "x", html: "<p>x</p>" })
+    })
+    expect(patch.status).toBe(403)
   })
 
   it("changes files through /api/files, in its package.json's `writable` folders ONLY", async () => {
@@ -451,7 +371,7 @@ describe("PageServer", () => {
   it("patches pages only:  a text file has no elements to replace", async () => {
     const etag = (await ask(port, "GET", "/docs/notes.md")).headers.etag as string
     const body = JSON.stringify({ id: "x", html: "<p>x</p>" })
-    const answer = await ask(port, "PATCH", "/_server/page?path=/docs/notes.md", { headers: writeHeaders(etag), body })
+    const answer = await ask(port, "PATCH", "/api/pages?path=/docs/notes.md", { headers: writeHeaders(etag), body })
     expect(answer.status).toBe(400)
   })
 
@@ -469,13 +389,13 @@ describe("PageServer", () => {
 })
 
 /**
- * Listen to the live-reload websocket (`/_server/events`) on `port`, as a page does.
+ * Listen to the live-reload websocket (`SRV.LIVE_EVENTS`) on `port`, as a page does.
  * - `next(event, path)`:  resolves with the data of the next `event` about `path`
  */
 function listen(port: number): Promise<{ next: (event: string, path: string) => Promise<unknown>; close: () => void }> {
   return new Promise((done, fail) => {
     const waiting: { event: string; path: string; resolve: (data: unknown) => void }[] = []
-    const socket = new WebSocket(`ws://127.0.0.1:${port}/_server/events`)
+    const socket = new WebSocket(`ws://127.0.0.1:${port}${SRV.LIVE_EVENTS}`)
     socket.addEventListener("message", (message: MessageEvent<string>) => {
       const { event, data } = JSON.parse(message.data) as { event: string; data: { path?: string } }
       const at = waiting.findIndex((each) => each.event === event && each.path === data.path)

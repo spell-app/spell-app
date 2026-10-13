@@ -484,7 +484,7 @@ Dark mode follows the OS by default:  `color-scheme: light dark` on `:root`.
 
 [`spell.css`](../src/styles/themes/spell.css) is the Spell brand as a theme ([the brand's design system](../../../brand/spell-design-system/)).
 - It's the DEFAULT look of the Spell UI docs (`ThemePreference`), until the viewer picks another.
-- `packages/docs` pages wore it too (`spell-ui.entry.js`),
+- The docs pages wore it too (`spell-ui.entry.js`),
   until epic `design-system` moved them to `spell-brand` (below).
 - Listed in `UI.themes.own`, not `names`:  it's no Fomantic port.
   - Applied exactly like one, on top of `classic`.
@@ -536,7 +536,7 @@ Dark mode follows the OS by default:  `color-scheme: light dark` on `:root`.
 - Started 2026-10-04 as a FULL COPY of `spell.css`, so the two may drift.
   - Whether it replaces `spell` is a later call.
 - Also in `UI.themes.own`, and in the docs' theme picker as "Spell Brand", second.
-- The docs pages wear it:  `packages/docs`'s bundle applies it (epic `design-system`, P9).
+- The docs pages wear it:  their bundle (`packages/epics/tools/_assets/spell-ui.js`) applies it (epic `design-system`, P9).
 - It adds the brand's own semantic roles that no `--ui-*` token covers, as `--spell-*` `light-dark()` pairs:
   - surfaces:  `--spell-surface-tint`, `-warm`, `-selected`, `-code`, `-inverse`
   - text

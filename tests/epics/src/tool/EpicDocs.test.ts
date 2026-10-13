@@ -40,7 +40,7 @@ describe("EpicDocs rules", () => {
       "MORNING-vite-plus.md",
       "packages/epics/src/convert/fixtures/a.md",
       "guides/x/_assets/a.css",
-      "packages/docs/tools/airplane.ts",
+      "packages/epics/tools/airplane.ts",
       "node_modules/a/README.md"
     ]
     expect(docs.filter((path) => !EpicDocs.isDocPath(path))).toEqual([])

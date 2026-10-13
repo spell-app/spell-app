@@ -570,5 +570,5 @@ type RootPackageJson = {
   resolutions?: Record<string, string>
 }
 
-/** The parts of the commands page's JSON edited here;  its full shape:  `packages/docs/tools/_assets/commands.js`. */
+/** The parts of the commands page's JSON edited here;  its full shape:  `packages/epics/tools/_assets/commands.js`. */
 type CommandsJson = { families?: { rows?: { id?: string; yarn?: { names?: string | string[] } }[] }[] }

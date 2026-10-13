@@ -4,11 +4,12 @@ import { join } from "node:path"
 import { createInterface } from "node:readline"
 
 import type { Handler } from "$/server"
-import { BUNDLE_FOLDERS, BUNDLE_WAIT_MS, componentSetPath, uiBuildPath } from "$/server/page"
+import { BUNDLE_WAIT_MS, componentSetPath, pageServerSettings, uiBuildPath } from "$/server/page"
 
 /**
  * Builds the bundles the page server serves, when the server starts.
- * - the bundles (`BUNDLE_FOLDERS`):  the Spell UI docs site's, the brand pages';  built on demand, never committed
+ * - the bundles (`folders`, the root `package.json`'s `"pageServer": { "bundles": [...] }`):  the Spell UI docs
+ *   site's, the brand pages';  built on demand, never committed
  * - `start()`:  runs `spell dev bundles build --stale` in the background, with the checkout's OWN CLI
  *   - it builds only the bundles whose sources changed since their last build (the logic:  `$/assembler` `Bundle`)
  *   - so a start with nothing changed builds nothing
@@ -25,6 +26,9 @@ export class BundleBuild {
   /** ms a request waits for the build */
   readonly timeout: number
 
+  /** the bundles' folders, relative to `root`:  its settings' `bundles` (`pageServerSettings()`), read once */
+  readonly folders: readonly string[]
+
   /** starts the child:  `node:child_process`'s `spawn`, or a test's stub */
   private spawn: SpawnBuild
 
@@ -38,6 +42,7 @@ export class BundleBuild {
     this.root = root
     this.timeout = timeout
     this.spawn = spawn
+    this.folders = pageServerSettings(root).bundles ?? []
   }
 
   /** Is the build running? */
@@ -137,7 +142,7 @@ export class BundleBuild {
     } catch {
       return undefined
     }
-    const folder = BUNDLE_FOLDERS.find((each) => served.startsWith(`/${each}/`))
+    const folder = this.folders.find((each) => served.startsWith(`/${each}/`))
     if (!folder || served.split("/").includes("..")) return undefined
     return join(this.root, served)
   }

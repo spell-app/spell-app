@@ -37,7 +37,7 @@ export const SITE_HOME = "pages/index.html"
  * - the slashed names are the tab labels as he typed them (J41):  "the UI set of Epic", "of Spell", "of the app";
  *   prose and folders keep "Epic UI", "Spell UI", "App UI" and `epic-ui/`, `ui/`, `app-ui/`
  * - (before, claude-design Q6, 2026-10-05:  Epics · Guides · Brand · Spell UI · Templates · Goals · App)
- * - the home's cards are in the same order (`packages/docs/tools/index.js` `areaCards()`)
+ * - the home's cards are in the same order (`packages/epics/tools/index.js` `areaCards()`)
  * - each docs area's tab lights on its own pages (`docsArea()`):
  *   - a plan doc:  Epics
  *   - a guide:  Guides

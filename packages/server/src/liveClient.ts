@@ -1,5 +1,5 @@
 /**
- * The browser side of a `WebServer` with live reload:  runs in every page it serves, from `/_server/live.js`.
+ * The browser side of a `WebServer` with live reload:  runs in every page it serves, from `/api/server/live.js`.
  * - MUST stay self-contained:  it's served as `(${liveClient})()`, so it can't use imports or module helpers
  *   - the one helper it calls, `forVsCode()`, is served beside it (`liveClientScript()`), so tests can call it too
  */
@@ -60,7 +60,7 @@ export type PageChange = { path: string; html: string; etag?: string; reload: ()
 export type FileChange = { path: string }
 
 /**
- * One save of a whole file (`PUT /_server/page`), or of one element of a page (`fragment`:  its `id`, `PATCH`).
+ * One save of a whole file (`PUT /api/pages`), or of one element of a page (`fragment`:  its `id`, `PATCH`).
  * - `path`:  URL path of the file, e.g. `/guides/notes.md`
  * - `etag`:  the version it was edited from (the `ETag` it was fetched with);  REQUIRED by the server
  * - what `<ui-include>` / `<ui-code>` / `<ui-markdown>` save through (`UI.sources.saver`, set by the docs runtime)
@@ -68,7 +68,7 @@ export type FileChange = { path: string }
 export type FileSave = { path: string; text: string; etag?: string; fragment?: string }
 
 /**
- * One edit of the page's own file, through `PATCH /_server/page`.
+ * One edit of the page's own file, through `PATCH /api/pages`.
  * - `id`:  the element to replace
  * - `html`:  its new markup
  * - `inner`:  replace its content only
@@ -168,7 +168,7 @@ export function liveClient(): void {
 
   let etag = config.etag
   config.editPage = async ({ id, html, inner, parent, etag: version = etag }) => {
-    const url = `${config.edit ?? "/_server/page"}?path=${encodeURIComponent(config.file)}`
+    const url = `${config.edit ?? "/api/pages"}?path=${encodeURIComponent(config.file)}`
     const answer = await fetch(url, {
       method: "PATCH",
       headers: {
@@ -184,7 +184,7 @@ export function liveClient(): void {
   }
 
   config.saveFile = async ({ path, text, etag: version, fragment }) => {
-    const url = `${config.edit ?? "/_server/page"}?path=${encodeURIComponent(path)}`
+    const url = `${config.edit ?? "/api/pages"}?path=${encodeURIComponent(path)}`
     const answer = await fetch(url, {
       method: fragment ? "PATCH" : "PUT",
       headers: {
@@ -322,7 +322,7 @@ export function liveClient(): void {
   function loadsFrom(path: string): boolean {
     for (const script of document.querySelectorAll<HTMLScriptElement>("script[src]")) {
       const url = new URL(script.src, location.href)
-      if (url.origin !== location.origin || url.pathname.startsWith("/_server/")) continue
+      if (url.origin !== location.origin || url.pathname.startsWith("/api/")) continue
       if (path.startsWith(url.pathname.slice(0, url.pathname.lastIndexOf("/") + 1))) return true
     }
     return false
@@ -744,7 +744,7 @@ type LiveWindow = Window & {
 }
 
 /**
- * `liveClient` as a classic script, for `/_server/live.js`:  `forVsCode()` first, which it calls.
+ * `liveClient` as a classic script, for `/api/server/live.js`:  `forVsCode()` first, which it calls.
  * - HACK: `__name` is a no-op shim:  tsx / esbuild's `keepNames` wraps nested functions in `__name(fn, "fn")`,
  *   a helper that lives in the MODULE, not in the stringified function
  */

@@ -82,7 +82,7 @@ when working with code in this package, `@spell-app/brand`.
   - `site-data.ts`:  `_data/`
 - `vite.design.config.ts`:  the elements, built for the claude.ai design bundle.
   - The output:  `brand-design.js`, in `dist/` (git-ignored).
-  - [bundle-spell-ui.js](../docs/tools/bundle-spell-ui.js) `--design` runs it (`yarn design:bundle`, in `packages/docs`).
+  - [bundle-spell-ui.js](../epics/tools/bundle-spell-ui.js) `--design` runs it (`yarn design:bundle`, in `packages/epics`).
 - `brand/leonardo/` (shared):  the original reference images and brief, from before Claude Design.
 
 ## A `.spell.html` copy

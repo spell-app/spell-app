@@ -29,7 +29,7 @@ class FakeServer {
 
   readonly fetch = vi.fn(async (url: string, init?: RequestInit): Promise<Response> => {
     if (url === PAGE) return new Response(`<script>window.SPELL_SERVER = {"token":"${this.token}"}</script>`)
-    if (url.startsWith("/api/agents?")) return json({ agents: this.agents })
+    if (url.startsWith("/api/epics/agents?")) return json({ agents: this.agents })
     const body = JSON.parse(init!.body as string) as Record<string, unknown>
     this.posts.push([url, body])
     if (this.held) await new Promise<void>((resolve) => (this.held!.release = resolve))
@@ -117,7 +117,7 @@ describe("AgentsClient.redirect()", () => {
     await client.start()
     await client.redirect("sample-aaa", "Use the new parser")
     expect(server.posts).toEqual([
-      ["/api/agents/redirect", { page: PAGE, name: "sample-aaa", note: "Use the new parser" }]
+      ["/api/epics/agents/redirect", { page: PAGE, name: "sample-aaa", note: "Use the new parser" }]
     ])
     expect(client.agents[0]!.redirects).toEqual([
       { note: "Use the new parser", at: "2026-10-07T12:00:00.000Z", told: "" }

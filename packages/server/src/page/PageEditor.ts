@@ -4,7 +4,7 @@ import { parse } from "parse5"
 import { SRV } from "$/server"
 
 /**
- * Edits pages IN PLACE, for the page server:  `/_server/page`.
+ * Edits pages IN PLACE, for the page server:  `/api/pages` (`PREFIX`).
  * - `GET ?path=<url path>[&id=<id>][&parent=<tag>][&inner=1]`:
  *   the page's source (or one element's), and its `ETag`
  * - `PUT ?path=`:  the whole file;  body `text/*` (`text/html`, `text/plain` ...), or JSON `{ html }`
@@ -19,6 +19,9 @@ import { SRV } from "$/server"
  * - safety:
  *   - writes need the `Guard` token and same origin
  *   - under the root only, through `resolveInside()` (no dot files, no `..`)
+ *   - WRITES only inside the `writable` folders, as `/api/files` (`SRV.FileOperations.writableFile()`):
+ *     the root `package.json`'s `"pageServer"` `"writable"` list, the shared content folders;  anything else:  403
+ *     - reading (`GET`) isn't held to it:  any text file the server serves
  *   - which files:  `.html` for `PATCH`, any `TEXT_FILE` for `GET` / `PUT`
  *   - `If-Match` MUST be the `ETag` the page was served with
  *     - the file changed since (an editor, an agent):  409, and the caller reloads
@@ -35,19 +38,26 @@ export class PageEditor {
    */
   static readonly TEXT_FILE = /\.(html?|md|markdown|txt|ts|tsx|js|mjs|cjs|jsx|css|spell|ya?ml|svg)$/i
 
+  /** where `route()` listens */
+  static readonly PREFIX = "/api/pages"
+
   /** folder pages live under */
   readonly root: string
 
-  constructor(root: string) {
+  /** what decides which files it may write:  the same `writable` list as `/api/files` */
+  private files: SRV.FileOperations
+
+  constructor({ root, writable = [] }: PageEditorProps) {
     this.root = root
+    this.files = new SRV.FileOperations({ root, writable })
   }
 
-  /** add the `/_server/page` routes to `router`, guarded by `guard`;  bodies up to 10mb */
+  /** add the `/api/pages` routes to `router`, guarded by `guard`;  bodies up to 10mb */
   route(router: SRV.Router, guard: SRV.Guard): void {
     const body = SRV.parseBodies({ limit: 10 * 1024 * 1024 })
-    router.get("/_server/page", (request, reply) => this.read(request, reply))
-    router.put("/_server/page", guard.writeCheck, body, (request, reply) => this.write(request, reply, "put"))
-    router.patch("/_server/page", guard.writeCheck, body, (request, reply) => this.write(request, reply, "patch"))
+    router.get(PageEditor.PREFIX, (request, reply) => this.read(request, reply))
+    router.put(PageEditor.PREFIX, guard.writeCheck, body, (request, reply) => this.write(request, reply, "put"))
+    router.patch(PageEditor.PREFIX, guard.writeCheck, body, (request, reply) => this.write(request, reply, "patch"))
   }
 
   /** answer `GET`:  `{ path, etag, html }` */
@@ -64,6 +74,8 @@ export class PageEditor {
   /** answer `PUT` / `PATCH`:  `{ path, etag }`, the file's new `ETag` */
   private async write(request: SRV.Request, reply: SRV.Reply, how: "put" | "patch"): Promise<void> {
     const { path, file } = this.pageFile(request, how === "put" ? PageEditor.TEXT_FILE : PageEditor.PAGE_FILE)
+    // 403 outside the `writable` folders, as `/api/files`
+    this.files.writableFile(path)
     const expected = request.get("if-match")
     if (!expected) throw new SRV.HttpError(428, "If-Match required:  send the ETag the page was served with")
     const body = request.body as string | { html?: unknown; id?: unknown; inner?: unknown; parent?: unknown }
@@ -101,6 +113,14 @@ export class PageEditor {
     return { path, file: resolved.file }
   }
 }
+
+/**
+ * `new PageEditor()` props.
+ * - `root`:  folder pages live under (the checkout)
+ * - `writable`:  folders, relative to `root`, whose files it may write (the root `package.json`'s
+ *   `"pageServer"` `"writable"`);  none by default:  it reads, and writes nothing
+ */
+export type PageEditorProps = { root: string; writable?: string[] }
 
 /**
  * Where one element sits in a page's source:  character offsets.

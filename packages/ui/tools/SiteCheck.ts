@@ -46,7 +46,7 @@ import { Terminal } from "./Terminal.ts"
  * - Look at the screenshots too:  the checks can't see overlap, clipping or ugly wrapping.
  * - Throws `SiteCheckError` when it can't start:  no such page, or no page server serving the site (exit 2).
  * - Replaces the Astro site's `check` script.
- *   Model:  the docs' checker, `packages/docs/tools/check-spell.js`.
+ *   Model:  the docs' checker, `packages/epics/tools/check-spell.js`.
  * - Node only;  reads the site's `FOLDS_KEY` (`site/_src/site.types.ts`, pure data) and `TocIndex.slug()`.
  ****************/
 export class SiteCheck {

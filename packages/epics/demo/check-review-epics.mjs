@@ -46,7 +46,8 @@
  *     written into the copy's inbox as the bullhorn would (the comments route takes only the shared folders' pages);
  *     Send turns blue, a click sends it (the inbox's `sent` moves, `unsentComments` empties),
  *     and `inbox wait` wakes with it, printing the comment
- * - fails (exit 1) unless each shows on the page AND lands in the inbox (read back through `GET /api/review/inbox`)
+ * - fails (exit 1) unless each shows on the page AND lands in the inbox
+ *   (read back through `GET /api/epics/review/inbox`)
  * - and at 280px and 900px, light and dark, unless:
  *   - no review control runs past the window, and none sits over its line's title
  *   - every button's glyph is centred in it (within 1px);  the page's round buttons too (Send, Review Now, git)
@@ -863,7 +864,7 @@ function boxHeight(page, id) {
 /** The inbox, as the page's routes answer it. */
 function readInbox(page) {
   return page.evaluate(
-    async (pagePath) => (await fetch(`/api/review/inbox?page=${encodeURIComponent(pagePath)}`)).json(),
+    async (pagePath) => (await fetch(`/api/epics/review/inbox?page=${encodeURIComponent(pagePath)}`)).json(),
     pagePath
   )
 }
@@ -905,7 +906,7 @@ function expect(what, actual, wanted) {
 /** Have the next POST to `route` wait `HOLD_MS`. */
 async function holdNext(page, route) {
   let held = false
-  await page.route(`**/api/review/${route}`, async (request) => {
+  await page.route(`**/api/epics/review/${route}`, async (request) => {
     if (!held) {
       held = true
       await new Promise((resolve) => setTimeout(resolve, HOLD_MS))

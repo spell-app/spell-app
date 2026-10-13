@@ -68,6 +68,6 @@ for (const bundle of AS.Bundle.all(root)) if (bundle.isStale) bundle.build()
 - The page server's assembly code moves in here, so other assembly tools can be built on it
   (e.g. a redone goals package).
   - It's in [the page server's folder](../server/src/page/).
-- The docs tools' [pages.js](../docs/tools/pages.js) still has its own copy of the area folders (`AREAS`),
+- The docs tools' [pages.js](../epics/tools/pages.js) still has its own copy of the area folders (`AREAS`),
   for `findPages()`.
   `Linker` has the list it indexes.

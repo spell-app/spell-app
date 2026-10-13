@@ -116,7 +116,7 @@ From `decisions --json`, later beats earlier:
      (the root `AGENTS.md`, "Shared content").
      - That's `/Users/owen/www/spell-app/spell-app-dev/<path>`.
      - The turn's end commits them (`auto: guides/...`), one commit per folder, which Owen can revert whole.
-   - An edited docs page:  [docs' AGENTS.md](packages/docs/AGENTS.md), "Finishing a page", steps 2-4
+   - An edited docs page:  [epics' AGENTS.md](packages/epics/AGENTS.md), "Finishing a page", steps 2-4
      (format, links, check-spell).
 9. Report ("Report").
 

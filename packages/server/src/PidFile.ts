@@ -7,7 +7,7 @@ import { SRV, type ServerInfo } from "$/server"
 /**
  * The file where a background server says where it is, holding its `ServerInfo`:
  * `<root>/<name>` (default `.spell-server.json`).
- * - running means:  the file's server answers `/_server/ping` for THIS root
+ * - running means:  the file's server answers `/api/server` (`SERVER_API`) for THIS root
  *   - a pid file left by a crash, or by a server on another checkout's root, is not running
  * - `ensure()` starts one detached if none runs, or restarts one older than its `sources`
  * - `stop()` sends it `SIGTERM`
@@ -52,7 +52,7 @@ export class PidFile {
     const base = `http://127.0.0.1:${info.port}`
     try {
       const answer = (await (
-        await fetch(`${base}/_server/ping`, { signal: AbortSignal.timeout(1000) })
+        await fetch(`${base}${SRV.SERVER_API}`, { signal: AbortSignal.timeout(1000) })
       ).json()) as ServerInfo
       return answer.root === this.root ? { ...answer, base } : undefined
     } catch {
@@ -78,6 +78,7 @@ export class PidFile {
     if (running && newestChange(sources) <= Date.parse(running.started)) return { ...running, launched: false }
     // older than its code (a merge changed it since):  a fresh one, so pages get the new routes (I5 of `skillz`)
     if (running) await this.stop()
+    else await this.stopUnanswering()
     const out = openSync(log ?? join(this.root, ".spell-server.log"), "a")
     const [program, ...args] = command
     spawn(program!, args, {
@@ -102,6 +103,35 @@ export class PidFile {
     process.kill(running.pid, "SIGTERM")
     for (let tries = 0; tries < 50 && (await this.status()); tries++) await new Promise((done) => setTimeout(done, 100))
     return true
+  }
+
+  /**
+   * Stop the pid file's server when it's alive and still holds its port, but doesn't answer `SERVER_API`:
+   * this checkout's server on code from before its calls moved under `/api/` (epic `people-and-orgs` P16), which
+   * `status()` can't see.  Left running, it would keep the port, and every page, on the old code.
+   * - only the pid the file names, for THIS root, while something answers HTTP on its port
+   * - NEVER throws
+   */
+  private async stopUnanswering(): Promise<void> {
+    const info = this.read()
+    if (!info || resolve(info.root) !== this.root || !isAlive(info.pid)) return
+    try {
+      await fetch(`http://127.0.0.1:${info.port}/`, { signal: AbortSignal.timeout(1000), redirect: "manual" })
+      process.kill(info.pid, "SIGTERM")
+      for (let tries = 0; tries < 50 && isAlive(info.pid); tries++) await new Promise((done) => setTimeout(done, 100))
+    } catch {
+      // nothing on its port:  no server to stop
+    }
+  }
+}
+
+/** Whether process `pid` is alive:  signal 0 checks without sending anything;  `EPERM`:  alive, not ours. */
+function isAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code === "EPERM"
   }
 }
 

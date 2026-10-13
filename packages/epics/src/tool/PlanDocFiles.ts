@@ -8,6 +8,7 @@ import { parseHTML } from "linkedom"
 import { AS } from "$/assembler"
 import { SRV } from "$/server"
 
+import { planDocIn } from "../../tools/pages.js"
 import { PlanDocError, type CommitLogEntry, type PlanDocOptions, type PlanDocParts } from "./planDoc.types"
 
 import { EpicParts } from "./EpicParts"
@@ -36,8 +37,8 @@ import { ReviewInbox } from "./ReviewInbox"
  *   document, `writeDoc()` splits it again:  every command works on either shape, and a part file is written only
  *   when its body changed.
  * - Node only (`node:fs`, git, `$/server`'s lock, `$/assembler`'s linker and formatter):  NOT in the `$/epics`
- *   barrel, imported by path.  Knows nothing of the command line (`PlanDocCommands`), nor of `docs`, which `epics`
- *   may not import:  the docs index is rebuilt by running its tool (`reindex()`).
+ *   barrel, imported by path.  Knows nothing of the command line (`PlanDocCommands`);  the docs index is rebuilt
+ *   by running its tool, `tools/index.js`, as it runs from the command line (`reindex()`).
  ****************/
 export class PlanDocFiles {
   /**
@@ -58,10 +59,10 @@ export class PlanDocFiles {
   /** `pages/details/`:  scratch details pages (`spell dev details new`), where the item picker's page lives */
   readonly details: string
 
-  /** `packages/docs`:  where the docs tools run (`index.js`, `check-spell.js`, `open.js`) */
+  /** `packages/epics`:  where the docs tools run (`index.js`, `check-spell.js`, `open.js`) */
   readonly docsPackage: string
 
-  /** `packages/docs/tools`:  the docs tools this runs as children, never imports */
+  /** `packages/epics/tools`:  the docs tools this runs as children, never imports */
   readonly docsTools: string
 
   /** link targets for the checkout's pages:  its bare-name index is built once per process */
@@ -72,7 +73,7 @@ export class PlanDocFiles {
     this.epics = join(root, "epics")
     this.template = template
     this.details = join(root, "pages", "details")
-    this.docsPackage = join(root, "packages", "docs")
+    this.docsPackage = join(root, "packages", "epics")
     this.docsTools = join(this.docsPackage, "tools")
     this.linker = new AS.Linker(root)
   }
@@ -108,15 +109,10 @@ export class PlanDocFiles {
    * - why both names:  plan docs were renamed `<name>.plan.html` on 2026-10-04 (`review-review` P4), and a worktree
    *   cut before then still has `<name>.html` until it merges `main`
    * - STATIC:  a folder's answer, whichever checkout it's in
-   * - a private copy of `packages/docs/tools/pages.js` `planDocIn()`:  `epics` may not import `docs`
+   * - the docs tools' rule (`tools/pages.js` `planDocIn()`), which the docs index finds plan docs by too
    */
   static planDocIn(dir: string, name: string): string | undefined {
-    const file = join(dir, `${name}.plan.html`)
-    if (existsSync(file)) return file
-    const old = join(dir, `${name}.html`)
-    if (!existsSync(old)) return undefined
-    const html = readFileSync(old, "utf8")
-    return /<body\b[^>]*\bclass="[^"]*\bplan-doc\b/.test(html) || /<epic-page\b/.test(html) ? old : undefined
+    return planDocIn(dir, name)
   }
 
   /**
@@ -313,7 +309,8 @@ export class PlanDocFiles {
 
   /**
    * Rewrite the docs index:  a plan's status badge follows its phases.
-   * - by running `packages/docs/tools/index.js`, a child `node`:  `epics` may not import `docs`
+   * - by running `packages/epics/tools/index.js`, a child `node`:  the docs index's script, as `spell dev docs index`
+   *   runs it
    * - shared content (`pages` a link):  ONE `pages/index.html` for every checkout, not tracked by spell-app, so a
    *   worktree rewrites it too:  nothing to conflict on merge
    * - a checkout WITHOUT the link (its own tracked home) in a worktree:  left alone, or two epics' worktrees would

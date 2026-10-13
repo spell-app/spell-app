@@ -276,7 +276,7 @@ describe("ConversionProof with ConvertedReading:  what a broken upgrade loses", 
       .report
     expect(report.clean).toBe(true)
     expect(report.links.excluded).toEqual([
-      "../../packages/docs/tools/_assets/plan-doc.css (plan-doc.css, dropped:  the elements style themselves)",
+      "../../packages/epics/tools/_assets/plan-doc.css (plan-doc.css, dropped:  the elements style themselves)",
       "../../pages/index.html (the old crumbs, drawn by <epic-page>)",
       "../../epics/index.html (the old crumbs, drawn by <epic-page>)"
     ])

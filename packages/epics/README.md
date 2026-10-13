@@ -13,7 +13,7 @@ Written exactly like Spell UI's own element families, on its `$/ui/core`.
 </ui-root>
 ```
 
-The page must load Spell UI's docs bundle FIRST ([spell-ui.js](../docs/tools/_assets/spell-ui.js), in the docs tools):
+The page must load Spell UI's docs bundle FIRST ([spell-ui.js](tools/_assets/spell-ui.js), in the docs tools):
 - the pack registers there (`SpellUI.registerPack()`)
 - and takes Solid and Spell UI's shared code from it (`SpellUI.packModules`)
 

@@ -83,12 +83,53 @@ describe("Bundle", () => {
 })
 
 describe("Bundle.all()", () => {
+  const repo = mkdtempSync(join(tmpdir(), "assembler-bundles-"))
+  put(
+    repo,
+    "package.json",
+    JSON.stringify({ pageServer: { bundles: ["packages/ui/site/_assets", "packages/brand/_assets/ui"] } })
+  )
+
+  afterAll(() => rmSync(repo, { recursive: true, force: true }))
+
   test("every bundle, or the ones named, in that order;  an unknown name says which there are", () => {
-    expect(AS.Bundle.all("/repo").map((bundle) => bundle.name)).toEqual(["ui-site", "brand"])
-    expect(AS.Bundle.all("/repo", ["brand", "ui-site"]).map((bundle) => bundle.outputDir)).toEqual([
-      "/repo/packages/brand/_assets/ui",
-      "/repo/packages/ui/site/_assets"
+    expect(AS.Bundle.all(repo).map((bundle) => bundle.name)).toEqual(["ui-site", "brand"])
+    expect(AS.Bundle.all(repo, ["brand", "ui-site"]).map((bundle) => bundle.outputDir)).toEqual([
+      join(repo, "packages/brand/_assets/ui"),
+      join(repo, "packages/ui/site/_assets")
     ])
-    expect(() => AS.Bundle.all("/repo", ["nope"])).toThrow("Bundle.all():  no bundle 'nope';  bundles:  ui-site, brand")
+    expect(() => AS.Bundle.all(repo, ["nope"])).toThrow("Bundle.all():  no bundle 'nope';  bundles:  ui-site, brand")
+  })
+})
+
+describe("Bundle.specs()", () => {
+  const temp = mkdtempSync(join(tmpdir(), "assembler-specs-"))
+
+  afterAll(() => rmSync(temp, { recursive: true, force: true }))
+
+  /** A checkout under `temp` whose `package.json` is `json` (none:  no file) */
+  function checkout(name: string, json?: unknown): string {
+    if (json !== undefined) put(temp, `${name}/package.json`, JSON.stringify(json))
+    return join(temp, name)
+  }
+
+  test("the folders the root's package.json names, in its order, each with the bundle that builds into it", () => {
+    const only = checkout("only", { pageServer: { bundles: ["packages/brand/_assets/ui"] } })
+    expect(AS.Bundle.specs(only).map((spec) => spec.name)).toEqual(["brand"])
+  })
+
+  test("none without a list, as the page server;  a folder no bundle builds into throws", () => {
+    expect(AS.Bundle.specs(checkout("none"))).toEqual([])
+    expect(AS.Bundle.specs(checkout("bare", { name: "x" }))).toEqual([])
+    const odd = checkout("odd", { pageServer: { bundles: ["packages/nope/_assets"] } })
+    expect(() => AS.Bundle.specs(odd)).toThrow("Bundle.specs():  no bundle builds into 'packages/nope/_assets'")
+  })
+
+  // the ONE list:  the page server waits on these folders (`BundleBuild`), the CLI builds their bundles
+  test("the repo's list names every bundle, each once", () => {
+    const repoRoot = join(import.meta.dirname, "../../..")
+    const outputs = AS.Bundle.specs(repoRoot).map((spec) => spec.output)
+    expect([...outputs].sort()).toEqual(AS.BUNDLES.map((spec) => spec.output).sort())
+    expect(new Set(outputs).size).toBe(outputs.length)
   })
 })

@@ -8,7 +8,7 @@ import type { AS } from "$/assembler"
 
 /**
  * Links source references in a page of the spell-app checkout at `root`:  one named target per destination, so
- * re-clicks reuse a tab.  Rules:  `packages/docs/AGENTS.md`, "Links".
+ * re-clicks reuse a tab.  Rules:  `packages/epics/AGENTS.md`, "Links".
  * - `link()`:  `<code>path</code>` outside `<pre>` / `<a>` / `<head>` becomes a link when the path resolves to a real
  *   file or folder;  an existing `<a href>` without a target gets one (external:  per URL;  sibling docs:  per file)
  *   - a name with its path as its tooltip, `<code title="path">name</code>`, links to that path the same way
@@ -18,8 +18,8 @@ import type { AS } from "$/assembler"
  *     machines, or while a server runs (`isGitIgnored()`)
  * - Works on the page's TEXT with regexes, never a parsed DOM:  the edits touch only what they link, byte for byte.
  * - Knows the checkout's LAYOUT (`packages/*`, the shared areas `pages/`, `guides/`, `epics/`, `templates/`) as
- *   folder names only:  imports no other package, so `docs` and `epics` both import it.
- * - From `packages/docs/tools/doc-links.js` (epic `epic-components`, P7), which now runs its command line on this.
+ *   folder names only:  imports no other package, so the docs tools and the plan-doc tool (`epics`) both import it.
+ * - From `packages/epics/tools/doc-links.js` (epic `epic-components`, P7), which now runs its command line on this.
  * - SERVED folders (`served`, epic `epic-workflow` P10):  a folder the page server serves at another address (a
  *   component set:  `packages/epic-components/` at `/epic-ui/`) has its pages' links written as from that address,
  *   so they hold under `/worktrees/<w>/` too.  Give such a page `servedDir()` of its folder as its `pageDir`:  links
@@ -229,7 +229,7 @@ export class Linker {
         .filter(isDir),
       ...[join(this.root, "tests")].filter(isDir),
       ...AREAS.map((area) => join(this.root, area)),
-      join(this.packages, "docs", "tools"),
+      join(this.packages, "epics", "tools"),
       join(this.ui, "docs")
     ]
   }
@@ -331,7 +331,7 @@ const SKIP_DIRS = new Set([
 /**
  * A plan doc, `epics/<name>/<name>.plan.html` (before 2026-10-04 `<name>.html`;
  * before 2026-10-05 under `packages/docs/content/` or `packages/docs/`), relative to the repo root:  `[1]` is its name.
- * - same as `packages/docs/tools/relocate.js` `PLAN_DOC`
+ * - same as `packages/epics/tools/relocate.js` `PLAN_DOC`
  */
 const PLAN_DOC = /(?:^|\/)(?:packages\/docs\/(?:content\/)?)?epics\/([^/]+)\/\1(?:\.plan)?\.html$/
 

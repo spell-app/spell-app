@@ -68,7 +68,7 @@ export class SiteHeader extends HTMLElement {
   /** event a router dispatches on `document` after swapping the page in place:  re-draw */
   static readonly PAGE_EVENT = "spell-site:page"
 
-  /** server info, once known:  injected `SPELL_SERVER`, else `/_server/ping` */
+  /** server info, once known:  injected `SPELL_SERVER`, else `/api/server` */
   private info?: Partial<ServerInfo & ServerConfig>
 
   /** re-draw on `PAGE_EVENT` */
@@ -268,7 +268,7 @@ export class SiteHeader extends HTMLElement {
   /** ask the server who it is, for the badge (pages it proxies have no `SPELL_SERVER`) */
   private async ping(): Promise<void> {
     try {
-      const answer = await fetch("/_server/ping")
+      const answer = await fetch("/api/server")
       if (!answer.ok) return
       this.info = (await answer.json()) as ServerInfo
       this.render()

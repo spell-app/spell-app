@@ -68,7 +68,7 @@ describe("PathTooltips.rewrite():  what it leaves", () => {
     ["a comma form whose name isn't the file's", "<p><code>setMark()</code>, <code>tool/ReviewInbox.ts</code></p>"],
     ["a list before", "<p><code>a.ts</code>, <code>Fuss</code>, <code>tools/fuss.ts</code></p>"],
     ["a list after", "<p><code>Fuss</code>, <code>tools/fuss.ts</code>, <code>tools/x.ts</code></p>"],
-    ["a folder", "<p><code>Fuss</code> (<code>packages/docs/tools/</code>)</p>"],
+    ["a folder", "<p><code>Fuss</code> (<code>packages/epics/tools/</code>)</p>"],
     ["a file alone", "<p><code>Fuss</code> (<code>fuss.ts</code>)</p>"],
     ["more in the brackets", "<p><code>Fuss</code> (<code>tools/fuss.ts</code>:  the checker)</p>"],
     ["other wording", "<p><code>Fuss</code> in <code>tools/fuss.ts</code></p>"],

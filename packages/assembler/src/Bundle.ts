@@ -1,6 +1,6 @@
 import { spawnSync, type StdioOptions } from "node:child_process"
 import { createHash } from "node:crypto"
-import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs"
 import { join, relative, sep } from "node:path"
 
 import { AS } from "$/assembler"
@@ -12,6 +12,8 @@ import { AS } from "$/assembler"
  *   the one its last build recorded (`AS.BUNDLE_RECORD`, in its output folder)
  * - `build()`:  runs its build command, then records the hash
  * - The page server runs `spell dev bundles build --stale` when it starts, so a page always loads a current build.
+ * - WHICH bundles:  the ones whose output folders the checkout's root `package.json` names, in
+ *   `"pageServer": { "bundles": [...] }`, the list the page server reads too (`Bundle.specs()`)
  * - Knows the checkout's LAYOUT as folder names only (`AS.BUNDLES`):  imports no other package.
  */
 export class Bundle {
@@ -42,18 +44,37 @@ export class Bundle {
   }
 
   /**
-   * Every bundle of the checkout at `root`;  `names`:  only those, in that order.
+   * Every bundle of the checkout at `root` (`Bundle.specs()`);  `names`:  only those, in that order.
    * - throws a `TypeError` naming the known bundles for an unknown name
    */
   static all(root: string, names: string[] = []): Bundle[] {
-    if (!names.length) return AS.BUNDLES.map((spec) => new Bundle(root, spec))
+    const specs = Bundle.specs(root)
+    if (!names.length) return specs.map((spec) => new Bundle(root, spec))
     return names.map((name) => {
-      const spec = AS.BUNDLES.find((each) => each.name === name)
+      const spec = specs.find((each) => each.name === name)
       if (!spec) {
-        const known = AS.BUNDLES.map((each) => each.name).join(", ")
+        const known = specs.map((each) => each.name).join(", ")
         throw new TypeError(`Bundle.all():  no bundle '${name}';  bundles:  ${known}`)
       }
       return new Bundle(root, spec)
+    })
+  }
+
+  /**
+   * The bundles of the checkout at `root`:  for each folder its `package.json` names in
+   * `"pageServer": { "bundles": [...] }`, in that order, the one of `AS.BUNDLES` that builds into it.
+   * - ONE list, which the page server reads too (its `BundleBuild` waits on those folders)
+   * - none without a list, as the page server
+   * - throws a `TypeError` for a folder no bundle builds into
+   */
+  static specs(root: string): AS.BundleSpec[] {
+    const file = join(root, "package.json")
+    if (!existsSync(file)) return []
+    const settings = JSON.parse(readFileSync(file, "utf8")) as { pageServer?: { bundles?: string[] } }
+    return (settings.pageServer?.bundles ?? []).map((folder) => {
+      const spec = AS.BUNDLES.find((each) => each.output === folder)
+      if (!spec) throw new TypeError(`Bundle.specs():  no bundle builds into '${folder}' (package.json's "pageServer")`)
+      return spec
     })
   }
 

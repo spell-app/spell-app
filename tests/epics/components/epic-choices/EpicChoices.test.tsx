@@ -36,8 +36,8 @@ class FakeRoutes {
 
   // the client fetches by URL string, a POST's body a JSON string
   readonly fetch = vi.fn(async (url: string, init?: RequestInit): Promise<Response> => {
-    if (url.startsWith("/api/review/inbox")) return Response.json(this.inbox)
-    const route = url.replace("/api/review/", "")
+    if (url.startsWith("/api/epics/review/inbox")) return Response.json(this.inbox)
+    const route = url.replace("/api/epics/review/", "")
     const body = JSON.parse(init?.body as string) as Record<string, unknown>
     this.posts.push([route, body])
     const id = body.id as string

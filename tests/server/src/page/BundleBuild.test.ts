@@ -38,6 +38,12 @@ function put(root: string, path: string, text: string): void {
   writeFileSync(join(root, path), text)
 }
 
+/** The bundles' folders, as the repo root's `package.json` names them (`"pageServer": { "bundles": [...] }`). */
+const BUNDLES = ["packages/ui/site/_assets", "packages/brand/_assets/ui"]
+
+/** A checkout's `package.json` naming `BUNDLES`. */
+const SETTINGS = JSON.stringify({ pageServer: { bundles: BUNDLES } })
+
 ////////////////
 // ## Tests
 ////////////////
@@ -49,6 +55,7 @@ describe("BundleBuild", () => {
   let child: FakeChild
 
   beforeAll(() => {
+    put(root, "package.json", SETTINGS)
     put(root, "packages/cli/bin/spell.mjs", "")
     put(root, "packages/brand/_assets/ui/brand-ui.js", "export const OLD = 1")
     put(root, "guides/page.html", "<p>page</p>")
@@ -144,16 +151,31 @@ describe("BundleBuild", () => {
 })
 
 describe("BundleBuild.bundleFileFor()", () => {
-  const build = new BundleBuild({ root: "/repo" })
+  const repo = mkdtempSync(join(tmpdir(), "srv-bundles-files-"))
+  put(repo, "package.json", SETTINGS)
+  const build = new BundleBuild({ root: repo })
+
+  afterAll(() => rmSync(repo, { recursive: true, force: true }))
 
   test("this checkout's bundle folders, through the `/ui/` overlay;  nothing else", () => {
-    expect(build.bundleFileFor("/ui/_assets/ui-button.js")).toBe("/repo/packages/ui/site/_assets/ui-button.js")
-    expect(build.bundleFileFor("/packages/ui/site/_assets/site.css")).toBe("/repo/packages/ui/site/_assets/site.css")
-    expect(build.bundleFileFor("/packages/brand/_assets/ui/a%20b.js")).toBe("/repo/packages/brand/_assets/ui/a b.js")
+    expect(build.folders).toEqual(BUNDLES)
+    expect(build.bundleFileFor("/ui/_assets/ui-button.js")).toBe(join(repo, "packages/ui/site/_assets/ui-button.js"))
+    expect(build.bundleFileFor("/packages/ui/site/_assets/site.css")).toBe(
+      join(repo, "packages/ui/site/_assets/site.css")
+    )
+    expect(build.bundleFileFor("/packages/brand/_assets/ui/a%20b.js")).toBe(
+      join(repo, "packages/brand/_assets/ui/a b.js")
+    )
     expect(build.bundleFileFor("/ui/_data/components.json")).toBeUndefined()
     expect(build.bundleFileFor("/packages/brand/_assets/brand-pages.js")).toBeUndefined()
     expect(build.bundleFileFor("/worktrees/seo/ui/_assets/site.js")).toBeUndefined()
     expect(build.bundleFileFor("/packages/brand/_assets/ui/../../../x")).toBeUndefined()
     expect(build.bundleFileFor("/packages/brand/_assets/ui/%E0%A4%A")).toBeUndefined()
+  })
+
+  test("a checkout whose settings name no bundles has none", () => {
+    const bare = new BundleBuild({ root: join(repo, "nowhere") })
+    expect(bare.folders).toEqual([])
+    expect(bare.bundleFileFor("/packages/ui/site/_assets/site.css")).toBeUndefined()
   })
 })

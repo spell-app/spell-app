@@ -4,7 +4,7 @@ import { basename, dirname, join, relative, resolve } from "path"
 import { pathToFileURL } from "url"
 
 // Import directly:  the `$/server/site` barrel is browser code (the site header)
-import { URGENT_STATES } from "$/server/site/EpicState"
+import { URGENT_STATES } from "$/epics/list/EpicState"
 import { CLI } from "$/cli"
 
 ////////////////
@@ -81,7 +81,7 @@ export function nameStatus(name: string, ids?: string[], main = CLI.mainRoot()):
 }
 
 /**
- * What plan doc `file`'s state is read from (`$/server/site/EpicState` `EpicFacts`), from its skeleton's markup,
+ * What plan doc `file`'s state is read from (`$/epics/list/EpicState` `EpicFacts`), from its skeleton's markup,
  * with no parsing library:  `{ phases, updated, future, urgent }`.
  * - `phases`:  each `<epic-phase status>`;  `updated`, `future`:  `<epic-page updated future>`
  * - `urgent`:  the ids of the items that need Owen (`<epic-item state>`, `URGENT_STATES`:  red and orange chips)
@@ -131,7 +131,7 @@ export function planStatus(
  * Plan doc `name`'s live copy:  the worktree's when it has one, else the main checkout's;  or `null`.
  * - in each:  `<name>.plan.html`, else an old `<name>.html` that is a plan doc (`<body class="... plan-doc">`):
  *   plan docs were renamed on 2026-10-04, and worktrees cut before keep the old name until they merge `main`
- *   (`packages/docs/tools/pages.js` `planDocIn()` is the same)
+ *   (`packages/epics/tools/pages.js` `planDocIn()` is the same)
  * - which folder:  `epicsDir()`, old layout included
  */
 export function planFile(name: string, worktree: string, main = CLI.mainRoot()): string | null {
@@ -171,13 +171,17 @@ export function planSummaries(files: string[], main = CLI.mainRoot()): Map<strin
   const root = [CLI.REPO_ROOT, main].find((it) => existsSync(join(it, "node_modules")))
   if (todo.length && root) {
     const loader = pathToFileURL(join(root, "node_modules", "tsx", "dist", "loader.mjs")).href
+    // the docs tools' package:  `epics` since epic `people-and-orgs` P16, `docs` on a checkout from before
+    const tools = ["epics", "docs"]
+      .map((name) => join(root, "packages", name))
+      .find((it) => existsSync(join(it, "tools")))
     const run = spawnSync(
       process.execPath,
-      ["--import", loader, join(root, "packages", "docs", "tools", "plan-doc.js"), "summaries", ...todo],
+      ["--import", loader, join(tools ?? root, "tools", "plan-doc.js"), "summaries", ...todo],
       {
         cwd: root,
         encoding: "utf8",
-        env: { ...process.env, TSX_TSCONFIG_PATH: join(root, "packages", "docs", "tsconfig.json") }
+        env: { ...process.env, TSX_TSCONFIG_PATH: join(tools ?? root, "tsconfig.json") }
       }
     )
     try {

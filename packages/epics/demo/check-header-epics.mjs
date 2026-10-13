@@ -94,7 +94,7 @@ async function check(doc) {
           logs.push(`console:  ${message.text()}`)
       })
       page.on("response", (response) => {
-        if (response.status() >= 400 && !response.url().includes("/api/review/"))
+        if (response.status() >= 400 && !response.url().includes("/api/epics/review/"))
           logs.push(`${response.status()}:  ${response.url()}`)
       })
       const where = `${doc} ${width}px ${scheme}`

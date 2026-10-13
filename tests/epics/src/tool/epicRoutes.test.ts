@@ -2,7 +2,7 @@
  * Tests of the Epics page's routes, in a scratch checkout:  a future epic made from the page (New epic), and the
  * favourites (a card's star), over HTTP.
  */
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterAll, beforeAll, describe, expect, test, vi } from "vite-plus/test"
@@ -79,7 +79,8 @@ describe("POST /api/epics/favorite", () => {
     expect((await star({ name: "seo", favorite: false })).body).toEqual({ favorites: ["airplane"] })
     expect(await setFavorite(root, "airplane", false)).toEqual([])
     expect(readFileSync(file, "utf8")).toBe("[]\n")
-    expect(existsSync(`${file}.tmp`)).toBe(false)
+    // written through the one safe write:  no temp file or lock left beside it
+    expect(readdirSync(join(root, "epics")).filter((name) => /\.(tmp|lock)$/.test(name))).toEqual([])
   })
 
   test("refuses a name that isn't an epic's, a missing flag, and a write without the token", async () => {

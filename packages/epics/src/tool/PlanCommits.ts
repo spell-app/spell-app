@@ -6,7 +6,7 @@ import type { ParsedCommit } from "./planDoc.types"
  * repo's GitHub page, and finding a listed one (`<epic-commit sha>`).
  * - STATIC and instance-free on purpose:  pure functions of their arguments;  never runs git (the command line does,
  *   and hands the log in).
- * - From `packages/docs/tools/plan-doc.js` (epic `epic-components`, P7).
+ * - From `packages/epics/tools/plan-doc.js` (epic `epic-components`, P7).
  ****************/
 export class PlanCommits {
   /**

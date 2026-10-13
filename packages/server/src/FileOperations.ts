@@ -12,6 +12,7 @@ import { SRV } from "$/server"
  *     Spaces saves its projects' files this way, and the page editor its pages.
  *   - over HTTP, for pages the server served:  `/api/files` (`route()`), on URL paths,
  *     and ONLY inside the folders of a `writable` list (the page server's:  the shared content folders).
+ *     The page editor (`/api/pages`) checks its writes against the same list (`writableFile()`).
  * - Every change is made under the file's `FileLock`, so tools writing the same file take turns.
  * - A save is all at once:  a temp file beside the file, then a rename,
  *   so a reader never sees half a file.
@@ -129,8 +130,9 @@ export class FileOperations {
    * The file a request names by URL path:  under the root, inside a `writable` folder, there or not.
    * - throws `HttpError`:  400 no path or a bad one;  403 `..`, a dot file, or not in a `writable` folder
    *   (nor a `writable` folder itself)
+   * - the page editor (`/api/pages`) holds its writes to the same list through this
    */
-  private writableFile(asked: unknown): { path: string; file: string } {
+  writableFile(asked: unknown): { path: string; file: string } {
     const one = Array.isArray(asked) ? (asked[0] as unknown) : asked
     if (typeof one !== "string" || !one)
       throw new SRV.HttpError(400, "a path is required, e.g. /guides/server/notes.md")

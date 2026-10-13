@@ -160,8 +160,8 @@ export const GENERATORS: Generator[] = [
   },
   {
     name: "docs bundle",
-    outputs: ["packages/docs/tools/_assets/spell-ui.js", "packages/docs/tools/_assets/{emoji,lazy}/**"],
-    cwd: "packages/docs",
+    outputs: ["packages/epics/tools/_assets/spell-ui.js", "packages/epics/tools/_assets/{emoji,lazy}/**"],
+    cwd: "packages/epics",
     run: ["node", "tools/bundle-spell-ui.js"]
   },
   {

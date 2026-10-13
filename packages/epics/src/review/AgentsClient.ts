@@ -4,7 +4,7 @@ import { ServerLink } from "./ServerLink"
 /****************
  * ### `AgentsClient`
  * A plan doc's RUNNING AGENTS, as the page sees them (epic `skillz` P3):  the epic's list.
- * - read from and written to the page server's agents routes (`packages/docs/tools/agentRoutes.ts`)
+ * - read from and written to the page server's agents routes (`packages/epics/tools/agentRoutes.ts`)
  * - one client per page (`forPage()`)
  * - `<epic-page>` draws its "Agents running" panel from it (`<epic-agents>`)
  *

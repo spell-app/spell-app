@@ -1,7 +1,7 @@
 /**
  * Lets a page of a COMPONENT SET load component packs (`<ui-components source="x.pack.js">`):  `globalThis.SpellUI`,
  * what a pack's classic script calls `registerPack()` on and takes its shared modules from (`packModules`), as the
- * docs bundle gives them (`packages/docs/tools/_assets/spell-ui.entry.js`).
+ * docs bundle gives them (`packages/epics/tools/_assets/spell-ui.entry.js`).
  * - Why:  the component sets' pages (Epic UI at `/epic-ui/`, App UI at `/app-ui/`:  `COMPONENT_SETS` in
  *   `$/server/page`) load Spell UI's site, and draw their live examples with a pack's elements (`epics.pack.js`'s
  *   `<epic-*>`, the app's `spell.pack.js`).

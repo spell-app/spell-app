@@ -12,36 +12,36 @@
  *   except a `listening` whose heartbeat stopped:
  *   `null` (`ReviewInbox.forPage()`), so the page warns nobody is reviewing;
  *   plus `unsentComments`, the comments Send would hand over (their thread's rules are `CommentList`'s)
- * - `GET /api/review/inbox?page=<path>` -- the inbox;  the page polls it
- * - `POST /api/review/mark` `{ page, id, mark }` -- set item `id`'s mark, or remove it (`mark: null`)
+ * - `GET /api/epics/review/inbox?page=<path>` -- the inbox;  the page polls it
+ * - `POST /api/epics/review/mark` `{ page, id, mark }` -- set item `id`'s mark, or remove it (`mark: null`)
  *   - the mark:  `{ action, when?, note?, pick?, choices? }`, `at` stamped here;
  *     a revisit may carry a `pick` letter too;  `choices`, the pick's card set by position (I8)
  *   - `id` must be an item, phase, Overview sub-section or the summary (`summary`) of that doc
  *     (400 otherwise:  `ReviewInbox.itemIds()`)
- * - `POST /api/review/new` `{ page, id?, entry }` -- a NEW todo or question asked for from the page
+ * - `POST /api/epics/review/new` `{ page, id?, entry }` -- a NEW todo or question asked for from the page
  *   (epic `airplane` P2):  `entry` `{ kind, title, note?, near? }` under key `id` (`new1` ...),
  *   or, without one, the next free key
  *   - `entry: null` removes it (`ReviewInbox.setNew()`)
  *   - `near`, when given, must be an id of that doc
- * - `POST /api/review/now` `{ page, id, action, note? }` -- an immediate request, queued on `now`,
+ * - `POST /api/epics/review/now` `{ page, id, action, note? }` -- an immediate request, queued on `now`,
  *   and the item's mark set:  `details`, or `revisit`, which keeps the item's pick
- * - `POST /api/review/cancel` `{ page, id }` -- "nevermind":
+ * - `POST /api/epics/review/cancel` `{ page, id }` -- "nevermind":
  *   call off item `id`'s immediate request, queued or being worked on (`ReviewInbox.cancelNow()`)
- * - `POST /api/review/draft` `{ page, id, action, note }` -- a note box's text as Owen types it
+ * - `POST /api/epics/review/draft` `{ page, id, action, note }` -- a note box's text as Owen types it
  *   (`revisit` or `todo`;  empty or `null` drops it):  kept until the mark that uses it (`ReviewInbox.setDraft()`)
- * - `POST /api/review/urgency` `{ page, id, calm }` -- Owen clicked an open judgement call's or issue's id chip:
+ * - `POST /api/epics/review/urgency` `{ page, id, calm }` -- Owen clicked an open judgement call's or issue's id chip:
  *   `calm` true, not urgent;  false, urgent;  `null` drops it (`ReviewInbox.setUrgency()`)
- * - `POST /api/review/send` `{ page, now? }` -- "send to Claude":  `sent` is now, for marks and comments alike;
+ * - `POST /api/epics/review/send` `{ page, now? }` -- "send to Claude":  `sent` is now, for marks and comments alike;
  *   `now: true` is "Review Now" (epic `windows-and-review` P4):
  *   every revisit waiting becomes an immediate request too (`ReviewInbox.reviewNow()`)
- * - `POST /api/review/start` `{ page }` -- "start a review" (epic `airplane` P12):  types `/epic review <epic>` into
- *   the ONE running Claude session titled for the epic;  none or several:  sends nothing, says which it found
- *   (`ReviewStart`);  answers its `StartResult`, not the inbox
+ * - `POST /api/epics/review/start` `{ page }` -- "start a review" (epic `airplane` P12):
+ *   types `/epic review <epic>` into the ONE running Claude session titled for the epic;
+ *   none or several:  sends nothing, says which it found (`ReviewStart`);  answers its `StartResult`, not the inbox
  * - writes:  under the inbox's lock, atomic (`ReviewInbox.updateAsync()`);
  *   each needs the page server's token (`x-server-token`) and its own origin (`SRV.Guard`)
  * - Loaded by the page server under `tsx` (`PageServer.loadRoutes()`), with `packages/server/tsconfig.json`'s aliases.
  *   Imports `ReviewInbox` only, never `PlanDoc`:  a request reads the doc's TEXT (`ReviewInbox.itemIds()`).
- * - From `packages/docs/tools/reviewRoutes.ts` (epic `epic-components`, P7).
+ * - From the docs tools' `reviewRoutes.ts` (epic `epic-components`, P7).
  */
 import { readFileSync } from "node:fs"
 
@@ -52,7 +52,7 @@ import { InboxError, ReviewInbox, type PageInbox } from "./ReviewInbox"
 import { ReviewStart } from "./ReviewStart"
 
 /** Where the routes live. */
-const API = "/api/review"
+const API = "/api/epics/review"
 
 /** Biggest body accepted:  a revisit note is a few lines. */
 const MAX_BODY = 64 * 1024

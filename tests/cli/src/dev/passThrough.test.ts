@@ -22,7 +22,7 @@ describe("toolArgs()", () => {
     expect(CLI.toolArgs(CLI.TOOLS["docs link"], "/wt")).toEqual([
       "--import",
       CLI.TSX_LOADER,
-      "/wt/packages/docs/tools/link.ts"
+      "/wt/packages/epics/tools/link.ts"
     ])
   })
 })

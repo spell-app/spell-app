@@ -1,8 +1,8 @@
 /**
- * Starting a review from the plan doc (epic `airplane` P12):  `POST /api/review/start` (`reviewRoutes`).
+ * Starting a review from the plan doc (epic `airplane` P12):  `POST /api/epics/review/start` (`reviewRoutes`).
  * - Owen clicks the "No Claude session is reviewing" pill, or the review line.
  * - The page server looks for the ONE running Claude session titled for the epic (`🚧 <epic>`, or the epic's name
- *   as a word in its title:  `$/server/page`'s `sessionsTitledFor()`).
+ *   as a word in its title:  `RunningEpics`' `sessionsTitledFor()`).
  * - Found one:  it asks the VS Code window that session runs in (the spell extension's window bridge,
  *   `~/.spell/windows/<pid>.json`) to open the session's tab with `/epic review <epic>` typed into its input.
  *   The bridge can only TYPE a prompt (Claude Code's extension has no "send"):  Owen presses Enter.
@@ -13,7 +13,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { join } from "node:path"
 
-import { RunningEpics, sessionsTitledFor, type LiveSession } from "$/server/page"
+import { RunningEpics, sessionsTitledFor, type LiveSession } from "../list/RunningEpics"
 
 /** How long a window's bridge gets to answer, in ms. */
 const BRIDGE_TIMEOUT = 5000

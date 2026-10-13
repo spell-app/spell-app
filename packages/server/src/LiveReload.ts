@@ -6,7 +6,7 @@ import { SRV, type UpgradeHandler } from "$/server"
 
 /**
  * Live reload over websockets:  watches folders, and tells every open page which file changed.
- * - `events` answers the `/_server/events` websocket upgrade:  each page keeps one open
+ * - `events` answers the `/api/server/live` websocket upgrade (`LIVE_EVENTS`):  each page keeps one open
  * - `liveClient()`, in the page, acts on each change:
  *   - the page's own file:  offers it the new version (the docs runtime patches itself in place, else it reloads)
  *   - a stylesheet it uses:  swaps it
@@ -52,7 +52,7 @@ export class LiveReload {
     return this.clients.size
   }
 
-  /** the `/_server/events` upgrade:  accepts the websocket and adds it to the clients until it closes */
+  /** the `/api/server/live` upgrade:  accepts the websocket and adds it to the clients until it closes */
   events: UpgradeHandler = (raw, socket) => {
     if (!SRV.acceptWebSocket(raw, socket)) return
     this.clients.add(socket)

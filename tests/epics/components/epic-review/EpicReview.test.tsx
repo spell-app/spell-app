@@ -39,7 +39,7 @@ class FakeRoutes {
   posts: [string, Record<string, unknown>][] = []
 
   readonly fetch = vi.fn(async (input: string, init?: RequestInit): Promise<Response> => {
-    const route = input.replace("/api/review/", "").replace(/\?.*/, "")
+    const route = input.replace("/api/epics/review/", "").replace(/\?.*/, "")
     if (route !== "inbox") this.answer(route, JSON.parse(init!.body as string) as Record<string, unknown>)
     return new Response(JSON.stringify(this.inbox), { headers: { "content-type": "application/json" } })
   })

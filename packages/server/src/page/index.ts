@@ -4,9 +4,9 @@
  * - NOTE: `cli.ts` is left out:  it's the `spell dev server` entry point, and runs on import.
  */
 export * from "./page.types"
+export * from "./settings"
 
 export * from "./AirplaneMode"
 export * from "./BundleBuild"
 export * from "./PageEditor"
-export * from "./RunningEpics"
 export * from "./PageServer"

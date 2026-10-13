@@ -996,7 +996,7 @@ THE LINT GUARD (epic `spell-element` P10):  `yarn lint` holds component files to
 - Modules a pack shares with the page are `SpellUI.packModules`:
   the EXACT specifier its build leaves external => the page's module.
   - `solid-js`, `@solidjs/web`, `$/ui/core`, `$/ui/forms`
-  - Built in [the docs bundle's entry](../docs/tools/_assets/spell-ui.entry.js), and in the site's component sets'
+  - Built in [the docs bundle's entry](../epics/tools/_assets/spell-ui.entry.js), and in the site's component sets'
     build ([SitePacks.ts](site/_src/SitePacks.ts)), never in the library or Spell UI's own site.
     - The two places a Solid package is `import * as`'d, on purpose:
       a pack may use any export, so they must all stay ("One Solid per page" above).

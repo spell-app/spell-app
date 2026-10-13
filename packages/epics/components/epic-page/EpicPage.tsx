@@ -2,8 +2,8 @@ import { For, Show, createMemo } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI } from "$/ui/core"
-// Import directly:  the `$/server/site` barrel is the site header's;  this file has no imports, so the pack bundles it
-import { URGENT_SELECTOR, epicStateFor, type EpicState } from "$/server/site/EpicState"
+// The file itself (`list/` has no barrel):  it has no imports, so the pack bundles it as is
+import { URGENT_SELECTOR, epicStateFor, type EpicState } from "$/epics/list/EpicState"
 
 import { PlanDates } from "$/epics/dates"
 import { NOBODY_LISTENING, isAirplane, isImmediate } from "$/epics/review"
@@ -91,7 +91,7 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  *   - none without phases;  FUTURE (grey:  not started) for a future epic
  *   - read from the `<epic-phase>`s below, so it follows the live update:  a `MutationObserver` bumps `layout`
  * - The epic's state (Owen, 2026-10-10, epic `airplane` P8), by the ONE rule the Epics list uses too
- *   (`$/server/site/EpicState`):  the step label's icon and colour, why under its tooltip (`part="state"`)
+ *   (`$/epics/list/EpicState`):  the step label's icon and colour, why under its tooltip (`part="state"`)
  *   - in progress (blue half circle), errors (red !:  every phase done, items need Owen), paused (grey pause:
  *     untouched for days)
  *   - none on a future epic or a done one:  the label is FUTURE or DONE in its own look

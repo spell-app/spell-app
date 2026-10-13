@@ -30,11 +30,11 @@ packages/app/components/_data/components.json                 linguist-generated
 packages/app/components/_data/search.json                     linguist-generated merge=binary
 
 # docs:  the single-file bundle for docs pages (`node tools/bundle-spell-ui.js`)
-packages/docs/tools/_assets/spell-ui.js                       linguist-generated merge=binary -diff
-packages/docs/tools/_assets/emoji/**                          linguist-generated merge=binary -diff
-packages/docs/tools/_assets/lazy/**                           linguist-generated merge=binary -diff
+packages/epics/tools/_assets/spell-ui.js                       linguist-generated merge=binary -diff
+packages/epics/tools/_assets/emoji/**                          linguist-generated merge=binary -diff
+packages/epics/tools/_assets/lazy/**                           linguist-generated merge=binary -diff
 # docs:  highlight.js 11.9.0, vendored as cdnjs serves it, so pages load offline (epic `airplane` P1)
-packages/docs/tools/_assets/highlight.min.js                  linguist-vendored -diff
+packages/epics/tools/_assets/highlight.min.js                  linguist-vendored -diff
 
 # brand:  its pages' data (`yarn site:data`);  `pages.json` is hand-kept.  Its bundle, `_assets/ui/`, isn't
 # committed:  the page server builds it (root `.gitignore`)

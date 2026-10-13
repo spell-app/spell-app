@@ -23,9 +23,10 @@ describe("WebServer's favicon", () => {
     writeFileSync(join(root, "body.html"), `<!doctype html><head></head><body><link rel="icon" href="x.svg"></body>\n`)
     mkdirSync(join(root, "own"))
     writeFileSync(join(root, "own", "favicon.ico"), "ICO")
+    writeFileSync(join(root, "own", "favicon.svg"), "<svg>own</svg>")
     live = new SRV.WebServer({ live: true, mounts: [{ prefix: "/", dir: root }] })
     plain = new SRV.WebServer({ mounts: [{ prefix: "/", dir: root }] })
-    // a folder with its own favicon.ico at `/`:  it wins
+    // a folder with its own favicon.ico and favicon.svg at `/`:  they win
     mine = new SRV.WebServer({ mounts: [{ prefix: "/", dir: join(root, "own") }] })
     // an SPA's fallback answers everything else:  `/favicon.ico` still comes first
     plain.fallback.get("/*", (_request, reply) => reply.send("<!doctype html>SPA"))
@@ -39,12 +40,12 @@ describe("WebServer's favicon", () => {
 
   it("serves the SVG, the PNGs and /favicon.ico, live or not", async () => {
     for (const server of [live, plain]) {
-      const svg = await ask(server.port, "GET", "/_server/favicon.svg")
+      const svg = await ask(server.port, "GET", "/favicon.svg")
       expect(svg.status).toBe(200)
       expect(svg.headers["content-type"]).toBe("image/svg+xml")
       expect(svg.text).toBe(FAVICON_SVG)
       expect(svg.headers["cache-control"]).toMatch(/max-age/)
-      for (const path of [SRV.FAVICON_PNG, "/_server/apple-touch-icon.png", "/favicon.ico"]) {
+      for (const path of [SRV.FAVICON_PNG, "/apple-touch-icon.png", "/favicon.ico"]) {
         const png = await ask(server.port, "GET", path)
         expect(png.status, path).toBe(200)
         expect(png.headers["content-type"], path).toBe("image/png")
@@ -55,8 +56,15 @@ describe("WebServer's favicon", () => {
     expect((await ask(plain.port, "GET", "/other")).text).toContain("SPA")
   })
 
-  it("lets a folder's own favicon.ico win", async () => {
+  it("lets a folder's own icons win", async () => {
     expect((await ask(mine.port, "GET", "/favicon.ico")).text).toBe("ICO")
+    expect((await ask(mine.port, "GET", "/favicon.svg")).text).toBe("<svg>own</svg>")
+    expect((await ask(mine.port, "GET", "/apple-touch-icon.png")).headers["content-type"]).toBe("image/png")
+  })
+
+  it("answers nothing at the old /_server/ paths", async () => {
+    for (const path of ["/_server/favicon.svg", "/_server/live.js"])
+      expect((await ask(live.port, "GET", path)).status, path).toBe(404)
   })
 
   it("injects the icon links into live pages, before </head>", async () => {
@@ -64,17 +72,17 @@ describe("WebServer's favicon", () => {
     expect(page).toContain(SRV.FAVICON_LINKS)
     expect(page.indexOf(`rel="icon"`)).toBeLessThan(page.indexOf("</head>"))
     expect(page.indexOf(`href="${SRV.FAVICON_PNG}" sizes="32x32"`)).toBeLessThan(page.indexOf("favicon.svg"))
-    expect(page).toContain(`<link rel="apple-touch-icon" href="/_server/apple-touch-icon.png">`)
+    expect(page).toContain(`<link rel="apple-touch-icon" href="/apple-touch-icon.png">`)
   })
 
   it("never duplicates a page's own icon;  a link outside <head> doesn't count", async () => {
     const own = (await ask(live.port, "GET", "/own.html")).text
-    expect(own).not.toContain("/_server/favicon")
-    expect(own).toContain(`<script src="/_server/live.js" defer></script>`)
+    expect(own).not.toContain(`href="/favicon.svg"`)
+    expect(own).toContain(`<script src="/api/server/live.js" defer></script>`)
     expect((await ask(live.port, "GET", "/body.html")).text).toContain(SRV.FAVICON_LINKS)
   })
 
   it("injects nothing into pages of a server that isn't live", async () => {
-    expect((await ask(plain.port, "GET", "/page.html")).text).not.toContain("/_server/favicon")
+    expect((await ask(plain.port, "GET", "/page.html")).text).not.toContain(`href="/favicon.svg"`)
   })
 })

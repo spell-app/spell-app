@@ -209,7 +209,7 @@ Longer notes on some of them follow the table.
   - Exits 1 on a broken one.  `--json`.
 - `dev goals`:  PARKED (epic `epic-workflow` P6):  a stub that says so.
   - The goals tool, its skills and routes are in `packages/goals.zip`;  epic `epic-goals` rebuilds them.
-- `dev docs`:  each verb runs as the root's `yarn docs:<verb>` did, in the docs package.
+- `dev docs`:  each verb runs as the root's `yarn docs:<verb>` did, in `packages/epics` (the docs tools' package).
   - Arguments are passed as they are, e.g. `spell dev docs open solid/solid-2 --vs`.
 - `dev server`:  this checkout's page server.
   - Its verbs:
@@ -304,8 +304,8 @@ Longer notes on some of them follow the table.
   folder.
   - Works in the nearest checkout:  a worktree's, when run in one.
   - The plan-doc tool runs in this process:  `epic summary seo` takes ~0.4s.
-- `ask`:  details pages, the `/details` skill's tool.  Runs [`details.js`](../docs/tools/details.js).
-- `choices`:  runs [`choices.js`](../docs/tools/choices.js).
+- `ask`:  details pages, the `/details` skill's tool.  Runs [`details.js`](../epics/tools/details.js).
+- `choices`:  runs [`choices.js`](../epics/tools/choices.js).
   - Its verbs:
 
     ```
@@ -318,15 +318,15 @@ Longer notes on some of them follow the table.
 
   - Owen sends a page with "Do it".
   - What they are:  [the syntax-choices page](../../guides/syntax-choices.html).
-- `notes`:  runs [`notes.ts`](../docs/tools/notes.ts), in the caller's folder.
+- `notes`:  runs [`notes.ts`](../epics/tools/notes.ts), in the caller's folder.
   The notes are written into the pages.
   - `list [--all] [--json]`:  the default;  every `new` note in the shared folders.
   - `answer <page> <id> --file <html>`:  Claude's reply under the note, which is then `answered`.
   - `done <page> <id>`.
-- `comments`:  runs [`comments.ts`](../docs/tools/comments.ts):  comments Owen leaves on docs pages.
+- `comments`:  runs [`comments.ts`](../epics/tools/comments.ts):  comments Owen leaves on docs pages.
   - `list [<epic>]`, `gather`, `working <page> <id> on | off`, `answer <page> <id> --file <html>`.
 - `agents`:  for the `/bg` skill, and every agent Claude starts.
-  Runs [`agents.ts`](../docs/tools/agents.ts).
+  Runs [`agents.ts`](../epics/tools/agents.ts).
   - The list:  this checkout's epic's, else the checkout's.  Both git-ignored.
     - an epic's:  `agents.json`, in its `epics/<epic>/` folder
     - a checkout's:  `.spell-agents.json`, at its root
@@ -346,7 +346,7 @@ Longer notes on some of them follow the table.
   - Names get a prefix:  the epic's, else the worktree's, else `main`.
     E.g. `add aaa` in epic skillz makes `skillz-aaa`.
   - An entry leaves when its agent finishes;  the file goes when empty.
-- `airplane`:  runs [`airplane.ts`](../docs/tools/airplane.ts):  `status`, `on`, `off`, `check [--fix]`, `inbox`.
+- `airplane`:  runs [`airplane.ts`](../epics/tools/airplane.ts):  `status`, `on`, `off`, `check [--fix]`, `inbox`.
 
 #### Everywhere
 

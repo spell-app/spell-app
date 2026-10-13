@@ -18,8 +18,8 @@ import { PlanDocFiles, type MigrateResult } from "./PlanDocFiles"
  * - `--notify` (J39):  epics with a RUNNING session (titled for the epic) are skipped, and printed with the one-line
  *   message to send each:  the CLI can't send a `SendMessage`, so the session that ran it sends them;  idle epics
  *   are migrated there and then
- * - the epic page's steps:  `Migrations` (`PlanDocFiles.migrate()`);  the other kinds':  the docs package's
- *   `packages/docs/tools/migrate.js`, run as a child `node` (`epics` may not import `docs`), its output passed on
+ * - the epic page's steps:  `Migrations` (`PlanDocFiles.migrate()`);  the other kinds':  the docs tools'
+ *   `packages/epics/tools/migrate.js`, run as a child `node` as its command line runs it, its output passed on
  * - it takes back the verb `migrate`, which only said "use `convert`" (J38):  `convert` stays the old-markup converter
  * - output through its owner's `print()` / `warn()`;  `run()` resolves to the exit code
  ****************/
@@ -167,7 +167,7 @@ export class MigrateCommands {
   ////////////////
 
   /**
-   * Run the docs package's steps (`packages/docs/tools/migrate.js`):  `kind` (every kind but `epic` when none),
+   * Run the docs tools' steps (`tools/migrate.js`):  `kind` (every kind but `epic` when none),
    * one page (`file`), one step;  its output printed as it comes back.  Returns its exit code.
    */
   private migrateOthers(
@@ -192,7 +192,7 @@ export class MigrateCommands {
     return this.runDocsTool(["--list", ...(kind ? [kind] : [])])
   }
 
-  /** Run the docs tool with `args`, in `packages/docs`;  its stdout printed, its stderr warned;  its exit code. */
+  /** Run the docs tool with `args`, in `packages/epics`;  its stdout printed, its stderr warned;  its exit code. */
   private runDocsTool(args: string[]): number {
     const { files } = this
     const run = spawnSync(process.execPath, [join(files.docsTools, "migrate.js"), "--root", files.root, ...args], {

@@ -18,7 +18,7 @@ import { CLI } from "$/cli"
  * - `migrate <worktree> [--dry-run]`:  move a worktree cut before the cutover onto the shared content
  *   (`migrateWorktree()`):  its changes to the shared folders go into the shared repo, its branch stops tracking
  *   them, its folders become links;  stops, writing nothing, on a conflict
- * - `repair [--dry-run] [--json]`:  the docs tools' own logic (`packages/docs/tools/relocate.js`), in two steps:
+ * - `repair [--dry-run] [--json]`:  the docs tools' own logic (`packages/epics/tools/relocate.js`), in two steps:
  *   - after a branch from before the content move merges `main`:  pages it left at `packages/docs/<x>` go into
  *     `content/`, and links written for that layout are fixed (`repairCheckout()`)
  *   - the reorg (claude-design P4), in the shared repo:  anything older code wrote at the old paths
@@ -33,7 +33,7 @@ export async function sharedCommand(
   options: CLI.SharedOptions
 ): Promise<number> {
   const [verb = "status"] = args
-  const checkout = CLI.findCheckout("packages/docs/package.json")
+  const checkout = CLI.findCheckout("packages/epics/tools/relocate.js")
   const config = CLI.sharedConfig(checkout)
   switch (verb) {
     case "status": {
@@ -80,8 +80,8 @@ export async function sharedCommand(
       return report.conflicts.length ? CLI.EXIT.ERRORS : CLI.EXIT.OK
     }
     case "repair": {
-      // the docs tools' own logic (`packages/docs/tools/relocate.js`):  run, never imported (nothing imports docs)
-      const tool = join(checkout, "packages", "docs", "tools", "relocate.js")
+      // the docs tools' own logic (`packages/epics/tools/relocate.js`):  run, never imported (the CLI imports none of the docs tools)
+      const tool = join(checkout, "packages", "epics", "tools", "relocate.js")
       const flags = [...(options.dryRun ? ["--dry-run"] : []), ...(options.json ? ["--json"] : [])]
       const run = spawnSync(process.execPath, [tool, "repair", "--root", checkout, "--shared", config.dir, ...flags], {
         stdio: "inherit"
@@ -95,7 +95,7 @@ export async function sharedCommand(
 }
 
 /** The docs tools' `relocate.js`, beside this package:  the reorg's repair (`commit`). */
-const REORG_TOOL = fileURLToPath(new URL("../../../docs/tools/relocate.js", import.meta.url))
+const REORG_TOOL = fileURLToPath(new URL("../../../epics/tools/relocate.js", import.meta.url))
 
 /** The checkout this code is in:  where the reorg looks up repo paths outside the shared folders. */
 const OWN_ROOT = fileURLToPath(new URL("../../../..", import.meta.url))

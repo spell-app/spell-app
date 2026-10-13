@@ -6,7 +6,7 @@ import type { SRV, ServerInfo } from "$/server"
 
 /**
  * A ROUTE MODULE:  a file that adds routes to the page server, e.g. goals' buttons, the app's `/api`.
- * - listed in the repo root's `package.json`, `"pageServer": { "routes": ["packages/docs/tools/goals/goalsRoutes.ts"] }`
+ * - listed in the repo root's `package.json`, `"pageServer": { "routes": ["packages/epics/tools/goals/goalsRoutes.ts"] }`
  * - its DEFAULT export is this;  `setup()` runs once, before the server listens
  */
 export type RouteModule = {
@@ -44,12 +44,19 @@ export type PageServerSettings = {
   /** folders to live-reload, relative to the root (default:  the docs pages and their bundle, `DEFAULT_WATCH`) */
   watch?: string[]
   /**
-   * folders, relative to the root, whose files and folders `/api/files` may change (`SRV.FileOperations`);
-   * none by default
+   * folders, relative to the root, whose files and folders `/api/files` may change (`SRV.FileOperations`), and
+   * `/api/pages` may write (`PageEditor`);  none by default
    * - the shared content folders:  each turn's commit of the shared repo makes a mistake undoable
    * - links into another repo, and still "inside":  paths are resolved, never followed (`SRV.fileInside()`)
    */
   writable?: string[]
+  /**
+   * the bundles' folders, relative to the root:  built on demand, never committed (git-ignored);  none by default
+   * - the page server builds the stale ones when it starts (`BundleBuild`), and a request for a file in one waits
+   *   while that runs
+   * - THE list:  `$/assembler`'s `Bundle.all()` builds the bundles whose output folders it names
+   */
+  bundles?: string[]
 }
 
 /**
@@ -68,7 +75,7 @@ export type PageServerSettings = {
  * - Static and live-reloading, like the docs:  no dev server behind it (was `astro dev`, proxied, until 2026-10-02)
  * - `ignore`:  a change to the bundle's entry (`_src/`), which nothing serves, doesn't reload pages
  *   - a rebuilt `_assets/` does (`yarn site:dev` rebuilds it on every source edit)
- * - `_assets/` is NOT committed:  the page server builds it when it starts (`BundleBuild`, `BUNDLE_FOLDERS`)
+ * - `_assets/` is NOT committed:  the page server builds it when it starts (`BundleBuild`, the settings' `bundles`)
  */
 export const UI_SITE = {
   prefix: "/ui",
@@ -115,15 +122,6 @@ export const COMPONENT_SETS = [
 export const SETS_BUNDLE = "packages/ui/site/_assets/sets"
 
 /**
- * The bundles' folders, relative to the checkout:  built on demand, never committed (git-ignored).
- * - so the page server builds the stale ones when it starts (`BundleBuild`),
- *   and a request for a file in one waits while that runs
- * - SAME as `$/assembler` `BUNDLES`' `output`s:  the server is a leaf, so a copy
- *   - `cli`'s `bundlesCommand.test.ts` compares the two
- */
-export const BUNDLE_FOLDERS = ["packages/ui/site/_assets", "packages/brand/_assets/ui"] as const
-
-/**
  * How long a request for a bundle's file waits for the startup build, in ms, before it's answered as it stands
  * (a 404, while the file is still missing).
  * - each build takes a few seconds (2 s for both on an M-series Mac, 2026-10-07);  a cold `tsx` and vite add some
@@ -139,5 +137,5 @@ export const BUNDLE_WAIT_MS = 120_000
  */
 export const HIGHLIGHT_JS = {
   cdn: "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js",
-  local: "/packages/docs/tools/_assets/highlight.min.js"
+  local: "/packages/epics/tools/_assets/highlight.min.js"
 } as const

@@ -7,7 +7,7 @@ import { baseConfig } from "../ui/vite.config.ts"
 /**
  * vitest config for `@spell-app/epics`, a component pack (`spell dev pack`):  two projects.
  * - `node` -- `src/**`:  the pack's own checks, `pack.test.ts` among them (`spell dev pack check epics`:  `pack/`
- *   is current)
+ *   is current);  and `tools/**`, the docs tools' own tests
  * - `browser` -- `components/**`:  the `<epic-*>` elements, in a REAL browser (Vitest browser mode + Playwright,
  *   chromium), as Spell UI's are.  `baseConfig()`:  Spell UI's plugins (decorators BEFORE Solid), Solid dedupe,
  *   Lightning CSS;  Spell UI's test helpers come from `$/ui/test/...`
@@ -29,7 +29,7 @@ export function epicsProjects({
         name: `${prefix}node`,
         dir: TESTS,
         environment: "node",
-        include: ["src/**/*.test.ts"]
+        include: ["src/**/*.test.ts", "tools/**/*.test.{js,ts}"]
       }
     },
     {

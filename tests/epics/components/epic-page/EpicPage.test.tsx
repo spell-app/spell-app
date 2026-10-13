@@ -352,7 +352,7 @@ class FakeRoutes {
   posts: [string, Record<string, unknown>][] = []
 
   readonly fetch = vi.fn(async (input: string, init?: RequestInit): Promise<Response> => {
-    const route = input.replace("/api/review/", "").replace(/\?.*/, "")
+    const route = input.replace("/api/epics/review/", "").replace(/\?.*/, "")
     if (route !== "inbox") {
       const body = JSON.parse(init!.body as string) as Record<string, unknown>
       this.posts.push([route, body])
@@ -689,7 +689,7 @@ class FakeAgents {
   failure = ""
 
   readonly fetch = vi.fn(async (input: string, init?: RequestInit): Promise<Response> => {
-    if (input.startsWith("/api/agents?")) return reply({ agents: this.agents })
+    if (input.startsWith("/api/epics/agents?")) return reply({ agents: this.agents })
     const body = JSON.parse(init!.body as string) as Record<string, unknown>
     this.posts.push(body)
     if (this.failure) {

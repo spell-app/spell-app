@@ -26,8 +26,8 @@ PAGES, not code:  the docs set of the `<epic-*>` elements a plan doc is made of 
   the data is rebuilt.
 - Links are written as from the page's SERVED address (`/epic-ui/elements/x.html`):  `../../` is the checkout's root
   from an element page.  `doc-links.js` checks them that way (`yarn tsx tools/doc-links.js --check`, in
-  `packages/docs`).
-- Check a page:  `node tools/check-spell.js ../epic-components/elements/<tag>.html`, in `packages/docs`.
+  `packages/epics`).
+- Check a page:  `node tools/check-spell.js ../epic-components/elements/<tag>.html`, in `packages/epics`.
 - Comments:  the comment route takes them (`<page>.inbox.json` beside a page, git-ignored), but no bullhorn draws on
   these pages yet:  they load Spell UI's site, not the docs bundle that draws them.
 - The epic's write-up and how-to guides stay in the guides:

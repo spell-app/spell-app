@@ -64,7 +64,7 @@ Each folder links to its own `AGENTS.md`:  read it before working there.
 | `packages/vscode/` | | | | the VS Code extension (below) |
 | [ui](packages/ui/AGENTS.md) | `@spell-app/ui` | `$/ui` | | Fomantic UI reborn as `ui-*` custom elements, on Solid 2 |
 | [cli](packages/cli/AGENTS.md) | `@spell-app/cli` | `$/cli` | `CLI` | the `spell` command-line tool, running the spell-family packages' SOURCE through `tsx`;  see its [README](packages/cli/README.md) too |
-| [docs](packages/docs/AGENTS.md) | `@spell-app/docs` | | | every package's docs:  its `tools/`, the tooling and `_assets` (tracked, versioned per branch) |
+| [epics](packages/epics/AGENTS.md) | `@spell-app/epics` | `$/epics` | `EP` | plan docs' `<epic-*>` elements (a component pack) and their tool, `epic`;  AND every docs page's tooling:  `tools/`, the docs scripts and the `_assets` every page loads (tracked, versioned per branch) |
 | [server](packages/server/AGENTS.md) | `@spell-app/server` | `$/server` | `SRV` | serving pages locally (below) |
 | [assembler](packages/assembler/AGENTS.md) | `@spell-app/assembler` | `$/assembler` | `AS` | assembling pages, for every tool that writes them (below) |
 | [brand](packages/brand/AGENTS.md) | `@spell-app/brand` | `$/brand` | | Spell's brand, the site header's Brand tab (below) |
@@ -80,12 +80,19 @@ More on some of them:
 - `packages/vscode/` is its own yarn project (own `package.json` + `yarn.lock`), NOT a workspace.
   - `spell dev vscode` builds and installs it.
   - Or its two steps:  `spell dev vscode build`, then `install`.
-- docs:  the pages themselves are SHARED root folders, not tracked here (see "Shared content").
+- epics:  the docs pages' tooling, since the docs package went into it (epic `people-and-orgs` P16, Q23).
+  - The pages themselves are SHARED root folders, tracked by no package (see "Shared content").
   - `epics/`, `guides/`, `templates/`
   - `pages/`:  the docs home, [the docs index](pages/index.html)
+  - Its route modules answer under `/api/epics/` (review, agents, running, favorite, new) and `/api/docs/`
+    (details, choices, comments, show).
 - server:  static folders, an Express-shaped router, live reload, ports, openers, a file lock.
   - And the ONE page server per checkout (`spell dev server`),
     which serves docs, epics, goals and Spell UI docs.
+  - Every call under `/api/`, one prefix per package that answers it:  the server's own `/api/server`,
+    `/api/pages` (the page editor) and `/api/files`;  the old paths answer "not found" (Q30, no redirects).
+  - Its settings, the root `package.json`'s `"pageServer"` block:  route modules, watched and writable folders,
+    and the ONE list of bundles (`bundles`), which the assembler reads too.
 - assembler:
   - link targets (`Linker`)
   - in-memory formatting (`formatHTML()`)
@@ -99,7 +106,7 @@ More on some of them:
 One change may touch several packages, but dependencies flow ONE way:
 
 ```text
-docs -> anything          (its experiments import any package, and nothing imports docs)
+epics -> anything         (its docs tools, and the guides' experiments:  any package;  only cli imports epics)
 cli -> app -> lsp -> spaces -> spell -> parser / core -> util
 app / cli -> spaces       (the app:  spaces' models only, never server/node)
 lsp -> spaces             (its node files:  projects on disk, in `SpellDiskWorkspace`)
@@ -125,7 +132,7 @@ ui -> util
 - `server` is a LEAF (node built-ins only, imports no package).
   - ANY package may import it, `ui`'s tools too.
 - `assembler` is node-only and imports no package (it uses linkedom and oxfmt).
-  - docs and epics import it.
+  - epics (its docs tools and its plan-doc tool) imports it.
   - Any other node-side package or tool may import it too.
 - The ONE exception:  `ui` ships spell's highlighter PRE-COMPILED.
   - It's a committed bundle per language:  [`spell.<lang>.js`](packages/ui/src/languages/).
@@ -329,11 +336,12 @@ ui -> util
   - The shared repo's `packages/docs/content/` holds a link per old entry into the root folders:
     `epics -> ../../../epics`, `solid -> ../../../guides/solid`.
   - So older code still finds `packages/docs/content/...`.
-  - The page server redirects `/packages/docs/content/<x>` to the new URL.
+  - The old URLs, `/packages/docs/content/<x>`, answer "not found":  the page server redirects none since
+    `people-and-orgs` P16 (Q30).
   - Older code writes old-style links, and pages at old paths.
     - `spell dev shared commit` (every turn) runs the reorg's repair first.
     - `spell dev shared repair` does it by hand
-      ([reorgShared()](packages/docs/tools/relocate.js)).
+      ([reorgShared()](packages/epics/tools/relocate.js)).
 
 ### Commits
 
@@ -366,8 +374,10 @@ ui -> util
 - A worktree cut before the cutover runs `spell dev shared migrate <name>` before it merges `main`.
   - First it merges `0fc52e02` (main just before the cutover), if it predates the docs move.
 - After merging a branch from before the docs move:  `spell dev shared repair`.
-  - It moves pages the branch left in `packages/docs/` into their shared folders.
+  - It moves pages the branch left in the old docs package's folder into their shared folders.
   - It fixes links (and their tab names) written for an old layout.
+  - And the docs package's end (`people-and-orgs` P16):  the shared pages' links into the docs package's old
+    `tools/` point into `packages/epics/tools/`, once, when that epic merges into `main` (`relocate.js relink`).
 - Shared docs may link code another branch has and this one doesn't yet:
   `doc-links.js --check` reports those as missing in this checkout.
 - Package windows show `spell-app-dev` as a folder, with its own Source Control:  the auto commits.
@@ -396,7 +406,7 @@ ui -> util
     - the durable doc
     - the branch
   - Then EVERYTHING it shipped, one bullet each, by phase when there are phases -- not a summary.
-- Then finish the page as [docs' AGENTS.md](packages/docs/AGENTS.md) says ("Finishing a page"),
+- Then finish the page as [epics' AGENTS.md](packages/epics/AGENTS.md) says ("Finishing a page"),
   and bump its footer's date.
 
 ## Commands
@@ -417,7 +427,7 @@ ui -> util
   - `commands.json` and `commands.md` are shared, but the check reads each branch's CLI.
   - So a branch adding a command can make main's check fail until it merges
     ([the code-debt log](agents/CODE-DEBT.md), "docs").
-- Tools are TypeScript (or node JS in [docs' tools](packages/docs/tools/)), never python:  one language.
+- Tools are TypeScript (or node JS in [the docs tools](packages/epics/tools/)), never python:  one language.
 - Skills reach them as `spell dev ...`.
   - `spell` is the link `yarn cli:install` makes, once per machine.
   - Without it:  `node packages/cli/bin/spell.mjs dev ...` from a checkout's root.

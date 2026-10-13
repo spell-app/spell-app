@@ -1,6 +1,6 @@
 /**
  * Tests of `ReviewInbox`:  the methods on an inbox, then the file (read, atomic write, delete when empty, the lock).
- * - From `packages/docs/tools/inbox.test.js` (epic `epic-components`, P7):  every case, on the class.
+ * - From the docs tools' `inbox.test.js` (epic `epic-components`, P7):  every case, on the class.
  */
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"

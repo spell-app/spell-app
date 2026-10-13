@@ -17,21 +17,20 @@
  * - `POST /api/epics/favorite` `{ name, favorite }` -- stars (`true`) or unstars epic `name`;
  *   answers `{ favorites }`, every starred epic's name, sorted
  *   - 400:  no name, or not an epic's name (lower-kebab-case);  `favorite` not a boolean
- * - stored in ONE shared file, `epics/favorites.json` (`$/server/site/EpicCards` `FAVORITES_FILE`), a JSON list:
+ * - stored in ONE shared file, `epics/favorites.json` (`$/epics/list/EpicCards` `FAVORITES_FILE`), a JSON list:
  *   every checkout reads the same one, and the shared repo commits it after the turn
- * - the page server puts each card in its group by it as it serves the Epics page (`$/server/page` `RunningEpics`);
+ * - each card goes in its group by it as the page server serves the Epics page (`$/epics/list/RunningEpics`);
  *   the docs index writes the stars and groups it says into the page
  * - no Claude needed:  it works on a plane
  *
  * Each needs the page server's token (`x-server-token`) and its own origin (`SRV.Guard`).
  */
-import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs"
+import { existsSync } from "node:fs"
 import { join } from "node:path"
 
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
-// Import directly:  the `$/server/site` barrel is browser code (the site header)
-import { FAVORITES_FILE, parseFavorites } from "$/server/site/EpicCards"
+import { FAVORITES_FILE, parseFavorites } from "$/epics/list/EpicCards"
 
 import { PlanDocCommands } from "./PlanDocCommands"
 import { PlanDocFiles } from "./PlanDocFiles"
@@ -102,21 +101,21 @@ const RESERVED = new Set(["review", "resume", "color", "future", "phase", "start
 /**
  * Star (`favorite`) or unstar epic `name` in checkout `root`'s favourites (`FAVORITES_FILE`);
  * resolves to every starred epic's name after, sorted.
- * - SIDE EFFECT:  writes the file under its lock (`SRV.FileLock`), atomically (a temp file renamed over it)
+ * - SIDE EFFECT:  writes the file through the page server's one safe write (`SRV.FileOperations.save()`:
+ *   read and written under its lock, all at once)
  * - throws `HttpError(400)` when `name` isn't an epic's name (lower-kebab-case, as `epicName()` makes them)
  */
 export async function setFavorite(root: string, name: string, favorite: boolean): Promise<string[]> {
   if (!EPIC_NAME.test(name)) throw new SRV.HttpError(400, `not an epic's name:  "${name}"`)
-  const file = join(root, FAVORITES_FILE)
-  return SRV.FileLock.runAsync(file, async () => {
-    const favorites = parseFavorites(existsSync(file) ? readFileSync(file, "utf8") : undefined)
+  let list: string[] = []
+  await SRV.FileOperations.save(join(root, FAVORITES_FILE), (current) => {
+    const favorites = parseFavorites(current || undefined)
     if (favorite) favorites.add(name)
     else favorites.delete(name)
-    const list = [...favorites].sort()
-    writeFileSync(`${file}.tmp`, `${JSON.stringify(list, null, 2)}\n`)
-    renameSync(`${file}.tmp`, file)
-    return list
+    list = [...favorites].sort()
+    return `${JSON.stringify(list, null, 2)}\n`
   })
+  return list
 }
 
 /** An epic's name:  lower-kebab-case, as `epicName()` makes them and the epics' folders are called. */

@@ -583,7 +583,7 @@ export class ReviewClient {
 
   /**
    * "Start a review" (epic `airplane` P12):  ask the page server to type `/epic review <epic>` into the ONE running
-   * Claude session titled for the epic (`POST /api/review/start`);  says what came of it (a notice).
+   * Claude session titled for the epic (`POST /api/epics/review/start`);  says what came of it (a notice).
    * - its answer, or `undefined` when the server couldn't be asked (the notice says why)
    * - NEVER throws
    */

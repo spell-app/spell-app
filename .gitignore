@@ -12,7 +12,8 @@ __pycache__/
 .spell-server.*.json
 
 
-# bundles the page server builds when it starts, if stale (`spell dev bundles build --stale`;  `$/assembler` `BUNDLES`):
+# bundles the page server builds when it starts, if stale (`spell dev bundles build --stale`;  the root package.json's
+# `pageServer.bundles`, each built as `$/assembler`'s `BUNDLES` says):
 # never committed, since their chunk names carry content hashes:  every Spell UI change deleted and re-added most of
 # their files in every diff and merge (epic epic-components, 2026-10-07)
 /packages/ui/site/_assets/

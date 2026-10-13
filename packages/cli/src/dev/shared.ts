@@ -26,7 +26,7 @@ import { CLI, type LinkReport, type SharedConfig, type SharedStatus } from "$/cl
  * - `ui`:  Spell UI's hand-written docs pages (claude-design P6);  their bundle and data stay in each branch's
  *   `packages/ui/site/`
  * - before 2026-10-05 (epic `claude-design` P4) the docs were ONE link, `packages/docs/content`:  the shared repo keeps
- *   old-path links there for checkouts on older code (`packages/docs/tools/relocate.js` `reorgShared()`)
+ *   old-path links there for checkouts on older code (`packages/epics/tools/relocate.js` `reorgShared()`)
  * - the manifest:  the root `package.json`'s `"shared"` (`sharedConfig()`)
  * - only FOLDERS are linked:  Claude's Edit refuses to write through a link to a file
  * - the shared repo is committed by itself, after every turn (`commitShared()`, the `Stop` hook

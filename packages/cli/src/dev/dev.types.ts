@@ -350,7 +350,8 @@ export type MergeMainOptions = {
  * - `tool`:  the script, relative to a checkout's root
  * - `tsx`:  the `tsconfig.json` it runs under `tsx` with, relative to a checkout's root;  none:  plain `node`
  * - `cwd`:  the folder it runs in, relative to a checkout's root;  none:  the caller's
- *   - `yarn workspace @spell-app/docs` ran the docs tools in `packages/docs`, and they print paths relative to it
+ *   - the docs tools run in `packages/epics` (as `yarn workspace` ran them in the docs package), and print paths
+ *     relative to it
  */
 export type ToolSpec = { tool: string; tsx?: string; cwd?: string }
 

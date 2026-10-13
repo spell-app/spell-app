@@ -10,9 +10,9 @@ import { PlanMarkup } from "./PlanMarkup"
  * `/epic review`'s item picker (`spell dev plan-doc items --section <s> --spec <file>`):  a details page spec, for
  * `spell dev details new --from`, that asks Owen which of a section's items to go through.
  * - STATIC and instance-free on purpose:  one pure function of a parsed doc, with its two helpers
- * - knows the details page's SPEC shape (`packages/docs/tools/details.js` `DetailsSpec`) as data only:  `epics` may
+ * - knows the details page's SPEC shape (`packages/epics/tools/details.js` `DetailsSpec`) as data only:  `epics` may
  *   not import `docs`
- * - From `packages/docs/tools/plan-doc.js` `pickerSpec()` (epic `epic-components`, P7).
+ * - From `packages/epics/tools/plan-doc.js` `pickerSpec()` (epic `epic-components`, P7).
  ****************/
 export class ItemPicker {
   /**

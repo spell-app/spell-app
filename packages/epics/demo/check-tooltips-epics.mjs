@@ -19,7 +19,8 @@
  *   - `review-sample.html` (default), with a judgement call of option cards added
  *   - or `--doc <name>`, a copy of `epics/<name>/`
  * - what it opens, so their controls are drawn:  every section and item unfolded, an item's note box (Revisit),
- *   the toolbar's New form, the git line, and an "Agents running" panel (one agent, its `/api/agents` answered here)
+ *   the toolbar's New form, the git line, and an "Agents running" panel
+ *   (one agent, its `/api/epics/agents` answered here)
  * - `--list`:  print every control and its tooltip (the audit's table), not just the ones without
  * - fails (exit 1) on a page error, or a control with no tooltip
  * - the server:  a page server of its OWN on this checkout (`PageServer`, no pid file, a free port);  stopped at the end
@@ -65,7 +66,7 @@ const docName = args.includes("--doc") ? args[args.indexOf("--doc") + 1] : "tool
 const listAll = args.includes("--list")
 const problems = []
 
-/** The agent the "Agents running" panel shows:  `/api/agents` answered by the page itself. */
+/** The agent the "Agents running" panel shows:  `/api/epics/agents` answered by the page itself. */
 const AGENT = {
   name: "airplane-tooltips",
   task: "check every control's tooltip",
@@ -82,8 +83,7 @@ const KNOWN = [
   {
     drawnBy: "ui-code",
     control: "button.copy",
-    why:
-      "Spell UI's own Copy (it says Copy on it);  its title needs the docs bundle rebuilt (packages/docs/tools/_assets)"
+    why: "Spell UI's own Copy (it says Copy on it);  its title needs the docs bundle rebuilt (packages/epics/tools/_assets)"
   },
   {
     drawnBy: "ui-section",
@@ -147,7 +147,7 @@ async function run() {
   const context = await browser.newContext({ viewport: { width: 900, height: 1000 } })
   const page = await context.newPage()
   page.on("pageerror", (error) => problems.push(`pageerror:  ${error.message}`))
-  await page.route("**/api/agents?*", (route) => route.fulfill({ json: { agents: [AGENT] } }))
+  await page.route("**/api/epics/agents?*", (route) => route.fulfill({ json: { agents: [AGENT] } }))
   await page.goto(url)
   await page
     .waitForFunction(() => document.querySelector("epic-page")?.hasAttribute("reviewing"), null, { timeout: 15_000 })
@@ -160,7 +160,9 @@ async function run() {
   // every panel and card a fold button folded (code, asides, More Details, option panels ...):  unfolded
   for (let pass = 0; pass < 2; pass++) {
     await page.evaluate(() => {
-      for (const host of document.querySelectorAll("epic-code, epic-aside, epic-more, epic-original, epic-choices, epic-option, epic-reply, epic-answer, epic-status, epic-note, epic-update"))
+      for (const host of document.querySelectorAll(
+        "epic-code, epic-aside, epic-more, epic-original, epic-choices, epic-option, epic-reply, epic-answer, epic-status, epic-note, epic-update"
+      ))
         host.shadowRoot?.querySelector('button[aria-expanded="false"]')?.click()
     })
     await page.waitForTimeout(300)

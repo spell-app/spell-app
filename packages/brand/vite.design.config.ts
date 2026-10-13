@@ -11,7 +11,7 @@ export const DESIGN_OUT = `${ROOT}dist`
 
 /**
  * The brand elements for the claude.ai design bundle (epic `claude-design`, P11):  `src/brand-design.ts` =>
- * `dist/brand-design.js`, ONE ES module, which `packages/docs/tools/bundle-spell-ui.js --design` bundles beside
+ * `dist/brand-design.js`, ONE ES module, which `packages/epics/tools/bundle-spell-ui.js --design` bundles beside
  * Spell UI's `dist/` (it runs this build:  `vp build --config vite.design.config.ts`).
  * - Why a build of its own, not `src/` straight into that bundle:  the elements are Solid JSX, which only the Solid
  *   compiler (`baseConfig()`'s plugins) turns into code;  esbuild, which makes the bundle, can't.
