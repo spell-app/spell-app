@@ -185,7 +185,7 @@ when working with code in this package, `@spell-app/spell`.
     writers (comments left out), its aliases, and its docstring's first sentence.
     - What the spell syntax guide draws (`guides/spell-syntax/spell-syntax.html`).
     - Generated:  `yarn gen:syntax`, after adding, renaming or changing a rule, its class docstring or its tests.
-      [spellSyntax.test.ts](src/node/spellSyntax.test.ts) fails until you do.
+      [spellSyntax.test.ts](../../tests/spell/src/node/spellSyntax.test.ts) fails until you do.
     - So a class docstring's first sentence says what the rule is FOR, in plain words:  it's the guide's Purpose.
   - ONE `syntax` per registration.
     - A rule with several calls `addRule()` once per syntax, each with the `tests` for that syntax.

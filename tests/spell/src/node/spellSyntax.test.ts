@@ -5,7 +5,7 @@ import { describe, expect, test } from "vite-plus/test"
 import { SPELL_SYNTAX_FILE, purposeOf, spellSyntax, withoutComments } from "$/spell/node/spellSyntax"
 
 /** Where `yarn gen:syntax` writes the spell syntax table. */
-const SYNTAX_FILE = resolve(import.meta.dirname, "../..", SPELL_SYNTAX_FILE)
+const SYNTAX_FILE = resolve(import.meta.dirname, "../../../../packages/spell", SPELL_SYNTAX_FILE)
 
 describe("the spell syntax table, spellSyntax.json", () => {
   const data = spellSyntax()
