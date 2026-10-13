@@ -206,7 +206,11 @@
     position: sticky;
     z-index: 5;
     top: calc(var(--spell-site-header-height, 0px) + var(--epic-head-h, 0px));
-    /* the toolbar's own rule, the one that was above it:  the page's rule is all but white on the ivory */
+    /*
+     * the toolbar's own rules:  under it, and above it, between it and the title (Owen, 2026-10-13:  "add a rule
+     * between the page title/subhead and toolbar");  the page's rule is all but white on the ivory
+     */
+    border-top: 1px solid var(--epic-toolbar-rule);
     border-bottom: 1px solid var(--epic-toolbar-rule);
     background: var(--epic-bg);
   }

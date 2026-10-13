@@ -3,6 +3,8 @@
  * -- small mono capitals, tracked out, the links in the accent and the page itself muted -- as `spell-doc.css`'s
  * `.spell-crumbs`, which can't reach into the shadow root.
  * - Spell UI's `<ui-breadcrumb>`, through its public tokens and `::part(breadcrumb)`.
+ * - On the header's ivory, one band with it from the site header down (Owen, 2026-10-13):  the page's own room above
+ *   it (`spell-doc.css`, `body.plan-doc`) is its top padding instead.
  * - The eyebrow's type from the docs (`--spell-eyebrow-font`, `--spell-eyebrow-tracking`), each with a fallback.
  * - Its narrow breakpoint, where it hides, is a bare px media query, the site header's own:  this
  *   sheet isn't built with Spell UI's `@custom-media` ranges, and `--ui-mobile` (768px) isn't the header's width.
@@ -17,7 +19,9 @@
     --ui-breadcrumb-divider-color: var(--epic-muted);
     --ui-breadcrumb-divider-spacing: 0.4em;
     display: block;
-    margin: 0 var(--epic-inset) 10px;
+    margin: 0;
+    padding: 10px var(--epic-inset);
+    background: var(--epic-toolbar-fill);
     letter-spacing: var(--spell-eyebrow-tracking, 0.14em);
     text-transform: uppercase;
   }

@@ -240,6 +240,10 @@ body.spell-wide
 body.spell-wide .spell-doc-main {
   padding-top: 0;
 }
+/* an epic page's crumbs are on its header's ivory too, with their own room above (epics' `Crumbs.css`) */
+body.plan-doc .spell-doc-main:not(:has(.spell-crumbs)) {
+  padding-top: 0;
+}
 body.spell-wide .spell-doc-main .spell-crumbs {
   margin: 0;
   padding: 10px var(--spell-column-inset) 2px;
@@ -1833,6 +1837,8 @@ ui-accordion.spell-aside::part(content) {
 }
 .spell-page-head > .spell-toolbar-titled {
   margin-bottom: -8px;
+  /* a rule between it and the title, as an epic page's (Owen, 2026-10-13) */
+  border-top: 1px solid var(--spell-rail-rule);
 }
 .spell-filter:has(> .spell-toolbar-titled) {
   border-bottom: none;
