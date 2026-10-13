@@ -148,9 +148,9 @@ body {
  * - `<main>` runs the window's full width, with no side padding;  each kind of block places itself:
  *   - BARS (the sticky page header and its toolbar, section titles, the footer, a bottom bar like the syntax guide's
  *     Send):  their background and rule edge to edge, their contents in the reading column
- *   - TABLES (`ui-table`, a bare `table`, as a section's or `<main>`'s own child):  the full width, less the page's
- *     16px gutter;  a table still scrolls inside its box when it's wider than the window.  A table INSIDE prose (a list
- *     item, an epic item's details) too:  the runtime measures how far in it starts (`wireWideTables()`)
+ *   - TABLES (`ui-table`, a bare `table`):  in the column, as prose, with an expand button above the top-left corner
+ *     that runs one the full width, less the page's 16px gutter, remembered per table (the runtime's
+ *     `wireTableWidths()`;  Owen, 2026-10-13);  a table still scrolls inside its box when it's wider than that
  *   - everything else, PROSE and INSETS (paragraphs, lists, asides, code, messages, cards, comment threads):  the
  *     reading column, as wide as the narrow layout's text (`--spell-measure`), centred;  a paragraph keeps its 72ch
  *   - a block a page wants full width anyway:  `class="spell-full-width"`
@@ -181,23 +181,73 @@ body.spell-wide
   > :not(
     ui-section,
     ui-sticky,
-    ui-table,
-    table,
     epic-page,
     footer,
     .spell-full-width,
     #choices-bar,
     .spell-toolbar-alone,
-    .spell-comment-mark:has(+ :is(ui-table, table, .spell-full-width)),
+    .spell-crumbs,
+    .spell-comment-mark:has(+ .spell-full-width),
     [slot]
   ) {
   margin-inline: var(--spell-column-inset);
 }
-/* TABLES:  the full width, in the gutter */
-body.spell-wide :is(.spell-doc-main, .spell-doc-main ui-section) > :is(ui-table, table) {
-  margin-inline: var(--spell-gutter);
+/*
+ * TABLES:  the expand button, in a zero-height bar just before each (`wireTableWidths()`), so it takes no room:  a
+ * small quiet circle over the table's top-left corner, the page's ground under it
+ */
+.spell-table-toggle {
+  position: relative;
+  height: 0;
 }
-/* BARS:  edge to edge, their contents in the column */
+.spell-table-toggle > button {
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--spell-table-rule);
+  border-radius: 50%;
+  background: var(--spell-bg);
+  color: var(--spell-muted);
+  font-size: 10px;
+  cursor: pointer;
+}
+.spell-table-toggle > button:hover,
+.spell-table-toggle.is-wide > button {
+  color: var(--spell-doc-accent);
+  border-color: currentColor;
+}
+/* the pointer lands on the titled button, so its tooltip shows ("TOOLTIPS that show") */
+.spell-table-toggle > button > * {
+  pointer-events: none;
+}
+/* phone width:  the column is the page already */
+@container (max-width: 600px) {
+  .spell-table-toggle {
+    display: none;
+  }
+}
+/*
+ * BARS:  edge to edge, their contents in the column.  The page's head is ONE ivory band, the breadcrumb, title and
+ * toolbar alike (Owen, 2026-10-13:  "white/ivory/white looks weird, especially when collapsed"), from right under the
+ * site header
+ */
+body.spell-wide .spell-doc-main {
+  padding-top: 0;
+}
+body.spell-wide .spell-doc-main .spell-crumbs {
+  margin: 0;
+  padding: 10px var(--spell-column-inset) 2px;
+  background: var(--spell-rail-fill);
+}
+body.spell-wide .spell-doc-main .spell-page-head {
+  background: var(--spell-rail-fill);
+}
 body.spell-wide .spell-doc-main :is(.spell-page-head, .spell-filter, footer.spell-doc-footer) {
   margin-inline: 0;
   padding-inline: var(--spell-column-inset);

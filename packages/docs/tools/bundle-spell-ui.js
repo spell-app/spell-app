@@ -196,6 +196,9 @@ const ICONS = {
   "solid/angles-down": ["angles down"],
   "solid/angles-up": ["angles up"],
   "solid/code": ["code"],
+  // a wide-layout table's expand button (`spell-doc-runtime.js` `wireTableWidths()`):  wider, back into the column
+  "solid/arrows-left-right": ["arrows left right"],
+  "solid/arrows-left-right-to-line": ["arrows left right to line"],
   // master plan:  live pages (thoughts, Claude sessions, setup)
   "regular/comment-dots": ["comment dots"],
   // review notes:  an item Owen wrote in (outline:  a draft;  solid `comment`:  sent), and Edit on a sent note

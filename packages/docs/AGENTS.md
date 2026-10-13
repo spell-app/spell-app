@@ -198,12 +198,18 @@ In `tools/`:
     - `<main>` runs the window's full width, and each kind of block places itself:
       - BARS (the sticky page header and its toolbar, section titles, the footer, a bottom bar):
         background and rule edge to edge, their contents in the column
-      - TABLES (`ui-table`, a bare `table`), a section's or `<main>`'s own child:  the full width, less a 16px gutter
+      - TABLES (`ui-table`, a bare `table`):  in the column, as prose, with an EXPAND button above each one's top-left
+        corner that runs it the full width, less a 16px gutter (Owen, 2026-10-13)
+        - remembered per table, in this browser (`spell-table-wide:<path>`), by the table's id, else the nearest id above
+          it and which table it is under that (`p14#table-1`)
+        - the runtime's `wireTableWidths()`:  it measures how far in a table starts, so one inside a list item or an
+          epic item's details goes out to the gutter too
+        - no button at phone width:  the column is the page already
+      - the page's HEAD (breadcrumb, title, toolbar):  one ivory band from the site header down;  an epic page's header
+        and subtitle too (`EpicPage.css`)
       - everything else, prose and insets (paragraphs, lists, asides, code, messages, cards, comment threads):
         the column, centred
       - a block that should run full width anyway:  `class="spell-full-width"`
-    - A table INSIDE prose (a list item, a plan doc item's details) runs the full width too (Owen, 2026-10-13):
-      the runtime measures how far in it starts, and moves it out to the gutter (`wireWideTables()`).
     - A bare `<table>` is celled like a `ui-table celled compact`;  both draw their cells in `--spell-table-rule`.
       At phone width a bare table scrolls inside its own box.
     - A plan doc:  `<epic-page>`'s `--epic-inset` becomes the column's inset, so its bands run edge to edge

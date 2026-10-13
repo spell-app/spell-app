@@ -192,7 +192,7 @@ async function start() {
   wirePaging(main)
   if (document.body.classList.contains("plan-doc")) wireJumpKey(go, canGo)
   wireFilter(main)
-  wireWideTables(main)
+  wireTableWidths(main)
   // UI renders its shadow content a little after the definitions:  land once it has
   await nextFrames(2)
   sticky.measure()
@@ -211,50 +211,110 @@ async function start() {
 }
 
 /**
- * The wide layout (`<body class="spell-wide">`, `spell-doc.css` "The wide layout"):  a table INSIDE prose (a list
- * item, an epic item's details, a phase's field) runs the page's full width too, as a section's own table does
- * (Owen, 2026-10-13:  "tables inside prose should be full width as well").
- * - CSS can't know how far in a nested table starts (a list's indent, an item's inset), so this measures it:  each
- *   table is moved out to the page's gutter and given the page's width, less the gutter on both sides
- * - a table already a section's (or `<main>`'s) own child is left to the CSS;  inside a `<ui-table>`, the host moves
- * - again whenever its parent changes size (a section or item opening, the window resizing), and for tables a part's
- *   body or a live update adds later
+ * The wide layout (`<body class="spell-wide">`, `spell-doc.css` "The wide layout"):  every table sits in the reading
+ * column, as prose does, with an EXPAND button above its top-left corner that runs it the page's full width
+ * (Owen, 2026-10-13:  "make tables fit in the column by default, but have an expand button ... Remember that setting
+ * per table").
+ * - The button sits in a zero-height bar just before the table (`.spell-table-toggle`, `data-spell-added`), so it
+ *   takes no room;  a click flips it back to the column.
+ * - Expanded:  CSS can't know how far in a table starts (a list's indent, an item's inset), so this measures it,
+ *   moving the table out to the page's gutter with the page's width, less the gutter on both sides.
+ *   Again whenever its parent changes size (a section or item opening, the window resizing).
+ * - Inside a `<ui-table>`, the host is what moves.
+ * - Remembered in this browser, per page, by the table's key (`tableKey()`):  `spell-table-wide:<path>`.
+ * - Tables a part's body or a live update adds later get theirs too.
  */
-function wireWideTables(main) {
+function wireTableWidths(main) {
   if (!document.body.classList.contains("spell-wide")) return
-  const DIRECT = ":is(main, ui-section) > :is(ui-table, table)"
-  const watched = new WeakSet()
+  const storeKey = `spell-table-wide:${location.pathname}`
+  const toggles = new Map()
   const sizes = new ResizeObserver((entries) => {
     for (const entry of entries) for (const box of boxesIn(entry.target)) place(box)
   })
+  // the box that moves:  a `<ui-table>` host, else the bare table
+  const boxesIn = (root) => [
+    ...new Set([...root.querySelectorAll("table")].map((table) => table.closest("ui-table") ?? table))
+  ]
+  const isWide = (box) => !!readJSON(storeKey)[tableKey(box, main)]
   const place = (box) => {
+    const toggle = toggles.get(box)
     const parent = box.parentElement
-    if (!parent || !box.isConnected || !parent.getClientRects().length) return
+    if (!toggle || !parent || !box.isConnected) return
+    const wide = isWide(box)
+    toggle.classList.toggle("is-wide", wide)
+    const button = toggle.querySelector("button")
+    button.title = wide ? "Back into the column" : "Expand to the page's width"
+    button.setAttribute("aria-label", button.title)
+    button.querySelector("ui-icon").setAttribute("name", wide ? "arrows left right to line" : "arrows left right")
+    if (!wide) {
+      for (const each of [box, toggle]) each.style.removeProperty("margin-inline-start")
+      box.style.removeProperty("width")
+      box.style.removeProperty("max-width")
+      return
+    }
+    if (!parent.getClientRects().length) return
     const page = main.getBoundingClientRect()
     const gutter = parseFloat(getComputedStyle(main).getPropertyValue("--spell-gutter")) || 16
     const style = getComputedStyle(parent)
     const contentLeft =
       parent.getBoundingClientRect().left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft)
+    const start = `${page.left + gutter - contentLeft}px`
     box.style.maxWidth = "none"
     box.style.width = `${page.width - 2 * gutter}px`
-    box.style.marginInlineStart = `${page.left + gutter - contentLeft}px`
+    box.style.marginInlineStart = start
+    toggle.style.marginInlineStart = start
   }
-  // the box that moves:  a `<ui-table>` host, else the bare table
-  const boxesIn = (root) =>
-    [...root.querySelectorAll("table")]
-      .map((table) => table.closest("ui-table") ?? table)
-      .filter((box, at, all) => all.indexOf(box) === at && !box.matches(DIRECT))
+  const flip = (box) => {
+    const saved = readJSON(storeKey)
+    const key = tableKey(box, main)
+    if (saved[key]) delete saved[key]
+    else saved[key] = true
+    writeJSON(storeKey, saved)
+    place(box)
+  }
+  const toggleFor = (box) => {
+    const toggle = document.createElement("div")
+    toggle.className = "spell-table-toggle"
+    toggle.dataset.spellAdded = ""
+    const button = document.createElement("button")
+    button.type = "button"
+    const icon = document.createElement("ui-icon")
+    button.append(icon)
+    button.addEventListener("click", () => flip(box))
+    toggle.append(button)
+    return toggle
+  }
   const watch = () => {
+    // a table a live update replaced:  its button goes with it
+    for (const [box, toggle] of toggles) {
+      if (box.isConnected && toggle.nextElementSibling === box) continue
+      toggle.remove()
+      toggles.delete(box)
+    }
     for (const box of boxesIn(main)) {
-      if (watched.has(box)) continue
-      watched.add(box)
+      if (toggles.has(box) || !box.parentElement) continue
+      const toggle = toggleFor(box)
+      box.before(toggle)
+      toggles.set(box, toggle)
       sizes.observe(box.parentElement)
       place(box)
     }
   }
   watch()
   new MutationObserver(() => requestAnimationFrame(watch)).observe(main, { childList: true, subtree: true })
-  addEventListener("resize", () => requestAnimationFrame(() => boxesIn(main).forEach(place)))
+  addEventListener("resize", () => requestAnimationFrame(() => toggles.forEach((_toggle, box) => place(box))))
+}
+
+/**
+ * A table's key, for remembering its width:  its id, else the nearest id above it and which table it is under that
+ * (`p14#table-1`, `memory#table-2`);  `page#table-<n>` with no id above it.
+ */
+function tableKey(box, main) {
+  if (box.id) return box.id
+  const holder = box.parentElement.closest("[id]")
+  const root = holder && main.contains(holder) ? holder : main
+  const boxes = [...new Set([...root.querySelectorAll("table")].map((table) => table.closest("ui-table") ?? table))]
+  return `${root === main ? "page" : root.id}#table-${boxes.indexOf(box) + 1}`
 }
 
 /**

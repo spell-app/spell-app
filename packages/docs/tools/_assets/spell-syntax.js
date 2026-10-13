@@ -336,7 +336,6 @@
       },
       "Send"
     )
-    const counted = el("span", { class: "spell-choices-count" })
     const saved = el("span", { class: "spell-choices-saved" })
     const error = el("ui-message", { class: "spell-choices-error", state: "negative", size: "small", hidden: "" })
     const done = el("ui-message", { class: "spell-choices-sent", state: "positive", size: "small", hidden: "" })
@@ -347,12 +346,12 @@
           "div",
           { id: "choices-bar", class: "spell-choices-bar" },
           el("div", { class: "spell-choices-row" }, feedback, send),
-          el("div", { class: "spell-choices-meta" }, counted, saved),
+          el("div", { class: "spell-choices-meta" }, saved),
           error,
           done
         )
       )
-    return { feedback, send, count: counted, saved, error, done }
+    return { feedback, send, saved, error, done }
   }
 
   /** Show `message` where the tables go. */
@@ -535,14 +534,18 @@
     if (sent) showSent(sent, { isStale: true })
   }
 
-  /** The toolbar's count. */
+  /**
+   * The count, on Send's tooltip:  no line of its own under the bar (Owen, 2026-10-13:  "Lose the `0 boxes saved`
+   * bit").
+   */
   function count() {
     const changes = [...boxes.values()].filter(isBoxChanged).length
     const kept = Object.keys(orphans).length
     const rules = new Set([...boxes.values()].filter(isBoxChanged).map((one) => one.key.split(".")[0])).size
-    bar.count.textContent =
-      `${changes} ${changes === 1 ? "box" : "boxes"} changed, in ${rules} ${rules === 1 ? "rule" : "rules"}` +
-      (kept ? ` · ${kept} kept for rules no longer here` : "")
+    bar.send.title =
+      `Send ${changes} changed ${changes === 1 ? "box" : "boxes"}, in ${rules} ${rules === 1 ? "rule" : "rules"}` +
+      (kept ? ` (and ${kept} kept for rules no longer here)` : "") +
+      `, and the feedback, to Claude`
   }
 
   /** The boxes that differ from the code, as typed, by key;  and what was typed for rules no longer here. */
