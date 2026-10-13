@@ -220,7 +220,7 @@ def test_an_app_mounts_into_the_hosts_root_and_unmounts() -> None:
 
 @pytest.mark.usefixtures("page")
 def test_page_prints_what_the_program_drew_when_it_ends(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
-    program = tmp_path / "Game.compiled.py"
+    program = tmp_path / "Game.spell.py"
     program.write_text(
         "from spell_core import App, h\n"
         "class Game(App):\n"
@@ -240,7 +240,7 @@ def test_page_prints_what_the_program_drew_when_it_ends(tmp_path: Path, capsys: 
 def test_page_prints_nothing_for_a_program_that_drew_nothing(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    program = tmp_path / "FizzBuzz.compiled.py"
+    program = tmp_path / "FizzBuzz.spell.py"
     program.write_text("print('fizz')\n")
     main([str(program), "--page"])
     assert capsys.readouterr().out == "fizz\n"

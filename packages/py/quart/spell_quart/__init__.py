@@ -1,7 +1,7 @@
 """spell_quart:  a Python spell program served as a web app, on Quart (epic python-target P20).
 
 - A program compiled to `py` runs on the server, a game per visitor (`SpellSessions`).
-- Its page draws it in javascript, with its drawing half, `<Project>.elements.js` (`page_html()`):
+- Its page draws it in javascript, with its drawing half, `<Project>.elements.spell.js` (`page_html()`):
   from the state sent down a WebSocket, clicks going back up it.
 - Compiling to `py` writes the app itself beside the program, `<Project>.app.py`:  its routes, spelled out.
 """

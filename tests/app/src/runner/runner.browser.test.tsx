@@ -791,10 +791,8 @@ async function todosExample(): Promise<string> {
 
 /** Example `name`'s committed compiled javascript, as text:  Vite serves a file by its path. */
 async function exampleCompiled(name: string): Promise<string> {
-  const file = new URL(
-    `../../../../packages/spell/projects/system/examples/${name}/${name}.compiled.js`,
-    import.meta.url
-  ).pathname
+  const file = new URL(`../../../../packages/spell/projects/system/examples/${name}/${name}.spell.js`, import.meta.url)
+    .pathname
   const { default: compiled } = (await import(/* @vite-ignore */ `${file}?raw`)) as { default: string }
   return compiled
 }
@@ -808,7 +806,7 @@ async function fixtureCompiled(name: string): Promise<string> {
 
 /** What to run:  `program`, in memory. */
 function source(program: string, name = "Counter"): SpellAppSource {
-  return { name, compiledUrl: "/nowhere.compiled.js", compiled: program, importUrl: (id) => `/nowhere/${id}` }
+  return { name, compiledUrl: "/nowhere.spell.js", compiled: program, importUrl: (id) => `/nowhere/${id}` }
 }
 
 /** What an editor would push:  `program`, of project `@test:fixtures:Test`. */

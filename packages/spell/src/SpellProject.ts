@@ -134,7 +134,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
     return this.getState("parseError", () => undefined)
   }
 
-  /** `SpellJSFile` for this project's compiled output, e.g. `Solitaire.compiled.js`. */
+  /** `SpellJSFile` for this project's compiled output, e.g. `Solitaire.spell.js`. */
   /*@memoize*/
   get outputFile(): SP.SpellJSFile {
     return this.derived("outputFile", () => {
@@ -161,12 +161,26 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    * spell's wording of each member of its types, by the name its compiled code uses -- see `SP.SpellWords`.
    * - For a runner's Thing Explorer.
    * - A target with words of its own writes another file, e.g. `Solitaire.py.en.json`:  see `wordsFileFor()`.
-   *   One whose page draws in javascript, its drawing half too, `Solitaire.elements.js`:  see `elementsFileFor()`.
+   *   One whose page draws in javascript, its drawing half too, `Solitaire.elements.spell.js`:
+   *   see `elementsFileFor()`.
    */
   /*@memoize*/
   get wordsFile(): SP.SpellJSFile {
     return this.derived("wordsFile", () => {
       const location = this.getFileLocation(`${this.projectName}${SP.WORDS_JS_SUFFIX}`)!
+      return new SP.SpellJSFile(location.path)
+    })
+  }
+
+  /**
+   * File for this project's scope pack, beside `outputFile`, e.g. `Solitaire.scopes.js`:
+   * what its Type Explorer shows, for pages which run it without the parser -- see `LSP.ScopePack`.
+   * - The language server writes it, after a clean compile (`SpellDiskWorkspace.writeScopes()`).
+   */
+  /*@memoize*/
+  get scopesFile(): SP.SpellJSFile {
+    return this.derived("scopesFile", () => {
+      const location = this.getFileLocation(`${this.projectName}${SP.SCOPES_JS_SUFFIX}`)!
       return new SP.SpellJSFile(location.path)
     })
   }
@@ -251,7 +265,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
     return [...new Set([SP.RUNNING_TARGET, ...names])].map(SP.targetFor)
   }
 
-  /** File for our compiled output for `target`:  `outputFile` for `js/solid`, else e.g. `Solitaire.compiled.tsx`. */
+  /** File for our compiled output for `target`:  `outputFile` for `js/solid`, else e.g. `Solitaire.spell.tsx`. */
   outputFileFor(target: SP.Target): SP.SpellJSFile {
     if (target.name === SP.RUNNING_TARGET) return this.outputFile
     return new SP.SpellJSFile(this.getFileLocation(`${this.projectName}${target.suffix}`)!.path)
@@ -267,7 +281,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * File for `target`'s page, beside its output, e.g. `Solitaire.elements.js`:  its drawing half, in javascript.
+   * File for `target`'s page, beside its output, e.g. `Solitaire.elements.spell.js`:  its drawing half, in javascript.
    * - `undefined` for a target with none (`SP.Target.elementsSuffix`).
    */
   elementsFileFor(target: SP.Target): SP.SpellJSFile | undefined {
@@ -437,7 +451,8 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
                 // a target with words of its own, keyed by its names, e.g. Python's `move_to_pile`
                 const wordsFile = this.wordsFileFor(target)
                 if (wordsFile) wordsFile.contents = SP.SpellWords.json(SP.SpellWords.of(declarations, target.writer))
-                // a target whose page draws in javascript, e.g. Python's:  the drawing half, `Solitaire.elements.js`
+                // a target whose page draws in javascript, e.g. Python's:
+                // the drawing half, `Solitaire.elements.spell.js`
                 const elementsFile = this.elementsFileFor(target)
                 if (elementsFile && SpellProject.draws(parts)) {
                   const writer = PY.ElementsWriter.instance

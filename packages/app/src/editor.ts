@@ -346,7 +346,7 @@ export class EditorStore extends Observable {
    *   (epic `drawable-thing` P16), unless:
    *   - `restartApp()` asked for a fresh start
    *   - or the edit changed the program's start (`runCompiled()`, P17)
-   * - Runs what it wrote to `<Project>.compiled.js`:  its declarations are in `<Project>.declarations.json`.
+   * - Runs what it wrote to `<Project>.spell.js`:  its declarations are in `<Project>.declarations.json`.
    * - Each project it imports is fetched afresh, so a recompiled library shows at once.
    * - An error's stack goes to devtools too -- `runCompiled()` logs it.
    */

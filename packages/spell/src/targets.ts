@@ -1,7 +1,7 @@
 import { P } from "$/parser"
 import { PY } from "$/py"
 
-import { ELEMENTS_JS_SUFFIX } from "./spell.types"
+import { COMPILED_JS_SUFFIX, COMPILED_PY_SUFFIX, COMPILED_TSX_SUFFIX, ELEMENTS_JS_SUFFIX } from "./spell.types"
 
 /**
  * The TARGETS spell compiles to:  a language and the runtime its code runs on, e.g. `js/solid`.
@@ -20,7 +20,7 @@ export type Target = {
   name: string
   /** Writes its code. */
   writer: P.ProgramWriter
-  /** End of its compiled output file's name, e.g. `.compiled.js`. */
+  /** End of its compiled output file's name, e.g. `.spell.js`. */
   suffix: string
   /** What its runtime can do. */
   can: TargetAbilities
@@ -37,7 +37,7 @@ export type Target = {
    */
   wordsSuffix?: string
   /**
-   * End of the name of its PAGE's file, beside its output, e.g. `.elements.js` (epic `python-target` P19):
+   * End of the name of its PAGE's file, beside its output, e.g. `.elements.spell.js` (epic `python-target` P19):
    * a program that draws, its drawing half in javascript (`PY.ElementsWriter`),
    * for a page that mirrors the program running here.
    * - Written only for a project that draws.
@@ -64,23 +64,23 @@ export type TargetAbilities = {
 
 /** Every target, by name. */
 export const TARGETS: Record<string, Target> = {
-  "js/solid": { name: "js/solid", writer: P.JSWriter.instance, suffix: ".compiled.js", can: { draw: "dom" } },
+  "js/solid": { name: "js/solid", writer: P.JSWriter.instance, suffix: COMPILED_JS_SUFFIX, can: { draw: "dom" } },
   // Solid TypeScript, as a person writes it:  JSX, decorators (`@prop`, `@drawn`), on the same runtime.
   // Checked by `tsc`;  never run as is:  it needs a build first (`buildTsx()` in `$/spell/node/buildTsx`)
   "ts/solid": {
     name: "ts/solid",
     writer: P.TSWriter.instance,
-    suffix: ".compiled.tsx",
+    suffix: COMPILED_TSX_SUFFIX,
     can: { draw: "dom" },
     checkedBy: "tsc"
   },
   // Python as a person writes it, with PEP 8's names, on `spell_core` (`packages/py/core`), on asyncio:
   // a function that pauses is `async def`, and its callers await it (epic `python-target`, one target since P22).
-  // Draws HTML as text (Q2);  a program that draws also gets its page, `.elements.js`, and its web app, `.app.py`
+  // Draws HTML as text (Q2);  a program that draws also gets its page, `.elements.spell.js`, and its web app, `.app.py`
   py: {
     name: "py",
     writer: PY.PyWriter.instance,
-    suffix: ".compiled.py",
+    suffix: COMPILED_PY_SUFFIX,
     can: { draw: "html" },
     wordsSuffix: ".py.en.json",
     elementsSuffix: ELEMENTS_JS_SUFFIX,

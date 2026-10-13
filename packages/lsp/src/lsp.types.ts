@@ -15,8 +15,8 @@ import type { SP } from "$/spell"
 export type FileAddresses = {
   /** `SpellFile` for document `uri`, or `undefined` if it isn't a spell file we can place in a project. */
   fileFor(uri: string): SP.SpellFile | undefined
-  /** Editor's URI for `file`, e.g. a project's compiled javascript. */
-  uriFor(file: SP.SpellFile | SP.SpellJSFile): string
+  /** Editor's URI for `file`, e.g. a project's compiled javascript;  for a project, its folder. */
+  uriFor(file: SP.SpellFile | SP.SpellJSFile | SP.SpellProject): string
 }
 
 /** What happened to a file on disk, from the editor's file watcher. */
@@ -110,8 +110,15 @@ export type ProjectInfo = {
   files: Array<{ uri: string; file: string; errors: number }>
   /** Why the last full parse crashed, if it did. */
   problem?: string
-  /** URI of its compiled javascript, `<Project>.compiled.js` -- whether or not it's been compiled yet. */
+  /** URI of its compiled javascript, `<Project>.spell.js` -- whether or not it's been compiled yet. */
   compiledUri: string
+  /**
+   * URI of its folder, where its spell files are, e.g. for its runner's `settings.json5`.
+   * - NOT necessarily where its compiled javascript is:  ask for that by `compiledUri`.
+   */
+  folderUri: string
+  /** URI of its words, `<Project>.en.js`, beside its spell files -- whether or not it's been compiled yet. */
+  wordsUri: string
 }
 
 /**
@@ -243,7 +250,7 @@ export type SetDescriptionParams = {
 export type ProjectCompiled = {
   /** Project id, as `ProjectInfo.project`. */
   project: string
-  /** Project's javascript, EXACTLY as written to its `<Project>.compiled.js` -- see `ProjectInfo.compiledUri`. */
+  /** Project's javascript, EXACTLY as written to its `<Project>.spell.js` -- see `ProjectInfo.compiledUri`. */
   compiled: string
 }
 

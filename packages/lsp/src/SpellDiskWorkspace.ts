@@ -1,5 +1,5 @@
-import { writeFileSync } from "fs"
-import { basename } from "path"
+import { mkdirSync, writeFileSync } from "fs"
+import { basename, dirname } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 
 import { SP } from "$/spell"
@@ -50,8 +50,8 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
     return file ?? undefined
   }
 
-  /** URI for `file`:  the one the editor sent, else its `file:` URL on disk. */
-  uriFor(file: SP.SpellFile | SP.SpellJSFile): string {
+  /** URI for `file`:  the one the editor sent, else its `file:` URL on disk;  for a project, its folder's. */
+  uriFor(file: SP.SpellFile | SP.SpellJSFile | SP.SpellProject): string {
     let uri = this.#uriByPath.get(file.path)
     if (!uri) {
       uri = pathToFileURL(file.location.serverPath).href
@@ -123,15 +123,16 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
   ////////////////
 
   /**
-   * Write `project`'s scope pack, `<Project>.scopes.js`, beside its compiled output -- see `LSP.ScopePack`.
+   * Write `project`'s scope pack, `<Project>.scopes.js` (`SpellProject.scopesFile`) -- see `LSP.ScopePack`.
    * - Parses -- and tracks -- each project it imports compiled first, to show their sources.
+   * - SIDE EFFECT:  makes its folder, if there's none yet.
    * - Returns the path written.
    */
   async writeScopes(project: SP.SpellProject, explorer: LSP.ScopeExplorer): Promise<string> {
     await this.track(project)
     for (const imported of LSP.ScopeExplorer.importedProjects(project)) await this.track(imported)
-    const compiled = project.outputFile.location.serverPath
-    const path = compiled.slice(0, -SP.COMPILED_JS_SUFFIX.length) + SP.SCOPES_JS_SUFFIX
+    const path = project.scopesFile.location.serverPath
+    mkdirSync(dirname(path), { recursive: true })
     writeFileSync(path, LSP.scopePackScript(explorer.exportPack(project)))
     return path
   }

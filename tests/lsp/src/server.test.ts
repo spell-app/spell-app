@@ -116,15 +116,20 @@ describe("spell language server over stdio", () => {
       connection.onNotification("spell/projectCompiled", resolveWait)
     )
     expect(await connection.sendRequest("spell/compileProject", { uri })).toEqual({ ok: true })
-    const { project, compiledUri } = (await connection.sendRequest("spell/project", { uri })) as {
+    const { project, compiledUri, folderUri, wordsUri } = (await connection.sendRequest("spell/project", { uri })) as {
       project: string
       compiledUri: string
+      folderUri: string
+      wordsUri: string
     }
     const sent = await compiled
     expect(sent).toMatchObject({ project, compiled: expect.stringContaining("foo") })
     // ...and wrote it where `spell/project` says, for editors to watch
-    expect(compiledUri).toMatch(/\/Runs\/Runs\.compiled\.js$/)
+    expect(compiledUri).toMatch(/\/Runs\/Runs\.spell\.js$/)
     expect(readFileSync(fileURLToPath(compiledUri), "utf8")).toBe(sent.compiled)
+    // ...its folder (for the runner's `settings.json5`) and words, by their own URIs, not worked out from it
+    expect(fileURLToPath(folderUri)).toBe(projectDir)
+    expect(wordsUri).toMatch(/\/Runs\/Runs\.en\.js$/)
   }, 30_000)
 
   test("`spell/scopes` answers the project's live scope tree", async () => {

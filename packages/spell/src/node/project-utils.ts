@@ -104,18 +104,34 @@ export const request_getProjectList = respondWithJSON(async (request) => {
 ////////////////
 
 /**
+ * Ends of the names of files spell WRITES, which are never one of a project's own files.
+ * - Listed, `getIndex()` would make a `.js` one an import of the project, and parse the rest as spell.
+ * - Its words files, e.g. `Solitaire.en.js`, are left out by `SP.SpellWords.isWordsFile()`.
+ * - The old names are here too, from before epic `people-and-orgs` P11:
+ *   a copy left in someone's checkout must never become one of its project's files.
+ */
+const GENERATED_SUFFIXES = [
+  SP.COMPILED_JS_SUFFIX, // `Solitaire.spell.js`
+  SP.COMPILED_TSX_SUFFIX, // `Solitaire.spell.tsx`
+  SP.COMPILED_PY_SUFFIX, // `Solitaire.spell.py`
+  SP.ELEMENTS_JS_SUFFIX, // `Solitaire.elements.spell.js`, a Python program's page file
+  SP.SCOPES_JS_SUFFIX, // `Solitaire.scopes.js`, its scope pack
+  SP.SNAPSHOT_JS_SUFFIX, // `Solitaire.snapshot.js`, a test fixture's snapshot of its compiled output
+  // The old names
+  ".compiled.js",
+  ".compiled.tsx",
+  ".compiled.py",
+  ".elements.js"
+]
+
+/**
  * Given a file `name`, return `true` if we should add it to the manifest.
  * - RENAME: shares its extension list with `isPreloadFile()` below, kept a separate function so they CAN diverge.
  *   They have:  this one also leaves out compiled output, snapshots, scope packs, page files and words files.
  */
 const manifestExtensions = [".spell", ".css", ".js", ".jsx"]
 function isManifestFile(name: string, projectName = "") {
-  // NOT a project's compiled output, e.g. `Solitaire.compiled.js`:  `getIndex()` would make it an import.
-  // Nor a test fixture's snapshot of it, its scope pack, its page file, or its words, e.g. `Solitaire.en.js`.
-  const generated = [SP.COMPILED_JS_SUFFIX, SP.SNAPSHOT_JS_SUFFIX, SP.SCOPES_JS_SUFFIX, SP.ELEMENTS_JS_SUFFIX]
-  if (generated.some((suffix) => name.endsWith(suffix))) {
-    return false
-  }
+  if (GENERATED_SUFFIXES.some((suffix) => name.endsWith(suffix))) return false
   if (SP.SpellWords.isWordsFile(name, projectName)) return false
   return manifestExtensions.some((extension) => name.endsWith(extension))
 }
@@ -274,7 +290,7 @@ export const request_getFile = async (request: Request, response: Response) => {
 }
 
 /**
- * Return project `projectId`'s compiled JS, `<Project>.compiled.js`, as a JS module.
+ * Return project `projectId`'s compiled JS, `<Project>.spell.js`, as a JS module.
  * - What a runner fetches for `@spell/project/<projectId>`,
  *   so one project's compiled output can `import` another's.
  * - See `SP.SPELL_PROJECT_MODULE`, and `runCompiled()` in `$/app/runner/runCompiled`.

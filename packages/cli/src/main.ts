@@ -45,7 +45,7 @@ const program = spellProgram().version(globalThis.__PACKAGE_VERSION__).addHelpTe
 
 program
   .command("compile")
-  .description("compile projects to <Project>.compiled.js, or print a file's compiled javascript")
+  .description("compile projects to <Project>.spell.js, or print a file's compiled javascript")
   .argument("[projects...]", PROJECTS_ARG)
   .option("--stdout", "print a project's compiled output instead of writing it")
   .option("--target <name>", 'compile to this target too, e.g. ts/solid -- default project.json\'s "targets"')

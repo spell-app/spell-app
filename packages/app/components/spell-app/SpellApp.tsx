@@ -93,7 +93,7 @@ const vocabulary = {
  * It works out WHAT to run, and draws `<SpellAppRunner>` to run it.
  * - What to run, one of (see the vocabulary, `SpellApp.en.ts`):
  *   - `project="@system:examples:Solitaire"` (or `@examples/Solitaire`):  from the spell server's `/api`
- *   - `src="apps/Solitaire.compiled.js"`:  from anywhere, what goes with it beside it
+ *   - `src="apps/Solitaire.spell.js"`:  from anywhere, what goes with it beside it
  *   - `editor="#ed"`:  what that `<spell-editor>` compiles (`SPELL_COMPILED_EVENT`), and what it compiled already
  *   - `run(compiled)`:  code pushed to us, e.g. by an editor whose `app` names us
  * - Code pushed (by `run()` or `editor`) wins over `project` / `src`,
@@ -358,9 +358,9 @@ function srcSource(src: string): SpellAppSource {
   return {
     name: isCompiled ? file.slice(0, -COMPILED_JS.length) : file,
     compiledUrl,
-    scopesUrl: isCompiled ? compiledUrl.replace(/\.compiled\.js(?=$|[?#])/, SCOPES_JS) : undefined,
-    declarationsUrl: isCompiled ? compiledUrl.replace(/\.compiled\.js(?=$|[?#])/, DECLARATIONS_JSON) : undefined,
-    wordsUrl: isCompiled ? compiledUrl.replace(/\.compiled\.js(?=$|[?#])/, WORDS_JS) : undefined,
+    scopesUrl: isCompiled ? compiledUrl.replace(/\.spell\.js(?=$|[?#])/, SCOPES_JS) : undefined,
+    declarationsUrl: isCompiled ? compiledUrl.replace(/\.spell\.js(?=$|[?#])/, DECLARATIONS_JSON) : undefined,
+    wordsUrl: isCompiled ? compiledUrl.replace(/\.spell\.js(?=$|[?#])/, WORDS_JS) : undefined,
     importUrl: (id) => new URL(`${id.slice(id.lastIndexOf(":") + 1)}${COMPILED_JS}`, compiledUrl).href,
     importDeclarationsUrl: (id) =>
       new URL(`${id.slice(id.lastIndexOf(":") + 1)}${DECLARATIONS_JSON}`, compiledUrl).href,
@@ -372,7 +372,7 @@ function srcSource(src: string): SpellAppSource {
  * End of a compiled project's file name:  `SP.COMPILED_JS_SUFFIX`.
  * - NOTE: copies, NOT imported:  `$/spell` would pull the whole parser into the bundle.
  */
-const COMPILED_JS = ".compiled.js"
+const COMPILED_JS = ".spell.js"
 
 /** End of a scope pack's file name:  `SP.SCOPES_JS_SUFFIX`. */
 const SCOPES_JS = ".scopes.js"

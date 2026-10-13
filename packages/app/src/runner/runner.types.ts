@@ -87,7 +87,7 @@ export const SPELL_COMPILED_EVENT = "spell-compiled"
 export type SpellCompiled = {
   /** Project compiled, e.g. `@system:examples:Solitaire` -- where its imports and sources come from. */
   projectId: string
-  /** Its javascript, as `<Project>.compiled.js` holds it. */
+  /** Its javascript, as `<Project>.spell.js` holds it. */
   compiled: string
   /** Its scope pack, for the Type Explorer -- fresh, where the one on the server may be stale. */
   scopes?: LSP.ScopePack

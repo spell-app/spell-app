@@ -36,7 +36,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 ## The writers (`ts/`)
 
 - `PY.PyWriter`:  the `py` target's writer, Python on asyncio
-  - It writes `<Project>.compiled.py`.
+  - It writes `<Project>.spell.py`.
   - It builds on `PY.PyBaseWriter` (on `P.ProgramWriter`), which writes all but waiting.
   - It writes Python as a person would:
     - PEP 8's names, e.g. `Card.RANKS`, and `class_` for a keyword
@@ -45,7 +45,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - It calls `spell_core`'s one object, `core`, only where Python has no word for what spell says.
   - A function that waits is `async def`, and every call of it awaits it.
     A program that never waits is plain Python (one target since P22).
-- `PY.ElementsWriter`:  a Python program's DRAWING half, in javascript, `<Project>.elements.js` (P19)
+- `PY.ElementsWriter`:  a Python program's DRAWING half, in javascript, `<Project>.elements.spell.js` (P19)
   - For a page that draws the program running in Python, from the state Python sends.
   - It extends `P.JSWriter`:
     - the classes as they are

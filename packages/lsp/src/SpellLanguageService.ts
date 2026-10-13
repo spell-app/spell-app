@@ -1239,7 +1239,9 @@ export class SpellLanguageService {
         errors: (it.match && SP.Block.getParseErrors(it.match)?.length) ?? 0
       })),
       problem: project.parseError,
-      compiledUri: this.addresses.uriFor(project.outputFile)
+      compiledUri: this.addresses.uriFor(project.outputFile),
+      folderUri: this.addresses.uriFor(project),
+      wordsUri: this.addresses.uriFor(project.wordsFile)
     }
   }
 

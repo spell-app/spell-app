@@ -37,7 +37,7 @@ export class Task extends Thing {
 }
 
 export class TodosApp extends App {
-  static { this.declareProp("tasks", { init: () => new List({ instanceType: "Task" }) }) }
+  static { this.declareProp("tasks", { itemType: "Task", init: () => new List({ instanceType: "Task" }) }) }
   get tasks() { return this.getProp("tasks") }
   set tasks(value) { this.setProp("tasks", value) }
 

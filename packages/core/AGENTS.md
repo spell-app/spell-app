@@ -189,7 +189,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - A PAGE drawing a program that runs elsewhere, e.g. in Python ([page.ts](src/page.ts), P19):
   - `startPage()`:
     - mirrors the program's state
-    - binds its things in the program's drawing half (`adopt()`, in `<Project>.elements.js`)
+    - binds its things in the program's drawing half (`adopt()`, in `<Project>.elements.spell.js`)
     - starts its app
   - `receive()` reads each patch after.
   - `sendCall()` / `sendTrigger()`:  what the drawing half sends back, each thing by its reference

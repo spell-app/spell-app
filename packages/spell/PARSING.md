@@ -994,12 +994,16 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
 - Compiled output is never one of a project's own files.
   - The server's index lists only spell, CSS and javascript files:  see `isManifestFile()`.
     - `.spell`, `.css`, `.js` and `.jsx`
-    - So no other target's output, e.g. `<Project>.compiled.py`, is ever listed.
+    - So no other target's output, e.g. `<Project>.spell.py`, is ever listed.
   - Of those, it leaves out:
-    - a project's `<Project>.compiled.js`, and a fixture's `<Project>.snapshot.js`
+    - a project's `<Project>.spell.js`, and a fixture's `<Project>.snapshot.js`
     - its scope pack, `<Project>.scopes.js`
     - its words, `<Project>.en.js`
+    - a Python program's page file, `<Project>.elements.spell.js`
+    - the same files by their names before epic `people-and-orgs` P11, e.g. `<Project>.compiled.js`:
+      an old copy left in a checkout
   - Else the index would add them to `project.json`.
+  - The list:  `GENERATED_SUFFIXES`, beside `isManifestFile()`.
 - [`SpellProject`](src/SpellProject.ts):  files in `project.json` order, e.g. Card → Deck → Pile → Solitaire.
 - `SpellProject` / `SpellFile` load over HTTP.
   - with `$fetch()`, on `/api/projects/...`
@@ -1101,7 +1105,7 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
   - That calls `updatedContentsFor(file)`.
   - `project.incremental.update()` re-parses what changed right away, and hands changed files their new match.
   - If that couldn't cope, `updateText()` parses from scratch straight away.
-  - After 2s:  it compiles, saves `<Project>.compiled.js` and runs it.
+  - After 2s:  it compiles, saves `<Project>.spell.js` and runs it.
 - A crash while parsing (a rule threw, NOT an error in the spell) is left in `project.parseError`.
 - `SpellProject`'s parse task list keeps its scope + `incremental` while they're good.
   See `needsFullParse`.
@@ -1191,7 +1195,7 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
       (epic `people-and-orgs` P3)
       - one TypeScript file, `<Project>.lib.ts`, its own types, checked by `tsc`
       - no drawing, none of its top-level steps, the core with no Solid (`@spell-app/core/model`)
-  - Each writes a file of its own, e.g. `Solitaire.compiled.py`:  see each target's `suffix`.
+  - Each writes a file of its own, e.g. `Solitaire.spell.py`:  see each target's `suffix`.
   - A project lists the others it wants in its `project.json`, e.g. `"targets": ["ts/solid", "py"]`.
   - What every program's writer shares is `P.ProgramWriter`, which the javascript and Python writers extend.
     - `forProject()` reads the whole project first, so it knows what each value is.

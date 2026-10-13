@@ -1,6 +1,6 @@
 """Plays a compiled game seeded, checking after every click that its patches give the same state as writing it whole.
 
-`python tests/py/core/tests/patches_in_a_game.py Solitaire.compiled.py --seed 1 --clicks 300` (from the repo root)
+`python tests/py/core/tests/patches_in_a_game.py Solitaire.spell.py --seed 1 --clicks 300` (from the repo root)
 
 - Run by the core contract (cli's `contract.test.ts`), in a process of its own:
   the game's classes (`Card`, `Pile` ...) are known by name, and would stand in for the test files' own.

@@ -1,7 +1,7 @@
 """A game per visitor, a page per WebSocket:  what a spell app's `/ws` route serves.
 
 ```python
-sessions = SpellSessions(HERE / "Solitaire.compiled.py")
+sessions = SpellSessions(HERE / "Solitaire.spell.py")
 
 @app.websocket("/ws")
 async def ws():

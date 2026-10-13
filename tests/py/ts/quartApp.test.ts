@@ -7,22 +7,22 @@ import { PY } from "$/py"
  * and `PY.isUneditedApp()`, which says whether compiling again may rewrite it.
  * - The app itself is run in cli's `quartApp.test.ts`.
  */
-const SPEC = { projectName: "Solitaire", program: "Solitaire.compiled.py", elements: "Solitaire.elements.js" }
+const SPEC = { projectName: "Solitaire", program: "Solitaire.spell.py", elements: "Solitaire.elements.spell.js" }
 
 describe("PY.quartApp()", () => {
   test("serves the program, its drawing half, the page side and the WebSocket", () => {
     const app = PY.quartApp(SPEC)
-    expect(app).toContain('sessions = SpellSessions(HERE / "Solitaire.compiled.py")')
-    expect(app).toContain('html = page_html("Solitaire", elements="/Solitaire.elements.js", projects=projects)')
-    expect(app).toContain('@app.get("/<name>.elements.js")')
+    expect(app).toContain('sessions = SpellSessions(HERE / "Solitaire.spell.py")')
+    expect(app).toContain('html = page_html("Solitaire", elements="/Solitaire.elements.spell.js", projects=projects)')
+    expect(app).toContain('@app.get("/<name>.elements.spell.js")')
     expect(app).toContain('@app.websocket("/ws")')
     expect(app).toContain("# Your own routes go here")
   })
 
   test("serves each imported project's drawing half too", () => {
-    const app = PY.quartApp({ ...SPEC, projects: { "@spell/project/@test:fixtures:Cards": "Cards.elements.js" } })
-    expect(app).toContain('"@spell/project/@test:fixtures:Cards": "/Cards.elements.js",')
-    expect(app).toContain('not in ["Solitaire.elements.js", "Cards.elements.js"]')
+    const app = PY.quartApp({ ...SPEC, projects: { "@spell/project/@test:fixtures:Cards": "Cards.elements.spell.js" } })
+    expect(app).toContain('"@spell/project/@test:fixtures:Cards": "/Cards.elements.spell.js",')
+    expect(app).toContain('not in ["Solitaire.elements.spell.js", "Cards.elements.spell.js"]')
   })
 })
 

@@ -35,14 +35,14 @@ async def on_lamp_click(event):
 @pytest.fixture
 def app(tmp_path: Path) -> Quart:
     """A Quart app serving the program above, as a compiled program's `.app.py` does."""
-    program = tmp_path / "Room.compiled.asyncio.py"
+    program = tmp_path / "Room.spell.py"
     program.write_text(PROGRAM)
     app = Quart(__name__)
     sessions = SpellSessions(program, seed=1)
 
     @app.get("/")
     async def page():
-        response = await make_response(page_html("Room", elements="/Room.elements.js"))
+        response = await make_response(page_html("Room", elements="/Room.elements.spell.js"))
         return remember_visitor(response, visitor_of(request))
 
     @app.websocket("/ws")
@@ -56,7 +56,7 @@ async def test_the_page_loads_the_core_and_the_programs_drawing_half(app: Quart)
     response = await app.test_client().get("/")
     text = await response.get_data(as_text=True)
     assert '"@spell/core": "/spell/spell-page.js"' in text
-    assert 'import * as program from "/Room.elements.js"' in text
+    assert 'import * as program from "/Room.elements.spell.js"' in text
     assert "spell-visitor=" in response.headers["Set-Cookie"]
 
 

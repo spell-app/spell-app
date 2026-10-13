@@ -194,7 +194,7 @@ export class SpellDeclarations {
   }
 
   /**
-   * Declarations in `compiled`, a project's `<Project>.compiled.js` from before declarations had a file of their own
+   * Declarations in `compiled`, a project's `<Project>.spell.js` from before declarations had a file of their own
    * (epic `output-targets`, P5).
    * - `undefined` if it has no `/*! SPELL: PROJECT {...} *\/` header.
    * - Reads TEXT:  never runs the compiled code.

@@ -108,7 +108,7 @@ export function fixtureProjectNames(): string[] {
 }
 
 /**
- * Fixture `projectName` compiled as `SpellProject` would write its `<Project>.compiled.js`.
+ * Fixture `projectName` compiled as `SpellProject` would write its `<Project>.spell.js`.
  * - Parsed headlessly, with `parseSpellProject()`:  `import`s, then each file's code in `project.json` order.
  * - Its declarations, as its `<Project>.declarations.json`:  `fixtureDeclarations()`.
  * - `target`:  compiled for that target, e.g. `ts/solid` (see `SP.TARGETS`);

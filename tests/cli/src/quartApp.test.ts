@@ -52,7 +52,7 @@ describe("a Python spell app, in a real browser", () => {
   test("compiling to py writes the program, its drawing half and its app", () => {
     const files = readdirSync(join(folder, "Solitaire"))
     expect(files).toEqual(
-      expect.arrayContaining(["Solitaire.compiled.py", "Solitaire.elements.js", "Solitaire.app.py"])
+      expect.arrayContaining(["Solitaire.spell.py", "Solitaire.elements.spell.js", "Solitaire.app.py"])
     )
   })
 
@@ -204,7 +204,7 @@ describe("a Python spell app, in a real browser", () => {
       readdirSync(join(folder, "Solitaire"))
         .filter((file) => file.endsWith(".py"))
         .sort()
-    ).toEqual(["Solitaire.app.py", "Solitaire.compiled.py"])
+    ).toEqual(["Solitaire.app.py", "Solitaire.spell.py"])
   }, 120_000)
 
   test("a drawable program draws its own elements, <solitaire-card>, and a click on one plays in Python", async () => {

@@ -48,7 +48,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - tidy, as the TypeScript writer:  `const`, double quotes, no extra parentheses or braces
     - It reads the whole project first, to know what each value is:
       `P.WriterProject`, through `forProject()`.
-  - `P.TSWriter`:  TypeScript on Solid, for `<Project>.compiled.tsx`
+  - `P.TSWriter`:  TypeScript on Solid, for `<Project>.spell.tsx`
     - It extends `P.JSWriter`, adding only what's TypeScript's own:
       - real JSX, decorators, the types spell knows
       - `!` where `?.` can't go

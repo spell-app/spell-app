@@ -2,7 +2,7 @@
  * Entry of `spell-page.js`:  a page that draws a program running ELSEWHERE,
  * e.g. a Python program served by Quart (epic `python-target` P20).
  * - Built by `yarn build:page` into `dist-page/`, after `vite.solid.config.ts`:  see `vite.page.config.ts`.
- * - It IS the page's `@spell/core`:  the program's drawing half, `<Project>.elements.js`, imports from it,
+ * - It IS the page's `@spell/core`:  the program's drawing half, `<Project>.elements.spell.js`, imports from it,
  *   through the page's import map.
  * - It exports what `spell-runtime.js` exports for compiled javascript (`spellPage.test.ts` pins it),
  *   plus the page's side (`page.ts` in `$/core`):
@@ -14,7 +14,7 @@
  * <script type="importmap">{ "imports": { "@spell/core": "/spell/spell-page.js" } }</script>
  * <script type="module">
  *   import { connectPage } from "@spell/core"
- *   import * as elements from "/Solitaire.elements.js"
+ *   import * as elements from "/Solitaire.elements.spell.js"
  *   connectPage({ modules: [elements], url: "/ws" })
  * </script>
  * ```

@@ -93,7 +93,7 @@ beforeAll(async () => {
   writeFixture("user/Proj/project.json", JSON.stringify({ imports: [{ path: "/top.spell", active: true }] }))
   writeFixture("user/Proj/top.spell", "to do something\n")
   writeFixture("user/Proj/folder/sub/file.spell", "nested\n")
-  writeFixture("user/Proj/Proj.compiled.js", "export default 1\n")
+  writeFixture("user/Proj/Proj.spell.js", "export default 1\n")
 
   const port = await freePort()
   baseUrl = `http://localhost:${port}`
@@ -435,7 +435,7 @@ describe("compiled, scopes and words files", () => {
     expect(reply.status).toBe(404)
     expect(reply.contentType).toMatch(/^text\/javascript/)
     const body = reply.json()
-    expect(body.errors[0].message).toMatch(/^File not found: '.*Nope\.compiled\.js'$/)
+    expect(body.errors[0].message).toMatch(/^File not found: '.*Nope\.spell\.js'$/)
     expect(typeof body.errors[0].trace).toBe("string")
   })
 
@@ -462,5 +462,17 @@ describe("compiled, scopes and words files", () => {
     const { manifest, imports } = reply.json() as { manifest: object; imports: Array<{ path: string }> }
     expect(Object.keys(manifest).filter((path) => /Proj\.(en|es)\.js$/.test(path))).toEqual([])
     expect(imports.map(({ path }) => path)).not.toContain("/Proj.en.js")
+  })
+
+  it("compiled output, by its names before people-and-orgs P11 too, is NOT one of its files", async () => {
+    // A copy left from before the rename must never become an import of the project
+    for (const file of ["Proj.compiled.js", "Proj.elements.js", "Proj.elements.spell.js", "Proj.spell.tsx"]) {
+      writeFixture(`user/Proj/${file}`, "export default 2\n")
+    }
+    const reply = await request("GET", `/api/projects/index/${PROJECT}`)
+    expect(reply.status).toBe(200)
+    const { manifest, imports } = reply.json() as { manifest: object; imports: Array<{ path: string }> }
+    expect(Object.keys(manifest).filter((path) => /Proj\.(spell|compiled|elements)/.test(path))).toEqual([])
+    expect(imports.map(({ path }) => path).filter((path) => path.startsWith("/Proj."))).toEqual([])
   })
 })

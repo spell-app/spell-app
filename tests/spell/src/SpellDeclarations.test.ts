@@ -9,7 +9,7 @@ import { loadFixtureProject, parseSpellProject, summarize, type SpellSourceFile 
  * `files` compiled as a project would be:
  * - `marked`:  each file's code, with its statements' `/*! SPELL: DECLARES` markers inline -- a class member's in its
  *   class's body -- as `SpellProject` combines them, before `split()`
- * - `code`:  that, markers out, as its `<Project>.compiled.js`
+ * - `code`:  that, markers out, as its `<Project>.spell.js`
  * - `declarations`:  as its `<Project>.declarations.json`, read back as another project would
  */
 function compiledProject(files: SpellSourceFile[], options: { version?: string; exports?: string[] } = {}) {

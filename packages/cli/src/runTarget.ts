@@ -87,8 +87,8 @@ type WrittenImport = { url: string; module: string; elements?: string }
  * SIDE EFFECT:  each project `project` imports, and each they import, compiled for `target` and written into
  * `folder`, as its code imports it.  Returns them by project id.
  * - Python:  a module of the project's name, `cards.py`, beside the program:  `from cards import Card`;
- *   and its drawing half, `cards.elements.js`, which the app serves.
- * - TypeScript:  built (`buildTsx()`) to `<Project>.compiled.mjs`.
+ *   and its drawing half, `cards.elements.spell.js`, which the app serves.
+ * - TypeScript:  built (`buildTsx()`) to `<Project>.spell.mjs`.
  */
 async function writeImports(
   project: SP.SpellProject,
@@ -106,7 +106,7 @@ async function writeImports(
     if (target.name === "py") file = `${PY.PyWriter.projectModule(module)}.py`
     else {
       code = await buildTsx(code, { filename: `${name}${target.suffix}` })
-      file = `${name}.compiled.mjs`
+      file = `${name}.spell.mjs`
     }
     writeFileSync(join(folder, file), code)
     const entry: WrittenImport = { url: pathToFileURL(join(folder, file)).href, module }

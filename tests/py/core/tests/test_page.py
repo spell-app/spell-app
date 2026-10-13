@@ -43,7 +43,7 @@ def on_lamp_click(event):
 @pytest.fixture
 def session(tmp_path: Path) -> Iterator[PageSession]:
     """A session with the program above, run;  its handler taken off the shared core after."""
-    program = tmp_path / "Room.compiled.py"
+    program = tmp_path / "Room.spell.py"
     program.write_text(PROGRAM)
     try:
         yield PageSession(run_program(program, seed=1))

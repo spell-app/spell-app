@@ -383,7 +383,7 @@ describe("no project named", () => {
   test("in a project's folder:  that project -- for every command", () => {
     const here = tempProject("Here", 'print "here"\n')
     expect(spell(["check"], here).stderr).toContain("✓ @workspace:")
-    expect(spell(["compile"], here).stderr).toContain("wrote Here.compiled.js")
+    expect(spell(["compile"], here).stderr).toContain("wrote Here.spell.js")
     expect(spell(["run"], here).stdout).toBe("here\n")
     expect(spell(["describe"], here).stdout).toMatch(/^Here\n/)
   })
@@ -529,7 +529,7 @@ describe("spell run", () => {
       expect(stdout, target).toBe(javascript)
       expect(status, target).toBe(0)
     }
-    expect(existsSync(fixturePath("FizzBuzz", "FizzBuzz.compiled.py"))).toBe(false)
+    expect(existsSync(fixturePath("FizzBuzz", "FizzBuzz.spell.py"))).toBe(false)
   })
 
   test("--target ts on a program that draws:  runs what it can, and says it can't open in a browser yet", () => {
@@ -563,8 +563,8 @@ describe("spell run", () => {
     // after what the program printed as it ran under node
     await until(() => /http:\/\/localhost:\d+\/\n/.test(out), 120_000)
     const url = /http:\/\/localhost:\d+\//.exec(out)![0]
-    expect(await (await fetch(url)).text()).toContain('<spell-app src="app/Solitaire.compiled.js" toolbar>')
-    expect(await (await fetch(new URL("app/Solitaire.compiled.js", url))).text()).toContain("class Card")
+    expect(await (await fetch(url)).text()).toContain('<spell-app src="app/Solitaire.spell.js" toolbar>')
+    expect(await (await fetch(new URL("app/Solitaire.spell.js", url))).text()).toContain("class Card")
     expect(await (await fetch(new URL("app/Solitaire.scopes.js", url))).text()).toContain("type:Card")
     expect((await fetch(new URL("element/spell-app.js", url))).status).toBe(200)
     expect((await fetch(new URL("element/../../package.json", url))).status).toBe(404)

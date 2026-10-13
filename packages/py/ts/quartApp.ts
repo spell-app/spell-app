@@ -2,8 +2,8 @@
  * A Python spell program's web app, `<Project>.app.py` (epic `python-target` P20, Q25 B):
  * what compiling to `py` writes beside a program that draws.
  * - A short Quart app, every route spelled out, for a Python programmer to read and grow:
- *   - `/`:  the page, which loads the javascript core and the program's drawing half, `<Project>.elements.js`
- *   - `/<Project>.elements.js`, and each imported project's:  served from beside the app
+ *   - `/`:  the page, which loads the javascript core and the program's drawing half, `<Project>.elements.spell.js`
+ *   - `/<Project>.elements.spell.js`, and each imported project's:  served from beside the app
  *   - `/spell/...`:  the javascript core, Solid, Spell UI and Semantic UI (`spell_quart.assets_folder()`)
  *   - `/ws`:  the WebSocket:  a click up, the state and what changed down;  a game per visitor
  *   - a place for their own routes
@@ -16,16 +16,22 @@
 export type QuartAppSpec = {
   /** The project's name, e.g. `Solitaire`:  the page's title. */
   projectName: string
-  /** The compiled program's file, beside the app, e.g. `Solitaire.compiled.py`. */
+  /** The compiled program's file, beside the app, e.g. `Solitaire.spell.py`. */
   program: string
-  /** The program's drawing half, beside the app, e.g. `Solitaire.elements.js`. */
+  /** The program's drawing half, beside the app, e.g. `Solitaire.elements.spell.js`. */
   elements: string
   /**
    * Each project the program imports:  the module its drawing half imports it as, and its drawing half's file,
-   * which must sit beside the app too, e.g. `{ "@spell/project/@system:library:cards": "Cards.elements.js" }`.
+   * which must sit beside the app too, e.g. `{ "@spell/project/@system:library:cards": "Cards.elements.spell.js" }`.
    */
   projects?: Record<string, string>
 }
+
+/**
+ * End of a drawing half's file's name, which its route matches, e.g. `Solitaire.elements.spell.js`.
+ * - `SP.ELEMENTS_JS_SUFFIX`, which `$/py` can't import:  `spell` imports us.
+ */
+const ELEMENTS_SUFFIX = ".elements.spell.js"
 
 /** Start of an app's first line, before its hash:  see `isUneditedApp()`. */
 const HASH_LINE = "# Written by spell compile, hash "
@@ -64,12 +70,12 @@ async def page():
     return remember_visitor(await make_response(html), visitor_of(request))
 
 
-@app.get("/<name>.elements.js")
+@app.get("/<name>${ELEMENTS_SUFFIX}")
 async def elements(name: str):
     """The program's drawing half, and each imported project's."""
-    if f"{name}.elements.js" not in ${py(files)}:
+    if f"{name}${ELEMENTS_SUFFIX}" not in ${py(files)}:
         return "Not found", 404
-    return fresh(await send_from_directory(HERE, f"{name}.elements.js", mimetype="text/javascript"))
+    return fresh(await send_from_directory(HERE, f"{name}${ELEMENTS_SUFFIX}", mimetype="text/javascript"))
 
 
 @app.get(f"{ASSETS_URL}/<path:path>")

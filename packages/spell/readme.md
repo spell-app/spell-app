@@ -89,7 +89,7 @@ Notes:
   updating as you type.
 - `Spell: Run Project` (the ▶ button) runs the file's project beside it.
   - It re-runs it each time the project compiles without errors:
-    on save, its Restart button, or anything rewriting its `<Project>.compiled.js`, e.g. the web app.
+    on save, its Restart button, or anything rewriting its `<Project>.spell.js`, e.g. the web app.
   - A project that doesn't parse leaves the last good run going.
   - "Show Console" opens a pane with:
     - "Program Output":  what it `print`s
@@ -103,7 +103,7 @@ Notes:
     - After changing the runner alone:  `yarn build:runner` (in `packages/app`), and close / reopen the panel.
 - Spell indents with tabs:  the extension sets `.spell` files to tabs, and formatting always uses them.
 - Settings:
-  - `spell.compileOnSave` writes the project's `<Project>.compiled.js` on save.
+  - `spell.compileOnSave` writes the project's `<Project>.spell.js` on save.
   - `spell.parserRoot` points at another checkout of this repo.
 
 ### Run spell in any page:  `<spell-app>`
@@ -119,7 +119,7 @@ Notes:
 <spell-app project="@examples/Solitaire" toolbar debug="explorer" height="600px"></spell-app>
 
 <!-- from any static host:  its `Calculator.scopes.js`, and any project it imports, beside it -->
-<spell-app src="apps/Calculator.compiled.js" toolbar width="50%"></spell-app>
+<spell-app src="apps/Calculator.spell.js" toolbar width="50%"></spell-app>
 ```
 
 - `yarn build:element` (in `packages/app`) builds it into `dist-element/`:  copy that folder anywhere.

@@ -45,7 +45,7 @@ export type GlobalOptions = {
 
 /**
  * `spell compile` flags.
- * - `stdout`:  print a project's compiled output rather than writing `<Project>.compiled.js`.
+ * - `stdout`:  print a project's compiled output rather than writing `<Project>.spell.js`.
  * - `force`:  recompile the projects it imports, too, even those already compiled
  */
 export type CompileOptions = GlobalOptions & {
@@ -294,7 +294,7 @@ export type NewOptions = GlobalOptions & {
  * - `mode`:  `run` the project, or run its `test ...` functions and report
  * - `name`:  the project's, for messages
  * - `entry`:  URL of its compiled javascript -- a temp file, never in the project
- * - `projects`:  URL of each project it imports' `<Project>.compiled.js`, by id -- for `@spell/project/<id>`
+ * - `projects`:  URL of each project it imports' `<Project>.spell.js`, by id -- for `@spell/project/<id>`
  * - `spellCore`:  URL of `core`'s `src/index.ts`, for `@spell/core`
  * - `verbose`:  `test` shows every check, and anything printed, not just failures
  * - `filter`:  `test` runs only tests whose names contain it -- see `runProject.ts`
@@ -400,7 +400,7 @@ export type StatusState = "running" | "ok" | "errors" | "failed"
 /**
  * One line of progress in a `StatusReporter`, e.g. one project compiling.
  * - `label`:  what's being worked on, e.g. a project id
- * - `note`:  short outcome after the label, e.g. `3 errors · wrote Foo.compiled.js`
+ * - `note`:  short outcome after the label, e.g. `3 errors · wrote Foo.spell.js`
  * - `details`:  lines listed under it, e.g. each error
  */
 export type StatusRow = {

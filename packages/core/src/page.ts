@@ -3,14 +3,15 @@
  * it mirrors the program's state, draws it with the program's own classes, and sends its events back.
  *
  * ```ts
- * import * as elements from "./Solitaire.elements.js"
+ * import * as elements from "./Solitaire.elements.spell.js"
  *
  * const page = startPage({ modules: [elements], state, send: (message) => socket.send(JSON.stringify(message)) })
  * socket.onmessage = (event) => page.receive(JSON.parse(event.data))
  * ```
  *
- * - `modules`:  the program's drawing half, `<Project>.elements.js` (`P.ElementsWriter`), and those of the projects
- *   it imports:  their classes, and the program's own `adopt()`, which binds the things it keeps from the state.
+ * - `modules`:  the program's drawing half, `<Project>.elements.spell.js` (`P.ElementsWriter`),
+ *   and those of the projects it imports:  their classes,
+ *   and the program's own `adopt()`, which binds the things it keeps from the state.
  * - `state`:  the program's state, by id (`StateWriter`):  `{ "game": {...}, "stock": {...} }`.
  * - `send`:  where its messages go, as JSON, each thing in it by its id:
  *   - a call, `{ "call": "play_from_the_stock_pile", "args": [] }`,
@@ -68,7 +69,7 @@ export function startPage({ modules, state, send }: PageSpec): Page {
 /**
  * SIDE EFFECT:  ask the program to run its `name`, e.g. `play_from_the_stock_pile`, with `args`:
  * a thing's method when it's `on` one.
- * - What a stand-in in `<Project>.elements.js` calls, and a handler's call of a thing's method.
+ * - What a stand-in in `<Project>.elements.spell.js` calls, and a handler's call of a thing's method.
  */
 export function sendCall(name: string, args: unknown[], on?: Thing | List): void {
   if (!current) return

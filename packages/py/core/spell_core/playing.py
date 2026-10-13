@@ -1,7 +1,7 @@
 """Playing a program the way its page does:  by the page's messages, checking each patch.
 
 ```python
-game = play_page("Solitaire.compiled.py", seed=1)
+game = play_page("Solitaire.spell.py", seed=1)
 stock = game.named("stock")                   # what the page holds of it:  its JSON, by id
 patch = game.trigger("card-click", card=game.ref(stock["$items"][-1]))
 assert [thing["$type"] for thing in patch] == ["Card", "StockPile", "DiscardPile"]

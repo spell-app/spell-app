@@ -117,7 +117,7 @@ export class CliSession {
   }
 
   /**
-   * Compile each project `project` imports -- and what THEY import -- which has no `<Project>.compiled.js` yet.
+   * Compile each project `project` imports -- and what THEY import -- which has no `<Project>.spell.js` yet.
    * - Why:  a compiled import is read from that file, so parsing `project` fails without it.
    * - NOTE: an existing one is used as is, even if its sources have changed since -- unless `force`
    *   (`spell compile --force`), which recompiles them all, what they import first.

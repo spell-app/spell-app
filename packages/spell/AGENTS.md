@@ -68,7 +68,7 @@ when working with code in this package, `@spell-app/spell`.
     - on asyncio:  a function that waits is `async def`
     - with a words file of its own, by Python's names:  `<Project>.py.en.json`
     - a program that draws also gets two more files:
-      - its page file, `<Project>.elements.js`:  its drawing half, in javascript
+      - its page file, `<Project>.elements.spell.js`:  its drawing half, in javascript
         - its suffix `elementsSuffix`, its writer `PY.ElementsWriter`
       - its web app on Quart, `<Project>.app.py`
         - Each compile rewrites it only while nobody has edited it.

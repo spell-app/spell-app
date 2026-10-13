@@ -30,10 +30,24 @@ export type CompilableSpellFile = SpellFile | SpellCSSFile
 export const PROJECT_FILE = "project.json"
 
 /**
- * End of a project's compiled output file's name, e.g. `Solitaire.compiled.js` -- see `SpellProject.outputFile`.
+ * End of a project's compiled output file's name, e.g. `Solitaire.spell.js` -- see `SpellProject.outputFile`.
  * - NEVER one of a project's own files:  the server leaves it out of the manifest.
+ * - It was `.compiled.js` until epic `people-and-orgs` P11:
+ *   the server leaves those out of the manifest too (`isManifestFile()`, in `$/spell/node/project-utils`).
  */
-export const COMPILED_JS_SUFFIX = ".compiled.js"
+export const COMPILED_JS_SUFFIX = ".spell.js"
+
+/**
+ * End of a project's compiled TypeScript file's name, for the `ts/solid` target, e.g. `Solitaire.spell.tsx`.
+ * - It was `.compiled.tsx` until epic `people-and-orgs` P11, as `COMPILED_JS_SUFFIX`.
+ */
+export const COMPILED_TSX_SUFFIX = ".spell.tsx"
+
+/**
+ * End of a project's compiled Python file's name, for the `py` target, e.g. `Solitaire.spell.py`.
+ * - It was `.compiled.py` until epic `people-and-orgs` P11, as `COMPILED_JS_SUFFIX`.
+ */
+export const COMPILED_PY_SUFFIX = ".spell.py"
 
 /**
  * End of a project's declarations file's name, e.g. `Solitaire.declarations.json`:
@@ -51,11 +65,12 @@ export const DECLARATIONS_JSON_SUFFIX = ".declarations.json"
 export const SNAPSHOT_JS_SUFFIX = ".snapshot.js"
 
 /**
- * End of a Python program's page file's name, e.g. `Solitaire.elements.js`:  its drawing half in javascript,
+ * End of a Python program's page file's name, e.g. `Solitaire.elements.spell.js`:  its drawing half in javascript,
  * for a page that mirrors it (epic `python-target` P19, `PY.ElementsWriter`) -- see `SP.Target.elementsSuffix`.
  * - NEVER one of a project's own files:  the server leaves it out of the manifest, as `COMPILED_JS_SUFFIX`.
+ * - It was `.elements.js` until epic `people-and-orgs` P11, as `COMPILED_JS_SUFFIX`.
  */
-export const ELEMENTS_JS_SUFFIX = ".elements.js"
+export const ELEMENTS_JS_SUFFIX = ".elements.spell.js"
 
 /**
  * End of a project's scope pack file's name, e.g. `Solitaire.scopes.js`:

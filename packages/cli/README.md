@@ -128,7 +128,7 @@ Longer notes on some of them follow the table.
   - `--no-minify`.
   - A folder:  every `.html` in it.
 - `compile`:  writes each project's compiled javascript and its declarations, beside it.
-  - That's `<Project>.compiled.js` and `<Project>.declarations.json`.
+  - That's `<Project>.spell.js` and `<Project>.declarations.json`.
   - Also each other target's output, e.g. Python's:  the project's targets, or the one `--target <name>` names.
     - A project's targets are the `"targets"` in its `project.json`.
       Every target is in `SP.TARGETS`.
@@ -359,7 +359,7 @@ Longer notes on some of them follow the table.
 
 ### What can write files
 
-- `compile` writes `<Project>.compiled.js`, as the app does.
+- `compile` writes `<Project>.spell.js`, as the app does.
   - With no errors, also `<Project>.scopes.js`, as the language server does.
   - `--stdout` writes neither.
   - `watch` the same after each rebuild, unless `--check-only`.
@@ -374,9 +374,9 @@ Longer notes on some of them follow the table.
   ```
 
   - But if a project imports one that has NEVER been compiled, it's compiled first,
-    which writes that project's `.compiled.js`.
+    which writes that project's `.spell.js`.
     Parsing fails without it.
-- An imported project's existing `.compiled.js` is used as is, even if its sources changed since.
+- An imported project's existing `.spell.js` is used as is, even if its sources changed since.
   Compile it first.
 - `run` / `test` compile to a temp file, never into the project.
 - A folder, or a loose `.spell` file, with no `project.json` at or above it is REFUSED:
@@ -524,7 +524,7 @@ Longer notes on some of them follow the table.
 ### `watch`
 
 - It watches each project's folder:  its spell files, CSS and `project.json`.
-  It ignores `*.compiled.js` and `*.scopes.js`.
+  It ignores `*.spell.js` and `*.scopes.js`.
 - Watching both a project and one it imports:  the importer rebuilds, from scratch, after the imported one does.
   - A project imported but not watched isn't seen changing.
 - On macOS a save arrives as a `rename` event, so `watch` ignores event types and looks at what's on disk.
@@ -563,7 +563,7 @@ Longer notes on some of them follow the table.
 - **Name clashes:**  a shell alias or function named `spell` hides the command.
   Check `type -a spell` in a login shell.
 - **Test projects:**  running a test project (`projects/test/`) from VS Code's ▶ Run Project writes into it.
-  - It writes `<Project>.compiled.js` and `settings.json5`.
+  - It writes `<Project>.spell.js` and `settings.json5`.
   - Test projects should stay frozen, so delete those.
 
 
@@ -590,7 +590,7 @@ Longer notes on some of them follow the table.
     They include end-to-end runs of the bin script ([spell.mjs](bin/spell.mjs)).
 - The one thing it needs IN spell, in [`SpellProject.ts`](../spell/src/SpellProject.ts):
   `SpellProject.compile(parentScope, { save })`.
-  - `save: false` skips writing `<Project>.compiled.js`.
+  - `save: false` skips writing `<Project>.spell.js`.
   - Without it, `compile --stdout` would write into the project, as would running or testing it.
 - Brought up to date with the parser's scope-tree rework when it moved here:
   - things in the Type Explorer's tree are named by `path`, not `id`

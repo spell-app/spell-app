@@ -128,7 +128,7 @@ describe("SpellWords", () => {
   test("a words file is its project's name, a language, then `.js`", () => {
     expect(SP.SpellWords.isWordsFile("Solitaire.en.js", "Solitaire")).toBe(true)
     expect(SP.SpellWords.isWordsFile("Solitaire.pt-BR.js", "Solitaire")).toBe(true)
-    expect(SP.SpellWords.isWordsFile("Solitaire.compiled.js", "Solitaire")).toBe(false)
+    expect(SP.SpellWords.isWordsFile("Solitaire.spell.js", "Solitaire")).toBe(false)
     expect(SP.SpellWords.isWordsFile("Solitaire.en.snapshot.js", "Solitaire")).toBe(false)
     expect(SP.SpellWords.isWordsFile("Klondike.en.js", "Solitaire")).toBe(false)
     expect(SP.SpellWords.isWordsFile("helpers.js", "Solitaire")).toBe(false)

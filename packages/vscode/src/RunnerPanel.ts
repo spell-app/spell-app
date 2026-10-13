@@ -3,7 +3,7 @@
  * - The webview's code is `app`'s runner bundle (`yarn build:runner` => `dist-runner/`,
  *   from `src/app/runner/`), with Semantic UI + Lato straight from its `static/`.
  * - Server compiles, NOT us:  `spell/compileProject`, answered by `spell/projectCompiled` with the javascript.
- * - Also re-runs when the project's `<Project>.compiled.js` changes on disk, e.g. compiled by the web app.
+ * - Also re-runs when the project's `<Project>.spell.js` changes on disk, e.g. compiled by the web app.
  * - Sends its words, `<Project>.en.js` beside it, after each run:  the Thing Explorer's labels.
  */
 import { existsSync } from "fs"
@@ -18,7 +18,7 @@ import type { LanguageClient } from "vscode-languageclient/node"
  * - Webview says `ready`, or Restart is pressed:  ask the server to compile.
  * - Every `spell/projectCompiled` for its project:  post `run` to the webview, with the javascript.
  * - Saving one of the project's spell files compiles too, unless `spell.compileOnSave` already does.
- * - `<Project>.compiled.js` changing on disk runs it too, unless it has parse errors -- see `compiledChanged()`.
+ * - `<Project>.spell.js` changing on disk runs it too, unless it has parse errors -- see `compiledChanged()`.
  * - A failed compile sends nothing, so the last good app keeps running.
  * - Runs the same javascript only ONCE, unless asked to -- a compile both notifies AND rewrites the file.
  * - Remembers how the runner shows the project (console, tab, Type Explorer)
@@ -38,7 +38,7 @@ export class RunnerPanel {
   declare uri: string
   /** The project's `settings.json5`, beside its `project.json` -- see `readSettings()`. */
   declare settingsUri: vscode.Uri
-  /** The project's words, `<Project>.en.js`, beside its compiled javascript -- see `sendWords()`. */
+  /** The project's words, `<Project>.en.js`, beside its spell files -- see `sendWords()`. */
   declare wordsUri: vscode.Uri
   /** Its settings, as last read or saved. */
   #settings: ProjectSettings = {}
@@ -53,9 +53,8 @@ export class RunnerPanel {
     this.client = client
     this.project = info.project
     this.uri = uri
-    // the compiled file is in the project's folder too
-    this.settingsUri = vscode.Uri.joinPath(vscode.Uri.parse(info.compiledUri), "..", SETTINGS_FILE)
-    this.wordsUri = vscode.Uri.parse(info.compiledUri.replace(/\.compiled\.js$/, WORDS_JS))
+    this.settingsUri = vscode.Uri.joinPath(vscode.Uri.parse(info.folderUri), SETTINGS_FILE)
+    this.wordsUri = vscode.Uri.parse(info.wordsUri)
     const runner = vscode.Uri.file(resolve(repoRoot, "packages/app/dist-runner"))
     const statics = vscode.Uri.file(resolve(repoRoot, "packages/app/static"))
     this.panel = vscode.window.createWebviewPanel(
@@ -155,7 +154,7 @@ export class RunnerPanel {
   }
 
   /**
-   * Our `<Project>.compiled.js` at `uri` changed on disk:  run it, unless it has parse errors.
+   * Our `<Project>.spell.js` at `uri` changed on disk:  run it, unless it has parse errors.
    * - Catches compiles from anywhere, e.g. the web app.  Our own compiles rewrite it too -- `run()` skips those.
    * - NOTE: spots parse errors by the `PARSE ERROR` comment they compile to.
    *   Whoever compiled it, that's all the file can tell us.
@@ -180,7 +179,7 @@ export class RunnerPanel {
   }
 
   /**
-   * Send the webview the project's words, as text:  `<Project>.en.js`, which compiling wrote beside its javascript.
+   * Send the webview the project's words, as text:  `<Project>.en.js`, which compiling wrote beside its spell files.
    * - None, e.g. compiled before words had a file:  sends none, and the Thing Explorer shows names as they are.
    */
   async sendWords(): Promise<void> {
@@ -337,9 +336,6 @@ export class RunnerPanel {
 /** Start of what a line which doesn't parse compiles to:  a comment, `PARSE ERROR: Don't understand "foo"`. */
 const PARSE_ERROR_MARKER = "/* PARSE ERROR:"
 
-/** End of a project's words file's name, in place of `.compiled.js`:  `SP.WORDS_JS_SUFFIX`, which we can't import. */
-const WORDS_JS = ".en.js"
-
 ////////////////
 // ## Protocol types
 //  NOTE: restated from `app` (`runner.types.ts`), which this project can't import -- change both together.
@@ -349,8 +345,12 @@ const WORDS_JS = ".en.js"
 type ProjectInfo = {
   /** Project id, e.g. `@system:examples:Solitaire`. */
   project: string
-  /** URI of its compiled javascript, `<Project>.compiled.js`. */
+  /** URI of its compiled javascript, `<Project>.spell.js`. */
   compiledUri: string
+  /** URI of its folder, where its spell files and `settings.json5` are. */
+  folderUri: string
+  /** URI of its words, `<Project>.en.js`. */
+  wordsUri: string
 }
 
 /** `spell/projectCompiled` notification, as `LSP.ProjectCompiled`. */

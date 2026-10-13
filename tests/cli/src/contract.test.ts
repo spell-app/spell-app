@@ -78,10 +78,10 @@ async function importedProjects(
     const projectId = decodeURI(module.slice(SP.SPELL_PROJECT_MODULE.length))
     if (projects[projectId]) continue
     let code = compiledFixture(fixture, target)
-    if (TARGET_FILES[target] === ".tsx") code = await buildTsx(code, { filename: `${fixture}.compiled.tsx` })
+    if (TARGET_FILES[target] === ".tsx") code = await buildTsx(code, { filename: `${fixture}.spell.tsx` })
     // Python imports another project as a module of its name, `from cards import Card`
     const isPython = TARGET_FILES[target] === ".py"
-    const file = join(folder, isPython ? `${PY.PyWriter.projectModule(module)}.py` : `${fixture}.compiled.mjs`)
+    const file = join(folder, isPython ? `${PY.PyWriter.projectModule(module)}.py` : `${fixture}.spell.mjs`)
     writeFileSync(file, code)
     projects[projectId] = pathToFileURL(file).href
     await importedProjects(fixture, target, folder, projects)
@@ -224,7 +224,7 @@ describe("the core contract:  a game's patches give its whole state, click by cl
         const folder = mkdtempSync(join(tmpdir(), "spell-patches-"))
         try {
           await importedProjects(name, "py", folder)
-          const program = join(folder, `${name}.compiled.py`)
+          const program = join(folder, `${name}.spell.py`)
           writeFileSync(program, compiledFixture(name, "py"))
           const args = ["run", "--quiet", "--project", SPELL_CORE, "python", PLAYER, program]
           const { status, stdout, stderr } = spawnSync("uv", [...args, "--seed", String(CONTRACT_SEED)], {
@@ -244,7 +244,7 @@ describe("the core contract:  a game's patches give its whole state, click by cl
 /**
  * A page draws a Python program as javascript draws it (epic `python-target` P19):
  * each game run on the `py` target, seeded, its state (`--state`) drawn in the fake page by its drawing half,
- * `<Project>.elements.js` (`PY.ElementsWriter`), started by `@spell/core`'s `startPage()`.
+ * `<Project>.elements.spell.js` (`PY.ElementsWriter`), started by `@spell/core`'s `startPage()`.
  * - The board it draws is the javascript run's, the last line of its contract snapshot.
  * - A click on a face-up card sends Python the event, the card by its id;  Python's session runs it.
  */
@@ -256,7 +256,7 @@ describe("the core contract:  a page draws a Python game as javascript does", ()
         const folder = mkdtempSync(join(tmpdir(), "spell-page-"))
         try {
           await importedProjects(name, "py", folder)
-          const program = join(folder, `${name}.compiled.py`)
+          const program = join(folder, `${name}.spell.py`)
           writeFileSync(program, compiledFixture(name, "py"))
           const run = ["run", "--quiet", "--project", SPELL_CORE, "python", "-m"]
           const ran = spawnSync("uv", [...run, "spell_core.run", program, "--seed", "1", "--no-pauses", "--state"], {

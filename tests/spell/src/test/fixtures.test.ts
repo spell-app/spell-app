@@ -59,7 +59,8 @@ describe("fixture projects compile to their snapshots", () => {
       await expect(compiledFixture(name, "py")).toMatchFileSnapshot(fixturePath(name, `${name}.snapshot.py`))
     })
 
-    // the Python targets' page, when it draws:  the drawing half in javascript (`PY.ElementsWriter`, `.elements.js`);
+    // the Python targets' page, when it draws:
+    // the drawing half in javascript (`PY.ElementsWriter`, `.elements.spell.js`);
     // `.elements.snapshot.js`, ending as a snapshot does, so it isn't one of the fixture's files
     test.runIf(PYTHON_FIXTURES.has(name) && fixtureDraws(name))(`${name}'s page, for Python`, async () => {
       await expect(compiledFixture(name, PY.ElementsWriter.instance)).toMatchFileSnapshot(
