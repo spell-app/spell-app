@@ -84,7 +84,7 @@ Longer notes on some of them follow the table.
 | `spell dev vscode [build\|install]` | The VS Code extension:  build it, install it, or (no verb) both. |
 | `spell icons [query]` | Finds `@spell-app/ui` icons by name, alias or keyword. |
 | `spell static <pages...>` | `@spell-app/ui` pages as plain HTML, for crawlers and no-JS readers. |
-| `spell compile <projects...>` | Compiles each project, writing its output beside it. |
+| `spell compile <projects...>` | Compiles each project, writing its output into `build/`, its declarations and words beside it. |
 | `spell check <projects...>` | Lists errors on stdout as `path:line:col  message`.  `--json` for a JSON list. |
 | `spell describe <project> [name] [member]` | What the Type Explorer shows, as text.  E.g. `spell describe Card.spell Card color`.  `--compiled`, `--inherited`, `--json`. |
 | `spell explore [project]` | Full-screen Type Explorer.  Reloads as files change. |
@@ -127,8 +127,13 @@ Longer notes on some of them follow the table.
   - `--inline-css`:  each page's own `<style>` instead.
   - `--no-minify`.
   - A folder:  every `.html` in it.
-- `compile`:  writes each project's compiled javascript and its declarations, beside it.
-  - That's `<Project>.spell.js` and `<Project>.declarations.json`.
+- `compile`:  writes each project's compiled javascript, and its declarations and words.
+  - That's `<Project>.spell.js`, in the project's build folder, and `<Project>.declarations.json` and
+    `<Project>.en.js`, committed beside its source.
+  - The build folder:  `build/` at the repo root, at the project's path under `packages/`
+    (`build/spell/projects/system/examples/Solitaire`), never committed.
+    A project outside `packages/` keeps its output beside its source.
+    See "Projects" in [PARSING.md](../spell/PARSING.md).
   - Also each other target's output, e.g. Python's:  the project's targets, or the one `--target <name>` names.
     - A project's targets are the `"targets"` in its `project.json`.
       Every target is in `SP.TARGETS`.
@@ -359,8 +364,9 @@ Longer notes on some of them follow the table.
 
 ### What can write files
 
-- `compile` writes `<Project>.spell.js`, as the app does.
-  - With no errors, also `<Project>.scopes.js`, as the language server does.
+- `compile` writes `<Project>.spell.js` into the project's build folder (`build/`), as the app does.
+  - With no errors, also `<Project>.scopes.js` there, as the language server does.
+  - And its declarations and words beside its source, `<Project>.declarations.json` and `<Project>.en.js`.
   - `--stdout` writes neither.
   - `watch` the same after each rebuild, unless `--check-only`.
 - `static` writes:
@@ -563,8 +569,8 @@ Longer notes on some of them follow the table.
 - **Name clashes:**  a shell alias or function named `spell` hides the command.
   Check `type -a spell` in a login shell.
 - **Test projects:**  running a test project (`projects/test/`) from VS Code's ▶ Run Project writes into it.
-  - It writes `<Project>.spell.js` and `settings.json5`.
-  - Test projects should stay frozen, so delete those.
+  - It writes `settings.json5` (its `<Project>.spell.js` goes in `build/`).
+  - Test projects should stay frozen, so delete it.
 
 
 ## TODO

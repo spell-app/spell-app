@@ -146,7 +146,7 @@ async function serveApp(
     Object.values(imports).flatMap((it) => (it.elements ? [[it.module, it.elements]] : []))
   )
   const app = join(folder, `${name}${target.appSuffix}`)
-  writeFileSync(app, PY.quartApp({ projectName: name, program, elements, projects }))
+  writeFileSync(app, PY.quartApp({ projectName: name, program, elements, outputs: ".", projects }))
   await ensurePageBuilt(session)
 
   const port = await SRV.freePort()

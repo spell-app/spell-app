@@ -7,8 +7,8 @@ import { SP } from "$/spell"
 
 /**
  * A project's declarations:  everything it added to scope while parsing, as plain data -- see `SP.SpellDeclarationsData`.
- * - Why:  they live in `<Project>.declarations.json` beside its compiled output, so another project can import it
- *   WITHOUT re-parsing its `.spell` files.
+ * - Why:  they live in `<Project>.declarations.json`, committed beside its source,
+ *   so another project can import it WITHOUT re-parsing its `.spell` files.
  * - Gathered from the AST, in two steps:
  *   - while compiling, `commentFor()` gives each declaring statement a `/*! SPELL: DECLARES {...} *\/` comment
  *     above its code -- a MARKER, never written to disk

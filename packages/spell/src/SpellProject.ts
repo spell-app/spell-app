@@ -134,7 +134,12 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
     return this.getState("parseError", () => undefined)
   }
 
-  /** `SpellJSFile` for this project's compiled output, e.g. `Solitaire.spell.js`. */
+  /**
+   * `SpellJSFile` for this project's compiled output, e.g. `Solitaire.spell.js`.
+   * - The server keeps it in the project's build folder, `build/` at the repo root, not beside its source:
+   *   every file spell builds, e.g. `Solitaire.scopes.js`, `Solitaire.spell.py`.  Asked for by name, as any file is;
+   *   where it is on disk is the server's `serverPath` (`project-utils.ts`, `buildFolderFor()`).
+   */
   /*@memoize*/
   get outputFile(): SP.SpellJSFile {
     return this.derived("outputFile", () => {
@@ -144,7 +149,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * File for this project's declarations, beside `outputFile`, e.g. `Solitaire.declarations.json`:
+   * File for this project's declarations, committed beside its source, e.g. `Solitaire.declarations.json`:
    * what it offers projects importing it -- see `SP.SpellDeclarations`.
    * - A `SpellJSFile`:  any text file, loaded and saved the same way.
    */
@@ -157,7 +162,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * File for this project's words, beside `outputFile`, e.g. `Solitaire.en.js`:
+   * File for this project's words, committed beside its source, e.g. `Solitaire.en.js`:
    * spell's wording of each member of its types, by the name its compiled code uses -- see `SP.SpellWords`.
    * - For a runner's Thing Explorer.
    * - A target with words of its own writes another file, e.g. `Solitaire.py.en.json`:  see `wordsFileFor()`.
@@ -173,7 +178,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * File for this project's scope pack, beside `outputFile`, e.g. `Solitaire.scopes.js`:
+   * File for this project's scope pack, beside `outputFile` in its build folder, e.g. `Solitaire.scopes.js`:
    * what its Type Explorer shows, for pages which run it without the parser -- see `LSP.ScopePack`.
    * - The language server writes it, after a clean compile (`SpellDiskWorkspace.writeScopes()`).
    */
@@ -272,7 +277,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * File for `target`'s own words, beside its output, e.g. `Solitaire.py.en.json`.
+   * File for `target`'s own words, committed beside our source, e.g. `Solitaire.py.en.json`.
    * - `undefined` for a target with none (`SP.Target.wordsSuffix`).
    */
   wordsFileFor(target: SP.Target): SP.SpellJSFile | undefined {
@@ -281,7 +286,8 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * File for `target`'s page, beside its output, e.g. `Solitaire.elements.spell.js`:  its drawing half, in javascript.
+   * File for `target`'s page, beside its output in our build folder, e.g. `Solitaire.elements.spell.js`:
+   * its drawing half, in javascript.
    * - `undefined` for a target with none (`SP.Target.elementsSuffix`).
    */
   elementsFileFor(target: SP.Target): SP.SpellJSFile | undefined {
@@ -317,7 +323,8 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   protected appTexts = new Map<string, string>()
 
   /**
-   * File for `target`'s web app, beside its output, e.g. `Solitaire.app.py`.
+   * File for `target`'s web app, committed beside our source, e.g. `Solitaire.app.py`:
+   * it finds its program in our build folder (`PY.QuartAppSpec.outputs`).
    * - `undefined` for a target with none (`SP.Target.appSuffix`).
    */
   appFileFor(target: SP.Target): SP.SpellJSFile | undefined {
@@ -468,7 +475,9 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
                       PY.quartApp({
                         projectName: name,
                         program: `${name}${target.suffix}`,
-                        elements: `${name}${target.elementsSuffix}`
+                        elements: `${name}${target.elementsSuffix}`,
+                        // the app stays beside our source, the program goes where the server builds:  see `buildFolder`
+                        outputs: this.contents?.buildFolder ?? "."
                       })
                     )
                   }
@@ -488,8 +497,8 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
           new Task({
             name: "Saving compiled output",
             run: async () => {
-              // our declarations go beside our code, so another project can import us WITHOUT our sources;
-              // our words too, for a runner's Thing Explorer
+              // our declarations go beside our source, so another project can import us WITHOUT parsing it;
+              // our words too, for a runner's Thing Explorer.  Our compiled code goes in our build folder.
               if (!this.saveCompiled) return this.outputFile.contents
               await this.declarationsFile.save(undefined)
               await this.wordsFile.save(undefined)

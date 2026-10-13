@@ -77,6 +77,9 @@ when working with code in this package, `@spell-app/spell`.
     - `<Project>.lib.ts`, one file with its own types:  no drawing, none of its top-level steps, the core with no Solid
     - checked by `tsc`, as `ts/solid` is
     - committed beside its source, and marked generated in the root's `.gitattributes`:  a merge recompiles `@library`
+  - What a target builds (`<Project>.spell.js`, `.spell.tsx`, `.spell.py`, `.elements.spell.js`, and the scope pack,
+    `.scopes.js`) goes in the project's build folder, `build/` at the repo root, never committed;
+    the rest (declarations, words, `.lib.ts`, `.app.py`) beside its source.  See "Projects" in [PARSING.md](PARSING.md).
   - A project lists the others it wants in `project.json`'s `"targets"`.
     `spell compile --target <name>` picks one for a single run.
   - The writers are `$/parser`'s:  "Compile" in [PARSING.md](PARSING.md).

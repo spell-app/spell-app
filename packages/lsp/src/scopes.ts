@@ -1,7 +1,7 @@
 /**
  * `yarn scopes`:  write scope packs -- what `<spell-app>`'s Type Explorer shows with no parser.  See `LSP.ScopePack`.
  * - `yarn scopes @system:examples:Solitaire @examples/Calculator ...`:  each project's `<Project>.scopes.js`,
- *   beside its compiled output -- parsing it, and the projects it imports, first.
+ *   beside its compiled output, in its build folder (`build/`) -- parsing it, and the projects it imports, first.
  * - `yarn scopes --compile <projectId...>`:  compile each first, to `<Project>.spell.js` -- in the order given,
  *   so a project another imports goes first.
  * - `yarn scopes --builtins`:  the built-in types' pack, `core`'s `src/spellCore.scopes.js`.

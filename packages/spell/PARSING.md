@@ -1004,6 +1004,20 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
       an old copy left in a checkout
   - Else the index would add them to `project.json`.
   - The list:  `GENERATED_SUFFIXES`, beside `isManifestFile()`.
+- What spell BUILDS for a project goes in its build folder, not beside its source (epic `people-and-orgs` P11).
+  - That's `build/` at the repo root, never committed, mirroring the project's path under `packages/`:
+    `packages/spell/projects/system/examples/Solitaire` => `build/spell/projects/system/examples/Solitaire`.
+  - The files:  `<Project>.spell.js`, `.spell.tsx`, `.spell.py`, `.elements.spell.js` and `.scopes.js`.
+  - Committed beside the source:  everything else, e.g. `<Project>.declarations.json`, `.en.js`, `.py.en.json`,
+    `.lib.ts`, `.app.py`.
+  - Every reader asks for a file by project and name, as for any file;
+    ONE mapping decides where it is on disk:  the server's `serverPath` (`isBuiltFile()`, `buildFolderFor()`,
+    in [project-utils.ts](src/node/project-utils.ts)).
+  - A project outside `packages/` (a temp `@workspace` root, `SPELL_PROJECTS_DIR`'s) keeps them beside its source.
+  - Renaming or duplicating a project leaves its build folder behind:  its files are named for the old project,
+    so the next compile writes the new one's.  Deleting a project deletes it.
+  - A Python program's web app, `<Project>.app.py`, finds its program from its own folder:
+    the project index's `buildFolder` (`PY.QuartAppSpec.outputs`).
 - [`SpellProject`](src/SpellProject.ts):  files in `project.json` order, e.g. Card → Deck → Pile → Solitaire.
 - `SpellProject` / `SpellFile` load over HTTP.
   - with `$fetch()`, on `/api/projects/...`
@@ -1014,7 +1028,7 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
   - Every file gets a `FileScope` under it, and SHARES that parser.
 - So one file's types, constants and rules are visible to every later file.
 - Another project can come in WITHOUT its sources, as its declarations (`SP.SpellDeclarations`).
-  - They're in `<Project>.declarations.json`, beside its compiled output (epic `output-targets` P5).
+  - They're in `<Project>.declarations.json`, committed beside its source (epic `output-targets` P5).
   - Before that they were inline in the compiled JS, and `fromComments()` still reads those.
   - While compiling, `Block.getAST()` puts a MARKER right on each declaring statement's code.
     - It's a `/*! SPELL: DECLARES {...} */` comment.

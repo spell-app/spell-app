@@ -5,6 +5,14 @@ import { resolve } from "path"
 const srcDir = resolve(fileURLToPath(import.meta.url), "..", "..")
 /** The monorepo's `packages/`. */
 const packagesDir = resolve(srcDir, "..", "..")
+/**
+ * Where compiled output goes, `build/` at the repo root (epic `people-and-orgs` P11):  never committed.
+ * - Each project's own folder there mirrors its path under `packages/`:
+ *   `packages/spell/projects/system/examples/Solitaire` => `build/spell/projects/system/examples/Solitaire`.
+ * - Which files go there, and where a project outside `packages/` puts them:  `buildFolderFor()` and the `serverPath`
+ *   getter, in `project-utils.ts`.
+ */
+const buildDir = resolve(packagesDir, "..", "build")
 /** `core`'s `src/`:  the runtime, and its built-in types' scope pack (`spellCore.scopes.js`). */
 const spellCoreDir = resolve(packagesDir, "core", "src")
 /** `app`'s `static/`:  fonts and css the app serves. */
@@ -27,6 +35,7 @@ const environment = {
   api_server: process.env.API_SERVER || "localhost",
   srcDir,
   packagesDir,
+  buildDir,
   spellCoreDir,
   staticDir,
   projectsDir,

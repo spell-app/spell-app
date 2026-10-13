@@ -175,7 +175,7 @@ when working with code in this package, `@spell-app/app`.
     - Each `Thing`, and each instance of a `List` sub-class, registers itself as it's made.
     - The program's exports are its top-level things.
     - It labels their properties and actions in spell's words, `move (a card) to (a pile)`.
-      - The words come from the project's words file, `<Project>.en.js`, beside its compiled output.
+      - The words come from the project's words file, `<Project>.en.js`, committed beside its source.
       - The code:  `SP.SpellWords`, and the runner's [words.ts](src/runner/words.ts).
       - Each runner loads the file beside the scope pack:
         - `<spell-app>`, by URL
@@ -230,7 +230,8 @@ when working with code in this package, `@spell-app/app`.
     - So rerun it after changing a documented component's banner, props or uses.
   - Pictures, for what needs the whole editor around it:  `yarn site:pictures [name...]`,
     headless screenshots of this checkout's running editor, into `_images/` ([its script](scripts/site-pictures.ts)).
-    - Opening the editor compiles its project, which may rewrite a `*.spell.js`:  check `git status` after.
+    - Opening the editor compiles its project, which may rewrite its `*.declarations.json` / `*.en.js`:
+      check `git status` after.  (Its `*.spell.js` goes in `build/`, never committed.)
   - Live examples (the web components, the runner's pieces) need `yarn build:element`:
     the layout loads `/element/spell.pack.js`.
   - A new page:  its entry in `pages.json`, `yarn site:data`, then a copy of a page like it

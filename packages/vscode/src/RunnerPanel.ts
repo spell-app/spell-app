@@ -4,9 +4,9 @@
  *   from `src/app/runner/`), with Semantic UI + Lato straight from its `static/`.
  * - Server compiles, NOT us:  `spell/compileProject`, answered by `spell/projectCompiled` with the javascript.
  * - Also re-runs when the project's `<Project>.spell.js` changes on disk, e.g. compiled by the web app.
- * - Sends its words, `<Project>.en.js` beside it, after each run:  the Thing Explorer's labels.
+ * - Sends its words, `<Project>.en.js` beside its source, after each run:  the Thing Explorer's labels.
  */
-import { existsSync } from "fs"
+import { existsSync, mkdirSync } from "fs"
 import JSON5 from "json5"
 import { resolve } from "path"
 import * as vscode from "vscode"
@@ -272,10 +272,13 @@ export class RunnerPanel {
 
   /**
    * Watch file `uri`, even outside the workspace's folders.
+   * - SIDE EFFECT: makes its folder if there's none yet, since a watcher on a missing folder never fires:
+   *   compiled output goes in `build/` at the repo root (epic `people-and-orgs` P11), which a fresh checkout hasn't got.
    * - SIDE EFFECT: caller MUST `dispose()` it.
    */
   static watch(uri: vscode.Uri): vscode.FileSystemWatcher {
     const folder = vscode.Uri.joinPath(uri, "..")
+    mkdirSync(folder.fsPath, { recursive: true })
     const name = uri.path.split("/").pop()!
     return vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(folder, name))
   }

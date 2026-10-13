@@ -2,6 +2,8 @@
  * Utilities for working with projects and project files.
  * The `request_XXX` version can be passed directly to a `SRV.Router` route (Express-shaped).
  */
+import { isAbsolute, relative, resolve, sep } from "path"
+
 import type { SRV } from "$/server"
 import environment from "$/spell/node/environment"
 
@@ -34,10 +36,16 @@ SP.SpellLocation.useRegistry = false
  *     So validation always re-runs server-side, even though the client validates too.
  * - `fileUtils.normalizePath()` also collapses any stray `.`/`..`/`//` that validation missed,
  *   as defense in depth.
+ * - A file spell BUILDS for its project, e.g. `Solitaire.spell.js`, is in the project's build folder,
+ *   not beside its source:  see `isBuiltFile()` and `buildFolderFor()`.
+ *   So every reader asks for it by project and name, and this decides where it is on disk.
  */
 Object.defineProperty(SP.SpellLocation.prototype, "serverPath", {
-  get() {
-    const path = [serverPathForRoot(this.projectRoot), this.projectName]
+  get(this: SP.SpellLocation) {
+    const projectFolder = fileUtils.normalizePath(
+      ...[serverPathForRoot(this.projectRoot), this.projectName].filter((segment): segment is string => !!segment)
+    )
+    const path = [isBuiltFile(this) ? buildFolderFor(projectFolder) : projectFolder]
     if (this.filePath) path.push(...this.filePath.split("/"))
     const serverPath = fileUtils.normalizePath(...path.filter(Boolean))
     console.warn(`Server path for path '${this.path}' => '${serverPath}'`)
@@ -64,6 +72,63 @@ function filesRootFor(owner: string): string {
   if (owner === "@system") return environment.systemFilesRoot
   if (owner === "@test") return environment.testFilesRoot
   return environment.userFilesRoot
+}
+
+/**
+ * Ends of the names of the files spell BUILDS for a project, which go in its build folder (`buildFolderFor()`):
+ * only `<Project>` and one of these, at the top of the project, e.g. `Solitaire.spell.js`.
+ * - What's committed stays beside the source, e.g. `Solitaire.declarations.json`, `Solitaire.en.js`,
+ *   `Solitaire.py.en.json`, `Solitaire.lib.ts`, `Solitaire.app.py`.
+ */
+const BUILT_SUFFIXES = [
+  SP.COMPILED_JS_SUFFIX, // `Solitaire.spell.js`
+  SP.COMPILED_TSX_SUFFIX, // `Solitaire.spell.tsx`
+  SP.COMPILED_PY_SUFFIX, // `Solitaire.spell.py`
+  SP.ELEMENTS_JS_SUFFIX, // `Solitaire.elements.spell.js`, a Python program's page file
+  SP.SCOPES_JS_SUFFIX // `Solitaire.scopes.js`, its scope pack
+]
+
+/**
+ * `BUILT_SUFFIXES`' names before epic `people-and-orgs` P11, e.g. `Solitaire.compiled.js`.
+ * - A copy left in someone's checkout must never become one of its project's files:  see `GENERATED_SUFFIXES`.
+ */
+const OLD_BUILT_SUFFIXES = [".compiled.js", ".compiled.tsx", ".compiled.py", ".elements.js"]
+
+/** Is `location` a file spell builds for its project, e.g. `Solitaire.spell.js`?  See `BUILT_SUFFIXES`. */
+export function isBuiltFile(location: SP.SpellLocation): boolean {
+  const { projectName, folder, file } = location
+  if (!projectName || folder !== "/") return false
+  return BUILT_SUFFIXES.some((suffix) => file === `${projectName}${suffix}`)
+}
+
+/**
+ * Folder on disk for what spell builds for the project in folder `projectFolder`, e.g. its `Solitaire.spell.js`.
+ * - A project under `packages/`:  the same path under `build/` at the repo root (epic `people-and-orgs` P11),
+ *   e.g. `packages/spell/projects/system/examples/Solitaire` => `build/spell/projects/system/examples/Solitaire`.
+ * - A project anywhere else -- a temp `@workspace` root, `SPELL_PROJECTS_DIR`'s, a VS Code workspace elsewhere:
+ *   `projectFolder` itself, beside its source, as before `build/`.
+ *   NEVER a `build/` inside its root's folder:  that would list as one of its projects.
+ * - `folders`:  where `packages/` and `build/` are, default `environment`'s;  tests pass their own.
+ */
+export function buildFolderFor(
+  projectFolder: string,
+  folders: { packagesDir: string; buildDir: string } = environment
+): string {
+  const inPackages = relative(folders.packagesDir, projectFolder)
+  const isOutside = !inPackages || isAbsolute(inPackages) || inPackages === ".." || inPackages.startsWith(`..${sep}`)
+  return isOutside ? projectFolder : resolve(folders.buildDir, inPackages)
+}
+
+/**
+ * Where project `projectId`'s built files go, relative to its own folder, `/`-separated:  its index's `buildFolder`.
+ * - e.g. `../../../../../../build/spell/projects/system/examples/Solitaire`
+ * - `undefined` for a project whose built files sit beside its source (`buildFolderFor()`).
+ */
+export function relativeBuildFolder(projectId: string): string | undefined {
+  const projectFolder = SP.SpellLocation.getProjectLocation(projectId).serverPath
+  const buildFolder = buildFolderFor(projectFolder)
+  if (buildFolder === projectFolder) return undefined
+  return relative(projectFolder, buildFolder).split(sep).join("/")
 }
 
 /** Default file created for a brand-new project, or when `getIndex()` finds a project with zero files. */
@@ -107,21 +172,12 @@ export const request_getProjectList = respondWithJSON(async (request) => {
  * Ends of the names of files spell WRITES, which are never one of a project's own files.
  * - Listed, `getIndex()` would make a `.js` one an import of the project, and parse the rest as spell.
  * - Its words files, e.g. `Solitaire.en.js`, are left out by `SP.SpellWords.isWordsFile()`.
- * - The old names are here too, from before epic `people-and-orgs` P11:
- *   a copy left in someone's checkout must never become one of its project's files.
+ * - The old names are here too (`OLD_BUILT_SUFFIXES`).
  */
 const GENERATED_SUFFIXES = [
-  SP.COMPILED_JS_SUFFIX, // `Solitaire.spell.js`
-  SP.COMPILED_TSX_SUFFIX, // `Solitaire.spell.tsx`
-  SP.COMPILED_PY_SUFFIX, // `Solitaire.spell.py`
-  SP.ELEMENTS_JS_SUFFIX, // `Solitaire.elements.spell.js`, a Python program's page file
-  SP.SCOPES_JS_SUFFIX, // `Solitaire.scopes.js`, its scope pack
+  ...BUILT_SUFFIXES, // `Solitaire.spell.js`, `.spell.tsx`, `.spell.py`, `.elements.spell.js`, `.scopes.js`
   SP.SNAPSHOT_JS_SUFFIX, // `Solitaire.snapshot.js`, a test fixture's snapshot of its compiled output
-  // The old names
-  ".compiled.js",
-  ".compiled.tsx",
-  ".compiled.py",
-  ".elements.js"
+  ...OLD_BUILT_SUFFIXES
 ]
 
 /**
@@ -245,7 +301,8 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
 
   // return manifest and imports
   const { version, exports, targets, listsStartAt } = importsFile
-  return { imports: importsFile.imports, manifest, version, exports, targets, listsStartAt }
+  const buildFolder = relativeBuildFolder(projectId)
+  return { imports: importsFile.imports, manifest, version, exports, targets, listsStartAt, buildFolder }
 }
 
 /**
@@ -386,11 +443,17 @@ export const request_createProject = respondWithJSON(async (request) => {
   return await getProjectList(projectId)
 })
 
-/** Duplicate project `projectId` as `newProjectId` -- recursive folder copy via `fileUtils.copyPath()`. */
+/**
+ * Duplicate project `projectId` as `newProjectId` -- recursive folder copy via `fileUtils.copyPath()`.
+ * - Its build folder is NOT copied, nor what spell wrote for it beside its source:  all named for the old project,
+ *   e.g. `Old.spell.js`, `Old.en.js`.  The copy's first compile writes its own.  See `forgetBuilt()`.
+ */
 export const duplicateApp = async (projectId: string, newProjectId: string) => {
   const location = SP.SpellLocation.getProjectLocation(projectId)
   const newLocation = SP.SpellLocation.getProjectLocation(newProjectId)
-  return await fileUtils.copyPath(location.serverPath, newLocation.serverPath)
+  await fileUtils.copyPath(location.serverPath, newLocation.serverPath)
+  await forgetBuilt(location, newLocation)
+  return true
 }
 
 /**
@@ -405,11 +468,18 @@ export const request_duplicateApp = respondWithJSON(async (request) => {
   return await getProjectList(projectId)
 })
 
-/** Rename project `projectId` to `newProjectId` -- folder move via `fileUtils.movePath()`. */
+/**
+ * Rename project `projectId` to `newProjectId` -- folder move via `fileUtils.movePath()`.
+ * - Its build folder is deleted, not moved, as is what spell wrote for it beside its source:  all named for the old
+ *   project, e.g. `Old.spell.js`, `Old.en.js`.  The next compile writes the new project's.  See `forgetBuilt()`.
+ */
 export const renameApp = async (projectId: string, newProjectId: string) => {
   const location = SP.SpellLocation.getProjectLocation(projectId)
   const newLocation = SP.SpellLocation.getProjectLocation(newProjectId)
-  return await fileUtils.movePath(location.serverPath, newLocation.serverPath)
+  await fileUtils.movePath(location.serverPath, newLocation.serverPath)
+  await clearBuildFolder(location.serverPath)
+  await forgetBuilt(location, newLocation)
+  return true
 }
 
 /**
@@ -425,10 +495,55 @@ export const request_renameApp = respondWithJSON(async (request) => {
   return await getProjectList(projectId)
 })
 
-/** Remove (permanently delete) project `projectId` -- recursive folder delete via `fileUtils.deletePath()`. */
+/**
+ * Remove (permanently delete) project `projectId` -- recursive folder delete via `fileUtils.deletePath()`.
+ * - Its build folder too.
+ */
 export const deleteApp = async (projectId: string) => {
   const location = SP.SpellLocation.getProjectLocation(projectId)
-  return await fileUtils.deletePath(location.serverPath)
+  await fileUtils.deletePath(location.serverPath)
+  await clearBuildFolder(location.serverPath)
+  return true
+}
+
+/**
+ * SIDE EFFECT:  delete the build folder of the project in `projectFolder` (`buildFolderFor()`), if it has one.
+ * - Does nothing for a project whose built files sit beside its source:  they go with its folder.
+ */
+async function clearBuildFolder(projectFolder: string): Promise<void> {
+  const buildFolder = buildFolderFor(projectFolder)
+  if (buildFolder !== projectFolder) await fileUtils.deletePath(buildFolder)
+}
+
+/**
+ * SIDE EFFECT:  project `location` was just copied or moved to `newLocation`:  delete what spell wrote for the old
+ * one there, so it never serves output built for another project, or for an older one of its name.
+ * - `newLocation`'s build folder, if it has one, e.g. a deleted project of that name's.
+ * - When the name changed, the old name's generated files beside its source (`isGeneratedFileOf()`),
+ *   e.g. `Old.declarations.json`;  `Old.en.js` would list as one of its javascript files.
+ *   - NOT its `Old.lib.ts` or `Old.app.py`:  code others may import or have edited.  Compiling writes new ones.
+ */
+async function forgetBuilt(location: SP.SpellLocation, newLocation: SP.SpellLocation): Promise<void> {
+  await clearBuildFolder(newLocation.serverPath)
+  const { projectName } = location
+  if (!projectName || projectName === newLocation.projectName) return
+  const names = await fileUtils.getFolderContents(newLocation.serverPath, { namesOnly: true })
+  const generated = names.filter((name) => isGeneratedFileOf(name, projectName))
+  await Promise.all(generated.map((name) => fileUtils.deletePath(resolve(newLocation.serverPath, name))))
+}
+
+/**
+ * Is `name` a file spell writes for project `projectName`, and writes again on each compile?
+ * - Its compiled output, under any name it has had, e.g. `Solitaire.spell.js`, `Solitaire.compiled.js`.
+ *   NOT a fixture's snapshot, `Solitaire.snapshot.js`:  a test's expected output.
+ * - Its declarations, `Solitaire.declarations.json`.
+ * - Its words, in any language (`Solitaire.en.js`), and each target's own (`Solitaire.py.en.json`).
+ */
+function isGeneratedFileOf(name: string, projectName: string): boolean {
+  if (SP.SpellWords.isWordsFile(name, projectName)) return true
+  const targetWords = Object.values(SP.TARGETS).flatMap((target) => target.wordsSuffix ?? [])
+  const suffixes = [...BUILT_SUFFIXES, ...OLD_BUILT_SUFFIXES, SP.DECLARATIONS_JSON_SUFFIX, ...targetWords]
+  return suffixes.some((suffix) => name === `${projectName}${suffix}`)
 }
 
 /**

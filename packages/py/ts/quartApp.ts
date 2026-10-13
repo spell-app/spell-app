@@ -3,10 +3,13 @@
  * what compiling to `py` writes beside a program that draws.
  * - A short Quart app, every route spelled out, for a Python programmer to read and grow:
  *   - `/`:  the page, which loads the javascript core and the program's drawing half, `<Project>.elements.spell.js`
- *   - `/<Project>.elements.spell.js`, and each imported project's:  served from beside the app
+ *   - `/<Project>.elements.spell.js`, and each imported project's:  served from beside the program
  *   - `/spell/...`:  the javascript core, Solid, Spell UI and Semantic UI (`spell_quart.assets_folder()`)
  *   - `/ws`:  the WebSocket:  a click up, the state and what changed down;  a game per visitor
  *   - a place for their own routes
+ * - The app is committed beside the project's source;  the program and its page file are BUILT,
+ *   into the project's build folder (epic `people-and-orgs` P11):  the app finds them from its own folder,
+ *   `QuartAppSpec.outputs`.
  * - Run it:  `uv run python Solitaire.app.py`, then open http://localhost:5000 (or `$PORT`).
  * - Compiling again rewrites it only while nobody has edited it:  its first line holds a hash of the rest (J45).
  *   See `isUneditedApp()`.
@@ -16,13 +19,20 @@
 export type QuartAppSpec = {
   /** The project's name, e.g. `Solitaire`:  the page's title. */
   projectName: string
-  /** The compiled program's file, beside the app, e.g. `Solitaire.spell.py`. */
+  /** The compiled program's file, in `outputs`, e.g. `Solitaire.spell.py`. */
   program: string
-  /** The program's drawing half, beside the app, e.g. `Solitaire.elements.spell.js`. */
+  /** The program's drawing half, in `outputs`, e.g. `Solitaire.elements.spell.js`. */
   elements: string
   /**
+   * The folder holding `program` and `elements`, relative to the app's own, `/`-separated:
+   * - the project's build folder, e.g. `../../../../../../build/spell/projects/system/examples/Solitaire`
+   *   (the project index's `buildFolder`)
+   * - `.`:  beside the app, e.g. in `spell run`'s temp folder, or for a project outside `packages/`
+   */
+  outputs: string
+  /**
    * Each project the program imports:  the module its drawing half imports it as, and its drawing half's file,
-   * which must sit beside the app too, e.g. `{ "@spell/project/@system:library:cards": "Cards.elements.spell.js" }`.
+   * which must sit in `outputs` too, e.g. `{ "@spell/project/@system:library:cards": "Cards.elements.spell.js" }`.
    */
   projects?: Record<string, string>
 }
@@ -37,7 +47,7 @@ const ELEMENTS_SUFFIX = ".elements.spell.js"
 const HASH_LINE = "# Written by spell compile, hash "
 
 /** The app for `spec`, its first line holding the hash of the rest -- see the file's docs. */
-export function quartApp({ projectName, program, elements, projects = {} }: QuartAppSpec): string {
+export function quartApp({ projectName, program, elements, outputs, projects = {} }: QuartAppSpec): string {
   const files = [elements, ...Object.values(projects)]
   const pageProjects = Object.entries(projects).map(([module, file]) => `        ${py(module)}: ${py(`/${file}`)},`)
   const body = `"""${projectName}, as a web app:  \`uv run python ${projectName}.app.py\`, then open http://localhost:5000.
@@ -55,11 +65,12 @@ from quart import Quart, make_response, request, send_from_directory, websocket
 from spell_quart import ASSETS_URL, SpellSessions, assets_folder, fresh, page_html, remember_visitor, visitor_of
 
 HERE = Path(__file__).parent
+${outputsLine(outputs)}
 
 app = Quart(__name__)
 
 # a game per visitor, each running ${program}
-sessions = SpellSessions(HERE / ${py(program)})
+sessions = SpellSessions(OUTPUTS / ${py(program)})
 
 
 @app.get("/")
@@ -75,7 +86,7 @@ async def elements(name: str):
     """The program's drawing half, and each imported project's."""
     if f"{name}${ELEMENTS_SUFFIX}" not in ${py(files)}:
         return "Not found", 404
-    return fresh(await send_from_directory(HERE, f"{name}${ELEMENTS_SUFFIX}", mimetype="text/javascript"))
+    return fresh(await send_from_directory(OUTPUTS, f"{name}${ELEMENTS_SUFFIX}", mimetype="text/javascript"))
 
 
 @app.get(f"{ASSETS_URL}/<path:path>")
@@ -115,6 +126,15 @@ export function isUneditedApp(text: string | undefined): boolean {
   const first = text.slice(0, newline)
   if (newline < 0 || !first.startsWith(HASH_LINE)) return false
   return first.slice(HASH_LINE.length).startsWith(`${hashOf(text.slice(newline + 1))}:`)
+}
+
+/**
+ * The app's line saying where the program and its page file are, `OUTPUTS`:  beside it, or `outputs` away.
+ * - `resolve()`d, so the path the app logs and serves from has no `..` in it.
+ */
+function outputsLine(outputs: string): string {
+  if (outputs === ".") return "# the compiled program and its page file:  beside this app\nOUTPUTS = HERE"
+  return `# the compiled program and its page file:  where \`spell compile\` builds them\nOUTPUTS = (HERE / ${py(outputs)}).resolve()`
 }
 
 /** `text`'s hash:  FNV-1a, 32 bits, in hex -- enough to tell an edit, in a browser as in node. */

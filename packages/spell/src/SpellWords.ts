@@ -8,7 +8,7 @@ import { SP } from "$/spell"
  * `moveToPile` => `move (a card) to (a pile)`.  See `SP.SpellWordsData`.
  * - Why:  compiled code names a member in camelCase, which loses spell's wording, e.g. where a value goes.
  *   The Thing Explorer shows a thing's actions and properties in spell's words again by reading them here.
- * - Lives in `<Project>.en.js`, beside its compiled output -- see `SP.SpellProject.wordsFile`.
+ * - Lives in `<Project>.en.js`, committed beside its source -- see `SP.SpellProject.wordsFile`.
  *   - As a Spell UI element keeps its words in its own vocabulary file, e.g. `UIForm.en.ts`.
  *   - Another language is another file of the same shape, e.g. `Solitaire.es.js`:  NOT written yet.
  *   - A target with words of its own writes them as JSON, by its own names:

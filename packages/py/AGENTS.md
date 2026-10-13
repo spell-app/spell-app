@@ -36,7 +36,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 ## The writers (`ts/`)
 
 - `PY.PyWriter`:  the `py` target's writer, Python on asyncio
-  - It writes `<Project>.spell.py`.
+  - It writes `<Project>.spell.py`, into the project's build folder (`build/`, "Projects" in spell's PARSING.md).
   - It builds on `PY.PyBaseWriter` (on `P.ProgramWriter`), which writes all but waiting.
   - It writes Python as a person would:
     - PEP 8's names, e.g. `Card.RANKS`, and `class_` for a keyword
@@ -58,6 +58,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - a long call broken one item a line, as Black (Python's usual formatter) does
 - `PY.quartApp()`:  a program's web app, `<Project>.app.py` (P20)
   - Each compile rewrites it only while nobody has edited it (`PY.isUneditedApp()`).
+  - It's committed beside the project's source;  its program and page file are built into the project's build
+    folder.  It finds them from its own folder:  `OUTPUTS`, from `QuartAppSpec.outputs`
+    (the project index's `buildFolder`;  `.` for `spell run`'s temp folder).
 
 ## `spell_core` (`core/`)
 

@@ -32,6 +32,8 @@ export const PROJECT_FILE = "project.json"
 /**
  * End of a project's compiled output file's name, e.g. `Solitaire.spell.js` -- see `SpellProject.outputFile`.
  * - NEVER one of a project's own files:  the server leaves it out of the manifest.
+ * - In the project's build folder, `build/` at the repo root, not beside its source:
+ *   `buildFolderFor()`, in `$/spell/node/project-utils`.
  * - It was `.compiled.js` until epic `people-and-orgs` P11:
  *   the server leaves those out of the manifest too (`isManifestFile()`, in `$/spell/node/project-utils`).
  */
@@ -39,19 +41,19 @@ export const COMPILED_JS_SUFFIX = ".spell.js"
 
 /**
  * End of a project's compiled TypeScript file's name, for the `ts/solid` target, e.g. `Solitaire.spell.tsx`.
- * - It was `.compiled.tsx` until epic `people-and-orgs` P11, as `COMPILED_JS_SUFFIX`.
+ * - In the project's build folder, and was `.compiled.tsx` until epic `people-and-orgs` P11, as `COMPILED_JS_SUFFIX`.
  */
 export const COMPILED_TSX_SUFFIX = ".spell.tsx"
 
 /**
  * End of a project's compiled Python file's name, for the `py` target, e.g. `Solitaire.spell.py`.
- * - It was `.compiled.py` until epic `people-and-orgs` P11, as `COMPILED_JS_SUFFIX`.
+ * - In the project's build folder, and was `.compiled.py` until epic `people-and-orgs` P11, as `COMPILED_JS_SUFFIX`.
  */
 export const COMPILED_PY_SUFFIX = ".spell.py"
 
 /**
  * End of a project's declarations file's name, e.g. `Solitaire.declarations.json`:
- * what it offers importers, beside its compiled output -- see `SpellProject.declarationsFile`.
+ * what it offers importers, committed beside its source -- see `SpellProject.declarationsFile`.
  * - Its shape:  `SP.SpellDeclarationsData`.
  * - NEVER one of a project's own files:  the server lists only `.spell`, `.css`, `.js` and `.jsx`.
  */
@@ -68,7 +70,7 @@ export const SNAPSHOT_JS_SUFFIX = ".snapshot.js"
  * End of a Python program's page file's name, e.g. `Solitaire.elements.spell.js`:  its drawing half in javascript,
  * for a page that mirrors it (epic `python-target` P19, `PY.ElementsWriter`) -- see `SP.Target.elementsSuffix`.
  * - NEVER one of a project's own files:  the server leaves it out of the manifest, as `COMPILED_JS_SUFFIX`.
- * - It was `.elements.js` until epic `people-and-orgs` P11, as `COMPILED_JS_SUFFIX`.
+ * - In the project's build folder, and was `.elements.js` until epic `people-and-orgs` P11, as `COMPILED_JS_SUFFIX`.
  */
 export const ELEMENTS_JS_SUFFIX = ".elements.spell.js"
 
@@ -76,6 +78,7 @@ export const ELEMENTS_JS_SUFFIX = ".elements.spell.js"
  * End of a project's scope pack file's name, e.g. `Solitaire.scopes.js`:
  * what its Type Explorer shows, for pages which run it without the parser, e.g. `<spell-app>`.  See `LSP.ScopePack`.
  * - NEVER one of a project's own files:  the server leaves it out of the manifest, as `COMPILED_JS_SUFFIX`.
+ * - In the project's build folder, as `COMPILED_JS_SUFFIX`.
  */
 export const SCOPES_JS_SUFFIX = ".scopes.js"
 
@@ -109,6 +112,13 @@ export type ProjectManifestJSON5 = {
   targets?: string[]
   /** Where its lists start counting, from its `project.json`:  `1` (the default) or `0` -- see `P.WriterOptions`. */
   listsStartAt?: 0 | 1
+  /**
+   * Where the server puts what compiling builds, e.g. `Solitaire.spell.py`, relative to the project's own folder:
+   * e.g. `../../../../../../build/spell/projects/system/examples/Solitaire`, for a project under `packages/`.
+   * - Not there:  beside its source.
+   * - Only a Python program's web app needs it so far, to find the program:  `PY.QuartAppSpec.outputs`.
+   */
+  buildFolder?: string
 }
 
 /** A single entry in `contents.manifest`, augmented with `path`/`location`/`file` once loaded. */
