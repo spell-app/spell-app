@@ -236,6 +236,11 @@ In `tools/`:
   - a title with markup:  a `<span slot="header">`, instead of `header`
   - A sticky page header above them, on EVERY page (the templates have it), so the title stays on screen:
     `<ui-sticky class="spell-h1"><header class="spell-page-head">` around the h1.
+    - The runtime draws it on ONE line, as an epic page's (`oneLineHead()`;  Owen, 2026-10-13):  a copy of the
+      breadcrumb goes into the h1, `DOCS / SPELL SYNTAX`, the title in the crumbs' type (mono capitals), twice their
+      size and bold;  the breadcrumb above it hides.  A lighter ivory than the toolbar under it.
+    - While a sub-section's title is stuck under its parent's, the two are one row:  `2. Files on disk › 2.1 The
+      repo` (`wireStuckTrail()`).
   - The OLD markup is for the goals pages only;  the runtime still drives it.
     - It's `section.s2|s3` > `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>`.
     - `node tools/to-ui-section.js <page>` converts a page.

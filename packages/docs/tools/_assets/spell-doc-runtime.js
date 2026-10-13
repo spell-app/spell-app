@@ -177,6 +177,7 @@ async function start() {
     await epicsDrawn(main)
   }
   const outline = outlineOf(main)
+  oneLineHead(main)
   const counts = countItems(outline)
   // the goals pages (HEADINGS) get no filter, but their id chips are coloured by state too
   if (outline.sections) wireItemFilters(main)
@@ -209,6 +210,36 @@ async function start() {
     wireNewEpic(main)
     wireFavorites(main)
   })
+}
+
+/**
+ * The page's head on ONE line, as an epic page's (Owen, 2026-10-13:  "Make the header changes in the other doc
+ * files"):  `DOCS / SPELL SYNTAX`, the crumbs then the title, in the crumbs' own type, the title twice their size
+ * and bold (`spell-doc.css`, "The page's head on one line").
+ * - a copy of the page's breadcrumb (`.spell-crumbs`, before the sticky head) goes INTO the h1, before its text,
+ *   its last section (the page itself) left out:  the title says it;  `data-spell-added`, so a live update steps
+ *   around it
+ * - the breadcrumb itself stays where it was, hidden (`<body class="spell-one-line-head">`):  live updates still
+ *   patch it, and the copy follows when the page reloads
+ * - a page with no breadcrumb:  the title alone, in the same type
+ */
+function oneLineHead(main) {
+  const h1 = main.querySelector(":scope > ui-sticky.spell-h1 > .spell-page-head > h1")
+  if (!h1) return
+  document.body.classList.add("spell-one-line-head")
+  const crumbs = main.querySelector(":scope > ui-breadcrumb.spell-crumbs")
+  if (!crumbs || h1.querySelector(":scope > .spell-head-crumbs")) return
+  const trail = crumbs.cloneNode(true)
+  trail.classList.add("spell-head-crumbs")
+  trail.dataset.spellAdded = ""
+  trail.removeAttribute("id")
+  trail.querySelector(":scope > ui-breadcrumb-section[active]")?.remove()
+  const divider = document.createElement("span")
+  divider.className = "spell-head-divider"
+  divider.dataset.spellAdded = ""
+  divider.setAttribute("aria-hidden", "true")
+  divider.textContent = "/"
+  h1.prepend(trail, divider)
 }
 
 /**

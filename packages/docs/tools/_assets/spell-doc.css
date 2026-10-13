@@ -244,7 +244,7 @@ body.spell-wide .spell-doc-main {
 body.plan-doc .spell-doc-main:not(:has(.spell-crumbs)) {
   padding-top: 0;
 }
-body.spell-wide .spell-doc-main .spell-crumbs {
+body.spell-wide .spell-doc-main > .spell-crumbs {
   margin: 0;
   padding: 10px var(--spell-column-inset) 2px;
   background: var(--spell-head-fill);
@@ -337,6 +337,46 @@ h1 {
   padding-block: 8px;
   background: var(--spell-bg);
   border-bottom: 1px solid var(--spell-rule);
+}
+/*
+ * ## The page's head on one line (the runtime's `oneLineHead()`;  Owen, 2026-10-13, as an epic page's):
+ * `DOCS / SPELL SYNTAX` -- the crumbs, then the title in their type (mono, capitals, tracked), twice their size and
+ * bold;  centred on the row, its padding halved;  the breadcrumb above it hidden (its copy is in the h1)
+ */
+body.spell-one-line-head .spell-doc-main > .spell-crumbs {
+  display: none;
+}
+body.spell-one-line-head .spell-doc-main {
+  padding-top: 0;
+}
+/* the lighter ivory, out to the column's edges as the toolbar under it (the wide layout's bars run edge to edge) */
+body.spell-one-line-head .spell-page-head {
+  margin-inline: calc(-1 * var(--spell-doc-pad-inline, 16px));
+  padding: 4px var(--spell-doc-pad-inline, 16px);
+  background: var(--spell-head-fill);
+}
+body.spell-one-line-head .spell-page-head > h1 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 6px;
+  min-height: 28px;
+  font: 700 16px/1.2 var(--spell-mono);
+  letter-spacing: var(--spell-eyebrow-tracking);
+  text-transform: uppercase;
+}
+.spell-page-head > h1 > .spell-head-crumbs {
+  display: inline-block;
+  margin: 0;
+}
+.spell-page-head > h1 > .spell-head-divider {
+  color: var(--spell-muted);
+  font: var(--spell-eyebrow-font);
+}
+@media (max-width: 720px) {
+  .spell-page-head > h1 > .spell-head-divider {
+    display: none;
+  }
 }
 .spell-page-head > h1 {
   flex: 1 1 auto;
