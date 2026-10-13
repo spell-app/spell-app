@@ -56,6 +56,8 @@ The shared folders:
   - A missing one is made from [`skeleton()`](tools/index.js).
   - The Epics page (epic `airplane` P8, Owen 2026-10-10) sorts its cards into five GROUPS.
     - Each group is a small heading with its count;  cards are alphabetical by title within each.
+    - Or newest first:  the page header's sort buttons, A–Z and Date (`wireEpicSort()`;  Owen, 2026-10-13), sort the
+      cards inside each group by title or by when each was last worked on;  remembered in this browser.
     - An empty group is hidden.
     - `$/server/site/EpicCards` draws them, for both the docs index and the page server's `RunningEpics`.
     - The groups:

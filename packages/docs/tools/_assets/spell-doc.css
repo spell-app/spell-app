@@ -1009,6 +1009,42 @@ pre code {
   background: var(--spell-state-old);
   color: var(--spell-state-old-on);
 }
+/*
+ * the Epics page's sort buttons (the runtime's `wireEpicSort()`):  one grouped pill, A–Z and Date, the one in use
+ * pressed (the toolbar's deeper ivory, as its current section)
+ */
+.spell-doc-main .spell-epic-sort {
+  display: inline-flex;
+  flex: none;
+  /* room for the page's bullhorn, at the header's right end */
+  margin-inline-end: 24px;
+  border: 1px solid var(--spell-rail-edge);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.spell-doc-main .spell-epic-sort > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 10px;
+  border: none;
+  background: none;
+  color: var(--spell-rail-ink);
+  font: 500 0.8rem var(--spell-sans);
+  cursor: pointer;
+}
+.spell-doc-main .spell-epic-sort > button + button {
+  border-inline-start: 1px solid var(--spell-rail-edge);
+}
+.spell-doc-main .spell-epic-sort > button:hover {
+  background: var(--spell-rail-hover);
+}
+.spell-doc-main .spell-epic-sort > button[aria-pressed="true"] {
+  background: var(--spell-rail-selected);
+}
+.spell-doc-main .spell-epic-sort ui-icon {
+  pointer-events: none;
+}
 /* the Epics page's New epic pill */
 .spell-doc-main .spell-new-epic {
   display: inline-flex;

@@ -203,11 +203,13 @@ async function start() {
   wireNotes(main)
   void wireComments(main)
   wireNewEpic(main)
+  wireEpicSort(main)
   wireFavorites(main)
   // the docs index rewrites this page after a new epic:  its header comes back without the pill, a starred card
   // maybe in its old place too
   addEventListener("spell-doc:updated", () => {
     wireNewEpic(main)
+    wireEpicSort(main)
     wireFavorites(main)
   })
 }
@@ -4603,8 +4605,9 @@ function setStar(card, favorite) {
 }
 
 /**
- * Put every Epics card in its group:  Favorites when starred, else its own (`data-group`);  alphabetical by title
- * (`data-title`) in each;  each group's count, and empty ones hidden.
+ * Put every Epics card in its group:  Favorites when starred, else its own (`data-group`);  in each, alphabetical by
+ * title (`data-title`), or newest first by when it was last worked on (`data-worked`), as the header's sort buttons
+ * say (`epicSort()`);  each group's count, and empty ones hidden.
  * - a card twice (`data-epic`:  a live update re-added one this moved):  the first stays
  * - SIDE EFFECT:  moves cards between the groups' lists;  callable any time
  */
@@ -4624,13 +4627,16 @@ function regroupEpics(main) {
   }
   const byTitle = (a, b) =>
     (a.dataset.title ?? "").localeCompare(b.dataset.title ?? "", "en", { sensitivity: "base", numeric: true })
+  // newest first:  `data-worked` is a local ISO time, so its text sorts as the time does;  none last
+  const byDate = (a, b) => (b.dataset.worked ?? "").localeCompare(a.dataset.worked ?? "") || byTitle(a, b)
+  const order = epicSort() === "date" ? byDate : byTitle
   for (const [name, list] of groups) {
     const mine = cards
       .filter((card) => {
         const starred = card.querySelector(".spell-epic-star")?.getAttribute("aria-pressed") === "true"
         return (starred ? "favorites" : card.dataset.group) === name
       })
-      .toSorted(byTitle)
+      .toSorted(order)
     // only what's out of place moves:  a card that stays keeps its focus and hover
     mine.forEach((card, index) => {
       if (list?.children[index] !== card) list?.insertBefore(card, list.children[index] ?? null)
@@ -4640,6 +4646,70 @@ function regroupEpics(main) {
     group.hidden = mine.length === 0
     const count = group.querySelector(".spell-epic-group-count")
     if (count) count.textContent = String(mine.length)
+  }
+}
+
+/** `localStorage` key of the Epics page's sort:  `title` (the default) or `date`. */
+const EPIC_SORT_KEY = "spell-epics-sort"
+
+/** How the Epics page sorts the cards in each group:  `title` (A to Z) or `date` (last worked on, newest first). */
+function epicSort() {
+  return readSaved(EPIC_SORT_KEY) === "date" ? "date" : "title"
+}
+
+/**
+ * SORT, on the Epics page (Owen, 2026-10-13:  "Add buttons to epics header to sort by date or alphabetical, within
+ * the sessions"):  two buttons in the page header, A to Z and by date, the pressed one the order of the cards inside
+ * each group (Favorites, Active ...);  the groups stay where they are.
+ * - remembered in this browser (`EPIC_SORT_KEY`);  the page server serves them A to Z, so the page sorts again on load
+ * - works from `file://` too:  only the stars need the server
+ */
+function wireEpicSort(main) {
+  const head = main.querySelector(".spell-page-head")
+  if (!head || !main.querySelector(EPIC_GROUP)) return
+  let group = head.querySelector(":scope > .spell-epic-sort")
+  if (!group) {
+    group = document.createElement("span")
+    group.className = "spell-epic-sort"
+    group.dataset.spellAdded = ""
+    group.setAttribute("role", "group")
+    group.setAttribute("aria-label", "Sort the epics in each group")
+    for (const [sort, icon, words, tip] of EPIC_SORTS) {
+      const button = document.createElement("button")
+      button.type = "button"
+      button.dataset.sort = sort
+      button.title = tip
+      const glyph = document.createElement("ui-icon")
+      glyph.setAttribute("name", icon)
+      button.append(glyph, words)
+      button.addEventListener("click", () => {
+        try {
+          localStorage.setItem(EPIC_SORT_KEY, sort)
+        } catch {
+          // storage blocked:  sorted for this visit only
+        }
+        markEpicSort(group)
+        regroupEpics(main)
+      })
+      group.append(button)
+    }
+    beforeToolbar(head, group)
+  }
+  markEpicSort(group)
+  regroupEpics(main)
+}
+
+/** The sort buttons:  `[sort, icon, words, tooltip]`. */
+const EPIC_SORTS = [
+  ["title", "arrow down a z", "A–Z", "Sort each group by title, A to Z"],
+  ["date", "clock", "Date", "Sort each group by when it was last worked on, newest first"]
+]
+
+/** Press the button of the sort in use. */
+function markEpicSort(group) {
+  const sort = epicSort()
+  for (const button of group.querySelectorAll("button[data-sort]")) {
+    button.setAttribute("aria-pressed", String(button.dataset.sort === sort))
   }
 }
 

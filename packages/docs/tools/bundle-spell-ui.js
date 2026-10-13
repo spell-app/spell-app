@@ -199,6 +199,9 @@ const ICONS = {
   // a wide-layout table's expand button (`spell-doc-runtime.js` `wireTableWidths()`):  wider, back into the column
   "solid/arrows-left-right": ["arrows left right"],
   "solid/arrows-left-right-to-line": ["arrows left right to line"],
+  // the Epics page's sort buttons (`spell-doc-runtime.js` `wireEpicSort()`):  A to Z, by date
+  "solid/arrow-down-a-z": ["arrow down a z"],
+  "solid/clock": ["clock"],
   // master plan:  live pages (thoughts, Claude sessions, setup)
   "regular/comment-dots": ["comment dots"],
   // review notes:  an item Owen wrote in (outline:  a draft;  solid `comment`:  sent), and Edit on a sent note
