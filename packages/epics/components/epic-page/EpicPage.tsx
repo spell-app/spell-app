@@ -1,7 +1,7 @@
 import { For, Show, createMemo } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E, UI } from "$/ui/core"
 // Import directly:  the `$/server/site` barrel is the site header's;  this file has no imports, so the pack bundles it
 import { URGENT_SELECTOR, epicStateFor, type EpicState } from "$/server/site/EpicState"
 
@@ -30,6 +30,7 @@ import {
   CRUMB_LINKS,
   CRUMBS,
   DONE,
+  COPIED_TOAST_MS,
   FLASH_MS,
   GIT,
   HAS_COMMITS,
@@ -50,7 +51,6 @@ import {
   SEND,
   STACK_PROPERTY,
   STATUS,
-  SUBHEAD,
   TODO,
   TOOLBAR,
   TOOLBAR_TOOLS,
@@ -72,15 +72,15 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  * The component behind `<epic-page>`:  a plan doc --
  * one epic's page, its data in attributes, its Overview and sections as children.
  * - Draws, top to bottom:
- *   - the crumbs (`Docs › Epics › <title>`, P14:
- *     none while the doc still holds its old `.spell-crumbs` before the page;  none narrow, 720px or less, where the
- *     side bar is too narrow for them:  `Crumbs.css`)
- *   - the sticky page header:  the h1 `/epic <name>`, copied on click;
+ *   - the sticky page header:  ONE line of crumbs, `DOCS / EPICS / <name>`, the name large and bold, the h1
+ *     (Owen, 2026-10-13:  "This is all redundant ... Just go with a single set of breadcrumbs")
+ *     - a click on the name copies `/epic resume <name>`, and a quiet toast says so
+ *     - no `DOCS / EPICS /` while the doc still holds its old `.spell-crumbs` before the page, nor narrow, 720px or
+ *       less, where the side bar is too narrow for them (`Crumbs.css`)
+ *     - the epic's title isn't drawn:  the name says it (the page's `<title>` and the Epics list still show it)
  *     at its right, while reviewed, Send and Review Now;  then the bedtime label, the step label (the state's icon in
  *     it) and the git toggle (Owen, 2026-10-10:  "Right items:  (=>P14) (whatever the half-filled circle is) (git
  *     icon, but bigger)";  then the state went into the step label:  "Into the pill")
- *   - the epic's title, NOT sticky:  it scrolls away under the header (Owen, 2026-10-10:  "Page sub header ("Output
- *     Targets") should not be sticky")
  *   - the toolbar's bar, sticky again, right below the header (`--epic-head-h`):  the new item form, the toolbar
  *   - the review line, and the pill under it while it shows
  *   - the meta lines (branch, worktree, dates, the durable doc's link from `slot="durable"`)
@@ -194,9 +194,6 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   /** The review line, just copied:  it flashes and says so. */
   @E.state accessor isCopied = false
 
-  /** The heading, just copied:  it says so. */
-  @E.state accessor isHeadingCopied = false
-
   /** Bumped when a section's filter changes (`ui-filter`) or the sections first draw:  the toolbar's chips follow. */
   @E.state accessor filterTick = 0
 
@@ -221,9 +218,6 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
 
   /** The review line's flash timer. */
   private flashTimer?: E.CancelablePromise<unknown>
-
-  /** Clears the heading's "copied". */
-  private headingTimer?: E.CancelablePromise<unknown>
 
   /** The sticky header, as drawn. */
   private header?: HTMLElement
@@ -464,20 +458,17 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     return (
       // an EMPTY title:  the DOM element's `title` would otherwise be a tooltip over the whole page (T8)
       <div class={this.rootClass} part={this.partForName("base")} title="" style={this.pageStyle()}>
-        <Show when={!this.hasOldCrumbs()}>{this.crumbs()}</Show>
         <header ref={(element) => (this.header = element)} class={HEAD} part={this.partForName("header")}>
           <h1 class={HEADING} part={this.partForName("heading")}>
+            <Show when={!this.hasOldCrumbs()}>{this.crumbs()}</Show>
             <button
               type="button"
-              class={[HEADING_COPY, { flash: this.isHeadingCopied }]}
+              class={HEADING_COPY}
               title={this.translationForKey("copyHeading", { command: this.headingCommand() })}
               onClick={() => void this.copyHeading()}
             >
-              {this.headingCommand()}
+              {this.epic}
             </button>
-            <span class="done" aria-live="polite">
-              {this.isHeadingCopied ? this.translationForKey("copied") : ""}
-            </span>
           </h1>
           <span class={STATUS} part={this.partForName("status")}>
             <Show when={this.marks()}>{(marks) => this.sendButtons(marks)}</Show>
@@ -512,11 +503,6 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
             <Show when={this.hasCommits()}>{this.gitToggle()}</Show>
           </span>
         </header>
-        <Show when={this.title}>
-          <p class={SUBHEAD} part={this.partForName("subhead")}>
-            {this.title}
-          </p>
-        </Show>
         <div ref={(element) => (this.bar = element)} class={BAR} part={this.partForName("bar")}>
           <Show when={this.isAdding && this.marks()}>
             <epic-new-item open="" part={this.partForName("new-form")} />
@@ -534,23 +520,30 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     )
   }
 
-  /** The crumbs:  `Docs › Epics › <title>`, the docs' eyebrow over the header. */
+  /**
+   * The crumbs before the epic's name, in the h1:  `Docs / Epics /`, the docs' eyebrow;  the name after them is the
+   * h1's own button (Owen, 2026-10-13:  "Just go with a single set of breadcrumbs").
+   */
   private crumbs(): JSX.Element {
     return (
-      <ui-breadcrumb
-        class={CRUMBS}
-        part={this.partForName("crumbs")}
-        size="small"
-        aria-label={this.translationForKey("crumbs")}
-      >
-        <ui-breadcrumb-section href={CRUMB_LINKS.docs.href} target={CRUMB_LINKS.docs.target}>
-          {this.translationForKey("crumbDocs")}
-        </ui-breadcrumb-section>
-        <ui-breadcrumb-section href={CRUMB_LINKS.epics.href} target={CRUMB_LINKS.epics.target}>
-          {this.translationForKey("crumbEpics")}
-        </ui-breadcrumb-section>
-        <ui-breadcrumb-section active="">{this.title || this.epic}</ui-breadcrumb-section>
-      </ui-breadcrumb>
+      <span class={CRUMBS} part={this.partForName("crumbs")}>
+        <ui-breadcrumb
+          class={CRUMBS}
+          part={this.partForName("crumbs")}
+          size="small"
+          aria-label={this.translationForKey("crumbs")}
+        >
+          <ui-breadcrumb-section href={CRUMB_LINKS.docs.href} target={CRUMB_LINKS.docs.target}>
+            {this.translationForKey("crumbDocs")}
+          </ui-breadcrumb-section>
+          <ui-breadcrumb-section href={CRUMB_LINKS.epics.href} target={CRUMB_LINKS.epics.target}>
+            {this.translationForKey("crumbEpics")}
+          </ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <span class="crumb-divider" aria-hidden="true">
+          /
+        </span>
+      </span>
     )
   }
 
@@ -807,9 +800,9 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     )
   }
 
-  /** `/epic <name>`:  the heading, which a click copies. */
+  /** `/epic resume <name>`:  what a click on the heading's name copies. */
   private headingCommand(): string {
-    return `/epic ${this.epic ?? ""}`
+    return `/epic resume ${this.epic ?? ""}`
   }
 
   /** What the review line copies:  `/epic review <name>`, or `/airplane land` in airplane mode. */
@@ -965,13 +958,19 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     this.flashTimer = E.after((FLASH_MS + 600) / 1000, () => (this.isCopied = false))
   }
 
-  /** The heading, clicked:  copy `/epic <name>`, then say so for a moment. */
+  /** The heading's name, clicked:  copy `/epic resume <name>`, and a quiet toast says so. */
   @E.untracked
   private async copyHeading() {
-    if (!(await EpicPage.copyText(this.headingCommand()))) return
-    this.isHeadingCopied = true
-    this.headingTimer?.cancel()
-    this.headingTimer = E.after((FLASH_MS + 600) / 1000, () => (this.isHeadingCopied = false))
+    const command = this.headingCommand()
+    if (!(await EpicPage.copyText(command))) return
+    // the docs bundle defines `<ui-toast>`;  a page without it just copies
+    if (!customElements.get("ui-toast")) return
+    UI.toast({
+      id: "epic-heading-copied",
+      message: this.translationForKey("headingCopied", { command }),
+      position: "bottom right",
+      displayTime: COPIED_TOAST_MS
+    })
   }
 
   /**

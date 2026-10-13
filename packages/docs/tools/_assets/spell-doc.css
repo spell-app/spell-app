@@ -240,7 +240,7 @@ body.spell-wide
 body.spell-wide .spell-doc-main {
   padding-top: 0;
 }
-/* an epic page's crumbs are on its header's ivory too, with their own room above (epics' `Crumbs.css`) */
+/* an epic page:  its header's ivory starts right under the site header, its own padding the room above */
 body.plan-doc .spell-doc-main:not(:has(.spell-crumbs)) {
   padding-top: 0;
 }

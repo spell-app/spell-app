@@ -1719,7 +1719,7 @@
           "name": "title",
           "kind": "string",
           "property": "epicTitle",
-          "description": "The epic's title (`Windows and Review`):  the subhead under the h1, which reads `/epic <name>`;  the crumbs' last."
+          "description": "The epic's title (`Windows and Review`):  the page's `<title>` and the Epics list's;  not drawn on the page, whose h1 is the epic's name."
         },
         {
           "name": "branch",
@@ -1794,7 +1794,7 @@
         },
         {
           "name": "crumbs",
-          "description": "Above the header:  `Docs › Epics › <title>`, the docs' eyebrow.  None while the doc still holds its old `ui-breadcrumb.spell-crumbs` before the page."
+          "description": "In the h1, before the epic's name:  `Docs / Epics /`, the docs' eyebrow.  None narrow, nor while the doc still holds its old `ui-breadcrumb.spell-crumbs` before the page."
         },
         {
           "name": "header",
@@ -1802,11 +1802,7 @@
         },
         {
           "name": "heading",
-          "description": "The h1, `/epic <name>`:  a click copies it."
-        },
-        {
-          "name": "subhead",
-          "description": "Under the header:  the epic's title, NOT sticky:  it scrolls away."
+          "description": "The h1:  the crumbs, then the epic's name, large and bold;  a click on the name copies `/epic resume <name>`."
         },
         {
           "name": "bar",
@@ -1896,7 +1892,12 @@
         {
           "key": "copyHeading",
           "text": "Copy {command}",
-          "description": "The h1's tooltip."
+          "description": "The h1's name:  its tooltip."
+        },
+        {
+          "key": "headingCopied",
+          "text": "Copied {command}",
+          "description": "The toast once the h1's name is clicked:  what went onto the clipboard."
         },
         {
           "key": "newButton",

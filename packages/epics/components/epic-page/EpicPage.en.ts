@@ -38,8 +38,8 @@ export const epicPageVocabulary = {
       kind: "string",
       required: true,
       description:
-        "The epic's title (`Windows and Review`):  the subhead under the h1, which reads `/epic <name>`;  the " +
-        "crumbs' last."
+        "The epic's title (`Windows and Review`):  the page's `<title>` and the Epics list's;  not drawn on the page, " +
+        "whose h1 is the epic's name."
     },
     { name: "branch", kind: "string", description: "Its git branch;  absent for a future epic." },
     {
@@ -112,8 +112,8 @@ export const epicPageVocabulary = {
     {
       name: "crumbs",
       description:
-        "Above the header:  `Docs › Epics › <title>`, the docs' eyebrow.  None while the doc still holds its old " +
-        "`ui-breadcrumb.spell-crumbs` before the page."
+        "In the h1, before the epic's name:  `Docs / Epics /`, the docs' eyebrow.  None narrow, nor while the doc " +
+        "still holds its old `ui-breadcrumb.spell-crumbs` before the page."
     },
     {
       name: "header",
@@ -121,8 +121,11 @@ export const epicPageVocabulary = {
         "The sticky page header:  the h1, then at its right Send and Review Now (while reviewed), the bedtime label, " +
         "the step label (the state in it) and the git toggle."
     },
-    { name: "heading", description: "The h1, `/epic <name>`:  a click copies it." },
-    { name: "subhead", description: "Under the header:  the epic's title, NOT sticky:  it scrolls away." },
+    {
+      name: "heading",
+      description:
+        "The h1:  the crumbs, then the epic's name, large and bold;  a click on the name copies `/epic resume <name>`."
+    },
     {
       name: "bar",
       description:
@@ -215,7 +218,12 @@ export const epicPageVocabulary = {
       description: "Plan hung?:  its tooltip."
     },
 
-    { key: "copyHeading", text: "Copy {command}", description: "The h1's tooltip." },
+    { key: "copyHeading", text: "Copy {command}", description: "The h1's name:  its tooltip." },
+    {
+      key: "headingCopied",
+      text: "Copied {command}",
+      description: "The toast once the h1's name is clicked:  what went onto the clipboard."
+    },
     {
       key: "newButton",
       text: "New todo or question",
