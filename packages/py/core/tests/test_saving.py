@@ -89,14 +89,14 @@ def loader_of(entries: dict[str, Entry]) -> Loader:
 
 def test_each_thing_an_entry_of_its_own_by_id_and_what_holds_it_a_reference() -> None:
     saved = Saver().save(owen_and_matt())
-    assert saved.root == "Person/owen"
+    assert saved.root == "Person#owen"
     assert {"root": saved.root, "entries": saved.entries} == EXPECTED
 
 
 def test_a_kind_saved_inline_is_written_whole_inside_what_holds_it() -> None:
     entries = Saver().save(owen_and_matt()).entries
-    assert list(entries) == ["Person/owen", "Person/matt"]
-    assert entries["Person/owen"]["dates"] == [
+    assert list(entries) == ["Person#owen", "Person#matt"]
+    assert entries["Person#owen"]["dates"] == [
         {"@type": "DatedEvent", "label": "birthday", "day": "1970-01-01T00:00:00.000Z"}
     ]
 
@@ -104,8 +104,8 @@ def test_a_kind_saved_inline_is_written_whole_inside_what_holds_it() -> None:
 def test_a_thing_with_no_id_is_given_one_as_its_saved_and_keeps_it() -> None:
     anon = Person(name="Anon")
     root = Saver().save(anon).root
-    assert re.fullmatch(r"Person/person-[0-9a-z]{8}", root)
-    assert root == f"Person/{anon.id}"
+    assert re.fullmatch(r"Person#person-[0-9a-z]{8}", root)
+    assert root == f"Person#{anon.id}"
 
 
 def test_ref_of_names_entries_and_references() -> None:
@@ -161,8 +161,8 @@ def test_saved_loaded_saved_again_gives_the_same_entries() -> None:
 
 def test_a_reference_to_nothing_saved_is_left_out_of_a_list_with_a_warning() -> None:
     warnings = io.StringIO()
-    entries = {"Person/owen": {**EXPECTED["entries"]["Person/owen"], "friends": [{"@ref": "Person/nobody"}]}}
+    entries = {"Person#owen": {**EXPECTED["entries"]["Person#owen"], "friends": [{"@ref": "Person#nobody"}]}}
     with using_core(SpellCore(SpellConsole(stderr=warnings))):
-        owen = loader_of(entries).load("Person/owen")
+        owen = loader_of(entries).load("Person#owen")
     assert list(owen.friends) == []
-    assert warnings.getvalue() == 'Loader.load():  nothing is saved as "Person/nobody"\n'
+    assert warnings.getvalue() == 'Loader.load():  nothing is saved as "Person#nobody"\n'

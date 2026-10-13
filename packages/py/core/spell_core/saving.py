@@ -2,17 +2,17 @@
 
 ```python
 saved = Saver().save(owen)
-# saved.root:  "Person/owen"
-# saved.entries:  "Person/owen" => {"@type": "Person", "id": "owen", "name": "Owen",
+# saved.root:  "Person#owen"
+# saved.entries:  "Person#owen" => {"@type": "Person", "id": "owen", "name": "Owen",
 #                                   "dates": [{"@type": "DatedEvent", "label": "birthday", ...}],
-#                                   "friends": [{"@ref": "Person/matt"}]}
-#                 "Person/matt" => {"@type": "Person", "id": "matt", ...}
+#                                   "friends": [{"@ref": "Person#matt"}]}
+#                 "Person#matt" => {"@type": "Person", "id": "matt", ...}
 
 loader = Loader(entry_for=saved.entries.get)
 loader.load(saved.root)   # owen again;  his friend matt is loaded once, however many hold him
 ```
 
-- Every thing is saved in an entry of its own, and what holds it saves a REFERENCE, `{"@ref": "Person/matt"}`:
+- Every thing is saved in an entry of its own, and what holds it saves a REFERENCE, `{"@ref": "Person#matt"}`:
   so a card in two piles is one card, read back.
   - EXCEPT a kind saved inline (`a dated-event is saved inline`, `saved_inline = True`):
     written whole, inside what holds it.
@@ -22,7 +22,7 @@ loader.load(saved.root)   # owen again;  his friend matt is loaded once, however
   - Its props by Python's names, as `to_json()` and a page's state (`state.py`) write them:  `is_set_up`.
   - Then its plain fields, what it was made with and doesn't declare, as a page's state writes them too.
   - A date (`datetime`) as its ISO text, as JavaScript's `toISOString()` writes it:  `1970-01-01T00:00:00.000Z`.
-- What an entry's key and a reference say is `ref_of`'s, `"Person/matt"` by default:
+- What an entry's key and a reference say is `ref_of`'s, `"Person#matt"` by default:
   the people store (P9) names them by address instead, `"matt@spell"`.
 - Where entries live is the caller's:  a dict here, one file each in the people store.
 - The twin of the JavaScript core's `Saver` and `Loader` (`saving.ts`):
@@ -39,7 +39,7 @@ from spell_core.lists import List
 from spell_core.state import plain_fields, set_prop_of
 from spell_core.things import ITEMS_KEY, TYPE_KEY, Prop, SpellObject, program_core, things
 
-# The key a reference names its thing under:  `{"@ref": "Person/matt"}`.
+# The key a reference names its thing under:  `{"@ref": "Person#matt"}`.
 REF_KEY = "@ref"
 
 # An entry, as JSON:  `{"@type": "Person", "id": "owen", ...}`.
@@ -50,7 +50,7 @@ Entry = dict[str, Any]
 class Saved:
     """What a save writes:  every entry it made, by its key, and the key of the thing it started from."""
 
-    # The key of the thing `save()` was given, e.g. `"Person/owen"`.
+    # The key of the thing `save()` was given, e.g. `"Person#owen"`.
     root: str
     # Each entry by its key, in the order they were reached:  the root's first.
     entries: dict[str, Entry]
@@ -60,7 +60,7 @@ class Saver:
     """Writes a thing, and every thing it reaches, as entries by id:  see the module's docs."""
 
     def __init__(self, ref_of: Callable[[SpellObject], str] | None = None) -> None:
-        """A saver naming entries and references by `ref_of`:  `"<Class>/<id>"` by default, `"Person/owen"`."""
+        """A saver naming entries and references by `ref_of`:  `"<Class>#<id>"` by default, `"Person#owen"`."""
         self.ref_of = ref_of or default_ref_of
 
     def save(self, root: SpellObject) -> Saved:
@@ -213,8 +213,8 @@ class Loader:
 
 
 def default_ref_of(thing: SpellObject) -> str:
-    """`"<Class>/<id>"`, e.g. `"Person/owen"`:  a thing's key, until the people store names things by address."""
-    return f"{type(thing).__name__}/{thing.id}"
+    """`"<Class>#<id>"`, e.g. `"Person#owen"`:  a thing's key, until the people store names things by address."""
+    return f"{type(thing).__name__}#{thing.id}"
 
 
 def iso_text(date: datetime) -> str:

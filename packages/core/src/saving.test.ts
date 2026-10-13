@@ -114,14 +114,14 @@ function loaderOf(entries: Map<string, Record<string, unknown>> | Record<string,
 describe("Saver", () => {
   test("each thing an entry of its own, by id;  what holds it, a reference", () => {
     const { root, entries } = new Saver().save(owenAndMatt())
-    expect(root).toBe("Person/owen")
+    expect(root).toBe("Person#owen")
     expect({ root, entries: Object.fromEntries(entries) }).toEqual(EXPECTED)
   })
 
   test("a kind saved inline is written whole, inside what holds it:  no entry of its own", () => {
     const { entries } = new Saver().save(owenAndMatt())
-    expect([...entries.keys()]).toEqual(["Person/owen", "Person/matt"])
-    expect(entries.get("Person/owen")!.dates).toEqual([
+    expect([...entries.keys()]).toEqual(["Person#owen", "Person#matt"])
+    expect(entries.get("Person#owen")!.dates).toEqual([
       { "@type": "DatedEvent", label: "birthday", day: "1970-01-01T00:00:00.000Z" }
     ])
   })
@@ -129,8 +129,8 @@ describe("Saver", () => {
   test("a thing with no id is given one as it's saved, and keeps it", () => {
     const anon = new Person({ name: "Anon" })
     const { root } = new Saver().save(anon)
-    expect(root).toMatch(/^Person\/person-[0-9a-z]{8}$/)
-    expect(root).toBe(`Person/${anon.id}`)
+    expect(root).toMatch(/^Person#person-[0-9a-z]{8}$/)
+    expect(root).toBe(`Person#${anon.id}`)
   })
 
   test("what a thing was made with and doesn't declare is saved too, and read back:  a foundation's `symbol`", () => {
@@ -188,10 +188,10 @@ describe("Loader", () => {
     const warn = spellCore.console.warn
     spellCore.console.warn = (...message: unknown[]) => void warnings.push(message)
     try {
-      const entries = { "Person/owen": { ...EXPECTED.entries["Person/owen"], friends: [{ "@ref": "Person/nobody" }] } }
-      const owen = loaderOf(entries).load("Person/owen") as Person
+      const entries = { "Person#owen": { ...EXPECTED.entries["Person#owen"], friends: [{ "@ref": "Person#nobody" }] } }
+      const owen = loaderOf(entries).load("Person#owen") as Person
       expect(owen.friends.items).toEqual([])
-      expect(warnings).toEqual([['Loader.load():  nothing is saved as "Person/nobody"']])
+      expect(warnings).toEqual([['Loader.load():  nothing is saved as "Person#nobody"']])
     } finally {
       spellCore.console.warn = warn
     }

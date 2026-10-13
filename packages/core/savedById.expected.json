@@ -1,18 +1,18 @@
 {
-  "root": "Person/owen",
+  "root": "Person#owen",
   "entries": {
-    "Person/owen": {
+    "Person#owen": {
       "@type": "Person",
       "id": "owen",
       "name": "Owen",
       "dates": [{ "@type": "DatedEvent", "label": "birthday", "day": "1970-01-01T00:00:00.000Z" }],
-      "friends": [{ "@ref": "Person/matt" }]
+      "friends": [{ "@ref": "Person#matt" }]
     },
-    "Person/matt": {
+    "Person#matt": {
       "@type": "Person",
       "id": "matt",
       "name": "Matt",
-      "friends": [{ "@ref": "Person/owen" }]
+      "friends": [{ "@ref": "Person#owen" }]
     }
   }
 }

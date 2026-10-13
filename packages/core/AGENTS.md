@@ -171,8 +171,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `fromJSON()` reads through a new mirror, so JSON with ids keeps each thing as one.
   - Python's twin is `spell_core.state`:  both write [stateById.expected.json](stateById.expected.json), and read it.
 - SAVING things by id ([saving.ts](src/saving.ts), epic `people-and-orgs` P2):  what lasts, as opposed to a page's state.
-  - `new Saver().save(thing)`:  every thing it reaches, each an entry of its own by key, `"Person/owen"`.
-    - What holds a thing writes a reference to it, `{ "@ref": "Person/matt" }`:  a card in two piles is one card.
+  - `new Saver().save(thing)`:  every thing it reaches, each an entry of its own by key, `"Person#owen"`.
+    - What holds a thing writes a reference to it, `{ "@ref": "Person#matt" }`:  a card in two piles is one card.
     - A kind saved inline (`static savedInline = true`, from `a dated-event is saved inline`) is written whole instead.
     - A property's plain list is its items, a JSON array.
   - `new Loader({ entryFor }).load(key)`:  each entry made once, however many references name it.

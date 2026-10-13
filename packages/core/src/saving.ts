@@ -4,17 +4,17 @@
  *
  * ```ts
  * const { root, entries } = new Saver().save(owen)
- * // root:  "Person/owen"
- * // entries:  "Person/owen" => { "@type": "Person", "id": "owen", "name": "Owen",
+ * // root:  "Person#owen"
+ * // entries:  "Person#owen" => { "@type": "Person", "id": "owen", "name": "Owen",
  * //                                "dates": [{ "@type": "DatedEvent", "label": "birthday", ... }],
- * //                                "friends": [{ "@ref": "Person/matt" }] }
- * //           "Person/matt" => { "@type": "Person", "id": "matt", ... }
+ * //                                "friends": [{ "@ref": "Person#matt" }] }
+ * //           "Person#matt" => { "@type": "Person", "id": "matt", ... }
  *
  * const loader = new Loader({ entryFor: (ref) => entries.get(ref) })
  * loader.load(root)   // owen again;  his friend matt is loaded once, however many hold him
  * ```
  *
- * - Every thing is saved in an entry of its own, and what holds it saves a REFERENCE, `{ "@ref": "Person/matt" }`:
+ * - Every thing is saved in an entry of its own, and what holds it saves a REFERENCE, `{ "@ref": "Person#matt" }`:
  *   so a card in two piles is one card, read back.
  *   - EXCEPT a kind saved inline (`a dated-event is saved inline`, `static savedInline = true`):
  *     written whole, inside what holds it.
@@ -22,7 +22,7 @@
  *     it's part of its owner.  A list TYPE (`a club is a list of people`) is a thing, saved on its own.
  * - An entry is what `toJSON()` writes, `"@type"` first, then its `id`, then its other props,
  *   then the plain fields it was made with (a foundation's `symbol`), then a list's `"@items"`.
- * - What an entry's key and a reference say is `refOf`'s, `"Person/matt"` by default:
+ * - What an entry's key and a reference say is `refOf`'s, `"Person#matt"` by default:
  *   the people store (P9) names them by address instead, `"matt@spell"`.
  * - Where entries live is the caller's:  a `Map` here, one file each in the people store.
  * - The twin of Python's `spell_core.saving`:  both write `savedById.expected.json`, beside `src/`, and read it.
@@ -36,7 +36,7 @@ import { fieldsOf, hasSetter, isPlainObject, isSpellObject } from "./state"
 import { List } from "./classes/List"
 import { Thing } from "./classes/Thing"
 
-/** Key a reference names its thing under:  `{ "@ref": "Person/matt" }`. */
+/** Key a reference names its thing under:  `{ "@ref": "Person#matt" }`. */
 export const REF_KEY = "@ref"
 
 /** A thing or a list:  what is saved by id. */
@@ -47,7 +47,7 @@ type SpellClass = new (props?: Record<string, unknown>) => SpellObject
 
 /** What a save writes:  every entry it made, by its key, and the key of the thing it started from. */
 export type Saved = {
-  /** The key of the thing `save()` was given, e.g. `"Person/owen"`. */
+  /** The key of the thing `save()` was given, e.g. `"Person#owen"`. */
   root: string
   /** Each entry by its key, in the order they were reached:  the root's first. */
   entries: Map<string, Record<string, unknown>>
@@ -55,7 +55,7 @@ export type Saved = {
 
 /** Options for a `Saver`. */
 export type SaverOptions = {
-  /** The key of a thing's entry, and what a reference to it says -- `"<Class>/<id>"` by default, `"Person/owen"`. */
+  /** The key of a thing's entry, and what a reference to it says -- `"<Class>#<id>"` by default, `"Person#owen"`. */
   refOf?: (thing: SpellObject) => string
 }
 
@@ -236,9 +236,9 @@ export class Loader {
 // ## Helpers
 ////////////////
 
-/** `"<Class>/<id>"`, e.g. `"Person/owen"`:  a thing's key, until the people store names things by address. */
+/** `"<Class>#<id>"`, e.g. `"Person#owen"`:  a thing's key, until the people store names things by address. */
 function defaultRefOf(thing: SpellObject): string {
-  return `${thing.constructor.name}/${thing.id}`
+  return `${thing.constructor.name}#${thing.id}`
 }
 
 /** Is `thing`'s kind saved inside what holds it (`static savedInline = true`)? */
