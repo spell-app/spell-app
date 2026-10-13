@@ -216,29 +216,33 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  * `vite-plugin-dts` options for the published declarations:
  * `dist/index.d.ts`, `dist/core.d.ts`, `dist/components/ui-<name>/index.d.ts` ... --
  * the paths `package.json` `exports` names.
- * - `src/` imports `$/util` (`../util/src`, OUTSIDE this package), so the program's root is `packages/`
- *   (`compilerOptions.rootDir`, else TS6059) and both `src/` trees are included.
- * - Then `beforeWriteFile` moves what the plugin wrote to `dist/ui/src/**` up to `dist/**`, and
- *   `dist/util/src/**` to `dist/_util/**` (not `dist/util/`:  that's `src/util/`'s), and rewrites `$/util` and `$/ui`
- *   specifiers to relative ones.  `pathsToAliases: false`:  the plugin's own rewrite measures from the layout
+ * - `src/` imports `$/util` (`../util/src`) and `$/spell-solid` (`../spell-solid/src`), OUTSIDE this package, so the
+ *   program's root is `packages/` (`compilerOptions.rootDir`, else TS6059) and all three `src/` trees are included.
+ * - Then `beforeWriteFile` moves what the plugin wrote to `dist/ui/src/**` up to `dist/**`,
+ *   `dist/util/src/**` to `dist/_util/**` (not `dist/util/`:  that's `src/util/`'s) and `dist/spell-solid/src/**` to
+ *   `dist/_spell-solid/**`, and rewrites `$/util`, `$/spell-solid` and `$/ui` specifiers to relative ones (a
+ *   `declare module` augmentation's too).  `pathsToAliases: false`:  the plugin's own rewrite measures from the layout
  *   BEFORE the move, and gets `../packages/ui/src/...`.
  * - `?inline` CSS imports (`styles/index.ts`) become `declare const x: string`:  only `vite/client` types them.
  * - Why not `bundleTypes`:  it rolls each entry up on its own, so a class like `UIComponent` is copied into every entry
  *   that reaches it, and a class with private members is a DIFFERENT type in each copy.
  *   Per-file declarations keep one `UIComponent` for `@spell-app/ui/core` and `@spell-app/ui/ui-button` alike.
- * - `util` is not published on its own, so its GENERIC declarations ship inside `@spell-app/ui`.
+ * - `util` and `spell-solid` are not published on their own, so their declarations ship inside `@spell-app/ui`
+ *   (`util`'s GENERIC ones only).
  *   NOT `util/src/spell/` or `util`'s barrel (which flattens it in):
  *   `exclude` lists them, and `src/util/index.ts` imports file by file.
  * - MUST end with NO `$/` alias in `dist/**.d.ts` and no path outside `dist/`;  `yarn smoke` checks.
  */
 export function declarations(): PluginOptions {
   return {
-    include: ["src", "../util/src"],
+    include: ["src", "../util/src", "../spell-solid/src"],
     exclude: [
       // visual-test hooks:  they import `test/test.types.ts`, whose `vitest` augmentations this program can't resolve
       "src/**/*.visual.ts",
       "../util/src/spell/**",
-      "../util/src/index.ts"
+      "../util/src/index.ts",
+      // dev-only, never in a build
+      "../spell-solid/src/HotDefinitions.ts"
     ],
     entryRoot: "..",
     compilerOptions: { rootDir: ".." },
@@ -249,8 +253,9 @@ export function declarations(): PluginOptions {
 
 /**
  * `declarations()`'s `beforeWriteFile`:  where a `.d.ts` goes in `dist/`, and its imports made to match.
- * - Returns `false` (skip) for anything outside `ui/src` and `util/src`.
- * - Only import / export STATEMENTS are rewritten (`from "..."`, `import("...")`):  doc comments may mention aliases.
+ * - Returns `false` (skip) for anything outside `ui/src`, `util/src` and `spell-solid/src`.
+ * - Only import / export STATEMENTS are rewritten (`from "..."`, `import("...")`, `declare module "..."`):
+ *   doc comments may mention aliases.
  * - A specifier is resolved against the SOURCE tree, then expressed in `dist/` terms.
  *   A folder becomes `<folder>/index`:
  *   `dist/styles.js` (a lib entry) sits beside `dist/styles/`, and TypeScript would pick the `.js`.
@@ -260,50 +265,71 @@ export function declarations(): PluginOptions {
 function rewriteDeclaration(filePath: string, content: string) {
   const dist = path.resolve("dist")
   const uiSrc = path.resolve("src")
-  const utilSrc = path.resolve("../util/src")
   const written = path.relative(dist, filePath).split(path.sep).join("/")
+  // a package outside this one, by the `dist/` folder its declarations go to
+  const outside = OUTSIDE.find(({ written: prefix }) => written.startsWith(prefix))
   const moved = written.startsWith("ui/src/")
     ? written.slice("ui/src/".length)
-    : written.startsWith("util/src/")
-      ? `_util/${written.slice("util/src/".length)}`
-      : undefined
+    : outside && `${outside.folder}/${written.slice(outside.written.length)}`
   if (!moved) return false
   const fromDir = path.posix.dirname(moved)
-  const sourceDir = moved.startsWith("_util/")
-    ? path.join(utilSrc, path.dirname(moved.slice("_util/".length)))
+  const sourceDir = outside
+    ? path.join(outside.src, path.dirname(moved.slice(outside.folder.length + 1)))
     : path.join(uiSrc, path.dirname(moved))
 
   const code = content
-    .replace(/(from |import\()(["'])(\$\/[^"']+|\.\.?\/[^"']*)\2/g, (_, start, quote, specifier: string) => {
-      const source = specifier.startsWith(".")
-        ? path.resolve(sourceDir, specifier)
-        : specifier === "$/util" || specifier.startsWith("$/util/")
-          ? path.join(utilSrc, specifier.slice("$/util".length) || "index")
-          : specifier === "$/ui"
-            ? path.join(uiSrc, "index")
-            : path.join(uiSrc, specifier.slice("$/ui/".length))
-      const file = existsSync(source) && statSync(source).isDirectory() ? path.join(source, "index") : source
-      const target = file.startsWith(`${utilSrc}${path.sep}`)
-        ? `_util/${path.relative(utilSrc, file)}`
-        : path.relative(uiSrc, file)
-      const relativeTarget = path.posix.relative(fromDir, target.split(path.sep).join("/"))
-      return `${start}${quote}${relativeTarget.startsWith(".") ? relativeTarget : `./${relativeTarget}`}${quote}`
-    })
+    .replace(
+      /(from |import\(|declare module )(["'])(\$\/[^"']+|\.\.?\/[^"']*)\2/g,
+      (_, start, quote, specifier: string) => {
+        const aliased = OUTSIDE.find(({ alias }) => specifier === alias || specifier.startsWith(`${alias}/`))
+        const source = specifier.startsWith(".")
+          ? path.resolve(sourceDir, specifier)
+          : aliased
+            ? path.join(aliased.src, specifier.slice(aliased.alias.length) || "index")
+            : specifier === "$/ui"
+              ? path.join(uiSrc, "index")
+              : path.join(uiSrc, specifier.slice("$/ui/".length))
+        const file = existsSync(source) && statSync(source).isDirectory() ? path.join(source, "index") : source
+        const home = OUTSIDE.find(({ src }) => file.startsWith(`${src}${path.sep}`))
+        const target = home ? `${home.folder}/${path.relative(home.src, file)}` : path.relative(uiSrc, file)
+        const relativeTarget = path.posix.relative(fromDir, target.split(path.sep).join("/"))
+        return `${start}${quote}${relativeTarget.startsWith(".") ? relativeTarget : `./${relativeTarget}`}${quote}`
+      }
+    )
     .replace(/^import \{ default as (\w+) \} from ["'][^"']+\?inline["'];?$/gm, "declare const $1: string;")
   return { filePath: path.join(dist, moved), content: code }
 }
 
 /**
+ * The packages outside this one whose declarations ship inside `@spell-app/ui` (`rewriteDeclaration()`):
+ * - `alias`:  how `src/` imports them
+ * - `src`:  their source folder
+ * - `written`:  where `vite-plugin-dts` writes their declarations, in `dist/`
+ * - `folder`:  where they go instead
+ */
+const OUTSIDE = [
+  { alias: "$/util", src: path.resolve("../util/src"), written: "util/src/", folder: "_util" },
+  {
+    alias: "$/spell-solid",
+    src: path.resolve("../spell-solid/src"),
+    written: "spell-solid/src/",
+    folder: "_spell-solid"
+  }
+]
+
+/**
  * Hot module replacement for the components in `yarn dev` (`tools/HotElements.ts`;
  * `apply: "serve"`, so builds are untouched, and NOT in `vitest.config.ts`).
- * - `HotDefinitions` is injected by FILE PATH, not `$/ui/elements/HotDefinitions`:
+ * - `HotDefinitions` (`$/spell-solid`'s) is injected by FILE PATH, not `$/spell-solid/HotDefinitions`:
  *   `resolve.tsconfigPaths` only resolves aliases for TS / JS importers, and the sheets' handler import lives in a
  *   `.css?inline` module.
  */
 function hotElementsPlugin(): Plugin {
   // HACK: `HotElements.ts` types its plugin with `vite`'s `Plugin`, this config with `vite-plus`'s:
   // the same version, but a second declaration TypeScript won't unify
-  return hotElements(`${SRC}/elements/HotDefinitions.ts`) as unknown as Plugin
+  return hotElements(
+    fileURLToPath(new URL("../spell-solid/src/HotDefinitions.ts", import.meta.url))
+  ) as unknown as Plugin
 }
 
 /**

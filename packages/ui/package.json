@@ -13,7 +13,7 @@
     "./src/index.ts",
     "./src/components/*/index.ts",
     "./src/docs-components/*/index.ts",
-    "./src/elements/HotDefinitions.ts",
+    "./src/elements/SpellUISettings.ts",
     "./site/_src/snapshot.ts",
     "./site/_src/SitePacks.ts",
     "./site/_src/site.ts",

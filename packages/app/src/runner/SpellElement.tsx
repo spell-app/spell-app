@@ -399,6 +399,8 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
       }
     }
     const TagClass = Component.define()
+    // the page's runtime has installed its settings by now (a program runs on it), so the tag is defined at once
+    if (!TagClass) throw new Error(`SpellElement:  <${tag}> isn't defined:  no runtime for its elements yet`)
     SpellElement.readThroughThing(TagClass, properties)
     SpellElement.addMethods(TagClass, api.methods, Base)
   }

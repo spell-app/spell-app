@@ -4,7 +4,7 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { E } from "$/ui/core"
 import { F } from "$/ui/forms"
-import type { UIComponentClass, DOMElement } from "$/ui/elements"
+import type { UIComponentClass, DOMElement } from "$/spell-solid"
 import type { ComponentVocabulary, Dictionary } from "$/ui/vocabulary"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
@@ -772,11 +772,21 @@ describe("Reactive:  elementSetup.cssStates, @aria and elementSetup.aria", () =>
 })
 
 describe("Reactive:  vocabulary getters vs base members", () => {
-  /** Every family's English vocabulary (components and docs elements). */
+  /**
+   * Every set's English vocabularies:  Spell UI's components and docs elements, the epics', the brand's, the app's,
+   * all written on `UIComponent`.
+   */
   const vocabularies = Object.values(
-    import.meta.glob<Record<string, unknown>>(["/src/components/*/*.en.ts", "/src/docs-components/*/*.en.ts"], {
-      eager: true
-    })
+    import.meta.glob<Record<string, unknown>>(
+      [
+        "../../../packages/ui/src/components/*/*.en.ts",
+        "../../../packages/ui/src/docs-components/*/*.en.ts",
+        "../../../packages/epics/components/*/*.en.ts",
+        "../../../packages/brand/components/*/*.en.ts",
+        "../../../packages/app/components/*/*.en.ts"
+      ],
+      { eager: true }
+    )
   ).flatMap((module) =>
     Object.values(module).filter(
       (value): value is ComponentVocabulary =>

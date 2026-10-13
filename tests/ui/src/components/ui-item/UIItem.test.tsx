@@ -2,7 +2,7 @@ import type { JSX } from "@solidjs/web"
 import { describe, expect, it } from "vite-plus/test"
 
 import type { ItemContext, ItemOwner } from "$/ui/components/components.types"
-import { UIComponent, type AttributeValues, type UIComponentClass, type DOMElement } from "$/ui/elements"
+import { UIComponent, type AttributeValues, type UIComponentClass, type DOMElement } from "$/spell-solid"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 import { UI } from "$/ui/runtime"
 import { expectAccessible } from "$/ui/test/A11y"

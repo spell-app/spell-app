@@ -13,7 +13,7 @@ export default {
   states: {
     loading: {
       open: async (root) => {
-        const { DOMElement } = await import("$/ui/elements")
+        const { DOMElement } = await import("$/spell-solid")
         if (!customElements.get(WAIT)) customElements.define(WAIT, class extends DOMElement {})
         const old = root.querySelector("ui-root")!
         const held = document.createElement("ui-root")

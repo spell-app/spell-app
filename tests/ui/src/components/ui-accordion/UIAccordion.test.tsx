@@ -5,7 +5,7 @@ import { UI } from "$/ui/runtime"
 import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMElement } from "$/ui/elements"
+import type { DOMElement } from "$/spell-solid"
 import type { AccordionToggleDetail } from "$/ui/components/components.types"
 
 import "$/ui/components/ui-accordion"

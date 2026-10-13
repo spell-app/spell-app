@@ -5,7 +5,7 @@
  * - Class words:  `dimmed` writes its name;  `time` and `label` write none.
  */
 
-import type { E } from "$/ui/core"
+import type { E } from "$/spell-solid"
 
 /****************
  * ### `brandPhoneVocabulary`

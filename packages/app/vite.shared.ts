@@ -95,6 +95,9 @@ const FROM_SHARED_SOLID = new Map<string, string>([
   ["solid-js", SHARED_SOLID.shared],
   ["@solidjs/web", SHARED_SOLID.shared],
   ["@solidjs/h", SHARED_SOLID.shared],
+  // spell-solid, which `<spell-app>` and `<spell-editor>` are written on:  `$/ui/core` carries all of it, and its
+  // `E` holds every name spell-solid's does, so it comes BEFORE `$/ui/core` (a page's module, `spell-solid-shared.js`)
+  ["$/spell-solid", SHARED_SOLID.shared],
   ["$/ui/core", SHARED_SOLID.shared],
   ["$/ui/components/ui-root", SHARED_SOLID.shared],
   ["$/ui", SHARED_SOLID.ui]
@@ -123,7 +126,7 @@ export const SHARED_DEFAULTS: Readonly<Record<string, string>> = { [H_PACKAGE]: 
 const SHARED_H = "\0spell-shared-h"
 
 /** Any other import from Solid's or `ui`'s packages:  `sharedSolid()` refuses it, as the shared files may lack it. */
-const SOLID_FAMILY = /^(solid-js|@solidjs\/[^/]+|@spell-app\/ui)(\/|$)|^\$\/ui\//
+const SOLID_FAMILY = /^(solid-js|@solidjs\/[^/]+|@spell-app\/(ui|spell-solid))(\/|$)|^\$\/(ui|spell-solid)\//
 
 /**
  * For a build that takes Solid and `@spell-app/ui` from `SHARED_SOLID`'s files beside it, instead of bundling its own:

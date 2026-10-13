@@ -72,7 +72,9 @@ when working with code in this package, `@spell-app/brand`.
   - the bundles' entries:  `brand-ui.ts`, `brand-docs.ts`, `brand-design.ts`, `hues.ts` (what's in each, and why)
 - `components/` (`$/brand/components`):  the `<ui-brand-*>` elements, one folder per family.
   - Written exactly like a Spell UI family ([ui's AGENTS.md](../ui/AGENTS.md), "Solid authoring").
-  - They import shared code from `$/ui/core` / `$/ui/forms`.
+  - Written on `$/spell-solid` (`import { E } from "$/spell-solid"`), and Spell UI's shared code from `$/ui/core` /
+    `$/ui/forms`;  a file using Spell UI's own pieces (`E.IconGlyph` ...) takes `E` from `$/ui/core`, which carries
+    spell-solid's names too ([spell-solid's AGENTS.md](../spell-solid/AGENTS.md), "Imports").
   - `yarn lint` holds them to it:  the `spell-ui/*` rules (ui's "Solid authoring", "The lint guard").
   - Generic ones move into Spell UI later (epic decision D2).
   - The specimen page:  [components.spell.html](../../brand/components/components.spell.html) (shared).
@@ -173,10 +175,11 @@ when working with code in this package, `@spell-app/brand`.
 
 As the root's, plus these reaches into `ui` past its barrel, each because the barrel can't give it
 (until the elements move into Spell UI, epic todo T2):
-- `$/ui/core` (and `$/ui/forms`):  the element authoring API.
+- `$/ui/core` (and `$/ui/forms`):  Spell UI's half of the element authoring API, beside `$/spell-solid`'s.
   - Imported as a `ui` family imports it, through its namespaces:
     `import { E, UI, UIT } from "$/ui/core"` (+ `import { F } from "$/ui/forms"`)
-  - then `E.UIComponent`, `@E.state`, `@E.controlled("value")`, `F.FormComponent`
+  - then `E.IconGlyph`, `UI.browser`, `F.FormComponent`;  `E.UIComponent`, `@E.state` are spell-solid's, as
+    `import { E } from "$/spell-solid"` in a file that needs nothing more
 - the bundle entries (`src/`), as Spell UI's site entry does:
   - `$/ui/runtime`, `$/ui/icons`, `$/ui/styles`, `$/ui/styles/ui.css`
 - `$/ui/docs-components/...`:  the docs widgets and `SiteData` ([brand-docs.ts](src/brand-docs.ts)).

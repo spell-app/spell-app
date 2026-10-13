@@ -39,6 +39,8 @@ export function epicsProjects({
         name: `${prefix}browser`,
         dir: TESTS,
         include: ["components/**/*.test.{ts,tsx}"],
+        // Spell UI's core first, as a page has it:  its settings for `$/spell-solid` (`packages/ui/test/setup.ts`)
+        setupFiles: [resolve(import.meta.dirname, "../ui/test/setup.ts")],
         testTimeout: 10_000,
         browser: {
           enabled: true,

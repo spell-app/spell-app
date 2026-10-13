@@ -1,6 +1,6 @@
 import { onSettled, untrack } from "solid-js"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 // Import directly to avoid circular import
 import { onChange, state } from "./Reactive"
 

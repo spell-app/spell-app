@@ -1,6 +1,6 @@
 import { E } from "$/ui/core"
-// Import directly to avoid circular import
-import { state } from "./Reactive"
+// Import directly to avoid circular import:  spell-solid imports nothing of Spell UI, so it has always loaded first
+import { state } from "$/spell-solid"
 
 /****************
  * ### `RootSettings`

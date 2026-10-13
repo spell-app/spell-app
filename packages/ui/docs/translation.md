@@ -4,7 +4,7 @@ Designed now, built later:  the same components under translated names.
 - E.g. `<ie-tarjeta color="rojo" tamano="grande">` ~== `<ui-card color="red" size="big">`.
 
 The code is in [the vocabulary folder](../src/vocabulary/):
-- [`vocabulary.types.ts`](../src/vocabulary/vocabulary.types.ts):  the schema, `Dictionary`
+- [`vocabulary.types.ts`](../../spell-solid/src/vocabulary.types.ts) (`$/spell-solid`'s):  the schema, `Dictionary`
 - [`Vocabulary`](../src/vocabulary/Vocabulary.ts):  the registry + resolver
 - [`ValueSets`](../src/vocabulary/ValueSets.ts):  shared values
 - [`Converters`](../src/vocabulary/Converters.ts)

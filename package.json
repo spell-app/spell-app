@@ -17,6 +17,7 @@
     "packages/py",
     "packages/server",
     "packages/spaces",
+    "packages/spell-solid",
     "packages/ui",
     "packages/util",
     "packages/epics"

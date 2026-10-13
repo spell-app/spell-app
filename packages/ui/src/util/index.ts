@@ -27,5 +27,5 @@ export * from "$/util/dom"
 export * from "$/util/string"
 export * from "$/util/util.types"
 
-export * from "./timing"
+export * from "$/spell-solid/timing"
 export * from "./Warnings"

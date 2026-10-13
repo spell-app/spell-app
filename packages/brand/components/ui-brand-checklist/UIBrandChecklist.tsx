@@ -1,6 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
-import { E, UIT } from "$/ui/core"
+import { E } from "$/spell-solid"
+import { UIT } from "$/ui/core"
 
 import { brandChecklistVocabulary } from "./UIBrandChecklist.en"
 import {

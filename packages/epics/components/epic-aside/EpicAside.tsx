@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 
 import { epicAsideVocabulary } from "./EpicAside.en"
 import { EpicPanel } from "./EpicPanel"

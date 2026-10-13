@@ -7,7 +7,7 @@ import { FlagCountry } from "$/ui/components/ui-flag"
 import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMElement } from "$/ui/elements"
+import type { DOMElement } from "$/spell-solid"
 
 import "$/ui/components/ui-dropdown"
 

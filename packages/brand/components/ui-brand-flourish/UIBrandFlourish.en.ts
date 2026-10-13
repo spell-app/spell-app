@@ -4,7 +4,7 @@
  * - Pure data:  `import type` only;  `variant`'s values are written out (the types file's `VARIANTS`).
  */
 
-import type { E } from "$/ui/core"
+import type { E } from "$/spell-solid"
 
 /****************
  * ### `brandFlourishVocabulary`

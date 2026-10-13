@@ -1,6 +1,6 @@
 import { onSettled } from "solid-js"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 // Import directly to avoid circular import
 import { state } from "./Reactive"
 

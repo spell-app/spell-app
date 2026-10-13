@@ -5,7 +5,7 @@
  * - Owner of its `<ui-brand-check>`s (`ownsParts:  check`):  each asks it how to show (`ChecklistOwner`).
  */
 
-import type { E } from "$/ui/core"
+import type { E } from "$/spell-solid"
 
 /****************
  * ### `<ui-brand-checklist>`

@@ -105,7 +105,8 @@ const SPELL_ELEMENTS_SOURCE = "app/src/runner/spellElements.ts"
 /**
  * A `tsconfig.json` checking `names`, with `@spell/core` pointing at `core`'s source.
  * - `core`'s settings, plus Solid's JSX and `<ui-*>`'s JSX types -- see `typecheck()`.
- * - `@spell/elements` pointing at app's source, and the aliases Spell UI's files import each other by.
+ * - `@spell/elements` pointing at app's source, and the aliases Spell UI's files import each other by
+ *   (`$/spell-solid` too, which Spell UI's core re-exports).
  */
 function tsconfig(names: string[], projects: Record<string, string>) {
   const { packagesDir, spellCoreDir } = CODE_FOLDERS
@@ -121,6 +122,8 @@ function tsconfig(names: string[], projects: Record<string, string>) {
         "$/core": [`${spellCoreDir}/index.ts`],
         "$/core/*": [`${spellCoreDir}/*`],
         "@spell/elements": [resolve(packagesDir, SPELL_ELEMENTS_SOURCE)],
+        "$/spell-solid": [`${packagesDir}/spell-solid/src/index.ts`],
+        "$/spell-solid/*": [`${packagesDir}/spell-solid/src/*`],
         "$/ui": [`${packagesDir}/ui/src/index.ts`],
         "$/ui/*": [`${packagesDir}/ui/src/*`],
         ...imported

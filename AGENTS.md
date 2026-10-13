@@ -62,7 +62,8 @@ Each folder links to its own `AGENTS.md`:  read it before working there.
 | [lsp](packages/lsp/AGENTS.md) | `@spell-app/lsp` | `$/lsp` | `LSP` | spell's language server (browser-safe) |
 | [app](packages/app/AGENTS.md) | `@spell-app/app` | `$/app` | `UI` | the web app, the runner, and the `<spell-app>` / `<spell-editor>` web components;  `yarn start` / `build*` live here;  App UI, the docs pages of its components, beside them in `components/` (at `/app-ui/`) |
 | `packages/vscode/` | | | | the VS Code extension (below) |
-| [ui](packages/ui/AGENTS.md) | `@spell-app/ui` | `$/ui` | | Fomantic UI reborn as `ui-*` custom elements, on Solid 2 |
+| [spell-solid](packages/spell-solid/AGENTS.md) | `@spell-app/spell-solid` | `$/spell-solid` | `E` | what makes a custom element on Solid, for EVERY set's elements (Spell UI's, the epics', the app's, the brand's):  the component and DOM element bases, the reactive members' decorators, shadow events, hot reloading;  Spell UI's `core` carries it (below) |
+| [ui](packages/ui/AGENTS.md) | `@spell-app/ui` | `$/ui` | | Fomantic UI reborn as `ui-*` custom elements, on Solid 2, written on `$/spell-solid` |
 | [cli](packages/cli/AGENTS.md) | `@spell-app/cli` | `$/cli` | `CLI` | the `spell` command-line tool, running the spell-family packages' SOURCE through `tsx`;  see its [README](packages/cli/README.md) too |
 | [epics](packages/epics/AGENTS.md) | `@spell-app/epics` | `$/epics` | `EP` | plan docs' `<epic-*>` elements (a component pack) and their tool, `epic`;  AND every docs page's tooling:  `tools/`, the docs scripts and the `_assets` every page loads (tracked, versioned per branch) |
 | [server](packages/server/AGENTS.md) | `@spell-app/server` | `$/server` | `SRV` | serving pages locally (below) |
@@ -116,10 +117,17 @@ spaces' server/py -> py's spell_core   (Python, by path in its pyproject.toml)
 spell -> py -> parser     (Python's writers;  `py/core`'s Python imports no package)
 app / lsp -> markdown -> parser
 brand -> ui / server
+ui / epics / app / brand -> spell-solid -> util   (every set's elements are written on it;  a space's too)
 ui -> util
 ```
 
 - NEVER make `ui` import `spell` or any package above it:  `@spell-app/ui` lives on its own.
+- `spell-solid` (epic `people-and-orgs` P17):  what makes a custom element on Solid, out of Spell UI.
+  - NEVER make it import `ui`, or any package but `util`'s generic files (`$/util/class` ...):
+    what an element needs of the page's runtime (words, styles, animations) Spell UI hands it as it loads
+    ([spell-solid's AGENTS.md](packages/spell-solid/AGENTS.md), "Settings").
+  - ONE copy per page:  Spell UI's `core` entry re-exports all of it, and a component pack reads it from the page
+    (`SpellUI.packModules`), as it reads Solid.
 - `spaces` (epic `people-and-orgs`):  where projects and people live, and the servers that serve them.
   - NEVER make it import `app`, `lsp` or `cli`;  NEVER make `spell` import it.
   - Its models (`$/spaces`) are safe in a browser;  `$/spaces/server/node/...` is node only, imported by path.

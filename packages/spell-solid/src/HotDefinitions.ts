@@ -1,9 +1,9 @@
 /*! Derived from `@solidjs/element` and `component-register`:  MIT licence, (c) Ryan Carniato. */
-import { E, UI } from "$/ui/core"
+import { E } from "$/spell-solid"
 
 /****************
  * ### `HotDefinitions`
- * Hot module replacement for `ui`'s elements in `yarn dev`:
+ * Hot module replacement for Spell UI's elements in `yarn dev` (`packages/ui`):
  * an edited component re-renders every live element in place,
  * keeping the element objects, their attributes and their property values.
  * - Dev-only;  NEVER in a build.
@@ -28,8 +28,8 @@ import { E, UI } from "$/ui/core"
  *   - `updateStyle()` re-registers a component sheet whose `?inline` CSS changed
  * - NOTE: a vocabulary whose tag was renamed defines the NEW tag;  instances of the old one keep the old class.
  * - `UI.vocabulary.replace()` swaps a changed vocabulary in, and re-resolves the runtime's translated names from it.
- * - Imports the core through `$/ui/core`, as a component file does:  it's loaded into component barrels,
- *   and NOTHING in the core imports it (it's not in the `$/ui/elements` barrel).
+ * - Imports the package through `$/spell-solid`, as a component file does:  it's loaded into component barrels,
+ *   and NOTHING in the package imports it (it's not in the `$/spell-solid` barrel).
  * - STATIC and instance-free on purpose:  ONE record of definitions per page, as `customElements` is.
  * - Began as solid-element's hot reload, merged into its one user (epic `spell-element`, Q11).
  ****************/
@@ -52,8 +52,14 @@ export class HotDefinitions {
   }
 
   /** The wrapped `define()`:  record, re-define on a new version of a class, else as declared. */
-  static define(Class: E.UIComponentClass, tag?: string, dictionary?: E.Dictionary): CustomElementConstructor {
+  static define(
+    Class: E.UIComponentClass,
+    tag?: string,
+    dictionary?: E.Dictionary
+  ): CustomElementConstructor | undefined {
     const original = HotDefinitions.original!
+    // no settings yet:  the original waits for them, and runs this again then (`SpellSolid.whenInstalled()`)
+    if (!E.SpellSolid.isInstalled) return original.call(Class, tag, dictionary)
     const resolved = new E.ElementDefinition(Class.prototype.vocabulary, { tag, dictionary }).tag
     const known = HotDefinitions.tags.get(resolved)
     if (!known) {
@@ -75,7 +81,7 @@ export class HotDefinitions {
       HotDefinitions.whenRuntime(() => {
         // `register()` refuses a second vocabulary object for a tag:
         // swap the new version in, so the registration below is a no-op and localized names re-resolve
-        UI.vocabulary.replace(after)
+        E.SpellSolid.settings.words.registerVocabulary(after, "replace")
         HotDefinitions.updateTexts(before, after)
       })
     }
@@ -153,7 +159,7 @@ export class HotDefinitions {
     HotDefinitions.pending.swapped.clear()
     if (refused.length) {
       const message = refused.map(({ tag, reason }) => `<${tag}>: ${reason}, full reload`).join("\n")
-      E.Warnings.warn("HotDefinitions", message)
+      E.SpellSolid.settings.warn("HotDefinitions", message)
       hot?.invalidate(message)
       return { reloaded: [], refused }
     }
@@ -177,7 +183,7 @@ export class HotDefinitions {
     const stem = /(?:^|\/)UI([A-Za-z0-9]+)\.css(?:\?|$)/.exec(id)?.[1]
     if (!stem) return
     const name = stem.replace(/(?<=.)([A-Z])/g, "-$1").toLowerCase()
-    HotDefinitions.whenRuntime(() => UI.styles.register(name, css))
+    HotDefinitions.whenRuntime(() => E.SpellSolid.settings.styles.register(name, css))
   }
 
   ////////////////
@@ -253,8 +259,9 @@ export class HotDefinitions {
    * - Queued behind registrations `define()` already queued, ahead of the ones it queues next (same promise).
    */
   private static whenRuntime(task: () => void) {
-    if ((globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY]) task()
-    else void UI.load().then(task)
+    const { runtime } = E.SpellSolid.settings
+    if (runtime.isLoaded) task()
+    else void runtime.load().then(task)
   }
 
   /**
@@ -265,7 +272,7 @@ export class HotDefinitions {
     const previousTexts = new Map(previous.texts.map(({ key, text }) => [key, text]))
     const changed: Record<string, string> = {}
     for (const { key, text } of next.texts) if (previousTexts.get(key) !== text) changed[key] = text
-    if (Object.keys(changed).length) UI.i18n.registerDefaults(changed, next.tag)
+    if (Object.keys(changed).length) E.SpellSolid.settings.words.registerTexts(changed, next.tag)
   }
 
   ////////////////

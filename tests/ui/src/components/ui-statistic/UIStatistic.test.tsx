@@ -5,7 +5,7 @@ import { Fixture } from "$/ui/test/Fixture"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { Viewport } from "$/ui/test/Viewport"
-import type { DOMElement } from "$/ui/elements"
+import type { DOMElement } from "$/spell-solid"
 
 import "$/ui/components/ui-statistic"
 import "$/ui/components/ui-parts"

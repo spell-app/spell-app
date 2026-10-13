@@ -2,8 +2,8 @@ import { createEffect, untrack, type Accessor } from "solid-js"
 import { isServer, ssr } from "@solidjs/web"
 
 import { E, UI } from "$/ui/core"
-// Import directly to avoid circular import
-import { derived, state } from "./Reactive"
+// Import directly to avoid circular import:  spell-solid imports nothing of Spell UI, so it has always loaded first
+import { derived, state } from "$/spell-solid"
 
 /****************
  * ### `IconGlyph`

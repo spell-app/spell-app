@@ -2,7 +2,7 @@ import { afterAll, describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMElement } from "$/ui/elements"
+import type { DOMElement } from "$/spell-solid"
 import { SiteData } from "$/ui/docs-components/SiteData"
 import type { SiteDataFile, SiteTag, SiteToken } from "$/ui/docs-components/docs-components.types"
 

@@ -8,7 +8,7 @@ import { A11y, expectAccessible } from "$/ui/test/A11y"
 import { Fixture } from "$/ui/test/Fixture"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMElement } from "$/ui/elements"
+import type { DOMElement } from "$/spell-solid"
 
 import "$/ui/components/ui-modal"
 

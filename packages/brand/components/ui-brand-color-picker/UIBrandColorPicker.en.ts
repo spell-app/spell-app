@@ -6,7 +6,7 @@
  *   The component adds `brand color` before the noun (`brand color picker`).
  */
 
-import type { E } from "$/ui/core"
+import type { E } from "$/spell-solid"
 
 /****************
  * ### `<ui-brand-color-picker>`

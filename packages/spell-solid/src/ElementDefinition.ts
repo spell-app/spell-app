@@ -1,4 +1,4 @@
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 
 /****************
  * ### `ElementDefinition`
@@ -8,7 +8,7 @@ import { E } from "$/ui/core"
  *   - its camelCase CANONICAL key (what the component reads, `this.allowAdditions`)
  *   - its (localized) attribute and property names
  *   - then the shared attributes the vocabulary doesn't declare, under their English names on a translated tag too
- *     (`SharedVocabulary`:  `disabled`, `loading`, `visible`, `animation`)
+ *     (`disabled`, `loading`, `visible`, `animation`:  Spell UI's `SharedVocabulary`)
  * - The DOM element (`DOMElement`) does the rest:  a property per attribute, the upgrade step, reflection.
  * - ONE conversion per kind of value, each way:
  *   - `convert()`:  attribute text or property value => value
@@ -17,8 +17,9 @@ import { E } from "$/ui/core"
  *   so `ClassBuilder` and the component only ever see canonical English (`red`);
  *   reflection writes them localized again.
  * - One instance per tag;  the canonical tag and each translated alias get their own.
- * - No Solid, no DOM:  of the core (`E`), it uses only the vocabulary layer and `E.ClassBuilder`,
- *   so the server render (`$/ui/static`) builds one in node.
+ * - The vocabulary layer itself (the registry of names, the value sets, the converters, the class words) is the
+ *   page's runtime's:  Spell UI's, reached through `SpellSolid.settings.words`.
+ * - No Solid, no DOM:  so the server render (`$/ui/static`) builds one in node.
  ****************/
 export class ElementDefinition {
   /** Canonical vocabulary. */
@@ -31,7 +32,7 @@ export class ElementDefinition {
   readonly tag: string
 
   /** Class-grammar builder for the canonical vocabulary. */
-  readonly builder: E.ClassBuilder
+  readonly builder: E.ClassMaker
 
   /** Every attribute, in vocabulary order. */
   readonly attributes: readonly E.ResolvedAttribute[]
@@ -42,8 +43,11 @@ export class ElementDefinition {
   /** Resolved attribute by the (localized) name authors write (`permitir-adiciones`). */
   private readonly byAttribute = new Map<string, E.ResolvedAttribute>()
 
+  /** The vocabulary layer:  the page's runtime's (`SpellSolid.settings.words`). */
+  private readonly words = E.SpellSolid.settings.words
+
   /** Private registry, so `canonicalValue()` can map multi-word values for THIS tag without the runtime. */
-  private readonly names = new E.Vocabulary()
+  private readonly names = this.words.names()
 
   constructor(vocabulary: E.ComponentVocabulary, { tag, dictionary }: ElementDefinitionProps = {}) {
     this.vocabulary = vocabulary
@@ -54,9 +58,9 @@ export class ElementDefinition {
     // a tag the dictionary doesn't name (an English alias, `ui-later`) is fine:  names still resolve by prefix;
     // no tag and no dictionary is the vocabulary's OWN tag, whatever its prefix (`x-item-owner` in tests)
     this.tag = tag ?? (dictionary ? localized.tag : vocabulary.tag)
-    this.builder = new E.ClassBuilder(vocabulary)
+    this.builder = this.words.classes(vocabulary)
     // the vocabulary's own, then the shared ones it doesn't declare (`disabled`, `loading`, `visible`, `animation`)
-    this.attributes = E.SharedVocabulary.attributesFor(vocabulary).map((spec) => {
+    this.attributes = this.words.attributesFor(vocabulary).map((spec) => {
       const attribute = localized.names.attributes.get(spec.name) ?? spec.name
       const key = E.camelCase(spec.name)
       const property = attribute === spec.name ? (spec.property ?? key) : E.camelCase(attribute)
@@ -97,7 +101,7 @@ export class ElementDefinition {
    * - False when its vocabulary declares its own of that name:  `<ui-sidebar>`'s `visible` starts hidden.
    */
   takesShared(name: string): boolean {
-    return E.SharedVocabulary.takesShared(this.vocabulary, name)
+    return this.words.takesShared(this.vocabulary, name)
   }
 
   /**
@@ -167,9 +171,13 @@ export class ElementDefinition {
     switch (spec.kind) {
       case "keyOnly":
       case "boolean":
-        return E.Converters.boolean(value as string | boolean | null | undefined, attribute.attribute)
+        return this.words.converters.boolean(value as string | boolean | null | undefined, attribute.attribute)
       case "keyOrValueAndKey":
-        return E.Converters.keyOrValue(value as string | boolean | null | undefined, E.ValueSets.setFor(spec), where)
+        return this.words.converters.keyOrValue(
+          value as string | boolean | null | undefined,
+          this.words.valuesFor(spec),
+          where
+        )
       case "size":
       case "color":
       case "valueOnly":
@@ -177,16 +185,18 @@ export class ElementDefinition {
       case "valueAndKey":
       case "textAlign":
       case "verticalAlign": {
-        const set = E.ValueSets.setFor(spec)
+        const set = this.words.valuesFor(spec)
         if (value == null || value === "") return undefined
-        return set ? E.Converters.enumValue(ElementDefinition.text(value), set, where) : ElementDefinition.text(value)
+        return set
+          ? this.words.converters.enumValue(ElementDefinition.text(value), set, where)
+          : ElementDefinition.text(value)
       }
       case "number":
-        return E.Converters.number(value as string | number | null | undefined)
+        return this.words.converters.number(value as string | number | null | undefined)
       case "json":
-        return E.Converters.json(value)
+        return this.words.converters.json(value)
       case "icon":
-        return E.Converters.icon(value, spec.default)
+        return this.words.converters.icon(value, spec.default)
       case "width":
       case "multiple":
         return value == null || value === "" ? undefined : (value as string | number)
@@ -239,10 +249,10 @@ export class ElementDefinition {
   attributeText(attribute: E.ResolvedAttribute, value: unknown): string | null {
     const { spec } = attribute
     if (spec.kind === "keyOnly" || spec.kind === "boolean") {
-      const isOn = E.Converters.boolean(value as string | boolean | null | undefined)
+      const isOn = this.words.converters.boolean(value as string | boolean | null | undefined)
       // off over a TRUE default (`visible`, `closable`) reflects as `"false"`:  removed, it would be the default again
       if (!isOn && spec.default === true) return "false"
-      return E.Converters.booleanToAttribute(isOn)
+      return this.words.converters.booleanToAttribute(isOn)
     }
     // an `icon` turned off over its default reflects as `"false"`:  removing it would bring the default back
     if (spec.kind === "icon" && value == null && typeof spec.default === "string") return "false"

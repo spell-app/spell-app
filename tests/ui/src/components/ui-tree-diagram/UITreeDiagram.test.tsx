@@ -2,7 +2,7 @@ import { describe, expect, onTestFinished, test, vi } from "vite-plus/test"
 
 import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMElement } from "$/ui/elements"
+import type { DOMElement } from "$/spell-solid"
 import { TreeLayout, type TreeDiagramNode } from "$/ui/components/ui-tree-diagram"
 
 import "$/ui/components/ui-tree-diagram"

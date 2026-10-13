@@ -6,8 +6,8 @@ import type { JSX } from "@solidjs/web"
 import type { ComponentVocabulary, Dictionary } from "$/ui/vocabulary"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { UI } from "$/ui/core"
-import { DOMElement, UIComponent, type DOMElementClass, type ElementSetup, type UIComponentClass } from "$/ui/elements"
-import { HotDefinitions } from "$/ui/elements/HotDefinitions"
+import { DOMElement, UIComponent, type DOMElementClass, type ElementSetup, type UIComponentClass } from "$/spell-solid"
+import { HotDefinitions } from "$/spell-solid/HotDefinitions"
 
 /**
  * Hot reload of `ui`'s elements (`HotDefinitions`):

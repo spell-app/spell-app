@@ -162,7 +162,14 @@ describe("runner builds", () => {
     const names = SHARED_NAMES.exec(text)![1]!.split(", ")
     expect(names).toEqual(expect.arrayContaining(["createSignal", "render", "E", "UIComponent", "UIRoot", "h"]))
     const specifiers = JSON.parse(SHARED_SPECIFIERS.exec(text)![1]!) as string[]
-    expect(specifiers).toEqual(["solid-js", "@solidjs/web", "@solidjs/h", "$/ui/core", "$/ui/components/ui-root"])
+    expect(specifiers).toEqual([
+      "solid-js",
+      "@solidjs/web",
+      "@solidjs/h",
+      "$/spell-solid",
+      "$/ui/core",
+      "$/ui/components/ui-root"
+    ])
     // a page's modules (the docs bundle's `SpellUI.packModules`), each name a stand-in;
     // `@solidjs/h` as it is, a default export, which `spell-solid-shared.js` renames `h`
     const page = Object.fromEntries(names.map((name) => [name, `page's ${name}`]))
@@ -237,8 +244,8 @@ const PACKAGES = {
   monaco: /\/node_modules\/monaco-editor\//
 }
 
-/** `ui`'s component base class, in its element core. */
-const UI_COMPONENT = /\/packages\/ui\/src\/elements\/UIComponent\.tsx$/
+/** The component base class, every set's:  `$/spell-solid`'s, which Spell UI's core carries. */
+const UI_COMPONENT = /\/packages\/spell-solid\/src\/UIComponent\.tsx$/
 
 /** `ui`'s root component, which `<spell-app>` extends. */
 const UI_ROOT = /\/packages\/ui\/src\/components\/ui-root\/UIRoot\.tsx$/

@@ -5,7 +5,7 @@
  *   The component adds `color brand` before the noun (`color brand set`).
  */
 
-import type { E } from "$/ui/core"
+import type { E } from "$/spell-solid"
 
 /****************
  * ### `<ui-brand-color-set>`

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vite-plus/test"
 
 import { expectAccessible } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMElement } from "$/ui/elements"
+import type { DOMElement } from "$/spell-solid"
 
 import "$/ui/docs-components/ui-docs-inspector"
 import "$/ui/components/ui-button"

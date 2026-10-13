@@ -11,8 +11,8 @@
  * - Built as a component pack's script is (`spell dev pack build`, `packages/cli/src/dev/packBuild.ts`):
  *   - Vite, on Spell UI's `baseConfig()`:  decorators BEFORE Solid, Solid's JSX, Lightning CSS
  *   - one minified IIFE, banner first, saying how it was built
- *   - every `PACK_MODULES` specifier (`solid-js`, `@solidjs/web`, `$/ui/core`, `$/ui/forms`) left external,
- *     read from `globalThis.SpellUI.packModules`:  the page's one Solid and one Spell UI core
+ *   - every `PACK_MODULES` specifier (`solid-js`, `@solidjs/web`, `$/spell-solid`, `$/ui/core`, `$/ui/forms`) left
+ *     external, read from `globalThis.SpellUI.packModules`:  the page's one Solid, spell-solid and Spell UI core
  * - Unlike a pack:
  *   - no `<ui-root>` catalog, no `registerPack()`:  the entry defines its tags itself, as the script runs
  *   - it may import Spell UI's DOC-ONLY families (`$/ui/docs-components/<family>`, e.g. `<ui-docs-inspector>`),
@@ -41,13 +41,13 @@ const UI_DIR = join(DOCS, "../ui")
  * - The same list as the pack build's `PACK_MODULES` (`packages/cli/src/dev/packBuild.ts`):  keep them in step.
  *   Not imported from there:  `packBuild.ts` reaches `$/util`'s barrel, which this package's `tsc` can't check.
  */
-const PACK_MODULES = ["solid-js", "@solidjs/web", "$/ui/core", "$/ui/forms"]
+const PACK_MODULES = ["solid-js", "@solidjs/web", "$/spell-solid", "$/ui/core", "$/ui/forms"]
 
 /** Imports bundled from `ui`'s source:  the doc-only families and what they import of `ui` beyond the core. */
 const UI_SOURCE = /^\$\/ui\/(docs-components|components\/components\.types)(\/|$)/
 
 /** Imports the page must share, never bundled:  Spell UI, Solid, our other packages (as `packBuild.ts`). */
-const SHARED_IMPORT = /^\$\/ui(\/|$)|^solid-js(\/|$)|^@solidjs\/|^@spell-app\//
+const SHARED_IMPORT = /^\$\/(ui|spell-solid)(\/|$)|^solid-js(\/|$)|^@solidjs\/|^@spell-app\//
 
 const { positional } = parseArgs(process.argv.slice(2))
 const entry = positional[0] ? resolve(positional[0]) : ""

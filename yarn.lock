@@ -1776,6 +1776,26 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@spell-app/spell-solid@workspace:packages/spell-solid":
+  version: 0.0.0-use.local
+  resolution: "@spell-app/spell-solid@workspace:packages/spell-solid"
+  dependencies:
+    "@solidjs/web": "npm:2.0.0-rc.13"
+    "@spell-app/ui": "workspace:*"
+    "@types/node": "npm:^22.20.4"
+    "@vitest/browser-playwright": "catalog:"
+    playwright: "npm:1.63.0"
+    solid-js: "npm:2.0.0-rc.13"
+    typescript: "npm:^7.0.2"
+    vite: "catalog:"
+    vite-plus: "catalog:"
+    vitest: "catalog:"
+  peerDependencies:
+    "@solidjs/web": 2.0.0-rc.13
+    solid-js: 2.0.0-rc.13
+  languageName: unknown
+  linkType: soft
+
 "@spell-app/spell@workspace:*, @spell-app/spell@workspace:packages/spell":
   version: 0.0.0-use.local
   resolution: "@spell-app/spell@workspace:packages/spell"

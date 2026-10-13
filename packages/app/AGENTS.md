@@ -71,7 +71,7 @@ when working with code in this package, `@spell-app/app`.
   - ONE Solid per page, across those bundles.
     - `vite.solid.config.ts` builds FIRST, into each folder:
       - `spell-solid.js`:  Solid itself, plus
-        - Spell UI's element core (`$/ui/core`) and its root family
+        - Spell UI's element core (`$/ui/core`, which carries `$/spell-solid`) and its root family
         - `@solidjs/h`, which compiled spell draws with
         - icon packs beside it
       - `spell-ui.js`:  `$/ui`, lazy
@@ -182,8 +182,10 @@ when working with code in this package, `@spell-app/app`.
     - `<Name>.en.ts`:  the vocabulary
     - `<Name>.tsx`:  two classes
       - the DOM element class, with its script API (`DOMSpellAppElement`)
-      - then the component, on `E.UIComponent`.
+      - then the component, on `E.UIComponent` (`import { E } from "$/spell-solid"`).
         `<spell-app>`'s is on `UIRoot`.
+    - Held to Spell UI's patterns by the lint guard, as every set's elements are (`spell-ui/*`:
+      [ui's AGENTS.md](../ui/AGENTS.md), "The lint guard";  since epic `people-and-orgs` P17).
     - `index.ts`:  defines the tag;  also the bundle's entry
   - `$/app/components/<tag>` imports one.
   - `<spell-app>` is a ROOT (`SpellApp extends UIRoot`, J37):  a page needs nothing around it.

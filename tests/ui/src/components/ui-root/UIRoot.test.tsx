@@ -6,7 +6,7 @@ import { Fixture } from "$/ui/test/Fixture"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { Viewport } from "$/ui/test/Viewport"
 import { E } from "$/ui/core"
-import { DOMElement } from "$/ui/elements"
+import { DOMElement } from "$/spell-solid"
 
 import { UIRoot, type RootFailure } from "$/ui/components/ui-root"
 

@@ -5,7 +5,7 @@ import { UI } from "$/ui/runtime"
 import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMElement } from "$/ui/elements"
+import type { DOMElement } from "$/spell-solid"
 import { BreadcrumbDivider } from "$/ui/components/ui-breadcrumb/BreadcrumbDivider"
 
 import "$/ui/components/ui-breadcrumb"

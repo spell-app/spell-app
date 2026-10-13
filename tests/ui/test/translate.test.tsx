@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import type { DOMElement } from "$/ui/elements"
+import type { DOMElement } from "$/spell-solid"
 import { UIButton } from "$/ui/components/ui-button"
 import { UIDropdown } from "$/ui/components/ui-dropdown"
 import { es } from "$/ui/test/dictionary.es"

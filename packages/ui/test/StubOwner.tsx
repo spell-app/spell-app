@@ -3,7 +3,7 @@ import type { JSX } from "@solidjs/web"
 import { protoMerged } from "$/ui/util"
 import { PartVocabularies } from "$/ui/components/ui-parts/UIParts.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
-import { UIComponent, type ElementSetup, type UIComponentClass } from "$/ui/elements"
+import { UIComponent, type ElementSetup, type UIComponentClass } from "$/spell-solid"
 
 /** Host layout of a stub:  a block, like the static `<div class="ui card">` it replaces. */
 const STUB_CSS = ":host { display: block }"
@@ -29,7 +29,7 @@ export class StubOwner extends UIComponent {
   }
 
   /** Define `vocabulary.tag` as a stub owner;  idempotent. */
-  static defineFor(vocabulary: ComponentVocabulary): CustomElementConstructor {
+  static defineFor(vocabulary: ComponentVocabulary): CustomElementConstructor | undefined {
     const existing = customElements.get(vocabulary.tag)
     if (existing) return existing
     const Stub = class extends StubOwner {}

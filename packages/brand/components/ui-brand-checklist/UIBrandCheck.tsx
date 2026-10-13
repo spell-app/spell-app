@@ -1,7 +1,8 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E, UIT } from "$/ui/core"
+import { E } from "$/spell-solid"
+import { UIT } from "$/ui/core"
 
 import { brandCheckVocabulary } from "./UIBrandCheck.en"
 import {

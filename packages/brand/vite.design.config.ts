@@ -15,9 +15,10 @@ export const DESIGN_OUT = `${ROOT}dist`
  * Spell UI's `dist/` (it runs this build:  `vp build --config vite.design.config.ts`).
  * - Why a build of its own, not `src/` straight into that bundle:  the elements are Solid JSX, which only the Solid
  *   compiler (`baseConfig()`'s plugins) turns into code;  esbuild, which makes the bundle, can't.
- * - `$/ui/*` and Solid stay EXTERNAL, as written:  the design bundle resolves `$/ui/core` / `$/ui/forms` to Spell UI's
- *   `dist/core.js` / `dist/forms.js`, the same modules its own elements use, so there's ONE `UIComponent`, one
- *   `ValueSets` (the `accent` hue reaches every element) and one Solid.
+ * - `$/ui/*`, `$/spell-solid` and Solid stay EXTERNAL, as written:  the design bundle resolves `$/ui/core` /
+ *   `$/ui/forms` to Spell UI's `dist/core.js` / `dist/forms.js`, and `$/spell-solid` to `dist/core.js` (which carries
+ *   it), the same modules its own elements use, so there's ONE `UIComponent`, one `ValueSets` (the `accent` hue
+ *   reaches every element) and one Solid.
  * - Everything else (`$/brand`, the sheets, `<ui-brand-logo>`'s lazy paths) is inlined:  the bundle can't load a file.
  */
 export default defineConfig(() => {
@@ -45,7 +46,7 @@ export default defineConfig(() => {
       cssTarget: ["chrome125", "safari26", "firefox147"],
       lib: { entry: { "brand-design": `${ROOT}src/brand-design.ts` }, formats: ["es"] },
       rolldownOptions: {
-        external: (id: string) => SOLID_EXTERNAL.test(id) || /^\$\/ui(\/|$)/.test(id),
+        external: (id: string) => SOLID_EXTERNAL.test(id) || /^\$\/(ui|spell-solid)(\/|$)/.test(id),
         output: {
           // custom element class names are read by dev-time warnings (see ui's `vite.config.ts`)
           keepNames: true,

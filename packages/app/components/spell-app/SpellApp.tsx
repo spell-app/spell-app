@@ -1,7 +1,7 @@
-import { Show, untrack } from "solid-js"
+import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 import { UIRoot, type RootVocabulary } from "$/ui/components/ui-root"
 // Import directly, NOT through the `$/spell` barrel, which would pull in the whole parser.
 import { SpellSetup } from "$/spell/SpellSetup"
@@ -129,8 +129,8 @@ export class SpellApp extends UIRoot<typeof vocabulary> {
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
-    // where `assets` says as we join the page, else beside this script
-    const assets = new URL(untrack(() => this.assets) ?? BUNDLE, document.baseURI).href
+    // where `assets` says as we join the page, else beside this script (read once:  a component is built untracked)
+    const assets = new URL(this.assets ?? BUNDLE, document.baseURI).href
     void adoptShadowStyles(this.domElement.renderRoot, assets)
   }
 

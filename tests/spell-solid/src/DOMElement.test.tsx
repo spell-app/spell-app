@@ -3,7 +3,7 @@ import { render, type JSX } from "@solidjs/web"
 import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 
 import { E } from "$/ui/core"
-import { UIComponent, type DOMElement, type DOMElementClass, type ElementSetup } from "$/ui/elements"
+import { UIComponent, type DOMElement, type DOMElementClass, type ElementSetup } from "$/spell-solid"
 import type { AttributeKind, AttributeSpec, ComponentVocabulary, Dictionary } from "$/ui/vocabulary"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { Fixture } from "$/ui/test/Fixture"

@@ -8,7 +8,7 @@
  *   The component adds `brand` before the noun (`brand field`).
  */
 
-import type { E } from "$/ui/core"
+import type { E } from "$/spell-solid"
 
 /****************
  * ### `brandFieldVocabulary`

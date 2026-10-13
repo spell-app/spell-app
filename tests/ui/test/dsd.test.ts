@@ -2,7 +2,7 @@ import { expect, it } from "vite-plus/test"
 import ssrButton from "/.cache/ssr-button.html?raw"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMElement } from "$/ui/elements"
+import type { DOMElement } from "$/spell-solid"
 
 /**
  * The browser half of the SSR probe:  the DSD string from `ssr.ssr.test.tsx` paints a styled button BEFORE any

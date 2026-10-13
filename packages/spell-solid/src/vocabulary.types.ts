@@ -1,7 +1,5 @@
-import type { ValueSets } from "./ValueSets"
-
 /**
- * Shared types for `$/ui/vocabulary` -- the schema every `UI<Name>.en.ts` follows, the shared value sets,
+ * The VOCABULARY's types:  the schema every set's `<Name>.en.ts` follows (Spell UI's, the epics', the app's ...),
  * and the translation `Dictionary` contract.
  * - Why a schema:  vocabulary files own EVERY name a component uses
  *   (tag, attributes, values, events, slots, parts, states, texts),
@@ -9,8 +7,12 @@ import type { ValueSets } from "./ValueSets"
  *   and a translation can rename all of them in one place.
  * - Canonical names are English and never change;  CSS, `ClassBuilder` output and `:state()`s always use them.
  *   - A `Dictionary` only renames what AUTHORS type:  tags, attribute names, attribute values, events, slots, parts.
- * - The BOTTOM of the folder's import graph:
- *   types only, and `ValueSets` only as a type (`import type`), so it erases completely.
+ * - Here, in spell-solid, since every set's elements are declared by one;
+ *   the code that reads them (the registry, value sets, converters, class words) is Spell UI's, `$/ui/vocabulary`,
+ *   which spell-solid reaches through its settings (`SpellSolidSettings.words`).
+ *   - The shared value sets and topics are Spell UI's too:  it names them by augmenting `ValueSetNames` and
+ *     `TopicNames` (`$/ui/vocabulary`'s `ValueSets`).
+ * - Types only, importing nothing:  it erases completely.
  *   - Node reads it with every vocabulary (`yarn site:data`, `yarn gen:root`):  it MUST NOT reach the element layer.
  */
 
@@ -265,8 +267,19 @@ export type SkeletonPart =
       readonly length?: "full" | "very long" | "long" | "medium" | "short" | "very short"
     }
 
-/** A topic id (`ValueSets.topics`):  `"forms"`, `"notifications"`, `"date & time"` ... */
-export type ComponentTopic = (typeof ValueSets.topics)[number]
+/**
+ * The topics a component may be filed under:  a set's runtime adds them by augmenting this interface,
+ * so a vocabulary's `topics` are checked against them.
+ * - Spell UI's are `ValueSets.topics` (`$/ui/vocabulary`):
+ *   `declare module "$/spell-solid/vocabulary.types" { interface TopicNames extends Record<..., true> {} }`
+ */
+export interface TopicNames {}
+
+/**
+ * A topic id (Spell UI's `ValueSets.topics`):  `"forms"`, `"notifications"`, `"date & time"` ...
+ * - Any text until a set names them (`NamesOf`).
+ */
+export type ComponentTopic = NamesOf<TopicNames>
 
 ////////////////
 // ## Value sets
@@ -285,8 +298,23 @@ export type ComponentTopic = (typeof ValueSets.topics)[number]
  * - `devices` -- responsive targets for `only` / `reversed` (`mobile`, `large screen` ...)
  * - `booleans` -- spellings the boolean converter understands, so a translation can map `sí` => `yes`
  * - `topics` -- what a component is filed under (a vocabulary's `topics`), so a translation maps them once
+ * - The names are the RUNTIME's:  Spell UI adds its sets by augmenting this interface,
+ *   `declare module "$/spell-solid/vocabulary.types" { interface ValueSetNames extends Record<keyof ValueSets, true> {} }`,
+ *   so a vocabulary's `values: "hues"` is checked against them.
  */
-export type ValueSetName = keyof ValueSets
+export interface ValueSetNames {}
+
+/**
+ * The name of a shared value set (`ValueSetNames`):  `"hues"`, `"sizes"` ...
+ * - Any text until a set names them (`NamesOf`).
+ */
+export type ValueSetName = NamesOf<ValueSetNames>
+
+/**
+ * The keys of a registry of names (`ValueSetNames`, `TopicNames`), or any text while it has none:
+ * spell-solid alone checks no name, a program with Spell UI checks every one.
+ */
+export type NamesOf<Registry> = [keyof Registry] extends [never] ? string : Extract<keyof Registry, string>
 
 ////////////////
 // ## Translation

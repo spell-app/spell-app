@@ -18,6 +18,7 @@ export default defineConfig({
   // `vp lint` / `vp fmt`:  the repo root's `vite.lint.ts`
   fmt: fmtConfig,
   lint: packageLint({
+    name: "app",
     ignorePatterns: ["build", "dist", ".cache", "dist-runner", "dist-element", "static"]
   }),
   ...appConfig({ iconPacks: true }),

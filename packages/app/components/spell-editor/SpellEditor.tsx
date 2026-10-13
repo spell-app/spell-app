@@ -1,7 +1,6 @@
-import { untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 import { SP } from "$/spell"
 import { LSP } from "$/lsp"
 import type * as UIT from "$/app/ui/ui.types"
@@ -84,8 +83,8 @@ export class SpellEditor extends E.UIComponent<typeof spellEditorVocabulary> {
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
-    // where `assets` says as we join the page, else beside this script
-    const assets = new URL(untrack(() => this.assets) ?? BUNDLE, document.baseURI).href
+    // where `assets` says as we join the page, else beside this script (read once:  a component is built untracked)
+    const assets = new URL(this.assets ?? BUNDLE, document.baseURI).href
     void adoptShadowStyles(this.domElement.renderRoot, assets, EDITOR_CSS)
     this.domElement.addReleaseCallback(() => this.closeProject())
   }
@@ -308,9 +307,10 @@ export class SpellEditor extends E.UIComponent<typeof spellEditorVocabulary> {
   }
 
   /** The file our `file` attribute names in `project`, else its first spell file. */
+  @E.untracked
   private namedFile(project: SP.SpellProject): SP.SpellFile | undefined {
     const files = project.spellFiles
-    const name = untrack(() => this.file)
+    const name = this.file
     return files.find((file) => file.file === name || file.path === name) ?? files[0]
   }
 
@@ -420,8 +420,9 @@ export class SpellEditor extends E.UIComponent<typeof spellEditorVocabulary> {
    * Our text `key`, in the page's language once the runtime has loaded;  its English before, as we may open and
    * compile a project before then.
    */
+  @E.untracked
   private textFor(key: E.TextKey<typeof spellEditorVocabulary>): string {
-    if (untrack(() => this.isReady)) return this.translationForKey(key)
+    if (this.isReady) return this.translationForKey(key)
     return spellEditorVocabulary.texts.find((text) => text.key === key)!.text
   }
 

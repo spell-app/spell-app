@@ -410,6 +410,8 @@ function spellUiResolver() {
         if (!existsSync(BRAND_DESIGN)) fail(`${relative(DOCS, BRAND_DESIGN)} is missing:  run without --skip-ui-build`)
         return { path: BRAND_DESIGN }
       })
+      // `$/spell-solid`, what the brand's elements are written on:  Spell UI's `dist/core.js`, which carries it
+      pluginBuild.onResolve({ filter: /^\$\/spell-solid$/ }, () => ({ path: uiDistPath("@spell-app/ui/core") }))
       pluginBuild.onResolve({ filter: /^\$\/ui(\/.*)?$/ }, ({ path }) => {
         const file = uiDistPath(`@spell-app/ui${path.slice("$/ui".length)}`)
         if (!existsSync(file)) fail(`${path} (a brand element's import) has no ${relative(DOCS, file)}`)

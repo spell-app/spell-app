@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test"
 
 import type { ComponentVocabulary } from "$/ui/vocabulary"
-import { ElementDefinition } from "$/ui/elements"
+import { ElementDefinition } from "$/spell-solid"
 import { es } from "$/ui/test/dictionary.es"
 
 /** A vocabulary whose tag has another prefix than `ui`. */

@@ -1,7 +1,7 @@
 import type { Accessor } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 
 /****************
  * ### `Fold`

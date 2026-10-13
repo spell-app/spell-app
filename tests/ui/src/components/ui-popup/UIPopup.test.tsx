@@ -7,7 +7,7 @@ import type { PopupOpenDetail } from "$/ui/components/components.types"
 import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMElement } from "$/ui/elements"
+import type { DOMElement } from "$/spell-solid"
 
 import "$/ui/components/ui-popup"
 import "$/ui/components/ui-button"

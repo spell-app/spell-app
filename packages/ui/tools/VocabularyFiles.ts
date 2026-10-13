@@ -2,7 +2,7 @@ import { existsSync, readdirSync } from "node:fs"
 import { join } from "node:path"
 import { pathToFileURL } from "node:url"
 
-import type { ComponentVocabulary } from "../src/vocabulary/vocabulary.types.ts"
+import type { ComponentVocabulary } from "$/spell-solid/vocabulary.types"
 
 /****************
  * ### `VocabularyFiles`

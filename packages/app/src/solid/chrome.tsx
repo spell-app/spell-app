@@ -159,7 +159,7 @@ export type MoreMenuProps = UIElementAttributes & {
 /**
  * A `<MoreMenu>`'s `ui-change`:  click the item chosen, and clear the value.
  * - SIDE EFFECT:  sets the dropdown's `value` DURING the event, so the dropdown keeps ours (`""`):
- *   the host decides (`requestChange()` on a `@controlled` member, `packages/ui/src/elements/Reactive.ts`).
+ *   the host decides (`requestChange()` on a `@controlled` member, `packages/spell-solid/src/Reactive.ts`).
  */
 function choose(event: CustomEvent<{ value: string }>) {
   const dropdown = event.currentTarget as HTMLElement & { value?: unknown }

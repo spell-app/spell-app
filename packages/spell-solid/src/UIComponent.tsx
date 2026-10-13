@@ -13,19 +13,17 @@ import {
 import { insert, isServer, type JSX } from "@solidjs/web"
 
 // Import directly to avoid circular import
-import { protoMerged } from "$/ui/util"
-import { E, UI, UIT } from "$/ui/core"
-// Import directly to avoid circular import:  `elementSetup`'s initializer reads it
-import { DEFAULT_ANIMATION } from "$/ui/components/components.types"
+import { protoMerged } from "$/util/decorators"
+import { E } from "$/spell-solid"
 // Import directly to avoid circular import
 import { DOMElement, type TagSetup } from "./DOMElement"
 import { controlled, cssState, on, onChange, state, untracked } from "./Reactive"
-// a leaf of its own (Solid only, no `ui` imports), not part of `E`
+// a leaf of its own (Solid only), not part of `E`
 import { ShadowEvents } from "./ShadowEvents"
 
 /****************
  * ### `UIComponent`
- * The base class of every Spell UI component.
+ * The base class of every component, in every set:  Spell UI's, the epics', the app's, the brand's, a space's.
  *
  * Each `<ui-button>`, etc on a page gets ONE instance of its UIComponent's subclass (`UIButton`)
  * which decides what the element shows and how it behaves.  This is the base for those subclasses.
@@ -129,11 +127,11 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   }
 
   /**
-   * The text for `key` in the page's language (`UI.i18n`), with `params` filled in.
+   * The text for `key` in the page's language (the runtime's texts:  Spell UI's `UI.i18n`), with `params` filled in.
    * - Looked up for THIS component:  another component's text under the same key never shows here.
    */
   translationForKey(key: E.TextKey<V>, params?: Record<string, string | number>): string {
-    return UI.i18n.t(key, params, this.vocabulary.tag)
+    return E.SpellSolid.settings.words.text(key, params, this.vocabulary.tag)
   }
 
   ////////////////
@@ -165,10 +163,11 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     for (const [name, text] of Object.entries(this.elementSetup.aria) as [E.AriaName, string][])
       domElement.internals[E.AriaNames[name]] = text
     // on the server there are no style sheets to wait for:  draw at once
-    this.isReady = isServer || (E.RUNTIME_KEY in globalThis && !!(globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY])
+    const { runtime } = E.SpellSolid.settings
+    this.isReady = isServer || runtime.isLoaded
     if (isServer) return
     this.startListeners()
-    if (!this.isReady) void UI.load().then(() => this.onRuntimeLoaded())
+    if (!this.isReady) void runtime.load().then(() => this.onRuntimeLoaded())
   }
 
   ////////////////
@@ -224,7 +223,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
       () => this.styleSheetNames.join(separator),
       (names) => {
         if (untrack(() => this.isReady)) {
-          UI.styles.adoptInto(this.domElement.renderRoot, names ? names.split(separator) : [])
+          E.SpellSolid.settings.styles.adoptInto(this.domElement.renderRoot, names ? names.split(separator) : [])
         }
       },
       { defer: true }
@@ -321,7 +320,10 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     disabled: "unusable",
     loading: "loader",
     visible: "shown",
-    animation: DEFAULT_ANIMATION
+    // the runtime's (Spell UI's `"fade"`):  read as an element shows or hides, by then installed
+    get animation() {
+      return E.SpellSolid.settings.motion.defaultAnimation
+    }
   }
 
   ////////////////
@@ -465,8 +467,9 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    */
   @untracked
   private adoptStyleSheets() {
-    UI.styles.registerOnce(this.elementSetup.styleSheets)
-    UI.styles.adoptInto(this.domElement.renderRoot, this.styleSheetNames)
+    const { styles } = E.SpellSolid.settings
+    styles.registerOnce(this.elementSetup.styleSheets)
+    styles.adoptInto(this.domElement.renderRoot, this.styleSheetNames)
   }
 
   ////////////////
@@ -572,7 +575,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
       internalState.madeInert = undefined
       return
     }
-    UI.focus.moveOutOf(domElement)
+    E.SpellSolid.settings.focus.moveOutOf(domElement)
     const madeInert = (internalState.madeInert ??= [])
     for (const child of domElement.renderRoot.children) {
       const box = child as HTMLElement
@@ -634,9 +637,9 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - Untracked:  read as a change runs, never followed.
    */
   @untracked
-  get animationToRun(): UIT.Animation {
-    const own = E.Reactive.attributeValue(this, "animation") as UIT.Animation | undefined
-    if (own === UIT.NO_ANIMATION || this.isMotionOff) return UIT.NO_ANIMATION
+  get animationToRun(): E.ElementAnimation {
+    const own = E.Reactive.attributeValue(this, "animation") as E.ElementAnimation | undefined
+    if (own === E.NO_ANIMATION || this.isMotionOff) return E.NO_ANIMATION
     return own ?? this.elementSetup.animation
   }
 
@@ -646,7 +649,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    */
   @cssState("still")
   get isStill(): boolean {
-    return E.Reactive.attributeValue(this, "animation") === UIT.NO_ANIMATION
+    return E.Reactive.attributeValue(this, "animation") === E.NO_ANIMATION
   }
 
   /**
@@ -655,10 +658,11 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    *   custom properties pass into shadow roots, so every element below sees it.
    */
   private get isMotionOff(): boolean {
-    if (UI.browser.isReducedMotion) return true
+    const { motion } = E.SpellSolid.settings
+    if (motion.isReduced) return true
     const { domElement } = this
     if (!domElement.isConnected) return false
-    return getComputedStyle(domElement).getPropertyValue(UIT.MOTION_PROPERTY).trim() === UIT.NO_ANIMATION
+    return getComputedStyle(domElement).getPropertyValue(motion.property).trim() === E.NO_ANIMATION
   }
 
   /**
@@ -676,7 +680,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    *   - A later change may start before this one ends:  check `isVisible` before acting late.
    * - MUST NOT throw:  a throw is logged, and the change just ends.
    */
-  protected async onVisibleChange(visible: boolean, animation: UIT.Animation): Promise<void> {
+  protected async onVisibleChange(visible: boolean, animation: E.ElementAnimation): Promise<void> {
     const { internalState } = this
     // a box the family hides itself (`hidden` on it) is left alone;  one an earlier hide animated out comes back
     const animatedOut = internalState.animatedOut ?? []
@@ -685,14 +689,13 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
         child.localName !== "slot" && (!(child as HTMLElement).hidden || animatedOut.includes(child as HTMLElement))
     )
     internalState.animatedOut = undefined
-    if (animation === UIT.NO_ANIMATION || UIT.AnimationLookup.isAttention(animation)) {
-      if (visible) for (const box of boxes) UI.transitions.reveal(box)
+    const { motion } = E.SpellSolid.settings
+    if (animation === E.NO_ANIMATION || motion.isAttention(animation)) {
+      if (visible) for (const box of boxes) motion.reveal(box)
       return
     }
     if (!visible) internalState.animatedOut = boxes
-    const name = UIT.AnimationLookup.runtimeNameFor(animation)
-    const direction = visible ? UIT.IN : UIT.OUT
-    await Promise.all(boxes.map((element) => UI.transitions.animate({ element, name, direction })))
+    await Promise.all(boxes.map((box) => motion.animate(box, animation, visible)))
   }
 
   /**
@@ -706,21 +709,25 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     const isFirst = internalState.wasVisible === undefined
     if (!isFirst && internalState.wasVisible === isVisible) return
     internalState.wasVisible = isVisible
-    void this.runVisibleChange(isVisible, isFirst ? UIT.NO_ANIMATION : this.animationToRun)
+    void this.runVisibleChange(isVisible, isFirst ? E.NO_ANIMATION : this.animationToRun)
   }
 
   /**
    * Run `onVisibleChange()`, with `:state(hiding)` on while a hide animates;  a later run takes over.
    * - NEVER throws:  a hook that throws is logged, and the change ends.
    */
-  private async runVisibleChange(visible: boolean, animation: UIT.Animation) {
+  private async runVisibleChange(visible: boolean, animation: E.ElementAnimation) {
     const { internalState } = this
     const run = (internalState.visibleRun = (internalState.visibleRun ?? 0) + 1)
-    this.isHiding = !visible && animation !== UIT.NO_ANIMATION
+    this.isHiding = !visible && animation !== E.NO_ANIMATION
     try {
       await this.onVisibleChange(visible, animation)
     } catch (error) {
-      E.Warnings.warn(`<${this.domElement.localName}>.onVisibleChange()`, "failed;  the change ends here", error)
+      E.SpellSolid.settings.warn(
+        `<${this.domElement.localName}>.onVisibleChange()`,
+        "failed;  the change ends here",
+        error
+      )
     }
     if (internalState.visibleRun === run) this.isHiding = false
   }
@@ -1029,10 +1036,19 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - `UIButton.define("ie-boton", es)` registers `<ie-boton primario color="rojo">`:
    *   its translated attribute, property and event names all reach the same component.
    * - Does nothing for a tag already defined.
-   * - Returns the element class.
+   * - Returns the element class;  `undefined` while the page's runtime hasn't installed its settings yet
+   *   (`SpellSolid`):  then the tag is defined as they're installed.
    * - throws a `TypeError` on a name in `elementSetup.cssStates` the tag has no attribute or member for (a typo)
    */
-  static define(this: E.UIComponentClass, tag?: string, dictionary?: E.Dictionary): CustomElementConstructor {
+  static define(
+    this: E.UIComponentClass,
+    tag?: string,
+    dictionary?: E.Dictionary
+  ): CustomElementConstructor | undefined {
+    if (!E.SpellSolid.isInstalled) {
+      E.SpellSolid.whenInstalled(() => void UIComponent.define.call(this, tag, dictionary))
+      return undefined
+    }
     const definition = new E.ElementDefinition(this.prototype.vocabulary, { tag, dictionary })
     const existing = customElements.get(definition.tag)
     if (existing) return existing
@@ -1095,11 +1111,12 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     // - once per vocabulary;  the runtime is loaded first if it hasn't loaded yet
     // - on the server, never loads the runtime (that needs the browser's `CSSStyleSheet`):
     //   it registers only with the one the server render installed (`ServerRuntime`)
-    const isRuntimeLoaded = !!(globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY]
+    const { runtime, words } = E.SpellSolid.settings
+    const isRuntimeLoaded = runtime.isLoaded
     if (!UIComponent.registry.vocabularies.has(vocabulary) && (isRuntimeLoaded || !isServer)) {
       UIComponent.registry.vocabularies.add(vocabulary)
       if (isRuntimeLoaded) handOver()
-      else void UI.load().then(handOver)
+      else void runtime.load().then(handOver)
     }
     E.Reactive.installAttributeGetters(
       this.prototype,
@@ -1109,11 +1126,10 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     /** Hand the vocabulary and its English texts to the runtime. */
     function handOver() {
       // on the server, editing a vocabulary makes a new object for the same tag:  replace the old one
-      if (isServer) UI.vocabulary.replace(vocabulary)
-      else UI.vocabulary.register(vocabulary)
+      words.registerVocabulary(vocabulary, isServer ? "replace" : "register")
       const texts: Record<string, string> = {}
       for (const { key, text } of vocabulary.texts) texts[key] = text
-      UI.i18n.registerDefaults(texts, vocabulary.tag)
+      words.registerTexts(texts, vocabulary.tag)
     }
   }
 

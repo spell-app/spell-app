@@ -1,7 +1,7 @@
 import { For, Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 import { STEPS, type Scale, type Step } from "$/brand"
 
 import { brandColorRangeVocabulary } from "./UIBrandColorRange.en"

@@ -958,6 +958,14 @@ export const DEFAULT_ANIMATION = "fade" satisfies Animation
 export const MOTION_PROPERTY = "--ui-motion"
 
 /**
+ * Fomantic's animations, added to spell-solid's (`E.ElementAnimation`), so a family's `elementSetup.animation` and
+ * an element's `animationToRun` are Spell UI's `Animation`.
+ */
+declare module "$/spell-solid/elements.types" {
+  interface ElementAnimations extends Record<Animation, true> {}
+}
+
+/**
  * Lookups between Fomantic's animation names (`fade up`) and the runtime's catalogue (`fade-up`, `E.AnimationNames`).
  * - Static:  pure lookups over the tables above.
  */

@@ -5,7 +5,7 @@ import { Dynamic, Portal, render, type JSX } from "@solidjs/web"
 import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 import { UI } from "$/ui/runtime"
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { UIComponent, type DOMElement, type UIComponentClass } from "$/ui/elements"
+import { UIComponent, type DOMElement, type UIComponentClass } from "$/spell-solid"
 
 /**
  * `ShadowEvents`:  Solid's event delegation inside each element's shadow root leaves nothing behind on the event.

@@ -17,6 +17,8 @@ export default defineConfig({
     // the tests live in the repo's tests/ folder, at the same paths as the code
     dir: resolve(import.meta.dirname, "../../tests/brand"),
     include: ["components/**/*.test.{ts,tsx}", "src/**/*.test.{ts,tsx}"],
+    // Spell UI's core first, as a page has it:  its settings for `$/spell-solid` (`packages/ui/test/setup.ts`)
+    setupFiles: [resolve(import.meta.dirname, "../ui/test/setup.ts")],
     testTimeout: 10_000,
     browser: {
       enabled: true,

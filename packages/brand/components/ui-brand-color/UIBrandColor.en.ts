@@ -6,7 +6,7 @@
  *   The element adds `brand` before the noun (`brand color`).
  */
 
-import type { E } from "$/ui/core"
+import type { E } from "$/spell-solid"
 
 /****************
  * ### `<ui-brand-color>`

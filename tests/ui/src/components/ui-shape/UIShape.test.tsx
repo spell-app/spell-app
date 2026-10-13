@@ -7,7 +7,7 @@ import { expectAccessible } from "$/ui/test/A11y"
 import { Fixture } from "$/ui/test/Fixture"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMElement } from "$/ui/elements"
+import type { DOMElement } from "$/spell-solid"
 import type { DOMShapeElement } from "$/ui/components/ui-shape"
 
 import "$/ui/components/ui-shape"

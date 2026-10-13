@@ -5,7 +5,7 @@ import { Dynamic, render, type JSX } from "@solidjs/web"
 import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 import { UI } from "$/ui/runtime"
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { UIComponent, type DOMElement, type UIComponentClass } from "$/ui/elements"
+import { UIComponent, type DOMElement, type UIComponentClass } from "$/spell-solid"
 
 /**
  * `UIComponent`:  each element draws in a Solid root of its OWN, and an app reaches inside through `appContext`.

@@ -4,7 +4,7 @@ import { userEvent } from "vite-plus/test/browser"
 import { UI } from "$/ui/runtime"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMElement } from "$/ui/elements"
+import type { DOMElement } from "$/spell-solid"
 
 import { Browser } from "$/ui/runtime/Browser"
 import { I18n } from "$/ui/runtime/I18n"

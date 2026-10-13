@@ -13,6 +13,9 @@
  * - Also the library's `@spell-app/ui/ui-root` entry (its size is in `docs/report.md`).
  */
 
+// Spell UI's settings for `$/spell-solid` (a side effect), here too:  every page has a root, and `core`'s import of
+// it is dropped by a bundler that finds nothing of `core` itself used (`SpellUISettings`)
+import "$/ui/elements/SpellUISettings"
 import { UIRoot } from "./UIRoot"
 
 import "$/ui/components/ui-loader"

@@ -18,7 +18,7 @@ import { RootCatalog } from "$/ui/tools/RootCatalog"
  * - `<pack>.pack.js`:  the entry built by Vite as ONE classic script (an IIFE), minified,
  *   on Spell UI's `baseConfig()` (decorators BEFORE Solid, Solid's JSX, Lightning CSS),
  *   with every `PACK_MODULES` specifier left external and read from `globalThis.SpellUI.packModules[<specifier>]`:
- *   the page's one Solid and one Spell UI core.  Its banner records the same hash.
+ *   the page's one Solid, one spell-solid and one Spell UI core.  Its banner records the same hash.
  * - Node built-ins, `RootCatalog` and (only while building) Vite:  no spell, so it runs on the lean `spell dev` entry.
  * - Throws `CliError` for a package that isn't a pack, a tag without the pack's prefix, or an import of Spell UI or
  *   Solid the page can't share.
@@ -157,14 +157,17 @@ export function packFamilies(pack: PackInfo): string[] {
 /**
  * The modules a pack SHARES with the page instead of bundling:  the exact import specifiers its build leaves
  * external, each read from `globalThis.SpellUI.packModules[<specifier>]` (the docs bundle's, `spell-ui.entry.js`).
- * - Any other `$/ui...`, Solid or `@spell-app/...` import fails the build:  a second copy of Spell UI's core or Solid
- *   on a page breaks both.  Another one:  add it here AND to Spell UI's `packModules`, AND to the guides' copy
+ * - `$/spell-solid`:  what the pack's elements are written on (`E.UIComponent` ...).
+ *   The page's is Spell UI's core module, which carries all of it, so a page has one (`packModules`).
+ * - Any other `$/ui...`, `$/spell-solid/...`, Solid or `@spell-app/...` import fails the build:  a second copy of
+ *   spell-solid, Spell UI's core or Solid on a page breaks them.  Another one:  add it here AND to Spell UI's
+ *   `packModules`, AND to the guides' copy
  *   (`packages/epics/tools/bundle-experiment.ts`, which builds a guide's live elements the same way).
  */
-export const PACK_MODULES = ["solid-js", "@solidjs/web", "$/ui/core", "$/ui/forms"]
+export const PACK_MODULES = ["solid-js", "@solidjs/web", "$/spell-solid", "$/ui/core", "$/ui/forms"]
 
-/** Imports the page must share, never bundled:  Spell UI, Solid, our other packages. */
-const SHARED_IMPORT = /^\$\/ui(\/|$)|^solid-js(\/|$)|^@solidjs\/|^@spell-app\//
+/** Imports the page must share, never bundled:  spell-solid, Spell UI, Solid, our other packages. */
+const SHARED_IMPORT = /^\$\/(ui|spell-solid)(\/|$)|^solid-js(\/|$)|^@solidjs\/|^@spell-app\//
 
 /** Version of what `buildPack()` writes:  bump it when the generated files change shape, so every pack goes stale. */
 const PACK_FORMAT = "spell-pack 1"

@@ -7,7 +7,7 @@ import type { TransitionDetail } from "$/ui/components/components.types"
 import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { DOMElement } from "$/ui/elements"
+import type { DOMElement } from "$/spell-solid"
 import type { DOMTransitionElement } from "$/ui/components/ui-transition"
 
 import "$/ui/components/ui-transition"

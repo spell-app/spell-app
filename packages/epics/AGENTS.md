@@ -34,7 +34,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Written exactly like a Spell UI family:
     [ui's AGENTS.md](../ui/AGENTS.md), "Overview" and "Solid authoring".
   - Every file named for its COMPONENT:
-    - `<Name>.tsx` (the component, on `E.UIComponent`)
+    - `<Name>.tsx` (the component, on `E.UIComponent`:  [`$/spell-solid`](../spell-solid/AGENTS.md)'s)
     - `<Name>.en.ts` (its tag's vocabulary:  topics + aka, skeleton text)
     - `<Name>.css`, `<Name>.types.ts` (only what several of its files share)
     - its test, `<Name>.test.tsx`, at the same path in the repo's `tests/epics/` (`tests/epics/components/<tag>/`)
@@ -116,10 +116,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `epics.entry.ts` -- the script's entry:
     `SpellUI.registerPack({ name, prefix, catalog, define })`, where `define()` imports every family barrel
   - `epics.pack.js` -- the CLASSIC script (an IIFE) a page loads, minified
-    - Solid and Spell UI's shared modules are NOT in it:
-      `solid-js`, `@solidjs/web`, `$/ui/core`, `$/ui/forms`.
+    - Solid, spell-solid and Spell UI's shared modules are NOT in it:
+      `solid-js`, `@solidjs/web`, `$/spell-solid`, `$/ui/core`, `$/ui/forms`.
     - It takes them from `globalThis.SpellUI.packModules`, the docs bundle's,
-      so a page has ONE Solid and one `UIComponent`.
+      so a page has ONE Solid and one `UIComponent` (`$/spell-solid` there is Spell UI's core, which carries it).
 - `tools/` -- every docs page's tooling:  the scripts, their route modules, and `_assets/` (see "Layout", "Scripts").
   - Plain `node` scripts (`.js`) beside `tsx` ones (`.ts`);  `tsconfig.json` takes both (`allowJs`).
   - The tools and `src/` import each other directly, by relative path.
@@ -131,9 +131,12 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   then `spell dev pack build epics` (`yarn pack:build`), and commit `pack/` in the same change.
   - `yarn pack:check` exits 1 while `pack/` is stale, and the pack's test (`pack.test.ts`) runs it:
     so `yarn test` and `yarn review` fail until you build.
-- Elements import Spell UI's code ONLY from `$/ui/core` / `$/ui/forms` (as a Spell UI family does),
+- Elements are written on `$/spell-solid`:  `import { E } from "$/spell-solid"` (`E.UIComponent`, `@E.state` ...).
+  - A file that also uses Spell UI's own pieces (`E.IconGlyph`, `E.LoadableBody`, `E.Converters` ...) takes `E` from
+    `$/ui/core` instead:  the same names, and Spell UI's on top (epic `people-and-orgs` P17).
+- They import Spell UI's code ONLY from `$/ui/core` / `$/ui/forms` (as a Spell UI family does),
   and Solid from `solid-js` / `@solidjs/web`.
-  - The build fails on any other `$/ui/...` or Solid import, which the page couldn't share.
+  - The build fails on any other `$/ui/...`, `$/spell-solid/...` or Solid import, which the page couldn't share.
   - Another shared module:
     add it to Spell UI's `packModules` AND to `PACK_MODULES`, in [packBuild.ts](../cli/src/dev/packBuild.ts).
 - Every tag starts `epic-`:  `<ui-root>` knows the pack's tags by that prefix.
@@ -1121,7 +1124,7 @@ In `tools/`:
   - The page loads it right after `spell-ui.js`.
   - It's built as a component pack is, so the elements extend the page's own Spell UI:
     - Vite, on Spell UI's `baseConfig()`
-    - Solid and `$/ui/core`, from the page's `SpellUI.packModules`
+    - Solid, `$/spell-solid` and `$/ui/core`, from the page's `SpellUI.packModules`
   - It may import Spell UI's doc-only families (`$/ui/docs-components/<family>`), from the checkout's source.
     - Why:  `spell-ui.js` is built from `ui`'s `dist/`, which has none.
   - Rebuild it after editing the elements, or when a doc-only family it imports changes.

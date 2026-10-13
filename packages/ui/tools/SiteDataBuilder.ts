@@ -14,7 +14,7 @@ import {
   type SiteTag,
   type SiteTagPage
 } from "../src/docs-components/docs-components.types.ts"
-import type { AttributeSpec, ComponentVocabulary, ValueSetName } from "../src/vocabulary/vocabulary.types.ts"
+import type { AttributeSpec, ComponentVocabulary, ValueSetName } from "$/spell-solid/vocabulary.types"
 import { SITE_BUILD, SITE_PAGES } from "./tools.types.ts"
 import { FamilyTokens } from "./FamilyTokens.ts"
 import { FoundationTokens } from "./FoundationTokens.ts"

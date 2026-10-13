@@ -10,7 +10,7 @@
  *   - the DOM element's class, `DOMBrandCheckElement`, owns that name:  it is no vocabulary attribute
  */
 
-import type { E } from "$/ui/core"
+import type { E } from "$/spell-solid"
 
 /****************
  * ### `<ui-brand-check>`

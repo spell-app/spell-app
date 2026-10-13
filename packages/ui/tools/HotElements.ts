@@ -5,7 +5,7 @@ import type { EnvironmentModuleNode, Plugin } from "vite"
  * `hotElements(hotDefinitions)`:
  * the Vite plugin for hot module replacement of `ui`'s elements in `yarn dev`, without reloading the page.
  * `vite.config.ts` adds it after the Solid plugin;
- * `hotDefinitions` is the absolute path of `src/elements/HotDefinitions.ts`.
+ * `hotDefinitions` is the absolute path of `HotDefinitions.ts`, in `packages/spell-solid/src/`.
  * - Component barrels (`src/components/ui-<name>/index.ts`, the modules that call `define()`) become HMR boundaries:
  *   the plugin imports `HotDefinitions` into each, and appends `import.meta.hot.accept(() => HotDefinitions.update())`.
  *   Vite re-runs the barrel, whose `define()` of a new version of a class re-defines its tags in place

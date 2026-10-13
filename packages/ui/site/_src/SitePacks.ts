@@ -30,11 +30,15 @@ import * as uiForms from "$/ui/forms"
 import type { ComponentPack } from "$/ui/components/ui-components/UIComponents.types"
 import { registerPack } from "$/ui/components/ui-components/ComponentPacks"
 
-/** What a pack imports, by the specifier its build leaves external => the page's copy of that module. */
+/**
+ * What a pack imports, by the specifier its build leaves external => the page's copy of that module.
+ * - `$/spell-solid`:  Spell UI's core module, which carries all of it (`$/ui/core` re-exports it):  one per page.
+ */
 const packModules: Record<string, unknown> = {
   "solid-js": solid,
   "@solidjs/web": solidWeb,
   "@solidjs/h": solidH,
+  "$/spell-solid": uiCore,
   "$/ui/core": uiCore,
   "$/ui/forms": uiForms
 }
