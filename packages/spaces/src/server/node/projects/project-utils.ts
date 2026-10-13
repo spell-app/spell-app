@@ -1,13 +1,18 @@
 /**
- * Utilities for working with projects and project files.
- * The `request_XXX` version can be passed directly to a `SRV.Router` route (Express-shaped).
+ * Spell's projects ON DISK:  where each is, its list, its index, and its files' create, copy, rename, delete and save.
+ * - The `request_XXX` version can be passed directly to a `SRV.Router` route (Express-shaped):  `routes/api.ts`.
+ * - Each change to a file goes through the page server's file operations (`SRV.FileOperations`), in-process:
+ *   under the file lock, written all at once.
+ * - It was spell's (`$/spell/node/project-utils`), until epic `people-and-orgs` P15.
+ * - NOTE: loads spaces' barrel, so spell's project groups are registered (`SPACES.PROJECT_GROUPS`).
  */
 import { isAbsolute, relative, resolve, sep } from "path"
 
 import type { SRV } from "$/server"
-import environment from "$/spell/node/environment"
+import environment from "$/spaces/server/node/environment"
 
 import { SP } from "$/spell"
+import { SPACES } from "$/spaces"
 
 import * as fileUtils from "./file-utils"
 import * as responseUtils from "./response-utils"
@@ -56,22 +61,25 @@ Object.defineProperty(SP.SpellLocation.prototype, "serverPath", {
 /**
  * Folder on disk holding project root `rootPath`'s projects, one sub-folder each.
  * - A root added at runtime says where with `spec.serverPath`.
- * - A built-in root lives in its `folder` -- default its `domain` -- under its `owner`'s files root:
- *   `environment.systemFilesRoot`, `testFilesRoot`, else `userFilesRoot`.
- *   e.g. `projects/system/examples`, or `projects/user` itself.
- * - Throws if `rootPath` isn't a known root.
+ * - One of spaces' groups:  its place's folder (`SP.SpellUrls.folderFor()`), under the folder `environment` names
+ *   for its base, e.g. `@spell/examples` => `packages/spaces/@spell/examples`, `owen@spell` =>
+ *   `<spell-spaces>/@spell/owen@`.
+ * - Throws if `rootPath` isn't a known root, or its place has no folder.
  */
 export function serverPathForRoot(rootPath: SP.ProjectRootPath): string {
   const spec = SP.SpellSetup.projectSpectForRootPath(rootPath)
   if (spec.serverPath) return spec.serverPath
-  return fileUtils.normalizePath(filesRootFor(spec.owner), spec.folder ?? spec.domain)
+  return folderForPlace(spec.place)
 }
 
-/** Folder holding owner `owner`'s built-in roots, e.g. `projects/system` for `@system`. */
-function filesRootFor(owner: string): string {
-  if (owner === "@system") return environment.systemFilesRoot
-  if (owner === "@test") return environment.testFilesRoot
-  return environment.userFilesRoot
+/**
+ * Folder on disk of `place`, e.g. `@spell/examples/Solitaire` => `packages/spaces/@spell/examples/Solitaire`.
+ * - Throws if `place` has no folder of its own, e.g. `@local/my-folder`.
+ */
+export function folderForPlace(place: string): string {
+  const folder = SP.SpellUrls.folderFor(place)
+  if (!folder) throw new TypeError(`folderForPlace('${place}'):  no folder for this place`)
+  return resolve(environment.spaceFolders[folder.base], ...folder.path.split("/"))
 }
 
 /**
@@ -102,26 +110,44 @@ export function isBuiltFile(location: SP.SpellLocation): boolean {
 }
 
 /**
- * Folder on disk for what spell builds for the project in folder `projectFolder`, e.g. its `Solitaire.spell.js`.
- * - A project under `packages/`:  the same path under `build/` at the repo root (epic `people-and-orgs` P11),
- *   e.g. `packages/spell/projects/system/examples/Solitaire` => `build/spell/projects/system/examples/Solitaire`.
- * - A project anywhere else -- a temp `@workspace` root, `SPELL_PROJECTS_DIR`'s, a VS Code workspace elsewhere:
+ * Folder on disk for what spell builds for the project in folder `projectFolder`, e.g. its `Solitaire.spell.js`:
+ * its path MIRRORED under `build/` at the repo root (epic `people-and-orgs` P11).
+ * - Under `packages/` or the repo's `tests/`:  the same path under `build/`, e.g.
+ *   `packages/spaces/@spell/examples/Solitaire` => `build/spaces/@spell/examples/Solitaire`,
+ *   `tests/spaces/@spell/test/FizzBuzz` => `build/spaces/@spell/test/FizzBuzz`.
+ * - Under spell-spaces:  under `build/spell-spaces/`, e.g. `<spell-spaces>/@spell/owen@/errors` =>
+ *   `build/spell-spaces/@spell/owen@/errors`:  each checkout builds its own.
+ * - A project anywhere else -- a temp `@workspace` root, a VS Code workspace elsewhere:
  *   `projectFolder` itself, beside its source, as before `build/`.
  *   NEVER a `build/` inside its root's folder:  that would list as one of its projects.
- * - `folders`:  where `packages/` and `build/` are, default `environment`'s;  tests pass their own.
+ * - `folders`:  where `packages/`, `tests/`, spell-spaces and `build/` are, default `environment`'s;
+ *   tests pass their own.
  */
-export function buildFolderFor(
-  projectFolder: string,
-  folders: { packagesDir: string; buildDir: string } = environment
-): string {
-  const inPackages = relative(folders.packagesDir, projectFolder)
-  const isOutside = !inPackages || isAbsolute(inPackages) || inPackages === ".." || inPackages.startsWith(`..${sep}`)
-  return isOutside ? projectFolder : resolve(folders.buildDir, inPackages)
+export function buildFolderFor(projectFolder: string, folders: BuildFolders = environment): string {
+  const mirrors: Array<[string | undefined, string]> = [
+    [folders.packagesDir, folders.buildDir],
+    [folders.repoDir && resolve(folders.repoDir, "tests"), folders.buildDir],
+    [folders.spellSpacesDir, resolve(folders.buildDir, "spell-spaces")]
+  ]
+  for (const [from, to] of mirrors) {
+    const inside = from ? relative(from, projectFolder) : ""
+    const isOutside = !inside || isAbsolute(inside) || inside === ".." || inside.startsWith(`..${sep}`)
+    if (!isOutside) return resolve(to, inside)
+  }
+  return projectFolder
 }
 
 /**
+ * Where `buildFolderFor()` mirrors from, and to.
+ * - `packagesDir`, `buildDir`:  the repo's `packages/` and `build/`
+ * - `repoDir`:  the checkout, whose `tests/` mirror too
+ * - `spellSpacesDir`:  spell-spaces, mirrored under `build/spell-spaces/`
+ */
+export type BuildFolders = { packagesDir: string; buildDir: string; repoDir?: string; spellSpacesDir?: string }
+
+/**
  * Where project `projectId`'s built files go, relative to its own folder, `/`-separated:  its index's `buildFolder`.
- * - e.g. `../../../../../../build/spell/projects/system/examples/Solitaire`
+ * - e.g. `../../../../../../build/spaces/@spell/examples/Solitaire`
  * - `undefined` for a project whose built files sit beside its source (`buildFolderFor()`).
  */
 export function relativeBuildFolder(projectId: string): string | undefined {
@@ -140,6 +166,7 @@ const DEFAULT_FILE = {
 /**
  * Return list of client projects for `domainId` (a `projectRoot` path like `@user:projects`) as JSON blob.
  * - Format: `[ "<project-path>"... ]`, e.g. `["@user:projects:myProject", ...]`.
+ * - Spaces' own folders (`SPACES.isSpaceName()`, e.g. `__members/`) are never projects.
  * - Lists (non-empty) subfolders of `domain`'s `serverPath` as project names:
  *   a "project" is just a folder on disk.
  * - A root whose folder doesn't exist yet has no projects:  `[]`, e.g. `@system:guides` before its first guide.
@@ -149,19 +176,19 @@ export const getProjectList = async (domainId: string) => {
   const domain = SP.SpellLocation.getProjectRoot(domainId)
   if (!(await fileUtils.pathExists(domain.serverPath))) return []
   const options = { includeFolders: true, includeFiles: false, namesOnly: true, ignoreEmptyFolders: true }
-  const projectNames = await fileUtils.getFolderContents(domain.serverPath, options)
+  const projectNames = (await fileUtils.getFolderContents(domain.serverPath, options)).filter(
+    (name) => !SPACES.isSpaceName(name) && SP.SpellLocation.isValidPathSegment(name)
+  )
   return projectNames.map((projectName) => `${domain.owner}:${domain.domain}:${projectName}`)
 }
 
 /**
- * `GET /api/projects/list/:domainId` -- list projects under a project root.
- * - Client sends: `domainId` route param, e.g. `@user:projects`.
+ * `GET /api/projects/list/<group's place>` -- list projects in a group, e.g. `/api/projects/list/@spell/examples`.
  * - Returns: JSON array of project path strings.
- * - Failure: 500 (via `respondWithJSON`) if `domainId` doesn't resolve to a known `SpellSetup.projectRoots` entry.
+ * - Failure: 500 (via `respondWithJSON`) if the place isn't a known group's (`SP.SpellUrls.projectIdFor()`).
  */
 export const request_getProjectList = respondWithJSON(async (request) => {
-  const { domainId } = request.params
-  return await getProjectList(domainId)
+  return await getProjectList(SP.SpellUrls.projectIdFor(tailOf(request, SP.SpellUrls.LIST)))
 })
 
 ////////////////
@@ -184,9 +211,12 @@ const GENERATED_SUFFIXES = [
  * Given a file `name`, return `true` if we should add it to the manifest.
  * - RENAME: shares its extension list with `isPreloadFile()` below, kept a separate function so they CAN diverge.
  *   They have:  this one also leaves out compiled output, snapshots, scope packs, page files and words files.
+ * - Leaves out spaces' own names, by the list spaces keeps (`SPACES.isSpaceName()`, decision J52):
+ *   `__init__.js` or `__helpers__.spell` still list.
  */
 const manifestExtensions = [".spell", ".css", ".js", ".jsx"]
-function isManifestFile(name: string, projectName = "") {
+export function isManifestFile(name: string, projectName = "") {
+  if (SPACES.isSpaceName(name)) return false
   if (GENERATED_SUFFIXES.some((suffix) => name.endsWith(suffix))) return false
   if (SP.SpellWords.isWordsFile(name, projectName)) return false
   return manifestExtensions.some((extension) => name.endsWith(extension))
@@ -306,87 +336,62 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
 }
 
 /**
- * `GET /api/projects/index/:projectId` -- fetch (and resync) a project's index.
- * - Client sends: `projectId` route param, e.g. `@user:projects:myProject`.
+ * `GET /api/projects/index/<place>` -- fetch (and resync) a project's index,
+ * e.g. `/api/projects/index/@spell/examples/Solitaire`.
  * - Returns: `ProjectIndexJSON`.
- * - Failure: 500 if `projectId` is not a valid project path.
+ * - Failure: 500 if the place isn't a project's (`SP.SpellUrls.projectIdFor()`).
  */
 export const request_getIndex = respondWithJSON(async (request) => {
-  const { projectId } = request.params
-  return await getIndex(projectId)
+  return await getIndex(SP.SpellUrls.projectIdFor(tailOf(request, SP.SpellUrls.INDEX)))
 })
+
+/**
+ * The still-encoded rest of `request`'s path after `prefix`, e.g. `@spell/examples` for `/api/projects/list/...`.
+ * - From the path AS IT ARRIVED (`originalUrl`):  a route's params are decoded whole, and a place is decoded part by
+ *   part (`SP.SpellUrls`, rule 4).
+ */
+function tailOf(request: Request, prefix: string): string {
+  const path = request.originalUrl.split(/[?#]/)[0]!
+  const at = path.indexOf(prefix)
+  return at < 0 ? "" : path.slice(at + prefix.length)
+}
 
 ////////////////
 // ## Get/save project files
 ////////////////
 
 /**
- * `GET /api/projects/file/:projectId/:filePath*` -- fetch raw contents of one project file.
- * - Client sends: `projectId` and `filePath` route params.
- *   `filePath*` is a wildcard, so it can include `/`-separated nested folders.
- * - Returns: raw file body via `SRV.Reply.sendFile()` (mime type set from extension).
- *   `{ dotfiles: "allow" }`, so dotfiles can be fetched too.
- * - Failure:
- *   - 404 (via `responseUtils.sendFile()`) if file not found
- *   - 500 if `projectId`/`filePath` don't resolve to a valid file path (thrown by `SpellLocation.getFileLocation()`),
- *     or if the send itself fails
- * - NOTE: deliberately NOT wrapped in `respondWithJSON` -- that would send a JSON body on top of the file
- *   we already streamed.  We catch by hand instead so a rejection can't go unhandled and hang the client.
- * - TODO: return proper file type according to mime-type and/or request???!
+ * The file a file's URL names, e.g. `/spaces/@spell/examples/Solitaire//Card.spell` or
+ * `/api/projects/file/<place>//<file>`, as a `SpellLocation`:  split at its first `//` BEFORE any path is made
+ * (`SP.SpellUrls.fileForUrl()`), then checked part by part (`new SP.SpellLocation()`).
+ * - throws `TypeError` if it names no project's file
  */
-export const request_getFile = async (request: Request, response: Response) => {
-  const { projectId, filePath } = request.params
-  try {
-    const location = SP.SpellLocation.getFileLocation(projectId, filePath)
-    await responseUtils.sendFile(response, location.serverPath, { dotfiles: "allow" })
-  } catch (error) {
-    // Can't send an error body once the file has started streaming -- the client sees a truncated response.
-    if (response.headersSent) return
-    responseUtils.sendError(response, 500, error as Error)
-  }
+export function locationForUrl(url: string): SP.SpellLocation {
+  return SP.SpellLocation.getFileLocation(SP.SpellUrls.fileForUrl(url).path)
 }
 
 /**
- * Return project `projectId`'s compiled JS, `<Project>.spell.js`, as a JS module.
- * - What a runner fetches for `@spell/project/<projectId>`,
- *   so one project's compiled output can `import` another's.
- * - See `SP.SPELL_PROJECT_MODULE`, and `runCompiled()` in `$/app/runner/runCompiled`.
- * - Not found => 404:  that project has never been compiled.
+ * `GET /spaces/<place>//<file>` -- one project file, as it is on disk, e.g. `/spaces/@spell/examples/Solitaire//Card.spell`.
+ * - A file spell BUILDS (`Solitaire.spell.js`, `.scopes.js` ...) is served from the project's build folder
+ *   (`serverPath`):  its URL sits beside its source's.
+ * - Returns: raw file body via `SRV.Reply.sendFile()` (mime type set from extension, `.js` as javascript, so a runner
+ *   imports a compiled project from here, and `<spell-app>` loads its scope pack).
+ *   `{ dotfiles: "allow" }`, so dotfiles can be fetched too.
+ * - Failure:
+ *   - 404 (via `responseUtils.sendFile()`) if file not found
+ *   - 400 if the URL names no project's file (no `//`, an unknown place, a bad part)
+ * - NOTE: deliberately NOT wrapped in `respondWithJSON` -- that would send a JSON body on top of the file
+ *   we already streamed.  We catch by hand instead so a rejection can't go unhandled and hang the client.
  */
-export const request_getCompiled = (request: Request, response: Response) =>
-  sendProjectFile(request, response, SP.COMPILED_JS_SUFFIX, "text/javascript")
-
-/**
- * Send project `projectId`'s scope pack, `<Project>.scopes.js`, as javascript -- 404 if it hasn't been written.
- * - A classic script, NOT a module:  `<spell-app>` loads it with a `<script>` tag.  See `LSP.ScopePack`.
- */
-export const request_getScopes = (request: Request, response: Response) =>
-  sendProjectFile(request, response, SP.SCOPES_JS_SUFFIX, "text/javascript")
-
-/**
- * Send project `projectId`'s declarations, `<Project>.declarations.json`.
- * - 404 if it hasn't been compiled since they had a file of their own.
- * - What a runner's Type Explorer finds each declaration's code by.
- */
-export const request_getDeclarations = (request: Request, response: Response) =>
-  sendProjectFile(request, response, SP.DECLARATIONS_JSON_SUFFIX, "application/json")
-
-/**
- * Send project `projectId`'s words, `<Project>.en.js`, as javascript.
- * - 404 if it hasn't been compiled since they had a file.
- * - What a runner's Thing Explorer labels things' members by:  see `SP.SpellWords`.
- */
-export const request_getWords = (request: Request, response: Response) =>
-  sendProjectFile(request, response, SP.WORDS_JS_SUFFIX, "text/javascript")
-
-/** Send request's project's `<Project><suffix>` file as `type`. */
-async function sendProjectFile(request: Request, response: Response, suffix: string, type: string) {
-  const { projectId } = request.params
+export const request_getFile = async (request: Request, response: Response) => {
+  let location: SP.SpellLocation
   try {
-    const location = SP.SpellLocation.getProjectLocation(projectId)
-    const file = SP.SpellLocation.getFileLocation(projectId, `${location.projectName}${suffix}`)
-    response.type(type)
-    await responseUtils.sendFile(response, file.serverPath)
+    location = locationForUrl(request.originalUrl)
+  } catch (error) {
+    return responseUtils.sendError(response, 400, error as Error)
+  }
+  try {
+    await responseUtils.sendFile(response, location.serverPath, { dotfiles: "allow" })
   } catch (error) {
     // Can't send an error body once the file has started streaming -- the client sees a truncated response.
     if (response.headersSent) return
@@ -398,7 +403,7 @@ async function sendProjectFile(request: Request, response: Response, suffix: str
  * Save a file in a project, creating intervening folders as needed (see `fileUtils.saveFile()`).
  * - NOTE: `filePath` CAN include folder segments:
  *   `SpellLocation.getFileLocation()` and `fileUtils.saveFile()` both handle it.
- * - SIDE EFFECT: overwrites file wholesale, no locking against concurrent writers.
+ * - SIDE EFFECT: overwrites file wholesale, all at once, under the file lock:  the last save wins.
  * - TODO: format according to extension!!!
  */
 export const saveFile = async (projectId: string, filePath: string, contents: any) => {
@@ -407,16 +412,16 @@ export const saveFile = async (projectId: string, filePath: string, contents: an
 }
 
 /**
- * `POST /api/projects/file/:projectId/:filePath*` -- save/overwrite one project file.
- * - Client sends: `projectId` / `filePath` route params, raw body as file contents.
- *   Text or JSON per `Content-Type`:  see `bodyParser` setup in `server/index.ts`.
+ * `POST /api/projects/file/<place>//<file>` -- save/overwrite one project file, e.g.
+ * `/api/projects/file/owen@spell/errors//1.spell`.  Reading it is `GET /spaces/<place>//<file>`.
+ * - Client sends: raw body as file contents.
+ *   Text or JSON per `Content-Type`:  see the body parsing in `routes/appRoutes.ts`.
  * - Returns: `true` on success.
  * - Failure: 500 (via `respondWithJSON`) on invalid path or write error.
  */
 export const request_saveFile = respondWithJSON(async (request) => {
-  const { projectId, filePath } = request.params
-  const contents = request.body
-  return await saveFile(projectId, filePath, contents)
+  const location = locationForUrl(request.originalUrl)
+  return await saveFile(location.projectId, location.filePath!, request.body)
 })
 
 ////////////////

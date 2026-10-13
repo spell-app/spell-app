@@ -1,16 +1,18 @@
 /**
- * Router for all `/api/...` calls.
+ * Router for all `/api/...` calls, and `spaceFiles`, the router for `/spaces/...`:  reading a file.
  * - Route table below just wires paths to `project-utils.ts` handlers -- see each `request_*` function
  *   there for its full contract (what client sends, what comes back, failure modes).
+ * - A project or a file is named by its PLACE in a URL (`SP.SpellUrls`), e.g. `@spell/examples/Solitaire`, with two
+ *   slashes before a file:  `/spaces/@spell/examples/Solitaire//Card.spell`.  Handlers split the URL as it arrived,
+ *   at its first `//`, before any path on disk is made (decision J48).
  */
 
 import chalk from "chalk"
 import JSON5 from "json5"
 
 import { SRV } from "$/server"
-import * as responseUtils from "$/spell/node/response-utils"
-import * as projectUtils from "$/spell/node/project-utils"
-import { SP } from "$/spell"
+import * as projectUtils from "$/spaces/server/node/projects/project-utils"
+import * as responseUtils from "$/spaces/server/node/projects/response-utils"
 import { ProjectBuild } from "./ProjectBuild"
 
 /** Router mounted at `/api` by `./cli.ts` and `./appRoutes.ts`:  `$/server`'s Express-shaped `SRV.Router`. */
@@ -49,7 +51,8 @@ api.use((request, _response, next) => {
 
 // working with projects -- see `projectUtils.request_getProjectList` / `request_createProject` /
 // `request_renameApp` / `request_duplicateApp` / `request_deleteApp` for each route's contract.
-api.get("/projects/list/:domainId", projectUtils.request_getProjectList)
+// A group's place (`@spell/examples`) holds `/`s:  `*` takes the rest of the path.
+api.get("/projects/list/*", projectUtils.request_getProjectList)
 api.post("/projects/create/project", projectUtils.request_createProject)
 api.post("/projects/rename/project", projectUtils.request_renameApp)
 api.post("/projects/duplicate/project", projectUtils.request_duplicateApp)
@@ -61,26 +64,11 @@ api.post("/projects/create/file", projectUtils.request_createFile)
 api.post("/projects/rename/file", projectUtils.request_renameFile)
 api.delete("/projects/remove/file", projectUtils.request_deleteFile)
 
-// returning project files -- see `projectUtils.request_getIndex` / `request_getFile` / `request_saveFile`.
-// NOTE: `:filePath*` captures the REST of the URL including `/`s, so nested folder paths reach the handler as one
-// string (`SRV.Router`;  Express 4 kept only the first segment);  see `SpellLocation`/`fileUtils` for how that gets
-// validated and turned back into a real path.
-// A file spell BUILDS (`<Project>.spell.js` ...), missing, is compiled first:  `projectBuild.builtFirst()`.
-api.get("/projects/index/:projectId", projectUtils.request_getIndex)
-api.get("/projects/file/:projectId/:filePath*", projectBuild.builtFirst(), projectUtils.request_getFile)
-api.post("/projects/file/:projectId/:filePath*", projectUtils.request_saveFile)
-// a project's compiled JS, as another project's compiled output `import`s it -- see `SP.SPELL_PROJECT_MODULE`
-api.get(
-  "/projects/compiled/:projectId",
-  projectBuild.builtFirst(SP.COMPILED_JS_SUFFIX),
-  projectUtils.request_getCompiled
-)
-// a project's scope pack, what its Type Explorer shows -- see `LSP.ScopePack`
-api.get("/projects/scopes/:projectId", projectBuild.builtFirst(SP.SCOPES_JS_SUFFIX), projectUtils.request_getScopes)
-// a project's declarations, where its Type Explorer finds each one's code -- see `SP.SpellDeclarations`
-api.get("/projects/declarations/:projectId", projectUtils.request_getDeclarations)
-// a project's words, what its Thing Explorer labels things' members by -- see `SP.SpellWords`
-api.get("/projects/words/:projectId", projectUtils.request_getWords)
+// a project's index, and saving one of its files -- see `projectUtils.request_getIndex` / `request_saveFile`.
+// Reading a file is `/spaces/<place>//<file>`:  `spaceFiles`, below.
+// `*` captures the REST of the URL, `/`s and the `//` included;  the handlers read it as it arrived.
+api.get("/projects/index/*", projectUtils.request_getIndex)
+api.post("/projects/file/*", projectUtils.request_saveFile)
 
 // Compile random source file, not tied to a project -- see `projectUtils.request_compileFile`.
 api.post("/compile/file", projectUtils.request_compileFile)
@@ -110,3 +98,13 @@ api.get("/error", (request, response) => response.status(500).send("No soup for 
 ////////////////
 // every verb:  Express answered only GET / POST here, so an unknown DELETE got its default HTML 404
 api.all("*", (request, response) => response.status(404).send(`API routine not defined on server:   '${request.url}'`))
+
+/**
+ * Router mounted at `/spaces` by `./cli.ts` and `./appRoutes.ts`:  a project's file, by its URL,
+ * `/spaces/<place>//<file>` -- see `projectUtils.request_getFile`.
+ * - Compiled files are files:  `/spaces/@spell/examples/Solitaire//Solitaire.spell.js` (its program),
+ *   `.scopes.js` (its scope pack), `.declarations.json`, `.en.js`.  The handler finds a built one in `build/`.
+ * - A file spell BUILDS (`<Project>.spell.js` ...), missing, is compiled first:  `projectBuild.builtFirst()`.
+ */
+export const spaceFiles = new SRV.Router()
+spaceFiles.get("*", projectBuild.builtFirst(), projectUtils.request_getFile)

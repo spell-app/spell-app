@@ -4,7 +4,7 @@ import { tmpdir } from "os"
 import { delimiter, dirname, resolve } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 
-import environment from "$/spell/node/environment"
+import environment from "$/spaces/server/node/environment"
 import { buildTsx } from "$/spell/node/buildTsx"
 import { SP } from "$/spell"
 import { LSP } from "$/lsp"

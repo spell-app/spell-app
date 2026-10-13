@@ -16,7 +16,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     route modules, safety, why.
 - What's in it:
   - `mime.ts` -- ONE content-type table, `typeFor()`
-  - `safePath.ts` -- `resolveInside()`:  URL path -> file under a root, never outside it
+  - `safePath.ts` -- `resolveInside()`:  URL path -> file under a root, never outside it;
+    `fileInside()`, the same for a file that may not be there yet
   - `StaticHandler` -- folders under URL prefixes, with:
     - html / per-extension hooks
     - overlays:  one folder laid over another
@@ -26,6 +27,18 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `ports.ts` -- `isFree`, `freePort`, `listenPreferred`
   - `open.ts` -- browser, new window, reused Chrome tab, VS Code's Simple Browser
   - `FileLock` -- `<file>.lock`, so tools writing the same file take turns
+  - `FileOperations` -- files and folders saved, created, renamed, duplicated and deleted,
+    each under the `FileLock`, a save all at once (temp file, then rename).
+    Nothing of pages or projects.
+    - In-process, on absolute paths, checking no list:  `SRV.FileOperations.save(file, contents, { ifMatch })` ...
+      Spaces saves its projects' files this way;  the page editor (`/_server/page`) saves through `save()` too.
+    - Over HTTP, `/api/files` (`route()`), for pages the server served:
+      - `PUT ?path=` (save), `POST /create`, `/rename`, `/duplicate`, `DELETE ?path=`
+      - every one needs `Guard`'s strong write check (this run's token, same origin)
+      - ONLY inside the root `package.json`'s `"pageServer"` `"writable"` folders, the shared content ones:
+        `epics`, `guides`, `pages`, `templates`, `brand`.  Anything else:  403.
+      - those are links into the shared repo:  paths are resolved (`fileInside()`), never followed,
+        so they stay "inside"
   - `LiveReload` + `liveClient.ts` -- live reload over a websocket,
     and the page-side client (`/_server/live.js`, `editPage()`).
     - `webSocket.ts` -- the server's half of one (node built-ins).
@@ -41,7 +54,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `untilInterrupted.ts` -- run until `Ctrl-C`
 - It's a LEAF:  node built-ins only (json5 / esbuild come in as hooks), and it imports NO other package.
   - So anything may import it:
-    `ui`'s tools and site, `spell/node`, `cli`, `app`, `docs`, `goals`, the VS Code extension.
+    `ui`'s tools and site, spaces' `server/node/`, `cli`, `app`, `docs`, `goals`, the VS Code extension.
 - NOT in the barrel, opt-in by path (WWOD §8 › "Barrels"):
   - `$/server/page/...` -- the page server (one per checkout):
     its CLI (`spell dev server`), page edits, and running epics.

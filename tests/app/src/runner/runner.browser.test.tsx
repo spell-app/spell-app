@@ -795,7 +795,7 @@ let testSpellCore: (typeof import("$/app/runner/spellRuntime"))["spellCore"] | u
  *   examples.
  */
 async function fixtureCompiled(name: string): Promise<string> {
-  const file = new URL(`../../../../packages/spell/projects/test/${name}/${name}.snapshot.js`, import.meta.url).pathname
+  const file = new URL(`../../../spaces/@spell/test/${name}/${name}.snapshot.js`, import.meta.url).pathname
   const { default: compiled } = (await import(/* @vite-ignore */ `${file}?raw`)) as { default: string }
   return compiled
 }

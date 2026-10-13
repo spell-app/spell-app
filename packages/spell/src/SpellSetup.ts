@@ -1,86 +1,29 @@
 import type * as SP from "./spell.types"
 
 /**
- * Shared client/server setup for project roots, plus routines for working with `path`s.
+ * The registry of project GROUPS (project roots), shared by the browser and node, plus routines for working with
+ * `path`s.
  * - `path`s are of form `@owner:domain:projectName/folder/folder/file.extension` -- see `SpellLocation`
  *   for how a path breaks down into its pieces.
- * - NOTE: kept deliberately dependency-free (`import type` only) -- `SpellLocation.ts` (which itself must
- *   stay light because the server imports it directly) depends on this file, so anything pulled in here
- *   would leak into the server bundle too.
+ * - It starts EMPTY:  the groups are spaces' (`$/spaces`, `SPACES.PROJECT_GROUPS`), which registers them with
+ *   `addProjectRoot()` as it loads (epic `people-and-orgs` P15).
+ *   - So every program that reads a path loads spaces' groups first:  the editor, `<spell-app>`, the language server,
+ *     the `spell` command, the routes, the tests.  Without them, every path is "invalid".
+ * - NOTE: kept deliberately dependency-free (`import type` only) -- `SpellLocation.ts` and `SpellUrls.ts` (which
+ *   must stay light:  `<spell-app>` and the server import them) depend on this file, so anything pulled in here
+ *   would leak into their bundles too.
  */
 export const SpellSetup = {
   /**
    * Registry of valid project roots (`@owner:domain` pairs), keyed by their `path`.
    * - Drives `SpellLocation`'s path validation -- any path's `@owner:domain` must resolve here to be valid.
-   * - On disk, under `<repo>/projects/`:  `@system:*` in `system/<domain>/`, `@user:projects` in `user/`,
-   *   `@test:fixtures` in `test/` -- see `folder`, and `serverPathForRoot()` in `project-utils.ts`.
-   * - Add a new domain (e.g. a new top-level project category) by adding an entry here,
-   *   or at runtime with `addProjectRoot()`.
+   * - Where each one's projects are:  its `place` (`SpellUrls.folderFor()`), or a runtime root's `serverPath`.
+   * - Filled by `addProjectRoot()`:  spaces' groups as it loads, and `@workspace:<folder>` roots at runtime.
    */
-  projectRoots: {
-    "@user:projects": {
-      path: "@user:projects",
-      owner: "@user",
-      domain: "projects",
-      // directly in `projects/user/`
-      folder: "",
-      title: "Projects",
-      Type: "Project",
-      type: "project",
-      description: "User projects",
-      icon: "app store ios"
-    } satisfies SP.ProjectRootSpec,
-    "@system:examples": {
-      path: "@system:examples",
-      owner: "@system",
-      domain: "examples",
-      title: "Examples",
-      Type: "Example",
-      type: "example",
-      description: "Example projects",
-      icon: "app store ios",
-      alias: "@examples"
-    } satisfies SP.ProjectRootSpec,
-    "@system:guides": {
-      path: "@system:guides",
-      owner: "@system",
-      domain: "guides",
-      title: "Guides",
-      Type: "Guide",
-      type: "guide",
-      description: "Usage guides",
-      icon: "newspaper outline",
-      alias: "@guides"
-    } satisfies SP.ProjectRootSpec,
-    "@system:library": {
-      path: "@system:library",
-      owner: "@system",
-      domain: "library",
-      title: "Libraries",
-      Type: "Library",
-      type: "library",
-      description: "Libraries other projects import, e.g. `@library/cards` in a `project.json`",
-      icon: "book",
-      alias: "@library"
-    } satisfies SP.ProjectRootSpec,
-    "@test:fixtures": {
-      path: "@test:fixtures",
-      owner: "@test",
-      domain: "fixtures",
-      // directly in `projects/test/`
-      folder: "",
-      title: "Test fixtures",
-      Type: "Fixture",
-      type: "fixture",
-      description: "Frozen projects tests run against -- edit one, then `yarn test:fixtures:bless`",
-      icon: "lab",
-      devOnly: true,
-      alias: "@test"
-    } satisfies SP.ProjectRootSpec
-  } as Record<SP.ProjectRootPath, SP.ProjectRootSpec>,
+  projectRoots: {} as Record<SP.ProjectRootPath, SP.ProjectRootSpec>,
 
   /**
-   * Register a project root at runtime, e.g. `@workspace:my-folder` for a folder an editor opened.
+   * Register a project root, e.g. one of spaces' groups, or `@workspace:my-folder` for a folder an editor opened.
    * - Returns the spec, or the EXISTING spec if `spec.path` is already registered (first one wins).
    * - SIDE EFFECT: `SpellLocation` accepts paths under it from now on.
    */
@@ -88,7 +31,7 @@ export const SpellSetup = {
     return (this.projectRoots[spec.path] ??= spec)
   },
 
-  /** All valid project root `path`s, e.g. `["@user:projects", "@system:examples", "@system:guides", "@system:library"]`. */
+  /** All registered project root `path`s, e.g. `["@user:projects", "@system:examples", "@system:guides", ...]`. */
   get projectRootPaths() {
     return Object.keys(this.projectRoots)
   },

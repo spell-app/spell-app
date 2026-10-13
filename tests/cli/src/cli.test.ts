@@ -17,7 +17,7 @@ import { basename, resolve } from "path"
 import { afterAll, beforeAll, describe, test, expect, vi } from "vite-plus/test"
 
 import { SRV } from "$/server"
-import { buildFolderFor } from "$/spell/node/project-utils"
+import { buildFolderFor } from "$/spaces/server/node/projects/project-utils"
 import { SP } from "$/spell"
 import { fixturePath } from "$/spell/test"
 
@@ -361,8 +361,11 @@ describe("spell serve", () => {
       const editor = new URL(out.trim()).origin
       if (!running) expect(editor).toBe(`http://localhost:${port}`)
       expect(await (await fetch(`${editor}/`)).text()).toContain("<html")
-      const projects = await (await fetch(`${editor}/api/projects/list/@test:fixtures`)).text()
+      const projects = await (await fetch(`${editor}/api/projects/list/@spell/test`)).text()
       expect(projects).toContain("Solitaire")
+      // a file by its URL, `/spaces/<place>//<file>`, through vite's proxy
+      const card = await fetch(`${editor}/spaces/@spell/test/Solitaire//Card.spell`)
+      expect(card.status).toBe(200)
 
       child.kill("SIGINT")
       expect(await new Promise((done) => child.on("exit", done))).toBe(0)

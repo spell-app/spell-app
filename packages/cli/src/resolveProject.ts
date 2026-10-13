@@ -8,7 +8,7 @@
  * - `@workspace` ~== `.`, and `@workspace/Foo.spell` ~== `./Foo.spell`.
  * - Anything else is a path on disk, from the current folder:
  *   - a `.spell` file, or a project's `project.json`
- *   - a folder:  the project it's in, or a known root's folder, e.g. `projects/system/examples`
+ *   - a folder:  the project it's in, or a known root's folder, e.g. `packages/spaces/@spell/examples`
  * - NEVER a folder that isn't inside a project:  loading it would WRITE a `project.json` there,
  *   see `projectUtils.getIndex()`.
  * - Throws `CLI.CliError` for anything it can't place.
@@ -17,8 +17,8 @@ import { existsSync, statSync } from "fs"
 import { basename, dirname, extname, resolve } from "path"
 
 import { SP } from "$/spell"
-import { locationForDiskPath } from "$/spell/node/disk-fetch"
-import * as projectUtils from "$/spell/node/project-utils"
+import { locationForDiskPath } from "$/spaces/server/node/projects/disk-fetch"
+import * as projectUtils from "$/spaces/server/node/projects/project-utils"
 import { CLI } from "$/cli"
 
 /** Stands for the current folder:  `@workspace` ~== `.` */

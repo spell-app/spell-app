@@ -1,8 +1,11 @@
 /**
- * `$fetch()` answered from DISK, in-process, for node hosts of `SpellProject` & co. such as the language server.
+ * Spaces' DISK READER:  `$fetch()` answered from disk, in-process, for node hosts of `SpellProject` & co. --
+ * the language server, the `spell` command, tests.
  * - `LoadableFile.fetch` is how every `SpellProject` / `SpellFile` / `SpellProjectRoot` reaches its `url`.
- * - `installDiskFetch()` swaps `$fetch()` for `diskFetch()`, which resolves the same `/api/projects/...` URLs
- *   with the same `project-utils` functions the express routes call -- see `api.ts` for that route table.
+ * - `installDiskFetch()` swaps `$fetch()` for `diskFetch()`, which answers the same URLs spell builds
+ *   (`SP.SpellUrls`:  `/spaces/<place>//<file>`, `/api/projects/...`) with the same `project-utils` functions the
+ *   routes call -- see `routes/api.ts` for that route table.
+ * - Spell never sees a path on disk:  in a browser the page server answers these URLs, here this does.
  * - `locationForDiskPath()` maps a file on disk back to a `SpellLocation`,
  *   registering a `@workspace:<folder>` project root for a folder outside the built-in ones.
  * - NOTE: importing this pulls in `project-utils.ts`,
@@ -20,36 +23,40 @@ import * as fileUtils from "./file-utils"
 import * as projectUtils from "./project-utils"
 import { isFileOrFolderNotFoundError } from "./response-utils"
 
-/** URL shapes we answer, in `api.ts` order -- `GET` unless the caller passes `contents`. */
-const ROUTES: Array<{ pattern: RegExp; handle: (groups: string[], $params: $FetchParams) => Promise<unknown> }> = [
-  { pattern: /^\/api\/projects\/list\/([^/]+)$/, handle: ([domainId]) => projectUtils.getProjectList(domainId!) },
-  { pattern: /^\/api\/projects\/index\/([^/]+)$/, handle: ([projectId]) => projectUtils.getIndex(projectId!) },
+/**
+ * URL shapes we answer, as `routes/api.ts` does -- by their prefix (`SP.SpellUrls`), each handed the URL as it is,
+ * still encoded:  a place is split at `//` and decoded part by part, never as a whole (decision J48).
+ * - `GET` unless the caller passes `contents`.
+ */
+const ROUTES: Array<{ prefix: string; handle: (url: string, $params: $FetchParams) => Promise<unknown> }> = [
+  { prefix: SP.SpellUrls.LIST, handle: (url) => projectUtils.getProjectList(SP.SpellUrls.projectIdFor(url)) },
+  { prefix: SP.SpellUrls.INDEX, handle: (url) => projectUtils.getIndex(SP.SpellUrls.projectIdFor(url)) },
   {
-    pattern: /^\/api\/projects\/file\/([^/]+)(\/.+)$/,
-    handle: async ([projectId, filePath], { contents, method = contents != null ? "POST" : "GET" }) => {
-      if (method === "GET") {
-        const location = SP.SpellLocation.getFileLocation(projectId!, filePath!)
-        return fileUtils.loadFile(location.serverPath)
-      }
-      return projectUtils.saveFile(projectId!, filePath!, contents)
+    prefix: SP.SpellUrls.SPACES,
+    handle: (url) => fileUtils.loadFile(projectUtils.locationForUrl(url).serverPath) as Promise<string>
+  },
+  {
+    prefix: SP.SpellUrls.SAVE,
+    handle: (url, { contents }) => {
+      const location = projectUtils.locationForUrl(url)
+      return projectUtils.saveFile(location.projectId, location.filePath!, contents)
     }
   }
 ]
 
 /**
- * `$fetch()` look-alike answering `/api/projects/...` URLs from disk.
+ * `$fetch()` look-alike answering spell's URLs from disk:  `/spaces/...` and `/api/projects/...`.
  * - Same result shapes as over HTTP:  a project list, a project index, a file's text, or `true` for a save.
  * - A project index is already an object, so a `json5` `format` needs no parsing.
  * - A missing file returns `defaultContents` if given, else throws `MissingResourceError`, as a 404 would.
  *   So does a URL we don't answer.
  */
 export async function diskFetch<T = any>($params: $FetchParams): Promise<T> {
-  const url = decodeURIComponent($params.url.split("?")[0]!)
-  for (const { pattern, handle } of ROUTES) {
-    const matched = pattern.exec(url)
-    if (!matched) continue
+  const url = $params.url.split(/[?#]/)[0]!
+  for (const { prefix, handle } of ROUTES) {
+    if (!url.startsWith(prefix)) continue
     try {
-      return (await handle(matched.slice(1), $params)) as T
+      return (await handle(url, $params)) as T
     } catch (error) {
       if (!isFileOrFolderNotFoundError(error)) throw error
       if ($params.defaultContents !== undefined) return $params.defaultContents as T
@@ -59,7 +66,10 @@ export async function diskFetch<T = any>($params: $FetchParams): Promise<T> {
   throw new MissingResourceError({ url, message: `No disk route for: ${url}` })
 }
 
-/** Make every `LoadableFile` load and save through `diskFetch()` from now on. */
+/**
+ * Make every `LoadableFile` load and save through `diskFetch()` from now on.
+ * - Spell's project groups are registered by then:  `project-utils.ts` loads spaces' barrel (`SPACES.PROJECT_GROUPS`).
+ */
 export function installDiskFetch() {
   LoadableFile.fetch = diskFetch
 }
@@ -71,7 +81,7 @@ export function installDiskFetch() {
 /**
  * `SpellLocation` for the file at absolute `diskPath`, e.g. an editor's open document.
  * - Its project is the nearest enclosing folder holding `project.json`, else the file's own folder.
- * - A project under a known root's folder maps onto that root, e.g. `projects/system/examples` or `projects/user`.
+ * - A project under a known root's folder maps onto that root, e.g. `packages/spaces/@spell/examples`, or your space's in spell-spaces.
  * - Otherwise the project's PARENT folder becomes a new `@workspace:<folder-name>` root.
  *   SIDE EFFECT: registers that root with `SpellSetup.addProjectRoot()`.
  * - Returns `undefined` if any folder or file name can't be a `SpellLocation` segment,
@@ -105,7 +115,8 @@ function rootForFolder(folder: string): SP.ProjectRootPath | undefined {
 }
 
 /**
- * Register `folder` as a `@workspace:<folder-name>` project root and return its path.
+ * Register `folder` as a `@workspace:<folder-name>` project root and return its path;  its place is
+ * `@local/<folder-name>`.
  * - Returns `undefined` if the folder name can't be a path segment.
  * - A different folder with the same name gets `-2`, `-3`... so both can be open at once.
  */
@@ -118,6 +129,7 @@ function addWorkspaceRoot(folder: string): SP.ProjectRootPath | undefined {
       path,
       owner: "@workspace",
       domain,
+      place: `@local/${path.slice("@workspace:".length)}`,
       title: domain,
       Type: "Project",
       type: "project",

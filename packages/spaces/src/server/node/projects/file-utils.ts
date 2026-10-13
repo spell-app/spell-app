@@ -1,13 +1,15 @@
 //----------------------------
 //
-//  Generic file manipulation utilities.
+//  Generic file manipulation utilities, for spaces' projects on disk.
+//  - Every CHANGE (save, copy, move, delete) goes through the page server's file operations, `SRV.FileOperations`,
+//    in-process:  under the file lock, written all at once.  ONE copy of "lock, write, rename".
 //
 //----------------------------
 
 import chalk from "chalk"
 import JSON5 from "json5"
 import nodejs_path from "path"
-import fse, { Stats, CopyOptions, MoveOptions } from "fs-extra"
+import fse, { Stats } from "fs-extra"
 import filterAsync from "node-filter-async"
 
 import { SRV } from "$/server"
@@ -151,28 +153,30 @@ class PathStatWrapper {
 }
 
 /**
- * Copy a file or folder from server `path` to `newPath`.
- * - Promise resolves with `true` on success, rejects on error.
- * - For `options` see https://github.com/jprichardson/node-fs-extra/blob/HEAD/docs/copy.md.
+ * Copy a file or folder from server `path` to `newPath`, everything inside (`SRV.FileOperations.duplicate()`).
+ * - Promise resolves with `true` on success;  rejects if `path` is missing or `newPath` is there.
  */
-export async function copyPath(path: string, newPath: string, options?: CopyOptions) {
-  await fse.copy(path, newPath, options)
-  return true
-}
-
-/** Delete a file or folder from server `path`.  Promise resolves with `true` on success, rejects on error. */
-export async function deletePath(path: string) {
-  await fse.remove(path)
+export async function copyPath(path: string, newPath: string) {
+  await SRV.FileOperations.duplicate(path, newPath)
   return true
 }
 
 /**
- * Move / rename a file or folder from server `path` to `newPath`.
- * - Pass `options.overwrite = true` to overwrite existing file/folder, otherwise it'll reject.
- * - Promise resolves with `true` on success, rejects on error.
+ * Delete a file or folder from server `path`, everything inside (`SRV.FileOperations.delete()`).
+ * - Nothing there:  nothing to do.
+ * - Promise resolves with `true`, rejects on error.
  */
-export async function movePath(path: string, newPath: string, options?: MoveOptions) {
-  await fse.move(path, newPath, options)
+export async function deletePath(path: string) {
+  if (await fse.pathExists(path)) await SRV.FileOperations.delete(path)
+  return true
+}
+
+/**
+ * Move / rename a file or folder from server `path` to `newPath` (`SRV.FileOperations.rename()`).
+ * - Promise resolves with `true` on success;  rejects if `path` is missing or `newPath` is there.
+ */
+export async function movePath(path: string, newPath: string) {
+  await SRV.FileOperations.rename(path, newPath)
   return true
 }
 
@@ -322,17 +326,19 @@ export function loadFiles(paths: string[], format: EncodingFormat, optional?: "O
 ////////////////
 
 /**
- * Write `fileData` to disk at server `path` according to file `format`.
- * - Creates any intervening folders as necessary.
+ * Write `fileData` to disk at server `path` according to file `format` (`SRV.FileOperations.save()`).
+ * - Creates any intervening folders as necessary, and writes the whole file at once.
  * - Resolves with `true` on success.
  * - Under `SRV.FileLock`:  writers that cooperate (the app's saves, the page server's page edits, `spell dev plan-doc`,
  *   `spell dev goals`) take turns on the same file.
  * - SIDE EFFECT: overwrites any existing file at `path` with no merge/conflict check:  the last save wins.
+ * - throws `TypeError` unless `fileData` is text or bytes, e.g. a JSON body parsed into an object
  */
 export async function saveFile(path: string, fileData: any, format: EncodingFormat = FORMAT.TEXT): Promise<boolean> {
-  // Make sure directory exists
-  await makeFolder(getPathFolder(path))
-  await SRV.FileLock.runAsync(path, () => fse.writeFile(path, fileData, format))
+  if (typeof fileData !== "string" && !Buffer.isBuffer(fileData))
+    throw new TypeError(`saveFile('${path}'):  its contents must be text or bytes, not ${typeof fileData}`)
+  const contents = Buffer.isBuffer(fileData) ? fileData : Buffer.from(fileData, format)
+  await SRV.FileOperations.save(path, contents)
   return true
 }
 

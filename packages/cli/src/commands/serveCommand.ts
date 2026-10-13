@@ -3,7 +3,7 @@ import { join, resolve } from "path"
 
 import { SRV } from "$/server"
 import { PageServer } from "$/server/page"
-import environment from "$/spell/node/environment"
+import environment from "$/spaces/server/node/environment"
 import { SP } from "$/spell"
 import { CLI } from "$/cli"
 

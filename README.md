@@ -13,7 +13,7 @@ to play fizzbuzz
 play fizzbuzz
 ```
 
-That's [`FizzBuzz.spell`](packages/spell/projects/system/examples/FizzBuzz/FizzBuzz.spell),
+That's [`FizzBuzz.spell`](packages/spaces/@spell/examples/FizzBuzz/FizzBuzz.spell),
 one of the example projects.
 
 It's built on a general-purpose, rule-based parser, whose grammar reads like regular expressions for words,
@@ -31,11 +31,12 @@ Around the language are the tools to write and run it:
 
 | Folder                                                       | Package                | What it is                                                                                                       |
 | ------------------------------------------------------------ | ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| [`packages/spell`](packages/spell/readme.md)                 | `@spell-app/spell`         | The spell language, on the parser, and every spell project                                                       |
+| [`packages/spell`](packages/spell/readme.md)                 | `@spell-app/spell`         | The spell language, on the parser                                                                                |
+| [`packages/spaces`](packages/spaces/AGENTS.md)               | `@spell-app/spaces`        | Where projects and people live:  the example and library projects, project lists, and the servers that serve them |
 | [`packages/parser`](packages/parser/AGENTS.md)               | `@spell-app/parser`        | The generic rule-based parser the language is built on;  imported as `$/parser`                                   |
 | [`packages/core`](packages/core/AGENTS.md)       | `@spell-app/core`    | The runtime compiled spell runs on;  imported as `$/core`                                                   |
 | [`packages/lsp`](packages/lsp/AGENTS.md)                     | `@spell-app/lsp`           | Spell's language server, browser-safe;  imported as `$/lsp`                                                       |
-| [`packages/app`](packages/app/AGENTS.md)         | `@spell-app/app`     | The web app and its server, the runner, and the `<spell-app>` / `<spell-editor>` web components                  |
+| [`packages/app`](packages/app/AGENTS.md)         | `@spell-app/app`     | The web app, the runner, and the `<spell-app>` / `<spell-editor>` web components                  |
 | [`packages/vscode`](packages/vscode)                         | `spell-language`       | The VS Code extension that runs the language server:  its own yarn project, not a workspace                      |
 | [`packages/ui`](packages/ui/README.md)                       | `@spell-app/ui`            | Fomantic UI's vocabulary as modern-CSS web components on Solid 2, for any framework or plain HTML                |
 | [`packages/cli`](packages/cli/README.md)                     | `@spell-app/cli`           | The `spell` command line:  compile, check, explore, watch, run and test spell projects                           |
@@ -48,7 +49,7 @@ Each package has its own README or `AGENTS.md` (how it's built).
 - Dependencies flow one way:
 
   ```text
-  cli -> app -> lsp -> spell -> parser / core -> util
+  cli -> app -> lsp -> spaces -> spell -> parser / core -> util
   ui -> util
   ```
 

@@ -25,7 +25,7 @@ export type QuartAppSpec = {
   elements: string
   /**
    * The folder holding `program` and `elements`, relative to the app's own, `/`-separated:
-   * - the project's build folder, e.g. `../../../../../../build/spell/projects/system/examples/Solitaire`
+   * - the project's build folder, e.g. `../../../../../../build/spaces/@spell/examples/Solitaire`
    *   (the project index's `buildFolder`)
    * - `.`:  beside the app, e.g. in `spell run`'s temp folder, or for a project outside `packages/`
    */

@@ -1,7 +1,7 @@
 import { defineConfig } from "vite-plus"
 
 import { fmtConfig, packageLint } from "../../vite.lint.ts"
-import environment from "../spell/src/node/environment.ts"
+import environment from "../spaces/src/server/node/environment.ts"
 import { appConfig } from "./vite.shared.ts"
 
 /** Name of the runtime's entry in a build:  `dist/spell-runtime.js` -- see `editor.loadRuntime()`. */
@@ -24,9 +24,14 @@ export default defineConfig({
   server: {
     port: environment.vitePort,
     host: "0.0.0.0",
-    // the page server's:  the API, and the elements' bundles for the demo pages (`appRoutes.ts`)
+    // the page server's:  the API, a project's files, and the elements' bundles for the demo pages (`appRoutes.ts`)
     proxy: {
       "/api": {
+        target: `http://${environment.api_server}:${environment.expressPort}`,
+        changeOrigin: true
+      },
+      // a project's files, by their URL:  `/spaces/<place>//<file>` (`SP.SpellUrls`)
+      "/spaces": {
         target: `http://${environment.api_server}:${environment.expressPort}`,
         changeOrigin: true
       },

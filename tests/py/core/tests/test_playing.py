@@ -9,9 +9,7 @@ from spell_core import core
 from spell_core.playing import PagePlayer, PatchMismatchError, play_page
 
 # Solitaire compiled to Python:  the test fixture's snapshot, which imports nothing but spell_core.
-SOLITAIRE = (
-    Path(__file__).parents[4] / "packages" / "spell" / "projects" / "test" / "Solitaire" / "Solitaire.snapshot.py"
-)
+SOLITAIRE = Path(__file__).parents[4] / "tests" / "spaces" / "@spell" / "test" / "Solitaire" / "Solitaire.snapshot.py"
 
 
 @pytest.fixture

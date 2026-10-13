@@ -12,19 +12,20 @@ The code is in `src/`, imported as `$/cli`.
 
 This package holds ONLY the command line.
 Spell itself is the spell-family packages beside this one in the monorepo, along with `ui`:
-the parser, the language, the language server, the runtime, and the projects in `spell/projects/`.
+the parser, the language, the language server, the runtime, and `spaces`, where the projects are.
 
 ```
 packages/
   cli/         this package
-  spell/       the spell language, and `projects/`:  its SOURCE runs, straight from `../spell/src`
+  spell/       the spell language:  its SOURCE runs, straight from `../spell/src`
+  spaces/      where projects live:  the built-in ones (`@spell/`), and projects on disk
   parser/      the generic parser
   core/        the runtime compiled spell runs on, and its Python twin
   lsp/         the language server
   ui/          `@spell-app/ui`
 ```
 
-- This package depends on `spell` and `ui` as workspaces, and the aliases reach the rest.
+- This package depends on `spell`, `spaces` and `ui` as workspaces, and the aliases reach the rest.
   - `package.json` lists them as `workspace:*`.
   - One `yarn` at the monorepo root installs everything.
 - `$/cli` is this package's `src/`.
@@ -130,9 +131,10 @@ Longer notes on some of them follow the table.
 - `compile`:  writes each project's compiled javascript, and its declarations and words.
   - That's `<Project>.spell.js`, in the project's build folder, and `<Project>.declarations.json` and
     `<Project>.en.js`, committed beside its source.
-  - The build folder:  `build/` at the repo root, at the project's path under `packages/`
-    (`build/spell/projects/system/examples/Solitaire`), never committed.
-    A project outside `packages/` keeps its output beside its source.
+  - The build folder:  `build/` at the repo root, never committed, at the project's path under `packages/`
+    (`build/spaces/@spell/examples/Solitaire`), `tests/` (`build/spaces/@spell/test/FizzBuzz`),
+    or spell-spaces (`build/spell-spaces/@spell/owen@/errors`).
+    A project anywhere else keeps its output beside its source.
     See "Projects" in [PARSING.md](../spell/PARSING.md).
   - Also each other target's output, e.g. Python's:  the project's targets, or the one `--target <name>` names.
     - A project's targets are the `"targets"` in its `project.json`.
@@ -147,7 +149,7 @@ Longer notes on some of them follow the table.
     - Out of date:  a file it builds is missing, or one of its files, its `project.json`,
       an import's declarations or spell's compiler changed since its build (`CLI.staleBecause()`).
     - The page server runs `spell compile --stale --all @examples @library` as it starts,
-      and the app's API compiles a project whose built file is missing:  nothing to run by hand in a fresh checkout.
+      and spaces' routes compile a project whose built file is missing:  nothing to run by hand in a fresh checkout.
   - A `.spell` file prints its javascript.
 - `explore`'s keys:
   - `↑↓` move, `←→` fold
@@ -170,7 +172,7 @@ Longer notes on some of them follow the table.
   - `--watch` is `spell watch --test`.
 - `format`:
   - `--check` writes nothing, lists what would change, and exits 1 if anything would.
-  - Never writes into `projects/test/`.
+  - Never writes into the test projects, `tests/spaces/@spell/test/`.
 - `speed`:
   - `--against HEAD` times that commit too, in a temp worktree, and adds a Change row.
   - `--runs`, `--json`.
@@ -183,7 +185,8 @@ Longer notes on some of them follow the table.
   - Piped, it reads stdin.
 - `explain`:  `--in <project>`:  also what that project declares by that name, as the editor's hover.
   `--json`.
-- `new`:  makes the project in `@user`'s folder.
+- `new`:  makes the project in `@user`'s folder, Owen's own space in spell-spaces
+  (`../spell-spaces/@spell/owen@/`, beside the main checkout).
   - `--in <folder>`:  in that folder instead.
   - Refuses a folder with anything in it.
 
@@ -575,7 +578,7 @@ Longer notes on some of them follow the table.
   See the parser's section of [the suspected-bugs log](../../agents/SUSPECTED-BUGS.md).
 - **Name clashes:**  a shell alias or function named `spell` hides the command.
   Check `type -a spell` in a login shell.
-- **Test projects:**  running a test project (`projects/test/`) from VS Code's ▶ Run Project writes into it.
+- **Test projects:**  running a test project (`tests/spaces/@spell/test/`) from VS Code's ▶ Run Project writes into it.
   - It writes `settings.json5` (its `<Project>.spell.js` goes in `build/`).
   - Test projects should stay frozen, so delete it.
 

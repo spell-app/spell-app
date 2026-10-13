@@ -4,7 +4,7 @@ import { createRequire } from "node:module"
 import { dirname, join } from "node:path"
 
 import { SRV } from "$/server"
-import environment from "$/spell/node/environment"
+import environment from "$/spaces/server/node/environment"
 
 /**
  * The editor UI -- vite's dev server for `packages/app` (what `yarn start:dev` runs), with hot reload -- as a child

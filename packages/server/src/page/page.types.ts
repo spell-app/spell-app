@@ -43,6 +43,13 @@ export type PageServerSettings = {
   routes?: string[]
   /** folders to live-reload, relative to the root (default:  the docs pages and their bundle, `DEFAULT_WATCH`) */
   watch?: string[]
+  /**
+   * folders, relative to the root, whose files and folders `/api/files` may change (`SRV.FileOperations`);
+   * none by default
+   * - the shared content folders:  each turn's commit of the shared repo makes a mistake undoable
+   * - links into another repo, and still "inside":  paths are resolved, never followed (`SRV.fileInside()`)
+   */
+  writable?: string[]
 }
 
 /**

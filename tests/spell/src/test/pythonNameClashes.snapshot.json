@@ -3,6 +3,6 @@
     "spell": "position",
     "python": "position_",
     "kind": "variable",
-    "where": "test/CardsFromZero"
+    "where": "@spell/test/CardsFromZero"
   }
 ]

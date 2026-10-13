@@ -16,9 +16,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `yarn cli:install` links both onto your `PATH`:  the package's `bin`.
   - [The README](README.md) has instructions, caveats and TODO.
 - Spell itself is NOT here.
-  - It's the spell-family packages beside this one:  `../lsp`, `../spell`, `../parser`, `../core`, `../util`.
+  - It's the spell-family packages beside this one:
+    `../lsp`, `../spaces`, `../spell`, `../parser`, `../core`, `../util`.
   - As is `ui` (`../ui`, `@spell-app/ui`).
-  - `package.json` depends on `spell` and `ui` as workspaces (`workspace:*`), and the aliases reach the rest.
+  - `package.json` depends on `spell`, `spaces` and `ui` as workspaces (`workspace:*`), and the aliases reach the rest.
   - Their SOURCE runs, with no build:
     `$/lsp`, `$/spell`, `$/parser` ... are their `src/` folders (`../lsp/src/...`, `../spell/src/...`, `../parser/src/...`).
   - `$/cli` (`CLI`) is OUR `src/`;  so `src/foo.ts` is `$/cli/foo`.
@@ -30,7 +31,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     So `yarn ts` here reports their type errors too.
   - Something the command line needs OF spell or its tools is a change in THAT package,
     e.g. `SpellProject.compile(parentScope, { save })`.
-- Projects load the language server's way (`SpellDiskWorkspace`).
+- Projects load the language server's way (`SpellDiskWorkspace`), from spaces' folders on disk.
+  - Where they are, and the build folder:  spaces' `environment` and `project-utils`
+    (`$/spaces/server/node/...`), which also register spell's project groups.
   - Questions about them go to its `SpellLanguageService` and `ScopeExplorer`,
     so the command line sees what an editor does.
 - Ink (React for terminals) draws its screens, in `src/ui/`.
@@ -106,9 +109,10 @@ As WWOD §20, plus:
 - They live in the repo's `tests/cli/`, at the same paths as the code:
   `src/contract.test.ts` is [`tests/cli/src/contract.test.ts`](../../tests/cli/src/contract.test.ts).
   - The core contract's pinned outputs too:  `tests/cli/src/__snapshots__/contract/<Project>.out.txt`.
-- They read spell's frozen projects, `../spell/projects/test/` (`@test/<Project>`).
-  See "Overview" in [spell's AGENTS.md](../spell/AGENTS.md).
-  - NEVER write into one, nor into its build folder (`build/spell/projects/test/...`):
+- They read spell's frozen test projects, [tests/spaces/@spell/test/](../../tests/spaces/@spell/test/)
+  (`@test/<Project>`).
+  See "Projects live in spaces" in [spell's AGENTS.md](../spell/AGENTS.md).
+  - NEVER write into one, nor into its build folder (`build/spaces/@spell/test/...`):
     compile with `--stdout`, or make a temp project, as `cli.test.ts` does.
 - `cli.test.ts` runs the real bin scripts (`spell.mjs`, `epic.mjs`), as separate processes, with no terminal.
 - `epicProgram.test.ts` proves `epic` starts lean:  nothing `epicMain.ts` imports up front reaches the barrel or

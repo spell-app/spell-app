@@ -4,8 +4,8 @@ import { join, resolve } from "path"
 import { createInterface } from "readline"
 
 import type { SRV } from "$/server"
-import environment from "$/spell/node/environment"
-import * as projectUtils from "$/spell/node/project-utils"
+import environment from "$/spaces/server/node/environment"
+import * as projectUtils from "$/spaces/server/node/projects/project-utils"
 import { SP } from "$/spell"
 
 /**
@@ -13,7 +13,8 @@ import { SP } from "$/spell"
  * (epic `people-and-orgs` P11), never committed, so a fresh checkout or worktree has none.
  * - `start()`:  when the page server starts, compiles the built-in projects that are out of date, in the background:
  *   `spell compile --stale --all @examples @library` (`STARTUP_PROJECTS`), as `BundleBuild` builds the bundles
- * - `builtFirst()`:  a route's handler;  a request for a built file that isn't there compiles its project first,
+ * - `builtFirst()`:  a route's handler;  a request for a built file that isn't there (`/spaces/<place>//<file>`)
+ *   compiles its project first,
  *   `spell compile <projectId>`, then goes on to be served
  *   - while the startup build runs, it waits for that instead
  *   - one compile per project at a time:  a second request for it waits on the first's
@@ -113,21 +114,19 @@ export class ProjectBuild {
 
   /**
    * A route's handler, ahead of the one that serves the file:  makes sure the built file it names is there.
-   * - `suffix`:  the route serves the request's project's `<Project><suffix>`, e.g. `.spell.js`;
-   *   none:  its `:filePath`, when that's a file spell builds (`projectUtils.isBuiltFile()`)
-   * - Bad params go on to the next handler, which says what's wrong.
+   * - The file is the request's URL's, `/spaces/<place>//<file>` (`projectUtils.locationForUrl()`),
+   *   when that's a file spell builds (`projectUtils.isBuiltFile()`), e.g. `Solitaire.spell.js`.
+   * - A bad URL goes on to the next handler, which says what's wrong.
    */
-  builtFirst(suffix?: string): SRV.Handler {
+  builtFirst(): SRV.Handler {
     return async (request, _reply, next) => {
-      const { projectId, filePath } = request.params
       let location: SP.SpellLocation
       try {
-        const projectName = SP.SpellLocation.getProjectLocation(projectId).projectName
-        location = SP.SpellLocation.getFileLocation(projectId, suffix ? `${projectName}${suffix}` : filePath)
+        location = projectUtils.locationForUrl(request.originalUrl)
       } catch {
         return next()
       }
-      if (suffix || projectUtils.isBuiltFile(location)) await this.untilBuilt(location)
+      if (projectUtils.isBuiltFile(location)) await this.untilBuilt(location)
       next()
     }
   }

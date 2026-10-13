@@ -21,6 +21,8 @@ import {
  * THE page server:  one per checkout (the main one, and each worktree), serving the whole repo on one port.
  * - docs, plan docs, goals, Spell UI docs and (once `app` is in) the editor, all live-reloading
  * - `/` -> the docs home (`pages/index.html`);  `/_server/ping` -> `ServerInfo`;  `/_server/page` -> `PageEditor`
+ * - `/api/files` -> `SRV.FileOperations`:  files and folders saved, made, moved, copied and deleted,
+ *   only in the root `package.json`'s `"pageServer"` `"writable"` folders (the shared content folders)
  * - `/ui/` -> Spell UI's docs (`UI_SITE`), live-reloading like every page
  *   - the shared pages (`ui/`), with the branch's built `_assets/` and `_data/` (`packages/ui/site/`) laid over them
  *   - the same at `/worktrees/<w>/ui/`
@@ -120,6 +122,8 @@ export class PageServer {
     router.use(this.bundles.wait)
     // NOTE: no body parsing here:  each route parses its own (the app's `/api` is JSON5), and the proxy streams
     new PageEditor(this.root).route(router, this.web.guard)
+    // `/api/files`:  saving, making, moving and deleting files, only inside the `"writable"` folders
+    new SRV.FileOperations({ root: this.root, writable: settingsOf(this.root).writable }).route(router, this.web.guard)
     this.epics = new RunningEpics(this.root).route(this.web)
   }
 

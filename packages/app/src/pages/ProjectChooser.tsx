@@ -1,18 +1,18 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { SP } from "$/spell"
+import { SPACES } from "$/spaces"
 import { Actions, AppMenu, MoreMenu, ProjectMenu, SpellPage, Submenu } from "$/app/solid"
 
 /****************
  * ### `<ProjectChooser>`
  * The landing page:  projects, examples and guides side by side, each with its list and a "create" button.
  * - In dev, also the test fixtures (`@test:fixtures`) -- open one to look at it, edit it, then
- *   `yarn test:fixtures:bless`.  No "create" for those:  copy a project into `projects/test/`.
+ *   `yarn test:fixtures:bless`.  No "create" for those:  copy a project into `tests/spaces/@spell/test/`.
  * - Every route the others don't take (`routes.tsx`).
  ****************/
 export function ProjectChooser() {
-  const { projects, examples, guides, fixtures } = SP.SpellProjectRoot
+  const { projects, examples, guides, fixtures } = SPACES.SpellProjectRoot
   // a dev-only root is there in every build -- just not listed outside dev
   const showFixtures = !!import.meta.env?.DEV || !fixtures.devOnly
 

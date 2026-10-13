@@ -15,8 +15,8 @@ import {
 } from "$/spell/test"
 
 /**
- * Every fixture project in `projects/test/` compiled, against the snapshots beside it,
- * in `projects/test/<Project>/`:
+ * Every fixture project in `tests/spaces/@spell/test/` compiled, against the snapshots beside it,
+ * in `tests/spaces/@spell/test/<Project>/`:
  * - `<Project>.snapshot.js`:  the javascript (`js/solid` target)
  * - `<Project>.snapshot.declarations.json`:  its declarations
  * - `<Project>.en.snapshot.js`:  its words
@@ -26,7 +26,7 @@ import {
  * - `<Project>.lib.snapshot.ts`:  as a library (the `ts/lib` target)
  *   - only for the fixtures in `LIBRARY_FIXTURES`
  * - Why beside it:  a change shows up as a diff of a real `.js` or `.py` file, in VS Code's Source Control.
- * - New fixture:  copy a project into `projects/test/`, then `yarn test:fixtures:bless` writes its snapshot.
+ * - New fixture:  copy a project into `tests/spaces/@spell/test/`, then `yarn test:fixtures:bless` writes its snapshot.
  * - Changed on purpose:  `yarn test:fixtures:bless`, then read the diff before committing it.
  * - See `compiledFixture()` for what's in each.
  */

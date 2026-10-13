@@ -12,7 +12,8 @@ import { parseSpellProject } from "$/spell/test"
  * variable would hide, written with PEP 8's trailing underscore (`class_`, `list_`, `position_`).
  * - Owen, on the durable doc:  "add all 'clashes in current spell' here so I can tell you what to do with them".
  * - Where they come from:
- *   - every spell project:  `projects/system/` (examples, library) and `projects/test/`, each compiled to Python
+ *   - every spell project:  the `@spell` space's built-ins (examples, library, `packages/spaces/@spell/`) and the
+ *     test projects (`tests/spaces/@spell/test/`), each compiled to Python
  *   - the core's own methods, `spellCore.declarations.json`, as Python names them
  * - Pinned in `pythonNameClashes.snapshot.json`, beside this:  a new clash is a diff to read.
  *   The durable doc's "PEP 8's names" table lists them for Owen to decide each.
@@ -62,17 +63,18 @@ function spellFilesOf(dir: string): Array<{ path: string; contents: string }> {
 
 describe("Python's name clashes in today's spell", () => {
   test("pinned:  every name that steps aside, and where", async () => {
-    const projects = resolve(import.meta.dirname, "../../../../packages/spell/projects")
+    const repo = resolve(import.meta.dirname, "../../../..")
     const naming = new NotingNaming(P.Naming.PYTHON, P.Naming.PYTHON_CLASHES)
     const writer = new PY.PyWriter()
     writer.naming = naming
     const dirs = [
-      ...projectsIn(resolve(projects, "system/examples")),
-      ...projectsIn(resolve(projects, "system/library")),
-      ...projectsIn(resolve(projects, "test"))
+      ...projectsIn(resolve(repo, "packages/spaces/@spell/examples")),
+      ...projectsIn(resolve(repo, "packages/spaces/@spell/library")),
+      ...projectsIn(resolve(repo, "tests/spaces/@spell/test"))
     ]
     for (const dir of dirs) {
-      naming.where = dir.slice(projects.length + 1)
+      // its place, e.g. `@spell/examples/Solitaire`
+      naming.where = dir.slice(dir.lastIndexOf("@spell"))
       const { scope, files } = parseSpellProject(spellFilesOf(dir))
       const parts = files.map(({ match, compiled }) =>
         match?.AST instanceof P.ASTStatementGroup ? match.AST : compiled

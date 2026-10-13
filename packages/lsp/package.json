@@ -21,6 +21,7 @@
     "@spell-app/core": "workspace:*",
     "@spell-app/markdown": "workspace:*",
     "@spell-app/parser": "workspace:*",
+    "@spell-app/spaces": "workspace:*",
     "@spell-app/spell": "workspace:*",
     "@spell-app/util": "workspace:*",
     "json5": "^2.1.1",

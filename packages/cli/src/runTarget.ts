@@ -18,7 +18,7 @@ import { join, resolve } from "path"
 import { pathToFileURL } from "url"
 
 import { SRV } from "$/server"
-import environment from "$/spell/node/environment"
+import environment from "$/spaces/server/node/environment"
 import { buildTsx } from "$/spell/node/buildTsx"
 import { SP } from "$/spell"
 import { PY } from "$/py"

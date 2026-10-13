@@ -5,11 +5,11 @@ import { resolve } from "path"
 import { pathToFileURL } from "url"
 import { runInNewContext } from "vm"
 
-import environment from "$/spell/node/environment"
+import environment from "$/spaces/server/node/environment"
 import { SP } from "$/spell"
 import { LSP } from "$/lsp"
 import { SpellDiskWorkspace } from "$/lsp/SpellDiskWorkspace"
-import { installDiskFetch, locationForDiskPath } from "$/spell/node/disk-fetch"
+import { installDiskFetch, locationForDiskPath } from "$/spaces/server/node/projects/disk-fetch"
 import { scopesFromPacks } from "$/lsp/ScopesSource"
 import { compiledFixture, fixtureDeclarations, fixturePath } from "$/spell/test"
 

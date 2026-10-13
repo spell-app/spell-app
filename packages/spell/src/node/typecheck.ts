@@ -2,8 +2,19 @@ import { execFileSync } from "child_process"
 import { existsSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
 import { dirname, join, resolve } from "path"
+import { fileURLToPath } from "url"
 
-import environment from "$/spell/node/environment"
+/**
+ * The repo's code folders, found from this file's (`packages/spell/src/node/`):  what compiled spell is checked
+ * against.
+ * - `srcDir`:  spell's `src/`;  `packagesDir`:  the repo's `packages/`;  `spellCoreDir`:  `core`'s `src/`
+ * - Spell's own:  where PROJECTS are is spaces' (`$/spaces/server/node/environment`), which spell never imports.
+ */
+export const CODE_FOLDERS = (() => {
+  const srcDir = resolve(fileURLToPath(import.meta.url), "..", "..")
+  const packagesDir = resolve(srcDir, "..", "..")
+  return { srcDir, packagesDir, spellCoreDir: resolve(packagesDir, "core", "src") }
+})()
 
 /**
  * `tsc` on compiled spell's TypeScript (the `ts/solid` target):  what it says is wrong, by file.
@@ -63,7 +74,7 @@ export function describeTypecheckError({ line, column, code, message }: Typechec
  * - Why a search:  yarn hoists to the monorepo root.  Throws if none, i.e. no `yarn install`.
  */
 export function nodeBinary(name: string): string {
-  const start = resolve(environment.srcDir, "..")
+  const start = resolve(CODE_FOLDERS.srcDir, "..")
   for (let folder = start; ; folder = dirname(folder)) {
     const candidate = resolve(folder, `node_modules/.bin/${name}`)
     if (existsSync(candidate)) return candidate
@@ -97,7 +108,7 @@ const SPELL_ELEMENTS_SOURCE = "app/src/runner/spellElements.ts"
  * - `@spell/elements` pointing at app's source, and the aliases Spell UI's files import each other by.
  */
 function tsconfig(names: string[], projects: Record<string, string>) {
-  const { packagesDir, spellCoreDir } = environment
+  const { packagesDir, spellCoreDir } = CODE_FOLDERS
   const repo = resolve(packagesDir, "..")
   const imported = Object.fromEntries(Object.entries(projects).map(([id, path]) => [`@spell/project/${id}`, [path]]))
   return {

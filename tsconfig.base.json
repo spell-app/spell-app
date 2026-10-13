@@ -8,8 +8,12 @@
   // - `$` means `packages/`:  `$/name` is a package's barrel, `$/name/...` a file in its `src/`, and `$/ui/test/...`
   //   `ui`'s test helpers.  It can't collide with an npm name (`@spell-app/...`) the way a bare `name/...` could.
   // - From ANOTHER package, import the barrel only, except these entry points:  `$/parser/rulex` (opt-in),
-  //   `$/parser/test` / `$/spell/test` (test helpers), `$/spell/node/...` (node-only:  environment, files on disk),
-  //   `$/spaces/server/node/...` (node-only:  the editor's server, its route module and `ProjectBuild`),
+  //   `$/parser/test` / `$/spell/test` (test helpers),
+  //   `$/spell/node/...` (node-only:  `typecheck`, `pyright`, `buildTsx`, `packageVersion.node`, `spellSyntax`),
+  //   `$/spell/SpellSetup` + `$/spell/SpellUrls` (light, without the parser:  for `<spell-app>`),
+  //   `$/spaces/models/projectGroups` (light:  registers spell's project groups, for `<spell-app>`),
+  //   `$/spaces/server/node/...` (node-only:  `environment`, projects on disk in `projects/`, and the routes:  the
+  //   editor's server, its route module and `ProjectBuild`),
   //   `$/ui/tools/IconPackBuilder` (node-only:  `ui`'s icon pack builder, for the `spell` CLI),
   //   `$/ui/tools/SiteDataBuilder` (node-only:  the docs data builder, for `brand`'s `yarn site:data`),
   //   `$/ui/tools/StaticRenderer` + `$/ui/tools/tools.types` (node-only:  `spell static`'s Vite server for `ui`'s

@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "fs"
 import { resolve } from "path"
 
-import environment from "$/spell/node/environment"
+import { CODE_FOLDERS } from "$/spell/node/typecheck"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 
@@ -51,14 +51,20 @@ export function parseSpellProject(
 }
 
 /**
- * Frozen projects tests run against:  `projects/test/<Project>/`, e.g. `Solitaire`, the `@test:fixtures` root.
+ * Frozen projects tests run against:  `tests/spaces/@spell/test/<Project>/` at the repo root, e.g. `Solitaire`,
+ * the `@test:fixtures` group (`@spell/test`).
  * - Why:  tests assert exact lines, docstrings and compiled output, and the live examples get edited.
- * - Tests read ONLY here:  editing or deleting anything in `projects/system/` or `projects/user/` can't break one.
+ * - Tests read ONLY here:  editing or deleting a built-in example (`packages/spaces/@spell/`) or your own project
+ *   (spell-spaces) can't break one.
+ * - The same folder as spaces' `environment.testFilesRoot` (a test checks):  spell never imports spaces.
  * - NEVER update a fixture to follow its example:  it's frozen so tests don't move.
  *   - Change a test's input in the test, or add another fixture:
  *     copy a project in, then `yarn test:fixtures:bless`.  See `compiledFixture()`.
  */
-export const FIXTURES_DIR = environment.testFilesRoot
+export const FIXTURES_DIR = resolve(CODE_FOLDERS.packagesDir, "..", "tests", "spaces", "@spell", "test")
+
+/** The fixtures' group, `@test:fixtures` (spaces' `PROJECT_GROUPS`, at `@spell/test`). */
+export const FIXTURES_GROUP = "@test:fixtures"
 
 /** Path of `parts` under `FIXTURES_DIR`, e.g. `fixturePath("Solitaire", "Card.spell")`. */
 export function fixturePath(...parts: string[]): string {
@@ -70,7 +76,7 @@ export function fixturePath(...parts: string[]): string {
  * - Loads from disk in node, after `installDiskFetch()`.
  */
 export function fixtureProjectId(projectName: string): string {
-  return `${SP.SpellProjectRoot.fixtures.path}:${projectName}`
+  return `${FIXTURES_GROUP}:${projectName}`
 }
 
 /**
@@ -178,7 +184,7 @@ function compileFixture(
  * - throws if it imports a project that isn't a fixture:  tests read ONLY `FIXTURES_DIR`.
  */
 export function fixtureImports(projectName: string): Record<string, string> {
-  const fixtures = `${SP.SpellProjectRoot.fixtures.path}:`
+  const fixtures = `${FIXTURES_GROUP}:`
   const imported: Record<string, string> = {}
   for (const { path, active } of readProjectFile(fixturePath(projectName)).imports) {
     if (active === false || /\.(spell|css)$/.test(path)) continue

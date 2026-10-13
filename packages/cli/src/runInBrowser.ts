@@ -15,7 +15,7 @@ import { resolve } from "path"
 import { fileURLToPath } from "url"
 
 import { SRV } from "$/server"
-import environment from "$/spell/node/environment"
+import environment from "$/spaces/server/node/environment"
 import { SP } from "$/spell"
 import { LSP } from "$/lsp"
 import { CLI } from "$/cli"

@@ -280,7 +280,7 @@ export type StaticOptions = GlobalOptions & {
 
 /**
  * `spell new` flags.
- * - `in`:  make the project in this folder -- default `@user`'s, `projects/user/`
+ * - `in`:  make the project in this folder -- default `@user`'s, your space's (`<spell-spaces>/@spell/owen@/`)
  */
 export type NewOptions = GlobalOptions & {
   in?: string

@@ -5,6 +5,9 @@ import { E } from "$/ui/core"
 import { UIRoot, type RootVocabulary } from "$/ui/components/ui-root"
 // Import directly, NOT through the `$/spell` barrel, which would pull in the whole parser.
 import { SpellSetup } from "$/spell/SpellSetup"
+import { SpellUrls } from "$/spell/SpellUrls"
+// Import directly:  spell's project groups alone (for `@examples/...`), without spaces' or spell's barrels
+import "$/spaces/models/projectGroups"
 // Import directly, NOT through the `$/app/runner` barrel, which would pull in `runCompiled()`, and so `spellCore`.
 import { SPELL_COMPILED_EVENT, type SpellCompiled } from "$/app/runner/runner.types"
 import { adoptShadowStyles } from "$/app/runner/shadowStyles"
@@ -330,24 +333,35 @@ const BUNDLE = import.meta.url.slice(0, import.meta.url.lastIndexOf("/") + 1)
 /** Prefix of spell's own tags, which a `<spell-app>` loads from beside its script (`ownTagLoader()`). */
 const SPELL_TAG_PREFIX = "spell-"
 
-/** Where the spell server's API is:  the page's own. */
-const API = "/api/projects"
-
-/** What to run for `project="<projectId>"`:  from the spell server, sources and all. */
+/**
+ * What to run for `project="<projectId>"`:  from the spell server (the page's own), sources and all.
+ * - Every file by its URL, `/spaces/<place>//<file>` (`SpellUrls`):  a compiled file sits beside its source's.
+ */
 function projectSource(project: string): SpellAppSource {
   const projectId = SpellSetup.expandAlias(project)
   return {
-    name: projectId.slice(projectId.lastIndexOf(":") + 1),
-    compiledUrl: `${API}/compiled/${projectId}`,
-    declarationsUrl: `${API}/declarations/${projectId}`,
-    scopesUrl: `${API}/scopes/${projectId}`,
-    importUrl: (id) => `${API}/compiled/${SpellSetup.expandAlias(id)}`,
-    importDeclarationsUrl: (id) => `${API}/declarations/${SpellSetup.expandAlias(id)}`,
-    wordsUrl: `${API}/words/${projectId}`,
-    importWordsUrl: (id) => `${API}/words/${SpellSetup.expandAlias(id)}`,
+    name: nameOf(projectId),
+    compiledUrl: builtUrl(projectId, COMPILED_JS),
+    declarationsUrl: builtUrl(projectId, DECLARATIONS_JSON),
+    scopesUrl: builtUrl(projectId, SCOPES_JS),
+    importUrl: (id) => builtUrl(id, COMPILED_JS),
+    importDeclarationsUrl: (id) => builtUrl(id, DECLARATIONS_JSON),
+    wordsUrl: builtUrl(projectId, WORDS_JS),
+    importWordsUrl: (id) => builtUrl(id, WORDS_JS),
     // `spell:/@system:examples:Solitaire/Card.spell` => its project id, then its file
-    sourceUrl: (uri) => `${API}/file/${decodeURI(uri.replace(/^spell:\//, ""))}`
+    sourceUrl: (uri) => SpellUrls.fileUrl(decodeURI(uri.replace(/^spell:\//, "")))
   }
+}
+
+/** Name of project `projectId` (an alias expanded), e.g. `Solitaire`. */
+function nameOf(projectId: string): string {
+  const expanded = SpellSetup.expandAlias(projectId)
+  return expanded.slice(expanded.lastIndexOf(":") + 1)
+}
+
+/** URL of project `projectId`'s `<Project><suffix>`, e.g. `/spaces/@spell/examples/Solitaire//Solitaire.spell.js`. */
+function builtUrl(projectId: string, suffix: string): string {
+  return SpellUrls.fileUrl(`${SpellSetup.expandAlias(projectId)}/${nameOf(projectId)}${suffix}`)
 }
 
 /** What to run for `src="<url>"`:  from anywhere, with what goes with it beside it. */

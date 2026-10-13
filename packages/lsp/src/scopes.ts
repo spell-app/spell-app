@@ -16,7 +16,7 @@ import "$/spell/node/packageVersion.node"
 import { writeFileSync } from "fs"
 import { relative, resolve } from "path"
 
-import environment from "$/spell/node/environment"
+import environment from "$/spaces/server/node/environment"
 import { SP } from "$/spell"
 import { LSP } from "$/lsp"
 import { SpellDiskWorkspace } from "$/lsp/SpellDiskWorkspace"

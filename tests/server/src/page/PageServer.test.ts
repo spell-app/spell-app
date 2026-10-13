@@ -85,7 +85,7 @@ describe("PageServer", () => {
     writeFileSync(join(root, "ui", "_data", "search.json"), `{"from":"pages"}\n`)
     writeFileSync(join(root, "packages", "ui", "site", "_assets", "site.js"), "export {}\n")
     writeFileSync(join(root, "packages", "ui", "site", "_data", "components.json"), `{"from":"build"}\n`)
-    writeFileSync(join(root, "package.json"), JSON.stringify({ pageServer: { watch: ["docs"] } }))
+    writeFileSync(join(root, "package.json"), JSON.stringify({ pageServer: { watch: ["docs"], writable: ["docs"] } }))
     writeFileSync(page, PAGE)
     server = await new PageServer({ root }).start({ port: 0, routes: false })
     port = server.info.port
@@ -437,6 +437,15 @@ describe("PageServer", () => {
       body: "x"
     })
     expect(binary.status).toBe(400)
+  })
+
+  it("changes files through /api/files, in its package.json's `writable` folders ONLY", async () => {
+    const headers = { "content-type": "text/plain", "x-server-token": server.web.guard.token }
+    const saved = await ask(port, "PUT", "/api/files?path=/docs/saved/notes.md", { headers, body: "# Saved\n" })
+    expect(saved.status).toBe(200)
+    expect(readFileSync(join(root, "docs", "saved", "notes.md"), "utf8")).toBe("# Saved\n")
+    expect((await ask(port, "PUT", "/api/files?path=/ui/notes.md", { headers, body: "x" })).status).toBe(403)
+    expect(existsSync(join(root, "ui", "notes.md"))).toBe(false)
   })
 
   it("patches pages only:  a text file has no elements to replace", async () => {

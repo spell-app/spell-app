@@ -7,7 +7,7 @@ import { join } from "path"
 
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
-import { api, projectBuild } from "./api"
+import { api, projectBuild, spaceFiles } from "./api"
 import { APP_DIR, EDITOR_FILE, EditorServer } from "./EditorServer"
 
 /**
@@ -15,6 +15,7 @@ import { APP_DIR, EDITOR_FILE, EditorServer } from "./EditorServer"
  * `package.json` `"pageServer": { "routes": [...] }`.  What `spell serve` runs everything on.
  * - It's spaces' (epic `people-and-orgs` P14):  where projects live, and the servers that serve them.
  * - `/api/...` -- the app's API, `./api` (as `cli.ts` serves it alone, `yarn start:server`);  bodies as JSON5
+ * - `/spaces/<place>//<file>` -- a project's file, by its URL (`spaceFiles`, `./api`):  how spell reads every file
  * - `/hello` -- liveness
  * - `/element/...` -- `<spell-app>` / `<spell-editor>`'s bundles, `dist-element/` (`yarn build:element`), for the
  *   demo pages, `/demo/spell-app.html` on the editor:  vite passes `/element` on to us, as it does `/api`
@@ -37,6 +38,7 @@ const appRoutes: RouteModule = {
     projectBuild.start()
     onStop(() => projectBuild.stop())
     router.use("/api", refuseForeignOrigins, SRV.parseBodies({ limit: 10 * 1024 * 1024, parseJson: JSON5.parse }), api)
+    router.use("/spaces", spaceFiles)
     router.get("/hello", (_request, reply) => reply.json({ message: "Hello from the API!" }))
     router.use(new SRV.StaticHandler({ mounts: [{ prefix: "/element", dir: ELEMENT_DIR }] }).handle)
     router.get("/editor", async (_request, reply) => {

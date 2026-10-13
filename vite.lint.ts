@@ -143,7 +143,9 @@ export const rootLintIgnore = [
   "packages/spell/graphify-out",
   "packages/spell/thoughts",
   "packages/spell/static",
-  "packages/spell/projects",
+  // the `@spell` space's projects (and the test projects):  spell source, and what compiling writes beside it
+  "packages/spaces/@spell",
+  "tests/spaces/@spell",
   "packages/spell/vscode-extension/out",
   // its own yarn project, with its own tools
   "packages/vscode",
@@ -294,7 +296,8 @@ export const fmtConfig = {
     // NOT `**/static/**`, which also skipped `ui`'s source folder `src/static/` (the static server render)
     "static/**",
     "**/packages/*/static/**",
-    "**/projects/**",
+    // spell projects:  the `@spell` space's built-ins (`packages/spaces/@spell/`) and the test projects
+    "**/spaces/@spell/**",
     "**/vscode-extension/out/**",
     "**/docs/tools/_assets/spell-ui.js",
     "**/docs/tools/_assets/lazy/**",

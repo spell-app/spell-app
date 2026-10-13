@@ -5,10 +5,10 @@ import { resolve } from "path"
 import { pathToFileURL } from "url"
 import { describe, test, expect, beforeAll } from "vite-plus/test"
 
-import environment from "$/spell/node/environment"
+import environment from "$/spaces/server/node/environment"
 import { P } from "$/parser"
 import { SP } from "$/spell"
-import { installDiskFetch, locationForDiskPath } from "$/spell/node/disk-fetch"
+import { installDiskFetch, locationForDiskPath } from "$/spaces/server/node/projects/disk-fetch"
 import { describeParseErrors, fixturePath, tsxBinary } from "$/spell/test"
 
 /**

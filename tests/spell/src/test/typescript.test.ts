@@ -7,7 +7,7 @@ import { compiledFixture, fixtureImports, fixturePath, fixtureProjectNames, soli
 /**
  * Every fixture project compiled as TypeScript (the `ts/solid` target, `P.TSWriter`), checked by `tsc` against
  * `@spell/core`'s own types -- see `typecheck()` -- what it reports, against
- * `projects/test/<Project>/<Project>.snapshot.tsc.txt`.
+ * `tests/spaces/@spell/test/<Project>/<Project>.snapshot.tsc.txt`.
  * - So every place the typed output falls short shows, as a line of that file:  a change is a diff to read.
  *   Blessed with the fixtures:  `yarn test:fixtures:bless`.
  * - Each fixture's error count is printed on every run, e.g. `Solitaire:  35 tsc errors`:  on stderr, as Vitest

@@ -1,4 +1,4 @@
-import { JSON5File, $fetch, CONFIRM, TaskList, Task, getDier, type KnownFormatMimeType } from "$/util"
+import { JSON5File, TaskList, Task, getDier } from "$/util"
 import { P } from "$/parser"
 import { PY } from "$/py"
 // Import directly, NOT through the `$/core` barrel:  a project MUST NOT load `spellCore` itself --
@@ -7,22 +7,16 @@ import { SPELL_CORE_MODULE, SPELL_CORE_NAMES } from "$/core/spellCore.types"
 import { SP } from "$/spell"
 
 /**
- * One spell project, e.g. `@user:projects:myProject`:  its files, and parsing and compiling them.
+ * One spell project, e.g. `@user:projects:myProject`:  its files, and reading, compiling and saving them.
  * - Its `contents` are the project's index from the server:  its files (`manifest`), and what its `project.json` says.
  * - NOTE: these are singleton instances -- you'll always get same object back for a given `path`.
+ * - Creating, copying, renaming and deleting a FILE is spaces' (`SPACES.ProjectFiles`), as is its group's list of
+ *   projects (`SPACES.SpellProjectRoot`):  spell never creates, copies, renames or deletes a file
+ *   (epic `people-and-orgs` P15, decision Q20).
  */
 export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   /** Registry of known instances. */
   static registry = new Map<string, SpellProject>()
-
-  /**
-   * Format for client/server requests.
-   * - NOTE: server accepts bare `"json"` string for `requestFormat` (which becomes `Content-Type`
-   *   header); cast it once here against `$FetchRequestParams`'s stricter `KnownFormatMimeType`
-   *   type rather than changing actual value sent to server.
-   * - CLAUDE TODO:  WTF is this?
-   */
-  static REQUEST_FORMAT_JSON = "json" as KnownFormatMimeType
 
   /**
    * Return existing `SpellProject` for `path` if already in registry, else construct new one.
@@ -84,26 +78,17 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
     return this.location.isUserProject
   }
 
-  /** Owning `SpellProjectRoot` for this project (`@user:projects`, `@system:examples`, etc.). */
-  /*@forward("type", "Type")*/
-  /*@memoize*/
-  get projectRoot(): SP.SpellProjectRoot {
-    // NOTE: this works because `new SpellProjectRoot()` will return an existing object...
-    return this.derived("projectRoot", () => new SP.SpellProjectRoot(this.location.projectRoot))
+  /** Our group's spec (`@user:projects`, `@system:examples`, etc.):  see `SP.SpellSetup.projectRoots`. */
+  get projectRootSpec(): SP.ProjectRootSpec {
+    return SP.SpellSetup.projectSpectForRootPath(this.location.projectRoot)
   }
-  /**
-   * Project type for string concatenation, e.g. `project`, `example` or `guide`.
-   * - Forwarded from `projectRoot.type`.
-   */
+  /** Project type for string concatenation, e.g. `project`, `example` or `guide`:  our group's. */
   get type(): string {
-    return this.projectRoot.type
+    return this.projectRootSpec.type
   }
-  /**
-   * Capitalized project type, e.g. `Project`, `Example` or `Guide`.
-   * - Forwarded from `projectRoot.Type`.
-   */
+  /** Capitalized project type, e.g. `Project`, `Example` or `Guide`:  our group's. */
   get Type(): string {
-    return this.projectRoot.Type
+    return this.projectRootSpec.Type
   }
 
   ////////////////
@@ -605,9 +590,9 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   // ## Loading / contents
   ////////////////
 
-  /** URL to load/save this project's index, derived from `projectId`. */
+  /** URL to load this project's index:  `/api/projects/index/<place>` (`SP.SpellUrls.indexUrl()`). */
   get url(): string {
-    return `/api/projects/index/${this.projectId}`
+    return SP.SpellUrls.indexUrl(this.projectId)
   }
 
   /**
@@ -943,156 +928,6 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    */
   getFile(filePath: string | SP.SpellLocation): SP.AnySpellFile | undefined {
     return this.getFileInfo(filePath)?.file
-  }
-
-  ////////////////
-  // ## Project file manipulation
-  ////////////////
-
-  /**
-   * Create a new file within this project.
-   * - `filePath` is relative to this project, and may or may not start with `/`.
-   * - NOTE: in theory this handles nested files.
-   */
-  async createFile(
-    filePath: string | undefined,
-    contents: string | undefined,
-    newFileName = "Untitled.spell",
-    die?: ReturnType<typeof getDier>
-  ): Promise<SP.AnySpellFile | undefined> {
-    if (!die) die = getDier(this, "creating file", { projectId: this.projectId, filePath })
-
-    if (!filePath) filePath = prompt("Name for the new file?", newFileName) ?? undefined
-    if (!filePath) return undefined
-    die.params.filePath = filePath
-
-    await this.loadOrDie(die)
-    if (this.getFile(filePath)) die("File already exists.")
-
-    // Tell the server to create the file, which returns updated index
-    try {
-      const newIndex = await $fetch<SP.ProjectManifestJSON5>({
-        url: `/api/projects/create/file`,
-        contents: {
-          projectId: this.projectId,
-          filePath,
-          contents: contents ?? `## This space intentionally left blank`
-        },
-        requestFormat: SpellProject.REQUEST_FORMAT_JSON,
-        format: "json"
-      })
-      this.contents = newIndex
-    } catch (e) {
-      die("Server error creating file", e)
-    }
-
-    // Return the file
-    return this.getFile(filePath) || die("Server didn't create file.")
-  }
-
-  /**
-   * Duplicate an existing file.
-   * Returns pointer to new file.
-   */
-  async duplicateFile(filePath: string, newFilePath: string | undefined): Promise<SP.AnySpellFile | undefined> {
-    const die = getDier(this, "duplicating file", {
-      projectId: this.projectId,
-      originalFilePath: filePath,
-      filePath: newFilePath
-    })
-    await this.loadOrDie(die)
-
-    const file = this.getFile(filePath) || die("File not found.")
-    let contents: string | undefined
-    try {
-      contents = await file.load(undefined)
-    } catch (e) {
-      die("Server error loading file", e)
-    }
-    return this.createFile(newFilePath, contents, file.file, die)
-  }
-
-  /**
-   * Rename an existing file.
-   * Returns new file.
-   */
-  async renameFile(filePath: string, newFilePath?: string): Promise<SP.AnySpellFile | undefined> {
-    const die = getDier(this, "renaming file", { projectId: this.projectId, filePath, newFilePath })
-    await this.loadOrDie(die)
-    const file = this.getFile(filePath) || die("File not found.")
-
-    if (!newFilePath) {
-      const filename = prompt("New name for the file?", file.file)
-      if (!filename) return undefined
-      newFilePath = SP.SpellLocation.getFileLocation(this.projectId, filename).filePath!
-      if (newFilePath === filePath) return undefined
-      die.params.newFilePath = newFilePath
-    }
-    if (this.getFile(newFilePath)) die("New file already exists.")
-
-    // Tell the server to rename the file, which returns the updated index.
-    try {
-      const newIndex = await $fetch<SP.ProjectManifestJSON5>({
-        url: `/api/projects/rename/file`,
-        contents: {
-          projectId: this.projectId,
-          filePath,
-          newFilePath
-        },
-        requestFormat: SpellProject.REQUEST_FORMAT_JSON,
-        format: "json"
-      })
-      this.contents = newIndex
-    } catch (e) {
-      die("Server error renaming file", e)
-    }
-    // Have the file clean itself up in a tick
-    // (doing it immediately causes react to barf)
-    setTimeout(() => file.onRemove(), 10)
-    // return the new file
-    return this.getFile(newFilePath) || die("Server didn't rename file.")
-  }
-
-  /**
-   * Remove an existing file from the project.
-   * Returns `true` on success, `undefined` if cancelled, or throws on error.
-   */
-  async deleteFile(filePath: string, shouldConfirm?: typeof CONFIRM): Promise<boolean | undefined> {
-    const die = getDier(this, "deleting file", { projectId: this.projectId, filePath })
-    await this.loadOrDie(die)
-    if (this.files.length === 1) die(`You can't delete the last file in this ${this.type}.`)
-
-    const file = this.getFile(filePath) || die("File not found.")
-
-    if (shouldConfirm === CONFIRM) {
-      if (!confirm(`Really remove file '${file.file}'?`)) return undefined
-    }
-
-    // console.warn("before:", { activeImports: this.activeImports })
-    // Tell the server to delete the file, which returns the updated index.
-    try {
-      const newIndex = await $fetch<SP.ProjectManifestJSON5>({
-        url: `/api/projects/remove/file`,
-        method: "DELETE",
-        contents: {
-          projectId: this.projectId,
-          filePath
-        },
-        requestFormat: SpellProject.REQUEST_FORMAT_JSON,
-        format: "json"
-      })
-      this.contents = newIndex
-    } catch (e) {
-      die("Server error deleting file", e)
-    }
-    // throw if file is still found
-    if (this.getFile(filePath)) die("Server didn't delete the file.")
-
-    // Have the file clean itself up in a tick
-    // (doing it immediately causes react to barf)
-    setTimeout(() => file.onRemove(), 10)
-
-    return true
   }
 
   ////////////////

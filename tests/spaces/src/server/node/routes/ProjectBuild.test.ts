@@ -6,7 +6,7 @@ import { dirname, join } from "node:path"
 import { PassThrough } from "node:stream"
 import { afterAll, afterEach, beforeEach, describe, expect, test, vi } from "vite-plus/test"
 
-import { locationForDiskPath } from "$/spell/node/disk-fetch"
+import { locationForDiskPath } from "$/spaces/server/node/projects/disk-fetch"
 import { SP } from "$/spell"
 import { ProjectBuild } from "$/spaces/server/node/routes/ProjectBuild"
 

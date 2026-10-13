@@ -1,5 +1,4 @@
-import { readFile, rename, stat, writeFile } from "node:fs/promises"
-import { basename, dirname, join } from "node:path"
+import { readFile, stat } from "node:fs/promises"
 import { parse } from "parse5"
 
 import { SRV } from "$/server"
@@ -24,7 +23,7 @@ import { SRV } from "$/server"
  *   - `If-Match` MUST be the `ETag` the page was served with
  *     - the file changed since (an editor, an agent):  409, and the caller reloads
  *     - missing:  428
- *   - written under `FileLock`, atomically (temp file + rename)
+ *   - written through `FileOperations.save()`:  under `FileLock`, all at once (temp file + rename)
  */
 export class PageEditor {
   /** Files `PATCH` edits:  pages. */
@@ -68,29 +67,22 @@ export class PageEditor {
     const expected = request.get("if-match")
     if (!expected) throw new SRV.HttpError(428, "If-Match required:  send the ETag the page was served with")
     const body = request.body as string | { html?: unknown; id?: unknown; inner?: unknown; parent?: unknown }
-    const etag = await SRV.FileLock.runAsync(file, async () => {
-      const current = SRV.StaticHandler.etagOf(await stat(file))
-      if (current !== expected)
-        throw new SRV.HttpError(409, "the page changed since it was loaded:  reload it", {
-          error: "the page changed since it was loaded:  reload it",
-          etag: current
-        })
-      const source = await readFile(file, "utf8")
-      let next: string
-      if (how === "put") {
-        next = typeof body === "string" ? body : typeof body.html === "string" ? body.html : ""
-        if (!next.trim()) throw new SRV.HttpError(400, "nothing to write")
-      } else {
+    // the edit is made holding the file's lock, after the `If-Match` check:  nobody writes in between
+    const etag = await SRV.FileOperations.save(
+      file,
+      (source) => {
+        if (how === "put") {
+          const next = typeof body === "string" ? body : typeof body.html === "string" ? body.html : ""
+          if (!next.trim()) throw new SRV.HttpError(400, "nothing to write")
+          return next
+        }
         if (typeof body !== "object" || typeof body.id !== "string" || typeof body.html !== "string")
           throw new SRV.HttpError(400, "PATCH body must be JSON { id, html, inner?, parent? }")
         const parent = typeof body.parent === "string" ? body.parent : undefined
-        next = replaceById(source, body.id, body.html, Boolean(body.inner), parent)
-      }
-      const temp = join(dirname(file), `.${basename(file)}.${process.pid}.tmp`)
-      await writeFile(temp, next)
-      await rename(temp, file)
-      return SRV.StaticHandler.etagOf(await stat(file))
-    })
+        return replaceById(source, body.id, body.html, Boolean(body.inner), parent)
+      },
+      { ifMatch: expected }
+    )
     reply.set("Cache-Control", "no-store").json({ path, etag })
   }
 

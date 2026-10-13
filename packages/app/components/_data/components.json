@@ -1948,7 +1948,7 @@
       "props": [
         {
           "name": "projectRoot",
-          "type": "SP.SpellProjectRoot",
+          "type": "SPACES.SpellProjectRoot",
           "description": "Root whose projects to list.  Default:  `editor.projectRoot`."
         },
         {
@@ -2001,7 +2001,7 @@
         },
         {
           "name": "projectRoot",
-          "type": "SP.SpellProjectRoot",
+          "type": "SPACES.SpellProjectRoot",
           "description": "Root whose projects to list.  Default:  `editor.projectRoot`."
         },
         {

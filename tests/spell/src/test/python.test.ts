@@ -7,7 +7,7 @@ import { PYTHON_FIXTURES, compiledFixture, fixtureImports, fixturePath } from "$
 /**
  * The Python fixtures' compiled Python (the `py` target, `PY.PyWriter`), type-checked by pyright:  see `pyright()`.
  * - What pyright reports is a snapshot beside each fixture, one error a line:
- *   `projects/test/<Project>/<Project>.snapshot.pyright.txt`.
+ *   `tests/spaces/@spell/test/<Project>/<Project>.snapshot.pyright.txt`.
  *   So every place the type-hinted Python falls short shows there:  a change is a diff to read.
  * - Refresh it after a deliberate change:  `yarn test:fixtures:bless`.
  * - Each fixture's error count is printed on stderr on every run, e.g. `Cards:  0 pyright errors`.

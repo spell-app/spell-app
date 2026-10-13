@@ -1,19 +1,22 @@
-import { JSON5File, CONFIRM, $fetch, getDier, type KnownFormatMimeType } from "$/util"
+import { JSON5File, CONFIRM, $fetch, getDier, KnownFormat } from "$/util"
 import { SP } from "$/spell"
 
+import "./projectGroups"
+
 /**
- * Loadable list of all `SpellProject`s available to this user.
- * - NOTE: don't create these directly, use ones set up by `SpellSetup`.
+ * A project GROUP's list of projects, e.g. `@system:examples`:  loadable, and the group's project create, copy,
+ * rename and delete.
+ * - One per group:  `new SpellProjectRoot("@system:examples")` answers the one already made.
+ * - Its groups are spaces' (`PROJECT_GROUPS`):  loading this file registers them with spell.
+ * - It was spell's, until epic `people-and-orgs` P15 (decision Q20):  spell never lists projects.
  */
 export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
   /**
-   * Format for client/server requests.
-   * - NOTE: server accepts bare `"json"` string for `requestFormat` (which becomes `Content-Type`
-   *   header); cast it once here against `$FetchRequestParams`'s stricter `KnownFormatMimeType`
-   *   type rather than changing actual value sent to server.
-   * - CLAUDE TODO:  WTF is this?
+   * Format of what the editor sends:  JSON, as `application/json`, so the server parses it.
+   * - It was a bare `"json"`, which the server took for no body at all:  every create, copy, rename and delete of a
+   *   project or a file failed with "Path must be a string" (found in epic `people-and-orgs` P15).
    */
-  static REQUEST_FORMAT_JSON = "json" as KnownFormatMimeType
+  static REQUEST_FORMAT_JSON = KnownFormat.json
 
   /** Singleton `@user:projects` root. */
   static get projects(): SpellProjectRoot {
@@ -65,6 +68,8 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
 
   /** Full path, e.g. `@user:projects`. */
   declare path: string
+  /** Its place, e.g. `owen@spell` or `@spell/examples`:  see `SP.ProjectRootSpec.place`. */
+  declare place: string
   /** Owner of project, as `@user` or `@system`. */
   declare owner: string
   /** Domain of project, as `projects`, `examples` or `guides`. */
@@ -106,9 +111,9 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
     SpellProjectRoot.registry.set(this.path, this)
   }
 
-  /** URL to load the project list. */
+  /** URL to load the project list:  `/api/projects/list/<group's place>` (`SP.SpellUrls.listUrl()`). */
   get url(): string {
-    return `/api/projects/list/${this.path}`
+    return SP.SpellUrls.listUrl(this.path)
   }
 
   /** Load our index if necessary, calling `die()` if something goes wrong. */

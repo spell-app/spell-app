@@ -4,7 +4,7 @@ import { render } from "@solidjs/web"
 import { memoryHistory, type MemoryHistoryAdapter } from "@solidjs/router"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { SP } from "$/spell"
+import { SPACES } from "$/spaces"
 import { editor, type EditorStore } from "$/app/editor"
 import { uiReady } from "$/app/solid"
 import { navigate } from "$/app/pages/navigation"
@@ -24,7 +24,7 @@ const cleanups: (() => void)[] = []
 
 beforeEach(() => {
   // project roots load from the API server, which tests don't have
-  const load = vi.spyOn(SP.SpellProjectRoot.prototype, "load").mockResolvedValue(undefined as never)
+  const load = vi.spyOn(SPACES.SpellProjectRoot.prototype, "load").mockResolvedValue(undefined as never)
   cleanups.push(() => load.mockRestore())
 })
 

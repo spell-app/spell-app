@@ -89,6 +89,13 @@
       "packages/docs/tools/_assets",
       "packages/brand",
       "packages/epics/pack"
+    ],
+    "writable": [
+      "epics",
+      "guides",
+      "pages",
+      "templates",
+      "brand"
     ]
   },
   "shared": {

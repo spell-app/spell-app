@@ -12,6 +12,7 @@ export {
   loadFixtureProject,
   fixturePath,
   fixtureProjectId,
+  FIXTURES_GROUP,
   fixtureProjectNames,
   compiledFixture,
   fixtureDeclarations,

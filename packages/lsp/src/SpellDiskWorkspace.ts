@@ -3,7 +3,7 @@ import { basename, dirname } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 
 import { SP } from "$/spell"
-import { installDiskFetch, locationForDiskPath } from "$/spell/node/disk-fetch"
+import { installDiskFetch, locationForDiskPath } from "$/spaces/server/node/projects/disk-fetch"
 import { LSP } from "$/lsp"
 
 /**

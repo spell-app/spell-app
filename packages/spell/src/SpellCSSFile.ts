@@ -177,12 +177,17 @@ export class SpellCSSFile extends TextFile {
     return true
   }
 
-  /** Derive `url` from our `path` if not explicitly set. */
+  /** URL to read the file, from our `path` if not explicitly set:  `/spaces/<place>//<file>` (`SP.SpellUrls`). */
   /*@overridable*/ get url(): string {
-    return `/api/projects/file/${this.projectId}${this.filePath}`
+    return SP.SpellUrls.fileUrl(this.path)
   }
   set url(url: string) {
     this.override("url", { get: () => url })
+  }
+
+  /** Saved by a call, not to `url`:  `POST /api/projects/file/<place>//<file>` (`SP.SpellUrls.saveUrl()`). */
+  get saveParams() {
+    return { ...super.saveParams, url: SP.SpellUrls.saveUrl(this.path) }
   }
 
   ////////////////

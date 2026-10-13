@@ -11,9 +11,7 @@ import { describe, test, expect } from "vite-plus/test"
  */
 describe("a compiled library", () => {
   // by its path, not `fixturePath()`:  $/spell/test loads the whole core, and the model must be alone here
-  const library = fileURLToPath(
-    new URL("../../../../packages/spell/projects/test/People/People.lib.snapshot.ts", import.meta.url)
-  )
+  const library = fileURLToPath(new URL("../../../spaces/@spell/test/People/People.lib.snapshot.ts", import.meta.url))
 
   test("loads no Solid, and nothing that draws", async () => {
     // every module it loads, as a bundler finds them:  the core by its package, then the core's own aliases

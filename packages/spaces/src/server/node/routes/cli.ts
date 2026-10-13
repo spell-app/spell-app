@@ -5,13 +5,13 @@ import JSON5 from "json5"
 import path from "path"
 
 import { SRV } from "$/server"
-import environment from "$/spell/node/environment"
-import { api } from "./api"
+import environment from "$/spaces/server/node/environment"
+import { api, spaceFiles } from "./api"
 import { APP_DIR } from "./EditorServer"
 
 /**
  * The app's API server, on `$/server`'s `WebServer` (it was Express):  `yarn start:server`, in `packages/app`.
- * - `/api/...` -- see `./api` for the route table;  `/hello` -- liveness
+ * - `/api/...` -- see `./api` for the route table;  `/spaces/<place>//<file>` -- a project's file;  `/hello` -- liveness
  * - bodies parse for EVERY verb (a `DELETE` with a JSON body too), as JSON5 (forgiving JSON), text or a form, up to
  *   10mb
  * - production (`NODE_ENV=production`):  `dist/`, and `index.html` for any other path (the SPA's client routing)
@@ -39,6 +39,8 @@ server.router.get("/hello", (_request, reply) => reply.json({ message: "Hello fr
 
 // Mount all real api routines under `/api/...` -- see `./api` for the route table.
 server.router.use("/api", api)
+// A project's file, by its URL, `/spaces/<place>//<file>` -- see `spaceFiles` in `./api`.
+server.router.use("/spaces", spaceFiles)
 
 // Production:  `index.html` for every other path, so client-side (SPA) routing can take over.
 if (process.env.NODE_ENV === "production") {

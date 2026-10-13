@@ -25,7 +25,7 @@ export type CompilableSpellFile = SpellFile | SpellCSSFile
 /**
  * Name of the file in a project's folder saying what it is and what it imports.
  * - Its folder IS the project, e.g. for `locationForDiskPath()`.
- * - Its shape:  `ProjectFileJSON`, in `$/spell/node/server.types`.
+ * - Its shape:  `ProjectFileJSON`, in `$/spaces/server/node/projects/server.types`.
  */
 export const PROJECT_FILE = "project.json"
 
@@ -33,9 +33,9 @@ export const PROJECT_FILE = "project.json"
  * End of a project's compiled output file's name, e.g. `Solitaire.spell.js` -- see `SpellProject.outputFile`.
  * - NEVER one of a project's own files:  the server leaves it out of the manifest.
  * - In the project's build folder, `build/` at the repo root, not beside its source:
- *   `buildFolderFor()`, in `$/spell/node/project-utils`.
+ *   `buildFolderFor()`, in `$/spaces/server/node/projects/project-utils`.
  * - It was `.compiled.js` until epic `people-and-orgs` P11:
- *   the server leaves those out of the manifest too (`isManifestFile()`, in `$/spell/node/project-utils`).
+ *   the server leaves those out of the manifest too (`isManifestFile()`, in `$/spaces/server/node/projects/project-utils`).
  */
 export const COMPILED_JS_SUFFIX = ".spell.js"
 
@@ -93,8 +93,8 @@ export const WORDS_JS_SUFFIX = ".en.js"
 
 /**
  * Start of the ES module specifier for another project's compiled JS, e.g. `@spell/project/@system:library:cards`.
- * - A runner fetches that project's compiled JS from the server's `/api/projects/compiled/<projectId>`,
- *   and points the specifier at it -- see `runCompiled()` in `$/app/runner/runCompiled`.
+ * - A runner fetches that project's compiled JS from the server, at its file's URL,
+ *   `/spaces/<place>//<Project>.spell.js` (`SpellUrls.fileUrl()`), and points the specifier at it -- see `runCompiled()` in `$/app/runner/runCompiled`.
  */
 export const SPELL_PROJECT_MODULE = "@spell/project/"
 
@@ -114,7 +114,7 @@ export type ProjectManifestJSON5 = {
   listsStartAt?: 0 | 1
   /**
    * Where the server puts what compiling builds, e.g. `Solitaire.spell.py`, relative to the project's own folder:
-   * e.g. `../../../../../../build/spell/projects/system/examples/Solitaire`, for a project under `packages/`.
+   * e.g. `../../../../../../build/spaces/@spell/examples/Solitaire`, for a project under `packages/`.
    * - Not there:  beside its source.
    * - Only a Python program's web app needs it so far, to find the program:  `PY.QuartAppSpec.outputs`.
    */
@@ -190,11 +190,18 @@ export type ProjectPathList = string[]
 
 // ## SpellProjectRoot
 
-/** The BUILT-IN project root `path`s, e.g. `@user:projects` -- `SpellSetup.projectRoots` starts with these. */
-export const ProjectRootPaths = ["@user:projects", "@system:examples", "@system:guides"] as const
+/**
+ * Which folder a place's `SpellUrls.folderFor()` path is under -- spaces' `environment` says where each one is:
+ * - `builtins`:  the repo's built-in projects, `packages/spaces/` (`@spell/examples/...`)
+ * - `tests`:  the repo's test projects, `tests/spaces/` (`@spell/test/...`)
+ * - `spaces`:  every person's and org's space, spell-spaces beside the main checkout (`@spell/owen@/...`)
+ */
+export type SpaceFolderBase = "builtins" | "tests" | "spaces"
+
 /**
  * A project root `path`, `@owner:domain`:
- * one of `ProjectRootPaths`, or one added at runtime with `SpellSetup.addProjectRoot()`, e.g. `@workspace:my-folder`.
+ * one of spaces' groups (`SPACES.PROJECT_GROUPS`, e.g. `@user:projects`), or one added at runtime with
+ * `SpellSetup.addProjectRoot()`, e.g. `@workspace:my-folder`.
  */
 export type ProjectRootPath = `@${string}:${string}`
 
@@ -219,16 +226,17 @@ export type ProjectRootSpec = {
   /** User friendly description of project. */
   description: string
   /**
-   * Folder on disk holding this root's projects (one sub-folder each) -- SERVER ONLY.
-   * - Built-in roots leave it out:  `project-utils.ts` derives theirs from `environment` and `folder`.
+   * Its PLACE:  the address its projects' places start with, e.g. `@spell/examples` (`@spell/examples/Solitaire`),
+   * or `owen@spell` (`owen@spell/errors`).
+   * - A project's URLs and folder come from it:  `SpellUrls.fileUrl()`, `SpellUrls.folderFor()`.
+   * - A runtime root's is `@local/<folder name>`:  it has no folder of its own, so it says `serverPath`.
+   */
+  place: string
+  /**
+   * Folder on disk holding this root's projects (one sub-folder each) -- NODE ONLY.
+   * - Spaces' groups leave it out:  their folder comes from their `place` (`SpellUrls.folderFor()`).
    */
   serverPath?: string
-  /**
-   * Built-in root's folder under its owner's files root, e.g. `examples` -- default its `domain`.
-   * - `""` ~== the files root itself, e.g. `@user:projects` in `projects/user`.
-   * - See `serverPathForRoot()` in `project-utils.ts`.
-   */
-  folder?: string
   /** Shown in the app's UI only in dev, e.g. `@test:fixtures` -- it's there in every build, just not listed. */
   devOnly?: boolean
   /**

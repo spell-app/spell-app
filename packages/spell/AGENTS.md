@@ -28,35 +28,36 @@ when working with code in this package, `@spell-app/spell`.
   - [app](../app/AGENTS.md), `$/app`:  the web app.
     - Also the runner, and the `<spell-app>` / `<spell-editor>` elements.
     - `yarn start` is run THERE.
-  - [spaces](../spaces/AGENTS.md), `$/spaces`:  the editor's server, and (from P15) where projects live.
+  - [spaces](../spaces/AGENTS.md), `$/spaces`:  where projects live, and the editor's server.
+    - Spell's project groups (`@examples`, `@user:projects` ...), their lists, and a project's file edits.
+    - The built-in projects and the test projects, and reading and writing projects on disk.
+    - This package NEVER imports it (see "Projects live in spaces" below).
   - [cli](../cli/AGENTS.md):  the `spell` command line.
     It runs this package's SOURCE (and the others') through `tsx`.
 - `src/rules/`:  spell's rule modules (see "Parser rules" below).
 - Tests live in the repo's `tests/spell/`, at the same paths as the code they test:
   `src/SpellProject.ts` => `tests/spell/src/SpellProject.test.ts`.
   - `yarn test` here runs them (`vitest.config.ts` points there).
-  - Their helpers stay here, in `src/test/` (`$/spell/test`), and the projects they read in `projects/test/`.
+  - Their helpers stay here, in `src/test/` (`$/spell/test`).
+  - The projects they read are spaces' test projects, `tests/spaces/@spell/test/`
+    (see "Projects live in spaces" below).
   - `tests/spell/src/parserTests/`:  parser tests that need the spell grammar.
     The generic ones are in `../parser`.
 - `src/node/` (`$/spell/node/...`) is NODE-ONLY.
   - Its files:
-    - `environment`
     - `packageVersion.node`
-    - `disk-fetch`
-    - `file-utils`
-    - `project-utils`
-    - `response-utils`
-    - `server.types`
   - And for the targets beyond javascript:
     - `typecheck`:  `tsc` on the TypeScript target
+      - Also spell's own code folders, `CODE_FOLDERS`:  its `src/`, `packages/`, and `core`'s `src/`.
     - `buildTsx`:  the TypeScript target's build
     - `pyright`:  pyright on the Python target
   - And the spell syntax table (see "Parser rules"):  `spellSyntax`, and `writeSpellSyntax`, the script behind
     `yarn gen:syntax`.
+  - Projects on disk are NOT here:  they're spaces' (`$/spaces/server/node/...`).
   - The barrel NEVER exports it.
   - Other packages may import these files by name:  one of the deep-import exceptions
     (WWOD §4 › "Package aliases, never `../`").
-    Spaces' servers do.
+    Spaces, the language server and the `spell` command do.
   - Nothing reachable from `$/spell`'s barrel may import it (WWOD §8 › "Barrels").
 - `src/highlight/`:  `SpellHighlighter`.
   - It colours a snippet without a project, for `<ui-code language="spell">`.
@@ -84,21 +85,26 @@ when working with code in this package, `@spell-app/spell`.
     `.scopes.js`) goes in the project's build folder, `build/` at the repo root, never committed;
     the rest (declarations, words, `.lib.ts`, `.app.py`) beside its source.  See "Projects" in [PARSING.md](PARSING.md).
     - Built when needed:  the page server compiles `@examples` and `@library` as it starts,
-      and the app's API a project whose built file is missing;  by hand, `spell compile --stale`.
+      and spaces' API a project whose built file is missing;  by hand, `spell compile --stale`.
   - A project lists the others it wants in `project.json`'s `"targets"`.
     `spell compile --target <name>` picks one for a single run.
   - The writers are `$/parser`'s:  "Compile" in [PARSING.md](PARSING.md).
 - `src/test/` (`$/spell/test`):  the test helpers, e.g. the fixture helpers below.
-- `projects/` holds every spell project, OUTSIDE `src/`.
-  - Its folders are the roots (`@system:examples` etc):
-    - `system/examples/`
-    - `system/library/`
-    - `system/guides/`
-    - `user/`
-    - `test/`
+- Projects live in spaces, not here:  this package reads and compiles them, but holds none.
+  - Spell's project groups (`@system:examples` ...) are spaces' `SPACES.PROJECT_GROUPS`.
+    - Spell's registry, `SP.SpellSetup`, starts EMPTY:  loading spaces' groups registers them there.
+    - So every program that reads a spell path loads them first, through `$/spaces`,
+      spaces' disk reader, or `$/spaces/models/projectGroups` alone.
+    - Spell NEVER imports spaces.
+  - Where each group's projects are:
+    - `@system:examples`, `@system:library`, `@system:guides`:  spaces' built-ins,
+      [packages/spaces/@spell/](../spaces/@spell/), committed
+    - `@test:fixtures`:  the test projects, [tests/spaces/@spell/test/](../../tests/spaces/@spell/test/), committed
+    - `@user:projects`:  Owen's own, in spell-spaces beside the main checkout, outside git
+  - A project's URLs and folder come from ONE function, [SpellUrls](src/SpellUrls.ts) (`SP.SpellUrls`).
   - See "Projects" in [PARSING.md](PARSING.md).
-  - Tests read ONLY `projects/test/`:  frozen projects, never the live examples, which get edited.
-    - Its root:  `@test:fixtures` ~== `@test/<Project>`, listed in the app in dev only.
+  - Tests read ONLY the test projects:  frozen projects, never the live examples, which get edited.
+    - Their group:  `@test:fixtures` ~== `@test/<Project>`, listed in the app in dev only.
     - Read them with the helpers from `$/spell/test`:
       - `loadFixtureProject()`
       - `fixturePath()`

@@ -32,7 +32,8 @@ and suggest where it belongs before building it (see "Commands").
     - With their snapshots and test data;  each package's `yarn test`, `yarn ts`, lint and format still cover them.
     - Each package's Vitest finds them (its config's `dir`), and `tests/<package>/tsconfig.json` gives them the
       package's own settings and the aliases.
-    - Test helpers (`$/spell/test`, `$/ui/test` ...) and spell's test projects stay in their packages, for now.
+    - Test helpers (`$/spell/test`, `$/ui/test` ...) stay in their packages, for now.
+    - Spell's test projects are spaces' test data:  `tests/spaces/@spell/test/`, frozen.
 - This file holds what's about THIS repo:  packages, worktrees, changelog, commands, toolchain, ledgers.
   - The house style every package shares is WWOD (`agents/wwod/`, above).
     It's shared content, like the ledgers.
@@ -56,8 +57,8 @@ Each folder links to its own `AGENTS.md`:  read it before working there.
 | [markdown](packages/markdown/AGENTS.md) | `@spell-app/markdown` | `$/markdown` | `MD` | GitHub-flavoured markdown on the parser, drawing `ui-*` markup |
 | [core](packages/core/AGENTS.md) | `@spell-app/core` | `$/core` | `SC` | the runtime compiled spell runs on |
 | [py](packages/py/AGENTS.md) | `@spell-app/py` | `$/py` | `PY` | Python's writers (`ts/`) and `spell_core` (`core/`, a uv project) |
-| [spell](packages/spell/AGENTS.md) | `@spell-app/spell` | `$/spell` | `SP` | the spell LANGUAGE on the parser, every spell project (`projects/`), `PARSING.md` and `readme.md` |
-| [spaces](packages/spaces/AGENTS.md) | `@spell-app/spaces` | `$/spaces` | `SPACES` | where projects and people live:  its models (`models/`, browser-safe), and the servers that serve them, the editor's (`server/node/`) and Python's, `spell_quart` (`server/py/`, a uv project) |
+| [spell](packages/spell/AGENTS.md) | `@spell-app/spell` | `$/spell` | `SP` | the spell LANGUAGE on the parser, `PARSING.md` and `readme.md` |
+| [spaces](packages/spaces/AGENTS.md) | `@spell-app/spaces` | `$/spaces` | `SPACES` | where projects and people live:  the built-in projects (`@spell/`), its models (`models/`, browser-safe:  spell's project groups and lists), projects on disk (`server/node/projects/`), and the servers that serve them, the editor's (`server/node/`) and Python's, `spell_quart` (`server/py/`, a uv project) |
 | [lsp](packages/lsp/AGENTS.md) | `@spell-app/lsp` | `$/lsp` | `LSP` | spell's language server (browser-safe) |
 | [app](packages/app/AGENTS.md) | `@spell-app/app` | `$/app` | `UI` | the web app, the runner, and the `<spell-app>` / `<spell-editor>` web components;  `yarn start` / `build*` live here;  App UI, the docs pages of its components, beside them in `components/` (at `/app-ui/`) |
 | `packages/vscode/` | | | | the VS Code extension (below) |
@@ -101,6 +102,7 @@ One change may touch several packages, but dependencies flow ONE way:
 docs -> anything          (its experiments import any package, and nothing imports docs)
 cli -> app -> lsp -> spaces -> spell -> parser / core -> util
 app / cli -> spaces       (the app:  spaces' models only, never server/node)
+lsp -> spaces             (its node files:  projects on disk, in `SpellDiskWorkspace`)
 spaces -> core / server   (server/node:  its route modules, run by the page server)
 spaces -> ui              (models only;  allowed, not used yet)
 spaces' server/py -> py's spell_core   (Python, by path in its pyproject.toml)
@@ -115,6 +117,11 @@ ui -> util
   - NEVER make it import `app`, `lsp` or `cli`;  NEVER make `spell` import it.
   - Its models (`$/spaces`) are safe in a browser;  `$/spaces/server/node/...` is node only, imported by path.
   - The page server loads its route module by PATH (the root `package.json`'s `"pageServer"`), not by import.
+  - Spell's project groups (`@examples`, `@user:projects` ...) are spaces':  loading `$/spaces` registers them
+    with spell.
+    So every program that reads a spell path loads spaces first ([spaces' AGENTS.md](packages/spaces/AGENTS.md)).
+  - Owen's own projects are NOT in git:  they're in spell-spaces, `../spell-spaces` beside the main checkout,
+    one folder for main and every worktree (`SPELL_SPACES_DIR` sets it).
 - `server` is a LEAF (node built-ins only, imports no package).
   - ANY package may import it, `ui`'s tools too.
 - `assembler` is node-only and imports no package (it uses linkedom and oxfmt).

@@ -1,6 +1,7 @@
 import { For, Show, createEffect, createMemo, createSignal, omit } from "solid-js"
 
 import { SP } from "$/spell"
+import { SPACES } from "$/spaces"
 import { editor } from "$/app/editor"
 import { DropdownLabel, PROJECT_ICON, on, tracked, type UIElementAttributes } from "$/app/solid"
 
@@ -38,7 +39,7 @@ export function ProjectMenu(props: ProjectMenuProps) {
 /** Props for `<ProjectMenu>`:  these, plus any `<ui-menu>` attribute. */
 export type ProjectMenuProps = UIElementAttributes & {
   /** Root whose projects to list.  Default:  `editor.projectRoot`. */
-  projectRoot?: SP.SpellProjectRoot
+  projectRoot?: SPACES.SpellProjectRoot
   /** Open `<SpellRunner>` instead of `<SpellEditor>`. */
   useRunner?: boolean
 }
@@ -95,7 +96,7 @@ export function ProjectDropdown(props: ProjectDropdownProps) {
 /** Props for `<ProjectDropdown>`. */
 export type ProjectDropdownProps = {
   /** Root whose projects to list.  Default:  `editor.projectRoot`. */
-  projectRoot?: SP.SpellProjectRoot
+  projectRoot?: SPACES.SpellProjectRoot
   /** Open `<SpellRunner>` instead of `<SpellEditor>`. */
   useRunner?: boolean
   /** Put a `<DropdownLabel>` before the dropdown.  Default:  `true`. */
@@ -125,10 +126,10 @@ type ProjectRootState = {
  * - A memo makes a new `tracked()` per root (disposing the last):  `tracked()`'s read can't follow Solid props.
  * - Call in a component body:  it's owned by the component.
  */
-function trackProjectRoot(root: () => SP.SpellProjectRoot | undefined): () => ProjectRootState {
+function trackProjectRoot(root: () => SPACES.SpellProjectRoot | undefined): () => ProjectRootState {
   const editorRoot = tracked(() => editor.projectRoot)
   const current = createMemo(() => root() ?? editorRoot())
-  const [failed, setFailed] = createSignal<SP.SpellProjectRoot>()
+  const [failed, setFailed] = createSignal<SPACES.SpellProjectRoot>()
   createEffect(current, (projectRoot) => {
     if (!projectRoot || projectRoot.isLoaded) return
     projectRoot.load().catch((error: unknown) => {
@@ -144,7 +145,7 @@ function trackProjectRoot(root: () => SP.SpellProjectRoot | undefined): () => Pr
 }
 
 /** What `<ProjectMenu>` / `<ProjectDropdown>` show of `projectRoot`, read now. */
-function readProjectRoot(projectRoot: SP.SpellProjectRoot | undefined): Omit<ProjectRootState, "failed"> {
+function readProjectRoot(projectRoot: SPACES.SpellProjectRoot | undefined): Omit<ProjectRootState, "failed"> {
   const loaded = !!projectRoot?.isLoaded
   return {
     loaded,

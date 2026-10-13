@@ -7,7 +7,7 @@ import { TSWriter } from "./TSWriter"
  * What a compiled LIBRARY imports its core from:  the core with no drawing, so no Solid -- `$/core/model`.
  * - By the core's PACKAGE name, as its `package.json` exports it, never the `$/core/...` alias:
  *   the repo's aliases reach only the files a `tsconfig.json` includes, and a library lives with its project,
- *   e.g. `packages/spell/projects/...`, which none does.
+ *   e.g. `packages/spaces/@spell/...`, which none does.
  * - node, vite and `tsx` all read a package's exports, wherever the importing file is.
  */
 export const LIBRARY_CORE_MODULE = "@spell-app/core/model"

@@ -9,7 +9,7 @@ function coloured(text: string, kind: string): string[] {
     .map((span) => text.slice(span.start, span.end))
 }
 
-/** A real file:  `projects/system/library/cards/Pile.spell`'s opening. */
+/** A real file:  `packages/spaces/@spell/library/cards/Pile.spell`'s opening. */
 const PILE = `## Pile of playing cards
 a pile is a list of cards
 

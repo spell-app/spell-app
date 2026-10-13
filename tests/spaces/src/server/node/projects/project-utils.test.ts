@@ -3,10 +3,10 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, 
 import { tmpdir } from "os"
 import { resolve } from "path"
 
-import environment from "$/spell/node/environment"
+import environment from "$/spaces/server/node/environment"
 import { SP } from "$/spell"
-import { locationForDiskPath } from "$/spell/node/disk-fetch"
-import * as projectUtils from "$/spell/node/project-utils"
+import { locationForDiskPath } from "$/spaces/server/node/projects/disk-fetch"
+import * as projectUtils from "$/spaces/server/node/projects/project-utils"
 
 /**
  * Where a project's files are on disk (epic `people-and-orgs` P11):  what spell BUILDS for it, e.g.
@@ -46,11 +46,28 @@ beforeAll(() => {
 afterAll(() => rmSync(repo, { recursive: true, force: true }))
 
 describe("buildFolderFor()", () => {
-  const folders = { packagesDir: "/repo/packages", buildDir: "/repo/build" }
+  const folders = {
+    packagesDir: "/repo/packages",
+    buildDir: "/repo/build",
+    repoDir: "/repo",
+    spellSpacesDir: "/spell-spaces"
+  }
 
   test("a project under `packages/`:  the same path under `build/`", () => {
-    expect(projectUtils.buildFolderFor("/repo/packages/spell/projects/user/Proj", folders)).toBe(
-      "/repo/build/spell/projects/user/Proj"
+    expect(projectUtils.buildFolderFor("/repo/packages/spaces/@spell/examples/Proj", folders)).toBe(
+      "/repo/build/spaces/@spell/examples/Proj"
+    )
+  })
+
+  test("a test project, under `tests/`:  the same path under `build/`", () => {
+    expect(projectUtils.buildFolderFor("/repo/tests/spaces/@spell/test/Proj", folders)).toBe(
+      "/repo/build/spaces/@spell/test/Proj"
+    )
+  })
+
+  test("a project in spell-spaces:  under `build/spell-spaces/`, in THIS checkout", () => {
+    expect(projectUtils.buildFolderFor("/spell-spaces/@spell/owen@/errors", folders)).toBe(
+      "/repo/build/spell-spaces/@spell/owen@/errors"
     )
   })
 
@@ -62,10 +79,10 @@ describe("buildFolderFor()", () => {
 })
 
 describe("SpellLocation.serverPath, in this repo", () => {
-  test("a built-in root's built file is in `build/`, at its path under `packages/`", () => {
+  test("a built-in project's built file is in `build/`, at its path under `packages/`", () => {
     expect(environment.buildDir).toBe(resolve(environment.packagesDir, "..", "build"))
     expect(new SP.SpellLocation("@system:examples:Solitaire/Solitaire.spell.js").serverPath).toBe(
-      resolve(environment.buildDir, "spell/projects/system/examples/Solitaire/Solitaire.spell.js")
+      resolve(environment.buildDir, "spaces/@spell/examples/Solitaire/Solitaire.spell.js")
     )
     expect(new SP.SpellLocation("@system:examples:Solitaire/Solitaire.en.js").serverPath).toBe(
       resolve(environment.systemFilesRoot, "examples/Solitaire/Solitaire.en.js")

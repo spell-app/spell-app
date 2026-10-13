@@ -3,15 +3,24 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "fs"
 import { tmpdir } from "os"
 import { basename, resolve } from "path"
 
-import environment from "$/spell/node/environment"
+import environment from "$/spaces/server/node/environment"
 import { P } from "$/parser"
 import { SP } from "$/spell"
-import { loadFixtureProject, parseSpellProject, describeParseErrors, fixturePath, fixtureProjectId } from "$/spell/test"
-import { installDiskFetch, locationForDiskPath } from "$/spell/node/disk-fetch"
-import { serverPathForRoot } from "$/spell/node/project-utils"
+import {
+  loadFixtureProject,
+  parseSpellProject,
+  describeParseErrors,
+  fixturePath,
+  fixtureProjectId,
+  FIXTURES_DIR
+} from "$/spell/test"
+import { SPACES } from "$/spaces"
+import { diskFetch, installDiskFetch, locationForDiskPath } from "$/spaces/server/node/projects/disk-fetch"
+import { serverPathForRoot } from "$/spaces/server/node/projects/project-utils"
 
 /**
- * `SpellProject` & co. hosted in node, loading from disk instead of over HTTP -- what the language server does.
+ * `SpellProject` & co. hosted in node, loading from disk instead of over HTTP -- what the language server does:
+ * spaces' disk reader answers the URLs spell builds (`SP.SpellUrls`).
  */
 describe("diskFetch", () => {
   beforeAll(installDiskFetch)
@@ -37,6 +46,14 @@ describe("diskFetch", () => {
     })
   })
 
+  test("it answers a file's URL, split at its `//`:  `/spaces/<place>//<file>`", async () => {
+    const url = SP.SpellUrls.fileUrl(`${solitaire}/Card.spell`)
+    expect(url).toBe("/spaces/@spell/test/Solitaire//Card.spell")
+    expect(await diskFetch({ url })).toBe(readFileSync(fixturePath("Solitaire", "Card.spell"), "utf8"))
+    expect(await diskFetch({ url: SP.SpellUrls.indexUrl(solitaire) })).toHaveProperty("imports")
+    expect(await diskFetch({ url: SP.SpellUrls.listUrl("@test:fixtures") })).toContain(solitaire)
+  })
+
   test("a missing file falls back to `defaultContents`, else fails like a 404", async () => {
     const file = new SP.SpellFile(`${solitaire}/Nope.spell`)
     file.defaultContents = "// nothing"
@@ -50,14 +67,20 @@ describe("diskFetch", () => {
       expect(locationForDiskPath(fixturePath("Solitaire", "Card.spell"))?.path).toBe(`${solitaire}/Card.spell`)
     })
 
-    // where each built-in root's folder is -- NOT what's in it, which tests never depend on
-    test("a built-in root's folder is in `projects/`, under its owner's files root", () => {
+    // where each group's folder is -- NOT what's in it, which tests never depend on
+    test("a group's folder is its place's:  the `@spell` space's built-ins, the test projects, your own space", () => {
       expect(serverPathForRoot("@system:examples")).toBe(resolve(environment.systemFilesRoot, "examples"))
       expect(serverPathForRoot("@system:library")).toBe(resolve(environment.systemFilesRoot, "library"))
       expect(serverPathForRoot("@system:guides")).toBe(resolve(environment.systemFilesRoot, "guides"))
       expect(serverPathForRoot("@user:projects")).toBe(environment.userFilesRoot)
       expect(serverPathForRoot("@test:fixtures")).toBe(environment.testFilesRoot)
-      expect(environment.systemFilesRoot).toBe(resolve(environment.projectsDir, "system"))
+      expect(environment.systemFilesRoot).toBe(resolve(environment.packagesDir, "spaces", "@spell"))
+      expect(environment.testFilesRoot).toBe(resolve(environment.repoDir, "tests", "spaces", "@spell", "test"))
+    })
+
+    test("spell's test helpers and spaces agree where the test projects are, and whose space is yours", () => {
+      expect(FIXTURES_DIR).toBe(environment.testFilesRoot)
+      expect(environment.userFilesRoot).toBe(resolve(environment.spellSpacesDir, "@spell", `${SPACES.LOCAL_PERSON}@`))
     })
 
     test("a file elsewhere gets a `@workspace` root, and loads + saves through it", async () => {

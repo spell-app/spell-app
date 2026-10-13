@@ -1,6 +1,9 @@
 import { describe, test, expect } from "vite-plus/test"
 import { SpellLocation } from "$/spell/SpellLocation"
 
+// spell's project groups are spaces':  registered as it loads
+import "$/spaces/models/projectGroups"
+
 // Make sure we don't re-use registry items.
 SpellLocation.useRegistry = false
 

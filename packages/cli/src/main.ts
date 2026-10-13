@@ -117,7 +117,7 @@ program
 
 program
   .command("format")
-  .description("tidy the whitespace of .spell files, as VS Code's Format Document does -- never in projects/test/")
+  .description("tidy the whitespace of .spell files, as VS Code's Format Document does -- never in the test projects")
   .argument("[projects...]", PROJECTS_ARG)
   .option("--check", "write nothing:  list files that would change, exiting 1 if any would")
   .action((args: string[], _options, command) => run(CLI.formatCommand, args, command.optsWithGlobals()))
@@ -173,7 +173,7 @@ program
   .command("new")
   .description("make a spell project:  <name>/project.json and a starter <name>.spell")
   .argument("<name>", "the project's name, e.g. Snake")
-  .option("--in <folder>", "make it in this folder -- default @user's, projects/user/")
+  .option("--in <folder>", "make it in this folder -- default @user's, your space in spell-spaces")
   .action((name: string, _options, command) => run(CLI.newCommand, [name], command.optsWithGlobals()))
 
 program

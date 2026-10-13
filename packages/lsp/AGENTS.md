@@ -16,7 +16,7 @@ when working with code in this package, `@spell-app/lsp`.
   - `SpellLanguageServer`:  wires it to an LSP connection
   - `ScopeExplorer`
   - `ScopesSource` / `ScopePack`:  the scope packs, `<Project>.scopes.js`
-  - `SpellDiskWorkspace`:  loads from disk
+  - `SpellDiskWorkspace`:  loads from disk, through spaces' disk reader (`installDiskFetch()`)
   - See "Language server" in [PARSING.md](../spell/PARSING.md).
 - The VS Code extension that runs it is `../vscode`, its own yarn project.
   - It runs THIS package's source.
@@ -34,6 +34,8 @@ when working with code in this package, `@spell-app/lsp`.
   - The node-only files the barrel leaves out (see the barrel's header):
     `SpellDiskWorkspace.ts`, `server.ts`, `stdioGuard.ts`.
 - It depends on `$/spell` (and below).
+  - Its node-only files also import spaces' (`$/spaces/server/node/...`):
+    where projects are on disk, and spaces' disk reader, which registers spell's project groups.
   - NEVER import `$/app` or `$/cli`.
 
 ## Imports

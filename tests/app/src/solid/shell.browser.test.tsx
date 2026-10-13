@@ -4,7 +4,7 @@ import { render } from "@solidjs/web"
 
 import { getPref, reactiveObject, resetPref, setPref } from "$/util"
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import type { SP } from "$/spell"
+import type { SPACES } from "$/spaces"
 import { editor, type EditorStore } from "$/app/editor"
 import { ProjectDropdown, ProjectMenu, SpellPage, SplitPane, SplitPanel, normalizeSizes, uiReady } from "$/app/solid"
 
@@ -230,7 +230,7 @@ describe("<ProjectMenu> / <ProjectDropdown>", () => {
 ////////////////
 
 /** A project root of two examples, as spell cells (as real ones are), `isLoaded` or not. */
-function fakeRoot(isLoaded: boolean): SP.SpellProjectRoot & { load: ReturnType<typeof vi.fn> } {
+function fakeRoot(isLoaded: boolean): SPACES.SpellProjectRoot & { load: ReturnType<typeof vi.fn> } {
   return reactiveObject({
     path: "@system:examples",
     isLoaded,
@@ -239,7 +239,7 @@ function fakeRoot(isLoaded: boolean): SP.SpellProjectRoot & { load: ReturnType<t
     title: "Examples",
     Type: "Example",
     load: vi.fn(() => Promise.resolve())
-  }) as unknown as SP.SpellProjectRoot & { load: ReturnType<typeof vi.fn> }
+  }) as unknown as SPACES.SpellProjectRoot & { load: ReturnType<typeof vi.fn> }
 }
 
 /** Draw `component` in a fresh `<div>`, once `<ui-*>` are defined.  Unmounted after the test. */
