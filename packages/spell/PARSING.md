@@ -1187,10 +1187,10 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
     - `ts/solid`, by `P.TSWriter`:  checked by `tsc`
     - `py`, by `PY.PyWriter`:  Python on asyncio, checked by pyright
       - with a words file of its own, by Python's names:  `<Project>.py.en.json`
-    - `js/lib`, by `P.LibraryWriter`:  a LIBRARY, the project's classes alone, for other code to import
+    - `ts/lib`, by `P.LibraryWriter`:  a LIBRARY, the project's classes alone, for other code to import
       (epic `people-and-orgs` P3)
+      - one TypeScript file, `<Project>.lib.ts`, its own types, checked by `tsc`
       - no drawing, none of its top-level steps, the core with no Solid (`@spell-app/core/model`)
-      - its types beside it, `<Project>.lib.d.ts`:  `tsc` makes them from `P.LibraryTSWriter`'s TypeScript
   - Each writes a file of its own, e.g. `Solitaire.compiled.py`:  see each target's `suffix`.
   - A project lists the others it wants in its `project.json`, e.g. `"targets": ["ts/solid", "py"]`.
   - What every program's writer shares is `P.ProgramWriter`, which the javascript and Python writers extend.

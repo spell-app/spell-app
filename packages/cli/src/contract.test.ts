@@ -89,7 +89,7 @@ async function importedProjects(
   return projects
 }
 
-/** Every target that runs a program:  all but a library (`js/lib`), which keeps only the classes. */
+/** Every target that runs a program:  all but a library (`ts/lib`), which keeps only the classes. */
 const RUNNING_TARGETS = Object.values(SP.TARGETS)
   .filter((target) => target.can.run !== false)
   .map((target) => target.name)

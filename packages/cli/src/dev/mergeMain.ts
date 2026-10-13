@@ -166,7 +166,7 @@ export const GENERATORS: Generator[] = [
   { name: "epics pack",               outputs: ["packages/epics/pack/**"],                              cwd: "packages/epics",  run: ["yarn", "pack:build"] },
   {
     name: "spell libraries",
-    outputs: ["packages/spell/projects/system/library/**/*.lib.{js,d.ts}"],
+    outputs: ["packages/spell/projects/system/library/**/*.lib.ts"],
     cwd: ".",
     run: ["node", "packages/cli/bin/spell.mjs", "compile", "@library"]
   },

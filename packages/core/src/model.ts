@@ -1,7 +1,7 @@
 /**
  * `$/core/model`:  the core WITHOUT drawing, for code that uses spell's things as plain data, e.g. the server
  * holding a `Person` (epic `people-and-orgs` P3).
- * - What a compiled LIBRARY imports, e.g. `People.lib.js`:  the `js/lib` target, `P.LibraryWriter`.
+ * - What a compiled LIBRARY imports, e.g. `People.lib.ts`:  the `ts/lib` target, `P.LibraryWriter`.
  * - The same `spellCore`, `Thing` and `List` as the barrel, assembled from the same modules, minus:
  *   - drawing (`drawing.ts`, `elements.ts`, `Drawable`, `DrawableList`):  they load Solid
  *   - the registry of a running program's things, `spellCore.things` (`things.ts`):

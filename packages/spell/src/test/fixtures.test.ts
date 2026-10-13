@@ -3,7 +3,6 @@ import { describe, test, expect } from "vite-plus/test"
 import { P } from "$/parser"
 import { PY } from "$/py"
 import { SP } from "$/spell"
-import { declarationsFor } from "$/spell/node/typecheck"
 import {
   LIBRARY_FIXTURES,
   PYTHON_FIXTURES,
@@ -24,7 +23,7 @@ import {
  * - `<Project>.snapshot.tsx`:  the TypeScript (`ts/solid` target)
  * - `<Project>.snapshot.py`:  the Python (the `py` target)
  *   - only for the fixtures in `PYTHON_FIXTURES`
- * - `<Project>.lib.snapshot.js` and `.lib.snapshot.d.ts`:  as a library (the `js/lib` target), and its types
+ * - `<Project>.lib.snapshot.ts`:  as a library (the `ts/lib` target)
  *   - only for the fixtures in `LIBRARY_FIXTURES`
  * - Why beside it:  a change shows up as a diff of a real `.js` or `.py` file, in VS Code's Source Control.
  * - New fixture:  copy a project into `projects/test/`, then `yarn test:fixtures:bless` writes its snapshot.
@@ -68,15 +67,11 @@ describe("fixture projects compile to their snapshots", () => {
       )
     })
 
-    // as a library (the `js/lib` target, epic `people-and-orgs` P3):  its classes alone, and the `.d.ts` `tsc` makes
-    // from its TypeScript (`declarationsFor()`) -- as `spell compile` writes them
+    // as a library (the `ts/lib` target, epic `people-and-orgs` P3):  its classes alone, one TypeScript file
     test.runIf(LIBRARY_FIXTURES.has(name))(`${name} as a library`, async () => {
       await expect(compiledFixture(name, P.LibraryWriter.instance)).toMatchFileSnapshot(
-        fixturePath(name, `${name}.lib${SP.SNAPSHOT_JS_SUFFIX}`)
+        fixturePath(name, `${name}.lib.snapshot.ts`)
       )
-      const source = compiledFixture(name, P.LibraryTSWriter.instance)
-      const types = (await declarationsFor({ [`${name}.lib.ts`]: source }))[`${name}.lib.ts`]
-      await expect(types).toMatchFileSnapshot(fixturePath(name, `${name}.lib.snapshot.d.ts`))
     })
   }
 })

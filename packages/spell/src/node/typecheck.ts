@@ -1,9 +1,8 @@
 import { execFileSync } from "child_process"
-import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "fs"
+import { existsSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
 import { dirname, join, resolve } from "path"
 
-import { formatHTML } from "$/assembler"
 import environment from "$/spell/node/environment"
 
 /**
@@ -41,40 +40,6 @@ export function typecheck(
     }
     return result
   })
-}
-
-/**
- * Each of `files`' DECLARATIONS, as `tsc` writes them, by its name:  `{ "People.lib.ts": "export declare class ..." }`.
- * - What TypeScript code needs to import the javascript compiled from them,
- *   e.g. a library's `People.lib.d.ts` (epic `people-and-orgs` P3, `SP.Target.types`).
- * - Set up as `typecheck()` sets up, in a temp folder of its own;  type errors don't stop it.
- * - Formatted as the repo formats its own files (`vp fmt`), not as `tsc` writes them.
- * - A file `tsc` wrote nothing for is left out.
- * - Used by `spell compile`, and spell's `fixtures.test.ts`.
- * - NODE-ONLY:  as `typecheck()`.
- */
-export async function declarationsFor(
-  files: Record<string, string>,
-  { projects = {} }: { projects?: Record<string, string> } = {}
-): Promise<Record<string, string>> {
-  const written = inTscFolder(files, projects, (folder) => {
-    const out = join(folder, "declarations")
-    // `tsc` writes a declaration for every source it reads, the core's too, each at its path under `rootDir`:
-    // MUST be the root of the disk, or a file outside it climbs out of `out`, into the repo (`../../core/...`)
-    runTsc(folder, ["--declaration", "--emitDeclarationOnly", "--noEmit", "false", "--rootDir", "/", "--outDir", out])
-    // ours, under `out`, at the temp folder's own path -- as `tsc` saw it (`/private/var/...` on a Mac)
-    const ours = join(out, realpathSync(folder))
-    const found: Record<string, string> = {}
-    for (const name of Object.keys(files)) {
-      const path = join(ours, `${name.replace(/\.tsx?$/, "")}.d.ts`)
-      if (existsSync(path)) found[name] = readFileSync(path, "utf8")
-    }
-    return found
-  })
-  const formatted = Object.entries(written).map(async ([name, text]) => {
-    return [name, await formatHTML(name.replace(/\.tsx?$/, ".d.ts"), text)] as const
-  })
-  return Object.fromEntries(await Promise.all(formatted))
 }
 
 /** What `typecheck()` found. */
@@ -186,11 +151,10 @@ function inTscFolder<T>(
 
 /**
  * `tsc`'s error lines for the project in `folder`, run there, so a file's are `Solitaire.tsx(...)`;  none if clean.
- * - `flags`:  more of `tsc`'s, e.g. to write declarations -- see `declarationsFor()`.
  */
-function runTsc(folder: string, flags: string[] = []): string[] {
+function runTsc(folder: string): string[] {
   try {
-    execFileSync(nodeBinary("tsc"), ["-p", "tsconfig.json", "--pretty", "false", ...flags], {
+    execFileSync(nodeBinary("tsc"), ["-p", "tsconfig.json", "--pretty", "false"], {
       cwd: folder,
       encoding: "utf8"
     })

@@ -93,8 +93,8 @@ export const PYTHON_FIXTURES = new Set([
 ])
 
 /**
- * The fixtures compiled as a LIBRARY too (the `js/lib` target, epic `people-and-orgs` P3):  their `.lib.snapshot.js`,
- * and its types, `.lib.snapshot.d.ts`, are checked.
+ * The fixtures compiled as a LIBRARY too (the `ts/lib` target, epic `people-and-orgs` P3):  their `.lib.snapshot.ts`
+ * is checked.
  * - Only fixtures that draw nothing:  a library can't.
  */
 export const LIBRARY_FIXTURES = new Set(["People"])

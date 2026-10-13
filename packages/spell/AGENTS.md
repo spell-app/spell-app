@@ -69,10 +69,10 @@ when working with code in this package, `@spell-app/spell`.
       - its web app on Quart, `<Project>.app.py`
         - Each compile rewrites it only while nobody has edited it.
         - `appSuffix`, and `$/py`'s [quartApp.ts](../py/ts/quartApp.ts)
-  - `js/lib`:  a LIBRARY, the project's classes alone, for other code to import (epic `people-and-orgs` P3)
-    - `<Project>.lib.js`:  no drawing, none of its top-level steps, the core with no Solid
-    - its types beside it, `<Project>.lib.d.ts`:  `spell compile` has `tsc` make them (`declarationsFor()`)
-    - committed, and marked generated in the root's `.gitattributes`:  a merge recompiles `@library`
+  - `ts/lib`:  a LIBRARY, the project's classes alone, for the repo's code to import (epic `people-and-orgs` P3)
+    - `<Project>.lib.ts`, one file with its own types:  no drawing, none of its top-level steps, the core with no Solid
+    - checked by `tsc`, as `ts/solid` is
+    - committed beside its source, and marked generated in the root's `.gitattributes`:  a merge recompiles `@library`
   - A project lists the others it wants in `project.json`'s `"targets"`.
     `spell compile --target <name>` picks one for a single run.
   - The writers are `$/parser`'s:  "Compile" in [PARSING.md](PARSING.md).

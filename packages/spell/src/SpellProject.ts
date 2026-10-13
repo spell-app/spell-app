@@ -276,22 +276,6 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * File for `target`'s types, beside its output, e.g. `People.lib.d.ts` -- see `SP.Target.types`.
-   * - `undefined` for a target with none.
-   * - Compiling never fills it:  `spell compile` does, from `typesSources`, with `tsc`.
-   */
-  typesFileFor(target: SP.Target): SP.SpellJSFile | undefined {
-    if (!target.types) return undefined
-    return new SP.SpellJSFile(this.getFileLocation(`${this.projectName}${target.types.suffix}`)!.path)
-  }
-
-  /**
-   * Each target's TypeScript for its types, as compiling last wrote it, by target name -- see `SP.Target.types`.
-   * - What `tsc` makes the `.d.ts` from, in node:  compiling may run in a browser, which can't.
-   */
-  readonly typesSources = new Map<string, string>()
-
-  /**
    * SIDE EFFECT:  save `target`'s web app, if it has one written, and the one there is unedited (or there's none):
    * an app someone has edited is theirs -- see `PY.isUneditedApp()`.
    */
@@ -473,14 +457,6 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
                       })
                     )
                   }
-                }
-                // a target with types, e.g. a library's:  its TypeScript, for `spell compile` to make the `.d.ts` from
-                if (target.types) {
-                  const { writer } = target.types
-                  const typed = SpellProject.combineCompiled(parts, writer, this.importHeader(writer), this.scope, {
-                    listsStartAt: this.contents?.listsStartAt
-                  })
-                  this.typesSources.set(target.name, SP.SpellDeclarations.split(typed, this.scope!).code)
                 }
                 if (target.name !== SP.RUNNING_TARGET) continue
                 this.setState("compiled", code)

@@ -55,9 +55,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - each drawable type's element class (epic `drawable-thing` P10).
         - e.g. `class CardElement extends SpellElement<Card>`, its base imported from `@spell/elements`
         - Written by `elementClassFor()`.
-  - `P.LibraryWriter`:  a project's classes alone, as a javascript LIBRARY other code imports (epic `people-and-orgs`)
-    - The `js/lib` target:  `P.JSWriter`, minus the program's top-level steps, its core `@spell-app/core/model`.
-    - `P.LibraryTSWriter` writes the same as TypeScript, for `tsc` to make its `.d.ts` from.
+  - `P.LibraryWriter`:  a project's classes alone, as a TypeScript LIBRARY other code imports (epic `people-and-orgs`)
+    - The `ts/lib` target:  `P.TSWriter`, minus the program's top-level steps, its core `@spell-app/core/model`.
+    - One file, `<Project>.lib.ts`, its own types:  no `.d.ts` beside it.
     - `P.isDeclaration()` says what's kept:  classes, what's added to them, comments.
       Python's page writer keeps the same.
   - Python's writers are `$/py`'s ([py's AGENTS.md](../py/AGENTS.md)), built on these:

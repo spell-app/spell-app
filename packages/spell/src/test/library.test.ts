@@ -3,15 +3,15 @@ import { fileURLToPath } from "url"
 import { describe, test, expect } from "vite-plus/test"
 
 /**
- * A compiled LIBRARY imported as other code imports it (the `js/lib` target, epic `people-and-orgs` P3):
- * People's, `People.lib.snapshot.js`, which `fixtures.test.ts` keeps up to date.
+ * A compiled LIBRARY imported as other code imports it (the `ts/lib` target, epic `people-and-orgs` P3):
+ * People's, `People.lib.snapshot.ts`, which `fixtures.test.ts` keeps up to date.
  * - Its module graph has no Solid, and no drawing:  it loads the core through `@spell-app/core/model`.
  * - Importing it runs nothing but its classes:  no heading, no test, no thing made.
  * - What it makes is a plain thing, in no running program's list.
  */
 describe("a compiled library", () => {
   // by its path, not `fixturePath()`:  $/spell/test loads the whole core, and the model must be alone here
-  const library = fileURLToPath(new URL("../../projects/test/People/People.lib.snapshot.js", import.meta.url))
+  const library = fileURLToPath(new URL("../../projects/test/People/People.lib.snapshot.ts", import.meta.url))
 
   test("loads no Solid, and nothing that draws", async () => {
     // every module it loads, as a bundler finds them:  the core by its package, then the core's own aliases

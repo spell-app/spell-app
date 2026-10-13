@@ -93,7 +93,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     [element.build.test.ts](../app/src/runner/element.build.test.ts) and [build.test.ts](../app/src/build.test.ts).
 - The ONE other entry:  `$/core/model` ([model.ts](src/model.ts), epic `people-and-orgs` P3).
   - The core with no drawing, so no Solid, and no running program's list of things.
-  - What a compiled LIBRARY imports (`People.lib.js`, the `js/lib` target), by the package's name:
+  - What a compiled LIBRARY imports (`People.lib.ts`, the `ts/lib` target), by the package's name:
     `@spell-app/core/model`, the one export in `package.json`.
   - So the server and the app may value-import it, through a library:
     its things are plain data, belonging to no program, so a copy of its own is fine.
