@@ -136,8 +136,13 @@ export const epicSectionVocabulary = {
     {
       name: "new-item",
       description:
-        "A Todos or Questions section's New todo / New question (an `<epic-new-item>`, epic `airplane` P2), at its " +
-        "end:  the button, or the form in its place.  Only while the page is reviewed."
+        "A Todos, Questions, Issues or Tests section's New todo / question / issue / test (an `<epic-new-item>`, epic " +
+        "`airplane` P2), at its end:  the button, or the form in its place.  Only while the page is reviewed."
+    },
+    {
+      name: "new-button",
+      description:
+        "The same sections' comment-dots button, on the title:  opens the section, then that form.  Only while reviewed."
     },
     {
       name: "new-list",
@@ -172,6 +177,11 @@ export const epicSectionVocabulary = {
     { key: "count", text: "{open} open of {total}", description: "The count badge's tooltip:  `3/7` in words." },
     ...FILTER_TEXTS,
     { key: "hiddenNote", text: "{count} hidden · show all", description: "Under a filtered list;  a click shows all." },
+    {
+      key: "addNew",
+      text: "New {kind}",
+      description: "An item section's comment-dots button on its title:  its name and tooltip."
+    },
     ...NEW_KIND_TEXTS,
     ...NEW_LIST_TEXTS
   ],

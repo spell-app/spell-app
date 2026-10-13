@@ -117,10 +117,10 @@
             </ui-accordion>
             <p>What that draws, above its blocks:</p>
             <ul>
-              <li>the crumbs, <code>Docs › Epics › Search Engines</code></li>
               <li>
-                the h1 <code>/epic seo</code> (a click copies it), the title under it, and at the header's right the
-                step label: <code>P2</code>, the phase under way, outlined blue
+                ONE line of crumbs, <code>DOCS / EPICS / SEO</code>, the epic's name in their type, twice their size and bold: the h1 (a click on
+                the name copies <code>/epic resume seo</code>, and a toast says so), and at the header's right the step
+                label: <code>P2</code>, the phase under way, outlined blue
               </li>
               <li>
                 under the header, the review line (<code>To review this doc, type /epic review seo</code>), then the
@@ -362,8 +362,8 @@
                     </td>
                     <td>text</td>
                     <td>
-                      The epic's title (<code>Windows and Review</code>): the subhead under the h1, which reads
-                      <code>/epic &lt;name&gt;</code>; the crumbs' last.
+                      The epic's title (<code>Windows and Review</code>): the page's <code>&lt;title&gt;</code> and
+                      the Epics list's; not drawn on the page, whose h1 is the epic's name.
                     </td>
                     <td>yes</td>
                   </tr>
@@ -486,8 +486,8 @@
                     <tr>
                       <td><code>crumbs</code></td>
                       <td>
-                        Above the header: <code>Docs › Epics › &lt;title&gt;</code>, the docs' eyebrow. None while the
-                        doc still holds its old <code>ui-breadcrumb.spell-crumbs</code> before the page.
+                        In the h1, before the epic's name: <code>Docs / Epics /</code>, the docs' eyebrow. None narrow,
+                        nor while the doc still holds its old <code>ui-breadcrumb.spell-crumbs</code> before the page.
                       </td>
                     </tr>
                     <tr>
@@ -496,11 +496,10 @@
                     </tr>
                     <tr>
                       <td><code>heading</code></td>
-                      <td>The h1, <code>/epic &lt;name&gt;</code>: a click copies it.</td>
-                    </tr>
-                    <tr>
-                      <td><code>subhead</code></td>
-                      <td>Under the h1: the epic's title.</td>
+                      <td>
+                        The h1: the crumbs, then the epic's name in their type, twice their size and bold; a click on the name copies
+                        <code>/epic resume &lt;name&gt;</code>.
+                      </td>
                     </tr>
                     <tr>
                       <td><code>actions</code></td>

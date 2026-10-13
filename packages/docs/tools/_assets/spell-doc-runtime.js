@@ -177,6 +177,7 @@ async function start() {
     await epicsDrawn(main)
   }
   const outline = outlineOf(main)
+  oneLineHead(main)
   const counts = countItems(outline)
   // the goals pages (HEADINGS) get no filter, but their id chips are coloured by state too
   if (outline.sections) wireItemFilters(main)
@@ -192,6 +193,8 @@ async function start() {
   wirePaging(main)
   if (document.body.classList.contains("plan-doc")) wireJumpKey(go, canGo)
   wireFilter(main)
+  wireTableWidths(main)
+  wireStuckTrail(main)
   // UI renders its shadow content a little after the definitions:  land once it has
   await nextFrames(2)
   sticky.measure()
@@ -207,6 +210,222 @@ async function start() {
     wireNewEpic(main)
     wireFavorites(main)
   })
+}
+
+/**
+ * The page's head on ONE line, as an epic page's (Owen, 2026-10-13:  "Make the header changes in the other doc
+ * files"):  `DOCS / SPELL SYNTAX`, the crumbs then the title, in the crumbs' own type, the title twice their size
+ * and bold (`spell-doc.css`, "The page's head on one line").
+ * - a copy of the page's breadcrumb (`.spell-crumbs`, before the sticky head) goes INTO the h1, before its text,
+ *   its last section (the page itself) left out:  the title says it;  `data-spell-added`, so a live update steps
+ *   around it
+ * - the breadcrumb itself stays where it was, hidden (`<body class="spell-one-line-head">`):  live updates still
+ *   patch it, and the copy follows when the page reloads
+ * - a page with no breadcrumb:  the title alone, in the same type
+ */
+function oneLineHead(main) {
+  const h1 = main.querySelector(":scope > ui-sticky.spell-h1 > .spell-page-head > h1")
+  if (!h1) return
+  document.body.classList.add("spell-one-line-head")
+  const crumbs = main.querySelector(":scope > ui-breadcrumb.spell-crumbs")
+  if (!crumbs || h1.querySelector(":scope > .spell-head-crumbs")) return
+  const trail = crumbs.cloneNode(true)
+  trail.classList.add("spell-head-crumbs")
+  trail.dataset.spellAdded = ""
+  trail.removeAttribute("id")
+  trail.querySelector(":scope > ui-breadcrumb-section[active]")?.remove()
+  const divider = document.createElement("span")
+  divider.className = "spell-head-divider"
+  divider.dataset.spellAdded = ""
+  divider.setAttribute("aria-hidden", "true")
+  divider.textContent = "/"
+  h1.prepend(trail, divider)
+}
+
+/**
+ * The wide layout (`<body class="spell-wide">`, `spell-doc.css` "The wide layout"):  every table sits in the reading
+ * column, as prose does, with an EXPAND button above its top-left corner that runs it the page's full width
+ * (Owen, 2026-10-13:  "make tables fit in the column by default, but have an expand button ... Remember that setting
+ * per table").
+ * - The button sits in a zero-height bar just before the table (`.spell-table-toggle`, `data-spell-added`), so it
+ *   takes no room;  a click flips it back to the column.
+ * - Expanded:  CSS can't know how far in a table starts (a list's indent, an item's inset), so this measures it,
+ *   moving the table out to the page's gutter with the page's width, less the gutter on both sides.
+ *   Again whenever its parent changes size (a section or item opening, the window resizing).
+ * - Inside a `<ui-table>`, the host is what moves.
+ * - Remembered in this browser, per page, by the table's key (`tableKey()`):  `spell-table-wide:<path>`.
+ * - Tables a part's body or a live update adds later get theirs too.
+ */
+function wireTableWidths(main) {
+  if (!document.body.classList.contains("spell-wide")) return
+  const storeKey = `spell-table-wide:${location.pathname}`
+  const toggles = new Map()
+  const sizes = new ResizeObserver((entries) => {
+    for (const entry of entries) for (const box of boxesIn(entry.target)) place(box)
+  })
+  // the box that moves:  a `<ui-table>` host, else the bare table
+  const boxesIn = (root) => [
+    ...new Set([...root.querySelectorAll("table")].map((table) => table.closest("ui-table") ?? table))
+  ]
+  const isWide = (box) => !!readJSON(storeKey)[tableKey(box, main)]
+  const place = (box) => {
+    const toggle = toggles.get(box)
+    const parent = box.parentElement
+    if (!toggle || !parent || !box.isConnected) return
+    const wide = isWide(box)
+    toggle.classList.toggle("is-wide", wide)
+    const button = toggle.querySelector("button")
+    button.title = wide ? "Back into the column" : "Expand to the page's width"
+    button.setAttribute("aria-label", button.title)
+    button.querySelector("ui-icon").setAttribute("name", wide ? "arrows left right to line" : "arrows left right")
+    if (!wide) {
+      for (const each of [box, toggle]) each.style.removeProperty("margin-inline-start")
+      box.style.removeProperty("width")
+      box.style.removeProperty("max-width")
+      return
+    }
+    if (!parent.getClientRects().length) return
+    const page = main.getBoundingClientRect()
+    const gutter = parseFloat(getComputedStyle(main).getPropertyValue("--spell-gutter")) || 16
+    const style = getComputedStyle(parent)
+    const contentLeft =
+      parent.getBoundingClientRect().left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft)
+    const start = `${page.left + gutter - contentLeft}px`
+    box.style.maxWidth = "none"
+    box.style.width = `${page.width - 2 * gutter}px`
+    box.style.marginInlineStart = start
+    toggle.style.marginInlineStart = start
+  }
+  const flip = (box) => {
+    const saved = readJSON(storeKey)
+    const key = tableKey(box, main)
+    if (saved[key]) delete saved[key]
+    else saved[key] = true
+    writeJSON(storeKey, saved)
+    place(box)
+  }
+  const toggleFor = (box) => {
+    const toggle = document.createElement("div")
+    toggle.className = "spell-table-toggle"
+    toggle.dataset.spellAdded = ""
+    const button = document.createElement("button")
+    button.type = "button"
+    const icon = document.createElement("ui-icon")
+    button.append(icon)
+    button.addEventListener("click", () => flip(box))
+    toggle.append(button)
+    return toggle
+  }
+  const watch = () => {
+    // a table a live update replaced:  its button goes with it
+    for (const [box, toggle] of toggles) {
+      if (box.isConnected && toggle.nextElementSibling === box) continue
+      toggle.remove()
+      toggles.delete(box)
+    }
+    for (const box of boxesIn(main)) {
+      if (toggles.has(box) || !box.parentElement) continue
+      const toggle = toggleFor(box)
+      box.before(toggle)
+      toggles.set(box, toggle)
+      sizes.observe(box.parentElement)
+      place(box)
+    }
+  }
+  watch()
+  new MutationObserver(() => requestAnimationFrame(watch)).observe(main, { childList: true, subtree: true })
+  addEventListener("resize", () => requestAnimationFrame(() => toggles.forEach((_toggle, box) => place(box))))
+}
+
+/**
+ * Stuck titles on ONE row (Owen, 2026-10-13:  "This could collapse to one row when stickified"):  while a nested
+ * section's title is stuck under its parent's, the top-level stuck title reads `2. Files on disk › 2.1 The repo`, and
+ * the nested stuck titles under it hide (their room shows the text scrolling under them).
+ * - the trail is the top-level title's `::part(header)::after`, from `--spell-stuck-trail` on it, with
+ *   `data-spell-trail`;  each hidden one has `data-spell-merged` (`spell-doc.css`, "Stuck titles on one row")
+ * - worked out again on every scroll and resize, a frame at a time, and once more as it settles:  `:state(stuck)`
+ *   (`<ui-section sticky>`'s) sends no event
+ * - every page's `<ui-section>`s;  an epic page draws its own sections, in its elements' shadow roots
+ */
+function wireStuckTrail(main) {
+  const marked = new Set()
+  const isStuck = (section) => section.matches("[sticky]") && section.matches(":state(stuck)")
+  // the sections directly under `section` (none between), as nesting goes
+  const childrenOf = (section) =>
+    [...section.querySelectorAll("ui-section")].filter((each) => each.parentElement.closest("ui-section") === section)
+  const titleOf = (section) =>
+    (section.getAttribute("header") ?? section.querySelector(':scope > [slot="header"]')?.textContent ?? "")
+      .replace(/\s+/g, " ")
+      .trim()
+  const update = () => {
+    const merged = new Set()
+    const trails = new Map()
+    for (const top of main.querySelectorAll("ui-section")) {
+      if (top.parentElement.closest("ui-section") || !isStuck(top)) continue
+      const trail = []
+      for (let at = top; ;) {
+        const child = childrenOf(at).find(isStuck)
+        if (!child) break
+        trail.push(titleOf(child))
+        merged.add(child)
+        at = child
+      }
+      if (trail.length) trails.set(top, JSON.stringify(` › ${trail.join(" › ")}`))
+    }
+    for (const section of marked) {
+      if (!merged.has(section)) section.removeAttribute("data-spell-merged")
+      if (!trails.has(section)) {
+        section.removeAttribute("data-spell-trail")
+        section.style.removeProperty("--spell-stuck-trail")
+      }
+    }
+    marked.clear()
+    for (const section of merged) {
+      if (!section.hasAttribute("data-spell-merged")) section.setAttribute("data-spell-merged", "")
+      marked.add(section)
+    }
+    for (const [section, trail] of trails) {
+      if (section.style.getPropertyValue("--spell-stuck-trail") !== trail)
+        section.style.setProperty("--spell-stuck-trail", trail)
+      if (!section.hasAttribute("data-spell-trail")) section.setAttribute("data-spell-trail", "")
+      marked.add(section)
+    }
+  }
+  let queued = false
+  const soon = () => {
+    if (queued) return
+    queued = true
+    requestAnimationFrame(() => {
+      queued = false
+      update()
+    })
+  }
+  // `:state(stuck)` follows a moment after the scroll (`StickyWatch` hears it from an observer):  so again once the
+  // scrolling settles, or the last frame would read the titles as they were
+  let settle
+  const later = () => {
+    soon()
+    clearTimeout(settle)
+    settle = setTimeout(soon, STUCK_SETTLE_MS)
+  }
+  addEventListener("scroll", later, { passive: true })
+  addEventListener("resize", later)
+  later()
+}
+
+/** How long after the last scroll the stuck titles are read again (`wireStuckTrail()`), ms. */
+const STUCK_SETTLE_MS = 120
+
+/**
+ * A table's key, for remembering its width:  its id, else the nearest id above it and which table it is under that
+ * (`p14#table-1`, `memory#table-2`);  `page#table-<n>` with no id above it.
+ */
+function tableKey(box, main) {
+  if (box.id) return box.id
+  const holder = box.parentElement.closest("[id]")
+  const root = holder && main.contains(holder) ? holder : main
+  const boxes = [...new Set([...root.querySelectorAll("table")].map((table) => table.closest("ui-table") ?? table))]
+  return `${root === main ? "page" : root.id}#table-${boxes.indexOf(box) + 1}`
 }
 
 /**

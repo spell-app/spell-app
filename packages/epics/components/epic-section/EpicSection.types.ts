@@ -307,3 +307,6 @@ export type SectionCount = {
 export const FILTER = "filter"
 export const CHIP = "chip"
 export const HIDDEN_NOTE = "hidden-note"
+
+/** Class of an item section's new button, on its title (`newButton()`). */
+export const NEW_HERE = "new-here"

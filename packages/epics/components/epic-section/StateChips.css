@@ -10,6 +10,39 @@
    * ## The state filter:  a pill per state its items are in, in the state's colour, with how many;
    * SOLID while its items show, OUTLINED while hidden (Owen, 2026-10-10).  Each centred on the title's row
    */
+  /* an item section's new button, after its chips:  round, quiet, green under the pointer (the new item's colour) */
+  .new-here {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    box-sizing: border-box;
+    width: 24px;
+    height: 24px;
+    margin-inline-start: 6px;
+    padding: 0;
+    border: 1px solid var(--epic-rule, var(--ui-border-color));
+    border-radius: 999px;
+    background: none;
+    color: var(--epic-muted, var(--ui-text-muted));
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .new-here:hover {
+    border-color: var(--ui-green, #00853a);
+    color: var(--ui-green, #00853a);
+  }
+  .new-here:focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent));
+    outline-offset: 1px;
+  }
+  .new-here ui-icon {
+    pointer-events: none;
+  }
+  .new-here ui-icon::part(icon) {
+    width: auto;
+    margin: 0;
+  }
   .filter {
     display: inline-flex;
     align-items: center;

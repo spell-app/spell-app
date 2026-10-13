@@ -661,6 +661,12 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
     return this.isOpen() ? this.toggle() : false
   }
 
+  /** Open it, if folded and it has details, as a click on its line would (`toggle()`);  true when it opened.  Expand-all's. */
+  @E.untracked
+  expand(): boolean {
+    return !this.isOpen() && this.hasDetails() ? this.toggle() : false
+  }
+
   /**
    * Collapse-all, the double chevron at its line's end:  fold every card and panel inside it (`foldAllUnder()`).
    * - the item itself stays open, its line kept where it is on screen

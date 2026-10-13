@@ -852,7 +852,7 @@ export const ACTIONS = ["approve", "todo", "next", "drop", "skip", "details", "r
 export type MarkAction = (typeof ACTIONS)[number]
 
 /** What a new item from the page may be (`setNew()`):  `plan-doc add`'s kinds Owen asks for. */
-export const NEW_KINDS = ["todo", "question"] as const
+export const NEW_KINDS = ["todo", "question", "issue", "test"] as const
 /** One of `NEW_KINDS`. */
 export type NewKind = (typeof NEW_KINDS)[number]
 

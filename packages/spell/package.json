@@ -21,7 +21,9 @@
     "test:fixtures": "vp test run src/test/fixtures.test.ts src/test/typescript.test.ts src/test/python.test.ts",
     "test:fixtures:bless": "vp test run src/test/fixtures.test.ts src/test/typescript.test.ts src/test/python.test.ts --update=all",
     "test:rules": "vp test run src/rules",
-    "test:rules:bless": "BLESS_RULE_TESTS=1 vp test run src/rules; vp fmt src/rules"
+    "test:rules:bless": "BLESS_RULE_TESTS=1 vp test run src/rules; vp fmt src/rules",
+    "/////// GENERATED FILES": "",
+    "gen:syntax": "node --import tsx src/node/writeSpellSyntax.ts && vp fmt spellSyntax.json"
   },
   "dependencies": {
     "@spell-app/core": "workspace:*",

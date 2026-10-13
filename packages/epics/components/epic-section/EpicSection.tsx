@@ -25,6 +25,7 @@ import {
   FILTER_STATES,
   HIDDEN_NOTE,
   ITEM_KINDS,
+  NEW_HERE,
   NUMBERED_BLOCKS,
   PHASE_TOGGLES,
   PHASE_TOGGLES_KEY,
@@ -286,7 +287,14 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
           : kind === "overview-part"
             ? () => this.reviewButtons()
             : this.holdsItems()
-              ? () => this.filter()
+              ? () => (
+                  <>
+                    {this.filter()}
+                    <Show when={this.reviewState.reviewing() && this.newKind()}>
+                      {(newKind) => this.newButton(newKind())}
+                    </Show>
+                  </>
+                )
               : undefined,
       before: kind === "overview-part" ? () => this.saidNote() : undefined,
       after: () => (
@@ -348,6 +356,45 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   ////////////////
   // ## The state filter
   ////////////////
+
+  /**
+   * A Todos, Questions, Issues or Tests section's NEW button, on its title, while reviewed:  comment dots, round, its
+   * name the tooltip (Owen, 2026-10-13:  "Remove "comment" icon from top header -- add it to question/todo/issue/test
+   * headers").  A click opens the section, then the form at its end (`openNewForm()`).
+   */
+  private newButton(kind: NewKind): JSX.Element {
+    const words = () => this.translationForKey("addNew", { kind: this.translationForKey(NEW_KIND_LOOKS[kind].label) })
+    return (
+      <button
+        type="button"
+        class={NEW_HERE}
+        part={this.partForName("new-button")}
+        aria-label={words()}
+        title={words()}
+        onClick={(event) => {
+          // a title's tool:  not a click on the title, which would fold it
+          event.stopPropagation()
+          this.openNewForm()
+        }}
+      >
+        <ui-icon name="comment dots" />
+      </button>
+    )
+  }
+
+  /** Open this section, then its new item form, on screen, its title field ready. */
+  @E.untracked
+  private openNewForm() {
+    void this.reveal().then(() =>
+      E.afterSolidUpdate(() => {
+        const box = this.newItem
+        if (!box) return
+        box.editing = undefined
+        box.open = true
+        E.beforeNextPaint(() => box.scrollIntoView({ block: "nearest" }))
+      })
+    )
+  }
 
   /** The filter's chips:  one per state its items are in, with how many, solid while they show. */
   private filter(): JSX.Element {

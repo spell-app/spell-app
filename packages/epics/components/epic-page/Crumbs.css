@@ -1,5 +1,5 @@
 /*
- * `<epic-page>`'s crumbs (`crumbs()` in EpicPage.tsx):  `Docs › Epics › <title>` over the header, the docs' EYEBROW
+ * `<epic-page>`'s crumbs (`crumbs()` in EpicPage.tsx):  `Docs / Epics /` before the epic's name, in the h1, the docs' EYEBROW
  * -- small mono capitals, tracked out, the links in the accent and the page itself muted -- as `spell-doc.css`'s
  * `.spell-crumbs`, which can't reach into the shadow root.
  * - Spell UI's `<ui-breadcrumb>`, through its public tokens and `::part(breadcrumb)`.
@@ -16,12 +16,22 @@
     --ui-breadcrumb-active-font-weight: 500;
     --ui-breadcrumb-divider-color: var(--epic-muted);
     --ui-breadcrumb-divider-spacing: 0.4em;
-    display: block;
-    margin: 0 var(--epic-inset) 10px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4em;
+    /* the eyebrow's size, so its gaps (`em`) are the breadcrumb's own, not the h1's */
+    font-size: 11px;
     letter-spacing: var(--spell-eyebrow-tracking, 0.14em);
     text-transform: uppercase;
   }
-  .crumbs::part(breadcrumb) {
+  .crumbs > ui-breadcrumb {
+    display: inline-block;
+  }
+  .crumb-divider {
+    color: var(--epic-muted);
+    font: var(--spell-eyebrow-font, 500 11px/1.2 var(--epic-mono));
+  }
+  .crumbs ui-breadcrumb::part(breadcrumb) {
     font: var(--spell-eyebrow-font, 500 11px/1.2 var(--epic-mono));
   }
   /*

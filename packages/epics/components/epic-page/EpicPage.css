@@ -38,6 +38,9 @@
     /* the toolbar's band:  the docs' rail ivory (`spell-doc.css`) */
     --epic-toolbar-fill: var(--spell-rail-fill, var(--epic-warm));
     --epic-toolbar-rule: var(--spell-rail-rule, var(--epic-rule));
+    /* the header's row:  a lighter ivory than the toolbar's;  the toolbar's edges:  a darker one (Owen, 2026-10-13) */
+    --epic-head-fill: var(--spell-head-fill, color-mix(in oklab, var(--epic-warm) 45%, var(--epic-bg)));
+    --epic-toolbar-edge: var(--spell-rail-edge, color-mix(in oklab, var(--epic-ink) 22%, var(--epic-warm)));
 
     /* ## Type */
     --epic-sans: var(--spell-sans, var(--ui-font-family));
@@ -117,23 +120,30 @@
     display: flex;
     align-items: center;
     gap: 6px 10px;
-    padding: 8px var(--epic-inset) 4px;
-    background: var(--epic-bg);
+    padding: 4px var(--epic-inset);
+    /* a lighter ivory than the toolbar under it (Owen, 2026-10-13:  "Make "REVIEW REVIEW" header lighter beige") */
+    background: var(--epic-head-fill);
   }
-  /* the h1, taking the row's free room */
+  /*
+   * the h1, taking the row's free room:  the crumbs, then the epic's name, centred on the row, at least as tall as the
+   * labels at its right;  the name in the crumbs' own type, all capitals, twice their size and bold (Owen, 2026-10-13:
+   * "same font and style / all caps, 1/2 the size, vertical align center, less vertical padding")
+   */
   .heading {
     flex: 1 1 12em;
     min-width: 0;
+    min-height: var(--epic-control-size, 28px);
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0 10px;
+    align-items: center;
+    gap: 0 6px;
     margin: 0;
     color: var(--epic-heading-ink);
-    font: 700 32px/1.15 var(--epic-serif);
-    letter-spacing: -0.022em;
+    font: 700 16px/1.2 var(--epic-mono);
+    letter-spacing: var(--spell-eyebrow-tracking, 0.14em);
+    text-transform: uppercase;
   }
-  /* `/epic <name>`:  a plain-looking heading that copies itself */
+  /* the epic's name:  a plain-looking heading that copies `/epic resume <name>` */
   .heading-copy {
     min-width: 0;
     padding: 0;
@@ -142,26 +152,18 @@
     color: inherit;
     font: inherit;
     letter-spacing: inherit;
+    text-transform: inherit;
     text-align: start;
     overflow-wrap: anywhere;
-    cursor: copy;
+    cursor: pointer;
+  }
+  .heading-copy:hover {
+    color: var(--epic-accent);
   }
   .heading-copy:focus-visible {
     border-radius: 4px;
     outline: 2px solid var(--epic-accent);
     outline-offset: 2px;
-  }
-  .heading .done {
-    color: var(--epic-muted);
-    font: 400 14px var(--epic-sans);
-    letter-spacing: normal;
-  }
-  .subhead {
-    margin: 0;
-    padding: 0 var(--epic-inset) 8px;
-    color: var(--epic-muted);
-    font: 400 18px/1.3 var(--epic-sans);
-    text-wrap: balance;
   }
   /*
    * at the row's far right, in this order (Owen, 2026-10-10:  "Right items:  (=>P14) (whatever the half-filled circle
@@ -204,8 +206,13 @@
     position: sticky;
     z-index: 5;
     top: calc(var(--spell-site-header-height, 0px) + var(--epic-head-h, 0px));
-    /* the toolbar's own rule, the one that was above it:  the page's rule is all but white on the ivory */
-    border-bottom: 1px solid var(--epic-toolbar-rule);
+    /*
+     * the toolbar's edges, above and below, a darker ivory drawn as shadows, so they take no room (Owen, 2026-10-13:
+     * "Rule above/below should be darker beige -- use a shadow for it")
+     */
+    box-shadow:
+      0 -1px 0 var(--epic-toolbar-edge),
+      0 1px 0 var(--epic-toolbar-edge);
     background: var(--epic-bg);
   }
   .toolbar {
@@ -224,49 +231,6 @@
   }
   .toolbar-tools:empty {
     display: none;
-  }
-  /* the new todo or question button (comment dots):  round, a gap before it;  green while its form is open */
-  .new-button {
-    display: inline-grid;
-    flex: none;
-    place-items: center;
-    box-sizing: border-box;
-    width: var(--epic-control-size, 28px);
-    height: var(--epic-control-size, 28px);
-    margin-inline-start: 12px;
-    padding: 0;
-    border: 1px solid var(--epic-rule);
-    border-radius: 999px;
-    background: none;
-    color: var(--epic-muted);
-    font: inherit;
-    font-size: 14px;
-    line-height: 1;
-    cursor: pointer;
-  }
-  .new-button:is(:hover, [aria-expanded="true"]) {
-    border-color: var(--ui-green, #00853a);
-    color: var(--ui-green, #00853a);
-  }
-  .new-button:focus-visible {
-    outline: 2px solid var(--ui-focus-color, var(--epic-accent));
-    outline-offset: 1px;
-  }
-  .new-button ui-icon::part(icon) {
-    width: auto;
-    margin: 0;
-  }
-  /*
-   * its form (`<epic-new-item open>`, epic `airplane` P2):
-   * a row of its own across the sticky bar, above the toolbar, so it shows wherever Owen is
-   */
-  .bar > epic-new-item {
-    max-height: 60vh;
-    margin: 8px var(--epic-inset);
-    overflow: auto;
-  }
-  .bar > epic-new-item::part(form) {
-    margin: 0;
   }
   /*
    * ## The pill, under the review line:  while marks wait and nobody can take them.
@@ -291,7 +255,7 @@
     font: 600 13px/1.4 var(--epic-sans);
     text-align: start;
     overflow-wrap: anywhere;
-    cursor: copy;
+    cursor: pointer;
   }
   .pill code {
     background: color-mix(in oklab, var(--ui-ink-on-dark, #fff) 18%, transparent);
@@ -414,14 +378,15 @@
     box-sizing: border-box;
     width: calc(100% - 2 * var(--epic-inset) + 16px);
     margin: 8px calc(var(--epic-inset) - 8px) 0;
-    padding: 4px 8px;
+    /* no padding above or below:  its line as far from the meta lines as they are from each other */
+    padding: 0 8px;
     border: none;
     border-radius: 8px;
     background: none;
     color: var(--epic-muted);
     font: 15px/1.5 var(--epic-sans);
     text-align: start;
-    cursor: copy;
+    cursor: pointer;
   }
   .review-line:hover {
     background: var(--epic-accent-soft);
@@ -456,8 +421,9 @@
   }
 
   /* ## Meta lines:  an icon column, the text wrapping beside it;  each icon centred on its line's first row */
+  /* right under the review line, its lines as far apart as their own (the review line's padding is the gap) */
   .meta {
-    margin: 4px var(--epic-inset) 24px;
+    margin: 0 var(--epic-inset) 24px;
     padding: 0;
     color: var(--epic-muted);
     font-size: 15px;
@@ -475,6 +441,14 @@
   .meta > li > span {
     min-width: 0;
   }
+  /* a meta line's command or path:  a click copies it (`copyMeta()`) */
+  .meta code {
+    cursor: pointer;
+  }
+  .meta code:hover {
+    background: var(--epic-accent-soft);
+    color: var(--epic-accent);
+  }
   .meta b {
     color: var(--epic-ink);
   }
@@ -491,12 +465,13 @@
     height: 1em;
     fill: currentColor;
   }
+  /* `line-height: 1`:  the chip never makes its line taller than the text's (the shorthand would reset it to normal) */
   code {
     padding: 1px 5px;
     border-radius: 4px;
     background: var(--epic-code-bg);
     color: var(--epic-ink);
-    font: 0.86em var(--epic-mono);
+    font: 0.86em/1 var(--epic-mono);
   }
   .path {
     overflow-wrap: anywhere;
@@ -572,20 +547,16 @@
     /* the h1 shares its row with the labels while they fit (no row of their own:  the stuck header stays short) */
     .heading {
       flex-basis: 100%;
-      font-size: 24px;
     }
     /* the labels stay at the row's right, over the h1's end:  the header's own ground under them, fading left */
     .status {
       position: absolute;
-      top: 8px;
+      top: 4px;
       inset-inline-end: var(--epic-inset);
-      height: calc(24px * 1.15);
+      height: var(--epic-control-size, 28px);
       padding-inline-start: 6px;
-      background: var(--epic-bg);
-      box-shadow: -10px 0 8px -2px var(--epic-bg);
-    }
-    .subhead {
-      font-size: 15px;
+      background: var(--epic-toolbar-fill);
+      box-shadow: -10px 0 8px -2px var(--spell-rail-bg, var(--epic-warm));
     }
     .meta {
       font-size: 14px;

@@ -196,6 +196,9 @@ const ICONS = {
   "solid/angles-down": ["angles down"],
   "solid/angles-up": ["angles up"],
   "solid/code": ["code"],
+  // a wide-layout table's expand button (`spell-doc-runtime.js` `wireTableWidths()`):  wider, back into the column
+  "solid/arrows-left-right": ["arrows left right"],
+  "solid/arrows-left-right-to-line": ["arrows left right to line"],
   // master plan:  live pages (thoughts, Claude sessions, setup)
   "regular/comment-dots": ["comment dots"],
   // review notes:  an item Owen wrote in (outline:  a draft;  solid `comment`:  sent), and Edit on a sent note
@@ -605,17 +608,26 @@ function checkOneSolid(metafile) {
   if (!copies.has("solid-js")) fail("solid-js isn't in the bundle:  check the resolver")
 }
 
-/** Fails if the output still needs ES module machinery a classic script on `file://` doesn't have. */
+/**
+ * Fails if the output still needs ES module machinery a classic script on `file://` doesn't have.
+ * - A top-level `import` / `export`, or `import.meta`:  it won't PARSE as a classic script.
+ *   Parsed, not searched, since the writers carry program text in their strings
+ *   (the Python writer's `import os`, the page contract's `export function adopt`).
+ * - A runtime `import()` parses fine, and fails only once it runs, so that one is searched for:
+ *   - esbuild always prints it as `import(`, no space
+ *     (so a regex in the Python writer, `/^from spell_core import (.*)$/`, isn't one)
+ *   - a call, not a METHOD called `import` (spell's parser has one:  `x.import(y)`, `import(...rules) {`)
+ */
 function checkClassicScript(file = OUTFILE) {
   const code = readFileSync(file, "utf8")
-  const problems = [
-    // a call, not a METHOD called `import` (spell's parser has one:  `x.import(y)`, `import(...rules) {`)
-    [/(?<![.\w$])import\s*\((?![^)]*\)\s*\{)/, "a runtime import()"],
-    [/\bimport\.meta\b/, "import.meta"],
-    // not `export interface` / `export type`:  TypeScript only, so text the TypeScript writer writes out
-    [/^\s*(import|export)\s(?!interface\b|type\b)[\w{*"]/m, "a top-level import / export"]
-  ].filter(([pattern]) => pattern.test(code))
-  if (problems.length) fail(`${relative(DOCS, file)} still has ${problems.map(([, what]) => what).join(", ")}`)
+  const problems = []
+  try {
+    new Script(code, { filename: file })
+  } catch (error) {
+    problems.push(`a module-only form (${error.message})`)
+  }
+  if (/(?<![.\w$])import\((?![^)]*\)\s*\{)/.test(code)) problems.push("a runtime import()")
+  if (problems.length) fail(`${relative(DOCS, file)} still has ${problems.join(", ")}`)
 }
 
 /**

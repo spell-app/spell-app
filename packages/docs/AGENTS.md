@@ -145,6 +145,15 @@ In `tools/`:
   - `commands.js`:  command reference pages ([the commands template](../../templates/commands.html)).
     - It draws their tables from the page's JSON, then loads `spell-ui.js` itself.
     - The page loads `commands.js` INSTEAD of the bundle.
+  - `spell-syntax.js`, `spell-syntax.css`:  [the spell syntax guide](../../guides/spell-syntax/spell-syntax.html).
+    - It draws one table per module of the base spell language, a row per rule class, from spell's generated
+      [spellSyntax.json](../spell/spellSyntax.json) (`yarn gen:syntax` in `packages/spell`).
+    - Each row:  the class's name, opening its source;  its syntaxes and aliases;  an example of each syntax in each
+      writer;  its purpose.  Every section starts open, with Expand all and Collapse all in the toolbar.
+    - Built from elements, never markup in strings;  its boxes and toolbar are a syntax-choices page's
+      (`syntax-choices.css`, `choicesRoutes.ts`), the page naming its rows on `<body data-choices-rows>`.
+    - Each row's wand adds a comment on it ("Provide more details here"):  see "Comments".
+    - Then it loads `spell-ui.js` itself, as `commands.js` does.
   - `core-reference.js`:  [the core reference page](../../guides/targets/core-reference.html) (epic `python-target` P29).
     - It draws one table per core file, from two lists:
       - core's [spellCore.declarations.json](../core/spellCore.declarations.json)
@@ -176,11 +185,40 @@ In `tools/`:
   - But the openers (`docs open`, `epic open`) show them from this checkout's PAGE SERVER
     (`spell dev server`, see [server's AGENTS.md](../server/AGENTS.md)).
     - It adds live reload, edit mode, and the server-only properties (Spell UI, Editor).
-  - The exceptions:  a `commands` page, and the core reference page, fetch their JSON,
+  - The exceptions:  a `commands` page, the core reference page and the spell syntax guide fetch their JSON,
     so they draw their tables only from the page server.
     - From `file://` each says so, where they'd go.
     - Its `<body data-spell-needs-server>` makes `check-spell.js` load it from the server.
     - Why:  Owen chose a plain JSON file over a JS data file, or tables rendered into the HTML (epic `commands`, D4).
+- The MEASURE:  a page's reading column is `--spell-measure` wide (880px, its 16px side padding included), centred
+  (`spell-doc.css`, "Layout").
+  - Today it holds EVERYTHING in `<main>`:  nice for prose, "horrible for tables" (Owen, 2026-10-12).
+  - The WIDE LAYOUT, opt-in while Owen tries it:  `<body class="... spell-wide">`.
+    On the spell syntax guide and `epic-workflow`'s plan doc so far;  every page's once he approves
+    (that epic's todo, "Make the wide layout the default on every page").
+    - `<main>` runs the window's full width, and each kind of block places itself:
+      - BARS (the sticky page header and its toolbar, section titles, the footer, a bottom bar):
+        background and rule edge to edge, their contents in the column
+      - TABLES (`ui-table`, a bare `table`):  in the column, as prose, with an EXPAND button above each one's top-left
+        corner that runs it the full width, less a 16px gutter (Owen, 2026-10-13)
+        - remembered per table, in this browser (`spell-table-wide:<path>`), by the table's id, else the nearest id above
+          it and which table it is under that (`p14#table-1`)
+        - the runtime's `wireTableWidths()`:  it measures how far in a table starts, so one inside a list item or an
+          epic item's details goes out to the gutter too
+        - no button at phone width:  the column is the page already
+      - the page's HEAD (breadcrumb, title, toolbar):  one ivory band from the site header down;  an epic page's header
+        and subtitle too (`EpicPage.css`)
+      - everything else, prose and insets (paragraphs, lists, asides, code, messages, cards, comment threads):
+        the column, centred
+      - a block that should run full width anyway:  `class="spell-full-width"`
+    - A bare `<table>` is celled like a `ui-table celled compact`;  both draw their cells in `--spell-table-rule`.
+      At phone width a bare table scrolls inside its own box.
+    - A plan doc:  `<epic-page>`'s `--epic-inset` becomes the column's inset, so its bands run edge to edge
+      and everything in them sits in the column.  The pack itself doesn't change.
+    - `--spell-column-inset`:  from the window's edge to the column, at least 16px.
+      Worked out once in px, on `<main>`, so a block at any depth (shadow roots too) inherits the same number.
+    - Phone width looks as before:  a 16px gutter, nothing wider than the window.
+    - Not tried yet:  the goals pages' old `section.s2` markup, a cheatsheet's filter bar, `.spell-toolbar-alone`.
 - Sections are `<ui-section>` elements.
   - The page skeleton:  [spell-docs.md](../../guides/spell-docs/spell-docs.md), "Page skeleton".
   - Every piece of the markup:  [the ui-section test page](../../guides/spell-docs/ui-section-test.html).
@@ -193,11 +231,17 @@ In `tools/`:
     - EVERY one is `sticky collapsible dividing collapsed`:  a rule under every title, and every section folds.
   - They MUST start folded:  every section and sub-section `collapsed`, every code block and aside without `open`.
     - The reader opens what they want (Owen, 2026-10-03:  "default to closed, open on demand").
+    - The ONE exception:  the spell syntax guide starts with everything open (Owen, 2026-10-12), a comment in it says so.
     - The runtime remembers the reader's folds per page, and a link to an id unfolds what hides it.
   - its icon:  a `<ui-icon slot="icon" name="...">`, first inside it
   - a title with markup:  a `<span slot="header">`, instead of `header`
   - A sticky page header above them, on EVERY page (the templates have it), so the title stays on screen:
     `<ui-sticky class="spell-h1"><header class="spell-page-head">` around the h1.
+    - The runtime draws it on ONE line, as an epic page's (`oneLineHead()`;  Owen, 2026-10-13):  a copy of the
+      breadcrumb goes into the h1, `DOCS / SPELL SYNTAX`, the title in the crumbs' type (mono capitals), twice their
+      size and bold;  the breadcrumb above it hides.  A lighter ivory than the toolbar under it.
+    - While a sub-section's title is stuck under its parent's, the two are one row:  `2. Files on disk › 2.1 The
+      repo` (`wireStuckTrail()`).
   - The OLD markup is for the goals pages only;  the runtime still drives it.
     - It's `section.s2|s3` > `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>`.
     - `node tools/to-ui-section.js <page>` converts a page.
@@ -221,6 +265,7 @@ In `tools/`:
     - Titles that don't all fit end in `...`.
       - When each would get under 50px, they go:  icons only, the title as the button's tooltip (`fitTitles()`).
       - The row scrolls sideways if even that doesn't fit, never the page.
+    - The spell syntax guide adds Expand all and Collapse all at the band's right (`spell-syntax.js`, Owen 2026-10-12).
     - A page without a sticky page header:  the last row of its filter bar.
       Else a sticky bar of its own, before its first section (`.spell-toolbar-alone`:  the goals pages).
   - A PLAN DOC (`body.plan-doc`) has its own toolbar (`buildToolbar()`).
@@ -601,6 +646,11 @@ In `tools/`:
 
   - Pages go where details pages do.
   - `<slug>.rows.json`, beside the page, holds the rows.
+- A DOCS page may take choices too:  one that names its own rows on `<body data-choices-rows="...">`.
+  - The spell syntax guide does:  its rows are generated from the code, its boxes keyed `<Class>.<field>` (`IsGtLt.py`).
+  - Its draft and answer go beside it, as a choices page's;  its box ids aren't checked against the rows.
+  - `epic choices show | wait | answer <page>` take its path;  `list` covers only the `details/` folders.
+  - It still takes comments:  only a page with `<slug>.rows.json` beside it doesn't.
 - The page server's route module, [choicesRoutes.ts](tools/choicesRoutes.ts):
   - the draft:  `<slug>.draft.json`, saved 5s after typing stops, never wakes anyone
   - the answer:  `<slug>.answer.json`, which `epic choices wait` exits with
@@ -827,11 +877,15 @@ In `tools/`:
 
   ```sh
   epic comments list [--all] [--json]
+  epic comments wait [<page>...] [--timeout 8h]
   epic comments answer <page> <id> --file <html> [--commit <sha>]
   epic comments working <page> <id> on | off
   epic comments gather [<page>... | --all] [--epic <name>] [--json]
   ```
 
+  - `wait`, run in the background, wakes the session with a comment that starts waiting (on those pages, else any):
+    a new one, or Owen's reply on one.  It exits 2 on timeout.
+    - e.g. the spell syntax guide's wand, a comment on its row:  "Provide more details here:  `IsGtLt`."
   - `working ... on` as Claude starts on a comment:  its thread shows "Claude: thinking…".
     - It sets the comment's `working`, since when (`CommentList.setWorking()`).
     - `answer` turns it off.
@@ -973,7 +1027,7 @@ In this order, from `packages/docs`:
   - [detailsRoutes.ts](tools/detailsRoutes.ts):  the page server's route module for their answers
 - `epic choices` ([choices.js](tools/choices.js)):  syntax-choices pages (see "Syntax-choices pages").
   - [choicesRoutes.ts](tools/choicesRoutes.ts):  their drafts and answers
-- `epic comments list | gather | answer` ([comments.ts](tools/comments.ts)):  comments on docs pages.
+- `epic comments list | wait | gather | answer` ([comments.ts](tools/comments.ts)):  comments on docs pages.
   - See "Comments".
   - [commentsRoutes.ts](tools/commentsRoutes.ts):  the pages' bullhorns
 - `epic notes list | answer | done` ([notes.ts](tools/notes.ts)):  page notes, from before comments.

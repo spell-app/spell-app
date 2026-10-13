@@ -235,6 +235,27 @@ test("WORKING:  `spell dev comments working` -- the GET carries it (the thread's
   await post({ page, action: "clear", id })
 })
 
+test("WAIT:  `epic comments wait <page>` exits with a comment new since it started, not one already waiting", async () => {
+  const page = "/epics/big/notes.html"
+  const file = join(root, "epics/big/notes.html")
+  const before = (await post({ page, action: "add", ...ON_TABLE, text: "Already here" })).answer.id
+  const log = vi.spyOn(console, "log").mockImplementation(() => undefined)
+  try {
+    const waiting = run(["wait", file], { timeout: "10s" })
+    await new Promise((done) => setTimeout(done, 100))
+    const { id } = (await post({ page, action: "add", ...ON_TABLE, text: "Provide more details here." })).answer
+    expect(await waiting).toBe(0)
+    const printed = log.mock.calls.map(([line]) => String(line)).join("\n")
+    expect(printed).toContain(`${id}  table`)
+    expect(printed).toContain("Provide more details here.")
+    expect(printed).not.toContain("Already here")
+    await post({ page, action: "clear", id })
+  } finally {
+    log.mockRestore()
+  }
+  await post({ page, action: "clear", id: before })
+})
+
 test("the page reads its comments back, every status", async () => {
   const got = await ask(port, "GET", "/api/comments?page=%2Fguides%2Fsolid%2Fsolid-2.html")
   expect(got.status).toBe(200)

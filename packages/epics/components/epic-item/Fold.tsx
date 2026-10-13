@@ -127,6 +127,17 @@ export class Fold {
     )
   }
 
+  /** Expand-all's button, the page toolbar's:  collapse-all's look, its double chevron pointing down. */
+  static expandAllButton({ label, part, onCollapse: onExpand }: CollapseAllOptions): JSX.Element {
+    return (
+      <button type="button" class={COLLAPSE_ALL} part={part} aria-label={label} title={label} onClick={onExpand}>
+        <svg class={CHEVRONS} viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M4 3.5 8 7.5 12 3.5M4 7.5 8 11.5 12 7.5" />
+        </svg>
+      </button>
+    )
+  }
+
   ////////////////
   // ## The heading band
   ////////////////
@@ -179,6 +190,24 @@ export function foldAllUnder(root: Element): number {
     if (closed) folded++
   }
   return folded
+}
+
+/**
+ * Open everything under `root`:  the page toolbar's expand-all (Owen, 2026-10-13:  "Add expand all button next to
+ * collapse all").
+ * - every section, phase and item inside it, through their own `expand()`:  the cancelable `ui-open`, as a click's
+ * - NOT the cards and panels inside them (asides, code, replies ...):  those stay as the reader left them, so an
+ *   opened page reads as a list of items, not every aside at once
+ * - returns how many it opened
+ */
+export function expandAllUnder(root: Element): number {
+  let opened = 0
+  for (const element of root.querySelectorAll("*")) {
+    if (!element.localName.startsWith(EPIC_PREFIX)) continue
+    const component = (element as Partial<E.DOMElement>).component as { expand?: () => boolean } | undefined
+    if (component?.expand?.()) opened++
+  }
+  return opened
 }
 
 /** What `foldAllUnder()` folds:  a component that folds itself (`collapse()`), or one with a box that folds (`fold`). */

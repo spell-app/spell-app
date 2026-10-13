@@ -204,7 +204,6 @@
       { class: "spell-choices-send", primary: "", circular: "", icon: "paper plane" },
       "Do it"
     )
-    const count = el("span", { class: "spell-choices-count" })
     const saved = el("span", { class: "spell-choices-saved" })
     const expand = el(
       "ui-button",
@@ -215,12 +214,12 @@
     const done = el("ui-message", { class: "spell-choices-sent", state: "positive", size: "small", hidden: "" })
     section.append(
       el("div", { class: "spell-choices-row" }, feedback, send),
-      el("div", { class: "spell-choices-meta" }, count, saved, expand),
+      el("div", { class: "spell-choices-meta" }, saved, expand),
       error,
       done
     )
     document.querySelector("main").append(section)
-    return { feedback, send, count, saved, expand, error, done }
+    return { feedback, send, saved, expand, error, done }
   }
 
   /** Show `message` where the tables go. */
@@ -294,10 +293,10 @@
     if (sent) showSent(sent, { isStale: true })
   }
 
-  /** The toolbar's count, and each section's badge. */
+  /** The count, on "Do it"'s tooltip (no line of its own under the bar), and each section's badge. */
   function count() {
     const changedRows = [...rows.values()].filter((row) => row.tr.hasAttribute("data-changed"))
-    bar.count.textContent = `${changedRows.length} changed of ${rows.size}`
+    bar.send.title = `Send ${changedRows.length} changed of ${rows.size}, and the feedback, to Claude`
     for (const section of document.querySelectorAll("ui-section:has(.spell-choices-table)")) {
       const mine = [...rows.values()].filter((row) => row.section === section.id)
       section.setAttribute("badge", badge(mine, mine.filter((row) => changedRows.includes(row)).length))

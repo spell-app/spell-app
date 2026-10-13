@@ -76,7 +76,6 @@ export const HAS_COMMITS = "epic-commit, [commits]"
 export const HEAD = "head"
 export const HEADING = "heading"
 export const HEADING_COPY = "heading-copy"
-export const SUBHEAD = "subhead"
 export const META = "meta"
 export const STATUS = "status"
 export const GIT = "git"
@@ -114,6 +113,10 @@ export const CRUMB_LINKS = {
  * - REFACTOR:  goes once every doc is migrated (P14's second pass).
  */
 export const OLD_CRUMBS = ":scope > .spell-crumbs"
+
+/** The toast saying something was copied (the heading's name, a meta line's code, the review line):  how long it shows, ms;  its id, so a second copy replaces it. */
+export const COPIED_TOAST_MS = 2500
+export const COPIED_TOAST_ID = "epic-copied"
 
 /** How long the review line flashes once copied, ms:  as the old runtime's (`FLASH_MS`). */
 export const FLASH_MS = 900

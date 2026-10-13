@@ -36,6 +36,8 @@
   --spell-ink: var(--spell-text-body, var(--ui-text-color, CanvasText));
   --spell-muted: var(--spell-text-muted, var(--ui-text-muted, GrayText));
   --spell-rule: var(--spell-border-subtle, var(--ui-border-color, light-dark(#e3e0d8, #34343b)));
+  /* a table's cell borders:  stronger than the rule, so the grid reads (Owen, 2026-10-13:  "Lost table borders") */
+  --spell-table-rule: color-mix(in oklab, var(--spell-ink) 18%, transparent);
   --spell-doc-accent: var(--spell-text-accent, var(--ui-link, LinkText));
   --spell-doc-accent-soft: var(--spell-surface-selected, var(--ui-primary-background, light-dark(#e8eff8, #1f2b3b)));
   /* the brand's panels:  ivory for asides and answers, a lavender wash for side columns, the code well */
@@ -110,10 +112,15 @@ body {
 /*
  * One content column, centred;  nothing beside it (the contents column went, Owen, 2026-10-08;  the floating rail
  * too:  the navigation is a toolbar in the sticky page header since epic `airplane` P8, "Toolbar").
+ * - `--spell-measure`:  the column's width, its 16px side padding included (`--spell-doc-pad-inline`), so its text is
+ *   848px at most;  the wide layout below centres its reading column by it too
  */
+:root {
+  --spell-measure: 880px;
+}
 .spell-doc {
   display: grid;
-  grid-template-columns: minmax(0, 880px);
+  grid-template-columns: minmax(0, var(--spell-measure));
   justify-content: center;
 }
 /*
@@ -133,6 +140,148 @@ body {
   --spell-doc-pad-end: max(96px, calc(100vh - var(--spell-site-header-height, 0px) - var(--spell-top, 0px)));
   min-width: 0;
   padding: 10px var(--spell-doc-pad-inline) var(--spell-doc-pad-end);
+}
+
+/*
+ * ## The wide layout (`<body class="spell-wide">`;  epic `epic-workflow`, Owen 2026-10-12:  "This is nice for reading
+ * prose, but horrible for tables").  Opt-in while Owen tries it on a few pages;  then every page's.
+ * - `<main>` runs the window's full width, with no side padding;  each kind of block places itself:
+ *   - BARS (the sticky page header and its toolbar, section titles, the footer, a bottom bar like the syntax guide's
+ *     Send):  their background and rule edge to edge, their contents in the reading column
+ *   - TABLES (`ui-table`, a bare `table`):  in the column, as prose, with an expand button above the top-left corner
+ *     that runs one the full width, less the page's 16px gutter, remembered per table (the runtime's
+ *     `wireTableWidths()`;  Owen, 2026-10-13);  a table still scrolls inside its box when it's wider than that
+ *   - everything else, PROSE and INSETS (paragraphs, lists, asides, code, messages, cards, comment threads):  the
+ *     reading column, as wide as the narrow layout's text (`--spell-measure`), centred;  a paragraph keeps its 72ch
+ *   - a block a page wants full width anyway:  `class="spell-full-width"`
+ * - A plan doc:  `<epic-page>` insets everything by `--epic-inset`, and its bands already run edge to edge (epics'
+ *   `EpicPage.css`), so the inset becomes the reading column's (`--spell-column-inset`)
+ * - Phone width:  the column is the window less the 16px gutter, as the narrow layout's
+ * - `--spell-column-inset`:  from `<main>`'s edge to the reading column's text, at least the gutter.  Registered as a
+ *   length, so it's worked out once, in px, on `<main>`, and every block inherits the same number, inside shadow roots
+ *   too, however deep (a `%` would measure each block's own parent).  `100cqi`:  `.spell-doc`'s width, the window's.
+ */
+@property --spell-column-inset {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 16px;
+}
+body.spell-wide .spell-doc {
+  container-type: inline-size;
+  grid-template-columns: minmax(0, 1fr);
+}
+body.spell-wide .spell-doc-main {
+  --spell-gutter: 16px;
+  --spell-column-inset: max(var(--spell-gutter), (100cqi - var(--spell-measure)) / 2 + var(--spell-gutter));
+  --spell-doc-pad-inline: 0px;
+}
+/* PROSE and INSETS:  the reading column */
+body.spell-wide
+  :is(.spell-doc-main, .spell-doc-main ui-section)
+  > :not(
+    ui-section,
+    ui-sticky,
+    epic-page,
+    footer,
+    .spell-full-width,
+    #choices-bar,
+    .spell-toolbar-alone,
+    .spell-crumbs,
+    .spell-comment-mark:has(+ .spell-full-width),
+    [slot]
+  ) {
+  margin-inline: var(--spell-column-inset);
+}
+/*
+ * TABLES:  the expand button, in a zero-height bar just before each (`wireTableWidths()`), so it takes no room:  a
+ * small quiet circle over the table's top-left corner, the page's ground under it
+ */
+.spell-table-toggle {
+  position: relative;
+  height: 0;
+}
+.spell-table-toggle > button {
+  position: absolute;
+  bottom: 2px;
+  left: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--spell-table-rule);
+  border-radius: 50%;
+  background: var(--spell-bg);
+  color: var(--spell-muted);
+  font-size: 10px;
+  cursor: pointer;
+}
+.spell-table-toggle > button:hover,
+.spell-table-toggle.is-wide > button {
+  color: var(--spell-doc-accent);
+  border-color: currentColor;
+}
+/* the pointer lands on the titled button, so its tooltip shows ("TOOLTIPS that show") */
+.spell-table-toggle > button > * {
+  pointer-events: none;
+}
+/* phone width:  the column is the page already */
+@container (max-width: 600px) {
+  .spell-table-toggle {
+    display: none;
+  }
+}
+/*
+ * BARS:  edge to edge, their contents in the column.  The page's head is ONE ivory band, the breadcrumb, title and
+ * toolbar alike (Owen, 2026-10-13:  "white/ivory/white looks weird, especially when collapsed"), from right under the
+ * site header
+ */
+body.spell-wide .spell-doc-main {
+  padding-top: 0;
+}
+/* an epic page:  its header's ivory starts right under the site header, its own padding the room above */
+body.plan-doc .spell-doc-main:not(:has(.spell-crumbs)) {
+  padding-top: 0;
+}
+body.spell-wide .spell-doc-main > .spell-crumbs {
+  margin: 0;
+  padding: 10px var(--spell-column-inset) 2px;
+  background: var(--spell-head-fill);
+}
+body.spell-wide .spell-doc-main .spell-page-head {
+  background: var(--spell-head-fill);
+}
+body.spell-wide .spell-doc-main :is(.spell-page-head, .spell-filter, footer.spell-doc-footer) {
+  margin-inline: 0;
+  padding-inline: var(--spell-column-inset);
+}
+body.spell-wide .spell-doc-main .spell-page-head > .spell-comment-mark.at-page {
+  inset-inline-end: var(--spell-column-inset);
+}
+body.spell-wide .spell-doc-main ui-section {
+  --ui-section-title-padding: var(--spell-title-top) var(--spell-column-inset) 8px;
+  --spell-fold-end: calc(var(--spell-column-inset) + 4px);
+}
+body.spell-wide .spell-doc-main ui-section ui-section {
+  --ui-section-title-padding: var(--spell-title-top) var(--spell-column-inset) 6px;
+}
+body.spell-wide .spell-doc-main ui-section::part(title) {
+  margin-inline: 0;
+}
+body.spell-wide .spell-doc-main .spell-toolbar.spell-toolbar-titled {
+  --_out: var(--spell-column-inset);
+}
+body.spell-wide .spell-doc-main .spell-toolbar.spell-toolbar-alone {
+  margin-inline: 0;
+}
+body.spell-wide .spell-doc-main #choices-bar.spell-choices-bar {
+  margin-inline: 0;
+  padding-inline: var(--spell-column-inset);
+}
+/* a plan doc:  everything in `<epic-page>` sits the column's inset in from its bands */
+body.spell-wide epic-page {
+  --epic-inset: var(--spell-column-inset);
 }
 
 /*******************************
@@ -188,6 +337,46 @@ h1 {
   padding-block: 8px;
   background: var(--spell-bg);
   border-bottom: 1px solid var(--spell-rule);
+}
+/*
+ * ## The page's head on one line (the runtime's `oneLineHead()`;  Owen, 2026-10-13, as an epic page's):
+ * `DOCS / SPELL SYNTAX` -- the crumbs, then the title in their type (mono, capitals, tracked), twice their size and
+ * bold;  centred on the row, its padding halved;  the breadcrumb above it hidden (its copy is in the h1)
+ */
+body.spell-one-line-head .spell-doc-main > .spell-crumbs {
+  display: none;
+}
+body.spell-one-line-head .spell-doc-main {
+  padding-top: 0;
+}
+/* the lighter ivory, out to the column's edges as the toolbar under it (the wide layout's bars run edge to edge) */
+body.spell-one-line-head .spell-page-head {
+  margin-inline: calc(-1 * var(--spell-doc-pad-inline, 16px));
+  padding: 4px var(--spell-doc-pad-inline, 16px);
+  background: var(--spell-head-fill);
+}
+body.spell-one-line-head .spell-page-head > h1 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 6px;
+  min-height: 28px;
+  font: 700 16px/1.2 var(--spell-mono);
+  letter-spacing: var(--spell-eyebrow-tracking);
+  text-transform: uppercase;
+}
+.spell-page-head > h1 > .spell-head-crumbs {
+  display: inline-block;
+  margin: 0;
+}
+.spell-page-head > h1 > .spell-head-divider {
+  color: var(--spell-muted);
+  font: var(--spell-eyebrow-font);
+}
+@media (max-width: 720px) {
+  .spell-page-head > h1 > .spell-head-divider {
+    display: none;
+  }
 }
 .spell-page-head > h1 {
   flex: 1 1 auto;
@@ -396,6 +585,20 @@ ui-button.spell-fold {
     white-space: nowrap;
     mask-image: linear-gradient(to left, transparent, black 20px);
   }
+}
+/*
+ * Stuck titles on ONE row (the runtime's `wireStuckTrail()`;  Owen, 2026-10-13:  "This could collapse to one row
+ * when stickified"):  the top-level stuck title carries the nested ones' titles after its own, `› 2.1 The repo`;  the
+ * nested stuck titles hide, the text scrolling under their room
+ */
+.spell-doc-main ui-section[data-spell-merged]::part(title) {
+  visibility: hidden;
+}
+.spell-doc-main ui-section[data-spell-trail]::part(header)::after {
+  content: var(--spell-stuck-trail);
+  font-size: 0.72em;
+  font-weight: 600;
+  white-space: pre;
 }
 /* the `open/all` count:  big enough to read at a glance beside a title */
 .spell-doc-main ui-section {
@@ -1425,6 +1628,42 @@ ui-tab > pre {
 .spell-doc-main ui-table :is(td, th) {
   vertical-align: top;
 }
+/* cell borders in `--spell-table-rule`, a bare table's and a `ui-table`'s alike */
+.spell-doc-main ui-table {
+  --ui-table-border-color: var(--spell-table-rule);
+  --ui-table-row-border: 1px solid var(--spell-table-rule);
+  --ui-table-cell-border: 1px solid var(--spell-table-rule);
+  --ui-table-header-border: 1px solid var(--spell-table-rule);
+}
+/* a bare `<table>` (an epic page's prose, a guide's):  celled, as a `ui-table celled compact` */
+.spell-doc-main table:not(ui-table table) {
+  border-collapse: collapse;
+  margin: 8px 0 12px;
+  font-size: 0.92rem;
+}
+.spell-doc-main table:not(ui-table table) :is(td, th) {
+  border: 1px solid var(--spell-table-rule);
+  padding: 6px 10px;
+  text-align: start;
+  vertical-align: top;
+  /* whole words, even where the prose around it breaks anywhere (an epic item's details) */
+  overflow-wrap: normal;
+  word-break: normal;
+}
+/* phone width:  it scrolls inside its own box, never squeezing its words or widening the page */
+@media (max-width: 600px) {
+  .spell-doc-main table:not(ui-table table) {
+    display: block;
+    overflow-x: auto;
+  }
+}
+.spell-doc-main table:not(ui-table table) th {
+  background: var(--spell-code-bg);
+  font: 500 0.72rem/1.4 var(--spell-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--spell-muted);
+}
 /* column heads as the brand's eyebrows:  small mono capitals, tracked, muted */
 .spell-doc-main ui-table :is(thead th, tr:not(:has(td)) > th) {
   font: 500 0.72rem/1.4 var(--spell-mono);
@@ -1517,6 +1756,13 @@ ui-accordion.spell-aside::part(content) {
   --spell-rail-hover: color-mix(in srgb, var(--spell-rail-ink) 9%, var(--spell-rail-bg));
   --spell-rail-selected: color-mix(in srgb, var(--spell-rail-ink) 18%, var(--spell-rail-bg));
   --spell-rail-rule: color-mix(in srgb, var(--spell-rail-ink) 22%, transparent);
+  /*
+   * the page's head above the toolbar:  a lighter ivory;  the toolbar's edges:  a darker one, drawn as shadows
+   * (Owen, 2026-10-13:  "lighter beige", "Rule above/below should be darker beige -- use a shadow for it");
+   * `<epic-page>` reads them too (`--epic-head-fill`, `--epic-toolbar-edge`)
+   */
+  --spell-head-fill: color-mix(in oklab, var(--spell-rail-bg) 45%, var(--spell-bg));
+  --spell-rail-edge: color-mix(in oklab, var(--spell-rail-ink) 22%, var(--spell-rail-bg));
   /* the ivory over the opaque surface, in case a theme's is see-through:  text scrolls under the stuck bar */
   --spell-rail-fill: linear-gradient(var(--spell-rail-bg), var(--spell-rail-bg)) var(--ui-surface, Canvas);
 }
@@ -1644,7 +1890,7 @@ ui-accordion.spell-aside::part(content) {
   flex: 1 0 calc(100% + 2 * var(--_out));
   margin-inline: calc(-1 * var(--_out));
   /* the band's own rule, as the plan doc's:  the page's rule is all but white on the ivory */
-  border-bottom: 1px solid var(--spell-rail-rule);
+  box-shadow: 0 1px 0 var(--spell-rail-edge);
   background: var(--spell-rail-fill);
 }
 .spell-page-head:has(> .spell-toolbar-titled) {
@@ -1652,6 +1898,10 @@ ui-accordion.spell-aside::part(content) {
 }
 .spell-page-head > .spell-toolbar-titled {
   margin-bottom: -8px;
+  /* an edge between it and the title too, as an epic page's (Owen, 2026-10-13) */
+  box-shadow:
+    0 -1px 0 var(--spell-rail-edge),
+    0 1px 0 var(--spell-rail-edge);
 }
 .spell-filter:has(> .spell-toolbar-titled) {
   border-bottom: none;

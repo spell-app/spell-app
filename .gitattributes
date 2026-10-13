@@ -42,6 +42,10 @@ packages/brand/_data/components.json                         linguist-generated 
 packages/brand/_data/custom-elements.json                     linguist-generated merge=binary
 packages/brand/_data/html-custom-data.json                    linguist-generated merge=binary
 
+# spell:  the spell syntax table, every rule's example in each writer (`yarn gen:syntax`), drawn by the spell syntax
+# guide
+packages/spell/spellSyntax.json                               linguist-generated merge=binary
+
 # ui:  emoji data, from a reference clone (`yarn gen:emoji`):  collapsed only, never regenerated on a merge
 packages/ui/src/components/ui-emoji/data/**                   linguist-generated -diff
 

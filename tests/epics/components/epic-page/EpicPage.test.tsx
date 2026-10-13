@@ -14,6 +14,7 @@ import "$/ui/components/ui-label"
 import "$/ui/components/ui-message"
 import "$/ui/components/ui-code"
 import "$/ui/components/ui-breadcrumb"
+import "$/ui/components/ui-toast"
 import "$/epics/components/epic-page"
 import "$/epics/components/epic-overview"
 import "$/epics/components/epic-section"
@@ -58,7 +59,7 @@ async function render(html: string): Promise<E.DOMElement> {
 }
 
 describe("<epic-page>", () => {
-  test("draws `/epic <name>` over its title, its meta lines and its durable doc's link, and passes axe", async () => {
+  test("draws the epic's name as its h1 (no title under it), its meta lines and its durable doc's link, and passes axe", async () => {
     const host = await render(
       page(`branch="demo" worktree="/w/demo" started="2026-10-06" updated="2026-10-07"`, ["done"], "").replace(
         "</epic-overview>",
@@ -66,8 +67,8 @@ describe("<epic-page>", () => {
       )
     )
     const shadow = host.shadowRoot!
-    expect(shadow.querySelector("h1 button")!.textContent).toBe("/epic demo")
-    expect(shadow.querySelector('[part~="subhead"]')!.textContent!.trim()).toBe("Demo")
+    expect(shadow.querySelector("h1 button")!.textContent).toBe("demo")
+    expect(shadow.querySelector('[part~="subhead"]')).toBeNull()
     const lines = Array.from(shadow.querySelectorAll('[part~="meta"] > li:not([hidden])'), (li) =>
       li.textContent!.replace(/\s+/g, " ").trim()
     )
@@ -165,9 +166,8 @@ describe("<epic-page>", () => {
     expect(Number(phases.getAttribute("offset"))).toBe(Math.round(Math.round(header) + bar))
   })
 
-  // Owen, 2026-10-10:  "Page sub header ("Output Targets") should not be sticky";  "Right items:  (=>P14) (whatever
-  // the half-filled circle is) (git icon, but bigger)"
-  test("only the h1's row and the toolbar's bar stick, the title between them scrolls;  the step label (the state in it), then git", async () => {
+  // Owen, 2026-10-10:  "Right items:  (=>P14) (whatever the half-filled circle is) (git icon, but bigger)"
+  test("the h1's row and the toolbar's bar stick;  the step label (the state in it), then git", async () => {
     const now = new Date()
     const today = [now.getFullYear(), now.getMonth() + 1, now.getDate()]
       .map((n) => String(n).padStart(2, "0"))
@@ -181,13 +181,14 @@ describe("<epic-page>", () => {
     )
     const shadow = host.shadowRoot!
     const position = (name: string) => getComputedStyle(shadow.querySelector(`[part~="${name}"]`)!).position
-    expect(["header", "subhead", "bar"].map(position)).toEqual(["sticky", "static", "sticky"])
+    expect(["header", "bar"].map(position)).toEqual(["sticky", "sticky"])
     expect(
       Array.from(shadow.querySelector('[part~="status"]')!.children, (child) => child.getAttribute("part"))
     ).toEqual(["state", "git"])
   })
 
-  test("draws its crumbs, `Docs › Epics › <title>`;  NONE while the doc still holds its old crumbs before it", async () => {
+  // Owen, 2026-10-13:  "Just go with a single set of breadcrumbs"
+  test("draws its crumbs in the h1, `Docs / Epics /` then the name;  NONE while the doc still holds its old crumbs before it", async () => {
     const host = await render(page("", ["todo"]))
     const crumbs = host.shadowRoot!.querySelector('[part~="crumbs"]')!
     expect(
@@ -198,12 +199,10 @@ describe("<epic-page>", () => {
       ])
     ).toEqual([
       ["Docs", "../../pages/index.html", false],
-      ["Epics", "../../epics/index.html", false],
-      ["Demo", null, true]
+      ["Epics", "../../epics/index.html", false]
     ])
-    expect(crumbs.compareDocumentPosition(host.shadowRoot!.querySelector('[part~="header"]')!)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING
-    )
+    expect(crumbs.parentElement!.localName).toBe("h1")
+    expect(crumbs.nextElementSibling!.textContent).toBe("demo")
 
     const old = await render(
       `<main><ui-breadcrumb class="spell-crumbs"><ui-breadcrumb-section active>Demo</ui-breadcrumb-section></ui-breadcrumb>` +
@@ -301,13 +300,16 @@ describe("<epic-page>", () => {
     }
   })
 
-  test("the heading:  a click copies `/epic <name>` and says so", async () => {
+  // Owen, 2026-10-13:  "Clicking on the "review-review" should copy the string "/epic resume review-review" with a
+  // subtle toast"
+  test("the heading's name:  a click copies `/epic resume <name>`, and a toast says so", async () => {
     const writeText = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue()
     const host = await render(page("", ["todo"]))
-    const heading = host.shadowRoot!.querySelector("h1")!
-    heading.querySelector("button")!.click()
-    await vi.waitFor(() => expect(heading.querySelector(".done")!.textContent).toBe("copied"))
-    expect(writeText).toHaveBeenCalledWith("/epic demo")
+    host.shadowRoot!.querySelector<HTMLButtonElement>("h1 button")!.click()
+    await vi.waitFor(() =>
+      expect(document.getElementById("epic-copied")?.getAttribute("message")).toBe("Copied /epic resume demo")
+    )
+    expect(writeText).toHaveBeenCalledWith("/epic resume demo")
     writeText.mockRestore()
   })
 
@@ -489,17 +491,21 @@ describe("<epic-page> Send and Review Now", () => {
   })
 
   // epic `airplane` P2;  in the toolbar since P8
-  test("the toolbar's comment-dots button opens the new item form in the toolbar's bar;  Add saves a todo, and Send shows it", async () => {
+  // Owen, 2026-10-13:  "Remove "comment" icon from top header -- add it to question/todo/issue/test headers"
+  test("no new item button in the toolbar;  an item section's, on its title, opens the section and its form;  Add saves a todo, and Send shows it", async () => {
     const routes = new FakeRoutes()
     // listening:  the orange pill has a contrast issue of its own (axe), not this test's
     const at = new Date().toISOString()
     routes.inbox.listening = { session: "s1", since: at, seen: at }
     await adoptClient(routes)
-    const host = await render(page("", ["todo"]))
-    await vi.waitFor(() => expect(host.shadowRoot!.querySelector('[part~="new-button"]')).not.toBeNull())
-    const button = host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="new-button"]')!
-    expect(button.title).toBe("New todo or question")
-    expect(button.closest('[part~="toolbar"]')).not.toBeNull()
+    const host = await render(page("", ["todo"], `<epic-section id="todos" kind="todos"></epic-section>`))
+    const todos = host.querySelector<E.DOMElement>("#todos")!
+    await vi.waitFor(() => expect(todos.shadowRoot!.querySelector('[part~="new-button"]')).not.toBeNull())
+    expect(host.shadowRoot!.querySelector('[part~="new-button"]')).toBeNull()
+    expect(host.shadowRoot!.querySelector('[part~="expand-all"]')).not.toBeNull()
+    const button = todos.shadowRoot!.querySelector<HTMLButtonElement>('[part~="new-button"]')!
+    expect(button.title).toBe("New Todo")
+    expect(button.closest('[part~="tools"]')).not.toBeNull()
     expect(button.querySelector("ui-icon")!.getAttribute("name")).toBe("comment dots")
     // nothing waiting:  both there, grey (so they're always in the same place), and no pill
     expect(headerButtons(host)).toEqual({
@@ -508,14 +514,15 @@ describe("<epic-page> Send and Review Now", () => {
     })
     expect(host.shadowRoot!.querySelector('[part~="pill"]')).toBeNull()
     button.click()
-    await ElementFixture.tick()
-    expect(button.getAttribute("aria-expanded")).toBe("true")
-    const newItem = host.shadowRoot!.querySelector<HTMLElement>('[part~="bar"] > [part~="new-form"]')!
-    const form = await vi.waitFor(() => newItem.shadowRoot!.querySelector<HTMLFormElement>('[part~="form"]')!)
-    // a row of its own across the toolbar's sticky bar, above the toolbar
-    const toolbar = host.shadowRoot!.querySelector('[part~="toolbar"]')!
-    expect(form.getBoundingClientRect().bottom).toBeLessThanOrEqual(toolbar.getBoundingClientRect().top + 1)
-    expect(Math.round(form.getBoundingClientRect().width)).toBeGreaterThan(300)
+    await vi.waitFor(() =>
+      expect(todos.hasAttribute("open") || (todos as unknown as { open: boolean }).open).toBe(true)
+    )
+    const newItem = todos.shadowRoot!.querySelector<HTMLElement>('[part~="new-item"]')!
+    const form = await vi.waitFor(() => {
+      const opened = newItem.shadowRoot?.querySelector<HTMLFormElement>('[part~="form"]')
+      expect(opened).toBeTruthy()
+      return opened!
+    })
     form.querySelector<HTMLInputElement>('[data-field="title"]')!.value = "check the wifi"
     form.requestSubmit()
     await vi.waitFor(() =>
@@ -525,9 +532,6 @@ describe("<epic-page> Send and Review Now", () => {
       ])
     )
     await vi.waitFor(() => expect(headerButtons(host).send?.[0]).toBe("unsent"))
-    // saved:  the form gone, the button no longer pressed
-    expect(host.shadowRoot!.querySelector('[part~="new-form"]')).toBeNull()
-    expect(button.getAttribute("aria-expanded")).toBe("false")
     await expectAccessible(host)
   })
 })

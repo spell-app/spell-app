@@ -188,7 +188,8 @@ export const GENERATORS: Generator[] = [
     outputs: ["packages/app/components/_data/{components,search}.json"],
     cwd: "packages/app",
     run: ["yarn", "site:data"]
-  }
+  },
+  { name: "spell syntax table",       outputs: ["packages/spell/spellSyntax.json"],                     cwd: "packages/spell",  run: ["yarn", "gen:syntax"] }
 ]
 
 /**

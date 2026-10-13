@@ -146,6 +146,7 @@ tr[data-changed] > td:first-child {
 /*
  * The toolbar stays in view:  pinned to the window's bottom while the rows scroll above it.  A little wider than the
  * column (negative margins, padding back), so the rows scrolling under it don't show at its edges.
+ * - ivory, as the toolbar at the top (Owen, 2026-10-13)
  */
 #choices-bar.spell-choices-bar {
   position: sticky;
@@ -153,8 +154,8 @@ tr[data-changed] > td:first-child {
   z-index: 5;
   margin: 1em -16px 0;
   padding: 8px 16px 6px;
-  border-top: 1px solid var(--spell-rule);
-  background: var(--spell-bg);
+  border-top: 1px solid var(--spell-rail-rule);
+  background: var(--spell-rail-fill);
   box-shadow: 0 -8px 16px -10px rgb(0 0 0 / 0.3);
 }
 /* the toolbar is the page's bottom:  no room left under it */
@@ -182,7 +183,10 @@ tr[data-changed] > td:first-child {
   flex: none;
 }
 
-/* counts, save status, Expand all:  small, quiet, numbers in tabular figures */
+/*
+ * Under the row:  Expand all, and the save status only when saving FAILED (Owen, 2026-10-13:  "Lose the `0 boxes
+ * saved` bit");  the count is Send's tooltip.  Nothing to show:  no line.
+ */
 .spell-choices-meta {
   display: flex;
   flex-wrap: wrap;
@@ -192,6 +196,10 @@ tr[data-changed] > td:first-child {
   font-size: 0.8em;
   color: var(--spell-muted);
   font-variant-numeric: tabular-nums;
+}
+.spell-choices-saved:not(.spell-choices-failed),
+.spell-choices-meta:not(:has(.spell-choices-failed, ui-button)) {
+  display: none;
 }
 .spell-choices-meta > .spell-choices-expand {
   margin-left: auto;

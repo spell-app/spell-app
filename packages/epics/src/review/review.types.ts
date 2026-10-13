@@ -91,7 +91,7 @@ export type ReviewAction = (typeof REVIEW_ACTIONS)[number]
 export const SUMMARY_ID = "summary"
 
 /** What a new item from the page may be:  as `ReviewInbox`'s `NEW_KINDS` (a copy:  that module is node-only). */
-export const NEW_KINDS = ["todo", "question"] as const
+export const NEW_KINDS = ["todo", "question", "issue", "test"] as const
 
 /** The longest title a new item may have:  as `ReviewInbox`'s `MAX_TITLE` (a copy:  that module is node-only). */
 export const NEW_TITLE_MAX = 300

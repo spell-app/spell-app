@@ -122,6 +122,12 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
     return this.isOpen ? this.toggle() : false
   }
 
+  /** Open it, if folded, as a click on its title would (`toggle()`);  true when it opened.  Expand-all's. */
+  @E.untracked
+  expand(): boolean {
+    return this.isOpen ? false : this.toggle()
+  }
+
   /**
    * Collapse-all, the double chevron on its title:  fold everything inside it, itself staying open.
    * - what folds:  nested blocks, items, cards, asides, code (`foldAllUnder()`),

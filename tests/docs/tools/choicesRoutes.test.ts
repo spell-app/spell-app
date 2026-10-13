@@ -26,13 +26,22 @@ const CHOICES = [
 /** a details page, without rows */
 const DETAILS = "pages/details/pick.html"
 
+/** a guide naming its own rows on its `<body>`, as the spell syntax guide does;  and one that doesn't */
+const DECLARED = "guides/syntax/syntax.html"
+const PLAIN_GUIDE = "guides/plain.html"
+
 beforeAll(async () => {
   root = mkdtempSync(join(tmpdir(), "choices-routes-"))
   mkdirSync(join(root, ".git"))
-  for (const page of [...CHOICES, DETAILS]) {
+  for (const page of [...CHOICES, DETAILS, PLAIN_GUIDE]) {
     mkdirSync(dirname(join(root, page)), { recursive: true })
     writeFileSync(join(root, page), "<!doctype html><title>x</title>")
   }
+  mkdirSync(dirname(join(root, DECLARED)), { recursive: true })
+  writeFileSync(
+    join(root, DECLARED),
+    '<!doctype html><title>x</title><body class="spell-doc" data-choices-rows="../../rules.json"></body>'
+  )
   for (const page of CHOICES)
     writeFileSync(
       join(root, page.replace(/\.html$/, ".rows.json")),
@@ -119,6 +128,16 @@ test("Do it writes the answer and the draft;  sent again, changes counts up", as
 test("a worktree's page through /worktrees/", async () => {
   expect((await post("draft", "/worktrees/w/pages/details/far.html")).status).toBe(200)
   expect(written<ChoicesDraft>(CHOICES[2]!, "draft").page).toBe("/worktrees/w/pages/details/far.html")
+})
+
+test("a docs page naming its own rows:  saved beside it, its boxes keyed as it likes", async () => {
+  const path = "/guides/syntax/syntax.html"
+  const body = { values: { "IsGtLt.py": "salary > expenses" }, feedback: "" }
+  expect((await post("draft", path, body)).status).toBe(200)
+  expect(written<ChoicesDraft>(DECLARED, "draft").values).toEqual({ "IsGtLt.py": "salary > expenses" })
+  expect((await post("answer", path, body)).status).toBe(200)
+  expect(written<ChoicesAnswer>(DECLARED, "answer")).toMatchObject({ changes: 0, values: body.values })
+  expect((await post("draft", "/guides/plain.html")).status).toBe(403)
 })
 
 test("only choices pages:  a details page without rows, a missing page, a path out", async () => {
