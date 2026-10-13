@@ -12,11 +12,19 @@
  *   - Fetched from the checkout SERVING the page, so each branch shows its own rules.
  *   - From `file://` it says so where the tables go:  the page needs the page server.
  * - Built from elements (`el()`), never from markup in strings.
- * - Each module:  a nested `<ui-section>` where `[data-syntax-modules]` is (folded, as every docs section), holding a
- *   table Rule name | Syntax | Purpose, a row per rule class.
- * - BOXES, pre-filled with what the code has:  the class's name, and the example's output from each writer.
+ * - Each module:  a nested `<ui-section>` where `[data-syntax-modules]` is, holding a table Rule name | Syntax |
+ *   Purpose, a row per rule class (its internal classes first).
+ *   - OPEN, as every section of this page, unlike other docs pages (Owen, 2026-10-12:  "Start out with all
+ *     everything expanded")
+ * - EXPAND ALL and COLLAPSE ALL at the right of the page toolbar, the ivory band (`wireFoldAll()`).
+ * - Rule name:  the class's name, a link to its source (its rule names its tooltip), with a pencil to suggest another
+ *   name;  then each syntax it's registered with, a bullet each;  then its aliases, "aka:  `expression`".
+ * - Syntax:  each syntax's example, from its tests, and what each writer makes of it.
+ * - BOXES, pre-filled with what the code has:  the class's name (behind its pencil), and each example's output from
+ *   each writer.
  *   - Owen types over one to suggest another;  a changed box is marked, its round button puts the code's back.
- *   - Keyed `<Class>.<field>`:  `IsGtLt.name`, `IsGtLt.js`, `IsGtLt.ts`, `IsGtLt.py`.
+ *   - Keyed `<Class>.<field>`:  `IsGtLt.name`, `IsGtLt.js`, `IsGtLt.ts`, `IsGtLt.py`;
+ *     the second example's `AssignmentStatement.js.2`, and so on.
  *   - Saved through the syntax-choices routes (`choicesRoutes.ts`), never into the code:
  *     - 5s after typing stops, and as the page goes away:
  *       `POST /api/choices/draft`, `spell-syntax.draft.json` beside the page
@@ -46,6 +54,13 @@
   const NO_PURPOSE = "(no docstring yet)"
   /** How much of a table's text a comment's excerpt keeps:  `BlockAnchors.js` `EXCERPT_LENGTH`. */
   const EXCERPT_LENGTH = 80
+  /** The toolbar's fold buttons:  folds every section?, its icon, its words. */
+  const FOLD_BUTTONS = [
+    [false, "angles down", "Expand all"],
+    [true, "angles up", "Collapse all"]
+  ]
+  /** Where the runtime remembers this page's folds, `{ [section id]: folded }`:  `spell-doc-runtime.js` `wireFolds()`. */
+  const FOLDS_KEY = `spell-folds:${location.pathname}`
   const script = document.currentScript
   const bundle = new URL("spell-ui.js", script.src).href
   const server = window.SPELL_SERVER
@@ -81,6 +96,7 @@
       notice(`Couldn't draw the rules:  ${error.message}`)
     }
     document.body.append(el("script", { src: bundle }))
+    wireFoldAll()
     if (data) await restore()
   }
 
@@ -121,7 +137,7 @@
     count()
   }
 
-  /** One module:  a folded `<ui-section>`, its count, its table. */
+  /** One module:  an open `<ui-section>`, its count, its table. */
   function moduleSection({ module, rules }, prefix) {
     const internal = rules.filter((rule) => rule.internal).length
     const registered = rules.length - internal
@@ -143,8 +159,7 @@
         badge: badge.join(" · "),
         sticky: "",
         collapsible: "",
-        dividing: "",
-        collapsed: ""
+        dividing: ""
       },
       el(
         "ui-table",
@@ -154,7 +169,7 @@
     )
   }
 
-  /** One rule class's row:  its names and example, each writer's output, its purpose and wand. */
+  /** One rule class's row:  its name, syntaxes and aliases;  each example in each writer;  its purpose and wand. */
   function ruleRow(rule) {
     return el(
       "tr",
@@ -165,57 +180,88 @@
     )
   }
 
-  /** Rule name:  the class's name in a box, its rule names and a link to its source, then the example. */
+  /**
+   * Rule name:  the class's name, opening its source, its rule names as its tooltip;  its pencil, showing the box to
+   * suggest another name;  each syntax, a bullet;  then its aliases, "aka:  `expression`".
+   */
   function nameCell(rule) {
-    const names = rule.ruleNames.length
-      ? rule.ruleNames.flatMap((name, i) => [i ? " · " : "", el("code", {}, name)])
-      : [el("span", {}, "no rule name of its own")]
-    const source = rule.file
+    const tip = rule.ruleNames.length ? rule.ruleNames.join(", ") : "no rule name of its own"
+    const name = el(rule.file ? "a" : "span", { class: "spell-syntax-source", title: tip }, rule.className)
+    if (rule.file) name.href = fileUrl(rule)
+    const rename = el(
+      "button",
+      {
+        type: "button",
+        class: "spell-choice-reset spell-syntax-rename",
+        title: `Suggest another name for ${rule.className}`,
+        "aria-label": `Suggest another name for ${rule.className}`
+      },
+      el("ui-icon", { name: "pen to square" })
+    )
+    const nameBox = box(rule, "name", rule.className, `Class name of ${rule.className}`)
+    nameBox.hidden = true
+    const syntaxes = rule.syntaxes.filter((form) => form.syntax)
+    const syntaxList = syntaxes.length
       ? el(
-          "a",
-          {
-            class: "spell-syntax-source",
-            href: fileUrl(rule),
-            title: `Open ${rule.file}:${rule.line} in VS Code`,
-            "aria-label": `Open ${rule.className}'s source in VS Code`
-          },
-          el("ui-icon", { name: "code" })
+          "ul",
+          { class: "spell-syntax-syntaxes" },
+          ...syntaxes.map((form) => el("li", {}, el("code", {}, form.syntax)))
         )
-      : ""
-    const example = rule.example
-      ? el("ul", { class: "spell-syntax-example" }, el("li", {}, el("code", { title: syntaxTip(rule) }, rule.example)))
+      : rule.internal
+        ? ""
+        : el("p", { class: "spell-syntax-none" }, "matched by its code:  no syntax of its own")
+    const aka = rule.aliases.length
+      ? el(
+          "p",
+          { class: "spell-syntax-aka" },
+          el("em", {}, "aka"),
+          ":  ",
+          ...rule.aliases.flatMap((alias, i) => [i ? ", " : "", el("code", {}, alias)])
+        )
       : ""
     return el(
       "td",
       { class: "spell-syntax-name" },
-      el("div", { class: "spell-syntax-class" }, box(rule, "name", rule.className, `Class name of ${rule.className}`)),
-      el("div", { class: "spell-syntax-rule" }, ...names, " ", source),
-      example
+      el("div", { class: "spell-syntax-class" }, name, rename),
+      nameBox,
+      syntaxList,
+      aka
     )
   }
 
-  /** The example's tooltip:  the syntax it matches. */
-  function syntaxTip(rule) {
-    return rule.syntax.length ? `Matches:  ${rule.syntax.join("   |   ")}` : "Matched by the rule's own code"
-  }
-
-  /** Syntax:  each writer's output for the example, in a box;  why there's none, where there's none. */
+  /** Syntax:  each syntax's example, and each writer's output for it;  why there's none, where there's none. */
   function syntaxCell(rule) {
-    if (!rule.outputs)
+    const examples = rule.syntaxes.filter((form) => form.example)
+    if (!examples.length)
       return el(
         "td",
         { class: "spell-syntax-outputs" },
         el("em", { class: "spell-syntax-none" }, rule.internal ? "no syntax of its own" : "no test to show it with yet")
       )
+    return el("td", { class: "spell-syntax-outputs" }, ...examples.map((form, i) => example(rule, form, i)))
+  }
+
+  /**
+   * One example:  the spell, the syntax it matches its tooltip;  then each writer's output, in a box.
+   * - its boxes keyed `<Class>.js` for the first example, `<Class>.js.2` for the second ...
+   */
+  function example(rule, form, i) {
+    const suffix = i ? `.${i + 1}` : ""
     const lines = WRITERS.map((writer) => {
-      const output = rule.outputs[writer]
+      const output = form.outputs[writer]
       const value =
         "code" in output
-          ? box(rule, writer, output.code, `${writer} for ${rule.example}`)
+          ? box(rule, `${writer}${suffix}`, output.code, `${writer} for ${form.example}`)
           : el("em", { class: "spell-syntax-none" }, `(${output.error})`)
       return el("li", {}, el("b", {}, writer), value)
     })
-    return el("td", { class: "spell-syntax-outputs" }, el("ul", { class: "spell-syntax-writers" }, ...lines))
+    const tip = form.syntax ? `Matches:  ${form.syntax}` : "Matched by the rule's own code"
+    return el(
+      "ul",
+      { class: "spell-syntax-writers" },
+      el("li", { class: "spell-syntax-input" }, el("b", {}, "e.g."), el("code", { title: tip }, form.example)),
+      ...lines
+    )
   }
 
   /** Purpose:  **internal** first for a class nobody registers, its one sentence, the wand. */
@@ -318,10 +364,92 @@
   }
 
   ////////////////
+  // ## Expand all, Collapse all
+  ////////////////
+
+  /**
+   * Expand all and Collapse all, at the right of the page toolbar:  the ivory band the runtime builds in the page
+   * header once the bundle runs (`buildPageToolbar()`).
+   * - added as soon as the toolbar is there, and again whenever the runtime builds it anew (a live update)
+   * - each opens or folds every section and sub-section (`foldAll()`)
+   * - drawn as the toolbar's section buttons:  their words go when the section titles go (`fitTitles()`)
+   */
+  function wireFoldAll() {
+    const head = document.querySelector(".spell-page-head")
+    if (!head) return
+    const add = () => {
+      const toolbar = head.querySelector(":scope > nav.spell-toolbar")
+      if (toolbar && !toolbar.querySelector(".spell-syntax-folds")) toolbar.append(foldButtons())
+    }
+    // a frame after the toolbar comes:  an icon drawn while the bundle is still starting stays blank
+    new MutationObserver(() => requestAnimationFrame(add)).observe(head, { childList: true })
+    add()
+    document.addEventListener("ui-open", keepFolds)
+    document.addEventListener("ui-close", keepFolds)
+  }
+
+  /** The two buttons, in a box of their own. */
+  function foldButtons() {
+    const buttons = FOLD_BUTTONS.map(([isFolded, icon, label]) => {
+      const button = el(
+        "button",
+        { type: "button", class: "spell-toolbar-item spell-syntax-fold", title: label },
+        el("span", { class: "spell-toolbar-icon" }, el("ui-icon", { name: icon })),
+        el("span", { class: "spell-toolbar-label" }, label)
+      )
+      button.addEventListener("click", () => foldAll(isFolded))
+      return button
+    })
+    return el("div", { class: "spell-syntax-folds" }, ...buttons)
+  }
+
+  /**
+   * Fold (`isFolded`) or open every section and sub-section at once, without their height animation, remembered as
+   * the reader's folds (`saveFolds()`).
+   * - folding them all shows the page from its top:  every title, folded, fits in a window or two
+   */
+  function foldAll(isFolded) {
+    const main = document.querySelector("main")
+    main.style.setProperty("--ui-section-duration", "0s")
+    for (const section of main.querySelectorAll("ui-section[collapsible]"))
+      section.toggleAttribute("collapsed", isFolded)
+    saveFolds()
+    if (isFolded) scrollTo({ top: 0, behavior: "instant" })
+    requestAnimationFrame(() => requestAnimationFrame(() => main.style.removeProperty("--ui-section-duration")))
+  }
+
+  /**
+   * The reader folded or opened one section:  remember every section's fold again, after the runtime saved that one.
+   * - why:  the runtime saves the folds it knows of when the page loaded, plus that one;  it doesn't know what
+   *   Expand all / Collapse all did, and a reload would undo it
+   * - a `ui-open` it can't cancel is the browser's own reveal (find in page):  not the reader's, as for the runtime
+   */
+  function keepFolds(event) {
+    const section = event.target
+    if (event.defaultPrevented || !event.cancelable || section.localName !== "ui-section" || !section.id) return
+    saveFolds({ [section.id]: !event.detail?.open })
+  }
+
+  /**
+   * Remember every section's fold as it is now (`changing` as it's about to be), where the runtime reads them
+   * when the page loads (`FOLDS_KEY`).
+   */
+  function saveFolds(changing = {}) {
+    const folds = {}
+    for (const section of document.querySelectorAll("main ui-section[collapsible][id]"))
+      folds[section.id] = section.hasAttribute("collapsed")
+    try {
+      localStorage.setItem(FOLDS_KEY, JSON.stringify({ ...folds, ...changing }))
+    } catch {
+      // storage blocked (a private window):  the folds just aren't remembered
+    }
+  }
+
+  ////////////////
   // ## Editing
   ////////////////
 
-  /** Typing, resets, source links, feedback, Send, and saving as the page goes away. */
+  /** Typing, resets, pencils, source links, feedback, Send, and saving as the page goes away. */
   function wire() {
     const main = document.querySelector("main")
     main.addEventListener("input", (event) => {
@@ -337,6 +465,11 @@
       if (event.key === "Enter" && event.target.hasAttribute?.("data-one-line")) event.preventDefault()
     })
     main.addEventListener("click", (event) => {
+      const rename = event.target.closest?.(".spell-syntax-rename")
+      if (rename) {
+        showNameBox(boxes.get(`${rename.closest("tr").dataset.rule}.name`), "toggle")
+        return
+      }
       const reset = event.target.closest?.(".spell-choice-reset")
       const holder = reset?.closest(".spell-syntax-box")
       if (holder) {
@@ -347,7 +480,7 @@
         one.input.focus()
         return
       }
-      const link = event.target.closest?.(".spell-syntax-source")
+      const link = event.target.closest?.("a.spell-syntax-source")
       // in VS Code's side bar the frame can't follow `vscode://`:  the view opens it (`DocView.open()`)
       if (link && window.parent !== window) {
         event.preventDefault()
@@ -362,13 +495,29 @@
     })
   }
 
-  /** Mark `one` box changed (it differs from what the code has) or not:  the box, its reset button, its row. */
+  /**
+   * Mark `one` box changed (it differs from what the code has) or not:  the box, its reset button, its row.
+   * - a changed name's box stays in view
+   */
   function mark(one) {
     const isChanged = isBoxChanged(one)
     one.holder.toggleAttribute("data-changed", isChanged)
     one.reset.hidden = !isChanged
+    if (isChanged && one.key.endsWith(".name")) showNameBox(one, "show")
     const row = one.holder.closest("tr")
     row.toggleAttribute("data-edited", !!row.querySelector(".spell-syntax-box[data-changed]"))
+  }
+
+  /**
+   * Show the class name's box, `one`, under the name (and focus it), or hide it:  its pencil's click (`toggle`), or a
+   * changed name (`show`).
+   * - a changed name's box never hides:  the pencil focuses it instead
+   */
+  function showNameBox(one, how) {
+    const isShown = how === "show" || one.holder.hidden || isBoxChanged(one)
+    one.holder.hidden = !isShown
+    one.holder.closest("td").querySelector(".spell-syntax-rename").toggleAttribute("data-open", isShown)
+    if (isShown && how === "toggle") one.input.focus()
   }
 
   /** Does `one` box differ from what the code has? */

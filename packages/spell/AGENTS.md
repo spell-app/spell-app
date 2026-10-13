@@ -166,10 +166,11 @@ when working with code in this package, `@spell-app/spell`.
     - So the prod build keeps class names:  [parser's AGENTS.md](../parser/AGENTS.md), `keepNames`.
     - [ruleNames.test.ts](src/rules/ruleNames.test.ts) pins every rule's name, module and registration order:
       a renamed class that changes a rule's name fails it.
-  - The SPELL SYNTAX TABLE, [spellSyntax.json](spellSyntax.json):  every rule class, by module, with its first test
-    compiled by the javascript, TypeScript and Python writers, and its docstring's first sentence.
+  - The SPELL SYNTAX TABLE, [spellSyntax.json](spellSyntax.json):  every rule class, by module, with each syntax
+    it's registered with, an example of each from its tests compiled by the javascript, TypeScript and Python
+    writers (comments left out), its aliases, and its docstring's first sentence.
     - What the spell syntax guide draws (`guides/spell-syntax/spell-syntax.html`).
-    - Generated:  `yarn gen:syntax`, after adding, renaming or changing a rule, its class docstring or its first test.
+    - Generated:  `yarn gen:syntax`, after adding, renaming or changing a rule, its class docstring or its tests.
       [spellSyntax.test.ts](src/node/spellSyntax.test.ts) fails until you do.
     - So a class docstring's first sentence says what the rule is FOR, in plain words:  it's the guide's Purpose.
   - ONE `syntax` per registration.
