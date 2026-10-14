@@ -74,6 +74,20 @@ Only what's local is below;  a section named like a WWOD rule extends it.
         `<epic-agents>`, in its shadow root, before its blocks (not a section).
       - Both clients POST and watch through the same code, a `ServerLink` each:
         the token, its one refresh on a 403, the poll and `spell-server:file`.
+  - `answers/` (`$/epics/answers`) -- the pages Claude makes for Owen to answer ON (epic `epic-workflow` P12),
+    as their elements keep them;  no Solid, no Spell UI, node-safe at import:
+    - `AnswerForm`, one per details page:  the questions (`<epic-ask>`) and boxes (`<epic-text-box>`) register while
+      connected;  it gathers the answer, sends it (`POST /api/details/answer`, through a `ServerLink`), reads it back
+      on load, and says where it stands for `<epic-send>`
+    - `ChoicesForm`, one per syntax-choices page:  the rows (`<epic-choice-row>`) register;  the draft every 5s and
+      as the page goes away, "Do it" (`/api/choices/*`), and bringing both back, for `<epic-choices-bar>`
+    - the answers' shapes are copies of the docs routes' (`detailsRoutes.ts`, `choicesRoutes.ts`):  `epics` never
+      imports `docs`
+    - The elements:  `<epic-ask>`, `<epic-text-box>`, `<epic-send>`, `<epic-choice-rows>` / `<epic-choice-row>`,
+      `<epic-choices-bar>`;  and `<epic-option>`'s answering mode, an option of an `<epic-ask>` (a tick box, a
+      comment box).  Their pages:  Epic UI's "Pages Owen answers on".
+    - `<epic-text-box>` is written in pages (the notes, a section's comment) AND drawn by others in their shadow
+      roots (Other, an option's comment, the feedback):  each family drawing it imports its barrel first.
   - `site/` -- `EpicUISite`:  the data of Epic UI, the elements' docs set (`packages/epic-components/`, at `/epic-ui/`;
     epic `epic-workflow` P10), in Spell UI's site shapes:
     - `_data/components.json`:  one entry per element from `Definitions.all`, filed by the set's hand-kept

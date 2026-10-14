@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>epic-choice-row</title>
+    <meta
+      name="description"
+      content="One row of a syntax-choices page: a use site, and the box holding Claude's recommendation."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="&lt;epic-choice-row&gt;">
+      <ui-segment vertical class="site-masthead"
+        ><ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page"
+            ><ui-item
+              href="../../guides/details.html"
+              icon="book"
+              aria-label="How details pages work"
+              title="How details pages work"
+            ></ui-item
+          ></ui-menu>
+          <ui-header level="1" class="site-title"
+            >&lt;epic-choice-row&gt;<ui-header
+              >One row of a syntax-choices page: a use site, and the box holding Claude's recommendation.</ui-header
+            ></ui-header
+          >
+        </ui-container></ui-segment
+      >
+      <ui-container class="site-body"
+        ><article class="site-article">
+          <p class="lede">
+            One row of a syntax-choices page: the use site, what it's for, how it reads today, and a box pre-filled with
+            Claude's call, which Owen types over or leaves.
+          </p>
+          <p class="meta">
+            For anyone writing a page Owen answers on (a details or syntax-choices page), or changing this element.<br />
+            <ui-label size="mini" color="green">built</ui-label> in
+            <a
+              href="../../packages/epics/components/epic-choice-rows/"
+              target="src-packages-epics-components-epic-choice-rows"
+              ><code title="packages/epics/components/epic-choice-rows/">epic-choice-rows/</code></a
+            >
+            (epic <code>epic-workflow</code> P12).<br />
+            Its vocabulary (every table below comes from it):
+            <a
+              href="../../packages/epics/components/epic-choice-rows/EpicChoiceRow.en.ts"
+              target="src-packages-epics-components-epic-choice-rows-epicchoicerow-en-ts"
+              ><code title="packages/epics/components/epic-choice-rows/EpicChoiceRow.en.ts"
+                >EpicChoiceRow.en.ts</code
+              ></a
+            >.
+          </p>
+          <ui-section id="1-example" header="1. Example" sticky collapsible dividing collapsed
+            ><ui-icon slot="icon" name="eye"></ui-icon>
+            <p>
+              Live: the real element, drawn by the epics pack this page loads. Off a details page's own address nothing
+              is saved or sent: Send says so.
+            </p>
+            <p class="spell-choices-rule">What a class holds or works out: <code>is</code> / <code>has</code>.</p>
+            <epic-choice-rows>
+              <epic-choice-row
+                name="q1-UIDropdown-187"
+                file="packages/ui/src/components/ui-dropdown/UIDropdown.tsx"
+                line="187"
+                purpose="menu open"
+                note="already `is`:  stays"
+                current="this.isOpen()"
+                recommended="this.isOpen()"
+              ></epic-choice-row>
+              <epic-choice-row
+                name="q1-LoadableComponent-70"
+                file="packages/ui/src/elements/LoadableComponent.tsx"
+                line="70"
+                purpose="save in flight"
+                current="this.saving.get()"
+                recommended="this.isSaving.get()"
+              ></epic-choice-row> </epic-choice-rows
+          ></ui-section>
+          <ui-section id="2-markup" header="2. Markup" sticky collapsible dividing collapsed
+            ><ui-icon slot="icon" name="code"></ui-icon
+            ><ui-accordion class="spell-code" styled
+              ><ui-title>syntax-choices page · a row · 8 lines</ui-title
+              ><ui-content
+                ><ui-code language="html"
+                  ><script type="text/plain">
+                    <epic-choice-row
+                      name="q1-LoadableComponent-70"
+                      file="packages/ui/src/elements/LoadableComponent.tsx"
+                      line="70"
+                      purpose="save in flight"
+                      current="this.saving.get()"
+                      recommended="this.isSaving.get()"
+                    ></epic-choice-row>
+                  </script></ui-code
+                ></ui-content
+              ></ui-accordion
+            ></ui-section
+          >
+          <ui-section id="3-where-it-goes" header="3. Where it goes" sticky collapsible dividing collapsed
+            ><ui-icon slot="icon" name="layer group"></ui-icon>
+            <ul>
+              <li>
+                In an
+                <a href="epic-choice-rows.html" target="src-packages-epic-components-elements-epic-choice-rows-html"
+                  ><code>&lt;epic-choice-rows&gt;</code></a
+                >, which lays it out.
+              </li>
+              <li>No children: everything is in its attributes.</li>
+            </ul></ui-section
+          >
+          <ui-section id="4-attributes" header="4. Attributes" sticky collapsible dividing collapsed
+            ><ui-icon slot="icon" name="table columns"></ui-icon>
+            <ui-table celled compact striped unstackable
+              ><table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Values</th>
+                    <th>Meaning</th>
+                    <th>Required</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>name</code></td>
+                    <td>text</td>
+                    <td>
+                      Its id in the rows file (<code>q1-UISection-169</code>): its box's key in the draft and the
+                      answer.
+                    </td>
+                    <td>yes</td>
+                  </tr>
+                  <tr>
+                    <td><code>file</code></td>
+                    <td>text</td>
+                    <td>Its file, from the repo's root: the File cell opens it in VS Code.</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><code>line</code></td>
+                    <td>a number</td>
+                    <td>Its line in <code>file</code>, from 1.</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><code>purpose</code></td>
+                    <td>text</td>
+                    <td>What it's for, in words a reader new to it follows.</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><code>note</code></td>
+                    <td>text</td>
+                    <td>
+                      A short why, small, under the purpose; `<code> </code>code<code> </code>` in it shows as code.
+                    </td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><code>current</code></td>
+                    <td>text</td>
+                    <td>How the use site reads today (<code>this.isOpen()</code>).</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><code>recommended</code></td>
+                    <td>text</td>
+                    <td>
+                      Claude's call, the box's starting text; the same as <code>current</code> for a row that stays.
+                    </td>
+                    <td></td>
+                  </tr>
+                </tbody></table
+            ></ui-table>
+            <ui-section id="epic-choice-row-parts" header="Parts" sticky collapsible dividing collapsed
+              ><p>
+                A part is a piece of what the element draws in its shadow root (its own hidden markup), named so a
+                stylesheet can reach it: <code>epic-choice-row::part(base)</code>.
+              </p>
+              <ui-table celled compact striped unstackable
+                ><table>
+                  <thead>
+                    <tr>
+                      <th>Part</th>
+                      <th>What it is</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>base</code></td>
+                      <td>Its cells, laid out on its table's columns.</td>
+                    </tr>
+                    <tr>
+                      <td><code>file</code></td>
+                      <td>The File cell: the file's name and line, a link into VS Code; its folder under it.</td>
+                    </tr>
+                    <tr>
+                      <td><code>purpose</code></td>
+                      <td>The Purpose cell: the purpose, <code>stays</code> when it stays, the note.</td>
+                    </tr>
+                    <tr>
+                      <td><code>current</code></td>
+                      <td>The Current cell: today's text, as code.</td>
+                    </tr>
+                    <tr>
+                      <td><code>pick</code></td>
+                      <td>The Recommended cell: the box, and the reset button once it differs.</td>
+                    </tr>
+                    <tr>
+                      <td><code>box</code></td>
+                      <td>
+                        The <code>&lt;textarea&gt;</code>: one line of text, wrapping and growing; Enter adds no line.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><code>reset</code></td>
+                      <td>The round button putting the recommendation back.</td>
+                    </tr>
+                  </tbody>
+                </table></ui-table
+              ></ui-section
+            >
+            <ui-section id="epic-choice-row-states" header="States" sticky collapsible dividing collapsed
+              ><p>
+                A state is a word the element sets on itself while something is true, for styling:
+                <code>epic-choice-row:state(changed)</code>. Never written in the file.
+              </p>
+              <ui-table celled compact striped unstackable
+                ><table>
+                  <thead>
+                    <tr>
+                      <th>State</th>
+                      <th>When</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>changed</code></td>
+                      <td>Its box differs from the recommendation: orange.</td>
+                    </tr>
+                    <tr>
+                      <td><code>stays</code></td>
+                      <td>Claude recommends no change.</td>
+                    </tr>
+                  </tbody>
+                </table></ui-table
+              ></ui-section
+            >
+          </ui-section>
+          <ui-section id="5-how-it-looks" header="5. How it looks" sticky collapsible dividing collapsed
+            ><ui-icon slot="icon" name="palette"></ui-icon>
+            <ul>
+              <li>
+                File: the file's name and line, a link that opens VS Code at the line; its folder under it, small.
+              </li>
+              <li>
+                Purpose: a few words or a sentence, <code>stays</code> when Claude would keep it, the note in small
+                print.
+              </li>
+              <li>
+                The box: monospace, one line of text that wraps and grows. Changed: orange, an orange edge on the row,
+                and a round button putting the recommendation back.
+              </li>
+            </ul></ui-section
+          >
+          <ui-section id="6-written-by" header="6. Written by" sticky collapsible dividing collapsed
+            ><ui-icon slot="icon" name="terminal"></ui-icon>
+            <ul>
+              <li>
+                <code>epic choices new</code>: one per row of the rows file, by file then line (in the file's order
+                without the File column).
+              </li>
+              <li>Older pages: the migration step <code>answer-elements</code>.</li>
+            </ul></ui-section
+          >
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">
+              Last checked 2026-10-14 against branch <code>epic-workflow</code> (P12): the tables are its vocabulary's
+              (epic-choice-row); the rest from its component and its stylesheet.
+            </p>
+          </footer>
+        </article></ui-container
+      >
+    </main>
+  </body>
+</html>

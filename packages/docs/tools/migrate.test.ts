@@ -36,6 +36,37 @@ const OLD_PAGE =
   '<!doctype html><html><body><main><section class="s2"><ui-sticky class="spell-h2"><h2 id="one">One</h2></ui-sticky>' +
   "<p>Words.</p></section></main></body></html>"
 
+/** A details page in the markup before epic `epic-workflow` P12:  a context section, one question of two options. */
+const OLD_DETAILS =
+  '<!doctype html><html><head><link rel="stylesheet" href="../../../packages/docs/tools/_assets/details.css"></head>' +
+  '<body class="spell-doc-page"><div class="spell-doc"><main class="spell-doc-main">' +
+  '<ui-sticky class="spell-h1"><header class="spell-page-head"><h1>Pick</h1></header></ui-sticky>' +
+  '<ui-list class="spell-meta"><ui-item icon="comments">Asked by:  session <code>w</code></ui-item>' +
+  '<ui-item icon="calendar" data-details-asked>Asked:  2026-10-05</ui-item>' +
+  '<ui-item icon="flag">Status: <ui-label data-details-status>waiting</ui-label></ui-item></ui-list>' +
+  '<ui-message class="spell-where" state="info" header="Where we are"><ul><li><b>Epic:</b>  <code>big</code></li></ul></ui-message>' +
+  '<ui-section id="context" header="1. Context" sticky collapsible dividing><p>Some context.</p></ui-section>' +
+  '<ui-section id="q1" class="spell-question" header="Q1 · Which?" sticky collapsible dividing data-multiple>' +
+  '<ui-icon slot="icon" name="circle question"></ui-icon><p>Which one?</p>' +
+  '<div class="spell-option" data-option="A" data-title="First" data-recommended data-checked><p>One.</p>' +
+  '<div class="spell-option-details" data-title="Why"><p>Long.</p></div></div>' +
+  '<div class="spell-option" data-option="B" data-title="Second"><p>Two.</p></div></ui-section>' +
+  '</main></div><script src="../../../packages/docs/tools/_assets/details.js"></script>' +
+  '<script src="../../../packages/docs/tools/_assets/spell-ui.js"></script></body></html>'
+
+/** An old details page with no questions:  it had no form. */
+const OLD_PLAIN =
+  '<!doctype html><html><head><link rel="stylesheet" href="../../../packages/docs/tools/_assets/details.css"></head>' +
+  '<body><main><p>Just words.</p></main><script src="../../../packages/docs/tools/_assets/details.js"></script>' +
+  '<script src="../../../packages/docs/tools/_assets/spell-ui.js"></script></body></html>'
+
+/** A syntax-choices page before P12:  its rows drawn by `syntax-choices.js`, from the rows file beside it. */
+const OLD_CHOICES =
+  '<!doctype html><html><head><link rel="stylesheet" href="../../packages/docs/tools/_assets/syntax-choices.css"></head>' +
+  '<body class="spell-doc-page spell-choices-page" data-spell-needs-server><div class="spell-doc"><main class="spell-doc-main">' +
+  "<h1>Names</h1><div data-choices-sections></div></main></div>" +
+  '<script src="../../packages/docs/tools/_assets/syntax-choices.js"></script></body></html>'
+
 describe("page kinds", () => {
   test("the same kinds as the plan-doc tool's", () => {
     expect(KINDS).toEqual([...PAGE_KINDS])
@@ -121,6 +152,85 @@ describe("migratePages", () => {
     const again = migratePages(pages, { tidied: false })
     expect(again.written).toEqual([])
     expect(report(again.results, root).at(-1)).toBe("guide pages:  0 of 2 changed")
+  })
+
+  test("answer-elements:  an old details page in the epics pack's elements, every word and answer key kept;  once", () => {
+    const root = checkout({ "epics/big/details/pick.html": OLD_DETAILS, "epics/big/details/plain.html": OLD_PLAIN })
+    const pages = pagesFor(root, "detail")
+    expect(pages.map((page) => page.file.split("/").pop())).toEqual(["pick.html", "plain.html"])
+    const { results } = migratePages(pages, { tidied: false })
+    expect(report(results, root)).toEqual([
+      "epics/big/details/pick.html:  answer-elements",
+      "  answer-elements:  meta list -> <epic-field>s",
+      "  answer-elements:  Where we are -> <epic-field>s",
+      "  answer-elements:  1 questions -> <epic-ask>",
+      "  answer-elements:  1 comment boxes",
+      "epics/big/details/plain.html:  answer-elements",
+      "  answer-elements:  no questions:  its old script and sheet dropped",
+      "detail pages:  2 of 2 changed (answer-elements 2)"
+    ])
+    const html = readFileSync(join(root, "epics/big/details/pick.html"), "utf8")
+    expect(html).not.toMatch(/spell-question|spell-option|details\.(js|css)|data-details-status/)
+    expect(html).toContain(
+      '<ui-root><ui-components source="../../../packages/epics/pack/epics.pack.js"></ui-components>'
+    )
+    expect(html).toContain("<h1>Pick</h1><epic-send></epic-send>")
+    expect(html).toContain('<epic-field label="Asked by" data-details-by>session <code>w</code></epic-field>')
+    expect(html).toContain('<epic-field label="Asked" data-details-asked>2026-10-05</epic-field>')
+    expect(html).toContain('<epic-field label="Epic"><code>big</code></epic-field>')
+    expect(html).toContain('<p>Some context.</p><epic-text-box for="context"></epic-text-box>')
+    expect(html).toContain(
+      '<ui-section id="q1" header="Q1 · Which?" sticky collapsible dividing><ui-icon slot="icon" name="circle question"></ui-icon>' +
+        "<epic-ask multiple><epic-question><p>Which one?</p></epic-question><epic-choices>" +
+        '<epic-option letter="A" title="First" recommended selected><p>One.</p>' +
+        '<epic-aside title="Why"><p>Long.</p></epic-aside></epic-option>' +
+        '<epic-option letter="B" title="Second"><p>Two.</p></epic-option></epic-choices></epic-ask></ui-section>'
+    )
+    expect(html).toContain('</ui-section><epic-text-box type="notes"></epic-text-box>')
+    expect(html).toContain('<script src="../../../packages/docs/tools/_assets/spell-ui.js"></script>')
+    const plain = readFileSync(join(root, "epics/big/details/plain.html"), "utf8")
+    expect(plain).not.toMatch(/details\.(js|css)|ui-root|epic-send/)
+    expect(migratePages(pages, { tidied: false }).written).toEqual([])
+  })
+
+  test("answer-elements:  an old syntax-choices page's rows written into it from its rows file, with its bar", () => {
+    const rows = {
+      sections: [{ id: "q1", title: "Q1 · Names", description: "`is` first" }],
+      rows: [
+        {
+          id: "q1-A-7",
+          section: "q1",
+          file: "a/A.ts",
+          line: 7,
+          purpose: "open",
+          current: "open",
+          recommended: "isOpen"
+        }
+      ]
+    }
+    const root = checkout({
+      "pages/details/names.html": OLD_CHOICES,
+      "pages/details/names.rows.json": JSON.stringify(rows)
+    })
+    const pages = pagesFor(root, "choice")
+    expect(migratePages(pages, { tidied: false }).written).toHaveLength(1)
+    const html = readFileSync(join(root, "pages/details/names.html"), "utf8")
+    expect(html).not.toMatch(/syntax-choices\.(js|css)|data-choices-sections|data-spell-needs-server/)
+    expect(html).toContain(
+      '<epic-choice-rows><epic-choice-row name="q1-A-7" file="a/A.ts" line="7" purpose="open" current="open" recommended="isOpen"></epic-choice-row></epic-choice-rows>'
+    )
+    expect(html).toContain('<p class="spell-choices-rule"><code>is</code> first</p>')
+    expect(html).toContain("<epic-choices-bar></epic-choices-bar></main>")
+    expect(html).toContain('<script src="../../packages/docs/tools/_assets/highlight.min.js"></script>')
+    expect(migratePages(pages, { tidied: false }).written).toEqual([])
+  })
+
+  test("answer-elements:  the old shared templates become copies of the tools' own", () => {
+    const root = checkout({ "templates/details.html": OLD_DETAILS })
+    migratePages(pagesFor(root, "template"), { tidied: false })
+    const html = readFileSync(join(root, "templates/details.html"), "utf8")
+    expect(html).toContain("<epic-ask>")
+    expect(html).toContain('source="../packages/epics/pack/epics.pack.js"')
   })
 
   test("a goals page is never a step's:  it keeps the old markup", () => {

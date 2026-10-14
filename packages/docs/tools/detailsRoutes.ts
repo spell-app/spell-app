@@ -2,7 +2,7 @@
  * Details pages' answers, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`), listed in the repo
  * root's `package.json` `"pageServer": { "routes": [...] }`.
  * - A DETAILS PAGE:  a page Claude writes to explain a question (`/details`, `spell dev details`), shown in VS Code's
- *   side bar;  Owen answers ON it, and `_assets/details.js` posts the answer here.
+ *   side bar;  Owen answers ON it, and its `<epic-send>` posts the answer here (`$/epics/answers` `AnswerForm`).
  * - `POST /api/details/answer` `{ page, answers, comments, notes }` -- write `<slug>.answer.json` beside the page
  *   `<slug>.html`
  *   - `page`:  the page's URL path, as it was served:  `/pages/details/x.html`, or a worktree's `/worktrees/<w>/...`

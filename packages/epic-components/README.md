@@ -15,7 +15,7 @@ PAGES, not code:  the docs set of the `<epic-*>` elements a plan doc is made of 
 | Path | What |
 | --- | --- |
 | `index.html` | the set's home, The Epic Elements:  how they nest |
-| `elements/<tag>.html` | one page per element, 25 today |
+| `elements/<tag>.html` | one page per element, 31 today |
 | `_parts/layout.html` | every page's chrome, written once:  the brand, the side column, the epics pack's `<ui-components>` |
 | `_parts/footer.html` | every page's footer |
 | `_data/pages.json` | HAND-KEPT:  the side column's groups, the elements with no page, the side column's own links |

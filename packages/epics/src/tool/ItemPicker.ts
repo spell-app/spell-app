@@ -20,7 +20,7 @@ export class ItemPicker {
    * (`reviewSections()`'s, filter `open`), the not-reviewed ones ticked.
    * - each option's letter is the item's id (`I4`), so the answer names the ids
    * - written for Owen coming cold ("Writing for Owen" in the details skill):  where reviews stand, and each item's
-   *   WHOLE text, as the plan doc has it (the page clamps long ones, "Show more"), its state a badge
+   *   WHOLE text, as the plan doc has it (its card folds by its chevron), its state an icon
    * - the page:  no site header (`bare`), "Select all / none", "Open | All" (Open:  only the not-reviewed)
    * - `pageDir`:  where the page will live (the scratch `pages/details/`), so the item's links still work from there
    */

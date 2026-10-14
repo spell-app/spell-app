@@ -100,8 +100,11 @@ const NO_COMMENTS = /\/parts\/[^/]+\.html$|\/_parts\/[^/]+\.html$|\/epics\/([^/]
 /** A plan doc, by its file:  its comments go in the epic's review inbox. */
 const PLAN_DOC = /\.plan\.html$/
 
-/** Markup of a page answered on the page:  a details page's questions. */
-const ANSWERED_ON_PAGE = /class="spell-question\b/
+/**
+ * Markup of a page answered on the page:  a details page's questions, `<epic-ask>`
+ * (before epic `epic-workflow` P12, `.spell-question`:  a page its migration hasn't reached yet).
+ */
+const ANSWERED_ON_PAGE = /<epic-ask\b|class="spell-question\b/
 
 const commentsRoutes: RouteModule = {
   name: "comments",

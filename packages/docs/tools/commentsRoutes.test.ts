@@ -42,7 +42,7 @@ const PAGES: Record<string, string> = {
   "epics/big/parts/p3.html": PAGE,
   "epics/big/notes.html": PAGE,
   "epics/old/old.html": PAGE,
-  "pages/details/asks.html": PAGE.replace("<p>Body.</p>", '<div class="spell-question">Q1</div>'),
+  "pages/details/asks.html": PAGE.replace("<p>Body.</p>", "<epic-ask><epic-choices></epic-choices></epic-ask>"),
   "pages/details/plain.html": PAGE,
   "templates/durable.html": PAGE,
   "goals/spell/index.html": PAGE,

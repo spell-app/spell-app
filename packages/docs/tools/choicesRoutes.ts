@@ -2,7 +2,8 @@
  * Syntax-choices pages' drafts and answers, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`),
  * listed in the repo root's `package.json` `"pageServer": { "routes": [...] }`.
  * - A SYNTAX-CHOICES PAGE:  a table of names Claude recommends, one row per use site, each pre-filled in a box Owen
- *   types over (`spell dev choices`, `choices.js`);  `_assets/syntax-choices.js` posts here.
+ *   types over (`spell dev choices`, `choices.js`);  the page's `<epic-choices-bar>` posts here
+ *   (`$/epics/answers` `ChoicesForm`), and the spell syntax guide's bar (`_assets/spell-syntax.js`).
  * - `GET /api/choices/draft?page=<path>` -- what was typed so far, `{ draft: ChoicesDraft | null }`:  the page
  *   restores it on load
  * - `POST /api/choices/draft` `{ page, values, feedback }` -- save it to `<slug>.draft.json` beside the page.  Every 5s

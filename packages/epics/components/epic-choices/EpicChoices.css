@@ -254,7 +254,123 @@
   }
 }
 
+@layer ui.components.epic-choices.types {
+  /*
+   * ## Answering:  the options of an `<epic-ask>` (epic `epic-workflow` P12), on a page Owen answers on
+   * - one card a row, full width:  each has its comment box under it
+   * - the header:  chevron, tick box and title (a click on the title ticks it), badge;  the (?) and state icon last
+   * - ticked:  framed green, a pick is a decision (Q20 of epic `epic-components`)
+   */
+  :host(epic-choices:state(answering)) .choices:not(.answered) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  :host(epic-option:state(filtered)) {
+    display: none;
+  }
+  .card.answering {
+    height: auto;
+  }
+  .answering > .header {
+    gap: 8px;
+  }
+  .fold {
+    display: inline-flex;
+    flex: none;
+    align-self: flex-start;
+    padding: 0;
+    border: none;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+  }
+  .pick {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+    cursor: pointer;
+  }
+  .tick {
+    flex: none;
+    width: 1.05em;
+    height: 1.05em;
+    margin: calc((1lh - 1.05em) / 2) 0 0;
+    accent-color: var(--ui-green, #21ba45);
+    cursor: pointer;
+  }
+  .badge {
+    flex: none;
+    align-self: flex-start;
+  }
+  .marks {
+    display: inline-flex;
+    flex: none;
+    align-self: flex-start;
+    align-items: center;
+    gap: 6px;
+    height: 1lh;
+    margin-inline-start: auto;
+  }
+  .marks:empty {
+    display: none;
+  }
+  .more,
+  .state-mark {
+    display: inline-flex;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--_epic-choices-muted);
+  }
+  .more {
+    cursor: pointer;
+  }
+  .more:hover,
+  .more[aria-pressed="true"] {
+    color: var(--ui-blue-text, var(--ui-blue, #2185d0));
+  }
+  .more svg,
+  .state-mark svg {
+    display: block;
+    width: auto;
+    height: 1.05em;
+    fill: currentColor;
+    /* the tooltip is the button's own:  the pointer lands on it, not the icon (Electron shows a `title` only so) */
+    pointer-events: none;
+  }
+  .state-mark[data-color="red"] {
+    color: var(--ui-red-text, var(--ui-red));
+  }
+  .state-mark[data-color="orange"] {
+    color: var(--ui-orange-text, var(--ui-orange));
+  }
+  .state-mark[data-color="yellow"] {
+    color: var(--ui-yellow-text, var(--ui-yellow));
+  }
+  .state-mark[data-color="green"] {
+    color: var(--ui-green-text, var(--ui-green));
+  }
+  .state-mark[data-color="blue"] {
+    color: var(--ui-blue-text, var(--ui-blue));
+  }
+  .state-mark[data-color="violet"] {
+    color: var(--ui-violet-text, var(--ui-violet));
+  }
+  .comment {
+    margin: 0;
+    padding: 0 10px 8px;
+  }
+  .answering > .body.empty + .comment {
+    padding-top: 8px;
+  }
+}
+
 @layer ui.components.epic-choices.states {
+  .card.ticked {
+    border-color: var(--_epic-choices-pick);
+    box-shadow: 0 0 0 1px var(--_epic-choices-pick);
+  }
   .choices.answered:has(> .panels:not([hidden])) > .toggle .chevron,
   :is(.panel, .card):has(> .body:not([hidden])) .chevron {
     rotate: 90deg;

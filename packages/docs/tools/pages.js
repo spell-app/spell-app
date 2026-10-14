@@ -232,22 +232,26 @@ export function ensurePageServer() {
  * A template's `html` fixed for a page `depth` folders below the checkout's root (`guides/glossary.html` is 1,
  * `epics/a/a.plan.html` 2).
  * - rewrites whatever depth the template assumed:  `_assets` paths (`<up>packages/docs/tools/_assets/`), the docs
- *   home's paths (`<up>pages/index.html`), the areas' list pages (`<up>epics/index.html` ...), and the site
- *   header's `root` (`<up>`:  the path up to the root)
+ *   home's paths (`<up>pages/index.html`), the areas' list pages (`<up>epics/index.html` ...), a component pack's
+ *   script (`<up>packages/epics/pack/`), and the site header's `root` (`<up>`:  the path up to the root)
  * - drops the template's `TEMPLATE:` how-to comment
  * - `docs:new`, `details new`, `plan-doc new`
  */
 export function atDepth(html, depth) {
   const up = "../".repeat(depth)
-  return html
-    .replace(
-      /((?:href|src)=")(?:\.\.\/)*(?:packages\/docs\/)?(?:tools\/)?_assets\//g,
-      `$1${up}packages/docs/tools/_assets/`
-    )
-    .replace(/((?:href|src)=")(?:\.\.\/)*(?:pages\/)?index\.html/g, `$1${up}pages/index.html`)
-    .replace(/((?:href|src)=")(?:\.\.\/)*(epics|guides|templates|brand)\/index\.html/g, `$1${up}$2/index.html`)
-    .replace(/(<spell-site-header\b[^>]*?\broot=")[^"]*"/, `$1${up.replace(/\/$/, "") || "."}"`)
-    .replace(/\n\s*<!--\s*TEMPLATE:[\s\S]*?-->/, "")
+  return (
+    html
+      .replace(
+        /((?:href|src)=")(?:\.\.\/)*(?:packages\/docs\/)?(?:tools\/)?_assets\//g,
+        `$1${up}packages/docs/tools/_assets/`
+      )
+      // a component pack's script (`<ui-components source>`:  the epics pack, on details and choices pages)
+      .replace(/(\bsource=")(?:\.\.\/)*packages\/([\w-]+)\/pack\//g, `$1${up}packages/$2/pack/`)
+      .replace(/((?:href|src)=")(?:\.\.\/)*(?:pages\/)?index\.html/g, `$1${up}pages/index.html`)
+      .replace(/((?:href|src)=")(?:\.\.\/)*(epics|guides|templates|brand)\/index\.html/g, `$1${up}$2/index.html`)
+      .replace(/(<spell-site-header\b[^>]*?\broot=")[^"]*"/, `$1${up.replace(/\/$/, "") || "."}"`)
+      .replace(/\n\s*<!--\s*TEMPLATE:[\s\S]*?-->/, "")
+  )
 }
 
 /** URL of `file` on the page server at `base`, e.g. `http://127.0.0.1:4747/pages/index.html`. */

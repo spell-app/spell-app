@@ -47,6 +47,12 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
   /** Its `chosen` letter, followed as it changes;  `undefined` while none is. */
   @E.state accessor chosenLetter = EpicChoices.chosenFor(this.domElement)
 
+  /** The options of an `<epic-ask>` (a page Owen answers on, epic `epic-workflow` P12):  one card a row. */
+  @E.cssState("answering")
+  get isAnswering(): boolean {
+    return this.domElement.parentElement?.localName === ASK_TAG
+  }
+
   /** Its options' box:  folded until the reader opens it. */
   readonly fold = new Fold(() => false)
 
@@ -184,6 +190,9 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
 
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface EpicChoices extends E.AttributeValues<typeof epicChoicesVocabulary> {}
+
+/** The question an answering page's choices sit in. */
+const ASK_TAG = "epic-ask"
 
 /** Class of the answered options' box. */
 const PANELS = "panels"

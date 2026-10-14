@@ -2,7 +2,7 @@
  * Tests of `spell dev choices`' functions (`tools/choices.js`), in a scratch checkout:  the real template, a scratch
  * `details/` and an epic.
  */
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterAll, beforeAll, expect, test } from "vite-plus/test"
@@ -18,7 +18,6 @@ import {
   rowsFile
 } from "./choices.js"
 import { answerFile, createPage as createDetailsPage, waitForAnswer } from "./details.js"
-import { TEMPLATES } from "./pages.js"
 
 let docs
 
@@ -64,26 +63,35 @@ const DATA = {
 
 beforeAll(() => {
   docs = mkdtempSync(join(tmpdir(), "choices-cli-"))
-  mkdirSync(join(docs, "templates"))
-  for (const name of ["syntax-choices.html", "details.html"])
-    copyFileSync(join(TEMPLATES, name), join(docs, "templates", name))
   mkdirSync(join(docs, "epics/big"), { recursive: true })
 })
 
 afterAll(() => rmSync(docs, { recursive: true, force: true }))
 
-test("new:  the page and its rows beside it, assets fixed for its depth", () => {
+test("new:  the page, its rows in it as elements and beside it as JSON, fixed for its depth", () => {
   const file = createPage(docs, "names", { epic: "big", data: DATA })
   expect(file).toBe(join(docs, "epics/big/details/names.html"))
   const html = readFileSync(file, "utf8")
   expect(html).toContain("<title>Boolean names</title>")
-  expect(html).toContain('<script src="../../../packages/docs/tools/_assets/syntax-choices.js">')
+  expect(html).toContain('<script src="../../../packages/docs/tools/_assets/spell-ui.js">')
+  expect(html).toContain('source="../../../packages/epics/pack/epics.pack.js"')
+  expect(html).not.toContain("syntax-choices.js")
   expect(html).toContain('root="../../.."')
   expect(html).toContain("Which <b>names</b> change?")
-  expect(html).toContain("<li><b>Just now:</b>  counted them</li>")
+  expect(html).toContain('<epic-field label="Just now">counted them</epic-field>')
   expect(html).toContain("<code>names.rows.json</code>")
-  expect(html).toMatch(/data-choices-asked[^>]*>Asked:  \d{4}-\d\d-\d\d</)
+  expect(html).toMatch(/<epic-field label="Asked" data-choices-asked>\d{4}-\d\d-\d\d</)
   expect(html).not.toContain("TEMPLATE:")
+  expect(html).not.toContain("q1-example-1")
+  // one section per section of the rows, its rule with its code, its rows by file then line
+  expect(html).toContain(
+    '<ui-section id="q1" header="Q1 · Members" sticky collapsible dividing collapsed><ui-icon slot="icon" name="list check"></ui-icon><p class="spell-choices-rule"><code>is</code> / <code>has</code></p><epic-choice-rows>'
+  )
+  expect(html).toContain(
+    '<epic-choice-row name="q1-A-7" file="packages/ui/src/A.tsx" line="7" purpose="menu open" current="this.open" recommended="this.isOpen"></epic-choice-row>'
+  )
+  expect(html).toContain('note="stays"')
+  expect(html).toContain("<epic-choices-bar></epic-choices-bar>")
   const { sections, rows } = readRows(file)
   expect(sections).toHaveLength(2)
   expect(rows.map((row) => row.id)).toEqual(["q1-A-7", "q1-A-9", "direct"])
@@ -96,6 +104,7 @@ test("new:  fileColumn false is kept beside the rows, so the page drops its File
   const kept = readRows(file)
   expect(kept.fileColumn).toBe(false)
   expect(kept.rows[0].file).toBe("packages/ui/src/A.tsx")
+  expect(readFileSync(file, "utf8")).toContain("<epic-choice-rows no-file>")
   expect("fileColumn" in readRows(join(docs, "epics/big/details/names.html"))).toBe(false)
   const shown = createPage(docs, "file-shown", { epic: "big", data: { ...DATA, fileColumn: true } })
   expect("fileColumn" in readRows(shown)).toBe(false)
@@ -105,6 +114,7 @@ test("new:  fileColumn false is kept beside the rows, so the page drops its File
 test("new:  stacked true is kept beside the rows (one Syntax column);  two columns by default", () => {
   const file = createPage(docs, "stacked", { epic: "big", data: { ...DATA, fileColumn: false, stacked: true } })
   expect(readRows(file)).toMatchObject({ fileColumn: false, stacked: true })
+  expect(readFileSync(file, "utf8")).toContain("<epic-choice-rows stacked no-file>")
   const plain = createPage(docs, "not-stacked", { epic: "big", data: { ...DATA, stacked: false } })
   expect("stacked" in readRows(plain)).toBe(false)
   expect(() => checkData({ ...DATA, stacked: "yes" })).toThrow(/stacked is true or false/)

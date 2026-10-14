@@ -41,6 +41,11 @@
       "id": "log",
       "title": "Log and commits",
       "tags": ["epic-commit", "epic-event"]
+    },
+    {
+      "id": "answering",
+      "title": "Pages Owen answers on",
+      "tags": ["epic-ask", "epic-text-box", "epic-send", "epic-choice-rows", "epic-choice-row", "epic-choices-bar"]
     }
   ],
   "drawnOnly": ["epic-review", "epic-new-item", "epic-agents"],

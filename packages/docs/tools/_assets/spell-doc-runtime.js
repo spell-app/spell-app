@@ -1710,7 +1710,7 @@ const MIN_TITLE_PX = 50
  * The page's navigation:  a plan doc's toolbar (`buildToolbar()`), else the page toolbar (`buildPageToolbar()`).
  * - returns the `<nav>`, whose `[data-rail]` entries scroll-follow marks;  none without top-level sections
  * - `data-rail`:  the name the floating rail gave them (gone since epic `airplane` P8);  kept, as scroll-follow,
- *   `details.js` and `check-spell.js` read it
+ *   a details page's `<epic-ask>` and `check-spell.js` read it
  */
 function buildNavigation(main, outline, counts) {
   const page = document.body.classList.contains("plan-doc") ? main.querySelector("epic-page") : null
@@ -1724,7 +1724,7 @@ function buildNavigation(main, outline, counts) {
  * - each:  the section's mark and its title, a link to it (`wireAnchors()` lands it);  scroll-follow marks the current
  *   one `selected`, by `data-rail`
  *   - the mark:  an item's number for an item (`Q3 · When?` shows 3, coloured by the section's `data-state`:  a
- *     details page's questions, `details.js`);  else its `<ui-icon>`;  else its number (`2.`);  else its first letter
+ *     details page's questions, `<epic-ask>`);  else its `<ui-icon>`;  else its number (`2.`);  else its first letter
  *   - a red badge:  how many of its items need Owen (`counts`, `attention`);  none, none
  * - titles too long for the row end in `...`;  when each would get under `MIN_TITLE_PX`, they go, and the buttons
  *   show their marks only, the title as their tooltip (`fitTitles()`);  still too wide, the row scrolls sideways

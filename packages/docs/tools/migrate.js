@@ -7,6 +7,8 @@
  * - `pageKind()`:  which kind a page is, from where it lives and what it loads
  * - `STEPS`:  the steps.  Today's one-off fixers, as steps of their kind:
  *   - `ui-section`:  `to-ui-section.js`, old `section.s2|s3` sections to `<ui-section>`
+ *   - `answer-elements`:  `to-answer-elements.js`, a details or syntax-choices page (and the old shared templates of
+ *     both) in the epics pack's elements, its old page script gone (epic `epic-workflow` P12)
  *   - NOT the shared-content repair (`relocate.js`):  it moves files between folders rather than fixing a page's
  *     markup, and `spell dev shared commit` runs its reorg every turn already
  * - A new step:  an entry in `STEPS`, LAST, in the same commit as the markup change it follows;  it must change
@@ -15,13 +17,17 @@
  *   every kind with steps, or one kind;  one page (`--file`, its kind found unless given);  `--list`:  the steps
  */
 import { existsSync, readFileSync, realpathSync, writeFileSync } from "node:fs"
-import { isAbsolute, join, relative, resolve, sep } from "node:path"
+import { basename, isAbsolute, join, relative, resolve, sep } from "node:path"
 import { pathToFileURL } from "node:url"
 
 import { parseHTML } from "linkedom"
 
+import { TOOL_TEMPLATES } from "./answerPages.js"
+import { checkData, rowsFile } from "./choices.js"
+import { listPages } from "./details.js"
 import { findPages, pageFile, parseArgs, ROOT, serialize, tidy } from "./pages.js"
 import { withLocks } from "./relocate.js"
+import { convertChoicesPage, convertDetailsPage, needsConversion } from "./to-answer-elements.js"
 import { convertSections } from "./to-ui-section.js"
 
 /** Every page kind, by the names P14 proposes:  `$/epics/tool/migrations` `PAGE_KINDS`, kept the same. */
@@ -45,7 +51,8 @@ export const KINDS = [
 /**
  * The steps, oldest first:  `{ name, date, kinds, description, applies(html), run(document) }`.
  * - `applies(html)`:  a cheap test on the page's text, so a page with nothing to do isn't parsed
- * - `run(document)`:  changes the page IN PLACE;  returns `{ changed, notes }`, `notes` one line each
+ * - `run(document, { file })`:  changes the page IN PLACE (`file`:  its path, for what lies beside it);  returns
+ *   `{ changed, notes }`, `notes` one line each
  */
 export const STEPS = [
   {
@@ -63,6 +70,29 @@ export const STEPS = [
         ...report.skipped.map((html) => `SKIPPED (not section > ui-sticky > h2|h3[id]):  ${html}`)
       ]
       return { changed: report.converted > 0, notes: [`${report.converted} sections -> <ui-section>`, ...notes] }
+    }
+  },
+  {
+    name: "answer-elements",
+    date: "2026-10-14",
+    kinds: ["detail", "choice", "template"],
+    description:
+      "a page Owen answers on, in the epics pack's elements:  its old page script gone (to-answer-elements.js, epic-workflow P12)",
+    applies: needsConversion,
+    run(document, { file }) {
+      // the old shared templates:  the tools read their own since P12, so these become copies of them
+      const template = /(?:^|\/)templates\/(details|syntax-choices)\.html$/.exec(file.split(sep).join("/"))?.[1]
+      if (template) {
+        const { document: fresh } = parseHTML(readFileSync(join(TOOL_TEMPLATES, `${template}.html`), "utf8"))
+        document.documentElement.replaceWith(fresh.documentElement)
+        return { changed: true, notes: [`now a copy of the tool's own template (tools/templates/${template}.html)`] }
+      }
+      if (document.querySelector('script[src$="syntax-choices.js"]')) {
+        const rows = rowsFile(file)
+        if (!existsSync(rows)) return { changed: false, notes: [`SKIPPED:  no ${basename(rows)} beside it`] }
+        return convertChoicesPage(document, checkData(JSON.parse(readFileSync(rows, "utf8"))))
+      }
+      return convertDetailsPage(document)
     }
   }
 ]
@@ -96,13 +126,15 @@ export function stepsFor(kind, step) {
 }
 
 /**
- * The pages of checkout `root` that some step is for:  every page of the docs' areas, the Brand list page too,
+ * The pages of checkout `root` that some step is for:  every page of the docs' areas, the Brand list page too, and
+ * every details and syntax-choices page (`details.js` `listPages()`:  `findPages()` skips `details/` folders),
  * as `{ file, kind }`, sorted;  epic pages, goal sets, brand and component pages left out (no step is for them).
  * - `kind`:  only that kind
  */
 export function pagesFor(root, kind) {
   const areas = ["pages", "guides", "templates", "epics"].map((area) => join(root, area))
-  const files = [...findPages(areas), join(root, "brand", "index.html")].filter((file) => existsSync(file))
+  const found = [...findPages(areas), join(root, "brand", "index.html"), ...listPages(root)]
+  const files = [...new Set(found)].filter((file) => existsSync(file)).sort((one, other) => one.localeCompare(other))
   return files
     .map((file) => ({ file, kind: pageKind(file, root) }))
     .filter((page) => (kind ? page.kind === kind : STEPS.some((step) => step.kinds.includes(page.kind))))
@@ -129,7 +161,7 @@ export function migratePages(pages, { step, dryRun = false, tidied = true } = {}
       const ran = []
       const notes = []
       for (const each of steps) {
-        const done = each.run(document)
+        const done = each.run(document, { file })
         if (!done.changed) continue
         ran.push(each.name)
         notes.push(...done.notes.map((note) => `${each.name}:  ${note}`))

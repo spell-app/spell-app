@@ -134,12 +134,12 @@ In `tools/`:
     - GENERATED with `spell-ui.js`:  never edit.
   - No `plan-doc.css` any more (deleted at P14 of epic `epic-components`, 2026-10-08).
     Plan docs style themselves through their `<epic-*>` elements.
-  - `details.css`, `details.js`:  details pages.
-    - `details.js` builds the option cards, Other, notes and Send from the page's `.spell-option` markup.
-    - It also shows the answer once sent.
-  - `syntax-choices.css`, `syntax-choices.js`:  syntax-choices pages.
-    - It draws their tables from `<slug>.rows.json`, saves what's typed, and sends "Do it".
-    - Then it loads `spell-ui.js` itself:  it's loaded INSTEAD of the bundle, as `commands.js` is.
+  - No page script for details and syntax-choices pages since epic `epic-workflow` P12:  they're written in the
+    epics pack's elements, which draw and send them (see "Details pages").
+    - `details.css`, `details.js` and `syntax-choices.js` are gone;  `spell-doc.css` has their pages' few own lines
+      ("Pages Owen answers on").
+  - `syntax-choices.css`:  the spell syntax guide's boxes and bar (`spell-syntax.js`), which a syntax-choices page
+    drew to before P12.
   - `goals.css`, `goals-live.js`:  goals pages (the repo root's `goals/`, and `templates/goals/`).
     - their look, and their live buttons:  PARKED since 2026-10-11, each says "TODO:  this will ..." (`parked()`)
     - `goals.css` holds every rule the goals pages took from `plan-doc.css`, which they no longer link.
@@ -151,7 +151,7 @@ In `tools/`:
       [spellSyntax.json](../spell/spellSyntax.json) (`yarn gen:syntax` in `packages/spell`).
     - Each row:  the class's name, opening its source;  its syntaxes and aliases;  an example of each syntax in each
       writer;  its purpose.  Every section starts open, with Expand all and Collapse all in the toolbar.
-    - Built from elements, never markup in strings;  its boxes and toolbar are a syntax-choices page's
+    - Built from elements, never markup in strings;  its boxes and toolbar are the old syntax-choices page's
       (`syntax-choices.css`, `choicesRoutes.ts`), the page naming its rows on `<body data-choices-rows>`.
     - Each row's wand adds a comment on it ("Provide more details here"):  see "Comments".
     - Then it loads `spell-ui.js` itself, as `commands.js` does.
@@ -457,9 +457,14 @@ In `tools/`:
   - How to write one:  [the plan-doc guide](../../templates/epics/plan-doc.md).
 - [details.html](../../templates/details.html):  a details page.
   - NEVER copy by hand:  `epic ask new <slug>`.
+  - The tool reads its OWN copy since epic `epic-workflow` P12, tracked with each branch as the elements it's
+    written in are:  [tools/templates/details.html](tools/templates/details.html).
+    - The shared one becomes a copy of it when the migration step `answer-elements` runs (see "Scripts",
+      `migrate.js`).
 - [syntax-choices.html](../../templates/syntax-choices.html):  a syntax-choices page.
   - `syntax-choices.rows.json` beside it is a small working example.
   - NEVER copy by hand:  `epic choices new <slug> --rows <rows.json>`.
+  - The tool's own copy, as details.html's:  [tools/templates/syntax-choices.html](tools/templates/syntax-choices.html).
 - [review.html](../../templates/review.html), "Review":  a details page reviewing a finished run's calls.
   - one question each (keep, change, talk over), then "Where first?"
   - saved from `ui-docs-rework`'s morning review, as the model
@@ -623,22 +628,32 @@ In `tools/`:
   ```
 
   - `show` opens a page in the side bar's "Review" tab (epic `windows-and-review` P6).
+- Written in the epics pack's `<epic-*>` elements (epic `epic-workflow` P12), so a question reads as a plan doc's.
+  Each element has its page in Epic UI (`/epic-ui/`, "Pages Owen answers on"):
+  - a question:  a `<ui-section id>` holding an `<epic-ask>` of an `<epic-question>` and an `<epic-choices>` of
+    `<epic-option>`s;  the section's id is its answer's key
+  - the boxes Owen types in:  `<epic-text-box>`es (the notes, a section's comment;  Other and each option's comment
+    are drawn by the question)
+  - Send:  `<epic-send>`, in the sticky page header
+  - what they hold and send:  the page's `AnswerForm` (`$/epics/answers`)
+  - The tools build them as elements, never markup in strings ([answerPages.js](tools/answerPages.js));  the template
+    is the tool's own, [tools/templates/details.html](tools/templates/details.html).
+  - Before P12:  `ui-section.spell-question` > `.spell-option`, which a page script (`_assets/details.js`, gone) drew.
+    The migration step `answer-elements` converts such a page once ([to-answer-elements.js](tools/to-answer-elements.js)).
 - Owen's answer:  the page posts it to the page server's route module, [detailsRoutes.ts](tools/detailsRoutes.ts).
   - That writes `<slug>.answer.json`, beside the page.
   - `epic ask wait`, run in the background, exits with it, and so wakes the session.
 - `findPages()` skips every `details/` folder:  not in the index, not checked by `docs update`.
 - Colours (the scheme:  "Colours" above):
   - recommended:  a violet thumbs-up after an option's title, no word
-  - the chosen card green
+  - the ticked card framed green
   - Send blue, by the fill rule (grey outline:  nothing to send;  dashed:  changes not sent;  outline:  sent)
-  - each question's toolbar badge:
+  - each question's chip, and its section's toolbar badge:
     - red:  nothing yet
     - green:  picked
     - blue:  Claude has more to do (more details asked, or only Other written)
-  - the status label:
-    - red:  waiting for your answer
-    - blue:  changes not sent
-    - green:  answered
+  - No status label in the meta lines any more (P12):  Send's line says where the answer stands
+    (`Not sent`, `Changes not sent`, `Sent 10/8/26 14:34 · 5 of 17 decided`).
 
 ## Syntax-choices pages
 
@@ -656,7 +671,12 @@ In `tools/`:
   ```
 
   - Pages go where details pages do.
-  - `<slug>.rows.json`, beside the page, holds the rows.
+  - `<slug>.rows.json`, beside the page, holds the rows;  `new` writes them into the page too, as elements
+    (epic `epic-workflow` P12):  a `<ui-section>` per section holding an `<epic-choice-rows>` of
+    `<epic-choice-row>`s, and an `<epic-choices-bar>` at the end (feedback, "Do it", the draft;  `ChoicesForm`,
+    `$/epics/answers`).  So the page draws from `file://` too;  saving and sending need the page server.
+  - Before P12 a page script (`_assets/syntax-choices.js`, gone) fetched the rows and drew them;  the migration step
+    `answer-elements` writes such a page's rows in once.
 - A DOCS page may take choices too:  one that names its own rows on `<body data-choices-rows="...">`.
   - The spell syntax guide does:  its rows are generated from the code, its boxes keyed `<Class>.<field>` (`IsGtLt.py`).
   - Its draft and answer go beside it, as a choices page's;  its box ids aren't checked against the rows.
@@ -1167,7 +1187,12 @@ In this order, from `packages/docs`:
   - `KINDS`:  the page kinds, the same list as the plan-doc tool's `PAGE_KINDS` (its test checks);  `pageKind()`:  a
     page's kind, from where it lives and what it loads.
   - `STEPS`, oldest first, each named and dated, each page under its lock (`withLocks()`, from `relocate.js`).
-    Today:  `ui-section` (`to-ui-section.js`).
+    Today:
+    - `ui-section` (`to-ui-section.js`)
+    - `answer-elements` (`to-answer-elements.js`, epic `epic-workflow` P12):  details and syntax-choices pages (and
+      `templates/review.html`) in the epics pack's elements;  the old shared `details.html` and `syntax-choices.html`
+      templates become copies of the tools' own.  `pagesFor()` lists every `details/` page for it.
+    - A step's `run(document, { file })` gets the page's path:  a choices page's rows file is beside it.
   - The shared-content repair (`relocate.js`) is NOT a step:  it moves files between folders, and
     `spell dev shared commit` runs its reorg every turn.
   - A change to a page kind's markup adds its step here, in the same commit.
