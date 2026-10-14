@@ -186,6 +186,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `new Loader({ entryFor }).load(key)`:  each entry made once, however many references name it.
   - The keys are `refOf`'s:  the people store names entries by address.
   - Python's twin is `spell_core.saving`:  both write [savedById.expected.json](../../tests/core/savedById.expected.json), and read it.
+- CHECKING a saved entry against its class ([checking.ts](src/checking.ts), epic `people-and-orgs` P5, Q43):
+  - `checkEntry(entry, { classNamed })`:  each property declared, of its kind;  a thing written whole inside checked
+    too.  Returns the problems, `[{ property: "name", message: "name is text, not a number" }]`.
+  - `jsonSchemaFor(Class)`:  the same, as JSON Schema, for VS Code only:  made, never committed.
+    `spell compile` writes a library's into its build folder, `schemas/Person.schema.json` (cli's `writeSchemas()`).
+  - Both read a property's kind through ONE function, `kindOf()`, so they can't disagree.
+  - In `$/core/model` too:  the people store checks with it.
 - A PAGE drawing a program that runs elsewhere, e.g. in Python ([page.ts](src/page.ts), P19):
   - `startPage()`:
     - mirrors the program's state

@@ -2,6 +2,10 @@
   // Linting is oxlint, via Vite+ (the `lint` block of the root's `vite.config.ts`, from `vite.lint.ts`);
   // the ESLint extension is no longer used here.
   "oxc.enable": true,
+  // Spell's `.json5` files open as "JSON with comments":  VS Code has no JSON5 mode, and checks a file against its
+  // JSON Schema only in its JSON modes (epic `people-and-orgs` P5).  Spell writes keys and text in double quotes, so
+  // its files read cleanly there;  a bare key typed by hand gets one squiggle, and the schema check still runs.
+  "files.associations": { "*.json5": "jsonc" },
   // Read ONLY the root's `vite.config.ts`, as `vp check` does (Vite+'s editor setup):  a package's own
   // `lint` / `fmt` block is for `vp lint` / `vp fmt` run in that package, and says the same.
   "oxc.disableNestedConfig": true,

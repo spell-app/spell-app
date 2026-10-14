@@ -47,5 +47,6 @@ export {
   type SaverOptions,
   type LoaderOptions
 } from "./saving"
+export { checkEntry, jsonSchemaFor, kindOf, type EntryProblem, type CheckOptions, type Kind } from "./checking"
 export { SPELL_CORE_MODULE, type SpellCore, type PropCheck } from "./spellCore.types"
 export type { ListCallback } from "./classes/List"

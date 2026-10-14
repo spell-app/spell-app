@@ -67,6 +67,8 @@ export {
   type SaverOptions,
   type LoaderOptions
 } from "./saving"
+// A saved entry checked against its class, and the JSON Schema VS Code checks it with (P5):  see `checking.ts`.
+export { checkEntry, jsonSchemaFor, kindOf, type EntryProblem, type CheckOptions, type Kind } from "./checking"
 // A page drawing a program that runs elsewhere, e.g. in Python (P19):  see `page.ts`.
 export {
   startPage,

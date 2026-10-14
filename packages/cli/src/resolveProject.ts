@@ -34,8 +34,7 @@ export const LOCAL_SPACE = "@local"
  */
 export async function resolveProject(arg: string, cwd = process.cwd()): Promise<CLI.CliProject> {
   if (arg === HERE_ARG) return resolveDiskPath(arg, cwd)
-  if (arg.startsWith(`${HERE_ARG}/`))
-    return resolveDiskPath(arg, resolve(cwd, arg.slice(HERE_ARG.length + 1)))
+  if (arg.startsWith(`${HERE_ARG}/`)) return resolveDiskPath(arg, resolve(cwd, arg.slice(HERE_ARG.length + 1)))
   if (SP.SpellLocation.isAddress(arg)) return resolveSpellPath(arg)
   return resolveDiskPath(arg, resolve(cwd, arg))
 }
