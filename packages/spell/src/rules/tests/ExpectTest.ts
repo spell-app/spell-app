@@ -41,7 +41,6 @@ tests.addRule(ExpectTest, {
       beforeEach(scope: P.Scope) {
         // `Scope.compile()`'s `ruleName` has no default even though the `Parser.compile()` it delegates
         // to defaults it to `"block"` -- see report. Pass it explicitly to match the original behavior.
-        scope.compile("a card is a thing", "block")
         scope.compile(`it = a new thing with rank = "queen", is-face-up = yes`, "block")
         scope.compile("my-list is a new list", "block")
       },
@@ -66,12 +65,16 @@ tests.addRule(ExpectTest, {
       beforeEach(scope: P.Scope) {
         // `Scope.compile()`'s `ruleName` has no default even though the `Parser.compile()` it delegates
         // to defaults it to `"block"` -- see report. Pass it explicitly to match the original behavior.
-        scope.compile("a card is a thing", "block")
         scope.compile(`it = a new thing with rank = "queen", is-face-up = yes`, "block")
+        scope.compile("my-list is a new list", "block")
       },
       tests: [
         ["its rank should be queen", 'spellCore.expect(it.rank, `its rank`, "queen", `queen`)'],
-        ['the rank of it should be "queen"', 'spellCore.expect(it.rank, `the rank of it`, "queen", `"queen"`)']
+        ['the rank of it should be "queen"', 'spellCore.expect(it.rank, `the rank of it`, "queen", `"queen"`)'],
+        [
+          "the number of items in my-list should be 0",
+          "spellCore.expect(spellCore.itemCountOf(myList), `the number of items in my-list`, 0, `0`)"
+        ]
       ]
     }
   ]
