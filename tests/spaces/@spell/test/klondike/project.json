@@ -1,0 +1,17 @@
+{
+  "imports": [
+    {
+      "path": "@spell/test/cards",
+      "active": true,
+      "import": ["Card", "Deck", "Pile"]
+    },
+    {
+      "path": "/Solitaire.spell",
+      "active": true
+    },
+    {
+      "path": "/styles.css",
+      "active": true
+    }
+  ]
+}

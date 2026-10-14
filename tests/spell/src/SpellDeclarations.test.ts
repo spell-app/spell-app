@@ -30,7 +30,7 @@ describe("SpellDeclarations, inline", () => {
     marked: compiled,
     code,
     declarations
-  } = compiledProject(loadFixtureProject("Solitaire"), { version: "1.0.0" })
+  } = compiledProject(loadFixtureProject("solitaire"), { version: "1.0.0" })
 
   test("Solitaire's declarations", () => {
     expect(declarations).toMatchSnapshot()
@@ -73,8 +73,8 @@ describe("SpellDeclarations, inline", () => {
   })
 
   test("reads the way it's written, e.g. a function", () => {
-    const compiled = compiledProject(loadFixtureProject("FizzBuzz")).marked
-    const source = loadFixtureProject("FizzBuzz")[0]!.contents
+    const compiled = compiledProject(loadFixtureProject("fizzbuzz")).marked
+    const source = loadFixtureProject("fizzbuzz")[0]!.contents
     const comment = compiled.match(/\/\*! SPELL: DECLARES \{[\s\S]*? \*\//)![0]
     const start = source.indexOf("to play fizzbuzz")
     const end = source.indexOf("\n\nplay fizzbuzz")
@@ -100,9 +100,9 @@ describe("SpellDeclarations, inline", () => {
   })
 
   test("`exports` in `project.json` limits what it provides", () => {
-    const limited = compiledProject(loadFixtureProject("Solitaire"), { exports: ["Card"] }).declarations
+    const limited = compiledProject(loadFixtureProject("solitaire"), { exports: ["Card"] }).declarations
     expect(limited?.provides).toEqual(["Card"])
-    expect(() => compiledProject(loadFixtureProject("Solitaire"), { exports: ["Joker"] })).toThrow(
+    expect(() => compiledProject(loadFixtureProject("solitaire"), { exports: ["Joker"] })).toThrow(
       /exports 'Joker', which it doesn't declare/
     )
   })
@@ -129,12 +129,12 @@ describe("SpellDeclarations, inline", () => {
  * - Solitaire split in two:  a library (`Card`, `Deck`, `Pile`) and an app (`Solitaire.spell`).
  */
 describe("SpellDeclarations.importScope()", () => {
-  const all = loadFixtureProject("Solitaire")
+  const all = loadFixtureProject("solitaire")
   const library = all.filter(({ path }) => path !== "/Solitaire.spell")
   const app = all.filter(({ path }) => path === "/Solitaire.spell")
   // read back out of compiled text, as another project would
   const declarations = compiledProject(library, { version: "1.2.0" }).declarations
-  const from = "@library/cards"
+  const from = "@spell/library/cards"
 
   /** Import layer over the root scope, holding just the library -- `options` as a `project.json` entry. */
   function importLibrary(options: Partial<SP.DeclarationsImport> = {}) {
@@ -174,12 +174,12 @@ describe("SpellDeclarations.importScope()", () => {
   })
 
   describe("records keep what editors need, with no `declaredBy` -- for a library shipped without sources", () => {
-    const projectId = "@system:library:cards"
+    const projectId = "@spell/library/cards"
     const imports = importLibrary({ projectId })
 
     test("a type, its properties and constants:  `declaredAt` -- in the project's own files", () => {
       const card = imports.types.get("Card", "LOCAL_ONLY")!
-      expect(card.declaredAt?.path).toBe(`${projectId}/Card.spell`)
+      expect(card.declaredAt?.path).toBe(`${projectId}//Card.spell`)
       expect(sourceAt(card.declaredAt)).toBe("a card is a thing")
       expect(sourceAt(card.variables.get("suit", "LOCAL_ONLY")?.declaredAt)).toMatch(/^cards have a suit as one of/)
       expect(sourceAt(card.classVariables.get("Suits", "LOCAL_ONLY")?.declaredAt)).toMatch(/^cards have a suit/)
@@ -212,12 +212,12 @@ describe("SpellDeclarations.importScope()", () => {
     })
 
     test("`declaredAt` defaults to `from`, if the importer doesn't say its project", () => {
-      expect(importLibrary().types.get("Card", "LOCAL_ONLY")?.declaredAt?.path).toBe(`${from}/Card.spell`)
+      expect(importLibrary().types.get("Card", "LOCAL_ONLY")?.declaredAt?.path).toBe(`${from}//Card.spell`)
     })
 
     /** Library source `at` points to. */
     function sourceAt(at: P.DeclaredAt | undefined) {
-      const file = library.find(({ path }) => at?.path === `${projectId}${path}`)
+      const file = library.find(({ path }) => at?.path === SP.SpellLocation.join(projectId, path))
       return file?.contents.slice(at!.start, at!.end)
     }
   })
@@ -313,7 +313,7 @@ describe("SpellDeclarations.importScope()", () => {
 
   describe("won't load, rather than loading something half right", () => {
     test("a name it doesn't provide", () => {
-      expect(() => importLibrary({ import: ["Joker"] })).toThrow(/@library\/cards.*doesn't provide 'Joker'/)
+      expect(() => importLibrary({ import: ["Joker"] })).toThrow(/@spell\/library\/cards.*doesn't provide 'Joker'/)
     })
     test("a rename of something that isn't a type", () => {
       expect(() => importLibrary({ import: ["test_card_setup:setup"] })).toThrow(/only a type can be renamed/)
@@ -335,10 +335,10 @@ describe("SpellDeclarations.importScope()", () => {
     test("the same type from two imports", () => {
       const twice = [
         { from, declarations },
-        { from: "@library/more-cards", declarations }
+        { from: "@spell/library/more-cards", declarations }
       ]
       expect(() => SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, twice)).toThrow(
-        /more-cards.*type 'Card' was already imported from '@library\/cards'/
+        /more-cards.*type 'Card' was already imported from '@spell\/library\/cards'/
       )
     })
   })
@@ -355,7 +355,7 @@ describe("SpellDeclarations of `a card belongs to one pile`", () => {
     { path: "/Pile.spell", contents: "a pile is a list of cards\na card belongs to one pile\na tableau is a pile" }
   ]
   const declarations = compiledProject(library).declarations
-  const from = "@library/piles"
+  const from = "@spell/library/piles"
 
   test("says the member it gives cards -- its list types stay plain", () => {
     expect(declarations.statements.find(({ property }) => property === "pile")).toEqual({
@@ -377,7 +377,7 @@ describe("SpellDeclarations of `a card belongs to one pile`", () => {
     const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [{ from, declarations }])
     const member = imports.types.get("Card", "LOCAL_ONLY")?.variables.get("pile", "LOCAL_ONLY")
     expect(member).toMatchObject({ name: "pile", datatype: "Pile", exclusive: true })
-    expect(member?.declaredAt).toMatchObject({ path: `${from}/Pile.spell`, start: 26, end: 52 })
+    expect(member?.declaredAt).toMatchObject({ path: `${from}//Pile.spell`, start: 26, end: 52 })
     const contents = ["set card to a new card", "print the pile of the card", "set the pile of the card to 1"]
     const { files } = parseSpellProject([{ path: "/A.spell", contents: contents.join("\n") }], {
       parentScope: imports
@@ -412,7 +412,9 @@ describe("SpellDeclarations of a multi-word member", () => {
   })
 
   test("loads them again", () => {
-    const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [{ from: "@library/c", declarations }])
+    const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [
+      { from: "@spell/library/c", declarations }
+    ])
     const member = imports.types.get("Card", "LOCAL_ONLY")?.variables.get("short_rank", "LOCAL_ONLY")
     expect(member?.asWritten).toBe("short rank")
   })
@@ -453,7 +455,7 @@ describe("SpellDeclarations, a type's short name", () => {
     ])
     expect(declarations.statements.find((it) => it.type === "BankAccount")?.aka).toBe("Account")
     const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [
-      { from: "@library/bank", declarations }
+      { from: "@spell/library/bank", declarations }
     ])
     expect(imports.types.get("accounts")?.name).toBe("BankAccount")
   })

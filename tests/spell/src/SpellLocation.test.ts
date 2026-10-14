@@ -7,29 +7,31 @@ import "$/spaces/models/projectGroups"
 // Make sure we don't re-use registry items.
 SpellLocation.useRegistry = false
 
+/** An address:  a group's, a project, then two slashes and a file (epic `people-and-orgs` P4). */
 describe("SpellLocation", () => {
   describe("creation", () => {
     test("Can create via `new`", () => {
-      const location = new SpellLocation("@user:projects:PROJECT")
+      const location = new SpellLocation("owen@spell/project")
       expect(location).toBeInstanceOf(SpellLocation)
     })
     test("if `useRegistry` is set, Creating via `new SpellLocation()` always returns the same object", () => {
       SpellLocation.useRegistry = true
-      const location1 = new SpellLocation("@user:projects:PROJECT")
-      const location2 = new SpellLocation("@user:projects:PROJECT")
+      const location1 = new SpellLocation("owen@spell/project")
+      const location2 = new SpellLocation("owen@spell/project")
       SpellLocation.useRegistry = false
       expect(location1).toBe(location2)
     })
   })
 
   describe("valid project paths", () => {
-    test("valid project path", () => {
-      const path = new SpellLocation("@user:projects:PROJECT")
-      expect(path.path).toBe("@user:projects:PROJECT")
-      expect(path.projectId).toBe("@user:projects:PROJECT")
-      expect(path.owner).toBe("@user")
+    test("a person's project", () => {
+      const path = new SpellLocation("owen@spell/project")
+      expect(path.path).toBe("owen@spell/project")
+      expect(path.projectId).toBe("owen@spell/project")
+      expect(path.projectRoot).toBe("owen@spell")
+      expect(path.space).toBe("owen@spell")
       expect(path.domain).toBe("projects")
-      expect(path.projectName).toBe("PROJECT")
+      expect(path.projectName).toBe("project")
       expect(path.filePath).toBe(undefined)
       expect(path.folder).toBe(undefined)
       expect(path.file).toBe(undefined)
@@ -38,21 +40,21 @@ describe("SpellLocation", () => {
       expect(path.isProjectPath).toBe(true)
       expect(path.isFolderPath).toBe(false)
       expect(path.isFilePath).toBe(false)
-      expect(path.isSystemProject).toBe(false)
-      expect(path.isUserProject).toBe(true)
     })
 
-    test("valid library path", () => {
-      const path = new SpellLocation("@system:examples:PROJECT")
-      expect(path.isSystemProject).toBe(true)
-      expect(path.isUserProject).toBe(false)
+    test("a built-in project:  in its group of the `@spell` space", () => {
+      const path = new SpellLocation("@spell/examples/solitaire")
+      expect(path.projectRoot).toBe("@spell/examples")
+      expect(path.space).toBe("@spell")
+      expect(path.domain).toBe("examples")
+      expect(path.projectName).toBe("solitaire")
       expect(path.isProjectPath).toBe(true)
       expect(path.isFolderPath).toBe(false)
       expect(path.isFilePath).toBe(false)
     })
 
-    test("trailing slash makes folder name", () => {
-      const path = new SpellLocation("@system:examples:PROJECT/")
+    test("two slashes and nothing after:  the project's own folder", () => {
+      const path = new SpellLocation("@spell/examples/project//")
       expect(path.filePath).toBe("/")
       expect(path.folder).toBe("/")
       expect(path.file).toBe(undefined)
@@ -60,34 +62,49 @@ describe("SpellLocation", () => {
       expect(path.isFolderPath).toBe(true)
       expect(path.isFilePath).toBe(false)
     })
-  })
 
-  describe("invalid project paths", () => {
-    test("invalid user", () => {
-      expect(() => new SpellLocation("@INVALID_USER/projects/PROJECT")).toThrow()
+    test("a folder ends in a slash", () => {
+      const path = new SpellLocation("@spell/examples/project//folder/")
+      expect(path.folder).toBe("/folder/")
+      expect(path.isFolderPath).toBe(true)
     })
-    test("invalid domain", () => {
-      expect(() => new SpellLocation("@user:INVALID_DOMAIN:PROJECT")).toThrow()
-    })
-    test("no project name", () => {
-      const path = new SpellLocation("@user:projects")
-      expect(path.isSystemProject).toBe(false)
-      expect(path.isUserProject).toBe(true)
+
+    test("a group alone", () => {
+      const path = new SpellLocation("owen@spell")
       expect(path.isProjectRoot).toBe(true)
       expect(path.isProjectPath).toBe(false)
       expect(path.isFolderPath).toBe(false)
       expect(path.isFilePath).toBe(false)
+      expect(path.projectId).toBe("owen@spell")
+    })
+  })
+
+  describe("invalid project paths", () => {
+    test("an unknown space or group", () => {
+      expect(() => new SpellLocation("@nobody/projects/project")).toThrow()
+      expect(() => new SpellLocation("matt@spell/project")).toThrow()
+    })
+    test("the old forms", () => {
+      expect(() => new SpellLocation("@user:projects:project")).toThrow()
+      expect(() => new SpellLocation("@system:examples:Solitaire/Card.spell")).toThrow()
+      expect(() => new SpellLocation("@examples/Solitaire")).toThrow()
+    })
+    test("a project's name is ONE part:  more is a page of the app, never a project", () => {
+      expect(() => new SpellLocation("owen@spell/solitaire/rules")).toThrow()
+    })
+    test("a file with no project", () => {
+      expect(() => new SpellLocation("owen@spell//Card.spell")).toThrow()
     })
   })
 
   describe("valid file paths", () => {
     test("valid file path with no folder and normal extension", () => {
-      const path = new SpellLocation("@user:projects:PROJECT/FILE.EXTENSION")
-      expect(path.path).toBe("@user:projects:PROJECT/FILE.EXTENSION")
-      expect(path.projectId).toBe("@user:projects:PROJECT")
-      expect(path.owner).toBe("@user")
+      const path = new SpellLocation("owen@spell/project//FILE.EXTENSION")
+      expect(path.path).toBe("owen@spell/project//FILE.EXTENSION")
+      expect(path.projectId).toBe("owen@spell/project")
+      expect(path.space).toBe("owen@spell")
       expect(path.domain).toBe("projects")
-      expect(path.projectName).toBe("PROJECT")
+      expect(path.projectName).toBe("project")
       expect(path.filePath).toBe("/FILE.EXTENSION")
       expect(path.folder).toBe("/")
       expect(path.file).toBe("FILE.EXTENSION")
@@ -96,48 +113,31 @@ describe("SpellLocation", () => {
       expect(path.isProjectPath).toBe(false)
       expect(path.isFolderPath).toBe(false)
       expect(path.isFilePath).toBe(true)
-      expect(path.isSystemProject).toBe(false)
-      expect(path.isUserProject).toBe(true)
     })
 
     test("valid file path with single folder and normal extension", () => {
-      const path = new SpellLocation("@user:projects:PROJECT/FOLDER/FILE.EXTENSION")
-      expect(path.projectId).toBe("@user:projects:PROJECT")
-      expect(path.owner).toBe("@user")
-      expect(path.domain).toBe("projects")
-      expect(path.projectName).toBe("PROJECT")
+      const path = new SpellLocation("owen@spell/project//FOLDER/FILE.EXTENSION")
+      expect(path.projectId).toBe("owen@spell/project")
+      expect(path.projectName).toBe("project")
       expect(path.filePath).toBe("/FOLDER/FILE.EXTENSION")
       expect(path.folder).toBe("/FOLDER/")
       expect(path.file).toBe("FILE.EXTENSION")
       expect(path.fileName).toBe("FILE")
       expect(path.extension).toBe(".EXTENSION")
-      expect(path.isProjectPath).toBe(false)
-      expect(path.isFolderPath).toBe(false)
       expect(path.isFilePath).toBe(true)
-      expect(path.isSystemProject).toBe(false)
-      expect(path.isUserProject).toBe(true)
     })
 
-    test("valid file path with single folder and normal extension", () => {
-      const path = new SpellLocation("@user:projects:PROJECT/FOLDER1/FOLDER2/FILE.EXTENSION")
-      expect(path.projectId).toBe("@user:projects:PROJECT")
-      expect(path.owner).toBe("@user")
-      expect(path.domain).toBe("projects")
-      expect(path.projectName).toBe("PROJECT")
+    test("valid file path with two folders and normal extension", () => {
+      const path = new SpellLocation("owen@spell/project//FOLDER1/FOLDER2/FILE.EXTENSION")
+      expect(path.projectId).toBe("owen@spell/project")
       expect(path.filePath).toBe("/FOLDER1/FOLDER2/FILE.EXTENSION")
       expect(path.folder).toBe("/FOLDER1/FOLDER2/")
       expect(path.file).toBe("FILE.EXTENSION")
-      expect(path.fileName).toBe("FILE")
-      expect(path.extension).toBe(".EXTENSION")
-      expect(path.isProjectPath).toBe(false)
-      expect(path.isFolderPath).toBe(false)
       expect(path.isFilePath).toBe(true)
-      expect(path.isSystemProject).toBe(false)
-      expect(path.isUserProject).toBe(true)
     })
 
     test("valid file path with no extension", () => {
-      const path = new SpellLocation("@user:projects:PROJECT/FILE")
+      const path = new SpellLocation("owen@spell/project//FILE")
       expect(path.filePath).toBe("/FILE")
       expect(path.folder).toBe("/")
       expect(path.file).toBe("FILE")
@@ -149,7 +149,7 @@ describe("SpellLocation", () => {
     })
 
     test("valid file path with multi-part extension", () => {
-      const path = new SpellLocation("@user:projects:PROJECT/FILE.EXT1.EXT2")
+      const path = new SpellLocation("owen@spell/project//FILE.EXT1.EXT2")
       expect(path.filePath).toBe("/FILE.EXT1.EXT2")
       expect(path.file).toBe("FILE.EXT1.EXT2")
       expect(path.fileName).toBe("FILE")
@@ -159,7 +159,7 @@ describe("SpellLocation", () => {
     })
 
     test("valid file path with hidden name and no extension", () => {
-      const path = new SpellLocation("@user:projects:PROJECT/.FILE")
+      const path = new SpellLocation("owen@spell/project//.FILE")
       expect(path.filePath).toBe("/.FILE")
       expect(path.file).toBe(".FILE")
       expect(path.fileName).toBe(".FILE")
@@ -169,7 +169,7 @@ describe("SpellLocation", () => {
     })
 
     test("valid file path with hidden name and multi-part extension", () => {
-      const path = new SpellLocation("@user:projects:PROJECT/.FILE.EXT1.EXT2")
+      const path = new SpellLocation("owen@spell/project//.FILE.EXT1.EXT2")
       expect(path.filePath).toBe("/.FILE.EXT1.EXT2")
       expect(path.file).toBe(".FILE.EXT1.EXT2")
       expect(path.fileName).toBe(".FILE")
@@ -181,36 +181,72 @@ describe("SpellLocation", () => {
 
   describe("invalid file paths", () => {
     test("`.` paths throw", () => {
-      expect(() => new SpellLocation("@user/projects/relative/./path")).toThrow()
+      expect(() => new SpellLocation("owen@spell/project//relative/./path")).toThrow()
     })
     test("`..` paths throw", () => {
-      expect(() => new SpellLocation("@user/projects/relative/../path")).toThrow()
+      expect(() => new SpellLocation("owen@spell/project//relative/../path")).toThrow()
     })
     test("weird characters paths throw", () => {
-      expect(() => new SpellLocation("@user/projects/weird@path")).toThrow()
-      expect(() => new SpellLocation("@user/projects/weird^path")).toThrow()
-      expect(() => new SpellLocation("@user/projects/weird(path")).toThrow()
-      expect(() => new SpellLocation("@user/projects/weird)path")).toThrow()
+      expect(() => new SpellLocation("owen@spell/project//weird@path")).toThrow()
+      expect(() => new SpellLocation("owen@spell/project//weird^path")).toThrow()
+      expect(() => new SpellLocation("owen@spell/project//weird(path")).toThrow()
+      expect(() => new SpellLocation("owen@spell/project//weird)path")).toThrow()
     })
   })
 
-  // a root's `alias`, e.g. `@test` for `@test:fixtures` -- see `SpellSetup.expandAlias()`
-  describe("aliased paths", () => {
-    test("expand to the full path, which is what's stored", () => {
-      const location = new SpellLocation("@test/FizzBuzz/FizzBuzz.spell")
-      expect(location.path).toBe("@test:fixtures:FizzBuzz/FizzBuzz.spell")
-      expect(location.projectId).toBe("@test:fixtures:FizzBuzz")
-      expect(location.projectName).toBe("FizzBuzz")
-      expect(location.filePath).toBe("/FizzBuzz.spell")
+  describe("building and reading addresses", () => {
+    test("a file in a project:  `join()`, `getFileLocation()`", () => {
+      expect(SpellLocation.join("@spell/library/cards", "/Card.spell")).toBe("@spell/library/cards//Card.spell")
+      expect(SpellLocation.join("@spell/library/cards", "Card.spell")).toBe("@spell/library/cards//Card.spell")
+      expect(SpellLocation.getFileLocation("@spell/library/cards", "a/Card.spell").path).toBe(
+        "@spell/library/cards//a/Card.spell"
+      )
+      // an address of its own is taken whole
+      expect(SpellLocation.getFileLocation("owen@spell/errors", "@spell/library/cards//Card.spell").path).toBe(
+        "@spell/library/cards//Card.spell"
+      )
     })
-    test("a project alone", () => {
-      expect(new SpellLocation("@test/FizzBuzz").path).toBe("@test:fixtures:FizzBuzz")
-      expect(new SpellLocation("@library/cards").path).toBe("@system:library:cards")
-      expect(new SpellLocation("@examples/Solitaire").path).toBe("@system:examples:Solitaire")
-      expect(new SpellLocation("@guides/Basics").path).toBe("@system:guides:Basics")
+    test("an address, or a file's path in a project:  `isAddress()`", () => {
+      expect(SpellLocation.isAddress("@spell/library/cards")).toBe(true)
+      expect(SpellLocation.isAddress("owen@spell/errors")).toBe(true)
+      expect(SpellLocation.isAddress("/Card.spell")).toBe(false)
+      expect(SpellLocation.isAddress("folder/Card.spell")).toBe(false)
     })
-    test("an unknown alias is just an invalid path", () => {
-      expect(() => new SpellLocation("@nope/FizzBuzz")).toThrow()
+    test("an app URL's tail:  each part decoded, the `//` kept", () => {
+      expect(SpellLocation.addressForUrl("@spell/examples/solitaire//a%20b.spell")).toBe(
+        "@spell/examples/solitaire//a b.spell"
+      )
+      expect(SpellLocation.addressForUrl("@spell/examples/solitaire/%2Fa.spell")).toBe(
+        "@spell/examples/solitaire//a.spell"
+      )
+    })
+    test("an app URL from an address:  `/edit/` and `/run/`, the address as it is", () => {
+      const location = new SpellLocation("@spell/examples/solitaire//Card.spell")
+      expect(location.editorUrl).toBe("/edit/@spell/examples/solitaire//Card.spell")
+      expect(new SpellLocation("owen@spell/errors").runnerUrl).toBe("/run/owen@spell/errors")
+    })
+    test("a type's address:  its project, its name, and a version at its end, `__v2` (decisions J3, J51)", () => {
+      expect(SpellLocation.typeFor("@spell/library/people//Person")).toEqual({
+        projectId: "@spell/library/people",
+        type: "Person"
+      })
+      expect(SpellLocation.typeFor("@spell/library/people//Person__v2")).toEqual({
+        projectId: "@spell/library/people",
+        type: "Person",
+        version: 2
+      })
+      expect(SpellLocation.typeFor("owen@spell/solitaire//Card__v12").version).toBe(12)
+      for (const address of ["@spell/library/people", "@spell/library/people//Card.spell", "people//Person", "x//a/B"])
+        expect(() => SpellLocation.typeFor(address), address).toThrow(/not a type's address/)
+    })
+    test("a project's name, lower-kebab, and its title (decision Q39)", () => {
+      expect(SpellLocation.kebab("Drawable Solitaire")).toBe("drawable-solitaire")
+      expect(SpellLocation.kebab("OutlineSolitaire")).toBe("outline-solitaire")
+      expect(SpellLocation.kebab("Todos - Form Based")).toBe("todos-form-based")
+      expect(SpellLocation.kebab("  ")).toBe("")
+      expect(SpellLocation.titleFor("drawable-solitaire")).toBe("Drawable Solitaire")
+      expect(SpellLocation.titleFor("errors")).toBe("Errors")
+      expect(SpellLocation.titleFor("My Folder")).toBe("My Folder")
     })
   })
 })

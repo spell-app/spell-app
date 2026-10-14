@@ -10,7 +10,7 @@ import * as projectUtils from "$/spaces/server/node/projects/project-utils"
 
 /**
  * Where a project's files are on disk (epic `people-and-orgs` P11):  what spell BUILDS for it, e.g.
- * `Solitaire.spell.js`, in its build folder, `build/` at the repo root;  everything else beside its source.
+ * `solitaire.spell.js`, in its build folder, `build/` at the repo root;  everything else beside its source.
  * - A temp "repo" stands in for the real one:  its `packages/` and `build/` replace `environment`'s,
  *   but for the built-in roots' test (`useTempRepo()`), and its projects are a `@workspace` root inside that `packages/`.
  */
@@ -81,11 +81,11 @@ describe("buildFolderFor()", () => {
 describe("SpellLocation.serverPath, in this repo", () => {
   test("a built-in project's built file is in `build/`, at its path under `packages/`", () => {
     expect(environment.buildDir).toBe(resolve(environment.packagesDir, "..", "build"))
-    expect(new SP.SpellLocation("@system:examples:Solitaire/Solitaire.spell.js").serverPath).toBe(
-      resolve(environment.buildDir, "spaces/@spell/examples/Solitaire/Solitaire.spell.js")
+    expect(new SP.SpellLocation("@spell/examples/solitaire//solitaire.spell.js").serverPath).toBe(
+      resolve(environment.buildDir, "spaces/@spell/examples/solitaire/solitaire.spell.js")
     )
-    expect(new SP.SpellLocation("@system:examples:Solitaire/Solitaire.en.js").serverPath).toBe(
-      resolve(environment.systemFilesRoot, "examples/Solitaire/Solitaire.en.js")
+    expect(new SP.SpellLocation("@spell/examples/solitaire//solitaire.en.js").serverPath).toBe(
+      resolve(environment.systemFilesRoot, "examples/solitaire/solitaire.en.js")
     )
   })
 })

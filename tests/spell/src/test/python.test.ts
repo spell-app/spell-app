@@ -32,7 +32,7 @@ beforeAll(() => {
 
 describe("fixture projects as Python, checked by pyright", () => {
   test("FizzBuzz checks clean", () => {
-    expect(result.errors[moduleFile("FizzBuzz")]).toEqual([])
+    expect(result.errors[moduleFile("fizzbuzz")]).toEqual([])
   })
 
   for (const name of PYTHON_FIXTURES) {

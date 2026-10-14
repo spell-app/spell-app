@@ -28,9 +28,9 @@ export type ScopesSource = {
 
 /** How a `ScopesSource` from packs gets what they leave out -- see `scopesFromPacks()`. */
 export type ScopesSourceHooks = {
-  /** Text of spell file `uri`, e.g. `spell:/@system:examples:Solitaire/Card.spell` -- if it can be had. */
+  /** Text of spell file `uri`, e.g. `spell:/@spell/examples/solitaire//Card.spell` -- if it can be had. */
   loadSource?: (uri: string) => Promise<string | undefined>
-  /** Compiled javascript of project `projectId`, e.g. `@system:examples:Solitaire` -- if it can be had. */
+  /** Compiled javascript of project `projectId`, e.g. `@spell/examples/solitaire` -- if it can be had. */
   loadCompiled?: (projectId: string) => Promise<string | undefined>
   /**
    * Project `projectId`'s declarations, its `<Project>.declarations.json` -- if it can be had:
@@ -345,11 +345,11 @@ function linesOf(source: string | undefined, line: ScopeLine): string | undefine
     .trimEnd()
 }
 
-/** Project id and file path of spell file `uri`, e.g. `spell:/@system:examples:Solitaire/Card.spell`. */
+/** Project id and file path of spell file `uri`, e.g. `spell:/@spell/examples/solitaire//Card.spell`. */
 function splitSpellUri(uri: string): { projectId: string; filePath: string } {
   const path = decodeURI(uri.replace(/^spell:\//, ""))
-  const slash = path.indexOf("/")
-  return slash < 0
+  const step = path.indexOf("//")
+  return step < 0
     ? { projectId: path, filePath: "" }
-    : { projectId: path.slice(0, slash), filePath: path.slice(slash) }
+    : { projectId: path.slice(0, step), filePath: path.slice(step + 1) }
 }

@@ -138,7 +138,7 @@ ui -> util
   - NEVER make it import `app`, `lsp` or `cli`;  NEVER make `spell` import it.
   - Its models (`$/spaces`) are safe in a browser;  `$/spaces/server/node/...` is node only, imported by path.
   - The page server loads its route module by PATH (the root `package.json`'s `"pageServer"`), not by import.
-  - Spell's project groups (`@examples`, `@user:projects` ...) are spaces':  loading `$/spaces` registers them
+  - Spell's project groups (`@spell/examples`, `owen@spell` ...) are spaces':  loading `$/spaces` registers them
     with spell.
     So every program that reads a spell path loads spaces first ([spaces' AGENTS.md](packages/spaces/AGENTS.md)).
   - Owen's own projects are NOT in git:  they're in spell-spaces, `../spell-spaces` beside the main checkout,

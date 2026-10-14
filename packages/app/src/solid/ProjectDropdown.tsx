@@ -150,7 +150,10 @@ function readProjectRoot(projectRoot: SPACES.SpellProjectRoot | undefined): Omit
   return {
     loaded,
     projects: loaded
-      ? projectRoot!.projectPaths.map((path) => ({ path, name: new SP.SpellLocation(path).projectName ?? path }))
+      ? projectRoot!.projectPaths.map((path) => ({
+          path,
+          name: SP.SpellLocation.titleFor(new SP.SpellLocation(path).projectName ?? path)
+        }))
       : [],
     icon: projectRoot?.icon,
     title: projectRoot?.title,

@@ -73,7 +73,7 @@ describe("Python's name clashes in today's spell", () => {
       ...projectsIn(resolve(repo, "tests/spaces/@spell/test"))
     ]
     for (const dir of dirs) {
-      // its place, e.g. `@spell/examples/Solitaire`
+      // its place, e.g. `@spell/examples/solitaire`
       naming.where = dir.slice(dir.lastIndexOf("@spell"))
       const { scope, files } = parseSpellProject(spellFilesOf(dir))
       const parts = files.map(({ match, compiled }) =>

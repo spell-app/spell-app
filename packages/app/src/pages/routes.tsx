@@ -2,39 +2,43 @@ import { onCleanup } from "solid-js"
 import type { JSX } from "@solidjs/web"
 import { createRouter, defineRoutes, useNavigate, type RouterHistory, type RouterInstance } from "@solidjs/router"
 
+import { addressHistory, toRouter } from "./addressHistory"
 import { setNavigator } from "./navigation"
 import { ProjectChooser } from "./ProjectChooser"
 import { SpellEditorRoute } from "./SpellEditor"
 import { SpellRunnerRoute } from "./SpellRunner"
 
 /**
- * The app's routes (`@solidjs/router`):  the same URLs `@reach/router`'s had.
- * - `/edit/:domain[/:project[/*filePath]]`:  `<SpellEditor>`
- * - `/run/:domain[/:project[/*filePath]]`:  `<SpellRunner>`
+ * The app's routes (`@solidjs/router`):  `/edit/` or `/run/`, then an address (decision Q40, epic `people-and-orgs` P4).
+ * - `/edit/<address>`:  `<SpellEditor>`, e.g. `/edit/@spell/examples/solitaire//Card.spell`
+ * - `/run/<address>`:  `<SpellRunner>`, e.g. `/run/owen@spell/errors`
  * - anything else:  `<ProjectChooser>`
- * - Each page's three URLs are ONE route (a `path` array):  it stays mounted while only the params change, e.g.
+ * - Each page is ONE route:  it stays mounted while only its address changes, e.g.
  *   moving between files, and follows them (`followRoute()`).
  */
 export const ROUTES = defineRoutes([
   {
-    path: ["/edit/:domain", "/edit/:domain/:project", "/edit/:domain/:project/*filePath"],
+    path: "/edit/*address",
     component: SpellEditorRoute
   },
   {
-    path: ["/run/:domain", "/run/:domain/:project", "/run/:domain/:project/*filePath"],
+    path: "/run/*address",
     component: SpellRunnerRoute
   },
   { path: "*", component: ProjectChooser }
 ])
 
 /**
- * A router over `ROUTES`;  `history` defaults to the browser's (tests pass `memoryHistory()`).
+ * A router over `ROUTES`;  `history` defaults to the browser's (tests pass `memoryHistory()`), read as `addressHistory()`:
+ * an address's `//` goes to the router as `/%2F`, which it can match.
  * - `explicitLinks`:  the router takes only `<a link>` clicks.  The app navigates through `editor` (`navigate()`),
  *   never links, and a running PROGRAM's own `<a>`s are the program's:  without it, the router would take every
  *   same-origin link on the page.
  */
 export function createAppRouter(history?: RouterHistory): RouterInstance<typeof ROUTES> {
-  return createRouter({ routes: ROUTES, explicitLinks: true, ...(history && { history }) })
+  // no window (node's tests, a server render):  the router's own default, the request's URL
+  const read = history || typeof window !== "undefined" ? addressHistory(history) : undefined
+  return createRouter({ routes: ROUTES, explicitLinks: true, ...(read && { history: read }) })
 }
 
 /** The app's router:  ONE per app (`@solidjs/router`'s rule), on the browser's history. */
@@ -58,7 +62,7 @@ export function Routes(props: { router?: RouterInstance<typeof ROUTES> }) {
  ****************/
 function AppShell(props: { children?: JSX.Element }) {
   const navigate = useNavigate()
-  setNavigator((url, options) => navigate(url, options))
+  setNavigator((url, options) => navigate(toRouter(url), options))
   onCleanup(() => setNavigator(undefined))
   return <>{props.children}</>
 }

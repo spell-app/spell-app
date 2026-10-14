@@ -26,7 +26,7 @@ import { fixturePath } from "$/spell/test"
  */
 describe("SpellLanguageService", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-lsp-"))
-  cpSync(fixturePath("Solitaire"), resolve(dir, "Solitaire"), { recursive: true })
+  cpSync(fixturePath("solitaire"), resolve(dir, "Solitaire"), { recursive: true })
   const cardPath = resolve(dir, "Solitaire/Card.spell")
   const cardUri = pathToFileURL(cardPath).href
   const cardText = readFileSync(cardPath, "utf8")
@@ -981,7 +981,7 @@ describe("SpellLanguageService", () => {
  */
 describe("SpellLanguageService, outline style", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-lsp-outline-"))
-  cpSync(fixturePath("OutlineSolitaire"), resolve(dir, "OutlineSolitaire"), { recursive: true })
+  cpSync(fixturePath("outline-solitaire"), resolve(dir, "OutlineSolitaire"), { recursive: true })
   const cardPath = resolve(dir, "OutlineSolitaire/Card.spell")
   const cardUri = pathToFileURL(cardPath).href
   const workspace = new SpellDiskWorkspace()

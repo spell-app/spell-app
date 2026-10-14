@@ -451,7 +451,7 @@ describe("outline style", () => {
 
   test("the outline Solitaire's cards pass their own tests, as today's cards do (P5)", () => {
     // its deck, card, dealing and piles -- not the game itself, which starts an app
-    const files = loadFixtureProject("OutlineSolitaire").filter(({ path }) => !path.endsWith("Solitaire.spell"))
+    const files = loadFixtureProject("outline-solitaire").filter(({ path }) => !path.endsWith("Solitaire.spell"))
     const lines: string[] = []
     const console = spellCore.console as unknown as Record<string, (...args: unknown[]) => void>
     for (const method of ["log", "group", "groupCollapsed", "warn", "error", "info"].filter((it) => console[it])) {

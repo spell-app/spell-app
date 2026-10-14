@@ -24,7 +24,7 @@ import { serverPathForRoot } from "$/spaces/server/node/projects/project-utils"
  */
 describe("diskFetch", () => {
   beforeAll(installDiskFetch)
-  const solitaire = fixtureProjectId("Solitaire")
+  const solitaire = fixtureProjectId("solitaire")
 
   test("a SpellProject loads, parses and compiles from disk the same as the headless reference", async () => {
     const project = new SP.SpellProject(solitaire)
@@ -38,7 +38,7 @@ describe("diskFetch", () => {
     ])
 
     await project.parse()
-    const reference = parseSpellProject(loadFixtureProject("Solitaire"))
+    const reference = parseSpellProject(loadFixtureProject("solitaire"))
     spellFiles.forEach((file, index) => {
       expect(file.match, file.path).toBeDefined()
       expect(describeParseErrors(file.match)).toEqual(reference.files[index]!.errors)
@@ -46,34 +46,34 @@ describe("diskFetch", () => {
     })
   })
 
-  test("it answers a file's URL, split at its `//`:  `/spaces/<place>//<file>`", async () => {
-    const url = SP.SpellUrls.fileUrl(`${solitaire}/Card.spell`)
-    expect(url).toBe("/spaces/@spell/test/Solitaire//Card.spell")
-    expect(await diskFetch({ url })).toBe(readFileSync(fixturePath("Solitaire", "Card.spell"), "utf8"))
+  test("it answers a file's URL, split at its `//`:  `/spaces/<project>//<file>`", async () => {
+    const url = SP.SpellUrls.fileUrl(`${solitaire}//Card.spell`)
+    expect(url).toBe("/spaces/@spell/test/solitaire//Card.spell")
+    expect(await diskFetch({ url })).toBe(readFileSync(fixturePath("solitaire", "Card.spell"), "utf8"))
     expect(await diskFetch({ url: SP.SpellUrls.indexUrl(solitaire) })).toHaveProperty("imports")
-    expect(await diskFetch({ url: SP.SpellUrls.listUrl("@test:fixtures") })).toContain(solitaire)
+    expect(await diskFetch({ url: SP.SpellUrls.listUrl("@spell/test") })).toContain(solitaire)
   })
 
   test("a missing file falls back to `defaultContents`, else fails like a 404", async () => {
-    const file = new SP.SpellFile(`${solitaire}/Nope.spell`)
+    const file = new SP.SpellFile(`${solitaire}//Nope.spell`)
     file.defaultContents = "// nothing"
     expect(await file.load(undefined)).toBe("// nothing")
-    const other = new SP.SpellFile(`${solitaire}/Nope-2.spell`)
+    const other = new SP.SpellFile(`${solitaire}//Nope-2.spell`)
     await expect(other.load(undefined)).rejects.toThrow(/Not found on disk/)
   })
 
   describe("locationForDiskPath", () => {
     test("a file under a known root's folder maps onto that root", () => {
-      expect(locationForDiskPath(fixturePath("Solitaire", "Card.spell"))?.path).toBe(`${solitaire}/Card.spell`)
+      expect(locationForDiskPath(fixturePath("solitaire", "Card.spell"))?.path).toBe(`${solitaire}//Card.spell`)
     })
 
     // where each group's folder is -- NOT what's in it, which tests never depend on
     test("a group's folder is its place's:  the `@spell` space's built-ins, the test projects, your own space", () => {
-      expect(serverPathForRoot("@system:examples")).toBe(resolve(environment.systemFilesRoot, "examples"))
-      expect(serverPathForRoot("@system:library")).toBe(resolve(environment.systemFilesRoot, "library"))
-      expect(serverPathForRoot("@system:guides")).toBe(resolve(environment.systemFilesRoot, "guides"))
-      expect(serverPathForRoot("@user:projects")).toBe(environment.userFilesRoot)
-      expect(serverPathForRoot("@test:fixtures")).toBe(environment.testFilesRoot)
+      expect(serverPathForRoot("@spell/examples")).toBe(resolve(environment.systemFilesRoot, "examples"))
+      expect(serverPathForRoot("@spell/library")).toBe(resolve(environment.systemFilesRoot, "library"))
+      expect(serverPathForRoot("@spell/guides")).toBe(resolve(environment.systemFilesRoot, "guides"))
+      expect(serverPathForRoot("owen@spell")).toBe(environment.userFilesRoot)
+      expect(serverPathForRoot("@spell/test")).toBe(environment.testFilesRoot)
       expect(environment.systemFilesRoot).toBe(resolve(environment.packagesDir, "spaces", "@spell"))
       expect(environment.testFilesRoot).toBe(resolve(environment.repoDir, "tests", "spaces", "@spell", "test"))
     })
@@ -94,7 +94,7 @@ describe("diskFetch", () => {
       writeFileSync(resolve(projectDir, "a.spell"), "set foo to 1\nprint the foo")
 
       const location = locationForDiskPath(resolve(projectDir, "a.spell"))!
-      expect(location.path).toBe(`@workspace:${basename(workspace)}:MyProject/a.spell`)
+      expect(location.path).toBe(`@local/${basename(workspace)}/MyProject//a.spell`)
 
       const file = new SP.SpellFile(location.path)
       await file.project.parse()

@@ -51,8 +51,8 @@ export function parseSpellProject(
 }
 
 /**
- * Frozen projects tests run against:  `tests/spaces/@spell/test/<Project>/` at the repo root, e.g. `Solitaire`,
- * the `@test:fixtures` group (`@spell/test`).
+ * Frozen projects tests run against:  `tests/spaces/@spell/test/<project>/` at the repo root, e.g. `solitaire`,
+ * the `@spell/test` group.
  * - Why:  tests assert exact lines, docstrings and compiled output, and the live examples get edited.
  * - Tests read ONLY here:  editing or deleting a built-in example (`packages/spaces/@spell/`) or your own project
  *   (spell-spaces) can't break one.
@@ -63,20 +63,20 @@ export function parseSpellProject(
  */
 export const FIXTURES_DIR = resolve(CODE_FOLDERS.packagesDir, "..", "tests", "spaces", "@spell", "test")
 
-/** The fixtures' group, `@test:fixtures` (spaces' `PROJECT_GROUPS`, at `@spell/test`). */
-export const FIXTURES_GROUP = "@test:fixtures"
+/** The fixtures' group, `@spell/test` (spaces' `PROJECT_GROUPS`). */
+export const FIXTURES_GROUP = "@spell/test"
 
-/** Path of `parts` under `FIXTURES_DIR`, e.g. `fixturePath("Solitaire", "Card.spell")`. */
+/** Path of `parts` under `FIXTURES_DIR`, e.g. `fixturePath("solitaire", "Card.spell")`. */
 export function fixturePath(...parts: string[]): string {
   return resolve(FIXTURES_DIR, ...parts)
 }
 
 /**
- * Project id of fixture `projectName`, e.g. `@test:fixtures:Solitaire` -- to load it as a `SpellProject`.
+ * Project id of fixture `projectName`, e.g. `@spell/test/solitaire` -- to load it as a `SpellProject`.
  * - Loads from disk in node, after `installDiskFetch()`.
  */
 export function fixtureProjectId(projectName: string): string {
-  return `${FIXTURES_GROUP}:${projectName}`
+  return `${FIXTURES_GROUP}/${projectName}`
 }
 
 /**
@@ -86,16 +86,16 @@ export function fixtureProjectId(projectName: string): string {
  * - Each phase adds the ones it makes write:  things and lists, pauses, drawing.
  */
 export const PYTHON_FIXTURES = new Set([
-  "CardTable",
-  "Cards",
-  "CardsFromZero",
-  "DrawableSolitaire",
-  "FizzBuzz",
-  "Klondike",
-  "OutlineSolitaire",
-  "People",
-  "Solitaire",
-  "ThingReferences"
+  "card-table",
+  "cards",
+  "cards-from-zero",
+  "drawable-solitaire",
+  "fizzbuzz",
+  "klondike",
+  "outline-solitaire",
+  "people",
+  "solitaire",
+  "thing-references"
 ])
 
 /**
@@ -103,7 +103,7 @@ export const PYTHON_FIXTURES = new Set([
  * is checked.
  * - Only fixtures that draw nothing:  a library can't.
  */
-export const LIBRARY_FIXTURES = new Set(["People"])
+export const LIBRARY_FIXTURES = new Set(["people"])
 
 /** Name of each fixture project:  each folder of `FIXTURES_DIR` with a `project.json`, alphabetically. */
 export function fixtureProjectNames(): string[] {
@@ -148,7 +148,7 @@ export function fixtureWords(projectName: string): string {
  *   and split through the same `SP.SpellDeclarations.split()`.
  * - Its `.css` files compile as `SpellCSSFile` does:  the whole text through the root scope's `css` rule.
  * - Parse errors lead its code, as comments, so a snapshot of it shows them too.
- * - Against the fixtures it imports, e.g. `@test:fixtures:Cards`:
+ * - Against the fixtures it imports, e.g. `@spell/test/cards`:
  *   their declarations, as a compiled import's (see `fixtureImportScope()`).
  *   NOT their code:  that's theirs.
  * - `version` / `exports` / `listsStartAt` from its `project.json`, as a compile would.
@@ -180,11 +180,11 @@ function compileFixture(
 
 /**
  * The fixtures fixture `projectName` imports, by the module its compiled code imports each from, e.g.
- * `{ "@spell/project/@test:fixtures:Cards": "Cards" }` -- none:  `{}`.
+ * `{ "@spell/project/@spell/test/cards": "Cards" }` -- none:  `{}`.
  * - throws if it imports a project that isn't a fixture:  tests read ONLY `FIXTURES_DIR`.
  */
 export function fixtureImports(projectName: string): Record<string, string> {
-  const fixtures = `${FIXTURES_GROUP}:`
+  const fixtures = `${FIXTURES_GROUP}/`
   const imported: Record<string, string> = {}
   for (const { path, active } of readProjectFile(fixturePath(projectName)).imports) {
     if (active === false || /\.(spell|css)$/.test(path)) continue
@@ -215,7 +215,7 @@ function fixtureImportScope(projectName: string): P.Scope {
   return loaded.length ? SP.SpellDeclarations.importScope(root, loaded) : root
 }
 
-/** The module compiled code imports project `projectId` from, e.g. `@spell/project/@test:fixtures:Cards`. */
+/** The module compiled code imports project `projectId` from, e.g. `@spell/project/@spell/test/cards`. */
 function moduleFor(projectId: string): string {
   return `${SP.SPELL_PROJECT_MODULE}${encodeURI(projectId)}`
 }

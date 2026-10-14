@@ -7,7 +7,7 @@ import { ask, serveHandler, type Served } from "$/server/test/serve"
 describe("compilePattern()", () => {
   it("matches `:name` to one segment, decoded", () => {
     const match = SRV.compilePattern("/projects/list/:domainId")
-    expect(match("/projects/list/%40user%3Aprojects")).toEqual({ domainId: "@user:projects" })
+    expect(match("/projects/list/owen%40spell%20x")).toEqual({ domainId: "owen@spell x" })
     expect(match("/projects/list/a/b")).toBeUndefined()
     expect(match("/Projects/List/x/")).toEqual({ domainId: "x" })
   })

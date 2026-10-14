@@ -30,8 +30,8 @@ export const spellAppVocabulary = {
       name: "project",
       kind: "string",
       description:
-        "What to run, from the spell server's `/api`, sources and all:  `@system:examples:Solitaire`, or " +
-        "`@examples/Solitaire`.  The Type Explorer shows each declaration's spell and compiled code."
+        "What to run, from the spell server's `/api`, sources and all:  `@spell/examples/solitaire`, or " +
+        "`@spell/examples/solitaire`.  The Type Explorer shows each declaration's spell and compiled code."
     },
     {
       name: "src",
@@ -108,7 +108,7 @@ export const spellAppVocabulary = {
       detail: "{ href: string }",
       description:
         "A Type Explorer link was clicked:  `href` is the spell source it points at, e.g. " +
-        "`spell:/@system:examples:Solitaire/Card.spell#L12`."
+        "`spell:/@spell/examples/solitaire//Card.spell#L12`."
     }
   ],
   slots: [],

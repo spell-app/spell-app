@@ -67,10 +67,14 @@
             <ui-docs-example description="An editor linked to an app by the app's id:  each compile runs in it.">
               <ui-grid columns="2" stackable>
                 <ui-column>
-                  <spell-editor project="@examples/Calculator" app="#app-ui-calculator" height="360px"></spell-editor>
+                  <spell-editor
+                    project="@spell/examples/calculator"
+                    app="#app-ui-calculator"
+                    height="360px"
+                  ></spell-editor>
                 </ui-column>
                 <ui-column>
-                  <spell-app id="app-ui-calculator" project="@examples/Calculator" toolbar></spell-app>
+                  <spell-app id="app-ui-calculator" project="@spell/examples/calculator" toolbar></spell-app>
                 </ui-column>
               </ui-grid>
             </ui-docs-example>
@@ -93,8 +97,8 @@
                 <ui-code language="html"
                   ><script type="text/plain">
                     <div class="side-by-side">
-                      <spell-editor project="@examples/Calculator" app="#calculator" height="420px"></spell-editor>
-                      <spell-app id="calculator" project="@examples/Calculator" toolbar></spell-app>
+                      <spell-editor project="@spell/examples/calculator" app="#calculator" height="420px"></spell-editor>
+                      <spell-app id="calculator" project="@spell/examples/calculator" toolbar></spell-app>
                     </div>
                   </script></ui-code
                 >
@@ -105,7 +109,7 @@
               <ui-content>
                 <ui-code language="html"
                   ><script type="text/plain">
-                    <spell-editor id="todos" project="@examples/Todos" height="360px"></spell-editor>
+                    <spell-editor id="todos" project="@spell/examples/todos" height="360px"></spell-editor>
                     <div class="side-by-side">
                       <spell-app editor="#todos" toolbar></spell-app>
                       <spell-app editor="#todos" toolbar></spell-app>

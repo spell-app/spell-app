@@ -66,12 +66,12 @@ describe("ProjectBuild", () => {
   })
   afterAll(() => rmSync(root, { recursive: true, force: true }))
 
-  test("start():  the checkout's OWN CLI, `compile --stale --all @examples @library`, in a process group of its own", () => {
+  test("start():  the checkout's OWN CLI, `compile --stale --all @spell/examples @spell/library`, in a process group of its own", () => {
     const { spawn } = spawnStub()
     new ProjectBuild({ root, spawn }).start()
     expect(spawn).toHaveBeenCalledWith(
       process.execPath,
-      [join(root, "packages/cli/bin/spell.mjs"), "compile", "--stale", "--all", "@examples", "@library"],
+      [join(root, "packages/cli/bin/spell.mjs"), "compile", "--stale", "--all", "@spell/examples", "@spell/library"],
       expect.objectContaining({ cwd: root, detached: true })
     )
   })
@@ -97,7 +97,7 @@ describe("ProjectBuild", () => {
   test("a project that isn't there:  no compile, not there", async () => {
     const { spawn } = spawnStub()
     const missing = SP.SpellLocation.getFileLocation(
-      `${SP.SpellLocation.getProjectLocation(projectId).projectRoot}:Nope`,
+      `${SP.SpellLocation.getProjectLocation(projectId).projectRoot}/nope`,
       "Nope.spell.js"
     )
     expect(await new ProjectBuild({ root, spawn }).untilBuilt(missing)).toBe(false)

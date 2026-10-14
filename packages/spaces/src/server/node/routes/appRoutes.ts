@@ -15,7 +15,7 @@ import { APP_DIR, EDITOR_FILE, EditorServer } from "./EditorServer"
  * `package.json` `"pageServer": { "routes": [...] }`.  What `spell serve` runs everything on.
  * - It's spaces' (epic `people-and-orgs` P14):  where projects live, and the servers that serve them.
  * - `/api/...` -- the app's API, `./api` (as `cli.ts` serves it alone, `yarn start:server`);  bodies as JSON5
- * - `/spaces/<place>//<file>` -- a project's file, by its URL (`spaceFiles`, `./api`):  how spell reads every file
+ * - `/spaces/<project>//<file>` -- a project's file, by its URL (`spaceFiles`, `./api`):  how spell reads every file
  * - `/hello` -- liveness
  * - `/element/...` -- `<spell-app>` / `<spell-editor>`'s bundles, `dist-element/` (`yarn build:element`), for the
  *   demo pages, `/demo/spell-app.html` on the editor:  vite passes `/element` on to us, as it does `/api`
@@ -25,7 +25,7 @@ import { APP_DIR, EDITOR_FILE, EditorServer } from "./EditorServer"
  *   (vite takes seconds) or not running:  says so
  * - writes refuse a foreign `Origin` (another site posting into our projects):  the API has no token, since the
  *   editor calls it from vite's origin, through vite's proxy
- * - as it starts:  compiles the built-in projects that are out of date (`@examples`, `@library`), in the background,
+ * - as it starts:  compiles the built-in projects that are out of date (`@spell/examples`, `@spell/library`), in the background,
  *   so the demo pages and App UI's live examples find their compiled output in `build/` (`ProjectBuild`, `start()`);
  *   stopped with the page server
  */

@@ -289,7 +289,7 @@ export class SpellDeclarations {
 
   /**
    * Throws `P.ParserError` if parsed project `scope` itself declares a type it also imports,
-   * e.g. its own `a card is a thing` when `Card` comes from `@library/cards`.
+   * e.g. its own `a card is a thing` when `Card` comes from `@spell/library/cards`.
    * - Its imports are the `P.ImportScope` above it -- nothing to check without one.
    * - Types only:  a RULE name may repeat, e.g. `draw` methods on two types merge into one `P.Group`, as they
    *   would parsing everything from source.
@@ -453,14 +453,14 @@ export class SpellDeclarations {
 
   /**
    * Where a statement `defined` itself (`<file>:<start>-<end>`) in project `projectId`:
-   * e.g. `{ path: "@system:library:cards/Card.spell", start: 23, end: 412 }`.
+   * e.g. `{ path: "@spell/library/cards//Card.spell", start: 23, end: 412 }`.
    * - `undefined` if it doesn't say.
    * - Reverses `definedAt()`.
    */
   private static declaredAt(projectId: string, defined: string | undefined): P.DeclaredAt | undefined {
     const match = defined?.match(/^(.*):(\d+)-(\d+)$/)
     if (!match) return undefined
-    return { path: `${projectId}${match[1]}`, start: Number(match[2]), end: Number(match[3]) }
+    return { path: SP.SpellLocation.join(projectId, match[1]!), start: Number(match[2]), end: Number(match[3]) }
   }
 
   /** Throws unless `declarations` suit this compiler, and the importer's `range`, if any. */
@@ -632,13 +632,13 @@ export class SpellDeclarations {
   /**
    * `<file>:<start>-<end>` character offsets of `match` in its file, e.g. `/FizzBuzz.spell:23-412`:
    * if it came from a file.
-   * - Project-relative, e.g. `/Card.spell` not `@system:library:cards/Card.spell`:  a library may move.
+   * - Project-relative, e.g. `/Card.spell` not `@spell/library/cards//Card.spell`:  a library may move.
    */
   private static definedAt(match: P.Match): string | undefined {
     const path = match.getScopeOfType(P.FileScope)?.path
     const { start, end } = match
     if (!path || start === undefined || end === undefined) return undefined
-    const file = path.startsWith("@") ? path.slice(path.indexOf("/")) : path
+    const file = SP.SpellLocation.isAddress(path) ? path.slice(path.indexOf(SP.SpellLocation.STEP) + 1) : path
     return `${file}:${start}-${end}`
   }
 }

@@ -141,7 +141,7 @@ export class EditorStore extends Observable {
     } catch {
       console.warn(`editor.selectPath('${path}'): invalid path`)
       // default to user projects if `new SP.SpellLocation()` throws
-      location = new SP.SpellLocation("@user:projects")
+      location = new SP.SpellLocation("owen@spell")
     }
     console.info("editor.selectPath", { path, location })
 
@@ -244,7 +244,7 @@ export class EditorStore extends Observable {
       const project = await projectRoot.createApp(projectId)
       if (project) {
         editor.showEditor(project.path)
-        editor.showNotice(`Created ${project.type} ${project.projectName}.`)
+        editor.showNotice(`Created ${project.type} ${project.title}.`)
       }
     } catch (e) {
       editor.showError(e)
@@ -868,11 +868,11 @@ function runtimeUrl(): string {
 
 /**
  * Compiled javascript of project `projectId`, which the program imports -- fetched afresh, from the server:
- * its `<Project>.spell.js`, at `/spaces/<place>//<Project>.spell.js` (`SP.SpellUrls`).
+ * its `<Project>.spell.js`, at `/spaces/<project>//<Project>.spell.js` (`SP.SpellUrls`).
  */
 async function fetchCompiled(projectId: string): Promise<string> {
   const { projectName } = new SP.SpellLocation(projectId)
-  const url = SP.SpellUrls.fileUrl(`${projectId}/${projectName}${SP.COMPILED_JS_SUFFIX}`)
+  const url = SP.SpellUrls.fileUrl(SP.SpellLocation.join(projectId, `${projectName}${SP.COMPILED_JS_SUFFIX}`))
   const response = await fetch(url, { cache: "no-cache" })
   if (!response.ok) throw new Error(`Couldn't load project '${projectId}':  ${response.status} ${response.statusText}`)
   return response.text()

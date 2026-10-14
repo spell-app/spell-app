@@ -982,12 +982,18 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
   - So every program that reads a spell path loads them first:
     through `$/spaces`, spaces' disk reader, or `$/spaces/models/projectGroups` alone (`<spell-app>` does that).
   - Spell never imports spaces.
-- Each group has a PLACE, its address:  a project's place is its group's, then its name.
-  - `@system:examples` is `@spell/examples`, so `@system:examples:Solitaire` is `@spell/examples/Solitaire`.
-  - `@system:library` is `@spell/library`, `@system:guides` `@spell/guides`, `@test:fixtures` `@spell/test`.
-  - `@user:projects` is `owen@spell`, Owen's own space (`SPACES.LOCAL_PERSON`).
-  - A `@workspace:<folder>` group, added at runtime for a folder an editor opened, is `@local/<folder>`.
-- On disk, by place ([SpellUrls](src/SpellUrls.ts)'s `folderFor()`, then `serverPathForRoot()` in spaces'
+- Everything is named by its ADDRESS (epic `people-and-orgs` P4, [SpellLocation](src/SpellLocation.ts)):
+  - a group:  `@spell/examples`, `@spell/library`, `@spell/guides`, `@spell/test`, and `owen@spell`, Owen's own
+    space (`SPACES.LOCAL_PERSON`)
+  - a project:  its group's, a slash, its name, ONE part, lower-kebab (decision Q39):
+    `@spell/examples/solitaire`, `owen@spell/errors`
+  - a file in it:  two slashes, then the file:  `@spell/examples/solitaire//Card.spell`;
+    a folder ends in a slash, `...//folder/` (decision J47)
+  - a page of a running app:  more after the project, with no `//`:  `owen@spell/solitaire/rules`
+    (the app's `/run/` URLs;  apps have no pages yet)
+  - A `@local/<folder>` group is added at runtime for a folder an editor opened.
+  - No other form is read:  not `@system:examples:Solitaire`, not `@examples/Solitaire` (decision Q30).
+- On disk, by address ([SpellUrls](src/SpellUrls.ts)'s `folderFor()`, then `serverPathForRoot()` in spaces'
   [project-utils.ts](../spaces/src/server/node/projects/project-utils.ts)):
   - `@spell/examples/...`, `@spell/library/...`:  spaces' built-ins, `packages/spaces/@spell/<group>/<Project>/`,
     committed
@@ -995,22 +1001,19 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
   - `owen@spell/...`:  in spell-spaces, outside git, `<main checkout>/../spell-spaces/@spell/owen@/<project>/`
     - One folder for main and every worktree;  `SPELL_SPACES_DIR` sets it.
     - A person's space is inside their org's, so `@` says what each folder is.
-  - A `@workspace` group says where itself, with its `serverPath`.
+  - A `@local/<folder>` group says where itself, with its `serverPath`.
   - The folders are spaces' `environment` ([environment.ts](../spaces/src/server/node/environment.ts)):
     `spaceFolders` (`builtins`, `tests`, `spaces`).
     Tests point them at temporary folders:  `SPELL_BUILTINS_DIR`, `SPELL_TESTS_DIR`, `SPELL_SPACES_DIR`.
-  - Until the address phase (epic `people-and-orgs` P4), a place's project part is today's project name:
-    `Solitaire`, `Drawable Solitaire`.
+  - A project's folder is its name:  `packages/spaces/@spell/examples/drawable-solitaire/` (decision Q39).
+    The editor shows its title, `Drawable Solitaire` (`SpellProject.title`).
   - A group with `devOnly` is listed in the app's UI in dev only.
 - A group's projects are its folder's sub-folders, less spaces' own `__` names.
   - Spaces' list, `SPACES.SPACE_NAMES` (`isSpaceName()`):  `__members/`, `__project.json5` ...
   - Known by that list, never by the `__` alone:  `__init__.py` and `__snapshots__/` are a project's files.
-- A root may have an `alias`, a short way to write its paths:
-  - `@library/cards` ~== `@system:library:cards`
-  - `@test/FizzBuzz/FizzBuzz.spell` ~== `@test:fixtures:FizzBuzz/FizzBuzz.spell`
-  - `@examples/Solitaire` ~== `@system:examples:Solitaire`
-  - `@guides/<Guide>` ~== `@system:guides:<Guide>`
-  - `SpellLocation` expands it first (`SpellSetup.expandAlias()`), so ids are always stored in full.
+- A `project.json` imports another project by its address, `{ "path": "@spell/library/cards" }`;  its own files by
+  their paths in it, `{ "path": "/Card.spell" }` (`SpellLocation.isAddress()` tells them apart:  only an address has
+  an `@` in its first part).
 - Compiled output is never one of a project's own files.
   - The server's index lists only spell, CSS and javascript files:  see `isManifestFile()`.
     - `.spell`, `.css`, `.js` and `.jsx`
@@ -1027,8 +1030,8 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
 - What spell BUILDS for a project goes in its build folder, not beside its source (epic `people-and-orgs` P11).
   - That's `build/` at the repo root, never committed, each checkout its own.
     It mirrors the project's path:
-    - under `packages/`:  `packages/spaces/@spell/examples/Solitaire` => `build/spaces/@spell/examples/Solitaire`
-    - under `tests/`:  `tests/spaces/@spell/test/FizzBuzz` => `build/spaces/@spell/test/FizzBuzz`
+    - under `packages/`:  `packages/spaces/@spell/examples/solitaire` => `build/spaces/@spell/examples/solitaire`
+    - under `tests/`:  `tests/spaces/@spell/test/fizzbuzz` => `build/spaces/@spell/test/fizzbuzz`
     - in spell-spaces:  `@spell/owen@/errors` => `build/spell-spaces/@spell/owen@/errors`
   - The files:  `<Project>.spell.js`, `.spell.tsx`, `.spell.py`, `.elements.spell.js` and `.scopes.js`.
   - Committed beside the source:  everything else, e.g. `<Project>.declarations.json`, `.en.js`, `.py.en.json`,
@@ -1036,12 +1039,13 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
   - Every reader asks for a file by project and name, as for any file;
     ONE mapping decides where it is on disk:  the server's `serverPath` (`isBuiltFile()`, `buildFolderFor()`,
     in spaces' [project-utils.ts](../spaces/src/server/node/projects/project-utils.ts)).
-  - A project anywhere else (a temp `@workspace` root, a VS Code workspace elsewhere) keeps them beside its source.
+  - A project anywhere else (a temp `@local/<folder>` group, a VS Code workspace elsewhere) keeps them beside its
+    source.
   - Built when needed, so a fresh checkout or worktree needs nothing run by hand:
-    - the page server, as it starts:  the built-in projects that are out of date, `@examples` and `@library`,
-      in the background (`spell compile --stale --all @examples @library`)
+    - the page server, as it starts:  the built-in projects that are out of date, `@spell/examples` and `@spell/library`,
+      in the background (`spell compile --stale --all @spell/examples @spell/library`)
     - spaces' routes:  a request for a built file that isn't there compiles its project first, then serves it
-      (`/spaces/<place>//Solitaire.spell.js`, `.scopes.js` ...);
+      (`/spaces/<project>//<project>.spell.js`, `.scopes.js` ...);
       one compile per project at a time, a request waits at most a minute
     - Both are `ProjectBuild`, in the editor's server ([ProjectBuild.ts](../spaces/src/server/node/routes/ProjectBuild.ts)),
       running the checkout's own `spell compile` as a child.
@@ -1055,15 +1059,15 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
 - [`SpellProject`](src/SpellProject.ts):  files in `project.json` order, e.g. Card → Deck → Pile → Solitaire.
 - `SpellProject` / `SpellFile` load over HTTP, with `$fetch()`, on URLs from ONE function,
   [SpellUrls](src/SpellUrls.ts) (`SP.SpellUrls`):
-  - a file is READ at `/spaces/<place>//<file>`, e.g. `/spaces/@spell/examples/Solitaire//Card.spell`
-  - and SAVED by `POST /api/projects/file/<place>//<file>`
-  - a project's index:  `/api/projects/index/<place>`
-  - a group's projects:  `/api/projects/list/<group's place>`, e.g. `/api/projects/list/owen@spell`
-  - What spell builds is read as a file too, e.g. `/spaces/@spell/examples/Solitaire//Solitaire.spell.js`,
+  - a file is READ at `/spaces/<project>//<file>`, e.g. `/spaces/@spell/examples/solitaire//Card.spell`
+  - and SAVED by `POST /api/projects/file/<project>//<file>`
+  - a project's index:  `/api/projects/index/<project>`
+  - a group's projects:  `/api/projects/list/<group>`, e.g. `/api/projects/list/owen@spell`
+  - What spell builds is read as a file too, e.g. `/spaces/@spell/examples/solitaire//solitaire.spell.js`,
     `.scopes.js`, `.declarations.json`, `.en.js`:  the server finds a built one in the build folder.
-  - Two slashes split the place from the file (decision J48):
+  - Two slashes split the project from the file (decision J48):
     - `fileForUrl()` splits at the FIRST `//`, before any path is made:  path functions squash `//` to `/`
-    - each part is encoded and decoded on its own, never the whole place
+    - each part is encoded and decoded on its own, never the whole address
     - every URL starts `/spaces/` or `/api/`, and is written whole, never relative
   - They go through `LoadableFile.fetch`, which a node host swaps for spaces' disk reader,
     [`diskFetch()`](../spaces/src/server/node/projects/disk-fetch.ts) (`installDiskFetch()`),
@@ -1130,7 +1134,7 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
         - owner, what `getDeclaration()` said, and `declaredAt`
   - `SpellProject.projectImports`:  the entries of `imports` that name a project.
     They're in `project.json`.
-    - e.g. `@library/cards` ~== `@system:library:cards`
+    - e.g. `@spell/library/cards` ~== `@spell/library/cards`
     - Its "Loading" task reads each one's `<Project>.declarations.json`.
       - That's `SpellProject.declarationsOf()`.
       - It then builds the `ImportScope` our scope goes under.

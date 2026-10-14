@@ -2,7 +2,7 @@
 <!--
   A spell project's drawable types, used on a plain page by their tags.
   - Served by the dev server at `/demo/drawable-elements.html`, after `yarn build:element` (epic `drawable-thing`, P8).
-  - The hidden `<spell-app>` runs `@examples/Drawable Solitaire`, which defines its tags:
+  - The hidden `<spell-app>` runs `@spell/examples/drawable-solitaire`, which defines its tags:
     `<solitaire-card>`, `<solitaire-pile>` ...
   - The tags below are written by hand:  each makes its own card or pile from its attributes.
     - Except the tableau, whose id names the hidden game's tableau T1:  `id="T1"` is `Tableau#T1` (P18, J43).
@@ -43,7 +43,7 @@
   <body>
     <h1>Drawable elements</h1>
     <!-- runs the project, so its tags are defined;  its own game stays hidden -->
-    <spell-app project="@examples/Drawable Solitaire" hidden></spell-app>
+    <spell-app project="@spell/examples/drawable-solitaire" hidden></spell-app>
 
     <h2>Cards, written by hand</h2>
     <div class="table">

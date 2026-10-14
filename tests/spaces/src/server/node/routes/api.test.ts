@@ -7,7 +7,7 @@
  *   marked `CHANGED`:  nested `:filePath*` paths work, an unknown DELETE gets the API's 404, a `.spell` file is
  *   text, and a bad body is JSON, not an HTML error page.
  * - Files are named by URL, as spell names them (`SP.SpellUrls`, epic `people-and-orgs` P15):  read at
- *   `/spaces/<place>//<file>`, saved by `POST /api/projects/file/<place>//<file>`.
+ *   `/spaces/<project>//<file>`, saved by `POST /api/projects/file/<project>//<file>`.
  * - SIDE EFFECT: starts a server on a free port with its folders in a temp dir (`SPELL_SPACES_DIR`,
  *   `SPELL_BUILTINS_DIR`, `SPELL_TESTS_DIR`, `SPELL_BUILD_DIR`), so the repo and your spell-spaces are never written.
  *   Deleted afterwards.
@@ -21,13 +21,13 @@ import os from "node:os"
 import path from "node:path"
 import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
-/** Project used by every test, in the `@user:projects` group. */
-const PROJECT = "@user:projects:Proj"
+/** Project used by every test, in the `owen@spell` group. */
+const PROJECT = "owen@spell/Proj"
 /** Its place:  your space (`SPACES.LOCAL_PERSON`), then its name. */
 const PLACE = "owen@spell/Proj"
-/** Where its files are read:  `/spaces/<place>//<file>`. */
+/** Where its files are read:  `/spaces/<project>//<file>`. */
 const FILES = `/spaces/${PLACE}//`
-/** Where its files are saved:  `/api/projects/file/<place>//<file>`. */
+/** Where its files are saved:  `/api/projects/file/<project>//<file>`. */
 const SAVE = `/api/projects/file/${PLACE}//`
 /** `spaces`' folder:  where the server is launched from (its `tsconfig.json` gives `tsx` the aliases). */
 const spacesDir = path.resolve(import.meta.dirname, "../../../../../../packages/spaces")
@@ -210,7 +210,7 @@ describe("liveness and canned routes", () => {
 ////////////////
 
 describe("projects list and sendError shape", () => {
-  it("GET /api/projects/list/<group's place> => JSON array of project paths", async () => {
+  it("GET /api/projects/list/<group> => JSON array of project paths", async () => {
     const reply = await request("GET", "/api/projects/list/owen@spell")
     expect(reply.status).toBe(200)
     expect(reply.contentType).toMatch(/^application\/json/)
@@ -227,7 +227,7 @@ describe("projects list and sendError shape", () => {
     writeFixture("user/__members/owen.json5", "{}")
     writeFixture("user/__mine__/project.json", JSON.stringify({ imports: [] }))
     const reply = await request("GET", "/api/projects/list/owen@spell")
-    expect(reply.json().sort()).toEqual(["@user:projects:Proj", "@user:projects:__mine__"].sort())
+    expect(reply.json().sort()).toEqual(["owen@spell/Proj", "owen@spell/__mine__"].sort())
     fs.rmSync(fixturePath("user/__mine__"), { recursive: true })
   })
 
@@ -246,10 +246,10 @@ describe("projects list and sendError shape", () => {
 })
 
 ////////////////
-// ## Project files:  read at `/spaces/<place>//<file>`, saved at `/api/projects/file/<place>//<file>`
+// ## Project files:  read at `/spaces/<project>//<file>`, saved at `/api/projects/file/<project>//<file>`
 ////////////////
 
-describe("GET /spaces/<place>//<file>", () => {
+describe("GET /spaces/<project>//<file>", () => {
   it("top-level file => 200, raw contents, content-type from the extension", async () => {
     const reply = await request("GET", `${FILES}top.spell`)
     expect(reply.status).toBe(200)
@@ -318,7 +318,7 @@ describe("GET /spaces/<place>//<file>", () => {
   })
 })
 
-describe("POST /api/projects/file/<place>//<file>", () => {
+describe("POST /api/projects/file/<project>//<file>", () => {
   it("text/plain body => 200 `true`, file written, reads back at its `/spaces/` URL", async () => {
     const post = await request("POST", `${SAVE}saved.txt`, "hi there", "text/plain")
     expect(post.status).toBe(200)
@@ -366,7 +366,7 @@ describe("POST /api/projects/file/<place>//<file>", () => {
   })
 
   it("the old URL, a project id then its file, is gone:  404", async () => {
-    const reply = await request("GET", `/api/projects/file/${PROJECT}/top.spell`)
+    const reply = await request("GET", `/api/projects/file/${PROJECT}//top.spell`)
     expect(reply.status).toBe(404)
   })
 })
@@ -469,7 +469,7 @@ describe("DELETE /api/projects/remove/file", () => {
 })
 
 ////////////////
-// ## Compiled, scopes and words:  files too, at `/spaces/<place>//<file>`, found in `build/`
+// ## Compiled, scopes and words:  files too, at `/spaces/<project>//<file>`, found in `build/`
 ////////////////
 
 describe("compiled, scopes and words files", () => {
@@ -553,9 +553,9 @@ describe("a project's file list", () => {
     writeFixture("user/Proj/__pack.js", "export {}\n")
     const reply = await request("GET", `/api/projects/index/${PLACE}`)
     const files = Object.keys(reply.json().manifest)
-    expect(files).toContain(`${PROJECT}/__init__.js`)
-    expect(files).toContain(`${PROJECT}/__pack.js`)
-    expect(files).not.toContain(`${PROJECT}/__project.json5`)
+    expect(files).toContain(`${PROJECT}//__init__.js`)
+    expect(files).toContain(`${PROJECT}//__pack.js`)
+    expect(files).not.toContain(`${PROJECT}//__project.json5`)
   })
 })
 
@@ -566,10 +566,10 @@ describe("every URL spell builds is answered by the server and by spaces' disk r
     const { SP } = await import("$/spell")
     const { diskFetch } = await import("$/spaces/server/node/projects/disk-fetch")
     const urls = [
-      SP.SpellUrls.fileUrl(`${PROJECT}/top.spell`),
-      SP.SpellUrls.fileUrl(`${PROJECT}/folder/sub/file.spell`),
-      SP.SpellUrls.fileUrl("@user:projects:Two Words/a folder/my file.spell"),
-      SP.SpellUrls.fileUrl(`${PROJECT}/Proj.spell.js`)
+      SP.SpellUrls.fileUrl(`${PROJECT}//top.spell`),
+      SP.SpellUrls.fileUrl(`${PROJECT}//folder/sub/file.spell`),
+      SP.SpellUrls.fileUrl("owen@spell/Two Words//a folder/my file.spell"),
+      SP.SpellUrls.fileUrl(`${PROJECT}//Proj.spell.js`)
     ]
     expect(urls[0]).toBe(`${FILES}top.spell`)
     for (const url of urls) {
@@ -580,9 +580,9 @@ describe("every URL spell builds is answered by the server and by spaces' disk r
     const index = SP.SpellUrls.indexUrl(PROJECT)
     expect(index).toBe(`/api/projects/index/${PLACE}`)
     expect((await diskFetch({ url: index })).imports).toEqual((await request("GET", index)).json().imports)
-    const list = SP.SpellUrls.listUrl("@user:projects")
+    const list = SP.SpellUrls.listUrl("owen@spell")
     expect(await diskFetch({ url: list })).toEqual((await request("GET", list)).json())
-    const saved = SP.SpellUrls.saveUrl(`${PROJECT}/both.txt`)
+    const saved = SP.SpellUrls.saveUrl(`${PROJECT}//both.txt`)
     expect((await request("POST", saved, "over HTTP", "text/plain")).text).toBe("true")
     expect(await diskFetch({ url: saved, contents: "from disk" })).toBe(true)
     expect(readFixture("user/Proj/both.txt")).toBe("from disk")

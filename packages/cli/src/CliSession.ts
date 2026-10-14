@@ -77,7 +77,7 @@ export class CliSession {
   async defaultProject(): Promise<string> {
     if (CLI.projectDirAbove(process.cwd())) return CLI.WORKSPACE_ARG
     if (!this.isInteractive) {
-      throw new CLI.CliError("No spell project here -- name one, e.g. @examples/Solitaire, or `spell projects`")
+      throw new CLI.CliError("No spell project here -- name one, e.g. @spell/examples/solitaire, or `spell projects`")
     }
     const picked = await CLI.promptForProject()
     if (!picked) throw new CLI.CliError("Cancelled")

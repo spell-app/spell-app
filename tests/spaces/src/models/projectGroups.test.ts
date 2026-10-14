@@ -18,13 +18,13 @@ const ENTRIES: Record<string, () => Promise<unknown>> = {
 }
 
 describe("spell's project groups", () => {
-  test("are the five groups, each with a place", () => {
-    expect(SPACES.PROJECT_GROUPS.map(({ path, place }) => [path, place])).toEqual([
-      ["@user:projects", "owen@spell"],
-      ["@system:examples", "@spell/examples"],
-      ["@system:guides", "@spell/guides"],
-      ["@system:library", "@spell/library"],
-      ["@test:fixtures", "@spell/test"]
+  test("are the five groups, each an address in its space", () => {
+    expect(SPACES.PROJECT_GROUPS.map(({ path, space }) => [path, space])).toEqual([
+      ["owen@spell", "owen@spell"],
+      ["@spell/examples", "@spell"],
+      ["@spell/guides", "@spell"],
+      ["@spell/library", "@spell"],
+      ["@spell/test", "@spell"]
     ])
   })
 

@@ -59,7 +59,7 @@ export class RunnerPanel {
     const statics = vscode.Uri.file(resolve(repoRoot, "packages/app/static"))
     this.panel = vscode.window.createWebviewPanel(
       "spell.runner",
-      `Run ${info.project.split(":").pop()}`,
+      `Run ${info.project.split("/").pop()}`,
       { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true },
       { enableScripts: true, retainContextWhenHidden: true, localResourceRoots: [runner, statics] }
     )
@@ -346,7 +346,7 @@ const PARSE_ERROR_MARKER = "/* PARSE ERROR:"
 
 /** Answer to `spell/project`, as `LSP.ProjectInfo` -- just what we read. */
 type ProjectInfo = {
-  /** Project id, e.g. `@system:examples:Solitaire`. */
+  /** Project id, e.g. `@spell/examples/solitaire`. */
   project: string
   /** URI of its compiled javascript, `<Project>.spell.js`. */
   compiledUri: string

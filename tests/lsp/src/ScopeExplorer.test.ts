@@ -16,7 +16,7 @@ import { compiledFixture, fixtureDeclarations, fixturePath } from "$/spell/test"
 /** The scope tree of a temp copy of the Solitaire example, as a scope explorer sees it. */
 describe("ScopeExplorer", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-scopes-"))
-  cpSync(fixturePath("Solitaire"), resolve(dir, "Solitaire"), { recursive: true })
+  cpSync(fixturePath("solitaire"), resolve(dir, "Solitaire"), { recursive: true })
   const cardPath = resolve(dir, "Solitaire/Card.spell")
   const cardUri = pathToFileURL(cardPath).href
   const workspace = new SpellDiskWorkspace()
@@ -174,7 +174,7 @@ describe("ScopeExplorer", () => {
  * - Solitaire split in two, in a temp `@workspace`, as `SpellProject.imports.test.ts` does.
  */
 describe("ScopeExplorer of a project importing another, compiled", () => {
-  const solitaire = fixturePath("Solitaire")
+  const solitaire = fixturePath("solitaire")
   const workspace = mkdtempSync(resolve(tmpdir(), "spell-scopes-imports-"))
   const disk = new SpellDiskWorkspace()
   const explorer = new LSP.ScopeExplorer(new LSP.SpellLanguageService(disk))
@@ -250,7 +250,7 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
     expect(projects.map((entry) => entry.path)).toEqual(["project:lib", "project:app"])
     const json = JSON.stringify(pack)
     expect(json).not.toContain("file://")
-    expect(json).toContain(`spell:/${encodeURI(lib.projectId)}/Card.spell`)
+    expect(json).toContain(`spell:/${encodeURI(lib.projectId)}//Card.spell`)
   })
 
   /** Project `name` in the workspace:  `spellFiles` copied from Solitaire, then `written` ones, after `imports`. */
@@ -267,14 +267,14 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
     const files = [...spellFiles, ...Object.keys(written)].map((file) => ({ path: `/${file}`, active: true }))
     writeFileSync(resolve(dir, SP.PROJECT_FILE), JSON.stringify({ imports: [...imports, ...files] }))
     const root = locationForDiskPath(resolve(dir, SP.PROJECT_FILE))!.projectRoot
-    return new SP.SpellProject(`${root}:${name}`)
+    return new SP.SpellProject(`${root}/${name}`)
   }
 })
 
 /** Scope packs:  what `<spell-app>` shows of a project, with no parser -- see `LSP.ScopePack`. */
 describe("ScopeExplorer scope packs", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-scope-packs-"))
-  cpSync(fixturePath("Solitaire"), resolve(dir, "Solitaire"), { recursive: true })
+  cpSync(fixturePath("solitaire"), resolve(dir, "Solitaire"), { recursive: true })
   const cardPath = resolve(dir, "Solitaire/Card.spell")
   const cardUri = pathToFileURL(cardPath).href
   const workspace = new SpellDiskWorkspace()
@@ -327,8 +327,8 @@ describe("ScopeExplorer scope packs", () => {
 
   test("a page with NO sources finds each entry's compiled code by its declarations -- all but variables", async () => {
     const scopes = scopesFromPacks([builtIns, pack], {
-      loadCompiled: async () => compiledFixture("Solitaire"),
-      loadDeclarations: async () => JSON.parse(fixtureDeclarations("Solitaire"))
+      loadCompiled: async () => compiledFixture("solitaire"),
+      loadDeclarations: async () => JSON.parse(fixtureDeclarations("solitaire"))
     })
     const declarations = pack.entries.filter(({ path }) => !/(^|\/)(project|file|variable):[^/]*$/.test(path))
     expect(declarations.length).toBeGreaterThan(50)
@@ -386,7 +386,7 @@ describe("ScopeExplorer scope packs", () => {
 /** Built-in types' docs, from `SP.BUILT_IN_TYPE_TABLE` -- what VS Code's Type Explorer shows. */
 describe("ScopeExplorer built-in types", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-scope-built-ins-"))
-  cpSync(fixturePath("Solitaire"), resolve(dir, "Solitaire"), { recursive: true })
+  cpSync(fixturePath("solitaire"), resolve(dir, "Solitaire"), { recursive: true })
   const cardPath = resolve(dir, "Solitaire/Card.spell")
   const cardUri = pathToFileURL(cardPath).href
   const workspace = new SpellDiskWorkspace()

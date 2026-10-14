@@ -4,16 +4,16 @@ import { linkModule, projectImportsOf, startChanged } from "$/app/runner"
 
 const COMPILED = `/*! SPELL: PROJECT { spellVersion: "0.8.0" } */
 import { spellCore, Thing, List, App } from "@spell/core"
-import { Card, Deck } from "@spell/project/@system:library:cards"
-import { Pile } from "@spell/project/@system:examples:Solitaire"
-import { Card as Again } from "@spell/project/@system:library:cards"
+import { Card, Deck } from "@spell/project/@spell/library/cards"
+import { Pile } from "@spell/project/@spell/examples/solitaire"
+import { Card as Again } from "@spell/project/@spell/library/cards"
 
 export class Game extends App {}
 `
 
 describe("projectImportsOf()", () => {
   test("lists each imported project once, in order", () => {
-    expect(projectImportsOf(COMPILED)).toEqual(["@system:library:cards", "@system:examples:Solitaire"])
+    expect(projectImportsOf(COMPILED)).toEqual(["@spell/library/cards", "@spell/examples/solitaire"])
   })
 
   test("is empty with no project imports", () => {
@@ -24,8 +24,8 @@ describe("projectImportsOf()", () => {
 describe("linkModule()", () => {
   test("points `@spell/core` and each project at its URL", () => {
     const linked = linkModule(COMPILED, "blob:core", {
-      "@system:library:cards": "blob:cards",
-      "@system:examples:Solitaire": "blob:solitaire"
+      "@spell/library/cards": "blob:cards",
+      "@spell/examples/solitaire": "blob:solitaire"
     })
     expect(linked).toContain(`import { spellCore, Thing, List, App } from "blob:core"`)
     expect(linked).toContain(`import { Card, Deck } from "blob:cards"`)
@@ -36,7 +36,7 @@ describe("linkModule()", () => {
 
   test("leaves a project it has no URL for alone", () => {
     const linked = linkModule(COMPILED, "blob:core")
-    expect(linked).toContain(`from "@spell/project/@system:library:cards"`)
+    expect(linked).toContain(`from "@spell/project/@spell/library/cards"`)
     expect(linked).toContain(`from "blob:core"`)
   })
 

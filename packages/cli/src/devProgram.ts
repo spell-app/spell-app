@@ -41,7 +41,7 @@ import { windowCommand } from "$/cli/commands/windowCommand"
 export function spellProgram(): Command {
   return new Command("spell")
     .description("Compile, check and explore spell projects.")
-    .option("--all", "a whole root, e.g. @library, means ALL its projects")
+    .option("--all", "a whole root, e.g. @spell/library, means ALL its projects")
     .option("--verbose", "show spell's own logging, on stderr")
 }
 

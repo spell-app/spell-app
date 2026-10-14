@@ -28,7 +28,7 @@ Experimental [Deepwiki Documentation](https://deepwiki.com/spell-app/spell-app)
 - Start the app (port 3000) and the api server (port 3001):  `yarn start`, in `packages/app`.
   - `yarn stop` (there too) stops them.
 - Open http://localhost:3000 in your web browser.
-- Check out the [Solitaire Example](http://localhost:3000/run/examples/Solitaire/Card.spell).
+- Check out the [Solitaire Example](http://localhost:3000/run/@spell/examples/solitaire//Card.spell).
 - Click the `Edit Example` button to see the code.
 - To run tests:
   - every package:  `yarn test`, at the monorepo root
@@ -116,7 +116,7 @@ Notes:
 <script type="module" src="/element/spell-app.js"></script>
 
 <!-- from the spell server, sources and all:  compiled first, if it never has been -->
-<spell-app project="@examples/Solitaire" toolbar debug="explorer" height="600px"></spell-app>
+<spell-app project="@spell/examples/solitaire" toolbar debug="explorer" height="600px"></spell-app>
 
 <!-- from any static host:  its `Calculator.scopes.js`, and any project it imports, beside it -->
 <spell-app src="apps/Calculator.spell.js" toolbar width="50%"></spell-app>
@@ -135,7 +135,7 @@ Notes:
 - A `spell-open` event says a Type Explorer link was clicked.
 - Its Type Explorer reads the project's scope pack, `<Project>.scopes.js`.
   - `yarn scopes [--compile] <projectId...>` (in `packages/lsp`) writes it,
-    e.g. `yarn scopes --compile @examples/Solitaire`.
+    e.g. `yarn scopes --compile @spell/examples/solitaire`.
   - So do `spell compile` and the VS Code extension, on each clean compile.
   - From the spell server (`project=`), it's built when needed:  compiled output and scope packs are in `build/`,
     never committed, and the server compiles a project whose files aren't there before serving them.
@@ -153,11 +153,11 @@ Notes:
 <script type="module" src="/element/spell-editor.js"></script>
 
 <!-- link from the editor's side:  a CSS selector for the app(s) it feeds -->
-<spell-editor project="@examples/Calculator" app="#calculator"></spell-editor>
-<spell-app id="calculator" project="@examples/Calculator" toolbar></spell-app>
+<spell-editor project="@spell/examples/calculator" app="#calculator"></spell-editor>
+<spell-app id="calculator" project="@spell/examples/calculator" toolbar></spell-app>
 
 <!-- ...or from the app's side:  a CSS selector for its editor.  With no project, it waits for the editor. -->
-<spell-editor id="todos" project="@examples/Todos"></spell-editor>
+<spell-editor id="todos" project="@spell/examples/todos"></spell-editor>
 <spell-app editor="#todos" toolbar></spell-app>
 ```
 

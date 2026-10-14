@@ -26,7 +26,7 @@ const EDITOR = (
 ).url
 
 /** The project the pictures show. */
-const PROJECT = "edit/examples/Solitaire"
+const PROJECT = "edit/@spell/examples/solitaire"
 
 /** The window the pictures are taken in. */
 const WINDOW = { width: 1280, height: 800 }

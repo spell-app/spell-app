@@ -27,7 +27,7 @@ beforeAll(async () => {
   const built = spawnSync("yarn", ["build:page"], { cwd: resolve(PACKAGES, "app"), encoding: "utf8" })
   expect(built.status, built.stderr).toBe(0)
   folder = mkdtempSync(join(tmpdir(), "spell-quart-"))
-  cpSync(resolve(PACKAGES, "../tests/spaces/@spell/test/Solitaire"), join(folder, "Solitaire"), {
+  cpSync(resolve(PACKAGES, "../tests/spaces/@spell/test/solitaire"), join(folder, "Solitaire"), {
     recursive: true,
     filter: (file) => !file.includes(".snapshot.") && !file.endsWith(".snapshot.js")
   })
@@ -209,7 +209,7 @@ describe("a Python spell app, in a real browser", () => {
 
   test("a drawable program draws its own elements, <solitaire-card>, and a click on one plays in Python", async () => {
     const drawable = join(folder, "DrawableSolitaire")
-    cpSync(resolve(PACKAGES, "../tests/spaces/@spell/test/DrawableSolitaire"), drawable, {
+    cpSync(resolve(PACKAGES, "../tests/spaces/@spell/test/drawable-solitaire"), drawable, {
       recursive: true,
       filter: (file) => !file.includes(".snapshot.")
     })

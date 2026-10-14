@@ -57,13 +57,13 @@ Every command takes one or more projects (a lone spell file counts as a one-file
 |---|---|
 | `Card.spell`, `./path/to/Project`, `.` | a spell file, or the project in a folder |
 | `@workspace` | the project in the current folder |
-| `@library/cards`, `@test/Solitaire`, `@examples/Solitaire` | one project, by its root's short name |
-| `@system:library:cards` | one project, by full id |
-| `@library`, `@examples`, `@user`, `@system` | a whole root:  pick from a list, with "All projects" first |
+| `@spell/library/cards`, `@spell/examples/solitaire`, `owen@spell/errors` | one project, by its address |
+| `@spell/test/solitaire//Card.spell` | a file in one:  two slashes, then the file |
+| `@spell/library`, `owen@spell`, `@spell` | a group, or all of a space's groups:  pick from a list, with "All projects" first |
 
-- `--all` takes every project in a root without asking, e.g. in a script.
-- With no terminal to ask on, a bare root lists its projects and exits `2`.
-- A root holding just one project uses it without asking.
+- `--all` takes every project in a group without asking, e.g. in a script.
+- With no terminal to ask on, a group lists its projects and exits `2`.
+- A group holding just one project uses it without asking.
 
 ### Commands
 
@@ -93,7 +93,7 @@ Longer notes on some of them follow the table.
 | `spell run [project]` | Compiles and runs the project under node.  Its `print`s show as they happen.  `--target ts` / `py` runs it as that target compiles it:  a Python program that draws is served as its web app.  `yarn dev`, `dev:ts`, `dev:py` from a project's folder. |
 | `spell test [projects...]` | Runs each `to test ...` and reports ✓, or ✗ with the checks that failed. |
 | `spell format <projects...>` | Tidies `.spell` files' whitespace, as VS Code's Format Document does. |
-| `spell projects [root]` | Lists the project roots, or one root's projects, with the names to type.  `--json`. |
+| `spell projects [group]` | Lists the project groups, or one group's projects, by address.  `--json`. |
 | `spell speed [module]` | Times the parser's rule tests (`SP.spellParser.speedTest()`), 3 fresh runs, as a markdown table. |
 | `spell parse "<text>"` | How spell reads a line:  its match tree, then its javascript. |
 | `spell repl [project]` | `spell parse`, a line at a time:  what a line declares, later lines know. |
@@ -132,7 +132,7 @@ Longer notes on some of them follow the table.
   - That's `<Project>.spell.js`, in the project's build folder, and `<Project>.declarations.json` and
     `<Project>.en.js`, committed beside its source.
   - The build folder:  `build/` at the repo root, never committed, at the project's path under `packages/`
-    (`build/spaces/@spell/examples/Solitaire`), `tests/` (`build/spaces/@spell/test/FizzBuzz`),
+    (`build/spaces/@spell/examples/solitaire`), `tests/` (`build/spaces/@spell/test/fizzbuzz`),
     or spell-spaces (`build/spell-spaces/@spell/owen@/errors`).
     A project anywhere else keeps its output beside its source.
     See "Projects" in [PARSING.md](../spell/PARSING.md).
@@ -148,7 +148,7 @@ Longer notes on some of them follow the table.
     the rest say "up to date".
     - Out of date:  a file it builds is missing, or one of its files, its `project.json`,
       an import's declarations or spell's compiler changed since its build (`CLI.staleBecause()`).
-    - The page server runs `spell compile --stale --all @examples @library` as it starts,
+    - The page server runs `spell compile --stale --all @spell/examples @spell/library` as it starts,
       and spaces' routes compile a project whose built file is missing:  nothing to run by hand in a fresh checkout.
   - A `.spell` file prints its javascript.
 - `explore`'s keys:
@@ -185,7 +185,7 @@ Longer notes on some of them follow the table.
   - Piped, it reads stdin.
 - `explain`:  `--in <project>`:  also what that project declares by that name, as the editor's hover.
   `--json`.
-- `new`:  makes the project in `@user`'s folder, Owen's own space in spell-spaces
+- `new`:  makes the project in `owen@spell`'s folder, Owen's own space in spell-spaces
   (`../spell-spaces/@spell/owen@/`, beside the main checkout).
   - `--in <folder>`:  in that folder instead.
   - Refuses a folder with anything in it.
@@ -352,7 +352,7 @@ Longer notes on some of them follow the table.
 
 - No project named:  the project here, for every command.
   - Outside a project, in a terminal, `spell` asks, completing as you type, like a shell.
-    - `Tab` completes a root (`@examples/`), then a project, then "entire project" or one of its files.
+    - `Tab` completes a group (`@spell/examples/`), then a project (`@spell/examples/solitaire//`), then "entire project" or one of its files.
   - Your last 3 picks come first (kept in `.recent-projects.json`, gitignored).
   - Piped, it says to name one.
 - Names in `describe` ignore case, and a space, a dash and an underscore are all alike.

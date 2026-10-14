@@ -11,7 +11,7 @@ const repoDir = resolve(packagesDir, "..")
  * Where compiled output goes, `build/` at the repo root (epic `people-and-orgs` P11):  never committed.
  * - Each project's own folder there MIRRORS its path:  `buildFolderFor()`, in `projects/project-utils.ts`.
  *   - under `packages/` or `tests/`:  the same path under `build/`,
- *     `packages/spaces/@spell/examples/Solitaire` => `build/spaces/@spell/examples/Solitaire`
+ *     `packages/spaces/@spell/examples/solitaire` => `build/spaces/@spell/examples/solitaire`
  *   - under spell-spaces:  under `build/spell-spaces/`, `build/spell-spaces/@spell/owen@/errors`
  * - `SPELL_BUILD_DIR` sets it, e.g. the server's contract test's temporary folder.
  */
@@ -73,15 +73,15 @@ const environment = {
   staticDir,
   spellSpacesDir,
   spaceFolders,
-  /** The built-in projects, e.g. `packages/spaces/@spell/examples/Solitaire` -- `@system:...` groups. */
+  /** The built-in projects, e.g. `packages/spaces/@spell/examples/solitaire` -- the `@spell/...` groups. */
   systemFilesRoot: resolve(spaceFolders.builtins, "@spell"),
   /**
-   * Frozen projects tests run against, e.g. `tests/spaces/@spell/test/Solitaire` -- `@test:fixtures`.
+   * Frozen projects tests run against, e.g. `tests/spaces/@spell/test/solitaire` -- `@spell/test`.
    * See `$/spell/test`.
    */
   testFilesRoot: resolve(spaceFolders.tests, "@spell", "test"),
   /**
-   * This machine's person's own projects, e.g. `<spell-spaces>/@spell/owen@/errors` -- `@user:projects`.
+   * This machine's person's own projects, e.g. `<spell-spaces>/@spell/owen@/errors` -- `owen@spell`.
    * - MUST be the folder of `SPACES.LOCAL_PERSON`'s space (a test checks):  this file imports nothing,
    *   since vite's configs load it too.
    */

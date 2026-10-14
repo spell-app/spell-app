@@ -23,7 +23,7 @@ import { CLI } from "$/cli"
  *   `--force`:  ALL of them, even those already compiled.
  * - `--stale`:  only the projects whose build is missing or out of date, and the same for what they import;
  *   the rest are listed as up to date.  What counts:  `CLI.staleBecause()`.
- *   What the page server runs when it starts, for `@examples` and `@library` (`ProjectBuild`, in `$/spaces`).
+ *   What the page server runs when it starts, for `@spell/examples` and `@spell/library` (`ProjectBuild`, in `$/spaces`).
  * - Returns the exit code:  `EXIT.ERRORS` if anything had errors.
  *   Warnings, e.g. a property with no type (`SP.SpellWarnings`), are listed under the errors, never counted:
  *   a project with only warnings compiles clean, its scope pack too.

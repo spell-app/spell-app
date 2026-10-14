@@ -17,8 +17,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     [its package section](../../epics/people-and-orgs/details/spaces-package.html).
 - Its folders:
   - [@spell/](@spell/):  the `@spell` space's built-in projects, committed (see "Projects" below)
-    - `examples/`, e.g. `Solitaire/`:  the `@examples` group
-    - `library/`, e.g. `cards/`:  the `@library` group
+    - `examples/`, e.g. `Solitaire/`:  the `@spell/examples` group
+    - `library/`, e.g. `cards/`:  the `@spell/library` group
   - [src/models/](src/models/index.ts):  `$/spaces` (`SPACES`), safe in a browser:  the editor imports it.
     - [projectGroups.ts](src/models/projectGroups.ts):  spell's project groups, `PROJECT_GROUPS`
     - [SpellProjectRoot.ts](src/models/SpellProjectRoot.ts):  a group's list of projects,
@@ -46,22 +46,22 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - So every program that reads a spell path loads them first:  through `$/spaces`, our disk reader,
     or `$/spaces/models/projectGroups` alone (`<spell-app>` does that, to stay light).
   - Spell NEVER imports us.
-- Each group has a PLACE, its address, and its folder comes from that (`SP.SpellUrls.folderFor()`):
+- Each group is named by its ADDRESS, and its folder comes from that (`SP.SpellUrls.folderFor()`):
 
-  | Group | Place | Folder |
-  | --- | --- | --- |
-  | `@system:examples`, `@system:library`, `@system:guides` | `@spell/examples` ... | `packages/spaces/@spell/<group>/`, committed |
-  | `@test:fixtures` | `@spell/test` | `tests/spaces/@spell/test/`, committed and frozen |
-  | `@user:projects` | `owen@spell` | spell-spaces' `@spell/owen@/`, outside git |
+  | Group | Folder |
+  | --- | --- |
+  | `@spell/examples`, `@spell/library`, `@spell/guides` | `packages/spaces/@spell/<group>/`, committed |
+  | `@spell/test` | `tests/spaces/@spell/test/`, committed and frozen |
+  | `owen@spell` | spell-spaces' `@spell/owen@/`, outside git |
 
   - spell-spaces:  `<main checkout>/../spell-spaces`, ONE folder for main and every worktree.
     - `SPELL_SPACES_DIR` sets it.
     - Laid out by org, each person's space inside it:  `owen@spell/errors` is `@spell/owen@/errors/`.
   - `SPACES.LOCAL_PERSON` is `owen`, until the people phase reads it from the person's own file.
-  - Until the address phase (P4's second half), a place's project part is today's project name:
-    `@spell/examples/Solitaire`, `@spell/examples/Drawable Solitaire`.
-  - A `@workspace:<folder>` group, added at runtime for a folder an editor opened, is `@local/<folder>`:
-    it says its own folder (`serverPath`).
+  - A project is its group's address, a slash and its folder's name, lower-kebab (epic `people-and-orgs` P4,
+    decision Q39):  `@spell/examples/drawable-solitaire`;  a file in it, after two slashes,
+    `@spell/examples/drawable-solitaire//Card.spell`.
+  - A `@local/<folder>` group, added at runtime for a folder an editor opened, says its own folder (`serverPath`).
 - Where the folders are:  [environment.ts](src/server/node/environment.ts).
   - `spaceFolders`:  `builtins` (`packages/spaces/`), `tests` (`tests/spaces/`), `spaces` (spell-spaces)
   - also `spellSpacesDir`, `repoDir` and `buildDir`
@@ -79,8 +79,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `installDiskFetch()` answers the URLs spell asks for from disk, with the same functions the routes call.
   - `file-utils`, `response-utils` and `server.types` beside them.
 - What spell BUILDS for a project goes in `build/` at the repo root, each checkout its own, never committed:
-  - `packages/X` => `build/X`, e.g. `build/spaces/@spell/examples/Solitaire/`
-  - `tests/X` => `build/X`, e.g. `build/spaces/@spell/test/FizzBuzz/`
+  - `packages/X` => `build/X`, e.g. `build/spaces/@spell/examples/solitaire/`
+  - `tests/X` => `build/X`, e.g. `build/spaces/@spell/test/fizzbuzz/`
   - spell-spaces' `X` => `build/spell-spaces/X`, e.g. `build/spell-spaces/@spell/owen@/errors/`
   - anywhere else:  beside the source
   - `buildFolderFor()`, in project-utils;  "Projects" in [spell's PARSING.md](../spell/PARSING.md) has the rest.
@@ -97,13 +97,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   `SRV.Router` route tables (`api` and `spaceFiles`).
   - On `$/server`'s Express-shaped router and web server (it was Express):  `SRV.Router` and `SRV.WebServer`.
   - Its handlers are our [project-utils.ts](src/server/node/projects/project-utils.ts)'s.
-  - A project or a file is named by its PLACE, from ONE function, `SP.SpellUrls` (spell's
+  - A project or a file is named by its ADDRESS, from ONE function, `SP.SpellUrls` (spell's
     [SpellUrls.ts](../spell/src/SpellUrls.ts)):
-    - a file is READ at `/spaces/<place>//<file>`, e.g. `/spaces/@spell/examples/Solitaire//Card.spell`
-    - and SAVED by `POST /api/projects/file/<place>//<file>`
-    - a project's index:  `/api/projects/index/<place>`
-    - a group's projects:  `/api/projects/list/<group's place>`, e.g. `/api/projects/list/owen@spell`
-    - Compiled files are files:  `/spaces/<place>//Solitaire.spell.js`, `.scopes.js`, `.declarations.json`,
+    - a file is READ at `/spaces/<project>//<file>`, e.g. `/spaces/@spell/examples/solitaire//Card.spell`
+    - and SAVED by `POST /api/projects/file/<project>//<file>`
+    - a project's index:  `/api/projects/index/<project>`
+    - a group's projects:  `/api/projects/list/<group>`, e.g. `/api/projects/list/owen@spell`
+    - Compiled files are files:  `/spaces/<project>//<project>.spell.js`, `.scopes.js`, `.declarations.json`,
       `.en.js`.  A built one is served from the build folder.
     - A URL is split at its FIRST `//` before any path is made, and each part decoded on its own (decision J48).
   - [api.test.ts](../../tests/spaces/src/server/node/routes/api.test.ts) pins its behaviour over HTTP.
@@ -119,10 +119,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - It serves the app's own folders (`APP_DIR`:  `dist/`, `dist-element/`, `demo/`), wherever it's started from.
 - It BUILDS projects when needed ([ProjectBuild.ts](src/server/node/routes/ProjectBuild.ts)):
   their compiled output and scope packs are in `build/`, never committed (epic `people-and-orgs` P11).
-  - A request for a built file that isn't there (`/spaces/<place>//Solitaire.spell.js`, `.scopes.js` ...)
+  - A request for a built file that isn't there (`/spaces/<project>//<project>.spell.js`, `.scopes.js` ...)
     compiles its project first, then serves it (`projectBuild.builtFirst()`):  one compile per project at a time,
     waiting at most `COMPILE_WAIT_MS`.
-  - The route module starts `spell compile --stale --all @examples @library` as the page server starts,
+  - The route module starts `spell compile --stale --all @spell/examples @spell/library` as the page server starts,
     in the background:  the demo pages and App UI's live examples run them.
   - A child process, the checkout's own `spell compile`:  it compiles as the CLI does,
     and the page server keeps serving pages meanwhile.

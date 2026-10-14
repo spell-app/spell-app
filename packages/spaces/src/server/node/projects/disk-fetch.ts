@@ -3,11 +3,11 @@
  * the language server, the `spell` command, tests.
  * - `LoadableFile.fetch` is how every `SpellProject` / `SpellFile` / `SpellProjectRoot` reaches its `url`.
  * - `installDiskFetch()` swaps `$fetch()` for `diskFetch()`, which answers the same URLs spell builds
- *   (`SP.SpellUrls`:  `/spaces/<place>//<file>`, `/api/projects/...`) with the same `project-utils` functions the
+ *   (`SP.SpellUrls`:  `/spaces/<project>//<file>`, `/api/projects/...`) with the same `project-utils` functions the
  *   routes call -- see `routes/api.ts` for that route table.
  * - Spell never sees a path on disk:  in a browser the page server answers these URLs, here this does.
  * - `locationForDiskPath()` maps a file on disk back to a `SpellLocation`,
- *   registering a `@workspace:<folder>` project root for a folder outside the built-in ones.
+ *   registering a `@local/<folder>` project group for a folder outside the built-in ones.
  * - NOTE: importing this pulls in `project-utils.ts`,
  *   which patches `SpellLocation.serverPath` and turns `SpellLocation.useRegistry` off.
  */
@@ -82,7 +82,7 @@ export function installDiskFetch() {
  * `SpellLocation` for the file at absolute `diskPath`, e.g. an editor's open document.
  * - Its project is the nearest enclosing folder holding `project.json`, else the file's own folder.
  * - A project under a known root's folder maps onto that root, e.g. `packages/spaces/@spell/examples`, or your space's in spell-spaces.
- * - Otherwise the project's PARENT folder becomes a new `@workspace:<folder-name>` root.
+ * - Otherwise the project's PARENT folder becomes a new `@local/<folder-name>` group.
  *   SIDE EFFECT: registers that root with `SpellSetup.addProjectRoot()`.
  * - Returns `undefined` if any folder or file name can't be a `SpellLocation` segment,
  *   see `SpellLocation.isValidPathSegment()`.
@@ -91,13 +91,13 @@ export function locationForDiskPath(diskPath: string): SP.SpellLocation | undefi
   diskPath = resolve(diskPath)
   const projectDir = findProjectDir(dirname(diskPath))
   const parentDir = dirname(projectDir)
-  const rootPath = rootForFolder(parentDir) ?? addWorkspaceRoot(parentDir)
+  const rootPath = rootForFolder(parentDir) ?? addLocalRoot(parentDir)
   if (!rootPath) return undefined
 
   const projectName = basename(projectDir)
   const filePath = diskPath.slice(projectDir.length).split(sep).join("/")
   if (!SP.SpellLocation.isValidPathSegment(projectName) || !SP.SpellLocation.isValidPath(filePath)) return undefined
-  return new SP.SpellLocation(`${rootPath}:${projectName}${filePath}`)
+  return new SP.SpellLocation(SP.SpellLocation.join(`${rootPath}/${projectName}`, filePath))
 }
 
 /** Nearest folder at or above `folder` holding `project.json`, else `folder` itself. */
@@ -115,21 +115,19 @@ function rootForFolder(folder: string): SP.ProjectRootPath | undefined {
 }
 
 /**
- * Register `folder` as a `@workspace:<folder-name>` project root and return its path;  its place is
- * `@local/<folder-name>`.
+ * Register `folder` as a `@local/<folder-name>` project group and return its address.
  * - Returns `undefined` if the folder name can't be a path segment.
  * - A different folder with the same name gets `-2`, `-3`... so both can be open at once.
  */
-function addWorkspaceRoot(folder: string): SP.ProjectRootPath | undefined {
+function addLocalRoot(folder: string): SP.ProjectRootPath | undefined {
   const domain = basename(folder)
   if (!SP.SpellLocation.isValidPathSegment(domain)) return undefined
   for (let attempt = 1; ; attempt++) {
-    const path: SP.ProjectRootPath = `@workspace:${attempt === 1 ? domain : `${domain}-${attempt}`}`
+    const path: SP.ProjectRootPath = `@local/${attempt === 1 ? domain : `${domain}-${attempt}`}`
     const spec = SP.SpellSetup.addProjectRoot({
       path,
-      owner: "@workspace",
+      space: "@local",
       domain,
-      place: `@local/${path.slice("@workspace:".length)}`,
       title: domain,
       Type: "Project",
       type: "project",

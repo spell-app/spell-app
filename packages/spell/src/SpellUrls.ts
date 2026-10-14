@@ -6,30 +6,28 @@ import { SpellSetup } from "./SpellSetup"
 /**
  * Where a project and its files are, by URL and by folder:  the ONE function spell, spaces' routes and spaces' disk
  * reader share (epic `people-and-orgs` P15).
- * - A project's PLACE is its address:  its group's place, then its name, e.g. `@spell/examples/Solitaire`.
- *   - Each project group (`SP.ProjectRootSpec`) says its own place, e.g. `@system:examples` is `@spell/examples`.
- *   - Until the address phase (P4's second half), the project part is today's name, e.g. `Solitaire`.
- * - A file's URL is its place, then TWO slashes, then the file:  `/spaces/@spell/examples/Solitaire//Card.spell`.
- *   - Saving it is a call:  `/api/projects/file/@spell/examples/Solitaire//Card.spell`.
- *   - A project's index:  `/api/projects/index/<place>`;  a group's projects:  `/api/projects/list/<group's place>`.
+ * - A project's URLs hold its ADDRESS as it is (P4), e.g. `@spell/examples/solitaire`.
+ * - A file's URL is its address, two slashes included:  `/spaces/@spell/examples/solitaire//Card.spell`.
+ *   - Saving it is a call:  `/api/projects/file/@spell/examples/solitaire//Card.spell`.
+ *   - A project's index:  `/api/projects/index/<address>`;  a group's projects:  `/api/projects/list/<address>`.
  * - The four rules for the two slashes (decision J48):
  *   1. split at the FIRST `//` before turning a URL into a path on disk (`fileForUrl()`):
  *      path functions squash `//` to `/`
  *   2. never a relative `../` across the `//`:  every URL here is written whole
- *   3. every URL starts `/spaces/` or `/api/`, never with the place itself (`//x` names another web site)
- *   4. encode each part on its own (`encodePart()`), never the whole place:  `//` would become `%2F%2F`
- * - Its folder (`folderFor()`):  a base folder and a path under it, e.g. `@spell/examples/Solitaire` is
- *   `@spell/examples/Solitaire` under spaces' built-ins.  Which real folder each base is, only spaces knows.
+ *   3. every URL starts `/spaces/` or `/api/`, never with the address itself (`//x` names another web site)
+ *   4. encode each part on its own (`encodeAddress()`), never the whole address:  `//` would become `%2F%2F`
+ * - Its folder (`folderFor()`):  a base folder and a path under it, e.g. `@spell/examples/solitaire` is
+ *   `@spell/examples/solitaire` under spaces' built-ins.  Which real folder each base is, only spaces knows.
  * - NOTE: imports only `SpellSetup`:  it never sees a path on disk, and never loads the parser.
  */
 export const SpellUrls = {
-  /** Where a file is READ:  `/spaces/<place>//<file>`. */
+  /** Where a file is READ:  `/spaces/<address>`. */
   SPACES: "/spaces/",
-  /** Where a file is SAVED:  `POST /api/projects/file/<place>//<file>`. */
+  /** Where a file is SAVED:  `POST /api/projects/file/<address>`. */
   SAVE: "/api/projects/file/",
-  /** A project's index:  `GET /api/projects/index/<place>`. */
+  /** A project's index:  `GET /api/projects/index/<project's address>`. */
   INDEX: "/api/projects/index/",
-  /** A group's projects:  `GET /api/projects/list/<group's place>`. */
+  /** A group's projects:  `GET /api/projects/list/<group's address>`. */
   LIST: "/api/projects/list/",
   /** Between a place and a thing in it, in a URL and an address alike. */
   STEP: "//",
@@ -42,35 +40,24 @@ export const SpellUrls = {
   // ## URLs
   ////////////////
 
-  /**
-   * Place of project `projectId`, e.g. `@system:examples:Solitaire` => `@spell/examples/Solitaire`;
-   * a group's own, `@system:examples` => `@spell/examples`.
-   * - throws `TypeError` if its group isn't registered (`SpellSetup.addProjectRoot()`)
-   */
-  placeFor(projectId: string): string {
-    const [rootPath, projectName] = splitProjectId(projectId)
-    const { place } = SpellSetup.projectSpectForRootPath(rootPath)
-    return projectName ? `${place}/${projectName}` : place
-  },
-
-  /** URL to READ the file at `path` (e.g. `@system:examples:Solitaire/Card.spell`):  `/spaces/<place>//<file>`. */
+  /** URL to READ the file at `path` (e.g. `@spell/examples/solitaire//Card.spell`):  `/spaces/<address>`. */
   fileUrl(path: string | SpellLocation): string {
     return SpellUrls.SPACES + tailFor(path)
   },
 
-  /** URL to SAVE the file at `path`:  `/api/projects/file/<place>//<file>`. */
+  /** URL to SAVE the file at `path`:  `/api/projects/file/<address>`. */
   saveUrl(path: string | SpellLocation): string {
     return SpellUrls.SAVE + tailFor(path)
   },
 
-  /** URL of project `projectId`'s index:  `/api/projects/index/<place>`. */
+  /** URL of project `projectId`'s index:  `/api/projects/index/<address>`. */
   indexUrl(projectId: string): string {
-    return SpellUrls.INDEX + encodePlace(SpellUrls.placeFor(projectId))
+    return SpellUrls.INDEX + SpellUrls.encodeAddress(projectId)
   },
 
-  /** URL of group `rootPath`'s project list:  `/api/projects/list/<group's place>`. */
+  /** URL of group `rootPath`'s project list:  `/api/projects/list/<group's address>`. */
   listUrl(rootPath: string): string {
-    return SpellUrls.LIST + encodePlace(SpellUrls.placeFor(rootPath))
+    return SpellUrls.LIST + SpellUrls.encodeAddress(rootPath)
   },
 
   ////////////////
@@ -79,10 +66,10 @@ export const SpellUrls = {
 
   /**
    * The project and file a file's URL names, from `/spaces/...` or `/api/projects/file/...` (or just its tail,
-   * `<place>//<file>`), e.g. `{ projectId: "@system:examples:Solitaire", filePath: "/Card.spell",
-   * path: "@system:examples:Solitaire/Card.spell" }`.
+   * the address), e.g. `{ projectId: "@spell/examples/solitaire", filePath: "/Card.spell",
+   * path: "@spell/examples/solitaire//Card.spell" }`.
    * - Splits at the FIRST `//`, then decodes each part on its own.
-   * - throws `TypeError`:  no `//`, a part that won't decode, or a place no group holds
+   * - throws `TypeError`:  no `//`, a part that won't decode, or a project no group holds
    * - NOTE: says nothing of whether its parts are valid names:  `new SpellLocation(path)` checks that.
    */
   fileForUrl(url: string): { projectId: string; filePath: string; path: string } {
@@ -90,27 +77,37 @@ export const SpellUrls = {
     const at = tail.indexOf(SpellUrls.STEP)
     if (at < 0) throw new TypeError(`SpellUrls.fileForUrl('${url}'):  no '//' between the project and the file`)
     const projectId = SpellUrls.projectIdFor(decodeParts(tail.slice(0, at), url))
-    const filePath = `/${decodeParts(tail.slice(at + SpellUrls.STEP.length), url)}`
-    return { projectId, filePath, path: `${projectId}${filePath}` }
+    const file = decodeParts(tail.slice(at + SpellUrls.STEP.length), url)
+    return { projectId, filePath: `/${file}`, path: `${projectId}${SpellUrls.STEP}${file}` }
   },
 
   /**
-   * Project id (or group path) of `place`, e.g. `@spell/examples/Solitaire` => `@system:examples:Solitaire`,
-   * `@spell/examples` => `@system:examples`.
-   * - The group is the one whose place is the LONGEST start of `place`;  one more part, the project's name.
-   * - Takes a URL's tail too, still encoded:  `/api/projects/index/<place>` => its project.
-   * - throws `TypeError` if no group holds it, or more than one part follows the group's place
+   * The project (or group) address `place` names, checked:  a group's address, or a group's and ONE more part,
+   * the project's name, e.g. `@spell/examples/solitaire`, `@spell/examples`.
+   * - Takes a URL's tail too, still encoded:  `/api/projects/index/<address>` => its project.
+   * - throws `TypeError` if no group holds it, or more than one part follows the group's address
    */
   projectIdFor(place: string): string {
     if (/%/.test(place)) place = decodeParts(place, place)
     for (const prefix of [SpellUrls.INDEX, SpellUrls.LIST])
       if (place.startsWith(prefix)) place = place.slice(prefix.length)
-    const spec = Object.values(SpellSetup.projectRoots)
-      .filter((it) => place === it.place || place.startsWith(`${it.place}/`))
-      .sort((a, b) => b.place.length - a.place.length)[0]
-    const rest = spec ? place.slice(spec.place.length + 1) : ""
-    if (!spec || rest.includes("/")) throw new TypeError(`SpellUrls.projectIdFor('${place}'):  no project group there`)
-    return rest ? `${spec.path}:${rest}` : spec.path
+    const group = SpellSetup.groupFor(place)
+    const rest = group ? place.slice(group.path.length + 1) : ""
+    if (!group || rest.includes("/")) throw new TypeError(`SpellUrls.projectIdFor('${place}'):  no project group there`)
+    return place
+  },
+
+  /**
+   * `address` without a page of its running app:  `owen@spell/solitaire/rules` => `owen@spell/solitaire`.
+   * - A page is what follows a project with no `//` before it (decision Q32);  a file's address is as it is.
+   * - An address no group holds:  as it is, for `new SpellLocation()` to refuse.
+   */
+  withoutPage(address: string): string {
+    if (address.includes(SpellUrls.STEP)) return address
+    const group = SpellSetup.groupFor(address)
+    if (!group || address === group.path) return address
+    const [project] = address.slice(group.path.length + 1).split("/")
+    return `${group.path}/${project}`
   },
 
   ////////////////
@@ -119,8 +116,8 @@ export const SpellUrls = {
 
   /**
    * Which folder holds `place`:  a `base` and the `path` under it, `/`-separated.
-   * - `@spell/test/FizzBuzz` => `{ base: "tests", path: "@spell/test/FizzBuzz" }`:  the repo's `tests/spaces/`
-   * - `@spell/examples/Solitaire` => `{ base: "builtins", path: "@spell/examples/Solitaire" }`:  `packages/spaces/`
+   * - `@spell/test/fizzbuzz` => `{ base: "tests", path: "@spell/test/fizzbuzz" }`:  the repo's `tests/spaces/`
+   * - `@spell/examples/solitaire` => `{ base: "builtins", path: "@spell/examples/solitaire" }`:  `packages/spaces/`
    * - `owen@spell/errors` => `{ base: "spaces", path: "@spell/owen@/errors" }`:  spell-spaces, beside the repo;
    *   a person's space is inside their org's, so `@` says what each folder is
    * - `@three-degrees/bubble-trouble` => `{ base: "spaces", path: "@three-degrees/bubble-trouble" }`
@@ -142,23 +139,22 @@ export const SpellUrls = {
   /** One part of a URL, encoded on its own:  `@` stays as is, so a place reads as its address. */
   encodePart(part: string): string {
     return encodeURIComponent(part).replace(/%40/g, "@")
+  },
+
+  /** `address` with each `/`-part encoded on its own (`encodePart()`):  its `//` stays two slashes. */
+  encodeAddress(address: string): string {
+    return address.split("/").map(SpellUrls.encodePart).join("/")
   }
 }
 /** `typeof SpellUrls`, exported so consumers can type a reference to it. */
 export type SpellUrls = typeof SpellUrls
 
-/** `<place>//<file>` for `path`, each part encoded. */
+/** The address of `path` with each part encoded, checked to name a file:  `<project>//<file>`. */
 function tailFor(path: string | SpellLocation): string {
-  const full = typeof path === "string" ? SpellSetup.expandAlias(path) : path.path
-  const slash = full.indexOf("/")
-  if (slash < 0) throw new TypeError(`SpellUrls:  '${full}' isn't a file's path`)
-  const file = full.slice(slash + 1).replace(/^\/+/, "")
-  return `${encodePlace(SpellUrls.placeFor(full.slice(0, slash)))}${SpellUrls.STEP}${encodePlace(file)}`
-}
-
-/** `place` (or a file's path) with each `/`-part encoded on its own. */
-function encodePlace(place: string): string {
-  return place.split("/").map(SpellUrls.encodePart).join("/")
+  const full = typeof path === "string" ? path : path.path
+  const at = full.indexOf(SpellUrls.STEP)
+  if (at < 0) throw new TypeError(`SpellUrls:  '${full}' isn't a file's address`)
+  return SpellUrls.encodeAddress(full)
 }
 
 /** `encoded` with each `/`-part decoded on its own;  throws `TypeError` (naming `url`) when one won't decode. */
@@ -178,10 +174,4 @@ function tailOf(url: string, prefixes: string[]): string {
   const path = url.split(/[?#]/)[0]!
   const prefix = prefixes.find((it) => path.startsWith(it))
   return prefix ? path.slice(prefix.length) : path
-}
-
-/** `projectId` as its group's path and its project's name (`undefined` for a group alone). */
-function splitProjectId(projectId: string): [SP.ProjectRootPath, string | undefined] {
-  const [owner, domain, projectName] = SpellSetup.expandAlias(projectId).split(":")
-  return [`${owner}:${domain}` as SP.ProjectRootPath, projectName || undefined]
 }

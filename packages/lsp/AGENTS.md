@@ -25,7 +25,7 @@ when working with code in this package, `@spell-app/lsp`.
   ```sh
   yarn start:lsp                              # runs the server over stdio
   yarn scopes [--compile] <projectId...>      # writes scope packs
-  yarn scopes --compile @examples/Solitaire   # e.g.
+  yarn scopes --compile @spell/examples/solitaire   # e.g.
   ```
 
 - `$/lsp` MUST stay BROWSER-SAFE (WWOD §8 › "Barrels").

@@ -10,7 +10,7 @@ import { compiledFixture } from "$/spell/test"
  * - Its whole output is pinned by the fixtures' `.snapshot.py`, and run by the core contract.
  */
 describe("Python on asyncio", () => {
-  const cards = compiledFixture("Cards", PY.PyWriter.instance)
+  const cards = compiledFixture("cards", PY.PyWriter.instance)
   if (process.env.SPELL_DUMP_ASYNC) writeFileSync(process.env.SPELL_DUMP_ASYNC, cards)
 
   test("a method that pauses waits:  `async def`, `await core.pause_for(...)`", () => {

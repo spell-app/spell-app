@@ -92,9 +92,9 @@ export const SCOPES_JS_SUFFIX = ".scopes.js"
 export const WORDS_JS_SUFFIX = ".en.js"
 
 /**
- * Start of the ES module specifier for another project's compiled JS, e.g. `@spell/project/@system:library:cards`.
+ * Start of the ES module specifier for another project's compiled JS, e.g. `@spell/project/@spell/library/cards`.
  * - A runner fetches that project's compiled JS from the server, at its file's URL,
- *   `/spaces/<place>//<Project>.spell.js` (`SpellUrls.fileUrl()`), and points the specifier at it -- see `runCompiled()` in `$/app/runner/runCompiled`.
+ *   `/spaces/<project>//<Project>.spell.js` (`SpellUrls.fileUrl()`), and points the specifier at it -- see `runCompiled()` in `$/app/runner/runCompiled`.
  */
 export const SPELL_PROJECT_MODULE = "@spell/project/"
 
@@ -114,7 +114,7 @@ export type ProjectManifestJSON5 = {
   listsStartAt?: 0 | 1
   /**
    * Where the server puts what compiling builds, e.g. `Solitaire.spell.py`, relative to the project's own folder:
-   * e.g. `../../../../../../build/spaces/@spell/examples/Solitaire`, for a project under `packages/`.
+   * e.g. `../../../../../../build/spaces/@spell/examples/solitaire`, for a project under `packages/`.
    * - Not there:  beside its source.
    * - Only a Python program's web app needs it so far, to find the program:  `PY.QuartAppSpec.outputs`.
    */
@@ -139,12 +139,12 @@ export type ProjectManifestEntry = {
 
 /**
  * A single entry in `contents.imports`, as read/written to `project.json` on the server.
- * - A FILE of ours, e.g. `/Card.spell`, or ANOTHER PROJECT, e.g. `@library/cards` -- see `SpellProject.projectImports`.
+ * - A FILE of ours, e.g. `/Card.spell`, or ANOTHER PROJECT, e.g. `@spell/library/cards` -- see `SpellProject.projectImports`.
  */
 export type ProjectManifestImport = {
   /**
    * Local `filePath`, e.g. `/Card.spell`.
-   * - Or another project:  `@library/<name>` (~== `@system:library:<name>`) or a full `@owner:domain:name`.
+   * - Or another project:  `@library/<name>` (~== `@spell/library:<name>`) or a full `@owner:domain:name`.
    */
   path: string
   /** `true` if file should be included when compiling the project. */
@@ -161,9 +161,9 @@ export type ProjectManifestImport = {
 
 /** Another project a project imports -- see `SpellProject.projectImports`. */
 export type ProjectImport = {
-  /** Its `imports` entry's `path` as written, e.g. `@library/cards` -- named in errors, and `P.ImportScope.origins`. */
+  /** Its `imports` entry's `path` as written, e.g. `@spell/library/cards` -- named in errors, and `P.ImportScope.origins`. */
   from: string
-  /** Its project id, e.g. `@system:library:cards`. */
+  /** Its project id, e.g. `@spell/library/cards`. */
   projectId: string
   /** Names to import -- see `DeclarationsImport.import`. */
   import?: string[]
@@ -185,13 +185,13 @@ export type ProjectImportRef = {
   file: AnySpellFile
 }
 
-/** Contents of a `SpellProjectRoot`: list of project paths, e.g. `@user:projects:Foo`. */
+/** Contents of a `SpellProjectRoot`: list of project addresses, e.g. `owen@spell/errors`. */
 export type ProjectPathList = string[]
 
 // ## SpellProjectRoot
 
 /**
- * Which folder a place's `SpellUrls.folderFor()` path is under -- spaces' `environment` says where each one is:
+ * Which folder an address's `SpellUrls.folderFor()` path is under -- spaces' `environment` says where each one is:
  * - `builtins`:  the repo's built-in projects, `packages/spaces/` (`@spell/examples/...`)
  * - `tests`:  the repo's test projects, `tests/spaces/` (`@spell/test/...`)
  * - `spaces`:  every person's and org's space, spell-spaces beside the main checkout (`@spell/owen@/...`)
@@ -199,23 +199,28 @@ export type ProjectPathList = string[]
 export type SpaceFolderBase = "builtins" | "tests" | "spaces"
 
 /**
- * A project root `path`, `@owner:domain`:
- * one of spaces' groups (`SPACES.PROJECT_GROUPS`, e.g. `@user:projects`), or one added at runtime with
- * `SpellSetup.addProjectRoot()`, e.g. `@workspace:my-folder`.
+ * A project group's ADDRESS, what its projects' addresses start with (epic `people-and-orgs` P4):
+ * one of spaces' groups (`SPACES.PROJECT_GROUPS`, e.g. `@spell/examples`, `owen@spell`), or one added at runtime
+ * with `SpellSetup.addProjectRoot()`, e.g. `@local/my-folder`.
  */
-export type ProjectRootPath = `@${string}:${string}`
+export type ProjectRootPath = `${string}@${string}`
 
 /**
- * One entry in the set of "roots" a project can live under.
- * - Describes an `@owner:domain` pair plus the display strings the UI needs for it.
+ * One entry in the set of "roots" a project can live under:  a project GROUP.
+ * - Its address, plus the display strings the UI needs for it.
  * - `Type`/`type` are both kept so callers can concatenate without case-munging at the call site.
  */
 export type ProjectRootSpec = {
-  /** Full path, e.g. `@user:projects`. */
+  /**
+   * Its address, e.g. `@spell/examples`:  each of its projects' is that, a slash and the project's name,
+   * `@spell/examples/solitaire`;  `owen@spell` (`owen@spell/errors`).
+   * - A project's URLs and folder come from it:  `SpellUrls.fileUrl()`, `SpellUrls.folderFor()`.
+   * - A runtime group's is `@local/<folder name>`:  it has no folder of its own, so it says `serverPath`.
+   */
   path: ProjectRootPath
-  /** Owner of project, as `@user` or `@system`. */
-  owner: string
-  /** Domain of project, as `projects`, `examples` or `guides`. */
+  /** The space it's in:  `@spell`, `owen@spell`, `@local`. */
+  space: string
+  /** Its short name, as `projects`, `examples` or `guides`:  what the `spell` command and the editor call it. */
   domain: string
   /** User-friendly title of project. */
   title: string
@@ -226,26 +231,12 @@ export type ProjectRootSpec = {
   /** User friendly description of project. */
   description: string
   /**
-   * Its PLACE:  the address its projects' places start with, e.g. `@spell/examples` (`@spell/examples/Solitaire`),
-   * or `owen@spell` (`owen@spell/errors`).
-   * - A project's URLs and folder come from it:  `SpellUrls.fileUrl()`, `SpellUrls.folderFor()`.
-   * - A runtime root's is `@local/<folder name>`:  it has no folder of its own, so it says `serverPath`.
-   */
-  place: string
-  /**
-   * Folder on disk holding this root's projects (one sub-folder each) -- NODE ONLY.
-   * - Spaces' groups leave it out:  their folder comes from their `place` (`SpellUrls.folderFor()`).
+   * Folder on disk holding this group's projects (one sub-folder each) -- NODE ONLY.
+   * - Spaces' groups leave it out:  their folder comes from their address (`SpellUrls.folderFor()`).
    */
   serverPath?: string
-  /** Shown in the app's UI only in dev, e.g. `@test:fixtures` -- it's there in every build, just not listed. */
+  /** Shown in the app's UI only in dev, e.g. `@spell/test` -- it's there in every build, just not listed. */
   devOnly?: boolean
-  /**
-   * Short name for paths in this root:  `<alias>/<project>...` ~== `<path>:<project>...`.
-   * - e.g. `@test/FizzBuzz` ~== `@test:fixtures:FizzBuzz`
-   * - Only ever written:  a `SpellLocation` stores the full path.
-   * - See `SpellSetup.expandAlias()`.
-   */
-  alias?: `@${string}`
   /** Semantic UI icon of project. */
   icon: string
 }
@@ -559,7 +550,7 @@ export type SpellDeclaration = {
  * One project another imports, for `SpellDeclarations.importScope()` -- from a `project.json` `imports` entry.
  */
 export type DeclarationsImport = {
-  /** Where it came from, e.g. `@library/cards` -- recorded in `P.ImportScope.origins`, and named in errors. */
+  /** Where it came from, e.g. `@spell/library/cards` -- recorded in `P.ImportScope.origins`, and named in errors. */
   from: string
   /** Its declarations. */
   declarations: SpellDeclarationsData
@@ -570,14 +561,14 @@ export type DeclarationsImport = {
    */
   import?: string[]
   /**
-   * Its project id, e.g. `@system:library:cards` -- what loaded records' `declaredAt` paths start with.
+   * Its project id, e.g. `@spell/library/cards` -- what loaded records' `declaredAt` paths start with.
    * - Default `from`.
    */
   projectId?: string
   /** Semver range its `version` must satisfy, e.g. `"^1.2"`. */
   version?: string
   /**
-   * ES module specifier its compiled JS is imported by at runtime, e.g. `@spell/project/@system:library:cards`.
+   * ES module specifier its compiled JS is imported by at runtime, e.g. `@spell/project/@spell/library/cards`.
    * - Recorded with the names loaded in `P.ImportScope.modules`, so the importer's compiled output imports them.
    */
   module?: string

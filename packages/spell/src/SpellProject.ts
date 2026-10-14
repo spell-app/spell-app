@@ -7,7 +7,7 @@ import { SPELL_CORE_MODULE, SPELL_CORE_NAMES } from "$/core/spellCore.types"
 import { SP } from "$/spell"
 
 /**
- * One spell project, e.g. `@user:projects:myProject`:  its files, and reading, compiling and saving them.
+ * One spell project, e.g. `owen@spell/myProject`:  its files, and reading, compiling and saving them.
  * - Its `contents` are the project's index from the server:  its files (`manifest`), and what its `project.json` says.
  * - NOTE: these are singleton instances -- you'll always get same object back for a given `path`.
  * - Creating, copying, renaming and deleting a FILE is spaces' (`SPACES.ProjectFiles`), as is its group's list of
@@ -43,7 +43,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
     SpellProject.registry.delete(this.path)
   }
 
-  /** Full path to project, e.g. `@user:projects:myProject`. */
+  /** Full path to project, e.g. `owen@spell/myProject`. */
   /*@writeOnce path*/
   declare path: string
 
@@ -52,33 +52,29 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    * - NOTE: we `forward` lots of methods on location object to this object, so you can say
    *   `project.projectName` rather than `project.location.projectName`.
    */
-  /*@forward("projectId", "owner", "projectName", "isSystemProject", "isUserProject")*/
+  /*@forward("projectId", "space", "projectName")*/
   /*@memoize*/
   get location(): SP.SpellLocation {
     return this.derived("location", () => new SP.SpellLocation(this.path))
   }
-  /** Project ID, forwarded from `location.projectId`. */
+  /** Project ID, its address, forwarded from `location.projectId`. */
   get projectId(): string {
     return this.location.projectId
   }
-  /** Owner of project (`@user` or `@system`), forwarded from `location.owner`. */
-  get owner(): string {
-    return this.location.owner
+  /** The space it's in (`@spell` or `owen@spell`), forwarded from `location.space`. */
+  get space(): string {
+    return this.location.space
   }
-  /** Name of project, forwarded from `location.projectName`. */
+  /** Name of project, e.g. `drawable-solitaire`, forwarded from `location.projectName`. */
   get projectName(): string | undefined {
     return this.location.projectName
   }
-  /** Is this a system project? Forwarded from `location.isSystemProject`. */
-  get isSystemProject(): boolean {
-    return this.location.isSystemProject
-  }
-  /** Is this a user project? Forwarded from `location.isUserProject`. */
-  get isUserProject(): boolean {
-    return this.location.isUserProject
+  /** Its name for people, from its `projectName`:  `drawable-solitaire` => `Drawable Solitaire` (decision Q39). */
+  get title(): string {
+    return SP.SpellLocation.titleFor(this.projectName ?? "")
   }
 
-  /** Our group's spec (`@user:projects`, `@system:examples`, etc.):  see `SP.SpellSetup.projectRoots`. */
+  /** Our group's spec (`owen@spell`, `@spell/examples`, etc.):  see `SP.SpellSetup.projectRoots`. */
   get projectRootSpec(): SP.ProjectRootSpec {
     return SP.SpellSetup.projectSpectForRootPath(this.location.projectRoot)
   }
@@ -590,7 +586,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   // ## Loading / contents
   ////////////////
 
-  /** URL to load this project's index:  `/api/projects/index/<place>` (`SP.SpellUrls.indexUrl()`). */
+  /** URL to load this project's index:  `/api/projects/index/<project>` (`SP.SpellUrls.indexUrl()`). */
   get url(): string {
     return SP.SpellUrls.indexUrl(this.projectId)
   }
@@ -684,7 +680,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
         if (!this.contents?.imports) return []
         // another project's entry isn't a file of ours -- see `projectImports`
         return this.contents.imports
-          .filter(({ path }) => !path.startsWith("@"))
+          .filter(({ path }) => !SP.SpellLocation.isAddress(path))
           .map(({ path, active }) => {
             const location = SP.SpellLocation.getFileLocation(this.projectId, path)
             const file = SpellProject.getFileForPath(location.path)
@@ -730,12 +726,12 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * Other projects we import, from our `project.json` -- entries naming a project, e.g. `@library/cards`.
+   * Other projects we import, from our `project.json` -- entries naming a project, e.g. `@spell/library/cards`.
    * - Kept out of `imports`:  they aren't files of ours.  Inactive ones are left out.
    */
   get projectImports(): SP.ProjectImport[] {
     return (this.contents?.imports ?? [])
-      .filter(({ path, active }) => path.startsWith("@") && active !== false)
+      .filter(({ path, active }) => SP.SpellLocation.isAddress(path) && active !== false)
       .map(({ path, import: picks, version, source }) => ({
         from: path,
         projectId: SpellProject.projectIdForImport(path),
@@ -818,7 +814,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   /**
    * `import`s leading our compiled output:  spell's runtime, then what we import from other projects, e.g.
    *   `import { spellCore, Thing, List, App, Drawable, DrawableList } from "@spell/core"`
-   *   `import { Card as Playingcard, Deck, Pile } from "@spell/project/@system:library:cards"`
+   *   `import { Card as Playingcard, Deck, Pile } from "@spell/project/@spell/library/cards"`
    * - Why:  compiled spell reaches everything it didn't declare through `import`s -- NO globals.
    * - A runner rewrites each specifier onto the module it means -- see `runCompiled()` in `$/app/runner/runCompiled`.
    * - A `source` import needs none:  its files compile into our output.
@@ -844,12 +840,15 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * Project id an `imports` entry's `path` names -- see `SP.SpellSetup.expandAlias()`:
-   * - a root's alias expanded, e.g. `@library/cards` ~== `@system:library:cards`
-   * - else a full `@owner:domain:name` as is
+   * Project id an `imports` entry's `path` names:  the project's address, as it is, e.g. `@spell/library/cards`.
+   * - throws `TypeError` if it isn't an address, or names a file in a project (`...//Card.spell`)
+   * - Its shape only:  whether its group is known waits for loading it, so a compile with no groups registered
+   *   (a test's) can still name its imports.
    */
   static projectIdForImport(path: string): string {
-    return SP.SpellSetup.expandAlias(path)
+    if (!SP.SpellLocation.isAddress(path) || path.includes(SP.SpellLocation.STEP))
+      throw new TypeError(`SpellProject:  import '${path}' isn't a project's address`)
+    return path
   }
 
   ////////////////
@@ -879,7 +878,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
 
   /**
    * Given `path` as:
-   * - `fullPath`, e.g. `@user:projects:project/file.spell`
+   * - `fullPath`, e.g. `owen@spell/project//file.spell`
    * - `filePath`, e.g. `file.spell` or `/file.spell`
    * - `SpellLocation` for a file
    * return `SpellLocation` for the file.
@@ -892,7 +891,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
       location = path
     } else if (typeof path === "string") {
       try {
-        if (path.startsWith("@")) location = SP.SpellLocation.getFileLocation(path)
+        if (SP.SpellLocation.isAddress(path)) location = SP.SpellLocation.getFileLocation(path)
         else location = SP.SpellLocation.getFileLocation(this.projectId, path)
       } catch {
         return undefined
@@ -905,7 +904,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   /**
    * Assuming we're loaded, return manifest `info` for a file specified by `filePath`.
    * `filePath` can be any of:
-   * - `fullPath`, e.g. `@user:projects:project/file.spell`
+   * - `fullPath`, e.g. `owen@spell/project//file.spell`
    * - `filePath`, e.g. `file.spell` or `/file.spell`
    * - `SpellLocation` for a file
    *
@@ -920,7 +919,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   /**
    * Assuming we're loaded, then return one of our `files` as a `SpellFile` or `SpellCSSFile` etc.
    * `filePath` can be any of:
-   * - `fullPath`, e.g. `@user:projects:project/file.spell`
+   * - `fullPath`, e.g. `owen@spell/project//file.spell`
    * - `filePath`, e.g. `file.spell` or `/file.spell`
    * - `SpellLocation` for a file
    *
@@ -934,7 +933,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   // ## Debug
   ////////////////
 
-  /** Debug string, e.g. `SpellProject: @user:projects:myProject`. */
+  /** Debug string, e.g. `SpellProject: owen@spell/myProject`. */
   toString(): string {
     return `${this.constructor.name}: ${this.path}`
   }

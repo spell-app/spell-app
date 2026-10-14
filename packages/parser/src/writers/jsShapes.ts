@@ -170,7 +170,7 @@ export const CORE_IMPORT = /^import \{ ([^}]*) \} from "@spell\/core"$/m
 
 /**
  * Each class `code` imports from another project, by its name here => [its module, its name there],
- * e.g. `Card` => `["@spell/project/@system:library:cards", "Card"]`.
+ * e.g. `Card` => `["@spell/project/@spell/library/cards", "Card"]`.
  */
 export function importedClasses(code: string): Map<string, [string, string]> {
   const imported = new Map<string, [string, string]>()

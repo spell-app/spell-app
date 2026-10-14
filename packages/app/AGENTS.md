@@ -151,7 +151,7 @@ when working with code in this package, `@spell-app/app`.
       - `installSpellElements()` fills that in, per runtime copy.
     - `draw the card` then draws `<solitaire-card>`.
       Its `thing` is the card, which the element draws inside it (`drawOwn()`).
-    - The example:  `@examples/Drawable Solitaire`, each card its own element, styled by its `<css>`.
+    - The example:  `@spell/examples/drawable-solitaire`, each card its own element, styled by its `<css>`.
     - ONE tag per type per page, shared by every runtime copy (`SPELL_ELEMENTS`, on `globalThis`).
     - Compiled TypeScript writes each type's element class itself (P10):
       - e.g. `class CardElement extends SpellElement<Card>`
@@ -264,7 +264,7 @@ when working with code in this package, `@spell-app/app`.
     and a project's file create, copy, rename and delete are `SPACES.ProjectFiles` (never `SpellProject`'s).
   - `<spell-app>` loads only the light files, without the parser:
     `$/spaces/models/projectGroups` (registers spell's project groups), `$/spell/SpellSetup` and `$/spell/SpellUrls`.
-  - Every project file's URL comes from `SP.SpellUrls`:  `/spaces/<place>//<file>`, compiled files too.
+  - Every project file's URL comes from `SP.SpellUrls`:  `/spaces/<project>//<file>`, compiled files too.
 
 ## Decorators
 

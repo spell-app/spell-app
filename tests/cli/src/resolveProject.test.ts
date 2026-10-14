@@ -15,57 +15,59 @@ async function named(arg: string, cwd?: string) {
   return { kind: resolved.kind, ids: resolved.projectIds }
 }
 
-const FIZZBUZZ = fixtureProjectId("FizzBuzz")
-const SOLITAIRE = fixtureProjectId("Solitaire")
-const CARD = `${SOLITAIRE}/Card.spell`
-// in the order a root lists its projects:  by name, letter case aside (`Cards` before `CardTable`)
+const FIZZBUZZ = fixtureProjectId("fizzbuzz")
+const SOLITAIRE = fixtureProjectId("solitaire")
+const CARD = `${SOLITAIRE}//Card.spell`
+// in the order a group lists its projects:  by name
 const ALL_FIXTURES = fixtureProjectNames()
   .map(fixtureProjectId)
   .sort((a, b) => a.localeCompare(b))
 
 describe("resolveProject()", () => {
   describe("spell paths", () => {
-    test("a project, by its root's alias", async () => {
-      expect(await named("@test/FizzBuzz")).toEqual({ kind: "project", id: FIZZBUZZ })
+    test("a project, by its address", async () => {
+      expect(await named("@spell/test/fizzbuzz")).toEqual({ kind: "project", id: FIZZBUZZ })
     })
-    test("a project, by full id", async () => {
+    test("a project, by its id (its address)", async () => {
       expect(await named(SOLITAIRE)).toEqual({ kind: "project", id: SOLITAIRE })
     })
     test("a spell file", async () => {
-      expect(await named("@test/Solitaire/Card.spell")).toEqual({ kind: "file", id: CARD })
+      expect(await named("@spell/test/solitaire//Card.spell")).toEqual({ kind: "file", id: CARD })
     })
-    test("a bare root, by alias or full path, holds only folders with a project.json", async () => {
-      expect(await named("@test")).toEqual({ kind: "root", ids: ALL_FIXTURES })
-      expect(await named("@test:fixtures")).toEqual({ kind: "root", ids: ALL_FIXTURES })
+    test("a group, by its address, holds only folders with a project.json", async () => {
+      expect(await named("@spell/test")).toEqual({ kind: "root", ids: ALL_FIXTURES })
     })
   })
 
   describe("disk paths", () => {
     test("a project folder", async () => {
-      expect(await named(fixturePath("Solitaire"))).toEqual({ kind: "project", id: SOLITAIRE })
+      expect(await named(fixturePath("solitaire"))).toEqual({ kind: "project", id: SOLITAIRE })
     })
     test("a project's project.json", async () => {
-      expect(await named(fixturePath("Solitaire", SP.PROJECT_FILE))).toEqual({ kind: "project", id: SOLITAIRE })
+      expect(await named(fixturePath("solitaire", SP.PROJECT_FILE))).toEqual({ kind: "project", id: SOLITAIRE })
     })
     test("a spell file, relative to cwd", async () => {
-      expect(await named("Card.spell", fixturePath("Solitaire"))).toEqual({ kind: "file", id: CARD })
+      expect(await named("Card.spell", fixturePath("solitaire"))).toEqual({ kind: "file", id: CARD })
     })
     test("a known root's folder", async () => {
       expect(await named(FIXTURES_DIR)).toEqual({ kind: "root", ids: ALL_FIXTURES })
     })
     test("`@workspace` is the current folder", async () => {
-      expect(await named("@workspace", fixturePath("Solitaire"))).toEqual({ kind: "project", id: SOLITAIRE })
-      expect(await named("@workspace/Card.spell", fixturePath("Solitaire"))).toEqual({ kind: "file", id: CARD })
+      expect(await named("@workspace", fixturePath("solitaire"))).toEqual({ kind: "project", id: SOLITAIRE })
+      expect(await named("@workspace/Card.spell", fixturePath("solitaire"))).toEqual({ kind: "file", id: CARD })
     })
   })
 
   describe("errors", () => {
-    test.each(["@nope", "@test/Nope", "@test/Solitaire/Nope.spell", "@test/Solitaire/project.json", "./no/such/thing"])(
-      "%s",
-      async (arg) => {
-        await expect(CLI.resolveProject(arg, fixturePath())).rejects.toBeInstanceOf(CLI.CliError)
-      }
-    )
+    test.each([
+      "@nope",
+      "@spell/test/nope",
+      "@spell/test/solitaire//Nope.spell",
+      "@spell/test/solitaire//project.json",
+      "./no/such/thing"
+    ])("%s", async (arg) => {
+      await expect(CLI.resolveProject(arg, fixturePath())).rejects.toBeInstanceOf(CLI.CliError)
+    })
 
     test("a folder outside any project -- and writes NO project.json into it", async () => {
       const folder = mkdtempSync(resolve(tmpdir(), "spell-cli-"))
@@ -84,15 +86,16 @@ describe("resolveProject()", () => {
 describe("rootsNamed()", () => {
   const paths = (name: string) => CLI.rootsNamed(name).map((spec) => spec.path)
 
-  test("full path, alias, domain, owner", () => {
-    expect(paths("@system:guides")).toEqual(["@system:guides"])
-    expect(paths("@library")).toEqual(["@system:library"])
-    expect(paths("@examples")).toEqual(["@system:examples"])
-    expect(paths("@user")).toEqual(["@user:projects"])
-    expect(paths("@system")).toEqual(["@system:examples", "@system:guides", "@system:library"])
+  test("a group's address, or a space:  every group in it", () => {
+    expect(paths("@spell/guides")).toEqual(["@spell/guides"])
+    expect(paths("@spell/library")).toEqual(["@spell/library"])
+    expect(paths("owen@spell")).toEqual(["owen@spell"])
+    expect(paths("@spell")).toEqual(["@spell/examples", "@spell/guides", "@spell/library", "@spell/test"])
   })
 
   test("none for anything else", () => {
     expect(paths("@nope")).toEqual([])
+    // the short names before the addresses (`@examples`) name nothing
+    expect(paths("@examples")).toEqual([])
   })
 })

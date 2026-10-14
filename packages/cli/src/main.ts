@@ -26,14 +26,14 @@ const PROJECT_HELP = `
 Projects:
   Card.spell, ./path/to/Project        a spell file, or the project in a folder
   @workspace                           the project in the current folder
-  @library/cards, @test/Solitaire      one project, by its root's short name
-  @system:library:cards                one project, by full id
-  @library, @examples, @user, @system  a whole root:  pick from its projects, or pass --all
+  @spell/library/cards, owen@spell/x   one project, by its address
+  @spell/test/solitaire//Card.spell    a file in one:  two slashes, then the file
+  @spell/library, owen@spell, @spell   a group, or all of a space's:  pick from their projects, or pass --all
   (none)                               the project here -- or, outside one, asks, completing as you type`
 
 /** Help for a command's project argument(s):  a project, or a lone spell file, which counts as one. */
-const PROJECT_ARG = "a spell file, project folder, or @root/project -- default the project here, else asks"
-const PROJECTS_ARG = "spell files, project folders, or @roots/projects -- default the project here, else asks"
+const PROJECT_ARG = "a spell file, project folder, or a project's address -- default the project here, else asks"
+const PROJECTS_ARG = "spell files, project folders, or addresses -- default the project here, else asks"
 
 /** Help for `--seed`, which `spell run` and `spell test` share. */
 const SEED_HELP = "start the random numbers from this whole number (1 to 2147483646):  the same deal every run"
@@ -124,8 +124,8 @@ program
 
 program
   .command("projects")
-  .description("list the project roots -- or, given one, the projects in it")
-  .argument("[root]", "a project root, e.g. @library or @user")
+  .description("list the project groups -- or, given one, the projects in it")
+  .argument("[root]", "a project group, e.g. @spell/library or owen@spell")
   .option("--json", "print the list as JSON")
   .action((root: string | undefined, _options, command) =>
     run(CLI.projectsCommand, root ? [root] : [], command.optsWithGlobals())
@@ -147,7 +147,7 @@ program
   .description("how spell reads a line:  its match tree, then the javascript it compiles to")
   .argument("<text>", 'a line of spell, e.g. "print 1 + 2" -- several lines parse as a block')
   .option("--rule <name>", "parse as this rule only, e.g. expression -- default statement, then expression")
-  .option("--in <project>", "parse inside this project's scope, e.g. @test/Solitaire")
+  .option("--in <project>", "parse inside this project's scope, e.g. @spell/test/solitaire")
   .option("--json", "print the result as JSON")
   .option("--tree", "print the spell tree -- what it means -- not the match tree;  with --json:  its data")
   .option("--html", "with --tree:  print it as a <ui-tree-diagram> for a docs page")
@@ -156,7 +156,7 @@ program
 program
   .command("repl")
   .description("spell parse, a line at a time -- what a line declares, later lines know.  Piped:  reads stdin")
-  .argument("[project]", "parse inside this project's scope, e.g. @test/Solitaire")
+  .argument("[project]", "parse inside this project's scope, e.g. @spell/test/solitaire")
   .action((project: string | undefined, _options, command) =>
     run(CLI.replCommand, project ? [project] : [], command.optsWithGlobals())
   )
@@ -165,7 +165,7 @@ program
   .command("explain")
   .description("what a word means to spell:  rules it names or starts -- and, --in a project, what it declares")
   .argument("<word>", "e.g. print, repeat -- or, with --in, a type, property or method")
-  .option("--in <project>", "look in this project too, e.g. @test/Solitaire")
+  .option("--in <project>", "look in this project too, e.g. @spell/test/solitaire")
   .option("--json", "print what was found as JSON")
   .action((word: string, _options, command) => run(CLI.explainCommand, [word], command.optsWithGlobals()))
 
@@ -173,7 +173,7 @@ program
   .command("new")
   .description("make a spell project:  <name>/project.json and a starter <name>.spell")
   .argument("<name>", "the project's name, e.g. Snake")
-  .option("--in <folder>", "make it in this folder -- default @user's, your space in spell-spaces")
+  .option("--in <folder>", "make it in this folder -- default owen@spell's, your space in spell-spaces")
   .action((name: string, _options, command) => run(CLI.newCommand, [name], command.optsWithGlobals()))
 
 program
@@ -181,7 +181,7 @@ program
   .description("run the spell app -- editor and server, which saves to disk -- and open it, until Ctrl-C")
   .argument(
     "[project]",
-    "open the editor on this, e.g. @examples/Solitaire -- default the project here, else the chooser"
+    "open the editor on this, e.g. @spell/examples/solitaire -- default the project here, else the chooser"
   )
   .option(
     "--port <port>",

@@ -21,7 +21,7 @@ describe("thing references in spell", () => {
   }
 
   test("the ThingReferences fixture:  a warning where a reference reads a name two tableaus share, none elsewhere", () => {
-    const { files } = parseSpellProject(loadFixtureProject("ThingReferences"))
+    const { files } = parseSpellProject(loadFixtureProject("thing-references"))
     expect(files[0]!.errors).toEqual([])
     expect(files[0]!.warnings).toEqual(['28:18 More than one tableau is named "T1":  this finds the first one made'])
   })

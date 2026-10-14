@@ -14,7 +14,7 @@ let options: CLI.DescribeTextOptions
 
 beforeAll(async () => {
   const session = new CLI.CliSession()
-  const resolved = await CLI.resolveProject("@test/Solitaire")
+  const resolved = await CLI.resolveProject("@spell/test/solitaire")
   if (resolved.kind !== "project") throw new Error("expected a project")
   await session.parse(resolved.project)
   tree = session.explorer.tree(resolved.project)

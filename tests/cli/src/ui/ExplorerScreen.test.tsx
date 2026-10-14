@@ -15,7 +15,7 @@ let cardFilePath: string
 
 beforeAll(async () => {
   const session = new CLI.CliSession()
-  const resolved = await CLI.resolveProject("@test/Solitaire")
+  const resolved = await CLI.resolveProject("@spell/test/solitaire")
   if (resolved.kind !== "project") throw new Error("expected a project")
   const { project } = resolved
   tree = await session.scopeTree(project)
@@ -77,7 +77,7 @@ function details(frame: string): string {
 describe("<ExplorerScreen>", () => {
   test("starts on its initial node, with the way to it open", async () => {
     const frame = await explore([])
-    expect(frame).toContain("▾ Solitaire")
+    expect(frame).toContain("▾ solitaire")
     expect(frame).toContain("  ▾ Card.spell")
     expect(frame).toContain("    ▸ Card  is a Thing")
     expect(frame).toContain("  ▸ Deck.spell")

@@ -14,7 +14,7 @@ describe("a writer's naming map", () => {
   /** Solitaire, compiled by `writer` (javascript's or TypeScript's) with its types in `typeCase`. */
   function typedIn(typeCase: P.NameCase, writer: P.JSWriter): string {
     writer.naming = new P.Naming({ ...P.Naming.JAVASCRIPT, type: typeCase })
-    return compiledFixture("Solitaire", writer)
+    return compiledFixture("solitaire", writer)
   }
 
   test.each([

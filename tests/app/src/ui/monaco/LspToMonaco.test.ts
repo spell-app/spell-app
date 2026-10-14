@@ -124,7 +124,7 @@ describe("LspToMonaco", () => {
   })
 
   describe("on real answers, for Solitaire", () => {
-    const deckPath = fixturePath("Solitaire", "Deck.spell")
+    const deckPath = fixturePath("solitaire", "Deck.spell")
     const deckUri = pathToFileURL(deckPath).href
     const deckText = readFileSync(deckPath, "utf8")
     const workspace = new SpellDiskWorkspace()

@@ -43,7 +43,7 @@ export async function runInBrowser(session: CLI.CliSession, project: SP.SpellPro
   const scopes = LSP.scopePackScript(session.explorer.exportPack(project))
   const imports = new Map(
     Object.entries(CLI.importedOutputs(project)).flatMap(([id, url]) => {
-      const name = id.slice(id.lastIndexOf(":") + 1)
+      const name = id.slice(id.lastIndexOf("/") + 1)
       // its words are beside its spell files, not necessarily beside its compiled javascript
       const wordsPath = new SP.SpellProject(id).wordsFile.location.serverPath
       return [

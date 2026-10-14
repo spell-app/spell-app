@@ -17,9 +17,9 @@ import type {
 /**
  * What one command-line argument names -- see `resolveProject()`.
  * - `arg`:  what was typed, for messages.
- * - `project`:  one spell project, e.g. `@library/cards`, a project folder, `@workspace`.
+ * - `project`:  one spell project, e.g. `@spell/library/cards`, a project folder, `@workspace`.
  * - `file`:  one `.spell` file, inside its project.
- * - `root`:  a whole project root, e.g. `@library` -- commands turn it into projects with `CliSession.projectsFor()`.
+ * - `root`:  a whole project root, e.g. `@spell/library` -- commands turn it into projects with `CliSession.projectsFor()`.
  */
 export type CliProject =
   | { kind: "project"; arg: string; project: SP.SpellProject }
@@ -170,7 +170,7 @@ export type FormatOptions = GlobalOptions & {
 /**
  * `spell parse` flags.
  * - `rule`:  parse as this rule only, e.g. `expression`
- * - `in`:  parse inside this project's scope, e.g. `@test/Solitaire`
+ * - `in`:  parse inside this project's scope, e.g. `@spell/test/solitaire`
  * - `json`:  print the result as JSON
  * - `tree`:  print the spell tree (what it means), not the match tree
  * - `html`:  with `tree`, print it as a `<ui-tree-diagram>` for a docs page
@@ -185,7 +185,7 @@ export type ParseOptions = GlobalOptions & {
 
 /**
  * `spell explain` flags.
- * - `in`:  look in this project, too, e.g. `@test/Solitaire`
+ * - `in`:  look in this project, too, e.g. `@spell/test/solitaire`
  * - `json`:  print what was found as JSON
  */
 export type ExplainOptions = GlobalOptions & {
@@ -280,7 +280,7 @@ export type StaticOptions = GlobalOptions & {
 
 /**
  * `spell new` flags.
- * - `in`:  make the project in this folder -- default `@user`'s, your space's (`<spell-spaces>/@spell/owen@/`)
+ * - `in`:  make the project in this folder -- default `owen@spell`'s, your space's (`<spell-spaces>/@spell/owen@/`)
  */
 export type NewOptions = GlobalOptions & {
   in?: string

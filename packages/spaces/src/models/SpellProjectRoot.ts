@@ -1,12 +1,12 @@
 import { JSON5File, CONFIRM, $fetch, getDier, KnownFormat } from "$/util"
 import { SP } from "$/spell"
 
-import "./projectGroups"
+import { LOCAL_PERSON } from "./projectGroups"
 
 /**
- * A project GROUP's list of projects, e.g. `@system:examples`:  loadable, and the group's project create, copy,
+ * A project GROUP's list of projects, e.g. `@spell/examples`:  loadable, and the group's project create, copy,
  * rename and delete.
- * - One per group:  `new SpellProjectRoot("@system:examples")` answers the one already made.
+ * - One per group:  `new SpellProjectRoot("@spell/examples")` answers the one already made.
  * - Its groups are spaces' (`PROJECT_GROUPS`):  loading this file registers them with spell.
  * - It was spell's, until epic `people-and-orgs` P15 (decision Q20):  spell never lists projects.
  */
@@ -18,25 +18,25 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
    */
   static REQUEST_FORMAT_JSON = KnownFormat.json
 
-  /** Singleton `@user:projects` root. */
+  /** Singleton `owen@spell` root:  this machine's person's own projects. */
   static get projects(): SpellProjectRoot {
-    return new SpellProjectRoot("@user:projects")
+    return new SpellProjectRoot(`${LOCAL_PERSON}@spell`)
   }
-  /** Singleton `@system:examples` root. */
+  /** Singleton `@spell/examples` root. */
   static get examples(): SpellProjectRoot {
-    return new SpellProjectRoot("@system:examples")
+    return new SpellProjectRoot("@spell/examples")
   }
-  /** Singleton `@system:guides` root. */
+  /** Singleton `@spell/guides` root. */
   static get guides(): SpellProjectRoot {
-    return new SpellProjectRoot("@system:guides")
+    return new SpellProjectRoot("@spell/guides")
   }
-  /** Singleton `@test:fixtures` root -- frozen projects tests run against;  listed in the UI in dev only. */
+  /** Singleton `@spell/test` root -- frozen projects tests run against;  listed in the UI in dev only. */
   static get fixtures(): SpellProjectRoot {
-    return new SpellProjectRoot("@test:fixtures")
+    return new SpellProjectRoot("@spell/test")
   }
-  /** Singleton `@system:library` root -- projects others import, e.g. `@library/cards` in a `project.json`. */
+  /** Singleton `@spell/library` root -- projects others import, e.g. `@spell/library/cards` in a `project.json`. */
   static get library(): SpellProjectRoot {
-    return new SpellProjectRoot("@system:library")
+    return new SpellProjectRoot("@spell/library")
   }
 
   /** Return EXISTING singleton root for projectRoot `path` or `undefined`. */
@@ -57,7 +57,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
 
   // From `src/projectSetup.js`
   /*@writeOnce path*/
-  /*@writeOnce owner*/
+  /*@writeOnce space*/
   /*@writeOnce domain*/
   /*@writeOnce title*/
   /*@writeOnce Type*/
@@ -66,13 +66,11 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
   /*@writeOnce icon*/
   /*@writeOnce location*/
 
-  /** Full path, e.g. `@user:projects`. */
-  declare path: string
-  /** Its place, e.g. `owen@spell` or `@spell/examples`:  see `SP.ProjectRootSpec.place`. */
-  declare place: string
-  /** Owner of project, as `@user` or `@system`. */
-  declare owner: string
-  /** Domain of project, as `projects`, `examples` or `guides`. */
+  /** Its address, e.g. `@spell/examples` or `owen@spell`:  see `SP.ProjectRootSpec.path`. */
+  declare path: SP.ProjectRootPath
+  /** Its space, as `@spell` or `owen@spell`. */
+  declare space: string
+  /** Its short name, as `projects`, `examples` or `guides`. */
   declare domain: string
   /** User-friendly title of project. */
   declare title: string
@@ -84,7 +82,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
   declare description: string
   /** Semantic UI icon of project. */
   declare icon: string
-  /** Listed in the app's UI only in dev, e.g. `@test:fixtures` -- see `SP.ProjectRootSpec.devOnly`. */
+  /** Listed in the app's UI only in dev, e.g. `@spell/test` -- see `SP.ProjectRootSpec.devOnly`. */
   declare devOnly?: boolean
   /** Immutable `location` object which we use to get various bits of the path. */
   declare location: SP.SpellLocation
@@ -93,7 +91,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
   static registry = new Map<string, SpellProjectRoot>()
 
   /**
-   * Given `projectRoot` as `@user:projects` etc, return a singleton `SpellProjectRoot`.
+   * Given `projectRoot` as `@spell/examples` etc, return a singleton `SpellProjectRoot`.
    * Throws if `projectRoot` is not in `SpellSetup.projectRoots`.
    * - TODO: Calling this with `new ()` will return existing record.  This violates the principle
    *   of least surprise, move to `rootForProjectRootPath()`?
@@ -111,7 +109,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
     SpellProjectRoot.registry.set(this.path, this)
   }
 
-  /** URL to load the project list:  `/api/projects/list/<group's place>` (`SP.SpellUrls.listUrl()`). */
+  /** URL to load the project list:  `/api/projects/list/<group's address>` (`SP.SpellUrls.listUrl()`). */
   get url(): string {
     return SP.SpellUrls.listUrl(this.path)
   }
@@ -173,12 +171,12 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
     die?: ReturnType<typeof getDier>
   } = {}): string | undefined {
     const originalLocation = projectId ? new SP.SpellLocation(projectId, die) : undefined
-    if (!defaultName) defaultName = originalLocation?.projectName || "Untitled"
+    if (!defaultName) defaultName = originalLocation?.projectName || "untitled"
 
-    const projectName = prompt(message, defaultName)
+    // lower-kebab, as every project's name (decision Q39):  `My Thing` => `my-thing`
+    const projectName = SP.SpellLocation.kebab(prompt(message, defaultName) ?? "")
     if (!projectName) return undefined
-    const { owner, domain } = originalLocation || this
-    return `${owner}:${domain}:${projectName}`
+    return `${originalLocation?.projectRoot ?? this.path}/${projectName}`
   }
 
   /**
@@ -335,7 +333,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
   // ## Debug
   ////////////////
 
-  /** Debug string, e.g. `SpellProjectRoot: @user:projects`. */
+  /** Debug string, e.g. `SpellProjectRoot: owen@spell`. */
   toString(): string {
     return `${this.constructor.name}: ${this.path}`
   }

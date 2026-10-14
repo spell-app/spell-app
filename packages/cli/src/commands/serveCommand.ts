@@ -25,7 +25,7 @@ const START_TIMEOUT_MS = 90_000
  * - `--port`:  the editor's port, for a page server this STARTS (`SPELL_EDITOR_PORT`);  one already running keeps
  *   its editor where it is.  Default 3000, else any free port.
  * - Stops no other servers, and runs no `yarn install`.
- * - `project`:  opens the editor on it, e.g. `@examples/Solitaire`.  None:  the project here, if the app knows
+ * - `project`:  opens the editor on it, e.g. `@spell/examples/solitaire`.  None:  the project here, if the app knows
  *   its root -- else the app's project chooser.  Only projects in the app's roots open:  not a `@workspace` folder.
  * - `--headless`:  no browser, just the URL.
  * - Runs until `Ctrl-C`, then stops the page server (and so the editor) -- if it started it.  Returns the exit code.
@@ -111,9 +111,9 @@ async function editorUrl(): Promise<string | undefined> {
 }
 
 /**
- * Where in the app to open `arg`:  its editor URL, e.g. `/edit/examples/Solitaire` -- see `SpellLocation.editorUrl`.
+ * Where in the app to open `arg`:  its editor URL, e.g. `/edit/@spell/examples/solitaire` -- see `SpellLocation.editorUrl`.
  * - No `arg`:  the project here, if it's in one of the app's roots -- else `/`, the project chooser.
- * - A project the app can't reach -- in a `@workspace` folder -- says so, and opens the chooser.
+ * - A project the app can't reach -- in a `@local/<folder>` group -- says so, and opens the chooser.
  */
 async function pathFor(session: CLI.CliSession, arg: string | undefined): Promise<string> {
   if (arg === undefined && !CLI.projectDirAbove(process.cwd())) return "/"
@@ -123,10 +123,10 @@ async function pathFor(session: CLI.CliSession, arg: string | undefined): Promis
       ? resolved.file.path
       : resolved.kind === "project"
         ? resolved.project.projectId
-        : resolved.projectIds[0]?.replace(/:[^:]*$/, "")
+        : resolved.projectIds[0] && new SP.SpellLocation(resolved.projectIds[0]).projectRoot
   if (!path) return "/"
   const location = new SP.SpellLocation(path)
-  if (location.owner === CLI.WORKSPACE_ARG) {
+  if (location.space === CLI.LOCAL_SPACE) {
     session.err(
       `The app only opens projects in its roots (\`spell projects\`):  not ${resolved.arg} -- opening the chooser`
     )

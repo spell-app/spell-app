@@ -36,12 +36,15 @@ describe("routes", () => {
   test.each([
     ["/", "ProjectChooser", undefined],
     ["/anything/else", "ProjectChooser", undefined],
-    ["/edit/examples", "SpellEditor", "@system:examples"],
-    ["/edit/examples/Todos", "SpellEditor", "@system:examples:Todos"],
-    ["/edit/examples/Todos/Todo.spell", "SpellEditor", "@system:examples:Todos/Todo.spell"],
-    ["/run/examples", "SpellRunner", "@system:examples"],
-    ["/run/examples/Todos", "SpellRunner", "@system:examples:Todos"],
-    ["/run/examples/Todos/sub/Todo.spell", "SpellRunner", "@system:examples:Todos/sub/Todo.spell"]
+    ["/edit/@spell/examples", "SpellEditor", "@spell/examples"],
+    ["/edit/@spell/examples/todos", "SpellEditor", "@spell/examples/todos"],
+    ["/edit/@spell/examples/todos//Todo.spell", "SpellEditor", "@spell/examples/todos//Todo.spell"],
+    ["/edit/owen@spell/my%20things//a%20b.spell", "SpellEditor", "owen@spell/my things//a b.spell"],
+    ["/run/@spell/examples", "SpellRunner", "@spell/examples"],
+    ["/run/@spell/examples/todos", "SpellRunner", "@spell/examples/todos"],
+    // a page of the running app:  its app, until apps have pages
+    ["/run/@spell/examples/todos/rules", "SpellRunner", "@spell/examples/todos"],
+    ["/run/@spell/examples/todos//sub/Todo.spell", "SpellRunner", "@spell/examples/todos//sub/Todo.spell"]
   ])("%s draws #%s and selects %s", async (url, pageId, path) => {
     const selectPath = spyOnEditor("selectPath", () => Promise.resolve())
     setEditor("projectPage", pageId === "SpellRunner" ? "editor" : "runner")
@@ -57,26 +60,27 @@ describe("routes", () => {
 
   test("`navigate()` (what `editor` calls) moves the router;  another URL of the same page keeps it", async () => {
     const selectPath = spyOnEditor("selectPath", () => Promise.resolve())
-    const { host, history } = await mountAt("/edit/examples/Todos")
+    const { host, history } = await mountAt("/edit/@spell/examples/todos")
     const page = host.querySelector("#SpellEditor")
 
-    navigate("/edit/examples/Todos/Other.spell")
+    // the address's `//` stays in the URL (`addressHistory()`)
+    navigate("/edit/@spell/examples/todos//Other.spell")
     await settle(host)
-    expect(history.get()).toBe("/edit/examples/Todos/Other.spell")
-    expect(selectPath).toHaveBeenLastCalledWith("@system:examples:Todos/Other.spell")
+    expect(history.get()).toBe("/edit/@spell/examples/todos//Other.spell")
+    expect(selectPath).toHaveBeenLastCalledWith("@spell/examples/todos//Other.spell")
     // another of the route's paths:  the page stays as it is
     expect(host.querySelector("#SpellEditor")).toBe(page)
 
-    navigate("/run/examples/Todos", { replace: true })
+    navigate("/run/@spell/examples/todos", { replace: true })
     await settle(host)
     expect(host.querySelector("#SpellEditor")).toBeNull()
     expect(host.querySelector("#SpellRunner")).not.toBeNull()
-    expect(selectPath).toHaveBeenLastCalledWith("@system:examples:Todos")
+    expect(selectPath).toHaveBeenLastCalledWith("@spell/examples/todos")
 
     // `replace` took the editor's entry's place:  back is the first page
     history.back()
     await settle(host)
-    expect(history.get()).toBe("/edit/examples/Todos")
+    expect(history.get()).toBe("/edit/@spell/examples/todos")
   })
 
   test("a page's `<AppRoot>` is where programs draw, until another takes over", async () => {
@@ -87,12 +91,12 @@ describe("routes", () => {
       setAppRoot.mockRestore()
       releaseAppRoot.mockRestore()
     })
-    const { host } = await mountAt("/edit/examples/Todos")
+    const { host } = await mountAt("/edit/@spell/examples/todos")
     // by identity:  `toHaveBeenCalledWith()` compares elements by their markup, and both pages' look alike
     const editorRoot = host.querySelector("#SpellEditor #spell-app-root")!
     expect(setAppRoot.mock.lastCall?.[0]).toBe(editorRoot)
 
-    navigate("/run/examples/Todos")
+    navigate("/run/@spell/examples/todos")
     await settle(host)
     const runnerRoot = host.querySelector("#SpellRunner #spell-app-root")!
     expect(runnerRoot).not.toBe(editorRoot)

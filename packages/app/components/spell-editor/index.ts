@@ -6,7 +6,7 @@
  *   spell, by itself or through the component pack, `spell.pack.js`:
  *
  *       <script type="module" src="/element/spell-editor.js"></script>
- *       <spell-editor project="@examples/Solitaire" app="#game"></spell-editor>
+ *       <spell-editor project="@spell/examples/solitaire" app="#game"></spell-editor>
  *
  * - Holds the parser, to compile in the page.  Monaco is a chunk of its own, loaded once there's a project to show.
  * - NEVER imports `$/core`, even indirectly:  apps run on their own copy (`spellRuntime.ts`).

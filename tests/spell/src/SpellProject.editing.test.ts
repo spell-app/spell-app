@@ -10,9 +10,9 @@ import { fixtureProjectId } from "$/spell/test"
  *   text back.
  */
 describe("SpellProject editing", () => {
-  const solitaire = fixtureProjectId("Solitaire")
+  const solitaire = fixtureProjectId("solitaire")
   const project = new SP.SpellProject(solitaire)
-  const card = new SP.SpellFile(`${solitaire}/Card.spell`)
+  const card = new SP.SpellFile(`${solitaire}//Card.spell`)
   let cardText: string
 
   beforeAll(async () => {
@@ -34,7 +34,7 @@ describe("SpellProject editing", () => {
       "/Solitaire.spell"
     ])
     expect(project.spellFiles.every((file) => file.isActive)).toBe(true)
-    expect(new SP.SpellFile(`${solitaire}/NotImported.spell`).isActive).toBe(false)
+    expect(new SP.SpellFile(`${solitaire}//NotImported.spell`).isActive).toBe(false)
   })
 
   test("`updateText()` takes the text, and returns the files whose parse changed", async () => {
@@ -47,7 +47,7 @@ describe("SpellProject editing", () => {
   })
 
   test("a file it doesn't parse just takes the text", async () => {
-    const other = new SP.SpellFile(`${solitaire}/NotImported.spell`)
+    const other = new SP.SpellFile(`${solitaire}//NotImported.spell`)
     expect(await project.updateText(other, "print 1")).toEqual([other])
     expect(other.contents).toBe("print 1")
     expect(other.match).toBeUndefined()

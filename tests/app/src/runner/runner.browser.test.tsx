@@ -348,7 +348,7 @@ describe("compiled spell draws with Solid", () => {
   })
 
   test("the `Todos - Form Based` example:  a form bound to the app, a row per task, Add Task adds one", async () => {
-    const host = await mount(source(await fixtureCompiled("TodosFormBased"), "Todos"))
+    const host = await mount(source(await fixtureCompiled("todos-form-based"), "Todos"))
     const titles = () =>
       [...host.querySelectorAll<HTMLElement & { value: string }>("ui-repeat ui-input[name=title]")].map(
         (input) => input.value
@@ -372,7 +372,7 @@ describe("compiled spell draws with Solid", () => {
   })
 
   test("the `Drawable Solitaire` example:  each pile and card its own element, styled by its <css>;  a click still plays", async () => {
-    const host = await mount(source(await fixtureCompiled("DrawableSolitaire"), "Solitaire"))
+    const host = await mount(source(await fixtureCompiled("drawable-solitaire"), "Solitaire"))
     type Element = HTMLElement & { ready: Promise<void> }
     const cards = () => [...host.querySelectorAll<Element>("test-project-card")]
     await waitFor(() => cards().length === 52)
@@ -431,7 +431,7 @@ describe("compiled spell draws with Solid", () => {
   })
 
   test('a drawable list\'s frame:  its cards in its <children/>, a child written in="header" in its <children name="header"/>', async () => {
-    const host = await mount(source(await fixtureCompiled("CardTable"), "Table"))
+    const host = await mount(source(await fixtureCompiled("card-table"), "Table"))
     type Element = HTMLElement & { ready: Promise<void> }
     const piles = () => [...host.querySelectorAll<Element>("test-project-pile")]
     await waitFor(() => piles().length === 2 && piles().every((pile) => pile.shadowRoot?.querySelector(".pile")))
@@ -462,7 +462,7 @@ describe("compiled spell draws with Solid", () => {
   })
 
   test("`Drawable Solitaire` run again, edited, on the same page:  its tags stay, its cards take the new <css>", async () => {
-    const program = await fixtureCompiled("DrawableSolitaire")
+    const program = await fixtureCompiled("drawable-solitaire")
     const first = await mount(source(program, "Solitaire"))
     await waitFor(() => first.querySelectorAll("test-project-card").length === 52)
     // the card's back, edited:  a new colour in its <css>
@@ -481,7 +481,7 @@ describe("compiled spell draws with Solid", () => {
   })
 
   test("`Drawable Solitaire` dealt and played, then recompiled with a new card back:  the same game, drawn the new way (P16)", async () => {
-    const program = await fixtureCompiled("DrawableSolitaire")
+    const program = await fixtureCompiled("drawable-solitaire")
     const { host, setSource } = await mountSettable(source(program, "Solitaire"))
     type Element = HTMLElement & { ready: Promise<void> }
     const tableaus = () => [...host.querySelectorAll<Element>("test-project-tableau")]
@@ -543,7 +543,7 @@ describe("compiled spell draws with Solid", () => {
   })
 
   test("`Drawable Solitaire` played, then its app's own file edited:  a fresh game, as Restart deals (P17)", async () => {
-    const program = await fixtureCompiled("DrawableSolitaire")
+    const program = await fixtureCompiled("drawable-solitaire")
     const { host, setSource } = await mountSettable(source(program, "Solitaire"))
     type Element = HTMLElement & { ready: Promise<void> }
     const tableaus = () => [...host.querySelectorAll<Element>("test-project-tableau")]
@@ -601,7 +601,7 @@ describe("compiled spell draws with Solid", () => {
   })
 
   test("`Todos - Form Based`:  ticking a task shows in the debug JSON;  Active / Completed show only those tasks", async () => {
-    const host = await mount(source(await fixtureCompiled("TodosFormBased"), "Todos"))
+    const host = await mount(source(await fixtureCompiled("todos-form-based"), "Todos"))
     const titles = () =>
       [...host.querySelectorAll<HTMLElement & { value: string }>("ui-repeat ui-input[name=title]")].map(
         (input) => input.value
@@ -805,9 +805,9 @@ function source(program: string, name = "Counter"): SpellAppSource {
   return { name, compiledUrl: "/nowhere.spell.js", compiled: program, importUrl: (id) => `/nowhere/${id}` }
 }
 
-/** What an editor would push:  `program`, of project `@test:fixtures:Test`. */
+/** What an editor would push:  `program`, of project `@spell/test/Test`. */
 function compiled(program: string): SpellCompiled {
-  return { projectId: "@test:fixtures:Test", compiled: program }
+  return { projectId: "@spell/test/Test", compiled: program }
 }
 
 /** Render a `<SpellAppRunner>` of `source` in a fresh `<div>`;  unmounted after the test. */

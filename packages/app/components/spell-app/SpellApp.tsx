@@ -4,9 +4,8 @@ import type { JSX } from "@solidjs/web"
 import { E } from "$/spell-solid"
 import { UIRoot, type RootVocabulary } from "$/ui/components/ui-root"
 // Import directly, NOT through the `$/spell` barrel, which would pull in the whole parser.
-import { SpellSetup } from "$/spell/SpellSetup"
 import { SpellUrls } from "$/spell/SpellUrls"
-// Import directly:  spell's project groups alone (for `@examples/...`), without spaces' or spell's barrels
+// Import directly:  spell's project groups alone (for `@spell/examples/...`), without spaces' or spell's barrels
 import "$/spaces/models/projectGroups"
 // Import directly, NOT through the `$/app/runner` barrel, which would pull in `runCompiled()`, and so `spellCore`.
 import { SPELL_COMPILED_EVENT, type SpellCompiled } from "$/app/runner/runner.types"
@@ -95,7 +94,7 @@ const vocabulary = {
  * runs a compiled spell project in any page, in its own shadow root, with no editor.
  * It works out WHAT to run, and draws `<SpellAppRunner>` to run it.
  * - What to run, one of (see the vocabulary, `SpellApp.en.ts`):
- *   - `project="@system:examples:Solitaire"` (or `@examples/Solitaire`):  from the spell server's `/api`
+ *   - `project="@spell/examples/solitaire"`, a project's address:  from the spell server's `/api`
  *   - `src="apps/Solitaire.spell.js"`:  from anywhere, what goes with it beside it
  *   - `editor="#ed"`:  what that `<spell-editor>` compiles (`SPELL_COMPILED_EVENT`), and what it compiled already
  *   - `run(compiled)`:  code pushed to us, e.g. by an editor whose `app` names us
@@ -335,10 +334,10 @@ const SPELL_TAG_PREFIX = "spell-"
 
 /**
  * What to run for `project="<projectId>"`:  from the spell server (the page's own), sources and all.
- * - Every file by its URL, `/spaces/<place>//<file>` (`SpellUrls`):  a compiled file sits beside its source's.
+ * - Every file by its URL, `/spaces/<project>//<file>` (`SpellUrls`):  a compiled file sits beside its source's.
  */
 function projectSource(project: string): SpellAppSource {
-  const projectId = SpellSetup.expandAlias(project)
+  const projectId = project
   return {
     name: nameOf(projectId),
     compiledUrl: builtUrl(projectId, COMPILED_JS),
@@ -348,20 +347,19 @@ function projectSource(project: string): SpellAppSource {
     importDeclarationsUrl: (id) => builtUrl(id, DECLARATIONS_JSON),
     wordsUrl: builtUrl(projectId, WORDS_JS),
     importWordsUrl: (id) => builtUrl(id, WORDS_JS),
-    // `spell:/@system:examples:Solitaire/Card.spell` => its project id, then its file
+    // `spell:/@spell/examples/solitaire//Card.spell` => its project id, then its file
     sourceUrl: (uri) => SpellUrls.fileUrl(decodeURI(uri.replace(/^spell:\//, "")))
   }
 }
 
-/** Name of project `projectId` (an alias expanded), e.g. `Solitaire`. */
+/** Name of project `projectId`, e.g. `solitaire`:  its address's last part. */
 function nameOf(projectId: string): string {
-  const expanded = SpellSetup.expandAlias(projectId)
-  return expanded.slice(expanded.lastIndexOf(":") + 1)
+  return projectId.slice(projectId.lastIndexOf("/") + 1)
 }
 
-/** URL of project `projectId`'s `<Project><suffix>`, e.g. `/spaces/@spell/examples/Solitaire//Solitaire.spell.js`. */
+/** URL of project `projectId`'s `<project><suffix>`, e.g. `/spaces/@spell/examples/solitaire//solitaire.spell.js`. */
 function builtUrl(projectId: string, suffix: string): string {
-  return SpellUrls.fileUrl(`${SpellSetup.expandAlias(projectId)}/${nameOf(projectId)}${suffix}`)
+  return SpellUrls.fileUrl(`${projectId}${SpellUrls.STEP}${nameOf(projectId)}${suffix}`)
 }
 
 /** What to run for `src="<url>"`:  from anywhere, with what goes with it beside it. */
@@ -375,10 +373,10 @@ function srcSource(src: string): SpellAppSource {
     scopesUrl: isCompiled ? compiledUrl.replace(/\.spell\.js(?=$|[?#])/, SCOPES_JS) : undefined,
     declarationsUrl: isCompiled ? compiledUrl.replace(/\.spell\.js(?=$|[?#])/, DECLARATIONS_JSON) : undefined,
     wordsUrl: isCompiled ? compiledUrl.replace(/\.spell\.js(?=$|[?#])/, WORDS_JS) : undefined,
-    importUrl: (id) => new URL(`${id.slice(id.lastIndexOf(":") + 1)}${COMPILED_JS}`, compiledUrl).href,
+    importUrl: (id) => new URL(`${id.slice(id.lastIndexOf("/") + 1)}${COMPILED_JS}`, compiledUrl).href,
     importDeclarationsUrl: (id) =>
-      new URL(`${id.slice(id.lastIndexOf(":") + 1)}${DECLARATIONS_JSON}`, compiledUrl).href,
-    importWordsUrl: (id) => new URL(`${id.slice(id.lastIndexOf(":") + 1)}${WORDS_JS}`, compiledUrl).href
+      new URL(`${id.slice(id.lastIndexOf("/") + 1)}${DECLARATIONS_JSON}`, compiledUrl).href,
+    importWordsUrl: (id) => new URL(`${id.slice(id.lastIndexOf("/") + 1)}${WORDS_JS}`, compiledUrl).href
   }
 }
 

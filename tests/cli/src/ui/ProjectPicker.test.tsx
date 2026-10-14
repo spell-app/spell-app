@@ -5,9 +5,9 @@ import { CLI } from "$/cli"
 
 const ROOT = {
   kind: "root",
-  arg: "@test",
+  arg: "@spell/test",
   title: "Test fixtures",
-  projectIds: ["@test:fixtures:FizzBuzz", "@test:fixtures:Solitaire"]
+  projectIds: ["@spell/test/fizzbuzz", "@spell/test/solitaire"]
 } as const satisfies CLI.CliProject
 
 const DOWN = "\u001B[B"
@@ -36,7 +36,7 @@ async function pickWith(...keys: string[]) {
 describe("<ProjectPicker>", () => {
   test("offers All projects first, then each by name", async () => {
     const { frame } = await pickWith()
-    expect(frame).toMatch(/Which Test fixtures project\?\n❯ All projects \(2\)\n {2}FizzBuzz {2}@test:fixtures\n/)
+    expect(frame).toMatch(/Which Test fixtures project\?\n❯ All projects \(2\)\n {2}fizzbuzz {2}@spell\/test\n/)
   })
 
   test("Enter on All projects picks every one", async () => {
@@ -46,7 +46,7 @@ describe("<ProjectPicker>", () => {
 
   test("picks just one", async () => {
     const { onPick } = await pickWith(DOWN, DOWN, ENTER)
-    expect(onPick).toHaveBeenCalledWith(["@test:fixtures:Solitaire"])
+    expect(onPick).toHaveBeenCalledWith(["@spell/test/solitaire"])
   })
 
   test("Esc cancels", async () => {

@@ -28,7 +28,7 @@ beforeAll(() => {
   const files = Object.fromEntries(
     fixtureProjectNames().map((name) => [`${name}.tsx`, compiledFixture(name, "ts/solid")])
   )
-  // a fixture's imports are the other fixtures' files, checked beside it, e.g. `@test:fixtures:Cards` => `Cards.tsx`
+  // a fixture's imports are the other fixtures' files, checked beside it, e.g. `@spell/test/cards` => `Cards.tsx`
   const projects = Object.fromEntries(
     fixtureProjectNames()
       .flatMap((name) => Object.entries(fixtureImports(name)))
@@ -51,7 +51,7 @@ describe("fixture projects as TypeScript, checked by tsc", () => {
   })
 
   test("FizzBuzz checks clean", () => {
-    expect(result.errors["FizzBuzz.tsx"]).toEqual([])
+    expect(result.errors["fizzbuzz.tsx"]).toEqual([])
   })
 
   for (const name of fixtureProjectNames()) {

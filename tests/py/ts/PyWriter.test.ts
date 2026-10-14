@@ -80,14 +80,14 @@ describe("PyWriter", () => {
   })
 
   test("another project's module, by its name in snake_case", () => {
-    expect(PY.PyWriter.projectModule("@spell/project/@test:fixtures:Cards")).toBe("cards")
-    expect(PY.PyWriter.projectModule("@spell/project/@system:library:card-games")).toBe("card_games")
+    expect(PY.PyWriter.projectModule("@spell/project/@spell/test/cards")).toBe("cards")
+    expect(PY.PyWriter.projectModule("@spell/project/@spell/library/card-games")).toBe("card_games")
   })
 
   test("the imports:  spell_core's `core`, then other projects';  only what the code uses;  two blank lines after", () => {
     const header = writer.importsHeader([
       { module: "@spell/core", names: ["spellCore", "Thing", "List"] },
-      { module: "@spell/project/@test:fixtures:Cards", names: ["Card", "Deck"] }
+      { module: "@spell/project/@spell/test/cards", names: ["Card", "Deck"] }
     ])
     expect(header).toBe("from spell_core import core, Thing, List\nfrom cards import Card, Deck\n\n\n")
     expect(writer.module(`${header}print(Thing)\n`)).toBe(

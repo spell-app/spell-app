@@ -29,7 +29,7 @@ when working with code in this package, `@spell-app/spell`.
     - Also the runner, and the `<spell-app>` / `<spell-editor>` elements.
     - `yarn start` is run THERE.
   - [spaces](../spaces/AGENTS.md), `$/spaces`:  where projects live, and the editor's server.
-    - Spell's project groups (`@examples`, `@user:projects` ...), their lists, and a project's file edits.
+    - Spell's project groups (`@spell/examples`, `owen@spell` ...), their lists, and a project's file edits.
     - The built-in projects and the test projects, and reading and writing projects on disk.
     - This package NEVER imports it (see "Projects live in spaces" below).
   - [cli](../cli/AGENTS.md):  the `spell` command line.
@@ -80,31 +80,31 @@ when working with code in this package, `@spell-app/spell`.
   - `ts/lib`:  a LIBRARY, the project's classes alone, for the repo's code to import (epic `people-and-orgs` P3)
     - `<Project>.lib.ts`, one file with its own types:  no drawing, none of its top-level steps, the core with no Solid
     - checked by `tsc`, as `ts/solid` is
-    - committed beside its source, and marked generated in the root's `.gitattributes`:  a merge recompiles `@library`
+    - committed beside its source, and marked generated in the root's `.gitattributes`:  a merge recompiles `@spell/library`
   - What a target builds (`<Project>.spell.js`, `.spell.tsx`, `.spell.py`, `.elements.spell.js`, and the scope pack,
     `.scopes.js`) goes in the project's build folder, `build/` at the repo root, never committed;
     the rest (declarations, words, `.lib.ts`, `.app.py`) beside its source.  See "Projects" in [PARSING.md](PARSING.md).
-    - Built when needed:  the page server compiles `@examples` and `@library` as it starts,
+    - Built when needed:  the page server compiles `@spell/examples` and `@spell/library` as it starts,
       and spaces' API a project whose built file is missing;  by hand, `spell compile --stale`.
   - A project lists the others it wants in `project.json`'s `"targets"`.
     `spell compile --target <name>` picks one for a single run.
   - The writers are `$/parser`'s:  "Compile" in [PARSING.md](PARSING.md).
 - `src/test/` (`$/spell/test`):  the test helpers, e.g. the fixture helpers below.
 - Projects live in spaces, not here:  this package reads and compiles them, but holds none.
-  - Spell's project groups (`@system:examples` ...) are spaces' `SPACES.PROJECT_GROUPS`.
+  - Spell's project groups (`@spell/examples` ...) are spaces' `SPACES.PROJECT_GROUPS`.
     - Spell's registry, `SP.SpellSetup`, starts EMPTY:  loading spaces' groups registers them there.
     - So every program that reads a spell path loads them first, through `$/spaces`,
       spaces' disk reader, or `$/spaces/models/projectGroups` alone.
     - Spell NEVER imports spaces.
   - Where each group's projects are:
-    - `@system:examples`, `@system:library`, `@system:guides`:  spaces' built-ins,
+    - `@spell/examples`, `@spell/library`, `@spell/guides`:  spaces' built-ins,
       [packages/spaces/@spell/](../spaces/@spell/), committed
-    - `@test:fixtures`:  the test projects, [tests/spaces/@spell/test/](../../tests/spaces/@spell/test/), committed
-    - `@user:projects`:  Owen's own, in spell-spaces beside the main checkout, outside git
+    - `@spell/test`:  the test projects, [tests/spaces/@spell/test/](../../tests/spaces/@spell/test/), committed
+    - `owen@spell`:  Owen's own, in spell-spaces beside the main checkout, outside git
   - A project's URLs and folder come from ONE function, [SpellUrls](src/SpellUrls.ts) (`SP.SpellUrls`).
   - See "Projects" in [PARSING.md](PARSING.md).
   - Tests read ONLY the test projects:  frozen projects, never the live examples, which get edited.
-    - Their group:  `@test:fixtures` ~== `@test/<Project>`, listed in the app in dev only.
+    - Their group:  `@spell/test` ~== `@test/<Project>`, listed in the app in dev only.
     - Read them with the helpers from `$/spell/test`:
       - `loadFixtureProject()`
       - `fixturePath()`

@@ -26,15 +26,15 @@ describe("PY.quartApp()", () => {
   })
 
   test("finds the program and its drawing half in their build folder, from its own", () => {
-    const app = PY.quartApp({ ...SPEC, outputs: "../../build/spaces/@spell/examples/Solitaire" })
-    expect(app).toContain('OUTPUTS = (HERE / "../../build/spaces/@spell/examples/Solitaire").resolve()')
+    const app = PY.quartApp({ ...SPEC, outputs: "../../build/spaces/@spell/examples/solitaire" })
+    expect(app).toContain('OUTPUTS = (HERE / "../../build/spaces/@spell/examples/solitaire").resolve()')
     expect(app).toContain('sessions = SpellSessions(OUTPUTS / "Solitaire.spell.py")')
     expect(app).toContain('send_from_directory(OUTPUTS, f"{name}.elements.spell.js"')
   })
 
   test("serves each imported project's drawing half too", () => {
-    const app = PY.quartApp({ ...SPEC, projects: { "@spell/project/@test:fixtures:Cards": "Cards.elements.spell.js" } })
-    expect(app).toContain('"@spell/project/@test:fixtures:Cards": "/Cards.elements.spell.js",')
+    const app = PY.quartApp({ ...SPEC, projects: { "@spell/project/@spell/test/cards": "Cards.elements.spell.js" } })
+    expect(app).toContain('"@spell/project/@spell/test/cards": "/Cards.elements.spell.js",')
     expect(app).toContain('not in ["Solitaire.elements.spell.js", "Cards.elements.spell.js"]')
   })
 })

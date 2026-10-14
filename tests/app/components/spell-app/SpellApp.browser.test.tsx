@@ -56,7 +56,7 @@ describe("<spell-app>, a root", () => {
   test("loads the Spell UI widgets its runner draws, on demand:  none before", async () => {
     expect(customElements.get("ui-menu")).toBeUndefined()
     const app = await mountApp(`<spell-app toolbar></spell-app>`)
-    app.run({ projectId: "@test:fixtures:Test", compiled: PROGRAM } satisfies SpellCompiled)
+    app.run({ projectId: "@spell/test/Test", compiled: PROGRAM } satisfies SpellCompiled)
     const root = app.shadowRoot!
     await waitFor(() => root.querySelector("button.shown"))
     await customElements.whenDefined("ui-menu")
@@ -82,7 +82,7 @@ describe("<spell-app> laid out in markup (epic `drawable-thing` P9)", () => {
         `<layout-tile id="T1"></layout-tile><layout-tile id="T2"></layout-tile><layout-tile id="T9"></layout-tile>` +
         `</div></spell-app>`
     )
-    app.run({ projectId: "@test:fixtures:Tiles", compiled: TILES } satisfies SpellCompiled)
+    app.run({ projectId: "@spell/test/Tiles", compiled: TILES } satisfies SpellCompiled)
     const tile = (id: string) => app.querySelector(`layout-tile#${id}`)!.shadowRoot?.textContent
     await waitFor(() => tile("T1") === "T1")
     expect(tile("T2")).toBe("T2")
@@ -127,7 +127,7 @@ board.start()
         `<floor-tableau id="9"></floor-tableau>` +
         `</spell-app>`
     )
-    app.run({ projectId: "@test:fixtures:Floor", compiled: PILES } satisfies SpellCompiled)
+    app.run({ projectId: "@spell/test/Floor", compiled: PILES } satisfies SpellCompiled)
     const drawn = () => [...app.children].map((tag) => tag.shadowRoot?.textContent)
     await waitFor(() => drawn()[0] === "T1")
     expect(drawn()).toEqual(["T1", "T1", "T1", "T2", '⚠ no Tableau named "9"'])
@@ -163,7 +163,7 @@ describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", (
         `<p class="count">{the count of T1} left</p>` +
         `</spell-app>`
     )
-    app.run({ projectId: "@test:fixtures:Game", ...(await compiledProject(GAME)) } satisfies SpellCompiled)
+    app.run({ projectId: "@spell/test/Game", ...(await compiledProject(GAME)) } satisfies SpellCompiled)
     const text = (selector: string) => app.querySelector(selector)?.textContent
     await waitFor(() => text(".score") === "Score 3", 10_000)
     expect(text(".count")).toBe("2 left")
@@ -186,7 +186,7 @@ describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", (
         `<p class="placed">{the name of the first tile}:  {the count of the last tile}</p>` +
         `</spell-app>`
     )
-    app.run({ projectId: "@test:fixtures:Game", ...(await compiledProject(GAME)) } satisfies SpellCompiled)
+    app.run({ projectId: "@spell/test/Game", ...(await compiledProject(GAME)) } satisfies SpellCompiled)
     const text = (selector: string) => app.querySelector(selector)?.textContent
     // its count:  2 as made, or more, kept from an earlier test's run of the same program (P16)
     const count = Number(await waitFor(() => /^\d+$/.exec(text(".named") ?? "")?.[0], 10_000))
@@ -209,7 +209,7 @@ describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", (
         `<button class="bare" when-clicked={bump the score}>+1</button>` +
         `</spell-app>`
     )
-    app.run({ projectId: "@test:fixtures:Game", ...(await compiledProject(GAME)) } satisfies SpellCompiled)
+    app.run({ projectId: "@spell/test/Game", ...(await compiledProject(GAME)) } satisfies SpellCompiled)
     const score = () => app.querySelector(".score")?.textContent
     await waitFor(() => score() === "Score 3", 10_000)
 
@@ -256,7 +256,7 @@ describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", (
     const app = await mountApp(
       `<spell-app><test-project-pile><h3 class="title" in="header">Stock</h3><p class="body">cards</p></test-project-pile></spell-app>`
     )
-    app.run({ projectId: "@test:fixtures:Piles", ...(await compiledProject(PILES)) } satisfies SpellCompiled)
+    app.run({ projectId: "@spell/test/Piles", ...(await compiledProject(PILES)) } satisfies SpellCompiled)
     const title = app.querySelector(".title")!
     await waitFor(() => title.getAttribute("slot") === "header", 10_000)
     await waitFor(() => title.assignedSlot?.name === "header")
@@ -267,7 +267,7 @@ describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", (
     const app = await mountApp(
       `<spell-app><p class="bad">{no such thing at all}</p><p class="short">{score of the game}</p></spell-app>`
     )
-    app.run({ projectId: "@test:fixtures:Game", ...(await compiledProject(GAME)) } satisfies SpellCompiled)
+    app.run({ projectId: "@spell/test/Game", ...(await compiledProject(GAME)) } satisfies SpellCompiled)
     await waitFor(() => app.querySelector(".bad")?.textContent === "⚠", 10_000)
     expect(app.querySelector(".short")?.textContent).toBe("⚠")
   })
@@ -302,7 +302,7 @@ describe("<markdown> blocks:  drawn by <ui-markdown>, their holes live (P14, Q22
 
   test("a drawn rules panel shows the heading and the bold text;  a hole follows its value", async () => {
     const app = await mountApp(`<spell-app></spell-app>`)
-    app.run({ projectId: "@test:fixtures:Rules", ...(await compiledProject(RULES)) } satisfies SpellCompiled)
+    app.run({ projectId: "@spell/test/Rules", ...(await compiledProject(RULES)) } satisfies SpellCompiled)
     const article = () => articleIn(app.shadowRoot!.querySelector(".rules"))
     await waitFor(() => article()?.querySelector("h2")?.textContent === "Klondike", 10_000)
     expect(boldIn(article())).toEqual(["down", "3"])
@@ -318,7 +318,7 @@ describe("<markdown> blocks:  drawn by <ui-markdown>, their holes live (P14, Q22
         `<button class="bump" action="{bump the score}">Bump</button>` +
         `</spell-app>`
     )
-    app.run({ projectId: "@test:fixtures:Rules", ...(await compiledProject(RULES)) } satisfies SpellCompiled)
+    app.run({ projectId: "@spell/test/Rules", ...(await compiledProject(RULES)) } satisfies SpellCompiled)
     const article = () => articleIn(app)
     await waitFor(() => article()?.querySelector("h2")?.textContent === "Rules", 10_000)
     expect(boldIn(article())).toEqual(["3"])

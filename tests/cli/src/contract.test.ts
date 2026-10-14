@@ -15,7 +15,7 @@ import { CLI } from "$/cli"
 /**
  * The CORE CONTRACT:  every fixture project, compiled for each target, run headless as `spell run` runs it,
  * prints the SAME thing, line for line.
- * - What it prints is pinned in `__snapshots__/contract/<Project>.out.txt`.
+ * - What it prints is pinned in `__snapshots__/contract/<project>.out.txt`.
  * - So a target's core is right when it prints what the snapshot says.
  *   - `js/solid` and `ts/solid` share `@spell/core` today.
  *   - Python's core, `spell_core` (`packages/py/core`), prints the same
@@ -193,7 +193,7 @@ describe("drawing with h() from @spell/core, as `spell run` runs it", () => {
 })
 
 /** The fixtures that are games:  a `deck` of cards, and a `card-click` handler. */
-const GAMES = ["Solitaire", "Klondike", "OutlineSolitaire"]
+const GAMES = ["solitaire", "klondike", "outline-solitaire"]
 
 /**
  * Where the board a run draws last starts, in its output's `lines`:  the last `<div id="spell-app-root">`.

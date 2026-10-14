@@ -25,14 +25,14 @@ export type QuartAppSpec = {
   elements: string
   /**
    * The folder holding `program` and `elements`, relative to the app's own, `/`-separated:
-   * - the project's build folder, e.g. `../../../../../../build/spaces/@spell/examples/Solitaire`
+   * - the project's build folder, e.g. `../../../../../../build/spaces/@spell/examples/solitaire`
    *   (the project index's `buildFolder`)
    * - `.`:  beside the app, e.g. in `spell run`'s temp folder, or for a project outside `packages/`
    */
   outputs: string
   /**
    * Each project the program imports:  the module its drawing half imports it as, and its drawing half's file,
-   * which must sit in `outputs` too, e.g. `{ "@spell/project/@system:library:cards": "Cards.elements.spell.js" }`.
+   * which must sit in `outputs` too, e.g. `{ "@spell/project/@spell/library/cards": "Cards.elements.spell.js" }`.
    */
   projects?: Record<string, string>
 }

@@ -31,7 +31,7 @@ export default defineConfig({
         target: `http://${environment.api_server}:${environment.expressPort}`,
         changeOrigin: true
       },
-      // a project's files, by their URL:  `/spaces/<place>//<file>` (`SP.SpellUrls`)
+      // a project's files, by their URL:  `/spaces/<project>//<file>` (`SP.SpellUrls`)
       "/spaces": {
         target: `http://${environment.api_server}:${environment.expressPort}`,
         changeOrigin: true

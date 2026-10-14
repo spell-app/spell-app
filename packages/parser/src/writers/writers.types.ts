@@ -24,7 +24,7 @@ export type TreeNode = {
 /**
  * What a module imports from ONE module, by name -- see `ProgramWriter.importsHeader()`.
  * - e.g. `{ module: "@spell/core", names: ["spellCore", "Thing"] }`;
- *   `{ module: "@spell/project/@system:library:cards", names: ["Card as Playingcard", "Deck"] }`
+ *   `{ module: "@spell/project/@spell/library/cards", names: ["Card as Playingcard", "Deck"] }`
  * - A name may say what it's called here:  `Card as Playingcard`.
  */
 export type ModuleImport = {

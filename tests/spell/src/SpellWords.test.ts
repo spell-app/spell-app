@@ -135,7 +135,7 @@ describe("SpellWords", () => {
   })
 
   test("Solitaire's:  every member of its types, by the names its javascript uses", () => {
-    const words = SP.SpellWords.read(fixtureWords("Solitaire"))!
+    const words = SP.SpellWords.read(fixtureWords("solitaire"))!
     expect(Object.keys(words.types)).toEqual([
       "Card",
       "Deck",

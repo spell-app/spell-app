@@ -2,7 +2,7 @@
 A small Klondike Solitaire, hand-written in the shape compiled spell's Python takes, to draw in a terminal.
 
 Epic `python-target`, P15 · Terminal Drawing Study.
-- Its `draw()` methods make the same elements as the test project's (`tests/spaces/@spell/test/Solitaire/*.spell`):
+- Its `draw()` methods make the same elements as the test project's (`tests/spaces/@spell/test/solitaire/*.spell`):
   the same tags, the same classes, the same `onClick`s.
   - Written as the Python writer writes `to draw (a card)`:  `h("div", {"class": ..., "onClick": lambda: ...}, ...)`.
 - Hand-written rather than compiled:  the study came before Python compiled Solitaire (P12).

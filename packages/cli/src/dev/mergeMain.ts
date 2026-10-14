@@ -175,7 +175,7 @@ export const GENERATORS: Generator[] = [
     name: "spell libraries",
     outputs: ["packages/spaces/@spell/library/**/*.lib.ts"],
     cwd: ".",
-    run: ["node", "packages/cli/bin/spell.mjs", "compile", "@library"]
+    run: ["node", "packages/cli/bin/spell.mjs", "compile", "@spell/library"]
   },
   {
     name: "Epic UI data",

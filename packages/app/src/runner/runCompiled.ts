@@ -276,7 +276,7 @@ export function linkModule(source: string, coreUrl: string, imports: Record<stri
   })
 }
 
-/** Ids of the projects `source` imports, each once, in order -- e.g. `@system:examples:Solitaire`. */
+/** Ids of the projects `source` imports, each once, in order -- e.g. `@spell/examples/solitaire`. */
 export function projectImportsOf(source: string): string[] {
   const ids = [...source.matchAll(SPELL_IMPORT)]
     .map(([, , specifier]) => specifier)

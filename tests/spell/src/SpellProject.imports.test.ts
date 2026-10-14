@@ -13,11 +13,11 @@ import { describeParseErrors, fixturePath, tsxBinary } from "$/spell/test"
 
 /**
  * A project importing another, through `project.json` -- as `SpellProject` does it in the app.
- * - Solitaire split in two, in a temp `@workspace`:  `lib` (`Card`, `Deck`, `Pile`) and apps importing it.
+ * - Solitaire split in two, in a temp `@local/<folder>` group:  `lib` (`Card`, `Deck`, `Pile`) and apps importing it.
  * - Nothing is written into the repo.
  */
 describe("SpellProject imports", () => {
-  const solitaire = fixturePath("Solitaire")
+  const solitaire = fixturePath("solitaire")
   const workspace = mkdtempSync(resolve(tmpdir(), "spell-imports-"))
   let root = ""
 
@@ -40,9 +40,9 @@ describe("SpellProject imports", () => {
     const { imports = [], ...rest } = json as { imports?: unknown[] }
     const files = spellFiles.map((file) => ({ path: `/${file}`, active: true }))
     writeFileSync(resolve(dir, SP.PROJECT_FILE), JSON.stringify({ ...rest, imports: [...imports, ...files] }))
-    // registers the `@workspace` root, first time round
+    // registers the `@local/<folder>` group, first time round
     root = locationForDiskPath(resolve(dir, SP.PROJECT_FILE))!.projectRoot
-    return new SP.SpellProject(`${root}:${name}`)
+    return new SP.SpellProject(`${root}/${name}`)
   }
 
   /** `"<line>:<ch> <message>"` for each parse error in `project`'s files. */
@@ -72,11 +72,11 @@ describe("SpellProject imports", () => {
         "register(import.meta.url)"
       ].join("\n")
     )
-    const runner = resolve(workspace, `run-${app.projectId.split(":").at(-1)}.mjs`)
+    const runner = resolve(workspace, `run-${app.projectId.split("/").at(-1)}.mjs`)
     writeFileSync(runner, `await import("@spell/project/${encodeURI(app.projectId)}")`)
     const projects = Object.fromEntries(
       [...libIds, app.projectId].map((id) => {
-        const name = id.split(":").at(-1)!
+        const name = id.split("/").at(-1)!
         return [id, pathToFileURL(resolve(workspace, name, `${name}${SP.COMPILED_JS_SUFFIX}`)).href]
       })
     )
@@ -154,7 +154,7 @@ describe("SpellProject imports", () => {
   })
 
   test("a project parses against another's compiled declarations -- not its sources", async () => {
-    const app = makeProject("app", ["Solitaire.spell"], { imports: [{ path: `${root}:lib`, active: true }] })
+    const app = makeProject("app", ["Solitaire.spell"], { imports: [{ path: `${root}/lib`, active: true }] })
     await app.parse()
     expect(app.parseError).toBeUndefined()
     expect(app.spellFiles.map((file) => file.filePath)).toEqual(["/Solitaire.spell"])
@@ -163,7 +163,7 @@ describe("SpellProject imports", () => {
   })
 
   test("`source: true` parses the other project's files ahead of ours instead", async () => {
-    const imports = [{ path: `${root}:lib`, active: true, source: true }]
+    const imports = [{ path: `${root}/lib`, active: true, source: true }]
     const app = makeProject("app_from_source", ["Solitaire.spell"], { imports })
     await app.parse()
     expect(app.spellFiles.map((file) => file.filePath)).toEqual([
@@ -177,15 +177,15 @@ describe("SpellProject imports", () => {
   })
 
   test("declaring something it also imports is a parse error", async () => {
-    const app = makeProject("app_clash", ["Card.spell"], { imports: [{ path: `${root}:lib`, active: true }] })
+    const app = makeProject("app_clash", ["Card.spell"], { imports: [{ path: `${root}/lib`, active: true }] })
     await expect(app.parse()).rejects.toThrow()
-    expect(app.parseError).toMatch(/declares 'Card', which it also imports from '@workspace:.*:lib'/)
+    expect(app.parseError).toMatch(/declares 'Card', which it also imports from '@local\/.*\/lib'/)
   })
 
   test("importing a project that's never been compiled is a parse error", async () => {
     makeProject("never_compiled", ["Card.spell"])
     const app = makeProject("app_uncompiled", ["Solitaire.spell"], {
-      imports: [{ path: `${root}:never_compiled`, active: true }]
+      imports: [{ path: `${root}/never_compiled`, active: true }]
     })
     await expect(app.parse()).rejects.toThrow()
     expect(app.parseError).toMatch(/no compiled declarations -- compile it first/)
@@ -197,7 +197,7 @@ describe("SpellProject imports", () => {
    * - Anything still relying on a global would throw a `ReferenceError`.
    */
   test("compiled projects link through ES imports, with no globals -- and run", async () => {
-    const libId = `${root}:lib`
+    const libId = `${root}/lib`
     const source = "set stack to a new pile\nprint card suits\nprint stack is a pile"
     const app = makeProject(
       "linked_app",
@@ -210,7 +210,7 @@ describe("SpellProject imports", () => {
     await app.compile()
     const compiled = readFileSync(resolve(workspace, "linked_app", `linked_app${SP.COMPILED_JS_SUFFIX}`), "utf8")
     expect(compiled).toContain(`import { spellCore, Thing, List, App, Drawable, DrawableList } from "@spell/core"`)
-    expect(compiled).toMatch(/import \{ Card, Deck, Pile[^}]* \} from "@spell\/project\/@workspace:[^"]*:lib"/)
+    expect(compiled).toMatch(/import \{ Card, Deck, Pile[^}]* \} from "@spell\/project\/@local\/[^"]*\/lib"/)
 
     const run = runLinked(app, [libId])
     expect(run.stderr).not.toMatch(/Error/)
@@ -221,7 +221,7 @@ describe("SpellProject imports", () => {
   }, 60_000)
 
   test("`Card:Playingcard` imports `Card` renamed -- and runs, type checks included", async () => {
-    const libId = `${root}:lib`
+    const libId = `${root}/lib`
     const source = [
       "set top to a new playingcard",
       "print playingcard suits",
@@ -238,7 +238,7 @@ describe("SpellProject imports", () => {
     await app.compile()
     expect(errorsIn(app)).toEqual([])
     const compiled = readFileSync(resolve(workspace, "renamed_app", `renamed_app${SP.COMPILED_JS_SUFFIX}`), "utf8")
-    expect(compiled).toMatch(/import \{ Card as Playingcard, Deck, Pile[^}]* \} from "@spell\/project\/[^"]*:lib"/)
+    expect(compiled).toMatch(/import \{ Card as Playingcard, Deck, Pile[^}]* \} from "@spell\/project\/[^"]*\/lib"/)
     // its class is still `Card` when the code runs
     expect(compiled).toContain('top.isOfType("Card")')
 
@@ -254,15 +254,15 @@ describe("SpellProject imports", () => {
   }, 60_000)
 
   test("a `source: true` import can't rename -- its sources parse as they are", async () => {
-    const imports = [{ path: `${root}:lib`, active: true, source: true, import: ["Card:Playingcard"] }]
+    const imports = [{ path: `${root}/lib`, active: true, source: true, import: ["Card:Playingcard"] }]
     const app = makeProject("renamed_from_source", ["main.spell"], { imports }, { "main.spell": "print 1" })
     await expect(app.parse()).rejects.toThrow()
     expect(app.parseError).toMatch(/renaming \('Card:Playingcard'\) needs a compiled import/)
   })
 
-  test("a root's alias names a project in it, e.g. `@library/<name>` in `@system:library`", () => {
-    expect(SP.SpellProject.projectIdForImport("@library/cards")).toBe("@system:library:cards")
-    expect(SP.SpellProject.projectIdForImport("@test/Solitaire")).toBe("@test:fixtures:Solitaire")
-    expect(SP.SpellProject.projectIdForImport("@user:projects:mine")).toBe("@user:projects:mine")
+  test("a root's alias names a project in it, e.g. `@library/<name>` in `@spell/library`", () => {
+    expect(SP.SpellProject.projectIdForImport("@spell/library/cards")).toBe("@spell/library/cards")
+    expect(SP.SpellProject.projectIdForImport("@spell/test/solitaire")).toBe("@spell/test/solitaire")
+    expect(SP.SpellProject.projectIdForImport("owen@spell/mine")).toBe("owen@spell/mine")
   })
 })

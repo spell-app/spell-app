@@ -61,7 +61,7 @@ Object.defineProperty(SP.SpellLocation.prototype, "serverPath", {
 /**
  * Folder on disk holding project root `rootPath`'s projects, one sub-folder each.
  * - A root added at runtime says where with `spec.serverPath`.
- * - One of spaces' groups:  its place's folder (`SP.SpellUrls.folderFor()`), under the folder `environment` names
+ * - One of spaces' groups:  its address's folder (`SP.SpellUrls.folderFor()`), under the folder `environment` names
  *   for its base, e.g. `@spell/examples` => `packages/spaces/@spell/examples`, `owen@spell` =>
  *   `<spell-spaces>/@spell/owen@`.
  * - Throws if `rootPath` isn't a known root, or its place has no folder.
@@ -69,11 +69,11 @@ Object.defineProperty(SP.SpellLocation.prototype, "serverPath", {
 export function serverPathForRoot(rootPath: SP.ProjectRootPath): string {
   const spec = SP.SpellSetup.projectSpectForRootPath(rootPath)
   if (spec.serverPath) return spec.serverPath
-  return folderForPlace(spec.place)
+  return folderForPlace(spec.path)
 }
 
 /**
- * Folder on disk of `place`, e.g. `@spell/examples/Solitaire` => `packages/spaces/@spell/examples/Solitaire`.
+ * Folder on disk of `place`, e.g. `@spell/examples/solitaire` => `packages/spaces/@spell/examples/solitaire`.
  * - Throws if `place` has no folder of its own, e.g. `@local/my-folder`.
  */
 export function folderForPlace(place: string): string {
@@ -113,11 +113,11 @@ export function isBuiltFile(location: SP.SpellLocation): boolean {
  * Folder on disk for what spell builds for the project in folder `projectFolder`, e.g. its `Solitaire.spell.js`:
  * its path MIRRORED under `build/` at the repo root (epic `people-and-orgs` P11).
  * - Under `packages/` or the repo's `tests/`:  the same path under `build/`, e.g.
- *   `packages/spaces/@spell/examples/Solitaire` => `build/spaces/@spell/examples/Solitaire`,
- *   `tests/spaces/@spell/test/FizzBuzz` => `build/spaces/@spell/test/FizzBuzz`.
+ *   `packages/spaces/@spell/examples/solitaire` => `build/spaces/@spell/examples/solitaire`,
+ *   `tests/spaces/@spell/test/fizzbuzz` => `build/spaces/@spell/test/fizzbuzz`.
  * - Under spell-spaces:  under `build/spell-spaces/`, e.g. `<spell-spaces>/@spell/owen@/errors` =>
  *   `build/spell-spaces/@spell/owen@/errors`:  each checkout builds its own.
- * - A project anywhere else -- a temp `@workspace` root, a VS Code workspace elsewhere:
+ * - A project anywhere else -- a temp `@local/<folder>` group, a VS Code workspace elsewhere:
  *   `projectFolder` itself, beside its source, as before `build/`.
  *   NEVER a `build/` inside its root's folder:  that would list as one of its projects.
  * - `folders`:  where `packages/`, `tests/`, spell-spaces and `build/` are, default `environment`'s;
@@ -147,7 +147,7 @@ export type BuildFolders = { packagesDir: string; buildDir: string; repoDir?: st
 
 /**
  * Where project `projectId`'s built files go, relative to its own folder, `/`-separated:  its index's `buildFolder`.
- * - e.g. `../../../../../../build/spaces/@spell/examples/Solitaire`
+ * - e.g. `../../../../../../build/spaces/@spell/examples/solitaire`
  * - `undefined` for a project whose built files sit beside its source (`buildFolderFor()`).
  */
 export function relativeBuildFolder(projectId: string): string | undefined {
@@ -164,12 +164,12 @@ const DEFAULT_FILE = {
 } as const
 
 /**
- * Return list of client projects for `domainId` (a `projectRoot` path like `@user:projects`) as JSON blob.
- * - Format: `[ "<project-path>"... ]`, e.g. `["@user:projects:myProject", ...]`.
+ * Return list of client projects for `domainId` (a `projectRoot` path like `owen@spell`) as JSON blob.
+ * - Format: `[ "<project-path>"... ]`, e.g. `["owen@spell/myProject", ...]`.
  * - Spaces' own folders (`SPACES.isSpaceName()`, e.g. `__members/`) are never projects.
  * - Lists (non-empty) subfolders of `domain`'s `serverPath` as project names:
  *   a "project" is just a folder on disk.
- * - A root whose folder doesn't exist yet has no projects:  `[]`, e.g. `@system:guides` before its first guide.
+ * - A root whose folder doesn't exist yet has no projects:  `[]`, e.g. `@spell/guides` before its first guide.
  *   Creating a project makes the folder.
  */
 export const getProjectList = async (domainId: string) => {
@@ -179,11 +179,11 @@ export const getProjectList = async (domainId: string) => {
   const projectNames = (await fileUtils.getFolderContents(domain.serverPath, options)).filter(
     (name) => !SPACES.isSpaceName(name) && SP.SpellLocation.isValidPathSegment(name)
   )
-  return projectNames.map((projectName) => `${domain.owner}:${domain.domain}:${projectName}`)
+  return projectNames.map((projectName) => `${domain.projectRoot}/${projectName}`)
 }
 
 /**
- * `GET /api/projects/list/<group's place>` -- list projects in a group, e.g. `/api/projects/list/@spell/examples`.
+ * `GET /api/projects/list/<group>` -- list projects in a group, e.g. `/api/projects/list/@spell/examples`.
  * - Returns: JSON array of project path strings.
  * - Failure: 500 (via `respondWithJSON`) if the place isn't a known group's (`SP.SpellUrls.projectIdFor()`).
  */
@@ -291,7 +291,7 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
   importsFile.imports = importsFile.imports.filter(({ path }: { path: string }) => {
     // Full paths including projectId refer to other projects
     // So assume we should leave them alone.
-    if (path.startsWith("@")) return true
+    if (SP.SpellLocation.isAddress(path)) return true
 
     // Get the location relative to this project
     const location = SP.SpellLocation.getFileLocation(projectId, path)
@@ -336,8 +336,8 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
 }
 
 /**
- * `GET /api/projects/index/<place>` -- fetch (and resync) a project's index,
- * e.g. `/api/projects/index/@spell/examples/Solitaire`.
+ * `GET /api/projects/index/<project>` -- fetch (and resync) a project's index,
+ * e.g. `/api/projects/index/@spell/examples/solitaire`.
  * - Returns: `ProjectIndexJSON`.
  * - Failure: 500 if the place isn't a project's (`SP.SpellUrls.projectIdFor()`).
  */
@@ -361,8 +361,8 @@ function tailOf(request: Request, prefix: string): string {
 ////////////////
 
 /**
- * The file a file's URL names, e.g. `/spaces/@spell/examples/Solitaire//Card.spell` or
- * `/api/projects/file/<place>//<file>`, as a `SpellLocation`:  split at its first `//` BEFORE any path is made
+ * The file a file's URL names, e.g. `/spaces/@spell/examples/solitaire//Card.spell` or
+ * `/api/projects/file/<project>//<file>`, as a `SpellLocation`:  split at its first `//` BEFORE any path is made
  * (`SP.SpellUrls.fileForUrl()`), then checked part by part (`new SP.SpellLocation()`).
  * - throws `TypeError` if it names no project's file
  */
@@ -371,7 +371,7 @@ export function locationForUrl(url: string): SP.SpellLocation {
 }
 
 /**
- * `GET /spaces/<place>//<file>` -- one project file, as it is on disk, e.g. `/spaces/@spell/examples/Solitaire//Card.spell`.
+ * `GET /spaces/<project>//<file>` -- one project file, as it is on disk, e.g. `/spaces/@spell/examples/solitaire//Card.spell`.
  * - A file spell BUILDS (`Solitaire.spell.js`, `.scopes.js` ...) is served from the project's build folder
  *   (`serverPath`):  its URL sits beside its source's.
  * - Returns: raw file body via `SRV.Reply.sendFile()` (mime type set from extension, `.js` as javascript, so a runner
@@ -412,8 +412,8 @@ export const saveFile = async (projectId: string, filePath: string, contents: an
 }
 
 /**
- * `POST /api/projects/file/<place>//<file>` -- save/overwrite one project file, e.g.
- * `/api/projects/file/owen@spell/errors//1.spell`.  Reading it is `GET /spaces/<place>//<file>`.
+ * `POST /api/projects/file/<project>//<file>` -- save/overwrite one project file, e.g.
+ * `/api/projects/file/owen@spell/errors//1.spell`.  Reading it is `GET /spaces/<project>//<file>`.
  * - Client sends: raw body as file contents.
  *   Text or JSON per `Content-Type`:  see the body parsing in `routes/appRoutes.ts`.
  * - Returns: `true` on success.
@@ -437,7 +437,7 @@ export const createProject = async (projectId: string, filePath: string, content
 /**
  * `POST /api/projects/create/project` -- create a new project.
  * - Client sends body: `{ projectId, filePath?, contents? }`.
- *   - `projectId`:  the new project's full path, e.g. `@user:projects:myProject`
+ *   - `projectId`:  the new project's full path, e.g. `owen@spell/myProject`
  *   - `filePath` / `contents`:  default to `DEFAULT_FILE`
  * - Returns: updated project list (see `getProjectList()`) for `projectId`'s `projectRoot`.
  * - Failure: 500 if `projectId` is invalid, or on write error.
