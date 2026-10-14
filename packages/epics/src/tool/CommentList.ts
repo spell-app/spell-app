@@ -48,7 +48,7 @@ CommentsError.prototype.name = "CommentsError"
  * COMMENTS Owen leaves on a page's blocks (epic `airplane`, P11), as an inbox file holds them:
  * `{ cm1: {...}, cm2: {...} }`, edited in place.
  * - two homes, one shape:
- *   - a docs page's own inbox file, `<page>.inbox.json` (`GuideInbox`, `packages/docs/tools`)
+ *   - a docs page's own inbox file, `<page>.inbox.json` (`GuideInbox`)
  *   - a plan doc's review inbox, its `comments` (`ReviewInbox`)
  * - each comment:  where it is (`anchor`, `kind`, `label`, `excerpt`, and for a comment on selected text its
  *   `quote` and `offset`:  `packages/docs/tools/BlockAnchors.js`), Owen's text, when, and its status:
@@ -90,6 +90,26 @@ export class CommentList {
    */
   get waiting(): IdentifiedComment[] {
     return this.all.filter((comment) => CommentList.isWaiting(comment))
+  }
+
+  /**
+   * The waiting comments a Send at `sent` (ISO;  `null`:  never sent) has NOT handed over:
+   * Owen's last words newer than it (`lastWordsAt()`), all of them before the first send.
+   * - a plan doc's Send (`ReviewInbox.unsentComments`) and a guide's (`GuideInbox.unsentComments`) alike
+   */
+  unsentSince(sent: string | null): IdentifiedComment[] {
+    const since = sent ? Date.parse(sent) : -Infinity
+    return this.waiting.filter((comment) => Date.parse(CommentList.lastWordsAt(comment)) > since)
+  }
+
+  /**
+   * The waiting comments a Send at `sent` handed over:  Owen's last words at or before it;  none before the first
+   * send (`sent` `null`).
+   */
+  sentBy(sent: string | null): IdentifiedComment[] {
+    if (!sent) return []
+    const at = Date.parse(sent)
+    return this.waiting.filter((comment) => Date.parse(CommentList.lastWordsAt(comment)) <= at)
   }
 
   /**

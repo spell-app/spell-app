@@ -79,14 +79,26 @@ export const HEADING_COPY = "heading-copy"
 export const META = "meta"
 export const SEE_ALSO = "see-also"
 
-/** One page in the See Also box, as the page server lists it (epics' `epicRoutes.ts`, `EpicPageLink`). */
+/** One page in the See Also box, as the page server lists it (`GET /api/epics/pages`:  the tool's `SeeAlso`). */
 export type SeeAlsoLink = {
-  /** from the epic page's folder:  `details/analysis.html` */
+  /** from the epic page's folder:  `details/analysis.html`, `../../guides/python-target.html` */
   href: string
   title: string
-  kind: "details" | "choices"
+  /** its durable doc, a guide it links, one of its details pages or choices pages */
+  kind: SeeAlsoKind
   /** when it last changed, ISO */
   updated: string
+}
+
+/** What a See Also page is to its epic. */
+export type SeeAlsoKind = "durable" | "guide" | "details" | "choices"
+
+/** Each See Also kind's icon, and the key of its word in the vocabulary. */
+export const SEE_ALSO_KINDS: Record<SeeAlsoKind, { icon: string; key: E.TextKey<EpicPageVocabulary> }> = {
+  durable: { icon: "book", key: "seeAlsoDurable" },
+  guide: { icon: "book open", key: "seeAlsoGuide" },
+  details: { icon: "circle question", key: "seeAlsoDetails" },
+  choices: { icon: "table columns", key: "seeAlsoChoices" }
 }
 export const STATUS = "status"
 export const GIT = "git"

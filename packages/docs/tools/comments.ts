@@ -11,12 +11,13 @@
  *     spell dev comments answer guides/solid/solid-2.html cm3 --file /tmp/reply.html
  *
  * - `list [<epic>] [--all] [--json]` (default):  every comment still waiting, on every docs page, by page
- *   - `<epic>`:  only that epic's:  on its own pages (`epics/<epic>/`), or taken into it
+ *   - `<epic>`:  only that epic's:  on a page it owns (its own `epics/<epic>/details/`, or a guide its See Also
+ *     claims:  `SeeAlso.ownerOf()`), or taken into it
  *   - `--all`:  taken and answered ones too
  *   - `--json`:  `[{ page, id, anchor, kind, label, excerpt, quote?, text, at, status, ... }]`
  * - `gather [<page>... | --all] [--epic <name>] [--json]`:  every waiting comment (and page note still `new`) into
  *   epic `guide-changes`, one phase per page (`GuideChanges`);  each comment marked taken
- *   - no page:  every page (as `--all`)
+ *   - no page:  every page no epic owns (as `--all`)
  *   - `--epic`:  another epic than `guide-changes` (a scratch one, to try it)
  *   - `--json`:  `[{ page, epic, phase, as: "phase" | "update", comments, notes }]`
  * - `answer <page> <id> --file <html> [--commit <sha>]`:  Claude's answer on the comment's thread (the file's
@@ -29,17 +30,22 @@
  *   waiting work, as a new comment is:  `list` shows it under the comment, `gather` takes it again
  * - `<page>`:  from the checkout's root (`guides/x.html`), or from an area (`pages.js` `pageFile()`)
  * - plan docs' comments wait in their epic's review inbox instead:  `spell dev plan-doc inbox <name>`
+ * - a page an epic owns (epic `epic-workflow` P13):  its header's Send hands its comments to that epic's session
+ *   (`plan-doc inbox <epic> wait` prints them under the page);  `working` and `answer`, here, take them one at a time.
+ *   `gather` leaves them out, unless the page is named.
  * - Exit codes:  0;  1 a comment or page that isn't there (the message says why);  2 usage.
  */
-import { readFileSync } from "node:fs"
-import { relative, resolve } from "node:path"
+import { existsSync, readFileSync } from "node:fs"
+import { join, relative, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { CommentList, CommentsError } from "$/epics/tool/CommentList"
+import { GuideInbox } from "$/epics/tool/GuideInbox"
+import { ReviewInbox } from "$/epics/tool/ReviewInbox"
+import { SeeAlso } from "$/epics/tool/SeeAlso"
 
 import { duration } from "./details.js"
 import { GUIDE_CHANGES, GuideChanges } from "./GuideChanges"
-import { GuideInbox } from "./GuideInbox"
 import { ROOT, pageFile, parseArgs } from "./pages.js"
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
@@ -60,6 +66,7 @@ export async function run([verb = "list", ...rest]: string[], flags: Record<stri
     const reply = readFileSync(resolve(flags.file), "utf8")
     const commit = typeof flags.commit === "string" ? flags.commit : undefined
     GuideInbox.update(GuideInbox.fileFor(pageFile(page)), (comments) => comments.answer(id, reply, new Date(), commit))
+    touchOwner(page)
     console.log(`${relative(ROOT, pageFile(page))}  ${id}  answered`)
     return 0
   } catch (error) {
@@ -76,18 +83,33 @@ export async function run([verb = "list", ...rest]: string[], flags: Record<stri
 function working([page, id, on]: string[]): number {
   if (!page || !id || (on !== "on" && on !== "off")) return usage()
   GuideInbox.update(GuideInbox.fileFor(pageFile(page)), (comments) => comments.setWorking(id, on === "on"))
+  touchOwner(page)
   console.log(`${relative(ROOT, pageFile(page))}  ${id}  working:  ${on}`)
   return 0
 }
 
 /**
+ * A session answering comments on a page an epic owns is still listening to that epic (epic `epic-workflow` P13):
+ * stamp the heartbeat of the session listening to its review inbox, as `plan-doc inbox ... working` does.
+ * - nobody listening, or no epic owns the page:  nothing written
+ */
+function touchOwner(page: string): void {
+  const epic = new SeeAlso(ROOT).ownerOf(relative(ROOT, pageFile(page)))
+  if (!epic) return
+  const file = ReviewInbox.pathFor(join(ROOT, "epics", epic, `${epic}.plan.html`))
+  if (!existsSync(file) || !ReviewInbox.read(file).listening) return
+  ReviewInbox.update(file, (box) => box.touchListening())
+}
+
+/**
  * Print the comments:  waiting ones unless `--all`;  as JSON with `--json`.
- * - `epic`:  only epic `epic`'s:  on a page under `epics/<epic>/`, or taken into one of its phases
+ * - `epic`:  only epic `epic`'s:  on a page it owns (`SeeAlso.ownerOf()`), or taken into one of its phases
  */
 function list(flags: Record<string, string | true>, epic?: string): number {
   const comments = pageComments(new GuideChanges({ root: ROOT }).inboxFiles(), flags.all ? "all" : "waiting")
+  const owners = new SeeAlso(ROOT)
   const shown = epic
-    ? comments.filter((comment) => comment.page.startsWith(`epics/${epic}/`) || comment.taken?.epic === epic)
+    ? comments.filter((comment) => comment.taken?.epic === epic || owners.ownerOf(comment.page) === epic)
     : comments
   if (flags.json) console.log(JSON.stringify(shown, null, 2))
   else if (!shown.length) console.log(flags.all ? "no comments" : "no comments waiting")

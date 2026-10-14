@@ -1910,6 +1910,16 @@
           "description": "The See Also box's title."
         },
         {
+          "key": "seeAlsoDurable",
+          "text": "durable doc",
+          "description": "A See Also page's kind:  the epic's durable doc."
+        },
+        {
+          "key": "seeAlsoGuide",
+          "text": "guide",
+          "description": "A See Also page's kind:  a guide the epic page links to."
+        },
+        {
           "key": "seeAlsoDetails",
           "text": "details",
           "description": "A See Also page's kind:  a details page."

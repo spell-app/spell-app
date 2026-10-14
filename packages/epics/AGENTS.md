@@ -94,6 +94,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - the page server's review routes ([reviewRoutes.ts](src/tool/reviewRoutes.ts)) and what they call:
       `ReviewInbox` (the inbox file), and `ReviewStart`:  the pill's start, and WAKING the epic when Send or Do Now
       finds nobody listening (epic `epic-workflow` P16:  its session typed into, or a new session in its window)
+    - the inboxes:  `ReviewInbox` (a plan doc's marks and comments), `GuideInbox` (a docs page's comments and its
+      Send:  epic `epic-workflow` P13), one shape of comment for both (`CommentList`)
+    - `SeeAlso` (P13):  an epic's See Also, GATHERED from its files, never kept by hand
+      - its durable doc (`<a slot="durable">`), its `details/` pages, every `guides/` page its page and parts link to
+      - which epic a docs page belongs to (`ownerOf()`):  where that page's Send hands its comments
+      - read by the page server (`GET /api/epics/pages`, `<epic-page>`'s See Also box;  docs' comments routes), by
+        `epic inbox <name> wait` (a guide's Send wakes it), and by docs' `GuideChanges`
     - The old hand-written prose shapes have ONE set of rules, `ProseShapes`:
       a `Net effect` paragraph, a code accordion, an option grid ...
       - `ProseRewrite` turns them into elements,

@@ -601,7 +601,9 @@ In `tools/`:
   - `wait`:  run in the background;  it stamps the heartbeat while it waits
     - exits 0 with work, which wakes the session:  requests for now, taken;  a send not yet handed over (`handedOver`)
       - a send with only comments too:  it prints them, each with Owen's latest reply
+      - a Send on a docs page the epic owns (epic `epic-workflow` P13, see "Comments"):  each comment under its page
     - exits 2 on timeout
+  - `epic inbox <name>` lists the comments waiting on the pages the epic owns too (`guides` in its JSON)
   - `apply [ids]`:  the sent approve / pick / todo marks, into the doc (`PlanDoc.applyMark()`), then cleared
     - A revisit with a pick is left, "to talk over".
   - `<name>#<id> working on|off`
@@ -847,8 +849,28 @@ In `tools/`:
     - A plain browser shows them either way.
       Headless Playwright can't show a native tooltip, only check what's under the pointer.
   - Built for reading offline, with no Claude:  only the page server writes them.
+- SEND on a docs page (epic `epic-workflow` P13), as on a plan doc:  Owen comments, presses Send, and the session
+  working the epic the page BELONGS to gets them.
+  - The page header's right:  a pill, the paper plane, "Send" and how many comments aren't sent yet;
+    blue by the fill rule (grey outline:  nothing waiting;  dashed:  some not sent;  outlined:  sent).
+    Then who is listening:  "python-target is listening" (a green dot), "nobody is listening",
+    or "no epic owns this page".  Each says more in its tooltip.
+    - The runtime's `drawSend()`;  it asks again every 30s, since a session that stops leaves only an old heartbeat.
+    - Not on a plan doc:  its Send is `<epic-page>`'s.
+  - Which epic:  `SeeAlso.ownerOf()` ([SeeAlso.ts](../epics/src/tool/SeeAlso.ts)), from the epics' See Also:
+    - a page in `epics/<name>/details/`:  epic `<name>`
+    - else the epic whose See Also lists it:  its durable doc's epic first (J88), then an open one, then the one
+      updated last (Owen's Q12)
+    - none:  `guide-changes`, as before
+  - A click:  `POST /api/comments/send`;  the comments waiting are sent (`GuideInbox` `sent`).
+  - The epic's `epic inbox <name> wait` wakes on it, and prints each comment under its page;
+    the session answers each with `epic comments working` / `answer` (below), one at a time.
+  - Nobody listening:  they wait, sent, for the epic's next `/epic review` (its first `wait` takes them)
+    or `/airplane land`.
 - Where they're kept (git-ignored in the shared repo:  waiting work, per machine):
-  - a docs page's:  its INBOX FILE, `<page>.inbox.json` beside it ([GuideInbox.ts](tools/GuideInbox.ts))
+  - a docs page's:  its INBOX FILE, `<page>.inbox.json` beside it
+    ([GuideInbox.ts](../epics/src/tool/GuideInbox.ts), in `packages/epics` since P13:  the plan-doc tool's `wait`
+    reads it), with its `sent` and `handedOver`
   - a plan doc's:  the epic's review inbox, under `comments` (`ReviewInbox`, see "Review inbox")
   - One shape for both, and every change:  [`CommentList`](../epics/src/tool/CommentList.ts).
   - ids `cm1`, `cm2` ... (`c1` is a caveat's)
@@ -859,7 +881,9 @@ In `tools/`:
   - plus an excerpt, to find it again if the page changed
   - a text comment also has its `quote` and `offset`
 - The routes:  [commentsRoutes.ts](tools/commentsRoutes.ts)
-  - `GET /api/comments?page=` (`takesComments`, every comment)
+  - `GET /api/comments?page=` (`takesComments`, every comment;  a docs page's `send` too:
+    `{ epic, owned, listening, sent, unsent, waiting }`)
+  - `POST /api/comments/send { page }`:  a docs page's Send (a plan doc:  400)
   - `POST /api/comments { page, action: add | edit | delete | clear | restore | reply | resolve | reopen, ... }`
     - edit and delete only while `new`;  clear whatever its state
     - add and edit need text:  blank is a 400
@@ -902,7 +926,10 @@ In `tools/`:
   - WAITING (`CommentList.waiting`):  Claude's turn, not taken since Owen last spoke.
     So Owen's reply on a thread is new work, as a new comment is:  `list` shows it under the comment.
   - `answer` puts Claude's answer on the thread:  Owen's turn.  `--commit`:  the Done line shows it.
+  - `list <epic>`:  the comments on the pages that epic owns, and those taken into it.
+  - `working` and `answer` stamp the heartbeat of the session listening to the page's epic, if any.
   - `gather` takes every waiting comment (and page note still `new`) into ONE epic, `guide-changes`.
+    - Only on pages NO epic owns (P13):  an owned page's go to its epic, unless the page is named.
     - one phase per page;  an Updated block in the page's phase while it's open
     - a reply rides along under its comment ("Owen replied on the thread")
     - each comment then `taken`

@@ -301,10 +301,13 @@ describe("<epic-page>", () => {
   })
 
   // Owen, 2026-10-13:  "There is no easy way to get to a "decisions" or "details" pages from an epic"
-  test("See Also:  the epic's own pages from the page server, each a link with its kind;  none, no box", async () => {
+  test("See Also:  the epic's pages from the page server, each a link with its kind;  none, no box", async () => {
     const pages = [
       { href: "details/names.html", title: "Boolean names", kind: "choices", updated: "2026-10-12T21:00:00.000Z" },
-      { href: "details/analysis.html", title: "Analysis", kind: "details", updated: "2026-10-11T09:00:00.000Z" }
+      { href: "details/analysis.html", title: "Analysis", kind: "details", updated: "2026-10-11T09:00:00.000Z" },
+      // epic `epic-workflow` P13:  its durable doc and the guides it links
+      { href: "../../guides/py.html", title: "The Python Target", kind: "durable", updated: "2026-10-12T09:00:00Z" },
+      { href: "../../guides/targets.html", title: "Targets", kind: "guide", updated: "2026-10-11T09:00:00Z" }
     ]
     const fetched = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ pages })))
     const host = await render(page("", ["todo"]))
@@ -316,9 +319,22 @@ describe("<epic-page>", () => {
     expect(fetched.mock.calls[0]![0] as string).toBe("/api/epics/pages?epic=demo")
     expect(Array.from(box.querySelectorAll("a"), (link) => [link.getAttribute("href"), link.textContent])).toEqual([
       ["details/names.html", "Boolean names"],
-      ["details/analysis.html", "Analysis"]
+      ["details/analysis.html", "Analysis"],
+      ["../../guides/py.html", "The Python Target"],
+      ["../../guides/targets.html", "Targets"]
     ])
-    expect(box.querySelector(".see-also-kind")!.textContent).toBe("choices")
+    expect(Array.from(box.querySelectorAll(".see-also-kind"), (kind) => kind.textContent)).toEqual([
+      "choices",
+      "details",
+      "durable doc",
+      "guide"
+    ])
+    expect(Array.from(box.querySelectorAll("li ui-icon"), (icon) => icon.getAttribute("name"))).toEqual([
+      "table columns",
+      "circle question",
+      "book",
+      "book open"
+    ])
     // before the blocks:  the slot comes after it
     expect(box.compareDocumentPosition(host.shadowRoot!.querySelector("slot:not([name])")!)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING

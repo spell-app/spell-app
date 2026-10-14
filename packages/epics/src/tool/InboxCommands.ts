@@ -1,10 +1,11 @@
 import { existsSync, readFileSync } from "node:fs"
-import { relative, resolve } from "node:path"
+import { join, relative, resolve } from "node:path"
 import { setTimeout as sleep } from "node:timers/promises"
 
 import { PlanDocError, type ItemDescription, type KeptNote, type MarkResult, type OptionCard } from "./planDoc.types"
 
-import { CommentList, type IdentifiedComment } from "./CommentList"
+import { CommentList, CommentsError, type IdentifiedComment } from "./CommentList"
+import { GuideInbox, type GuideSend } from "./GuideInbox"
 import type { PlanDoc } from "./PlanDoc"
 import type { PlanReader } from "./PlanReader"
 import type { Flags, PlanDocCommands } from "./PlanDocCommands"
@@ -19,6 +20,7 @@ import {
   type ListedUrgency,
   type TakenWork
 } from "./ReviewInbox"
+import { SeeAlso } from "./SeeAlso"
 
 /****************
  * ### `InboxCommands`
@@ -50,7 +52,7 @@ export class InboxCommands {
     const path = ReviewInbox.pathFor(file)
     switch (what) {
       case undefined:
-        return this.print(this.owner.read(file), file, Boolean(flags.json))
+        return this.print(name, this.owner.read(file), file, Boolean(flags.json))
       case "listen": {
         const session = typeof flags.session === "string" ? flags.session : process.env.CLAUDE_CODE_SESSION_ID
         if (!session) throw new PlanDocError("listen as which session?  --session <id> (no $CLAUDE_CODE_SESSION_ID)")
@@ -108,10 +110,13 @@ export class InboxCommands {
    *   an immediate one, `details` or revisit `now`, counts as sent:  `unsentMarks`)
    * - an item gone from the doc since it was marked:  title `null`, "(no such item)"
    * - a new item (`new1`, epic `airplane` P2):  `new todo:  <its title>`, its note and what it's about after it
+   * - the comments waiting on the pages the epic owns (epic `epic-workflow` P13), by page, each `unsent` until the
+   *   page's Send:  `guides` in the JSON (`GuideSends.waiting()`)
    */
-  private print(plan: PlanReader, file: string, json: boolean): void {
+  private print(name: string, plan: PlanReader, file: string, json: boolean): void {
     const path = ReviewInbox.pathFor(file)
     const inbox = ReviewInbox.read(path)
+    const guides = new GuideSends(this.owner.files.root, name).waiting()
     const unsent = new Set(inbox.unsentMarks.map((mark) => mark.id))
     const unsentUrgency = new Set(inbox.unsentUrgency.map((entry) => entry.id))
     const marks = Object.fromEntries(ACTIONS.map((action) => [action, [] as PrintedMark[]]))
@@ -129,7 +134,8 @@ export class InboxCommands {
       comments: inbox.commentList.waiting,
       urgency: inbox.urgencyList.map((entry) => ({ ...entry, sent: !unsentUrgency.has(entry.id) })),
       // `live:  false`:  its heartbeat stopped (`liveListener()`):  the session is gone, the page says nobody
-      listening: inbox.listening && { ...inbox.listening, live: !!inbox.liveListener() }
+      listening: inbox.listening && { ...inbox.listening, live: !!inbox.liveListener() },
+      guides
     }
     if (json) return this.owner.print(JSON.stringify(report, null, 2))
     const lines = [`inbox:  ${relative(this.owner.files.root, path)}${existsSync(path) ? "" : "  (none:  no marks)"}`]
@@ -174,6 +180,15 @@ export class InboxCommands {
     const unsentComments = new Set(inbox.unsentComments.map((comment) => comment.id))
     if (comments.length) lines.push(`comments, waiting for an answer (${comments.length}):`)
     for (const comment of comments) lines.push(...commentLines(comment, "  ", unsentComments.has(comment.id)))
+    if (guides.length) {
+      const count = guides.reduce((total, guide) => total + guide.comments.length, 0)
+      lines.push(`comments on the pages ${name} owns, waiting for an answer (${count}):`)
+      for (const guide of guides) {
+        lines.push(`  ${guide.page}  (sent ${guide.sent ?? "never"})`)
+        for (const comment of guide.comments)
+          lines.push(...commentLines(comment, "    ", guide.unsent.includes(comment.id)))
+      }
+    }
     this.owner.print(lines.join("\n"))
 
     /** A mark's own fields after its title:  the pick, a revisit's when and note, unsent. */
@@ -201,17 +216,21 @@ export class InboxCommands {
    * - the poll reads without the lock (atomic writes:  never half a file);  only taking locks
    * - the session's HEARTBEAT:  stamps `listening.seen` at the start and every `LISTEN_HEARTBEAT_MS`
    *   (`touchListening()`, one locked write), so a session killed mid-wait goes stale on the page (`liveListener()`)
+   * - the epic's GUIDES too (epic `epic-workflow` P13, J27):  a Send on any page the epic owns (`SeeAlso.ownerOf()`)
+   *   wakes it, its comments taken from the page's inbox (`GuideSends`), printed under the page they're on
    */
   private async waitForWork(name: string, file: string, { timeout = "3300", json }: Flags): Promise<number | void> {
     const path = ReviewInbox.pathFor(file)
     const seconds = Number(timeout)
     if (!(seconds > 0)) throw new PlanDocError(`--timeout in seconds, not '${timeout}'`)
     const end = Date.now() + seconds * 1000
+    const guides = new GuideSends(this.owner.files.root, name)
     let beat = 0
     for (;;) {
       let work = null as TakenWork | null
       if (peek(path).hasWork) ReviewInbox.update(path, (box) => (work = box.takeWork()))
-      if (work) return this.printWork(name, this.owner.read(file), work, Boolean(json))
+      const sent = guides.take()
+      if (work || sent.length) return this.printWork(name, this.owner.read(file), work ?? NO_WORK, sent, Boolean(json))
       if (Date.now() >= end) break
       if (Date.now() - beat >= LISTEN_HEARTBEAT_MS) {
         beat = Date.now()
@@ -219,7 +238,7 @@ export class InboxCommands {
       }
       await sleep(1000)
     }
-    if (json) this.owner.print(JSON.stringify({ timeout: seconds, now: [], sent: null }))
+    if (json) this.owner.print(JSON.stringify({ timeout: seconds, now: [], sent: null, guides: [] }))
     else this.owner.print(`nothing to do:  no send and no request in ${seconds}s`)
     return 2
 
@@ -252,9 +271,12 @@ export class InboxCommands {
    * id, kind, status, title, the mark, the note, a pick's option card.
    * - a send's comments too (Send hands them over, Owen 2026-10-10):  where each is, its words, his latest reply
    * - plain lines for Claude to read, then what to run next
-   * - `json`:  `{ now, sent, canceled }` with `item` (and `option`) on each mark;  `sent.comments` as the inbox has them
+   * - `guides`:  the sends taken from the epic's guides (P13), each page's comments under it, with the commands that
+   *   answer them one at a time (`spell dev comments working` / `answer`)
+   * - `json`:  `{ now, sent, canceled, guides }` with `item` (and `option`) on each mark;  `sent.comments` and each
+   *   guide's `comments` as the inboxes have them
    */
-  private printWork(name: string, plan: PlanReader, work: TakenWork, json: boolean): void {
+  private printWork(name: string, plan: PlanReader, work: TakenWork, guides: GuideWork[], json: boolean): void {
     const now = work.now.map((each) => withItem(each))
     const sent = work.sent && {
       at: work.sent.at,
@@ -263,7 +285,7 @@ export class InboxCommands {
       comments: work.sent.comments ?? []
     }
     const canceled = (work.canceled ?? []).map((each) => withItem(each))
-    if (json) return this.owner.print(JSON.stringify({ now, sent, canceled }, null, 2))
+    if (json) return this.owner.print(JSON.stringify({ now, sent, canceled, guides }, null, 2))
     const lines: string[] = []
     if (canceled.length) {
       lines.push(
@@ -321,6 +343,18 @@ export class InboxCommands {
           `then each comment:  \`epic inbox ${name}#<cm id> working on\`, answer it in the doc, ` +
             `then \`epic inbox ${name}#<cm id> done --file <answer.html>\``
         )
+    }
+    if (guides.length) {
+      const count = guides.reduce((total, guide) => total + guide.comments.length, 0)
+      lines.push(`sent from the pages ${name} owns (${plural(count, "comment")}):`)
+      for (const guide of guides) {
+        lines.push(`  ${guide.page}  (sent ${guide.at}):`)
+        for (const comment of guide.comments) lines.push(...commentLines(comment, "    "))
+      }
+      lines.push(
+        "then each one, on its page:  `epic comments working <page> <cm id> on`, work it into the page (or say why " +
+          "not), then `epic comments answer <page> <cm id> --file <answer.html> [--commit <sha>]`"
+      )
     }
     this.owner.print(lines.join("\n"))
 
@@ -495,6 +529,84 @@ export class InboxCommands {
     this.owner.print(`comments ${what === "done" ? "answered" : "cleared"}:  ${upper(ids)}`)
   }
 }
+
+/****************
+ * ### `GuideSends`
+ * The pages an epic owns (`SeeAlso.ownedBy()`:  its details pages, the guides its See Also claims), and the comments
+ * Owen sent from them (epic `epic-workflow` P13, J27):  how `inbox <name> wait` hears a guide's Send.
+ * - the pages are found again every `GUIDES_FOUND_MS`, so a guide linked mid-wait is heard
+ * - each page's inbox read without its lock (atomic writes);  only taking a send locks it (`GuideInbox.takeSent()`)
+ ****************/
+class GuideSends {
+  /** the checkout's root */
+  readonly root: string
+  /** the epic's name */
+  readonly name: string
+  /** the pages it owns, from the root, as last found */
+  private pages: string[] = []
+  /** when they were found, ms */
+  private foundAt = -Infinity
+
+  constructor(root: string, name: string) {
+    this.root = root
+    this.name = name
+  }
+
+  /** Take every send not taken yet from the epic's pages:  each page with its comments;  `[]` for none. */
+  take(): GuideWork[] {
+    return this.owned().flatMap((page): GuideWork[] => {
+      const file = this.inboxOf(page)
+      if (!this.peek(file)?.hasNewSend) return []
+      const taken = GuideInbox.update(file, (_comments, inbox) => inbox.takeSent())
+      return taken ? [{ page, ...taken }] : []
+    })
+  }
+
+  /** The comments waiting on the epic's pages, by page:  when last sent, and which a Send would hand over. */
+  waiting(): GuideWaiting[] {
+    return this.owned().flatMap((page): GuideWaiting[] => {
+      const inbox = this.peek(this.inboxOf(page))
+      const comments = inbox?.commentList.waiting ?? []
+      if (!inbox || !comments.length) return []
+      return [{ page, sent: inbox.sent, unsent: inbox.unsentComments.map((comment) => comment.id), comments }]
+    })
+  }
+
+  /** The pages the epic owns, found again once `GUIDES_FOUND_MS` has passed. */
+  private owned(): string[] {
+    if (Date.now() - this.foundAt < GUIDES_FOUND_MS) return this.pages
+    this.pages = new SeeAlso(this.root).ownedBy(this.name)
+    this.foundAt = Date.now()
+    return this.pages
+  }
+
+  /** Page `page`'s inbox file. */
+  private inboxOf(page: string): string {
+    return join(this.root, GuideInbox.fileFor(page))
+  }
+
+  /** The inbox in `file`;  `undefined` while it can't be read (hand-edited mid-poll):  the next poll tries again. */
+  private peek(file: string): GuideInbox | undefined {
+    try {
+      return GuideInbox.read(file)
+    } catch (error) {
+      if (error instanceof CommentsError) return undefined
+      throw error
+    }
+  }
+}
+
+/** A send `wait` took from one of the epic's pages:  the page (from the checkout's root), when, its comments. */
+type GuideWork = { page: string } & GuideSend
+
+/** The comments waiting on one of the epic's pages, as `inbox` prints them. */
+type GuideWaiting = { page: string; sent: string | null; unsent: string[]; comments: IdentifiedComment[] }
+
+/** How often `wait` finds the epic's pages again, ms:  reading every epic's links is the slow part. */
+const GUIDES_FOUND_MS = 30_000
+
+/** No work in the review inbox:  `wait` woke for a guide's send alone. */
+const NO_WORK: TakenWork = { now: [], sent: null, canceled: [] }
 
 /** A sent mark's heading in `wait`'s print, where its action alone doesn't say it. */
 const SENT_HEADINGS: Partial<Record<string, string>> = {

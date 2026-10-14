@@ -2956,6 +2956,12 @@ const HEADLINE_CHARS = 40
 const REDRAW_MS = 150
 
 /**
+ * How often a docs page with a Send asks again who is listening, ms:  the server calls a session gone once its
+ * heartbeat is 90s old (`ReviewInbox` `LISTEN_STALE_MS`), with no file change to announce it.
+ */
+const SEND_POLL_MS = 30_000
+
+/**
  * What a bullhorn moves left of, in the shadow root of the block it's over (`makeRoom()`):  a plan doc item's review
  * pills and Do Now, an update's date.
  */
@@ -3033,6 +3039,8 @@ async function wireComments(main) {
     if (comments.inboxPaths.includes(decodeURIComponent(event.detail?.path ?? ""))) reload()
   })
   document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && reload())
+  // a docs page's Send says who is listening:  a session that stopped leaves no file change, only an old heartbeat
+  setInterval(() => comments.send && document.visibilityState === "visible" && reload(), SEND_POLL_MS)
   // leaving (a reload, another page):  what's typed in the pane or a reply box and not saved yet goes now
   addEventListener("pagehide", () => {
     comments.open?.flush?.()
@@ -3098,6 +3106,8 @@ class PageComments {
     /** watches the open threads with an unseen reply (`watchSeen()`);  a timer per one on screen, by comment id */
     this.seenWatch = null
     this.seenTimers = new Map()
+    /** a docs page's Send, as the server last answered (`keepSend()`);  `null` on a plan doc */
+    this.send = null
   }
 
   /**
@@ -3213,9 +3223,92 @@ class PageComments {
       const answer = response.ok ? await response.json() : {}
       if (answer.takesComments !== true) return false
       this.list = withTurns(answer.comments)
+      this.keepSend(answer)
       return true
     } catch {
       return false
+    }
+  }
+
+  ////////////////
+  // ## Send
+  ////////////////
+
+  /**
+   * Keep a docs page's Send state from a comments route's answer (`send`:  `{ epic, owned, listening, sent, unsent,
+   * waiting }`, `commentsRoutes.ts` `PageSend`);  a plan doc's answer has none (its Send is `<epic-page>`'s).
+   * - the epic's review inbox joins the files whose change redraws the page:  who is listening is in it
+   */
+  keepSend(answer) {
+    if (!answer?.send) return
+    this.send = answer.send
+    const inbox = `/epics/${answer.send.epic}/${answer.send.epic}.inbox.json`
+    if (!this.inboxPaths.includes(inbox)) this.inboxPaths.push(inbox)
+  }
+
+  /**
+   * The page header's SEND (epic `epic-workflow` P13):  a docs page's comments go to the session of the epic the page
+   * belongs to, as a plan doc's do with its Send.
+   * - a pill:  the paper plane, "Send" and how many comments wait for it;  blue by the fill rule (`templates/epics/
+   *   plan-doc.md`, "Colours"):  grey outline with nothing waiting, dashed while some aren't sent, outlined once sent
+   * - beside it, who is listening:  "python-target is listening", or nobody (then the comments wait, sent, for the
+   *   epic's next `/epic review`), or no epic owns the page (`/airplane land` gathers it into `guide-changes`)
+   * - a click sends (`POST /api/comments/send`), and a toast says what went where
+   * - drawn again with the comments;  none on a plan doc, or from a server without it
+   */
+  drawSend() {
+    const sticky = pageHeadIn(this.main)
+    const head = sticky?.matches(".spell-page-head") ? sticky : (sticky?.querySelector(".spell-page-head") ?? sticky)
+    head?.querySelector(":scope > .spell-send")?.remove()
+    const send = this.send
+    if (!head || !send) return
+    const unsent = send.unsent.length
+    const state = unsent ? "unsent" : send.waiting.length ? "sent" : "idle"
+    const box = document.createElement("span")
+    box.className = "spell-send"
+    box.dataset.spellAdded = ""
+    box.dataset.state = state
+    const button = document.createElement("button")
+    button.type = "button"
+    button.className = "spell-send-button"
+    button.title = sendWords(send, state)
+    button.setAttribute("aria-label", button.title)
+    button.innerHTML =
+      `<ui-icon name="paper plane"></ui-icon><span>${state === "sent" ? "Sent" : "Send"}</span>` +
+      (unsent ? `<span class="spell-send-count">${unsent}</span>` : "")
+    button.addEventListener("click", () => void this.sendNow())
+    const who = document.createElement("span")
+    who.className = "spell-send-who"
+    who.dataset.listening = send.listening ? "yes" : "no"
+    who.textContent = !send.owned
+      ? "no epic owns this page"
+      : send.listening
+        ? `${send.epic} is listening`
+        : "nobody is listening"
+    who.title = whoWords(send)
+    box.append(button, who)
+    beforeToolbar(head, box)
+  }
+
+  /** Send, clicked:  every comment waiting so far goes to the page's epic;  a toast says so.  NEVER throws. */
+  async sendNow() {
+    const send = this.send
+    if (!send) return
+    if (!send.unsent.length) return noteToast("Nothing new to send:  every comment here went with an earlier Send.")
+    try {
+      const answer = await postJSON(`${COMMENTS_API}/send`, { page: location.pathname })
+      this.list = answer.comments ? withTurns(answer.comments) : this.list
+      this.keepSend(answer)
+      const count = `${send.unsent.length} comment${send.unsent.length === 1 ? "" : "s"}`
+      const later = !send.owned
+        ? `:  no epic owns this page, so /airplane land gathers them into ${send.epic}`
+        : this.send.listening
+          ? ""
+          : `:  nobody is listening, so they wait for /epic review ${send.epic}`
+      noteToast(`Sent ${count} to ${send.epic}${later}.`, later ? "warning" : "success")
+      this.draw()
+    } catch (error) {
+      noteToast(`Couldn't send:  ${error.message}`, "error")
     }
   }
 
@@ -3255,6 +3348,7 @@ class PageComments {
     if (this.editing && !ids.has(this.editing.id)) this.editing = null
     for (const id of this.replyBoxes.keys()) if (!ids.has(id)) this.replyBoxes.delete(id)
     for (const block of head ? [head, ...blocks] : blocks) this.addBullhorn(block)
+    this.drawSend()
     for (const [under, found] of threads) this.boxFor(under).append(...found.map((each) => this.thread(each)))
     // grown to their words once shown:  a folded thread's has no height to measure
     for (const each of main.querySelectorAll(".spell-thread-reply > textarea"))
@@ -3646,6 +3740,7 @@ class PageComments {
   async post(change, options) {
     const answer = await postJSON(COMMENTS_API, { page: location.pathname, ...change }, options)
     this.list = answer.comments ? withTurns(answer.comments) : this.list
+    this.keepSend(answer)
     return answer
   }
 
@@ -4005,6 +4100,7 @@ class PageComments {
         open.id = words ? (open.id ?? answer.id) : undefined
         saved = words
         this.list = answer.comments ? withTurns(answer.comments) : this.list
+        this.keepSend(answer)
         keep(before)
         floppy.hidden = !words
         floppy.removeAttribute("data-failed")
@@ -4089,6 +4185,25 @@ class PageComments {
     delete drafts[key]
     writeJSON(this.draftKey, drafts)
   }
+}
+
+/**
+ * A docs page's Send's tooltip (`drawSend()`):  what a click sends, and to which epic;  or why it sends nothing.
+ * - `state`:  `unsent`, `sent` or `idle`
+ */
+function sendWords({ epic, owned, unsent, waiting }, state) {
+  const count = (n) => `${n} comment${n === 1 ? "" : "s"}`
+  if (state === "unsent") return `Send ${count(unsent.length)} to ${owned ? `epic ${epic}` : epic}`
+  if (state === "sent") return `Sent to ${epic}:  ${count(waiting.length)} waiting for Claude`
+  return "Nothing to send:  no comment here is waiting for Claude"
+}
+
+/** The tooltip of who is listening, beside a docs page's Send (`drawSend()`):  where its comments go, and when. */
+function whoWords({ epic, owned, listening }) {
+  if (!owned)
+    return `No epic's See Also lists this page:  its comments go to epic ${epic}, which /airplane land gathers`
+  if (listening) return `A Claude session is reviewing epic ${epic}:  Send hands it these comments now`
+  return `No Claude session is reviewing epic ${epic}:  sent comments wait for /epic review ${epic} or /airplane land`
 }
 
 /**

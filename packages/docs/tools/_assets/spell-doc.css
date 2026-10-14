@@ -259,6 +259,9 @@ body.spell-wide .spell-doc-main :is(.spell-page-head, .spell-filter, footer.spel
 body.spell-wide .spell-doc-main .spell-page-head > .spell-comment-mark.at-page {
   inset-inline-end: var(--spell-column-inset);
 }
+body.spell-wide .spell-doc-main .spell-page-head > .spell-send {
+  inset-inline-end: calc(var(--spell-column-inset) + 32px);
+}
 body.spell-wide .spell-doc-main ui-section {
   --ui-section-title-padding: var(--spell-title-top) var(--spell-column-inset) 8px;
   --spell-fold-end: calc(var(--spell-column-inset) + 4px);
@@ -396,6 +399,92 @@ body.spell-one-line-head .spell-page-head > h1 {
   top: 8px;
   inset-inline-end: 4px;
   height: calc(2rem * 1.1);
+}
+/*
+ * ## A docs page's SEND (the runtime's `drawSend()`, epic `epic-workflow` P13):  at the h1's row's right, room left
+ * for the page's bullhorn beyond it;  it never wraps onto a row of its own, it overlaps a long title instead, as the
+ * bullhorn does;  a pill (the paper plane, "Send", the count of comments not sent), blue by the fill rule
+ * (`templates/epics/plan-doc.md`, "Colours"):  grey outline with nothing waiting, dashed while some aren't sent,
+ * outlined once sent;  then who is listening, small and quiet
+ */
+.spell-doc-main .spell-page-head > .spell-send {
+  --_tint: var(--ui-blue, #2185d0);
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: calc(2rem * 1.1);
+  padding-inline-start: 8px;
+  background: var(--spell-head-fill, var(--spell-bg));
+  font: 600 13px/1.4 var(--spell-sans);
+  letter-spacing: normal;
+  text-transform: none;
+}
+body.spell-one-line-head .spell-doc-main .spell-page-head > .spell-send {
+  top: 4px;
+  height: 28px;
+}
+.spell-send-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 12px;
+  border: 1px solid var(--spell-rule);
+  border-radius: 999px;
+  background: none;
+  color: var(--spell-muted);
+  font: inherit;
+  cursor: pointer;
+}
+.spell-send-button > * {
+  pointer-events: none;
+}
+.spell-send-button:hover {
+  color: var(--_tint);
+}
+.spell-send[data-state="unsent"] > .spell-send-button {
+  border: 2px dashed var(--_tint);
+  padding: 2px 11px;
+  color: var(--_tint);
+}
+.spell-send[data-state="sent"] > .spell-send-button {
+  border: 2px solid var(--_tint);
+  padding: 2px 11px;
+  color: var(--_tint);
+}
+.spell-send-button:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--_tint));
+  outline-offset: 1px;
+}
+.spell-send-count {
+  min-width: 1.4em;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--_tint);
+  color: var(--ui-blue-on, #fff);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.spell-send-who {
+  color: var(--spell-muted);
+  font-weight: 400;
+}
+.spell-send-who[data-listening="yes"]::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-inline-end: 5px;
+  border-radius: 50%;
+  background: var(--ui-green, #21ba45);
+  vertical-align: 1px;
+}
+@media (max-width: 720px) {
+  .spell-send-who {
+    display: none;
+  }
 }
 /* the stuck headings' background reaches a few px past the column, over the cards' outer 1px borders */
 :is(ui-sticky.spell-h2 > h2, ui-sticky.spell-h3 > h3, .spell-filter, .spell-page-head) {
@@ -1055,7 +1144,7 @@ pre code {
 
 /*
  * ## Guide comments (epic `airplane`, P11):  Owen's comments on a page's blocks, from the inbox file
- * (`tools/GuideInbox.ts`), drawn by the runtime's "Guide comments" (`PageComments`).
+ * (`GuideInbox`, `packages/epics/src/tool/`), drawn by the runtime's "Comments" (`PageComments`).
  * - the BULLHORN (`.spell-comment-mark`):  in a section's title (`.at-section`, its `actions` slot), in the page
  *   header (`.at-page`), else (`.at-block`) a line of no height just before the block, its button over the block's
  *   top right corner;  shown only while the block is hovered (a section:  its innermost hovered one) or focused.

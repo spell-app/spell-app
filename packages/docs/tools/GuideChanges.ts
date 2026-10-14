@@ -2,16 +2,17 @@ import { existsSync, readFileSync, readdirSync } from "node:fs"
 import { dirname, join, posix, relative } from "node:path"
 
 import type { IdentifiedComment } from "$/epics/tool/CommentList"
+import { GuideInbox } from "$/epics/tool/GuideInbox"
 import { PlanDocCommands } from "$/epics/tool/PlanDocCommands"
 import { PlanDocFiles } from "$/epics/tool/PlanDocFiles"
+import { GUIDE_CHANGES, SeeAlso } from "$/epics/tool/SeeAlso"
 
 import { targetOf } from "./BlockAnchors.js"
-import { GuideInbox } from "./GuideInbox"
 import { editNotes, notesIn, type PageNote } from "./notesOnDisk"
 import { htmlOf } from "./PageNotes.js"
 
-/** The epic Owen's comments on docs pages are gathered into, one phase per page. */
-export const GUIDE_CHANGES = "guide-changes"
+/** The epic Owen's comments on docs pages no epic owns are gathered into, one phase per page. */
+export { GUIDE_CHANGES }
 
 /** The folders, from the checkout's root, whose pages take comments (`commentsRoutes.ts`). */
 const COMMENT_FOLDERS = ["guides", "pages", "epics"]
@@ -30,7 +31,10 @@ const PROMPT =
  * Gathers the comments Owen left on docs pages into ONE epic, `guide-changes` (epic `airplane`, P11):
  * `spell dev comments gather` (`comments.ts`), and `/airplane land`.
  * - what it gathers, per page:
- *   - its inbox's comments still waiting (`GuideInbox`, `<page>.inbox.json`;  `CommentList` `waiting`)
+ *   - its inbox's comments still waiting (`GuideInbox`, `<page>.inbox.json`;  `CommentList` `waiting`), on a page
+ *     NO epic owns (`SeeAlso.ownerOf()`, epic `epic-workflow` P13):  an owned page's go to its epic's session with
+ *     the page's Send (`plan-doc inbox <epic> wait`), or wait for its next `/epic review`;  a page the caller names
+ *     is gathered all the same
  *   - its page notes still `new` (`<spell-note status="new">`, written before P11:  `notesOnDisk.ts`)
  * - ONE PHASE PER PAGE:  the comments its goal, each linked back to the page and its block, quoted;
  *   a page with a phase still open (to do or under way) gets an update in it instead (`addPhaseUpdate()`):
@@ -55,6 +59,7 @@ export class GuideChanges {
   /**
    * Every page with comments waiting or new notes, in page order;  `pages` (from the root:  `guides/x.html`) only
    * those.
+   * - no `pages`:  the comments on a page an epic owns are left out (`SeeAlso.ownerOf()`):  they're that epic's
    */
   waiting(pages?: string[]): PageWaiting[] {
     const notes = notesIn(
@@ -66,8 +71,12 @@ export class GuideChanges {
       if (!found.has(page)) found.set(page, { page, title: titleOf(join(this.root, page)), comments: [], notes: [] })
       return found.get(page)!
     }
+    const owners = new SeeAlso(this.root)
     for (const inbox of this.inboxFiles()) {
       const page = relative(this.root, inbox).replace(/\.inbox\.json$/, ".html")
+      // another epic's page:  its comments are that epic's, unless the caller named the page
+      const owner = !pages && owners.ownerOf(page)
+      if (owner && owner !== this.epic) continue
       const comments = GuideInbox.read(inbox).commentList.waiting
       if (comments.length) entry(page).comments.push(...comments)
     }
