@@ -108,6 +108,21 @@ Dense, terse pages make him ask "what do you mean?" (2026-10-03), so:
    - a picture page:  delete the question sections and `<epic-send>`;  nothing to send
 3. Epic page:  `yarn vp fmt <page>` once it's written.
 
+### Rewriting a page Owen may have open
+
+- What he typed and picked and hasn't sent is a DRAFT beside the page, `<slug>.draft.json`
+  (epic `epic-workflow` P18):  saved a moment after each change, and in his browser too.
+  - Your rewrite reloads the page (or patches it in place);  the draft comes back into it, by question / option /
+    section id, over what he sent, and Send says "Changes not sent".
+  - Text whose id your rewrite REMOVED is never dropped:  it shows in a box of its own above the notes,
+    "Kept from before the page changed", and goes with his next Send (`Kept from before the page changed:` in the
+    answer).
+- So, BEFORE rewriting:  `epic ask draft <slug>`.
+  - It prints what's typed and not sent (exit 1:  nothing), as an answer reads.
+  - Take it into account:  keep the ids of questions he's typing in;  a new question gets a NEW id, not a reused
+    one, so his text never lands on a question it wasn't written for.
+  - It's not an answer:  don't act on it as one.  He sends when he's ready.
+
 ## 3. Show it, and wait
 
 - Answer page:  `epic ask show <slug> --wait`, with Bash `run_in_background: true`.
@@ -152,6 +167,8 @@ Any page you name to Owen (a details page, a plan doc, any docs page):
   - "(new)":  changed since his send before.
     Act on those;  the rest you've seen.
   - comments:  answer each (in chat, or on the page when it's a fix to the page)
+  - "Kept from before the page changed":  what he typed for questions or sections a rewrite removed (P18), under
+    their old titles and ids;  read each against the page as it is now, and act on it as a comment
 - A PARTIAL answer (anything "not decided yet"):  act on what's there, then wait again at once.
   - `epic ask wait <slug>`, Bash `run_in_background: true`:  every Send wakes you.
   - Stop once every question is decided, or Owen says he's done.
@@ -180,6 +197,7 @@ new <slug> [--title "..."] [--epic <name>] [--description "..."] [--from <spec.j
 show <page> [--wait] [--timeout 8h]        in this session's side bar (Chrome outside VS Code);  then wait
 wait <page> [--timeout 8h]                 until a NEW answer;  prints it, exit 0;  timeout:  exit 2
 answer <page>                              the answer already sent (exit 1:  none)
+draft <page>                               what's typed and not sent (exit 1:  nothing);  read it before a rewrite
 list                                       every details page, answered or waiting
 sweep [--days 14]                          delete old scratch pages and answers;  never an epic's
 ```

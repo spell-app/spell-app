@@ -11,12 +11,23 @@
  *     `packages/docs/content/` too):  anything else is a 403
  *   - sent again (Owen sends as often as he likes:  the page never locks):  replaces the file, `changes` counts up,
  *     and `changed` lists what's new since the last send
+ *   - `kept`:  text typed for a question, option or section an agent's rewrite took off the page (epic
+ *     `epic-workflow` P18), `[{ id, label, text }]`;  none:  left out
+ *   - it deletes the page's draft:  sent, it's done with
  * - `GET /api/details/answer?page=<path>` -- the answer sent, or `{ answer: null }`:  the page shows it on load (a
  *   plain fetch of the missing `.answer.json` would log a 404 in every fresh page's console)
+ * - `POST /api/details/draft` `{ page, answers, comments, notes, labels, kept }` -- save what's typed and not sent to
+ *   `<slug>.draft.json` beside the page (P18), a moment after each change and as the page goes away.  Wakes NOBODY:
+ *   `epic ask wait` watches the answer only
+ *   - `labels`:  every id the page's parts hold, with its title (`q1` -> `Q1 · Which layout?`), so text whose
+ *     question is gone from a rewritten page is kept under its old title
+ * - `GET /api/details/draft?page=<path>` -- the draft, or `{ draft: null }`:  the page puts it back on load when it's
+ *   newer than the answer sent
+ * - `epic ask draft <page>` prints the draft for an agent about to rewrite the page (`details.js`)
  * - `spell dev details wait` polls for the file itself, and wakes the waiting Claude session when it lands.
  * - every POST needs the page server's token (`x-server-token`) and its own origin (`SRV.Guard`)
  */
-import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs"
+import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
 
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
@@ -43,13 +54,36 @@ const detailsRoutes: RouteModule = {
       const answer = existsSync(out) ? (JSON.parse(readFileSync(out, "utf8")) as DetailsAnswer) : null
       reply.set("Cache-Control", "no-store").json({ answer })
     })
+    api.get("/draft", (request, reply) => {
+      const out = draftFile(detailsPage(web.files, request.query.page))
+      const draft = existsSync(out) ? (JSON.parse(readFileSync(out, "utf8")) as DetailsDraft) : null
+      reply.set("Cache-Control", "no-store").json({ draft })
+    })
     api.use(guard.writeCheck, SRV.parseBodies({ limit: MAX_BODY }))
     api.post("/answer", (request, reply) => {
-      const body = request.body as { page?: unknown; answers?: unknown; comments?: unknown; notes?: unknown }
+      const body = request.body as PostBody
       const file = detailsPage(web.files, body.page)
       const notes = typeof body.notes === "string" ? body.notes : ""
-      const answer = saveAnswer(file, body.page as string, toAnswers(body.answers), notes, toComments(body.comments))
+      const answer = saveAnswer(file, body.page as string, toAnswers(body.answers), notes, toComments(body.comments), {
+        kept: toKept(body.kept)
+      })
       reply.json({ ok: true, answer })
+    })
+    api.post("/draft", (request, reply) => {
+      const body = request.body as PostBody & { labels?: unknown }
+      const file = detailsPage(web.files, body.page)
+      const draft: DetailsDraft = {
+        page: body.page as string,
+        saved: new Date().toISOString(),
+        answers: toAnswers(body.answers),
+        comments: toComments(body.comments),
+        notes: typeof body.notes === "string" ? body.notes : "",
+        labels: toLabels(body.labels)
+      }
+      const kept = toKept(body.kept)
+      if (kept.length) draft.kept = kept
+      writeJson(draftFile(file), draft)
+      reply.json({ ok: true, draft })
     })
     router.use(API, api)
   }
@@ -88,15 +122,18 @@ export function isDetailsPage(file: string): boolean {
 /**
  * Write `answers` for details page `file` to `<slug>.answer.json` beside it;  return what was written.
  * - `changed`:  what differs from the answer sent before (none before:  everything sent)
+ * - `kept`:  text from questions gone from the page (P18);  none:  left out of the file
+ * - the page's draft is deleted:  sent, it's done with
  * - atomic (a temp file renamed over it):  `spell dev details wait` never reads half a file
- * - SIDE EFFECT:  writes the file
+ * - SIDE EFFECT:  writes the file, deletes the draft
  */
 export function saveAnswer(
   file: string,
   page: string,
   answers: DetailsAnswers,
   notes: string,
-  comments: DetailsComments = {}
+  comments: DetailsComments = {},
+  { kept = [] }: { kept?: KeptText[] } = {}
 ): DetailsAnswer {
   const out = answerFile(file)
   const before = existsSync(out) ? (JSON.parse(readFileSync(out, "utf8")) as Partial<DetailsAnswer>) : undefined
@@ -109,9 +146,10 @@ export function saveAnswer(
     comments,
     notes: notes.trim()
   }
+  if (kept.length) answer.kept = kept
   answer.changed = changedSince(before, answer)
-  writeFileSync(`${out}.tmp`, `${JSON.stringify(answer, null, 2)}\n`)
-  renameSync(`${out}.tmp`, out)
+  writeJson(out, answer)
+  rmSync(draftFile(file), { force: true })
   return answer
 }
 
@@ -120,8 +158,20 @@ export function answerFile(page: string): string {
   return page.replace(/\.html$/, ".answer.json")
 }
 
+/** `<slug>.draft.json` beside page `<slug>.html`:  what's typed and not sent (P18). */
+export function draftFile(page: string): string {
+  return page.replace(/\.html$/, ".draft.json")
+}
+
+/** Write `data` to `file` as JSON, atomically:  a temp file renamed over it. */
+function writeJson(file: string, data: unknown) {
+  writeFileSync(`${file}.tmp`, `${JSON.stringify(data, null, 2)}\n`)
+  renameSync(`${file}.tmp`, file)
+}
+
 /**
- * The keys of `now` that differ from `before`:  question ids (`q3`, `q3-more`), `comment:<section id>`, `notes`.
+ * The keys of `now` that differ from `before`:  question ids (`q3`, `q3-more`), `comment:<section id>`, `notes`,
+ * `kept`.
  * - nothing before:  every key with something in it
  */
 export function changedSince(before: Partial<DetailsAnswer> | undefined, now: DetailsAnswer): string[] {
@@ -136,7 +186,36 @@ export function changedSince(before: Partial<DetailsAnswer> | undefined, now: De
   for (const id of new Set([...Object.keys(before?.comments ?? {}), ...Object.keys(now.comments ?? {})]))
     if (!same(before?.comments?.[id], now.comments?.[id])) changed.push(`comment:${id}`)
   if ((before?.notes ?? "") !== now.notes) changed.push("notes")
+  if (!same(before?.kept ?? [], now.kept ?? [])) changed.push("kept")
   return changed
+}
+
+/**
+ * `kept` from the request, checked:  `[{ id, label, text }]`, blank texts dropped.
+ * - 400 unless an array of those (absent:  none)
+ */
+function toKept(kept: unknown): KeptText[] {
+  if (kept === undefined) return []
+  if (!Array.isArray(kept)) throw new SRV.HttpError(400, "bad kept text")
+  return kept.map((each: unknown) => {
+    const { id, label, text } = (each ?? {}) as Record<string, unknown>
+    if (typeof id !== "string" || typeof label !== "string" || typeof text !== "string")
+      throw new SRV.HttpError(400, "bad kept text")
+    return { id, label, text }
+  })
+}
+
+/**
+ * `labels` from the request, checked:  id -> title.
+ * - 400 unless an object of strings (absent:  none)
+ */
+function toLabels(labels: unknown): Record<string, string> {
+  if (labels === undefined) return {}
+  if (!labels || typeof labels !== "object" || Array.isArray(labels)) throw new SRV.HttpError(400, "bad labels")
+  for (const [id, label] of Object.entries(labels)) {
+    if (typeof label !== "string") throw new SRV.HttpError(400, `bad label of ${id}`)
+  }
+  return labels as Record<string, string>
 }
 
 /**
@@ -182,6 +261,7 @@ function toAnswers(answers: unknown): DetailsAnswers {
  * - `comments`:  by section id, the comment box under each section that isn't a question;  an option's box is
  *   `<question id>-<letter>` (`q1-B`)
  * - `notes`:  the page's notes box, trimmed
+ * - `kept`:  text typed for questions, options or sections gone from the page since (P18);  absent for none
  */
 export type DetailsAnswer = {
   page: string
@@ -191,7 +271,29 @@ export type DetailsAnswer = {
   answers: DetailsAnswers
   comments?: DetailsComments
   notes: string
+  kept?: KeptText[]
 }
+
+/**
+ * A details page's `<slug>.draft.json` (P18):  what's typed and not sent.
+ * - `saved`:  when, ISO (the server's clock);  only a draft newer than the answer counts
+ * - `labels`:  every id the page's parts held, with its title
+ * - `kept`:  as an answer's
+ */
+export type DetailsDraft = Omit<DetailsAnswer, "answered" | "changes" | "changed"> & {
+  saved: string
+  comments: DetailsComments
+  labels: Record<string, string>
+}
+
+/**
+ * Text kept after its question, option or section left the page (an agent's rewrite):  the id it was under
+ * (`q3`, `q1-B`, `context`, `notes`), its old title, what was typed or picked.
+ */
+export type KeptText = { id: string; label: string; text: string }
+
+/** A POST's body, unchecked. */
+type PostBody = { page?: unknown; answers?: unknown; comments?: unknown; notes?: unknown; kept?: unknown }
 
 /** Comments by section id (`c-today`), or by option (`q1-B`):  trimmed, none blank. */
 export type DetailsComments = Record<string, string>

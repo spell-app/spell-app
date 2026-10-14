@@ -79,6 +79,12 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `AnswerForm`, one per details page:  the questions (`<epic-ask>`) and boxes (`<epic-text-box>`) register while
       connected;  it gathers the answer, sends it (`POST /api/details/answer`, through a `ServerLink`), reads it back
       on load, and says where it stands for `<epic-send>`
+      - and its DRAFT (P18):  what's typed and not sent, kept by id at once (`typed`), in `localStorage` at once, and
+        on the page server 2s later (`POST /api/details/draft`);  put back on load over the answer, and into a part
+        that joins later (an agent's rewrite, patched in place);  text whose id leaves the page is KEPT (`kept`),
+        drawn by the notes box and sent with the rest
+      - each part says the ids it holds, with their titles (`labelsInto()`), so kept text keeps its old title
+      - `AnswerDraft`:  the rules, pure (what's laid over what, what's kept, which draft is newest)
     - `ChoicesForm`, one per syntax-choices page:  the rows (`<epic-choice-row>`) register;  the draft every 5s and
       as the page goes away, "Do it" (`/api/choices/*`), and bringing both back, for `<epic-choices-bar>`
     - the answers' shapes are copies of the docs routes' (`detailsRoutes.ts`, `choicesRoutes.ts`):  `epics` never

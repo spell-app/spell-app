@@ -10,11 +10,14 @@ import { afterAll, beforeAll, expect, test } from "vite-plus/test"
 import {
   answerFile,
   createPage,
+  draftFile,
   duration,
   findPage,
   formatAnswer,
+  formatDraft,
   listPages,
   readAnswer,
+  readDraft,
   sweep,
   waitForAnswer
 } from "./details.js"
@@ -160,6 +163,49 @@ test("formats a partial answer:  the questions not decided yet say so", () => {
     "  0 of 1 decided",
     "  Q1 · Short question:  (not decided yet)"
   ])
+})
+
+test("formats kept text:  questions gone from the page, under their old titles", () => {
+  const page = join(docs, "pages/details/pick-layout.html")
+  const answer = {
+    page: "/x",
+    answered: "2026-10-03T22:00:00.000Z",
+    changes: 1,
+    changed: ["kept"],
+    answers: { q1: { picked: ["A"] } },
+    notes: "",
+    kept: [{ id: "q3", label: "Q3 · Gone", text: "picked B · Blue" }]
+  }
+  expect(formatAnswer(page, answer).split("\n").slice(-2)).toEqual([
+    "  Kept from before the page changed:  (new)",
+    "    Q3 · Gone (q3):  picked B · Blue"
+  ])
+})
+
+test("draft:  what's typed and not sent, only when newer than the answer", () => {
+  const page = join(docs, "epics/big/details/shape.html")
+  expect(readDraft(page)).toBeUndefined()
+  const draft = {
+    page: "/epics/big/details/shape.html",
+    saved: "2026-10-03T23:00:00.000Z",
+    answers: { q1: { picked: ["B"] } },
+    comments: {},
+    notes: "half done",
+    labels: { q1: "Q1" }
+  }
+  writeFileSync(draftFile(page), JSON.stringify(draft))
+  expect(formatDraft(page, readDraft(page))).toBe(
+    [
+      `Not sent:  typed on "Shape" (${page}), draft saved 2026-10-03T23:00:00.000Z:`,
+      "  1 of 1 decided",
+      "  Q1 · Short question:  B · Second option",
+      "  Notes:  half done"
+    ].join("\n")
+  )
+  writeFileSync(answerFile(page), JSON.stringify({ answered: "2026-10-04T00:00:00.000Z", answers: {}, notes: "" }))
+  expect(readDraft(page)).toBeUndefined()
+  rmSync(answerFile(page))
+  rmSync(draftFile(page))
 })
 
 test("waits for an answer newer than its start;  gives up after the timeout", async () => {

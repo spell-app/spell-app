@@ -14,13 +14,16 @@
  * - `wait <page> [--timeout 8h]` -- block until Owen sends an answer NEWER than the wait's start, print it as plain
  *   text, exit 0.  Run it in the BACKGROUND:  its exit wakes the session.  Timeout:  exit 2, saying so.
  * - `answer <page>` -- print the answer already sent (exit 1 if none)
+ * - `draft <page>` -- print what Owen typed on the page and hasn't sent (exit 1 if nothing):  its draft,
+ *   `<slug>.draft.json`, newer than the answer (epic `epic-workflow` P18).  Run it BEFORE rewriting a page he may
+ *   have open:  the page puts the draft back by id, and keeps text whose id the rewrite removes in a box of its own
  * - `list` -- every details page, answered or waiting
  * - `sweep [--days 14]` -- delete scratch pages (and their answers) older than that;  never an epic's.  `new` sweeps
  *   first, by itself
  * - `<page>`:  a slug (`pick-layout`), `<epic>/<slug>`, or a path (absolute, or from the root, `pages/` or `packages/docs`)
  * - paths print absolute:  they mean the same in whichever checkout Claude reads them
  * - The answer itself is written by the page server's route module (`detailsRoutes.ts`) into
- *   `<slug>.answer.json` beside the page.
+ *   `<slug>.answer.json` beside the page;  the draft into `<slug>.draft.json`, which Send deletes.
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs"
 import { basename, join, relative, resolve } from "node:path"
@@ -81,6 +84,12 @@ async function main(argv) {
       console.log(answer ? formatAnswer(file, answer) : `no answer yet:  ${shown(file)}`)
       return answer ? 0 : 1
     }
+    if (command === "draft") {
+      const file = findPage(ROOT, target)
+      const draft = readDraft(file)
+      console.log(draft ? formatDraft(file, draft) : `nothing typed and not sent:  ${shown(file)}`)
+      return draft ? 0 : 1
+    }
     if (command === "list") {
       for (const file of listPages(ROOT))
         console.log(`${readAnswer(file) ? "answered" : "waiting "}  ${relative(ROOT, file)}`)
@@ -104,6 +113,7 @@ const USAGE = `usage:  epic ask new <slug> [--title "..."] [--epic <name>] [--de
         epic ask show <page> [--wait] [--timeout 8h]
         epic ask wait <page> [--timeout 8h]
         epic ask answer <page>
+        epic ask draft <page>
         epic ask list
         epic ask sweep [--days 14]
 (the old spelling, spell dev details, runs the same)`
@@ -268,6 +278,32 @@ export function readAnswer(page) {
   return existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : undefined
 }
 
+/** `<slug>.draft.json` beside page `<slug>.html`:  what's typed and not sent (`detailsRoutes.ts`). */
+export function draftFile(page) {
+  return page.replace(/\.html$/, ".draft.json")
+}
+
+/**
+ * The draft of `page` NEWER than its answer (an older one was sent already), or `undefined`.
+ * - the draft's shape:  `detailsRoutes.ts` `DetailsDraft`
+ */
+export function readDraft(page) {
+  const file = draftFile(page)
+  if (!existsSync(file)) return undefined
+  const draft = JSON.parse(readFileSync(file, "utf8"))
+  const answer = readAnswer(page)
+  return !answer || Date.parse(draft.saved) > Date.parse(answer.answered) ? draft : undefined
+}
+
+/**
+ * `draft` of `page` as plain text, for Claude:  as an answer reads (`formatAnswer()`), under its own first line,
+ * "Not sent:  typed on ... (draft saved ...)".
+ */
+export function formatDraft(page, draft) {
+  const [, ...rest] = formatAnswer(page, { ...draft, answered: draft.saved, changes: 0 }).split("\n")
+  return [`Not sent:  typed on "${titleOf(page)}" (${shown(page)}), draft saved ${draft.saved}:`, ...rest].join("\n")
+}
+
 /**
  * Wait for an answer to `page` sent after `since` (ms;  default:  now), checking every `poll` ms;  the answer, or
  * `undefined` once `timeout` ms pass.
@@ -297,7 +333,7 @@ export async function waitForAnswer(page, { since = Date.now(), timeout, poll = 
  */
 export function formatAnswer(page, answer) {
   const { document } = parseHTML(readFileSync(page, "utf8"))
-  const title = document.querySelector("h1")?.textContent?.trim() ?? basename(page)
+  const title = titleOf(page, document)
   const lines = [`Answer to "${title}" (${shown(page)}), sent ${answer.answered}:`]
   if (answer.changes) lines[0] += `  (sent ${answer.changes + 1}×)`
   const changed = new Set(answer.changes ? (answer.changed ?? []) : [])
@@ -330,7 +366,15 @@ export function formatAnswer(page, answer) {
   if (comments.length) lines.push("  Comments:")
   for (const [id, text] of comments) lines.push(`    ${commentPlace(document, id)}:  ${text}${isNew(`comment:${id}`)}`)
   if (answer.notes) lines.push(`  Notes:  ${answer.notes}${isNew("notes")}`)
+  // text typed for questions, options or sections a rewrite took off the page (epic `epic-workflow` P18)
+  if (answer.kept?.length) lines.push(`  Kept from before the page changed:${isNew("kept")}`)
+  for (const { id, label, text } of answer.kept ?? []) lines.push(`    ${label} (${id}):  ${text}`)
   return lines.join("\n")
+}
+
+/** `page`'s title, its h1 (`document`:  the page, parsed);  else its file's name. */
+function titleOf(page, document = parseHTML(readFileSync(page, "utf8")).document) {
+  return document.querySelector("h1")?.textContent?.trim() ?? basename(page)
 }
 
 /**

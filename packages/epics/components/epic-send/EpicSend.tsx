@@ -18,10 +18,13 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  *   - the round Send, blue as every Send is, by the fill rule (`templates/epics/plan-doc.md`, "Colours"):
  *     a grey outline with nothing to send, dashed with changes not sent, an outline once sent;
  *     never solid, since the page can't tell when Claude is done with it
+ *   - the draft's save, muted beside them ("draft saved 14:04";  orange when it can't save to the page server:
+ *     the browser still keeps it;  epic `epic-workflow` P18)
  *   - why the last send failed, under them
  * - A click sends the whole page (`AnswerForm.send()`):  partial answers too, again whenever Owen likes.
- * - SIDE EFFECT:  as it connects, the page's form reads back the answer already sent (`AnswerForm.load()`), which
- *   every question and box shows.
+ * - SIDE EFFECT:  as it connects, the page's form reads back the answer already sent (`AnswerForm.load()`), and any
+ *   draft newer than it, which every question and box shows;  and saves the draft as the page goes away
+ *   (`AnswerForm.watch()`).
  ****************/
 export class EpicSend extends E.UIComponent<typeof epicSendVocabulary> {
   @E.proto static vocabulary = epicSendVocabulary
@@ -66,20 +69,34 @@ export class EpicSend extends E.UIComponent<typeof epicSendVocabulary> {
     return this.form?.error ?? ""
   }
 
+  /** The draft's save, and whether it failed (`AnswerForm.draftText`). */
+  get draftLine(): { text: string; isError: boolean } {
+    void this.version
+    return { text: this.form?.draftText ?? "", isError: !!this.form?.isDraftError }
+  }
+
   /** A send on its way:  Send spins. */
   get isSending(): boolean {
     void this.version
     return !!this.form?.isSending
   }
 
-  /** While connected:  follow the page's form, and read back the answer already sent;  returns the undo. */
+  /**
+   * While connected:  follow the page's form, read back the answer already sent (and a draft), and save the draft as
+   * the page goes away;  returns the undo.
+   */
   @E.whileConnected
   protected followForm() {
     const form = this.form
     if (!form) return undefined
     this.version = form.version
     void form.load()
-    return form.subscribe(() => (this.version = form.version))
+    const unwatch = form.watch(window)
+    const unsubscribe = form.subscribe(() => (this.version = form.version))
+    return () => {
+      unsubscribe()
+      unwatch()
+    }
   }
 
   render(): JSX.Element {
@@ -89,6 +106,16 @@ export class EpicSend extends E.UIComponent<typeof epicSendVocabulary> {
           <span class={STATE} part={this.partForName("state")} data-color={this.stateLine.color}>
             {this.stateLine.text}
           </span>
+          <Show when={this.draftLine.text}>
+            <span
+              class={DRAFT}
+              part={this.partForName("draft")}
+              data-error={this.draftLine.isError ? "" : undefined}
+              title={this.draftLine.text}
+            >
+              {this.draftLine.text}
+            </span>
+          </Show>
           <ui-button
             class={SEND}
             part={this.partForName("send")}
@@ -124,5 +151,6 @@ export interface EpicSend extends E.AttributeValues<typeof epicSendVocabulary> {
 /** Classes of the shadow markup. */
 const ROW = "row"
 const STATE = "state"
+const DRAFT = "draft"
 const SEND = "send"
 const ERROR = "error"

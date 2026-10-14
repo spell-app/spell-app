@@ -1,8 +1,17 @@
+import { For, Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
-import { AnswerForm, type AnswerPart, type PageAnswer, type SentAnswer } from "$/epics/answers"
+import {
+  AnswerForm,
+  NOTES_KEY,
+  type AnswerPart,
+  type KeptText,
+  type PageAnswer,
+  type PartLabels,
+  type SentAnswer
+} from "$/epics/answers"
 
 import { epicTextBoxVocabulary } from "./EpicTextBox.en"
 
@@ -44,6 +53,9 @@ export class DOMTextBoxElement extends E.DOMElement<EpicTextBox> {
  *   - `feedback`:  a syntax-choices page's, which its `<epic-choices-bar>` reads itself (`value`)
  * - Its `input` events are the `<textarea>`'s own:  they bubble out of its shadow root, so the element that draws
  *   it hears them (`onInput`).
+ * - The NOTES box also draws, above its field, what the page KEPT (epic `epic-workflow` P18):  text Owen typed for
+ *   a question, option or section an agent's rewrite took off the page (`AnswerForm.kept`), "Kept from before the
+ *   page changed", each with its old title and a × to drop it.  It's sent with the rest.
  ****************/
 export class EpicTextBox extends E.UIComponent<typeof epicTextBoxVocabulary> implements AnswerPart {
   @E.proto static vocabulary = epicTextBoxVocabulary
@@ -66,24 +78,43 @@ export class EpicTextBox extends E.UIComponent<typeof epicTextBoxVocabulary> imp
     return this.placeholder ?? this.translationForKey(this.type ?? "comment")
   }
 
+  /** What the page kept, from the page's form:  a notes box draws it. */
+  @E.state accessor kept: readonly KeptText[] = []
+
   /** The page's form, while it's registered there (a `notes`, `comment` or `other` box). */
   private form: AnswerForm | undefined
 
-  /** While connected, a `notes`, `comment` or `other` box is part of the page's answer;  returns the undo. */
+  /**
+   * While connected, a `notes`, `comment` or `other` box is part of the page's answer;  a notes box follows what the
+   * page kept;  returns the undo.
+   */
   @E.whileConnected
   protected joinForm() {
-    if ((this.type ?? "comment") === "feedback") return undefined
-    this.form = AnswerForm.forPage()
-    const leave = this.form.add(this)
+    const type = this.type ?? "comment"
+    if (type === "feedback") return undefined
+    const form = AnswerForm.forPage()
+    this.form = form
+    const leave = form.add(this)
+    const follow = type === "notes" ? this.followKept(form) : undefined
     return () => {
+      follow?.()
       leave()
       this.form = undefined
     }
   }
 
+  /** `kept` as `form` has it, now and on every change;  returns the undo. */
+  private followKept(form: AnswerForm): () => void {
+    this.kept = form.kept
+    return form.subscribe(() => {
+      if (this.kept !== form.kept) this.kept = form.kept
+    })
+  }
+
   render(): JSX.Element {
     return (
       <div class={this.rootClass} part={this.partForName("base")}>
+        <Show when={this.kept.length}>{this.keptBox()}</Show>
         <textarea
           class={FIELD}
           part={this.partForName("field")}
@@ -97,10 +128,47 @@ export class EpicTextBox extends E.UIComponent<typeof epicTextBoxVocabulary> imp
     )
   }
 
-  /** A keystroke:  the text, and the page's form told. */
+  /**
+   * What the page kept:  a box of its own, its title and why, then each text under its old title, with a × to drop
+   * it.
+   */
+  private keptBox(): JSX.Element {
+    const title = this.translationForKey("keptTitle")
+    return (
+      <div class={KEPT} part={this.partForName("kept")} role="group" aria-label={title}>
+        <p class={KEPT_HEAD}>
+          <ui-icon name="clock rotate left" />
+          {title}
+        </p>
+        <p class={KEPT_WHY}>{this.translationForKey("keptWhy")}</p>
+        <For each={this.kept}>
+          {(item) => (
+            <div class={KEPT_ITEM} part={this.partForName("kept-item")}>
+              <p class={KEPT_LABEL} title={this.translationForKey("keptIdTip", { id: item.id })}>
+                {item.label}
+              </p>
+              <p class={KEPT_TEXT}>{item.text}</p>
+              <ui-button
+                class={KEPT_DROP}
+                size="mini"
+                basic=""
+                circular=""
+                icon="xmark"
+                aria-label={this.translationForKey("keptDrop", { label: item.label })}
+                title={this.translationForKey("keptDropTip")}
+                onClick={() => this.form?.dropKept(item)}
+              />
+            </div>
+          )}
+        </For>
+      </div>
+    )
+  }
+
+  /** A keystroke:  the text, and the page's form told (its draft follows). */
   private readonly onInput = (event: InputEvent) => {
     this.text = (event.currentTarget as HTMLTextAreaElement).value
-    this.form?.changed()
+    this.form?.edited()
   }
 
   ////////////////
@@ -119,6 +187,17 @@ export class EpicTextBox extends E.UIComponent<typeof epicTextBoxVocabulary> imp
     } else if (type === "comment" && text && this.for) page.comments[this.for] = text
   }
 
+  /**
+   * Its id, for a draft (P18):  the notes (`NOTES_KEY`), or a comment's `for`, under its section's title;  an
+   * option's comment (`q1-B`) under its question's, which names it.  Other is its question's.
+   */
+  labelsInto(labels: PartLabels) {
+    const type = this.type ?? "comment"
+    if (type === "notes") labels[NOTES_KEY] = this.translationForKey("notesTitle")
+    else if (type === "comment" && this.for)
+      labels[this.for] ??= document.getElementById(this.for)?.getAttribute("header") ?? this.for
+  }
+
   /** Show its share of `answer`, as sent. */
   showAnswer(answer: SentAnswer) {
     const type = this.type ?? "comment"
@@ -134,3 +213,12 @@ export interface EpicTextBox extends E.AttributeValues<typeof epicTextBoxVocabul
 
 /** Class of the `<textarea>`. */
 const FIELD = "field"
+
+/** Classes of a notes box's kept text:  its box, title, why, each text (its title, text, ×). */
+const KEPT = "kept"
+const KEPT_HEAD = "kept-head"
+const KEPT_WHY = "kept-why"
+const KEPT_ITEM = "kept-item"
+const KEPT_LABEL = "kept-label"
+const KEPT_TEXT = "kept-text"
+const KEPT_DROP = "kept-drop"

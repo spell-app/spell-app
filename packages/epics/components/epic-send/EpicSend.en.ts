@@ -20,13 +20,20 @@ export const epicSendVocabulary = {
   description:
     "A details page's Send, in its sticky header (epic `epic-workflow` P12):  where the answer stands (`Not " +
     "sent`, `Changes not sent`, `Sent 10/8/26 14:34 · 5 of 17 decided`), then a round blue Send.  It sends the " +
-    "whole page, partial answers too, as often as Owen likes:  the page never locks.  Once a page.",
+    "whole page, partial answers too, as often as Owen likes:  the page never locks.  Beside them, the draft's " +
+    "save (P18):  what's typed and not sent is kept beside the page, and comes back when it reloads.  Once a page.",
   attributes: [],
   events: [],
   slots: [],
   parts: [
     { name: "base", description: "Its box:  the line, then an error when there is one." },
     { name: "state", description: "Where the answer stands, in its colour:  grey, blue (not sent), green (sent)." },
+    {
+      name: "draft",
+      description:
+        "The draft's save (P18), muted:  `draft saved 14:04`, `draft from 14:04 put back`;  orange when the page " +
+        "server can't take it (the browser still keeps it)."
+    },
     {
       name: "send",
       description:

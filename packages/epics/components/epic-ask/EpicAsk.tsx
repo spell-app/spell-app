@@ -3,7 +3,14 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
-import { AnswerForm, type AskPart, type AskState, type PageAnswer, type SentAnswer } from "$/epics/answers"
+import {
+  AnswerForm,
+  type AskPart,
+  type AskState,
+  type PageAnswer,
+  type PartLabels,
+  type SentAnswer
+} from "$/epics/answers"
 // the Other box:  its barrel first, so it's defined wherever `<epic-ask>` is
 import "$/epics/components/epic-text-box"
 
@@ -282,7 +289,7 @@ export class EpicAsk extends E.UIComponent<typeof epicAskVocabulary> implements 
     this.moreWanted = more
       ? [...this.moreWanted.filter((each) => each !== letter), letter]
       : this.moreWanted.filter((each) => each !== letter)
-    this.form?.changed()
+    this.form?.edited()
   }
 
   /** Select all:  tick every option shown;  once they all are, untick them (Select none). */
@@ -290,7 +297,7 @@ export class EpicAsk extends E.UIComponent<typeof epicAskVocabulary> implements 
     const shown = this.shownOptions.map(letterOf)
     const rest = this.picks.filter((letter) => !shown.includes(letter))
     this.chosen = this.isAllSelected ? rest : [...rest, ...shown]
-    this.form?.changed()
+    this.form?.edited()
   }
 
   /** Typing in Other:  its state follows (the box tells the form itself). */
@@ -309,6 +316,20 @@ export class EpicAsk extends E.UIComponent<typeof epicAskVocabulary> implements 
     const answer = (page.answers[key] ??= { picked: [] })
     answer.picked = [...this.picks]
     if (this.moreDetails) page.answers[`${key}${MORE_SUFFIX}`] = { picked: [...this.moreWanted] }
+  }
+
+  /**
+   * Its ids, for a draft (P18):  its key, under its section's title (`Q1 · Which layout?`), and each option's
+   * (`q1-B`), under the option's (`B · Blue`).
+   */
+  labelsInto(labels: PartLabels) {
+    const key = this.key
+    if (!key) return
+    labels[key] = this.domElement.closest("ui-section[id]")?.getAttribute("header") ?? this.chipLabel
+    for (const option of this.options) {
+      const letter = letterOf(option)
+      labels[`${key}-${letter}`] = `${letter} · ${option.getAttribute("title") ?? letter}`
+    }
   }
 
   /** Show `answer`, as sent:  its picks, its "more details" and its Other (the box shows its own text). */

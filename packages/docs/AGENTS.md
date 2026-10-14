@@ -624,10 +624,11 @@ In `tools/`:
 - The commands ([details.js](tools/details.js)):
 
   ```sh
-  epic ask new | show [--wait] | wait | answer | list | sweep
+  epic ask new | show [--wait] | wait | answer | draft | list | sweep
   ```
 
   - `show` opens a page in the side bar's "Review" tab (epic `windows-and-review` P6).
+  - `draft` prints what Owen typed and hasn't sent (below):  read it before rewriting a page he may have open.
 - Written in the epics pack's `<epic-*>` elements (epic `epic-workflow` P12), so a question reads as a plan doc's.
   Each element has its page in Epic UI (`/epic-ui/`, "Pages Owen answers on"):
   - a question:  a `<ui-section id>` holding an `<epic-ask>` of an `<epic-question>` and an `<epic-choices>` of
@@ -643,6 +644,22 @@ In `tools/`:
 - Owen's answer:  the page posts it to the page server's route module, [detailsRoutes.ts](tools/detailsRoutes.ts).
   - That writes `<slug>.answer.json`, beside the page.
   - `epic ask wait`, run in the background, exits with it, and so wakes the session.
+- What he typed and hasn't sent is a DRAFT (epic `epic-workflow` P18:  agents rewrote a page under him twice, and
+  everything he hadn't sent was lost, request r4):
+  - `<slug>.draft.json` beside the page, through the same route module:  saved 2s after he stops typing, and as
+    the page goes away;  a copy in the browser's `localStorage` too, written at once, for when the page server
+    can't take it
+  - it wakes nobody:  `epic ask wait` watches the answer only;  Send deletes it
+  - the page's `AnswerForm` (`$/epics/answers`) keeps it, by question / option / section id, with each id's title
+    (`labels`), and puts it back on load over the answer sent, when it's newer:  Send says "Changes not sent",
+    the draft's save shows beside it ("draft from 06:12 put back")
+  - an agent's rewrite reloads the page, or patches it in place:  either way a question that's still there gets
+    back what was typed in it
+  - text whose id the rewrite removed is KEPT:  a box of its own above the notes, "Kept from before the page
+    changed", drawn by the notes box (`<epic-text-box type="notes">`), each under its old title with a × to drop
+    it;  it's sent with the rest (`kept`, `[{ id, label, text }]`), and `epic ask answer` / `wait` print it last,
+    "Kept from before the page changed:"
+  - the rules (what's laid over what, what's kept):  `AnswerDraft`, in `$/epics/answers`
 - `findPages()` skips every `details/` folder:  not in the index, not checked by `docs update`.
 - Colours (the scheme:  "Colours" above):
   - recommended:  a violet thumbs-up after an option's title, no word

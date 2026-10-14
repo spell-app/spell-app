@@ -3,6 +3,8 @@
  * - The look of the plan doc's note boxes (`<epic-agents>`' redirect box):  the page's ground, a quiet rule,
  *   6px corners;  the focus ring the page's.
  * - Grows with its text (`field-sizing`), up to a third of the window, then scrolls.
+ * - A notes box's KEPT text (P18), above its field:  the page changed under Owen, a warning, so an ORANGE edge and
+ *   title;  the texts are his own words, so his IVORY (`templates/epics/plan-doc.md`, "Colours").
  * - Public tokens (`--epic-text-box-*`) are never declared here:  read through private aliases.
  */
 
@@ -39,5 +41,53 @@
   .field:focus-visible {
     outline: 2px solid var(--ui-focus-color, Highlight);
     outline-offset: 0;
+  }
+  .kept {
+    --_epic-text-box-warn: var(--ui-orange, #f2711c);
+    --_epic-text-box-ivory: var(--ui-brown-background, light-dark(#f7efe2, #2e261c));
+    --_epic-text-box-ivory-ink: var(--ui-brown-text, light-dark(#534323, #eaddc4));
+    margin: 0 0 0.75em;
+    padding: 8px 10px;
+    border: 1px solid var(--_epic-text-box-warn);
+    border-radius: 6px;
+  }
+  .kept-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    color: var(--ui-orange-text, var(--_epic-text-box-warn));
+    font-weight: 600;
+  }
+  .kept-why {
+    margin: 2px 0 8px;
+    color: var(--ui-text-muted, GrayText);
+    font-size: 0.85em;
+  }
+  .kept-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px 8px;
+    margin-top: 6px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: var(--_epic-text-box-ivory);
+    color: var(--_epic-text-box-ivory-ink);
+  }
+  .kept-label {
+    grid-column: 1;
+    margin: 0;
+    font-size: 0.85em;
+    font-weight: 600;
+  }
+  .kept-text {
+    grid-column: 1;
+    margin: 0;
+    white-space: pre-wrap;
+  }
+  .kept-drop {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    align-self: start;
   }
 }
