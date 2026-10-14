@@ -131,6 +131,12 @@ export function liveClient(): void {
   }
   // how long the docs runtime takes to unfold and land on an id before a hidden match is selected, in ms
   const FIND_REVEAL_MS = 400
+  // the find bar's highlight, `::highlight(spell-find)`
+  const FIND_HIGHLIGHT = "spell-find"
+  // the match shown:  a highlight while the find bar is open, the selection once it closes (`showMatch()`)
+  let findShown: Range | undefined
+  // `::highlight(spell-find)`'s look, adopted by the document and by each shadow root a match is in
+  let findSheet: CSSStyleSheet | undefined
   // how soon after the page's own edit key VS Code's same command counts as that key again, in ms
   const EDIT_REPEAT_MS = 300
 
@@ -512,8 +518,9 @@ export function liveClient(): void {
   /**
    * The page's FIND BAR, while framed (Cmd / Ctrl + F):  VS Code's side-bar views have none (Owen, 2026-10-10:
    * "Find with command-F doesn't work in the sidebar").
-   * - a small box at the top right, with "3 of 12";  each keystroke finds from the top, Enter or Cmd-G the next,
-   *   Shift the one before (wrapping), Escape closes it;  not found:  the box turns red
+   * - a small box at the top right, with "3 of 12" and a close button (×;  Owen, 2026-10-13);  each keystroke
+   *   finds from the top, Enter or Cmd-G the next, Shift the one before (wrapping), Escape or × closes it;  not
+   *   found:  the box turns red
    * - its own search (`findMatches()`), not `window.find()`:  that one also matched the box's own text, and never
    *   looked inside the elements' shadow roots, where a plan doc draws its titles
    * - a match inside something folded (most of a plan doc starts folded):  revealed through its nearest id, as a link
@@ -531,7 +538,7 @@ export function liveClient(): void {
         "padding:6px 8px;border-radius:8px;background:Canvas;color:CanvasText;box-shadow:0 2px 10px rgb(0 0 0 / 25%);" +
         "font:13px system-ui,sans-serif"
       const input = document.createElement("input")
-      input.type = "search"
+      // plain text, not "search":  its own clear (×) beside the close button read as two of the same
       input.placeholder = "Find in page"
       input.setAttribute("aria-label", "Find in page")
       input.style.cssText = "width:16em;padding:3px 6px;border:1px solid GrayText;border-radius:5px;font:inherit"
@@ -545,7 +552,16 @@ export function liveClient(): void {
       })
       const count = document.createElement("span")
       count.style.cssText = "min-width:5em;color:GrayText;font-variant-numeric:tabular-nums"
-      findBar.append(input, count)
+      const close = document.createElement("button")
+      close.type = "button"
+      close.textContent = "×"
+      close.title = "Close (Escape)"
+      close.setAttribute("aria-label", "Close find")
+      close.style.cssText =
+        "width:22px;height:22px;padding:0;border:none;border-radius:4px;background:none;color:GrayText;" +
+        "font:18px/1 system-ui,sans-serif;cursor:pointer"
+      close.addEventListener("click", closeFind)
+      findBar.append(input, count, close)
       document.body.append(findBar)
     }
     findBar.hidden = false
@@ -557,7 +573,8 @@ export function liveClient(): void {
   /**
    * Find the find bar's text again:  the next match, or the one before (`back`);  `fresh`, from the top of the page
    * (the text just changed).
-   * - the selection moves to the match, so focus goes back to the box for the next keystroke
+   * - the selection moves to the match, so focus goes back to the box for the next keystroke (`showMatch()` too, for
+   *   a match it selects later)
    */
   function findNext(back = false, fresh = false) {
     const input = findBar?.querySelector("input")
@@ -607,17 +624,19 @@ export function liveClient(): void {
   }
 
   /**
-   * Select a match and bring it into view;  first, when it's hidden (folded), land on its nearest id, as a link to
+   * Show a match and bring it into view;  first, when it's hidden (folded), land on its nearest id, as a link to
    * that id would, so the docs runtime unfolds what hides it.
+   * - HIGHLIGHTED (`CSS.highlights`, `highlight()`), not selected, while the bar is open:  selecting it moved the
+   *   page's caret out of the box, and each keystroke after the first went nowhere (Owen, 2026-10-13:  "every
+   *   keystroke exits the input");  closing the bar selects it (`closeFind()`)
    */
   function showMatch(match: { node: Text; offset: number }, length: number) {
     const select = () => {
       const range = document.createRange()
       range.setStart(match.node, match.offset)
       range.setEnd(match.node, match.offset + length)
-      const selection = getSelection()
-      selection?.removeAllRanges()
-      selection?.addRange(range)
+      findShown = range
+      highlight(range)
       match.node.parentElement?.scrollIntoView({ block: "center" })
     }
     const element = match.node.parentElement
@@ -641,6 +660,34 @@ export function liveClient(): void {
   /** Close the find bar, leaving the last match selected. */
   function closeFind() {
     if (findBar) findBar.hidden = true
+    CSS.highlights?.delete(FIND_HIGHLIGHT)
+    if (!findShown?.startContainer.isConnected) return
+    const selection = getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(findShown)
+  }
+
+  /**
+   * Mark `range` as the find bar's match:  a yellow highlight, the page's caret left alone.
+   * - `::highlight()` is styled per tree, so the sheet goes into the match's shadow root too (a plan doc's titles)
+   * - no Highlight API:  selected instead, as before
+   */
+  function highlight(range: Range) {
+    if (!CSS.highlights) {
+      const selection = getSelection()
+      selection?.removeAllRanges()
+      selection?.addRange(range)
+      return
+    }
+    if (!findSheet) {
+      findSheet = new CSSStyleSheet()
+      findSheet.replaceSync(`::highlight(${FIND_HIGHLIGHT}) { background: #ffd54f; color: #000; }`)
+      document.adoptedStyleSheets = [...document.adoptedStyleSheets, findSheet]
+    }
+    const root = range.startContainer.getRootNode()
+    if (root instanceof ShadowRoot && !root.adoptedStyleSheets.includes(findSheet))
+      root.adoptedStyleSheets = [...root.adoptedStyleSheets, findSheet]
+    CSS.highlights.set(FIND_HIGHLIGHT, new Highlight(range))
   }
 
   /**
