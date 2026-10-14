@@ -6,7 +6,7 @@ import { Loader, parseRef, refText, Saver, spellCore, Thing, List } from "$/core
 
 /**
  * Things saved by id (`saving.ts`):  written by a `Saver`, read back by a `Loader`.
- * - `savedById.expected.json`, beside `src/`, holds the entries these tests write.
+ * - `savedById.expected.json5`, beside `src/`, holds the entries these tests write.
  *   Python's core writes the same things and reads the same file, so the two agree
  *   (`packages/py/core/tests/test_saving.py`).
  * - The classes are what spell compiles from:
@@ -15,7 +15,7 @@ import { Loader, parseRef, refText, Saver, spellCore, Thing, List } from "$/core
  *   - `a dated-event is a thing where:`, `- its "label" is text`, `- its "day" is a date`, `- it is saved inline`
  *   - `a card is a thing`, `a card has a rank as text`, `a pile is a list of cards`
  */
-const EXPECTED = JSON.parse(readFileSync(resolve(import.meta.dirname, "..", "savedById.expected.json"), "utf8")) as {
+const EXPECTED = JSON.parse(readFileSync(resolve(import.meta.dirname, "..", "savedById.expected.json5"), "utf8")) as {
   root: string
   entries: Record<string, Record<string, unknown>>
 }

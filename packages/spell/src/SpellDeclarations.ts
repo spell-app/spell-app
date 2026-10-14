@@ -7,7 +7,7 @@ import { SP } from "$/spell"
 
 /**
  * A project's declarations:  everything it added to scope while parsing, as plain data -- see `SP.SpellDeclarationsData`.
- * - Why:  they live in `<Project>.declarations.json`, committed beside its source,
+ * - Why:  they live in `<Project>.declarations.json5`, committed beside its source,
  *   so another project can import it WITHOUT re-parsing its `.spell` files.
  * - Gathered from the AST, in two steps:
  *   - while compiling, `commentFor()` gives each declaring statement a `/*! SPELL: DECLARES {...} *\/` comment
@@ -180,7 +180,7 @@ export class SpellDeclarations {
   ////////////////
 
   /**
-   * Declarations in `json`, a project's `<Project>.declarations.json` -- `undefined` if it isn't one.
+   * Declarations in `json`, a project's `<Project>.declarations.json5` -- `undefined` if it isn't one.
    * - Reads TEXT:  never runs anything.
    */
   static read(json: string): SP.SpellDeclarationsData | undefined {

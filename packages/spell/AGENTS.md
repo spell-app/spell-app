@@ -70,7 +70,7 @@ when working with code in this package, `@spell-app/spell`.
   - `ts/solid`:  TypeScript on Solid, checked by `tsc`
   - `py`:  Python on `spell_core`, checked by pyright
     - on asyncio:  a function that waits is `async def`
-    - with a words file of its own, by Python's names:  `<Project>.py.en.json`
+    - with a words file of its own, by Python's names:  `<Project>.py.en.json5`
     - a program that draws also gets two more files:
       - its page file, `<Project>.elements.spell.js`:  its drawing half, in javascript
         - its suffix `elementsSuffix`, its writer `PY.ElementsWriter`
@@ -113,7 +113,7 @@ when working with code in this package, `@spell-app/spell`.
   - Each fixture's compiled output is checked against the snapshots beside it
     ([fixtures.test.ts](../../tests/spell/src/test/fixtures.test.ts)):
     - `<Project>.snapshot.js`:  the javascript target
-    - `<Project>.snapshot.declarations.json`:  its declarations
+    - `<Project>.snapshot.declarations.json5`:  its declarations
     - `<Project>.en.snapshot.js`:  its words (`SP.SpellWords`)
       - Its name ends as a snapshot's does, which keeps it out of the project's files.
     - `<Project>.snapshot.tsx`:  the TypeScript target

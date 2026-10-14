@@ -390,7 +390,7 @@ const COMPILED_JS = ".spell.js"
 const SCOPES_JS = ".scopes.js"
 
 /** End of a project's declarations file's name:  `SP.DECLARATIONS_JSON_SUFFIX`. */
-const DECLARATIONS_JSON = ".declarations.json"
+const DECLARATIONS_JSON = ".declarations.json5"
 
 /** End of a project's words file's name:  `SP.WORDS_JS_SUFFIX`. */
 const WORDS_JS = ".en.js"

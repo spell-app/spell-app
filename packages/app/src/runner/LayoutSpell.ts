@@ -448,7 +448,7 @@ export type LayoutSpellOptions = {
   root: Element
   /** Its project's id, e.g. `@spell/examples/solitaire`. */
   projectId: string
-  /** Its project's declarations, as its `.declarations.json` holds them. */
+  /** Its project's declarations, as its `.declarations.json5` holds them. */
   declarations: unknown
   /** The runtime its program ran on. */
   spellCore: SpellCore

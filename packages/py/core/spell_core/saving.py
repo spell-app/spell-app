@@ -32,7 +32,7 @@ loader.load(saved.root)   # owen again;  his friend matt is loaded once, however
   - So an id may never hold an `@`:  saving one raises.
 - Where entries live is the caller's:  a dict here, one file each in the people store.
 - The twin of the JavaScript core's `Saver` and `Loader` (`saving.ts`):
-  both write `savedById.expected.json`, with the JavaScript core's tests (`tests/core/`), and read it.
+  both write `savedById.expected.json5`, with the JavaScript core's tests (`tests/core/`), and read it.
 - Not the same as a page's state (`state.py`):  that numbers things per page, and holds them in one message.
 """
 

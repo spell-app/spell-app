@@ -69,12 +69,12 @@ export const COMPILED_TSX_SUFFIX = ".spell.tsx"
 export const COMPILED_PY_SUFFIX = ".spell.py"
 
 /**
- * End of a project's declarations file's name, e.g. `Solitaire.declarations.json`:
+ * End of a project's declarations file's name, e.g. `Solitaire.declarations.json5`:
  * what it offers importers, committed beside its source -- see `SpellProject.declarationsFile`.
  * - Its shape:  `SP.SpellDeclarationsData`.
  * - NEVER one of a project's own files:  the server lists only `.spell`, `.css`, `.js` and `.jsx`.
  */
-export const DECLARATIONS_JSON_SUFFIX = ".declarations.json"
+export const DECLARATIONS_JSON_SUFFIX = ".declarations.json5"
 
 /**
  * End of a test fixture's snapshot file's name, e.g. `Solitaire.snapshot.js`:
@@ -449,7 +449,7 @@ export const SPELL_VERSION = "0.8.0"
 
 /**
  * Everything a project added to scope while parsing, as plain data -- see `SpellDeclarations`.
- * - Lives in `<Project>.declarations.json`, beside its compiled output,
+ * - Lives in `<Project>.declarations.json5`, beside its compiled output,
  *   so another project can import it WITHOUT re-parsing its `.spell` files -- whatever language that output is in.
  * - JSON:  no `Match`es, classes or functions.
  */
@@ -478,7 +478,7 @@ export type SpellDeclarationsData = {
  * by the name its compiled code uses -- what `<Project>.en.js` exports as `words`.  See `SpellWords`.
  * - e.g. `{ lang: "en", types: { Card: { moveToPile: "move (a card) to (a pile)", isSetUp: "is-set-up" } } }`
  * - Another language is another file of the same shape, e.g. `Solitaire.es.js`.
- * - A target with words of its own writes the same shape as JSON, by its names:  Python's `<Project>.py.en.json`.
+ * - A target with words of its own writes the same shape as JSON, by its names:  Python's `<Project>.py.en.json5`.
  */
 export type SpellWordsData = {
   /** Its language, e.g. `en`. */

@@ -14,7 +14,7 @@ import { LSP } from "$/lsp"
  *   them.
  * - The files it builds:
  *   - each target's output (`project.targets`), e.g. `Solitaire.spell.js`, `Solitaire.lib.ts`
- *   - its declarations and words, e.g. `Solitaire.declarations.json`, `Solitaire.en.js`
+ *   - its declarations and words, e.g. `Solitaire.declarations.json5`, `Solitaire.en.js`
  *   - a library's JSON Schemas, its build folder's `schemas/`
  *   - NOT its scope pack:  only a clean compile writes one, so a project with errors would never be up to date
  * - What it's built from:
@@ -58,7 +58,7 @@ export async function staleBecause(project: SP.SpellProject): Promise<string | u
  * - core's built-in types' declarations, which every project parses against
  * - NOT core's runtime:  compiled code imports it, so a change to it needs no rebuild
  */
-export const COMPILER_SOURCES = ["parser/src", "spell/src", "lsp/src", "py/ts", "core/spellCore.declarations.json"]
+export const COMPILER_SOURCES = ["parser/src", "spell/src", "lsp/src", "py/ts", "core/spellCore.declarations.json5"]
 
 ////////////////
 // ## Helpers

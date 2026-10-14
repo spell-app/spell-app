@@ -14,8 +14,8 @@ import { parseSpellProject } from "$/spell/test"
  * - Where they come from:
  *   - every spell project:  the `@spell` space's built-ins (examples, library, `packages/spaces/@spell/`) and the
  *     test projects (`tests/spaces/@spell/test/`), each compiled to Python
- *   - the core's own methods, `spellCore.declarations.json`, as Python names them
- * - Pinned in `pythonNameClashes.snapshot.json`, beside this:  a new clash is a diff to read.
+ *   - the core's own methods, `spellCore.declarations.json5`, as Python names them
+ * - Pinned in `pythonNameClashes.snapshot.json5`, beside this:  a new clash is a diff to read.
  *   The durable doc's "PEP 8's names" table lists them for Owen to decide each.
  */
 
@@ -82,15 +82,15 @@ describe("Python's name clashes in today's spell", () => {
       SP.SpellProject.combineCompiled(parts, writer, "", scope)
     }
     // the core's own methods, as Python names them
-    naming.where = "the core's methods (spellCore.declarations.json)"
+    naming.where = "the core's methods (spellCore.declarations.json5)"
     const core = JSON.parse(
-      readFileSync(resolve(import.meta.dirname, "../../../../packages/core/spellCore.declarations.json"), "utf8")
+      readFileSync(resolve(import.meta.dirname, "../../../../packages/core/spellCore.declarations.json5"), "utf8")
     ) as { statements: Array<{ kind: string; name: string }> }
     for (const { kind, name } of core.statements) if (kind === "method") naming.nameOf(name, "method")
 
     const clashes = [...naming.noted.values()].sort(
       (a, b) => a.spell.localeCompare(b.spell) || a.where.localeCompare(b.where)
     )
-    await expect(`${JSON.stringify(clashes, null, 2)}\n`).toMatchFileSnapshot("pythonNameClashes.snapshot.json")
+    await expect(`${JSON.stringify(clashes, null, 2)}\n`).toMatchFileSnapshot("pythonNameClashes.snapshot.json5")
   }, 120_000)
 })

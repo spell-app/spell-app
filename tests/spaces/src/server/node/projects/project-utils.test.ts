@@ -24,9 +24,9 @@ let realFolders: { packagesDir: string; buildDir: string }
 const BUILT = ["Proj.spell.js", "Proj.spell.tsx", "Proj.spell.py", "Proj.elements.spell.js", "Proj.scopes.js"]
 /** Files of project `Proj` which stay beside its source, built or not. */
 const BESIDE = [
-  "Proj.declarations.json",
+  "Proj.declarations.json5",
   "Proj.en.js",
-  "Proj.py.en.json",
+  "Proj.py.en.json5",
   "Proj.lib.ts",
   "Proj.app.py",
   "__project.json5",
@@ -231,7 +231,7 @@ async function built(projectName: string): Promise<string> {
  * declarations, words, a target's words, and compiled output by its name before `build/`.
  */
 function GENERATED(projectName: string): string[] {
-  return [".compiled.js", ".declarations.json", ".en.js", ".py.en.json"].map((suffix) => `${projectName}${suffix}`)
+  return [".compiled.js", ".declarations.json5", ".en.js", ".py.en.json5"].map((suffix) => `${projectName}${suffix}`)
 }
 
 /** Names of the files in the temp workspace's project `projectName`, sorted. */

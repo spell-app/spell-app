@@ -19,7 +19,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Built from spell's table of built-in types, `BUILT_IN_TYPE_TABLE` ([builtinTypes.ts](../spell/src/builtinTypes.ts)).
   - By `yarn scopes --builtins`, in `../lsp`.
   - NEVER edit it by hand:  edit the table, run that.
-- [spellCore.declarations.json](spellCore.declarations.json) is GENERATED too:
+- [spellCore.declarations.json5](spellCore.declarations.json5) is GENERATED too:
   the core's method list, what another target's core must have (Python's `spell_core`, say).
   - Read from the running core by [`coreDeclarations()`](src/coreDeclarations.ts).
   - Each name's `section` and `description` come from the lead of its docstring, in the module's source.
@@ -31,13 +31,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     after adding, renaming or removing anything on `spellCore`.
   - Python's [test_core_declarations.py](../../tests/py/core/tests/test_core_declarations.py) checks `spell_core` against it:
     a new name fails there too,
-    until it's ported or listed in py's [not_ported_yet.json](../py/core/not_ported_yet.json).
+    until it's ported or listed in py's [not_ported_yet.json5](../py/core/not_ported_yet.json5).
 - Random numbers come from the core's own generator, [`ParkMiller`](src/ParkMiller.ts), NEVER `Math.random()`:
   - `spellCore.seedRandom(n)` makes everything random after it repeat;  unseeded, each run differs.
   - `spellCore.shuffled()` is lodash's shuffle, step for step.
   - Python's core deals the same from the same seed:
-    both read [seededRandom.expected.json](../../tests/core/seededRandom.expected.json) in their tests.
-- Positions count from where a project's lists start:  1, spell's own, or 0 (`project.json`'s `"listsStartAt": 0`).
+    both read [seededRandom.expected.json5](../../tests/core/seededRandom.expected.json5) in their tests.
+- Positions count from where a project's lists start:  1, spell's own, or 0 (the project file's `"listsStartAt": 0`).
   - The helpers that convert:  [positions.ts](src/positions.ts), used by `List` and the collection helpers.
   - Negative positions count from the end either way:  `-1` is the last item.
 - The console sends a DUMP (a thing, a spell list ...) through `spellCore.console.printDump()`:
@@ -181,7 +181,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Each writer keeps the ids it gave:  one writer per page.
   - `StateMirror.read()` reads each state INTO the things it read before, by id:  the same objects, changed.
   - `fromJSON()` reads through a new mirror, so JSON with ids keeps each thing as one.
-  - Python's twin is `spell_core.state`:  both write [stateById.expected.json](../../tests/core/stateById.expected.json), and read it.
+  - Python's twin is `spell_core.state`:  both write [stateById.expected.json5](../../tests/core/stateById.expected.json5), and read it.
 - SAVING things by id ([saving.ts](src/saving.ts), epic `people-and-orgs` P2):  what lasts, as opposed to a page's state.
   - `new Saver().save(thing)`:  the thing as an entry, by key, `"Person#owen"`.
     - Every thing it reaches is written INSIDE what holds it (decision Q42):  whole the first time, then a reference,
@@ -201,7 +201,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - The saver writes `"$version"` past 1, after `"$type"`;  the loader brings an older entry up step by step
       (`upgradeEntry()`):  each version's renames and drops, then its upgrade method on the made thing.
     - A newer file than its type reads as it is.
-  - Python's twin is `spell_core.saving`:  both write [savedById.expected.json](../../tests/core/savedById.expected.json), and read it.
+  - Python's twin is `spell_core.saving`:  both write [savedById.expected.json5](../../tests/core/savedById.expected.json5), and read it.
 - CHECKING a saved entry against its class ([checking.ts](src/checking.ts), epic `people-and-orgs` P5, Q43):
   - `checkEntry(entry, { classNamed })`:  each property declared, of its kind;  a thing written whole inside checked
     too.  Returns the problems, `[{ property: "name", message: "name is text, not a number" }]`.
@@ -225,10 +225,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - Its Python twin, `spell_core`, is in `@spell-app/py` ([py's AGENTS.md](../py/AGENTS.md), epic `python-target` P21).
   - The four files both cores read stay in the JavaScript core:
     its method list here, the three expected files with its tests (`tests/core/`):
-    - [spellCore.declarations.json](spellCore.declarations.json)
-    - [seededRandom.expected.json](../../tests/core/seededRandom.expected.json)
-    - [stateById.expected.json](../../tests/core/stateById.expected.json)
-    - [savedById.expected.json](../../tests/core/savedById.expected.json)
+    - [spellCore.declarations.json5](spellCore.declarations.json5)
+    - [seededRandom.expected.json5](../../tests/core/seededRandom.expected.json5)
+    - [stateById.expected.json5](../../tests/core/stateById.expected.json5)
+    - [savedById.expected.json5](../../tests/core/savedById.expected.json5)
 
 ## Decorators
 

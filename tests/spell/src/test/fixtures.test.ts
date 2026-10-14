@@ -18,7 +18,7 @@ import {
  * Every fixture project in `tests/spaces/@spell/test/` compiled, against the snapshots beside it,
  * in `tests/spaces/@spell/test/<Project>/`:
  * - `<Project>.snapshot.js`:  the javascript (`js/solid` target)
- * - `<Project>.snapshot.declarations.json`:  its declarations
+ * - `<Project>.snapshot.declarations.json5`:  its declarations
  * - `<Project>.en.snapshot.js`:  its words
  * - `<Project>.snapshot.tsx`:  the TypeScript (`ts/solid` target)
  * - `<Project>.snapshot.py`:  the Python (the `py` target)

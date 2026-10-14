@@ -112,7 +112,7 @@ api.all("*", (request, response) => response.status(404).send(`API routine not d
  * Router mounted at `/spaces` by `./cli.ts` and `./appRoutes.ts`:  a project's file, by its URL,
  * `/spaces/<project>/<file>` -- see `projectUtils.request_getFile`.
  * - Compiled files are files:  `/spaces/@spell/examples/solitaire/solitaire.spell.js` (its program),
- *   `.scopes.js` (its scope pack), `.declarations.json`, `.en.js`.  The handler finds a built one in `build/`.
+ *   `.scopes.js` (its scope pack), `.declarations.json5`, `.en.js`.  The handler finds a built one in `build/`.
  * - A file spell BUILDS (`<Project>.spell.js` ...), missing, is compiled first:  `projectBuild.builtFirst()`.
  */
 export const spaceFiles = new SRV.Router()

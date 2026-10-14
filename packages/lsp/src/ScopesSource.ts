@@ -36,7 +36,7 @@ export type ScopesSourceHooks = {
   /** Compiled javascript of project `projectId`, e.g. `@spell/examples/solitaire` -- if it can be had. */
   loadCompiled?: (projectId: string) => Promise<string | undefined>
   /**
-   * Project `projectId`'s declarations, its `<Project>.declarations.json` -- if it can be had:
+   * Project `projectId`'s declarations, its `<Project>.declarations.json5` -- if it can be had:
    * where each declaration's code starts in its compiled javascript.
    */
   loadDeclarations?: (projectId: string) => Promise<CompiledDeclarations | undefined>

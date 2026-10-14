@@ -130,7 +130,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - and SAVED by `POST /api/projects/file/<project>/<file>`
     - a project's index:  `/api/projects/index/<project>`
     - a group's projects:  `/api/projects/list/<group>`, e.g. `/api/projects/list/owen@spell`
-    - Compiled files are files:  `/spaces/<project>/<project>.spell.js`, `.scopes.js`, `.declarations.json`,
+    - Compiled files are files:  `/spaces/<project>/<project>.spell.js`, `.scopes.js`, `.declarations.json5`,
       `.en.js`.  A built one is served from the build folder.
     - A URL is split by its group and ONE part for the project before any path is made, and each part decoded on its
       own (`SP.SpellUrls.split()`, decision Q41).

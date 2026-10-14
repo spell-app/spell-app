@@ -129,7 +129,7 @@ Longer notes on some of them follow the table.
   - `--no-minify`.
   - A folder:  every `.html` in it.
 - `compile`:  writes each project's compiled javascript, and its declarations and words.
-  - That's `<Project>.spell.js`, in the project's build folder, and `<Project>.declarations.json` and
+  - That's `<Project>.spell.js`, in the project's build folder, and `<Project>.declarations.json5` and
     `<Project>.en.js`, committed beside its source.
   - The build folder:  `build/` at the repo root, never committed, at the project's path under `packages/`
     (`build/spaces/@spell/examples/solitaire`), `tests/` (`build/spaces/@spell/test/fizzbuzz`),
@@ -376,7 +376,7 @@ Longer notes on some of them follow the table.
 - `compile` writes `<Project>.spell.js` into the project's build folder (`build/`), as the app does.
   - With no errors, also `<Project>.scopes.js` there, as the language server does.
   - `--stale` writes only the projects that are out of date.
-  - And its declarations and words beside its source, `<Project>.declarations.json` and `<Project>.en.js`.
+  - And its declarations and words beside its source, `<Project>.declarations.json5` and `<Project>.en.js`.
   - `--stdout` writes neither.
   - `watch` the same after each rebuild, unless `--check-only`.
 - `static` writes:

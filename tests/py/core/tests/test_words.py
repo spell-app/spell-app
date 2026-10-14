@@ -16,7 +16,7 @@ class BlankTile(Tile):
 
 
 def test_a_things_words_come_from_its_class_and_those_it_extends(core: SpellCore, tmp_path: Path) -> None:
-    words = tmp_path / "Cards.py.en.json"
+    words = tmp_path / "Cards.py.en.json5"
     words.write_text(
         json.dumps(
             {

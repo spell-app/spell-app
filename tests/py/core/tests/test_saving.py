@@ -1,6 +1,6 @@
 """Things saved by id (`saving.py`):  written by a `Saver`, read back by a `Loader`.
 
-- `savedById.expected.json`, with the JavaScript core's tests (`tests/core/`), holds the entries these tests write.
+- `savedById.expected.json5`, with the JavaScript core's tests (`tests/core/`), holds the entries these tests write.
   The JavaScript core's `saving.test.ts` writes the same things and reads the same file, so the two cores agree.
 - The classes are what spell compiles from:
   - `a person is a thing where:`, `- its "name" is text`, `- its "dates" is a list of dated-events`,
@@ -23,7 +23,7 @@ from spell_core.core import using_core
 from spell_core.saving import Entry, iso_text
 from spell_core.things import SpellObject
 
-EXPECTED = json.loads((Path(__file__).parents[3] / "core" / "savedById.expected.json").read_text(encoding="utf-8"))
+EXPECTED = json.loads((Path(__file__).parents[3] / "core" / "savedById.expected.json5").read_text(encoding="utf-8"))
 
 
 ####################

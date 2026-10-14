@@ -289,6 +289,9 @@ export const fmtConfig = {
   tabWidth: 2,
   printWidth: 120,
   sortPackageJson: true,
+  // spell's JSON5 stays the JSON-compatible part (epic `people-and-orgs` P12):  keys in double quotes, as written, so
+  // Python's `json` reads it and VS Code checks it against its schema;  oxfmt would unquote them (`"as-needed"`)
+  overrides: [{ files: ["*.json5"], options: { quoteProps: "preserve" } }],
   ignorePatterns: [
     "**/.output.js",
     "**/*.md",

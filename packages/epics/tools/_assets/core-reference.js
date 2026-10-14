@@ -8,9 +8,9 @@
  * - The data:  two JSON files, fetched from the checkout SERVING the page,
  *   so the page shows that checkout's core and can't go stale.
  *   Their paths are relative to the page, in `<body>`'s data attributes:
- *   - `data-core-declarations`:  `packages/core/spellCore.declarations.json`, the core's method list
+ *   - `data-core-declarations`:  `packages/core/spellCore.declarations.json5`, the core's method list
  *     (`yarn gen:declarations` in `packages/core`, `coreDeclarations.ts`);  `{ provides, statements: [Statement] }`
- *   - `data-not-ported`:  `packages/py/core/not_ported_yet.json`, what spell_core doesn't have yet;
+ *   - `data-not-ported`:  `packages/py/core/not_ported_yet.json5`, what spell_core doesn't have yet;
  *     `{ about, groups: [{ why, names: [javascript name] }] }`.  Optional:  without it the Python column says "?"
  * - `Statement`, by its keys:
  *   - a method of `spellCore`:  `{ kind: "method", name, of, module, params?: [{ name }], section?, description? }`
@@ -60,7 +60,7 @@
 
   /**
    * Both files, as `{ declarations, notPorted? }`, or `undefined` after showing why not.
-   * - throws when the core's method list can't be read;  a missing `not_ported_yet.json` only leaves `notPorted` out
+   * - throws when the core's method list can't be read;  a missing `not_ported_yet.json5` only leaves `notPorted` out
    */
   async function load() {
     const { coreDeclarations, notPorted } = document.body.dataset
@@ -78,8 +78,16 @@
     return { declarations, notPorted: groups }
   }
 
-  /** The JSON at `path`, relative to the page;  throws on a failed response. */
+  /**
+   * The JSON at `path`, relative to the page;  throws on a failed response.
+   * - A `.json` path is read as `.json5` first (epic `people-and-orgs` P12):  the page names the old file, which an
+   *   older checkout still has, and this checkout's file is the new one.  Both hold plain JSON.
+   */
   async function fetchJSON(path) {
+    if (path.endsWith(".json")) {
+      const renamed = await fetch(`${path}5`, { cache: "no-store" })
+      if (renamed.ok) return renamed.json()
+    }
     const response = await fetch(path, { cache: "no-store" })
     if (!response.ok) throw new Error(`${path}:  ${response.status} ${response.statusText}`)
     return response.json()
@@ -181,9 +189,9 @@
     return code + label + extending
   }
 
-  /** "in Python" cell:  ✓, or ✗ with why as its tooltip;  "?" without `not_ported_yet.json`. */
+  /** "in Python" cell:  ✓, or ✗ with why as its tooltip;  "?" without `not_ported_yet.json5`. */
   function portedHTML(name, missing) {
-    if (!missing) return `<td title="this checkout has no packages/py/core/not_ported_yet.json">?</td>`
+    if (!missing) return `<td title="this checkout has no packages/py/core/not_ported_yet.json5">?</td>`
     const why = missing.get(name)
     if (why === undefined) return `<td class="yes positive" title="spell_core has it">✓</td>`
     return `<td class="no negative" title="${attr(why)}">✗ not yet</td>`
@@ -205,7 +213,7 @@
   /** spell_core's missing names:  one bullet per group, its why, then its names linked to their rows. */
   function notPortedHTML(statements, notPorted) {
     if (!notPorted)
-      return `<ui-message state="warning" header="No list of what Python lacks"><p>This checkout has no <code>packages/py/core/not_ported_yet.json</code>.</p></ui-message>`
+      return `<ui-message state="warning" header="No list of what Python lacks"><p>This checkout has no <code>packages/py/core/not_ported_yet.json5</code>.</p></ui-message>`
     const byName = new Map(statements.map((statement) => [jsName(statement), statement]))
     const items = (notPorted.groups ?? []).map((group) => {
       const names = group.names.map((name) => {

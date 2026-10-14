@@ -230,7 +230,7 @@ when working with code in this package, `@spell-app/app`.
     - So rerun it after changing a documented component's banner, props or uses.
   - Pictures, for what needs the whole editor around it:  `yarn site:pictures [name...]`,
     headless screenshots of this checkout's running editor, into `docs/_images/` ([its script](scripts/site-pictures.ts)).
-    - Opening the editor compiles its project, which may rewrite its `*.declarations.json` / `*.en.js`:
+    - Opening the editor compiles its project, which may rewrite its `*.declarations.json5` / `*.en.js`:
       check `git status` after.  (Its `*.spell.js` goes in `build/`, never committed.)
   - Live examples (the web components, the runner's pieces) need `yarn build:element`:
     the layout loads `/element/spell.pack.js`.

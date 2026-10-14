@@ -144,7 +144,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * File for this project's declarations, committed beside its source, e.g. `Solitaire.declarations.json`:
+   * File for this project's declarations, committed beside its source, e.g. `Solitaire.declarations.json5`:
    * what it offers projects importing it -- see `SP.SpellDeclarations`.
    * - A `SpellJSFile`:  any text file, loaded and saved the same way.
    */
@@ -160,7 +160,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    * File for this project's words, committed beside its source, e.g. `Solitaire.en.js`:
    * spell's wording of each member of its types, by the name its compiled code uses -- see `SP.SpellWords`.
    * - For a runner's Thing Explorer.
-   * - A target with words of its own writes another file, e.g. `Solitaire.py.en.json`:  see `wordsFileFor()`.
+   * - A target with words of its own writes another file, e.g. `Solitaire.py.en.json5`:  see `wordsFileFor()`.
    *   One whose page draws in javascript, its drawing half too, `Solitaire.elements.spell.js`:
    *   see `elementsFileFor()`.
    */
@@ -272,7 +272,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * File for `target`'s own words, committed beside our source, e.g. `Solitaire.py.en.json`.
+   * File for `target`'s own words, committed beside our source, e.g. `Solitaire.py.en.json5`.
    * - `undefined` for a target with none (`SP.Target.wordsSuffix`).
    */
   wordsFileFor(target: SP.Target): SP.SpellJSFile | undefined {
@@ -765,7 +765,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
 
   /**
    * Import layer for our `projectImports`, under `parentScope` -- or `parentScope` itself if we import none.
-   * - A compiled import:  reads its `<Project>.declarations.json`, fresh each time -- see `declarationsOf()`.
+   * - A compiled import:  reads its `<Project>.declarations.json5`, fresh each time -- see `declarationsOf()`.
    * - A `source` import:  loads that project, so its files parse ahead of ours -- see `sourceImportFiles`.
    *   It can't rename what it imports, e.g. `Card:Playingcard`:  its sources parse as they are.
    * - Throws `P.ParserError` if one can't be loaded, e.g. it's never been compiled -- see `SP.SpellDeclarations.load()`.

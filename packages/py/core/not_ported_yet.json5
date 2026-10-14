@@ -1,5 +1,5 @@
 {
-  "about": "What spell_core doesn't have yet of the core's method list (packages/core/spellCore.declarations.json), by the JavaScript name, grouped by why.  Read by tests/test_core_declarations.py, and by the core reference page (guides/targets/core-reference.html).  Take a name out as it's ported.",
+  "about": "What spell_core doesn't have yet of the core's method list (packages/core/spellCore.declarations.json5), by the JavaScript name, grouped by why.  Read by tests/test_core_declarations.py, and by the core reference page (guides/targets/core-reference.html).  Take a name out as it's ported.",
   "groups": [
     {
       "why": "Pauses and events (P11):  Python's runtime hasn't needed these",

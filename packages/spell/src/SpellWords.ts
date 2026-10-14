@@ -12,7 +12,7 @@ import { SP } from "$/spell"
  *   - As a Spell UI element keeps its words in its own vocabulary file, e.g. `UIForm.en.ts`.
  *   - Another language is another file of the same shape, e.g. `Solitaire.es.js`:  NOT written yet.
  *   - A target with words of its own writes them as JSON, by its own names:
- *     Python's `<Project>.py.en.json` -- see `json()`.
+ *     Python's `<Project>.py.en.json5` -- see `json()`.
  * - Written from the declarations the compiler already gathers (`of()`),
  *   keyed by the names the writer ACTUALLY writes (`P.JSWriter.nameOf()`):
  *   a reader never works out how a name was camelCased.
@@ -124,7 +124,7 @@ export class SpellWords {
   }
 
   /**
-   * `words` as a target's own words file holds them, e.g. Python's `<Project>.py.en.json`.
+   * `words` as a target's own words file holds them, e.g. Python's `<Project>.py.en.json5`.
    * - Plain JSON, for a reader in any language.
    * - Keyed by that target's names:  `of(declarations, writer)`.
    * - Epic `python-target` P14.

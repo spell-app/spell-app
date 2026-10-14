@@ -318,7 +318,9 @@ describe("RunningEpics", () => {
       expect(html).toContain('aria-pressed="false" aria-label="Star alpha"')
       expect(html.match(/data-epic="seo"/g)).toHaveLength(1)
       // last worked:  the merged card's (its branch's commit, as the docs index read it) beat the doc's log line
-      expect(html).toMatch(/data-epic="seo"[^>]*data-worked="2026-10-09T20:00/)
+      // the same moment, in whatever time zone this machine writes it in
+      const worked = /data-epic="seo"[^>]*data-worked="([^"]+)"/.exec(html)?.[1]
+      expect(worked && new Date(worked).toISOString()).toBe(new Date("2026-10-09T20:00-04:00").toISOString())
       expect(new RunningEpics(grouped).list()[0]?.worked).toBe(new Date("2026-10-08T09:15-04:00").toISOString())
       expect(html.indexOf(EPIC_CARDS_START)).toBeLessThan(html.indexOf(EPIC_CARDS_END))
     } finally {

@@ -10,7 +10,7 @@ import { CLI } from "$/cli"
 /**
  * `spell compile <project...>`:  compile each project (or lone spell file), showing progress and errors on stderr.
  * - A project:  writes what the app does, plus each other target's output:
- *   - `<Project>.spell.js`, `<Project>.declarations.json`
+ *   - `<Project>.spell.js`, `<Project>.declarations.json5`
  *   - its words, `<Project>.en.js` (`SP.SpellWords`)
  *   - each other target's, e.g. `<Project>.spell.tsx` -- see `SP.TARGETS`
  *   - `--target <name>`:  that target, this run, instead of `project.json`'s

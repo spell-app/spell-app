@@ -9,7 +9,7 @@ Math.random = random
 const _ = require("lodash").runInContext()
 ```
 
-- `seededRandom.expected.json`, with the JavaScript core's tests (`tests/core/`),
+- `seededRandom.expected.json5`, with the JavaScript core's tests (`tests/core/`),
   holds more of them, from several seeds.
   The JavaScript core's `seededRandom.test.ts` reads the same file, so the two cores can't drift apart.
 """
@@ -28,7 +28,7 @@ DECK = [f"{rank}-{suit}" for suit in ["clubs", "diamonds", "hearts", "spades"] f
 
 # What each seed must give:  shared with the JavaScript core's tests.
 EXPECTED: dict[str, Any] = json.loads(
-    (Path(__file__).parents[3] / "core" / "seededRandom.expected.json").read_text(encoding="utf-8")
+    (Path(__file__).parents[3] / "core" / "seededRandom.expected.json5").read_text(encoding="utf-8")
 )
 SEEDS = [pytest.param(each, id=f"seed {each['seed']}") for each in EXPECTED["seeds"]]
 

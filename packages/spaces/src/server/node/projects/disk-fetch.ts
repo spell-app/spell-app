@@ -34,7 +34,8 @@ const ROUTES: Array<{ prefix: string; handle: (url: string, $params: $FetchParam
   { prefix: SP.SpellUrls.INDEX, handle: (url) => projectUtils.getIndex(SP.SpellUrls.projectIdFor(url)) },
   {
     prefix: SP.SpellUrls.SPACES,
-    handle: (url) => fileUtils.loadFile(projectUtils.locationForUrl(url).serverPath) as Promise<string>
+    handle: (url) =>
+      fileUtils.loadFile(projectUtils.fileOrOldName(projectUtils.locationForUrl(url).serverPath)) as Promise<string>
   },
   {
     prefix: SP.SpellUrls.SAVE,

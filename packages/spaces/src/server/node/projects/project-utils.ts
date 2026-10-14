@@ -6,6 +6,7 @@
  * - It was spell's (`$/spell/node/project-utils`), until epic `people-and-orgs` P15.
  * - NOTE: loads spaces' barrel, so spell's project groups are registered (`SPACES.PROJECT_GROUPS`).
  */
+import { existsSync } from "fs"
 import { isAbsolute, relative, resolve, sep } from "path"
 
 import type { SRV } from "$/server"
@@ -87,8 +88,8 @@ export function folderForPlace(place: string): string {
 /**
  * Ends of the names of the files spell BUILDS for a project, which go in its build folder (`buildFolderFor()`):
  * only `<Project>` and one of these, at the top of the project, e.g. `Solitaire.spell.js`.
- * - What's committed stays beside the source, e.g. `Solitaire.declarations.json`, `Solitaire.en.js`,
- *   `Solitaire.py.en.json`, `Solitaire.lib.ts`, `Solitaire.app.py`.
+ * - What's committed stays beside the source, e.g. `Solitaire.declarations.json5`, `Solitaire.en.js`,
+ *   `Solitaire.py.en.json5`, `Solitaire.lib.ts`, `Solitaire.app.py`.
  */
 const BUILT_SUFFIXES = [
   SP.COMPILED_JS_SUFFIX, // `Solitaire.spell.js`
@@ -397,6 +398,17 @@ export function locationForUrl(url: string): SP.SpellLocation {
  * - NOTE: deliberately NOT wrapped in `respondWithJSON` -- that would send a JSON body on top of the file
  *   we already streamed.  We catch by hand instead so a rejection can't go unhandled and hang the client.
  */
+/**
+ * Path on disk of file `serverPath`, or of its OLD name when it's a `.json5` file not there yet (epic
+ * `people-and-orgs` P12):  `Errors.declarations.json5` is read from an `Errors.declarations.json` that a compile before
+ * the rename left, until the project compiles again.
+ */
+export function fileOrOldName(serverPath: string): string {
+  if (!serverPath.endsWith(".json5") || existsSync(serverPath)) return serverPath
+  const old = serverPath.slice(0, -1)
+  return existsSync(old) ? old : serverPath
+}
+
 export const request_getFile = async (request: Request, response: Response) => {
   let location: SP.SpellLocation
   try {
@@ -405,7 +417,7 @@ export const request_getFile = async (request: Request, response: Response) => {
     return responseUtils.sendError(response, 400, error as Error)
   }
   try {
-    await responseUtils.sendFile(response, location.serverPath, { dotfiles: "allow" })
+    await responseUtils.sendFile(response, fileOrOldName(location.serverPath), { dotfiles: "allow" })
   } catch (error) {
     // Can't send an error body once the file has started streaming -- the client sees a truncated response.
     if (response.headersSent) return
@@ -556,7 +568,7 @@ async function clearBuildFolder(projectFolder: string): Promise<void> {
  * one there, so it never serves output built for another project, or for an older one of its name.
  * - `newLocation`'s build folder, if it has one, e.g. a deleted project of that name's.
  * - When the name changed, the old name's generated files beside its source (`isGeneratedFileOf()`),
- *   e.g. `Old.declarations.json`;  `Old.en.js` would list as one of its javascript files.
+ *   e.g. `Old.declarations.json5`;  `Old.en.js` would list as one of its javascript files.
  *   - NOT its `Old.lib.ts` or `Old.app.py`:  code others may import or have edited.  Compiling writes new ones.
  */
 async function forgetBuilt(location: SP.SpellLocation, newLocation: SP.SpellLocation): Promise<void> {
@@ -572,13 +584,16 @@ async function forgetBuilt(location: SP.SpellLocation, newLocation: SP.SpellLoca
  * Is `name` a file spell writes for project `projectName`, and writes again on each compile?
  * - Its compiled output, under any name it has had, e.g. `Solitaire.spell.js`, `Solitaire.compiled.js`.
  *   NOT a fixture's snapshot, `Solitaire.snapshot.js`:  a test's expected output.
- * - Its declarations, `Solitaire.declarations.json`.
- * - Its words, in any language (`Solitaire.en.js`), and each target's own (`Solitaire.py.en.json`).
+ * - Its declarations, `Solitaire.declarations.json5`.
+ * - Its words, in any language (`Solitaire.en.js`), and each target's own (`Solitaire.py.en.json5`).
+ * - The `.json` names those two had before epic `people-and-orgs` P12, too.
  */
 function isGeneratedFileOf(name: string, projectName: string): boolean {
   if (SP.SpellWords.isWordsFile(name, projectName)) return true
   const targetWords = Object.values(SP.TARGETS).flatMap((target) => target.wordsSuffix ?? [])
-  const suffixes = [...BUILT_SUFFIXES, ...OLD_BUILT_SUFFIXES, SP.DECLARATIONS_JSON_SUFFIX, ...targetWords]
+  const json5 = [SP.DECLARATIONS_JSON_SUFFIX, ...targetWords]
+  const oldNames = json5.filter((suffix) => suffix.endsWith(".json5")).map((suffix) => suffix.slice(0, -1))
+  const suffixes = [...BUILT_SUFFIXES, ...OLD_BUILT_SUFFIXES, ...json5, ...oldNames]
   return suffixes.some((suffix) => name === `${projectName}${suffix}`)
 }
 

@@ -29,7 +29,7 @@ mirror.read(writer.patch())                 # or only what changed since:  the s
   - A patch is a list of things with ids:  read as any state is.
 - The twin of the JavaScript core's `StateWriter` and `StateMirror` (`state.ts`).
   - Both write the same JSON for the same things:
-    `stateById.expected.json`, with the JavaScript core's tests (`tests/core/`), holds one, read by both.
+    `stateById.expected.json5`, with the JavaScript core's tests (`tests/core/`), holds one, read by both.
 """
 
 from typing import Any

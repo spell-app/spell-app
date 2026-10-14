@@ -6,14 +6,14 @@ import { spellCore } from "$/core"
 import { coreDeclarations, docsIn, paramNamesOf, unlistedCoreNames } from "$/core/coreDeclarations"
 
 /** Where `yarn gen:declarations` writes the core's method list. */
-const DECLARATIONS_FILE = resolve(import.meta.dirname, "../../../packages/core/spellCore.declarations.json")
+const DECLARATIONS_FILE = resolve(import.meta.dirname, "../../../packages/core/spellCore.declarations.json5")
 
-describe("the core's method list, spellCore.declarations.json", () => {
+describe("the core's method list, spellCore.declarations.json5", () => {
   test("is up to date with the core:  if not, run `yarn gen:declarations` in packages/core", () => {
     const written = JSON.parse(readFileSync(DECLARATIONS_FILE, "utf8")) as unknown
     expect(
       written,
-      "spellCore.declarations.json is out of date:  run `yarn gen:declarations` in packages/core"
+      "spellCore.declarations.json5 is out of date:  run `yarn gen:declarations` in packages/core"
     ).toEqual(coreDeclarations())
   })
 

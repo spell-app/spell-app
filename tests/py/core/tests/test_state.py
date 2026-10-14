@@ -1,6 +1,6 @@
 """A program's state as JSON by id (`state.py`):  written by a `StateWriter`, read into a `StateMirror`.
 
-- `stateById.expected.json`, with the JavaScript core's tests (`tests/core/`), holds the state these tests write.
+- `stateById.expected.json5`, with the JavaScript core's tests (`tests/core/`), holds the state these tests write.
   The JavaScript core's `state.test.ts` writes the same things and reads the same file, so the two cores agree.
 - The classes are what spell compiles from:
   - `a chip is a thing` + `a chip has a color as text` + `a chip has a value as a number`
@@ -13,7 +13,7 @@ from pathlib import Path
 
 from spell_core import List, StateMirror, StateWriter, Thing, core, prop
 
-EXPECTED = json.loads((Path(__file__).parents[3] / "core" / "stateById.expected.json").read_text(encoding="utf-8"))
+EXPECTED = json.loads((Path(__file__).parents[3] / "core" / "stateById.expected.json5").read_text(encoding="utf-8"))
 
 
 class Chip(Thing):

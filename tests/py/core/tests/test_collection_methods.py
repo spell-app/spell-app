@@ -18,7 +18,7 @@ from spell_core import core as program_core
 
 # What each seed must give:  shared with the JavaScript core's tests.
 EXPECTED: dict[str, Any] = json.loads(
-    (Path(__file__).parents[3] / "core" / "seededRandom.expected.json").read_text(encoding="utf-8")
+    (Path(__file__).parents[3] / "core" / "seededRandom.expected.json5").read_text(encoding="utf-8")
 )
 
 

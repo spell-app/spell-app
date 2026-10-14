@@ -1039,7 +1039,7 @@ a reference after (epic `people-and-orgs`, decision Q42).  A kind that says so i
     - under `tests/`:  `tests/spaces/@spell/test/fizzbuzz` => `build/spaces/@spell/test/fizzbuzz`
     - in spell-spaces:  `@spell/owen@/errors` => `build/spell-spaces/@spell/owen@/errors`
   - The files:  `<Project>.spell.js`, `.spell.tsx`, `.spell.py`, `.elements.spell.js` and `.scopes.js`.
-  - Committed beside the source:  everything else, e.g. `<Project>.declarations.json`, `.en.js`, `.py.en.json`,
+  - Committed beside the source:  everything else, e.g. `<Project>.declarations.json5`, `.en.js`, `.py.en.json5`,
     `.lib.ts`, `.app.py`.
   - Every reader asks for a file by project and name, as for any file;
     ONE mapping decides where it is on disk:  the server's `serverPath` (`isBuiltFile()`, `buildFolderFor()`,
@@ -1070,7 +1070,7 @@ a reference after (epic `people-and-orgs`, decision Q42).  A kind that says so i
   - a project's index:  `/api/projects/index/<project>`
   - a group's projects:  `/api/projects/list/<group>`, e.g. `/api/projects/list/owen@spell`
   - What spell builds is read as a file too, e.g. `/spaces/@spell/examples/solitaire/solitaire.spell.js`,
-    `.scopes.js`, `.declarations.json`, `.en.js`:  the server finds a built one in the build folder.
+    `.scopes.js`, `.declarations.json5`, `.en.js`:  the server finds a built one in the build folder.
   - Where the project ends:  its group's address, then ONE part (`SpellUrls.split()`);  the file follows, its name
     with a dot (decision Q41).
     - each part is encoded and decoded on its own, never the whole address
@@ -1087,7 +1087,7 @@ a reference after (epic `people-and-orgs`, decision Q42).  A kind that says so i
   - Every file gets a `FileScope` under it, and SHARES that parser.
 - So one file's types, constants and rules are visible to every later file.
 - Another project can come in WITHOUT its sources, as its declarations (`SP.SpellDeclarations`).
-  - They're in `<Project>.declarations.json`, committed beside its source (epic `output-targets` P5).
+  - They're in `<Project>.declarations.json5`, committed beside its source (epic `output-targets` P5).
   - Before that they were inline in the compiled JS, and `fromComments()` still reads those.
   - While compiling, `Block.getAST()` puts a MARKER right on each declaring statement's code.
     - It's a `/*! SPELL: DECLARES {...} */` comment.
@@ -1141,7 +1141,7 @@ a reference after (epic `people-and-orgs`, decision Q42).  A kind that says so i
   - `SpellProject.projectImports`:  the entries of `imports` that name a project.
     They're in `project.json`.
     - e.g. `@spell/library/cards` ~== `@spell/library/cards`
-    - Its "Loading" task reads each one's `<Project>.declarations.json`.
+    - Its "Loading" task reads each one's `<Project>.declarations.json5`.
       - That's `SpellProject.declarationsOf()`.
       - It then builds the `ImportScope` our scope goes under.
     - `source: true` instead parses that project's `.spell` files ahead of ours.
@@ -1263,7 +1263,7 @@ a reference after (epic `people-and-orgs`, decision Q42).  A kind that says so i
     - `js/solid`, by `P.JSWriter`:  ALWAYS compiled, as it's what runs
     - `ts/solid`, by `P.TSWriter`:  checked by `tsc`
     - `py`, by `PY.PyWriter`:  Python on asyncio, checked by pyright
-      - with a words file of its own, by Python's names:  `<Project>.py.en.json`
+      - with a words file of its own, by Python's names:  `<Project>.py.en.json5`
     - `ts/lib`, by `P.LibraryWriter`:  a LIBRARY, the project's classes alone, for other code to import
       (epic `people-and-orgs` P3)
       - one TypeScript file, `<Project>.lib.ts`, its own types, checked by `tsc`

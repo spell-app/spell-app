@@ -11,7 +11,7 @@ import { ParkMiller } from "$/core/ParkMiller"
  *   (`packages/py/core/tests/test_seeded_random.py`).
  */
 const EXPECTED = JSON.parse(
-  readFileSync(resolve(import.meta.dirname, "..", "seededRandom.expected.json"), "utf8")
+  readFileSync(resolve(import.meta.dirname, "..", "seededRandom.expected.json5"), "utf8")
 ) as SeededRandomExpected
 
 // a test that seeds leaves the next one random again, as an unseeded program is
@@ -75,7 +75,7 @@ describe("spellCore.shuffled()", () => {
   })
 })
 
-/** The shape of `seededRandom.expected.json`. */
+/** The shape of `seededRandom.expected.json5`. */
 type SeededRandomExpected = {
   /** how it was made */
   about: string[]

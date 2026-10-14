@@ -118,7 +118,7 @@ export function fixtureProjectNames(): string[] {
 /**
  * Fixture `projectName` compiled as `SpellProject` would write its `<Project>.spell.js`.
  * - Parsed headlessly, with `parseSpellProject()`:  `import`s, then each file's code in `project.json` order.
- * - Its declarations, as its `<Project>.declarations.json`:  `fixtureDeclarations()`.
+ * - Its declarations, as its `<Project>.declarations.json5`:  `fixtureDeclarations()`.
  * - `target`:  compiled for that target, e.g. `ts/solid` (see `SP.TARGETS`);
  *   or a writer itself, e.g. a test's own.
  */
@@ -131,7 +131,7 @@ export function fixtureDraws(projectName: string): boolean {
   return compileFixture(projectName).draws
 }
 
-/** Fixture `projectName`'s declarations, as its `<Project>.declarations.json` would hold them -- see `compileFixture()`. */
+/** Fixture `projectName`'s declarations, as its `<Project>.declarations.json5` would hold them -- see `compileFixture()`. */
 export function fixtureDeclarations(projectName: string): string {
   return JSON.stringify(compileFixture(projectName).declarations, null, 2) + "\n"
 }

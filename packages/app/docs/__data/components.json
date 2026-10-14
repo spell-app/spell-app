@@ -56,7 +56,7 @@
         {
           "name": "src",
           "kind": "string",
-          "description": "What to run, from anywhere:  `apps/Solitaire.spell.js`.  Its scope pack (`Solitaire.scopes.js`), declarations (`Solitaire.declarations.json`), words (`Solitaire.en.js`) and the projects it imports (`Cards.spell.js`) are beside it."
+          "description": "What to run, from anywhere:  `apps/Solitaire.spell.js`.  Its scope pack (`Solitaire.scopes.js`), declarations (`Solitaire.declarations.json5`), words (`Solitaire.en.js`) and the projects it imports (`Cards.spell.js`) are beside it."
         },
         {
           "name": "scopes",

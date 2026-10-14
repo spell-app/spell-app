@@ -31,7 +31,7 @@ export type Target = {
    */
   checkedBy?: "tsc" | "pyright"
   /**
-   * End of the name of its own words file, beside its output, e.g. `.py.en.json`:  spell's wording of each member,
+   * End of the name of its own words file, beside its output, e.g. `.py.en.json5`:  spell's wording of each member,
    * keyed by THIS target's names (`move_to_pile`) -- see `SP.SpellWords.json()`.
    * - `js/solid`'s words are `<Project>.en.js`, which every runner loads -- see `SP.SpellProject.wordsFile`.
    */
@@ -82,7 +82,7 @@ export const TARGETS: Record<string, Target> = {
     writer: PY.PyWriter.instance,
     suffix: COMPILED_PY_SUFFIX,
     can: { draw: "html" },
-    wordsSuffix: ".py.en.json",
+    wordsSuffix: ".py.en.json5",
     elementsSuffix: ELEMENTS_JS_SUFFIX,
     appSuffix: ".app.py",
     checkedBy: "pyright"

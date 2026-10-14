@@ -312,7 +312,7 @@ export type SpellAppSource = {
   scopesUrl?: string
   /** Its scope pack, in memory -- used instead of loading `scopesUrl`, e.g. fresh from an editor. */
   scopes?: LSP.ScopePack
-  /** URL of its declarations, `<Project>.declarations.json`, if it may have them:  where the Type Explorer finds code. */
+  /** URL of its declarations, `<Project>.declarations.json5`, if it may have them:  where the Type Explorer finds code. */
   declarationsUrl?: string
   /** Its declarations, in memory -- used instead of loading `declarationsUrl`, e.g. fresh from an editor. */
   declarations?: CompiledDeclarations
