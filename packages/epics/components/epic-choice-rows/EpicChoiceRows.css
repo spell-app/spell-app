@@ -6,6 +6,7 @@
  *   - Fixed shares (19 / 22 / 27 / the rest):  long code wraps in its cell instead of pushing Recommended off to the
  *     right.  Under 720px the grid keeps that width and scrolls inside its own box.
  *   - `no-file`:  Purpose, a sentence, takes File's room;  `stacked`:  one Syntax column for Current and the box.
+ *   - `reorder`:  an Order column first, as narrow as its place and two buttons, before the shares (`--_epic-choice-cols`).
  * - A row whose box Owen changed:  an orange box, an orange edge on the row.
  * - Public tokens (`--epic-choice-rows-*`) are never declared here:  read through private aliases.
  */
@@ -31,18 +32,22 @@
 
   /* ## The grid */
   .table {
+    --_epic-choice-cols: 19fr 22fr 27fr 32fr;
     display: grid;
-    grid-template-columns: 19fr 22fr 27fr 32fr;
+    grid-template-columns: var(--_epic-choice-cols);
     min-width: 720px;
   }
   .table.no-file {
-    grid-template-columns: 38fr 30fr 32fr;
+    --_epic-choice-cols: 38fr 30fr 32fr;
   }
   .table.stacked {
-    grid-template-columns: 19fr 30fr 51fr;
+    --_epic-choice-cols: 19fr 30fr 51fr;
   }
   .table.stacked.no-file {
-    grid-template-columns: 45fr 55fr;
+    --_epic-choice-cols: 45fr 55fr;
+  }
+  .table.reorder {
+    grid-template-columns: max-content var(--_epic-choice-cols);
   }
   .head {
     display: grid;
@@ -120,6 +125,22 @@
     margin-bottom: 4px;
   }
 
+  /* Order:  the place, then move up and move down, small and grey until pointed at */
+  .order {
+    display: flex;
+    align-items: flex-start;
+    gap: 2px;
+    white-space: nowrap;
+  }
+  .place {
+    min-width: 1.6em;
+    padding-top: 2px;
+    color: var(--_epic-choice-muted);
+    font-size: 0.85em;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
   /* Recommended:  a mono box growing with its text, the reset button beside it once it differs */
   .field {
     display: flex;
@@ -144,7 +165,8 @@
     outline-offset: -1px;
   }
   /* the round "back to the recommendation" button:  just the icon, grey, the accent on hover */
-  .reset {
+  .reset,
+  .move {
     display: inline-grid;
     flex: none;
     place-items: center;
@@ -157,12 +179,18 @@
     color: var(--_epic-choice-muted);
     cursor: pointer;
   }
-  .reset:is(:hover, :focus-visible) {
+  .move:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .reset:is(:hover, :focus-visible),
+  .move:not(:disabled):is(:hover, :focus-visible) {
     background: color-mix(in oklab, var(--ui-text-color, CanvasText) 8%, transparent);
     color: var(--ui-link, LinkText);
   }
   /* the tooltip is the button's own:  the pointer lands on it, not the icon */
-  .reset ui-icon {
+  .reset ui-icon,
+  .move ui-icon {
     pointer-events: none;
   }
 }

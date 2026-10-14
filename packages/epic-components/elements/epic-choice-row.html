@@ -208,6 +208,20 @@
                       <td>Its cells, laid out on its table's columns.</td>
                     </tr>
                     <tr>
+                      <td><code>order</code></td>
+                      <td>
+                        The Order cell, in a table Owen puts in order: its place, and its move up / move down buttons.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><code>up</code></td>
+                      <td>The move up button: it swaps places with the row above.</td>
+                    </tr>
+                    <tr>
+                      <td><code>down</code></td>
+                      <td>The move down button: it swaps places with the row below.</td>
+                    </tr>
+                    <tr>
                       <td><code>file</code></td>
                       <td>The File cell: the file's name and line, a link into VS Code; its folder under it.</td>
                     </tr>
@@ -268,6 +282,11 @@
             ><ui-icon slot="icon" name="palette"></ui-icon>
             <ul>
               <li>
+                Order, in a table with <code>reorder</code> (epic <code>epic-workflow</code> P15): its place, then two
+                small grey chevrons, move up and move down, dimmed at either end. A move swaps it with its neighbour,
+                and the focus stays on the button pressed.
+              </li>
+              <li>
                 File: the file's name and line, a link that opens VS Code at the line; its folder under it, small.
               </li>
               <li>
@@ -293,7 +312,7 @@
           <footer class="site-page-footer">
             <ui-divider></ui-divider>
             <p class="meta">
-              Last checked 2026-10-14 against branch <code>epic-workflow</code> (P12): the tables are its vocabulary's
+              Last checked 2026-10-14 against branch <code>epic-workflow</code> (P12, P15): the tables are its vocabulary's
               (epic-choice-row); the rest from its component and its stylesheet.
             </p>
           </footer>

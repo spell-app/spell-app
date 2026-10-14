@@ -226,6 +226,11 @@
           "title": "1. Example"
         },
         {
+          "id": "1-reorder",
+          "title": "With reorder",
+          "parent": 0
+        },
+        {
           "id": "2-markup",
           "title": "2. Markup"
         },
@@ -240,12 +245,12 @@
         {
           "id": "epic-choice-rows-slots",
           "title": "Slots",
-          "parent": 3
+          "parent": 4
         },
         {
           "id": "epic-choice-rows-parts",
           "title": "Parts",
-          "parent": 3
+          "parent": 4
         },
         {
           "id": "5-how-it-looks",

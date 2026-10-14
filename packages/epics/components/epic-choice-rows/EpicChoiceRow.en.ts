@@ -20,7 +20,8 @@ export const epicChoiceRowVocabulary = {
     "One row of a syntax-choices page (epic `epic-workflow` P12), in an `<epic-choice-rows>`:  the use site " +
     "(File, opening VS Code at the line), what it's for, how it reads today, and a box pre-filled with Claude's " +
     "recommendation.  Owen types over it, or leaves it;  a changed box is orange, with a round button putting " +
-    "the recommendation back.",
+    "the recommendation back.  In a table Owen puts in order (`<epic-choice-rows reorder>`), its place first, " +
+    "with move up / move down.",
   attributes: [
     {
       name: "name",
@@ -52,6 +53,12 @@ export const epicChoiceRowVocabulary = {
   parts: [
     { name: "base", description: "Its cells, laid out on its table's columns." },
     {
+      name: "order",
+      description: "The Order cell, in a table Owen puts in order:  its place, and its move up / move down buttons."
+    },
+    { name: "up", description: "The move up button:  it swaps places with the row above." },
+    { name: "down", description: "The move down button:  it swaps places with the row below." },
+    {
       name: "file",
       description: "The File cell:  the file's name and line, a link into VS Code;  its folder under it."
     },
@@ -70,7 +77,9 @@ export const epicChoiceRowVocabulary = {
     { key: "boxLabel", text: "Recommended for {current}", description: "The box's name, for a screen reader." },
     { key: "reset", text: "Back to the recommendation", description: "The reset button's name." },
     { key: "resetTip", text: "Back to {recommended}", description: "The reset button's tooltip." },
-    { key: "openTip", text: "Open {file}:{line} in VS Code", description: "The file link's tooltip." }
+    { key: "openTip", text: "Open {file}:{line} in VS Code", description: "The file link's tooltip." },
+    { key: "up", text: "Move up", description: "The move up button's name and tooltip." },
+    { key: "down", text: "Move down", description: "The move down button's name and tooltip." }
   ],
   children: []
 } as const satisfies EpicVocabulary

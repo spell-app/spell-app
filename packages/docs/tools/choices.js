@@ -146,8 +146,11 @@ export function checkData(data) {
     throw new Error(`rows:  fileColumn is true or false:  ${json(data.fileColumn)}`)
   if (data.stacked !== undefined && typeof data.stacked !== "boolean")
     throw new Error(`rows:  stacked is true or false:  ${json(data.stacked)}`)
-  for (const section of sections)
+  for (const section of sections) {
     if (!section?.id || !section.title) throw new Error(`rows:  a section needs an id and a title:  ${json(section)}`)
+    if (section.reorder !== undefined && typeof section.reorder !== "boolean")
+      throw new Error(`rows:  a section's reorder is true or false:  ${json(section)}`)
+  }
   const known = new Set(sections.map((section) => section.id))
   if (!Array.isArray(data.rows) || !data.rows.length) throw new Error("rows:  no rows")
   const ids = new Set()
@@ -258,6 +261,7 @@ export function formatAnswer(page, answer) {
     }
   }
   if (!changed.length) lines.push("    (none)")
+  lines.push(...formatOrder(sections, rows, answer.order ?? {}))
   const unknown = Object.keys(values).filter((id) => !rows.some((row) => row.id === id))
   if (unknown.length) lines.push(`  Rows no longer on the page, ignored:  ${unknown.join(", ")}`)
   const accepted = rows.filter((row) => !(row.id in values))
@@ -267,6 +271,30 @@ export function formatAnswer(page, answer) {
   )
   lines.push(answer.feedback ? `  Feedback:\n${indent(answer.feedback, "    ")}` : "  Feedback:  (none)")
   return lines.join("\n")
+}
+
+/**
+ * The order Owen left each reorderable section's rows in (`reorder: true`), as lines for `formatAnswer()`:  "as
+ * proposed", or the rows in his order, each with its place in Claude's (`was 3`).
+ * - a section the answer has no order for:  as proposed;  a row it doesn't name:  after the rest, in Claude's order
+ */
+export function formatOrder(sections, rows, order) {
+  const lines = []
+  for (const section of sections.filter((each) => each.reorder)) {
+    const proposed = rows.filter((row) => row.section === section.id)
+    const named = (order[section.id] ?? []).flatMap((id) => proposed.filter((row) => row.id === id))
+    const now = [...named, ...proposed.filter((row) => !named.includes(row))]
+    if (now.every((row, i) => row === proposed[i])) {
+      lines.push(`  Order of ${section.title}:  as proposed`)
+      continue
+    }
+    lines.push(`  Order of ${section.title} (Owen moved rows):`)
+    now.forEach((row, i) => {
+      const was = proposed.indexOf(row)
+      lines.push(`    ${i + 1}. ${row.id}  ${row.recommended}${was === i ? "" : `  (was ${was + 1})`}`)
+    })
+  }
+  return lines
 }
 
 /**
@@ -326,8 +354,11 @@ async function waitAndPrint(file, flags) {
  * - `stacked`:  `true` puts Current and Recommended in one Syntax column, today's text over the box (Owen, 2026-10-11,
  *   the epic command's review page).  Default:  two columns
  * - `where`:  `{ epic, justNow, decides }`, the "Where we are" box, as a details page's
- * - `sections[]`:  `{ id, title, description? }`, in page order;  `description`:  one line saying which question it
- *   answers and the recommended rule;  `` `code` `` in it is shown as code
+ * - `sections[]`:  `{ id, title, description?, icon?, reorder? }`, in page order;  `description`:  one line saying
+ *   which question it answers and the recommended rule;  `` `code` `` in it is shown as code
+ *   - `reorder`:  `true` lets Owen put its rows in order (epic `epic-workflow` P15):  each row gets its place and move
+ *     up / move down;  the order he leaves goes with the draft and "Do it" (`order`, by section id), and `answer`
+ *     prints it.  Its rows start in the data's order, Claude's proposal
  * - `rows[]`:  `{ id?, section, file, line, purpose, current, recommended, note? }`
  *   - `file`:  repo-relative;  `line`:  1-based, current at the branch's HEAD:  the page links `file:line` into VS Code
  *   - `purpose`:  what it's for, in words a reader new to it follows:  1-3 words for a name, or a short sentence

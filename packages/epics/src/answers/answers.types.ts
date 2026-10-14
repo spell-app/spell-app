@@ -119,12 +119,26 @@ export type ChoiceRowPart = {
   readonly value: string
   /** the box differs from the recommendation (trimmed) */
   readonly isChanged: boolean
+  /**
+   * its table's key when Owen can put its rows in order (`<epic-choice-rows reorder>`):  its section's id;
+   * `undefined` for a table that keeps its order
+   */
+  readonly orderKey: string | undefined
+  /** its place in its table, from 0 */
+  readonly orderIndex: number
   /** put `value` in its box:  a draft or an answer coming back */
   showValue(value: string): void
 }
 
-/** What a syntax-choices page sends:  the changed boxes by row id, and the feedback. */
-export type ChoicesValues = { values: Record<string, string>; feedback: string }
+/**
+ * What a syntax-choices page sends:  the changed boxes by row id, and the feedback.
+ * - `order`:  each table Owen can put in order (`<epic-choice-rows reorder>`), by its section's id:  its row ids in
+ *   the order he left them;  none without such a table
+ */
+export type ChoicesValues = { values: Record<string, string>; feedback: string; order?: ChoicesOrder }
+
+/** Each reorderable table's row ids, in the order Owen left them, by its section's id. */
+export type ChoicesOrder = Record<string, string[]>
 
 /** A syntax-choices page's draft (`<slug>.draft.json`):  its values, and when it was saved. */
 export type ChoicesDraft = ChoicesValues & { saved: string }

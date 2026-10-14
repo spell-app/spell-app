@@ -20,8 +20,8 @@ export const epicChoiceRowsVocabulary = {
   description:
     "One section's table on a syntax-choices page (epic `epic-workflow` P12):  the column heads File | Purpose | " +
     "Current | Recommended, then its rows, each an `<epic-choice-row>` whose Recommended box Owen types over.  " +
-    "It counts its section's rows on the section's title (`3 to rename · 1 stay · 1 changed`).  Under 720px it " +
-    "scrolls inside its own box.",
+    "It counts its section's rows on the section's title (`3 to change · 1 stay · 1 changed`).  With `reorder`, " +
+    "Owen puts the rows in order too (epic `epic-workflow` P15).  Under 720px it scrolls inside its own box.",
   attributes: [
     {
       name: "stacked",
@@ -33,6 +33,13 @@ export const epicChoiceRowsVocabulary = {
       kind: "boolean",
       description:
         "No File column (`fileColumn: false`):  for rows whose place in the code doesn't matter to the reader."
+    },
+    {
+      name: "reorder",
+      kind: "boolean",
+      description:
+        "Owen puts the rows in order (a section's `reorder: true`):  a first column, Order, with each row's place " +
+        'and its move up / move down buttons.  The order goes with the draft and "Do it".'
     }
   ],
   events: [],
@@ -49,10 +56,21 @@ export const epicChoiceRowsVocabulary = {
     { key: "current", text: "Current", description: "The Current column's head." },
     { key: "recommended", text: "Recommended", description: "The Recommended column's head." },
     { key: "syntax", text: "Syntax:  today, then yours", description: "The one column of `stacked`." },
+    { key: "order", text: "Order", description: "The Order column's head, with `reorder`." },
     {
       key: "count",
-      text: "{renames} to rename · {stay} stay",
+      text: "{renames} to change · {stay} stay",
       description: "Its section's badge:  the rows Claude would change, and those he'd keep."
+    },
+    {
+      key: "countOrdered",
+      text: "{rows} in order",
+      description: "Its section's badge with `reorder`:  how many rows there are to put in order."
+    },
+    {
+      key: "countMoved",
+      text: "{count} · moved",
+      description: "Its section's badge with `reorder`, once Owen moved a row from the order Claude proposed."
     },
     {
       key: "countChanged",

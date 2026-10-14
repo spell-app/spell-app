@@ -6,14 +6,16 @@ import { E } from "$/ui/core"
 import { ChoicesForm, type ChoiceRowPart } from "$/epics/answers"
 
 import { epicChoiceRowVocabulary } from "./EpicChoiceRow.en"
-import { ROWS_TAG } from "./EpicChoiceRows.types"
+import { ROW_TAG, ROWS_TAG } from "./EpicChoiceRows.types"
 
 import rowsCSS from "./EpicChoiceRows.css?inline"
 
 /****************
  * ### `EpicChoiceRow`
  * The component behind `<epic-choice-row>`:  one row of a syntax-choices page (epic `epic-workflow` P12).
- * - Its cells, on its `<epic-choice-rows>`' columns (the table's `no-file` and `stacked` say which):
+ * - Its cells, on its `<epic-choice-rows>`' columns (the table's `no-file`, `stacked` and `reorder` say which):
+ *   - Order, with `reorder` (epic `epic-workflow` P15):  its place, and move up / move down, which swap it with the
+ *     row above or below.  The neighbour is the element moved, so this row keeps the focus for the next press.
  *   - File:  the file's name and line, a link into VS Code (`vscode://file/...:<line>`);  its folder under it.
  *     In VS Code's side bar the page's frame can't follow `vscode://`, so a click there goes to the view as
  *     `{ spell: "open", kind: "external" }`, which hands it to VS Code (`packages/vscode/src/DocView.ts`).
@@ -57,8 +59,41 @@ export class EpicChoiceRow extends E.UIComponent<typeof epicChoiceRowVocabulary>
     return this.recommended === this.current
   }
 
-  /** Its table's layout:  no File column, Current and Recommended stacked.  Read again as it connects. */
+  /** Its table's layout:  no File column, Current and Recommended stacked, rows in order.  Read again as it connects. */
   @E.state accessor layout = EpicChoiceRow.layoutOf(this.domElement)
+
+  /** The page's form's `version`, as last heard:  `place` reads it, so a move elsewhere redraws it. */
+  @E.state accessor version = 0
+
+  /** Its table's key when Owen puts its rows in order:  its section's id (`ChoiceRowPart`). */
+  get orderKey(): string | undefined {
+    if (isServer || !this.layout.reorder) return undefined
+    return this.domElement.closest("ui-section")?.id ?? ROWS_TAG
+  }
+
+  /** Its place among its table's rows, from 0. */
+  get orderIndex(): number {
+    if (isServer) return 0
+    return this.siblings.indexOf(this.domElement)
+  }
+
+  /** Its place, from 1, for the Order cell. */
+  get place(): number {
+    void this.version
+    return this.orderIndex + 1
+  }
+
+  /** It's the last of its table's rows:  no move down. */
+  get isLast(): boolean {
+    void this.version
+    const siblings = this.siblings
+    return siblings.at(-1) === this.domElement
+  }
+
+  /** Its table's rows' elements, itself among them. */
+  private get siblings(): Element[] {
+    return Array.from(this.domElement.parentElement?.children ?? []).filter((each) => each.localName === ROW_TAG)
+  }
 
   /** Its box, as drawn. */
   private box: HTMLTextAreaElement | undefined
@@ -66,13 +101,20 @@ export class EpicChoiceRow extends E.UIComponent<typeof epicChoiceRowVocabulary>
   /** The page's form, while it's registered there. */
   private form: ChoicesForm | undefined
 
-  /** While connected:  its table's layout read, and its box part of the page's form;  returns the undo. */
+  /**
+   * While connected:  its table's layout read, its box part of the page's form, and the form followed (a move redraws
+   * every place);  returns the undo.
+   */
   @E.whileConnected
   protected joinForm() {
     this.layout = EpicChoiceRow.layoutOf(this.domElement)
-    this.form = ChoicesForm.forPage()
-    const leave = this.form.add(this)
+    const form = ChoicesForm.forPage()
+    this.form = form
+    const leave = form.add(this)
+    this.version = form.version
+    const unsubscribe = form.subscribe(() => (this.version = form.version))
     return () => {
+      unsubscribe()
       leave()
       this.form = undefined
     }
@@ -90,6 +132,7 @@ export class EpicChoiceRow extends E.UIComponent<typeof epicChoiceRowVocabulary>
   render(): JSX.Element {
     return (
       <div class={[this.rootClass, ROW_BOX]} part={this.partForName("base")}>
+        <Show when={this.layout.reorder}>{this.orderCell()}</Show>
         <Show when={!this.layout.noFile}>{this.fileCell()}</Show>
         <div class={[CELL, PURPOSE]} part={this.partForName("purpose")} role="cell">
           {this.purpose}
@@ -139,6 +182,37 @@ export class EpicChoiceRow extends E.UIComponent<typeof epicChoiceRowVocabulary>
             </Show>
           </div>
         </div>
+      </div>
+    )
+  }
+
+  /** The Order cell:  its place, then move up and move down (none past either end). */
+  private orderCell(): JSX.Element {
+    return (
+      <div class={[CELL, ORDER]} part={this.partForName("order")} role="cell">
+        <span class={PLACE}>{this.place}</span>
+        <button
+          type="button"
+          class={MOVE}
+          part={this.partForName("up")}
+          aria-label={this.translationForKey("up")}
+          title={this.translationForKey("up")}
+          disabled={this.place === 1}
+          onClick={this.onUp}
+        >
+          <ui-icon name="chevron up" />
+        </button>
+        <button
+          type="button"
+          class={MOVE}
+          part={this.partForName("down")}
+          aria-label={this.translationForKey("down")}
+          title={this.translationForKey("down")}
+          disabled={this.isLast}
+          onClick={this.onDown}
+        >
+          <ui-icon name="chevron down" />
+        </button>
       </div>
     )
   }
@@ -197,6 +271,22 @@ export class EpicChoiceRow extends E.UIComponent<typeof epicChoiceRowVocabulary>
     if (event.key === "Enter") event.preventDefault()
   }
 
+  /** Move up:  the row above goes below this one;  the form told. */
+  private readonly onUp = () => {
+    const above = this.domElement.previousElementSibling
+    if (above?.localName !== ROW_TAG) return
+    this.domElement.after(above)
+    this.form?.changed()
+  }
+
+  /** Move down:  the row below goes above this one;  the form told. */
+  private readonly onDown = () => {
+    const below = this.domElement.nextElementSibling
+    if (below?.localName !== ROW_TAG) return
+    this.domElement.before(below)
+    this.form?.changed()
+  }
+
   /** The reset button:  the recommendation back in the box, the cursor in it. */
   private readonly onReset = () => {
     this.typed = undefined
@@ -212,9 +302,13 @@ export class EpicChoiceRow extends E.UIComponent<typeof epicChoiceRowVocabulary>
   }
 
   /** Its table's layout, from the `<epic-choice-rows>` it's in. */
-  private static layoutOf(element: Element): { noFile: boolean; stacked: boolean } {
+  private static layoutOf(element: Element): { noFile: boolean; stacked: boolean; reorder: boolean } {
     const rows = element.closest(ROWS_TAG)
-    return { noFile: !!rows?.hasAttribute("no-file"), stacked: !!rows?.hasAttribute("stacked") }
+    return {
+      noFile: !!rows?.hasAttribute("no-file"),
+      stacked: !!rows?.hasAttribute("stacked"),
+      reorder: !!rows?.hasAttribute("reorder")
+    }
   }
 }
 
@@ -225,6 +319,9 @@ export interface EpicChoiceRow extends E.AttributeValues<typeof epicChoiceRowVoc
 /** Its cells' box:  out of the way (`display: contents`), so the cells sit on the table's columns. */
 const ROW_BOX = "row-box"
 const CELL = "cell"
+const ORDER = "order"
+const PLACE = "place"
+const MOVE = "move"
 const FILE = "file"
 const LINK = "link"
 const LINE = "line"

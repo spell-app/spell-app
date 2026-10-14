@@ -18,6 +18,9 @@
  * - `values`:  row id -> what's in its box, ONLY the rows that differ from the recommendation;
  *   ids not in the rows file are a 400 (a page older than its rows:  reload it)
  *   - a page naming its rows keys its boxes as it likes (`IsGtLt.py`):  unchecked
+ * - `order` (optional, epic `epic-workflow` P15):  section id -> its row ids in the order Owen left them, for each
+ *   section he puts in order (`reorder: true`);  kept in the draft and the answer as sent;
+ *   an id not in the rows file is a 400, as in `values`
  * - every POST needs the page server's token (`x-server-token`) and its own origin (`SRV.Guard`)
  * - Shares nothing with `choices.js` at runtime (that's plain node JS):  the file names are said again here.
  */
@@ -48,12 +51,12 @@ const choicesRoutes: RouteModule = {
     })
     api.use(guard.writeCheck, SRV.parseBodies({ limit: MAX_BODY }))
     api.post("/draft", (request, reply) => {
-      const { file, page, values, feedback } = toChoices(web.files, request.body)
-      reply.json({ ok: true, draft: saveDraft(file, page, values, feedback) })
+      const { file, page, values, feedback, order } = toChoices(web.files, request.body)
+      reply.json({ ok: true, draft: saveDraft(file, page, values, feedback, order) })
     })
     api.post("/answer", (request, reply) => {
-      const { file, page, values, feedback } = toChoices(web.files, request.body)
-      reply.json({ ok: true, answer: saveAnswer(file, page, values, feedback) })
+      const { file, page, values, feedback, order } = toChoices(web.files, request.body)
+      reply.json({ ok: true, answer: saveAnswer(file, page, values, feedback, order) })
     })
     router.use(API, api)
   }
@@ -90,10 +93,17 @@ const DECLARED_ROWS = /<body\b[^>]*\bdata-choices-rows="([^"]*)"/
 
 /**
  * Save what was typed on page `file` to `<slug>.draft.json`;  return what was written.
+ * - `order`:  the reorderable sections' rows in Owen's order, kept only when given
  * - atomic (`writeJson()`);  SIDE EFFECT:  writes the file
  */
-export function saveDraft(file: string, page: string, values: ChoicesValues, feedback: string): ChoicesDraft {
-  const draft: ChoicesDraft = { page, saved: new Date().toISOString(), values, feedback }
+export function saveDraft(
+  file: string,
+  page: string,
+  values: ChoicesValues,
+  feedback: string,
+  order?: ChoicesOrder
+): ChoicesDraft {
+  const draft: ChoicesDraft = { page, saved: new Date().toISOString(), values, feedback, ...(order && { order }) }
   writeJson(draftFile(file), draft)
   return draft
 }
@@ -104,26 +114,39 @@ export function saveDraft(file: string, page: string, values: ChoicesValues, fee
  * - atomic (`writeJson()`):  `spell dev choices wait` never reads half a file
  * - SIDE EFFECT:  writes both files
  */
-export function saveAnswer(file: string, page: string, values: ChoicesValues, feedback: string): ChoicesAnswer {
+export function saveAnswer(
+  file: string,
+  page: string,
+  values: ChoicesValues,
+  feedback: string,
+  order?: ChoicesOrder
+): ChoicesAnswer {
   const before = readJson<ChoicesAnswer>(answerFile(file))
   const answer: ChoicesAnswer = {
     page,
     answered: new Date().toISOString(),
     changes: before ? before.changes + 1 : 0,
     values,
-    feedback
+    feedback,
+    ...(order && { order })
   }
-  saveDraft(file, page, values, feedback)
+  saveDraft(file, page, values, feedback, order)
   writeJson(answerFile(file), answer)
   return answer
 }
 
 /**
- * A POST's body, checked:  the page's file and path, its values, the feedback (trimmed).
- * - 400 unless `values` is an object of strings keyed by the page's row ids
+ * A POST's body, checked:  the page's file and path, its values, the feedback (trimmed), the order if sent.
+ * - 400 unless `values` is an object of strings keyed by the page's row ids,
+ *   and `order` (if any) an object of lists of them
  */
 function toChoices(files: SRV.StaticHandler, body: unknown) {
-  const { page, values, feedback } = (body ?? {}) as { page?: unknown; values?: unknown; feedback?: unknown }
+  const { page, values, feedback, order } = (body ?? {}) as {
+    page?: unknown
+    values?: unknown
+    feedback?: unknown
+    order?: unknown
+  }
   const file = choicesPage(files, page)
   if (!values || typeof values !== "object" || Array.isArray(values)) throw new SRV.HttpError(400, "no values")
   // a page naming its own rows (`declaredRows()`) has none beside it:  its ids aren't checked
@@ -134,7 +157,26 @@ function toChoices(files: SRV.StaticHandler, body: unknown) {
     if (ids && !ids.has(id)) throw new SRV.HttpError(400, `no row '${id}' on this page:  reload it`)
   }
   if (feedback !== undefined && typeof feedback !== "string") throw new SRV.HttpError(400, "bad feedback")
-  return { file, page: page as string, values: values as ChoicesValues, feedback: (feedback ?? "").trim() }
+  return {
+    file,
+    page: page as string,
+    values: values as ChoicesValues,
+    feedback: (feedback ?? "").trim(),
+    order: toOrder(order, ids)
+  }
+}
+
+/** A POST's `order`, checked against the page's row ids (`ids`;  none for a page naming its own rows). */
+function toOrder(order: unknown, ids: Set<string> | null): ChoicesOrder | undefined {
+  if (order === undefined) return undefined
+  if (!order || typeof order !== "object" || Array.isArray(order)) throw new SRV.HttpError(400, "bad order")
+  for (const [section, list] of Object.entries(order)) {
+    if (!Array.isArray(list) || !list.every((id) => typeof id === "string"))
+      throw new SRV.HttpError(400, `bad order for ${section}`)
+    const unknown = list.find((id) => ids && !ids.has(id))
+    if (unknown !== undefined) throw new SRV.HttpError(400, `no row '${unknown}' on this page:  reload it`)
+  }
+  return order as ChoicesOrder
 }
 
 ////////////////
@@ -174,22 +216,27 @@ function writeJson(file: string, data: unknown) {
 /** What's in the boxes that differ from the recommendation:  row id -> typed text (maybe blank). */
 export type ChoicesValues = Record<string, string>
 
+/** Each section Owen puts in order (`reorder: true`):  section id -> its row ids, in his order. */
+export type ChoicesOrder = Record<string, string[]>
+
 /**
  * A page's `<slug>.draft.json`:  what was typed, not sent.
  * - `page`:  the page's URL path, as sent;  `saved`:  when, ISO
  * - `values`:  the changed boxes;  `feedback`:  the toolbar's text, trimmed
+ * - `order`:  the reorderable sections' rows in Owen's order, when the page has any
  */
 export type ChoicesDraft = {
   page: string
   saved: string
   values: ChoicesValues
   feedback: string
+  order?: ChoicesOrder
 }
 
 /**
  * A page's `<slug>.answer.json`:  what "Do it" sent.
  * - `answered`:  when, ISO;  `changes`:  how often it was sent again (0:  the first time)
- * - `values`, `feedback`:  as the draft's
+ * - `values`, `feedback`, `order`:  as the draft's
  */
 export type ChoicesAnswer = {
   page: string
@@ -197,4 +244,5 @@ export type ChoicesAnswer = {
   changes: number
   values: ChoicesValues
   feedback: string
+  order?: ChoicesOrder
 }

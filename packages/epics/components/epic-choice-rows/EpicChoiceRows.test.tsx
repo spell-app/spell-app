@@ -70,12 +70,12 @@ describe("<epic-choice-rows>, <epic-choice-row>", () => {
   test("counts its section:  renames and rows that stay, then what Owen changed;  a changed box orange, with its reset", async () => {
     const root = await ElementFixture.render(section())
     await ElementFixture.settle()
-    expect(root.getAttribute("badge")).toBe("1 to rename · 1 stay")
+    expect(root.getAttribute("badge")).toBe("1 to change · 1 stay")
     const [, stays] = rows(root) as [Element, Element]
     expect(part(stays, "purpose")!.textContent).toContain("stays")
     await type(stays, "UI.dark")
     expect(stays.matches(":state(changed)")).toBe(true)
-    expect(root.getAttribute("badge")).toBe("1 to rename · 1 stay · 1 changed")
+    expect(root.getAttribute("badge")).toBe("1 to change · 1 stay · 1 changed")
     expect(ChoicesForm.forPage().collect()).toEqual({ "q1-A-9": "UI.dark" })
     part(stays, "reset")!.click()
     await ElementFixture.settle()
@@ -105,5 +105,48 @@ describe("<epic-choice-rows>, <epic-choice-row>", () => {
     const [row] = rows(root) as [Element]
     expect([part(row, "file"), part(row, "current")]).toEqual([null, null])
     expect(part(row, "pick")!.querySelector("code")!.textContent).toBe("this.open")
+  })
+
+  test("`reorder`:  an Order column first, each row's place;  move up / down swap rows, keep the focus, and go in the form's order", async () => {
+    const root = await ElementFixture.render(
+      section("no-file reorder").replace(
+        "</epic-choice-rows>",
+        `<epic-choice-row name="q1-B-1" file="B.ts" line="1" purpose="third" current="c" recommended="c"></epic-choice-row></epic-choice-rows>`
+      )
+    )
+    await ElementFixture.settle()
+    const table = root.querySelector("epic-choice-rows")!
+    expect(Array.from(part(table, "head")!.children, (head) => head.textContent)).toEqual([
+      "Order",
+      "Purpose",
+      "Current",
+      "Recommended"
+    ])
+    expect(root.getAttribute("badge")).toBe("3 in order")
+    const [first, second] = rows(root) as [Element, Element, Element]
+    expect(part(first, "order")!.textContent).toContain("1")
+    expect(part<HTMLButtonElement>(first, "up")!.disabled).toBe(true)
+    part<HTMLButtonElement>(second, "up")!.focus()
+    part(second, "up")!.click()
+    await ElementFixture.settle()
+    expect(rows(root).map((row) => row.getAttribute("name"))).toEqual(["q1-A-9", "q1-A-7", "q1-B-1"])
+    expect(second.shadowRoot!.activeElement).toBe(part(second, "up"))
+    expect(part(second, "order")!.textContent).toContain("1")
+    expect(part(first, "order")!.textContent).toContain("2")
+    expect(root.getAttribute("badge")).toBe("3 in order · moved")
+    part(first, "down")!.click()
+    await ElementFixture.settle()
+    expect(ChoicesForm.forPage().collectOrder()).toEqual({ q1: ["q1-A-9", "q1-B-1", "q1-A-7"] })
+    expect(part<HTMLButtonElement>(first, "down")!.disabled).toBe(true)
+    await expectAccessible(table)
+  })
+
+  test("`reorder`:  the order read back on load puts the rows in it, once", async () => {
+    const form = ChoicesForm.forPage()
+    form.restoredOrder = { q1: ["q1-A-9", "q1-A-7"] }
+    const root = await ElementFixture.render(section("reorder"))
+    await ElementFixture.settle()
+    expect(rows(root).map((row) => row.getAttribute("name"))).toEqual(["q1-A-9", "q1-A-7"])
+    expect(root.getAttribute("badge")).toBe("2 in order · moved")
   })
 })

@@ -179,6 +179,35 @@ test("the answer as text:  changed rows by section, the count accepted, the feed
   )
 })
 
+test("reorder:  a section's rows keep the data's order, its table says reorder;  the answer prints Owen's order", () => {
+  const data = {
+    ...DATA,
+    sections: [{ ...DATA.sections[0], reorder: true }, DATA.sections[1]],
+    rows: [DATA.rows[1], DATA.rows[0], DATA.rows[2]]
+  }
+  const file = createPage(docs, "ordered", { epic: "big", data })
+  const html = readFileSync(file, "utf8")
+  expect(html).toContain("<epic-choice-rows reorder>")
+  // not by file and line:  line 9 first, as the data has it
+  expect(html.indexOf('name="q1-A-9"')).toBeLessThan(html.indexOf('name="q1-A-7"'))
+  expect(readRows(file).sections[0].reorder).toBe(true)
+  expect(() => checkData({ ...data, sections: [{ id: "q1", title: "Q1", reorder: "yes" }] })).toThrow(
+    /reorder is true or false/
+  )
+  const answer = { page: "/x", answered: "2026-10-14T03:00:00.000Z", changes: 0, values: {}, feedback: "" }
+  expect(formatAnswer(file, answer)).toContain("  Order of Q1 · Members:  as proposed")
+  const moved = formatAnswer(file, { ...answer, order: { q1: ["q1-A-7", "q1-A-9"] } })
+  expect(moved).toContain(
+    [
+      "  Order of Q1 · Members (Owen moved rows):",
+      "    1. q1-A-7  this.isOpen  (was 2)",
+      "    2. q1-A-9  UI.isDark  (was 1)"
+    ].join("\n")
+  )
+  // a section without reorder says nothing of order
+  expect(moved).not.toContain("Order of Q2")
+})
+
 test("a docs page naming its own rows:  found by its path, its boxes printed by row", () => {
   mkdirSync(join(docs, "guides/syntax"), { recursive: true })
   const file = join(docs, "guides/syntax/syntax.html")

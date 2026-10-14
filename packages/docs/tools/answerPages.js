@@ -164,19 +164,20 @@ const SECTION_ICON = "list check"
 /**
  * One `<ui-section>` per section of syntax-choices `data` (`ChoicesData`, checked:  every row has its `id`), each
  * holding its rule and an `<epic-choice-rows>` of its `<epic-choice-row>`s.
- * - with the File column (the default), rows by file, then line;  without it (`fileColumn: false`), in the data's
- *   order
+ * - with the File column (the default), rows by file, then line;  without it (`fileColumn: false`), or in a section
+ *   Owen puts in order (`reorder: true`), in the data's order
  * - folded, as every docs section starts (Expand all is on the bar)
  */
 export function choiceSections(document, data) {
   const hasFile = data.fileColumn !== false
   return data.sections.map((section) => {
     const rows = data.rows.filter((row) => row.section === section.id)
-    if (hasFile) rows.sort((one, other) => one.file.localeCompare(other.file) || one.line - other.line)
+    if (hasFile && !section.reorder)
+      rows.sort((one, other) => one.file.localeCompare(other.file) || one.line - other.line)
     const table = make(
       document,
       ROWS,
-      { stacked: data.stacked === true, "no-file": !hasFile },
+      { stacked: data.stacked === true, "no-file": !hasFile, reorder: section.reorder === true },
       rows.map((row) => choiceRow(document, row))
     )
     const rule = section.description

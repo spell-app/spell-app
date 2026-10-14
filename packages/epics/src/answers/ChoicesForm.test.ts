@@ -35,10 +35,17 @@ function json(body: unknown, status = 200): Response {
 class FakeRow implements ChoiceRowPart {
   readonly domElement = {} as Element
   typed: string | undefined
+  readonly orderKey: string | undefined
+  orderIndex: number
   constructor(
     readonly rowName: string,
-    readonly recommended: string
-  ) {}
+    readonly recommended: string,
+    /** its reorderable table's key, and its place there */
+    { orderKey, orderIndex = 0 }: { orderKey?: string; orderIndex?: number } = {}
+  ) {
+    this.orderKey = orderKey
+    this.orderIndex = orderIndex
+  }
   get value() {
     return this.typed ?? this.recommended
   }
@@ -122,6 +129,33 @@ describe("ChoicesForm", () => {
     server.fetch.mockClear()
     await template.restore()
     expect([template.savedText, server.fetch.mock.calls.length]).toEqual(["a template:  nothing here is saved", 0])
+  })
+
+  test("a table Owen can put in order:  its row ids go in that order with the draft and Do it, and come back on load", async () => {
+    const server = new FakeServer()
+    const form = formOn(server)
+    const first = new FakeRow("a", "A", { orderKey: "goals", orderIndex: 0 })
+    const second = new FakeRow("b", "B", { orderKey: "goals", orderIndex: 1 })
+    form.add(first)
+    form.add(second)
+    form.add(new FakeRow("c", "C"))
+    // Owen moves b up
+    ;[first.orderIndex, second.orderIndex] = [1, 0]
+    await form.send()
+    expect(server.posts.at(-1)).toEqual([
+      "answer",
+      { page: PAGE, values: {}, feedback: "", order: { goals: ["b", "a"] } }
+    ])
+    // a page with no such table sends no order
+    const plain = formOn(server)
+    plain.add(new FakeRow("c", "C"))
+    await plain.send()
+    expect(server.posts.at(-1)![1]).not.toHaveProperty("order")
+    // on load:  the order comes back for the table to put its rows in
+    const again = formOn(server)
+    server.answer = { ...server.answer, order: { goals: ["b", "a"] } }
+    await again.restore()
+    expect(again.restoredOrder).toEqual({ goals: ["b", "a"] })
   })
 
   test("a row's file for VS Code:  the served checkout, a worktree's from its page's address;  `#` off the server", () => {

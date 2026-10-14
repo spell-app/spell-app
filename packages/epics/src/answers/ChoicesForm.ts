@@ -8,6 +8,7 @@ import {
   SAVED_CHOICES_PAGE,
   type ChoiceRowPart,
   type ChoicesAnswer,
+  type ChoicesOrder,
   type ChoicesDraft,
   type ChoicesValues
 } from "./answers.types"
@@ -27,6 +28,9 @@ import {
  *   changes, it sends again.
  * - On load (`restore()`):  the draft (else the answer) comes back into the boxes and the feedback.
  * - Only the boxes that differ from the recommendation are sent, by row id (`values`), with the feedback.
+ * - A table Owen can put in order (`<epic-choice-rows reorder>`, epic `epic-workflow` P15):  its rows' ids in the
+ *   order he left them go too (`order`), by its section's id;  on load they come back in `restoredOrder`, which the
+ *   table puts its rows in.
  * - Node-safe at import:  no `window` / `document` touched until `forPage()`, `watch()` or `expandAll()`.
  * - Position in the import graph:  `$/epics/review` (the link), `$/epics/dates`, its peer types.
  *   NEVER imports Solid or Spell UI.
@@ -61,6 +65,9 @@ export class ChoicesForm {
 
   /** The values read back on load, for a row that registers later. */
   private restored: Record<string, string> = {}
+
+  /** The order of each reorderable table read back on load, by its section's id:  the table puts its rows in it. */
+  restoredOrder: ChoicesOrder = {}
 
   /** Called on every change. */
   private readonly listeners = new Set<() => void>()
@@ -123,6 +130,20 @@ export class ChoicesForm {
     const values: Record<string, string> = {}
     for (const row of this.rows.values()) if (row.isChanged) values[row.rowName] = row.value
     return values
+  }
+
+  /** Each reorderable table's row ids, in their order now, by its section's id;  `{}` for a page with none. */
+  collectOrder(): ChoicesOrder {
+    const tables = new Map<string, ChoiceRowPart[]>()
+    for (const row of this.rows.values()) {
+      if (row.orderKey === undefined) continue
+      if (!tables.has(row.orderKey)) tables.set(row.orderKey, [])
+      tables.get(row.orderKey)!.push(row)
+    }
+    const order: ChoicesOrder = {}
+    for (const [key, rows] of tables)
+      order[key] = rows.sort((one, other) => one.orderIndex - other.orderIndex).map((row) => row.rowName)
+    return order
   }
 
   ////////////////
@@ -255,6 +276,7 @@ export class ChoicesForm {
         this.restored = last.values ?? {}
         for (const [id, value] of Object.entries(this.restored)) this.rows.get(id)?.showValue(value)
         this.feedback = last.feedback ?? ""
+        this.restoredOrder = last.order ?? {}
       }
       if (draft) this.setSaved(`saved ${clockOf((draft as ChoicesDraft).saved)}`)
       if (answer) this.sent = answer as ChoicesAnswer
@@ -328,10 +350,12 @@ export class ChoicesForm {
   private async post(what: "draft" | "answer", keepalive = false): Promise<unknown> {
     if (!this.options.server?.token)
       throw new Error("this page isn't on the page server:  open it with `epic choices show`")
+    const order = this.collectOrder()
     const body: ChoicesValues & { page: string } = {
       page: this.options.page,
       values: this.collect(),
-      feedback: this.feedback.trim()
+      feedback: this.feedback.trim(),
+      ...(Object.keys(order).length > 0 && { order })
     }
     return this.link.post(`${CHOICES_API}/${what}`, body, { keepalive })
   }

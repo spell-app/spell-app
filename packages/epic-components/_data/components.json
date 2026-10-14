@@ -381,7 +381,7 @@
         "name choice",
         "row"
       ],
-      "description": "One row of a syntax-choices page (epic `epic-workflow` P12), in an `<epic-choice-rows>`:  the use site (File, opening VS Code at the line), what it's for, how it reads today, and a box pre-filled with Claude's recommendation.  Owen types over it, or leaves it;  a changed box is orange, with a round button putting the recommendation back.",
+      "description": "One row of a syntax-choices page (epic `epic-workflow` P12), in an `<epic-choice-rows>`:  the use site (File, opening VS Code at the line), what it's for, how it reads today, and a box pre-filled with Claude's recommendation.  Owen types over it, or leaves it;  a changed box is orange, with a round button putting the recommendation back.  In a table Owen puts in order (`<epic-choice-rows reorder>`), its place first, with move up / move down.",
       "noun": "choice row",
       "attributes": [
         {
@@ -426,6 +426,18 @@
         {
           "name": "base",
           "description": "Its cells, laid out on its table's columns."
+        },
+        {
+          "name": "order",
+          "description": "The Order cell, in a table Owen puts in order:  its place, and its move up / move down buttons."
+        },
+        {
+          "name": "up",
+          "description": "The move up button:  it swaps places with the row above."
+        },
+        {
+          "name": "down",
+          "description": "The move down button:  it swaps places with the row below."
         },
         {
           "name": "file",
@@ -487,6 +499,16 @@
           "key": "openTip",
           "text": "Open {file}:{line} in VS Code",
           "description": "The file link's tooltip."
+        },
+        {
+          "key": "up",
+          "text": "Move up",
+          "description": "The move up button's name and tooltip."
+        },
+        {
+          "key": "down",
+          "text": "Move down",
+          "description": "The move down button's name and tooltip."
         }
       ]
     },
@@ -507,7 +529,7 @@
         "rename table",
         "choices table"
       ],
-      "description": "One section's table on a syntax-choices page (epic `epic-workflow` P12):  the column heads File | Purpose | Current | Recommended, then its rows, each an `<epic-choice-row>` whose Recommended box Owen types over.  It counts its section's rows on the section's title (`3 to rename · 1 stay · 1 changed`).  Under 720px it scrolls inside its own box.",
+      "description": "One section's table on a syntax-choices page (epic `epic-workflow` P12):  the column heads File | Purpose | Current | Recommended, then its rows, each an `<epic-choice-row>` whose Recommended box Owen types over.  It counts its section's rows on the section's title (`3 to change · 1 stay · 1 changed`).  With `reorder`, Owen puts the rows in order too (epic `epic-workflow` P15).  Under 720px it scrolls inside its own box.",
       "noun": "choice rows",
       "attributes": [
         {
@@ -519,6 +541,11 @@
           "name": "no-file",
           "kind": "boolean",
           "description": "No File column (`fileColumn: false`):  for rows whose place in the code doesn't matter to the reader."
+        },
+        {
+          "name": "reorder",
+          "kind": "boolean",
+          "description": "Owen puts the rows in order (a section's `reorder: true`):  a first column, Order, with each row's place and its move up / move down buttons.  The order goes with the draft and \"Do it\"."
         }
       ],
       "slots": [
@@ -570,9 +597,24 @@
           "description": "The one column of `stacked`."
         },
         {
+          "key": "order",
+          "text": "Order",
+          "description": "The Order column's head, with `reorder`."
+        },
+        {
           "key": "count",
-          "text": "{renames} to rename · {stay} stay",
+          "text": "{renames} to change · {stay} stay",
           "description": "Its section's badge:  the rows Claude would change, and those he'd keep."
+        },
+        {
+          "key": "countOrdered",
+          "text": "{rows} in order",
+          "description": "Its section's badge with `reorder`:  how many rows there are to put in order."
+        },
+        {
+          "key": "countMoved",
+          "text": "{count} · moved",
+          "description": "Its section's badge with `reorder`, once Owen moved a row from the order Claude proposed."
         },
         {
           "key": "countChanged",

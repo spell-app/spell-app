@@ -89,6 +89,37 @@
                 current="this.saving.get()"
                 recommended="this.isSaving.get()"
               ></epic-choice-row> </epic-choice-rows
+            ><ui-section id="1-reorder" header="With reorder" sticky collapsible dividing collapsed>
+              <p>
+                <code>reorder</code>: Owen puts the rows in order. Each row's place comes first, with move up and move
+                down; the badge says <code>moved</code> once they're out of the order proposed.
+              </p>
+              <epic-choice-rows no-file reorder>
+                <epic-choice-row
+                  name="pythonic-spell"
+                  file="epics/"
+                  line="1"
+                  purpose="Spell compiled to Python a person would write, and running on a server."
+                  current="(new)"
+                  recommended="Pythonic Spell · pythonic-spell"
+                ></epic-choice-row>
+                <epic-choice-row
+                  name="drawable-spell"
+                  file="epics/"
+                  line="1"
+                  purpose="A spell type drawn as a web component."
+                  current="(new)"
+                  recommended="Drawable Spell · drawable-spell"
+                ></epic-choice-row>
+                <epic-choice-row
+                  name="dev-tooling"
+                  file="epics/"
+                  line="1"
+                  purpose="The repo's own tools."
+                  current="(new)"
+                  recommended="Dev Tooling · dev-tooling"
+                ></epic-choice-row>
+              </epic-choice-rows></ui-section
           ></ui-section>
           <ui-section id="2-markup" header="2. Markup" sticky collapsible dividing collapsed
             ><ui-icon slot="icon" name="code"></ui-icon
@@ -169,6 +200,15 @@
                     </td>
                     <td></td>
                   </tr>
+                  <tr>
+                    <td><code>reorder</code></td>
+                    <td>present or absent</td>
+                    <td>
+                      Owen puts the rows in order (a section's <code>reorder: true</code>): a first column, Order, with
+                      each row's place and its move up / move down buttons. The order goes with the draft and "Do it".
+                    </td>
+                    <td></td>
+                  </tr>
                 </tbody></table
             ></ui-table>
             <ui-section id="epic-choice-rows-slots" header="Slots" sticky collapsible dividing collapsed
@@ -233,6 +273,11 @@
                 <code>no-file</code>: no File column; <code>stacked</code>: one Syntax column, today's text over the
                 box.
               </li>
+              <li>
+                <code>reorder</code> (epic <code>epic-workflow</code> P15): an Order column first, as narrow as a place
+                and two buttons. The badge counts the rows (<code>9 in order</code>), then <code>· moved</code>. The
+                order Owen left comes back on load (<code>ChoicesForm</code>'s <code>restoredOrder</code>).
+              </li>
             </ul></ui-section
           >
           <ui-section id="6-written-by" header="6. Written by" sticky collapsible dividing collapsed
@@ -255,7 +300,7 @@
           <footer class="site-page-footer">
             <ui-divider></ui-divider>
             <p class="meta">
-              Last checked 2026-10-14 against branch <code>epic-workflow</code> (P12): the tables are its vocabulary's
+              Last checked 2026-10-14 against branch <code>epic-workflow</code> (P12, P15): the tables are its vocabulary's
               (epic-choice-rows); the rest from its component and its stylesheet.
             </p>
           </footer>
