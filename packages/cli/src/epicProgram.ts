@@ -237,7 +237,7 @@ export function epicProgram(handOver: () => Promise<never>): Command {
   epic
     .command("ask")
     .description("details pages:  a question explained on a page in VS Code's side bar, Owen answering on it")
-    .usage("new <slug> [--epic <epic>] [--from <questions.json>] | show <page> [--wait] | wait | answer | list | sweep")
+    .usage("new <slug> [--epic <epic>] [--from <questions.json>] | show <page> [--wait] | wait | answer | draft | list | sweep")
     .argument("[args...]")
     .allowUnknownOption()
     .action(() => runLean(detailsCommand, rawArgs("ask")))

@@ -47,7 +47,9 @@
         ><article class="site-article">
           <p class="lede">
             A details page's Send, in its sticky header: where the answer stands, then a round blue Send. It sends the
-            whole page, partial answers too, as often as Owen likes: the page never locks.
+            whole page, partial answers too, as often as Owen likes: the page never locks. Beside them, the draft's
+            save: what's typed and not sent is kept beside the page, and comes back when the page reloads or is
+            rewritten.
           </p>
           <p class="meta">
             For anyone writing a page Owen answers on (a details or syntax-choices page), or changing this element.<br />
@@ -55,7 +57,7 @@
             <a href="../../packages/epics/components/epic-send/" target="src-packages-epics-components-epic-send"
               ><code title="packages/epics/components/epic-send/">epic-send/</code></a
             >
-            (epic <code>epic-workflow</code> P12).<br />
+            (epic <code>epic-workflow</code> P12; the draft P18).<br />
             Its vocabulary (every table below comes from it):
             <a
               href="../../packages/epics/components/epic-send/EpicSend.en.ts"
@@ -122,6 +124,14 @@
                       <td>Where the answer stands, in its colour: grey, blue (not sent), green (sent).</td>
                     </tr>
                     <tr>
+                      <td><code>draft</code></td>
+                      <td>
+                        The draft's save (P18), muted: <code>draft saved 14:04</code>,
+                        <code>draft from 14:04 put back</code>; orange when the page server can't take it (the browser
+                        still keeps it).
+                      </td>
+                    </tr>
+                    <tr>
                       <td><code>send</code></td>
                       <td>
                         The round Send (<code>&lt;ui-button&gt;</code>), by the fill rule: a grey outline with nothing
@@ -174,6 +184,11 @@
                 Send by the fill rule: a grey outline with nothing to send, dashed blue with changes not sent, a blue
                 outline once sent; never solid, since the page can't tell when Claude is done with it.
               </li>
+              <li>
+                The draft's save beside the line, muted (<code>draft not saved yet</code>, <code>saving draft…</code>,
+                <code>draft saved 14:04</code>, <code>draft from 14:04 put back</code>); ORANGE, a warning, when the
+                page server can't take it (<code>draft kept in this browser only: ...</code>). Gone once sent.
+              </li>
               <li>Why it couldn't send, in red, under them.</li>
             </ul></ui-section
           >
@@ -187,8 +202,8 @@
           <footer class="site-page-footer">
             <ui-divider></ui-divider>
             <p class="meta">
-              Last checked 2026-10-14 against branch <code>epic-workflow</code> (P12): the tables are its vocabulary's
-              (epic-send); the rest from its component and its stylesheet.
+              Last checked 2026-10-14 against branch <code>epic-workflow-p18</code> (P18): the tables are its
+              vocabulary's (epic-send); the rest from its component and its stylesheet.
             </p>
           </footer>
         </article></ui-container

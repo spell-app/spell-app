@@ -47,7 +47,8 @@
         ><article class="site-article">
           <p class="lede">
             A box Owen types in, on a page he answers on: one line to start, growing with its text. What he types is
-            part of the page's answer, by its <code>type</code> and <code>for</code>.
+            part of the page's answer, by its <code>type</code> and <code>for</code>. The page's notes box also shows
+            what the page KEPT: text typed for a question, option or section an agent's rewrite took off the page.
           </p>
           <p class="meta">
             For anyone writing a page Owen answers on (a details or syntax-choices page), or changing this element.<br />
@@ -57,7 +58,7 @@
               target="src-packages-epics-components-epic-text-box"
               ><code title="packages/epics/components/epic-text-box/">epic-text-box/</code></a
             >
-            (epic <code>epic-workflow</code> P12).<br />
+            (epic <code>epic-workflow</code> P12; the kept text P18).<br />
             Its vocabulary (every table below comes from it):
             <a
               href="../../packages/epics/components/epic-text-box/EpicTextBox.en.ts"
@@ -194,6 +195,19 @@
                         window.
                       </td>
                     </tr>
+                    <tr>
+                      <td><code>kept</code></td>
+                      <td>
+                        A notes box's KEPT text, above its field, while there is any: an orange-edged box, "Kept from
+                        before the page changed", then each text.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><code>kept-item</code></td>
+                      <td>
+                        One kept text: its old title (the id it was under on hover), what was typed, and a × to drop it.
+                      </td>
+                    </tr>
                   </tbody>
                 </table></ui-table
               ></ui-section
@@ -229,6 +243,21 @@
                 One line to start; it grows with its text to a third of the window, then scrolls (Owen, 2026-10-06:
                 every "tell me more" box grows).
               </li>
+              <li>
+                The notes box's kept text (epic <code>epic-workflow</code> P18), above its field, only while there is
+                any:
+                <ul>
+                  <li>
+                    an ORANGE edge and title, "Kept from before the page changed": the page changed under Owen, a
+                    warning
+                  </li>
+                  <li>
+                    each text in his IVORY, his own words: its old title (<code>Q3 · Which layout?</code>, the id it was
+                    under on hover), then what he typed or picked (<code>picked B · Blue; Other: neither</code>)
+                  </li>
+                  <li>a round × on each drops it: it's no longer sent</li>
+                </ul>
+              </li>
             </ul></ui-section
           >
           <ui-section id="6-written-by" header="6. Written by" sticky collapsible dividing collapsed
@@ -243,8 +272,8 @@
           <footer class="site-page-footer">
             <ui-divider></ui-divider>
             <p class="meta">
-              Last checked 2026-10-14 against branch <code>epic-workflow</code> (P12): the tables are its vocabulary's
-              (epic-text-box); the rest from its component and its stylesheet.
+              Last checked 2026-10-14 against branch <code>epic-workflow-p18</code> (P18): the tables are its
+              vocabulary's (epic-text-box); the rest from its component and its stylesheet.
             </p>
           </footer>
         </article></ui-container

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "vite-plus/test"
+import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { expectAccessible } from "$/ui/test/A11y"
@@ -146,6 +146,53 @@ describe("<epic-ask>", () => {
     await ElementFixture.settle()
     expect(part<HTMLInputElement>(option(section, "J2"), "tick").checked).toBe(true)
     expect(part<HTMLInputElement>(option(section, "J1"), "tick").checked).toBe(false)
+  })
+
+  test("its ids, for a draft (P18):  its key under its section's title, each option's under its own", async () => {
+    await ElementFixture.render(question())
+    await ElementFixture.settle()
+    expect(form().labels()).toEqual({
+      q1: "Q1 · Which?",
+      "q1-A": "A · Blue",
+      "q1-B": "B · Red",
+      "q1-C": "C · Green"
+    })
+  })
+
+  test("a draft comes back into it on load, over the answer;  rewritten without it, what was typed is kept", async () => {
+    const draft = {
+      page: "/pages/details/x.html",
+      saved: "2026-10-14T05:00:00.000Z",
+      answers: { q1: { picked: ["B"], other: "or both" } },
+      comments: { "q1-B": "too loud?" },
+      notes: "",
+      labels: { q1: "Q1 · Which?", "q1-A": "A · Blue", "q1-B": "B · Red", "q1-C": "C · Green" }
+    }
+    const fetch = vi.fn(async (url: string) =>
+      Response.json(url.startsWith("/api/details/draft") ? { draft } : { answer: null })
+    )
+    const details = new AnswerForm({
+      page: "/pages/details/x.html",
+      server: { token: "t" },
+      protocol: "http:",
+      fetch: fetch as unknown as typeof globalThis.fetch
+    })
+    AnswerForm.adopt(details)
+    const section = await ElementFixture.render(question())
+    await ElementFixture.settle()
+    await details.load()
+    await ElementFixture.settle()
+    expect(option(section, "B").matches(":state(ticked)")).toBe(true)
+    expect(part<HTMLElement & { value: string }>(section.querySelector("epic-ask")!, "other").value).toBe("or both")
+    expect(details.gather().comments).toEqual({ "q1-B": "too loud?" })
+    expect(details.stateLine.text).toBe("Not sent")
+    // an agent's rewrite takes the question off the page
+    section.remove()
+    await vi.waitFor(() => expect(details.kept).toHaveLength(2), { timeout: 2000 })
+    expect(details.kept).toEqual([
+      { id: "q1", label: "Q1 · Which?", text: "picked B · Red;  Other:  or both" },
+      { id: "q1-B", label: "Q1 · Which?, B · Red", text: "too loud?" }
+    ])
   })
 
   test("options quoted in an option's text are only text:  no tick box", async () => {
