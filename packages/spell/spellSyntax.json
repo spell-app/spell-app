@@ -5005,11 +5005,11 @@
           "ruleNames": ["expect_test"],
           "internal": false,
           "file": "packages/spell/src/rules/tests/ExpectTest.ts",
-          "line": 11,
-          "purpose": "`expect {expression}` or `expect {expression} to be {value}` -- an assertion.",
+          "line": 16,
+          "purpose": "`expect {expression}`, `expect {expression} to be {value}` or `{expression} should be {value}` -- an assertion.",
           "syntaxes": [
             {
-              "syntax": "expect that? {expression} (to be {value:expression})?",
+              "syntax": "expect that? {expression} (to be (value:{expression}|{constant}))?",
               "example": "expect the rank of it to be \"queen\"",
               "outputs": {
                 "js": {
@@ -5020,6 +5020,21 @@
                 },
                 "py": {
                   "code": "core.expect(it.rank, \"the rank of it\", \"queen\", \"\\\"queen\\\"\")"
+                }
+              }
+            },
+            {
+              "syntax": "{expression} should be (value:{expression}|{constant})",
+              "example": "its rank should be queen",
+              "outputs": {
+                "js": {
+                  "code": "spellCore.expect(it.rank, `its rank`, \"queen\", `queen`)"
+                },
+                "ts": {
+                  "code": "spellCore.expect(it.rank, `its rank`, \"queen\", `queen`)"
+                },
+                "py": {
+                  "code": "core.expect(it.rank, \"its rank\", \"queen\", \"queen\")"
                 }
               }
             }
