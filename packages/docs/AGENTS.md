@@ -661,7 +661,7 @@ In `tools/`:
   - the columns:  File (opens VS Code at the line) | Purpose | Current | Recommended (a box, pre-filled)
     - The rows' `fileColumn: false` drops File, for rows whose place in the code doesn't matter to the reader
       (a list of commands;  epic `epic-workflow`, CM4).
-    - A section's `reorder: true` lets Owen put its rows in ORDER (epic `epic-workflow` P15, the goals page):  an
+    - A section's `reorder: true` lets Owen put its rows in ORDER (epic `epic-workflow` P15, the sagas review page):  an
       Order column first, each row's place with move up / move down.  The order he leaves goes with the draft and
       "Do it" (`order`, by section id), and `answer` prints it against Claude's.
   - Owen types over the ones he'd write differently, then "Do it".
