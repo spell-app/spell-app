@@ -1360,11 +1360,8 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
   - It's inserted above its top-level statement, as a method is only visible AFTER it.
   - Once defined, the longest match wins, so the line parses as the new method.
   - NOT for a phrase that's just unfinished (`expectedAfter()` again):  `set x to`.
-- Code lens (`codeLens()`):  "N references" above each type and method.
-  - Counted only when an editor resolves it (`resolveCodeLens()`):  counting walks the project.
-  - Clicking runs `SHOW_REFERENCES`, which each EDITOR defines:
-    - the VS Code extension:  `spell.showReferences`
-    - the app:  Monaco's own `editor.action.showReferences`
+- No code lenses (Owen, 2026-10-13:  "turn off codelens entirely"):  the "N references" line above each type and
+  method is gone, from VS Code and the app alike;  Find All References and Peek References still work.
 - Semantic tokens come as DELTAS too (`semanticTokensDelta()`), from one kept `SemanticTokensBuilder` per file.
   - NOTE: a builder keeps what was pushed until `previousResult()` starts afresh.  `build()` doesn't.
 
