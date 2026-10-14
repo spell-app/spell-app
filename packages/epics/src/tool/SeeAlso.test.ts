@@ -24,8 +24,8 @@ function page(title: string): string {
 }
 
 /**
- * Epic `name`'s plan doc:  its phases' statuses, its `updated` date, standing or not, a durable doc's link, and
- * `links` (from its folder) in its text.
+ * Epic `name`'s plan doc:  its phases' statuses, its `updated` date, standing or not, a durable doc's link;  and
+ * `links` (from its folder) in its first phase's part file, `parts/p1.html`, where links count (J94).
  */
 function epic(
   name: string,
@@ -33,11 +33,12 @@ function epic(
 ) {
   const slot = durable ? `<a slot="durable" href="${durable}">Durable</a>` : ""
   const phaseTags = phases.map((status, n) => `<epic-phase id="p${n + 1}" status="${status}"></epic-phase>`).join("")
-  const text = links.map((href) => `<a href="${href}">link</a>`).join("")
+  // a part sits one folder down:  its links climb one more `../`
+  write(`epics/${name}/parts/p1.html`, links.map((href) => `<a href="../${href}">link</a>`).join(""))
   write(
     `epics/${name}/${name}.plan.html`,
     `<html><head><title>${name}</title></head><body>` +
-      `<epic-page epic="${name}" updated="${updated}"${standing ? " standing" : ""}>${slot}${phaseTags}${text}</epic-page>` +
+      `<epic-page epic="${name}" updated="${updated}"${standing ? " standing" : ""}>${slot}${phaseTags}</epic-page>` +
       `</body></html>`
   )
 }
@@ -57,7 +58,7 @@ beforeAll(() => {
     durable: "../../guides/python-target.html",
     links: ["../../guides/changelog.html#python-target"]
   })
-  write("epics/python-target/parts/p1.html", `<a href="../../../guides/targets/targets.html#writers">targets</a>`)
+  write("epics/python-target/parts/p2.html", `<a href="../../../guides/targets/targets.html#writers">targets</a>`)
   write("epics/python-target/details/bedtime.html", page("Bedtime:  python-target"))
   write("epics/python-target/details/names.html", page("Names"))
   write("epics/python-target/details/names.rows.json", "[]")
@@ -152,5 +153,16 @@ describe("ownerOf():  which epic a page belongs to", () => {
       "guides/python-target.html"
     ])
     expect(new SeeAlso(root).ownedBy("epic-workflow")).toEqual(["guides/targets/targets.html"])
+  })
+
+  // Owen, J94:  "Only links in phases count, not in items"
+  test("an item's or the Overview's link to a guide never claims it;  a phase's does", () => {
+    epic("quoter", { phases: ["active"] })
+    write("epics/quoter/parts/j1.html", `<a href="../../../guides/solid/quoted.html">quoted</a>`)
+    write("epics/quoter/parts/o1.html", `<a href="../../../guides/solid/quoted.html">quoted</a>`)
+    write("guides/solid/quoted.html", page("Quoted"))
+    const see = new SeeAlso(root)
+    expect(see.linksOf("quoter").map((link) => link.href)).not.toContain("../../guides/solid/quoted.html")
+    expect(see.ownerOf("guides/solid/quoted.html")).toBeUndefined()
   })
 })

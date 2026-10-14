@@ -9,7 +9,9 @@ export const GUIDE_CHANGES = "guide-changes"
  * An epic's SEE ALSO:  the pages it made or leans on, which `<epic-page>` lists in its See Also box, above its blocks.
  * GATHERED from the epic's own files every time, never kept by hand (Owen, Q13 and Q15 of epic `epic-workflow`):
  * - `durable`:  its durable doc, the epic page's `<a slot="durable">`
- * - `guide`:  every docs page under `guides/` its epic page or part files link to (the changelog too, when linked)
+ * - `guide`:  every docs page under `guides/` its PHASES link to (the changelog too, when linked):  a phase's part
+ *   file, `parts/p<N>.html`;  never an item's, or the Overview's, which only mention a guide in passing (Owen, J94:
+ *   "Only links in phases count, not in items")
  * - `details` / `choices`:  every page in its `details/` folder:  details pages, choices pages (a `<slug>.rows.json`
  *   beside it), its analysis page
  * - NOT:  other epics' pages, nor changelog entries it doesn't link
@@ -171,6 +173,9 @@ const EPICS = "epics"
 /** A page in an epic's own folder (not its plan doc, nor its parts):  `epics/<name>/details/x.html`. */
 const OWN_PAGE = /^epics\/([^/]+)\/details\/[^/]+\.html$/
 
+/** A phase's part file, whose links count toward the See Also (J94):  `p3.html`. */
+const PHASE_PART = /^p\d+\.html$/
+
 /** A docs page a See Also lists as a guide:  any `.html` under `guides/`. */
 const GUIDE = /^guides\/.+\.html$/
 
@@ -242,7 +247,8 @@ function factsOf(root: string, name: string): EpicFacts | undefined {
 /**
  * The pages epic `name`'s files link to, as checkout paths:
  * - `durable`:  its epic page's `<a slot="durable" href>`
- * - `guides`:  every page under `guides/` its epic page or part files link to, once each, sorted
+ * - `guides`:  every page under `guides/` its phases' part files (`parts/p<N>.html`) link to, once each, sorted;
+ *   an item's part, the Overview's or the summary's links never count (J94)
  * - each `href` read from its own file's folder (a part's from `parts/`);  a page that isn't there is left out
  */
 function linksIn(root: string, name: string): { durable: string[]; guides: string[] } {
@@ -251,7 +257,7 @@ function linksIn(root: string, name: string): { durable: string[]; guides: strin
   const parts = join(folder, "parts")
   const files = [
     ...(existsSync(doc) ? [doc] : []),
-    ...(existsSync(parts) ? readdirSync(parts).filter((file) => file.endsWith(".html")) : []).map((file) =>
+    ...(existsSync(parts) ? readdirSync(parts).filter((file) => PHASE_PART.test(file)) : []).map((file) =>
       join(parts, file)
     )
   ]
@@ -263,8 +269,9 @@ function linksIn(root: string, name: string): { durable: string[]; guides: strin
       const href = /\shref="([^"]*)"/.exec(tag)?.[1]
       const path = href && pathOf(root, file, href)
       if (!path || !existsSync(join(root, path))) continue
-      if (file === doc && /\sslot="durable"/.test(tag)) durable.add(path)
-      else if (GUIDE.test(path)) guides.add(path)
+      if (file === doc) {
+        if (/\sslot="durable"/.test(tag)) durable.add(path)
+      } else if (GUIDE.test(path)) guides.add(path)
     }
   }
   return { durable: [...durable], guides: [...guides].sort() }
