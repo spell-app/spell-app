@@ -22,7 +22,9 @@
  *     - `listening`:  the session listening to that epic's review inbox (`ReviewInbox.liveListener()`), else `null`
  *     - `sent`:  Owen's last Send on the page;  `unsent`:  the ids of the comments a Send would hand over;
  *       `waiting`:  every comment waiting for Claude, sent or not
- * - `POST /api/comments/send` `{ page }` -- a docs page's SEND (P13):  every comment waiting so far is sent
+ * - `POST /api/comments/send` `{ page }` -- a docs page's SEND (P13):  every comment waiting so far is sent;  with
+ *   nobody listening to the page's epic (one an epic owns), it WAKES that epic as an epic page's Send does (P16,
+ *   `ReviewStart.wakeFor()`), and answers `wake`:  what that did, else `null`;  besides what follows
  *   (`GuideInbox.markSent()`), and the epic's `plan-doc inbox <epic> wait` takes them;  answers
  *   `{ ok, comments, send }`.  A plan doc:  400 (its Send is `/api/review/send`)
  * - `POST /api/comments` `{ page, action, ... }` -- change one comment;  answers `{ ok, id, comments, send? }`
@@ -68,6 +70,7 @@ import {
 } from "$/epics/tool/CommentList"
 import { GuideInbox } from "$/epics/tool/GuideInbox"
 import { ReviewInbox } from "$/epics/tool/ReviewInbox"
+import { ReviewStart } from "$/epics/tool/ReviewStart"
 import { GUIDE_CHANGES, SeeAlso } from "$/epics/tool/SeeAlso"
 
 /** Where the routes live. */
@@ -123,8 +126,21 @@ const commentsRoutes: RouteModule = {
       const file = commentsPage(web.files, page)
       if (PLAN_DOC.test(file))
         throw new SRV.HttpError(400, "a plan doc's Send is the review inbox's:  /api/review/send")
-      await GuideInbox.updateAsync(GuideInbox.fileFor(file), (_comments, inbox) => inbox.markSent())
-      reply.json({ ok: true, comments: shown(commentsOf(file)), ...sendOf(root, page as string, file) })
+      let fresh = false
+      await GuideInbox.updateAsync(GuideInbox.fileFor(file), (_comments, inbox) => {
+        fresh = inbox.unsentComments.length > 0
+        inbox.markSent()
+      })
+      const { send } = sendOf(root, page as string, file)
+      // nobody listening to the page's epic:  wake it, as an epic page's Send does (P16, `ReviewStart.wakeFor()`);
+      // never the catch-all `guide-changes`, which no session works
+      const wake =
+        send?.owned && !send.listening
+          ? await new ReviewStart(root).wakeFor(join(root, "epics", send.epic, `${send.epic}.plan.html`), send.epic, {
+              fresh
+            })
+          : null
+      reply.json({ ok: true, comments: shown(commentsOf(file)), send, wake })
     })
     router.post(API, guard.writeCheck, SRV.parseBodies({ limit: MAX_BODY }), async (request, reply) => {
       const change = toChange(request.body)

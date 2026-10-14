@@ -865,8 +865,9 @@ In `tools/`:
   - A click:  `POST /api/comments/send`;  the comments waiting are sent (`GuideInbox` `sent`).
   - The epic's `epic inbox <name> wait` wakes on it, and prints each comment under its page;
     the session answers each with `epic comments working` / `answer` (below), one at a time.
-  - Nobody listening:  they wait, sent, for the epic's next `/epic review` (its first `wait` takes them)
-    or `/airplane land`.
+  - Nobody listening:  the Send WAKES the epic, as an epic page's does (P16, `ReviewStart.wakeFor()`:  `/epic review`
+    typed into its session, or a new session in its window), and the toast says what it did;  the comments wait, sent,
+    for that review (its first `wait` takes them), or `/airplane land`.  Never for `guide-changes`.
 - Where they're kept (git-ignored in the shared repo:  waiting work, per machine):
   - a docs page's:  its INBOX FILE, `<page>.inbox.json` beside it
     ([GuideInbox.ts](../epics/src/tool/GuideInbox.ts), in `packages/epics` since P13:  the plan-doc tool's `wait`

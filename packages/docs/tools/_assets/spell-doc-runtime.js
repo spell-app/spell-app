@@ -3300,11 +3300,14 @@ class PageComments {
       this.list = answer.comments ? withTurns(answer.comments) : this.list
       this.keepSend(answer)
       const count = `${send.unsent.length} comment${send.unsent.length === 1 ? "" : "s"}`
+      // nobody listening:  the server woke the epic (P16) and says what it did;  else they wait for its review
       const later = !send.owned
         ? `:  no epic owns this page, so /airplane land gathers them into ${send.epic}`
         : this.send.listening
           ? ""
-          : `:  nobody is listening, so they wait for /epic review ${send.epic}`
+          : answer.wake?.message
+            ? `.  ${answer.wake.message}`
+            : `:  nobody is listening, so they wait for /epic review ${send.epic}`
       noteToast(`Sent ${count} to ${send.epic}${later}.`, later ? "warning" : "success")
       this.draw()
     } catch (error) {

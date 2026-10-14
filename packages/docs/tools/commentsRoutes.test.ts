@@ -60,6 +60,13 @@ const ON_TABLE = { anchor: "model#table-2", kind: "table", label: "1. The model"
 beforeAll(async () => {
   root = mkdtempSync(join(tmpdir(), "comments-routes-"))
   mkdirSync(join(root, ".git"))
+  // a Send may WAKE its epic (P16):  Claude's sessions, VS Code's windows and airplane mode are a scratch folder's,
+  // so a test can never type into a real session or open a real window
+  mkdirSync(join(root, ".home/sessions"), { recursive: true })
+  mkdirSync(join(root, ".home/windows"))
+  process.env.SPELL_CLAUDE_HOME = join(root, ".home")
+  process.env.SPELL_WINDOWS_DIR = join(root, ".home/windows")
+  process.env.SPELL_AIRPLANE_FILE = join(root, ".home/airplane.json")
   for (const [page, html] of Object.entries(PAGES)) {
     mkdirSync(dirname(join(root, page)), { recursive: true })
     writeFileSync(join(root, page), html)
@@ -80,6 +87,9 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
+  delete process.env.SPELL_CLAUDE_HOME
+  delete process.env.SPELL_WINDOWS_DIR
+  delete process.env.SPELL_AIRPLANE_FILE
   await server.stop()
   rmSync(root, { recursive: true, force: true })
 })
@@ -158,6 +168,19 @@ test("a docs page's SEND:  its epic, who is listening, what waits;  Send marks t
       })
     ).status
   ).toBe(403)
+})
+
+// epic `epic-workflow` I12:  a guide's Send wakes its epic as an epic page's does (P16), when nobody listens
+test("Send with nobody listening wakes the page's epic, and says what that did;  a listener:  no wake", async () => {
+  const page = "/guides/py.html"
+  ReviewInbox.update(join(root, "epics/py/py.inbox.json"), (box) => box.setListening(null))
+  await post({ page, action: "add", anchor: "page", kind: "page", text: "Wake up" })
+  const answer = JSON.parse(
+    (await ask(port, "POST", "/api/comments/send", { body: JSON.stringify({ page }), headers: headers() })).text
+  )
+  // no session, no window in the scratch folder:  nothing could be typed;  the page is told what to type
+  expect(answer.wake).toMatchObject({ command: "/epic review py" })
+  expect(answer.wake.message).toEqual(expect.any(String))
 })
 
 test("edits and deletes a new comment;  the last one out takes the file", async () => {
