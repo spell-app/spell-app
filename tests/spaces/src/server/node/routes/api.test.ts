@@ -588,3 +588,29 @@ describe("every URL spell builds is answered by the server and by spaces' disk r
     expect(readFixture("user/Proj/both.txt")).toBe("from disk")
   })
 })
+
+////////////////
+// ## People (epic `people-and-orgs` P9)
+////////////////
+
+describe("GET and POST /api/people/me", () => {
+  it("GET:  this machine's person, their starter file written the first time;  their orgs;  no problems", async () => {
+    const reply = await request("GET", "/api/people/me")
+    expect(reply.status).toBe(200)
+    const { person, orgs, problems } = reply.json()
+    expect(person).toMatchObject({ id: "owen", address: "owen@spell", dates: [] })
+    expect(orgs).toEqual([])
+    expect(problems).toEqual([])
+    expect(readFixture("user/__me.json5")).toContain("// You, as spell knows you")
+  })
+
+  it("POST:  their changes written, the file's comments kept;  answered as GET", async () => {
+    const body = JSON.stringify({ nickname: "O", dates: [{ label: "birthday", day: "1970-01-01" }] })
+    const reply = await request("POST", "/api/people/me", body, "application/json")
+    expect(reply.status).toBe(200)
+    expect(reply.json().person).toMatchObject({ nickname: "O", dates: [{ label: "birthday", day: "1970-01-01" }] })
+    const text = readFixture("user/__me.json5")!
+    expect(text).toContain("// You, as spell knows you")
+    expect(text).toContain('"nickname": "O"')
+  })
+})

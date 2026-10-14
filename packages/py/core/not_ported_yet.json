@@ -41,6 +41,12 @@
       ]
     },
     {
+      "why": "What the lookups search (epic people-and-orgs P9):  Python's take what they search on each call, thing_for_reference(reference, things, kept)",
+      "names": [
+        "searchThings"
+      ]
+    },
+    {
       "why": "Not decided yet:  a word of Python's own, a browser's only, or ported when a program needs it",
       "names": [
         "doNothing",

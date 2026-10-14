@@ -262,6 +262,8 @@ when working with code in this package, `@spell-app/app`.
 - It may import spaces' models, `$/spaces`;  NEVER `$/spaces/server/node/...`, which is node only.
   - The editor ([editor.ts](src/editor.ts)) does:  a group's projects are `SPACES.SpellProjectRoot`,
     and a project's file create, copy, rename and delete are `SPACES.ProjectFiles` (never `SpellProject`'s).
+  - The "You" panel ([YouPanel.tsx](src/solid/modals/YouPanel.tsx), epic `people-and-orgs` P9) talks to spaces'
+    people routes (`/api/people/me`) in plain JSON, typed by `SPACES.MeAnswer`:  it never loads the people library.
   - `<spell-app>` loads only the light files, without the parser:
     `$/spaces/models/projectGroups` (registers spell's project groups), `$/spell/SpellSetup` and `$/spell/SpellUrls`.
   - Every project file's URL comes from `SP.SpellUrls`:  `/spaces/<project>/<file>`, compiled files too.

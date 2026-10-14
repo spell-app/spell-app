@@ -77,6 +77,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `thingNamed()`
     - `thingAtPlace()`
     - `referenceFor()`
+  - They search the running program's things, or what the caller says instead (`searchThings()`, epic
+    `people-and-orgs` P9, Q44):  so a library's code finds `Person#owen` under `$/core/model` too, in the people
+    store's people and orgs.
 
 ## Who may value-import it
 
@@ -93,6 +96,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     [element.build.test.ts](../../tests/app/src/runner/element.build.test.ts) and [build.test.ts](../../tests/app/src/build.test.ts).
 - The ONE other entry:  `$/core/model` ([model.ts](src/model.ts), epic `people-and-orgs` P3).
   - The core with no drawing, so no Solid, and no running program's list of things.
+    - References by name are in it all the same, searching what `searchThings()` was given (P9).
   - What a compiled LIBRARY imports (`People.lib.ts`, the `ts/lib` target), by the package's name:
     `@spell-app/core/model`, the one export in `package.json`.
   - So the server and the app may value-import it, through a library:

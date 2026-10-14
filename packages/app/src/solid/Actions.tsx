@@ -96,9 +96,7 @@ export const Actions = {
   showHelp: (props: ActionProps) => (
     <Action title="Help" icon="help circle" onClick={() => editor.showHelp()} {...props} />
   ),
-  logIn: (props: ActionProps) => (
-    <Action title="Log In" icon="user outline" onClick={() => editor.logIn()} {...props} />
-  ),
+  you: (props: ActionProps) => <Action title="You" icon="user outline" onClick={() => editor.showYou()} {...props} />,
 
   ////////////////
   // ## App actions -- work on `editor.project`, create according to `editor.projectRoot`

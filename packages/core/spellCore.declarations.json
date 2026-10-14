@@ -1374,6 +1374,18 @@
     },
     {
       "kind": "method",
+      "name": "searchThings",
+      "of": "spellCore",
+      "module": "references",
+      "params": [
+        {
+          "name": "things"
+        }
+      ],
+      "description": "Look things up in `things` from now on, not in the running program's -- returns what was searched before, to put back."
+    },
+    {
+      "kind": "method",
       "name": "thingForReference",
       "of": "spellCore",
       "module": "references",

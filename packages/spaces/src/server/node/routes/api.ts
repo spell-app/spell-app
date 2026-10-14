@@ -11,6 +11,7 @@ import chalk from "chalk"
 import JSON5 from "json5"
 
 import { SRV } from "$/server"
+import * as peopleRoutes from "$/spaces/server/node/people/peopleRoutes"
 import * as projectUtils from "$/spaces/server/node/projects/project-utils"
 import * as responseUtils from "$/spaces/server/node/projects/response-utils"
 import { ProjectBuild } from "./ProjectBuild"
@@ -73,6 +74,14 @@ api.post("/projects/file/*", projectUtils.request_saveFile)
 // Compile random source file, not tied to a project -- see `projectUtils.request_compileFile`.
 api.post("/compile/file", projectUtils.request_compileFile)
 api.get("/compile/file", projectUtils.request_compileFile)
+
+////////////////
+// ## People
+////////////////
+
+// this machine's person, and their orgs -- see `peopleRoutes.ts`.
+api.get("/people/me", peopleRoutes.request_getMe)
+api.post("/people/me", peopleRoutes.request_saveMe)
 
 ////////////////
 // ## Tests to make sure api is working

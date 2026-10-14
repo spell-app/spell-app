@@ -37,7 +37,7 @@ const mainRepoDir = /[/\\]\.claude[/\\]worktrees[/\\][^/\\]+$/.test(repoDir)
  * - `SPELL_SPACES_DIR` sets it, e.g. tests' temporary folder;  by default it's beside the main checkout,
  *   `<main checkout>/../spell-spaces`.
  * - Laid out by org, each person's space inside it:  `@spell/owen@/errors/` is `owen@spell/errors`.
- * - TODO: a `--spaces <dir>` option when the server starts (P8).
+ * - The page server's `--spaces <dir>` sets it (P8).
  */
 const spellSpacesDir = process.env.SPELL_SPACES_DIR
   ? resolve(process.env.SPELL_SPACES_DIR)

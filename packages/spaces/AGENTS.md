@@ -12,7 +12,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - Where projects and people live, and the servers that serve them (epic `people-and-orgs`).
   - Born in P14, with the servers:  the editor's, which was the app's, and Python's, which was py's.
   - Spell's projects came in P15:  their groups and lists, their files on disk, and the built-in projects.
-  - Next:  people and orgs, the storage adapter and the people store (P5-P9).
+  - People came in P7-P9:  the people library, the storage adapter (P8) and the people store (P9), below.
   - The whole layout:  the epic's spaces page,
     [its package section](../../epics/people-and-orgs/details/spaces-package.html).
 - Its folders:
@@ -27,9 +27,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       and its projects' create, copy, rename and delete
     - [ProjectFiles.ts](src/models/ProjectFiles.ts):  a project's FILE create, copy, rename and delete
     - [spaceNames.ts](src/models/spaceNames.ts):  spaces' own `__` names, `SPACE_NAMES`
+    - [SpaceStorage.ts](src/models/SpaceStorage.ts) and [people.ts](src/models/people.ts):  types only, see "People"
   - `src/server/node/`:  node only, imported by path (`$/spaces/server/node/...`), never from the barrel.
     - [environment.ts](src/server/node/environment.ts):  where everything is on disk (see "Projects" below)
     - [projects/](src/server/node/projects/):  projects on disk, and the disk reader (see "Projects" below)
+    - [storage/](src/server/node/storage/) and [people/](src/server/node/people/):  see "People" below
     - [routes/](src/server/node/routes/):  the editor's server (below)
   - [src/server/py/](src/server/py/pyproject.toml):  `spell_quart`, Python's web server, a uv project (below)
 - Tests live in the repo's `tests/spaces/`, at the same paths as the code they test:
@@ -92,6 +94,29 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `SpellProject` itself only reads, compiles and saves (decision Q20).
 - Lint and format leave the projects alone:  `packages/spaces/@spell` and `tests/spaces/@spell`, in the root's
   `vite.lint.ts`.
+
+## People
+
+- Spaces' files go through ONE interface, `SpaceStorage` ([SpaceStorage.ts](src/models/SpaceStorage.ts), P8):
+  read, write, list, remove, watch, by paths relative to spell-spaces (`@spell/owen@/__me.json5`).
+  - The disk's:  [DiskStorage.ts](src/server/node/storage/DiskStorage.ts), writing through the page server's file
+    operations;  it keeps each folder's list, and one recursive watcher drops a folder's when anyone changes it.
+  - JSON5 is read and written in ONE place, [json5.ts](src/server/node/storage/json5.ts), on json5-writer:
+    an edit writes the whole value back, every comment where it was;  double quotes, no trailing commas.
+  - The page server's `--spaces <dir>` points it elsewhere (`SPELL_SPACES_DIR`).
+- The PEOPLE STORE ([PeopleStore.ts](src/server/node/people/PeopleStore.ts), P9):  people and orgs, as the people
+  library's things (`@spell/library/people`).
+  - A person `Person#owen@spell` is `@spell/owen@/__me.json5`;  an org `Org#spell` is `@spell/__org.json5`, its
+    memberships (a person and a role:  member, admin, spell-admin) inside it.
+  - Read:  each file checked against its class (`checkEntry()`, its problems returned, read anyway), brought up to
+    its version, and every person or org it names read too.
+  - Written:  ONE file at a time, its comments kept;  a friend is written as a reference, never into their file.
+  - `me()` writes a starter `__me.json5` the first time, from git's name and email.
+  - Nobody is refused a save yet, under `@spell` either (J46):  the permissions UI is todo T8.
+- Its routes ([peopleRoutes.ts](src/server/node/people/peopleRoutes.ts)), what the app's "You" panel calls:
+  - `GET /api/people/me`:  this machine's person (`SPACES.LOCAL_PERSON`), their orgs and roles, their file's problems
+  - `POST /api/people/me`:  their changes written, answered as `GET`
+  - The answers' types:  [people.ts](src/models/people.ts), safe in a browser.
 
 ## The editor's server (`src/server/node/routes/`)
 

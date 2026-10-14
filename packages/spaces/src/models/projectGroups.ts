@@ -5,7 +5,8 @@ import { SpellSetup } from "$/spell/SpellSetup"
 /**
  * The person whose space this machine's own projects are in:  `owen@spell`, so Owen's Errors is
  * `owen@spell/errors`, in spell-spaces' `@spell/owen@/errors/`.
- * - TODO: from the person's own file, `__me.json5`, once the people phase reads it (epic `people-and-orgs` P8-P9).
+ * - Their own file is `@spell/owen@/__me.json5`, which the people store reads and the app's "You" panel changes
+ *   (epic `people-and-orgs` P9);  WHO they are is still this name, until a machine can have more than one person.
  */
 export const LOCAL_PERSON = "owen"
 

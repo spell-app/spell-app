@@ -114,9 +114,16 @@ export class EditorStore extends Observable {
   showHelp(): void {
     console.warn("TODO: editor.showHelp() not yet implemented")
   }
-  /** Log the user in. TODO: not yet implemented. */
-  logIn(): void {
-    console.warn("TODO: editor.logIn() not yet implemented")
+  /**
+   * Show the "You" panel (`openYouPanel()`, epic `people-and-orgs` P9):  this machine's person to change, and their
+   * orgs;  Save writes their `__me.json5`.  An error reading or saving them shows as the editor's error.
+   */
+  async showYou(): Promise<void> {
+    try {
+      await (await dialogs()).openYouPanel()
+    } catch (error) {
+      editor.showError(error)
+    }
   }
   /** Publish the current `project`. TODO: not yet implemented. */
   publishApp(): void {

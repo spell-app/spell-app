@@ -6,8 +6,9 @@
  *   - drawing (`drawing.ts`, `elements.ts`, `Drawable`, `DrawableList`):  they load Solid
  *   - the registry of a running program's things, `spellCore.things` (`things.ts`):
  *     a thing made here belongs to no program, so it registers nowhere -- see `registerThing()`
- *   - what reads that registry:  carrying a program over a recompile (`carry.ts`), and references to a
- *     program's things by name or place (`references.ts`, `Tableau#T1`)
+ *   - what reads that registry:  carrying a program over a recompile (`carry.ts`)
+ * - References by name or place ARE here (`references.ts`, `Person#owen`, P9, Q44):  they search what the caller
+ *   says, `spellCore.searchThings()`, e.g. the people store's people and orgs.
  * - So a `Loader` made here must be told the classes:  `new Loader({ entryFor, classNamed })`.
  * - NEVER import the barrel (`$/core`) from here, or from any module this loads:  it loads drawing.
  *   The modules below import each other directly for that reason.
@@ -26,6 +27,7 @@ import "./console"
 import { on, off, once, trigger } from "./runtime"
 import "./json"
 import "./ui"
+import "./references"
 import { Thing } from "./classes/Thing"
 import { List } from "./classes/List"
 import { App } from "./classes/App"
@@ -52,4 +54,5 @@ export {
 } from "./saving"
 export { checkEntry, jsonSchemaFor, kindOf, type EntryProblem, type CheckOptions, type Kind } from "./checking"
 export { SPELL_CORE_MODULE, type SpellCore, type PropCheck } from "./spellCore.types"
+export type { ThingsToSearch } from "./references"
 export type { ListCallback } from "./classes/List"
