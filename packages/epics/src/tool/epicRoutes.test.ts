@@ -92,7 +92,8 @@ describe("POST /api/epics/favorite", () => {
     writeFileSync(join(details, "bare.html"), "<p>no title</p>")
     const answer = await ask(port, "GET", "/api/epics/pages?epic=seo")
     const { pages } = JSON.parse(answer.text) as { pages: { href: string; title: string; kind: string }[] }
-    expect(pages.map(({ href, title, kind }) => [href, title, kind]).sort()).toEqual([
+    const byHref = (a: string[], b: string[]) => a[0]!.localeCompare(b[0]!)
+    expect(pages.map(({ href, title, kind }) => [href, title, kind]).sort(byHref)).toEqual([
       ["details/bare.html", "bare", "details"],
       ["details/names.html", "Boolean names", "choices"]
     ])

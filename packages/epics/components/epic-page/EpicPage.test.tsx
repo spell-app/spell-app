@@ -313,7 +313,7 @@ describe("<epic-page>", () => {
       expect(found).toBeTruthy()
       return found!
     })
-    expect(String(fetched.mock.calls[0]![0])).toBe("/api/epics/pages?epic=demo")
+    expect(fetched.mock.calls[0]![0] as string).toBe("/api/epics/pages?epic=demo")
     expect(Array.from(box.querySelectorAll("a"), (link) => [link.getAttribute("href"), link.textContent])).toEqual([
       ["details/names.html", "Boolean names"],
       ["details/analysis.html", "Analysis"]
