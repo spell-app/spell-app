@@ -28,7 +28,7 @@ describe("scopesFromPacks()", () => {
     id: "@spell/test/cards",
     entries: [
       { path: "project:Cards" },
-      { path: "project:Cards/file:Card.spell", uri: "spell:/@spell/test/cards//Card.spell" },
+      { path: "project:Cards/file:Card.spell", uri: "spell:/@spell/test/cards/Card.spell" },
       { path: "project:Cards/file:Card.spell/type:Card", super: "type:Thing", line: 2, description: "## cards" },
       { path: "project:Cards/file:Card.spell/type:Card/property:suit", line: 5, description: "its suit" }
     ]
@@ -40,7 +40,7 @@ describe("scopesFromPacks()", () => {
     expect(tree.children.map((node) => node.path)).toEqual(["type:Thing", "project:Cards"])
     const card = tree.children[1]!.children[0]!.children[0]!
     expect(card).toMatchObject({ name: "Card", kind: "type", detail: "is a Thing" })
-    expect(card.uri).toBe("spell:/@spell/test/cards//Card.spell")
+    expect(card.uri).toBe("spell:/@spell/test/cards/Card.spell")
   })
 
   test("`spell` from the source's lines, `compiled` from the code after its marker -- up to the next at its indent", async () => {
@@ -62,7 +62,7 @@ describe("scopesFromPacks()", () => {
       compiled: "get suit() { return this.getProp('suit') }\nset suit(value) { this.setProp('suit', value) }"
     })
     // each file asked for once
-    expect(asked).toEqual(["spell:/@spell/test/cards//Card.spell"])
+    expect(asked).toEqual(["spell:/@spell/test/cards/Card.spell"])
   })
 
   test("without the sources:  `compiled` by what each marker declares, but no `spell`", async () => {
@@ -100,7 +100,7 @@ describe("scopesFromPacks()", () => {
       marker(`syntax: "debug the game", output: "debug_the_game", kind: "function"`, "/Card.spell:40-49"),
       "export function debug_the_game() {}"
     ].join("\n")
-    const uri = "spell:/@spell/test/Kinds//Card.spell"
+    const uri = "spell:/@spell/test/Kinds/Card.spell"
     const paths = [
       "type:Card/enumeration:Ranks",
       "type:Card/constant:ace",

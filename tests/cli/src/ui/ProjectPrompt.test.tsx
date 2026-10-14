@@ -49,7 +49,7 @@ describe("<ProjectPrompt>", () => {
       "solitaire",
       "thing-references"
     ]
-    const lines = projects.map((name, at) => `${at ? "  " : "❯ "}@spell/test/${name}//`)
+    const lines = projects.map((name, at) => `${at ? "  " : "❯ "}@spell/test/${name}/`)
     expect(frame).toContain(["Which project or file?  @spell/test/█", ...lines, "  ...11 in all"].join("\n"))
   })
 
@@ -67,13 +67,13 @@ describe("<ProjectPrompt>", () => {
       KEY.enter
     ])
     expect(frame).toContain(
-      "@spell/test/solitaire//█\n❯ @spell/test/solitaire  entire project\n  @spell/test/solitaire//Card.spell"
+      "@spell/test/solitaire/█\n❯ @spell/test/solitaire  entire project\n  @spell/test/solitaire/Card.spell"
     )
     expect(onDone).not.toHaveBeenCalled()
 
-    const picked = await prompt(["@spell/test/solitaire//", KEY.down, KEY.enter])
-    expect(picked.onDone).toHaveBeenCalledWith("@spell/test/solitaire//Card.spell")
-    const whole = await prompt(["@spell/test/solitaire//", KEY.enter])
+    const picked = await prompt(["@spell/test/solitaire/", KEY.down, KEY.enter])
+    expect(picked.onDone).toHaveBeenCalledWith("@spell/test/solitaire/Card.spell")
+    const whole = await prompt(["@spell/test/solitaire/", KEY.enter])
     expect(whole.onDone).toHaveBeenCalledWith("@spell/test/solitaire")
   })
 

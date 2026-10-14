@@ -334,7 +334,7 @@ const SPELL_TAG_PREFIX = "spell-"
 
 /**
  * What to run for `project="<projectId>"`:  from the spell server (the page's own), sources and all.
- * - Every file by its URL, `/spaces/<project>//<file>` (`SpellUrls`):  a compiled file sits beside its source's.
+ * - Every file by its URL, `/spaces/<project>/<file>` (`SpellUrls`):  a compiled file sits beside its source's.
  */
 function projectSource(project: string): SpellAppSource {
   const projectId = project
@@ -347,7 +347,7 @@ function projectSource(project: string): SpellAppSource {
     importDeclarationsUrl: (id) => builtUrl(id, DECLARATIONS_JSON),
     wordsUrl: builtUrl(projectId, WORDS_JS),
     importWordsUrl: (id) => builtUrl(id, WORDS_JS),
-    // `spell:/@spell/examples/solitaire//Card.spell` => its project id, then its file
+    // `spell:/@spell/examples/solitaire/Card.spell` => its project id, then its file
     sourceUrl: (uri) => SpellUrls.fileUrl(decodeURI(uri.replace(/^spell:\//, "")))
   }
 }
@@ -357,9 +357,9 @@ function nameOf(projectId: string): string {
   return projectId.slice(projectId.lastIndexOf("/") + 1)
 }
 
-/** URL of project `projectId`'s `<project><suffix>`, e.g. `/spaces/@spell/examples/solitaire//solitaire.spell.js`. */
+/** URL of project `projectId`'s `<project><suffix>`, e.g. `/spaces/@spell/examples/solitaire/solitaire.spell.js`. */
 function builtUrl(projectId: string, suffix: string): string {
-  return SpellUrls.fileUrl(`${projectId}${SpellUrls.STEP}${nameOf(projectId)}${suffix}`)
+  return SpellUrls.fileUrl(`${projectId}/${nameOf(projectId)}${suffix}`)
 }
 
 /** What to run for `src="<url>"`:  from anywhere, with what goes with it beside it. */

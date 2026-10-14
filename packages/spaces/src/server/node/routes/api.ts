@@ -2,9 +2,9 @@
  * Router for all `/api/...` calls, and `spaceFiles`, the router for `/spaces/...`:  reading a file.
  * - Route table below just wires paths to `project-utils.ts` handlers -- see each `request_*` function
  *   there for its full contract (what client sends, what comes back, failure modes).
- * - A project or a file is named by its PLACE in a URL (`SP.SpellUrls`), e.g. `@spell/examples/solitaire`, with two
- *   slashes before a file:  `/spaces/@spell/examples/solitaire//Card.spell`.  Handlers split the URL as it arrived,
- *   at its first `//`, before any path on disk is made (decision J48).
+ * - A project or a file is named by its ADDRESS in a URL (`SP.SpellUrls`), e.g. `@spell/examples/solitaire`, and a
+ *   file in it:  `/spaces/@spell/examples/solitaire/Card.spell`.  Handlers split the URL as it arrived, by its group
+ *   and project, before any path on disk is made (`SP.SpellUrls.split()`).
  */
 
 import chalk from "chalk"
@@ -65,8 +65,8 @@ api.post("/projects/rename/file", projectUtils.request_renameFile)
 api.delete("/projects/remove/file", projectUtils.request_deleteFile)
 
 // a project's index, and saving one of its files -- see `projectUtils.request_getIndex` / `request_saveFile`.
-// Reading a file is `/spaces/<project>//<file>`:  `spaceFiles`, below.
-// `*` captures the REST of the URL, `/`s and the `//` included;  the handlers read it as it arrived.
+// Reading a file is `/spaces/<project>/<file>`:  `spaceFiles`, below.
+// `*` captures the REST of the URL, `/`s included;  the handlers read it as it arrived.
 api.get("/projects/index/*", projectUtils.request_getIndex)
 api.post("/projects/file/*", projectUtils.request_saveFile)
 
@@ -101,8 +101,8 @@ api.all("*", (request, response) => response.status(404).send(`API routine not d
 
 /**
  * Router mounted at `/spaces` by `./cli.ts` and `./appRoutes.ts`:  a project's file, by its URL,
- * `/spaces/<project>//<file>` -- see `projectUtils.request_getFile`.
- * - Compiled files are files:  `/spaces/@spell/examples/solitaire//solitaire.spell.js` (its program),
+ * `/spaces/<project>/<file>` -- see `projectUtils.request_getFile`.
+ * - Compiled files are files:  `/spaces/@spell/examples/solitaire/solitaire.spell.js` (its program),
  *   `.scopes.js` (its scope pack), `.declarations.json`, `.en.js`.  The handler finds a built one in `build/`.
  * - A file spell BUILDS (`<Project>.spell.js` ...), missing, is compiled first:  `projectBuild.builtFirst()`.
  */

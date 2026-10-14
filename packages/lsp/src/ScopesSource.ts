@@ -17,6 +17,9 @@ import {
   type ScopeNode,
   type ScopePack
 } from "$/lsp/lsp.types"
+// Import directly:  spell's light URL helper, and spaces' groups, which it splits an address by -- no parser, no barrel
+import { SpellUrls } from "$/spell/SpellUrls"
+import "$/spaces/models/projectGroups"
 
 /** What a Type Explorer shows:  a tree, and the details of what's in it, by `path`. */
 export type ScopesSource = {
@@ -28,7 +31,7 @@ export type ScopesSource = {
 
 /** How a `ScopesSource` from packs gets what they leave out -- see `scopesFromPacks()`. */
 export type ScopesSourceHooks = {
-  /** Text of spell file `uri`, e.g. `spell:/@spell/examples/solitaire//Card.spell` -- if it can be had. */
+  /** Text of spell file `uri`, e.g. `spell:/@spell/examples/solitaire/Card.spell` -- if it can be had. */
   loadSource?: (uri: string) => Promise<string | undefined>
   /** Compiled javascript of project `projectId`, e.g. `@spell/examples/solitaire` -- if it can be had. */
   loadCompiled?: (projectId: string) => Promise<string | undefined>
@@ -345,11 +348,8 @@ function linesOf(source: string | undefined, line: ScopeLine): string | undefine
     .trimEnd()
 }
 
-/** Project id and file path of spell file `uri`, e.g. `spell:/@spell/examples/solitaire//Card.spell`. */
+/** Project id and file path of spell file `uri`, e.g. `spell:/@spell/examples/solitaire/Card.spell`. */
 function splitSpellUri(uri: string): { projectId: string; filePath: string } {
-  const path = decodeURI(uri.replace(/^spell:\//, ""))
-  const step = path.indexOf("//")
-  return step < 0
-    ? { projectId: path, filePath: "" }
-    : { projectId: path.slice(0, step), filePath: path.slice(step + 1) }
+  const { projectId, rest } = SpellUrls.split(decodeURI(uri.replace(/^spell:\//, "")))
+  return { projectId, filePath: rest && `/${rest}` }
 }

@@ -1,9 +1,9 @@
 /**
  * Completions for a half-typed project or file, as a shell completes a path -- for `<ProjectPrompt>`:
  * - nothing typed past a group yet:  recent picks, then the project groups, e.g. `@spell/examples/`
- * - a group and `/`:  its projects, e.g. `@spell/examples/solitaire//`
- * - a project and `//`:  "entire project" (`@spell/examples/solitaire`) first, then its `.spell` files,
- *   e.g. `@spell/examples/solitaire//Card.spell`
+ * - a group and `/`:  its projects, e.g. `@spell/examples/solitaire/`
+ * - a project and `/`:  "entire project" (`@spell/examples/solitaire`) first, then its `.spell` files,
+ *   e.g. `@spell/examples/solitaire/Card.spell`
  * - Each level is filtered by what's typed after it, ignoring case.
  */
 import { readdirSync } from "fs"
@@ -14,7 +14,7 @@ import { CLI } from "$/cli"
 
 /**
  * One completion.
- * - `value`:  the text it completes to;  a group ends in `/` and a project in `//`, to go on into
+ * - `value`:  the text it completes to;  a group or a project ends in `/`, to go on into
  * - `label`:  how to show it, if not as `value`, e.g. "entire project"
  * - `isFinal`:  picking it picks a project or a file, rather than going into it
  * - `isRecent`:  one of the recent picks
@@ -28,9 +28,6 @@ export type ProjectChoice = {
 
 /** Completions for `text` -- see the header.  `recents` come first while nothing's typed past a group. */
 export async function projectChoices(text: string, recents: string[] = []): Promise<ProjectChoice[]> {
-  const step = text.indexOf(SP.SpellLocation.STEP)
-  if (step >= 0) return fileChoices(text.slice(0, step), text.slice(step + SP.SpellLocation.STEP.length))
-
   const group = CLI.knownRoots().find((spec) => text.toLowerCase().startsWith(`${spec.path}/`.toLowerCase()))
   if (!group) {
     const roots = CLI.knownRoots().map((spec) => `${CLI.rootName(spec)}/`)
@@ -39,10 +36,12 @@ export async function projectChoices(text: string, recents: string[] = []): Prom
     return [...recent, ...rootChoices].filter((choice) => startsWith(choice.value, text))
   }
 
-  const typed = text.slice(group.path.length + 1)
+  // a project is its group's address and ONE part:  a slash after that part goes into the project
+  const [project = "", ...file] = text.slice(group.path.length + 1).split("/")
+  if (file.length) return fileChoices(`${group.path}/${project}`, file.join("/"))
   return (await CLI.projectIdsIn([group]))
-    .filter((id) => startsWith(nameOf(id), typed))
-    .map((id) => ({ value: `${id}${SP.SpellLocation.STEP}`, isFinal: false }))
+    .filter((id) => startsWith(nameOf(id), project))
+    .map((id) => ({ value: `${id}/`, isFinal: false }))
 }
 
 /** A project's choices:  "entire project" while nothing's typed, then its `.spell` files that start with `typed`. */

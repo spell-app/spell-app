@@ -453,7 +453,7 @@ export class SpellDeclarations {
 
   /**
    * Where a statement `defined` itself (`<file>:<start>-<end>`) in project `projectId`:
-   * e.g. `{ path: "@spell/library/cards//Card.spell", start: 23, end: 412 }`.
+   * e.g. `{ path: "@spell/library/cards/Card.spell", start: 23, end: 412 }`.
    * - `undefined` if it doesn't say.
    * - Reverses `definedAt()`.
    */
@@ -632,13 +632,13 @@ export class SpellDeclarations {
   /**
    * `<file>:<start>-<end>` character offsets of `match` in its file, e.g. `/FizzBuzz.spell:23-412`:
    * if it came from a file.
-   * - Project-relative, e.g. `/Card.spell` not `@spell/library/cards//Card.spell`:  a library may move.
+   * - Project-relative, e.g. `/Card.spell` not `@spell/library/cards/Card.spell`:  a library may move.
    */
   private static definedAt(match: P.Match): string | undefined {
     const path = match.getScopeOfType(P.FileScope)?.path
     const { start, end } = match
     if (!path || start === undefined || end === undefined) return undefined
-    const file = SP.SpellLocation.isAddress(path) ? path.slice(path.indexOf(SP.SpellLocation.STEP) + 1) : path
+    const file = (SP.SpellLocation.isAddress(path) && SP.SpellLocation.filePathOf(path)) || path
     return `${file}:${start}-${end}`
   }
 }

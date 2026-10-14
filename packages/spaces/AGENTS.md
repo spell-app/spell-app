@@ -59,8 +59,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - Laid out by org, each person's space inside it:  `owen@spell/errors` is `@spell/owen@/errors/`.
   - `SPACES.LOCAL_PERSON` is `owen`, until the people phase reads it from the person's own file.
   - A project is its group's address, a slash and its folder's name, lower-kebab (epic `people-and-orgs` P4,
-    decision Q39):  `@spell/examples/drawable-solitaire`;  a file in it, after two slashes,
-    `@spell/examples/drawable-solitaire//Card.spell`.
+    decision Q39):  `@spell/examples/drawable-solitaire`;  a file in it, its name with a dot (Q41),
+    `@spell/examples/drawable-solitaire/Card.spell`.
   - A `@local/<folder>` group, added at runtime for a folder an editor opened, says its own folder (`serverPath`).
 - Where the folders are:  [environment.ts](src/server/node/environment.ts).
   - `spaceFolders`:  `builtins` (`packages/spaces/`), `tests` (`tests/spaces/`), `spaces` (spell-spaces)
@@ -99,13 +99,14 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Its handlers are our [project-utils.ts](src/server/node/projects/project-utils.ts)'s.
   - A project or a file is named by its ADDRESS, from ONE function, `SP.SpellUrls` (spell's
     [SpellUrls.ts](../spell/src/SpellUrls.ts)):
-    - a file is READ at `/spaces/<project>//<file>`, e.g. `/spaces/@spell/examples/solitaire//Card.spell`
-    - and SAVED by `POST /api/projects/file/<project>//<file>`
+    - a file is READ at `/spaces/<project>/<file>`, e.g. `/spaces/@spell/examples/solitaire/Card.spell`
+    - and SAVED by `POST /api/projects/file/<project>/<file>`
     - a project's index:  `/api/projects/index/<project>`
     - a group's projects:  `/api/projects/list/<group>`, e.g. `/api/projects/list/owen@spell`
-    - Compiled files are files:  `/spaces/<project>//<project>.spell.js`, `.scopes.js`, `.declarations.json`,
+    - Compiled files are files:  `/spaces/<project>/<project>.spell.js`, `.scopes.js`, `.declarations.json`,
       `.en.js`.  A built one is served from the build folder.
-    - A URL is split at its FIRST `//` before any path is made, and each part decoded on its own (decision J48).
+    - A URL is split by its group and ONE part for the project before any path is made, and each part decoded on its
+      own (`SP.SpellUrls.split()`, decision Q41).
   - [api.test.ts](../../tests/spaces/src/server/node/routes/api.test.ts) pins its behaviour over HTTP.
 - [appRoutes.ts](src/server/node/routes/appRoutes.ts):  the app on the PAGE server, a route module
   ([server's AGENTS.md](../server/AGENTS.md)).
@@ -119,7 +120,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - It serves the app's own folders (`APP_DIR`:  `dist/`, `dist-element/`, `demo/`), wherever it's started from.
 - It BUILDS projects when needed ([ProjectBuild.ts](src/server/node/routes/ProjectBuild.ts)):
   their compiled output and scope packs are in `build/`, never committed (epic `people-and-orgs` P11).
-  - A request for a built file that isn't there (`/spaces/<project>//<project>.spell.js`, `.scopes.js` ...)
+  - A request for a built file that isn't there (`/spaces/<project>/<project>.spell.js`, `.scopes.js` ...)
     compiles its project first, then serves it (`projectBuild.builtFirst()`):  one compile per project at a time,
     waiting at most `COMPILE_WAIT_MS`.
   - The route module starts `spell compile --stale --all @spell/examples @spell/library` as the page server starts,

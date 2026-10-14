@@ -81,10 +81,10 @@ describe("buildFolderFor()", () => {
 describe("SpellLocation.serverPath, in this repo", () => {
   test("a built-in project's built file is in `build/`, at its path under `packages/`", () => {
     expect(environment.buildDir).toBe(resolve(environment.packagesDir, "..", "build"))
-    expect(new SP.SpellLocation("@spell/examples/solitaire//solitaire.spell.js").serverPath).toBe(
+    expect(new SP.SpellLocation("@spell/examples/solitaire/solitaire.spell.js").serverPath).toBe(
       resolve(environment.buildDir, "spaces/@spell/examples/solitaire/solitaire.spell.js")
     )
-    expect(new SP.SpellLocation("@spell/examples/solitaire//solitaire.en.js").serverPath).toBe(
+    expect(new SP.SpellLocation("@spell/examples/solitaire/solitaire.en.js").serverPath).toBe(
       resolve(environment.systemFilesRoot, "examples/solitaire/solitaire.en.js")
     )
   })

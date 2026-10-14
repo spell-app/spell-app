@@ -46,25 +46,25 @@ describe("diskFetch", () => {
     })
   })
 
-  test("it answers a file's URL, split at its `//`:  `/spaces/<project>//<file>`", async () => {
-    const url = SP.SpellUrls.fileUrl(`${solitaire}//Card.spell`)
-    expect(url).toBe("/spaces/@spell/test/solitaire//Card.spell")
+  test("it answers a file's URL, split by its group and project:  `/spaces/<project>/<file>`", async () => {
+    const url = SP.SpellUrls.fileUrl(`${solitaire}/Card.spell`)
+    expect(url).toBe("/spaces/@spell/test/solitaire/Card.spell")
     expect(await diskFetch({ url })).toBe(readFileSync(fixturePath("solitaire", "Card.spell"), "utf8"))
     expect(await diskFetch({ url: SP.SpellUrls.indexUrl(solitaire) })).toHaveProperty("imports")
     expect(await diskFetch({ url: SP.SpellUrls.listUrl("@spell/test") })).toContain(solitaire)
   })
 
   test("a missing file falls back to `defaultContents`, else fails like a 404", async () => {
-    const file = new SP.SpellFile(`${solitaire}//Nope.spell`)
+    const file = new SP.SpellFile(`${solitaire}/Nope.spell`)
     file.defaultContents = "// nothing"
     expect(await file.load(undefined)).toBe("// nothing")
-    const other = new SP.SpellFile(`${solitaire}//Nope-2.spell`)
+    const other = new SP.SpellFile(`${solitaire}/Nope-2.spell`)
     await expect(other.load(undefined)).rejects.toThrow(/Not found on disk/)
   })
 
   describe("locationForDiskPath", () => {
     test("a file under a known root's folder maps onto that root", () => {
-      expect(locationForDiskPath(fixturePath("solitaire", "Card.spell"))?.path).toBe(`${solitaire}//Card.spell`)
+      expect(locationForDiskPath(fixturePath("solitaire", "Card.spell"))?.path).toBe(`${solitaire}/Card.spell`)
     })
 
     // where each group's folder is -- NOT what's in it, which tests never depend on
@@ -83,7 +83,7 @@ describe("diskFetch", () => {
       expect(environment.userFilesRoot).toBe(resolve(environment.spellSpacesDir, "@spell", `${SPACES.LOCAL_PERSON}@`))
     })
 
-    test("a file elsewhere gets a `@workspace` root, and loads + saves through it", async () => {
+    test("a file elsewhere gets a `@local/<folder>` group, and loads + saves through it", async () => {
       const workspace = mkdtempSync(resolve(tmpdir(), "spell-ws-"))
       const projectDir = resolve(workspace, "MyProject")
       mkdirSync(projectDir)
@@ -94,7 +94,7 @@ describe("diskFetch", () => {
       writeFileSync(resolve(projectDir, "a.spell"), "set foo to 1\nprint the foo")
 
       const location = locationForDiskPath(resolve(projectDir, "a.spell"))!
-      expect(location.path).toBe(`@local/${basename(workspace)}/MyProject//a.spell`)
+      expect(location.path).toBe(`@local/${basename(workspace)}/MyProject/a.spell`)
 
       const file = new SP.SpellFile(location.path)
       await file.project.parse()

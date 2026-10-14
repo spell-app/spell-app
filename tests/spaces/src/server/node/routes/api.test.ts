@@ -7,7 +7,7 @@
  *   marked `CHANGED`:  nested `:filePath*` paths work, an unknown DELETE gets the API's 404, a `.spell` file is
  *   text, and a bad body is JSON, not an HTML error page.
  * - Files are named by URL, as spell names them (`SP.SpellUrls`, epic `people-and-orgs` P15):  read at
- *   `/spaces/<project>//<file>`, saved by `POST /api/projects/file/<project>//<file>`.
+ *   `/spaces/<project>/<file>`, saved by `POST /api/projects/file/<project>/<file>`.
  * - SIDE EFFECT: starts a server on a free port with its folders in a temp dir (`SPELL_SPACES_DIR`,
  *   `SPELL_BUILTINS_DIR`, `SPELL_TESTS_DIR`, `SPELL_BUILD_DIR`), so the repo and your spell-spaces are never written.
  *   Deleted afterwards.
@@ -25,10 +25,10 @@ import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 const PROJECT = "owen@spell/Proj"
 /** Its place:  your space (`SPACES.LOCAL_PERSON`), then its name. */
 const PLACE = "owen@spell/Proj"
-/** Where its files are read:  `/spaces/<project>//<file>`. */
-const FILES = `/spaces/${PLACE}//`
-/** Where its files are saved:  `/api/projects/file/<project>//<file>`. */
-const SAVE = `/api/projects/file/${PLACE}//`
+/** Where its files are read:  `/spaces/<project>/<file>`. */
+const FILES = `/spaces/${PLACE}/`
+/** Where its files are saved:  `/api/projects/file/<project>/<file>`. */
+const SAVE = `/api/projects/file/${PLACE}/`
 /** `spaces`' folder:  where the server is launched from (its `tsconfig.json` gives `tsx` the aliases). */
 const spacesDir = path.resolve(import.meta.dirname, "../../../../../../packages/spaces")
 
@@ -246,10 +246,10 @@ describe("projects list and sendError shape", () => {
 })
 
 ////////////////
-// ## Project files:  read at `/spaces/<project>//<file>`, saved at `/api/projects/file/<project>//<file>`
+// ## Project files:  read at `/spaces/<project>/<file>`, saved at `/api/projects/file/<project>/<file>`
 ////////////////
 
-describe("GET /spaces/<project>//<file>", () => {
+describe("GET /spaces/<project>/<file>", () => {
   it("top-level file => 200, raw contents, content-type from the extension", async () => {
     const reply = await request("GET", `${FILES}top.spell`)
     expect(reply.status).toBe(200)
@@ -276,7 +276,7 @@ describe("GET /spaces/<project>//<file>", () => {
     expect(typeof body.errors[0].trace).toBe("string")
   })
 
-  it("a file in a folder:  everything after the `//`", async () => {
+  it("a file in a folder:  everything after the project", async () => {
     const reply = await request("GET", `${FILES}folder/sub/file.spell`)
     expect(reply.status).toBe(200)
     expect(reply.text).toBe(readFixture("user/Proj/folder/sub/file.spell"))
@@ -285,20 +285,20 @@ describe("GET /spaces/<project>//<file>", () => {
   it("a project and a file with spaces in their names:  each part encoded on its own", async () => {
     writeFixture("user/Two Words/project.json", JSON.stringify({ imports: [] }))
     writeFixture("user/Two Words/a folder/my file.spell", "spaced\n")
-    const reply = await request("GET", "/spaces/owen@spell/Two%20Words//a%20folder/my%20file.spell")
+    const reply = await request("GET", "/spaces/owen@spell/Two%20Words/a%20folder/my%20file.spell")
     expect(reply.status).toBe(200)
     expect(reply.text).toBe("spaced\n")
   })
 
-  it("a directory => 404", async () => {
-    const reply = await request("GET", `${FILES}folder`)
-    expect(reply.status).toBe(404)
+  it("a folder, or a name with no dot => 400:  not a file's address (decision Q41)", async () => {
+    expect((await request("GET", `${FILES}folder/`)).status).toBe(400)
+    expect((await request("GET", `${FILES}folder`)).status).toBe(400)
   })
 
   it.each([
-    ["no `//` before the file", `/spaces/${PLACE}/top.spell`, "no '//'"],
-    ["an unknown place", "/spaces/@nobody/Proj//top.spell", "no project group there"],
-    ["`//` encoded as one piece", `/spaces/${PLACE}%2F%2Ftop.spell`, "no '//'"]
+    ["no file after the project", `/spaces/${PLACE}`, "no file after the project"],
+    ["an unknown group", "/spaces/@nobody/Proj/top.spell", "no project group holds"],
+    ["the two slashes from before decision Q41", `/spaces/${PLACE}//top.spell`, "an empty part"]
   ])("a URL that names no project's file (%s) => 400", async (_name, url, message) => {
     const reply = await request("GET", url)
     expect(reply.status).toBe(400)
@@ -309,7 +309,7 @@ describe("GET /spaces/<project>//<file>", () => {
     ["encoded `..` segment", `${FILES}%2e%2e`],
     ["encoded `../x`", `${FILES}%2e%2e%2fx.spell`],
     ["encoded `..%2f`", `${FILES}..%2fx.spell`],
-    ["`..` as the project", "/spaces/owen@spell/%2e%2e//x.spell"]
+    ["`..` as the project", "/spaces/owen@spell/%2e%2e/x.spell"]
   ])("path traversal (%s) => 400 sendError, 'Invalid path'", async (_name, url) => {
     const reply = await request("GET", url)
     expect(reply.status).toBe(400)
@@ -318,7 +318,7 @@ describe("GET /spaces/<project>//<file>", () => {
   })
 })
 
-describe("POST /api/projects/file/<project>//<file>", () => {
+describe("POST /api/projects/file/<project>/<file>", () => {
   it("text/plain body => 200 `true`, file written, reads back at its `/spaces/` URL", async () => {
     const post = await request("POST", `${SAVE}saved.txt`, "hi there", "text/plain")
     expect(post.status).toBe(200)
@@ -366,7 +366,7 @@ describe("POST /api/projects/file/<project>//<file>", () => {
   })
 
   it("the old URL, a project id then its file, is gone:  404", async () => {
-    const reply = await request("GET", `/api/projects/file/${PROJECT}//top.spell`)
+    const reply = await request("GET", `/api/projects/file/${PROJECT}/top.spell`)
     expect(reply.status).toBe(404)
   })
 })
@@ -469,7 +469,7 @@ describe("DELETE /api/projects/remove/file", () => {
 })
 
 ////////////////
-// ## Compiled, scopes and words:  files too, at `/spaces/<project>//<file>`, found in `build/`
+// ## Compiled, scopes and words:  files too, at `/spaces/<project>/<file>`, found in `build/`
 ////////////////
 
 describe("compiled, scopes and words files", () => {
@@ -489,7 +489,7 @@ describe("compiled, scopes and words files", () => {
   })
 
   it("not found, and no project to compile => 404 JSON", async () => {
-    const reply = await request("GET", "/spaces/owen@spell/Nope//Nope.spell.js")
+    const reply = await request("GET", "/spaces/owen@spell/Nope/Nope.spell.js")
     expect(reply.status).toBe(404)
     expect(reply.contentType).toMatch(/^application\/json/)
     const body = reply.json()
@@ -501,12 +501,12 @@ describe("compiled, scopes and words files", () => {
   it("a project never compiled:  compiled first, then served -- its scope pack too", async () => {
     writeFixture("user/Fresh/project.json", JSON.stringify({ imports: [{ path: "/Fresh.spell", active: true }] }))
     writeFixture("user/Fresh/Fresh.spell", 'print "fresh"\n')
-    const reply = await request("GET", "/spaces/owen@spell/Fresh//Fresh.spell.js")
+    const reply = await request("GET", "/spaces/owen@spell/Fresh/Fresh.spell.js")
     expect(reply.status).toBe(200)
     expect(reply.contentType).toMatch(/^text\/javascript/)
     expect(reply.text).toContain('"fresh"')
     expect(readFixture("built/Fresh/Fresh.spell.js")).toBe(reply.text)
-    const scopes = await request("GET", "/spaces/owen@spell/Fresh//Fresh.scopes.js")
+    const scopes = await request("GET", "/spaces/owen@spell/Fresh/Fresh.scopes.js")
     expect(scopes.status).toBe(200)
     expect(scopes.text).toBe(readFixture("built/Fresh/Fresh.scopes.js"))
   }, 60_000)
@@ -553,9 +553,9 @@ describe("a project's file list", () => {
     writeFixture("user/Proj/__pack.js", "export {}\n")
     const reply = await request("GET", `/api/projects/index/${PLACE}`)
     const files = Object.keys(reply.json().manifest)
-    expect(files).toContain(`${PROJECT}//__init__.js`)
-    expect(files).toContain(`${PROJECT}//__pack.js`)
-    expect(files).not.toContain(`${PROJECT}//__project.json5`)
+    expect(files).toContain(`${PROJECT}/__init__.js`)
+    expect(files).toContain(`${PROJECT}/__pack.js`)
+    expect(files).not.toContain(`${PROJECT}/__project.json5`)
   })
 })
 
@@ -566,10 +566,10 @@ describe("every URL spell builds is answered by the server and by spaces' disk r
     const { SP } = await import("$/spell")
     const { diskFetch } = await import("$/spaces/server/node/projects/disk-fetch")
     const urls = [
-      SP.SpellUrls.fileUrl(`${PROJECT}//top.spell`),
-      SP.SpellUrls.fileUrl(`${PROJECT}//folder/sub/file.spell`),
-      SP.SpellUrls.fileUrl("owen@spell/Two Words//a folder/my file.spell"),
-      SP.SpellUrls.fileUrl(`${PROJECT}//Proj.spell.js`)
+      SP.SpellUrls.fileUrl(`${PROJECT}/top.spell`),
+      SP.SpellUrls.fileUrl(`${PROJECT}/folder/sub/file.spell`),
+      SP.SpellUrls.fileUrl("owen@spell/Two Words/a folder/my file.spell"),
+      SP.SpellUrls.fileUrl(`${PROJECT}/Proj.spell.js`)
     ]
     expect(urls[0]).toBe(`${FILES}top.spell`)
     for (const url of urls) {
@@ -582,7 +582,7 @@ describe("every URL spell builds is answered by the server and by spaces' disk r
     expect((await diskFetch({ url: index })).imports).toEqual((await request("GET", index)).json().imports)
     const list = SP.SpellUrls.listUrl("owen@spell")
     expect(await diskFetch({ url: list })).toEqual((await request("GET", list)).json())
-    const saved = SP.SpellUrls.saveUrl(`${PROJECT}//both.txt`)
+    const saved = SP.SpellUrls.saveUrl(`${PROJECT}/both.txt`)
     expect((await request("POST", saved, "over HTTP", "text/plain")).text).toBe("true")
     expect(await diskFetch({ url: saved, contents: "from disk" })).toBe(true)
     expect(readFixture("user/Proj/both.txt")).toBe("from disk")

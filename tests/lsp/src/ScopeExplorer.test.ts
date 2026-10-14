@@ -250,7 +250,7 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
     expect(projects.map((entry) => entry.path)).toEqual(["project:lib", "project:app"])
     const json = JSON.stringify(pack)
     expect(json).not.toContain("file://")
-    expect(json).toContain(`spell:/${encodeURI(lib.projectId)}//Card.spell`)
+    expect(json).toContain(`spell:/${encodeURI(lib.projectId)}/Card.spell`)
   })
 
   /** Project `name` in the workspace:  `spellFiles` copied from Solitaire, then `written` ones, after `imports`. */

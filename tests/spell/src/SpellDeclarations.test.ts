@@ -179,7 +179,7 @@ describe("SpellDeclarations.importScope()", () => {
 
     test("a type, its properties and constants:  `declaredAt` -- in the project's own files", () => {
       const card = imports.types.get("Card", "LOCAL_ONLY")!
-      expect(card.declaredAt?.path).toBe(`${projectId}//Card.spell`)
+      expect(card.declaredAt?.path).toBe(`${projectId}/Card.spell`)
       expect(sourceAt(card.declaredAt)).toBe("a card is a thing")
       expect(sourceAt(card.variables.get("suit", "LOCAL_ONLY")?.declaredAt)).toMatch(/^cards have a suit as one of/)
       expect(sourceAt(card.classVariables.get("Suits", "LOCAL_ONLY")?.declaredAt)).toMatch(/^cards have a suit/)
@@ -212,7 +212,7 @@ describe("SpellDeclarations.importScope()", () => {
     })
 
     test("`declaredAt` defaults to `from`, if the importer doesn't say its project", () => {
-      expect(importLibrary().types.get("Card", "LOCAL_ONLY")?.declaredAt?.path).toBe(`${from}//Card.spell`)
+      expect(importLibrary().types.get("Card", "LOCAL_ONLY")?.declaredAt?.path).toBe(`${from}/Card.spell`)
     })
 
     /** Library source `at` points to. */
@@ -377,7 +377,7 @@ describe("SpellDeclarations of `a card belongs to one pile`", () => {
     const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [{ from, declarations }])
     const member = imports.types.get("Card", "LOCAL_ONLY")?.variables.get("pile", "LOCAL_ONLY")
     expect(member).toMatchObject({ name: "pile", datatype: "Pile", exclusive: true })
-    expect(member?.declaredAt).toMatchObject({ path: `${from}//Pile.spell`, start: 26, end: 52 })
+    expect(member?.declaredAt).toMatchObject({ path: `${from}/Pile.spell`, start: 26, end: 52 })
     const contents = ["set card to a new card", "print the pile of the card", "set the pile of the card to 1"]
     const { files } = parseSpellProject([{ path: "/A.spell", contents: contents.join("\n") }], {
       parentScope: imports

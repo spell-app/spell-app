@@ -361,8 +361,8 @@ function tailOf(request: Request, prefix: string): string {
 ////////////////
 
 /**
- * The file a file's URL names, e.g. `/spaces/@spell/examples/solitaire//Card.spell` or
- * `/api/projects/file/<project>//<file>`, as a `SpellLocation`:  split at its first `//` BEFORE any path is made
+ * The file a file's URL names, e.g. `/spaces/@spell/examples/solitaire/Card.spell` or
+ * `/api/projects/file/<project>/<file>`, as a `SpellLocation`:  split by its group and project BEFORE any path is made
  * (`SP.SpellUrls.fileForUrl()`), then checked part by part (`new SP.SpellLocation()`).
  * - throws `TypeError` if it names no project's file
  */
@@ -371,7 +371,7 @@ export function locationForUrl(url: string): SP.SpellLocation {
 }
 
 /**
- * `GET /spaces/<project>//<file>` -- one project file, as it is on disk, e.g. `/spaces/@spell/examples/solitaire//Card.spell`.
+ * `GET /spaces/<project>/<file>` -- one project file, as it is on disk, e.g. `/spaces/@spell/examples/solitaire/Card.spell`.
  * - A file spell BUILDS (`Solitaire.spell.js`, `.scopes.js` ...) is served from the project's build folder
  *   (`serverPath`):  its URL sits beside its source's.
  * - Returns: raw file body via `SRV.Reply.sendFile()` (mime type set from extension, `.js` as javascript, so a runner
@@ -379,7 +379,7 @@ export function locationForUrl(url: string): SP.SpellLocation {
  *   `{ dotfiles: "allow" }`, so dotfiles can be fetched too.
  * - Failure:
  *   - 404 (via `responseUtils.sendFile()`) if file not found
- *   - 400 if the URL names no project's file (no `//`, an unknown place, a bad part)
+ *   - 400 if the URL names no project's file (no file after the project, an unknown group, a bad part)
  * - NOTE: deliberately NOT wrapped in `respondWithJSON` -- that would send a JSON body on top of the file
  *   we already streamed.  We catch by hand instead so a rejection can't go unhandled and hang the client.
  */
@@ -412,8 +412,8 @@ export const saveFile = async (projectId: string, filePath: string, contents: an
 }
 
 /**
- * `POST /api/projects/file/<project>//<file>` -- save/overwrite one project file, e.g.
- * `/api/projects/file/owen@spell/errors//1.spell`.  Reading it is `GET /spaces/<project>//<file>`.
+ * `POST /api/projects/file/<project>/<file>` -- save/overwrite one project file, e.g.
+ * `/api/projects/file/owen@spell/errors/1.spell`.  Reading it is `GET /spaces/<project>/<file>`.
  * - Client sends: raw body as file contents.
  *   Text or JSON per `Content-Type`:  see the body parsing in `routes/appRoutes.ts`.
  * - Returns: `true` on success.

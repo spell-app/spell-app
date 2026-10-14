@@ -28,7 +28,7 @@ Experimental [Deepwiki Documentation](https://deepwiki.com/spell-app/spell-app)
 - Start the app (port 3000) and the api server (port 3001):  `yarn start`, in `packages/app`.
   - `yarn stop` (there too) stops them.
 - Open http://localhost:3000 in your web browser.
-- Check out the [Solitaire Example](http://localhost:3000/run/@spell/examples/solitaire//Card.spell).
+- Check out the [Solitaire Example](http://localhost:3000/run/@spell/examples/solitaire/Card.spell).
 - Click the `Edit Example` button to see the code.
 - To run tests:
   - every package:  `yarn test`, at the monorepo root

@@ -15,21 +15,26 @@ import { SP } from "$/spell"
  * - Immutable objects, stored in a registry.  Doing this repeatedly with same `path` will
  *   always return same object.
  * - Use `.isProjectRoot`, `.isProjectPath` or `.isFilePath` etc to figure path type.
- * - An address is a group's address, a slash and a project's name, then TWO slashes and a file (epic
- *   `people-and-orgs` P4, decisions Q28 and Q32):  `@spell/examples/solitaire//folder/Card.spell`, which is:
+ * - An address is a group's address, then a project's name, then a file, a slash between each (epic `people-and-orgs`
+ *   P4, decisions Q28 and Q41):  `@spell/examples/solitaire/folder/Card.spell`, which is:
  *  - `isValid`     `true`
  *  - `projectRoot` `@spell/examples`                   the group, one of `SpellSetup.projectRoots`
  *  - `space`       `@spell`                            its space:  an org (`@spell`), or a person at one (`owen@spell`)
  *  - `domain`      `examples`                          the group's short name
  *  - `projectId`   `@spell/examples/solitaire`         the project's address (just the group's, for a group)
  *  - `projectName` `solitaire`                         (`undefined` if `isProjectRoot`)
- *  - `filePath`    `/folder/Card.spell`                (`undefined` if no `//`)
- *  - `folder`      `/folder/`                          (`undefined` if no `//`)
+ *  - `filePath`    `/folder/Card.spell`                (`undefined` if no file or folder follows the project)
+ *  - `folder`      `/folder/`                          (`undefined` if no file or folder follows the project)
  *  - `file`        `Card.spell`                        (`undefined` if not `.isFilePath`)
  *  - `fileName`    `Card`                              (`undefined` if not `.isFilePath`)
  *  - `extension`   `.spell`                            (`undefined` if not `.isFilePath`)
- * - A folder ends in a slash:  `@spell/examples/solitaire//folder/`;  the project's own, `@spell/examples/solitaire//`.
  * - Where the project ends needs no lookup beyond the group's:  a project's name is ONE part.
+ * - What follows the project, by its last part (decision Q41):
+ *   - a dot:  a file, `.../solitaire/Card.spell`, `.../solitaire/.hidden`;  so every file has one
+ *   - a slash at the end:  a folder, `.../solitaire/assets/`;  the project's own, `.../solitaire/`
+ *   - neither:  a page of the running app, `owen@spell/solitaire/rules` -- or a type where a type is expected
+ *     (`typeFor()`):  never a `SpellLocation`
+ * - A group's, a project's or a page's name holds no dot.
  */
 export class SpellLocation {
   /** Registry of known instances. */
@@ -37,9 +42,6 @@ export class SpellLocation {
 
   /** Set to `false` to ignore registry (e.g. on the server). */
   static useRegistry = true
-
-  /** Between a project and a file in it:  `@spell/examples/solitaire//Card.spell`. */
-  static readonly STEP = "//"
 
   /** Full address, required. */
   readonly path!: string
@@ -83,22 +85,24 @@ export class SpellLocation {
 
       this.path = path
 
-      // Figure out out bits:  the place before the FIRST `//`, a file after it
-      const step = path.indexOf(SpellLocation.STEP)
-      const place = step < 0 ? path : path.slice(0, step)
-      const group = SP.SpellSetup.groupFor(place)
+      // Figure out out bits:  the group, then ONE part for the project, then a file or a folder
+      const group = SP.SpellSetup.groupFor(path)
       if (!group) throw "Invalid path"
       this.projectRoot = group.path
       this.space = group.space
       this.domain = group.domain
-      this.projectId = place
-      this.projectName = place.slice(group.path.length + 1) || undefined
-      if (step >= 0) {
-        const filePath = path.slice(step + SpellLocation.STEP.length).split("/")
-        const file = filePath.pop()
+      const [projectName, ...filePath] = path === group.path ? [] : path.slice(group.path.length + 1).split("/")
+      this.projectName = projectName || undefined
+      this.projectId = projectName ? `${group.path}/${projectName}` : group.path
+      if (filePath.length) {
+        const file = filePath.pop()!
+        // no dot and no slash at the end:  a page of the running app (or a type), never a location
+        if (file && !file.includes(".")) throw "Invalid path:  a file's name has a dot, a folder ends in a slash"
+        // an empty part, e.g. the two slashes addresses had before decision Q41:  `solitaire//Card.spell`
+        if (filePath.includes("")) throw "Invalid path:  an empty part"
         this.folder = filePath.length ? `/${filePath.join("/")}/` : "/"
         this.file = file || undefined
-        this.filePath = `${this.folder}${file || ""}`
+        this.filePath = `${this.folder}${file}`
         if (file) {
           const [fileName, ...extension] = file.split(".")
           this.fileName = file.startsWith(".") ? `.${extension.shift() || ""}` : fileName
@@ -107,8 +111,9 @@ export class SpellLocation {
       }
 
       // Is this a valid path??  Its group is known (above);  then:
-      // 1. If it has a projectName, is that ONE valid part?
-      let isValid = !this.projectName || SpellLocation.isValidPathSegment(this.projectName)
+      // 1. If it has a projectName, is that a valid part, with no dot?
+      let isValid =
+        !this.projectName || (SpellLocation.isValidPathSegment(this.projectName) && !this.projectName.includes("."))
       // 2. If it has a filePath, does it have a projectName and is the filePath all valid?
       if (isValid && this.filePath) isValid = !!this.projectName && SpellLocation.isValidPath(this.filePath)
       if (!isValid) throw "Invalid path"
@@ -175,8 +180,8 @@ export class SpellLocation {
   }
 
   /**
-   * The address an app URL's tail names, after its `/edit/` or `/run/`, e.g. `@spell/examples/solitaire//Card.spell`.
-   * - Each part decoded on its own, so the `//` stays.
+   * The address an app URL's tail names, after its `/edit/` or `/run/`, e.g. `@spell/examples/solitaire/Card.spell`.
+   * - Each part decoded on its own.
    * - NOTE: says nothing of whether it's valid:  `new SpellLocation()` checks that.
    */
   static addressForUrl(tail: string): string {
@@ -224,9 +229,21 @@ export class SpellLocation {
     return path
   }
 
-  /** The address of `filePath` (`Card.spell` or `/Card.spell`) in project `projectId`:  `<projectId>//Card.spell`. */
+  /** The address of `filePath` (`Card.spell` or `/Card.spell`) in project `projectId`:  `<projectId>/Card.spell`. */
   static join(projectId: string, filePath: string): string {
-    return `${projectId}${SpellLocation.STEP}${filePath.replace(/^\/+/, "")}`
+    return `${projectId}/${filePath.replace(/^\/+/, "")}`
+  }
+
+  /**
+   * The file's path in its project, from a file's address:  `@spell/library/cards/a/Card.spell` => `/a/Card.spell`.
+   * - `undefined` if it isn't a file's address, or its group isn't registered (a compile with no groups:  a test's).
+   */
+  static filePathOf(address: string): string | undefined {
+    try {
+      return new SpellLocation(address).filePath
+    } catch {
+      return undefined
+    }
   }
 
   /**
@@ -240,22 +257,22 @@ export class SpellLocation {
   /**
    * The type a TYPE's address names, e.g. for a file's `"$schema"` (decision J3):  its project, its name, and the
    * version it names, if any.
-   * - `@spell/library/people//Person` => `{ projectId: "@spell/library/people", type: "Person" }`:  the newest version
-   * - `@spell/library/people//Person__v2` => `{ ..., type: "Person", version: 2 }` (decision J51)
-   * - A type and a file both follow the `//`:  where the address is used says it names a type.
-   * - throws `TypeError` if it isn't one:  no project, no `//`, or a name that isn't a type's (`Card.spell`, `a/B`)
+   * - `@spell/library/people/Person` => `{ projectId: "@spell/library/people", type: "Person" }`:  the newest version
+   * - `@spell/library/people/Person__v2` => `{ ..., type: "Person", version: 2 }` (decision J51)
+   * - A type looks like a page of the running app:  where the address is used says it names a type (decision Q41).
+   * - throws `TypeError` if it isn't one:  no project before it, or a name that isn't a type's:  a type's starts with a
+   *   capital, as spell's do (`Card.spell`, `people`, `a-b` aren't)
    * - Its project's group isn't checked:  that waits for loading it.
    */
   static typeFor(address: string): { projectId: string; type: string; version?: number } {
-    const step = address.indexOf(SpellLocation.STEP)
-    const name = step < 0 ? "" : address.slice(step + SpellLocation.STEP.length)
-    const match = /^([A-Za-z_$][\w$]*?)(?:__v(\d+))?$/.exec(name)
-    if (!SpellLocation.isAddress(address) || !match)
+    const slash = address.lastIndexOf("/")
+    const match = /^([A-Z][\w$]*?)(?:__v(\d+))?$/.exec(address.slice(slash + 1))
+    if (!SpellLocation.isAddress(address) || slash < 0 || !match)
       throw new TypeError(
-        `SpellLocation.typeFor('${address}'):  not a type's address, e.g. '@spell/library/people//Person'`
+        `SpellLocation.typeFor('${address}'):  not a type's address, e.g. '@spell/library/people/Person'`
       )
     const [, type, version] = match
-    return { projectId: address.slice(0, step), type: type!, ...(version && { version: Number(version) }) }
+    return { projectId: address.slice(0, slash), type: type!, ...(version && { version: Number(version) }) }
   }
 
   /**

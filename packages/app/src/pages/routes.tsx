@@ -2,7 +2,6 @@ import { onCleanup } from "solid-js"
 import type { JSX } from "@solidjs/web"
 import { createRouter, defineRoutes, useNavigate, type RouterHistory, type RouterInstance } from "@solidjs/router"
 
-import { addressHistory, toRouter } from "./addressHistory"
 import { setNavigator } from "./navigation"
 import { ProjectChooser } from "./ProjectChooser"
 import { SpellEditorRoute } from "./SpellEditor"
@@ -10,7 +9,7 @@ import { SpellRunnerRoute } from "./SpellRunner"
 
 /**
  * The app's routes (`@solidjs/router`):  `/edit/` or `/run/`, then an address (decision Q40, epic `people-and-orgs` P4).
- * - `/edit/<address>`:  `<SpellEditor>`, e.g. `/edit/@spell/examples/solitaire//Card.spell`
+ * - `/edit/<address>`:  `<SpellEditor>`, e.g. `/edit/@spell/examples/solitaire/Card.spell`
  * - `/run/<address>`:  `<SpellRunner>`, e.g. `/run/owen@spell/errors`
  * - anything else:  `<ProjectChooser>`
  * - Each page is ONE route:  it stays mounted while only its address changes, e.g.
@@ -29,16 +28,13 @@ export const ROUTES = defineRoutes([
 ])
 
 /**
- * A router over `ROUTES`;  `history` defaults to the browser's (tests pass `memoryHistory()`), read as `addressHistory()`:
- * an address's `//` goes to the router as `/%2F`, which it can match.
+ * A router over `ROUTES`;  `history` defaults to the browser's (tests pass `memoryHistory()`).
  * - `explicitLinks`:  the router takes only `<a link>` clicks.  The app navigates through `editor` (`navigate()`),
  *   never links, and a running PROGRAM's own `<a>`s are the program's:  without it, the router would take every
  *   same-origin link on the page.
  */
 export function createAppRouter(history?: RouterHistory): RouterInstance<typeof ROUTES> {
-  // no window (node's tests, a server render):  the router's own default, the request's URL
-  const read = history || typeof window !== "undefined" ? addressHistory(history) : undefined
-  return createRouter({ routes: ROUTES, explicitLinks: true, ...(read && { history: read }) })
+  return createRouter({ routes: ROUTES, explicitLinks: true, ...(history && { history }) })
 }
 
 /** The app's router:  ONE per app (`@solidjs/router`'s rule), on the browser's history. */
@@ -62,7 +58,7 @@ export function Routes(props: { router?: RouterInstance<typeof ROUTES> }) {
  ****************/
 function AppShell(props: { children?: JSX.Element }) {
   const navigate = useNavigate()
-  setNavigator((url, options) => navigate(toRouter(url), options))
+  setNavigator((url, options) => navigate(url, options))
   onCleanup(() => setNavigator(undefined))
   return <>{props.children}</>
 }

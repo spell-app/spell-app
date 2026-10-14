@@ -108,7 +108,7 @@ export const spellAppVocabulary = {
       detail: "{ href: string }",
       description:
         "A Type Explorer link was clicked:  `href` is the spell source it points at, e.g. " +
-        "`spell:/@spell/examples/solitaire//Card.spell#L12`."
+        "`spell:/@spell/examples/solitaire/Card.spell#L12`."
     }
   ],
   slots: [],

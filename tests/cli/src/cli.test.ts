@@ -368,7 +368,7 @@ describe("spell serve", () => {
       const projects = await (await fetch(`${editor}/api/projects/list/@spell/test`)).text()
       expect(projects).toContain("@spell/test/solitaire")
       // a file by its URL, `/spaces/<address>`, through vite's proxy
-      const card = await fetch(`${editor}/spaces/@spell/test/solitaire//Card.spell`)
+      const card = await fetch(`${editor}/spaces/@spell/test/solitaire/Card.spell`)
       expect(card.status).toBe(200)
 
       child.kill("SIGINT")

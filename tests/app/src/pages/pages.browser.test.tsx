@@ -38,13 +38,13 @@ describe("routes", () => {
     ["/anything/else", "ProjectChooser", undefined],
     ["/edit/@spell/examples", "SpellEditor", "@spell/examples"],
     ["/edit/@spell/examples/todos", "SpellEditor", "@spell/examples/todos"],
-    ["/edit/@spell/examples/todos//Todo.spell", "SpellEditor", "@spell/examples/todos//Todo.spell"],
-    ["/edit/owen@spell/my%20things//a%20b.spell", "SpellEditor", "owen@spell/my things//a b.spell"],
+    ["/edit/@spell/examples/todos/Todo.spell", "SpellEditor", "@spell/examples/todos/Todo.spell"],
+    ["/edit/owen@spell/my%20things/a%20b.spell", "SpellEditor", "owen@spell/my things/a b.spell"],
     ["/run/@spell/examples", "SpellRunner", "@spell/examples"],
     ["/run/@spell/examples/todos", "SpellRunner", "@spell/examples/todos"],
     // a page of the running app:  its app, until apps have pages
     ["/run/@spell/examples/todos/rules", "SpellRunner", "@spell/examples/todos"],
-    ["/run/@spell/examples/todos//sub/Todo.spell", "SpellRunner", "@spell/examples/todos//sub/Todo.spell"]
+    ["/run/@spell/examples/todos/sub/Todo.spell", "SpellRunner", "@spell/examples/todos/sub/Todo.spell"]
   ])("%s draws #%s and selects %s", async (url, pageId, path) => {
     const selectPath = spyOnEditor("selectPath", () => Promise.resolve())
     setEditor("projectPage", pageId === "SpellRunner" ? "editor" : "runner")
@@ -63,11 +63,10 @@ describe("routes", () => {
     const { host, history } = await mountAt("/edit/@spell/examples/todos")
     const page = host.querySelector("#SpellEditor")
 
-    // the address's `//` stays in the URL (`addressHistory()`)
-    navigate("/edit/@spell/examples/todos//Other.spell")
+    navigate("/edit/@spell/examples/todos/Other.spell")
     await settle(host)
-    expect(history.get()).toBe("/edit/@spell/examples/todos//Other.spell")
-    expect(selectPath).toHaveBeenLastCalledWith("@spell/examples/todos//Other.spell")
+    expect(history.get()).toBe("/edit/@spell/examples/todos/Other.spell")
+    expect(selectPath).toHaveBeenLastCalledWith("@spell/examples/todos/Other.spell")
     // another of the route's paths:  the page stays as it is
     expect(host.querySelector("#SpellEditor")).toBe(page)
 

@@ -15,7 +15,7 @@ import { APP_DIR, EDITOR_FILE, EditorServer } from "./EditorServer"
  * `package.json` `"pageServer": { "routes": [...] }`.  What `spell serve` runs everything on.
  * - It's spaces' (epic `people-and-orgs` P14):  where projects live, and the servers that serve them.
  * - `/api/...` -- the app's API, `./api` (as `cli.ts` serves it alone, `yarn start:server`);  bodies as JSON5
- * - `/spaces/<project>//<file>` -- a project's file, by its URL (`spaceFiles`, `./api`):  how spell reads every file
+ * - `/spaces/<project>/<file>` -- a project's file, by its URL (`spaceFiles`, `./api`):  how spell reads every file
  * - `/hello` -- liveness
  * - `/element/...` -- `<spell-app>` / `<spell-editor>`'s bundles, `dist-element/` (`yarn build:element`), for the
  *   demo pages, `/demo/spell-app.html` on the editor:  vite passes `/element` on to us, as it does `/api`

@@ -868,7 +868,7 @@ function runtimeUrl(): string {
 
 /**
  * Compiled javascript of project `projectId`, which the program imports -- fetched afresh, from the server:
- * its `<Project>.spell.js`, at `/spaces/<project>//<Project>.spell.js` (`SP.SpellUrls`).
+ * its `<Project>.spell.js`, at `/spaces/<project>/<Project>.spell.js` (`SP.SpellUrls`).
  */
 async function fetchCompiled(projectId: string): Promise<string> {
   const { projectName } = new SP.SpellLocation(projectId)

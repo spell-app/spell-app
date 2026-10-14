@@ -13,7 +13,7 @@ import { SP } from "$/spell"
  * (epic `people-and-orgs` P11), never committed, so a fresh checkout or worktree has none.
  * - `start()`:  when the page server starts, compiles the built-in projects that are out of date, in the background:
  *   `spell compile --stale --all @spell/examples @spell/library` (`STARTUP_PROJECTS`), as `BundleBuild` builds the bundles
- * - `builtFirst()`:  a route's handler;  a request for a built file that isn't there (`/spaces/<project>//<file>`)
+ * - `builtFirst()`:  a route's handler;  a request for a built file that isn't there (`/spaces/<project>/<file>`)
  *   compiles its project first,
  *   `spell compile <projectId>`, then goes on to be served
  *   - while the startup build runs, it waits for that instead
@@ -114,7 +114,7 @@ export class ProjectBuild {
 
   /**
    * A route's handler, ahead of the one that serves the file:  makes sure the built file it names is there.
-   * - The file is the request's URL's, `/spaces/<project>//<file>` (`projectUtils.locationForUrl()`),
+   * - The file is the request's URL's, `/spaces/<project>/<file>` (`projectUtils.locationForUrl()`),
    *   when that's a file spell builds (`projectUtils.isBuiltFile()`), e.g. `Solitaire.spell.js`.
    * - A bad URL goes on to the next handler, which says what's wrong.
    */

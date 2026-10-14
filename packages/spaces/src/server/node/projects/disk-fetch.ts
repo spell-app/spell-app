@@ -3,7 +3,7 @@
  * the language server, the `spell` command, tests.
  * - `LoadableFile.fetch` is how every `SpellProject` / `SpellFile` / `SpellProjectRoot` reaches its `url`.
  * - `installDiskFetch()` swaps `$fetch()` for `diskFetch()`, which answers the same URLs spell builds
- *   (`SP.SpellUrls`:  `/spaces/<project>//<file>`, `/api/projects/...`) with the same `project-utils` functions the
+ *   (`SP.SpellUrls`:  `/spaces/<project>/<file>`, `/api/projects/...`) with the same `project-utils` functions the
  *   routes call -- see `routes/api.ts` for that route table.
  * - Spell never sees a path on disk:  in a browser the page server answers these URLs, here this does.
  * - `locationForDiskPath()` maps a file on disk back to a `SpellLocation`,
@@ -25,7 +25,7 @@ import { isFileOrFolderNotFoundError } from "./response-utils"
 
 /**
  * URL shapes we answer, as `routes/api.ts` does -- by their prefix (`SP.SpellUrls`), each handed the URL as it is,
- * still encoded:  a place is split at `//` and decoded part by part, never as a whole (decision J48).
+ * still encoded:  an address is decoded part by part, never as a whole, then split by its group (`SP.SpellUrls`).
  * - `GET` unless the caller passes `contents`.
  */
 const ROUTES: Array<{ prefix: string; handle: (url: string, $params: $FetchParams) => Promise<unknown> }> = [

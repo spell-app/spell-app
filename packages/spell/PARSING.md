@@ -987,9 +987,9 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
     space (`SPACES.LOCAL_PERSON`)
   - a project:  its group's, a slash, its name, ONE part, lower-kebab (decision Q39):
     `@spell/examples/solitaire`, `owen@spell/errors`
-  - a file in it:  two slashes, then the file:  `@spell/examples/solitaire//Card.spell`;
+  - a file in it:  a slash, then the file, whose name has a dot (decision Q41):  `@spell/examples/solitaire/Card.spell`;
     a folder ends in a slash, `...//folder/` (decision J47)
-  - a page of a running app:  more after the project, with no `//`:  `owen@spell/solitaire/rules`
+  - a page of a running app:  more after the project, no dot in its last part:  `owen@spell/solitaire/rules`
     (the app's `/run/` URLs;  apps have no pages yet)
   - A `@local/<folder>` group is added at runtime for a folder an editor opened.
   - No other form is read:  not `@system:examples:Solitaire`, not `@examples/Solitaire` (decision Q30).
@@ -1045,7 +1045,7 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
     - the page server, as it starts:  the built-in projects that are out of date, `@spell/examples` and `@spell/library`,
       in the background (`spell compile --stale --all @spell/examples @spell/library`)
     - spaces' routes:  a request for a built file that isn't there compiles its project first, then serves it
-      (`/spaces/<project>//<project>.spell.js`, `.scopes.js` ...);
+      (`/spaces/<project>/<project>.spell.js`, `.scopes.js` ...);
       one compile per project at a time, a request waits at most a minute
     - Both are `ProjectBuild`, in the editor's server ([ProjectBuild.ts](../spaces/src/server/node/routes/ProjectBuild.ts)),
       running the checkout's own `spell compile` as a child.
@@ -1059,14 +1059,14 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
 - [`SpellProject`](src/SpellProject.ts):  files in `project.json` order, e.g. Card → Deck → Pile → Solitaire.
 - `SpellProject` / `SpellFile` load over HTTP, with `$fetch()`, on URLs from ONE function,
   [SpellUrls](src/SpellUrls.ts) (`SP.SpellUrls`):
-  - a file is READ at `/spaces/<project>//<file>`, e.g. `/spaces/@spell/examples/solitaire//Card.spell`
-  - and SAVED by `POST /api/projects/file/<project>//<file>`
+  - a file is READ at `/spaces/<project>/<file>`, e.g. `/spaces/@spell/examples/solitaire/Card.spell`
+  - and SAVED by `POST /api/projects/file/<project>/<file>`
   - a project's index:  `/api/projects/index/<project>`
   - a group's projects:  `/api/projects/list/<group>`, e.g. `/api/projects/list/owen@spell`
-  - What spell builds is read as a file too, e.g. `/spaces/@spell/examples/solitaire//solitaire.spell.js`,
+  - What spell builds is read as a file too, e.g. `/spaces/@spell/examples/solitaire/solitaire.spell.js`,
     `.scopes.js`, `.declarations.json`, `.en.js`:  the server finds a built one in the build folder.
-  - Two slashes split the project from the file (decision J48):
-    - `fileForUrl()` splits at the FIRST `//`, before any path is made:  path functions squash `//` to `/`
+  - Where the project ends:  its group's address, then ONE part (`SpellUrls.split()`);  the file follows, its name
+    with a dot (decision Q41).
     - each part is encoded and decoded on its own, never the whole address
     - every URL starts `/spaces/` or `/api/`, and is written whole, never relative
   - They go through `LoadableFile.fetch`, which a node host swaps for spaces' disk reader,

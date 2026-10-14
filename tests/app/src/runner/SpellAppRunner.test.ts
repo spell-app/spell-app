@@ -6,9 +6,9 @@ import { editorCompiled, isEditor, pushedKey, pushedSource, type SpellAppSource 
 describe("<spell-app> fed by an editor", () => {
   const base: SpellAppSource = {
     name: "Solitaire",
-    compiledUrl: "/spaces/@spell/examples/solitaire//solitaire.spell.js",
-    scopesUrl: "/spaces/@spell/examples/solitaire//solitaire.scopes.js",
-    importUrl: (id) => `/spaces/${id}//compiled.spell.js`
+    compiledUrl: "/spaces/@spell/examples/solitaire/solitaire.spell.js",
+    scopesUrl: "/spaces/@spell/examples/solitaire/solitaire.scopes.js",
+    importUrl: (id) => `/spaces/${id}/compiled.spell.js`
   }
   const scopes = { id: "@spell/examples/solitaire", entries: [] }
   const pushed = { projectId: "@spell/examples/solitaire", compiled: "export const x = 1", scopes }

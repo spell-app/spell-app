@@ -191,7 +191,7 @@ export type Declaration = {
  * - NOTE: that project's sources may not be there, e.g. a library shipped compiled.
  */
 export type DeclaredAt = {
-  /** Full path of its file, e.g. `@spell/library/cards//Card.spell`. */
+  /** Full path of its file, e.g. `@spell/library/cards/Card.spell`. */
   path: string
   /** Character offset in that file where its declaring statement starts. */
   start: number

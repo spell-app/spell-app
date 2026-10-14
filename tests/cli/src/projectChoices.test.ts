@@ -26,42 +26,42 @@ describe("projectChoices()", () => {
 
   test("a group:  its projects, to go into", async () => {
     expect(await values("@spell/test/")).toEqual([
-      "@spell/test/card-table//",
-      "@spell/test/cards//",
-      "@spell/test/cards-from-zero//",
-      "@spell/test/drawable-solitaire//",
-      "@spell/test/fizzbuzz//",
-      "@spell/test/klondike//",
-      "@spell/test/outline-solitaire//",
-      "@spell/test/people//",
-      "@spell/test/solitaire//",
-      "@spell/test/thing-references//",
-      "@spell/test/todos-form-based//"
+      "@spell/test/card-table/",
+      "@spell/test/cards/",
+      "@spell/test/cards-from-zero/",
+      "@spell/test/drawable-solitaire/",
+      "@spell/test/fizzbuzz/",
+      "@spell/test/klondike/",
+      "@spell/test/outline-solitaire/",
+      "@spell/test/people/",
+      "@spell/test/solitaire/",
+      "@spell/test/thing-references/",
+      "@spell/test/todos-form-based/"
     ])
-    expect(await values("@spell/test/sol")).toEqual(["@spell/test/solitaire//"])
+    expect(await values("@spell/test/sol")).toEqual(["@spell/test/solitaire/"])
   })
 
   test("a project:  the entire project first, then its spell files", async () => {
-    const choices = await CLI.projectChoices("@spell/test/solitaire//")
+    const choices = await CLI.projectChoices("@spell/test/solitaire/")
     expect(choices[0]).toEqual({ value: "@spell/test/solitaire", label: "entire project", isFinal: true })
     expect(choices.slice(1).map((it) => it.value)).toEqual([
-      "@spell/test/solitaire//Card.spell",
-      "@spell/test/solitaire//Deck.spell",
-      "@spell/test/solitaire//Pile.spell",
-      "@spell/test/solitaire//Solitaire.spell"
+      "@spell/test/solitaire/Card.spell",
+      "@spell/test/solitaire/Deck.spell",
+      "@spell/test/solitaire/Pile.spell",
+      "@spell/test/solitaire/Solitaire.spell"
     ])
-    expect(await values("@spell/test/solitaire//d")).toEqual(["@spell/test/solitaire//Deck.spell"])
+    expect(await values("@spell/test/solitaire/d")).toEqual(["@spell/test/solitaire/Deck.spell"])
   })
 
   test("nothing for what isn't there", async () => {
     expect(await values("@nope/")).toEqual([])
-    expect(await values("@spell/test/nope//")).toEqual([])
+    expect(await values("@spell/test/nope/")).toEqual([])
   })
 })
 
 describe("commonPrefix()", () => {
   test("as far as they all agree", () => {
-    expect(CLI.commonPrefix(["@spell/test/fizzbuzz//", "@spell/test/solitaire//"])).toBe("@spell/test/")
+    expect(CLI.commonPrefix(["@spell/test/fizzbuzz/", "@spell/test/solitaire/"])).toBe("@spell/test/")
     expect(CLI.commonPrefix(["@spell/examples/"])).toBe("@spell/examples/")
     expect(CLI.commonPrefix([])).toBe("")
   })

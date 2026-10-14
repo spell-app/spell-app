@@ -256,12 +256,12 @@ export class SpellFile extends TextFile {
     return true
   }
 
-  /** URL to read the file:  `/spaces/<project>//<file>` (`SP.SpellUrls.fileUrl()`). */
+  /** URL to read the file:  `/spaces/<project>/<file>` (`SP.SpellUrls.fileUrl()`). */
   get url(): string {
     return SP.SpellUrls.fileUrl(this.path)
   }
 
-  /** Saved by a call, not to `url`:  `POST /api/projects/file/<project>//<file>` (`SP.SpellUrls.saveUrl()`). */
+  /** Saved by a call, not to `url`:  `POST /api/projects/file/<project>/<file>` (`SP.SpellUrls.saveUrl()`). */
   get saveParams() {
     return { ...super.saveParams, url: SP.SpellUrls.saveUrl(this.path) }
   }

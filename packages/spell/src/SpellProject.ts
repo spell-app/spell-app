@@ -841,12 +841,12 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
 
   /**
    * Project id an `imports` entry's `path` names:  the project's address, as it is, e.g. `@spell/library/cards`.
-   * - throws `TypeError` if it isn't an address, or names a file in a project (`...//Card.spell`)
+   * - throws `TypeError` if it isn't an address, or names a file (`.../Card.spell`:  a dot in its last part, Q41)
    * - Its shape only:  whether its group is known waits for loading it, so a compile with no groups registered
    *   (a test's) can still name its imports.
    */
   static projectIdForImport(path: string): string {
-    if (!SP.SpellLocation.isAddress(path) || path.includes(SP.SpellLocation.STEP))
+    if (!SP.SpellLocation.isAddress(path) || path.slice(path.lastIndexOf("/") + 1).includes("."))
       throw new TypeError(`SpellProject:  import '${path}' isn't a project's address`)
     return path
   }
@@ -878,7 +878,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
 
   /**
    * Given `path` as:
-   * - `fullPath`, e.g. `owen@spell/project//file.spell`
+   * - `fullPath`, e.g. `owen@spell/project/file.spell`
    * - `filePath`, e.g. `file.spell` or `/file.spell`
    * - `SpellLocation` for a file
    * return `SpellLocation` for the file.
@@ -904,7 +904,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   /**
    * Assuming we're loaded, return manifest `info` for a file specified by `filePath`.
    * `filePath` can be any of:
-   * - `fullPath`, e.g. `owen@spell/project//file.spell`
+   * - `fullPath`, e.g. `owen@spell/project/file.spell`
    * - `filePath`, e.g. `file.spell` or `/file.spell`
    * - `SpellLocation` for a file
    *
@@ -919,7 +919,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   /**
    * Assuming we're loaded, then return one of our `files` as a `SpellFile` or `SpellCSSFile` etc.
    * `filePath` can be any of:
-   * - `fullPath`, e.g. `owen@spell/project//file.spell`
+   * - `fullPath`, e.g. `owen@spell/project/file.spell`
    * - `filePath`, e.g. `file.spell` or `/file.spell`
    * - `SpellLocation` for a file
    *

@@ -58,7 +58,7 @@ Every command takes one or more projects (a lone spell file counts as a one-file
 | `Card.spell`, `./path/to/Project`, `.` | a spell file, or the project in a folder |
 | `@workspace` | the project in the current folder |
 | `@spell/library/cards`, `@spell/examples/solitaire`, `owen@spell/errors` | one project, by its address |
-| `@spell/test/solitaire//Card.spell` | a file in one:  two slashes, then the file |
+| `@spell/test/solitaire/Card.spell` | a file in one:  its name has a dot |
 | `@spell/library`, `owen@spell`, `@spell` | a group, or all of a space's groups:  pick from a list, with "All projects" first |
 
 - `--all` takes every project in a group without asking, e.g. in a script.
@@ -352,7 +352,7 @@ Longer notes on some of them follow the table.
 
 - No project named:  the project here, for every command.
   - Outside a project, in a terminal, `spell` asks, completing as you type, like a shell.
-    - `Tab` completes a group (`@spell/examples/`), then a project (`@spell/examples/solitaire//`), then "entire project" or one of its files.
+    - `Tab` completes a group (`@spell/examples/`), then a project (`@spell/examples/solitaire/`), then "entire project" or one of its files.
   - Your last 3 picks come first (kept in `.recent-projects.json`, gitignored).
   - Piped, it says to name one.
 - Names in `describe` ignore case, and a space, a dash and an underscore are all alike.

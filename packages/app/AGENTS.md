@@ -264,7 +264,7 @@ when working with code in this package, `@spell-app/app`.
     and a project's file create, copy, rename and delete are `SPACES.ProjectFiles` (never `SpellProject`'s).
   - `<spell-app>` loads only the light files, without the parser:
     `$/spaces/models/projectGroups` (registers spell's project groups), `$/spell/SpellSetup` and `$/spell/SpellUrls`.
-  - Every project file's URL comes from `SP.SpellUrls`:  `/spaces/<project>//<file>`, compiled files too.
+  - Every project file's URL comes from `SP.SpellUrls`:  `/spaces/<project>/<file>`, compiled files too.
 
 ## Decorators
 

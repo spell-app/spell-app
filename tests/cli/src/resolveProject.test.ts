@@ -17,7 +17,7 @@ async function named(arg: string, cwd?: string) {
 
 const FIZZBUZZ = fixtureProjectId("fizzbuzz")
 const SOLITAIRE = fixtureProjectId("solitaire")
-const CARD = `${SOLITAIRE}//Card.spell`
+const CARD = `${SOLITAIRE}/Card.spell`
 // in the order a group lists its projects:  by name
 const ALL_FIXTURES = fixtureProjectNames()
   .map(fixtureProjectId)
@@ -32,7 +32,7 @@ describe("resolveProject()", () => {
       expect(await named(SOLITAIRE)).toEqual({ kind: "project", id: SOLITAIRE })
     })
     test("a spell file", async () => {
-      expect(await named("@spell/test/solitaire//Card.spell")).toEqual({ kind: "file", id: CARD })
+      expect(await named("@spell/test/solitaire/Card.spell")).toEqual({ kind: "file", id: CARD })
     })
     test("a group, by its address, holds only folders with a project.json", async () => {
       expect(await named("@spell/test")).toEqual({ kind: "root", ids: ALL_FIXTURES })
@@ -62,8 +62,8 @@ describe("resolveProject()", () => {
     test.each([
       "@nope",
       "@spell/test/nope",
-      "@spell/test/solitaire//Nope.spell",
-      "@spell/test/solitaire//project.json",
+      "@spell/test/solitaire/Nope.spell",
+      "@spell/test/solitaire/project.json",
       "./no/such/thing"
     ])("%s", async (arg) => {
       await expect(CLI.resolveProject(arg, fixturePath())).rejects.toBeInstanceOf(CLI.CliError)

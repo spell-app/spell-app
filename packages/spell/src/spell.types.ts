@@ -94,7 +94,7 @@ export const WORDS_JS_SUFFIX = ".en.js"
 /**
  * Start of the ES module specifier for another project's compiled JS, e.g. `@spell/project/@spell/library/cards`.
  * - A runner fetches that project's compiled JS from the server, at its file's URL,
- *   `/spaces/<project>//<Project>.spell.js` (`SpellUrls.fileUrl()`), and points the specifier at it -- see `runCompiled()` in `$/app/runner/runCompiled`.
+ *   `/spaces/<project>/<Project>.spell.js` (`SpellUrls.fileUrl()`), and points the specifier at it -- see `runCompiled()` in `$/app/runner/runCompiled`.
  */
 export const SPELL_PROJECT_MODULE = "@spell/project/"
 

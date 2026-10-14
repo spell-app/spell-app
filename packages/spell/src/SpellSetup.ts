@@ -3,7 +3,7 @@ import type * as SP from "./spell.types"
 /**
  * The registry of project GROUPS (project roots), shared by the browser and node, plus routines for working with
  * ADDRESSES.
- * - An address is a group's, then a project, then two slashes and a file:  `@spell/examples/solitaire//Card.spell`
+ * - An address is a group's, then a project, then a file, one slash between each:  `@spell/examples/solitaire/Card.spell`
  *   (epic `people-and-orgs` P4) -- see `SpellLocation` for how one breaks down into its pieces.
  * - It starts EMPTY:  the groups are spaces' (`$/spaces`, `SPACES.PROJECT_GROUPS`), which registers them with
  *   `addProjectRoot()` as it loads (epic `people-and-orgs` P15).
@@ -46,7 +46,7 @@ export const SpellSetup = {
   /**
    * The group `place` is in:  the one whose address is the LONGEST start of it, a whole part at a time,
    * e.g. `@spell/examples/solitaire` => `@spell/examples`'s;  `undefined` if none.
-   * - `place`:  an address with no file, the part before its `//`.
+   * - `place`:  an address;  a file's address too, since group addresses are whole parts.
    */
   groupFor(place: string): SP.ProjectRootSpec | undefined {
     return Object.values(this.projectRoots)
