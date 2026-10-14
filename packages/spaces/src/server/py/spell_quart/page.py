@@ -82,6 +82,19 @@ def assets_folder() -> Path:
     return folder
 
 
+def built_folder(path: str) -> Path:
+    """Folder `path` in the build folder of the checkout this spell_quart is in:  `$SPELL_BUILD_DIR`, else its `build/`.
+
+    - e.g. `built_folder("spaces/@spell/examples/solitaire")`:  where `spell compile` builds Solitaire
+      (epic `people-and-orgs` J33).
+    - Found as `assets_folder()` finds the page side:  each checkout's app runs its own spell_quart, so it loads its
+      own checkout's build, in a worktree or after a move;  `$SPELL_BUILD_DIR` is the variable the node side reads.
+    """
+    named = os.environ.get("SPELL_BUILD_DIR")
+    build = Path(named) if named else Path(__file__).resolve().parents[6] / "build"
+    return build / path
+
+
 def fresh(response: Any) -> Any:
     """SIDE EFFECT:  `response` tells the browser to check with the server before reusing its copy.  Returns it.
 

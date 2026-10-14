@@ -26,8 +26,9 @@ describe("PY.quartApp()", () => {
   })
 
   test("finds the program and its drawing half in their build folder, from its own", () => {
-    const app = PY.quartApp({ ...SPEC, outputs: "../../build/spaces/@spell/examples/solitaire" })
-    expect(app).toContain('OUTPUTS = (HERE / "../../build/spaces/@spell/examples/solitaire").resolve()')
+    const app = PY.quartApp({ ...SPEC, outputs: "spaces/@spell/examples/solitaire" })
+    expect(app).toContain('OUTPUTS = built_folder("spaces/@spell/examples/solitaire")')
+    expect(app).toContain("assets_folder, built_folder, fresh")
     expect(app).toContain('sessions = SpellSessions(OUTPUTS / "Solitaire.spell.py")')
     expect(app).toContain('send_from_directory(OUTPUTS, f"{name}.elements.spell.js"')
   })

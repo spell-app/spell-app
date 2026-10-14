@@ -61,8 +61,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - `PY.quartApp()`:  a program's web app, `<Project>.app.py` (P20)
   - Each compile rewrites it only while nobody has edited it (`PY.isUneditedApp()`).
   - It's committed beside the project's source;  its program and page file are built into the project's build
-    folder.  It finds them from its own folder:  `OUTPUTS`, from `QuartAppSpec.outputs`
-    (the project index's `buildFolder`;  `.` for `spell run`'s temp folder).
+    folder.  It names that folder inside the checkout's `build/`, and spell_quart finds the checkout's:
+    `OUTPUTS = built_folder("spaces/@spell/examples/solitaire")`, from `QuartAppSpec.outputs` (the project index's
+    `buildFolder`;  `.` for `spell run`'s temp folder).  No `../` in it (epic `people-and-orgs` J33).
 
 ## `spell_core` (`core/`)
 

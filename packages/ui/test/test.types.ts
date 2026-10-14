@@ -2,30 +2,9 @@
  * Types shared by the test helpers and the example hooks under `components/ui-<family>/examples/`.
  * - MUST stay runtime-light:  `import type` only.  The visual spec (node) and the fixture page (browser) both
  *   import the `.visual.ts` hooks that use these.
+ * - What `vitest.config.ts` adds to Vitest's types (`inject("ci")`, `emulateReducedMotion()`) is with the tests that
+ *   use it:  `tests/ui/tests.types.ts`.
  */
-
-////////////////
-// ## Provided by `vitest.config.ts`
-////////////////
-
-declare module "vitest" {
-  /**
-   * What `provide` hands the browser tests, read with `inject()`.
-   * - NOTE: an `interface`, not a `type`:  module augmentation only merges interfaces.
-   */
-  export interface ProvidedContext {
-    /** Running on CI (`CI` set, as GitHub Actions does):  skip timing budgets a shared runner can't hold. */
-    ci: boolean
-  }
-}
-
-declare module "vitest/browser" {
-  /** Custom commands of `vitest.config.ts` (`browser.commands`). */
-  interface BrowserCommands {
-    /** Emulate (or stop emulating) `prefers-reduced-motion: reduce`, through Playwright, in every browser. */
-    emulateReducedMotion(reduce: boolean): Promise<void>
-  }
-}
 
 ////////////////
 // ## Visual tests

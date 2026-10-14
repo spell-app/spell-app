@@ -1059,8 +1059,9 @@ a reference after (epic `people-and-orgs`, decision Q42).  A kind that says so i
       or spell's compiler newer than its build.
   - Renaming or duplicating a project leaves its build folder behind:  its files are named for the old project,
     so the next compile writes the new one's.  Deleting a project deletes it.
-  - A Python program's web app, `<Project>.app.py`, finds its program from its own folder:
-    the project index's `buildFolder` (`PY.QuartAppSpec.outputs`).
+  - A Python program's web app, `<Project>.app.py`, names its program's folder inside the checkout's `build/`,
+    the project index's `buildFolder` (`PY.QuartAppSpec.outputs`), e.g. `spaces/@spell/examples/solitaire`;
+    `spell_quart.built_folder()` finds that checkout's (epic `people-and-orgs` J33).
 - [`SpellProject`](src/SpellProject.ts):  files in `project.json` order, e.g. Card → Deck → Pile → Solitaire.
 - `SpellProject` / `SpellFile` load over HTTP, with `$fetch()`, on URLs from ONE function,
   [SpellUrls](src/SpellUrls.ts) (`SP.SpellUrls`):

@@ -88,7 +88,7 @@ export type ManifestJSON = Record<string, ManifestEntryJSON>
  * - `manifest` -- current on-disk manifest:  NOT persisted, always freshly computed from file system.
  * - `imports` -- import list, synced with `manifest` and persisted back to `project.json` when it changes.
  * - `version` / `exports` / `targets` / `listsStartAt` -- straight from `project.json`, see `ProjectFileJSON`.
- * - `buildFolder` -- where its compiled output goes, relative to its own folder:  `project-utils.relativeBuildFolder()`.
+ * - `buildFolder` -- where its compiled output goes, inside the checkout's `build/`:  `project-utils.buildFolderInBuild()`.
  */
 export type ProjectIndexJSON = {
   manifest: ManifestJSON

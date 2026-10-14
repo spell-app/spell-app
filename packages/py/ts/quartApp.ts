@@ -8,8 +8,8 @@
  *   - `/ws`:  the WebSocket:  a click up, the state and what changed down;  a game per visitor
  *   - a place for their own routes
  * - The app is committed beside the project's source;  the program and its page file are BUILT,
- *   into the project's build folder (epic `people-and-orgs` P11):  the app finds them from its own folder,
- *   `QuartAppSpec.outputs`.
+ *   into the project's build folder (epic `people-and-orgs` P11):  the app names it inside the checkout's `build/`,
+ *   and `spell_quart.built_folder()` finds that checkout's (J33), so no path climbs out of the app's folder.
  * - Run it:  `uv run python Solitaire.app.py`, then open http://localhost:5000 (or `$PORT`).
  * - Compiling again rewrites it only while nobody has edited it:  its first line holds a hash of the rest (J45).
  *   See `isUneditedApp()`.
@@ -24,10 +24,10 @@ export type QuartAppSpec = {
   /** The program's drawing half, in `outputs`, e.g. `Solitaire.elements.spell.js`. */
   elements: string
   /**
-   * The folder holding `program` and `elements`, relative to the app's own, `/`-separated:
-   * - the project's build folder, e.g. `../../../../../../build/spaces/@spell/examples/solitaire`
-   *   (the project index's `buildFolder`)
-   * - `.`:  beside the app, e.g. in `spell run`'s temp folder, or for a project outside `packages/`
+   * The folder holding `program` and `elements`, `/`-separated:
+   * - the project's build folder, inside the checkout's `build/`, e.g. `spaces/@spell/examples/solitaire`
+   *   (the project index's `buildFolder`):  `spell_quart.built_folder()` finds it
+   * - `.`:  beside the app, e.g. in `spell run`'s temp folder, or for a project outside the checkout
    */
   outputs: string
   /**
@@ -62,7 +62,7 @@ from pathlib import Path
 
 from quart import Quart, make_response, request, send_from_directory, websocket
 
-from spell_quart import ASSETS_URL, SpellSessions, assets_folder, fresh, page_html, remember_visitor, visitor_of
+from spell_quart import ${importsOf(outputs)}
 
 HERE = Path(__file__).parent
 ${outputsLine(outputs)}
@@ -129,12 +129,18 @@ export function isUneditedApp(text: string | undefined): boolean {
 }
 
 /**
- * The app's line saying where the program and its page file are, `OUTPUTS`:  beside it, or `outputs` away.
- * - `resolve()`d, so the path the app logs and serves from has no `..` in it.
+ * The app's line saying where the program and its page file are, `OUTPUTS`:  beside it, or `outputs` in the
+ * checkout's build folder (`built_folder()`).
  */
 function outputsLine(outputs: string): string {
   if (outputs === ".") return "# the compiled program and its page file:  beside this app\nOUTPUTS = HERE"
-  return `# the compiled program and its page file:  where \`spell compile\` builds them\nOUTPUTS = (HERE / ${py(outputs)}).resolve()`
+  return `# the compiled program and its page file:  where \`spell compile\` builds them, in this checkout's build/\nOUTPUTS = built_folder(${py(outputs)})`
+}
+
+/** What the app imports from `spell_quart`:  `built_folder` only when its program is in the build folder. */
+function importsOf(outputs: string): string {
+  const names = ["ASSETS_URL", "SpellSessions", "assets_folder", ...(outputs === "." ? [] : ["built_folder"])]
+  return [...names, "fresh", "page_html", "remember_visitor", "visitor_of"].join(", ")
 }
 
 /** `text`'s hash:  FNV-1a, 32 bits, in hex -- enough to tell an edit, in a browser as in node. */

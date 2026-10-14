@@ -146,15 +146,17 @@ export function buildFolderFor(projectFolder: string, folders: BuildFolders = en
 export type BuildFolders = { packagesDir: string; buildDir: string; repoDir?: string; spellSpacesDir?: string }
 
 /**
- * Where project `projectId`'s built files go, relative to its own folder, `/`-separated:  its index's `buildFolder`.
- * - e.g. `../../../../../../build/spaces/@spell/examples/solitaire`
+ * Where project `projectId`'s built files go, inside the checkout's build folder, `/`-separated:  its index's
+ * `buildFolder`.
+ * - e.g. `spaces/@spell/examples/solitaire`, for `build/spaces/@spell/examples/solitaire`
+ * - No `../` (decision J33):  a Python web app names it so, and `spell_quart.built_folder()` finds the checkout's.
  * - `undefined` for a project whose built files sit beside its source (`buildFolderFor()`).
  */
-export function relativeBuildFolder(projectId: string): string | undefined {
+export function buildFolderInBuild(projectId: string): string | undefined {
   const projectFolder = SP.SpellLocation.getProjectLocation(projectId).serverPath
   const buildFolder = buildFolderFor(projectFolder)
   if (buildFolder === projectFolder) return undefined
-  return relative(projectFolder, buildFolder).split(sep).join("/")
+  return relative(environment.buildDir, buildFolder).split(sep).join("/")
 }
 
 /** Default file created for a brand-new project, or when `getIndex()` finds a project with zero files. */
@@ -331,7 +333,7 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
 
   // return manifest and imports
   const { version, exports, targets, listsStartAt } = importsFile
-  const buildFolder = relativeBuildFolder(projectId)
+  const buildFolder = buildFolderInBuild(projectId)
   return { imports: importsFile.imports, manifest, version, exports, targets, listsStartAt, buildFolder }
 }
 

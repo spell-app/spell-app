@@ -386,8 +386,8 @@ describe("request body parsing on POST /api/projects/create/file", () => {
     expect(reply.contentType).toMatch(/^application\/json/)
     const index = reply.json()
     expect(Object.keys(index).sort()).toEqual(["buildFolder", "imports", "manifest"])
-    // your space's projects build in THIS checkout's `build/spell-spaces/`
-    expect(index.buildFolder).toBe("../../../../build/spell-spaces/@spell/owen@/Proj")
+    // your space's projects build in THIS checkout's `build/spell-spaces/`:  named inside `build/`, no `../` (J33)
+    expect(index.buildFolder).toBe("spell-spaces/@spell/owen@/Proj")
     expect(index.imports.map((item: any) => item.path)).toContain("/c.spell")
     expect(readFixture("user/Proj/c.spell")).toBe("x")
   })

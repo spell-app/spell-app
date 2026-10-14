@@ -111,7 +111,7 @@ describe("SpellLocation.serverPath", () => {
     writeFileSync(resolve(elsewhere, "Out", SP.PROJECT_FILE), JSON.stringify({ imports: [] }))
     const location = locationForDiskPath(resolve(elsewhere, "Out", "Out.spell.js"))!
     expect(location.serverPath).toBe(resolve(elsewhere, "Out", "Out.spell.js"))
-    expect(projectUtils.relativeBuildFolder(location.projectId)).toBeUndefined()
+    expect(projectUtils.buildFolderInBuild(location.projectId)).toBeUndefined()
     rmSync(elsewhere, { recursive: true, force: true })
   })
 })
@@ -127,9 +127,9 @@ describe("project-utils", () => {
     expect(existsSync(resolve(workspace, "Saved/Saved.spell.js"))).toBe(false)
   })
 
-  test("a project's index says where its build folder is, from its own folder", async () => {
+  test("a project's index says where its build folder is, inside the build folder:  no ../ (J33)", async () => {
     const projectId = project("Indexed")
-    expect((await projectUtils.getIndex(projectId)).buildFolder).toBe("../../../build/build-test-projects/Indexed")
+    expect((await projectUtils.getIndex(projectId)).buildFolder).toBe("build-test-projects/Indexed")
   })
 
   // the suspected bug of 2026-10-13:  renaming or duplicating a project moved only its source folder
