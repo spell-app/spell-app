@@ -29,6 +29,8 @@ exports[`testing spell module classes > rule group specs > match snapshot -- if 
   "type_specifier_datatype": "datatype",
   "type_specifier_enum": "enumeration",
   "type_specifier_instance": "new_list?|new_thing?",
+  "upgrade_method": "type|version|body?",
   "value_kind": "values|specifier",
+  "version_step": "type|version|from|to?|drops?",
 }
 `;

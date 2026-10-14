@@ -3323,6 +3323,73 @@
           "aliases": ["statement"]
         },
         {
+          "className": "VersionStep",
+          "ruleNames": ["version_step"],
+          "internal": false,
+          "file": "packages/spell/src/rules/classes/VersionStep.ts",
+          "line": 19,
+          "purpose": "How a saved thing is brought up to a newer version of its type (epic `people-and-orgs` P6).",
+          "syntaxes": [
+            {
+              "syntax": "(a|an) {type:known_type} version {version:number} renames {from:identifier} to {to:identifier}",
+              "example": "a person version 2 renames name to names",
+              "outputs": {
+                "js": {
+                  "code": "Person.v2RenamesName = \"names\""
+                },
+                "ts": {
+                  "code": "Person.v2RenamesName = \"names\""
+                },
+                "py": {
+                  "code": "Person.v2_renames_name = \"names\""
+                }
+              }
+            },
+            {
+              "syntax": "(a|an) {type:known_type} version {version:number} (drops:drops) {from:identifier}",
+              "example": "a person version 3 drops nickname",
+              "outputs": {
+                "js": {
+                  "code": "Person.v3DropsNickname = true"
+                },
+                "ts": {
+                  "code": "Person.v3DropsNickname = true"
+                },
+                "py": {
+                  "code": "Person.v3_drops_nickname = True"
+                }
+              }
+            }
+          ],
+          "aliases": ["statement"]
+        },
+        {
+          "className": "UpgradeMethod",
+          "ruleNames": ["upgrade_method"],
+          "internal": false,
+          "file": "packages/spell/src/rules/classes/UpgradeMethod.ts",
+          "line": 21,
+          "purpose": "What bringing a saved thing up to a version takes, beyond renames and drops (epic `people-and-orgs` P6).",
+          "syntaxes": [
+            {
+              "syntax": "to upgrade \\( (a|an) {type:known_type} \\) to version {version:number} :? {statement_body}?",
+              "example": "to upgrade (a person) to version 4: set its name to \"x\"",
+              "outputs": {
+                "js": {
+                  "code": "Person.prototype.upgradeToVersion4 = function () {\n  this.name = \"x\"\n}"
+                },
+                "ts": {
+                  "code": "export interface Person { upgradeToVersion4(): undefined }\nPerson.prototype.upgradeToVersion4 = function (this: Person) {\n  this.name = \"x\"\n}"
+                },
+                "py": {
+                  "code": "@Person.add_method(\"upgrade_to_version4\")\ndef _person_upgrade_to_version4(self) -> None:\n    self.name = \"x\""
+                }
+              }
+            }
+          ],
+          "aliases": ["statement"]
+        },
+        {
           "className": "ListGuard",
           "ruleNames": ["list_guard"],
           "internal": false,

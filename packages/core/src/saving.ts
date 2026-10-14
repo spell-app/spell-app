@@ -133,9 +133,9 @@ export class Saver {
     return { root: this.refOf(root), entries }
   }
 
-  /** `thing`'s own entry:  `"$type"`, `id`, its other props, a list's `"$items"`. */
+  /** `thing`'s own entry:  `"$type"`, its `"$version"` past 1, `id`, its other props, a list's `"$items"`. */
   protected entryOf(thing: SpellObject, reference: (thing: SpellObject) => unknown): Record<string, unknown> {
-    const entry: Record<string, unknown> = { [TYPE_KEY]: thing.constructor.name, id: thing.id }
+    const entry: Record<string, unknown> = { ...headOf(thing), id: thing.id }
     return this.writeProps(thing, entry, reference)
   }
 
@@ -169,7 +169,7 @@ export class Saver {
     }
     if (isSpellObject(value)) {
       if (!isSavedInline(value)) return reference(value)
-      return this.writeProps(value, { [TYPE_KEY]: value.constructor.name }, reference)
+      return this.writeProps(value, headOf(value), reference)
     }
     if (Array.isArray(value)) return value.map((item) => this.write(item, reference))
     if (value instanceof Date) return value.toISOString()
@@ -248,17 +248,23 @@ export class Loader {
   protected make(json: Record<string, unknown>, ref?: string): unknown {
     const Class = this.classNamed(`${json[TYPE_KEY]}`)
     if (!Class) return Object.fromEntries(Object.entries(json).map(([key, value]) => [key, this.read(value)]))
-    const { [TYPE_KEY]: _type, [ITEMS_KEY]: items, ...props } = json
+    // an older version's entry:  brought up to its type's version first -- see `upgradeEntry()`
+    const { entry, upgrades } = upgradeEntry(json, Class)
     const plain: Record<string, unknown> = {}
     const later: Record<string, unknown> = {}
-    for (const [key, value] of Object.entries(props)) {
+    // the file's own keys (`$type`, `$version`, `$schema` ...) are never props
+    for (const [key, value] of Object.entries(entry)) {
+      if (key.startsWith("$")) continue
       if (isPlainValue(value)) plain[key] = dateIfDeclared(Class, key, value)
       else later[key] = value
     }
     const made = new Class(plain)
     if (ref) this.loaded.set(ref, made)
     for (const [key, value] of Object.entries(later)) this.setRead(made, key, value)
+    const items = entry[ITEMS_KEY]
     if (made instanceof List && Array.isArray(items)) made.items = this.read(items) as unknown[]
+    // then each version's `to upgrade` method, in order
+    for (const method of upgrades) (made as unknown as Record<string, () => void>)[method]!()
     return made
   }
 
@@ -271,6 +277,108 @@ export class Loader {
       (made as unknown as Record<string, unknown>)[key] = value
     else setProp(made, key, value)
   }
+}
+
+////////////////
+// ## Versions (P6)
+////////////////
+
+/** Key a saved thing's version is under, past version 1:  `{ "$type": "Person", "$version": 3, ... }`. */
+export const VERSION_KEY = "$version"
+
+/** A version step's static, as the writers name it:  `Person.v2RenamesName = "names"`, `Person.v3DropsNickname = true`. */
+const VERSION_STEP = /^v(\d+)(Renames|Drops)([A-Z]\w*)$/
+
+/** A version's upgrade method:  `upgradeToVersion4()`. */
+const UPGRADE_METHOD = /^upgradeToVersion(\d+)$/
+
+/**
+ * `Class`'s version:  the highest any of its version steps or upgrade methods names, its superclasses' too;
+ * 1 if none (`a person version 2 renames name to names`, `to upgrade (a person) to version 4:`).
+ */
+export function versionOf(Class: Function): number {
+  let version = 1
+  for (const { version: step } of stepsOf(Class)) version = Math.max(version, step)
+  for (const { version: upgrade } of upgradesOf(Class)) version = Math.max(version, upgrade)
+  return version
+}
+
+/**
+ * Saved `entry`, of `Class`, brought up to `Class`'s version (epic `people-and-orgs` P6):  the entry as it should
+ * read now, and the upgrade methods still to run on the thing made from it, in order.
+ * - Its version is its `"$version"`, 1 if it has none.
+ * - Each version after it in turn:  its renames (`name` => `names`), then its drops;  its upgrade method, if any,
+ *   runs on the made thing after (`upgradeToVersion4`), where what the old file held is still there to read.
+ * - Already at its type's version, or past it (a newer file):  as it is.
+ * - A new copy:  `entry` itself is never changed.
+ */
+export function upgradeEntry(
+  entry: Record<string, unknown>,
+  Class: Function
+): { entry: Record<string, unknown>; upgrades: string[] } {
+  const saved = typeof entry[VERSION_KEY] === "number" ? (entry[VERSION_KEY] as number) : 1
+  const current = versionOf(Class)
+  if (saved >= current) return { entry, upgrades: [] }
+  const upgraded: Record<string, unknown> = { ...entry, [VERSION_KEY]: current }
+  const steps = stepsOf(Class)
+  const methods = upgradesOf(Class)
+  const upgrades: string[] = []
+  for (let version = saved + 1; version <= current; version++) {
+    for (const step of steps.filter((it) => it.version === version)) {
+      if (!(step.property in upgraded)) continue
+      if (step.renamesTo) upgraded[step.renamesTo] = upgraded[step.property]
+      delete upgraded[step.property]
+    }
+    const method = methods.find((it) => it.version === version)
+    if (method) upgrades.push(method.name)
+  }
+  return { entry: upgraded, upgrades }
+}
+
+/** One version step of a class:  a property renamed (`renamesTo`), or dropped. */
+type VersionStepInfo = { version: number; property: string; renamesTo?: string }
+
+/** Every version step `Class` and its superclasses declare, as statics:  see `VERSION_STEP`. */
+function stepsOf(Class: Function): VersionStepInfo[] {
+  const steps: VersionStepInfo[] = []
+  for (let at: Function | null = Class; at && at !== Function.prototype; at = Object.getPrototypeOf(at)) {
+    for (const name of Object.getOwnPropertyNames(at)) {
+      const match = VERSION_STEP.exec(name)
+      if (!match) continue
+      const value = (at as unknown as Record<string, unknown>)[name]
+      const property = match[3]!.charAt(0).toLowerCase() + match[3]!.slice(1)
+      steps.push({
+        version: Number(match[1]),
+        property,
+        ...(match[2] === "Renames" && typeof value === "string" && { renamesTo: value })
+      })
+    }
+  }
+  return steps
+}
+
+/** Every upgrade method `Class` (or a superclass) has, with its version:  see `UPGRADE_METHOD`. */
+function upgradesOf(Class: Function): { version: number; name: string }[] {
+  const upgrades: { version: number; name: string }[] = []
+  for (
+    let proto = Class.prototype as object | null;
+    proto && proto !== Object.prototype;
+    proto = Object.getPrototypeOf(proto)
+  ) {
+    for (const name of Object.getOwnPropertyNames(proto)) {
+      const match = UPGRADE_METHOD.exec(name)
+      if (match && !upgrades.some((it) => it.name === name)) upgrades.push({ version: Number(match[1]), name })
+    }
+  }
+  return upgrades
+}
+
+/** A saved thing's first keys:  its `"$type"`, then its type's `"$version"` if that's past 1. */
+function headOf(thing: SpellObject): Record<string, unknown> {
+  const version = versionOf(thing.constructor)
+  return version > 1
+    ? { [TYPE_KEY]: thing.constructor.name, [VERSION_KEY]: version }
+    : { [TYPE_KEY]: thing.constructor.name }
 }
 
 ////////////////

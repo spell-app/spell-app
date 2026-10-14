@@ -185,6 +185,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - A property's plain list is its items, a JSON array.
   - `new Loader({ entryFor }).load(key)`:  each entry made once, however many references name it.
   - The keys are `refOf`'s:  the people store names entries by address.
+  - VERSIONS (P6):  a type's version is the highest its steps name, 1 with none (`versionOf()`):
+    - `a person version 2 renames name to names` => `Person.v2RenamesName = "names"`
+    - `a person version 3 drops nickname` => `Person.v3DropsNickname = true`
+    - `to upgrade (a person) to version 4: ...` => `Person.prototype.upgradeToVersion4()`
+    - The saver writes `"$version"` past 1, after `"$type"`;  the loader brings an older entry up step by step
+      (`upgradeEntry()`):  each version's renames and drops, then its upgrade method on the made thing.
+    - A newer file than its type reads as it is.
   - Python's twin is `spell_core.saving`:  both write [savedById.expected.json](../../tests/core/savedById.expected.json), and read it.
 - CHECKING a saved entry against its class ([checking.ts](src/checking.ts), epic `people-and-orgs` P5, Q43):
   - `checkEntry(entry, { classNamed })`:  each property declared, of its kind;  a thing written whole inside checked

@@ -87,9 +87,11 @@ describe("priority and precedence", () => {
         "saved_inline:  Priority.declaration",
         "starts_with:  Precedence.comparison",
         "times:  Precedence.product",
+        "upgrade_method:  Priority.declaration",
         "value_if:  Priority.overridable",
         "value_kind:  Priority.declaration",
         "value_otherwise:  Priority.overridable",
+        "version_step:  Priority.declaration",
       ]
     `)
   })

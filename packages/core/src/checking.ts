@@ -22,7 +22,7 @@
  */
 import { ITEMS_KEY, schemaOf, TYPE_KEY, type PropInfo } from "$/util"
 
-import { REF_KEY } from "./saving"
+import { REF_KEY, upgradeEntry } from "./saving"
 
 /** A problem `checkEntry()` found:  the property it's in (`""` for the entry itself), and what's wrong, in words. */
 export type EntryProblem = { property: string; message: string }
@@ -87,7 +87,8 @@ function checkThing(json: Record<string, unknown>, path: string, options: CheckO
   if (typeof type !== "string") return void problems.push({ property: path, message: `it says no "${TYPE_KEY}"` })
   if (!Class) return void problems.push({ property: path, message: `no type is named ${type}` })
   const schema = schemaOf(Class)
-  for (const [key, value] of Object.entries(json)) {
+  // an older version's file is checked as it reads now:  its renames and drops applied (P6)
+  for (const [key, value] of Object.entries(upgradeEntry(json, Class).entry)) {
     if (key.startsWith("$") || key === ITEMS_KEY) continue
     const property = path ? `${path}.${key}` : key
     const info = schema.info(key)
