@@ -221,6 +221,8 @@ export const epicPageVocabulary = {
     },
     { key: "crumbs", text: "Breadcrumb", description: "The crumbs, spoken." },
     { key: "seeAlso", text: "See Also", description: "The See Also box's title." },
+    { key: "seeAlsoDurable", text: "durable doc", description: "A See Also page's kind:  the epic's durable doc." },
+    { key: "seeAlsoGuide", text: "guide", description: "A See Also page's kind:  a guide the epic page links to." },
     { key: "seeAlsoDetails", text: "details", description: "A See Also page's kind:  a details page." },
     { key: "seeAlsoChoices", text: "choices", description: "A See Also page's kind:  a syntax-choices page." },
     { key: "crumbDocs", text: "Docs", description: "The crumbs' first:  the docs home." },

@@ -9,10 +9,11 @@ import { afterAll, beforeAll, expect, test, vi } from "vite-plus/test"
 
 import { PageServer } from "$/server/page"
 import { ask } from "$/server/test/serve"
+import { GuideInbox } from "$/epics/tool/GuideInbox"
+import { ReviewInbox } from "$/epics/tool/ReviewInbox"
 
 import { run } from "./comments"
 import commentsRoutes from "./commentsRoutes"
-import { GuideInbox } from "./GuideInbox"
 
 let root: string
 let server: PageServer
@@ -47,7 +48,10 @@ const PAGES: Record<string, string> = {
   "goals/spell/index.html": PAGE,
   // a component set (Epic UI), served at /epic-ui/ from its package folder
   "packages/epic-components/elements/epic-item.html": PAGE,
-  "packages/epic-components/_parts/layout.html": PAGE
+  "packages/epic-components/_parts/layout.html": PAGE,
+  // epic py's durable doc:  a page epic py owns (`SeeAlso.ownerOf()`, epic `epic-workflow` P13)
+  "guides/py.html": PAGE,
+  "epics/py/py.plan.html": `<epic-page epic="py" updated="2026-10-13"><a slot="durable" href="../../guides/py.html">Py</a></epic-page>`
 }
 
 /** A comment on the second table of section `model`. */
@@ -115,6 +119,45 @@ test("adds a comment to the page's INBOX FILE, never the page;  the answer lists
     comments: { cm1: { ...ON_TABLE, text: "Too wide on a phone?", status: "new" } }
   })
   expect(readFileSync(join(root, "guides/solid/solid-2.html"), "utf8")).toBe(PAGE)
+})
+
+// epic `epic-workflow` P13:  a guide's Send, as a plan doc's
+test("a docs page's SEND:  its epic, who is listening, what waits;  Send marks them sent;  a plan doc has none", async () => {
+  const page = "/guides/py.html"
+  const get = async (path: string) => JSON.parse((await ask(port, "GET", `/api/comments?page=${path}`)).text)
+  expect((await get(page)).send).toEqual({
+    epic: "py",
+    owned: true,
+    listening: null,
+    sent: null,
+    unsent: [],
+    waiting: []
+  })
+  expect((await get("/guides/solid/solid-2.html")).send).toMatchObject({ epic: "guide-changes", owned: false })
+  expect((await get("/epics/big/big.plan.html")).send).toBeUndefined()
+  const added = await post({ page, action: "add", anchor: "page", kind: "page", text: "Say more" })
+  expect(added.answer.send).toMatchObject({ unsent: ["cm1"], waiting: ["cm1"] })
+  ReviewInbox.update(join(root, "epics/py/py.inbox.json"), (box) => box.setListening("session-1"))
+  const sendTo = (body: object) =>
+    ask(port, "POST", "/api/comments/send", { body: JSON.stringify(body), headers: headers() })
+  const sent = await sendTo({ page })
+  expect(sent.status).toBe(200)
+  expect(JSON.parse(sent.text).send).toMatchObject({
+    listening: "session-1",
+    sent: expect.any(String),
+    unsent: [],
+    waiting: ["cm1"]
+  })
+  expect(inboxOf("guides/py.html").sent).toEqual(expect.any(String))
+  expect((await sendTo({ page: "/epics/big/big.plan.html" })).status).toBe(400)
+  expect(
+    (
+      await ask(port, "POST", "/api/comments/send", {
+        body: JSON.stringify({ page }),
+        headers: headers({ "x-server-token": "x" })
+      })
+    ).status
+  ).toBe(403)
 })
 
 test("edits and deletes a new comment;  the last one out takes the file", async () => {

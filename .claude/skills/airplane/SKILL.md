@@ -103,7 +103,10 @@ Owen is back online.  Gather everything, work through it in the background, then
      - a note box's x:  skipped, reviewed with nothing to do
 
 4b. Docs pages' comments, in the session itself (quick):  `epic comments gather --json`.
-   - Every waiting comment (and page note still new) goes into epic `guide-changes`, one phase per page.
+   - A comment on a page an epic OWNS (its `epic` in step 1's list:  epic `epic-workflow` P13) is NOT gathered:
+     it's that epic's.  Its running session takes it with its next `wait`;  none running:  answer it in 5, as that
+     epic's session would (`epic comments working`, then `answer`), or list it for `/epic review <epic>`.
+   - Every other waiting comment (and page note still new) goes into epic `guide-changes`, one phase per page.
      - The phase is made the first time.
      - A page whose phase is still open gets an Updated block in it.
      - A reply on a thread goes too, under its comment ("Owen replied on the thread").

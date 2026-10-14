@@ -127,8 +127,10 @@
                 meta lines: the branch, the worktree, <code>Started 10/1/26, updated 10/7/26</code>
               </li>
               <li>
-                served by the page server, a See Also box above the blocks: every page the epic made for itself in its
-                <code>details/</code> folder (details pages, choices pages, its analysis page), newest first
+                served by the page server, a See Also box above the blocks: the epic's durable doc, every page it made
+                for itself in its <code>details/</code> folder (details pages, choices pages, its analysis page), then
+                every guide its page and parts link to, each with its kind's icon and word (durable doc, details,
+                choices, guide)
               </li>
               <li>no Send or Review Now: they show only while a plan doc is being reviewed through the page server</li>
             </ul>
@@ -550,8 +552,10 @@
                     <tr>
                       <td><code>see-also</code></td>
                       <td>
-                        Above the blocks: the pages the epic made for itself (its <code>details/</code> folder), each a
-                        link, from the page server's <code>GET /api/epics/pages</code>. None, no box.
+                        Above the blocks: the pages the epic made or leans on (its durable doc, its
+                        <code>details/</code> folder, the guides it links), each a link with its kind (an
+                        <code>li[data-kind]</code>), gathered by the page server's <code>GET /api/epics/pages</code>.
+                        None, no box.
                       </td>
                     </tr>
                     <tr>

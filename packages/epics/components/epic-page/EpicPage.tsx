@@ -31,6 +31,7 @@ import {
   DONE,
   COPIED_TOAST_ID,
   SEE_ALSO,
+  SEE_ALSO_KINDS,
   type SeeAlsoLink,
   COPIED_TOAST_MS,
   FLASH_MS,
@@ -130,10 +131,11 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  *     a click filtering every section at once (`StateFilter`, through each section's DOM element)
  *   - then expand-all and collapse-all, opening or folding the whole page
  * - SEE ALSO (Owen, 2026-10-13:  "There is no easy way to get to a "decisions" or "details" pages from an epic"),
- *   above its blocks:  the pages the epic made for itself, every page in its `details/` folder (details pages,
- *   choices pages, its analysis page), newest first, each with its kind and day
- *   - asked of the page server (`GET /api/epics/pages`, epics' `epicRoutes.ts`) as it connects, and again when a file
- *     in that folder changes (`spell-server:file`):  a page made a moment ago shows, a deleted one goes
+ *   above its blocks:  the pages the epic made or leans on, each with its kind's icon and word, and its day
+ *   - its durable doc;  every page in its `details/` folder (details pages, choices pages, its analysis page), newest
+ *     first;  then every guide its epic page and parts link to (epic `epic-workflow` P13), newest first
+ *   - gathered by the page server (`GET /api/epics/pages`, the tool's `SeeAlso`) as it connects, and again when a
+ *     page in the epic's folder changes (`spell-server:file`):  a page made or linked a moment ago shows
  *   - none, or not served (`file://`):  no box
  *   - open, folding (a `<details>`):  short, and it's how to get to them
  * - RUNNING AGENTS (epic `skillz` P3), right before its blocks:  the "Agents running" panel (`<epic-agents>`).
@@ -453,17 +455,21 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   // ## See Also
   ////////////////
 
-  /** The pages the epic made for itself (`GET /api/epics/pages`), newest first;  none until asked. */
+  /** The pages the epic made or leans on (`GET /api/epics/pages`), in the server's order;  none until asked. */
   @E.state accessor seeAlso: SeeAlsoLink[] = []
 
-  /** Ask for them while connected, and again when a file in the epic's `details/` folder changes. */
+  /**
+   * Ask for them while connected, and again when a page in the epic's folder changes:  a details page made, a part
+   * linking a guide (never its inbox files, which change with every mark).
+   */
   @E.whileConnected
   protected followSeeAlso() {
     if (isServer || location.protocol === "file:" || !this.epic) return undefined
-    const folder = `/epics/${this.epic}/details/`
+    const folder = `/epics/${this.epic}/`
     void this.loadSeeAlso()
     const onFile = (event: Event) => {
-      if ((event as CustomEvent<{ path: string }>).detail?.path?.includes(folder)) void this.loadSeeAlso()
+      const path = (event as CustomEvent<{ path: string }>).detail?.path ?? ""
+      if (path.includes(folder) && path.endsWith(".html")) void this.loadSeeAlso()
     }
     addEventListener("spell-server:file", onFile)
     return () => removeEventListener("spell-server:file", onFile)
@@ -493,13 +499,13 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
         <ul>
           <For each={this.seeAlso}>
             {(page) => (
-              <li>
-                <ui-icon name={page.kind === "choices" ? "table columns" : "circle question"} />
+              <li data-kind={page.kind}>
+                <ui-icon name={SEE_ALSO_KINDS[page.kind]?.icon ?? "circle question"} />
                 <a href={page.href} target={`${this.epic}-${page.href}`}>
                   {page.title}
                 </a>
                 <span class="see-also-kind">
-                  {this.translationForKey(page.kind === "choices" ? "seeAlsoChoices" : "seeAlsoDetails")}
+                  {this.translationForKey(SEE_ALSO_KINDS[page.kind]?.key ?? "seeAlsoDetails")}
                 </span>
                 <time datetime={page.updated} title={new Date(page.updated).toLocaleString()}>
                   {PlanDates.formatDate(new Date(page.updated), false)}

@@ -91,6 +91,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `migrations/`:  the named, dated steps that bring an older epic page up to today's markup (`Migrations`),
       which `epic migrate` runs (`MigrateCommands`), by page kind (PLAN-DOC.md, "Migrations")
     - its template:  [plan.html](src/tool/templates/plan.html), in `tool/templates/`
+    - the inboxes:  `ReviewInbox` (a plan doc's marks and comments), `GuideInbox` (a docs page's comments and its
+      Send:  epic `epic-workflow` P13), one shape of comment for both (`CommentList`)
+    - `SeeAlso` (P13):  an epic's See Also, GATHERED from its files, never kept by hand
+      - its durable doc (`<a slot="durable">`), its `details/` pages, every `guides/` page its page and parts link to
+      - which epic a docs page belongs to (`ownerOf()`):  where that page's Send hands its comments
+      - read by the page server (`GET /api/epics/pages`, `<epic-page>`'s See Also box;  docs' comments routes), by
+        `epic inbox <name> wait` (a guide's Send wakes it), and by docs' `GuideChanges`
     - The old hand-written prose shapes have ONE set of rules, `ProseShapes`:
       a `Net effect` paragraph, a code accordion, an option grid ...
       - `ProseRewrite` turns them into elements,

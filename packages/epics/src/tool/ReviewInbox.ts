@@ -438,8 +438,7 @@ export class ReviewInbox {
    * - a new comment, or his reply on a thread, waits for the send as a mark does
    */
   get unsentComments(): IdentifiedComment[] {
-    const sent = this.sent ? Date.parse(this.sent) : -Infinity
-    return this.commentList.waiting.filter((comment) => Date.parse(CommentList.lastWordsAt(comment)) > sent)
+    return this.commentList.unsentSince(this.sent)
   }
 
   /**
@@ -447,9 +446,7 @@ export class ReviewInbox {
    * waiting (`CommentList.waiting`), with Owen's last words at or before `sent`;  none before the first send.
    */
   get sentComments(): IdentifiedComment[] {
-    if (!this.sent) return []
-    const sent = Date.parse(this.sent)
-    return this.commentList.waiting.filter((comment) => Date.parse(CommentList.lastWordsAt(comment)) <= sent)
+    return this.commentList.sentBy(this.sent)
   }
 
   /** Every mark as `[{ id, ...mark }]`, oldest first. */

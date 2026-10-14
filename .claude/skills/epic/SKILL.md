@@ -653,6 +653,15 @@ The item's id chip follows too (PLAN-DOC.md "Colours"):
      - The answer goes on his thread too (a line or two;  the full one is in the doc):  his turn, the thread opens.
      - `--commit`:  the commit it was built in;  his Done line shows it.
      - No `--file`:  the thread says "Answered in the plan doc".
+3c. GUIDE COMMENTS (epic `epic-workflow` P13):  his comments on the docs pages the epic OWNS, with the page's own Send.
+   - Owned:  the epic's durable doc and its `details/` pages, and every guide its See Also lists that no other epic
+     claims first (`SeeAlso.ownerOf()`:  the durable doc's epic, then an open one, then the one updated last).
+   - `wait` prints them under "sent from the pages <name> owns", each under its page;
+     `epic inbox <name>` lists the ones waiting, sent or not.
+   - One at a time, with the guide commands (not `epic inbox`):
+     - `epic comments working <page> <cm id> on` as you start:  his thread shows "Claude: thinking…".
+     - Work it into the page (or say why not).
+     - `epic comments answer <page> <cm id> --file <answer.html> [--commit <sha>]`:  his turn, the thread opens.
 4. Arm `wait` again (always, unless he said stop), then reply:
    - what landed:  bullets, items in words, ids after
    - what's being worked on in the background
