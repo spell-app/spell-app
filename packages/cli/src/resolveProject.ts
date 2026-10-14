@@ -4,7 +4,7 @@
  *   - `@spell/library/cards`, `owen@spell/errors`:  a project
  *   - `@spell/test/solitaire/Card.spell`:  a file in one
  *   - `@spell/examples`, `owen@spell`:  a whole group;  `@spell`:  every group in that space
- * - `@workspace` ~== `.`, and `@workspace/Foo.spell` ~== `./Foo.spell`:  the command line's own word, not an
+ * - `@here` ~== `.`, and `@here/Foo.spell` ~== `./Foo.spell`:  the command line's own word, not an
  *   address.
  * - Anything else is a path on disk, from the current folder:
  *   - a `.spell` file, or a project's `project.json`
@@ -21,8 +21,8 @@ import { locationForDiskPath } from "$/spaces/server/node/projects/disk-fetch"
 import * as projectUtils from "$/spaces/server/node/projects/project-utils"
 import { CLI } from "$/cli"
 
-/** Stands for the current folder:  `@workspace` ~== `.` */
-export const WORKSPACE_ARG = "@workspace"
+/** Stands for the current folder:  `@here` ~== `.` */
+export const HERE_ARG = "@here"
 
 /** The space of the groups made at runtime, as folders turn up:  `@local/<folder>`. */
 export const LOCAL_SPACE = "@local"
@@ -33,9 +33,9 @@ export const LOCAL_SPACE = "@local"
  *   `locationForDiskPath()`.
  */
 export async function resolveProject(arg: string, cwd = process.cwd()): Promise<CLI.CliProject> {
-  if (arg === WORKSPACE_ARG) return resolveDiskPath(arg, cwd)
-  if (arg.startsWith(`${WORKSPACE_ARG}/`))
-    return resolveDiskPath(arg, resolve(cwd, arg.slice(WORKSPACE_ARG.length + 1)))
+  if (arg === HERE_ARG) return resolveDiskPath(arg, cwd)
+  if (arg.startsWith(`${HERE_ARG}/`))
+    return resolveDiskPath(arg, resolve(cwd, arg.slice(HERE_ARG.length + 1)))
   if (SP.SpellLocation.isAddress(arg)) return resolveSpellPath(arg)
   return resolveDiskPath(arg, resolve(cwd, arg))
 }

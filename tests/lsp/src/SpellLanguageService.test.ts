@@ -22,7 +22,7 @@ import { fixturePath } from "$/spell/test"
 
 /**
  * The language service over a real project:  a temp copy of the Solitaire example,
- * so edits and `project.json` syncing never touch the repo, and its `@workspace` project is ours alone.
+ * so edits and `project.json` syncing never touch the repo, and its `@local/<folder>` project is ours alone.
  */
 describe("SpellLanguageService", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-lsp-"))

@@ -12,7 +12,7 @@ import * as projectUtils from "$/spaces/server/node/projects/project-utils"
  * Where a project's files are on disk (epic `people-and-orgs` P11):  what spell BUILDS for it, e.g.
  * `solitaire.spell.js`, in its build folder, `build/` at the repo root;  everything else beside its source.
  * - A temp "repo" stands in for the real one:  its `packages/` and `build/` replace `environment`'s,
- *   but for the built-in roots' test (`useTempRepo()`), and its projects are a `@workspace` root inside that `packages/`.
+ *   but for the built-in roots' test (`useTempRepo()`), and its projects are a `@local/<folder>` group inside that `packages/`.
  */
 let repo: string
 let packagesDir: string

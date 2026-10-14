@@ -70,12 +70,12 @@ export class CliSession {
 
   /**
    * The project when none was given:
-   * - In a project's folder, or below it:  that project, `@workspace`.
+   * - In a project's folder, or below it:  that project, `@here`.
    * - Otherwise, in a terminal:  ask, at a `<ProjectPrompt>`.  Throws `CLI.CliError` if cancelled.
    * - Otherwise:  throws `CLI.CliError`, saying to name one.
    */
   async defaultProject(): Promise<string> {
-    if (CLI.projectDirAbove(process.cwd())) return CLI.WORKSPACE_ARG
+    if (CLI.projectDirAbove(process.cwd())) return CLI.HERE_ARG
     if (!this.isInteractive) {
       throw new CLI.CliError("No spell project here -- name one, e.g. @spell/examples/solitaire, or `spell projects`")
     }

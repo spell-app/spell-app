@@ -25,7 +25,7 @@ process.stdout.on("error", (error: NodeJS.ErrnoException) => error.code === "EPI
 const PROJECT_HELP = `
 Projects:
   Card.spell, ./path/to/Project        a spell file, or the project in a folder
-  @workspace                           the project in the current folder
+  @here                                the project in the current folder
   @spell/library/cards, owen@spell/x   one project, by its address
   @spell/test/solitaire/Card.spell    a file in one:  its name has a dot
   @spell/library, owen@spell, @spell   a group, or all of a space's:  pick from their projects, or pass --all

@@ -171,7 +171,7 @@ describe("ScopeExplorer", () => {
 
 /**
  * A project importing another COMPILED:  its node shows that project's own parse, sources and all.
- * - Solitaire split in two, in a temp `@workspace`, as `SpellProject.imports.test.ts` does.
+ * - Solitaire split in two, in a temp `@local/<folder>` group, as `SpellProject.imports.test.ts` does.
  */
 describe("ScopeExplorer of a project importing another, compiled", () => {
   const solitaire = fixturePath("solitaire")

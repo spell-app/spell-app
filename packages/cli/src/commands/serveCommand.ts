@@ -26,7 +26,7 @@ const START_TIMEOUT_MS = 90_000
  *   its editor where it is.  Default 3000, else any free port.
  * - Stops no other servers, and runs no `yarn install`.
  * - `project`:  opens the editor on it, e.g. `@spell/examples/solitaire`.  None:  the project here, if the app knows
- *   its root -- else the app's project chooser.  Only projects in the app's roots open:  not a `@workspace` folder.
+ *   its root -- else the app's project chooser.  Only projects in the app's roots open:  not a `@local/<folder>` one.
  * - `--headless`:  no browser, just the URL.
  * - Runs until `Ctrl-C`, then stops the page server (and so the editor) -- if it started it.  Returns the exit code.
  */
@@ -117,7 +117,7 @@ async function editorUrl(): Promise<string | undefined> {
  */
 async function pathFor(session: CLI.CliSession, arg: string | undefined): Promise<string> {
   if (arg === undefined && !CLI.projectDirAbove(process.cwd())) return "/"
-  const resolved = await CLI.resolveProject(arg ?? CLI.WORKSPACE_ARG)
+  const resolved = await CLI.resolveProject(arg ?? CLI.HERE_ARG)
   const path =
     resolved.kind === "file"
       ? resolved.file.path

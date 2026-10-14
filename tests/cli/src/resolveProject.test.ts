@@ -52,9 +52,9 @@ describe("resolveProject()", () => {
     test("a known root's folder", async () => {
       expect(await named(FIXTURES_DIR)).toEqual({ kind: "root", ids: ALL_FIXTURES })
     })
-    test("`@workspace` is the current folder", async () => {
-      expect(await named("@workspace", fixturePath("solitaire"))).toEqual({ kind: "project", id: SOLITAIRE })
-      expect(await named("@workspace/Card.spell", fixturePath("solitaire"))).toEqual({ kind: "file", id: CARD })
+    test("`@here` is the current folder", async () => {
+      expect(await named("@here", fixturePath("solitaire"))).toEqual({ kind: "project", id: SOLITAIRE })
+      expect(await named("@here/Card.spell", fixturePath("solitaire"))).toEqual({ kind: "file", id: CARD })
     })
   })
 

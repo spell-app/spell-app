@@ -56,7 +56,7 @@ Every command takes one or more projects (a lone spell file counts as a one-file
 | You type | Means |
 |---|---|
 | `Card.spell`, `./path/to/Project`, `.` | a spell file, or the project in a folder |
-| `@workspace` | the project in the current folder |
+| `@here` | the project in the current folder |
 | `@spell/library/cards`, `@spell/examples/solitaire`, `owen@spell/errors` | one project, by its address |
 | `@spell/test/solitaire/Card.spell` | a file in one:  its name has a dot |
 | `@spell/library`, `owen@spell`, `@spell` | a group, or all of a space's groups:  pick from a list, with "All projects" first |
