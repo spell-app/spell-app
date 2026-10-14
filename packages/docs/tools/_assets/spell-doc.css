@@ -185,6 +185,7 @@ body.spell-wide
     footer,
     .spell-full-width,
     #choices-bar,
+    epic-choices-bar,
     .spell-toolbar-alone,
     .spell-crumbs,
     .spell-comment-mark:has(+ .spell-full-width),
@@ -275,7 +276,7 @@ body.spell-wide .spell-doc-main .spell-toolbar.spell-toolbar-titled {
 body.spell-wide .spell-doc-main .spell-toolbar.spell-toolbar-alone {
   margin-inline: 0;
 }
-body.spell-wide .spell-doc-main #choices-bar.spell-choices-bar {
+body.spell-wide .spell-doc-main :is(#choices-bar.spell-choices-bar, epic-choices-bar) {
   margin-inline: 0;
   padding-inline: var(--spell-column-inset);
 }
@@ -2147,6 +2148,37 @@ ui-accordion.spell-aside::part(content) {
 ui-labels.spell-legend {
   display: block;
   margin: 4px 0 0;
+}
+
+/*******************************
+     Pages Owen answers on
+*******************************/
+
+/*
+ * Details and syntax-choices pages (epic `epic-workflow` P12):  drawn by the epics pack's elements (`<epic-ask>`,
+ * `<epic-text-box>`, `<epic-send>`, `<epic-choice-rows>`, `<epic-choices-bar>`), so only the page's own lines are
+ * here.  Before P12:  `details.css` and `syntax-choices.css`, which a page script drew to.
+ * - the meta lines under the lede:  `<epic-field label>`s, close together
+ * - the "Where we are" box:  its lines, the same
+ * - a syntax-choices page's bar is its bottom:  no window's worth of ground under it
+ */
+.spell-details-meta {
+  margin: 0.5em 0 1em;
+}
+:is(.spell-details-meta, ui-message.spell-where) > epic-field {
+  margin: 2px 0;
+}
+.spell-doc-main:has(> epic-choices-bar) {
+  padding-bottom: 0;
+}
+/* a syntax-choices section's rule:  which question it answers, the recommended way */
+.spell-choices-rule {
+  margin: 0 0 0.5em;
+  color: var(--spell-muted);
+}
+/* a question's title a size down:  its cards are what matter */
+ui-section:has(> epic-ask)::part(heading) {
+  font-size: 1.1rem;
 }
 
 /*******************************

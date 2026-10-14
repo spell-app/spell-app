@@ -2,8 +2,10 @@
  * `spell dev details <command>`:  details pages, questions Claude explains on a page and Owen answers ON it (`/details`,
  * `.claude/skills/details/SKILL.md`).
  * - `new <slug> [--title "..."] [--epic <name>] [--description "..."] [--from <questions.json>]` -- a page from
- *   `templates/details.html`;  prints its path.  `--from`:  the whole page from a JSON list of questions
- *   (`DetailsSpec`, below), so a skill with many questions to ask (`/worktrees`, `/bedtime`) needn't hand-write it
+ *   the tool's own template (`templates/details.html` beside it), in the epics pack's `<epic-*>` elements
+ *   (`answerPages.js`);  prints its path
+ *   - `--from`:  the whole page from a JSON list of questions (`DetailsSpec`, below), so a skill with many
+ *     questions to ask (`/worktrees`, `/bedtime`) needn't hand-write it
  *   - scratch:  `pages/details/<slug>.html`, ignored by version control, swept after 14 days
  *   - `--epic <name>`:  `epics/<name>/details/<slug>.html`, committed with the plan doc
  * - `show <page> [--wait]` -- start the page server if needed, show the page in THIS session's VS Code window (the
@@ -17,7 +19,7 @@
  *   first, by itself
  * - `<page>`:  a slug (`pick-layout`), `<epic>/<slug>`, or a path (absolute, or from the root, `pages/` or `packages/docs`)
  * - paths print absolute:  they mean the same in whichever checkout Claude reads them
- * - The answer itself is written by the page server's route module (`scripts/detailsRoutes.ts`) into
+ * - The answer itself is written by the page server's route module (`detailsRoutes.ts`) into
  *   `<slug>.answer.json` beside the page.
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs"
@@ -26,6 +28,18 @@ import { fileURLToPath } from "node:url"
 
 import { parseHTML } from "linkedom"
 
+import {
+  ASK,
+  CHOICES,
+  OPTION,
+  TOOL_TEMPLATES,
+  appendHTML,
+  commentBox,
+  fillHead,
+  fillWords,
+  make,
+  questionSection
+} from "./answerPages.js"
 import { ROOT, atDepth, openInVSCode, serialize } from "./pages.js"
 
 /** How long `wait` waits by default:  8 hours (decision D9). */
@@ -99,10 +113,11 @@ const USAGE = `usage:  epic ask new <slug> [--title "..."] [--epic <name>] [--de
 ////////////////
 
 /**
- * Write a new details page `slug` in checkout `docs` (its root:  `pages/details/`, `epics/`, `templates/`) from the
- * template;  its absolute path.
+ * Write a new details page `slug` in checkout `docs` (its root:  `pages/details/`, `epics/`) from the tool's template
+ * (`answerPages.js` `TOOL_TEMPLATES`);  its absolute path.
  * - `--epic <name>`:  in that epic's `details/` (the epic must exist);  else the scratch `details/`
  * - sets `<title>`, the h1, the breadcrumb, the description and the "Asked" date;  refuses to overwrite
+ * - `spec`:  the whole page (`fillFromSpec()`)
  */
 export function createPage(docs, slug, { title, epic, description, spec } = {}) {
   title ??= spec?.title ?? "Details"
@@ -112,15 +127,14 @@ export function createPage(docs, slug, { title, epic, description, spec } = {}) 
   const file = join(folder, `${slug}.html`)
   if (existsSync(file)) throw new Error(`${relative(docs, file)} already exists`)
   const depth = relative(docs, folder).split("/").length
-  const { document } = parseHTML(atDepth(readFileSync(join(docs, "templates/details.html"), "utf8"), depth))
-  document.querySelector("title").textContent = title
-  document.querySelector("h1").textContent = title
-  const crumb = document.querySelector("ui-breadcrumb-section[active]")
-  if (crumb) crumb.textContent = title
-  document.querySelector('meta[name="description"]').setAttribute("content", description ?? `Details:  ${title}`)
-  // the date up top, under "Asked by":  the Send bar is the page's bottom, so no footer
-  const asked = document.querySelector("[data-details-asked]")
-  if (asked) asked.textContent = `Asked:  ${today()}`
+  const { document } = parseHTML(atDepth(readFileSync(join(TOOL_TEMPLATES, "details.html"), "utf8"), depth))
+  // the date up top, under "Asked by":  the notes are the page's bottom, so no footer
+  fillHead(document, {
+    title,
+    description: description ?? `Details:  ${title}`,
+    asked: "[data-details-asked]",
+    date: today()
+  })
   if (spec) fillFromSpec(document, spec)
   mkdirSync(folder, { recursive: true })
   writeFileSync(file, serialize(document))
@@ -129,60 +143,27 @@ export function createPage(docs, slug, { title, epic, description, spec } = {}) 
 
 /**
  * Fill a new page's `document` from `spec` (`DetailsSpec`):  lede, "Asked by", the "Where we are" box, the context,
- * then one question section per question, replacing the template's examples.
- * - text fields are HTML (Claude writes them);  titles and letters go in attributes, escaped
+ * then one question section per question, in place of the template's example (`answerPages.js`
+ * `questionSection()`).
+ * - text fields are HTML (Claude writes them);  titles and letters go in attributes
  */
 function fillFromSpec(document, spec) {
   // a page that's only a form (`/epic review`'s item picker):  no site header
   if (spec.bare) document.querySelector("spell-site-header")?.remove()
-  const lede = document.querySelector("p.lede")
-  if (lede && spec.lede) lede.innerHTML = spec.lede
-  const asked = document.querySelector('ui-item[icon="comments"]')
-  if (asked && spec.askedBy) asked.innerHTML = `Asked by:  ${spec.askedBy}`
-  const where = document.querySelector("ui-message.spell-where ul")
-  if (where && spec.where) {
-    const rows = [
-      ["Epic", spec.where.epic],
-      ["Just now", spec.where.justNow],
-      ["This decides", spec.where.decides]
-    ].filter(([, text]) => text)
-    where.innerHTML = rows.map(([label, text]) => `<li><b>${label}:</b>  ${text}</li>`).join("")
-  }
+  fillWords(document, spec)
   const context = document.querySelector("ui-section#context")
   if (context) {
-    if (spec.context) context.innerHTML = `<ui-icon slot="icon" name="lightbulb"></ui-icon>${spec.context}`
+    if (spec.context)
+      context.replaceChildren(
+        make(document, "ui-icon", { slot: "icon", name: "lightbulb" }),
+        ...appendHTML(document.createElement("div"), spec.context).childNodes,
+        commentBox(document, "context")
+      )
     else context.remove()
   }
-  const example = document.querySelector("ui-section.spell-question")
-  const html = (spec.questions ?? []).map((question, i) => questionHtml(question, i)).join("\n")
-  if (example) example.outerHTML = html
-}
-
-/** One question's section, from a `DetailsSpec` question;  `i`:  its place, for the default id (`q1` ...). */
-function questionHtml(question, i) {
-  const id = question.id ?? `q${i + 1}`
-  const options = (question.options ?? []).map((option, j) => {
-    const letter = option.letter ?? String.fromCharCode(65 + j)
-    const fold = option.detailsTitle ? ` data-title="${attr(option.detailsTitle)}"` : ""
-    const more = option.details ? `<div class="spell-option-details"${fold}>${option.details}</div>` : ""
-    const flags = [
-      option.recommended && " data-recommended",
-      option.checked && " data-checked",
-      option.done && " data-done",
-      option.badge && ` data-badge="${attr(option.badge)}"`,
-      option.badgeColor && ` data-badge-color="${attr(option.badgeColor)}"`,
-      option.state && ` data-state-icon="${attr(option.state.icon)}"`,
-      option.state?.color && ` data-state-color="${attr(option.state.color)}"`,
-      option.state?.label && ` data-state-label="${attr(option.state.label)}"`
-    ]
-    const summary = option.summary ? `<p>${option.summary}</p>` : ""
-    return `<div class="spell-option" data-option="${attr(letter)}" data-title="${attr(option.title ?? letter)}"${flags.filter(Boolean).join("")}>${summary}${option.body ?? ""}${more}</div>`
-  })
-  const multiple = question.multiple ? " data-multiple" : ""
-  const tools = `${question.selectAll ? " data-select-all" : ""}${question.filter ? " data-filter" : ""}${question.moreDetails ? " data-more" : ""}`
-  const header = attr(question.title ?? `Q${i + 1}`)
-  const text = question.text ? `<p>${question.text}</p>` : ""
-  return `<ui-section id="${attr(id)}" class="spell-question" header="${header}" sticky collapsible dividing${multiple}${tools}><ui-icon slot="icon" name="circle question"></ui-icon>${text}${options.join("")}</ui-section>`
+  const example = [...document.querySelectorAll("ui-section")].find((section) => section.querySelector(ASK))
+  const sections = (spec.questions ?? []).map((question, i) => questionSection(document, question, i))
+  if (example) example.replaceWith(...sections)
 }
 
 /** `path` as given:  absolute, else from the checkout's root or `packages/docs` (`yarn workspace` hides where yarn ran). */
@@ -192,11 +173,6 @@ function findFile(path) {
     .find((each) => existsSync(each))
   if (!found) throw new Error(`no file ${path}`)
   return found
-}
-
-/** `text` safe in a double-quoted attribute. */
-export function attr(text) {
-  return String(text).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")
 }
 
 /**
@@ -212,10 +188,10 @@ export function attr(text) {
  * - an option:  `{ letter?, title, summary?, body?, details?, detailsTitle?, recommended?, checked?, done?, badge?,
  *   badgeColor? }`
  *   - letters default to A, B ...
- *   - `summary`:  one line;  `body`:  block HTML after it (the whole text:  long ones clamp to 150px, "Show more")
+ *   - `summary`:  one line;  `body`:  block HTML after it (the whole text:  the card folds by its chevron)
  *   - `details`:  folded, under `detailsTitle` (default "Details");  only when there IS more than the body
  *   - `checked`:  ticked to start with;  `done`:  hidden under "Open";  `badge` / `badgeColor`:  a label beside the
- *     title;  `state`:  `{ icon, color, label }`, an icon under the tick box (in `ICONS`), `label` on hover
+ *     title;  `state`:  `{ icon, color, label }`, an icon at the end of its header (in `ICONS`), `label` its tooltip
  * - plain JS:  no type, this comment is the spec
  */
 
@@ -326,28 +302,28 @@ export function formatAnswer(page, answer) {
   if (answer.changes) lines[0] += `  (sent ${answer.changes + 1}×)`
   const changed = new Set(answer.changes ? (answer.changed ?? []) : [])
   const isNew = (key) => (changed.has(key) ? "  (new)" : "")
-  const questions = [...document.querySelectorAll(".spell-question")]
+  const questions = [...document.querySelectorAll(ASK)]
   const decided = questions.filter((question) => {
-    const got = answer.answers?.[question.id]
+    const got = answer.answers?.[askKey(question)]
     return got?.picked?.length || got?.other
   })
   lines.push(`  ${decided.length} of ${questions.length} decided`)
   for (const question of questions) {
-    const got = answer.answers?.[question.id] ?? { picked: [] }
+    const key = askKey(question)
+    const got = answer.answers?.[key] ?? { picked: [] }
     const picked = got.picked.map((letter) => {
-      const option = question.querySelector(`.spell-option[data-option="${letter}"]`)
-      const recommended = option?.hasAttribute("data-recommended") ? " (recommended)" : ""
-      return `${letter} · ${option?.getAttribute("data-title") ?? "?"}${recommended}`
+      const option = optionOf(question, letter)
+      const recommended = option?.hasAttribute("recommended") ? " (recommended)" : ""
+      return `${letter} · ${option?.getAttribute("title") ?? "?"}${recommended}`
     })
     if (got.other) picked.push(`Other:  ${got.other}`)
-    const header = question.getAttribute("header") ?? question.id
-    lines.push(`  ${header}:  ${picked.join(";  ") || "(not decided yet)"}${isNew(question.id)}`)
+    lines.push(`  ${askHeader(question)}:  ${picked.join(";  ") || "(not decided yet)"}${isNew(key)}`)
   }
-  // "Provide more details" (`moreDetails`):  `<question id>-more`, the options' letters
-  for (const question of document.querySelectorAll(".spell-question[data-more]")) {
-    const more = answer.answers?.[`${question.id}-more`]?.picked ?? []
-    if (more.length)
-      lines.push(`  More details wanted on ${question.id}:  ${more.join(", ")}${isNew(`${question.id}-more`)}`)
+  // "Provide more details" (`moreDetails`):  `<question key>-more`, the options' letters
+  for (const question of questions.filter((each) => each.hasAttribute("more-details"))) {
+    const key = askKey(question)
+    const more = answer.answers?.[`${key}-more`]?.picked ?? []
+    if (more.length) lines.push(`  More details wanted on ${key}:  ${more.join(", ")}${isNew(`${key}-more`)}`)
   }
   // the comment box under each section that isn't a question, and under each option (`q1-B`)
   const comments = Object.entries(answer.comments ?? {})
@@ -364,11 +340,30 @@ export function formatAnswer(page, answer) {
 function commentPlace(document, id) {
   const section = document.getElementById(id)
   if (section) return section.getAttribute("header") ?? id
-  const [, question, letter] = /^(.+)-([A-Z])$/.exec(id) ?? []
-  const asked = question && document.getElementById(question)
-  const option = asked?.querySelector(`.spell-option[data-option="${letter}"]`)
+  // a letter is `B`, or the item picker's item id (`J7`)
+  const [, key, letter] = /^(.+)-([A-Z][A-Za-z0-9]*)$/.exec(id) ?? []
+  const question = key && [...document.querySelectorAll(ASK)].find((each) => askKey(each) === key)
+  const option = question && optionOf(question, letter)
   if (!option) return id
-  return `${asked.getAttribute("header") ?? question}, ${letter} · ${option.getAttribute("data-title") ?? "?"}`
+  return `${askHeader(question)}, ${letter} · ${option.getAttribute("title") ?? "?"}`
+}
+
+/** A question's (`<epic-ask>`) key:  its `name`, else its section's id, as the element works it out. */
+export function askKey(question) {
+  return question.getAttribute("name") ?? question.closest("ui-section[id]")?.id ?? ""
+}
+
+/** A question's title, for people:  its section's `header` (`Q1 · Which layout?`), else its key. */
+function askHeader(question) {
+  return question.closest("ui-section[id]")?.getAttribute("header") ?? askKey(question)
+}
+
+/** Option `letter` of question `question`:  its own options only, not one quoted in an option's text. */
+function optionOf(question, letter) {
+  return [...question.children]
+    .filter((child) => child.localName === CHOICES)
+    .flatMap((choices) => [...choices.children])
+    .find((child) => child.localName === OPTION && child.getAttribute("letter") === letter)
 }
 
 /** `wait`:  wait for `file`'s answer, print it;  exit code 0, or 2 on timeout. */

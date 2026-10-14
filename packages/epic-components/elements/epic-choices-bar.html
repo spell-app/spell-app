@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>epic-choices-bar</title>
+    <meta name="description" content="A syntax-choices page's bar: the feedback, Do it, and where things stand." />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="&lt;epic-choices-bar&gt;">
+      <ui-segment vertical class="site-masthead"
+        ><ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page"
+            ><ui-item
+              href="../../guides/details.html"
+              icon="book"
+              aria-label="How details pages work"
+              title="How details pages work"
+            ></ui-item
+          ></ui-menu>
+          <ui-header level="1" class="site-title"
+            >&lt;epic-choices-bar&gt;<ui-header
+              >A syntax-choices page's bar: the feedback, Do it, and where things stand.</ui-header
+            ></ui-header
+          >
+        </ui-container></ui-segment
+      >
+      <ui-container class="site-body"
+        ><article class="site-article">
+          <p class="lede">
+            A syntax-choices page's bar, last on the page and pinned to the window's bottom: the feedback, then "Do it",
+            which sends every changed box and the feedback to Claude. What's typed saves itself as a draft.
+          </p>
+          <p class="meta">
+            For anyone writing a page Owen answers on (a details or syntax-choices page), or changing this element.<br />
+            <ui-label size="mini" color="green">built</ui-label> in
+            <a
+              href="../../packages/epics/components/epic-choices-bar/"
+              target="src-packages-epics-components-epic-choices-bar"
+              ><code title="packages/epics/components/epic-choices-bar/">epic-choices-bar/</code></a
+            >
+            (epic <code>epic-workflow</code> P12).<br />
+            Its vocabulary (every table below comes from it):
+            <a
+              href="../../packages/epics/components/epic-choices-bar/EpicChoicesBar.en.ts"
+              target="src-packages-epics-components-epic-choices-bar-epicchoicesbar-en-ts"
+              ><code title="packages/epics/components/epic-choices-bar/EpicChoicesBar.en.ts"
+                >EpicChoicesBar.en.ts</code
+              ></a
+            >.
+          </p>
+          <ui-section id="1-example" header="1. Example" sticky collapsible dividing collapsed
+            ><ui-icon slot="icon" name="eye"></ui-icon>
+            <p>
+              Live: the real element, drawn by the epics pack this page loads. Off a details page's own address nothing
+              is saved or sent: Send says so.
+            </p>
+            <epic-choices-bar></epic-choices-bar
+          ></ui-section>
+          <ui-section id="2-markup" header="2. Markup" sticky collapsible dividing collapsed
+            ><ui-icon slot="icon" name="code"></ui-icon
+            ><ui-accordion class="spell-code" styled
+              ><ui-title>syntax-choices page · its end · 2 lines</ui-title
+              ><ui-content
+                ><ui-code language="html"
+                  ><script type="text/plain">
+                    <epic-choices-bar></epic-choices-bar>
+                    <!-- no footer:  the bar is the page's bottom -->
+                  </script></ui-code
+                ></ui-content
+              ></ui-accordion
+            ></ui-section
+          >
+          <ui-section id="3-where-it-goes" header="3. Where it goes" sticky collapsible dividing collapsed
+            ><ui-icon slot="icon" name="layer group"></ui-icon>
+            <ul>
+              <li>Once a page, last in its <code>main</code>.</li>
+              <li>No children.</li>
+            </ul></ui-section
+          >
+          <ui-section id="4-attributes" header="4. Attributes" sticky collapsible dividing collapsed
+            ><ui-icon slot="icon" name="table columns"></ui-icon>
+            <p>None.</p>
+            <ui-section id="epic-choices-bar-parts" header="Parts" sticky collapsible dividing collapsed
+              ><p>
+                A part is a piece of what the element draws in its shadow root (its own hidden markup), named so a
+                stylesheet can reach it: <code>epic-choices-bar::part(base)</code>.
+              </p>
+              <ui-table celled compact striped unstackable
+                ><table>
+                  <thead>
+                    <tr>
+                      <th>Part</th>
+                      <th>What it is</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>base</code></td>
+                      <td>The bar.</td>
+                    </tr>
+                    <tr>
+                      <td><code>feedback</code></td>
+                      <td>The feedback box, an <code>&lt;epic-text-box type="feedback"&gt;</code>.</td>
+                    </tr>
+                    <tr>
+                      <td><code>send</code></td>
+                      <td>"Do it" (<code>&lt;ui-button&gt;</code>): its tooltip counts the changed boxes.</td>
+                    </tr>
+                    <tr>
+                      <td><code>meta</code></td>
+                      <td>The line under them: the save status (only when it failed), Expand all.</td>
+                    </tr>
+                    <tr>
+                      <td><code>expand</code></td>
+                      <td>Expand all / Collapse all: every section of rows.</td>
+                    </tr>
+                    <tr>
+                      <td><code>error</code></td>
+                      <td>Why "Do it" failed.</td>
+                    </tr>
+                    <tr>
+                      <td><code>sent</code></td>
+                      <td>What was sent, and when; orange once changed since.</td>
+                    </tr>
+                  </tbody>
+                </table></ui-table
+              ></ui-section
+            >
+            <ui-section id="epic-choices-bar-states" header="States" sticky collapsible dividing collapsed
+              ><p>
+                A state is a word the element sets on itself while something is true, for styling:
+                <code>epic-choices-bar:state(stale)</code>. Never written in the file.
+              </p>
+              <ui-table celled compact striped unstackable
+                ><table>
+                  <thead>
+                    <tr>
+                      <th>State</th>
+                      <th>When</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>stale</code></td>
+                      <td>Changed since the answer was sent: press Do it again.</td>
+                    </tr>
+                  </tbody>
+                </table></ui-table
+              ></ui-section
+            >
+          </ui-section>
+          <ui-section id="5-how-it-looks" header="5. How it looks" sticky collapsible dividing collapsed
+            ><ui-icon slot="icon" name="palette"></ui-icon>
+            <ul>
+              <li>
+                Ivory, as the page's toolbar at the top; pinned to the window's bottom while the rows scroll above it.
+              </li>
+              <li>
+                The feedback box grows with its text; "Do it" (a pill with a paper plane) at its right, its tooltip
+                counting the changed boxes.
+              </li>
+              <li>
+                Under them: Expand all, and the save status only when a save failed; then what was sent (green, orange
+                once changed since), or why not (red).
+              </li>
+            </ul></ui-section
+          >
+          <ui-section id="6-written-by" header="6. Written by" sticky collapsible dividing collapsed
+            ><ui-icon slot="icon" name="terminal"></ui-icon>
+            <ul>
+              <li><code>epic choices new</code>: in the template.</li>
+              <li>Older pages: the migration step <code>answer-elements</code>.</li>
+            </ul></ui-section
+          >
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">
+              Last checked 2026-10-14 against branch <code>epic-workflow</code> (P12): the tables are its vocabulary's
+              (epic-choices-bar); the rest from its component and its stylesheet.
+            </p>
+          </footer>
+        </article></ui-container
+      >
+    </main>
+  </body>
+</html>

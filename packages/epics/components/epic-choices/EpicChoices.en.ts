@@ -41,7 +41,11 @@ export const epicChoicesVocabulary = {
   ],
   states: [
     { name: "answered", description: "Its question is answered (`chosen`, or `answered` on its item):  folded." },
-    { name: "open", description: "Answered, and its options unfolded." }
+    { name: "open", description: "Answered, and its options unfolded." },
+    {
+      name: "answering",
+      description: "An `<epic-ask>`'s options (a page Owen answers on):  one card a row, each with a tick box."
+    }
   ],
   texts: [
     { key: "foldTip", text: "Fold the choices", description: "Tooltip of its fold button while open." },

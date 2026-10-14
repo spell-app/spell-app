@@ -1,5 +1,5 @@
 /* GENERATED -- do not edit:  `spell dev pack build epics`, from every vocabulary, `<Name>.en.ts` */
-// sources:  6dffa2c41290ddf4
+// sources:  dfc0c81c95707743
 
 import type { RootCatalogEntry } from "$/ui"
 
@@ -8,7 +8,11 @@ export const CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
   "epic-agents": {"folder":"epic-agents","skeleton":{"parts":[{"shape":"header"},{"shape":"paragraph","lines":2}]}},
   "epic-answer": {"folder":"epic-answer"},
   "epic-aside": {"folder":"epic-aside"},
+  "epic-ask": {"folder":"epic-ask","skeleton":{"height":"6em"}},
+  "epic-choice-row": {"folder":"epic-choice-rows"},
+  "epic-choice-rows": {"folder":"epic-choice-rows","skeleton":{"height":"8em"}},
   "epic-choices": {"folder":"epic-choices"},
+  "epic-choices-bar": {"folder":"epic-choices-bar","skeleton":{"height":"3em"}},
   "epic-code": {"folder":"epic-code"},
   "epic-commit": {"folder":"epic-commit"},
   "epic-event": {"folder":"epic-event"},
@@ -28,8 +32,10 @@ export const CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
   "epic-reply": {"folder":"epic-answer"},
   "epic-review": {"folder":"epic-review","skeleton":{"display":"inline","width":"6em","height":"1.5em"}},
   "epic-section": {"folder":"epic-section"},
+  "epic-send": {"folder":"epic-send","skeleton":{"display":"inline","width":"12em","height":"2em"}},
   "epic-status": {"folder":"epic-status"},
   "epic-summary": {"folder":"epic-summary"},
+  "epic-text-box": {"folder":"epic-text-box","skeleton":{"height":"2em"}},
   "epic-update": {"folder":"epic-update"},
   "epic-updated": {"folder":"epic-phase"},
   "epic-version": {"folder":"epic-original"}

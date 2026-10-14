@@ -1,0 +1,43 @@
+/*
+ * `<epic-text-box>` (`EpicTextBox.tsx`):  a box Owen types in, one line to start, growing with its text.
+ * - The look of the plan doc's note boxes (`<epic-agents>`' redirect box):  the page's ground, a quiet rule,
+ *   6px corners;  the focus ring the page's.
+ * - Grows with its text (`field-sizing`), up to a third of the window, then scrolls.
+ * - Public tokens (`--epic-text-box-*`) are never declared here:  read through private aliases.
+ */
+
+@layer ui.components.epic-text-box.types;
+
+@layer ui.components.epic-text-box.types {
+  :host {
+    --_epic-text-box-rule: var(--epic-rule, var(--ui-border-color, light-dark(#d4d4d5, #4a4a52)));
+    display: block;
+    margin: 0.75em 0 0.5em;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  .field {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 2.4em;
+    max-height: 33vh;
+    field-sizing: content;
+    padding: 6px 8px;
+    border: 1px solid var(--_epic-text-box-rule);
+    border-radius: 6px;
+    background: var(--epic-bg, var(--ui-surface, Canvas));
+    color: var(--epic-ink, var(--ui-text-color, CanvasText));
+    font: inherit;
+    line-height: 1.45;
+    resize: vertical;
+  }
+  .field::placeholder {
+    color: var(--ui-text-muted, GrayText);
+  }
+  .field:focus-visible {
+    outline: 2px solid var(--ui-focus-color, Highlight);
+    outline-offset: 0;
+  }
+}

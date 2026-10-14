@@ -72,33 +72,40 @@ Dense, terse pages make him ask "what do you mean?" (2026-10-03), so:
      - Page widgets:  [docs' AGENTS.md](packages/docs/AGENTS.md), "Writing a page"
        (tables, code folded, pros / cons, steps ...).
      - Icons only from `ICONS`, in [bundle-spell-ui.js](packages/docs/tools/bundle-spell-ui.js).
-   - one `ui-section.spell-question` per question, ids `q1`, `q2` ..., header `Q1 · Short question`:
+   - one `<ui-section>` per question, ids `q1`, `q2` ..., header `Q1 · Short question`, holding an `<epic-ask>`:
+     the epics pack's elements, a plan doc's question (epic `epic-workflow` P12;  each has its page in Epic UI,
+     `/epic-ui/`):
 
      ```html
-     <ui-section id="q1" class="spell-question" header="Q1 · Which card layout?" sticky collapsible dividing>
+     <ui-section id="q1" header="Q1 · Which card layout?" sticky collapsible dividing>
        <ui-icon slot="icon" name="circle question"></ui-icon>
-       <p>The question in full, one or two lines.</p>
-       <div class="spell-option" data-option="A" data-title="Stacked cards" data-recommended>
-         <p>One line:  what changes, why recommended.</p>
-         <div class="spell-option-details"><!-- folded:  table, code, picture --></div>
-       </div>
-       <div class="spell-option" data-option="B" data-title="Side by side">
-         <p>One line:  what changes, its cost.</p>
-       </div>
+       <epic-ask>
+         <epic-question><p>The question in full, one or two lines.</p></epic-question>
+         <epic-choices>
+           <epic-option letter="A" title="Stacked cards" recommended>
+             <p>One line:  what changes, why recommended.</p>
+             <epic-aside title="Details"><!-- folded:  table, code, picture --></epic-aside>
+           </epic-option>
+           <epic-option letter="B" title="Side by side">
+             <p>One line:  what changes, its cost.</p>
+           </epic-option>
+         </epic-choices>
+       </epic-ask>
      </ui-section>
      ```
 
-     - letters `A`, `B` ...;  the recommended one FIRST, with `data-recommended`
-     - `data-title`:  2-5 words
-     - the summary:  one line;  everything longer in `.spell-option-details` (it folds)
-     - pick several:  `data-multiple` on the section (checkboxes);  else pick one (radios)
-     - The page's script, `_assets/details.js`, adds the rest:
-       - every question gets an "Other" box
-       - every other section with no section inside it, a comment box
-       - the page, a notes box
-       - its sticky header, Send
+     - letters `A`, `B` ...;  the recommended one FIRST, with `recommended`
+     - `title`:  2-5 words
+     - the summary:  one line;  everything longer in an `<epic-aside title="Details">` (it folds)
+     - pick several:  `multiple` on the `<epic-ask>` (tick boxes);  else pick one (round ones)
+     - The elements draw the rest:
+       - each option, its tick box and a comment box;  each question, an "Other" box and its state chip
+       - Send, in the sticky header (`<epic-send>`, in the template)
+     - Written into the page (the template has them):  a comment box last in every other section with no section
+       inside it, `<epic-text-box for="<section id>">`;  the page's notes after the last question,
+       `<epic-text-box type="notes">`
      - The page NEVER locks:  Owen sends partial answers, and sends again whenever he likes (2026-10-08).
-   - a picture page:  delete the question sections;  nothing to send
+   - a picture page:  delete the question sections and `<epic-send>`;  nothing to send
 3. Epic page:  `yarn vp fmt <page>` once it's written.
 
 ## 3. Show it, and wait

@@ -127,6 +127,179 @@
       ]
     },
     {
+      "path": "elements/epic-ask.html",
+      "title": "<epic-ask>",
+      "summary": "A question Owen answers on the page: its options with tick boxes, Other, its state as a chip.",
+      "tag": "epic-ask",
+      "sections": [
+        {
+          "id": "1-example",
+          "title": "1. Example"
+        },
+        {
+          "id": "2-markup",
+          "title": "2. Markup"
+        },
+        {
+          "id": "3-where-it-goes",
+          "title": "3. Where it goes"
+        },
+        {
+          "id": "4-attributes",
+          "title": "4. Attributes"
+        },
+        {
+          "id": "epic-ask-slots",
+          "title": "Slots",
+          "parent": 3
+        },
+        {
+          "id": "epic-ask-parts",
+          "title": "Parts",
+          "parent": 3
+        },
+        {
+          "id": "epic-ask-states",
+          "title": "States",
+          "parent": 3
+        },
+        {
+          "id": "5-how-it-looks",
+          "title": "5. How it looks"
+        },
+        {
+          "id": "6-written-by",
+          "title": "6. Written by"
+        }
+      ]
+    },
+    {
+      "path": "elements/epic-choice-row.html",
+      "title": "<epic-choice-row>",
+      "summary": "One row of a syntax-choices page: a use site, and the box holding Claude's recommendation.",
+      "tag": "epic-choice-row",
+      "sections": [
+        {
+          "id": "1-example",
+          "title": "1. Example"
+        },
+        {
+          "id": "2-markup",
+          "title": "2. Markup"
+        },
+        {
+          "id": "3-where-it-goes",
+          "title": "3. Where it goes"
+        },
+        {
+          "id": "4-attributes",
+          "title": "4. Attributes"
+        },
+        {
+          "id": "epic-choice-row-parts",
+          "title": "Parts",
+          "parent": 3
+        },
+        {
+          "id": "epic-choice-row-states",
+          "title": "States",
+          "parent": 3
+        },
+        {
+          "id": "5-how-it-looks",
+          "title": "5. How it looks"
+        },
+        {
+          "id": "6-written-by",
+          "title": "6. Written by"
+        }
+      ]
+    },
+    {
+      "path": "elements/epic-choice-rows.html",
+      "title": "<epic-choice-rows>",
+      "summary": "A syntax-choices page's table: its column heads, then its rows.",
+      "tag": "epic-choice-rows",
+      "sections": [
+        {
+          "id": "1-example",
+          "title": "1. Example"
+        },
+        {
+          "id": "2-markup",
+          "title": "2. Markup"
+        },
+        {
+          "id": "3-where-it-goes",
+          "title": "3. Where it goes"
+        },
+        {
+          "id": "4-attributes",
+          "title": "4. Attributes"
+        },
+        {
+          "id": "epic-choice-rows-slots",
+          "title": "Slots",
+          "parent": 3
+        },
+        {
+          "id": "epic-choice-rows-parts",
+          "title": "Parts",
+          "parent": 3
+        },
+        {
+          "id": "5-how-it-looks",
+          "title": "5. How it looks"
+        },
+        {
+          "id": "6-written-by",
+          "title": "6. Written by"
+        }
+      ]
+    },
+    {
+      "path": "elements/epic-choices-bar.html",
+      "title": "<epic-choices-bar>",
+      "summary": "A syntax-choices page's bar: the feedback, Do it, and where things stand.",
+      "tag": "epic-choices-bar",
+      "sections": [
+        {
+          "id": "1-example",
+          "title": "1. Example"
+        },
+        {
+          "id": "2-markup",
+          "title": "2. Markup"
+        },
+        {
+          "id": "3-where-it-goes",
+          "title": "3. Where it goes"
+        },
+        {
+          "id": "4-attributes",
+          "title": "4. Attributes"
+        },
+        {
+          "id": "epic-choices-bar-parts",
+          "title": "Parts",
+          "parent": 3
+        },
+        {
+          "id": "epic-choices-bar-states",
+          "title": "States",
+          "parent": 3
+        },
+        {
+          "id": "5-how-it-looks",
+          "title": "5. How it looks"
+        },
+        {
+          "id": "6-written-by",
+          "title": "6. Written by"
+        }
+      ]
+    },
+    {
       "path": "elements/epic-choices.html",
       "title": "<epic-choices>",
       "summary": "A set of option cards: side by side while open, folded under Choices with the chosen one marked once answered.",
@@ -597,6 +770,11 @@
           "parent": 3
         },
         {
+          "id": "epic-option-events",
+          "title": "Events",
+          "parent": 3
+        },
+        {
           "id": "5-how-it-looks",
           "title": "5. How it looks"
         },
@@ -1038,6 +1216,48 @@
       ]
     },
     {
+      "path": "elements/epic-send.html",
+      "title": "<epic-send>",
+      "summary": "A details page's Send: where the answer stands, and the round button that sends it.",
+      "tag": "epic-send",
+      "sections": [
+        {
+          "id": "1-example",
+          "title": "1. Example"
+        },
+        {
+          "id": "2-markup",
+          "title": "2. Markup"
+        },
+        {
+          "id": "3-where-it-goes",
+          "title": "3. Where it goes"
+        },
+        {
+          "id": "4-attributes",
+          "title": "4. Attributes"
+        },
+        {
+          "id": "epic-send-parts",
+          "title": "Parts",
+          "parent": 3
+        },
+        {
+          "id": "epic-send-states",
+          "title": "States",
+          "parent": 3
+        },
+        {
+          "id": "5-how-it-looks",
+          "title": "5. How it looks"
+        },
+        {
+          "id": "6-written-by",
+          "title": "6. Written by"
+        }
+      ]
+    },
+    {
       "path": "elements/epic-status.html",
       "title": "<epic-status>",
       "summary": "Claude's status card on an item: what Claude took Owen's mark to mean, then that it's done.",
@@ -1125,6 +1345,48 @@
           "id": "epic-summary-parts",
           "title": "Parts",
           "parent": 5
+        },
+        {
+          "id": "5-how-it-looks",
+          "title": "5. How it looks"
+        },
+        {
+          "id": "6-written-by",
+          "title": "6. Written by"
+        }
+      ]
+    },
+    {
+      "path": "elements/epic-text-box.html",
+      "title": "<epic-text-box>",
+      "summary": "A box Owen types in on a page he answers on: notes, a comment, Other, feedback.",
+      "tag": "epic-text-box",
+      "sections": [
+        {
+          "id": "1-example",
+          "title": "1. Example"
+        },
+        {
+          "id": "2-markup",
+          "title": "2. Markup"
+        },
+        {
+          "id": "3-where-it-goes",
+          "title": "3. Where it goes"
+        },
+        {
+          "id": "4-attributes",
+          "title": "4. Attributes"
+        },
+        {
+          "id": "epic-text-box-parts",
+          "title": "Parts",
+          "parent": 3
+        },
+        {
+          "id": "epic-text-box-states",
+          "title": "States",
+          "parent": 3
         },
         {
           "id": "5-how-it-looks",
