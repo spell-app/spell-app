@@ -14,12 +14,16 @@
  * loader.load(root)   // owen again;  his friend matt is loaded once, however many hold him
  * ```
  *
- * - Every thing is saved in an entry of its own, and what holds it saves a REFERENCE, `{ "$ref": "Person#matt" }`:
- *   so a card in two piles is one card, read back.
- *   - EXCEPT a kind saved inline (`a dated-event is saved inline`, `static savedInline = true`):
- *     written whole, inside what holds it.
+ * - A thing is saved INSIDE what holds it, by default (decision Q42):  written whole the first time it's reached,
+ *   and a REFERENCE after, `{ "$ref": "Card#ace" }`, so a card in two piles is one card, read back.
+ *   - Written whole with its `id` only when something else holds it too.
+ *   - A reference from another entry names the entry it's written in, `{ "$ref": "Card#ace", "$in": "Game#g" }`.
+ *   - A kind saved IN ITS OWN FILE (`a person is saved in its own file`, `static savedInFile = true`) gets an entry
+ *     of its own, and what holds it writes a reference to that, `{ "$ref": "Person#matt" }`.
+ *   - What `save()` is given always gets an entry, whatever its kind.
  *   - A plain list a property holds (`its "dates" is a list of dated-events`) is its items alone, a JSON array:
- *     it's part of its owner.  A list TYPE (`a club is a list of people`) is a thing, saved on its own.
+ *     it's part of its owner.  A list TYPE (`a club is a list of people`) is a thing, inside like any other.
+ *   - `a dated-event is saved inline` (`static savedInline = true`) says the default:  no change.
  * - An entry is what `toJSON()` writes, `"$type"` first, then its `id`, then its other props,
  *   then the plain fields it was made with (a foundation's `symbol`), then a list's `"$items"`.
  * - What an entry's key and a reference say is `refOf`'s, `"Person#matt"` by default:
@@ -42,6 +46,12 @@ import { Thing } from "./classes/Thing"
 
 /** Key a reference names its thing under:  `{ "$ref": "Person#matt" }`. */
 export const REF_KEY = "$ref"
+
+/**
+ * Key a reference to a thing written whole in ANOTHER entry names that entry under:
+ * `{ "$ref": "Card#ace", "$in": "Game#g" }` -- so a loader reads that entry first.
+ */
+export const IN_KEY = "$in"
 
 /** A thing or a list:  what is saved by id. */
 type SpellObject = Thing | List
@@ -110,27 +120,74 @@ export class Saver {
   }
 
   /**
-   * `root`, and every thing it reaches that isn't saved inline, each as an entry of its own.
-   * - SIDE EFFECT:  reads each saved thing's `id`, so one with none is given one now -- and keeps it.
+   * `root` as an entry, and every thing it reaches that's saved in its own file, each as an entry of its own;
+   * every other thing written inside what holds it.
+   * - SIDE EFFECT:  reads each entry's `id`, and a kept-inside thing's held twice, so one with none is given one
+   *   now -- and keeps it.
    */
   save(root: SpellObject): Saved {
     const entries = new Map<string, Record<string, unknown>>()
+    const holds = this.holdsOf(root)
     const waiting: SpellObject[] = [root]
     const queued = new Set<SpellObject>(waiting)
-    // each thing reached:  a reference to it, and saved in its turn -- unless it's kept elsewhere
-    const reference = (thing: SpellObject) => {
+    // each thing kept inside, by the key of the entry it's written whole in
+    const written = new Map<SpellObject, string>()
+    let current = ""
+    // each thing reached:  a reference, or written whole the first time -- see `write()`
+    const reference = (thing: SpellObject): unknown => {
       const place = this.placeOf(thing)
       if (place) return { [REF_KEY]: refText({ type: thing.constructor.name, id: thing.id, place }) }
-      if (!queued.has(thing)) {
-        queued.add(thing)
-        waiting.push(thing)
+      if (queued.has(thing) || isSavedInFile(thing)) {
+        if (!queued.has(thing)) {
+          queued.add(thing)
+          waiting.push(thing)
+        }
+        return { [REF_KEY]: this.refOf(thing) }
       }
-      return { [REF_KEY]: this.refOf(thing) }
+      const where = written.get(thing)
+      if (where === undefined) {
+        written.set(thing, current)
+        // its id only when something else holds it too, for that reference to find it
+        const heldTwice = (holds.get(thing) ?? 0) > 1
+        const json = heldTwice ? { ...headOf(thing), id: thing.id } : headOf(thing)
+        return this.writeProps(thing, json, reference, heldTwice ? undefined : "id")
+      }
+      const ref = { [REF_KEY]: insideRefOf(thing) }
+      return where === current ? ref : { ...ref, [IN_KEY]: where }
     }
     for (let thing = waiting.shift(); thing; thing = waiting.shift()) {
-      entries.set(this.refOf(thing), this.entryOf(thing, reference))
+      current = this.refOf(thing)
+      entries.set(current, this.entryOf(thing, reference))
     }
     return { root: this.refOf(root), entries }
+  }
+
+  /**
+   * How many places hold each thing `root` reaches, for `save()`:  a thing kept inside and held twice is written
+   * whole once, with its id, and as a reference to it after.
+   * - Never past a thing kept in another place (`placeOf`):  its own place saves it.
+   */
+  protected holdsOf(root: SpellObject): Map<SpellObject, number> {
+    const holds = new Map<SpellObject, number>()
+    const visit = (value: unknown): void => {
+      if (value instanceof List && value.constructor === List) return value.items.forEach(visit)
+      if (isSpellObject(value)) {
+        const count = (holds.get(value) ?? 0) + 1
+        holds.set(value, count)
+        if (count === 1 && !this.placeOf(value)) visitProps(value)
+        return
+      }
+      if (Array.isArray(value)) return value.forEach(visit)
+      if (isPlainObject(value)) Object.values(value).forEach(visit)
+    }
+    const visitProps = (thing: SpellObject) => {
+      for (const key of keysOf(thing)) visit(getProp(thing, key))
+      Object.values(fieldsOf(thing)).forEach(visit)
+      if (thing instanceof List) thing.items.forEach(visit)
+    }
+    holds.set(root, 1)
+    visitProps(root)
+    return holds
   }
 
   /** `thing`'s own entry:  `"$type"`, its `"$version"` past 1, `id`, its other props, a list's `"$items"`. */
@@ -139,14 +196,15 @@ export class Saver {
     return this.writeProps(thing, entry, reference)
   }
 
-  /** `thing`'s props and items, written into `json`. */
+  /** `thing`'s props and items, written into `json` -- all but `leaveOut`'s, e.g. a kept-inside thing's `id`. */
   protected writeProps(
     thing: SpellObject,
     json: Record<string, unknown>,
-    reference: (thing: SpellObject) => unknown
+    reference: (thing: SpellObject) => unknown,
+    leaveOut?: string
   ): Record<string, unknown> {
     for (const key of keysOf(thing)) {
-      if (!(key in json)) json[key] = this.write(getProp(thing, key), reference)
+      if (!(key in json) && key !== leaveOut) json[key] = this.write(getProp(thing, key), reference)
     }
     // what it was made with and doesn't declare, e.g. a foundation's `symbol`:  as a page's state writes them
     for (const [key, field] of Object.entries(fieldsOf(thing))) {
@@ -158,19 +216,17 @@ export class Saver {
 
   /**
    * `value` as an entry holds it:
-   * - a thing saved inline:  whole, here
    * - a plain list:  its items, as an array
-   * - any other thing or list:  a reference
+   * - a thing or a list type saved in its own file:  a reference to its entry
+   * - any other thing or list:  written whole, here, the first time it's reached;  a reference after,
+   *   `{ "$ref": "Card#ace" }`, with the entry it's written in when that's another one, `"$in": "Game#g"`
    * - arrays and plain objects:  each value written so;  a date as its ISO text;  anything else as it is
    */
   protected write(value: unknown, reference: (thing: SpellObject) => unknown): unknown {
     if (value instanceof List && value.constructor === List) {
       return value.items.map((item) => this.write(item, reference))
     }
-    if (isSpellObject(value)) {
-      if (!isSavedInline(value)) return reference(value)
-      return this.writeProps(value, headOf(value), reference)
-    }
+    if (isSpellObject(value)) return reference(value)
     if (Array.isArray(value)) return value.map((item) => this.write(item, reference))
     if (value instanceof Date) return value.toISOString()
     if (isPlainObject(value)) {
@@ -191,6 +247,11 @@ export class Loader {
   readonly classNamed: (name: string) => SpellClass | undefined
   /** What it loaded, by key:  a second reference to one gets the same thing. */
   protected loaded = new Map<string, SpellObject>()
+  /**
+   * The things written whole inside each entry it read, by their key, `"Card#ace"`:  what a reference to one finds
+   * (`index()`).
+   */
+  protected inside = new Map<string, Record<string, unknown>>()
 
   /**
    * A loader reading entries through `entryFor`.
@@ -213,17 +274,20 @@ export class Loader {
   load(ref: string): SpellObject | undefined {
     const known = this.loaded.get(ref)
     if (known) return known
-    const entry = this.entryFor(ref)
-    if (!entry) {
+    const entry = this.inside.has(ref) ? undefined : this.entryFor(ref)
+    if (entry) this.index(entry)
+    const json = entry ?? this.inside.get(ref)
+    if (!json) {
       spellCore.console.warn(`Loader.load():  nothing is saved as "${ref}"`)
       return undefined
     }
-    const made = this.make(entry, ref)
+    const made = this.make(json, ref)
     return made instanceof Thing || made instanceof List ? made : undefined
   }
 
   /**
-   * `json` read back:  a reference loaded (`load()`), a thing saved inline made, arrays and objects read through.
+   * `json` read back:  a reference followed (`follow()`), a thing written whole made, arrays and objects read
+   * through.
    */
   read(json: unknown): unknown {
     // a reference to nothing saved is left out:  the list holds what loaded
@@ -234,9 +298,32 @@ export class Loader {
       })
     }
     if (!isPlainObject(json)) return json
-    if (isReference(json)) return this.load(json[REF_KEY] as string)
+    if (isReference(json)) return this.follow(json)
     if (typeof json[TYPE_KEY] === "string") return this.make(json)
     return Object.fromEntries(Object.entries(json).map(([key, value]) => [key, this.read(value)]))
+  }
+
+  /**
+   * The thing reference `json` names:  an entry, or a thing written whole inside one -- the entry it's in (`"$in"`)
+   * read first, when that's another one not read yet.
+   */
+  protected follow(json: Record<string, unknown>): SpellObject | undefined {
+    const ref = json[REF_KEY] as string
+    const where = json[IN_KEY]
+    if (!this.loaded.has(ref) && !this.inside.has(ref) && typeof where === "string") this.load(where)
+    return this.load(ref)
+  }
+
+  /** Note each thing written whole inside `json` (an entry), by its key, for a reference to it to find:  `inside`. */
+  protected index(json: unknown): void {
+    if (Array.isArray(json)) return json.forEach((item) => this.index(item))
+    if (!isPlainObject(json)) return
+    const type = json[TYPE_KEY]
+    if (typeof type === "string" && typeof json.id === "string") {
+      const key = refText({ type, id: json.id })
+      if (!this.inside.has(key)) this.inside.set(key, json)
+    }
+    Object.values(json).forEach((value) => this.index(value))
   }
 
   /**
@@ -248,6 +335,10 @@ export class Loader {
   protected make(json: Record<string, unknown>, ref?: string): unknown {
     const Class = this.classNamed(`${json[TYPE_KEY]}`)
     if (!Class) return Object.fromEntries(Object.entries(json).map(([key, value]) => [key, this.read(value)]))
+    // a thing written whole with its id:  kept by its key, so the references to it get this one
+    if (!ref && typeof json.id === "string") ref = refText({ type: `${json[TYPE_KEY]}`, id: json.id })
+    const known = ref ? this.loaded.get(ref) : undefined
+    if (known) return known
     // an older version's entry:  brought up to its type's version first -- see `upgradeEntry()`
     const { entry, upgrades } = upgradeEntry(json, Class)
     const plain: Record<string, unknown> = {}
@@ -425,9 +516,14 @@ function defaultRefOf(thing: SpellObject): string {
   return refText({ type: thing.constructor.name, id: thing.id })
 }
 
-/** Is `thing`'s kind saved inside what holds it (`static savedInline = true`)? */
-function isSavedInline(thing: SpellObject): boolean {
-  return (thing.constructor as { savedInline?: boolean }).savedInline === true
+/** Is `thing`'s kind saved in a file of its own (`static savedInFile = true`, `a person is saved in its own file`)? */
+function isSavedInFile(thing: SpellObject): boolean {
+  return (thing.constructor as { savedInFile?: boolean }).savedInFile === true
+}
+
+/** A thing kept inside an entry's key, `"Card#ace"`:  always its type and id, whatever an entry's key says. */
+function insideRefOf(thing: SpellObject): string {
+  return refText({ type: thing.constructor.name, id: thing.id })
 }
 
 /** Is `value` text, a number, yes or no, or nothing:  a value to make a thing with, before its references? */
@@ -436,8 +532,12 @@ function isPlainValue(value: unknown): boolean {
 }
 
 /** Is `json` a reference alone, `{ "$ref": ... }`? */
-function isReference(json: unknown): boolean {
-  return isPlainObject(json) && typeof json[REF_KEY] === "string" && Object.keys(json).length === 1
+function isReference(json: unknown): json is Record<string, unknown> {
+  return (
+    isPlainObject(json) &&
+    typeof json[REF_KEY] === "string" &&
+    Object.keys(json).every((key) => key === REF_KEY || key === IN_KEY)
+  )
 }
 
 /** `value` as a `Date`, if `Class` declares `key` a date and `value` is its ISO text;  else `value`. */

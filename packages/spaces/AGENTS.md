@@ -18,7 +18,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - Its folders:
   - [@spell/](@spell/):  the `@spell` space's built-in projects, committed (see "Projects" below)
     - `examples/`, e.g. `Solitaire/`:  the `@spell/examples` group
-    - `library/`, e.g. `cards/`:  the `@spell/library` group
+    - `library/`, e.g. `cards/`:  the `@spell/library` group;  `people/`, the people library (P7):  people, orgs and
+      what they keep, compiled to `people.lib.ts` (the `ts/lib` target), which the app, the people store and the
+      `spell` command import
   - [src/models/](src/models/index.ts):  `$/spaces` (`SPACES`), safe in a browser:  the editor imports it.
     - [projectGroups.ts](src/models/projectGroups.ts):  spell's project groups, `PROJECT_GROUPS`
     - [SpellProjectRoot.ts](src/models/SpellProjectRoot.ts):  a group's list of projects,

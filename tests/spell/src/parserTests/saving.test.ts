@@ -13,6 +13,7 @@ describe("saving, compiled and run", () => {
     '\t- its "name" is text',
     '\t- its "dates" is a list of dated-events',
     '\t- its "friends" is a list of people',
+    "\t- it is saved in its own file",
     "a dated-event is a thing where:",
     '\t- its "label" is text',
     "\t- it is saved inline"

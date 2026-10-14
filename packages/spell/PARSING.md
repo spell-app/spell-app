@@ -468,10 +468,10 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 - Runtime:  `core`'s `List` keeps the owners.
   See [core's AGENTS.md](../core/AGENTS.md), "Membership and guards".
 
-## Ids and saving:  `a dated-event is saved inline`
+## Ids and saving:  `a person is saved in its own file`
 
-Every thing and list has an `id`, built in, and is saved in a file of its own;
-what holds it saves a reference to it (epic `people-and-orgs`, Q9).
+Every thing and list has an `id`, built in, and is saved INSIDE what holds it:  written whole the first time,
+a reference after (epic `people-and-orgs`, decision Q42).  A kind that says so is saved in a file of its own.
 - The `id` is a `stored` built-in member (see "Built-in types"):
   - nobody declares it, and declaring one is refused
   - the runtime makes one up on first read, e.g. `person-k3x9q2mf`, unless it was set first
@@ -479,12 +479,17 @@ what holds it saves a reference to it (epic `people-and-orgs`, Q9).
   - `a person has dates as a new list of dated-events`
   - or in its outline body, `- its "dates" is a list of dated-events` ([`outline_specifier_list`](src/rules/classes/OutlineSpecifierList.ts))
   - both compile to `this.declareProp("dates", { itemType: "DatedEvent", init: () => new List(...) })`
-- [`saved_inline`](src/rules/classes/SavedInline.ts):  `a dated-event is saved inline`, or `- it is saved inline`
-  in its outline body.
-  - A dated event is then saved INSIDE what holds it, not in a file of its own.
-  - It compiles to `static savedInline = true` in the class:  `Thing` says `false`.
-  - Refused for a drawable type (a card is always its own thing), and for a built-in type.
-  - Nothing goes in scope:  the class says it when the code runs.
+- [`saved_in_file`](src/rules/classes/SavedInFile.ts):  `a person is saved in its own file`, or
+  `- it is saved in its own file` in its outline body.
+  - A person then gets a file (an entry) of their own, and what holds one saves a reference to it.
+  - It compiles to `Person.savedInFile = true`, after the class:  `Thing` says `false`.
+  - Refused for a built-in type.
+- [`saved_inline`](src/rules/classes/SavedInline.ts):  `a dated-event is saved inline` says the default;  it
+  compiles to `DatedEvent.savedInline = true`, which changes nothing.
+- Versions (P6):  [`version_step`](src/rules/classes/VersionStep.ts), `a person version 2 renames name to names`,
+  `a person version 3 drops nickname`;  [`upgrade_method`](src/rules/classes/UpgradeMethod.ts),
+  `to upgrade (a person) to version 4: ...`.  The core reads them as it loads an older file:  core's AGENTS.md.
+- Nothing goes in scope:  the class says it when the code runs.
 
 ## One thing by name or place:  `tableau T1`, `the first tableau`
 

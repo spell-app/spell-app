@@ -179,11 +179,16 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `fromJSON()` reads through a new mirror, so JSON with ids keeps each thing as one.
   - Python's twin is `spell_core.state`:  both write [stateById.expected.json](../../tests/core/stateById.expected.json), and read it.
 - SAVING things by id ([saving.ts](src/saving.ts), epic `people-and-orgs` P2):  what lasts, as opposed to a page's state.
-  - `new Saver().save(thing)`:  every thing it reaches, each an entry of its own by key, `"Person#owen"`.
-    - What holds a thing writes a reference to it, `{ "$ref": "Person#matt" }`:  a card in two piles is one card.
-    - A kind saved inline (`static savedInline = true`, from `a dated-event is saved inline`) is written whole instead.
+  - `new Saver().save(thing)`:  the thing as an entry, by key, `"Person#owen"`.
+    - Every thing it reaches is written INSIDE what holds it (decision Q42):  whole the first time, then a reference,
+      `{ "$ref": "Card#ace" }`, so a card in two piles is one card;  from another entry, with the entry it's in,
+      `"$in": "Game#g"`.  Its `id` only when it's held twice.
+    - A kind saved in its own file (`static savedInFile = true`, from `a person is saved in its own file`) gets an
+      entry of its own instead, and what holds it a reference to that.
+    - `a dated-event is saved inline` (`savedInline`) says the default.
     - A property's plain list is its items, a JSON array.
-  - `new Loader({ entryFor }).load(key)`:  each entry made once, however many references name it.
+  - `new Loader({ entryFor }).load(key)`:  each entry made once, however many references name it;  a thing written
+    whole inside one is found by its key (`index()`).
   - The keys are `refOf`'s:  the people store names entries by address.
   - VERSIONS (P6):  a type's version is the highest its steps name, 1 with none (`versionOf()`):
     - `a person version 2 renames name to names` => `Person.v2RenamesName = "names"`

@@ -2,6 +2,7 @@ import { readdirSync, statSync } from "fs"
 import { basename, join, relative } from "path"
 
 import environment from "$/spaces/server/node/environment"
+import { buildFolderFor } from "$/spaces/server/node/projects/project-utils"
 import { SP } from "$/spell"
 import { LSP } from "$/lsp"
 
@@ -13,6 +14,7 @@ import { LSP } from "$/lsp"
  * - The files it builds:
  *   - each target's output (`project.targets`), e.g. `Solitaire.spell.js`, `Solitaire.lib.ts`
  *   - its declarations and words, e.g. `Solitaire.declarations.json`, `Solitaire.en.js`
+ *   - a library's JSON Schemas, its build folder's `schemas/`
  *   - NOT its scope pack:  only a clean compile writes one, so a project with errors would never be up to date
  * - What it's built from:
  *   - its own files (its index's manifest) and its `project.json`
@@ -31,6 +33,11 @@ export async function staleBecause(project: SP.SpellProject): Promise<string | u
   ].map((file) => file.location.serverPath)
   const missing = built.find((path) => !modifiedAt(path))
   if (missing) return `no ${basename(missing)}`
+  // a library's JSON Schemas, for VS Code (`CLI.writeSchemas()`):  built only by a compile
+  if (project.targets.some(({ name }) => name === "ts/lib")) {
+    const schemas = join(buildFolderFor(project.location.serverPath), "schemas")
+    if (!modifiedAt(schemas)) return "no JSON Schemas"
+  }
   const builtAt = Math.min(...built.map((path) => modifiedAt(path)!))
 
   for (const source of await sourcesOf(project)) {

@@ -47,9 +47,12 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   static exclusive = false
 
   /**
-   * Is a list of this class saved INSIDE its owner, rather than in a file of its own?  See `Thing.savedInline`.
-   * - Compiled from `a hand is saved inline.`, as `static savedInline = true` in its class.
+   * Is a list of this class saved in a FILE OF ITS OWN, rather than inside what holds it?  See `Thing.savedInFile`.
+   * - Compiled from `a club is saved in its own file.`, as `static savedInFile = true` in its class.
    */
+  static savedInFile = false
+
+  /** `a hand is saved inline.`:  saying the default, since decision Q42.  See `Thing.savedInline`. */
   static savedInline = false
 
   static {

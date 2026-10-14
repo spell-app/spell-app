@@ -25,6 +25,8 @@ const EXPECTED = JSON.parse(readFileSync(resolve(import.meta.dirname, "..", "sav
 ////////////////
 
 class Person extends Thing {
+  // `a person is saved in its own file`:  an entry each, as the people library's people are
+  static savedInFile = true
   static {
     this.declareProp("name", { type: "text" })
     this.declareProp("dates", { itemType: "DatedEvent", init: () => new List({ instanceType: "DatedEvent" }) })
@@ -112,13 +114,13 @@ function loaderOf(entries: Map<string, Record<string, unknown>> | Record<string,
 ////////////////
 
 describe("Saver", () => {
-  test("each thing an entry of its own, by id;  what holds it, a reference", () => {
+  test("a kind saved in its own file:  an entry each, by id;  what holds it, a reference", () => {
     const { root, entries } = new Saver().save(owenAndMatt())
     expect(root).toBe("Person#owen")
     expect({ root, entries: Object.fromEntries(entries) }).toEqual(EXPECTED)
   })
 
-  test("a kind saved inline is written whole, inside what holds it:  no entry of its own", () => {
+  test("any other kind is written whole, inside what holds it:  no entry of its own, no id it doesn't need", () => {
     const { entries } = new Saver().save(owenAndMatt())
     expect([...entries.keys()]).toEqual(["Person#owen", "Person#matt"])
     expect(entries.get("Person#owen")!.dates).toEqual([
@@ -153,6 +155,54 @@ describe("Saver", () => {
     const { entries } = new Saver({ placeOf }).save(owen)
     expect([...entries.keys()]).toEqual(["Person#owen"])
     expect(entries.get("Person#owen")!.friends).toEqual([{ $ref: "Person#matt@three-degrees" }])
+  })
+
+  test("a thing held twice is written whole the first time, with its id, and a reference after (decision Q42)", () => {
+    const ace = new Card({ id: "ace", rank: "ace" })
+    const two = new Card({ id: "two", rank: "2" })
+    const [stock, discards] = [new Pile({ id: "stock" }), new Pile({ id: "discards" })]
+    stock.add(ace)
+    stock.add(two)
+    discards.add(ace)
+    const piles = new List({ id: "piles" })
+    piles.add(stock)
+    piles.add(discards)
+    const { entries } = new Saver().save(piles)
+    // one entry:  a pile and a card are kept inside, and only the ace, held twice, writes its id
+    expect(Object.fromEntries(entries)).toEqual({
+      "List#piles": {
+        $type: "List",
+        id: "piles",
+        $items: [
+          {
+            $type: "Pile",
+            $items: [
+              { $type: "Card", id: "ace", rank: "ace" },
+              { $type: "Card", rank: "2" }
+            ]
+          },
+          { $type: "Pile", $items: [{ $ref: "Card#ace" }] }
+        ]
+      }
+    })
+  })
+
+  test("a reference from another entry names the entry its thing is written in:  `$in`", () => {
+    const owen = new Person({ id: "owen", name: "Owen" })
+    const matt = new Person({ id: "matt", name: "Matt" })
+    const birthday = new DatedEvent({ label: "shared birthday" })
+    owen.dates.add(birthday)
+    matt.dates.add(birthday)
+    owen.friends.add(matt)
+    const { entries } = new Saver().save(owen)
+    const id = birthday.id
+    expect(entries.get("Person#owen")!.dates).toEqual([{ $type: "DatedEvent", id, label: "shared birthday" }])
+    expect(entries.get("Person#matt")!.dates).toEqual([{ $ref: `DatedEvent#${id}`, $in: "Person#owen" }])
+    // read back from matt's entry first:  owen's is read for the birthday, and it's one birthday
+    const loader = loaderOf(entries)
+    const loadedMatt = loader.load("Person#matt") as Person
+    const loadedOwen = loader.load("Person#owen") as Person
+    expect(loadedMatt.dates.items[0]).toBe(loadedOwen.dates.items[0])
   })
 
   test("an id holding an @ is refused:  a reference couldn't say where it ends", () => {

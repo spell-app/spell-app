@@ -3298,8 +3298,8 @@
           "ruleNames": ["saved_inline"],
           "internal": false,
           "file": "packages/spell/src/rules/classes/SavedInline.ts",
-          "line": 21,
-          "purpose": "`a dated-event is saved inline` -- a dated event is saved INSIDE what holds it, not in a file of its own (epic `people-and-orgs`, Q9 and J1).",
+          "line": 18,
+          "purpose": "`a dated-event is saved inline` -- a dated event is saved INSIDE what holds it (epic `people-and-orgs`, Q9 and J1).",
           "syntaxes": [
             {
               "syntax": "(a|an) {type:known_type} is saved inline",
@@ -3318,6 +3318,35 @@
             },
             {
               "syntax": "{type:subject_it} is saved inline"
+            }
+          ],
+          "aliases": ["statement"]
+        },
+        {
+          "className": "SavedInFile",
+          "ruleNames": ["saved_in_file"],
+          "internal": false,
+          "file": "packages/spell/src/rules/classes/SavedInFile.ts",
+          "line": 17,
+          "purpose": "`a person is saved in its own file` -- a person gets an entry, a file, of its own, and what holds one saves a reference to it (epic `people-and-orgs`, decision Q42).",
+          "syntaxes": [
+            {
+              "syntax": "(a|an) {type:known_type} is saved in its own file",
+              "example": "a person is saved in its own file",
+              "outputs": {
+                "js": {
+                  "code": "Person.savedInFile = true"
+                },
+                "ts": {
+                  "code": "Person.savedInFile = true"
+                },
+                "py": {
+                  "code": "Person.saved_in_file = True"
+                }
+              }
+            },
+            {
+              "syntax": "{type:subject_it} is saved in its own file"
             }
           ],
           "aliases": ["statement"]

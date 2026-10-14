@@ -1,0 +1,10 @@
+{
+  "version": "1.0.0",
+  "targets": ["ts/lib"],
+  "imports": [
+    {
+      "path": "/People.spell",
+      "active": true
+    }
+  ]
+}

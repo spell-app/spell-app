@@ -27,12 +27,17 @@ import { ID_PROP } from "./ids"
  */
 export class Thing extends Eventful(Observable) {
   /**
-   * Is a thing of this class saved INSIDE its owner, rather than in a file of its own?
-   * - Compiled from `a dated-event is saved inline.`, as `static savedInline = true` in its class:
+   * Is a thing of this class saved in a FILE OF ITS OWN, rather than inside what holds it (decision Q42)?
+   * - Compiled from `a person is saved in its own file.`, as `static savedInFile = true` in its class:
    *   sub-classes inherit it.
-   * - The saver writes such a thing whole, inside the thing holding it;
-   *   every other thing, as a reference to its own file, by its `id`.
-   * - A drawable kind is never saved inline.
+   * - The saver gives such a thing an entry of its own, and what holds it a reference to that;
+   *   every other thing is written whole inside what holds it, and a reference after (`saving.ts`).
+   */
+  static savedInFile = false
+
+  /**
+   * `a dated-event is saved inline.`, compiled as `static savedInline = true`:  saying the default, inside what
+   * holds it (since decision Q42).  Kept so a program compiled before then still loads.
    */
   static savedInline = false
 

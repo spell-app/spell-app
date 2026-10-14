@@ -32,8 +32,9 @@ EXPECTED = json.loads((Path(__file__).parents[3] / "core" / "savedById.expected.
 
 
 class Person(Thing):
-    """`a person is a thing where:` ... with a name, dates and friends."""
+    """`a person is a thing where:` ... with a name, dates and friends;  `a person is saved in its own file`."""
 
+    saved_in_file = True
     name = prop(type="text")
     dates = prop(item_type="DatedEvent", init=lambda: List(item_type="DatedEvent"))
     friends = prop(item_type="Person", init=lambda: List(item_type="Person"))
@@ -120,6 +121,50 @@ def test_place_of_a_thing_kept_elsewhere_is_a_reference_with_its_place_and_no_en
     saved = Saver(place_of=lambda thing: "three-degrees" if thing.id == "matt" else None).save(owen_and_matt())
     assert list(saved.entries) == ["Person#owen"]
     assert saved.entries["Person#owen"]["friends"] == [{"$ref": "Person#matt@three-degrees"}]
+
+
+def test_a_thing_held_twice_is_written_whole_once_with_its_id_and_a_reference_after() -> None:
+    """Decision Q42:  kept inside by default;  as the JavaScript core's test of the same name writes it."""
+    ace, two = SavingCard(id="ace", rank="ace"), SavingCard(id="two", rank="2")
+    stock, discards = SavingPile(id="stock"), SavingPile(id="discards")
+    stock.append(ace)
+    stock.append(two)
+    discards.append(ace)
+    piles = List(id="piles")
+    piles.append(stock)
+    piles.append(discards)
+    saved = Saver().save(piles)
+    assert saved.entries == {
+        "List#piles": {
+            "$type": "List",
+            "id": "piles",
+            "$items": [
+                {
+                    "$type": "SavingPile",
+                    "$items": [
+                        {"$type": "SavingCard", "id": "ace", "rank": "ace"},
+                        {"$type": "SavingCard", "rank": "2"},
+                    ],
+                },
+                {"$type": "SavingPile", "$items": [{"$ref": "SavingCard#ace"}]},
+            ],
+        }
+    }
+
+
+def test_a_reference_from_another_entry_names_the_entry_its_thing_is_written_in() -> None:
+    owen, matt = Person(id="owen", name="Owen"), Person(id="matt", name="Matt")
+    birthday = DatedEvent(label="shared birthday")
+    owen.dates.append(birthday)
+    matt.dates.append(birthday)
+    owen.friends.append(matt)
+    saved = Saver().save(owen)
+    whole = {"$type": "DatedEvent", "id": birthday.id, "label": "shared birthday"}
+    assert saved.entries["Person#owen"]["dates"] == [whole]
+    assert saved.entries["Person#matt"]["dates"] == [{"$ref": f"DatedEvent#{birthday.id}", "$in": "Person#owen"}]
+    loader = loader_of(saved.entries)
+    loaded_matt, loaded_owen = loader.load("Person#matt"), loader.load("Person#owen")
+    assert loaded_matt.dates[0] is loaded_owen.dates[0]
 
 
 def test_an_id_holding_an_at_is_refused() -> None:

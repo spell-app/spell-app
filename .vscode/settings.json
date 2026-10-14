@@ -6,6 +6,12 @@
   // JSON Schema only in its JSON modes (epic `people-and-orgs` P5).  Spell writes keys and text in double quotes, so
   // its files read cleanly there;  a bare key typed by hand gets one squiggle, and the schema check still runs.
   "files.associations": { "*.json5": "jsonc" },
+  // A person's and an org's file checked against their type, the people library's:  made by `spell compile`, into
+  // its build folder (epic `people-and-orgs` P7, J91).  Missing until that compile has run in this checkout.
+  "json.schemas": [
+    { "fileMatch": ["__me.json5"], "url": "./build/spaces/@spell/library/people/schemas/Person.schema.json" },
+    { "fileMatch": ["__org.json5"], "url": "./build/spaces/@spell/library/people/schemas/Org.schema.json" }
+  ],
   // Read ONLY the root's `vite.config.ts`, as `vp check` does (Vite+'s editor setup):  a package's own
   // `lint` / `fmt` block is for `vp lint` / `vp fmt` run in that package, and says the same.
   "oxc.disableNestedConfig": true,
