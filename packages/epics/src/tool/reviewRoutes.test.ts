@@ -19,6 +19,11 @@ import reviewRoutes from "./reviewRoutes"
 let root: string
 let server: PageServer
 let port: number
+/**
+ * A stand-in for `~/.claude` (live sessions) and `~/.spell` (window bridges, airplane mode):
+ * a Send or Do Now with nobody listening WAKES the epic (P16), and must never reach Owen's real windows
+ */
+let home: string
 
 /** pages in the scratch checkout, relative to it */
 const PAGES = {
@@ -46,6 +51,12 @@ const EPIC_PLAN = `<!doctype html><title>x</title><body class="plan-doc"><epic-p
 </epic-page>`
 
 beforeAll(async () => {
+  home = mkdtempSync(join(tmpdir(), "review-start-"))
+  mkdirSync(join(home, "sessions"))
+  mkdirSync(join(home, "windows"))
+  process.env.SPELL_CLAUDE_HOME = home
+  process.env.SPELL_WINDOWS_DIR = join(home, "windows")
+  process.env.SPELL_AIRPLANE_FILE = join(home, "airplane.json")
   root = mkdtempSync(join(tmpdir(), "review-routes-"))
   mkdirSync(join(root, ".git"))
   for (const page of Object.values(PAGES)) {
@@ -70,6 +81,10 @@ beforeAll(async () => {
 afterAll(async () => {
   await server.stop()
   rmSync(root, { recursive: true, force: true })
+  delete process.env.SPELL_CLAUDE_HOME
+  delete process.env.SPELL_WINDOWS_DIR
+  delete process.env.SPELL_AIRPLANE_FILE
+  rmSync(home, { recursive: true, force: true })
 })
 
 beforeEach(() => {
@@ -312,9 +327,9 @@ test("urgency:  an id chip's calm set and dropped;  only a call or an issue of t
   expect(existsSync(inboxFile(PAGES.epic))).toBe(false)
 })
 
-// epic `airplane` P12:  "start a review" types `/epic review <epic>` into the ONE session titled for the epic
-describe("start", () => {
-  let home: string
+// epic `airplane` P12:  "start a review" types `/epic review <epic>` into the ONE session titled for the epic;
+// epic `epic-workflow` P16:  Send and Do Now, nobody listening, wake the epic
+describe("start, and waking the epic", () => {
   let bridge: Server
   let bridgePort: number
   /** what the fake window bridge was asked:  `[op, body]` */
@@ -339,7 +354,6 @@ describe("start", () => {
   }
 
   beforeAll(async () => {
-    home = mkdtempSync(join(tmpdir(), "review-start-"))
     bridge = createServer((request, response) => {
       let text = ""
       request.on("data", (chunk) => (text += chunk))
@@ -351,16 +365,12 @@ describe("start", () => {
     })
     await new Promise<void>((done) => bridge.listen(0, "127.0.0.1", done))
     bridgePort = (bridge.address() as AddressInfo).port
-    mkdirSync(join(home, "windows"))
-    process.env.SPELL_CLAUDE_HOME = home
-    process.env.SPELL_WINDOWS_DIR = join(home, "windows")
   })
 
   afterAll(() => {
     bridge.close()
-    delete process.env.SPELL_CLAUDE_HOME
-    delete process.env.SPELL_WINDOWS_DIR
-    rmSync(home, { recursive: true, force: true })
+    sessions()
+    window(false)
   })
 
   beforeEach(() => {
@@ -403,5 +413,131 @@ describe("start", () => {
   test("not a plan doc:  403;  a bad token:  403", async () => {
     expect((await post("start", { page: `/${PAGES.other}` })).status).toBe(403)
     expect((await post("start", { page: PLAN_URL }, { "x-server-token": "nope" })).status).toBe(403)
+  })
+
+  ////////////////
+  // ## Waking the epic (epic `epic-workflow` P16)
+  ////////////////
+
+  /** this process's window, a MAIN checkout's:  `folders` its folders (the scratch root first) */
+  function mainWindow(folders: string[] = [root]) {
+    const file = join(home, "windows", `${process.pid}.json`)
+    writeFileSync(file, JSON.stringify({ pid: process.pid, port: bridgePort, token: "t", folders }))
+  }
+
+  /** the inbox file of the scratch plan doc, changed by `change` (as a session's `plan-doc inbox` would) */
+  function inboxOf(change: (inbox: ReviewInbox) => unknown) {
+    ReviewInbox.update(inboxFile(PAGES.plan), change)
+  }
+
+  test("Do Now, nobody listening:  the command typed into the ONE session titled for the epic;  a second Do Now inside 10 minutes types nothing, and says when", async () => {
+    sessions(["🚧 big", process.pid], ["🚧 other", process.ppid])
+    const first = await post("now", { page: PLAN_URL, id: "q8", action: "details" })
+    expect(first.status).toBe(200)
+    expect(first.body.wake).toMatchObject({
+      state: "typed",
+      command: "/epic review big",
+      message: "Typed /epic review big into 🚧 big:  press Enter there."
+    })
+    expect(asked).toEqual([
+      ["open-session", { sessionId: "00000000-0000-0000-0000-000000000000", prompt: "/epic review big" }]
+    ])
+    // the page's pill says it, from the inbox, until a session listens
+    expect(first.body.woken).toMatchObject({ state: "typed", did: "typed /epic review big into 🚧 big" })
+    expect(first.body.now.map((each: { id: string }) => each.id)).toEqual(["q8"])
+    const second = await post("now", { page: PLAN_URL, id: "j3", action: "details" })
+    expect(second.body.wake.state).toBe("already")
+    expect(second.body.wake.message).toMatch(
+      /^Already typed \/epic review big into 🚧 big at \d\d:\d\d:  press Enter there\.$/
+    )
+    expect(asked).toHaveLength(1)
+  })
+
+  test("a session listening:  no wake (`wake: null`);  once it listens, the record goes, and the next Send with nobody listening wakes again", async () => {
+    sessions(["🚧 big", process.pid])
+    await post("now", { page: PLAN_URL, id: "q8", action: "details" })
+    expect(asked).toHaveLength(1)
+    inboxOf((inbox) => inbox.setListening("s1"))
+    expect(written(PAGES.plan).woken).toBeNull()
+    await post("mark", { page: PLAN_URL, id: "j3", mark: { action: "approve" } })
+    const heard = await post("send", { page: PLAN_URL })
+    expect(heard.body.wake).toBeNull()
+    expect(asked).toHaveLength(1)
+    inboxOf((inbox) => inbox.setListening(null))
+    await post("mark", { page: PLAN_URL, id: "i2", mark: { action: "approve" } })
+    const again = await post("send", { page: PLAN_URL })
+    expect(again.body.wake.state).toBe("typed")
+    expect(asked).toHaveLength(2)
+  })
+
+  test("several sessions titled for the epic:  nothing typed, and names them", async () => {
+    sessions(["🚧 big", process.pid], ["big review", process.ppid])
+    const got = await post("now", { page: PLAN_URL, id: "q8", action: "details" })
+    expect(got.body.wake).toMatchObject({ state: "several", sessions: ["🚧 big", "big review"] })
+    expect(got.body.woken).toBeNull()
+    expect(asked).toEqual([])
+  })
+
+  test("no session, no worktree:  a NEW session in a main window, the command typed in;  never a worktree", async () => {
+    sessions()
+    mainWindow()
+    const got = await post("now", { page: PLAN_URL, id: "q8", action: "details" })
+    expect(got.body.wake).toMatchObject({
+      state: "opened",
+      message: "Opened a new session in a main window, /epic review big typed in:  press Enter there."
+    })
+    expect(asked).toEqual([["open-session", { prompt: "/epic review big" }]])
+    expect(existsSync(join(root, ".claude", "worktrees", "big"))).toBe(false)
+  })
+
+  test("no session, the epic's worktree window open:  a new session in THAT window (not a main one)", async () => {
+    sessions()
+    const worktree = join(root, ".claude", "worktrees", "big")
+    mkdirSync(worktree, { recursive: true })
+    try {
+      mainWindow([root, worktree])
+      const got = await post("now", { page: PLAN_URL, id: "q8", action: "details" })
+      expect(got.body.wake).toMatchObject({
+        state: "opened",
+        message: "Opened a new session in big's window, /epic review big typed in:  press Enter there."
+      })
+      expect(asked).toEqual([["open-session", { prompt: "/epic review big" }]])
+    } finally {
+      rmSync(worktree, { recursive: true, force: true })
+    }
+  })
+
+  test("no VS Code window at all:  nothing opened, the command to type;  no record, and a Send with nothing new wakes nobody", async () => {
+    sessions()
+    window(false)
+    await post("mark", { page: PLAN_URL, id: "j3", mark: { action: "approve" } })
+    const got = await post("send", { page: PLAN_URL })
+    expect(got.body.wake).toMatchObject({
+      state: "no-vscode",
+      message: "No VS Code window is open:  type /epic review big in a new session."
+    })
+    expect(got.body.woken).toBeNull()
+    const again = await post("send", { page: PLAN_URL })
+    expect(again.body.wake.state).toBe("nothing-new")
+    // Review Now with only an approval sent:  nothing new either
+    expect((await post("send", { page: PLAN_URL, now: true })).body.wake.state).toBe("nothing-new")
+  })
+
+  test("airplane mode:  nothing woken;  the marks wait for /airplane land", async () => {
+    sessions(["🚧 big", process.pid])
+    writeFileSync(process.env.SPELL_AIRPLANE_FILE!, JSON.stringify({ on: true, since: new Date().toISOString() }))
+    try {
+      const got = await post("now", { page: PLAN_URL, id: "q8", action: "details" })
+      expect(got.body.wake).toMatchObject({ state: "airplane" })
+      expect(asked).toEqual([])
+    } finally {
+      rmSync(process.env.SPELL_AIRPLANE_FILE!, { force: true })
+    }
+  })
+
+  test("a bad Do Now (no such action) is a 400, and wakes nobody", async () => {
+    sessions(["🚧 big", process.pid])
+    expect((await post("now", { page: PLAN_URL, id: "q8", action: "dance" })).status).toBe(400)
+    expect(asked).toEqual([])
   })
 })

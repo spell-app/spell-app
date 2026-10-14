@@ -91,6 +91,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `migrations/`:  the named, dated steps that bring an older epic page up to today's markup (`Migrations`),
       which `epic migrate` runs (`MigrateCommands`), by page kind (PLAN-DOC.md, "Migrations")
     - its template:  [plan.html](src/tool/templates/plan.html), in `tool/templates/`
+    - the page server's review routes ([reviewRoutes.ts](src/tool/reviewRoutes.ts)) and what they call:
+      `ReviewInbox` (the inbox file), and `ReviewStart`:  the pill's start, and WAKING the epic when Send or Do Now
+      finds nobody listening (epic `epic-workflow` P16:  its session typed into, or a new session in its window)
     - The old hand-written prose shapes have ONE set of rules, `ProseShapes`:
       a `Net effect` paragraph, a code accordion, an option grid ...
       - `ProseRewrite` turns them into elements,

@@ -116,9 +116,11 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  *     outlined blue while there's anything to work through
  *   - nobody listening:  their tooltips say so (`NOBODY_LISTENING`)
  *   - what a click did goes to the notice line at the window's bottom (`ReviewState`'s)
- * - THE PILL, under the review line, while marks or comments wait and nobody can take them:
+ * - THE PILL, under the review line, while marks, comments or Do Now requests wait and nobody can take them:
  *   no session listening (solid orange, a warning), or airplane mode;  a click copies the review line's command,
  *   and, out of airplane mode, starts the review in the epic's own session (`ReviewClient.startReview()`)
+ *   - once a Send or Do Now WOKE the epic (epic `epic-workflow` P16), it says what the wake did instead,
+ *     until a session listens:  "Typed /epic review <name> into 🚧 <name>:  press Enter there"
  * - NEW ITEMS (epic `airplane` P2):  each item section's own comment-dots button, on its title (`<epic-section>`);
  *   the page's toolbar has none since 2026-10-13
  * - THE TOOLBAR (epic `airplane` P8):  the sticky bar's last row.
@@ -344,14 +346,20 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
       unsent,
       comments,
       waiting: all.filter((mark) => !isImmediate(mark)).length,
-      listening: client.listening
+      asked: client.inbox.now.length,
+      listening: client.listening,
+      woken: client.inbox.woken?.message ?? ""
     }
   })
 
-  /** Does the pill show?  Reviewed, something waits to be sent or asked now, and nobody can take it. */
+  /**
+   * Does the pill show?  Reviewed, nobody can take the work, and something waits:
+   * marks or comments to send or work through, a Do Now not taken, or a wake to tell of (P16).
+   */
   readonly hasPill = createMemo((): boolean => {
     const marks = this.marks()
-    return !!marks && !!(marks.unsent || marks.comments || marks.waiting) && (isAirplane() || !marks.listening)
+    if (!marks || (!isAirplane() && marks.listening)) return false
+    return !!(marks.unsent || marks.comments || marks.waiting || marks.asked || marks.woken)
   })
 
   /**
@@ -767,12 +775,15 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   }
 
   /**
-   * The pill under the review line, while marks wait and nobody can take them (`hasPill()`):
+   * The pill under the review line, while work waits and nobody can take it (`hasPill()`):
    * no Claude session listening (orange), or airplane mode.
+   * - what the page server's wake did, once a Send or Do Now woke the epic (epic `epic-workflow` P16):
+   *   `Typed /epic review <name> into 🚧 <name>:  press Enter there`, until a session listens
    * - a click copies the review line's command (`/epic review <name>`, `/airplane land`), and, out of airplane
-   *   mode, starts the review in the epic's own session (`copyCommand()`)
+   *   mode, starts the review in the epic's own session (`copyCommand()`), woken or not
    */
   private pill(): JSX.Element {
+    const woken = () => (isAirplane() ? "" : (this.marks()?.woken ?? ""))
     return (
       <button
         type="button"
@@ -781,7 +792,16 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
         title={this.translationForKey(isAirplane() ? "copyCommand" : "startReview")}
         onClick={() => void this.copyCommand()}
       >
-        {this.translationForKey(isAirplane() ? "airplanePill" : "nobodyPill")} <code>{this.command()}</code>
+        <Show
+          when={woken()}
+          fallback={
+            <>
+              {this.translationForKey(isAirplane() ? "airplanePill" : "nobodyPill")} <code>{this.command()}</code>
+            </>
+          }
+        >
+          {woken()}
+        </Show>
       </button>
     )
   }

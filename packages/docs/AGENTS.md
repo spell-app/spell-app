@@ -532,7 +532,7 @@ In `tools/`:
     ```text
     setMark()  requestNow()  cancelNow()  markSent()  unsentMarks  sentMarks  takeNow()  takeWork()
     setWorking()  setListening()  touchListening()  liveListener()  clearMarks()  finishMarks()
-    clearApplied()  setDraft()  reviewNow()  unsentComments  sentComments
+    clearApplied()  setDraft()  reviewNow()  unsentComments  sentComments  hasUnsent  claimWake()  recordWake()
     ```
 
   - EVERY write goes through `ReviewInbox.update()` / `updateAsync()`:
@@ -559,6 +559,12 @@ In `tools/`:
     - Waiting until answered (`epic inbox <name>#cm3 done`).
   - `listening.seen`:  the session's heartbeat (`LISTEN_HEARTBEAT_MS`, 30s, from `wait`).
     - Older than `LISTEN_STALE_MS` (90s), the session is gone:  `liveListener()` returns `null`.
+  - `woken`:  the page server's last WAKE of the epic (epic `epic-workflow` P16), `{ at, state, did, message }`.
+    - Send, Review Now or Do Now with nobody listening wakes it, inside the request:
+      `/epic review <epic>` typed into its session, or a new session in its window (`ReviewStart`).
+    - Claimed under the inbox's lock (`claimWake()`):  two Sends at once wake once.
+    - It stands 10 minutes (`WAKE_COOLDOWN_MS`), or until a session listens (`setListening()` clears it).
+    - No wake with several sessions titled for the epic, in airplane mode, or for a Send with nothing new.
 - The page reads and writes through ONE `ReviewClient` ([the review client](../epics/src/review/)).
   - It's on the page server's route module, [reviewRoutes.ts](../epics/src/tool/reviewRoutes.ts), at `/api/review/...`.
   - The module is listed in the root `package.json`'s `pageServer.routes`.
@@ -570,6 +576,8 @@ In `tools/`:
       - revisit now keeps the item's pick
     - `POST cancel { page, id }`:  "nevermind"
     - `POST send { page, now? }`:  `now: true` is Review Now, every revisit waiting asked now too (`reviewNow()`)
+    - `send` and `now` answer `wake` too:  what waking the epic did (`WakeResult`), `null` while a session listens
+    - `POST start { page }`:  the pill's click, `/epic review <epic>` typed into the epic's session (`StartResult`)
     - `POST new { page, id?, entry | null }`:  a new item from the page;  no `id`:  the next free key
   - A page whose token is stale (its server restarted) takes the new one from the page as served now,
     and retries once (`ReviewClient`).

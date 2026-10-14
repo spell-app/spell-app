@@ -34,7 +34,8 @@ class FakeRoutes {
     now: [],
     working: {},
     listening: null,
-    unsentComments: []
+    unsentComments: [],
+    woken: null
   }
   posts: [string, Record<string, unknown>][] = []
 
@@ -355,7 +356,8 @@ describe("<epic-item> review controls", () => {
       false,
       false
     ])
-    expect(doNow.getAttribute("aria-label")).toMatch(/No Claude session/)
+    // epic `epic-workflow` P16:  "waiting for a session", then why (what the wake did, or nobody reviewing)
+    expect(doNow.getAttribute("aria-label")).toMatch(/waiting for a session:  No Claude session/)
   })
 
   test("Do Now takes the note in the box along:  a revisit NOW with it;  the note box keeps Revisit Later and the x", async () => {

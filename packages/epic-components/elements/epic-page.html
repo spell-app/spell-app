@@ -118,9 +118,9 @@
             <p>What that draws, above its blocks:</p>
             <ul>
               <li>
-                ONE line of crumbs, <code>DOCS / EPICS / SEO</code>, the epic's name in their type, twice their size and bold: the h1 (a click on
-                the name copies <code>/epic resume seo</code>, and a toast says so), and at the header's right the step
-                label: <code>P2</code>, the phase under way, outlined blue
+                ONE line of crumbs, <code>DOCS / EPICS / SEO</code>, the epic's name in their type, twice their size and
+                bold: the h1 (a click on the name copies <code>/epic resume seo</code>, and a toast says so), and at the
+                header's right the step label: <code>P2</code>, the phase under way, outlined blue
               </li>
               <li>
                 under the header, the review line (<code>To review this doc, type /epic review seo</code>), then the
@@ -366,8 +366,8 @@
                     </td>
                     <td>text</td>
                     <td>
-                      The epic's title (<code>Windows and Review</code>): the page's <code>&lt;title&gt;</code> and
-                      the Epics list's; not drawn on the page, whose h1 is the epic's name.
+                      The epic's title (<code>Windows and Review</code>): the page's <code>&lt;title&gt;</code> and the
+                      Epics list's; not drawn on the page, whose h1 is the epic's name.
                     </td>
                     <td>yes</td>
                   </tr>
@@ -501,7 +501,8 @@
                     <tr>
                       <td><code>heading</code></td>
                       <td>
-                        The h1: the crumbs, then the epic's name in their type, twice their size and bold; a click on the name copies
+                        The h1: the crumbs, then the epic's name in their type, twice their size and bold; a click on
+                        the name copies
                         <code>/epic resume &lt;name&gt;</code>.
                       </td>
                     </tr>
@@ -541,6 +542,14 @@
                       <td>
                         Under the header: <code>To review this doc, type /epic review &lt;name&gt;</code>, copied on
                         click; while the page is reviewed with nobody listening, it says no session is reviewing.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><code>pill</code></td>
+                      <td>
+                        Under the review line, while work waits and nobody listens (orange), or in airplane mode: no
+                        session is reviewing, or what the page server's wake did ("Typed /epic review &lt;name&gt; into
+                        🚧 &lt;name&gt;: press Enter there"). A click types the command into the epic's session.
                       </td>
                     </tr>
                     <tr>
@@ -636,6 +645,19 @@
               <li>
                 <b>The review line:</b> a click copies the command. While the page is reviewed with no Claude session
                 listening, it says so in solid orange (a warning).
+              </li>
+              <li>
+                <b>Waking the epic</b> (epic <code>epic-workflow</code> P16): Send, Review Now or Do Now pressed with
+                nobody listening makes the page server type <code>/epic review &lt;name&gt;</code> into the epic's
+                running session, or open a new session in its window, for Owen to press Enter there.
+                <ul>
+                  <li>
+                    The orange pill then says what it did, until a session listens: "Typed /epic review seo into 🚧 seo:
+                    press Enter there"
+                  </li>
+                  <li>Once per epic per 10 minutes: a second press says "Already ..." and the time</li>
+                  <li>A click on the pill still types the command on purpose</li>
+                </ul>
               </li>
               <li>
                 <b>The git toggle:</b> a bare icon, only when the doc lists commits. It shows or hides every commit,

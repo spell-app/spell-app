@@ -147,8 +147,9 @@ export const epicPageVocabulary = {
     {
       name: "pill",
       description:
-        "Under the review line, while marks wait and nobody can take them:  no Claude session reviewing (orange), or " +
-        "airplane mode;  a click copies the review line's command."
+        "Under the review line, while marks, comments or Do Now requests wait and nobody can take them:  no Claude " +
+        "session reviewing (orange), or airplane mode;  once a Send or Do Now woke the epic, what the wake did " +
+        "(`Typed /epic review <name> into 🚧 <name>:  press Enter there`).  A click copies the review line's command."
     },
     {
       name: "send",

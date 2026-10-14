@@ -24,7 +24,8 @@
  *   - `entry: null` removes it (`ReviewInbox.setNew()`)
  *   - `near`, when given, must be an id of that doc
  * - `POST /api/review/now` `{ page, id, action, note? }` -- an immediate request, queued on `now`,
- *   and the item's mark set:  `details`, or `revisit`, which keeps the item's pick
+ *   and the item's mark set:  `details`, or `revisit`, which keeps the item's pick;
+ *   nobody listening:  wakes the epic (below)
  * - `POST /api/review/cancel` `{ page, id }` -- "nevermind":
  *   call off item `id`'s immediate request, queued or being worked on (`ReviewInbox.cancelNow()`)
  * - `POST /api/review/draft` `{ page, id, action, note }` -- a note box's text as Owen types it
@@ -33,7 +34,13 @@
  *   `calm` true, not urgent;  false, urgent;  `null` drops it (`ReviewInbox.setUrgency()`)
  * - `POST /api/review/send` `{ page, now? }` -- "send to Claude":  `sent` is now, for marks and comments alike;
  *   `now: true` is "Review Now" (epic `windows-and-review` P4):
- *   every revisit waiting becomes an immediate request too (`ReviewInbox.reviewNow()`)
+ *   every revisit waiting becomes an immediate request too (`ReviewInbox.reviewNow()`);
+ *   nobody listening:  wakes the epic (below)
+ * - WAKING (epic `epic-workflow` P16):  `send` and `now` with no session listening wake the epic, inside the request
+ *   (`ReviewStart.changeAndWake()`):  `/epic review <epic>` typed into its session, or a new session in its window
+ *   - their answer is the inbox plus `wake`, what that did (`WakeResult`), for the page's notice;
+ *     `null` while a session listens
+ *   - once per epic per 10 minutes, or until a session listens (the inbox's `woken`)
  * - `POST /api/review/start` `{ page }` -- "start a review" (epic `airplane` P12):  types `/epic review <epic>` into
  *   the ONE running Claude session titled for the epic;  none or several:  sends nothing, says which it found
  *   (`ReviewStart`);  answers its `StartResult`, not the inbox
@@ -80,7 +87,9 @@ const reviewRoutes: RouteModule = {
       const body = request.body as { page?: unknown; id?: unknown; action?: unknown; note?: unknown }
       const file = planDoc(web.files, body.page)
       const id = itemOf(file, body.id)
-      reply.json(await update(file, (inbox) => inbox.requestNow(id, body.action, (body.note ?? "") as string)))
+      // a request queued is always something new to hand over
+      const ask = (inbox: ReviewInbox) => !!inbox.requestNow(id, body.action, (body.note ?? "") as string)
+      reply.json(await new ReviewStart(root).changeAndWake(file, epicOf(file), (inbox) => asHttp(() => ask(inbox))))
     })
     api.post("/cancel", async (request, reply) => {
       const body = request.body as { page?: unknown; id?: unknown }
@@ -111,13 +120,13 @@ const reviewRoutes: RouteModule = {
     api.post("/send", async (request, reply) => {
       const body = request.body as { page?: unknown; now?: unknown }
       const file = planDoc(web.files, body.page)
-      reply.json(await update(file, (inbox) => (body.now === true ? inbox.reviewNow() : inbox.markSent())))
+      const send = body.now === true ? sendNow : sendMarks
+      reply.json(await new ReviewStart(root).changeAndWake(file, epicOf(file), send))
     })
     api.post("/start", async (request, reply) => {
       const body = request.body as { page?: unknown }
       const file = planDoc(web.files, body.page)
-      const epic = PLAN_DOC.exec(file)![1]!
-      reply.json(await new ReviewStart(root).start(epic))
+      reply.json(await new ReviewStart(root).start(epicOf(file)))
     })
     router.use(API, api)
   }
@@ -137,6 +146,24 @@ export function planDoc(files: SRV.StaticHandler, page: unknown): string {
   if ("status" in resolved) throw new SRV.HttpError(resolved.status, resolved.message)
   if (!PLAN_DOC.test(resolved.file)) throw new SRV.HttpError(403, `not a plan doc:  ${page}`)
   return resolved.file
+}
+
+/** The epic plan doc `file` is for:  its folder's name. */
+function epicOf(file: string): string {
+  return PLAN_DOC.exec(file)![1]!
+}
+
+/** Send:  every mark so far is sent;  whether anything was new to hand over (a Send with nothing new wakes nobody). */
+function sendMarks(inbox: ReviewInbox): boolean {
+  const fresh = inbox.hasUnsent
+  inbox.markSent()
+  return fresh
+}
+
+/** Review Now:  sent, every revisit asked now;  whether anything was new (unsent, or a revisit asked now). */
+function sendNow(inbox: ReviewInbox): boolean {
+  const fresh = inbox.hasUnsent
+  return inbox.reviewNow().length > 0 || fresh
 }
 
 /**

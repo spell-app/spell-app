@@ -122,7 +122,8 @@ export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
    *   - grey:  no longer relevant (a todo's x)
    * - work on its way or under way (`ReviewState.busyButton()`):
    *   - that button's icon turns while Claude is on it (`data-busy`)
-   *   - queued with nobody listening, it stays dashed
+   *   - queued with nobody listening, it stays dashed, "waiting for a session" (and what the page server's wake did:
+   *     epic `epic-workflow` P16)
    *   - clicked then:  "nevermind"
    * - Revisit takes the reader to the note box (`takeToNote()`);
    *   Do Now takes the note in it along (`ReviewClient.press()`)
@@ -224,7 +225,7 @@ export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
   private stateOf(spec: ReviewButtonSpec): string {
     const review = this.review
     if (review.busyButton() === spec.action) {
-      if (review.running()?.queued) return this.translationForKey("waiting", { why: NOBODY_LISTENING })
+      if (review.running()?.queued) return this.translationForKey("waiting", { why: review.waitingWhy() })
       return this.translationForKey(review.workedOn() ? "working" : "asked")
     }
     const fill = this.fillOf(spec)

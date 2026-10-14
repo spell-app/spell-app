@@ -26,6 +26,11 @@ class FakeServer {
   posts: [string, Record<string, unknown>][] = []
   /** the next reply's status for a route, once */
   failures = new Map<string, { status: number; error: string }>()
+  /**
+   * What the page server's wake did, in a Send's or Do Now's answer (epic `epic-workflow` P16):  none, a session
+   * listens or an older server;  set, it's recorded in the inbox too, as `ReviewStart.changeAndWake()` does
+   */
+  wake: { state: "typed"; did: string; message: string } | undefined
   /** what "start a review" answers (`POST /api/review/start`) */
   started = { state: "sent", command: "/epic review sample", sessions: ["🚧 sample"], message: "Typed it." }
   /** a POST to this route waits for `release()` */
@@ -56,6 +61,11 @@ class FakeServer {
     if (route === "new") this.inbox.setNew(id, body.entry)
     if (route === "send" && body.now === true) this.inbox.reviewNow()
     else if (route === "send") this.inbox.markSent()
+    if (this.wake && (route === "send" || route === "now")) {
+      const claim = this.inbox.claimWake({ fresh: true })
+      if (claim.state === "due") this.inbox.recordWake(claim.at, this.wake)
+      return json({ ...this.inbox.forPage(), wake: { command: "/epic review sample", sessions: [], ...this.wake } })
+    }
     return json(this.inbox.forPage())
   })
 
@@ -430,6 +440,45 @@ describe("ReviewClient.toggleCalm() (an id chip, Owen 2026-10-07)", () => {
     expect(client.calmOf("j2")).toBe(false)
     expect(await client.send()).toBe(true)
     expect(client.unsentCount).toBe(0)
+  })
+})
+
+// epic `epic-workflow` P16:  Send and Do Now with nobody listening wake the epic;  the page says how
+describe("ReviewClient and the page server's wake", () => {
+  const typed = {
+    state: "typed" as const,
+    did: "typed /epic review sample into 🚧 sample",
+    message: "Typed /epic review sample into 🚧 sample:  press Enter there."
+  }
+
+  test("Do Now:  the notice says what the wake did, and a queued request waits for that (`waitingWhy`)", async () => {
+    const { client, server } = await started()
+    server.wake = typed
+    const notices: string[] = []
+    client.onNotice((message) => notices.push(message))
+    expect(client.waitingWhy).toBe(NOBODY_LISTENING)
+    client.press("o1", "details")
+    await vi.waitFor(() => expect(client.runningOf("o1")).toEqual({ action: "details", queued: true }))
+    expect(notices).toEqual([typed.message])
+    expect(client.inbox.woken).toMatchObject(typed)
+    expect(client.waitingWhy).toBe("Typed /epic review sample into 🚧 sample:  press Enter there")
+    server.inbox.setListening("session-1")
+    await client.refresh()
+    expect([client.inbox.woken, client.waitingWhy]).toEqual([null, NOBODY_LISTENING])
+  })
+
+  test("Send:  `Saved.` and what the wake did;  an older server without a wake:  nobody is reviewing", async () => {
+    const { client, server } = await started()
+    const notices: string[] = []
+    client.onNotice((message) => notices.push(message))
+    await client.save("q1", { action: "approve" })
+    await client.send()
+    // a mark in the same millisecond as the send would pass for sent
+    await new Promise((resolve) => setTimeout(resolve, 5))
+    await client.save("j2", { action: "approve" })
+    server.wake = typed
+    await client.send()
+    expect(notices).toEqual([`Saved.  ${NOBODY_LISTENING}`, `Saved.  ${typed.message}`])
   })
 })
 

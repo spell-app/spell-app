@@ -377,7 +377,8 @@ class FakeRoutes {
     now: [],
     working: {},
     listening: null,
-    unsentComments: []
+    unsentComments: [],
+    woken: null
   }
   posts: [string, Record<string, unknown>][] = []
 
@@ -423,7 +424,7 @@ function headerButtons(host: Element) {
 }
 
 /** What the tooltips add while nobody listens. */
-const NOBODY = ".  No Claude session is reviewing this doc:  this waits for the next /epic review"
+const NOBODY = ".  No Claude session is reviewing this doc:  Send or Do Now wakes one"
 
 describe("<epic-page> Send and Review Now", () => {
   afterEach(() => {
@@ -506,6 +507,30 @@ describe("<epic-page> Send and Review Now", () => {
     host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="send"]')!.click()
     await vi.waitFor(() => expect(routes.posts.map(([route]) => route)).toEqual(["send"]))
     await vi.waitFor(() => expect(headerButtons(host).send).toEqual(["sent", "Sent:  waiting for Claude"]))
+  })
+
+  // epic `epic-workflow` P16:  Send and Do Now with nobody listening wake the epic;  the pill says how, until a session
+  // listens
+  test("woken:  the pill says what the wake did, even for a Do Now alone;  a session listening, it goes", async () => {
+    const routes = new FakeRoutes()
+    const at = new Date().toISOString()
+    routes.inbox.marks = { q1: { action: "details", at } }
+    routes.inbox.now = [{ id: "q1", action: "details", at }]
+    const client = await adoptClient(routes)
+    const host = await render(page("", ["todo"]))
+    const pill = () => host.shadowRoot!.querySelector<HTMLElement>('[part~="pill"]')
+    await vi.waitFor(() => expect(pill()).not.toBeNull())
+    expect(pill()!.textContent!.replace(/\s+/g, " ")).toContain("No Claude session is reviewing: start one with")
+    const message = "Typed /epic review demo into 🚧 demo:  press Enter there."
+    routes.inbox.woken = { at, state: "typed", did: "typed /epic review demo into 🚧 demo", message }
+    await client.refresh()
+    await ElementFixture.tick()
+    expect(pill()!.textContent).toBe(message)
+    expect(pill()!.title).toBe("Start the review in this epic's Claude session (and copy the command)")
+    routes.inbox.listening = { session: "s1", since: at, seen: at }
+    await client.refresh()
+    await ElementFixture.tick()
+    expect(pill()).toBeNull()
   })
 
   test("the pill copies the review line's command", async () => {

@@ -551,6 +551,8 @@ EVERYTHING boxed in a section folds (Owen, 2026-10-08):  every card with a headi
 The review buttons, at every step:  Approve, Revisit, Make Todo in one group, then Do Now apart.
 - Do Now is the wand:
   the inbox's `details` request, or a revisit now when the note box holds a note.
+  - Nobody listening:  it stays dashed, "waiting for a session",
+    and the page server wakes the epic (epic `epic-workflow` P16:  plan-doc.md, "Review inbox").
 - The note box's:  Revisit Later, then the x (skip this).
 
 ## Updates

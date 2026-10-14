@@ -476,6 +476,13 @@ This session LISTENS:  it waits on the doc's review inbox, and acts on what arri
   - The page server finds the ONE running session titled for the epic (`🚧 <name>`, or the name as a word),
     and types `/epic review <name>` into its tab through its window's bridge:  Owen presses Enter there.
   - None, or several:  nothing is sent, and the page says which sessions it found.
+- And WOKEN by the page (epic `epic-workflow` P16):  Send, Review Now or Do Now pressed with NO session listening.
+  - The page server types `/epic review <name>` into the epic's running session (`🚧 <name>`);
+    else opens a new session in the epic's worktree window (opening the window if it's closed);
+    else, with no worktree, a new session in a main window.  Owen presses Enter.
+  - Once per epic per 10 minutes, or until a session listens;  never with several sessions titled for it,
+    in airplane mode, or for a Send with nothing new.
+  - So marks no longer wait for Owen to remember `/epic review`:  a session typed into mid-turn reads it after.
 - Every `epic` command edits the epic's ONE shared doc, from any checkout.
 - The page's controls need a PAGE SERVER with the review routes (`spell dev server ensure`).
   From `file://`, or a server without them, the page shows no menus.

@@ -60,6 +60,12 @@ import { CommentList, type Comment, type IdentifiedComment } from "./CommentList
  *     - Send hands them over, as it does marks (Owen, 2026-10-10:  he keeps Send as the way comments reach Claude):
  *       a waiting comment whose last words are newer than `sent` is unsent (`unsentComments`);
  *       a waiting session takes it with the send (`takeWork()`), once, until Owen speaks on its thread again
+ *   - `woken`:  `{ at, state, did, message }`, the last time the page server WOKE the epic (epic `epic-workflow`
+ *     P16:  a Send or Do Now with nobody listening typed `/epic review <epic>` somewhere), else `null`
+ *     - so one epic is woken once:  a second Send inside `WAKE_COOLDOWN_MS` says what the first one did
+ *       (`claimWake()`), from the epic page or any page that wakes the same epic
+ *     - `state` `waking` while the wake is under way, claimed under the lock:  two Sends at once wake once
+ *     - gone once a session listens (`setListening()`), or `WAKE_COOLDOWN_MS` after `at` (`liveWoken()`)
  * - Node only (`node:fs`, `$/server`'s lock):  NOT in the `$/epics` barrel, imported by path.
  *   Imports no other file of the tool but `CommentList` (its comments).
  * - From `packages/docs/tools/inbox.js` (epic `epic-components`, P7), which now forwards here.
@@ -87,6 +93,8 @@ export class ReviewInbox {
   handedOver: string | null = null
   /** Owen's comments on the page's blocks, by id (`cm1` ...):  `CommentList` */
   comments: Record<string, Comment> = {}
+  /** the page server's last wake of the epic (P16), else `null` */
+  woken: InboxWoken | null = null
 
   /**
    * An inbox:  empty, or the fields of `record` (a file's JSON) over an empty one's.
@@ -172,8 +180,10 @@ export class ReviewInbox {
 
   /**
    * Is there nothing in this inbox worth a file?
-   * No marks, no drafts, no urgency, no requests, no agents at work, nobody listening.
+   * No marks, no drafts, no urgency, no requests, no agents at work, nobody listening, no wake still cooling down.
    * - `sent` and `handedOver` alone don't count:  they only date marks, and there are none
+   * - a wake does while it counts (`liveWoken()`):  a guide's Send wakes its epic through this file (P16),
+   *   and the record must outlast a write
    */
   get isEmpty(): boolean {
     return (
@@ -184,7 +194,8 @@ export class ReviewInbox {
       !Object.keys(this.working).length &&
       !Object.keys(this.canceled).length &&
       !Object.keys(this.comments).length &&
-      !this.listening
+      !this.listening &&
+      !this.liveWoken()
     )
   }
 
@@ -522,6 +533,8 @@ export class ReviewInbox {
    */
   setListening(session: string | null, at = isoTime()): InboxListener | null {
     this.listening = session === null ? null : { session, since: at, seen: at }
+    // a session took over:  the wake did its job, and the next Send with nobody listening may wake again
+    if (session !== null) this.woken = null
     return this.listening
   }
 
@@ -555,9 +568,13 @@ export class ReviewInbox {
    * - a plain copy:  this inbox is untouched
    */
   forPage(now = Date.now()): PageInbox {
+    const listening = this.liveListener(now)
+    const woken = listening ? null : this.liveWoken(now)
     return {
       ...this.toRecord(),
-      listening: this.liveListener(now),
+      listening,
+      // a wake under way has nothing to say yet
+      woken: woken?.state === "waking" ? null : woken,
       unsentComments: this.unsentComments.map((comment) => comment.id)
     }
   }
@@ -634,6 +651,61 @@ export class ReviewInbox {
       cleared.push(key)
     }
     return cleared
+  }
+
+  ////////////////
+  // ## Waking the epic (epic `epic-workflow` P16)
+  ////////////////
+
+  /**
+   * Is there anything a Send would hand over that it hasn't yet?
+   * A mark or urgency newer than `sent`, or a comment Owen spoke on since (`unsentMarks` ...).
+   * - read BEFORE the send:  a Send with nothing new wakes nobody (J47)
+   */
+  get hasUnsent(): boolean {
+    return this.unsentMarks.length > 0 || this.unsentUrgency.length > 0 || this.unsentComments.length > 0
+  }
+
+  /**
+   * The last wake, while it still counts:  `woken`, until `WAKE_COOLDOWN_MS` after its `at`;  else `null`.
+   * - a claim whose wake never finished (the server stopped) runs out the same way
+   */
+  liveWoken(now = Date.now()): InboxWoken | null {
+    const woken = this.woken
+    if (!woken) return null
+    return now - Date.parse(woken.at) >= WAKE_COOLDOWN_MS ? null : woken
+  }
+
+  /**
+   * A Send or Do Now just landed (`fresh`:  it handed over something new):  should the page server wake the epic?
+   * Call it under the lock, in the same change as the request, so two at once claim one wake.
+   * - `listening`:  a session is listening (`liveListener()`):  it takes the work as always, nothing to wake
+   * - `airplane`:  airplane mode is on (`airplane`):  everything waits for `/airplane land`
+   * - `nothing-new`:  the request handed over nothing new (only drafts, or marks sent already)
+   * - `already`:  woken inside `WAKE_COOLDOWN_MS`, nobody listening since:  `woken` says how
+   * - `due`:  wake it.  SIDE EFFECT:  `woken` is claimed, `{ at, state: "waking" }`;
+   *   `recordWake()` with the same `at` says what came of it
+   */
+  claimWake({ fresh, airplane = false }: { fresh: boolean; airplane?: boolean }, now = new Date()): WakeClaim {
+    if (this.liveListener(now.getTime())) return { state: "listening" }
+    if (airplane) return { state: "airplane" }
+    if (!fresh) return { state: "nothing-new" }
+    const woken = this.liveWoken(now.getTime())
+    if (woken) return { state: "already", woken }
+    const at = isoTime(now)
+    this.woken = { at, state: "waking", did: "", message: "" }
+    return { state: "due", at }
+  }
+
+  /**
+   * What wake `at` (`claimWake()`'s) did:  `done` when it typed or opened something, kept for the cooldown;
+   * `null` when it did nothing (no window, several sessions ...):  the claim goes, so the next Send tries again.
+   * - a claim no longer there (a session listened meanwhile) stays gone
+   */
+  recordWake(at: string, done: Omit<InboxWoken, "at"> | null): InboxWoken | null {
+    if (this.woken?.at !== at) return null
+    this.woken = done && { at, ...done }
+    return this.woken
   }
 
   ////////////////
@@ -755,6 +827,7 @@ export type InboxRecord = {
   listening: InboxListener | null
   handedOver: string | null
   comments: Record<string, Comment>
+  woken: InboxWoken | null
 }
 
 /**
@@ -814,6 +887,28 @@ export type InboxCancel = { action: NowAction; at: string; told: boolean }
 
 /** The session waiting on the inbox:  `seen` its last heartbeat (missing in an old file). */
 export type InboxListener = { session: string; since: string; seen?: string }
+
+/**
+ * The page server's wake of the epic (`ReviewInbox.claimWake()`, epic `epic-workflow` P16).
+ * - `state`:  `waking` while under way;  then what it did (`WokenState`)
+ * - `did`:  what it did, as words to follow "Already ":  `typed /epic review x into 🚧 x`
+ * - `message`:  the page's notice and pill:  `Typed /epic review x into 🚧 x:  press Enter there`
+ */
+export type InboxWoken = { at: string; state: "waking" | WokenState; did: string; message: string }
+
+/**
+ * What a wake did that's worth remembering for the cooldown (`ReviewStart.wake()`):
+ * - `typed`:  `/epic review <epic>` typed into the epic's running session
+ * - `opened`:  a new session opened in an open window (the epic's worktree's, or a main one), the command typed in
+ * - `launched`:  the epic's worktree window opened (`spell dev window launch`), a new session in it, the command typed in
+ */
+export type WokenState = "typed" | "opened" | "launched"
+
+/** `ReviewInbox.claimWake()`'s answer:  wake now (`due`, the claim's `at`), or why not. */
+export type WakeClaim =
+  | { state: "due"; at: string }
+  | { state: "already"; woken: InboxWoken }
+  | { state: "listening" | "airplane" | "nothing-new" }
 
 /** What `ReviewInbox.takeWork()` hands a waiting session. */
 export type TakenWork = {
@@ -882,6 +977,12 @@ export const LISTEN_HEARTBEAT_MS = 30_000
  * (closed tab, crash):  three missed heartbeats.
  */
 export const LISTEN_STALE_MS = 90_000
+
+/**
+ * How long one wake of an epic stands (`claimWake()`), unless a session listens first:  10 minutes (J46).
+ * Long enough to find the window and press Enter;  short enough that a forgotten tab doesn't block the next Send long.
+ */
+export const WAKE_COOLDOWN_MS = 10 * 60_000
 
 /** An option card's letter. */
 const OPTION_LETTER = /^[A-Z]$/

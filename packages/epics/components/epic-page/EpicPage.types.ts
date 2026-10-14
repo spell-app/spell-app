@@ -145,8 +145,12 @@ export type HeaderMarks = {
   comments: number
   /** marks Review Now would have Claude work through:  all but the requests already on their way */
   waiting: number
+  /** Do Now requests queued, not taken yet */
+  asked: number
   /** a Claude session is listening */
   listening: boolean
+  /** what the page server's wake did, while nobody listens (epic `epic-workflow` P16);  `""` for none */
+  woken: string
 }
 
 /** The kickoff prompt, which the `Plan hung?` aside offers to copy. */

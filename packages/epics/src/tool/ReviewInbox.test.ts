@@ -8,7 +8,7 @@ import { join } from "node:path"
 
 import { afterAll, describe, expect, test } from "vite-plus/test"
 
-import { InboxError, LISTEN_HEARTBEAT_MS, LISTEN_STALE_MS, ReviewInbox, isoTime } from "./ReviewInbox"
+import { InboxError, LISTEN_HEARTBEAT_MS, LISTEN_STALE_MS, ReviewInbox, WAKE_COOLDOWN_MS, isoTime } from "./ReviewInbox"
 
 const T1 = "2026-10-04T15:00:00-04:00"
 const T2 = "2026-10-04T15:01:00-04:00"
@@ -675,4 +675,79 @@ test("a mark in the same second as the send, after it, is unsent", () => {
   inbox.markSent(isoTime(new Date(1_700_000_000_100)))
   inbox.setMark("j1", { action: "approve" }, isoTime(new Date(1_700_000_000_900)))
   expect(inbox.unsentMarks.map((mark) => mark.id)).toEqual(["j1"])
+})
+
+// epic `epic-workflow` P16:  a Send or Do Now with nobody listening wakes the epic, once per epic at a time
+describe("ReviewInbox waking the epic", () => {
+  const at = new Date(1_700_000_000_000)
+  const later = (ms: number) => new Date(at.getTime() + ms)
+  const typed = { state: "typed" as const, did: "typed /epic review x into 🚧 x", message: "Typed ..." }
+
+  test("due:  claimed under the lock (`waking`), then recorded;  a second claim inside the cooldown is `already`", () => {
+    const inbox = new ReviewInbox()
+    const claim = inbox.claimWake({ fresh: true }, at)
+    expect(claim).toEqual({ state: "due", at: isoTime(at) })
+    expect(inbox.woken).toMatchObject({ state: "waking" })
+    // a wake under way says nothing to the page yet
+    expect(inbox.forPage(at.getTime()).woken).toBeNull()
+    expect(inbox.recordWake(isoTime(at), typed)).toEqual({ at: isoTime(at), ...typed })
+    expect(inbox.forPage(later(1000).getTime()).woken).toMatchObject(typed)
+    expect(inbox.claimWake({ fresh: true }, later(WAKE_COOLDOWN_MS - 1))).toEqual({
+      state: "already",
+      woken: { at: isoTime(at), ...typed }
+    })
+  })
+
+  test("the cooldown runs out after 10 minutes:  due again;  a claim that never finished runs out the same way", () => {
+    const inbox = new ReviewInbox()
+    inbox.claimWake({ fresh: true }, at)
+    expect(inbox.claimWake({ fresh: true }, later(WAKE_COOLDOWN_MS)).state).toBe("due")
+    expect(inbox.liveWoken(later(WAKE_COOLDOWN_MS).getTime())).toMatchObject({ state: "waking" })
+  })
+
+  test("a wake that did nothing (no window, several sessions):  the claim goes, so the next Send tries again", () => {
+    const inbox = new ReviewInbox()
+    const claim = inbox.claimWake({ fresh: true }, at) as { at: string }
+    expect(inbox.recordWake(claim.at, null)).toBeNull()
+    expect(inbox.woken).toBeNull()
+    expect(inbox.claimWake({ fresh: true }, later(1000)).state).toBe("due")
+  })
+
+  test("a session listening:  nothing to wake;  one that starts listening clears the record, and a late record stays gone", () => {
+    const inbox = new ReviewInbox()
+    const claim = inbox.claimWake({ fresh: true }, new Date()) as { at: string }
+    inbox.setListening("s1")
+    expect(inbox.woken).toBeNull()
+    expect(inbox.recordWake(claim.at, typed)).toBeNull()
+    expect(inbox.claimWake({ fresh: true })).toEqual({ state: "listening" })
+    // the page never shows a wake while a session listens
+    inbox.woken = { at: isoTime(), ...typed }
+    expect(inbox.forPage().woken).toBeNull()
+  })
+
+  test("airplane mode, or nothing new to hand over:  no wake, no claim", () => {
+    const inbox = new ReviewInbox()
+    expect(inbox.claimWake({ fresh: true, airplane: true }, at)).toEqual({ state: "airplane" })
+    expect(inbox.claimWake({ fresh: false }, at)).toEqual({ state: "nothing-new" })
+    expect(inbox.woken).toBeNull()
+  })
+
+  test("hasUnsent:  a mark, an urgency or a comment newer than the last send;  nothing once sent", () => {
+    const inbox = new ReviewInbox()
+    expect(inbox.hasUnsent).toBe(false)
+    inbox.setMark("j1", { action: "approve" }, T1)
+    expect(inbox.hasUnsent).toBe(true)
+    inbox.markSent(T2)
+    expect(inbox.hasUnsent).toBe(false)
+    inbox.setUrgency("j1", true, T3)
+    expect(inbox.hasUnsent).toBe(true)
+  })
+
+  test("a wake still cooling down keeps the file:  a guide's Send wakes its epic through it", () => {
+    const inbox = new ReviewInbox()
+    inbox.claimWake({ fresh: true })
+    expect(inbox.isEmpty).toBe(false)
+    inbox.woken!.at = isoTime(new Date(Date.now() - WAKE_COOLDOWN_MS))
+    expect(inbox.isEmpty).toBe(true)
+  })
 })
