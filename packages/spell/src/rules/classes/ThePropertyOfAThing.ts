@@ -13,7 +13,7 @@ export class ThePropertyOfAThing extends P.Sequence<"property|type"> {
 classes.addRule(ThePropertyOfAThing, {
   syntax: "the {property:member_words} of (a|an) {type}"
 })
-// a quoted name, "quotes teach a new word" (plan doc J3, option C):  `the "color" of a card is red if ...`
+// a quoted name, "quotes teach a new word" (epic page J3, option C):  `the "color" of a card is red if ...`
 classes.addRule(ThePropertyOfAThing, {
   syntax: "the {property:quoted_member} of (a|an) {type}"
 })

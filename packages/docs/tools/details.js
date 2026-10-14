@@ -7,7 +7,7 @@
  *   - `--from`:  the whole page from a JSON list of questions (`DetailsSpec`, below), so a skill with many
  *     questions to ask (`/worktrees`, `/bedtime`) needn't hand-write it
  *   - scratch:  `pages/details/<slug>.html`, ignored by version control, swept after 14 days
- *   - `--epic <name>`:  `epics/<name>/details/<slug>.html`, committed with the plan doc
+ *   - `--epic <name>`:  `epics/<name>/details/<slug>.html`, committed with the epic page
  * - `show <page> [--wait]` -- start the page server if needed, show the page in THIS session's VS Code window (the
  *   right side bar's "Review" view, where Owen answers things;  Chrome outside VS Code;  epic `windows-and-review`
  *   P6, Owen 2026-10-06);  `--wait`:  then `wait`
@@ -57,7 +57,7 @@ const SWEEP_DAYS = 14
 /** A slug:  lower-kebab-case. */
 export const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
-/** The files `sweep()` deletes:  pages, answers, and a syntax-choices page's rows and draft (`choices.js`). */
+/** The files `sweep()` deletes:  pages, answers, and a choice page's rows and draft (`choices.js`). */
 const SWEPT = /\.(html|answer\.json|rows\.json|draft\.json)$/
 
 /** Run `spell dev details <argv>`;  the exit code. */
@@ -247,7 +247,7 @@ export function listPages(docs) {
 /**
  * Delete the scratch pages under `docs` last changed more than `days` ago, with their answers;  what went.
  * - only `pages/details/`:  an epic's pages are its record
- * - a syntax-choices page's files too (`choices.js`):  its rows and draft
+ * - a choice page's files too (`choices.js`):  its rows and draft
  * - SIDE EFFECT:  deletes files
  */
 export function sweep(docs, days, now = Date.now()) {

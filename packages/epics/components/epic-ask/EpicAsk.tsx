@@ -30,13 +30,13 @@ const OPTION_ATTRIBUTES = [SELECTED, DONE, "letter"]
  * ### `EpicAsk`
  * The component behind `<epic-ask>`:  a question Owen answers ON the page (a details page's;
  * epic `epic-workflow` P12).
- * - Its children are a plan doc's:  the question an `<epic-question>`, its options an `<epic-choices>` of
- *   `<epic-option>`s, so it reads as a plan doc's question does.
+ * - Its children are an epic page's:  the question an `<epic-question>`, its options an `<epic-choices>` of
+ *   `<epic-option>`s, so it reads as an epic page's question does.
  *   - Those options are ITS options (`<epic-ask> > <epic-choices> > <epic-option>`):  each draws a tick box, a
  *     comment box, and what the question asks for (the (?) of `more-details`), reading this question
  *     (`EpicOption`'s answering mode).
- *   - Options deeper inside (in an option's text, as the review's item picker quotes a plan doc) are only text.
- * - It draws its line first:  its id chip in the plan doc's state colours, `Pick one` / `Pick several`, and its
+ *   - Options deeper inside (in an option's text, as the review's item picker quotes an epic page) are only text.
+ * - It draws its line first:  its id chip in the epic page's state colours, `Pick one` / `Pick several`, and its
  *   tools (Select all, Open | All);  then its children;  then the Other box (`<epic-text-box type="other">`).
  * - It holds what's picked (`picks`) and what wants more details (`moreWanted`):  its options draw from them, and
  *   send a `ui-change` when Owen ticks one, which it takes (`onPick()`).
@@ -105,7 +105,7 @@ export class EpicAsk extends E.UIComponent<typeof epicAskVocabulary> implements 
   /** Its place among the page's questions, from 1;  set as it connects. */
   @E.state accessor position = 1
 
-  /** Its chip:  a plan-doc id key in capitals (`q3` -> `Q3`), else `Q` and its place (`Q2`). */
+  /** Its chip:  an epic-page id key in capitals (`q3` -> `Q3`), else `Q` and its place (`Q2`). */
   get chipLabel(): string {
     return /^[a-z]\d+$/.test(this.key) ? this.key.toUpperCase() : `Q${this.position}`
   }
@@ -347,7 +347,7 @@ export class EpicAsk extends E.UIComponent<typeof epicAskVocabulary> implements 
 
   /**
    * The `<epic-ask>` whose option `option` is (`<epic-ask> > <epic-choices> > <epic-option>`), or `null`:
-   * an option anywhere else draws as a plan doc's.
+   * an option anywhere else draws as an epic page's.
    */
   static askOf(option: Element): Element | null {
     const choices = option.parentElement

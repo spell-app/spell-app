@@ -5,7 +5,7 @@ import { CLI } from "$/cli"
 
 /**
  * The TOOLING HOME:  the epic every session sends dev-tooling requests to (epic `epic-workflow`, Q2 and Q7).
- * - Dev tooling:  how Owen works, not what a session builds:  the plan doc page, comments, the Review tab, every
+ * - Dev tooling:  how Owen works, not what a session builds:  the epic page, comments, the Review tab, every
  *   skill and hook, windows, worktrees, `spell dev` and `spell epic` (the rule:  the root `CLAUDE.md`).
  * - Kept in `epics/home.json`, shared content:  every checkout reads the same one, and the turn-end hook commits it.
  *
@@ -23,7 +23,7 @@ export function epicHome(root: string): string | null {
 }
 
 /**
- * Make `epic` the tooling home;  throws when it has no plan doc.
+ * Make `epic` the tooling home;  throws when it has no epic page.
  * - SIDE EFFECT:  writes `epics/home.json`
  */
 export function setEpicHome(root: string, epic: string): void {

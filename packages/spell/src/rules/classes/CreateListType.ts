@@ -29,7 +29,7 @@ export class CreateListType extends TypeDeclaration<
    * Notes whether what it holds is declared BELOW us, e.g. `a deck is a list of cards` above `a card is a thing`:
    * then its class is read when used -- `static get instanceType() { return Card }` -- as `Card` isn't defined yet.
    * - A value kind on us, e.g. the deck's `"suits" as one of ...`, is why:  the card says `its "suit" is a suit`,
-   *   so the deck comes first (plan doc `outline-spell`, P2).
+   *   so the deck comes first (epic page `outline-spell`, P2).
    * - Then refuses a name some other type already goes by -- see `TypeDeclaration.refuseTakenNames()`.
    */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {

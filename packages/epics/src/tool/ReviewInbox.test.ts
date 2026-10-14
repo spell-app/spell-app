@@ -51,10 +51,10 @@ describe("ReviewInbox marks", () => {
   })
 
   test("a revisit may carry a pick:  'pick B, but ...'", () => {
-    expect(ReviewInbox.toMark({ action: "revisit", note: " only plan docs? ", pick: "B" })).toEqual({
+    expect(ReviewInbox.toMark({ action: "revisit", note: " only epic pages? ", pick: "B" })).toEqual({
       action: "revisit",
       when: "soon",
-      note: "only plan docs?",
+      note: "only epic pages?",
       pick: "B"
     })
     expect(ReviewInbox.toMark({ action: "revisit", pick: null })).toEqual({ action: "revisit", when: "soon", note: "" })
@@ -612,7 +612,7 @@ describe("ReviewInbox files", () => {
   const file = join(dir, "x.inbox.json")
   afterAll(() => rmSync(dir, { recursive: true, force: true }))
 
-  test("beside the plan doc, either name", () => {
+  test("beside the epic page, either name", () => {
     expect(ReviewInbox.pathFor("/a/epics/x/x.plan.html")).toBe("/a/epics/x/x.inbox.json")
     expect(ReviewInbox.pathFor("/a/epics/x/x.html")).toBe("/a/epics/x/x.inbox.json")
   })

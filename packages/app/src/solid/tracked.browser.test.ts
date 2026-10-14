@@ -90,7 +90,7 @@ describe("tracked()", () => {
     dispose()
   })
 
-  test("a read that writes what it just read doesn't re-read itself (plan doc I3)", () => {
+  test("a read that writes what it just read doesn't re-read itself (epic page I3)", () => {
     const state = newState()
     let reads = 0
     const dispose = createRoot((dispose) => {

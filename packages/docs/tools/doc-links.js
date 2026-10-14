@@ -5,7 +5,7 @@
  *   yarn tsx tools/doc-links.js <folder>/<doc>.html ...           -- add links (idempotent)
  *   yarn tsx tools/doc-links.js --check <folder>/<doc>.html ...   -- verify, exit 1 on problems
  * - The rules (what becomes a link, how a link gets its target, what `--check` verifies) live in `$/assembler`'s
- *   `Linker` (epic `epic-components`, P7):  shared with the plan-doc tool, which may not import `docs`.  This file is
+ *   `Linker` (epic `epic-components`, P7):  shared with the `epic` tool, which may not import `docs`.  This file is
  *   its command line, on files.
  * - Runs under `tsx`, which maps `$/assembler` through this package's `tsconfig.json`:  plain `node` can't.  The
  *   tools that run it (`update.js`, `pages.js` `tidy()`, goals' check) go through `pages.js` `docLinksRun()`.

@@ -2,7 +2,7 @@
  * The spell syntax guide's boxes and bar (`guides/spell-syntax/spell-syntax.html`, `spell-syntax.js`), on top of
  * `spell-doc.css`:  each box Owen types over, its reset button, and the bar pinned to the window's bottom with the
  * feedback and Send.
- * - Before epic `epic-workflow` P12 a syntax-choices page drew its tables to this sheet too (`syntax-choices.js`,
+ * - Before epic `epic-workflow` P12 a choice page drew its tables to this sheet too (`syntax-choices.js`,
  *   gone):  its rows are the epics pack's `<epic-choice-row>`s now, its bar `<epic-choices-bar>`, styled by their own
  *   sheets.
  */

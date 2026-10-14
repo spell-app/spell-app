@@ -58,9 +58,9 @@
         "label": "Epic Pages as Components",
         "icon": "book open"
       },
-      { "id": "review", "file": "../guides/epic-components/review.html", "label": "Reviewing a Plan Doc", "icon": "check" },
+      { "id": "review", "file": "../guides/epic-components/review.html", "label": "Reviewing an Epic Page", "icon": "check" },
       { "id": "tool", "file": "../guides/epic-components/tool.html", "label": "The Plan-Doc Tool", "icon": "terminal" },
-      { "id": "colours", "file": "../guides/epic-components/colours.html", "label": "Plan Doc Colours", "icon": "palette" }
+      { "id": "colours", "file": "../guides/epic-components/colours.html", "label": "Epic Page Colours", "icon": "palette" }
     ],
     "titles": { "start": "Start", "components": "Elements", "foundation": "Guides" }
   }

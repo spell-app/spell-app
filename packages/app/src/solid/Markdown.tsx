@@ -10,7 +10,7 @@ import type { MD } from "$/markdown"
  * - Its links go to `onOpen`, NOT the page -- e.g. `file:///…/Card.spell#L12`, for the editor to open.
  * - NOTE: raw HTML in `text` is rendered as is, bar GFM's tagfilter (`<script>` ... escaped):  only give it text
  *   we made.
- * - SEE:  its App UI page, `packages/app/components/Markdown.html` (`/app-ui/Markdown.html`).
+ * - SEE:  its App UI components page, `packages/app/components/Markdown.html` (`/app-ui/Markdown.html`).
  ****************/
 export function Markdown(props: MarkdownProps) {
   const html = createMemo(async () => (await loadMarkdown()).toHTML(props.text))

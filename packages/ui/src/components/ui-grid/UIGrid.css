@@ -48,7 +48,7 @@
  * - Ranges mirror Fomantic's breakpoints:  `mobile` < 768px, `tablet` 768..991px, `computer` >= 992px,
  *   `large screen` 1200..1919px, `widescreen` >= 1920px.  They drive `stackable`, `doubling`,
  *   `reversed` and the per-device widths -- ALL of them, so a grid's layout never mixes two ranges.
- * - What they compare with (`stack-with`, decided 2026-10-03, D40 in the `spell-ui-pages` plan doc):
+ * - What they compare with (`stack-with`, decided 2026-10-03, D40 in the `spell-ui-pages` epic page):
  *   - `container` (the default):  the space the GRID is given (`@container`)
  *   - `page`:  the screen (`@media`, `media.css`), as in Fomantic -- a docs page or app whose grids should lay out
  *     like Fomantic's whatever column they sit in

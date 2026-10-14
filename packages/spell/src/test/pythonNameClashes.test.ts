@@ -10,12 +10,12 @@ import { parseSpellProject } from "$/spell/test"
 /**
  * Every name in today's spell that steps aside in Python (epic `python-target` P26):  a keyword, or a builtin a
  * variable would hide, written with PEP 8's trailing underscore (`class_`, `list_`, `position_`).
- * - Owen, on the durable doc:  "add all 'clashes in current spell' here so I can tell you what to do with them".
+ * - Owen, on the epic's guide:  "add all 'clashes in current spell' here so I can tell you what to do with them".
  * - Where they come from:
  *   - every spell project:  `projects/system/` (examples, library) and `projects/test/`, each compiled to Python
  *   - the core's own methods, `spellCore.declarations.json`, as Python names them
  * - Pinned in `pythonNameClashes.snapshot.json`, beside this:  a new clash is a diff to read.
- *   The durable doc's "PEP 8's names" table lists them for Owen to decide each.
+ *   The guide's "PEP 8's names" table lists them for Owen to decide each.
  */
 
 /** One clash:  spell's name, what Python writes, its kind, and where. */

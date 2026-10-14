@@ -1,5 +1,5 @@
 /*
- * `<epic-choices-bar>` (`EpicChoicesBar.tsx`):  a syntax-choices page's bar.
+ * `<epic-choices-bar>` (`EpicChoicesBar.tsx`):  a choice page's bar.
  * - Pinned to the window's bottom while the rows scroll above it.  A little wider than the column (negative
  *   margins, padding back), so the rows scrolling under it don't show at its edges.
  * - Ivory, as the page's toolbar at the top (Owen, 2026-10-13):  the docs page's `--spell-rail-*`.

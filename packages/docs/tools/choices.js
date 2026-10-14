@@ -7,13 +7,13 @@
  *   own template (`templates/syntax-choices.html` beside it), its rows written into it as the epics pack's
  *   `<epic-choice-row>`s (`answerPages.js`), plus the rows beside it (`<slug>.rows.json`);  prints the page's path
  *   - scratch:  `pages/details/<slug>.html`, ignored by version control, swept with the details pages after 14 days
- *   - `--epic <name>`:  `epics/<name>/details/<slug>.html`, kept with the plan doc
+ *   - `--epic <name>`:  `epics/<name>/details/<slug>.html`, kept with the epic page
  * - `show <page> [--wait] [--timeout 8h]` -- show it in THIS session's VS Code side bar (Chrome outside VS Code);
  *   `--wait`:  then `wait`
  * - `wait <page> [--timeout 8h]` -- block until Owen presses "Do it" (an answer NEWER than the wait's start), print
  *   it as plain text, exit 0.  Run it in the BACKGROUND:  its exit wakes the session.  Timeout:  exit 2
  * - `answer <page>` -- print the answer already sent (exit 1 if none)
- * - `list [<epic>]` -- every syntax-choices page:  answered, draft (typed, not sent) or waiting;  with an epic, only
+ * - `list [<epic>]` -- every choice page:  answered, draft (typed, not sent) or waiting;  with an epic, only
  *   that epic's (`epics/<epic>/details/`)
  * - `<page>`:  a slug, `<epic>/<slug>`, or a path, as `spell dev details` takes them
  * - A DOCS page may take choices too, naming its own rows on its `<body data-choices-rows="...">` (`declaredRows()`):
@@ -94,7 +94,7 @@ const USAGE = `usage:  epic choices new <slug> --rows <rows.json> [--title "..."
 ////////////////
 
 /**
- * Write a new syntax-choices page `slug` in checkout `docs` from the template, and its rows beside it;  the page's
+ * Write a new choice page `slug` in checkout `docs` from the template, and its rows beside it;  the page's
  * absolute path.
  * - `data`:  `ChoicesData`, checked (`checkData()`);  `title` / `description` flags beat its own
  * - `epic`:  in that epic's `details/` (the epic must exist);  else the scratch `pages/details/`
@@ -183,14 +183,14 @@ function findFile(path) {
   return found
 }
 
-/** The syntax-choices page `target` names (`findPage()`), refusing a details page. */
+/** The choice page `target` names (`findPage()`), refusing a details page. */
 export function findChoicesPage(docs, target) {
   const file = findPage(docs, target)
-  if (!isChoicesPage(file)) throw new Error(`not a syntax-choices page (no ${basename(rowsFile(file))}):  ${file}`)
+  if (!isChoicesPage(file)) throw new Error(`not a choice page (no ${basename(rowsFile(file))}):  ${file}`)
   return file
 }
 
-/** Is `page` a syntax-choices page:  are its rows beside it, or does it name them (`declaredRows()`)? */
+/** Is `page` a choice page:  are its rows beside it, or does it name them (`declaredRows()`)? */
 export function isChoicesPage(page) {
   return existsSync(rowsFile(page)) || !!declaredRows(page)
 }

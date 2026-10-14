@@ -17,19 +17,19 @@ export { GUIDE_CHANGES }
 /** The folders, from the checkout's root, whose pages take comments (`commentsRoutes.ts`). */
 const COMMENT_FOLDERS = ["guides", "pages", "epics"]
 
-/** Folders under those that hold no pages of their own:  a split plan doc's bodies, experiments' output. */
+/** Folders under those that hold no pages of their own:  a split epic page's bodies, experiments' output. */
 const SKIPPED = /(^|\/)(parts|experiments|node_modules)(\/|$)/
 
 /** The kickoff prompt of the epic, when the first gather makes it. */
 const PROMPT =
-  "Owen's comments on the docs pages (guides, the docs home, epics' own pages), gathered from each page's inbox by " +
-  "`spell dev comments gather`:  one phase per page.  Work each comment into its page (or say why not), then answer " +
-  "it under the comment:  `spell dev comments answer <page> <id> --file <reply.html>`."
+  "Owen's comments on the docs pages (guides, the home page, epics' own pages), gathered from each page's inbox by " +
+  "`epic comments gather`:  one phase per page.  Work each comment into its page (or say why not), then answer " +
+  "it under the comment:  `epic comments answer <page> <id> --file <reply.html>`."
 
 /****************
  * ### `GuideChanges`
  * Gathers the comments Owen left on docs pages into ONE epic, `guide-changes` (epic `airplane`, P11):
- * `spell dev comments gather` (`comments.ts`), and `/airplane land`.
+ * `epic comments gather` (`comments.ts`), and `/airplane land`.
  * - what it gathers, per page:
  *   - its inbox's comments still waiting (`GuideInbox`, `<page>.inbox.json`;  `CommentList` `waiting`), on a page
  *     NO epic owns (`SeeAlso.ownerOf()`, epic `epic-workflow` P13):  an owned page's go to its epic's session with
@@ -43,7 +43,7 @@ const PROMPT =
  * - the epic is made the first time (`plan-doc new guide-changes --title "Guide Changes"`)
  * - then each comment is marked taken (`taken:  { epic, phase }`), each note answered with a link to the phase:
  *   the page shows where it went, and Owen can no longer edit it
- * - plan docs' comments are NOT gathered:  they wait in their epic's review inbox for `/epic review`
+ * - epic pages' comments are NOT gathered:  they wait in their epic's review inbox for `/epic review`
  ****************/
 export class GuideChanges {
   /** the checkout's root:  its `guides/`, `pages/`, `epics/` */
@@ -91,8 +91,8 @@ export class GuideChanges {
    * Gather what's waiting (`waiting(pages)`) into the epic:  a phase per page, or an update in its open phase;
    * then mark each comment taken and answer each note.  Resolves to what went where.
    * - nothing waiting:  `[]`, and no epic is made
-   * - throws what the plan-doc tool throws;  nothing is marked taken until the doc is written
-   * - SIDE EFFECT:  writes the plan doc (made the first time), the pages' inboxes and the notes' pages
+   * - throws what the `epic` tool throws;  nothing is marked taken until the doc is written
+   * - SIDE EFFECT:  writes the epic page (made the first time), the pages' inboxes and the notes' pages
    */
   async gather(pages?: string[]): Promise<Gathered[]> {
     const waiting = this.waiting(pages)
@@ -119,10 +119,10 @@ export class GuideChanges {
             symptom: `Owen left ${many(count)} on <a href="${link}">${escape(page.title)}</a> (<code>${escape(page.page)}</code>).`,
             changes:
               `Work each into the page, or say why not;  then answer it under the comment:  ` +
-              `<code>spell dev comments answer ${escape(page.page)} &lt;id&gt; --file reply.html</code>.`,
+              `<code>epic comments answer ${escape(page.page)} &lt;id&gt; --file reply.html</code>.`,
             goal: list
           })
-          plan.log(`P${phase} added:  ${page.title} (${many(count)}, spell dev comments gather)`)
+          plan.log(`P${phase} added:  ${page.title} (${many(count)}, epic comments gather)`)
         }
         return {
           page: page.page,
@@ -143,7 +143,7 @@ export class GuideChanges {
   // ## The epic
   ////////////////
 
-  /** The epic's plan doc;  made the first time, as `plan-doc new <epic> --title "Guide Changes"`. */
+  /** The epic's epic page;  made the first time, as `plan-doc new <epic> --title "Guide Changes"`. */
   private async epicDoc(files: PlanDocFiles): Promise<string> {
     const found = PlanDocFiles.planDocIn(join(files.epics, this.epic), this.epic)
     if (found) return found
@@ -155,7 +155,7 @@ export class GuideChanges {
     return files.docPath(this.epic)
   }
 
-  /** A link from the epic's plan doc (`epics/<epic>/`) to `page` (from the root), with `hash`. */
+  /** A link from the epic's epic page (`epics/<epic>/`) to `page` (from the root), with `hash`. */
   private hrefTo(page: string, hash = ""): string {
     return `../../${page}${hash ? `#${hash}` : ""}`
   }
@@ -208,7 +208,7 @@ export class GuideChanges {
   // ## Finding inboxes
   ////////////////
 
-  /** Every docs page's inbox file (`<page>.inbox.json` beside a `<page>.html`, never a plan doc's), sorted. */
+  /** Every docs page's inbox file (`<page>.inbox.json` beside a `<page>.html`, never an epic page's), sorted. */
   inboxFiles(): string[] {
     return COMMENT_FOLDERS.flatMap((folder) => {
       const top = join(this.root, folder)

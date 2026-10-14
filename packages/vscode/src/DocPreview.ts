@@ -83,7 +83,7 @@ export class DocPreview {
   /**
    * `file`'s URL on its checkout's page server, else on a server of our own (started if need be).
    * - a worktree's file:  on the MAIN checkout's page server first, when it serves worktrees
-   *   (`SRV.mainServerUrl()`), so a running epic's plan doc shows on the one port every link uses
+   *   (`SRV.mainServerUrl()`), so a running epic's page shows on the one port every link uses
    */
   static async urlOf(file: string): Promise<string> {
     const main = await SRV.mainServerUrl(file)

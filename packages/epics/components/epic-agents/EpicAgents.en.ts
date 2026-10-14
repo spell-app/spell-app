@@ -8,7 +8,8 @@ import type { EpicVocabulary } from "$/epics/definitions"
 
 /****************
  * ### `<epic-agents>`
- * The epic's running agents (epic `skillz` P3):  "Agents running" on a plan doc, each with a note box that redirects it.
+ * The epic's running agents (epic `skillz` P3):  "Agents running" on an epic page,
+ * each with a note box that redirects it.
  ****************/
 export const epicAgentsVocabulary = {
   tag: "epic-agents",

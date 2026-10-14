@@ -11,7 +11,7 @@ import type { Converter } from "./Converter"
  * The page and its Overview, for `Converter`:  `<body>`'s data, the h1 and the meta lines become `<epic-page>`'s
  * attributes;  the Overview, `<epic-overview>` with its summary and kickoff prompt slotted;  its sub-sections,
  * `<epic-section kind="overview-part">`;  the body goes inside `<ui-root>`, which loads the pack.
- * - Dropped, as chrome `<epic-page>` draws:  the sticky h1 and step label, the meta lines (the durable doc's link
+ * - Dropped, as chrome `<epic-page>` draws:  the sticky h1 and step label, the meta lines (the guide's link
  *   is kept, slotted), the `Plan hung?` and future-epic notices.
  * - Dropped too:  an older doc's Overnight report (`#overnight`, before 2026-10-05):  everything in it is in the
  *   items and phases now;  the items it links are the night's (`overnight`, the bed icon:  epic `epic-components` I3).
@@ -241,7 +241,7 @@ export class PageConverter {
   }
 }
 
-/** The meta lines `<epic-page>` draws, by icon:  branch, worktree, dates, durable doc. */
+/** The meta lines `<epic-page>` draws, by icon:  branch, worktree, dates, guide. */
 const KNOWN_META = ["code branch", "folder", "calendar", "book"]
 
 /** An item an Overnight report links:  a question, judgement call, caveat, todo, issue or test (not a phase). */

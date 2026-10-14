@@ -6,7 +6,7 @@ import { properties } from "./properties.parser"
 
 /**
  * `property_expression` rule:  `the {member words} of {thing}` ~== `thing.member`.
- * ONE rule for both kinds of read (plan doc D5):
+ * ONE rule for both kinds of read (epic page D5):
  * - RESOLVED:  the words name a PROPERTY the type of `thing` declares (or a super-type does),
  *   e.g. `the short rank of the card` -- several words, blacklisted ones too.
  *   - An enumerated property's values, e.g. `the suits of the card` as `cards have a suit as one of ...` declares,
@@ -21,7 +21,7 @@ import { properties } from "./properties.parser"
  *   - NOT `the position of`, `the number of` (`mostSpecific`), nor `the biggest of` (2), which say more:
  *     a type declaring `position` mustn't break `the position of x in the list`.
  * - ONE rule, not a resolved and a loose one, as `known_variable` / `variable` are:
- *   two would parse every `the X of Y`'s operand twice -- 6% of a project's parse (plan doc judgement).
+ *   two would parse every `the X of Y`'s operand twice -- 6% of a project's parse (epic page judgement).
  * - `set` an undeclared one, on a type the project declares, and it's declared there --
  *   see `MemberReadExpression.memberRead()`.
  */

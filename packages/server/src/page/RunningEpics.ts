@@ -21,26 +21,26 @@ import { URGENT_STATES, epicStateFor, epicStateMark } from "$/server/site/EpicSt
 
 /****************
  * ### `RunningEpics`
- * Lets the main checkout's page server show every RUNNING epic's plan doc:
+ * Lets the main checkout's page server show every RUNNING epic's page:
  * the ones still in their worktree, not yet merged into the main checkout.
  * - where:  `.claude/worktrees/<w>/epics/<name>/<name>.plan.html`, or an old `<name>.html`
- *   - a worktree on older code keeps its plan docs in `packages/docs/content/epics/` (before 2026-10-05)
+ *   - a worktree on older code keeps its epic pages in `packages/docs/content/epics/` (before 2026-10-05)
  *     or `packages/docs/epics/` (before 2026-10-04):  found there too (`EPICS_DIRS`)
  * - Why:  each worktree has its own page server (its own port),
  *   and the main one refuses `.claude/...` (a dot path), so the epics list couldn't show an epic until it merged.
  * - `/worktrees/<w>/...` serves worktree `<w>`'s files (`StaticHandler` mount, dot files still refused),
- *   so a plan doc's relative assets come from its own worktree.
+ *   so an epic page's relative assets come from its own worktree.
  * - `/_server/epics`:  the list, as JSON (`RunningEpic[]`).
- * - The Epics list page (`epics/index.html`;  the docs home until claude-design P5), on each request (`render()`):
+ * - The Epics list page (`epics/index.html`;  the home page until claude-design P5), on each request (`render()`):
  *   - running and merged epics in ONE list, in the page's five groups (`$/server/site/EpicCards`):
  *     Favorites, Active, Planning, Urgent, Done
  *   - each card's title after its state's mark (`$/server/site/EpicState`)
- *   - the running epics' cards join the docs index's between its markers (`EPIC_CARDS_START` / `_END`)
- *   - EVERY card marked again, as the docs index can't know when it writes the page:
+ *   - the running epics' cards join the written ones between its markers (`EPIC_CARDS_START` / `_END`)
+ *   - EVERY card marked again, as `docs index` can't know when it writes the page:
  *     - in progress or paused:  decided by a session running for it, and today's date
  *     - its star:  from the favourites as they are now (`FAVORITES_FILE`), and the groups rebuilt by them
- *   - opened from disk:  the groups, marks and stars as the docs index wrote them
- * - Live:  a plan doc's change reloads its page and the list page (`watch()`).
+ *   - opened from disk:  the groups, marks and stars as `docs index` wrote them
+ * - Live:  an epic page's change reloads its page and the list page (`watch()`).
  * - Which docs:  `<name>` === `<w>` (the epic the worktree is for), or any `<name>` the main checkout lacks.
  *   The rest are stale copies of epics merged before the worktree was cut.
  * - NOTE:  edit mode on a worktree's page isn't offered through here:  `PageEditor` refuses dot paths too.
@@ -118,7 +118,7 @@ export class RunningEpics {
   }
 
   /**
-   * Reload pages when a worktree's plan doc changes:  that doc's own page, and the Epics page (its list).
+   * Reload pages when a worktree's epic page changes:  that doc's own page, and the Epics page (its list).
    * - SIDE EFFECT:  one recursive `fs.watch` on `.claude/worktrees`, if it exists;  `close()` ends it
    */
   watch(live: SRV.LiveReload): this {
@@ -146,15 +146,15 @@ export class RunningEpics {
    * `page` (the Epics list page) with every card marked as of now, the running epics' cards added, and the cards in
    * their groups by the favourites as they are now.
    * - no `MARKER`:  as is
-   * - each card the docs index wrote (its `data-phases` ...):  its state's mark again, and its star (`favorites()`)
+   * - each card `docs index` wrote (its `data-phases` ...):  its state's mark again, and its star (`favorites()`)
    *   - the mark from a session running for it (`runningNames()`) and today's date
    *   - a card without them (an older index):  as is
    * - a merged epic's card of the same name (`data-epic`) goes:  the worktree's doc is the live one;
    *   its last-worked moment (`data-worked`:  it may hold the branch's last commit) carries over to the running card
-   * - between the markers (`EPIC_CARDS_START` / `_END`, the docs index writes them):
+   * - between the markers (`EPIC_CARDS_START` / `_END`, `docs index` writes them):
    *   every card regrouped (`epicGroupsHtml()`);  a starred one under Favorites, else in its own group (`data-group`)
    * - an index without the end marker (written before the groups):  the running cards at the marker, as before
-   * - the cards' markup:  `$/server/site/EpicCards` `epicCardHtml()`, as the docs index draws them
+   * - the cards' markup:  `$/server/site/EpicCards` `epicCardHtml()`, as `docs index` draws them
    */
   render(page: string, now: Date = new Date()): string {
     if (!page.includes(MARKER)) return page
@@ -188,7 +188,7 @@ export class RunningEpics {
   }
 
   /**
-   * Running epic `epic`'s card (`epicCardHtml()`), linking its plan doc where it runs, its worktree in the meta line.
+   * Running epic `epic`'s card (`epicCardHtml()`), linking its epic page where it runs, its worktree in the meta line.
    * - `running`:  the names sessions run for
    * - `favorites`:  the starred epics
    * - `worked`:  the merged cards' `data-worked`, by name (`render()`)
@@ -327,7 +327,7 @@ function dataOf(card: string, name: string): string | undefined {
 }
 
 /**
- * Epic card `card` (as the docs index wrote it) with its state's mark and `data-status` as of `now`,
+ * Epic card `card` (as `docs index` wrote it) with its state's mark and `data-status` as of `now`,
  * a session `running` for it or not, and its star as `favorite` says.
  * - As is without its facts (`data-phases`:  an index written before 2026-10-10).
  */
@@ -368,7 +368,7 @@ function isAlive(pid: number): boolean {
 
 /**
  * One running epic.
- * - `name`:  the epic;  `worktree`:  the worktree it's in;  `url`:  its plan doc on the main page server
+ * - `name`:  the epic;  `worktree`:  the worktree it's in;  `url`:  its epic page on the main page server
  * - `title`:  the doc's `<title>`
  * - `phases`:  each phase's status, in order;  `done` / `total`:  how many phases are done, of all
  * - `active`:  the active phase's header (`P2 · Name`), if any
@@ -379,7 +379,7 @@ function isAlive(pid: number): boolean {
  * - `urgent`:  the ids of the items that need Owen (red and orange chips:  `URGENT_STATES`):
  *   every phase done with some left, it has errors
  * - `worked`:  when it was last worked on, as the doc says:  the latest of its `updated` day and its log lines' times
- *   (`$/server/site/EpicCards` `lastWorked()`;  the docs index adds the branch's last commit)
+ *   (`$/server/site/EpicCards` `lastWorked()`;  `docs index` adds the branch's last commit)
  */
 export type RunningEpic = {
   name: string
@@ -401,7 +401,7 @@ export type RunningEpic = {
 export const MARKER = EPIC_CARDS_START
 
 /**
- * Where a checkout keeps its plan docs, relative to its root, newest layout first.
+ * Where a checkout keeps its epic pages, relative to its root, newest layout first.
  * - `epics`:  since 2026-10-05 (epic `claude-design`, P4)
  * - `packages/docs/content/epics`:  since 2026-10-04 (epic `shared-content`, P2)
  *   - a link into the shared repo's old-path links, so the same folder as `epics`
@@ -410,17 +410,17 @@ export const MARKER = EPIC_CARDS_START
 const EPICS_DIRS = ["epics", "packages/docs/content/epics", "packages/docs/epics"]
 
 /**
- * A plan doc's path inside `.claude/worktrees`:  `<w>/epics/<name>/<name>.plan.html`.
+ * An epic page's path inside `.claude/worktrees`:  `<w>/epics/<name>/<name>.plan.html`.
  * - a worktree on older code:  the same under `packages/docs/content/` or `packages/docs/`,
  *   or with the old name `<name>.html`
  */
 const EPIC_FILE = /^[^/]+\/(?:packages\/docs\/(?:content\/)?)?epics\/([^/]+)\/\1(?:\.plan)?\.html$/
 
 /**
- * Epic `name`'s plan doc in folder `dir`;  `undefined` when neither:
+ * Epic `name`'s epic page in folder `dir`;  `undefined` when neither:
  * - `<name>.plan.html`
- * - else an old `<name>.html` that is a plan doc (`<body class="... plan-doc">`)
- * - why both:  plan docs were renamed on 2026-10-04 (`review-review` P4);
+ * - else an old `<name>.html` that is an epic page (`<body class="... plan-doc">`)
+ * - why both:  epic pages were renamed on 2026-10-04 (`review-review` P4);
  *   worktrees cut before keep the old name until they merge `main`
  * - SAME as `packages/docs/tools/pages.js` `planDocIn()`:  change both
  */
@@ -451,15 +451,15 @@ function folders(dir: string): string[] {
 }
 
 /**
- * Title, phases and urgent items of the plan doc at `file`, by pattern:
- * the server is a leaf, so no HTML parser or plan-doc tool.
+ * Title, phases and urgent items of the epic page at `file`, by pattern:
+ * the server is a leaf, so no HTML parser or epic tool.
  * - attributes in any order, across lines:
  *   - each `<epic-phase id="pN" title="..." status="S">` (the label `PN · <title>`)
  *   - `<epic-page updated future>`
  *   - each `<epic-item id="q3" state="attention">`
  * - a doc still in the old markup (no `<epic-page>`:  one restored from an old backup) reads as an empty plan:
- *   the plan-doc tool refuses it until it's converted (epic `epic-components` P15)
- * - urgent items as `$/server/site/EpicState` `URGENT_SELECTOR` finds them (the docs index, `<epic-page>`)
+ *   the epic tool refuses it until it's converted (epic `epic-components` P15)
+ * - urgent items as `$/server/site/EpicState` `URGENT_SELECTOR` finds them (the Epics list page, `<epic-page>`)
  */
 function read(
   file: string
@@ -468,7 +468,7 @@ function read(
   "title" | "phases" | "done" | "total" | "active" | "updated" | "future" | "standing" | "urgent" | "worked"
 > {
   const html = readFileSync(file, "utf8")
-  // drop the `Epic: ` plan docs' titles start with (since 2026-10-04):  the card is in the Epics list already
+  // drop the `Epic: ` epic pages' titles start with (since 2026-10-04):  the card is in the Epics list already
   const title = (/<title>([^<]*)<\/title>/.exec(html)?.[1]?.trim() ?? "").replace(/^Epic:\s*/, "")
   const attribute = (tag: string, name: string) => new RegExp(`\\s${name}="([^"]*)"`).exec(tag)?.[1]
   const page = /<epic-page\b[^>]*>/.exec(html)?.[0] ?? ""
@@ -507,7 +507,7 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
-/** The few entities a plan doc's `<title>` and headers hold, back to text. */
+/** The few entities an epic page's `<title>` and headers hold, back to text. */
 function decode(value: string): string {
   return value
     .replace(/&lt;/g, "<")

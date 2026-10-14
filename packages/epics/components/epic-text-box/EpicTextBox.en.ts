@@ -20,7 +20,7 @@ export const epicTextBoxVocabulary = {
   description:
     "A box Owen types in, on a page he answers on (epic `epic-workflow` P12):  one line to start, growing with its " +
     "text.  What he types is part of the page's answer, by `type` and `for`:  the page's notes, a comment on a " +
-    "section or an option, a question's Other, a syntax-choices page's feedback.  The page's notes box also " +
+    "section or an option, a question's Other, a choice page's feedback.  The page's notes box also " +
     "shows what the page KEPT (P18):  text typed for a question, option or section an agent's rewrite took off " +
     "the page, under its old title, sent with the rest until Owen drops it.",
   attributes: [
@@ -32,7 +32,7 @@ export const epicTextBoxVocabulary = {
       description:
         "What it holds:  `notes` (the page's notes for Claude, once a page), `comment` (on the section `for` " +
         "names, or an option, `q1-B`), `other` (question `for`'s Other, drawn by `<epic-ask>`), `feedback` " +
-        "(a syntax-choices page's, drawn by `<epic-choices-bar>`)."
+        "(a choice page's, drawn by `<epic-choices-bar>`)."
     },
     {
       name: "for",

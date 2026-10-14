@@ -1,9 +1,9 @@
 /**
- * Check that a live edit updates a plan doc in `<epic-*>` markup IN PLACE (P10 of epic `epic-components`),
+ * Check that a live edit updates an epic page in `<epic-*>` markup IN PLACE (P10 of epic `epic-components`),
  * in a real browser:  the `<epic-*>` elements are patched, never replaced, and the reader's state stays.
- * Usage:  node demo/check-live-epics.mjs [epic name] [--item <id>] [--bundle <spell-ui.js>]   (from `packages/epics`)
+ * Usage:  node demo/check-live-epics.mjs [epic id] [--item <id>] [--bundle <spell-ui.js>]   (from `packages/epics`)
  * - works on a COPY of a preview doc (`preview-epics/<name>/`, the converter's, git-ignored):
- *   `preview-epics/check-live/epics/<name>/` (a plan doc's own path:  the page asks the review routes only there),
+ *   `preview-epics/check-live/epics/<name>/` (an epic page's own path:  the page asks the review routes only there),
  *   served by this checkout's page server;  deleted afterwards
  * - the page is REVIEWED:  the review routes (`/api/review/...`) are answered here, an empty inbox with a session
  *   listening (the real routes refuse a page outside `epics/`), so the items draw their review controls
@@ -52,7 +52,7 @@ const name = args.find((arg, at) => !arg.startsWith("--") && !args[at - 1]?.star
 const itemId = valueOf("--item") ?? "q2"
 const bundle = valueOf("--bundle")
 const source = join(ROOT, "preview-epics", name)
-// under an `epics/<name>/` folder:  the page asks the review routes only on a plan doc's own path (`PLAN_DOC_PAGE`)
+// under an `epics/<name>/` folder:  the page asks the review routes only on an epic page's own path (`PLAN_DOC_PAGE`)
 const copyRoot = join(ROOT, "preview-epics", "check-live")
 const copy = join(copyRoot, "epics", name)
 const docFile = join(copy, `${name}.plan.html`)

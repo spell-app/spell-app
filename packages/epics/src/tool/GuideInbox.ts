@@ -14,9 +14,9 @@ const INBOX_VERSION = 1
  * page's INBOX FILE.
  * - the file:  `<page>.inbox.json` beside `<page>.html` (`fileFor()`);  absent until the first comment, deleted
  *   once the last is deleted;  git-ignored in the shared repo, as the epics' review inboxes
- * - its comments, and every change to them:  `CommentList`, the shape a plan doc's review inbox holds its comments in
+ * - its comments, and every change to them:  `CommentList`, the shape an epic page's review inbox holds its comments in
  *   too
- * - SEND (epic `epic-workflow` P13), as a plan doc's:  Owen presses the page header's Send, and the comments
+ * - SEND (epic `epic-workflow` P13), as an epic page's:  Owen presses the page header's Send, and the comments
  *   waiting go to the session of the epic the page BELONGS to (`SeeAlso.ownerOf()`)
  *   - `sent`:  when he last pressed it;  a waiting comment with newer words is unsent (`unsentComments`)
  *   - `handedOver`:  the `sent` a waiting session last took (`takeSent()`):  each send is taken once, by
@@ -26,7 +26,7 @@ const INBOX_VERSION = 1
  * - EVERY write through `update()` / `updateAsync()`:  under the file's lock (`SRV.FileLock`), atomic
  * - Works with no Claude and no network:  the page server writes it (`packages/docs/tools/commentsRoutes.ts`)
  * - Node only (`node:fs`, `$/server`'s lock):  NOT in the `$/epics` barrel, imported by path.
- *   Here, not in `packages/docs/tools` where it began:  the plan-doc tool's `inbox wait` reads it, and nothing
+ *   Here, not in `packages/docs/tools` where it began:  the epic tool's `inbox wait` reads it, and nothing
  *   imports `docs`.
  ****************/
 export class GuideInbox {

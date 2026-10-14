@@ -45,7 +45,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - NOT in the barrel, opt-in by path (WWOD §8 › "Barrels"):
   - `$/server/page/...` -- the page server (one per checkout):
     its CLI (`spell dev server`), page edits, and running epics.
-    - Running epics (`RunningEpics`):  the main checkout's server shows every worktree's plan doc.
+    - Running epics (`RunningEpics`):  the main checkout's server shows every worktree's epic page.
     - It may use deps (`parse5`).
     - It serves the repo at `/`.
     - And Spell UI's docs, as static pages at `/ui/` (`UI_SITE`, `page.types.ts`).
@@ -84,13 +84,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - `WebServer` serves it at `/_server/favicon.*` and `/favicon.ico`,
         importing the leaf, never the browser-only barrel
     - `EpicState.ts`:  an epic's state (in progress, errors, paused, future, done).
-      - The ONE rule the docs index, `RunningEpics`, `<epic-page>` and the CLI's session icons share.
+      - The ONE rule the docs' home page, `RunningEpics`, `<epic-page>` and the CLI's session icons share.
       - NO imports at all, so plain `node` loads it by path
-        (the docs index's [index.js](../docs/tools/index.js)), and the epics pack bundles it.
+        (the docs' home page's [index.js](../docs/tools/index.js)), and the epics pack bundles it.
       - Each imports the file, never the barrel.
     - `EpicCards.ts`, beside it:  the Epics page's cards.
       - Its groups, a card's star and last-worked date, the favourites file.
-      - The docs index and `RunningEpics` draw them alike.
+      - The docs' home page and `RunningEpics` draw them alike.
       - Its ONE import is `./EpicState.ts`, by file name, so plain `node` loads it too.
   - `$/server/test/...` -- test helpers (`serveHandler`, `ask`)
 - Commands:

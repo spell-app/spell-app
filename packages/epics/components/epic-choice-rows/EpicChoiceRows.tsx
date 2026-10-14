@@ -13,7 +13,7 @@ import rowsCSS from "./EpicChoiceRows.css?inline"
 
 /****************
  * ### `EpicChoiceRows`
- * The component behind `<epic-choice-rows>`:  one section's table on a syntax-choices page (epic `epic-workflow`
+ * The component behind `<epic-choice-rows>`:  one section's table on a choice page (epic `epic-workflow`
  * P12).
  * - Draws the column heads, then its rows (`<epic-choice-row>`s, its children) on the same columns:  a grid, each
  *   row a subgrid of it.

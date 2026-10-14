@@ -43,7 +43,7 @@ export function worktreesOf(root: string): { path: string; branch: string }[] {
 
 /**
  * Where session / worktree / plan `name` stands, for `/park`, `/unpark`, `/wait-for` (was `status.py <name>`).
- * - `name` resolves as `/wtf <name>` does:  worktree `.claude/worktrees/<name>`, branch `<name>`, plan doc
+ * - `name` resolves as `/wtf <name>` does:  worktree `.claude/worktrees/<name>`, branch `<name>`, epic page
  *   `epics/<name>/`, and the sessions titled `<name>` or that worked in that worktree
  * - `ids`:  its session ids when already known:  finding them reads every transcript, so `park wait` finds them once
  * - git runs in the MAIN checkout:  branches are shared, so every worktree gets the same answer
@@ -81,12 +81,12 @@ export function nameStatus(name: string, ids?: string[], main = CLI.mainRoot()):
 }
 
 /**
- * What plan doc `file`'s state is read from (`$/server/site/EpicState` `EpicFacts`), from its skeleton's markup,
+ * What epic page `file`'s state is read from (`$/server/site/EpicState` `EpicFacts`), from its skeleton's markup,
  * with no parsing library:  `{ phases, updated, future, urgent }`.
  * - `phases`:  each `<epic-phase status>`;  `updated`, `future`:  `<epic-page updated future>`
  * - `urgent`:  the ids of the items that need Owen (`<epic-item state>`, `URGENT_STATES`:  red and orange chips)
  * - a doc still in the old markup (one restored from an old backup) reads as empty:
- *   the plan-doc tool refuses it until it's converted (epic `epic-components` P15)
+ *   the `epic` tool refuses it until it's converted (epic `epic-components` P15)
  */
 export function planFacts(file: string): {
   phases: string[]
@@ -113,7 +113,7 @@ export function planFacts(file: string): {
 }
 
 /**
- * Plan doc `name`:  its folder, and whether every phase is done, from `planSummaries()`.
+ * Epic page `name`:  its folder, and whether every phase is done, from `planSummaries()`.
  * - its live copy:  the worktree's when it has one, else the main checkout's (`planFile()`)
  */
 export function planStatus(
@@ -128,9 +128,9 @@ export function planStatus(
 }
 
 /**
- * Plan doc `name`'s live copy:  the worktree's when it has one, else the main checkout's;  or `null`.
- * - in each:  `<name>.plan.html`, else an old `<name>.html` that is a plan doc (`<body class="... plan-doc">`):
- *   plan docs were renamed on 2026-10-04, and worktrees cut before keep the old name until they merge `main`
+ * Epic page `name`'s live copy:  the worktree's when it has one, else the main checkout's;  or `null`.
+ * - in each:  `<name>.plan.html`, else an old `<name>.html` that is an epic page (`<body class="... plan-doc">`):
+ *   epic pages were renamed on 2026-10-04, and worktrees cut before keep the old name until they merge `main`
  *   (`packages/docs/tools/pages.js` `planDocIn()` is the same)
  * - which folder:  `epicsDir()`, old layout included
  */
@@ -146,7 +146,7 @@ export function planFile(name: string, worktree: string, main = CLI.mainRoot()):
 }
 
 /**
- * The folder checkout `root` keeps its plan docs in:  `epics` (since 2026-10-05, claude-design P4), else the first
+ * The folder checkout `root` keeps its epic pages in:  `epics` (since 2026-10-05, claude-design P4), else the first
  * older place that's there (a worktree on older code, until it merges `main`):  `packages/docs/content/epics`, then
  * `packages/docs/epics`.
  */
@@ -157,9 +157,9 @@ export function epicsDir(root: string): string {
 }
 
 /**
- * The summaries of the plan docs at `files` (absolute), the ones not read yet in ONE `plan-doc summaries` run;
+ * The summaries of the epic pages at `files` (absolute), the ones not read yet in ONE `plan-doc summaries` run;
  * a file it can't read is left out.
- * - runs the plan-doc tool of THIS checkout when it's installed, else the main checkout's:  a worktree's copy
+ * - runs the `epic` tool of THIS checkout when it's installed, else the main checkout's:  a worktree's copy
  *   needn't be installed, and the tool reads by path from any checkout
  * - `<epic-*>` docs only:  the tool refuses a doc in the old markup, which comes back `{ error }` and is left out,
  *   as is any other doc it can't read

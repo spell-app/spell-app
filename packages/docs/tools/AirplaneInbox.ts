@@ -28,7 +28,7 @@ const NOTE_FOLDERS = ["pages", "guides", "epics"]
  * - new epics from the Epics page's New epic button, not started yet (future, their log says so:  `epicRoutes.ts`)
  * - page notes not yet answered (`<spell-note status="new">` in guides and other pages:  `notesOnDisk.ts`)
  * - details pages answered since the flight began (`<slug>.answer.json`, newer than `since`)
- * - goals thoughts not yet digested (`li.goals-thought[data-status="new"]` in the goals pages)
+ * - goals thoughts not yet digested (`li.goals-thought[data-status="new"]` in the saga pages)
  * - read only:  taking the work is each place's own command (`plan-doc inbox apply`, `details answer`, `/goals-update`)
  ****************/
 export class AirplaneInbox {
@@ -144,7 +144,7 @@ function newEpicsWaiting(root: string): NewEpic[] {
 /** An epic's inbox, as `/airplane land` takes it. */
 export type EpicWaiting = {
   name: string
-  /** the plan doc, from the checkout's root */
+  /** the epic page, from the checkout's root */
   doc: string
   /** every mark, sent or not:  `{ id, action, at, note?, pick?, ... , sent }` */
   marks: (Record<string, unknown> & { id: string; action: string; sent: boolean })[]
@@ -222,7 +222,7 @@ function detailsAnswered(root: string, since: number): DetailsAnswered[] {
 }
 
 /**
- * Goals thoughts not yet digested, in every goals page:  NONE while goals is PARKED (epic `epic-workflow` P6).
+ * Goals thoughts not yet digested, in every saga page:  NONE while goals is PARKED (epic `epic-workflow` P6).
  * - The pages' Thought button only says TODO now, and the page reader that found thoughts (`GoalsPage`) is in
  *   `packages/goals.zip`;  epic `epic-goals` brings thoughts back, and this with them.
  */

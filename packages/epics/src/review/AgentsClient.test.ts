@@ -90,12 +90,12 @@ function fakeWindow() {
 ////////////////
 
 describe("AgentsClient.start()", () => {
-  test("listed ONLY on a plan doc served with a token, over http, once the list answers", async () => {
+  test("listed ONLY on an epic page served with a token, over http, once the list answers", async () => {
     const server = new FakeServer()
     expect(await clientOn(server, { server: undefined }).start()).toBe(false)
     expect(await clientOn(server, { protocol: "file:" }).start()).toBe(false)
     expect(await clientOn(server, { page: "/guides/x.html" }).start()).toBe(false)
-    server.fetch.mockResolvedValueOnce(json({ error: "not a plan doc" }, 403))
+    server.fetch.mockResolvedValueOnce(json({ error: "not an epic page" }, 403))
     expect(await clientOn(server).start()).toBe(false)
     const client = clientOn(server)
     const changes = vi.fn()

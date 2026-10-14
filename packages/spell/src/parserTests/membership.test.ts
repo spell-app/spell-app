@@ -5,7 +5,7 @@ import { runSpell } from "$/spell/test"
 
 /**
  * Membership and guards END TO END:  spell compiled, then RUN on `core`'s source.
- * - What `a card belongs to one pile` does to a running program (plan doc D7, D8, Q22 of precedence-and-types),
+ * - What `a card belongs to one pile` does to a running program (epic page D7, D8, Q22 of precedence-and-types),
  *   and the guards `move` asks (Q23 - Q25).
  * - The runtime alone is `core`'s `src/classes/List.test.ts`;  the parse alone, `grammar.probes.test.ts` (`X1` ...).
  */

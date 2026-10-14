@@ -1,6 +1,6 @@
 # `packages/epic-components/` -- Epic UI, the `<epic-*>` elements' pages
 
-PAGES, not code:  the docs set of the `<epic-*>` elements a plan doc is made of (epic `epic-workflow` P10).
+PAGES, not code:  the docs set of the `<epic-*>` elements an epic page is made of (epic `epic-workflow` P10).
 - Not a yarn workspace:  no `package.json`.  The elements themselves are the epics pack's, in
   [`packages/epics/components/`](../epics/components/).
 - Tracked and versioned with each branch, like code:  an element's page changes in the same commit as the element,
@@ -32,6 +32,6 @@ PAGES, not code:  the docs set of the `<epic-*>` elements a plan doc is made of 
   these pages yet:  they load Spell UI's site, not the docs bundle that draws them.
 - The epic's write-up and how-to guides stay in the guides:
   [Epic Pages as Components](../../guides/epic-components/epic-components.html),
-  [Reviewing a Plan Doc](../../guides/epic-components/review.html),
-  [The Plan-Doc Tool](../../guides/epic-components/tool.html),
-  [Plan Doc Colours](../../guides/epic-components/colours.html).
+  [Reviewing an Epic Page](../../guides/epic-components/review.html),
+  [The Epic Tool](../../guides/epic-components/tool.html),
+  [Epic Page Colours](../../guides/epic-components/colours.html).

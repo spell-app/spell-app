@@ -108,7 +108,7 @@ describe("migrateWorktree()", () => {
     const shared = git(PEER, "rev-parse", "HEAD")
     const report = CLI.migrateWorktree(clash, config)
     expect(report).toMatchObject({ conflicts: ["packages/docs/content/guide.html"], done: false })
-    // the docs index is built:  changed on both sides, it's rebuilt, not a conflict
+    // the home page is built:  changed on both sides, it's rebuilt, not a conflict
     expect(report.folds.find((each) => each.file === "packages/docs/content/index.html")?.action).toBe("rebuild")
     expect(git(PEER, "rev-parse", "HEAD")).toBe(shared)
     expect(read(PEER, "packages/docs/content/guide.html")).toBe("<p>guide, edited on feat</p>\n")

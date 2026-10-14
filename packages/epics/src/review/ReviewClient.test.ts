@@ -140,7 +140,7 @@ describe("ReviewClient.start()", () => {
     expect(await clientOn(server, { protocol: "file:" }).start()).toBe(false)
     const { client } = await started(server)
     expect(client.reviewing).toBe(true)
-    server.fetch.mockResolvedValueOnce(json({ error: "not a plan doc" }, 403))
+    server.fetch.mockResolvedValueOnce(json({ error: "not an epic page" }, 403))
     expect(await clientOn(server).start()).toBe(false)
   })
 

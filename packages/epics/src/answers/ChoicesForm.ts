@@ -15,7 +15,7 @@ import {
 
 /****************
  * ### `ChoicesForm`
- * A SYNTAX-CHOICES page's boxes, as its elements hold them (epic `epic-workflow` P12):
+ * A CHOICE page's boxes, as its elements hold them (epic `epic-workflow` P12):
  * what Owen typed over Claude's recommendations, the draft that keeps it, and "Do it".
  * - One per page (`forPage()`).
  * - Each row, `<epic-choice-row>`, registers while connected (`add()`);

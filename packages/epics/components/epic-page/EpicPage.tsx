@@ -72,7 +72,7 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicPage`
- * The component behind `<epic-page>`:  a plan doc --
+ * The component behind `<epic-page>`:  an epic page --
  * one epic's page, its data in attributes, its Overview and sections as children.
  * - Draws, top to bottom:
  *   - the sticky page header:  ONE line of crumbs, `DOCS / EPICS / <NAME>`, the name in their type, twice their size and bold, the h1
@@ -86,7 +86,7 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  *     icon, but bigger)";  then the state went into the step label:  "Into the pill")
  *   - the toolbar's bar, sticky again, right below the header (`--epic-head-h`):  the new item form, the toolbar
  *   - the review line, and the pill under it while it shows
- *   - the meta lines (branch, worktree, dates, the durable doc's link from `slot="durable"`)
+ *   - the meta lines (branch, worktree, dates, the guide's link from `slot="durable"`)
  *   - a future epic's notice, then its children
  * - The step label follows the phases, in the colours of decision Q20:
  *   - the active one (outlined blue:  Claude is on it;  links to it)
@@ -101,7 +101,7 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  *   - from the phases and items below and the doc's `updated` date, so it follows the live update too;
  *     a session listening to the review counts as running
  * - The review line under the header:  "To review this doc, type `/epic review <name>`", copied on click (it flashes)
- *   - on every plan doc, as today:  it's how a review starts;  airplane mode:  `/airplane land`
+ *   - on every epic page, as today:  it's how a review starts;  airplane mode:  `/airplane land`
  * - SEND AND REVIEW NOW (P10), at the header's right, before its labels:
  *   blue, and wearing the fill rule (Q20).
  *   - there whenever the page is reviewed (served with a token, its inbox answering:
@@ -128,13 +128,13 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  *   - edge to edge, its own rule under it and none above (Owen, 2026-10-10)
  *   - the header's and the bar's measured heights (`top`, `--epic-stack`) take it in
  *   - `slot="toolbar"`:
- *     where the docs runtime puts a plan doc's section buttons (`spell-doc-runtime.js` `buildToolbar()`)
+ *     where the docs runtime puts an epic page's section buttons (`spell-doc-runtime.js` `buildToolbar()`)
  *   - at its right, the PAGE'S STATE FILTER:  every section's chips added up,
  *     a click filtering every section at once (`StateFilter`, through each section's DOM element)
  *   - then expand-all and collapse-all, opening or folding the whole page
  * - SEE ALSO (Owen, 2026-10-13:  "There is no easy way to get to a "decisions" or "details" pages from an epic"),
  *   above its blocks:  the pages the epic made or leans on, each with its kind's icon and word, and its day
- *   - its durable doc;  every page in its `details/` folder (details pages, choices pages, its analysis page), newest
+ *   - its guide;  every page in its `details/` folder (details pages, choice pages, its review page), newest
  *     first;  then every guide its epic page and parts link to (epic `epic-workflow` P13), newest first
  *   - gathered by the page server (`GET /api/epics/pages`, the tool's `SeeAlso`) as it connects, and again when a
  *     page in the epic's folder changes (`spell-server:file`):  a page made or linked a moment ago shows
@@ -184,7 +184,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   // ## State
   ////////////////
 
-  /** Light-DOM slot occupancy:  the durable doc's link. */
+  /** Light-DOM slot occupancy:  the guide's link. */
   readonly slots = new E.SlotContent(this.domElement)
 
   /** Every commit shows. */
@@ -617,7 +617,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     )
   }
 
-  /** The meta lines:  branch, worktree, dates, durable doc. */
+  /** The meta lines:  branch, worktree, dates, guide. */
   private metaLines(): JSX.Element {
     return (
       <ul class={META} part={this.partForName("meta")} onClick={(event) => this.copyMeta(event)}>

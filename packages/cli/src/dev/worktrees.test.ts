@@ -100,12 +100,12 @@ describe("takeStock()", () => {
 })
 
 describe("planFile()", () => {
-  test("the worktree's plan doc, else main's;  <name>.plan.html, else an old <name>.html that is a plan doc", () => {
+  test("the worktree's epic page, else main's;  <name>.plan.html, else an old <name>.html that is an epic page", () => {
     const wip = join(MAIN, ".claude", "worktrees", "wip")
     expect(CLI.planFile("x", wip, MAIN)).toBeNull()
-    epic(MAIN, "x.html", "<body>not a plan doc</body>")
+    epic(MAIN, "x.html", "<body>not an epic page</body>")
     expect(CLI.planFile("x", wip, MAIN)).toBeNull()
-    // a worktree cut before plan docs moved into `content/`:  its old folder still counts
+    // a worktree cut before epic pages moved into `content/`:  its old folder still counts
     const before = epic(wip, "x.html", '<body class="spell-doc-page plan-doc">', ["packages", "docs", "epics"])
     expect(CLI.planFile("x", wip, MAIN)).toBe(before)
     const old = epic(wip, "x.html", '<body class="spell-doc-page plan-doc">')
@@ -141,7 +141,7 @@ function commit(message: string) {
 }
 
 describe("planFacts()", () => {
-  /** A plan doc file in the throwaway repo holding `html`. */
+  /** An epic page file in the throwaway repo holding `html`. */
   function doc(name: string, html: string) {
     const file = join(MAIN, `${name}.plan.html`)
     writeFileSync(file, html)

@@ -24,7 +24,7 @@ export type SiteProperty = {
 }
 
 /**
- * The docs home, relative to the repo root:  a routing page, a card per property (claude-design P5).
+ * The home page, relative to the repo root:  a routing page, a card per property (claude-design P5).
  * - the header's Spell logo goes there;  no tab is lit on it
  */
 export const SITE_HOME = "pages/index.html"
@@ -39,7 +39,7 @@ export const SITE_HOME = "pages/index.html"
  * - (before, claude-design Q6, 2026-10-05:  Epics · Guides · Brand · Spell UI · Templates · Goals · App)
  * - the home's cards are in the same order (`packages/docs/tools/index.js` `areaCards()`)
  * - each docs area's tab lights on its own pages (`docsArea()`):
- *   - a plan doc:  Epics
+ *   - an epic page:  Epics
  *   - a guide:  Guides
  *   - a template (the plan template under `templates/epics/` too):  Templates
  *   - the home and the scratch details pages:  none

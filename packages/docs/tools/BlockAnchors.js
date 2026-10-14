@@ -1,8 +1,8 @@
 /**
  * BLOCK ANCHORS:  where a COMMENT sits on its page (epic `airplane`, P11).
- * - A comment is Owen's, on one MAJOR BLOCK of a docs page or plan doc (`BLOCK_KINDS`):
+ * - A comment is Owen's, on one MAJOR BLOCK of a docs page or epic page (`BLOCK_KINDS`):
  *   - a docs page's:  a section, a table, an aside, a code block, a message, a set of cards or steps, a top-level list
- *   - a plan doc's:  an item, a phase's field, an update (`<epic-update>`, even inside an item or a field), the
+ *   - an epic page's:  an item, a phase's field, an update (`<epic-update>`, even inside an item or a field), the
  *     summary, Overview prose, and its tables, asides and code
  *   - or the whole page (`PAGE_ANCHOR`)
  * - Its ANCHOR finds that block again, also after the page changed:
@@ -41,7 +41,7 @@ export const BLOCK_KINDS = [
   ["list", "ui-list, ul, ol"]
 ]
 
-/** What a block's anchor counts from:  the nearest of these with an id (docs sections, plan doc parts). */
+/** What a block's anchor counts from:  the nearest of these with an id (docs sections, epic page parts). */
 export const CONTAINERS = "ui-section[id], epic-overview[id], epic-section[id], epic-phase[id], epic-item[id]"
 
 /** The anchor of a comment on the whole page;  its block is the sticky page header (`pageHeadIn()`). */
@@ -67,7 +67,7 @@ const OUTER_BLOCK = BLOCK_KINDS.filter(([kind]) => kind !== "section")
 /** Not the page's own content:  its header, notes, what the runtime adds (comments, bullhorns ...). */
 const NOT_CONTENT = "spell-notes, [data-spell-added], .spell-page-head, ui-sticky.spell-h1, nav, footer"
 
-/** A plan doc's parts that aren't its text:  the log, commits, an older doc's plan changes copies. */
+/** An epic page's parts that aren't its text:  the log, commits, an older doc's plan changes copies. */
 const NOT_PLAN_TEXT = "epic-event, epic-commit, epic-updated[slot], [slot='status']"
 
 /** A positional anchor:  `<container id | page>#<kind>-<n>`. */

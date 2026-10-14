@@ -118,7 +118,7 @@ function documentOf(html: string): Document {
   return parseHTML(`<!doctype html><html><body>${html}</body></html>`).document as unknown as Document
 }
 
-/** A small plan doc using every element, built through `Markup`, in `document`'s body;  returns its page. */
+/** A small epic page using every element, built through `Markup`, in `document`'s body;  returns its page. */
 function planDoc(document: Document): Element {
   const make = <T extends EpicTag>(tag: T, data: EpicData<T>, children?: Parameters<typeof Markup.element>[3]) =>
     Markup.element(document, tag, data, children)

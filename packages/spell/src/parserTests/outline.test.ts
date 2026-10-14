@@ -20,9 +20,9 @@ import { SP } from "$/spell"
 import { loadFixtureProject, parseSpellProject } from "$/spell/test"
 
 /**
- * The OUTLINE style (plan doc `outline-spell`):  a type's heading, `a card is a thing where:`, then a bulleted
+ * The OUTLINE style (epic page `outline-spell`):  a type's heading, `a card is a thing where:`, then a bulleted
  * body all about cards -- `it` / `its` meaning a card.
- * - Each outline must compile to EXACTLY what today's sentence style does for the same lines (plan doc Q1:
+ * - Each outline must compile to EXACTLY what today's sentence style does for the same lines (epic page Q1:
  *   both styles, same meaning).
  * - The rules are `TypeDeclaration` (`rules/classes/TypeDeclaration.ts`), `subject_it` / `subject_its` (`types/`),
  *   and each member rule's `{type:subject_it}` syntax.
@@ -106,7 +106,7 @@ describe("outline style", () => {
     ])
   })
 
-  test("a property's quotes are optional:  `its rank is ...` (plan doc Q4)", () => {
+  test("a property's quotes are optional:  `its rank is ...` (epic page Q4)", () => {
     const quoted = [
       "a card is a thing where:",
       '\t- its "rank" is a number',
@@ -129,14 +129,14 @@ describe("outline style", () => {
     expect(compile(["total is 5", "a card is a thing where:", "\t- its x is total"])).toContain("return total")
   })
 
-  test('`- it "rank" is ...` says to write `its` (plan doc todo T3)', () => {
+  test('`- it "rank" is ...` says to write `its` (epic page todo T3)', () => {
     const { files } = parseSpellProject([
       { path: "/test.spell", contents: 'a card is a thing where:\n\t- it "rank" is a number' }
     ])
     expect(files[0]!.errors).toEqual([`2:3 A property starts "its":  write its "rank" is ...`])
   })
 
-  test("quoted property names in the sentence style (plan doc J3, option C)", () => {
+  test("quoted property names in the sentence style (epic page J3, option C)", () => {
     const sentences = [
       "a card is a thing",
       "a card has a suit as one of clubs, diamonds, hearts or spades",

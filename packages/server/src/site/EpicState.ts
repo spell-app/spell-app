@@ -9,7 +9,7 @@
  * - `future` -- written down with `/epic future`, not planned yet
  *
  * Who draws it:
- * - the docs index's epic cards (`packages/docs/tools/index.js`), plain `node`:  it imports this FILE by path
+ * - the epic cards `docs index` writes (`packages/docs/tools/index.js`), plain `node`:  it imports this FILE by path
  * - the page server's live cards on the Epics page (`$/server/page` `RunningEpics`), which re-mark every card
  * - `<epic-page>`'s header mark (`packages/epics`), in the browser
  * - the session titles' icons (`spell dev session icons`, `packages/cli`)
@@ -29,9 +29,9 @@ export const EPIC_STATES = ["progress", "errors", "paused", "future", "done"] as
 export type EpicStateName = (typeof EPIC_STATES)[number]
 
 /**
- * What an epic's state is read from:  its plan doc's skeleton, and whether a session runs for it.
+ * What an epic's state is read from:  its epic page's skeleton, and whether a session runs for it.
  * - `phases`:  each `<epic-phase>`'s `status` (`done`, `active`, `todo`), in order
- * - `updated`:  `<epic-page updated>`, `YYYY-MM-DD`:  the plan-doc tool stamps it on every write
+ * - `updated`:  `<epic-page updated>`, `YYYY-MM-DD`:  the epic tool stamps it on every write
  * - `future`:  `<epic-page future>`
  * - `standing`:  `<epic-page standing>`:  open for good (epic `epic-workflow`):  every phase done is NOT done
  * - `urgent`:  the ids of the items that need Owen (`URGENT_SELECTOR`), e.g. `["q3", "j12"]`
@@ -71,7 +71,7 @@ export const PAUSED_DAYS = 3
 /** An item's `state` that needs Owen:  `attention` (red:  needs you), `replied` (orange:  waiting for your pick). */
 export const URGENT_STATES = ["attention", "replied"] as const
 
-/** A plan doc's items that need Owen (`URGENT_STATES`), for `querySelectorAll()`. */
+/** An epic page's items that need Owen (`URGENT_STATES`), for `querySelectorAll()`. */
 export const URGENT_SELECTOR = URGENT_STATES.map((state) => `epic-item[id][state="${state}"]`).join(", ")
 
 /** How each state is drawn:  words, colour, icon. */

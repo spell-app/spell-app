@@ -12,7 +12,7 @@
  * - `set <name> [--status active | "blocked on <name>"] [--task-id <id>]`, `done <name>`:  exit 1 if it isn't running
  * - `list [--json]` (default):  one line each, oldest first (`--json`:  the entries)
  * - `wait [--every <s>] [--max <s>] [--json]`:  run in the BACKGROUND (Bash `run_in_background`) while agents run;
- *   exits when Owen has sent one a note from the plan doc's Agents box (`agentRoutes.ts`), which wakes the session:
+ *   exits when Owen has sent one a note from the epic page's Agents box (`agentRoutes.ts`), which wakes the session:
  *   - 0:  untold redirects, printed `skillz-aaa:  <note>` (`--json`:  `[{ name, note, at }]`);  the session sends
  *     each to its agent (`SendMessage`), then `told <name>`
  *   - 3:  no agents running any more:  nothing to wait for

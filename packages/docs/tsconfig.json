@@ -7,7 +7,7 @@
   "compilerOptions": {
     "allowJs": true,
     "target": "ES2022",
-    // ES2023 (`findLast`, `toSorted` ...):  as `epics`, whose plan-doc tool the forwarders here compile;  Node 24 has them
+    // ES2023 (`findLast`, `toSorted` ...):  as `epics`, whose `epic` tool the forwarders here build;  Node 24 has them
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",

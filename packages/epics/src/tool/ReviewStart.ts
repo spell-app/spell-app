@@ -1,5 +1,5 @@
 /**
- * Starting a review from the plan doc, and WAKING an epic nobody is listening for.
+ * Starting a review from the epic page, and WAKING an epic nobody is listening for.
  *
  * Starting (epic `airplane` P12):  `POST /api/review/start` (`reviewRoutes`), `start()`.
  * - Owen clicks the "No Claude session is reviewing" pill, or the review line.
@@ -21,7 +21,7 @@
  *   5. no VS Code window at all:  nothing;  the page gives the command to type
  * - Never:  a new worktree;  two wakes for one epic (the inbox's `woken`, `ReviewInbox.claimWake()`);
  *   a wake while several sessions are titled for the epic, in airplane mode, or for a Send with nothing new (J47).
- * - Any page kind wakes its epic the same way:  a guide's or goal page's Send calls `wakeFor()` with the plan doc of
+ * - Any page kind wakes its epic the same way:  a guide's or saga page's Send calls `wakeFor()` with the epic page of
  *   the epic it belongs to, so the epic page and its guides share one wake record.
  */
 import { spawn, spawnSync } from "node:child_process"
@@ -137,7 +137,7 @@ export class ReviewStart {
   ////////////////
 
   /**
-   * Change plan doc `planDoc`'s inbox with `change` (a Send, a Do Now) under its lock, then wake its epic `epic`
+   * Change epic page `planDoc`'s inbox with `change` (a Send, a Do Now) under its lock, then wake its epic `epic`
    * if nobody listens (`wakeFor()`'s rules);  the inbox as the page reads it, plus `wake`, what the wake did.
    * - `change` returns whether the request handed over anything new (`ReviewInbox.hasUnsent`, read before the send)
    * - the change and the wake's claim share ONE lock:  two Sends at once wake once
@@ -155,8 +155,8 @@ export class ReviewStart {
   }
 
   /**
-   * Wake epic `epic` (plan doc `planDoc`, whose inbox keeps the wake) after a Send or Do Now on ANY page of it
-   * (a guide, a goal page) that handed over `fresh` work;  what the wake did, or `null` when a session listens.
+   * Wake epic `epic` (epic page `planDoc`, whose inbox keeps the wake) after a Send or Do Now on ANY page of it
+   * (a guide, a saga page) that handed over `fresh` work;  what the wake did, or `null` when a session listens.
    * - for a page whose request was written elsewhere (a guide's own inbox):  the epic page's is `changeAndWake()`
    * - SIDE EFFECT:  may type into a session, open a session or a window;  writes the epic's inbox (`woken`)
    */

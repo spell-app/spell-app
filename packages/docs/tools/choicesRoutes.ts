@@ -1,5 +1,5 @@
 /**
- * Syntax-choices pages' drafts and answers, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`),
+ * Choice pages' drafts and answers, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`),
  * listed in the repo root's `package.json` `"pageServer": { "routes": [...] }`.
  * - A SYNTAX-CHOICES PAGE:  a table of names Claude recommends, one row per use site, each pre-filled in a box Owen
  *   types over (`spell dev choices`, `choices.js`);  the page's `<epic-choices-bar>` posts here
@@ -65,7 +65,7 @@ const choicesRoutes: RouteModule = {
 export default choicesRoutes
 
 /**
- * The syntax-choices page file URL path `page` names, through the server's mounts.  Either:
+ * The choice page file URL path `page` names, through the server's mounts.  Either:
  * - a details-folder page with its rows beside it, `<slug>.rows.json` (`spell dev choices new`)
  * - or a docs page naming its own rows, on its `<body data-choices-rows="...">` (`declaredRows()`):
  *   e.g. the spell syntax guide, whose rows are generated from the code, and whose boxes are keyed `<row>.<field>`
@@ -75,7 +75,7 @@ export function choicesPage(files: SRV.StaticHandler, page: unknown): string {
   const file = servedPage(files, page)
   if (isDetailsPage(file) && existsSync(rowsFile(file))) return file
   if (declaredRows(file)) return file
-  throw new SRV.HttpError(403, `not a syntax-choices page:  ${String(page)}`)
+  throw new SRV.HttpError(403, `not a choice page:  ${String(page)}`)
 }
 
 /**

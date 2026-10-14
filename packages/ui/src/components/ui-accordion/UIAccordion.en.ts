@@ -17,7 +17,7 @@
  * - `open` lists the open panels by INDEX, like Fomantic's `open(index)`:
  *   a pair has no element of its own to carry the state.  An open panel is `open`, as a `<details>` is.
  * - `source` (`UIT.LoadableBody*`):  the FIRST panel's content comes from a file the first time it opens
- *   (`LoadableBody`);  meant for an accordion of one title + content pair (a plan doc's item).
+ *   (`LoadableBody`);  meant for an accordion of one title + content pair (an epic page's item).
  * - A `<ui-accordion>` inside another one is NESTED (`ownsParts:  accordion`):
  *   it drops `ui` and takes its parent's look, as Fomantic's `.ui.accordion .accordion` does.
  */

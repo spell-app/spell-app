@@ -1,6 +1,6 @@
 /**
  * Tests of `migrate.js`:  the docs' page kinds and their migration steps (epic `epic-workflow`, P8), and that the
- * plan-doc tool's copy of the comment anchor rules (`PlanAnchors`) agrees with `BlockAnchors.js`.
+ * `epic` tool's copy of the comment anchor rules (`PlanAnchors`) agrees with `BlockAnchors.js`.
  */
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
@@ -60,7 +60,7 @@ const OLD_PLAIN =
   '<body><main><p>Just words.</p></main><script src="../../../packages/docs/tools/_assets/details.js"></script>' +
   '<script src="../../../packages/docs/tools/_assets/spell-ui.js"></script></body></html>'
 
-/** A syntax-choices page before P12:  its rows drawn by `syntax-choices.js`, from the rows file beside it. */
+/** A choice page before P12:  its rows drawn by `syntax-choices.js`, from the rows file beside it. */
 const OLD_CHOICES =
   '<!doctype html><html><head><link rel="stylesheet" href="../../packages/docs/tools/_assets/syntax-choices.css"></head>' +
   '<body class="spell-doc-page spell-choices-page" data-spell-needs-server><div class="spell-doc"><main class="spell-doc-main">' +
@@ -68,7 +68,7 @@ const OLD_CHOICES =
   '<script src="../../packages/docs/tools/_assets/syntax-choices.js"></script></body></html>'
 
 describe("page kinds", () => {
-  test("the same kinds as the plan-doc tool's", () => {
+  test("the same kinds as the `epic` tool's", () => {
     expect(KINDS).toEqual([...PAGE_KINDS])
   })
 
@@ -144,14 +144,14 @@ describe("migratePages", () => {
     expect(report(dry.results, root, { dryRun: true })).toEqual([
       "guides/old.html:  would run ui-section",
       "  ui-section:  1 sections -> <ui-section>",
-      "guide pages:  1 of 2 would change (ui-section 1)"
+      "guides:  1 of 2 would change (ui-section 1)"
     ])
     const real = migratePages(pages, { tidied: false })
     expect(real.written).toEqual([join(root, "guides/old.html")])
     expect(readFileSync(join(root, "guides/old.html"), "utf8")).toMatch(/<ui-section id="one"/)
     const again = migratePages(pages, { tidied: false })
     expect(again.written).toEqual([])
-    expect(report(again.results, root).at(-1)).toBe("guide pages:  0 of 2 changed")
+    expect(report(again.results, root).at(-1)).toBe("guides:  0 of 2 changed")
   })
 
   test("answer-elements:  an old details page in the epics pack's elements, every word and answer key kept;  once", () => {
@@ -167,7 +167,7 @@ describe("migratePages", () => {
       "  answer-elements:  1 comment boxes",
       "epics/big/details/plain.html:  answer-elements",
       "  answer-elements:  no questions:  its old script and sheet dropped",
-      "detail pages:  2 of 2 changed (answer-elements 2)"
+      "details pages:  2 of 2 changed (answer-elements 2)"
     ])
     const html = readFileSync(join(root, "epics/big/details/pick.html"), "utf8")
     expect(html).not.toMatch(/spell-question|spell-option|details\.(js|css)|data-details-status/)
@@ -193,7 +193,7 @@ describe("migratePages", () => {
     expect(migratePages(pages, { tidied: false }).written).toEqual([])
   })
 
-  test("answer-elements:  an old syntax-choices page's rows written into it from its rows file, with its bar", () => {
+  test("answer-elements:  an old choice page's rows written into it from its rows file, with its bar", () => {
     const rows = {
       sections: [{ id: "q1", title: "Q1 · Names", description: "`is` first" }],
       rows: [
@@ -233,7 +233,7 @@ describe("migratePages", () => {
     expect(html).toContain('source="../packages/epics/pack/epics.pack.js"')
   })
 
-  test("a goals page is never a step's:  it keeps the old markup", () => {
+  test("a saga page is never a step's:  it keeps the old markup", () => {
     const root = checkout({ "templates/goals/index.html": OLD_PAGE })
     expect(pagesFor(root)).toEqual([])
   })

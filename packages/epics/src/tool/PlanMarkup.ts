@@ -4,7 +4,7 @@
  * converter (`$/epics/convert`):  escaping, serializing, building elements with their attributes in order, small DOM
  * edits (moving children, stripping their text, a title as `<epic-*>` data), comparing markup however oxfmt wrapped
  * it.
- * - STATIC and instance-free on purpose:  no state, and nothing here knows what a plan doc is, beyond
+ * - STATIC and instance-free on purpose:  no state, and nothing here knows what an epic page is, beyond
  *   `slot="title"`.
  * - Imports nothing:  the DOM it works on is whatever document it's handed (linkedom under node).  Plain DOM, no
  *   globals (`nodeType`, never `instanceof`).
@@ -85,7 +85,7 @@ export class PlanMarkup {
 
   /**
    * Serialized `html` (a document's, or a fragment's `innerHTML`) with boolean attributes bare (`styled`, not
-   * `styled=""`), as `serialize()` writes a page;  a plan doc's part files too.
+   * `styled=""`), as `serialize()` writes a page;  an epic page's part files too.
    * - repeated until stable:  one pass fixes one attribute per tag, and `ui-table` has four
    */
   static serializeHTML(html: string): string {

@@ -154,7 +154,7 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
    * - `index`:  its position among the item's sets in page order, never counting one in its Original Discussion
    * - `own`:  it's the item's own (its first child set, else its first), what a pick from before I8 meant
    * - `undefined` outside an item, or in an Original
-   * - the plan-doc tool counts the same way (`PlanItem.choiceSets()` / `choiceSet()`):  a pick's `choices`
+   * - the epic tool counts the same way (`PlanItem.choiceSets()` / `choiceSet()`):  a pick's `choices`
    */
   static setOf(element: Element): CardSet | undefined {
     const choices = element.closest(CHOICES_TAG)

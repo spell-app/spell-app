@@ -6,7 +6,7 @@
  * - new:  `<ui-section id header sticky collapsible dividing>` (`spell-docs/ui-section-test.html` shows every piece)
  * - `convertSections()` is the conversion, on a parsed document
  * - then tidies each page (`pages.js` `tidy()`:  link targets, oxfmt), as every script that writes one does
- * - NEVER run it on the goals pages (`templates/goals/`, the repo root's `goals/`):  they keep the old markup
+ * - NEVER run it on the saga pages (`templates/goals/`, the repo root's `goals/`):  they keep the old markup
  */
 import { readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
@@ -202,7 +202,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const written = []
   for (const page of pages) {
     if (/(^|\/)goals\//.test(page)) {
-      console.error(`${page}:  a goals page keeps the old markup:  skipped`)
+      console.error(`${page}:  a saga page keeps the old markup:  skipped`)
       continue
     }
     const file = pageFile(page)

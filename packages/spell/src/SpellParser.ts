@@ -214,7 +214,7 @@ export class SpellParser extends P.Parser {
    *   so the editor keeps its last good version rather than re-parsing everything.
    *   See `P.IncrementalProject.update()`.
    * - A value kind too, `- "suits" as one of ...` declares `suit` (`value_kind`):  so a card above the deck
-   *   can say `its "suit" is a suit` (plan doc `outline-spell`, issue I3).
+   *   can say `its "suit" is a suit` (epic page `outline-spell`, issue I3).
    */
   declaredTypes(text: string): string[] {
     const types = [...text.matchAll(SpellParser.TYPE_DECLARATION)].map(([, type, created]) => (type ?? created)!)

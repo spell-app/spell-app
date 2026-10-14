@@ -16,7 +16,7 @@ import { EPIC_CARDS_END, EPIC_CARDS_START } from "$/server/site/EpicCards"
 import { ask } from "$/server/test/serve"
 
 /**
- * A plan doc in `<epic-*>` markup with `phases`, each `[status, header]` (`P2 · Title`), `updated` that day;  its
+ * An epic page in `<epic-*>` markup with `phases`, each `[status, header]` (`P2 · Title`), `updated` that day;  its
  * phase tags spread over lines, as oxfmt writes them.
  */
 function planDoc(title: string, phases: [string, string][] = [], updated?: string): string {
@@ -63,7 +63,7 @@ describe("RunningEpics", () => {
       ])
     )
     // a worktree cut before the rename to `<name>.plan.html` and the move into `content/`:
-    // its plan doc under the old name and folder still counts;  a page of that name that isn't a plan doc doesn't
+    // its epic page under the old name and folder still counts;  a page of that name that isn't an epic page doesn't
     put(root, ".claude/worktrees/vite/packages/docs/epics/vite/vite.html", planDoc("Vite"))
     put(root, ".claude/worktrees/vite/packages/docs/epics/notes/notes.html", "<html><body>notes</body></html>\n")
     server = await new PageServer({ root }).start({ port: 0, routes: false })
@@ -177,7 +177,7 @@ describe("RunningEpics", () => {
   })
 
   // epic `epic-components` P8:  converted docs say it in attributes (the old markup read no more since P15)
-  it("reads a plan doc in <epic-*> markup:  phases, the active one's label, the page's updated date", () => {
+  it("reads an epic page in <epic-*> markup:  phases, the active one's label, the page's updated date", () => {
     const fresh = mkdtempSync(join(tmpdir(), "srv-epics-new-"))
     try {
       put(
@@ -201,7 +201,7 @@ describe("RunningEpics", () => {
     }
   })
 
-  // the ONE rule, `$/server/site/EpicState`, as the docs index and `<epic-page>` draw it (epic `airplane` P8)
+  // the ONE rule, `$/server/site/EpicState`, as the Epics list page and `<epic-page>` draw it (epic `airplane` P8)
   it("marks a future epic with a grey seedling;  every phase done:  errors while items need Owen, else done", () => {
     const quiet = mkdtempSync(join(tmpdir(), "srv-epics-quiet-"))
     try {
@@ -246,7 +246,7 @@ describe("RunningEpics", () => {
     }
   })
 
-  it("marks the docs index's cards again as it serves the page:  today's date, a session running", () => {
+  it("marks the Epics list page's cards again as it serves the page:  today's date, a session running", () => {
     const now = new Date(2026, 9, 10, 9)
     const card = (facts: string) =>
       `<ui-card data-epic="nap" data-status="open"${facts}><ui-content>\n<ui-header>` +
@@ -303,7 +303,7 @@ describe("RunningEpics", () => {
       expect(groups.slice(2).every((group) => group.includes(" hidden>"))).toBe(true)
       expect(html).toContain('aria-pressed="false" aria-label="Star alpha"')
       expect(html.match(/data-epic="seo"/g)).toHaveLength(1)
-      // last worked:  the merged card's (its branch's commit, as the docs index read it) beat the doc's log line
+      // last worked:  the merged card's (its branch's commit, as `docs index` read it) beat the doc's log line
       expect(html).toMatch(/data-epic="seo"[^>]*data-worked="2026-10-09T20:00/)
       expect(new RunningEpics(grouped).list()[0]?.worked).toBe(new Date("2026-10-08T09:15-04:00").toISOString())
       expect(html.indexOf(EPIC_CARDS_START)).toBeLessThan(html.indexOf(EPIC_CARDS_END))
@@ -350,7 +350,7 @@ describe("RunningEpics, shared content", () => {
   })
 })
 
-// epic `airplane` P12:  which running session a plan doc's "start a review" types into
+// epic `airplane` P12:  which running session an epic page's "start a review" types into
 describe("sessions titled for an epic", () => {
   it("names it as its bare title, or as a whole word;  never inside a longer name", () => {
     expect(titleNames("🚧 airplane", "airplane")).toBe(true)

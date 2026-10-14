@@ -1,5 +1,5 @@
 /*
- * `<epic-item>` (EpicItem.tsx):  a plan doc's item.
+ * `<epic-item>` (EpicItem.tsx):  an epic page's item.
  * - its line:  chevron, id chip, title, review label, actions
  * - its details:  the light-DOM prose and parts, through the default slot
  * - Shared look from `<epic-page>`'s `:host` (custom properties inherit through shadow roots).

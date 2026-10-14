@@ -12,7 +12,7 @@ import rowsCSS from "./EpicChoiceRows.css?inline"
 
 /****************
  * ### `EpicChoiceRow`
- * The component behind `<epic-choice-row>`:  one row of a syntax-choices page (epic `epic-workflow` P12).
+ * The component behind `<epic-choice-row>`:  one row of a choice page (epic `epic-workflow` P12).
  * - Its cells, on its `<epic-choice-rows>`' columns (the table's `no-file`, `stacked` and `reorder` say which):
  *   - Order, with `reorder` (epic `epic-workflow` P15):  its place, and move up / move down, which swap it with the
  *     row above or below.  The neighbour is the element moved, so this row keeps the focus for the next press.

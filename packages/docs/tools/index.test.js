@@ -21,7 +21,7 @@ function page(path) {
   return { path, title: path, description: "", phases: [], updated: null, future: false, urgent: [] }
 }
 
-describe("the docs home's cards", () => {
+describe("the home page's cards", () => {
   it("come in the top bar's order (epic-workflow J40), counted from the pages", () => {
     const cards = areaCards(
       [
@@ -164,7 +164,7 @@ describe("the list pages", () => {
   })
 })
 
-describe("planOf():  a plan doc's card data (epic-components P8)", () => {
+describe("planOf():  an epic page's card data (epic-components P8)", () => {
   const expected = {
     phases: [
       { status: "done", label: "P1 · First Go" },

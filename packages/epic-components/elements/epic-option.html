@@ -57,7 +57,7 @@
           <!-- no <ui-list class="spell-meta">:  its <ui-item>s take the "item" style sheet before the pack's
                <epic-item> can, and the live items draw unstyled (issue I9 of epic-components) -->
           <p class="meta">
-            For anyone reading or writing a plan doc's markup, or changing this element.<br />
+            For anyone reading or writing an epic page's markup, or changing this element.<br />
             <ui-label size="mini" color="green">built</ui-label> in
             <a href="../../packages/epics/components/epic-choices/" target="src-packages-epics-components-epic-choices"
               ><code title="packages/epics/components/epic-choices/">epic-choices/</code></a
@@ -79,7 +79,7 @@
             <p>Live: the real element, drawn by the epics pack this page loads.</p>
             <ul>
               <li>Click a line to unfold it.</li>
-              <li>The review buttons don't show here: they show only on a plan doc being reviewed.</li>
+              <li>The review buttons don't show here: they show only on an epic page being reviewed.</li>
             </ul>
             <p>Option A recommended; the second set answered with B, so B is the chosen panel.</p>
             <epic-item id="q1" title="Which colour names can a window take?" status="open" state="attention" open>
@@ -471,7 +471,7 @@
             <p>
               The colours mean the same on every doc page: the whole scheme is on
               <a href="../../guides/epic-components/colours.html" target="src-guides-epic-components-colours-html"
-                >Plan Doc Colours</a
+                >Epic Page Colours</a
               >
               (its source:
               <a
@@ -513,8 +513,8 @@
               </li>
             </ul>
             <p>
-              While a plan doc is being reviewed (<code>&lt;epic-page reviewing&gt;</code>, served by the page server),
-              its marks go to the doc's review inbox: the file of Owen's marks that Claude reads
+              While an epic page is being reviewed (<code>&lt;epic-page reviewing&gt;</code>, served by the page
+              server), its marks go to the doc's review inbox: the file of Owen's marks that Claude reads
               (<code>&lt;name&gt;.inbox.json</code>).
             </p>
           </ui-section>

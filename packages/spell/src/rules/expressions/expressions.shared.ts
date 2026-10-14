@@ -43,7 +43,7 @@ export type OperatorOperands = {
 /**
  * What the suffix being parsed FOLLOWS, when `CompoundExpression` knows:  its operand, for the first suffix after it,
  * or the operand after an `and` / `or` -- so a user's phrase can refuse a thing that isn't its own, e.g. a deck's
- * `a rank "is a face card"` on `the card is a face card`, where the card has its own (plan doc `outline-spell`, J8 /
+ * `a rank "is a face card"` on `the card is a face card`, where the card has its own (epic page `outline-spell`, J8 /
  * J11, I7).
  * - A suffix can't see its left side through `parse()`'s arguments:  this is the side channel, set while
  *   `CompoundExpression` parses that one suffix, and restored after, so nested expressions keep their own.

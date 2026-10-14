@@ -12,7 +12,7 @@ import { MarkupCheck } from "./MarkupCheck"
 
 /****************
  * ### `Markup`
- * Reads and writes a plan doc's `<epic-*>` markup THROUGH THE DEFINITIONS:  data in attributes, prose in children.
+ * Reads and writes an epic page's `<epic-*>` markup THROUGH THE DEFINITIONS:  data in attributes, prose in children.
  * - Make an element from data (`element()`), read its data back (`read()`), change it (`set()`), put a child where
  *   its parent's content model lists it (`place()`), check a whole doc or a part (`validate()`).
  * - Plain DOM, no globals:  works on linkedom documents (node:  the tool, the converter) and the browser's DOM

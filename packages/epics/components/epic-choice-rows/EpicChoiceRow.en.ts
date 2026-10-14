@@ -8,7 +8,7 @@ import type { EpicVocabulary } from "$/epics/definitions"
 
 /****************
  * ### `<epic-choice-row>`
- * One row of a syntax-choices page:  a use site, and the box holding Claude's recommendation for it.
+ * One row of a choice page:  a use site, and the box holding Claude's recommendation for it.
  ****************/
 export const epicChoiceRowVocabulary = {
   tag: "epic-choice-row",
@@ -17,7 +17,7 @@ export const epicChoiceRowVocabulary = {
   noun: "choice row",
   ui: false,
   description:
-    "One row of a syntax-choices page (epic `epic-workflow` P12), in an `<epic-choice-rows>`:  the use site " +
+    "One row of a choice page (epic `epic-workflow` P12), in an `<epic-choice-rows>`:  the use site " +
     "(File, opening VS Code at the line), what it's for, how it reads today, and a box pre-filled with Claude's " +
     "recommendation.  Owen types over it, or leaves it;  a changed box is orange, with a round button putting " +
     "the recommendation back.  In a table Owen puts in order (`<epic-choice-rows reorder>`), its place first, " +

@@ -13,7 +13,7 @@
  * - stdin `{ prompt, cwd, session_id, permission_mode, ... }`
  * - Acts only on `/isolate <name>` (not `/isolate done`), `/epic <name> [plan]` (not `/epic review ...` or
  *   `/epic done`, which is `/isolate done`),
- *   `/epic resume <name>` and `/unpark <name>`.  `review`, `resume`, `color` and `future` are reserved epic names:  a
+ *   `/epic resume <name>` and `/unpark <name>`.  `review`, `resume`, `color` and `future` are reserved epic ids:  a
  *   review runs from any window, and keeps the session's name;  a resume, like `/unpark`, is only renamed (it picks
  *   its window itself);  `/epic color <look>` recolours the window it's typed in:  nothing to gate;
  *   `/epic future <name> ...` writes an idea down as a future epic (no worktree):  only renamed, `📅 <name>`.

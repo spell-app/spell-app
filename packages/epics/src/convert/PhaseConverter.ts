@@ -26,7 +26,7 @@ import type { Converter } from "./Converter"
  *   of the phase's Done (else its Goal):  `EXTRA_FIELD_HOSTS`.
  * - Dropped, as chrome:  the progress bar, status icons.
  * - The old Plan changes box (a copy of the Updated lines of the phases still to do) is dropped:  each phase counts
- *   its own in its `changes`, as the plan-doc tool writes it on every edit (`PlanDoc.writeChangeCounts()`).
+ *   its own in its `changes`, as the epic tool writes it on every edit (`PlanDoc.writeChangeCounts()`).
  ****************/
 export class PhaseConverter {
   /** The converter it works for:  STATIC for its life. */

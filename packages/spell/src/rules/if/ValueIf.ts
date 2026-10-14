@@ -9,7 +9,7 @@ import { _if_ } from "./if.parser"
 /**
  * `value_if` rule:  `red if it is diamonds or hearts` -- one line of a getter's body:
  * a VALUE, then when it's the answer;
- * `value_otherwise` (`black otherwise`) is the last line (plan doc `outline-spell`, P2):
+ * `value_otherwise` (`black otherwise`) is the last line (epic page `outline-spell`, P2):
  *
  * ```spell
  * - the "color" of a suit is:

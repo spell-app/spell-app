@@ -118,7 +118,7 @@ export const FLOATING_MESSAGE_STYLE: JSX.CSSProperties = {
 /****************
  * ### `<ErrorNotice>`
  * `editor.error` over the page content, through `<ErrorDisplay>`;  closing it calls `editor.hideError()`.
- * - SEE:  its App UI page, `packages/app/components/ErrorNotice.html` (`/app-ui/ErrorNotice.html`).
+ * - SEE:  its App UI components page, `packages/app/components/ErrorNotice.html` (`/app-ui/ErrorNotice.html`).
  ****************/
 export function ErrorNotice() {
   const error = tracked(() => editor.error)

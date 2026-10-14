@@ -29,7 +29,7 @@ export class QuotedPropertyFormula extends SpellStatement<"type|alias|sources?",
 
   /**
    * Reject the match unless `alias`'s first quoted word is `"is"`:  see rule NOTE above.
-   * - No `for its ...` (an outline body's `it "is a (suit)"`, plan doc `outline-spell` P3, J9):
+   * - No `for its ...` (an outline body's `it "is a (suit)"`, epic page `outline-spell` P3, J9):
    *   INFER what each blank reads (see `inferPlaceholders()`).
    * - Only when the line is the phrase and nothing more, and then (J9, option A):
    *   - no blank at all, e.g. `it "is a suit"`:  an error, not an empty method (the parens are required)
@@ -71,7 +71,7 @@ export class QuotedPropertyFormula extends SpellStatement<"type|alias|sources?",
    * `match`, its `for its ...` properties found while parsing (into `data.sources`);
    * or a parse error naming the first with no list of values.
    * - As written, else by its singular:
-   *   `for its suits` is a value kind's `suit` (plan doc I5), or the sentence style's own `suits` list.
+   *   `for its suits` is a value kind's `suit` (epic page I5), or the sentence style's own `suits` list.
    */
   private static resolveSources(match: P.MatchFor<QuotedPropertyFormula>): P.Match {
     const type = getKnownType(match.groups.type)
@@ -124,7 +124,7 @@ export class QuotedPropertyFormula extends SpellStatement<"type|alias|sources?",
   /**
    * `alias`'s blanks (its words in parens), and the property each reads:
    * e.g. `is the (rank) of (suits)` on a card => `["rank", "suit"]`, what `for its ranks and its suits` would say.
-   * - ONLY a word in parens is a blank;  a bare word is always just a word (plan doc J9, Owen:  "require the parens").
+   * - ONLY a word in parens is a blank;  a bare word is always just a word (epic page J9, Owen:  "require the parens").
    * - A blank names a property by its singular, e.g. `(suits)` => `suit`, as `for its suits` does.
    * - Only a property with a list of values:  its own (`as one of ...`), or a value kind's (`its "suit" is a suit`).
    * - `{ unlisted }`:  the first blank naming no such property, e.g. `color` for `is a (color)`.
@@ -137,7 +137,7 @@ export class QuotedPropertyFormula extends SpellStatement<"type|alias|sources?",
   ): InferredPlaceholders | { unlisted: string } | undefined {
     const sources: string[] = []
     for (const word of alias) {
-      // only a blank in parens:  a bare word is always just a word (plan doc J9:  "require the parens")
+      // only a blank in parens:  a bare word is always just a word (epic page J9:  "require the parens")
       const blank = /^\((.+)\)$/.exec(word)?.[1]
       if (!blank) continue
       const listed = QuotedPropertyFormula.listedProperty(type, [singularize(blank)])

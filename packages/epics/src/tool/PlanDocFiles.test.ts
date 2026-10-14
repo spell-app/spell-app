@@ -19,14 +19,14 @@ import { PlanDocFiles } from "./PlanDocFiles"
 /** The tracked fixtures:  a new doc in `<epic-*>` markup, and one in the old markup. */
 const FIXTURES = fileURLToPath(new URL("fixtures", import.meta.url))
 
-/** This checkout's plan docs:  the edits below are on temp files, linked and formatted as a real doc's. */
+/** This checkout's epic pages:  the edits below are on temp files, linked and formatted as a real doc's. */
 const FILES = new PlanDocFiles()
 
 /** When the tests' edits happen:  local 2026-10-01 09:05. */
 const NOW = new Date(2026, 9, 1, 9, 5)
 
 /**
- * A plan doc with a body in every kind of host:  an Overview sub-section (with an `h4` id and a link), a phase,
+ * An epic page with a body in every kind of host:  an Overview sub-section (with an `h4` id and a link), a phase,
  * an item with details (and a commit), an item without, the log.
  */
 function richPlan() {

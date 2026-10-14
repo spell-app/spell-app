@@ -55,7 +55,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - Its tree:  [epicProgram.ts](src/epicProgram.ts);  `epic --help` lists it, under headings.
     - It starts LEAN, as `spell dev` does:  [epicMain.ts](src/epicMain.ts) loads commander and `epicProgram.ts`,
       never the barrel.
-    - An epic page's verbs run the plan-doc tool in this process (`planDocCommand()`),
+    - An epic page's verbs run the `epic` tool in this process (`planDocCommand()`),
       after [epicArgs.ts](src/epic/epicArgs.ts) turns `seo#J3` into the tool's own arguments (`close seo J3`):
       a thin translation, tested verb by verb.
     - The groups (`ask`, `choices`, `comments`, `notes`, `agents`, `airplane`) are pass-throughs, as below.
@@ -80,7 +80,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - Importing `$/cli` there would load spell into every `spell dev` call.
     - `TOOLS`, in [passThrough.ts](src/dev/passThrough.ts), says how each tool runs:
       a child `node`, under `tsx` when it needs aliases.
-  - The plan-doc tool (`epic`'s page verbs, `spell dev plan-doc`) is lean, but no pass-through:
+  - The `epic` tool (`epic`'s page verbs, `spell dev plan-doc`) is lean, but no pass-through:
     it runs IN this process (epic `epic-components`).
     - That's [planDocCommand.ts](src/commands/planDocCommand.ts),
       loading `$/epics/tool/PlanDocCommands` on first use.

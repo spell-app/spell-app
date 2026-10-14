@@ -59,7 +59,7 @@ async function render(html: string): Promise<E.DOMElement> {
 }
 
 describe("<epic-page>", () => {
-  test("draws the epic's name as its h1 (no title under it), its meta lines and its durable doc's link, and passes axe", async () => {
+  test("draws the epic's name as its h1 (no title under it), its meta lines and its guide's link, and passes axe", async () => {
     const host = await render(
       page(`branch="demo" worktree="/w/demo" started="2026-10-06" updated="2026-10-07"`, ["done"], "").replace(
         "</epic-overview>",
@@ -73,10 +73,10 @@ describe("<epic-page>", () => {
       li.textContent!.replace(/\s+/g, " ").trim()
     )
     expect(lines).toEqual([
-      "Plan doc for /epic demo, branch demo",
+      "Epic page for /epic demo, branch demo",
       "Worktree: /w/demo",
       "Started 10/6/26, updated 10/7/26",
-      "Durable doc:"
+      "Guide:"
     ])
     expect(host.querySelector('a[slot="durable"]')!.assignedSlot).not.toBeNull()
     await expectAccessible(host)
@@ -305,7 +305,7 @@ describe("<epic-page>", () => {
     const pages = [
       { href: "details/names.html", title: "Boolean names", kind: "choices", updated: "2026-10-12T21:00:00.000Z" },
       { href: "details/analysis.html", title: "Analysis", kind: "details", updated: "2026-10-11T09:00:00.000Z" },
-      // epic `epic-workflow` P13:  its durable doc and the guides it links
+      // epic `epic-workflow` P13:  its guide and the guides it links
       { href: "../../guides/py.html", title: "The Python Target", kind: "durable", updated: "2026-10-12T09:00:00Z" },
       { href: "../../guides/targets.html", title: "Targets", kind: "guide", updated: "2026-10-11T09:00:00Z" }
     ]
@@ -324,9 +324,9 @@ describe("<epic-page>", () => {
       ["../../guides/targets.html", "Targets"]
     ])
     expect(Array.from(box.querySelectorAll(".see-also-kind"), (kind) => kind.textContent)).toEqual([
-      "choices",
+      "choice",
       "details",
-      "durable doc",
+      "guide",
       "guide"
     ])
     expect(Array.from(box.querySelectorAll("li ui-icon"), (icon) => icon.getAttribute("name"))).toEqual([

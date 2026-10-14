@@ -7,7 +7,7 @@
     <title>epic-event</title>
     <meta
       name="description"
-      content="The &lt;epic-event&gt; element: one line of a plan doc's log, its icon and time drawn."
+      content="The &lt;epic-event&gt; element: one line of an epic page's log, its icon and time drawn."
     />
     <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
     <script>
@@ -39,7 +39,7 @@
           <ui-header level="1" class="site-title">
             &lt;epic-event&gt;
             <ui-header
-              >The &lt;epic-event&gt; element: one line of a plan doc's log, its icon and time drawn.</ui-header
+              >The &lt;epic-event&gt; element: one line of an epic page's log, its icon and time drawn.</ui-header
             >
           </ui-header>
         </ui-container>
@@ -48,12 +48,12 @@
       <ui-container class="site-body">
         <article class="site-article">
           <p class="lede">
-            One line of a plan doc's log. It draws an icon and the time, to the minute, then what happened.
+            One line of an epic page's log. It draws an icon and the time, to the minute, then what happened.
           </p>
           <!-- no <ui-list class="spell-meta">:  its <ui-item>s take Spell UI's "item" style sheet name before the
                epics pack's elements can, and live examples may draw unstyled (issue I9 of epic-components) -->
           <p class="meta">
-            For anyone reading or writing a plan doc's markup, or changing this element.<br />
+            For anyone reading or writing an epic page's markup, or changing this element.<br />
             Its vocabulary (every name it uses):
             <a
               href="../../packages/epics/components/epic-event/EpicEvent.en.ts"
@@ -242,7 +242,10 @@
                 <code>original</code>, <code>split</code> / <code>join</code>, <code>bedtime</code>,
                 <code>inbox apply</code> ...
               </li>
-              <li><code>spell dev plan-doc new</code>: the template's first line, <code>plan doc created</code>.</li>
+              <li>
+                <code>epic new</code>: the template's first line, <code>epic page created</code> (<code>plan doc created</code>
+                on pages made before 2026-10-14).
+              </li>
               <li>The time is now, local, with its offset (<code>PlanTime.isoMinutes()</code>).</li>
               <li>
                 The converter turned the old log (a feed of <code>ui-event</code>s, or a <code>ul.plan-log</code>) into

@@ -14,7 +14,7 @@ import type { SiteSearchFile, SiteSearchPage } from "../src/docs-components/docs
  *   a section (`yarn site:sections` included).
  * - What a section is, its title, parent and tab:  `PageOutline.sections()`, the SAME rules the element reads the page
  *   shown with, run here on linkedom (a DOM in node), read only.
- * - Page title:  its `main`'s `data-toc-header`, else its `<title>` without ` | Spell UI`;  a component page
+ * - Page title:  its `main`'s `data-toc-header`, else its `<title>` without ` | Spell UI`;  a components page
  *   (`components/ui-*.html`) names the tag it documents (its file name:  a family's main tag, or a sub-tag with its
  *   own page):  the search lists it as that component, not as a page.
  * - Deterministic:  pages in a fixed order (`pageFiles()`), sections in document order, no dates.
@@ -60,7 +60,7 @@ export class SiteSearchBuilder {
 
   /**
    * Every page, relative to the site root:  the hand-written ones A-Z (`index.html` first), the component index,
-   * then each component page A-Z.
+   * then each components page A-Z.
    */
   pageFiles(): string[] {
     const top = this.html("").sort(

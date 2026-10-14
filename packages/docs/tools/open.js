@@ -1,7 +1,7 @@
 /**
  * `spell dev docs open [page] [--vs | --review]`:  show a page in Chrome, reusing its tab (`pages.js` `openInChrome()`).
  * - `<page>` from the checkout's root, an area, or absolute (`pages.js` `pageFile()`), e.g. `guides/solid/solid-2.html`
- *   or just `solid/solid-2.html`;  default:  the docs home, `pages/index.html`
+ *   or just `solid/solid-2.html`;  default:  the home page, `pages/index.html`
  *   - `.html` and a folder's own page may be left off:  `solid/solid-2` ~== `guides/solid/solid-2.html`,
  *     `server` ~== `guides/server.html`
  * - `--vs`:  in VS Code's doc preview instead (the right side bar's "Spell Docs" tab, `openInVSCode()`):

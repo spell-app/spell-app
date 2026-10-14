@@ -8,7 +8,7 @@ import type { EpicVocabulary } from "$/epics/definitions"
 
 /****************
  * ### `<epic-choices-bar>`
- * A syntax-choices page's bar, pinned to the window's bottom:  the feedback, "Do it", and where things stand.
+ * A choice page's bar, pinned to the window's bottom:  the feedback, "Do it", and where things stand.
  ****************/
 export const epicChoicesBarVocabulary = {
   tag: "epic-choices-bar",
@@ -18,7 +18,7 @@ export const epicChoicesBarVocabulary = {
   noun: "choices bar",
   ui: false,
   description:
-    "A syntax-choices page's bar (epic `epic-workflow` P12), last on the page and pinned to the window's bottom:  " +
+    "A choice page's bar (epic `epic-workflow` P12), last on the page and pinned to the window's bottom:  " +
     'the feedback box, then "Do it", which sends every changed box and the feedback to Claude;  under them, ' +
     "Expand all, and the save status when a save failed;  then what was sent, or why not.  What's typed saves " +
     "itself as a draft 5s after typing stops, and as the page goes away.  Once a page.",

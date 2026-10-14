@@ -8,19 +8,20 @@ export const GUIDE_CHANGES = "guide-changes"
  * ### `SeeAlso`
  * An epic's SEE ALSO:  the pages it made or leans on, which `<epic-page>` lists in its See Also box, above its blocks.
  * GATHERED from the epic's own files every time, never kept by hand (Owen, Q13 and Q15 of epic `epic-workflow`):
- * - `durable`:  its durable doc, the epic page's `<a slot="durable">`
+ * - `durable`:  its guide, the epic page's `<a slot="durable">`
  * - `guide`:  every docs page under `guides/` its PHASES link to (the changelog too, when linked):  a phase's part
  *   file, `parts/p<N>.html`;  never an item's, or the Overview's, which only mention a guide in passing (Owen, J94:
  *   "Only links in phases count, not in items")
- * - `details` / `choices`:  every page in its `details/` folder:  details pages, choices pages (a `<slug>.rows.json`
- *   beside it), its analysis page
+ * - `details` / `choices`:  every page in its `details/` folder:  details pages, choice pages (a `<slug>.rows.json`
+ *   beside it), its review page
  * - NOT:  other epics' pages, nor changelog entries it doesn't link
  *
  * And which epic a page BELONGS to (`ownerOf()`, Q12):  where Owen's comments on it go when he presses its Send.
  * - a page in `epics/<name>/` (a details page):  epic `<name>`
  * - else the epic whose See Also lists it:
- *   1. one whose DURABLE doc it is, before one that only links it (J88:  the epic that wrote a guide knows it best,
- *      though a running one, the tooling home say, links it in passing)
+ *   1. one whose GUIDE it is (its `durable` link), before one that only links it
+ *      (J88:  the epic that wrote a guide knows it best, though a running one, the tooling home say,
+ *      links it in passing)
  *   2. then an OPEN one (phases left, none yet, or standing) before one that's done
  *   3. then the one updated last (`<epic-page updated>`, then its file's time)
  * - none:  `undefined`;  the caller files it under `GUIDE_CHANGES`, as `spell dev comments gather` does
@@ -46,7 +47,7 @@ export class SeeAlso {
   ////////////////
 
   /**
-   * Epic `name`'s See Also, in its box's order:  the durable doc, then its own pages (details, choices) newest first,
+   * Epic `name`'s See Also, in its box's order:  the guide, then its own pages (details, choices) newest first,
    * then the guides it links, newest first.
    * - each `href` from the epic page's folder (`details/analysis.html`, `../../guides/x.html`)
    * - none for an epic with no files:  `[]`
@@ -136,7 +137,7 @@ export class SeeAlso {
 // ## Types
 ////////////////
 
-/** What a See Also entry is to its epic:  its durable doc, a guide it links, or one of its own pages. */
+/** What a See Also entry is to its epic:  its guide, a guide it links, or one of its own pages. */
 export type SeeAlsoKind = "durable" | "guide" | "details" | "choices"
 
 /** One page in an epic's See Also, as `GET /api/epics/pages` lists it (`<epic-page>`'s `SeeAlsoLink`). */
@@ -170,7 +171,7 @@ type EpicFacts = {
 /** The epics' folder, from the checkout's root. */
 const EPICS = "epics"
 
-/** A page in an epic's own folder (not its plan doc, nor its parts):  `epics/<name>/details/x.html`. */
+/** A page in an epic's own folder (not its epic page, nor its parts):  `epics/<name>/details/x.html`. */
 const OWN_PAGE = /^epics\/([^/]+)\/details\/[^/]+\.html$/
 
 /** A phase's part file, whose links count toward the See Also (J94):  `p3.html`. */
@@ -192,7 +193,7 @@ const CLAIMS = new Map<string, { stamp: string; at: number; claims: Map<string, 
 // ## Helpers
 ////////////////
 
-/** Claims, best first:  a durable doc's epic, then an open one, then the one updated last. */
+/** Claims, best first:  a guide's epic, then an open one, then the one updated last. */
 function byClaim(a: Claim, b: Claim): number {
   return (
     Number(b.durable) - Number(a.durable) ||
@@ -213,13 +214,13 @@ function epicNames(root: string): string[] {
     .sort()
 }
 
-/** Epic `name`'s plan doc file. */
+/** Epic `name`'s epic page file. */
 function planDocOf(root: string, name: string): string {
   return join(root, EPICS, name, `${name}.plan.html`)
 }
 
 /**
- * What changes when an epic's links might:  each plan doc's time, and its `parts/` folder's (a part written through
+ * What changes when an epic's links might:  each epic page's time, and its `parts/` folder's (a part written through
  * the tool is renamed into it, which changes the folder's time).
  */
 function stampOf(root: string, names: string[]): string {
@@ -229,7 +230,7 @@ function stampOf(root: string, names: string[]): string {
     .join(";")
 }
 
-/** Epic `name`'s facts, from its plan doc's markup:  open or done, when updated;  `undefined` without a plan doc. */
+/** Epic `name`'s facts, from its epic page's markup:  open or done, when updated;  `undefined` without an epic page. */
 function factsOf(root: string, name: string): EpicFacts | undefined {
   const file = planDocOf(root, name)
   if (!existsSync(file)) return undefined

@@ -166,13 +166,13 @@ export function staticPages(args: string[], options: Pick<CLI.StaticOptions, "ou
 
 /**
  * Every `.html` page under `folder`, sorted:  not `*.static.html`, nor in `node_modules`, dot folders or `parts/`
- * (a split plan doc's bodies, `epics/<name>/parts/<id>.html`:  fragments its page loads, never pages).
+ * (a split epic page's bodies, `epics/<name>/parts/<id>.html`:  fragments its page loads, never pages).
  */
 function htmlFiles(folder: string): string[] {
   const files: string[] = []
   for (const entry of readdirSync(folder, { withFileTypes: true })) {
     if (entry.name.startsWith(".") || entry.name === "node_modules") continue
-    // a plan doc's parts:  fragments, never pages (Q12 of `epic-components`)
+    // an epic page's parts:  fragments, never pages (Q12 of `epic-components`)
     if (entry.isDirectory() && entry.name === "parts") continue
     const path = resolve(folder, entry.name)
     if (entry.isDirectory()) files.push(...htmlFiles(path))

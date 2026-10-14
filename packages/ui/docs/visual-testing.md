@@ -227,7 +227,7 @@ yarn test:visual --static [--grep <family>] [--browsers chrome]
 ```
 
 - The static render:  `$/ui/static`, its `StaticRender` + `StaticStylesheet`
-  ([the seo plan doc](../../../epics/seo/seo.plan.html)).
+  ([the seo epic page](../../../epics/seo/seo.plan.html)).
 - The report:  `static-parity.md`, in the visual tests' results.
   - most different first, with diff images
   - the `ui-*` tags the static page left unrendered

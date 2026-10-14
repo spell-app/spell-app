@@ -10,7 +10,7 @@ import { PANEL_PARTS, PANEL_STATES } from "./EpicPanel.types"
 
 /****************
  * ### `<epic-aside>`
- * A folded aside in a plan doc's prose:  a digression the main text can skip.
+ * A folded aside in an epic page's prose:  a digression the main text can skip.
  ****************/
 export const epicAsideVocabulary = {
   tag: "epic-aside",

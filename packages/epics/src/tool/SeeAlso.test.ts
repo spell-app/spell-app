@@ -24,7 +24,7 @@ function page(title: string): string {
 }
 
 /**
- * Epic `name`'s plan doc:  its phases' statuses, its `updated` date, standing or not, a durable doc's link;  and
+ * Epic `name`'s epic page:  its phases' statuses, its `updated` date, standing or not, a guide's link;  and
  * `links` (from its folder) in its first phase's part file, `parts/p1.html`, where links count (J94).
  */
 function epic(
@@ -51,7 +51,7 @@ beforeAll(() => {
   write("guides/targets/targets.html", page("Targets and Writers"))
   write("guides/solid.html", page("Solid 2 · Spell docs"))
   write("guides/changelog.html", page("Changelog"))
-  // done, its durable doc the Python guide;  a part links the targets guide, from `parts/`
+  // done, its guide the Python guide;  a part links the targets guide, from `parts/`
   epic("python-target", {
     phases: ["done", "done"],
     updated: "2026-10-12",
@@ -80,7 +80,7 @@ beforeAll(() => {
 afterAll(() => rmSync(root, { recursive: true, force: true }))
 
 describe("linksOf():  an epic's See Also, gathered", () => {
-  test("the durable doc, its own pages newest first, then the guides it links;  each with its kind", () => {
+  test("the guide, its own pages newest first, then the guides it links;  each with its kind", () => {
     const links = new SeeAlso(root).linksOf("python-target")
     expect(links.map(({ href, title, kind }) => [href, title, kind])).toEqual([
       ["../../guides/python-target.html", "The Python Target", "durable"],
@@ -112,7 +112,7 @@ describe("linksOf():  an epic's See Also, gathered", () => {
 })
 
 describe("ownerOf():  which epic a page belongs to", () => {
-  test("its durable doc's epic, though done, before an open one that only links it (J88)", () => {
+  test("its guide's epic, though done, before an open one that only links it (J88)", () => {
     expect(new SeeAlso(root).ownerOf("guides/python-target.html")).toBe("python-target")
   })
 

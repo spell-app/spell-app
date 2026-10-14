@@ -173,7 +173,7 @@ describe("jargon", () => {
   })
 })
 
-/** Owen's "Built / Checked" lines (epic `airplane`, 2026-10-10), as a plan doc held them:  a path, and four facts' settings. */
+/** Owen's "Built / Checked" lines (epic `airplane`, 2026-10-10), as an epic page held them:  a path, four facts' settings. */
 const BUILT_BEFORE = [
   "<p>Built:  <code>buildTsx()</code>, <code>packages/spell/src/node/buildTsx.ts:40</code></p>",
   "<p>Checked:  <code>tsc</code> with <code>jsx: preserve</code>, <code>jsxImportSource</code>, paths from tsconfig.base.json.</p>"

@@ -1,6 +1,6 @@
 /**
  * Tests of `InboxCommands` (`spell dev plan-doc inbox ...`) on a scratch checkout:
- * a plan doc in `<epic-*>` markup and its inbox file.
+ * an epic page in `<epic-*>` markup and its inbox file.
  */
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
@@ -293,7 +293,7 @@ test("wait:  a send with ONLY comments wakes it, and prints each comment and Owe
   expect(ReviewInbox.read(inboxFile).hasWork).toBe(false)
 })
 
-/** Make `guides/x.html` epic x's durable doc:  a page x owns (`SeeAlso.ownerOf()`);  returns its file. */
+/** Make `guides/x.html` epic x's guide:  a page x owns (`SeeAlso.ownerOf()`);  returns its file. */
 function ownGuide(): string {
   const guide = join(root, "guides", "x.html")
   mkdirSync(join(root, "guides"), { recursive: true })

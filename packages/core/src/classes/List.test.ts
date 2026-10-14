@@ -5,7 +5,7 @@ import { spellCore, Thing, List } from "$/core"
 
 /**
  * Exclusive lists:  an item is in at most ONE list of a family at a time -- and guards on a move.
- * - See `List`'s class docs, and plan doc D7 / D8, Q22 - Q25 of precedence-and-types.
+ * - See `List`'s class docs, and epic page D7 / D8, Q22 - Q25 of precedence-and-types.
  * - The classes below are what spell compiles from:
  *   - `a pile is a list of cards` + `a card belongs to one pile`
  *   - `a tableau is a pile`

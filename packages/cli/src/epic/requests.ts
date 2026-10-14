@@ -23,7 +23,7 @@ import { CLI } from "$/cli"
  * - `from`:  the sending session's id (`CLAUDE_CODE_SESSION_ID`);  its pasted images come from its transcript
  * - `images`:  how many of the newest images Owen pasted to keep (0:  none)
  * - `context`:  what the sender was looking at:  a page, a file, an item id
- * - throws when `epic` has no plan doc, or the transcript has fewer images than asked for
+ * - throws when `epic` has no epic page, or the transcript has fewer images than asked for
  */
 export function sendRequest(props: CLI.SendRequestProps): CLI.SentRequest {
   const { root, epic, text, from, images = 0, context, home = CLI.claudeHome() } = props
@@ -139,7 +139,7 @@ export function fileRequest(root: string, epic: string, id: string, where: strin
 /**
  * A request as the HTML its phase's Requests field shows (`spell dev plan-doc request`):  his words quoted, the
  * context, when it came, then each screenshot (a link to it full size).
- * - URLs are the plan doc page's:  `requests/r3/image-1.png`
+ * - URLs are the epic page's:  `requests/r3/image-1.png`
  */
 export function requestHTML(request: CLI.EpicRequest): string {
   const folder = `requests/${request.id}`
@@ -177,7 +177,7 @@ export function requestHTML(request: CLI.EpicRequest): string {
  *
  * ## Context
  *
- * the plan doc of epic python, P4's comment thread
+ * the epic page of epic python, P4's comment thread
  * ```
  */
 export function requestMarkdown(request: CLI.EpicRequest): string {
@@ -240,7 +240,7 @@ function senderOf(id: string, home: string): string {
   return title ? `${title} (${id.slice(0, 8)})` : id
 }
 
-/** Now, to the minute, in local time with its offset:  `2026-10-11T06:10-04:00`, as the plan doc's log writes it. */
+/** Now, to the minute, in local time with its offset:  `2026-10-11T06:10-04:00`, as the epic page's log writes it. */
 function localTime(date = new Date()): string {
   const pad = (n: number) => String(Math.abs(n)).padStart(2, "0")
   const offset = -date.getTimezoneOffset()

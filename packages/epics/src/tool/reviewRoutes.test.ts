@@ -1,6 +1,6 @@
 /**
- * Tests of the review route module on a real page server, over HTTP, in a scratch checkout:  its own plan doc, a
- * worktree's (as the main checkout's server serves it), and pages that aren't plan docs.
+ * Tests of the review route module on a real page server, over HTTP, in a scratch checkout:  its own epic page, a
+ * worktree's (as the main checkout's server serves it), and pages that aren't epic pages.
  * - From `packages/docs/tools/reviewRoutes.test.ts` (epic `epic-components`, P7):  every case.
  */
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
@@ -34,7 +34,7 @@ const PAGES = {
   epic: "epics/neat/neat.plan.html"
 }
 
-/** the scratch plan doc's items */
+/** the scratch epic page's items */
 const PLAN = `<!doctype html><title>x</title><body class="plan-doc"><epic-page epic="big" title="Big">
 <epic-section id="phases" kind="phases"><epic-phase id="p1" title="Go" status="active"></epic-phase></epic-section>
 <epic-section id="judgements" kind="judgements"><epic-item id="j3" title="a" status="open"></epic-item></epic-section>
@@ -42,7 +42,7 @@ const PLAN = `<!doctype html><title>x</title><body class="plan-doc"><epic-page e
 <epic-section id="issues" kind="issues"><epic-item id="i2" title="c" status="open"></epic-item></epic-section>
 </epic-page>`
 
-/** a plan doc in `<epic-*>` markup:  the summary, an Overview sub-section, a phase, an item */
+/** an epic page in `<epic-*>` markup:  the summary, an Overview sub-section, a phase, an item */
 const EPIC_PLAN = `<!doctype html><title>x</title><body class="plan-doc"><epic-page epic="neat" title="Neat">
 <epic-overview id="overview"><epic-summary>Neat.</epic-summary><epic-section id="o1" kind="overview-part" title="Structure"></epic-section></epic-overview>
 <epic-section id="phases" kind="phases"><epic-phase id="p1" title="Go" status="active"></epic-phase></epic-section>
@@ -187,10 +187,10 @@ test("a pick and a revisit together:  the mark carries both;  revisit now keeps 
   const both = await post("mark", {
     page: PLAN_URL,
     id: "q8",
-    mark: { action: "revisit", when: "soon", note: "only plan docs?", pick: "B" }
+    mark: { action: "revisit", when: "soon", note: "only epic pages?", pick: "B" }
   })
   expect(both.status).toBe(200)
-  expect(both.body.marks.q8).toMatchObject({ action: "revisit", when: "soon", note: "only plan docs?", pick: "B" })
+  expect(both.body.marks.q8).toMatchObject({ action: "revisit", when: "soon", note: "only epic pages?", pick: "B" })
   const now = await post("now", { page: PLAN_URL, id: "q8", action: "revisit", note: "now?" })
   expect(now.body.marks.q8).toMatchObject({ action: "revisit", when: "now", note: "now?", pick: "B" })
   expect(now.body.now).toMatchObject([{ id: "q8", action: "revisit", note: "now?", pick: "B" }])
@@ -231,7 +231,7 @@ test("send now (Review Now):  a waiting revisit asked now, the approval sent", a
   expect(written(PAGES.plan).sent).toBe(sent.body.sent)
 })
 
-test("a worktree's plan doc, through /worktrees/", async () => {
+test("a worktree's epic page, through /worktrees/", async () => {
   const far = await post("mark", {
     page: `/worktrees/w/epics/far/far.plan.html`,
     id: "j3",
@@ -241,7 +241,7 @@ test("a worktree's plan doc, through /worktrees/", async () => {
   expect(written(PAGES.far).marks.j3.action).toBe("todo")
 })
 
-test("only plan docs:  403;  missing:  404;  not a path:  400", async () => {
+test("only epic pages:  403;  missing:  404;  not a path:  400", async () => {
   const mark = { action: "approve" }
   expect((await post("mark", { page: `/${PAGES.other}`, id: "j3", mark })).status).toBe(403)
   expect((await post("mark", { page: `/${PAGES.details}`, id: "j3", mark })).status).toBe(403)
@@ -410,7 +410,7 @@ describe("start, and waking the epic", () => {
     expect(asked).toEqual([])
   })
 
-  test("not a plan doc:  403;  a bad token:  403", async () => {
+  test("not an epic page:  403;  a bad token:  403", async () => {
     expect((await post("start", { page: `/${PAGES.other}` })).status).toBe(403)
     expect((await post("start", { page: PLAN_URL }, { "x-server-token": "nope" })).status).toBe(403)
   })
@@ -425,7 +425,7 @@ describe("start, and waking the epic", () => {
     writeFileSync(file, JSON.stringify({ pid: process.pid, port: bridgePort, token: "t", folders }))
   }
 
-  /** the inbox file of the scratch plan doc, changed by `change` (as a session's `plan-doc inbox` would) */
+  /** the inbox file of the scratch epic page, changed by `change` (as a session's `plan-doc inbox` would) */
   function inboxOf(change: (inbox: ReviewInbox) => unknown) {
     ReviewInbox.update(inboxFile(PAGES.plan), change)
   }

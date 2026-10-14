@@ -1,7 +1,7 @@
 # `$/assembler` -- assembling pages
 
 The steps between a page's content and its file on disk.
-- Shared by every tool that writes pages:  the docs tools, the plan-doc tool.
+- Shared by every tool that writes pages:  the docs tools, the `epic` tool.
 - One namespace, `AS`.
 
 ```ts

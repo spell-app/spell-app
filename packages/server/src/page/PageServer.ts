@@ -19,14 +19,14 @@ import {
 
 /**
  * THE page server:  one per checkout (the main one, and each worktree), serving the whole repo on one port.
- * - docs, plan docs, goals, Spell UI docs and (once `app` is in) the editor, all live-reloading
- * - `/` -> the docs home (`pages/index.html`);  `/_server/ping` -> `ServerInfo`;  `/_server/page` -> `PageEditor`
+ * - docs, epic pages, saga pages, Spell UI's docs site and (once `app` is in) the editor, all live-reloading
+ * - `/` -> the home page (`pages/index.html`);  `/_server/ping` -> `ServerInfo`;  `/_server/page` -> `PageEditor`
  * - `/ui/` -> Spell UI's docs (`UI_SITE`), live-reloading like every page
  *   - the shared pages (`ui/`), with the branch's built `_assets/` and `_data/` (`packages/ui/site/`) laid over them
  *   - the same at `/worktrees/<w>/ui/`
  * - `/epic-ui/`, `/app-ui/` -> the component sets (`COMPONENT_SETS`):  each a tracked package folder, in Spell UI's
  *   page shape, loading Spell UI's site bundle (`componentSetPath()`);  the same at `/worktrees/<w>/<set>/`
- * - `/worktrees/<w>/` and `/_server/epics` -> running epics' plan docs (`RunningEpics`)
+ * - `/worktrees/<w>/` and `/_server/epics` -> running epics' pages (`RunningEpics`)
  * - the bundles it serves (Spell UI's site, the brand pages) aren't committed:
  *   `start()` builds the stale ones in the background (`BundleBuild`),
  *   and a request for one of their files waits while that runs
@@ -48,7 +48,7 @@ export class PageServer {
   /** what `/_server/ping` answers;  `port` is set by `start()` */
   readonly info: ServerInfo
 
-  /** running epics' plan docs, from the worktrees */
+  /** running epics' pages, from the worktrees */
   readonly epics: RunningEpics
 
   /** the startup build of the bundles it serves */
@@ -93,15 +93,15 @@ export class PageServer {
     const router = this.web.router
     router.get("/", (_request, reply) => reply.redirect(DOCS_HOME))
     // redirects, so old links and open tabs still land;  302:  a 301 would be cached for good
-    // - plan docs moved from `plans/` to `epics/` (2026-10-02), then into `content/`, then to the root `epics/`
+    // - epic pages moved from `plans/` to `epics/` (2026-10-02), then into `content/`, then to the root `epics/`
     router.get("/packages/docs/plans/*", (request, reply) =>
       reply.redirect(request.originalUrl.replace("/packages/docs/plans/", "/epics/"))
     )
     // - docs pages moved into `packages/docs/content/` (2026-10-04),
     //   then the content split into root folders (2026-10-05, claude-design P4)
-    // - plan docs renamed `epics/<n>/<n>.html` -> `<n>.plan.html` (2026-10-04)
+    // - epic pages renamed `epics/<n>/<n>.html` -> `<n>.plan.html` (2026-10-04)
     // - Spell UI's pages moved from `packages/ui/site/` to the shared `ui/` (2026-10-05, claude-design P6)
-    // - the component sets' pages:  their long address, and Epic UI's old element pages in the guides
+    // - the component sets' pages:  their long address, and Epic UI's old components pages in the guides
     //   (epic-workflow P10;  `movedSetPage()`)
     // - here, and in a worktree served from here (`/worktrees/<w>/`);  302 too
     for (const prefix of REDIRECTED)
@@ -289,7 +289,7 @@ const REDIRECTED = [
   ...COMPONENT_SETS.flatMap((set) => [set.prefix, `/${set.dir}/*`])
 ]
 
-/** The docs home's URL. */
+/** The home page's URL. */
 export const DOCS_HOME = "/pages/index.html"
 
 /** Folders the page server live-reloads when the root `package.json` names none:  the docs areas and their bundle. */
@@ -317,13 +317,13 @@ const REORG: Record<string, string> = {
 /**
  * The new URL of an old docs URL `url` (or the same under `/worktrees/<w>/`), query kept;  else `undefined`:
  * - `/packages/docs/content/<x>` (2026-10-04 .. 10-05):  where the reorg put `<x>` (`reorgEntry()`), when that's there
- *   - `/packages/docs/content/` itself:  the docs home
+ *   - `/packages/docs/content/` itself:  the home page
  *   - even while the old path still resolves (the old-path links in the shared repo, a checkout's old content link):
  *     ONE address per page
  * - `/packages/docs/<x>` (before 2026-10-04):  the same, but pages and folders only (`.html`, `.md`, no extension),
  *   and only while the old one is gone
  *   - the package's own files (`package.json`, `README.md` ...) stay put
- * - an old plan doc name (`epics/<n>/<n>.html`) lands on its new name in ONE hop (`renamedPlanDoc()`)
+ * - an old epic page name (`epics/<n>/<n>.html`) lands on its new name in ONE hop (`renamedPlanDoc()`)
  * - `root`:  the checkout served;  `/worktrees/<w>/...` is its `.claude/worktrees/<w>/...` (`RunningEpics`)
  */
 export function movedDocsPage(url: string, root: string): string | undefined {
@@ -348,7 +348,7 @@ export function movedDocsPage(url: string, root: string): string | undefined {
 }
 
 /**
- * The new URL of an old plan doc's URL `url`:  `<n>.plan.html`, query kept;  else `undefined`.
+ * The new URL of an old epic page's URL `url`:  `<n>.plan.html`, query kept;  else `undefined`.
  * - `url`:  `/epics/<n>/<n>.html`, or the same under `/worktrees/<w>/`,
  *   or under an old place:  `packages/docs/content/`, `packages/docs/`
  * - only when the old file is gone and the new one is there
@@ -379,7 +379,7 @@ export function uiBuildPath(path: string): string | undefined {
 }
 
 /**
- * The new URL of an old Spell UI page URL `url`, query kept;  else `undefined` (2026-10-05, claude-design P6).
+ * The new URL of an old Spell UI docs-site URL `url`, query kept;  else `undefined` (2026-10-05, claude-design P6).
  * - `/packages/ui/site/<x>` -> `/ui/<x>`;  the same under `/worktrees/<w>/`
  * - only when the old file is gone and the new one is there
  * - a checkout on older code still has its pages at the old place:  served there

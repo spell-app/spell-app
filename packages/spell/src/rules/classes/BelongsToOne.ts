@@ -8,7 +8,7 @@ import { SpellStatement } from "$/spell/rules/Statement"
 import { classes } from "./classes.parser"
 
 /**
- * `belongs_to_one` rule:  `a card belongs to one pile` -- a card is in at most ONE pile at a time (plan doc D7, D8,
+ * `belongs_to_one` rule:  `a card belongs to one pile` -- a card is in at most ONE pile at a time (epic page D7, D8,
  * Q22):
  * - "pile" means the pile FAMILY:  `Pile` and every sub-type of it, e.g. `a tableau is a pile`.
  *   Adding a card to one takes it out of the other.

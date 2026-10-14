@@ -1,6 +1,6 @@
 /**
  * `yarn site:sections [--check] [page ...]`:  turn the Spell UI site's flat pages into NESTED `<ui-section>`s, with
- * ids that spell out their nesting, written into the markup (plan doc ui-docs-rework, D8).
+ * ids that spell out their nesting, written into the markup (epic page ui-docs-rework, D8).
  * - Content roots:  each pane of a page's `<ui-tabs id="site-tabs">` (`<ui-tab value>`), else its
  *   `<article class="site-article">`.  Only their DIRECT children are read:  headers inside an example, a grid or a
  *   demo are content, never sections.

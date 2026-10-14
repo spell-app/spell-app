@@ -49,20 +49,20 @@ CommentsError.prototype.name = "CommentsError"
  * `{ cm1: {...}, cm2: {...} }`, edited in place.
  * - two homes, one shape:
  *   - a docs page's own inbox file, `<page>.inbox.json` (`GuideInbox`)
- *   - a plan doc's review inbox, its `comments` (`ReviewInbox`)
+ *   - an epic page's review inbox, its `comments` (`ReviewInbox`)
  * - each comment:  where it is (`anchor`, `kind`, `label`, `excerpt`, and for a comment on selected text its
  *   `quote` and `offset`:  `packages/docs/tools/BlockAnchors.js`), Owen's text, when, and its status:
  *   - `new`:  saved, waiting for Claude;  Owen may edit or delete it
  *   - any status:  Owen may CLEAR it (`clear()`):  gone from the inbox, its highlight with it
  *   - deleted or cleared:  the page's Undo puts it back as it was (`restore()`)
  *   - `taken`:  Claude took it:  a guide's into epic `guide-changes` (`taken`:  which phase)
- *   - `answered`:  Claude answered it (a plan doc's:  in the doc;  `replies` may hold the answer)
+ *   - `answered`:  Claude answered it (an epic page's:  in the doc;  `replies` may hold the answer)
  * - a THREAD (Owen, 2026-10-10:  "the entire comment thread should be in one collapsable pane"):  the comment, then
  *   `replies` in order, Claude's (`answer()`) and Owen's (`reply()`), then maybe `done` (`resolve()`)
  *   - WHOSE TURN (`turnOf()`):  Owen's once Claude spoke last;  Claude's while Owen did;  nobody's once done
  *   - WAITING (`waiting`):  Claude's turn, and he hasn't taken it yet.  So a reply on a thread is new work, as a
  *     new comment is (`/epic review`, `/airplane land`, `spell dev comments gather`)
- *     - a plan doc's waiting comment goes to Claude with its page's Send, as a mark does:
+ *     - an epic page's waiting comment goes to Claude with its page's Send, as a mark does:
  *       `ReviewInbox.unsentComments`, by Owen's last words (`lastWordsAt()`)
  *   - WORKING (`setWorking()`):  Claude is thinking about it now;  the page shows a "Claude: thinking…" stub at the
  *     thread's end until his answer lands (`answer()` turns it off).  What Owen said before it counts as read:  not
@@ -95,7 +95,7 @@ export class CommentList {
   /**
    * The waiting comments a Send at `sent` (ISO;  `null`:  never sent) has NOT handed over:
    * Owen's last words newer than it (`lastWordsAt()`), all of them before the first send.
-   * - a plan doc's Send (`ReviewInbox.unsentComments`) and a guide's (`GuideInbox.unsentComments`) alike
+   * - an epic page's Send (`ReviewInbox.unsentComments`) and a guide's (`GuideInbox.unsentComments`) alike
    */
   unsentSince(sent: string | null): IdentifiedComment[] {
     const since = sent ? Date.parse(sent) : -Infinity
@@ -115,7 +115,7 @@ export class CommentList {
   /**
    * Whose turn it is on `comment`'s thread:
    * - `done`:  Owen closed it (`resolve()`)
-   * - `owen`:  Claude spoke last.  Also a plan doc's comment answered in the doc, with no words here.
+   * - `owen`:  Claude spoke last.  Also an epic page's comment answered in the doc, with no words here.
    * - `claude`:  Owen spoke last (the comment, or his reply).  Claude may have TAKEN it, but hasn't answered yet.
    */
   static turnOf(comment: Comment): Turn {
@@ -136,7 +136,7 @@ export class CommentList {
   /**
    * When Owen last changed his words on `comment`'s thread, ISO:
    * the latest of the comment, his replies, and their edits.
-   * - what a plan doc's Send compares with its `sent` (`ReviewInbox.unsentComments`):
+   * - what an epic page's Send compares with its `sent` (`ReviewInbox.unsentComments`):
    *   words newer than the last send haven't gone to Claude yet
    */
   static lastWordsAt(comment: Comment): string {
@@ -326,7 +326,7 @@ export class CommentList {
 
   /**
    * Comment `id` answered:  `html` (as is:  a `<p>` or more) on its thread, after any before it.
-   * - none:  answered elsewhere (a plan doc's comment, in the doc).  An entry with no words still goes on the
+   * - none:  answered elsewhere (an epic page's comment, in the doc).  An entry with no words still goes on the
    *   thread, so it's Owen's turn, unless Claude spoke last already.
    * - `commit`:  the commit the answer was built in (the thread's Done line shows it);  throws a 400 when it isn't one
    * - Claude's done thinking about it:  its `working` goes
@@ -398,7 +398,7 @@ export type Comment = Required<Omit<CommentPlace, "quote" | "offset">> &
 
 /**
  * One entry of a comment's thread:
- * - Claude's (`by` not `Owen`):  `html`, as is (`""`:  answered elsewhere, a plan doc's in the doc), and `commit`,
+ * - Claude's (`by` not `Owen`):  `html`, as is (`""`:  answered elsewhere, an epic page's in the doc), and `commit`,
  *   the commit it was built in
  * - Owen's (`by: "Owen"`):  `text`, as typed (plain, as a comment's), and `edited`, when he last changed it
  */

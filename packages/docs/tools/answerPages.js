@@ -1,6 +1,6 @@
 /**
  * The pages Claude makes for Owen to answer ON, as the tools write them (epic `epic-workflow` P12):  details pages
- * (`details.js`) and syntax-choices pages (`choices.js`), in the epics pack's `<epic-*>` elements.
+ * (`details.js`) and choice pages (`choices.js`), in the epics pack's `<epic-*>` elements.
  * - What's here:  their templates (the tools' own, tracked with each branch as the elements are), and the
  *   ELEMENTS they're built from, made on a parsed page (linkedom):  never HTML put together in strings.
  *   - text a spec gives as HTML (Claude writes it:  `lede`, `summary`, `body` ...) goes in as HTML, through

@@ -1,6 +1,6 @@
 /*
  * `<epic-ask>` (`EpicAsk.tsx`):  a question Owen answers on the page.
- * - Its line:  the id chip in the plan doc's state colours (as `<epic-item>`'s chip, `EpicItem.css`), `Pick one`,
+ * - Its line:  the id chip in the epic page's state colours (as `<epic-item>`'s chip, `EpicItem.css`), `Pick one`,
  *   its tools at the end;  then its children;  then the Other box.
  * - The state colours:  `<epic-page>`'s `--epic-state-*` where there is one, else the docs page's `--spell-state-*`
  *   (the same values:  `spell-doc.css`, "Item states"), else Spell UI's.

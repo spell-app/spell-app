@@ -55,7 +55,7 @@ export type PageChange = { path: string; html: string; etag?: string; reload: ()
  * not the page's own, not a stylesheet or a script.  Nothing reloads:  the page decides.
  * - `path`:  its URL path, each segment URI-encoded, e.g. `/epics/x/parts/q2.html`
  * - e.g. a body the page loaded from a file (`<ui-section source>`):  the docs runtime re-fetches it in place
- *   (`spell-doc-runtime.js` `wireSourceBodies()`:  a split plan doc's parts)
+ *   (`spell-doc-runtime.js` `wireSourceBodies()`:  a split epic page's parts)
  */
 export type FileChange = { path: string }
 
@@ -522,10 +522,10 @@ export function liveClient(): void {
    *   finds from the top, Enter or Cmd-G the next, Shift the one before (wrapping), Escape or × closes it;  not
    *   found:  the box turns red
    * - its own search (`findMatches()`), not `window.find()`:  that one also matched the box's own text, and never
-   *   looked inside the elements' shadow roots, where a plan doc draws its titles
-   * - a match inside something folded (most of a plan doc starts folded):  revealed through its nearest id, as a link
+   *   looked inside the elements' shadow roots, where an epic page draws its titles
+   * - a match inside something folded (most of an epic page starts folded):  revealed through its nearest id, as a link
    *   to it would be (`location.hash`:  the docs runtime unfolds what hides it and lands there), then selected
-   * - text not loaded yet (a split plan doc's body, until it's opened) isn't found
+   * - text not loaded yet (a split epic page's body, until it's opened) isn't found
    * - outside `main`'s patching:  a live update never touches it (`data-spell-added`)
    */
   function openFind() {
@@ -669,7 +669,7 @@ export function liveClient(): void {
 
   /**
    * Mark `range` as the find bar's match:  a yellow highlight, the page's caret left alone.
-   * - `::highlight()` is styled per tree, so the sheet goes into the match's shadow root too (a plan doc's titles)
+   * - `::highlight()` is styled per tree, so the sheet goes into the match's shadow root too (an epic page's titles)
    * - no Highlight API:  selected instead, as before
    */
   function highlight(range: Range) {

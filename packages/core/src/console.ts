@@ -66,7 +66,7 @@ export class SpellConsole extends Observable<Record<string, unknown>, { lines: C
    * e.g. a thing or a spell list (`print the card`) -- see `isPlainValue()`.
    * - Default:  the native `console.log()`, so a page shows it as any other line:  a browser's console has no streams.
    * - `spell run` points it at stderr (`runProject.ts`), so stdout holds only text, numbers, yes / no and plain lists,
-   *   as Python's core prints them (plan doc python-target, Q17).
+   *   as Python's core prints them (epic page python-target, Q17).
    */
   printDump: (...message: unknown[]) => void = (...message) => console.log(...message)
 

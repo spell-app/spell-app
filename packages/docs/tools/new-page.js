@@ -1,6 +1,6 @@
 /**
  * `spell dev docs new <template> <page> [--title "Title"] [--description "One sentence."]`:  start a page from a template.
- * - `<template>`:  `durable`, `cheatsheet` or `commands` (or a path under `templates/`);  plan docs come from
+ * - `<template>`:  `durable`, `cheatsheet` or `commands` (or a path under `templates/`);  epic pages come from
  *   `spell dev plan-doc new`
  * - SIDE EFFECT:  a template with a JSON beside it (`commands.json`) copies that too, as `<page>.json`
  * - `<page>`:  where it goes, a guide by default:  `parser/parser.html` is `guides/parser/parser.html`;  a path starting
@@ -8,7 +8,7 @@
  * - Fixes the `_assets` and `index.html` paths, and the site header's `root`, for the page's depth (`atDepth()`).
  * - Sets `<title>`, the `h1`, the breadcrumb's last section and the description;  drops the template's how-to
  *   comment;  refuses to overwrite.
- * - Then tidies the page and updates the docs index, so it's listed at once.
+ * - Then tidies the page and updates the home and list pages, so it's listed at once.
  */
 import { spawnSync } from "node:child_process"
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
@@ -25,7 +25,7 @@ if (!templateArg || !page?.endsWith(".html")) {
     `usage:  spell dev docs new durable|cheatsheet|commands <topic>/<topic>.html [--title "Title"] [--description "..."]`
   )
 }
-if (/^templates\/epics\/|^plan$/.test(templateArg)) fail("plan docs:  `spell dev plan-doc new <name>`")
+if (/^templates\/epics\/|^plan$/.test(templateArg)) fail("epic pages:  `epic new <epic>`")
 const template = templateArg.includes("/") ? templateArg : `templates/${templateArg}.html`
 if (!existsSync(join(ROOT, template))) fail(`no template ${template}`)
 const file = /^(guides|pages)\//.test(page) ? join(ROOT, page) : join(GUIDES, page)

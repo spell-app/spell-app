@@ -1,6 +1,6 @@
 ---
 name: docs-check
-description: Make the docs an epic wrote (besides its plan doc) agree with what was chosen and built, then with each other -- its durable doc, guides, AGENTS.md / README files, skills, templates, its changelog entry -- fixed in place, uncommitted, the diff left for Owen to review;  what it can't decide goes into the plan doc as judgement calls.  Use for `/docs-check <epic...>`, `/docs-check` alone (asks which epics), or when Owen says "check the docs for <epic>", "make the docs consistent", "are the docs true to what we chose?", "check the docs before I fly".
+description: Make the docs an epic wrote (besides its epic page) agree with what was chosen and built, then with each other -- its guide, other guides, AGENTS.md / README files, skills, templates, its changelog entry -- fixed in place, uncommitted, the diff left for Owen to review;  what it can't decide goes into the epic page as judgement calls.  Use for `/docs-check <epic...>`, `/docs-check` alone (asks which epics), or when Owen says "check the docs for <epic>", "make the docs consistent", "are the docs true to what we chose?", "check the docs before I fly".
 argument-hint: "<epic...>"
 ---
 
@@ -11,17 +11,17 @@ Owen's words (epic `airplane`, P10, 2026-10-10):
 what we chose,  then goes through all of those docs as a group, and makes sure things are internally consistent."
 
 - Two passes, in that order:
-  1. each doc against the plan doc's DECISIONS:  a statement that contradicts what was chosen or built is fixed
+  1. each doc against the epic page's DECISIONS:  a statement that contradicts what was chosen or built is fixed
   2. all the epic's docs read TOGETHER:  names, commands, flags, behaviours, numbers made to agree
 - Its lists come from `epic` ([`EpicDocs`](packages/epics/src/tool/EpicDocs.ts)):
   - `epic docs <name> [--json]`:  the docs, each with why it's listed, in four groups
     - `wrote`:
-      - its durable doc (`<a slot="durable">`) and the pages in its folder
+      - its guide (`<a slot="durable">`) and the pages in its folder
       - the docs its commits changed
       - the shared pages its turns changed whose path has its name
     - `related`:  docs that name it ("epic `airplane`", "airplane P3"),
-      and shared pages its turns changed that the plan doc links to
-    - `linked`:  docs the plan doc only links to:  often ones it read, not wrote
+      and shared pages its turns changed that the epic page links to
+    - `linked`:  docs the epic page only links to:  often ones it read, not wrote
     - `swept`:  other shared pages its turns changed.  Skipped.
       - A turn commits every session's edits,
         and a tool run over every page (`docs offline --fix`) changes them all.
@@ -65,12 +65,12 @@ From `decisions --json`, later beats earlier:
 
 ## What it never touches
 
-- the plan doc itself:  it's the record.  A contradiction INSIDE it goes into the report as a judgement call.
+- the epic page itself:  it's the record.  A contradiction INSIDE it goes into the report as a judgement call.
 - code, names, strings the code uses
 - Owen's own words:  his quotes, kickoff prompts, `<epic-answer>` text
 - dated records:  the logs in `agents/`, other epics' changelog entries, `<epic-updated>` lines
 - generated files:
-  - the docs home (`pages/index.html`), list pages, bundles
+  - the docs' home page (`pages/index.html`), list pages, bundles
   - anything `git check-attr linguist-generated` marks
 
 ## Steps
@@ -100,10 +100,10 @@ From `decisions --json`, later beats earlier:
    - a list of the facts the docs state (command names, flags, paths, element and option names, numbers,
      behaviours), each with the docs that state it and how
    - where two docs disagree:  the one that matches the decisions and the code wins;  fix the others
-   - the same thing called two names:  the name the code (or the durable doc) uses, everywhere
+   - the same thing called two names:  the name the code (or the epic's guide) uses, everywhere
    - the changelog entry lists everything the phases' Done lists say was shipped, and nothing they don't
-7. What it couldn't decide (two readings both defensible, or the plan doc contradicting itself):
-   ONE judgement call per question, in the epic's plan doc, never one per fix:
+7. What it couldn't decide (two readings both defensible, or the epic page contradicting itself):
+   ONE judgement call per question, in the epic's epic page, never one per fix:
 
    ```sh
    epic add <epic>#J "Docs:  <the question, short>" --details "<p>what the docs say, where;
@@ -150,4 +150,4 @@ Short, per epic, in this order:
 5. Where to review:
    - Source Control (tracked docs)
    - the shared docs' `auto:` commits in `spell-app-dev`
-   - the plan doc's link, `spell dev docs link <plan doc> --review`
+   - the epic page's link, `spell dev docs link <epic page> --review`

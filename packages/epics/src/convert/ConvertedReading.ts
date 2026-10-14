@@ -8,7 +8,7 @@ import { NewReading } from "./NewReading"
 
 /****************
  * ### `ConvertedReading`
- * A CONVERTED plan doc (`<epic-page>` markup, before P14's elements), read for the second pass's `ConversionProof`:
+ * A CONVERTED epic page (`<epic-page>` markup, before P14's elements), read for the second pass's `ConversionProof`:
  * as `NewReading` reads it, minus the chrome P14's elements now draw (`UPGRADE_EXCLUSIONS` lists it for a reader).
  * - Every exclusion is the converter's own rule (`ProseShapes`):  a Net effect label only on a paragraph that becomes
  *   `<epic-net-effect>`, an option's `A · ` only on a grid that becomes `<epic-choices>`;  the same words in any

@@ -72,9 +72,9 @@ async function editorRow() {
   return { ...row, url: "-", state: "didn't answer:  see .spell-server.editor.log", failed: true }
 }
 
-/** Spell UI docs' row, once its bundle answers -- or why not. */
+/** The row of Spell UI's docs site, once its bundle answers -- or why not. */
 async function spellUIRow(base) {
-  const row = { name: "Spell UI docs", url: `${base}/ui/`, what: "static pages, served by the page server" }
+  const row = { name: "Spell UI's docs site", url: `${base}/ui/`, what: "static pages, served by the page server" }
   try {
     const response = await fetch(`${base}/ui/_assets/site.js`, { signal: AbortSignal.timeout(UI_TIMEOUT_MS) })
     if (response.ok) return { ...row, state: "running" }

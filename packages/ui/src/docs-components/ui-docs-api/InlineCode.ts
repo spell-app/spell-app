@@ -8,7 +8,7 @@ import type { InlinePiece } from "./UIDocsApi.types"
  *   `` `` `x` `` `` shows `` `x` ``);  an unclosed run is literal;  one space is trimmed from each end of a span
  *   that has both (and isn't all spaces).
  * - Why not `<ui-markdown>`:  it has no inline mode (it always renders a block `<article>` of `<p>`s),
- *   and one per table cell would be hundreds of elements (plan-doc gap).
+ *   and one per table cell would be hundreds of elements (epic-page gap).
  * - Static:  pure, text in, pieces out;  shared by the component and `ApiModel`.
  ****************/
 export class InlineCode {

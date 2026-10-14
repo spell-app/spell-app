@@ -1,7 +1,7 @@
 /**
  * `epic <verb> ...`:  the epic tools, a command of their own beside `spell` (epic `epic-workflow` P9) --
  * the commander tree the lean `epicMain.ts` builds, and `epic --help`.
- * - Most verbs edit or read an epic page (`epics/<name>/<name>.plan.html`):  the plan-doc tool, run IN this process
+ * - Most verbs edit or read an epic page (`epics/<name>/<name>.plan.html`):  the `epic` tool, run IN this process
  *   (`planDocCommand()`), after `planDocArgs()` turns Owen's `seo#J3` addressing into the tool's arguments
  * - The groups (`ask`, `choices`, `comments`, `notes`, `agents`, `airplane`):  the docs tools, passed through as
  *   `spell dev` passes them, their arguments verbatim
@@ -237,14 +237,16 @@ export function epicProgram(handOver: () => Promise<never>): Command {
   epic
     .command("ask")
     .description("details pages:  a question explained on a page in VS Code's side bar, Owen answering on it")
-    .usage("new <slug> [--epic <epic>] [--from <questions.json>] | show <page> [--wait] | wait | answer | draft | list | sweep")
+    .usage(
+      "new <slug> [--epic <epic>] [--from <questions.json>] | show <page> [--wait] | wait | answer | draft | list | sweep"
+    )
     .argument("[args...]")
     .allowUnknownOption()
     .action(() => runLean(detailsCommand, rawArgs("ask")))
 
   epic
     .command("choices")
-    .description("syntax-choices pages:  a table of names Claude recommends, Owen's call on each")
+    .description("choice pages:  a table of names Claude recommends, Owen's call on each")
     .usage("new <slug> --rows <rows.json> [--epic <epic>] | show <page> [--wait] | wait | answer | list [<epic>]")
     .argument("[args...]")
     .allowUnknownOption()
@@ -291,7 +293,7 @@ export function epicProgram(handOver: () => Promise<never>): Command {
 }
 
 /**
- * Make `verb` a verb on an epic page:  run by the plan-doc tool, after `planDocArgs()`;  returns it, for its usage
+ * Make `verb` a verb on an epic page:  run by the `epic` tool, after `planDocArgs()`;  returns it, for its usage
  * line and help.
  * - its arguments are taken raw (`rawArgs()`):  `--goal` / `--details` ... are the tool's, not commander's
  * - `epic.command("<name>")` stays at each call:  `commandsCommand` finds the verbs by that text
@@ -305,7 +307,7 @@ function page(verb: Command, description: string): Command {
     .action(() => runLean(runPlanDoc, [name, ...rawArgs(name)]))
 }
 
-/** Run `epic <verb> <args...>` through the plan-doc tool:  each command `planDocArgs()` makes, stopping at a failure. */
+/** Run `epic <verb> <args...>` through the `epic` tool:  each command `planDocArgs()` makes, stopping at a failure. */
 async function runPlanDoc([verb, ...args]: string[]): Promise<number> {
   for (const argv of planDocArgs(verb!, args)) {
     const exitCode = await planDocCommand(argv)

@@ -1,13 +1,13 @@
 /**
  * MIGRATE the docs' pages, by page KIND (epic `epic-workflow`, P8;  J44):  each kind's named, dated, idempotent steps,
  * oldest first, on each page of that kind, under its lock;  a report per page that changed.
- * - the epic page's steps are the plan-doc tool's (`$/epics/tool/migrations`, `Migrations`):  this file holds the
+ * - the epic page's steps are the `epic` tool's (`$/epics/tool/migrations`, `Migrations`):  this file holds the
  *   OTHER kinds', and `spell dev plan-doc migrate` runs it as a child for them (`MigrateCommands`)
  * - `KINDS`:  every page kind, the same list as `PAGE_KINDS` in `$/epics/tool/migrations` (`migrate.test.ts` checks)
  * - `pageKind()`:  which kind a page is, from where it lives and what it loads
  * - `STEPS`:  the steps.  Today's one-off fixers, as steps of their kind:
  *   - `ui-section`:  `to-ui-section.js`, old `section.s2|s3` sections to `<ui-section>`
- *   - `answer-elements`:  `to-answer-elements.js`, a details or syntax-choices page (and the old shared templates of
+ *   - `answer-elements`:  `to-answer-elements.js`, a details or choice page (and the old shared templates of
  *     both) in the epics pack's elements, its old page script gone (epic `epic-workflow` P12)
  *   - NOT the shared-content repair (`relocate.js`):  it moves files between folders rather than fixing a page's
  *     markup, and `spell dev shared commit` runs its reorg every turn already
@@ -30,7 +30,10 @@ import { withLocks } from "./relocate.js"
 import { convertChoicesPage, convertDetailsPage, needsConversion } from "./to-answer-elements.js"
 import { convertSections } from "./to-ui-section.js"
 
-/** Every page kind, by the names P14 proposes:  `$/epics/tool/migrations` `PAGE_KINDS`, kept the same. */
+/**
+ * Every page kind, by its key:  `$/epics/tool/migrations` `PAGE_KINDS`, kept the same.
+ * - keys, typed on the command line (`epic migrate detail`);  what's printed is the kind's name (`KIND_NAMES`)
+ */
 export const KINDS = [
   "epic",
   "goal",
@@ -47,6 +50,26 @@ export const KINDS = [
   "brand",
   "goal-set"
 ]
+
+/** Each kind's name, as people read it (Owen, 2026-10-14, epic `epic-workflow` P14), where it isn't its key. */
+const KIND_NAMES = {
+  epic: "epic page",
+  goal: "saga page",
+  command: "commands page",
+  home: "home page",
+  list: "list page",
+  detail: "details page",
+  choice: "choice page",
+  component: "components page",
+  brand: "brand page",
+  "goal-set": "saga page (parked)"
+}
+
+/** The kind `kind`'s pages, in words:  `details pages`, `guides`. */
+function kindPages(kind) {
+  const name = KIND_NAMES[kind] ?? kind
+  return name.replace(/^(\S+ page|\S+)/, "$1s")
+}
 
 /**
  * The steps, oldest first:  `{ name, date, kinds, description, applies(html), run(document) }`.
@@ -99,8 +122,8 @@ export const STEPS = [
 
 /**
  * Which kind page `file` is (`KINDS`), from where it lives in checkout `root` and what it loads.
- * - a details page with `<slug>.rows.json` beside it is a choice page;  a review page counts as a detail page
- * - under `guides/`:  a page loading `commands.js` is a command page, one with a card filter a cheatsheet
+ * - a details page with `<slug>.rows.json` beside it is a choice page;  a review page counts as a details page
+ * - under `guides/`:  a page loading `commands.js` is a commands page, one with a card filter a cheatsheet
  */
 export function pageKind(file, root = ROOT, html = existsSync(file) ? readFileSync(file, "utf8") : "") {
   const path = relative(root, file).split(sep).join("/")
@@ -127,8 +150,8 @@ export function stepsFor(kind, step) {
 
 /**
  * The pages of checkout `root` that some step is for:  every page of the docs' areas, the Brand list page too, and
- * every details and syntax-choices page (`details.js` `listPages()`:  `findPages()` skips `details/` folders),
- * as `{ file, kind }`, sorted;  epic pages, goal sets, brand and component pages left out (no step is for them).
+ * every details and choice page (`details.js` `listPages()`:  `findPages()` skips `details/` folders),
+ * as `{ file, kind }`, sorted;  epic pages, goal sets, brand and components pages left out (no step is for them).
  * - `kind`:  only that kind
  */
 export function pagesFor(root, kind) {
@@ -198,7 +221,7 @@ export function report(results, root, { dryRun = false, all = false } = {}) {
   for (const [kind, { pages, changed, steps }] of kinds) {
     const byStep = [...steps].map(([each, n]) => `${each} ${n}`).join(", ")
     lines.push(
-      `${kind} pages:  ${changed} of ${pages} ${dryRun ? "would change" : "changed"}${byStep ? ` (${byStep})` : ""}`
+      `${kindPages(kind)}:  ${changed} of ${pages} ${dryRun ? "would change" : "changed"}${byStep ? ` (${byStep})` : ""}`
     )
   }
   return lines
@@ -225,7 +248,7 @@ export function main(argv, say = (line) => process.stdout.write(`${line}\n`)) {
   const [kind] = positional
   try {
     if (kind && !KINDS.includes(kind)) throw new MigrateError(`no page kind "${kind}":  ${KINDS.join(", ")}`)
-    if (kind === "epic") throw new MigrateError("epic pages are the plan-doc tool's:  spell dev plan-doc migrate epic")
+    if (kind === "epic") throw new MigrateError("epic pages are the `epic` tool's:  epic migrate epic")
     if (flags.list) {
       for (const step of STEPS.filter((each) => !kind || each.kinds.includes(kind)))
         say(`${step.kinds.join(",").padEnd(11)} ${step.date}  ${step.name.padEnd(24)} ${step.description}`)
@@ -237,11 +260,11 @@ export function main(argv, say = (line) => process.stdout.write(`${line}\n`)) {
       const file = fileOf(flags.file, root)
       if (!existsSync(file)) throw new MigrateError(`no page ${flags.file}`)
       const found = kind ?? pageKind(file, root)
-      if (found === "epic") throw new MigrateError("an epic page:  spell dev plan-doc migrate --file <page>")
+      if (found === "epic") throw new MigrateError("an epic page:  epic migrate --file <page>")
       pages = [{ file, kind: found }]
     } else pages = pagesFor(root, kind)
     if (kind && !stepsFor(kind, step).length) {
-      say(`${kind} pages:  no steps${step ? ` called ${step}` : ""} for them yet`)
+      say(`${kindPages(kind)}:  no steps${step ? ` called ${step}` : ""} for them yet`)
       return 0
     }
     const dryRun = Boolean(flags["dry-run"])

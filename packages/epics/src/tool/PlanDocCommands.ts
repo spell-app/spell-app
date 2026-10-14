@@ -22,14 +22,14 @@ import { LISTEN_HEARTBEAT_MS, LISTEN_STALE_MS, ReviewInbox } from "./ReviewInbox
 /****************
  * ### `PlanDocCommands`
  * `spell dev plan-doc <command> <name> ...`:
- * edit the structured parts of a plan doc, `epics/<name>/<name>.plan.html`.
+ * edit the structured parts of an epic page, `epics/<name>/<name>.plan.html`.
  * Used by the `/epic` skill and its agents.
  * - what's data:  `PLAN-DOC.md` beside this;  the elements:  `$/epics/definitions`
  * - Commands:  `new`, `add-phase`, `phase`, `rename`, `estimate`, `add`, `calm`, `decide`, `close`, `cancel`,
  *   `reopen`, `commit`, `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `docs`, `decisions`, `check`,
  *   `open`, `migrate`, `convert`, `split`, `join`, `inbox`, `details`, `status`, `original`
  *   (`spell dev plan-doc` with no command lists them:  `USAGE`).
- * - `docs`, `decisions`:  the docs an epic wrote besides its plan doc, and what its plan doc settled
+ * - `docs`, `decisions`:  the docs an epic wrote besides its epic page, and what its epic page settled
  *   (`EpicDocs`), for `/docs-check`
  * - the `<epic-*>` markup only:  every command refuses a doc still in the old markup
  *   (one restored from an old backup) before it writes anything:  `convert` it first (`PlanDocFiles.read()`)
@@ -50,7 +50,7 @@ import { LISTEN_HEARTBEAT_MS, LISTEN_STALE_MS, ReviewInbox } from "./ReviewInbox
  * - From `packages/docs/tools/plan-doc.js`'s command line (epic `epic-components`, P7), which now forwards here.
  ****************/
 export class PlanDocCommands {
-  /** the checkout's plan docs:  STATIC for the object's life */
+  /** the checkout's epic pages:  STATIC for the object's life */
   readonly files: PlanDocFiles
 
   /** the `inbox` commands, on this object's files and output */
@@ -60,7 +60,7 @@ export class PlanDocCommands {
   readonly migrator: MigrateCommands
 
   /**
-   * - `files`:  the checkout's plan docs
+   * - `files`:  the checkout's epic pages
    * - `sessionsOf`:  an epic's running sessions, for `migrate --notify`;  the `spell` CLI gives it (`epicSessions()`)
    */
   constructor({ files = new PlanDocFiles(), sessionsOf }: { files?: PlanDocFiles; sessionsOf?: SessionFinder } = {}) {
@@ -75,7 +75,7 @@ export class PlanDocCommands {
 
   /**
    * Run the command line `argv` (everything after `plan-doc`);  resolves to the exit code.
-   * - a `PlanDocError` is a message, `plan-doc:  <message>` on stderr, exit 1;  anything else is a bug, and throws
+   * - a `PlanDocError` is a message, `epic:  <message>` on stderr, exit 1;  anything else is a bug, and throws
    * - `2`:  usage (no command, or a bad one), or `inbox wait` timing out;  `1`:  `check` found problems
    */
   async run(argv: string[]): Promise<number> {
@@ -83,7 +83,7 @@ export class PlanDocCommands {
       return (await this.main(argv)) ?? 0
     } catch (error) {
       if (!(error instanceof PlanDocError)) throw error
-      this.warn(`plan-doc:  ${error.message}`)
+      this.warn(`epic:  ${error.message}`)
       return 1
     }
   }
@@ -102,7 +102,7 @@ export class PlanDocCommands {
     if (command === "summaries") return this.printSummaries(positional.slice(1))
     // the shared doc, by THIS checkout's path (`findDoc()`);  `--here` meant that before every checkout shared one
     // copy:  accepted and ignored, so old callers keep working (T3 of `review-review`)
-    if (flags.here) this.warn("plan-doc:  --here is no longer needed:  every checkout edits the one shared doc")
+    if (flags.here) this.warn("epic:  --here is no longer needed:  every checkout edits the one shared doc")
     const file = command === "new" ? this.files.docPath(name) : this.files.findDoc(name)
     switch (command) {
       case "new":
@@ -302,7 +302,7 @@ export class PlanDocCommands {
   // ## Reading and editing
   ////////////////
 
-  /** The plan doc at `file`, whole:  `PlanDocFiles.read()`;  refuses an old-markup doc. */
+  /** The epic page at `file`, whole:  `PlanDocFiles.read()`;  refuses an old-markup doc. */
   read(file: string): PlanDoc {
     return this.files.read(file)
   }
@@ -361,7 +361,7 @@ export class PlanDocCommands {
       .replace(/\n\s*<!--\s*PLAN DOC TEMPLATE\.[\s\S]*?-->/, "")
     const plan = PlanDoc.parse(html, now)
     plan.document.querySelector("title")!.textContent = `${TITLE_PREFIX}${title}`
-    plan.document.querySelector('meta[name="description"]')!.setAttribute("content", `Plan doc:  ${title}.`)
+    plan.document.querySelector('meta[name="description"]')!.setAttribute("content", `Epic page:  ${title}.`)
     // the prompt that started the plan, in the Overview's `prompt` slot;  none:  no quote
     plan.setPrompt(promptFile ? readFileSync(promptFile, "utf8") : (prompt ?? ""))
     if (future) plan.makeFuture()
@@ -653,7 +653,7 @@ export class PlanDocCommands {
   }
 
   /**
-   * Show `file` in VS Code's doc preview, in the right side bar's Review tab (a plan doc's place, Owen's rule
+   * Show `file` in VS Code's doc preview, in the right side bar's Review tab (an epic page's place, Owen's rule
    * 2026-10-07), or its Spell Docs tab (`view` `docs`), or Chrome when not run from VS Code:
    * `packages/docs/tools/open.js --review <file>` (`--vs` for Spell Docs), a child `node` with this terminal
    * attached, which starts the page server and asks the session's window (`pages.js` `openInVSCode()`).
@@ -709,7 +709,7 @@ export class PlanDocCommands {
   }
 
   /**
-   * `docs`:  the docs an epic wrote besides its plan doc, by group, each with why it's listed;
+   * `docs`:  the docs an epic wrote besides its epic page, by group, each with why it's listed;
    * its changelog entry last (or JSON for `/docs-check`).
    * - `swept` pages (`EpicDocs.groupOf()`):  counted, listed only by `--json`
    */
@@ -738,7 +738,7 @@ export class PlanDocCommands {
   }
 
   /**
-   * `decisions`:  what an epic's plan doc settled, for checking its docs against:  each phase and its Done list,
+   * `decisions`:  what an epic's page settled, for checking its docs against:  each phase and its Done list,
    * then the items, their status, chosen option and answer (or JSON, with every item's text, for `/docs-check`).
    */
   private printDecisions(decisions: EpicDecisions, json: boolean): void {
@@ -829,7 +829,7 @@ type CreateFlags = { title?: string; prompt?: string; promptFile?: string; futur
 export const USAGE = `usage:  spell dev plan-doc <command> <name> ...    (doc:  epics/<name>/<name>.plan.html)
   The old spelling of the epic command:  \`epic --help\` lists today's names (\`epic close seo#J3\` ...).
   new <name> [--title "Title"] [--prompt "text" | --prompt-file path] [--future]
-                                                   copy the template, fill it in, update the docs index;
+                                                   copy the template, fill it in, update the home page;
                                                    --future:  an epic not planned yet (/epic future);  new on
                                                    a future epic's doc plans it:  promoted where it is
   add-phase <name> "Short Name" --symptom html --changes html [--goal html] [--files html] [--verify html]
@@ -880,12 +880,12 @@ export const USAGE = `usage:  spell dev plan-doc <command> <name> ...    (doc:  
                                                    gone, once read
   prompt <name> "text" | --file path               set the prompt that started the plan ("" removes it)
   summary <name> [--json]                          open questions, issues, caveats, todos;  the next phase
-  docs <name> [--json]                             the docs the epic wrote besides its plan doc:  its durable
-                                                   doc, what its commits changed (wrote), docs that name it
+  docs <name> [--json]                             the docs the epic wrote besides its epic page:  its
+                                                   guide, what its commits changed (wrote), docs that name it
                                                    (related), docs it only links to (linked);  its
                                                    changelog entry;  the shared pages its turns swept up
                                                    (swept):  counted, --json lists them.  For /docs-check
-  decisions <name> [--json]                        what the plan doc settled:  phases (Done, Updated notes),
+  decisions <name> [--json]                        what the epic page settled:  phases (Done, Updated notes),
                                                    items (status, chosen option, answer;  --json:  their
                                                    text).  For /docs-check
   review <name> <id> ["outcome"]                   mark an item reviewed today;  the outcome goes in the log
@@ -1046,7 +1046,7 @@ function need(value: string | undefined, what: string): string {
 }
 
 /** Where a usage error points:  the whole `USAGE` is long, and every error printing it buried the message. */
-const USAGE_HINT = "`epic <verb> --help`;  `spell dev plan-doc` alone lists the old spellings"
+const USAGE_HINT = "`epic <verb> --help`;  a phase is `<epic>#P3`, an item `<epic>#J3`"
 
 /**
  * A flag's phase number (`--before 3` is 3);  `undefined` without the flag.

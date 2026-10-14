@@ -15,7 +15,7 @@
  *   - the Polished Ivory ladder (`--spell-accent-25` ... `-800`) beside `spell`'s violet and brand primitives
  *   `<ui-brand-*>` elements (`packages/brand/components/`) and the `.spell.html` pages read these;  plain `<ui-*>`
  *   elements never do.
- * - Gaps (what no token reaches):  the plan doc's "What the theme can't do today" table (Overview 1.4).
+ * - Gaps (what no token reaches):  the epic page's "What the theme can't do today" table (Overview 1.4).
  *
  * `spell.css`'s own notes, kept as they were:
  */
@@ -24,7 +24,7 @@
  * - OUR OWN theme, not a Fomantic port:  `ThemeSheets.OWN`, listed apart from `ThemeSheets.names`.  Applied like
  *   one, ON TOP of `classic.css`, so every classic token a brand value replaces is restated here:  type, the size
  *   ladder, radii, ink, borders, shadows, the whole palette, the message colours, links, focus, highlight.
- * - The default look of every doc site:  the Spell UI docs (`ThemePreference`) and `packages/docs` pages
+ * - The default look of every doc site:  Spell UI's docs site (`ThemePreference`) and `packages/docs` pages
  *   (`spell-ui.entry.js`).
  * - Source of each value:  the brand's `tokens/palette.css` (17-step OKLCH ladders, as hex), `tokens/theme.css`
  *   (what each step MEANS, light and dark), `tokens/typography.css`, `tokens/spacing.css`, `components.css`.

@@ -5,7 +5,7 @@ import { SpellType } from "./SpellType"
 
 /**
  * `quoted_type` rule:  a type's name in quotes, where it's being declared:  `a "card" is a thing where:`
- * -- the outline style's "quotes teach a new word" (plan doc `outline-spell`).
+ * -- the outline style's "quotes teach a new word" (epic page `outline-spell`).
  * - e.g. `"card"` in `a "card" is a thing where:`
  * - One word (dashes OK) inside straight quotes, not blacklisted;  a `SpellType` match like `card` would be.
  * - `raw` is the name without its quotes, e.g. `card`.

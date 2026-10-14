@@ -33,7 +33,7 @@ import "./TypeExplorer.css"
  * - NOTE: imports its peers directly, NOT the `$/app/solid` barrel:  a runner's bundle would get the whole editor
  *   through it (`Actions.tsx`).  So its `<ui-*>` tags are the CALLER's to define:  the barrel or `./loadUI`.  Not
  *   imported here:  `$/ui` can't load under node (`customElements`), and the `node` tests render this.
- * - SEE:  its App UI page, `packages/app/components/TypeExplorer.html` (`/app-ui/TypeExplorer.html`).
+ * - SEE:  its App UI components page, `packages/app/components/TypeExplorer.html` (`/app-ui/TypeExplorer.html`).
  ****************/
 export function TypeExplorer(props: TypeExplorerProps) {
   const [state, setState] = createSignal<TypeExplorerState>(untrack(() => props.state) ?? loadState())

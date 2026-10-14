@@ -99,7 +99,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 - An EXCLUSIVE list class roots a FAMILY:  it and its sub-classes, e.g. `Pile` and its `Tableau`.
   - Compiled from `a card belongs to one pile`, as `Pile.exclusive = true`.
-- An item is in at most ONE list of a family (plan doc D7, D8 of precedence-and-types):
+- An item is in at most ONE list of a family (epic page D7, D8 of precedence-and-types):
   - adding it takes it out of the list that held it, and adding one a list holds moves it
   - removing it leaves it with no owner
   - `Pile.ownerOf(card)` is who holds it, TRACKED with a spell cell per item
@@ -120,7 +120,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `a copy of`, `merge ... into a new pile`
   - Build a new helper's result with `newThingLike()` / `newScratch()`.
     - Never with `new constructor()`.
-- Guards (plan doc Q23 - Q25):  `canTake(item)` / `canGiveUp(item)`, yes by default.
+- Guards (epic page Q23 - Q25):  `canTake(item)` / `canGiveUp(item)`, yes by default.
   - Compiled spell overrides them, e.g. in `Tableau`:
     - `a tableau can take a card if: ...`
     - compiles to `canTake(card) {...}`

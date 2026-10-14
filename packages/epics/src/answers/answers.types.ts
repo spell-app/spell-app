@@ -2,7 +2,7 @@
  * Types and constants of `$/epics/answers`:  the pages Claude makes for Owen to answer ON, as their elements keep
  * them (epic `epic-workflow` P12).
  * - a DETAILS page:  questions (`<epic-ask>`), comment and notes boxes (`<epic-text-box>`), Send (`<epic-send>`)
- * - a SYNTAX-CHOICES page:  rows (`<epic-choice-row>`) and their bar (`<epic-choices-bar>`)
+ * - a CHOICE page:  rows (`<epic-choice-row>`) and their bar (`<epic-choices-bar>`)
  * - The answers' shapes are COPIES of the page server's routes' (`packages/docs/tools/detailsRoutes.ts`,
  *   `choicesRoutes.ts`):  `epics` never imports `docs` (the root's dependency rule).
  * - Pure data and types:  nothing here runs.
@@ -23,7 +23,7 @@ export const DETAILS_DRAFT_API = "/api/details/draft"
 
 /**
  * How long after the last change a details page saves its draft, in ms:  "a moment after he stops typing"
- * (P18;  a syntax-choices page waits 5s, `CHOICES_SAVE_MS`).  The browser's own copy is written at once.
+ * (P18;  a choice page waits 5s, `CHOICES_SAVE_MS`).  The browser's own copy is written at once.
  */
 export const DETAILS_SAVE_MS = 2000
 
@@ -45,10 +45,10 @@ export const NOTES_KEY = "notes"
  */
 export const DETAILS_PAGE = /\/details\/[^/]+\.html$/
 
-/** A syntax-choices page's routes (`choicesRoutes.ts`):  `<api>/draft` and `<api>/answer`, `POST` and `GET ?page=`. */
+/** A choice page's routes (`choicesRoutes.ts`):  `<api>/draft` and `<api>/answer`, `POST` and `GET ?page=`. */
 export const CHOICES_API = "/api/choices"
 
-/** How long after the last change a syntax-choices page saves its draft, in ms (Owen:  "5 sec debounce is fine"). */
+/** How long after the last change a choice page saves its draft, in ms (Owen:  "5 sec debounce is fine"). */
 export const CHOICES_SAVE_MS = 5000
 
 /**
@@ -142,7 +142,7 @@ export type AskPart = AnswerPart & {
 }
 
 /**
- * A question's state, the plan doc's colours (`templates/epics/plan-doc.md`, "Colours"):
+ * A question's state, the epic page's colours (`templates/epics/plan-doc.md`, "Colours"):
  * - `attention` (red, needs Owen):  nothing yet
  * - `done` (green, decided):  an option picked
  * - `working` (blue, Claude's to do):  "Provide more details" asked, or only Other written
@@ -158,11 +158,11 @@ export type AskState = "attention" | "done" | "working"
 export type SendFill = "rest" | "pending" | "sent"
 
 ////////////////
-// ## A syntax-choices page
+// ## A choice page
 ////////////////
 
 /**
- * One row of a syntax-choices page, registered with the page's `ChoicesForm` while it's connected
+ * One row of a choice page, registered with the page's `ChoicesForm` while it's connected
  * (`<epic-choice-row>`).
  */
 export type ChoiceRowPart = {
@@ -187,7 +187,7 @@ export type ChoiceRowPart = {
 }
 
 /**
- * What a syntax-choices page sends:  the changed boxes by row id, and the feedback.
+ * What a choice page sends:  the changed boxes by row id, and the feedback.
  * - `order`:  each table Owen can put in order (`<epic-choice-rows reorder>`), by its section's id:  its row ids in
  *   the order he left them;  none without such a table
  */
@@ -196,8 +196,8 @@ export type ChoicesValues = { values: Record<string, string>; feedback: string; 
 /** Each reorderable table's row ids, in the order Owen left them, by its section's id. */
 export type ChoicesOrder = Record<string, string[]>
 
-/** A syntax-choices page's draft (`<slug>.draft.json`):  its values, and when it was saved. */
+/** A choice page's draft (`<slug>.draft.json`):  its values, and when it was saved. */
 export type ChoicesDraft = ChoicesValues & { saved: string }
 
-/** A syntax-choices page's answer (`<slug>.answer.json`):  its values, when, and how often sent. */
+/** A choice page's answer (`<slug>.answer.json`):  its values, when, and how often sent. */
 export type ChoicesAnswer = ChoicesValues & { answered: string; changes?: number }

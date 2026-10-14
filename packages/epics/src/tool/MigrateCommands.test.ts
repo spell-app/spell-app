@@ -194,7 +194,7 @@ describe("migrate:  the runner", () => {
 })
 
 describe("migrate:  kinds", () => {
-  test("a kind's words:  `epic` and epic names;  another kind with names is refused;  --notify only for epics", () => {
+  test("a kind's words:  `epic` and epic ids;  another kind with names is refused;  --notify only for epics", () => {
     expect(MigrateCommands.parse(["seo", "docs"], {})).toEqual({ kind: "epic", names: ["seo", "docs"] })
     expect(MigrateCommands.parse(["epic", "seo"], {})).toEqual({ kind: "epic", names: ["seo"] })
     expect(MigrateCommands.parse(["cheatsheet"], {})).toEqual({ kind: "cheatsheet", names: [] })

@@ -154,7 +154,7 @@ The session MUST stay titled `🚧 <name>` while its work is under way.
   - The prompt hook titles a typed `/isolate`, `/epic` or `/unpark <name>` so by itself.
   - Renamed:  one line, "session renamed `🚧 <name>` (was "<old>");  shows on your next message".
   - `spell dev session title` alone shows the current title, and any queued one.
-- `<name>`:  the worktree's (`.claude/worktrees/<name>`), which is the branch's and the plan doc's.
+- `<name>`:  the worktree's (`.claude/worktrees/<name>`), which is the branch's and the epic page's.
 
 ## Merge, keep:  a standing epic
 
@@ -218,7 +218,7 @@ leaves its worktree:  NOT "Finish" below.
      - Other files conflict:  step 3.
    - Nothing unmerged:  skip this step and say "nothing to merge".
 3. Merge conflicts in other files (code, skills, docs prose).
-   - These can't conflict any more:  the logs (`agents/*.md`), the changelog, the docs index and plan docs.
+   - These can't conflict any more:  the logs (`agents/*.md`), the changelog, the docs' home page and epic pages.
      - They're shared content, untracked by spell-app.
      - One in conflict means a worktree not migrated yet (step 2).
    - AskUserQuestion, listing the conflicting files, options:
@@ -262,7 +262,7 @@ leaves its worktree:  NOT "Finish" below.
 
        - Title:  the branch's changelog entry's header without its date
          (`2026-10-05 · Review Review` -> `Review Review`).
-         No entry (left unmerged):  the plan doc's title, else the branch name.
+         No entry (left unmerged):  the epic page's title, else the branch name.
        - Body:
          - the entry's bullets, as a markdown list (`- ...`)
          - plain text:  its links point into shared docs, which aren't on GitHub

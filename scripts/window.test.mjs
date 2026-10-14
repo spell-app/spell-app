@@ -476,7 +476,7 @@ test("stayAdvice():  stay when it's the window's only session;  else a window of
   assert.equal(main.recommend, "window")
   assert.match(main.reasons[0], /^another session shares this window \(the main checkout\)/)
   assert.doesNotMatch(main.reasons.join(), /Source Control/)
-  assert.match(main.reasons.join(), /plan doc/)
+  assert.match(main.reasons.join(), /epic page/)
 
   // no bridge:  a new window can't open, so staying is all there is
   assert.equal(stayAdvice({ window: null, others: [{ pid: 302, cwd: "/repo" }] }).recommend, "stay")

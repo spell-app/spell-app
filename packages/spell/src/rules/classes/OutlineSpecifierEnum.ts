@@ -15,7 +15,7 @@ export class OutlineSpecifierEnum extends TypeSpecifierEnum {
   @proto static alias = "outline_specifier"
 
   /**
-   * Without `either` / `one of`, two or more values joined by `or`, e.g. `up or down` (plan doc Q4's comparison):
+   * Without `either` / `one of`, two or more values joined by `or`, e.g. `up or down` (epic page Q4's comparison):
    * one value alone, `its "x" is total`, stays a getter.
    */
   parse(scope: P.Scope, tokens: P.Token[]) {

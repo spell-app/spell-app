@@ -101,7 +101,7 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   // ## Answering:  an option of an `<epic-ask>`
   ////////////////
 
-  /** The `<epic-ask>` it's an option of, drawn;  `undefined` for a plan doc's option.  Read again as it connects. */
+  /** The `<epic-ask>` it's an option of, drawn;  `undefined` for an epic page's option.  Read again as it connects. */
   @E.state accessor ask: EpicAsk | undefined = EpicOption.askFor(this.domElement)
 
   /** An option of an `<epic-ask>`:  a tick box and a comment box. */
@@ -381,7 +381,7 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
     )
   }
 
-  /** A plan doc's option's header:  the fold toggle (its whole title), the Choose pill while reviewed. */
+  /** An epic page's option's header:  the fold toggle (its whole title), the Choose pill while reviewed. */
   private reviewHeader(): JSX.Element {
     return (
       <div class={HEADER} part={this.partForName("header")}>

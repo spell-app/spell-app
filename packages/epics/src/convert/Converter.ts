@@ -17,7 +17,7 @@ import { PhaseConverter } from "./PhaseConverter"
 
 /****************
  * ### `Converter`
- * The FIRST pass:  converts ONE plan doc from the old markup (`ui-section`s, `ui-item[data-status]`, any generation
+ * The FIRST pass:  converts ONE epic page from the old markup (`ui-section`s, `ui-item[data-status]`, any generation
  * still in use) to `<epic-*>` markup, and proves it lost nothing.
  * - in:  the doc as it is on disk, split (a skeleton plus `parts/<id>.html`) or one file;  assembled first
  *   (`OldParts`)

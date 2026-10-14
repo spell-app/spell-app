@@ -31,7 +31,7 @@ export async function epicCommand(session: CLI.CliSession, args: string[], optio
   const root = CLI.findCheckout(CHECKOUT_MARKER)
   if (verb === "home") {
     if (named) CLI.setEpicHome(root, named)
-    session.out(CLI.epicHome(root) ?? "no tooling home:  spell epic home <epic> sets one")
+    session.out(CLI.epicHome(root) ?? "no tooling home:  epic home <epic> sets one")
     return CLI.EXIT.OK
   }
   // no epic named:  the tooling home's (`send` only:  the other verbs say which epic)
@@ -50,9 +50,9 @@ export async function epicCommand(session: CLI.CliSession, args: string[], optio
     }
     case "file": {
       const [id, where] = rest
-      if (!id || !where) throw new CLI.CliError(`file:  usage:  spell epic file ${epic} <id> <phase | "where it went">`)
+      if (!id || !where) throw new CLI.CliError(`file:  usage:  epic file ${epic} <id> <phase | "where it went">`)
       if (/^\d+$/.test(where)) {
-        // into phase `where`'s Requests field, by the plan-doc tool:  then it's filed as `P<n>`
+        // into phase `where`'s Requests field, by the `epic` tool:  then it's filed as `P<n>`
         const request = CLI.epicRequests(root, epic).find((it) => it.id === id)
         if (!request) throw new CLI.CliError(`no request '${id}' in epic '${epic}'`)
         const html = join(mkdtempSync(join(tmpdir(), "epic-request-")), `${id}.html`)

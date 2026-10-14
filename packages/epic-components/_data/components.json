@@ -220,7 +220,7 @@
         "form question",
         "picker"
       ],
-      "description": "A question Owen answers ON the page (a details page's;  epic `epic-workflow` P12):  its text an `<epic-question>`, its options an `<epic-choices>` of `<epic-option>`s, each with a tick box, then an Other box.  Its line shows a chip in the plan doc's state colours (red:  nothing yet;  green:  picked;  blue:  Claude has more to do).  Its answer goes under its section's id.",
+      "description": "A question Owen answers ON the page (a details page's;  epic `epic-workflow` P12):  its text an `<epic-question>`, its options an `<epic-choices>` of `<epic-option>`s, each with a tick box, then an Other box.  Its line shows a chip in the epic page's state colours (red:  nothing yet;  green:  picked;  blue:  Claude has more to do).  Its answer goes under its section's id.",
       "noun": "ask",
       "attributes": [
         {
@@ -267,7 +267,7 @@
         },
         {
           "name": "chip",
-          "description": "Its id chip (`Q1`), in the plan doc's state colours:  red needs Owen, green picked, blue Claude's."
+          "description": "Its id chip (`Q1`), in the epic page's state colours:  red needs Owen, green picked, blue Claude's."
         },
         {
           "name": "how",
@@ -381,7 +381,7 @@
         "name choice",
         "row"
       ],
-      "description": "One row of a syntax-choices page (epic `epic-workflow` P12), in an `<epic-choice-rows>`:  the use site (File, opening VS Code at the line), what it's for, how it reads today, and a box pre-filled with Claude's recommendation.  Owen types over it, or leaves it;  a changed box is orange, with a round button putting the recommendation back.  In a table Owen puts in order (`<epic-choice-rows reorder>`), its place first, with move up / move down.",
+      "description": "One row of a choice page (epic `epic-workflow` P12), in an `<epic-choice-rows>`:  the use site (File, opening VS Code at the line), what it's for, how it reads today, and a box pre-filled with Claude's recommendation.  Owen types over it, or leaves it;  a changed box is orange, with a round button putting the recommendation back.  In a table Owen puts in order (`<epic-choice-rows reorder>`), its place first, with move up / move down.",
       "noun": "choice row",
       "attributes": [
         {
@@ -529,7 +529,7 @@
         "rename table",
         "choices table"
       ],
-      "description": "One section's table on a syntax-choices page (epic `epic-workflow` P12):  the column heads File | Purpose | Current | Recommended, then its rows, each an `<epic-choice-row>` whose Recommended box Owen types over.  It counts its section's rows on the section's title (`3 to change · 1 stay · 1 changed`).  With `reorder`, Owen puts the rows in order too (epic `epic-workflow` P15).  Under 720px it scrolls inside its own box.",
+      "description": "One section's table on a choice page (epic `epic-workflow` P12):  the column heads File | Purpose | Current | Recommended, then its rows, each an `<epic-choice-row>` whose Recommended box Owen types over.  It counts its section's rows on the section's title (`3 to change · 1 stay · 1 changed`).  With `reorder`, Owen puts the rows in order too (epic `epic-workflow` P15).  Under 720px it scrolls inside its own box.",
       "noun": "choice rows",
       "attributes": [
         {
@@ -728,7 +728,7 @@
         "send bar",
         "feedback"
       ],
-      "description": "A syntax-choices page's bar (epic `epic-workflow` P12), last on the page and pinned to the window's bottom:  the feedback box, then \"Do it\", which sends every changed box and the feedback to Claude;  under them, Expand all, and the save status when a save failed;  then what was sent, or why not.  What's typed saves itself as a draft 5s after typing stops, and as the page goes away.  Once a page.",
+      "description": "A choice page's bar (epic `epic-workflow` P12), last on the page and pinned to the window's bottom:  the feedback box, then \"Do it\", which sends every changed box and the feedback to Claude;  under them, Expand all, and the save status when a save failed;  then what was sent, or why not.  What's typed saves itself as a draft 5s after typing stops, and as the page goes away.  Once a page.",
       "noun": "choices bar",
       "attributes": [],
       "slots": [],
@@ -2145,7 +2145,7 @@
         "introduction",
         "kickoff"
       ],
-      "description": "A plan doc's Overview:  the two-sentence summary, the prompt that started the plan, the total estimate, then the substance in numbered sub-sections.",
+      "description": "An epic page's Overview:  the two-sentence summary, the prompt that started the plan, the total estimate, then the substance in numbered sub-sections.",
       "noun": "overview",
       "attributes": [
         {
@@ -2165,7 +2165,7 @@
         {
           "name": "open",
           "kind": "boolean",
-          "description": "Unfolded:  PAGE state, never written in a doc (plan docs open folded).  A click on the title, a link to it (or into it) and find-in-page set it;  set it from code to open it."
+          "description": "Unfolded:  PAGE state, never written in a doc (epic pages open folded).  A click on the title, a link to it (or into it) and find-in-page set it;  set it from code to open it."
         }
       ],
       "slots": [
@@ -2301,12 +2301,13 @@
         "page"
       ],
       "aka": [
+        "epic page",
         "plan doc",
         "epic",
         "plan",
         "project plan"
       ],
-      "description": "A plan doc:  one epic's page -- its crumbs, header and meta lines, the Overview, then its sections in a fixed order.  Runs edge to edge:  it breaks out of the docs' `<main>` padding (`--spell-doc-pad-inline`).",
+      "description": "An epic page:  one epic's page -- its crumbs, header and meta lines, the Overview, then its sections in a fixed order.  Runs edge to edge:  it breaks out of the docs' `<main>` padding (`--spell-doc-pad-inline`).",
       "noun": "page",
       "attributes": [
         {
@@ -2333,7 +2334,7 @@
         {
           "name": "started",
           "kind": "string",
-          "description": "The day the plan doc was made."
+          "description": "The day the epic page was made."
         },
         {
           "name": "updated",
@@ -2378,11 +2379,11 @@
         },
         {
           "name": "durable",
-          "description": "A link to the durable doc, once Doc Review wrote one:  `<a slot=\"durable\" href=\"../../guides/x.html\">X</a>`."
+          "description": "A link to the guide, once Doc Review wrote one:  `<a slot=\"durable\" href=\"../../guides/x.html\">X</a>`."
         },
         {
           "name": "toolbar",
-          "description": "The sticky bar's last row:  the section toolbar the docs runtime adds to a plan doc (`<nav slot=\"toolbar\" class=\"spell-toolbar\">`, `spell-doc-runtime.js` `buildToolbar()`);  never in a doc."
+          "description": "The sticky bar's last row:  the section toolbar the docs runtime adds to an epic page (`<nav slot=\"toolbar\" class=\"spell-toolbar\">`, `spell-doc-runtime.js` `buildToolbar()`);  never in a doc."
         }
       ],
       "events": [],
@@ -2449,7 +2450,7 @@
         },
         {
           "name": "meta",
-          "description": "The meta lines:  branch, worktree, dates, durable doc."
+          "description": "The meta lines:  branch, worktree, dates, guide."
         },
         {
           "name": "notice",
@@ -2510,8 +2511,8 @@
         },
         {
           "key": "seeAlsoDurable",
-          "text": "durable doc",
-          "description": "A See Also page's kind:  the epic's durable doc."
+          "text": "guide",
+          "description": "A See Also page's kind:  the epic's guide."
         },
         {
           "key": "seeAlsoGuide",
@@ -2525,23 +2526,23 @@
         },
         {
           "key": "seeAlsoChoices",
-          "text": "choices",
-          "description": "A See Also page's kind:  a syntax-choices page."
+          "text": "choice",
+          "description": "A See Also page's kind:  a choice page."
         },
         {
           "key": "crumbDocs",
           "text": "Docs",
-          "description": "The crumbs' first:  the docs home."
+          "description": "The crumbs' first:  the docs' home page."
         },
         {
           "key": "crumbEpics",
           "text": "Epics",
-          "description": "The crumbs' second:  the epics' index."
+          "description": "The crumbs' second:  the Epics list page."
         },
         {
           "key": "planDoc",
-          "text": "Plan doc for",
-          "description": "Meta line:  `Plan doc for /epic x, branch x`."
+          "text": "Epic page for",
+          "description": "Meta line:  `Epic page for /epic x, branch x`."
         },
         {
           "key": "branch",
@@ -2580,8 +2581,8 @@
         },
         {
           "key": "durable",
-          "text": "Durable doc:",
-          "description": "Meta line:  before the durable doc's link."
+          "text": "Guide:",
+          "description": "Meta line:  before the guide's link."
         },
         {
           "key": "done",
@@ -2630,12 +2631,12 @@
         },
         {
           "key": "futureBody",
-          "text": "No worktree, no phases yet.  Its high-level open questions are on its analysis page, answered in the side bar's Review tab;  the answers land here as decided questions.",
+          "text": "No worktree, no phases yet.  Its high-level open questions are on its review page, answered in the side bar's Review tab;  the answers land here as decided questions.",
           "description": "A future epic's notice."
         },
         {
           "key": "analysisPage",
-          "text": "Open its analysis page",
+          "text": "Open its review page",
           "description": "The notice's link."
         },
         {
@@ -2880,12 +2881,12 @@
         {
           "name": "changes",
           "kind": "number",
-          "description": "How many plan changes (`<epic-update>` blocks) it holds, written by the plan-doc tool on every edit:  its title row says so while it isn't done, folded too (its body, a part, loads only when it opens)."
+          "description": "How many plan changes (`<epic-update>` blocks) it holds, written by the epic tool on every edit:  its title row says so while it isn't done, folded too (its body, a part, loads only when it opens)."
         },
         {
           "name": "open",
           "kind": "boolean",
-          "description": "Unfolded:  PAGE state, never written in a doc (plan docs open folded).  A click on the title, a link to it (or into it) and find-in-page set it;  set it from code to open it."
+          "description": "Unfolded:  PAGE state, never written in a doc (epic pages open folded).  A click on the title, a link to it (or into it) and find-in-page set it;  set it from code to open it."
         }
       ],
       "slots": [
@@ -2899,7 +2900,7 @@
         },
         {
           "name": "changes",
-          "description": "An OLDER doc's plan changes (`<epic-updated slot=\"changes\">`, 2026-10-11, P6):  drawn at the end of its body, unboxed, until the plan-doc tool migrates them to `<epic-update>` blocks (`updates-as-epic-update`)."
+          "description": "An OLDER doc's plan changes (`<epic-updated slot=\"changes\">`, 2026-10-11, P6):  drawn at the end of its body, unboxed, until the epic tool migrates them to `<epic-update>` blocks (`updates-as-epic-update`)."
         },
         {
           "name": "status",
@@ -3240,7 +3241,7 @@
         "chapter",
         "panel"
       ],
-      "description": "One section of a plan doc, by `kind`:  its phases, its items or its log;  or, inside `<epic-overview>`, one of the Overview's sub-sections (`overview-part`), which gets review notes as items do;  or a report a run wrote (`report`:  an overnight `/bedtime` report), after the Overview, unnumbered.",
+      "description": "One section of an epic page, by `kind`:  its phases, its items or its log;  or, inside `<epic-overview>`, one of the Overview's sub-sections (`overview-part`), which gets review notes as items do;  or a report a run wrote (`report`:  an overnight `/bedtime` report), after the Overview, unnumbered.",
       "noun": "section",
       "attributes": [
         {
@@ -3285,7 +3286,7 @@
         {
           "name": "open",
           "kind": "boolean",
-          "description": "Unfolded:  PAGE state, never written in a doc (plan docs open folded).  A click on the title, a link to it (or into it) and find-in-page set it;  set it from code to open it."
+          "description": "Unfolded:  PAGE state, never written in a doc (epic pages open folded).  A click on the title, a link to it (or into it) and find-in-page set it;  set it from code to open it."
         }
       ],
       "slots": [
@@ -3299,7 +3300,7 @@
         },
         {
           "name": "changes",
-          "description": "An OLDER doc's Plan changes copies in the Phases section (T14, until 2026-10-11).  NOT drawn:  no slot of the shadow root takes them, since each phase draws its own;  the plan-doc tool removes them on its next write."
+          "description": "An OLDER doc's Plan changes copies in the Phases section (T14, until 2026-10-11).  NOT drawn:  no slot of the shadow root takes them, since each phase draws its own;  the epic tool removes them on its next write."
         },
         {
           "name": "status",
@@ -3904,7 +3905,7 @@
         "other",
         "feedback"
       ],
-      "description": "A box Owen types in, on a page he answers on (epic `epic-workflow` P12):  one line to start, growing with its text.  What he types is part of the page's answer, by `type` and `for`:  the page's notes, a comment on a section or an option, a question's Other, a syntax-choices page's feedback.  The page's notes box also shows what the page KEPT (P18):  text typed for a question, option or section an agent's rewrite took off the page, under its old title, sent with the rest until Owen drops it.",
+      "description": "A box Owen types in, on a page he answers on (epic `epic-workflow` P12):  one line to start, growing with its text.  What he types is part of the page's answer, by `type` and `for`:  the page's notes, a comment on a section or an option, a question's Other, a choice page's feedback.  The page's notes box also shows what the page KEPT (P18):  text typed for a question, option or section an agent's rewrite took off the page, under its old title, sent with the rest until Owen drops it.",
       "noun": "text box",
       "attributes": [
         {
@@ -3917,7 +3918,7 @@
             "feedback"
           ],
           "default": "comment",
-          "description": "What it holds:  `notes` (the page's notes for Claude, once a page), `comment` (on the section `for` names, or an option, `q1-B`), `other` (question `for`'s Other, drawn by `<epic-ask>`), `feedback` (a syntax-choices page's, drawn by `<epic-choices-bar>`)."
+          "description": "What it holds:  `notes` (the page's notes for Claude, once a page), `comment` (on the section `for` names, or an option, `q1-B`), `other` (question `for`'s Other, drawn by `<epic-ask>`), `feedback` (a choice page's, drawn by `<epic-choices-bar>`)."
         },
         {
           "name": "for",
@@ -4150,7 +4151,7 @@
         "revision",
         "amendment"
       ],
-      "description": "RETIRED (Owen, 2026-10-11):  an older doc's change to a phase's plan, a dated fence.  Still drawn, until the plan-doc tool's next write makes it an `<epic-update at summary>` block at the end of its phase's description (`updates-as-epic-update`).",
+      "description": "RETIRED (Owen, 2026-10-11):  an older doc's change to a phase's plan, a dated fence.  Still drawn, until the epic tool's next write makes it an `<epic-update at summary>` block at the end of its phase's description (`updates-as-epic-update`).",
       "noun": "updated",
       "attributes": [
         {
@@ -4166,7 +4167,7 @@
         {
           "name": "of",
           "kind": "number",
-          "description": "An OLDER doc's COPY in the Phases section (T14, until 2026-10-11):  the phase whose plan it changes (`5`).  Never drawn;  the plan-doc tool removes the copies on its next write.  Never on the line in its phase."
+          "description": "An OLDER doc's COPY in the Phases section (T14, until 2026-10-11):  the phase whose plan it changes (`5`).  Never drawn;  the epic tool removes the copies on its next write.  Never on the line in its phase."
         }
       ],
       "slots": [
@@ -4330,7 +4331,7 @@
       "folder": "epic-choice-row",
       "mainTag": "epic-choice-row",
       "title": "<epic-choice-row>",
-      "summary": "One row of a syntax-choices page: a use site, and the box holding Claude's recommendation.",
+      "summary": "One row of a choice page: a use site, and the box holding Claude's recommendation.",
       "status": "done",
       "docs": false,
       "tags": [
@@ -4342,7 +4343,7 @@
       "folder": "epic-choice-rows",
       "mainTag": "epic-choice-rows",
       "title": "<epic-choice-rows>",
-      "summary": "A syntax-choices page's table: its column heads, then its rows.",
+      "summary": "A choice page's table: its column heads, then its rows.",
       "status": "done",
       "docs": false,
       "tags": [
@@ -4366,7 +4367,7 @@
       "folder": "epic-choices-bar",
       "mainTag": "epic-choices-bar",
       "title": "<epic-choices-bar>",
-      "summary": "A syntax-choices page's bar: the feedback, Do it, and where things stand.",
+      "summary": "A choice page's bar: the feedback, Do it, and where things stand.",
       "status": "done",
       "docs": false,
       "tags": [
@@ -4378,7 +4379,7 @@
       "folder": "epic-code",
       "mainTag": "epic-code",
       "title": "<epic-code>",
-      "summary": "The <epic-code> element: a folded, highlighted code block in a plan doc's prose.",
+      "summary": "The <epic-code> element: a folded, highlighted code block in an epic page's prose.",
       "status": "done",
       "docs": false,
       "tags": [
@@ -4402,7 +4403,7 @@
       "folder": "epic-event",
       "mainTag": "epic-event",
       "title": "<epic-event>",
-      "summary": "The <epic-event> element: one line of a plan doc's log, its icon and time drawn.",
+      "summary": "The <epic-event> element: one line of an epic page's log, its icon and time drawn.",
       "status": "done",
       "docs": false,
       "tags": [
@@ -4426,7 +4427,7 @@
       "folder": "epic-item",
       "mainTag": "epic-item",
       "title": "<epic-item>",
-      "summary": "One item of a plan doc: a question, judgement call, caveat, todo, issue or test, drawn as a line that unfolds.",
+      "summary": "One item of an epic page: a question, judgement call, caveat, todo, issue or test, drawn as a line that unfolds.",
       "status": "done",
       "docs": false,
       "tags": [
@@ -4498,7 +4499,7 @@
       "folder": "epic-overview",
       "mainTag": "epic-overview",
       "title": "<epic-overview>",
-      "summary": "The <epic-overview> element: a plan doc's first section, 1. Overview.",
+      "summary": "The <epic-overview> element: an epic page's first section, 1. Overview.",
       "status": "done",
       "docs": false,
       "tags": [
@@ -4510,7 +4511,7 @@
       "folder": "epic-page",
       "mainTag": "epic-page",
       "title": "<epic-page>",
-      "summary": "The <epic-page> element: a whole plan doc, one epic's page.",
+      "summary": "The <epic-page> element: a whole epic page, one epic's page.",
       "status": "done",
       "docs": false,
       "tags": [
@@ -4570,7 +4571,7 @@
       "folder": "epic-section",
       "mainTag": "epic-section",
       "title": "<epic-section>",
-      "summary": "The <epic-section> element: one section of a plan doc (Phases, Questions ... Log), an Overview sub-section, or a report.",
+      "summary": "The <epic-section> element: one section of an epic page (Phases, Questions ... Log), an Overview sub-section, or a report.",
       "status": "done",
       "docs": false,
       "tags": [
@@ -4684,7 +4685,7 @@
       {
         "id": "review",
         "file": "../guides/epic-components/review.html",
-        "label": "Reviewing a Plan Doc",
+        "label": "Reviewing an Epic Page",
         "icon": "check"
       },
       {
@@ -4696,7 +4697,7 @@
       {
         "id": "colours",
         "file": "../guides/epic-components/colours.html",
-        "label": "Plan Doc Colours",
+        "label": "Epic Page Colours",
         "icon": "palette"
       }
     ],

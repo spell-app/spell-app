@@ -1,5 +1,5 @@
 /*
- * `<epic-page>` (EpicPage.tsx):  a plan doc's page.
+ * `<epic-page>` (EpicPage.tsx):  an epic page's page.
  * - the sticky header, the meta lines, a future epic's notice, then its blocks
  * - THE PACK'S TOKENS:  `:host` declares every `--epic-*` token the `<epic-*>` elements share
  *   (colours, bands, the inset, the item states' colours, the chip).

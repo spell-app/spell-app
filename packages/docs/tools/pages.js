@@ -1,6 +1,6 @@
 /**
  * Where the docs are, how scripts find, tidy and open pages -- shared by `update.js`, `index.js`, `open.js` and
- * the other docs tools (the plan-doc tool, `$/epics/tool`, has its own).
+ * the other docs tools (the `epic` tool, `$/epics/tool`, has its own).
  */
 import { spawnSync } from "node:child_process"
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs"
@@ -27,7 +27,7 @@ export const ROOT = resolve(PACKAGE, "../..")
  * `packages/docs/content/`, where old-path links stay for older checkouts:  `relocate.js` `reorgShared()`).
  */
 
-/** `epics/`:  plan docs, `epics/<name>/<name>.plan.html`, their inboxes and details pages. */
+/** `epics/`:  epic pages, `epics/<name>/<name>.plan.html`, their inboxes and details pages. */
 export const EPICS = join(ROOT, "epics")
 
 /** `templates/`:  one starting point per kind of page. */
@@ -36,10 +36,10 @@ export const TEMPLATES = join(ROOT, "templates")
 /** `guides/`:  every other docs page, with its `.md`, `.json`, `experiments/` and `examples/` beside it. */
 export const GUIDES = join(ROOT, "guides")
 
-/** `pages/`:  the docs home (`HOME`) and the scratch details pages (`DETAILS`). */
+/** `pages/`:  the home page (`HOME`) and the scratch details pages (`DETAILS`). */
 export const PAGES = join(ROOT, "pages")
 
-/** `pages/index.html`:  the docs home, a routing page:  a card per area (`index.js`, claude-design P5). */
+/** `pages/index.html`:  the home page, a routing page:  a card per area (`index.js`, claude-design P5). */
 export const HOME = join(PAGES, "index.html")
 
 /** `pages/details/`:  scratch details pages (`spell dev details new`, no `--epic`). */
@@ -108,16 +108,16 @@ function reorgEntry(name) {
  * - `details`:  details pages (`spell dev details`), questions for one session:  not in the index, not checked with the
  *   docs (scratch `details/`, and an epic's `epics/<name>/details/`);  NOT the `details` epic's own folder,
  *   `epics/details/` (`findPages()`)
- * - `parts`:  a split plan doc's bodies (`epics/<name>/parts/<id>.html`, `PlanParts`):  fragments its page loads,
+ * - `parts`:  a split epic page's bodies (`epics/<name>/parts/<id>.html`, `PlanParts`):  fragments its page loads,
  *   told from pages by this folder alone since they're `.html` (Q12 of `epic-components`;  `.htm` before)
  */
 const SKIP_DIRS = new Set(["node_modules", "experiments", "examples", "details", "parts"])
 
 /**
- * Epic `name`'s plan doc in folder `dir` (`epics/<name>/`):  `<name>.plan.html`, else `<name>.html` when that is a
- * plan doc (`<body class="... plan-doc">`, or one in `<epic-*>` markup:  an `<epic-page>`);  `undefined` when
+ * Epic `name`'s epic page in folder `dir` (`epics/<name>/`):  `<name>.plan.html`, else `<name>.html` when that is a
+ * epic page (`<body class="... plan-doc">`, or one in `<epic-*>` markup:  an `<epic-page>`);  `undefined` when
  * there's neither.
- * - why both names:  plan docs were renamed `<name>.plan.html` on 2026-10-04 (`review-review` P4), and a worktree
+ * - why both names:  epic pages were renamed `<name>.plan.html` on 2026-10-04 (`review-review` P4), and a worktree
  *   cut before then still has `<name>.html` until it merges `main`
  * - `packages/epics/src/tool/PlanDocFiles.ts` `planDocIn()` is the same:  change both
  */
@@ -143,7 +143,7 @@ export function findPages(dir = AREAS) {
   for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
     const path = join(dir, entry.name)
     if (entry.isDirectory() || (entry.isSymbolicLink() && statSync(path, { throwIfNoEntry: false })?.isDirectory())) {
-      // the `details` EPIC's folder (`epics/details/`) holds a plan doc:  only details PAGES' folders are skipped
+      // the `details` EPIC's folder (`epics/details/`) holds an epic page:  only details PAGES' folders are skipped
       const epic = entry.name === "details" && basename(dir) === "epics"
       if (!SKIP_DIRS.has(entry.name) || epic) found.push(...findPages(path))
     } else if (entry.name.endsWith(".html")) found.push(path)
@@ -152,7 +152,7 @@ export function findPages(dir = AREAS) {
 }
 
 /**
- * The file holding the plan doc at `file`'s log:  its part, `parts/log.html`, when the doc is split
+ * The file holding the epic page at `file`'s log:  its part, `parts/log.html`, when the doc is split
  * (`PlanParts`), else the doc itself.  For the browser checks, which add a log line and take it out again by hand.
  * - the log's host says `source="parts/log.html"` (`<epic-section kind="log">`)
  */
@@ -368,7 +368,7 @@ export function serialize(document) {
 
 /**
  * Serialized `html` (a document's, or a fragment's `innerHTML`) with boolean attributes bare (`styled`, not
- * `styled=""`), as `serialize()` writes a page;  a plan doc's part files too (`PlanParts`).
+ * `styled=""`), as `serialize()` writes a page;  an epic page's part files too (`PlanParts`).
  */
 export function serializeHTML(html) {
   for (let before; before !== html;) {

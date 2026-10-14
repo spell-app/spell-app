@@ -25,7 +25,7 @@ import {
 
 /****************
  * ### `<epic-section>`
- * One section of a plan doc:  Phases, Questions ... Log, one of the Overview's sub-sections, or a report.
+ * One section of an epic page:  Phases, Questions ... Log, one of the Overview's sub-sections, or a report.
  ****************/
 export const epicSectionVocabulary = {
   tag: "epic-section",
@@ -34,7 +34,7 @@ export const epicSectionVocabulary = {
   noun: "section",
   ui: false,
   description:
-    "One section of a plan doc, by `kind`:  its phases, its items or its log;  or, inside `<epic-overview>`, one " +
+    "One section of an epic page, by `kind`:  its phases, its items or its log;  or, inside `<epic-overview>`, one " +
     "of the Overview's sub-sections (`overview-part`), which gets review notes as items do;  or a report a run " +
     "wrote (`report`:  an overnight `/bedtime` report), after the Overview, unnumbered.",
   attributes: [
@@ -107,7 +107,7 @@ export const epicSectionVocabulary = {
       name: "changes",
       description:
         "An OLDER doc's Plan changes copies in the Phases section (T14, until 2026-10-11).  NOT drawn:  no slot of " +
-        "the shadow root takes them, since each phase draws its own;  the plan-doc tool removes them on its next write."
+        "the shadow root takes them, since each phase draws its own;  the epic tool removes them on its next write."
     },
     {
       name: "status",

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     <title>epic-overview</title>
-    <meta name="description" content="The &lt;epic-overview&gt; element: a plan doc's first section, 1. Overview." />
+    <meta name="description" content="The &lt;epic-overview&gt; element: an epic page's first section, 1. Overview." />
     <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
     <script>
       try {
@@ -35,14 +35,14 @@
           </ui-menu>
           <ui-header level="1" class="site-title">
             &lt;epic-overview&gt;
-            <ui-header>The &lt;epic-overview&gt; element: a plan doc's first section, 1. Overview.</ui-header>
+            <ui-header>The &lt;epic-overview&gt; element: an epic page's first section, 1. Overview.</ui-header>
           </ui-header>
         </ui-container>
       </ui-segment>
 
       <ui-container class="site-body">
         <article class="site-article">
-          <p class="lede"><code>&lt;epic-overview&gt;</code> is a plan doc's first section, "1. Overview".</p>
+          <p class="lede"><code>&lt;epic-overview&gt;</code> is an epic page's first section, "1. Overview".</p>
           <ul>
             <li>
               It holds the two-sentence summary, the prompt that started the plan, and the Overview's numbered
@@ -52,7 +52,7 @@
           </ul>
           <!-- no ui-list.spell-meta here:  any ui-item element on the page leaves epic-item unstyled (issue I9 of epic-components) -->
           <p class="meta">
-            Written for: anyone reading or writing a plan doc's markup, or changing this element.<br />
+            Written for: anyone reading or writing an epic page's markup, or changing this element.<br />
             Status: <ui-label size="mini" color="green">built</ui-label> in
             <a
               href="../../packages/epics/components/epic-overview/"
@@ -143,7 +143,7 @@
           <ui-section id="2-markup" header="2. Markup" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>
-              From a real plan doc (<a
+              From a real epic page (<a
                 href="../../epics/solid-migration/solid-migration.plan.html"
                 target="solid-migration"
                 title="epics/solid-migration/solid-migration.plan.html"
@@ -316,8 +316,8 @@
                     <td><code>open</code></td>
                     <td>boolean: there or not</td>
                     <td>
-                      Unfolded: PAGE state, never written in a doc (plan docs open folded). A click on the title, a link
-                      to it (or into it) and find-in-page set it; set it from code to open it.
+                      Unfolded: PAGE state, never written in a doc (epic pages open folded). A click on the title, a
+                      link to it (or into it) and find-in-page set it; set it from code to open it.
                     </td>
                     <td></td>
                   </tr>
@@ -494,7 +494,7 @@
                 note box.
               </li>
               <li>
-                <b>Folding:</b> a click on the title folds or unfolds it. On a plan doc it starts folded, and the page
+                <b>Folding:</b> a click on the title folds or unfolds it. On an epic page it starts folded, and the page
                 remembers what you opened. A link into it, or find-in-page, unfolds it.
               </li>
               <li>

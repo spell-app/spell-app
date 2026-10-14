@@ -7,7 +7,7 @@ import { CLI } from "$/cli"
 ////////////////
 
 /**
- * The 26 rows Owen changed on the Command Review Page (2026-10-12), as the plan-doc tool runs each:
+ * The 26 rows Owen changed on the Command Review Page (2026-10-12), as the `epic` tool runs each:
  * `[epic command line, the tool's command lines]`.
  * - the two groups' rows (`epic choices list seo`, `epic comments list seo`) pass through to the docs tools
  *   verbatim:  `cli.test.ts` runs them

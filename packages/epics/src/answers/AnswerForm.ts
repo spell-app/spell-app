@@ -38,7 +38,7 @@ export type AnswerFormOptions = ServerLinkOptions & {
  *   Send's fill, the draft's save, and why a send failed.
  * - Sending:  `POST /api/details/answer` (`packages/docs/tools/detailsRoutes.ts`), which writes `<slug>.answer.json`
  *   beside the page, and wakes the waiting session (`epic ask wait`).
- *   - through a `ServerLink`, as the plan doc's clients write:  the token, and its one refresh after a restart
+ *   - through a `ServerLink`, as the epic page's clients write:  the token, and its one refresh after a restart
  *   - NEVER locks (Owen, 2026-10-08):  a partial answer is fine, everything stays editable, and every Send sends the
  *     whole page again (the route marks what changed since the send before)
  * - On load (`load()`), `GET` reads the answer already sent, and every part shows its share of it.

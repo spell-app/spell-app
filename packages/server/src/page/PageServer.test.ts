@@ -143,19 +143,19 @@ describe("PageServer", () => {
     }
   })
 
-  it("sends / to the docs home", async () => {
+  it("sends / to the home page", async () => {
     const answer = await ask(port, "GET", "/")
     expect(answer.status).toBe(302)
     expect(answer.headers.location).toBe("/pages/index.html")
   })
 
-  it("redirects old plan doc URLs from plans/ to epics/, query kept", async () => {
+  it("redirects old epic page URLs from plans/ to epics/, query kept", async () => {
     const answer = await ask(port, "GET", "/packages/docs/plans/x/x.html?a=1")
     expect(answer.status).toBe(302)
     expect(answer.headers.location).toBe("/epics/x/x.html?a=1")
   })
 
-  it("redirects an old plan doc name, epics/x/x.html, to x.plan.html, but only while the old file is gone", async () => {
+  it("redirects an old epic page name, epics/x/x.html, to x.plan.html, but only while the old file is gone", async () => {
     const plan = join(root, "epics/x")
     mkdirSync(plan, { recursive: true })
     writeFileSync(join(plan, "x.plan.html"), "<p>plan</p>")
@@ -227,7 +227,7 @@ describe("PageServer", () => {
     expect((await ask(port, "GET", "/ui/_assets/missing.js")).status).toBe(404)
   })
 
-  it("serves a worktree's Spell UI docs with ITS build laid over, at /worktrees/<w>/ui/", async () => {
+  it("serves a worktree's Spell UI docs site with ITS build laid over, at /worktrees/<w>/ui/", async () => {
     const worktree = join(root, ".claude", "worktrees", "w")
     mkdirSync(join(worktree, "ui"), { recursive: true })
     mkdirSync(join(worktree, "packages", "ui", "site", "_assets"), { recursive: true })
@@ -239,7 +239,7 @@ describe("PageServer", () => {
     expect(uiBuildPath("/ui/components/x.html")).toBeUndefined()
   })
 
-  it("redirects old Spell UI page URLs, packages/ui/site/<x>, to /ui/<x> once the old file is gone", async () => {
+  it("redirects old Spell UI docs-site URLs, packages/ui/site/<x>, to /ui/<x> once the old file is gone", async () => {
     const page = await ask(port, "GET", "/packages/ui/site/button.html?a=1")
     expect(page.status).toBe(302)
     expect(page.headers.location).toBe("/ui/button.html?a=1")

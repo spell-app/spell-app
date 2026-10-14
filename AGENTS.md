@@ -74,10 +74,10 @@ More on some of them:
   - Or its two steps:  `spell dev vscode build`, then `install`.
 - docs:  the pages themselves are SHARED root folders, not tracked here (see "Shared content").
   - `epics/`, `guides/`, `templates/`
-  - `pages/`:  the docs home, [the docs index](pages/index.html)
+  - `pages/`:  [the docs' home page](pages/index.html)
 - server:  static folders, an Express-shaped router, live reload, ports, openers, a file lock.
   - And the ONE page server per checkout (`spell dev server`),
-    which serves docs, epics, goals and Spell UI docs.
+    which serves docs, epics, the parked saga pages and Spell UI's docs site.
 - assembler:
   - link targets (`Linker`)
   - in-memory formatting (`formatHTML()`)
@@ -131,6 +131,22 @@ ui -> util
   - `$` means `packages/`, so `ui` is `$/ui` like the rest.
   - That can't collide with an npm package name (`@spell-app/...`, `solid-js`),
     the way a bare `name/...` could.
+
+## Words
+
+- Each kind of page has ONE name (Owen, 2026-10-14, epic `epic-workflow` P14).
+  - Write these, in docs, skills, comments, labels and messages:
+    epic page, saga page, details page, review page, choice page, guide, cheatsheet, commands page,
+    components page, components guide, brand page, home page, list page, changelog, template.
+  - What each one is, and where it lives:  "Page kinds" in [docs' AGENTS.md](packages/docs/AGENTS.md).
+- Owen still says the older words.  Read them as the new ones, but write the new ones:
+  - "plan doc", "epic doc" -- the epic page
+  - "epic name" -- the epic id (its folder, `epics/<epic-id>/`)
+  - "durable doc" -- the epic's guide;  "syntax-choices page" -- a choice page;
+    "analysis page" -- a review page;  "docs index", "docs home" -- the home page;
+    "goal", "goals page" -- a saga (an epic of epics), a saga page
+- Names only code reads keep the old words:  `<epic-id>.plan.html`, `PlanDoc`, `plan-doc.md`,
+  the `spell dev plan-doc` spelling.  So do the record:  log entries, quotes, commit messages.
 
 ## Worktrees
 
@@ -215,9 +231,9 @@ ui -> util
   - `yarn window` couldn't:  yarn runs no script there before `yarn install`.
 - A doc shown while the move is pending waits, then shows beside the session in the window it moved to.
   - That's `epic open <name> --review` or `spell dev window show`.
-- A running epic's plan doc is shared (see "Shared content"):  ONE file, the same in every checkout.
+- A running epic's epic page is shared (see "Shared content"):  ONE file, the same in every checkout.
   - So the MAIN checkout's page server shows it too,
-    listed in the docs index's Epics section with the merged ones.
+    listed on the Epics list page with the merged ones.
   - `spell dev server url` gives that URL ([the page server guide](guides/server.html), "Running epics").
 - NEVER `code --add` / `--remove`:
   they act on the focused window, and a one-folder window restarts its extensions, Claude panel included.
@@ -265,20 +281,21 @@ ui -> util
   - Epic `shared-content` made them, live since 2026-10-04.
   - Epic `claude-design` P4 split them into root folders, 2026-10-05.
 - The folders:
-  - `epics/` -- plan docs, `epics/<name>/<name>.plan.html`, with their inboxes and details pages
+  - `epics/` -- epic pages, `epics/<name>/<name>.plan.html`, with their inboxes and details pages
   - `guides/` -- every other docs page ([the Solid 2 guide](guides/solid/solid-2.html), say),
     with its `.md`, `.json`, `experiments/`
   - `templates/` -- one starting point per kind of page
-  - `pages/` -- [the docs home](pages/index.html), and the scratch details pages, `pages/details/`
+  - `pages/` -- [the docs' home page](pages/index.html), and the scratch details pages, `pages/details/`
   - `ui/` -- Spell UI's hand-written docs pages (claude-design P6), served at `/ui/`.
     - Each branch's built `_assets/` and `_data/`, from [ui's site](packages/ui/site/), are laid over them.
     - Those assets are built by the page server, not committed.
     - More:  [ui's AGENTS.md](packages/ui/AGENTS.md), `site/`.
   - `brand/` -- the Brand tab's pages ([brand's AGENTS.md](packages/brand/AGENTS.md)):
     Claude Design's exports and their Spell UI copies
-  - `goals/` -- the goal sets, PARKED since 2026-10-11 (epic `epic-workflow` P6):  read only, buttons saying TODO.
+  - `goals/` -- the saga pages (once goal sets), PARKED since 2026-10-11 (epic `epic-workflow` P6):
+    read only, buttons saying TODO.
     Their tooling is in `packages/goals.zip`;
-    epic `epic-goals` rebuilds it ([the goals guide](guides/goals/goals.html)).
+    epic `epic-goals` rebuilds it ([the parked sagas guide](guides/goals/goals.html)).
   - `agents/` -- one copy of the rules for every branch:
     - the three logs:
       [PAPERCUTS.md](agents/PAPERCUTS.md), [SUSPECTED-BUGS.md](agents/SUSPECTED-BUGS.md),
@@ -370,8 +387,8 @@ ui -> util
   - Its markup:  `<ui-section id="<epic or worktree name>" header="YYYY-MM-DD · Title">`.
   - The page's header comment has the markup in full.
   - Inside, a `spell-meta` list with LINKS:
-    - the plan doc:  `epics/<name>/<name>.plan.html`, with `target="<name>"`
-    - the durable doc
+    - the epic page:  `epics/<name>/<name>.plan.html`, with `target="<name>"`
+    - the guide
     - the branch
   - Then EVERYTHING it shipped, one bullet each, by phase when there are phases -- not a summary.
 - Then finish the page as [docs' AGENTS.md](packages/docs/AGENTS.md) says ("Finishing a page"),

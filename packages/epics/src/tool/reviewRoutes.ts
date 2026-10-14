@@ -1,13 +1,13 @@
 /**
- * Plan docs' review marks, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`), listed in the repo
+ * Epic pages' review marks, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`), listed in the repo
  * root's `package.json` `"pageServer": { "routes": [...] }`.
- * - Owen marks a plan doc's items ON the page (the elements' review controls, `$/epics/review`):
+ * - Owen marks an epic page's items ON the page (the elements' review controls, `$/epics/review`):
  *   approve, todo, details, revisit, pick an option card, an id chip's urgency.
  *   The marks wait in the doc's INBOX FILE, `<name>.inbox.json` beside `<name>.plan.html` (`ReviewInbox`),
  *   until a Claude session takes them (P6 of `review-review`, `spell dev plan-doc inbox`)
- * - `page`:  the plan doc's URL path, as it was served:
+ * - `page`:  the epic page's URL path, as it was served:
  *   `/epics/x/x.plan.html`, or a worktree's `/worktrees/<w>/...` on the main checkout's server.
- *   ONLY a plan doc:  anything else is a 403
+ *   ONLY an epic page:  anything else is a 403
  * - every answer is the whole inbox, as `ReviewInbox` keeps it (an empty one when there's no file),
  *   except a `listening` whose heartbeat stopped:
  *   `null` (`ReviewInbox.forPage()`), so the page warns nobody is reviewing;
@@ -64,7 +64,7 @@ const API = "/api/review"
 /** Biggest body accepted:  a revisit note is a few lines. */
 const MAX_BODY = 64 * 1024
 
-/** A plan doc's file:  `epics/<name>/<name>.plan.html` (before 2026-10-05 under `packages/docs/content/`). */
+/** An epic page's file:  `epics/<name>/<name>.plan.html` (before 2026-10-05 under `packages/docs/content/`). */
 const PLAN_DOC = /\/(?:packages\/docs\/content\/)?epics\/([^/]+)\/\1\.plan\.html$/
 
 const reviewRoutes: RouteModule = {
@@ -135,8 +135,8 @@ const reviewRoutes: RouteModule = {
 export default reviewRoutes
 
 /**
- * The plan doc file URL path `page` names, through the server's mounts.
- * - 400:  not a path;  404:  no such page;  403:  outside a mount, or not a plan doc
+ * The epic page file URL path `page` names, through the server's mounts.
+ * - 400:  not a path;  404:  no such page;  403:  outside a mount, or not an epic page
  */
 export function planDoc(files: SRV.StaticHandler, page: unknown): string {
   if (typeof page !== "string" || !page.startsWith("/")) throw new SRV.HttpError(400, "no page")
@@ -144,11 +144,11 @@ export function planDoc(files: SRV.StaticHandler, page: unknown): string {
   if (!resolved) throw new SRV.HttpError(403, `not served here:  ${page}`)
   if ("redirect" in resolved) throw new SRV.HttpError(400, `a folder, not a page:  ${page}`)
   if ("status" in resolved) throw new SRV.HttpError(resolved.status, resolved.message)
-  if (!PLAN_DOC.test(resolved.file)) throw new SRV.HttpError(403, `not a plan doc:  ${page}`)
+  if (!PLAN_DOC.test(resolved.file)) throw new SRV.HttpError(403, `not an epic page:  ${page}`)
   return resolved.file
 }
 
-/** The epic plan doc `file` is for:  its folder's name. */
+/** The epic that epic page `file` is for:  its folder's name. */
 function epicOf(file: string): string {
   return PLAN_DOC.exec(file)![1]!
 }
@@ -167,7 +167,7 @@ function sendNow(inbox: ReviewInbox): boolean {
 }
 
 /**
- * `id` from a request, as the inbox keys it (lower-case);  400 unless plan doc `file` has it:
+ * `id` from a request, as the inbox keys it (lower-case);  400 unless epic page `file` has it:
  * an item, an Overview sub-section (`o3`, Q14), a phase (`p3`) or the summary (`summary`:  epic `airplane` P2)
  * (`ReviewInbox.itemIds()`).
  * - reads the doc each time:  an item added a moment ago (Claude, `plan-doc add`) is markable at once
@@ -180,7 +180,7 @@ function itemOf(file: string, id: unknown): string {
 }
 
 /**
- * Change plan doc `file`'s inbox with `change`, under its lock;
+ * Change epic page `file`'s inbox with `change`, under its lock;
  * the inbox after, as the page reads it (`ReviewInbox.forPage()`).
  * - an `InboxError` (a bad mark, a bad action) is a 400
  */

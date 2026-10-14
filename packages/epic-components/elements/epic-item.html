@@ -7,7 +7,7 @@
     <title>epic-item</title>
     <meta
       name="description"
-      content="One item of a plan doc: a question, judgement call, caveat, todo, issue or test, drawn as a line that unfolds."
+      content="One item of an epic page: a question, judgement call, caveat, todo, issue or test, drawn as a line that unfolds."
     />
     <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
     <script>
@@ -39,7 +39,7 @@
           <ui-header level="1" class="site-title">
             &lt;epic-item&gt;
             <ui-header
-              >One item of a plan doc: a question, judgement call, caveat, todo, issue or test, drawn as a line that
+              >One item of an epic page: a question, judgement call, caveat, todo, issue or test, drawn as a line that
               unfolds.</ui-header
             >
           </ui-header>
@@ -49,8 +49,8 @@
       <ui-container class="site-body">
         <article class="site-article">
           <p class="lede">
-            One item of a plan doc: a question, a judgement call, a caveat, a todo, an issue or a test, all ONE element,
-            the kind told by its id's first letter. It draws the item's line (a fold arrow, the coloured
+            One item of an epic page: a question, a judgement call, a caveat, a todo, an issue or a test, all ONE
+            element, the kind told by its id's first letter. It draws the item's line (a fold arrow, the coloured
             <dfn class="spell-term" tabindex="0">id chip</dfn
             ><ui-popup
               header="id chip"
@@ -62,7 +62,7 @@ holding its id (Q7).  Its colour says where the item stands."
           <!-- no <ui-list class="spell-meta">:  its <ui-item>s take the "item" style sheet before the pack's
                <epic-item> can, and the live items draw unstyled (issue I9 of epic-components) -->
           <p class="meta">
-            For anyone reading or writing a plan doc's markup, or changing this element.<br />
+            For anyone reading or writing an epic page's markup, or changing this element.<br />
             <ui-label size="mini" color="green">built</ui-label> in
             <a href="../../packages/epics/components/epic-item/" target="src-packages-epics-components-epic-item"
               ><code title="packages/epics/components/epic-item/">epic-item/</code></a
@@ -84,7 +84,7 @@ holding its id (Q7).  Its colour says where the item stands."
             <p>Live: the real element, drawn by the epics pack this page loads.</p>
             <ul>
               <li>Click a line to unfold it.</li>
-              <li>The review buttons don't show here: they show only on a plan doc being reviewed.</li>
+              <li>The review buttons don't show here: they show only on an epic page being reviewed.</li>
             </ul>
             <p>
               One item per colour. Q13 and C1 are real (the <code>wwod</code> and
@@ -715,7 +715,7 @@ holding its id (Q7).  Its colour says where the item stands."
             <p>
               The colours mean the same on every doc page: the whole scheme is on
               <a href="../../guides/epic-components/colours.html" target="src-guides-epic-components-colours-html"
-                >Plan Doc Colours</a
+                >Epic Page Colours</a
               >
               (its source:
               <a
@@ -784,7 +784,7 @@ holding its id (Q7).  Its colour says where the item stands."
             </ui-section>
             <ui-section id="item-review" header="The review buttons" sticky collapsible dividing collapsed>
               <p>
-                While a plan doc is being reviewed (<code>&lt;epic-page reviewing&gt;</code>, served by the page
+                While an epic page is being reviewed (<code>&lt;epic-page reviewing&gt;</code>, served by the page
                 server), its marks go to the doc's review inbox: the file of Owen's marks that Claude reads
                 (<code>&lt;name&gt;.inbox.json</code>).
               </p>
@@ -828,7 +828,7 @@ holding its id (Q7).  Its colour says where the item stands."
           <ui-section id="6-written-by" header="6. Written by" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="terminal"></ui-icon>
             <p>
-              Only the plan-doc tool (<code>spell dev plan-doc</code>) writes items, and it rewrites every item's
+              Only the epic tool (<code>spell dev plan-doc</code>) writes items, and it rewrites every item's
               <code>state</code> on every edit.
             </p>
             <ul>

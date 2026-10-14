@@ -414,7 +414,7 @@ export type SiteIconsFile = {
  */
 export type SiteSearchFile = {
   readonly $comment: string
-  /** every page, the hand-written ones first, then the component pages A-Z */
+  /** every page, the hand-written ones first, then the components pages A-Z */
   readonly pages: readonly SiteSearchPage[]
 }
 
@@ -427,7 +427,7 @@ export type SiteSearchPage = {
   /** its `<meta name="description">` */
   readonly summary?: string
   /**
-   * a component page:  the tag it documents, its file name,
+   * a components page:  the tag it documents, its file name,
    * e.g. `ui-divider` (a family's main tag) or `ui-radio` (a sub-tag with its own page);
    * the search lists the page itself as that component, not as a page
    */
@@ -508,7 +508,7 @@ export const DOCS_SCHEME_SWITCHING = "ui-scheme-switching"
 /**
  * `localStorage` keys of the viewer's look (`ThemePreference`).
  * - `scheme`:  ONE key for every doc site:  `light` / `dark`, absent for `system` (follow the OS).
- *   `<spell-site-header>` on the docs, plan docs and goals reads and writes it too.
+ *   `<spell-site-header>` on the docs, epic pages and saga pages reads and writes it too.
  *   - MUST equal `SCHEME_KEY` in `packages/server/src/site/site.types.ts`:
  *     `ui` can't import it (the server package is a leaf `ui` stays clear of in shipped code);
  *     `UIDocsThemes.test.tsx` pins the two equal
@@ -520,7 +520,7 @@ export const DOCS_LOOK_KEYS = { scheme: "spell-site:scheme", theme: "spell-ui-si
 /**
  * The scheme keys used before there was one (2026-10-04):
  * read once when `DOCS_LOOK_KEYS.scheme` is absent, copied to it, then removed;  first valid one wins.
- * - `spell-site:theme`:  `<spell-site-header>`'s (docs, plan docs, goals)
+ * - `spell-site:theme`:  `<spell-site-header>`'s (docs, epic pages, saga pages)
  * - `spell-ui-site:scheme`:  Spell UI's site (and the Astro site before it)
  * - MUST equal `LEGACY_SCHEME_KEYS` in `packages/server/src/site/site.types.ts`
  */

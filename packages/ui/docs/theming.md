@@ -421,7 +421,7 @@ Fomantic's responsive words are SCREEN-based:  `stackable`, `doubling`, per-devi
 Ours are CONTAINER-based by default.
 - A stackable grid in a 300px sidebar stacks on a desktop:  that's the point of a component.
 - `stack-with` picks, per element or for a whole page.
-  Decided 2026-10-03:  D40 in the `spell-ui-pages` plan doc.
+  Decided 2026-10-03:  D40 in the `spell-ui-pages` epic page.
 
 | Where | Says | Example |
 |---|---|---|
@@ -483,7 +483,7 @@ Dark mode follows the OS by default:  `color-scheme: light dark` on `:root`.
 ### Our own theme:  `spell`
 
 [`spell.css`](../src/styles/themes/spell.css) is the Spell brand as a theme ([the brand's design system](../../../brand/spell-design-system/)).
-- It's the DEFAULT look of the Spell UI docs (`ThemePreference`), until the viewer picks another.
+- It's the DEFAULT look of Spell UI's docs site (`ThemePreference`), until the viewer picks another.
 - `packages/docs` pages wore it too (`spell-ui.entry.js`),
   until epic `design-system` moved them to `spell-brand` (below).
 - Listed in `UI.themes.own`, not `names`:  it's no Fomantic port.
@@ -532,7 +532,7 @@ Dark mode follows the OS by default:  `color-scheme: light dark` on `:root`.
 ### Our own theme:  `spell-brand`
 
 [`spell-brand.css`](../src/styles/themes/spell-brand.css) is `spell` as Claude Design's brand pages draw it, converging on them
-(epic `design-system`, [its plan doc](../../../epics/design-system/design-system.plan.html)).
+(epic `design-system`, [its epic page](../../../epics/design-system/design-system.plan.html)).
 - Started 2026-10-04 as a FULL COPY of `spell.css`, so the two may drift.
   - Whether it replaces `spell` is a later call.
 - Also in `UI.themes.own`, and in the docs' theme picker as "Spell Brand", second.
@@ -703,7 +703,7 @@ The references:
      - Querying a private SWITCH is fine, as the component does:
        `@container style(--_ui-steps-layout: horizontal) { ... }`.
    - `!important` in Fomantic:  usually unnecessary here, since the layer already wins.  Drop it.
-5. What can't be ported:  skip it, list it in the header's "NOT ported", and record a plan-doc caveat.
+5. What can't be ported:  skip it, list it in the header's "NOT ported", and record an epic-page caveat.
    The usual suspects:
    - icon FONTS (`icon.variables` / `assets/fonts`):  icons are SVG packs, so build a pack instead
    - `@import (css) url(...)` of web fonts:  a runtime sheet drops `@import` (`replaceSync`), so the page loads fonts

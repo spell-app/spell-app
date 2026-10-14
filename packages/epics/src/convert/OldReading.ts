@@ -16,7 +16,7 @@ import { DocReading, type ElementReading } from "./DocReading"
 
 /****************
  * ### `OldReading`
- * A plan doc in TODAY's markup, read for `ConversionProof`:  its ids, links and visible text, minus the chrome the
+ * An epic page in TODAY's markup, read for `ConversionProof`:  its ids, links and visible text, minus the chrome the
  * `<epic-*>` elements now draw (`EXCLUSIONS` lists it for a reader).
  * - Reads an ASSEMBLED doc:  a split one with its parts put back.
  * - Every exclusion is narrow:  by WHERE it sits (a card's title only on a card straight in an item's details, not

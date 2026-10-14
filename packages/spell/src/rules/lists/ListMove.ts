@@ -7,7 +7,7 @@ import { lists } from "./lists.parser"
 
 /**
  * `list_move` rule:  `move the card to the tableau` -- moves it, if the pile it belongs to lets it go
- * and the tableau takes it:  their guards, e.g. `a tableau can take a card if: ...` (plan doc Q25).
+ * and the tableau takes it:  their guards, e.g. `a tableau can take a card if: ...` (epic page Q25).
  * - A statement, or a yes / no -- whether it moved:  `if move the card to the tableau ...`.
  *   Refused:  nothing changes.
  * - Its pile:  the one it's in, if `a card belongs to one pile`.  Else only the tableau is asked.

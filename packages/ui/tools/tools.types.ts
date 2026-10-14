@@ -300,7 +300,7 @@ export type ImportMap = {
 ////////////////
 
 /**
- * The Spell UI docs site's HAND-WRITTEN half, from `packages/ui/`:  the checkout's `ui/`, a link into the shared
+ * Spell UI's docs site's HAND-WRITTEN half, from `packages/ui/`:  the checkout's `ui/`, a link into the shared
  * content repo, `../spell-app-dev/ui/` (claude-design P6, 2026-10-05).
  * - the pages (`*.html`, `components/`), the layout (`_parts/`), the files examples load (`examples/`), Fomantic's
  *   images (`images/`) and the site's `README.md`:  ONE copy for every checkout, edited without a commit
@@ -312,7 +312,7 @@ export type ImportMap = {
 export const SITE_PAGES = "../../ui"
 
 /**
- * The Spell UI docs site's BUILT half, from `packages/ui/`:  what each branch builds and commits.
+ * Spell UI's docs site's BUILT half, from `packages/ui/`:  what each branch builds and commits.
  * - `_src/`:  the bundle's entry;  `_assets/`:  the bundle (`yarn site:bundle`)
  * - `_data/`:  the data (`yarn site:data`), and the hand-kept `pages.json` it's built from
  */

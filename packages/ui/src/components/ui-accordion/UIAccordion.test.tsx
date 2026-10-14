@@ -426,7 +426,7 @@ describe("<ui-accordion> source", () => {
   /** An accordion DOM element with its source API. */
   type SourceAccordion = DOMElement & { open: string | undefined; load(): Promise<void>; reload(): Promise<void> }
 
-  /** One title, no content:  a plan doc's item line. */
+  /** One title, no content:  an epic page's item line. */
   const ITEM = `<ui-title>Q2 <span>A question</span></ui-title>`
 
   beforeAll(async () => {

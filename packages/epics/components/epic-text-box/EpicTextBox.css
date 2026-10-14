@@ -1,6 +1,6 @@
 /*
  * `<epic-text-box>` (`EpicTextBox.tsx`):  a box Owen types in, one line to start, growing with its text.
- * - The look of the plan doc's note boxes (`<epic-agents>`' redirect box):  the page's ground, a quiet rule,
+ * - The look of the epic page's note boxes (`<epic-agents>`' redirect box):  the page's ground, a quiet rule,
  *   6px corners;  the focus ring the page's.
  * - Grows with its text (`field-sizing`), up to a third of the window, then scrolls.
  * - A notes box's KEPT text (P18), above its field:  the page changed under Owen, a warning, so an ORANGE edge and

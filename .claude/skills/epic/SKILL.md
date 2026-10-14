@@ -1,33 +1,33 @@
 ---
 name: epic
-description: Run a planning session against a live plan doc, `epics/<name>/<name>.plan.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  open a plan doc in the side bar's Review tab, where Owen marks items on the page, and listen:  act on his marks (approvals, picks, todos), write details and replies in the background, talk revisits over ("review the seo epic", "go through unified-server's caveats").  `/epic resume [<name>]`:  pick an epic back up in a new session, in the right worktree and window, where its plan doc says it stopped ("resume the seo epic", "carry on with windows-and-review").  `/epic future <name> [idea]`:  write an idea down as a FUTURE epic, not planned yet:  a stub plan doc and an analysis page of its high-level open questions, answered in the Review tab;  no worktree ("save this as a future epic", "an epic for later").  `/epic phase [ids] [name]`:  add a phase to this session's epic, from its items (`/epic phase J1 J5, t3`) or from scratch;  `/epic start <P1 | ids>`:  work a phase, or a block of its items, now.  `/epic request <epic> [<rN>]`:  take up a request Owen sent from another session (`/send`), into a phase.  `/epic done`:  the same as `/isolate done`.
+description: Run a planning session against a live epic page, `epics/<name>/<name>.plan.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  open an epic page in the side bar's Review tab, where Owen marks items on the page, and listen:  act on his marks (approvals, picks, todos), write details and replies in the background, talk revisits over ("review the seo epic", "go through unified-server's caveats").  `/epic resume [<name>]`:  pick an epic back up in a new session, in the right worktree and window, where its epic page says it stopped ("resume the seo epic", "carry on with windows-and-review").  `/epic future <name> [idea]`:  write an idea down as a FUTURE epic, not planned yet:  a stub epic page and a review page of its high-level open questions, answered in the Review tab;  no worktree ("save this as a future epic", "an epic for later").  `/epic phase [ids] [name]`:  add a phase to this session's epic, from its items (`/epic phase J1 J5, t3`) or from scratch;  `/epic start <P1 | ids>`:  work a phase, or a block of its items, now.  `/epic request <epic> [<rN>]`:  take up a request Owen sent from another session (`/send`), into a phase.  `/epic done`:  the same as `/isolate done`.
 argument-hint: <name> [what to plan] | done | review [<name>] | resume [<name>] | future <name> [idea] | phase [ids] [name] | start <P1 | ids> | request <epic> [<rN>] | color <look>
 ---
 
 # /epic
 
-An EPIC is a planning session and the work it plans;  its live record is the PLAN DOC.
+An EPIC is a planning session and the work it plans;  its live record is the EPIC PAGE.
 - It was `/plan-doc` until 2026-10-02.
 - Its tool is `epic` (`spell dev plan-doc` until epic `epic-workflow` P9).
 
-Plan, then build, in worktree `<name>`, keeping the PLAN DOC current the whole time.
-- The plan doc:  `epics/<name>/<name>.plan.html`.
+Plan, then build, in worktree `<name>`, keeping the EPIC PAGE current the whole time.
+- The epic page:  `epics/<name>/<name>.plan.html`.
 - It's the user's view of the work:  they read it in the right side bar's REVIEW tab while you work.
   - That's the checkbox icon;  never the "Spell Docs" hat tab (Owen's rule, 2026-10-07).
 
-- Shared content:  the plan doc lives in `epics/`, which spell-app doesn't track
+- Shared content:  the epic page lives in `epics/`, which spell-app doesn't track
   (epic `shared-content`, 2026-10-04).
   - In every checkout, `epics/` is a link into ONE shared repo, `../spell-app-dev`.
-  - So there is ONE plan doc:  `main` and every worktree see each edit at once;  it never conflicts on merge.
+  - So there is ONE epic page:  `main` and every worktree see each edit at once;  it never conflicts on merge.
   - Committed for you after every turn
     (the `Stop` hook, [shared-commit.mjs](.claude/hooks/shared-commit.mjs)).
   - NEVER commit, stage, `git checkout --` or `git restore` it in spell-app.
-    Nor the changelog, the docs index, or a details page.
+    Nor the changelog, the docs' home page, or a details page.
 - Rules for the doc (sections, ids, markers, prose):  [plan-doc.md](templates/epics/plan-doc.md).
   Read it first.
 - Structured edits go through `epic <verb> <name>[#<id>] ...` (cheat sheet below), never by hand.
   - Hand-edit only prose:  the summary, Overview, phase bodies, item details.
-  - A plan doc is SPLIT (P3 of `claude-design`;  new docs start so):
+  - An epic page is SPLIT (P3 of `claude-design`;  new docs start so):
     - The skeleton, `epics/<name>/<name>.plan.html`, keeps the summary, the kickoff prompt,
       and every section, phase and item line.
     - Each BODY is a part file, `epics/<name>/parts/<id>.html`, `<id>` its section's or item's:
@@ -43,18 +43,18 @@ Plan, then build, in worktree `<name>`, keeping the PLAN DOC current the whole t
     - Nothing is dropped:  content beside a part is kept, after the part's.
   - `plan-doc.md`, "Parts", has the rules.
     `epic split <name>` / `join <name>` switch a doc's shape.
-- Reload the plan doc whenever the session moves to a new stage:
+- Reload the epic page whenever the session moves to a new stage:
   name -> worktree -> plan -> fill -> each phase -> doc review.
   - `epic open <name> --review` reloads it in the side bar's Review tab.
   - `epic phase` does it for you.
-- Style, in the plan doc:  written for Owen coming back cold (`plan-doc.md`, "Rules"):
+- Style, in the epic page:  written for Owen coming back cold (`plan-doc.md`, "Rules"):
   - a plain lead sentence, then bullets:  never a list run together in a sentence
   - full words, and a concrete example for anything tricky
   - ids explained
   - a **Net effect** list (`<epic-net-effect>`) closing every question, issue, judgement call and decision
   - NOT caveman (Owen, 2026-10-04).
   - Replies:  short, the same plain words.
-- Naming a doc in a reply (the plan doc, a durable doc, any `packages/docs` page):
+- Naming a doc in a reply (the epic page, a guide, any `packages/docs` page):
   paste what `spell dev docs link` prints, run in the checkout the doc is in.
   - In full:  `spell dev docs link <ABSOLUTE path> --hash <id> [--text "..."]`.
   - It prints the side bar link, then `• 🌐` (the browser link)
@@ -62,8 +62,8 @@ Plan, then build, in worktree `<name>`, keeping the PLAN DOC current the whole t
   - `--hash`:  the id of what you mean (`p2`, `q3`, `t4`).
   - A worktree's doc goes on the MAIN server when that one has the route, else the worktree's own.
 - Phase complete:  the LAST line of that reply's text says where we are.
-  - Each phase is linked to its heading in the plan doc:
-    `spell dev docs link <plan doc> --hash p1 --text "P1 · Short Name"`.
+  - Each phase is linked to its heading in the epic page:
+    `spell dev docs link <epic page> --hash p1 --text "P1 · Short Name"`.
   - "<P1 link pair> complete.  Next is <P2 link pair>."
   - After the last phase:  "All done:  <P<N> · Doc Review link pair> complete."
 
@@ -116,20 +116,20 @@ Plan, then build, in worktree `<name>`, keeping the PLAN DOC current the whole t
   - An older, different file there:  rename it `<name>.<time>.md` first.
   - No text, but that file exists:  it IS the kickoff prompt (the hook saved it).
     Say so in one line.
-  - Delete the file only once the plan doc holds it (`epic new --prompt-file`).
+  - Delete the file only once the epic page holds it (`epic new --prompt-file`).
 - Look for collisions (from the repo root), every time:
   - `epics/<name>/`, `guides/<name>/`, `guides/<name>.html`
   - the worktree and branch checks of the isolate skill's "Start", step 2
   - any hit:  AskUserQuestion, options:
     - "Reuse `<name>`":  continue that doc / worktree
     - "Different name":  the user types it in "Other"
-    - Never overwrite an existing plan doc.
+    - Never overwrite an existing epic page.
   - A FUTURE epic's doc ("9. Future";  `epic list --json` says `status` `future`):
     no modal, it's waiting to be planned.
     - Say so in one line, then go on.
     - In "2. Session", step 3, `epic new <name>` PROMOTES it where it is:  no `--prompt-file`.
-      Its prompt, decided questions and analysis page are kept;  the meta lines name the branch and worktree.
-    - "3. Plan" starts from its kickoff prompt, its decided questions and its analysis page.
+      Its prompt, decided questions and review page are kept;  the meta lines name the branch and worktree.
+    - "3. Plan" starts from its kickoff prompt, its decided questions and its review page.
       The page is `epics/<name>/details/analysis.html`;  its answers, from `epic ask answer <name>/analysis`.
 - Name and nothing after it, nothing saved (and not mid-session):
   the user sends the plan in the NEXT prompt, in the new window.
@@ -143,7 +143,7 @@ Plan, then build, in worktree `<name>`, keeping the PLAN DOC current the whole t
 When the session already has work under way ("make this a plan doc"), carry it over -- don't start again:
 - Plan mode, and edits already made on `main`:  the isolate skill's "Start", step 0.
 - Step 3:  start from the plan drafted so far (harness plan file, conversation),
-  reshaped into the plan doc's shape.
+  reshaped into the epic page's shape.
   - Explore only to fill gaps.
   - Decisions and questions already settled become `decision` items (questions born answered:  `Q7`).
 
@@ -173,7 +173,7 @@ means "open a window for epic `<name>`" (Owen, 2026-10-07).
 **Launched:**  the new session's `/epic <name>`, its worktree made, this window its own:
 - The worktree:  `.claude/worktrees/<name>`.
 - "1. Name" as usual, but the worktree and branch `<name>` are THIS epic's:  no "Reuse" modal for them.
-  - A plan doc or guide already there still asks.
+  - An epic page or guide already there still asks.
 - "2. Session" as "Staying in this window", with no question and no `window stay`:
   the window is already `⎇ <name>`, tinted.
   - `EnterWorktree` with `path: ".claude/worktrees/<name>"`.
@@ -229,7 +229,7 @@ Staying in this window (step 0):  skip steps 4 and 6.
 
 1. Explore (read-only), BEFORE plan mode.
    - NEVER `EnterPlanMode` before "2. Session" is done:  plan mode can't make the worktree or the doc.
-2. Minimal plan doc, BEFORE presenting the plan:  only the Overview and the open questions.
+2. Minimal epic page, BEFORE presenting the plan:  only the Overview and the open questions.
    - So the user can read them in the doc while the plan is up.
    - Nothing else yet:  no phases, decisions, caveats ...
    - Hand-write the Overview's sub-sections (shape:  "4. Fill the doc").
@@ -240,18 +240,18 @@ Staying in this window (step 0):  skip steps 4 and 6.
    - `epic check <name>`, then `epic open <name> --review`.
    - Why here:  plan mode allows editing ONLY the harness plan file.
 3. `EnterPlanMode`.
-   Draft the plan in the harness plan file, in the plan doc's shape:
+   Draft the plan in the harness plan file, in the epic page's shape:
    1. Summary:  2 sentences
    2. Phases:  `P1 · Short Name`, 2-4 words each, so "start P2" is unambiguous.
       - Each with goal, files, verify, and estimate.
       - The estimate:  wall-clock for Claude, agents included, review not (`30m`, `2h`, `1-2h`).
       - The LAST phase is always `Doc Review`.
       - Its goal names the text pass ("6. Doc Review"):
-        - `/fussbudget branch` and `/fussbudget epic <name>`:  the branch's text and the plan doc, rewritten
-        - the durable doc, written from the cleaned plan doc to the same rules
+        - `/fussbudget branch` and `/fussbudget epic <name>`:  the branch's text and the epic page, rewritten
+        - the epic's guide, written from the cleaned epic page to the same rules
         - `spell dev docs fuss --branch` last:  its misses fixed, or listed for Owen
    3. Overview:  the total estimate, then numbered sections (structure, code, flows):
-      what will become durable docs
+      what will become guides
    4. Caveats, issues, todos, decisions (what + why), open questions (the doc's ids:  `Q1` ...)
 4. Ask the open questions with AskUserQuestion (labels matching the doc's) before ExitPlanMode.
 
@@ -262,7 +262,7 @@ The filling goes to a background agent, `<name>-plan-doc`, as if Owen had typed 
 - That's everything below, except naming the plan file.
 - Its prompt has these steps, the approved plan's path, and the answers.
 - The session stays free meanwhile, and relays its report.
-- So does every later plan-doc edit bigger than one command:
+- So does every later epic-page edit bigger than one command:
   a phase's Done list and items at its end, a reorder, Doc Review's pruning.
 
 - Name the harness plan file after the epic, so it traces back (Owen, 2026-10-04).
@@ -357,7 +357,7 @@ The filling goes to a background agent, `<name>-plan-doc`, as if Owen had typed 
 3. Subagents:  named and listed, as the root `CLAUDE.md`'s "Delegated work" says
    (`epic agents add` / `done`).
    - Paste the cheat sheet below into their prompts,
-     with "record caveats, issues and decisions in the plan doc as you find them".
+     with "record caveats, issues and decisions in the epic page as you find them".
 4. Close the phase:  `epic phase <name>#P<N> done --done "<ul><li>...</li></ul>"`.
    - It drops that phase's UPDATE markers, writes its Done field, and brings the doc forward.
    - Then `epic summary <name>`.
@@ -370,12 +370,12 @@ The filling goes to a background agent, `<name>-plan-doc`, as if Owen had typed 
      - an item fix:  `<name> I3:  ...`.
        It MUST carry the epic's name:  `commits --backfill` ignores a bare `Fix I3:`, since it can't tell which epic.
    - After the phase's commit:  `epic commits <name> --backfill`, which finds them by subject.
-     - The plan doc is never in that commit:
+     - The epic page is never in that commit:
        it's shared content, committed for you (see "Shared content" at the top).
    - A STANDING epic (`<epic-page standing>`, `epic summary --json`'s `standing`;  epic `epic-workflow`):
      the phase goes onto `main` AT ONCE, once its commit is made and its checks pass (Q8 of `epic-workflow`).
      - Its own short doc pass comes first, in place of one Doc Review at the end:
-       `/fussbudget` on the files the phase changed, and the durable doc brought in line, before the commit.
+       `/fussbudget` on the files the phase changed, and the guide brought in line, before the commit.
      - Then, no asking (the standing epic is the ask):
        1. `main` moved (`git log --oneline HEAD..main` not empty):  `spell dev worktree merge-main`.
        2. `ExitWorktree` with `action: "keep"`:  a worktree session can't move `main`.
@@ -386,7 +386,7 @@ The filling goes to a background agent, `<name>-plan-doc`, as if Owen had typed 
      - Never `/isolate done`:  the worktree, the window and the session stay, for the next request.
      - In bedtime mode, nothing merges:  `add <name>#T "merge P<n>"`, as `/bedtime` says.
      - `epic update <name> --standing [on|off]` makes an epic standing, or not;
-       the docs index, `/epics` and its step label then never call it done (STANDING, when every phase is).
+       the docs' home page, `/epics` and its step label then never call it done (STANDING, when every phase is).
 5. Reply:  a short bulleted list (done, issues, caveats, next), and the "complete.  Next is" line (see the top).
    - THEN AskUserQuestion, so the user picks without copying anything.
      Options, most useful first:
@@ -414,38 +414,38 @@ The filling goes to a background agent, `<name>-plan-doc`, as if Owen had typed 
 - The text pass (epic `skillz` P7;  [the fussbudget skill](.claude/skills/fussbudget/SKILL.md)), in this order:
   1. First, both named in full, so nothing asks:
      - `/fussbudget branch`:  the text this branch changed, docstrings and comments
-     - `/fussbudget epic <name>`:  the plan doc's prose.
-       Plan-doc work, so the background `<name>-plan-doc` agent runs it ("4. Fill the doc"),
+     - `/fussbudget epic <name>`:  the epic page's prose.
+       Epic-page work, so the background `<name>-plan-doc` agent runs it ("4. Fill the doc"),
        right after its pruning.
      - Both rewrite in place, uncommitted:
        the branch's diff waits for Owen in Source Control, before the phase's commit.
-  2. Then the durable doc (below), written from the CLEANED plan doc, to the same rules:
+  2. Then the epic's guide (below), written from the CLEANED epic page, to the same rules:
      WWOD §6 and [writing.md](agents/wwod/writing.md).
   3. Last, the checker, on both:
      - `spell dev docs fuss --branch`
-     - `spell dev docs fuss <the durable doc's page>`:  it's shared content, not in the branch's diff
+     - `spell dev docs fuss <the epic's guide>`:  it's shared content, not in the branch's diff
      - Its misses fixed, or listed for Owen in the reply.
-- Turn it into durable docs:  `spell dev docs new durable <page> --title "..."` (fixes asset paths for the depth).
+- Turn it into the epic's guide:  `spell dev docs new durable <page> --title "..."` (fixes asset paths for the depth).
   - One page:  `guides/<name>.html`.
   - Several files (pages, experiments):  `guides/<name>/<name>.html`.
-    Shared content too:  committed for you, like the plan doc.
-  - From the plan doc:  Overview -> the body;  decisions -> a "Why" section;  open caveats -> "Limits".
+    Shared content too:  committed for you, like the epic page.
+  - From the epic page:  Overview -> the body;  decisions -> a "Why" section;  open caveats -> "Limits".
   - Finish as [docs' AGENTS.md](packages/docs/AGENTS.md) says, "Finishing a page".
   - Then `spell dev docs index`.
     The index is shared too:  `epic` keeps the epic's own card current from any checkout.
-- The plan doc stays in `epics/` as the record:  every phase done.
+- The epic page stays in `epics/` as the record:  every phase done.
 - Changelog:  write the epic's entry straight into the shared [changelog](guides/changelog.html)
   ("Changelog" in the root's `AGENTS.md`).
-  - It links the plan doc and the durable doc.
+  - It links the epic page and the guide.
   - Under "3. Merged into main" if "Finish" below merges it, else "2. In worktrees".
   - Nothing to commit on the branch for it, and no merge conflict:  every checkout sees the one file.
 - Then leave the worktree:  follow the isolate skill's "Finish".
-  - No move back:  the session and its plan doc stay in the window they're in.
+  - No move back:  the session and its epic page stay in the window they're in.
 - Last line of the reply:  "All done ..." (see the top).
 
 ## 7. Review:  `/epic review [<name>]`
 
-Owen reviews ON THE PAGE:  the plan doc in the side bar's Review tab, where he marks items.
+Owen reviews ON THE PAGE:  the epic page in the side bar's Review tab, where he marks items.
 - Each item's buttons:  one group, Approve, Revisit, Make Todo;
   then Do Now apart, the wand, for Add Details or a revisit now.
 - A TODO's instead:  the plane, "do it in the next phase" (`next`);  Revisit;  the x, "drop it" (`drop`).
@@ -463,7 +463,7 @@ This session LISTENS:  it waits on the doc's review inbox, and acts on what arri
 - Add Details and "revisit now":  by background agents.
 - "Revisit soon":  answered one at a time.
 - EVERY answer goes INTO its item, on the page;  the chat only links them (Q3 of `windows-and-review`).
-- No modal walk through items any more (epic `review-review`, 2026-10-04;  [its plan doc](epics/review-review/review-review.plan.html), 1.1-1.2).
+- No modal walk through items any more (epic `review-review`, 2026-10-04;  [its epic page](epics/review-review/review-review.plan.html), 1.1-1.2).
 
 - Runs from ANY window, `main` or a worktree.
   - The prompt hook lets `/epic review` through, and never renames the session.
@@ -621,7 +621,7 @@ The item's id chip follows too (PLAN-DOC.md "Colours"):
    - He answers on the page (Revisit again), or says so in chat.
      A quick yes / no:  a modal.
    - A call made name by name (he wants each name's context before a rule's renames go in):
-     a SYNTAX-CHOICES page ([the syntax-choices guide](guides/syntax-choices.html)).
+     a CHOICE page ([the Choice Pages guide](guides/syntax-choices.html)).
      - `epic choices new <slug> --epic <name> --rows <rows.json>`.
      - Then `show <slug> --wait`, in the background.
    - "picks B · <card>, asks:  <note>" (a pick with a revisit, "B, but ..."):  `apply` leaves it.
@@ -659,10 +659,10 @@ The item's id chip follows too (PLAN-DOC.md "Colours"):
    - Then `epic inbox <name>#cm3 done --file <answer.html> [--commit <sha>]`.
      - The answer goes on his thread too (a line or two;  the full one is in the doc):  his turn, the thread opens.
      - `--commit`:  the commit it was built in;  his Done line shows it.
-     - No `--file`:  the thread says "Answered in the plan doc".
+     - No `--file`:  the thread says "Answered in the epic page".
 3c. GUIDE COMMENTS (epic `epic-workflow` P13):  his comments on the docs pages the epic OWNS, with the page's own Send.
-   - Owned:  the epic's durable doc and its `details/` pages, and every guide its See Also lists that no other epic
-     claims first (`SeeAlso.ownerOf()`:  the durable doc's epic, then an open one, then the one updated last).
+   - Owned:  the epic's guide and its `details/` pages, and every guide its See Also lists that no other epic
+     claims first (`SeeAlso.ownerOf()`:  the guide's epic, then an open one, then the one updated last).
    - `wait` prints them under "sent from the pages <name> owns", each under its page;
      `epic inbox <name>` lists the ones waiting, sent or not.
    - One at a time, with the guide commands (not `epic inbox`):
@@ -692,20 +692,20 @@ When Owen says he's done ("stop reviewing", "that's it"), or the session must st
 ## 8. Resume:  `/epic resume [<name>]`
 
 A NEW session picks up an epic whose own session is gone (closed, crashed, compacted beyond use).
-- It works in the epic's checkout, in a window Owen picks, from where the plan doc says it stopped.
-- The plan doc is the memory:  read it, don't redo it.
+- It works in the epic's checkout, in a window Owen picks, from where the epic page says it stopped.
+- The epic page is the memory:  read it, don't redo it.
 
 0. Already home:  this window or this session is ALREADY the epic's own (Owen, 2026-10-10):
    - the window:  `spell dev window which` says `workspaces/ongoing/<name>`
    - or the session:  its folder is `.claude/worktrees/<name>`
-   - and `<name>` has a plan doc (`epics/<name>/`), and is the `<name>` typed, if one was.
+   - and `<name>` has an epic page (`epics/<name>/`), and is the `<name>` typed, if one was.
    - Then that's the epic, and nothing is asked:
      no "Which epic?" modal (step 1), no new-window-or-stay modal (step 3).
      - Step 3 is `EnterWorktree` with `path` (if not in it yet), then `spell dev window stay <name>`.
    - One line says so:  "this window is `⎇ <name>`:  resuming it".
 1. Which epic:
    - `<name>` given:  that one.
-     No plan doc at `epics/<name>/`:  say so, then the list below.
+     No epic page at `epics/<name>/`:  say so, then the list below.
    - none given:  the epics in progress, minus those with a running session.
      - `epic list --json`, status `in progress`
      - the running sessions:  `spell dev worktree list`
@@ -719,7 +719,7 @@ A NEW session picks up an epic whose own session is gone (closed, crashed, compa
 2. Its own session still running (not this one):  as [the unpark skill](.claude/skills/unpark/SKILL.md), step 2.
    Tell it, or resume here.
    - Found by `spell dev worktree status <name>`:  `sessions`, `running: true`.
-3. Where:  the plan doc's checkout (`list --json`, `checkout`).
+3. Where:  the epic page's checkout (`list --json`, `checkout`).
    - `main`:  no worktree;  work in the main checkout, this window.
    - `.claude/worktrees/<name>`:  as [the unpark skill](.claude/skills/unpark/SKILL.md), step 3.
      - That's `stay-check --epic`, a new window or stay, and `EnterWorktree` with `path`.
@@ -754,7 +754,7 @@ A NEW session picks up an epic whose own session is gone (closed, crashed, compa
 ## 9. Future:  `/epic future <name> [text]`
 
 Write an idea down as a FUTURE epic (epic `epic-future`, 2026-10-07).
-- A stub plan doc and an analysis page;  NO plan, worktree, window or phases.
+- A stub epic page and a review page;  NO plan, worktree, window or phases.
 - `/epic <name>` plans it later, from what this leaves.
 
 - Runs from ANY window, `main` or a worktree:  the prompt hook lets it through, and titles the session `📅 <name>`;
@@ -771,7 +771,7 @@ Write an idea down as a FUTURE epic (epic `epic-future`, 2026-10-07).
 
    - Then delete the prompt file.
    - Hand-write its `<epic-summary>`:  the idea in two sentences, what changes for Owen.
-   - It's a plan doc with `<epic-page future>`:
+   - It's an epic page with `<epic-page future>`:
      - a FUTURE label
      - a "Future epic" notice, in place of "Plan hung?"
      - no branch or worktree
@@ -779,7 +779,7 @@ Write an idea down as a FUTURE epic (epic `epic-future`, 2026-10-07).
      The Epics index gives it a seedling, between the open epics and the done ones.
 3. Explore, read-only (agents allowed, root rules):  just enough to see the problem, the options and the hard parts.
    - Not a plan:  no phases, no estimates.
-4. The ANALYSIS page:
+4. The REVIEW page:
 
    ```sh
    epic ask new analysis --epic <name> --title "<Title>:  analysis"
@@ -808,7 +808,7 @@ Write an idea down as a FUTURE epic (epic `epic-future`, 2026-10-07).
 
    - A note asking something:  answer it in the reply, and in the decision's details.
 6. Reply:  what the future epic is, what was decided, and that `/epic <name>` plans it.
-   Then the plan doc's link pair.
+   Then the epic page's link pair.
 
 ## 10. Add a phase:  `/epic phase [ids] [name]`
 
@@ -824,7 +824,7 @@ Owen adds a phase to the epic under way, from items it already has, or from scra
   <text on the lines after>      Owen's input:  what the phase is for, how
 ```
 
-- THIS epic:  the session's own, its worktree's plan doc (`epic list --json`, `checkout`).
+- THIS epic:  the session's own, its worktree's epic page (`epic list --json`, `checkout`).
   - None (the main checkout, no epic in this session):  say so in one line, and stop.
 - The first line, after `phase`:
   - each word that's an item id of the doc (`[a-z]\d+`:  `J1`, `t3`, `Q2`, `I4`) is an ANTECEDENT
@@ -952,7 +952,7 @@ Epic `epic-workflow` P8.  `epic migrate` runs named, dated steps over pages, by 
 
 ```
 new <name> [--title "Title"] [--prompt "..." | --prompt-file f] [--future]
-                                                    create from the template, update the docs index;  --future:  a
+                                                    create from the template, update the docs' home page;  --future:  a
                                                     future epic (9.);  new on a future epic's doc plans it (promoted)
 add-phase <name> "Short Name" --symptom .. --changes .. [--goal ..] [--files ..] [--verify ..] [--estimate 2h]
           [--before N]                              --before:  inserted as PN;  the to-do phases from N move down

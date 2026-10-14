@@ -85,7 +85,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
         drawn by the notes box and sent with the rest
       - each part says the ids it holds, with their titles (`labelsInto()`), so kept text keeps its old title
       - `AnswerDraft`:  the rules, pure (what's laid over what, what's kept, which draft is newest)
-    - `ChoicesForm`, one per syntax-choices page:  the rows (`<epic-choice-row>`) register;  the draft every 5s and
+    - `ChoicesForm`, one per choice page:  the rows (`<epic-choice-row>`) register;  the draft every 5s and
       as the page goes away, "Do it" (`/api/choices/*`), and bringing both back, for `<epic-choices-bar>`
     - the answers' shapes are copies of the docs routes' (`detailsRoutes.ts`, `choicesRoutes.ts`):  `epics` never
       imports `docs`
@@ -104,7 +104,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - A `ConversionProof` per doc:  every id, link target and word kept.
     - Every live doc was converted at the switch (P12 of epic `epic-components`).
     - It stays for a doc restored from an old backup, and writes only under `--out`.
-  - `tool/` -- the plan-doc tool (`epic`), node only, never bundled into the pack.
+  - `tool/` -- the `epic` tool (`epic`), node only, never bundled into the pack.
     - It reads and writes `<epic-*>` markup only (through `Markup`),
       and refuses a doc still in the old markup ("convert it first").
     - Its rules for a doc's DATA (ids, statuses, review marks, prose):  [PLAN-DOC.md](src/tool/PLAN-DOC.md)
@@ -114,10 +114,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - the page server's review routes ([reviewRoutes.ts](src/tool/reviewRoutes.ts)) and what they call:
       `ReviewInbox` (the inbox file), and `ReviewStart`:  the pill's start, and WAKING the epic when Send or Do Now
       finds nobody listening (epic `epic-workflow` P16:  its session typed into, or a new session in its window)
-    - the inboxes:  `ReviewInbox` (a plan doc's marks and comments), `GuideInbox` (a docs page's comments and its
+    - the inboxes:  `ReviewInbox` (an epic page's marks and comments), `GuideInbox` (a docs page's comments and its
       Send:  epic `epic-workflow` P13), one shape of comment for both (`CommentList`)
     - `SeeAlso` (P13):  an epic's See Also, GATHERED from its files, never kept by hand
-      - its durable doc (`<a slot="durable">`), its `details/` pages, every `guides/` page its page and parts link to
+      - its guide (`<a slot="durable">`), its `details/` pages, every `guides/` page its page and parts link to
       - which epic a docs page belongs to (`ownerOf()`):  where that page's Send hands its comments
       - read by the page server (`GET /api/epics/pages`, `<epic-page>`'s See Also box;  docs' comments routes), by
         `epic inbox <name> wait` (a guide's Send wakes it), and by docs' `GuideChanges`

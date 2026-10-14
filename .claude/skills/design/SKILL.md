@@ -7,7 +7,7 @@ argument-hint: "[push | pull <design link> [page] | new \"<title>\" | page <page
 # /design
 
 Spell's claude.ai DESIGN SYSTEM is generated from the code, so Claude Design draws with the real `<ui-*>` elements.
-- Epic `claude-design`;  [its plan doc](epics/claude-design/claude-design.plan.html).
+- Epic `claude-design`;  [its epic page](epics/claude-design/claude-design.plan.html).
 - Claude Design can't reach this laptop.
   This skill carries things across with the Artifact tool, and `spell dev design ...` does the local half.
 

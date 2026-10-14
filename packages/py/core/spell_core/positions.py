@@ -9,7 +9,7 @@
   - a loop handing its function the position, through `with_spell_positions()`
 - Compiled code imports these by name:  `from spell_core import position`.
 - The twin of the JavaScript core's `positions.ts`.
-- Plan doc python-target, P23 (Owen:  "listsStartAt is a *spell language* thing,
+- Epic page python-target, P23 (Owen:  "listsStartAt is a *spell language* thing,
   emitted code is canonical for platform").
 """
 

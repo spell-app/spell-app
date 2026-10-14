@@ -41,7 +41,7 @@
 | Libraries | `lodash-es` is fine (tree-shakes). |
 | Icons | **SVG files in packs** (2026-09-30):  a pack is a folder of SVGs + a `pack.js` index;  the page's packs live in the runtime (`UI.icons`), added per subtree with `<ui-root icons>` / page-wide with `UI.icons.use()`;  the last pack added wins a name, `prefix:name` picks one.  Default pack:  **Font Awesome 7 Free** solid + regular (`bell outline`) + a few extras, shipped in `dist`;  `fa7-brands` and `fomantic` (Fomantic's names, which give Fomantic's meaning to the 27 clashes like `x`, `warning`) are opt-in packs.  One name per icon, spaces ~== dashes;  no word-order guessing.  Any folder of SVGs becomes a pack with `yarn icons:pack`.  See `docs/icons.md`. |
 | Vocabulary | Per component, own file: `UI<Name>.en.ts` (translations become `UI<Name>.<lang>.ts`). Attribute **values** (colours, sizes, positions) are translatable too. |
-| Docs | Base every component page on Fomantic's docs for presentation, style and content. |
+| Docs | Base every components page on Fomantic's docs for presentation, style and content. |
 | Conventions | Carry over `spell/parser`'s agentic files and coding conventions, with `$` as the import alias (see "Conventions"). |
 
 ## Research summary
@@ -490,7 +490,7 @@ Each row is one unit of work:  CSS port + element(s) + a11y + tests + docs page.
   - `section` (ours, not Fomantic's;  added 2026-10-02):  a titled `<section>` with a real heading (`level`).
     - `collapsible` (cancelable;  find-in-page unfolds)
     - `sticky` titles, that stack when nested
-  - source elements (ours, not Fomantic's;  added 2026-10-02, plan doc `epics/ui-import/`).
+  - source elements (ours, not Fomantic's;  added 2026-10-02, epic page `epics/ui-import/`).
     Content from inline text or a same-origin `source` (`UI.sources`),
     with loading / error looks and a `save()` hook (`LoadableComponent`):
     - `include`:  another page of the site, shown here (shadow root, or light DOM with `page-styles`).
@@ -570,7 +570,7 @@ Each row is one unit of work:  CSS port + element(s) + a11y + tests + docs page.
 - `yarn test:visual` passes on chromium;  `yarn test:all` runs chromium + webkit + firefox.
 - `yarn build` produces per-component ESM + `ui.css`, within the bundle budget (size script).
 - The page server serves the docs at `/ui/`;  `yarn site:dev` rebuilds their bundle live.
-  - `yarn site:audit` (a Playwright crawl) reports zero axe violations on every component page.
+  - `yarn site:audit` (a Playwright crawl) reports zero axe violations on every components page.
 - Framework smoke pages (React 19, Vue 3, Svelte 5, Solid 1.9, vanilla) render,
   and round-trip properties and `ui-*` events.
 - Manual:

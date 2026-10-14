@@ -16,7 +16,7 @@
  *   the page server's route writes it (`packages/epics/src/tool/epicRoutes.ts`), every checkout reads it
  *
  * Who draws them:
- * - the docs index (`packages/docs/tools/index.js`), plain `node`:  it imports this FILE by path
+ * - `docs index` (`packages/docs/tools/index.js`), plain `node`:  it imports this FILE by path
  * - the page server (`$/server/page` `RunningEpics`), which adds the running epics' cards, re-marks every card
  *   and regroups them by the favourites as it serves the page
  * - the docs runtime moves a card between groups when its star is clicked (plain DOM:  it reads `data-group`)
@@ -32,7 +32,7 @@ export const EPIC_GROUPS = ["favorites", "active", "planning", "urgent", "done"]
 /** One of `EPIC_GROUPS`. */
 export type EpicGroupName = (typeof EPIC_GROUPS)[number]
 
-/** Where the favourites are kept, from a checkout's root:  a JSON list of epic names (shared content). */
+/** Where the favourites are kept, from a checkout's root:  a JSON list of epic ids (shared content). */
 export const FAVORITES_FILE = "epics/favorites.json"
 
 /** The Epics page's own markers around its groups:  the page server rewrites what's between (`RunningEpics`). */
@@ -50,8 +50,8 @@ const GROUP_LOOKS: Record<EpicGroupName, { title: string; icon: string }> = {
 
 /**
  * One epic's card, as `epicCardHtml()` draws it.
- * - `name`:  the epic (its folder);  `title`:  its plan doc's title, without `Epic: `
- * - `href` / `target`:  the link to its plan doc
+ * - `name`:  the epic (its folder);  `title`:  its epic page's title, without `Epic: `
+ * - `href` / `target`:  the link to its epic page
  * - `description`:  its `<meta name="description">`, if any
  * - `meta`:  the meta line, as text:  `P8 · Review Polish · epics/airplane/airplane.plan.html`
  * - `facts`:  what its state is read from (`EpicState`)
@@ -158,7 +158,7 @@ export function epicStarHtml(name: string, favorite: boolean): string {
 
 /**
  * The last-worked date at a card's bottom right:  month and day, no year (`10/9`);
- * its `title` the full date and time, as plan docs draw dates (`10/9/26 14:34`).
+ * its `title` the full date and time, as epic pages draw dates (`10/9/26 14:34`).
  */
 export function epicWorkedHtml(worked: Date): string {
   return (
@@ -168,9 +168,9 @@ export function epicWorkedHtml(worked: Date): string {
 }
 
 /**
- * The latest of `values`, each a date as plan docs and git write them (`readEpicDate()`);
+ * The latest of `values`, each a date as epic pages and git write them (`readEpicDate()`);
  * `undefined` when none reads.
- * - "last worked on":  the plan doc's `updated` day, its last log line's time, its branch's last commit
+ * - "last worked on":  the epic page's `updated` day, its last log line's time, its branch's last commit
  */
 export function lastWorked(values: readonly (string | null | undefined)[]): Date | undefined {
   let latest: Date | undefined
@@ -181,7 +181,7 @@ export function lastWorked(values: readonly (string | null | undefined)[]): Date
   return latest
 }
 
-/** Every log line's time in plan-doc markup `html` (`<epic-event at="...">`), in the order written. */
+/** Every log line's time in epic-page markup `html` (`<epic-event at="...">`), in the order written. */
 export function eventTimesIn(html: string): string[] {
   return Array.from(html.matchAll(EVENT_TIME), (match) => match[1]!)
 }
@@ -201,7 +201,7 @@ export function readEpicDate(value: string | null | undefined): Date | undefined
   return isNaN(date.getTime()) ? undefined : date
 }
 
-/** The favourites file's text as a set of epic names;  empty when it isn't a JSON list.  NEVER throws. */
+/** The favourites file's text as a set of epic ids;  empty when it isn't a JSON list.  NEVER throws. */
 export function parseFavorites(json: string | undefined): Set<string> {
   try {
     const list: unknown = JSON.parse(json ?? "[]")
@@ -214,7 +214,7 @@ export function parseFavorites(json: string | undefined): Set<string> {
 /** A log line's time:  `<epic-event at="2026-10-09T00:26-04:00">`, `$1`. */
 const EVENT_TIME = /<epic-event\b[^>]*?\sat="([^"]+)"/g
 
-/** A date as plan docs and git write it:  year, month, day, then optionally hours, minutes, seconds, offset. */
+/** A date as epic pages and git write it:  year, month, day, then optionally hours, minutes, seconds, offset. */
 const DATE = /^(\d{4})-(\d\d)-(\d\d)(?:[T ](\d\d):(\d\d)(?::(\d\d)(?:\.\d+)?)?\s*(Z|z|[+-]\d\d:?\d\d)?)?$/
 
 /** Offset `offset` as ISO writes it:  `Z`, `-04:00` (from `-0400` too). */
@@ -222,7 +222,7 @@ function zone(offset: string): string {
   return offset.toUpperCase() === "Z" ? "Z" : offset.replace(/^([+-]\d\d):?(\d\d)$/, "$1:$2")
 }
 
-/** `date`, local, as plan docs draw a date with its time (`PlanDates.formatDate()`):  `10/9/26 14:34`. */
+/** `date`, local, as epic pages draw a date with its time (`PlanDates.formatDate()`):  `10/9/26 14:34`. */
 function fullDate(date: Date): string {
   const two = (value: number) => String(value).padStart(2, "0")
   return (

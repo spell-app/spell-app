@@ -3,15 +3,16 @@ import type { PlanDocParts } from "$/epics/tool/planDoc.types"
 
 /****************
  * ### `OldParts`
- * A plan doc in the OLD markup, in parts:  its skeleton's hosts (`ui-section[source]`, `ui-accordion.plan-item[source]`)
+ * An epic page in the OLD markup, in parts:
+ * its skeleton's hosts (`ui-section[source]`, `ui-accordion.plan-item[source]`)
  * each load a body, `parts/<id>.html`.  The first pass (`Converter`) assembles such a doc before converting it.
  * - the files and URLs are `PlanParts`';  an `<epic-*>` doc's parts are `EpicParts`'
  * - `.html` parts only:  a doc split before Q12 (`parts/<id>.htm`) needs its parts renamed first
  * - works on ONE parsed document, IN PLACE.
- * - Moved here from `PlanParts` (epic `epic-components` P15):  the plan-doc tool reads no old doc any more.
+ * - Moved here from `PlanParts` (epic `epic-components` P15):  the epic tool reads no old doc any more.
  ****************/
 export class OldParts {
-  /** The parsed plan doc this works on, IN PLACE:  a skeleton to assemble. */
+  /** The parsed epic page this works on, IN PLACE:  a skeleton to assemble. */
   readonly document: Document
 
   constructor(document: Document) {

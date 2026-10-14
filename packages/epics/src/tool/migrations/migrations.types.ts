@@ -1,5 +1,5 @@
 /**
- * Types the plan doc MIGRATIONS share (`Migrations`, each step, `MigrateCommands`).
+ * Types the epic page MIGRATIONS share (`Migrations`, each step, `MigrateCommands`).
  * - Data only:  nothing here runs.
  */
 

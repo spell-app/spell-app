@@ -33,7 +33,7 @@ mkdirSync(join(root, "epics"))
 mkdirSync(join(root, "guides", "memory"), { recursive: true })
 writeFileSync(join(root, "guides", "memory", "memory.html"), GUIDE)
 writeFileSync(join(root, "guides", "plain.html"), GUIDE.replace(/<spell-notes[\s\S]*<\/spell-notes>/, ""))
-// the scratch checkout has no docs tools:  the docs index isn't rebuilt, and says so on stderr
+// the scratch checkout has no docs tools:  the home page isn't rebuilt, and says so on stderr
 vi.spyOn(process.stderr, "write").mockImplementation(() => true)
 
 afterAll(() => rmSync(root, { recursive: true, force: true }))

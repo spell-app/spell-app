@@ -38,7 +38,7 @@ export class TypeScope extends BlockScope {
    * - e.g. `Suit`, from `"suits" as one of clubs, ...` in a deck's outline body:
    *   `{ values: ["'clubs'", ...], listOn: "Deck", listName: "Suits" }`
    * - Its values stay plain text or numbers when the code runs;  its properties are static methods of its class,
-   *   read as `Suit.color(value)` (plan doc `outline-spell`, Q10).  See spell's `value_kind`.
+   *   read as `Suit.color(value)` (epic page `outline-spell`, Q10).  See spell's `value_kind`.
    * - Set when declared (`claim()` for a stub), so journaled with it.
    */
   declare valueKind?: ValueKind

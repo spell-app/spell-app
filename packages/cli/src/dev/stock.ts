@@ -20,14 +20,14 @@ export const STOCK_TITLES: Record<CLI.StockGroup, string> = {
 /**
  * Everything open in the repo at `main`, sorted into groups, for `/worktrees` (was `whassup.py`, then `worktrees.py`).  Read-only.
  * - looks at:  worktrees and branches;  running Claude sessions, in this repo or anywhere on the machine;  `/park`
- *   notes and `/bedtime` reports in worktrees;  plan docs with phases left;  `park:<name>` stashes left behind;
+ *   notes and `/bedtime` reports in worktrees;  epic pages with phases left;  `park:<name>` stashes left behind;
  *   window files (`workspaces/ongoing/<name>.code-workspace`) with no worktree
  * - a session working in a worktree belongs to that worktree's item;  the rest are items of their own
  */
 export function takeStock(main = CLI.mainRoot()): CLI.StockReport {
   const sessions = liveSessions(main)
   const items: CLI.StockItem[] = []
-  // every plan doc in one tool run, not one each
+  // every epic page in one tool run, not one each
   const epicsDir = CLI.epicsDir(main)
   const planNames = existsSync(epicsDir)
     ? readdirSync(epicsDir).filter((name) => statSync(join(epicsDir, name)).isDirectory())
@@ -172,7 +172,7 @@ function notes(item: CLI.StockItem, parked: CLI.StockItem["parked"]): string[] {
   return found
 }
 
-/** A plan doc with no worktree or branch:  stalled if phases are left, else nothing to report. */
+/** An epic page with no worktree or branch:  stalled if phases are left, else nothing to report. */
 function planItem(main: string, name: string): CLI.StockItem | undefined {
   const plan = CLI.planStatus(name, join(main, ".claude", "worktrees", name), main)
   if (!plan.folder || plan.done) return undefined
@@ -188,7 +188,7 @@ function planItem(main: string, name: string): CLI.StockItem | undefined {
     action("wtf", `\`/wtf ${name}\`:  where it stopped`),
     action("epic", `pick it up:  \`/epic ${name}\` in a new session`)
   ]
-  return setGroup(item, "stalled", ["plan doc with phases left, no worktree or branch working on it"], actions)
+  return setGroup(item, "stalled", ["epic page with phases left, no worktree or branch working on it"], actions)
 }
 
 /** A running session not inside any worktree:  the main checkout, or elsewhere on the machine. */

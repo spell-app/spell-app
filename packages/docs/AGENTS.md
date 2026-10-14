@@ -3,7 +3,7 @@
 Docs for every package, and their tooling:
 - hand-authored `.html` pages, rendered with `@spell-app/ui`
 - their templates
-- the plan docs `/epic` keeps
+- the epic pages `/epic` keeps
 - the experiments behind the claims
 - the tooling
 
@@ -12,7 +12,7 @@ As the root's `AGENTS.md` and [WWOD](../../agents/wwod/WWOD.md), plus:
 ## Layout
 
 The pages live in SHARED root folders;  the tooling lives here (epics `shared-content`, `claude-design` P4).
-- The pages, plan docs and templates are root folders of every checkout.
+- The pages, epic pages and templates are root folders of every checkout.
   - Each is a folder link into the shared content repo, `../spell-app-dev`
     (the root's `AGENTS.md`, "Shared content").
   - They're NOT tracked by spell-app.
@@ -39,7 +39,7 @@ The pages live in SHARED root folders;  the tooling lives here (epics `shared-co
 The shared folders:
 - [pages.js](tools/pages.js) has a constant for each, and `findPages()` walks them:
   `PAGES`, `GUIDES`, `EPICS`, `TEMPLATES`.
-- [The docs home](../../pages/index.html):  a routing page (P5 of `claude-design`).
+- [The docs' home page](../../pages/index.html):  a routing page (P5 of `claude-design`).
   - One card per area, in the top bar's order, each with its count:
     Guides · Goals · Epics · Epic/UI · Spell/UI · App · App/UI · Brand · Templates
     - Owen's order (2026-10-11, epic `epic-workflow` J40);  the slashed names are the tabs' labels (J41).
@@ -59,7 +59,7 @@ The shared folders:
     - Or newest first:  the page header's sort buttons, A–Z and Date (`wireEpicSort()`;  Owen, 2026-10-13), sort the
       cards inside each group by title or by when each was last worked on;  remembered in this browser.
     - An empty group is hidden.
-    - `$/server/site/EpicCards` draws them, for both the docs index and the page server's `RunningEpics`.
+    - `$/server/site/EpicCards` draws them, for both the home page and the page server's `RunningEpics`.
     - The groups:
       - Favorites:  starred, whatever their state.  A starred epic shows only here.
       - Active:  phases left.  In progress, and paused (its mark grey).
@@ -78,11 +78,11 @@ The shared folders:
     - The day it was last worked on, bottom right, no year (`10/9`).
       - Its `title` is the full date and time.
       - It's the latest of:
-        - the plan doc's `updated`
+        - the epic page's `updated`
         - its last log line (the `log.html` part)
         - its branch's last commit (one `git for-each-ref`)
-      - A running epic's card keeps the docs index's date when it's later than its doc's.
-    - The docs home's Epics count is by the same groups:
+      - A running epic's card keeps the home page's date when it's later than its doc's.
+    - The docs' home page's Epics count is by the same groups:
       `2 favorites · 5 active · 2 planning · 17 urgent · 7 done`.
   - The Templates page also holds the "Writing docs" notes;  the Brand page, its folder's files.
 - `guides/`:  every other page.
@@ -96,14 +96,14 @@ The shared folders:
     - [spell-docs.md](../../guides/spell-docs/spell-docs.md):  how the pages work
     - [spell-ui-findings.md](../../guides/spell-docs/spell-ui-findings.md):  the problems
 - `templates/`:  starting points, one per kind of doc (see "Templates").
-- `epics/<name>/<name>.plan.html`:  plan docs, one per `/epic` session (see "Plan docs").
+- `epics/<name>/<name>.plan.html`:  epic pages, one per `/epic` session (see "Epic pages").
   - `<name>.html` before 2026-10-04.
     - The tools find either ([`planDocIn()`](tools/pages.js)).
     - A worktree cut before keeps the old name until it merges `main`.
     - The page server redirects the old URL.
     - [plan-rename.js](tools/plan-rename.js) did the rename.
   - A SPLIT doc's bodies are part files, `parts/<id>.html` in its folder:
-    the page loads them when opened (see "Plan docs").
+    the page loads them when opened (see "Epic pages").
     - `.htm` before Q12 of `epic-components`:  read no more.
     - Every page walker skips `parts/` folders (`findPages()`, `relocate.js`, `spell static`),
       so a part is never taken for a page.
@@ -111,7 +111,7 @@ The shared folders:
   - A question Claude explains, and Owen answers on the page (`/details`, see "Details pages").
   - Scratch:  ignored by the shared repo's git, swept after 14 days.
   - An epic's go in its folder's `details/`, kept (auto-committed with the shared repo).
-  - SYNTAX-CHOICES pages live there too (see "Syntax-choices pages").
+  - CHOICE pages live there too (see "Choice pages").
 - `brand/`:  the brand pages, and the design system's push record.
   - the pony, from Claude Design;  the rest from P11 of `claude-design`
   - Not in `findPages()`'s areas:  `docs update` doesn't check them (`BRAND`, in [pages.js](tools/pages.js)).
@@ -123,7 +123,7 @@ In `tools/`:
     It reaches into widgets via UI tokens and `::part()`.
   - `spell-doc-runtime.js`:  page behaviour.
     - the toolbar, sticky headers, scroll-follow, code colors, comments
-    - generic:  a plan doc's `<epic-*>` elements do their own (see "Plan docs")
+    - generic:  an epic page's `<epic-*>` elements do their own (see "Epic pages")
   - `spell-ui.entry.js` -> `spell-ui.js`:  the ONE classic script a page loads.
     - Solid + @spell-app/ui + the runtime
     - GENERATED by [bundle-spell-ui.js](tools/bundle-spell-ui.js).  NEVER edit `spell-ui.js`.
@@ -133,16 +133,16 @@ In `tools/`:
     - both sets:  `cldr`, `fomantic`
     - GENERATED with `spell-ui.js`:  never edit.
   - No `plan-doc.css` any more (deleted at P14 of epic `epic-components`, 2026-10-08).
-    Plan docs style themselves through their `<epic-*>` elements.
-  - No page script for details and syntax-choices pages since epic `epic-workflow` P12:  they're written in the
+    Epic pages style themselves through their `<epic-*>` elements.
+  - No page script for details and choice pages since epic `epic-workflow` P12:  they're written in the
     epics pack's elements, which draw and send them (see "Details pages").
     - `details.css`, `details.js` and `syntax-choices.js` are gone;  `spell-doc.css` has their pages' few own lines
       ("Pages Owen answers on").
-  - `syntax-choices.css`:  the spell syntax guide's boxes and bar (`spell-syntax.js`), which a syntax-choices page
+  - `syntax-choices.css`:  the spell syntax guide's boxes and bar (`spell-syntax.js`), which a choice page
     drew to before P12.
-  - `goals.css`, `goals-live.js`:  goals pages (the repo root's `goals/`, and `templates/goals/`).
+  - `goals.css`, `goals-live.js`:  saga pages (the repo root's `goals/`, and `templates/goals/`).
     - their look, and their live buttons:  PARKED since 2026-10-11, each says "TODO:  this will ..." (`parked()`)
-    - `goals.css` holds every rule the goals pages took from `plan-doc.css`, which they no longer link.
+    - `goals.css` holds every rule the saga pages took from `plan-doc.css`, which they no longer link.
   - `commands.js`:  command reference pages ([the commands template](../../templates/commands.html)).
     - It draws their tables from the page's JSON, then loads `spell-ui.js` itself.
     - The page loads `commands.js` INSTEAD of the bundle.
@@ -151,7 +151,7 @@ In `tools/`:
       [spellSyntax.json](../spell/spellSyntax.json) (`yarn gen:syntax` in `packages/spell`).
     - Each row:  the class's name, opening its source;  its syntaxes and aliases;  an example of each syntax in each
       writer;  its purpose.  Every section starts open, with Expand all and Collapse all in the toolbar.
-    - Built from elements, never markup in strings;  its boxes and toolbar are the old syntax-choices page's
+    - Built from elements, never markup in strings;  its boxes and toolbar are the old choice page's
       (`syntax-choices.css`, `choicesRoutes.ts`), the page naming its rows on `<body data-choices-rows>`.
     - Each row's wand adds a comment on it ("Provide more details here"):  see "Comments".
     - Then it loads `spell-ui.js` itself, as `commands.js` does.
@@ -195,7 +195,7 @@ In `tools/`:
   (`spell-doc.css`, "Layout").
   - Today it holds EVERYTHING in `<main>`:  nice for prose, "horrible for tables" (Owen, 2026-10-12).
   - The WIDE LAYOUT, opt-in while Owen tries it:  `<body class="... spell-wide">`.
-    On the spell syntax guide and `epic-workflow`'s plan doc so far;  every page's once he approves
+    On the spell syntax guide and `epic-workflow`'s epic page so far;  every page's once he approves
     (that epic's todo, "Make the wide layout the default on every page").
     - `<main>` runs the window's full width, and each kind of block places itself:
       - BARS (the sticky page header and its toolbar, section titles, the footer, a bottom bar):
@@ -214,12 +214,12 @@ In `tools/`:
       - a block that should run full width anyway:  `class="spell-full-width"`
     - A bare `<table>` is celled like a `ui-table celled compact`;  both draw their cells in `--spell-table-rule`.
       At phone width a bare table scrolls inside its own box.
-    - A plan doc:  `<epic-page>`'s `--epic-inset` becomes the column's inset, so its bands run edge to edge
+    - An epic page:  `<epic-page>`'s `--epic-inset` becomes the column's inset, so its bands run edge to edge
       and everything in them sits in the column.  The pack itself doesn't change.
     - `--spell-column-inset`:  from the window's edge to the column, at least 16px.
       Worked out once in px, on `<main>`, so a block at any depth (shadow roots too) inherits the same number.
     - Phone width looks as before:  a 16px gutter, nothing wider than the window.
-    - Not tried yet:  the goals pages' old `section.s2` markup, a cheatsheet's filter bar, `.spell-toolbar-alone`.
+    - Not tried yet:  the saga pages' old `section.s2` markup, a cheatsheet's filter bar, `.spell-toolbar-alone`.
 - Sections are `<ui-section>` elements.
   - The page skeleton:  [spell-docs.md](../../guides/spell-docs/spell-docs.md), "Page skeleton".
   - Every piece of the markup:  [the ui-section test page](../../guides/spell-docs/ui-section-test.html).
@@ -243,22 +243,22 @@ In `tools/`:
       size and bold;  the breadcrumb above it hides.  A lighter ivory than the toolbar under it.
     - While a sub-section's title is stuck under its parent's, the two are one row:  `2. Files on disk › 2.1 The
       repo` (`wireStuckTrail()`).
-  - The OLD markup is for the goals pages only;  the runtime still drives it.
+  - The OLD markup is for the saga pages only;  the runtime still drives it.
     - It's `section.s2|s3` > `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>`.
     - `node tools/to-ui-section.js <page>` converts a page.
-    - A plan doc goes to `<epic-*>` markup instead:  `epic convert <name>` (see "Plan docs").
+    - An epic page goes to `<epic-*>` markup instead:  `epic convert <name>` (see "Epic pages").
 - The runtime builds the page from that markup:
   - NO contents list (Owen, 2026-10-08:  "remove the Contents thing entirely ... it is useless").
     - NEVER hand-write one, or a "Contents" button.
   - The TOOLBAR, the page's one navigation (`buildPageToolbar()`).
     - Epic `airplane` P8, Owen 2026-10-10:
-      "Make the floating sidebar in guides a sticky top toolbar like the plan doc".
+      "Make the floating sidebar in guides a sticky top toolbar like the epic page".
       Before it, a floating right-edge rail.
     - A row of the top-level sections' buttons:  the last row of the sticky page header (`.spell-page-head`).
       So it sticks with it, and the titles stick below it.
     - An ivory band, edge to edge across the content column (out of `<main>`'s side padding), square.
       - A rule under it, and none above (Owen, 2026-10-10).
-      - The same band as a plan doc's.
+      - The same band as an epic page's.
     - Each button:  the section's icon and its title.
       - the current one a deeper ivory (scroll-follow)
       - a red badge counting what needs Owen
@@ -268,8 +268,8 @@ In `tools/`:
       - The row scrolls sideways if even that doesn't fit, never the page.
     - The spell syntax guide adds Expand all and Collapse all at the band's right (`spell-syntax.js`, Owen 2026-10-12).
     - A page without a sticky page header:  the last row of its filter bar.
-      Else a sticky bar of its own, before its first section (`.spell-toolbar-alone`:  the goals pages).
-  - A PLAN DOC (`body.plan-doc`) has its own toolbar (`buildToolbar()`).
+      Else a sticky bar of its own, before its first section (`.spell-toolbar-alone`:  the saga pages).
+  - An EPIC PAGE (`body.plan-doc`) has its own toolbar (`buildToolbar()`).
     - It's the last row of `<epic-page>`'s sticky toolbar bar (its `toolbar` slot).
     - It sticks right under the h1's row, once the epic's title between them has scrolled away.
     - One button per top-level block:  its icon ONLY, the title its tooltip (Owen, 2026-10-10:  "lose the titles").
@@ -288,7 +288,7 @@ In `tools/`:
     - Nested ones stack below their parents'.
     - The runtime sets the top-level `offset`s.
   - Folding:  folds are remembered per page;  a link's unfold isn't.
-    - A plan doc (`body.plan-doc`) starts EVERY section folded that the reader hasn't opened or closed:
+    - An epic page (`body.plan-doc`) starts EVERY section folded that the reader hasn't opened or closed:
       Owen opens what he wants (2026-10-03).
     - Its `<epic-*>` blocks start folded by themselves.
       - The runtime reopens the ones the reader left open, before they first draw (`restoreEpicFolds()`).
@@ -297,32 +297,32 @@ In `tools/`:
       so folding near the page's end never leaves the page shorter than where it's scrolled to,
       and what was clicked stays put (Owen, 2026-10-10, `airplane` J10).
   - Counts, on a top-level section holding `[data-status]` items
-    (the Epics index's epic cards, the goals pages' items):
+    (the Epics list page's epic cards, the saga pages' items):
     - `open/all` on its title, its `badge`
       - open:  any status but `done`, `decided` or `canceled`
     - on the toolbar, a RED badge counting only the items that need Owen (state `attention`):
       none when none do (`countItems()`)
     - Nested sections get no count of their own.
-    - A plan doc's blocks count their own items:  the runtime only reads the count, and its `attention`
-      (else the items' `state="attention"`;  see "a plan doc" below).
+    - An epic page's blocks count their own items:  the runtime only reads the count, and its `attention`
+      (else the items' `state="attention"`;  see "an epic page" below).
   - Item states (`markItemStates()`, every page):
-    the Epics index's epic cards, and the goals pages' items (`.plan-items`), get their colour from `data-state`.
+    the Epics list page's epic cards, and the saga pages' items (`.plan-items`), get their colour from `data-state`.
     - The colour scheme:  [the plan-doc guide](../../templates/epics/plan-doc.md), "Colours";
       in CSS, `spell-doc.css`'s `--spell-state-*`.
     - red needs Owen, blue Claude is working on it, yellow open (dark ink), green recent, grey older
     - without one:  an open goals question red, anything else open yellow, done / decided grey
-    - The goals pages colour their id chips by it, NOT by kind:  the kind is only the id's letter.
+    - The saga pages colour their id chips by it, NOT by kind:  the kind is only the id's letter.
   - Item filter (`wireItemFilters()`):  a top-level section with such items gets a chip per state it has.
     - Each chip shows how many, left of its count.
     - solid while that state shows, outlined while hidden
     - no filter icon (Owen, 2026-10-10)
-    - A click (`nextShown()`, a plan doc's rule too):
+    - A click (`nextShown()`, an epic page's rule too):
       - everything showing:  only that state
       - else a hidden one shows too, and a shown one hides
       - the only one showing:  everything again
     - A filtered list says "N hidden · show all" under it.
       Remembered per page.
-  - A PLAN DOC:  `<epic-page>` markup, drawn by the `epics` pack ([epics' AGENTS.md](../epics/AGENTS.md)).
+  - An EPIC PAGE:  `<epic-page>` markup, drawn by the `epics` pack ([epics' AGENTS.md](../epics/AGENTS.md)).
     - Its elements draw themselves, in their shadow roots:
       - the page header (Send and Review Now while reviewed, the step label, git), and its toolbar's tools
       - the review line, and the nobody-listening pill under it
@@ -348,12 +348,12 @@ In `tools/`:
     - Pages with scripts of their own still reload.
       Inert data blocks (`<script type="text/plain">`) don't count.
     - `<body>`'s attributes are patched too.
-    - A plan doc's `<epic-*>` elements are patched, never replaced, keeping their page state
+    - An epic page's `<epic-*>` elements are patched, never replaced, keeping their page state
       (`open` ..., `carryEpicState()`).
       [check-live-epics.mjs](../epics/demo/check-live-epics.mjs) checks it.
   - Bodies from files:
     - `<ui-section source>` and `<ui-accordion source>`
-    - a plan doc's `<epic-*>` blocks and items:  a split plan doc's parts (`wireSourceBodies()`)
+    - an epic page's `<epic-*>` blocks and items:  a split epic page's parts (`wireSourceBodies()`)
     - The patch leaves what a host loaded alone.
     - A changed body file (the live client's `spell-server:file`) re-fetches its open host in place.
     - Each body that loads re-runs the outline, the toolbar, counts, item filters and code colors.
@@ -404,7 +404,7 @@ In `tools/`:
     - Never a `<ui-tooltip>`, nor a `<ui-popup>` used as one.
     - Owen's standing rule, 2026-10-10:  a styled one only when he asks for "a ui-tooltip with ...".
     - Older pages still have `<ui-popup inverted size="mini">` tooltips:
-      `circle()`, in the goals pages' `goals-live.js`.
+      `circle()`, in the saga pages' `goals-live.js`.
       Turn them into `title`s when touching that code.
     - `basic` for quiet tools (sidebars, toolbars);  `primary` for the one main action in a dialog.
   - An icon a page uses must be in `ICONS`, in [bundle-spell-ui.js](tools/bundle-spell-ui.js)
@@ -438,9 +438,37 @@ In `tools/`:
   - The table, with examples:  [the plan-doc guide](../../templates/epics/plan-doc.md), "Colours".
   - Item states in CSS:  `spell-doc.css`'s `--spell-state-*`.
 
+## Page kinds
+
+Each kind of page has ONE name, written everywhere a person reads it (Owen, 2026-10-14, epic `epic-workflow` P14:
+[the page kinds he settled](../../epics/epic-workflow/details/page-kinds.html)).
+The older words he may still say are in the root [AGENTS.md](../../AGENTS.md), "Words".
+
+| Name | What it's for | Where | Template |
+| --- | --- | --- | --- |
+| epic page | an epic's plan:  its phases, items and log | `epics/<epic-id>/<epic-id>.plan.html` | [the tool's](../epics/src/tool/templates/plan.html) |
+| saga page | a saga (an epic of epics);  today the parked goals pages | `goals/` | [goals/](../../templates/goals/) (parked) |
+| details page | one question explained with a picture, answered on the page | `pages/details/`, `epics/<epic-id>/details/` | [details.html](../../templates/details.html) |
+| review page | several calls to go through at once:  keep, change, talk over | same as details pages | [review.html](../../templates/review.html) |
+| choice page | a table of names Claude recommends, typed over, then "Do it" | same, with `<slug>.rows.json` | [syntax-choices.html](../../templates/syntax-choices.html) |
+| guide | explains a topic;  an epic's own write-up is "the epic's guide" | `guides/` | [durable.html](../../templates/durable.html) |
+| cheatsheet | an API at a glance, as cards you filter | `guides/` | [cheatsheet.html](../../templates/cheatsheet.html) |
+| commands page | which command, skill or script does what | `guides/dev/commands/` | [commands.html](../../templates/commands.html) |
+| components page | one element:  its examples, attributes and look | `ui/`, `packages/epic-components/`, `packages/app/components/` | [spell-ui-docs.html](../../templates/spell-ui-docs.html) |
+| components guide | a component set's pages that aren't one element:  home, getting started, theming, icons | beside its components pages | [component-set-docs.html](../../templates/component-set-docs.html) |
+| brand page | Claude Design's brand pages, and their Spell UI copies | `brand/` | none:  Claude Design's exports |
+| home page | the docs' front page:  a card per area | `pages/index.html` | none:  `spell dev docs index` writes its cards |
+| list page | a card per page of one area:  each top-bar tab's own page | `<area>/index.html` | none:  `spell dev docs index` writes it |
+| changelog | what the repo shipped, newest first | `guides/changelog.html` | none:  its header comment has an entry's markup |
+| template | the starting point for one kind of page | `templates/` | -- |
+
+- Not pages, so not named here:  an epic page's part files, inbox files, answer and draft files.
+- File names keep their old words (`<epic-id>.plan.html`, `durable.html`, `syntax-choices.html`):
+  links and tools depend on them.
+
 ## Templates
 
-- [durable.html](../../templates/durable.html):  design notes, research, references.
+- [durable.html](../../templates/durable.html):  a guide -- design notes, research, references.
   - prose sections, tables, code, callouts
 - [commands.html](../../templates/commands.html) + `commands.json`:  a command reference.
   - operations by family, and which CLI / skill / yarn command does each
@@ -450,50 +478,50 @@ In `tools/`:
 - [cheatsheet.html](../../templates/cheatsheet.html):  an API reference.
   - a grid of cards, filtered by text and by badge (`ui-select[data-spell-filter-badge]`)
   - a card may carry `<ui-meta>` (since when) and `<ui-extra>` (a docs link)
-- Plan docs have no template here.
+- Epic pages have no template here.
   - The old `plan.html`, in `templates/epics/`, retired at the switch (P12 of `epic-components`).
   - `epic new <name>` copies the tool's own, in `<epic-*>` markup
     ([the tool's plan template](../epics/src/tool/templates/plan.html)).
-  - How to write one:  [the plan-doc guide](../../templates/epics/plan-doc.md).
+  - How to write one:  [the epic-page notes](../../templates/epics/plan-doc.md).
 - [details.html](../../templates/details.html):  a details page.
   - NEVER copy by hand:  `epic ask new <slug>`.
   - The tool reads its OWN copy since epic `epic-workflow` P12, tracked with each branch as the elements it's
     written in are:  [tools/templates/details.html](tools/templates/details.html).
     - The shared one becomes a copy of it when the migration step `answer-elements` runs (see "Scripts",
       `migrate.js`).
-- [syntax-choices.html](../../templates/syntax-choices.html):  a syntax-choices page.
+- [syntax-choices.html](../../templates/syntax-choices.html):  a choice page.
   - `syntax-choices.rows.json` beside it is a small working example.
   - NEVER copy by hand:  `epic choices new <slug> --rows <rows.json>`.
   - The tool's own copy, as details.html's:  [tools/templates/syntax-choices.html](tools/templates/syntax-choices.html).
-- [review.html](../../templates/review.html), "Review":  a details page reviewing a finished run's calls.
+- [review.html](../../templates/review.html), "Review":  a review page, going through a finished run's calls.
   - one question each (keep, change, talk over), then "Where first?"
   - saved from `ui-docs-rework`'s morning review, as the model
-- `templates/goals/`:  goals pages, laid out as a goals folder is, so their links work in place.
-  - `index.html`:  the home page, every goal set
+- `templates/goals/`:  saga pages, laid out as a goals folder is, so their links work in place.
+  - `index.html`:  the saga set's home, every saga
   - `set/index.html`:  a set's contents page
   - `set/topic/topic.html` and `topic.md`:  a topic's page, and its agent notes
   - Parked with goals:  `spell dev goals new-set` / `new` filled them;  a copy is in `packages/goals.zip`.
   - The rules:  [goals' AGENTS.md](../../goals/AGENTS.md), at the repo root.
-- [spell-ui-docs.html](../../templates/spell-ui-docs.html):  a Spell UI docs page, for the shared `ui/`.
+- [spell-ui-docs.html](../../templates/spell-ui-docs.html):  a components page (one element's), for the shared `ui/`.
   - Fomantic's docs layout in `<ui-*>` widgets:
     nav, masthead, Examples / Usage / API / Theming tabs, an "On this page" rail.
   - It loads the UI site's bundle, NOT `spell-ui.js`.
   - NEVER copy by hand:  `yarn site:new <tag|page>`, in `packages/ui`.
   - How to write one:  [PAGES.md](../../epics/spell-ui-pages/PAGES.md).
   - Checked by `yarn site:check` there (`docs update` skips it).
-- Every template but the goals pages and `spell-ui-docs.html` is `<ui-section>` markup (see "Writing a page").
-  - The goals pages keep the old `section.s2` markup
+- Every template but the saga pages and `spell-ui-docs.html` is `<ui-section>` markup (see "Writing a page").
+  - The saga pages keep the old `section.s2` markup
     until they migrate ([the code-debt log](../../agents/CODE-DEBT.md)).
 - A new KIND of doc gets a template here.
-  `spell dev docs index` gives it a card on the Templates page.
+  `spell dev docs index` gives it a card on the Templates list page.
 
-## Plan docs
+## Epic pages
 
 - `/epic <name>` ([the epic skill](../../.claude/skills/epic/SKILL.md)) runs a planning session
   against `epics/<name>/<name>.plan.html`.
-- A plan doc is `<epic-*>` markup, drawn by the `epics` component pack (epic `epic-components`).
+- An epic page is `<epic-*>` markup, drawn by the `epics` component pack (epic `epic-components`).
   Its code lives in `packages/epics`, NOT here:
-  - the elements, the review client, and the plan-doc tool ([the tool's folder](../epics/src/tool/),
+  - the elements, the review client, and the `epic` tool ([the tool's folder](../epics/src/tool/),
     which `epic` runs):  [epics' AGENTS.md](../epics/AGENTS.md)
   - what the tool writes, and the rules for a doc's DATA in that markup (ids, phases, items, log, parts):
     [PLAN-DOC.md](../epics/src/tool/PLAN-DOC.md)
@@ -512,14 +540,14 @@ In `tools/`:
   - The tool reads either shape whole, and writes it back split:  each file once, atomically, only when changed.
     - `split <name>` / `split --done` / `join <name>`
   - A reader of the skeleton alone sees every section, phase status and item line.
-    - e.g. the docs index, the main server's epic cards, `ReviewInbox.itemIds()`
+    - e.g. the home page, the main server's epic cards, `ReviewInbox.itemIds()`
     - Anything needing bodies reads the doc through the tool (`PlanDocFiles` `read()`).
   - A split doc needs the page server (`<body data-spell-needs-server>`):  bodies don't load from `file://`.
 - What stays HERE, in `packages/docs`:
   - `spell-doc-runtime.js`'s generic parts (see "Writing a page"):
-    - the toolbar, which lists a plan doc's blocks from their `contentsEntry`
+    - the toolbar, which lists an epic page's blocks from their `contentsEntry`
     - folds, landing, live update, bodies from files
-    - for the Epics index and the goals pages:  `countItems()`, item states and `wireItemFilters()`
+    - for the Epics list page and the saga pages:  `countItems()`, item states and `wireItemFilters()`
   - [check-spell.js](tools/check-spell.js), which knows the `<epic-*>` elements (see "Scripts")
   - the forwarders (see "Scripts"):  new code imports `$/epics/tool/...` instead
     - [plan-doc.js](tools/plan-doc.js), also `yarn plan-doc`
@@ -527,7 +555,7 @@ In `tools/`:
 
 ### Review inbox
 
-- Owen marks a plan doc's items ON the page:  approve, todo, Add Details, revisit, pick an option card.
+- Owen marks an epic page's items ON the page:  approve, todo, Add Details, revisit, pick an option card.
   - The marks wait in its INBOX FILE until a Claude session takes them.
     It's `<name>.inbox.json`, beside the doc in `epics/<name>/`.
   - Absent until the first mark;  deleted once empty.
@@ -629,7 +657,7 @@ In `tools/`:
 
   - `show` opens a page in the side bar's "Review" tab (epic `windows-and-review` P6).
   - `draft` prints what Owen typed and hasn't sent (below):  read it before rewriting a page he may have open.
-- Written in the epics pack's `<epic-*>` elements (epic `epic-workflow` P12), so a question reads as a plan doc's.
+- Written in the epics pack's `<epic-*>` elements (epic `epic-workflow` P12), so a question reads as an epic page's.
   Each element has its page in Epic UI (`/epic-ui/`, "Pages Owen answers on"):
   - a question:  a `<ui-section id>` holding an `<epic-ask>` of an `<epic-question>` and an `<epic-choices>` of
     `<epic-option>`s;  the section's id is its answer's key
@@ -672,7 +700,7 @@ In `tools/`:
   - No status label in the meta lines any more (P12):  Send's line says where the answer stands
     (`Not sent`, `Changes not sent`, `Sent 10/8/26 14:34 · 5 of 17 decided`).
 
-## Syntax-choices pages
+## Choice pages
 
 - A table of names (or any syntax) Claude recommends, one row per use site.
   - the columns:  File (opens VS Code at the line) | Purpose | Current | Recommended (a box, pre-filled)
@@ -708,12 +736,12 @@ In `tools/`:
 
 ## Comments
 
-- Owen leaves a comment for Claude on any block of a docs page or plan doc the page server serves
+- Owen leaves a comment for Claude on any block of a docs page or epic page the page server serves
   (epic `airplane`, P11).
   - The BULLHORN beside each major block:
     - a section (in its title), table, aside, code block, message, cards, steps, top-level list
-    - a plan doc's items, phase fields, summary and Overview prose
-    - a plan doc's updates (`<epic-update>` blocks), even inside an item or a field:  each has its own bullhorn
+    - an epic page's items, phase fields, summary and Overview prose
+    - an epic page's updates (`<epic-update>` blocks), even inside an item or a field:  each has its own bullhorn
       (Owen, 2026-10-11:  "Those items are bullhorn-able")
     - the page header:  the whole page
     - Quiet until hovered, ALWAYS:  it only starts a new comment ("Comment on this item").
@@ -723,7 +751,7 @@ In `tools/`:
         with an orange dot for news;  its click listed them (`openPicker()`, gone).
       - The toolbar's signals stay as they were.
     - It makes room rather than cover what's there (`makeRoom()`;  Owen, 2026-10-10:  "Overlap in bullhorn buttons"):
-      - a plan doc item's own review pills and Do Now:  it moves left of them, over the end of the item's title,
+      - an epic page item's own review pills and Do Now:  it moves left of them, over the end of the item's title,
         as a text block's does
       - an update's date:  the same (its `time` part, `MAKES_ROOM`)
       - a thread right under a short block (a folded item), which it would cover:
@@ -767,7 +795,7 @@ In `tools/`:
     EVERY comment shows as one, the runtime's `thread()`:
     - A thread is the comment, then its `replies` in order (Claude's answers, Owen's replies), then maybe `done`.
     - WHOSE TURN (`CommentList.turnOf()`, sent by the GET as each comment's `turn`):
-      - `owen`:  Claude spoke last.  Also a plan doc's comment answered in the doc, with no words on the thread.
+      - `owen`:  Claude spoke last.  Also an epic page's comment answered in the doc, with no words on the thread.
       - `claude`:  Owen spoke last, his comment or his reply.  Claude may have taken it, not answered yet.
       - `done`:  Owen closed it.
     - Where (Owen, 2026-10-10:  "show them under the paragraph where they were defined"):
@@ -779,7 +807,7 @@ In `tools/`:
       - he opened it on this visit, or he's writing in it
       - Before threads, a comment had a card only while it had news Owen hadn't read.
     - Its EDGES (Owen, 2026-10-10:  "same indent as comment box"):
-      - under a plan doc's item:  its note box's ("Your note:  a question ..."), the item's details' padding
+      - under an epic page's item:  its note box's ("Your note:  a question ..."), the item's details' padding
         (`--epic-item-indent` left, 6px right);  so is a thread under a paragraph inside the item
       - else the block's it's under:  a guide's paragraph (its 72ch measure too), table, code ...;  a phase's field
       - Before 2026-10-10:  32px in from the text on each side.
@@ -804,7 +832,7 @@ In `tools/`:
       - the bullhorn (a green check circle once done)
       - the pane's summary (`headline()`):  the quote's first words, else the block's;  its tooltip the full place
       - No date:  each message has its time.
-    - Then OWEN'S ANSWER, while it's his turn:  a plan doc item's review pills
+    - Then OWEN'S ANSWER, while it's his turn:  an epic page item's review pills
       ("same semantics/look as pills in item header").
       - They're `<epic-review>`'s (in `packages/epics`), drawn here with the same markup and look,
         since a guide doesn't load that pack.
@@ -836,7 +864,7 @@ In `tools/`:
       - Claude's:  a light violet box (`--ui-violet` mixed light), no side bar.
         - Its outline only a faint violet ring drawn as a shadow, its border clear, so nothing moves.
           Owen, 2026-10-10:  "lighten border around your replies, make it just border-as-shadow".
-        - Also "Taken into <epic> P<n>", and "Answered in the plan doc" for an answer with no words here.
+        - Also "Taken into <epic> P<n>", and "Answered in the epic page" for an answer with no words here.
       - A green Done line once closed:  a check, "That's good." or "Skipped", the commit Claude named.
         A faint green ring, the same way.
       - While Claude THINKS about it (the comment's `working`):  "Claude: thinking…" last, in Claude's box.
@@ -889,17 +917,17 @@ In `tools/`:
     - A plain browser shows them either way.
       Headless Playwright can't show a native tooltip, only check what's under the pointer.
   - Built for reading offline, with no Claude:  only the page server writes them.
-- SEND on a docs page (epic `epic-workflow` P13), as on a plan doc:  Owen comments, presses Send, and the session
+- SEND on a docs page (epic `epic-workflow` P13), as on an epic page:  Owen comments, presses Send, and the session
   working the epic the page BELONGS to gets them.
   - The page header's right:  a pill, the paper plane, "Send" and how many comments aren't sent yet;
     blue by the fill rule (grey outline:  nothing waiting;  dashed:  some not sent;  outlined:  sent).
     Then who is listening:  "python-target is listening" (a green dot), "nobody is listening",
     or "no epic owns this page".  Each says more in its tooltip.
     - The runtime's `drawSend()`;  it asks again every 30s, since a session that stops leaves only an old heartbeat.
-    - Not on a plan doc:  its Send is `<epic-page>`'s.
+    - Not on an epic page:  its Send is `<epic-page>`'s.
   - Which epic:  `SeeAlso.ownerOf()` ([SeeAlso.ts](../epics/src/tool/SeeAlso.ts)), from the epics' See Also:
     - a page in `epics/<name>/details/`:  epic `<name>`
-    - else the epic whose See Also lists it:  its durable doc's epic first (J88), then an open one, then the one
+    - else the epic whose See Also lists it:  its guide's epic first (J88), then an open one, then the one
       updated last (Owen's Q12)
     - none:  `guide-changes`, as before
   - A click:  `POST /api/comments/send`;  the comments waiting are sent (`GuideInbox` `sent`).
@@ -910,9 +938,9 @@ In `tools/`:
     for that review (its first `wait` takes them), or `/airplane land`.  Never for `guide-changes`.
 - Where they're kept (git-ignored in the shared repo:  waiting work, per machine):
   - a docs page's:  its INBOX FILE, `<page>.inbox.json` beside it
-    ([GuideInbox.ts](../epics/src/tool/GuideInbox.ts), in `packages/epics` since P13:  the plan-doc tool's `wait`
+    ([GuideInbox.ts](../epics/src/tool/GuideInbox.ts), in `packages/epics` since P13:  the `epic` tool's `wait`
     reads it), with its `sent` and `handedOver`
-  - a plan doc's:  the epic's review inbox, under `comments` (`ReviewInbox`, see "Review inbox")
+  - an epic page's:  the epic's review inbox, under `comments` (`ReviewInbox`, see "Review inbox")
   - One shape for both, and every change:  [`CommentList`](../epics/src/tool/CommentList.ts).
   - ids `cm1`, `cm2` ... (`c1` is a caveat's)
 - Where a comment is:  its ANCHOR ([BlockAnchors.js](tools/BlockAnchors.js), shared by the runtime and the tools).
@@ -924,7 +952,7 @@ In `tools/`:
 - The routes:  [commentsRoutes.ts](tools/commentsRoutes.ts)
   - `GET /api/comments?page=` (`takesComments`, every comment;  a docs page's `send` too:
     `{ epic, owned, listening, sent, unsent, waiting }`)
-  - `POST /api/comments/send { page }`:  a docs page's Send (a plan doc:  400)
+  - `POST /api/comments/send { page }`:  a docs page's Send (an epic page:  400)
   - `POST /api/comments { page, action: add | edit | delete | clear | restore | reply | resolve | reopen, ... }`
     - edit and delete only while `new`;  clear whatever its state
     - add and edit need text:  blank is a 400
@@ -938,14 +966,14 @@ In `tools/`:
   - It carries the comment's `working` too, as the inbox holds it:  any server shows the thinking stub.
   - A page served under `/worktrees/<w>/` redraws on its inbox's change too:  the server announces a shared
     folder's files without that prefix (`inboxPaths`).
-  - pages under `guides/`, `pages/`, `epics/` (plan docs too)
+  - pages under `guides/`, `pages/`, `epics/` (epic pages too)
   - a component set's pages, at its short address (`/epic-ui/...`):  their inbox beside each, in the set's tracked
     folder, git-ignored there.
     - NOTE:  those pages load Spell UI's site bundle, not `spell-ui.js`, so no bullhorn draws on them yet:
       the route takes their comments, the page can't make one (epic `epic-workflow` P10).
   - NOT:
-    - a plan doc's `parts/`
-    - details pages with questions, syntax-choices pages
+    - an epic page's `parts/`
+    - details pages with questions, choice pages
     - `templates/`, goals (thoughts), Spell UI or brand pages
 - Claude's side, for docs pages ([comments.ts](tools/comments.ts), [GuideChanges.ts](tools/GuideChanges.ts)):
 
@@ -975,7 +1003,7 @@ In `tools/`:
     - a reply rides along under its comment ("Owen replied on the thread")
     - each comment then `taken`
     - `/airplane land` runs it.
-- Claude's side, for plan docs:  `epic inbox <name>` lists them, and Owen's replies under them.
+- Claude's side, for epic pages:  `epic inbox <name>` lists them, and Owen's replies under them.
   - They reach Claude with the page's SEND, as marks do (see "Review inbox"):
     a send with only comments wakes `wait`, which prints them.
   - `epic inbox <name>#cm3 working on | off`:  the thinking stub, as `comments working`.
@@ -983,7 +1011,7 @@ In `tools/`:
   - Answered like a revisit's note, then:
     - `epic inbox <name>#cm3 done [--file <html>] [--commit <sha>]`, or `<name>#cm3 clear`
     - `done` turns `working` off.
-  - `--file`:  the answer on the thread too.  Without it, "Answered in the plan doc".
+  - `--file`:  the answer on the thread too.  Without it, "Answered in the epic page".
 
 ## Page notes
 
@@ -1049,7 +1077,7 @@ In `tools/`:
     - no nested links
   - The rules themselves live in `$/assembler` (`AS.Linker`):  how a path resolves, which target a link gets.
     - `doc-links.js` is its command line.
-    - The plan-doc tool links through the same code.
+    - The `epic` tool links through the same code.
   - Run it under `tsx`, never plain `node`:  it imports `$/assembler`.
     - The tools run it through `docLinksRun()`, in [pages.js](tools/pages.js).
 
@@ -1091,7 +1119,7 @@ In this order, from `packages/docs`:
   - a Claude Design board, as a page
   - the push record:  `design-system.json` in `brand/`, shared
 - `spell dev docs index` ([index.js](tools/index.js)) rewrites:
-  - the docs home's area cards
+  - the docs' home page's area cards
   - each area's list page:  `index.html` in `epics/`, `guides/`, `templates/`, `brand/`
 - `spell dev docs new` ([new-page.js](tools/new-page.js)):  a page from a template, at any depth.
 - `spell dev docs open [page] [--vs | --review]` ([open.js](tools/open.js)):  shows a page, by default the index.
@@ -1102,14 +1130,14 @@ In this order, from `packages/docs`:
     Showing the page a tab already has doesn't reload it:  the page updates itself.
 - `epic ask` ([details.js](tools/details.js)):  details pages (see "Details pages").
   - [detailsRoutes.ts](tools/detailsRoutes.ts):  the page server's route module for their answers
-- `epic choices` ([choices.js](tools/choices.js)):  syntax-choices pages (see "Syntax-choices pages").
+- `epic choices` ([choices.js](tools/choices.js)):  choice pages (see "Choice pages").
   - [choicesRoutes.ts](tools/choicesRoutes.ts):  their drafts and answers
 - `epic comments list | wait | gather | answer` ([comments.ts](tools/comments.ts)):  comments on docs pages.
   - See "Comments".
   - [commentsRoutes.ts](tools/commentsRoutes.ts):  the pages' bullhorns
 - `epic notes list | answer | done` ([notes.ts](tools/notes.ts)):  page notes, from before comments.
   - See "Page notes".
-- Forwarders to the plan-doc tool (see "Plan docs"):  `plan-doc.js`, `plan-parts.js`, `inbox.js`, `review-backfill.js`.
+- Forwarders to the `epic` tool (see "Epic pages"):  `plan-doc.js`, `plan-parts.js`, `inbox.js`, `review-backfill.js`.
   - The tool:  `PlanDoc`, `PlanParts`, `ReviewInbox`, `ReviewBackfill`, in [the tool's folder](../epics/src/tool/).
   - For old imports, and callers on older code.
   - The review routes are [reviewRoutes.ts](../epics/src/tool/reviewRoutes.ts).
@@ -1125,7 +1153,7 @@ In this order, from `packages/docs`:
   - An entry leaves when its agent finishes (`done`).
     Empty, the file goes.
   - Every write is under the file's lock (`SRV.FileLock`) and atomic, as the review inbox's.
-  - REDIRECTS (P3):  a plan doc's "Agents running" panel (`<epic-page>`, `packages/epics`) shows an epic's list,
+  - REDIRECTS (P3):  an epic page's "Agents running" panel (`<epic-page>`, `packages/epics`) shows an epic's list,
     with a note box per agent.
     - Owen's note goes through [agentRoutes.ts](tools/agentRoutes.ts), guarded as the review routes are:
       - `GET /api/agents?page=`
@@ -1158,20 +1186,20 @@ In this order, from `packages/docs`:
   - `parseArgs()`:  a tool's command line, `--key value` flags and positionals
   - `tidy()` (link targets + oxfmt), `serialize()`
   - `openInChrome()`, `openInVSCode()`
-    - plan docs:  the doc preview, through the spell extension's `DocPreview`
+    - epic pages:  the doc preview, through the spell extension's `DocPreview`
     - `{ view: "review" }`:  the "Review" tab
 - `tools/check-spell.js <page> [outDir]`, with Playwright:  writes screenshots.
   - It loads the page from `file://`, or from the page server when the page says `data-spell-needs-server`.
   - It fails on:
     - console errors
-    - an undefined or unrendered `ui-*` or `epic-*` element (a plan doc's, the `epics` pack)
-    - a toolbar that doesn't list every top-level section (a plan doc's:  its `<epic-*>` blocks)
+    - an undefined or unrendered `ui-*` or `epic-*` element (an epic page's, the `epics` pack)
+    - a toolbar that doesn't list every top-level section (an epic page's:  its `<epic-*>` blocks)
     - a toolbar that isn't on screen at the top, at phone width
     - a page still drawing the old floating rail
     - phone-width overflow, a squeezed content column
-    - top-level titles that don't stick (a plan doc's largest item section opened first)
+    - top-level titles that don't stick (an epic page's largest item section opened first)
     - a section that won't fold / unfold, or forgets its fold on reload
-    - a plan doc's open `<epic-item>` whose line won't stick under its section's title (Q6, desktop and phone)
+    - an epic page's open `<epic-item>` whose line won't stick under its section's title (Q6, desktop and phone)
 - The plan-doc checks moved to [epics' demo folder](../epics/demo/), with the review runtime.
   - Each runs Playwright on a COPY of a doc, never a shared one.
   - Their header comments have the details.
@@ -1199,17 +1227,17 @@ In this order, from `packages/docs`:
     - At 1200 and 390px.
     - Run it after touching the folds, the landing, or `holdWhileFolding()`.
 - `tools/to-ui-section.js <page>...`:  converts old `section.s2|s3` pages to `<ui-section>`, ids kept.
-  - Idempotent;  it refuses goals pages.
+  - Idempotent;  it refuses saga pages.
   - Also the migration step `ui-section` (below).
 - [migrate.js](tools/migrate.js):  the MIGRATION steps of every page kind but the epic page's (epic `epic-workflow` P8).
   - `epic migrate [<kind>] [--file <page>]` runs it as a child, beside the epic page's own steps
     ([PLAN-DOC.md](../epics/src/tool/PLAN-DOC.md), "Migrations").
-  - `KINDS`:  the page kinds, the same list as the plan-doc tool's `PAGE_KINDS` (its test checks);  `pageKind()`:  a
+  - `KINDS`:  the page kinds, the same list as the `epic` tool's `PAGE_KINDS` (its test checks);  `pageKind()`:  a
     page's kind, from where it lives and what it loads.
   - `STEPS`, oldest first, each named and dated, each page under its lock (`withLocks()`, from `relocate.js`).
     Today:
     - `ui-section` (`to-ui-section.js`)
-    - `answer-elements` (`to-answer-elements.js`, epic `epic-workflow` P12):  details and syntax-choices pages (and
+    - `answer-elements` (`to-answer-elements.js`, epic `epic-workflow` P12):  details and choice pages (and
       `templates/review.html`) in the epics pack's elements;  the old shared `details.html` and `syntax-choices.html`
       templates become copies of the tools' own.  `pagesFor()` lists every `details/` page for it.
     - A step's `run(document, { file })` gets the page's path:  a choices page's rows file is beside it.

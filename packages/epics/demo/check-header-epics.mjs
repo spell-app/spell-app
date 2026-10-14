@@ -9,7 +9,7 @@
  *   node packages/epics/demo/check-header-epics.mjs [--doc <name>]... [outDir]
  * - the docs:  `review-review` (plan changes) and `epic-components` (items in every state) unless named
  * - the server:  a page server of its OWN on this checkout (`PageServer`, no pid file, a free port);  stopped at the
- *   end.  Send / Review Now need the review routes on a plan doc's path:  `check-review-epics.mjs` checks those
+ *   end.  Send / Review Now need the review routes on an epic page's path:  `check-review-epics.mjs` checks those
  * - fails (exit 1) on a page error, a wrong count, a filter that doesn't hide, a missing box, a header control or
  *   chip running past the window, or a glyph off its box's centre by more than 1px;  at 280px and 900px, light and dark
  * - screenshots (outDir, default `demo/shots/p10/`):  `<doc>-<width>-<scheme>-top.png` (the header),

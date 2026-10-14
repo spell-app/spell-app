@@ -49,7 +49,7 @@ export function notesIn(folders: string[], root: string, { all = false } = {}): 
 /** A note, with the page it's on (from the checkout's root):  as `PageNotes.notes()` gives it, plus `page`. */
 export type PageNote = { page: string } & ReturnType<PageNotes["notes"]>[number]
 
-/** Folders under the areas that hold no pages of their own:  a split plan doc's bodies, experiments' output. */
+/** Folders under the areas that hold no pages of their own:  a split epic page's bodies, experiments' output. */
 const SKIPPED = /(^|\/)(parts|experiments|node_modules)(\/|$)/
 
 /** Every `.html` file under `folder` (a link into the shared repo is followed), sorted;  none when it's missing. */

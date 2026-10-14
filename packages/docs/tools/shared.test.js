@@ -67,7 +67,7 @@ describe("sharedDocLog", () => {
     ])
       git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "--allow-empty", "-m", subject)
 
-    // the plan-doc tool's own template, in <epic-*> markup (epic `epic-components` P8)
+    // the `epic` tool's own template, in <epic-*> markup (epic `epic-components` P8)
     const plan = PlanDoc.parse(readFileSync(new PlanDocFiles().template, "utf8"))
     plan.addPhase("Spike")
     plan.addPhase("Move Logic Out")
@@ -176,7 +176,7 @@ describe("reorgShared", () => {
     expect(readFileSync(join(dir, ".gitignore"), "utf8")).toContain("pages/details/")
     expect(reorgShared(dir, checkout)).toEqual({ moved: [], merged: [], conflicts: [], links: [], rewritten: [] })
 
-    // older code, through the old-path links:  a new guide at the old place, an old-depth link in a plan doc
+    // older code, through the old-path links:  a new guide at the old place, an old-depth link in an epic page
     put("reorg/dev/packages/docs/content/new.html", '<a href="../../ui/src/a.ts">a</a>\n')
     writeFileSync(join(dir, "epics/x/x.plan.html"), '<a href="../../../../ui/src/a.ts">a</a>\n')
     const again = reorgShared(dir, checkout)
@@ -187,7 +187,7 @@ describe("reorgShared", () => {
     expect(existsSync(join(dir, "epics/x/x.plan.html.lock"))).toBe(false)
   })
 
-  it("points links into Spell UI's pages at the shared ui/ (claude-design P6), a plan doc's parts included", () => {
+  it("points links into Spell UI's pages at the shared ui/ (claude-design P6), an epic page's parts included", () => {
     const dir = join(temp, "reorg-ui/dev")
     const checkout = join(temp, "reorg-ui/checkout")
     put("reorg-ui/checkout/packages/ui/site/_assets/site.js", "export {}\n")

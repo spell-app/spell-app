@@ -1,6 +1,6 @@
 /**
  * Tests of the comments route module on a real page server, over HTTP, in a scratch checkout:
- * comments added, edited and deleted on a guide, the docs home and a worktree's page, and the pages that take none.
+ * comments added, edited and deleted on a guide, the home page and a worktree's page, and the pages that take none.
  */
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
@@ -49,7 +49,7 @@ const PAGES: Record<string, string> = {
   // a component set (Epic UI), served at /epic-ui/ from its package folder
   "packages/epic-components/elements/epic-item.html": PAGE,
   "packages/epic-components/_parts/layout.html": PAGE,
-  // epic py's durable doc:  a page epic py owns (`SeeAlso.ownerOf()`, epic `epic-workflow` P13)
+  // epic py's guide:  a page epic py owns (`SeeAlso.ownerOf()`, epic `epic-workflow` P13)
   "guides/py.html": PAGE,
   "epics/py/py.plan.html": `<epic-page epic="py" updated="2026-10-13"><a slot="durable" href="../../guides/py.html">Py</a></epic-page>`
 }
@@ -131,8 +131,8 @@ test("adds a comment to the page's INBOX FILE, never the page;  the answer lists
   expect(readFileSync(join(root, "guides/solid/solid-2.html"), "utf8")).toBe(PAGE)
 })
 
-// epic `epic-workflow` P13:  a guide's Send, as a plan doc's
-test("a docs page's SEND:  its epic, who is listening, what waits;  Send marks them sent;  a plan doc has none", async () => {
+// epic `epic-workflow` P13:  a guide's Send, as an epic page's
+test("a docs page's SEND:  its epic, who is listening, what waits;  Send marks them sent;  an epic page has none", async () => {
   const page = "/guides/py.html"
   const get = async (path: string) => JSON.parse((await ask(port, "GET", `/api/comments?page=${path}`)).text)
   expect((await get(page)).send).toEqual({
@@ -355,7 +355,7 @@ test("a component set's page, at its short address:  its inbox beside it in the 
   )
 })
 
-test("a plan doc's comments go in the epic's REVIEW INBOX, beside its marks;  a quote rides along", async () => {
+test("an epic page's comments go in the epic's REVIEW INBOX, beside its marks;  a quote rides along", async () => {
   const page = "/epics/big/big.plan.html"
   const quoted = { ...ON_TABLE, anchor: "p3#field-2", kind: "field", quote: "the inbox file", offset: 14 }
   const { status, answer } = await post({ page, action: "add", ...quoted, text: "which one?" })
@@ -368,7 +368,7 @@ test("a plan doc's comments go in the epic's REVIEW INBOX, beside its marks;  a 
   expect(JSON.parse(read.text)).toMatchObject({ takesComments: true, comments: [{ id: "cm1", status: "new" }] })
 })
 
-test("no comments on a plan doc's parts, details pages with questions, templates, goals, or pages not there", async () => {
+test("no comments on an epic page's parts, details pages with questions, templates, goals, or pages not there", async () => {
   const add = (page: string) => post({ page, action: "add", ...ON_TABLE, text: "x" })
   for (const page of [
     "/epics/big/parts/p3.html",

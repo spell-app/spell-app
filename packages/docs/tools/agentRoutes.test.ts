@@ -1,6 +1,6 @@
 /**
  * Tests of the running-agents route module on a real page server, over HTTP, in a scratch checkout:  the list of an
- * epic, read and redirected from its plan doc, its worktree copy too;  pages that aren't plan docs;  the guard.
+ * epic, read and redirected from its epic page, its worktree copy too;  pages that aren't epic pages;  the guard.
  */
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
@@ -90,7 +90,7 @@ test("GET:  the epic's list, as `spell dev agents` wrote it", async () => {
   expect(body.agents).toMatchObject([{ name: "big-aaa", task: "docstrings in string.ts", status: "active" }])
 })
 
-test("GET:  only a plan doc's list", async () => {
+test("GET:  only an epic page's list", async () => {
   expect((await get(`/${PAGES.other}`)).status).toBe(403)
   expect((await get("/epics/big/nope.plan.html")).status).toBe(404)
 })

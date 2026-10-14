@@ -1,7 +1,7 @@
-# Plan docs in `<epic-*>` markup
+# Epic pages in `<epic-*>` markup
 
-What the plan-doc tool (`epic`) writes, and what's still DATA,
-once a plan doc is in the `<epic-*>` markup (epic `epic-components`, P8).
+What the `epic` tool (`epic`) writes, and what's still DATA,
+once an epic page is in the `<epic-*>` markup (epic `epic-components`, P8).
 - The elements -- tags, attributes, which children go where --
   are described ONCE, in [the definitions](../definitions/):  each family's `<Name>.en.ts`, under `components/<family>/`.
 - This file holds the rest.
@@ -592,7 +592,7 @@ Named, dated, idempotent steps that bring an older page's markup up to today's, 
 (`migrations/`, `Migrations`;  epic `epic-workflow` P8, J44).
 - Each step names its kind (`epic` for every step here), the day it was added, and a one-line why.
   - The epic page's steps:  `Migrations.all`, here.
-  - The other kinds' (guide, cheatsheet, command page ...):  the docs package's `packages/docs/tools/migrate.js`.
+  - The other kinds' (guide, cheatsheet, commands page ...):  the docs package's `packages/docs/tools/migrate.js`.
   - The kinds:  `PAGE_KINDS` (`migrations.types.ts`), the names P14 proposes;  the docs tool's `KINDS` is the same list.
 - `epic migrate` runs them on command (`MigrateCommands`):
 

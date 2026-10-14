@@ -9,7 +9,7 @@ import type { EpicVocabulary } from "$/epics/definitions"
 /****************
  * ### `<epic-updated>`
  * RETIRED (2026-10-11):  one change to a phase's plan, in an older doc.  `<epic-update at summary>` replaces it;
- * the plan-doc tool's next write migrates each (`updates-as-epic-update`).
+ * the epic tool's next write migrates each (`updates-as-epic-update`).
  ****************/
 export const epicUpdatedVocabulary = {
   tag: "epic-updated",
@@ -19,7 +19,7 @@ export const epicUpdatedVocabulary = {
   ui: false,
   description:
     "RETIRED (Owen, 2026-10-11):  an older doc's change to a phase's plan, a dated fence.  Still drawn, until the " +
-    "plan-doc tool's next write makes it an `<epic-update at summary>` block at the end of its phase's " +
+    "epic tool's next write makes it an `<epic-update at summary>` block at the end of its phase's " +
     "description (`updates-as-epic-update`).",
   attributes: [
     {
@@ -35,7 +35,7 @@ export const epicUpdatedVocabulary = {
       kind: "number",
       description:
         "An OLDER doc's COPY in the Phases section (T14, until 2026-10-11):  the phase whose plan it changes (`5`).  " +
-        "Never drawn;  the plan-doc tool removes the copies on its next write.  Never on the line in its phase."
+        "Never drawn;  the epic tool removes the copies on its next write.  Never on the line in its phase."
     }
   ],
   events: [],

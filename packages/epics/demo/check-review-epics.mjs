@@ -1,7 +1,7 @@
 /**
  * Check the `<epic-*>` review controls in a real browser, as Owen uses them
  * (epic `epic-components` P9, the colour scheme and fill rule of P14, decision Q20).
- * - it clicks through every flow, has the plan-doc tool do Claude's side on the same copy, and reads the inbox back
+ * - it clicks through every flow, has the epic tool do Claude's side on the same copy, and reads the inbox back
  *
  * Usage (from the repo root):
  *   node packages/epics/demo/check-review-epics.mjs [--doc <name> [--from <folder>]] [outDir]
@@ -11,7 +11,7 @@
  *     (its skeleton and parts:  a doc in `<epic-page>` markup;  never its inbox or details)
  *   - or of `--from <folder>` (a converted copy:  `spell dev plan-doc convert <name> --out <folder>`)
  *   - copied to `demo/shots/epics/<name>/<name>.plan.html` (git-ignored):
- *     the review routes take plan docs only (`epics/<name>/<name>.plan.html`), its inbox file lands beside it,
+ *     the review routes take epic pages only (`epics/<name>/<name>.plan.html`), its inbox file lands beside it,
  *     and the tool finds it there (`PlanDocFiles({ root: demo/shots })`)
  * - the server:  a page server of its OWN on this checkout (`PageServer`, no pid file, a free port),
  *   so the routes are this branch's code as it is now;  stopped at the end
@@ -30,7 +30,7 @@
  *     (I8:  picks work anywhere;  the call added to the copy, its text and a reply each holding cards):
  *     the mark names that set (`choices: 1`), its pill dashed, the text's untouched
  *   - Send:  the header's button idle -> unsent -> sent;  the marks outlined
- * - Claude's side, by the plan-doc tool on the copy (`PlanDocCommands`), the page reloaded after each:
+ * - Claude's side, by the epic tool on the copy (`PlanDocCommands`), the page reloaded after each:
  *   - Do Now without a note on an item:
  *     - `inbox listen`, `inbox wait` takes it:  its button outlined, its icon turning (`data-busy`)
  *     - `status underway`:  a blue Underway card, the item `progress`
@@ -121,7 +121,7 @@ copyDoc()
 // the tool links a doc's bare file names (`AS.Linker`) through its checkout's `packages/`:  shots/ has none
 mkdirSync(join(SHOTS, "packages"), { recursive: true })
 
-/** The plan-doc tool, on the copy:  what Claude runs, its output kept for the summary. */
+/** The epic tool, on the copy:  what Claude runs, its output kept for the summary. */
 const tool = new PlanDocCommands({ files: new PlanDocFiles({ root: SHOTS }) })
 const said = []
 tool.print = (text) => void said.push(text)

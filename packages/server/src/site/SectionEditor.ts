@@ -7,7 +7,7 @@ import { readEdit, serverConfig } from "$/server/site"
  * - on while the site header's pencil is on (this tab);  `SectionEditor.mount()` adds the one instance to `<body>`
  * - what can be edited:
  *   - an element with an `id` (`EDITABLE`:  a docs page's `<ui-section>`, a plan item ...)
- *   - a `section` whose heading has one (the goals pages):
+ *   - a `section` whose heading has one (the saga pages):
  *     the section, found through its heading's `id` (`parent: "section"`)
  * - the source comes fresh from the server with its `ETag`:
  *   saving is refused (409) if the file changed since, and the dialog says to reload
@@ -148,7 +148,7 @@ export class SectionEditor extends HTMLElement {
   }
 }
 
-/** Elements editable by their own `id`:  `ui-section` is every docs page's section (the goals pages':  `section`). */
+/** Elements editable by their own `id`:  `ui-section` is every docs page's section (the saga pages':  `section`). */
 const EDITABLE =
   "ui-section, section, article, li, p, figure, blockquote, table, ui-segment, ui-message, ui-card, ui-table, ui-step"
 

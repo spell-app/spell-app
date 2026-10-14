@@ -6,11 +6,11 @@ import { CommentList, type Comment, type IdentifiedComment } from "./CommentList
 
 /****************
  * ### `ReviewInbox`
- * A plan doc's REVIEW INBOX:  the marks Owen leaves on its items from the page, waiting for Claude.
+ * An epic page's REVIEW INBOX:  the marks Owen leaves on its items from the page, waiting for Claude.
  * - the file:  `epics/<name>/<name>.inbox.json`, beside `<name>.plan.html` (decision D1 of `review-review`);
  *   absent until the first mark, and deleted again once nothing is in it (`isEmpty`)
  * - per machine, NOT committed (`.gitignore`):  pending notes and session state, not the record;
- *   what Claude makes of a mark lands in the plan doc itself
+ *   what Claude makes of a mark lands in the epic page itself
  * - writers:  the page server's route module (`reviewRoutes.ts`, the page's clicks)
  *   and `spell dev plan-doc inbox ...` (Claude taking the marks:  `listen`, `wait`, `apply`, `done`, `clear`).
  *   Both go through `ReviewInbox.update()` / `updateAsync()`:
@@ -114,8 +114,8 @@ export class ReviewInbox {
   ////////////////
 
   /**
-   * The inbox file of the plan doc at `planDoc`:  `<name>.inbox.json` beside it.
-   * - an old plan doc's name (`<name>.html`, before the `.plan.html` rename) gives the same file
+   * The inbox file of the epic page at `planDoc`:  `<name>.inbox.json` beside it.
+   * - an old epic page's name (`<name>.html`, before the `.plan.html` rename) gives the same file
    * - STATIC, as every file helper here:  they work on paths, before any inbox is read
    */
   static pathFor(planDoc: string): string {
@@ -779,7 +779,7 @@ export class ReviewInbox {
   }
 
   /**
-   * The ids a review mark may name in plan doc `html` (a skeleton:  every item's line is in it):
+   * The ids a review mark may name in epic page `html` (a skeleton:  every item's line is in it):
    * - every `<epic-item id>`, and every Overview sub-section, `<epic-section kind="overview-part" id>`
    *   (Q14:  they take review notes too)
    * - every phase, `<epic-phase id>`, and the summary, `summary` while the doc has an `<epic-summary>`

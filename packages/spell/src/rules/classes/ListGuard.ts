@@ -9,7 +9,7 @@ import { classes } from "./classes.parser"
 import { type MethodBody } from "./classes.shared"
 
 /**
- * `list_guard` rule:  what a list type takes, or gives up, when something MOVES (plan doc Q23 - Q25):
+ * `list_guard` rule:  what a list type takes, or gives up, when something MOVES (epic page Q23 - Q25):
  * - `a tableau can (add|take) a card if: ...`
  * - `a stock-pile can (release|remove|give up|let go of) a card if: ...`
  * - `a foundation can never (release|remove|give up|let go of) a card` -- always no

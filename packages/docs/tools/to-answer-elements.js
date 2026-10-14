@@ -158,11 +158,11 @@ function lastSectionOf(section) {
 }
 
 ////////////////
-// ## Syntax-choices pages
+// ## Choice pages
 ////////////////
 
 /**
- * Convert the syntax-choices page `document` in place, its rows from `data` (`ChoicesData`, checked:  the rows file
+ * Convert the choice page `document` in place, its rows from `data` (`ChoicesData`, checked:  the rows file
  * beside it);  what it did, `{ changed, notes }`.
  * - the old script drew the rows where `[data-choices-sections]` was, and its bar at `main`'s end:  the same places
  */
@@ -250,7 +250,7 @@ function boldLabel(line) {
 }
 
 /**
- * Drop the page's old sheet and script (`names`, in `_assets/`);  a syntax-choices page loaded `spell-ui.js` from
+ * Drop the page's old sheet and script (`names`, in `_assets/`);  a choice page loaded `spell-ui.js` from
  * its script, so it gets the bundle's tag (`keepBundle`), and `highlight.min.js` before it.
  */
 function dropOldAssets(document, names, { keepBundle = false } = {}) {
@@ -268,7 +268,7 @@ function dropOldAssets(document, names, { keepBundle = false } = {}) {
 }
 
 /**
- * Wrap the page's body in `<ui-root>`, its first child the epics pack's `<ui-components source>`, as a plan doc's
+ * Wrap the page's body in `<ui-root>`, its first child the epics pack's `<ui-components source>`, as an epic page's
  * is;  the scripts stay after it.  The way up to the root comes from the page's `spell-ui.js`.
  */
 function loadPack(document) {

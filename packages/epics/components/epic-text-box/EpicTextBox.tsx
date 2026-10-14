@@ -50,7 +50,7 @@ export class DOMTextBoxElement extends E.DOMElement<EpicTextBox> {
  *     `other`:  question `for`'s Other
  *   - those three register with the page's `AnswerForm` while connected:  gathered for Send, and shown again from
  *     the answer sent (`gatherInto()`, `showAnswer()`)
- *   - `feedback`:  a syntax-choices page's, which its `<epic-choices-bar>` reads itself (`value`)
+ *   - `feedback`:  a choice page's, which its `<epic-choices-bar>` reads itself (`value`)
  * - Its `input` events are the `<textarea>`'s own:  they bubble out of its shadow root, so the element that draws
  *   it hears them (`onInput`).
  * - The NOTES box also draws, above its field, what the page KEPT (epic `epic-workflow` P18):  text Owen typed for

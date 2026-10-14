@@ -56,8 +56,8 @@ Dense, terse pages make him ask "what do you mean?" (2026-10-03), so:
      - The data:  title, lede, "Where we are", context, questions and their options.
      - Its shape:  `DetailsSpec`, in [details.js](packages/docs/tools/details.js).
      - `/worktrees` and `/bedtime` use it.
-   - In an epic (a plan doc this session keeps):  add `--epic <name>`.
-     - The page goes in `epics/<name>/details/`, beside the plan doc
+   - In an epic (an epic page this session keeps):  add `--epic <name>`.
+     - The page goes in `epics/<name>/details/`, beside the epic page
        (shared content, committed for you at the turn's end).
      - The decision it leads to links it.
    - Else scratch:  `pages/details/`.
@@ -73,7 +73,7 @@ Dense, terse pages make him ask "what do you mean?" (2026-10-03), so:
        (tables, code folded, pros / cons, steps ...).
      - Icons only from `ICONS`, in [bundle-spell-ui.js](packages/docs/tools/bundle-spell-ui.js).
    - one `<ui-section>` per question, ids `q1`, `q2` ..., header `Q1 · Short question`, holding an `<epic-ask>`:
-     the epics pack's elements, a plan doc's question (epic `epic-workflow` P12;  each has its page in Epic UI,
+     the epics pack's elements, an epic page's question (epic `epic-workflow` P12;  each has its page in Epic UI,
      `/epic-ui/`):
 
      ```html
@@ -134,7 +134,7 @@ Dense, terse pages make him ask "what do you mean?" (2026-10-03), so:
 
 ## Links to pages
 
-Any page you name to Owen (a details page, a plan doc, any docs page):
+Any page you name to Owen (a details page, an epic page, any docs page):
 `spell dev docs link <page> --hash <id> --show`, and paste what it prints.
 - It shows the page in this session's side bar NOW (`--show`), and prints two links:
   - the title opens it in the side bar (again)

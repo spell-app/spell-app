@@ -12,7 +12,7 @@ import { ConvertError } from "./convert.types"
 
 /****************
  * ### `DocPass`
- * One pass over ONE plan doc, IN PLACE:  what both passes share -- the first (`Converter`, the old markup =>
+ * One pass over ONE epic page, IN PLACE:  what both passes share -- the first (`Converter`, the old markup =>
  * `<epic-*>`) and the second (`Upgrader`, a converted doc => P14's elements).
  * - holds the doc twice, assembled:  `before`, as it was (the proof's), and `document`, the working copy made over
  * - makes every `<epic-*>` element through `Markup` (`element()`):  the definitions check each attribute
@@ -71,7 +71,7 @@ export abstract class DocPass {
   /**
    * The working document as the doc's files:  validated, split (`EpicParts`), each file formatted as `vp fmt` would,
    * and read back as a reader of the files would (`after`, for the proof).
-   * - first today's markup for what a pass wrote in an older shape (`Migrations`, as the plan-doc tool's next write
+   * - first today's markup for what a pass wrote in an older shape (`Migrations`, as the epic tool's next write
    *   would):  plan changes and UPDATE notes as `<epic-update at summary>`;  then each phase's `changes` count
    * - `problems`:  what `Markup.validate()` found, in the document and in the files read back (none allowed)
    * - changes `document` (migrated, split, ampersands escaped):  call it last

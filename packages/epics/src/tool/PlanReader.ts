@@ -34,7 +34,7 @@ import { PlanTime } from "./PlanTime"
 
 /****************
  * ### `PlanReader`
- * A parsed plan doc, READ:  its phases, its items and where their reviews stand, a summary of what's open.
+ * A parsed epic page, READ:  its phases, its items and where their reviews stand, a summary of what's open.
  * What `summary`, `list`, `items`, `check` and the inbox's listings need.
  * - ABSTRACT:  the markup is its subclass's, `PlanDoc` (`<epic-*>`, which also edits):  it says what an item is
  *   (`facts()`, `textOf()` ...);  the reckoning on top -- an item's state, its review state, the review lists, the
@@ -44,7 +44,7 @@ import { PlanTime } from "./PlanTime"
  * - Imports the tool's types and its markup-free helpers only:  never `PlanDoc`.
  ****************/
 export abstract class PlanReader {
-  /** linkedom (or browser) document of the plan doc */
+  /** linkedom (or browser) document of the epic page */
   readonly document: Document
 
   /**

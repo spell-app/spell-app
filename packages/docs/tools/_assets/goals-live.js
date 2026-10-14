@@ -1,9 +1,9 @@
 /*
- * Live goals pages:  buttons to add thoughts and to start Claude sessions.
+ * Live saga pages (parked goals):  buttons to add thoughts and to start Claude sessions.
  * - PARKED (epic `epic-workflow` P6, Owen 2026-10-11):  the buttons stay, and each says "TODO:  this will ..." when
  *   clicked (`parked()`).  The routes, skills and CLI they called are in `packages/goals.zip`;  epic `epic-goals`
  *   rebuilds them.  What follows describes them as they were.
- * Loaded after `spell-ui.js` by every goals page (`goals/**`, `templates/goals/**`).  Rules:  `goals/AGENTS.md`.
+ * Loaded after `spell-ui.js` by every saga page (`goals/**`, `templates/goals/**`).  Rules:  `goals/AGENTS.md`.
  * - Served by the page server (`spell dev goals open`, `spell dev server`) with goals' route module
  *   (`packages/docs/tools/goals/goalsRoutes.ts`), a page has `window.GOALS_SERVER` (`{ api }`) and the server's own
  *   `window.SPELL_SERVER` (`{ token, ... }`):

@@ -2,7 +2,7 @@
   "name": "@spell-app/docs",
   "version": "0.8.0",
   "private": true,
-  "description": "Spell's docs:  hand-authored `.html` pages on @spell-app/ui, their templates and tooling, and plan docs",
+  "description": "Spell's docs:  hand-authored `.html` pages on @spell-app/ui, their templates and tooling, and epic pages",
   "type": "module",
   "scripts": {
     "/////// DOCS": "",

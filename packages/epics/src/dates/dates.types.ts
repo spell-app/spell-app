@@ -12,7 +12,7 @@ export type ReadPlanDate = {
 }
 
 /**
- * Every form a plan doc's date attributes hold:  `YYYY-MM-DD`, then optionally `[T ]HH:MM`, `:SS(.sss)` and an
+ * Every form an epic page's date attributes hold:  `YYYY-MM-DD`, then optionally `[T ]HH:MM`, `:SS(.sss)` and an
  * offset (`Z`, `-04:00`, `-0400`).
  * - groups:  year, month, day, hours, minutes, seconds, offset
  */

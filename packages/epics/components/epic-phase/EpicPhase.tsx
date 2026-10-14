@@ -36,7 +36,7 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  *     phase description"):  plain children, each its own block, with no box around them
  *   - Done, `<epic-commit>`s, Files, Verify, To review
  *   - An older doc's `<epic-updated>` lines (its `changes` slot, P6) show at the end of its body, unboxed,
- *     until the plan-doc tool's next write migrates them (`updates-as-epic-update`)
+ *     until the epic tool's next write migrates them (`updates-as-epic-update`)
  *   - Files and Verify show only while the Phases title's toggles say so;  commits while the page's git toggle does
  * - Its body is usually a part (`source="parts/p3.html"`), loaded the first time it opens.
  * - REVIEWED as an Overview sub-section is, only while the page is reviewed

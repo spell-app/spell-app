@@ -9,7 +9,7 @@ import {
 
 /****************
  * ### `ServerLink`
- * A plan doc's LINK to the page server, as its clients use it:  the review inbox's (`ReviewClient`) and the running
+ * An epic page's LINK to the page server, as its clients use it:  the review inbox's (`ReviewClient`) and the running
  * agents' (`AgentsClient`), one link each.
  * - writes:  `post()`, with the server's write token (`x-server-token`, `SRV.Guard`);  a 403 on the token (the page
  *   server restarted since the page loaded) takes the server's new token from the page as it's served now, and
@@ -39,7 +39,7 @@ export class ServerLink {
   }
 
   /**
-   * Do the page server's plan-doc routes answer this page?  A plan doc's own path (`PLAN_DOC_PAGE`:  any other page
+   * Do the page server's epic-page routes answer this page?  An epic page's own path (`PLAN_DOC_PAGE`:  any other page
    * gets a 403), served with a token, never from `file://`.  Else a client never asks.
    */
   get servesPlanDoc(): boolean {

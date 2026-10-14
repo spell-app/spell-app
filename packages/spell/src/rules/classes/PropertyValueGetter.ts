@@ -33,7 +33,7 @@ export class PropertyValueGetter extends SpellStatement<"property|type|body?", {
   /**
    * SIDE EFFECT:  records the property on its type -- see `P.TypeScope.declareProperty()`.
    * - Later lines read it, e.g. `the value of the card`'s datatype:
-   *   so editing a getter's line re-parses what follows (plan doc D9).
+   *   so editing a getter's line re-parses what follows (epic page D9).
    * - An edit to its indented body does only if what it returns changes -- see `mutateScopeFromBody()`.
    * - A value kind's property reads as a call of its static method, e.g. `Suit.color({it})`:  its `readAs`.
    */
@@ -203,7 +203,7 @@ classes.addRule(PropertyValueGetter, {
 classes.addRule(PropertyValueGetter, {
   syntax: "{type:subject_its} {property:member_words} is :? {expression_body}?"
 })
-// a quoted name in the sentence style (plan doc J3, option C):  `the "short name" of a card is: ...`
+// a quoted name in the sentence style (epic page J3, option C):  `the "short name" of a card is: ...`
 classes.addRule(PropertyValueGetter, {
   syntax: "the {property:quoted_member} of (a|an) {type:known_type} is :? {expression_body}?"
 })

@@ -8,7 +8,7 @@ import type { EpicVocabulary } from "$/epics/definitions"
 
 /****************
  * ### `<epic-choice-rows>`
- * One section's table on a syntax-choices page:  its column heads, then its `<epic-choice-row>`s.
+ * One section's table on a choice page:  its column heads, then its `<epic-choice-row>`s.
  ****************/
 export const epicChoiceRowsVocabulary = {
   tag: "epic-choice-rows",
@@ -18,7 +18,7 @@ export const epicChoiceRowsVocabulary = {
   noun: "choice rows",
   ui: false,
   description:
-    "One section's table on a syntax-choices page (epic `epic-workflow` P12):  the column heads File | Purpose | " +
+    "One section's table on a choice page (epic `epic-workflow` P12):  the column heads File | Purpose | " +
     "Current | Recommended, then its rows, each an `<epic-choice-row>` whose Recommended box Owen types over.  " +
     "It counts its section's rows on the section's title (`3 to change · 1 stay · 1 changed`).  With `reorder`, " +
     "Owen puts the rows in order too (epic `epic-workflow` P15).  Under 720px it scrolls inside its own box.",

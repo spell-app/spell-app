@@ -1,5 +1,5 @@
 /**
- * Tests of `ConvertRun`:  converting a checkout's plan docs, writing ONLY under the output folder, the report;  and
+ * Tests of `ConvertRun`:  converting a checkout's epic pages, writing ONLY under the output folder, the report;  and
  * one round of the real `windows-and-review` doc, read from this checkout when it's there.
  */
 import {
@@ -122,7 +122,7 @@ describe("ConvertRun", () => {
   })
 
   test("an unknown doc is refused", async () => {
-    await expect(new ConvertRun({ root: checkout() }).run({ names: ["nope"] })).rejects.toThrow(/no plan doc `nope`/)
+    await expect(new ConvertRun({ root: checkout() }).run({ names: ["nope"] })).rejects.toThrow(/no epic page `nope`/)
   })
 })
 

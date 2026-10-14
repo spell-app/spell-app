@@ -6,9 +6,9 @@
  * - Owen writes an idea down on the Epics page (`epics/index.html`'s New epic button, the docs runtime's "New epic"):
  *   a title and the kickoff prompt.  No Claude needed, so it works on a plane.
  * - It becomes a FUTURE epic at once, as `/epic future` makes one (`spell dev plan-doc new <name> --future`):  the
- *   stub plan doc with the prompt quoted, listed in the Epics index with its seedling;  its log says it came from
+ *   stub epic page with the prompt quoted, listed on the Epics list page with its seedling;  its log says it came from
  *   the page (`FROM_PAGE`), which is how `/airplane land` finds the ones to offer (`AirplaneInbox`)
- * - `POST /api/epics/new` `{ title, prompt }` -- answers `{ name, page }`, the new plan doc's URL path
+ * - `POST /api/epics/new` `{ title, prompt }` -- answers `{ name, page }`, the new epic page's URL path
  *   - `name`:  the title, lower-kebab-cased (`Docs Index` -> `docs-index`);  taken, `-2`, `-3` ...
  *   - 400:  no title, or nothing to name it by
  *
@@ -20,7 +20,7 @@
  * - stored in ONE shared file, `epics/favorites.json` (`$/server/site/EpicCards` `FAVORITES_FILE`), a JSON list:
  *   every checkout reads the same one, and the shared repo commits it after the turn
  * - the page server puts each card in its group by it as it serves the Epics page (`$/server/page` `RunningEpics`);
- *   the docs index writes the stars and groups it says into the page
+ *   `spell dev docs index` writes the stars and groups it says into the page
  * - no Claude needed:  it works on a plane
  *
  * Each needs the page server's token (`x-server-token`) and its own origin (`SRV.Guard`).
@@ -28,7 +28,7 @@
  * SEE ALSO (Owen, 2026-10-13:  "There is no easy way to get to a "decisions" or "details" pages from an epic"):  the
  * pages an epic made or leans on, which `<epic-page>` lists in its See Also box, above the Overview
  * - `GET /api/epics/pages?epic=<name>` -- answers `{ pages }`:  each `{ href, title, kind, updated }` (`SeeAlso`)
- *   - its durable doc (`durable`), its own pages in `epics/<name>/details/` (`details`, `choices`), newest first,
+ *   - its guide (`durable`), its own pages in `epics/<name>/details/` (`details`, `choices`), newest first,
  *     then every guide its epic page and part files link to (`guide`:  epic `epic-workflow` P13), newest first
  *   - `href` from the epic page's folder (`details/analysis.html`), `title` the page's `<title>`
  *   - gathered when asked:  a page made or linked a moment ago is there, one deleted is gone;  nothing to keep up
@@ -84,7 +84,7 @@ export default epicRoutes
 
 /**
  * Make a future epic called `title` in checkout `root`, `prompt` its kickoff prompt;  resolves to its name.
- * - SIDE EFFECT:  writes `epics/<name>/` and the docs index, as `spell dev plan-doc new --future` does
+ * - SIDE EFFECT:  writes `epics/<name>/` and the Epics list page, as `spell dev plan-doc new --future` does
  * - throws `HttpError(400)` when the title holds nothing to name it by, `500` when the tool fails
  */
 export async function newEpic(root: string, title: string, prompt: string): Promise<string> {

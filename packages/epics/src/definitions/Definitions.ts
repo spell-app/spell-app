@@ -72,7 +72,7 @@ export class Definitions {
     "epic-note": epicNoteVocabulary,
     "epic-aside": epicAsideVocabulary,
     "epic-code": epicCodeVocabulary,
-    // the pages Claude makes for Owen to answer ON (epic `epic-workflow` P12):  details and syntax-choices pages
+    // the pages Claude makes for Owen to answer ON (epic `epic-workflow` P12):  details and choice pages
     "epic-ask": epicAskVocabulary,
     "epic-text-box": epicTextBoxVocabulary,
     "epic-send": epicSendVocabulary,

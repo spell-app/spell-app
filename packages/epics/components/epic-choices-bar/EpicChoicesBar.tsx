@@ -15,7 +15,7 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicChoicesBar`
- * The component behind `<epic-choices-bar>`:  a syntax-choices page's bar (epic `epic-workflow` P12), pinned to the
+ * The component behind `<epic-choices-bar>`:  a choice page's bar (epic `epic-workflow` P12), pinned to the
  * window's bottom while the rows scroll above it;  ivory, as the page's toolbar at the top (Owen, 2026-10-13).
  * - Draws the page's `ChoicesForm`:
  *   - the feedback box (it grows with its text), then "Do it", whose tooltip counts the changed boxes

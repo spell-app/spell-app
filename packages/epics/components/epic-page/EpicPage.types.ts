@@ -84,7 +84,7 @@ export type SeeAlsoLink = {
   /** from the epic page's folder:  `details/analysis.html`, `../../guides/python-target.html` */
   href: string
   title: string
-  /** its durable doc, a guide it links, one of its details pages or choices pages */
+  /** its guide, a guide it links, one of its details pages or choice pages */
   kind: SeeAlsoKind
   /** when it last changed, ISO */
   updated: string
@@ -122,7 +122,7 @@ export const PILL = "pill"
 export const CRUMBS = "crumbs"
 
 /**
- * The crumbs' links, from the page's folder:  a plan doc is always `epics/<name>/<name>.plan.html`.
+ * The crumbs' links, from the page's folder:  an epic page is always `epics/<name>/<name>.plan.html`.
  * - `target`s name the VS Code side bar's tab, as the old crumbs did
  */
 export const CRUMB_LINKS = {

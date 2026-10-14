@@ -24,7 +24,7 @@ import { PlanDocFiles, type MigrateResult } from "./PlanDocFiles"
  * - output through its owner's `print()` / `warn()`;  `run()` resolves to the exit code
  ****************/
 export class MigrateCommands {
-  /** the plan-doc command line this belongs to:  its files and output.  STATIC */
+  /** the epic-page command line this belongs to:  its files and output.  STATIC */
   readonly owner: PlanDocCommands
 
   /**
@@ -38,7 +38,7 @@ export class MigrateCommands {
     this.sessionsOf = sessionsOf
   }
 
-  /** The checkout's plan docs. */
+  /** The checkout's epic pages. */
   get files(): PlanDocFiles {
     return this.owner.files
   }

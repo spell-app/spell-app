@@ -1478,7 +1478,7 @@
           "internal": false,
           "file": "packages/spell/src/rules/properties/QuotedMember.ts",
           "line": 13,
-          "purpose": "A member's name in quotes, where it's being declared: `its \"suit\" is one of ...` in an outline-style type's body -- the outline style's \"quotes teach a new word\" (plan doc `outline-spell`).",
+          "purpose": "A member's name in quotes, where it's being declared: `its \"suit\" is one of ...` in an outline-style type's body -- the outline style's \"quotes teach a new word\" (epic page `outline-spell`).",
           "syntaxes": [
             {
               "example": "\"rank\"",
@@ -1959,7 +1959,7 @@
           "internal": false,
           "file": "packages/spell/src/rules/lists/ListMove.ts",
           "line": 18,
-          "purpose": "`move the card to the tableau` -- moves it, if the pile it belongs to lets it go and the tableau takes it: their guards, e.g. `a tableau can take a card if: ...` (plan doc Q25).",
+          "purpose": "`move the card to the tableau` -- moves it, if the pile it belongs to lets it go and the tableau takes it: their guards, e.g. `a tableau can take a card if: ...` (epic page Q25).",
           "syntaxes": [
             {
               "syntax": "move {thing:expression} to {list:operand}"
@@ -2066,7 +2066,7 @@
           "internal": false,
           "file": "packages/spell/src/rules/lists/NumberRange.ts",
           "line": 10,
-          "purpose": "Whole numbers from one to another, e.g. `2 ... 10` in `ace, 2 ... 10, jack, queen or king` (plan doc `outline-spell`, P2).",
+          "purpose": "Whole numbers from one to another, e.g. `2 ... 10` in `ace, 2 ... 10, jack, queen or king` (epic page `outline-spell`, P2).",
           "syntaxes": [
             {
               "syntax": "{start:number} ... {end:number}",
@@ -2864,7 +2864,7 @@
           "internal": true,
           "file": "packages/spell/src/rules/classes/TypeDeclaration.ts",
           "line": 23,
-          "purpose": "A statement declaring a type -- which may take an OUTLINE body: `a card is a thing where:`, then indented lines all about cards, e.g. `- it has a deck` (plan doc `outline-spell`).",
+          "purpose": "A statement declaring a type -- which may take an OUTLINE body: `a card is a thing where:`, then indented lines all about cards, e.g. `- it has a deck` (epic page `outline-spell`).",
           "syntaxes": [],
           "aliases": ["statement"]
         },
@@ -3045,7 +3045,7 @@
           "internal": false,
           "file": "packages/spell/src/rules/classes/WithNestedStatements.ts",
           "line": 11,
-          "purpose": "`where:`, `with:` or a bare `:` ending a line -- then the indented block under it is the statement's body, e.g. a type's outline body (plan doc `outline-spell` Q7).",
+          "purpose": "`where:`, `with:` or a bare `:` ending a line -- then the indented block under it is the statement's body, e.g. a type's outline body (epic page `outline-spell` Q7).",
           "syntaxes": [
             {
               "syntax": "(where|with)? :",
@@ -3244,7 +3244,7 @@
           "internal": false,
           "file": "packages/spell/src/rules/classes/BelongsToOne.ts",
           "line": 31,
-          "purpose": "`a card belongs to one pile` -- a card is in at most ONE pile at a time (plan doc D7, D8, Q22).",
+          "purpose": "`a card belongs to one pile` -- a card is in at most ONE pile at a time (epic page D7, D8, Q22).",
           "syntaxes": [
             {
               "syntax": "(a|an) {type} belongs to one {list:type}",
@@ -3328,7 +3328,7 @@
           "internal": false,
           "file": "packages/spell/src/rules/classes/ListGuard.ts",
           "line": 24,
-          "purpose": "What a list type takes, or gives up, when something MOVES (plan doc Q23 - Q25).",
+          "purpose": "What a list type takes, or gives up, when something MOVES (epic page Q23 - Q25).",
           "syntaxes": [
             {
               "syntax": "(a|an) {type:known_type} can (verb:add|take) (a|an) {item:type} if :? {expression_body}?",
@@ -3825,7 +3825,7 @@
           "internal": false,
           "file": "packages/spell/src/rules/classes/DrawSide.ts",
           "line": 26,
-          "purpose": "One SIDE of a thing, as markup, in a type's outline body: `to \"draw its front\":` then markup (plan doc `outline-spell`, P3; Q14).",
+          "purpose": "One SIDE of a thing, as markup, in a type's outline body: `to \"draw its front\":` then markup (epic page `outline-spell`, P3; Q14).",
           "syntaxes": [
             {
               "syntax": "to {alias:text} :? ({inline_expression}|{nested_expression})?"
@@ -4289,7 +4289,7 @@
           "internal": false,
           "file": "packages/spell/src/rules/types/QuotedType.ts",
           "line": 13,
-          "purpose": "A type's name in quotes, where it's being declared: `a \"card\" is a thing where:` -- the outline style's \"quotes teach a new word\" (plan doc `outline-spell`).",
+          "purpose": "A type's name in quotes, where it's being declared: `a \"card\" is a thing where:` -- the outline style's \"quotes teach a new word\" (epic page `outline-spell`).",
           "syntaxes": [
             {
               "example": "\"card\"",
@@ -4709,7 +4709,7 @@
           "internal": false,
           "file": "packages/spell/src/rules/if/ValueIf.ts",
           "line": 23,
-          "purpose": "`red if it is diamonds or hearts` -- one line of a getter's body: a VALUE, then when it's the answer; `value_otherwise` (`black otherwise`) is the last line (plan doc `outline-spell`, P2): ```spell",
+          "purpose": "`red if it is diamonds or hearts` -- one line of a getter's body: a VALUE, then when it's the answer; `value_otherwise` (`black otherwise`) is the last line (epic page `outline-spell`, P2): ```spell",
           "syntaxes": [
             {
               "syntax": "(value:{expression}|{constant}) if {condition:expression}",

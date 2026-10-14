@@ -149,7 +149,7 @@ test("rows are checked:  each problem named", () => {
 test("find:  by <epic>/<slug>, refusing a details page", () => {
   expect(findChoicesPage(docs, "big/names")).toBe(join(docs, "epics/big/details/names.html"))
   createDetailsPage(docs, "a-question", { title: "Q" })
-  expect(() => findChoicesPage(docs, "a-question")).toThrow(/not a syntax-choices page/)
+  expect(() => findChoicesPage(docs, "a-question")).toThrow(/not a choice page/)
 })
 
 test("the answer as text:  changed rows by section, the count accepted, the feedback", () => {

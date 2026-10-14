@@ -168,7 +168,7 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
 
   /**
    * Do `tokens` start with an outline's bullet:  a `-` with a space after it, and more after that?
-   * - e.g. `- it has a deck`, in an outline-style type's body (plan doc `outline-spell`) -- or any line:
+   * - e.g. `- it has a deck`, in an outline-style type's body (epic page `outline-spell`) -- or any line:
    *   a statement never starts `- `.
    * - NOT `-5`, nor a lone `-`.
    */
@@ -179,7 +179,7 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
 
   /**
    * Is `tokens` an outline body's line, e.g. `it has a deck` or `its "suit" is ...`, NOT in a type's body -- so it
-   * didn't parse?  Its error then says where it belongs (plan doc `outline-spell`, P6).
+   * didn't parse?  Its error then says where it belongs (epic page `outline-spell`, P6).
    * - `it` / `its`, then a quoted name or phrase, or `has` / `belongs`.
    */
   static isOutlineLineOutsideBody(scope: P.Scope, tokens: P.Token[]): boolean {

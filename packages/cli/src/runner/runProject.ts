@@ -27,7 +27,7 @@ spellCore.resetRuntime()
 // `--seed`, and the core contract:  the same random numbers every run, so a shuffle deals the same cards
 if (spec.seed !== undefined) spellCore.seedRandom(spec.seed)
 // a dump of a thing (`print the card`) to stderr, so stdout holds only the program's data
-// (plan doc python-target, Q17);  at call time, so `quiet()` silences it too
+// (epic page python-target, Q17);  at call time, so `quiet()` silences it too
 spellCore.console.printDump = (...message) => console.error(...message)
 // output piped into e.g. `head`, which closed it:  nothing more to say
 process.stdout.on("error", (error: NodeJS.ErrnoException) => error.code === "EPIPE" && process.exit(0))

@@ -955,7 +955,7 @@ describe("SpellLanguageService", () => {
 })
 
 /**
- * An OUTLINE project (plan doc `outline-spell`):  a temp copy of the OutlineSolitaire fixture,
+ * An OUTLINE project (epic page `outline-spell`):  a temp copy of the OutlineSolitaire fixture,
  * whose deck and card are written as outlines.
  */
 describe("SpellLanguageService, outline style", () => {

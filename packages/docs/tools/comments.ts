@@ -29,7 +29,7 @@
  * - a THREAD:  Owen answers Claude's answer on the page (that's good, reply, skip it:  `CommentList`);  his reply is
  *   waiting work, as a new comment is:  `list` shows it under the comment, `gather` takes it again
  * - `<page>`:  from the checkout's root (`guides/x.html`), or from an area (`pages.js` `pageFile()`)
- * - plan docs' comments wait in their epic's review inbox instead:  `spell dev plan-doc inbox <name>`
+ * - epic pages' comments wait in their epic's review inbox instead:  `spell dev plan-doc inbox <name>`
  * - a page an epic owns (epic `epic-workflow` P13):  its header's Send hands its comments to that epic's session
  *   (`plan-doc inbox <epic> wait` prints them under the page);  `working` and `answer`, here, take them one at a time.
  *   `gather` leaves them out, unless the page is named.

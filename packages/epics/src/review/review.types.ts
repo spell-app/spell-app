@@ -30,7 +30,7 @@ import type { WakeResult } from "$/epics/tool/ReviewStart"
 export const REVIEW_API = "/api/review"
 
 /**
- * The pages the routes review:  a plan doc's own path, `.../epics/<name>/<name>.plan.html` (`reviewRoutes.ts`
+ * The pages the routes review:  an epic page's own path, `.../epics/<name>/<name>.plan.html` (`reviewRoutes.ts`
  * `PLAN_DOC`, the same rule:  any other page gets a 403).
  * A copy anywhere else (`preview-epics/`) isn't reviewed, and doesn't ask.
  */
@@ -58,7 +58,7 @@ export const FOCUS_HOLD_MS = 3000
 export const REVISIT_KEY_PREFIX = "spell-revisit:"
 
 /**
- * What the page says when no Claude session waits on the inbox (plan doc `review-review`, D6):
+ * What the page says when no Claude session waits on the inbox (epic page `review-review`, D6):
  * `listening` null, which the routes also answer once a session's heartbeat stops (`ReviewInbox.forPage()`).
  * - since epic `epic-workflow` P16, Send and Do Now wake the epic's session then (the page server types
  *   `/epic review <epic>` into it, or opens one):  what a wake did is `ReviewClient.waitingWhy`
@@ -106,7 +106,7 @@ export const SERVER_INFO = /window\.SPELL_SERVER = (\{.*?\})<\/script>/
 /** The running-agents routes (`packages/docs/tools/agentRoutes.ts`):  every reply is the epic's list, `{ agents }`. */
 export const AGENTS_API = "/api/agents"
 
-/** The running-agents list's file, beside the plan doc (`AgentList.ts`):  the page server announces its changes. */
+/** The running-agents list's file, beside the epic page (`AgentList.ts`):  the page server announces its changes. */
 export const AGENTS_FILE = "agents.json"
 
 ////////////////

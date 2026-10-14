@@ -20,7 +20,7 @@ export const epicAskVocabulary = {
   description:
     "A question Owen answers ON the page (a details page's;  epic `epic-workflow` P12):  its text an " +
     "`<epic-question>`, its options an `<epic-choices>` of `<epic-option>`s, each with a tick box, then an Other " +
-    "box.  Its line shows a chip in the plan doc's state colours (red:  nothing yet;  green:  picked;  blue:  " +
+    "box.  Its line shows a chip in the epic page's state colours (red:  nothing yet;  green:  picked;  blue:  " +
     "Claude has more to do).  Its answer goes under its section's id.",
   attributes: [
     {
@@ -60,7 +60,7 @@ export const epicAskVocabulary = {
     { name: "line", description: "Its line:  the chip, how to answer, its tools." },
     {
       name: "chip",
-      description: "Its id chip (`Q1`), in the plan doc's state colours:  red needs Owen, green picked, blue Claude's."
+      description: "Its id chip (`Q1`), in the epic page's state colours:  red needs Owen, green picked, blue Claude's."
     },
     { name: "how", description: "`Pick one` or `Pick several`." },
     { name: "tools", description: "Its buttons:  Select all, Open | All." },

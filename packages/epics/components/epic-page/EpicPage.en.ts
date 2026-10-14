@@ -12,17 +12,17 @@ import { FILTER_TEXTS } from "$/epics/components/epic-section/EpicSection.types"
 
 /****************
  * ### `<epic-page>`
- * A plan doc:  one epic's page.
+ * An epic page:  one epic's page.
  ****************/
 export const epicPageVocabulary = {
   tag: "epic-page",
   topics: ["documentation", "layout", "containers"],
-  aka: ["plan doc", "epic", "plan", "project plan"],
+  aka: ["epic page", "plan doc", "epic", "plan", "project plan"],
   skeleton: "header, 4 line paragraph",
   noun: "page",
   ui: false,
   description:
-    "A plan doc:  one epic's page -- its crumbs, header and meta lines, the Overview, then its sections in a fixed " +
+    "An epic page:  one epic's page -- its crumbs, header and meta lines, the Overview, then its sections in a fixed " +
     "order.  Runs edge to edge:  it breaks out of the docs' `<main>` padding (`--spell-doc-pad-inline`).",
   attributes: [
     {
@@ -47,7 +47,7 @@ export const epicPageVocabulary = {
       kind: "string",
       description: "Its worktree's folder, absolute;  absent for a future epic, or once the worktree is gone."
     },
-    { name: "started", kind: "string", format: "date", description: "The day the plan doc was made." },
+    { name: "started", kind: "string", format: "date", description: "The day the epic page was made." },
     { name: "updated", kind: "string", format: "date", description: "The day a command last changed it." },
     {
       name: "future",
@@ -98,12 +98,12 @@ export const epicPageVocabulary = {
     {
       name: "durable",
       description:
-        'A link to the durable doc, once Doc Review wrote one:  `<a slot="durable" href="../../guides/x.html">X</a>`.'
+        'A link to the guide, once Doc Review wrote one:  `<a slot="durable" href="../../guides/x.html">X</a>`.'
     },
     {
       name: "toolbar",
       description:
-        "The sticky bar's last row:  the section toolbar the docs runtime adds to a plan doc " +
+        "The sticky bar's last row:  the section toolbar the docs runtime adds to an epic page " +
         '(`<nav slot="toolbar" class="spell-toolbar">`, `spell-doc-runtime.js` `buildToolbar()`);  never in a doc.'
     }
   ],
@@ -183,7 +183,7 @@ export const epicPageVocabulary = {
         "Under the header:  `To review this doc, type /epic review <name>` (airplane mode:  `/airplane land`), " +
         "copied on click."
     },
-    { name: "meta", description: "The meta lines:  branch, worktree, dates, durable doc." },
+    { name: "meta", description: "The meta lines:  branch, worktree, dates, guide." },
     { name: "notice", description: "A future epic's notice:  not planned yet." },
     {
       name: "hung",
@@ -222,13 +222,13 @@ export const epicPageVocabulary = {
     },
     { key: "crumbs", text: "Breadcrumb", description: "The crumbs, spoken." },
     { key: "seeAlso", text: "See Also", description: "The See Also box's title." },
-    { key: "seeAlsoDurable", text: "durable doc", description: "A See Also page's kind:  the epic's durable doc." },
+    { key: "seeAlsoDurable", text: "guide", description: "A See Also page's kind:  the epic's guide." },
     { key: "seeAlsoGuide", text: "guide", description: "A See Also page's kind:  a guide the epic page links to." },
     { key: "seeAlsoDetails", text: "details", description: "A See Also page's kind:  a details page." },
-    { key: "seeAlsoChoices", text: "choices", description: "A See Also page's kind:  a syntax-choices page." },
-    { key: "crumbDocs", text: "Docs", description: "The crumbs' first:  the docs home." },
-    { key: "crumbEpics", text: "Epics", description: "The crumbs' second:  the epics' index." },
-    { key: "planDoc", text: "Plan doc for", description: "Meta line:  `Plan doc for /epic x, branch x`." },
+    { key: "seeAlsoChoices", text: "choice", description: "A See Also page's kind:  a choice page." },
+    { key: "crumbDocs", text: "Docs", description: "The crumbs' first:  the docs' home page." },
+    { key: "crumbEpics", text: "Epics", description: "The crumbs' second:  the Epics list page." },
+    { key: "planDoc", text: "Epic page for", description: "Meta line:  `Epic page for /epic x, branch x`." },
     { key: "branch", text: "branch", description: "Meta line:  before the branch's name." },
     { key: "futureEpic", text: "Future epic:", description: "Meta line of a future epic." },
     { key: "noBranch", text: "no branch yet", description: "Meta line of a future epic." },
@@ -236,7 +236,7 @@ export const epicPageVocabulary = {
     { key: "noWorktree", text: "none yet", description: "Meta line:  no worktree." },
     { key: "started", text: "Started", description: "Meta line:  `Started 10/6/26, updated 10/7/26`." },
     { key: "updated", text: "updated", description: "Meta line:  before the last change's day." },
-    { key: "durable", text: "Durable doc:", description: "Meta line:  before the durable doc's link." },
+    { key: "durable", text: "Guide:", description: "Meta line:  before the guide's link." },
     { key: "done", text: "DONE", description: "Step label:  every phase is done." },
     { key: "future", text: "FUTURE", description: "Step label:  a future epic." },
     {
@@ -257,11 +257,11 @@ export const epicPageVocabulary = {
     {
       key: "futureBody",
       text:
-        "No worktree, no phases yet.  Its high-level open questions are on its analysis page, answered in the side " +
+        "No worktree, no phases yet.  Its high-level open questions are on its review page, answered in the side " +
         "bar's Review tab;  the answers land here as decided questions.",
       description: "A future epic's notice."
     },
-    { key: "analysisPage", text: "Open its analysis page", description: "The notice's link." },
+    { key: "analysisPage", text: "Open its review page", description: "The notice's link." },
     { key: "futurePlan", text: "plans it.", description: "The notice's last line, after `/epic <name>`." },
     {
       key: "send",
@@ -332,7 +332,7 @@ export const epicPageVocabulary = {
     { key: "hungAfter", text: "and pick \u201cReuse\u201d.", description: "The aside, after `/epic <name>`." }
   ],
   children: [
-    { tag: "flow", slot: "durable", max: 1, description: "The durable doc's link." },
+    { tag: "flow", slot: "durable", max: 1, description: "The guide's link." },
     { tag: "epic-overview", min: 1, max: 1, description: "1. Overview." },
     {
       tag: "epic-section",

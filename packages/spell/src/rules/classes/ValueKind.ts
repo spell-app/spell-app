@@ -19,9 +19,9 @@ import { TypeSpecifierEnum } from "./TypeSpecifierEnum"
  *   - the kind's `P.TypeScope`, e.g. `Suit`, with `valueKind`:
  *     claiming a stub of it, e.g. from `its "suit" is a suit` above
  * - Compiles to the list, then the kind's class, which holds its properties:
- *   `Deck.Suits = ["clubs", ...]` + `export class Suit {}`.  Its values stay plain text (plan doc Q10).
+ *   `Deck.Suits = ["clubs", ...]` + `export class Suit {}`.  Its values stay plain text (epic page Q10).
  * - The name MUST be quoted:  see the registration.
- * - Plan doc `outline-spell`, P2;  was todo T7 of `precedence-and-types`.
+ * - Epic page `outline-spell`, P2;  was todo T7 of `precedence-and-types`.
  */
 export class ValueKind extends SpellStatement<"values|specifier", ValueKindData> {
   @proto static priority = Priority.declaration
