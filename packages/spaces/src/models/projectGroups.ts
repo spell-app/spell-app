@@ -61,7 +61,7 @@ export const PROJECT_GROUPS: SP.ProjectRootSpec[] = [
     title: "Libraries",
     Type: "Library",
     type: "library",
-    description: "Libraries other projects import, e.g. `@spell/library/cards` in a `project.json`",
+    description: "Libraries other projects import, e.g. `@spell/library/cards` in a project file",
     icon: "book"
   },
   {

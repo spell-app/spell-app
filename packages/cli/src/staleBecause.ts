@@ -4,6 +4,7 @@ import { basename, join, relative } from "path"
 import environment from "$/spaces/server/node/environment"
 import { buildFolderFor } from "$/spaces/server/node/projects/project-utils"
 import { SP } from "$/spell"
+import { projectFileFor } from "$/spell/node/projectFile"
 import { LSP } from "$/lsp"
 
 /**
@@ -69,7 +70,7 @@ async function sourcesOf(project: SP.SpellProject): Promise<string[]> {
   const sources: string[] = []
   for (const each of [project, ...sourceImports]) {
     await each.load(undefined)
-    sources.push(SP.SpellLocation.getFileLocation(each.projectId, SP.PROJECT_FILE).serverPath)
+    sources.push(projectFileFor(each.location.serverPath))
     for (const entry of Object.values(each.manifest)) sources.push(entry.location!.serverPath)
   }
   return sources

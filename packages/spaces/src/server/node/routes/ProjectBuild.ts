@@ -7,6 +7,7 @@ import type { SRV } from "$/server"
 import environment from "$/spaces/server/node/environment"
 import * as projectUtils from "$/spaces/server/node/projects/project-utils"
 import { SP } from "$/spell"
+import { hasProjectFile } from "$/spell/node/projectFile"
 
 /**
  * Builds spell projects when the API needs what they build:  their compiled output and scope packs are in `build/`
@@ -96,7 +97,7 @@ export class ProjectBuild {
     const file = location.serverPath
     if (existsSync(file)) return true
     const { projectId } = location
-    if (!existsSync(SP.SpellLocation.getFileLocation(projectId, SP.PROJECT_FILE).serverPath)) return false
+    if (!hasProjectFile(SP.SpellLocation.getProjectLocation(projectId).serverPath)) return false
     const deadline = Date.now() + this.timeout
     if (this.startup) {
       await within(this.startup, deadline)

@@ -69,10 +69,24 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   get projectName(): string | undefined {
     return this.location.projectName
   }
-  /** Its name for people, from its `projectName`:  `drawable-solitaire` => `Drawable Solitaire` (decision Q39). */
+  /**
+   * Its name for people:  its project file's `"title"` (decision Q45), else made from its `projectName`,
+   * `drawable-solitaire` => `Drawable Solitaire` (decision Q39).
+   * - The title is read from its index once it's loaded, else from its group's list (`SpellProject.listedTitles`).
+   */
   get title(): string {
-    return SP.SpellLocation.titleFor(this.projectName ?? "")
+    return (
+      this.contents?.title ??
+      SpellProject.listedTitles.get(this.path) ??
+      SP.SpellLocation.titleFor(this.projectName ?? "")
+    )
   }
+
+  /**
+   * Each project's title as its group's list gave it, by address:  for a project not loaded yet, e.g. in a menu.
+   * - Filled by `SPACES.SpellProjectRoot` as it reads a list;  only projects with a title of their own.
+   */
+  static listedTitles = new Map<string, string>()
 
   /** Our group's spec (`owen@spell`, `@spell/examples`, etc.):  see `SP.SpellSetup.projectRoots`. */
   get projectRootSpec(): SP.ProjectRootSpec {

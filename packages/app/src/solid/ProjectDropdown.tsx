@@ -150,10 +150,8 @@ function readProjectRoot(projectRoot: SPACES.SpellProjectRoot | undefined): Omit
   return {
     loaded,
     projects: loaded
-      ? projectRoot!.projectPaths.map((path) => ({
-          path,
-          name: SP.SpellLocation.titleFor(new SP.SpellLocation(path).projectName ?? path)
-        }))
+      ? // each project's title:  its file's `"title"`, which the list gave, else made from its name (Q45)
+        projectRoot!.projectPaths.map((path) => ({ path, name: new SP.SpellProject(path).title }))
       : [],
     icon: projectRoot?.icon,
     title: projectRoot?.title,

@@ -168,7 +168,8 @@ ui -> util
 - Global ambient types are in the root `types/` folder.
   - Used bare, no import (WWOD §9 › "Ambient globals used bare").
   - Every spell-family `tsconfig.json` includes that folder.
-  - The types:  `Prettify`, `Class`, `AbstractClass`, `SplitString`, `__PACKAGE_VERSION__`.
+  - The types:  `Prettify`, `Class`, `AbstractClass`, `SplitString`, `__PACKAGE_VERSION__`;  and the module
+    `json5-writer`, which ships no types of its own.
 - `vite.decorators.ts` and `vite.packageVersion.ts` are at the repo root.
 - No `~/` or `#name` alias exists any more.
   - `$` means `packages/`, so `ui` is `$/ui` like the rest.

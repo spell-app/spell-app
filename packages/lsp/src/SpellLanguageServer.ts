@@ -200,7 +200,11 @@ export class SpellLanguageServer {
   private watchFiles() {
     this.connection.client
       .register(DidChangeWatchedFilesNotification.type, {
-        watchers: [{ globPattern: "**/project.json" }, { globPattern: "**/*.spell" }]
+        watchers: [
+          { globPattern: "**/__project.json5" },
+          { globPattern: "**/project.json" },
+          { globPattern: "**/*.spell" }
+        ]
       })
       .catch(() => undefined)
   }

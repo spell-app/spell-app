@@ -5,6 +5,7 @@ import { basename, resolve } from "path"
 import { pathToFileURL } from "url"
 
 import { SP } from "$/spell"
+import { projectFileFor } from "$/spell/node/projectFile"
 import { LSP } from "$/lsp"
 import { CLI } from "$/cli"
 
@@ -137,10 +138,10 @@ export async function watchCommand(
   /**
    * Rebuild `project` from scratch, e.g. after a project it imports recompiled:  a compiled import's declarations
    * are read as the project parses from scratch -- see `SpellProject.loadImportScope()`.
-   * - Done as its `project.json` changing, which the workspace takes as "re-read and re-parse everything".
+   * - Done as its project file changing, which the workspace takes as "re-read and re-parse everything".
    */
   function rebuildFromScratch(project: SP.SpellProject) {
-    changed(project, resolve(project.location.serverPath, SP.PROJECT_FILE))
+    changed(project, projectFileFor(project.location.serverPath))
   }
 
   /** Change `row`, then show it:  redraw the screen, or -- with no screen -- log it once it's done. */
@@ -183,11 +184,11 @@ export function kindOf(project: SP.SpellProject, path: string): LSP.DiskChange {
   return project.files.some((file) => file.location.serverPath === path) ? "changed" : "created"
 }
 
-/** Does a change to `filename`, in a project folder, need a rebuild?  Its spell, css or `project.json` -- not output. */
+/** Does a change to `filename`, in a project folder, need a rebuild?  Its spell, css or project file -- not output. */
 export function isWatched(filename: string): boolean {
   const name = basename(filename)
   if (name.startsWith(".") || name.endsWith(SP.COMPILED_JS_SUFFIX) || name.endsWith(SP.SNAPSHOT_JS_SUFFIX)) return false
-  return name === SP.PROJECT_FILE || name.endsWith(".spell") || name.endsWith(".css")
+  return SP.isProjectFile(name) || name.endsWith(".spell") || name.endsWith(".css")
 }
 
 /**

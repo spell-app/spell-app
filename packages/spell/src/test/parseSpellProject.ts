@@ -1,6 +1,8 @@
-import { existsSync, readdirSync, readFileSync } from "fs"
+import { readdirSync, readFileSync } from "fs"
+import JSON5 from "json5"
 import { resolve } from "path"
 
+import { hasProjectFile, projectFileFor } from "$/spell/node/projectFile"
 import { CODE_FOLDERS } from "$/spell/node/typecheck"
 import { P } from "$/parser"
 import { SP } from "$/spell"
@@ -105,10 +107,10 @@ export const PYTHON_FIXTURES = new Set([
  */
 export const LIBRARY_FIXTURES = new Set(["people"])
 
-/** Name of each fixture project:  each folder of `FIXTURES_DIR` with a `project.json`, alphabetically. */
+/** Name of each fixture project:  each folder of `FIXTURES_DIR` with a project file, alphabetically. */
 export function fixtureProjectNames(): string[] {
   return readdirSync(FIXTURES_DIR, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && existsSync(fixturePath(entry.name, SP.PROJECT_FILE)))
+    .filter((entry) => entry.isDirectory() && hasProjectFile(resolve(FIXTURES_DIR, entry.name)))
     .map((entry) => entry.name)
     .sort()
 }
@@ -220,7 +222,7 @@ function moduleFor(projectId: string): string {
   return `${SP.SPELL_PROJECT_MODULE}${encodeURI(projectId)}`
 }
 
-/** `{ path, contents }` of each spell file in fixture `projectName`, in its `project.json` order -- see `FIXTURES_DIR`. */
+/** `{ path, contents }` of each spell file in fixture `projectName`, in its project file's order -- see `FIXTURES_DIR`. */
 export function loadFixtureProject(projectName: string): SpellSourceFile[] {
   const projectDir = fixturePath(projectName)
   return readProjectFile(projectDir)
@@ -235,14 +237,14 @@ function compiledCSS(contents: string): string {
   return String(scope.parser!.parse([token], "css", scope)?.compile())
 }
 
-/** `project.json` of the project in `projectDir`. */
+/** The project file of the project in `projectDir`, read:  `__project.json5`, or an old `project.json`. */
 function readProjectFile(projectDir: string): {
   version?: string
   exports?: string[]
   imports: Array<{ path: string; active?: boolean; import?: string[] }>
   listsStartAt?: 0 | 1
 } {
-  return JSON.parse(readFileSync(resolve(projectDir, SP.PROJECT_FILE), "utf8"))
+  return JSON5.parse(readFileSync(projectFileFor(projectDir), "utf8"))
 }
 
 /**

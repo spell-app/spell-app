@@ -23,11 +23,28 @@ export type CompilableSpellFile = SpellFile | SpellCSSFile
 // ## SpellProject
 
 /**
- * Name of the file in a project's folder saying what it is and what it imports.
+ * Name of the file in a project's folder saying what it is and what it imports, e.g. its title, imports and targets.
  * - Its folder IS the project, e.g. for `locationForDiskPath()`.
  * - Its shape:  `ProjectFileJSON`, in `$/spaces/server/node/projects/server.types`.
+ * - JSON5, a comment kept when spell saves it;  one of spaces' own `__` names, so no file list shows it
+ *   (epic `people-and-orgs` P12, Q33).
+ * - It was `project.json` before:  read still, never written (`OLD_PROJECT_FILES`).
  */
-export const PROJECT_FILE = "project.json"
+export const PROJECT_FILE = "__project.json5"
+
+/**
+ * A project file's old names, read while a project still has one, newest first:  a save writes `PROJECT_FILE`, and
+ * removes the old one.
+ */
+export const OLD_PROJECT_FILES = ["project.json"] as const
+
+/** Every name a project file goes by, `PROJECT_FILE` first:  the order a reader looks for them in. */
+export const PROJECT_FILES = [PROJECT_FILE, ...OLD_PROJECT_FILES] as const
+
+/** Is `name` (a file's name, no folder) a project file, by its name today or an old one? */
+export function isProjectFile(name: string): boolean {
+  return (PROJECT_FILES as readonly string[]).includes(name)
+}
 
 /**
  * End of a project's compiled output file's name, e.g. `Solitaire.spell.js` -- see `SpellProject.outputFile`.
@@ -104,17 +121,19 @@ export type ProjectManifestJSON5 = {
   manifest: Record<string, ProjectManifestEntry>
   /** Ordered list of files to compile, synced against `manifest` -- plus other projects it imports. */
   imports: ProjectManifestImport[]
-  /** This project's semver, from its `project.json` -- stamped on its declarations. */
+  /** Its name for people, from its project file, when its folder's name can't say it:  see `SpellProject.title`. */
+  title?: string
+  /** This project's semver, from its project file -- stamped on its declarations. */
   version?: string
-  /** Names it offers importers, from its `project.json` -- default:  everything it declares. */
+  /** Names it offers importers, from its project file -- default:  everything it declares. */
   exports?: string[]
-  /** Targets it compiles to, from its `project.json`, e.g. `["ts/solid"]` -- `js/solid` always:  see `SP.TARGETS`. */
+  /** Targets it compiles to, from its project file, e.g. `["ts/solid"]` -- `js/solid` always:  see `SP.TARGETS`. */
   targets?: string[]
-  /** Where its lists start counting, from its `project.json`:  `1` (the default) or `0` -- see `P.WriterOptions`. */
+  /** Where its lists start counting, from its project file:  `1` (the default) or `0` -- see `P.WriterOptions`. */
   listsStartAt?: 0 | 1
   /**
-   * Where the server puts what compiling builds, e.g. `Solitaire.spell.py`, relative to the project's own folder:
-   * e.g. `../../../../../../build/spaces/@spell/examples/solitaire`, for a project under `packages/`.
+   * Where the server puts what compiling builds, e.g. `Solitaire.spell.py`, inside the checkout's `build/`:
+   * e.g. `spaces/@spell/examples/solitaire`, for a project under `packages/` (epic `people-and-orgs` J33).
    * - Not there:  beside its source.
    * - Only a Python program's web app needs it so far, to find the program:  `PY.QuartAppSpec.outputs`.
    */
@@ -185,7 +204,16 @@ export type ProjectImportRef = {
   file: AnySpellFile
 }
 
-/** Contents of a `SpellProjectRoot`: list of project addresses, e.g. `owen@spell/errors`. */
+/** Contents of a `SpellProjectRoot`:  each project's address, e.g. `owen@spell/errors`, and its title if it has one. */
+export type ProjectList = ProjectListEntry[]
+
+/**
+ * One project of a group's list:  `{ path: "@spell/examples/todos-form-based", title: "Todos - Form Based" }`.
+ * - `title` only when its project file has one (decision Q45):  else `SpellProject.title` makes it from the name.
+ */
+export type ProjectListEntry = { path: string; title?: string }
+
+/** List of project addresses, e.g. `owen@spell/errors`:  a `ProjectList`'s paths. */
 export type ProjectPathList = string[]
 
 // ## SpellProjectRoot

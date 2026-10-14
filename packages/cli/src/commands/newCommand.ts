@@ -3,6 +3,7 @@ import { resolve } from "path"
 
 import environment from "$/spaces/server/node/environment"
 import { SP } from "$/spell"
+import { hasProjectFile } from "$/spell/node/projectFile"
 import { CLI } from "$/cli"
 
 /**
@@ -23,7 +24,7 @@ export async function newCommand(session: CLI.CliSession, args: string[], option
   if (!existsSync(parent)) throw new CLI.CliError(`No such folder:  ${options.in ?? parent}`)
   const folder = resolve(parent, name)
   if (existsSync(folder) && readdirSync(folder).length) {
-    const what = existsSync(resolve(folder, SP.PROJECT_FILE)) ? "a project" : "files"
+    const what = hasProjectFile(folder) ? "a project" : "files"
     throw new CLI.CliError(`${session.relative(folder)} already holds ${what}`)
   }
 

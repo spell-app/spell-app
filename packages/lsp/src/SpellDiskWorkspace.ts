@@ -102,7 +102,7 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
     const project = new SP.SpellProject(location.projectId)
     if (!this.#firstParses.has(project)) return []
 
-    if (basename(path) === SP.PROJECT_FILE || (location.extension === ".spell" && change !== "changed")) {
+    if (SP.isProjectFile(basename(path)) || (location.extension === ".spell" && change !== "changed")) {
       this.#fileByUri.clear()
       return this.refresh(project)
     }

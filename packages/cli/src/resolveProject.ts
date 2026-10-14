@@ -17,6 +17,7 @@ import { existsSync, statSync } from "fs"
 import { basename, dirname, extname, resolve } from "path"
 
 import { SP } from "$/spell"
+import { hasProjectFile } from "$/spell/node/projectFile"
 import { locationForDiskPath } from "$/spaces/server/node/projects/disk-fetch"
 import * as projectUtils from "$/spaces/server/node/projects/project-utils"
 import { CLI } from "$/cli"
@@ -62,13 +63,20 @@ export function rootName(spec: SP.ProjectRootSpec): string {
 
 /**
  * Ids of the projects in `roots`, e.g. `["@spell/library/cards"]`.
- * - Only folders holding a `project.json` -- see the header.
+ * - Only folders holding a project file -- see the header.
  * - A root whose folder doesn't exist, e.g. `@spell/guides` before any guide is written, has none.
  */
 export async function projectIdsIn(roots: SP.ProjectRootSpec[]): Promise<string[]> {
   const present = roots.filter((spec) => existsSync(projectUtils.serverPathForRoot(spec.path)))
   const lists = await Promise.all(present.map((spec) => projectUtils.getProjectList(spec.path)))
-  return lists.flat().filter((projectId) => hasManifest(new SP.SpellLocation(projectId).serverPath))
+  return lists
+    .flat()
+    .map(({ path, title }) => {
+      // a title of its own, for the picker (`SpellProject.listedTitles`, decision Q45)
+      if (title) SP.SpellProject.listedTitles.set(path, title)
+      return path
+    })
+    .filter((projectId) => hasProjectFile(new SP.SpellLocation(projectId).serverPath))
 }
 
 ////////////////
@@ -93,7 +101,8 @@ async function resolveLocation(arg: string, path: string): Promise<CLI.CliProjec
   if (location.isProjectRoot) return resolveRoots(arg, [SP.SpellSetup.projectSpectForRootPath(location.projectRoot)])
 
   const projectDir = new SP.SpellLocation(location.projectId).serverPath
-  if (!hasManifest(projectDir)) throw new CLI.CliError(`No project '${location.projectId}' (looked in ${projectDir})`)
+  if (!hasProjectFile(projectDir))
+    throw new CLI.CliError(`No project '${location.projectId}' (looked in ${projectDir})`)
   if (location.isProjectPath) return { kind: "project", arg, project: new SP.SpellProject(location.projectId) }
 
   if (location.extension !== ".spell") throw new CLI.CliError(`'${arg}' isn't a .spell file`)
@@ -115,9 +124,9 @@ async function resolveRoots(arg: string, roots: SP.ProjectRootSpec[]): Promise<C
 async function resolveDiskPath(arg: string, path: string): Promise<CLI.CliProject> {
   if (!existsSync(path)) throw new CLI.CliError(`No such file or folder:  ${arg}`)
   const isFolder = statSync(path).isDirectory()
-  const isManifest = basename(path) === SP.PROJECT_FILE
+  const isManifest = SP.isProjectFile(basename(path))
   if (!isFolder && !isManifest && extname(path) !== ".spell") {
-    throw new CLI.CliError(`'${arg}' isn't a .spell file, a project.json or a folder`)
+    throw new CLI.CliError(`'${arg}' isn't a .spell file, a project's ${SP.PROJECT_FILE} or a folder`)
   }
 
   if (isFolder) {
@@ -127,12 +136,12 @@ async function resolveDiskPath(arg: string, path: string): Promise<CLI.CliProjec
     if (roots.length) return resolveRoots(arg, roots)
   }
 
-  // `locationForDiskPath()` falls back to a file's own folder, which loading would write a `project.json` into
+  // `locationForDiskPath()` falls back to a file's own folder, which loading would write a project file into
   const folder = isFolder ? path : dirname(path)
   if (!projectDirAbove(folder)) {
     throw new CLI.CliError(`'${arg}' isn't in a spell project:  no ${SP.PROJECT_FILE} in ${folder} or above it`)
   }
-  // it looks for `project.json` from a FILE's folder up, so hand it one in the folder
+  // it looks for a project file from a FILE's folder up, so hand it one in the folder
   const location = locationForDiskPath(isFolder ? resolve(path, SP.PROJECT_FILE) : path)
   if (!location) throw new CLI.CliError(`'${arg}' has a folder or file name spell can't use`)
 
@@ -141,15 +150,10 @@ async function resolveDiskPath(arg: string, path: string): Promise<CLI.CliProjec
   return { kind: "file", arg, file: new SP.SpellFile(location.path) }
 }
 
-/** Nearest folder at or above `folder` holding a `project.json`, if any. */
+/** Nearest folder at or above `folder` holding a project file (`__project.json5`, or an old `project.json`), if any. */
 export function projectDirAbove(folder: string): string | undefined {
   for (let dir = folder; ; dir = dirname(dir)) {
-    if (hasManifest(dir)) return dir
+    if (hasProjectFile(dir)) return dir
     if (dirname(dir) === dir) return undefined
   }
-}
-
-/** Does folder `projectDir` hold a `project.json`? */
-function hasManifest(projectDir: string): boolean {
-  return existsSync(resolve(projectDir, SP.PROJECT_FILE))
 }

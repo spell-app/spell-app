@@ -9,9 +9,11 @@
 import { isAbsolute, relative, resolve, sep } from "path"
 
 import type { SRV } from "$/server"
+import { json5Edited } from "$/spaces/server/node/storage/json5"
 import environment from "$/spaces/server/node/environment"
 
 import { SP } from "$/spell"
+import { projectFileFor } from "$/spell/node/projectFile"
 import { SPACES } from "$/spaces"
 
 import * as fileUtils from "./file-utils"
@@ -174,19 +176,26 @@ const DEFAULT_FILE = {
  * - A root whose folder doesn't exist yet has no projects:  `[]`, e.g. `@spell/guides` before its first guide.
  *   Creating a project makes the folder.
  */
-export const getProjectList = async (domainId: string) => {
+export const getProjectList = async (domainId: string): Promise<SP.ProjectList> => {
   const domain = SP.SpellLocation.getProjectRoot(domainId)
   if (!(await fileUtils.pathExists(domain.serverPath))) return []
   const options = { includeFolders: true, includeFiles: false, namesOnly: true, ignoreEmptyFolders: true }
   const projectNames = (await fileUtils.getFolderContents(domain.serverPath, options)).filter(
     (name) => !SPACES.isSpaceName(name) && SP.SpellLocation.isValidPathSegment(name)
   )
-  return projectNames.map((projectName) => `${domain.projectRoot}/${projectName}`)
+  return Promise.all(
+    projectNames.map(async (projectName) => {
+      const path = `${domain.projectRoot}/${projectName}`
+      const { title } = await loadProjectFile(path).catch(() => ({ title: undefined }))
+      return title ? { path, title } : { path }
+    })
+  )
 }
 
 /**
  * `GET /api/projects/list/<group>` -- list projects in a group, e.g. `/api/projects/list/@spell/examples`.
- * - Returns: JSON array of project path strings.
+ * - Returns: `SP.ProjectList`, each project's address and its title if its file has one:
+ *   `[{ path: "@spell/examples/todos-form-based", title: "Todos - Form Based" }, { path: "@spell/examples/todos" }]`.
  * - Failure: 500 (via `respondWithJSON`) if the place isn't a known group's (`SP.SpellUrls.projectIdFor()`).
  */
 export const request_getProjectList = respondWithJSON(async (request) => {
@@ -229,29 +238,32 @@ function isPreloadFile(name: string) {
   return manifestExtensions.some((extension) => name.endsWith(extension))
 }
 
-/** Return `SP.SpellLocation` for a project's `project.json` file. */
-export function getProjectFileLocation(projectId: string) {
-  return SP.SpellLocation.getFileLocation(projectId, SP.PROJECT_FILE)
+/**
+ * Path on disk of a project's file:  the one it has, `__project.json5` or an old `project.json`, else where
+ * `__project.json5` would be (`projectFileFor()`).
+ */
+export function projectFilePath(projectId: string): string {
+  return projectFileFor(SP.SpellLocation.getProjectLocation(projectId).serverPath)
+}
+
+/** Load a project's file (`projectFilePath()`), as JSON5;  `{ imports: [] }` if it has none, or no imports. */
+export async function loadProjectFile(projectId: string): Promise<ProjectFileJSON> {
+  const existing: Partial<ProjectFileJSON> | null = await fileUtils.loadJSONFile(projectFilePath(projectId), "OPTIONAL")
+  return { ...existing, imports: existing?.imports ?? [] }
 }
 
 /**
- * Load a project's `project.json` file, returning `{ imports: [] }` default if not found.
- * - TODO: why is this arrow function?
+ * Save a project's file, as `__project.json5`, its comments kept (`editJSON5File()`, decision T1).
+ * - Pass what `loadProjectFile()` gave you, changed:  a key `contents` leaves out is removed.
+ * - SIDE EFFECT:  an old `project.json` is written as `__project.json5`, and removed.
  */
-export const loadProjectFile = async (projectId: string): Promise<ProjectFileJSON> => {
-  const location = getProjectFileLocation(projectId)
-  const existing = await fileUtils.loadJSONFile(location.serverPath, "OPTIONAL")
-  return existing || { imports: [] }
-}
-
-/**
- * Save a project's `project.json` file.
- * - SIDE EFFECT: overwrites file wholesale, no merge with disk -- pass what `loadProjectFile()` gave you,
- *   changed, so its `version` / `exports` / `targets` survive.
- */
-export const saveProjectFile = async (projectId: string, contents: ProjectFileJSON) => {
-  const location = getProjectFileLocation(projectId)
-  return await fileUtils.saveJSONFile(location.serverPath, contents)
+export async function saveProjectFile(projectId: string, contents: ProjectFileJSON): Promise<boolean> {
+  const existing = projectFilePath(projectId)
+  const file = SP.SpellLocation.getFileLocation(projectId, SP.PROJECT_FILE).serverPath
+  const source = (await fileUtils.loadFile(existing, fileUtils.FORMAT.TEXT, "OPTIONAL")) ?? ""
+  const saved = await fileUtils.saveTextFile(file, json5Edited(source, contents))
+  if (existing !== file) await fileUtils.deletePath(existing)
+  return saved
 }
 
 /**
@@ -332,9 +344,9 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
   )
 
   // return manifest and imports
-  const { version, exports, targets, listsStartAt } = importsFile
+  const { title, version, exports, targets, listsStartAt } = importsFile
   const buildFolder = buildFolderInBuild(projectId)
-  return { imports: importsFile.imports, manifest, version, exports, targets, listsStartAt, buildFolder }
+  return { imports: importsFile.imports, manifest, title, version, exports, targets, listsStartAt, buildFolder }
 }
 
 /**
@@ -438,15 +450,17 @@ export const createProject = async (projectId: string, filePath: string, content
 
 /**
  * `POST /api/projects/create/project` -- create a new project.
- * - Client sends body: `{ projectId, filePath?, contents? }`.
- *   - `projectId`:  the new project's full path, e.g. `owen@spell/myProject`
+ * - Client sends body: `{ projectId, title?, filePath?, contents? }`.
+ *   - `projectId`:  the new project's full path, e.g. `owen@spell/my-project`
+ *   - `title`:  its title, when its name can't say it, `My Project!` -- see `setProjectTitle()`
  *   - `filePath` / `contents`:  default to `DEFAULT_FILE`
  * - Returns: updated project list (see `getProjectList()`) for `projectId`'s `projectRoot`.
  * - Failure: 500 if `projectId` is invalid, or on write error.
  */
 export const request_createProject = respondWithJSON(async (request) => {
-  const { projectId, filePath, contents } = request.body
+  const { projectId, title, filePath, contents } = request.body
   await createProject(projectId, filePath, contents)
+  await setProjectTitle(projectId, title)
   return await getProjectList(projectId)
 })
 
@@ -465,13 +479,14 @@ export const duplicateApp = async (projectId: string, newProjectId: string) => {
 
 /**
  * `POST /api/projects/duplicate/project` -- duplicate an existing project.
- * - Client sends body: `{ projectId, newProjectId }`.
+ * - Client sends body: `{ projectId, newProjectId, title? }`:  `title` the copy's, see `setProjectTitle()`.
  * - Returns: updated project list for `projectId`'s `projectRoot`.
  * - Failure: 500 if either id is invalid, or if `fse.copy()` rejects (e.g. `newProjectId` already exists).
  */
 export const request_duplicateApp = respondWithJSON(async (request) => {
-  const { projectId, newProjectId } = request.body
+  const { projectId, newProjectId, title } = request.body
   await duplicateApp(projectId, newProjectId)
+  await setProjectTitle(newProjectId, title)
   return await getProjectList(projectId)
 })
 
@@ -491,16 +506,30 @@ export const renameApp = async (projectId: string, newProjectId: string) => {
 
 /**
  * `POST /api/projects/rename/project` -- rename an existing project.
- * - Client sends body: `{ projectId, newProjectId }`.
+ * - Client sends body: `{ projectId, newProjectId, title? }`:  `title` its new one, see `setProjectTitle()`.
  * - Returns: updated project list for `projectId`'s `projectRoot`.
  * - Failure: 500 if either id is invalid, or if `fse.move()` rejects,
  *   e.g. `newProjectId` already exists (no `overwrite` option passed here).
  */
 export const request_renameApp = respondWithJSON(async (request) => {
-  const { projectId, newProjectId } = request.body
+  const { projectId, newProjectId, title } = request.body
   await renameApp(projectId, newProjectId)
+  await setProjectTitle(newProjectId, title)
   return await getProjectList(projectId)
 })
+
+/**
+ * SIDE EFFECT:  project `projectId`'s file says `title` (decision Q45), its comments kept.
+ * - text:  its title, e.g. `Todos - Form Based`
+ * - `null`:  none, its title made from its name
+ * - `undefined`:  left as it is
+ */
+export async function setProjectTitle(projectId: string, title: string | null | undefined): Promise<void> {
+  if (title === undefined) return
+  const { title: old, ...rest } = await loadProjectFile(projectId)
+  if ((old ?? null) === title) return
+  await saveProjectFile(projectId, title === null ? rest : { title, ...rest })
+}
 
 /**
  * Remove (permanently delete) project `projectId` -- recursive folder delete via `fileUtils.deletePath()`.

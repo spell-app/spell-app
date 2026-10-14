@@ -210,11 +210,11 @@ describe("liveness and canned routes", () => {
 ////////////////
 
 describe("projects list and sendError shape", () => {
-  it("GET /api/projects/list/<group> => JSON array of project paths", async () => {
+  it("GET /api/projects/list/<group> => each project's address, and its title if it has one (Q45)", async () => {
     const reply = await request("GET", "/api/projects/list/owen@spell")
     expect(reply.status).toBe(200)
     expect(reply.contentType).toMatch(/^application\/json/)
-    expect(reply.json()).toEqual([PROJECT])
+    expect(reply.json()).toEqual([{ path: PROJECT }])
   })
 
   it("a group whose folder doesn't exist yet lists no projects, e.g. guides before the first one", async () => {
@@ -227,7 +227,8 @@ describe("projects list and sendError shape", () => {
     writeFixture("user/__members/owen.json5", "{}")
     writeFixture("user/__mine__/project.json", JSON.stringify({ imports: [] }))
     const reply = await request("GET", "/api/projects/list/owen@spell")
-    expect(reply.json().sort()).toEqual(["owen@spell/Proj", "owen@spell/__mine__"].sort())
+    const paths = reply.json().map(({ path }: { path: string }) => path)
+    expect(paths.sort()).toEqual(["owen@spell/Proj", "owen@spell/__mine__"].sort())
     fs.rmSync(fixturePath("user/__mine__"), { recursive: true })
   })
 
@@ -549,7 +550,7 @@ describe("compiled, scopes and words files", () => {
 describe("a project's file list", () => {
   it("leaves out spaces' own `__` names by spaces' list, but keeps `__init__.js` and the like (J52)", async () => {
     writeFixture("user/Proj/__init__.js", "export {}\n")
-    writeFixture("user/Proj/__project.json5", "{}\n")
+    writeFixture("user/Proj/__project.json5", JSON.stringify({ imports: [{ path: "/top.spell", active: true }] }))
     writeFixture("user/Proj/__pack.js", "export {}\n")
     const reply = await request("GET", `/api/projects/index/${PLACE}`)
     const files = Object.keys(reply.json().manifest)

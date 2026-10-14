@@ -103,14 +103,17 @@ export function YouPanel(props: YouPanelProps) {
       </ui-content>
       <ui-actions>
         <ui-button class="cancel">{SpellUI.i18n.t("cancel")}</ui-button>
-        <ui-button class="approve" primary="">
+        <ui-button class="approve" primary="" onClick={save}>
           Save
         </ui-button>
       </ui-actions>
     </ui-modal>
   )
 
-  /** Save:  note what the fields say now, while they're still in the page. */
+  /**
+   * Save:  note what the fields say now, while they're still in the page.
+   * - On the button's own click as well as the modal's `ui-approve`, so the fields are read before anything hides it.
+   */
   function save() {
     const field = (selector: string) => modal!.querySelector<HTMLElement & { value: string }>(selector)?.value ?? ""
     const values = (selector: string) =>

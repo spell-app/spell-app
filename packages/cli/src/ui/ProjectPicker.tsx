@@ -65,8 +65,14 @@ export type ProjectPickerProps = {
   onPick: (projectIds: string[]) => void
 }
 
-/** Pick-list label for `projectId`:  its name, then the root it's in, e.g. `cards  @spell/library`. */
+/**
+ * Pick-list label for `projectId`:  its name, then the root it's in, e.g. `cards  @spell/library`;
+ * its title between, when its project file has one:  `todos-form-based  Todos - Form Based  @spell/examples`.
+ */
 function labelFor(projectId: string): string {
   const location = new SP.SpellLocation(projectId)
-  return `${location.projectName}  ${location.projectRoot}`
+  const title = SP.SpellProject.listedTitles.get(projectId)
+  return title
+    ? `${location.projectName}  ${title}  ${location.projectRoot}`
+    : `${location.projectName}  ${location.projectRoot}`
 }

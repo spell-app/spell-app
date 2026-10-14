@@ -10,7 +10,7 @@ import { LOCAL_PERSON } from "./projectGroups"
  * - Its groups are spaces' (`PROJECT_GROUPS`):  loading this file registers them with spell.
  * - It was spell's, until epic `people-and-orgs` P15 (decision Q20):  spell never lists projects.
  */
-export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
+export class SpellProjectRoot extends JSON5File<SP.ProjectList> {
   /**
    * Format of what the editor sends:  JSON, as `application/json`, so the server parses it.
    * - It was a bare `"json"`, which the server took for no body at all:  every create, copy, rename and delete of a
@@ -34,7 +34,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
   static get fixtures(): SpellProjectRoot {
     return new SpellProjectRoot("@spell/test")
   }
-  /** Singleton `@spell/library` root -- projects others import, e.g. `@spell/library/cards` in a `project.json`. */
+  /** Singleton `@spell/library` root -- projects others import, e.g. `@spell/library/cards` in a project file. */
   static get library(): SpellProjectRoot {
     return new SpellProjectRoot("@spell/library")
   }
@@ -124,10 +124,22 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
     }
   }
 
-  /** List of paths for all available `SpellProject`s. */
+  /**
+   * List of paths for all available `SpellProject`s.
+   * - SIDE EFFECT:  notes each one's title, if the list gave one, for `SpellProject.title` (decision Q45).
+   */
   /*@memoizeForProp("contents")*/
   get projectPaths(): SP.ProjectPathList {
-    return this.derivedFrom("projectPaths", () => this.contents || [], [this.contents])
+    return this.derivedFrom(
+      "projectPaths",
+      () =>
+        (this.contents || []).map(({ path, title }) => {
+          if (title) SP.SpellProject.listedTitles.set(path, title)
+          else SP.SpellProject.listedTitles.delete(path)
+          return path
+        }),
+      [this.contents]
+    )
   }
 
   /**
@@ -158,6 +170,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
    * Show `prompt()` to get new filename.
    * - If you're basing off of a different project, pass its `projectId` (which MUST be valid!!!).
    * - Returns `projectId` or `undefined`.
+   * - SIDE EFFECT:  notes the title typed for it, in `titlesTyped`.
    */
   promptForProjectId({
     projectId,
@@ -174,10 +187,22 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
     if (!defaultName) defaultName = originalLocation?.projectName || "untitled"
 
     // lower-kebab, as every project's name (decision Q39):  `My Thing` => `my-thing`
-    const projectName = SP.SpellLocation.kebab(prompt(message, defaultName) ?? "")
+    const typed = (prompt(message, defaultName) ?? "").trim()
+    const projectName = SP.SpellLocation.kebab(typed)
     if (!projectName) return undefined
-    return `${originalLocation?.projectRoot ?? this.path}/${projectName}`
+    const newProjectId = `${originalLocation?.projectRoot ?? this.path}/${projectName}`
+    this.titlesTyped.set(newProjectId, SP.SpellLocation.titleFor(projectName) === typed ? null : typed)
+    return newProjectId
   }
+
+  /**
+   * The title typed for each project `promptForProjectId()` named, by its id, sent with its create, copy or rename
+   * (decision Q45):
+   * - text:  what was typed, when the name made from the folder can't say it, `Todos - Form Based`
+   * - `null`:  it can, so the project file keeps no title
+   * - none:  not prompted for;  the project file's title stays as it is
+   */
+  protected titlesTyped = new Map<string, string | null>()
 
   /**
    * Create a new project at `projectId`.
@@ -198,10 +223,11 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
 
     // Tell the server to create the project, which returns new projects list
     try {
-      const newContents = await $fetch<SP.ProjectPathList>({
+      const newContents = await $fetch<SP.ProjectList>({
         url: `/api/projects/create/project`,
         contents: {
           projectId,
+          title: this.titlesTyped.get(projectId),
           filePath: "Untitled.spell",
           contents: "## this space intentionally left blank"
         },
@@ -238,9 +264,9 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
 
     // Tell the server to duplicate the project, which returns new projects list
     try {
-      const newContents = await $fetch<SP.ProjectPathList>({
+      const newContents = await $fetch<SP.ProjectList>({
         url: `/api/projects/duplicate/project`,
-        contents: { projectId, newProjectId },
+        contents: { projectId, newProjectId, title: this.titlesTyped.get(newProjectId) },
         requestFormat: SpellProjectRoot.REQUEST_FORMAT_JSON,
         format: "json"
       })
@@ -275,9 +301,9 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
 
     // Tell the server to rename the project, which returns new projects list
     try {
-      const newContents = await $fetch<SP.ProjectPathList>({
+      const newContents = await $fetch<SP.ProjectList>({
         url: `/api/projects/rename/project`,
-        contents: { projectId, newProjectId },
+        contents: { projectId, newProjectId, title: this.titlesTyped.get(newProjectId) },
         requestFormat: SpellProjectRoot.REQUEST_FORMAT_JSON,
         format: "json"
       })
@@ -309,7 +335,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
 
     // Tell the server to remove the project, which returns new projects list
     try {
-      const newContents = await $fetch<SP.ProjectPathList>({
+      const newContents = await $fetch<SP.ProjectList>({
         url: `/api/projects/remove/project`,
         method: "DELETE",
         contents: { projectId },

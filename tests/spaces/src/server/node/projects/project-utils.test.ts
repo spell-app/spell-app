@@ -29,7 +29,7 @@ const BESIDE = [
   "Proj.py.en.json",
   "Proj.lib.ts",
   "Proj.app.py",
-  "project.json",
+  "__project.json5",
   "Proj.spell",
   "Other.spell.js",
   "sub/Proj.spell.js"
@@ -141,7 +141,7 @@ describe("project-utils", () => {
     expect(existsSync(resolve(workspace, "New"))).toBe(false)
 
     await projectUtils.renameApp(projectId, newProjectId)
-    expect(filesIn("New")).toEqual(["Old.app.py", "Old.lib.ts", "Old.spell", "project.json"])
+    expect(filesIn("New")).toEqual(["Old.app.py", "Old.lib.ts", "Old.spell", "__project.json5"])
     expect(existsSync(resolve(buildDir, "build-test-projects/Old"))).toBe(false)
     expect(existsSync(resolve(buildDir, "build-test-projects/New"))).toBe(false)
   })
@@ -149,10 +149,44 @@ describe("project-utils", () => {
   test("duplicating a project copies its source, NOT what was built for it", async () => {
     const projectId = await built("Original")
     await projectUtils.duplicateApp(projectId, projectId.replace(/Original$/, "Copy"))
-    expect(filesIn("Copy")).toEqual(["Original.app.py", "Original.lib.ts", "Original.spell", "project.json"])
+    expect(filesIn("Copy")).toEqual(["Original.app.py", "Original.lib.ts", "Original.spell", "__project.json5"])
     expect(filesIn("Original")).toEqual([...GENERATED("Original"), ...filesIn("Copy")].sort())
     expect(existsSync(resolve(buildDir, "build-test-projects/Original/Original.spell.js"))).toBe(true)
     expect(existsSync(resolve(buildDir, "build-test-projects/Copy"))).toBe(false)
+  })
+
+  test("an old project.json is read, and saved as __project.json5, its comments kept (P12, T1)", async () => {
+    const projectId = project("Older")
+    const folder = resolve(workspace, "Older")
+    rmSync(resolve(folder, SP.PROJECT_FILE))
+    writeFileSync(
+      resolve(folder, "project.json"),
+      '{\n  // mine\n  "imports": [{ "path": "/Older.spell", "active": true }],\n  "targets": ["py"]\n}\n'
+    )
+    expect((await projectUtils.getIndex(projectId)).targets).toEqual(["py"])
+    await projectUtils.saveProjectFile(projectId, {
+      ...(await projectUtils.loadProjectFile(projectId)),
+      version: "1.0.0"
+    })
+    expect(existsSync(resolve(folder, "project.json"))).toBe(false)
+    const saved = readFileSync(resolve(folder, SP.PROJECT_FILE), "utf8")
+    expect(saved).toContain("// mine")
+    expect(saved).toContain('"version": "1.0.0"')
+  })
+
+  test("a project's title:  in its file, its index and its group's list;  null takes it out (Q45)", async () => {
+    const projectId = project("todos-form-based")
+    await projectUtils.setProjectTitle(projectId, "Todos - Form Based")
+    expect((await projectUtils.getIndex(projectId)).title).toBe("Todos - Form Based")
+    expect(await projectUtils.getProjectList(projectId)).toContainEqual({
+      path: projectId,
+      title: "Todos - Form Based"
+    })
+    await projectUtils.setProjectTitle(projectId, undefined)
+    expect((await projectUtils.loadProjectFile(projectId)).title).toBe("Todos - Form Based")
+    await projectUtils.setProjectTitle(projectId, null)
+    expect((await projectUtils.loadProjectFile(projectId)).title).toBeUndefined()
+    expect(await projectUtils.getProjectList(projectId)).toContainEqual({ path: projectId })
   })
 
   test("deleting a project deletes its build folder too", async () => {

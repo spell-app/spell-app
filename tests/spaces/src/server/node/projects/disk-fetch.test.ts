@@ -51,7 +51,7 @@ describe("diskFetch", () => {
     expect(url).toBe("/spaces/@spell/test/solitaire/Card.spell")
     expect(await diskFetch({ url })).toBe(readFileSync(fixturePath("solitaire", "Card.spell"), "utf8"))
     expect(await diskFetch({ url: SP.SpellUrls.indexUrl(solitaire) })).toHaveProperty("imports")
-    expect(await diskFetch({ url: SP.SpellUrls.listUrl("@spell/test") })).toContain(solitaire)
+    expect(await diskFetch({ url: SP.SpellUrls.listUrl("@spell/test") })).toContainEqual({ path: solitaire })
   })
 
   test("a missing file falls back to `defaultContents`, else fails like a 404", async () => {

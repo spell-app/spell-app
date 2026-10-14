@@ -52,10 +52,15 @@ export type ImportEntryJSON = {
 }
 
 /**
- * On-disk shape of a project's `project.json` file -- see `SP.PROJECT_FILE`.
+ * On-disk shape of a project's file, `__project.json5` -- see `SP.PROJECT_FILE`.
  * - `imports` order determines compile order.
  */
 export type ProjectFileJSON = {
+  /**
+   * Its name for people, e.g. `"Todos - Form Based"`, when its folder's name can't say it (decision Q45):
+   * default, the title made from the folder's name, `todos-form-based` => `Todos Form Based`.
+   */
+  title?: string
   /** This project's semver, e.g. `"1.2.0"` -- copied into its declarations, for importers' `version` ranges. */
   version?: string
   /** Names it offers importers, e.g. `["Card", "Deck"]` -- default:  everything it declares. */
@@ -86,12 +91,14 @@ export type ManifestJSON = Record<string, ManifestEntryJSON>
  * Response shape for `GET /api/projects/index/:projectId` -- see `project-utils.getIndex()`.
  * - And for other project-file routes that return the updated index.
  * - `manifest` -- current on-disk manifest:  NOT persisted, always freshly computed from file system.
- * - `imports` -- import list, synced with `manifest` and persisted back to `project.json` when it changes.
- * - `version` / `exports` / `targets` / `listsStartAt` -- straight from `project.json`, see `ProjectFileJSON`.
+ * - `imports` -- import list, synced with `manifest` and persisted back to the project file when it changes.
+ * - `title` / `version` / `exports` / `targets` / `listsStartAt` -- straight from the project file, see
+ *   `ProjectFileJSON`.
  * - `buildFolder` -- where its compiled output goes, inside the checkout's `build/`:  `project-utils.buildFolderInBuild()`.
  */
 export type ProjectIndexJSON = {
   manifest: ManifestJSON
+  title?: string
   imports: ImportEntryJSON[]
   version?: string
   exports?: string[]

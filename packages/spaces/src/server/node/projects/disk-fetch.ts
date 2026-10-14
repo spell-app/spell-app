@@ -11,13 +11,14 @@
  * - NOTE: importing this pulls in `project-utils.ts`,
  *   which patches `SpellLocation.serverPath` and turns `SpellLocation.useRegistry` off.
  */
-import { existsSync } from "fs"
+
 import { basename, dirname, resolve, sep } from "path"
 
 import { LoadableFile, type $FetchParams } from "$/util"
 // Deliberately not in the `$/util` barrel -- see its header.
 import { MissingResourceError } from "$/util/spell/ResponseErrors"
 import { SP } from "$/spell"
+import { hasProjectFile } from "$/spell/node/projectFile"
 
 import * as fileUtils from "./file-utils"
 import * as projectUtils from "./project-utils"
@@ -100,10 +101,10 @@ export function locationForDiskPath(diskPath: string): SP.SpellLocation | undefi
   return new SP.SpellLocation(SP.SpellLocation.join(`${rootPath}/${projectName}`, filePath))
 }
 
-/** Nearest folder at or above `folder` holding `project.json`, else `folder` itself. */
+/** Nearest folder at or above `folder` holding a project file (`hasProjectFile()`), else `folder` itself. */
 function findProjectDir(folder: string): string {
   for (let dir = folder; ; dir = dirname(dir)) {
-    if (existsSync(resolve(dir, SP.PROJECT_FILE))) return dir
+    if (hasProjectFile(dir)) return dir
     if (dirname(dir) === dir) return folder
   }
 }
