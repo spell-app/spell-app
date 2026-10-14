@@ -77,6 +77,17 @@ export const HEAD = "head"
 export const HEADING = "heading"
 export const HEADING_COPY = "heading-copy"
 export const META = "meta"
+export const SEE_ALSO = "see-also"
+
+/** One page in the See Also box, as the page server lists it (epics' `epicRoutes.ts`, `EpicPageLink`). */
+export type SeeAlsoLink = {
+  /** from the epic page's folder:  `details/analysis.html` */
+  href: string
+  title: string
+  kind: "details" | "choices"
+  /** when it last changed, ISO */
+  updated: string
+}
 export const STATUS = "status"
 export const GIT = "git"
 export const NOTICE = "notice"

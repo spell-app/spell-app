@@ -300,6 +300,36 @@ describe("<epic-page>", () => {
     }
   })
 
+  // Owen, 2026-10-13:  "There is no easy way to get to a "decisions" or "details" pages from an epic"
+  test("See Also:  the epic's own pages from the page server, each a link with its kind;  none, no box", async () => {
+    const pages = [
+      { href: "details/names.html", title: "Boolean names", kind: "choices", updated: "2026-10-12T21:00:00.000Z" },
+      { href: "details/analysis.html", title: "Analysis", kind: "details", updated: "2026-10-11T09:00:00.000Z" }
+    ]
+    const fetched = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ pages })))
+    const host = await render(page("", ["todo"]))
+    const box = await vi.waitFor(() => {
+      const found = host.shadowRoot!.querySelector('[part~="see-also"]')
+      expect(found).toBeTruthy()
+      return found!
+    })
+    expect(String(fetched.mock.calls[0]![0])).toBe("/api/epics/pages?epic=demo")
+    expect(Array.from(box.querySelectorAll("a"), (link) => [link.getAttribute("href"), link.textContent])).toEqual([
+      ["details/names.html", "Boolean names"],
+      ["details/analysis.html", "Analysis"]
+    ])
+    expect(box.querySelector(".see-also-kind")!.textContent).toBe("choices")
+    // before the blocks:  the slot comes after it
+    expect(box.compareDocumentPosition(host.shadowRoot!.querySelector("slot:not([name])")!)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    )
+    fetched.mockResolvedValue(new Response(JSON.stringify({ pages: [] })))
+    const empty = await render(page("", ["todo"]))
+    await ElementFixture.tick()
+    expect(empty.shadowRoot!.querySelector('[part~="see-also"]')).toBeNull()
+    fetched.mockRestore()
+  })
+
   // Owen, 2026-10-13:  "Clicking on the "review-review" should copy the string "/epic resume review-review" with a
   // subtle toast"
   test("the heading's name:  a click copies `/epic resume <name>`, and a toast says so", async () => {

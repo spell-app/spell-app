@@ -191,6 +191,11 @@ export const epicPageVocabulary = {
     },
     { name: "expand-all", description: "The toolbar's expand-all button:  opens every section, phase and item." },
     {
+      name: "see-also",
+      description:
+        "Above the blocks:  the pages the epic made for itself (its `details/` folder), each a link;  none, no box."
+    },
+    {
       name: "agents",
       description:
         "The running agents (an `<epic-agents>`, epic `skillz` P3), right before its blocks:  only while an agent runs."
@@ -215,6 +220,9 @@ export const epicPageVocabulary = {
         "The toast once something is copied (the h1's name, a meta line's code):  what went onto the clipboard."
     },
     { key: "crumbs", text: "Breadcrumb", description: "The crumbs, spoken." },
+    { key: "seeAlso", text: "See Also", description: "The See Also box's title." },
+    { key: "seeAlsoDetails", text: "details", description: "A See Also page's kind:  a details page." },
+    { key: "seeAlsoChoices", text: "choices", description: "A See Also page's kind:  a syntax-choices page." },
     { key: "crumbDocs", text: "Docs", description: "The crumbs' first:  the docs home." },
     { key: "crumbEpics", text: "Epics", description: "The crumbs' second:  the epics' index." },
     { key: "planDoc", text: "Plan doc for", description: "Meta line:  `Plan doc for /epic x, branch x`." },

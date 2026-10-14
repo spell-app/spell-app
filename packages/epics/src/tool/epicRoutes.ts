@@ -24,8 +24,17 @@
  * - no Claude needed:  it works on a plane
  *
  * Each needs the page server's token (`x-server-token`) and its own origin (`SRV.Guard`).
+ *
+ * SEE ALSO (Owen, 2026-10-13:  "There is no easy way to get to a "decisions" or "details" pages from an epic"):  the
+ * pages an epic made for itself, which `<epic-page>` lists in its See Also box, above the Overview
+ * - `GET /api/epics/pages?epic=<name>` -- answers `{ pages }`:  each `{ href, title, kind, updated }`, newest first
+ *   - every page in `epics/<name>/details/`:  its details pages (`epic ask new --epic`), its choices pages (`epic
+ *     choices new --epic`:  a `<slug>.rows.json` beside it), its analysis page
+ *   - `href` from the epic page's folder (`details/analysis.html`), `title` the page's `<title>`
+ *   - read when asked:  a page made a moment ago is there, one deleted is gone;  nothing to keep up
+ *   - a read, so no token;  400 for a name that isn't an epic's, `{ pages: [] }` for one with no such folder
  */
-import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs"
+import { existsSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { SRV } from "$/server"
@@ -39,6 +48,7 @@ import { PlanDocFiles } from "./PlanDocFiles"
 /** Where the routes live. */
 const API = "/api/epics/new"
 const FAVORITE_API = "/api/epics/favorite"
+const PAGES_API = "/api/epics/pages"
 
 /** Biggest body accepted:  a kickoff prompt is a few paragraphs. */
 const MAX_BODY = 64 * 1024
@@ -60,6 +70,11 @@ const epicRoutes: RouteModule = {
       if (typeof name !== "string" || typeof favorite !== "boolean")
         throw new SRV.HttpError(400, "send { name, favorite }:  an epic's name, and true or false")
       reply.json({ favorites: await setFavorite(root, name, favorite) })
+    })
+    router.get(PAGES_API, (request, reply) => {
+      const name = String(request.query.epic ?? "")
+      if (!EPIC_NAME.test(name)) throw new SRV.HttpError(400, `not an epic's name:  "${name}"`)
+      reply.set("Cache-Control", "no-store").json({ pages: epicPages(root, name) })
     })
   }
 }
@@ -117,6 +132,38 @@ export async function setFavorite(root: string, name: string, favorite: boolean)
     renameSync(`${file}.tmp`, file)
     return list
   })
+}
+
+/** One page an epic made for itself, as `GET /api/epics/pages` lists it. */
+export type EpicPageLink = {
+  /** from the epic page's folder:  `details/analysis.html` */
+  href: string
+  /** its `<title>`, else its file's name */
+  title: string
+  /** `choices`:  a syntax-choices page (`<slug>.rows.json` beside it);  else `details` */
+  kind: "details" | "choices"
+  /** when it last changed, ISO */
+  updated: string
+}
+
+/** The pages epic `name` made for itself, in checkout `root`:  every page in its `details/` folder, newest first. */
+export function epicPages(root: string, name: string): EpicPageLink[] {
+  const folder = join(root, "epics", name, "details")
+  if (!existsSync(folder)) return []
+  return readdirSync(folder)
+    .filter((file) => file.endsWith(".html"))
+    .map((file) => {
+      const path = join(folder, file)
+      const slug = file.slice(0, -".html".length)
+      const title = /<title>([^<]*)<\/title>/i.exec(readFileSync(path, "utf8"))?.[1]?.trim()
+      return {
+        href: `details/${file}`,
+        title: title || slug,
+        kind: existsSync(join(folder, `${slug}.rows.json`)) ? ("choices" as const) : ("details" as const),
+        updated: statSync(path).mtime.toISOString()
+      }
+    })
+    .sort((a, b) => b.updated.localeCompare(a.updated))
 }
 
 /** An epic's name:  lower-kebab-case, as `epicName()` makes them and the epics' folders are called. */

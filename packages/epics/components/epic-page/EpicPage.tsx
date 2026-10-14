@@ -30,6 +30,8 @@ import {
   CRUMBS,
   DONE,
   COPIED_TOAST_ID,
+  SEE_ALSO,
+  type SeeAlsoLink,
   COPIED_TOAST_MS,
   FLASH_MS,
   GIT,
@@ -126,8 +128,14 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  *     where the docs runtime puts a plan doc's section buttons (`spell-doc-runtime.js` `buildToolbar()`)
  *   - at its right, the PAGE'S STATE FILTER:  every section's chips added up,
  *     a click filtering every section at once (`StateFilter`, through each section's DOM element)
- *   - then collapse-all, folding the whole page
- *   - then, while reviewed, the new item button
+ *   - then expand-all and collapse-all, opening or folding the whole page
+ * - SEE ALSO (Owen, 2026-10-13:  "There is no easy way to get to a "decisions" or "details" pages from an epic"),
+ *   above its blocks:  the pages the epic made for itself, every page in its `details/` folder (details pages,
+ *   choices pages, its analysis page), newest first, each with its kind and day
+ *   - asked of the page server (`GET /api/epics/pages`, epics' `epicRoutes.ts`) as it connects, and again when a file
+ *     in that folder changes (`spell-server:file`):  a page made a moment ago shows, a deleted one goes
+ *   - none, or not served (`file://`):  no box
+ *   - open, folding (a `<details>`):  short, and it's how to get to them
  * - RUNNING AGENTS (epic `skillz` P3), right before its blocks:  the "Agents running" panel (`<epic-agents>`).
  *   - only while the page is served with a token, the epic's list answers (`AgentsClient`) and an agent runs
  *   - each row a note box that redirects that agent
@@ -441,6 +449,69 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     return this.review.connect()
   }
 
+  ////////////////
+  // ## See Also
+  ////////////////
+
+  /** The pages the epic made for itself (`GET /api/epics/pages`), newest first;  none until asked. */
+  @E.state accessor seeAlso: SeeAlsoLink[] = []
+
+  /** Ask for them while connected, and again when a file in the epic's `details/` folder changes. */
+  @E.whileConnected
+  protected followSeeAlso() {
+    if (isServer || location.protocol === "file:" || !this.epic) return undefined
+    const folder = `/epics/${this.epic}/details/`
+    void this.loadSeeAlso()
+    const onFile = (event: Event) => {
+      if ((event as CustomEvent<{ path: string }>).detail?.path?.includes(folder)) void this.loadSeeAlso()
+    }
+    addEventListener("spell-server:file", onFile)
+    return () => removeEventListener("spell-server:file", onFile)
+  }
+
+  /** Ask the page server for the epic's pages;  a server without the route, or none at all:  none. */
+  @E.untracked
+  private async loadSeeAlso() {
+    try {
+      const answer = await fetch(`/api/epics/pages?epic=${encodeURIComponent(this.epic ?? "")}`)
+      if (!answer.ok) return
+      const { pages } = (await answer.json()) as { pages?: SeeAlsoLink[] }
+      this.seeAlso = Array.isArray(pages) ? pages : []
+    } catch {
+      // no page server:  no box
+    }
+  }
+
+  /** The See Also box:  a folding card, each page a link with its kind and the day it last changed. */
+  private seeAlsoBox(): JSX.Element {
+    return (
+      <details class={SEE_ALSO} part={this.partForName("see-also")} open>
+        <summary>
+          {this.translationForKey("seeAlso")}
+          <span class="see-also-count">{this.seeAlso.length}</span>
+        </summary>
+        <ul>
+          <For each={this.seeAlso}>
+            {(page) => (
+              <li>
+                <ui-icon name={page.kind === "choices" ? "table columns" : "circle question"} />
+                <a href={page.href} target={`${this.epic}-${page.href}`}>
+                  {page.title}
+                </a>
+                <span class="see-also-kind">
+                  {this.translationForKey(page.kind === "choices" ? "seeAlsoChoices" : "seeAlsoDetails")}
+                </span>
+                <time datetime={page.updated} title={new Date(page.updated).toLocaleString()}>
+                  {PlanDates.formatDate(new Date(page.updated), false)}
+                </time>
+              </li>
+            )}
+          </For>
+        </ul>
+      </details>
+    )
+  }
+
   render(): JSX.Element {
     return (
       // an EMPTY title:  the DOM element's `title` would otherwise be a tooltip over the whole page (T8)
@@ -498,6 +569,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
         {this.metaLines()}
         <Show when={this.future}>{this.futureNotice()}</Show>
         <Show when={this.planning()}>{this.hungNotice()}</Show>
+        <Show when={this.seeAlso.length}>{this.seeAlsoBox()}</Show>
         <epic-agents part={this.partForName("agents")} />
         <slot />
       </div>

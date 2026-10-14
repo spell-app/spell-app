@@ -420,6 +420,59 @@
     }
   }
 
+  /*
+   * ## See Also:  the pages the epic made for itself, a folding card above the blocks, in the column;  each page a
+   * line:  its icon, its title (a link), its kind and day quiet at the right
+   */
+  .see-also {
+    margin: 0 var(--epic-inset) 16px;
+    padding: 6px 12px;
+    border: 1px solid var(--epic-rule);
+    border-radius: 8px;
+    background: var(--epic-bg);
+    font-size: 15px;
+  }
+  .see-also > summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--epic-heading-ink);
+    font: 600 14px var(--epic-sans);
+    cursor: pointer;
+  }
+  .see-also-count {
+    color: var(--epic-muted);
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+  }
+  .see-also ul {
+    margin: 6px 0 2px;
+    padding: 0;
+    list-style: none;
+  }
+  .see-also li {
+    display: grid;
+    grid-template-columns: 1.25em minmax(0, 1fr) auto auto;
+    column-gap: 8px;
+    align-items: baseline;
+    line-height: 1.6;
+  }
+  .see-also li ui-icon {
+    color: var(--epic-accent);
+  }
+  .see-also a {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--epic-accent);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .see-also-kind,
+  .see-also time {
+    color: var(--epic-muted);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
   /* ## Meta lines:  an icon column, the text wrapping beside it;  each icon centred on its line's first row */
   /* right under the review line, its lines as far apart as their own (the review line's padding is the gap) */
   .meta {

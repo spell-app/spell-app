@@ -126,6 +126,10 @@
                 under the header, the review line (<code>To review this doc, type /epic review seo</code>), then the
                 meta lines: the branch, the worktree, <code>Started 10/1/26, updated 10/7/26</code>
               </li>
+              <li>
+                served by the page server, a See Also box above the blocks: every page the epic made for itself in its
+                <code>details/</code> folder (details pages, choices pages, its analysis page), newest first
+              </li>
               <li>no Send or Review Now: they show only while a plan doc is being reviewed through the page server</li>
             </ul>
           </ui-section>
@@ -542,6 +546,13 @@
                     <tr>
                       <td><code>meta</code></td>
                       <td>The meta lines: branch, worktree, dates, durable doc.</td>
+                    </tr>
+                    <tr>
+                      <td><code>see-also</code></td>
+                      <td>
+                        Above the blocks: the pages the epic made for itself (its <code>details/</code> folder), each a
+                        link, from the page server's <code>GET /api/epics/pages</code>. None, no box.
+                      </td>
                     </tr>
                     <tr>
                       <td><code>notice</code></td>
