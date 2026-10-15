@@ -73,8 +73,13 @@ describe("Definitions.all", () => {
           )
         }
         if (spec.when) {
-          const values = attributeNamed(tag, spec.when.attribute)?.values
-          expect(values, `${tag}[${spec.when.attribute}]`).toEqual(expect.arrayContaining([...spec.when.values]))
+          const attribute = attributeNamed(tag, spec.when.attribute)
+          expect(attribute, `${tag}[${spec.when.attribute}]`).toBeDefined()
+          // a string attribute (`<epic-page kind>`, a saga page's) takes any value:  only an enum's are checked
+          if (attribute!.values)
+            expect(attribute!.values, `${tag}[${spec.when.attribute}]`).toEqual(
+              expect.arrayContaining([...spec.when.values])
+            )
         }
       }
       for (const spec of vocabulary.attributes) {

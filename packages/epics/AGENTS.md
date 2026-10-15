@@ -111,6 +111,14 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `migrations/`:  the named, dated steps that bring an older epic page up to today's markup (`Migrations`),
       which `epic migrate` runs (`MigrateCommands`), by page kind (PLAN-DOC.md, "Migrations")
     - its template:  [plan.html](src/tool/templates/plan.html), in `tool/templates/`
+    - SAGA PAGES (epic `epic-workflow` P15):  `sagas/<id>/<id>.saga.html`, an epic page of kind "saga"
+      (`<epic-page kind="saga" saga="<id>">`), so every verb edits it, named `SAGA:/<id>` (`PlanDocFiles.findDoc()`)
+      - made by `epic saga page <id> [--force]` (`SagaPage`) from [saga.html](src/tool/templates/saga.html):
+        its Overview (the saga's purpose, Done so far, Ideas not done yet), Epics, Questions, Todos, Log;  one file
+      - its Epics:  `<epic-cards saga>`, the epics whose page names the saga, drawn from the page server
+        (`GET /api/epics/saga`, `SagaEpics`), asked again as epic pages change
+      - reviewed as an epic page is:  marks and comments in its own inbox beside it (`ReviewInbox.pathFor()`), the
+        review routes and comments routes take it (`SAGA_PAGE`), and its Send wakes `/epic review SAGA:/<id>`
     - the page server's review routes ([reviewRoutes.ts](src/tool/reviewRoutes.ts)) and what they call:
       `ReviewInbox` (the inbox file), and `ReviewStart`:  the pill's start, and WAKING the epic when Send or Do Now
       finds nobody listening (epic `epic-workflow` P16:  its session typed into, or a new session in its window)

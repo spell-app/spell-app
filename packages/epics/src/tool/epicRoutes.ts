@@ -33,6 +33,13 @@
  *   - `href` from the epic page's folder (`details/analysis.html`), `title` the page's `<title>`
  *   - gathered when asked:  a page made or linked a moment ago is there, one deleted is gone;  nothing to keep up
  *   - a read, so no token;  400 for a name that isn't an epic's, `{ pages: [] }` for one with no such folder
+ *
+ * A SAGA'S EPICS (epic `epic-workflow` P15):  the cards a saga page's Epics draws (`<epic-cards>`)
+ * - `GET /api/epics/saga?saga=<id>` -- answers `{ saga, epics }` (`SagaEpicsAnswer`):  every epic whose page names
+ *   the saga (`<epic-page saga>`), by title, each `{ name, title, href, summary, facts }` (`SagaEpics`)
+ *   - `href` from the saga page's folder (`../../epics/x/x.plan.html`);  `facts` what its state is read from
+ *   - gathered when asked, from the epic pages' skeletons:  nothing to keep up
+ *   - a read, so no token;  400 for a malformed saga id, `{ epics: [] }` for one no epic names
  */
 import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
@@ -42,8 +49,13 @@ import type { RouteModule } from "$/server/page"
 // Import directly:  the `$/server/site` barrel is browser code (the site header)
 import { FAVORITES_FILE, parseFavorites } from "$/server/site/EpicCards"
 
+// the route `<epic-cards>` asks:  its family's types file (data only)
+import { SAGA_EPICS_API } from "$/epics/components/epic-cards/EpicCards.types"
+
 import { PlanDocCommands } from "./PlanDocCommands"
 import { PlanDocFiles } from "./PlanDocFiles"
+import { SagaEpics } from "./SagaEpics"
+import { Sagas } from "./Sagas"
 import { SeeAlso } from "./SeeAlso"
 
 /** Where the routes live. */
@@ -76,6 +88,11 @@ const epicRoutes: RouteModule = {
       const name = String(request.query.epic ?? "")
       if (!EPIC_NAME.test(name)) throw new SRV.HttpError(400, `not an epic's name:  "${name}"`)
       reply.set("Cache-Control", "no-store").json({ pages: new SeeAlso(root).linksOf(name) })
+    })
+    router.get(SAGA_EPICS_API, (request, reply) => {
+      const saga = String(request.query.saga ?? "")
+      if (!Sagas.isId(saga)) throw new SRV.HttpError(400, `not a saga's id:  "${saga}"`)
+      reply.set("Cache-Control", "no-store").json(new SagaEpics(root).of(saga))
     })
   }
 }

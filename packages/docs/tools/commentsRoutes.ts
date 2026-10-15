@@ -10,6 +10,8 @@
  *     a page no epic owns:  Claude takes them into epic `guide-changes` with `spell dev comments gather`
  *   - an epic page's:  the epic's review inbox, `<name>.inbox.json`, under `comments` (`ReviewInbox`);
  *     Claude answers them as a revisit's note (`/epic review`, `/airplane land`)
+ *   - a SAGA page's (`sagas/<id>/<id>.saga.html`, epic `epic-workflow` P15):  the same, in its own inbox,
+ *     `<id>.inbox.json`;  its Send is `<epic-page>`'s, for the session running `/epic review SAGA:/<id>`
  *   - both git-ignored in the shared repo:  waiting work, per machine, never the record
  * - `GET /api/comments?page=<path>` -- the page's comments, every status:  `{ page, takesComments, comments, send? }`
  *   - the runtime asks as the page loads, and draws the bullhorns only when `takesComments`:
@@ -40,14 +42,14 @@
  *     - `reopen` `{ id }`:  open again (Undo, Reopen)
  * - `page`:  the page's URL path, as served (a worktree's `/worktrees/<w>/...` too).
  *   Which pages take comments (`commentsPage()`):
- *   - any `.html` under `guides/`, `pages/` (the home page, details pages) and `epics/` (epic pages, an epic's own
- *     pages)
+ *   - any `.html` under `guides/`, `pages/` (the home page, details pages), `epics/` (epic pages, an epic's own
+ *     pages) and `sagas/` (saga pages, epic `epic-workflow` P15)
  *   - a component set's pages, at its short address (`/epic-ui/...`, `/app-ui/...`:  `COMPONENT_SETS`, epic
  *     `epic-workflow` P10 / P11), but not its `_parts/`:  kept in `<page>.inbox.json` beside each, in the set's
  *     tracked folder, git-ignored there (the repo's `.gitignore`)
  *   - NOT a split epic page's `parts/` (they're shown inside their doc), nor an epic page's pre-2026-10-04 name
  *   - NOT a details page with questions, or a choice page:  they're answered on the page
- *   - NOT `templates/`, the saga pages (they have thoughts), Spell UI's docs or the brand pages
+ *   - NOT `templates/`, the parked goal sets in `goals/` (they have thoughts), Spell UI's docs or the brand pages
  *   - anything else:  `takesComments: false` to a GET, 403 to a POST;  no such page:  404;  bad input:  400
  * - every write:  under the inbox file's lock (`SRV.FileLock`), atomic;
  *   the page server announces the file's change, and every open copy of the page draws its comments again
@@ -84,11 +86,11 @@ const MAX_BODY = 64 * 1024
 const SET_FOLDERS = COMPONENT_SETS.map((set) => set.prefix.slice(1)).join("|")
 
 /**
- * A page that may take comments, by URL path:  under `guides/`, `pages/` or `epics/`, or a component set's short
- * address, on any checkout's mount.
+ * A page that may take comments, by URL path:  under `guides/`, `pages/`, `epics/` or `sagas/`, or a component set's
+ * short address, on any checkout's mount.
  */
 const COMMENTS_PAGE = new RegExp(
-  `^/(?:worktrees/[^/]+/)?(?:guides|pages|epics|${SET_FOLDERS})/(?:[^/]+/)*[^/]+\\.html$`
+  `^/(?:worktrees/[^/]+/)?(?:guides|pages|epics|sagas|${SET_FOLDERS})/(?:[^/]+/)*[^/]+\\.html$`
 )
 
 /**
@@ -97,8 +99,11 @@ const COMMENTS_PAGE = new RegExp(
  */
 const NO_COMMENTS = /\/parts\/[^/]+\.html$|\/_parts\/[^/]+\.html$|\/epics\/([^/]+)\/\1\.html$/
 
-/** An epic page, by its file:  its comments go in the epic's review inbox. */
-const PLAN_DOC = /\.plan\.html$/
+/**
+ * An epic page, by its file:  its comments go in the epic's review inbox.  A saga page too (epic `epic-workflow`
+ * P15):  an epic page of kind "saga", its comments in its own review inbox.
+ */
+const PLAN_DOC = /\.(?:plan|saga)\.html$/
 
 /**
  * Markup of a page answered on the page:  a details page's questions, `<epic-ask>`

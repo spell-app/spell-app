@@ -6,7 +6,7 @@ import { E, UI } from "$/ui/core"
 import { URGENT_SELECTOR, epicStateFor, type EpicState } from "$/server/site/EpicState"
 
 import { PlanDates } from "$/epics/dates"
-import { NOBODY_LISTENING, isAirplane, isImmediate } from "$/epics/review"
+import { NOBODY_LISTENING, SAGA_PREFIX, isAirplane, isImmediate } from "$/epics/review"
 // the page's view of the review inbox, as the review controls':  its file, not `epic-review`'s barrel
 import { ReviewState } from "$/epics/components/epic-review/ReviewState"
 // the fold and filter pieces the blocks share:  their files, not their families' barrels (which would define them here)
@@ -51,6 +51,7 @@ import {
   PROMPT,
   REVIEW_LINE,
   REVIEW_NOW,
+  SAGA_KIND,
   SEND,
   STACK_PROPERTY,
   STATUS,
@@ -155,6 +156,12 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  *   everything inside insets itself by `--epic-inset`.
  * - SHARED LOOK:  `EpicPage.css` declares the pack's tokens on its `:host`
  *   (`--epic-*`:  colours, bands, the inset, item state colours, the chip);  every `<epic-*>` below inherits them.
+ * - A SAGA PAGE (`kind="saga"`, epic `epic-workflow` P15):  the same page for a saga, `saga` naming it
+ *   - crumbs `DOCS / SAGAS / <ID>`;  a click on the id copies `/epic review SAGA:/<id>`, as the review line does
+ *   - no step label, state, Plan hung?, See Also or Agents running:  a saga has no phases, branch or agents
+ *   - one meta line, its short address (`SAGA:/drawable-spell`, copied on click), then its dates
+ *   - Send and the review line as on an epic page:  its marks and comments wait in its own inbox, for the session
+ *     running `/epic review SAGA:/<id>` (`reviewRoutes.ts`)
  * - SIDE EFFECT:  observes its subtree and the site header while connected;
  *   follows the page's review and agents clients.
  ****************/
@@ -199,7 +206,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
    * The page's view of the review inbox:  only `reviewing()` and the client are read here
    * (it's keyed by the epic's name, never an item's:  no mark is ever the page's).
    */
-  readonly review = new ReviewState(() => this.epic)
+  readonly review = new ReviewState(() => this.epic ?? this.saga)
 
   /** The review line, just copied:  it flashes and says so. */
   @E.state accessor isCopied = false
@@ -248,6 +255,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
 
   /** The step label by the phases alone:  the active one, else the next, DONE (STANDING) or FUTURE;  `undefined` for none. */
   private readonly phaseStep = createMemo((): StepLabel | undefined => {
+    if (this.isSaga) return undefined
     const phases = this.phases()
     if (!phases.length) {
       return this.future ? { color: "grey", icon: "seedling", words: this.translationForKey("future") } : undefined
@@ -268,7 +276,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   )
 
   /** Still planning:  no phases yet, and not a future epic.  The `Plan hung?` aside shows. */
-  readonly planning = createMemo(() => !this.future && this.phases().length === 0)
+  readonly planning = createMemo(() => !this.future && !this.isSaga && this.phases().length === 0)
 
   /**
    * The kickoff prompt as typed, for the `Plan hung?` aside to copy:  the Overview's `slot="prompt"`;
@@ -303,6 +311,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
    */
   readonly state = createMemo((): EpicState | undefined => {
     this.signals.layout.get()
+    if (this.isSaga) return undefined
     const phases = this.phases()
     const active = phases.find((phase) => phase.status === ACTIVE)
     const client = this.review.client
@@ -472,7 +481,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
    */
   @E.whileConnected
   protected followSeeAlso() {
-    if (isServer || location.protocol === "file:" || !this.epic) return undefined
+    if (isServer || location.protocol === "file:" || !this.epic || this.isSaga) return undefined
     const folder = `/epics/${this.epic}/`
     void this.loadSeeAlso()
     const onFile = (event: Event) => {
@@ -539,7 +548,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
               title={this.translationForKey("copyHeading", { command: this.headingCommand() })}
               onClick={() => this.copyHeading()}
             >
-              {this.epic}
+              {this.isSaga ? this.saga : this.epic}
             </button>
           </h1>
           <span class={STATUS} part={this.partForName("status")}>
@@ -580,11 +589,12 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
         </div>
         {this.reviewLine()}
         <Show when={this.hasPill()}>{this.pill()}</Show>
-        {this.metaLines()}
+        {this.isSaga ? this.sagaMetaLines() : this.metaLines()}
         <Show when={this.future}>{this.futureNotice()}</Show>
         <Show when={this.planning()}>{this.hungNotice()}</Show>
         <Show when={this.seeAlso.length}>{this.seeAlsoBox()}</Show>
-        <epic-agents part={this.partForName("agents")} />
+        {/* a saga has no agents of its own:  no list to ask for */}
+        {this.isSaga ? undefined : <epic-agents part={this.partForName("agents")} />}
         <slot />
       </div>
     )
@@ -606,8 +616,11 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
           <ui-breadcrumb-section href={CRUMB_LINKS.docs.href} target={CRUMB_LINKS.docs.target}>
             {this.translationForKey("crumbDocs")}
           </ui-breadcrumb-section>
-          <ui-breadcrumb-section href={CRUMB_LINKS.epics.href} target={CRUMB_LINKS.epics.target}>
-            {this.translationForKey("crumbEpics")}
+          <ui-breadcrumb-section
+            href={CRUMB_LINKS[this.isSaga ? "sagas" : "epics"].href}
+            target={CRUMB_LINKS[this.isSaga ? "sagas" : "epics"].target}
+          >
+            {this.translationForKey(this.isSaga ? "crumbSagas" : "crumbEpics")}
           </ui-breadcrumb-section>
         </ui-breadcrumb>
         <span class="crumb-divider" aria-hidden="true">
@@ -669,6 +682,36 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
             <b>{this.translationForKey("durable")}</b> <slot name={this.slotForName("durable")} />
           </span>
         </li>
+      </ul>
+    )
+  }
+
+  /** A saga page's meta lines:  its short address (copied on click, as every meta line's code), then its dates. */
+  private sagaMetaLines(): JSX.Element {
+    return (
+      <ul class={META} part={this.partForName("meta")} onClick={(event) => this.copyMeta(event)}>
+        <li>
+          {this.icon(this.icons.book)}
+          <span>
+            {this.translationForKey("sagaPage")} <code>{this.sagaAddress()}</code>
+          </span>
+        </li>
+        <Show when={this.started || this.updated}>
+          <li>
+            {this.icon(this.icons.calendar)}
+            <span>
+              <Show when={this.started}>
+                {this.translationForKey("started")}{" "}
+                <time datetime={this.started}>{PlanDates.format(this.started)}</time>
+              </Show>
+              <Show when={this.started && this.updated}>, </Show>
+              <Show when={this.updated}>
+                {this.translationForKey("updated")}{" "}
+                <time datetime={this.updated}>{PlanDates.format(this.updated)}</time>
+              </Show>
+            </span>
+          </li>
+        </Show>
       </ul>
     )
   }
@@ -866,14 +909,28 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     )
   }
 
-  /** `/epic resume <name>`:  what a click on the heading's name copies. */
+  /** `/epic resume <name>`:  what a click on the heading's name copies;  a saga page's, its review command. */
   private headingCommand(): string {
-    return `/epic resume ${this.epic ?? ""}`
+    return this.isSaga ? `/epic review ${this.sagaAddress()}` : `/epic resume ${this.epic ?? ""}`
   }
 
-  /** What the review line copies:  `/epic review <name>`, or `/airplane land` in airplane mode. */
+  /**
+   * What the review line copies:  `/epic review <name>` (a saga page's `/epic review SAGA:/<id>`), or
+   * `/airplane land` in airplane mode.
+   */
   private command(): string {
-    return isAirplane() ? AIRPLANE_LAND : `/epic review ${this.epic ?? ""}`
+    if (isAirplane()) return AIRPLANE_LAND
+    return `/epic review ${this.isSaga ? this.sagaAddress() : (this.epic ?? "")}`
+  }
+
+  /** A saga page's short address, as `/epic review` and the `epic` tool take it:  `SAGA:/drawable-spell`. */
+  private sagaAddress(): string {
+    return `${SAGA_PREFIX}${this.saga ?? ""}`
+  }
+
+  /** A saga page (`kind="saga"`):  a saga's page, not an epic's. */
+  get isSaga(): boolean {
+    return this.kind === SAGA_KIND
   }
 
   /** The git toggle:  a round icon button, pressed while every commit shows. */

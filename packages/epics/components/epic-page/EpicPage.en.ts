@@ -12,7 +12,8 @@ import { FILTER_TEXTS } from "$/epics/components/epic-section/EpicSection.types"
 
 /****************
  * ### `<epic-page>`
- * An epic page:  one epic's page.
+ * An epic page:  one epic's page.  Or, `kind="saga"`, a SAGA page (epic `epic-workflow` P15):  one saga's page,
+ * built of the same elements.
  ****************/
 export const epicPageVocabulary = {
   tag: "epic-page",
@@ -23,14 +24,25 @@ export const epicPageVocabulary = {
   ui: false,
   description:
     "An epic page:  one epic's page -- its crumbs, header and meta lines, the Overview, then its sections in a fixed " +
-    "order.  Runs edge to edge:  it breaks out of the docs' `<main>` padding (`--spell-doc-pad-inline`).",
+    "order.  Runs edge to edge:  it breaks out of the docs' `<main>` padding (`--spell-doc-pad-inline`).  With " +
+    '`kind="saga"`, a saga page:  the saga\'s crumbs and header, its Overview, Epics, Questions, Todos and Log.',
   attributes: [
     {
       name: "epic",
       kind: "string",
-      required: true,
       format: "epic name",
-      description: "The epic's name:  its folder in `epics/`, and its branch's (`epic-components`)."
+      description:
+        "The epic's name:  its folder in `epics/`, and its branch's (`epic-components`).  On every epic page;  " +
+        'absent on a saga page (`kind="saga"`), which `saga` names instead.'
+    },
+    {
+      name: "kind",
+      // a string, not an enum:  `<epic-section kind>`'s enum and this one would type `EpicData` of any tag as never
+      kind: "string",
+      description:
+        "What kind of page:  absent, an epic page;  `saga`, a SAGA page (epic `epic-workflow` P15), " +
+        "`sagas/<id>/<id>.saga.html`:  `saga` names it, its crumbs say `Docs / Sagas`, its review command is " +
+        "`/epic review SAGA:/<id>`, and it has no phases, branch, worktree or step label."
     },
     {
       name: "title",
@@ -62,6 +74,14 @@ export const epicPageVocabulary = {
       description:
         "A STANDING epic (epic `epic-workflow`):  open for good, a home that requests from other sessions keep " +
         "adding phases to;  each phase merges into `main` on its own, and every phase done is NOT done."
+    },
+    {
+      name: "saga",
+      kind: "string",
+      format: "saga id",
+      description:
+        "The saga this epic serves, by id (`drawable-spell`;  epic `epic-workflow` P15):  one of `sagas/sagas.json`'s, " +
+        "set by `epic saga set`.  Drawn in the meta lines, a link to its saga page;  absent:  no saga."
     },
     {
       name: "bedtime",
@@ -228,6 +248,12 @@ export const epicPageVocabulary = {
     { key: "seeAlsoChoices", text: "choice", description: "A See Also page's kind:  a choice page." },
     { key: "crumbDocs", text: "Docs", description: "The crumbs' first:  the docs' home page." },
     { key: "crumbEpics", text: "Epics", description: "The crumbs' second:  the Epics list page." },
+    { key: "crumbSagas", text: "Sagas", description: "A saga page's crumbs' second:  the Sagas list page." },
+    {
+      key: "sagaPage",
+      text: "Saga page:",
+      description: "A saga page's meta line, before its short address (`SAGA:/drawable-spell`, copied on click)."
+    },
     { key: "planDoc", text: "Epic page for", description: "Meta line:  `Epic page for /epic x, branch x`." },
     { key: "branch", text: "branch", description: "Meta line:  before the branch's name." },
     { key: "futureEpic", text: "Future epic:", description: "Meta line of a future epic." },
@@ -338,6 +364,13 @@ export const epicPageVocabulary = {
       tag: "epic-section",
       where: { attribute: "kind", values: ["report"] },
       description: "Reports a run wrote (an overnight `/bedtime` report), after the Overview:  unnumbered."
+    },
+    {
+      tag: "epic-section",
+      where: { attribute: "kind", values: ["epics"] },
+      when: { attribute: "kind", values: ["saga"] },
+      max: 1,
+      description: "A saga page's Epics, after its Overview:  the cards of the epics serving it."
     },
     { tag: "epic-section", where: { attribute: "kind", values: ["phases"] }, max: 1, description: "2. Phases." },
     {

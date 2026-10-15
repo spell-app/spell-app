@@ -169,6 +169,7 @@ export type FoldAttributes = {
  * `overview-part` has neither:  its title is its own.
  */
 export const SECTION_LOOKS = {
+  epics: { icon: "map", title: "epicsTitle" },
   phases: { icon: "layer group", title: "phasesTitle" },
   questions: { icon: "file circle question", title: "questionsTitle" },
   judgements: { icon: "gavel", title: "judgementsTitle" },

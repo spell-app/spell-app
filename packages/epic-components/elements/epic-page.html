@@ -127,10 +127,10 @@
                 meta lines: the branch, the worktree, <code>Started 10/1/26, updated 10/7/26</code>
               </li>
               <li>
-                served by the page server, a See Also box above the blocks: the epic's guide, every page it made
-                for itself in its <code>details/</code> folder (details pages, choice pages, its review page), then
-                every guide its page and parts link to, each with its kind's icon and word (guide, details,
-                choices, guide)
+                served by the page server, a See Also box above the blocks: the epic's guide, every page it made for
+                itself in its <a href="../../pages/details/" target="src-pages-details"><code>details/</code></a> folder
+                (details pages, choice pages, its review page), then every guide its page and parts link to, each with
+                its kind's icon and word (guide, details, choices, guide)
               </li>
               <li>
                 no Send or Review Now: they show only while an epic page is being reviewed through the page server
@@ -258,6 +258,16 @@
                     <tr>
                       <td>
                         <a href="epic-section.html" target="src-packages-epic-components-elements-epic-section-html"
+                          ><code>&lt;epic-section kind="epics"&gt;</code></a
+                        >
+                      </td>
+                      <td>a saga page only</td>
+                      <td>one at most</td>
+                      <td>A saga page's Epics, after its Overview: the cards of the epics serving it.</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <a href="epic-section.html" target="src-packages-epic-components-elements-epic-section-html"
                           ><code>&lt;epic-section kind="phases"&gt;</code></a
                         >
                       </td>
@@ -360,9 +370,31 @@
                     <td>text: epic name</td>
                     <td>
                       The epic's name: its folder in <a href="../../epics/" target="src-epics"><code>epics/</code></a
-                      >, and its branch's (<code>epic-components</code>).
+                      >, and its branch's (<code>epic-components</code>). Absent on a saga page, which
+                      <code>saga</code> names instead.
                     </td>
-                    <td>yes</td>
+                    <td>on an epic page</td>
+                  </tr>
+                  <tr>
+                    <td><code>kind</code></td>
+                    <td>text: <code>saga</code></td>
+                    <td>
+                      Absent: an epic page. <code>saga</code>: a saga page (epic <code>epic-workflow</code> P15), see
+                      "7. As a saga page".
+                    </td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><code>saga</code></td>
+                    <td>text: saga id</td>
+                    <td>
+                      On an epic page, the saga it serves (<code>drawable-spell</code>); on a saga page, the saga it is.
+                      One of
+                      <a href="../../sagas/sagas.json" target="src-sagas-sagas-json"
+                        ><code title="sagas/sagas.json">sagas.json</code></a
+                      >'s ids.
+                    </td>
+                    <td>on a saga page</td>
                   </tr>
                   <tr>
                     <td>
@@ -564,9 +596,9 @@
                       <td><code>see-also</code></td>
                       <td>
                         Above the blocks: the pages the epic made or leans on (its guide, its
-                        <code>details/</code> folder, the guides it links), each a link with its kind (an
-                        <code>li[data-kind]</code>), gathered by the page server's <code>GET /api/epics/pages</code>.
-                        None, no box.
+                        <a href="../../pages/details/" target="src-pages-details"><code>details/</code></a> folder, the
+                        guides it links), each a link with its kind (an <code>li[data-kind]</code>), gathered by the
+                        page server's <code>GET /api/epics/pages</code>. None, no box.
                       </td>
                     </tr>
                     <tr>
@@ -728,6 +760,61 @@
                 >, "The page".
               </li>
             </ul>
+          </ui-section>
+
+          <ui-section id="7-saga-page" header="7. As a saga page" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="map"></ui-icon>
+            <p>
+              With <code>kind="saga"</code> it's a SAGA page (epic <code>epic-workflow</code> P15): one saga's page,
+              <code>sagas/&lt;id&gt;/&lt;id&gt;.saga.html</code>, built of the same elements, so its items, marks,
+              comments and Send work as an epic page's.
+            </p>
+            <ul>
+              <li>Crumbs <code>DOCS / SAGAS / &lt;ID&gt;</code>; a click on the id copies its review command.</li>
+              <li>
+                One meta line, its short address (<code>SAGA:/drawable-spell</code>, copied on click), then its dates.
+              </li>
+              <li>No step label, state, Plan hung?, See Also or Agents running: a saga has no phases or branch.</li>
+              <li>
+                Send and the review line as on an epic page. Its marks and comments wait in its own inbox, beside it,
+                for the session running <code>/epic review SAGA:/&lt;id&gt;</code>.
+              </li>
+              <li>
+                Its sections: the Overview (the saga's purpose, Done so far, Ideas not done yet), Epics (<a
+                  href="epic-cards.html"
+                  target="src-packages-epic-components-elements-epic-cards-html"
+                  ><code>&lt;epic-cards&gt;</code></a
+                >), Questions, Todos, Log.
+              </li>
+              <li>
+                Made by <code>epic saga page &lt;id&gt;</code> from the tool's
+                <a
+                  href="../../packages/epics/src/tool/templates/saga.html"
+                  target="src-packages-epics-src-tool-templates-saga-html"
+                  ><code title="packages/epics/src/tool/templates/saga.html">saga.html</code></a
+                >; every <code>epic</code> verb edits it as <code>SAGA:/&lt;id&gt;</code>.
+              </li>
+            </ul>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>A saga page's markup · 13 lines</ui-title>
+              <ui-content>
+                <ui-code language="html"
+                  ><script type="text/plain">
+                    <epic-page kind="saga" saga="epics" title="Epic Tooling" started="2026-10-14" updated="2026-10-14">
+                      <epic-overview id="overview">
+                        <epic-summary>Epics:  their pages, the review loop, comments, agents, and the skills around them.</epic-summary>
+                        <epic-section id="o1" kind="overview-part" title="Done so far">...</epic-section>
+                        <epic-section id="o2" kind="overview-part" title="Ideas not done yet">...</epic-section>
+                      </epic-overview>
+                      <epic-section id="epics" kind="epics"><epic-cards saga="epics"></epic-cards></epic-section>
+                      <epic-section id="decisions" kind="questions"></epic-section>
+                      <epic-section id="todos" kind="todos"></epic-section>
+                      <epic-section id="log" kind="log">...</epic-section>
+                    </epic-page>
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
           </ui-section>
           <footer class="site-page-footer">
             <ui-divider></ui-divider>

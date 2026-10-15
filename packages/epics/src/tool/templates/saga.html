@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Saga Page Template</title>
+    <meta name="description" content="Saga page template:  copied by `epic saga page <id>`." />
+    <link rel="stylesheet" href="../../packages/docs/tools/_assets/spell-doc.css" />
+  </head>
+  <body data-spell-needs-server class="spell-doc-page plan-doc spell-wide">
+    <ui-root>
+      <ui-components source="../../packages/epics/pack/epics.pack.js"></ui-components>
+      <spell-site-header root="../.."></spell-site-header>
+      <div class="spell-doc">
+        <main class="spell-doc-main">
+          <!--
+            SAGA PAGE TEMPLATE.  NEVER copy by hand:  `epic saga page <id>` fills the {{placeholders}}.
+            - A saga page is an epic page of kind "saga" (epic `epic-workflow` P15):  the same <epic-*> markup,
+              so its items, marks, comments and Send work as an epic page's (templates/epics/plan-doc.md, "Saga pages").
+            - Its sections, in this order:  the Overview (the saga's purpose, Done so far, Ideas not done yet),
+              Epics (cards drawn from the page server), Questions, Todos, Log.
+          -->
+          <epic-page kind="saga" saga="{{id}}" title="{{title}}" started="{{date}}" updated="{{date}}">
+            <epic-overview id="overview">
+              <epic-summary>{{purpose}}</epic-summary>
+              <epic-section id="o1" kind="overview-part" title="Done so far">
+                <p>What its epics have built so far: a line each, linked to its epic page.</p>
+              </epic-section>
+              <epic-section id="o2" kind="overview-part" title="Ideas not done yet">
+                <p>Ideas for it that no epic has built yet.</p>
+              </epic-section>
+            </epic-overview>
+            <epic-section id="epics" kind="epics">
+              <epic-cards saga="{{id}}"></epic-cards>
+            </epic-section>
+            <epic-section id="decisions" kind="questions"></epic-section>
+            <epic-section id="todos" kind="todos"></epic-section>
+            <epic-section id="log" kind="log">
+              <epic-event at="{{at}}">saga page created</epic-event>
+            </epic-section>
+          </epic-page>
+        </main>
+      </div>
+    </ui-root>
+    <script src="../../packages/docs/tools/_assets/highlight.min.js"></script>
+    <script src="../../packages/docs/tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

@@ -84,6 +84,34 @@ once an epic page is in the `<epic-*>` markup (epic `epic-components`, P8).
     - `<p slot="summary">`, `<blockquote slot="prompt">`
     - `prompt <name>` turns the old quote into an `<epic-prompt>`, where it stood.
 
+### A saga page
+
+A SAGA PAGE is an epic page of kind "saga" (epic `epic-workflow` P15):
+one saga's page, `sagas/<id>/<id>.saga.html`, in the same markup, so the tool edits it as any epic page.
+
+```html
+<epic-page kind="saga" saga="epics" title="Epic Tooling" started="2026-10-14" updated="2026-10-14">
+  <epic-overview id="overview">
+    <epic-summary>The saga's purpose, from sagas/sagas.json.</epic-summary>
+    <epic-section id="o1" kind="overview-part" title="Done so far">...</epic-section>
+    <epic-section id="o2" kind="overview-part" title="Ideas not done yet">...</epic-section>
+  </epic-overview>
+  <epic-section id="epics" kind="epics"><epic-cards saga="epics"></epic-cards></epic-section>
+  <epic-section id="decisions" kind="questions">...</epic-section>
+  <epic-section id="todos" kind="todos">...</epic-section>
+  <epic-section id="log" kind="log">...</epic-section>
+</epic-page>
+```
+
+- `saga` names it;  no `epic`, `branch` or `worktree`, and no phases.
+- Made by `epic saga page <id> [--force]`, from the tool's `templates/saga.html`:  one file, not split.
+- Named to every verb by its short address:  `epic add SAGA:/epics#T "..."`, `epic inbox SAGA:/epics wait`,
+  `epic check SAGA:/epics`.
+- `<epic-section kind="epics">` is a saga page's alone:  its `<epic-cards>` draws the epics whose
+  `<epic-page saga>` names the saga, from the page server.
+- Its marks and comments wait in its own inbox, `<id>.inbox.json` beside it;
+  `/epic review SAGA:/<id>` takes them.
+
 ## Ids
 
 As `plan-doc.md`, "Ids":

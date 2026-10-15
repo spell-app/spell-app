@@ -36,6 +36,20 @@ export const REVIEW_API = "/api/review"
  */
 export const PLAN_DOC_PAGE = /\/(?:packages\/docs\/content\/)?epics\/([^/]+)\/\1\.plan\.html$/
 
+/**
+ * A SAGA page's own path, `.../sagas/<id>/<id>.saga.html` (epic `epic-workflow` P15):  the routes review it too,
+ * its marks and comments in its own inbox beside it (`reviewRoutes.ts` `SAGA_PAGE`, the same rule).
+ */
+export const SAGA_PAGE = /\/sagas\/([^/]+)\/\1\.saga\.html$/
+
+/**
+ * How a saga page is NAMED to `/epic review` and the `epic` tool:  its short address, `SAGA:/<id>`
+ * (`/epic review SAGA:/drawable-spell`, `epic inbox SAGA:/drawable-spell wait`, `epic add SAGA:/drawable-spell#T`).
+ * - a saga id may be an epic's name too (`output-targets`):  the prefix says which page
+ * - REFACTOR:  one resolver for every `SAGA:/` address once epic `epic-workflow` P15's `<epic-link>` work lands
+ */
+export const SAGA_PREFIX = "SAGA:/"
+
 /** How often a VISIBLE page re-reads its inbox, so what Claude does to it shows. */
 export const REVIEW_POLL_MS = 4000
 

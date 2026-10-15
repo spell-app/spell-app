@@ -94,6 +94,10 @@ export function epicProgram(handOver: () => Promise<never>): Command {
     epic.command("new"),
     "make an epic page from the template;  --future:  an idea for later, not planned yet"
   ).usage('<epic> [--title "Title"] [--prompt "text" | --prompt-file <file>] [--future]')
+  // a saga's page (epic `epic-workflow` P15);  REFACTOR:  `saga page` joins `saga`'s other verbs once they're merged
+  page(epic.command("saga"), "a saga's page:  page <id> makes sagas/<id>/<id>.saga.html from the template").usage(
+    "page <id> [--force]"
+  )
   page(epic.command("list"), "every epic:  in progress, future or done, where it runs, items not reviewed").usage(
     "[--json]"
   )
@@ -332,6 +336,7 @@ Naming what a verb acts on:
   seo#J3      an item:  J3 (a comment, seo#cm3, too)
   seo#P3      a phase:  P3 (seo#3 too)
   seo#J       a new item of that kind, for add:  epic add seo#J "Title"
+  SAGA:/epics a saga's page, sagas/epics/epics.saga.html:  epic add SAGA:/epics#T "Title"
 
 Examples:
   epic summary seo

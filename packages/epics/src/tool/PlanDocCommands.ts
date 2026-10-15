@@ -18,6 +18,7 @@ import type { PlanReader } from "./PlanReader"
 import { PlanTime } from "./PlanTime"
 import { ReviewBackfill } from "./ReviewBackfill"
 import { LISTEN_HEARTBEAT_MS, LISTEN_STALE_MS, ReviewInbox } from "./ReviewInbox"
+import { SagaPage } from "./SagaPage"
 
 /****************
  * ### `PlanDocCommands`
@@ -99,6 +100,8 @@ export class PlanDocCommands {
     if (command === "convert") return this.convert(positional.slice(1), flags)
     if (command === "split" && flags.done) return this.splitDone(flags)
     if (!command || !name) return this.usage()
+    // a saga's page (epic `epic-workflow` P15);  REFACTOR:  into `saga`'s own verbs once they're merged
+    if (command === "saga" && name === "page") return this.sagaPage(rest, flags)
     if (command === "summaries") return this.printSummaries(positional.slice(1))
     // the shared doc, by THIS checkout's path (`findDoc()`);  `--here` meant that before every checkout shared one
     // copy:  accepted and ignored, so old callers keep working (T3 of `review-review`)
@@ -369,6 +372,16 @@ export class PlanDocCommands {
     // split from the start (J... of `claude-design`):  a doc being planned is the one edited most, so it gains most
     await files.writeDoc(file, plan, true)
     files.reindex()
+    this.print(relative(process.cwd(), file))
+  }
+
+  /**
+   * `saga page <id> [--force]`:  saga `id`'s page from the template (`SagaPage.make()`), then the docs index;  prints
+   * its path.
+   */
+  private async sagaPage([id]: string[], { force }: Flags): Promise<void> {
+    const file = await new SagaPage(this.files).make(need(id, "a saga id"), { force: Boolean(force) })
+    this.files.reindex()
     this.print(relative(process.cwd(), file))
   }
 
@@ -874,6 +887,9 @@ export const USAGE = `usage:  spell dev plan-doc <command> <name> ...    (doc:  
   commits <name> --backfill                        list every phase / item commit in the doc's git history
                                                    (subjects "P3:  Name -- summary", "Fix I3:  ...")
   log <name> "text"                                timestamped line in the log
+  saga page <id> [--force]                         a saga's page, sagas/<id>/<id>.saga.html, from the template:
+                                                   its title and purpose from sagas/sagas.json;  --force remakes
+                                                   it;  every verb above edits it as SAGA:/<id> (epic-workflow P15)
   bedtime <name> start "P3-P6"  /  done "summary"  a /bedtime run:  bedtime mode on (every change stays green
                                                    until reviewed) / off;  both logged
   overnight <name> remove                          an older doc's Overnight report section (before 2026-10-05):

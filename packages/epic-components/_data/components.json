@@ -365,6 +365,100 @@
       ]
     },
     {
+      "tag": "epic-cards",
+      "name": "epic-cards",
+      "folder": "epic-cards",
+      "mainTag": "epic-cards",
+      "main": true,
+      "page": true,
+      "href": "elements/epic-cards.html",
+      "topics": [
+        "page"
+      ],
+      "aka": [
+        "epic cards",
+        "saga epics",
+        "epics list"
+      ],
+      "description": "A saga page's Epics (epic `epic-workflow` P15):  a card for each epic whose page names the saga (`<epic-page saga>`), grouped by state as on the Epics page.  Drawn from the page server (`GET /api/epics/saga`), and asked again whenever an epic page changes, so it never goes stale.",
+      "noun": "cards",
+      "attributes": [
+        {
+          "name": "saga",
+          "kind": "string",
+          "description": "The saga whose epics it shows:  `drawable-spell`."
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "parts": [
+        {
+          "name": "base",
+          "description": "The box around the groups."
+        },
+        {
+          "name": "group",
+          "description": "One group:  its heading (icon, title, how many), then its cards."
+        },
+        {
+          "name": "card",
+          "description": "One epic's card:  its state's mark, linked title, summary and meta line."
+        },
+        {
+          "name": "note",
+          "description": "Instead of cards:  no epic names the saga yet, the page opened from disk, or no answer."
+        }
+      ],
+      "states": [],
+      "texts": [
+        {
+          "key": "label",
+          "text": "The saga's epics",
+          "description": "The whole list, spoken."
+        },
+        {
+          "key": "activeTitle",
+          "text": "Active",
+          "description": "A group:  phases left."
+        },
+        {
+          "key": "planningTitle",
+          "text": "Planning",
+          "description": "A group:  future epics, and ones with no phases yet."
+        },
+        {
+          "key": "urgentTitle",
+          "text": "Urgent",
+          "description": "A group:  every phase done, items waiting on Owen."
+        },
+        {
+          "key": "doneTitle",
+          "text": "Done",
+          "description": "A group:  every phase done, nothing waiting."
+        },
+        {
+          "key": "phases",
+          "text": "{count} phases",
+          "description": "A card's meta line:  phases done of all (`6/8`)."
+        },
+        {
+          "key": "none",
+          "text": "No epic names this saga yet:  epic saga set <epic> {saga}",
+          "description": "No epic page names the saga."
+        },
+        {
+          "key": "file",
+          "text": "The epics show when the page is served:  spell dev docs open this page.",
+          "description": "Opened from disk:  only the page server knows the epics."
+        },
+        {
+          "key": "server",
+          "text": "Couldn't ask the page server for the epics.",
+          "description": "The page server didn't answer, or has no such route yet."
+        }
+      ]
+    },
+    {
       "tag": "epic-choice-row",
       "name": "epic-choice-row",
       "folder": "epic-choice-row",
@@ -2307,13 +2401,18 @@
         "plan",
         "project plan"
       ],
-      "description": "An epic page:  one epic's page -- its crumbs, header and meta lines, the Overview, then its sections in a fixed order.  Runs edge to edge:  it breaks out of the docs' `<main>` padding (`--spell-doc-pad-inline`).",
+      "description": "An epic page:  one epic's page -- its crumbs, header and meta lines, the Overview, then its sections in a fixed order.  Runs edge to edge:  it breaks out of the docs' `<main>` padding (`--spell-doc-pad-inline`).  With `kind=\"saga\"`, a saga page:  the saga's crumbs and header, its Overview, Epics, Questions, Todos and Log.",
       "noun": "page",
       "attributes": [
         {
           "name": "epic",
           "kind": "string",
-          "description": "The epic's name:  its folder in `epics/`, and its branch's (`epic-components`)."
+          "description": "The epic's name:  its folder in `epics/`, and its branch's (`epic-components`).  On every epic page;  absent on a saga page (`kind=\"saga\"`), which `saga` names instead."
+        },
+        {
+          "name": "kind",
+          "kind": "string",
+          "description": "What kind of page:  absent, an epic page;  `saga`, a SAGA page (epic `epic-workflow` P15), `sagas/<id>/<id>.saga.html`:  `saga` names it, its crumbs say `Docs / Sagas`, its review command is `/epic review SAGA:/<id>`, and it has no phases, branch, worktree or step label."
         },
         {
           "name": "title",
@@ -2350,6 +2449,11 @@
           "name": "standing",
           "kind": "boolean",
           "description": "A STANDING epic (epic `epic-workflow`):  open for good, a home that requests from other sessions keep adding phases to;  each phase merges into `main` on its own, and every phase done is NOT done."
+        },
+        {
+          "name": "saga",
+          "kind": "string",
+          "description": "The saga this epic serves, by id (`drawable-spell`;  epic `epic-workflow` P15):  one of `sagas/sagas.json`'s, set by `epic saga set`.  Drawn in the meta lines, a link to its saga page;  absent:  no saga."
         },
         {
           "name": "bedtime",
@@ -2538,6 +2642,16 @@
           "key": "crumbEpics",
           "text": "Epics",
           "description": "The crumbs' second:  the Epics list page."
+        },
+        {
+          "key": "crumbSagas",
+          "text": "Sagas",
+          "description": "A saga page's crumbs' second:  the Sagas list page."
+        },
+        {
+          "key": "sagaPage",
+          "text": "Saga page:",
+          "description": "A saga page's meta line, before its short address (`SAGA:/drawable-spell`, copied on click)."
         },
         {
           "key": "planDoc",
@@ -3241,7 +3355,7 @@
         "chapter",
         "panel"
       ],
-      "description": "One section of an epic page, by `kind`:  its phases, its items or its log;  or, inside `<epic-overview>`, one of the Overview's sub-sections (`overview-part`), which gets review notes as items do;  or a report a run wrote (`report`:  an overnight `/bedtime` report), after the Overview, unnumbered.",
+      "description": "One section of an epic page, by `kind`:  its phases, its items or its log;  or, inside `<epic-overview>`, one of the Overview's sub-sections (`overview-part`), which gets review notes as items do;  or a report a run wrote (`report`:  an overnight `/bedtime` report), after the Overview, unnumbered;  or a saga page's Epics (`epics`:  the cards of the epics serving it, an `<epic-cards>`).",
       "noun": "section",
       "attributes": [
         {
@@ -3255,6 +3369,7 @@
           "kind": "enum",
           "values": [
             "overview-part",
+            "epics",
             "phases",
             "questions",
             "judgements",
@@ -3265,7 +3380,7 @@
             "log",
             "report"
           ],
-          "description": "What it holds:  `phases` its `<epic-phase>`s;  `questions` ... `tests` its `<epic-item>`s;  `log` its `<epic-event>`s;  `overview-part` and `report` prose."
+          "description": "What it holds:  `phases` its `<epic-phase>`s;  `questions` ... `tests` its `<epic-item>`s;  `log` its `<epic-event>`s;  `overview-part` and `report` prose;  `epics` (a saga page's) its `<epic-cards>`."
         },
         {
           "name": "title",
@@ -3437,6 +3552,10 @@
           "key": "collapseAll",
           "text": "Fold everything in {name}",
           "description": "The collapse-all button's name and tooltip;  `name` its title (`3. Questions`)."
+        },
+        {
+          "key": "epicsTitle",
+          "text": "Epics"
         },
         {
           "key": "phasesTitle",
@@ -4324,6 +4443,18 @@
       "docs": false,
       "tags": [
         "epic-ask"
+      ],
+      "tokens": []
+    },
+    "epic-cards": {
+      "folder": "epic-cards",
+      "mainTag": "epic-cards",
+      "title": "<epic-cards>",
+      "summary": "The <epic-cards> element: a saga page's Epics, a card per epic serving the saga, grouped by state.",
+      "status": "done",
+      "docs": false,
+      "tags": [
+        "epic-cards"
       ],
       "tokens": []
     },

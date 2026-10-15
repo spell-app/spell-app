@@ -114,6 +114,38 @@ describe("<epic-page>", () => {
     expect(label.textContent).toContain("Bedtime P3-P6")
   })
 
+  // epic `epic-workflow` P15:  a saga's page, from the same elements
+  test("a saga page:  crumbs DOCS / SAGAS / <id>, its short address in the meta lines, its review command;  no step label, Plan hung?, See Also or agents", async () => {
+    const fetched = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ pages: [] })))
+    const host = await render(
+      `<epic-page kind="saga" saga="epics" title="Epic Tooling" started="2026-10-14" updated="2026-10-14">` +
+        `<epic-overview id="overview"><epic-summary>Epics.</epic-summary></epic-overview>` +
+        `<epic-section id="todos" kind="todos"></epic-section></epic-page>`
+    )
+    const shadow = host.shadowRoot!
+    expect(shadow.querySelector("h1 button")!.textContent).toBe("epics")
+    expect(shadow.querySelector("h1 button")!.getAttribute("title")).toBe("Copy /epic review SAGA:/epics")
+    const crumbs = Array.from(shadow.querySelectorAll("ui-breadcrumb-section"), (crumb) => [
+      crumb.textContent,
+      crumb.getAttribute("href")
+    ])
+    expect(crumbs).toEqual([
+      ["Docs", "../../pages/index.html"],
+      ["Sagas", "../../sagas/index.html"]
+    ])
+    const lines = Array.from(shadow.querySelectorAll('[part~="meta"] > li'), (li) =>
+      li.textContent!.replace(/\s+/g, " ").trim()
+    )
+    expect(lines).toEqual(["Saga page: SAGA:/epics", "Started 10/14/26, updated 10/14/26"])
+    expect(shadow.querySelector('[part~="review-line"] code')!.textContent).toBe("/epic review SAGA:/epics")
+    expect(step(host)).toBeUndefined()
+    expect(shadow.querySelector('[part~="hung"]')).toBeNull()
+    expect(shadow.querySelector("epic-agents")).toBeNull()
+    expect(fetched).not.toHaveBeenCalledWith(expect.stringContaining("/api/epics/pages"))
+    fetched.mockRestore()
+    await expectAccessible(host)
+  })
+
   test("a doc still planning:  the folded `Plan hung?` aside with its prompt to copy;  gone with the first phase", async () => {
     const host = await render(
       page("", []).replace(
