@@ -77,6 +77,13 @@ describe("Sagas guides", () => {
     expect(Sagas.sagaOf(page)).toBeNull()
   })
 
+  test("a description holding a `>` keeps it:  the saga goes after the whole meta", () => {
+    const angled = page.replace(`content="d"`, `content="on <epic-*>\n      markup"`)
+    expect(Sagas.withSaga(angled, "epics")).toBe(
+      angled.replace(`markup"\n    />\n`, `markup"\n    />\n    <meta name="spell-saga" content="epics" />\n`)
+    )
+  })
+
   test("every guide, by path, with the saga it names;  not the list page, nor experiments", () => {
     mkdirSync(join(root, "guides/topic/experiments"), { recursive: true })
     writeFileSync(join(root, "guides/index.html"), page)

@@ -239,8 +239,11 @@ const SAGA_META = /(<meta\s+name="spell-saga"\s+content=")([^"]*)("[^>]*>)/
 /** The saga meta's whole line, its line break with it. */
 const SAGA_META_LINE = /\n[ \t]*<meta\s+name="spell-saga"[^>]*>/
 
-/** The description meta's line:  `$1` its indent. */
-const DESCRIPTION_LINE = /^([ \t]*)<meta\s+name="description"[^>]*>/m
+/**
+ * The description meta, over however many lines:  `$1` its indent.
+ * - attribute by attribute, quotes and all:  its text may hold a `>` (`<epic-*>`), which ends no tag
+ */
+const DESCRIPTION_LINE = /^([ \t]*)<meta\s+name="description"(?:\s+[\w-]+="[^"]*")*\s*\/?>/m
 
 /** The `<title>` line:  `$1` its indent. */
 const TITLE_LINE = /^([ \t]*)<title>[^<]*<\/title>/m
