@@ -37,13 +37,26 @@ const SPELL_STYLE = { quote: "double", quoteKeys: true, trailingComma: false } a
  * - every comment, and every key `value` keeps, where it was
  * - a key `value` leaves out, gone;  a new one added at the end
  * - An empty `source`:  `value` alone, two-space indented.
+ * - A `null` anywhere in `value` is written as `null`:  json5-writer throws on one (it takes one for an object), so
+ *   each goes in as a placeholder string, turned back in the text (`NULL`;  epic `epic-workflow` I22)
  */
 export function json5Edited(source: string, value: object): string {
   if (!source.trim()) return `${JSON.stringify(value, null, 2)}\n`
   const writer = json5Writer.load(source)
-  writer.write(value)
-  const text = writer.toSource(SPELL_STYLE)
+  writer.write(withoutNulls(value))
+  const text = writer.toSource(SPELL_STYLE).replaceAll(`"${NULL}"`, "null")
   return text.endsWith("\n") ? text : `${text}\n`
+}
+
+/** What json5-writer is given for a `null`, which it can't write (`withoutNulls()`), then replaced in the text. */
+const NULL = "__json5-writer:null__"
+
+/** `value` with every `null` in it, at any depth, the placeholder `NULL`:  a copy. */
+function withoutNulls(value: unknown): unknown {
+  if (value === null) return NULL
+  if (Array.isArray(value)) return value.map(withoutNulls)
+  if (typeof value !== "object") return value
+  return Object.fromEntries(Object.entries(value).map(([key, each]) => [key, withoutNulls(each)]))
 }
 
 /**

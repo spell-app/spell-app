@@ -1,6 +1,8 @@
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+
+import JSON5 from "json5"
 import { afterEach, describe, expect, test } from "vite-plus/test"
 
 import { json5Edited, keepingComments, keepingCommentsIn, readJSON5File } from "$/assembler/json5"
@@ -49,6 +51,13 @@ describe("json5Edited()", () => {
     expect(json5Edited(source, { name: "O", age: 50 })).toBe(
       '{\n  // who\n  "name": "O", // first name\n  "age": 50\n}\n'
     )
+  })
+
+  test("a null is written as null, at any depth, where json5-writer alone throws (I22)", () => {
+    const source = '{\n  // who listens\n  "listening": "a",\n  "marks": { "j1": "x" }\n}\n'
+    const edited = json5Edited(source, { listening: null, marks: { j1: null } })
+    expect(edited).toContain("// who listens")
+    expect(JSON5.parse(edited)).toEqual({ listening: null, marks: { j1: null } })
   })
 
   test("an empty source:  the value alone, two-space indented", () => {

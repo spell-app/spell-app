@@ -24,8 +24,6 @@ import { json5Edited } from "../../../assembler/src/json5.ts"
  *   a checkout on older code wrote it, and `epic migrate` renames the ones already there.
  * - WRITTEN only as `.json5`, keeping every comment Owen added by hand (the assembler's `json5Edited()`, on
  *   json5-writer), and the old `.json` beside it removed:  one file, one name.
- *   - json5-writer throws on a `null` (it takes one for an object):  each goes in as a placeholder string, turned
- *     back into `null` in the text (`NULL`)
  * - Laid out as `JSON.stringify(value, null, 2)` would, comments where they were (`layout()`), so json5-writer's own
  *   layout (an object hugging its array's bracket, a blank line before each new key) never piles up save after save.
  *   A file with no comments is written exactly as `JSON.stringify()` wrote it before.
@@ -96,7 +94,7 @@ export class DataFile {
   static textFor(source: string, value: unknown): string {
     const json = JSON.stringify(value, null, 2)
     if (!hasComment(source)) return `${json}\n`
-    const edited = json5Edited(source, withoutNulls(JSON.parse(json)) as object).replaceAll(`"${NULL}"`, "null")
+    const edited = json5Edited(source, JSON.parse(json) as object)
     return `${layout(edited, source)}\n`
   }
 
@@ -214,17 +212,6 @@ export type DataFileMove = { from: string; to: string; clash: boolean }
 ////////////////
 // ## Layout
 ////////////////
-
-/** What json5-writer is given for a `null`, which it can't write (`withoutNulls()`), then replaced in the text. */
-const NULL = "__json5-writer:null__"
-
-/** `value` (JSON's) with every `null` in it, at any depth, the placeholder `NULL`:  a copy. */
-function withoutNulls(value: unknown): unknown {
-  if (value === null) return NULL
-  if (Array.isArray(value)) return value.map(withoutNulls)
-  if (typeof value !== "object") return value
-  return Object.fromEntries(Object.entries(value).map(([key, each]) => [key, withoutNulls(each)]))
-}
 
 /** One piece of a JSON5 text:  a bracket or punctuation, a value (string, number, word), or a comment. */
 type Token = { kind: "open" | "close" | "comma" | "colon" | "value" | "comment"; text: string; newlineBefore: boolean }
