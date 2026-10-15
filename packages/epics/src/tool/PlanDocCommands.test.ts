@@ -51,7 +51,7 @@ afterEach(() => {
 afterAll(() => rmSync(root, { recursive: true, force: true }))
 
 describe("PlanDocCommands add-phase --before", () => {
-  test("inserts the phase, logs what moved, and each moved phase's part file follows its new id", async () => {
+  test("inserts the phase, logs what moved;  ids stay, so every part file stays where it is", async () => {
     expect(await commands().run(["add-phase", "x", "Inserted", "--before", "2"])).toBe(0)
     expect(printed).toEqual(["P2"])
     const plan = FILES.read(file)
@@ -60,27 +60,37 @@ describe("PlanDocCommands add-phase --before", () => {
     // whitespace squeezed:  the written page's formatter folds the double spaces
     expect(last.textContent!.replace(/\s+/g, " ")).toBe("P2 added: Inserted; P2-P3 moved down to P3-P4")
     expect(movedDown(plan.phases, 3)).toBe("P3 · Three moved down to P4")
-    // every old name taken by the phase that moved onto it:  nothing stale
+    // each part under its phase's stable id:  the inserted one's beside them, nothing moved
     expect(
       readdirSync(parts)
-        .filter((name) => /^p\d/.test(name))
+        .filter((name) => /^p-/.test(name))
         .sort()
-    ).toEqual(["p1.html", "p2.html", "p3.html", "p4.html"])
-    expect(readFileSync(join(parts, "p4.html"), "utf8")).toMatch(/#p4's body[\s\S]*Three's goal/)
-    expect(readFileSync(join(parts, "p3.html"), "utf8")).toContain("Two's goal")
-    expect(readFileSync(join(parts, "p2.html"), "utf8")).toContain("TBD")
-    expect(readFileSync(file, "utf8")).toMatch(/<epic-phase\s+id="p4"\s+title="Three"[^>]*source="parts\/p4.html"/)
+    ).toEqual(["p-inserted.html", "p-one.html", "p-three.html", "p-two.html"])
+    expect(readFileSync(join(parts, "p-three.html"), "utf8")).toMatch(/#p-three's body[\s\S]*Three's goal/)
+    expect(readFileSync(join(parts, "p-inserted.html"), "utf8")).toContain("TBD")
+    expect(readFileSync(file, "utf8")).toMatch(
+      /<epic-phase\s+id="p-three"\s+title="Three"[^>]*source="parts\/p-three.html"/
+    )
+    // by its name too
+    expect(await commands().run(["add-phase", "x", "Second Insert", "--before", "three"])).toBe(0)
+    expect(FILES.read(file).phases.map((phase) => phase.id)).toEqual([
+      "p-one",
+      "p-inserted",
+      "p-two",
+      "p-second-insert",
+      "p-three"
+    ])
   })
 
-  test("refuses a bare --before, one that isn't a number, or a started phase, writing nothing", async () => {
+  test("refuses a bare --before, a phase that isn't there, or a started phase, writing nothing", async () => {
     const skeleton = readFileSync(file, "utf8")
     const owner = commands()
     expect(await owner.run(["add-phase", "x", "Y", "--before"])).toBe(1)
-    expect(await owner.run(["add-phase", "x", "Y", "--before", "two"])).toBe(1)
+    expect(await owner.run(["add-phase", "x", "Y", "--before", "nine"])).toBe(1)
     expect(await owner.run(["add-phase", "x", "Y", "--before", "1"])).toBe(1)
     expect(warned).toEqual([
-      "epic:  --before needs a phase number",
-      'epic:  --before needs a phase number, not "two"',
+      "epic:  --before needs a phase (its number, or its name)",
+      'epic:  no phase "nine" in the doc (P1-P3, or a phase\'s name)',
       "epic:  --before 1:  P1 has started;  only to-do phases move down"
     ])
     expect(readFileSync(file, "utf8")).toBe(skeleton)
@@ -138,13 +148,14 @@ describe("PlanDocCommands add --details:  a name and its path", () => {
 describe("PlanDocCommands rename:  a phase's or an item's title (epic `epic-workflow`)", () => {
   test("retitles it, rewrites the links saying the old title, prints and logs what it did", async () => {
     const owner = commands()
-    await owner.run(["add", "x", "todo", "Linked", "--details", '<p><a href="#p2">P2 · Two</a></p>'])
+    await owner.run(["add", "x", "todo", "Linked", "--details", '<p><a href="#p-two">P2 · Two</a></p>'])
     printed = []
     expect(await owner.run(["rename", "x", "p2", "Second"])).toBe(0)
     expect(printed).toEqual(['P2 · Second (was "Two";  1 link rewritten)'])
-    expect(readFileSync(file, "utf8")).toMatch(/<epic-phase\s+id="p2"\s+title="Second"/)
+    // its id stays the one made from its first name
+    expect(readFileSync(file, "utf8")).toMatch(/<epic-phase\s+id="p-two"\s+title="Second"/)
     const plan = FILES.read(file)
-    expect(plan.document.querySelector('a[href="#p2"]')!.textContent).toBe("P2 · Second")
+    expect(plan.document.querySelector('a[href="#p-two"]')!.textContent).toBe("P2 · Second")
     const last = Array.from(plan.document.querySelectorAll("#log > epic-event")).at(-1)!
     expect(last.textContent!.replace(/\s+/g, " ")).toBe('P2 renamed: "Two" -> "Second" (1 link)')
 
@@ -160,7 +171,7 @@ describe("PlanDocCommands rename:  a phase's or an item's title (epic `epic-work
     expect(await owner.run(["rename", "x", "p2"])).toBe(1)
     expect(await owner.run(["rename", "x", "p7", "Seven"])).toBe(1)
     expect(warned[0]).toMatch(/^epic:  missing the new title/)
-    expect(warned[1]).toBe("epic:  no phase 7 in the doc")
+    expect(warned[1]).toBe("epic:  no phase 7 in the doc (P1-P3, or a phase's name)")
     expect(readFileSync(file, "utf8")).toBe(skeleton)
   })
 })

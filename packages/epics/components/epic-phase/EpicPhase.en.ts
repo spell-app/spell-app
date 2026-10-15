@@ -41,7 +41,10 @@ export const epicPhaseVocabulary = {
       kind: "string",
       required: true,
       format: "phase id",
-      description: "`p1`, `p2` ...:  shown as `P2 · <title>`;  links use it (`#p2`)."
+      description:
+        "Stable, made from its name when it's added, and kept through renames and inserts:  `p-epic-migrate` (an " +
+        "older page's `p2`, until `stable-phase-ids`).  Links and comments use it (`#p-epic-migrate`);  the number " +
+        "shown, `P2 · <title>`, is its place among the phases."
     },
     {
       name: "title",

@@ -74,13 +74,13 @@ describe("PlanDocFiles", () => {
     expect(existsSync(parts)).toBe(false)
     const whole = squashedPage(FILES.read(file))
     await FILES.edit(file, () => {}, { split: true })
-    expect(readdirSync(parts).sort()).toEqual(["c1.html", "log.html", "o1.html", "p1.html"])
+    expect(readdirSync(parts).sort()).toEqual(["c1.html", "log.html", "o1.html", "p-one.html"])
     const skeleton = readFileSync(file, "utf8")
-    expect(skeleton).toMatch(/<epic-phase[^>]*source="parts\/p1.html"/)
+    expect(skeleton).toMatch(/<epic-phase[^>]*source="parts\/p-one.html"/)
     expect(skeleton).toMatch(/<epic-item\s+id="c1"[^>]*source="parts\/c1.html"[^>]*commits/)
     expect(readFileSync(join(parts, "o1.html"), "utf8")).toContain('href="../../../guides/x.html"')
     const plan = FILES.read(file)
-    expect(plan.parts).toMatchObject({ split: true, hosts: ["o1", "p1", "c1", "log"], missing: [] })
+    expect(plan.parts).toMatchObject({ split: true, hosts: ["o1", "p-one", "c1", "log"], missing: [] })
     expect(squashedPage(plan)).toBe(whole)
     expect(Markup.validate(plan.document)).toEqual([])
     await FILES.edit(file, () => {}, { split: false })
@@ -151,9 +151,9 @@ describe("PlanDocFiles", () => {
       { split: true }
     )
     // written as the tool wrote it until 2026-10-11:  the line in the phase's part, the copy in the skeleton
-    expect(readFileSync(join(file, "..", "parts", "p1.html"), "utf8")).toContain("<epic-updated")
+    expect(readFileSync(join(file, "..", "parts", "p-one.html"), "utf8")).toContain("<epic-updated")
     await FILES.edit(file, (plan) => plan.addPhaseUpdate(1, "<p>Joined again.</p>"))
-    const part = readFileSync(join(file, "..", "parts", "p1.html"), "utf8")
+    const part = readFileSync(join(file, "..", "parts", "p-one.html"), "utf8")
     expect(part).not.toContain("<epic-updated")
     expect(part.match(/<epic-update\b[^>]*>/g)).toEqual([
       expect.stringMatching(/at="2026-10-01 08:00"[^>]*summary="Split it"/),
@@ -161,7 +161,7 @@ describe("PlanDocFiles", () => {
     ])
     const skeleton = readFileSync(file, "utf8")
     expect(skeleton).not.toContain("<epic-updated")
-    expect(skeleton).toMatch(/<epic-phase\s+id="p1"[^>]*changes="2"/)
+    expect(skeleton).toMatch(/<epic-phase\s+id="p-one"[^>]*changes="2"/)
     expect(FILES.read(file).document.querySelector("#log")!.textContent).toMatch(/migrated:\s+updates-as-epic-update/)
   })
 

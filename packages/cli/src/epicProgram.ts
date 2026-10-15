@@ -330,7 +330,8 @@ const EPIC_HELP = `
 Naming what a verb acts on:
   seo         the epic's page, epics/seo/seo.plan.html
   seo#J3      an item:  J3 (a comment, seo#cm3, too)
-  seo#P3      a phase:  P3 (seo#3 too)
+  seo#P3      a phase:  P3 (seo#3 too), or by its id, seo#p-epic-migrate;  phase, updated and add-request
+              take its name too:  seo#epic-migrate, "seo#Epic Migrate"
   seo#J       a new item of that kind, for add:  epic add seo#J "Title"
 
 Examples:

@@ -3,6 +3,8 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
+import { PhaseIds } from "$/epics/phases"
+
 // Import directly:  the page's signals, not its family's barrel (which would define `<epic-page>` here)
 import { EpicPage } from "$/epics/components/epic-page/EpicPage"
 // the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel
@@ -389,7 +391,8 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
    */
   @E.untracked
   private readonly followHash = () => {
-    const id = decodeURIComponent(location.hash.slice(1))
+    // an old phase address (`#p7`, from before stable ids) lands on the 7th phase (`PhaseIds.landing()`)
+    const id = PhaseIds.landing(document, decodeURIComponent(location.hash.slice(1)))
     if (!id) return
     const partIds = (this.foldAttrs.partIds ?? "").split(/\s+/)
     const element = document.getElementById(id)

@@ -27,8 +27,10 @@ export type PageSignals = {
 
 /** One phase, as the step label reads it. */
 export type PhaseLine = {
-  /** `p3` */
+  /** its stable id, `p-epic-migrate`:  where its step label links */
   id: string
+  /** its number as drawn, by its place:  `P3` */
+  label: string
   /** `todo`, `active`, `done` */
   status: string
   /** its title's text */
@@ -45,7 +47,7 @@ export type StepLabel = {
   words: string
   /** its tooltip */
   tip?: string
-  /** where it links (`#p4`) */
+  /** where it links (`#p-epic-migrate`) */
   href?: string
 }
 

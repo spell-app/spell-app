@@ -3,6 +3,7 @@
  * - `definitions/`:  the ONE description of every `<epic-*>` element (its vocabulary, as data, and its children)
  * - `markup/`:  reading, writing and checking an epic page's `<epic-*>` markup through those definitions
  * - `dates/`:  dates as the elements draw them (`PlanDates`:  `10/8/26 14:34`)
+ * - `phases/`:  a phase's stable id and the number people see (`PhaseIds`:  `p-epic-migrate`, `P7`)
  * - NOTE: the elements are NOT here:  `$/epics/components` (importing a family defines its tags:  SIDE EFFECT).
  * - Loads in the browser AND in node (the `node` tests, the epic tool):  nothing here may touch `window` /
  *   `document` at load.
@@ -10,5 +11,6 @@
 export * from "./definitions"
 export * from "./markup"
 export * from "./dates"
+export * from "./phases"
 
 export * as EP from "."

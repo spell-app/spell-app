@@ -1,3 +1,5 @@
+import { PhaseIds } from "$/epics/phases"
+
 import { PlanAnchors } from "../PlanAnchors"
 import { PlanItem } from "../PlanItem"
 import { PlanMarkup } from "../PlanMarkup"
@@ -12,15 +14,17 @@ import type { Migration, MigrationContext } from "./migrations.types"
  *   - a link to an id that's gone:  REPORTED, never changed, for Claude or Owen to decide
  *   - its words naming a title the target had before (`P6 · Old Name`, or `Old Name` alone):  FIXED to today's
  *     - the titles it had:  the log's `P6 renamed:  "Old" -> "New"` lines, so only a real old title is rewritten
- *   - a phase link whose words name ANOTHER phase's title (`P10 · Doc Review` to `#p10`, while Doc Review is now
- *     P11):  the phase moved (an insert renumbered it):  FIXED, to `#p11` and `P11 · Doc Review`
+ *   - a phase link whose words name ANOTHER phase's title (`P10 · Doc Review` to `#p-docs`, while Doc Review is
+ *     `#p-doc-review`):  FIXED, to `#p-doc-review` and `P11 · Doc Review`
+ *   - a phase link whose words say an old NUMBER (`P10 · Doc Review` to `#p-doc-review`, now P11:  an insert moved
+ *     it down):  FIXED, to `P11 · Doc Review`.  A phase's number is its place (`PhaseIds`), its id stable (P15).
  *   - a link with markup in its words is reported instead of rewritten
  * - Owen's COMMENTS, in the page's review inbox (`context.inbox`, when the runner read it):
  *   - an anchor whose block only MOVED (found again by its excerpt, `PlanAnchors.find()`):  FIXED, as a move the
  *     runner writes into the inbox (`context.moves`)
  *   - an anchor whose block is gone:  REPORTED
  * - the inbox's MARKS (and drafts, urgency ...) on an id that's gone:  REPORTED
- * - Goals Foundation (P15) adds stable phase ids, `<epic-link>` and `GOAL:/` links:  their checks come with it
+ * - stable phase ids (P15) come with their own step, `stable-phase-ids` (`StablePhaseIds`), which runs before this
  * - IDEMPOTENT:  once everything agrees, it changes nothing (false), though what it only reports stays reported
  * - Runs on command (`migrate`), and after a rename or an insert (`rename`, `add-phase --before`), never on every
  *   edit (`everyEdit` false):  its report would be noise there
@@ -67,7 +71,7 @@ export class LinksAgree implements Migration {
     const target = document.getElementById(id)
     if (!target) return { note: `#${id} is gone (a link saying "${words}"):  left for you` }
     if (!TITLED.includes(target.localName)) return undefined
-    const label = id.toUpperCase()
+    const label = target.localName === "epic-phase" ? PhaseIds.labelOf(target) : id.toUpperCase()
     const labelled = /^([A-Za-z]+\d+)\s*·\s*(.+)$/.exec(words)
     const said = labelled ? labelled[2]! : words
     const title = PlanItem.titleOf(target)
@@ -78,7 +82,7 @@ export class LinksAgree implements Migration {
         (phase) => PlanItem.titleOf(phase) === said
       )
       if (moved.length === 1)
-        return LinksAgree.rewritten(link, `#${moved[0]!.id}`, `${moved[0]!.id.toUpperCase()} · ${said}`)
+        return LinksAgree.rewritten(link, `#${moved[0]!.id}`, `${PhaseIds.labelOf(moved[0]!)} · ${said}`)
     }
     // the right phase by its title, but an old number in the words
     if (phaseLabel && said === title && labelled[1]!.toUpperCase() !== label)
@@ -97,14 +101,19 @@ export class LinksAgree implements Migration {
 
   /**
    * Every id's titles before today's, from the log's rename lines (`P6 renamed:  "Old" -> "New"`, as
-   * `PlanDoc.renameEntry()` writes them):  `{ p6 => { "Old" } }`.
+   * `PlanDoc.renameEntry()` writes them):  `{ p-new => { "Old" } }`.
+   * - a phase's line says its NUMBER then:  the phase titled "New" now, else the phase at that place
    */
   private static pastTitles(document: Document): Map<string, Set<string>> {
     const was = new Map<string, Set<string>>()
+    const phases = PhaseIds.phasesIn(document)
     for (const event of document.querySelectorAll("epic-event")) {
       const m = /^([A-Za-z]+\d+) renamed:\s+"(.*)" -> "(.*)"/.exec(PlanMarkup.squeeze(event.textContent ?? ""))
       if (!m) continue
-      const id = m[1]!.toLowerCase()
+      const phase = /^P\d+$/i.test(m[1]!)
+        ? (phases.find((each) => PlanItem.titleOf(each) === m[3]) ?? PhaseIds.find(phases, m[1]!))
+        : undefined
+      const id = phase?.id ?? m[1]!.toLowerCase()
       if (!was.has(id)) was.set(id, new Set())
       was.get(id)!.add(m[2]!)
     }

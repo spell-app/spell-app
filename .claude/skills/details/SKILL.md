@@ -141,7 +141,7 @@ Any page you name to Owen (a details page, an epic page, any docs page):
   - `🌐`, after a `•`, opens it in Chrome:  `Title • 🌐` (Owen, 2026-10-11)
   - Both go through the page server ([showRoutes.ts](packages/docs/tools/showRoutes.ts)):
     the Claude panel ignores `vscode://` links, and opens `localhost` ones in a VS Code tab.
-- `--hash`:  ALWAYS the id of what you mean (`q2`, `t4`, `p3` ...).
+- `--hash`:  ALWAYS the id of what you mean (`q2`, `t4`, a phase's `p-epic-migrate` ...;  `p3` lands on P3).
   The page lands there, below the sticky titles, unfolded.
 - No page server here has the route yet (older than it):  it prints a plain link, and says so.
 

@@ -57,6 +57,8 @@ export type Migration = {
 export type MigrationContext = {
   /** Now:  the time stamped where a doc holds none to carry over. */
   now: Date
+  /** The page's epic, as its file names it (`seo` for `seo.plan.html`), when the runner knows the file. */
+  epic?: string
   /**
    * The page's review inbox as it stands (its marks and comments:  `ReviewInbox`), when the runner read it
    * (`migrate`);  steps READ it, never write it:  they say what to change in `moves`.
@@ -66,6 +68,11 @@ export type MigrationContext = {
   notes?: string[]
   /** Comments to move to another anchor, which the runner writes into the inbox after the page (`AnchorMove`). */
   moves?: AnchorMove[]
+  /**
+   * Ids the page no longer has, each => the id it has instead (`stable-phase-ids`:  `p7` => `p-epic-migrate`):  the
+   * runner rekeys the inbox after the page, and after `moves` (`ReviewInbox.renameIds()`)
+   */
+  renames?: Record<string, string>
 }
 
 /** What a step reads of a review inbox:  the keys of what's waiting on an item, and each comment's place. */

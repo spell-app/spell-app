@@ -454,7 +454,8 @@ function folders(dir: string): string[] {
  * Title, phases and urgent items of the epic page at `file`, by pattern:
  * the server is a leaf, so no HTML parser or epic tool.
  * - attributes in any order, across lines:
- *   - each `<epic-phase id="pN" title="..." status="S">` (the label `PN · <title>`)
+ *   - each `<epic-phase title="..." status="S">`, labelled by its place (`P3 · <title>`):  its id is stable
+ *     (`p-epic-migrate`, epic `epic-workflow` P15), never its number
  *   - `<epic-page updated future>`
  *   - each `<epic-item id="q3" state="attention">`
  * - a doc still in the old markup (no `<epic-page>`:  one restored from an old backup) reads as an empty plan:
@@ -473,9 +474,9 @@ function read(
   const attribute = (tag: string, name: string) => new RegExp(`\\s${name}="([^"]*)"`).exec(tag)?.[1]
   const page = /<epic-page\b[^>]*>/.exec(html)?.[0] ?? ""
   const tags = (pattern: RegExp) => (page ? [...html.matchAll(pattern)].map(([tag]) => tag) : [])
-  const phases = tags(/<epic-phase\b[^>]*>/g).map((tag) => ({
+  const phases = tags(/<epic-phase\b[^>]*>/g).map((tag, index) => ({
     status: attribute(tag, "status") ?? "todo",
-    header: `${(attribute(tag, "id") ?? "").toUpperCase()} · ${attribute(tag, "title") ?? ""}`
+    header: `P${index + 1} · ${attribute(tag, "title") ?? ""}`
   }))
   const active = phases.find((phase) => phase.status === "active")?.header
   const updated = /^\d{4}-\d\d-\d\d$/.exec(attribute(page, "updated") ?? "")?.[0]

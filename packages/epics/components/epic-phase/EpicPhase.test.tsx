@@ -36,8 +36,15 @@ async function render<T extends Element = E.DOMElement>(html: string, selector?:
 
 describe("<epic-phase>", () => {
   test("its title line:  status icon in its colour, `P5 · <title>`, the estimate as a badge;  folded", async () => {
+    // `P5`:  its PLACE among the phases, never its id (stable, from its name:  epic `epic-workflow` P15)
+    const before = ["One", "Two", "Three", "Four"]
+      .map((title) => `<epic-phase id="p-${title.toLowerCase()}" title="${title}" status="done"></epic-phase>`)
+      .join("")
     const host = await render(
-      `<epic-phase id="p5" title="Drawing Elements" status="active" estimate="4-6h"></epic-phase>`
+      `<epic-section id="phases" kind="phases">${before}` +
+        `<epic-phase id="p-drawing-elements" title="Drawing Elements" status="active" estimate="4-6h"></epic-phase>` +
+        `</epic-section>`,
+      "#p-drawing-elements"
     )
     const section = inner(host)
     const header = section.shadowRoot!.querySelector('[part~="header"]')!

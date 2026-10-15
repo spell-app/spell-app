@@ -150,8 +150,28 @@ describe("parseTarget()", () => {
     expect(() => CLI.parseTarget("seo#")).toThrow(/<epic>#<id>/)
   })
 
-  test("phaseOf():  P3, p3 and 3 are phase 3;  an item isn't", () => {
-    expect(["P3", "p3", "3", "J3"].map(CLI.phaseOf)).toEqual([3, 3, 3, undefined])
+  test("phaseOf():  P3, p3 and 3 are phase 3;  a stable id is itself;  an item, or a name, isn't", () => {
+    expect(["P3", "p3", "3", "p-epic-migrate", "J3", "epic-migrate"].map(CLI.phaseOf)).toEqual([
+      "3",
+      "3",
+      "3",
+      "p-epic-migrate",
+      undefined,
+      undefined
+    ])
+  })
+
+  test("a phase verb takes a phase's id or name too (the tool finds it);  update and commit its id", () => {
+    expect(CLI.planDocArgs("phase", ["seo#epic-migrate", "done"])).toEqual([["phase", "seo", "epic-migrate", "done"]])
+    expect(CLI.planDocArgs("updated", ["seo#Epic Migrate", "<p>x</p>"])).toEqual([
+      ["updated", "seo", "Epic Migrate", "<p>x</p>"]
+    ])
+    expect(CLI.planDocArgs("update", ["seo#p-epic-migrate", "--estimate", "2h"])).toEqual([
+      ["estimate", "seo", "p-epic-migrate", "2h"]
+    ])
+    expect(CLI.planDocArgs("commit", ["seo#p-epic-migrate", "abc1234", "did it"])).toEqual([
+      ["commit", "seo", "abc1234", "did it", "--phase", "p-epic-migrate"]
+    ])
   })
 })
 

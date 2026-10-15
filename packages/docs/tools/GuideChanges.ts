@@ -128,6 +128,7 @@ export class GuideChanges {
           page: page.page,
           epic: this.epic,
           phase,
+          phaseId: plan.phase(phase).id,
           as: open ? "update" : "phase",
           comments: page.comments.map((each) => each.id),
           notes: page.notes.map((each) => each.id)
@@ -190,7 +191,7 @@ export class GuideChanges {
   }
 
   /** Mark what went into a phase as taken:  the comments in the page's inbox, the notes answered with a link. */
-  private async markTaken({ page, phase, comments, notes }: Gathered): Promise<void> {
+  private async markTaken({ page, phase, phaseId, comments, notes }: Gathered): Promise<void> {
     const file = join(this.root, page)
     if (comments.length)
       GuideInbox.update(GuideInbox.fileFor(file), (list) => {
@@ -198,7 +199,7 @@ export class GuideChanges {
       })
     if (!notes.length) return
     const doc = relative(dirname(file), join(this.root, "epics", this.epic, `${this.epic}.plan.html`))
-    const reply = `<p>Taken into <a href="${doc}#p${phase}">${this.epic} P${phase}</a>.</p>`
+    const reply = `<p>Taken into <a href="${doc}#${phaseId}">${this.epic} P${phase}</a>.</p>`
     await editNotes(file, (pageNotes) => {
       for (const id of notes) pageNotes.answer(id, reply)
     })
@@ -243,8 +244,10 @@ export type PageWaiting = {
 export type Gathered = {
   page: string
   epic: string
-  /** the phase it went into */
+  /** the phase it went into, by number:  `P3` */
   phase: number
+  /** the phase it went into, by its stable id (`p-solid-2`):  where a link to it goes */
+  phaseId: string
   /** `phase`:  a new phase;  `update`:  an update (`<epic-update>`) in the page's open phase */
   as: "phase" | "update"
   /** the comments' ids, now taken */

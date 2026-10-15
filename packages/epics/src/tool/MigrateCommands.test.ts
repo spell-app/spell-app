@@ -167,7 +167,7 @@ describe("migrate:  the runner", () => {
     const inbox = ReviewInbox.pathFor(docOf("new"))
     ReviewInbox.update(inbox, (each) => {
       each.comments.cm1 = {
-        anchor: "p1#field-9",
+        anchor: "p-one#field-9",
         kind: "field",
         label: "",
         excerpt: "Three's goal",
@@ -178,7 +178,49 @@ describe("migrate:  the runner", () => {
     })
     expect(await commands().run(["migrate", "new", "--step", "links-agree"])).toBe(0)
     expect(printed[0]).toBe("new:  links-agree")
-    expect(ReviewInbox.read(inbox).comments.cm1!.anchor).toMatch(/^p3#field-\d$/)
+    expect(ReviewInbox.read(inbox).comments.cm1!.anchor).toMatch(/^p-three#field-\d$/)
+  })
+
+  test("stable-phase-ids:  old ids, their links, part files and inbox entries follow;  a second run:  up to date", async () => {
+    // epic `new` as written before P15:  each phase's id its number, links and the inbox keyed by them
+    const file = docOf("new")
+    const old = FILES.read(file)
+    old.phaseElements.forEach((phase, index) => (phase.id = `p${index + 1}`))
+    old.addItem("todo", "see two", { details: '<p><a href="#p2">P2 · Two</a>, <a href="new.plan.html#p3">P3</a></p>' })
+    await FILES.writeDoc(file, old, true)
+    const parts = join(file, "..", "parts")
+    expect(readdirSync(parts).filter((name) => /^p/.test(name))).toEqual(["p1.html", "p2.html", "p3.html"])
+    const inbox = ReviewInbox.pathFor(file)
+    ReviewInbox.update(inbox, (each) => {
+      each.setMark("p2", { action: "revisit", note: "too big?" })
+      each.setDraft("p3", "revisit", "half typed")
+      each.setNew(undefined, { kind: "todo", title: "later", near: "p2" })
+      each.commentList.add({ anchor: "p2#field-1", kind: "field" }, "hooked up?")
+    })
+
+    expect(await commands().run(["migrate", "new", "--step", "stable-phase-ids"])).toBe(0)
+    expect(printed[0]).toBe("new:  stable-phase-ids")
+    const plan = FILES.read(file)
+    expect(plan.phases.map((phase) => `${phase.n} ${phase.id}`)).toEqual(["1 p-one", "2 p-two", "3 p-three"])
+    expect(Array.from(plan.item("t1").querySelectorAll("a"), (a) => a.getAttribute("href"))).toEqual([
+      "#p-two",
+      "new.plan.html#p-three"
+    ])
+    // each part under its phase's new id, the old ones gone
+    expect(
+      readdirSync(parts)
+        .filter((name) => /^p/.test(name))
+        .sort()
+    ).toEqual(["p-one.html", "p-three.html", "p-two.html"])
+    const after = ReviewInbox.read(inbox)
+    expect(Object.keys(after.marks).sort()).toEqual(["new1", "p-two"])
+    expect(after.marks.new1!.near).toBe("p-two")
+    expect(Object.keys(after.drafts)).toEqual(["p-three"])
+    expect(after.comments.cm1!.anchor).toBe("p-two#field-1")
+
+    printed = []
+    expect(await commands().run(["migrate", "new"])).toBe(0)
+    expect(printed[0]).toBe("new:  up to date")
   })
 
   test("--list:  the epic page's steps, then the other kinds' (the docs tool)", async () => {
@@ -187,6 +229,7 @@ describe("migrate:  the runner", () => {
       "epic 2026-10-11 updates-as-epic-update",
       "epic 2026-10-11 owen-types-to-you-type",
       "epic 2026-10-11 links-agree",
+      "epic 2026-10-14 stable-phase-ids",
       expect.stringMatching(/cheatsheet.* 2026-10-02 ui-section$/),
       expect.stringMatching(/detail,choice.* 2026-10-14 answer-elements$/)
     ])

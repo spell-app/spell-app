@@ -11,7 +11,7 @@ import { SRV } from "$/server"
 import { PlanDocError, type CommitLogEntry, type PlanDocOptions, type PlanDocParts } from "./planDoc.types"
 
 import { EpicParts } from "./EpicParts"
-import { Migrations, type AnchorMove, type InboxView, type Migration } from "./migrations"
+import { Migrations, type AnchorMove, type InboxView, type Migration, type MigrationContext } from "./migrations"
 import { PlanCommits } from "./PlanCommits"
 import { PlanDoc } from "./PlanDoc"
 import { PlanMarkup } from "./PlanMarkup"
@@ -234,7 +234,8 @@ export class PlanDocFiles {
    * Run the epic page MIGRATIONS on the doc at `file` (`Migrations`:  every step, or those named in `only`), under its
    * lock, as an edit is;  resolves with what they did:  `{ ran, notes, moves, written }`.
    * - `ran`:  the steps that changed the page;  `notes`:  what they fixed or found, a line each;  `moves`:  comments
-   *   whose block moved, written into the page's review inbox after the page (`links-agree`)
+   *   whose block moved, written into the page's review inbox after the page (`links-agree`);  `renames`:  ids the page
+   *   changed, its inbox rekeyed after the moves (`stable-phase-ids`:  `ReviewInbox.renameIds()`)
    * - writes only when something changed, logged (`migrated:  links-agree`), the items recoloured
    *   (`updateStates()`);  NOT stamped "updated":  nobody worked on the epic
    * - `dryRun`:  the same report, nothing written
@@ -248,10 +249,22 @@ export class PlanDocFiles {
     const inboxFile = ReviewInbox.pathFor(file)
     const result = await SRV.FileLock.runAsync(file, async (): Promise<MigrateResult> => {
       const plan = this.read(file, { recentSince: this.recentSince(file) })
-      const context = { now, inbox: inboxView(ReviewInbox.read(inboxFile)), notes: [] as string[], moves: [] }
+      const context: MigrationContext = {
+        now,
+        epic: basename(file).replace(/(\.plan)?\.html$/, ""),
+        inbox: inboxView(ReviewInbox.read(inboxFile)),
+        notes: [],
+        moves: []
+      }
       const before = new Set(plan.check())
       const ran = Migrations.run(plan.document, context, only)
-      const done = { ran, notes: context.notes, moves: context.moves as AnchorMove[], written: false }
+      const done = {
+        ran,
+        notes: context.notes!,
+        moves: context.moves!,
+        renames: context.renames ?? {},
+        written: false
+      }
       if (!ran.length || dryRun) return done
       plan.log(`migrated:  ${ran.join(", ")}`)
       plan.updateStates()
@@ -263,13 +276,14 @@ export class PlanDocFiles {
       await this.writeDoc(file, plan, plan.parts!.split)
       return { ...done, written: true }
     })
-    if (dryRun || !result.moves.length) return result
+    if (dryRun || (!result.moves.length && !Object.keys(result.renames).length)) return result
     // after the page, under the inbox's own lock:  never both locks at once
     await ReviewInbox.updateAsync(inboxFile, (inbox) => {
       for (const move of result.moves) {
         const comment = inbox.comments[move.id]
         if (comment?.anchor === move.from) comment.anchor = move.to
       }
+      inbox.renameIds(result.renames)
     })
     return { ...result, written: true }
   }
@@ -286,6 +300,7 @@ export class PlanDocFiles {
    *   sees the new skeleton finds its new parts;  only files whose text changed are written
    *   (`PlanParts.writeChanged()`), so an edit to one item rewrites its part (if its details changed) and the
    *   skeleton, and the page re-fetches that part alone
+   * - a part file the doc was read from and no longer writes goes (a phase's, once its id became stable)
    * - one file:  as is, plus the parts folder of a doc that was split gone (`join`)
    * - links are made against the whole doc, at the page's folder:  a part's URLs are rebased to `parts/` after
    */
@@ -309,6 +324,9 @@ export class PlanDocFiles {
     )
     outputs.push([file, await PlanParts.formatHTML(file, PlanMarkup.serialize(document as unknown as Document))])
     PlanParts.writeChanged(outputs)
+    // a part the doc was read from but no longer writes (its host's id changed:  `stable-phase-ids`;  its body
+    // emptied):  nothing loads it any more
+    for (const id of plan.parts?.hosts ?? []) if (!parts.has(id)) rmSync(PlanParts.partFile(file, id), { force: true })
   }
 
   /**
@@ -468,6 +486,8 @@ export type MigrateResult = {
   notes: string[]
   /** comments moved to where their block is now (`links-agree`) */
   moves: AnchorMove[]
+  /** ids the page changed, old => new, which its inbox follows (`stable-phase-ids`) */
+  renames: Record<string, string>
   /** was anything written:  the page, or its inbox */
   written: boolean
 }

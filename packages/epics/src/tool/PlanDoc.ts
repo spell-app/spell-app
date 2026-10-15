@@ -9,6 +9,7 @@ import {
   type PageSectionKind
 } from "$/epics/definitions"
 import { Markup, type MarkupContent } from "$/epics/markup"
+import { PhaseIds } from "$/epics/phases"
 
 import {
   CALM_ID,
@@ -156,12 +157,16 @@ export class PlanDoc extends PlanReader {
     return Array.from(this.document.querySelectorAll('epic-page > epic-section[kind="phases"] > epic-phase'))
   }
 
-  /** Every phase, in order:  `{ n, name, status, estimate }`, from each `<epic-phase>`. */
+  /**
+   * Every phase, in order:  `{ n, id, name, status, estimate }`, from each `<epic-phase>`.
+   * - `n`:  its place in the list (P15:  the number people see and say), not its id
+   */
   get phases(): Phase[] {
-    return this.phaseElements.map((phase) => {
+    return this.phaseElements.map((phase, index) => {
       const estimate = phase.getAttribute("estimate")
       return {
-        n: PlanItem.idNumber(phase.id),
+        n: index + 1,
+        id: phase.id,
         name: PlanItem.titleOf(phase),
         status: phase.getAttribute("status") ?? "todo",
         estimate: estimate && estimate !== "TBD" ? estimate : undefined
@@ -169,15 +174,47 @@ export class PlanDoc extends PlanReader {
     })
   }
 
-  /** Phase `n`'s `<epic-phase>`;  throws when there's none. */
+  /** Phase `n`'s `<epic-phase>`:  the `n`th, from 1;  throws when there's none. */
   phase(n: number): Element {
-    const phase = this.phaseElements.find((each) => each.id === `p${n}`)
+    const phase = this.phaseElements[n - 1]
     if (!phase) throw new PlanDocError(`no phase ${n} in the doc`)
     return phase
   }
 
   /**
+   * The phase whose id is `id` (`p-epic-migrate`);  `undefined` for none.
+   * - an OLD id (`p3`) no phase has any more (a mark or a link from before `stable-phase-ids`):  the 3rd phase
+   */
+  phaseById(id: string): Element | undefined {
+    const phases = this.phaseElements
+    const phase = phases.find((each) => each.id === id)
+    if (phase) return phase
+    const n = PhaseIds.oldNumber(id)
+    return n === undefined ? undefined : phases[n - 1]
+  }
+
+  /**
+   * The number of the phase `ref` names, as people name one (`PhaseIds.find()`):  `7`, `P7`, `#p7`, its id
+   * (`p-epic-migrate`), its name or slug (`Epic Migrate`, `epic-migrate`).
+   * - throws for none, saying what there is
+   */
+  phaseNumber(ref: string | number): number {
+    const phases = this.phaseElements
+    const phase = PhaseIds.find(phases, ref)
+    if (!phase) {
+      const range = phases.length ? `P1-P${phases.length}, or a phase's name` : "none yet"
+      const said = String(ref).trim()
+      throw new PlanDocError(
+        `no phase ${/^[Pp]?\d+$/.test(said) ? said.replace(/^[Pp]/, "") : `"${said}"`} in the doc (${range})`
+      )
+    }
+    return phases.indexOf(phase) + 1
+  }
+
+  /**
    * Append phase `name` (2-4 words);  returns its number.
+   * - its id:  STABLE, made from `name` once and kept for good (`PhaseIds.make()`:  `p-epic-migrate`), so a rename
+   *   or a later insert never moves what points at it
    * - `symptom` / `changes` / `goal` / `files` / `verify`:  its `<epic-field>`s, as HTML:
    *   the symptom one line, the changes two or three, the goal a `<ul>` (the details)
    *   - omitted ones get `TBD` to fill in, but the goal:  optional once there's a symptom or changes
@@ -197,9 +234,10 @@ export class PlanDoc extends PlanReader {
     const fields = PHASE_FIELDS.filter((name) =>
       framed ? name !== "goal" || values.goal !== undefined : name !== "symptom" && name !== "changes"
     ).map((name) => this.make("epic-field", { name }, this.incoming(values[name] ?? "TBD")))
-    const phase = this.make("epic-phase", { id: `p${n}`, title: name, status: "todo", estimate }, fields)
+    const id = PhaseIds.make(name, PhaseIds.idsIn(this.document))
+    const phase = this.make("epic-phase", { id, title: name, status: "todo", estimate }, fields)
     if (before === undefined) section.append(phase)
-    else this.phase(n + 1).before(phase)
+    else this.phase(n).before(phase)
     this.updateEstimate()
     return n
   }
@@ -207,11 +245,10 @@ export class PlanDoc extends PlanReader {
   /**
    * Make room for a new phase `n`, before the one numbered `n` now (`add-phase --before n`):
    * it and every later phase move down one;  returns `n`.
-   * - each moved phase's id (`p5` -> `p6`:  its title has no number), and everything that points at it:
-   *   links (`href="#p5"`, the `P5` in their text), and the `phase` / `of` of items, UPDATE markers and Updated lines
+   * - only NUMBERS move (P15):  a phase's id is stable, so its links, comments, marks and part file stay put
+   *   - the `P5` in the words of links to it (`href="#p-docs"`) says `P6`
+   *   - the `phase` / `of` of items, UPDATE markers and Updated lines (the phase active then, by number)
    * - prose naming a phase without a link ("P5 tries it") isn't changed:  link phases to keep them right
-   * - a split doc's part files follow by themselves:  each is written back under its host's new id, and every old
-   *   name is taken by the phase that moved onto it, the new phase taking N's
    * - throws if there's no phase `n`, or a phase from `n` on has started
    *   (done or active:  its commits and log say its number)
    */
@@ -227,9 +264,9 @@ export class PlanDoc extends PlanReader {
     return n
   }
 
-  /** Phase `from` becomes phase `to`:  its element, and what points at it (`makeRoomForPhase()`). */
+  /** Phase `from` becomes phase `to`:  what points at it by number (`makeRoomForPhase()`);  its id stays. */
   private renumberPhase(from: number, to: number): void {
-    Markup.set<"epic-phase">(this.phase(from), { id: `p${to}` })
+    const id = this.phase(from).id
     for (const element of this.document.querySelectorAll(
       PHASE_POINTERS.map((tag) => `${tag}[phase="${from}"]`).join()
     )) {
@@ -238,16 +275,16 @@ export class PlanDoc extends PlanReader {
     for (const line of this.document.querySelectorAll(`epic-updated[of="${from}"]`)) {
       Markup.set<"epic-updated">(line, { of: to })
     }
-    for (const link of this.document.querySelectorAll(`a[href="#p${from}"]`)) {
-      link.setAttribute("href", `#p${to}`)
+    for (const link of this.document.querySelectorAll(`a[href="#${id}"]`)) {
       link.innerHTML = link.innerHTML.replace(new RegExp(`\\bP${from}\\b`), `P${to}`)
     }
   }
 
   /**
-   * Rename phase `P6` or item `J3` (`target`, any case;  `6` is a phase too) to `title`, plain text (`html`:  `title`
-   * is HTML, a `slot="title"` child when it has markup);  returns what it did:  `{ id, was, title, links }`
-   * (`rename <name> <P6 | id> "New title"`, epic `epic-workflow`).
+   * Rename phase `P6` or item `J3` (`target`, any case;  `6`, a phase's id or name are a phase too) to `title`, plain
+   * text (`html`:  `title` is HTML, a `slot="title"` child when it has markup);  returns what it did:
+   * `{ id, label, was, title, links }` (`rename <name> <P6 | id> "New title"`, epic `epic-workflow`).
+   * - a phase keeps its id (P15:  made from the name it was added under, kept for good)
    * - its `title`, or its `slot="title"` child's words:  the UPDATE markers riding in the slot stay;
    *   a slot left plain goes back to a `title`
    * - links to it (`href="#p6"`) whose words say the old title are rewritten:  `P6 · Old` -> `P6 · New`, `Old` ->
@@ -259,9 +296,8 @@ export class PlanDoc extends PlanReader {
    */
   renameEntry(target: string, title: string, { html = false }: { html?: boolean } = {}): RenameResult {
     const key = String(target).trim().toLowerCase()
-    const phaseNumber = /^p?(\d+)$/.exec(key)?.[1]
-    const element = phaseNumber !== undefined ? this.phase(Number(phaseNumber)) : this.item(key)
-    const label = element.id.toUpperCase()
+    const element = ITEM_REF.test(key) && !OLD_PHASE_REF.test(key) ? this.item(key) : this.phase(this.phaseNumber(key))
+    const label = element.localName === "epic-phase" ? PhaseIds.labelOf(element) : element.id.toUpperCase()
     const was = PlanItem.titleOf(element)
     const heading = html ? this.titleFromHTML(title) : { title: PlanMarkup.squeeze(title) }
     const shown = heading.slot ? PlanMarkup.squeeze(heading.slot.textContent ?? "") : heading.title!
@@ -277,7 +313,7 @@ export class PlanDoc extends PlanReader {
       this.markUpdate(element)
     }
     this.log(`${label} renamed:  "${was}" -> "${shown}"${links ? ` (${links} link${links === 1 ? "" : "s"})` : ""}`)
-    return { id: element.id, was, title: shown, links }
+    return { id: element.id, label, was, title: shown, links }
   }
 
   /**
@@ -838,7 +874,7 @@ export class PlanDoc extends PlanReader {
 
   /**
    * Item `id` as the inbox shows it;  what takes notes as an item does too (`reviewPart()`):
-   * an Overview sub-section (`o3`, Q14), kind `overview`;  a phase (`p3`), kind `phase`, its status;
+   * an Overview sub-section (`o3`, Q14), kind `overview`;  a phase (`p-epic-migrate`), kind `phase`, its status;
    * the summary (`summary`), kind `summary`, its own text the title (epic `airplane` P2).
    */
   describeItem(id: string): ItemDescription | null {
@@ -1372,7 +1408,7 @@ export class PlanDoc extends PlanReader {
    * (`phase="N"`) still open and not reviewed, not under way, in page order, as links;  none:  no field.  Changed?
    */
   updateToReview(phase: Element): boolean {
-    const n = PlanItem.idNumber(phase.id)
+    const n = PhaseIds.numberOf(phase)
     const old = phase.querySelector(':scope > epic-field[name="to-review"]')
     const items = this.allItems.filter((item) => {
       const facts = this.facts(item)
@@ -1696,11 +1732,11 @@ export class PlanDoc extends PlanReader {
       const label = "the summary"
       return { id: key, element: summary, kind: "summary", label, link: OVERVIEW_ID, what: "Overview", title: label }
     }
-    const phase = PHASE_ID.test(key) ? this.document.getElementById(key) : null
-    if (phase?.localName !== "epic-phase") return null
-    const label = key.toUpperCase()
+    const phase = PhaseIds.isPhaseId(key) ? this.phaseById(key) : undefined
+    if (!phase) return null
+    const label = PhaseIds.labelOf(phase)
     const title = `${label} · ${PlanItem.titleOf(phase)}`
-    return { id: key, element: phase, kind: "phase", label, link: key, what: "phase", title }
+    return { id: key, element: phase, kind: "phase", label, link: phase.id, what: "phase", title }
   }
 
   /**
@@ -1818,8 +1854,11 @@ const SUMMARY_SLOT = "summary"
 /** The slot of Owen's kept notes on the summary (`<epic-reply slot="notes">`, `PlanDoc.keepNote()`). */
 const NOTES_SLOT = "notes"
 
-/** A phase's id:  `p3`. */
-const PHASE_ID = /^p\d+$/
+/** An item's id, or what may be one:  `j3`, `cm3`, `o2` (but an old phase id, `p3`:  `OLD_PHASE_REF`). */
+const ITEM_REF = /^[a-z]{1,2}\d+$/
+
+/** A phase by its number:  `p3`, `3`. */
+const OLD_PHASE_REF = /^p?\d+$/
 
 /**
  * What takes review notes as an item does, but isn't one (`PlanDoc.reviewPart()`):

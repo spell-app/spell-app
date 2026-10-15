@@ -51,16 +51,18 @@ export async function epicCommand(session: CLI.CliSession, args: string[], optio
     case "file": {
       const [id, where] = rest
       if (!id || !where) throw new CLI.CliError(`file:  usage:  epic file ${epic} <id> <phase | "where it went">`)
-      if (/^\d+$/.test(where)) {
-        // into phase `where`'s Requests field, by the `epic` tool:  then it's filed as `P<n>`
+      const phase = CLI.phaseOf(where)
+      if (phase !== undefined) {
+        // into phase `where`'s Requests field, by the `epic` tool (`3`, `P3`, `p-epic-migrate`):  filed as `P3`
         const request = CLI.epicRequests(root, epic).find((it) => it.id === id)
         if (!request) throw new CLI.CliError(`no request '${id}' in epic '${epic}'`)
         const html = join(mkdtempSync(join(tmpdir(), "epic-request-")), `${id}.html`)
         writeFileSync(html, CLI.requestHTML(request))
-        const exitCode = await CLI.planDocCommand(["request", epic, where, id, "--from", request.from, "--file", html])
+        const exitCode = await CLI.planDocCommand(["request", epic, phase, id, "--from", request.from, "--file", html])
         if (exitCode !== CLI.EXIT.OK) return exitCode
       }
-      session.out(requestLine(CLI.fileRequest(root, epic, id, /^\d+$/.test(where) ? `P${where}` : where)))
+      const filed = phase === undefined ? where : /^\d+$/.test(phase) ? `P${phase}` : phase
+      session.out(requestLine(CLI.fileRequest(root, epic, id, filed)))
       return CLI.EXIT.OK
     }
     default:

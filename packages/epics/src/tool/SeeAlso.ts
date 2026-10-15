@@ -174,8 +174,11 @@ const EPICS = "epics"
 /** A page in an epic's own folder (not its epic page, nor its parts):  `epics/<name>/details/x.html`. */
 const OWN_PAGE = /^epics\/([^/]+)\/details\/[^/]+\.html$/
 
-/** A phase's part file, whose links count toward the See Also (J94):  `p3.html`. */
-const PHASE_PART = /^p\d+\.html$/
+/**
+ * A phase's part file, whose links count toward the See Also (J94):  `p-epic-migrate.html`, named for its stable id
+ * (P15);  an older page's `p3.html`.
+ */
+const PHASE_PART = /^p(?:\d+|-[a-z0-9]+(?:-[a-z0-9]+)*)\.html$/
 
 /** A docs page a See Also lists as a guide:  any `.html` under `guides/`. */
 const GUIDE = /^guides\/.+\.html$/
@@ -248,7 +251,7 @@ function factsOf(root: string, name: string): EpicFacts | undefined {
 /**
  * The pages epic `name`'s files link to, as checkout paths:
  * - `durable`:  its epic page's `<a slot="durable" href>`
- * - `guides`:  every page under `guides/` its phases' part files (`parts/p<N>.html`) link to, once each, sorted;
+ * - `guides`:  every page under `guides/` its phases' part files (`parts/p-<slug>.html`) link to, once each, sorted;
  *   an item's part, the Overview's or the summary's links never count (J94)
  * - each `href` read from its own file's folder (a part's from `parts/`);  a page that isn't there is left out
  */
