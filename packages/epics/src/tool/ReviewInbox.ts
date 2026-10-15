@@ -22,8 +22,8 @@ import { CommentList, type Comment, type IdentifiedComment } from "./CommentList
  * - Shape (`version: 1`):
  *   - `marks`:
  *     `{ [id]: { action, at, when?, note?, pick?, choices? } }`, one per item id (lower-case), the latest wins
- *     - what takes a mark (`itemIds()`):  an item, an Overview sub-section (`o3`), a phase (`p3`), and the summary,
- *       keyed `summary` (it has no id of its own;  epic `airplane` P2)
+ *     - what takes a mark (`itemIds()`):  an item, an Overview sub-section (`o3`), a phase (its stable id,
+ *       `p-epic-migrate`), and the summary, keyed `summary` (it has no id of its own;  epic `airplane` P2)
  *     - a NEW item Owen asks for from the page (epic `airplane` P2), `{ action: "new", kind, title, note?, near? }`
  *       - under a key of its own, `new1`, `new2` ... (`setNew()`), so several wait at once
  *       - `kind`:  `todo` or `question`;  `near`:  the id of what it's about
@@ -705,6 +705,44 @@ export class ReviewInbox {
     return this.woken
   }
 
+  /**
+   * Every entry keyed by an id in `renames` moves to its new id (`stable-phase-ids`, epic `epic-workflow` P15:
+   * `p7` => `p-epic-migrate`);  returns how many entries moved.
+   * - marks, drafts, urgency, agents at work, called-off requests:  their key;  an immediate request:  its `id`
+   * - a new item about one (`near`), and a comment's anchor on one:  `p7`, `p7#field-1`
+   * - an entry already under the new id wins:  the old one goes
+   */
+  renameIds(renames: Record<string, string>): number {
+    let moved = 0
+    const rename = (entries: Record<string, unknown>) => {
+      for (const [from, to] of Object.entries(renames)) {
+        if (!(from in entries)) continue
+        if (!(to in entries)) entries[to] = entries[from]!
+        delete entries[from]
+        moved++
+      }
+    }
+    const keyed: Record<string, unknown>[] = [this.marks, this.drafts, this.urgency, this.working, this.canceled]
+    for (const entries of keyed) rename(entries)
+    for (const request of this.now) {
+      if (!(request.id in renames)) continue
+      request.id = renames[request.id]!
+      moved++
+    }
+    for (const mark of Object.values(this.marks)) {
+      if (!mark.near || !(mark.near in renames)) continue
+      mark.near = renames[mark.near]!
+      moved++
+    }
+    for (const comment of Object.values(this.comments)) {
+      const [container, place] = comment.anchor.split("#")
+      if (!(container! in renames)) continue
+      comment.anchor = place === undefined ? renames[container!]! : `${renames[container!]}#${place}`
+      moved++
+    }
+    return moved
+  }
+
   ////////////////
   // ## Checks
   ////////////////
@@ -987,8 +1025,11 @@ const OPTION_LETTER = /^[A-Z]$/
 /** The highest card set position a pick may name:  a sanity bound, far above any item's count. */
 const MAX_CHOICES = 99
 
-/** An item id:  a letter or two and a number (`q7`, `j12`;  a phase's `p3`, an Overview sub-section's `o3`). */
-const ITEM_ID = /^[a-z]{1,2}\d+$/
+/**
+ * What a mark may be keyed by:  an item id, a letter or two and a number (`q7`, `j12`;  an Overview sub-section's
+ * `o3`), or a phase's id (`p-epic-migrate`, stable since P15;  an older page's `p3`).
+ */
+const ITEM_ID = /^(?:[a-z]{1,2}\d+|p-[a-z0-9]+(?:-[a-z0-9]+)*)$/
 
 /** A new item's key (`setNew()`):  `new1`, `new2` ... */
 const NEW_PREFIX = "new"

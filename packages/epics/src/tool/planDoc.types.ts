@@ -55,8 +55,10 @@ export type PhaseField = (typeof PHASE_FIELDS)[number]
 
 /** One phase, as `PlanReader.phases` reads it. */
 export type Phase = {
-  /** its number:  `p3` is 3 */
+  /** its number:  its place in the list, from 1 (P15:  never its id) */
   n: number
+  /** its id:  stable, made from its name when it was added (`p-epic-migrate`;  an older page's `p3`) */
+  id: string
   /** its short name, without `P3 · ` */
   name: string
   /** `todo`, `active` or `done`;  any other text is a broken doc (`PlanReader.check()`) */
@@ -73,7 +75,7 @@ export type AddPhaseOptions = Prettify<
   PhaseFieldValues & {
     /** wall-clock estimate (`1-2h`):  `<epic-phase estimate>` */
     estimate?: string
-    /** inserted as this phase, the to-do phases from it on moving down one (`add-phase --before N`);  default last */
+    /** inserted as this phase, the to-do phases from it on moving down a number (`add-phase --before N`);  default last */
     before?: number
   }
 >
@@ -245,10 +247,21 @@ export type DecideOptions = {
 }
 
 /**
- * What `PlanDoc.renameEntry()` did:  the phase's or item's `id` (`p6`), the title it `was`, its `title` now (the words
- * drawn), and how many `links` to it it rewrote.
+ * What `PlanDoc.renameEntry()` did:  the phase's or item's `id` and `label`, the title it `was`, its `title` now (the
+ * words drawn), and how many `links` to it it rewrote.
  */
-export type RenameResult = { id: string; was: string; title: string; links: number }
+export type RenameResult = {
+  /** its id:  `j3`, `p-epic-migrate` (a phase keeps its id) */
+  id: string
+  /** how it's named:  `J3`, `P6` (a phase by its place) */
+  label: string
+  /** its title before */
+  was: string
+  /** its title now */
+  title: string
+  /** how many links' words were rewritten */
+  links: number
+}
 
 /**
  * What `PlanDoc.keepOriginal()` (and `restoreOriginal()`) did:

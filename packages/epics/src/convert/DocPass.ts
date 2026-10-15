@@ -78,7 +78,8 @@ export abstract class DocPass {
    */
   protected async output(): Promise<PassOutput> {
     const { document } = this
-    Migrations.run(document, { now: new Date() })
+    // every edit's steps only:  the on-command ones (`stable-phase-ids` ...) change ids, which the proof checks kept
+    Migrations.run(document, { now: new Date() }, undefined, Migrations.everyEdit)
     const phases = document.querySelector("epic-section[kind='phases']")
     if (phases) PlanDoc.writeChangeCounts(phases)
     const problems = Markup.validate(document).map(describeProblem)

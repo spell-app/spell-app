@@ -118,20 +118,20 @@ export class PlanDocCommands {
       case "new":
         return this.create(name, file, flags)
       case "add-phase": {
-        const before = phaseNumberFlag(flags.before, "--before")
         const n = await this.edit(file, (plan) => {
+          const before = phaseFlag(plan, flags.before, "--before")
           const added = plan.addPhase(need(rest[0], "a short name"), { ...flags, before })
           const moved = before === undefined ? "" : `;  ${movedDown(plan.phases, added)}`
           plan.log(`P${added} added:  ${rest[0]}${moved}`)
           return added
         })
         this.print(`P${n}`)
-        // the phases after it moved:  links and comments follow them (`links-agree`)
-        return before === undefined ? undefined : this.agree(file)
+        // the phases after it moved down a number:  links' words follow them (`links-agree`)
+        return flags.before === undefined ? undefined : this.agree(file)
       }
       case "phase":
         await this.edit(file, (plan) =>
-          plan.setPhase(Number(need(rest[0], "a phase number")), need(rest[1], "a status"), {
+          plan.setPhase(plan.phaseNumber(need(rest[0], "a phase")), need(rest[1], "a status"), {
             done: flags.done as string | undefined
           })
         )
@@ -143,7 +143,7 @@ export class PlanDocCommands {
         return flags.noOpen ? undefined : this.openInVSCode(file)
       case "phase-body":
         return this.edit(file, (plan) => {
-          const n = Number(need(rest[0], "a phase number"))
+          const n = plan.phaseNumber(need(rest[0], "a phase"))
           const set = plan.setPhaseFields(n, flags)
           if (!set.length)
             throw new PlanDocError(`phase-body what?  --symptom / --changes / --goal / --files / --verify`)
@@ -152,7 +152,7 @@ export class PlanDocCommands {
       case "updated":
         return this.edit(file, (plan) =>
           plan.addPhaseUpdate(
-            Number(need(rest[0], "a phase number")),
+            plan.phaseNumber(need(rest[0], "a phase")),
             flags.file ? readFileSync(flags.file as string, "utf8") : need(rest[1], "what changed (html)"),
             { summary: typeof flags.summary === "string" ? flags.summary : undefined }
           )
@@ -166,7 +166,7 @@ export class PlanDocCommands {
       case "request":
         return this.edit(file, (plan) =>
           plan.addPhaseRequest(
-            Number(need(rest[0], "a phase number")),
+            plan.phaseNumber(need(rest[0], "a phase")),
             need(rest[1], "a request id"),
             need(flags.from as string | undefined, "--from (who sent it)"),
             readFileSync(need(flags.file as string | undefined, "--file (the request as html)"), "utf8")
@@ -177,12 +177,12 @@ export class PlanDocCommands {
         const title = need(rest[1], "the new title")
         const renamed = await this.edit(file, (plan) => plan.renameEntry(target, title, { html: !!flags.html }))
         const links = renamed.links ? `;  ${renamed.links} link${renamed.links === 1 ? "" : "s"} rewritten` : ""
-        this.print(`${renamed.id.toUpperCase()} · ${renamed.title} (was "${renamed.was}"${links})`)
+        this.print(`${renamed.label} · ${renamed.title} (was "${renamed.was}"${links})`)
         return this.agree(file)
       }
       case "estimate":
         return this.edit(file, (plan) => {
-          const n = Number(need(rest[0], "a phase number"))
+          const n = plan.phaseNumber(need(rest[0], "a phase"))
           plan.setEstimate(n, need(rest[1], "the estimate"))
           plan.log(`P${n} estimate:  ${rest[1]}`)
         })
@@ -404,10 +404,12 @@ export class PlanDocCommands {
     const checkout = this.files.checkoutOf(file)
     const full = PlanDocFiles.gitIn(checkout, "rev-parse", "--verify", "--quiet", `${sha}^{commit}`)
     if (!full) throw new PlanDocError(`no commit "${sha}" in ${checkout}`)
-    const target = phase !== undefined ? { phase: Number(phase) } : { item: String(item) }
     const base = this.files.commitBase(file)
-    const done = await this.edit(file, (plan) => plan.addCommit(target, full, sentence, { base }))
-    const where = target.phase !== undefined ? `P${target.phase}` : target.item!.toUpperCase()
+    const { done, where } = await this.edit(file, (plan) => {
+      const target = phase !== undefined ? { phase: plan.phaseNumber(String(phase)) } : { item: String(item) }
+      const where = target.phase !== undefined ? `P${target.phase}` : target.item!.toUpperCase()
+      return { done: plan.addCommit(target, full, sentence, { base }), where }
+    })
     this.print(`${where}:  ${full.slice(0, 7)} ${done}`)
   }
 
@@ -857,6 +859,7 @@ type CreateFlags = { title?: string; prompt?: string; promptFile?: string; futur
 /** Usage, printed with no command or a bad one. */
 export const USAGE = `usage:  spell dev plan-doc <command> <name> ...    (doc:  epics/<name>/<name>.plan.html)
   The old spelling of the epic command:  \`epic --help\` lists today's names (\`epic close seo#J3\` ...).
+  A phase <N> is its number (3, P3) or its name ("Epic Migrate", epic-migrate, p-epic-migrate:  its stable id).
   new <name> [--title "Title"] [--prompt "text" | --prompt-file path] [--future] [--saga <id>]
                                                    copy the template, fill it in, update the home page;
                                                    --future:  an epic not planned yet (/epic future);  new on
@@ -865,8 +868,9 @@ export const USAGE = `usage:  spell dev plan-doc <command> <name> ...    (doc:  
   add-phase <name> "Short Name" --symptom html --changes html [--goal html] [--files html] [--verify html]
             [--estimate 2h] [--before N]           a phase:  Symptom (one line), Changes (two or three), then
                                                    the details (goal, files, verify);  --before N:  inserted as
-                                                   PN, the to-do phases from N on (and links to them) move down;
-                                                   then links-agree:  comments on them follow (stderr says)
+                                                   PN, the to-do phases from N on move down a number (their
+                                                   ids stay:  links and comments stay on them);  then
+                                                   links-agree:  links' words follow (stderr says)
   phase-body <name> <N> [--symptom html] [--changes html] [--goal html] [--files html] [--verify html]
                                                    set (or "" removes) a phase's body fields
   updated <name> <N> "html" | --file path [--summary "..."]
@@ -874,8 +878,9 @@ export const USAGE = `usage:  spell dev plan-doc <command> <name> ...    (doc:  
                                                    end of its description, "Update: <summary>" and the date
                                                    (summary:  the html's first sentence unless given);  kept;
                                                    while N isn't done, its folded title says it changed
-  rename <name> <P6 | id> "New title" [--html]     retitle a phase or an item;  links to it that say the old
-                                                   title ("P6 · Old", "Old") say the new one;  logged;  then
+  rename <name> <P6 | id> "New title" [--html]     retitle a phase or an item (a phase keeps its id);  links to
+                                                   it that say the old title ("P6 · Old", "Old") say the new
+                                                   one;  logged;  then
                                                    links-agree (stderr);  --html (last):  the title is HTML
   saga list [--json]                               the sagas in order (sagas/sagas.json), each with its epics
                                                    and how many guides name it;  then the epics with none
@@ -1084,18 +1089,17 @@ function need(value: string | undefined, what: string): string {
 }
 
 /** Where a usage error points:  the whole `USAGE` is long, and every error printing it buried the message. */
-const USAGE_HINT = "`epic <verb> --help`;  a phase is `<epic>#P3`, an item `<epic>#J3`"
+const USAGE_HINT = "`epic <verb> --help`;  a phase is `<epic>#P3` (or its name), an item `<epic>#J3`"
 
 /**
- * A flag's phase number (`--before 3` is 3);  `undefined` without the flag.
- * - throws a `PlanDocError` for the flag bare, or with a value that isn't a whole number
+ * A flag's phase, as its number in `plan` (`--before 3`, `--before P3`, `--before epic-migrate` ...:
+ * `PlanDoc.phaseNumber()`);  `undefined` without the flag.
+ * - throws a `PlanDocError` for the flag bare, or a phase the doc doesn't have
  */
-function phaseNumberFlag(value: string | true | undefined, flag: string): number | undefined {
+function phaseFlag(plan: PlanDoc, value: string | true | undefined, flag: string): number | undefined {
   if (value === undefined) return undefined
-  const n = value === true ? Number.NaN : Number(value)
-  if (!Number.isInteger(n))
-    throw new PlanDocError(`${flag} needs a phase number${value === true ? "" : `, not "${value}"`}`)
-  return n
+  if (value === true) throw new PlanDocError(`${flag} needs a phase (its number, or its name)`)
+  return plan.phaseNumber(value)
 }
 
 /**

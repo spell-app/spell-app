@@ -1,6 +1,7 @@
 import { LinksAgree } from "./LinksAgree"
 import type { Migration, MigrationContext } from "./migrations.types"
 import { ReaderIsYou } from "./ReaderIsYou"
+import { StablePhaseIds } from "./StablePhaseIds"
 import { UpdatesAsEpicUpdate } from "./UpdatesAsEpicUpdate"
 
 /****************
@@ -18,7 +19,12 @@ import { UpdatesAsEpicUpdate } from "./UpdatesAsEpicUpdate"
  ****************/
 export class Migrations {
   /** Every step, in the order they run:  oldest first. */
-  static readonly all: readonly Migration[] = [new UpdatesAsEpicUpdate(), new ReaderIsYou(), new LinksAgree()]
+  static readonly all: readonly Migration[] = [
+    new UpdatesAsEpicUpdate(),
+    new ReaderIsYou(),
+    new LinksAgree(),
+    new StablePhaseIds()
+  ]
 
   /** The steps every edit runs too (`PlanDoc.migrate()`):  the cheap markup ones. */
   static get everyEdit(): readonly Migration[] {

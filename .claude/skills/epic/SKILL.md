@@ -59,7 +59,7 @@ Plan, then build, in worktree `<name>`, keeping the EPIC PAGE current the whole 
   - In full:  `spell dev docs link <ABSOLUTE path> --hash <id> [--text "..."]`.
   - It prints the side bar link, then `• 🌐` (the browser link)
     ([the details skill](.claude/skills/details/SKILL.md), "Links to pages").
-  - `--hash`:  the id of what you mean (`p2`, `q3`, `t4`).
+  - `--hash`:  the id of what you mean (`q3`, `t4`;  a phase's stable id, `p-retry-logic`:  `p2` still lands on P2).
   - A worktree's doc goes on the MAIN server when that one has the route, else the worktree's own.
 - Phase complete:  the LAST line of that reply's text says where we are.
   - Each phase is linked to its heading in the epic page:
@@ -925,7 +925,8 @@ A REQUEST is something Owen asked for in another session, sent here instead of d
    5. `epic check <epic>`;  report one line per request:  "r3 joined P6 · Comment Threads" or
       "r3:  new P8 · Retry Logic"
 4. Its report back:
-   - one line per request, with the phase's link pair (`spell dev docs link <doc> --hash p<N> --review`)
+   - one line per request, with the phase's link pair (`spell dev docs link <doc> --hash <phase id> --review`;  its
+     id, `p-retry-logic`, is in `epic summary <name> --json`)
    - then, when no phase is under way and bedtime mode is off:  "5. Each phase", step 5's modal,
      "Start P<N> · <Name>" first
    - a phase under way:  no modal;  the new work waits its turn.

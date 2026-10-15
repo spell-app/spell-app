@@ -96,11 +96,25 @@ As `plan-doc.md`, "Ids":
 - An old decision's `d7` lives on as an `<epic-answer id="d7">` inside its question:
   - old `#d7` links land
   - `close d7` finds the question
+- A PHASE's id is STABLE (epic `epic-workflow` P15, I7 and J49):  made once from its name when it's added, and kept
+  for good.  Its number is only its place.
+  - `p-` and the name's slug:  "Epic Migrate" is `p-epic-migrate` (`PhaseIds`, in `$/epics/phases`).
+    - The slug:  lower case, words joined by `-`, anything else dropped;  an apostrophe joins its word (`owens`).
+    - A clash with any id on the page gets `-2`, `-3` ...
+  - A rename changes the title, never the id;  an insert changes numbers, never ids.
+    So links (`#p-epic-migrate`), comment anchors (`p-epic-migrate#field-1`), inbox marks and drafts, and the part
+    file (`parts/p-epic-migrate.html`) stay on their phase.
+  - "P7" is what people see and say:  the 7th phase, worked out as the page draws (`<epic-phase>`, the step label, the
+    Epics list page) and as the tool prints.
+  - The tool takes a phase as people name it, wherever it takes one:  `7`, `P7`, `seo#P7`, `#p7`, its id, its name or
+    slug (`"Epic Migrate"`, `epic-migrate`;  a renamed phase by its name today too).
+  - An older page's ids are numbers (`p7`):  they still read, until `stable-phase-ids` ("Migrations") converts them.
+    An old address, `#p7`, still lands on the 7th phase (`PhaseIds.landing()`, the docs runtime's `addressedId()`).
 
 ## Phases
 
 ```html
-<epic-phase id="p2" title="Short Name" status="active" estimate="1-2h" changes="1">
+<epic-phase id="p-short-name" title="Short Name" status="active" estimate="1-2h" changes="1">
   <epic-field name="symptom">what's wrong today, one line</epic-field>
   <epic-field name="changes">what changes, two or three lines</epic-field>
   <epic-field name="requests"
@@ -116,6 +130,7 @@ As `plan-doc.md`, "Ids":
 </epic-phase>
 ```
 
+- `id`:  stable, from the name it was added under ("Ids");  `P2`, its place, is drawn.
 - `title`:  2-4 words, WITHOUT `P2 · ` (drawn).
 - `status`:  `todo`, `active` (one at a time), `done`.
 - Children in that order, always (the vocabulary's `childOrder: "listed"`):
@@ -125,12 +140,11 @@ As `plan-doc.md`, "Ids":
   - with `--symptom` / `--changes`:  Symptom, Changes, then Goal (optional), Files, Verify
   - without:  Goal, Files, Verify
   - A field not given reads `TBD`.
-- `add-phase ... --before N`:  inserted as PN.
-  - Every phase from N on moves down one, with what points at it:
-    - its `id`
-    - links:  `href="#pN"`, and the `PN` in their text
+- `add-phase ... --before N`:  inserted as PN (`N` any way the tool takes a phase:  `--before epic-migrate`).
+  - Every phase from N on moves down a NUMBER;  ids stay, so links, comments, marks and part files stay on them.
+    What says the number follows:
+    - the `PN` in the words of links to it (`<a href="#p-docs">P5 · Docs</a>` says `P6`)
     - `phase` on items and `<epic-update>`s (and `of` on an older doc's `<epic-updated>` copies)
-  - A split doc's parts follow (written under the new ids).
   - Prose naming a phase without a link isn't changed.
   - Refused while a phase from N on has started (done or active):  its commits and log say its number.
 - `update <name>#<P6 | id> --title "New title"` (epic `epic-workflow`):  a phase's or an item's new title.
@@ -138,7 +152,7 @@ As `plan-doc.md`, "Ids":
     `--html` (last):  the title has markup, so it's a title slot.
   - Links to it whose words say the old title follow:  `P6 · Old` -> `P6 · New`, `Old` -> `New`.
     Any other words stay (`P6`, "the next phase"), and so do links in an Original Discussion (history).
-  - A phase:  each item queued for it (`work="P6 · Old"`) follows too.
+  - A phase:  each item queued for it (`work="P6 · Old"`) follows too;  its id stays (made from its first name).
   - An item is stamped and flagged UPDATE, as any change to it.
   - Logged:  `P6 renamed:  "Old" -> "New" (2 links)`.
 - `<epic-page saga="<id>">` (epic `epic-workflow` P15):  the saga the epic serves, one of `sagas/sagas.json`'s ids.
@@ -360,8 +374,8 @@ As `plan-doc.md`, "Ids":
   - todo makes a todo linking `#o3`
   - a kept note is a paragraph at its end
 - So do a phase and the summary (epic `airplane` P2):  Revisit, Make Todo and Do Now on the page;  no Approve.
-  - A phase (`p3`):
-    - todo makes `Follow up:  P3 · <title>`, linking `#p3`, and a Noted status card on the phase
+  - A phase (keyed by its id, `p-epic-migrate`;  a mark keyed `p3` from before `stable-phase-ids`:  the 3rd phase):
+    - todo makes `Follow up:  P3 · <title>`, linking `#p-epic-migrate`, and a Noted status card on the phase
     - a kept note is Owen's `<epic-reply>` in the phase, after Requests (its plan changes come after Goal)
   - The summary, keyed `summary` in the inbox (it has no id):
     - todo makes `Follow up:  the summary`, linking `#overview`, and a Noted status card under the lede
@@ -376,7 +390,7 @@ As `plan-doc.md`, "Ids":
     Editable and removable until Claude makes it.
   - `inbox apply` makes each sent one as `add` does:
     - the note its details (a question's lead)
-    - `About <a href="#p3">P3</a>.` for `near`
+    - `About <a href="#p-epic-migrate">P3</a>.` for `near` (a phase by its id, or as typed:  `p3`)
     - a Noted status card, `Made from the page:  Owen's new todo, written <time>.`
     - one log line
   - `inbox clear new1` drops one;  its note is never kept as a reply.
@@ -634,14 +648,28 @@ Named, dated, idempotent steps that bring an older page's markup up to today's, 
   - `links-agree` (2026-10-11, on command;  Owen on I7):  every `#id` link and comment anchor against today's ids and
     titles (`LinksAgree`)
     - fixes:  a link's words naming a title its target had before (the log's `renamed` lines say which), a phase link
-      naming another phase's title (an insert moved it:  `#p10 P10 · Doc Review` -> `#p11 P11 · Doc Review`), a comment
+      naming another phase's title (`#p-docs P10 · Doc Review` -> `#p-doc-review P11 · Doc Review`), a phase link
+      saying an old number (an insert moved it down:  `#p-doc-review P10 · Doc Review` -> `P11 · Doc Review`), a comment
       whose block only moved (found by its excerpt, `PlanAnchors`:  BlockAnchors.js's rules, copied), moved in the
       inbox after the page
     - reports, for Claude or Owen:  a link to an id that's gone, a comment or mark on one, a comment whose block's words
       changed
     - never the log, nor an Original Discussion:  history
     - also run by `update --title` and `add-phase --before`, right after their change (what it says goes to stderr)
-    - Goals Foundation (P15) adds stable phase ids, `<epic-link>` and `GOAL:/` links:  their checks come with it
+    - a phase's number in its words is its place (`PhaseIds.labelOf()`);  a phase's `renamed` line names the phase
+      titled with its new name, else the one at that number
+  - `stable-phase-ids` (2026-10-14, on command;  P15, I7 and J49):  every phase's old id (`p7`) becomes a stable one
+    from its name (`p-epic-migrate`:  "Ids"), with everything that uses it (`StablePhaseIds`)
+    - the page:  each `<epic-phase id>`;  every link to it (`#p7`, or `<epic>.plan.html#p7`), the log's and Original
+      Discussions' too (their words stay;  they just land);  a stray `#p7` no element has, to the 7th phase
+    - the part files:  written under the new ids, the old ones removed (`PlanDocFiles.writeDoc()`:  a part the doc was
+      read from and no longer writes goes)
+    - the inbox, after the page (`context.renames`, `ReviewInbox.renameIds()`):  marks, drafts, urgency, agents at
+      work, called-off and immediate requests keyed `p7`, a new item's `near`, comment anchors (`p7`, `p7#field-1`)
+    - left:  links INTO the page from other pages (guides, details pages, other epics, the changelog):  `#p7` still
+      lands on the 7th phase;  what says a number as a RECORD (`phase="7"`, `taken: { phase: 7 }`, a request's
+      `filed: P7`, the log's words)
+    - reports:  `stable-phase-ids:  12 phase ids (p1 -> p-epic-migrate, ...), 40 links, 3 in the inbox`
 - A new step:  a class implementing `Migration` in `migrations/`, its instance added LAST to `Migrations.all`, in the
   SAME commit as the markup change it follows (epics' `AGENTS.md`, "Rules").  Another kind's:  an entry in the docs
   tool's `STEPS`, last.  Either way:  idempotent, every word kept, and a test (a before page becomes the after page,

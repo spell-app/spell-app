@@ -3,6 +3,8 @@ import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
+import { PhaseIds } from "$/epics/phases"
+
 // its view of the review inbox:  the file, not `epic-review`'s barrel (`index.ts` defines that family)
 import { ReviewState } from "$/epics/components/epic-review/ReviewState"
 import { SHOW_NOTE, type ReviewShows } from "$/epics/components/epic-review/EpicReview.types"
@@ -26,6 +28,8 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  * - Its title line:
  *   - the status icon in its colour (grey to do, blue under way, green done)
  *   - `P3 · <title>` (`title`, or `slot="title"`);  a done phase's title reads quieter
+ *     - `P3`:  its NUMBER, its place among the phases, worked out as it draws (`number`);  NOT its id, which is
+ *       stable (`p-epic-migrate`, epic `epic-workflow` P15:  `PhaseIds`), so an insert renumbers no link
  *   - while it isn't done and its plan changed (`changes`, written by the tool):  an orange pen and how many times,
  *     so a folded phase says so too (its body, a part, isn't loaded until it opens)
  *   - the estimate as a badge
@@ -38,7 +42,7 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  *   - An older doc's `<epic-updated>` lines (its `changes` slot, P6) show at the end of its body, unboxed,
  *     until the epic tool's next write migrates them (`updates-as-epic-update`)
  *   - Files and Verify show only while the Phases title's toggles say so;  commits while the page's git toggle does
- * - Its body is usually a part (`source="parts/p3.html"`), loaded the first time it opens.
+ * - Its body is usually a part (`source="parts/p-epic-migrate.html"`), loaded the first time it opens.
  * - REVIEWED as an Overview sub-section is, only while the page is reviewed
  *   (epic `airplane` P2;  `<epic-review buttons="part">`):
  *   - Revisit, Make Todo, Do Now at its title's end (no Approve:  notes on the plan, not sign-off)
@@ -67,7 +71,7 @@ export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {
   /** Its status icon. */
   readonly glyph = new E.IconGlyph({ owner: this, name: () => STATUS_ICONS[this.shownStatus] })
 
-  /** Its view of the review inbox, keyed by its id (`p3`):  is the page reviewed?  Has it a marked note? */
+  /** Its view of the review inbox, keyed by its id (`p-epic-migrate`):  is the page reviewed?  Has it a marked note? */
   readonly reviewState = new ReviewState(() => this.id)
 
   /** The pen of its title's mark:  its plan changed. */
@@ -79,13 +83,22 @@ export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {
   }
 
   /**
+   * Its number:  its place among the phases, from 1 (`PhaseIds.numberOf()`), drawn `P3`.
+   * - read again on every layout change (the page's `layout`:  a phase inserted, moved or removed)
+   */
+  get number(): number {
+    void this.layout
+    return PhaseIds.numberOf(this.domElement)
+  }
+
+  /**
    * The contents entry (`EpicFold.contentsEntry()`):  `P3 · <title>`, its status icon in its colour.
    * - From the attributes as they are NOW, read off the DOM element:  the live update reads it right after a patch
    */
   contentsEntry(): ContentsEntry {
     const written = this.domElement.getAttribute("status") ?? ""
     const status: PhaseStatus = written in STATUS_ICONS ? (written as PhaseStatus) : "todo"
-    const label = `${this.domElement.id.toUpperCase()} · ${EpicPhase.titleText(this.domElement)}`
+    const label = `${PhaseIds.labelOf(this.domElement)} · ${EpicPhase.titleText(this.domElement)}`
     return { label, icon: STATUS_ICONS[status], color: STATUS_COLORS[status] }
   }
 
@@ -99,7 +112,7 @@ export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {
     return this.renderFold({
       title: () => (
         <>
-          <span class="id">{(this.id ?? "").toUpperCase()}</span>
+          <span class="id">P{this.number}</span>
           <span class="dot" aria-hidden="true">
             {" · "}
           </span>
@@ -177,7 +190,9 @@ export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {
 
   /** One of its review controls (`<epic-review>`):  what it `shows`, as its `part`. */
   private reviewControl(shows: ReviewShows, part: "review-buttons" | "note-box" | "said"): JSX.Element {
-    return <epic-review of={this.id} shows={shows} buttons="part" part={this.partForName(part)} />
+    return (
+      <epic-review of={this.id} label={`P${this.number}`} shows={shows} buttons="part" part={this.partForName(part)} />
+    )
   }
 
   /** Revisit or Edit, pressed on its own review controls:  unfolded, its part loaded, to show the note box. */

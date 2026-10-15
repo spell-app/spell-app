@@ -55,7 +55,9 @@ function context(): MigrationContext & { notes: string[]; moves: AnchorMove[] } 
 
 /** The page's links in its goal, as `href words`. */
 function links(document: Document): string[] {
-  return Array.from(document.querySelectorAll("#p1 a")).map((a) => `${a.getAttribute("href")} ${a.textContent}`)
+  return Array.from(document.querySelectorAll("epic-phase:first-child a")).map(
+    (a) => `${a.getAttribute("href")} ${a.textContent}`
+  )
 }
 
 describe("links-agree", () => {
@@ -87,6 +89,24 @@ describe("links-agree", () => {
     expect(STEP.run(document, again)).toBe(false)
     expect(again.moves).toEqual([])
     expect(again.notes.every((note) => /gone/.test(note))).toBe(true)
+  })
+
+  test("stable phase ids (P15):  a link's old NUMBER follows its phase's place;  a renamed phase's old title too", () => {
+    const document = page()
+    const ids = ["p-one", "p-old-two", "p-inserted", "p-docs"]
+    Array.from(document.querySelectorAll("epic-phase")).forEach((phase, index) => {
+      for (const link of document.querySelectorAll(`a[href="#${phase.id}"]`))
+        link.setAttribute("href", `#${ids[index]}`)
+      phase.id = ids[index]!
+    })
+    expect(STEP.run(document, context())).toBe(true)
+    expect(links(document)).toEqual([
+      "#p-old-two P2 · Two",
+      "#j1 New call",
+      "#p-docs P4 · Docs",
+      "#t9 T9 · Gone",
+      "#p-one P1"
+    ])
   })
 
   test("a link's words that aren't an old title stay as written", () => {

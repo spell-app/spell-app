@@ -6,6 +6,7 @@ import { E, UI } from "$/ui/core"
 import { URGENT_SELECTOR, epicStateFor, type EpicState } from "$/server/site/EpicState"
 
 import { PlanDates } from "$/epics/dates"
+import { PhaseIds } from "$/epics/phases"
 import { NOBODY_LISTENING, isAirplane, isImmediate } from "$/epics/review"
 // the page's view of the review inbox, as the review controls':  its file, not `epic-review`'s barrel
 import { ReviewState } from "$/epics/components/epic-review/ReviewState"
@@ -242,11 +243,12 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   // ## Derived state
   ////////////////
 
-  /** The phases below, read again on every layout change. */
+  /** The phases below, read again on every layout change:  each numbered by its place (P15:  never by its id). */
   readonly phases = createMemo((): PhaseLine[] => {
     this.signals.layout.get()
     return Array.from(this.domElement.querySelectorAll("epic-phase"), (phase) => ({
       id: phase.id,
+      label: PhaseIds.labelOf(phase),
       status: phase.getAttribute("status") ?? TODO,
       title: phase.getAttribute("title") ?? phase.querySelector(":scope > [slot=title]")?.textContent?.trim() ?? ""
     }))
@@ -319,7 +321,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
       standing: this.standing,
       urgent: Array.from(this.domElement.querySelectorAll(URGENT_SELECTOR), (item) => item.id),
       running: this.review.reviewing() && !!client?.listening,
-      active: active && `${active.id.toUpperCase()} · ${active.title}`
+      active: active && `${active.label} · ${active.title}`
     })
     return state.name === "future" || state.name === "done" ? undefined : state
   })
@@ -1113,7 +1115,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
 
   /** A phase's step label:  `P4`, its name in the tooltip, a link to it. */
   private phaseLabel(phase: PhaseLine, color: StepLabel["color"], icon: string, prefix: string): StepLabel {
-    const words = phase.id.toUpperCase()
+    const words = phase.label
     return { color, icon, words, tip: `${prefix}${words} · ${phase.title}`, href: `#${phase.id}` }
   }
 

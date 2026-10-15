@@ -7,7 +7,9 @@ import { CliError } from "$/cli/cli.types"
  * - Owen's scheme (Command Review Page, 2026-10-12):  `epic <verb> <epic>#<id>` for anything inside an epic page
  *   - `seo`:  the page
  *   - `seo#J3`:  an item (or a comment, `seo#cm3`;  or an Overview section)
- *   - `seo#P3`, `seo#p3`, `seo#3`:  a phase
+ *   - `seo#P3`, `seo#p3`, `seo#3`:  a phase, by its number;  `seo#p-epic-migrate`:  by its stable id (epic
+ *     `epic-workflow` P15);  a verb that takes only a phase (`phase`, `updated`, `add-request`) takes its name too
+ *     (`seo#epic-migrate`, `"seo#Epic Migrate"`):  the tool finds it (`PlanDoc.phaseNumber()`)
  *   - `seo#J`:  a NEW item of that kind, for `add`
  * - Without a `#`, the tool's own order works too:  `epic close seo J3` ~== `epic close seo#J3`.
  * - Pure:  no files, no output.  Throws `CliError` (a usage error, exit 2) for a target the verb can't take.
@@ -29,13 +31,13 @@ export function planDocArgs(verb: string, args: string[]): string[][] {
     }
     case "phase":
     case "updated":
-      return [[verb, ...around(ref === undefined ? [] : [String(needPhase(verb, args[at]!, ref))])]]
+      return [[verb, ...around(ref === undefined ? [] : [needPhase(verb, args[at]!, ref)])]]
     case "add-request":
-      return [["request", ...around(ref === undefined ? [] : [String(needPhase(verb, args[at]!, ref))])]]
+      return [["request", ...around(ref === undefined ? [] : [needPhase(verb, args[at]!, ref)])]]
     case "commit": {
       if (ref === undefined) return [["commit", ...args]]
       const phase = phaseOf(ref)
-      return [["commit", ...around([]), ...(phase === undefined ? ["--item", ref] : ["--phase", String(phase)])]]
+      return [["commit", ...around([]), ...(phase === undefined ? ["--item", ref] : ["--phase", phase])]]
     }
     case "restore":
       return [["original", ...around(ref === undefined ? [] : [ref])]]
@@ -83,10 +85,25 @@ export function parseTarget(text: string): EpicTarget {
   return { epic, ref }
 }
 
-/** The phase number a ref names, `P3`, `p3` or `3`;  `undefined` when it names something else. */
-export function phaseOf(ref: string): number | undefined {
+/**
+ * The phase a ref names, as the tool takes it:  a number (`P3`, `p3`, `3` -> `3`), or a stable id as it is
+ * (`p-epic-migrate`);  `undefined` when it names something else (an item, or a phase's name:  `phaseRef()`).
+ */
+export function phaseOf(ref: string): string | undefined {
   const match = PHASE_REF.exec(ref)
-  return match ? Number(match[1]) : undefined
+  if (match) return match[1]
+  return STABLE_PHASE_ID.test(ref) ? ref : undefined
+}
+
+/**
+ * A ref where only a phase may go:  `phaseOf()`'s, else as typed (a phase's name or slug:  the tool finds it).
+ * - a usage error for an item's id (`seo#J3`), saying `verb` takes a phase
+ */
+function needPhase(verb: string, text: string, ref: string): string {
+  const phase = phaseOf(ref)
+  if (phase !== undefined) return phase
+  if (ITEM_REF.test(ref)) throw new CliError(`${verb}:  ${text}?  a phase, e.g. ${text.split("#")[0]}#P3`)
+  return ref
 }
 
 /** The item kind a ref names for `add`:  a kind's letter (`J`, `q` ...) or its word (`judgement`);  else `undefined`. */
@@ -130,7 +147,7 @@ function updateArgs(args: string[], at: number, target: EpicTarget | undefined):
   const { epic, ref } = target
   const phase = ref === undefined ? undefined : phaseOf(ref)
   const fields = ref === undefined ? PAGE_FIELDS : phase === undefined ? ITEM_FIELDS : PHASE_FIELDS
-  const what = ref === undefined ? "the page" : phase === undefined ? `item ${ref}` : `phase P${phase}`
+  const what = ref === undefined ? "the page" : phase === undefined ? `item ${ref}` : `phase ${phaseLabel(phase)}`
   if (!keys.length) throw new CliError(`update ${args[at]}:  which fields?  ${what} has --${fields.join(", --")}`)
   const unknown = keys.filter((key) => !fields.includes(key))
   if (unknown.length)
@@ -151,9 +168,9 @@ function updateArgs(args: string[], at: number, target: EpicTarget | undefined):
     }
   } else if (phase !== undefined) {
     const body = PHASE_BODY.filter((key) => key in flags).flatMap((key) => [`--${key}`, value(key)])
-    if (body.length) runs.push(["phase-body", epic, String(phase), ...body])
-    if ("estimate" in flags) runs.push(["estimate", epic, String(phase), value("estimate")])
-    rename(`P${phase}`)
+    if (body.length) runs.push(["phase-body", epic, phase, ...body])
+    if ("estimate" in flags) runs.push(["estimate", epic, phase, value("estimate")])
+    rename(/^\d+$/.test(phase) ? `P${phase}` : phase)
   } else {
     if (flags.calm && flags.loud) throw new CliError("update:  --calm or --loud, not both")
     if (flags.calm) runs.push(["calm", epic, ref])
@@ -175,11 +192,9 @@ function flagsOf(args: string[]): Record<string, string | true> {
   return flags
 }
 
-/** A phase number from `ref`, or a usage error saying `verb` takes a phase. */
-function needPhase(verb: string, text: string, ref: string): number {
-  const phase = phaseOf(ref)
-  if (phase === undefined) throw new CliError(`${verb}:  ${text}?  a phase, e.g. ${text.split("#")[0]}#P3`)
-  return phase
+/** A phase as said:  `P3` for `3`, a stable id as it is. */
+function phaseLabel(phase: string): string {
+  return /^\d+$/.test(phase) ? `P${phase}` : phase
 }
 
 /** A usage error when `verb`, which takes a whole epic, was given `seo#J3`. */
@@ -211,8 +226,14 @@ const ITEM_VERBS = [
   "calm"
 ]
 
-/** A phase ref:  `P3`, `p3`, `3`. */
+/** A phase ref by number:  `P3`, `p3`, `3`. */
 const PHASE_REF = /^[Pp]?(\d+)$/
+
+/** An item's id (or a comment's, an Overview section's):  `J3`, `cm3`, `o2`. */
+const ITEM_REF = /^[A-Za-z]{1,2}\d+$/
+
+/** A phase's stable id (`$/epics` `PhaseIds`, copied:  `epic` imports no barrel):  `p-epic-migrate`. */
+const STABLE_PHASE_ID = /^p-[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 /** One part of a bedtime run's phases:  `P3`, `P3-P6`, `3-6`. */
 const PHASE_RANGE = /^[Pp]?(\d+)(?:\s*-\s*[Pp]?(\d+))?$/

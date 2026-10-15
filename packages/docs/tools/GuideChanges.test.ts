@@ -66,7 +66,15 @@ describe("GuideChanges.gather()", () => {
       ["guides/memory/memory.html", "Memory", 1, 1]
     ])
     expect(await changes.gather()).toEqual([
-      { page: "guides/memory/memory.html", epic: "gc", phase: 1, as: "phase", comments: [id], notes: ["n1"] }
+      {
+        page: "guides/memory/memory.html",
+        epic: "gc",
+        phase: 1,
+        phaseId: "p-memory",
+        as: "phase",
+        comments: [id],
+        notes: ["n1"]
+      }
     ])
     const doc = epicText()
     expect(doc).toMatch(/<epic-phase[^>]*title="Memory"/)
@@ -79,7 +87,7 @@ describe("GuideChanges.gather()", () => {
     expect(inbox.comments[id]).toMatchObject({ status: "taken", taken: { epic: "gc", phase: 1 } })
     const page = readFileSync(join(root, "guides", "memory", "memory.html"), "utf8")
     expect(page).toMatch(
-      /<spell-note id="n1" status="answered"[\s\S]*Taken into <a href="..\/..\/epics\/gc\/gc.plan.html#p1">gc P1/
+      /<spell-note id="n1" status="answered"[\s\S]*Taken into <a href="..\/..\/epics\/gc\/gc.plan.html#p-memory">gc P1/
     )
     expect(changes.waiting()).toEqual([])
   })

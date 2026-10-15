@@ -59,6 +59,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     from whatever form the doc holds.
     - NOT the log's (`<epic-event>`).
     - A time alone (`saved 14:42`):  `PlanDates.clock()`.
+  - `phases/` -- `PhaseIds`:  a phase's STABLE id and the number people see (epic `epic-workflow` P15).
+    - The id is made once from the phase's name, `p-epic-migrate`, and kept through renames and inserts.
+    - "P7" is its place in the list, worked out as it's drawn or printed:  never written, never its id.
+    - Finding a phase as people name it (`7`, `P7`, its id, name or slug), and an old `#p7` landing on the 7th phase.
   - `review/` -- `ReviewClient`, one per page:  the review inbox's reads and writes (`/api/review/*`).
     - Also token refresh, polling, and note-draft backups (the old page runtime's localStorage keys).
     - It touches no browser global until `forPage()` / `watch()`.

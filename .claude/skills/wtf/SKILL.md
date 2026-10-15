@@ -58,7 +58,8 @@ Owen has lost the thread:  hand it back in one screen.
 
 Plain words, no jargon;  coined names defined in a few words.
 - Every plan item named is a link:
-  - the epic page's URL, plus its id, lower-case:  `<url>#p2`, `<url>#q1`, `<url>#i3`
+  - the epic page's URL, plus its id, lower-case:  `<url>#q1`, `<url>#i3`;  a phase's stable id, `<url>#p-short-name`
+    (`epic summary <name> --json`), or its number, `<url>#p2`, which lands on P2
   - text as the doc shows it:  `P2 · Short Name`, `Q1`
 - Sections with nothing in them are left out.
 - For `<name>`, the first line says which session:  its name, id, running / idle / waiting / not running.

@@ -24,7 +24,8 @@ describe("Migrations", () => {
     expect(Migrations.all.map((step) => step.name)).toEqual([
       "updates-as-epic-update",
       "owen-types-to-you-type",
-      "links-agree"
+      "links-agree",
+      "stable-phase-ids"
     ])
     expect(Migrations.named("updates-as-epic-update")?.description).toMatch(/<epic-update at summary>/)
     expect(Migrations.named("nope")).toBeUndefined()
@@ -43,8 +44,8 @@ describe("Migrations", () => {
     const document = olderDoc()
     expect(Migrations.run(document, { now }, [])).toEqual([])
     expect(document.querySelector("epic-updated")).not.toBeNull()
-    expect(Migrations.run(document, { now })).toEqual(["updates-as-epic-update"])
-    const update = document.querySelector("#p1 > epic-update")!
+    expect(Migrations.run(document, { now })).toEqual(["updates-as-epic-update", "stable-phase-ids"])
+    const update = document.querySelector("#p-one > epic-update")!
     expect([
       update.getAttribute("at"),
       update.getAttribute("summary"),

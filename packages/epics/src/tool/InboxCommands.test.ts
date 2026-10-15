@@ -216,7 +216,7 @@ test("apply:  the note box's x (`skip`):  reviewed, nothing else, a note kept;  
   expect(after.findItem("j1")!.querySelector('epic-reply[from="Owen"][re="skip"]')?.textContent).toBe("covered by P3")
   // a todo:  skipping it IS dropping it
   expect(facts("t1")).toEqual(["canceled", after.today, "drop"])
-  expect(after.document.getElementById("p1")!.querySelector('epic-reply[from="Owen"]')?.textContent).toBe(
+  expect(after.document.getElementById("p-bring-it-in")!.querySelector('epic-reply[from="Owen"]')?.textContent).toBe(
     "fine as planned"
   )
   const out = printed.join("\n")
@@ -438,7 +438,8 @@ test("apply:  sent new items are made, a phase's and the summary's todos filed; 
     ["NEW1  made question Q1:  window or aisle?", "P1  to todo T1", "SUMMARY  to todo T2"].join("\n")
   )
   const after = PlanDoc.parse(readFileSync(file, "utf8"))
-  expect(after.findItem("q1")!.querySelector('a[href="#p1"]')).not.toBeNull()
+  // `near` the phase by its old id (`p1`):  linked by its stable one
+  expect(after.findItem("q1")!.querySelector('a[href="#p-offline-pages"]')).not.toBeNull()
   expect(after.findItem("q1")!.querySelector('epic-status[state="noted"]')).not.toBeNull()
   expect(after.findItem("t1")!.getAttribute("title")).toBe("Follow up:  P1 · Offline Pages")
   expect(after.findItem("t2")!.getAttribute("title")).toBe("Follow up:  the summary")
@@ -466,6 +467,8 @@ test("clear:  a phase's note is kept as Owen's reply in the phase;  a new item's
   await commands().inbox.run("x", file, ["clear", "p1", "new1"], {})
   const after = PlanDoc.parse(readFileSync(file, "utf8"))
   const replies = after.document.querySelectorAll("epic-reply")
-  expect(Array.from(replies, (reply) => [reply.parentElement!.id, reply.textContent])).toEqual([["p1", "too big?"]])
+  expect(Array.from(replies, (reply) => [reply.parentElement!.id, reply.textContent])).toEqual([
+    ["p-offline-pages", "too big?"]
+  ])
   expect(ReviewInbox.read(inboxFile).isEmpty).toBe(true)
 })

@@ -172,6 +172,9 @@ async function start() {
   if (!main) return
   // where to land, read before anything scrolls:  scroll-follow rewrites the address as the page moves
   const landing = { hash: hashId(), scroll: window.SPELL_SERVER?.takeScroll?.() }
+  // an old phase address (`#p7`) shows the phase's stable id it landed on (`addressedId()`)
+  if (landing.hash && landing.hash !== decodeHash(location.hash.slice(1)))
+    history.replaceState(null, "", `#${landing.hash}`)
   // listening at once:  an edit that comes in while this is still wiring waits for `live.ready()`
   const live = wireLiveUpdate(main)
   highlight()
@@ -2342,7 +2345,7 @@ function wireAnchors(main, outline, sticky, follow, folds) {
   function onMessage(event) {
     const data = event.data
     if (event.source !== window.parent || data?.spell !== "go" || typeof data.hash !== "string") return
-    const id = decodeHash(data.hash.replace(/^#/, ""))
+    const id = addressedId(decodeHash(data.hash.replace(/^#/, "")))
     if (targetIn(id) || hostHolding(main, id)) go(id)
   }
 
@@ -2388,7 +2391,8 @@ function wireAnchors(main, outline, sticky, follow, folds) {
     for (const node of event.composedPath()) {
       if (!(node instanceof Element)) continue
       const href = node.getAttribute("href")
-      if (node.localName === "a" && href?.startsWith("#") && href.length > 1) return decodeURIComponent(href.slice(1))
+      if (node.localName === "a" && href?.startsWith("#") && href.length > 1)
+        return addressedId(decodeURIComponent(href.slice(1)))
     }
     return undefined
   }
@@ -2671,11 +2675,25 @@ function stuckBottom(main) {
   return bottom
 }
 
-/** The URL's `#hash` as an id, or "". */
+/** The URL's `#hash` as an id, or "";  an old phase address as the phase's id (`addressedId()`). */
 function hashId() {
-  const id = decodeHash(location.hash.slice(1))
+  return addressedId(decodeHash(location.hash.slice(1)))
+}
+
+/**
+ * The id an address names on this page:  `id`, unless it's an OLD phase id (`p7`, from before stable phase ids, epic
+ * `epic-workflow` P15) that no element has:  then the 7th phase's id (`p-epic-migrate`), so old links and bookmarks
+ * still land.  As `$/epics` `PhaseIds.landing()`.
+ */
+function addressedId(id) {
+  if (document.getElementById(id)) return id
   // ids in any case (`#T1` ~== `#t1`, epic `epic-workflow` J32):  the page's own spelling when it has no other
-  return document.getElementById(id) ? id : id.toLowerCase()
+  const n = /^p(\d+)$/i.exec(id)?.[1]
+  if (!n) return id.toLowerCase()
+  return (
+    document.querySelectorAll('epic-page > epic-section[kind="phases"] > epic-phase')[Number(n) - 1]?.id ??
+    id.toLowerCase()
+  )
 }
 
 /** A `#hash` (without its `#`) as an id:  percent-decoded, or as it is when that fails. */

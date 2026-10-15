@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url"
 import { describe, expect, test } from "vite-plus/test"
 
 import { Markup } from "$/epics/markup"
+import { PhaseIds } from "$/epics/phases"
 
 import { PlanDocError } from "./planDoc.types"
 
@@ -28,9 +29,9 @@ function freshPlan(now = NOW) {
   return PlanDoc.parse(readFileSync(join(FIXTURES, "epic-plan.html"), "utf8"), now)
 }
 
-/** Element `id` of `plan`. */
+/** Element `id` of `plan`;  `p3`, a phase by its number (its id is stable, made from its name:  `PhaseIds`). */
 function el(plan: PlanDoc, id: string) {
-  return plan.document.getElementById(id)!
+  return plan.document.getElementById(PhaseIds.landing(plan.document, id))!
 }
 
 /** The tags (or `field:name`) of `element`'s children, slotted ones left out. */
@@ -106,11 +107,12 @@ describe("PlanDoc phases", () => {
     const plan = freshPlan()
     expect(plan.addPhase("Docs Workspace")).toBe(1)
     expect(plan.addPhase("Runtime + Index", { goal: "sidebar from headings" })).toBe(2)
+    // each id stable, made from its name;  its number its place
     expect(plan.phases).toEqual([
-      { n: 1, name: "Docs Workspace", status: "todo", estimate: undefined },
-      { n: 2, name: "Runtime + Index", status: "todo", estimate: undefined }
+      { n: 1, id: "p-docs-workspace", name: "Docs Workspace", status: "todo", estimate: undefined },
+      { n: 2, id: "p-runtime-index", name: "Runtime + Index", status: "todo", estimate: undefined }
     ])
-    expect(Markup.read(el(plan, "p2"))).toEqual({ id: "p2", title: "Runtime + Index", status: "todo" })
+    expect(Markup.read(el(plan, "p2"))).toEqual({ id: "p-runtime-index", title: "Runtime + Index", status: "todo" })
     expect(kids(el(plan, "p2"))).toEqual(["field:goal", "field:files", "field:verify"])
     expect(el(plan, "p1").querySelector('[name="goal"]')!.textContent).toBe("TBD")
     expect(problems(plan)).toEqual([])
@@ -220,13 +222,13 @@ describe("PlanDoc phases", () => {
     expect(problems(plan)).toEqual([])
   })
 
-  test("--before inserts a phase, moving the later to-do phases and what points at them down one", () => {
+  test("--before inserts a phase:  the later to-do phases move down a NUMBER;  their ids and links stay", () => {
     const plan = freshPlan()
     for (const name of ["One", "Two", "Three", "Four"]) plan.addPhase(name)
     plan.setPhase(1, "done")
     plan.setPhase(2, "active")
     plan.addPhaseUpdate(4, "<p>four changed</p>")
-    const item = plan.addItem("todo", "after four", { details: '<p>see <a href="#p4">P4 · Four</a></p>' })
+    const item = plan.addItem("todo", "after four", { details: '<p>see <a href="#p-four">P4 · Four</a></p>' })
     Markup.set<"epic-item">(el(plan, item), { phase: 4 })
     plan.updateChangeCounts()
     expect(plan.addPhase("Inserted", { before: 3, estimate: "1h" })).toBe(3)
@@ -237,15 +239,15 @@ describe("PlanDoc phases", () => {
       "4 Three todo",
       "5 Four todo"
     ])
-    expect(plan.phaseElements.map((phase) => phase.id)).toEqual(["p1", "p2", "p3", "p4", "p5"])
-    expect(Markup.read(el(plan, "p3"))).toEqual({ id: "p3", title: "Inserted", status: "todo", estimate: "1h" })
+    expect(plan.phaseElements.map((phase) => phase.id)).toEqual(["p-one", "p-two", "p-inserted", "p-three", "p-four"])
+    expect(Markup.read(el(plan, "p3"))).toEqual({ id: "p-inserted", title: "Inserted", status: "todo", estimate: "1h" })
     // the update keeps the phase ACTIVE when it was written (P2, not moved), and moves with its phase, counted there
     const line = el(plan, "p5").querySelector(":scope > epic-update")!
     expect([line.textContent, line.getAttribute("phase")]).toEqual(["four changed", "2"])
     plan.updateStates()
     expect(plan.phaseElements.map((phase) => phase.getAttribute("changes"))).toEqual([null, null, null, null, "1"])
     const link = el(plan, item).querySelector('a[href^="#p"]')!
-    expect([link.getAttribute("href"), link.textContent]).toEqual(["#p5", "P5 · Four"])
+    expect([link.getAttribute("href"), link.textContent]).toEqual(["#p-four", "P5 · Four"])
     expect(el(plan, item).getAttribute("phase")).toBe("5")
     expect(problems(plan)).toEqual([])
   })
@@ -448,14 +450,16 @@ describe("PlanDoc rename (epic-workflow)", () => {
   test("a phase:  its title, the links saying it, a queued todo's work;  other words and history stay;  logged", () => {
     const plan = freshPlan()
     for (const name of ["One", "Two"]) plan.addPhase(name)
-    const links = (words: string) => `<p><a href="#p2">${words}</a>, <a href="#p2">Two</a>, <a href="#p2">P2</a></p>`
+    const links = (words: string) =>
+      `<p><a href="#p-two">${words}</a>, <a href="#p-two">Two</a>, <a href="#p-two">P2</a></p>`
     const todo = plan.addItem("todo", "see two", { details: links("P2 · Two") })
     // the first text goes into the Original Discussion:  its link is history
-    plan.setDetails(todo, `${links("p2 · Two")}<p><a href="#p2">the <b>next</b> phase</a></p>`)
+    plan.setDetails(todo, `${links("p2 · Two")}<p><a href="#p-two">the <b>next</b> phase</a></p>`)
     plan.queue(todo, "P2 · Two")
 
     expect(plan.renameEntry("P2", "  Second  Phase ")).toEqual({
-      id: "p2",
+      id: "p-two",
+      label: "P2",
       was: "Two",
       title: "Second Phase",
       links: 2
@@ -463,7 +467,9 @@ describe("PlanDoc rename (epic-workflow)", () => {
     expect(plan.phases.map((phase) => phase.name)).toEqual(["One", "Second Phase"])
     expect(el(plan, "p2").getAttribute("title")).toBe("Second Phase")
     // the text first, then its Original Discussion's history, as it was
-    expect(linkWords(plan, "p2")).toEqual([
+    // its id stays the one made from its first name:  links and comments keep pointing at it
+    expect(el(plan, "p2").id).toBe("p-two")
+    expect(linkWords(plan, "p-two")).toEqual([
       "p2 · Second Phase",
       "Second Phase",
       "P2",
@@ -474,8 +480,10 @@ describe("PlanDoc rename (epic-workflow)", () => {
     ])
     expect(el(plan, todo).getAttribute("work")).toBe("P2 · Second Phase")
     expect(lastLog(plan)).toBe('P2 renamed:  "Two" -> "Second Phase" (2 links)')
-    // a phase's number alone finds it too
+    // a phase's number alone finds it too, and its name (today's, as a slug)
     expect(plan.renameEntry("2", "Two").links).toBe(2)
+    expect(plan.renameEntry("two", "Second Phase").links).toBe(2)
+    expect(plan.renameEntry("second-phase", "Two").id).toBe("p-two")
     expect(problems(plan)).toEqual([])
     expect(plan.check()).toEqual([])
   })
@@ -491,7 +499,7 @@ describe("PlanDoc rename (epic-workflow)", () => {
     plan.addItem("todo", "links", { details })
 
     const renamed = plan.renameEntry("J1", "New call")
-    expect(renamed).toEqual({ id: call, was: "Old call", title: "New call", links: 2 })
+    expect(renamed).toEqual({ id: call, label: "J1", was: "Old call", title: "New call", links: 2 })
     const item = el(plan, call)
     // a change while P1 is under way:  stamped and flagged, the marker riding in its title slot
     expect(PlanItem.titleOf(item)).toBe("New call")
@@ -1323,7 +1331,8 @@ describe("PlanDoc review inbox", () => {
     expect(plan.applyMark({ id: "P1", action: "todo", note: "after the flight" }).did).toBe("to todo T1")
     const todo = el(plan, "t1")
     expect(todo.getAttribute("title")).toBe("Follow up:  P1 · Offline Pages")
-    expect(todo.querySelector('a[href="#p1"]')!.textContent).toBe("P1")
+    // linked by its stable id, named by its number;  a mark keyed by its old id (`p1`) still finds it
+    expect(todo.querySelector('a[href="#p-offline-pages"]')!.textContent).toBe("P1")
     expect(todo.textContent).toContain("Owen:  after the flight")
     const phase = el(plan, "p1")
     expect(phase.querySelector(':scope > epic-status[slot="status"][state="noted"] a[href="#t1"]')).not.toBeNull()
@@ -1386,7 +1395,7 @@ describe("PlanDoc review inbox", () => {
       "and a short one",
       "About P1."
     ])
-    expect(made.querySelector('a[href="#p1"]')!.textContent).toBe("P1")
+    expect(made.querySelector('a[href="#p-offline-pages"]')!.textContent).toBe("P1")
     const card = made.querySelector(':scope > epic-status[slot="status"]')!
     expect([card.getAttribute("state"), card.textContent]).toEqual([
       "noted",
@@ -1998,7 +2007,7 @@ describe("PlanDoc summary and check", () => {
     plan.setItem("i1", "done")
     const summary = plan.summary()
     expect(summary.title).toBe("Demo Plan")
-    expect(summary.next).toEqual({ n: 2, name: "Two", status: "todo", estimate: undefined })
+    expect(summary.next).toEqual({ n: 2, id: "p-two", name: "Two", status: "todo", estimate: undefined })
     expect(Object.keys(summary.open)).toEqual(["question", "judgement", "issue", "caveat", "todo", "test"])
     expect(summary.open.question.map((item) => item.id)).toEqual(["q1"])
     expect(summary.open.issue).toEqual([])

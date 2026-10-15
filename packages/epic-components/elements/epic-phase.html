@@ -81,7 +81,7 @@
           <ui-section id="1-example" header="1. Example" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="eye"></ui-icon>
 
-            <epic-phase id="p6" title="Converter" status="active" estimate="4-6h" changes="1">
+            <epic-phase id="p-converter" title="Converter" status="active" estimate="4-6h" changes="1">
               <epic-field name="symptom">26 docs in today's markup, in several generations of it.</epic-field>
               <epic-field name="changes"
                 ><code>spell dev plan-doc convert</code> rewrites a doc into <code>epic-*</code> markup, and proves
@@ -103,7 +103,7 @@
               <ui-content>
                 <ui-code language="html"
                   ><script type="text/plain">
-                    <epic-phase id="p6" title="Converter" status="active" estimate="4-6h" changes="1">
+                    <epic-phase id="p-converter" title="Converter" status="active" estimate="4-6h" changes="1">
                       <epic-field name="symptom">26 docs in today's markup, in several generations of it.</epic-field>
                       <epic-field name="changes"
                         ><code>spell dev plan-doc convert</code> rewrites a doc into <code>epic-*</code> markup, and proves nothing was lost:
@@ -163,9 +163,9 @@
               <ui-content>
                 <ui-code language="html"
                   ><script type="text/plain">
-                    <epic-phase id="p1" title="Component Packs" status="done" estimate="3-4h" source="parts/p1.html" commits></epic-phase>
+                    <epic-phase id="p-component-packs" title="Component Packs" status="done" estimate="3-4h" source="parts/p-component-packs.html" commits></epic-phase>
 
-                    <!-- parts/p11.html -->
+                    <!-- parts/p-component-packs.html -->
                     <epic-field name="goal"><ul><li>...</li></ul></epic-field>
                     <epic-field name="done"><ul><li>...</li></ul></epic-field>
                     <epic-commit sha="5995b15d143832bf0be54c7c02b10da6ba9b84fd">the ui-brand-* elements join ...</epic-commit>
@@ -380,8 +380,10 @@
                     </td>
                     <td>text: phase id</td>
                     <td>
-                      <code>p1</code>, <code>p2</code> ...: shown as <code>P2 · &lt;title&gt;</code>; links use it
-                      (<code>#p2</code>).
+                      Stable, made from its name when it's added and kept through renames and inserts:
+                      <code>p-epic-migrate</code> (an older page's <code>p2</code>, until <code>stable-phase-ids</code>).
+                      Links and comments use it (<code>#p-epic-migrate</code>); the number shown,
+                      <code>P2 · &lt;title&gt;</code>, is its place among the phases.
                     </td>
                     <td>yes</td>
                   </tr>
@@ -417,7 +419,7 @@
                   <tr>
                     <td><code>source</code></td>
                     <td>text</td>
-                    <td>Its body's part file (<code>parts/p2.html</code>), loaded into its children when it opens.</td>
+                    <td>Its body's part file (<code>parts/p-epic-migrate.html</code>), loaded into its children when it opens.</td>
                     <td></td>
                   </tr>
                   <tr>

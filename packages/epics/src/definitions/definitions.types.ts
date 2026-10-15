@@ -124,7 +124,8 @@ export type AttributeTest = {
  * - `time` -- a date, or a date and time:  `2026-10-07 14:30`, or ISO with seconds and offset
  *   (`2026-10-06T09:28:23-04:00`), as the script stamps them
  * - `item id` -- `q7`, `j3`, `c1`, `i2`, `t4`, `v1`:  its letter is its kind (`ItemLetters`)
- * - `phase id` -- `p3`
+ * - `phase id` -- `p-epic-migrate`:  stable, made from its name (`PhaseIds`, epic `epic-workflow` P15);
+ *   an older page's `p3`, until the migration `stable-phase-ids`
  * - `anchor` -- any id a link may land on (`d7`, an old decision's, kept on its answer)
  * - `ids` -- anchors, space-separated (`data-part-ids` today)
  * - `sha` -- a git commit, 7 to 40 hex digits
@@ -136,7 +137,7 @@ export const Formats = {
   date: /^\d{4}-\d{2}-\d{2}$/,
   time: /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2})?([+-]\d{2}:\d{2}|Z)?)?$/,
   "item id": /^[qjcitv]\d+$/,
-  "phase id": /^p\d+$/,
+  "phase id": /^p(?:\d+|-[a-z0-9]+(?:-[a-z0-9]+)*)$/,
   anchor: /^[A-Za-z][\w-]*$/,
   ids: /^[A-Za-z][\w-]*( [A-Za-z][\w-]*)*$/,
   sha: /^[0-9a-f]{7,40}$/,

@@ -346,9 +346,10 @@ export function planOf(document) {
   if (!page) return { phases: [], updated: null, future: false, saga: null, urgent: [] }
   const phases = Array.from(
     document.querySelectorAll('epic-page > epic-section[kind="phases"] > epic-phase'),
-    (phase) => ({
+    (phase, index) => ({
       status: phase.getAttribute("status"),
-      label: `${phase.id.toUpperCase()} · ${(phase.getAttribute("title") ?? phase.querySelector(':scope > [slot="title"]')?.textContent ?? "").replace(/\s+/g, " ").trim()}`
+      // numbered by its place, not its id (stable since epic `epic-workflow` P15:  `p-epic-migrate`)
+      label: `P${index + 1} · ${(phase.getAttribute("title") ?? phase.querySelector(':scope > [slot="title"]')?.textContent ?? "").replace(/\s+/g, " ").trim()}`
     })
   )
   return {
