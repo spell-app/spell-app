@@ -60,19 +60,7 @@ import { URGENT_SELECTOR } from "../src/list/EpicState.ts"
 import { COMPONENT_SETS } from "../../server/src/page/page.types.ts"
 import { Sagas } from "../src/tool/Sagas.ts"
 import { PageNotes } from "./PageNotes.js"
-import {
-  BRAND,
-  EPICS,
-  GOALS,
-  GUIDES,
-  HOME,
-  LIST_PAGES,
-  ROOT,
-  SAGAS,
-  TEMPLATES,
-  findPages,
-  tidy
-} from "./pages.js"
+import { BRAND, EPICS, GOALS, GUIDES, HOME, LIST_PAGES, ROOT, SAGAS, TEMPLATES, findPages, tidy } from "./pages.js"
 
 /** The home page, from the checkout's root. */
 const INDEX = relative(ROOT, HOME)

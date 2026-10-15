@@ -106,7 +106,10 @@ describe("the checkout's root", () => {
     expect(EpicAddress.rootUrl("http://h/worktrees/w/components/epics/x.html", [])).toBe("http://h/worktrees/w/")
     const file = "file:///Users/o/spell-app/epics/a/a.plan.html"
     expect(
-      EpicAddress.rootUrl(file, ["file:///x/other.js", "file:///Users/o/spell-app/packages/epics/components/__pack/epics.pack.js"])
+      EpicAddress.rootUrl(file, [
+        "file:///x/other.js",
+        "file:///Users/o/spell-app/packages/epics/components/__pack/epics.pack.js"
+      ])
     ).toBe("file:///Users/o/spell-app/")
     expect(EpicAddress.rootUrl(file, ["file:///Users/o/spell-app/packages/epics/tools/_assets/spell-ui.js?v=2"])).toBe(
       "file:///Users/o/spell-app/"

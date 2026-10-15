@@ -217,7 +217,7 @@ ui -> util
   - Resolve one with the openers, which take an address:
     `spell dev docs open SAGA:/...` shows it, `spell dev docs link SAGA:/... --show` gives its links.
   - In pages, write `<epic-link epic="python-target" item="T1"></epic-link>`, not a path;
-    a plain `<a href="SAGA:/...">` works too.  The rules:  docs' AGENTS.md, "Links".
+    a plain `<a href="SAGA:/...">` works too.  The rules:  [epics' AGENTS.md](packages/epics/AGENTS.md), "Links".
 
 ## Worktrees
 

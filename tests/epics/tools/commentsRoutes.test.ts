@@ -383,7 +383,10 @@ test("a saga page's comments go in its own REVIEW INBOX beside it;  its Send is 
   const read = JSON.parse((await ask(port, "GET", `/api/docs/comments?page=${encodeURIComponent(page)}`)).text)
   expect(read).toMatchObject({ takesComments: true, comments: [{ id: "cm1" }] })
   expect(read.send).toBeUndefined()
-  const send = await ask(port, "POST", "/api/docs/comments/send", { body: JSON.stringify({ page }), headers: headers() })
+  const send = await ask(port, "POST", "/api/docs/comments/send", {
+    body: JSON.stringify({ page }),
+    headers: headers()
+  })
   expect(send.status).toBe(400)
 })
 
