@@ -20,7 +20,7 @@
  * - `POST /api/epics/favorite` `{ name, favorite }` -- stars (`true`) or unstars epic `name`;
  *   answers `{ favorites }`, every starred epic's name, sorted
  *   - 400:  no name, or not an epic's name (lower-kebab-case);  `favorite` not a boolean
- * - stored in ONE shared file, `epics/favorites.json` (`$/epics/list/EpicCards` `FAVORITES_FILE`), a JSON list:
+ * - stored in ONE shared file, `epics/favorites.json5` (`$/epics/list/EpicCards` `FAVORITES_FILE`), a list:
  *   every checkout reads the same one, and the shared repo commits it after the turn
  * - each card goes in its group by it as the page server serves the Epics page (`$/epics/list/RunningEpics`);
  *   `spell dev docs index` writes the stars and groups it says into the page
@@ -51,7 +51,8 @@ import { join } from "node:path"
 
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
-import { FAVORITES_FILE, parseFavorites } from "$/epics/list/EpicCards"
+import { DataFile } from "$/epics/data/DataFile"
+import { FAVORITES_FILE, favoritesIn } from "$/epics/list/EpicCards"
 
 // the route `<epic-cards>` asks:  its family's types file (data only)
 import { SAGA_EPICS_API } from "$/epics/components/epic-cards/EpicCards.types"
@@ -142,19 +143,24 @@ const RESERVED = new Set(["review", "resume", "color", "future", "phase", "start
  * Star (`favorite`) or unstar epic `name` in checkout `root`'s favourites (`FAVORITES_FILE`);
  * resolves to every starred epic's name after, sorted.
  * - SIDE EFFECT:  writes the file through the page server's one safe write (`SRV.FileOperations.save()`:
- *   read and written under its lock, all at once)
+ *   read and written under its lock, all at once), keeping a comment added to it by hand (`DataFile.edited()`);
+ *   its old `favorites.json` read, then removed
  * - throws `HttpError(400)` when `name` isn't an epic's name (lower-kebab-case, as `epicName()` makes them)
  */
 export async function setFavorite(root: string, name: string, favorite: boolean): Promise<string[]> {
   if (!EPIC_NAME.test(name)) throw new SRV.HttpError(400, `not an epic's name:  "${name}"`)
   let list: string[] = []
-  await SRV.FileOperations.save(join(root, FAVORITES_FILE), (current) => {
-    const favorites = parseFavorites(current || undefined)
-    if (favorite) favorites.add(name)
-    else favorites.delete(name)
-    list = [...favorites].sort()
-    return `${JSON.stringify(list, null, 2)}\n`
-  })
+  const file = join(root, FAVORITES_FILE)
+  await SRV.FileOperations.save(file, (current) =>
+    DataFile.edited<unknown>(file, current, (read) => {
+      const favorites = favoritesIn(read)
+      if (favorite) favorites.add(name)
+      else favorites.delete(name)
+      list = [...favorites].sort()
+      return list
+    })
+  )
+  DataFile.removeOld(file)
   return list
 }
 

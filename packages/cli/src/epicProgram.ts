@@ -257,7 +257,7 @@ export function epicProgram(handOver: () => Promise<never>): Command {
   epic
     .command("choices")
     .description("choice pages:  a table of names Claude recommends, Owen's call on each")
-    .usage("new <slug> --rows <rows.json> [--epic <epic>] | show <page> [--wait] | wait | answer | list [<epic>]")
+    .usage("new <slug> --rows <rows.json5> [--epic <epic>] | show <page> [--wait] | wait | answer | list [<epic>]")
     .argument("[args...]")
     .allowUnknownOption()
     .action(() => runLean(choicesCommand, rawArgs("choices")))
@@ -375,7 +375,7 @@ Examples:
 
 /** After `epic saga --help`. */
 const SAGA_HELP = `
-The sagas' list, in Owen's order:  sagas/sagas.json.  An epic names its saga:  <epic-page saga="<id>">.
+The sagas' list, in Owen's order:  sagas/sagas.json5.  An epic names its saga:  <epic-page saga="<id>">.
   epic saga list [--json]                         the sagas in order, each with its epics and guide count
   epic saga set <epic> <saga>                     the saga an epic serves (--none:  no saga);  logged
   epic saga new <id> "Title" --purpose "..." [--after <id>]

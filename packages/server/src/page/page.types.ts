@@ -111,7 +111,7 @@ export type ComponentSet = {
  *   - `<prefix>/...`:  the set's own folder
  * - Its pages' links are written as from their SERVED address (`/components/epics/epic-page.html`),
  *   so they hold at `/worktrees/<w>/components/epics/` too;  `doc-links.js` checks them that way (`Linker`'s `served`)
- * - Comments:  the comment route takes its pages, kept in `<page>.inbox.json` beside each (git-ignored)
+ * - Comments:  the comment route takes its pages, kept in `<page>.inbox.json5` beside each (git-ignored)
  * - The old addresses (`/ui/`, `/epic-ui/`, `/app-ui/`, `/brand/components/`) answer "not found":  no redirects (Q30)
  */
 export const COMPONENT_SETS = [

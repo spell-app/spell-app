@@ -63,7 +63,7 @@ beforeEach(async () => {
   warned = []
   for (const folder of ["epics", "guides", "sagas"]) rmSync(join(root, folder), { recursive: true, force: true })
   write(
-    "sagas/sagas.json",
+    "sagas/sagas.json5",
     JSON.stringify({
       "//": "note",
       sagas: [
@@ -139,7 +139,7 @@ describe("epic saga new, move, title", () => {
     expect(sagas.ids()).toEqual(["drawable-spell", "tooling", "epics", "agents"])
     await commands().run(["saga", "title", "tooling", "The Tooling"])
     expect(sagas.find("tooling")?.title).toBe("The Tooling")
-    expect(JSON.parse(read("sagas/sagas.json"))["//"]).toBe("note")
+    expect(JSON.parse(read("sagas/sagas.json5"))["//"]).toBe("note")
   })
 
   test("refuses a taken or malformed id, no purpose, or a move with neither place", async () => {

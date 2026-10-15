@@ -14,11 +14,12 @@
  *   - a STAR at its top right (`epicStarHtml()`):  click to star / unstar, the docs runtime's "Favorite epics"
  *   - the date it was last worked on at its bottom right, without the year (`epicWorkedHtml()`:  `10/9`)
  * - favourites are stored in ONE shared file, `FAVORITES_FILE` (`["airplane", "spell-element"]`):
- *   the page server's route writes it (`packages/epics/src/tool/epicRoutes.ts`), every checkout reads it
+ *   the page server's route writes it (`packages/epics/src/tool/epicRoutes.ts`), every checkout reads it (JSON5, its
+ *   old `favorites.json` while there's no `.json5`:  `DataFile`, which the callers read it through)
  * - SAGAS (epic `epic-workflow` P15):  each card names the saga its epic serves, a small label (its title, its
  *   purpose the tooltip;  `epicSagaHtml()`);  above the groups, a row of SAGA CHIPS (`epicSagaChipsHtml()`), one per
  *   saga in the sagas' order and "No saga", each with its count;  the docs runtime filters the cards by them
- *   - the sagas come from the caller (`docs index` reads `sagas/sagas.json`):  this file imports nothing
+ *   - the sagas come from the caller (`docs index` reads `sagas/sagas.json5`):  this file imports nothing
  *   - each card carries its saga in data attributes too (`data-saga`, `data-saga-title`, `data-saga-purpose`),
  *     so the page server, which can't read the sagas, draws a running epic's card from the written one
  *
@@ -43,7 +44,7 @@ export const EPIC_GROUPS = ["favorites", "active", "planning", "urgent", "done"]
 export type EpicGroupName = (typeof EPIC_GROUPS)[number]
 
 /** Where the favourites are kept, from a checkout's root:  a JSON list of epic ids (shared content). */
-export const FAVORITES_FILE = "epics/favorites.json"
+export const FAVORITES_FILE = "epics/favorites.json5"
 
 /** The Epics page's own markers around its groups:  the page server rewrites what's between (`RunningEpics`). */
 export const EPIC_CARDS_START = "<!-- running-epics -->"
@@ -58,7 +59,7 @@ const GROUP_LOOKS: Record<EpicGroupName, { title: string; icon: string }> = {
   done: { title: "Done", icon: "circle check" }
 }
 
-/** A saga, as a card's label and the chips draw it:  `sagas/sagas.json`'s fields (`$/epics/tool/Sagas`). */
+/** A saga, as a card's label and the chips draw it:  `sagas/sagas.json5`'s fields (`$/epics/tool/Sagas`). */
 export type SagaLook = {
   /** `drawable-spell` */
   id: string
@@ -266,14 +267,12 @@ export function readEpicDate(value: string | null | undefined): Date | undefined
   return value ? PlanDates.read(value)?.date : undefined
 }
 
-/** The favourites file's text as a set of epic ids;  empty when it isn't a JSON list.  NEVER throws. */
-export function parseFavorites(json: string | undefined): Set<string> {
-  try {
-    const list: unknown = JSON.parse(json ?? "[]")
-    return new Set(Array.isArray(list) ? list.filter((name): name is string => typeof name === "string") : [])
-  } catch {
-    return new Set()
-  }
+/**
+ * The favourites file's data (`FAVORITES_FILE`, read as JSON5 by the caller:  `DataFile`) as a set of epic ids;
+ * empty when it isn't a list.  NEVER throws.
+ */
+export function favoritesIn(list: unknown): Set<string> {
+  return new Set(Array.isArray(list) ? list.filter((name): name is string => typeof name === "string") : [])
 }
 
 /** A log line's time:  `<epic-event at="2026-10-09T00:26-04:00">`, `$1`. */

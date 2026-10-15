@@ -62,7 +62,9 @@ export class MigrateCommands {
           : this.files.listEpics()
       code = await this.migrateEpics(docs, { step, dryRun, notify: Boolean(flags.notify) })
     } else if (kind === "epic") throw new PlanDocError(`no epic page step "${step}" (migrate --list lists them)`)
-    if (kind !== "epic" && !(epicFile && kind === undefined) && !(step && epicStep && kind === undefined))
+    // the data files' step is both:  the epics' folders' renames, and the docs tools' for the rest
+    const epicOnly = step !== undefined && epicStep && step !== DATA_FILES
+    if (kind !== "epic" && !(epicFile && kind === undefined) && !(epicOnly && kind === undefined))
       code = Math.max(code, this.migrateOthers(kind, { file, step, dryRun }))
     return code
   }
@@ -120,7 +122,11 @@ export class MigrateCommands {
         refused++
         continue
       }
-      const steps = [...result.ran, ...(result.moves.length && !result.ran.includes(LINKS) ? [LINKS] : [])]
+      const steps = [
+        ...result.ran,
+        ...(result.moves.length && !result.ran.includes(LINKS) ? [LINKS] : []),
+        ...(result.files.some((move) => !move.clash) && !result.ran.includes(DATA_FILES) ? [DATA_FILES] : [])
+      ]
       for (const each of steps) counts.set(each, (counts.get(each) ?? 0) + 1)
       if (steps.length) changed++
       if (running && steps.length) tell.push({ epic: name, sessions, steps })
@@ -225,6 +231,9 @@ export type SessionFinder = (epic: string) => Promise<{ name: string; sessionId:
 
 /** The step whose inbox-only fixes count as a change:  comments moved. */
 const LINKS = "links-agree"
+
+/** The step that changes only files beside the page, never the page:  it counts when it has files to rename. */
+const DATA_FILES = "json5-data-files"
 
 /** An epic page's path:  `epics/<name>/<name>.plan.html` (or an older `<name>.html`);  `[1]` its name. */
 const PLAN_DOC = /(?:^|[\\/])epics[\\/]([^\\/]+)[\\/]\1(?:\.plan)?\.html$/

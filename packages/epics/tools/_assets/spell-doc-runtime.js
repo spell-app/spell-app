@@ -3060,7 +3060,7 @@ const KIND_NAMES = {
 
 /**
  * COMMENTS (epic `airplane`, P11):  Owen's comments for Claude, on a page's blocks or on text he selected, kept by
- * the page server (`commentsRoutes.ts`):  a docs page's in its inbox file (`<page>.inbox.json`), an epic page's in the
+ * the page server (`commentsRoutes.ts`):  a docs page's in its inbox file (`<page>.inbox.json5`), an epic page's in the
  * epic's review inbox.  No Claude, no network:  only the page server, so it works on a plane.
  * - served by the page server with a token, on a page that takes comments (the `GET` says `takesComments`):
  *   - a BULLHORN beside every major block (`BlockAnchors.js` `blocksIn()`:  sections, tables, asides, code,
@@ -3125,6 +3125,16 @@ async function wireComments(main) {
   comments.wireSelection()
 }
 
+/**
+ * The URL paths the page server may announce inbox file `inbox` (`<page>.inbox.json5`) by:  it, and the same without
+ * a worktree's prefix (`/worktrees/<w>/`:  a shared folder's changes come without it);  each by its old name too,
+ * `.inbox.json`.
+ */
+function inboxPathsOf(inbox) {
+  const paths = [inbox, inbox.replace(/^\/worktrees\/[^/]+(?=\/)/, "")]
+  return [...new Set([...paths, ...paths.map((path) => path.replace(/\.json5$/, ".json"))])]
+}
+
 /****************
  * ### `PageComments`
  * One page's comments:  what the server holds, drawn under their blocks;  the one comment pane open;  the floating
@@ -3166,10 +3176,11 @@ class PageComments {
     /**
      * the URL paths of the inbox files the comments may be in, as the page server announces their changes:  a
      * worktree's page (`/worktrees/<w>/epics/...`) is in a shared folder, whose changes it announces without that
-     * prefix
+     * prefix;  each by its old name too, `.inbox.json`, which a checkout on older code writes (epic `epic-workflow`
+     * P21)
      */
-    const inbox = page.replace(/(\.plan)?\.html$/, ".inbox.json")
-    this.inboxPaths = [inbox, inbox.replace(/^\/worktrees\/[^/]+(?=\/)/, "")]
+    const inbox = page.replace(/(\.plan|\.saga)?\.html$/, ".inbox.json5")
+    this.inboxPaths = inboxPathsOf(inbox)
     /** the `localStorage` key of this page's drafts */
     this.draftKey = `${COMMENT_DRAFT_KEY_PREFIX}${location.pathname}`
     /** the `localStorage` key of the Claude replies Owen has seen on this page (`markSeen()`) */
@@ -3315,8 +3326,8 @@ class PageComments {
   keepSend(answer) {
     if (!answer?.send) return
     this.send = answer.send
-    const inbox = `/epics/${answer.send.epic}/${answer.send.epic}.inbox.json`
-    if (!this.inboxPaths.includes(inbox)) this.inboxPaths.push(inbox)
+    const inbox = `/epics/${answer.send.epic}/${answer.send.epic}.inbox.json5`
+    for (const path of inboxPathsOf(inbox)) if (!this.inboxPaths.includes(path)) this.inboxPaths.push(path)
   }
 
   /**
@@ -4734,7 +4745,7 @@ let favoritesWired = false
  * (`$/epics/list/EpicCards` `epicStarHtml()`).
  * - a click stars or unstars the epic at once:  the card moves to Favorites (or back to its own group,
  *   `data-group`), alphabetical there, and each group's count follows (`regroupEpics()`);  no reload
- * - then the page server writes it (`FAVORITE_API`, into the shared `epics/favorites.json`);  refused:  the card
+ * - then the page server writes it (`FAVORITE_API`, into the shared `epics/favorites.json5`);  refused:  the card
  *   goes back, and a toast says why
  * - its answer (every favourite) sets every star:  another window may have starred one meanwhile
  * - the card's own link never fires:  the star is a button of its own, its click stopped there

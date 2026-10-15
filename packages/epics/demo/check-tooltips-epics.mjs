@@ -100,7 +100,7 @@ const KNOWN = [
 
 const folder = join(SHOTS, "epics", docName)
 const file = join(folder, `${docName}.plan.html`)
-const inboxFile = join(folder, `${docName}.inbox.json`)
+const inboxFile = join(folder, `${docName}.inbox.json5`)
 copyDoc()
 mkdirSync(join(SHOTS, "packages"), { recursive: true })
 const tool = new PlanDocCommands({ files: new PlanDocFiles({ root: SHOTS }) })
@@ -124,6 +124,7 @@ try {
   await browser.close()
   await server.stop()
   rmSync(inboxFile, { force: true })
+  rmSync(inboxFile.replace(/\.json5$/, ".json"), { force: true })
 }
 const missing = controls.filter((control) => !control.tip)
 for (const control of missing) {

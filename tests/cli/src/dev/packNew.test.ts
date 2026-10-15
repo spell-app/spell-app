@@ -4,6 +4,7 @@ import { dirname, join } from "path"
 import { afterAll, beforeEach, describe, expect, test } from "vite-plus/test"
 
 import { CLI } from "$/cli"
+import { DataFile } from "$/epics/data/DataFile"
 
 /**
  * A throwaway checkout per test:
@@ -37,8 +38,11 @@ const COMMANDS = {
   ]
 }
 
-/** The commands page's path in a checkout. */
-const COMMANDS_JSON = "guides/dev/commands/commands.json"
+/** The commands page's data in a checkout:  a data file (epic `epic-workflow` P21). */
+const COMMANDS_JSON = "guides/dev/commands/commands.json5"
+
+/** Its old name, which the throwaway checkout starts with:  read, then written as the `.json5`. */
+const OLD_COMMANDS_JSON = "guides/dev/commands/commands.json"
 
 let root = ""
 let count = 0
@@ -49,7 +53,7 @@ beforeEach(() => {
     cpSync(join(CLI.REPO_ROOT, file), join(root, file))
   }
   mkdirSync(dirname(join(root, COMMANDS_JSON)), { recursive: true })
-  writeFileSync(join(root, COMMANDS_JSON), `${JSON.stringify(COMMANDS, null, 2)}\n`)
+  writeFileSync(join(root, OLD_COMMANDS_JSON), `${JSON.stringify(COMMANDS, null, 2)}\n`)
 })
 
 /** `file`'s text in the throwaway checkout. */
@@ -144,6 +148,17 @@ describe("CLI.newPack()", () => {
       ["my-pack pack:build"],
       ["my-pack pack:check"]
     ])
+    expect(existsSync(join(root, OLD_COMMANDS_JSON))).toBe(false)
+  })
+
+  test("the commands page's data:  a comment added by hand stays, its keys quoted (JSON5's JSON part)", async () => {
+    rmSync(join(root, OLD_COMMANDS_JSON))
+    writeFileSync(join(root, COMMANDS_JSON), `// Owen:  the rows\n${JSON.stringify(COMMANDS, null, 2)}\n`)
+    await CLI.newPack(root, "my-pack", { prefix: "mp-", build: false })
+    const text = read(COMMANDS_JSON)
+    expect(text).toContain("// Owen:  the rows")
+    expect(text).toContain('"families": [')
+    expect(DataFile.parse<typeof COMMANDS>(text).families[0]!.rows[1]!.yarn.names).toEqual(["my-pack pack:build"])
   })
 
   test("is IDEMPOTENT:  a second run creates nothing and changes nothing", async () => {

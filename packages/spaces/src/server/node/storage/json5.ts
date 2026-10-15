@@ -1,40 +1,25 @@
 /**
- * Reading and writing JSON5 so its COMMENTS stay:  the one helper every JSON5 edit goes through
- * (epic `people-and-orgs` P8, decisions Q4 and J41).
+ * Reading and writing a space's JSON5 files so their COMMENTS stay (epic `people-and-orgs` P8, decisions Q4 and J41).
  *
  * ```ts
  * json5Edited('{\n  // who\n  "name": "Owen"\n}', { name: "O" })
  * // => '{\n  // who\n  "name": "O"\n}'
  * ```
  *
- * - On json5-writer, Owen's pick:  it writes a WHOLE value at a time, and removes any key the value leaves out.
- *   So an edit reads the file, changes the object, and writes all of it back (`editJSON5()`).
+ * - The editing itself, `json5Edited()`, is the assembler's (`$/assembler/json5`, on json5-writer):
+ *   one helper for every JSON5 write in the repo, the component sets' site data too (epic `epic-workflow` P20).
+ *   - It writes a WHOLE value at a time, and removes any key the value leaves out.
+ *   - So an edit reads the file, changes the object, and writes all of it back (`editJSON5()`).
  * - Spell writes the JSON-compatible part of JSON5:  keys and text in double quotes, no trailing commas;
  *   a person's comments, wherever they are, stay.
- * - Behind this one file, so the library can be swapped later.
  * - NODE ONLY:  json5-writer is on jscodeshift, which is node's.
  */
 import JSON5 from "json5"
-import json5Writer from "json5-writer"
 
+import { json5Edited } from "$/assembler/json5"
 import type { SpaceStorage } from "$/spaces/models/SpaceStorage"
 
-/** How spell writes JSON5:  keys and text in double quotes, no trailing commas, as JSON would. */
-const SPELL_STYLE = { quote: "double", quoteKeys: true, trailingComma: false } as const
-
-/**
- * `source` (a JSON5 file's text) with its value replaced by `value`:
- * - every comment, and every key `value` keeps, where it was
- * - a key `value` leaves out, gone;  a new one added at the end
- * - An empty `source`:  `value` alone, two-space indented.
- */
-export function json5Edited(source: string, value: object): string {
-  if (!source.trim()) return `${JSON.stringify(value, null, 2)}\n`
-  const writer = json5Writer.load(source)
-  writer.write(value)
-  const text = writer.toSource(SPELL_STYLE)
-  return text.endsWith("\n") ? text : `${text}\n`
-}
+export { json5Edited }
 
 /** File `path`'s JSON5, read;  `undefined` if there's none.  Throws `SyntaxError` on JSON5 that won't read. */
 export async function readJSON5<T = unknown>(storage: SpaceStorage, path: string): Promise<T | undefined> {

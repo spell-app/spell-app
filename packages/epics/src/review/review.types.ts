@@ -124,7 +124,7 @@ export const SERVER_INFO = /window\.SPELL_SERVER = (\{.*?\})<\/script>/
 export const AGENTS_API = "/api/epics/agents"
 
 /** The running-agents list's file, beside the epic page (`AgentList.ts`):  the page server announces its changes. */
-export const AGENTS_FILE = "agents.json"
+export const AGENTS_FILE = "agents.json5"
 
 ////////////////
 // ## Types

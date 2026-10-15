@@ -13,7 +13,7 @@ import { Sagas } from "./Sagas"
  * id on it, its title, and what's broken.
  * - Used by the page server (`GET /api/epics/target` and `/saga/...`, `linkRoutes.ts`), the link check (`epic check`,
  *   `doc-links.js --check`:  `problemsIn()`) and the openers (`spell dev docs open | link SAGA:/...`).
- * - Broken:  a saga not in `sagas/sagas.json`, a page that isn't there, an id not on its page, and an epic under a
+ * - Broken:  a saga not in `sagas/sagas.json5`, a page that isn't there, an id not on its page, and an epic under a
  *   saga it doesn't name (its `<epic-page saga>`).  The last still LINKS:  only the check minds.
  * - Reads pages from disk with linkedom;  each kept while its file is unchanged (by mtime), so a page server asking
  *   for twenty links on a page reads each page once.
@@ -45,7 +45,7 @@ export class EpicTargets {
     const samePage = !address.page || address.page === from
     const page = address.page ?? from
     const problems: string[] = []
-    if (address.saga && !this.sagas.find(address.saga)) problems.push(`no saga "${address.saga}" in sagas/sagas.json`)
+    if (address.saga && !this.sagas.find(address.saga)) problems.push(`no saga "${address.saga}" in sagas/sagas.json5`)
     let read: { targets: PageTargets; title: string } | undefined
     if (samePage && html !== undefined) read = this.parse(html)
     else if (page && existsSync(join(this.root, page))) read = this.pageAt(page)

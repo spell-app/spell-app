@@ -18,7 +18,7 @@ import { Sagas } from "./Sagas"
  * - An epic page of kind "saga" (`<epic-page kind="saga" saga="<id>">`), so every `epic` verb that edits an epic
  *   page edits it too, named by its short address:  `epic add SAGA:/drawable-spell#T "..."`, `epic inbox
  *   SAGA:/drawable-spell wait` (`PlanDocFiles.findDoc()`)
- * - Made from the tool's template, `templates/saga.html` (`make()`):  its title and purpose from `sagas/sagas.json`
+ * - Made from the tool's template, `templates/saga.html` (`make()`):  its title and purpose from `sagas/sagas.json5`
  *   (`Sagas`), its Overview's "Done so far" and "Ideas not done yet" to fill, its Epics drawn from the page server
  *   (`<epic-cards>`), then Questions, Todos and Log
  * - ONE file, not split:  a saga page is small, and its Overview then reads from disk too
@@ -40,12 +40,12 @@ export class SagaPage {
   /**
    * Write saga `id`'s page from the template;  returns its file.
    * - its `<title>` the saga's title, its summary the saga's purpose (`code` spans in backticks)
-   * - throws for a saga that isn't in `sagas/sagas.json`, or a page already there without `force`
+   * - throws for a saga that isn't in `sagas/sagas.json5`, or a page already there without `force`
    * - SIDE EFFECT:  writes the page (and its folder), formatted and linked as the tool writes every page
    */
   async make(id: string, { force = false, now = new Date() }: { force?: boolean; now?: Date } = {}): Promise<string> {
     const saga = new Sagas(this.files.root).find(id)
-    if (!saga) throw new PlanDocError(`saga page:  no saga "${id}" in sagas/sagas.json (epic saga list)`)
+    if (!saga) throw new PlanDocError(`saga page:  no saga "${id}" in sagas/sagas.json5 (epic saga list)`)
     const file = this.fileOf(id)
     if (existsSync(file) && !force) throw new PlanDocError(`${Sagas.pageOf(id)} already exists:  --force to remake it`)
     const fill: Record<string, string> = {

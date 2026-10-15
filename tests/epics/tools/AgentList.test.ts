@@ -27,22 +27,22 @@ describe("where the list lives", () => {
   test("a worktree with its epic's epic page:  the epic's folder, named for the epic", () => {
     const root = checkout("big", { epic: true })
     const list = new AgentList(root)
-    expect(list.file).toBe(join(root, "epics", "big", "agents.json"))
+    expect(list.file).toBe(join(root, "epics", "big", "agents.json5"))
     expect(list.prefix).toBe("big")
   })
 
   test("a worktree with no epic:  its root, named for the worktree", () => {
     const root = checkout("plain")
     const list = new AgentList(root)
-    expect(list.file).toBe(join(root, ".spell-agents.json"))
+    expect(list.file).toBe(join(root, ".spell-agents.json5"))
     expect(list.prefix).toBe("plain")
   })
 
   test("the main checkout:  its root, `main`;  `--epic` picks an epic's list", () => {
     const root = checkout()
     expect(new AgentList(root).prefix).toBe("main")
-    expect(new AgentList(root).file).toBe(join(root, ".spell-agents.json"))
-    expect(new AgentList(root, { epic: "seo" }).file).toBe(join(root, "epics", "seo", "agents.json"))
+    expect(new AgentList(root).file).toBe(join(root, ".spell-agents.json5"))
+    expect(new AgentList(root, { epic: "seo" }).file).toBe(join(root, "epics", "seo", "agents.json5"))
     expect(new AgentList(root, { epic: "seo" }).prefix).toBe("seo")
   })
 })
@@ -51,7 +51,7 @@ describe("redirects", () => {
   test("forPlanDoc():  the list beside an epic page, named for its epic", () => {
     const root = checkout("doc", { epic: true })
     const list = AgentList.forPlanDoc(join(root, "epics", "doc", "doc.plan.html"))
-    expect(list.file).toBe(join(root, "epics", "doc", "agents.json"))
+    expect(list.file).toBe(join(root, "epics", "doc", "agents.json5"))
     expect(list.prefix).toBe("doc")
   })
 

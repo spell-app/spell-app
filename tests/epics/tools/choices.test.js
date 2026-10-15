@@ -79,7 +79,7 @@ test("new:  the page, its rows in it as elements and beside it as JSON, fixed fo
   expect(html).toContain('root="../../.."')
   expect(html).toContain("Which <b>names</b> change?")
   expect(html).toContain('<epic-field label="Just now">counted them</epic-field>')
-  expect(html).toContain("<code>names.rows.json</code>")
+  expect(html).toContain("<code>names.rows.json5</code>")
   expect(html).toMatch(/<epic-field label="Asked" data-choices-asked>\d{4}-\d\d-\d\d</)
   expect(html).not.toContain("TEMPLATE:")
   expect(html).not.toContain("q1-example-1")

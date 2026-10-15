@@ -25,7 +25,8 @@ describe("Migrations", () => {
       "updates-as-epic-update",
       "owen-types-to-you-type",
       "links-agree",
-      "stable-phase-ids"
+      "stable-phase-ids",
+      "json5-data-files"
     ])
     expect(Migrations.named("updates-as-epic-update")?.description).toMatch(/<epic-update at summary>/)
     expect(Migrations.named("nope")).toBeUndefined()

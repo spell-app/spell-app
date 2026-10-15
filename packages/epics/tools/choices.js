@@ -3,9 +3,9 @@
  * per use site, which Owen goes through one by one:  each row's Recommended box is pre-filled and he types over the
  * ones he'd call differently, then presses "Do it".  For a call too big for a details page's options (P13's ~180
  * boolean names), where each name needs its own context.  Docs:  `guides/syntax-choices.html`.
- * - `new <slug> --rows <rows.json> [--title "..."] [--epic <name>] [--description "..."]` -- a page from the tool's
+ * - `new <slug> --rows <rows.json5> [--title "..."] [--epic <name>] [--description "..."]` -- a page from the tool's
  *   own template (`templates/syntax-choices.html` beside it), its rows written into it as the epics pack's
- *   `<epic-choice-row>`s (`answerPages.js`), plus the rows beside it (`<slug>.rows.json`);  prints the page's path
+ *   `<epic-choice-row>`s (`answerPages.js`), plus the rows beside it (`<slug>.rows.json5`);  prints the page's path
  *   - scratch:  `pages/details/<slug>.html`, ignored by version control, swept with the details pages after 14 days
  *   - `--epic <name>`:  `epics/<name>/details/<slug>.html`, kept with the epic page
  * - `show <page> [--wait] [--timeout 8h]` -- show it in THIS session's VS Code side bar (Chrome outside VS Code);
@@ -20,12 +20,14 @@
  *   the spell syntax guide (`guides/spell-syntax/spell-syntax.html`), whose rows are generated from the code.
  *   `show`, `wait` and `answer` work on it by its path;  `list` covers only the `details/` folders
  * - Beside the page (`<slug>.html`):
- *   - `<slug>.rows.json` -- the rows (`ChoicesData`, below), written by `new`, beside the same rows in the page:
- *     `answer` / `wait` read plain JSON, and the route knows a choices page by it (and checks the ids it's sent).
+ *   - `<slug>.rows.json5` -- the rows (`ChoicesData`, below), written by `new`, beside the same rows in the page:
+ *     `answer` / `wait` read them, and the route knows a choices page by it (and checks the ids it's sent).
  *     Before epic `epic-workflow` P12 the page fetched it and drew its tables from it
- *   - `<slug>.draft.json` -- what Owen typed so far, saved by the page every 5s (`choicesRoutes.ts`);  never wakes
+ *   - `<slug>.draft.json5` -- what Owen typed so far, saved by the page every 5s (`choicesRoutes.ts`);  never wakes
  *     anyone
- *   - `<slug>.answer.json` -- what "Do it" sent:  `wait` exits with it
+ *   - `<slug>.answer.json5` -- what "Do it" sent:  `wait` exits with it
+ *   - data files (`DataFile`, epic `epic-workflow` P21):  JSON5, read by their old `.json` names too;  `--rows` may be
+ *     either
  * - Shares `details.js`' page lookup, answer file and waiting:  a choices page lives in the same `details/` folders.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
@@ -34,6 +36,7 @@ import { fileURLToPath } from "node:url"
 
 import { parseHTML } from "linkedom"
 
+import { DataFile } from "../src/data/DataFile.ts"
 import { ROWS, TOOL_TEMPLATES, choiceSections, fillHead, fillWords } from "./answerPages.js"
 import { SLUG, duration, findPage, listPages, parseArgs, readAnswer, shown, today, waitForAnswer } from "./details.js"
 import { ROOT, atDepth, openInVSCode, serialize } from "./pages.js"
@@ -47,8 +50,8 @@ async function main(argv) {
   const [command, target] = positional
   try {
     if (command === "new") {
-      if (!flags.rows || flags.rows === true) throw new Error("new needs --rows <rows.json>")
-      const data = JSON.parse(readFileSync(findFile(flags.rows), "utf8"))
+      if (!flags.rows || flags.rows === true) throw new Error("new needs --rows <rows.json5>")
+      const data = DataFile.parse(readFileSync(findFile(flags.rows), "utf8"))
       console.log(shown(createPage(ROOT, target, { ...flags, data })))
       return 0
     }
@@ -83,7 +86,7 @@ function isEpicsPage(file, epic) {
 }
 
 /** `epic choices` with no or a wrong command. */
-const USAGE = `usage:  epic choices new <slug> --rows <rows.json> [--title "..."] [--epic <name>] [--description "..."]
+const USAGE = `usage:  epic choices new <slug> --rows <rows.json5> [--title "..."] [--epic <name>] [--description "..."]
         epic choices show <page> [--wait] [--timeout 8h]
         epic choices wait <page> [--timeout 8h]
         epic choices answer <page>
@@ -99,7 +102,7 @@ const USAGE = `usage:  epic choices new <slug> --rows <rows.json> [--title "..."
  * - `data`:  `ChoicesData`, checked (`checkData()`);  `title` / `description` flags beat its own
  * - `epic`:  in that epic's `details/` (the epic must exist);  else the scratch `pages/details/`
  * - refuses to overwrite either file
- * - SIDE EFFECT:  writes `<slug>.html` and `<slug>.rows.json`
+ * - SIDE EFFECT:  writes `<slug>.html` and `<slug>.rows.json5`
  */
 export function createPage(docs, slug, { title, epic, description, data } = {}) {
   const checked = checkData(data)
@@ -109,7 +112,7 @@ export function createPage(docs, slug, { title, epic, description, data } = {}) 
   const folder = epic ? join(docs, "epics", epic, "details") : join(docs, "pages", "details")
   const file = join(folder, `${slug}.html`)
   for (const each of [file, rowsFile(file)])
-    if (existsSync(each)) throw new Error(`${relative(docs, each)} already exists`)
+    if (DataFile.exists(each)) throw new Error(`${relative(docs, each)} already exists`)
   const depth = relative(docs, folder).split("/").length
   const template = readFileSync(join(TOOL_TEMPLATES, "syntax-choices.html"), "utf8")
   const { document } = parseHTML(atDepth(template, depth))
@@ -130,7 +133,7 @@ export function createPage(docs, slug, { title, epic, description, data } = {}) 
   const { sections, rows, fileColumn, stacked } = checked
   // the layout flags, kept only when they change the default (the migration redraws a page from them:  `migrate.js`)
   const kept = { ...(fileColumn === false && { fileColumn }), ...(stacked === true && { stacked }), sections, rows }
-  writeFileSync(rowsFile(file), `${JSON.stringify(kept, null, 2)}\n`)
+  DataFile.write(rowsFile(file), kept)
   return file
 }
 
@@ -192,7 +195,7 @@ export function findChoicesPage(docs, target) {
 
 /** Is `page` a choice page:  are its rows beside it, or does it name them (`declaredRows()`)? */
 export function isChoicesPage(page) {
-  return existsSync(rowsFile(page)) || !!declaredRows(page)
+  return DataFile.exists(rowsFile(page)) || !!declaredRows(page)
 }
 
 /**
@@ -210,26 +213,26 @@ export function declaredRows(page) {
 /** `page`'s state for `list`:  `answered`, `draft` (typed, not sent) or `waiting`. */
 function status(page) {
   if (readAnswer(page)) return "answered"
-  return existsSync(draftFile(page)) ? "draft   " : "waiting "
+  return DataFile.exists(draftFile(page)) ? "draft   " : "waiting "
 }
 
 ////////////////
 // ## Files
 ////////////////
 
-/** `<slug>.rows.json` beside page `<slug>.html`. */
+/** `<slug>.rows.json5` beside page `<slug>.html`. */
 export function rowsFile(page) {
-  return page.replace(/\.html$/, ".rows.json")
+  return DataFile.besidePage(page, "rows")
 }
 
-/** `<slug>.draft.json` beside page `<slug>.html`. */
+/** `<slug>.draft.json5` beside page `<slug>.html`. */
 export function draftFile(page) {
-  return page.replace(/\.html$/, ".draft.json")
+  return DataFile.besidePage(page, "draft")
 }
 
-/** The rows of `page` (`ChoicesData`, as `new` wrote them). */
+/** The rows of `page` (`ChoicesData`, as `new` wrote them;  its old `.json` too). */
 export function readRows(page) {
-  return JSON.parse(readFileSync(rowsFile(page), "utf8"))
+  return DataFile.read(rowsFile(page))
 }
 
 ////////////////
@@ -243,12 +246,12 @@ export function readRows(page) {
 export function formatAnswer(page, answer) {
   const { document } = parseHTML(readFileSync(page, "utf8"))
   const title = document.querySelector("h1")?.textContent?.trim() ?? basename(page)
-  if (!existsSync(rowsFile(page))) return formatDeclared(page, title, answer)
+  if (!DataFile.exists(rowsFile(page))) return formatDeclared(page, title, answer)
   const { sections, rows } = readRows(page)
   const values = answer.values ?? {}
   const lines = [`Choices on "${title}" (${shown(page)}), sent ${answer.answered}:`]
   if (answer.changes) lines[0] += `  (sent ${answer.changes + 1}×)`
-  lines.push(`  Rows:  ${shown(rowsFile(page))}`)
+  lines.push(`  Rows:  ${shown(DataFile.found(rowsFile(page)))}`)
   const changed = rows.filter((row) => row.id in values)
   lines.push(`  Changed (${changed.length}):`)
   for (const section of sections) {
@@ -346,7 +349,7 @@ async function waitAndPrint(file, flags) {
 
 /**
  * What `new --rows` reads:  a whole page as data.  `new` writes `sections` and `rows` (ids filled in), and
- * `fileColumn` when false and `stacked` when true, beside the page as `<slug>.rows.json`;  the rest goes into the page.
+ * `fileColumn` when false and `stacked` when true, beside the page as `<slug>.rows.json5`;  the rest goes into the page.
  * - `title`, `lede`, `askedBy` (`session <code>x</code>, while ...`);  HTML allowed except in `title`
  * - `fileColumn`:  `false` drops the page's File column, for rows whose place in the code doesn't matter to the
  *   reader (a list of commands, epic `epic-workflow` CM4);  the rows still name their `file` and `line`, which

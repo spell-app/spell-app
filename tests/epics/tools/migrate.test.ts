@@ -2,7 +2,7 @@
  * Tests of `migrate.js`:  the docs' page kinds and their migration steps (epic `epic-workflow`, P8), and that the
  * `epic` tool's copy of the comment anchor rules (`PlanAnchors`) agrees with `BlockAnchors.js`.
  */
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
@@ -14,7 +14,10 @@ import { PlanAnchors } from "$/epics/tool/PlanAnchors"
 
 import { anchorOf, blocksIn, excerptOf, findBlock } from "../../../packages/epics/tools/BlockAnchors.js"
 import {
+  dataFileLinks,
+  dataFileMoves,
   KINDS,
+  main,
   migratePages,
   pageKind,
   pagesFor,
@@ -271,5 +274,75 @@ describe("PlanAnchors agrees with BlockAnchors", () => {
     // p2's field, saved when it was p1's second:  both find it by its excerpt
     const moved = { anchor: "p1#field-3", excerpt: "Two." }
     expect(PlanAnchors.find(document, moved.anchor, moved.excerpt).block).toBe(findBlock(main, moved).block)
+  })
+})
+
+describe("the data files' pass (epic `epic-workflow` P21)", () => {
+  /** A checkout with every kind of data file outside the epics' folders, by its old name, and pages linking them. */
+  function withDataFiles(): string {
+    return checkout({
+      "epics/home.json": "{}",
+      "epics/favorites.json": "[]",
+      "epics/seo/seo.inbox.json": "{}",
+      "epics/seo/seo.plan.html": '<epic-page epic="seo"><a href="seo.inbox.json">its inbox</a></epic-page>',
+      "epics/seo/details/names.html": '<a href="names.rows.json">rows</a>',
+      "sagas/sagas.json": "{}",
+      "sagas/epics/epics.inbox.json": "{}",
+      "guides/x/x.html": '<a href="../../sagas/sagas.json">sagas</a> <a href="../../package.json">no</a>',
+      "guides/x/x.inbox.json": "{}",
+      "guides/dev/commands/commands.html": '<script src="commands.js"></script><a href="commands.json">data</a>',
+      "guides/dev/commands/commands.json": "{}",
+      "guides/x/x.json": "{}",
+      "pages/details/q.answer.json": "{}",
+      "pages/details/q.answer.json5": "{}",
+      "templates/syntax-choices.rows.json": "{}",
+      "packages/ui/docs/ui-button.inbox.json": "{}"
+    })
+  }
+
+  test("dataFileMoves():  every data file outside the epics' folders;  a clash marked;  never a page's own JSON", () => {
+    const root = withDataFiles()
+    expect(dataFileMoves(root).map((move) => [move.from.slice(root.length + 1), move.clash])).toEqual([
+      ["epics/favorites.json", false],
+      ["epics/home.json", false],
+      ["guides/dev/commands/commands.json", false],
+      ["guides/x/x.inbox.json", false],
+      ["packages/ui/docs/ui-button.inbox.json", false],
+      ["pages/details/q.answer.json", true],
+      ["sagas/epics/epics.inbox.json", false],
+      ["sagas/sagas.json", false],
+      ["templates/syntax-choices.rows.json", false]
+    ])
+  })
+
+  test("dataFileLinks():  every page's links to a data file but an epic page's;  a dry run writes nothing", () => {
+    const root = withDataFiles()
+    const counts = (dryRun: boolean) =>
+      dataFileLinks(root, { dryRun }).map(({ file, links }) => [file.slice(root.length + 1), links])
+    expect(counts(true)).toEqual([
+      ["epics/seo/details/names.html", 1],
+      ["guides/dev/commands/commands.html", 1],
+      ["guides/x/x.html", 1]
+    ])
+    expect(readFileSync(join(root, "guides/x/x.html"), "utf8")).toContain('href="../../sagas/sagas.json"')
+    counts(false)
+    expect(readFileSync(join(root, "guides/x/x.html"), "utf8")).toBe(
+      '<a href="../../sagas/sagas.json5">sagas</a> <a href="../../package.json">no</a>'
+    )
+    expect(counts(false)).toEqual([])
+  })
+
+  test("main():  --dry-run lists the renames and links, and changes nothing;  then renames them", () => {
+    const root = withDataFiles()
+    const lines: string[] = []
+    expect(main(["--root", root, "--step", "json5-data-files", "--dry-run"], (line) => lines.push(line) > 0)).toBe(0)
+    expect(lines).toContain("sagas/sagas.json:  would be renamed sagas.json5")
+    expect(lines).toContain("pages/details/q.answer.json:  LEFT, q.answer.json5 is there too (merge them by hand)")
+    expect(lines.at(-1)).toBe("data files:  8 would be renamed .json -> .json5, 1 left;  3 links in 3 pages")
+    expect(existsSync(join(root, "sagas/sagas.json"))).toBe(true)
+    expect(main(["--root", root, "--step", "json5-data-files"], () => true)).toBe(0)
+    expect(existsSync(join(root, "sagas/sagas.json"))).toBe(false)
+    expect(existsSync(join(root, "sagas/sagas.json5"))).toBe(true)
+    expect(existsSync(join(root, "epics/seo/seo.inbox.json"))).toBe(true)
   })
 })

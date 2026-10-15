@@ -70,7 +70,7 @@ describe("POST /api/epics/favorite", () => {
   }
 
   test("stars and unstars into ONE shared file, sorted, written whole;  answers every favourite", async () => {
-    const file = join(root, "epics", "favorites.json")
+    const file = join(root, "epics", "favorites.json5")
     expect(await star({ name: "seo", favorite: true })).toEqual({ status: 200, body: { favorites: ["seo"] } })
     expect((await star({ name: "airplane", favorite: true })).body).toEqual({ favorites: ["airplane", "seo"] })
     // starring twice is still one
@@ -88,8 +88,8 @@ describe("POST /api/epics/favorite", () => {
     const details = join(root, "epics", "seo", "details")
     mkdirSync(details, { recursive: true })
     writeFileSync(join(details, "names.html"), "<title>Boolean names</title>")
-    writeFileSync(join(details, "names.rows.json"), "{}")
-    writeFileSync(join(details, "names.answer.json"), "{}")
+    writeFileSync(join(details, "names.rows.json5"), "{}")
+    writeFileSync(join(details, "names.answer.json5"), "{}")
     writeFileSync(join(details, "bare.html"), "<p>no title</p>")
     const answer = await ask(port, "GET", "/api/epics/pages?epic=seo")
     const { pages } = JSON.parse(answer.text) as { pages: { href: string; title: string; kind: string }[] }
@@ -109,7 +109,7 @@ describe("POST /api/epics/favorite", () => {
   test("GET pages:  the saga the epic page names, from the sagas' list;  null for none, or one not in it", async () => {
     mkdirSync(join(root, "sagas"), { recursive: true })
     writeFileSync(
-      join(root, "sagas", "sagas.json"),
+      join(root, "sagas", "sagas.json5"),
       JSON.stringify({ sagas: [{ id: "epics", title: "Epic Tooling", purpose: "epics" }] })
     )
     const page = join(root, "epics", "named", "named.plan.html")

@@ -9,7 +9,7 @@ import { SAGAS, Sagas, type Saga } from "./Sagas"
 
 /****************
  * ### `SagaCommands`
- * `epic saga <verb> ...`:  the sagas (epic `epic-workflow` P15) -- their list, in Owen's order (`sagas/sagas.json`,
+ * `epic saga <verb> ...`:  the sagas (epic `epic-workflow` P15) -- their list, in Owen's order (`sagas/sagas.json5`,
  * through `Sagas`), and which saga each epic serves (`<epic-page saga>`).
  * - `list [--json]`:  the sagas in order, each with its epics and how many guides name it;  then the epics with none
  * - `set <epic> <saga>` / `set <epic> --none`:  the epic page's `saga`, logged;  refuses a saga not in the list
@@ -35,7 +35,7 @@ export class SagaCommands {
     return this.owner.files
   }
 
-  /** The checkout's sagas:  `sagas/sagas.json`. */
+  /** The checkout's sagas:  `sagas/sagas.json5`. */
   get sagas(): Sagas {
     return new Sagas(this.files.root)
   }
@@ -198,7 +198,7 @@ export class SagaCommands {
 
   /**
    * Saga `from`'s folder, `sagas/<from>/`, renamed `sagas/<to>/`, and each file in it named for the saga
-   * (`<from>.saga.html`, `<from>.saga.inbox.json` ...) renamed for `to`;  whether there was a folder.
+   * (`<from>.saga.html`, `<from>.saga.inbox.json5` ...) renamed for `to`;  whether there was a folder.
    */
   private moveFolder(from: string, to: string): boolean {
     const old = join(this.files.root, SAGAS, from)

@@ -42,10 +42,20 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - a `BUNDLES` entry
       - its output folder in the root `package.json`'s bundle list (above)
       - and in the root `.gitignore`
+  - [json5.ts](src/json5.ts), opt-in by path (`$/assembler/json5`), NOT in the barrel:  json5-writer loads jscodeshift,
+    which every `epic` call would else pay for.
+    - JSON5 written with its comments kept:  `json5Edited(source, value)`, on json5-writer
+      (Owen's pick, `people-and-orgs` J41);  spaces' people and projects go through it.
+    - A generator's output over a file somebody wrote a comment into:  `keepingComments()` / `keepingCommentsIn()`,
+      for the component sets' site data (`docs/__data/*.json5`, epic `epic-workflow` P20).
+    - `readJSON5File()`.
+    - Here, not in spaces, so ui's tools may import it (ui imports no spell-family package).
+    - json5-writer ships no types:  it loads it with `createRequire()` and types what it uses itself,
+      so no program compiling it (ui's tools, spaces, their tests) needs an ambient declaration.
   - Next (Owen, 2026-10-07):  most of the page server's assembly code,
     so other assembly tools can be built on it (e.g. a redone goals package).
     - Grow it by capability:  one class per file, its types in `assembler.types.ts`.
-- Node only:  it uses node's file system and child processes, `git`, oxfmt and linkedom.
+- Node only:  it uses node's file system and child processes, `git`, oxfmt, linkedom and json5-writer.
   - It imports NO other package:  `epics` (its docs tools too) and any other node-side package or tool may import it.
   - NEVER make it import `epics`:  it imports this.
 - It knows the checkout's LAYOUT as folder names, never as imports:  `Linker` takes the checkout's root.

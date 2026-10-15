@@ -1,3 +1,4 @@
+import { Json5DataFiles } from "./Json5DataFiles"
 import { LinksAgree } from "./LinksAgree"
 import type { Migration, MigrationContext } from "./migrations.types"
 import { ReaderIsYou } from "./ReaderIsYou"
@@ -23,7 +24,8 @@ export class Migrations {
     new UpdatesAsEpicUpdate(),
     new ReaderIsYou(),
     new LinksAgree(),
-    new StablePhaseIds()
+    new StablePhaseIds(),
+    new Json5DataFiles()
   ]
 
   /** The steps every edit runs too (`PlanDoc.migrate()`):  the cheap markup ones. */

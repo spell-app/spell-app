@@ -1,6 +1,6 @@
-import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
-
 import { SRV } from "$/server"
+
+import { DataFile } from "$/epics/data/DataFile"
 
 import { CommentList, CommentsError, type Comment, type IdentifiedComment } from "./CommentList"
 
@@ -12,8 +12,10 @@ const INBOX_VERSION = 1
  * GUIDE COMMENTS (epic `airplane`, P11):  what Owen wrote on a docs page's blocks, from the bullhorn beside each or
  * on selected text (`packages/epics/tools/_assets/spell-doc-runtime.js`, "Comments"), waiting for Claude in the
  * page's INBOX FILE.
- * - the file:  `<page>.inbox.json` beside `<page>.html` (`fileFor()`);  absent until the first comment, deleted
+ * - the file:  `<page>.inbox.json5` beside `<page>.html` (`fileFor()`);  absent until the first comment, deleted
  *   once the last is deleted;  git-ignored in the shared repo, as the epics' review inboxes
+ *   - JSON5, saved keeping any comment added by hand (`DataFile`, epic `epic-workflow` P21);  its old name,
+ *     `<page>.inbox.json5`, is read while there's no `.json5`, and removed by the next write
  * - its comments, and every change to them:  `CommentList`, the shape an epic page's review inbox holds its comments in
  *   too
  * - SEND (epic `epic-workflow` P13), as an epic page's:  Owen presses the page header's Send, and the comments
@@ -97,23 +99,24 @@ export class GuideInbox {
   // ## The file
   ////////////////
 
-  /** The inbox file of page `page` (a file path):  `<page>.inbox.json` beside `<page>.html`. */
+  /** The inbox file of page `page` (a file path):  `<page>.inbox.json5` beside `<page>.html`. */
   static fileFor(page: string): string {
-    return page.replace(/\.html$/, ".inbox.json")
+    return DataFile.besidePage(page, "inbox")
   }
 
   /**
    * The inbox in `file`;  an empty one when there's no file.
-   * - NEVER throws on a missing file;  a file that isn't JSON throws a `CommentsError` (500) naming it
+   * - its old `.json` name when there's no `.json5` (`DataFile.read()`)
+   * - NEVER throws on a missing file;  a file that isn't JSON5 throws a `CommentsError` (500) naming it
    */
   static read(file: string): GuideInbox {
-    if (!existsSync(file)) return new GuideInbox()
-    let raw: Partial<GuideInbox>
+    let raw: Partial<GuideInbox> | undefined
     try {
-      raw = JSON.parse(readFileSync(file, "utf8"))
+      raw = DataFile.read<Partial<GuideInbox>>(file)
     } catch (error) {
-      throw new CommentsError(`${file} is not JSON:  ${(error as Error).message}`, { cause: { status: 500 } })
+      throw new CommentsError(`${file} is not JSON5:  ${(error as Error).message}`, { cause: { status: 500 } })
     }
+    if (!raw) return new GuideInbox()
     return new GuideInbox({
       version: raw.version ?? INBOX_VERSION,
       comments: raw.comments ?? {},
@@ -126,14 +129,13 @@ export class GuideInbox {
    * Write this inbox to `file`, atomically;  delete the file instead when it holds no comment.
    * - `sent` and `handedOver` alone don't count:  they only date comments, and there are none
    * - a temp file renamed over it:  a reader (the page, `spell dev comments`) never sees half of it
+   * - a comment added to the file by hand stays (`DataFile.write()`);  its old `.json` goes
    * - call it under the lock (`update()`), or two writers may lose each other's changes
    * - SIDE EFFECT:  writes or removes `file`
    */
   writeTo(file: string): void {
-    if (!Object.keys(this.comments).length) return rmSync(file, { force: true })
-    const temp = `${file}.${process.pid}.tmp`
-    writeFileSync(temp, `${JSON.stringify(this, null, 2)}\n`)
-    renameSync(temp, file)
+    if (!Object.keys(this.comments).length) return DataFile.remove(file)
+    DataFile.write(file, this)
   }
 
   /**

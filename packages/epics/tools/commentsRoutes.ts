@@ -7,13 +7,13 @@
  *   - no Claude needed, so it works on a plane
  *   - its shape and every change to it:  `CommentList` (`$/epics/tool/CommentList`)
  * - Where it's kept (`inboxOf()`):
- *   - a docs page's:  its own inbox file, `<page>.inbox.json` beside it (`GuideInbox`);
+ *   - a docs page's:  its own inbox file, `<page>.inbox.json5` beside it (`GuideInbox`);
  *     its Send hands them to the session of the epic the page belongs to (below);
  *     a page no epic owns:  Claude takes them into epic `guide-changes` with `spell dev comments gather`
- *   - an epic page's:  the epic's review inbox, `<name>.inbox.json`, under `comments` (`ReviewInbox`);
+ *   - an epic page's:  the epic's review inbox, `<name>.inbox.json5`, under `comments` (`ReviewInbox`);
  *     Claude answers them as a revisit's note (`/epic review`, `/airplane land`)
  *   - a SAGA page's (`sagas/<id>/<id>.saga.html`, epic `epic-workflow` P15):  the same, in its own inbox,
- *     `<id>.inbox.json`;  its Send is `<epic-page>`'s, for the session running `/epic review SAGA:/<id>`
+ *     `<id>.inbox.json5`;  its Send is `<epic-page>`'s, for the session running `/epic review SAGA:/<id>`
  *   - both git-ignored in the shared repo:  waiting work, per machine, never the record
  * - `GET /api/docs/comments?page=<path>` -- the page's comments, every status:
  *   `{ page, takesComments, comments, send? }`
@@ -53,7 +53,7 @@
  *     `epics/` (epic pages, an epic's own pages) and `sagas/` (saga pages, epic `epic-workflow` P15)
  *   - a component set's pages, at its address (`/components/epics/...`, `/components/app/...`), but not its `__parts/`
  *     - the sets:  `COMPONENT_SETS`, epic `people-and-orgs` P18
- *     - kept in `<page>.inbox.json` beside each, in the set's tracked `docs/` folder,
+ *     - kept in `<page>.inbox.json5` beside each, in the set's tracked `docs/` folder,
  *       git-ignored there (the repo's `.gitignore`)
  *   - NOT a split epic page's `parts/` (they're shown inside their doc), nor an epic page's pre-2026-10-04 name
  *   - NOT a details page with questions, or a choice page:  they're answered on the page
@@ -65,11 +65,12 @@
  * - Before P11 docs pages took PAGE NOTES, written into the page (`PageNotes.js`):  the ones written still show,
  *   read only, and `spell dev notes` still answers them
  */
-import { existsSync, readFileSync } from "node:fs"
+import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { SRV } from "$/server"
 import { COMPONENT_SETS, type RouteModule } from "$/server/page"
+import { DataFile } from "$/epics/data/DataFile"
 import {
   CommentList,
   CommentsError,
@@ -82,6 +83,8 @@ import { GuideInbox } from "$/epics/tool/GuideInbox"
 import { ReviewInbox } from "$/epics/tool/ReviewInbox"
 import { ReviewStart } from "$/epics/tool/ReviewStart"
 import { GUIDE_CHANGES, SeeAlso } from "$/epics/tool/SeeAlso"
+
+import { rowsFile } from "./choicesRoutes"
 
 /** Where the routes live. */
 const API = "/api/docs/comments"
@@ -230,7 +233,7 @@ export function commentsPage(files: SRV.StaticHandler, page: unknown): string {
   if (!resolved) throw new SRV.HttpError(403, `not served here:  ${page}`)
   if ("redirect" in resolved) throw new SRV.HttpError(400, `a folder, not a page:  ${page}`)
   if ("status" in resolved) throw new SRV.HttpError(resolved.status, resolved.message)
-  if (ANSWERED_ON_PAGE.test(readFileSync(resolved.file, "utf8")) || existsSync(rowsFile(resolved.file)))
+  if (ANSWERED_ON_PAGE.test(readFileSync(resolved.file, "utf8")) || DataFile.exists(rowsFile(resolved.file)))
     throw new SRV.HttpError(403, `${page} is answered on the page, not with comments`)
   return resolved.file
 }
@@ -303,11 +306,6 @@ function toChange(body: unknown): CommentChange {
   if (action === "edit" || action === "reply") return { page, action, id, text: words }
   if (action === "resolve") return { page, action, id, how: typeof how === "string" ? how : "" }
   return { page, action: action as "delete" | "clear" | "reopen", id }
-}
-
-/** `<slug>.rows.json` beside page `<slug>.html`:  a choice page's rows (`choicesRoutes.ts`). */
-function rowsFile(page: string): string {
-  return page.replace(/\.html$/, ".rows.json")
 }
 
 /** The first value of a query parameter. */

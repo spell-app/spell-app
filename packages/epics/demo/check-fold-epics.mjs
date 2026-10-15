@@ -91,7 +91,7 @@ const problems = []
 const summary = {}
 
 const folder = join(HERE, "shots/fold/epics", docName)
-const inboxFile = join(folder, `${docName}.inbox.json`)
+const inboxFile = join(folder, `${docName}.inbox.json5`)
 if (existsSync(inboxFile)) {
   console.error(`check-fold-epics:  ${inboxFile} exists (an earlier run's?):  delete it first`)
   process.exit(2)
@@ -124,6 +124,7 @@ try {
   await browser.close()
   await server.stop()
   rmSync(inboxFile, { force: true })
+  rmSync(inboxFile.replace(/\.json5$/, ".json"), { force: true })
 }
 console.log(JSON.stringify(summary, null, 2))
 if (problems.length) {

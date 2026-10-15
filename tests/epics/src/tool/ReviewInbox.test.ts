@@ -616,12 +616,12 @@ describe("ReviewInbox phases, the summary, new items", () => {
 
 describe("ReviewInbox files", () => {
   const dir = mkdtempSync(join(tmpdir(), "inbox-"))
-  const file = join(dir, "x.inbox.json")
+  const file = join(dir, "x.inbox.json5")
   afterAll(() => rmSync(dir, { recursive: true, force: true }))
 
   test("beside the epic page, either name", () => {
-    expect(ReviewInbox.pathFor("/a/epics/x/x.plan.html")).toBe("/a/epics/x/x.inbox.json")
-    expect(ReviewInbox.pathFor("/a/epics/x/x.html")).toBe("/a/epics/x/x.inbox.json")
+    expect(ReviewInbox.pathFor("/a/epics/x/x.plan.html")).toBe("/a/epics/x/x.inbox.json5")
+    expect(ReviewInbox.pathFor("/a/epics/x/x.html")).toBe("/a/epics/x/x.inbox.json5")
   })
 
   test("absent:  an empty inbox;  partial:  filled in", () => {

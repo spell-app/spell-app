@@ -144,6 +144,16 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - `GET /api/epics/running`
       - the list page's running cards, as it's served
     - `EpicState` and `EpicCards` load in plain `node` too (`docs index`):  their headers say what that forbids
+  - `data/` -- `DataFile`:  the tooling's DATA FILES in the shared folders, as JSON5 (epic `epic-workflow` P21).
+    - review inboxes, details pages' answers and drafts, choice pages' rows, running agents, the docs home's lists
+      (`home.json5`, `favorites.json5`), the sagas' list, the commands page's data
+    - written keeping a comment Owen adds by hand:  spaces' `json5Edited()` (json5-writer), laid out as
+      `JSON.stringify()` would, in JSON5's JSON-compatible part (keys and text in double quotes)
+    - read by the `.json5` name first, then the old `.json`, written as `.json5` only (the old `.json` removed):
+      a checkout on older code keeps reading its files until it merges, and `epic migrate` renames the rest
+      (`json5-data-files`, and the docs tool's data files pass)
+    - node only, NOT in the `$/epics` barrel;  loads in plain `node` too (the docs tools' `details.js` ...):  it
+      imports spaces' editor by its relative path
   - `convert/` -- the converter, old markup => `<epic-*>` (`Converter`, `ConvertRun`).
     - A `ConversionProof` per doc:  every id, link target and word kept.
     - Every live doc was converted at the switch (P12 of epic `epic-components`).
@@ -170,7 +180,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - the inboxes, one shape of comment for both (`CommentList`):
       - `ReviewInbox`:  an epic page's marks and comments
       - `GuideInbox`:  a docs page's comments and its Send (epic `epic-workflow` P13)
-    - SAGAS (P15):  `Sagas`, the shared list in Owen's order (`sagas/sagas.json`, node only, loaded by path by the
+    - SAGAS (P15):  `Sagas`, the shared list in Owen's order (`sagas/sagas.json5`, node only, loaded by path by the
       docs index too), and each guide's saga meta (`guides()`, `sagaOf()`, `withSaga()`)
       - `SagaCommands`:  `epic saga list | set | new | move | title | rename | page`
       - `epicRoutes`' `GET /api/epics/pages` answers the epic's saga too (`<epic-page>`'s meta line)
@@ -232,6 +242,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Spell UI keeps ONE sheet per name for the whole page, and the first class to register a name wins.
   - So a bare `item` drew `<epic-item>` with `<ui-item>`'s sheet, on any page that had both (I9).
   - [The barrel's test](../../tests/epics/components/index.test.tsx) checks every class the barrel exports.
+- The tooling's data files are JSON5, read and written through `DataFile` (`$/epics/data/DataFile`, see "Overview"):
+  never `JSON.parse()` / `JSON.stringify()` on one, which would refuse or drop Owen's comments.
+  - A new one:  `<name>.json5`, its path given to `DataFile`;  a browser reader drops comments before `JSON.parse()`
+    (`commands.js`' `parseData()`).
 - A change to epic page markup adds its MIGRATION STEP in the SAME commit (epic `epic-workflow` P8).
   - epic page markup:  what the tool writes, or what an element reads
   - the step:  a class in [migrations/](src/tool/migrations/), last in `Migrations.all`, with its test
@@ -311,7 +325,7 @@ Laid out as every set is since P18 of `people-and-orgs` (the root's `AGENTS.md`)
   - `doc-links.js` checks them that way:  `yarn tsx tools/doc-links.js --check ../epics/docs/<tag>.html`.
 - Check a page:  `node tools/check-spell.js docs/<tag>.html`, which loads it from the page server at its address.
 - Comments:  the comment route takes them, but no bullhorn draws on these pages yet.
-  - kept in `<page>.inbox.json` beside a page, git-ignored
+  - kept in `<page>.inbox.json5` beside a page, git-ignored
   - why no bullhorn:  they load Spell UI's site, not the docs bundle that draws them
 - The epic's write-up and how-to guides stay in the shared guides:
   [Epic Pages as Components](../../guides/epic-components/epic-components.html),
@@ -399,7 +413,7 @@ The shared folders:
         - The one yellow that doesn't mean "open".
       - A click stars or unstars it at once:  the runtime's `wireFavorites()` moves the card.
       - Then the page posts it to [epicRoutes.ts](src/tool/epicRoutes.ts) (`POST /api/epics/favorite`).
-        - That writes the ONE shared file, `favorites.json` in `epics/`:  a JSON list of names.
+        - That writes the ONE shared file, `favorites.json5` in `epics/`:  a JSON list of names.
         - through `SRV.FileOperations.save()`, as every route module's save
       - The page server regroups by it as it serves the page.
       - From `file://` the stars show, disabled.
@@ -426,7 +440,7 @@ The shared folders:
       `<meta name="spell-saga" content="<id>">` (`Sagas.withSaga()` writes it, `sagaOf()` reads it).
     - None, or a saga not in the list:  Misc.  `docs index` prints both kinds.
     - `epic saga rename` rewrites the metas.
-  - The SAGAS page:  a card per saga, in Owen's order (`sagas/sagas.json`).
+  - The SAGAS page:  a card per saga, in Owen's order (`sagas/sagas.json5`).
     - its title linking its saga page, its purpose, how many epics and guides name it
     - a note on the parked first sagas (`goals/`)
   - The Templates page also holds the "Writing docs" notes;  the Brand page, its folder's files.
@@ -525,7 +539,7 @@ In `tools/`:
   spell dev docs new durable|cheatsheet|commands <topic>/<topic>.html --title "Title"
   ```
 
-  - It copies it into `guides/` (and for `commands`, its JSON as `<topic>.json`).
+  - It copies it into `guides/` (and for `commands`, its data as `<topic>.json5`).
   - It fixes the `_assets` paths for the page's depth, and lists it in the index.
 - Every page (templates too) starts its `<body>` with the site header, `<spell-site-header root="../..">`.
   - `root` is the path from the page's folder to the REPO root.
@@ -807,7 +821,7 @@ Each kind of page has ONE name, written everywhere a person reads it.
 | saga page | a saga (an epic of epics):  what its epics did, ideas not done yet, its epics' cards;  commented on and sent from as an epic page is (epic `epic-workflow` P15) | `sagas/<saga-id>/<saga-id>.saga.html` | [the tool's](src/tool/templates/saga.html) (`epic saga page <id>`);  the parked goal sets in `goals/`:  [goals/](../../templates/goals/) |
 | details page | one question explained with a picture, answered on the page | `pages/details/`, `epics/<epic-id>/details/` | [details.html](../../templates/details.html) |
 | review page | several calls to go through at once:  keep, change, talk over | same as details pages | [review.html](../../templates/review.html) |
-| choice page | a table of names Claude recommends, typed over, then "Do it" | same, with `<slug>.rows.json` | [syntax-choices.html](../../templates/syntax-choices.html) |
+| choice page | a table of names Claude recommends, typed over, then "Do it" | same, with `<slug>.rows.json5` | [syntax-choices.html](../../templates/syntax-choices.html) |
 | guide | explains a topic;  an epic's own write-up is "the epic's guide" | `guides/` | [durable.html](../../templates/durable.html) |
 | cheatsheet | an API at a glance, as cards you filter | `guides/` | [cheatsheet.html](../../templates/cheatsheet.html) |
 | commands page | which command, skill or script does what | `guides/dev/commands/` | [commands.html](../../templates/commands.html) |
@@ -827,7 +841,7 @@ Each kind of page has ONE name, written everywhere a person reads it.
 
 - [durable.html](../../templates/durable.html):  a guide -- design notes, research, references.
   - prose sections, tables, code, callouts
-- [commands.html](../../templates/commands.html) + `commands.json`:  a command reference.
+- [commands.html](../../templates/commands.html) + `commands.json5`:  a command reference.
   - operations by family, and which CLI / skill / yarn command does each
   - in tables that `commands.js` (in `_assets/`) draws from the JSON;  its header has the JSON's shape
   - hand-written prose around them
@@ -847,8 +861,8 @@ Each kind of page has ONE name, written everywhere a person reads it.
     - The shared one becomes a copy of it when the migration step `answer-elements` runs
       (see "Scripts", `migrate.js`).
 - [syntax-choices.html](../../templates/syntax-choices.html):  a choice page.
-  - `syntax-choices.rows.json` beside it is a small working example.
-  - NEVER copy by hand:  `epic choices new <slug> --rows <rows.json>`.
+  - `syntax-choices.rows.json5` beside it is a small working example.
+  - NEVER copy by hand:  `epic choices new <slug> --rows <rows.json5>`.
   - The tool's own copy, as details.html's:  [tools/templates/syntax-choices.html](tools/templates/syntax-choices.html).
 - [review.html](../../templates/review.html), "Review":  a review page, going through a finished run's calls.
   - one question each (keep, change, talk over), then "Where first?"
@@ -919,7 +933,7 @@ Each kind of page has ONE name, written everywhere a person reads it.
 
 - Owen marks an epic page's items ON the page:  approve, todo, Add Details, revisit, pick an option card.
   - The marks wait in its INBOX FILE until a Claude session takes them.
-    It's `<name>.inbox.json`, beside the doc in `epics/<name>/`.
+    It's `<name>.inbox.json5`, beside the doc in `epics/<name>/`.
   - Absent until the first mark;  deleted once empty.
   - Git-ignored:  per-machine pending state, never the record.
   - Its shape and methods:  [`ReviewInbox`](src/tool/ReviewInbox.ts).
@@ -1035,11 +1049,11 @@ Each kind of page has ONE name, written everywhere a person reads it.
     - The migration step `answer-elements` converts such a page once ([to-answer-elements.js](tools/to-answer-elements.js)).
 - Owen's answer:  the page posts it to the page server's route module, [detailsRoutes.ts](tools/detailsRoutes.ts)
   (`POST /api/docs/details/answer`).
-  - That writes `<slug>.answer.json`, beside the page (`SRV.FileOperations.save()`).
+  - That writes `<slug>.answer.json5`, beside the page (`SRV.FileOperations.save()`).
   - `epic ask wait`, run in the background, exits with it, and so wakes the session.
 - What he typed and hasn't sent is a DRAFT (epic `epic-workflow` P18).
   - Why:  agents rewrote a page under him twice, and everything he hadn't sent was lost (request r4).
-  - `<slug>.draft.json` beside the page, through the same route module (`POST /api/docs/details/draft`)
+  - `<slug>.draft.json5` beside the page, through the same route module (`POST /api/docs/details/draft`)
     - saved 2s after he stops typing, and as the page goes away
     - a copy in the browser's `localStorage` too, written at once, for when the page server can't take it
   - It wakes nobody:  `epic ask wait` watches the answer only.  Send deletes it.
@@ -1082,11 +1096,11 @@ Each kind of page has ONE name, written everywhere a person reads it.
 - The commands ([choices.js](tools/choices.js);  the rows' shape is in its comment):
 
   ```sh
-  epic choices new <slug> --rows <rows.json> | show [--wait] | wait | answer | list
+  epic choices new <slug> --rows <rows.json5> | show [--wait] | wait | answer | list
   ```
 
   - Pages go where details pages do.
-  - `<slug>.rows.json`, beside the page, holds the rows.
+  - `<slug>.rows.json5`, beside the page, holds the rows.
   - `new` writes them into the page too, as elements (epic `epic-workflow` P12):
     - a `<ui-section>` per section holding an `<epic-choice-rows>` of `<epic-choice-row>`s
     - an `<epic-choices-bar>` at the end:  feedback, "Do it", the draft (`ChoicesForm`, `$/epics/answers`)
@@ -1097,11 +1111,11 @@ Each kind of page has ONE name, written everywhere a person reads it.
   - The spell syntax guide does:  its rows are generated from the code, its boxes keyed `<Class>.<field>` (`IsGtLt.py`).
   - Its draft and answer go beside it, as a choices page's;  its box ids aren't checked against the rows.
   - `epic choices show | wait | answer <page>` take its path;  `list` covers only the `details/` folders.
-  - It still takes comments:  only a page with `<slug>.rows.json` beside it doesn't.
+  - It still takes comments:  only a page with `<slug>.rows.json5` beside it doesn't.
 - The page server's route module, [choicesRoutes.ts](tools/choicesRoutes.ts), at `/api/docs/choices/...`
   (each save through `SRV.FileOperations.save()`):
-  - the draft:  `<slug>.draft.json`, saved 5s after typing stops, never wakes anyone
-  - the answer:  `<slug>.answer.json`, which `epic choices wait` exits with
+  - the draft:  `<slug>.draft.json5`, saved 5s after typing stops, never wakes anyone
+  - the answer:  `<slug>.answer.json5`, which `epic choices wait` exits with
 
 ## Comments
 
@@ -1308,7 +1322,7 @@ Each kind of page has ONE name, written everywhere a person reads it.
     - The comments wait, sent, for that review (its first `wait` takes them), or `/airplane land`.
     - Never for `guide-changes`.
 - Where they're kept (git-ignored in the shared repo:  waiting work, per machine):
-  - a docs page's:  its INBOX FILE, `<page>.inbox.json` beside it, with its `sent` and `handedOver`
+  - a docs page's:  its INBOX FILE, `<page>.inbox.json5` beside it, with its `sent` and `handedOver`
     - [GuideInbox.ts](src/tool/GuideInbox.ts), in the `epic` tool since P13:  the tool's `wait` reads it
   - an epic page's:  the epic's review inbox, under `comments` (`ReviewInbox`, see "Review inbox")
   - One shape for both, and every change:  [`CommentList`](src/tool/CommentList.ts).
@@ -1529,8 +1543,8 @@ In this order, from `packages/epics`:
   the running-agents list (epic `skillz`), on [AgentList.ts](tools/AgentList.ts).
   - Every background agent a Claude session started, by name, while it runs.
   - The file:
-    - in an epic:  `agents.json` in the epic's folder (git-ignored in the shared repo)
-    - else:  `.spell-agents.json` at the checkout's root (git-ignored)
+    - in an epic:  `agents.json5` in the epic's folder (git-ignored in the shared repo)
+    - else:  `.spell-agents.json5` at the checkout's root (git-ignored)
     - `--epic <name>`, on any verb, picks the epic
   - Names get a prefix:  the epic's, else the worktree's, else `main`.
     `add aaa` in epic `skillz` is `skillz-aaa`.

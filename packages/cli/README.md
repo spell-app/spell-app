@@ -196,7 +196,7 @@ Longer notes on some of them follow the table.
 
 - `dev` commands are the repo-tool commands, `spell dev <noun> <verb>`.
   `dev commands` was the first:  the plan for the rest is the commands page's Roadmap.
-- `dev commands`:  checks against [the commands page's data](../../guides/dev/commands/commands.json).
+- `dev commands`:  checks against [the commands page's data](../../guides/dev/commands/commands.json5).
   - `list` marks each ✓ / ✗.
   - `check` prints only the gaps, and exits 1 on any.
   - `--json`.
@@ -321,7 +321,7 @@ Longer notes on some of them follow the table.
   - Its verbs:
 
     ```
-    new <slug> --rows <rows.json>
+    new <slug> --rows <rows.json5>
     show
     wait
     answer
@@ -347,8 +347,8 @@ Longer notes on some of them follow the table.
 - `agents`:  for the `/bg` skill, and every agent Claude starts.
   Runs [`agents.ts`](../epics/tools/agents.ts).
   - The list:  this checkout's epic's, else the checkout's.  Both git-ignored.
-    - an epic's:  `agents.json`, in its `epics/<epic>/` folder
-    - a checkout's:  `.spell-agents.json`, at its root
+    - an epic's:  `agents.json5`, in its `epics/<epic>/` folder
+    - a checkout's:  `.spell-agents.json5`, at its root
   - Its verbs:
 
     ```
@@ -433,7 +433,7 @@ Longer notes on some of them follow the table.
 
   ```
   package.json, tsconfig.base.json, vitest.config.ts, vite.lint.ts, .gitattributes,
-  src/dev/mergeMain.ts, and the shared commands page, guides/dev/commands/commands.json
+  src/dev/mergeMain.ts, and the shared commands page, guides/dev/commands/commands.json5
   ```
 
 - `dev pack build` writes the pack's `components/__pack/`.

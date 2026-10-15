@@ -18,7 +18,7 @@
  *   - timeout:  exit 2, saying so
  * - `answer <page>` -- print the answer already sent (exit 1 if none)
  * - `draft <page>` -- print what Owen typed on the page and hasn't sent (exit 1 if nothing):  its draft,
- *   `<slug>.draft.json`, newer than the answer (epic `epic-workflow` P18).  Run it BEFORE rewriting a page he may
+ *   `<slug>.draft.json5`, newer than the answer (epic `epic-workflow` P18).  Run it BEFORE rewriting a page he may
  *   have open:  the page puts the draft back by id, and keeps text whose id the rewrite removes in a box of its own
  * - `list` -- every details page, answered or waiting
  * - `sweep [--days 14]` -- delete scratch pages (and their answers) older than that;  never an epic's
@@ -27,8 +27,9 @@
  *   (absolute, or from the root, `pages/` or `packages/epics`)
  * - paths print absolute:  they mean the same in whichever checkout Claude reads them
  * - The answer itself is written by the page server's route module (`tools/detailsRoutes.ts`) into
- *   `<slug>.answer.json` beside the page.
- *   - the draft into `<slug>.draft.json`, which Send deletes
+ *   `<slug>.answer.json5` beside the page.
+ * - Its files are data files (`DataFile`, epic `epic-workflow` P21):  JSON5, read by their old `.json` names too.
+ *   - the draft into `<slug>.draft.json5`, which Send deletes
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs"
 import { basename, join, relative, resolve } from "node:path"
@@ -48,6 +49,7 @@ import {
   make,
   questionSection
 } from "./answerPages.js"
+import { DataFile } from "../src/data/DataFile.ts"
 import { ROOT, atDepth, openInVSCode, serialize } from "./pages.js"
 
 /** How long `wait` waits by default:  8 hours (decision D9). */
@@ -63,7 +65,7 @@ const SWEEP_DAYS = 14
 export const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 /** The files `sweep()` deletes:  pages, answers, and a choice page's rows and draft (`choices.js`). */
-const SWEPT = /\.(html|answer\.json|rows\.json|draft\.json)$/
+const SWEPT = /\.(html|(answer|rows|draft)\.json5?)$/
 
 /** Run `spell dev details <argv>`;  the exit code. */
 async function main(argv) {
@@ -73,7 +75,7 @@ async function main(argv) {
     if (command === "new") {
       // scratch pages sweep themselves:  nobody has to remember to
       for (const file of sweep(ROOT, SWEEP_DAYS)) console.error(`swept ${relative(ROOT, file)}`)
-      const spec = flags.from ? JSON.parse(readFileSync(findFile(flags.from), "utf8")) : undefined
+      const spec = flags.from ? DataFile.parse(readFileSync(findFile(flags.from), "utf8")) : undefined
       console.log(shown(createPage(ROOT, target, { ...flags, spec })))
       return 0
     }
@@ -278,20 +280,19 @@ export function sweep(docs, days, now = Date.now()) {
 // ## Answers
 ////////////////
 
-/** `<slug>.answer.json` beside page `<slug>.html`. */
+/** `<slug>.answer.json5` beside page `<slug>.html`. */
 export function answerFile(page) {
-  return page.replace(/\.html$/, ".answer.json")
+  return DataFile.besidePage(page, "answer")
 }
 
-/** The answer sent for `page`, or `undefined`. */
+/** The answer sent for `page` (its old `.json` too), or `undefined`. */
 export function readAnswer(page) {
-  const file = answerFile(page)
-  return existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : undefined
+  return DataFile.read(answerFile(page))
 }
 
-/** `<slug>.draft.json` beside page `<slug>.html`:  what's typed and not sent (`detailsRoutes.ts`). */
+/** `<slug>.draft.json5` beside page `<slug>.html`:  what's typed and not sent (`detailsRoutes.ts`). */
 export function draftFile(page) {
-  return page.replace(/\.html$/, ".draft.json")
+  return DataFile.besidePage(page, "draft")
 }
 
 /**
@@ -299,9 +300,8 @@ export function draftFile(page) {
  * - the draft's shape:  `detailsRoutes.ts` `DetailsDraft`
  */
 export function readDraft(page) {
-  const file = draftFile(page)
-  if (!existsSync(file)) return undefined
-  const draft = JSON.parse(readFileSync(file, "utf8"))
+  const draft = DataFile.read(draftFile(page))
+  if (!draft) return undefined
   const answer = readAnswer(page)
   return !answer || Date.parse(draft.saved) > Date.parse(answer.answered) ? draft : undefined
 }
@@ -324,9 +324,10 @@ export async function waitForAnswer(page, { since = Date.now(), timeout, poll = 
   const file = answerFile(page)
   const end = Date.now() + timeout
   for (;;) {
-    if (existsSync(file) && statSync(file).mtimeMs > since) {
+    const found = DataFile.found(file)
+    if (found && statSync(found).mtimeMs > since) {
       try {
-        return JSON.parse(readFileSync(file, "utf8"))
+        return DataFile.parse(readFileSync(found, "utf8"))
       } catch {
         // mid-write (the route renames a whole file in, so this is unlikely):  look again next time
       }

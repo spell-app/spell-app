@@ -4,13 +4,14 @@ import { homedir } from "os"
 import { join } from "path"
 
 import { CLI } from "$/cli"
+import { COMMANDS_JSON } from "$/cli/dev/dev.types"
+import { DataFile } from "$/epics/data/DataFile"
 
-/** The commands page's data, relative to a checkout's root. */
-export const COMMANDS_JSON = join("guides", "dev", "commands", "commands.json")
+export { COMMANDS_JSON }
 
 /**
  * `spell dev commands [list|check]`:  every command the repo has -- yarn scripts, `spell` commands, skills -- against
- * the commands page's `commands.json` (`guides/dev/commands/`), which maps each to the operations it does.
+ * the commands page's `commands.json5` (`guides/dev/commands/`), which maps each to the operations it does.
  * - `list` (default):  every command, with whether the page names it (`✓` / `✗`)
  * - `check`:  just the problems:  commands the page never names, and names on the page no command has;  exits 1
  *   if there are any.  Run it after adding, renaming or removing a command (root `yarn commands:check`).
@@ -25,10 +26,10 @@ export async function commandsCommand(
 ): Promise<number> {
   const [verb = "list"] = args
   if (verb !== "list" && verb !== "check") throw new CLI.CliError(`unknown verb '${verb}':  list or check`)
-  const root = CLI.findCheckout(COMMANDS_JSON)
+  const root = CLI.findCheckout(join("guides", "dev", "commands"))
   const file = join(root, COMMANDS_JSON)
-  if (!existsSync(file)) throw new CLI.CliError(`no ${COMMANDS_JSON} in ${root}`)
-  const data = JSON.parse(readFileSync(file, "utf8")) as CommandsData
+  const data = DataFile.read<CommandsData>(file)
+  if (!data) throw new CLI.CliError(`no ${COMMANDS_JSON} in ${root}`)
   const commands = commandSources(root, data.sources)
   const named = pageNames(data)
   const missing = commands.filter((command) => !named.has(command.name)).map((command) => command.name)
@@ -58,7 +59,7 @@ export async function commandsCommand(
       session.err(chalk.dim(`(${elsewhere.length} rows for packages this checkout doesn't have:  ${packages})`))
     }
     if (ok) session.err(chalk.green(`${commands.length} commands, every one on the commands page`))
-    else session.err(`fix:  ${join(root, COMMANDS_JSON)} (rows' cli / skill / yarn names)`)
+    else session.err(`fix:  ${DataFile.found(file)} (rows' cli / skill / yarn names)`)
   }
   return verb === "check" && !ok ? CLI.EXIT.ERRORS : CLI.EXIT.OK
 }
@@ -148,7 +149,7 @@ export function pageNames(data: CommandsData): Set<string> {
 }
 
 /**
- * The parts of `commands.json` this reads;  its full shape:  `packages/epics/tools/_assets/commands.js`'s header.
+ * The parts of `commands.json5` this reads;  its full shape:  `packages/epics/tools/_assets/commands.js`'s header.
  * - `sources.userSkills`:  skills in `~/.claude/skills` that count, e.g. `session`
  * - `sources.ignore`:  commands that need no row, e.g. `/solid-2` (reference only, runs nothing)
  */

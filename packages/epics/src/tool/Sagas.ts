@@ -1,10 +1,11 @@
-import { existsSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join, relative } from "node:path"
 
 // By file name, `.ts` and all:  plain `node` loads this file by path (the docs index, `packages/epics/tools/index.js`)
+import { DataFile } from "../data/DataFile.ts"
 import { PlanDocError } from "./planDoc.types.ts"
 
-/** The sagas' shared folder, from the checkout's root:  `sagas/sagas.json` and each saga's own folder. */
+/** The sagas' shared folder, from the checkout's root:  `sagas/sagas.json5` and each saga's own folder. */
 export const SAGAS = "sagas"
 
 /** A saga id:  lower case, hyphenated, one or two words (`drawable-spell`, `epics`). */
@@ -14,7 +15,7 @@ const SAGA_ID = /^[a-z][a-z0-9]*(-[a-z0-9]+)?$/
  * ### `Sagas`
  * The SAGAS:  each an epic of epics, the larger aim its epics serve (epic `epic-workflow` P15;  Owen, 2026-10-13:
  * "saga means roughly epic of epics").
- * - Kept in ONE shared file, `sagas/sagas.json`, in Owen's order:  the Sagas page, the Epics page's saga chips and
+ * - Kept in ONE shared file, `sagas/sagas.json5`, in Owen's order:  the Sagas page, the Epics page's saga chips and
  *   the Guides page's sections all list them so.
  * - Each saga:  an `id` Owen can say ("saga drawable-spell"), stable until `rename()`;  a `title`;  a line on what
  *   it's for.
@@ -22,8 +23,10 @@ const SAGA_ID = /^[a-z][a-z0-9]*(-[a-z0-9]+)?$/
  * - Which epics serve it:  each epic page's `<epic-page saga="<id>">`;  which guides:  each guide's
  *   `<meta name="spell-saga" content="<id>">`.  Neither is kept here.
  * - Node only (`node:fs`):  NOT in the `$/epics` barrel, imported by path.
- * - Its position:  imports only node's own modules and `./planDoc.types.ts` (by file name), so plain `node` loads it
- *   by path, as the docs index does;  NEVER another import, an `enum` or a parameter property.
+ *   - JSON5, saved keeping any comment added by hand (`DataFile`, epic `epic-workflow` P21);  its old name,
+ *     `sagas.json`, is read while there's no `.json5`
+ * - Its position:  imports only node's own modules, `./planDoc.types.ts` and `../data/DataFile.ts` (by file name), so
+ *   plain `node` loads it by path, as the docs index does;  NEVER another import, an `enum` or a parameter property.
  ****************/
 export class Sagas {
   /** the checkout's root:  its `sagas/` */
@@ -33,15 +36,14 @@ export class Sagas {
     this.root = root
   }
 
-  /** The list's file:  `<root>/sagas/sagas.json`. */
+  /** The list's file:  `<root>/sagas/sagas.json5`. */
   get file(): string {
-    return join(this.root, SAGAS, "sagas.json")
+    return join(this.root, SAGAS, `sagas${DataFile.SUFFIX}`)
   }
 
-  /** Every saga, in Owen's order;  `[]` with no list yet. */
+  /** Every saga, in Owen's order;  `[]` with no list yet.  Its old `sagas.json` while there's no `.json5`. */
   list(): Saga[] {
-    if (!existsSync(this.file)) return []
-    return (JSON.parse(readFileSync(this.file, "utf8")) as SagaFile).sagas
+    return DataFile.read<SagaFile>(this.file)?.sagas ?? []
   }
 
   /** The saga with id `id`, else `undefined`. */
@@ -188,7 +190,7 @@ export class Sagas {
 
   /**
    * Write `sagas`, in that order, as the whole list.
-   * - atomic:  a whole file, renamed over the old one
+   * - atomic:  a whole file, renamed over the old one;  a comment added to it by hand stays (`DataFile.write()`)
    * - throws for a malformed or repeated id
    */
   save(sagas: readonly Saga[]): void {
@@ -198,15 +200,13 @@ export class Sagas {
       if (seen.has(id)) throw new SagaError(`saga id "${id}" twice`)
       seen.add(id)
     }
-    const old = existsSync(this.file) ? (JSON.parse(readFileSync(this.file, "utf8")) as SagaFile) : undefined
+    const old = DataFile.read<SagaFile>(this.file)
     const next: SagaFile = { ...(old?.["//"] ? { "//": old["//"] } : {}), sagas: [...sagas] }
-    const temp = `${this.file}.${process.pid}.tmp`
-    writeFileSync(temp, `${JSON.stringify(next, null, 2)}\n`)
-    renameSync(temp, this.file)
+    DataFile.write(this.file, next)
   }
 }
 
-/** One saga, as `sagas/sagas.json` holds it. */
+/** One saga, as `sagas/sagas.json5` holds it. */
 export type Saga = {
   /** what Owen says:  `drawable-spell`;  stable until renamed */
   id: string
@@ -248,7 +248,7 @@ const DESCRIPTION_LINE = /^([ \t]*)<meta\s+name="description"(?:\s+[\w-]+="[^"]*
 /** The `<title>` line:  `$1` its indent. */
 const TITLE_LINE = /^([ \t]*)<title>[^<]*<\/title>/m
 
-/** `sagas/sagas.json`:  a note for whoever opens it, then the sagas in order. */
+/** `sagas/sagas.json5`:  a note for whoever opens it, then the sagas in order. */
 type SagaFile = { "//"?: string; sagas: Saga[] }
 
 /**

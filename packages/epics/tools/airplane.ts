@@ -31,6 +31,7 @@ import { homedir } from "node:os"
 import { join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { DataFile } from "$/epics/data/DataFile"
 import { SRV } from "$/server"
 import { AirplaneMode } from "$/server/page/AirplaneMode"
 import { PageServer } from "$/server/page/PageServer"
@@ -130,9 +131,10 @@ function waitingCheck(root: string): FlightCheck | undefined {
   const epics = join(root, "epics")
   if (!existsSync(epics)) return undefined
   const counts = readdirSync(epics).flatMap((name) => {
-    const file = join(epics, name, `${name}.inbox.json`)
-    if (!existsSync(file)) return []
-    const inbox = JSON.parse(readFileSync(file, "utf8")) as { marks?: object; now?: unknown[] }
+    const inbox = DataFile.read<{ marks?: object; now?: unknown[] }>(
+      join(epics, name, `${name}.inbox${DataFile.SUFFIX}`)
+    )
+    if (!inbox) return []
     const count = Object.keys(inbox.marks ?? {}).length + (inbox.now?.length ?? 0)
     return count ? [count] : []
   })

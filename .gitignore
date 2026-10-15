@@ -25,18 +25,20 @@ __pycache__/
 
 # `/park`'s note on where parked work stopped:  never committed
 PARKED-*.md
-# a checkout's running agents when it has no epic (`spell dev agents`;  an epic's:  `epics/<epic>/agents.json`)
+# a checkout's running agents when it has no epic (`spell dev agents`;  an epic's:  `epics/<epic>/agents.json5`);
+# `.json` was its name before epic `epic-workflow` P21
 /.spell-agents.json
+/.spell-agents.json5
 .vitest/
 
-# the component sets' waiting comments (`<page>.inbox.json` beside a page, and its lock;  the comment route, epic
+# the component sets' waiting comments (`<page>.inbox.json5` beside a page, and its lock;  the comment route, epic
 # epic-workflow P10 / P11):  per machine, never the record, as the shared pages' are
 /packages/epics/docs/**/*.inbox.json*
 /packages/app/docs/**/*.inbox.json*
 /packages/ui/docs/**/*.inbox.json*
 /packages/brand/docs/**/*.inbox.json*
 
-# `/details` scratch pages and review inboxes (`pages/details/`, `epics/*/*.inbox.json`):  ignored by the shared
+# `/details` scratch pages and review inboxes (`pages/details/`, `epics/*/*.inbox.json5`):  ignored by the shared
 # content repo's own `.gitignore` (`../spell-app-dev`);  here the whole folders are ignored (`# shared:` block below)
 
 # shared:start  (epics shared-content, claude-design P4 / P6:  links into ../spell-app-dev, the shared content repo;  never tracked)

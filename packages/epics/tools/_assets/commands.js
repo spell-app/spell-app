@@ -4,8 +4,10 @@
  * - Loaded INSTEAD of `spell-ui.js`:  the runtime builds the contents sidebar, the rail and the sticky titles from
  *   `main`'s sections once, at start, so the families must be in the page before it runs.  This script fetches,
  *   draws, then adds `spell-ui.js` (same folder), whatever happened.
- * - The data:  `<page>.json` (`body[data-commands]` overrides), fetched, so the page needs the PAGE SERVER
+ * - The data:  `<page>.json5` (`body[data-commands]` overrides), fetched, so the page needs the PAGE SERVER
  *   (`spell dev docs open <page>`);  from `file://` it shows a notice where the tables go.
+ *   - JSON5's JSON-compatible part, comments and trailing commas allowed (`parseData()`;  epic `epic-workflow` P21);
+ *     its old name, `<page>.json`, fetched when there's no `.json5` yet
  * - JSON:  `{ families: [{ id, title, icon?, intro?, rows: [Row] }] }` (a family `id` shares the page's id space:  never
  *   reuse a hand-written section's);  `Row`:
  *   - `op` -- the operation, in words;  `id?` -- anchor, default `<family id>-<slug of op>`
@@ -58,19 +60,54 @@
     document.body.append(tag)
   }
 
-  /** The page's JSON, or `undefined` after showing why not. */
+  /** The page's data, or `undefined` after showing why not. */
   async function load() {
     const file =
-      document.body.dataset.commands || location.pathname.replace(/[^/]*$/, (name) => name.replace(/\.html?$/, ".json"))
+      document.body.dataset.commands ||
+      location.pathname.replace(/[^/]*$/, (name) => name.replace(/\.html?$/, ".json5"))
     if (location.protocol === "file:") {
       notice(
         `This page draws its tables from ${file.split("/").pop()}:  open it through the page server, e.g. \`spell dev docs open ${pagePath()}\`.`
       )
       return undefined
     }
-    const response = await fetch(file, { cache: "no-store" })
+    let response = await fetch(file, { cache: "no-store" })
+    // not renamed yet (`epic migrate`):  its old name
+    if (response.status === 404 && file.endsWith(".json5"))
+      response = await fetch(file.slice(0, -1), { cache: "no-store" })
     if (!response.ok) throw new Error(`${file}:  ${response.status} ${response.statusText}`)
-    return response.json()
+    return parseData(await response.text())
+  }
+
+  /**
+   * The text of a JSON5 data file in its JSON-compatible part (keys and text in double quotes), as data:  its
+   * comments and trailing commas dropped (never inside a string), then plain `JSON.parse()`.  Throws as it does.
+   */
+  function parseData(text) {
+    const withoutComments = outsideStrings(text, (rest) => {
+      if (rest.startsWith("//")) return rest.indexOf("\n") === -1 ? rest.length : rest.indexOf("\n")
+      if (rest.startsWith("/*")) return rest.indexOf("*/") === -1 ? rest.length : rest.indexOf("*/") + 2
+      return 0
+    })
+    return JSON.parse(outsideStrings(withoutComments, (rest) => (/^,\s*[}\]]/.test(rest) ? 1 : 0)))
+  }
+
+  /** `text` without what `cut(rest)` says to cut (how many characters, at each place outside a string). */
+  function outsideStrings(text, cut) {
+    let out = ""
+    for (let at = 0; at < text.length;) {
+      if (text[at] === '"') {
+        let end = at + 1
+        while (end < text.length && text[end] !== '"') end += text[end] === "\\" ? 2 : 1
+        out += text.slice(at, end + 1)
+        at = end + 1
+        continue
+      }
+      const skip = text[at] === "/" || text[at] === "," ? cut(text.slice(at)) : 0
+      if (skip) at += skip
+      else out += text[at++]
+    }
+    return out
   }
 
   ////////////////

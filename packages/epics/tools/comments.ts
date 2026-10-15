@@ -1,6 +1,6 @@
 /**
  * `spell dev comments <verb> ...`:  the comments Owen leaves on docs pages' blocks, for Claude (epic `airplane`, P11).
- * - Owen writes them from a page's bullhorns (`commentsRoutes.ts`) into the page's inbox file, `<page>.inbox.json`
+ * - Owen writes them from a page's bullhorns (`commentsRoutes.ts`) into the page's inbox file, `<page>.inbox.json5`
  *   (`GuideInbox`);  this is Claude's side:
  *
  *     spell dev comments list
@@ -147,7 +147,7 @@ async function wait(pages: string[], flags: Record<string, string | true>): Prom
 /** The comments in inbox files `files` (`all`, or only those `waiting` for Claude), each with its page. */
 function pageComments(files: string[], which: "all" | "waiting") {
   return files.flatMap((file) => {
-    const page = relative(ROOT, file).replace(/\.inbox\.json$/, ".html")
+    const page = relative(ROOT, file).replace(/\.inbox\.json5?$/, ".html")
     const { commentList } = GuideInbox.read(file)
     return (which === "all" ? commentList.all : commentList.waiting).map((comment) => ({ page, ...comment }))
   })

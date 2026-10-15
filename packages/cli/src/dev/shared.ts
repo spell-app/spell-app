@@ -225,7 +225,7 @@ export function commitShared(
 /**
  * The commit group of shared-repo path `path` (`commitShared()`):  what the commit's message names.
  * - `epics/<name>/...`:  `epic <name>`;  `sagas/<id>/...`:  `saga <id>`;  `goals/<set>/...`:  `goals/<set>`;
- *   a file right under any of them (`sagas/sagas.json`):  the folder (`sagas`)
+ *   a file right under any of them (`sagas/sagas.json5`):  the folder (`sagas`)
  * - `guides/<x>`, `<x>` a folder or a file:  `guides/<x>`
  * - the other shared folders (`pages`, `templates`, `ui`, `brand`, `agents`):  the folder
  * - anything else (the repo's own files, old-path links):  `other`
@@ -275,12 +275,15 @@ const GITIGNORE = `# written by \`spell dev shared init\`
 pages/details/
 # /epic review inboxes:  a review's pending marks, never committed
 epics/*/*.inbox.json*
-# comments on docs pages (\`<page>.inbox.json\`, epic airplane P11):  waiting work, never committed
+# comments on docs pages (\`<page>.inbox.json5\`, epic airplane P11):  waiting work, never committed
 guides/**/*.inbox.json*
 pages/**/*.inbox.json*
 epics/**/*.inbox.json*
-# an epic's running agents (\`spell dev agents\`):  what's running now, never committed
+# a saga page's review inbox (\`sagas/<id>/<id>.inbox.json5\`, epic epic-workflow P15)
+sagas/**/*.inbox.json*
+# an epic's running agents (\`spell dev agents\`):  what's running now, never committed;  \`.json\` before P21
 epics/*/agents.json
+epics/*/agents.json5
 `
 
 /** The shared repo's `README.md`. */

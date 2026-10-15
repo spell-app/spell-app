@@ -92,7 +92,7 @@ one saga's page, `sagas/<id>/<id>.saga.html`, in the same markup, so the tool ed
 ```html
 <epic-page kind="saga" saga="epics" title="Epic Tooling" started="2026-10-14" updated="2026-10-14">
   <epic-overview id="overview">
-    <epic-summary>The saga's purpose, from sagas/sagas.json.</epic-summary>
+    <epic-summary>The saga's purpose, from sagas/sagas.json5.</epic-summary>
     <epic-section id="o1" kind="overview-part" title="Done so far">...</epic-section>
     <epic-section id="o2" kind="overview-part" title="Ideas not done yet">...</epic-section>
   </epic-overview>
@@ -109,7 +109,7 @@ one saga's page, `sagas/<id>/<id>.saga.html`, in the same markup, so the tool ed
   `epic check SAGA:/epics`.
 - `<epic-section kind="epics">` is a saga page's alone:  its `<epic-cards>` draws the epics whose
   `<epic-page saga>` names the saga, from the page server.
-- Its marks and comments wait in its own inbox, `<id>.inbox.json` beside it;
+- Its marks and comments wait in its own inbox, `<id>.inbox.json5` beside it;
   `/epic review SAGA:/<id>` takes them.
 
 ## Ids
@@ -183,7 +183,7 @@ As `plan-doc.md`, "Ids":
   - A phase:  each item queued for it (`work="P6 · Old"`) follows too;  its id stays (made from its first name).
   - An item is stamped and flagged UPDATE, as any change to it.
   - Logged:  `P6 renamed:  "Old" -> "New" (2 links)`.
-- `<epic-page saga="<id>">` (epic `epic-workflow` P15):  the saga the epic serves, one of `sagas/sagas.json`'s ids.
+- `<epic-page saga="<id>">` (epic `epic-workflow` P15):  the saga the epic serves, one of `sagas/sagas.json5`'s ids.
   `saga set <name> <saga>` sets it (`--none` clears it), logged;  `new <name> --saga <id>` at birth;  refused for a
   saga not in the list.  The page draws it in its meta lines, a link to the saga's page;  `summary --json` and
   `list --json` carry it.  No migration step:  an epic with none simply names no saga.
@@ -698,6 +698,18 @@ Named, dated, idempotent steps that bring an older page's markup up to today's, 
       lands on the 7th phase;  what says a number as a RECORD (`phase="7"`, `taken: { phase: 7 }`, a request's
       `filed: P7`, the log's words)
     - reports:  `stable-phase-ids:  12 phase ids (p1 -> p-epic-migrate, ...), 40 links, 3 in the inbox`
+  - `json5-data-files` (2026-10-14, on command;  epic `epic-workflow` P21):  the epic's DATA FILES renamed `.json` ->
+    `.json5`, the name the tooling writes now (`Json5DataFiles`, `$/epics/data/DataFile`)
+    - the files:  its review inbox and running agents beside the page;  in `details/`, each page's answer (an archived
+      round's too), draft and rows
+    - renamed after the page, each under its new name's lock (`context.files`, `DataFile.rename()`);  one whose new
+      name is there too is LEFT, in the notes, for a person to merge
+    - the page's links to any data file by its old name take the new one (`DataFile.linkFor()`):  its only change to
+      the page
+    - every other page's links, and the data files outside the epics' folders (the docs home's lists, the sagas'
+      list, guides' and scratch details pages' files, the commands page's data):  the docs tool's data files pass
+      (`migrate.js` `DATA_FILES`), which `epic migrate` runs with every kind, or `--step json5-data-files` alone
+    - reports:  `json5-data-files:  3 links to .json5` and `json5-data-files:  12 to .json5 (agents.json, ...)`
 - A new step:  a class implementing `Migration` in `migrations/`, its instance added LAST to `Migrations.all`, in the
   SAME commit as the markup change it follows (epics' `AGENTS.md`, "Rules").  Another kind's:  an entry in the docs
   tool's `STEPS`, last.  Either way:  idempotent, every word kept, and a test (a before page becomes the after page,
@@ -748,5 +760,5 @@ Every edit is checked against the definitions before it's written (`Markup.valid
 - An edit that would break the markup is refused, and nothing is written.
 - `check` reports the same, plus ids, links and parts.
   - Its links include short addresses and `<epic-link>`s (`EpicTargets.problemsIn()`):  a saga not in
-    `sagas/sagas.json`, a page that isn't there, an id not on its page, and an epic under a saga it doesn't name
+    `sagas/sagas.json5`, a page that isn't there, an id not on its page, and an epic under a saga it doesn't name
     (its `<epic-page saga>`) are broken links, failing with `--links`.

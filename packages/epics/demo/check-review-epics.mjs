@@ -112,7 +112,7 @@ const summary = { doc: docName }
 
 const folder = join(SHOTS, "epics", docName)
 const file = join(folder, `${docName}.plan.html`)
-const inboxFile = join(folder, `${docName}.inbox.json`)
+const inboxFile = join(folder, `${docName}.inbox.json5`)
 if (existsSync(inboxFile)) {
   console.error(`check-review-epics:  ${inboxFile} exists (an earlier run's?):  delete it first`)
   process.exit(2)
@@ -149,6 +149,7 @@ try {
   await browser.close()
   await server.stop()
   rmSync(inboxFile, { force: true })
+  rmSync(inboxFile.replace(/\.json5$/, ".json"), { force: true })
 }
 summary.tool = said
 console.log(JSON.stringify(summary, null, 2))

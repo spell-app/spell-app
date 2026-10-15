@@ -1,15 +1,17 @@
-import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
-
 import { SRV } from "$/server"
+
+import { DataFile } from "$/epics/data/DataFile"
 
 import { CommentList, type Comment, type IdentifiedComment } from "./CommentList"
 
 /****************
  * ### `ReviewInbox`
  * An epic page's REVIEW INBOX:  the marks Owen leaves on its items from the page, waiting for Claude.
- * - the file:  `epics/<name>/<name>.inbox.json`, beside `<name>.plan.html` (decision D1 of `review-review`);
+ * - the file:  `epics/<name>/<name>.inbox.json5`, beside `<name>.plan.html` (decision D1 of `review-review`);
  *   absent until the first mark, and deleted again once nothing is in it (`isEmpty`)
- *   - a SAGA page keeps one the same way (epic `epic-workflow` P15):  `sagas/<id>/<id>.inbox.json`, beside
+ *   - JSON5, saved keeping any comment added by hand (`DataFile`, epic `epic-workflow` P21);  its old name,
+ *     `<name>.inbox.json5`, is read while there's no `.json5`, and removed by the next write
+ *   - a SAGA page keeps one the same way (epic `epic-workflow` P15):  `sagas/<id>/<id>.inbox.json5`, beside
  *     `<id>.saga.html`, its marks and comments in this same shape
  * - per machine, NOT committed (`.gitignore`):  pending notes and session state, not the record;
  *   what Claude makes of a mark lands in the epic page itself
@@ -116,42 +118,43 @@ export class ReviewInbox {
   ////////////////
 
   /**
-   * The inbox file of the epic page at `planDoc`:  `<name>.inbox.json` beside it.
-   * - a saga page's too (`sagas/<id>/<id>.saga.html`, epic `epic-workflow` P15):  `<id>.inbox.json`, the same shape
+   * The inbox file of the epic page at `planDoc`:  `<name>.inbox.json5` beside it.
+   * - a saga page's too (`sagas/<id>/<id>.saga.html`, epic `epic-workflow` P15):  `<id>.inbox.json5`, the same shape
    * - an old epic page's name (`<name>.html`, before the `.plan.html` rename) gives the same file
    * - STATIC, as every file helper here:  they work on paths, before any inbox is read
    */
   static pathFor(planDoc: string): string {
-    return planDoc.replace(/(\.plan|\.saga)?\.html$/, ".inbox.json")
+    return planDoc.replace(/(\.plan|\.saga)?\.html$/, `.inbox${DataFile.SUFFIX}`)
   }
 
   /**
    * The inbox in `file`;  an empty one when there's no file.
    * - fills in missing fields, so readers never check:  an older or hand-edited file still reads
-   * - NEVER throws on a missing file;  a file that isn't JSON throws an `InboxError` naming it
+   * - its old `.json` name when there's no `.json5` (`DataFile.read()`)
+   * - NEVER throws on a missing file;  a file that isn't JSON5 throws an `InboxError` naming it
    */
   static read(file: string): ReviewInbox {
-    if (!existsSync(file)) return new ReviewInbox()
-    let raw: Record<string, unknown>
+    let raw: Record<string, unknown> | undefined
     try {
-      raw = JSON.parse(readFileSync(file, "utf8"))
+      raw = DataFile.read<Record<string, unknown>>(file)
     } catch (error) {
-      throw new InboxError(`${file} is not JSON:  ${(error as Error).message}`)
+      throw new InboxError(`${file} is not JSON5:  ${(error as Error).message}`)
     }
+    if (!raw) return new ReviewInbox()
     return new ReviewInbox({ ...raw, version: (raw.version as number | undefined) ?? INBOX_VERSION })
   }
 
   /**
    * Write this inbox to `file`, atomically;  delete the file instead when the inbox is empty (`isEmpty`).
    * - a temp file (`<file>.tmp`) renamed over it:  readers (the page's poll, `plan-doc inbox`) never see half of it
+   * - a comment added to the file by hand stays (`DataFile.write()`);  its old `.json` goes
    * - call it under the lock (`update()`), or two writers may lose each other's changes
    * - sync, for the command line's `update()`;  the page server's `updateAsync()` writes through `writeAsync()`
    * - SIDE EFFECT:  writes or removes `file`
    */
   writeTo(file: string): void {
-    if (this.isEmpty) return rmSync(file, { force: true })
-    writeFileSync(`${file}.tmp`, `${JSON.stringify(this, null, 2)}\n`)
-    renameSync(`${file}.tmp`, file)
+    if (this.isEmpty) return DataFile.remove(file)
+    DataFile.write(file, this)
   }
 
   /**
@@ -161,8 +164,9 @@ export class ReviewInbox {
    * - SIDE EFFECT:  writes or removes `file`
    */
   private async writeAsync(file: string): Promise<void> {
-    if (this.isEmpty) return rmSync(file, { force: true })
-    await SRV.FileOperations.writeAtomic(file, `${JSON.stringify(this, null, 2)}\n`)
+    if (this.isEmpty) return DataFile.remove(file)
+    await SRV.FileOperations.writeAtomic(file, DataFile.textFor(DataFile.text(file) ?? "", this))
+    DataFile.removeOld(file)
   }
 
   /**

@@ -42,7 +42,7 @@ import { Sagas } from "./Sagas"
  *   - `new --saga` sets it at birth
  * - `migrate`:  pages brought up to today's markup, by page kind (`MigrateCommands`, epic `epic-workflow` P8)
  *   - `relayout` is gone:  the converter (`convert`, `$/epics/convert`) replaced it
- * - `inbox`:  the marks Owen left on the doc's page, waiting in `<name>.inbox.json` beside it (`ReviewInbox`)
+ * - `inbox`:  the marks Owen left on the doc's page, waiting in `<name>.inbox.json5` beside it (`ReviewInbox`)
  *   - printed, waited on, applied and cleared (`InboxCommands`)
  *   - `wait`:  a background command that wakes the `/epic review` session
  *   - `apply`:  the marks, into the doc
@@ -904,7 +904,7 @@ export const USAGE = `usage:  spell dev plan-doc <command> <name> ...    (doc:  
                                                    it that say the old title ("P6 · Old", "Old") say the new
                                                    one;  logged;  then
                                                    links-agree (stderr);  --html (last):  the title is HTML
-  saga list [--json]                               the sagas in order (sagas/sagas.json), each with its epics
+  saga list [--json]                               the sagas in order (sagas/sagas.json5), each with its epics
                                                    and how many guides name it;  then the epics with none
   saga set <epic> <saga> | <epic> --none           the saga an epic serves (<epic-page saga>), logged
   saga new <id> "Title" --purpose "..." [--after <id>]  /  move <id> --before|--after <id>  /  title <id> "Title"
@@ -939,7 +939,7 @@ export const USAGE = `usage:  spell dev plan-doc <command> <name> ...    (doc:  
                                                    (subjects "P3:  Name -- summary", "Fix I3:  ...")
   log <name> "text"                                timestamped line in the log
   saga page <id> [--force]                         a saga's page, sagas/<id>/<id>.saga.html, from the template:
-                                                   its title and purpose from sagas/sagas.json;  --force remakes
+                                                   its title and purpose from sagas/sagas.json5;  --force remakes
                                                    it;  every verb above edits it as SAGA:/<id> (epic-workflow P15)
   bedtime <name> start "P3-P6"  /  done "summary"  a /bedtime run:  bedtime mode on (every change stays green
                                                    until reviewed) / off;  both logged
@@ -989,7 +989,7 @@ export const USAGE = `usage:  spell dev plan-doc <command> <name> ...    (doc:  
                                                    a worktree.  New docs start split;  every command reads and
                                                    writes either shape
   join <name>                                      a split doc back into one file
-  inbox <name> [--json]                            the marks Owen left on the page (<name>.inbox.json), by
+  inbox <name> [--json]                            the marks Owen left on the page (<name>.inbox.json5), by
                                                    action, sent or not;  requests for now, agents at work,
                                                    the session listening
   inbox <name> listen [--session <id>]  /  unlisten

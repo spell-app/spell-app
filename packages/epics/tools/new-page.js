@@ -2,7 +2,8 @@
  * `spell dev docs new <template> <page> [--title "Title"] [--description "One sentence."]`:  start a page from a template.
  * - `<template>`:  `durable`, `cheatsheet` or `commands` (or a path under `templates/`);  epic pages come from
  *   `spell dev plan-doc new`
- * - SIDE EFFECT:  a template with a JSON beside it (`commands.json`) copies that too, as `<page>.json`
+ * - SIDE EFFECT:  a template with its data beside it (`commands.json5`) copies that too, as `<page>.json5` (its old
+ *   `.json` name too, until `epic migrate` renames it:  `DataFile`, epic `epic-workflow` P21)
  * - `<page>`:  where it goes, a guide by default:  `parser/parser.html` is `guides/parser/parser.html`;  a path starting
  *   with an area (`guides/`, `pages/`) is from the checkout's root
  * - Fixes the `_assets` and `index.html` paths, and the site header's `root`, for the page's depth (`atDepth()`).
@@ -16,6 +17,7 @@ import { basename, dirname, join, relative } from "node:path"
 
 import { parseHTML } from "linkedom"
 
+import { DataFile } from "../src/data/DataFile.ts"
 import { GUIDES, PACKAGE, ROOT, TOOLS, atDepth, serialize, tidy } from "./pages.js"
 
 const { positional, flags } = parseArgs(process.argv.slice(2))
@@ -39,15 +41,15 @@ document.querySelector("h1").textContent = title
 const crumb = document.querySelector("ui-breadcrumb-section[active]")
 if (crumb) crumb.textContent = title
 document.querySelector('meta[name="description"]').setAttribute("content", flags.description ?? "One sentence.")
-// a data-driven template (`commands`) has its JSON beside it:  the page gets a copy, named after the page
-const data = join(ROOT, template.replace(/\.html$/, ".json"))
-const pageData = file.replace(/\.html$/, ".json")
+// a data-driven template (`commands`) has its data beside it:  the page gets a copy, named after the page
+const data = DataFile.found(join(ROOT, template.replace(/\.html$/, DataFile.SUFFIX)))
+const pageData = file.replace(/\.html$/, DataFile.SUFFIX)
 for (const code of document.querySelectorAll("ui-list.spell-meta code")) {
-  if (code.textContent === "short-title.json") code.textContent = basename(pageData)
+  if (/^short-title\.json5?$/.test(code.textContent)) code.textContent = basename(pageData)
 }
 mkdirSync(dirname(file), { recursive: true })
 writeFileSync(file, serialize(document))
-if (existsSync(data)) copyFileSync(data, pageData)
+if (data) copyFileSync(data, pageData)
 if (!tidy([file])) process.exit(1)
 const run = spawnSync("node", [join(TOOLS, "index.js")], { cwd: PACKAGE, encoding: "utf8" })
 if (run.status !== 0) process.stderr.write(run.stderr)

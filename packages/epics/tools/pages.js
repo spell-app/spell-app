@@ -59,9 +59,9 @@ export const BRAND = join(ROOT, "brand")
 export const GOALS = join(ROOT, "goals")
 
 /**
- * `sagas/`:  the sagas (epic `epic-workflow` P15):  their list in Owen's order, `sagas/sagas.json`, each saga's page
+ * `sagas/`:  the sagas (epic `epic-workflow` P15):  their list in Owen's order, `sagas/sagas.json5`, each saga's page
  * in its folder (`sagas/<id>/<id>.saga.html`), and the Sagas list page (`index.js` writes it from the list).
- * - NOT in `AREAS`:  the Sagas list page lists the sagas from `sagas.json`, not from the pages found
+ * - NOT in `AREAS`:  the Sagas list page lists the sagas from `sagas.json5`, not from the pages found
  */
 export const SAGAS = join(ROOT, "sagas")
 

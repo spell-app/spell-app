@@ -48,7 +48,7 @@ CommentsError.prototype.name = "CommentsError"
  * COMMENTS Owen leaves on a page's blocks (epic `airplane`, P11), as an inbox file holds them:
  * `{ cm1: {...}, cm2: {...} }`, edited in place.
  * - two homes, one shape:
- *   - a docs page's own inbox file, `<page>.inbox.json` (`GuideInbox`)
+ *   - a docs page's own inbox file, `<page>.inbox.json5` (`GuideInbox`)
  *   - an epic page's review inbox, its `comments` (`ReviewInbox`)
  * - each comment:  where it is (`anchor`, `kind`, `label`, `excerpt`, and for a comment on selected text its
  *   `quote` and `offset`:  `packages/epics/tools/BlockAnchors.js`), Owen's text, when, and its status:

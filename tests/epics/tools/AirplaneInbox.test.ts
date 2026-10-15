@@ -23,6 +23,7 @@ describe("AirplaneInbox.gather()", () => {
   mkdirSync(join(root, "epics", "demo", "details"), { recursive: true })
   mkdirSync(join(root, "epics", "quiet"))
   writeFileSync(
+    // by its old name, as a checkout on older code writes it (epic `epic-workflow` P21)
     join(root, "epics", "demo", "demo.inbox.json"),
     JSON.stringify({
       version: 1,
@@ -41,7 +42,7 @@ describe("AirplaneInbox.gather()", () => {
     })
   )
   // an empty inbox:  nothing to say about that epic
-  writeFileSync(join(root, "epics", "quiet", "quiet.inbox.json"), JSON.stringify({ version: 1, marks: {} }))
+  writeFileSync(join(root, "epics", "quiet", "quiet.inbox.json5"), JSON.stringify({ version: 1, marks: {} }))
   // one details page answered on the plane, one before it
   for (const [slug, when] of [
     ["onboard", "2026-10-10T12:00:00Z"],
@@ -49,8 +50,8 @@ describe("AirplaneInbox.gather()", () => {
   ] as const) {
     const page = join(root, "epics", "demo", "details", `${slug}.html`)
     writeFileSync(page, "<!doctype html>\n")
-    writeFileSync(page.replace(/\.html$/, ".answer.json"), JSON.stringify({ answers: {} }))
-    utimesSync(page.replace(/\.html$/, ".answer.json"), new Date(when), new Date(when))
+    writeFileSync(page.replace(/\.html$/, ".answer.json5"), JSON.stringify({ answers: {} }))
+    utimesSync(page.replace(/\.html$/, ".answer.json5"), new Date(when), new Date(when))
   }
 
   // a guide with a note on its whole page, not yet answered
@@ -62,7 +63,7 @@ describe("AirplaneInbox.gather()", () => {
 
   // a comment waiting in the guide's inbox file, one taken already
   writeFileSync(
-    join(root, "guides", "guide.inbox.json"),
+    join(root, "guides", "guide.inbox.json5"),
     JSON.stringify({
       version: 1,
       comments: { cm1: { ...COMMENT, text: "Too long?" }, cm2: { ...COMMENT, status: "taken", text: "Old" } }

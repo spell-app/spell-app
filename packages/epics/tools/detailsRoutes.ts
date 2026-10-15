@@ -5,7 +5,7 @@
  *   - shown in VS Code's side bar
  *   - Owen answers ON it, and its `<epic-send>` posts the answer here (`$/epics/answers` `AnswerForm`)
  * - `POST /api/docs/details/answer` `{ page, answers, comments, notes, kept }` --
- *   write `<slug>.answer.json` beside the page `<slug>.html`
+ *   write `<slug>.answer.json5` beside the page `<slug>.html`
  *   - `page`:  the page's URL path, as it was served
  *     - `/pages/details/x.html`, or a worktree's `/worktrees/<w>/...` on the main checkout's server
  *   - ONLY a details page:  anything else is a 403
@@ -17,9 +17,9 @@
  *     (epic `epic-workflow` P18), `[{ id, label, text }]`;  none:  left out
  *   - it deletes the page's draft:  sent, it's done with
  * - `GET /api/docs/details/answer?page=<path>` -- the answer sent, or `{ answer: null }`:  the page shows it on load
- *   - a plain fetch of the missing `.answer.json` would log a 404 in every fresh page's console
+ *   - a plain fetch of the missing `.answer.json5` would log a 404 in every fresh page's console
  * - `POST /api/docs/details/draft` `{ page, answers, comments, notes, labels, kept }` --
- *   save what's typed and not sent to `<slug>.draft.json` beside the page (P18)
+ *   save what's typed and not sent to `<slug>.draft.json5` beside the page (P18)
  *   - a moment after each change, and as the page goes away
  *   - wakes NOBODY:  `epic ask wait` watches the answer only
  *   - `labels`:  every id the page's parts hold, with its title (`q1` -> `Q1 · Which layout?`),
@@ -30,8 +30,7 @@
  * - `spell dev details wait` polls for the file itself, and wakes the waiting Claude session when it lands.
  * - every POST needs the page server's token (`x-server-token`) and its own origin (`SRV.Guard`)
  */
-import { existsSync, readFileSync, rmSync } from "node:fs"
-
+import { DataFile } from "$/epics/data/DataFile"
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
 
@@ -54,13 +53,11 @@ const detailsRoutes: RouteModule = {
   setup({ router, guard, web }) {
     const api = new SRV.Router()
     api.get("/answer", (request, reply) => {
-      const out = answerFile(detailsPage(web.files, request.query.page))
-      const answer = existsSync(out) ? (JSON.parse(readFileSync(out, "utf8")) as DetailsAnswer) : null
+      const answer = DataFile.read<DetailsAnswer>(answerFile(detailsPage(web.files, request.query.page))) ?? null
       reply.set("Cache-Control", "no-store").json({ answer })
     })
     api.get("/draft", (request, reply) => {
-      const out = draftFile(detailsPage(web.files, request.query.page))
-      const draft = existsSync(out) ? (JSON.parse(readFileSync(out, "utf8")) as DetailsDraft) : null
+      const draft = DataFile.read<DetailsDraft>(draftFile(detailsPage(web.files, request.query.page))) ?? null
       reply.set("Cache-Control", "no-store").json({ draft })
     })
     api.use(guard.writeCheck, SRV.parseBodies({ limit: MAX_BODY }))
@@ -87,7 +84,7 @@ const detailsRoutes: RouteModule = {
       }
       const kept = toKept(body.kept)
       if (kept.length) draft.kept = kept
-      await SRV.FileOperations.save(draftFile(file), asJson(draft))
+      await saveData(draftFile(file), () => draft)
       reply.json({ ok: true, draft })
     })
     router.use(API, api)
@@ -125,12 +122,13 @@ export function isDetailsPage(file: string): boolean {
 }
 
 /**
- * Write `answers` for details page `file` to `<slug>.answer.json` beside it;  return what was written.
+ * Write `answers` for details page `file` to `<slug>.answer.json5` beside it;  return what was written.
  * - `changed`:  what differs from the answer sent before (none before:  everything sent)
  * - `kept`:  text from questions gone from the page (P18);  none:  left out of the file
  * - the page's draft is deleted:  sent, it's done with
  * - through the page server's one safe write (`SRV.FileOperations.save()`):  the answer before is read and the new
  *   one written under the file's lock, all at once, so `spell dev details wait` never reads half a file
+ * - a comment added to the file by hand stays (`saveData()`)
  * - SIDE EFFECT:  writes the file, deletes the draft
  */
 export async function saveAnswer(
@@ -142,8 +140,7 @@ export async function saveAnswer(
   { kept = [] }: { kept?: KeptText[] } = {}
 ): Promise<DetailsAnswer> {
   let answer!: DetailsAnswer
-  await SRV.FileOperations.save(answerFile(file), (current) => {
-    const before = current ? (JSON.parse(current) as Partial<DetailsAnswer>) : undefined
+  await saveData<Partial<DetailsAnswer>>(answerFile(file), (before) => {
     answer = {
       page,
       answered: new Date().toISOString(),
@@ -155,25 +152,31 @@ export async function saveAnswer(
     }
     if (kept.length) answer.kept = kept
     answer.changed = changedSince(before, answer)
-    return asJson(answer)
+    return answer
   })
-  rmSync(draftFile(file), { force: true })
+  DataFile.remove(draftFile(file))
   return answer
 }
 
-/** `<slug>.answer.json` beside page `<slug>.html`. */
+/** `<slug>.answer.json5` beside page `<slug>.html`. */
 export function answerFile(page: string): string {
-  return page.replace(/\.html$/, ".answer.json")
+  return DataFile.besidePage(page, "answer")
 }
 
-/** `<slug>.draft.json` beside page `<slug>.html`:  what's typed and not sent (P18). */
+/** `<slug>.draft.json5` beside page `<slug>.html`:  what's typed and not sent (P18). */
 export function draftFile(page: string): string {
-  return page.replace(/\.html$/, ".draft.json")
+  return DataFile.besidePage(page, "draft")
 }
 
-/** `data` as a JSON file's text:  2 spaces, a newline at the end. */
-function asJson(data: unknown): string {
-  return `${JSON.stringify(data, null, 2)}\n`
+/**
+ * Save data file `file` through the page server's one safe write (`SRV.FileOperations.save()`):  `change` gets the
+ * data there (its old `.json` too;  `undefined` for none) and returns the new data, written keeping any comment added
+ * to the file by hand (`DataFile.edited()`), under the file's lock;  the old `.json` goes.
+ * - SIDE EFFECT:  writes `file`, removes its old name
+ */
+export async function saveData<T>(file: string, change: (before: T | undefined) => unknown): Promise<void> {
+  await SRV.FileOperations.save(file, (current) => DataFile.edited<T>(file, current, change))
+  DataFile.removeOld(file)
 }
 
 /**
@@ -259,7 +262,7 @@ function toAnswers(answers: unknown): DetailsAnswers {
 }
 
 /**
- * What a details page's `<slug>.answer.json` holds.
+ * What a details page's `<slug>.answer.json5` holds.
  * - `page`:  the page's URL path, as sent
  * - `answered`:  when, ISO
  * - `changes`:  how often Owen sent it again (0:  the first answer)
@@ -282,7 +285,7 @@ export type DetailsAnswer = {
 }
 
 /**
- * A details page's `<slug>.draft.json` (P18):  what's typed and not sent.
+ * A details page's `<slug>.draft.json5` (P18):  what's typed and not sent.
  * - `saved`:  when, ISO (the server's clock);  only a draft newer than the answer counts
  * - `labels`:  every id the page's parts held, with its title
  * - `kept`:  as an answer's

@@ -7,16 +7,16 @@
  *     and so does the spell syntax guide's bar (`_assets/spell-syntax.js`)
  * - `GET /api/docs/choices/draft?page=<path>` -- what was typed so far, `{ draft: ChoicesDraft | null }`:
  *   the page restores it on load
- * - `POST /api/docs/choices/draft` `{ page, values, feedback }` -- save it to `<slug>.draft.json` beside the page
+ * - `POST /api/docs/choices/draft` `{ page, values, feedback }` -- save it to `<slug>.draft.json5` beside the page
  *   - every 5s while Owen types, and as the page goes away
  *   - wakes NOBODY:  `spell dev choices wait` watches the answer only
  * - `GET /api/docs/choices/answer?page=<path>` -- the answer sent, `{ answer: ChoicesAnswer | null }`
  * - `POST /api/docs/choices/answer` `{ page, values, feedback }` -- "Do it":
- *   - writes `<slug>.answer.json`, and the draft, so a reload shows what was sent
+ *   - writes `<slug>.answer.json5`, and the draft, so a reload shows what was sent
  *   - sent again, `changes` counts up
  *   - `spell dev choices wait` exits with it
  * - `page`:  the page's URL path, as served (a worktree's `/worktrees/<w>/...` too);
- *   ONLY a details-folder page with its `<slug>.rows.json` beside it,
+ *   ONLY a details-folder page with its `<slug>.rows.json5` beside it (or its old `.json`),
  *   or a docs page naming its rows (`<body data-choices-rows>`, e.g. the spell syntax guide):
  *   anything else is a 403 (`choicesPage()`)
  * - `values`:  row id -> what's in its box, ONLY the rows that differ from the recommendation;
@@ -26,14 +26,18 @@
  *   section he puts in order (`reorder: true`);  kept in the draft and the answer as sent;
  *   an id not in the rows file is a 400, as in `values`
  * - every POST needs the page server's token (`x-server-token`) and its own origin (`SRV.Guard`)
- * - Shares nothing with `choices.js` at runtime (that's plain node JS):  the file names are said again here.
+ * - its files are data files (`DataFile`, epic `epic-workflow` P21):  JSON5, a comment added by hand kept, the old
+ *   `.json` names read while there's no `.json5`
  */
-import { existsSync, readFileSync } from "node:fs"
+import { readFileSync } from "node:fs"
 
+import { DataFile } from "$/epics/data/DataFile"
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
 
-import { isDetailsPage, servedPage } from "./detailsRoutes"
+import { answerFile, draftFile, isDetailsPage, saveData, servedPage } from "./detailsRoutes"
+
+export { answerFile, draftFile }
 
 /** Where the routes live. */
 const API = "/api/docs/choices"
@@ -70,14 +74,14 @@ export default choicesRoutes
 
 /**
  * The choice page file URL path `page` names, through the server's mounts.  Either:
- * - a details-folder page with its rows beside it, `<slug>.rows.json` (`spell dev choices new`)
+ * - a details-folder page with its rows beside it, `<slug>.rows.json5` (`spell dev choices new`)
  * - or a docs page naming its own rows, on its `<body data-choices-rows="...">` (`declaredRows()`):
  *   e.g. the spell syntax guide, whose rows are generated from the code, and whose boxes are keyed `<row>.<field>`
  * - 400:  not a path;  404:  no such page;  403:  outside a mount, or neither of the above
  */
 export function choicesPage(files: SRV.StaticHandler, page: unknown): string {
   const file = servedPage(files, page)
-  if (isDetailsPage(file) && existsSync(rowsFile(file))) return file
+  if (isDetailsPage(file) && DataFile.exists(rowsFile(file))) return file
   if (declaredRows(file)) return file
   throw new SRV.HttpError(403, `not a choice page:  ${String(page)}`)
 }
@@ -96,7 +100,7 @@ export function declaredRows(file: string): string | undefined {
 const DECLARED_ROWS = /<body\b[^>]*\bdata-choices-rows="([^"]*)"/
 
 /**
- * Save what was typed on page `file` to `<slug>.draft.json`;  return what was written.
+ * Save what was typed on page `file` to `<slug>.draft.json5`;  return what was written.
  * - `order`:  the reorderable sections' rows in Owen's order, kept only when given
  * - through the page server's one safe write (`SRV.FileOperations.save()`:  under the file's lock, all at once)
  * - SIDE EFFECT:  writes the file
@@ -109,12 +113,12 @@ export async function saveDraft(
   order?: ChoicesOrder
 ): Promise<ChoicesDraft> {
   const draft: ChoicesDraft = { page, saved: new Date().toISOString(), values, feedback, ...(order && { order }) }
-  await SRV.FileOperations.save(draftFile(file), asJson(draft))
+  await saveData(draftFile(file), () => draft)
   return draft
 }
 
 /**
- * "Do it" on page `file`:  write `<slug>.answer.json`, and the draft to match;  return the answer.
+ * "Do it" on page `file`:  write `<slug>.answer.json5`, and the draft to match;  return the answer.
  * - sent again:  replaces it, `changes` counts up
  * - through the page server's one safe write (`SRV.FileOperations.save()`):  the answer before is read and the new
  *   one written under the file's lock, all at once, so `spell dev choices wait` never reads half a file
@@ -129,8 +133,7 @@ export async function saveAnswer(
 ): Promise<ChoicesAnswer> {
   await saveDraft(file, page, values, feedback, order)
   let answer!: ChoicesAnswer
-  await SRV.FileOperations.save(answerFile(file), (current) => {
-    const before = current ? (JSON.parse(current) as ChoicesAnswer) : null
+  await saveData<ChoicesAnswer>(answerFile(file), (before) => {
     answer = {
       page,
       answered: new Date().toISOString(),
@@ -139,7 +142,7 @@ export async function saveAnswer(
       feedback,
       ...(order && { order })
     }
-    return asJson(answer)
+    return answer
   })
   return answer
 }
@@ -192,29 +195,14 @@ function toOrder(order: unknown, ids: Set<string> | null): ChoicesOrder | undefi
 // ## Files
 ////////////////
 
-/** `<slug>.rows.json` beside page `<slug>.html`:  the rows (`choices.js` `new` writes it). */
+/** `<slug>.rows.json5` beside page `<slug>.html`:  the rows (`choices.js` `new` writes it). */
 export function rowsFile(page: string): string {
-  return page.replace(/\.html$/, ".rows.json")
+  return DataFile.besidePage(page, "rows")
 }
 
-/** `<slug>.draft.json` beside page `<slug>.html`. */
-export function draftFile(page: string): string {
-  return page.replace(/\.html$/, ".draft.json")
-}
-
-/** `<slug>.answer.json` beside page `<slug>.html`:  the same file `spell dev details wait` would watch. */
-export function answerFile(page: string): string {
-  return page.replace(/\.html$/, ".answer.json")
-}
-
-/** `file` as JSON, or `null` when it isn't there. */
+/** Data file `file`, or its old `.json`;  `null` when neither is there. */
 function readJson<T>(file: string): T | null {
-  return existsSync(file) ? (JSON.parse(readFileSync(file, "utf8")) as T) : null
-}
-
-/** `data` as a JSON file's text:  2 spaces, a newline at the end. */
-function asJson(data: unknown): string {
-  return `${JSON.stringify(data, null, 2)}\n`
+  return DataFile.read<T>(file) ?? null
 }
 
 ////////////////
@@ -228,7 +216,7 @@ export type ChoicesValues = Record<string, string>
 export type ChoicesOrder = Record<string, string[]>
 
 /**
- * A page's `<slug>.draft.json`:  what was typed, not sent.
+ * A page's `<slug>.draft.json5`:  what was typed, not sent.
  * - `page`:  the page's URL path, as sent;  `saved`:  when, ISO
  * - `values`:  the changed boxes;  `feedback`:  the toolbar's text, trimmed
  * - `order`:  the reorderable sections' rows in Owen's order, when the page has any
@@ -242,7 +230,7 @@ export type ChoicesDraft = {
 }
 
 /**
- * A page's `<slug>.answer.json`:  what "Do it" sent.
+ * A page's `<slug>.answer.json5`:  what "Do it" sent.
  * - `answered`:  when, ISO;  `changes`:  how often it was sent again (0:  the first time)
  * - `values`, `feedback`, `order`:  as the draft's
  */

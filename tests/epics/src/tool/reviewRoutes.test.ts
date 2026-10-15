@@ -122,7 +122,7 @@ async function post(route: string, body: unknown, extra?: Record<string, string>
 
 /** the inbox file of page `relative` */
 function inboxFile(relative: string): string {
-  return join(root, relative.replace(/\.(plan|saga)\.html$/, ".inbox.json"))
+  return join(root, relative.replace(/\.(plan|saga)\.html$/, ".inbox.json5"))
 }
 
 /** what's in the inbox file of page `relative` */

@@ -1,6 +1,7 @@
 /**
  * The epic page migrations (`$/epics/tool/migrations`):  the registry, its steps and their types.
  */
+export { Json5DataFiles } from "./Json5DataFiles"
 export { LinksAgree } from "./LinksAgree"
 export { Migrations } from "./Migrations"
 export { ReaderIsYou } from "./ReaderIsYou"
