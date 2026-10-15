@@ -168,8 +168,8 @@
               <li>
                 The page's sections have FIXED ids, one per kind: <code>phases</code>, <code>decisions</code> (Questions
                 kept its old id), <code>judgements</code>, <code>caveats</code>, <code>todos</code>,
-                <code>issues</code>, <code>tests</code>, <code>log</code>. An Overview sub-section is <code>o1</code>,
-                <code>o2</code> ...; a report has its own.
+                <code>issues</code>, <code>tests</code>, <code>log</code>; a saga page's Epics, <code>epics</code>. An
+                Overview sub-section is <code>o1</code>, <code>o2</code> ...; a report has its own.
               </li>
               <li>
                 The page's sections draw their own titles; an Overview sub-section and a report need <code>title</code>.
@@ -392,6 +392,16 @@
                       <td>any number</td>
                       <td>The log, oldest first.</td>
                     </tr>
+                    <tr>
+                      <td>
+                        <a href="epic-cards.html" target="src-packages-epic-components-elements-epic-cards-html"
+                          ><code>&lt;epic-cards&gt;</code></a
+                        >
+                      </td>
+                      <td>only when its <code>kind</code> is <code>epics</code></td>
+                      <td>one at most</td>
+                      <td>A saga page's Epics: the cards of the epics serving the saga, drawn from the page server.</td>
+                    </tr>
                   </tbody>
                 </table>
               </ui-table>
@@ -427,15 +437,15 @@
                   <tr>
                     <td><code>kind</code></td>
                     <td>
-                      <code>overview-part</code>, <code>phases</code>, <code>questions</code>, <code>judgements</code>,
-                      <code>caveats</code>, <code>todos</code>, <code>issues</code>, <code>tests</code>,
-                      <code>log</code>, <code>report</code>
+                      <code>overview-part</code>, <code>epics</code>, <code>phases</code>, <code>questions</code>,
+                      <code>judgements</code>, <code>caveats</code>, <code>todos</code>, <code>issues</code>,
+                      <code>tests</code>, <code>log</code>, <code>report</code>
                     </td>
                     <td>
                       What it holds: <code>phases</code> its <code>&lt;epic-phase&gt;</code>s;
                       <code>questions</code> ... <code>tests</code> its <code>&lt;epic-item&gt;</code>s;
                       <code>log</code> its <code>&lt;epic-event&gt;</code>s; <code>overview-part</code> and
-                      <code>report</code> prose.
+                      <code>report</code> prose; <code>epics</code> (a saga page's) its <code>&lt;epic-cards&gt;</code>.
                     </td>
                     <td>yes</td>
                   </tr>
@@ -672,7 +682,7 @@
                 their numbers. The kind's icon: <code>phases</code> layers, <code>questions</code> a file with a
                 question mark, <code>judgements</code> a gavel, <code>caveats</code> a warning triangle,
                 <code>todos</code> a checklist, <code>issues</code> a bug, <code>tests</code> a flask,
-                <code>log</code> a clock turning back.
+                <code>log</code> a clock turning back, a saga page's <code>epics</code> a map.
               </li>
               <li>
                 <b>The count</b>, on the title: <code>open/all</code> of its items or phases; open means any status but

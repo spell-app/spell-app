@@ -235,7 +235,7 @@ export function epicProgram(handOver: () => Promise<never>): Command {
   epic.commandsGroup("Sagas:")
 
   page(epic.command("saga"), "the sagas (epics of epics):  their list in order, and the saga each epic serves")
-    .usage('list [--json] | set <epic> <saga> | set <epic> --none | new <id> "Title" --purpose "..." | ...')
+    .usage('list [--json] | set <epic> <saga> | set <epic> --none | new <id> "Title" --purpose "..." | page <id> | ...')
     .addHelpText("after", SAGA_HELP)
 
   ////////////////
@@ -343,6 +343,7 @@ Naming what a verb acts on:
   seo#P3      a phase:  P3 (seo#3 too), or by its id, seo#p-epic-migrate;  phase, updated and add-request
               take its name too:  seo#epic-migrate, "seo#Epic Migrate"
   seo#J       a new item of that kind, for add:  epic add seo#J "Title"
+  SAGA:/epics a saga's page, sagas/epics/epics.saga.html:  epic add SAGA:/epics#T "Title"
 
 Examples:
   epic summary seo
@@ -384,6 +385,8 @@ The sagas' list, in Owen's order:  sagas/sagas.json.  An epic names its saga:  <
   epic saga title <id> "Title"                    its title
   epic saga rename <old> <new>                    its id:  epic pages, guides' saga metas, its folder and
                                                   SAGA:/<old> addresses in the shared pages follow
+  epic saga page <id> [--force]                   its page, sagas/<id>/<id>.saga.html, from the template;
+                                                  --force remakes it;  every epic verb edits it as SAGA:/<id>
 
 Example:
   epic saga set python-target output-targets`

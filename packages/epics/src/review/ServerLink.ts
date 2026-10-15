@@ -1,6 +1,7 @@
 import {
   PLAN_DOC_PAGE,
   REVIEW_POLL_MS,
+  SAGA_PAGE,
   SERVER_INFO,
   ServerWriteError,
   type ServerInfo,
@@ -44,6 +45,15 @@ export class ServerLink {
    */
   get servesPlanDoc(): boolean {
     return !!this.info?.token && this.options.protocol !== "file:" && PLAN_DOC_PAGE.test(this.options.page)
+  }
+
+  /**
+   * Do the page server's REVIEW routes answer this page?  An epic page, as `servesPlanDoc`, or a saga page's own path
+   * (`SAGA_PAGE`, epic `epic-workflow` P15):  its marks and comments wait in its own inbox.
+   */
+  get servesReviews(): boolean {
+    if (this.servesPlanDoc) return true
+    return !!this.info?.token && this.options.protocol !== "file:" && SAGA_PAGE.test(this.options.page)
   }
 
   /** The page's file, as the page server announces changes (`spell-server:file`'s `path`). */

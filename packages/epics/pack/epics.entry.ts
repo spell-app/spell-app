@@ -18,6 +18,7 @@ SpellUI.registerPack({
       import("../components/epic-answer"),
       import("../components/epic-aside"),
       import("../components/epic-ask"),
+      import("../components/epic-cards"),
       import("../components/epic-choice-rows"),
       import("../components/epic-choices"),
       import("../components/epic-choices-bar"),

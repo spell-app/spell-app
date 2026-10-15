@@ -31,7 +31,9 @@ const PAGES = {
   far: ".claude/worktrees/w/epics/far/far.plan.html",
   other: "epics/big/notes.html",
   details: "packages/docs/details/pick.html",
-  epic: "epics/neat/neat.plan.html"
+  epic: "epics/neat/neat.plan.html",
+  saga: "sagas/epics/epics.saga.html",
+  notSaga: "sagas/epics/other.saga.html"
 }
 
 /** the scratch epic page's items */
@@ -50,6 +52,12 @@ const EPIC_PLAN = `<!doctype html><title>x</title><body class="plan-doc"><epic-p
 <epic-section id="judgements" kind="judgements"><epic-item id="j4" title="a call" status="open"></epic-item></epic-section>
 </epic-page>`
 
+/** a saga page (epic `epic-workflow` P15):  an epic page of kind "saga", its summary, an Overview part, a todo */
+const SAGA = `<!doctype html><title>x</title><body class="plan-doc"><epic-page kind="saga" saga="epics" title="Epic Tooling">
+<epic-overview id="overview"><epic-summary>Epics.</epic-summary><epic-section id="o1" kind="overview-part" title="Done so far"></epic-section></epic-overview>
+<epic-section id="todos" kind="todos"><epic-item id="t1" title="a todo" status="open"></epic-item></epic-section>
+</epic-page>`
+
 beforeAll(async () => {
   home = mkdtempSync(join(tmpdir(), "review-start-"))
   mkdirSync(join(home, "sessions"))
@@ -61,7 +69,7 @@ beforeAll(async () => {
   mkdirSync(join(root, ".git"))
   for (const page of Object.values(PAGES)) {
     mkdirSync(dirname(join(root, page)), { recursive: true })
-    writeFileSync(join(root, page), page === PAGES.epic ? EPIC_PLAN : PLAN)
+    writeFileSync(join(root, page), page === PAGES.epic ? EPIC_PLAN : page.startsWith("sagas/") ? SAGA : PLAN)
   }
   server = new PageServer({ root })
   await reviewRoutes.setup({
@@ -88,7 +96,7 @@ afterAll(async () => {
 })
 
 beforeEach(() => {
-  for (const page of [PAGES.plan, PAGES.far]) rmSync(inboxFile(page), { force: true })
+  for (const page of [PAGES.plan, PAGES.far, PAGES.saga]) rmSync(inboxFile(page), { force: true })
 })
 
 /** headers of a write from a page this server served */
@@ -112,7 +120,7 @@ async function post(route: string, body: unknown, extra?: Record<string, string>
 
 /** the inbox file of page `relative` */
 function inboxFile(relative: string): string {
-  return join(root, relative.replace(/\.plan\.html$/, ".inbox.json"))
+  return join(root, relative.replace(/\.(plan|saga)\.html$/, ".inbox.json"))
 }
 
 /** what's in the inbox file of page `relative` */
@@ -121,6 +129,19 @@ function written(relative: string) {
 }
 
 const PLAN_URL = `/${PAGES.plan}`
+
+// epic `epic-workflow` P15:  a saga page is reviewed as an epic page is, in its own inbox
+test("a saga page:  marked and sent in its own inbox beside it;  a page under sagas/ that isn't one is a 403", async () => {
+  const page = `/${PAGES.saga}`
+  const marked = await post("mark", { page, id: "o1", mark: { action: "revisit", when: "soon", note: "more?" } })
+  expect(marked.status).toBe(200)
+  expect(written(PAGES.saga).marks.o1).toMatchObject({ action: "revisit", note: "more?" })
+  expect((await post("mark", { page, id: "t9", mark: { action: "approve" } })).status).toBe(400)
+  await post("draft", { page, id: "t1", action: "revisit", note: "x" })
+  expect((await post("send", { page })).status).toBe(200)
+  expect(written(PAGES.saga).sent).toEqual(expect.any(String))
+  expect((await post("mark", { page: `/${PAGES.notSaga}`, id: "t1", mark: null })).status).toBe(403)
+})
 
 test("GET:  an empty inbox before any mark, and no file", async () => {
   const got = await ask(port, "GET", `/api/review/inbox?page=${encodeURIComponent(PLAN_URL)}`)

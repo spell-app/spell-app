@@ -158,8 +158,11 @@ export type FormatName = keyof typeof Formats
  * uses (`#decisions`:  "Questions" kept its old id).
  * - `overview-part`, the Overview's sub-sections, isn't here:  its ids are `o1`, `o2` ... (`OVERVIEW_PART_ID`);  nor
  *   `report` (`REPORT`), whose ids are its own.
+ * - `epics`:  a SAGA page's Epics (`<epic-page kind="saga">`, epic `epic-workflow` P15), the cards of the epics
+ *   serving it (`<epic-cards>`);  never on an epic page.
  */
 export const SectionIds = {
+  epics: "epics",
   phases: "phases",
   questions: "decisions",
   judgements: "judgements",

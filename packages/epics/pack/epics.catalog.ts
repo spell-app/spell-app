@@ -1,5 +1,5 @@
 /* GENERATED -- do not edit:  `spell dev pack build epics`, from every vocabulary, `<Name>.en.ts` */
-// sources:  32bde4537929fecb
+// sources:  b31c03db3004e0f7
 
 import type { RootCatalogEntry } from "$/ui"
 
@@ -9,6 +9,7 @@ export const CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
   "epic-answer": {"folder":"epic-answer"},
   "epic-aside": {"folder":"epic-aside"},
   "epic-ask": {"folder":"epic-ask","skeleton":{"height":"6em"}},
+  "epic-cards": {"folder":"epic-cards","skeleton":{"height":"2em"}},
   "epic-choice-row": {"folder":"epic-choice-rows"},
   "epic-choice-rows": {"folder":"epic-choice-rows","skeleton":{"height":"8em"}},
   "epic-choices": {"folder":"epic-choices"},

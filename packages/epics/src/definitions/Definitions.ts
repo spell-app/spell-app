@@ -4,6 +4,7 @@ import { epicAskVocabulary } from "$/epics/components/epic-ask/EpicAsk.en"
 import { epicMoreVocabulary } from "$/epics/components/epic-answer/EpicMore.en"
 import { epicReplyVocabulary } from "$/epics/components/epic-answer/EpicReply.en"
 import { epicAsideVocabulary } from "$/epics/components/epic-aside/EpicAside.en"
+import { epicCardsVocabulary } from "$/epics/components/epic-cards/EpicCards.en"
 import { epicChoiceRowVocabulary } from "$/epics/components/epic-choice-rows/EpicChoiceRow.en"
 import { epicChoiceRowsVocabulary } from "$/epics/components/epic-choice-rows/EpicChoiceRows.en"
 import { epicChoicesVocabulary } from "$/epics/components/epic-choices/EpicChoices.en"
@@ -53,6 +54,8 @@ export class Definitions {
     "epic-summary": epicSummaryVocabulary,
     "epic-prompt": epicPromptVocabulary,
     "epic-section": epicSectionVocabulary,
+    // a saga page's Epics (epic `epic-workflow` P15)
+    "epic-cards": epicCardsVocabulary,
     "epic-phase": epicPhaseVocabulary,
     "epic-field": epicFieldVocabulary,
     "epic-updated": epicUpdatedVocabulary,

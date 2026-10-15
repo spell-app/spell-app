@@ -9,6 +9,8 @@ import { CommentList, type Comment, type IdentifiedComment } from "./CommentList
  * An epic page's REVIEW INBOX:  the marks Owen leaves on its items from the page, waiting for Claude.
  * - the file:  `epics/<name>/<name>.inbox.json`, beside `<name>.plan.html` (decision D1 of `review-review`);
  *   absent until the first mark, and deleted again once nothing is in it (`isEmpty`)
+ *   - a SAGA page keeps one the same way (epic `epic-workflow` P15):  `sagas/<id>/<id>.inbox.json`, beside
+ *     `<id>.saga.html`, its marks and comments in this same shape
  * - per machine, NOT committed (`.gitignore`):  pending notes and session state, not the record;
  *   what Claude makes of a mark lands in the epic page itself
  * - writers:  the page server's route module (`reviewRoutes.ts`, the page's clicks)
@@ -115,11 +117,12 @@ export class ReviewInbox {
 
   /**
    * The inbox file of the epic page at `planDoc`:  `<name>.inbox.json` beside it.
+   * - a saga page's too (`sagas/<id>/<id>.saga.html`, epic `epic-workflow` P15):  `<id>.inbox.json`, the same shape
    * - an old epic page's name (`<name>.html`, before the `.plan.html` rename) gives the same file
    * - STATIC, as every file helper here:  they work on paths, before any inbox is read
    */
   static pathFor(planDoc: string): string {
-    return planDoc.replace(/(\.plan)?\.html$/, ".inbox.json")
+    return planDoc.replace(/(\.plan|\.saga)?\.html$/, ".inbox.json")
   }
 
   /**

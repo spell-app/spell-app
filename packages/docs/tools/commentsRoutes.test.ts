@@ -46,6 +46,8 @@ const PAGES: Record<string, string> = {
   "pages/details/plain.html": PAGE,
   "templates/durable.html": PAGE,
   "goals/spell/index.html": PAGE,
+  // a saga page (epic `epic-workflow` P15):  its comments in its own review inbox
+  "sagas/epics/epics.saga.html": PAGE,
   // a component set (Epic UI), served at /epic-ui/ from its package folder
   "packages/epic-components/elements/epic-item.html": PAGE,
   "packages/epic-components/_parts/layout.html": PAGE,
@@ -366,6 +368,21 @@ test("an epic page's comments go in the epic's REVIEW INBOX, beside its marks;  
   })
   const read = await ask(port, "GET", "/api/comments?page=%2Fepics%2Fbig%2Fbig.plan.html")
   expect(JSON.parse(read.text)).toMatchObject({ takesComments: true, comments: [{ id: "cm1", status: "new" }] })
+})
+
+// epic `epic-workflow` P15:  a saga page is an epic page of kind "saga"
+test("a saga page's comments go in its own REVIEW INBOX beside it;  its Send is the page's own, not this route's", async () => {
+  const page = "/sagas/epics/epics.saga.html"
+  const { status, answer } = await post({ page, action: "add", ...ON_TABLE, anchor: "o1#field-1", text: "more?" })
+  expect([status, answer.id]).toEqual([200, "cm1"])
+  expect(JSON.parse(readFileSync(join(root, "sagas/epics/epics.inbox.json"), "utf8"))).toMatchObject({
+    comments: { cm1: { anchor: "o1#field-1", text: "more?" } }
+  })
+  const read = JSON.parse((await ask(port, "GET", `/api/comments?page=${encodeURIComponent(page)}`)).text)
+  expect(read).toMatchObject({ takesComments: true, comments: [{ id: "cm1" }] })
+  expect(read.send).toBeUndefined()
+  const send = await ask(port, "POST", "/api/comments/send", { body: JSON.stringify({ page }), headers: headers() })
+  expect(send.status).toBe(400)
 })
 
 test("no comments on an epic page's parts, details pages with questions, templates, goals, or pages not there", async () => {

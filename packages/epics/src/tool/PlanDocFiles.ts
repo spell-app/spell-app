@@ -17,6 +17,7 @@ import { PlanDoc } from "./PlanDoc"
 import { PlanMarkup } from "./PlanMarkup"
 import { PART_SOURCE, PARTS_DIR, PlanParts } from "./PlanParts"
 import { ReviewInbox } from "./ReviewInbox"
+import { SagaPage } from "./SagaPage"
 
 /****************
  * ### `PlanDocFiles`
@@ -92,14 +93,27 @@ export class PlanDocFiles {
 
   /**
    * The doc of epic `name`:  THIS checkout's `epics/<name>/`, either name (`planDocIn()`);  throws when there's none.
+   * - a saga page's short address (`SAGA:/drawable-spell`):  that saga's page (`findSagaPage()`)
    * - this checkout's path, not another's:  tidying and the URLs stay inside it (a path through another worktree,
    *   made relative here, starts `../../.claude/...`, which oxfmt refuses)
    */
   findDoc(name: string): string {
+    const saga = SagaPage.idOf(name)
+    if (saga) return this.findSagaPage(saga)
     this.docPath(name)
     const found = PlanDocFiles.planDocIn(join(this.epics, name), name)
     if (!found) throw new PlanDocError(`no epic page for "${name}" (${relative(this.root, join(this.epics, name))}/)`)
     return found
+  }
+
+  /**
+   * Saga `id`'s page (`SAGA:/<id>` to `findDoc()`, epic `epic-workflow` P15):  `sagas/<id>/<id>.saga.html`, an epic
+   * page of kind "saga", so the verbs that edit an epic page edit it too;  throws when there's none.
+   */
+  findSagaPage(id: string): string {
+    const file = new SagaPage(this).fileOf(id)
+    if (!existsSync(file)) throw new PlanDocError(`no saga page for "${id}" (epic saga page ${id} makes it)`)
+    return file
   }
 
   /**

@@ -25,7 +25,8 @@ import {
 
 /****************
  * ### `<epic-section>`
- * One section of an epic page:  Phases, Questions ... Log, one of the Overview's sub-sections, or a report.
+ * One section of an epic page:  Phases, Questions ... Log, one of the Overview's sub-sections, or a report;
+ * on a saga page, its Epics too.
  ****************/
 export const epicSectionVocabulary = {
   tag: "epic-section",
@@ -36,7 +37,8 @@ export const epicSectionVocabulary = {
   description:
     "One section of an epic page, by `kind`:  its phases, its items or its log;  or, inside `<epic-overview>`, one " +
     "of the Overview's sub-sections (`overview-part`), which gets review notes as items do;  or a report a run " +
-    "wrote (`report`:  an overnight `/bedtime` report), after the Overview, unnumbered.",
+    "wrote (`report`:  an overnight `/bedtime` report), after the Overview, unnumbered;  or a saga page's Epics " +
+    "(`epics`:  the cards of the epics serving it, an `<epic-cards>`).",
   attributes: [
     {
       name: "id",
@@ -53,6 +55,7 @@ export const epicSectionVocabulary = {
       kind: "enum",
       values: [
         "overview-part",
+        "epics",
         "phases",
         "questions",
         "judgements",
@@ -66,7 +69,7 @@ export const epicSectionVocabulary = {
       required: true,
       description:
         "What it holds:  `phases` its `<epic-phase>`s;  `questions` ... `tests` its `<epic-item>`s;  `log` its " +
-        "`<epic-event>`s;  `overview-part` and `report` prose."
+        "`<epic-event>`s;  `overview-part` and `report` prose;  `epics` (a saga page's) its `<epic-cards>`."
     },
     {
       name: "title",
@@ -161,6 +164,7 @@ export const epicSectionVocabulary = {
     },
 
     ...FOLD_TEXTS,
+    { key: "epicsTitle", text: "Epics" },
     { key: "phasesTitle", text: "Phases" },
     { key: "questionsTitle", text: "Questions" },
     { key: "judgementsTitle", text: "Judgement calls" },
@@ -212,6 +216,17 @@ export const epicSectionVocabulary = {
       when: { attribute: "kind", values: ["questions", "judgements", "caveats", "todos", "issues", "tests"] },
       description: "The items, their id's letter the section's (`q` in Questions)."
     },
-    { tag: "epic-event", when: { attribute: "kind", values: ["log"] }, description: "The log, oldest first." }
+    { tag: "epic-event", when: { attribute: "kind", values: ["log"] }, description: "The log, oldest first." },
+    {
+      tag: "epic-cards",
+      when: { attribute: "kind", values: ["epics"] },
+      max: 1,
+      description: "A saga page's Epics:  the cards of the epics serving the saga, drawn from the page server."
+    },
+    {
+      tag: "flow",
+      when: { attribute: "kind", values: ["epics"] },
+      description: "A saga page's Epics:  a line or two before the cards, if any."
+    }
   ]
 } as const satisfies EpicVocabulary

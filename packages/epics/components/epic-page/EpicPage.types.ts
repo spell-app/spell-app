@@ -149,8 +149,12 @@ export const CRUMBS = "crumbs"
  */
 export const CRUMB_LINKS = {
   docs: { href: "../../pages/index.html", target: "src-packages-docs-index-html" },
-  epics: { href: "../../epics/index.html", target: "src-epics-index-html" }
+  epics: { href: "../../epics/index.html", target: "src-epics-index-html" },
+  sagas: { href: "../../sagas/index.html", target: "src-sagas-index-html" }
 } as const
+
+/** `<epic-page kind>` of a saga page (epic `epic-workflow` P15). */
+export const SAGA_KIND = "saga"
 
 /**
  * The crumbs a doc may still hold before the page, from before P14 (`ui-breadcrumb.spell-crumbs` in `<main>`):

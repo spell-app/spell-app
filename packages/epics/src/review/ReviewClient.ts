@@ -171,7 +171,7 @@ export class ReviewClient {
    * Read the inbox;  if it answers, the page is being reviewed:  backups handed over, drafts' boxes reopened.
    * - true when reviewing
    * - once per client
-   * - only a page the routes review (`PLAN_DOC_PAGE`), served with a token:  else it never asks
+   * - only a page the routes review (`PLAN_DOC_PAGE`, `SAGA_PAGE`), served with a token:  else it never asks
    * - NEVER throws
    */
   start(): Promise<boolean> {
@@ -181,7 +181,7 @@ export class ReviewClient {
 
   /** `start()`'s work. */
   private async begin(): Promise<boolean> {
-    if (!this.link.servesPlanDoc || !(await this.load())) return false
+    if (!this.link.servesReviews || !(await this.load())) return false
     this.reviewing = true
     await this.adoptBackups()
     // a note being written reopens where it was, from any address

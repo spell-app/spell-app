@@ -466,7 +466,7 @@ The older words he may still say are in the root [AGENTS.md](../../AGENTS.md), "
 | Name | What it's for | Where | Template |
 | --- | --- | --- | --- |
 | epic page | an epic's plan:  its phases, items and log | `epics/<epic-id>/<epic-id>.plan.html` | [the tool's](../epics/src/tool/templates/plan.html) |
-| saga page | a saga (an epic of epics);  today the parked goals pages | `goals/` | [goals/](../../templates/goals/) (parked) |
+| saga page | a saga (an epic of epics):  what its epics did, ideas not done yet, its epics' cards;  commented on and sent from as an epic page is (epic `epic-workflow` P15) | `sagas/<saga-id>/<saga-id>.saga.html` | [the tool's](../epics/src/tool/templates/saga.html) (`epic saga page <id>`);  the parked goal sets in `goals/`:  [goals/](../../templates/goals/) |
 | details page | one question explained with a picture, answered on the page | `pages/details/`, `epics/<epic-id>/details/` | [details.html](../../templates/details.html) |
 | review page | several calls to go through at once:  keep, change, talk over | same as details pages | [review.html](../../templates/review.html) |
 | choice page | a table of names Claude recommends, typed over, then "Do it" | same, with `<slug>.rows.json` | [syntax-choices.html](../../templates/syntax-choices.html) |
@@ -985,7 +985,7 @@ The older words he may still say are in the root [AGENTS.md](../../AGENTS.md), "
   - It carries the comment's `working` too, as the inbox holds it:  any server shows the thinking stub.
   - A page served under `/worktrees/<w>/` redraws on its inbox's change too:  the server announces a shared
     folder's files without that prefix (`inboxPaths`).
-  - pages under `guides/`, `pages/`, `epics/` (epic pages too)
+  - pages under `guides/`, `pages/`, `epics/` (epic pages too), `sagas/` (saga pages, in their own review inbox)
   - a component set's pages, at its short address (`/epic-ui/...`):  their inbox beside each, in the set's tracked
     folder, git-ignored there.
     - NOTE:  those pages load Spell UI's site bundle, not `spell-ui.js`, so no bullhorn draws on them yet:
@@ -993,7 +993,7 @@ The older words he may still say are in the root [AGENTS.md](../../AGENTS.md), "
   - NOT:
     - an epic page's `parts/`
     - details pages with questions, choice pages
-    - `templates/`, goals (thoughts), Spell UI or brand pages
+    - `templates/`, the parked goal sets in `goals/` (thoughts), Spell UI or brand pages
 - Claude's side, for docs pages ([comments.ts](tools/comments.ts), [GuideChanges.ts](tools/GuideChanges.ts)):
 
   ```sh

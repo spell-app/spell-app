@@ -694,6 +694,20 @@ When Owen says he's done ("stop reviewing", "that's it"), or the session must st
 - the doc's changes:  nothing to commit, from any checkout.
   It's shared content, committed for you at the turn's end.
 
+### 7.5 A saga page:  `/epic review SAGA:/<id>` (or "saga <id>")
+
+A SAGA PAGE (`sagas/<id>/<id>.saga.html`, epic `epic-workflow` P15) is reviewed exactly as an epic page is.
+- Its name, everywhere above:  its short address, `SAGA:/<id>` (`epic items SAGA:/epics --json`,
+  `epic inbox SAGA:/epics listen`, `epic inbox SAGA:/epics wait`, `epic add SAGA:/epics#T "..."`).
+  - Owen may say "saga epics" or `/epic review saga epics`:  read it as `SAGA:/epics`.
+  - Why the prefix:  a saga id may also be an epic's name (`output-targets`).
+- Its marks and comments wait in its own inbox, beside the page;  its Send wakes a new session in a main window,
+  `/epic review SAGA:/<id>` typed in, when nobody listens.
+- Show it with `spell dev docs link <main root>/sagas/<id>/<id>.saga.html --hash <id> --review --show`.
+- No phases, branch or worktree:  answer in its items and its Overview (`#o1` Done so far, `#o2` Ideas not done
+  yet), and log as usual (`epic log SAGA:/<id> "..."`).
+- A session titled for an epic (`🚧 seo`) refuses it (the prompt hook):  run it in a main session.
+
 ## 8. Resume:  `/epic resume [<name>]`
 
 A NEW session picks up an epic whose own session is gone (closed, crashed, compacted beyond use).

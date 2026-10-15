@@ -7,7 +7,9 @@
  *   until a Claude session takes them (P6 of `review-review`, `spell dev plan-doc inbox`)
  * - `page`:  the epic page's URL path, as it was served:
  *   `/epics/x/x.plan.html`, or a worktree's `/worktrees/<w>/...` on the main checkout's server.
- *   ONLY an epic page:  anything else is a 403
+ *   ONLY an epic page, or a SAGA page (`/sagas/x/x.saga.html`, epic `epic-workflow` P15):  anything else is a 403
+ *   - a saga page's marks and comments wait in its own inbox, `<id>.inbox.json` beside it, the same shape;
+ *     the session that takes them is the one running `/epic review SAGA:/<id>` (`SAGA_PREFIX`)
  * - every answer is the whole inbox, as `ReviewInbox` keeps it (an empty one when there's no file),
  *   except a `listening` whose heartbeat stopped:
  *   `null` (`ReviewInbox.forPage()`), so the page warns nobody is reviewing;
@@ -55,6 +57,8 @@ import { readFileSync } from "node:fs"
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
 
+import { SAGA_PREFIX } from "$/epics/review/review.types"
+
 import { InboxError, ReviewInbox, type PageInbox } from "./ReviewInbox"
 import { ReviewStart } from "./ReviewStart"
 
@@ -66,6 +70,9 @@ const MAX_BODY = 64 * 1024
 
 /** An epic page's file:  `epics/<name>/<name>.plan.html` (before 2026-10-05 under `packages/docs/content/`). */
 const PLAN_DOC = /\/(?:packages\/docs\/content\/)?epics\/([^/]+)\/\1\.plan\.html$/
+
+/** A saga page's file:  `sagas/<id>/<id>.saga.html` (epic `epic-workflow` P15). */
+const SAGA_PAGE = /\/sagas\/([^/]+)\/\1\.saga\.html$/
 
 const reviewRoutes: RouteModule = {
   name: "review",
@@ -135,8 +142,8 @@ const reviewRoutes: RouteModule = {
 export default reviewRoutes
 
 /**
- * The epic page file URL path `page` names, through the server's mounts.
- * - 400:  not a path;  404:  no such page;  403:  outside a mount, or not an epic page
+ * The epic page (or saga page) file URL path `page` names, through the server's mounts.
+ * - 400:  not a path;  404:  no such page;  403:  outside a mount, or neither an epic page nor a saga page
  */
 export function planDoc(files: SRV.StaticHandler, page: unknown): string {
   if (typeof page !== "string" || !page.startsWith("/")) throw new SRV.HttpError(400, "no page")
@@ -144,13 +151,18 @@ export function planDoc(files: SRV.StaticHandler, page: unknown): string {
   if (!resolved) throw new SRV.HttpError(403, `not served here:  ${page}`)
   if ("redirect" in resolved) throw new SRV.HttpError(400, `a folder, not a page:  ${page}`)
   if ("status" in resolved) throw new SRV.HttpError(resolved.status, resolved.message)
-  if (!PLAN_DOC.test(resolved.file)) throw new SRV.HttpError(403, `not an epic page:  ${page}`)
+  if (!PLAN_DOC.test(resolved.file) && !SAGA_PAGE.test(resolved.file))
+    throw new SRV.HttpError(403, `not an epic page:  ${page}`)
   return resolved.file
 }
 
-/** The epic that epic page `file` is for:  its folder's name. */
+/**
+ * Who reviews page `file`, as `/epic review` takes it:  an epic page's epic, its folder's name;  a saga page's
+ * `SAGA:/<id>` (`SAGA_PREFIX`), what a wake types (`/epic review SAGA:/drawable-spell`).
+ */
 function epicOf(file: string): string {
-  return PLAN_DOC.exec(file)![1]!
+  const saga = SAGA_PAGE.exec(file)?.[1]
+  return saga ? `${SAGA_PREFIX}${saga}` : PLAN_DOC.exec(file)![1]!
 }
 
 /** Send:  every mark so far is sent;  whether anything was new to hand over (a Send with nothing new wakes nobody). */

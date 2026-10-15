@@ -30,6 +30,7 @@ const SAMPLES: { [T in EpicTag]: EpicData<T> } = {
     source: "parts/o1.html",
     partIds: "o1-a o1-b"
   },
+  "epic-cards": { saga: "drawable-spell" },
   "epic-phase": {
     id: "p2",
     title: "Review Buttons",
