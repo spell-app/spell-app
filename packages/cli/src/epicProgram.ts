@@ -92,8 +92,8 @@ export function epicProgram(handOver: () => Promise<never>): Command {
 
   page(
     epic.command("new"),
-    "make an epic page from the template;  --future:  an idea for later, not planned yet"
-  ).usage('<epic> [--title "Title"] [--prompt "text" | --prompt-file <file>] [--future]')
+    "make an epic page from the template;  --future:  an idea for later, not planned yet;  --saga:  the saga it serves"
+  ).usage('<epic> [--title "Title"] [--prompt "text" | --prompt-file <file>] [--future] [--saga <id>]')
   page(epic.command("list"), "every epic:  in progress, future or done, where it runs, items not reviewed").usage(
     "[--json]"
   )
@@ -229,6 +229,16 @@ export function epicProgram(handOver: () => Promise<never>): Command {
   )
 
   ////////////////
+  // ## Sagas
+  ////////////////
+
+  epic.commandsGroup("Sagas:")
+
+  page(epic.command("saga"), "the sagas (epics of epics):  their list in order, and the saga each epic serves")
+    .usage('list [--json] | set <epic> <saga> | set <epic> --none | new <id> "Title" --purpose "..." | ...')
+    .addHelpText("after", SAGA_HELP)
+
+  ////////////////
   // ## Groups:  the docs tools
   ////////////////
 
@@ -360,6 +370,22 @@ Examples:
   epic update seo#P3 --goal "<p>...</p>" --estimate 2h
   epic update seo#J3 --title "Clearer title"
   epic update epic-workflow --standing`
+
+/** After `epic saga --help`. */
+const SAGA_HELP = `
+The sagas' list, in Owen's order:  sagas/sagas.json.  An epic names its saga:  <epic-page saga="<id>">.
+  epic saga list [--json]                         the sagas in order, each with its epics and guide count
+  epic saga set <epic> <saga>                     the saga an epic serves (--none:  no saga);  logged
+  epic saga new <id> "Title" --purpose "..." [--after <id>]
+                                                  a new saga, last or after <id>;  its id one or two words
+  epic saga move <id> --before <id> | --after <id>
+                                                  its place in the list
+  epic saga title <id> "Title"                    its title
+  epic saga rename <old> <new>                    its id:  epic pages, guides' saga metas, its folder and
+                                                  SAGA:/<old> addresses in the shared pages follow
+
+Example:
+  epic saga set python-target output-targets`
 
 /** After `epic add --help`. */
 const ADD_HELP = `

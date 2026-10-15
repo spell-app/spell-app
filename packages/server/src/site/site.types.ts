@@ -31,7 +31,9 @@ export const SITE_HOME = "pages/index.html"
 
 /**
  * Every property, in header order (Owen, 2026-10-11, epic `epic-workflow` J40):
- * Guides · Goals · Epics · Epic/UI · Spell/UI · App · App/UI · Brand · Templates.
+ * Guides · Sagas · Epics · Epic/UI · Spell/UI · App · App/UI · Brand · Templates.
+ * - Sagas was Goals until epic `epic-workflow` P15 (Owen, 2026-10-13:  "saga means roughly epic of epics");  it opens
+ *   the Sagas list page, and lights on the saga pages and on the parked goal sets (`goals/`) too
  * - Owen's words:  "Docs toolbar:  Guides Goals Epics Epic/UI Spell/UI App App/UI";  asked where Brand and
  *   Templates go, "At the end"
  * - the slashed names are the tab labels as he typed them (J41):  "the UI set of Epic", "of Spell", "of the app";
@@ -49,7 +51,11 @@ export const SITE_HOME = "pages/index.html"
  */
 export const PROPERTIES: SiteProperty[] = [
   { name: "Guides", path: "guides/index.html", match: (path) => docsArea(path) === "guides" },
-  { name: "Goals", path: "goals/index.html", match: (path) => docsArea(path) === "goals" },
+  {
+    name: "Sagas",
+    path: "sagas/index.html",
+    match: (path) => docsArea(path) === "sagas" || docsArea(path) === "goals"
+  },
   { name: "Epics", path: "epics/index.html", match: (path) => docsArea(path) === "epics" },
   {
     name: "Epic/UI",
@@ -76,7 +82,7 @@ export const PROPERTIES: SiteProperty[] = [
 ]
 
 /** A docs area:  a root folder of the checkout (each a link into the shared content repo) with a tab of its own. */
-export type DocsArea = "epics" | "guides" | "brand" | "templates" | "goals"
+export type DocsArea = "epics" | "guides" | "brand" | "templates" | "sagas" | "goals"
 
 /**
  * Which docs area page path `path` is in (`location.pathname`:  served, or a `file://` path).
@@ -104,7 +110,7 @@ export function docsArea(path: string): DocsArea | undefined {
     return "guides"
   }
   if (/\/packages\//.test(inside)) return undefined
-  return /\/(epics|guides|brand|templates|goals)\//.exec(inside)?.[1] as DocsArea | undefined
+  return /\/(epics|guides|brand|templates|sagas|goals)\//.exec(inside)?.[1] as DocsArea | undefined
 }
 
 /**

@@ -572,6 +572,8 @@ export type PlanSummary = {
   future: boolean
   /** a standing epic:  open for good, never done (epic `epic-workflow`) */
   standing: boolean
+  /** the saga it serves, its id (epic `epic-workflow` P15);  `null` for none */
+  saga: string | null
   /** each kind's open items, in `OPEN_KINDS`' order */
   open: Record<OpenKind, ItemSummary[]>
 }

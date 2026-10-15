@@ -27,7 +27,9 @@
  *
  * SEE ALSO (Owen, 2026-10-13:  "There is no easy way to get to a "decisions" or "details" pages from an epic"):  the
  * pages an epic made or leans on, which `<epic-page>` lists in its See Also box, above the Overview
- * - `GET /api/epics/pages?epic=<name>` -- answers `{ pages }`:  each `{ href, title, kind, updated }` (`SeeAlso`)
+ * - `GET /api/epics/pages?epic=<name>` -- answers `{ pages, saga }`:  each page `{ href, title, kind, updated }`
+ *   (`SeeAlso`);  `saga`, the saga its epic page names (epic `epic-workflow` P15), `{ id, title, purpose, href }`
+ *   (`sagaLinkOf()`), or `null`
  *   - its guide (`durable`), its own pages in `epics/<name>/details/` (`details`, `choices`), newest first,
  *     then every guide its epic page and part files link to (`guide`:  epic `epic-workflow` P13), newest first
  *   - `href` from the epic page's folder (`details/analysis.html`), `title` the page's `<title>`
@@ -44,6 +46,7 @@ import { FAVORITES_FILE, parseFavorites } from "$/server/site/EpicCards"
 
 import { PlanDocCommands } from "./PlanDocCommands"
 import { PlanDocFiles } from "./PlanDocFiles"
+import { Sagas } from "./Sagas"
 import { SeeAlso } from "./SeeAlso"
 
 /** Where the routes live. */
@@ -75,7 +78,9 @@ const epicRoutes: RouteModule = {
     router.get(PAGES_API, (request, reply) => {
       const name = String(request.query.epic ?? "")
       if (!EPIC_NAME.test(name)) throw new SRV.HttpError(400, `not an epic's name:  "${name}"`)
-      reply.set("Cache-Control", "no-store").json({ pages: new SeeAlso(root).linksOf(name) })
+      reply
+        .set("Cache-Control", "no-store")
+        .json({ pages: new SeeAlso(root).linksOf(name), saga: sagaLinkOf(root, name) })
     })
   }
 }
@@ -134,6 +139,24 @@ export async function setFavorite(root: string, name: string, favorite: boolean)
     return list
   })
 }
+
+/**
+ * The saga epic `name`'s page names (`<epic-page saga>`), as `<epic-page>` links it:  `{ id, title, purpose, href }`,
+ * `href` from the epic page's folder;  `null` with no page, no saga, or one that isn't in the list.
+ * - reads the page's skeleton alone:  `<epic-page>` is there in a split page too
+ */
+export function sagaLinkOf(root: string, name: string): SagaLink | null {
+  const file = PlanDocFiles.planDocIn(join(root, "epics", name), name)
+  if (!file) return null
+  const page = /<epic-page\b[^>]*>/.exec(readFileSync(file, "utf8"))?.[0] ?? ""
+  const id = /\ssaga="([^"]+)"/.exec(page)?.[1]
+  const saga = id ? new Sagas(root).find(id) : undefined
+  if (!saga) return null
+  return { id: saga.id, title: saga.title, purpose: saga.purpose, href: `../../${Sagas.pageOf(saga.id)}` }
+}
+
+/** The saga `<epic-page>` links in its meta lines:  `sagaLinkOf()`'s answer (the element's own `SagaLink`). */
+export type SagaLink = { id: string; title: string; purpose: string; href: string }
 
 /** An epic's name:  lower-kebab-case, as `epicName()` makes them and the epics' folders are called. */
 const EPIC_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/

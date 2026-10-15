@@ -292,7 +292,11 @@ ui -> util
     - More:  [ui's AGENTS.md](packages/ui/AGENTS.md), `site/`.
   - `brand/` -- the Brand tab's pages ([brand's AGENTS.md](packages/brand/AGENTS.md)):
     Claude Design's exports and their Spell UI copies
-  - `goals/` -- the saga pages (once goal sets), PARKED since 2026-10-11 (epic `epic-workflow` P6):
+  - `sagas/` -- the SAGAS, each an epic of epics (epic `epic-workflow` P15):
+    - `sagas/sagas.json`:  the list, in Owen's order;  changed only through `epic saga ...`
+    - `sagas/<id>/<id>.saga.html`:  each saga's page;  `sagas/index.html`:  the Sagas list page, the top bar's tab
+    - an epic names its saga with `<epic-page saga="<id>">`, a guide with `<meta name="spell-saga" content="<id>">`
+  - `goals/` -- the first saga pages (once goal sets), PARKED since 2026-10-11 (epic `epic-workflow` P6):
     read only, buttons saying TODO.
     Their tooling is in `packages/goals.zip`;
     epic `epic-goals` rebuilds it ([the parked sagas guide](guides/goals/goals.html)).

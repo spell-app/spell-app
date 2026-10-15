@@ -103,6 +103,14 @@ describe("planDocArgs()", () => {
     expect(() => CLI.planDocArgs("open", ["seo#P3"])).toThrow(/takes an epic/)
   })
 
+  // epic `epic-workflow` P15
+  test("saga:  its own verbs and arguments, passed through as typed", () => {
+    expect(CLI.planDocArgs("saga", ["set", "seo", "spell-ui"])).toEqual([["saga", "set", "seo", "spell-ui"]])
+    expect(CLI.planDocArgs("saga", ["new", "x", "A # title", "--purpose", "p"])).toEqual([
+      ["saga", "new", "x", "A # title", "--purpose", "p"]
+    ])
+  })
+
   test("bedtime:  phases written one way;  done passes through", () => {
     expect(CLI.planDocArgs("bedtime", ["seo", "start", "3-6, p9"])).toEqual([["bedtime", "seo", "start", "P3-P6,P9"]])
     expect(CLI.planDocArgs("bedtime", ["seo", "done", "slept"])).toEqual([["bedtime", "seo", "done", "slept"]])

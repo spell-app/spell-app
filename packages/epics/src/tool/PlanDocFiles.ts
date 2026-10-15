@@ -120,7 +120,7 @@ export class PlanDocFiles {
   }
 
   /**
-   * Every epic, once each:  `{ name, title, status, checkout, notReviewed, total, file }`, in progress first, then
+   * Every epic, once each:  `{ name, title, status, checkout, saga, notReviewed, total, file }`, in progress first, then
    * future, then done;  most not reviewed first in each.
    * - `status`:  `in progress` while any phase isn't done (or there are none yet), `future` for an epic not planned
    *   yet, else `done`
@@ -157,6 +157,7 @@ export class PlanDocFiles {
               ? "done"
               : "in progress",
           checkout: this.epicCheckout(name, main),
+          saga: plan.saga,
           notReviewed: sections.reduce((sum, section) => sum + section.notReviewed, 0),
           total: sections.reduce((sum, section) => sum + section.total, 0),
           file
@@ -503,6 +504,8 @@ export type EpicListing = {
   status: EpicStatus
   /** where it runs:  `main`, or `.claude/worktrees/<name>` */
   checkout: string
+  /** the saga it serves, its id (`<epic-page saga>`);  `null` for none */
+  saga: string | null
   /** how many of its items aren't reviewed */
   notReviewed: number
   /** how many items it has in all */

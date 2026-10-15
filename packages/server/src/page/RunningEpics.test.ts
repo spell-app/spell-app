@@ -276,7 +276,7 @@ describe("RunningEpics", () => {
       put(
         grouped,
         ".claude/worktrees/seo/epics/seo/seo.plan.html",
-        planDoc("SEO", [["active", "P1 · Go"]], "2026-10-01")
+        planDoc("SEO", [["active", "P1 · Go"]], "2026-10-01").replace("<epic-page", '<epic-page saga="epics"')
       )
       put(
         grouped,
@@ -292,7 +292,13 @@ describe("RunningEpics", () => {
         `<main>${EPIC_CARDS_START}\n<div class="spell-epic-group" data-group="favorites"><ui-cards>` +
         `${index("alpha", "Alpha", "active")}</ui-cards></div>` +
         `<div class="spell-epic-group" data-group="active" hidden><ui-cards>` +
-        `${index("zed", "Zed", "active")}${index("seo", "SEO", "active", ' data-worked="2026-10-09T20:00-04:00"')}` +
+        `${index("zed", "Zed", "active")}` +
+        index(
+          "seo",
+          "SEO",
+          "active",
+          ' data-worked="2026-10-09T20:00-04:00" data-saga="epics" data-saga-title="Epic Tooling" data-saga-purpose="E &amp; co"'
+        ) +
         `</ui-cards></div>\n${EPIC_CARDS_END}</main>`
       const html = new RunningEpics(grouped).render(page, new Date(2026, 9, 9))
       const groups = html.split('<div class="spell-epic-group" ').slice(1)
@@ -306,6 +312,10 @@ describe("RunningEpics", () => {
       // last worked:  the merged card's (its branch's commit, as `docs index` read it) beat the doc's log line
       expect(html).toMatch(/data-epic="seo"[^>]*data-worked="2026-10-09T20:00/)
       expect(new RunningEpics(grouped).list()[0]?.worked).toBe(new Date("2026-10-08T09:15-04:00").toISOString())
+      // its saga too (epic `epic-workflow` P15):  this leaf can't read the sagas' list
+      expect(new RunningEpics(grouped).list()[0]?.saga).toBe("epics")
+      expect(html).toMatch(/data-epic="seo"[^>]*data-saga="epics" data-saga-title="Epic Tooling"/)
+      expect(html).toContain('title="E &amp; co">Epic Tooling</ui-label>')
       expect(html.indexOf(EPIC_CARDS_START)).toBeLessThan(html.indexOf(EPIC_CARDS_END))
     } finally {
       rmSync(grouped, { recursive: true, force: true })

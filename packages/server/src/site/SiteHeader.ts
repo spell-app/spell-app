@@ -17,7 +17,7 @@ import {
 /****************
  * ### `<spell-site-header>`
  * The fixed bar on top of every page of the site, with a tab to switch to each of its parts:
- * docs, epic pages, goals, the component sets (Epic UI, Spell UI, App UI), the editor.
+ * docs, epic pages, sagas, the component sets (Epic UI, Spell UI, App UI), the editor.
  * Each part is a PROPERTY (`SiteProperty`, `PROPERTIES`):  a part with its own home page.
  * - In each page and template, right after `<body>`, with `root` = the path from the page to the repo root:
  *   `<spell-site-header root="../.."></spell-site-header>`.

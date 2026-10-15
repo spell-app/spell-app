@@ -42,6 +42,8 @@
  *   comments wait in an inbox file (a docs page's own, an epic page's review inbox), drawn under their blocks.
  *   PAGE NOTES (`wireNotes()`), written into docs pages before them:  each `<spell-note>` a folded card
  * - FAVORITE EPICS (`wireFavorites()`):  on the Epics page, a card's star moves it into Favorites and back, at once
+ * - SAGA CHIPS (`wireSagaChips()`):  on the Epics page, a chip per saga above the groups;  a click shows only that
+ *   saga's epics, by the state chips' rule (`nextShown()`), remembered in this browser
  * LANDING -- where a jump puts its target, ONE model for every kind of jump:
  * - the line:  just below the lowest title that will be stuck over the target:  site header + `--spell-top` (page
  *   header, filter bar) + the stack of the target's sections' titles
@@ -203,12 +205,14 @@ async function start() {
   wireNotes(main)
   void wireComments(main)
   wireNewEpic(main)
+  wireSagaChips(main)
   wireEpicSort(main)
   wireFavorites(main)
   // the docs index tool rewrites this page after a new epic:  its header comes back without the pill, a starred card
   // maybe in its old place too
   addEventListener("spell-doc:updated", () => {
     wireNewEpic(main)
+    wireSagaChips(main)
     wireEpicSort(main)
     wireFavorites(main)
   })
@@ -4727,6 +4731,7 @@ function setStar(card, favorite) {
  * title (`data-title`), or newest first by when it was last worked on (`data-worked`), as the header's sort buttons
  * say (`epicSort()`);  each group's count, and empty ones hidden.
  * - a card twice (`data-epic`:  a live update re-added one this moved):  the first stays
+ * - each group's count and `hidden` leave out the cards the saga chips hide (`data-spell-saga-hidden`)
  * - SIDE EFFECT:  moves cards between the groups' lists;  callable any time
  */
 function regroupEpics(main) {
@@ -4761,10 +4766,76 @@ function regroupEpics(main) {
     })
     const group = list?.closest(EPIC_GROUP)
     if (!group) continue
-    group.hidden = mine.length === 0
+    const showing = mine.filter((card) => !card.hasAttribute("data-spell-saga-hidden")).length
+    group.hidden = showing === 0
     const count = group.querySelector(".spell-epic-group-count")
-    if (count) count.textContent = String(mine.length)
+    if (count) count.textContent = String(showing)
   }
+}
+
+////////////////
+// ## Saga chips
+////////////////
+
+/** `localStorage` key of the sagas the Epics page shows:  their ids (`""` for No saga);  absent:  every one. */
+const SAGA_SHOWN_KEY = "spell-epics-sagas"
+
+/**
+ * SAGA CHIPS, on the Epics page (epic `epic-workflow` P15):  `$/server/site/EpicCards` `epicSagaChipsHtml()` writes a
+ * chip per saga above the groups, in the sagas' order, and "No saga";  this counts each saga's cards again (the page
+ * server adds the running epics' cards) and filters by them.
+ * - a click, by the state chips' rule (`nextShown()`):  every saga showing, only that one;  a hidden one shows too, a
+ *   shown one hides;  the only one showing, every saga again
+ * - a card's saga:  its `data-saga`;  none, or one with no chip:  No saga's
+ * - a hidden saga's cards get `data-spell-saga-hidden` (CSS hides them), and the groups count only what shows
+ *   (`regroupEpics()`)
+ * - remembered in this browser (`SAGA_SHOWN_KEY`):  one choice for every Epics page
+ * - works from `file://` too;  callable again (a chip is wired once)
+ */
+function wireSagaChips(main) {
+  const row = main.querySelector(".spell-saga-chips")
+  if (!row) return
+  const chips = Array.from(row.querySelectorAll("button.spell-saga-chip[data-saga]"))
+  const ids = chips.map((chip) => chip.dataset.saga)
+  const cards = Array.from(main.querySelectorAll(`${EPIC_GROUP} ui-card[data-epic]`))
+  const sagaOf = (card) => (ids.includes(card.dataset.saga ?? "") ? (card.dataset.saga ?? "") : "")
+  for (const chip of chips) {
+    const count = chip.querySelector(".spell-saga-count")
+    if (count) count.textContent = String(cards.filter((card) => sagaOf(card) === chip.dataset.saga).length)
+    if ("spellWired" in chip.dataset) continue
+    chip.dataset.spellWired = ""
+    chip.addEventListener("click", () => {
+      const shown = nextShown(ids, sagasShown(ids), chip.dataset.saga)
+      try {
+        localStorage.setItem(SAGA_SHOWN_KEY, JSON.stringify(shown))
+      } catch {
+        // storage blocked:  filtered for this visit only
+      }
+      wireSagaChips(main)
+    })
+  }
+  const shown = new Set(sagasShown(ids))
+  for (const chip of chips) {
+    const on = shown.has(chip.dataset.saga)
+    chip.setAttribute("aria-pressed", String(on))
+    const words = chip.dataset.saga ? chip.firstChild?.textContent?.trim() : "No saga"
+    chip.dataset.tip ??= chip.title
+    chip.title = `${chip.dataset.tip}\n${on ? `Click to show only ${words}` : `Click to show ${words} too`}`
+  }
+  for (const card of cards) card.toggleAttribute("data-spell-saga-hidden", !shown.has(sagaOf(card)))
+  regroupEpics(main)
+}
+
+/** The sagas the Epics page shows, of `ids`:  as remembered (`SAGA_SHOWN_KEY`), else every one. */
+function sagasShown(ids) {
+  let saved
+  try {
+    saved = JSON.parse(readSaved(SAGA_SHOWN_KEY) || "null")
+  } catch {
+    saved = null
+  }
+  const shown = Array.isArray(saved) ? ids.filter((id) => saved.includes(id)) : []
+  return shown.length ? shown : [...ids]
 }
 
 /** `localStorage` key of the Epics page's sort:  `title` (the default) or `date`. */

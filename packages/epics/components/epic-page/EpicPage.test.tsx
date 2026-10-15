@@ -346,6 +346,25 @@ describe("<epic-page>", () => {
     fetched.mockRestore()
   })
 
+  // epic `epic-workflow` P15
+  test("its saga:  a meta line linking the saga page, by id until the page server gives its title and purpose", async () => {
+    const saga = { id: "epics", title: "Epic Tooling", purpose: "Epics", href: "../../sagas/epics/epics.saga.html" }
+    let answer = (): Response => new Response(JSON.stringify({ pages: [] }))
+    const fetched = vi.spyOn(globalThis, "fetch").mockImplementation(async () => answer())
+    const host = await render(page(`saga="epics"`, ["todo"]))
+    const link = () => host.shadowRoot!.querySelector<HTMLAnchorElement>('[part~="meta"] li.saga a')
+    expect(link()!.getAttribute("href")).toBe("../../sagas/epics/epics.saga.html")
+    expect(link()!.textContent).toBe("epics")
+    answer = () => new Response(JSON.stringify({ pages: [], saga }))
+    const named = await render(page(`saga="epics"`, ["todo"]))
+    const namedLink = () => named.shadowRoot!.querySelector<HTMLAnchorElement>('[part~="meta"] li.saga a')!
+    await vi.waitFor(() => expect(namedLink().textContent).toBe("Epic Tooling"))
+    expect(namedLink().getAttribute("title")).toBe("The saga this epic serves:  Epics")
+    const none = await render(page("", ["todo"]))
+    expect(none.shadowRoot!.querySelector('[part~="meta"] li.saga')).toBeNull()
+    fetched.mockRestore()
+  })
+
   // Owen, 2026-10-13:  "Clicking on the "review-review" should copy the string "/epic resume review-review" with a
   // subtle toast"
   test("the heading's name:  a click copies `/epic resume <name>`, and a toast says so", async () => {

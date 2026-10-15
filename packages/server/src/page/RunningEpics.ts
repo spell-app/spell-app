@@ -15,7 +15,8 @@ import {
   lastWorked,
   parseFavorites,
   type EpicGroupName,
-  type PlacedCard
+  type PlacedCard,
+  type SagaLook
 } from "$/server/site/EpicCards"
 import { URGENT_STATES, epicStateFor, epicStateMark } from "$/server/site/EpicState"
 
@@ -150,7 +151,8 @@ export class RunningEpics {
    *   - the mark from a session running for it (`runningNames()`) and today's date
    *   - a card without them (an older index):  as is
    * - a merged epic's card of the same name (`data-epic`) goes:  the worktree's doc is the live one;
-   *   its last-worked moment (`data-worked`:  it may hold the branch's last commit) carries over to the running card
+   *   its last-worked moment (`data-worked`:  it may hold the branch's last commit) carries over to the running card,
+   *   and so does its saga (`data-saga`, its title and purpose:  this leaf can't read the sagas' list)
    * - between the markers (`EPIC_CARDS_START` / `_END`, `docs index` writes them):
    *   every card regrouped (`epicGroupsHtml()`);  a starred one under Favorites, else in its own group (`data-group`)
    * - an index without the end marker (written before the groups):  the running cards at the marker, as before
@@ -165,16 +167,21 @@ export class RunningEpics {
       remark(card, { running: running.has(name), favorite: favorites.has(name), now })
     )
     const workedBefore = new Map<string, string>()
+    const sagaBefore = new Map<string, SagaLook>()
     for (const epic of epics) {
       // oxfmt splits a closing tag over lines (`</ui-card\n  >`)
       const merged = new RegExp(`<ui-card\\b[^>]*\\bdata-epic="${escapeRegExp(epic.name)}"[\\s\\S]*?</ui-card\\s*>`)
       html = html.replace(merged, (card) => {
         const worked = dataOf(card, "worked")
         if (worked) workedBefore.set(epic.name, worked)
+        const saga = sagaOf(card)
+        if (saga) sagaBefore.set(epic.name, saga)
         return ""
       })
     }
-    const added = epics.map((epic) => this.runningCard(epic, { running, favorites, now, worked: workedBefore }))
+    const added = epics.map((epic) =>
+      this.runningCard(epic, { running, favorites, now, worked: workedBefore, sagas: sagaBefore })
+    )
     const from = html.indexOf(EPIC_CARDS_START)
     const to = html.indexOf(EPIC_CARDS_END, from)
     if (to < 0) return epics.length ? html.replace(MARKER, added.map((card) => card.html).join("")) : html
@@ -192,12 +199,20 @@ export class RunningEpics {
    * - `running`:  the names sessions run for
    * - `favorites`:  the starred epics
    * - `worked`:  the merged cards' `data-worked`, by name (`render()`)
+   * - `sagas`:  the merged cards' sagas, by name;  used while the running doc still names that saga
    */
   private runningCard(
     epic: RunningEpic,
-    context: { running: Set<string>; favorites: Set<string>; now: Date; worked: Map<string, string> }
+    context: {
+      running: Set<string>
+      favorites: Set<string>
+      now: Date
+      worked: Map<string, string>
+      sagas: Map<string, SagaLook>
+    }
   ): PlacedCard {
-    const { running, favorites, now, worked } = context
+    const { running, favorites, now, worked, sagas } = context
+    const saga = sagas.get(epic.name)
     const where = relative(this.root, join(this.worktrees, epic.worktree))
     return epicCardHtml(
       {
@@ -208,7 +223,8 @@ export class RunningEpics {
         meta: `${epic.active ? `${epic.active} · ` : ""}${where}`,
         facts: { ...epic, running: running.has(epic.name) || running.has(epic.worktree) },
         worked: lastWorked([epic.worked, worked.get(epic.name)]),
-        favorite: favorites.has(epic.name)
+        favorite: favorites.has(epic.name),
+        saga: saga && saga.id === epic.saga ? saga : undefined
       },
       now
     )
@@ -319,6 +335,13 @@ const MARK = /<(ui-icon|ui-label|span)\b[^>]*\bclass="spell-epic-state"[^>]*>[\s
 /** A card's star (`epicStarHtml()`), its closing tag maybe split over lines by oxfmt. */
 const STAR = /<button\b[^>]*\bclass="spell-epic-star"[\s\S]*?<\/button\s*>/
 
+/** The saga epic card `card` names (`data-saga`, `data-saga-title`, `data-saga-purpose`);  `undefined` for none. */
+function sagaOf(card: string): SagaLook | undefined {
+  const id = dataOf(card, "saga")
+  if (!id) return undefined
+  return { id, title: decode(dataOf(card, "saga-title") ?? id), purpose: decode(dataOf(card, "saga-purpose") ?? "") }
+}
+
 /** Attribute `data-<name>` of epic card `card`'s opening tag:  its value, `""` when bare;  `undefined` without it. */
 function dataOf(card: string, name: string): string | undefined {
   const open = /^<ui-card\b[^>]*>/.exec(card)?.[0] ?? ""
@@ -376,6 +399,7 @@ function isAlive(pid: number): boolean {
  *   - with phases left, no session running and no update for a few days, it's paused (`$/server/site/EpicState`)
  * - `future`:  written down with `/epic future`, not planned yet
  * - `standing`:  open for good, every phase merging on its own (epic `epic-workflow`)
+ * - `saga`:  the saga its page names, its id (`<epic-page saga>`, epic `epic-workflow` P15)
  * - `urgent`:  the ids of the items that need Owen (red and orange chips:  `URGENT_STATES`):
  *   every phase done with some left, it has errors
  * - `worked`:  when it was last worked on, as the doc says:  the latest of its `updated` day and its log lines' times
@@ -393,6 +417,7 @@ export type RunningEpic = {
   updated?: string
   future?: boolean
   standing?: boolean
+  saga?: string
   urgent?: string[]
   worked?: string
 }
@@ -465,7 +490,7 @@ function read(
   file: string
 ): Pick<
   RunningEpic,
-  "title" | "phases" | "done" | "total" | "active" | "updated" | "future" | "standing" | "urgent" | "worked"
+  "title" | "phases" | "done" | "total" | "active" | "updated" | "future" | "standing" | "saga" | "urgent" | "worked"
 > {
   const html = readFileSync(file, "utf8")
   // drop the `Epic: ` epic pages' titles start with (since 2026-10-04):  the card is in the Epics list already
@@ -481,6 +506,7 @@ function read(
   const updated = /^\d{4}-\d\d-\d\d$/.exec(attribute(page, "updated") ?? "")?.[0]
   const future = /\sfuture(?=[\s=>])/.test(page)
   const standing = /\sstanding(?=[\s=>])/.test(page)
+  const saga = attribute(page, "saga")
   const urgent = tags(/<epic-item\b[^>]*>/g)
     .filter((tag) => (URGENT_STATES as readonly string[]).includes(attribute(tag, "state") ?? ""))
     .map((tag) => attribute(tag, "id") ?? "")
@@ -497,6 +523,7 @@ function read(
     ...(updated && { updated }),
     ...(future && { future }),
     ...(standing && { standing }),
+    ...(saga && { saga }),
     ...(urgent.length > 0 && { urgent }),
     ...(worked && { worked: worked.toISOString() })
   }

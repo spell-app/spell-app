@@ -59,17 +59,24 @@ export const BRAND = join(ROOT, "brand")
  */
 export const UI_PAGES = join(ROOT, "ui")
 
-/** `goals/`:  the goal sets, `goals/<set>/index.html` (their tooling:  `tools/goals/`). */
+/** `goals/`:  the goal sets, `goals/<set>/index.html`:  the first sagas, PARKED (epic `epic-workflow` P6). */
 export const GOALS = join(ROOT, "goals")
+
+/**
+ * `sagas/`:  the sagas (epic `epic-workflow` P15):  their list in Owen's order, `sagas/sagas.json`, each saga's page
+ * in its folder (`sagas/<id>/<id>.saga.html`), and the Sagas list page (`index.js` writes it from the list).
+ * - NOT in `AREAS`:  the Sagas list page lists the sagas from `sagas.json`, not from the pages found
+ */
+export const SAGAS = join(ROOT, "sagas")
 
 /** Every folder `findPages()` walks:  the home first, then the areas. */
 export const AREAS = [PAGES, GUIDES, EPICS, TEMPLATES]
 
 /**
  * Each area's list page, `<area>/index.html`, written by `index.js` (claude-design P5):  every epic, guide,
- * template and brand page.  Never listed themselves.
+ * template and brand page, and every saga.  Never listed themselves.
  */
-export const LIST_PAGES = [EPICS, GUIDES, TEMPLATES, BRAND].map((area) => join(area, "index.html"))
+export const LIST_PAGES = [EPICS, GUIDES, TEMPLATES, BRAND, SAGAS].map((area) => join(area, "index.html"))
 
 /** The old content folder (a link in checkouts cut before 2026-10-05, into the old-path links):  never walked. */
 export const OLD_CONTENT = join(PACKAGE, "content")

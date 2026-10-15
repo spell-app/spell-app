@@ -14,6 +14,12 @@
  *   the date it was last worked on at its bottom right, without the year (`epicWorkedHtml()`:  `10/9`)
  * - favourites are stored in ONE shared file, `FAVORITES_FILE` (`["airplane", "spell-element"]`):
  *   the page server's route writes it (`packages/epics/src/tool/epicRoutes.ts`), every checkout reads it
+ * - SAGAS (epic `epic-workflow` P15):  each card names the saga its epic serves, a small label (its title, its
+ *   purpose the tooltip;  `epicSagaHtml()`);  above the groups, a row of SAGA CHIPS (`epicSagaChipsHtml()`), one per
+ *   saga in the sagas' order and "No saga", each with its count;  the docs runtime filters the cards by them
+ *   - the sagas come from the caller (`docs index` reads `sagas/sagas.json`):  this file imports nothing
+ *   - each card carries its saga in data attributes too (`data-saga`, `data-saga-title`, `data-saga-purpose`),
+ *     so the page server, which can't read the sagas, draws a running epic's card from the written one
  *
  * Who draws them:
  * - `docs index` (`packages/docs/tools/index.js`), plain `node`:  it imports this FILE by path
@@ -48,6 +54,16 @@ const GROUP_LOOKS: Record<EpicGroupName, { title: string; icon: string }> = {
   done: { title: "Done", icon: "circle check" }
 }
 
+/** A saga, as a card's label and the chips draw it:  `sagas/sagas.json`'s fields (`$/epics/tool/Sagas`). */
+export type SagaLook = {
+  /** `drawable-spell` */
+  id: string
+  /** "Drawable Spell" */
+  title: string
+  /** one line:  what it's for */
+  purpose: string
+}
+
 /**
  * One epic's card, as `epicCardHtml()` draws it.
  * - `name`:  the epic (its folder);  `title`:  its epic page's title, without `Epic: `
@@ -57,6 +73,7 @@ const GROUP_LOOKS: Record<EpicGroupName, { title: string; icon: string }> = {
  * - `facts`:  what its state is read from (`EpicState`)
  * - `worked`:  when it was last worked on (`lastWorked()`), if known
  * - `favorite`:  Owen starred it
+ * - `saga`:  the saga it serves, if any (epic `epic-workflow` P15)
  */
 export type EpicCard = {
   name: string
@@ -68,6 +85,7 @@ export type EpicCard = {
   facts: EpicFacts
   worked?: Date
   favorite?: boolean
+  saga?: SagaLook
 }
 
 /** A card's markup, with what `epicGroupsHtml()` places it by:  its group (favourites already decided), its title. */
@@ -92,6 +110,8 @@ export function epicGroupFor(state: EpicState): Exclude<EpicGroupName, "favorite
  * - `data-status`:  `done` or `open`, so the section counts it and its filter steps through them
  * - `data-phases`, `data-updated`, `data-urgent`, `data-future`, `data-standing`:  what its state is read from, so the page server
  *   marks it again as it serves the page;  `data-worked`:  its last-worked moment
+ * - `data-saga`, `data-saga-title`, `data-saga-purpose`:  its saga (`epicSagaHtml()`), for the chips' filter and the
+ *   page server
  */
 export function epicCardHtml(card: EpicCard, now: Date = new Date()): PlacedCard {
   const { name, title, facts, worked, favorite = false } = card
@@ -105,12 +125,17 @@ export function epicCardHtml(card: EpicCard, now: Date = new Date()): PlacedCard
     (facts.urgent?.length ? ` data-urgent="${attr(facts.urgent.join(" "))}"` : "") +
     (facts.future ? " data-future" : "") +
     (facts.standing ? " data-standing" : "") +
-    (worked ? ` data-worked="${isoLocal(worked)}"` : "")
+    (worked ? ` data-worked="${isoLocal(worked)}"` : "") +
+    (card.saga
+      ? ` data-saga="${attr(card.saga.id)}" data-saga-title="${attr(card.saga.title)}"` +
+        ` data-saga-purpose="${attr(card.saga.purpose)}"`
+      : "")
   const target = card.target ? ` target="${attr(card.target)}"` : ""
   const html =
     `<ui-card id="epic-${attr(name)}"${data}><ui-content>\n` +
     `<ui-header>${epicStateMark(state)} <a href="${attr(card.href)}"${target}>${text(title)}</a></ui-header>\n` +
     (card.description ? `<ui-description>${text(card.description)}</ui-description>\n` : "") +
+    (card.saga ? `${epicSagaHtml(card.saga)}\n` : "") +
     `<ui-meta>${text(card.meta)}</ui-meta>\n` +
     `</ui-content>${epicStarHtml(name, favorite)}${worked ? epicWorkedHtml(worked) : ""}</ui-card>`
   return { group: favorite ? "favorites" : group, title, html }
@@ -136,6 +161,45 @@ export function epicGroupsHtml(cards: readonly PlacedCard[]): string {
     )
   }).join("\n")
 }
+
+/**
+ * A card's saga:  a small label, the saga's title, its purpose the browser's own tooltip.
+ * - in the card's content, after the description:  NOT in its meta line, which the page server reads back
+ */
+export function epicSagaHtml(saga: SagaLook): string {
+  return (
+    `<ui-label class="spell-epic-saga" size="mini" basic="" icon="bullseye" title="${attr(saga.purpose)}">` +
+    `${text(saga.title)}</ui-label>`
+  )
+}
+
+/**
+ * The SAGA CHIPS above the groups:  a button per saga, in `sagas`' order, then "No saga";  each with how many of
+ * `cards` are its (`data-saga`), all pressed (showing).
+ * - the docs runtime counts them again as the page changes, and filters by them (`wireSagaChips()`);  what it
+ *   shows is remembered in the browser
+ * - a card naming a saga that isn't in `sagas` counts as "No saga"
+ */
+export function epicSagaChipsHtml(sagas: readonly SagaLook[], cards: readonly PlacedCard[]): string {
+  const ids = new Set(sagas.map((saga) => saga.id))
+  const sagaOf = (card: PlacedCard) => {
+    const id = /\sdata-saga="([^"]*)"/.exec(card.html)?.[1] ?? ""
+    return ids.has(id) ? id : ""
+  }
+  const count = (id: string) => cards.filter((card) => sagaOf(card) === id).length
+  const chip = (id: string, title: string, tip: string) =>
+    `<button type="button" class="spell-saga-chip" data-saga="${attr(id)}" aria-pressed="true" title="${attr(tip)}">` +
+    `${text(title)} <span class="spell-saga-count">${count(id)}</span></button>`
+  return (
+    `<div class="spell-saga-chips" role="group" aria-label="Show the epics of a saga">\n` +
+    [...sagas.map((saga) => chip(saga.id, saga.title, saga.purpose)), chip("", NO_SAGA, NO_SAGA_TIP)].join("\n") +
+    `\n</div>`
+  )
+}
+
+/** The chip of the epics that name no saga. */
+const NO_SAGA = "No saga"
+const NO_SAGA_TIP = "Epics that name no saga yet:  epic saga set <epic> <saga>"
 
 /** How the groups sort their cards:  by title, ignoring case, numbers as numbers. */
 export function byTitle(a: string, b: string): number {

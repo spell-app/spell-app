@@ -42,4 +42,50 @@ describe("Sagas", () => {
   test("a saga's page", () => {
     expect(Sagas.pageOf("epics")).toBe("sagas/epics/epics.saga.html")
   })
+
+  test("adds, moves, retitles and renames, keeping the order", () => {
+    const sagas = new Sagas(root)
+    sagas.add({ id: "agents", title: "Agents", purpose: "agents" })
+    sagas.add({ id: "tooling", title: "Dev Tooling", purpose: "tools" }, { after: "drawable-spell" })
+    expect(sagas.ids()).toEqual(["drawable-spell", "tooling", "epics", "agents"])
+    sagas.move("agents", { before: "tooling" })
+    expect(sagas.ids()).toEqual(["drawable-spell", "agents", "tooling", "epics"])
+    sagas.retitle("agents", "The Agents")
+    sagas.rename("agents", "agent-rules")
+    expect(sagas.list()[1]).toEqual({ id: "agent-rules", title: "The Agents", purpose: "agents" })
+    expect(() => sagas.add({ id: "epics", title: "x", purpose: "" })).toThrow(/a saga already/)
+    expect(() => sagas.move("epics", { before: "nope" })).toThrow(/no saga "nope"/)
+    expect(() => sagas.move("epics", {})).toThrow(/one of them/)
+    expect(() => sagas.rename("epics", "tooling")).toThrow(/a saga already/)
+    expect(() => sagas.need("nope", "saga set")).toThrow(/^saga set:  no saga "nope"/)
+  })
+})
+
+describe("Sagas guides", () => {
+  /** A page's head, its description meta over three lines as the formatter writes it. */
+  const page =
+    `<html>\n  <head>\n    <title>T</title>\n    <meta\n      name="description"\n      content="d"\n    />\n` +
+    `    <link rel="stylesheet" href="x.css" />\n  </head>\n</html>\n`
+
+  test("a guide's saga is spliced in after its description, changed and removed, every other byte kept", () => {
+    const named = Sagas.withSaga(page, "epics")
+    expect(named).toBe(page.replace(`/>\n`, `/>\n    <meta name="spell-saga" content="epics" />\n`))
+    expect(Sagas.sagaOf(named)).toBe("epics")
+    expect(Sagas.sagaOf(Sagas.withSaga(named, "tooling"))).toBe("tooling")
+    expect(Sagas.withSaga(named, null)).toBe(page)
+    expect(Sagas.withSaga(page, null)).toBe(page)
+    expect(Sagas.sagaOf(page)).toBeNull()
+  })
+
+  test("every guide, by path, with the saga it names;  not the list page, nor experiments", () => {
+    mkdirSync(join(root, "guides/topic/experiments"), { recursive: true })
+    writeFileSync(join(root, "guides/index.html"), page)
+    writeFileSync(join(root, "guides/a.html"), Sagas.withSaga(page, "epics"))
+    writeFileSync(join(root, "guides/topic/topic.html"), page)
+    writeFileSync(join(root, "guides/topic/experiments/x.html"), page)
+    expect(new Sagas(root).guides()).toEqual([
+      { path: "guides/a.html", saga: "epics" },
+      { path: "guides/topic/topic.html", saga: null }
+    ])
+  })
 })

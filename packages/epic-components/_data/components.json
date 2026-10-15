@@ -2352,6 +2352,11 @@
           "description": "A STANDING epic (epic `epic-workflow`):  open for good, a home that requests from other sessions keep adding phases to;  each phase merges into `main` on its own, and every phase done is NOT done."
         },
         {
+          "name": "saga",
+          "kind": "string",
+          "description": "The saga this epic serves, by id (`drawable-spell`;  epic `epic-workflow` P15):  one of `sagas/sagas.json`'s, set by `epic saga set`.  Drawn in the meta lines, a link to its saga page;  absent:  no saga."
+        },
+        {
           "name": "bedtime",
           "kind": "string",
           "description": "A `/bedtime` run is on, and what it runs (`P3-P6`):  items it changes are `recent`."
@@ -2450,7 +2455,7 @@
         },
         {
           "name": "meta",
-          "description": "The meta lines:  branch, worktree, dates, guide."
+          "description": "The meta lines:  branch, worktree, dates, saga, guide."
         },
         {
           "name": "notice",
@@ -2583,6 +2588,16 @@
           "key": "durable",
           "text": "Guide:",
           "description": "Meta line:  before the guide's link."
+        },
+        {
+          "key": "saga",
+          "text": "Saga:",
+          "description": "Meta line:  before the link to the saga the epic serves."
+        },
+        {
+          "key": "sagaTip",
+          "text": "The saga this epic serves:  {purpose}",
+          "description": "The saga link's tooltip, once the page server has said what the saga is for."
         },
         {
           "key": "done",

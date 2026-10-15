@@ -12,7 +12,7 @@ describe("the site header's tabs", () => {
   it("are in Owen's order (epic-workflow J40), each list page its tab's home", () => {
     expect(PROPERTIES.map((property) => property.name)).toEqual([
       "Guides",
-      "Goals",
+      "Sagas",
       "Epics",
       "Epic/UI",
       "Spell/UI",
@@ -23,7 +23,7 @@ describe("the site header's tabs", () => {
     ])
     expect(PROPERTIES.map((property) => property.path)).toEqual([
       "guides/index.html",
-      "goals/index.html",
+      "sagas/index.html",
       "epics/index.html",
       "/epic-ui/",
       "/ui/",
@@ -67,8 +67,11 @@ describe("the site header's tabs", () => {
     // the plan template is a template, not an epic;  the goals templates aren't goals
     ["/templates/epics/plan.html", "Templates"],
     ["/templates/goals/set/index.html", "Templates"],
-    ["/goals/index.html", "Goals"],
-    ["/goals/spell/motivation/motivation.html", "Goals"],
+    // the saga pages, and the parked goal sets under the same tab (epic `epic-workflow` P15)
+    ["/sagas/index.html", "Sagas"],
+    ["/sagas/epics/epics.saga.html", "Sagas"],
+    ["/goals/index.html", "Sagas"],
+    ["/goals/spell/motivation/motivation.html", "Sagas"],
     ["/editor/", "App"],
     // the home and the scratch details pages:  no tab
     ["/pages/index.html", undefined],

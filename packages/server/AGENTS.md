@@ -90,6 +90,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - Each imports the file, never the barrel.
     - `EpicCards.ts`, beside it:  the Epics page's cards.
       - Its groups, a card's star and last-worked date, the favourites file.
+      - Each card's saga label, and the saga chips above the groups (epic `epic-workflow` P15).
+        The sagas come from the caller (`docs index`);  `RunningEpics` takes a running card's saga from the written
+        card's `data-saga*` attributes.
       - The docs' home page and `RunningEpics` draw them alike.
       - Its ONE import is `./EpicState.ts`, by file name, so plain `node` loads it too.
   - `$/server/test/...` -- test helpers (`serveHandler`, `ask`)

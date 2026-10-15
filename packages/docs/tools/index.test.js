@@ -16,10 +16,16 @@ function epic(name, statuses, updated = new Date().toISOString().slice(0, 10)) {
   }
 }
 
-/** A described page at `path`. */
-function page(path) {
-  return { path, title: path, description: "", phases: [], updated: null, future: false, urgent: [] }
+/** A described page at `path`, naming saga `saga`. */
+function page(path, saga = null) {
+  return { path, title: path, description: "", saga, phases: [], updated: null, future: false, urgent: [] }
 }
+
+/** Two sagas, in order. */
+const SAGAS = [
+  { id: "drawable-spell", title: "Drawable Spell", purpose: "Drawn." },
+  { id: "epics", title: "Epic Tooling", purpose: "Epics & co." }
+]
 
 describe("the home page's cards", () => {
   it("come in the top bar's order (epic-workflow J40), counted from the pages", () => {
@@ -37,11 +43,12 @@ describe("the home page's cards", () => {
         page("brand/spell-design-system/Logo.dc.html"),
         page("brand/components/ui-brand-logo.html")
       ],
-      new Set()
+      new Set(),
+      SAGAS
     )
     expect(cards.map((card) => card.title)).toEqual([
       "Guides",
-      "Goals",
+      "Sagas",
       "Epics",
       "Epic/UI",
       "Spell/UI",
@@ -64,6 +71,8 @@ describe("the home page's cards", () => {
     expect(count.guides).toBe("2 guides")
     expect(count.brand).toBe("1 copy · 1 element · 1 page")
     expect(count.templates).toBe("1 template")
+    expect(count.sagas).toBe("2 sagas")
+    expect(cards.find((card) => card.id === "sagas").href).toBe("../sagas/index.html")
     // the App is only on the page server:  no link from disk
     expect(cards.find((card) => card.id === "app").href).toBeUndefined()
   })
@@ -86,7 +95,7 @@ describe("the list pages", () => {
       { ...epic("s", ["done"]), worked: new Date(2026, 9, 9, 14, 34) },
       loud
     ]
-    const html = listSection(epics, pages, new Set(["z", "s"]))
+    const html = listSection(epics, pages, new Set(["z", "s"]), [])
     const groups = Array.from(
       html.matchAll(/<div class="spell-epic-group" data-group="(\w+)"( hidden)?>/g),
       (m) => m[1]
@@ -95,7 +104,7 @@ describe("the list pages", () => {
     const order = Array.from(html.matchAll(/data-epic="(\w+)"/g), (m) => m[1])
     // a starred epic ONLY under Favorites;  paused `p` is Active, marked grey
     expect(order).toEqual(["s", "z", "b", "p", "c", "f", "e", "a"])
-    expect(html).toMatch(/<\/ui-icon>\n<!-- running-epics -->\n<div class="spell-epic-group" data-group="favorites">/)
+    expect(html).toMatch(/<\/div>\n<!-- running-epics -->\n<div class="spell-epic-group" data-group="favorites">/)
     expect(html).toMatch(/<!-- running-epics:end -->\n<\/ui-section>$/)
     expect(html).toContain(`Favorites <span class="spell-epic-group-count">2</span>`)
     expect(html).toContain(`<a href="b/b.plan.html">b</a>`)
@@ -121,6 +130,55 @@ describe("the list pages", () => {
     expect(html).not.toMatch(/sleeping|😴/)
   })
 
+  // epic `epic-workflow` P15
+  it("name each epic's saga on its card, under a row of saga chips in the sagas' order, each with its count", () => {
+    const pages = [
+      { ...epic("a", ["active"]), saga: "epics" },
+      { ...epic("b", ["active"]), saga: "gone" },
+      epic("c", [])
+    ]
+    const html = listSection(epics, pages, new Set(), SAGAS)
+    const chips = Array.from(
+      html.matchAll(
+        /data-saga="([^"]*)" aria-pressed="true" title="[^"]*">([^<]*) <span class="spell-saga-count">(\d+)/g
+      ),
+      (m) => `${m[1] || "-"} ${m[2]} ${m[3]}`
+    )
+    expect(chips).toEqual(["drawable-spell Drawable Spell 0", "epics Epic Tooling 1", "- No saga 2"])
+    expect(html.indexOf("spell-saga-chips")).toBeLessThan(html.indexOf("<!-- running-epics -->"))
+    expect(html).toContain(`data-saga="epics" data-saga-title="Epic Tooling" data-saga-purpose="Epics &amp; co."`)
+    expect(html).toContain(`title="Epics &amp; co.">Epic Tooling</ui-label>`)
+  })
+
+  it("list guides by saga, in the sagas' order, each headed by its saga page's link;  the rest in Misc, last", () => {
+    const html = listSection(
+      guides,
+      [page("guides/a.html", "epics"), page("guides/b/b.html"), page("guides/c.html", "gone")],
+      undefined,
+      SAGAS
+    )
+    expect(Array.from(html.matchAll(/<ui-section id="([\w-]+)"/g), (m) => m[1])).toEqual([
+      "saga-drawable-spell",
+      "saga-epics",
+      "misc"
+    ])
+    expect(html).toContain(`<span slot="header"><a href="../sagas/epics/epics.saga.html">Epic Tooling</a></span>`)
+    expect(html).toMatch(/id="saga-drawable-spell"[\s\S]*No guides name this saga yet[\s\S]*id="saga-epics"/)
+    expect(html).toMatch(
+      /id="saga-epics"[\s\S]*href="a.html"[\s\S]*id="misc"[\s\S]*href="b\/b.html"[\s\S]*href="c.html"/
+    )
+  })
+
+  it("list the sagas in order:  each linking its saga page, its purpose, its epics and guides counted", () => {
+    const sagas = LISTS.find((list) => list.id === "sagas")
+    const pages = [{ ...epic("a", []), saga: "epics" }, page("guides/a.html", "epics"), page("guides/b.html", "epics")]
+    const html = listSection(sagas, pages, undefined, SAGAS)
+    expect(Array.from(html.matchAll(/<ui-card id="([\w-]+)"/g), (m) => m[1])).toEqual(["drawable-spell", "epics"])
+    expect(html).toContain(`<a href="epics/epics.saga.html">Epic Tooling</a>`)
+    expect(html).toContain(`<ui-meta>1 epic · 2 guides · sagas/epics/epics.saga.html</ui-meta>`)
+    expect(listSection(sagas, [], undefined, [])).toContain("No sagas yet")
+  })
+
   it("leave the Brand index's own pages to it, in a section of their own (claude-design P11)", () => {
     const brand = LISTS.find((list) => list.id === "brand")
     const paths = ["brand/pony.html", "brand/compare.html", "brand/spell-design-system/Logo.spell.html"]
@@ -131,7 +189,7 @@ describe("the list pages", () => {
   })
 
   it("say so when an area has no pages", () => {
-    expect(listSection(guides, [])).toContain(`<p class="meta">No guides yet.</p>`)
+    expect(listSection(guides, [], undefined, SAGAS)).toContain(`<p class="meta">No guides yet.</p>`)
   })
 
   it("start from a skeleton:  site header, breadcrumb home, sticky title, the markers", () => {
@@ -146,15 +204,16 @@ describe("the list pages", () => {
   })
 
   it("carry the page notes Owen left in the list over when it's written again (epic airplane P3)", () => {
-    const written = `${START}\n${listSection(guides, [page("guides/a.html")])}\n${END}`.replace(
+    const templates = LISTS.find((list) => list.id === "templates")
+    const written = `${START}\n${listSection(templates, [page("templates/a.html")])}\n${END}`.replace(
       "</ui-section>",
-      `<spell-notes for="guides"><spell-note id="n1" status="new" at="2026-10-10 14:02"><p>Group these?</p></spell-note></spell-notes>\n</ui-section>`
+      `<spell-notes for="templates"><spell-note id="n1" status="new" at="2026-10-10 14:02"><p>Group these?</p></spell-note></spell-notes>\n</ui-section>`
     )
     const again = replaceBetween(
       written,
       START,
       END,
-      listSection(guides, [page("guides/a.html"), page("guides/b.html")])
+      listSection(templates, [page("templates/a.html"), page("templates/b.html")])
     )
     expect(again).toContain(`<a href="b.html">`)
     expect(again).toMatch(
@@ -173,6 +232,7 @@ describe("planOf():  an epic page's card data (epic-components P8)", () => {
     updated: "2026-10-06",
     future: false,
     standing: false,
+    saga: null,
     urgent: ["q1", "i1"]
   }
 
@@ -193,6 +253,6 @@ describe("planOf():  an epic page's card data (epic-components P8)", () => {
     const { document } = parseHTML(`<html><body><time id="plan-updated">2026-10-06</time>
 <ui-section id="phases"><ui-section data-phase="1" data-status="done" header="P1 · First Go"></ui-section></ui-section>
 <ui-list class="plan-items"><ui-item id="q1" data-status="open"></ui-item></ui-list></body></html>`)
-    expect(planOf(document)).toEqual({ phases: [], updated: null, future: false, urgent: [] })
+    expect(planOf(document)).toEqual({ phases: [], updated: null, future: false, saga: null, urgent: [] })
   })
 })
