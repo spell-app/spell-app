@@ -1,88 +1,15 @@
 /*
- * Syntax-choices pages (`templates/syntax-choices.html`), on top of `spell-doc.css`:  the rows' table and the toolbar
- * `syntax-choices.js` draws.
- * - Phone width:  the table scrolls inside its own box (`spell-doc.css`'s `ui-table` rule), never the page.
+ * The spell syntax guide's boxes and bar (`guides/spell-syntax/spell-syntax.html`, `spell-syntax.js`), on top of
+ * `spell-doc.css`:  each box Owen types over, its reset button, and the bar pinned to the window's bottom with the
+ * feedback and Send.
+ * - Before epic `epic-workflow` P12 a choice page drew its tables to this sheet too (`syntax-choices.js`,
+ *   gone):  its rows are the epics pack's `<epic-choice-row>`s now, its bar `<epic-choices-bar>`, styled by their own
+ *   sheets.
  */
-
-/* a section's rule:  which question it answers, the recommended way */
-.spell-choices-rule {
-  margin: 0 0 0.5em;
-  color: var(--spell-muted);
-}
 
 /*******************************
-            Rows
+            Boxes
 *******************************/
-
-/*
- * Fixed columns, so the boxes are always in view on a desktop:  long code wraps inside its cell instead of pushing
- * Recommended off to the right.  Under 720px the table keeps that width and scrolls inside its box.
- */
-.spell-choices-table table {
-  table-layout: fixed;
-  width: 100%;
-  min-width: 720px;
-}
-.spell-choices-table th:nth-child(1) {
-  width: 19%;
-}
-.spell-choices-table th:nth-child(2) {
-  width: 22%;
-}
-.spell-choices-table th:nth-child(3) {
-  width: 27%;
-}
-/* no File column (the data's `fileColumn: false`):  Purpose, a sentence, takes its room */
-.spell-choices-no-file th:nth-child(1) {
-  width: 38%;
-}
-.spell-choices-no-file th:nth-child(2) {
-  width: 30%;
-}
-/* stacked (the data's `stacked: true`):  Purpose, then ONE Syntax column, today's text over the box */
-.spell-choices-stacked.spell-choices-no-file th:nth-child(1) {
-  width: 45%;
-}
-.spell-choices-stacked.spell-choices-no-file th:nth-child(2) {
-  width: auto;
-}
-.spell-choice-was {
-  display: inline-block;
-  margin-bottom: 4px;
-  white-space: pre-wrap;
-}
-.spell-choices-table :is(td, th) {
-  vertical-align: top;
-  overflow-wrap: anywhere;
-}
-
-/* File:  the name and line as a link, its folder under it */
-.spell-choice-link {
-  font: 0.85em/1.4 var(--spell-mono);
-}
-.spell-choice-line {
-  font-variant-numeric: tabular-nums;
-  color: var(--spell-muted);
-}
-.spell-choice-folder {
-  font: 0.72em/1.3 var(--spell-mono);
-  color: var(--spell-muted);
-}
-
-/* Purpose:  a few words or a short sentence, the "stays" tag, the note in small print */
-.spell-choice-note {
-  margin-top: 2px;
-  font-size: 0.8em;
-  line-height: 1.35;
-  color: var(--spell-muted);
-}
-.spell-choice-stays {
-  vertical-align: 1px;
-}
-
-.spell-choice-current code {
-  white-space: pre-wrap;
-}
 
 /* Recommended:  a mono box growing with its text, the reset button beside it once it differs */
 .spell-choice-field {
@@ -106,15 +33,6 @@
 .spell-choice-input:focus {
   outline: 2px solid var(--spell-doc-accent);
   outline-offset: -1px;
-}
-
-/* a box Owen changed:  orange box, an orange edge on the row */
-tr[data-changed] .spell-choice-input {
-  border-color: var(--ui-orange, #f2711c);
-  background: var(--ui-orange-background, light-dark(#fff3e8, #3a2a1c));
-}
-tr[data-changed] > td:first-child {
-  box-shadow: inset 3px 0 0 var(--ui-orange, #f2711c);
 }
 
 /* the round "back to the recommendation" button:  just the icon, grey, the accent on hover */
@@ -200,9 +118,6 @@ tr[data-changed] > td:first-child {
 .spell-choices-saved:not(.spell-choices-failed),
 .spell-choices-meta:not(:has(.spell-choices-failed, ui-button)) {
   display: none;
-}
-.spell-choices-meta > .spell-choices-expand {
-  margin-left: auto;
 }
 .spell-choices-failed {
   color: var(--ui-error-text, var(--ui-red, #db2828));

@@ -8,7 +8,7 @@ core.filter(words, lambda word: len(word) > 3)
 
 - For a plain list, a tuple, text, a dict, or a value nobody knows the kind of:
   where the Python writer knows it has a spell list, it calls the list's own method, or Python's own word.
-- A list's positions are its indexes, counted from 0, as Python counts (plan doc python-target, P23);
+- A list's positions are its indexes, counted from 0, as Python counts (epic page python-target, P23);
   negative ones count from the end.
   - Spell code counting from 1 is turned into indexes as it compiles:  see `positions.py`.
 - A dict is a collection too:  its keys are its positions.

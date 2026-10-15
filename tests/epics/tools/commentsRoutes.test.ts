@@ -1,6 +1,6 @@
 /**
  * Tests of the comments route module on a real page server, over HTTP, in a scratch checkout:
- * comments added, edited and deleted on a guide, the docs home and a worktree's page, and the pages that take none.
+ * comments added, edited and deleted on a guide, the home page and a worktree's page, and the pages that take none.
  */
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
@@ -9,10 +9,11 @@ import { afterAll, beforeAll, expect, test, vi } from "vite-plus/test"
 
 import { PageServer } from "$/server/page"
 import { ask } from "$/server/test/serve"
+import { GuideInbox } from "$/epics/tool/GuideInbox"
+import { ReviewInbox } from "$/epics/tool/ReviewInbox"
 
 import { run } from "../../../packages/epics/tools/comments"
 import commentsRoutes from "../../../packages/epics/tools/commentsRoutes"
-import { GuideInbox } from "../../../packages/epics/tools/GuideInbox"
 
 let root: string
 let server: PageServer
@@ -41,13 +42,16 @@ const PAGES: Record<string, string> = {
   "epics/big/parts/p3.html": PAGE,
   "epics/big/notes.html": PAGE,
   "epics/old/old.html": PAGE,
-  "pages/details/asks.html": PAGE.replace("<p>Body.</p>", '<div class="spell-question">Q1</div>'),
+  "pages/details/asks.html": PAGE.replace("<p>Body.</p>", "<epic-ask><epic-choices></epic-choices></epic-ask>"),
   "pages/details/plain.html": PAGE,
   "templates/durable.html": PAGE,
   "goals/spell/index.html": PAGE,
   // a component set (Epic UI), served at /components/epics/ from its package's docs/
   "packages/epics/docs/epic-item.html": PAGE,
-  "packages/epics/docs/__parts/layout.html": PAGE
+  "packages/epics/docs/__parts/layout.html": PAGE,
+  // epic py's guide:  a page epic py owns (`SeeAlso.ownerOf()`, epic `epic-workflow` P13)
+  "guides/py.html": PAGE,
+  "epics/py/py.plan.html": `<epic-page epic="py" updated="2026-10-13"><a slot="durable" href="../../guides/py.html">Py</a></epic-page>`
 }
 
 /** A comment on the second table of section `model`. */
@@ -56,6 +60,13 @@ const ON_TABLE = { anchor: "model#table-2", kind: "table", label: "1. The model"
 beforeAll(async () => {
   root = mkdtempSync(join(tmpdir(), "comments-routes-"))
   mkdirSync(join(root, ".git"))
+  // a Send may WAKE its epic (P16):  Claude's sessions, VS Code's windows and airplane mode are a scratch folder's,
+  // so a test can never type into a real session or open a real window
+  mkdirSync(join(root, ".home/sessions"), { recursive: true })
+  mkdirSync(join(root, ".home/windows"))
+  process.env.SPELL_CLAUDE_HOME = join(root, ".home")
+  process.env.SPELL_WINDOWS_DIR = join(root, ".home/windows")
+  process.env.SPELL_AIRPLANE_FILE = join(root, ".home/airplane.json")
   for (const [page, html] of Object.entries(PAGES)) {
     mkdirSync(dirname(join(root, page)), { recursive: true })
     writeFileSync(join(root, page), html)
@@ -76,6 +87,9 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
+  delete process.env.SPELL_CLAUDE_HOME
+  delete process.env.SPELL_WINDOWS_DIR
+  delete process.env.SPELL_AIRPLANE_FILE
   await server.stop()
   rmSync(root, { recursive: true, force: true })
 })
@@ -115,6 +129,58 @@ test("adds a comment to the page's INBOX FILE, never the page;  the answer lists
     comments: { cm1: { ...ON_TABLE, text: "Too wide on a phone?", status: "new" } }
   })
   expect(readFileSync(join(root, "guides/solid/solid-2.html"), "utf8")).toBe(PAGE)
+})
+
+// epic `epic-workflow` P13:  a guide's Send, as an epic page's
+test("a docs page's SEND:  its epic, who is listening, what waits;  Send marks them sent;  an epic page has none", async () => {
+  const page = "/guides/py.html"
+  const get = async (path: string) => JSON.parse((await ask(port, "GET", `/api/docs/comments?page=${path}`)).text)
+  expect((await get(page)).send).toEqual({
+    epic: "py",
+    owned: true,
+    listening: null,
+    sent: null,
+    unsent: [],
+    waiting: []
+  })
+  expect((await get("/guides/solid/solid-2.html")).send).toMatchObject({ epic: "guide-changes", owned: false })
+  expect((await get("/epics/big/big.plan.html")).send).toBeUndefined()
+  const added = await post({ page, action: "add", anchor: "page", kind: "page", text: "Say more" })
+  expect(added.answer.send).toMatchObject({ unsent: ["cm1"], waiting: ["cm1"] })
+  ReviewInbox.update(join(root, "epics/py/py.inbox.json"), (box) => box.setListening("session-1"))
+  const sendTo = (body: object) =>
+    ask(port, "POST", "/api/docs/comments/send", { body: JSON.stringify(body), headers: headers() })
+  const sent = await sendTo({ page })
+  expect(sent.status).toBe(200)
+  expect(JSON.parse(sent.text).send).toMatchObject({
+    listening: "session-1",
+    sent: expect.any(String),
+    unsent: [],
+    waiting: ["cm1"]
+  })
+  expect(inboxOf("guides/py.html").sent).toEqual(expect.any(String))
+  expect((await sendTo({ page: "/epics/big/big.plan.html" })).status).toBe(400)
+  expect(
+    (
+      await ask(port, "POST", "/api/docs/comments/send", {
+        body: JSON.stringify({ page }),
+        headers: headers({ "x-server-token": "x" })
+      })
+    ).status
+  ).toBe(403)
+})
+
+// epic `epic-workflow` I12:  a guide's Send wakes its epic as an epic page's does (P16), when nobody listens
+test("Send with nobody listening wakes the page's epic, and says what that did;  a listener:  no wake", async () => {
+  const page = "/guides/py.html"
+  ReviewInbox.update(join(root, "epics/py/py.inbox.json"), (box) => box.setListening(null))
+  await post({ page, action: "add", anchor: "page", kind: "page", text: "Wake up" })
+  const answer = JSON.parse(
+    (await ask(port, "POST", "/api/docs/comments/send", { body: JSON.stringify({ page }), headers: headers() })).text
+  )
+  // no session, no window in the scratch folder:  nothing could be typed;  the page is told what to type
+  expect(answer.wake).toMatchObject({ command: "/epic review py" })
+  expect(answer.wake.message).toEqual(expect.any(String))
 })
 
 test("edits and deletes a new comment;  the last one out takes the file", async () => {
@@ -291,7 +357,7 @@ test("a component set's page, at its address:  its inbox beside it in the set's 
   )
 })
 
-test("a plan doc's comments go in the epic's REVIEW INBOX, beside its marks;  a quote rides along", async () => {
+test("an epic page's comments go in the epic's REVIEW INBOX, beside its marks;  a quote rides along", async () => {
   const page = "/epics/big/big.plan.html"
   const quoted = { ...ON_TABLE, anchor: "p3#field-2", kind: "field", quote: "the inbox file", offset: 14 }
   const { status, answer } = await post({ page, action: "add", ...quoted, text: "which one?" })
@@ -304,7 +370,7 @@ test("a plan doc's comments go in the epic's REVIEW INBOX, beside its marks;  a 
   expect(JSON.parse(read.text)).toMatchObject({ takesComments: true, comments: [{ id: "cm1", status: "new" }] })
 })
 
-test("no comments on a plan doc's parts, details pages with questions, templates, goals, or pages not there", async () => {
+test("no comments on an epic page's parts, details pages with questions, templates, goals, or pages not there", async () => {
   const add = (page: string) => post({ page, action: "add", ...ON_TABLE, text: "x" })
   for (const page of [
     "/epics/big/parts/p3.html",

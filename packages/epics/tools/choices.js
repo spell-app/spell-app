@@ -3,25 +3,26 @@
  * per use site, which Owen goes through one by one:  each row's Recommended box is pre-filled and he types over the
  * ones he'd call differently, then presses "Do it".  For a call too big for a details page's options (P13's ~180
  * boolean names), where each name needs its own context.  Docs:  `guides/syntax-choices.html`.
- * - `new <slug> --rows <rows.json> [--title "..."] [--epic <name>] [--description "..."]` -- a page from
- *   `templates/syntax-choices.html`, plus its rows beside it (`<slug>.rows.json`);  prints the page's path
+ * - `new <slug> --rows <rows.json> [--title "..."] [--epic <name>] [--description "..."]` -- a page from the tool's
+ *   own template (`templates/syntax-choices.html` beside it), its rows written into it as the epics pack's
+ *   `<epic-choice-row>`s (`answerPages.js`), plus the rows beside it (`<slug>.rows.json`);  prints the page's path
  *   - scratch:  `pages/details/<slug>.html`, ignored by version control, swept with the details pages after 14 days
- *   - `--epic <name>`:  `epics/<name>/details/<slug>.html`, kept with the plan doc
+ *   - `--epic <name>`:  `epics/<name>/details/<slug>.html`, kept with the epic page
  * - `show <page> [--wait] [--timeout 8h]` -- show it in THIS session's VS Code side bar (Chrome outside VS Code);
  *   `--wait`:  then `wait`
  * - `wait <page> [--timeout 8h]` -- block until Owen presses "Do it" (an answer NEWER than the wait's start), print
  *   it as plain text, exit 0.  Run it in the BACKGROUND:  its exit wakes the session.  Timeout:  exit 2
  * - `answer <page>` -- print the answer already sent (exit 1 if none)
- * - `list [<epic>]` -- every syntax-choices page:  answered, draft (typed, not sent) or waiting;  with an epic, only
+ * - `list [<epic>]` -- every choice page:  answered, draft (typed, not sent) or waiting;  with an epic, only
  *   that epic's (`epics/<epic>/details/`)
  * - `<page>`:  a slug, `<epic>/<slug>`, or a path, as `spell dev details` takes them
  * - A DOCS page may take choices too, naming its own rows on its `<body data-choices-rows="...">` (`declaredRows()`):
  *   the spell syntax guide (`guides/spell-syntax/spell-syntax.html`), whose rows are generated from the code.
  *   `show`, `wait` and `answer` work on it by its path;  `list` covers only the `details/` folders
  * - Beside the page (`<slug>.html`):
- *   - `<slug>.rows.json` -- the rows (`ChoicesData`, below), written by `new`;  the page fetches it, so it needs the
- *     page server.  Why a file and not rows inlined in the page:  the page can't save without the server anyway,
- *     `answer` / `wait` read plain JSON, and the route knows a choices page by it
+ *   - `<slug>.rows.json` -- the rows (`ChoicesData`, below), written by `new`, beside the same rows in the page:
+ *     `answer` / `wait` read plain JSON, and the route knows a choices page by it (and checks the ids it's sent).
+ *     Before epic `epic-workflow` P12 the page fetched it and drew its tables from it
  *   - `<slug>.draft.json` -- what Owen typed so far, saved by the page every 5s (`choicesRoutes.ts`);  never wakes
  *     anyone
  *   - `<slug>.answer.json` -- what "Do it" sent:  `wait` exits with it
@@ -33,18 +34,8 @@ import { fileURLToPath } from "node:url"
 
 import { parseHTML } from "linkedom"
 
-import {
-  SLUG,
-  attr,
-  duration,
-  findPage,
-  listPages,
-  parseArgs,
-  readAnswer,
-  shown,
-  today,
-  waitForAnswer
-} from "./details.js"
+import { ROWS, TOOL_TEMPLATES, choiceSections, fillHead, fillWords } from "./answerPages.js"
+import { SLUG, duration, findPage, listPages, parseArgs, readAnswer, shown, today, waitForAnswer } from "./details.js"
 import { ROOT, atDepth, openInVSCode, serialize } from "./pages.js"
 
 /** How long `wait` waits by default:  8 hours, as `spell dev details wait`. */
@@ -103,7 +94,7 @@ const USAGE = `usage:  epic choices new <slug> --rows <rows.json> [--title "..."
 ////////////////
 
 /**
- * Write a new syntax-choices page `slug` in checkout `docs` from the template, and its rows beside it;  the page's
+ * Write a new choice page `slug` in checkout `docs` from the template, and its rows beside it;  the page's
  * absolute path.
  * - `data`:  `ChoicesData`, checked (`checkData()`);  `title` / `description` flags beat its own
  * - `epic`:  in that epic's `details/` (the epic must exist);  else the scratch `pages/details/`
@@ -120,42 +111,27 @@ export function createPage(docs, slug, { title, epic, description, data } = {}) 
   for (const each of [file, rowsFile(file)])
     if (existsSync(each)) throw new Error(`${relative(docs, each)} already exists`)
   const depth = relative(docs, folder).split("/").length
-  const { document } = parseHTML(atDepth(readFileSync(join(docs, "templates/syntax-choices.html"), "utf8"), depth))
-  document.querySelector("title").textContent = title
-  document.querySelector("h1").textContent = title
-  const crumb = document.querySelector("ui-breadcrumb-section[active]")
-  if (crumb) crumb.textContent = title
-  const about = description ?? `Syntax choices:  ${title}`
-  document.querySelector('meta[name="description"]').setAttribute("content", about)
-  const asked = document.querySelector("[data-choices-asked]")
-  if (asked) asked.textContent = `Asked:  ${today()}`
+  const template = readFileSync(join(TOOL_TEMPLATES, "syntax-choices.html"), "utf8")
+  const { document } = parseHTML(atDepth(template, depth))
+  fillHead(document, {
+    title,
+    description: description ?? `Syntax choices:  ${title}`,
+    asked: "[data-choices-asked]",
+    date: today()
+  })
   const rowsName = document.querySelector("[data-choices-rows] code")
   if (rowsName) rowsName.textContent = basename(rowsFile(file))
-  fillPage(document, checked)
+  fillWords(document, checked)
+  // the rows, as elements, where the template's example section is
+  const example = [...document.querySelectorAll("ui-section")].find((section) => section.querySelector(ROWS))
+  example?.replaceWith(...choiceSections(document, checked))
   mkdirSync(folder, { recursive: true })
   writeFileSync(file, serialize(document))
   const { sections, rows, fileColumn, stacked } = checked
-  // the layout flags, kept only when they change the default (`syntax-choices.js` reads them)
+  // the layout flags, kept only when they change the default (the migration redraws a page from them:  `migrate.js`)
   const kept = { ...(fileColumn === false && { fileColumn }), ...(stacked === true && { stacked }), sections, rows }
   writeFileSync(rowsFile(file), `${JSON.stringify(kept, null, 2)}\n`)
   return file
-}
-
-/** The page's own words from `data`:  lede, "Asked by", the "Where we are" box. */
-function fillPage(document, data) {
-  const lede = document.querySelector("p.lede")
-  if (lede && data.lede) lede.innerHTML = data.lede
-  const asked = document.querySelector('ui-item[icon="comments"]')
-  if (asked && data.askedBy) asked.innerHTML = `Asked by:  ${data.askedBy}`
-  const where = document.querySelector("ui-message.spell-where ul")
-  if (where && data.where) {
-    const rows = [
-      ["Epic", data.where.epic],
-      ["Just now", data.where.justNow],
-      ["This decides", data.where.decides]
-    ].filter(([, text]) => text)
-    where.innerHTML = rows.map(([label, text]) => `<li><b>${label}:</b>  ${text}</li>`).join("")
-  }
 }
 
 /**
@@ -170,8 +146,11 @@ export function checkData(data) {
     throw new Error(`rows:  fileColumn is true or false:  ${json(data.fileColumn)}`)
   if (data.stacked !== undefined && typeof data.stacked !== "boolean")
     throw new Error(`rows:  stacked is true or false:  ${json(data.stacked)}`)
-  for (const section of sections)
+  for (const section of sections) {
     if (!section?.id || !section.title) throw new Error(`rows:  a section needs an id and a title:  ${json(section)}`)
+    if (section.reorder !== undefined && typeof section.reorder !== "boolean")
+      throw new Error(`rows:  a section's reorder is true or false:  ${json(section)}`)
+  }
   const known = new Set(sections.map((section) => section.id))
   if (!Array.isArray(data.rows) || !data.rows.length) throw new Error("rows:  no rows")
   const ids = new Set()
@@ -204,14 +183,14 @@ function findFile(path) {
   return found
 }
 
-/** The syntax-choices page `target` names (`findPage()`), refusing a details page. */
+/** The choice page `target` names (`findPage()`), refusing a details page. */
 export function findChoicesPage(docs, target) {
   const file = findPage(docs, target)
-  if (!isChoicesPage(file)) throw new Error(`not a syntax-choices page (no ${basename(rowsFile(file))}):  ${file}`)
+  if (!isChoicesPage(file)) throw new Error(`not a choice page (no ${basename(rowsFile(file))}):  ${file}`)
   return file
 }
 
-/** Is `page` a syntax-choices page:  are its rows beside it, or does it name them (`declaredRows()`)? */
+/** Is `page` a choice page:  are its rows beside it, or does it name them (`declaredRows()`)? */
 export function isChoicesPage(page) {
   return existsSync(rowsFile(page)) || !!declaredRows(page)
 }
@@ -282,6 +261,7 @@ export function formatAnswer(page, answer) {
     }
   }
   if (!changed.length) lines.push("    (none)")
+  lines.push(...formatOrder(sections, rows, answer.order ?? {}))
   const unknown = Object.keys(values).filter((id) => !rows.some((row) => row.id === id))
   if (unknown.length) lines.push(`  Rows no longer on the page, ignored:  ${unknown.join(", ")}`)
   const accepted = rows.filter((row) => !(row.id in values))
@@ -291,6 +271,30 @@ export function formatAnswer(page, answer) {
   )
   lines.push(answer.feedback ? `  Feedback:\n${indent(answer.feedback, "    ")}` : "  Feedback:  (none)")
   return lines.join("\n")
+}
+
+/**
+ * The order Owen left each reorderable section's rows in (`reorder: true`), as lines for `formatAnswer()`:  "as
+ * proposed", or the rows in his order, each with its place in Claude's (`was 3`).
+ * - a section the answer has no order for:  as proposed;  a row it doesn't name:  after the rest, in Claude's order
+ */
+export function formatOrder(sections, rows, order) {
+  const lines = []
+  for (const section of sections.filter((each) => each.reorder)) {
+    const proposed = rows.filter((row) => row.section === section.id)
+    const named = (order[section.id] ?? []).flatMap((id) => proposed.filter((row) => row.id === id))
+    const now = [...named, ...proposed.filter((row) => !named.includes(row))]
+    if (now.every((row, i) => row === proposed[i])) {
+      lines.push(`  Order of ${section.title}:  as proposed`)
+      continue
+    }
+    lines.push(`  Order of ${section.title} (Owen moved rows):`)
+    now.forEach((row, i) => {
+      const was = proposed.indexOf(row)
+      lines.push(`    ${i + 1}. ${row.id}  ${row.recommended}${was === i ? "" : `  (was ${was + 1})`}`)
+    })
+  }
+  return lines
 }
 
 /**
@@ -350,8 +354,11 @@ async function waitAndPrint(file, flags) {
  * - `stacked`:  `true` puts Current and Recommended in one Syntax column, today's text over the box (Owen, 2026-10-11,
  *   the epic command's review page).  Default:  two columns
  * - `where`:  `{ epic, justNow, decides }`, the "Where we are" box, as a details page's
- * - `sections[]`:  `{ id, title, description? }`, in page order;  `description`:  one line saying which question it
- *   answers and the recommended rule;  `` `code` `` in it is shown as code
+ * - `sections[]`:  `{ id, title, description?, icon?, reorder? }`, in page order;  `description`:  one line saying
+ *   which question it answers and the recommended rule;  `` `code` `` in it is shown as code
+ *   - `reorder`:  `true` lets Owen put its rows in order (epic `epic-workflow` P15):  each row gets its place and move
+ *     up / move down;  the order he leaves goes with the draft and "Do it" (`order`, by section id), and `answer`
+ *     prints it.  Its rows start in the data's order, Claude's proposal
  * - `rows[]`:  `{ id?, section, file, line, purpose, current, recommended, note? }`
  *   - `file`:  repo-relative;  `line`:  1-based, current at the branch's HEAD:  the page links `file:line` into VS Code
  *   - `purpose`:  what it's for, in words a reader new to it follows:  1-3 words for a name, or a short sentence

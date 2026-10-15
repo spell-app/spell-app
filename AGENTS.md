@@ -69,7 +69,7 @@ Each folder links to its own `AGENTS.md`:  read it before working there.
 | [spell-solid](packages/spell-solid/AGENTS.md) | `@spell-app/spell-solid` | `$/spell-solid` | `E` | what makes a custom element on Solid, for EVERY set's elements (Spell UI's, the epics', the app's, the brand's):  the component and DOM element bases, the reactive members' decorators, shadow events, hot reloading;  Spell UI's `core` carries it (below) |
 | [ui](packages/ui/AGENTS.md) | `@spell-app/ui` | `$/ui` | | Fomantic UI reborn as `ui-*` custom elements, on Solid 2, written on `$/spell-solid` |
 | [cli](packages/cli/AGENTS.md) | `@spell-app/cli` | `$/cli` | `CLI` | the `spell` command-line tool, running the spell-family packages' SOURCE through `tsx`;  see its [README](packages/cli/README.md) too |
-| [epics](packages/epics/AGENTS.md) | `@spell-app/epics` | `$/epics` | `EP` | plan docs' `<epic-*>` elements (a component pack), their docs pages (Epic UI, `docs/`, at `/components/epics/`) and their tool, `epic`;  AND every docs page's tooling:  `tools/`, the docs scripts and the `_assets` every page loads (tracked, versioned per branch) |
+| [epics](packages/epics/AGENTS.md) | `@spell-app/epics` | `$/epics` | `EP` | epic pages' `<epic-*>` elements (a component pack), their docs pages (Epic UI, `docs/`, at `/components/epics/`) and their tool, `epic`;  AND every docs page's tooling:  `tools/`, the docs scripts and the `_assets` every page loads (tracked, versioned per branch) |
 | [server](packages/server/AGENTS.md) | `@spell-app/server` | `$/server` | `SRV` | serving pages locally (below) |
 | [assembler](packages/assembler/AGENTS.md) | `@spell-app/assembler` | `$/assembler` | `AS` | assembling pages, for every tool that writes them (below) |
 | [brand](packages/brand/AGENTS.md) | `@spell-app/brand` | `$/brand` | | Spell's brand, the site header's Brand tab (below);  its `<brand-*>` elements (a component pack) and their docs pages (Brand UI, `docs/`, at `/components/brand/`) |
@@ -102,12 +102,12 @@ More on some of them:
 - epics:  the docs pages' tooling, since the docs package went into it (epic `people-and-orgs` P16, Q23).
   - The pages themselves are SHARED root folders, tracked by no package (see "Shared content").
   - `epics/`, `guides/`, `templates/`
-  - `pages/`:  the docs home, [the docs index](pages/index.html)
+  - `pages/`:  [the docs' home page](pages/index.html)
   - Its route modules answer under `/api/epics/` (review, agents, running, favorite, new) and `/api/docs/`
     (details, choices, comments, show).
 - server:  static folders, an Express-shaped router, live reload, ports, openers, a file lock.
   - And the ONE page server per checkout (`spell dev server`),
-    which serves docs, epics, goals and Spell UI docs.
+    which serves docs, epics, the parked saga pages and Spell UI's docs site.
   - Every call is under `/api/`, one prefix per package that answers it.
     - The server's own:  `/api/server` and `/api/files`.
     - Its page editor's:  `/api/pages`.
@@ -165,7 +165,7 @@ ui -> util
 - `server` is a LEAF (node built-ins only, imports no package).
   - ANY package may import it, `ui`'s tools too.
 - `assembler` is node-only and imports no package (it uses linkedom and oxfmt).
-  - epics (its docs tools and its plan-doc tool) imports it.
+  - epics (its docs tools and its `epic` tool) imports it.
   - Any other node-side package or tool may import it too.
 - The ONE exception:  `ui` ships spell's highlighter PRE-COMPILED.
   - It's a committed bundle per language:  [`spell.<lang>.js`](packages/ui/src/languages/).
@@ -194,6 +194,22 @@ ui -> util
   - `$` means the packages folder, so ui is `$/ui` like the rest.
   - That can't collide with an npm package name (`@spell-app/...`, `solid-js`),
     the way a bare name could.
+
+## Words
+
+- Each kind of page has ONE name (Owen, 2026-10-14, epic `epic-workflow` P14).
+  - Write these, in docs, skills, comments, labels and messages:
+    epic page, saga page, details page, review page, choice page, guide, cheatsheet, commands page,
+    components page, components guide, brand page, home page, list page, changelog, template.
+  - What each one is, and where it lives:  "Page kinds" in [epics' AGENTS.md](packages/epics/AGENTS.md).
+- Owen still says the older words.  Read them as the new ones, but write the new ones:
+  - "plan doc", "epic doc" -- the epic page
+  - "epic name" -- the epic id (its folder, `epics/<epic-id>/`)
+  - "durable doc" -- the epic's guide;  "syntax-choices page" -- a choice page;
+    "analysis page" -- a review page;  "docs index", "docs home" -- the home page;
+    "goal", "goals page" -- a saga (an epic of epics), a saga page
+- Names only code reads keep the old words:  `<epic-id>.plan.html`, `PlanDoc`, `plan-doc.md`,
+  the `spell dev plan-doc` spelling.  So do the record:  log entries, quotes, commit messages.
 
 ## Worktrees
 
@@ -278,9 +294,9 @@ ui -> util
   - `yarn window` couldn't:  yarn runs no script there before `yarn install`.
 - A doc shown while the move is pending waits, then shows beside the session in the window it moved to.
   - That's `epic open <name> --review` or `spell dev window show`.
-- A running epic's plan doc is shared (see "Shared content"):  ONE file, the same in every checkout.
+- A running epic's epic page is shared (see "Shared content"):  ONE file, the same in every checkout.
   - So the MAIN checkout's page server shows it too,
-    listed in the docs index's Epics section with the merged ones.
+    listed on the Epics list page with the merged ones.
   - `spell dev server url` gives that URL ([the page server guide](guides/server.html), "Running epics").
 - NEVER `code --add` / `--remove`:
   they act on the focused window, and a one-folder window restarts its extensions, Claude panel included.
@@ -328,19 +344,20 @@ ui -> util
   - Epic `shared-content` made them, live since 2026-10-04.
   - Epic `claude-design` P4 split them into root folders, 2026-10-05.
 - The folders:
-  - `epics/` -- plan docs, one folder per epic, its page `<name>.plan.html`, with their inboxes and details pages
+  - `epics/` -- epic pages, `epics/<name>/<name>.plan.html`, with their inboxes and details pages
   - `guides/` -- every other docs page ([the Solid 2 guide](guides/solid/solid-2.html), say),
     with its Markdown, JSON and `experiments/`
   - `templates/` -- one starting point per kind of page
-  - `pages/` -- [the docs home](pages/index.html), and the scratch details pages, `pages/details/`
+  - `pages/` -- [the docs' home page](pages/index.html), and the scratch details pages, `pages/details/`
   - `ui/` -- Spell UI's hand-written docs pages (claude-design P6), LEFT for the other checkouts.
     - Since epic `people-and-orgs` P18 they're in [ui's docs/](packages/ui/docs/), served at `/components/ui/`.
     - This branch's page server answers "not found" for `/ui/`;  the merge removes the folder (that epic's T3).
   - `brand/` -- the Brand tab's pages ([brand's AGENTS.md](packages/brand/AGENTS.md)):
     Claude Design's exports and their Spell UI copies
-  - `goals/` -- the goal sets, PARKED since 2026-10-11 (epic `epic-workflow` P6):  read only, buttons saying TODO.
+  - `goals/` -- the saga pages (once goal sets), PARKED since 2026-10-11 (epic `epic-workflow` P6):
+    read only, buttons saying TODO.
     Their tooling is in `packages/goals.zip`;
-    epic `epic-goals` rebuilds it ([the goals guide](guides/goals/goals.html)).
+    epic `epic-goals` rebuilds it ([the parked sagas guide](guides/goals/goals.html)).
   - `agents/` -- one copy of the rules for every branch:
     - the three logs:
       [PAPERCUTS.md](agents/PAPERCUTS.md), [SUSPECTED-BUGS.md](agents/SUSPECTED-BUGS.md),
@@ -441,8 +458,8 @@ ui -> util
   - Its markup:  `<ui-section id="<epic or worktree name>" header="YYYY-MM-DD · Title">`.
   - The page's header comment has the markup in full.
   - Inside, a `spell-meta` list with LINKS:
-    - the plan doc:  `epics/<name>/<name>.plan.html`, with `target="<name>"`
-    - the durable doc
+    - the epic page:  `epics/<name>/<name>.plan.html`, with `target="<name>"`
+    - the guide
     - the branch
   - Then EVERYTHING it shipped, one bullet each, by phase when there are phases -- not a summary.
 - Then finish the page as [epics' AGENTS.md](packages/epics/AGENTS.md) says ("Finishing a page"),

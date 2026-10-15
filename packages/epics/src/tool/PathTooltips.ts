@@ -2,7 +2,7 @@ import { PlanMarkup } from "./PlanMarkup"
 
 /****************
  * ### `PathTooltips`
- * A name and the file it's in, handed to the plan-doc tool as HTML, made ONE name with the path as its tooltip:
+ * A name and the file it's in, handed to the epic tool as HTML, made ONE name with the path as its tooltip:
  * `<code title="packages/spell/src/node/buildTsx.ts:40">buildTsx()</code>`
  * (WWOD §6 › "Plain text, plain paths", epic `airplane`).
  * The tool's linker then links the name to the file, so a click still opens it.

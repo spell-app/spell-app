@@ -7,7 +7,7 @@ import { lists } from "./lists.parser"
  * -- for `it is diamonds or hearts` (`is_in`):  the same as `it is one of diamonds or hearts`.
  * - Only known constants and numbers:  `x is red or y is 2` stays two comparisons.
  * - Fixes `its suit is diamonds or hearts`, which compiled to `(this.suit == 'diamonds') || 'hearts'`:  always
- *   true (plan doc `outline-spell`, P2;  was `agents/SUSPECTED-BUGS.md`).
+ *   true (epic page `outline-spell`, P2;  was `agents/SUSPECTED-BUGS.md`).
  */
 export class ValueChoices extends IdentifierList {
   parse(scope: P.Scope, tokens: P.Token[]) {

@@ -17,13 +17,13 @@ import {
 /****************
  * ### `<spell-site-header>`
  * The fixed bar on top of every page of the site, with a tab to switch to each of its parts:
- * docs, plan docs, goals, the component sets (Epic UI, Spell UI, App UI), the editor.
+ * docs, epic pages, goals, the component sets (Epic UI, Spell UI, App UI), the editor.
  * Each part is a PROPERTY (`SiteProperty`, `PROPERTIES`):  a part with its own home page.
  * - In each page and template, right after `<body>`, with `root` = the path from the page to the repo root:
  *   `<spell-site-header root="../.."></spell-site-header>`.
  *   - from `file://`:  its links stay relative
  *   - served by the page server:  they're absolute, and server-only properties (Epic/UI, Spell/UI, App, App/UI) turn on
- * - Brand:  the hat mark (`LOGO_MARK`), a link to the docs home (`SITE_HOME`), which lights no tab.
+ * - Brand:  the hat mark (`LOGO_MARK`), a link to the home page (`SITE_HOME`), which lights no tab.
  * - Also shows:
  *   - no breadcrumb (Owen, 2026-10-10:  "We don't need the breadcrumb in the spell doc toolbar"):  the lit tab says
  *     where the page is, the page's own title what it is

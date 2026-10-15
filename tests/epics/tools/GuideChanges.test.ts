@@ -7,10 +7,10 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterAll, describe, expect, test, vi } from "vite-plus/test"
 
+import { GuideInbox } from "$/epics/tool/GuideInbox"
 import { PlanDocFiles } from "$/epics/tool/PlanDocFiles"
 
 import { GuideChanges } from "../../../packages/epics/tools/GuideChanges"
-import { GuideInbox } from "../../../packages/epics/tools/GuideInbox"
 
 /** A guide, its `<title>` carrying a site suffix, with a page note not yet answered. */
 const GUIDE = `<!doctype html>
@@ -33,7 +33,7 @@ mkdirSync(join(root, "epics"))
 mkdirSync(join(root, "guides", "memory"), { recursive: true })
 writeFileSync(join(root, "guides", "memory", "memory.html"), GUIDE)
 writeFileSync(join(root, "guides", "plain.html"), GUIDE.replace(/<spell-notes[\s\S]*<\/spell-notes>/, ""))
-// the scratch checkout has no docs tools:  the docs index isn't rebuilt, and says so on stderr
+// the scratch checkout has no docs tools:  the home page isn't rebuilt, and says so on stderr
 vi.spyOn(process.stderr, "write").mockImplementation(() => true)
 
 afterAll(() => rmSync(root, { recursive: true, force: true }))
@@ -95,5 +95,19 @@ describe("GuideChanges.gather()", () => {
       /<epic-update[^>]*summary="1 comment more from Owen"[^>]*>[\s\S]*1 comment more from Owen[\s\S]*And the second table\?/
     )
     expect(other).toBe("cm1")
+  })
+
+  // epic `epic-workflow` P13:  a page an epic owns sends its comments to that epic, never into guide-changes
+  test("a page another epic owns is left out;  named, it's gathered all the same", async () => {
+    mkdirSync(join(root, "epics", "py"), { recursive: true })
+    writeFileSync(
+      join(root, "epics", "py", "py.plan.html"),
+      `<epic-page epic="py" updated="2026-10-13"><a slot="durable" href="../../guides/owned.html">Owned</a></epic-page>`
+    )
+    writeFileSync(join(root, "guides", "owned.html"), GUIDE.replace(/<spell-notes[\s\S]*<\/spell-notes>/, ""))
+    comment("guides/owned.html", "Whose is this?")
+    expect(changes.waiting()).toEqual([])
+    expect(await changes.gather()).toEqual([])
+    expect(changes.waiting(["guides/owned.html"]).map((page) => page.comments.length)).toEqual([1])
   })
 })

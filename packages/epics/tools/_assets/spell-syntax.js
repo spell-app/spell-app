@@ -44,7 +44,7 @@
   const CHOICES_API = "/api/docs/choices"
   /** Where comments go (`commentsRoutes.ts`). */
   const COMMENTS_API = "/api/docs/comments"
-  /** How long after the last change the draft is saved, in ms:  as a syntax-choices page. */
+  /** How long after the last change the draft is saved, in ms:  as a choice page. */
   const SAVE_DELAY = 5000
   /** The writers, in the Syntax column's order. */
   const WRITERS = ["js", "ts", "py"]

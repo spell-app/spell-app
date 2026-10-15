@@ -15,7 +15,7 @@ import { tracked } from "$/app/solid"
  *   the dropdown draws it from its attributes and text (`icon` included).
  *   Keep `title` TEXT:  an item with element children is a "rich" option.
  * - Reactivity is the caller's:  pass values read from `tracked()` accessors (see `Actions`).
- * - SEE:  its App UI page, `packages/app/docs/Actions.html` (`/components/app/Actions.html`).
+ * - SEE:  its App UI components page, `packages/app/docs/Actions.html` (`/components/app/Actions.html`).
  ****************/
 export function Action(props: ActionProps) {
   const rest = omit(props, "title", "button", "icon", "active")

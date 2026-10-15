@@ -21,7 +21,7 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  * - then a row per agent, each with a note box that REDIRECTS it
  * - it FOLDS from its title, like every titled box (Owen, 2026-10-08);  open to start with:  it's live news
  * - shown ONLY while an agent runs and the page's `AgentsClient` is `listed`
- *   (a plan doc served with a token, the list answering)
+ *   (an epic page served with a token, the list answering)
  * - in the page's shadow root, NOT a section:
  *   the contents, the rail and the counts never see it (they read the light DOM)
  * - one row per agent, KEYED by name (`row()`):

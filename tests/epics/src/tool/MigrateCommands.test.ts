@@ -187,13 +187,14 @@ describe("migrate:  the runner", () => {
       "epic 2026-10-11 updates-as-epic-update",
       "epic 2026-10-11 owen-types-to-you-type",
       "epic 2026-10-11 links-agree",
-      expect.stringMatching(/cheatsheet.* 2026-10-02 ui-section$/)
+      expect.stringMatching(/cheatsheet.* 2026-10-02 ui-section$/),
+      expect.stringMatching(/detail,choice.* 2026-10-14 answer-elements$/)
     ])
   })
 })
 
 describe("migrate:  kinds", () => {
-  test("a kind's words:  `epic` and epic names;  another kind with names is refused;  --notify only for epics", () => {
+  test("a kind's words:  `epic` and epic ids;  another kind with names is refused;  --notify only for epics", () => {
     expect(MigrateCommands.parse(["seo", "docs"], {})).toEqual({ kind: "epic", names: ["seo", "docs"] })
     expect(MigrateCommands.parse(["epic", "seo"], {})).toEqual({ kind: "epic", names: ["seo"] })
     expect(MigrateCommands.parse(["cheatsheet"], {})).toEqual({ kind: "cheatsheet", names: [] })
@@ -204,8 +205,8 @@ describe("migrate:  kinds", () => {
   })
 
   test("another kind runs the docs tool's steps (a kind without any says so)", async () => {
-    expect(await commands().run(["migrate", "detail"])).toBe(0)
-    expect([printed, warned]).toEqual([["detail pages:  no steps for them yet"], []])
+    expect(await commands().run(["migrate", "brand"])).toBe(0)
+    expect([printed, warned]).toEqual([["brand pages:  no steps for them yet"], []])
   })
 })
 

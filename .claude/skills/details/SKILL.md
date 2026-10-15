@@ -56,8 +56,8 @@ Dense, terse pages make him ask "what do you mean?" (2026-10-03), so:
      - The data:  title, lede, "Where we are", context, questions and their options.
      - Its shape:  `DetailsSpec`, in [details.js](packages/epics/tools/details.js).
      - `/worktrees` and `/bedtime` use it.
-   - In an epic (a plan doc this session keeps):  add `--epic <name>`.
-     - The page goes in `epics/<name>/details/`, beside the plan doc
+   - In an epic (an epic page this session keeps):  add `--epic <name>`.
+     - The page goes in `epics/<name>/details/`, beside the epic page
        (shared content, committed for you at the turn's end).
      - The decision it leads to links it.
    - Else scratch:  `pages/details/`.
@@ -72,34 +72,56 @@ Dense, terse pages make him ask "what do you mean?" (2026-10-03), so:
      - Page widgets:  [epics' AGENTS.md](packages/epics/AGENTS.md), "Writing a page"
        (tables, code folded, pros / cons, steps ...).
      - Icons only from `ICONS`, in [bundle-spell-ui.js](packages/epics/tools/bundle-spell-ui.js).
-   - one `ui-section.spell-question` per question, ids `q1`, `q2` ..., header `Q1 · Short question`:
+   - one `<ui-section>` per question, ids `q1`, `q2` ..., header `Q1 · Short question`, holding an `<epic-ask>`:
+     the epics pack's elements, an epic page's question (epic `epic-workflow` P12;  each has its page in Epic UI,
+     `/components/epics/`):
 
      ```html
-     <ui-section id="q1" class="spell-question" header="Q1 · Which card layout?" sticky collapsible dividing>
+     <ui-section id="q1" header="Q1 · Which card layout?" sticky collapsible dividing>
        <ui-icon slot="icon" name="circle question"></ui-icon>
-       <p>The question in full, one or two lines.</p>
-       <div class="spell-option" data-option="A" data-title="Stacked cards" data-recommended>
-         <p>One line:  what changes, why recommended.</p>
-         <div class="spell-option-details"><!-- folded:  table, code, picture --></div>
-       </div>
-       <div class="spell-option" data-option="B" data-title="Side by side">
-         <p>One line:  what changes, its cost.</p>
-       </div>
+       <epic-ask>
+         <epic-question><p>The question in full, one or two lines.</p></epic-question>
+         <epic-choices>
+           <epic-option letter="A" title="Stacked cards" recommended>
+             <p>One line:  what changes, why recommended.</p>
+             <epic-aside title="Details"><!-- folded:  table, code, picture --></epic-aside>
+           </epic-option>
+           <epic-option letter="B" title="Side by side">
+             <p>One line:  what changes, its cost.</p>
+           </epic-option>
+         </epic-choices>
+       </epic-ask>
      </ui-section>
      ```
 
-     - letters `A`, `B` ...;  the recommended one FIRST, with `data-recommended`
-     - `data-title`:  2-5 words
-     - the summary:  one line;  everything longer in `.spell-option-details` (it folds)
-     - pick several:  `data-multiple` on the section (checkboxes);  else pick one (radios)
-     - The page's script, `_assets/details.js`, adds the rest:
-       - every question gets an "Other" box
-       - every other section with no section inside it, a comment box
-       - the page, a notes box
-       - its sticky header, Send
+     - letters `A`, `B` ...;  the recommended one FIRST, with `recommended`
+     - `title`:  2-5 words
+     - the summary:  one line;  everything longer in an `<epic-aside title="Details">` (it folds)
+     - pick several:  `multiple` on the `<epic-ask>` (tick boxes);  else pick one (round ones)
+     - The elements draw the rest:
+       - each option, its tick box and a comment box;  each question, an "Other" box and its state chip
+       - Send, in the sticky header (`<epic-send>`, in the template)
+     - Written into the page (the template has them):  a comment box last in every other section with no section
+       inside it, `<epic-text-box for="<section id>">`;  the page's notes after the last question,
+       `<epic-text-box type="notes">`
      - The page NEVER locks:  Owen sends partial answers, and sends again whenever he likes (2026-10-08).
-   - a picture page:  delete the question sections;  nothing to send
+   - a picture page:  delete the question sections and `<epic-send>`;  nothing to send
 3. Epic page:  `yarn vp fmt <page>` once it's written.
+
+### Rewriting a page Owen may have open
+
+- What he typed and picked and hasn't sent is a DRAFT beside the page, `<slug>.draft.json`
+  (epic `epic-workflow` P18):  saved a moment after each change, and in his browser too.
+  - Your rewrite reloads the page (or patches it in place);  the draft comes back into it, by question / option /
+    section id, over what he sent, and Send says "Changes not sent".
+  - Text whose id your rewrite REMOVED is never dropped:  it shows in a box of its own above the notes,
+    "Kept from before the page changed", and goes with his next Send (`Kept from before the page changed:` in the
+    answer).
+- So, BEFORE rewriting:  `epic ask draft <slug>`.
+  - It prints what's typed and not sent (exit 1:  nothing), as an answer reads.
+  - Take it into account:  keep the ids of questions he's typing in;  a new question gets a NEW id, not a reused
+    one, so his text never lands on a question it wasn't written for.
+  - It's not an answer:  don't act on it as one.  He sends when he's ready.
 
 ## 3. Show it, and wait
 
@@ -112,7 +134,7 @@ Dense, terse pages make him ask "what do you mean?" (2026-10-03), so:
 
 ## Links to pages
 
-Any page you name to Owen (a details page, a plan doc, any docs page):
+Any page you name to Owen (a details page, an epic page, any docs page):
 `spell dev docs link <page> --hash <id> --show`, and paste what it prints.
 - It shows the page in this session's side bar NOW (`--show`), and prints two links:
   - the title opens it in the side bar (again)
@@ -145,6 +167,8 @@ Any page you name to Owen (a details page, a plan doc, any docs page):
   - "(new)":  changed since his send before.
     Act on those;  the rest you've seen.
   - comments:  answer each (in chat, or on the page when it's a fix to the page)
+  - "Kept from before the page changed":  what he typed for questions or sections a rewrite removed (P18), under
+    their old titles and ids;  read each against the page as it is now, and act on it as a comment
 - A PARTIAL answer (anything "not decided yet"):  act on what's there, then wait again at once.
   - `epic ask wait <slug>`, Bash `run_in_background: true`:  every Send wakes you.
   - Stop once every question is decided, or Owen says he's done.
@@ -173,6 +197,7 @@ new <slug> [--title "..."] [--epic <name>] [--description "..."] [--from <spec.j
 show <page> [--wait] [--timeout 8h]        in this session's side bar (Chrome outside VS Code);  then wait
 wait <page> [--timeout 8h]                 until a NEW answer;  prints it, exit 0;  timeout:  exit 2
 answer <page>                              the answer already sent (exit 1:  none)
+draft <page>                               what's typed and not sent (exit 1:  nothing);  read it before a rewrite
 list                                       every details page, answered or waiting
 sweep [--days 14]                          delete old scratch pages and answers;  never an epic's
 ```

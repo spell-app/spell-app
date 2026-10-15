@@ -6,8 +6,8 @@ import { DocReading, type ElementReading } from "./DocReading"
 
 /****************
  * ### `NewReading`
- * A plan doc in `<epic-*>` markup, read for `ConversionProof`:  its ids, links and visible text, the text the elements
- * draw from their attributes included (an item's `title`, a reply's `from` / `at` / `re` ...).
+ * An epic page in `<epic-*>` markup, read for `ConversionProof`:  its ids, links and visible text,
+ * the text the elements draw from their attributes included (an item's `title`, a reply's `from` / `at` / `re` ...).
  * - Reads an ASSEMBLED doc (`EpicParts.assemble()`).
  * - Draws only what the old markup wrote as text:  not a phase's status icon, nor a chip's `Q7` (the old reading
  *   leaves those out too);  the links it draws are the chips' (`#q7`) and the commits' (`<repo>/commit/<sha>`).

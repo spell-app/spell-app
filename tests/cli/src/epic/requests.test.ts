@@ -64,7 +64,7 @@ describe("sendRequest()", () => {
       text: 'the "comment" box covers the text',
       from: "sender11",
       images: 2,
-      context: "epic python's plan doc, P4",
+      context: "epic python's epic page, P4",
       home: HOME
     })
     expect(sent.request).toMatchObject({ id: "r1", status: "new", images: ["image-1.png", "image-2.jpg"] })
@@ -74,7 +74,7 @@ describe("sendRequest()", () => {
     expect(readFileSync(join(sent.folder, "image-2.jpg"), "utf8")).toBe("blue pixel")
     const markdown = readFileSync(join(sent.folder, "request.md"), "utf8")
     expect(markdown).toContain('## Owen\'s words\n\nthe "comment" box covers the text\n')
-    expect(markdown).toContain("## Context\n\nepic python's plan doc, P4\n")
+    expect(markdown).toContain("## Context\n\nepic python's epic page, P4\n")
   })
 
   test("numbers each request after the highest one there", () => {
@@ -88,7 +88,7 @@ describe("sendRequest()", () => {
     expect(readFileSync(join(sent.folder, "image-1.jpg"), "utf8")).toBe("blue pixel")
   })
 
-  test("refuses an epic with no plan doc, and more images than were pasted", () => {
+  test("refuses an epic with no epic page, and more images than were pasted", () => {
     expect(() => CLI.sendRequest({ root: ROOT, epic: "nope", text: "x", home: HOME })).toThrow(/no epic 'nope'/)
     expect(() =>
       CLI.sendRequest({ root: ROOT, epic: "tooling", text: "x", from: "sender11", images: 5, home: HOME })
@@ -140,7 +140,7 @@ describe("requestHTML()", () => {
 })
 
 describe("epicHome() and setEpicHome()", () => {
-  test("none until set;  only an epic with a plan doc", () => {
+  test("none until set;  only an epic with an epic page", () => {
     expect(CLI.epicHome(ROOT)).toBeNull()
     expect(() => CLI.setEpicHome(ROOT, "nope")).toThrow(/no epic 'nope'/)
     CLI.setEpicHome(ROOT, "tooling")

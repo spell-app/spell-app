@@ -3,7 +3,7 @@
  * The state filter's click rule, shared by a section's chips (`<epic-section>`) and the page's (`<epic-page>`'s
  * toolbar, which filters every section at once).
  * - Pure:  states in, states out;  no DOM, no Solid.
- * - The docs runtime's filter (`spell-doc-runtime.js` `nextShown()`, the Epics index) is the same rule, restated:
+ * - The docs runtime's filter (`spell-doc-runtime.js` `nextShown()`, the Epics list page) is the same rule, restated:
  *   it can't import the pack.
  ****************/
 export class StateFilter {

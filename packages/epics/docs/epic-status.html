@@ -55,7 +55,7 @@
           <!-- no <ui-list class="spell-meta">:  its <ui-item>s take the "item" style sheet before the pack's
                <epic-item> can, and the live items draw unstyled (issue I9 of epic-components) -->
           <p class="meta">
-            For anyone reading or writing a plan doc's markup, or changing this element.<br />
+            For anyone reading or writing an epic page's markup, or changing this element.<br />
             <ui-label size="mini" color="green">built</ui-label> in
             <a href="../../packages/epics/components/epic-status/" target="src-packages-epics-components-epic-status"
               ><code title="packages/epics/components/epic-status/">epic-status/</code></a
@@ -77,7 +77,7 @@
             <p>Live: the real element, drawn by the epics pack this page loads.</p>
             <ul>
               <li>Click a line to unfold it.</li>
-              <li>The review buttons don't show here: they show only on a plan doc being reviewed.</li>
+              <li>The review buttons don't show here: they show only on an epic page being reviewed.</li>
             </ul>
             <p>
               An underway card (the item's chip blue: Claude is working on it), then test V1 of the
@@ -348,7 +348,7 @@
             <p>
               The colours mean the same on every doc page: the whole scheme is on
               <a href="../../guides/epic-components/colours.html" target="src-guides-epic-components-colours-html"
-                >Plan Doc Colours</a
+                >Epic Page Colours</a
               >
               (its source:
               <a
@@ -380,7 +380,7 @@
 
           <ui-section id="6-written-by" header="6. Written by" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="terminal"></ui-icon>
-            <p>Only the plan-doc tool writes them:</p>
+            <p>Only the epic tool writes them:</p>
             <ul>
               <li>
                 <code>plan-doc status &lt;name&gt; &lt;id&gt; underway "html"</code>: a new underway card, stamped now,

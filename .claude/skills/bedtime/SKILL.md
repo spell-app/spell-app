@@ -1,6 +1,6 @@
 ---
 name: bedtime
-description: Work through an epic's remaining phases unattended overnight -- pick phases and answer questions up-front, then build each in order with a commit per phase, record judgement calls in the plan doc, never merge.  User-invoked as `/bedtime`;  in the morning, `/epic review <name>` goes through the night.
+description: Work through an epic's remaining phases unattended overnight -- pick phases and answer questions up-front, then build each in order with a commit per phase, record judgement calls in the epic page, never merge.  User-invoked as `/bedtime`;  in the morning, `/epic review <name>` goes through the night.
 disable-model-invocation: true
 ---
 
@@ -9,13 +9,13 @@ disable-model-invocation: true
 Owen is going to sleep.
 Ask everything NOW, then get it all done:  run the chosen phases to the end without him.
 
-The PLAN DOC is the record, as on any day:
+The EPIC PAGE is the record, as on any day:
 - every judgement call, problem and todo is an item in it
 - each phase gets its Done list and Commits
 - the night's judgement calls and issues show RED there, until he reviews them
 - So no morning report (D5 of `review-review`):  in the morning, `/epic review <name>` goes through what's red.
 
-- `<name>`:  the plan doc's name.
+- `<name>`:  the epic id.
 - Bedtime mode:  `epic bedtime <name> start "P<a>-P<b>"` turns it on, `... done "<summary>"` off.
   Both go in the log.
   - While it's on, every item a command touches is marked the night's:  green until reviewed (D2).
@@ -23,14 +23,15 @@ The PLAN DOC is the record, as on any day:
   - And `epic summary <name> --json` has `"bedtime": "P<a>-P<b>"` (`null` when off):
     that's how a compacted session knows it's still running.
 - Style:  as in `/epic`:
-  the plan doc written for Owen coming back cold ([plan-doc.md](templates/epics/plan-doc.md), "Rules").
+  the epic page written for Owen coming back cold ([plan-doc.md](templates/epics/plan-doc.md), "Rules").
 
 ## 1. Find the phases
 
-- Plan doc (`epics/<name>/`, or the one this session has been keeping):
+- Epic page (`epics/<name>/`, or the one this session has been keeping):
   `epic summary <name> --json`.
   - To-do phases:  every one whose `status` isn't `done`.
-- No plan doc (only a plan drafted in this session):  make one FIRST, as `/epic` does mid-session, which isolates it too.
+- No epic page (only a plan drafted in this session):
+  make one FIRST, as `/epic` does mid-session, which isolates it too.
   - That's [the epic skill](.claude/skills/epic/SKILL.md), "Mid-session":  "make this a plan doc".
   - Its name question goes in step 2's modal or page.
   - The move to the worktree's window ends the turn.
@@ -52,7 +53,7 @@ so he answers everything in one sitting.
   - `phases` (`multiple`, "All" `recommended`, then each to-do phase)
   - "Isolate first?", when step 3 says so
   - then every real question of step 3, each with its options, one `recommended`
-- `--epic <name>`, slug `bedtime-<date>`, so the page stays with the plan doc.
+- `--epic <name>`, slug `bedtime-<date>`, so the page stays with the epic page.
 - Make it, show it, and END THE TURN with the page's link pair (`spell dev docs link <page>`):
   - `epic ask new <slug> --from <spec.json>`:  the spec in the scratchpad.
     Its shape:  `DetailsSpec`, in [details.js](packages/epics/tools/details.js).
@@ -73,7 +74,7 @@ Else, the modals:
 
 ## 3. Ask up-front (modal)
 
-Read the chosen phases IN FULL (plan doc bodies, items, Overview), and the code they touch.
+Read the chosen phases IN FULL (epic page bodies, items, Overview), and the code they touch.
 Enough to find what would otherwise stop you mid-night.
 
 Then ask, in one or more AskUserQuestion calls (4 questions each, recommended option first):
@@ -117,7 +118,7 @@ Everything else stands:
 - the parser speed test, on parser changes
 - the three logs:
   [PAPERCUTS.md](agents/PAPERCUTS.md), [SUSPECTED-BUGS.md](agents/SUSPECTED-BUGS.md), [CODE-DEBT.md](agents/CODE-DEBT.md)
-- the plan doc's rules
+- the epic page's rules
 
 ## 5. Each phase, in plan order
 
@@ -131,7 +132,7 @@ Everything else stands:
    ```
 
    - It prints the id (`J4`).
-     The plan doc's "Judgement calls" section is where Owen finds them, open until he reviews each.
+     The epic page's "Judgement calls" section is where Owen finds them, open until he reviews each.
    - Its details ([plan-doc.md](templates/epics/plan-doc.md), "Prose"):
      - the options it weighed (any item kind takes them):
        an `<epic-choices>` of `<epic-option letter title [recommended]>`
@@ -160,7 +161,7 @@ Everything else stands:
    with the ids of its judgement calls.
 7. Commit:  `P<n>:  <Name> -- <one-line summary>`.
    - `WIP P<n>:  ...` for WIP;  an item fix:  `<name> I3:  ...`.
-   - The plan doc is never in it:  it's shared content (`epics/`, a link into `../spell-app-dev`),
+   - The epic page is never in it:  it's shared content (`epics/`, a link into `../spell-app-dev`),
      committed for you at the turn's end.
 8. `epic commit <name>#P<N> <sha> "<what was built>"`:  the commit, under the phase's Commits.
 

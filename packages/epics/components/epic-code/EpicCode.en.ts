@@ -11,7 +11,7 @@ import { PANEL_PARTS, PANEL_STATES } from "$/epics/components/epic-aside/EpicPan
 
 /****************
  * ### `<epic-code>`
- * A folded, highlighted code block in a plan doc's prose.
+ * A folded, highlighted code block in an epic page's prose.
  ****************/
 export const epicCodeVocabulary = {
   tag: "epic-code",

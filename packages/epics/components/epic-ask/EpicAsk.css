@@ -1,0 +1,84 @@
+/*
+ * `<epic-ask>` (`EpicAsk.tsx`):  a question Owen answers on the page.
+ * - Its line:  the id chip in the epic page's state colours (as `<epic-item>`'s chip, `EpicItem.css`), `Pick one`,
+ *   its tools at the end;  then its children;  then the Other box.
+ * - The state colours:  `<epic-page>`'s `--epic-state-*` where there is one, else the docs page's `--spell-state-*`
+ *   (the same values:  `spell-doc.css`, "Item states"), else Spell UI's.
+ * - Public tokens (`--epic-ask-*`) are never declared here:  read through private aliases.
+ */
+
+@layer ui.components.epic-ask.types, ui.components.epic-ask.states;
+
+@layer ui.components.epic-ask.types {
+  :host {
+    --_epic-ask-state: var(--epic-state-attention, var(--spell-state-attention, var(--ui-red, #db2828)));
+    --_epic-ask-state-on: var(--epic-state-attention-on, var(--spell-state-attention-on, #fff));
+    display: block;
+    margin: 0.5em 0 1em;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  .line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin-bottom: 6px;
+  }
+  .chip {
+    display: inline-flex;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    min-width: 3.1em;
+    height: 1.6em;
+    padding: 0 0.6em;
+    border-radius: 999px;
+    background: var(--_epic-ask-state);
+    color: var(--_epic-ask-state-on);
+    font: 600 0.8em / 1 var(--ui-font-family-mono, ui-monospace, "SF Mono", Menlo, monospace);
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .how {
+    color: var(--ui-text-muted, GrayText);
+    font-size: 0.85em;
+    font-weight: 600;
+  }
+  .tools {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-inline-start: auto;
+  }
+  .filter {
+    display: inline-flex;
+    gap: 2px;
+  }
+
+  /* its text and options:  as an item's details space them */
+  ::slotted(epic-question) {
+    margin-top: 0;
+  }
+  ::slotted(:is(p, ul, ol)) {
+    margin-block: 0.35em;
+  }
+
+  .other {
+    margin: 10px 0 0;
+  }
+}
+
+@layer ui.components.epic-ask.states {
+  :host(:state(done)) {
+    --_epic-ask-state: var(--epic-state-recent, var(--spell-state-recent, var(--ui-green, #21ba45)));
+    --_epic-ask-state-on: var(--epic-state-recent-on, var(--spell-state-recent-on, #fff));
+  }
+  :host(:state(working)) {
+    --_epic-ask-state: var(--epic-state-progress, var(--spell-state-progress, var(--ui-blue, #2185d0)));
+    --_epic-ask-state-on: var(--epic-state-progress-on, var(--spell-state-progress-on, #fff));
+  }
+}

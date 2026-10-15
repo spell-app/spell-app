@@ -19,15 +19,15 @@
  * - A window reload keeps each view's page:  the page last in view is remembered per window (the workspace's state),
  *   and shown again when VS Code re-makes the view, if its page server still answers (`remembered()`).
  * - Opened by hand, before anything was shown:
- *   "Spell Docs" shows the docs index of the window's first folder (the repo root);
+ *   "Spell Docs" shows the home page of the window's first folder (the repo root);
  *   "Review" a line saying how to fill it.
  * - Title-bar buttons:  back, forward, reload, restart the page server, open in the browser;
  *   then Inspect and Show Console (`openDevTools()`).
  *   - Home:  the page's own site header (its logo, or "Docs");  VS Code has no clickable view titles.
- *   - `spell.docView.home` stays a palette command, as does "Review:  Docs Index" (`spell.reviewView.home`).
+ *   - `spell.docView.home` stays a palette command, as does "Review:  Home Page" (`spell.reviewView.home`).
  * - "Review" has a list button too, "Review:  Open Epic..." (`spell.reviewView.openEpic`):
- *   pick an epic, its plan doc shows there.
- *   No terminal, no Claude:  how Owen gets around the plan docs offline (epic `airplane` P4).
+ *   pick an epic, its epic page shows there.
+ *   No terminal, no Claude:  how Owen gets around the epic pages offline (epic `airplane` P4).
  * - Links in the page:  docs pages open here;  other files on the page server in the editor;
  *   other sites in the browser (`open()`, and the page's `followInFrame()`).
  *   Why:  the sandbox blocks the tabs docs links ask for.
@@ -108,7 +108,7 @@ export class DocView implements vscode.WebviewViewProvider {
   /** Every doc view, by name:  made by `register()`. */
   static readonly all = new Map<DocViewName, DocView>()
 
-  /** The docs index's URL, for the "Spell Docs" view's home and its empty state;  set by `DocPreview`. */
+  /** The home page's URL, for the "Spell Docs" view's home and its empty state;  set by `DocPreview`. */
   static home: (() => Promise<string | undefined>) | undefined
 
   /** This window's saved state:  each view's page last in view, so a reload shows it again;  set by `register()`. */
@@ -185,7 +185,7 @@ export class DocView implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Pick an epic from a list, and show its plan doc in the "Review" tab:  no terminal needed (epic `airplane` P4,
+   * Pick an epic from a list, and show its epic page in the "Review" tab:  no terminal needed (epic `airplane` P4,
    * for reviewing with no Claude, on a plane).
    * - the epics:  every `epics/<name>/<name>.plan.html` in the window's first folder (the repo root), most recently
    *   changed first, each by its title
@@ -194,7 +194,7 @@ export class DocView implements vscode.WebviewViewProvider {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
     const docs = root ? planDocsIn(root) : []
     if (!docs.length)
-      return void vscode.window.showWarningMessage("Spell:  no plan docs in this window's first folder.")
+      return void vscode.window.showWarningMessage("Spell:  no epic pages in this window's first folder.")
     const picked = await vscode.window.showQuickPick(
       docs.map((doc) => ({
         label: doc.title,
@@ -202,7 +202,7 @@ export class DocView implements vscode.WebviewViewProvider {
         detail: `changed ${doc.changed.toLocaleString()}`,
         doc
       })),
-      { title: "Review an epic", placeHolder: "Which epic's plan doc?", matchOnDescription: true }
+      { title: "Review an epic", placeHolder: "Which epic page?", matchOnDescription: true }
     )
     if (picked) await DocView.showFile?.(picked.doc.file, "review")
   }
@@ -251,7 +251,7 @@ export class DocView implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Show the docs home, in the "Spell Docs" view, or in `view`:  the Home button on both views' title bars, right of
+   * Show the home page, in the "Spell Docs" view, or in `view`:  the Home button on both views' title bars, right of
    * Reload (epic `epic-workflow` r2).
    * - a FRESH view (`rebuild()`), not a navigation:  a page that stopped responding ignores the view's messages, so
    *   Home is the way back from it (Owen, 2026-10-12:  "spell doc's page is wedged")
@@ -370,7 +370,7 @@ export class DocView implements vscode.WebviewViewProvider {
   }
 
   /**
-   * VS Code shows the view:  build its html, ONCE, for the page asked for;  else, in "Spell Docs", the docs index.
+   * VS Code shows the view:  build its html, ONCE, for the page asked for;  else, in "Spell Docs", the home page.
    * - MUST `enableScripts`:  without it the webview's frame is sandboxed WITHOUT `allow-scripts`, and the page's
    *   iframe inherits that, so no `ui-*` element ever defines itself
    * - SIDE EFFECT:  the page's `place` reports set `<view id>.canGoBack` / `.canGoForward`,
@@ -562,7 +562,7 @@ export class DocView implements vscode.WebviewViewProvider {
 export type DocViewName = "docs" | "review"
 
 /**
- * The docs home of the window's first folder (the repo root), `undefined` when it has none.
+ * The home page of the window's first folder (the repo root), `undefined` when it has none.
  * - `pages/index.html`;  a checkout from before the reorg (claude-design P4, 2026-10-05):
  *   its old `pages/index.html`
  */
@@ -574,7 +574,7 @@ export function docsIndex(): string | undefined {
   )
 }
 
-/** Every plan doc under `root`'s `epics/`, most recently changed first;  the title without its `Epic: `. */
+/** Every epic page under `root`'s `epics/`, most recently changed first;  the title without its `Epic: `. */
 export function planDocsIn(root: string): PlanDocEntry[] {
   const epics = join(root, "epics")
   if (!existsSync(epics)) return []
@@ -588,7 +588,7 @@ export function planDocsIn(root: string): PlanDocEntry[] {
     .sort((a, b) => b.changed.getTime() - a.changed.getTime())
 }
 
-/** A plan doc, as `planDocsIn()` lists it. */
+/** An epic page, as `planDocsIn()` lists it. */
 export type PlanDocEntry = { name: string; file: string; title: string; changed: Date }
 
 /** `url` with a fresh `?t=` stamp:  a URL no frame or browser has cached, so loading it is a reload. */

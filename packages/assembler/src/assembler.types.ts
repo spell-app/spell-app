@@ -116,7 +116,7 @@ const SPELL_UI_SOURCES = [
 export const BUNDLES: BundleSpec[] = [
   {
     name: "ui-site",
-    title: "Spell UI docs site's bundle",
+    title: "Spell UI's docs site bundle",
     cwd: "packages/ui",
     run: ["yarn", "site:bundle"],
     output: "packages/ui/site/_assets",

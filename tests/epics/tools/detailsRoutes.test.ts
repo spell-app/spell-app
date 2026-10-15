@@ -2,7 +2,7 @@
  * Tests of the details route module on a real page server, over HTTP, in a scratch checkout:  its own
  * `pages/details/`, an epic's `details/`, and a worktree's, as the main checkout's server serves them.
  */
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { afterAll, beforeAll, expect, test } from "vite-plus/test"
@@ -10,7 +10,7 @@ import { afterAll, beforeAll, expect, test } from "vite-plus/test"
 import { PageServer } from "$/server/page"
 import { ask } from "$/server/test/serve"
 
-import detailsRoutes, { type DetailsAnswer } from "../../../packages/epics/tools/detailsRoutes"
+import detailsRoutes, { type DetailsAnswer, type DetailsDraft } from "../../../packages/epics/tools/detailsRoutes"
 
 let root: string
 let server: PageServer
@@ -22,7 +22,8 @@ const PAGES = [
   "epics/big/details/shape.html",
   ".claude/worktrees/w/pages/details/far.html",
   "guides/other.html",
-  "epics/big/details/comments.html"
+  "epics/big/details/comments.html",
+  "pages/details/drafted.html"
 ]
 
 beforeAll(async () => {
@@ -135,6 +136,51 @@ test("only details pages, only pages that exist", async () => {
 test("bad answers are refused", async () => {
   expect((await answer("/pages/details/pick.html", "B")).status).toBe(400)
   expect((await answer("/pages/details/pick.html", { q1: { picked: "B" } })).status).toBe(400)
+})
+
+test("a draft:  saved beside the page, read back, never an answer;  Send deletes it, and carries the kept text", async () => {
+  const path = "/pages/details/drafted.html"
+  const draftPath = join(root, "pages/details/drafted.draft.json")
+  const kept = [{ id: "q3", label: "Q3 · Gone", text: "picked A · Blue" }]
+  const saved = await ask(port, "POST", "/api/docs/details/draft", {
+    body: JSON.stringify({
+      page: path,
+      answers: { q1: { picked: ["A"] } },
+      comments: { context: "half a thought " },
+      notes: "",
+      labels: { q1: "Q1 · Which?", context: "1. Context" },
+      kept
+    }),
+    headers: page()
+  })
+  expect(saved.status).toBe(200)
+  const draft = JSON.parse(readFileSync(draftPath, "utf8")) as DetailsDraft
+  expect(draft).toMatchObject({ page: path, comments: { context: "half a thought" }, labels: { q1: "Q1 · Which?" } })
+  expect(draft.kept).toEqual(kept)
+  // a draft wakes nobody:  no answer file
+  expect(existsSync(join(root, "pages/details/drafted.answer.json"))).toBe(false)
+  const back = await ask(port, "GET", `/api/docs/details/draft?page=${encodeURIComponent(path)}`)
+  expect(JSON.parse(back.text).draft.saved).toBe(draft.saved)
+  const sent = await ask(port, "POST", "/api/docs/details/answer", {
+    body: JSON.stringify({ page: path, answers: { q1: { picked: ["A"] } }, notes: "", kept }),
+    headers: page()
+  })
+  expect(sent.status).toBe(200)
+  expect(written(PAGES[5]!)).toMatchObject({ kept, changed: ["q1", "kept"] })
+  expect(existsSync(draftPath)).toBe(false)
+  const none = await ask(port, "GET", `/api/docs/details/draft?page=${encodeURIComponent(path)}`)
+  expect(JSON.parse(none.text)).toEqual({ draft: null })
+  const bad = (body: Record<string, unknown>) =>
+    ask(port, "POST", "/api/docs/details/draft", {
+      body: JSON.stringify({ page: path, answers: {}, ...body }),
+      headers: page()
+    })
+  expect((await bad({ labels: { q1: 3 } })).status).toBe(400)
+  expect((await bad({ kept: [{ id: "q3" }] })).status).toBe(400)
+  expect((await bad({ page: "/guides/other.html" })).status).toBe(403)
+  expect(
+    (await ask(port, "POST", "/api/docs/details/draft", { body: JSON.stringify({ page: path, answers: {} }) })).status
+  ).toBe(403)
 })
 
 test("writes need the token, our origin and our host", async () => {

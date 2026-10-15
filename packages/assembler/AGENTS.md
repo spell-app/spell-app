@@ -12,7 +12,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - ASSEMBLING pages:  `$/assembler` (`AS`).
   The steps between a page's content and its file on disk, for every tool that writes pages.
   - Born in epic `epic-components` P7 (Owen, Q15 / I1).
-    The plan-doc tool moved into `packages/epics`, which then could not import the docs package,
+    The `epic` tool moved into `packages/epics`, which then could not import the docs package,
     so what both need to write a page lives here (they're one package since `people-and-orgs` P16;  it stays).
   - `Linker` -- a page's links:
     - `<code>path</code>` references become links

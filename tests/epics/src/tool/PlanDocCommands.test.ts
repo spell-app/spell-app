@@ -79,9 +79,9 @@ describe("PlanDocCommands add-phase --before", () => {
     expect(await owner.run(["add-phase", "x", "Y", "--before", "two"])).toBe(1)
     expect(await owner.run(["add-phase", "x", "Y", "--before", "1"])).toBe(1)
     expect(warned).toEqual([
-      "plan-doc:  --before needs a phase number",
-      'plan-doc:  --before needs a phase number, not "two"',
-      "plan-doc:  --before 1:  P1 has started;  only to-do phases move down"
+      "epic:  --before needs a phase number",
+      'epic:  --before needs a phase number, not "two"',
+      "epic:  --before 1:  P1 has started;  only to-do phases move down"
     ])
     expect(readFileSync(file, "utf8")).toBe(skeleton)
   })
@@ -159,8 +159,8 @@ describe("PlanDocCommands rename:  a phase's or an item's title (epic `epic-work
     const skeleton = readFileSync(file, "utf8")
     expect(await owner.run(["rename", "x", "p2"])).toBe(1)
     expect(await owner.run(["rename", "x", "p7", "Seven"])).toBe(1)
-    expect(warned[0]).toMatch(/^plan-doc:  missing the new title/)
-    expect(warned[1]).toBe("plan-doc:  no phase 7 in the doc")
+    expect(warned[0]).toMatch(/^epic:  missing the new title/)
+    expect(warned[1]).toBe("epic:  no phase 7 in the doc")
     expect(readFileSync(file, "utf8")).toBe(skeleton)
   })
 })

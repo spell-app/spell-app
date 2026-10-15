@@ -3,10 +3,11 @@ import { join, relative } from "node:path"
 
 import { CommentList, type Comment, type IdentifiedComment } from "$/epics/tool/CommentList"
 import { FROM_PAGE } from "$/epics/tool/epicRoutes"
+import { GuideInbox } from "$/epics/tool/GuideInbox"
+import { SeeAlso } from "$/epics/tool/SeeAlso"
 
 import { readAnswer, listPages } from "./details.js"
 import { GuideChanges } from "./GuideChanges"
-import { GuideInbox } from "./GuideInbox"
 import { notesIn, type PageNote } from "./notesOnDisk"
 
 /** Where page notes can be (`notesRoutes.ts` takes them on pages there), from the checkout's root. */
@@ -21,12 +22,13 @@ const NOTE_FOLDERS = ["pages", "guides", "epics"]
  *   - drafts (typed, never submitted:  asked about, never acted on)
  *   - the requests for now (Do Now, revisit now)
  *   - comments on the doc's blocks still waiting (`comments`, P11)
- * - guide comments still waiting:  each docs page's inbox file (`<page>.inbox.json`, `GuideInbox`, P11);
- *   `spell dev comments gather` takes them into epic `guide-changes`
+ * - guide comments still waiting:  each docs page's inbox file (`<page>.inbox.json`, `GuideInbox`, P11), sent or not
+ *   - a page an epic owns (`SeeAlso.ownerOf()`, epic `epic-workflow` P13):  its `epic`, whose session answers them
+ *   - the rest:  `spell dev comments gather` takes them into epic `guide-changes`
  * - new epics from the Epics page's New epic button, not started yet (future, their log says so:  `epicRoutes.ts`)
  * - page notes not yet answered (`<spell-note status="new">` in guides and other pages:  `notesOnDisk.ts`)
  * - details pages answered since the flight began (`<slug>.answer.json`, newer than `since`)
- * - goals thoughts not yet digested (`li.goals-thought[data-status="new"]` in the goals pages)
+ * - goals thoughts not yet digested (`li.goals-thought[data-status="new"]` in the saga pages)
  * - read only:  taking the work is each place's own command (`plan-doc inbox apply`, `details answer`, `/goals-update`)
  ****************/
 export class AirplaneInbox {
@@ -54,7 +56,10 @@ export class AirplaneInbox {
   /** the page notes not yet answered (`status="new"`) */
   notes: PageNote[] = []
 
-  /** the comments on docs pages still waiting, each with its page:  `spell dev comments gather` takes them */
+  /**
+   * the comments on docs pages still waiting, each with its page, and the epic that owns it (`epic`);  the ones no
+   * epic owns, `spell dev comments gather` takes
+   */
   comments: GuideCommentWaiting[] = []
 
   /** epics made from the Epics page's New epic button, still future (not started) */
@@ -106,7 +111,8 @@ export class AirplaneInbox {
       ...this.notes.map((note) => `note ${note.page} ${note.id} (${note.label}):  ${note.text.slice(0, 80)}`),
       ...this.comments.map(
         (comment) =>
-          `guide comment ${comment.page} ${comment.id} (${comment.label || comment.anchor}):  ${comment.text.slice(0, 80)}`
+          `guide comment ${comment.page} ${comment.id} (${comment.label || comment.anchor}` +
+          `${comment.epic ? `, epic ${comment.epic}` : ""}):  ${comment.text.slice(0, 80)}`
       ),
       ...this.details.map((page) => `details ${page.page}:  answered ${page.answered}`),
       ...this.thoughts.map((thought) => `goals ${thought.page} ${thought.id}:  ${thought.text.slice(0, 80)}`)
@@ -138,7 +144,7 @@ function newEpicsWaiting(root: string): NewEpic[] {
 /** An epic's inbox, as `/airplane land` takes it. */
 export type EpicWaiting = {
   name: string
-  /** the plan doc, from the checkout's root */
+  /** the epic page, from the checkout's root */
   doc: string
   /** every mark, sent or not:  `{ id, action, at, note?, pick?, ... , sent }` */
   marks: (Record<string, unknown> & { id: string; action: string; sent: boolean })[]
@@ -150,14 +156,20 @@ export type EpicWaiting = {
   comments: IdentifiedComment[]
 }
 
-/** A comment on a docs page still waiting, with its page (from the checkout's root). */
-export type GuideCommentWaiting = IdentifiedComment & { page: string }
+/**
+ * A comment on a docs page still waiting, with its page (from the checkout's root).
+ * - `epic`:  the epic the page belongs to (`SeeAlso.ownerOf()`, epic `epic-workflow` P13):  that epic's session
+ *   answers it;  none:  `spell dev comments gather` takes it into `guide-changes`
+ */
+export type GuideCommentWaiting = IdentifiedComment & { page: string; epic?: string }
 
-/** The comments still waiting on every docs page, page by page. */
+/** The comments still waiting on every docs page, page by page, each with the epic its page belongs to. */
 function guideCommentsWaiting(root: string): GuideCommentWaiting[] {
+  const owners = new SeeAlso(root)
   return new GuideChanges({ root }).inboxFiles().flatMap((file) => {
     const page = relative(root, file).replace(/\.inbox\.json$/, ".html")
-    return GuideInbox.read(file).commentList.waiting.map((comment) => ({ page, ...comment }))
+    const epic = owners.ownerOf(page)
+    return GuideInbox.read(file).commentList.waiting.map((comment) => ({ page, ...comment, ...(epic && { epic }) }))
   })
 }
 
@@ -210,7 +222,7 @@ function detailsAnswered(root: string, since: number): DetailsAnswered[] {
 }
 
 /**
- * Goals thoughts not yet digested, in every goals page:  NONE while goals is PARKED (epic `epic-workflow` P6).
+ * Goals thoughts not yet digested, in every saga page:  NONE while goals is PARKED (epic `epic-workflow` P6).
  * - The pages' Thought button only says TODO now, and the page reader that found thoughts (`GoalsPage`) is in
  *   `packages/goals.zip`;  epic `epic-goals` brings thoughts back, and this with them.
  */

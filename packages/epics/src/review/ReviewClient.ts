@@ -23,6 +23,7 @@ import {
   type ReviewClientOptions,
   type Running,
   type StartAnswer,
+  wakeOf,
   type WriteOptions
 } from "./review.types"
 import { ServerLink } from "./ServerLink"
@@ -252,6 +253,14 @@ export class ReviewClient {
   /** Is a Claude session waiting on the inbox? */
   get listening(): boolean {
     return !!this.inbox.listening
+  }
+
+  /**
+   * Why work waits, with nobody listening:  what the page server's wake did
+   * (`Typed /epic review x into 🚧 x:  press Enter there`, epic `epic-workflow` P16), else `NOBODY_LISTENING`.
+   */
+  get waitingWhy(): string {
+    return this.inbox.woken?.message.replace(/\.$/, "") ?? NOBODY_LISTENING
   }
 
   /**
@@ -497,23 +506,25 @@ export class ReviewClient {
   /**
    * Ask Claude to act on item `id` NOW (`details` | `revisit`):  queued in the inbox's `now`.
    * - a revisit keeps the item's pick (the route does too:  `ReviewInbox.requestNow()`)
-   * - nobody listening:  says so
+   * - nobody listening:  the page server wakes the epic (epic `epic-workflow` P16), and the notice says how
+   *   (its answer's `wake`), or that nobody is reviewing
    */
   async askNow(id: string, action: NowAction, note?: string): Promise<boolean> {
     const pick = pickOf(this.inbox.marks[id])
     const at = new Date().toISOString()
     this.inbox.marks[id] =
       action === "revisit" ? { action, when: "now", note: note ?? "", ...pick, at } : { action, at }
-    const request = this.write("now", note === undefined ? { id, action } : { id, action, note })
-    this.asking.set(id, request)
+    const request = this.post("now", note === undefined ? { id, action } : { id, action, note })
+    const written = request.then((reply) => reply !== undefined)
+    this.asking.set(id, written)
     this.changed()
-    const written = await request
+    const reply = await request
     this.asking.delete(id)
     // called off on its way:  `cancel()` takes it from here
-    if (this.calling.has(id)) return written
+    if (this.calling.has(id)) return reply !== undefined
     this.changed()
-    if (written && !this.inbox.listening) this.notify(NOBODY_LISTENING)
-    return written
+    if (reply !== undefined && !this.inbox.listening) this.notify(wakeOf(reply)?.message ?? NOBODY_LISTENING)
+    return reply !== undefined
   }
 
   /**
@@ -551,6 +562,7 @@ export class ReviewClient {
    * says what went, or why nothing did (P10's Send and Review Now, in the page header).
    * - hands over the unsent marks, urgencies AND comments (`unsentCommentCount`):
    *   a comment or a reply on a thread wakes a listening session only through a send
+   * - nobody listening:  the page server wakes the epic (epic `epic-workflow` P16), and the notice says how
    */
   async send({ now = false }: { now?: boolean } = {}): Promise<boolean> {
     const marks = Object.values(this.inbox.marks)
@@ -569,11 +581,12 @@ export class ReviewClient {
       )
       return false
     }
-    if (!(await this.write("send", now ? { now: true } : {}))) return false
+    const reply = await this.post("send", now ? { now: true } : {})
+    if (reply === undefined) return false
     const what = countWords(waiting.length, comments)
     this.notify(
       !this.inbox.listening
-        ? `Saved.  ${NOBODY_LISTENING}`
+        ? `Saved.  ${wakeOf(reply)?.message ?? NOBODY_LISTENING}`
         : now
           ? `Claude is working through ${what} now:  answers land in the items`
           : `Sent ${what} to Claude`
@@ -734,14 +747,23 @@ export class ReviewClient {
    *   and re-reads the inbox, undoing what was shown early
    * - a 403 on the token:  the link takes the server's new token and tries once more (`ServerLink.post()`)
    */
-  private async write(route: string, body: object, { quiet = false, keepalive = false }: WriteOptions = {}) {
+  private async write(route: string, body: object, options: WriteOptions = {}): Promise<boolean> {
+    return (await this.post(route, body, options)) !== undefined
+  }
+
+  /** `write()`, answering the route's whole reply (a Send's `wake` too), or `undefined` when it failed. */
+  private async post(
+    route: string,
+    body: object,
+    { quiet = false, keepalive = false }: WriteOptions = {}
+  ): Promise<unknown> {
     this.writing++
     let error = ""
     try {
       const reply = await this.link.post(`${REVIEW_API}/${route}`, { page: this.options.page, ...body }, { keepalive })
       this.replaceInbox(inboxOf(reply))
       this.changed()
-      return true
+      return reply ?? {}
     } catch (failure) {
       error = (failure as Error).message
     } finally {
@@ -751,7 +773,7 @@ export class ReviewClient {
     if (!quiet) this.notify(`${error[0]!.toUpperCase()}${error.slice(1)}.`)
     await this.load()
     this.changed()
-    return false
+    return undefined
   }
 }
 

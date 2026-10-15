@@ -52,7 +52,7 @@ No exploring, no reading the files the task names.
 1. Parse it (Forms).
 2. Same files?  `epic agents list --json`.
    - Does a running agent's task touch the files or folders this one will?
-     The tasks name them, or plainly mean them ("the plan doc", "the /epic skill").
+     The tasks name them, or plainly mean them ("the epic page", "the /epic skill").
    - Yes:  list this one as blocked, and DON'T start it.
 
      ```sh
@@ -61,7 +61,7 @@ No exploring, no reading the files the task names.
 
      - Reply one line:  `waiting:  <full name> starts when <other> is done (same files:  <which>)`.
      - End the turn.
-   - Plan-doc work always overlaps other plan-doc work:  one at a time.
+   - Epic-page work always overlaps other epic-page work:  one at a time.
 3. `epic agents add <name> "<task, a sentence or less>"`:  prints the full name.
 4. ONE `Agent` call, with:
    - `subagent_type: "fork"`:  a copy of this session.
@@ -91,7 +91,7 @@ The task, word for word:
 
 - Context:  <what the conversation said that the task leans on;  "none" when the task stands alone>
 - Checkout:  <the session's checkout root>  (<"worktree <name>, branch <branch>" | "the main checkout">)
-- Epic:  <name>, plan doc <epics/<name>/<name>.plan.html>   (or:  no epic)
+- Epic:  <name>, epic page <epics/<name>/<name>.plan.html>   (or:  no epic)
 - Budget:  <n> agents IN ALL, you included:  a HARD cap.  You may start at most <n-1> helpers of your own:  ordinary
   agents (`general-purpose`, `Explore` ...), never forks.  Each one:  named `<full name>-<x>`, listed first with
   `epic agents add <full name>-<x> "<its task>"`, and `epic agents done <full name>-<x>` when it's back.
@@ -119,7 +119,7 @@ The helper's report reaches this session as a notice, between whatever else it's
    - Then the report, short, in Owen's words:  what changed, where to look, what needs him.
    - Links as the root rules say:
      - a page:  side bar + browser, `spell dev docs link ... --show`
-     - a plan doc:  `--review`
+     - an epic page:  `--review`
      - files:  `[file.ts](path)`
 3. A question in its report that only Owen can answer:  AskUserQuestion, with the epic and what it's for.
 4. An agent `blocked on` this one:  `epic agents set <its name> --status active`.
@@ -127,7 +127,7 @@ The helper's report reaches this session as a notice, between whatever else it's
 
 ## Redirects
 
-In an epic, the plan doc shows its running agents at the top ("Agents running"), each with a note box.
+In an epic, the epic page shows its running agents at the top ("Agents running"), each with a note box.
 - Owen types there to STEER an agent mid-task
   (P3 of epic `skillz`;  [agentRoutes.ts](packages/epics/tools/agentRoutes.ts)).
 - The note waits in the list, untold, until this session passes it on.
@@ -135,7 +135,7 @@ In an epic, the plan doc shows its running agents at the top ("Agents running"),
   - ONE per session, while any agent this session started runs.
   - Its exit wakes the session, by its code:
   - 0:  it printed the untold notes, `skillz-aaa:  <note>` each.  Per note:
-    - `SendMessage` to that agent:  "Owen redirects you, from the plan doc:  <note>".
+    - `SendMessage` to that agent:  "Owen redirects you, from the epic page:  <note>".
       Its `to` is the agent's `taskId`, from `epic agents list --json`.
     - Then `epic agents told <name>`:  the page shows it told.
     - One line in the reply per note:  `redirected:  <name>`.

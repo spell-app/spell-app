@@ -1,5 +1,5 @@
 /**
- * MOVED:  the plan-doc tool is TypeScript in `packages/epics/src/tool/` (epic `epic-components`, P7), which
+ * MOVED:  the `epic` tool is TypeScript in `packages/epics/src/tool/` (epic `epic-components`, P7), which
  * `spell dev plan-doc` runs in its own process.  This file forwards:
  * - its API, for old imports (`shared.test.js`, other tools):  `PlanDoc` and its types, the files and git
  *   (`PlanDocFiles`;  `sharedDocLog()` as before), the command line (`PlanDocCommands`)

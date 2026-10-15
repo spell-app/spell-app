@@ -17,14 +17,14 @@
  *   the page server's route writes it (`packages/epics/src/tool/epicRoutes.ts`), every checkout reads it
  *
  * Who draws them:
- * - the docs index (`packages/epics/tools/index.js`), plain `node`:  it imports this FILE by path
+ * - `docs index` (`packages/epics/tools/index.js`), plain `node`:  it imports this FILE by path
  * - the page server, through epics' route module `runningRoutes.ts` (`RunningEpics`), which adds the running epics'
  *   cards, re-marks every card and regroups them by the favourites as it serves the page
  * - the docs runtime moves a card between groups when its star is clicked (plain DOM:  it reads `data-group`)
  *
  * Its position:  browser-safe, and imports ONLY files that load in plain `node`.
  * - each by its file name and relative path:  plain `node` resolves nothing else
- * - those files:  `./EpicState.ts`, and the plan docs' dates (`PlanDates`)
+ * - those files:  `./EpicState.ts`, and the epic pages' dates (`PlanDates`)
  * - NEVER an alias, an `enum` or a parameter property:  plain `node` can't strip those
  */
 import { PlanDates } from "../dates/PlanDates.ts"
@@ -36,7 +36,7 @@ export const EPIC_GROUPS = ["favorites", "active", "planning", "urgent", "done"]
 /** One of `EPIC_GROUPS`. */
 export type EpicGroupName = (typeof EPIC_GROUPS)[number]
 
-/** Where the favourites are kept, from a checkout's root:  a JSON list of epic names (shared content). */
+/** Where the favourites are kept, from a checkout's root:  a JSON list of epic ids (shared content). */
 export const FAVORITES_FILE = "epics/favorites.json"
 
 /** The Epics page's own markers around its groups:  the page server rewrites what's between (`RunningEpics`). */
@@ -54,8 +54,8 @@ const GROUP_LOOKS: Record<EpicGroupName, { title: string; icon: string }> = {
 
 /**
  * One epic's card, as `epicCardHtml()` draws it.
- * - `name`:  the epic (its folder);  `title`:  its plan doc's title, without `Epic: `
- * - `href` / `target`:  the link to its plan doc
+ * - `name`:  the epic (its folder);  `title`:  its epic page's title, without `Epic: `
+ * - `href` / `target`:  the link to its epic page
  * - `description`:  its `<meta name="description">`, if any
  * - `meta`:  the meta line, as text:  `P8 · Review Polish · epics/airplane/airplane.plan.html`
  * - `facts`:  what its state is read from (`EpicState`)
@@ -165,7 +165,7 @@ export function epicStarHtml(name: string, favorite: boolean): string {
 
 /**
  * The last-worked date at a card's bottom right:  month and day, no year (`10/9`);
- * its `title` the full date and time, as plan docs draw dates (`10/9/26 14:34`).
+ * its `title` the full date and time, as epic pages draw dates (`10/9/26 14:34`).
  */
 export function epicWorkedHtml(worked: Date): string {
   return (
@@ -175,9 +175,9 @@ export function epicWorkedHtml(worked: Date): string {
 }
 
 /**
- * The latest of `values`, each a date as plan docs and git write them (`readEpicDate()`);
+ * The latest of `values`, each a date as epic pages and git write them (`readEpicDate()`);
  * `undefined` when none reads.
- * - "last worked on":  the plan doc's `updated` day, its last log line's time, its branch's last commit
+ * - "last worked on":  the epic page's `updated` day, its last log line's time, its branch's last commit
  */
 export function lastWorked(values: readonly (string | null | undefined)[]): Date | undefined {
   let latest: Date | undefined
@@ -188,7 +188,7 @@ export function lastWorked(values: readonly (string | null | undefined)[]): Date
   return latest
 }
 
-/** Every log line's time in plan-doc markup `html` (`<epic-event at="...">`), in the order written. */
+/** Every log line's time in epic-page markup `html` (`<epic-event at="...">`), in the order written. */
 export function eventTimesIn(html: string): string[] {
   return Array.from(html.matchAll(EVENT_TIME), (match) => match[1]!)
 }
@@ -196,13 +196,13 @@ export function eventTimesIn(html: string): string[] {
 /**
  * `value` as a moment:  `2026-10-08` (local midnight), `2026-10-08 14:34` (local), or ISO with an offset
  * (`2026-10-08T14:34-04:00`, git's `%cI`);  `undefined` when it won't read.
- * - the plan docs' own reading (`PlanDates.read()`), for a value that may be missing
+ * - the epic pages' own reading (`PlanDates.read()`), for a value that may be missing
  */
 export function readEpicDate(value: string | null | undefined): Date | undefined {
   return value ? PlanDates.read(value)?.date : undefined
 }
 
-/** The favourites file's text as a set of epic names;  empty when it isn't a JSON list.  NEVER throws. */
+/** The favourites file's text as a set of epic ids;  empty when it isn't a JSON list.  NEVER throws. */
 export function parseFavorites(json: string | undefined): Set<string> {
   try {
     const list: unknown = JSON.parse(json ?? "[]")

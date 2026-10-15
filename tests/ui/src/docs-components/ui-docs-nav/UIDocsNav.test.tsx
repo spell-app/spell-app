@@ -218,7 +218,7 @@ describe("<ui-docs-nav> lists", () => {
     expect(nav.shadowRoot!.querySelector('[data-nav-link="ui-input"] .status')).toBeNull()
   })
 
-  it("marks the current component page:  `aria-current=page`, only its main tag;  moves with `current`", async () => {
+  it("marks the current components page:  `aria-current=page`, only its main tag;  moves with `current`", async () => {
     const nav = await render(`current="ui-button"`)
     expect(find(nav, '[data-nav-link="ui-button"]').getAttribute("aria-current")).toBe("page")
     expect(find(nav, '[data-nav-link="ui-buttons"]').hasAttribute("aria-current")).toBe(false)

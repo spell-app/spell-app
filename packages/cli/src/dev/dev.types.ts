@@ -85,7 +85,7 @@ export type PendingQuestion = {
  * Where session / worktree / plan `name` stands -- `nameStatus()`.
  * - `ahead`:  commits on branch `name` not in `main`
  * - `merged`:  the branch had commits of its own (its reflog moved past "Created") and all are in `main` now
- * - `plan`:  its plan doc folder;  `planDone`:  every phase done
+ * - `plan`:  its epic page folder;  `planDone`:  every phase done
  * - `finished`:  `merged` or `planDone`, `why` saying which (`park wait` adds "worktree removed", "session exited")
  */
 export type NameStatus = {
@@ -102,7 +102,7 @@ export type NameStatus = {
 }
 
 /**
- * A plan doc's summary, from the plan-doc tool's `summaries` (`summary --json` per file);  `error` when it couldn't
+ * An epic page's summary, from the `epic` tool's `summaries` (`summary --json` per file);  `error` when it couldn't
  * read the doc.  Only the fields read here.
  */
 export type PlanSummary = {

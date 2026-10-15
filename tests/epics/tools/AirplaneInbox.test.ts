@@ -115,7 +115,7 @@ describe("AirplaneInbox.gather()", () => {
     expect(AirplaneInbox.gather(root).details).toEqual([])
   })
 
-  it("takes the comments still waiting:  a guide's, from its inbox file;  a plan doc's, from the review inbox", () => {
+  it("takes the comments still waiting:  a guide's, from its inbox file;  an epic page's, from its review inbox", () => {
     const inbox = AirplaneInbox.gather(root)
     expect(inbox.comments).toMatchObject([{ page: "guides/guide.html", id: "cm1", text: "Too long?" }])
     expect(inbox.epics[0]!.comments).toMatchObject([{ id: "cm2", text: "Which file?" }])

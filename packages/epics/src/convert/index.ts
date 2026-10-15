@@ -1,5 +1,5 @@
 /**
- * `$/epics/convert` barrel:  the converter from the old plan-doc markup to `<epic-*>` markup (`Converter`), its second
+ * `$/epics/convert` barrel:  the converter from the old epic-page markup to `<epic-*>` markup (`Converter`), its second
  * pass from a converted doc to P14's elements (`Upgrader`), their proof (`ConversionProof`) and a run over a
  * checkout's docs (`ConvertRun`).
  * - Node only (linkedom, `node:fs`, oxfmt):  NOT in the `$/epics` barrel, which loads in the browser too.  Import it

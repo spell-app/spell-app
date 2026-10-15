@@ -1,6 +1,6 @@
 ---
 name: wtf
-description: Remind Owen what's going on -- in THIS session, or (`/wtf <name>`) in the plan / isolate session named `<name>`:  the goal, where the work lives (worktree, branch), the plan doc and its phase, what's done, what's running, what's waiting on him -- with live links into the plan doc.  A `?` (`/wtf ?`, `/wtf <name>?`, or Owen typing `wtf?`) also puts the open questions in a modal.  Use for `/wtf`, or when Owen asks "where are we?", "what's going on?", "remind me what we're doing", "where is <name> at?".
+description: Remind Owen what's going on -- in THIS session, or (`/wtf <name>`) in the plan / isolate session named `<name>`:  the goal, where the work lives (worktree, branch), the epic page and its phase, what's done, what's running, what's waiting on him -- with live links into the epic page.  A `?` (`/wtf ?`, `/wtf <name>?`, or Owen typing `wtf?`) also puts the open questions in a modal.  Use for `/wtf`, or when Owen asks "where are we?", "what's going on?", "remind me what we're doing", "where is <name> at?".
 argument-hint: "[<name>] [?]"
 ---
 
@@ -17,9 +17,9 @@ Owen has lost the thread:  hand it back in one screen.
 - No `<name>`:  THIS session.
 - `<name>`:  the plan or isolate session of that name.
   - worktree `.claude/worktrees/<name>`, branch `<name>`
-  - plan doc `epics/<name>/`
+  - epic page `epics/<name>/`
   - a session renamed `<name>`
-  - Nothing by that name:  say so in one line, list the names that do exist (worktrees, plan docs), and stop.
+  - Nothing by that name:  say so in one line, list the names that do exist (worktrees, epic pages), and stop.
 
 ## 2. Gather (in parallel where possible)
 
@@ -39,7 +39,7 @@ Owen has lost the thread:  hand it back in one screen.
   - `git branch --show-current`
   - `git status --short`
   - `git log --oneline main..HEAD` (a worktree), or the session's own commits (`main`)
-- Plan doc, if any:  the session's `/epic <name>`.
+- Epic page, if any:  the session's `/epic <name>`.
   Else the worktree's name, if `epic list` has it;  else one the session wrote to.
   - ONE shared doc, in `epics/<name>/` of every checkout (a link into `../spell-app-dev`).
   - A branch from before 2026-10-02 still has it under `plans/<name>/`.
@@ -58,7 +58,7 @@ Owen has lost the thread:  hand it back in one screen.
 
 Plain words, no jargon;  coined names defined in a few words.
 - Every plan item named is a link:
-  - the plan doc's URL, plus its id, lower-case:  `<url>#p2`, `<url>#q1`, `<url>#i3`
+  - the epic page's URL, plus its id, lower-case:  `<url>#p2`, `<url>#q1`, `<url>#i3`
   - text as the doc shows it:  `P2 · Short Name`, `Q1`
 - Sections with nothing in them are left out.
 - For `<name>`, the first line says which session:  its name, id, running / idle / waiting / not running.
@@ -66,8 +66,8 @@ Plain words, no jargon;  coined names defined in a few words.
 1. **Goal** -- one or two sentences:  what Owen asked for, in his words.
    If the work has drifted from his most recently stated intent, say how, in **bold**.
 2. **Where** -- worktree and branch (or `main`), and what's uncommitted or staged.
-   - Never the plan doc, logs or docs pages:  shared content, committed for you.
-   - The plan doc, linked.
+   - Never the epic page, logs or docs pages:  shared content, committed for you.
+   - The epic page, linked.
 3. **Plan** -- the phases as one line each, linked, with status:  done, ACTIVE, to do.
 4. **Done** -- numbered, in the order it happened, each a few words.
 5. **In flight** -- agents, background jobs, wakeups:  what each is doing.
@@ -78,7 +78,7 @@ Plain words, no jargon;  coined names defined in a few words.
    - staged work awaiting "commit?"
 7. Last line:  where we are, as `/epic` says it:
    "[P1 · Short Name](<url>#p1) complete.  Next is [P2 · Short Name](<url>#p2)." or "All done".
-   - Without a plan doc, the same in words ("Skill edits staged.  Next is committing them.").
+   - Without an epic page, the same in words ("Skill edits staged.  Next is committing them.").
 
 Not ASK mode:  stop here.
 
@@ -87,7 +87,7 @@ Not ASK mode:  stop here.
 - Nothing waiting on Owen:  add "Nothing to answer.", and stop.
 - Else, after the reply, AskUserQuestion with the questions from "Waiting on you"
   (4 per call, more calls if needed):
-  - the plan doc's open questions, with their options (labels as the doc's, recommended first)
+  - the epic page's open questions, with their options (labels as the doc's, recommended first)
   - the session's waiting modal, as it was asked
   - "commit?", for staged work
 - Answers:

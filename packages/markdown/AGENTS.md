@@ -13,7 +13,7 @@ when working with code in this package, `@spell-app/markdown`.
 
 - GitHub-flavoured markdown on the generic parser (`$/parser`, `P`), drawing `ui-*` markup.
   - It's the second language on the parser, after spell:  the proof that the parser knows no language.
-  - The plan:  [its plan doc](../../epics/markdown/markdown.plan.html).
+  - The plan:  [its epic page](../../epics/markdown/markdown.plan.html).
 - It depends only on `$/parser` and `$/util`.
   - NEVER import `$/spell`, or anything above it.
   - `ui` NEVER imports this package:  it gets a precompiled bundle (as with spell's highlighter).

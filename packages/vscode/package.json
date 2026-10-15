@@ -75,7 +75,7 @@
       },
       {
         "command": "spell.docView.home",
-        "title": "Docs Home:  a fresh view at the docs home, for a page that stopped responding",
+        "title": "Home Page:  a fresh view at the docs' home page, for a page that stopped responding",
         "category": "Spell",
         "icon": "$(home)"
       },
@@ -119,7 +119,7 @@
       },
       {
         "command": "spell.reviewView.home",
-        "title": "Review:  Docs Home (a fresh view at the docs home)",
+        "title": "Review:  Home Page (a fresh view at the docs' home page)",
         "category": "Spell",
         "icon": "$(home)"
       },

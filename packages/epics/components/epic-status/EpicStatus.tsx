@@ -31,7 +31,7 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  *   then the summary (`slot="summary"`), only when there is one
  * - Folds by its band, reading and summary together (Owen, 2026-10-08:  everything in a section box folds):
  *   open to start with;  page state, never written;  folded, `hidden="until-found"`
- * - Written by the plan-doc tool (`plan-doc status`, `inbox apply`), never by hand;
+ * - Written by the epic tool (`plan-doc status`, `inbox apply`), never by hand;
  *   a later mark on the same item adds a new card, the old ones stay
  ****************/
 export class EpicStatus extends E.UIComponent<typeof epicStatusVocabulary> {

@@ -8,7 +8,7 @@ import type { EpicVocabulary } from "$/epics/definitions"
 
 /****************
  * ### `<epic-note>`
- * A small UPDATE or DONE note in a plan doc's prose.
+ * A small UPDATE or DONE note in an epic page's prose.
  ****************/
 export const epicNoteVocabulary = {
   tag: "epic-note",

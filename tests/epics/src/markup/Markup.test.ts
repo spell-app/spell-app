@@ -61,7 +61,18 @@ const SAMPLES: { [T in EpicTag]: EpicData<T> } = {
     commits: true
   },
   "epic-choices": { chosen: "A" },
-  "epic-option": { letter: "A", title: "A named palette", recommended: true },
+  "epic-option": {
+    letter: "A",
+    title: "A named palette",
+    recommended: true,
+    selected: true,
+    done: true,
+    badge: "deferred",
+    badgeColor: "blue",
+    stateIcon: "circle pause",
+    stateColor: "yellow",
+    stateLabel: "Deferred 2026-10-06"
+  },
   "epic-answer": { id: "d1", title: "Named palette" },
   "epic-more": {},
   "epic-reply": { from: "Owen", at: "2026-10-06 10:42", re: "revisit soon" },
@@ -80,7 +91,21 @@ const SAMPLES: { [T in EpicTag]: EpicData<T> } = {
   "epic-code": { title: "design.ts · 12 lines", language: "ts", open: true },
   "epic-review": { of: "q7", shows: "note", buttons: "todo", label: "Q7", tip: "reviewed 10/7/26", underLine: true },
   "epic-new-item": { open: true, adds: "question", near: "p3", editing: "new1" },
-  "epic-agents": {}
+  "epic-agents": {},
+  "epic-ask": { name: "q1", multiple: true, selectAll: true, filter: true, moreDetails: true },
+  "epic-text-box": { type: "comment", for: "q1-B", placeholder: "Comment on B", label: "Comment on B · Blue" },
+  "epic-send": {},
+  "epic-choice-rows": { stacked: true, noFile: true },
+  "epic-choice-row": {
+    name: "q1-A-7",
+    file: "packages/ui/src/A.tsx",
+    line: 7,
+    purpose: "menu open",
+    note: "a `boolean`",
+    current: "this.open",
+    recommended: "this.isOpen"
+  },
+  "epic-choices-bar": {}
 }
 
 /** A fresh linkedom document. */
@@ -93,7 +118,7 @@ function documentOf(html: string): Document {
   return parseHTML(`<!doctype html><html><body>${html}</body></html>`).document as unknown as Document
 }
 
-/** A small plan doc using every element, built through `Markup`, in `document`'s body;  returns its page. */
+/** A small epic page using every element, built through `Markup`, in `document`'s body;  returns its page. */
 function planDoc(document: Document): Element {
   const make = <T extends EpicTag>(tag: T, data: EpicData<T>, children?: Parameters<typeof Markup.element>[3]) =>
     Markup.element(document, tag, data, children)

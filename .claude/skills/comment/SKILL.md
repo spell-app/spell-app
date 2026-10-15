@@ -49,7 +49,7 @@ Review any file through PLAN MODE's comment tab.
 5. Write the reviewed text back to the real file:  the plan file's body below the `---`,
    with the header and (for non-`.md`) the fence stripped.
    - Check it:  `git diff --stat <path>` shows only what the comments changed.
-   - The file is a generated or checked one (a plan doc, a WWOD file):
+   - The file is a generated or checked one (an epic page, a WWOD file):
      run its check (`epic check`, `spell dev wwod check` ...).
 6. Next file:  step 2.
    - After the last:  one line per file ("`<path>`:  N rounds, M comments applied", or "approved as is").
@@ -58,7 +58,7 @@ Review any file through PLAN MODE's comment tab.
 ## Notes
 
 - An epic running:
-  - log each file's round count in its plan doc (`epic log <name> "..."`)
+  - log each file's round count in its epic page (`epic log <name> "..."`)
   - a comment that changes a decision becomes a question born answered (`epic add <name>#D "..."`)
 - NEVER apply Owen's comments to the real file while still in plan mode (it can't be edited there).
   And never skip write-back:  the plan file is overwritten by the next round.

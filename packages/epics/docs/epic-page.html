@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     <title>epic-page</title>
-    <meta name="description" content="The &lt;epic-page&gt; element: a whole plan doc, one epic's page." />
+    <meta name="description" content="The &lt;epic-page&gt; element: a whole epic page, one epic's page." />
     <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
     <script>
       try {
@@ -35,14 +35,14 @@
           </ui-menu>
           <ui-header level="1" class="site-title">
             &lt;epic-page&gt;
-            <ui-header>The &lt;epic-page&gt; element: a whole plan doc, one epic's page.</ui-header>
+            <ui-header>The &lt;epic-page&gt; element: a whole epic page, one epic's page.</ui-header>
           </ui-header>
         </ui-container>
       </ui-segment>
 
       <ui-container class="site-body">
         <article class="site-article">
-          <p class="lede"><code>&lt;epic-page&gt;</code> is a whole plan doc: one epic's page.</p>
+          <p class="lede"><code>&lt;epic-page&gt;</code> is a whole epic page: one epic's page.</p>
           <ul>
             <li>
               Its attributes hold the epic's data (name, title, branch, dates); its children are the Overview and the
@@ -55,7 +55,7 @@
           </ul>
           <!-- no ui-list.spell-meta here:  any ui-item element on the page leaves epic-item unstyled (issue I9 of epic-components) -->
           <p class="meta">
-            Written for: anyone reading or writing a plan doc's markup, or changing this element.<br />
+            Written for: anyone reading or writing an epic page's markup, or changing this element.<br />
             Status: <ui-label size="mini" color="green">built</ui-label> in
             <a href="../../packages/epics/components/epic-page/" target="src-packages-epics-components-epic-page"
               ><code title="packages/epics/components/epic-page/">epic-page/</code></a
@@ -82,12 +82,12 @@
                 An <code>&lt;epic-page&gt;</code> takes over the page around it: its header sticks under the site
                 header, and its sections join the page's rail. So it shows only as markup here; to see one drawn, open
                 <a href="../../epics/epic-components/epic-components.plan.html" target="epic-components"
-                  >this epic's own plan doc</a
+                  >this epic's own epic page</a
                 >.
               </p>
             </ui-message>
             <ui-accordion class="spell-code" styled>
-              <ui-title>A small plan doc · 20 lines</ui-title>
+              <ui-title>A small epic page · 20 lines</ui-title>
               <ui-content>
                 <ui-code language="html"
                   ><script type="text/plain">
@@ -126,14 +126,22 @@
                 under the header, the review line (<code>To review this doc, type /epic review seo</code>), then the
                 meta lines: the branch, the worktree, <code>Started 10/1/26, updated 10/7/26</code>
               </li>
-              <li>no Send or Review Now: they show only while a plan doc is being reviewed through the page server</li>
+              <li>
+                served by the page server, a See Also box above the blocks: the epic's guide, every page it made
+                for itself in its <code>details/</code> folder (details pages, choice pages, its review page), then
+                every guide its page and parts link to, each with its kind's icon and word (guide, details,
+                choices, guide)
+              </li>
+              <li>
+                no Send or Review Now: they show only while an epic page is being reviewed through the page server
+              </li>
             </ul>
           </ui-section>
 
           <ui-section id="2-markup" header="2. Markup" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>
-              The opening of a real plan doc (<a
+              The opening of a real epic page (<a
                 href="../../epics/epic-components/epic-components.plan.html"
                 target="epic-components"
                 title="epics/epic-components/epic-components.plan.html"
@@ -142,7 +150,7 @@
             </p>
 
             <ui-accordion class="spell-code" styled>
-              <ui-title>A plan doc's page · 24 lines</ui-title>
+              <ui-title>An epic page's page · 24 lines</ui-title>
               <ui-content>
                 <ui-code language="html"
                   ><script type="text/plain">
@@ -195,7 +203,7 @@
 
             <ui-section id="epic-page-parents" header="Its parents" sticky collapsible dividing collapsed>
               <p>
-                None: it's the page. A plan doc's file holds exactly one, in <code>main.spell-doc-main</code>, inside
+                None: it's the page. An epic page's file holds exactly one, in <code>main.spell-doc-main</code>, inside
                 <code>&lt;ui-root&gt;</code>.
               </p>
             </ui-section>
@@ -223,7 +231,7 @@
                       <td>prose</td>
                       <td><code>slot="durable"</code></td>
                       <td>one at most</td>
-                      <td>The durable doc's link.</td>
+                      <td>The guide's link.</td>
                     </tr>
                     <tr>
                       <td>
@@ -382,7 +390,7 @@
                   <tr>
                     <td><code>started</code></td>
                     <td>text: date</td>
-                    <td>The day the plan doc was made.</td>
+                    <td>The day the epic page was made.</td>
                     <td></td>
                   </tr>
                   <tr>
@@ -459,7 +467,7 @@
                     <tr>
                       <td><code>durable</code></td>
                       <td>
-                        A link to the durable doc, once Doc Review wrote one:
+                        A link to the guide, once Doc Review wrote one:
                         <code>&lt;a slot="durable" href="../../guides/x.html"&gt;X&lt;/a&gt;</code>.
                       </td>
                     </tr>
@@ -541,8 +549,25 @@
                       </td>
                     </tr>
                     <tr>
+                      <td><code>pill</code></td>
+                      <td>
+                        Under the review line, while work waits and nobody listens (orange), or in airplane mode: no
+                        session is reviewing, or what the page server's wake did ("Typed /epic review &lt;name&gt; into
+                        🚧 &lt;name&gt;: press Enter there"). A click types the command into the epic's session.
+                      </td>
+                    </tr>
+                    <tr>
                       <td><code>meta</code></td>
-                      <td>The meta lines: branch, worktree, dates, durable doc.</td>
+                      <td>The meta lines: branch, worktree, dates, guide.</td>
+                    </tr>
+                    <tr>
+                      <td><code>see-also</code></td>
+                      <td>
+                        Above the blocks: the pages the epic made or leans on (its guide, its
+                        <code>details/</code> folder, the guides it links), each a link with its kind (an
+                        <code>li[data-kind]</code>), gathered by the page server's <code>GET /api/epics/pages</code>.
+                        None, no box.
+                      </td>
                     </tr>
                     <tr>
                       <td><code>notice</code></td>
@@ -628,6 +653,19 @@
                 listening, it says so in solid orange (a warning).
               </li>
               <li>
+                <b>Waking the epic</b> (epic <code>epic-workflow</code> P16): Send, Review Now or Do Now pressed with
+                nobody listening makes the page server type <code>/epic review &lt;name&gt;</code> into the epic's
+                running session, or open a new session in its window, for Owen to press Enter there.
+                <ul>
+                  <li>
+                    The orange pill then says what it did, until a session listens: "Typed /epic review seo into 🚧 seo:
+                    press Enter there"
+                  </li>
+                  <li>Once per epic per 10 minutes: a second press says "Already ..." and the time</li>
+                  <li>A click on the pill still types the command on purpose</li>
+                </ul>
+              </li>
+              <li>
                 <b>The git toggle:</b> a bare icon, only when the doc lists commits. It shows or hides every commit,
                 remembered per page.
               </li>
@@ -636,7 +674,7 @@
                 agent.
               </li>
               <li>
-                <b>Folding:</b> the page itself doesn't fold. Its blocks do, and on a plan doc they all start folded.
+                <b>Folding:</b> the page itself doesn't fold. Its blocks do, and on an epic page they all start folded.
               </li>
               <li>
                 <b>The shared look:</b> it declares the pack's CSS tokens (<code>--epic-*</code>: colours, bands, the

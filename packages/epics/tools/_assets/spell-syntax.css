@@ -1,6 +1,6 @@
 /*
  * The spell syntax guide (`guides/spell-syntax/spell-syntax.html`), on top of `spell-doc.css` and
- * `syntax-choices.css` (its boxes and toolbar are a syntax-choices page's):  the rules' tables `spell-syntax.js` draws,
+ * `syntax-choices.css` (its boxes and toolbar are a choice page's):  the rules' tables `spell-syntax.js` draws,
  * and its Expand all and Collapse all in the page toolbar.
  * - Phone width:  each table scrolls inside its own box (`spell-doc.css`'s `ui-table` rule), never the page.
  */
@@ -142,7 +142,7 @@ a.spell-syntax-source:is(:hover, :focus-visible) {
   font-size: 0.85em;
 }
 
-/* a box Owen changed:  orange, as a syntax-choices page's;  an orange edge on its row */
+/* a box Owen changed:  orange, as a choice page's;  an orange edge on its row */
 .spell-syntax-box[data-changed] .spell-choice-input {
   border-color: var(--ui-orange, #f2711c);
   background: var(--ui-orange-background, light-dark(#fff3e8, #3a2a1c));

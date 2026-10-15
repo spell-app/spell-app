@@ -4,12 +4,12 @@
  * The moves:
  * - the CONTENT move (epic `shared-content`, P2, 2026-10-04;  `CONTENT_MOVE`, `repairCheckout()`):
  *   - `packages/docs` kept only the package and `tools/`
- *   - every page, plan doc and template moved to `packages/docs/content/`
+ *   - every page, epic page and template moved to `packages/docs/content/`
  *   - the docs scripts and `_assets` to `packages/docs/tools/` (now `packages/epics/tools/`)
  *   - the goals tooling to `tools/goals/`, the three root logs to `agents/`
  * - the REORG (epic `claude-design`, P4, 2026-10-05;  `REORG_MOVE`, `reorgShared()`):
  *   - the shared repo's `packages/docs/content/` split into root folders, each linked at the root of every checkout
- *   - `epics/`, `templates/`, `guides/` (every other page) and `pages/` (the docs home and the scratch details pages)
+ *   - `epics/`, `templates/`, `guides/` (every other page) and `pages/` (the home page and the scratch details pages)
  *   - old-path links stay behind in the shared repo's `packages/docs/content/`, for checkouts on older code
  * - the DOCS PACKAGE'S END (epic `people-and-orgs`, P16, 2026-10-13;  `DOCS_END_MOVE`, `relinkDocsPackage()`):
  *   - `packages/docs` went
@@ -293,8 +293,8 @@ export function headerRoot(text, file) {
  * - path MENTIONS in prose (`reorgMentions()`) only in files that moved just now,
  *   unless `allMentions` (the first run, 2026-10-05):  a page in place may name an old path on purpose
  *   (history, the old-path links)
- * - plan docs are rewritten under their lock (`<file>.lock`, as `spell dev plan-doc` takes it);
- *   the moves wait for every plan doc's lock, so no edit lands mid-move
+ * - epic pages are rewritten under their lock (`<file>.lock`, as `spell dev plan-doc` takes it);
+ *   the moves wait for every epic page's lock, so no edit lands mid-move
  */
 export function reorgShared(dir, checkout, { dryRun = false, allMentions = false } = {}) {
   const report = { moved: [], merged: [], conflicts: [], links: [], rewritten: [] }
@@ -317,7 +317,7 @@ export function reorgShared(dir, checkout, { dryRun = false, allMentions = false
     if (!existsSync(full)) continue
     const mentions = allMentions || before !== file
     const fix = (text) => rewrite(text, before, file, { guides, exists, mentions })
-    // a plan doc, or one of its parts (`parts/<id>.html`, plan fragments):  under the doc's lock
+    // an epic page, or one of its parts (`parts/<id>.html`, plan fragments):  under the doc's lock
     const doc = planDocOf(file)
     const changed = doc && !dryRun ? withLocks([join(dir, doc)], () => apply(full, fix)) : apply(full, fix, dryRun)
     if (changed) report.rewritten.push(file)
@@ -361,7 +361,7 @@ function rewrite(text, before, file, { guides, exists, mentions }) {
   // links into the docs package's tools, which left `packages/docs/` for `packages/epics/` (people-and-orgs P16)
   out = relocateLinks(out, file, file, DOCS_END_MOVE)
   if (mentions) out = reorgMentions(out, guides)
-  // a plan doc's part (`parts/<id>.html`, `.htm` before Q12 of `epic-components`):  never a page, so only the tab
+  // an epic page's part (`parts/<id>.html`, `.htm` before Q12 of `epic-components`):  never a page, so only the tab
   // names of the links the moves changed
   if (isPart(file)) return retarget(out, file, MOVED_TARGET)
   if (file.endsWith(".html")) {
@@ -438,7 +438,7 @@ function ensureIgnores(dir) {
 }
 
 /**
- * Every `.html`, `.htm` (a plan doc's parts), `.md` and `.json` file in shared repo `dir`, repo-relative, sorted.
+ * Every `.html`, `.htm` (an epic page's parts), `.md` and `.json` file in shared repo `dir`, repo-relative, sorted.
  * - never follows a link (the old-path links would list every moved file twice), nor walks `.git` or `node_modules`
  */
 function textFiles(dir, prefix = "") {
@@ -452,7 +452,7 @@ function textFiles(dir, prefix = "") {
   return found.sort((a, b) => a.localeCompare(b))
 }
 
-/** The plan doc `file` (repo-relative) is, or is a part of (`epics/<n>/parts/<id>.html`, or `.htm`);  else `undefined`. */
+/** The epic page `file` (repo-relative) is, or is a part of (`epics/<n>/parts/<id>.html` or `.htm`);  else `undefined`. */
 function planDocOf(file) {
   if (/\.plan\.html$/.test(file)) return file
   const part = /^((?:.*\/)?epics\/([^/]+))\/parts\/[^/]+\.html?$/.exec(file)
@@ -460,14 +460,14 @@ function planDocOf(file) {
 }
 
 /**
- * Is `file` (repo-relative) a plan doc's part:  a `.html` / `.htm` in a `parts/` folder?  Never a page, whatever its
+ * Is `file` (repo-relative) an epic page's part:  a `.html` / `.htm` in a `parts/` folder?  Never a page, whatever its
  * extension (`pages.js` `SKIP_DIRS` skips the folder too).
  */
 function isPart(file) {
   return /(?:^|\/)parts\/[^/]+\.html?$/.test(file)
 }
 
-/** Every plan doc in shared repo `dir`, old place or new:  `epics/<name>/<name>.plan.html`. */
+/** Every epic page in shared repo `dir`, old place or new:  `epics/<name>/<name>.plan.html`. */
 function planDocsIn(dir) {
   return [join(dir, "epics"), join(dir, OLD_CONTENT, "epics")]
     .filter((epics) => existsSync(epics) && !lstatSync(epics).isSymbolicLink())
@@ -944,7 +944,7 @@ export function repairCheckout(root, { dryRun = false } = {}) {
   // a LINKED content folder is the shared repo:  never merged, so nothing in it was written for the old layout
   const content = join(root, "packages", "docs", "content")
   const linked = lstatSync(content, { throwIfNoEntry: false })?.isSymbolicLink()
-  // pages only:  a plan doc's part (`parts/<id>.html`) is a fragment
+  // pages only:  an epic page's part (`parts/<id>.html`) is a fragment
   const pages = linked
     ? []
     : filesUnder(root, "packages/docs/content").filter((path) => path.endsWith(".html") && !isPart(path))
@@ -962,7 +962,7 @@ export function repairCheckout(root, { dryRun = false } = {}) {
 }
 
 /**
- * A plan doc, repo-relative:  `epics/<name>/<name>.plan.html` (or `<name>.html`), at the root or under either old
+ * An epic page, repo-relative:  `epics/<name>/<name>.plan.html` (or `<name>.html`), at the root or under either old
  * place (`packages/docs/epics/`, `packages/docs/content/epics/`);  `[1]` its name.  Same as `doc-links.js` `PLAN_DOC`.
  */
 const PLAN_DOC = /(?:^|\/)(?:packages\/docs\/(?:content\/)?)?epics\/([^/]+)\/\1(?:\.plan)?\.html$/
@@ -970,7 +970,7 @@ const PLAN_DOC = /(?:^|\/)(?:packages\/docs\/(?:content\/)?)?epics\/([^/]+)\/\1(
 /**
  * `text` of page `file` (repo-relative) with each local link's `target="src-..."` (its tab, `doc-links.js`
  * `targetFor()`) named for where the link points NOW:  a moved file kept its old name, so one file had two tabs.
- * - a link to a plan doc gets the epic's name, as `targetFor()` gives it;  external targets (`ext-...`) and links
+ * - a link to an epic page gets the epic's name, as `targetFor()` gives it;  external targets (`ext-...`) and links
  *   already named otherwise are left alone
  * - `only`:  rename just the targets it matches (the reorg, in a page that stayed:  only `src-packages-docs-content-...`)
  */

@@ -6,7 +6,7 @@ import { PART_COMMENT, PART_EXT, PART_SOURCE, PARTS_DIR, PlanParts, type PartRea
 
 /****************
  * ### `EpicParts`
- * A plan doc in `<epic-*>` markup, in PARTS:  the skeleton, `<name>.plan.html`, plus one body file per bulky host,
+ * An epic page in `<epic-*>` markup, in PARTS:  the skeleton, `<name>.plan.html`, plus one body file per bulky host,
  * `parts/<id>.html`, with the elements as hosts (`templates/epics/plan-doc.md`, "Parts";  the files and URLs:
  * `PlanParts`).
  * - hosts (`HOSTS`):  an Overview sub-section, a phase, an item with details, the log.  A host's body is every child

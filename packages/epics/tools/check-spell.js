@@ -3,26 +3,26 @@
  * Usage:  node tools/check-spell.js <folder>/<doc>.html [outDir]
  * - screenshots (into outDir, default a temp folder):
  *   - desktop top, desktop mid-page, phone mid-page
- *   - a plan doc:  also a phone-width open item, its line stuck (`phone-item.png`)
+ *   - an epic page:  also a phone-width open item, its line stuck (`phone-item.png`)
  * - fails (exit 1) on:
  *   - console / page errors
- *   - a `ui-*` or `epic-*` element (the `epics` pack's, a plan doc's) that isn't defined,
+ *   - a `ui-*` or `epic-*` element (the `epics` pack's, an epic page's) that isn't defined,
  *     or never rendered (no shadow root)
  *   - a toolbar (`nav.spell-toolbar`, epic `airplane` P8) that doesn't list every top-level section,
  *     or an entry that points nowhere
  *     - the goals pages' sections:  the h2s heading a sticky section
- *     - a plan doc's:  its `<epic-*>` blocks
+ *     - an epic page's:  its `<epic-*>` blocks
  *   - a page that still draws the old floating rail (`nav.spell-rail`)
  *   - horizontal scroll at phone width
  *   - a content column squeezed at phone width (a wide-screen grid rule leaking into the narrow layout)
  *   - a top-level section's title that doesn't stick when scrolled into its section, or sticks under the fixed site
  *     header
- *     - its title:  `<ui-section>` pages, a plan doc's `<epic-*>` blocks;  its h2:  `section.s2` pages
- *     - a plan doc's start folded:  its largest item section is opened first (`openBiggestSection()`)
+ *     - its title:  `<ui-section>` pages, an epic page's `<epic-*>` blocks;  its h2:  `section.s2` pages
+ *     - an epic page's start folded:  its largest item section is opened first (`openBiggestSection()`)
  *   - no toolbar entry marked current after scrolling
  *   - a `ui-accordion.spell-code` without a `<pre>`
  *   - a toolbar not stuck at the top at phone width, or wider than the window
- *   - a plan doc's open item (`<epic-item>`, epic `windows-and-review` Q6) whose line doesn't stick right under
+ *   - an epic page's open item (`<epic-item>`, epic `windows-and-review` Q6) whose line doesn't stick right under
  *     its section's stuck title while its details are read
  *     - at desktop and phone width (`checkItemLine()`)
  * - loads the page from `file://`, or from the page server when its `<body>` says `data-spell-needs-server`
@@ -47,12 +47,12 @@ import { COMPONENT_SETS } from "../../server/src/page/page.types.ts"
 import { ROOT, ensurePageServer, pageFile, serverUrl } from "./pages.js"
 
 /**
- * Elements the page's packs define, as `ui-*` (Spell UI) and `epic-*` (the `epics` pack, plan docs):
+ * Elements the page's packs define, as `ui-*` (Spell UI) and `epic-*` (the `epics` pack, epic pages):
  * a tag that looks like one of theirs must be defined and draw into a shadow root.
  */
 const PACK_TAG = /^(ui|epic)-/
 
-/** The page's navigation:  its toolbar, a plan doc's or any other page's (`spell-doc-runtime.js` `buildNavigation()`). */
+/** The page's navigation:  its toolbar, an epic page's or any other's (`spell-doc-runtime.js` `buildNavigation()`). */
 const NAV = "nav.spell-toolbar"
 
 const baseAt = process.argv.indexOf("--base")
@@ -257,7 +257,7 @@ async function checkFold(page) {
 }
 
 /**
- * The ITEM LINE check (plan docs, epic `windows-and-review` Q6):  an open item's line sticks right under its
+ * The ITEM LINE check (epic pages, epic `windows-and-review` Q6):  an open item's line sticks right under its
  * section's stuck title while its details are read.
  * - target:  the first `<epic-item>` with details (`source`, or children of its own) in a top-level item section;
  *   its section and it opened, its part loaded;  details shorter than two windows get filler paragraphs
@@ -337,7 +337,7 @@ function itemStuck(id) {
 }
 
 /**
- * The section the fold check works on:  `{ id, kind }` (`ui-section`;  `epic` for a plan doc's top-level block;
+ * The section the fold check works on:  `{ id, kind }` (`ui-section`;  `epic` for an epic page's top-level block;
  * `section` for the old markup's h2 id).
  */
 function foldTarget() {
@@ -369,7 +369,7 @@ function foldTarget() {
 
 /**
  * The element a reader clicks to fold the target:  the shadow toggle button, or the old chevron host.
- * - a plan doc's block:  the toggle of the `<ui-section>` it draws in its shadow root
+ * - an epic page's block:  the toggle of the `<ui-section>` it draws in its shadow root
  */
 function foldToggle({ id, kind }) {
   const element = document.getElementById(id)
@@ -382,7 +382,7 @@ function foldToggle({ id, kind }) {
  * The target's fold:  `{ folded, contentVisible }`.
  * - `<ui-section>`:  folded when its `collapsed` is true AND it says `:state(collapsed)`;
  *   content:  its first unslotted child
- * - a plan doc's block:  folded when it isn't `open` and doesn't say `:state(open)`;  content:  the same
+ * - an epic page's block:  folded when it isn't `open` and doesn't say `:state(open)`;  content:  the same
  * - old markup:  `section.spell-folded`;  content:  the element after the heading's `ui-sticky`
  * - visible:  `checkVisibility()`, which sees `hidden="until-found"` (content-visibility) and `display: none`
  */
@@ -434,7 +434,7 @@ function inspectPage(nav) {
       unrendered[el.localName] = (unrendered[el.localName] ?? 0) + 1
   }
   const undefinedTags = Object.keys(elements).filter((tag) => !customElements.get(tag))
-  // the toolbar's entries:  the top-level sections (a plan doc's top-level blocks), or the h2s heading a sticky section
+  // the toolbar's entries:  the top-level sections (an epic page's blocks), or the h2s heading a sticky section
   const top = "main > ui-section[id], main epic-page > :is(epic-overview, epic-section, epic-phase)[id]"
   const sections = [...document.querySelectorAll(top)]
   const topLevel = (
@@ -477,8 +477,8 @@ function inspectPage(nav) {
 }
 
 /**
- * In the page:  open a plan doc's top-level item section with the most items, as a reader would to read it.
- * - why:  a plan doc starts folded, so nothing would be tall enough to stick over
+ * In the page:  open an epic page's top-level item section with the most items, as a reader would to read it.
+ * - why:  an epic page starts folded, so nothing would be tall enough to stick over
  * - its items are in the doc itself, never in a part
  * - not saved (no event):  the fold check starts from it
  */
@@ -490,18 +490,18 @@ function openBiggestSection() {
 }
 
 /**
- * Scroll into the middle top-level section (`main > ui-section` or a Spell UI-shaped page's article's, a plan doc's
+ * Scroll into the middle top-level section (`main > ui-section` or a Spell UI-shaped page's article's, an epic page's
  * top-level block, or `section.s2`),
  * part way down, and return its id (the h2's, for `section.s2`) and what it is.
  * - only sections that can scroll up to the top:  a short page's last section never sticks
  */
 function scrollToMiddleSection() {
   const room = document.documentElement.scrollHeight - innerHeight
-  // a section barely taller than its title (an empty "Todos" in a new plan doc) has no middle to stick over:  skip it
+  // a section barely taller than its title (an empty "Todos" in a new epic page) has no middle to stick over:  skip it
   const top =
     ":is(main, main .site-article) > ui-section, main epic-page > :is(epic-overview, epic-section), section.s2"
   // how far past its top the check scrolls:  the page must have room for all of it, or the title stays where it
-  // is, never stuck (epic `epic-workflow` I1:  a new plan doc's Questions failed so, the page too short to scroll)
+  // is, never stuck (epic `epic-workflow` I1:  a new epic page's Questions failed so, the page too short to scroll)
   const into = (s) => Math.min(600, s.offsetHeight / 2)
   const sections = [...document.querySelectorAll(top)].filter(
     (s) => s.offsetHeight > 200 && s.getBoundingClientRect().top + scrollY + into(s) + 100 < room
@@ -522,13 +522,13 @@ function scrollToMiddleSection() {
  * Whether section / h2 `id`'s title sits at the top of the viewport, and which rail entry is current.
  * - stuck:  both of
  *   - its title's top is within 160px BELOW the fixed site header (`--spell-site-header-height`;  never under it):
- *     room for a sticky bar above it, e.g. a plan doc's page header, CHEATSHEET's filter
+ *     room for a sticky bar above it, e.g. an epic page's page header, CHEATSHEET's filter
  *   - it's what shows at its own middle
  *   - Scrolled mid-section, a title that DIDN'T stick is far above.
  *     One stuck but covered, e.g. by an h3 sticking at the same offset, doesn't count.
  *   - `<ui-section>`:  its title is its shadow `title` part, and it must ALSO say `:state(stuck)`;
  *     what shows there is the section host (the shadow retargets to it), not a nested section's
- *   - a plan doc's block:  the same, of the `<ui-section>` it draws in its shadow root;
+ *   - an epic page's block:  the same, of the `<ui-section>` it draws in its shadow root;
  *     what shows there is the block's host
  *   - h2:  one its short section's end pushed out (`:state(bound)`) counts:  it stuck, then left with its section
  * - active:  the rail's `selected` entry

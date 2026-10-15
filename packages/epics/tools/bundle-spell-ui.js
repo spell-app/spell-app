@@ -128,9 +128,9 @@ const ICONS = {
   "solid/table-columns": ["table columns"],
   "solid/sun": ["sun"],
   "solid/moon": ["moon"], // dark mode
-  // a plan doc's bedtime label (`<epic-page bedtime>`):  a /bedtime run is on
+  // an epic page's bedtime label (`<epic-page bedtime>`):  a /bedtime run is on
   "solid/bed": ["bed"],
-  // status:  not done / in progress / done (plan docs)
+  // status:  not done / in progress / done (epic pages)
   "regular/circle": ["circle outline"],
   "solid/circle-half-stroke": ["circle half stroke", "adjust"],
   "solid/circle-check": ["circle check", "check circle"],
@@ -171,7 +171,7 @@ const ICONS = {
   "solid/desktop": ["desktop"],
   "solid/puzzle-piece": ["puzzle piece", "puzzle"],
   "solid/book-open": ["book open"],
-  // a plan doc's "Durable doc:" line (and a durable doc's "Plan doc:" line is `map`)
+  // an epic page's "Guide:" line (and a guide's "Epic page:" line is `map`)
   "solid/book": ["book"],
   "solid/cubes": ["cubes"],
   "solid/globe": ["globe"],
@@ -214,7 +214,7 @@ const ICONS = {
   "solid/right-to-bracket": ["right to bracket", "sign in"],
   "solid/download": ["download"],
   "solid/paper-plane": ["paper plane"], // the header's Send;  a todo's "do it in the next phase" (epics)
-  // new items from a plan doc's page (epics `<epic-new-item>`):  the `+`;  a waiting card's Edit and Remove
+  // new items from an epic page's page (epics `<epic-new-item>`):  the `+`;  a waiting card's Edit and Remove
   "solid/plus": ["plus"],
   "solid/pen": ["pen"],
   "solid/trash-can": ["trash can"],
@@ -225,7 +225,7 @@ const ICONS = {
   // an Epics card's star (`$/epics/list/EpicCards`):  a favourite, or not;  the Favorites group's heading
   "solid/star": ["star"],
   "regular/star": ["star outline"],
-  // plan docs' review (epic `review-review`):
+  // epic pages' review (epic `review-review`):
   // section icons, the item action menu and filter, the page header's send / files / git buttons
   "solid/file-circle-question": ["file circle question"],
   "solid/filter": ["filter"],

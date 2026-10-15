@@ -1,9 +1,9 @@
 """The Cards fixture, as compiled Python will say it, prints what the JavaScript core prints for it.
 
 - The program below is the Cards fixture (`tests/spaces/@spell/test/cards/`) in the shape the Python writer emits:
-  the contract between the writer and spell_core (plan doc python-target, P10).
+  the contract between the writer and spell_core (epic page python-target, P10).
 - Its tests' lines must be the JavaScript run's, character for character:
-  the contract's own `Cards.out.txt` (`packages/cli/src/__snapshots__/contract/`).
+  the contract's own `Cards.out.txt` (`tests/cli/src/__snapshots__/contract/`).
 - `pause for 50 msec` is left out:  this program was written in P10, before pauses (P11).
 - Its `to test` methods are named without `test_`, so pytest runs them only inside `core.test()`, as spell does.
 """

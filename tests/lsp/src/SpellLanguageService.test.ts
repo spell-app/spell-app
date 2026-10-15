@@ -625,27 +625,6 @@ describe("SpellLanguageService", () => {
     })
   })
 
-  describe("code lens", () => {
-    test("one per type and method declared, on its name -- unresolved until asked", () => {
-      const lenses = service.codeLens(card)
-      const names = lenses.map(({ range }) =>
-        card.parseText.split("\n")[range.start.line]!.slice(range.start.character, range.end.character)
-      )
-      expect(names).toEqual(expect.arrayContaining(["card", "turn (a card) face up"]))
-      expect(lenses.every(({ command }) => command === undefined)).toBe(true)
-    })
-
-    test("resolved:  how many references, which show them when clicked", () => {
-      const [lens] = service.codeLens(card).filter(({ range }) => range.start.line === at(card, 2, "card").line)
-      const { command } = service.resolveCodeLens(card, lens!)
-      expect(command!.title).toMatch(/^\d+ references$/)
-      expect(command!.command).toBe(LSP.SpellLanguageService.SHOW_REFERENCES)
-      const [uri, , locations] = command!.arguments as [string, Position, unknown[]]
-      expect(uri).toBe(cardUri)
-      expect(locations.length).toBe(Number(command!.title.split(" ")[0]))
-    })
-  })
-
   describe("semantic tokens delta", () => {
     test("nothing changed => no edits;  a change => edits, not every token again", async () => {
       const full = service.semanticTokens(card)
@@ -976,7 +955,7 @@ describe("SpellLanguageService", () => {
 })
 
 /**
- * An OUTLINE project (plan doc `outline-spell`):  a temp copy of the OutlineSolitaire fixture,
+ * An OUTLINE project (epic page `outline-spell`):  a temp copy of the OutlineSolitaire fixture,
  * whose deck and card are written as outlines.
  */
 describe("SpellLanguageService, outline style", () => {

@@ -15,7 +15,7 @@ import { isServer } from "@solidjs/web"
  *   - Each surface says so with a `<ui-root icons="fomantic">` around itself
  *     (the editor's `index.html`, the VS Code webview).
  *   - NOT page-wide here:  a page-wide pack would reach a host page's own `<ui-*>`, which must keep their icons
- *     (27 names mean another icon in Font Awesome:  `packages/ui/docs/icons.md`, "Clashes";  plan doc C16).
+ *     (27 names mean another icon in Font Awesome:  `packages/ui/docs/icons.md`, "Clashes";  epic page C16).
  *   - The editor app also wants it page-wide, for dialogs opened outside its root:  `addAppIconsPageWide()`.
  * - NOT `<spell-app>`'s:  it's a root itself, loading each `<ui-*>` it draws as it appears,
  *   with `icons` defaulting to `fomantic` (`components/spell-app/SpellApp.tsx`).

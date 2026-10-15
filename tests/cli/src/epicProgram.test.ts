@@ -27,7 +27,7 @@ describe("epicMain.ts", () => {
  * Every file of ours `entry` loads by static `import` (and `export ... from`), followed;  and the other packages'
  * specifiers it names.
  * - `import type` and dynamic `import()` aren't followed:  the first loads nothing, the second only when a verb
- *   needs it (`handOver`, the plan-doc tool)
+ *   needs it (`handOver`, the `epic` tool)
  */
 function staticImports(entry: string): { files: string[]; packages: string[] } {
   const files = new Set<string>()

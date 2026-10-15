@@ -2,5 +2,7 @@
   // epics' tests:  epics' own settings (packages/epics/tsconfig.json), over this folder
   "extends": "../../packages/epics/tsconfig.json",
   // `../../types/app.d.ts`, as epics' own takes it:  not all of `../../types` (see there)
-  "include": [".", "../../types/app.d.ts"]
+  // and the elements' JSX tag declarations (`<epic-text-box>` ...), which no file imports:  the package's own check
+  // takes them by folder
+  "include": [".", "../../types/app.d.ts", "../../packages/epics/components/**/*.types.ts"]
 }

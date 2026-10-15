@@ -157,6 +157,22 @@ test("bad values are refused:  not an object, not text, a row the page doesn't h
   expect(stale.text).toContain("reload")
 })
 
+test("the order of a section Owen puts in order:  kept in the draft and the answer;  a row the page doesn't have refused", async () => {
+  const path = "/pages/details/names.html"
+  const body = { values: {}, feedback: "", order: { q1: ["b", "a"] } }
+  expect((await post("draft", path, body)).status).toBe(200)
+  expect(written<ChoicesDraft>(CHOICES[0]!, "draft").order).toEqual({ q1: ["b", "a"] })
+  expect((await post("answer", path, body)).status).toBe(200)
+  expect(written<ChoicesAnswer>(CHOICES[0]!, "answer").order).toEqual({ q1: ["b", "a"] })
+  // none sent:  none kept
+  await post("draft", path)
+  expect(written<ChoicesDraft>(CHOICES[0]!, "draft")).not.toHaveProperty("order")
+  expect((await post("draft", path, { values: {}, order: ["a"] })).status).toBe(400)
+  expect((await post("draft", path, { values: {}, order: { q1: [1] } })).status).toBe(400)
+  const stale = await post("draft", path, { values: {}, order: { q1: ["gone"] } })
+  expect([stale.status, stale.text.includes("reload")]).toEqual([400, true])
+})
+
 test("writes need the token, our origin and our host", async () => {
   const path = "/pages/details/names.html"
   expect((await post("draft", path, undefined, { "content-type": "application/json" })).status).toBe(403)

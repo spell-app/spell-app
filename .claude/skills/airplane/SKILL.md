@@ -7,7 +7,7 @@ argument-hint: '[land | status]'
 # /airplane
 
 Airplane mode:  Owen works on the pages ALONE, with no internet and no Claude (epic `airplane`).
-- He reads plan docs and guides in VS Code's right side bar, marks items, writes notes, adds todos and questions.
+- He reads epic pages and guides in VS Code's right side bar, marks items, writes notes, adds todos and questions.
 - Every page saves to this laptop's page server.
 - `/airplane` gets the laptop ready before;  `/airplane land` works through what he left, after.
 
@@ -21,7 +21,7 @@ Airplane mode:  Owen works on the pages ALONE, with no internet and no Claude (e
   - Its commands act on the MAIN checkout:  its page server is the one the side bar uses.
   - So run each `spell dev ...` here from the main checkout's root:
     `cd "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")" && epic airplane ...`.
-  - The inboxes, plan docs and pages are shared content:  the same files from every checkout.
+  - The inboxes, epic pages and pages are shared content:  the same files from every checkout.
   - Only `/docs-check` (step 3) stays per checkout:  it checks epics merged into `main`, so it runs there too.
 
 ## `/airplane`:  before the flight
@@ -57,11 +57,11 @@ Airplane mode:  Owen works on the pages ALONE, with no internet and no Claude (e
    - what was fixed, and anything still failing, in bold
    - `/docs-check`, when it ran:  how many fixes, and where to review them
    - how it works on the plane, as bullets:
-     - open a plan doc:  the Review tab's list button, "Review:  Open Epic...";  any page:  "Review:  Docs Index"
+     - open an epic page:  the Review tab's list button, "Review:  Open Epic...";  any page:  "Review:  Home Page"
      - mark items as usual;  Send isn't needed:  every mark is taken at landing, sent or not
-     - "+" on a plan doc's header (or its Todos / Questions):  a new todo or question;
+     - "+" on an epic page's header (or its Todos / Questions):  a new todo or question;
        the bubble on a phase or the summary:  a note
-     - any page, plan docs too:  the bullhorn beside a block (a section, table, aside, code, an item, a phase's
+     - any page, epic pages too:  the bullhorn beside a block (a section, table, aside, code, an item, a phase's
        field ...), or select text and press ⌘ I (or the bullhorn floating beside it):  a comment, saved at once;
        closed, it's a thread under its paragraph
      - a thread Claude answered:  its header's pills -- the check ("that's good"), Revisit (reply:  into the box
@@ -81,7 +81,7 @@ Owen is back online.  Gather everything, work through it in the background, then
 1. `epic airplane inbox --json`:  everything waiting, by place:
    - each epic's marks, sent or not, its drafts, Do Now requests, and new items from the page's `+`
    - new epics made from the Epics page, not started (`newEpics`)
-   - each epic's comments (`comments`:  on its plan doc's blocks)
+   - each epic's comments (`comments`:  on its epic page's blocks)
    - comments on docs pages (`comments`);  page notes;  details answers since the flight;  (goals thoughts:  parked since 2026-10-11)
    - A comment is listed when it's Claude's turn on its THREAD:  a new one, or one Owen REPLIED on since Claude
      answered (his latest words:  the last of its `replies`, `by: "Owen"`).  Those he closed ("that's good",
@@ -103,7 +103,10 @@ Owen is back online.  Gather everything, work through it in the background, then
      - a note box's x:  skipped, reviewed with nothing to do
 
 4b. Docs pages' comments, in the session itself (quick):  `epic comments gather --json`.
-   - Every waiting comment (and page note still new) goes into epic `guide-changes`, one phase per page.
+   - A comment on a page an epic OWNS (its `epic` in step 1's list:  epic `epic-workflow` P13) is NOT gathered:
+     it's that epic's.  Its running session takes it with its next `wait`;  none running:  answer it in 5, as that
+     epic's session would (`epic comments working`, then `answer`), or list it for `/epic review <epic>`.
+   - Every other waiting comment (and page note still new) goes into epic `guide-changes`, one phase per page.
      - The phase is made the first time.
      - A page whose phase is still open gets an Updated block in it.
      - A reply on a thread goes too, under its comment ("Owen replied on the thread").
@@ -121,7 +124,7 @@ Owen is back online.  Gather everything, work through it in the background, then
      `status ... noted "<what was recorded;  what happens next>"`.
      - Never `done` (Owen, 2026-10-10:  a Done card means work was done).
      - The cards `apply --all` makes for picks, todos and new items are Noted already.
-   - Each comment on a plan doc (`epics[].comments`):  as `/epic review` answers one ("7.3", step 3b).
+   - Each comment on an epic page (`epics[].comments`):  as `/epic review` answers one ("7.3", step 3b).
      - First `epic inbox <name>#cm3 working on`:  his thread shows "Claude: thinking…" until the answer lands.
      - Into the item or phase it's on, then `epic inbox <name>#cm3 done --file <answer.html>`:  the answer on
        his thread too, his turn (and the thinking stub gone).  A reply of his:  answer his latest words.

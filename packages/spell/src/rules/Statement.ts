@@ -120,7 +120,7 @@ export class SpellStatement<
 
   /**
    * `match`, a statement declaring `property` on `type` -- or, when `type` is one of spell's BUILT-IN types,
-   * e.g. `text` or `thing`, a parse error saying it can't be (plan doc caveat C9).
+   * e.g. `text` or `thing`, a parse error saying it can't be (epic page caveat C9).
    * - e.g. `the length of a text is: ...`
    * - Why:  a built-in type's `P.TypeScope` is the shared root scope's,
    *   which every project parses against and no project's journal records.
@@ -150,7 +150,7 @@ export class SpellStatement<
    * `match`, a statement adding to `type` -- or, when spell knows NO type of that name, a parse error saying so,
    * e.g. `the color of a suit is ...` with no `suit` declared anywhere in the project.
    * - Why:  it'd compile against a class nobody defines, `Suit.prototype`, and throw when run
-   *   (was `agents/SUSPECTED-BUGS.md`;  plan doc `outline-spell`, P2).
+   *   (was `agents/SUSPECTED-BUGS.md`;  epic page `outline-spell`, P2).
    * - A type declared further down is known:  every declaration is stubbed before a project parses.
    * - A lookup:  call it WHILE PARSING.
    */
@@ -260,7 +260,7 @@ export class SpellStatement<
 
   /**
    * `match`, an outline body's line, as the sentence style would say it -- what editors show as "Reads as"
-   * (plan doc `outline-spell`, Q1:  hover teaches the long form).  `undefined` for any other line.
+   * (epic page `outline-spell`, Q1:  hover teaches the long form).  `undefined` for any other line.
    * - Default:  a line whose subject (its `type` group) is the body's `it` / `its`, with the subject spelled out:
    *   - `it has a deck` => `a card has a deck`
    *   - `its "color" is red if ...` => `the "color" of a card is red if ...`

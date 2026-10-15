@@ -37,7 +37,7 @@ export class DOMEpicFoldElement extends E.DOMLoadableBodyElement<EpicFold<any>> 
 
 /****************
  * ### `EpicFold`
- * Base of the plan doc's FOLDING components -- `<epic-overview>`, `<epic-section>`, `<epic-phase>`:
+ * Base of the epic page's FOLDING components -- `<epic-overview>`, `<epic-section>`, `<epic-phase>`:
  * a title bar that sticks and folds, over the element's own children.
  * - The chrome is a `<ui-section sticky collapsible fold-icon="end">` in the shadow root (`renderFold()`):
  *   - its title bar drawn from the subclass's pieces
@@ -47,7 +47,7 @@ export class DOMEpicFoldElement extends E.DOMLoadableBodyElement<EpicFold<any>> 
  *     (its owner lookup climbs the flat tree)
  *   - the fold chevron
  *   - `hidden="until-found"`:  find-in-page and `#links` unfold it
- * - Folding:  `open` (page state, never in a doc:  plan docs open folded), `@controlled`.
+ * - Folding:  `open` (page state, never in a doc:  epic pages open folded), `@controlled`.
  *   - The inner section's own `ui-open` / `ui-close` are CANCELLED and stopped there:
  *     the DOM element announces its own (cancelable), then `open` changes and the inner section follows.
  *   - Find-in-page (`beforematch`, not cancelable) is adopted.

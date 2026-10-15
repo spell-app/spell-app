@@ -41,6 +41,11 @@
       "id": "log",
       "title": "Log and commits",
       "tags": ["epic-commit", "epic-event"]
+    },
+    {
+      "id": "answering",
+      "title": "Pages Owen answers on",
+      "tags": ["epic-ask", "epic-text-box", "epic-send", "epic-choice-rows", "epic-choice-row", "epic-choices-bar"]
     }
   ],
   "drawnOnly": ["epic-review", "epic-new-item", "epic-agents"],
@@ -56,19 +61,19 @@
       {
         "id": "review",
         "file": "../../guides/epic-components/review.html",
-        "label": "Reviewing a Plan Doc",
+        "label": "Reviewing an Epic Page",
         "icon": "check"
       },
       {
         "id": "tool",
         "file": "../../guides/epic-components/tool.html",
-        "label": "The Plan-Doc Tool",
+        "label": "The Epic Tool",
         "icon": "terminal"
       },
       {
         "id": "colours",
         "file": "../../guides/epic-components/colours.html",
-        "label": "Plan Doc Colours",
+        "label": "Epic Page Colours",
         "icon": "palette"
       }
     ],

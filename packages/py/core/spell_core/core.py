@@ -9,7 +9,7 @@ core.expect(len(deck), "the number of cards in the deck", 52, "52")
 
 - The Python twin of the JavaScript core's `spellCore`, with the same methods in snake_case:
   `spellCore.randomItemOf()` is `core.random_item_of()`.
-- Compiled Python calls it only where Python has no word for what spell says (plan doc python-target, Q8):
+- Compiled Python calls it only where Python has no word for what spell says (epic page python-target, Q8):
   spell's test lines, a seeded shuffle, spell's types.
   Loops, `len()`, `in`, `==` on plain values are Python's own.
 """

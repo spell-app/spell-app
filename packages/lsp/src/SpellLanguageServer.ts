@@ -46,7 +46,6 @@ export class SpellLanguageServer {
     completionProvider: { triggerCharacters: [" "] },
     signatureHelpProvider: { triggerCharacters: [" "] },
     codeActionProvider: { codeActionKinds: [CodeActionKind.QuickFix] },
-    codeLensProvider: { resolveProvider: true },
     documentFormattingProvider: true,
     documentRangeFormattingProvider: true
   }
@@ -158,11 +157,6 @@ export class SpellLanguageServer {
     )
     connection.onCodeAction(({ textDocument, range }) =>
       this.answer(textDocument.uri, [], (file) => service.codeActions(file, range))
-    )
-    connection.onCodeLens(({ textDocument }) => this.answer(textDocument.uri, [], (file) => service.codeLens(file)))
-    // a lens carries its file's URI -- see `SpellLanguageService.codeLens()`
-    connection.onCodeLensResolve((lens) =>
-      this.answer((lens.data as { uri: string }).uri, lens, (file) => service.resolveCodeLens(file, lens))
     )
 
     connection.onRequest("spell/compiled", ({ uri }: { uri: string }) =>

@@ -2,7 +2,7 @@
  * Tests of the Epics page's routes, in a scratch checkout:  a future epic made from the page (New epic), and the
  * favourites (a card's star), over HTTP.
  */
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterAll, beforeAll, describe, expect, test, vi } from "vite-plus/test"
@@ -26,10 +26,10 @@ test("an epic's name:  the title, lower-kebab-cased;  a reserved word gets `-epi
 })
 
 test("makes a future epic with the prompt quoted, its log saying it came from the page;  a taken name gets `-2`", async () => {
-  expect(await newEpic(root, "Phone Review", "Review plan docs from my phone.")).toBe("phone-review")
+  expect(await newEpic(root, "Phone Review", "Review epic pages from my phone.")).toBe("phone-review")
   const html = readFileSync(join(root, "epics", "phone-review", "phone-review.plan.html"), "utf8")
   expect(html).toMatch(/<epic-page[^>]*\bfuture\b/)
-  expect(html).toContain("Review plan docs from my phone.")
+  expect(html).toContain("Review epic pages from my phone.")
   expect(readFileSync(join(root, "epics", "phone-review", "parts", "log.html"), "utf8")).toContain(FROM_PAGE)
   expect(await newEpic(root, "Phone Review", "")).toBe("phone-review-2")
 })
@@ -81,6 +81,25 @@ describe("POST /api/epics/favorite", () => {
     expect(readFileSync(file, "utf8")).toBe("[]\n")
     // written through the one safe write:  no temp file or lock left beside it
     expect(readdirSync(join(root, "epics")).filter((name) => /\.(tmp|lock)$/.test(name))).toEqual([])
+  })
+
+  // Owen, 2026-10-13:  "There is no easy way to get to a "decisions" or "details" pages from an epic"
+  test("GET pages:  the epic's own details and choice pages, titled, newest first;  none without the folder", async () => {
+    const details = join(root, "epics", "seo", "details")
+    mkdirSync(details, { recursive: true })
+    writeFileSync(join(details, "names.html"), "<title>Boolean names</title>")
+    writeFileSync(join(details, "names.rows.json"), "{}")
+    writeFileSync(join(details, "names.answer.json"), "{}")
+    writeFileSync(join(details, "bare.html"), "<p>no title</p>")
+    const answer = await ask(port, "GET", "/api/epics/pages?epic=seo")
+    const { pages } = JSON.parse(answer.text) as { pages: { href: string; title: string; kind: string }[] }
+    const byHref = (a: string[], b: string[]) => a[0]!.localeCompare(b[0]!)
+    expect(pages.map(({ href, title, kind }) => [href, title, kind]).sort(byHref)).toEqual([
+      ["details/bare.html", "bare", "details"],
+      ["details/names.html", "Boolean names", "choices"]
+    ])
+    expect(JSON.parse((await ask(port, "GET", "/api/epics/pages?epic=nothing-here")).text)).toEqual({ pages: [] })
+    expect((await ask(port, "GET", "/api/epics/pages?epic=../etc")).status).toBe(400)
   })
 
   test("refuses a name that isn't an epic's, a missing flag, and a write without the token", async () => {

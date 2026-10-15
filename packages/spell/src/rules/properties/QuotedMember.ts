@@ -6,7 +6,7 @@ import { properties } from "./properties.parser"
 /**
  * `quoted_member` rule:  a member's name in quotes, where it's being declared:
  *   `its "suit" is one of ...` in an outline-style type's body
- *   -- the outline style's "quotes teach a new word" (plan doc `outline-spell`).
+ *   -- the outline style's "quotes teach a new word" (epic page `outline-spell`).
  * - The words inside are a `member_words` name, every one of them:  `value` and `raw` as `member_words`'s,
  *   e.g. `short_rank` / `short rank`.
  */

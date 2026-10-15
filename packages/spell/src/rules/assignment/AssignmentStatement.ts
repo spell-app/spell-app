@@ -121,7 +121,7 @@ export class AssignmentStatement extends SpellStatement<"thing|value", Assignmen
    * SIDE EFFECT:  `set the X of Y to V`, where `X` isn't on `Y`'s type,
    * and that type is one this project declares (not a stub, an import or a built-in):
    * - declares `X` there, holding `V`'s datatype, marked `autoDeclared` -- journaled, as any record
-   * - notes it as `match.data.autoDeclared` (plan doc D10)
+   * - notes it as `match.data.autoDeclared` (epic page D10)
    * - Why:  only a declared property is reactive -- its accessor goes through the instance's spell cells.
    * - Its FILE compiles `Card.declareProp('pile', ...)` + the accessor, once, at its top (or after its class):
    *   under our `SPELL: DECLARES` comment, NOT on our own line.  See `SP.Block.autoDeclarationAST()`.

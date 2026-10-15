@@ -23,7 +23,7 @@ import type { AS } from "$/assembler"
  * - Works on the page's TEXT with regexes, never a parsed DOM:  the edits touch only what they link, byte for byte.
  * - Knows the checkout's LAYOUT as folder names only:
  *   `packages/*`, and the shared areas `pages/`, `guides/`, `epics/`, `templates/`.
- *   It imports no other package, so the docs tools and the plan-doc tool (`epics`) both import it.
+ *   It imports no other package, so the docs tools and the `epic` tool (`epics`) both import it.
  * - SERVED folders (`served`, epic `epic-workflow` P10):  a folder the page server serves at another address.
  *   - E.g. a component set:  `packages/epics/docs/` at `/components/epics/`.
  *   - Its pages' links are written as from that address, so they hold under `/worktrees/<w>/` too.
@@ -40,7 +40,7 @@ export class Linker {
   /** `packages/ui` */
   readonly ui: string
 
-  /** the docs home's folder, `pages/`:  what `resolve()` resolves against when no page folder is given */
+  /** the home page's folder, `pages/`:  what `resolve()` resolves against when no page folder is given */
   readonly home: string
 
   /** where `solid-js/...` references are looked up */
@@ -121,7 +121,8 @@ export class Linker {
   /**
    * The tab name for `dest`, an absolute path or URL:  re-clicks reuse that tab.
    * - URLs:  `ext-<slug>`
-   * - a plan doc:  its `<name>`, since the page sets `window.name` to it and `spell dev plan-doc open <name>` reuses it
+   * - an epic page:  its `<name>`, since the page sets `window.name` to it,
+   *   and `spell dev plan-doc open <name>` reuses it
    * - anything else:  `src-<slug of the repo-relative path>`
    * - at most 80 characters after the prefix
    */
@@ -136,7 +137,7 @@ export class Linker {
   /**
    * `tag`, an `<a href>` in a page in `pageDir`, with a target:
    * - in-page anchors (`#id`) are left alone
-   * - a tag with a target keeps it, except a plan doc's:  renamed to its `<name>` (pre-2026-10-01 targets)
+   * - a tag with a target keeps it, except an epic page's:  renamed to its `<name>` (pre-2026-10-01 targets)
    */
   private addTarget(tag: string, href: string, pageDir: string): string {
     if (href.startsWith("#")) return tag
@@ -191,7 +192,7 @@ export class Linker {
    *   - `solid-js/...` in `nodeModules`
    *   - `solidjs.com` pages
    *   - the path against the page's folder, its `experiments/`, the repo root, `packages/`,
-   *     the docs home's folder (`pages/`) and UI
+   *     the home page's folder (`pages/`) and UI
    *   - a bare file name last, when ONE file outside a `test/` folder has it
    * - `file.ts:75` drops its line number
    * - NOTE:  the alias form is `#name/...`, from before the `$/` aliases:  a `$/name/...` span never resolves
@@ -290,7 +291,7 @@ export class Linker {
         continue
       }
       // `_self`:  a page that reads like a site (the master plan) navigates in place, on purpose.
-      // `github`:  a plan doc's commit links (`<epic-commit>`) share ONE GitHub tab,
+      // `github`:  an epic page's commit links (`<epic-commit>`) share ONE GitHub tab,
       // on purpose (P3 of `review-review`)
       if (target === "_self" || target === SHARED_TAB) continue
       if (!byDest.has(dest)) byDest.set(dest, new Set())
@@ -343,14 +344,14 @@ const SKIP_DIRS = new Set([
 ])
 
 /**
- * A plan doc, `epics/<name>/<name>.plan.html`, relative to the repo root:  `[1]` is its name.
+ * An epic page, `epics/<name>/<name>.plan.html`, relative to the repo root:  `[1]` is its name.
  * - and its old places:  `<name>.html` before 2026-10-04;
  *   under `packages/docs/content/` or `packages/docs/` before 2026-10-05
  * - same as `packages/epics/tools/relocate.js` `PLAN_DOC`
  */
 const PLAN_DOC = /(?:^|\/)(?:packages\/docs\/(?:content\/)?)?epics\/([^/]+)\/\1(?:\.plan)?\.html$/
 
-/** The one target several destinations may share:  a plan doc's commits, each opened in the same GitHub tab. */
+/** The one target several destinations may share:  an epic page's commits, each opened in the same GitHub tab. */
 const SHARED_TAB = "github"
 
 /** An absolute URL. */

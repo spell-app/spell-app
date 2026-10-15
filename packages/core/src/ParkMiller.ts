@@ -3,7 +3,7 @@
  * - Each number comes from the one before, so the same seed gives the same numbers in the same order.
  * - What every random thing in the core draws from:  `spellCore.random()`, `seedRandom()`, `shuffled()` ...
  * - Python's core has the very same one (`ParkMiller`, in `py/spell_core/seeded_random.py`),
- *   so one seed deals the same cards on every target (plan doc python-target, Q13).
+ *   so one seed deals the same cards on every target (epic page python-target, Q13).
  *
  * ```ts
  * const generator = new ParkMiller(1)

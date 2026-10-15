@@ -282,7 +282,11 @@ export const REVIEW_TEXTS = [
     text: "Canceled, struck through, once Claude applies it",
     description: "A todo's review button:  what the x does."
   },
-  { key: "waiting", text: "waiting:  {why}", description: "A request queued with nobody listening." },
+  {
+    key: "waiting",
+    text: "waiting for a session:  {why}",
+    description: "A request queued with nobody listening;  `why`:  what the wake did, or that nobody is reviewing."
+  },
   { key: "asked", text: "asked · waiting for Claude to take it", description: "A Do Now not taken yet." },
   { key: "working", text: "Claude is on it · click to call it off", description: "A button whose work is under way." },
   { key: "callOff", text: "{label}:  click to call it off", description: "A spinning button's tooltip." },

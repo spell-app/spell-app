@@ -2,7 +2,7 @@
 import { findCheckout } from "$/cli/findCheckout"
 
 /**
- * `spell dev plan-doc <command> <name> ...`:  the tool that edits a plan doc
+ * `spell dev plan-doc <command> <name> ...`:  the tool that edits an epic page
  * (`epics/<name>/<name>.plan.html`), as the `/epic` skill uses it.  `spell dev plan-doc` alone
  * lists its commands, e.g. `spell dev plan-doc summary seo`, `spell dev plan-doc phase seo 2 done`.
  * - Root `yarn plan-doc` aliases it;  `spell plan-doc` too, until skills stop calling it (deprecated).

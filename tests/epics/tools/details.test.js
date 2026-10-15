@@ -1,8 +1,8 @@
 /**
- * Tests of `spell dev details`' functions (`scripts/details.js`),  in a scratch checkout:  the real template, a
+ * Tests of `spell dev details`' functions (`tools/details.js`), in a scratch checkout:  the real template, a
  * scratch `details/` and an epic.
  */
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterAll, beforeAll, expect, test } from "vite-plus/test"
@@ -10,42 +10,46 @@ import { afterAll, beforeAll, expect, test } from "vite-plus/test"
 import {
   answerFile,
   createPage,
+  draftFile,
   duration,
   findPage,
   formatAnswer,
+  formatDraft,
   listPages,
   readAnswer,
+  readDraft,
   sweep,
   waitForAnswer
 } from "../../../packages/epics/tools/details.js"
-import { TEMPLATES } from "../../../packages/epics/tools/pages.js"
 
 let docs
 
 beforeAll(() => {
   docs = mkdtempSync(join(tmpdir(), "details-cli-"))
-  mkdirSync(join(docs, "templates"))
-  copyFileSync(join(TEMPLATES, "details.html"), join(docs, "templates/details.html"))
   mkdirSync(join(docs, "epics/big"), { recursive: true })
 })
 
 afterAll(() => rmSync(docs, { recursive: true, force: true }))
 
-test("new:  scratch and epic pages, assets fixed for their depth", () => {
+test("new:  scratch and epic pages from the tool's template, in the epics pack's elements, fixed for their depth", () => {
   const scratch = createPage(docs, "pick-layout", { title: "Pick a layout" })
   expect(scratch).toBe(join(docs, "pages/details/pick-layout.html"))
   const html = readFileSync(scratch, "utf8")
   expect(html).toContain("<title>Pick a layout</title>")
-  expect(html).toContain('href="../../packages/epics/tools/_assets/details.css"')
-  expect(html).toContain('<script src="../../packages/epics/tools/_assets/details.js">')
+  expect(html).toContain('<script src="../../packages/epics/tools/_assets/spell-ui.js">')
+  expect(html).toContain('<ui-components source="../../packages/epics/components/__pack/epics.pack.js">')
+  expect(html).not.toMatch(/details\.(css|js)"/)
   expect(html).toContain('root="../.."')
   expect(html).not.toContain("TEMPLATE:")
-  expect(html).toMatch(/data-details-asked[^>]*>Asked:  \d{4}-\d\d-\d\d</)
+  expect(html).toMatch(/<epic-field label="Asked" data-details-asked>\d{4}-\d\d-\d\d</)
+  expect(html).toContain("<epic-send></epic-send>")
+  expect(html).toContain('<epic-text-box type="notes"></epic-text-box>')
 
   const epic = createPage(docs, "shape", { title: "Shape", epic: "big" })
   expect(epic).toBe(join(docs, "epics/big/details/shape.html"))
   const deep = readFileSync(epic, "utf8")
-  expect(deep).toContain('href="../../../packages/epics/tools/_assets/details.css"')
+  expect(deep).toContain('href="../../../packages/epics/tools/_assets/spell-doc.css"')
+  expect(deep).toContain('source="../../../packages/epics/components/__pack/epics.pack.js"')
   expect(deep).toContain('root="../../.."')
 })
 
@@ -72,15 +76,29 @@ test("new --from:  the whole page from a spec", () => {
   const html = readFileSync(file, "utf8")
   expect(html).toContain("<title>Clean up</title>")
   expect(html).toContain("Which <b>leftovers</b> go?")
-  expect(html).toContain("<b>Just now:</b>  listed 6 worktrees")
+  expect(html).toContain('<epic-field label="Just now">listed 6 worktrees</epic-field>')
+  expect(html).toContain('<epic-field label="Asked by" data-details-by>session <code>w</code>, while taking stock')
   expect(html).not.toContain('id="context"')
-  expect(html).toMatch(/<ui-section id="q1" class="spell-question" header="1 · worktree seo"/)
-  expect(html).toMatch(/data-option="A" data-title="Remove it" data-recommended/)
-  expect(html).toContain('<div class="spell-option-details"><p>more</p></div>')
-  expect(html).toMatch(/<ui-section id="phases"[^>]*data-multiple/)
+  expect(html).toMatch(/<ui-section id="q1" header="1 · worktree seo" sticky collapsible dividing>/)
+  expect(html).toContain("<epic-ask><epic-question><p>Merged into main.</p></epic-question><epic-choices>")
+  expect(html).toContain('<epic-option letter="A" title="Remove it" recommended><p>git worktree remove</p>')
+  expect(html).toContain('<epic-aside title="Details"><p>more</p></epic-aside>')
+  expect(html).toMatch(/<ui-section id="phases"[^>]*><ui-icon[^>]*><\/ui-icon><epic-ask multiple>/)
   expect(html).not.toContain("First option")
+  // nothing built as markup in strings:  a title with HTML in it stays text, in its attribute
+  expect(createPageHtml({ questions: [{ title: 'A <b>"bold"</b> one', options: [{ title: "x & y" }] }] })).toContain(
+    'header="A <b>&quot;bold&quot;</b> one"'
+  )
   rmSync(file)
 })
+
+/** A page from `spec` alone, read back and deleted:  its HTML. */
+function createPageHtml(spec) {
+  const file = createPage(docs, "scratch-spec", { spec })
+  const html = readFileSync(file, "utf8")
+  rmSync(file)
+  return html
+}
 
 test("new:  refuses a bad slug, a missing epic, an existing page", () => {
   expect(() => createPage(docs, "Bad Slug")).toThrow(/kebab/)
@@ -146,6 +164,49 @@ test("formats a partial answer:  the questions not decided yet say so", () => {
     "  0 of 1 decided",
     "  Q1 · Short question:  (not decided yet)"
   ])
+})
+
+test("formats kept text:  questions gone from the page, under their old titles", () => {
+  const page = join(docs, "pages/details/pick-layout.html")
+  const answer = {
+    page: "/x",
+    answered: "2026-10-03T22:00:00.000Z",
+    changes: 1,
+    changed: ["kept"],
+    answers: { q1: { picked: ["A"] } },
+    notes: "",
+    kept: [{ id: "q3", label: "Q3 · Gone", text: "picked B · Blue" }]
+  }
+  expect(formatAnswer(page, answer).split("\n").slice(-2)).toEqual([
+    "  Kept from before the page changed:  (new)",
+    "    Q3 · Gone (q3):  picked B · Blue"
+  ])
+})
+
+test("draft:  what's typed and not sent, only when newer than the answer", () => {
+  const page = join(docs, "epics/big/details/shape.html")
+  expect(readDraft(page)).toBeUndefined()
+  const draft = {
+    page: "/epics/big/details/shape.html",
+    saved: "2026-10-03T23:00:00.000Z",
+    answers: { q1: { picked: ["B"] } },
+    comments: {},
+    notes: "half done",
+    labels: { q1: "Q1" }
+  }
+  writeFileSync(draftFile(page), JSON.stringify(draft))
+  expect(formatDraft(page, readDraft(page))).toBe(
+    [
+      `Not sent:  typed on "Shape" (${page}), draft saved 2026-10-03T23:00:00.000Z:`,
+      "  1 of 1 decided",
+      "  Q1 · Short question:  B · Second option",
+      "  Notes:  half done"
+    ].join("\n")
+  )
+  writeFileSync(answerFile(page), JSON.stringify({ answered: "2026-10-04T00:00:00.000Z", answers: {}, notes: "" }))
+  expect(readDraft(page)).toBeUndefined()
+  rmSync(answerFile(page))
+  rmSync(draftFile(page))
 })
 
 test("waits for an answer newer than its start;  gives up after the timeout", async () => {

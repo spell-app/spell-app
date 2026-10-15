@@ -16,7 +16,7 @@ import { Terminal } from "./Terminal.ts"
 
 /****************
  * ### `SiteCheck`
- * Checks the plain-HTML Spell UI docs pages in headless chromium, served by this checkout's page server at
+ * Checks the plain-HTML pages of Spell UI's docs site in headless chromium, served by this checkout's page server at
  * `/components/ui/`.
  * - The pages:  `docs/*.html`, in one folder (`SITE_PAGES`;  an element's page is its tag, `ui-button.html`).
  * - Run:  `yarn site:check <page...>` (in `packages/ui`), or `yarn site:check --all`.
@@ -30,7 +30,7 @@ import { Terminal } from "./Terminal.ts"
  * - Problems (`PageReport.problems`;  exit 1):
  *   - console errors, page errors, failed requests and responses >= 400 (the favicon too:  the page server has one)
  *   - `ui-*` / `spell-*` elements still undefined once settled;  defined `ui-*` with no shadow root
- *   - component pages (`ui-*.html`):
+ *   - components pages (`ui-*.html`):
  *     - not exactly one `ui-tabs.site-tabs` with panes `examples`, `usage`, `api`, `theming` (`theming` optional)
  *     - a pane that isn't the shown one when loaded with its `#hash`, or shows under 50px
  *   - `ui-docs-toc`:  hidden or empty on desktop, visible on phone
@@ -256,7 +256,8 @@ export class SiteCheck {
 
   /**
    * Desktop:  errors, element definitions, tabs (each loaded fresh from its `#hash`), contents list, screenshots.
-   * - non-component pages:  tabs only if they have `ui-tabs.site-tabs`;  else a top and a full-page screenshot
+   * - the components guide's pages:  tabs only if they have `ui-tabs.site-tabs`;
+   *   else a top and a full-page screenshot
    */
   private async checkDesktop(check: CheckContext): Promise<void> {
     const { report, problem, name } = check
@@ -270,12 +271,12 @@ export class SiteCheck {
       for (const [tag, count] of Object.entries(elements.unrendered)) problem(`${count} <${tag}> without a shadow root`)
 
       const tabs = await page.evaluate(tabsState)
-      // a component page (`ui-<tag>.html`:  a family's or a sub-tag's), NOT the component index
+      // a components page (`ui-<tag>.html`:  a family's or a sub-tag's), NOT the component index
       const isComponent = check.path.startsWith("ui-")
       report.counts.tabs = tabs.values
       let values: string[] = []
       if (isComponent) {
-        if (tabs.count !== 1) problem(`${tabs.count} ui-tabs.site-tabs (a component page needs exactly one)`)
+        if (tabs.count !== 1) problem(`${tabs.count} ui-tabs.site-tabs (a components page needs exactly one)`)
         const required = TABS.filter((value) => !OPTIONAL_TABS.includes(value))
         if (tabs.values.join() !== TABS.join() && tabs.values.join() !== required.join())
           problem(`tab panes [${tabs.values.join(", ")}], expected [${TABS.join(", ")}]`)
@@ -693,12 +694,12 @@ const USAGE = `usage:  yarn site:check <page...> | --all  [--out <dir>]
   --out:  screenshot folder (default ${DEFAULT_OUT})`
 
 /**
- * Component pages' tab panes, in order.
+ * Components pages' tab panes, in order.
  * - `theming` may be left out:  a page whose tag has no tokens of its own (`ui-meta`, styled by its owners)
  */
 const TABS = ["examples", "usage", "api", "theming"]
 
-/** Panes a component page may leave out (the last of `TABS`). */
+/** Panes a components page may leave out (the last of `TABS`). */
 const OPTIONAL_TABS = ["theming"]
 
 /** Desktop viewport. */

@@ -350,7 +350,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - `its {property}` in a quoted formula
   - object literals
   - each records the property with `TypeScope.declareProperty(name, declaredBy, { words, datatype, auto })`
-- Reads come two ways (plan doc D5), worked out in `parse()`:
+- Reads come two ways (epic page D5), worked out in `parse()`:
   - RESOLVED:  the words name a PROPERTY that the type of what's read declares
     (`getMember()`, up its super-types).
     - An enumeration's instance twin compiles to its class variable:  `the suits of the card` => `Card.Suits`.
@@ -381,7 +381,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
     - its docs
     - `itemType`, e.g. `text` holds `character`s
     - `members`, each a `SP.BuiltInMember`
-  - not a `.spell` file, not statics on runtime classes (plan doc D25)
+  - not a `.spell` file, not statics on runtime classes (epic page D25)
   - A type's NAME and super-type stay those of `P.BUILT_IN_TYPES`:  the parser's vocabulary.
     The entry's `superType` must agree (a test checks).
 - `SpellParser.rootScope` loads it into the root's type scopes (`loadBuiltInTypes()`):
@@ -435,7 +435,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 - [`belongs_to_one`](src/rules/classes/BelongsToOne.ts):  `a card belongs to one pile`.
   - A card is in at most ONE list of the pile FAMILY at a time.
   - The family:  `Pile` and its sub-types (`a tableau is a pile`).
-  - `a deck is a list of cards` is outside it (plan doc D7):  a card can be in the deck AND one pile.
+  - `a deck is a list of cards` is outside it (epic page D7):  a card can be in the deck AND one pile.
   - The list types stay plain:  `a pile is a list of cards`.
   - `can_belong_to_many`, `a card can belong to many piles`, is the opposite.
     That's what lists do anyway, so it does nothing.
@@ -522,7 +522,7 @@ A kind that says so is saved in a file of its own.
 ## Guards:  `a tableau can take a card if: ...`
 
 - [`list_guard`](src/rules/classes/ListGuard.ts):
-  what a list type takes, or gives up, when something MOVES (plan doc Q23 - Q25).
+  what a list type takes, or gives up, when something MOVES (epic page Q23 - Q25).
   - `a tableau can (add|take) a card if: ...`
   - `a stock-pile can (release|remove|give up|let go of) a card if: ...`
   - `a foundation can never (release|remove|give up|let go of) a card`:  always no
@@ -698,11 +698,11 @@ A kind that says so is saved in a file of its own.
   - Compiling the long forms gives the same javascript as the outline (`outline.test.ts`).
 - A line starting `it` / `its` OUTSIDE a type's body says so.
   See `BlockLine.isOutlineLineOutsideBody()`.
-- A property's quotes are optional:  `- its rank is a number` (plan doc Q4).
+- A property's quotes are optional:  `- its rank is a number` (epic page Q4).
   - Quoted names work in the sentence style too:  `a card has a "suit" as ...` (J3, option C).
   - `- it "rank" is ...` is refused, saying to write `its`.
     See `QuotedTypeExpression.isPropertySlip()`.
-- A phrase and nothing more is refused, saying to add a body (`QuotedTypeExpression.isBodiless()`, plan doc I6).
+- A phrase and nothing more is refused, saying to add a body (`QuotedTypeExpression.isBodiless()`, epic page I6).
   - e.g. `- it "can move"` or `a card "can fly"`
   - It has no `if`, `is` or `:`.
   - Why:  it'd compile to an empty method.
@@ -720,7 +720,7 @@ A kind that says so is saved in a file of its own.
     It holds `{ values, listOn, listName }`.
   - The name must be quoted.
   - It compiles to `Deck.Suits = [...]` + `export class Suit {}`, where the line is.
-  - Values stay plain text and numbers when the code runs (plan doc Q10).
+  - Values stay plain text and numbers when the code runs (epic page Q10).
 - A property of a kind:  `its "suit" is a suit`, or `a suit of its deck`.
   - `define_property_has` notes the kind, in `data.valueList`.
   - Its setter checks `{ oneOf: () => Deck.Suits }`, a FUNCTION.
@@ -765,7 +765,7 @@ A kind that says so is saved in a file of its own.
     - It names, by its singular, a property of the type with a list of values.
     - The list is its own (`as one of`), or a value kind's.
     - e.g. `is the (rank) of (suits)`:  sources `rank`, `suit`
-  - A bare word is always just a word (plan doc J9).
+  - A bare word is always just a word (epic page J9).
   - More after the phrase:  not ours, so `it "is face up" if ...` stays a `quoted_type_expression`.
   - REFUSED, saying why:
     - no parens:  `it "is a suit"`
@@ -792,18 +792,18 @@ A kind that says so is saved in a file of its own.
     - each specialized with its owner (`of`), as `thisType`
     - e.g. a deck's `a rank "is a face card"` on `the card is a face card`, where the card has its own
   - Unknown:  anything fits.
-  - A suffix after `and` / `or` is told the operand after it (plan doc I7).
+  - A suffix after `and` / `or` is told the operand after it (epic page I7).
     - e.g. `the game`, in `... and the game is red`
   - After anything else, it isn't:  what it follows is the chain so far, e.g. a sum.
 - [`draw_side`](src/rules/classes/DrawSide.ts):  `- to "draw its front":` + one line of markup => `get front() {...}`.
-  - Front AND back also give the type `draw()`, by its direction (plan doc Q14).
+  - Front AND back also give the type `draw()`, by its direction (epic page Q14).
 - A one-line indented body (a `{nested_expression}`) parses in the statement's `nestedScope`.
   - e.g. `return` + markup, or `draw_side`'s
   - As an inline body does (`SpellStatement.parseNestedBlock()`).
 
 ## Fill-ins:  `"images/[rank]-of-[suit].png"`
 
-- `[x]` inside text ALWAYS fills in (plan doc Q2).
+- `[x]` inside text ALWAYS fills in (epic page Q2).
   - [`parseFillIns()`](src/rules/core/TextLiteral.ts) splits the text into plain pieces and fill-ins.
   - Each fill-in is parsed as an expression, where the text is.
   - It reads `its x` when `x` is a property of `it`'s type.
@@ -1143,7 +1143,7 @@ A kind that says so is saved in a file of its own.
       - What that took sits beside it, e.g. `output`.
       - Loading passes the whole object to `specialize()`, which picks out its own.
       - Loading SKIPS `rule: "enumeration"`, which a compiler from before P6 of precedence-and-types
-        wrote for each enumeration (`LEGACY_ENUMERATION_RULE`):  no version bump (plan doc D37).
+        wrote for each enumeration (`LEGACY_ENUMERATION_RULE`):  no version bump (epic page D37).
     - An auto-declared property's marker (`auto: true`) sits on its declaration at its file's top, NOT on its `set`.
       See "Compile".
     - It leaves out what loading works out, e.g. an enumeration's constants, or a rule's owner (`of`, else `output`).
@@ -1480,11 +1480,8 @@ A kind that says so is saved in a file of its own.
   - It's inserted above its top-level statement, as a method is only visible AFTER it.
   - Once defined, the longest match wins, so the line parses as the new method.
   - NOT for a phrase that's just unfinished (`expectedAfter()` again):  `set x to`.
-- Code lens (`codeLens()`):  "N references" above each type and method.
-  - Counted only when an editor resolves it (`resolveCodeLens()`):  counting walks the project.
-  - Clicking runs `SHOW_REFERENCES`, which each EDITOR defines:
-    - the VS Code extension:  `spell.showReferences`
-    - the app:  Monaco's own `editor.action.showReferences`
+- No code lenses (Owen, 2026-10-13:  "turn off codelens entirely"):  the "N references" line above each type and
+  method is gone, from VS Code and the app alike;  Find All References and Peek References still work.
 - Semantic tokens come as DELTAS too (`semanticTokensDelta()`), from one kept `SemanticTokensBuilder` per file.
   - NOTE: a builder keeps what was pushed until `previousResult()` starts afresh.  `build()` doesn't.
 

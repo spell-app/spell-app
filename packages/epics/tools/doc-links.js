@@ -8,7 +8,7 @@
  *   ... --root <checkout> ...                                     -- links resolve in that checkout, not this one
  * - This file is the command line, on files, of `$/assembler`'s `Linker` (epic `epic-components`, P7).
  *   - the rules live there:  what becomes a link, how a link gets its target, what `--check` verifies
- *   - shared with the plan-doc tool (`src/tool/`)
+ *   - shared with the `epic` tool (`src/tool/`)
  * - `--root`:  for a copy of the pages beside a copy of the code (a dry run of `relocate.js relink`, say)
  *   - version control's ignores are that checkout's, so it should be a git repo with the repo's `.gitignore`
  * - Runs under `tsx`, which maps `$/assembler` through this package's `tsconfig.json`:  plain `node` can't.

@@ -5,7 +5,7 @@
  * - `GET /api/epics/running` -- every running epic, as JSON (`RunningEpic[]`), never cached
  * - the Epics list page (`epics/index.html`), as it's served (`RunningEpics.render()`):
  *   the running epics' cards added, every card marked again and regrouped
- * - live reload:  a worktree's plan doc changing reloads its page and the Epics list (`RunningEpics.watch()`);
+ * - live reload:  a worktree's epic page changing reloads its page and the Epics list (`RunningEpics.watch()`);
  *   the watcher closes when the server stops
  * - worktree `<w>`'s files, at `/worktrees/<w>/...`, are the page server's own mount, not this module's
  * - reads only:  nothing here needs the page server's token

@@ -16,7 +16,7 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicOverview`
- * The component behind `<epic-overview>`:  a plan doc's Overview --
+ * The component behind `<epic-overview>`:  an epic page's Overview --
  * `1. Overview`, a fold (`EpicFold`), its lightbulb icon.
  * - Inside, in order:
  *   - the summary (`<epic-summary>`, a lede)

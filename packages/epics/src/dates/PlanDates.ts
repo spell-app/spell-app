@@ -2,7 +2,7 @@ import { PLAN_DATE, type ReadPlanDate } from "./dates.types.ts"
 
 /****************
  * ### `PlanDates`
- * Dates as a plan doc's elements DRAW them:  `10/8/26 14:34`, or `10/8/26` for a day alone (Owen, 2026-10-08,
+ * Dates as an epic page's elements DRAW them:  `10/8/26 14:34`, or `10/8/26` for a day alone (Owen, 2026-10-08,
  * epic `epic-components` P13:  "Use this format for all dates other than in logs").
  * - month and day without a leading zero, a two-digit year, 24-hour `HH:MM`, LOCAL time
  * - reads every form a doc's attributes hold:  `2026-10-08`, `2026-10-08 14:34`, ISO with a `T`, seconds and an

@@ -19,7 +19,7 @@ export const FOLD_OPEN_ATTRIBUTE = {
   name: "open",
   kind: "boolean",
   description:
-    "Unfolded:  PAGE state, never written in a doc (plan docs open folded).  A click on the title, a link to it " +
+    "Unfolded:  PAGE state, never written in a doc (epic pages open folded).  A click on the title, a link to it " +
     "(or into it) and find-in-page set it;  set it from code to open it."
 } as const
 

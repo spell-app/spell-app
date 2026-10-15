@@ -1,5 +1,5 @@
 /**
- * Tests of the plan doc migrations:  the registry (`Migrations`) and the summary an update gets when it has none
+ * Tests of the epic page migrations:  the registry (`Migrations`) and the summary an update gets when it has none
  * (`UpdateSummary`).  Each step's own cases are `PlanDoc.migrate()`'s, in `PlanDoc.test.ts`.
  */
 import { parseHTML } from "linkedom"

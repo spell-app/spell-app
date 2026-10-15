@@ -1,5 +1,5 @@
 import type { SpellConsole } from "$/core/console"
-// Import directly, NOT through the `$/app/solid` barrel, which pulls in the editor (plan doc C9)
+// Import directly, NOT through the `$/app/solid` barrel, which pulls in the editor (epic page C9)
 import { tracked } from "$/app/solid/tracked"
 import { ConsoleLines } from "$/app/solid/ConsoleLines"
 
@@ -11,7 +11,7 @@ import "./RunnerConsole.css"
  * - Its lines are spell cells:  read through `tracked()`, so a line logged adds a row.
  * - `console` is a prop, NOT the imported `spellCore`'s:  `<spell-app>` shows each app's own copy's.
  * - `console` is read ONCE:  remount for another, e.g. `<Show when={loaded()} keyed>`.
- * - SEE:  its App UI page, `packages/app/docs/RunnerConsole.html` (`/components/app/RunnerConsole.html`).
+ * - SEE:  its App UI components page, `packages/app/docs/RunnerConsole.html` (`/components/app/RunnerConsole.html`).
  ****************/
 export function RunnerConsole(props: RunnerConsoleProps) {
   const console = props.console

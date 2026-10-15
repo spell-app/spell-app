@@ -51,7 +51,7 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 /****************
  * ### `DOMEpicSectionElement`
  * The DOM element of `<epic-section>`:  a fold's (`DOMEpicFoldElement`), plus its state filter,
- * which the plan doc's toolbar reads and sets to filter every section at once (`spell-doc-runtime.js`).
+ * which the epic page's toolbar reads and sets to filter every section at once (`spell-doc-runtime.js`).
  * - Above `EpicSection`:  its `elementSetup` reads it while the class is defined.
  ****************/
 export class DOMEpicSectionElement extends DOMEpicFoldElement {
@@ -76,7 +76,7 @@ export class DOMEpicSectionElement extends DOMEpicFoldElement {
 
 /****************
  * ### `EpicSection`
- * The component behind `<epic-section>`:  one section of a plan doc, by `kind`:
+ * The component behind `<epic-section>`:  one section of an epic page, by `kind`:
  * Phases, Questions ... Log, or one of the Overview's sub-sections.
  * - A fold (`EpicFold`):  its numbered title, the kind's icon (fixed per kind, from the vocabulary),
  *   then its children:  phases, items, log events or prose.

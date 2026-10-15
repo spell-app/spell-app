@@ -1,6 +1,6 @@
 /**
  * Tests of `EpicDocs` (`spell dev plan-doc docs | decisions`):  its pure rules, then a scratch checkout with git,
- * a shared content repo behind a `guides/` link, and two epics' plan docs.
+ * a shared content repo behind a `guides/` link, and two epics' pages.
  */
 import { spawnSync } from "node:child_process"
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
@@ -18,7 +18,7 @@ import { PlanDocFiles } from "$/epics/tool/PlanDocFiles"
 const FIXTURES = fileURLToPath(new URL("fixtures", import.meta.url))
 
 describe("EpicDocs rules", () => {
-  test("isDocPath():  Markdown anywhere, shared pages and data;  never plan docs, logs, generated pages", () => {
+  test("isDocPath():  Markdown anywhere, shared pages and data;  never epic pages, logs, generated pages", () => {
     const docs = [
       "README.md",
       "packages/epics/AGENTS.md",
@@ -118,7 +118,7 @@ describe("EpicDocs on a scratch checkout", () => {
     write(shared, "guides/other.html", "another turn's")
     commit(shared, "auto: guides\n\nTurn-end: x-agent-ab12\nSession: s1", ["guides/swept.html"])
     commit(shared, "auto: guides\n\nTurn-end: xylophone\nSession: s2", ["guides/other.html"])
-    // the plan docs:  y's lists its commit, x's links its durable doc and a page, and lists `listed`
+    // the epic pages:  y's lists its commit, x's links its guide and a page, and lists `listed`
     const y = PlanDoc.parse(readFileSync(join(FIXTURES, "epic-plan.html"), "utf8"))
     y.addPhase("One")
     y.addCommit({ phase: 1 }, ys, "y's work", { base: null })

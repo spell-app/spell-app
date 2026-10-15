@@ -7,7 +7,7 @@ import { AS } from "$/assembler"
 
 /**
  * One bundle of the checkout at `root` that is BUILT on demand, never committed (`AS.BUNDLES`).
- * - The brand pages' and the Spell UI docs site's:  only the page server serves them.
+ * - The brand pages' and Spell UI's docs site's:  only the page server serves them.
  * - `check()`:  stale when
  *   - never built
  *   - its entry is missing, or newer than its build

@@ -16,9 +16,9 @@ import type { SiteSearchFile, SiteSearchPage } from "../src/docs-components/docs
  * - What a section is, its title, parent and tab:  `PageOutline.sections()`.
  *   - The SAME rules the element reads the page shown with, run here on linkedom (a DOM in node), read only.
  * - Page title:  its `main`'s `data-toc-header`, else its `<title>` without ` | Spell UI`.
- * - A component page names the tag it documents (a family's main tag, or a sub-tag with its own page):
+ * - A components page names the tag it documents (a family's main tag, or a sub-tag with its own page):
  *   the search lists it as that component, not as a page.
- *   - A component page is `ui-*.html`:  its file name starts with the set's tag prefix.
+ *   - A components page is `ui-*.html`:  its file name starts with the set's tag prefix.
  * - Every page sits in the set's one folder (epic `people-and-orgs` P18):  `components.html` is the component index.
  * - Deterministic:  pages in a fixed order (`pageFiles()`), sections in document order, no dates.
  ****************/
@@ -69,7 +69,7 @@ export class SiteSearchBuilder {
 
   /**
    * Every page, relative to the site root:  the hand-written ones A-Z (`index.html` first), the component index
-   * (`components.html`), then each component page A-Z.
+   * (`components.html`), then each components page A-Z.
    */
   pageFiles(): string[] {
     const files = this.html("")

@@ -1,5 +1,5 @@
 /**
- * Types, tables and the error class of the plan-doc tool:
+ * Types, tables and the error class of the epic tool:
  * `PlanReader` (reading a doc), `PlanDoc` (editing one in `<epic-*>` markup) and the command line.
  * Rules, ids and what's data:  `PLAN-DOC.md` beside this.
  * - At the BOTTOM of the tool folder's import graph:  `import type` only, apart from `$/epics`' definitions (data),
@@ -26,7 +26,7 @@ PlanDocError.prototype.name = "PlanDocError"
 // ## Page
 ////////////////
 
-/** What a plan doc's `<title>` starts with, before its title:  `Epic: Review Review`;  `<epic-page>` draws the h1. */
+/** What an epic page's `<title>` starts with, before its title:  `Epic: Review Review`;  `<epic-page>` draws the h1. */
 export const TITLE_PREFIX = "Epic: "
 
 ////////////////

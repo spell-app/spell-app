@@ -3,7 +3,7 @@ import { lists } from "./lists.parser"
 
 /**
  * `number_range` rule:  whole numbers from one to another, e.g. `2 ... 10` in `ace, 2 ... 10, jack, queen or king`
- * (plan doc `outline-spell`, P2).
+ * (epic page `outline-spell`, P2).
  * - Compiles to the list of them, `[2, 3, ... 10]`, which `identifier_list` spreads into its own.
  * - Only counting up, by 1, from a whole number to a bigger one, at most `MAX_RANGE` of them.
  */

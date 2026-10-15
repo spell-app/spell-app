@@ -134,7 +134,7 @@ export const coreMethods = defineSpellCoreModule({
   /**
    * New SCRATCH `constructor`, e.g. `map()`'s result, or `a copy of the pile as a pile`:
    * - NOT one of the program's things -- see `ThingRegistry.quietly()`
-   * - a list owns nothing, even an exclusive one (plan doc D8):
+   * - a list owns nothing, even an exclusive one (epic page D8):
    *   filtering a pile mustn't take its cards -- see `List.asScratch()`
    */
   newScratch(constructor: new () => unknown): unknown {
@@ -312,7 +312,7 @@ export const coreMethods = defineSpellCoreModule({
    * Start the random numbers again from `seed`:  everything random after it repeats, run after run.
    * - `seed`:  a whole number from 1 to 2,147,483,646.  NOT checked:  0 gives only 0s.
    * - Called by `spell run --seed <n>`, and by the core contract (seed 1), before the program loads.
-   * - The same seed gives the same numbers in Python's core, `core.seed_random()` (plan doc python-target, Q13).
+   * - The same seed gives the same numbers in Python's core, `core.seed_random()` (epic page python-target, Q13).
    */
   seedRandom(seed: number): void {
     generator = new ParkMiller(seed)
@@ -331,7 +331,7 @@ export const coreMethods = defineSpellCoreModule({
 
   /**
    * A new array of `items`, in a random order:  `items` itself doesn't change.
-   * - lodash's `shuffle()`, step for step, on our own numbers (plan doc python-target, J8):
+   * - lodash's `shuffle()`, step for step, on our own numbers (epic page python-target, J8):
    *   walk from the front, swapping each item with a random one at or after it.
    * - Takes one random number for EVERY item, even the last, as lodash does.
    * - The deal Python's `core.shuffled()` makes from the same seed.

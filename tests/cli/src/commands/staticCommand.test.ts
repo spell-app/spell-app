@@ -164,7 +164,7 @@ describe("staticPages()", () => {
     ])
   })
 
-  test("a folder:  its pages, never a plan doc's parts (`parts/<id>.html`)", () => {
+  test("a folder:  its pages, never an epic page's parts (`parts/<id>.html`)", () => {
     const folder = resolve(TEMP, "epic")
     mkdirSync(resolve(folder, "parts"), { recursive: true })
     for (const name of ["epic.plan.html", "parts/q7.html"]) writeFileSync(resolve(folder, name), "")

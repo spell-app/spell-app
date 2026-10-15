@@ -13,6 +13,7 @@ import type {
   InboxListener,
   InboxMark,
   InboxUrgency,
+  InboxWoken,
   NewKind,
   NowAction,
   NowRequest,
@@ -20,6 +21,7 @@ import type {
   PickFields,
   WorkingEntry
 } from "$/epics/tool/ReviewInbox"
+import type { WakeResult } from "$/epics/tool/ReviewStart"
 
 import type { Redirect, RunningAgent as ListedAgent } from "../../tools/AgentList"
 
@@ -31,7 +33,7 @@ import type { Redirect, RunningAgent as ListedAgent } from "../../tools/AgentLis
 export const REVIEW_API = "/api/epics/review"
 
 /**
- * The pages the routes review:  a plan doc's own path, `.../epics/<name>/<name>.plan.html` (`reviewRoutes.ts`
+ * The pages the routes review:  an epic page's own path, `.../epics/<name>/<name>.plan.html` (`reviewRoutes.ts`
  * `PLAN_DOC`, the same rule:  any other page gets a 403).
  * A copy anywhere else (`preview-epics/`) isn't reviewed, and doesn't ask.
  */
@@ -59,12 +61,14 @@ export const FOCUS_HOLD_MS = 3000
 export const REVISIT_KEY_PREFIX = "spell-revisit:"
 
 /**
- * What the page says when no Claude session waits on the inbox (plan doc `review-review`, D6):
+ * What the page says when no Claude session waits on the inbox (epic page `review-review`, D6):
  * `listening` null, which the routes also answer once a session's heartbeat stops (`ReviewInbox.forPage()`).
+ * - since epic `epic-workflow` P16, Send and Do Now wake the epic's session then (the page server types
+ *   `/epic review <epic>` into it, or opens one):  what a wake did is `ReviewClient.waitingWhy`
  */
 export const NOBODY_LISTENING = isAirplane()
   ? "Airplane mode:  queued for when you land (/airplane land)"
-  : "No Claude session is reviewing this doc:  this waits for the next /epic review"
+  : "No Claude session is reviewing this doc:  Send or Do Now wakes one"
 
 /**
  * Airplane mode is on (epic `airplane`):  Owen works with no Claude, and everything waits for `/airplane land`.
@@ -105,7 +109,7 @@ export const SERVER_INFO = /window\.SPELL_SERVER = (\{.*?\})<\/script>/
 /** The running-agents routes (`packages/epics/tools/agentRoutes.ts`):  every reply is the epic's list, `{ agents }`. */
 export const AGENTS_API = "/api/epics/agents"
 
-/** The running-agents list's file, beside the plan doc (`AgentList.ts`):  the page server announces its changes. */
+/** The running-agents list's file, beside the epic page (`AgentList.ts`):  the page server announces its changes. */
 export const AGENTS_FILE = "agents.json"
 
 ////////////////
@@ -116,11 +120,20 @@ export const AGENTS_FILE = "agents.json"
  * The inbox as the page keeps it:  every field a route's reply has that the page reads.
  * - `unsentComments`:  the ids of the comments Send would hand over, as the routes work it out
  *   (`ReviewInbox.forPage()`);  `[]` from a server started before Send took comments
+ * - `woken`:  the page server's wake of the epic (epic `epic-workflow` P16), while it counts and nobody listens;
+ *   `null` otherwise, or from a server started before it woke epics
  */
 export type Inbox = Pick<
   PageInbox,
-  "marks" | "drafts" | "urgency" | "sent" | "now" | "working" | "listening" | "unsentComments"
+  "marks" | "drafts" | "urgency" | "sent" | "now" | "working" | "listening" | "unsentComments" | "woken"
 >
+
+/**
+ * What the page server's wake did, in a Send's or Do Now's answer (`wake`, epic `epic-workflow` P16):
+ * the route's `WakeResult` (`$/epics/tool/ReviewStart`), its type only.
+ * - `message`:  for the notice;  `null` (no `wake`) while a session listens
+ */
+export type WakeAnswer = WakeResult
 
 /** A mark to set, before the route stamps it. */
 export type MarkInput = Omit<InboxMark, "at">
@@ -191,6 +204,7 @@ export type {
   InboxListener,
   InboxMark,
   InboxUrgency,
+  InboxWoken,
   NewKind,
   NowAction,
   NowRequest,
@@ -226,8 +240,18 @@ export function inboxOf(reply: unknown): Inbox {
     listening: isObject(record.listening) ? (record.listening as InboxListener) : null,
     unsentComments: Array.isArray(record.unsentComments)
       ? record.unsentComments.filter((id): id is string => typeof id === "string")
-      : []
+      : [],
+    woken:
+      isObject(record.woken) && typeof (record.woken as InboxWoken).message === "string"
+        ? (record.woken as InboxWoken)
+        : null
   }
+}
+
+/** A Send's or Do Now's reply:  what the page server's wake did (`wake`), or `null` (a session listens, an older server). */
+export function wakeOf(reply: unknown): WakeAnswer | null {
+  const wake = (reply as { wake?: unknown } | null)?.wake
+  return isObject(wake) && typeof (wake as WakeAnswer).message === "string" ? (wake as WakeAnswer) : null
 }
 
 /** An empty inbox:  before the first read. */

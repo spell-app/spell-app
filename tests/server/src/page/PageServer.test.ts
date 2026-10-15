@@ -151,7 +151,7 @@ describe("PageServer", () => {
     }
   })
 
-  it("sends / to the docs home", async () => {
+  it("sends / to the home page", async () => {
     const answer = await ask(port, "GET", "/")
     expect(answer.status).toBe(302)
     expect(answer.headers.location).toBe("/pages/index.html")

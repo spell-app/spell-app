@@ -91,7 +91,7 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
 
   dev
     .command("choices", { hidden: true })
-    .description("old spelling of `epic choices`:  syntax-choices pages, Owen's call on each name")
+    .description("old spelling of `epic choices`:  choice pages, Owen's call on each name")
     .argument("[args...]", "a choices command and its arguments")
     .allowUnknownOption()
     .helpOption(false)
@@ -248,7 +248,7 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
       "git worktrees:  list the live sessions and where they work, or where a worktree / plan / session stands"
     )
     .argument("[verb]", "list (default) | status <name> | merge-main [--continue]")
-    .argument("[name]", "status:  a worktree, branch, plan doc or session name")
+    .argument("[name]", "status:  a worktree, branch, epic page or session name")
     .option("--json", "list, merge-main:  print the data as JSON")
     .option("--continue", "merge-main:  finish a merge it stopped on other conflicts, once they're resolved and added")
     .action((verb: string | undefined, name: string | undefined, _options, command) =>
@@ -263,7 +263,7 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .command("park")
     .description("parked work:  list the PARKED notes, what /wait-for could wait on, or wait for a name to finish")
     .argument("<verb>", "list | candidates | wait <name>")
-    .argument("[name]", "wait:  a worktree, branch, plan doc or session name")
+    .argument("[name]", "wait:  a worktree, branch, epic page or session name")
     .option("--every <seconds>", "wait:  poll this often (default 60)")
     .option("--max <seconds>", "wait:  give up after this long, exiting 2 (default 7140)")
     .action((verb: string, name: string | undefined, _options, command) =>
@@ -283,7 +283,7 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
   dev
     .command("shared")
     .description(
-      "shared content:  docs pages, goal sets and logs in one repo beside the checkout, linked into every one"
+      "shared content:  docs pages, saga sets and logs in one repo beside the checkout, linked into every one"
     )
     .argument(
       "[verb]",
@@ -352,7 +352,7 @@ comments, notes, agents, airplane.  Their old spellings here still work, e.g. sp
 /** What `spell dev goals` says while goals is parked (epic `epic-workflow` P6, Owen 2026-10-11). */
 const GOALS_PARKED =
   "goals is parked:  its tools, skills and routes are in packages/goals.zip (guides/goals/goals.html says what it " +
-  "was);  epic epic-goals rebuilds it on the epic tools.  The goals pages still show, read only."
+  "was);  epic epic-goals rebuilds it on the epic tools.  The saga pages still show, read only."
 
 /** A `$/cli` command `spell dev` runs by name:  each loads the whole barrel, spell included. */
 export type BarrelCommand =

@@ -4,8 +4,8 @@
  * Usage (from the repo root):
  *   node packages/epics/demo/check-fold-epics.mjs [--doc <name>] [--from <folder>] [--item <id>] [--guide <path>]
  *     [outDir]
- * - the plan doc:  a SCRATCH COPY of `epics/<name>/` (default `airplane`), in `demo/shots/fold/epics/<name>/`
- *   (git-ignored):  the review routes take plan docs only (`epics/<name>/<name>.plan.html`)
+ * - the epic page:  a SCRATCH COPY of `epics/<name>/` (default `airplane`), in `demo/shots/fold/epics/<name>/`
+ *   (git-ignored):  the review routes take epic pages only (`epics/<name>/<name>.plan.html`)
  *   - `--from <folder>` (from the root):  copied from `<folder>/<name>/` instead, e.g. a doc the tool migrated
  *     under `preview-epics/`;  it must sit two folders under the root, as `epics/<name>/` does
  *   - one reply is made on it (the reply case);  its inbox file is deleted at the end
@@ -31,7 +31,7 @@
  *   or a line / title that moves more than 1px:
  *   - what moved them, before I7's fix:
  *     the runtime let go of the page's held height by taking it off to measure, and that one layout clamped the
- *     scroll (20-80px);  and a click on any text in a plan doc focused the page header's first link
+ *     scroll (20-80px);  and a click on any text in an epic page focused the page header's first link
  *     (`<epic-page>` delegated focus), which scrolled the page to its top
  * - screenshots (outDir, default `demo/shots/fold/`):  `<case>-<width>.png`, after each fold
  * - re-runs itself under `tsx` (the page server is TypeScript)

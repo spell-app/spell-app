@@ -33,7 +33,7 @@ describe("formatHTML()", () => {
     expect(await AS.formatHTML("x.html", FORMATTED)).toBe(FORMATTED)
   })
 
-  test("formats a plan doc's `.htm` part as HTML:  the file's extension picks the parser", async () => {
+  test("formats an epic page's `.htm` part as HTML:  the file's extension picks the parser", async () => {
     expect(await AS.formatHTML("parts/p1.htm", "<ul><li>one</li><li>two</li></ul>")).toBe(
       "<ul>\n  <li>one</li>\n  <li>two</li>\n</ul>\n"
     )

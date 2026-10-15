@@ -17,7 +17,7 @@ import {
 
 /****************
  * ### `<epic-overview>`
- * A plan doc's first section, "1. Overview".
+ * An epic page's first section, "1. Overview".
  ****************/
 export const epicOverviewVocabulary = {
   tag: "epic-overview",
@@ -26,7 +26,7 @@ export const epicOverviewVocabulary = {
   noun: "overview",
   ui: false,
   description:
-    "A plan doc's Overview:  the two-sentence summary, the prompt that started the plan, the total estimate, then " +
+    "An epic page's Overview:  the two-sentence summary, the prompt that started the plan, the total estimate, then " +
     "the substance in numbered sub-sections.",
   attributes: [
     {

@@ -142,7 +142,7 @@ Two words for the two objects behind every tag (epic `wwod-spell-ui`, P15):
     - `StaticFlattener` swaps each DOM element for its root
     - `StaticInteractions` wires what works without JS
   - Node only:  NEVER imported by a component or `$/ui`.
-  - Plan:  [the seo plan doc](../../epics/seo/seo.plan.html).
+  - Plan:  [the seo epic page](../../epics/seo/seo.plan.html).
   - Server code, so every file is `<Name>.ssr.ts`, `.server.ts`'s short form
     (WWOD §10 › "Server code stays out of the browser bundle").
     - `static.types.ssr.ts`;  tests are `<Name>.ssr.test.ts`, in the `ssr` project.

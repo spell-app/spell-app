@@ -11,9 +11,9 @@ when working with code in this package, `@spell-app/brand`.
 ## Overview
 
 - This package is Spell's brand, and the work of bringing it into Spell UI.
-  - epic `design-system`:  [its plan doc](../../epics/design-system/design-system.plan.html)
+  - epic `design-system`:  [its epic page](../../epics/design-system/design-system.plan.html)
   - its elements in Claude Design:  epic `claude-design`, P11
-- READ FIRST for the big picture:  the durable doc, [the design system guide](../../guides/design-system/design-system.html).
+- READ FIRST for the big picture:  the guide, [the design system guide](../../guides/design-system/design-system.html).
   - the Brand tab and Compare
   - the `spell-brand` theme and its brand roles
   - every element, making a copy, its limits
@@ -151,7 +151,7 @@ when working with code in this package, `@spell-app/brand`.
     - e.g. `--spell-surface-warm`, `--spell-type-eyebrow`
 - Dark mode:  Spell UI's `color-scheme` (`ui-dark` on `<html>`).
   Never the brand's `data-theme`.
-- Anything the theme can't do:  the plan doc's "What the theme can't do today" table, and an issue.
+- Anything the theme can't do:  the epic page's "What the theme can't do today" table, and an issue.
 - Spell UI's "UI rules" ([ui's AGENTS.md](../ui/AGENTS.md)) apply to the pages and the `<brand-*>` elements too.
   - e.g. numeric fields right-aligned against their unit
 
@@ -199,7 +199,7 @@ when working with code in this package, `@spell-app/brand`.
 ## The elements
 
 - Each family has a page in the docs set, `<tag>.html` in `docs/`, at `/components/brand/<tag>.html`.
-  - Spell UI's component page shape:  masthead, then Examples / Usage / API / Theming tabs.
+  - Spell UI's components page shape:  masthead, then Examples / Usage / API / Theming tabs.
   - A new family:
     1. `spell dev pack element brand brand-<name>`
     2. fill in its vocabulary, `<Name>.en.ts` (topics, aka, description)

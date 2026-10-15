@@ -9,7 +9,6 @@ import {
   SemanticTokensBuilder,
   SymbolKind,
   type CodeAction,
-  type CodeLens,
   type CompletionItem,
   type Diagnostic,
   type DocumentHighlight,
@@ -1487,53 +1486,6 @@ export class SpellLanguageService {
   }
 
   ////////////////
-  // ## Code lens
-  ////////////////
-
-  /**
-   * Command a code lens runs to show references, with arguments `uri`, `position`, `locations`.
-   * - The EDITOR defines it:  `vscode-extension/src/extension.ts`, `SpellLanguageFeatures` in the app.
-   */
-  static SHOW_REFERENCES = "spell.showReferences"
-
-  /** Kinds of declaration that get a code lens. */
-  static LENS_KINDS: P.DeclarationKind[] = ["type", "method", "function"]
-
-  /**
-   * An "N references" lens above each type and method `file` declares, on its name.
-   * - Unresolved:  no count yet -- `resolveCodeLens()` counts, so an editor only pays for the lenses on screen.
-   *   Counting walks every file of the project.
-   * - `data` carries what resolving needs:  the file's URI, and the name's position.
-   */
-  codeLens(file: SP.SpellFile): CodeLens[] {
-    if (!file.match) return []
-    const uri = this.addresses.uriFor(file)
-    const lenses: CodeLens[] = []
-    this.walk(file.match, (match) => {
-      const declaration = match.rule.getDeclaration(match)
-      if (!declaration || !SpellLanguageService.LENS_KINDS.includes(declaration.kind)) return
-      const range = this.rangeOf(file, declaration.nameMatch)
-      if (range) lenses.push({ range, data: { uri, position: range.start } satisfies CodeLensData })
-    })
-    return lenses
-  }
-
-  /** `lens` from `codeLens()`, with its count:  "3 references", which shows them when clicked. */
-  resolveCodeLens(file: SP.SpellFile, lens: CodeLens): CodeLens {
-    const { uri, position } = lens.data as CodeLensData
-    const locations = this.references(file, position, false)
-    const count = locations.length
-    return {
-      ...lens,
-      command: {
-        title: `${count} reference${count === 1 ? "" : "s"}`,
-        command: SpellLanguageService.SHOW_REFERENCES,
-        arguments: [uri, position, locations]
-      }
-    }
-  }
-
-  ////////////////
   // ## Code actions
   ////////////////
 
@@ -2244,14 +2196,6 @@ export class SpellLanguageService {
   static memberWords(name: string, record?: P.ScopeVariable): string {
     return record?.asWritten ?? (record?.name ?? name).replace(/_/g, " ")
   }
-}
-
-/** What a code lens from `codeLens()` carries until it's resolved. */
-type CodeLensData = {
-  /** URI of the file it's in. */
-  uri: string
-  /** Where the declared name starts. */
-  position: Position
 }
 
 /**

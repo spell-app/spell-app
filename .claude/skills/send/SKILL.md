@@ -1,6 +1,6 @@
 ---
 name: send
-description: Send a request to another epic instead of doing it here -- Owen's words verbatim, the screenshots he pasted, what this session was looking at -- and wake that epic's session, or open its window.  Use for `/send [<epic>] <text>`, and BY ITSELF whenever Owen asks this session to change how he WORKS (dev tooling:  the plan doc page, comments, the Review tab, details pages, skills, hooks, windows, worktrees, `spell dev` / `epic`) rather than this session's own work -- the root `CLAUDE.md`'s "Tooling requests".  E.g. "fix this in the plan doc", "comment mechanism doesn't look right", a screenshot of the Review tab.
+description: Send a request to another epic instead of doing it here -- Owen's words verbatim, the screenshots he pasted, what this session was looking at -- and wake that epic's session, or open its window.  Use for `/send [<epic>] <text>`, and BY ITSELF whenever Owen asks this session to change how he WORKS (dev tooling:  the epic page, comments, the Review tab, details pages, skills, hooks, windows, worktrees, `spell dev` / `epic`) rather than this session's own work -- the root `CLAUDE.md`'s "Tooling requests".  E.g. "fix this in the plan doc", "comment mechanism doesn't look right", a screenshot of the Review tab.
 argument-hint: "[<epic>] <text>"
 ---
 
@@ -16,7 +16,7 @@ Owen says what he wants where he is;  it goes to the epic that owns it, and this
 
 - `/send [<epic>] <text>`:  always.
 - By itself (no `/send`):  Owen asks for a change to DEV TOOLING, how he works, not what this session builds.
-  - Dev tooling:  the plan doc page and its comments, marks and buttons;  the Review tab;  details pages;
+  - Dev tooling:  the epic page and its comments, marks and buttons;  the Review tab;  details pages;
     every skill and hook;  windows, worktrees, the page server;  `spell dev` and `epic`.
   - Not:  this session's OWN epic's content.
     "Fix P4's file list in the plan doc" in `🚧 python` is python's job;
@@ -53,6 +53,7 @@ Owen says what he wants where he is;  it goes to the epic that owns it, and this
    - `this session is <epic>'s own`:  do it here, as [the epic skill](.claude/skills/epic/SKILL.md), "12. Request".
    - `no session of <epic> is running`:  run the `spell dev window launch ...` line it printed.
      It opens the epic's window with `/epic request <epic> <rN>` typed in:  Owen presses Enter there.
+   - The epic page's own Send and Do Now wake an epic the same way, from the page server (epic `epic-workflow` P16).
 7. Reply ONE line, then go back to this session's own work:
    - "sent to `<epic>` as `<rN>`";  plus "its window is open:  press Enter on `/epic request ...` there", when it was.
    - NEVER do the request here as well, nor edit the tooling's files because of it.

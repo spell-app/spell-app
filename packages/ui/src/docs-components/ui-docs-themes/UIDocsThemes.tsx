@@ -38,7 +38,7 @@ import themesCSS from "./UIDocsThemes.css?inline"
  *     - each with a tooltip,
  *       `<ui-popup part="tip" inverted size="mini">` (the palette's hides while its overlay is open)
  *   - `scheme`:  the sun / moon button alone
- *   - `theme`:  a theme `<ui-dropdown part="theme" floating scrolling button>`, for a component page's masthead.
+ *   - `theme`:  a theme `<ui-dropdown part="theme" floating scrolling button>`, for a components page's masthead.
  *     - With `for="ui-x"`, it lists only the themes touching that family,
  *       and says `N themes` (Fomantic's per-page dropdown).
  *     - Its rows are `<ui-item>` children;  its text goes in its `trigger` slot.

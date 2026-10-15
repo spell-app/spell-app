@@ -2,7 +2,7 @@
   "name": "@spell-app/assembler",
   "version": "0.0.0",
   "private": true,
-  "description": "Assembling pages:  link targets and in-memory formatting, shared by the docs and plan-doc tools",
+  "description": "Assembling pages:  link targets and in-memory formatting, shared by the docs tools and the `epic` tool",
   "license": "MIT",
   "type": "module",
   "scripts": {

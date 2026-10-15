@@ -12,7 +12,7 @@ import type { MarkdownOptions, MarkdownRendering, MarkdownResult } from "./UIMar
  * - The engine is the PRE-COMPILED bundle (`MDBundle`, `yarn gen:markdown`):  `ui` never imports `$/markdown`.
  * - Returns MARKUP, never sanitized, as marked's engine does:  the element sanitizes it when `sanitized`
  *   (`MarkdownSanitizer`), keeping `ui-*` tags.
- * - Why not plain `<ui-markdown>` too:  the bundle is ~4x marked (59 vs 14 kB gzipped:  plan doc, P7 and I6);
+ * - Why not plain `<ui-markdown>` too:  the bundle is ~4x marked (59 vs 14 kB gzipped:  epic page, P7 and I6);
  *   until it's slimmer, only the editable one pays for it.
  ****************/
 export class MDEngine implements MarkdownRendering {

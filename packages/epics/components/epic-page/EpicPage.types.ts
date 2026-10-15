@@ -77,6 +77,29 @@ export const HEAD = "head"
 export const HEADING = "heading"
 export const HEADING_COPY = "heading-copy"
 export const META = "meta"
+export const SEE_ALSO = "see-also"
+
+/** One page in the See Also box, as the page server lists it (`GET /api/epics/pages`:  the tool's `SeeAlso`). */
+export type SeeAlsoLink = {
+  /** from the epic page's folder:  `details/analysis.html`, `../../guides/python-target.html` */
+  href: string
+  title: string
+  /** its guide, a guide it links, one of its details pages or choice pages */
+  kind: SeeAlsoKind
+  /** when it last changed, ISO */
+  updated: string
+}
+
+/** What a See Also page is to its epic. */
+export type SeeAlsoKind = "durable" | "guide" | "details" | "choices"
+
+/** Each See Also kind's icon, and the key of its word in the vocabulary. */
+export const SEE_ALSO_KINDS: Record<SeeAlsoKind, { icon: string; key: E.TextKey<EpicPageVocabulary> }> = {
+  durable: { icon: "book", key: "seeAlsoDurable" },
+  guide: { icon: "book open", key: "seeAlsoGuide" },
+  details: { icon: "circle question", key: "seeAlsoDetails" },
+  choices: { icon: "table columns", key: "seeAlsoChoices" }
+}
 export const STATUS = "status"
 export const GIT = "git"
 export const NOTICE = "notice"
@@ -99,7 +122,7 @@ export const PILL = "pill"
 export const CRUMBS = "crumbs"
 
 /**
- * The crumbs' links, from the page's folder:  a plan doc is always `epics/<name>/<name>.plan.html`.
+ * The crumbs' links, from the page's folder:  an epic page is always `epics/<name>/<name>.plan.html`.
  * - `target`s name the VS Code side bar's tab, as the old crumbs did
  */
 export const CRUMB_LINKS = {
@@ -134,8 +157,12 @@ export type HeaderMarks = {
   comments: number
   /** marks Review Now would have Claude work through:  all but the requests already on their way */
   waiting: number
+  /** Do Now requests queued, not taken yet */
+  asked: number
   /** a Claude session is listening */
   listening: boolean
+  /** what the page server's wake did, while nobody listens (epic `epic-workflow` P16);  `""` for none */
+  woken: string
 }
 
 /** The kickoff prompt, which the `Plan hung?` aside offers to copy. */

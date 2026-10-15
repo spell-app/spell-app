@@ -26,7 +26,7 @@ import "./SplitPanel.css"
  * - With an `id`, a resizable panel remembers its sizes as a preference under that id (`$/util`'s `setPref()`):
  *   make it unique in the app.
  * - Sizes are applied as each pane's inline `flex`, NOT drawn by Solid:  a drag rewrites them on every mouse move.
- * - SEE:  its App UI page, `packages/app/docs/SplitPanel.html` (`/components/app/SplitPanel.html`).
+ * - SEE:  its App UI components page, `packages/app/docs/SplitPanel.html` (`/components/app/SplitPanel.html`).
  ****************/
 export function SplitPanel(props: SplitPanelProps) {
   let panel: HTMLDivElement | undefined

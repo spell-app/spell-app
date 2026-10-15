@@ -17,7 +17,7 @@ import {
 
 /**
  * THE page server:  one per checkout (the main one, and each worktree), serving the whole repo on one port.
- * - docs, plan docs, goals, Spell UI docs and (once `app` is in) the editor, all live-reloading
+ * - docs, epic pages, saga pages, Spell UI's docs site and (once `app` is in) the editor, all live-reloading
  * - pages and files are plain URLs;  every CALL is under `/api/`, one prefix per package that answers it:
  *   - `/api/server` -> `ServerInfo` (which checkout, branch and port:  what the openers ask);
  *     `/api/server/live` and `/api/server/live.js`, live reload (`SRV.WebServer`)
@@ -27,7 +27,7 @@ import {
  *   - the rest come from route modules:
  *     - epics':  `/api/epics/...` and `/api/docs/...`
  *     - spaces':  `/api/projects/...` and `/api/spaces/...`
- * - `/` -> the docs home (`pages/index.html`)
+ * - `/` -> the home page (`pages/index.html`)
  * - `/components/<set>/` -> the component sets' docs (`COMPONENT_SETS`):  Spell UI's, Epic UI's, App UI's, the brand's
  *   - each its package's `docs/` folder, with Spell UI's site bundle laid over it at `_assets/` (`componentSetPath()`)
  *   - live-reloading like every page;  the same at `/worktrees/<w>/components/<set>/`
@@ -85,7 +85,7 @@ export class PageServer {
       live: true,
       mounts: [
         { prefix: "/", dir: this.root },
-        // every worktree's checkout, so the main server shows a running epic's plan doc (epics' running epics)
+        // every worktree's checkout, so the main server shows a running epic's epic page (epics' running epics)
         { prefix: "/worktrees/", dir: join(this.root, ".claude", "worktrees") }
       ],
       html: [localHighlight],
@@ -269,10 +269,10 @@ const WORKTREES = new Map<string, { branch?: string; worktree?: string }>()
 /** Folder of a component set's address served from its site bundle (`ComponentSet.assets`, `componentSetPath()`). */
 const SET_ASSETS = "_assets"
 
-/** The docs home's URL. */
+/** The home page's URL. */
 export const DOCS_HOME = "/pages/index.html"
 
-/** Spell UI's docs home:  every set is a tab of the top bar from there. */
+/** Spell UI's docs site:  every set is a tab of the top bar from there. */
 const COMPONENTS_HOME = `${COMPONENT_SETS[0].prefix}/`
 
 /** Folders the page server live-reloads when the root `package.json` names none:  the docs areas and their bundle. */
@@ -316,7 +316,7 @@ export function movedFolderPath(path: string): string | undefined {
 /**
  * TEMPORARY (until the merge, T3):  folders this branch moved, as URL paths:  old => new.
  * - the docs assets (P16, J49), into `$/epics`
- * - the epics pack (P18), into its components' `__pack/`:  every shared plan doc loads it
+ * - the epics pack (P18), into its components' `__pack/`:  every shared epic page loads it
  */
 const MOVED_FOLDERS: readonly (readonly [from: string, to: string])[] = [
   ["/packages/docs/tools/_assets", "/packages/epics/tools/_assets"],

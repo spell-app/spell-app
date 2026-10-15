@@ -15,7 +15,7 @@
  *     falls back to Droid Sans / Helvetica / Arial
  *   - the RTL build itself:  component sheets that still use PHYSICAL properties (`margin-left`, `left:`,
  *     `float: right`, `border-top-left-radius` ...) keep their left-to-right chrome under `direction: rtl`.
- *     The fix belongs in the component sheets (logical properties), not in a theme:  see the plan doc's
+ *     The fix belongs in the component sheets (logical properties), not in a theme:  see the epic page's
  *     `rtl` issue for the families affected
  *   - `:dir(rtl)`:  a CSS `direction` doesn't set the `dir` attribute, so `:dir(rtl)` rules (accordion, section)
  *     only follow `<html dir="rtl">`.  A real RTL page sets `dir="rtl"` itself;  this sheet is for previewing

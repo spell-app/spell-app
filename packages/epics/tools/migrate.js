@@ -1,12 +1,14 @@
 /**
  * MIGRATE the docs' pages, by page KIND (epic `epic-workflow`, P8;  J44):  each kind's named, dated, idempotent steps,
  * oldest first, on each page of that kind, under its lock;  a report per page that changed.
- * - the epic page's steps are the plan-doc tool's (`$/epics/tool/migrations`, `Migrations`):  this file holds the
+ * - the epic page's steps are the `epic` tool's (`$/epics/tool/migrations`, `Migrations`):  this file holds the
  *   OTHER kinds', and `spell dev plan-doc migrate` runs it as a child for them (`MigrateCommands`)
  * - `KINDS`:  every page kind, the same list as `PAGE_KINDS` in `$/epics/tool/migrations` (`migrate.test.ts` checks)
  * - `pageKind()`:  which kind a page is, from where it lives and what it loads
  * - `STEPS`:  the steps.  Today's one-off fixers, as steps of their kind:
  *   - `ui-section`:  `to-ui-section.js`, old `section.s2|s3` sections to `<ui-section>`
+ *   - `answer-elements`:  `to-answer-elements.js`, a details or choice page (and the old shared templates of
+ *     both) in the epics pack's elements, its old page script gone (epic `epic-workflow` P12)
  *   - NOT the shared-content repair (`relocate.js`):  it moves files between folders rather than fixing a page's
  *     markup, and `spell dev shared commit` runs its reorg every turn already
  * - A new step:  an entry in `STEPS`, LAST, in the same commit as the markup change it follows;  it must change
@@ -15,16 +17,23 @@
  *   every kind with steps, or one kind;  one page (`--file`, its kind found unless given);  `--list`:  the steps
  */
 import { existsSync, readFileSync, realpathSync, writeFileSync } from "node:fs"
-import { isAbsolute, join, relative, resolve, sep } from "node:path"
+import { basename, isAbsolute, join, relative, resolve, sep } from "node:path"
 import { pathToFileURL } from "node:url"
 
 import { parseHTML } from "linkedom"
 
+import { TOOL_TEMPLATES } from "./answerPages.js"
+import { checkData, rowsFile } from "./choices.js"
+import { listPages } from "./details.js"
 import { findPages, pageFile, parseArgs, ROOT, serialize, tidy } from "./pages.js"
 import { withLocks } from "./relocate.js"
+import { convertChoicesPage, convertDetailsPage, needsConversion } from "./to-answer-elements.js"
 import { convertSections } from "./to-ui-section.js"
 
-/** Every page kind, by the names P14 proposes:  `$/epics/tool/migrations` `PAGE_KINDS`, kept the same. */
+/**
+ * Every page kind, by its key:  `$/epics/tool/migrations` `PAGE_KINDS`, kept the same.
+ * - keys, typed on the command line (`epic migrate detail`);  what's printed is the kind's name (`KIND_NAMES`)
+ */
 export const KINDS = [
   "epic",
   "goal",
@@ -42,10 +51,31 @@ export const KINDS = [
   "goal-set"
 ]
 
+/** Each kind's name, as people read it (Owen, 2026-10-14, epic `epic-workflow` P14), where it isn't its key. */
+const KIND_NAMES = {
+  epic: "epic page",
+  goal: "saga page",
+  command: "commands page",
+  home: "home page",
+  list: "list page",
+  detail: "details page",
+  choice: "choice page",
+  component: "components page",
+  brand: "brand page",
+  "goal-set": "saga page (parked)"
+}
+
+/** The kind `kind`'s pages, in words:  `details pages`, `guides`. */
+function kindPages(kind) {
+  const name = KIND_NAMES[kind] ?? kind
+  return name.replace(/^(\S+ page|\S+)/, "$1s")
+}
+
 /**
  * The steps, oldest first:  `{ name, date, kinds, description, applies(html), run(document) }`.
  * - `applies(html)`:  a cheap test on the page's text, so a page with nothing to do isn't parsed
- * - `run(document)`:  changes the page IN PLACE;  returns `{ changed, notes }`, `notes` one line each
+ * - `run(document, { file })`:  changes the page IN PLACE (`file`:  its path, for what lies beside it);  returns
+ *   `{ changed, notes }`, `notes` one line each
  */
 export const STEPS = [
   {
@@ -64,13 +94,36 @@ export const STEPS = [
       ]
       return { changed: report.converted > 0, notes: [`${report.converted} sections -> <ui-section>`, ...notes] }
     }
+  },
+  {
+    name: "answer-elements",
+    date: "2026-10-14",
+    kinds: ["detail", "choice", "template"],
+    description:
+      "a page Owen answers on, in the epics pack's elements:  its old page script gone (to-answer-elements.js, epic-workflow P12)",
+    applies: needsConversion,
+    run(document, { file }) {
+      // the old shared templates:  the tools read their own since P12, so these become copies of them
+      const template = /(?:^|\/)templates\/(details|syntax-choices)\.html$/.exec(file.split(sep).join("/"))?.[1]
+      if (template) {
+        const { document: fresh } = parseHTML(readFileSync(join(TOOL_TEMPLATES, `${template}.html`), "utf8"))
+        document.documentElement.replaceWith(fresh.documentElement)
+        return { changed: true, notes: [`now a copy of the tool's own template (tools/templates/${template}.html)`] }
+      }
+      if (document.querySelector('script[src$="syntax-choices.js"]')) {
+        const rows = rowsFile(file)
+        if (!existsSync(rows)) return { changed: false, notes: [`SKIPPED:  no ${basename(rows)} beside it`] }
+        return convertChoicesPage(document, checkData(JSON.parse(readFileSync(rows, "utf8"))))
+      }
+      return convertDetailsPage(document)
+    }
   }
 ]
 
 /**
  * Which kind page `file` is (`KINDS`), from where it lives in checkout `root` and what it loads.
- * - a details page with `<slug>.rows.json` beside it is a choice page;  a review page counts as a detail page
- * - under `guides/`:  a page loading `commands.js` is a command page, one with a card filter a cheatsheet
+ * - a details page with `<slug>.rows.json` beside it is a choice page;  a review page counts as a details page
+ * - under `guides/`:  a page loading `commands.js` is a commands page, one with a card filter a cheatsheet
  */
 export function pageKind(file, root = ROOT, html = existsSync(file) ? readFileSync(file, "utf8") : "") {
   const path = relative(root, file).split(sep).join("/")
@@ -96,13 +149,15 @@ export function stepsFor(kind, step) {
 }
 
 /**
- * The pages of checkout `root` that some step is for:  every page of the docs' areas, the Brand list page too,
- * as `{ file, kind }`, sorted;  epic pages, goal sets, brand and component pages left out (no step is for them).
+ * The pages of checkout `root` that some step is for:  every page of the docs' areas, the Brand list page too, and
+ * every details and choice page (`details.js` `listPages()`:  `findPages()` skips `details/` folders),
+ * as `{ file, kind }`, sorted;  epic pages, goal sets, brand and components pages left out (no step is for them).
  * - `kind`:  only that kind
  */
 export function pagesFor(root, kind) {
   const areas = ["pages", "guides", "templates", "epics"].map((area) => join(root, area))
-  const files = [...findPages(areas), join(root, "brand", "index.html")].filter((file) => existsSync(file))
+  const found = [...findPages(areas), join(root, "brand", "index.html"), ...listPages(root)]
+  const files = [...new Set(found)].filter((file) => existsSync(file)).sort((one, other) => one.localeCompare(other))
   return files
     .map((file) => ({ file, kind: pageKind(file, root) }))
     .filter((page) => (kind ? page.kind === kind : STEPS.some((step) => step.kinds.includes(page.kind))))
@@ -129,7 +184,7 @@ export function migratePages(pages, { step, dryRun = false, tidied = true } = {}
       const ran = []
       const notes = []
       for (const each of steps) {
-        const done = each.run(document)
+        const done = each.run(document, { file })
         if (!done.changed) continue
         ran.push(each.name)
         notes.push(...done.notes.map((note) => `${each.name}:  ${note}`))
@@ -166,7 +221,7 @@ export function report(results, root, { dryRun = false, all = false } = {}) {
   for (const [kind, { pages, changed, steps }] of kinds) {
     const byStep = [...steps].map(([each, n]) => `${each} ${n}`).join(", ")
     lines.push(
-      `${kind} pages:  ${changed} of ${pages} ${dryRun ? "would change" : "changed"}${byStep ? ` (${byStep})` : ""}`
+      `${kindPages(kind)}:  ${changed} of ${pages} ${dryRun ? "would change" : "changed"}${byStep ? ` (${byStep})` : ""}`
     )
   }
   return lines
@@ -193,7 +248,7 @@ export function main(argv, say = (line) => process.stdout.write(`${line}\n`)) {
   const [kind] = positional
   try {
     if (kind && !KINDS.includes(kind)) throw new MigrateError(`no page kind "${kind}":  ${KINDS.join(", ")}`)
-    if (kind === "epic") throw new MigrateError("epic pages are the plan-doc tool's:  spell dev plan-doc migrate epic")
+    if (kind === "epic") throw new MigrateError("epic pages are the `epic` tool's:  epic migrate epic")
     if (flags.list) {
       for (const step of STEPS.filter((each) => !kind || each.kinds.includes(kind)))
         say(`${step.kinds.join(",").padEnd(11)} ${step.date}  ${step.name.padEnd(24)} ${step.description}`)
@@ -205,11 +260,11 @@ export function main(argv, say = (line) => process.stdout.write(`${line}\n`)) {
       const file = fileOf(flags.file, root)
       if (!existsSync(file)) throw new MigrateError(`no page ${flags.file}`)
       const found = kind ?? pageKind(file, root)
-      if (found === "epic") throw new MigrateError("an epic page:  spell dev plan-doc migrate --file <page>")
+      if (found === "epic") throw new MigrateError("an epic page:  epic migrate --file <page>")
       pages = [{ file, kind: found }]
     } else pages = pagesFor(root, kind)
     if (kind && !stepsFor(kind, step).length) {
-      say(`${kind} pages:  no steps${step ? ` called ${step}` : ""} for them yet`)
+      say(`${kindPages(kind)}:  no steps${step ? ` called ${step}` : ""} for them yet`)
       return 0
     }
     const dryRun = Boolean(flags["dry-run"])

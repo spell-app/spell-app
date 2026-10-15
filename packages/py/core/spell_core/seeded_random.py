@@ -3,7 +3,7 @@
 - Every random number, random item and shuffle comes from ONE generator, the core's own.
 - Seed it (`seed_random(42)`) and everything random after it repeats, run after run.
 - It starts seeded with 1, so a program that never seeds still repeats.
-- Both cores copy the same arithmetic, step for step (plan doc python-target, Q13):
+- Both cores copy the same arithmetic, step for step (epic page python-target, Q13):
   - the generator is Park and Miller's "minimal standard" one:
     multiply by 16,807, keep the remainder after dividing by 2,147,483,647
   - a shuffle is lodash's:  walk the list from the front, swapping each item with a random one at or after it

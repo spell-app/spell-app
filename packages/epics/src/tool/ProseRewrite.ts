@@ -23,7 +23,7 @@ import { ProseShapes } from "./ProseShapes"
  * - a hand-written `div.plan-answer-block` / `div.plan-reply` => `<epic-answer>` / `<epic-reply>`, where its parent
  *   takes that element
  * - a block in another shape stays prose, as it is, and its owner is told (`keep()`)
- * - Two owners:  the plan-doc tool's way in (`IncomingHtml`, through `plain()`:  the elements made through `Markup`,
+ * - Two owners:  the epic tool's way in (`IncomingHtml`, through `plain()`:  the elements made through `Markup`,
  *   nothing counted) and the converter's second pass (`$/epics/convert` `Upgrader`, which counts and notes each).
  *   One class, so both turn every shape the same way (epic `epic-components` T23).
  * - Works on its owner's document:  the prose inside MOVES into the new elements, never re-made.

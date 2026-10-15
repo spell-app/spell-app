@@ -1,5 +1,5 @@
 /*
- * `<epic-section>` (EpicSection.tsx):  a plan doc's section, on top of the fold (`EpicFold.css`).
+ * `<epic-section>` (EpicSection.tsx):  an epic page's section, on top of the fold (`EpicFold.css`).
  * - The page's sections:  titles on the section band, a roomy gap below an open one.
  * - An Overview sub-section (`kind="overview-part"`):  a nested title on the row band,
  *   reaching past its parent's inset, edge to edge;  a smaller gap below.

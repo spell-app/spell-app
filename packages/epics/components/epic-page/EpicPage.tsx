@@ -30,6 +30,9 @@ import {
   CRUMBS,
   DONE,
   COPIED_TOAST_ID,
+  SEE_ALSO,
+  SEE_ALSO_KINDS,
+  type SeeAlsoLink,
   COPIED_TOAST_MS,
   FLASH_MS,
   GIT,
@@ -69,7 +72,7 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicPage`
- * The component behind `<epic-page>`:  a plan doc --
+ * The component behind `<epic-page>`:  an epic page --
  * one epic's page, its data in attributes, its Overview and sections as children.
  * - Draws, top to bottom:
  *   - the sticky page header:  ONE line of crumbs, `DOCS / EPICS / <NAME>`, the name in their type, twice their size and bold, the h1
@@ -83,7 +86,7 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  *     icon, but bigger)";  then the state went into the step label:  "Into the pill")
  *   - the toolbar's bar, sticky again, right below the header (`--epic-head-h`):  the new item form, the toolbar
  *   - the review line, and the pill under it while it shows
- *   - the meta lines (branch, worktree, dates, the durable doc's link from `slot="durable"`)
+ *   - the meta lines (branch, worktree, dates, the guide's link from `slot="durable"`)
  *   - a future epic's notice, then its children
  * - The step label follows the phases, in the colours of decision Q20:
  *   - the active one (outlined blue:  Claude is on it;  links to it)
@@ -98,7 +101,7 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  *   - from the phases and items below and the doc's `updated` date, so it follows the live update too;
  *     a session listening to the review counts as running
  * - The review line under the header:  "To review this doc, type `/epic review <name>`", copied on click (it flashes)
- *   - on every plan doc, as today:  it's how a review starts;  airplane mode:  `/airplane land`
+ *   - on every epic page, as today:  it's how a review starts;  airplane mode:  `/airplane land`
  * - SEND AND REVIEW NOW (P10), at the header's right, before its labels:
  *   blue, and wearing the fill rule (Q20).
  *   - there whenever the page is reviewed (served with a token, its inbox answering:
@@ -114,20 +117,29 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  *     outlined blue while there's anything to work through
  *   - nobody listening:  their tooltips say so (`NOBODY_LISTENING`)
  *   - what a click did goes to the notice line at the window's bottom (`ReviewState`'s)
- * - THE PILL, under the review line, while marks or comments wait and nobody can take them:
+ * - THE PILL, under the review line, while marks, comments or Do Now requests wait and nobody can take them:
  *   no session listening (solid orange, a warning), or airplane mode;  a click copies the review line's command,
  *   and, out of airplane mode, starts the review in the epic's own session (`ReviewClient.startReview()`)
+ *   - once a Send or Do Now WOKE the epic (epic `epic-workflow` P16), it says what the wake did instead,
+ *     until a session listens:  "Typed /epic review <name> into 🚧 <name>:  press Enter there"
  * - NEW ITEMS (epic `airplane` P2):  each item section's own comment-dots button, on its title (`<epic-section>`);
  *   the page's toolbar has none since 2026-10-13
  * - THE TOOLBAR (epic `airplane` P8):  the sticky bar's last row.
  *   - edge to edge, its own rule under it and none above (Owen, 2026-10-10)
  *   - the header's and the bar's measured heights (`top`, `--epic-stack`) take it in
  *   - `slot="toolbar"`:
- *     where the docs runtime puts a plan doc's section buttons (`spell-doc-runtime.js` `buildToolbar()`)
+ *     where the docs runtime puts an epic page's section buttons (`spell-doc-runtime.js` `buildToolbar()`)
  *   - at its right, the PAGE'S STATE FILTER:  every section's chips added up,
  *     a click filtering every section at once (`StateFilter`, through each section's DOM element)
- *   - then collapse-all, folding the whole page
- *   - then, while reviewed, the new item button
+ *   - then expand-all and collapse-all, opening or folding the whole page
+ * - SEE ALSO (Owen, 2026-10-13:  "There is no easy way to get to a "decisions" or "details" pages from an epic"),
+ *   above its blocks:  the pages the epic made or leans on, each with its kind's icon and word, and its day
+ *   - its guide;  every page in its `details/` folder (details pages, choice pages, its review page), newest
+ *     first;  then every guide its epic page and parts link to (epic `epic-workflow` P13), newest first
+ *   - gathered by the page server (`GET /api/epics/pages`, the tool's `SeeAlso`) as it connects, and again when a
+ *     page in the epic's folder changes (`spell-server:file`):  a page made or linked a moment ago shows
+ *   - none, or not served (`file://`):  no box
+ *   - open, folding (a `<details>`):  short, and it's how to get to them
  * - RUNNING AGENTS (epic `skillz` P3), right before its blocks:  the "Agents running" panel (`<epic-agents>`).
  *   - only while the page is served with a token, the epic's list answers (`AgentsClient`) and an agent runs
  *   - each row a note box that redirects that agent
@@ -172,7 +184,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   // ## State
   ////////////////
 
-  /** Light-DOM slot occupancy:  the durable doc's link. */
+  /** Light-DOM slot occupancy:  the guide's link. */
   readonly slots = new E.SlotContent(this.domElement)
 
   /** Every commit shows. */
@@ -336,14 +348,20 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
       unsent,
       comments,
       waiting: all.filter((mark) => !isImmediate(mark)).length,
-      listening: client.listening
+      asked: client.inbox.now.length,
+      listening: client.listening,
+      woken: client.inbox.woken?.message ?? ""
     }
   })
 
-  /** Does the pill show?  Reviewed, something waits to be sent or asked now, and nobody can take it. */
+  /**
+   * Does the pill show?  Reviewed, nobody can take the work, and something waits:
+   * marks or comments to send or work through, a Do Now not taken, or a wake to tell of (P16).
+   */
   readonly hasPill = createMemo((): boolean => {
     const marks = this.marks()
-    return !!marks && !!(marks.unsent || marks.comments || marks.waiting) && (isAirplane() || !marks.listening)
+    if (!marks || (!isAirplane() && marks.listening)) return false
+    return !!(marks.unsent || marks.comments || marks.waiting || marks.asked || marks.woken)
   })
 
   /**
@@ -441,6 +459,73 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     return this.review.connect()
   }
 
+  ////////////////
+  // ## See Also
+  ////////////////
+
+  /** The pages the epic made or leans on (`GET /api/epics/pages`), in the server's order;  none until asked. */
+  @E.state accessor seeAlso: SeeAlsoLink[] = []
+
+  /**
+   * Ask for them while connected, and again when a page in the epic's folder changes:  a details page made, a part
+   * linking a guide (never its inbox files, which change with every mark).
+   */
+  @E.whileConnected
+  protected followSeeAlso() {
+    if (isServer || location.protocol === "file:" || !this.epic) return undefined
+    const folder = `/epics/${this.epic}/`
+    void this.loadSeeAlso()
+    const onFile = (event: Event) => {
+      const path = (event as CustomEvent<{ path: string }>).detail?.path ?? ""
+      if (path.includes(folder) && path.endsWith(".html")) void this.loadSeeAlso()
+    }
+    addEventListener("spell-server:file", onFile)
+    return () => removeEventListener("spell-server:file", onFile)
+  }
+
+  /** Ask the page server for the epic's pages;  a server without the route, or none at all:  none. */
+  @E.untracked
+  private async loadSeeAlso() {
+    try {
+      const answer = await fetch(`/api/epics/pages?epic=${encodeURIComponent(this.epic ?? "")}`)
+      if (!answer.ok) return
+      const { pages } = (await answer.json()) as { pages?: SeeAlsoLink[] }
+      this.seeAlso = Array.isArray(pages) ? pages : []
+    } catch {
+      // no page server:  no box
+    }
+  }
+
+  /** The See Also box:  a folding card, each page a link with its kind and the day it last changed. */
+  private seeAlsoBox(): JSX.Element {
+    return (
+      <details class={SEE_ALSO} part={this.partForName("see-also")} open>
+        <summary>
+          {this.translationForKey("seeAlso")}
+          <span class="see-also-count">{this.seeAlso.length}</span>
+        </summary>
+        <ul>
+          <For each={this.seeAlso}>
+            {(page) => (
+              <li data-kind={page.kind}>
+                <ui-icon name={SEE_ALSO_KINDS[page.kind]?.icon ?? "circle question"} />
+                <a href={page.href} target={`${this.epic}-${page.href}`}>
+                  {page.title}
+                </a>
+                <span class="see-also-kind">
+                  {this.translationForKey(SEE_ALSO_KINDS[page.kind]?.key ?? "seeAlsoDetails")}
+                </span>
+                <time datetime={page.updated} title={new Date(page.updated).toLocaleString()}>
+                  {PlanDates.formatDate(new Date(page.updated), false)}
+                </time>
+              </li>
+            )}
+          </For>
+        </ul>
+      </details>
+    )
+  }
+
   render(): JSX.Element {
     return (
       // an EMPTY title:  the DOM element's `title` would otherwise be a tooltip over the whole page (T8)
@@ -498,6 +583,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
         {this.metaLines()}
         <Show when={this.future}>{this.futureNotice()}</Show>
         <Show when={this.planning()}>{this.hungNotice()}</Show>
+        <Show when={this.seeAlso.length}>{this.seeAlsoBox()}</Show>
         <epic-agents part={this.partForName("agents")} />
         <slot />
       </div>
@@ -531,7 +617,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     )
   }
 
-  /** The meta lines:  branch, worktree, dates, durable doc. */
+  /** The meta lines:  branch, worktree, dates, guide. */
   private metaLines(): JSX.Element {
     return (
       <ul class={META} part={this.partForName("meta")} onClick={(event) => this.copyMeta(event)}>
@@ -695,12 +781,15 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   }
 
   /**
-   * The pill under the review line, while marks wait and nobody can take them (`hasPill()`):
+   * The pill under the review line, while work waits and nobody can take it (`hasPill()`):
    * no Claude session listening (orange), or airplane mode.
+   * - what the page server's wake did, once a Send or Do Now woke the epic (epic `epic-workflow` P16):
+   *   `Typed /epic review <name> into 🚧 <name>:  press Enter there`, until a session listens
    * - a click copies the review line's command (`/epic review <name>`, `/airplane land`), and, out of airplane
-   *   mode, starts the review in the epic's own session (`copyCommand()`)
+   *   mode, starts the review in the epic's own session (`copyCommand()`), woken or not
    */
   private pill(): JSX.Element {
+    const woken = () => (isAirplane() ? "" : (this.marks()?.woken ?? ""))
     return (
       <button
         type="button"
@@ -709,7 +798,16 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
         title={this.translationForKey(isAirplane() ? "copyCommand" : "startReview")}
         onClick={() => void this.copyCommand()}
       >
-        {this.translationForKey(isAirplane() ? "airplanePill" : "nobodyPill")} <code>{this.command()}</code>
+        <Show
+          when={woken()}
+          fallback={
+            <>
+              {this.translationForKey(isAirplane() ? "airplanePill" : "nobodyPill")} <code>{this.command()}</code>
+            </>
+          }
+        >
+          {woken()}
+        </Show>
       </button>
     )
   }

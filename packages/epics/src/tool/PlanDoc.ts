@@ -61,7 +61,7 @@ import { SUMMARY_ID } from "./ReviewInbox"
 
 /****************
  * ### `PlanDoc`
- * A parsed plan doc in `<epic-*>` markup, `epics/<name>/<name>.plan.html`, and the edits `spell dev plan-doc` makes
+ * A parsed epic page in `<epic-*>` markup, `epics/<name>/<name>.plan.html`, and the edits `spell dev plan-doc` makes
  * to it.  What's data (ids, statuses, review marks, dates):  `PLAN-DOC.md` beside this.
  * - Every edit makes or sets `<epic-*>` elements THROUGH `$/epics` `Markup`:  data in attributes, prose in children,
  *   checked against the definitions.  It never writes layout:  the elements draw their chrome (chips, labels, the
@@ -89,10 +89,10 @@ export class PlanDoc extends PlanReader {
   // ## The page
   ////////////////
 
-  /** `<epic-page>`;  throws when the doc has none (not a plan doc, or one in the old markup). */
+  /** `<epic-page>`;  throws when the doc has none (not an epic page, or one in the old markup). */
   get page(): Element {
     const page = this.document.querySelector("epic-page")
-    if (!page) throw new PlanDocError("no <epic-page> in the doc:  is it a plan doc in the <epic-*> markup?")
+    if (!page) throw new PlanDocError("no <epic-page> in the doc:  is it an epic page in the <epic-*> markup?")
     return page
   }
 
@@ -1472,7 +1472,7 @@ export class PlanDoc extends PlanReader {
   /**
    * Make this epic standing (`on`), or an ordinary one again:  `<epic-page standing>` (epic `epic-workflow`).
    * - standing:  open for good;  each phase merges into `main` on its own, and every phase done is NOT done
-   *   (the docs index, `/epics` and its step label say STANDING, not DONE)
+   *   (the Epics list page, `/epics` and its step label say STANDING, not DONE)
    * - SIDE EFFECT:  logs it
    */
   setStanding(on: boolean): void {

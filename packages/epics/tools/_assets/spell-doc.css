@@ -58,11 +58,11 @@
 
   /*
    * ## Item states (the colour scheme, Q20 of epic `epic-components`, Owen 2026-10-08:  the table is in
-   * `templates/epics/plan-doc.md`, "Colours"):  a state's fill, and `-on` for what's drawn on it.  The goals pages'
+   * `templates/epics/plan-doc.md`, "Colours"):  a state's fill, and `-on` for what's drawn on it.  The saga pages'
    * id chips, the Epics index's filter, the toolbar's counts, a details page's question badges.
    * - red needs you;  yellow open, still undecided (DARK ink on it:  `--ui-yellow-on`);  blue Claude is working on
    *   it;  green decided or done lately;  grey older;  orange (DARK ink) Claude answered with options, your turn to
-   *   pick (a plan doc's `replied` items, Owen 2026-10-09)
+   *   pick (an epic page's `replied` items, Owen 2026-10-09)
    * - the same values as `<epic-page>`'s `--epic-state-*` (`packages/epics`, `EpicPage.css`):  change both
    * - red keeps its light-mode hue in dark mode:  dark's lighter red reads as orange
    */
@@ -154,7 +154,7 @@ body {
  *   - everything else, PROSE and INSETS (paragraphs, lists, asides, code, messages, cards, comment threads):  the
  *     reading column, as wide as the narrow layout's text (`--spell-measure`), centred;  a paragraph keeps its 72ch
  *   - a block a page wants full width anyway:  `class="spell-full-width"`
- * - A plan doc:  `<epic-page>` insets everything by `--epic-inset`, and its bands already run edge to edge (epics'
+ * - An epic page:  `<epic-page>` insets everything by `--epic-inset`, and its bands already run edge to edge (epics'
  *   `EpicPage.css`), so the inset becomes the reading column's (`--spell-column-inset`)
  * - Phone width:  the column is the window less the 16px gutter, as the narrow layout's
  * - `--spell-column-inset`:  from `<main>`'s edge to the reading column's text, at least the gutter.  Registered as a
@@ -185,6 +185,7 @@ body.spell-wide
     footer,
     .spell-full-width,
     #choices-bar,
+    epic-choices-bar,
     .spell-toolbar-alone,
     .spell-crumbs,
     .spell-comment-mark:has(+ .spell-full-width),
@@ -259,6 +260,9 @@ body.spell-wide .spell-doc-main :is(.spell-page-head, .spell-filter, footer.spel
 body.spell-wide .spell-doc-main .spell-page-head > .spell-comment-mark.at-page {
   inset-inline-end: var(--spell-column-inset);
 }
+body.spell-wide .spell-doc-main .spell-page-head > .spell-send {
+  inset-inline-end: calc(var(--spell-column-inset) + 32px);
+}
 body.spell-wide .spell-doc-main ui-section {
   --ui-section-title-padding: var(--spell-title-top) var(--spell-column-inset) 8px;
   --spell-fold-end: calc(var(--spell-column-inset) + 4px);
@@ -275,11 +279,11 @@ body.spell-wide .spell-doc-main .spell-toolbar.spell-toolbar-titled {
 body.spell-wide .spell-doc-main .spell-toolbar.spell-toolbar-alone {
   margin-inline: 0;
 }
-body.spell-wide .spell-doc-main #choices-bar.spell-choices-bar {
+body.spell-wide .spell-doc-main :is(#choices-bar.spell-choices-bar, epic-choices-bar) {
   margin-inline: 0;
   padding-inline: var(--spell-column-inset);
 }
-/* a plan doc:  everything in `<epic-page>` sits the column's inset in from its bands */
+/* an epic page:  everything in `<epic-page>` sits the column's inset in from its bands */
 body.spell-wide epic-page {
   --epic-inset: var(--spell-column-inset);
 }
@@ -289,7 +293,7 @@ body.spell-wide epic-page {
 *******************************/
 
 /*
- * The goals pages' markup (`section.s2|s3`;  every other page:  `<ui-section>`, "Sections" below).
+ * The saga pages' markup (`section.s2|s3`;  every other page:  `<ui-section>`, "Sections" below).
  * Each heading's `<ui-sticky>` is `display: contents`, so it sticks within its section.  The runtime sets the h3
  * stickies' `offset` (their h2's height) and `--spell-h2-h` / `--spell-h3-h` on the sections.
  * - h2 above h3:  when a section ends, its h3 slides up UNDER the h2 (`--ui-sticky-z-index`, a public token)
@@ -327,7 +331,7 @@ h1 {
 }
 /*
  * The sticky page header:  `<ui-sticky class="spell-h1"><header class="spell-page-head">` around the h1 and, in
- * plan docs, the step label (`.plan-step`) at its right.  Smaller than a free h1:  it stays on screen.
+ * epic pages, the step label (`.plan-step`) at its right.  Smaller than a free h1:  it stays on screen.
  */
 .spell-page-head {
   display: flex;
@@ -396,6 +400,92 @@ body.spell-one-line-head .spell-page-head > h1 {
   top: 8px;
   inset-inline-end: 4px;
   height: calc(2rem * 1.1);
+}
+/*
+ * ## A docs page's SEND (the runtime's `drawSend()`, epic `epic-workflow` P13):  at the h1's row's right, room left
+ * for the page's bullhorn beyond it;  it never wraps onto a row of its own, it overlaps a long title instead, as the
+ * bullhorn does;  a pill (the paper plane, "Send", the count of comments not sent), blue by the fill rule
+ * (`templates/epics/plan-doc.md`, "Colours"):  grey outline with nothing waiting, dashed while some aren't sent,
+ * outlined once sent;  then who is listening, small and quiet
+ */
+.spell-doc-main .spell-page-head > .spell-send {
+  --_tint: var(--ui-blue, #2185d0);
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: calc(2rem * 1.1);
+  padding-inline-start: 8px;
+  background: var(--spell-head-fill, var(--spell-bg));
+  font: 600 13px/1.4 var(--spell-sans);
+  letter-spacing: normal;
+  text-transform: none;
+}
+body.spell-one-line-head .spell-doc-main .spell-page-head > .spell-send {
+  top: 4px;
+  height: 28px;
+}
+.spell-send-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 12px;
+  border: 1px solid var(--spell-rule);
+  border-radius: 999px;
+  background: none;
+  color: var(--spell-muted);
+  font: inherit;
+  cursor: pointer;
+}
+.spell-send-button > * {
+  pointer-events: none;
+}
+.spell-send-button:hover {
+  color: var(--_tint);
+}
+.spell-send[data-state="unsent"] > .spell-send-button {
+  border: 2px dashed var(--_tint);
+  padding: 2px 11px;
+  color: var(--_tint);
+}
+.spell-send[data-state="sent"] > .spell-send-button {
+  border: 2px solid var(--_tint);
+  padding: 2px 11px;
+  color: var(--_tint);
+}
+.spell-send-button:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--_tint));
+  outline-offset: 1px;
+}
+.spell-send-count {
+  min-width: 1.4em;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--_tint);
+  color: var(--ui-blue-on, #fff);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.spell-send-who {
+  color: var(--spell-muted);
+  font-weight: 400;
+}
+.spell-send-who[data-listening="yes"]::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-inline-end: 5px;
+  border-radius: 50%;
+  background: var(--ui-green, #21ba45);
+  vertical-align: 1px;
+}
+@media (max-width: 720px) {
+  .spell-send-who {
+    display: none;
+  }
 }
 /* the stuck headings' background reaches a few px past the column, over the cards' outer 1px borders */
 :is(ui-sticky.spell-h2 > h2, ui-sticky.spell-h3 > h3, .spell-filter, .spell-page-head) {
@@ -479,7 +569,7 @@ ui-button.spell-fold {
 *******************************/
 
 /*
- * `<ui-section id header sticky collapsible dividing>`:  the page markup (the goals pages keep `section.s2` above).
+ * `<ui-section id header sticky collapsible dividing>`:  the page markup (the saga pages keep `section.s2` above).
  * The element draws the title, the fold chevron, the rule and the stack of stuck titles;  its PUBLIC tokens give
  * it the headings' look:  top-level titles as the h2s above (1.4rem), nested ones as the h3s (1.1rem), a rule
  * under every title.
@@ -525,7 +615,7 @@ ui-button.spell-fold {
 /*
  * - prose inside keeps the page's line height (the section box sets UI's)
  * - space goes ABOVE a section only, as the `section.s2` pages':  `--ui-section-margin` is both edges, and a
- *   bottom margin would come between the content and what the page adds after it (plan docs' "none yet")
+ *   bottom margin would come between the content and what the page adds after it (epic pages' "none yet")
  */
 .spell-doc-main ui-section::part(section) {
   margin-bottom: 0;
@@ -652,7 +742,7 @@ ui-button.spell-fold {
 :is(.lede, .spell-doc-main > header > h1 + p) code {
   font-size: 0.78em;
 }
-/* a lede INSIDE a section (a plan doc's summary, a changelog entry's) runs a paragraph:  upright, in the body face */
+/* a lede INSIDE a section (an epic page's summary, a changelog entry's) runs a paragraph:  upright, in the body face */
 ui-section .lede {
   font: 400 1.06rem/1.6 var(--spell-sans);
   margin: 0 0 14px;
@@ -754,7 +844,7 @@ pre code {
 
 /*
  * ## Item filter:  a section's state chips (`span.spell-item-filter`, slotted into its title's `actions` by the
- * runtime's `wireItemFilters()`):  the goals pages' item lists (`.plan-items`) and the index's epics
+ * runtime's `wireItemFilters()`):  the saga pages' item lists (`.plan-items`) and the index's epics
  * (`.spell-epics`).  Just after the title, left of the count badge;  a click filters by the runtime's `nextShown()`,
  * hiding items (`data-spell-hidden`), with "6 hidden · show all" under them.
  */
@@ -1055,7 +1145,7 @@ pre code {
 
 /*
  * ## Guide comments (epic `airplane`, P11):  Owen's comments on a page's blocks, from the inbox file
- * (`tools/GuideInbox.ts`), drawn by the runtime's "Guide comments" (`PageComments`).
+ * (`GuideInbox`, `packages/epics/src/tool/`), drawn by the runtime's "Comments" (`PageComments`).
  * - the BULLHORN (`.spell-comment-mark`):  in a section's title (`.at-section`, its `actions` slot), in the page
  *   header (`.at-page`), else (`.at-block`) a line of no height just before the block, its button over the block's
  *   top right corner;  shown only while the block is hovered (a section:  its innermost hovered one) or focused.
@@ -1063,7 +1153,7 @@ pre code {
  *   far right is unnecessary")
  * - every comment's THREAD (`.spell-thread`, in a `.spell-comments` box), under the paragraph holding the quote, else
  *   the block:  one ivory pane that folds;  its header (chevron, bullhorn, the pane's summary, Owen's answer as a
- *   plan doc item's review pills, the trash), then the messages:  his plain on the ivory, Claude's light violet, a
+ *   epic page item's review pills, the trash), then the messages:  his plain on the ivory, Claude's light violet, a
  *   green Done line, "Claude: thinking…";  each one's time in its top right corner;  then his reply box
  * - the comment pane (`.spell-comment-pane`):  floating, fixed on the screen;  its header, then a textarea that grows
  *   with its text (`growField()`)
@@ -1110,7 +1200,7 @@ pre code {
   margin: 8px 0 12px;
 }
 /*
- * under a plan doc's ITEM:  in from its edges as far as its note box is ("Your note:  a question ..."), so the thread
+ * under an epic page's ITEM:  in from its edges as far as its note box is ("Your note:  a question ..."), so the thread
  * lines up with it (Owen, 2026-10-10:  "same indent as comment box"):  the item's details' padding, `EpicItem.css`
  * (`--epic-item-indent` on the left, 6px on the right)
  * - anywhere else the thread's edges are the block's it's under:  a guide's paragraph or table, an item's paragraph
@@ -1123,7 +1213,7 @@ pre code {
 .spell-doc-main p + .spell-comments {
   max-width: 72ch;
 }
-/* in a plan doc item's details, its note box's edges, as above */
+/* in an epic page item's details, its note box's edges, as above */
 .spell-doc-main epic-item p + .spell-comments {
   max-width: none;
 }
@@ -1139,7 +1229,7 @@ pre code {
   --spell-thread-green: var(--ui-green-text, var(--ui-green, #21ba45));
   /* never wider than the column:  a folded thread's header is one line, its summary cut short */
   min-width: 0;
-  /* the edges of what it's under:  a plan doc item's note box (`.spell-comments` above), else the block's (Owen,
+  /* the edges of what it's under:  an epic page item's note box (`.spell-comments` above), else the block's (Owen,
      2026-10-10:  "same indent as comment box";  32px in on each side before) */
   margin-inline: 0;
   border: 1px solid var(--spell-rail-rule);
@@ -1231,7 +1321,7 @@ pre code {
   white-space: nowrap;
 }
 /*
- * Owen's answer (`answerButtons()`):  a plan doc item's review pills (`EpicReview.css`, "The line's controls"), as
+ * Owen's answer (`answerButtons()`):  an epic page item's review pills (`EpicReview.css`, "The line's controls"), as
  * they look there:  one grouped pill of 24px squares, the glyph centred, muted at rest, its colour under the pointer
  */
 .spell-doc-main .spell-thread-answer {
@@ -1804,14 +1894,14 @@ ui-accordion.spell-aside::part(content) {
 }
 
 /*
- * A plan doc's navigation (`nav.spell-toolbar`, the runtime's `buildToolbar()`;  epic `airplane` P8, Owen 2026-10-10:
+ * An epic page's navigation (`nav.spell-toolbar`, the runtime's `buildToolbar()`;  epic `airplane` P8, Owen 2026-10-10:
  * "a sticky top toolbar instead"):  slotted into the last row of `<epic-page>`'s sticky header
  * (its `toolbar` slot), so it sticks with it, and the titles below stick under it.
  * - the row's ivory band, its rule and its tools at the right are `<epic-page>`'s (`EpicPage.css`, "The toolbar");
  *   this is the section buttons, taking the room the tools leave
  * - one round button per top-level block, its icon and badges, NO label (Owen, 2026-10-10:  "lose the titles"):
  *   the name is its tooltip;  the current one a deeper ivory (scroll-follow)
- *   - every button the same width, badge or not (Owen, 2026-10-10:  "Make plan doc icons consistent, with badge or
+ *   - every button the same width, badge or not (Owen, 2026-10-10:  "Make epic page icons consistent, with badge or
  *     no"):  the badges hang over the icon's top right, a third of a badge on the icon ("Make badge 1/3 way overlap
  *     the icon"), in the row's top padding
  * - badges:  how many items wait on Owen, red urgent, orange Claude's reply waiting on his pick;  none, no badge
@@ -1883,7 +1973,7 @@ ui-accordion.spell-aside::part(content) {
   background: var(--spell-state-replied);
   color: var(--spell-state-replied-on);
 }
-/* a plan doc's buttons:  one round size, apart enough for a badge hanging off the one before */
+/* an epic page's buttons:  one round size, apart enough for a badge hanging off the one before */
 .spell-toolbar:not(.spell-toolbar-titled) .spell-toolbar-items {
   gap: 6px;
 }
@@ -1912,10 +2002,10 @@ ui-accordion.spell-aside::part(content) {
 
 /*
  * ## Every other page's toolbar (`nav.spell-toolbar-titled`, the runtime's `buildPageToolbar()`;  Owen, 2026-10-10:
- * "Make the floating sidebar in guides a sticky top toolbar like the plan doc.  Have section titles in this one"):
+ * "Make the floating sidebar in guides a sticky top toolbar like the epic page.  Have section titles in this one"):
  * the last row of the sticky page header (`.spell-page-head`), or of the filter bar, or a sticky bar of its own
  * (`.spell-toolbar-alone`)
- * - an ivory band as the plan doc's (Owen, 2026-10-10:  "full-page-width, no rounding like plan doc ... a rule below,
+ * - an ivory band as the epic page's (Owen, 2026-10-10:  "full-page-width, no rounding like epic page ... a rule below,
  *   but none above"):  out of `<main>`'s inline padding to the column's edges (`--spell-doc-pad-inline`), square, the
  *   band's rule under it as the header's bottom edge (the header's own rule and bottom padding give way to it)
  * - each button its mark and its title, the titles shrinking with `...` when they don't all fit;
@@ -1925,7 +2015,7 @@ ui-accordion.spell-aside::part(content) {
   --_out: var(--spell-doc-pad-inline, 16px);
   flex: 1 0 calc(100% + 2 * var(--_out));
   margin-inline: calc(-1 * var(--_out));
-  /* the band's own rule, as the plan doc's:  the page's rule is all but white on the ivory */
+  /* the band's own rule, as the epic page's:  the page's rule is all but white on the ivory */
   box-shadow: 0 1px 0 var(--spell-rail-edge);
   background: var(--spell-rail-fill);
 }
@@ -2003,7 +2093,7 @@ ui-accordion.spell-aside::part(content) {
   color: var(--spell-state-progress-on);
 }
 
-/* ## The jump dialog (Cmd / Ctrl + K on a plan doc, the runtime's `openJumpPrompt()`):  a miss says so in red */
+/* ## The jump dialog (Cmd / Ctrl + K on an epic page, the runtime's `openJumpPrompt()`):  a miss says so in red */
 .spell-jump {
   display: grid;
   gap: 0.5em;
@@ -2147,6 +2237,37 @@ ui-accordion.spell-aside::part(content) {
 ui-labels.spell-legend {
   display: block;
   margin: 4px 0 0;
+}
+
+/*******************************
+     Pages Owen answers on
+*******************************/
+
+/*
+ * Details and choice pages (epic `epic-workflow` P12):  drawn by the epics pack's elements (`<epic-ask>`,
+ * `<epic-text-box>`, `<epic-send>`, `<epic-choice-rows>`, `<epic-choices-bar>`), so only the page's own lines are
+ * here.  Before P12:  `details.css` and `syntax-choices.css`, which a page script drew to.
+ * - the meta lines under the lede:  `<epic-field label>`s, close together
+ * - the "Where we are" box:  its lines, the same
+ * - a choice page's bar is its bottom:  no window's worth of ground under it
+ */
+.spell-details-meta {
+  margin: 0.5em 0 1em;
+}
+:is(.spell-details-meta, ui-message.spell-where) > epic-field {
+  margin: 2px 0;
+}
+.spell-doc-main:has(> epic-choices-bar) {
+  padding-bottom: 0;
+}
+/* a syntax-choices section's rule:  which question it answers, the recommended way */
+.spell-choices-rule {
+  margin: 0 0 0.5em;
+  color: var(--spell-muted);
+}
+/* a question's title a size down:  its cards are what matter */
+ui-section:has(> epic-ask)::part(heading) {
+  font-size: 1.1rem;
 }
 
 /*******************************

@@ -17,7 +17,7 @@ import "./FileDropdown.css"
  * - `showActions`:  `Actions.FILE_DROPDOWN_ACTIONS` after a divider, as dropdown items;
  *   choosing one clicks it, as `<MoreMenu>` does.
  * - Sits in a menu:  wrapped in a `<ui-item class="FileDropdown">`.  Look:  `FileDropdown.css`.
- * - SEE:  its App UI page, `packages/app/docs/FileDropdown.html` (`/components/app/FileDropdown.html`).
+ * - SEE:  its App UI components page, `packages/app/docs/FileDropdown.html` (`/components/app/FileDropdown.html`).
  ****************/
 export function FileDropdown(props: FileDropdownProps) {
   /** What it shows, read from `editor` in one go. */

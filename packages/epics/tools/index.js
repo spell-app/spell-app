@@ -1,5 +1,5 @@
 /**
- * `spell dev docs index`:  write the docs home's area cards and each area's list page, from every page's `<title>`
+ * `spell dev docs index`:  write the home page's area cards and each area's list page, from every page's `<title>`
  * and description (claude-design P5).
  * Usage (from `packages/epics`):  node tools/index.js
  * - The home, `pages/index.html`:  a routing page, one card per area in the top bar's order
@@ -53,7 +53,7 @@ import { COMPONENT_SETS } from "../../server/src/page/page.types.ts"
 import { PageNotes } from "./PageNotes.js"
 import { BRAND, EPICS, GOALS, GUIDES, HOME, LIST_PAGES, ROOT, TEMPLATES, findPages, tidy } from "./pages.js"
 
-/** The docs home, from the checkout's root. */
+/** The home page, from the checkout's root. */
 const INDEX = relative(ROOT, HOME)
 
 /** The home's markers:  its area cards go between. */
@@ -81,7 +81,7 @@ const WRITING_DOCS = `<ui-section id="writing-docs" header="Writing docs" sticky
 <ui-icon slot="icon" name="pen to square"></ui-icon>
 <ul>
 <li>Start from a template:  <code>spell dev docs new durable &lt;topic&gt;/&lt;topic&gt;.html --title "Title"</code>.</li>
-<li>A plan doc:  run <code>/epic &lt;name&gt;</code> in Claude Code.  Never copy the plan template by hand.</li>
+<li>An epic page:  run <code>/epic &lt;name&gt;</code> in Claude Code.  Never copy the plan template by hand.</li>
 <li>The rules:  <a href="../packages/epics/AGENTS.md">AGENTS.md</a>.  How the pages work:
 <a href="../guides/spell-docs/spell-docs.md">spell-docs.md</a>.</li>
 <li><code>docs new</code> lists the page on its area's page;  after renaming one or changing its title, run
@@ -118,8 +118,8 @@ export const LISTS = [
     icon: "layer group",
     has: (path) => path.startsWith("epics/"),
     none: "No epics yet:  run /epic in Claude Code.",
-    description: "Every epic's plan doc, open ones first:  phases, questions, decisions.",
-    lede: "Every epic's plan doc, open ones first:  one per <code>/epic</code> session, with its phases, questions, decisions and log."
+    description: "Every epic's epic page, open ones first:  phases, questions, decisions.",
+    lede: "Every epic's epic page, open ones first:  one per <code>/epic</code> session, with its phases, questions, decisions and log."
   },
   {
     id: "guides",
@@ -214,7 +214,7 @@ export function replaceBetween(html, start, end, body) {
 /**
  * What the lists show for page `path`:  title, description, and a plan's status and last-worked moment.
  * - title falls back to the file name, so a page without one still shows up (and looks wrong enough to fix)
- * - a plan doc's title without its `Epic: ` (`planDoc.types` `TITLE_PREFIX`):  its card is in Epics already
+ * - an epic page's title without its `Epic: ` (`planDoc.types` `TITLE_PREFIX`):  its card is in Epics already
  * - `branches`:  each branch's last commit (`branchCommits()`), for `worked()`
  */
 function describe(path, branches = new Map()) {
@@ -232,8 +232,8 @@ function describe(path, branches = new Map()) {
 }
 
 /**
- * When epic `path` (its plan doc, `html` its text) was last worked on:  the latest of
- * - its "updated" day (`updated`:  the plan-doc tool stamps it on every write)
+ * When epic `path` (its epic page, `html` its text) was last worked on:  the latest of
+ * - its "updated" day (`updated`:  the `epic` tool stamps it on every write)
  * - its last log line's time (`<epic-event at>`, in the doc or its `parts/log.html`)
  * - its branch's last commit (`branches`, by the epic's name), when the branch is still there
  * - `undefined` when none of them reads
@@ -269,11 +269,11 @@ function branchCommits() {
 }
 
 /**
- * What a plan doc's card shows, from its skeleton:  `{ phases, updated, future, urgent }`.
+ * What an epic page's card shows, from its skeleton:  `{ phases, updated, future, urgent }`.
  * - each `<epic-phase status title>` (its label `P2 · <title>`), `<epic-page updated future>`
  * - a doc still in the old markup (no `<epic-page>`:  one restored from an old backup) shows as an empty plan:
- *   the plan-doc tool refuses it until it's converted (epic `epic-components` P15)
- * - `updated`:  the plan-doc tool's "updated" stamp (`touch()`):  how long since anyone worked on it
+ *   the `epic` tool refuses it until it's converted (epic `epic-components` P15)
+ * - `updated`:  the `epic` tool's "updated" stamp (`touch()`):  how long since anyone worked on it
  * - `future`:  an epic written down with `/epic future`, not planned yet
  * - `standing`:  open for good, every phase merging on its own (epic `epic-workflow`):  never shown done
  * - `urgent`:  the ids of the items that need Owen (`URGENT_SELECTOR`:  their red and orange chips)
@@ -351,8 +351,9 @@ export function areaCards(pages, favorites = readFavorites()) {
       title: "Goals",
       icon: "bullseye",
       href: "../goals/index.html",
-      count: plural(goalSets(), "goal set"),
-      description: "The plan for each project:  goals by topic, the questions still open, Owen's thoughts on them."
+      count: plural(goalSets(), "saga set"),
+      description:
+        "Parked:  the first sagas (epics of epics), by topic, with the questions still open and Owen's thoughts."
     },
     {
       id: "epics",
@@ -363,7 +364,7 @@ export function areaCards(pages, favorites = readFavorites()) {
         .filter(([, count]) => count)
         .map(([name, count]) => `${count} ${GROUP_COUNTS[name]}`)
         .join(" · "),
-      description: "Plan docs, one per /epic session:  phases, questions, decisions and the log of the work."
+      description: "Epic pages, one per /epic session:  phases, questions, decisions and the log of the work."
     },
     {
       id: "epic-ui",
@@ -372,7 +373,7 @@ export function areaCards(pages, favorites = readFavorites()) {
       href: setHome(epicUI),
       count: plural(setPages(epicUI), "element page"),
       description:
-        "The <epic-*> elements a plan doc is made of:  how they nest, and a page for each, with live examples.",
+        "The <epic-*> elements an epic page is made of:  how they nest, and a page for each, with live examples.",
       meta: `served at ${epicUI.prefix}/, by the page server`
     },
     {
@@ -380,7 +381,7 @@ export function areaCards(pages, favorites = readFavorites()) {
       title: "Spell/UI",
       icon: "puzzle piece",
       href: setHome(spellUI),
-      count: plural(setPages(spellUI, "ui-"), "component page"),
+      count: plural(setPages(spellUI, "ui-"), "components page"),
       description: "Fomantic UI reborn as ui-* custom elements, on Solid 2:  every element, with examples and its API.",
       meta: `served at ${spellUI.prefix}/, by the page server`
     },
@@ -396,7 +397,7 @@ export function areaCards(pages, favorites = readFavorites()) {
       title: "App/UI",
       icon: "window maximize",
       href: setHome(appUI),
-      count: plural(setPages(appUI), "component page"),
+      count: plural(setPages(appUI), "components page"),
       description:
         "The spell app's own components:  what each draws and takes, with live examples where one draws alone.",
       meta: `served at ${appUI.prefix}/, by the page server`
@@ -431,7 +432,7 @@ function setPages(set, prefix = "") {
   return htmlFiles(join(ROOT, set.dir)).filter((name) => name !== "index.html" && name.startsWith(prefix)).length
 }
 
-/** A component set's home, from the docs home's folder:  at its served address (`../components/epics/index.html`). */
+/** A component set's home, from the home page's folder:  at its served address (`../components/epics/index.html`). */
 function setHome(set) {
   return `..${set.prefix}/index.html`
 }
@@ -485,7 +486,7 @@ function htmlFiles(dir) {
   return existsSync(dir) ? readdirSync(dir).filter((name) => name.endsWith(".html")) : []
 }
 
-/** How many goal sets there are:  folders of `goals/` with an `index.html`. */
+/** How many saga sets there are (goal sets, once):  folders of `goals/` with an `index.html`. */
 function goalSets() {
   if (!existsSync(GOALS)) return 0
   return readdirSync(GOALS, { withFileTypes: true }).filter(

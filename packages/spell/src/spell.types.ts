@@ -367,7 +367,7 @@ export type SpellWarning = {
  * One built-in type in `SP.BUILT_IN_TYPE_TABLE`:  what it is, and its members.
  * - DATA, read by the parser, editors and the Type Explorer's pack.  See `builtinTypes.ts`.
  * - Why data, not a `.spell` file or statics on runtime classes:  nothing to parse at startup,
- *   and the parser never imports runtime code (plan doc D25).
+ *   and the parser never imports runtime code (epic page D25).
  */
 export type BuiltInType = {
   /** Its datatype, in spell's words, e.g. `text`, `list` -- one of `P.BUILT_IN_TYPES`. */

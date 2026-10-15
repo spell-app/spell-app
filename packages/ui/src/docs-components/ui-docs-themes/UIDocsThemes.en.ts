@@ -13,7 +13,7 @@ import type { E } from "$/ui/core"
  * ### `docsThemesVocabulary`
  * The names of `<ui-docs-themes>`, the docs site's look controls:  a sun / moon button flipping light and dark,
  * and a palette button opening a small overlay with the theme list and "Match system";
- * or, on a component page, a theme dropdown.  Remembered per viewer.
+ * or, on a components page, a theme dropdown.  Remembered per viewer.
  ****************/
 export const docsThemesVocabulary = {
   tag: "ui-docs-themes",

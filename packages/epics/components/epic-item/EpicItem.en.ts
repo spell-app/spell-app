@@ -12,7 +12,7 @@ import { REVIEW_NAME_TEXTS, REVIEW_PARTS } from "$/epics/components/epic-review/
 
 /****************
  * ### `<epic-item>`
- * One item of a plan doc:  a question, judgement call, caveat, todo, issue or test.
+ * One item of an epic page:  a question, judgement call, caveat, todo, issue or test.
  ****************/
 export const epicItemVocabulary = {
   tag: "epic-item",

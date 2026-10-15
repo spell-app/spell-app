@@ -7,7 +7,7 @@ import { classes } from "./classes.parser"
 
 /**
  * `can_belong_to_many` rule:  `a card can belong to many piles` -- the opposite of `a card belongs to one pile`:
- * what a list does anyway, so it compiles to nothing.  It says so for a reader (plan doc Q22).
+ * what a list does anyway, so it compiles to nothing.  It says so for a reader (epic page Q22).
  */
 export class CanBelongToMany extends SpellStatement<"type|list"> {
   @proto static priority = Priority.declaration

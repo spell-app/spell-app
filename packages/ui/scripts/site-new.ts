@@ -1,6 +1,7 @@
 /**
  * `yarn site:new <tag|page> [--title "Title"] [--summary "One line."] [--force]`:
- * write a Spell UI docs page from the template, `templates/spell-ui-docs.html`.
+ * write a page of Spell UI's docs site from the template, `templates/spell-ui-docs.html`:
+ * a components page or a components guide page.
  * - Pages land in the site's one folder, `docs/` (`SITE_PAGES`).
  * - A TAG (`ui-button`, `button`, `ui-or`:  any tag of a family) writes `docs/<main tag>.html`, the component layout:
  *   - a masthead with the family's theme picker
@@ -23,7 +24,7 @@
  * - Refuses to overwrite an existing page without `--force`.
  * - Prints the path and the page server URL hint.
  * - The Fomantic link:  by the family name, or `FOMANTIC_PAGES` for the families whose page has another name.
- *   - Fomantic's page, in a git-ignored clone (plan doc P1):
+ *   - Fomantic's page, in a git-ignored clone (epic page P1):
  *     `reference/Fomantic-UI-Docs/server/documents/<group>/<name>.html.eco`
  */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
@@ -48,7 +49,7 @@ const TEMPLATE_SITE = /\.\.\/(?:components\/)?ui\//g
 /** Fomantic's docs pages, by group folder. */
 const FOMANTIC_DOCS = path.join(UI, "reference/Fomantic-UI-Docs/server/documents")
 
-/** Families whose Fomantic page has another name (plan doc 1.3, the page map). */
+/** Families whose Fomantic page has another name (epic page 1.3, the page map). */
 const FOMANTIC_PAGES: Record<string, string> = {
   "ui-ad": "views/advertisement",
   "ui-parts": "elements/header",

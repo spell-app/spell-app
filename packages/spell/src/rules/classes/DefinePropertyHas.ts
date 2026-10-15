@@ -42,7 +42,7 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
    *   if it's a VALUE kind, its setter checks against its list -- see `value_kind`.
    *   - The type's RECORD, read when compiling, as a call reads `data.method.returns`.
    *   - Why:  a value kind may be declared further down, e.g. the deck below the card,
-   *     so here it's still a stub (plan doc `outline-spell`, issue I3).
+   *     so here it's still a stub (epic page `outline-spell`, issue I3).
    */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -451,7 +451,7 @@ classes.addRule(DefinePropertyHas, {
     }
   ]
 })
-// a quoted name in the sentence style (plan doc J3, option C) -- tests in `parserTests/outline.test.ts`:
+// a quoted name in the sentence style (epic page J3, option C) -- tests in `parserTests/outline.test.ts`:
 // `a card has a "suit" as one of ...`, `cards have a "direction" as either up or down`
 classes.addRule(DefinePropertyHas, {
   syntax: "(a|an) {type:singular_type} has (a|an|a property)? {property:quoted_member} {specifier:type_specifier}?"
@@ -468,7 +468,7 @@ classes.addRule(DefinePropertyHas, {
 classes.addRule(DefinePropertyHas, {
   syntax: "{type:subject_its} {property:quoted_member} is {specifier:outline_specifier}"
 })
-// ... and the quotes are optional (plan doc Q4):  `- its rank is a number`
+// ... and the quotes are optional (epic page Q4):  `- its rank is a number`
 classes.addRule(DefinePropertyHas, {
   syntax: "{type:subject_its} {property:member_words} is {specifier:outline_specifier}"
 })

@@ -15,7 +15,7 @@ import { PlanItem } from "$/epics/tool/PlanItem"
 import { PlanTime } from "$/epics/tool/PlanTime"
 
 /**
- * The plan docs these tests read, tracked beside them (`fixtures/`):  `epic-plan.html`, a new doc in `<epic-*>` markup
+ * The epic pages these tests read, tracked beside them (`fixtures/`):  `epic-plan.html`, a new doc in `<epic-*>` markup
  * (the tool's template, filled in).
  */
 const FIXTURES = fileURLToPath(new URL("fixtures", import.meta.url))
@@ -23,7 +23,7 @@ const FIXTURES = fileURLToPath(new URL("fixtures", import.meta.url))
 /** When the tests' edits happen:  local 2026-10-01 09:05. */
 const NOW = new Date(2026, 9, 1, 9, 5)
 
-/** A fresh plan doc in `<epic-*>` markup. */
+/** A fresh epic page in `<epic-*>` markup. */
 function freshPlan(now = NOW) {
   return PlanDoc.parse(readFileSync(join(FIXTURES, "epic-plan.html"), "utf8"), now)
 }
@@ -1458,9 +1458,9 @@ describe("PlanDoc review inbox", () => {
 
   test("a revisit with a pick:  left to talk over, the question NOT answered", () => {
     const plan = inboxPlan()
-    expect(plan.applyMark({ id: "q1", action: "revisit", when: "soon", note: "only plan docs?", pick: "A" })).toEqual({
+    expect(plan.applyMark({ id: "q1", action: "revisit", when: "soon", note: "only epic pages?", pick: "A" })).toEqual({
       applied: false,
-      left: 'to talk over:  picks A · Keep folds, asks:  "only plan docs?"'
+      left: 'to talk over:  picks A · Keep folds, asks:  "only epic pages?"'
     })
     expect([status(plan, "q1"), el(plan, "q1").querySelector("epic-choices")!.hasAttribute("chosen")]).toEqual([
       "open",

@@ -72,7 +72,7 @@ export class QuotedTypeExpression extends MethodDefinition<"type|signature|body?
 
   /**
    * Is `match` the quoted phrase and NOTHING more:  no `if` / `is` / `:`, no body?
-   * - e.g. `- it "can move"` (plan doc `outline-spell` I6)
+   * - e.g. `- it "can move"` (epic page `outline-spell` I6)
    * - Refused, saying so:  it'd compile to an empty method, `get canMove() {}`, always `undefined`.
    * - A dangling `if` is fine:  its body may be the indented lines below.
    */
@@ -84,7 +84,7 @@ export class QuotedTypeExpression extends MethodDefinition<"type|signature|body?
 
   /**
    * Is `tokens` a property written with `it` for `its` in an outline body, e.g. `- it "rank" is a number`
-   * (plan doc `outline-spell`, todo T3)?
+   * (epic page `outline-spell`, todo T3)?
    * - `it`, a quoted member name (no verb, so not a phrase like `"is face up"`), then `is`.
    * - Refused, saying so:
    *   read as a phrase, it'd make an empty `get rank() {}`, and say only "Don't understand `a number`".

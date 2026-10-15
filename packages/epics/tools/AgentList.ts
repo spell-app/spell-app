@@ -2,17 +2,17 @@
  * The RUNNING-AGENTS LIST of an epic or a checkout (epic `skillz`):  every background agent a Claude session started
  * (`/bg`, or on its own), by name, while it runs.
  * - the file:
- *   - in an epic:  `epics/<epic>/agents.json`, beside the plan doc (shared content;  git-ignored in the shared repo)
+ *   - in an epic:  `epics/<epic>/agents.json`, beside the epic page (shared content;  git-ignored in the shared repo)
  *   - else:  `<checkout root>/.spell-agents.json` (git-ignored in spell-app)
  * - names carry a PREFIX:  the epic's name, else the worktree's, else `main`;  `add("aaa")` in epic `skillz` is
  *   `skillz-aaa`.  Every method takes the short name or the full one.
  * - writers:  `spell dev agents` (`agents.ts`;  sessions and their helpers, at the same time) and the page server's
- *   route (`agentRoutes.ts`:  Owen's redirect notes from the plan doc's Agents box).  Every write is under the
+ *   route (`agentRoutes.ts`:  Owen's redirect notes from the epic page's Agents box).  Every write is under the
  *   file's lock (`SRV.FileLock`), and atomic (a temp file renamed over it), as the review inbox's (`ReviewInbox`).
  * - REDIRECTS:  a note Owen sends a running agent from the page waits in its entry, untold, until a session waiting
  *   on the list (`spell dev agents wait`) passes it on (`SendMessage`) and marks it `told()`
  * - an agent leaves the list when it finishes (`done()`):  the list is what's RUNNING;  empty, the file goes
- * - NOT in the record:  the plan doc says what agents DID;  this says what they're doing now
+ * - NOT in the record:  the epic page says what agents DID;  this says what they're doing now
  */
 import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { basename, dirname, join, resolve } from "node:path"
@@ -38,7 +38,7 @@ export class AgentList {
   }
 
   /**
-   * The list beside plan doc `file`, `<root>/epics/<epic>/<epic>.plan.html`:  that epic's (the page server's route).
+   * The list beside epic page `file`, `<root>/epics/<epic>/<epic>.plan.html`:  that epic's (the page server's route).
    * - `epics/` is a link into the shared content repo, so every checkout's copy of the doc names the same file
    */
   static forPlanDoc(file: string): AgentList {
@@ -112,7 +112,7 @@ export class AgentList {
   }
 
   /**
-   * Owen's `note` for agent `name`, from the plan doc's Agents box (`agentRoutes.ts`):  added to its `redirects`,
+   * Owen's `note` for agent `name`, from the epic page's Agents box (`agentRoutes.ts`):  added to its `redirects`,
    * untold;  returns the list after.
    * - through the page server's one safe write (`SRV.FileOperations.save()`):  read and written under the list's
    *   lock, all at once;  async, so the page server keeps serving while it waits for the lock
@@ -215,7 +215,7 @@ export type RunningAgent = {
   started: string
   /** Claude Code's id for its background task:  what `/bg stop` stops */
   taskId?: string
-  /** Owen's notes to steer it, from the plan doc's Agents box, oldest first */
+  /** Owen's notes to steer it, from the epic page's Agents box, oldest first */
   redirects?: Redirect[]
 }
 

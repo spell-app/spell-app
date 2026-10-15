@@ -33,10 +33,11 @@ If you find yourself writing a second copy of any of these, stop and reuse.
 | `components/index.ts` | `$/epics/components`:  every family barrel (defines every tag:  SIDE EFFECT) |
 | `src/index.ts` | `$/epics` (`EP`):  code the elements and the node tools share |
 | `src/definitions/` | the ONE description of every element:  its vocabulary as data, plus the children it takes |
-| `src/markup/` | read, write and check a plan doc's `<epic-*>` markup through the definitions (node and browser) |
-| `src/review/` | the page's two server clients, each POSTing and watching through a `ServerLink` (the token and its refresh):  `ReviewClient`, the review inbox's, which the elements' review controls use;  `AgentsClient`, the running agents', for `<epic-page>`'s "Agents running" panel |
-| `src/convert/` | the converter (`spell dev plan-doc convert`):  a plan doc in the old markup => `<epic-*>` markup, with a proof that no id, link or word was lost;  every live doc was converted at P12, and it stays for a doc restored from an old backup |
-| `src/tool/` | the plan-doc tool (`spell dev plan-doc`), node only, not in the pack;  `PLAN-DOC.md`, the rules for a doc's data;  `templates/plan.html`, a new doc |
+| `src/markup/` | read, write and check an epic page's `<epic-*>` markup through the definitions (node and browser) |
+| `src/review/` | the page's two server clients, each POSTing and watching through a `ServerLink` (the token and its refresh):  `ReviewClient`, the review inbox's (reads and writes, polling, note-draft backups), which the elements' review controls use;  `AgentsClient`, the running agents', for `<epic-page>`'s "Agents running" panel |
+| `src/answers/` | `$/epics/answers`:  the pages Owen answers on (epic `epic-workflow` P12) -- a details page's answer (`AnswerForm`:  gathered from its `<epic-ask>`s and `<epic-text-box>`es, sent, read back) and a choice page's boxes (`ChoicesForm`:  the draft, "Do it") |
+| `src/convert/` | the converter (`spell dev plan-doc convert`):  an epic page in the old markup => `<epic-*>` markup, with a proof that no id, link or word was lost;  every live doc was converted at P12, and it stays for a doc restored from an old backup |
+| `src/tool/` | the `epic` tool (`spell dev plan-doc`), node only, not in the pack;  `PLAN-DOC.md`, the rules for a doc's data;  `templates/plan.html`, a new doc |
 | `tests/epics/src/pack.test.ts` (repo root) | runs `spell dev pack check epics`:  `components/__pack/` and `docs/__data/` are current |
 | `components/__pack/` | GENERATED, committed:  `epics.catalog.ts`, `epics.entry.ts`, `epics.pack.js` |
 | `docs/` | Epic UI, the elements' docs pages, served at `/components/epics/`:  `index.html`, `<tag>.html`, `__parts/`, `__data/` ([AGENTS.md](AGENTS.md), "Epic UI, the docs set") |

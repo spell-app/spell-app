@@ -6,7 +6,7 @@
  * - `--no-check`:  skip the browser checks (`check-spell.js`)
  * - Steps, stopping at the first that fails:
  *   1. `bundle-spell-ui.js` -- builds UI, bundles `_assets/spell-ui.js`
- *   2. `index.js` -- rewrites the docs index's lists
+ *   2. `index.js` -- rewrites the home page's and list pages' cards
  *   3. finds the pages (`pages.js` `findPages()`)
  *   4. `doc-links.js --check` on the pages, under `tsx` (`pages.js` `docLinksRun()`)
  *   5. `check-spell.js` on each page, screenshots in a temp folder -- checks every page, THEN fails if any did

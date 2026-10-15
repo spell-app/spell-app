@@ -300,7 +300,7 @@ export type ImportMap = {
 ////////////////
 
 /**
- * The Spell UI docs site's PAGES, from `packages/ui/`:  its `docs/` folder, a component set laid out as every set is
+ * Spell UI's docs site's PAGES, from `packages/ui/`:  its `docs/` folder, a component set laid out as every set is
  * (epic `people-and-orgs` P18;  until then shared content, the checkout's `ui/`, from claude-design P6).
  * - What's in it:
  *   - the pages, `*.html`, flat:  an element's page is its tag, `ui-button.html`
@@ -314,7 +314,7 @@ export type ImportMap = {
 export const SITE_PAGES = "docs"
 
 /**
- * The Spell UI docs site's DATA, from `packages/ui/`:  `docs/__data/`.
+ * Spell UI's docs site's DATA, from `packages/ui/`:  `docs/__data/`.
  * - GENERATED, committed (`yarn site:data`):
  *   - `components.json`, `icons.json`, `search.json`
  *   - `custom-elements.json`, `html-custom-data.json`
@@ -323,7 +323,7 @@ export const SITE_PAGES = "docs"
 export const SITE_DATA = `${SITE_PAGES}/__data`
 
 /**
- * The Spell UI docs site's BUILD, from `packages/ui/`:  `site/`.
+ * Spell UI's docs site's BUILD, from `packages/ui/`:  `site/`.
  * - `_src/`:  the bundle's entry;  `_assets/`:  the bundle (`yarn site:bundle`), never committed
  */
 export const SITE_BUILD = "site"

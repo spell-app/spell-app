@@ -1,6 +1,6 @@
 /**
  * Types of `$/epics/definitions`:  the ONE description of every `<epic-*>` element, shared by the browser elements
- * and the node tools (the converter, the plan-doc tool).
+ * and the node tools (the converter, the epic tool).
  * - An element's description IS its vocabulary, `components/<family>/<Name>.en.ts`:  every set's
  *   `ComponentVocabulary` (`$/spell-solid`), plus what it lacks for a DOCUMENT format -- the children each element allows (its content
  *   model), required attributes and value formats.
@@ -9,7 +9,7 @@
  */
 
 // NOTE:  spell-solid's vocabulary TYPES file, not its barrel or `$/ui/core`:  those load the element layer (JSX,
-// Vite-only imports), which a node tool's type check -- the docs tools, through the plan-doc forwarders -- can't compile.
+// Vite-only imports), which a node tool's type check -- the docs tools, through the epic-page forwarders -- can't compile.
 import type { AttributeSpec, ComponentVocabulary } from "$/spell-solid/vocabulary.types"
 
 import type { Definitions } from "./Definitions"

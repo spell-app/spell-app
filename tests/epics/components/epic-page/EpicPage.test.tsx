@@ -59,7 +59,7 @@ async function render(html: string): Promise<E.DOMElement> {
 }
 
 describe("<epic-page>", () => {
-  test("draws the epic's name as its h1 (no title under it), its meta lines and its durable doc's link, and passes axe", async () => {
+  test("draws the epic's name as its h1 (no title under it), its meta lines and its guide's link, and passes axe", async () => {
     const host = await render(
       page(`branch="demo" worktree="/w/demo" started="2026-10-06" updated="2026-10-07"`, ["done"], "").replace(
         "</epic-overview>",
@@ -73,10 +73,10 @@ describe("<epic-page>", () => {
       li.textContent!.replace(/\s+/g, " ").trim()
     )
     expect(lines).toEqual([
-      "Plan doc for /epic demo, branch demo",
+      "Epic page for /epic demo, branch demo",
       "Worktree: /w/demo",
       "Started 10/6/26, updated 10/7/26",
-      "Durable doc:"
+      "Guide:"
     ])
     expect(host.querySelector('a[slot="durable"]')!.assignedSlot).not.toBeNull()
     await expectAccessible(host)
@@ -300,6 +300,52 @@ describe("<epic-page>", () => {
     }
   })
 
+  // Owen, 2026-10-13:  "There is no easy way to get to a "decisions" or "details" pages from an epic"
+  test("See Also:  the epic's pages from the page server, each a link with its kind;  none, no box", async () => {
+    const pages = [
+      { href: "details/names.html", title: "Boolean names", kind: "choices", updated: "2026-10-12T21:00:00.000Z" },
+      { href: "details/analysis.html", title: "Analysis", kind: "details", updated: "2026-10-11T09:00:00.000Z" },
+      // epic `epic-workflow` P13:  its guide and the guides it links
+      { href: "../../guides/py.html", title: "The Python Target", kind: "durable", updated: "2026-10-12T09:00:00Z" },
+      { href: "../../guides/targets.html", title: "Targets", kind: "guide", updated: "2026-10-11T09:00:00Z" }
+    ]
+    const fetched = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ pages })))
+    const host = await render(page("", ["todo"]))
+    const box = await vi.waitFor(() => {
+      const found = host.shadowRoot!.querySelector('[part~="see-also"]')
+      expect(found).toBeTruthy()
+      return found!
+    })
+    expect(fetched.mock.calls[0]![0] as string).toBe("/api/epics/pages?epic=demo")
+    expect(Array.from(box.querySelectorAll("a"), (link) => [link.getAttribute("href"), link.textContent])).toEqual([
+      ["details/names.html", "Boolean names"],
+      ["details/analysis.html", "Analysis"],
+      ["../../guides/py.html", "The Python Target"],
+      ["../../guides/targets.html", "Targets"]
+    ])
+    expect(Array.from(box.querySelectorAll(".see-also-kind"), (kind) => kind.textContent)).toEqual([
+      "choice",
+      "details",
+      "guide",
+      "guide"
+    ])
+    expect(Array.from(box.querySelectorAll("li ui-icon"), (icon) => icon.getAttribute("name"))).toEqual([
+      "table columns",
+      "circle question",
+      "book",
+      "book open"
+    ])
+    // before the blocks:  the slot comes after it
+    expect(box.compareDocumentPosition(host.shadowRoot!.querySelector("slot:not([name])")!)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    )
+    fetched.mockResolvedValue(new Response(JSON.stringify({ pages: [] })))
+    const empty = await render(page("", ["todo"]))
+    await ElementFixture.tick()
+    expect(empty.shadowRoot!.querySelector('[part~="see-also"]')).toBeNull()
+    fetched.mockRestore()
+  })
+
   // Owen, 2026-10-13:  "Clicking on the "review-review" should copy the string "/epic resume review-review" with a
   // subtle toast"
   test("the heading's name:  a click copies `/epic resume <name>`, and a toast says so", async () => {
@@ -347,7 +393,8 @@ class FakeRoutes {
     now: [],
     working: {},
     listening: null,
-    unsentComments: []
+    unsentComments: [],
+    woken: null
   }
   posts: [string, Record<string, unknown>][] = []
 
@@ -393,7 +440,7 @@ function headerButtons(host: Element) {
 }
 
 /** What the tooltips add while nobody listens. */
-const NOBODY = ".  No Claude session is reviewing this doc:  this waits for the next /epic review"
+const NOBODY = ".  No Claude session is reviewing this doc:  Send or Do Now wakes one"
 
 describe("<epic-page> Send and Review Now", () => {
   afterEach(() => {
@@ -476,6 +523,30 @@ describe("<epic-page> Send and Review Now", () => {
     host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="send"]')!.click()
     await vi.waitFor(() => expect(routes.posts.map(([route]) => route)).toEqual(["send"]))
     await vi.waitFor(() => expect(headerButtons(host).send).toEqual(["sent", "Sent:  waiting for Claude"]))
+  })
+
+  // epic `epic-workflow` P16:  Send and Do Now with nobody listening wake the epic;  the pill says how, until a session
+  // listens
+  test("woken:  the pill says what the wake did, even for a Do Now alone;  a session listening, it goes", async () => {
+    const routes = new FakeRoutes()
+    const at = new Date().toISOString()
+    routes.inbox.marks = { q1: { action: "details", at } }
+    routes.inbox.now = [{ id: "q1", action: "details", at }]
+    const client = await adoptClient(routes)
+    const host = await render(page("", ["todo"]))
+    const pill = () => host.shadowRoot!.querySelector<HTMLElement>('[part~="pill"]')
+    await vi.waitFor(() => expect(pill()).not.toBeNull())
+    expect(pill()!.textContent!.replace(/\s+/g, " ")).toContain("No Claude session is reviewing: start one with")
+    const message = "Typed /epic review demo into 🚧 demo:  press Enter there."
+    routes.inbox.woken = { at, state: "typed", did: "typed /epic review demo into 🚧 demo", message }
+    await client.refresh()
+    await ElementFixture.tick()
+    expect(pill()!.textContent).toBe(message)
+    expect(pill()!.title).toBe("Start the review in this epic's Claude session (and copy the command)")
+    routes.inbox.listening = { session: "s1", since: at, seen: at }
+    await client.refresh()
+    await ElementFixture.tick()
+    expect(pill()).toBeNull()
   })
 
   test("the pill copies the review line's command", async () => {

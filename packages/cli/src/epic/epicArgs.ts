@@ -2,7 +2,7 @@
 import { CliError } from "$/cli/cli.types"
 
 /**
- * How an `epic <verb> ...` command line becomes the plan-doc tool's (`spell dev plan-doc <verb> <name> ...`):
+ * How an `epic <verb> ...` command line becomes the `epic` tool's (`spell dev plan-doc <verb> <name> ...`):
  * a thin translation, so the tool itself (`$/epics/tool/PlanDocCommands`) keeps its arguments.
  * - Owen's scheme (Command Review Page, 2026-10-12):  `epic <verb> <epic>#<id>` for anything inside an epic page
  *   - `seo`:  the page
@@ -215,7 +215,7 @@ const PHASE_REF = /^[Pp]?(\d+)$/
 const PHASE_RANGE = /^[Pp]?(\d+)(?:\s*-\s*[Pp]?(\d+))?$/
 
 /**
- * The item kinds' letters, for `add seo#J`:  each kind's id prefix (the plan-doc tool's `KINDS`), plus `d` for a
+ * The item kinds' letters, for `add seo#J`:  each kind's id prefix (the `epic` tool's `KINDS`), plus `d` for a
  * decision (whose ids are questions')
  * - a private copy:  importing `$/epics/tool/planDoc.types` here would load the tool's types into every call
  */

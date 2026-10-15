@@ -114,7 +114,7 @@ const vocabulary = {
  *   Semantic UI's CSS is adopted into the shadow root (`adoptShadowStyles()`).
  * - `width` / `height` set our inline style, so page CSS works too.
  * - Leaving the page stops the app and lets go of its runtime, a microtask later:  a move in one go keeps it.
- * - SEE:  its App UI page, `packages/app/docs/spell-app.html` (`/components/app/spell-app.html`).
+ * - SEE:  its App UI components page, `packages/app/docs/spell-app.html` (`/components/app/spell-app.html`).
  ****************/
 export class SpellApp extends UIRoot<typeof vocabulary> {
   @E.proto static vocabulary = vocabulary

@@ -7,7 +7,7 @@
     <title>epic-code</title>
     <meta
       name="description"
-      content="The &lt;epic-code&gt; element: a folded, highlighted code block in a plan doc's prose."
+      content="The &lt;epic-code&gt; element: a folded, highlighted code block in an epic page's prose."
     />
     <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
     <script>
@@ -39,7 +39,7 @@
           <ui-header level="1" class="site-title">
             &lt;epic-code&gt;
             <ui-header
-              >The &lt;epic-code&gt; element: a folded, highlighted code block in a plan doc's prose.</ui-header
+              >The &lt;epic-code&gt; element: a folded, highlighted code block in an epic page's prose.</ui-header
             >
           </ui-header>
         </ui-container>
@@ -54,7 +54,7 @@
           <!-- no <ui-list class="spell-meta">:  its <ui-item>s take Spell UI's "item" style sheet name before the
                epics pack's elements can, and live examples may draw unstyled (issue I9 of epic-components) -->
           <p class="meta">
-            For anyone reading or writing a plan doc's markup, or changing this element.<br />
+            For anyone reading or writing an epic page's markup, or changing this element.<br />
             Its vocabulary (every name it uses):
             <a
               href="../../packages/epics/components/epic-code/EpicCode.en.ts"
@@ -363,7 +363,7 @@ values:    { panel: "closed" }</pre>
                 Claude writes it inside the HTML it passes to <code>spell dev plan-doc</code> (<code
                   >add ... --details</code
                 >, <code>decide --details</code>, <code>details --file</code>, <code>updated</code>): no command makes
-                one by itself. Code in a plan doc is ALWAYS one of these (<a
+                one by itself. Code in an epic page is ALWAYS one of these (<a
                   href="../../templates/epics/plan-doc.md"
                   target="src-templates-epics-plan-doc-md"
                   title="templates/epics/plan-doc.md"
@@ -371,7 +371,7 @@ values:    { panel: "closed" }</pre>
                 >, "Prose").
               </li>
               <li>
-                The plan-doc tool turns the OLD hand-shaped markup into this element, so a doc never holds the old
+                The epic tool turns the OLD hand-shaped markup into this element, so a doc never holds the old
                 shape.
                 <ul>
                   <li>

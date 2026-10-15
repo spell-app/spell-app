@@ -15,7 +15,7 @@ import { basename, join } from "node:path"
  *   evidence, and logs each (`PlanDocCommands`)
  * - from then on every `/epic` session marks what it talks through (`.claude/skills/epic/SKILL.md`), so this runs
  *   once per old epic
- * - Reads Claude Code's transcripts only:  knows nothing of plan docs, imports no other file of the tool.
+ * - Reads Claude Code's transcripts only:  knows nothing of epic pages, imports no other file of the tool.
  * - From `packages/epics/tools/review-backfill.js` (epic `epic-components`, P7), which now forwards here.
  ****************/
 export class ReviewBackfill {
@@ -201,7 +201,7 @@ function quoteAround(text: string, id: string): string {
 }
 
 /**
- * An ISO timestamp's LOCAL date, `YYYY-MM-DD`, as the plan doc's dates are;  `null` without one.
+ * An ISO timestamp's LOCAL date, `YYYY-MM-DD`, as the epic page's dates are;  `null` without one.
  * - transcripts stamp UTC:  an evening's answer would otherwise land on tomorrow
  */
 function localDate(timestamp: string | undefined): string | null {

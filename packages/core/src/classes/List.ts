@@ -26,7 +26,7 @@ import { ID_PROP } from "./ids"
  *   each calls its `spellCore` twin -- see "List methods" below.
  * - Iterable:  `for (const card of pile)`.
  * - EXCLUSIVE lists (`exclusive`, from `a card belongs to one pile`):
- *   an item is in at most ONE list of a FAMILY (plan doc D7, D8).
+ *   an item is in at most ONE list of a FAMILY (epic page D7, D8).
  *   - a family:  the exclusive class and its sub-classes, e.g. every `Pile`, `Tableau`, `Foundation`
  *   - adding an item takes it out of the list of its family holding it;  adding one we hold moves it
  *   - removing it leaves it with no owner
@@ -34,7 +34,7 @@ import { ID_PROP } from "./ids"
  *   - a collection helper's result, e.g. `filter()`'s, owns nothing:  see `asScratch()`
  *   - every change to `items` goes through `writeItems()`, which keeps the owners
  * - GUARDS:  what a list takes and gives up when something MOVES, e.g. `a tableau can take a card if: ...`
- *   (plan doc Q23 - Q25) -- see `canTake()`, `canGiveUp()`, `moveHere()`.
+ *   (epic page Q23 - Q25) -- see `canTake()`, `canGiveUp()`, `moveHere()`.
  *   - Only a move asks.  `add`, `remove` and `clear` never do:  dealing, gathering cards back.
  */
 export class List<T = unknown> extends Observable<Record<string, unknown>, { items: T[] }> {
@@ -90,7 +90,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
 
   /**
    * SIDE EFFECT:  we own nothing, even if we're exclusive.  Returns us.
-   * - For a SCRATCH result, e.g. what `filter()`, `map()`, `a copy of` make (plan doc D8):
+   * - For a SCRATCH result, e.g. what `filter()`, `map()`, `a copy of` make (epic page D8):
    *   filtering a pile mustn't take its cards.
    * - Call it before adding anything:  what we hold already stays owned.
    */
@@ -543,7 +543,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
 
   /**
    * Make `next` our items -- EVERY change to them comes here, so an exclusive list keeps its family's owners:
-   * - an item going out, no longer anywhere in `next`, has no owner (plan doc D8)
+   * - an item going out, no longer anywhere in `next`, has no owner (epic page D8)
    * - an item coming in is ours, THEN leaves the list of our family that held it --
    *   in that order, so its owner changes once:  a reader never sees it ownerless mid-move
    * - SIDE EFFECT:  the list it left changes too, and readers of each item's owner re-run
@@ -580,7 +580,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   /**
    * Will we take `item`, moved here?  Yes -- unless a sub-class says otherwise:
    * `a tableau can take a card if: ...` compiles to `canTake(card) {...}` in `Tableau`.
-   * - Only a move asks (`moveHere()`):  `add` never does, e.g. dealing (plan doc Q25).
+   * - Only a move asks (`moveHere()`):  `add` never does, e.g. dealing (epic page Q25).
    * - Compiled spell's `the tableau can take the card` -- see `spellCore.canTake()`.
    */
   canTake(_item: unknown): boolean {
@@ -591,7 +591,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
    * Will we give up `item`, moved to another list of our family?  Yes -- unless a sub-class says otherwise:
    * `a foundation can never let go of a card` compiles to `canGiveUp(card) { return false }`.
    * - Only a move asks (`moveHere()`):  `remove` and `clear` never do,
-   *   e.g. gathering every card back to deal again (plan doc Q25).
+   *   e.g. gathering every card back to deal again (epic page Q25).
    * - Compiled spell's `the pile can give up the card` -- see `spellCore.canGiveUp()`.
    */
   canGiveUp(_item: unknown): boolean {

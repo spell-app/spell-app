@@ -7,7 +7,7 @@
     <title>epic-section</title>
     <meta
       name="description"
-      content="The &lt;epic-section&gt; element: one section of a plan doc (Phases, Questions ... Log), an Overview sub-section, or a report."
+      content="The &lt;epic-section&gt; element: one section of an epic page (Phases, Questions ... Log), an Overview sub-section, or a report."
     />
     <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
     <script>
@@ -39,7 +39,7 @@
           <ui-header level="1" class="site-title">
             &lt;epic-section&gt;
             <ui-header
-              >The &lt;epic-section&gt; element: one section of a plan doc (Phases, Questions ... Log), an Overview
+              >The &lt;epic-section&gt; element: one section of an epic page (Phases, Questions ... Log), an Overview
               sub-section, or a report.</ui-header
             >
           </ui-header>
@@ -48,7 +48,7 @@
 
       <ui-container class="site-body">
         <article class="site-article">
-          <p class="lede"><code>&lt;epic-section&gt;</code> is one section of a plan doc.</p>
+          <p class="lede"><code>&lt;epic-section&gt;</code> is one section of an epic page.</p>
           <ul>
             <li>
               Its <code>kind</code> says what it holds: the phases, one kind of item (questions, todos ...), the log, an
@@ -58,7 +58,7 @@
           </ul>
           <!-- no ui-list.spell-meta here:  any ui-item element on the page leaves epic-item unstyled (issue I9 of epic-components) -->
           <p class="meta">
-            Written for: anyone reading or writing a plan doc's markup, or changing this element.<br />
+            Written for: anyone reading or writing an epic page's markup, or changing this element.<br />
             Status: <ui-label size="mini" color="green">built</ui-label> in
             <a href="../../packages/epics/components/epic-section/" target="src-packages-epics-components-epic-section"
               ><code title="packages/epics/components/epic-section/">epic-section/</code></a
@@ -132,7 +132,7 @@
           <ui-section id="2-markup" header="2. Markup" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>
-              From real plan docs: the Phases section (<a
+              From real epic pages: the Phases section (<a
                 href="../../epics/spell-element/spell-element.plan.html"
                 target="spell-element"
                 title="epics/spell-element/spell-element.plan.html"
@@ -471,8 +471,8 @@
                     <td><code>open</code></td>
                     <td>boolean: there or not</td>
                     <td>
-                      Unfolded: PAGE state, never written in a doc (plan docs open folded). A click on the title, a link
-                      to it (or into it) and find-in-page set it; set it from code to open it.
+                      Unfolded: PAGE state, never written in a doc (epic pages open folded). A click on the title, a
+                      link to it (or into it) and find-in-page set it; set it from code to open it.
                     </td>
                     <td></td>
                   </tr>
@@ -503,7 +503,7 @@
                       <td>
                         An older doc's Plan changes copies in the Phases section (until 2026-10-11:
                         <code>&lt;epic-updated slot="changes" of="3" at="..."&gt;</code>). Not drawn: each phase draws
-                        its own Plan changes box now, and the plan-doc tool removes these on its next write.
+                        its own Plan changes box now, and the epic tool removes these on its next write.
                       </td>
                     </tr>
                     <tr>
@@ -702,7 +702,7 @@
                 (Revisit, Make Todo, Do Now) and a note box, with Claude's status cards above the note box.
               </li>
               <li>
-                <b>Folding:</b> a click on the title folds it; on a plan doc every section starts folded, and the page
+                <b>Folding:</b> a click on the title folds it; on an epic page every section starts folded, and the page
                 remembers what you opened. With <code>source</code>, its body loads from its part file the first time it
                 opens. Opened from disk, it can't load, and says
                 <code>Loads from parts/x.html when opened (needs the page server)</code>.

@@ -2,7 +2,7 @@ import type { Duration } from "./planDoc.types"
 
 /****************
  * ### `PlanTime`
- * Dates, times and estimates as a plan doc writes them:  LOCAL time, `YYYY-MM-DD HH:MM` for people, ISO with its
+ * Dates, times and estimates as an epic page writes them:  LOCAL time, `YYYY-MM-DD HH:MM` for people, ISO with its
  * offset for machines;  phase estimates (`1-2h`) as minutes and back.
  * - STATIC and instance-free on purpose:  pure functions of their arguments, no clock unless passed one.
  * - From `packages/epics/tools/plan-doc.js` (epic `epic-components`, P7).

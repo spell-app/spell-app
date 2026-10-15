@@ -225,7 +225,7 @@ type Collapsible = {
 export const FOLDING_CARDS =
   "epic-aside, epic-code, epic-answer, epic-more, epic-reply, epic-status, epic-original, epic-choices, epic-update, epic-note"
 
-/** Tag prefix of the plan doc's elements:  only those fold. */
+/** Tag prefix of the epic page's elements:  only those fold. */
 const EPIC_PREFIX = "epic-"
 
 /** What `Fold.collapseAllButton()` takes. */

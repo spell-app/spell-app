@@ -3,23 +3,23 @@
  * Bundled into `spell-ui.js` (a classic IIFE, beside @spell-app/ui) by `scripts/bundle-spell-ui.js`;
  * side effects only.  The page's markup is hand-authored;  this only DRIVES it.
  * - Two page markups, read into ONE outline (`outlineOf()`) that everything below works from:
- *   - SECTIONS (every page but the goals pages):
+ *   - SECTIONS (every page but the saga pages):
  *     `<ui-section id header sticky collapsible dividing>` in `main`, nested for sub-sections,
  *     `collapsed` to start folded.
  *     - the element draws the title, the fold button, the rule and the stack of stuck titles
  *     - this runtime sets the top-level `offset`s, remembers folds, writes counts
- *     - a PLAN DOC is `<epic-page>` markup (the `epics` pack, `packages/epics`):
+ *     - an EPIC PAGE is `<epic-page>` markup (the `epics` pack, `packages/epics`):
  *       its folding blocks (`<epic-overview>`, `<epic-section>`, `<epic-phase>`, `EPIC_FOLDS`) are its sections.
  *       They draw and stick themselves, count their items, filter them,
  *       and draw the page header, the review line, the commits and every review control;
  *       this runtime only lists them (each host's `contentsEntry`, with label, icon and count),
  *       remembers their folds, and lands links inside them
- *   - HEADINGS (the goals pages):  `section.s2|s3` > `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>`;
+ *   - HEADINGS (the saga pages):  `section.s2|s3` > `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>`;
  *     this runtime adds the fold chevrons and every sticky's `offset`
  * - the TOOLBAR, the page's one navigation (epic `airplane` P8;  the floating right-edge rail before):  a row of the
  *   top-level sections' buttons, the last row of the sticky page header (`buildPageToolbar()`):  mark and title,
  *   the titles shrinking, then gone on a narrow window.  No contents list:  Owen, 2026-10-08
- *   - a PLAN DOC's (`buildToolbar()`):  its blocks' icons only, with badges of the items waiting on Owen, in
+ *   - an EPIC PAGE's (`buildToolbar()`):  its blocks' icons only, with badges of the items waiting on Owen, in
  *     `<epic-page>`'s header;  and Cmd / Ctrl + K asks for an item to jump to (`wireJumpKey()`)
  * - sticky headers:  the page header (`ui-sticky.spell-h1`) sticks at the top, each top-level title below it,
  *   nested ones below their parents' (re-measured on resize);
@@ -28,7 +28,7 @@
  *   `siteHeaderHeight()`):  the page header and its toolbar, the titles
  * - folding:  every section folds from a chevron on its title;  folds are remembered per page, and `collapsed`
  *   (`data-fold="closed"` on HEADINGS pages) starts one folded
- * - counts:  a top-level section holding `[data-status]` items (the Epics index's epic cards, the goals pages' items)
+ * - counts:  a top-level section holding `[data-status]` items (the Epics index's epic cards, the saga pages' items)
  *   shows open / all on its title;
  *   the toolbar shows, with a red badge, how many NEED OWEN (none:  no badge;  `countItems()`);
  *   an epic card section also gets state chips with counts, filtering its items (`wireItemFilters()`)
@@ -39,7 +39,7 @@
  * - highlight.js, when the page loaded it
  * - COMMENTS (`wireComments()`):  served by the page server, a bullhorn beside every major block (and in the page
  *   header), and ⌘ I or a floating bullhorn on selected text, which open a comment box under the block;  the
- *   comments wait in an inbox file (a docs page's own, a plan doc's review inbox), drawn under their blocks.
+ *   comments wait in an inbox file (a docs page's own, an epic page's review inbox), drawn under their blocks.
  *   PAGE NOTES (`wireNotes()`), written into docs pages before them:  each `<spell-note>` a folded card
  * - FAVORITE EPICS (`wireFavorites()`):  on the Epics page, a card's star moves it into Favorites and back, at once
  * LANDING -- where a jump puts its target, ONE model for every kind of jump:
@@ -115,24 +115,24 @@ const SETTLE_MS = 450
 const FOLD_HOLD_MS = 600
 
 /**
- * A plan doc's folding blocks (`packages/epics`):  its sections, in the outline, the folds and the landing.
+ * An epic page's folding blocks (`packages/epics`):  its sections, in the outline, the folds and the landing.
  * Each host has `open` (page state) and `contentsEntry` (`EpicFoldHost`).
  */
 const EPIC_FOLDS = "epic-overview, epic-section, epic-phase"
 
-/** What a link into a plan doc opens on its way:  the folding blocks, and the items (which fold too). */
+/** What a link into an epic page opens on its way:  the folding blocks, and the items (which fold too). */
 const EPIC_OPENERS = `${EPIC_FOLDS}, epic-item`
 
-/** Every element the outline takes for a section:  `<ui-section>`s and a plan doc's folding blocks. */
+/** Every element the outline takes for a section:  `<ui-section>`s and an epic page's folding blocks. */
 const SECTIONS = `ui-section, ${EPIC_FOLDS}`
 
 /**
- * How long `start()` waits for a plan doc's elements (the `epics` pack, loaded by `<ui-root>`) to define and draw,
+ * How long `start()` waits for an epic page's elements (the `epics` pack, loaded by `<ui-root>`) to define and draw,
  * before listing the page without them:  a pack that never loads must not hold up the rest.
  */
 const EPIC_WAIT_MS = 5000
 
-/** Space between the stuck titles and an element a link lands on inside a plan doc, px (`EpicFold`'s `LAND_GAP`). */
+/** Space between the stuck titles and an element a link lands on inside an epic page, px (`EpicFold`'s `LAND_GAP`). */
 const EPIC_LAND_GAP = 8
 
 /**
@@ -170,7 +170,7 @@ async function start() {
   // listening at once:  an edit that comes in while this is still wiring waits for `live.ready()`
   const live = wireLiveUpdate(main)
   highlight()
-  // a plan doc:  its saved folds before its blocks first draw (so nothing animates), then the blocks, which the
+  // an epic page:  its saved folds before its blocks first draw (so nothing animates), then the blocks, which the
   // outline reads (their labels, icons and counts)
   if (main.querySelector("epic-page")) {
     restoreEpicFolds(main)
@@ -179,7 +179,7 @@ async function start() {
   const outline = outlineOf(main)
   oneLineHead(main)
   const counts = countItems(outline)
-  // the goals pages (HEADINGS) get no filter, but their id chips are coloured by state too
+  // the saga pages (HEADINGS) get no filter, but their id chips are coloured by state too
   if (outline.sections) wireItemFilters(main)
   else markItemStates(main)
   const rail = buildNavigation(main, outline, counts)
@@ -205,7 +205,7 @@ async function start() {
   wireNewEpic(main)
   wireEpicSort(main)
   wireFavorites(main)
-  // the docs index rewrites this page after a new epic:  its header comes back without the pill, a starred card
+  // the docs index tool rewrites this page after a new epic:  its header comes back without the pill, a starred card
   // maybe in its old place too
   addEventListener("spell-doc:updated", () => {
     wireNewEpic(main)
@@ -441,7 +441,7 @@ function tableKey(box, main) {
  *     followed (`spell dev docs link --hash q16 --show`), and a folded item shows nothing of what it pointed at
  * - else nowhere:  the top
  * - then the address starts following the scroll;  after a `#hash`, only once the jump has landed:
- *   a target in a body not loaded yet (a split plan doc's part) lands a moment later, and following before that saw
+ *   a target in a body not loaded yet (a split epic page's part) lands a moment later, and following before that saw
  *   the top of the page, and wrote the hash away (I3 of `windows-and-review`)
  */
 function land({ hash, scroll }, jump, follow) {
@@ -468,7 +468,7 @@ function land({ hash, scroll }, jump, follow) {
 }
 
 /**
- * Resolves once a plan doc's elements are defined and have drawn (their hosts' `ready`), so their
+ * Resolves once an epic page's elements are defined and have drawn (their hosts' `ready`), so their
  * `contentsEntry` can be read;  after `EPIC_WAIT_MS` at most (a pack that won't load:  the page goes on without).
  */
 async function epicsDrawn(main) {
@@ -480,7 +480,7 @@ async function epicsDrawn(main) {
 }
 
 /**
- * A plan doc (`epics/<name>/<name>.plan.html`;  before 2026-10-04 `<name>.html`) names its tab `<name>`:
+ * An epic page (`epics/<name>/<name>.plan.html`;  before 2026-10-04 `<name>.html`) names its tab `<name>`:
  * every link to it has `target="<name>"` (`doc-links.js`),
  * so they reuse this tab, as `spell dev plan-doc open <name>` does.
  */
@@ -539,7 +539,7 @@ const EPIC_TAG = /^epic-/
 const squashed = new WeakMap()
 
 /**
- * An edit to this page's file updates it IN PLACE, instead of reloading it (plan doc `review-review`, D10).
+ * An edit to this page's file updates it IN PLACE, instead of reloading it (epic page `review-review`, D10).
  * - `liveClient()` (`$/server`, `packages/server/src/liveClient.ts`) fetches the new version when the file changes,
  *   and fires a cancelable `spell-server:change` on `window`, `detail` `{ path, html, etag, reload() }`:
  *   taking it (`preventDefault()`) stops its reload
@@ -549,16 +549,16 @@ const squashed = new WeakMap()
  * - then re-wires what the runtime built from the markup (`rewire()`) and fires `spell-doc:updated` on `window`,
  *   `detail.changed`:  the elements added, replaced or re-attributed
  * - a full reload instead (`reload()`, which keeps the scroll) when the page can't be patched safely:
- *   - not `<ui-section>` markup (the goals pages), a CHEATSHEET's filter, or a script besides the bundle and
+ *   - not `<ui-section>` markup (the saga pages), a CHEATSHEET's filter, or a script besides the bundle and
  *     highlight.js (it may have built from the markup):  never taken.  An INERT script (a data block,
- *     `<script type="text/plain">`:  a plan doc's "Plan hung?" prompt) never runs, so it doesn't count
+ *     `<script type="text/plain">`:  an epic page's "Plan hung?" prompt) never runs, so it doesn't count
  *   - stylesheets, scripts or anything outside `main` changed (but `<body>`'s attributes:  patched too, e.g. a plan
  *     doc's `data-recent-since`, which every edit may move;  not its `class`), more than half of `main` changed,
  *     the source as loaded couldn't be read, or the patch threw
- * - BODIES from files (`<ui-section source>`, `<ui-accordion source>`:  a split plan doc's parts) live their own
+ * - BODIES from files (`<ui-section source>`, `<ui-accordion source>`:  a split epic page's parts) live their own
  *   life (`wireSourceBodies()`):  the patch leaves what a host loaded alone (`planHost()`), a changed body file
  *   re-fetches its open host in place, and each body that loads re-wires the page (`refresh()`)
- * - a plan doc in `<epic-*>` markup (epic `epic-components`):  its elements are patched, never replaced
+ * - an epic page in `<epic-*>` markup (epic `epic-components`):  its elements are patched, never replaced
  *   (`planMorph()`), their page state kept (`EPIC_PAGE_STATE`);
  *   their parts (`<epic-item source>` ...) live the bodies' life above
  * - returns `{ ready(page), refresh(changed) }`:  `start()` hands over what it wired;  a change waits for it.
@@ -608,7 +608,7 @@ function wireLiveUpdate(main) {
 
 /**
  * Can this page be patched in place?
- * - `<ui-section>` markup (or a plan doc in `<epic-*>` markup:  its `<epic-page>`)
+ * - `<ui-section>` markup (or an epic page in `<epic-*>` markup:  its `<epic-page>`)
  * - no CHEATSHEET filter
  * - no script but the bundle, highlight.js, what the page server injects,
  *   component packs (`<ui-components source="x.pack.js">`'s script, which only defines elements)
@@ -626,7 +626,7 @@ function canPatch(main) {
 
 /**
  * Is `script` INERT:  a data block the browser never runs (`type="text/plain"`, JSON ...), not JavaScript or a
- * module?  Plan docs' "Plan hung?" notice keeps its prompt in one.
+ * module?  Epic pages' "Plan hung?" notice keeps its prompt in one.
  */
 function isInert(script) {
   const type = (script.getAttribute("type") ?? "").trim().toLowerCase()
@@ -639,7 +639,7 @@ function isInert(script) {
 
 /**
  * Hosts whose body comes from a file, in step with the files and the page:
- * `<ui-section source>`, `<ui-accordion source>`, and a plan doc's parts
+ * `<ui-section source>`, `<ui-accordion source>`, and an epic page's parts
  * (`epics/<name>/parts/<id>.html`, epic `claude-design` P3, on its `<epic-*>` blocks and items).
  * - a body loads (`ui-load`, the first open or a re-fetch):  the page is re-wired around it (`live.refresh()`):
  *   the outline (headings inside), contents, counts, item filters, code colors
@@ -733,7 +733,7 @@ function forgetSource(url) {
 
 /**
  * The host whose unloaded body holds element `id`:  its `data-part-ids` (the ids inside, written by
- * `PlanParts`;  a plan doc's `<epic-*>`:  `part-ids`), when the element isn't in the page yet;  else null.
+ * `PlanParts`;  an epic page's `<epic-*>`:  `part-ids`), when the element isn't in the page yet;  else null.
  */
 function hostHolding(main, id) {
   if (!id || document.getElementById(id)) return null
@@ -1057,7 +1057,7 @@ function carryState(live, copy) {
 
 /**
  * Fold every collapsible section in `copy` as the reader has it:  as the live one with its `id`, else as saved
- * (`spell-folds:<path>`), else a plan doc's start-folded (`wireFolds()`);  else the markup's `collapsed` stands.
+ * (`spell-folds:<path>`), else an epic page's start-folded (`wireFolds()`);  else the markup's `collapsed` stands.
  */
 function carryFolds(copy) {
   const saved = readJSON(`${FOLD_KEY_PREFIX}${location.pathname}`)
@@ -1154,7 +1154,7 @@ function keepAnchor(anchor) {
  */
 async function rewire(page, changed) {
   const { main } = page
-  // a plan doc's blocks take the change in a microtask (Solid batches):  their entries (`contentsEntry`) read it after
+  // an epic page's blocks take the change in a microtask (Solid batches):  each `contentsEntry` reads it after
   if (main.querySelector("epic-page")) await nextFrames(1)
   const outline = outlineOf(main)
   const counts = countItems(outline)
@@ -1202,11 +1202,11 @@ function highlightIn(elements) {
 /**
  * The page's outline, from either markup (see the header):  what the toolbar, the counts, scroll-follow
  * and the anchors work from.
- * - SECTIONS markup (`main > ui-section`, or a plan doc's `<epic-page>`):  top-level sections are the groups
+ * - SECTIONS markup (`main > ui-section`, or an epic page's `<epic-page>`):  top-level sections are the groups
  *   - their entries, at any depth:
  *     nested sections, and the h3s / h4s in a section's own content (CHEATSHEET cards, sub-sub-items)
  *   - an h4 right after an h3 of the same section goes under it
- *   - a plan doc's sections are its folding blocks
+ *   - an epic page's sections are its folding blocks
  *     (`EPIC_FOLDS`:  the Overview and its parts, the sections, the phases)
  * - HEADINGS markup:  h2s are the groups, h3s their entries, h4s under the h3 before them
  * - a node:  `{ element, id, label, glyph, children }` -- `glyph` the name of its (first) `<ui-icon>`, for the toolbar
@@ -1297,7 +1297,7 @@ function outlineOf(main) {
 }
 
 /**
- * An outline node for a heading, a `<ui-section>` or a plan doc's block;  gives it an id if it has none.
+ * An outline node for a heading, a `<ui-section>` or an epic page's block;  gives it an id if it has none.
  * - a block:  what its host says (`contentsEntry`), its id before it has drawn
  */
 function nodeOf(element) {
@@ -1331,7 +1331,7 @@ function uniqueId(id) {
 
 /**
  * Is `section` folded?  A `<ui-section>`:  its `collapsed` property, else (not upgraded yet) the attribute;
- * a plan doc's block (or item):  not `open`, by the property, else the attribute.
+ * an epic page's block (or item):  not `open`, by the property, else the attribute.
  */
 function isCollapsed(section) {
   if (section.matches(EPIC_OPENERS))
@@ -1340,7 +1340,7 @@ function isCollapsed(section) {
 }
 
 /**
- * Fold or unfold a section without an event:  `collapsed` (`<ui-section>`) and `open` (a plan doc's blocks and
+ * Fold or unfold a section without an event:  `collapsed` (`<ui-section>`) and `open` (an epic page's blocks and
  * items) are controlled, so writing them announces nothing.
  */
 function setCollapsed(section, collapsed) {
@@ -1349,7 +1349,7 @@ function setCollapsed(section, collapsed) {
 }
 
 /**
- * The shadow title bar of a `<ui-section>` (its public `title` part), once it has rendered;  a plan doc's block's:
+ * The shadow title bar of a `<ui-section>` (its public `title` part), once it has rendered;  an epic page's block's:
  * the one of the `<ui-section>` it draws in its own shadow root.
  */
 function titleOf(section) {
@@ -1399,8 +1399,8 @@ function attr(value) {
 const CLOSED = new Set(["done", "decided", "canceled"])
 
 /**
- * A plan doc's block's items that need Owen, when its `contentsEntry` count doesn't say:
- * its own items (`COUNTED` in `packages/epics`' `EpicSection.types.ts`) the plan-doc tool marked
+ * An epic page's block's items that need Owen, when its `contentsEntry` count doesn't say:
+ * its own items (`COUNTED` in `packages/epics`' `EpicSection.types.ts`) the `epic` tool marked
  * - `attention` (red)
  * - or `replied` (orange:  Claude answered with options, Owen's turn to pick;  `EpicItem.types.ts` `NEEDS_OWEN`).
  */
@@ -1424,8 +1424,8 @@ function needYou({ attention }) {
  * - "open":  any status but `CLOSED`'s
  * - "attention":  the items that need Owen (`stateOf()`:  the toolbar's red badge, Q20 of epic `epic-components`)
  * - sections without items are left out;  nested sections get no count of their own
- * - the Epics index's epic cards, the goals pages' items
- * - a plan doc's sections count themselves (`<epic-section>`, on their titles):  their count is read from their
+ * - the Epics index's epic cards, the saga pages' items
+ * - an epic page's sections count themselves (`<epic-section>`, on their titles):  their count is read from their
  *   hosts' `contentsEntry`, never written;
  *   its `attention` too, else the items' `state="attention"` (`EPIC_ATTENTION`);
  *   and `replied`, how many of those wait on Owen's pick (`EPIC_REPLIED`:  the toolbar's orange badge)
@@ -1485,12 +1485,12 @@ function outermost(item, section) {
 
 /**
  * Where an item stands, in the colours Owen reads at a glance:  `[state, tooltip words]`, in the item filter's order
- * after "all" (the plan docs' order, `<epic-section>`'s `FILTER_STATES`).
+ * after "all" (the epic pages' order, `<epic-section>`'s `FILTER_STATES`).
  * - the colour scheme (Q20 of epic `epic-components`, 2026-10-08;  `templates/epics/plan-doc.md`, "Colours"):
  *   attention red, progress blue (Claude is working on it), open yellow, recent green, old grey;
  *   `spell-doc.css`'s `--spell-state-*` tokens
- * - for the Epics index's epic cards (`.spell-epics`) and the goals pages' items (`.plan-items`, coloured by
- *   `goals.css`);  a plan doc's items colour and filter themselves (`<epic-item>`, `<epic-section>`)
+ * - for the Epics index's epic cards (`.spell-epics`) and the saga pages' items (`.plan-items`, coloured by
+ *   `goals.css`);  an epic page's items colour and filter themselves (`<epic-item>`, `<epic-section>`)
  * - `data-state` when the page writes one;  else from the status (`stateOf()`)
  */
 const ITEM_STATES = [
@@ -1510,14 +1510,14 @@ const CLOSED_STATES = { done: "recent", decided: "recent", canceled: "old" }
 /** The state names, for checking a `data-state`. */
 const STATE_NAMES = new Set(ITEM_STATES.map(([state]) => state))
 
-/** The goals pages' items, and the index's epic cards:  what states and the filter apply to. */
+/** The saga pages' items, and the index's epic cards:  what states and the filter apply to. */
 const STATE_ITEMS = ":is(.plan-items, .spell-epics) > [data-status]"
 
-/** The goals pages' items that wait on Owen while open:  their questions (`/goals` talks them through with him). */
+/** The saga pages' items that wait on Owen while open:  their questions (`/goals` talks them through with him). */
 const ASKS_OWEN = '.plan-items[data-kind="question"] > *'
 
 /**
- * An item's state:  its `data-state`, else (the index's epic cards, the goals pages' items) from its status:
+ * An item's state:  its `data-state`, else (the index's epic cards, the saga pages' items) from its status:
  * `done` / `decided` are `recent`, `canceled` `old` (`CLOSED_STATES`);  an open goals question (`ASKS_OWEN`)
  * `attention`;  anything else `open`.
  */
@@ -1545,7 +1545,7 @@ function stateTip(item) {
 
 /**
  * Mark every item's state as `data-spell-state` (`stateOf()`), so CSS has ONE attribute to color by;
- * an item's id chip (`.plan-id`, the goals pages') says it in words.
+ * an item's id chip (`.plan-id`, the saga pages') says it in words.
  * - SIDE EFFECT:  sets `data-spell-state`;
  *   callable again (a page updated in place:  a replaced item comes back without it)
  */
@@ -1568,7 +1568,7 @@ function markItemStates(main) {
  * - a filtered list shows "3 hidden · show all" under it (`.spell-hidden-note`):  a click there shows all
  * - the choice:  `data-show="<states shown>"` on the section (none for all), `data-spell-hidden` on the items it
  *   hides (CSS hides them);  remembered per page (`localStorage`, `{ [section id]: [states] }`);  all by default
- * - a plan doc's sections filter themselves (`<epic-section>`), by the same rule
+ * - an epic page's sections filter themselves (`<epic-section>`), by the same rule
  * - SIDE EFFECT:  marks the items' states (`markItemStates()`), adds the chips and notes to the page;
  *   callable again (it replaces the ones it added)
  */
@@ -1638,7 +1638,7 @@ function wireItemFilters(main) {
  * "if all states are showing and I click one state, I want you to show just that state"):
  * - everything showing:  only `clicked`;  `clicked` hidden:  it shows too;
  *   `clicked` showing with others:  it hides;  `clicked` the only one showing:  everything again
- * - the plan docs' rule too:  `packages/epics` `StateFilter.nextShown()`, the same lines (the pack can't be imported)
+ * - the epic pages' rule too:  `packages/epics` `StateFilter.nextShown()`, the same lines (the pack can't be imported)
  */
 function nextShown(present, shown, clicked) {
   const showing = present.filter((state) => shown.includes(state))
@@ -1707,10 +1707,10 @@ function itemsOf(list) {
 const MIN_TITLE_PX = 50
 
 /**
- * The page's navigation:  a plan doc's toolbar (`buildToolbar()`), else the page toolbar (`buildPageToolbar()`).
+ * The page's navigation:  an epic page's toolbar (`buildToolbar()`), else the page toolbar (`buildPageToolbar()`).
  * - returns the `<nav>`, whose `[data-rail]` entries scroll-follow marks;  none without top-level sections
  * - `data-rail`:  the name the floating rail gave them (gone since epic `airplane` P8);  kept, as scroll-follow,
- *   `details.js` and `check-spell.js` read it
+ *   a details page's `<epic-ask>` and `check-spell.js` read it
  */
 function buildNavigation(main, outline, counts) {
   const page = document.body.classList.contains("plan-doc") ? main.querySelector("epic-page") : null
@@ -1719,20 +1719,20 @@ function buildNavigation(main, outline, counts) {
 
 /**
  * Every other page's navigation (Owen, 2026-10-10:  "Make the floating sidebar in guides a sticky top toolbar like the
- * plan doc.  Have section titles in this one"):  a row of buttons, one per top-level section, in the sticky page
+ * epic page.  Have section titles in this one"):  a row of buttons, one per top-level section, in the sticky page
  * header, in place of the floating rail.
  * - each:  the section's mark and its title, a link to it (`wireAnchors()` lands it);  scroll-follow marks the current
  *   one `selected`, by `data-rail`
  *   - the mark:  an item's number for an item (`Q3 · When?` shows 3, coloured by the section's `data-state`:  a
- *     details page's questions, `details.js`);  else its `<ui-icon>`;  else its number (`2.`);  else its first letter
+ *     details page's questions, `<epic-ask>`);  else its `<ui-icon>`;  else its number (`2.`);  else its first letter
  *   - a red badge:  how many of its items need Owen (`counts`, `attention`);  none, none
  * - titles too long for the row end in `...`;  when each would get under `MIN_TITLE_PX`, they go, and the buttons
  *   show their marks only, the title as their tooltip (`fitTitles()`);  still too wide, the row scrolls sideways
  * - where:  the last row of the sticky page header (`ui-sticky.spell-h1 > header.spell-page-head`), so it sticks with
- *   it and the titles stick below it;  a page without one (the goals pages, a cheat sheet):  the last row of its
+ *   it and the titles stick below it;  a page without one (the saga pages, a cheat sheet):  the last row of its
  *   filter bar (`.spell-filter`), else a sticky bar of its own before the first section (`.spell-toolbar-alone`,
  *   measured as the filter bar is:  `trackStickyHeights()`)
- * - HEADINGS (the goals pages):  only the h2s that head a sticky section
+ * - HEADINGS (the saga pages):  only the h2s that head a sticky section
  * - callable again (a page updated in place):  replaces the toolbar it built before
  * - SIDE EFFECT:  adds the `<nav>` inside `main`, marked `data-spell-added` so the live patch steps around it;
  *   removes a hand-written `.spell-toc-open` (pages before 2026-10-01 had a "Contents" button)
@@ -1810,7 +1810,7 @@ function fitTitles(toolbar) {
 }
 
 /**
- * A PLAN DOC's navigation (epic `airplane` P8, Owen 2026-10-10:  "The contents sidebar on the plan doc should be a
+ * An EPIC PAGE's navigation (epic `airplane` P8, Owen 2026-10-10:  "The contents sidebar on the epic page should be a
  * sticky top toolbar instead"):  a row of buttons across the bottom of `<epic-page>`'s sticky header, one per
  * top-level block (Overview, Phases, Questions ... Log), in place of the floating rail it had before.
  * - each:  the block's icon, a link to it (`wireAnchors()` lands it);  its title without its number (`Questions`)
@@ -1897,7 +1897,7 @@ function scrollIntoRow(item) {
  * - SECTIONS:  `<ui-section collapsible>` folds itself;
  *   this restores the saved folds (else the markup's `collapsed` stands)
  *   and saves the reader's toggles (`ui-open` / `ui-close`)
- *   - a PLAN DOC (`body.plan-doc`):  every section and sub-section not in the saved folds starts FOLDED,
+ *   - an EPIC PAGE (`body.plan-doc`):  every section and sub-section not in the saved folds starts FOLDED,
  *     whatever its markup says:  Owen opens what he wants to read (2026-10-03)
  *     - a link to an id inside still lands (`reveal()` unfolds around it)
  *     - its `<epic-*>` blocks start folded by themselves;
@@ -1908,7 +1908,7 @@ function scrollIntoRow(item) {
  *   folded:  `section.spell-folded`, all but the heading hidden by CSS.
  *   Starts folded as saved, else when the section says `data-fold="closed"`.
  * - `reveal()` unfolding for a link is never saved
- * - returns `{ reveal(element) }`:  unfold every section hiding `element` (a plan doc's blocks and items too),
+ * - returns `{ reveal(element) }`:  unfold every section hiding `element` (an epic page's blocks and items too),
  *   and open its own panel, or itself if it's a folded plan item;
  *   true when it unfolded something (it draws a little later)
  *   - a `<ui-section>` unfolds WITHOUT its height animation (`--ui-section-duration: 0s` on `main` for a few frames):
@@ -1927,7 +1927,7 @@ function wireFolds(main, outline) {
   else wireHeadingFolds()
   return { reveal }
 
-  /** SECTIONS:  restore the saved folds (a plan doc:  the rest start folded), save the reader's. */
+  /** SECTIONS:  restore the saved folds (an epic page:  the rest start folded), save the reader's. */
   function wireSectionFolds() {
     const startFolded = document.body.classList.contains("plan-doc")
     for (const section of main.querySelectorAll("ui-section[collapsible][id]"))
@@ -1939,7 +1939,7 @@ function wireFolds(main, outline) {
   }
 
   /**
-   * Any fold closing (a section, a plan doc's Overview part, phase or item):  its header stays where it is on screen
+   * Any fold closing (a section, an epic page's Overview part, phase or item):  its header stays where it is on screen
    * while the content folds away under it.
    * - why:  the browser's scroll anchoring kept something BELOW the fold in place instead, so the clicked header slid
    *   down hundreds of pixels as its body shrank, then wobbled (Owen, 2026-10-10:  "the 1.1 sections bounce when
@@ -2108,7 +2108,7 @@ function wireFolds(main, outline) {
 }
 
 /**
- * A plan doc's blocks the reader left open on this page (saved folds, `spell-folds:<path>`):
+ * An epic page's blocks the reader left open on this page (saved folds, `spell-folds:<path>`):
  * open again, before they first draw (their `open` attribute), so nothing animates;
  * the rest start folded, as the blocks do.
  */
@@ -2227,7 +2227,7 @@ function trackStickyHeights(main, outline) {
 
 /**
  * How far below the viewport top `target` lands, px:
- * - inside a plan doc (`<epic-page>`):  where the titles stuck over it end, the `--epic-stack` it inherits (a block's
+ * - inside an epic page (`<epic-page>`):  where the titles stuck over it end, the `--epic-stack` it inherits (a block's
  *   own title sticks there;  anything else lands `EPIC_LAND_GAP` below), and below its item's line when it's in an
  *   item's details (the line sticks there too)
  * - else:  the site header, then its own `scroll-margin-top` (CSS derives it from the sections)
@@ -2340,7 +2340,7 @@ function wireAnchors(main, outline, sticky, follow, folds) {
   /**
    * Scroll to `id` and make its entry the current one;  once what it unfolded has drawn.
    * Returns a promise that settles once it has landed (or found nothing to land on).
-   * - `id` inside a body not loaded yet (a split plan doc's part:  an Overview `h4`, an old `#d7` answer card):
+   * - `id` inside a body not loaded yet (a split epic page's part:  an Overview `h4`, an old `#d7` answer card):
    *   its host loads the body first (`hostHolding()`, `load()`), then the jump goes on (caveat C8 of `claude-design`)
    */
   function jump(id, { unfoldTarget = true } = {}) {
@@ -2421,7 +2421,7 @@ function topOf(element) {
 ////////////////
 
 /**
- * Cmd-K (Ctrl-K) on a plan doc asks which item to jump to (Owen, 2026-10-10:  "add command-k which brings up
+ * Cmd-K (Ctrl-K) on an epic page asks which item to jump to (Owen, 2026-10-10:  "add command-k which brings up
  * ui-prompt asking what number I want to jump to (e.g. J7)"), and lands there exactly as a link to `#j7` does
  * (`go()`:  what hides it unfolds, an item opens, it lands below the stuck titles).
  * - any id on the page, case and a `#` aside:  `J7`, `q3`, `P2`, `o1`, `#decisions`
@@ -2602,7 +2602,7 @@ function stuckBottom(main) {
   for (const sticky of main.querySelectorAll("ui-sticky"))
     boxes.push(sticky.shadowRoot?.querySelector('[part~="sticky"]'))
   for (const section of main.querySelectorAll(`ui-section[sticky], ${EPIC_FOLDS}`)) boxes.push(titleOf(section))
-  // a plan doc's page header and its toolbar's bar under it (the title between them scrolls away);  an OPEN item's
+  // an epic page's page header and its toolbar's bar under it (the title between them scrolls away);  an OPEN item's
   // line sticks below the titles (a closed one's isn't sticky:  skipped)
   for (const page of main.querySelectorAll("epic-page"))
     boxes.push(...(page.shadowRoot?.querySelectorAll('[part~="header"], [part~="bar"]') ?? []))
@@ -2952,11 +2952,17 @@ const COMMENT_SAVE_MS = 600
 /** How many characters of the selected text (or the block's) the comment box's header shows. */
 const HEADLINE_CHARS = 40
 
-/** How long after the page's content changes (a plan doc's part loading) the comments draw again, ms. */
+/** How long after the page's content changes (an epic page's part loading) the comments draw again, ms. */
 const REDRAW_MS = 150
 
 /**
- * What a bullhorn moves left of, in the shadow root of the block it's over (`makeRoom()`):  a plan doc item's review
+ * How often a docs page with a Send asks again who is listening, ms:  the server calls a session gone once its
+ * heartbeat is 90s old (`ReviewInbox` `LISTEN_STALE_MS`), with no file change to announce it.
+ */
+const SEND_POLL_MS = 30_000
+
+/**
+ * What a bullhorn moves left of, in the shadow root of the block it's over (`makeRoom()`):  an epic page item's review
  * pills and Do Now, an update's date.
  */
 const MAKES_ROOM = '[part~="review-buttons"], [part~="time"]'
@@ -2981,11 +2987,11 @@ const KIND_NAMES = {
 
 /**
  * COMMENTS (epic `airplane`, P11):  Owen's comments for Claude, on a page's blocks or on text he selected, kept by
- * the page server (`commentsRoutes.ts`):  a docs page's in its inbox file (`<page>.inbox.json`), a plan doc's in the
+ * the page server (`commentsRoutes.ts`):  a docs page's in its inbox file (`<page>.inbox.json`), an epic page's in the
  * epic's review inbox.  No Claude, no network:  only the page server, so it works on a plane.
  * - served by the page server with a token, on a page that takes comments (the `GET` says `takesComments`):
  *   - a BULLHORN beside every major block (`BlockAnchors.js` `blocksIn()`:  sections, tables, asides, code,
- *     messages, cards, steps, top-level lists;  a plan doc's items, phase fields, summary and Overview prose) and in
+ *     messages, cards, steps, top-level lists;  an epic page's items, phase fields, summary and Overview prose) and in
  *     the page header (the whole page):  shown while the block is hovered, always once it has comments, with a count
  *   - SELECTED TEXT:  ⌘ / Ctrl I, or the bullhorn that floats beside the selection:  the box opens for that block,
  *     its header the text's first words;  the comment keeps the quote, highlighted on the page while it exists
@@ -3001,10 +3007,10 @@ const KIND_NAMES = {
  *   - THREADS (Owen, 2026-10-10:  "the entire comment thread should be in one collapsable/accordion pane"):  every
  *     comment shows as one, folding, under the paragraph (list item, cell ...) holding its quote (`holderOf()`), else
  *     under its block (`thread()`)
- *     - all ivory, the pane's outline and corners, whoever spoke last;  its edges a plan doc item's note box's, else
+ *     - all ivory, the pane's outline and corners, whoever spoke last;  its edges an epic page item's note box's, else
  *       the block's it's under (spell-doc.css)
  *     - its header:  a chevron, the bullhorn (a check circle once done), the pane's summary (`headline()`), then
- *       Owen's answer while it's his turn (Claude spoke last):  the plan doc's review pills, Approve / Revisit /
+ *       Owen's answer while it's his turn (Claude spoke last):  the epic page's review pills, Approve / Revisit /
  *       the x, as "that's good" / reply / "skip it";  Reopen once done;  the trash, always
  *     - the messages in order, a bold "You:" / "Claude:" first:  his plain on the ivory, Claude's in a light violet
  *       box;  each one's time in its top right corner (the first's with the day);  then a green Done line once
@@ -3016,7 +3022,7 @@ const KIND_NAMES = {
  *   - the trash, on a thread or the pane:  one click (`delete` while it waits, else `clear`);  Undo in the toast
  *   - the BULLHORN only ever starts a new comment:  no count, since the block's threads are right there (Owen,
  *     2026-10-10:  "Bullhorn to the far right is unnecessary")
- * - drawn again after a live patch (`spell-doc:updated`), when the page's content changes (a plan doc's part
+ * - drawn again after a live patch (`spell-doc:updated`), when the page's content changes (an epic page's part
  *   loading), when the inbox file changes (`spell-server:file`:  another window, Claude), and when the page comes
  *   back into view
  * - what it adds in `main` carries `data-spell-added`:  a patch steps around it, the anchors never count it
@@ -3033,6 +3039,8 @@ async function wireComments(main) {
     if (comments.inboxPaths.includes(decodeURIComponent(event.detail?.path ?? ""))) reload()
   })
   document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && reload())
+  // a docs page's Send says who is listening:  a session that stopped leaves no file change, only an old heartbeat
+  setInterval(() => comments.send && document.visibilityState === "visible" && reload(), SEND_POLL_MS)
   // leaving (a reload, another page):  what's typed in the pane or a reply box and not saved yet goes now
   addEventListener("pagehide", () => {
     comments.open?.flush?.()
@@ -3098,6 +3106,8 @@ class PageComments {
     /** watches the open threads with an unseen reply (`watchSeen()`);  a timer per one on screen, by comment id */
     this.seenWatch = null
     this.seenTimers = new Map()
+    /** a docs page's Send, as the server last answered (`keepSend()`);  `null` on an epic page */
+    this.send = null
   }
 
   /**
@@ -3168,7 +3178,7 @@ class PageComments {
   /**
    * Keep every block's bullhorn off other buttons (Owen, 2026-10-10:  "Overlap in bullhorn buttons"):  a bullhorn
    * sits over its block's top right corner, so
-   * - a plan doc item's own review pills and Do Now are there too:  the bullhorn moves left of them;  so does an
+   * - an epic page item's own review pills and Do Now are there too:  the bullhorn moves left of them;  so does an
    *   update's date (`<epic-update>`'s `time` part, at its title row's right)
    * - a thread just under a short block (a folded item, a one-line paragraph) can lie under it:  that thread's
    *   header leaves room on its right, its buttons moving left
@@ -3213,9 +3223,95 @@ class PageComments {
       const answer = response.ok ? await response.json() : {}
       if (answer.takesComments !== true) return false
       this.list = withTurns(answer.comments)
+      this.keepSend(answer)
       return true
     } catch {
       return false
+    }
+  }
+
+  ////////////////
+  // ## Send
+  ////////////////
+
+  /**
+   * Keep a docs page's Send state from a comments route's answer (`send`:  `{ epic, owned, listening, sent, unsent,
+   * waiting }`, `commentsRoutes.ts` `PageSend`);  an epic page's answer has none (its Send is `<epic-page>`'s).
+   * - the epic's review inbox joins the files whose change redraws the page:  who is listening is in it
+   */
+  keepSend(answer) {
+    if (!answer?.send) return
+    this.send = answer.send
+    const inbox = `/epics/${answer.send.epic}/${answer.send.epic}.inbox.json`
+    if (!this.inboxPaths.includes(inbox)) this.inboxPaths.push(inbox)
+  }
+
+  /**
+   * The page header's SEND (epic `epic-workflow` P13):  a docs page's comments go to the session of the epic the page
+   * belongs to, as an epic page's do with its Send.
+   * - a pill:  the paper plane, "Send" and how many comments wait for it;  blue by the fill rule (`templates/epics/
+   *   plan-doc.md`, "Colours"):  grey outline with nothing waiting, dashed while some aren't sent, outlined once sent
+   * - beside it, who is listening:  "python-target is listening", or nobody (then the comments wait, sent, for the
+   *   epic's next `/epic review`), or no epic owns the page (`/airplane land` gathers it into `guide-changes`)
+   * - a click sends (`POST /api/docs/comments/send`), and a toast says what went where
+   * - drawn again with the comments;  none on an epic page, or from a server without it
+   */
+  drawSend() {
+    const sticky = pageHeadIn(this.main)
+    const head = sticky?.matches(".spell-page-head") ? sticky : (sticky?.querySelector(".spell-page-head") ?? sticky)
+    head?.querySelector(":scope > .spell-send")?.remove()
+    const send = this.send
+    if (!head || !send) return
+    const unsent = send.unsent.length
+    const state = unsent ? "unsent" : send.waiting.length ? "sent" : "idle"
+    const box = document.createElement("span")
+    box.className = "spell-send"
+    box.dataset.spellAdded = ""
+    box.dataset.state = state
+    const button = document.createElement("button")
+    button.type = "button"
+    button.className = "spell-send-button"
+    button.title = sendWords(send, state)
+    button.setAttribute("aria-label", button.title)
+    button.innerHTML =
+      `<ui-icon name="paper plane"></ui-icon><span>${state === "sent" ? "Sent" : "Send"}</span>` +
+      (unsent ? `<span class="spell-send-count">${unsent}</span>` : "")
+    button.addEventListener("click", () => void this.sendNow())
+    const who = document.createElement("span")
+    who.className = "spell-send-who"
+    who.dataset.listening = send.listening ? "yes" : "no"
+    who.textContent = !send.owned
+      ? "no epic owns this page"
+      : send.listening
+        ? `${send.epic} is listening`
+        : "nobody is listening"
+    who.title = whoWords(send)
+    box.append(button, who)
+    beforeToolbar(head, box)
+  }
+
+  /** Send, clicked:  every comment waiting so far goes to the page's epic;  a toast says so.  NEVER throws. */
+  async sendNow() {
+    const send = this.send
+    if (!send) return
+    if (!send.unsent.length) return noteToast("Nothing new to send:  every comment here went with an earlier Send.")
+    try {
+      const answer = await postJSON(`${COMMENTS_API}/send`, { page: location.pathname })
+      this.list = answer.comments ? withTurns(answer.comments) : this.list
+      this.keepSend(answer)
+      const count = `${send.unsent.length} comment${send.unsent.length === 1 ? "" : "s"}`
+      // nobody listening:  the server woke the epic (P16) and says what it did;  else they wait for its review
+      const later = !send.owned
+        ? `:  no epic owns this page, so /airplane land gathers them into ${send.epic}`
+        : this.send.listening
+          ? ""
+          : answer.wake?.message
+            ? `.  ${answer.wake.message}`
+            : `:  nobody is listening, so they wait for /epic review ${send.epic}`
+      noteToast(`Sent ${count} to ${send.epic}${later}.`, later ? "warning" : "success")
+      this.draw()
+    } catch (error) {
+      noteToast(`Couldn't send:  ${error.message}`, "error")
     }
   }
 
@@ -3255,6 +3351,7 @@ class PageComments {
     if (this.editing && !ids.has(this.editing.id)) this.editing = null
     for (const id of this.replyBoxes.keys()) if (!ids.has(id)) this.replyBoxes.delete(id)
     for (const block of head ? [head, ...blocks] : blocks) this.addBullhorn(block)
+    this.drawSend()
     for (const [under, found] of threads) this.boxFor(under).append(...found.map((each) => this.thread(each)))
     // grown to their words once shown:  a folded thread's has no height to measure
     for (const each of main.querySelectorAll(".spell-thread-reply > textarea"))
@@ -3274,7 +3371,7 @@ class PageComments {
   }
 
   /**
-   * Draw again when the page's own content changes:  a plan doc's part loads its blocks when it opens.
+   * Draw again when the page's own content changes:  an epic page's part loads its blocks when it opens.
    * - changes inside what this adds (`data-spell-added`) don't count:  drawing would wake it again
    */
   watchContent() {
@@ -3646,6 +3743,7 @@ class PageComments {
   async post(change, options) {
     const answer = await postJSON(COMMENTS_API, { page: location.pathname, ...change }, options)
     this.list = answer.comments ? withTurns(answer.comments) : this.list
+    this.keepSend(answer)
     return answer
   }
 
@@ -4005,6 +4103,7 @@ class PageComments {
         open.id = words ? (open.id ?? answer.id) : undefined
         saved = words
         this.list = answer.comments ? withTurns(answer.comments) : this.list
+        this.keepSend(answer)
         keep(before)
         floppy.hidden = !words
         floppy.removeAttribute("data-failed")
@@ -4092,6 +4191,25 @@ class PageComments {
 }
 
 /**
+ * A docs page's Send's tooltip (`drawSend()`):  what a click sends, and to which epic;  or why it sends nothing.
+ * - `state`:  `unsent`, `sent` or `idle`
+ */
+function sendWords({ epic, owned, unsent, waiting }, state) {
+  const count = (n) => `${n} comment${n === 1 ? "" : "s"}`
+  if (state === "unsent") return `Send ${count(unsent.length)} to ${owned ? `epic ${epic}` : epic}`
+  if (state === "sent") return `Sent to ${epic}:  ${count(waiting.length)} waiting for Claude`
+  return "Nothing to send:  no comment here is waiting for Claude"
+}
+
+/** The tooltip of who is listening, beside a docs page's Send (`drawSend()`):  where its comments go, and when. */
+function whoWords({ epic, owned, listening }) {
+  if (!owned)
+    return `No epic's See Also lists this page:  its comments go to epic ${epic}, which /airplane land gathers`
+  if (listening) return `A Claude session is reviewing epic ${epic}:  Send hands it these comments now`
+  return `No Claude session is reviewing epic ${epic}:  sent comments wait for /epic review ${epic} or /airplane land`
+}
+
+/**
  * A few words of what a comment box is on, for its header:  the start of the selected text, else of its block's
  * text, in quotes;  "This page" for the page.
  */
@@ -4142,7 +4260,7 @@ function threadHead(comment, open, withPen) {
 
 /**
  * Owen's answer on a thread, while it's his turn (Owen, 2026-10-10:  "Make top buttons same semantics/look as pills
- * in item header"):  a plan doc item's review pills (`<epic-review>`, `packages/epics`), drawn here with the same
+ * in item header"):  an epic page item's review pills (`<epic-review>`, `packages/epics`), drawn here with the same
  * markup, since a guide doesn't load that pack:  ONE grouped pill of square icon buttons, a grey outline at rest,
  * each in its colour under the pointer.
  * - Approve's check (green, decided):  "that's good" -- done, it folds
@@ -4193,8 +4311,8 @@ const REOPEN = {
 /** The pen's tooltip:  his words, while Claude hasn't taken them. */
 const EDIT_TIP = "Edit your last words"
 
-/** What a thread says for Claude's answer with no words here:  a plan doc's comment, answered in the doc. */
-const ANSWERED_IN_DOC = "<p>Answered in the plan doc.</p>"
+/** What a thread says for Claude's answer with no words here:  an epic page's comment, answered in the doc. */
+const ANSWERED_IN_DOC = "<p>Answered on the epic page.</p>"
 
 /** `specs` (`THREAD_ANSWERS`, `REOPEN`) as a thread header's grouped pill. */
 function answerButtons(specs) {
@@ -4213,7 +4331,7 @@ function answerButtons(specs) {
 
 /**
  * Put `host`'s `title` (a `<ui-button>`'s) on the button inside it too, once drawn:  the element the pointer lands
- * on carries the tooltip itself (Owen, 2026-10-10:  "No tooltip on those same buttons"), as a plan doc item's note
+ * on carries the tooltip itself (Owen, 2026-10-10:  "No tooltip on those same buttons"), as an epic page item's note
  * buttons do, rather than leaving the browser to find it on the shadow host.
  */
 function titleInside(host) {
@@ -4276,7 +4394,7 @@ function pendingReplyOf(comment) {
  * of each bit position absolute"):  no names, the colour says who.
  * - Owen's words (his comment, his replies):  plain on the ivory, no box (Owen, 2026-10-10:  "my text doesn't get
  *   bordered (but keep spacing the same)")
- * - Claude's:  a light violet box -- an answer;  "taken into <epic> P<n>";  answered in the plan doc.  His latest
+ * - Claude's:  a light violet box -- an answer;  "taken into <epic> P<n>";  answered in the epic page.  His latest
  *   (`data-latest`) is orange while Owen hasn't seen it (`unseen()`), as the whole thread is
  * - a green Done line once closed:  a check, what he said, the commit Claude named
  * - while Claude thinks about it (`working`):  "Claude: thinking…" last, light violet, a spinner;  his answer takes
@@ -4302,7 +4420,7 @@ function messagesHTML(comment, editing) {
     const line = { by: "claude", at: taken.at, body: `<p>Taken into ${where}, to work into the page there.</p>` }
     messages.splice(after < 0 ? messages.length : after, 0, line)
   }
-  // answered before threads, in a plan doc:  no entry of Claude's at all
+  // answered before threads, in an epic page:  no entry of Claude's at all
   if (comment.status === "answered" && !comment.replies?.some((each) => each.by !== "Owen"))
     messages.push({ by: "claude", at: "", body: ANSWERED_IN_DOC })
   if (done) {
@@ -4547,7 +4665,7 @@ let favoritesWired = false
  *   goes back, and a toast says why
  * - its answer (every favourite) sets every star:  another window may have starred one meanwhile
  * - the card's own link never fires:  the star is a button of its own, its click stopped there
- * - only served by the page server with a token:  from `file://`, the stars show what the docs index wrote, and
+ * - only served by the page server with a token:  from `file://`, the stars show what the docs index tool wrote, and
  *   say they need the page server
  * - a live update of the page (`spell-doc:updated`) may leave a moved card twice:  `regroupEpics()` keeps one
  */
@@ -4727,7 +4845,7 @@ const NEW_EPIC_DRAFT_KEY = "spell-new-epic-draft"
  * NEW EPIC (epic `airplane` P7):  on the Epics page (`epics/index.html`), a New epic pill in the page header.
  * - its box:  a title and the kickoff prompt (a textarea that grows with its text);  ⌘ / Ctrl Enter saves
  * - the page server writes a FUTURE epic at once (`epicRoutes.ts`):  no Claude needed, so it works on a plane;
- *   the docs index is rewritten, so the new card shows here with its seedling;  `/airplane land` offers to start it
+ *   the home page is rewritten, so the new card shows here with its seedling;  `/airplane land` offers to start it
  * - only served by the page server with a token:  from `file://`, no pill
  * - what's typed and not saved is kept (`NEW_EPIC_DRAFT_KEY`) until it's saved
  */

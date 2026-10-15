@@ -59,7 +59,7 @@
           </ul>
           <!-- no ui-list.spell-meta here:  any ui-item element on the page leaves epic-item unstyled (issue I9 of epic-components) -->
           <p class="meta">
-            Written for: anyone reading or writing a plan doc's markup, or changing this element.<br />
+            Written for: anyone reading or writing an epic page's markup, or changing this element.<br />
             Status: <ui-label size="mini" color="green">built</ui-label> in
             <a href="../../packages/epics/components/epic-phase/" target="src-packages-epics-components-epic-phase"
               ><code title="packages/epics/components/epic-phase/">epic-phase/</code></a
@@ -145,7 +145,7 @@
           <ui-section id="2-markup" header="2. Markup" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="code"></ui-icon>
             <p>
-              From a real plan doc (<a
+              From a real epic page (<a
                 href="../../epics/epic-components/epic-components.plan.html"
                 target="epic-components"
                 title="epics/epic-components/epic-components.plan.html"
@@ -436,7 +436,7 @@
                     <td><code>changes</code></td>
                     <td>a number</td>
                     <td>
-                      How many plan changes (<code>&lt;epic-update&gt;</code> blocks) it holds, written by the plan-doc
+                      How many plan changes (<code>&lt;epic-update&gt;</code> blocks) it holds, written by the epic
                       tool on every edit: its title says so while it isn't done, folded too (a part's body loads only
                       when it opens).
                     </td>
@@ -446,8 +446,8 @@
                     <td><code>open</code></td>
                     <td>boolean: there or not</td>
                     <td>
-                      Unfolded: PAGE state, never written in a doc (plan docs open folded). A click on the title, a link
-                      to it (or into it) and find-in-page set it; set it from code to open it.
+                      Unfolded: PAGE state, never written in a doc (epic pages open folded). A click on the title, a
+                      link to it (or into it) and find-in-page set it; set it from code to open it.
                     </td>
                     <td></td>
                   </tr>
@@ -628,8 +628,8 @@
                 git toggle does.
               </li>
               <li>
-                <b>Folding:</b> a click on the title folds it; on a plan doc it starts folded. With <code>source</code>,
-                its body loads from its part file the first time it opens.
+                <b>Folding:</b> a click on the title folds it; on an epic page it starts folded. With
+                <code>source</code>, its body loads from its part file the first time it opens.
               </li>
             </ul>
           </ui-section>

@@ -17,7 +17,7 @@ import { _async } from "./async.parser"
  */
 export class Await extends SpellStatement<"expression?"> {
   @proto static alias = ["expression", "statement"]
-  /** `wait for x is 1` => `await (x == 1)`, but `if wait for x is 1` => `(await x) == 1` (plan doc D33). */
+  /** `wait for x is 1` => `await (x == 1)`, but `if wait for x is 1` => `(await x) == 1` (epic page D33). */
   @proto static operandInExpressions = true
 
   getAST(match: P.MatchFor<this>) {

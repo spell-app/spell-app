@@ -18,7 +18,7 @@ const FORMAT = Object.fromEntries(
 
 /**
  * `html` formatted as `vp fmt` would format the file at `file`, in this process.
- * - `file`'s extension picks the parser (`.html`, a plan doc's `.htm` part ...);  it's never read
+ * - `file`'s extension picks the parser (`.html`, an epic page's `.htm` part ...);  it's never read
  * - throws on a parse error, naming the file
  */
 export async function formatHTML(file: string, html: string): Promise<string> {

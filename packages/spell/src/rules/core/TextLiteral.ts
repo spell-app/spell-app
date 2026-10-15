@@ -17,7 +17,7 @@ export class TextLiteral extends P.TokenType<never, { fillIns?: FillInParts }> {
   @proto static tokenType = P.TextToken
 
   /**
-   * Match -- and parse any `[name]` fill-ins inside, e.g. `"images/[rank]-of-[suit].png"` (plan doc
+   * Match -- and parse any `[name]` fill-ins inside, e.g. `"images/[rank]-of-[suit].png"` (epic page
    * `outline-spell`, P4;  Q2:  brackets, always) -- see `parseFillIns()`.
    * - A fill-in which doesn't parse:  no match, so the line says "Don't understand".
    */
@@ -88,7 +88,7 @@ export type FillInParts = Array<string | P.Match>
 
 /**
  * `inner`, the text between a string's quotes, split into plain pieces and parsed `[...]` fill-ins
- * (plan doc `outline-spell`, P4):
+ * (epic page `outline-spell`, P4):
  * - `[x]`:  `x` is an expression, e.g. `[rank + 1]`
  *   - inside a method, a bare property name is the thing's:  `[rank]` ~== `[its rank]`
  * - a real bracket:  `[[` or `\[` for `[`, `]]` for `]` (Q15:  both)

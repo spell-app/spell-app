@@ -1,6 +1,6 @@
 /**
  * Tests of `CommentList`:  comments added, edited and deleted while they wait;  taken and answered by Claude;
- * and a plan doc's review inbox holding them.
+ * and an epic page's review inbox holding them.
  */
 import { describe, expect, test } from "vite-plus/test"
 
@@ -137,7 +137,7 @@ describe("CommentList", () => {
     expect(() => comments.resolve(id, "maybe")).toThrow(expect.objectContaining({ status: 400 }))
   })
 
-  test("a reply on a TAKEN comment waits until it's taken again;  a plan doc's answered in the doc is Owen's turn", () => {
+  test("a reply on a TAKEN comment waits until it's taken again;  an epic page's answered in the doc is Owen's turn", () => {
     const comments = new CommentList({})
     const id = comments.add(ON_FIELD, "Fix it", NOW)
     comments.take(id, { epic: "guide-changes", phase: 4 }, NOW)
@@ -147,8 +147,8 @@ describe("CommentList", () => {
     expect(comments.waiting.map((each) => each.id)).toEqual([id])
     comments.take(id, { epic: "guide-changes", phase: 4 }, later)
     expect(comments.waiting).toEqual([])
-    // answered in the plan doc:  no words here, but Owen's turn;  a second answer adds nothing
-    const doc = comments.add(ON_FIELD, "Plan doc", NOW)
+    // answered in the epic page:  no words here, but Owen's turn;  a second answer adds nothing
+    const doc = comments.add(ON_FIELD, "Epic page", NOW)
     comments.answer(doc)
     comments.answer(doc)
     expect([comments.comment(doc).replies, CommentList.turnOf(comments.comment(doc))]).toEqual([
@@ -234,7 +234,7 @@ describe("CommentList", () => {
 })
 
 describe("ReviewInbox.commentList", () => {
-  test("a plan doc's comments live in its review inbox, which isn't empty while it holds one", () => {
+  test("an epic page's comments live in its review inbox, which isn't empty while it holds one", () => {
     const inbox = new ReviewInbox()
     expect(inbox.isEmpty).toBe(true)
     inbox.commentList.add(ON_FIELD, "Which file?", NOW)

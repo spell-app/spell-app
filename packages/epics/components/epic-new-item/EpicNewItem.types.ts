@@ -96,7 +96,7 @@ export const NEW_ITEM_TEXTS = [
   { key: "newQuestionTip", text: "Make it a question", description: "Kind button:  its tooltip." },
   { key: "newIssueTip", text: "Make it an issue", description: "Kind button:  its tooltip." },
   { key: "newTestTip", text: "Make it a test", description: "Kind button:  its tooltip." },
-  { key: "newAddTip", text: "Add:  Claude puts it in the plan doc", description: "The form's Add:  its tooltip." },
+  { key: "newAddTip", text: "Add:  Claude puts it in the epic page", description: "The form's Add:  its tooltip." },
   { key: "newSaveTip", text: "Save your changes", description: "The form's Save:  its tooltip." },
   { key: "newCancelTip", text: "Cancel:  close it, nothing saved", description: "The form's Cancel:  its tooltip." },
   { key: "newNeedsTitle", text: "Give it a title first", description: "Add pressed with no title." }

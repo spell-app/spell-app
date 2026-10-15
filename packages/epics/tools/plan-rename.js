@@ -1,10 +1,10 @@
 /**
- * ONE-OFF (2026-10-04, epic `review-review` P4):  rename every plan doc `epics/<n>/<n>.html` to `<n>.plan.html`,
+ * ONE-OFF (2026-10-04, epic `review-review` P4):  rename every epic page `epics/<n>/<n>.html` to `<n>.plan.html`,
  * and rewrite every link to one.  Kept as the record of how it was done, and for a worktree that merges `main`
- * with plan docs of its own under the old name:  run it again there (idempotent).
+ * with epic pages of its own under the old name:  run it again there (idempotent).
  * Usage (from `packages/epics`):  node tools/plan-rename.js [--dry-run]
  * - renames with `git mv`, so history follows (`git log --follow`)
- * - a doc counts as a plan doc when its body says so (`<body class="... plan-doc">`, `pages.js` `planDocIn()`)
+ * - a doc counts as an epic page when its body says so (`<body class="... plan-doc">`, `pages.js` `planDocIn()`)
  * - links rewritten, in the repo's tracked `.html`, `.md` and docs `.json` files (not the bundle, not fixtures):
  *   - `epics/<n>/<n>.html` anywhere (absolute, `../epics/...`, with `#d3`, in prose), and the generic
  *     `epics/<name>/<name>.html` the rules and skills name
@@ -59,10 +59,10 @@ for (const file of files) {
   console.log(`links   ${relative(ROOT, file)}`)
   if (!dryRun) writeFileSync(file, after)
 }
-console.log(`${names.length} plan docs, ${changed} files with links rewritten${dryRun ? " (dry run)" : ""}`)
+console.log(`${names.length} epic pages, ${changed} files with links rewritten${dryRun ? " (dry run)" : ""}`)
 
 /**
- * `text` (file `file`) with every link to a plan doc under its new name.
+ * `text` (file `file`) with every link to an epic page under its new name.
  * - `epics/<n>/<n>.html` -> `epics/<n>/<n>.plan.html`, for every epic `n`, and the generic `<name>` form (also
  *   HTML-escaped, `&lt;name&gt;`)
  * - a page in `epics/<n>/`:  `"<n>.html` / `'<n>.html` / `(<n>.html`;  in `epics/<n>/details/`:  the same after `../`

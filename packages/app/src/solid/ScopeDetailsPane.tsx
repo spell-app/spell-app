@@ -21,7 +21,8 @@ import { Markdown } from "./Markdown"
  * `<DetailsBody>`.
  * - Remounted per node `path` by `<TypeExplorer>` (a keyed `<Show>`), so what's expanded, or an edit, resets on
  *   selecting another node.
- * - SEE:  its App UI page, `packages/app/docs/ScopeDetailsPane.html` (`/components/app/ScopeDetailsPane.html`).
+ * - SEE:  its App UI components page, `packages/app/docs/ScopeDetailsPane.html`
+ *   (`/components/app/ScopeDetailsPane.html`).
  ****************/
 export function ScopeDetailsPane(props: ScopeDetailsPaneProps) {
   return (

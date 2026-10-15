@@ -9,7 +9,7 @@ import { FLOATING_MESSAGE_STYLE, on, tracked } from "$/app/solid"
  * `editor.hideNotice()`.
  * - SIDE EFFECT:  hides it after 3s (`editor.hideNotice()`), unless `autoHide` is `false` -- only if
  *   `editor.notice` is still the one the timer was started for.
- * - SEE:  its App UI page, `packages/app/docs/Notice.html` (`/components/app/Notice.html`).
+ * - SEE:  its App UI components page, `packages/app/docs/Notice.html` (`/components/app/Notice.html`).
  ****************/
 export function Notice(props: NoticeProps) {
   const notice = tracked(() => editor.notice)

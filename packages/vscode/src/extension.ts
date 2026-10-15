@@ -17,8 +17,6 @@ import {
   LanguageClient,
   TransportKind,
   type LanguageClientOptions,
-  type Location,
-  type Position,
   type ServerOptions
 } from "vscode-languageclient/node"
 
@@ -93,8 +91,7 @@ async function startLanguageServer(context: vscode.ExtensionContext): Promise<vo
     client,
     vscode.workspace.registerTextDocumentContentProvider(COMPILED_SCHEME, compiled),
     vscode.workspace.onDidChangeTextDocument(({ document }) => compiled.sourceChanged(document.uri)),
-    vscode.commands.registerCommand("spell.showCompiled", () => showCompiled()),
-    vscode.commands.registerCommand("spell.showReferences", showReferences)
+    vscode.commands.registerCommand("spell.showCompiled", () => showCompiled())
   )
   await client.start()
 }
@@ -125,21 +122,6 @@ function findTsx(repoRoot: string): string | undefined {
     if (existsSync(candidate)) return candidate
     if (dirname(folder) === folder) return undefined
   }
-}
-
-/**
- * Show `locations` in VS Code's references peek, at `position` in `uri` -- what the server's "N references"
- * code lenses run (`SpellLanguageService.SHOW_REFERENCES`).
- * - Arguments come over the protocol as plain JSON:  VS Code's own command wants its own `Uri` / `Position` / `Location`.
- */
-async function showReferences(uri: string, position: Position, locations: Location[]): Promise<void> {
-  const { protocol2CodeConverter: convert } = client!
-  await vscode.commands.executeCommand(
-    "editor.action.showReferences",
-    vscode.Uri.parse(uri),
-    convert.asPosition(position),
-    locations.map((location) => convert.asLocation(location))
-  )
 }
 
 /** Open the active spell file's compiled javascript beside it, read-only. */

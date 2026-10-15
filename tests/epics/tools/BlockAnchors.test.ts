@@ -86,7 +86,7 @@ describe("findBlock()", () => {
   })
 })
 
-describe("blocksIn() on a plan doc", () => {
+describe("blocksIn() on an epic page", () => {
   test("items, a phase's fields, the summary, Overview prose;  never the log or a status card", () => {
     const main = mainOf(`<main><epic-page>
       <epic-overview id="overview"><epic-summary>Lets Owen work.</epic-summary>

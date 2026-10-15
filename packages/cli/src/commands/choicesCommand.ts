@@ -2,7 +2,7 @@
 import { runTool } from "$/cli/dev/passThrough"
 
 /**
- * `spell dev choices <command> ...`:  syntax-choices pages, `packages/epics/tools/choices.js` (a table of names Claude
+ * `spell dev choices <command> ...`:  choice pages, `packages/epics/tools/choices.js` (a table of names Claude
  * recommends, one row per use site, which Owen goes through one by one and sends with "Do it"), the nearest
  * checkout's, `args` verbatim.
  * - Runs in `packages/epics`, as `spell dev details` does.

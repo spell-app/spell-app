@@ -197,7 +197,7 @@ function markDone(session: CLI.CliSession, name: string): number {
  * `icons`:  queue the icon each named session's work calls for (`workIcon()`), when its title (or the one queued)
  * isn't that already;  says what it did, or (`dryRun`) would do.
  * - a session's work:  its title without its icon (`bareTitle()`);  sessions of one name are looked up once
- * - a name with no worktree, branch or plan doc (a session titled "SVG from image") is left as it is
+ * - a name with no worktree, branch or epic page (a session titled "SVG from image") is left as it is
  */
 function refreshIcons(session: CLI.CliSession, dryRun: boolean): number {
   const byName = new Map<string, CLI.SessionSummary[]>()
@@ -231,9 +231,9 @@ function refreshIcons(session: CLI.CliSession, dryRun: boolean): number {
 }
 
 /**
- * The icon work `name`'s state calls for (`TITLE_ICONS`), from its worktree, branch and plan doc (`nameStatus()`);
+ * The icon work `name`'s state calls for (`TITLE_ICONS`), from its worktree, branch and epic page (`nameStatus()`);
  * `null` when `name` isn't work this repo knows.
- * - with a plan doc, its epic's state (`$/epics/list/EpicState`;  a session of it running counts as touched):
+ * - with an epic page, its epic's state (`$/epics/list/EpicState`;  a session of it running counts as touched):
  *   📅 future, 🚧 in progress, 🚨 errors (every phase done, items need Owen), ⏸️ paused (untouched for days)
  * - ✅ finished:  its branch merged into `main`, or every phase of its plan done with nothing left to merge
  * - 🚧 under way:  a worktree, a branch with commits `main` lacks, or a plan done that waits to merge

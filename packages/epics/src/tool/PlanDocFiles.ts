@@ -21,7 +21,7 @@ import { ReviewInbox } from "./ReviewInbox"
 
 /****************
  * ### `PlanDocFiles`
- * The plan docs of ONE spell-app checkout, on disk.
+ * The epic pages of ONE spell-app checkout, on disk.
  * - where each epic's doc is, reading it whole, editing it under its lock, writing it back tidy
  * - and the git facts the tool needs about it
  *
@@ -55,7 +55,7 @@ export class PlanDocFiles {
    */
   readonly root: string
 
-  /** `epics/`:  plan docs, `epics/<name>/<name>.plan.html`, their inboxes and details pages */
+  /** `epics/`:  epic pages, `epics/<name>/<name>.plan.html`, their inboxes and details pages */
   readonly epics: string
 
   /**
@@ -107,14 +107,14 @@ export class PlanDocFiles {
   findDoc(name: string): string {
     this.docPath(name)
     const found = PlanDocFiles.planDocIn(join(this.epics, name), name)
-    if (!found) throw new PlanDocError(`no plan doc for "${name}" (${relative(this.root, join(this.epics, name))}/)`)
+    if (!found) throw new PlanDocError(`no epic page for "${name}" (${relative(this.root, join(this.epics, name))}/)`)
     return found
   }
 
   /**
-   * Epic `name`'s plan doc in folder `dir` (`epics/<name>/`):  `<name>.plan.html`, else `<name>.html` when that is a
-   * plan doc (`<body class="... plan-doc">`, or an `<epic-page>`);  `undefined` when there's neither.
-   * - why both names:  plan docs were renamed `<name>.plan.html` on 2026-10-04 (`review-review` P4), and a worktree
+   * Epic `name`'s epic page in folder `dir` (`epics/<name>/`):  `<name>.plan.html`, else `<name>.html` when that is an
+   * epic page (`<body class="... plan-doc">`, or an `<epic-page>`);  `undefined` when there's neither.
+   * - why both names:  epic pages were renamed `<name>.plan.html` on 2026-10-04 (`review-review` P4), and a worktree
    *   cut before then still has `<name>.html` until it merges `main`
    * - STATIC:  a folder's answer, whichever checkout it's in
    * - the docs tools' rule (`tools/pages.js` `planDocIn()`), which the docs index finds plan docs by too
@@ -148,7 +148,7 @@ export class PlanDocFiles {
         plan = this.read(file)
       } catch (error) {
         if (!(error instanceof PlanDocError)) throw error
-        process.stderr.write(`plan-doc:  ${name} left out:  ${error.message}\n`)
+        process.stderr.write(`epic:  ${name} left out:  ${error.message}\n`)
         return []
       }
       const sections = plan.reviewSections()
@@ -181,20 +181,20 @@ export class PlanDocFiles {
   ////////////////
 
   /**
-   * The plan doc at `file`, parsed:  a `PlanDoc`.  `options` as its constructor's.
+   * The epic page at `file`, parsed:  a `PlanDoc`.  `options` as its constructor's.
    * - a SPLIT doc comes back WHOLE:  every part read into its host;  `plan.parts` says how it was stored
    * - throws a `PlanDocError` for a doc in the old markup:  "convert it first"
    * - SIDE EFFECT:  names each missing part on stderr
    */
   read(file: string, options?: PlanDocOptions): PlanDoc {
-    if (!existsSync(file)) throw new PlanDocError(`no plan doc ${relative(this.root, file)}:  \`epic new\` first`)
+    if (!existsSync(file)) throw new PlanDocError(`no epic page ${relative(this.root, file)}:  \`epic new\` first`)
     const html = readFileSync(file, "utf8")
     if (!isEpicMarkup(html)) throw this.oldMarkup(file)
     const plan = PlanDoc.parse(html, undefined, options)
     plan.parts = assembleEpic(plan.document, file)
     for (const id of plan.parts.missing)
       process.stderr.write(
-        `plan-doc:  ${relative(this.root, PlanParts.partFile(file, id))} is missing:  #${id} has no body\n`
+        `epic:  ${relative(this.root, PlanParts.partFile(file, id))} is missing:  #${id} has no body\n`
       )
     return plan
   }
@@ -337,7 +337,7 @@ export class PlanDocFiles {
     const shared = lstatSync(pages, { throwIfNoEntry: false })?.isSymbolicLink()
     if (!shared && /[\\/]\.claude[\\/]worktrees[\\/]/.test(pages)) return
     const run = spawnSync("node", [join(this.docsTools, "index.js")], { cwd: this.docsPackage, encoding: "utf8" })
-    if (run.status !== 0) process.stderr.write(`plan-doc:  docs index not updated\n${run.stdout}${run.stderr}`)
+    if (run.status !== 0) process.stderr.write(`epic:  docs index not updated\n${run.stdout}${run.stderr}`)
   }
 
   /**
@@ -415,7 +415,7 @@ export class PlanDocFiles {
 
   /**
    * The doc's commits, newest first:  its git history when the checkout tracks it, else `sharedDocLog()`.
-   * - a doc spell-app tracks:  `git log --follow` (every phase commit touches the plan doc), on the doc as HEAD has it
+   * - a doc spell-app tracks:  `git log --follow` (every phase commit touches the epic page), on the doc as HEAD has it
    *   - a rename to `<name>.plan.html` not committed yet has no history of its own, so follow the old name
    *   - once committed, `--follow` goes through the rename
    * - a SHARED doc (`epics` a link into the shared content repo):  spell-app has no history of it
@@ -535,7 +535,7 @@ const CHECKOUT = resolve(fileURLToPath(import.meta.url), "..", "..", "..", "..",
 /** The tool's own template, in `<epic-*>` markup:  `templates/plan.html` beside this file. */
 const TEMPLATE = fileURLToPath(new URL("templates/plan.html", import.meta.url))
 
-/** Is plan doc text `html` in the `<epic-*>` markup:  does it have an `<epic-page>`? */
+/** Is epic-page text `html` in the `<epic-*>` markup:  does it have an `<epic-page>`? */
 function isEpicMarkup(html: string): boolean {
   return /<epic-page\b/.test(html)
 }

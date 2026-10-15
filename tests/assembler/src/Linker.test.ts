@@ -11,7 +11,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..")
 /** `packages/epics/tools`:  one of the folders bare file names are looked up in. */
 const TOOLS = join(ROOT, "packages/epics/tools")
 
-/** `epics/`:  plan docs. */
+/** `epics/`:  epic pages. */
 const EPICS = join(ROOT, "epics")
 
 /** A page in `guides/spell-docs/`, two folders down from the root, as most pages are. */
@@ -87,7 +87,7 @@ describe("Linker.link()", () => {
     )
   })
 
-  test("renames a plan doc's old target to the plan's name", () => {
+  test("renames an epic page's old target to its epic id", () => {
     expect(linked('<a href="../epics/commands/commands.html#p7" target="src-old">plan</a>')).toBe(
       '<a href="../epics/commands/commands.html#p7" target="commands">plan</a>'
     )
@@ -124,7 +124,7 @@ describe("Linker.resolve()", () => {
 })
 
 describe("Linker.targetFor()", () => {
-  test("names URLs ext-<slug>, plan docs by name, everything else src-<repo-relative slug>, at most 80 characters", () => {
+  test("names URLs ext-<slug>, epic pages by epic id, everything else src-<repo-relative slug>, at most 80 characters", () => {
     expect(LINKER.targetFor("https://www.example.com/a/b?c=1")).toBe("ext-example-com-a-b-c-1")
     expect(LINKER.targetFor("http://example.com/")).toBe("ext-example-com")
     expect(LINKER.targetFor(join(EPICS, "commands/commands.html"))).toBe("commands")

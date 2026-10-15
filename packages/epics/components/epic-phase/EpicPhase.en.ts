@@ -79,7 +79,7 @@ export const epicPhaseVocabulary = {
       name: "changes",
       kind: "number",
       description:
-        "How many plan changes (`<epic-update>` blocks) it holds, written by the plan-doc tool on every edit:  its " +
+        "How many plan changes (`<epic-update>` blocks) it holds, written by the epic tool on every edit:  its " +
         "title row says so while it isn't done, folded too (its body, a part, loads only when it opens)."
     },
     FOLD_OPEN_ATTRIBUTE
@@ -92,7 +92,7 @@ export const epicPhaseVocabulary = {
       name: "changes",
       description:
         'An OLDER doc\'s plan changes (`<epic-updated slot="changes">`, 2026-10-11, P6):  drawn at the end of its ' +
-        "body, unboxed, until the plan-doc tool migrates them to `<epic-update>` blocks (`updates-as-epic-update`)."
+        "body, unboxed, until the epic tool migrates them to `<epic-update>` blocks (`updates-as-epic-update`)."
     },
     {
       name: "status",
@@ -142,13 +142,13 @@ export const epicPhaseVocabulary = {
       tag: "epic-updated",
       slot: "changes",
       description:
-        "An OLDER doc's plan changes (2026-10-11, P6):  the plan-doc tool's next write makes each an " +
+        "An OLDER doc's plan changes (2026-10-11, P6):  the epic tool's next write makes each an " +
         "`<epic-update>` block, after Goal (`updates-as-epic-update`)."
     },
     {
       tag: "epic-updated",
       description:
-        "An OLDER doc's plan changes, in no slot (until 2026-10-11):  drawn among its fields until the plan-doc " +
+        "An OLDER doc's plan changes, in no slot (until 2026-10-11):  drawn among its fields until the epic " +
         "tool's next write makes each an `<epic-update>` block, after Goal."
     },
     {

@@ -655,7 +655,7 @@ const PROJECT_MARKER = "SPELL: PROJECT"
  * `rule` of an enumerated property's declaration from before `class_member`,
  * which compiled `card suits` with a rule per enumeration.
  * - Loading skips it:  `class_member` reads any type's class variables.
- * - Plan doc D37:  no version bump, so an old compiled library still loads.
+ * - Epic page D37:  no version bump, so an old compiled library still loads.
  */
 const LEGACY_ENUMERATION_RULE = "enumeration"
 

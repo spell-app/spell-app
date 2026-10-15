@@ -23,8 +23,8 @@ import {
  *   a private window or blocked storage just forgets between pages.
  *   The look is ALSO kept in memory, so it works for the page either way.
  * - Scheme:  ONE store for every doc site.
- *   - `DOCS_LOOK_KEYS.scheme` is the key `<spell-site-header>` uses on the docs, plan docs and goals (`SCHEME_KEY`),
- *     with the same values (`light` / `dark`, absent:  follow the OS).
+ *   - `DOCS_LOOK_KEYS.scheme` is the key `<spell-site-header>` uses on the docs, epic pages and saga pages
+ *     (`SCHEME_KEY`), with the same values (`light` / `dark`, absent:  follow the OS).
  *   - Applied the same way:  `ui-light` / `ui-dark` on `<html>` (UI's tokens and `--ui-scheme` follow)
  *     AND inline `color-scheme` (the site header's own `light-dark()`).
  *   - The old keys (`DOCS_LEGACY_SCHEME_KEYS`) are read once, when the new one is absent.
@@ -39,7 +39,7 @@ import {
  *   - The THEME can't be:  its sheet is a lazy chunk.
  *     `restore()` starts that load as the site bundle evaluates, alongside the families' own chunks,
  *     so it usually lands with their first render;  page text may flash the default look for a frame.
- * - Several pickers on one page (the right column's, a component page's `for` one)
+ * - Several pickers on one page (the right column's, a components page's `for` one)
  *   stay in step through `subscribe()`.
  * - Imports the core entry (`UI`, `$/ui/core`), which the site entry loads anyway;
  *   the runtime chunk (`UI.themes`) loads only to apply a theme.

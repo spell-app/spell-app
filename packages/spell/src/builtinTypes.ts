@@ -6,7 +6,7 @@
  *   - `the length of the deck` => `spellCore.itemCountOf(deck)`
  * - Editors read it:  hover and completion show its members' docs, and the Type Explorer lists its types.
  *   - `LSP.ScopeExplorer`'s `yarn scopes --builtins` GENERATES `core`'s `src/spellCore.scopes.js` from it.
- * - Why data (plan doc D25):  no `.spell` file to parse at startup, and no statics on runtime classes --
+ * - Why data (epic page D25):  no `.spell` file to parse at startup, and no statics on runtime classes --
  *   the parser never imports `spellCore`'s code.
  * - Adding a member:  one entry here, and the `spellCore` method or javascript property its `readAs` names.
  *   - `builtinTypes.test.ts` pins each one.

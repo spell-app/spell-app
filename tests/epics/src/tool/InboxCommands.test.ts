@@ -1,6 +1,6 @@
 /**
  * Tests of `InboxCommands` (`spell dev plan-doc inbox ...`) on a scratch checkout:
- * a plan doc in `<epic-*>` markup and its inbox file.
+ * an epic page in `<epic-*>` markup and its inbox file.
  */
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url"
 
 import { afterAll, afterEach, beforeEach, expect, test, vi } from "vite-plus/test"
 
+import { GuideInbox } from "$/epics/tool/GuideInbox"
 import { PlanDoc } from "$/epics/tool/PlanDoc"
 import { PlanDocCommands } from "$/epics/tool/PlanDocCommands"
 import { PlanDocFiles } from "$/epics/tool/PlanDocFiles"
@@ -290,6 +291,35 @@ test("wait:  a send with ONLY comments wakes it, and prints each comment and Owe
   expect(said).not.toMatch(/epic inbox x apply/)
   // handed over:  the next wait has nothing until Owen speaks again
   expect(ReviewInbox.read(inboxFile).hasWork).toBe(false)
+})
+
+/** Make `guides/x.html` epic x's guide:  a page x owns (`SeeAlso.ownerOf()`);  returns its file. */
+function ownGuide(): string {
+  const guide = join(root, "guides", "x.html")
+  mkdirSync(join(root, "guides"), { recursive: true })
+  writeFileSync(guide, "<!doctype html><title>X</title>")
+  const html = readFileSync(file, "utf8")
+  writeFileSync(file, html.replace(/(<epic-page\b[^>]*>)/, `$1<a slot="durable" href="../../guides/x.html">X</a>`))
+  return guide
+}
+
+// epic `epic-workflow` P13 (J27):  the epic's own listener hears the guides it owns
+test("wait:  a Send on a guide the epic owns wakes it, each comment under its page;  once;  `inbox` lists it", async () => {
+  const guide = GuideInbox.fileFor(ownGuide())
+  GuideInbox.update(guide, (comments) => {
+    comments.add({ anchor: "summary", kind: "section", label: "1. Summary" }, "Too long?", new Date(T1))
+  })
+  await commands().inbox.run("x", file, [], {})
+  expect(printed.join("\n")).toMatch(
+    /comments on the pages x owns, waiting for an answer \(1\):\n {2}guides\/x\.html {2}\(sent never\)\n {4}- CM1 {2}on summary \(section\) {2}"Too long\?"[^\n]*· unsent/
+  )
+  printed = []
+  GuideInbox.update(guide, (_comments, inbox) => inbox.markSent(T2))
+  expect(await commands().inbox.run("x", file, ["wait"], { timeout: "5" })).toBeUndefined()
+  const said = printed.join("\n")
+  expect(said).toMatch(/^sent from the pages x owns \(1 comment\):\n {2}guides\/x\.html {2}\(sent [^)]+\):\n {4}- CM1/)
+  expect(said).toMatch(/epic comments working <page> <cm id> on/)
+  expect(GuideInbox.read(guide).hasNewSend).toBe(false)
 })
 
 test("wait --json:  the send's comments, as the inbox holds them", async () => {

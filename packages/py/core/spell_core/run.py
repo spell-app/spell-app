@@ -1,7 +1,7 @@
 """Run a compiled spell program:  `python -m spell_core.run FizzBuzz.spell.py --seed 1`.
 
 - What the core contract runs for the `py` targets (epic python-target, P9).
-  `spell run` doesn't run Python yet (the plan doc's T4).
+  `spell run` doesn't run Python yet (the epic page's T4).
 - `--seed`:  the random numbers start from it, so a game deals the same cards every run, as in JavaScript.
   Without it, each run deals differently.
 - `--no-pauses`:  a pause doesn't wait, e.g. in the core contract, where only what's printed matters.

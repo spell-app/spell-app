@@ -9,7 +9,7 @@ import { type MethodBody } from "./classes.shared"
 
 /**
  * `draw_side` rule:  one SIDE of a thing, as markup, in a type's outline body:
- * `to "draw its front":` then markup (plan doc `outline-spell`, P3;  Q14).
+ * `to "draw its front":` then markup (epic page `outline-spell`, P3;  Q14).
  *
  * ```spell
  * - to "draw its front":

@@ -55,7 +55,8 @@ export type ProjectMenuProps = UIElementAttributes & {
  *   choosing sets it back during the event, and shows the project chosen, which then becomes `editor.project`.
  * - `showLabel` (default `true`):  a `<DropdownLabel>` first, e.g. "Example:".
  * - Sits in a menu:  wrapped in a `<ui-item class="ProjectDropdown">`.  Look:  `ProjectDropdown.css`.
- * - SEE:  its App UI page, `packages/app/docs/ProjectDropdown.html` (`/components/app/ProjectDropdown.html`).
+ * - SEE:  its App UI components page, `packages/app/docs/ProjectDropdown.html`
+ *   (`/components/app/ProjectDropdown.html`).
  ****************/
 export function ProjectDropdown(props: ProjectDropdownProps) {
   const root = trackProjectRoot(() => props.projectRoot)

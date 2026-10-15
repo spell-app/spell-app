@@ -22,7 +22,7 @@ class SpellConsole:
     - Where each line goes:
       - text, numbers, yes / no and plain lists go to stdout:  the program's output, as data
       - a dump of a thing or a list (any value that's not plain data) goes to stderr,
-        so stdout reads the same whatever a thing looks like printed (plan doc python-target, Q17)
+        so stdout reads the same whatever a thing looks like printed (epic page python-target, Q17)
       - warnings and errors go to stderr, as in node
     - Unlike the JavaScript core's console, it keeps no record of its lines:  there's no page to show them.
 

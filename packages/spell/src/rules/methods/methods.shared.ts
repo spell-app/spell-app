@@ -50,7 +50,7 @@ export type MethodSignatureData = {
    */
   asInfixExpression?: boolean
   /**
-   * A phrase on a VALUE kind, e.g. `Rank` for `a rank "is a face card" if ...` (plan doc `outline-spell`, P3).
+   * A phrase on a VALUE kind, e.g. `Rank` for `a rank "is a face card" if ...` (epic page `outline-spell`, P3).
    * - Its values are plain text, so the method is the kind's STATIC one, given the value:  `Rank.isAFaceCard(r)`.
    * - Set by `QuotedTypeExpression.processSignature()`;  postfix only.
    */

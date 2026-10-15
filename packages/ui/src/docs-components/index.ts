@@ -1,6 +1,6 @@
 /**
  * Barrel for `$/ui/docs-components` -- the DOC-ONLY elements:
- * `<ui-docs-*>` widgets the Spell UI docs site (its pages:  the shared `ui/*.html`) is built from,
+ * `<ui-docs-*>` widgets Spell UI's docs site (its pages:  the shared `ui/*.html`) is built from,
  * on top of the real components.
  * - What they are:  element families written EXACTLY like a component family,
  *   but for documenting the library, not for apps.

@@ -101,7 +101,7 @@ Longer notes on some of them follow the table.
 | `spell new <name>` | Makes `<name>/__project.json5`, and a starter `<name>.spell` that prints a hello. |
 | `epic <verb> <epic>[#<id>] ...` | Edits an epic's page as the `/epic` skill does, from anywhere:  `epic summary seo`, `epic close seo#J3`. |
 | `epic ask <verb> ...` | Details pages:  the `/details` skill's tool. |
-| `epic choices <verb> ...` | Syntax-choices pages:  a table of names Claude recommends, one row per use site, which Owen goes through one by one. |
+| `epic choices <verb> ...` | Choice pages:  a table of names Claude recommends, one row per use site, which Owen goes through one by one. |
 | `epic comments <verb> ...` | Comments Owen leaves on docs pages:  list them, gather them into an epic, answer one. |
 | `epic notes <verb> ...` | Page notes:  the notes Owen leaves on docs pages from their bubbles (epic `airplane`). |
 | `epic agents <verb> ...` | The running-agents list, of this checkout's epic or of the checkout. |
@@ -304,7 +304,7 @@ Longer notes on some of them follow the table.
     epic update seo#P3 --goal "<p>...</p>" --estimate 2h
     ```
 
-  - [epicArgs.ts](src/epic/epicArgs.ts) turns `seo#J3` into the plan-doc tool's own arguments (`close seo J3`).
+  - [epicArgs.ts](src/epic/epicArgs.ts) turns `seo#J3` into the `epic` tool's own arguments (`close seo J3`).
 - The OLD spellings still work, until no caller is left:
   - `spell dev plan-doc <command> <name> ...`
   - `spell dev details | choices | comments | notes | agents | airplane`
@@ -315,7 +315,7 @@ Longer notes on some of them follow the table.
 - An epic's page:  its verbs edit `<name>.plan.html`, in the epic's own folder.
   - `new`, `summary`, `phase`, `add`, `close`, `inbox` ...
   - Works in the nearest checkout:  a worktree's, when run in one.
-  - The plan-doc tool runs in this process:  `epic summary seo` takes ~0.4s.
+  - The `epic` tool runs in this process:  `epic summary seo` takes ~0.4s.
 - `ask`:  details pages, the `/details` skill's tool.  Runs [`details.js`](../epics/tools/details.js).
 - `choices`:  runs [`choices.js`](../epics/tools/choices.js).
   - Its verbs:
@@ -329,7 +329,7 @@ Longer notes on some of them follow the table.
     ```
 
   - Owen sends a page with "Do it".
-  - What they are:  [the syntax-choices page](../../guides/syntax-choices.html).
+  - What they are:  [the choice-page guide](../../guides/syntax-choices.html).
 - `notes`:  runs [`notes.ts`](../epics/tools/notes.ts), in the caller's folder.
   The notes are written into the pages.
   - `list [--all] [--json]`:  the default;  every `new` note in the shared folders.
@@ -357,7 +357,7 @@ Longer notes on some of them follow the table.
     done <name>
     list [--json]                                     the default
     wait [--every <s>] [--max <s>] [--json]           in the background:  exits 0 with Owen's untold redirect
-                                                      notes from the plan doc, 3 when nothing runs, 2 on timeout
+                                                      notes from the epic page, 3 when nothing runs, 2 on timeout
     told <name>
     ```
 
@@ -510,7 +510,8 @@ Longer notes on some of them follow the table.
 
 ### `static`
 
-- Renders through `@spell-app/ui`'s static server render (`$/ui/static`;  [its plan doc](../../epics/seo/seo.plan.html)).
+- Renders through `@spell-app/ui`'s static server render
+  (`$/ui/static`;  [its epic page](../../epics/seo/seo.plan.html)).
   - In a child process, [`renderStatic.ts`](src/runner/renderStatic.ts),
     on an SSR-only Vite server ([`StaticRenderer.ts`](../ui/tools/StaticRenderer.ts)).
   - Why a child:  `ui`'s Solid JSX must compile for the server, which `tsx` can't.
@@ -590,7 +591,7 @@ Longer notes on some of them follow the table.
   - `spell dev ...` and `epic ...` start in about a fifth of that:
     the bin scripts run [devMain.ts](src/devMain.ts) and [epicMain.ts](src/epicMain.ts), which load no spell.
     - Then the tool, as a child `node`:  `spell dev window which` takes ~0.17s.
-    - Or the plan-doc tool, in the same process:  `epic summary` takes ~0.4s.
+    - Or the `epic` tool, in the same process:  `epic summary` takes ~0.4s.
   - Its commands that need spell (`session`, `stock` ...) take the usual half second.
 - **Ink is pinned at 5,** from when this lived in the parser, whose app is on React 18:  6+ needs React 19.
   This repo has its own React, so it's free to move.

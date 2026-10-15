@@ -110,7 +110,7 @@ describe("spell dev plan-doc", () => {
     expect(stderr).toMatch(/usage: .*plan-doc <command> <name>/)
   })
 
-  test("summarizes a plan doc", () => {
+  test("summarizes an epic page", () => {
     const { status, stdout } = spell(["dev", "plan-doc", "summary", "unified-server"])
     expect(status).toBe(0)
     expect(stdout).toMatch(/^Unified Server\n {2}\[x\] P1 · Library Core/)
@@ -138,7 +138,7 @@ describe("epic", () => {
     expect(stdout).toMatch(/^Usage: epic close <epic>#J3\n/)
   })
 
-  test("an epic page's verb runs the plan-doc tool", () => {
+  test("an epic page's verb runs the `epic` tool", () => {
     const { status, stdout } = epic(["summary", "unified-server"])
     expect(status).toBe(0)
     expect(stdout).toMatch(/^Unified Server\n {2}\[x\] P1 · Library Core/)
@@ -338,7 +338,7 @@ describe("spell icons", () => {
 })
 
 describe("spell serve", () => {
-  // one retry:  vite's first start, in a busy run, once timed out (plan doc I3)
+  // one retry:  vite's first start, in a busy run, once timed out (epic page I3)
   const options = { timeout: 180_000, retry: 1 }
   test(
     "--headless:  the page server's editor (on --port if it starts the page server), /api through it, the project",

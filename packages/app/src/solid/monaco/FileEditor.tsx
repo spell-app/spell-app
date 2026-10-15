@@ -12,7 +12,7 @@ import { MonacoEditor, type MonacoEditorProps } from "./MonacoEditor"
  * - Remount it per file for a fresh editor each, e.g. `<Show when={path()} keyed>`.
  * - The model is a memo:  `modelFor()` has side effects (it may dispose of another project's models), so it runs
  *   once per `file`, not once per read of `model`.
- * - SEE:  its App UI page, `packages/app/docs/FileEditor.html` (`/components/app/FileEditor.html`).
+ * - SEE:  its App UI components page, `packages/app/docs/FileEditor.html` (`/components/app/FileEditor.html`).
  ****************/
 export function FileEditor(props: FileEditorProps) {
   const model = createMemo(() => (props.file ? SpellMonaco.models.modelFor(props.file) : undefined))

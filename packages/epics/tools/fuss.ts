@@ -658,7 +658,7 @@ function markdownUnits(source: string): ProseUnit[] {
 /**
  * The prose units of HTML `source`:  the text of each block element (`<p>`, `<li>`, any custom element ...).
  * - Scripts, styles, `<pre>`, `<head>` and comments are skipped.
- * - So is quoted text:  `<blockquote>`, and a plan doc's `<epic-original>` / `<epic-answer>`.
+ * - So is quoted text:  `<blockquote>`, and an epic page's `<epic-original>` / `<epic-answer>`.
  *   Those are Owen's own words, kept as he wrote them.
  * - `<code>` becomes a Markdown code span, one word to the checks.
  */

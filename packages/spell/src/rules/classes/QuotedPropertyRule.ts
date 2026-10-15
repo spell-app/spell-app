@@ -38,7 +38,7 @@ export class QuotedPropertyRule extends InfixOperatorSuffix {
    * - `values`:  each `(var)` placeholder's enumerated values, in order, e.g. `{ suit: ["'clubs'", ...] }`.
    *   `ruleData` is worked out from them -- see `placeholderData()`.
    * - `kinds`:  a placeholder whose values aren't known yet, by its VALUE kind,
-   *   e.g. `{ suit: "Suit" }` for a card above the deck declaring suits (plan doc `outline-spell`, P3).
+   *   e.g. `{ suit: "Suit" }` for a card above the deck declaring suits (epic page `outline-spell`, P3).
    *   Its `values` are `[]`, and `parse()` checks the word against the kind's values where the phrase is USED:
    *   see `kindValue()`.
    * - What a project's `SPELL: DECLARES` comment holds for us -- see `SP.SpellDeclarations`.

@@ -40,7 +40,7 @@ class List(SpellObject, MutableSequence[Any]):
 
     Where it differs from a Python `list`:
     - `deck[n]` past the end, or before the start, is `None`, NOT an `IndexError`:
-      spell reads a missing item as nothing (plan doc python-target, Q15).
+      spell reads a missing item as nothing (epic page python-target, Q15).
       - `deck.pop()` on an empty deck is `None` too.
     - `deck[n] = card` past the end grows the list, the gap filled with `None`, as JavaScript's arrays do.
     - `deck[2:5]` is a SCRATCH list of the same class, owning nothing (see "Exclusive lists" below):

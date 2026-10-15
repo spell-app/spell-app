@@ -2,11 +2,12 @@
  * `spell dev details <command>`:  details pages, questions Claude explains on a page and Owen answers ON it (`/details`,
  * `.claude/skills/details/SKILL.md`).
  * - `new <slug> [--title "..."] [--epic <name>] [--description "..."] [--from <questions.json>]` --
- *   a page from `templates/details.html`;  prints its path
+ *   a page from the tool's own template (`templates/details.html` beside it);  prints its path
+ *   - built in the epics pack's `<epic-*>` elements (`answerPages.js`)
  *   - `--from`:  the whole page from a JSON list of questions (`DetailsSpec`, below),
  *     so a skill with many questions to ask (`/worktrees`, `/bedtime`) needn't hand-write it
  *   - scratch:  `pages/details/<slug>.html`, ignored by version control, swept after 14 days
- *   - `--epic <name>`:  `epics/<name>/details/<slug>.html`, committed with the plan doc
+ *   - `--epic <name>`:  `epics/<name>/details/<slug>.html`, committed with the epic page
  * - `show <page> [--wait]` -- start the page server if needed, and show the page in THIS session's VS Code window
  *   - the right side bar's "Review" view, where Owen answers things (epic `windows-and-review` P6, Owen 2026-10-06)
  *   - Chrome outside VS Code
@@ -16,6 +17,9 @@
  *   - run it in the BACKGROUND:  its exit wakes the session
  *   - timeout:  exit 2, saying so
  * - `answer <page>` -- print the answer already sent (exit 1 if none)
+ * - `draft <page>` -- print what Owen typed on the page and hasn't sent (exit 1 if nothing):  its draft,
+ *   `<slug>.draft.json`, newer than the answer (epic `epic-workflow` P18).  Run it BEFORE rewriting a page he may
+ *   have open:  the page puts the draft back by id, and keeps text whose id the rewrite removes in a box of its own
  * - `list` -- every details page, answered or waiting
  * - `sweep [--days 14]` -- delete scratch pages (and their answers) older than that;  never an epic's
  *   - `new` sweeps first, by itself
@@ -24,6 +28,7 @@
  * - paths print absolute:  they mean the same in whichever checkout Claude reads them
  * - The answer itself is written by the page server's route module (`tools/detailsRoutes.ts`) into
  *   `<slug>.answer.json` beside the page.
+ *   - the draft into `<slug>.draft.json`, which Send deletes
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs"
 import { basename, join, relative, resolve } from "node:path"
@@ -31,6 +36,18 @@ import { fileURLToPath } from "node:url"
 
 import { parseHTML } from "linkedom"
 
+import {
+  ASK,
+  CHOICES,
+  OPTION,
+  TOOL_TEMPLATES,
+  appendHTML,
+  commentBox,
+  fillHead,
+  fillWords,
+  make,
+  questionSection
+} from "./answerPages.js"
 import { ROOT, atDepth, openInVSCode, serialize } from "./pages.js"
 
 /** How long `wait` waits by default:  8 hours (decision D9). */
@@ -45,7 +62,7 @@ const SWEEP_DAYS = 14
 /** A slug:  lower-kebab-case. */
 export const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
-/** The files `sweep()` deletes:  pages, answers, and a syntax-choices page's rows and draft (`choices.js`). */
+/** The files `sweep()` deletes:  pages, answers, and a choice page's rows and draft (`choices.js`). */
 const SWEPT = /\.(html|answer\.json|rows\.json|draft\.json)$/
 
 /** Run `spell dev details <argv>`;  the exit code. */
@@ -72,6 +89,12 @@ async function main(argv) {
       console.log(answer ? formatAnswer(file, answer) : `no answer yet:  ${shown(file)}`)
       return answer ? 0 : 1
     }
+    if (command === "draft") {
+      const file = findPage(ROOT, target)
+      const draft = readDraft(file)
+      console.log(draft ? formatDraft(file, draft) : `nothing typed and not sent:  ${shown(file)}`)
+      return draft ? 0 : 1
+    }
     if (command === "list") {
       for (const file of listPages(ROOT))
         console.log(`${readAnswer(file) ? "answered" : "waiting "}  ${relative(ROOT, file)}`)
@@ -95,6 +118,7 @@ const USAGE = `usage:  epic ask new <slug> [--title "..."] [--epic <name>] [--de
         epic ask show <page> [--wait] [--timeout 8h]
         epic ask wait <page> [--timeout 8h]
         epic ask answer <page>
+        epic ask draft <page>
         epic ask list
         epic ask sweep [--days 14]
 (the old spelling, spell dev details, runs the same)`
@@ -104,10 +128,11 @@ const USAGE = `usage:  epic ask new <slug> [--title "..."] [--epic <name>] [--de
 ////////////////
 
 /**
- * Write a new details page `slug` in checkout `docs` (its root:  `pages/details/`, `epics/`, `templates/`) from the
- * template;  its absolute path.
+ * Write a new details page `slug` in checkout `docs` (its root:  `pages/details/`, `epics/`) from the tool's template
+ * (`answerPages.js` `TOOL_TEMPLATES`);  its absolute path.
  * - `--epic <name>`:  in that epic's `details/` (the epic must exist);  else the scratch `details/`
  * - sets `<title>`, the h1, the breadcrumb, the description and the "Asked" date;  refuses to overwrite
+ * - `spec`:  the whole page (`fillFromSpec()`)
  */
 export function createPage(docs, slug, { title, epic, description, spec } = {}) {
   title ??= spec?.title ?? "Details"
@@ -117,15 +142,14 @@ export function createPage(docs, slug, { title, epic, description, spec } = {}) 
   const file = join(folder, `${slug}.html`)
   if (existsSync(file)) throw new Error(`${relative(docs, file)} already exists`)
   const depth = relative(docs, folder).split("/").length
-  const { document } = parseHTML(atDepth(readFileSync(join(docs, "templates/details.html"), "utf8"), depth))
-  document.querySelector("title").textContent = title
-  document.querySelector("h1").textContent = title
-  const crumb = document.querySelector("ui-breadcrumb-section[active]")
-  if (crumb) crumb.textContent = title
-  document.querySelector('meta[name="description"]').setAttribute("content", description ?? `Details:  ${title}`)
-  // the date up top, under "Asked by":  the Send bar is the page's bottom, so no footer
-  const asked = document.querySelector("[data-details-asked]")
-  if (asked) asked.textContent = `Asked:  ${today()}`
+  const { document } = parseHTML(atDepth(readFileSync(join(TOOL_TEMPLATES, "details.html"), "utf8"), depth))
+  // the date up top, under "Asked by":  the notes are the page's bottom, so no footer
+  fillHead(document, {
+    title,
+    description: description ?? `Details:  ${title}`,
+    asked: "[data-details-asked]",
+    date: today()
+  })
   if (spec) fillFromSpec(document, spec)
   mkdirSync(folder, { recursive: true })
   writeFileSync(file, serialize(document))
@@ -134,60 +158,27 @@ export function createPage(docs, slug, { title, epic, description, spec } = {}) 
 
 /**
  * Fill a new page's `document` from `spec` (`DetailsSpec`):  lede, "Asked by", the "Where we are" box, the context,
- * then one question section per question, replacing the template's examples.
- * - text fields are HTML (Claude writes them);  titles and letters go in attributes, escaped
+ * then one question section per question, in place of the template's example (`answerPages.js`
+ * `questionSection()`).
+ * - text fields are HTML (Claude writes them);  titles and letters go in attributes
  */
 function fillFromSpec(document, spec) {
   // a page that's only a form (`/epic review`'s item picker):  no site header
   if (spec.bare) document.querySelector("spell-site-header")?.remove()
-  const lede = document.querySelector("p.lede")
-  if (lede && spec.lede) lede.innerHTML = spec.lede
-  const asked = document.querySelector('ui-item[icon="comments"]')
-  if (asked && spec.askedBy) asked.innerHTML = `Asked by:  ${spec.askedBy}`
-  const where = document.querySelector("ui-message.spell-where ul")
-  if (where && spec.where) {
-    const rows = [
-      ["Epic", spec.where.epic],
-      ["Just now", spec.where.justNow],
-      ["This decides", spec.where.decides]
-    ].filter(([, text]) => text)
-    where.innerHTML = rows.map(([label, text]) => `<li><b>${label}:</b>  ${text}</li>`).join("")
-  }
+  fillWords(document, spec)
   const context = document.querySelector("ui-section#context")
   if (context) {
-    if (spec.context) context.innerHTML = `<ui-icon slot="icon" name="lightbulb"></ui-icon>${spec.context}`
+    if (spec.context)
+      context.replaceChildren(
+        make(document, "ui-icon", { slot: "icon", name: "lightbulb" }),
+        ...appendHTML(document.createElement("div"), spec.context).childNodes,
+        commentBox(document, "context")
+      )
     else context.remove()
   }
-  const example = document.querySelector("ui-section.spell-question")
-  const html = (spec.questions ?? []).map((question, i) => questionHtml(question, i)).join("\n")
-  if (example) example.outerHTML = html
-}
-
-/** One question's section, from a `DetailsSpec` question;  `i`:  its place, for the default id (`q1` ...). */
-function questionHtml(question, i) {
-  const id = question.id ?? `q${i + 1}`
-  const options = (question.options ?? []).map((option, j) => {
-    const letter = option.letter ?? String.fromCharCode(65 + j)
-    const fold = option.detailsTitle ? ` data-title="${attr(option.detailsTitle)}"` : ""
-    const more = option.details ? `<div class="spell-option-details"${fold}>${option.details}</div>` : ""
-    const flags = [
-      option.recommended && " data-recommended",
-      option.checked && " data-checked",
-      option.done && " data-done",
-      option.badge && ` data-badge="${attr(option.badge)}"`,
-      option.badgeColor && ` data-badge-color="${attr(option.badgeColor)}"`,
-      option.state && ` data-state-icon="${attr(option.state.icon)}"`,
-      option.state?.color && ` data-state-color="${attr(option.state.color)}"`,
-      option.state?.label && ` data-state-label="${attr(option.state.label)}"`
-    ]
-    const summary = option.summary ? `<p>${option.summary}</p>` : ""
-    return `<div class="spell-option" data-option="${attr(letter)}" data-title="${attr(option.title ?? letter)}"${flags.filter(Boolean).join("")}>${summary}${option.body ?? ""}${more}</div>`
-  })
-  const multiple = question.multiple ? " data-multiple" : ""
-  const tools = `${question.selectAll ? " data-select-all" : ""}${question.filter ? " data-filter" : ""}${question.moreDetails ? " data-more" : ""}`
-  const header = attr(question.title ?? `Q${i + 1}`)
-  const text = question.text ? `<p>${question.text}</p>` : ""
-  return `<ui-section id="${attr(id)}" class="spell-question" header="${header}" sticky collapsible dividing${multiple}${tools}><ui-icon slot="icon" name="circle question"></ui-icon>${text}${options.join("")}</ui-section>`
+  const example = [...document.querySelectorAll("ui-section")].find((section) => section.querySelector(ASK))
+  const sections = (spec.questions ?? []).map((question, i) => questionSection(document, question, i))
+  if (example) example.replaceWith(...sections)
 }
 
 /**
@@ -200,11 +191,6 @@ function findFile(path) {
     .find((each) => existsSync(each))
   if (!found) throw new Error(`no file ${path}`)
   return found
-}
-
-/** `text` safe in a double-quoted attribute. */
-export function attr(text) {
-  return String(text).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")
 }
 
 /**
@@ -221,12 +207,12 @@ export function attr(text) {
  *   `{ letter?, title, summary?, body?, details?, detailsTitle?, recommended?, checked?, done?, badge?, badgeColor? }`
  *   - letters default to A, B ...
  *   - `summary`:  one line
- *   - `body`:  block HTML after it (the whole text:  long ones clamp to 150px, "Show more")
+ *   - `body`:  block HTML after it (the whole text:  the card folds by its chevron)
  *   - `details`:  folded, under `detailsTitle` (default "Details");  only when there IS more than the body
  *   - `checked`:  ticked to start with
  *   - `done`:  hidden under "Open"
  *   - `badge` / `badgeColor`:  a label beside the title
- *   - `state`:  `{ icon, color, label }`, an icon under the tick box (in `ICONS`), `label` on hover
+ *   - `state`:  `{ icon, color, label }`, an icon at the end of its header (in `ICONS`), `label` its tooltip
  * - plain JS:  no type, this comment is the spec
  */
 
@@ -272,7 +258,7 @@ export function listPages(docs) {
 /**
  * Delete the scratch pages under `docs` last changed more than `days` ago, with their answers;  what went.
  * - only `pages/details/`:  an epic's pages are its record
- * - a syntax-choices page's files too (`choices.js`):  its rows and draft
+ * - a choice page's files too (`choices.js`):  its rows and draft
  * - SIDE EFFECT:  deletes files
  */
 export function sweep(docs, days, now = Date.now()) {
@@ -301,6 +287,32 @@ export function answerFile(page) {
 export function readAnswer(page) {
   const file = answerFile(page)
   return existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : undefined
+}
+
+/** `<slug>.draft.json` beside page `<slug>.html`:  what's typed and not sent (`detailsRoutes.ts`). */
+export function draftFile(page) {
+  return page.replace(/\.html$/, ".draft.json")
+}
+
+/**
+ * The draft of `page` NEWER than its answer (an older one was sent already), or `undefined`.
+ * - the draft's shape:  `detailsRoutes.ts` `DetailsDraft`
+ */
+export function readDraft(page) {
+  const file = draftFile(page)
+  if (!existsSync(file)) return undefined
+  const draft = JSON.parse(readFileSync(file, "utf8"))
+  const answer = readAnswer(page)
+  return !answer || Date.parse(draft.saved) > Date.parse(answer.answered) ? draft : undefined
+}
+
+/**
+ * `draft` of `page` as plain text, for Claude:  as an answer reads (`formatAnswer()`), under its own first line,
+ * "Not sent:  typed on ... (draft saved ...)".
+ */
+export function formatDraft(page, draft) {
+  const [, ...rest] = formatAnswer(page, { ...draft, answered: draft.saved, changes: 0 }).split("\n")
+  return [`Not sent:  typed on "${titleOf(page)}" (${shown(page)}), draft saved ${draft.saved}:`, ...rest].join("\n")
 }
 
 /**
@@ -332,40 +344,48 @@ export async function waitForAnswer(page, { since = Date.now(), timeout, poll = 
  */
 export function formatAnswer(page, answer) {
   const { document } = parseHTML(readFileSync(page, "utf8"))
-  const title = document.querySelector("h1")?.textContent?.trim() ?? basename(page)
+  const title = titleOf(page, document)
   const lines = [`Answer to "${title}" (${shown(page)}), sent ${answer.answered}:`]
   if (answer.changes) lines[0] += `  (sent ${answer.changes + 1}×)`
   const changed = new Set(answer.changes ? (answer.changed ?? []) : [])
   const isNew = (key) => (changed.has(key) ? "  (new)" : "")
-  const questions = [...document.querySelectorAll(".spell-question")]
+  const questions = [...document.querySelectorAll(ASK)]
   const decided = questions.filter((question) => {
-    const got = answer.answers?.[question.id]
+    const got = answer.answers?.[askKey(question)]
     return got?.picked?.length || got?.other
   })
   lines.push(`  ${decided.length} of ${questions.length} decided`)
   for (const question of questions) {
-    const got = answer.answers?.[question.id] ?? { picked: [] }
+    const key = askKey(question)
+    const got = answer.answers?.[key] ?? { picked: [] }
     const picked = got.picked.map((letter) => {
-      const option = question.querySelector(`.spell-option[data-option="${letter}"]`)
-      const recommended = option?.hasAttribute("data-recommended") ? " (recommended)" : ""
-      return `${letter} · ${option?.getAttribute("data-title") ?? "?"}${recommended}`
+      const option = optionOf(question, letter)
+      const recommended = option?.hasAttribute("recommended") ? " (recommended)" : ""
+      return `${letter} · ${option?.getAttribute("title") ?? "?"}${recommended}`
     })
     if (got.other) picked.push(`Other:  ${got.other}`)
-    const header = question.getAttribute("header") ?? question.id
-    lines.push(`  ${header}:  ${picked.join(";  ") || "(not decided yet)"}${isNew(question.id)}`)
+    lines.push(`  ${askHeader(question)}:  ${picked.join(";  ") || "(not decided yet)"}${isNew(key)}`)
   }
-  // "Provide more details" (`moreDetails`):  `<question id>-more`, the options' letters
-  for (const question of document.querySelectorAll(".spell-question[data-more]")) {
-    const more = answer.answers?.[`${question.id}-more`]?.picked ?? []
-    if (more.length)
-      lines.push(`  More details wanted on ${question.id}:  ${more.join(", ")}${isNew(`${question.id}-more`)}`)
+  // "Provide more details" (`moreDetails`):  `<question key>-more`, the options' letters
+  for (const question of questions.filter((each) => each.hasAttribute("more-details"))) {
+    const key = askKey(question)
+    const more = answer.answers?.[`${key}-more`]?.picked ?? []
+    if (more.length) lines.push(`  More details wanted on ${key}:  ${more.join(", ")}${isNew(`${key}-more`)}`)
   }
   // the comment box under each section that isn't a question, and under each option (`q1-B`)
   const comments = Object.entries(answer.comments ?? {})
   if (comments.length) lines.push("  Comments:")
   for (const [id, text] of comments) lines.push(`    ${commentPlace(document, id)}:  ${text}${isNew(`comment:${id}`)}`)
   if (answer.notes) lines.push(`  Notes:  ${answer.notes}${isNew("notes")}`)
+  // text typed for questions, options or sections a rewrite took off the page (epic `epic-workflow` P18)
+  if (answer.kept?.length) lines.push(`  Kept from before the page changed:${isNew("kept")}`)
+  for (const { id, label, text } of answer.kept ?? []) lines.push(`    ${label} (${id}):  ${text}`)
   return lines.join("\n")
+}
+
+/** `page`'s title, its h1 (`document`:  the page, parsed);  else its file's name. */
+function titleOf(page, document = parseHTML(readFileSync(page, "utf8")).document) {
+  return document.querySelector("h1")?.textContent?.trim() ?? basename(page)
 }
 
 /**
@@ -375,11 +395,30 @@ export function formatAnswer(page, answer) {
 function commentPlace(document, id) {
   const section = document.getElementById(id)
   if (section) return section.getAttribute("header") ?? id
-  const [, question, letter] = /^(.+)-([A-Z])$/.exec(id) ?? []
-  const asked = question && document.getElementById(question)
-  const option = asked?.querySelector(`.spell-option[data-option="${letter}"]`)
+  // a letter is `B`, or the item picker's item id (`J7`)
+  const [, key, letter] = /^(.+)-([A-Z][A-Za-z0-9]*)$/.exec(id) ?? []
+  const question = key && [...document.querySelectorAll(ASK)].find((each) => askKey(each) === key)
+  const option = question && optionOf(question, letter)
   if (!option) return id
-  return `${asked.getAttribute("header") ?? question}, ${letter} · ${option.getAttribute("data-title") ?? "?"}`
+  return `${askHeader(question)}, ${letter} · ${option.getAttribute("title") ?? "?"}`
+}
+
+/** A question's (`<epic-ask>`) key:  its `name`, else its section's id, as the element works it out. */
+export function askKey(question) {
+  return question.getAttribute("name") ?? question.closest("ui-section[id]")?.id ?? ""
+}
+
+/** A question's title, for people:  its section's `header` (`Q1 · Which layout?`), else its key. */
+function askHeader(question) {
+  return question.closest("ui-section[id]")?.getAttribute("header") ?? askKey(question)
+}
+
+/** Option `letter` of question `question`:  its own options only, not one quoted in an option's text. */
+function optionOf(question, letter) {
+  return [...question.children]
+    .filter((child) => child.localName === CHOICES)
+    .flatMap((choices) => [...choices.children])
+    .find((child) => child.localName === OPTION && child.getAttribute("letter") === letter)
 }
 
 /** `wait`:  wait for `file`'s answer, print it;  exit code 0, or 2 on timeout. */

@@ -12,7 +12,7 @@ import { AgentList, AgentListError } from "../../../packages/epics/tools/AgentLi
 const SCRATCH = realpathSync(mkdtempSync(join(tmpdir(), "agent-list-")))
 afterAll(() => rmSync(SCRATCH, { recursive: true, force: true }))
 
-/** A scratch checkout:  `main`'s root, or worktree `name`'s, with that epic's plan doc when `epic` is set. */
+/** A scratch checkout:  `main`'s root, or worktree `name`'s, with that epic's epic page when `epic` is set. */
 function checkout(worktree?: string, { epic = false } = {}): string {
   const root = worktree ? join(SCRATCH, "repo", ".claude", "worktrees", worktree) : join(SCRATCH, "repo")
   mkdirSync(root, { recursive: true })
@@ -24,7 +24,7 @@ function checkout(worktree?: string, { epic = false } = {}): string {
 }
 
 describe("where the list lives", () => {
-  test("a worktree with its epic's plan doc:  the epic's folder, named for the epic", () => {
+  test("a worktree with its epic's epic page:  the epic's folder, named for the epic", () => {
     const root = checkout("big", { epic: true })
     const list = new AgentList(root)
     expect(list.file).toBe(join(root, "epics", "big", "agents.json"))
@@ -48,7 +48,7 @@ describe("where the list lives", () => {
 })
 
 describe("redirects", () => {
-  test("forPlanDoc():  the list beside a plan doc, named for its epic", () => {
+  test("forPlanDoc():  the list beside an epic page, named for its epic", () => {
     const root = checkout("doc", { epic: true })
     const list = AgentList.forPlanDoc(join(root, "epics", "doc", "doc.plan.html"))
     expect(list.file).toBe(join(root, "epics", "doc", "agents.json"))
