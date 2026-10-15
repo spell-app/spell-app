@@ -111,8 +111,8 @@ Owen is back online.  Gather everything, work through it in the background, then
      - A page whose phase is still open gets an Updated block in it.
      - A reply on a thread goes too, under its comment ("Owen replied on the thread").
    - Each is marked taken on its page.
-   - `/epic guide-changes` answers each on its thread:  `epic comments working <page> <id> on` as it starts
-     (the thread shows "Claude: thinking…"), then `epic comments answer <page> <id> --file <html>
+   - `/epic guide-changes` answers each on its thread:  `epic comments working <page>#<id> on` as it starts
+     (the thread shows "Claude: thinking…"), then `epic comments answer <page>#<id> --file <html>
      [--commit <sha>]`, which turns it off.
    - Say which pages, and that `/epic guide-changes` works them;  nothing else to do for them now.
 5. The rest goes to background agents, up to 5 at once.
@@ -130,7 +130,7 @@ Owen is back online.  Gather everything, work through it in the background, then
        his thread too, his turn (and the thinking stub gone).  A reply of his:  answer his latest words.
    - Page notes were gathered in 4b with the comments.
      One written into a page since:  read the page and the note, and answer under it
-     (`epic notes answer <page> <id> --file`).
+     (`epic notes answer <page>#<id> --file`).
    - Details answers:  as `/details` takes them.  (Goals thoughts:  goals is parked, epic `epic-goals`.)
    - Nothing is decided for Owen:  an answer that needs him ends in option cards, and the item stays red.
 

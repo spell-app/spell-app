@@ -27,7 +27,7 @@ const INBOX_FILE = /\.inbox\.json5?$/
 const PROMPT =
   "Owen's comments on the docs pages (guides, the home page, epics' own pages), gathered from each page's inbox by " +
   "`epic comments gather`:  one phase per page.  Work each comment into its page (or say why not), then answer " +
-  "it under the comment:  `epic comments answer <page> <id> --file <reply.html>`."
+  "it under the comment:  `epic comments answer <page>#<id> --file <reply.html>`."
 
 /****************
  * ### `GuideChanges`
@@ -122,7 +122,7 @@ export class GuideChanges {
             symptom: `Owen left ${many(count)} on <a href="${link}">${escape(page.title)}</a> (<code>${escape(page.page)}</code>).`,
             changes:
               `Work each into the page, or say why not;  then answer it under the comment:  ` +
-              `<code>epic comments answer ${escape(page.page)} &lt;id&gt; --file reply.html</code>.`,
+              `<code>epic comments answer ${escape(page.page)}#&lt;id&gt; --file reply.html</code>.`,
             goal: list
           })
           plan.log(`P${phase} added:  ${page.title} (${many(count)}, epic comments gather)`)

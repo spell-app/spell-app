@@ -1,11 +1,11 @@
 /**
- * `spell dev agents <verb> ...`:  the running-agents list of this checkout's epic, else of the checkout (epic
+ * `epic agents <verb> ...`:  the running-agents list of this checkout's epic, else of the checkout (epic
  * `skillz`;  `AgentList.ts`).  Claude sessions call it as they start and finish background agents (`/bg`, the root
  * `CLAUDE.md`'s rule), and so do the agents they start.
  *
- *     spell dev agents add aaa "docstrings in string.ts" [--status "blocked on skillz-bbb"] [--task-id <id>]
+ *     epic agents add aaa "docstrings in string.ts" [--status "blocked on skillz-bbb"] [--task-id <id>]
  *     skillz-aaa
- *     spell dev agents list
+ *     epic agents list
  *     skillz-aaa  active  3m  docstrings in string.ts
  *
  * - `add <name> "<task>"`:  prints the full name (`skillz-aaa`);  exits 1 if it's running already
@@ -102,12 +102,12 @@ function stringFlag(value: string | true | undefined): string | undefined {
   return typeof value === "string" ? value : undefined
 }
 
-/** Print how to call it;  exit code 1. */
+/** Print how to call it;  exit code 2, a usage error, as the other `epic` groups' tools. */
 function usage(): number {
   console.error(
     'usage:  epic agents add <name> "<task>" [--status ...] [--task-id <id>] | set <name> [--status ...] ' +
       "[--task-id <id>] | done <name> | list [--json] | wait [--every <s>] [--max <s>] [--json] | told <name>   " +
       "(any verb:  [--epic <name>])"
   )
-  return 1
+  return 2
 }

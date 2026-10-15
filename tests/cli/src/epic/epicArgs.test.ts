@@ -58,13 +58,39 @@ describe("planDocArgs():  Owen's rows", () => {
 ////////////////
 
 describe("planDocArgs()", () => {
-  test("without a #, the tool's own order passes through unchanged", () => {
-    expect(CLI.planDocArgs("close", ["seo", "J3"])).toEqual([["close", "seo", "J3"]])
-    expect(CLI.planDocArgs("add", ["seo", "todo", "T"])).toEqual([["add", "seo", "todo", "T"]])
-    expect(CLI.planDocArgs("commit", ["seo", "abc", "s", "--phase", "3"])).toEqual([
-      ["commit", "seo", "abc", "s", "--phase", "3"]
-    ])
+  // epic `epic-workflow` P19:  run silently, the old order taught agents the old shape
+  test("the tool's old order, with no #, is refused, spelled right", () => {
+    const refused = (verb: string, args: string[]) => () => CLI.planDocArgs(verb, args)
+    expect(refused("close", ["seo", "J3"])).toThrow('close:  epic close seo#J3  (the id goes after a #, not "seo J3")')
+    expect(refused("status", ["seo", "J3", "underway", "x"])).toThrow("epic status seo#J3 ...")
+    expect(refused("phase", ["seo", "3", "done"])).toThrow("epic phase seo#P3 ...")
+    expect(refused("updated", ["seo", "Epic Migrate", "<p>x</p>"])).toThrow('epic updated "seo#Epic Migrate" ...')
+    expect(refused("add", ["seo", "todo", "T"])).toThrow("epic add seo#T ...")
+    expect(refused("commit", ["seo", "abc", "s", "--phase", "3"])).toThrow("epic commit seo#P3 <sha>")
+    expect(refused("commit", ["seo", "abc", "s", "--item", "J3"])).toThrow("epic commit seo#J3 <sha>")
+    expect(refused("inbox", ["seo", "working", "J3", "on"])).toThrow("epic inbox seo#J3 working on")
+    expect(refused("inbox", ["seo", "done", "cm3"])).toThrow("epic inbox seo#cm3 done")
+    expect(refused("update", ["seo", "P3", "--goal", "g"])).toThrow("epic update seo#P3 --<field> <value> ...")
+    expect(refused("add-request", ["seo", "7", "r3"])).toThrow("epic add-request seo#P7 ...")
+  })
+
+  test("an item or phase verb given only the epic:  which one, with an example", () => {
+    expect(() => CLI.planDocArgs("close", ["seo"])).toThrow("close:  which item?  epic close seo#J3")
+    expect(() => CLI.planDocArgs("status", ["seo"])).toThrow('which item?  epic status seo#J3 underway "<reading>"')
+    expect(() => CLI.planDocArgs("phase", ["seo"])).toThrow("which phase?  epic phase seo#P3 todo | active | done")
+    expect(() => CLI.planDocArgs("add", ["seo"])).toThrow('which kind of item?  epic add seo#J "Title"')
+  })
+
+  test("no epic at all:  which, pointing to the verb's help;  the verbs that take none run", () => {
+    expect(() => CLI.planDocArgs("close", [])).toThrow("close:  which epic?  epic close --help")
+    expect(() => CLI.planDocArgs("summary", ["--json"])).toThrow("summary:  which epic?")
+    expect(CLI.planDocArgs("list", [])).toEqual([["list"]])
+  })
+
+  test("the page's own verbs, and inbox's, take the epic alone", () => {
     expect(CLI.planDocArgs("inbox", ["seo", "wait"])).toEqual([["inbox", "seo", "wait"]])
+    expect(CLI.planDocArgs("inbox", ["seo", "apply", "J3"])).toEqual([["inbox", "seo", "apply", "J3"]])
+    expect(CLI.planDocArgs("update", ["seo", "--standing"])).toEqual([["standing", "seo", "on"]])
   })
 
   test("verbs that take no epic, or several, pass through", () => {

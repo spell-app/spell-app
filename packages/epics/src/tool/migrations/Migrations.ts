@@ -10,7 +10,7 @@ import { UpdatesAsEpicUpdate } from "./UpdatesAsEpicUpdate"
  * Every MIGRATION of an epic page's markup, in the order they run (oldest first):  named, dated, idempotent steps
  * that bring an older page up to today's (`Migration`).  The epic page's share of the steps by page kind (J44 of
  * epic `epic-workflow`);  the docs package holds the other kinds' (`packages/epics/tools/migrate.js`).
- * - `spell dev plan-doc migrate` runs them on every epic page on command (`MigrateCommands`), under each page's lock
+ * - `epic migrate` runs them on every epic page on command (`MigrateCommands`), under each page's lock
  * - every write runs the cheap ones too (`everyEdit`), before the command's change (`PlanDocFiles.edit()`):
  *   an older doc comes up to date the first time anything edits it, and a migrated one costs a read
  * - A new step:  a class implementing `Migration` in this folder, its instance added to `all`, LAST, in the same

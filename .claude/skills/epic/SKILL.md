@@ -934,7 +934,7 @@ A REQUEST is something Owen asked for in another session, sent here instead of d
       - `updated <epic>#P<N> "<p>r3 joined:  ...</p>"`
    3. else a NEW phase, drafted as "10. Add a phase" drafts one, his words as Owen's input
       - `--before <Doc Review's number>` while Doc Review is still to do;  else last
-   4. `epic file <epic> r3 <N>`:  his words, the context and the screenshots go into phase N's Requests field,
+   4. `epic file <epic>#P<N> r3`:  his words, the context and the screenshots go into phase N's Requests field,
       and the request is marked filed (`P<N>`)
    5. `epic check <epic>`;  report one line per request:  "r3 joined P6 · Comment Threads" or
       "r3:  new P8 · Retry Logic"
@@ -978,7 +978,8 @@ add-phase <name> "Short Name" --symptom .. --changes .. [--goal ..] [--files ..]
           [--before N]                              --before:  inserted as PN;  the to-do phases from N move down
 update <name>#P<N> [--symptom ..] [--changes ..] [--goal ..] [--files ..] [--verify ..]   set ("" removes) fields
 updated <name>#P<N> "<p>what changed</p>" [--summary ".."]   phase N's plan changed:  <epic-update>, after Goal
-add-request <name>#P<N> <rN> --from "..." --file f   a request into phase N's Requests field (`epic file` runs it)
+file <name>#P<N> <rN>                               a request into phase N's Requests field, marked filed there
+file <name> <rN> "where it went"                    a request with no phase:  only marked, saying where it went
 update <name>#P<N> --estimate "1-2h"                change a phase's estimate;  the Overview's total follows
 phase <name>#P<N> todo|active|done [--no-open]      done drops UPDATE labels / prose updates;  reloads the tab
 add <name>#Q|#J|#C|#I|#T|#V|#D "title" [--details "<p>html</p>"] [--calm]   prints the id (C3)

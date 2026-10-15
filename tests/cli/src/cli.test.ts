@@ -138,6 +138,50 @@ describe("epic", () => {
     expect(stdout).toMatch(/^Usage: epic close <epic>#J3\n/)
   })
 
+  // epic `epic-workflow` P19
+  test("<verb> --help:  an example too", () => {
+    const { stdout } = epic(["close", "--help"])
+    expect(stdout).toMatch(/\nExample:\n {2}epic close seo#J3\n/)
+  })
+
+  test("<group> <verb> --help:  that verb's own help, not the group's", () => {
+    const { status, stdout } = epic(["ask", "new", "--help"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^Usage: epic ask new <slug> /)
+    expect(stdout).toMatch(/\nExample:\n {2}epic ask new pick-layout/)
+    const group = epic(["comments", "--help"])
+    expect(group.stdout).toMatch(/^Usage: epic comments <verb> \[arguments\]\n/)
+    expect(group.stdout).toMatch(/^ {2}working +Claude is thinking/m)
+  })
+
+  test("an unknown verb, or a group's:  exit 1, listing the verbs", () => {
+    const verb = epic(["bogus"])
+    expect(verb.status).toBe(1)
+    expect(verb.stderr).toContain("epic bogus?  no such verb.")
+    expect(verb.stderr).toMatch(/summary, summaries, items/)
+    const grouped = epic(["ask", "bogus"])
+    expect(grouped.status).toBe(1)
+    expect(grouped.stderr).toContain(
+      "epic ask bogus?  no such verb.  The verbs:\n  new, show, wait, answer, draft, list, sweep"
+    )
+  })
+
+  test("the old order, with no #:  refused, exit 2, spelled right", () => {
+    const { status, stderr } = epic(["close", "unified-server", "J3"])
+    expect(status).toBe(2)
+    expect(stderr).toContain("epic close unified-server#J3")
+  })
+
+  test("file:  the phase after a #;  add-request, its old name, runs it, hidden", () => {
+    expect(epic(["--help"]).stdout).not.toMatch(/^ {2}add-request /m)
+    const old = epic(["file", "unified-server", "r3", "7"])
+    expect(old.status).toBe(2)
+    expect(old.stderr).toContain("epic file unified-server#P7 r3")
+    const alias = epic(["add-request", "unified-server#P1", "r999"])
+    expect(alias.status).toBe(2)
+    expect(alias.stderr).toContain("no request 'r999' in epic 'unified-server'")
+  })
+
   test("an epic page's verb runs the `epic` tool", () => {
     const { status, stdout } = epic(["summary", "unified-server"])
     expect(status).toBe(0)
@@ -271,20 +315,26 @@ process.exit(3)
     expect(realpathSync(choices.cwd)).toBe(resolve(CHECKOUT, "packages/epics"))
   })
 
-  test("epic's groups pass through the same:  ask (details pages), choices and comments list <epic>", () => {
+  test("epic's groups pass through the same:  ask (details pages), choices, comments and notes list <epic>", () => {
     const run = (args: string[]) => {
       const { status, stdout } = epic(args, INSIDE)
       return { status, ...(stdout ? JSON.parse(stdout) : {}) }
     }
     expect(run(["ask", "list"])).toMatchObject({ status: 3, tool: "packages/epics/tools/details.js", args: ["list"] })
-    expect(run(["choices", "list", "seo"])).toMatchObject({
-      tool: "packages/epics/tools/choices.js",
-      args: ["list", "seo"]
-    })
-    expect(run(["comments", "list", "seo"])).toMatchObject({
-      tool: "packages/epics/tools/comments.ts",
-      args: ["list", "seo"]
-    })
+    for (const [group, tool] of [
+      ["ask", "details.js"],
+      ["choices", "choices.js"],
+      ["comments", "comments.ts"],
+      ["notes", "notes.ts"]
+    ]) {
+      expect(run([group!, "list", "seo"])).toMatchObject({
+        tool: `packages/epics/tools/${tool}`,
+        args: ["list", "seo"]
+      })
+    }
+    // no verb, or one after a flag the tool takes:  the tool's to read
+    expect(run(["comments", "--json"])).toMatchObject({ status: 3, args: ["--json"] })
+    expect(run(["notes", "done", "guides/x.html#n3"])).toMatchObject({ args: ["done", "guides/x.html#n3"] })
   })
 
   test("notes:  under tsx, in THIS folder, so `answer --file` is from here", () => {

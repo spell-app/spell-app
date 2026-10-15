@@ -8,11 +8,11 @@
  *     read while there's no `.json5`, and removed by the next write
  * - names carry a PREFIX:  the epic's name, else the worktree's, else `main`;  `add("aaa")` in epic `skillz` is
  *   `skillz-aaa`.  Every method takes the short name or the full one.
- * - writers:  `spell dev agents` (`agents.ts`;  sessions and their helpers, at the same time) and the page server's
+ * - writers:  `epic agents` (`agents.ts`;  sessions and their helpers, at the same time) and the page server's
  *   route (`agentRoutes.ts`:  Owen's redirect notes from the epic page's Agents box).  Every write is under the
  *   file's lock (`SRV.FileLock`), and atomic (a temp file renamed over it), as the review inbox's (`ReviewInbox`).
  * - REDIRECTS:  a note Owen sends a running agent from the page waits in its entry, untold, until a session waiting
- *   on the list (`spell dev agents wait`) passes it on (`SendMessage`) and marks it `told()`
+ *   on the list (`epic agents wait`) passes it on (`SendMessage`) and marks it `told()`
  * - an agent leaves the list when it finishes (`done()`):  the list is what's RUNNING;  empty, the file goes
  * - NOT in the record:  the epic page says what agents DID;  this says what they're doing now
  */
@@ -105,7 +105,7 @@ export class AgentList {
 
   /**
    * Owen's notes for running agents that no session has passed on yet, oldest first:  `{ name, note, at }` each.
-   * - a session waiting on the list (`spell dev agents wait`) sends each to its agent, then marks it `told()`
+   * - a session waiting on the list (`epic agents wait`) sends each to its agent, then marks it `told()`
    */
   get untold(): Untold[] {
     return this.agents.flatMap((agent) =>

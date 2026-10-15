@@ -2,7 +2,7 @@
  * MIGRATE the docs' pages, by page KIND (epic `epic-workflow`, P8;  J44):  each kind's named, dated, idempotent steps,
  * oldest first, on each page of that kind, under its lock;  a report per page that changed.
  * - the epic page's steps are the `epic` tool's (`$/epics/tool/migrations`, `Migrations`):  this file holds the
- *   OTHER kinds', and `spell dev plan-doc migrate` runs it as a child for them (`MigrateCommands`)
+ *   OTHER kinds', and `epic migrate` runs it as a child for them (`MigrateCommands`)
  * - `KINDS`:  every page kind, the same list as `PAGE_KINDS` in `$/epics/tool/migrations` (`migrate.test.ts` checks)
  * - `pageKind()`:  which kind a page is, from where it lives and what it loads
  * - `STEPS`:  the steps.  Today's one-off fixers, as steps of their kind:

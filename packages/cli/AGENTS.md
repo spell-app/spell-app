@@ -69,6 +69,12 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - An epic page's verbs run the `epic` tool in this process (`planDocCommand()`).
       - First [epicArgs.ts](src/epic/epicArgs.ts) turns `seo#J3` into the tool's own arguments (`close seo J3`).
       - A thin translation, tested verb by verb.
+      - The tool's order typed to `epic` (`epic close seo J3`) is REFUSED, spelled right in the message (epic
+        `epic-workflow` P19):  run silently, it taught agents the old shape.
+    - Every verb's help:  its usage, what it does, an example (`epic close --help`).
+      - A group's verbs are listed for theirs in [epicGroups.ts](src/epic/epicGroups.ts) (`epic ask new --help`);
+        a verb not listed there is refused before the tool runs.
+      - Exit codes:  0;  1 a failure, or an unknown verb (listing the verbs);  2 a usage error (`EXIT`).
     - The groups are pass-throughs, as below:
 
       ```
@@ -81,10 +87,12 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       send  requests  file  home  merge
       ```
 
+      - and `add-request`, `file`'s old name, hidden
       - That runs [epicCommand.ts](src/commands/epicCommand.ts), on [the epic folder](src/epic/).
     - The old spellings still run the same tools, until no caller is left:
       - `spell dev plan-doc <verb> <name> <id> ...` (and `spell dev details`, `choices` ...)
         - hidden from `spell dev --help`
+        - the tool's own order, no `#`:  older checkouts and scripts call it
       - `spell epic <verb>`, which [spell.mjs](bin/spell.mjs) sends to [epicMain.ts](src/epicMain.ts)
   - A new or renamed command:
     FIRST [the commands guide](../../guides/dev/commands/commands.md) (root `AGENTS.md`, "Commands").

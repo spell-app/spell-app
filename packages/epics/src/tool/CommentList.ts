@@ -61,7 +61,7 @@ CommentsError.prototype.name = "CommentsError"
  *   `replies` in order, Claude's (`answer()`) and Owen's (`reply()`), then maybe `done` (`resolve()`)
  *   - WHOSE TURN (`turnOf()`):  Owen's once Claude spoke last;  Claude's while Owen did;  nobody's once done
  *   - WAITING (`waiting`):  Claude's turn, and he hasn't taken it yet.  So a reply on a thread is new work, as a
- *     new comment is (`/epic review`, `/airplane land`, `spell dev comments gather`)
+ *     new comment is (`/epic review`, `/airplane land`, `epic comments gather`)
  *     - an epic page's waiting comment goes to Claude with its page's Send, as a mark does:
  *       `ReviewInbox.unsentComments`, by Owen's last words (`lastWordsAt()`)
  *   - WORKING (`setWorking()`):  Claude is thinking about it now;  the page shows a "Claude: thinking…" stub at the
@@ -314,7 +314,7 @@ export class CommentList {
 
   /**
    * Claude is thinking about comment `id` (`on`), or stopped (`!on`):  the page shows a "Claude: thinking…" stub at
-   * the end of its thread meanwhile (`spell dev comments working`, `plan-doc inbox <name> working cm3`).
+   * the end of its thread meanwhile (`epic comments working`, `epic inbox <name>#cm3 working on`).
    * - `working`:  since when;  set again, it keeps the first time
    * - `answer()` turns it off
    */

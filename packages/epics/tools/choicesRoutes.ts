@@ -2,19 +2,19 @@
  * Choice pages' drafts and answers, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`),
  * listed in the repo root's `package.json` `"pageServer": { "routes": [...] }`.
  * - A SYNTAX-CHOICES PAGE:  a table of names Claude recommends, one row per use site, each pre-filled in a box Owen
- *   types over (`spell dev choices`, `choices.js`)
+ *   types over (`epic choices`, `choices.js`)
  *   - the page's `<epic-choices-bar>` posts here (`$/epics/answers` `ChoicesForm`),
  *     and so does the spell syntax guide's bar (`_assets/spell-syntax.js`)
  * - `GET /api/docs/choices/draft?page=<path>` -- what was typed so far, `{ draft: ChoicesDraft | null }`:
  *   the page restores it on load
  * - `POST /api/docs/choices/draft` `{ page, values, feedback }` -- save it to `<slug>.draft.json5` beside the page
  *   - every 5s while Owen types, and as the page goes away
- *   - wakes NOBODY:  `spell dev choices wait` watches the answer only
+ *   - wakes NOBODY:  `epic choices wait` watches the answer only
  * - `GET /api/docs/choices/answer?page=<path>` -- the answer sent, `{ answer: ChoicesAnswer | null }`
  * - `POST /api/docs/choices/answer` `{ page, values, feedback }` -- "Do it":
  *   - writes `<slug>.answer.json5`, and the draft, so a reload shows what was sent
  *   - sent again, `changes` counts up
- *   - `spell dev choices wait` exits with it
+ *   - `epic choices wait` exits with it
  * - `page`:  the page's URL path, as served (a worktree's `/worktrees/<w>/...` too);
  *   ONLY a details-folder page with its `<slug>.rows.json5` beside it (or its old `.json`),
  *   or a docs page naming its rows (`<body data-choices-rows>`, e.g. the spell syntax guide):
@@ -74,7 +74,7 @@ export default choicesRoutes
 
 /**
  * The choice page file URL path `page` names, through the server's mounts.  Either:
- * - a details-folder page with its rows beside it, `<slug>.rows.json5` (`spell dev choices new`)
+ * - a details-folder page with its rows beside it, `<slug>.rows.json5` (`epic choices new`)
  * - or a docs page naming its own rows, on its `<body data-choices-rows="...">` (`declaredRows()`):
  *   e.g. the spell syntax guide, whose rows are generated from the code, and whose boxes are keyed `<row>.<field>`
  * - 400:  not a path;  404:  no such page;  403:  outside a mount, or neither of the above
@@ -121,7 +121,7 @@ export async function saveDraft(
  * "Do it" on page `file`:  write `<slug>.answer.json5`, and the draft to match;  return the answer.
  * - sent again:  replaces it, `changes` counts up
  * - through the page server's one safe write (`SRV.FileOperations.save()`):  the answer before is read and the new
- *   one written under the file's lock, all at once, so `spell dev choices wait` never reads half a file
+ *   one written under the file's lock, all at once, so `epic choices wait` never reads half a file
  * - SIDE EFFECT:  writes both files
  */
 export async function saveAnswer(

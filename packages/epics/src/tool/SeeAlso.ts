@@ -3,7 +3,7 @@ import { dirname, join, posix, relative, resolve, sep } from "node:path"
 
 import { DataFile } from "$/epics/data/DataFile"
 
-/** The catch-all epic for comments on a page no epic owns (`spell dev comments gather`, `GuideChanges`). */
+/** The catch-all epic for comments on a page no epic owns (`epic comments gather`, `GuideChanges`). */
 export const GUIDE_CHANGES = "guide-changes"
 
 /****************
@@ -26,7 +26,7 @@ export const GUIDE_CHANGES = "guide-changes"
  *      links it in passing)
  *   2. then an OPEN one (phases left, none yet, or standing) before one that's done
  *   3. then the one updated last (`<epic-page updated>`, then its file's time)
- * - none:  `undefined`;  the caller files it under `GUIDE_CHANGES`, as `spell dev comments gather` does
+ * - none:  `undefined`;  the caller files it under `GUIDE_CHANGES`, as `epic comments gather` does
  * - never claimed:  the changelog and a folder's index (every epic links them), nor by `guide-changes` itself,
  *   whose phases link every page it gathered
  *

@@ -9,7 +9,7 @@
  * - Where it's kept (`inboxOf()`):
  *   - a docs page's:  its own inbox file, `<page>.inbox.json5` beside it (`GuideInbox`);
  *     its Send hands them to the session of the epic the page belongs to (below);
- *     a page no epic owns:  Claude takes them into epic `guide-changes` with `spell dev comments gather`
+ *     a page no epic owns:  Claude takes them into epic `guide-changes` with `epic comments gather`
  *   - an epic page's:  the epic's review inbox, `<name>.inbox.json5`, under `comments` (`ReviewInbox`);
  *     Claude answers them as a revisit's note (`/epic review`, `/airplane land`)
  *   - a SAGA page's (`sagas/<id>/<id>.saga.html`, epic `epic-workflow` P15):  the same, in its own inbox,
@@ -20,7 +20,7 @@
  *   - the runtime asks as the page loads, and draws the bullhorns only when `takesComments`:
  *     a server without this module, `file://`, or a page that takes none shows none
  *   - each comment with its thread (`replies`, `done`) and whose `turn` it is (`CommentList.turnOf()`)
- *   - `working` while Claude thinks about it (`spell dev comments working`):  the thread's "Claude: thinking…" stub
+ *   - `working` while Claude thinks about it (`epic comments working`):  the thread's "Claude: thinking…" stub
  *   - `send`, for the page header's Send (epic `epic-workflow` P13):
  *     `{ epic, owned, listening, sent, unsent, waiting }` (`PageSend`)
  *     - on a docs page only:  an epic page's Send is the review inbox's (`reviewRoutes.ts`)
@@ -63,7 +63,7 @@
  *   the page server announces the file's change, and every open copy of the page draws its comments again
  * - every POST needs the page server's token (`x-server-token`) and its own origin (`SRV.Guard`)
  * - Before P11 docs pages took PAGE NOTES, written into the page (`PageNotes.js`):  the ones written still show,
- *   read only, and `spell dev notes` still answers them
+ *   read only, and `epic notes` still answers them
  */
 import { readFileSync } from "node:fs"
 import { join } from "node:path"

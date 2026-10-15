@@ -526,7 +526,7 @@ describe("PlanDoc rename (epic-workflow)", () => {
     plan.addPhase("One")
     plan.addItem("todo", "A todo")
     const before = plan.toString()
-    expect(() => plan.renameEntry("P9", "X")).toThrow(/no phase 9/)
+    expect(() => plan.renameEntry("P9", "X")).toThrow(/no phase P9/)
     expect(() => plan.renameEntry("t7", "X")).toThrow(/no item "t7"/)
     expect(() => plan.renameEntry("t1", "  ")).toThrow(/the new title is empty/)
     expect(() => plan.renameEntry("p1", "One")).toThrow(/P1 is titled "One" already/)

@@ -39,7 +39,7 @@ const PROJECTS_ARG = "spell files, project folders, or addresses -- default the 
 const SEED_HELP = "start the random numbers from this whole number (1 to 2147483646):  the same deal every run"
 
 /** The `epic` verbs that need the barrel (the session helpers), so `epicMain.ts` hands them to `main.ts`. */
-const EPIC_BARREL_VERBS = ["send", "requests", "file", "home", "merge"]
+const EPIC_BARREL_VERBS = ["send", "requests", "file", "add-request", "home", "merge"]
 
 const program = spellProgram().version(globalThis.__PACKAGE_VERSION__).addHelpText("after", PROJECT_HELP)
 
@@ -224,10 +224,10 @@ program
   .argument("[verb]", "an epic verb, e.g. send, summary, add")
   .argument("[args...]", 'the epic, then the verb\'s arguments, e.g. send epic-workflow --text "..." --images 1')
   .option("--text <words>", "send:  Owen's words, verbatim")
-  .option("--file <file>", "send:  Owen's words, from a file (quotes and all)")
+  .option("--file <file>", "send:  Owen's words, from a file (quotes and all);  file:  the request, as html")
   .option("--images <count>", "send:  keep the newest <count> screenshots pasted into this session")
   .option("--context <words>", "send:  what this session was looking at:  a page, a file, an item id")
-  .option("--from <session>", "send:  the sending session's id (default:  this one, CLAUDE_CODE_SESSION_ID)")
+  .option("--from <session>", "send:  the sending session's id (default:  this one);  file:  who sent the request")
   .option("--json", "print the result as JSON")
   .allowUnknownOption()
   .action(async (verb: string | undefined, args: string[], _options, command) => {

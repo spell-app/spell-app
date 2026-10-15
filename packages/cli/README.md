@@ -300,17 +300,23 @@ Longer notes on some of them follow the table.
     ```sh
     epic summary seo
     epic close seo#J3
-    epic phase seo#3 done --done "<ul>...</ul>"
+    epic phase seo#P3 done --done "<ul>...</ul>"
     epic update seo#P3 --goal "<p>...</p>" --estimate 2h
     ```
 
   - [epicArgs.ts](src/epic/epicArgs.ts) turns `seo#J3` into the `epic` tool's own arguments (`close seo J3`).
+  - A phase is written one way, `seo#P3` (the other spellings read the same, but nothing prints them);  an id
+    always goes after the `#`.
+    The tool's own order, `epic close seo J3`, is refused, the message spelling it right (`epic close seo#J3`).
+  - Every verb's help has its usage, what it does and an example, a group's verbs too (`epic ask new --help`).
+    An unknown verb exits 1, listing the verbs;  a usage error exits 2.
 - The OLD spellings still work, until no caller is left:
-  - `spell dev plan-doc <command> <name> ...`
+  - `spell dev plan-doc <command> <name> <id> ...`:  the tool's own order, older checkouts' and scripts'
   - `spell dev details | choices | comments | notes | agents | airplane`
     - These two are hidden from `spell dev --help`.
       Root `yarn plan-doc` and `yarn details` still run them.
   - `spell epic <verb>`.
+  - `epic add-request <epic>#P7 <rN> --from ... --file f`:  `epic file`'s old name, hidden.
   - `spell plan-doc` is GONE:  it was deprecated, and its callers moved.
 - An epic's page:  its verbs edit `<name>.plan.html`, in the epic's own folder.
   - `new`, `summary`, `phase`, `add`, `close`, `inbox` ...
@@ -332,17 +338,19 @@ Longer notes on some of them follow the table.
   - What they are:  [the choice-page guide](../../guides/syntax-choices.html).
 - `notes`:  runs [`notes.ts`](../epics/tools/notes.ts), in the caller's folder.
   The notes are written into the pages.
-  - `list [--all] [--json]`:  the default;  every `new` note in the shared folders.
-  - `answer <page> <id> --file <html>`:  Claude's reply under the note, which is then `answered`.
-  - `done <page> <id>`.
+  - `list [<epic>] [--all] [--json]`:  the default;  every `new` note in the shared folders (an epic's:  on the pages
+    it owns).
+  - `answer <page>#<id> --file <html>`:  Claude's reply under the note, which is then `answered`.
+  - `done <page>#<id>`.
+  - A note is named as an epic page's comment is, `guides/x.html#n3` (the two words, `guides/x.html n3`, still read).
 - `comments`:  runs [`comments.ts`](../epics/tools/comments.ts):  comments Owen leaves on docs pages.
   - Its verbs:
 
     ```
     list [<epic>]
     gather
-    working <page> <id> on | off
-    answer <page> <id> --file <html>
+    working <page>#<id> on | off
+    answer <page>#<id> --file <html>
     ```
 - `agents`:  for the `/bg` skill, and every agent Claude starts.
   Runs [`agents.ts`](../epics/tools/agents.ts).

@@ -3,7 +3,7 @@
  * `RouteModule`), listed in the repo root's `package.json` `"pageServer": { "routes": [...] }`.
  * - The epic page shows them in its "Agents running" box (`<epic-page>`, `packages/epics`), each with a note box:
  *   Owen's note REDIRECTS that agent.  It waits in the list (`AgentList.ts`) until a Claude session waiting on it
- *   (`spell dev agents wait`) passes it on, and marks it told.
+ *   (`epic agents wait`) passes it on, and marks it told.
  * - `page`:  the epic page's URL path, as it was served (`/epics/x/x.plan.html`, or a worktree's
  *   `/worktrees/<w>/...`);  ONLY an epic page:  anything else is a 403 (`$/epics/tool/reviewRoutes.ts` `planDoc()`)
  * - `GET /api/epics/agents?page=<path>` -- `{ agents }`:  the epic's list (`[]` when none run);  the page polls it

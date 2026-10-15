@@ -1,6 +1,6 @@
 /**
- * `spell dev details <command>`:  details pages, questions Claude explains on a page and Owen answers ON it (`/details`,
- * `.claude/skills/details/SKILL.md`).
+ * `epic ask <command>` (once `spell dev details`):  details pages, questions Claude explains on a page and Owen
+ * answers ON it (`/details`, `.claude/skills/details/SKILL.md`).
  * - `new <slug> [--title "..."] [--epic <name>] [--description "..."] [--from <questions.json>]` --
  *   a page from the tool's own template (`templates/details.html` beside it);  prints its path
  *   - built in the epics pack's `<epic-*>` elements (`answerPages.js`)
@@ -20,7 +20,8 @@
  * - `draft <page>` -- print what Owen typed on the page and hasn't sent (exit 1 if nothing):  its draft,
  *   `<slug>.draft.json5`, newer than the answer (epic `epic-workflow` P18).  Run it BEFORE rewriting a page he may
  *   have open:  the page puts the draft back by id, and keeps text whose id the rewrite removes in a box of its own
- * - `list` -- every details page, answered or waiting
+ * - `list [<epic>]` -- every details page, answered or waiting;  with an epic, only that epic's
+ *   (`epics/<epic>/details/`), as `epic choices list <epic>`
  * - `sweep [--days 14]` -- delete scratch pages (and their answers) older than that;  never an epic's
  *   - `new` sweeps first, by itself
  * - `<page>`:  a slug (`pick-layout`), `<epic>/<slug>`, or a path
@@ -67,7 +68,7 @@ export const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 /** The files `sweep()` deletes:  pages, answers, and a choice page's rows and draft (`choices.js`). */
 const SWEPT = /\.(html|(answer|rows|draft)\.json5?)$/
 
-/** Run `spell dev details <argv>`;  the exit code. */
+/** Run `epic ask <argv>`;  the exit code:  0, 1 a failure (the message says why), 2 usage. */
 async function main(argv) {
   const { positional, flags } = parseArgs(argv)
   const [command, target] = positional
@@ -98,7 +99,8 @@ async function main(argv) {
       return draft ? 0 : 1
     }
     if (command === "list") {
-      for (const file of listPages(ROOT))
+      if (target && !existsSync(join(ROOT, "epics", target))) throw new Error(`no epic '${target}' (epics/${target}/)`)
+      for (const file of listPages(ROOT).filter((page) => !target || isEpicsPage(page, target)))
         console.log(`${readAnswer(file) ? "answered" : "waiting "}  ${relative(ROOT, file)}`)
       return 0
     }
@@ -108,20 +110,20 @@ async function main(argv) {
       return 0
     }
     console.error(USAGE)
-    return 1
+    return 2
   } catch (error) {
     console.error(`details:  ${error.message}`)
     return 1
   }
 }
 
-/** `spell dev details` with no or a wrong command. */
+/** `epic ask` with no or a wrong command. */
 const USAGE = `usage:  epic ask new <slug> [--title "..."] [--epic <name>] [--description "..."] [--from <questions.json>]
         epic ask show <page> [--wait] [--timeout 8h]
         epic ask wait <page> [--timeout 8h]
         epic ask answer <page>
         epic ask draft <page>
-        epic ask list
+        epic ask list [<epic>]
         epic ask sweep [--days 14]
 (the old spelling, spell dev details, runs the same)`
 
@@ -240,6 +242,11 @@ export function findPage(docs, target) {
   const found = candidates.find((file) => existsSync(file))
   if (!found) throw new Error(`no details page '${target}'`)
   return found
+}
+
+/** Is `file` one of epic `epic`'s own pages (under `epics/<epic>/` in checkout `docs`)? */
+export function isEpicsPage(file, epic, docs = ROOT) {
+  return relative(join(docs, "epics", epic), file).split("/")[0] !== ".."
 }
 
 /** Every details page under `docs`:  the scratch ones, then each epic's. */
@@ -470,7 +477,7 @@ export function parseArgs(argv) {
   return { positional, flags }
 }
 
-// run as a script (`spell dev details`), not when a test imports it;  last, so every `const` above is set
+// run as a script (`epic ask`), not when a test imports it;  last, so every `const` above is set
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   process.exitCode = await main(process.argv.slice(2))
 }

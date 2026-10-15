@@ -62,7 +62,7 @@ import { SUMMARY_ID } from "./ReviewInbox"
 
 /****************
  * ### `PlanDoc`
- * A parsed epic page in `<epic-*>` markup, `epics/<name>/<name>.plan.html`, and the edits `spell dev plan-doc` makes
+ * A parsed epic page in `<epic-*>` markup, `epics/<name>/<name>.plan.html`, and the edits `epic` makes
  * to it.  What's data (ids, statuses, review marks, dates):  `PLAN-DOC.md` beside this.
  * - Every edit makes or sets `<epic-*>` elements THROUGH `$/epics` `Markup`:  data in attributes, prose in children,
  *   checked against the definitions.  It never writes layout:  the elements draw their chrome (chips, labels, the
@@ -182,7 +182,7 @@ export class PlanDoc extends PlanReader {
   /** Phase `n`'s `<epic-phase>`:  the `n`th, from 1;  throws when there's none. */
   phase(n: number): Element {
     const phase = this.phaseElements[n - 1]
-    if (!phase) throw new PlanDocError(`no phase ${n} in the doc`)
+    if (!phase) throw new PlanDocError(`no phase P${n} in the doc`)
     return phase
   }
 
@@ -210,7 +210,7 @@ export class PlanDoc extends PlanReader {
       const range = phases.length ? `P1-P${phases.length}, or a phase's name` : "none yet"
       const said = String(ref).trim()
       throw new PlanDocError(
-        `no phase ${/^[Pp]?\d+$/.test(said) ? said.replace(/^[Pp]/, "") : `"${said}"`} in the doc (${range})`
+        `no phase ${/^[Pp]?\d+$/.test(said) ? said.replace(/^[Pp]?/, "P") : `"${said}"`} in the doc (${range})`
       )
     }
     return phases.indexOf(phase) + 1
@@ -511,7 +511,7 @@ export class PlanDoc extends PlanReader {
   /**
    * Bring this doc's markup up to today's, as every edit does (`Migrations.everyEdit`:  the cheap markup steps,
    * idempotent);  returns the steps that changed something.
-   * - the rest (`links-agree`) run only on command:  `spell dev plan-doc migrate` (`MigrateCommands`)
+   * - the rest (`links-agree`) run only on command:  `epic migrate` (`MigrateCommands`)
    * - SIDE EFFECT:  logs them, `migrated:  updates-as-epic-update`
    */
   migrate(): string[] {

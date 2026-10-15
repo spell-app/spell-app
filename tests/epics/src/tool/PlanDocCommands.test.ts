@@ -171,7 +171,7 @@ describe("PlanDocCommands rename:  a phase's or an item's title (epic `epic-work
     expect(await owner.run(["rename", "x", "p2"])).toBe(1)
     expect(await owner.run(["rename", "x", "p7", "Seven"])).toBe(1)
     expect(warned[0]).toMatch(/^epic:  missing the new title/)
-    expect(warned[1]).toBe("epic:  no phase 7 in the doc (P1-P3, or a phase's name)")
+    expect(warned[1]).toBe("epic:  no phase P7 in the doc (P1-P3, or a phase's name)")
     expect(readFileSync(file, "utf8")).toBe(skeleton)
   })
 })

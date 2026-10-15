@@ -1365,8 +1365,8 @@ Each kind of page has ONE name, written everywhere a person reads it.
   ```sh
   epic comments list [--all] [--json]
   epic comments wait [<page>...] [--timeout 8h]
-  epic comments answer <page> <id> --file <html> [--commit <sha>]
-  epic comments working <page> <id> on | off
+  epic comments answer <page>#<id> --file <html> [--commit <sha>]
+  epic comments working <page>#<id> on | off
   epic comments gather [<page>... | --all] [--epic <name>] [--json]
   ```
 
@@ -1417,8 +1417,8 @@ Each kind of page has ONE name, written everywhere a person reads it.
 
   ```sh
   epic notes list [--all] [--json]
-  epic notes answer <page> <id> --file <html>
-  epic notes done <page> <id>
+  epic notes answer <page>#<id> --file <html>
+  epic notes done <page>#<id>
   ```
 
   - `epic comments gather` takes the `new` ones into `guide-changes`, with the comments.

@@ -293,7 +293,7 @@ export function headerRoot(text, file) {
  * - path MENTIONS in prose (`reorgMentions()`) only in files that moved just now,
  *   unless `allMentions` (the first run, 2026-10-05):  a page in place may name an old path on purpose
  *   (history, the old-path links)
- * - epic pages are rewritten under their lock (`<file>.lock`, as `spell dev plan-doc` takes it);
+ * - epic pages are rewritten under their lock (`<file>.lock`, as `epic` takes it);
  *   the moves wait for every epic page's lock, so no edit lands mid-move
  */
 export function reorgShared(dir, checkout, { dryRun = false, allMentions = false } = {}) {

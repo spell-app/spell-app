@@ -66,7 +66,7 @@ export class PlanDocFiles {
    */
   readonly template: string
 
-  /** `pages/details/`:  scratch details pages (`spell dev details new`), where the item picker's page lives */
+  /** `pages/details/`:  scratch details pages (`epic ask new`), where the item picker's page lives */
   readonly details: string
 
   /** `packages/epics`:  where the docs tools run (`index.js`, `check-spell.js`, `open.js`) */
@@ -267,7 +267,7 @@ export class PlanDocFiles {
    *   (`updateStates()`);  NOT stamped "updated":  nobody worked on the epic
    * - `dryRun`:  the same report, nothing written
    * - REFUSES, writing nothing, as `edit()` does:  a doc in the old markup;  a migration that would break the doc
-   * - `spell dev plan-doc migrate` (`MigrateCommands`), and `rename` / `add-phase --before` for `links-agree`
+   * - `epic migrate` (`MigrateCommands`), and `rename` / `add-phase --before` for `links-agree`
    */
   async migrate(
     file: string,

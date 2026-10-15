@@ -2,7 +2,7 @@
 import { runTool } from "$/cli/dev/passThrough"
 
 /**
- * `spell dev airplane <verb> ...`:  airplane mode (epic `airplane`).
+ * `epic airplane <verb> ...`:  airplane mode (epic `airplane`).
  * Owen works on the docs with no Claude, and what he leaves waits for `/airplane land`.
  * - verbs:  `on`, `off`, `status`, `check [--fix]`, `inbox`
  * - the tool:  `packages/epics/tools/airplane.ts`, its header the verbs;  the `/airplane` skill runs it

@@ -1,10 +1,10 @@
 /**
- * `spell dev airplane <verb>`:  airplane mode (epic `airplane`) --
+ * `epic airplane <verb>`:  airplane mode (epic `airplane`) --
  * Owen works on the docs with no Claude, on a plane;
  * every mark, note and request he leaves waits for `/airplane land`.
  * The `/airplane` skill (`.claude/skills/airplane/SKILL.md`) runs these.
  *
- *     spell dev airplane check --fix
+ *     epic airplane check --fix
  *     ok    page server     http://127.0.0.1:4747 (main)
  *     fixed offline pages   highlight.js pointed at the repo's copy in 138 pages
  *     ok    extension       Review:  Open Epic... installed

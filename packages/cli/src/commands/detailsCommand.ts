@@ -2,7 +2,7 @@
 import { runTool } from "$/cli/dev/passThrough"
 
 /**
- * `spell dev details <command> ...`:  the `/details` skill's tool, `packages/epics/tools/details.js` (a details page
+ * `epic ask <command> ...`:  the `/details` skill's tool, `packages/epics/tools/details.js` (a details page
  * in VS Code's side bar, and Owen's answers on it), the nearest checkout's, `args` verbatim.
  * - Root `yarn details` aliases it.  Runs in `packages/epics`, as `yarn workspace @spell-app/docs details` did in
  *   the docs package.

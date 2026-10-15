@@ -1,7 +1,7 @@
 /**
  * `spell dev docs new <template> <page> [--title "Title"] [--description "One sentence."]`:  start a page from a template.
  * - `<template>`:  `durable`, `cheatsheet` or `commands` (or a path under `templates/`);  epic pages come from
- *   `spell dev plan-doc new`
+ *   `epic new`
  * - SIDE EFFECT:  a template with its data beside it (`commands.json5`) copies that too, as `<page>.json5` (its old
  *   `.json` name too, until `epic migrate` renames it:  `DataFile`, epic `epic-workflow` P21)
  * - `<page>`:  where it goes, a guide by default:  `parser/parser.html` is `guides/parser/parser.html`;  a path starting

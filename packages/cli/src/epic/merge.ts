@@ -3,7 +3,7 @@ import { realpathSync } from "fs"
 import { CLI } from "$/cli"
 
 /**
- * A STANDING epic's phase, onto `main` at once (epic `epic-workflow`, Q8):  `spell epic merge <epic>`.
+ * A STANDING epic's phase, onto `main` at once (epic `epic-workflow`, Q8):  `epic merge <epic>`.
  * - Run in the MAIN checkout, by the epic's session after `ExitWorktree` (`keep`);  it goes back with `EnterWorktree`.
  *   A worktree session can't move `main` itself:  its git runs in its own worktree only.
  * - Fast-forward only, after the checks `/isolate done` makes (its "Finish", step 7):

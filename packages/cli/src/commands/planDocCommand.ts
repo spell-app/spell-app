@@ -63,7 +63,7 @@ function flushed(): Promise<void> {
 }
 
 /**
- * The running Claude sessions working on epic `epic`, as `spell epic send` finds its receivers (`epicSessions()`:
+ * The running Claude sessions working on epic `epic`, as `epic send` finds its receivers (`epicSessions()`:
  * titled `<epic>`, with or without its icon):  each one's `name`, the address `SendMessage` takes, and its id.
  * - loaded on first use:  `requests.ts` reaches the `$/cli` barrel, which loads spell;  `consoleGuard` first, as
  *   `main.ts` loads it, so spell's logging stays off the terminal (the tool itself never writes through `console`)

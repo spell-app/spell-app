@@ -137,7 +137,7 @@ export function fileRequest(root: string, epic: string, id: string, where: strin
 }
 
 /**
- * A request as the HTML its phase's Requests field shows (`spell dev plan-doc request`):  his words quoted, the
+ * A request as the HTML its phase's Requests field shows (`epic request`):  his words quoted, the
  * context, when it came, then each screenshot (a link to it full size).
  * - URLs are the epic page's:  `requests/r3/image-1.png`
  */

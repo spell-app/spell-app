@@ -190,7 +190,7 @@ As `plan-doc.md`, "Ids":
 - `<epic-page standing>` (epic `epic-workflow`):  a STANDING epic, open for good;  each phase merges into `main` on its
   own, and every phase done is NOT done (STANDING, not DONE).  `update <name> --standing [on|off]` sets it.
 - Requests (epic `epic-workflow`):  what Owen sent the phase from other sessions, one labelled block per request.
-  - Written by `add-request <name>#P<N> <rN> --from "..." --file f`, which `epic file <epic> <rN> <N>` runs.
+  - Written by `epic file <epic>#P<N> <rN>` (the tool's `request <name> <N> <rN> --from "..." --file f`).
   - The block:  his words quoted, what the sender was looking at, when, a link to `requests/<rN>/request.md`, and
     each screenshot.
   - Filing a request again replaces its block.

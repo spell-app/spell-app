@@ -24,7 +24,7 @@ import { SeeAlso } from "./SeeAlso"
 
 /****************
  * ### `InboxCommands`
- * `spell dev plan-doc inbox <name> [<what> ...]`:  the review inbox of an epic's doc (`ReviewInbox`),
+ * `epic inbox <name> [<what> ...]`:  the review inbox of an epic's doc (`ReviewInbox`),
  * from Claude's side;  `<what>` none prints it.
  * - every inbox write goes through `ReviewInbox.update()` (the inbox's lock);
  *   doc edits through `PlanDocCommands.edit()` (the doc's)
@@ -272,7 +272,7 @@ export class InboxCommands {
    * - a send's comments too (Send hands them over, Owen 2026-10-10):  where each is, its words, his latest reply
    * - plain lines for Claude to read, then what to run next
    * - `guides`:  the sends taken from the epic's guides (P13), each page's comments under it, with the commands that
-   *   answer them one at a time (`spell dev comments working` / `answer`)
+   *   answer them one at a time (`epic comments working` / `answer`)
    * - `json`:  `{ now, sent, canceled, guides }` with `item` (and `option`) on each mark;  `sent.comments` and each
    *   guide's `comments` as the inboxes have them
    */
@@ -352,8 +352,8 @@ export class InboxCommands {
         for (const comment of guide.comments) lines.push(...commentLines(comment, "    "))
       }
       lines.push(
-        "then each one, on its page:  `epic comments working <page> <cm id> on`, work it into the page (or say why " +
-          "not), then `epic comments answer <page> <cm id> --file <answer.html> [--commit <sha>]`"
+        "then each one, on its page:  `epic comments working <page>#<cm id> on`, work it into the page (or say why " +
+          "not), then `epic comments answer <page>#<cm id> --file <answer.html> [--commit <sha>]`"
       )
     }
     this.owner.print(lines.join("\n"))

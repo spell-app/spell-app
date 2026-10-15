@@ -1,7 +1,7 @@
 /**
  * Details pages' answers, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`), listed in the repo
  * root's `package.json` `"pageServer": { "routes": [...] }`.
- * - A DETAILS PAGE:  a page Claude writes to explain a question (`/details`, `spell dev details`).
+ * - A DETAILS PAGE:  a page Claude writes to explain a question (`/details`, `epic ask`).
  *   - shown in VS Code's side bar
  *   - Owen answers ON it, and its `<epic-send>` posts the answer here (`$/epics/answers` `AnswerForm`)
  * - `POST /api/docs/details/answer` `{ page, answers, comments, notes, kept }` --
@@ -27,7 +27,7 @@
  * - `GET /api/docs/details/draft?page=<path>` -- the draft, or `{ draft: null }`:
  *   the page puts it back on load when it's newer than the answer sent
  * - `epic ask draft <page>` prints the draft for an agent about to rewrite the page (`details.js`)
- * - `spell dev details wait` polls for the file itself, and wakes the waiting Claude session when it lands.
+ * - `epic ask wait` polls for the file itself, and wakes the waiting Claude session when it lands.
  * - every POST needs the page server's token (`x-server-token`) and its own origin (`SRV.Guard`)
  */
 import { DataFile } from "$/epics/data/DataFile"
@@ -127,7 +127,7 @@ export function isDetailsPage(file: string): boolean {
  * - `kept`:  text from questions gone from the page (P18);  none:  left out of the file
  * - the page's draft is deleted:  sent, it's done with
  * - through the page server's one safe write (`SRV.FileOperations.save()`):  the answer before is read and the new
- *   one written under the file's lock, all at once, so `spell dev details wait` never reads half a file
+ *   one written under the file's lock, all at once, so `epic ask wait` never reads half a file
  * - a comment added to the file by hand stays (`saveData()`)
  * - SIDE EFFECT:  writes the file, deletes the draft
  */

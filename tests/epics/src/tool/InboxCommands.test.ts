@@ -318,7 +318,7 @@ test("wait:  a Send on a guide the epic owns wakes it, each comment under its pa
   expect(await commands().inbox.run("x", file, ["wait"], { timeout: "5" })).toBeUndefined()
   const said = printed.join("\n")
   expect(said).toMatch(/^sent from the pages x owns \(1 comment\):\n {2}guides\/x\.html {2}\(sent [^)]+\):\n {4}- CM1/)
-  expect(said).toMatch(/epic comments working <page> <cm id> on/)
+  expect(said).toMatch(/epic comments working <page>#<cm id> on/)
   expect(GuideInbox.read(guide).hasNewSend).toBe(false)
 })
 

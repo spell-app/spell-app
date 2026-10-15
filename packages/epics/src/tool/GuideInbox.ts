@@ -22,7 +22,7 @@ const INBOX_VERSION = 1
  *   waiting go to the session of the epic the page BELONGS to (`SeeAlso.ownerOf()`)
  *   - `sent`:  when he last pressed it;  a waiting comment with newer words is unsent (`unsentComments`)
  *   - `handedOver`:  the `sent` a waiting session last took (`takeSent()`):  each send is taken once, by
- *     `spell dev plan-doc inbox <epic> wait`
+ *     `epic inbox <epic> wait`
  *   - nobody listening:  they wait, sent, for the epic's next `/epic review` (its `wait` takes them at once) or
  *     `/airplane land`
  * - EVERY write through `update()` / `updateAsync()`:  under the file's lock (`SRV.FileLock`), atomic
@@ -128,7 +128,7 @@ export class GuideInbox {
   /**
    * Write this inbox to `file`, atomically;  delete the file instead when it holds no comment.
    * - `sent` and `handedOver` alone don't count:  they only date comments, and there are none
-   * - a temp file renamed over it:  a reader (the page, `spell dev comments`) never sees half of it
+   * - a temp file renamed over it:  a reader (the page, `epic comments`) never sees half of it
    * - a comment added to the file by hand stays (`DataFile.write()`);  its old `.json` goes
    * - call it under the lock (`update()`), or two writers may lose each other's changes
    * - SIDE EFFECT:  writes or removes `file`

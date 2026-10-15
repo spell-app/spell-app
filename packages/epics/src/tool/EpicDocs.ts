@@ -13,7 +13,7 @@ import { PlanMarkup } from "./PlanMarkup"
  * ### `EpicDocs`
  * The docs an epic wrote besides its epic page, and what its epic page settled:
  * the two lists `/docs-check` works from (epic `airplane`, P10).
- * - `find()`:  `spell dev plan-doc docs <name>`, every doc the epic wrote or touched, each with why it's listed
+ * - `find()`:  `epic docs <name>`, every doc the epic wrote or touched, each with why it's listed
  *   - `wrote`:  the guide (and the files in its own folder), the docs its commits changed,
  *     and the shared pages its turns changed whose path has its name (`guides/epic-components/...`)
  *   - `related`:  a doc that names the epic ("epic `airplane`", "airplane P3", `epics/airplane/`),
@@ -21,7 +21,7 @@ import { PlanMarkup } from "./PlanMarkup"
  *   - `linked`:  a doc the epic page links to, and nothing else:  often one it only read
  *   - `swept`:  any other shared page its turns changed (a turn commits every session's edits:  maybe not its own)
  *   - and its changelog entry, `guides/changelog.html#<name>`
- * - `decisions()`:  `spell dev plan-doc decisions <name>`, what the docs must agree with:
+ * - `decisions()`:  `epic decisions <name>`, what the docs must agree with:
  *   each phase's Done list and Updated notes, and every item with its status, its chosen option and answer
  * - Why several ways to find docs:  the shared folders (`guides/`, `templates/`, `ui/`) aren't in spell-app's git,
  *   so a commit can't show them;  the shared repo's own commits name the checkout whose turn swept them up

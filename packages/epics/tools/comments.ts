@@ -1,14 +1,14 @@
 /**
- * `spell dev comments <verb> ...`:  the comments Owen leaves on docs pages' blocks, for Claude (epic `airplane`, P11).
+ * `epic comments <verb> ...`:  the comments Owen leaves on docs pages' blocks, for Claude (epic `airplane`, P11).
  * - Owen writes them from a page's bullhorns (`commentsRoutes.ts`) into the page's inbox file, `<page>.inbox.json5`
  *   (`GuideInbox`);  this is Claude's side:
  *
- *     spell dev comments list
- *     guides/solid/solid-2.html  cm3  table in 2. Memory  2026-10-10T14:02:00.000Z
+ *     epic comments list
+ *     guides/solid/solid-2.html#cm3  table in 2. Memory  2026-10-10T14:02:00.000Z
  *       Too wide on a phone?
- *     spell dev comments gather
- *     guides/solid/solid-2.html  ->  guide-changes P4 (new phase):  cm3
- *     spell dev comments answer guides/solid/solid-2.html cm3 --file /tmp/reply.html
+ *     epic comments gather
+ *     guides/solid/solid-2.html  ->  guide-changes#P4 (new phase):  cm3
+ *     epic comments answer guides/solid/solid-2.html#cm3 --file /tmp/reply.html
  *
  * - `list [<epic>] [--all] [--json]` (default):  every comment still waiting, on every docs page, by page
  *   - `<epic>`:  only that epic's:  on a page it owns (its own `epics/<epic>/details/`, or a guide its See Also
@@ -20,18 +20,19 @@
  *   - no page:  every page no epic owns (as `--all`)
  *   - `--epic`:  another epic than `guide-changes` (a scratch one, to try it)
  *   - `--json`:  `[{ page, epic, phase, as: "phase" | "update", comments, notes }]`
- * - `answer <page> <id> --file <html> [--commit <sha>]`:  Claude's answer on the comment's thread (the file's
+ * - `answer <page>#<id> --file <html> [--commit <sha>]`:  Claude's answer on the comment's thread (the file's
  *   markup, as is);  `--commit`, the commit it was built in (the thread's Done line shows it)
  * - `wait [<page>...] [--timeout 8h]`:  block until a comment starts waiting for Claude (on those pages, else on any),
  *   print it as `list` does, exit 0;  timeout:  exit 2.  Run it in the background:  its exit wakes the session
- * - `working <page> <id> on | off`:  Claude is thinking about the comment (on), or stopped:  its thread shows a
+ * - `working <page>#<id> on | off`:  Claude is thinking about the comment (on), or stopped:  its thread shows a
  *   "Claude: thinking…" stub meanwhile;  `answer` turns it off
  * - a THREAD:  Owen answers Claude's answer on the page (that's good, reply, skip it:  `CommentList`);  his reply is
  *   waiting work, as a new comment is:  `list` shows it under the comment, `gather` takes it again
- * - `<page>`:  from the checkout's root (`guides/x.html`), or from an area (`pages.js` `pageFile()`)
- * - epic pages' comments wait in their epic's review inbox instead:  `spell dev plan-doc inbox <name>`
+ * - `<page>`:  from the checkout's root (`guides/x.html`), or from an area (`pages.js` `pageFile()`);  a comment on
+ *   it, `<page>#<id>`, as on an epic page (`seo#cm3`), or as two words, `<page> <id>` (`pageAndId()`)
+ * - epic pages' comments wait in their epic's review inbox instead:  `epic inbox <name>`
  * - a page an epic owns (epic `epic-workflow` P13):  its header's Send hands its comments to that epic's session
- *   (`plan-doc inbox <epic> wait` prints them under the page);  `working` and `answer`, here, take them one at a time.
+ *   (`epic inbox <epic> wait` prints them under the page);  `working` and `answer`, here, take them one at a time.
  *   `gather` leaves them out, unless the page is named.
  * - Exit codes:  0;  1 a comment or page that isn't there (the message says why);  2 usage.
  */
@@ -46,7 +47,7 @@ import { SeeAlso } from "$/epics/tool/SeeAlso"
 
 import { duration } from "./details.js"
 import { GUIDE_CHANGES, GuideChanges } from "./GuideChanges"
-import { ROOT, pageFile, parseArgs } from "./pages.js"
+import { ROOT, pageAndId, pageFile, parseArgs } from "./pages.js"
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const { positional, flags } = parseArgs(process.argv.slice(2))
@@ -59,15 +60,15 @@ export async function run([verb = "list", ...rest]: string[], flags: Record<stri
     if (verb === "list") return list(flags, rest[0])
     if (verb === "gather") return await gather(rest, flags)
     if (verb === "wait") return await wait(rest, flags)
-    if (verb === "working") return working(rest)
+    if (verb === "working") return working(pageAndId(rest))
     if (verb !== "answer") return usage()
-    const [page, id] = rest
+    const [page, id] = pageAndId(rest)
     if (!page || !id || typeof flags.file !== "string") return usage()
     const reply = readFileSync(resolve(flags.file), "utf8")
     const commit = typeof flags.commit === "string" ? flags.commit : undefined
     GuideInbox.update(GuideInbox.fileFor(pageFile(page)), (comments) => comments.answer(id, reply, new Date(), commit))
     touchOwner(page)
-    console.log(`${relative(ROOT, pageFile(page))}  ${id}  answered`)
+    console.log(`${relative(ROOT, pageFile(page))}#${id}  answered`)
     return 0
   } catch (error) {
     if (!(error instanceof CommentsError) && !isMissingFile(error)) throw error
@@ -77,20 +78,20 @@ export async function run([verb = "list", ...rest]: string[], flags: Record<stri
 }
 
 /**
- * `working <page> <id> on | off`:  Claude is thinking about comment `id` on `page`, or stopped;  the thread shows a
+ * `working <page>#<id> on | off`:  Claude is thinking about comment `id` on `page`, or stopped;  the thread shows a
  * "Claude: thinking…" stub meanwhile (`CommentList.setWorking()`).  `answer` turns it off.
  */
 function working([page, id, on]: string[]): number {
   if (!page || !id || (on !== "on" && on !== "off")) return usage()
   GuideInbox.update(GuideInbox.fileFor(pageFile(page)), (comments) => comments.setWorking(id, on === "on"))
   touchOwner(page)
-  console.log(`${relative(ROOT, pageFile(page))}  ${id}  working:  ${on}`)
+  console.log(`${relative(ROOT, pageFile(page))}#${id}  working:  ${on}`)
   return 0
 }
 
 /**
  * A session answering comments on a page an epic owns is still listening to that epic (epic `epic-workflow` P13):
- * stamp the heartbeat of the session listening to its review inbox, as `plan-doc inbox ... working` does.
+ * stamp the heartbeat of the session listening to its review inbox, as `epic inbox ... working` does.
  * - nobody listening, or no epic owns the page:  nothing written
  */
 function touchOwner(page: string): void {
@@ -165,7 +166,7 @@ function printComments(comments: ReturnType<typeof pageComments>) {
     const where =
       comment.kind === "section" ? comment.label : `${comment.kind}${comment.label ? ` in ${comment.label}` : ""}`
     const state = comment.status === "new" ? "" : `  (${comment.status})`
-    console.log(`${comment.page}  ${comment.id}  ${where || comment.anchor}  ${comment.at}${state}`)
+    console.log(`${comment.page}#${comment.id}  ${where || comment.anchor}  ${comment.at}${state}`)
     if (comment.quote) console.log(`  on "${comment.quote}"`)
     for (const line of comment.text.split("\n")) console.log(line ? `  ${line}` : "")
     // his reply on the thread since Claude answered:  the work now
@@ -192,7 +193,7 @@ async function gather(pages: string[], flags: Record<string, string | true>): Pr
   else
     for (const each of gathered)
       console.log(
-        `${each.page}  ->  ${each.epic} P${each.phase} (${each.as === "phase" ? "new phase" : "updated"}):  ` +
+        `${each.page}  ->  ${each.epic}#P${each.phase} (${each.as === "phase" ? "new phase" : "updated"}):  ` +
           [...each.comments, ...each.notes].join(" ")
       )
   return 0
@@ -209,8 +210,8 @@ function usage(): number {
     "usage:  epic comments list [<epic>] [--all] [--json]\n" +
       "        epic comments gather [<page>... | --all] [--epic <name>] [--json]\n" +
       "        epic comments wait [<page>...] [--timeout 8h]\n" +
-      "        epic comments answer <page> <id> --file <reply.html> [--commit <sha>]\n" +
-      "        epic comments working <page> <id> on | off"
+      "        epic comments answer <page>#<id> --file <reply.html> [--commit <sha>]\n" +
+      "        epic comments working <page>#<id> on | off"
   )
   return 2
 }

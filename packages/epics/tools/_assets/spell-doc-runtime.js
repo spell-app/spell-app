@@ -494,7 +494,7 @@ async function epicsDrawn(main) {
 /**
  * An epic page (`epics/<name>/<name>.plan.html`;  before 2026-10-04 `<name>.html`) names its tab `<name>`:
  * every link to it has `target="<name>"` (`doc-links.js`),
- * so they reuse this tab, as `spell dev plan-doc open <name>` does.
+ * so they reuse this tab, as `epic open <name>` does.
  */
 function nameTab() {
   const plan = /\/epics\/([^/]+)\/\1(?:\.plan)?\.html$/.exec(decodeURIComponent(location.pathname))
@@ -2955,7 +2955,7 @@ function readSaved(key) {
  * PAGE NOTES (epic `airplane`, P3):  notes written INTO a page (`<spell-notes>` / `<spell-note>`;  the markup and its
  * rules:  `packages/epics/tools/PageNotes.js`), each drawn as a folded card (`drawNoteCards()`).
  * - READ ONLY since P11:  comments (below) replaced the bubbles and the Note pill that wrote them;
- *   the notes already written still show, and `spell dev notes` still answers them
+ *   the notes already written still show, and `epic notes` still answers them
  * - every page, `file://` too;  drawn again on `spell-doc:updated` (an answer changes the page)
  */
 function wireNotes(main) {

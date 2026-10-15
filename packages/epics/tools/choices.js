@@ -1,5 +1,5 @@
 /**
- * `spell dev choices <command>`:  SYNTAX-CHOICES pages, a table of names (or any syntax) Claude recommends, one row
+ * `epic choices <command>`:  SYNTAX-CHOICES pages, a table of names (or any syntax) Claude recommends, one row
  * per use site, which Owen goes through one by one:  each row's Recommended box is pre-filled and he types over the
  * ones he'd call differently, then presses "Do it".  For a call too big for a details page's options (P13's ~180
  * boolean names), where each name needs its own context.  Docs:  `guides/syntax-choices.html`.
@@ -15,7 +15,7 @@
  * - `answer <page>` -- print the answer already sent (exit 1 if none)
  * - `list [<epic>]` -- every choice page:  answered, draft (typed, not sent) or waiting;  with an epic, only
  *   that epic's (`epics/<epic>/details/`)
- * - `<page>`:  a slug, `<epic>/<slug>`, or a path, as `spell dev details` takes them
+ * - `<page>`:  a slug, `<epic>/<slug>`, or a path, as `epic ask` takes them
  * - A DOCS page may take choices too, naming its own rows on its `<body data-choices-rows="...">` (`declaredRows()`):
  *   the spell syntax guide (`guides/spell-syntax/spell-syntax.html`), whose rows are generated from the code.
  *   `show`, `wait` and `answer` work on it by its path;  `list` covers only the `details/` folders
@@ -38,13 +38,24 @@ import { parseHTML } from "linkedom"
 
 import { DataFile } from "../src/data/DataFile.ts"
 import { ROWS, TOOL_TEMPLATES, choiceSections, fillHead, fillWords } from "./answerPages.js"
-import { SLUG, duration, findPage, listPages, parseArgs, readAnswer, shown, today, waitForAnswer } from "./details.js"
+import {
+  SLUG,
+  duration,
+  findPage,
+  isEpicsPage,
+  listPages,
+  parseArgs,
+  readAnswer,
+  shown,
+  today,
+  waitForAnswer
+} from "./details.js"
 import { ROOT, atDepth, openInVSCode, serialize } from "./pages.js"
 
-/** How long `wait` waits by default:  8 hours, as `spell dev details wait`. */
+/** How long `wait` waits by default:  8 hours, as `epic ask wait`. */
 const DEFAULT_TIMEOUT = "8h"
 
-/** Run `spell dev choices <argv>`;  the exit code. */
+/** Run `epic choices <argv>`;  the exit code:  0, 1 a failure (the message says why), 2 usage. */
 async function main(argv) {
   const { positional, flags } = parseArgs(argv)
   const [command, target] = positional
@@ -73,16 +84,11 @@ async function main(argv) {
       return 0
     }
     console.error(USAGE)
-    return 1
+    return 2
   } catch (error) {
     console.error(`choices:  ${error.message}`)
     return 1
   }
-}
-
-/** Is `file` one of epic `epic`'s own pages (under `epics/<epic>/`)? */
-function isEpicsPage(file, epic) {
-  return relative(join(ROOT, "epics", epic), file).split("/")[0] !== ".."
 }
 
 /** `epic choices` with no or a wrong command. */
@@ -371,7 +377,7 @@ async function waitAndPrint(file, flags) {
  * - plain JS:  no type, this comment is the spec
  */
 
-// run as a script (`spell dev choices`), not when a test imports it;  last, so every `const` above is set
+// run as a script (`epic choices`), not when a test imports it;  last, so every `const` above is set
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   process.exitCode = await main(process.argv.slice(2))
 }

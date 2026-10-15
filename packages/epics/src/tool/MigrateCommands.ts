@@ -10,7 +10,7 @@ import { PlanDocFiles, type MigrateResult } from "./PlanDocFiles"
 
 /****************
  * ### `MigrateCommands`
- * `spell dev plan-doc migrate ...`:  bring pages up to today's markup, by page KIND (epic `epic-workflow`, P8;  J44):
+ * `epic migrate ...`:  bring pages up to today's markup, by page KIND (epic `epic-workflow`, P8;  J44):
  * every registered step, oldest first, on each page, under its lock, idempotent;  a report per page.
  * - `migrate`:  every kind, every page;  `migrate <kind> [--file <page>]`:  one kind, or one page of it
  * - `migrate <epic>... | --all`:  epic pages:  those, or every one the tool lists
@@ -29,7 +29,7 @@ export class MigrateCommands {
 
   /**
    * The RUNNING sessions working on an epic, by its name:  what `--notify` tells instead of migrating.  STATIC.
-   * - given by the `spell` CLI (`spell epic send`'s `epicSessions()`);  none:  `--notify` refuses
+   * - given by the `spell` CLI (`epic send`'s `epicSessions()`);  none:  `--notify` refuses
    */
   readonly sessionsOf?: SessionFinder
 

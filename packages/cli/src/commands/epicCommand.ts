@@ -5,15 +5,17 @@ import { join } from "path"
 import { CLI } from "$/cli"
 
 /**
- * `spell epic <verb> ...`:  working with epics from any session (epic `epic-workflow`).
+ * `epic <verb> ...`:  working with epics from any session (epic `epic-workflow`).
  * - `send [<epic>] --text "..." | --file f [--images N] [--context "..."]`:  write a request into `<epic>`
  *   (`epics/<epic>/requests/r3/`), with the newest N screenshots pasted into this session;  then print its id and
  *   the epic's running sessions to tell (`SendMessage`), or the command that opens its window when none runs
  *   - no `<epic>`:  the tooling home's (`home`)
  * - `requests <epic> [--json]`:  every request sent to `<epic>`, and where each went
- * - `file <epic> <id> <phase>`:  file a request into phase <phase>:  his words and screenshots in its Requests field
- *   (`spell dev plan-doc request`), the request marked filed, `P7`
- *   - `file <epic> <id> "<where>"`, not a number:  only marked filed, saying where it went (`"dropped:  done in P3"`)
+ * - `file <epic>#P7 <id>`:  file a request into phase P7:  his words and screenshots in its Requests field
+ *   (the `epic` tool's `request`), the request marked filed, `P7`
+ *   - `file <epic> <id> "<where>"`, no phase:  only marked filed, saying where it went (`"dropped:  done in P3"`)
+ *   - `add-request`, its old name, hidden (epic `epic-workflow` P19):  the same, its `--from` and `--file` (the request
+ *     as html) taken as given rather than read from the epic's `requests/`
  * - `home [<epic>]`:  the tooling home, the epic dev-tooling requests go to;  with `<epic>`, set it
  * - `merge <epic>`:  a STANDING epic's phase onto `main` at once, fast-forward only;  run in the main checkout
  * - The logic:  `src/epic/`:  `requests.ts`, `home.ts`, `merge.ts`.
@@ -48,29 +50,57 @@ export async function epicCommand(session: CLI.CliSession, args: string[], optio
       else for (const request of requests) session.out(requestLine(request))
       return CLI.EXIT.OK
     }
-    case "file": {
-      const [id, where] = rest
-      if (!id || !where) throw new CLI.CliError(`file:  usage:  epic file ${epic} <id> <phase | "where it went">`)
-      const phase = CLI.phaseOf(where)
-      if (phase !== undefined) {
-        // into phase `where`'s Requests field, by the `epic` tool (`3`, `P3`, `p-epic-migrate`):  filed as `P3`
-        const request = CLI.epicRequests(root, epic).find((it) => it.id === id)
-        if (!request) throw new CLI.CliError(`no request '${id}' in epic '${epic}'`)
-        const html = join(mkdtempSync(join(tmpdir(), "epic-request-")), `${id}.html`)
-        writeFileSync(html, CLI.requestHTML(request))
-        const exitCode = await CLI.planDocCommand(["request", epic, phase, id, "--from", request.from, "--file", html])
-        if (exitCode !== CLI.EXIT.OK) return exitCode
-      }
-      const filed = phase === undefined ? where : /^\d+$/.test(phase) ? `P${phase}` : phase
-      session.out(requestLine(CLI.fileRequest(root, epic, id, filed)))
-      return CLI.EXIT.OK
-    }
+    case "file":
+    case "add-request":
+      return file(session, root, epic, rest, options)
     default:
       throw new CLI.CliError(`unknown verb '${verb}':  ${VERBS}`)
   }
 }
 
-/** `spell epic send`:  write the request, then say who to tell. */
+/**
+ * `epic file <epic>#P7 <id>`:  request `id` into the phase's Requests field, by the `epic` tool, then marked filed
+ * there;  `epic file <epic> <id> "<where>"`:  only marked filed, saying where it went.
+ * - `--from` and `--file` (`add-request`'s shape):  the request as given;  marked filed only if `requests/` has it
+ * - the old order, the phase a word of its own (`file seo r3 7`):  refused, spelled right
+ */
+async function file(
+  session: CLI.CliSession,
+  root: string,
+  named: string,
+  [id, where]: string[],
+  options: CLI.EpicOptions
+): Promise<number> {
+  const { epic, ref } = CLI.parseTarget(named)
+  if (ref === undefined) {
+    if (!id || !where) throw new CLI.CliError(`file:  ${FILE_USAGE}`)
+    const phase = CLI.phaseOf(where)
+    if (phase !== undefined)
+      throw new CLI.CliError(`file:  epic file ${epic}#${CLI.phaseLabel(phase)} ${id}  (the phase goes after a #)`)
+    session.out(requestLine(CLI.fileRequest(root, epic, id, where)))
+    return CLI.EXIT.OK
+  }
+  if (!id || where !== undefined) throw new CLI.CliError(`file:  ${FILE_USAGE}`)
+  const request = CLI.epicRequests(root, epic).find((it) => it.id === id)
+  let { file: html, from } = options
+  if (!html || !from) {
+    if (!request) throw new CLI.CliError(`no request '${id}' in epic '${epic}'`)
+    html = join(mkdtempSync(join(tmpdir(), "epic-request-")), `${id}.html`)
+    writeFileSync(html, CLI.requestHTML(request))
+    from = request.from
+  }
+  // into the phase's Requests field (`P7`, `p-epic-migrate`, its name:  the tool finds it)
+  for (const argv of CLI.planDocArgs("add-request", [named, id, "--from", from, "--file", html])) {
+    const exitCode = await CLI.planDocCommand(argv)
+    if (exitCode !== CLI.EXIT.OK) return exitCode
+  }
+  const phase = CLI.phaseOf(ref)
+  const filed = phase === undefined ? ref : CLI.phaseLabel(phase)
+  session.out(request ? requestLine(CLI.fileRequest(root, epic, id, filed)) : `${id}  into ${epic}#${filed}`)
+  return CLI.EXIT.OK
+}
+
+/** `epic send`:  write the request, then say who to tell. */
 function send(session: CLI.CliSession, root: string, epic: string, options: CLI.EpicOptions): number {
   const text = options.file ? readFileSync(options.file, "utf8") : options.text
   if (!text?.trim()) throw new CLI.CliError('send:  Owen\'s words?  --text "..." or --file <file>')
@@ -114,5 +144,8 @@ function requestLine(request: CLI.EpicRequest): string {
 /** The verbs, for errors. */
 const VERBS = "send, requests, file, home or merge"
 
-/** What marks a checkout with epics (`findCheckout()`):  the docs tools, as for `spell dev plan-doc`. */
+/** How `file` is called, for its errors. */
+const FILE_USAGE = 'epic file <epic>#P3 <request id>  |  epic file <epic> <request id> "where it went"'
+
+/** What marks a checkout with epics (`findCheckout()`):  the docs tools, as for `epic`. */
 const CHECKOUT_MARKER = "packages/epics/tools/plan-doc.js"

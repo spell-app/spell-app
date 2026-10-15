@@ -6,7 +6,7 @@ import { dirname, join } from "node:path"
  * Airplane mode (epic `airplane`):  Owen is working with no Claude, on a plane,
  * and every mark, note and request he leaves on a page waits for `/airplane land`.
  * - ONE switch per machine:  `~/.spell/airplane.json`, `{ on: true, since }`;  no file:  off
- *   - `spell dev airplane on | off` (`packages/epics/tools/airplane.ts`) flips it;
+ *   - `epic airplane on | off` (`packages/epics/tools/airplane.ts`) flips it;
  *     `/airplane` and `/airplane land` call those
  * - The page server tells every page as it serves it (`window.SPELL_SERVER.airplane`):
  *   the review controls then say "queued for when you land", never "start `/epic review`"

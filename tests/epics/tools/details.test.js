@@ -1,5 +1,5 @@
 /**
- * Tests of `spell dev details`' functions (`tools/details.js`), in a scratch checkout:  the real template, a
+ * Tests of `epic ask`'s functions (`tools/details.js`), in a scratch checkout:  the real template, a
  * scratch `details/` and an epic.
  */
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs"
@@ -15,6 +15,7 @@ import {
   findPage,
   formatAnswer,
   formatDraft,
+  isEpicsPage,
   listPages,
   readAnswer,
   readDraft,
@@ -230,6 +231,13 @@ test("sweep:  old scratch pages and answers go;  new ones and epics' stay", () =
     [join(docs, "pages/details/pick-layout.answer.json5"), join(docs, "pages/details/pick-layout.html")].sort()
   )
   expect(listPages(docs)).toEqual([join(docs, "pages/details/fresh.html"), join(docs, "epics/big/details/shape.html")])
+})
+
+// epic `epic-workflow` P19:  `epic ask list <epic>`, as `epic choices list <epic>`
+test("an epic's own pages:  in its folder, not another's, nor a scratch one", () => {
+  const pages = listPages(docs).filter((file) => isEpicsPage(file, "big", docs))
+  expect(pages).toEqual([join(docs, "epics/big/details/shape.html")])
+  expect(isEpicsPage(join(docs, "epics/bigger/details/x.html"), "big", docs)).toBe(false)
 })
 
 test("durations", () => {

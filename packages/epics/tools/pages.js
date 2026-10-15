@@ -42,7 +42,7 @@ export const PAGES = join(ROOT, "pages")
 /** `pages/index.html`:  the home page, a routing page:  a card per area (`index.js`, claude-design P5). */
 export const HOME = join(PAGES, "index.html")
 
-/** `pages/details/`:  scratch details pages (`spell dev details new`, no `--epic`). */
+/** `pages/details/`:  scratch details pages (`epic ask new`, no `--epic`). */
 export const DETAILS = join(PAGES, "details")
 
 /**
@@ -98,6 +98,19 @@ export function pageFile(page, cwd = process.env.INIT_CWD ?? process.cwd()) {
   return candidates.find((each) => existsSync(each)) ?? resolve(ROOT, page)
 }
 
+/**
+ * A comment or note on a docs page named as one word, `guides/x.html#cm3`, as one on an epic page is (`seo#cm3`):
+ * `[page, id, ...rest]`, the page and the id as the tools take them (epic `epic-workflow` P19).
+ * - the two words, `guides/x.html cm3`, read the same:  passed through as they are
+ * @param {string[]} words  the verb's words after the verb:  `["guides/x.html#cm3", "on"]`
+ * @returns {string[]}
+ */
+export function pageAndId([page, ...rest]) {
+  const hash = page?.lastIndexOf("#") ?? -1
+  if (hash <= 0) return page === undefined ? rest : [page, ...rest]
+  return [page.slice(0, hash), page.slice(hash + 1), ...rest]
+}
+
 /** Where top-level entry `name` of the old content folder went (`relocate.js` `reorgEntry()`, kept in step). */
 function reorgEntry(name) {
   return (
@@ -109,7 +122,7 @@ function reorgEntry(name) {
 /**
  * Folders that hold no pages.
  * - `examples`:  fragments a page includes (`ui-import/examples/part.html`), not pages:  no sections, no contents
- * - `details`:  details pages (`spell dev details`), questions for one session
+ * - `details`:  details pages (`epic ask`), questions for one session
  *   - not in the index, not checked with the docs
  *   - scratch `details/`, and an epic's `epics/<name>/details/`
  *   - NOT the `details` epic's own folder, `epics/details/` (`findPages()`)
@@ -278,7 +291,7 @@ export function serverUrl(base, file) {
 
 /**
  * Show `file` rendered in VS Code's doc preview.
- * - for `spell dev plan-doc open <name>`, `spell dev plan-doc phase`, `/spell-docs`
+ * - for `epic open <name>`, `epic phase`, `/spell-docs`
  * - starts this checkout's page server first (`ensurePageServer()`), so the page live-reloads
  * - the spell extension (`spell dev vscode`) finds the server by its pid file,
  *   and shows the page in a tab of the right side bar (or Simple Browser, `spell.docPreview.location`)

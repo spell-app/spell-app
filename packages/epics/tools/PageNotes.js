@@ -5,7 +5,7 @@
  *   No files, no clock unless passed one.
  * - Who uses it:
  *   - `notesRoutes.ts`, the page server's notes routes:  the bubbles on a page add, edit and delete notes
- *   - `notes.ts` (`spell dev notes`):  Claude lists them, answers them, marks them done
+ *   - `notes.ts` (`epic notes`):  Claude lists them, answers them, marks them done
  *   - `index.js`:  carries the notes over when it regenerates a list page (`PageNotes.carryOver()`)
  * - Edits SPLICE the source:  every byte outside the note stays as it was, so the page's diff shows only the note.
  * - Plain node JS, no `$/` imports:  `index.js` runs under plain `node`.
@@ -158,7 +158,7 @@ export class PageNotes {
   }
 
   ////////////////
-  // ## Claude's edits (`spell dev notes`)
+  // ## Claude's edits (`epic notes`)
   ////////////////
 
   /**

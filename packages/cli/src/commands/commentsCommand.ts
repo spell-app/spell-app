@@ -2,7 +2,7 @@
 import { runTool } from "$/cli/dev/passThrough"
 
 /**
- * `spell dev comments <verb> ...`:  the comments Owen leaves on docs pages' blocks for Claude (epic `airplane`, P11):
+ * `epic comments <verb> ...`:  the comments Owen leaves on docs pages' blocks for Claude (epic `airplane`, P11):
  * `list`, `wait` (for a new one), `gather` (into epic `guide-changes`, one phase per page), `answer`.
  * The tool:  `packages/epics/tools/comments.ts`, its header the verbs.
  * - Lean:  `args` only, no `CliSession` (which loads spell).

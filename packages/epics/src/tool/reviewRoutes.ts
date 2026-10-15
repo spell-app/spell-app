@@ -4,7 +4,7 @@
  * - Owen marks an epic page's items ON the page (the elements' review controls, `$/epics/review`):
  *   approve, todo, details, revisit, pick an option card, an id chip's urgency.
  *   The marks wait in the doc's INBOX FILE, `<name>.inbox.json5` beside `<name>.plan.html` (`ReviewInbox`),
- *   until a Claude session takes them (P6 of `review-review`, `spell dev plan-doc inbox`)
+ *   until a Claude session takes them (P6 of `review-review`, `epic inbox`)
  * - `page`:  the epic page's URL path, as it was served:
  *   `/epics/x/x.plan.html`, or a worktree's `/worktrees/<w>/...` on the main checkout's server.
  *   ONLY an epic page, or a SAGA page (`/sagas/x/x.saga.html`, epic `epic-workflow` P15):  anything else is a 403

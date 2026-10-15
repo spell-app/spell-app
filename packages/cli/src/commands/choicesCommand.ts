@@ -2,10 +2,10 @@
 import { runTool } from "$/cli/dev/passThrough"
 
 /**
- * `spell dev choices <command> ...`:  choice pages, `packages/epics/tools/choices.js` (a table of names Claude
+ * `epic choices <command> ...`:  choice pages, `packages/epics/tools/choices.js` (a table of names Claude
  * recommends, one row per use site, which Owen goes through one by one and sends with "Do it"), the nearest
  * checkout's, `args` verbatim.
- * - Runs in `packages/epics`, as `spell dev details` does.
+ * - Runs in `packages/epics`, as `epic ask` does.
  * - Returns the tool's exit code.
  */
 export function choicesCommand(args: string[]): Promise<number> {

@@ -6,7 +6,7 @@
  * - Owen writes an idea down on the Epics page:  a title and the kickoff prompt.
  *   - its New epic button (`epics/index.html`), the docs runtime's "New epic"
  *   - no Claude needed, so it works on a plane
- * - It becomes a FUTURE epic at once, as `/epic future` makes one (`spell dev plan-doc new <name> --future`):
+ * - It becomes a FUTURE epic at once, as `/epic future` makes one (`epic new <name> --future`):
  *   - the stub epic page with the prompt quoted, listed on the Epics list page with its seedling
  *   - its log says it came from the page (`FROM_PAGE`),
  *     which is how `/airplane land` finds the ones to offer (`AirplaneInbox`)
@@ -108,7 +108,7 @@ export default epicRoutes
 
 /**
  * Make a future epic called `title` in checkout `root`, `prompt` its kickoff prompt;  resolves to its name.
- * - SIDE EFFECT:  writes `epics/<name>/` and the Epics list page, as `spell dev plan-doc new --future` does
+ * - SIDE EFFECT:  writes `epics/<name>/` and the Epics list page, as `epic new --future` does
  * - throws `HttpError(400)` when the title holds nothing to name it by, `500` when the tool fails
  */
 export async function newEpic(root: string, title: string, prompt: string): Promise<string> {

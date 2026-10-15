@@ -16,7 +16,7 @@ import { CommentList, type Comment, type IdentifiedComment } from "./CommentList
  * - per machine, NOT committed (`.gitignore`):  pending notes and session state, not the record;
  *   what Claude makes of a mark lands in the epic page itself
  * - writers:  the page server's route module (`reviewRoutes.ts`, the page's clicks)
- *   and `spell dev plan-doc inbox ...` (Claude taking the marks:  `listen`, `wait`, `apply`, `done`, `clear`).
+ *   and `epic inbox ...` (Claude taking the marks:  `listen`, `wait`, `apply`, `done`, `clear`).
  *   Both go through `ReviewInbox.update()` / `updateAsync()`:
  *   under the file's lock (`SRV.FileLock`), written atomically (a temp file renamed over it),
  *   so neither clobbers the other and a reader never sees half a file

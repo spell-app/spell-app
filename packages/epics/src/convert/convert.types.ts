@@ -19,7 +19,7 @@ import { ProseBlocks, ProseCounted } from "$/epics/tool/planDoc.types"
 
 /**
  * A doc the converter can't convert:  markup it doesn't know where a structure is expected (a phase section holding
- * something other than phases), or a layout from before 2026-10-02 (`spell dev plan-doc migrate` first).
+ * something other than phases), or a layout from before 2026-10-02 (`epic migrate` first).
  * - `cause.where`:  the element, in a few words
  */
 export class ConvertError extends Error {
@@ -165,7 +165,7 @@ export const Old = {
   partNote: ".plan-part-note"
 } as const
 
-/** Layouts from before 2026-10-02, which `spell dev plan-doc migrate <name>` brings up to date:  never read here. */
+/** Layouts from before 2026-10-02, which `epic migrate <name>` brings up to date:  never read here. */
 export const OLD_LAYOUTS = "section.s2, section.s3, ol.plan-items, main > #plan, .plan-items > ui-item[id^='d']"
 
 /** The ids of the meta lines' dates:  drawn by `<epic-page>` from `started` / `updated`. */

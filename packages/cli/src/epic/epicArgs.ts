@@ -7,11 +7,14 @@ import { CliError } from "$/cli/cli.types"
  * - Owen's scheme (Command Review Page, 2026-10-12):  `epic <verb> <epic>#<id>` for anything inside an epic page
  *   - `seo`:  the page
  *   - `seo#J3`:  an item (or a comment, `seo#cm3`;  or an Overview section)
- *   - `seo#P3`, `seo#p3`, `seo#3`:  a phase, by its number;  `seo#p-epic-migrate`:  by its stable id (epic
- *     `epic-workflow` P15);  a verb that takes only a phase (`phase`, `updated`, `add-request`) takes its name too
- *     (`seo#epic-migrate`, `"seo#Epic Migrate"`):  the tool finds it (`PlanDoc.phaseNumber()`)
+ *   - `seo#P3`:  a phase, by its number, the one way help and messages write it;  `seo#p3` and `seo#3` read the
+ *     same.  `seo#p-epic-migrate`:  by its stable id (epic `epic-workflow` P15);  a verb that takes only a phase
+ *     (`phase`, `updated`, `add-request`) takes its name too (`seo#epic-migrate`, `"seo#Epic Migrate"`):  the tool
+ *     finds it (`PlanDoc.phaseNumber()`)
  *   - `seo#J`:  a NEW item of that kind, for `add`
- * - Without a `#`, the tool's own order works too:  `epic close seo J3` ~== `epic close seo#J3`.
+ * - The tool's own order, with no `#` (`epic close seo J3`), is REFUSED, the message spelling it right
+ *   (`epic close seo#J3`):  run silently, it taught agents the old shape (epic `epic-workflow` P19).
+ *   `spell dev plan-doc close seo J3` still runs it:  that's the tool's own command line, not this.
  * - Pure:  no files, no output.  Throws `CliError` (a usage error, exit 2) for a target the verb can't take.
  * - Lean:  imports no barrel, so `epic` starts without loading spell.
  */
@@ -22,6 +25,9 @@ export function planDocArgs(verb: string, args: string[]): string[][] {
   const around = (inserted: string[], rest = args) =>
     at === -1 ? [...rest] : [...rest.slice(0, at), target!.epic, ...inserted, ...rest.slice(at + 1)]
   const ref = target?.ref
+  if (target && ref === undefined) refuseOldOrder(verb, args, at, target.epic)
+  // no epic at all (`epic close`):  which, rather than the tool's whole usage
+  if (!target && !NO_EPIC_VERBS.includes(verb)) throw new CliError(`${verb}:  which epic?  epic ${verb} --help`)
   switch (verb) {
     case "add": {
       if (ref === undefined) return [["add", ...args]]
@@ -193,8 +199,79 @@ function flagsOf(args: string[]): Record<string, string | true> {
 }
 
 /** A phase as said:  `P3` for `3`, a stable id as it is. */
-function phaseLabel(phase: string): string {
+export function phaseLabel(phase: string): string {
   return /^\d+$/.test(phase) ? `P${phase}` : phase
+}
+
+/**
+ * A usage error for the tool's old order, with no `#`, spelling it right:  `epic close seo J3` -> "epic close seo#J3".
+ * - for the verbs whose target is inside the page:  an item, a phase, a new item's kind, `inbox`'s item verbs;
+ *   `update` and `commit` given their target as a word or a flag
+ * - nothing after the epic:  which item or phase, with an example
+ * - `epic`:  the epic, as typed;  `at`:  its place in `args`
+ */
+function refuseOldOrder(verb: string, args: string[], at: number, epic: string): void {
+  const word = args[at + 1]?.startsWith("--") ? undefined : args[at + 1]
+  const more = args.length > at + 2 ? " ..." : ""
+  const respell = (ref: string, rest = more) => {
+    const spelled = `epic ${verb} ${addressOf(epic, ref)}${rest}`
+    return new CliError(`${verb}:  ${spelled}  (the id goes after a #, not "${epic} ${word}")`)
+  }
+  const which = (what: string, example: string) => new CliError(`${verb}:  which ${what}?  epic ${verb} ${example}`)
+  if (ITEM_VERBS.includes(verb) || verb === "restore") {
+    if (word !== undefined) throw respell(word)
+    throw which("item", `${epic}#J3${ITEM_EXAMPLES[verb] ?? ""}`)
+  }
+  if (PHASE_VERBS.includes(verb)) {
+    if (word !== undefined) throw respell(phaseLabel(phaseOf(word) ?? word))
+    throw which("phase", `${epic}#P3${PHASE_EXAMPLES[verb] ?? ""}`)
+  }
+  switch (verb) {
+    case "add": {
+      const kind = word === undefined ? undefined : kindOf(word)
+      if (kind) throw respell(kindLetter(kind))
+      throw which("kind of item", `${epic}#J "Title"  (${KIND_HELP})`)
+    }
+    case "commit": {
+      // the tool's order:  `commit seo <sha> "..." --phase 3 | --item J3`
+      const phase = valueAfter(args, "--phase")
+      const ref = phase !== undefined ? phaseLabel(phaseOf(phase) ?? phase) : (valueAfter(args, "--item") ?? "P3")
+      throw new CliError(
+        `commit:  epic commit ${addressOf(epic, ref)} <sha> "what it did"  (the phase or item goes after a #)`
+      )
+    }
+    case "inbox": {
+      if (word === undefined || !INBOX_ITEM_VERBS.includes(word)) return
+      const id = args[at + 2]
+      if (id === undefined) throw which("item", `${epic}#J3 ${word}${word === "working" ? " on" : ""}`)
+      const rest = args.slice(at + 3)
+      throw new CliError(
+        `inbox:  epic inbox ${addressOf(epic, id)} ${word}${rest.length ? ` ${rest.join(" ")}` : ""}  ` +
+          `(the id goes after a #, not "${epic} ${word} ${id}")`
+      )
+    }
+    case "update":
+      if (word !== undefined) throw respell(phaseLabel(phaseOf(word) ?? word), " --<field> <value> ...")
+  }
+}
+
+/** The word after flag `flag` in `args`;  `undefined` without one. */
+function valueAfter(args: string[], flag: string): string | undefined {
+  const at = args.indexOf(flag)
+  return at === -1 ? undefined : args[at + 1]
+}
+
+/** `epic#ref`, quoted when it has a space (a phase's name):  `seo#P3`, `"seo#Epic Migrate"`. */
+function addressOf(epic: string, ref: string): string {
+  const address = `${epic}#${ref}`
+  return address.includes(" ") ? `"${address}"` : address
+}
+
+/** A kind's letter, for `add seo#J`:  `judgement` -> `J`. */
+function kindLetter(kind: string): string {
+  return Object.entries(KIND_LETTERS)
+    .find(([, word]) => word === kind)![0]
+    .toUpperCase()
 }
 
 /** A usage error when `verb`, which takes a whole epic, was given `seo#J3`. */
@@ -225,6 +302,36 @@ const ITEM_VERBS = [
   "unqueue",
   "calm"
 ]
+
+/**
+ * Verbs that run with no epic named:  on every epic (`list`, `migrate`), or by a flag (`split --done`,
+ * `backfill --all`, `convert --all`), or not on one (`saga`'s own verbs, `summaries`' files).
+ */
+const NO_EPIC_VERBS = ["list", "migrate", "split", "backfill", "convert", "saga", "summaries", "update"]
+
+/** Verbs on one phase, its ref after the epic:  `epic phase seo#P3 done` -> `phase seo 3 done`. */
+const PHASE_VERBS = ["phase", "updated", "add-request"]
+
+/** `inbox`'s verbs on one item (`epic inbox seo#J3 done`), as against the page's (`listen`, `wait`, `apply` ...). */
+const INBOX_ITEM_VERBS = ["working", "done", "clear"]
+
+/** What follows the item in an example, for the verbs that take more:  `epic status seo#J3 underway "..."`. */
+const ITEM_EXAMPLES: Record<string, string> = {
+  decide: ' "answer"',
+  cancel: ' ["why"]',
+  details: " --file <reply.html>",
+  status: ' underway "<reading>"',
+  review: ' ["outcome"]',
+  queue: ' "the work"',
+  restore: " --file <old.html>"
+}
+
+/** What follows the phase in an example:  `epic phase seo#P3 done`. */
+const PHASE_EXAMPLES: Record<string, string> = {
+  phase: " todo | active | done",
+  updated: ' "<html>"',
+  "add-request": " <request id>"
+}
 
 /** A phase ref by number:  `P3`, `p3`, `3`. */
 const PHASE_REF = /^[Pp]?(\d+)$/

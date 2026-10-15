@@ -8,7 +8,7 @@ import { PageNotes } from "./PageNotes.js"
 
 /**
  * Change the notes of the page at `file` with `change(notes)`, under the page's lock;
- * returns what `change` returned (`spell dev notes answer | done`, and `spell dev comments gather`).
+ * returns what `change` returned (`epic notes answer | done`, and `epic comments gather`).
  * - formats the page after (oxfmt, in memory:  `AS.formatHTML()`) only when it was formatted before:
  *   a long note wraps as `vp fmt` would wrap it, and a page that wasn't keeps every other byte
  * - atomic:  the page server's one atomic write (`SRV.FileOperations.writeAtomic()`), so the live reload never reads
@@ -29,7 +29,7 @@ export async function editNotes<T>(file: string, change: (notes: PageNotes) => T
 
 /**
  * The page notes on every page under `folders`, page by page:  each note with its page, from checkout `root`
- * (epic `airplane`:  `spell dev notes list`, and `/airplane land`'s `AirplaneInbox`).
+ * (epic `airplane`:  `epic notes list`, and `/airplane land`'s `AirplaneInbox`).
  * - `all`:  answered and done notes too;  default:  the `new` ones
  * - reads only the pages that hold one (a text check first);  skips `SKIPPED` folders
  */

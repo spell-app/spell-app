@@ -16,7 +16,7 @@ import { Upgrader } from "./Upgrader"
  * results ONLY under an output folder, and the report.
  * - NEVER writes into the checkout's `epics/` (the shared docs:  they change only at the switch, P12, with Owen):
  *   `write()` refuses an output folder inside it, through its links too.
- * - Node only (`node:fs`).  `convert.ts` is its command line;  `spell dev plan-doc convert` will be.
+ * - Node only (`node:fs`).  `convert.ts` is its command line;  `epic convert` will be.
  ****************/
 export class ConvertRun {
   /** The checkout whose `epics/` it reads:  STATIC for the run. */

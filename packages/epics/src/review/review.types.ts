@@ -87,7 +87,7 @@ export const NOBODY_LISTENING = isAirplane()
 /**
  * Airplane mode is on (epic `airplane`):  Owen works with no Claude, and everything waits for `/airplane land`.
  * - the page server says so in `window.SPELL_SERVER.airplane`, as it serves the page (`AirplaneMode`):
- *   a page loaded before `spell dev airplane on` learns it on its next load
+ *   a page loaded before `epic airplane on` learns it on its next load
  * - `false` outside a browser
  */
 export function isAirplane(): boolean {
