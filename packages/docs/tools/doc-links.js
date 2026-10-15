@@ -12,13 +12,16 @@
  * - A component set's pages (`packages/epic-components/`, served at `/epic-ui/`:  `COMPONENT_SETS` in
  *   `$/server/page`) link as from their SERVED address, so their links hold at `/worktrees/<w>/epic-ui/` too:  their
  *   links are written and checked from there (`Linker`'s `served`, `servedDir()`).
+ * - `--check` also checks short addresses (`href="SAGA:/..."`) and `<epic-link>`s, which `Linker` leaves alone:
+ *   the epics tool's `EpicTargets` knows the sagas (epic `epic-workflow` P15).
  * - NOTE:  ported from `doc-links.py` on 2026-10-03;  makes the same edits to every page.
  */
 import { readFileSync, writeFileSync } from "node:fs"
-import { basename, dirname, resolve as resolvePath } from "node:path"
+import { basename, dirname, relative, resolve as resolvePath } from "node:path"
 import { pathToFileURL } from "node:url"
 
 import { AS } from "$/assembler"
+import { EpicTargets } from "$/epics/tool/EpicTargets"
 import { COMPONENT_SETS } from "$/server/page/page.types"
 
 import { ROOT } from "./pages.js"
@@ -28,6 +31,9 @@ const SERVED = Object.fromEntries(COMPONENT_SETS.map((set) => [set.prefix.slice(
 
 /** One linker for this checkout:  its bare-name index is built once per process. */
 const linker = new AS.Linker(ROOT, { served: SERVED })
+
+/** What short addresses and `<epic-link>`s find in this checkout (epic `epic-workflow` P15):  the sagas, pages, ids. */
+const targets = new EpicTargets(ROOT)
 
 ////////////////
 // ## Linking
@@ -59,15 +65,22 @@ export function linkText(text, docDir) {
 
 /** Check the page at `path`;  prints a summary line, then each problem.  Returns whether it passed. */
 export function check(path) {
-  const { destinations, problems } = checkText(readFileSync(path, "utf8"), dirname(resolvePath(path)))
+  const { destinations, problems } = checkText(readFileSync(path, "utf8"), dirname(resolvePath(path)), path)
   console.log(`${basename(path)}:  ${destinations} destinations, ${problems.length} problems`)
   for (const problem of problems) console.log(`    ${problem}`)
   return !problems.length
 }
 
-/** The links of `text` (a page in `docDir`, or served from its address), outside `<pre>`:  `Linker.check()`. */
-export function checkText(text, docDir) {
-  return linker.check(text, linker.servedDir(docDir))
+/**
+ * The links of `text` (a page in `docDir`, or served from its address), outside `<pre>`:  `Linker.check()`;
+ * then its short addresses and `<epic-link>`s (`EpicTargets.problemsIn()`):  a saga, page or id that isn't there,
+ * an epic under a saga it doesn't name.
+ * - `file`:  the page's own file, for links into the page itself (`<epic-link item="T3">`)
+ */
+export function checkText(text, docDir, file) {
+  const checked = linker.check(text, linker.servedDir(docDir))
+  const page = file && relative(ROOT, resolvePath(file))
+  return { ...checked, problems: [...checked.problems, ...targets.problemsIn(text, page)] }
 }
 
 ////////////////

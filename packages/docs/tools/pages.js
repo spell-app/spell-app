@@ -266,8 +266,8 @@ export function serverUrl(base, file) {
  *   `spell.docPreview.location`).  The page already in that tab isn't reloaded:  it updates itself.
  * - first asks THIS session's window, through the extension's window bridge (the repo root's
  *   `scripts/window.mjs`);  a `vscode://` URI goes to whichever window is focused
- * - NOT run from VS Code (`Window.inVSCode`:  a CLI session in another terminal):  `openInChrome()` instead, and
- *   `hash` and `view` are dropped
+ * - NOT run from VS Code (`Window.inVSCode`:  a CLI session in another terminal):  `openInChrome()` instead,
+ *   `hash` kept and `view` dropped
  * - `hash`:  an id on the page to land on, e.g. a goal `g1`
  * - `view`:  which side bar tab, `"docs"` ("Spell Docs", the default) or `"review"` ("Review":  `/epic review`,
  *   `spell dev docs open <page> --review`);  each keeps its own page
@@ -279,7 +279,7 @@ export function serverUrl(base, file) {
  * - async for the bridge's http request;  never rejects
  */
 export async function openInVSCode(file, { hash, view = "docs" } = {}) {
-  if (!Window.inVSCode) return openInChrome(file)
+  if (!Window.inVSCode) return openInChrome(file, { hash })
   const path = resolve(file)
   const served = ensurePageServer()
   const review = view === "review"
@@ -304,16 +304,17 @@ export async function openInVSCode(file, { hash, view = "docs" } = {}) {
  * - The tab is keyed by the page's path from the root (`/epics/<name>/<name>.plan.html`), not its full URL, so
  *   the same page from another checkout (a worktree) reuses it:  re-pointed if the URL differs, else reloaded.
  *   The page names its tab the same way (`spell-doc-runtime.js` `window.name`;  links use that `target`).
+ * - `hash`:  an id on the page to land on (`spell dev docs open SAGA:/saga/epic#T1`)
  * - Never brings Chrome or its window forward:  the tab is made active in ITS window only;  a new tab goes in the
  *   front window.  (`openUrlInChrome()` with `front` does, for a link Owen clicked.)
  * - Chrome not running, or AppleScript refused:  `open -g -a "Google Chrome"`, which can't reuse a tab, and Chrome
  *   may still raise itself for a URL it's handed (seen 2026-10-01).
  * - NOTE: `key` is an AppleScript keyword:  the variable is `pageKey`.
  */
-export function openInChrome(file) {
+export function openInChrome(file, { hash } = {}) {
   const served = ensurePageServer()
   const url = served ? serverUrl(served.base, file) : pathToFileURL(resolve(file)).href
-  openUrlInChrome(url, `/${relative(ROOT, resolve(file)).split(sep).join("/")}`)
+  openUrlInChrome(`${url}${hash ? `#${hash}` : ""}`, `/${relative(ROOT, resolve(file)).split(sep).join("/")}`)
 }
 
 /**

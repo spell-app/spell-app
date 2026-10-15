@@ -35,7 +35,7 @@
     {
       "id": "prose",
       "title": "Prose",
-      "tags": ["epic-net-effect", "epic-code", "epic-aside", "epic-note"]
+      "tags": ["epic-net-effect", "epic-code", "epic-aside", "epic-note", "epic-link"]
     },
     {
       "id": "log",

@@ -397,6 +397,7 @@ The blocks prose used to shape by hand, now each an element (epic `epic-componen
 | `<epic-note>`                 | `<epic-note state="update" title="partly fixed by J9"><p>...</p></epic-note>`:  a small orange `UPDATE` (or green `DONE`, `state="done"`) note that stays, folding by its heading;  not `<epic-update>` ("Updates") |
 | `<epic-update>`               | `<epic-update at="2026-10-11 14:30" summary="Q3's answer moved to B" phase="6"><p>...</p></epic-update>`:  an update, right AFTER the block it changed ("Updates") |
 | `<epic-choices>`              | as in "Items":  option cards, on any item kind                                            |
+| `<epic-link>`                 | `<epic-link saga="drawable-spell" epic="python-target" item="T1"></epic-link>`:  a link to a saga page (`saga` alone), an epic page (`epic`), or an item or phase on one (`item="T1"`, `phase="7"` or `phase="epic-migrate"`);  none of `saga` / `epic`:  the page it's in.  No text:  draws the short form (`python-target T1`, `T1` here, `P7 · Epic Migrate`), the target's title its tooltip ("Links") |
 | `<epic-field label>`          | `<epic-field label="Where"><p>the inbox file</p></epic-field>`:  a labelled block, `Where:` before its prose (`What should happen`, `Step`);  a phase's fields have `name` instead |
 | `<epic-section kind="report">` | `<epic-section id="overnight" kind="report" title="Overnight · 2026-10-04">...</epic-section>`:  a run's report, after the Overview (`The page`) |
 | the crumbs                    | none written:  `<epic-page>` draws `Docs › Epics › <title>` from its `title` (an older doc's `.spell-crumbs` before it:  it draws none) |
@@ -660,8 +661,32 @@ As `plan-doc.md`, "Parts", with the elements as hosts (`EpicParts`, beside this 
   - The tool reads and writes `.html` only.
     An old doc's `.htm` parts were read until every doc was converted;  no more since P15.
 
+## Links
+
+Pointing at a saga, an epic, a phase or an item, the same way everywhere (epic `epic-workflow` P15, J32).
+- In markup:  `<epic-link>` ("Prose elements"), written by what it points at, never by a path.
+  - On the page it points into, a `#id` link;  elsewhere, the page from the checkout's root and its `#id`,
+    the page server giving it the target's title and short form (`GET /api/epics/target`, [linkRoutes.ts](linkRoutes.ts)).
+  - `saga` with an `epic` isn't needed;  one the epic doesn't name still links (the check flags it).
+- A SHORT ADDRESS means the same, for a plain link or for Owen in chat:
+  - `SAGA:/drawable-spell` -- the saga page;  `SAGA:/drawable-spell#T3` -- item T3 on it
+  - `SAGA:/drawable-spell/python-target` -- the epic page;  `...#T1` -- item T1 on it
+  - the colon form, `SAGA:/drawable-spell:python-target#T1`, is read too;  the tools write the slash form
+  - ids in any case:  `#T1` lands on `t1`
+- Who reads them:
+  - the docs runtime:  `<a href="SAGA:/...">` becomes the page and its `#id`
+  - the page server:  a typed `/saga/<saga>[/<epic>]` redirects to the page, the `#id` kept
+  - the openers:  `spell dev docs open SAGA:/...`, `spell dev docs link SAGA:/...`
+  - the check:  below
+- The code:  `$/epics/links` (`EpicAddress`, `PageTargets`:  pure, browser and node), `EpicTargets` here (what's on
+  disk).
+- NOT a migration:  a new element, so no older page holds anything to change.
+
 ## Checking
 
 Every edit is checked against the definitions before it's written (`Markup.validate()`).
 - An edit that would break the markup is refused, and nothing is written.
 - `check` reports the same, plus ids, links and parts.
+  - Its links include short addresses and `<epic-link>`s (`EpicTargets.problemsIn()`):  a saga not in
+    `sagas/sagas.json`, a page that isn't there, an id not on its page, and an epic under a saga it doesn't name
+    (its `<epic-page saga>`) are broken links, failing with `--links`.

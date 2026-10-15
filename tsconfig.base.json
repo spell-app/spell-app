@@ -15,7 +15,8 @@
   //   static render, and its types),
   //   `$/ui/tools/RootCatalog` (node-only:  a `<ui-root>` catalog from vocabularies, for `spell dev pack build`),
   //   `$/epics/tool/...` (node-only:  the `epic` tool, for the `spell` CLI and `docs`' forwarders, `tools/plan-doc.js`
-  //   ...;  never in the `$/epics` barrel),
+  //   ...;  never in the `$/epics` barrel), `$/epics/links` (pure:  short addresses, `SAGA:/...`, for the docs
+  //   runtime, which must not bundle the rest of `$/epics`),
   //   and `$/util/class` etc. (`util`'s GENERIC files, imported one by one by `ui`'s `src/util/index.ts` only:  the
   //   `$/util` barrel also holds spell's heavy utilities, which `ui` must not bundle).
   // - NOTE: every alias works from every package.  The one-way dependency rule is by convention:

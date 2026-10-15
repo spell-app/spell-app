@@ -15,22 +15,30 @@
  * - `<page>`:  absolute, from the checkout's root, or from an area (`pages.js` `pageFile()`:  `solid/solid-2.html` is a
  *   guide).
  * - `--text`:  the link's text (`P2 · Page Template`);  default:  the page's `<title>`.
+ * - `<page>` may be a SHORT ADDRESS (epic `epic-workflow` P15):  `SAGA:/drawable-spell/python-target#T1` is the epic
+ *   page, landing on T1 (its `--hash`);  its text, by default, the short form and the item's title
+ *   (`python-target T1 · Write the docs`), from `EpicTargets`.
  */
 import { existsSync, readFileSync } from "node:fs"
 
+import { EpicAddress } from "$/epics/links"
+import { EpicTargets } from "$/epics/tool/EpicTargets"
 import { SRV } from "$/server"
 
 import { Window } from "../../../scripts/window.mjs"
-import { ensurePageServer, pageFile, parseArgs, serverUrl } from "./pages.js"
+import { ROOT, ensurePageServer, pageFile, parseArgs, serverUrl } from "./pages.js"
 
 const { positional, flags } = parseArgs(process.argv.slice(2))
-const file = positional[0] ? pageFile(positional[0]) : ""
+const addressed = positional[0] && EpicAddress.isAddress(positional[0]) ? addressOf(positional[0]) : undefined
+const file = addressed?.file ?? (positional[0] ? pageFile(positional[0]) : "")
 if (!positional[0] || !file.endsWith(".html") || !existsSync(file)) {
-  console.error('usage:  spell dev docs link <page.html> [--hash <id>] [--text "..."] [--review] [--show]')
+  console.error(
+    'usage:  spell dev docs link <page.html | SAGA:/<saga>[/<epic>][#<id>]> [--hash <id>] [--text "..."] [--review] [--show]'
+  )
   process.exit(1)
 }
-const hash = typeof flags.hash === "string" ? flags.hash : undefined
-const text = typeof flags.text === "string" ? flags.text : undefined
+const hash = typeof flags.hash === "string" ? flags.hash : addressed?.hash
+const text = typeof flags.text === "string" ? flags.text : addressed?.text
 const view = flags.review ? "review" : undefined
 console.log(await markdownLink(file, { hash, text, view, window: Window.current()?.pid }))
 if (flags.show) {
@@ -86,6 +94,25 @@ async function hasShowRoute(origin: string): Promise<boolean> {
     return answer.status === 400
   } catch {
     return false
+  }
+}
+
+/**
+ * Short address `address` as its page's file, the id to land on, and the link's text:  the short form and the
+ * target's title (`python-target T1 · Write the docs`);  a page alone, its `<title>` as usual.
+ * - a malformed address:  says why, and exits 1
+ */
+function addressOf(address: string): { file: string; hash?: string; text?: string } {
+  try {
+    const target = EpicAddress.parse(address)
+    const found = new EpicTargets(ROOT).resolve(target)
+    if (found.problem) console.error(`note:  ${address}:  ${found.problem}`)
+    const [, hash] = found.href.split("#")
+    const text = target.hasId ? `${found.label}${found.title ? ` · ${found.title}` : ""}` : undefined
+    return { file: pageFile(target.page!), hash, text }
+  } catch (error) {
+    console.error(`docs link:  ${(error as Error).message}`)
+    process.exit(1)
   }
 }
 

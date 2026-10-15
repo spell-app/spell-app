@@ -602,6 +602,48 @@
       ]
     },
     {
+      "path": "elements/epic-link.html",
+      "title": "<epic-link>",
+      "summary": "The <epic-link> element: a link to a saga, an epic, a phase or an item, written by what it points at.",
+      "tag": "epic-link",
+      "sections": [
+        {
+          "id": "1-example",
+          "title": "1. Example"
+        },
+        {
+          "id": "2-markup",
+          "title": "2. Markup"
+        },
+        {
+          "id": "3-where-it-goes",
+          "title": "3. Where it goes"
+        },
+        {
+          "id": "4-attributes",
+          "title": "4. Attributes"
+        },
+        {
+          "id": "slots",
+          "title": "Slots",
+          "parent": 3
+        },
+        {
+          "id": "parts",
+          "title": "Parts and states",
+          "parent": 3
+        },
+        {
+          "id": "5-how-it-looks",
+          "title": "5. How it looks"
+        },
+        {
+          "id": "6-written-by",
+          "title": "6. Written by"
+        }
+      ]
+    },
+    {
       "path": "elements/epic-more.html",
       "title": "<epic-more>",
       "summary": "More Details: a plain card under an item's text and answer, with what the text left out.",

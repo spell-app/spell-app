@@ -1080,6 +1080,17 @@ The older words he may still say are in the root [AGENTS.md](../../AGENTS.md), "
     - The `epic` tool links through the same code.
   - Run it under `tsx`, never plain `node`:  it imports `$/assembler`.
     - The tools run it through `docLinksRun()`, in [pages.js](tools/pages.js).
+- A link to a SAGA, an EPIC, a PHASE or an ITEM is written by what it points at, never by a path
+  (epic `epic-workflow` P15):
+  - `<epic-link epic="seo" item="J3"></epic-link>`:  draws `seo J3` with J3's title as its tooltip;
+    `saga`, `epic`, `item`, `phase` (rules:  [PLAN-DOC.md](../epics/src/tool/PLAN-DOC.md), "Links").
+    - It's the epics pack's:  a guide using it loads the pack in its `<ui-root>`,
+      `<ui-components source="<up>packages/epics/pack/epics.pack.js">`, as epic and details pages do.
+  - Or a plain link to a SHORT ADDRESS, on any page:  `<a href="SAGA:/drawable-spell/python-target#T1">`.
+    - The runtime rewrites it to the page and its `#id` (`wireAddresses()`), in that epic's tab.
+    - `doc-links.js` gives it no target and leaves it alone.
+  - `doc-links.js --check` fails on a saga, page or id that isn't there, and on an epic under a saga it doesn't name
+    (the epics tool's `EpicTargets`:  `Linker`, in `$/assembler`, imports no package and skips them).
 
 ## Finishing a page
 
@@ -1123,6 +1134,7 @@ In this order, from `packages/docs`:
   - each area's list page:  `index.html` in `epics/`, `guides/`, `templates/`, `brand/`
 - `spell dev docs new` ([new-page.js](tools/new-page.js)):  a page from a template, at any depth.
 - `spell dev docs open [page] [--vs | --review]` ([open.js](tools/open.js)):  shows a page, by default the index.
+  - `page` may be a short address:  `SAGA:/drawable-spell`, `SAGA:/drawable-spell/python-target#T1` (landing on T1)
   - in Chrome, reusing its tab
   - `--vs`:  in VS Code's doc preview, the right side bar's "Spell Docs" tab (`/spell-docs`)
   - `--review`:  its "Review" tab (`/epic review`)
@@ -1164,6 +1176,8 @@ In this order, from `packages/docs`:
 - `spell dev docs link <page> [--hash <id>] [--text "..."] [--review] [--show]` ([link.ts](tools/link.ts)):
   the markdown links Claude gives for a page.
   - side bar first (`--review`:  its "Review" tab), then `• 🌐`, the browser link (Owen, 2026-10-11)
+  - `<page>` may be a short address (`SAGA:/drawable-spell/python-target#T1`):  its `--hash`, and its text the short
+    form and the item's title (`python-target T1 · ...`)
   - both through [showRoutes.ts](tools/showRoutes.ts) (`GET /api/docs/show`)
 - `spell dev docs fuss <paths...> | --branch [--json]` ([fuss.ts](tools/fuss.ts)):
   the writing checker under `/fussbudget` (epic `skillz`, P7).

@@ -6,6 +6,7 @@ import { OPEN_KINDS, PlanDocError, REVIEW_SECTIONS, TITLE_PREFIX, type Phase, ty
 
 import { EpicDocs, GROUPS, type EpicDecisions, type EpicDocList } from "./EpicDocs"
 import { EpicParts } from "./EpicParts"
+import { EpicTargets } from "./EpicTargets"
 import { InboxCommands } from "./InboxCommands"
 import { ItemPicker } from "./ItemPicker"
 import { MigrateCommands, type SessionFinder } from "./MigrateCommands"
@@ -601,6 +602,8 @@ export class PlanDocCommands {
    * - links:  `AS.Linker.check()` on the whole doc, at the page's folder (a part's links are written relative to
    *   `parts/`, and rebased when assembled), so the parts' links are checked too;
    *   printed (`LINK:`), failing only with `--links`
+   *   - and its short addresses and `<epic-link>`s:  a saga, page or id that isn't there, an epic under a saga it
+   *     doesn't name (`EpicTargets.problemsIn()`)
    * - a split doc's parts:  a missing one is a problem;  a host with content of its own besides its part (moved
    *   into the part on the next edit), or a part file nothing loads, is a note
    * - the browser check:  `packages/docs/tools/check-spell.js`, a child `node` (its stderr passed on)
@@ -610,7 +613,13 @@ export class PlanDocCommands {
     const plan = this.read(file)
     const parts = plan.parts!
     const problems = plan.check()
-    const links = files.linker.check(plan.toString(), dirname(file)).problems.map((problem) => `link:  ${problem}`)
+    const html = plan.toString()
+    // short addresses and `<epic-link>`s (epic `epic-workflow` P15):  the sagas, pages and ids they point at
+    const linkProblems = [
+      ...files.linker.check(html, dirname(file)).problems,
+      ...new EpicTargets(files.root).problemsIn(html, relative(files.root, file))
+    ]
+    const links = linkProblems.map((problem) => `link:  ${problem}`)
     // printed, but failing only with `--links`:  older docs hold broken links from the docs' moves (I... of
     // `claude-design`), which `check` never looked at before
     if (strictLinks) problems.push(...links)
@@ -901,7 +910,8 @@ export const USAGE = `usage:  spell dev plan-doc <command> <name> ...    (doc:  
   summaries <file.html> ...                        \`summary --json\` of each doc, by path (worktrees' too):
                                                    JSON \`{ <file>: summary | { error } }\`;  for \`/epics\`
   check <name> [--no-browser] [--links]            ids, #id links, phases, parts (a split doc whole);  its
-                                                   links (doc-links), failing only with --links;  then
+                                                   links (doc-links, SAGA:/ and <epic-link>), failing
+                                                   only with --links;  then
                                                    check-spell.js
   open <name> [--docs]                             show in VS Code's side bar:  the Review tab, or --docs the
                                                    Spell Docs tab (epic open seo ~== open seo --docs)

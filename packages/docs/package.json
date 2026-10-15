@@ -9,7 +9,7 @@
     "docs:update": "node tools/update.js",
     "docs:index": "node tools/index.js",
     "docs:new": "node tools/new-page.js",
-    "docs:open": "node tools/open.js",
+    "docs:open": "tsx tools/open.js",
     "plan-doc": "tsx tools/plan-doc.js",
     "details": "node tools/details.js",
     "docs:link": "tsx tools/link.ts",

@@ -13,6 +13,7 @@ import { epicCodeVocabulary } from "$/epics/components/epic-code/EpicCode.en"
 import { epicCommitVocabulary } from "$/epics/components/epic-commit/EpicCommit.en"
 import { epicEventVocabulary } from "$/epics/components/epic-event/EpicEvent.en"
 import { epicItemVocabulary } from "$/epics/components/epic-item/EpicItem.en"
+import { epicLinkVocabulary } from "$/epics/components/epic-link/EpicLink.en"
 import { epicNetEffectVocabulary } from "$/epics/components/epic-net-effect/EpicNetEffect.en"
 import { epicNewItemVocabulary } from "$/epics/components/epic-new-item/EpicNewItem.en"
 import { epicNoteVocabulary } from "$/epics/components/epic-note/EpicNote.en"
@@ -72,6 +73,8 @@ export class Definitions {
     "epic-note": epicNoteVocabulary,
     "epic-aside": epicAsideVocabulary,
     "epic-code": epicCodeVocabulary,
+    // a link to a saga, an epic, a phase or an item (epic `epic-workflow` P15), anywhere prose goes
+    "epic-link": epicLinkVocabulary,
     // the pages Claude makes for Owen to answer ON (epic `epic-workflow` P12):  details and choice pages
     "epic-ask": epicAskVocabulary,
     "epic-text-box": epicTextBoxVocabulary,

@@ -147,6 +147,14 @@ ui -> util
     "goal", "goals page" -- a saga (an epic of epics), a saga page
 - Names only code reads keep the old words:  `<epic-id>.plan.html`, `PlanDoc`, `plan-doc.md`,
   the `spell dev plan-doc` spelling.  So do the record:  log entries, quotes, commit messages.
+- Pointing at a saga, an epic or an item (epic `epic-workflow` P15, J32):
+  - In Owen's prompts, "saga drawable-spell" names a saga, and a SHORT ADDRESS names a saga, an epic or an item:
+    `SAGA:/drawable-spell` (the saga page), `SAGA:/drawable-spell/python-target#T1` (item T1 of that epic).
+    - The colon form (`SAGA:/drawable-spell:python-target#T1`) means the same;  ids in any case.
+  - Resolve one with the openers, which take an address:
+    `spell dev docs open SAGA:/...` shows it, `spell dev docs link SAGA:/... --show` gives its links.
+  - In pages, write `<epic-link epic="python-target" item="T1"></epic-link>`, not a path;
+    a plain `<a href="SAGA:/...">` works too.  The rules:  docs' AGENTS.md, "Links".
 
 ## Worktrees
 

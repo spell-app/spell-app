@@ -230,10 +230,11 @@ process.exit(3)
     expect(run.tsconfig).toBeUndefined()
   })
 
-  test("docs <verb>:  its tool, in packages/docs as yarn ran it;  link under tsx", () => {
+  test("docs <verb>:  its tool, in packages/docs as yarn ran it;  open and link under tsx", () => {
     const open = passThrough(["docs", "open", "solid/solid-2", "--vs"])
     expect(open).toMatchObject({ status: 3, tool: "packages/docs/tools/open.js", args: ["solid/solid-2", "--vs"] })
     expect(realpathSync(open.cwd)).toBe(resolve(CHECKOUT, "packages/docs"))
+    expect(open.tsconfig).toBe(resolve(CHECKOUT, "packages/docs/tsconfig.json"))
     const link = passThrough(["docs", "link", "a.html", "--hash", "b"])
     expect(link).toMatchObject({ status: 3, tool: "packages/docs/tools/link.ts", args: ["a.html", "--hash", "b"] })
     expect(link.tsconfig).toBe(resolve(CHECKOUT, "packages/docs/tsconfig.json"))

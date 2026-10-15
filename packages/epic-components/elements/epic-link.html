@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>epic-link</title>
+    <meta
+      name="description"
+      content="The &lt;epic-link&gt; element: a link to a saga, an epic, a phase or an item, written by what it points at."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="&lt;epic-link&gt;">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../../packages/epics/src/tool/PLAN-DOC.md"
+              icon="book"
+              aria-label="The markup rules, PLAN-DOC.md"
+              title="The markup rules, PLAN-DOC.md"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            &lt;epic-link&gt;
+            <ui-header
+              >The &lt;epic-link&gt; element: a link to a saga, an epic, a phase or an item, written by what it points
+              at.</ui-header
+            >
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <p class="lede">A link to a saga page, an epic page, or a phase or item on one, from any page.</p>
+          <ul>
+            <li>
+              It's written by what it points at, never by a path: the same link works from any page, at any depth.
+            </li>
+            <li>
+              With no text inside, it draws the short form: <code>seo J3</code>, just <code>T3</code> on its own page,
+              <code>P7 · Epic Migrate</code> for a phase.
+            </li>
+            <li>The target's title is its tooltip.</li>
+            <li>
+              It means the same as a short address, <code>SAGA:/&lt;saga&gt;/&lt;epic&gt;#&lt;id&gt;</code>, which a
+              plain link may use too.
+            </li>
+          </ul>
+          <!-- no <ui-list class="spell-meta">:  its <ui-item>s take Spell UI's "item" style sheet name before the
+               epics pack's elements can, and live examples may draw unstyled (issue I9 of epic-components) -->
+          <p class="meta">
+            For anyone writing links in epic pages, saga pages or guides, or changing this element.<br />
+            Its vocabulary (every name it uses):
+            <a
+              href="../../packages/epics/components/epic-link/EpicLink.en.ts"
+              target="src-packages-epics-components-epic-link-epiclink-en-ts"
+              ><code title="packages/epics/components/epic-link/EpicLink.en.ts">EpicLink.en.ts</code></a
+            >.<br />
+            Its component:
+            <a
+              href="../../packages/epics/components/epic-link/EpicLink.tsx"
+              target="src-packages-epics-components-epic-link-epiclink-tsx"
+              ><code title="packages/epics/components/epic-link/EpicLink.tsx">EpicLink.tsx</code></a
+            >, with its style sheet (<code>.css</code>) and tests beside it.
+          </p>
+
+          <ui-section id="1-example" header="1. Example" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="eye"></ui-icon>
+            <p>Two links into this epic's page, the second with text of its own:</p>
+            <ul>
+              <li>
+                The decision that settled the address:
+                <epic-link saga="epics" epic="epic-workflow" item="J32"></epic-link>
+              </li>
+              <li>
+                The phase that made it:
+                <epic-link epic="epic-workflow" phase="15">the Sagas foundation</epic-link>
+              </li>
+            </ul>
+            <p class="meta">
+              Live: the real element, drawn by the epics pack this page loads. Served, the page server gives each link
+              its tooltip. A link to an id that isn't there is struck through, its tooltip saying so.
+            </p>
+          </ui-section>
+
+          <ui-section id="2-markup" header="2. Markup" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="code"></ui-icon>
+            <p>Each way to point, and the short address that means the same:</p>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>epic-link · every form · 9 lines</ui-title>
+              <ui-content>
+                <ui-code language="html"
+                  ><script type="text/plain">
+                    <epic-link saga="drawable-spell"></epic-link>                          <!-- SAGA:/drawable-spell -->
+                    <epic-link saga="drawable-spell" item="T3"></epic-link>                <!-- SAGA:/drawable-spell#T3 -->
+                    <epic-link saga="drawable-spell" epic="python-target"></epic-link>     <!-- SAGA:/drawable-spell/python-target -->
+                    <epic-link epic="python-target" item="T1"></epic-link>                 <!-- SAGA:/output-targets/python-target#T1 -->
+                    <epic-link item="T3"></epic-link>                                      <!-- T3, on the page it's in -->
+                    <epic-link phase="epic-migrate"></epic-link>                           <!-- P7 · Epic Migrate, on its page -->
+                    <epic-link epic="seo" phase="2">the meta tags phase</epic-link>         <!-- its own text -->
+                    <a href="SAGA:/output-targets/python-target#T1">a plain link</a>         <!-- the page loader rewrites it -->
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+
+          <ui-section id="3-where-it-goes" header="3. Where it goes" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="map"></ui-icon>
+            <p>
+              <b>Its parents:</b> anywhere prose goes, in a paragraph or a list item, on any page that loads the epics
+              pack.
+            </p>
+            <ul>
+              <li>Epic pages, saga pages and details pages load it already.</li>
+              <li>
+                A guide loads it with one more line in its <code>&lt;ui-root&gt;</code>:
+                <code>&lt;ui-components source="&lt;up&gt;packages/epics/pack/epics.pack.js"&gt;</code>. Without it, use
+                a plain <code>&lt;a href="SAGA:/..."&gt;</code>: the docs runtime rewrites it.
+              </li>
+            </ul>
+            <p><b>Its children:</b></p>
+            <ul>
+              <li>prose: the link's text; none, the short form</li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="4-attributes" header="4. Attributes" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="list check"></ui-icon>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Values</th>
+                    <th>Meaning</th>
+                    <th>Required</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>saga</code></td>
+                    <td>a saga's id</td>
+                    <td>
+                      Alone: its saga page. With an epic: the saga it names. Not needed; one the epic doesn't name still
+                      links, and the link check flags it.
+                    </td>
+                    <td>no</td>
+                  </tr>
+                  <tr>
+                    <td><code>epic</code></td>
+                    <td>an epic's id</td>
+                    <td>Its epic page.</td>
+                    <td>no</td>
+                  </tr>
+                  <tr>
+                    <td><code>item</code></td>
+                    <td>an id on that page, any case</td>
+                    <td>Lands on it, opening an item: <code>T1</code>, <code>j32</code>, <code>o1</code>.</td>
+                    <td>no</td>
+                  </tr>
+                  <tr>
+                    <td><code>phase</code></td>
+                    <td>a number, or a name</td>
+                    <td>
+                      A phase instead of an item: <code>7</code> or <code>P7</code>, the 7th; <code>epic-migrate</code>,
+                      the one whose title that is.
+                    </td>
+                    <td>no</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <p>None of <code>saga</code> or <code>epic</code>: the page it's in.</p>
+            <ui-section id="slots" header="Slots" sticky collapsible dividing collapsed>
+              <ui-table celled compact striped unstackable>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Slot</th>
+                      <th>Holds</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>(default)</td>
+                      <td>The link's text; none, the short form.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ui-table>
+            </ui-section>
+            <ui-section id="parts" header="Parts and states" sticky collapsible dividing collapsed>
+              <ui-table celled compact striped unstackable>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Is</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>::part(base)</code></td>
+                      <td>The link, an <code>&lt;a&gt;</code>; plain text while it has nowhere to go.</td>
+                    </tr>
+                    <tr>
+                      <td><code>:state(broken)</code></td>
+                      <td>What it points at isn't there: no page, or no such id on it.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ui-table>
+            </ui-section>
+          </ui-section>
+
+          <ui-section id="5-how-it-looks" header="5. How it looks" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="palette"></ui-icon>
+            <ul>
+              <li>Inline, in the page's link colour, underlined on hover.</li>
+              <li>Broken: struck through, in the muted ink, its tooltip saying what wasn't found.</li>
+              <li>A link to another epic's page opens in that epic's tab, as every link to an epic page does.</li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="6-written-by" header="6. Written by" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="terminal"></ui-icon>
+            <ul>
+              <li>Claude and Owen, by hand, in prose.</li>
+              <li>
+                Checked by <code>epic check --links</code> and <code>doc-links.js --check</code>: a saga, page or id
+                that isn't there is a broken link, and so is an epic under a saga it doesn't name.
+              </li>
+            </ul>
+          </ui-section>
+
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">Last checked 2026-10-14 against branch <code>epic-workflow-p15-link</code>.</p>
+          </footer>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

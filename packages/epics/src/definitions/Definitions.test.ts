@@ -110,7 +110,9 @@ describe("Definitions.all", () => {
       "epic-net-effect",
       "epic-note",
       "epic-aside",
-      "epic-code"
+      "epic-code",
+      // a link to a saga, an epic, a phase or an item (P15 of `epic-workflow`)
+      "epic-link"
     ])
     expect({
       item: placesOf("epic-item", "epic-question"),

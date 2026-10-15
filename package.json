@@ -75,6 +75,7 @@
       "packages/docs/tools/commentsRoutes.ts",
       "packages/epics/src/tool/reviewRoutes.ts",
       "packages/epics/src/tool/epicRoutes.ts",
+      "packages/epics/src/tool/linkRoutes.ts",
       "packages/docs/tools/agentRoutes.ts",
       "packages/docs/tools/showRoutes.ts",
       "packages/app/src/server/appRoutes.ts"

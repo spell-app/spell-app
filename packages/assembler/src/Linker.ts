@@ -14,6 +14,9 @@ import type { AS } from "$/assembler"
  *   - a name with its path as its tooltip, `<code title="path">name</code>`, links to that path the same way
  * - `check()`:  every local href resolves INSIDE the repo, every non-anchor link has a target, one target per
  *   destination (`target="_self"`, a same-tab link, is exempt from the last)
+ * - a SHORT ADDRESS (`href="SAGA:/drawable-spell/python-target#T1"`, epic `epic-workflow` P15) is neither linked nor
+ *   checked here:  the docs runtime turns it into the page, and the epics tool, which knows the sagas, checks it
+ *   (`EpicTargets.problemsIn()`, run beside this by `doc-links.js --check` and `epic check`)
  *   - a missing target version control IGNORES is fine:  runtime files and local clones exist only on some
  *     machines, or while a server runs (`isGitIgnored()`)
  * - Works on the page's TEXT with regexes, never a parsed DOM:  the edits touch only what they link, byte for byte.
@@ -130,11 +133,11 @@ export class Linker {
 
   /**
    * `tag`, an `<a href>` in a page in `pageDir`, with a target:
-   * - in-page anchors (`#id`) are left alone
+   * - in-page anchors (`#id`) and short addresses (`SAGA:/...`) are left alone
    * - a tag with a target keeps it, except an epic page's:  renamed to its `<name>` (pre-2026-10-01 targets)
    */
   private addTarget(tag: string, href: string, pageDir: string): string {
-    if (href.startsWith("#")) return tag
+    if (href.startsWith("#") || SAGA_ADDRESS.test(href)) return tag
     const dest = URL_START.test(href) ? href : this.real(resolvePath(pageDir, href.split("#")[0]))
     if (tag.includes("target=")) {
       if (URL_START.test(dest) || !PLAN_DOC.test(relative(this.root, dest))) return tag
@@ -263,7 +266,7 @@ export class Linker {
       const attrs = m[1]
       const hrefMatch = /href="([^"]+)"/.exec(attrs)
       const target = /target="([^"]+)"/.exec(attrs)?.[1]
-      if (!hrefMatch || hrefMatch[1].startsWith("#")) continue
+      if (!hrefMatch || hrefMatch[1].startsWith("#") || SAGA_ADDRESS.test(hrefMatch[1])) continue
       const href = decodeEntities(hrefMatch[1])
       const local = !URL_START.test(href)
       const dest = local ? this.real(resolvePath(pageDir, href.split("#")[0])) : href
@@ -339,6 +342,12 @@ const SHARED_TAB = "github"
 
 /** An absolute URL. */
 const URL_START = /^https?:\/\//
+
+/**
+ * A short address, `SAGA:/<saga>[/<epic>][#<id>]`:  the epics tool's (`$/epics/links` `SAGA_SCHEME`), which this
+ * package can't import.
+ */
+const SAGA_ADDRESS = /^saga:\//i
 
 /**
  * A code span:  `[2]` its text;

@@ -11,6 +11,7 @@ import { REPO_ROOT, findCheckout } from "$/cli/findCheckout"
 /**
  * The repo tools `spell dev` passes straight through to, by command:  each as its yarn script ran it.
  * - `docs <verb>`:  `packages/docs/package.json`'s `docs:<verb>`, in `packages/docs` as `yarn workspace` ran them
+ *   - `open` and `link` under `tsx`:  a short address (`SAGA:/...`) is read by `$/epics/links`
  * - `docs fuss`:  the writing checker, under `tsx`, in the caller's folder (its paths are from there)
  * - `docs offline`:  what docs pages load from the internet, likewise
  * - `server`:  `packages/server`'s `server` script;  `serve`:  root `yarn serve`, `spell dev server start --all`
@@ -31,7 +32,7 @@ export const TOOLS = {
   "docs update": { tool: "packages/docs/tools/update.js", cwd: "packages/docs" },
   "docs index": { tool: "packages/docs/tools/index.js", cwd: "packages/docs" },
   "docs new": { tool: "packages/docs/tools/new-page.js", cwd: "packages/docs" },
-  "docs open": { tool: "packages/docs/tools/open.js", cwd: "packages/docs" },
+  "docs open": { tool: "packages/docs/tools/open.js", tsx: "packages/docs/tsconfig.json", cwd: "packages/docs" },
   "docs link": { tool: "packages/docs/tools/link.ts", tsx: "packages/docs/tsconfig.json", cwd: "packages/docs" },
   "docs fuss": { tool: "packages/docs/tools/fuss.ts", tsx: "packages/docs/tsconfig.json" },
   "docs offline": { tool: "packages/docs/tools/offline.ts", tsx: "packages/docs/tsconfig.json" },

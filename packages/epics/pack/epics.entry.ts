@@ -25,6 +25,7 @@ SpellUI.registerPack({
       import("../components/epic-commit"),
       import("../components/epic-event"),
       import("../components/epic-item"),
+      import("../components/epic-link"),
       import("../components/epic-net-effect"),
       import("../components/epic-new-item"),
       import("../components/epic-note"),

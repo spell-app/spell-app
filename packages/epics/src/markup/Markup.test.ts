@@ -89,6 +89,7 @@ const SAMPLES: { [T in EpicTag]: EpicData<T> } = {
   "epic-note": { state: "done", title: "option A, 2026-10-06" },
   "epic-aside": { title: "where it stood at kickoff" },
   "epic-code": { title: "design.ts · 12 lines", language: "ts", open: true },
+  "epic-link": { saga: "drawable-spell", epic: "python-target", item: "T1" },
   "epic-review": { of: "q7", shows: "note", buttons: "todo", label: "Q7", tip: "reviewed 10/7/26", underLine: true },
   "epic-new-item": { open: true, adds: "question", near: "p3", editing: "new1" },
   "epic-agents": {},

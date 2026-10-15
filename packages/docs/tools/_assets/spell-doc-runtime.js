@@ -34,7 +34,9 @@
  *   an epic card section also gets state chips with counts, filtering its items (`wireItemFilters()`)
  * - scroll-follow:  the toolbar's button of the section being read is highlighted, and the address follows it
  * - links to any id in `main` (a section, a heading, a plan item) land below the stuck titles, unfolding what
- *   hides it
+ *   hides it;  a `#hash` in another case than the page's id (`#T1` for `t1`) lands too
+ * - SHORT ADDRESSES (`wireAddresses()`, epic `epic-workflow` P15):  a link to `SAGA:/<saga>[/<epic>][#<id>]`
+ *   becomes the saga or epic page and its `#id`, so both kinds of link work
  * - the CHEATSHEET card filters
  * - highlight.js, when the page loaded it
  * - COMMENTS (`wireComments()`):  served by the page server, a bullhorn beside every major block (and in the page
@@ -80,6 +82,7 @@ import {
   sectionOf,
   sectionTitle
 } from "../BlockAnchors.js"
+import { EpicAddress, PageTargets } from "$/epics/links"
 
 /** Custom elements this runtime drives:  wait for their definitions before wiring. */
 const TAGS = [
@@ -189,6 +192,8 @@ async function start() {
   await Promise.all(used.map((tag) => customElements.whenDefined(tag)))
   const sticky = trackStickyHeights(main, outline)
   const follow = followScroll(main, outline, rail)
+  // before the anchors:  a short address into this page becomes a `#id` link they take
+  wireAddresses()
   const { jump, go, canGo } = wireAnchors(main, outline, sticky, follow, folds)
   wirePaging(main)
   if (document.body.classList.contains("plan-doc")) wireJumpKey(go, canGo)
@@ -2417,6 +2422,50 @@ function topOf(element) {
 }
 
 ////////////////
+// ## Short addresses
+////////////////
+
+/**
+ * Links to a SHORT ADDRESS (epic `epic-workflow` P15, J32), `<a href="SAGA:/drawable-spell/python-target#T1">`,
+ * become links to the page and its `#id` (`EpicAddress`), so a page may link either way:
+ * - the epic or saga page, from the checkout's root (`PageTargets.rootUrlOf()`), opening in that epic's tab (as every
+ *   link to an epic page) unless the link names one;  the page there lands on the id, loading its part first
+ * - into THIS page:  a `#id` link, which `wireAnchors()` lands on
+ * - every such link as the page starts, and one added later as it's clicked (before the anchors see the click)
+ * - a malformed address, or no root to build from:  left as it is
+ */
+function wireAddresses() {
+  const root = PageTargets.rootUrlOf(document)
+  if (!root) return
+  const here = EpicAddress.pageOf(location.href, root)
+  for (const link of document.querySelectorAll("a[href]")) rewrite(link)
+  document.addEventListener(
+    "click",
+    (event) => {
+      for (const node of event.composedPath())
+        if (node instanceof Element && node.localName === "a" && node.hasAttribute("href")) return rewrite(node)
+    },
+    { capture: true }
+  )
+
+  /** `link`'s address, if it has one, as the page and `#id` it means. */
+  function rewrite(link) {
+    const href = link.getAttribute("href")
+    if (!EpicAddress.isAddress(href)) return
+    let address
+    try {
+      address = EpicAddress.parse(href)
+    } catch {
+      return
+    }
+    const samePage = address.page === here
+    link.setAttribute("href", samePage ? `#${address.id ?? ""}` : address.hrefFrom(root))
+    if (!samePage && !link.hasAttribute("target")) link.setAttribute("target", address.epic ?? `saga-${address.saga}`)
+    link.setAttribute("data-spell-address", href)
+  }
+}
+
+////////////////
 // ## Jump to an item (Cmd / Ctrl + K)
 ////////////////
 
@@ -2620,7 +2669,9 @@ function stuckBottom(main) {
 
 /** The URL's `#hash` as an id, or "". */
 function hashId() {
-  return decodeHash(location.hash.slice(1))
+  const id = decodeHash(location.hash.slice(1))
+  // ids in any case (`#T1` ~== `#t1`, epic `epic-workflow` J32):  the page's own spelling when it has no other
+  return document.getElementById(id) ? id : id.toLowerCase()
 }
 
 /** A `#hash` (without its `#`) as an id:  percent-decoded, or as it is when that fails. */

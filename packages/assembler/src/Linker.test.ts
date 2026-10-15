@@ -87,6 +87,12 @@ describe("Linker.link()", () => {
     )
   })
 
+  test("leaves a short address alone:  the docs runtime and the epics tool take it (epic `epic-workflow` P15)", () => {
+    const body = '<a href="SAGA:/drawable-spell/python-target#T1">t1</a>'
+    expect(linked(body)).toBe(body)
+    expect(LINKER.check(link(body).text, PAGE_DIR)).toEqual({ destinations: 0, problems: [] })
+  })
+
   test("renames an epic page's old target to its epic id", () => {
     expect(linked('<a href="../epics/commands/commands.html#p7" target="src-old">plan</a>')).toBe(
       '<a href="../epics/commands/commands.html#p7" target="commands">plan</a>'

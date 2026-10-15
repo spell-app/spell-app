@@ -1,0 +1,34 @@
+/*
+ * `<epic-link>` (`EpicLink.tsx`):  a link in running text, as the page's own links look.
+ * - Broken (`:state(broken)`):  struck through, in the muted ink.
+ * - Public tokens (`--epic-link-*`) are never declared here:  read through private aliases.
+ */
+
+@layer ui.components.epic-link.types, ui.components.epic-link.content;
+
+@layer ui.components.epic-link.types {
+  :host {
+    display: inline;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+}
+
+@layer ui.components.epic-link.content {
+  a {
+    color: var(--epic-link-color, var(--epic-accent, var(--ui-link)));
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+  a:focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent));
+    outline-offset: 1px;
+  }
+  :host(:state(broken)) [part~="base"] {
+    color: var(--epic-muted, var(--ui-text-muted));
+    text-decoration: line-through;
+  }
+}

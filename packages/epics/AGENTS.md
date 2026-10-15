@@ -94,6 +94,14 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       comment box).  Their pages:  Epic UI's "Pages Owen answers on".
     - `<epic-text-box>` is written in pages (the notes, a section's comment) AND drawn by others in their shadow
       roots (Other, an option's comment, the feedback):  each family drawing it imports its barrel first.
+  - `links/` (`$/epics/links`) -- pointing at a saga, an epic, a phase or an item (epic `epic-workflow` P15, J32);
+    pure, node-safe at import, NOT in the `$/epics` barrel (the docs runtime imports it alone):
+    - `EpicAddress`:  a short address (`SAGA:/drawable-spell/python-target#T1`, the colon form read too) or
+      `<epic-link>`'s attributes, as the page (`sagas/<s>/<s>.saga.html`, `epics/<e>/<e>.plan.html`), the `#id` and
+      the short form a link draws;  phases by number or name (`findPhase()`);  the checkout's root URL of a page
+    - `PageTargets`:  what one page's DOM holds to land on (ids, titles, phases in order, its `<epic-page saga>`),
+      on the browser's DOM or linkedom's
+    - used by `<epic-link>`, the docs runtime (`SAGA:/` links rewritten), and the tool's `EpicTargets`
   - `site/` -- `EpicUISite`:  the data of Epic UI, the elements' docs set (`packages/epic-components/`, at `/epic-ui/`;
     epic `epic-workflow` P10), in Spell UI's site shapes:
     - `_data/components.json`:  one entry per element from `Definitions.all`, filed by the set's hand-kept
@@ -121,6 +129,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - which epic a docs page belongs to (`ownerOf()`):  where that page's Send hands its comments
       - read by the page server (`GET /api/epics/pages`, `<epic-page>`'s See Also box;  docs' comments routes), by
         `epic inbox <name> wait` (a guide's Send wakes it), and by docs' `GuideChanges`
+    - `EpicTargets` (P15):  what a link to a saga, an epic, a phase or an item finds in a checkout -- the page,
+      the id, its title, what's broken (no saga, no page, no id, an epic under a saga it doesn't name)
+      - read by the link check (`epic check`, docs' `doc-links.js --check`:  `problemsIn()`), the openers
+        (`spell dev docs link SAGA:/...`) and the page server:  [linkRoutes.ts](src/tool/linkRoutes.ts),
+        `GET /api/epics/target` (`<epic-link>`'s title and short form) and the typed `/saga/<saga>[/<epic>]`
     - The old hand-written prose shapes have ONE set of rules, `ProseShapes`:
       a `Net effect` paragraph, a code accordion, an option grid ...
       - `ProseRewrite` turns them into elements,
