@@ -1,0 +1,327 @@
+/**
+ * Comments on docs pages and epic pages, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`),
+ * listed in the repo root's `package.json` `"pageServer": { "routes": [...] }` (epic `airplane`, P11).
+ * - A COMMENT:  what Owen writes on one block of a page, from the bullhorn beside it, or on text he selected there.
+ *   - selected text:  ⌘ I, or the floating bullhorn
+ *   - the page's side:  `_assets/spell-doc-runtime.js`, "Comments"
+ *   - no Claude needed, so it works on a plane
+ *   - its shape and every change to it:  `CommentList` (`$/epics/tool/CommentList`)
+ * - Where it's kept (`inboxOf()`):
+ *   - a docs page's:  its own inbox file, `<page>.inbox.json` beside it (`GuideInbox`);
+ *     its Send hands them to the session of the epic the page belongs to (below);
+ *     a page no epic owns:  Claude takes them into epic `guide-changes` with `spell dev comments gather`
+ *   - an epic page's:  the epic's review inbox, `<name>.inbox.json`, under `comments` (`ReviewInbox`);
+ *     Claude answers them as a revisit's note (`/epic review`, `/airplane land`)
+ *   - a SAGA page's (`sagas/<id>/<id>.saga.html`, epic `epic-workflow` P15):  the same, in its own inbox,
+ *     `<id>.inbox.json`;  its Send is `<epic-page>`'s, for the session running `/epic review SAGA:/<id>`
+ *   - both git-ignored in the shared repo:  waiting work, per machine, never the record
+ * - `GET /api/docs/comments?page=<path>` -- the page's comments, every status:
+ *   `{ page, takesComments, comments, send? }`
+ *   - the runtime asks as the page loads, and draws the bullhorns only when `takesComments`:
+ *     a server without this module, `file://`, or a page that takes none shows none
+ *   - each comment with its thread (`replies`, `done`) and whose `turn` it is (`CommentList.turnOf()`)
+ *   - `working` while Claude thinks about it (`spell dev comments working`):  the thread's "Claude: thinking…" stub
+ *   - `send`, for the page header's Send (epic `epic-workflow` P13):
+ *     `{ epic, owned, listening, sent, unsent, waiting }` (`PageSend`)
+ *     - on a docs page only:  an epic page's Send is the review inbox's (`reviewRoutes.ts`)
+ *     - `epic`:  the epic the page belongs to (`SeeAlso.ownerOf()`), else `guide-changes` (`owned: false`)
+ *     - `listening`:  the session listening to that epic's review inbox (`ReviewInbox.liveListener()`), else `null`
+ *     - `sent`:  Owen's last Send on the page
+ *     - `unsent`:  the ids of the comments a Send would hand over
+ *     - `waiting`:  every comment waiting for Claude, sent or not
+ * - `POST /api/docs/comments/send` `{ page }` -- a docs page's SEND (P13):  every comment waiting so far is sent
+ *   (`GuideInbox.markSent()`), and the epic's `plan-doc inbox <epic> wait` takes them
+ *   - nobody listening to the page's epic (one an epic owns):  it WAKES that epic, as an epic page's Send does
+ *     (P16, `ReviewStart.wakeFor()`)
+ *   - answers `{ ok, comments, send, wake }`;  `wake`:  what waking did, else `null`
+ *   - an epic page:  400 (its Send is `/api/epics/review/send`)
+ * - `POST /api/docs/comments` `{ page, action, ... }` -- change one comment;  answers `{ ok, id, comments, send? }`
+ *   - `add` `{ anchor, kind, label, excerpt, quote?, offset?, text }`:  a new comment;  answers its `id`
+ *   - `edit` `{ id, text }`, `delete` `{ id }`:  only while the comment is `new` (else 409)
+ *   - `clear` `{ id }`:  gone, whatever its status (`CommentList.clear()`)
+ *   - `restore` `{ id, comment }`:  a comment deleted or cleared a moment ago, back as the GET gave it
+ *     - the page's Undo (`CommentList.restore()`)
+ *     - answers its `id`, the same unless a new comment took it meanwhile
+ *   - the THREAD (Owen, 2026-10-10):
+ *     - `reply` `{ id, text }`:  Owen's reply, saved as he types (`CommentList.reply()`);
+ *       blank empties his pending one
+ *     - `resolve` `{ id, how: "good" | "skip" }`:  "that's good" or "skip it" closes the thread
+ *     - `reopen` `{ id }`:  open again (Undo, Reopen)
+ * - `page`:  the page's URL path, as served (a worktree's `/worktrees/<w>/...` too).
+ *   Which pages take comments (`commentsPage()`):
+ *   - any `.html` under `guides/`, `pages/` (the home page, details pages),
+ *     `epics/` (epic pages, an epic's own pages) and `sagas/` (saga pages, epic `epic-workflow` P15)
+ *   - a component set's pages, at its address (`/components/epics/...`, `/components/app/...`), but not its `__parts/`
+ *     - the sets:  `COMPONENT_SETS`, epic `people-and-orgs` P18
+ *     - kept in `<page>.inbox.json` beside each, in the set's tracked `docs/` folder,
+ *       git-ignored there (the repo's `.gitignore`)
+ *   - NOT a split epic page's `parts/` (they're shown inside their doc), nor an epic page's pre-2026-10-04 name
+ *   - NOT a details page with questions, or a choice page:  they're answered on the page
+ *   - NOT `templates/`, the parked goal sets in `goals/` (they have thoughts), or the brand pages (`brand/`)
+ *   - anything else:  `takesComments: false` to a GET, 403 to a POST;  no such page:  404;  bad input:  400
+ * - every write:  under the inbox file's lock (`SRV.FileLock`), atomic;
+ *   the page server announces the file's change, and every open copy of the page draws its comments again
+ * - every POST needs the page server's token (`x-server-token`) and its own origin (`SRV.Guard`)
+ * - Before P11 docs pages took PAGE NOTES, written into the page (`PageNotes.js`):  the ones written still show,
+ *   read only, and `spell dev notes` still answers them
+ */
+import { existsSync, readFileSync } from "node:fs"
+import { join } from "node:path"
+
+import { SRV } from "$/server"
+import { COMPONENT_SETS, type RouteModule } from "$/server/page"
+import {
+  CommentList,
+  CommentsError,
+  type Comment,
+  type CommentPlace,
+  type IdentifiedComment,
+  type Turn
+} from "$/epics/tool/CommentList"
+import { GuideInbox } from "$/epics/tool/GuideInbox"
+import { ReviewInbox } from "$/epics/tool/ReviewInbox"
+import { ReviewStart } from "$/epics/tool/ReviewStart"
+import { GUIDE_CHANGES, SeeAlso } from "$/epics/tool/SeeAlso"
+
+/** Where the routes live. */
+const API = "/api/docs/comments"
+const SEND_API = "/api/docs/comments/send"
+
+/** Biggest body accepted:  a comment is a few paragraphs. */
+const MAX_BODY = 64 * 1024
+
+/** The component sets' address folders (`components/epics` ...):  their pages take comments too. */
+const SET_FOLDERS = COMPONENT_SETS.map((set) => set.prefix.slice(1)).join("|")
+
+/**
+ * A page that may take comments, by URL path:  under `guides/`, `pages/`, `epics/` or `sagas/`,
+ * or a component set's address, on any checkout's mount.
+ */
+const COMMENTS_PAGE = new RegExp(
+  `^/(?:worktrees/[^/]+/)?(?:guides|pages|epics|sagas|${SET_FOLDERS})/(?:[^/]+/)*[^/]+\\.html$`
+)
+
+/**
+ * Pages under those that don't:  a split epic page's parts, an epic page's old name (`<name>/<name>.html`),
+ * a component set's layout and footer (`__parts/`).
+ */
+const NO_COMMENTS = /\/parts\/[^/]+\.html$|\/__parts\/[^/]+\.html$|\/epics\/([^/]+)\/\1\.html$/
+
+/**
+ * An epic page, by its file:  its comments go in the epic's review inbox.  A saga page too (epic `epic-workflow`
+ * P15):  an epic page of kind "saga", its comments in its own review inbox.
+ */
+const PLAN_DOC = /\.(?:plan|saga)\.html$/
+
+/**
+ * Markup of a page answered on the page:  a details page's questions, `<epic-ask>`
+ * (before epic `epic-workflow` P12, `.spell-question`:  a page its migration hasn't reached yet).
+ */
+const ANSWERED_ON_PAGE = /<epic-ask\b|class="spell-question\b/
+
+const commentsRoutes: RouteModule = {
+  name: "comments",
+  setup({ root, router, guard, web }) {
+    // every docs page asks, so a page that takes no comments is an answer (`takesComments: false`), not a 403:
+    // the browser logs every 4xx in the console, which `check-spell.js` fails on
+    router.get(API, (request, reply) => {
+      const page = one(request.query.page)
+      let file: string
+      try {
+        file = commentsPage(web.files, page)
+      } catch (error) {
+        if (!(error instanceof SRV.HttpError) || error.status !== 403) throw error
+        return reply.set("Cache-Control", "no-store").json({ page, takesComments: false, comments: [] })
+      }
+      reply
+        .set("Cache-Control", "no-store")
+        .json({ page, takesComments: true, comments: shown(commentsOf(file)), ...sendOf(root, page as string, file) })
+    })
+    router.post(SEND_API, guard.writeCheck, SRV.parseBodies({ limit: MAX_BODY }), async (request, reply) => {
+      const { page } = (request.body ?? {}) as { page?: unknown }
+      const file = commentsPage(web.files, page)
+      if (PLAN_DOC.test(file))
+        throw new SRV.HttpError(400, "an epic page's Send is the review inbox's:  /api/epics/review/send")
+      let fresh = false
+      await GuideInbox.updateAsync(GuideInbox.fileFor(file), (_comments, inbox) => {
+        fresh = inbox.unsentComments.length > 0
+        inbox.markSent()
+      })
+      const { send } = sendOf(root, page as string, file)
+      // nobody listening to the page's epic:  wake it, as an epic page's Send does (P16, `ReviewStart.wakeFor()`);
+      // never the catch-all `guide-changes`, which no session works
+      const wake =
+        send?.owned && !send.listening
+          ? await new ReviewStart(root).wakeFor(join(root, "epics", send.epic, `${send.epic}.plan.html`), send.epic, {
+              fresh
+            })
+          : null
+      reply.json({ ok: true, comments: shown(commentsOf(file)), send, wake })
+    })
+    router.post(API, guard.writeCheck, SRV.parseBodies({ limit: MAX_BODY }), async (request, reply) => {
+      const change = toChange(request.body)
+      const file = commentsPage(web.files, change.page)
+      const id = await changeComments(file, (comments) => changeComment(comments, change)).catch((error: unknown) => {
+        throw error instanceof CommentsError ? new SRV.HttpError(error.status, error.message) : error
+      })
+      reply.json({ ok: true, id, comments: shown(commentsOf(file)), ...sendOf(root, change.page as string, file) })
+    })
+  }
+}
+
+export default commentsRoutes
+
+/**
+ * A docs page's Send, as the page header draws it (`PageSend`):  `{ send }`;  an epic page's:  `{}` (its own Send is
+ * `<epic-page>`'s, on the review inbox).
+ * - `root`:  the server's checkout:  its `epics/` (shared by every checkout) says who owns the page
+ * - `page`:  the page's URL path (`/worktrees/<w>/guides/x.html` too);  `file`:  its file
+ */
+export function sendOf(root: string, page: string, file: string): { send?: PageSend } {
+  if (PLAN_DOC.test(file)) return {}
+  const owner = new SeeAlso(root).ownerOf(page.replace(/^\/(?:worktrees\/[^/]+\/)?/, ""))
+  const epic = owner ?? GUIDE_CHANGES
+  const inbox = GuideInbox.read(GuideInbox.fileFor(file))
+  const review = ReviewInbox.read(ReviewInbox.pathFor(join(root, "epics", epic, `${epic}.plan.html`)))
+  return {
+    send: {
+      epic,
+      owned: !!owner,
+      listening: review.liveListener()?.session ?? null,
+      sent: inbox.sent,
+      unsent: inbox.unsentComments.map((comment) => comment.id),
+      waiting: inbox.commentList.waiting.map((comment) => comment.id)
+    }
+  }
+}
+
+/**
+ * A docs page's Send, for its page header (epic `epic-workflow` P13).
+ * - `epic`:  the epic its comments go to:  the one it belongs to (`SeeAlso.ownerOf()`), else `guide-changes`
+ * - `owned`:  an epic owns it (`false`:  `guide-changes`, the catch-all)
+ * - `listening`:  the session listening to that epic's review inbox, else `null`
+ * - `sent`:  Owen's last Send on the page, ISO, else `null`
+ * - `unsent`:  the ids of the comments a Send would hand over
+ * - `waiting`:  the ids of every comment waiting for Claude, sent or not (`CommentList.waiting`)
+ */
+export type PageSend = {
+  epic: string
+  owned: boolean
+  listening: string | null
+  sent: string | null
+  unsent: string[]
+  waiting: string[]
+}
+
+/** `comments` as the page gets them:  each with whose `turn` it is on its thread. */
+function shown(comments: CommentList): (IdentifiedComment & { turn: Turn })[] {
+  return comments.all.map((comment) => ({ ...comment, turn: CommentList.turnOf(comment) }))
+}
+
+/**
+ * The file of page `page` (a URL path) through the server's mounts, when it takes comments.
+ * - 400:  not a path;  404:  no such page;
+ *   403:  outside a mount, or a page that takes no comments (this module's header says which)
+ */
+export function commentsPage(files: SRV.StaticHandler, page: unknown): string {
+  if (typeof page !== "string" || !page.startsWith("/")) throw new SRV.HttpError(400, "no page")
+  if (!COMMENTS_PAGE.test(page) || NO_COMMENTS.test(page)) throw new SRV.HttpError(403, `no comments on ${page}`)
+  const resolved = files.resolve(page)
+  if (!resolved) throw new SRV.HttpError(403, `not served here:  ${page}`)
+  if ("redirect" in resolved) throw new SRV.HttpError(400, `a folder, not a page:  ${page}`)
+  if ("status" in resolved) throw new SRV.HttpError(resolved.status, resolved.message)
+  if (ANSWERED_ON_PAGE.test(readFileSync(resolved.file, "utf8")) || existsSync(rowsFile(resolved.file)))
+    throw new SRV.HttpError(403, `${page} is answered on the page, not with comments`)
+  return resolved.file
+}
+
+/** The comments of the page at `file`, as its inbox holds them now (read without the lock). */
+export function commentsOf(file: string): CommentList {
+  return PLAN_DOC.test(file)
+    ? ReviewInbox.read(ReviewInbox.pathFor(file)).commentList
+    : GuideInbox.read(GuideInbox.fileFor(file)).commentList
+}
+
+/**
+ * Change the comments of the page at `file` with `change`, in its inbox, under the inbox's lock;
+ * resolves to what `change` returned.
+ * - SIDE EFFECT:  writes the inbox file
+ */
+export async function changeComments<T>(file: string, change: (comments: CommentList) => T): Promise<T> {
+  if (!PLAN_DOC.test(file)) return GuideInbox.updateAsync(GuideInbox.fileFor(file), change)
+  let result: T | undefined
+  await ReviewInbox.updateAsync(ReviewInbox.pathFor(file), (inbox) => (result = change(inbox.commentList)))
+  return result as T
+}
+
+/** Make `change` in `comments`;  returns the comment's id. */
+function changeComment(comments: CommentList, change: CommentChange): string {
+  if (change.action === "add") return comments.add(change.place, change.text)
+  if (change.action === "restore") return comments.restore(change.id, change.comment)
+  if (change.action === "edit") comments.edit(change.id, change.text)
+  else if (change.action === "reply") comments.reply(change.id, change.text)
+  else if (change.action === "resolve") comments.resolve(change.id, change.how)
+  else if (change.action === "reopen") comments.reopen(change.id)
+  else if (change.action === "clear") comments.clear(change.id)
+  else comments.remove(change.id)
+  return change.id
+}
+
+/** The actions on one comment, by its `id`. */
+const ON_ONE = ["edit", "delete", "clear", "restore", "reply", "resolve", "reopen"]
+
+/**
+ * A POST's body, checked.
+ * - 400:  an unknown `action`, or what it needs missing (`anchor` and `kind` to add, `id` for the rest, the
+ *   `comment` to restore);  the rest is checked by `CommentList`
+ */
+function toChange(body: unknown): CommentChange {
+  const { page, action, id, text, anchor, kind, label, excerpt, quote, offset, comment, how } = (body ?? {}) as Record<
+    string,
+    unknown
+  >
+  const words = typeof text === "string" ? text : ""
+  if (action === "add") {
+    if (typeof anchor !== "string" || typeof kind !== "string")
+      throw new SRV.HttpError(400, "add:  which block is it on?  (anchor, kind)")
+    const place: CommentPlace = {
+      anchor,
+      kind,
+      label: typeof label === "string" ? label : "",
+      excerpt: typeof excerpt === "string" ? excerpt : ""
+    }
+    if (typeof quote === "string") Object.assign(place, { quote, offset: Number(offset) })
+    return { page, action, place, text: words }
+  }
+  if (typeof action !== "string" || !ON_ONE.includes(action))
+    throw new SRV.HttpError(400, `action is add or ${ON_ONE.join(", ")}, not "${String(action)}"`)
+  if (typeof id !== "string") throw new SRV.HttpError(400, `${action}:  which comment?`)
+  if (action === "restore") {
+    if (!comment || typeof comment !== "object") throw new SRV.HttpError(400, "restore:  which comment, as it was?")
+    return { page, action, id, comment: comment as Comment }
+  }
+  if (action === "edit" || action === "reply") return { page, action, id, text: words }
+  if (action === "resolve") return { page, action, id, how: typeof how === "string" ? how : "" }
+  return { page, action: action as "delete" | "clear" | "reopen", id }
+}
+
+/** `<slug>.rows.json` beside page `<slug>.html`:  a choice page's rows (`choicesRoutes.ts`). */
+function rowsFile(page: string): string {
+  return page.replace(/\.html$/, ".rows.json")
+}
+
+/** The first value of a query parameter. */
+function one(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value
+}
+
+/**
+ * One change to a page's comments, as a POST asks for it.
+ * - `page`:  the page's URL path, checked by `commentsPage()`
+ */
+type CommentChange =
+  | { page: unknown; action: "add"; place: CommentPlace; text: string }
+  | { page: unknown; action: "edit" | "reply"; id: string; text: string }
+  | { page: unknown; action: "resolve"; id: string; how: string }
+  | { page: unknown; action: "delete" | "clear" | "reopen"; id: string }
+  | { page: unknown; action: "restore"; id: string; comment: Comment }

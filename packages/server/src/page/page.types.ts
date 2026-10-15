@@ -6,7 +6,7 @@ import type { SRV, ServerInfo } from "$/server"
 
 /**
  * A ROUTE MODULE:  a file that adds routes to the page server, e.g. goals' buttons, the app's `/api`.
- * - listed in the repo root's `package.json`, `"pageServer": { "routes": ["packages/docs/tools/goals/goalsRoutes.ts"] }`
+ * - listed in the repo root's `package.json`, `"pageServer": { "routes": ["packages/epics/tools/goals/goalsRoutes.ts"] }`
  * - its DEFAULT export is this;  `setup()` runs once, before the server listens
  */
 export type RouteModule = {
@@ -43,94 +43,100 @@ export type PageServerSettings = {
   routes?: string[]
   /** folders to live-reload, relative to the root (default:  the docs pages and their bundle, `DEFAULT_WATCH`) */
   watch?: string[]
+  /**
+   * folders, relative to the root, whose files and folders `/api/files` may change (`SRV.FileOperations`),
+   * and `/api/pages` may write (`PageEditor`);  none by default
+   * - the shared content folders:  each turn's commit of the shared repo makes a mistake undoable
+   * - links into another repo, and still "inside":  paths are resolved, never followed (`SRV.fileInside()`)
+   */
+  writable?: string[]
+  /**
+   * the bundles' folders, relative to the root:  built on demand, never committed (git-ignored);  none by default
+   * - the page server builds the stale ones when it starts (`BundleBuild`),
+   *   and a request for a file in one waits while that runs
+   * - THE list:  `$/assembler`'s `Bundle.all()` builds the bundles whose output folders it names
+   */
+  bundles?: string[]
 }
 
 /**
- * Spell UI's docs site, served at `/ui/`:  plain `.html` pages loading the bundle `_assets/site.js`.
- * In TWO halves (claude-design P6, 2026-10-05):  the hand-written pages, and the build they load.
- * - the page server builds the bundle when it's stale (`spell dev bundles build ui-site`)
- * - `pages`:  the hand-written half, the checkout's `ui/`, a link into the shared content repo
- *   - holds the pages, `_parts/`, `examples/`, `images/`
- *   - the `/` mount serves it at `/ui/` (`/worktrees/<w>/ui/` for a worktree's)
- * - `build`:  the built half, per branch, `packages/ui/site/`:  `_src/` and `_data/` committed, `_assets/` built
- * - `overlays`:  the build's folders laid over the pages (`StaticHandler.overlays`, `uiBuildPath()`)
- *   - `/ui/_assets/site.js` is `packages/ui/site/_assets/site.js`,
- *     so every page's relative `_assets/...` and `_data/...` links resolve unchanged
- *   - a file the build lacks falls through to the pages
- *     (`ui/_data/search.json`, built from the shared pages, is shared too)
- * - Static and live-reloading, like the docs:  no dev server behind it (was `astro dev`, proxied, until 2026-10-02)
- * - `ignore`:  a change to the bundle's entry (`_src/`), which nothing serves, doesn't reload pages
- *   - a rebuilt `_assets/` does (`yarn site:dev` rebuilds it on every source edit)
- * - `_assets/` is NOT committed:  the page server builds it when it starts (`BundleBuild`, `BUNDLE_FOLDERS`)
+ * Where the component sets are served:  `/components/<set>/` (epic `people-and-orgs` P18, Q25).
+ * - One home for every set, so the top bar lists them all from one place.
+ * - A repo set's name never has an `@`;  a space's always will, so they can't clash.
  */
-export const UI_SITE = {
-  prefix: "/ui",
-  pages: "ui",
-  build: "packages/ui/site",
-  overlays: ["_assets", "_data"],
-  ignore: /(^|\/)_src\//
-} as const
+export const COMPONENTS_PREFIX = "/components"
 
 /**
- * A COMPONENT SET:  the docs pages of one set of elements, in Spell UI's page shape, kept in a package folder beside
- * (or near) the elements' code and served at a short address of its own (epic `epic-workflow`, P10 / P11, J30).
+ * Spell UI's site bundle, relative to the checkout:
+ * `site.js` + `site.css` and their lazy chunks, which Spell UI's own docs pages load.
+ * - built by `yarn site:bundle`, in `packages/ui`
+ * - NOT committed:  the page server builds it when it starts, if stale (`BundleBuild`, the settings' `bundles`)
+ */
+export const SITE_BUNDLE = "packages/ui/site/_assets"
+
+/**
+ * The OTHER sets' bundle, relative to the checkout:  Spell UI's site built again from `site/_src/sets.ts`,
+ * with `globalThis.SpellUI` for the component packs their examples use (`SitePacks`).
+ * - a folder of Spell UI's bundle, so built, ignored and waited for with it
+ */
+export const SETS_BUNDLE = `${SITE_BUNDLE}/sets`
+
+/**
+ * A COMPONENT SET:  one set of elements' docs pages, in Spell UI's page shape,
+ * kept in its package's `docs/` folder beside the elements' code, versioned with its branch
+ * (epic `people-and-orgs` P18;  before it, epic `epic-workflow` P10 / P11).
  * - `name`:  what prose calls it, e.g. `Epic UI`
- * - `prefix`:  the address it's served at, e.g. `/epic-ui` (and `/worktrees/<w>/epic-ui` for a worktree's)
- * - `dir`:  its folder, relative to the checkout, e.g. `packages/epic-components`:  tracked, versioned with its branch
+ * - `prefix`:  the address it's served at, `/components/<set>`
+ *   (and `/worktrees/<w>/components/<set>` for a worktree's)
+ * - `dir`:  its pages' folder, relative to the checkout, e.g. `packages/epics/docs`
+ * - `assets`:  the site bundle its pages load as `_assets/`, relative to the checkout:
+ *   `SITE_BUNDLE` for Spell UI's own, `SETS_BUNDLE` for every other set
  */
 export type ComponentSet = {
   readonly name: string
   readonly prefix: string
   readonly dir: string
+  readonly assets: string
 }
 
 /**
- * Every component set besides Spell UI (`UI_SITE`), in the top bar's order.
+ * Every component set, in the top bar's order;  Spell UI's first.
+ * - Each the same layout:  its package's `docs/`, one flat folder of pages
+ *   - an element's page is its tag, `ui-button.html`
+ *   - `__parts/`:  the layout and footer every page shares
+ *   - `__data/`:  its side column's, search's and API tables' data (`spell dev pack build` writes a pack's)
  * - Served by the page server through ONE overlay (`componentSetPath()`):
- *   - `<prefix>/_assets/...`:  the sets' build of Spell UI's site (`SETS_BUNDLE`), so a set's pages load `site.js`
- *     and `site.css` as Spell UI's do, and its shell (`SiteShell`, `SiteRouter`) takes the set's folder as its root
- *   - `<prefix>/...`:  the set's own folder:  its pages, `_parts/` (its layout), `_data/` (its side column's data)
- * - Its pages' links are written as from their SERVED address (`/epic-ui/elements/x.html`), so they hold at
- *   `/worktrees/<w>/epic-ui/` too;  `doc-links.js` checks them that way (`Linker`'s `served`)
- * - The long address (`/packages/epic-components/x.html`) redirects to the short one:  one address per page
+ *   - `<prefix>/_assets/...`:  the set's site bundle (`assets`), so its pages load `site.js` and `site.css`,
+ *     and the site's shell (`SiteShell`, `SiteRouter`) takes `<prefix>/` as its root (the folder above its `_assets/`)
+ *   - `<prefix>/...`:  the set's own folder
+ * - Its pages' links are written as from their SERVED address (`/components/epics/epic-page.html`),
+ *   so they hold at `/worktrees/<w>/components/epics/` too;  `doc-links.js` checks them that way (`Linker`'s `served`)
  * - Comments:  the comment route takes its pages, kept in `<page>.inbox.json` beside each (git-ignored)
+ * - The old addresses (`/ui/`, `/epic-ui/`, `/app-ui/`, `/brand/components/`) answer "not found":  no redirects (Q30)
  */
 export const COMPONENT_SETS = [
-  { name: "Epic UI", prefix: "/epic-ui", dir: "packages/epic-components" },
-  { name: "App UI", prefix: "/app-ui", dir: "packages/app/components" }
+  { name: "Spell UI", prefix: `${COMPONENTS_PREFIX}/ui`, dir: "packages/ui/docs", assets: SITE_BUNDLE },
+  { name: "Epic UI", prefix: `${COMPONENTS_PREFIX}/epics`, dir: "packages/epics/docs", assets: SETS_BUNDLE },
+  { name: "App UI", prefix: `${COMPONENTS_PREFIX}/app`, dir: "packages/app/docs", assets: SETS_BUNDLE },
+  { name: "Brand", prefix: `${COMPONENTS_PREFIX}/brand`, dir: "packages/brand/docs", assets: SETS_BUNDLE }
 ] as const satisfies readonly ComponentSet[]
 
 /**
- * The component sets' bundle, relative to the checkout:  Spell UI's site built again from `site/_src/sets.ts`, with
- * `globalThis.SpellUI` for the component packs their examples use (`SitePacks`);  a folder of Spell UI's bundle, so
- * built, ignored and waited for with it.
- */
-export const SETS_BUNDLE = "packages/ui/site/_assets/sets"
-
-/**
- * The bundles' folders, relative to the checkout:  built on demand, never committed (git-ignored).
- * - so the page server builds the stale ones when it starts (`BundleBuild`),
- *   and a request for a file in one waits while that runs
- * - SAME as `$/assembler` `BUNDLES`' `output`s:  the server is a leaf, so a copy
- *   - `cli`'s `bundlesCommand.test.ts` compares the two
- */
-export const BUNDLE_FOLDERS = ["packages/ui/site/_assets", "packages/brand/_assets/ui"] as const
-
-/**
- * How long a request for a bundle's file waits for the startup build, in ms, before it's answered as it stands
- * (a 404, while the file is still missing).
+ * How long a request for a bundle's file waits for the startup build, in ms,
+ * before it's answered as it stands (a 404, while the file is still missing).
  * - each build takes a few seconds (2 s for both on an M-series Mac, 2026-10-07);  a cold `tsx` and vite add some
  */
 export const BUNDLE_WAIT_MS = 120_000
 
 /**
  * Code colours (highlight.js) for every docs page, from the repo instead of cdnjs (epic `airplane` P1).
- * - `cdn`:  the tag older pages still carry;  a plain, blocking `<script>`, so a hanging network (plane wifi asking
- *   to pay first) held up `spell-ui.js` behind it, and the page showed raw markup for tens of seconds
- * - `local`:  the same file (11.9.0), committed;  the page server serves pages with `cdn` swapped for it
- *   (`localHighlight()`), so they load with no network at all
+ * - `cdn`:  the tag older pages still carry;  a plain, blocking `<script>`
+ *   - so a hanging network (plane wifi asking to pay first) held up `spell-ui.js` behind it,
+ *     and the page showed raw markup for tens of seconds
+ * - `local`:  the same file (11.9.0), committed
+ *   - the page server serves pages with `cdn` swapped for it (`localHighlight()`), so they load with no network at all
  */
 export const HIGHLIGHT_JS = {
   cdn: "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js",
-  local: "/packages/docs/tools/_assets/highlight.min.js"
+  local: "/packages/epics/tools/_assets/highlight.min.js"
 } as const

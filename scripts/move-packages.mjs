@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Phase 4 codemod:  moves folders of `packages/spell/src` into their own workspace packages, one STEP at a time,
- * and rewrites every import to match.  The steps and what each moves / aliases are DATA, in `package-moves.json`.
+ * and rewrites every import to match.  The steps and what each moves / aliases are DATA, in `package-moves.json5`.
  *
  * ## Run
  * - `node scripts/move-packages.mjs --list`                 -- the steps, in order
@@ -39,7 +39,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmdirSync, statSync, 
 import { dirname, join, posix, resolve } from "node:path"
 
 const ROOT = resolve(import.meta.dirname, "..")
-const TABLE = JSON.parse(readFileSync(join(ROOT, "scripts/package-moves.json"), "utf8"))
+const TABLE = JSON.parse(readFileSync(join(ROOT, "scripts/package-moves.json5"), "utf8"))
 const SCRIPT_EXT = /\.(?:ts|tsx|mts|mjs|js)$/
 const RESOLVE_EXTS = [".ts", ".tsx", ".mts", ".js", ".mjs", ".jsx", ".json", ".css"]
 

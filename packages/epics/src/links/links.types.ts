@@ -93,7 +93,10 @@ export const TARGET_API = "/api/epics/target"
  * root, where no server address says it (`file://`).
  * - the epics pack (`<ui-components source>`), and the docs bundle (`<script src>`)
  */
-export const ROOT_ASSETS = ["packages/epics/pack/epics.pack.js", "packages/docs/tools/_assets/spell-ui.js"] as const
+export const ROOT_ASSETS = [
+  "packages/epics/components/__pack/epics.pack.js",
+  "packages/epics/tools/_assets/spell-ui.js"
+] as const
 
 /** A page served from a worktree:  `/worktrees/<w>/...`, its checkout's root `/worktrees/<w>/`. */
 export const WORKTREE_PREFIX = /^\/worktrees\/[^/]+/

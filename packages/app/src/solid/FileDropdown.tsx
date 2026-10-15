@@ -17,7 +17,7 @@ import "./FileDropdown.css"
  * - `showActions`:  `Actions.FILE_DROPDOWN_ACTIONS` after a divider, as dropdown items;
  *   choosing one clicks it, as `<MoreMenu>` does.
  * - Sits in a menu:  wrapped in a `<ui-item class="FileDropdown">`.  Look:  `FileDropdown.css`.
- * - SEE:  its App UI components page, `packages/app/components/FileDropdown.html` (`/app-ui/FileDropdown.html`).
+ * - SEE:  its App UI components page, `packages/app/docs/FileDropdown.html` (`/components/app/FileDropdown.html`).
  ****************/
 export function FileDropdown(props: FileDropdownProps) {
   /** What it shows, read from `editor` in one go. */
@@ -84,7 +84,7 @@ export type FileDropdownProps = {
 /**
  * The dropdown's `ui-change`:  click the item chosen -- a file's opens it, an action's runs it.
  * - SIDE EFFECT:  sets the dropdown's `value` back to `editor.file`'s DURING the event, so the dropdown keeps ours:
- *   the host decides (`requestChange()` on a `@controlled` member, `packages/ui/src/elements/Reactive.ts`).
+ *   the host decides (`requestChange()` on a `@controlled` member, `packages/spell-solid/src/Reactive.ts`).
  * - Opening the file then moves it on.
  */
 function choose(event: CustomEvent<{ value: string }>) {

@@ -1,11 +1,11 @@
 /**
  * Run a project in a browser, in the `<spell-app>` element -- for `spell run` on a project that shows a UI.
- * - Serves a page holding `<spell-app src="app/<Name>.compiled.js" toolbar>`, and beside it what the element
+ * - Serves a page holding `<spell-app src="app/<Name>.spell.js" toolbar>`, and beside it what the element
  *   looks for (see `SpellAppElement`):
- *   - `app/<Name>.compiled.js`:  as compiled for this run, from memory -- nothing is written into the project
+ *   - `app/<Name>.spell.js`:  as compiled for this run, from memory -- nothing is written into the project
  *   - `app/<Name>.scopes.js`:  its scope pack, for the Type Explorer -- see `LSP.ScopePack`
  *   - `app/<Name>.en.js`:  its words, for the Thing Explorer -- see `SP.SpellWords`
- *   - `app/<Import>.compiled.js`:  each project it imports, from disk -- and its `.en.js`, if it has one
+ *   - `app/<Import>.spell.js`:  each project it imports, from disk -- and its `.en.js`, if it has one
  *   - `element/...`:  `app`'s `dist-element/` bundle -- built first if it isn't there, see `ensureElementBuilt()`
  * - Serves until `Ctrl-C` -- see `serve.ts`.
  */
@@ -15,7 +15,7 @@ import { resolve } from "path"
 import { fileURLToPath } from "url"
 
 import { SRV } from "$/server"
-import environment from "$/spell/node/environment"
+import environment from "$/spaces/server/node/environment"
 import { SP } from "$/spell"
 import { LSP } from "$/lsp"
 import { CLI } from "$/cli"
@@ -43,11 +43,11 @@ export async function runInBrowser(session: CLI.CliSession, project: SP.SpellPro
   const scopes = LSP.scopePackScript(session.explorer.exportPack(project))
   const imports = new Map(
     Object.entries(CLI.importedOutputs(project)).flatMap(([id, url]) => {
-      const name = id.slice(id.lastIndexOf(":") + 1)
-      const compiledPath = fileURLToPath(url)
-      const wordsPath = compiledPath.slice(0, -SP.COMPILED_JS_SUFFIX.length) + SP.WORDS_JS_SUFFIX
+      const name = id.slice(id.lastIndexOf("/") + 1)
+      // its words are beside its spell files, not necessarily beside its compiled javascript
+      const wordsPath = new SP.SpellProject(id).wordsFile.location.serverPath
       return [
-        [`/app/${name}${SP.COMPILED_JS_SUFFIX}`, compiledPath],
+        [`/app/${name}${SP.COMPILED_JS_SUFFIX}`, fileURLToPath(url)],
         [`/app/${name}${SP.WORDS_JS_SUFFIX}`, wordsPath]
       ]
     })
@@ -90,8 +90,8 @@ function page(name: string): string {
 }
 
 /**
- * Build `<spell-app>` -- `yarn build:element` in `app` -- if `dist-element/` isn't there yet, e.g. in a fresh
- * checkout.  Shows it as a status row:  it takes a while.
+ * Build `<spell-app>` -- `yarn build:element` in `app` -- if `dist-element/` isn't there yet, e.g. in a fresh checkout.
+ * - Shows it as a status row:  it takes a while.
  * - Throws `CLI.CliError` with the build's last lines if it fails.
  */
 async function ensureElementBuilt(session: CLI.CliSession): Promise<void> {

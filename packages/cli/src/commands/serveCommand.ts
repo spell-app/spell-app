@@ -3,7 +3,7 @@ import { join, resolve } from "path"
 
 import { SRV } from "$/server"
 import { PageServer } from "$/server/page"
-import environment from "$/spell/node/environment"
+import environment from "$/spaces/server/node/environment"
 import { SP } from "$/spell"
 import { CLI } from "$/cli"
 
@@ -19,14 +19,17 @@ const START_TIMEOUT_MS = 90_000
 /**
  * `spell serve [project]`:  run EVERYTHING -- the page server of this checkout, with the app's API, the editor UI,
  * docs, epics, goals and Spell UI -- and open the editor in a browser.
- * - The PAGE SERVER (`yarn server`, `$/server/page`), started if it isn't running.  The editor is ITS child:  `app`'s
- *   route module starts vite once the page server listens, and stops it with the page server (`EditorServer.ts`),
- *   so `yarn server` alone runs it too.  This waits for the editor's record (`.spell-server.editor.json`) to answer.
- * - `--port`:  the editor's port, for a page server this STARTS (`SPELL_EDITOR_PORT`);  one already running keeps
- *   its editor where it is.  Default 3000, else any free port.
+ * - The PAGE SERVER (`yarn server`, `$/server/page`), started if it isn't running.
+ *   - The editor is ITS child:  `app`'s route module starts vite once the page server listens,
+ *     and stops it with the page server (`EditorServer.ts`).  So `yarn server` alone runs it too.
+ *   - This waits for the editor's record (`.spell-server.editor.json`) to answer.
+ * - `--port`:  the editor's port, for a page server this STARTS (`SPELL_EDITOR_PORT`)
+ *   - one already running keeps its editor where it is
+ *   - default 3000, else any free port
  * - Stops no other servers, and runs no `yarn install`.
- * - `project`:  opens the editor on it, e.g. `@examples/Solitaire`.  None:  the project here, if the app knows
- *   its root -- else the app's project chooser.  Only projects in the app's roots open:  not a `@workspace` folder.
+ * - `project`:  opens the editor on it, e.g. `@spell/examples/solitaire`.
+ *   - none:  the project here, if the app knows its root -- else the app's project chooser
+ *   - only projects in the app's roots open:  not a `@local/<folder>` one
  * - `--headless`:  no browser, just the URL.
  * - Runs until `Ctrl-C`, then stops the page server (and so the editor) -- if it started it.  Returns the exit code.
  */
@@ -38,8 +41,8 @@ export async function serveCommand(
   if (options.port !== undefined) {
     const port = options.port
     if (!Number.isInteger(port) || port < 1 || port > 65_534) throw new CLI.CliError(`--port must be a port number`)
-    // the port is ours to choose only for a page server we're about to start;  free on IPv4 AND IPv6:  on macOS `::`
-    // binds even while another process holds `0.0.0.0:<port>`
+    // the port is ours to choose only for a page server we're about to start;
+    // free on IPv4 AND IPv6:  on macOS `::` binds even while another process holds `0.0.0.0:<port>`
     const free = (await SRV.isFree(port, "0.0.0.0")) && (await SRV.isFree(port, "::"))
     if (!(await new SRV.PidFile(REPO_ROOT).status()) && !free) {
       throw new CLI.CliError(`Port ${port} is in use -- \`spell serve --port <another>\``)
@@ -111,22 +114,22 @@ async function editorUrl(): Promise<string | undefined> {
 }
 
 /**
- * Where in the app to open `arg`:  its editor URL, e.g. `/edit/examples/Solitaire` -- see `SpellLocation.editorUrl`.
+ * Where in the app to open `arg`:  its editor URL, e.g. `/edit/@spell/examples/solitaire` -- see `SpellLocation.editorUrl`.
  * - No `arg`:  the project here, if it's in one of the app's roots -- else `/`, the project chooser.
- * - A project the app can't reach -- in a `@workspace` folder -- says so, and opens the chooser.
+ * - A project the app can't reach -- in a `@local/<folder>` group -- says so, and opens the chooser.
  */
 async function pathFor(session: CLI.CliSession, arg: string | undefined): Promise<string> {
   if (arg === undefined && !CLI.projectDirAbove(process.cwd())) return "/"
-  const resolved = await CLI.resolveProject(arg ?? CLI.WORKSPACE_ARG)
+  const resolved = await CLI.resolveProject(arg ?? CLI.HERE_ARG)
   const path =
     resolved.kind === "file"
       ? resolved.file.path
       : resolved.kind === "project"
         ? resolved.project.projectId
-        : resolved.projectIds[0]?.replace(/:[^:]*$/, "")
+        : resolved.projectIds[0] && new SP.SpellLocation(resolved.projectIds[0]).projectRoot
   if (!path) return "/"
   const location = new SP.SpellLocation(path)
-  if (location.owner === CLI.WORKSPACE_ARG) {
+  if (location.space === CLI.LOCAL_SPACE) {
     session.err(
       `The app only opens projects in its roots (\`spell projects\`):  not ${resolved.arg} -- opening the chooser`
     )

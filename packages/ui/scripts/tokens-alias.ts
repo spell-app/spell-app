@@ -1,6 +1,6 @@
 /**
- * `yarn tokens:alias <family> [--write]`:  the codemod of `docs/theming.md` "Converting a family".
- * - Rewrites every sheet of `src/components/ui-<family>/` so it never DECLARES a public `--ui-<family>-*` token:
+ * `yarn tokens:alias <family> [--write]`:  the codemod of `notes/theming.md` "Converting a family".
+ * - Rewrites every sheet of `components/ui-<family>/` so it never DECLARES a public `--ui-<family>-*` token:
  *   the first declaration becomes the private alias `--_ui-x: var(--ui-x, <default>)`, later ones (variations)
  *   write the alias, and every read in the family's sheets reads the alias.  See `ComponentTokens.convert()`.
  * - Without `--write` it only prints:  the notes to review, and every OTHER file still naming a converted token
@@ -31,10 +31,10 @@ class AliasTokensCommand {
    */
   run({ family, write }: AliasTokensOptions) {
     const tokens = new ComponentTokens({
-      vocabularies: this.read(this.files("src/components", ENGLISH_VOCABULARY)),
+      vocabularies: this.read(this.files("components", ENGLISH_VOCABULARY)),
       foundation: Object.values(this.read(this.files("src/styles", /\.css$/)))
     })
-    const sheets = this.read(this.files(`src/components/${family}`, /\.css$/))
+    const sheets = this.read(this.files(`components/${family}`, /\.css$/))
     const declared = new Set(
       Object.values(sheets).flatMap((css) =>
         tokens
@@ -61,10 +61,10 @@ class AliasTokensCommand {
     Terminal.out("\nOther files naming a converted token (reads of the PUBLIC name, not through the alias):")
     const own = new Set(Object.keys(sheets))
     const pattern = new RegExp(`(?<!var\\(--_ui-[a-z0-9-]+, var\\()(${[...declared].join("|")})(?![a-z0-9-])`, "g")
-    // the site's pages:  the shared `ui/` at the checkout's root (`SITE_PAGES`)
-    for (const directory of ["src", "test", "site", SITE_PAGES, "docs"]) {
+    // the site's pages too (`SITE_PAGES`)
+    for (const directory of ["src", "components", "test", "site", SITE_PAGES, "notes"]) {
       for (const path of this.files(directory, /\.(css|ts|tsx|html|md)$/)) {
-        if (own.has(path) || path.endsWith("docs/report.md") || GENERATED_SITE.test(path) || declared.size === 0)
+        if (own.has(path) || path.endsWith("notes/report.md") || GENERATED_SITE.test(path) || declared.size === 0)
           continue
         const lines = readFileSync(`${this.root}${path}`, "utf8").split("\n")
         lines.forEach((line, index) => {

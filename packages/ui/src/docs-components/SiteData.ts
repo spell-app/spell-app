@@ -9,12 +9,12 @@ import {
 
 /****************
  * ### `SiteData`
- * The docs site's generated data, `site/_data/components.json` (`yarn site:data`),
+ * The docs site's generated data, `docs/__data/components.json` (`yarn site:data`),
  * fetched once per page and shared by every docs element (`<ui-docs-api>`, `<ui-docs-tokens>`, `<ui-docs-nav>` ...).
  * - Where it is:  `SiteData.url`.
  *   - The site bundle's entry (`site/_src/site.ts`) sets it from its own location
- *     (`_assets/` => `../_data/components.json`), so a page at any depth finds it.
- *   - Unset:  a `<meta name="ui-docs-data" content="...">` in the page, else `_data/components.json` against the page.
+ *     (`_assets/` => `../__data/components.json`), so a page at any depth finds it.
+ *   - Unset:  a `<meta name="ui-docs-data" content="...">` in the page, else `__data/components.json` against the page.
  * - Fails loudly:  a missing or broken file rejects `load()` (and stays rejected until `url` is set again).
  *   An element shows its error;  it never guesses.
  * - Plain fetch, no Solid:  elements wrap `load()` in their own async memo.
@@ -49,7 +49,7 @@ export class SiteData {
   }
 
   /**
-   * The site root, as an absolute URL ending in `/`:  the folder above the data file's `_data/` (`SITE_DATA_PATH`).
+   * The site root, as an absolute URL ending in `/`:  the folder above the data file's `__data/` (`SITE_DATA_PATH`).
    * - What `<ui-docs-nav>` prefixes its links with when the page gives no `base`.
    */
   static root(): string {

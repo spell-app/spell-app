@@ -3,7 +3,7 @@
  * - OUR OWN theme, not a Fomantic port:  `ThemeSheets.OWN`, listed apart from `ThemeSheets.names`.  Applied like
  *   one, ON TOP of `classic.css`, so every classic token a brand value replaces is restated here:  type, the size
  *   ladder, radii, ink, borders, shadows, the whole palette, the message colours, links, focus, highlight.
- * - The default look of every doc site:  Spell UI's docs site (`ThemePreference`) and `packages/docs` pages
+ * - The default look of every doc site:  Spell UI's docs site (`ThemePreference`) and the docs pages
  *   (`spell-ui.entry.js`).
  * - Source of each value:  the brand's `tokens/palette.css` (17-step OKLCH ladders, as hex), `tokens/theme.css`
  *   (what each step MEANS, light and dark), `tokens/typography.css`, `tokens/spacing.css`, `components.css`.
@@ -195,7 +195,7 @@
     --ui-border-color-selected: light-dark(var(--spell-brand-300), var(--spell-hairline-strong));
     --ui-border-color-selected-strong: light-dark(var(--spell-brand-400), rgb(200 206 231 / 0.5));
 
-    /* Code wells:  the brand's `--surface-code` (also `packages/docs`' inline code and `pre`) */
+    /* Code wells:  the brand's `--surface-code` (also the docs pages' inline code and `pre`) */
     --ui-code-background: light-dark(var(--spell-brand-75), var(--spell-violet-975));
 
     /*******************************

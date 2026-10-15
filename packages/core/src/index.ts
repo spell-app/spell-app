@@ -56,7 +56,23 @@ export { elementTagFor, css, type ElementDefiner, type ElementApi } from "./elem
 // A program's state as JSON by id, for a page that mirrors it (epic `python-target` P17):  see `state.ts`.
 export { StateWriter, StateMirror, ID_KEY } from "./state"
 // Things saved by id, each an entry of its own, loaded back as the same objects (epic `people-and-orgs` P2):  see `saving.ts`.
-export { Saver, Loader, REF_KEY, type Saved, type SaverOptions, type LoaderOptions } from "./saving"
+export {
+  Saver,
+  Loader,
+  REF_KEY,
+  VERSION_KEY,
+  versionOf,
+  upgradeEntry,
+  parseRef,
+  refText,
+  type Saved,
+  type SavedRef,
+  type SaverOptions,
+  type LoaderOptions
+} from "./saving"
+// A saved entry checked against its class, and the JSON Schema VS Code checks it with (P5):  see `checking.ts`.
+export { checkEntry, jsonSchemaFor, kindOf, type EntryProblem, type CheckOptions, type Kind } from "./checking"
+export type { ThingsToSearch } from "./references"
 // A page drawing a program that runs elsewhere, e.g. in Python (P19):  see `page.ts`.
 export {
   startPage,

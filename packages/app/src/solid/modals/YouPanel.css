@@ -1,0 +1,11 @@
+/* The "You" panel's dated events:  a label, a day and a remove button, on one row. */
+.YouPanel .date {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+  margin-bottom: 0.5em;
+}
+
+.YouPanel .date .label {
+  flex: 1;
+}

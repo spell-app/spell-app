@@ -4,7 +4,7 @@
 import _ from "lodash"
 
 import { Cell, isTrackingCells, ITEMS_KEY, Observable, runsCreate, typedJSON, type PropInfo } from "$/util"
-import { spellCore } from "$/core/core"
+import { registerThing, spellCore } from "$/core/core"
 import type { CollectionIterationCallback } from "$/core/collection-other"
 import type { Drawing } from "$/core/drawing"
 import type { PropCheck } from "$/core/spellCore.types"
@@ -47,9 +47,12 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   static exclusive = false
 
   /**
-   * Is a list of this class saved INSIDE its owner, rather than in a file of its own?  See `Thing.savedInline`.
-   * - Compiled from `a hand is saved inline.`, as `static savedInline = true` in its class.
+   * Is a list of this class saved in a FILE OF ITS OWN, rather than inside what holds it?  See `Thing.savedInFile`.
+   * - Compiled from `a club is saved in its own file.`, as `static savedInFile = true` in its class.
    */
+  static savedInFile = false
+
+  /** `a hand is saved inline.`:  saying the default, since decision Q42.  See `Thing.savedInline`. */
   static savedInline = false
 
   static {
@@ -68,11 +71,12 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
 
   /**
    * SIDE EFFECT:  a sub-class's instance, e.g. a `Deck`, registers itself in `spellCore.things`.
+   * - See `registerThing()`.
    * - `props` optional:  `a new deck` compiles to `new Deck()`.
    */
   constructor(props?: Record<string, unknown>) {
     super(props)
-    spellCore.things.add(this)
+    registerThing(this)
     if (runsCreate(List, new.target)) this.create()
   }
 
@@ -615,14 +619,14 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * Our JSON:  our class's name as `"@type"`, our own props,
-   * then our items under `"@items"` (`ITEMS_KEY`), each by its own JSON (epic `output-targets`, Q49, J53).
+   * Our JSON:  our class's name as `"$type"`, our own props,
+   * then our items under `"$items"` (`ITEMS_KEY`), each by its own JSON (epic `output-targets`, Q49, J53).
    * ```
-   * { "@type": "Pile", "name": "stock", "@items": [{ "@type": "Card", ... }] }
+   * { "$type": "Pile", "name": "stock", "$items": [{ "$type": "Card", ... }] }
    * ```
-   * - A plain `List`, with no props, or a scratch list:  `{ "@type": "List", "@items": [...] }`.
+   * - A plain `List`, with no props, or a scratch list:  `{ "$type": "List", "$items": [...] }`.
    * - So it reads back as what it was:  `spellCore.fromJSON()` (`json.ts`).
-   * - `"@items"` never collides with a prop, as `"@type"` never does:  no prop is named `@...`.
+   * - `"$items"` never collides with a prop, as `"$type"` never does:  no prop is named `$...`.
    * - Tracked:  a reader re-runs when a prop or the items change (and, through each item's `toJSON()`, when they do).
    */
   toJSON(): Record<string, unknown> {

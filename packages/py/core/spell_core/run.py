@@ -1,4 +1,4 @@
-"""Run a compiled spell program:  `python -m spell_core.run FizzBuzz.compiled.py --seed 1`.
+"""Run a compiled spell program:  `python -m spell_core.run FizzBuzz.spell.py --seed 1`.
 
 - What the core contract runs for the `py` targets (epic python-target, P9).
   `spell run` doesn't run Python yet (the epic page's T4).
@@ -35,7 +35,7 @@ from spell_core.page import PageSession
 def main(argv: list[str] | None = None) -> None:
     """Run the program `argv` names, seeded as it says."""
     parser = argparse.ArgumentParser(prog="python -m spell_core.run", description="Run a compiled spell program.")
-    parser.add_argument("program", help="the compiled program, e.g. FizzBuzz.compiled.py")
+    parser.add_argument("program", help="the compiled program, e.g. FizzBuzz.spell.py")
     parser.add_argument("--seed", type=int, help="where the random numbers start, from 1 to 2147483646")
     parser.add_argument("--no-pauses", action="store_true", help="don't wait at a pause, e.g. in a test run")
     parser.add_argument("--page", action="store_true", help="print what the program drew, as HTML, when it ends")

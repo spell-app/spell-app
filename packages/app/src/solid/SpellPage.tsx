@@ -9,7 +9,7 @@ import "./SpellPage.css"
  * A whole page's box:  look variants (bordered, dark, light, rounded, spaced, padded, scrolling) and, with `rows` /
  * `columns`, a flexbox laying `children` out down or across the page.  Look:  `SpellPage.css`.
  * - Every other prop (`id`, `style`, `aria-*` ...) goes to the `<div>`.
- * - SEE:  its App UI components page, `packages/app/components/SpellPage.html` (`/app-ui/SpellPage.html`).
+ * - SEE:  its App UI components page, `packages/app/docs/SpellPage.html` (`/components/app/SpellPage.html`).
  ****************/
 export function SpellPage(props: SpellPageProps) {
   return (

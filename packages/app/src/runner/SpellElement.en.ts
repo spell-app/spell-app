@@ -5,7 +5,7 @@
  * - Pure data:  `import type` only.
  */
 
-import type { E } from "$/ui/core"
+import type { E } from "$/spell-solid"
 
 /****************
  * ### `<spell-element>`

@@ -3,8 +3,8 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 // Import directly:  the `$/server/site` barrel is the site header's;  these files import only each other
-import { epicGroupFor } from "$/server/site/EpicCards"
-import { epicStateFor, type EpicState } from "$/server/site/EpicState"
+import { epicGroupFor } from "$/epics/list/EpicCards"
+import { epicStateFor, type EpicState } from "$/epics/list/EpicState"
 
 import { epicCardsVocabulary } from "./EpicCards.en"
 import {
@@ -26,7 +26,7 @@ import cardsCSS from "./EpicCards.css?inline"
  *   (`$/epics/tool/SagaEpics`), reading every epic page's `<epic-page saga>` as it's asked
  *   - asked again whenever an epic page changes (`spell-server:file`):  an epic that joins the saga, finishes a phase
  *     or leaves shows at once
- * - each epic's state and group by the ONE rule the Epics page uses (`$/server/site/EpicState`, `EpicCards`):
+ * - each epic's state and group by the ONE rule the Epics page uses (`$/epics/list/EpicState`, `EpicCards`):
  *   Active, Planning, Urgent, Done;  an empty group isn't drawn;  by title within each
  * - each card:  the state's mark (its why the tooltip), the linked title (its epic page, in that epic's tab), the
  *   epic's summary, and a meta line:  its state, phases done of all, the phase under way

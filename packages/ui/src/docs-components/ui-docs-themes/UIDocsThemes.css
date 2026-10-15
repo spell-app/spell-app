@@ -21,7 +21,7 @@
  * - The overlay's box is `<ui-popup>`'s `::part(popup)`, restyled with plain properties
  *   (a sheet never declares another family's tokens).
  * - Public tokens (`--ui-docs-themes-*`) are never declared:  each is read through a private alias
- *   (`docs/theming.md` "Component tokens").
+ *   (`notes/theming.md` "Component tokens").
  */
 
 @layer ui.components.docs-themes.types, ui.components.docs-themes.content, ui.components.docs-themes.variations, ui.components.docs-themes.states;

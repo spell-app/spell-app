@@ -70,7 +70,7 @@ import { CommentList, type Comment, type IdentifiedComment } from "./CommentList
  *     - gone once a session listens (`setListening()`), or `WAKE_COOLDOWN_MS` after `at` (`liveWoken()`)
  * - Node only (`node:fs`, `$/server`'s lock):  NOT in the `$/epics` barrel, imported by path.
  *   Imports no other file of the tool but `CommentList` (its comments).
- * - From `packages/docs/tools/inbox.js` (epic `epic-components`, P7), which now forwards here.
+ * - From the docs tools' `inbox.js` (epic `epic-components`, P7), which now forwards here.
  ****************/
 export class ReviewInbox {
   /** the format this writes;  a file without one is read as this */
@@ -145,12 +145,24 @@ export class ReviewInbox {
    * Write this inbox to `file`, atomically;  delete the file instead when the inbox is empty (`isEmpty`).
    * - a temp file (`<file>.tmp`) renamed over it:  readers (the page's poll, `plan-doc inbox`) never see half of it
    * - call it under the lock (`update()`), or two writers may lose each other's changes
+   * - sync, for the command line's `update()`;  the page server's `updateAsync()` writes through `writeAsync()`
    * - SIDE EFFECT:  writes or removes `file`
    */
   writeTo(file: string): void {
     if (this.isEmpty) return rmSync(file, { force: true })
     writeFileSync(`${file}.tmp`, `${JSON.stringify(this, null, 2)}\n`)
     renameSync(`${file}.tmp`, file)
+  }
+
+  /**
+   * `writeTo()` for a server:  through the page server's one atomic write (`SRV.FileOperations.writeAtomic()`).
+   * - NOT `SRV.FileOperations.save()`:  an empty inbox deletes its file, which a save can't
+   * - call it under the lock (`updateAsync()`)
+   * - SIDE EFFECT:  writes or removes `file`
+   */
+  private async writeAsync(file: string): Promise<void> {
+    if (this.isEmpty) return rmSync(file, { force: true })
+    await SRV.FileOperations.writeAtomic(file, `${JSON.stringify(this, null, 2)}\n`)
   }
 
   /**
@@ -170,13 +182,13 @@ export class ReviewInbox {
   /**
    * `update()` for a server:  waits for the lock with timers, so it keeps serving meanwhile.
    * - `change` runs synchronously, under the lock
-   * - SIDE EFFECT:  writes `file` (or removes it)
+   * - SIDE EFFECT:  writes `file` (or removes it:  `writeAsync()`)
    */
   static updateAsync(file: string, change: (inbox: ReviewInbox) => unknown): Promise<ReviewInbox> {
     return SRV.FileLock.runAsync(file, async () => {
       const inbox = ReviewInbox.read(file)
       change(inbox)
-      inbox.writeTo(file)
+      await inbox.writeAsync(file)
       return inbox
     })
   }
@@ -869,8 +881,8 @@ export type InboxRecord = {
 }
 
 /**
- * The inbox as the routes answer (`ReviewInbox.forPage()`):  the file's JSON, plus
- * `unsentComments`, the ids of the comments the page's Send would hand over.
+ * The inbox as the routes answer (`ReviewInbox.forPage()`):
+ * the file's JSON, plus `unsentComments`, the ids of the comments the page's Send would hand over.
  */
 export type PageInbox = InboxRecord & { unsentComments: string[] }
 

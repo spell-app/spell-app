@@ -48,13 +48,18 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - tidy, as the TypeScript writer:  `const`, double quotes, no extra parentheses or braces
     - It reads the whole project first, to know what each value is:
       `P.WriterProject`, through `forProject()`.
-  - `P.TSWriter`:  TypeScript on Solid, for `<Project>.compiled.tsx`
+  - `P.TSWriter`:  TypeScript on Solid, for `<Project>.spell.tsx`
     - It extends `P.JSWriter`, adding only what's TypeScript's own:
       - real JSX, decorators, the types spell knows
       - `!` where `?.` can't go
       - each drawable type's element class (epic `drawable-thing` P10).
         - e.g. `class CardElement extends SpellElement<Card>`, its base imported from `@spell/elements`
         - Written by `elementClassFor()`.
+  - `P.LibraryWriter`:  a project's classes alone, as a TypeScript LIBRARY other code imports (epic `people-and-orgs`)
+    - The `ts/lib` target:  `P.TSWriter`, minus the program's top-level steps, its core `@spell-app/core/model`.
+    - One file, `<Project>.lib.ts`, its own types:  no `.d.ts` beside it.
+    - `P.isDeclaration()` says what's kept:  classes, what's added to them, comments.
+      Python's page writer keeps the same.
   - Python's writers are `$/py`'s ([py's AGENTS.md](../py/AGENTS.md)), built on these:
     - `PY.PyWriter`, on `P.ProgramWriter`
     - `PY.ElementsWriter`, on `P.JSWriter`
@@ -80,7 +85,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 ## Imports
 
 - As WWOD §4 (examples there are ours).  `import { P } from "$/parser"`.
-- `barrel.test.ts` is the smoke test for circular imports through the barrel:  run it after moving files.
+- [barrel.test.ts](../../tests/parser/src/barrel.test.ts) is the smoke test for circular imports through the barrel:
+  run it after moving files.
+  - The tests live in the repo's `tests/parser/`, at the same paths as the code.
 
 ## Decorators
 

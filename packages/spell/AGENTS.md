@@ -26,32 +26,40 @@ when working with code in this package, `@spell-app/spell`.
   - `../vscode`:  the VS Code extension that runs it.
     Its own yarn project, NOT a workspace.
   - [app](../app/AGENTS.md), `$/app`:  the web app.
-    - Also its server, the runner, and the `<spell-app>` / `<spell-editor>` elements.
+    - Also the runner, and the `<spell-app>` / `<spell-editor>` elements.
     - `yarn start` is run THERE.
+  - [spaces](../spaces/AGENTS.md), `$/spaces`:  where projects live, and the editor's server.
+    - Spell's project groups (`@spell/examples`, `owen@spell` ...), their lists, and a project's file edits.
+    - The built-in projects and the test projects, and reading and writing projects on disk.
+    - This package NEVER imports it (see "Projects live in spaces" below).
   - [cli](../cli/AGENTS.md):  the `spell` command line.
     It runs this package's SOURCE (and the others') through `tsx`.
 - `src/rules/`:  spell's rule modules (see "Parser rules" below).
-- `src/parserTests/`:  parser tests that need the spell grammar.
-  The generic ones are in `../parser`.
+- Tests live in the repo's `tests/spell/`, at the same paths as the code they test:
+  [SpellProject.ts](src/SpellProject.ts) => [SpellProject.test.ts](../../tests/spell/src/SpellProject.test.ts).
+  - `yarn test` here runs them (`vitest.config.ts` points there).
+  - Their helpers stay here, in `src/test/` (`$/spell/test`).
+  - The projects they read are spaces' test projects, `tests/spaces/@spell/test/`
+    (see "Projects live in spaces" below).
+  - `tests/spell/src/parserTests/`:  parser tests that need the spell grammar.
+    The generic ones are in `../parser`.
 - `src/node/` (`$/spell/node/...`) is NODE-ONLY.
   - Its files:
-    - `environment`
     - `packageVersion.node`
-    - `disk-fetch`
-    - `file-utils`
-    - `project-utils`
-    - `response-utils`
-    - `server.types`
   - And for the targets beyond javascript:
     - `typecheck`:  `tsc` on the TypeScript target
+      - Also the code folders compiled spell is checked against, `CODE_FOLDERS`:
+        spell's `src/`, the repo's `packages/`, and `core`'s `src/`
     - `buildTsx`:  the TypeScript target's build
     - `pyright`:  pyright on the Python target
-  - And the spell syntax table (see "Parser rules"):  `spellSyntax`, and `writeSpellSyntax`, the script behind
-    `yarn gen:syntax`.
+  - And the spell syntax table (see "Parser rules"):
+    - `spellSyntax`
+    - `writeSpellSyntax`, the script behind `yarn gen:syntax`
+  - Projects on disk are NOT here:  they're spaces' (`$/spaces/server/node/...`).
   - The barrel NEVER exports it.
   - Other packages may import these files by name:  one of the deep-import exceptions
     (WWOD §4 › "Package aliases, never `../`").
-    The app's server does.
+    Spaces, the language server and the `spell` command do.
   - Nothing reachable from `$/spell`'s barrel may import it (WWOD §8 › "Barrels").
 - `src/highlight/`:  `SpellHighlighter`.
   - It colours a snippet without a project, for `<ui-code language="spell">`.
@@ -64,49 +72,73 @@ when working with code in this package, `@spell-app/spell`.
   - `ts/solid`:  TypeScript on Solid, checked by `tsc`
   - `py`:  Python on `spell_core`, checked by pyright
     - on asyncio:  a function that waits is `async def`
-    - with a words file of its own, by Python's names:  `<Project>.py.en.json`
+    - with a words file of its own, by Python's names:  `<Project>.py.en.json5`
     - a program that draws also gets two more files:
-      - its page file, `<Project>.elements.js`:  its drawing half, in javascript
+      - its page file, `<Project>.elements.spell.js`:  its drawing half, in javascript
         - its suffix `elementsSuffix`, its writer `PY.ElementsWriter`
       - its web app on Quart, `<Project>.app.py`
         - Each compile rewrites it only while nobody has edited it.
         - `appSuffix`, and `$/py`'s [quartApp.ts](../py/ts/quartApp.ts)
+  - `ts/lib`:  a LIBRARY, the project's classes alone, for the repo's code to import (epic `people-and-orgs` P3)
+    - `<Project>.lib.ts`, one file with its own types:  no drawing, none of its top-level steps, the core with no Solid
+    - checked by `tsc`, as `ts/solid` is
+    - committed beside its source, and marked generated in the root's `.gitattributes`:  a merge recompiles `@spell/library`
+  - What a target builds goes in the project's build folder, `build/` at the repo root, never committed.
+    - That's its compiled code, and the scope pack, `.scopes.js`:
+
+      ```text
+      <Project>.spell.js  .spell.tsx  .spell.py  .elements.spell.js  .scopes.js
+      ```
+
+    - The rest goes beside its source:  declarations, words, `.lib.ts`, `.app.py`.
+    - See "Projects" in [PARSING.md](PARSING.md).
+    - Built when needed:
+      - the page server compiles `@spell/examples` and `@spell/library` as it starts
+      - spaces' API compiles a project whose built file is missing
+      - by hand:  `spell compile --stale`
   - A project lists the others it wants in `project.json`'s `"targets"`.
     `spell compile --target <name>` picks one for a single run.
   - The writers are `$/parser`'s:  "Compile" in [PARSING.md](PARSING.md).
 - `src/test/` (`$/spell/test`):  the test helpers, e.g. the fixture helpers below.
-- `projects/` holds every spell project, OUTSIDE `src/`.
-  - Its folders are the roots (`@system:examples` etc):
-    - `system/examples/`
-    - `system/library/`
-    - `system/guides/`
-    - `user/`
-    - `test/`
+- Projects live in spaces, not here:  this package reads and compiles them, but holds none.
+  - Spell's project groups (`@spell/examples` ...) are spaces' `SPACES.PROJECT_GROUPS`.
+    - Spell's registry, `SP.SpellSetup`, starts EMPTY:  loading spaces' groups registers them there.
+    - So every program that reads a spell path loads them first, through `$/spaces`,
+      spaces' disk reader, or `$/spaces/models/projectGroups` alone.
+    - Spell NEVER imports spaces.
+  - Where each group's projects are:
+    - [spaces' built-ins](../spaces/@spell/), committed:
+      `@spell/examples`, `@spell/library`, `@spell/guides`
+    - `@spell/test`:  the test projects, [tests/spaces/@spell/test/](../../tests/spaces/@spell/test/), committed
+    - `owen@spell`:  Owen's own, in spell-spaces beside the main checkout, outside git
+  - A project's URLs and folder come from ONE function, [SpellUrls](src/SpellUrls.ts) (`SP.SpellUrls`).
   - See "Projects" in [PARSING.md](PARSING.md).
-  - Tests read ONLY `projects/test/`:  frozen projects, never the live examples, which get edited.
-    - Its root:  `@test:fixtures` ~== `@test/<Project>`, listed in the app in dev only.
+  - Tests read ONLY the test projects:  frozen projects, never the live examples, which get edited.
+    - Their group:  `@spell/test`, e.g. `@spell/test/solitaire`, listed in the app in dev only.
     - Read them with the helpers from `$/spell/test`:
       - `loadFixtureProject()`
       - `fixturePath()`
       - `fixtureProjectId()`
     - NEVER update a fixture to follow its example.
   - Each fixture's compiled output is checked against the snapshots beside it
-    ([fixtures.test.ts](src/test/fixtures.test.ts)):
+    ([fixtures.test.ts](../../tests/spell/src/test/fixtures.test.ts)):
     - `<Project>.snapshot.js`:  the javascript target
-    - `<Project>.snapshot.declarations.json`:  its declarations
+    - `<Project>.snapshot.declarations.json5`:  its declarations
     - `<Project>.en.snapshot.js`:  its words (`SP.SpellWords`)
       - Its name ends as a snapshot's does, which keeps it out of the project's files.
     - `<Project>.snapshot.tsx`:  the TypeScript target
-    - `<Project>.snapshot.tsc.txt`:  what `tsc` says of it ([typescript.test.ts](src/test/typescript.test.ts))
+    - `<Project>.snapshot.tsc.txt`:  what `tsc` says of it ([typescript.test.ts](../../tests/spell/src/test/typescript.test.ts))
     - `<Project>.snapshot.py`:  the Python target
-    - `<Project>.snapshot.pyright.txt`:  what pyright says of the Python ([python.test.ts](src/test/python.test.ts))
+    - `<Project>.snapshot.pyright.txt`:  what pyright says of the Python ([python.test.ts](../../tests/spell/src/test/python.test.ts))
     - `<Project>.elements.snapshot.js`:  the Python targets' page file, for a fixture that draws
-    - The Python ones only for the fixtures in `PYTHON_FIXTURES` (every fixture, so far).
+    - `<Project>.lib.snapshot.ts`:  the library target, for the fixtures in `LIBRARY_FIXTURES`
+    - The Python ones only for the fixtures in `PYTHON_FIXTURES`:  every fixture but `todos-form-based`, so far.
+      The Python writer can't write its method's named arguments yet.
     - Add a fixture by copying a project in.
     - After a deliberate change, `yarn test:fixtures:bless`, and read the diff.
 - [readme.md](readme.md) is the project's front page.
-  Docs live in `packages/docs/` (see "Creating docs").
-- [The barrel](src/index.ts) is loaded in browsers AND the app's server (WWOD §8 › "Barrels").
+  Docs live in the shared root folders, their tooling in [epics' tools](../epics/tools/) (see "Creating docs").
+- [The barrel](src/index.ts) is loaded in browsers AND the editor's server, in spaces (WWOD §8 › "Barrels").
   - It imports `$/core`'s TYPES only, never its code.
 
 ## How parsing works
@@ -127,8 +159,8 @@ when working with code in this package, `@spell-app/spell`.
 
 - Docs for people (design notes, research, references), for every package, live in the shared root folders:
   `guides/` mostly (root `AGENTS.md`, "Shared content").
-  - Their tooling is `packages/docs/` (`@spell-app/docs`).
-- How to write one:  [docs' AGENTS.md](../docs/AGENTS.md).
+  - Their tooling is [epics' tools](../epics/tools/), in `@spell-app/epics`.
+- How to write one:  [epics' AGENTS.md](../epics/AGENTS.md), "Writing a page".
 
 ## Parser rules
 
@@ -164,14 +196,17 @@ when working with code in this package, `@spell-app/spell`.
         - the globals:  `Number`, `Boolean`, `Text`, `Comment` ...
         - a parser class:  `Keyword`
     - So the prod build keeps class names:  [parser's AGENTS.md](../parser/AGENTS.md), `keepNames`.
-    - [ruleNames.test.ts](src/rules/ruleNames.test.ts) pins every rule's name, module and registration order:
+    - [ruleNames.test.ts](../../tests/spell/src/rules/ruleNames.test.ts) pins every rule's name, module and registration order:
       a renamed class that changes a rule's name fails it.
-  - The SPELL SYNTAX TABLE, [spellSyntax.json](spellSyntax.json):  every rule class, by module, with each syntax
-    it's registered with, an example of each from its tests compiled by the javascript, TypeScript and Python
-    writers (comments left out), its aliases, and its docstring's first sentence.
-    - What the spell syntax guide draws (`guides/spell-syntax/spell-syntax.html`).
+  - The SPELL SYNTAX TABLE, [spellSyntax.json](spellSyntax.json):  every rule class, by module, with
+    - each syntax it's registered with
+    - an example of each from its tests, compiled by the javascript, TypeScript and Python writers
+      (comments left out)
+    - its aliases
+    - its docstring's first sentence
+    - What [the spell syntax guide](../../guides/spell-syntax/spell-syntax.html) draws.
     - Generated:  `yarn gen:syntax`, after adding, renaming or changing a rule, its class docstring or its tests.
-      [spellSyntax.test.ts](src/node/spellSyntax.test.ts) fails until you do.
+      [spellSyntax.test.ts](../../tests/spell/src/node/spellSyntax.test.ts) fails until you do.
     - So a class docstring's first sentence says what the rule is FOR, in plain words:  it's the guide's Purpose.
   - ONE `syntax` per registration.
     - A rule with several calls `addRule()` once per syntax, each with the `tests` for that syntax.
@@ -249,6 +284,8 @@ when working with code in this package, `@spell-app/spell`.
       <RuleClass>.ts        one rule class each
       <module>.shared.ts    what several of its rule files share, if anything
       index.ts              exports every file, in tie-break order
+
+    tests/spell/src/rules/<module>/   (from the repo root)
       <module>.test.ts      its tests
       __snapshots__/        its group specs
     ```
@@ -288,7 +325,8 @@ when working with code in this package, `@spell-app/spell`.
       `$/spell/rules/<module>`, or `./<module>` from that index.
   - `<module>.test.ts`:  MUST call `unitTestModuleRules()`, or its tests never run.
     - The call:  `unitTestModuleRules(spellParser, "<module>", ...)`, from `$/spell/test`.
-    - Its `__snapshots__` (the group specs) are beside it.
+    - It lives in `tests/spell/src/rules/<module>/`, its `__snapshots__` (the group specs) beside it.
+    - Blessing finds the module's source from there:  the same module's folder in [src/rules/](src/rules/).
 - A rule's `tests`, each a `P.RuleTest`:
   - `{ input, js, ts }`, or a tuple `[input, js, ts?]`
   - `js`:  what the javascript writer writes;  `ts`:  what the TypeScript writer writes.
@@ -391,7 +429,7 @@ As WWOD §12, plus:
   - `$/parser` (`P`)
   - `$/core`, types only
   - `$/util`
-  - NEVER `$/lsp`, `$/app` or `$/cli`.
+  - NEVER `$/lsp`, `$/spaces`, `$/app` or `$/cli`.
 - A rule module imports the generic parser's rule classes from `$/parser`, and registers on `SpellParser` here.
 
 ## Types / Exports

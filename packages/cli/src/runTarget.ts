@@ -18,7 +18,7 @@ import { join, resolve } from "path"
 import { pathToFileURL } from "url"
 
 import { SRV } from "$/server"
-import environment from "$/spell/node/environment"
+import environment from "$/spaces/server/node/environment"
 import { buildTsx } from "$/spell/node/buildTsx"
 import { SP } from "$/spell"
 import { PY } from "$/py"
@@ -31,18 +31,21 @@ const SHORT_NAMES: Record<string, string> = { js: "js/solid", ts: "ts/solid", py
 /** `app`, whose `yarn build:page` builds the page side a Python app's page loads:  `dist-page/`. */
 const APP_DIR = resolve(environment.packagesDir, "app")
 
-/** `spell_quart`'s uv project, which serves a Python app. */
-const SPELL_QUART_DIR = resolve(environment.packagesDir, "py", "quart")
+/** `spell_quart`'s uv project, which serves a Python app:  Python's web server, in spaces. */
+const SPELL_QUART_DIR = resolve(environment.packagesDir, "spaces", "src", "server", "py")
 
 /**
  * The target `--target name` asks for:  `js`, `ts` or `py`, or a target's full name (`ts/solid`).
  * - `undefined` for none, or javascript:  `spell run`'s own path.
- * - throws `CLI.CliError` for a name no target has.
+ * - throws `CLI.CliError` for a name no target has, or one that doesn't run, e.g. a library (`ts/lib`).
  */
 export function targetNamed(name: string | undefined): SP.Target | undefined {
   if (name === undefined) return undefined
   const target = SP.TARGETS[SHORT_NAMES[name] ?? name]
   if (!target) throw new CLI.CliError(`--target takes js, ts or py, not "${name}"`)
+  if (target.can.run === false) {
+    throw new CLI.CliError(`"${target.name}" doesn't run:  it's compiled for other code to import (\`spell compile\`)`)
+  }
   return target.name === SP.RUNNING_TARGET ? undefined : target
 }
 
@@ -81,11 +84,11 @@ export async function runTarget(
 type WrittenImport = { url: string; module: string; elements?: string }
 
 /**
- * SIDE EFFECT:  each project `project` imports, and each they import, compiled for `target` and written into
- * `folder`, as its code imports it.  Returns them by project id.
+ * SIDE EFFECT:  each project `project` imports, and each they import,
+ * compiled for `target` and written into `folder`, as its code imports it.  Returns them by project id.
  * - Python:  a module of the project's name, `cards.py`, beside the program:  `from cards import Card`;
- *   and its drawing half, `cards.elements.js`, which the app serves.
- * - TypeScript:  built (`buildTsx()`) to `<Project>.compiled.mjs`.
+ *   and its drawing half, `cards.elements.spell.js`, which the app serves.
+ * - TypeScript:  built (`buildTsx()`) to `<Project>.spell.mjs`.
  */
 async function writeImports(
   project: SP.SpellProject,
@@ -103,7 +106,7 @@ async function writeImports(
     if (target.name === "py") file = `${PY.PyWriter.projectModule(module)}.py`
     else {
       code = await buildTsx(code, { filename: `${name}${target.suffix}` })
-      file = `${name}.compiled.mjs`
+      file = `${name}.spell.mjs`
     }
     writeFileSync(join(folder, file), code)
     const entry: WrittenImport = { url: pathToFileURL(join(folder, file)).href, module }
@@ -143,7 +146,7 @@ async function serveApp(
     Object.values(imports).flatMap((it) => (it.elements ? [[it.module, it.elements]] : []))
   )
   const app = join(folder, `${name}${target.appSuffix}`)
-  writeFileSync(app, PY.quartApp({ projectName: name, program, elements, projects }))
+  writeFileSync(app, PY.quartApp({ projectName: name, program, elements, outputs: ".", projects }))
   await ensurePageBuilt(session)
 
   const port = await SRV.freePort()
@@ -196,8 +199,8 @@ function untilDone(child: ChildProcess): Promise<number> {
 }
 
 /**
- * Build the page side a Python app's page loads (`yarn build:page` in `app`, `dist-page/`), when it's missing
- * or older than the newest file it's built from:  the core, Spell UI, the app's runner.
+ * Build the page side a Python app's page loads (`yarn build:page` in `app`, `dist-page/`),
+ * when it's missing or older than the newest file it's built from:  the core, Spell UI, the app's runner.
  * - A few seconds;  shown as a status row.
  * - Throws `CLI.CliError` with the build's last lines if it fails.
  */

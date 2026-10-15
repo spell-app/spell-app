@@ -6,7 +6,7 @@
 
 import type { JSX } from "@solidjs/web"
 
-import type { E } from "$/ui/core"
+import type { E } from "$/spell-solid"
 
 import type { epicPageVocabulary } from "./EpicPage.en"
 

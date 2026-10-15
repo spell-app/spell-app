@@ -16,7 +16,7 @@ import { basename, join } from "node:path"
  * - from then on every `/epic` session marks what it talks through (`.claude/skills/epic/SKILL.md`), so this runs
  *   once per old epic
  * - Reads Claude Code's transcripts only:  knows nothing of epic pages, imports no other file of the tool.
- * - From `packages/docs/tools/review-backfill.js` (epic `epic-components`, P7), which now forwards here.
+ * - From `packages/epics/tools/review-backfill.js` (epic `epic-components`, P7), which now forwards here.
  ****************/
 export class ReviewBackfill {
   /**

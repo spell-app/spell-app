@@ -17,7 +17,7 @@ import { forEachNode, listNamedBy, typeCaseOf, type TSUndeclared, type WriterPro
 /****************
  * ### `TSWriter`
  * Writes a spell tree as TypeScript on Solid, as a person would write it by hand:
- * the `ts/solid` target's writer, for `<Project>.compiled.tsx`.
+ * the `ts/solid` target's writer, for `<Project>.spell.tsx`.
  * - It extends `P.JSWriter`, and says everything javascript says the way javascript says it:
  *   - names, every one camelCase:  `isASuit()`, `turnFaceUp()`, `allPiles`, `isSetUp`
  *   - a `List`'s own methods, `===`, loops, template text

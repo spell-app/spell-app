@@ -6,13 +6,14 @@ import { dirname, join, relative } from "path"
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
 import { CliError, EXIT } from "$/cli/cli.types"
 import type { PackInfo, PackScaffoldReport } from "$/cli/dev/dev.types"
-import { buildPack, packPrefix, readPack } from "$/cli/dev/packBuild"
+import { PACK_FOLDER, buildPack, packPrefix, readPack } from "$/cli/dev/packBuild"
 import { REPO_ROOT } from "$/cli/findCheckout"
 
 /**
  * `spell dev pack new <name> [--prefix x-]`:
  * make `packages/<name>/` a component pack, and wire it into checkout `root`.
  * - The package:  `templates/pack/package/` (this CLI's), each `__token__` filled in (`PackTokens`).
+ *   - Its tests:  `templates/pack/tests/`, into the repo's `tests/<name>/` (where every package's tests live).
  *   - A file already there is LEFT ALONE and listed in `skipped`, so it works on a folder that has some files.
  *   - `package.json` is MERGED:  the template's keys it lacks (`scripts`, `spellPack` ...) are added, its own kept.
  * - The checkout (`wirePack()`):  workspace, aliases, root vitest, lint / format ignores, `.gitattributes`, the
@@ -39,6 +40,8 @@ export async function newPack(root: string, name: string, options: NewPackOption
   const report: PackScaffoldReport = { pack: name, created: [], updated: [], skipped: [] }
   const tokens = packTokens(root, pack)
   writeTemplates(root, join(TEMPLATES, "package"), dir, tokens, report)
+  // its tests live in the repo's tests/ folder, at the same paths as the code (epic `people-and-orgs` P10)
+  writeTemplates(root, join(TEMPLATES, "tests"), join(root, "tests", name), tokens, report)
   mergePackageJson(
     root,
     join(dir, "package.json"),
@@ -52,11 +55,14 @@ export async function newPack(root: string, name: string, options: NewPackOption
 
 /**
  * `spell dev pack element <pack> <tag>`:
- * one element family, `packages/<pack>/components/<tag>/`, from `templates/pack/element/` --
- * `<Name>.tsx` (the component), `<Name>.en.ts` (its vocabulary:  topics + aka, skeleton text),
- * `<Name>.css`, `<Name>.test.tsx`, `index.ts` -- every file named for its component,
- * as Spell UI's families are written (no native fallback:  only form controls have one);
- * then its line in `components/index.ts`.
+ * one element family, `packages/<pack>/components/<tag>/`, from `templates/pack/element/`,
+ * as Spell UI's families are written (no native fallback:  only form controls have one).
+ * - every file named for its component:
+ *   - `<Name>.tsx`:  the component
+ *   - `<Name>.en.ts`:  its vocabulary (topics + aka, skeleton text)
+ *   - `<Name>.css`, `index.ts`
+ * - its test, `<Name>.test.tsx`, in the repo's `tests/<pack>/components/<tag>/` (`templates/pack/element-tests/`)
+ * - then its line in `components/index.ts`
  * - Files already there are left alone (`skipped`);  idempotent.
  * - Then builds the pack, unless `build: false`.
  * - Throws `CliError` when `pack` isn't a pack, or `tag` isn't a custom element name starting with its prefix.
@@ -77,6 +83,13 @@ export async function newElement(
   const report: PackScaffoldReport = { pack: packName, created: [], updated: [], skipped: [] }
   const tokens = elementTokens(root, pack, tag)
   writeTemplates(root, join(TEMPLATES, "element"), join(pack.dir, "components", tag), tokens, report)
+  writeTemplates(
+    root,
+    join(TEMPLATES, "element-tests"),
+    join(root, "tests", packName, "components", tag),
+    tokens,
+    report
+  )
   const barrel = join(pack.dir, "components", "index.ts")
   if (!existsSync(barrel)) {
     writeFileSync(barrel, fillTokens(readTemplate("package/components/index.ts.template"), tokens))
@@ -103,7 +116,10 @@ export type NewElementOptions = { build?: boolean }
 // ## Templates
 ////////////////
 
-/** This CLI's templates:  `templates/pack/package/` (a pack) and `templates/pack/element/` (one family). */
+/**
+ * This CLI's templates:  `templates/pack/package/` (a pack) and `templates/pack/element/` (one family);
+ * their tests, `tests/` and `element-tests/`, go into the repo's `tests/<pack>/`.
+ */
 const TEMPLATES = join(REPO_ROOT, "packages", "cli", "templates", "pack")
 
 /** A template file's suffix, dropped from the file it writes:  so no tool (tsc, lint, vitest) reads a template. */
@@ -124,15 +140,17 @@ const CUSTOM_TAG = /^[a-z][a-z0-9]*(-[a-z0-9]+)+$/
 /** The repo's own packages:  never a pack. */
 const CORE_PACKAGES = [
   "app",
-  "brand",
+  "assembler",
   "cli",
   "core",
-  "docs",
   "lsp",
   "markdown",
   "parser",
+  "py",
   "server",
+  "spaces",
   "spell",
+  "spell-solid",
   "ui",
   "util",
   "vscode"
@@ -253,11 +271,11 @@ function solidVersion(root: string): string {
 
 /**
  * Wire pack `pack` into checkout `root`, each step only when it isn't there yet (`report.updated`, else `skipped`):
- * - `package.json`:  a workspace, and `pack/` in `pageServer.watch` (pages reload when it's rebuilt)
+ * - `package.json`:  a workspace, and `components/__pack/` in `pageServer.watch` (pages reload when it's rebuilt)
  * - `tsconfig.base.json`:  `$/<name>`, `$/<name>/*`, `$/<name>/components`, `$/<name>/components/*`
  * - `vitest.config.ts`:  the pack's `node` + `browser` projects (`SPECIAL`)
- * - `vite.lint.ts`:  `pack/` out of lint and format
- * - `.gitattributes`:  `pack/**` generated, `merge=binary -diff`
+ * - `vite.lint.ts`:  `components/__pack/` out of lint and format
+ * - `.gitattributes`:  `components/__pack/**` generated, `merge=binary -diff`
  * - `packages/cli/src/dev/mergeMain.ts`:  a `GENERATORS` entry, `yarn pack:build`
  * - `guides/dev/commands/commands.json` (shared):  the pack's yarn scripts in the commands page's rows
  * - A file that isn't there is skipped, said so.  Text edits keep the files' own layout;  JSON is rewritten.
@@ -301,7 +319,8 @@ function wiringSteps(pack: PackInfo): WiringStep[] {
       edit: (text) => {
         const json = JSON.parse(text) as RootPackageJson
         const added =
-          addOnce(json.workspaces, `packages/${name}`) + addOnce(json.pageServer?.watch, `packages/${name}/pack`)
+          addOnce(json.workspaces, `packages/${name}`) +
+          addOnce(json.pageServer?.watch, `packages/${name}/${PACK_FOLDER}`)
         return added ? `${JSON.stringify(json, null, 2)}\n` : undefined
       }
     },
@@ -342,24 +361,31 @@ function wiringSteps(pack: PackInfo): WiringStep[] {
     },
     {
       file: "vite.lint.ts",
-      what: `packages/${name}/pack ignored`,
+      what: `packages/${name}/${PACK_FOLDER} ignored`,
       edit: (text) => {
-        if (text.includes(`"packages/${name}/pack"`)) return undefined
+        if (text.includes(`"packages/${name}/${PACK_FOLDER}"`)) return undefined
         const linted = addToList(
           text,
           ["export const rootLintIgnore = ["],
-          [`// \`${name}\`'s component pack:  generated (\`spell dev pack build ${name}\`)`, `"packages/${name}/pack"`]
+          [
+            `// \`${name}\`'s component pack:  generated (\`spell dev pack build ${name}\`)`,
+            `"packages/${name}/${PACK_FOLDER}"`
+          ]
         )
-        return addToList(linted, ["export const fmtConfig = {", "ignorePatterns: ["], [`"**/packages/${name}/pack/**"`])
+        return addToList(
+          linted,
+          ["export const fmtConfig = {", "ignorePatterns: ["],
+          [`"**/packages/${name}/${PACK_FOLDER}/**"`]
+        )
       }
     },
     {
       file: ".gitattributes",
-      what: `packages/${name}/pack/** generated`,
+      what: `packages/${name}/${PACK_FOLDER}/** generated`,
       edit: (text) => {
-        if (text.includes(`packages/${name}/pack/`)) return undefined
+        if (text.includes(`packages/${name}/${PACK_FOLDER}/`)) return undefined
         const column = /^\S+\s+(?=linguist-generated)/m.exec(text)?.[0].length ?? 0
-        const line = `${`packages/${name}/pack/**`.padEnd(column - 1)} linguist-generated merge=binary -diff`
+        const line = `${`packages/${name}/${PACK_FOLDER}/**`.padEnd(column - 1)} linguist-generated merge=binary -diff`
         return `${text.replace(/\n*$/, "\n")}\n# ${name}:  its component pack (\`spell dev pack build ${name}\`)\n${line}\n`
       }
     },
@@ -367,7 +393,7 @@ function wiringSteps(pack: PackInfo): WiringStep[] {
       file: "packages/cli/src/dev/mergeMain.ts",
       what: `GENERATORS:  ${name} pack`,
       edit: (text) =>
-        text.includes(`"packages/${name}/pack/**"`)
+        text.includes(`"packages/${name}/${PACK_FOLDER}/**"`)
           ? undefined
           : addToList(text, ["export const GENERATORS: Generator[] = ["], [generatorLine(text, name)])
     },
@@ -395,7 +421,7 @@ function generatorLine(text: string, name: string): string {
   const columns = ["outputs:", "cwd:", "run:"].map((field) => sample.indexOf(field))
   const fields = [
     `{ name: ${JSON.stringify(`${name} pack`)},`,
-    `outputs: [${JSON.stringify(`packages/${name}/pack/**`)}],`,
+    `outputs: [${JSON.stringify(`packages/${name}/${PACK_FOLDER}/**`)}],`,
     `cwd: ${JSON.stringify(`packages/${name}`)},`,
     `run: ["yarn", "pack:build"] }`
   ]
@@ -556,5 +582,5 @@ type RootPackageJson = {
   resolutions?: Record<string, string>
 }
 
-/** The parts of the commands page's JSON edited here;  its full shape:  `packages/docs/tools/_assets/commands.js`. */
+/** The parts of the commands page's JSON edited here;  its full shape:  `packages/epics/tools/_assets/commands.js`. */
 type CommandsJson = { families?: { rows?: { id?: string; yarn?: { names?: string | string[] } }[] }[] }

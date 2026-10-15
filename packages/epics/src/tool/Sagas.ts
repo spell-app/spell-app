@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync, renameSync, writeFileSync } from "node:fs"
 import { join, relative } from "node:path"
 
-// By file name, `.ts` and all:  plain `node` loads this file by path (the docs index, `packages/docs/tools/index.js`)
+// By file name, `.ts` and all:  plain `node` loads this file by path (the docs index, `packages/epics/tools/index.js`)
 import { PlanDocError } from "./planDoc.types.ts"
 
 /** The sagas' shared folder, from the checkout's root:  `sagas/sagas.json` and each saga's own folder. */

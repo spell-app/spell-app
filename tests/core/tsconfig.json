@@ -1,0 +1,5 @@
+{
+  // core's tests:  core's own settings (packages/core/tsconfig.json), over this folder
+  "extends": "../../packages/core/tsconfig.json",
+  "include": [".", "../../types"]
+}

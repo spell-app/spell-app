@@ -28,7 +28,7 @@ Experimental [Deepwiki Documentation](https://deepwiki.com/spell-app/spell-app)
 - Start the app (port 3000) and the api server (port 3001):  `yarn start`, in `packages/app`.
   - `yarn stop` (there too) stops them.
 - Open http://localhost:3000 in your web browser.
-- Check out the [Solitaire Example](http://localhost:3000/run/examples/Solitaire/Card.spell).
+- Check out the [Solitaire Example](http://localhost:3000/run/@spell/examples/solitaire/Card.spell).
 - Click the `Edit Example` button to see the code.
 - To run tests:
   - every package:  `yarn test`, at the monorepo root
@@ -60,8 +60,8 @@ The repo has a language server for spell (`packages/lsp`), and a VS Code extensi
 - `yarn` in the repo, if you haven't already:  the extension runs the repo's own language server.
 - `spell dev vscode` (at the repo root) builds the extension and installs it in VS Code.
   It's the two steps below.
-  - `spell dev vscode build` installs the extension's packages, bundles it,
-    and packages it as `spell-language.vsix`, in `packages/vscode`.
+  - `spell dev vscode build` builds `spell-language.vsix`, beside the extension's code:
+    it installs the extension's packages, bundles it, and packages it.
   - `spell dev vscode install` installs that file with `code --install-extension`.
     - Or in VS Code:  Extensions view => `...` menu => `Install from VSIX...`.
     - No `code` command?  In VS Code:  `Shell Command: Install 'code' command in PATH`.
@@ -72,8 +72,8 @@ Notes:
 - The extension runs the parser straight from this repo, so parser changes need no rebuild.
   - Just `Developer: Restart Extension Host`, or reload the window.
   - Rebuild and reinstall only when `packages/vscode/` itself changes.
-- The extension's version is pinned to the parser's:
-  `version` in both `package.json`s, `packages/vscode` and `packages/spell`.
+- The extension's version is pinned to the parser's:  the `version` in both packages' `package.json`.
+  - The packages:  `packages/vscode` and `packages/spell`.
   - The build fails if they differ, so bump them together.
 - The build records where this repo is.
   - Move the repo, and either rebuild, or set `spell.parserRoot` to its new folder.
@@ -89,7 +89,7 @@ Notes:
   updating as you type.
 - `Spell: Run Project` (the ▶ button) runs the file's project beside it.
   - It re-runs it each time the project compiles without errors:
-    on save, its Restart button, or anything rewriting its `<Project>.compiled.js`, e.g. the web app.
+    on save, its Restart button, or anything rewriting its `<Project>.spell.js`, e.g. the web app.
   - A project that doesn't parse leaves the last good run going.
   - "Show Console" opens a pane with:
     - "Program Output":  what it `print`s
@@ -103,7 +103,7 @@ Notes:
     - After changing the runner alone:  `yarn build:runner` (in `packages/app`), and close / reopen the panel.
 - Spell indents with tabs:  the extension sets `.spell` files to tabs, and formatting always uses them.
 - Settings:
-  - `spell.compileOnSave` writes the project's `<Project>.compiled.js` on save.
+  - `spell.compileOnSave` writes the project's `<Project>.spell.js` on save.
   - `spell.parserRoot` points at another checkout of this repo.
 
 ### Run spell in any page:  `<spell-app>`
@@ -115,14 +115,15 @@ Notes:
 ```html
 <script type="module" src="/element/spell-app.js"></script>
 
-<!-- from the spell server, sources and all -->
-<spell-app project="@examples/Solitaire" toolbar debug="explorer" height="600px"></spell-app>
+<!-- from the spell server, sources and all:  compiled first, if it never has been -->
+<spell-app project="@spell/examples/solitaire" toolbar debug="explorer" height="600px"></spell-app>
 
 <!-- from any static host:  its `Calculator.scopes.js`, and any project it imports, beside it -->
-<spell-app src="apps/Calculator.compiled.js" toolbar width="50%"></spell-app>
+<spell-app src="apps/Calculator.spell.js" toolbar width="50%"></spell-app>
 ```
 
-- `yarn build:element` (in `packages/app`) builds it into `dist-element/`:  copy that folder anywhere.
+- To build it:  `yarn build:element`, in `packages/app`.
+  - It's built into `dist-element/`:  copy that folder anywhere.
   - The dev server serves it at `/element/`, with a demo at `http://localhost:3001/demo/spell-app.html`.
 - Attributes:
   - `project` or `src`:  what to run
@@ -134,9 +135,17 @@ Notes:
 - `el.restart()` runs it again.
 - A `spell-open` event says a Type Explorer link was clicked.
 - Its Type Explorer reads the project's scope pack, `<Project>.scopes.js`.
-  - `yarn scopes [--compile] <projectId...>` (in `packages/lsp`) writes it,
-    e.g. `yarn scopes --compile @examples/Solitaire`.
-  - So does the VS Code extension, on each clean compile.
+  - In `packages/lsp`, `yarn scopes` writes it:
+
+    ```sh
+    yarn scopes [--compile] <projectId...>
+    yarn scopes --compile @spell/examples/solitaire   # e.g.
+    ```
+
+  - So do `spell compile` and the VS Code extension, on each clean compile.
+  - From the spell server (`project=`), it's built when needed:
+    - compiled output and scope packs are in `build/`, never committed
+    - the server compiles a project whose files aren't there before serving them
 - `src=` from another origin needs CORS on the compiled JS.
   Scope packs don't.
 
@@ -151,23 +160,29 @@ Notes:
 <script type="module" src="/element/spell-editor.js"></script>
 
 <!-- link from the editor's side:  a CSS selector for the app(s) it feeds -->
-<spell-editor project="@examples/Calculator" app="#calculator"></spell-editor>
-<spell-app id="calculator" project="@examples/Calculator" toolbar></spell-app>
+<spell-editor project="@spell/examples/calculator" app="#calculator"></spell-editor>
+<spell-app id="calculator" project="@spell/examples/calculator" toolbar></spell-app>
 
 <!-- ...or from the app's side:  a CSS selector for its editor.  With no project, it waits for the editor. -->
-<spell-editor id="todos" project="@examples/Todos"></spell-editor>
+<spell-editor id="todos" project="@spell/examples/todos"></spell-editor>
 <spell-app editor="#todos" toolbar></spell-app>
 ```
 
 - Edits SAVE to the project on the server:  each compile saves the files edited since, and Cmd+S saves.
 - It compiles as it opens, 2 seconds after typing stops, and on Cmd+Enter.
 - After each compile with no parse errors:
-  - it fires `spell-compiled` (`detail`:  `{ projectId, compiled, scopes }`)
+  - it fires a `spell-compiled` event, with `{ projectId, compiled, scopes }` as its detail
   - it keeps that as `el.compiled`
   - apps linked either way run it, their Type Explorer following the edits
-- Attributes:  `project`, `file` (to show first;  tabs show the rest), `app`, `width` / `height`, `assets`.
+- Attributes:
+  - `project`
+  - `file`:  to show first;  tabs show the rest
+  - `app`
+  - `width` / `height`
+  - `assets`
 - `el.compile()` and `el.save()` do what Cmd+Enter and Cmd+S do.
-- `yarn build:element` (in `packages/app`) builds it beside `<spell-app>`, into `dist-element/`.
+- To build it:  `yarn build:element`, in `packages/app`.
+  - It's built beside `<spell-app>`, into `dist-element/`.
   - Its demo is at `http://localhost:3001/demo/spell-editor.html`, whose edits save to the examples.
   - Monaco (~4 MB) loads only once there's a project to show:
     the project compiles, and its apps run, before.
@@ -226,8 +241,10 @@ To "compile" text into javascript:
 
 ## RuleSyntax
 
-- **Rules are stored in the `src/rules` directories** of `packages/parser` (generic) and `packages/spell` (the language).
-- Test files live next to the rule files they cover.
+- **Rules are stored in the `src/rules` directories** of two packages:
+  - `packages/parser`:  the generic ones
+  - `packages/spell`:  the language's
+- Their tests live in the repo's `tests/`, at the same paths, e.g. `tests/spell/src/rules/<module>/`.
 - To include a rule file in the browser
   - add it as an `import()` in `src/rules`
 

@@ -1,17 +1,17 @@
 """A program's side of a page that draws it:  it sends the page its state, and runs the page's messages.
 
 ```python
-session = PageSession(run_program("Solitaire.compiled.py", seed=1))
+session = PageSession(run_program("Solitaire.spell.py", seed=1))
 session.state()        # the whole state, by id, for the page to start from
-session.handle({"trigger": "card-click", "details": {"card": {"@id": "12"}}})
+session.handle({"trigger": "card-click", "details": {"card": {"$id": "12"}}})
 # => the patch:  only what that click changed
 ```
 
-- `python -m spell_core.page Solitaire.compiled.py --seed 1` talks to a page over stdin and stdout, a JSON line each:
+- `python -m spell_core.page Solitaire.spell.py --seed 1` talks to a page over stdin and stdout, a JSON line each:
   it writes the state first, then reads each message, writing what it changed.
-- The page draws with the program's drawing half in javascript, `<Project>.elements.js`, from the state it's sent;
+- The page draws with the program's drawing half in javascript, `<Project>.elements.spell.js`, from the state it's sent;
   see `startPage()` in the JavaScript core's `page.ts`.
-- What it sends, each thing in it by its id (`{"@id": "3"}`), or by a reference (`"Card#queen-of-spades"`, P27):
+- What it sends, each thing in it by its id (`{"$id": "3"}`), or by a reference (`"Card#queen-of-spades"`, P27):
   - a call of one of the program's functions:  `{"call": "play_from_the_stock_pile", "args": []}`
   - a call of a thing's method:  `{"call": "turn_over", "on": "Card#3", "args": []}`
   - an event, for the program's handlers:  `{"trigger": "card-click", "target": "Card#queen-of-spades"}`
@@ -111,7 +111,7 @@ class PageSession:
         return found
 
     def read(self, value: Any) -> Any:
-        """`value` from a page's message:  each `{"@id": ...}`, or reference (`"Card#3"`), the thing it names.
+        """`value` from a page's message:  each `{"$id": ...}`, or reference (`"Card#3"`), the thing it names.
 
         - The rest as it is.
         """
@@ -137,7 +137,7 @@ def main(argv: list[str] | None = None) -> None:
     from spell_core.run import run_program
 
     parser = argparse.ArgumentParser(prog="python -m spell_core.page", description="A program's side of its page.")
-    parser.add_argument("program", help="the compiled program, e.g. Solitaire.compiled.py")
+    parser.add_argument("program", help="the compiled program, e.g. Solitaire.spell.py")
     parser.add_argument("--seed", type=int, help="where the random numbers start, from 1 to 2147483646")
     parser.add_argument("--no-pauses", action="store_true", help="don't wait at a pause")
     args = parser.parse_args(argv)

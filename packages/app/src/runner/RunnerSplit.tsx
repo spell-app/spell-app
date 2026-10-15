@@ -15,7 +15,7 @@ import "./RunnerSplit.css"
  * - Without `showBottom`, the top pane fills it all.
  * - `children` are read ONCE:  the top pane is never redrawn, so an app's mount point in it stays put.
  *   `bottom` is read each time it's shown.
- * - SEE:  its App UI components page, `packages/app/components/RunnerSplit.html` (`/app-ui/RunnerSplit.html`).
+ * - SEE:  its App UI components page, `packages/app/docs/RunnerSplit.html` (`/components/app/RunnerSplit.html`).
  ****************/
 export function RunnerSplit(props: RunnerSplitProps) {
   let element!: HTMLDivElement

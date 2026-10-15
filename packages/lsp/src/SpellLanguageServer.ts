@@ -188,19 +188,23 @@ export class SpellLanguageServer {
   }
 
   /**
-   * Ask the editor to tell us when `project.json` or `.spell` files change on disk, if it lets servers ask.
+   * Ask the editor to tell us when a project file or `.spell` files change on disk, if it lets servers ask.
    * - Otherwise its extension has to set that up itself (`synchronize.fileEvents` in `vscode-languageclient`).
    */
   private watchFiles() {
     this.connection.client
       .register(DidChangeWatchedFilesNotification.type, {
-        watchers: [{ globPattern: "**/project.json" }, { globPattern: "**/*.spell" }]
+        watchers: [
+          { globPattern: "**/__project.json5" },
+          { globPattern: "**/project.json" },
+          { globPattern: "**/*.spell" }
+        ]
       })
       .catch(() => undefined)
   }
 
   /**
-   * If the `spell.compileOnSave` setting is on, compile the project of saved document `uri` to its `<Project>.compiled.js`,
+   * If the `spell.compileOnSave` setting is on, compile the project of saved document `uri` to its `<Project>.spell.js`,
    * so a running app picks it up -- see `compileProject()`.
    * - Off unless the editor tells us otherwise, or can't be asked.
    */
@@ -212,7 +216,7 @@ export class SpellLanguageServer {
   }
 
   /**
-   * Compile the project of document `uri` to its `<Project>.compiled.js`, then send `spell/projectCompiled`
+   * Compile the project of document `uri` to its `<Project>.spell.js`, then send `spell/projectCompiled`
    * with the javascript, e.g. for a running app to re-run.
    * - Queued like a change, so it compiles what's been parsed.
    * - Answers `{ ok }`:  whether it compiled cleanly.  If not, nothing is sent, so a running app keeps running.

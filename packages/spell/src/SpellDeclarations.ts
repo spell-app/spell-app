@@ -7,15 +7,16 @@ import { SP } from "$/spell"
 
 /**
  * A project's declarations:  everything it added to scope while parsing, as plain data -- see `SP.SpellDeclarationsData`.
- * - Why:  they live in `<Project>.declarations.json` beside its compiled output, so another project can import it
- *   WITHOUT re-parsing its `.spell` files.
+ * - Why:  they live in `<Project>.declarations.json5`, committed beside its source,
+ *   so another project can import it WITHOUT re-parsing its `.spell` files.
  * - Gathered from the AST, in two steps:
  *   - while compiling, `commentFor()` gives each declaring statement a `/*! SPELL: DECLARES {...} *\/` comment
  *     above its code -- a MARKER, never written to disk
  *   - `split()` takes the markers back OUT of the project's compiled text, into the declarations,
  *     noting where each statement's code starts (`codeLines`), so a Type Explorer can still show it
  * - Each marker is a JS object literal, read back with `JSON5`.
- * - `read()` reads a declarations file;  `load()` replays it into another project's import layer.
+ * - `read()` reads a declarations file.
+ * - `load()` replays it into another project's import layer.
  * - A project compiled before the file existed has its declarations in its compiled `.js` instead:
  *   `fromComments()`.
  */
@@ -29,7 +30,7 @@ export class SpellDeclarations {
    * - `code`:  the text, markers out
    * - `declarations`:  its versions, what it `provides`, each marker's statement and where its code starts
    *
-   * - `version` / `exports` come from its `project.json` -- see `provides()`.
+   * - `version` / `exports` come from its project file -- see `provides()`.
    * - A marker MUST start its line, and end one:  as `ASTPreservedComment` writes it, indented in a class body.
    */
   static split(
@@ -68,7 +69,7 @@ export class SpellDeclarations {
 
   /**
    * Names parsed project `scope` offers importers:  its own types, then its top-level functions.
-   * - `exports` from its `project.json` limits them, default everything.
+   * - `exports` from its project file limits them, default everything.
    * - Throws if it names something the project doesn't declare.
    */
   static provides(scope: P.ProjectScope, exports?: string[]): string[] {
@@ -111,14 +112,17 @@ export class SpellDeclarations {
    * What `statement` declared, as ONE flat object:  from the scope records it noted while parsing.
    * - Those are `match.data.declared` -- see `P.ScopeList.noteDeclared()`.
    * - `undefined` if nothing another project could see.
-   * - Records share keys, e.g. a method's `of` is also its rule's owner.  Throws if two disagree.
+   * - Records share keys, e.g. a method's `of` is also its rule's owner.
+   *   Throws if two disagree.
    * - Leaves out what loading works out again -- see `SP.SpellDeclaration`.
    * - Its `kind` and `name` are what its rule's `getDeclaration()` says -- unless a key already says, e.g. `type`.
-   * - Skips what it no longer declares, e.g. a type it stubbed which a later `a card is a thing` claimed,
-   *   and what never leaves its file, e.g. local variables.
+   * - Skips:
+   *   - what it no longer declares, e.g. a type it stubbed which a later `a card is a thing` claimed
+   *   - what never leaves its file, e.g. local variables
    * - A record is ours if its `declaredBy` holds the SAME `declared` list:
-   *   this statement, or a clone of it which incremental parsing re-bodied (`BlockLine.reparseBody()`).
-   *   `Match.clone()` copies `data` shallowly.
+   *   - this statement
+   *   - or a clone of it which incremental parsing re-bodied (`BlockLine.reparseBody()`):
+   *     `Match.clone()` copies `data` shallowly
    * - Throws if a rule it built wasn't `specialize()`d from a class with an `importableAs`:
    *   another project couldn't rebuild it.  See `P.Rule.importableAs`.
    */
@@ -180,7 +184,7 @@ export class SpellDeclarations {
   ////////////////
 
   /**
-   * Declarations in `json`, a project's `<Project>.declarations.json` -- `undefined` if it isn't one.
+   * Declarations in `json`, a project's `<Project>.declarations.json5` -- `undefined` if it isn't one.
    * - Reads TEXT:  never runs anything.
    */
   static read(json: string): SP.SpellDeclarationsData | undefined {
@@ -194,7 +198,7 @@ export class SpellDeclarations {
   }
 
   /**
-   * Declarations in `compiled`, a project's `<Project>.compiled.js` from before declarations had a file of their own
+   * Declarations in `compiled`, a project's `<Project>.spell.js` from before declarations had a file of their own
    * (epic `output-targets`, P5).
    * - `undefined` if it has no `/*! SPELL: PROJECT {...} *\/` header.
    * - Reads TEXT:  never runs the compiled code.
@@ -243,11 +247,12 @@ export class SpellDeclarations {
    *   its properties, constants and rules, e.g. `Card` brings `card suits`.
    * - A type picked as `Card:Playingcard` loads as `Playingcard`, everywhere a loaded record names it:
    *   see `renamed()`.
-   *   Its `runtimeName` stays `Card`:  its class is still called that when the code runs.
+   *   - Its `runtimeName` stays `Card`:  its class is still called that when the code runs.
    * - Records where each name came from in `scope.origins`, and what `module` provides in `scope.modules`.
-   * - Each record keeps where it was declared, in `projectId`'s sources, for editors:
-   *   `declaredAt` on types, variables and constants, and `declared` on rules (see `P.DeclaredAt`).
-   *   It has no `declaredBy`.
+   * - Each record keeps where it was declared, in `projectId`'s sources, for editors (see `P.DeclaredAt`):
+   *   - `declaredAt` on types, variables and constants
+   *   - `declared` on rules
+   *   - It has no `declaredBy`.
    * - Throws `P.ParserError`, rather than loading something half right, if
    *   - it was written by a compiler of another MAJOR version -- see `SP.SPELL_VERSION`
    *   - its `version` doesn't satisfy the importer's range
@@ -289,10 +294,10 @@ export class SpellDeclarations {
 
   /**
    * Throws `P.ParserError` if parsed project `scope` itself declares a type it also imports,
-   * e.g. its own `a card is a thing` when `Card` comes from `@library/cards`.
+   * e.g. its own `a card is a thing` when `Card` comes from `@spell/library/cards`.
    * - Its imports are the `P.ImportScope` above it -- nothing to check without one.
-   * - Types only:  a RULE name may repeat, e.g. `draw` methods on two types merge into one `P.Group`, as they
-   *   would parsing everything from source.
+   * - Types only:  a RULE name may repeat.
+   *   - e.g. `draw` methods on two types merge into one `P.Group`, as they would parsing everything from source
    * - Only a project's own names can clash:  parse it first.
    */
   static checkImportClashes(scope: P.ProjectScope) {
@@ -382,8 +387,8 @@ export class SpellDeclarations {
   }
 
   /**
-   * `declaration`'s rule, if its owner was picked:  class `importableAs`, `specialize()`d with `declaration`,
-   * which picks out what it needs.
+   * `declaration`'s rule, if its owner was picked.
+   * - The rule:  class `importableAs`, `specialize()`d with `declaration`, which picks out what it needs.
    * - Owner:  type `of`, else itself, for a top-level function.
    * - Its `P.ScopeRule.declared` keeps its owner, what its statement declared and where -- for editors.
    */
@@ -453,14 +458,14 @@ export class SpellDeclarations {
 
   /**
    * Where a statement `defined` itself (`<file>:<start>-<end>`) in project `projectId`:
-   * e.g. `{ path: "@system:library:cards/Card.spell", start: 23, end: 412 }`.
+   * e.g. `{ path: "@spell/library/cards/Card.spell", start: 23, end: 412 }`.
    * - `undefined` if it doesn't say.
    * - Reverses `definedAt()`.
    */
   private static declaredAt(projectId: string, defined: string | undefined): P.DeclaredAt | undefined {
     const match = defined?.match(/^(.*):(\d+)-(\d+)$/)
     if (!match) return undefined
-    return { path: `${projectId}${match[1]}`, start: Number(match[2]), end: Number(match[3]) }
+    return { path: SP.SpellLocation.join(projectId, match[1]!), start: Number(match[2]), end: Number(match[3]) }
   }
 
   /** Throws unless `declarations` suit this compiler, and the importer's `range`, if any. */
@@ -632,13 +637,13 @@ export class SpellDeclarations {
   /**
    * `<file>:<start>-<end>` character offsets of `match` in its file, e.g. `/FizzBuzz.spell:23-412`:
    * if it came from a file.
-   * - Project-relative, e.g. `/Card.spell` not `@system:library:cards/Card.spell`:  a library may move.
+   * - Project-relative, e.g. `/Card.spell` not `@spell/library/cards/Card.spell`:  a library may move.
    */
   private static definedAt(match: P.Match): string | undefined {
     const path = match.getScopeOfType(P.FileScope)?.path
     const { start, end } = match
     if (!path || start === undefined || end === undefined) return undefined
-    const file = path.startsWith("@") ? path.slice(path.indexOf("/")) : path
+    const file = (SP.SpellLocation.isAddress(path) && SP.SpellLocation.filePathOf(path)) || path
     return `${file}:${start}-${end}`
   }
 }

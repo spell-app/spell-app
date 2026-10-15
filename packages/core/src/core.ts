@@ -10,7 +10,8 @@ import _isArrayLike from "lodash/isArrayLike"
 import isEqual from "lodash/isEqual"
 
 import { flushCells } from "$/util"
-import { assert } from "$/core"
+// Import directly, never through the barrel:  `$/core/model` loads this file, and must not load drawing (Solid)
+import { assert } from "./assert"
 import { defineSpellCoreModule, type PropCheck, type SpellCore } from "./spellCore.types"
 import { ParkMiller } from "./ParkMiller"
 
@@ -53,6 +54,24 @@ export function randomNumber(min?: number, max?: number): number | undefined {
  *   below, and in `collection-core.ts`, `collection-other.ts`, etc -- see `spellCore.types.ts`.
  */
 export const spellCore = new (class spellCore {})() as SpellCore
+
+/**
+ * The running program's things, `spellCore.things` (`things.ts`), for the Thing Explorer.
+ * - `undefined` under `$/core/model`, which leaves them out:
+ *   a thing made there, e.g. a `Person` the server loads, belongs to no running program.
+ * - So code the model loads asks here, never `spellCore.things` itself.
+ */
+export function programThings(): SpellCore["things"] | undefined {
+  return (spellCore as Partial<Pick<SpellCore, "things">>).things
+}
+
+/**
+ * SIDE EFFECT:  add `thing` to the running program's things, if there are any -- see `programThings()`.
+ * - `Thing` and `List` call it as they're made.
+ */
+export function registerThing(thing: object): void {
+  programThings()?.add(thing as Parameters<SpellCore["things"]["add"]>[0])
+}
 
 /** Meta-programming, exports, type-checking, path access, equality, math and iteration primitives. */
 export const coreMethods = defineSpellCoreModule({
@@ -119,7 +138,8 @@ export const coreMethods = defineSpellCoreModule({
    *   filtering a pile mustn't take its cards -- see `List.asScratch()`
    */
   newScratch(constructor: new () => unknown): unknown {
-    const made = spellCore.things.quietly(() => new constructor())
+    const things = programThings()
+    const made = things ? things.quietly(() => new constructor()) : new constructor()
     ;(made as { asScratch?: () => unknown }).asScratch?.()
     return made
   },

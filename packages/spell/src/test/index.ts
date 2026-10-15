@@ -12,6 +12,7 @@ export {
   loadFixtureProject,
   fixturePath,
   fixtureProjectId,
+  FIXTURES_GROUP,
   fixtureProjectNames,
   compiledFixture,
   fixtureDeclarations,
@@ -20,6 +21,7 @@ export {
   fixtureImports,
   FIXTURES_DIR,
   PYTHON_FIXTURES,
+  LIBRARY_FIXTURES,
   summarize,
   describeParseErrors,
   describeWarnings

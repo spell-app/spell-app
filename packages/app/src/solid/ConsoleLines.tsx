@@ -48,7 +48,7 @@ export type ConsoleInspector = {
  *   A group's own `lines` are tracked here, by `<ConsoleGroup>`.
  * - Rows are keyed by line identity:  a line logged adds ONE row, the existing ones stay as they are.
  * - NOTE: styles assume it's inside a `.ConsoleViewer`, e.g. `<div class="ConsoleViewer scrolling">`.
- * - SEE:  its App UI components page, `packages/app/components/ConsoleLines.html` (`/app-ui/ConsoleLines.html`).
+ * - SEE:  its App UI components page, `packages/app/docs/ConsoleLines.html` (`/components/app/ConsoleLines.html`).
  ****************/
 export function ConsoleLines(props: ConsoleLinesProps) {
   const indent = () => props.indent ?? 0

@@ -1,7 +1,7 @@
 """`core`'s side of things:  checking a property as it's set, the program's classes, and spell's JSON read back.
 
 ```python
-card = core.from_json('{"@type": "Card", "rank": "queen"}')   # a Card again
+card = core.from_json('{"$type": "Card", "rank": "queen"}')   # a Card again
 ```
 
 - The twins of the JavaScript core's:
@@ -56,15 +56,15 @@ class ThingMethods:
         return True
 
     def from_json(self, data: object) -> Any:
-        """Spell's JSON read back as what it was:  each object with an `"@type"` made again as its class.
+        """Spell's JSON read back as what it was:  each object with an `"$type"` made again as its class.
 
         - `data`:  JSON text, or what `json.loads()` gave already.  Text is always read as JSON.
         - The class:  one the program defined by that name (`things.class_named()`), or spell's own, `List`.
         - Made as the program makes one, `Card(rank="queen")`:  through its properties, then its `create()`.
           A property with nothing declared for it is set after, as a plain property.
-        - A spell list:  its own properties as above, then its items from `"@items"`, each made again.
+        - A spell list:  its own properties as above, then its items from `"$items"`, each made again.
           So an exclusive list, e.g. a `Pile`, owns its cards;  what its `create()` added is replaced.
-        - An `"@type"` no class has:  a plain dict, its `"@type"` kept.  NEVER throws for one.
+        - An `"$type"` no class has:  a plain dict, its `"$type"` kept.  NEVER throws for one.
         - JSON with ids, a `StateWriter`'s (`state.py`):  a thing mentioned twice comes back as one.
           Without them, JSON keeps no identity:  a card in two places comes back as two cards.
         - throws `json.JSONDecodeError` for text that isn't JSON.

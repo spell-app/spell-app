@@ -1,9 +1,9 @@
 /**
  * Lets a page of a COMPONENT SET load component packs (`<ui-components source="x.pack.js">`):  `globalThis.SpellUI`,
  * what a pack's classic script calls `registerPack()` on and takes its shared modules from (`packModules`), as the
- * docs bundle gives them (`packages/docs/tools/_assets/spell-ui.entry.js`).
- * - Why:  the component sets' pages (Epic UI at `/epic-ui/`, App UI at `/app-ui/`:  `COMPONENT_SETS` in
- *   `$/server/page`) load Spell UI's site, and draw their live examples with a pack's elements (`epics.pack.js`'s
+ * docs bundle gives them (`packages/epics/tools/_assets/spell-ui.entry.js`).
+ * - Why:  the component sets' pages (Epic UI at `/components/epics/`, App UI at `/components/app/`, the
+ *   brand's at `/components/brand/`:  `COMPONENT_SETS` in `$/server/page`) load Spell UI's site, and draw their live examples with a pack's elements (`epics.pack.js`'s
  *   `<epic-*>`, the app's `spell.pack.js`).
  * - ONLY in the sets' build of the site (`sets.ts`, `site/_assets/sets/`), never in Spell UI's own:  every module
  *   here stays WHOLE (a pack may use any export), and in one build with Spell UI's pages that cost them +118 KB
@@ -30,11 +30,15 @@ import * as uiForms from "$/ui/forms"
 import type { ComponentPack } from "$/ui/components/ui-components/UIComponents.types"
 import { registerPack } from "$/ui/components/ui-components/ComponentPacks"
 
-/** What a pack imports, by the specifier its build leaves external => the page's copy of that module. */
+/**
+ * What a pack imports, by the specifier its build leaves external => the page's copy of that module.
+ * - `$/spell-solid`:  Spell UI's core module, which carries all of it (`$/ui/core` re-exports it):  one per page.
+ */
 const packModules: Record<string, unknown> = {
   "solid-js": solid,
   "@solidjs/web": solidWeb,
   "@solidjs/h": solidH,
+  "$/spell-solid": uiCore,
   "$/ui/core": uiCore,
   "$/ui/forms": uiForms
 }

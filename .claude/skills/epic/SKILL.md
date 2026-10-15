@@ -54,7 +54,7 @@ Plan, then build, in worktree `<name>`, keeping the EPIC PAGE current the whole 
   - a **Net effect** list (`<epic-net-effect>`) closing every question, issue, judgement call and decision
   - NOT caveman (Owen, 2026-10-04).
   - Replies:  short, the same plain words.
-- Naming a doc in a reply (the epic page, a guide, any `packages/docs` page):
+- Naming a doc in a reply (the epic page, a guide, any docs page):
   paste what `spell dev docs link` prints, run in the checkout the doc is in.
   - In full:  `spell dev docs link <ABSOLUTE path> --hash <id> [--text "..."]`.
   - It prints the side bar link, then `• 🌐` (the browser link)
@@ -435,7 +435,7 @@ The filling goes to a background agent, `<name>-plan-doc`, as if Owen had typed 
   - Several files (pages, experiments):  `guides/<name>/<name>.html`.
     Shared content too:  committed for you, like the epic page.
   - From the epic page:  Overview -> the body;  decisions -> a "Why" section;  open caveats -> "Limits".
-  - Finish as [docs' AGENTS.md](packages/docs/AGENTS.md) says, "Finishing a page".
+  - Finish as [epics' AGENTS.md](packages/epics/AGENTS.md) says, "Finishing a page".
   - Then `spell dev docs index`.
     The index is shared too:  `epic` keeps the epic's own card current from any checkout.
 - The epic page stays in `epics/` as the record:  every phase done.

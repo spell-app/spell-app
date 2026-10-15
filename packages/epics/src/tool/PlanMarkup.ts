@@ -8,7 +8,7 @@
  *   `slot="title"`.
  * - Imports nothing:  the DOM it works on is whatever document it's handed (linkedom under node).  Plain DOM, no
  *   globals (`nodeType`, never `instanceof`).
- * - From `packages/docs/tools/plan-doc.js`, `pages.js` (`serialize()`, `serializeHTML()`) and `to-ui-section.js`
+ * - From `packages/epics/tools/plan-doc.js`, `pages.js` (`serialize()`, `serializeHTML()`) and `to-ui-section.js`
  *   (`createElement()`), epic `epic-components` P7:  `epics` can't import `docs`.  The DOM edits were the
  *   converter's `domEdits.ts` (I5).
  ****************/

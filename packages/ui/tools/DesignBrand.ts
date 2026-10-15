@@ -7,18 +7,17 @@ import type { DesignExample, DesignSource } from "./tools.types.ts"
 
 /****************
  * ### `DesignBrand`
- * The brand's `<ui-brand-*>` elements as a card source of the design system (`DesignSource`;  epic `claude-design`,
- * P11):  one "Brand" card per family, beside Spell UI's own.
- * - Read as DATA, never imported:  `ui` must not depend on `brand` (root `AGENTS.md`, "Overview"), so this reads files
- *   the brand writes, as the brand book's "CONTENT FUNDAMENTALS" already was:
- *   - `packages/brand/_data/components.json` -- its site data (`yarn site:data` in `packages/brand`), the same shape
- *     as ours
- *   - `brand/components/<tag>.html` -- its docs pages (SHARED, the repo root's `brand/` link):  the examples are their
- *     Examples tab's `<ui-docs-example>`s, titled by the `<ui-section>` around each
- *   - the page's own `<style>`s and `packages/brand/_assets/brand-docs.css`'s example rules (`.brand-docs-row`,
- *     `.brand-docs-panel`):  the classes those examples use
- * - The elements themselves reach the bundle from the docs tool (`bundle-spell-ui.js --design`), which may import any
- *   package.
+ * The brand's `<brand-*>` elements (a component pack) as a card source of the design system
+ * (`DesignSource`;  epic `claude-design`, P11):  one "Brand" card per family, beside Spell UI's own.
+ * - Read as DATA, never imported:  `ui` must not depend on `brand` (root `AGENTS.md`, "Overview").
+ *   So this reads files the brand writes, as the brand book's "CONTENT FUNDAMENTALS" already was:
+ *   - `packages/brand/docs/__data/components.json` --
+ *     its docs set's data, the same shape as ours (`yarn site:data` in `packages/brand`)
+ *   - `packages/brand/docs/<tag>.html` -- its docs set's pages (served at `/components/brand/`):
+ *     the examples are their Examples tab's `<ui-docs-example>`s, titled by the `<ui-section>` around each
+ *   - each page's own `<style>`s:  the classes those examples use (`.brand-docs-row`, `.stage` ...)
+ * - The elements themselves reach the bundle from the docs tool (`bundle-spell-ui.js --design`),
+ *   which may import any package.
  ****************/
 export class DesignBrand {
   /** the repo root, absolute */
@@ -47,7 +46,7 @@ export class DesignBrand {
       data: this.data,
       componentsPath: "../brand/components",
       intro:
-        "Spell's own elements (`<ui-brand-*>`):  its colour tools, the inspector field, the composer, the build " +
+        "Spell's own elements (`<brand-*>`):  its colour tools, the inspector field, the composer, the build " +
         "checklist and phone, and the page art (logo, flourish, blob).  They read the brand roles (`--spell-*`, " +
         '`brand-*` and `surface-warm` ... in `tokens.json`) and take `color="accent"` (Polished Ivory).',
       examples: (folder) => this.examples(folder),
@@ -65,30 +64,26 @@ export class DesignBrand {
       const headers = [...before.matchAll(/<ui-section\b[^>]*\sheader="([^"]*)"/g)]
       const title = headers.at(-1)?.[1] ?? "Example"
       const markup = DesignComponents.dedent(match[1]!)
-      if (markup.trim()) result.push({ title, markup, source: `brand/components/${folder}.html` })
+      if (markup.trim()) result.push({ title, markup, source: `${PAGES}/${folder}.html` })
     }
     return result
   }
 
-  /** The CSS family `folder`'s examples need:  its docs page's own `<style>`s, then `brand-docs.css`'s example rules. */
+  /** The CSS family `folder`'s examples need:  its docs page's own `<style>`s. */
   style(folder: string): string {
     // comments out first:  a page's header comment may NAME a `<style>`
     const page = this.page(folder).replace(/<!--[\s\S]*?-->/g, "")
     const own = [...page.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/g)].map((match) =>
       DesignComponents.dedent(match[1]!)
     )
-    const sheet = join(this.root, DOCS_CSS)
-    const glue = existsSync(sheet)
-      ? [...readFileSync(sheet, "utf8").matchAll(/^\.brand-docs-(?:row|panel)\s*\{[^}]*\}/gm)].map((match) => match[0])
-      : []
-    return [...own, ...glue].join("\n").trim()
+    return own.join("\n").trim()
   }
 
-  /** Family `folder`'s docs page, or `""` when this checkout's `brand/` doesn't have it. */
+  /** Family `folder`'s docs page, or `""` when this checkout doesn't have it. */
   private page(folder: string): string {
     const cached = this.pages.get(folder)
     if (cached !== undefined) return cached
-    const file = join(this.root, "brand/components", `${folder}.html`)
+    const file = join(this.root, PAGES, `${folder}.html`)
     const text = existsSync(file) ? readFileSync(file, "utf8") : ""
     this.pages.set(folder, text)
     return text
@@ -106,8 +101,8 @@ export type DesignBrandProps = {
 /** The brand's card group, after Spell UI's own. */
 const GROUP = "Brand"
 
-/** The brand's site data, repo-relative. */
-const DATA = "packages/brand/_data/components.json"
+/** The brand's docs set, repo-relative:  its pages, one per family (`<tag>.html`). */
+const PAGES = "packages/brand/docs"
 
-/** The brand docs pages' sheet, repo-relative:  its example rules travel with the cards. */
-const DOCS_CSS = "packages/brand/_assets/brand-docs.css"
+/** The brand's docs set's data, repo-relative. */
+const DATA = `${PAGES}/__data/components.json`

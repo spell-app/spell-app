@@ -9,6 +9,9 @@
  *   - a worktree's file:  on the MAIN checkout's server (`/worktrees/<w>/...`),
  *     when that one runs and serves worktrees (`SRV.mainServerUrl()`)
  * - `--root <dir>`:  the checkout (default:  the one holding the folder `yarn` ran in, `INIT_CWD`)
+ * - `--spaces <dir>`:  where people's and orgs' spaces are kept (default:  spell-spaces, beside the main checkout):
+ *   it sets `SPELL_SPACES_DIR`, which spaces' route modules read, and a background server inherits
+ *   (epic `people-and-orgs` P8)
  * - Runs under `tsx` with THIS package's `tsconfig.json`, so `$/...` aliases resolve.
  *   A background server is started the same way (`TSX_TSCONFIG_PATH`), whatever folder it's started from.
  */
@@ -24,6 +27,8 @@ async function main(args: string[]): Promise<void> {
   const [command = "help", ...rest] = args
   const root = resolve(flag(rest, "--root") ?? findRoot(process.env.INIT_CWD ?? process.cwd()) ?? process.cwd())
   const port = Number(flag(rest, "--port") ?? DEFAULT_PORT)
+  const spaces = flag(rest, "--spaces")
+  if (spaces) process.env.SPELL_SPACES_DIR = resolve(spaces)
   const pidFile = new SRV.PidFile(root)
 
   switch (command) {
@@ -59,7 +64,9 @@ async function main(args: string[]): Promise<void> {
       return console.log(`${base}/${path.split(sep).map(encodeURIComponent).join("/")}`)
     }
     default:
-      console.log(`usage:  spell dev server serve|start|ensure|stop|status|url <file>  [--root <dir>] [--port <n>]`)
+      console.log(
+        `usage:  spell dev server serve|start|ensure|stop|status|url <file>  [--root <dir>] [--port <n>] [--spaces <dir>]`
+      )
   }
 }
 

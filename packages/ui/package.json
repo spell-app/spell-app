@@ -11,9 +11,9 @@
   "sideEffects": [
     "**/*.css",
     "./src/index.ts",
-    "./src/components/*/index.ts",
+    "./components/*/index.ts",
     "./src/docs-components/*/index.ts",
-    "./src/elements/HotDefinitions.ts",
+    "./src/elements/SpellUISettings.ts",
     "./site/_src/snapshot.ts",
     "./site/_src/SitePacks.ts",
     "./site/_src/site.ts",
@@ -358,11 +358,11 @@
     "clean": "rm -rf ./.cache ./build ./dist ./coverage ./test-results ./vendor ./tools/frameworks/solid/dist",
     "/////// CORRECTNESS": "",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
-    "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc && tsc -p tsconfig.node.json && echo '<< TSC PASSED\n'",
-    "lint": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT' && vp lint --report-unused-disable-directives --max-warnings 0 src test scripts tools && echo '<< OXLINT PASSED\n'",
-    "lint:fix": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT --fix' && vp lint --fix src test scripts tools && echo '<< OXLINT PASSED\n'",
-    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && vp fmt . && echo '<< OXFMT PASSED\n'",
-    "format:check": "vp fmt --check .",
+    "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc && tsc -p tsconfig.node.json && tsc -p ../../tests/ui && echo '<< TSC PASSED\n'",
+    "lint": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT' && vp lint --report-unused-disable-directives --max-warnings 0 src components test scripts tools && cd ../../tests/ui && vp lint --report-unused-disable-directives --max-warnings 0 . && echo '<< OXLINT PASSED\n'",
+    "lint:fix": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT --fix' && vp lint --fix src components test scripts tools && cd ../../tests/ui && vp lint --fix . && echo '<< OXLINT PASSED\n'",
+    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && vp fmt . && cd ../../tests/ui && vp fmt . && echo '<< OXFMT PASSED\n'",
+    "format:check": "vp fmt --check . && cd ../../tests/ui && vp fmt --check .",
     "/////// TESTING": "",
     "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vp test run --project ssr && vp test run --project browser && echo '<< TESTS PASSED\n'",
     "test:watch": "vp test",
@@ -401,7 +401,7 @@
     "/////// DESIGN SYSTEM (claude.ai)": "",
     "design:build": "tsc -p scripts && tsx scripts/design-build.ts",
     "/////// MANIFEST": "",
-    "manifest": "custom-elements-manifest analyze --globs 'src/**/*.ts' 'src/**/*.tsx' --exclude 'src/**/*.test.ts' --exclude 'src/**/*.test.tsx'"
+    "manifest": "custom-elements-manifest analyze --globs 'src/**/*.ts' 'src/**/*.tsx' 'components/**/*.ts' 'components/**/*.tsx'"
   },
   "dependencies": {
     "dompurify": "^3.4.0",
@@ -444,5 +444,5 @@
     "node": ">=24.11"
   },
   "packageManager": "yarn@4.18.0",
-  "customElements": "./site/_data/custom-elements.json"
+  "customElements": "./docs/__data/custom-elements.json"
 }

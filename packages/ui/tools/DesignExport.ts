@@ -7,13 +7,14 @@ import { DesignBrand } from "./DesignBrand.ts"
 import { DesignComponents } from "./DesignComponents.ts"
 import { DesignTokens } from "./DesignTokens.ts"
 import type { SiteDataFile } from "../src/docs-components/docs-components.types.ts"
-import type {
-  DesignExportResult,
-  DesignFamily,
-  DesignFile,
-  DesignSkip,
-  DesignSource,
-  DesignTokensFile
+import {
+  SITE_DATA,
+  type DesignExportResult,
+  type DesignFamily,
+  type DesignFile,
+  type DesignSkip,
+  type DesignSource,
+  type DesignTokensFile
 } from "./tools.types.ts"
 
 /****************
@@ -27,9 +28,9 @@ import type {
  * - `components/Cover/preview.html` -- the cover;  `design-system.json` -- the system's index
  * - NOT `components/bundle.js` / `bundle.css`:  the design bundle's build (P8) writes those into the same folder,
  *   and `write()` leaves them there.
- * - Sources:  `site/_data/components.json` (`yarn site:data`:  every vocabulary), the element examples, the theme
+ * - Sources:  `docs/__data/components.json` (`yarn site:data`:  every vocabulary), the element examples, the theme
  *   sheets, and the brand book's "CONTENT FUNDAMENTALS" (`brand/spell-design-system/readme.md`, shared).
- * - Plus the brand's `<ui-brand-*>` cards, a "Brand" group (`DesignBrand`, epic `claude-design` P11):  read as data.
+ * - Plus the brand's `<brand-*>` cards, a "Brand" group (`DesignBrand`, epic `claude-design` P11):  read as data.
  ****************/
 export class DesignExport {
   /** `packages/ui`, absolute */
@@ -49,7 +50,7 @@ export class DesignExport {
     this.uiFolder = options.uiFolder ?? UI_FOLDER
     this.data =
       options.data ??
-      (JSON.parse(readFileSync(join(this.uiFolder, "site/_data/components.json"), "utf8")) as SiteDataFile)
+      (JSON.parse(readFileSync(join(this.uiFolder, SITE_DATA, "components.json"), "utf8")) as SiteDataFile)
     this.git = options.git ?? DesignExport.readGit(this.uiFolder)
     this.now = options.now ?? new Date()
     this.sources = options.sources ?? DesignExport.defaultSources(this.uiFolder)
@@ -146,8 +147,8 @@ export class DesignExport {
   }
 
   /**
-   * The brand book's "CONTENT FUNDAMENTALS" section, as written there (voice, casing, headlines, ledes ...);  empty
-   * when that file isn't in this checkout.
+   * The brand book's "CONTENT FUNDAMENTALS" section, as written there (voice, casing, headlines, ledes ...).
+   * - Empty when that file isn't in this checkout.
    */
   private contentFundamentals(): string[] {
     const file = join(this.uiFolder, "../..", BRAND_BOOK)
@@ -163,9 +164,9 @@ export class DesignExport {
     const lines = ["---", "", "## Not synced", ""]
     lines.push(
       `- Made by \`yarn design:build\` (packages/ui) from ${tokens.meta.repo}@${this.git.sha}:  the vocabularies ` +
-        "(`site/_data/components.json`), the element examples and the `spell-brand` theme's sheets" +
+        "(`docs/__data/components.json`), the element examples and the `spell-brand` theme's sheets" +
         (this.sources.length
-          ? ";  the Brand cards from the brand's (`packages/brand/_data/components.json`, its docs pages' examples)"
+          ? ";  the Brand cards from the brand's (`packages/brand/docs/__data/components.json`, its docs pages' examples)"
           : "") +
         ".  Edits made here are overwritten by the next build."
     )
@@ -179,7 +180,7 @@ export class DesignExport {
     )
     lines.push("- Emoji names (`<ui-emoji>`):  their data loads lazily, which a design frame blocks.")
     if (!this.sources.length)
-      lines.push("- The brand's own elements (`<ui-brand-*>`):  not in this build (no brand data).")
+      lines.push("- The brand's own elements (`<brand-*>`):  not in this build (no brand data).")
     if (skipped.length) {
       lines.push(`- Tokens left out (${skipped.length}):`)
       for (const entry of skipped) lines.push(`  - \`${entry.name}\` (${entry.family}):  ${entry.reason}`)
@@ -211,17 +212,17 @@ export class DesignExport {
           "src/styles/themes/spell-brand.css"
         ],
         docs: [
-          "site/_data/components.json",
-          "src/components/*/examples/elements/*.html",
+          `${SITE_DATA}/components.json`,
+          "components/*/examples/elements/*.html",
           `../../${BRAND_BOOK}`,
-          ...(this.sources.length ? ["../brand/_data/components.json", "../../brand/components/*.html"] : [])
+          ...(this.sources.length ? ["../brand/docs/__data/components.json", "../brand/docs/brand-*.html"] : [])
         ]
       },
       components: Object.fromEntries(
         folders.map((folder) => {
           const main = this.allData.families[folder]?.mainTag ?? folder
           const path = this.sources.find((source) => folder in source.data.families)?.componentsPath
-          return [main, `${path ?? "src/components"}/${folder}/`]
+          return [main, `${path ?? "components"}/${folder}/`]
         })
       ),
       synced: this.now.toISOString().slice(0, 10)
@@ -337,7 +338,7 @@ export class DesignExport {
 export type DesignExportOptions = {
   /** `packages/ui`, absolute */
   uiFolder?: string
-  /** site data;  default:  `site/_data/components.json` */
+  /** site data;  default:  `docs/__data/components.json` */
   data?: SiteDataFile
   /** commit facts;  default:  asked of git (`readGit()`) */
   git?: DesignGit
@@ -379,7 +380,7 @@ const CONSUMING = [
   "Spell UI is a library of **custom elements**, not React components.  Use them as plain HTML.",
   "",
   "1. **Load ONE classic script, `components/bundle.js`.**  It defines every `<ui-*>` element (the brand's " +
-    "`<ui-brand-*>` too) and applies the Spell brand theme (`spell-brand`) to the page:  nothing to import, no other file.  In a Design, load it once, before the markup:  " +
+    "`<brand-*>` too) and applies the Spell brand theme (`spell-brand`) to the page:  nothing to import, no other file.  In a Design, load it once, before the markup:  " +
     "`<script src=\"ds/<this system's folder>/components/bundle.js\"></script>`.  This system's own previews already have it.",
   '2. **Write markup:**  `<ui-button primary icon="check">Save</ui-button>`.  Never `x-import`, never ' +
     "`window.SpellUI.Button`, never a React wrapper:  there are none.  (`window.SpellUI` exists for scripting only:  " +

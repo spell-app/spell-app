@@ -15,7 +15,7 @@ import { tracked } from "$/app/solid"
  *   the dropdown draws it from its attributes and text (`icon` included).
  *   Keep `title` TEXT:  an item with element children is a "rich" option.
  * - Reactivity is the caller's:  pass values read from `tracked()` accessors (see `Actions`).
- * - SEE:  its App UI components page, `packages/app/components/Actions.html` (`/app-ui/Actions.html`).
+ * - SEE:  its App UI components page, `packages/app/docs/Actions.html` (`/components/app/Actions.html`).
  ****************/
 export function Action(props: ActionProps) {
   const rest = omit(props, "title", "button", "icon", "active")
@@ -96,9 +96,7 @@ export const Actions = {
   showHelp: (props: ActionProps) => (
     <Action title="Help" icon="help circle" onClick={() => editor.showHelp()} {...props} />
   ),
-  logIn: (props: ActionProps) => (
-    <Action title="Log In" icon="user outline" onClick={() => editor.logIn()} {...props} />
-  ),
+  you: (props: ActionProps) => <Action title="You" icon="user outline" onClick={() => editor.showYou()} {...props} />,
 
   ////////////////
   // ## App actions -- work on `editor.project`, create according to `editor.projectRoot`

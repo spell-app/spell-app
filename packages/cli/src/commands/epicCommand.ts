@@ -115,4 +115,4 @@ function requestLine(request: CLI.EpicRequest): string {
 const VERBS = "send, requests, file, home or merge"
 
 /** What marks a checkout with epics (`findCheckout()`):  the docs tools, as for `spell dev plan-doc`. */
-const CHECKOUT_MARKER = "packages/docs/tools/plan-doc.js"
+const CHECKOUT_MARKER = "packages/epics/tools/plan-doc.js"

@@ -205,15 +205,17 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
 
 /**
  * Write each test's `js` and `ts` into the source files the test file at `testPath` tests:  see `P.RuleTestSource`.
+ * - The test lives in the repo's `tests/` folder, at its source's path:
+ *   `tests/spell/src/rules/events/events.test.ts` tests `packages/spell/src/rules/events/`.
  * - A module in a folder of its own, `rules/events/events.test.ts`:  every source file in that folder.
- * - Else the file beside it, `rules/Block.test.ts` => `rules/Block.ts`.
+ * - Else the file of its name, `rules/Block.test.ts` => `rules/Block.ts`.
  * - Returns what it couldn't bless:  see `P.RuleTestSource.bless()`.
  */
 async function blessSources(testPath: string, blessed: BlessedTest[]): Promise<string[]> {
   const { readdirSync } = await import("node:fs")
   const { basename, dirname, join } = await import("node:path")
   const { RuleTestSource } = await import("./RuleTestSource")
-  const folder = dirname(testPath)
+  const folder = dirname(testPath.replace(/\/tests\/([^/]+)\//, "/packages/$1/"))
   const name = basename(testPath, ".test.ts")
   const paths =
     basename(folder) === name

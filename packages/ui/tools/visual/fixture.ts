@@ -2,7 +2,7 @@
  * `yarn test:visual`'s page script:  renders ONE example into `#example` and publishes `window.visual`, which the
  * Playwright spec (`visual.spec.ts`) drives.
  * - URL:  `fixture.html?example=<family>/<name>&kind=elements|classes`
- *   - `elements` (default):  `src/components/ui-<family>/examples/elements/<name>.html`, the baselined render
+ *   - `elements` (default):  `components/ui-<family>/examples/elements/<name>.html`, the baselined render
  *   - `classes`:  the class-grammar original `examples/<name>.html`, for the `--parity` comparison only
  * - Same setup as the `yarn dev` demo (`tools/demo/index.ts`):  every family defined, every family sheet on the
  *   PAGE (`FamilySheets`), the stub owners, the runtime loaded.
@@ -56,8 +56,8 @@ class VisualPage {
     const [family, name] = this.example.split("/")
     const load =
       this.kind === "elements"
-        ? ELEMENTS[`/src/components/${family}/examples/elements/${name}.html`]
-        : CLASSES[`/src/components/${family}/examples/${name}.html`]
+        ? ELEMENTS[`/components/${family}/examples/elements/${name}.html`]
+        : CLASSES[`/components/${family}/examples/${name}.html`]
     if (!load) {
       throw new Error(`VisualPage.render():  no ${this.kind} example "${this.example}";  check \`?example=\``)
     }
@@ -68,7 +68,7 @@ class VisualPage {
   /** Put the example in open state `state` (its `.visual.ts` hook), then settle. */
   async open(state: string): Promise<void> {
     const [family, name] = this.example.split("/")
-    const hooks = await HOOKS[`/src/components/${family}/examples/elements/${name}.visual.ts`]?.()
+    const hooks = await HOOKS[`/components/${family}/examples/elements/${name}.visual.ts`]?.()
     const hook = hooks?.states?.[state]
     if (!hook) throw new Error(`VisualPage.open():  no open state "${state}" for ${this.example};  see its .visual.ts`)
     await hook.open(this.root)
@@ -174,16 +174,16 @@ class VisualPage {
 }
 
 /** Element examples, by path;  lazy, the page renders one. */
-const ELEMENTS = import.meta.glob<string>("/src/components/*/examples/elements/*.html", {
+const ELEMENTS = import.meta.glob<string>("/components/*/examples/elements/*.html", {
   query: "?raw",
   import: "default"
 })
 
 /** Class-grammar originals, by path;  lazy. */
-const CLASSES = import.meta.glob<string>("/src/components/*/examples/*.html", { query: "?raw", import: "default" })
+const CLASSES = import.meta.glob<string>("/components/*/examples/*.html", { query: "?raw", import: "default" })
 
 /** Open-state hooks (`<example>.visual.ts`), by path;  lazy. */
-const HOOKS = import.meta.glob<VisualHooks>("/src/components/*/examples/elements/*.visual.ts", { import: "default" })
+const HOOKS = import.meta.glob<VisualHooks>("/components/*/examples/elements/*.visual.ts", { import: "default" })
 
 /** `settle()` gives up after this many rounds:  a page that never stops changing is captured as it is. */
 const MAX_SETTLE_ROUNDS = 50

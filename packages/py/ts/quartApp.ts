@@ -2,11 +2,15 @@
  * A Python spell program's web app, `<Project>.app.py` (epic `python-target` P20, Q25 B):
  * what compiling to `py` writes beside a program that draws.
  * - A short Quart app, every route spelled out, for a Python programmer to read and grow:
- *   - `/`:  the page, which loads the javascript core and the program's drawing half, `<Project>.elements.js`
- *   - `/<Project>.elements.js`, and each imported project's:  served from beside the app
+ *   - `/`:  the page, which loads the javascript core and the program's drawing half, `<Project>.elements.spell.js`
+ *   - `/<Project>.elements.spell.js`, and each imported project's:  served from beside the program
  *   - `/spell/...`:  the javascript core, Solid, Spell UI and Semantic UI (`spell_quart.assets_folder()`)
  *   - `/ws`:  the WebSocket:  a click up, the state and what changed down;  a game per visitor
  *   - a place for their own routes
+ * - The app is committed beside the project's source.
+ * - The program and its page file are BUILT, into the project's build folder (epic `people-and-orgs` P11).
+ *   - The app names that folder inside the checkout's `build/`,
+ *     and `spell_quart.built_folder()` finds that checkout's (J33):  so no path climbs out of the app's folder.
  * - Run it:  `uv run python Solitaire.app.py`, then open http://localhost:5000 (or `$PORT`).
  * - Compiling again rewrites it only while nobody has edited it:  its first line holds a hash of the rest (J45).
  *   See `isUneditedApp()`.
@@ -16,22 +20,36 @@
 export type QuartAppSpec = {
   /** The project's name, e.g. `Solitaire`:  the page's title. */
   projectName: string
-  /** The compiled program's file, beside the app, e.g. `Solitaire.compiled.py`. */
+  /** The compiled program's file, in `outputs`, e.g. `Solitaire.spell.py`. */
   program: string
-  /** The program's drawing half, beside the app, e.g. `Solitaire.elements.js`. */
+  /** The program's drawing half, in `outputs`, e.g. `Solitaire.elements.spell.js`. */
   elements: string
   /**
+   * The folder holding `program` and `elements`, `/`-separated:
+   * - the project's build folder, inside the checkout's `build/`, e.g. `spaces/@spell/examples/solitaire`
+   *   - the project index's `buildFolder`
+   *   - `spell_quart.built_folder()` finds it
+   * - `.`:  beside the app, e.g. in `spell run`'s temp folder, or for a project outside the checkout
+   */
+  outputs: string
+  /**
    * Each project the program imports:  the module its drawing half imports it as, and its drawing half's file,
-   * which must sit beside the app too, e.g. `{ "@spell/project/@system:library:cards": "Cards.elements.js" }`.
+   * which must sit in `outputs` too, e.g. `{ "@spell/project/@spell/library/cards": "Cards.elements.spell.js" }`.
    */
   projects?: Record<string, string>
 }
+
+/**
+ * End of a drawing half's file's name, which its route matches, e.g. `Solitaire.elements.spell.js`.
+ * - `SP.ELEMENTS_JS_SUFFIX`, which `$/py` can't import:  `spell` imports us.
+ */
+const ELEMENTS_SUFFIX = ".elements.spell.js"
 
 /** Start of an app's first line, before its hash:  see `isUneditedApp()`. */
 const HASH_LINE = "# Written by spell compile, hash "
 
 /** The app for `spec`, its first line holding the hash of the rest -- see the file's docs. */
-export function quartApp({ projectName, program, elements, projects = {} }: QuartAppSpec): string {
+export function quartApp({ projectName, program, elements, outputs, projects = {} }: QuartAppSpec): string {
   const files = [elements, ...Object.values(projects)]
   const pageProjects = Object.entries(projects).map(([module, file]) => `        ${py(module)}: ${py(`/${file}`)},`)
   const body = `"""${projectName}, as a web app:  \`uv run python ${projectName}.app.py\`, then open http://localhost:5000.
@@ -46,14 +64,15 @@ from pathlib import Path
 
 from quart import Quart, make_response, request, send_from_directory, websocket
 
-from spell_quart import ASSETS_URL, SpellSessions, assets_folder, fresh, page_html, remember_visitor, visitor_of
+from spell_quart import ${importsOf(outputs)}
 
 HERE = Path(__file__).parent
+${outputsLine(outputs)}
 
 app = Quart(__name__)
 
 # a game per visitor, each running ${program}
-sessions = SpellSessions(HERE / ${py(program)})
+sessions = SpellSessions(OUTPUTS / ${py(program)})
 
 
 @app.get("/")
@@ -64,12 +83,12 @@ async def page():
     return remember_visitor(await make_response(html), visitor_of(request))
 
 
-@app.get("/<name>.elements.js")
+@app.get("/<name>${ELEMENTS_SUFFIX}")
 async def elements(name: str):
     """The program's drawing half, and each imported project's."""
-    if f"{name}.elements.js" not in ${py(files)}:
+    if f"{name}${ELEMENTS_SUFFIX}" not in ${py(files)}:
         return "Not found", 404
-    return fresh(await send_from_directory(HERE, f"{name}.elements.js", mimetype="text/javascript"))
+    return fresh(await send_from_directory(OUTPUTS, f"{name}${ELEMENTS_SUFFIX}", mimetype="text/javascript"))
 
 
 @app.get(f"{ASSETS_URL}/<path:path>")
@@ -109,6 +128,21 @@ export function isUneditedApp(text: string | undefined): boolean {
   const first = text.slice(0, newline)
   if (newline < 0 || !first.startsWith(HASH_LINE)) return false
   return first.slice(HASH_LINE.length).startsWith(`${hashOf(text.slice(newline + 1))}:`)
+}
+
+/**
+ * The app's line saying where the program and its page file are, `OUTPUTS`:
+ * beside it, or `outputs` in the checkout's build folder (`built_folder()`).
+ */
+function outputsLine(outputs: string): string {
+  if (outputs === ".") return "# the compiled program and its page file:  beside this app\nOUTPUTS = HERE"
+  return `# the compiled program and its page file:  where \`spell compile\` builds them, in this checkout's build/\nOUTPUTS = built_folder(${py(outputs)})`
+}
+
+/** What the app imports from `spell_quart`:  `built_folder` only when its program is in the build folder. */
+function importsOf(outputs: string): string {
+  const names = ["ASSETS_URL", "SpellSessions", "assets_folder", ...(outputs === "." ? [] : ["built_folder"])]
+  return [...names, "fresh", "page_html", "remember_visitor", "visitor_of"].join(", ")
 }
 
 /** `text`'s hash:  FNV-1a, 32 bits, in hex -- enough to tell an edit, in a browser as in node. */

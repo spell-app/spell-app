@@ -1,25 +1,28 @@
 /**
- * The Epics page's writes, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`), listed in the
- * repo root's `package.json` `"pageServer": { "routes": [...] }`.
+ * The Epics page's writes, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`).
+ * - listed in the repo root's `package.json`, `"pageServer": { "routes": [...] }`
  *
  * NEW EPIC (epic `airplane` P7):
- * - Owen writes an idea down on the Epics page (`epics/index.html`'s New epic button, the docs runtime's "New epic"):
- *   a title and the kickoff prompt.  No Claude needed, so it works on a plane.
- * - It becomes a FUTURE epic at once, as `/epic future` makes one (`spell dev plan-doc new <name> --future`):  the
- *   stub epic page with the prompt quoted, listed on the Epics list page with its seedling;  its log says it came from
- *   the page (`FROM_PAGE`), which is how `/airplane land` finds the ones to offer (`AirplaneInbox`)
+ * - Owen writes an idea down on the Epics page:  a title and the kickoff prompt.
+ *   - its New epic button (`epics/index.html`), the docs runtime's "New epic"
+ *   - no Claude needed, so it works on a plane
+ * - It becomes a FUTURE epic at once, as `/epic future` makes one (`spell dev plan-doc new <name> --future`):
+ *   - the stub epic page with the prompt quoted, listed on the Epics list page with its seedling
+ *   - its log says it came from the page (`FROM_PAGE`),
+ *     which is how `/airplane land` finds the ones to offer (`AirplaneInbox`)
  * - `POST /api/epics/new` `{ title, prompt }` -- answers `{ name, page }`, the new epic page's URL path
  *   - `name`:  the title, lower-kebab-cased (`Docs Index` -> `docs-index`);  taken, `-2`, `-3` ...
  *   - 400:  no title, or nothing to name it by
  *
- * FAVORITES (epic `airplane` P8, Owen 2026-10-10:  "Add a "favorite" icon in the top-right of the epics cards.  Sort
- * those first."):  a card's star, clicked on the Epics page (the docs runtime's "Favorite epics")
+ * FAVORITES:  a card's star, clicked on the Epics page (the docs runtime's "Favorite epics").
+ * - epic `airplane` P8, Owen 2026-10-10:
+ *   "Add a "favorite" icon in the top-right of the epics cards.  Sort those first."
  * - `POST /api/epics/favorite` `{ name, favorite }` -- stars (`true`) or unstars epic `name`;
  *   answers `{ favorites }`, every starred epic's name, sorted
  *   - 400:  no name, or not an epic's name (lower-kebab-case);  `favorite` not a boolean
- * - stored in ONE shared file, `epics/favorites.json` (`$/server/site/EpicCards` `FAVORITES_FILE`), a JSON list:
+ * - stored in ONE shared file, `epics/favorites.json` (`$/epics/list/EpicCards` `FAVORITES_FILE`), a JSON list:
  *   every checkout reads the same one, and the shared repo commits it after the turn
- * - the page server puts each card in its group by it as it serves the Epics page (`$/server/page` `RunningEpics`);
+ * - each card goes in its group by it as the page server serves the Epics page (`$/epics/list/RunningEpics`);
  *   `spell dev docs index` writes the stars and groups it says into the page
  * - no Claude needed:  it works on a plane
  *
@@ -43,13 +46,12 @@
  *   - gathered when asked, from the epic pages' skeletons:  nothing to keep up
  *   - a read, so no token;  400 for a malformed saga id, `{ epics: [] }` for one no epic names
  */
-import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs"
+import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
-// Import directly:  the `$/server/site` barrel is browser code (the site header)
-import { FAVORITES_FILE, parseFavorites } from "$/server/site/EpicCards"
+import { FAVORITES_FILE, parseFavorites } from "$/epics/list/EpicCards"
 
 // the route `<epic-cards>` asks:  its family's types file (data only)
 import { SAGA_EPICS_API } from "$/epics/components/epic-cards/EpicCards.types"
@@ -139,21 +141,21 @@ const RESERVED = new Set(["review", "resume", "color", "future", "phase", "start
 /**
  * Star (`favorite`) or unstar epic `name` in checkout `root`'s favourites (`FAVORITES_FILE`);
  * resolves to every starred epic's name after, sorted.
- * - SIDE EFFECT:  writes the file under its lock (`SRV.FileLock`), atomically (a temp file renamed over it)
+ * - SIDE EFFECT:  writes the file through the page server's one safe write (`SRV.FileOperations.save()`:
+ *   read and written under its lock, all at once)
  * - throws `HttpError(400)` when `name` isn't an epic's name (lower-kebab-case, as `epicName()` makes them)
  */
 export async function setFavorite(root: string, name: string, favorite: boolean): Promise<string[]> {
   if (!EPIC_NAME.test(name)) throw new SRV.HttpError(400, `not an epic's name:  "${name}"`)
-  const file = join(root, FAVORITES_FILE)
-  return SRV.FileLock.runAsync(file, async () => {
-    const favorites = parseFavorites(existsSync(file) ? readFileSync(file, "utf8") : undefined)
+  let list: string[] = []
+  await SRV.FileOperations.save(join(root, FAVORITES_FILE), (current) => {
+    const favorites = parseFavorites(current || undefined)
     if (favorite) favorites.add(name)
     else favorites.delete(name)
-    const list = [...favorites].sort()
-    writeFileSync(`${file}.tmp`, `${JSON.stringify(list, null, 2)}\n`)
-    renameSync(`${file}.tmp`, file)
-    return list
+    list = [...favorites].sort()
+    return `${JSON.stringify(list, null, 2)}\n`
   })
+  return list
 }
 
 /**

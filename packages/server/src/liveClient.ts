@@ -1,5 +1,5 @@
 /**
- * The browser side of a `WebServer` with live reload:  runs in every page it serves, from `/_server/live.js`.
+ * The browser side of a `WebServer` with live reload:  runs in every page it serves, from `/api/server/live.js`.
  * - MUST stay self-contained:  it's served as `(${liveClient})()`, so it can't use imports or module helpers
  *   - the one helper it calls, `forVsCode()`, is served beside it (`liveClientScript()`), so tests can call it too
  */
@@ -60,7 +60,7 @@ export type PageChange = { path: string; html: string; etag?: string; reload: ()
 export type FileChange = { path: string }
 
 /**
- * One save of a whole file (`PUT /_server/page`), or of one element of a page (`fragment`:  its `id`, `PATCH`).
+ * One save of a whole file (`PUT /api/pages`), or of one element of a page (`fragment`:  its `id`, `PATCH`).
  * - `path`:  URL path of the file, e.g. `/guides/notes.md`
  * - `etag`:  the version it was edited from (the `ETag` it was fetched with);  REQUIRED by the server
  * - what `<ui-include>` / `<ui-code>` / `<ui-markdown>` save through (`UI.sources.saver`, set by the docs runtime)
@@ -68,7 +68,7 @@ export type FileChange = { path: string }
 export type FileSave = { path: string; text: string; etag?: string; fragment?: string }
 
 /**
- * One edit of the page's own file, through `PATCH /_server/page`.
+ * One edit of the page's own file, through `PATCH /api/pages`.
  * - `id`:  the element to replace
  * - `html`:  its new markup
  * - `inner`:  replace its content only
@@ -174,7 +174,7 @@ export function liveClient(): void {
 
   let etag = config.etag
   config.editPage = async ({ id, html, inner, parent, etag: version = etag }) => {
-    const url = `${config.edit ?? "/_server/page"}?path=${encodeURIComponent(config.file)}`
+    const url = `${config.edit ?? "/api/pages"}?path=${encodeURIComponent(config.file)}`
     const answer = await fetch(url, {
       method: "PATCH",
       headers: {
@@ -190,7 +190,7 @@ export function liveClient(): void {
   }
 
   config.saveFile = async ({ path, text, etag: version, fragment }) => {
-    const url = `${config.edit ?? "/_server/page"}?path=${encodeURIComponent(path)}`
+    const url = `${config.edit ?? "/api/pages"}?path=${encodeURIComponent(path)}`
     const answer = await fetch(url, {
       method: fragment ? "PATCH" : "PUT",
       headers: {
@@ -328,7 +328,7 @@ export function liveClient(): void {
   function loadsFrom(path: string): boolean {
     for (const script of document.querySelectorAll<HTMLScriptElement>("script[src]")) {
       const url = new URL(script.src, location.href)
-      if (url.origin !== location.origin || url.pathname.startsWith("/_server/")) continue
+      if (url.origin !== location.origin || url.pathname.startsWith("/api/")) continue
       if (path.startsWith(url.pathname.slice(0, url.pathname.lastIndexOf("/") + 1))) return true
     }
     return false
@@ -354,7 +354,7 @@ export function liveClient(): void {
   /**
    * A link clicked in the frame:  send it where it should go.
    * - the frame may not open tabs:  docs links all name a `target`, and the view's sandbox blocks popups
-   * - a page on this server (`.html`, or a site page like `/ui/`):  here, in the frame, so back / forward work
+   * - a page on this server (`.html`, or a site page like `/components/ui/`):  here, in the frame, so back / forward work
    * - a source reference that isn't a page (`target="src-..."`, as `doc-links.js` names them):
    *   `{ spell: "open", url, kind: "file" }` to the parent, which opens it in VS Code (a folder:  in the Explorer)
    * - another site, or a link marked `data-spell-open="browser"` (the header's App):
@@ -481,16 +481,17 @@ export function liveClient(): void {
   }
 
   /**
-   * A right-click in the page while it's in VS Code's side-bar view:  sent to the view's wrapper,
-   * `{ spell: "menu", x, y, field, selection }`, which right-clicks again at the same place, where VS Code listens
-   * (`DocView.ts` `html()`), so VS Code shows the view's menu:  Cut, Copy, Paste, Select All, Back, Forward, Reload,
-   * Open in Browser, Inspect
+   * A right-click in the page while it's in VS Code's side-bar view:
+   * sent to the view's wrapper as `{ spell: "menu", x, y, field, selection }`.
+   * - The wrapper right-clicks again at the same place, where VS Code listens (`DocView.ts` `html()`),
+   *   so VS Code shows the view's menu:  Cut, Copy, Paste, Select All, Back, Forward, Reload, Open in Browser, Inspect
+   * - `field`:  in a text field (the menu offers Cut and Paste)
+   * - `selection`:  something is selected (Cut, Copy)
+   * - sent once every handler has had the click:
+   *   one the page took (`preventDefault()`:  its own menu) stays the page's
    * - why:  VS Code hears right-clicks on the view's own page only (`pre/index.html`, its `contextmenu` listener),
-   *   and this page is a frame inside it, from another origin:  right-click showed nothing (epic `airplane`,
-   *   2026-10-10)
-   * - `field`:  in a text field (the menu offers Cut and Paste);  `selection`:  something is selected (Cut, Copy)
-   * - sent once every handler has had the click:  one the page took (`preventDefault()`:  its own menu) stays the
-   *   page's
+   *   and this page is a frame inside it, from another origin.
+   *   Right-click showed nothing (epic `airplane`, 2026-10-10).
    */
   function forwardMenu(event: MouseEvent) {
     const { clientX: x, clientY: y } = event
@@ -691,8 +692,8 @@ export function liveClient(): void {
   }
 
   /**
-   * Is VS Code's `edit` message for `command` the page's own key again (`editKey()` just did it)?  Then it's
-   * dropped:  once is what was meant.
+   * Is VS Code's `edit` message for `command` the page's own key again (`editKey()` just did it)?
+   * Then it's dropped:  once is what was meant.
    * - a paste:  the first one after the page asked is its answer;  another one right after it is the repeat
    */
   function isRepeat(command: string): boolean {
@@ -791,7 +792,7 @@ type LiveWindow = Window & {
 }
 
 /**
- * `liveClient` as a classic script, for `/_server/live.js`:  `forVsCode()` first, which it calls.
+ * `liveClient` as a classic script, for `/api/server/live.js`:  `forVsCode()` first, which it calls.
  * - HACK: `__name` is a no-op shim:  tsx / esbuild's `keepNames` wraps nested functions in `__name(fn, "fn")`,
  *   a helper that lives in the MODULE, not in the stringified function
  */

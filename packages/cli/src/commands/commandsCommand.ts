@@ -148,7 +148,7 @@ export function pageNames(data: CommandsData): Set<string> {
 }
 
 /**
- * The parts of `commands.json` this reads;  its full shape:  `packages/docs/tools/_assets/commands.js`'s header.
+ * The parts of `commands.json` this reads;  its full shape:  `packages/epics/tools/_assets/commands.js`'s header.
  * - `sources.userSkills`:  skills in `~/.claude/skills` that count, e.g. `session`
  * - `sources.ignore`:  commands that need no row, e.g. `/solid-2` (reference only, runs nothing)
  */

@@ -8,7 +8,7 @@ import type { CLI } from "$/cli"
 const ALL = "*"
 
 /**
- * Ask which of bare root `root`'s projects to use, e.g. for `spell compile @library`.
+ * Ask which of bare root `root`'s projects to use, e.g. for `spell compile @spell/library`.
  * - Resolves to the ids picked -- every one for "All projects" -- or `[]` if cancelled with `Esc` / `q`.
  * - Draws on stderr, so stdout stays clean for output.
  */
@@ -65,8 +65,14 @@ export type ProjectPickerProps = {
   onPick: (projectIds: string[]) => void
 }
 
-/** Pick-list label for `projectId`:  its name, then the root it's in, e.g. `cards  @system:library`. */
+/**
+ * Pick-list label for `projectId`:  its name, then the root it's in, e.g. `cards  @spell/library`;
+ * its title between, when its project file has one:  `todos-form-based  Todos - Form Based  @spell/examples`.
+ */
 function labelFor(projectId: string): string {
   const location = new SP.SpellLocation(projectId)
-  return `${location.projectName}  ${location.projectRoot}`
+  const title = SP.SpellProject.listedTitles.get(projectId)
+  return title
+    ? `${location.projectName}  ${title}  ${location.projectRoot}`
+    : `${location.projectName}  ${location.projectRoot}`
 }

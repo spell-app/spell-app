@@ -1,0 +1,2023 @@
+{
+  "provides": [
+    "spellCore",
+    "Thing",
+    "List",
+    "App",
+    "Drawable",
+    "DrawableList",
+    "h",
+    "css",
+    "positionOf",
+    "on",
+    "off",
+    "once",
+    "trigger"
+  ],
+  "statements": [
+    {
+      "kind": "method",
+      "name": "doNothing",
+      "of": "spellCore",
+      "module": "core",
+      "description": "Do nothing -- use this as a placeholder, e.g. in an `if` branch."
+    },
+    {
+      "kind": "method",
+      "name": "flush",
+      "of": "spellCore",
+      "module": "core",
+      "description": "Settle everything that follows spell state NOW:  pending derived checks, then the host's Solid."
+    },
+    {
+      "kind": "method",
+      "name": "checkProp",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "property"
+        },
+        {
+          "name": "value"
+        },
+        {
+          "name": "check"
+        }
+      ],
+      "section": "Meta-programming",
+      "description": "Warn if `value` fails `check` for `property`."
+    },
+    {
+      "kind": "method",
+      "name": "newThingLike",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ],
+      "section": "Meta-programming",
+      "description": "Create an new, \"empty\" instance of `thing.constructor`."
+    },
+    {
+      "kind": "method",
+      "name": "newScratch",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "constructor"
+        }
+      ],
+      "section": "Meta-programming",
+      "description": "New SCRATCH `constructor`, e.g. `map()`'s result, or `a copy of the pile as a pile`:"
+    },
+    {
+      "property": "TYPE_NAME_CONVERSIONS",
+      "of": "spellCore",
+      "module": "core",
+      "section": "types",
+      "description": "Maps a JS `typeof`/constructor-name result to the `spell`-facing type name shown to users."
+    },
+    {
+      "kind": "method",
+      "name": "typeOf",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ],
+      "section": "types",
+      "description": "Return string \"type\" of `thing`, as shown to `spell` users:"
+    },
+    {
+      "property": "IS_OF_TYPE_SPECIALS",
+      "of": "spellCore",
+      "module": "core",
+      "section": "types",
+      "description": "Special methods for `isOfType()`, for type names `typeOf()` never actually returns (`integer`, `character`, `char`) -- checked instead of a plain `=== typeOf(thing)` comparison."
+    },
+    {
+      "kind": "method",
+      "name": "typesOf",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ],
+      "section": "types",
+      "description": "Types `thing` is, most specific first:  its `typeOf()`, then each super-class's."
+    },
+    {
+      "kind": "method",
+      "name": "isOfType",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        },
+        {
+          "name": "type"
+        }
+      ],
+      "section": "types",
+      "description": "Is `thing` an instance of string `type`, or of a sub-type of it -- as per `spellCore.typesOf()`?"
+    },
+    {
+      "kind": "method",
+      "name": "matchesType",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        },
+        {
+          "name": "otherThing"
+        }
+      ],
+      "section": "types",
+      "description": "Is `thing` of `otherThing`'s type -- the same type, or a sub-type of it?"
+    },
+    {
+      "kind": "method",
+      "name": "isANumber",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ],
+      "section": "types",
+      "description": "Is `thing` a valid number (doesn't include NaN)."
+    },
+    {
+      "kind": "method",
+      "name": "isAnInteger",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ],
+      "section": "types",
+      "description": "Is `thing` a valid integer (doesn't include NaN). NOTE: treats `0` as an integer as well. ???"
+    },
+    {
+      "kind": "method",
+      "name": "isArrayLike",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ],
+      "section": "types",
+      "description": "Is `thing` an array-like thing (`Array`, `arguments`, or anything with a numeric `length`)?"
+    },
+    {
+      "kind": "method",
+      "name": "isTruthy",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "value"
+        }
+      ],
+      "section": "types",
+      "description": "Assert that `value` is not `false`, `null` or `undefined`. NOTE: explicitly does NOT include `0` -- unlike plain JS truthiness, `0` counts as truthy here."
+    },
+    {
+      "kind": "method",
+      "name": "isDefined",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "value"
+        }
+      ],
+      "section": "types",
+      "description": "Return `true` if `value` is defined (e.g. not `undefined`)."
+    },
+    {
+      "kind": "method",
+      "name": "get",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        },
+        {
+          "name": "path"
+        }
+      ],
+      "section": "get/set access for paths",
+      "description": "Get `path` off `thing`. TODO: unimplemented stub -- always returns `undefined`, no caller wires this up yet."
+    },
+    {
+      "kind": "method",
+      "name": "set",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        },
+        {
+          "name": "path"
+        },
+        {
+          "name": "value"
+        }
+      ],
+      "section": "get/set access for paths",
+      "description": "Set `path` on `thing` to `value`. TODO: unimplemented stub -- currently a no-op, no caller wires this up yet."
+    },
+    {
+      "kind": "method",
+      "name": "equals",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "thing"
+        },
+        {
+          "name": "otherThing"
+        }
+      ],
+      "section": "operators",
+      "description": "Does `thing` conceptually equal `otherThing`?  Uses lodash `isEqual` semantics (deep, structural)."
+    },
+    {
+      "kind": "method",
+      "name": "absoluteValue",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "number"
+        }
+      ],
+      "section": "math",
+      "description": "`number` without its sign:  `-3` => `3`."
+    },
+    {
+      "kind": "method",
+      "name": "seedRandom",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "seed"
+        }
+      ],
+      "section": "random numbers",
+      "description": "Start the random numbers again from `seed`:  everything random after it repeats, run after run."
+    },
+    {
+      "kind": "method",
+      "name": "random",
+      "of": "spellCore",
+      "module": "core",
+      "section": "random numbers",
+      "description": "The next random number:  at least 0 and less than 1 -- the core's own `Math.random()`."
+    },
+    {
+      "kind": "method",
+      "name": "randomNumber",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "min"
+        },
+        {
+          "name": "max"
+        }
+      ],
+      "description": "Random whole number from `min` to `max`, BOTH included."
+    },
+    {
+      "kind": "method",
+      "name": "shuffled",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "items"
+        }
+      ],
+      "section": "random numbers",
+      "description": "A new array of `items`, in a random order:  `items` itself doesn't change."
+    },
+    {
+      "kind": "method",
+      "name": "countTo",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "count"
+        }
+      ],
+      "section": "ranges",
+      "description": "`[1, 2, ... count]`:  one number per time round a `repeat {count} times` loop -- `[]` if `count` is under 1."
+    },
+    {
+      "kind": "method",
+      "name": "getRange",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "start"
+        },
+        {
+          "name": "end"
+        }
+      ],
+      "section": "ranges",
+      "description": "Return a range of numbers from `start` to `end`, inclusive -- counts down if `start > end`."
+    },
+    {
+      "kind": "method",
+      "name": "repeat",
+      "of": "spellCore",
+      "module": "core",
+      "params": [
+        {
+          "name": "count"
+        },
+        {
+          "name": "callback"
+        }
+      ],
+      "section": "primitive iteration",
+      "description": "Call `callback()` `count` times, ignoring its return value. TODO: `repeat {number} times` currently compiles to `spellCore.map(spellCore.getRange(...), ...)` instead (see `rules/lists/RepeatNTimes.ts`) -- no rule currently calls this method; confirm whether it's still needed."
+    },
+    {
+      "kind": "method",
+      "name": "itemCountOf",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Number of items in `collection`."
+    },
+    {
+      "kind": "method",
+      "name": "isEmpty",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Is `collection` empty?"
+    },
+    {
+      "kind": "method",
+      "name": "keysOf",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Return proper `Array` of \"keys\" of `collection`."
+    },
+    {
+      "kind": "method",
+      "name": "valuesOf",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Return proper `Array` of values of `collection`."
+    },
+    {
+      "kind": "method",
+      "name": "positionOf",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "thing"
+        }
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Position of the first `thing` in `collection` -- see `positionOf()`, below, which it is."
+    },
+    {
+      "kind": "method",
+      "name": "getItemAt",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "position"
+        }
+      ],
+      "section": "primitive accessors/setters",
+      "description": "The item at `position` of `collection`."
+    },
+    {
+      "kind": "method",
+      "name": "setItemAt",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "position"
+        },
+        {
+          "name": "value"
+        }
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Set the item at `position` of `collection` to `value`."
+    },
+    {
+      "kind": "method",
+      "name": "addAtPosition",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "start"
+        },
+        {
+          "name": "...things"
+        }
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Add `things` in the middle of the `collection` at index `start`, from 0, moving things from `start` on down. Array only."
+    },
+    {
+      "kind": "method",
+      "name": "removeItemAt",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "position"
+        }
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Remove the item at `position` of `collection`."
+    },
+    {
+      "kind": "method",
+      "name": "clear",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Remove all things from the `collection`, in-place."
+    },
+    {
+      "kind": "method",
+      "name": "getIteratorFor",
+      "of": "spellCore",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Return an invoked iterator which yields `[value, position, collection]` for each item in the collection."
+    },
+    {
+      "kind": "method",
+      "name": "includes",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "...values"
+        }
+      ],
+      "section": "composite accessors",
+      "description": "Does `collection` include ALL of the specified `values`?"
+    },
+    {
+      "kind": "method",
+      "name": "includesAny",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "...values"
+        }
+      ],
+      "section": "composite accessors",
+      "description": "Does `collection` include any of the specified `values`?"
+    },
+    {
+      "kind": "method",
+      "name": "duplicateList",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "constructor"
+        }
+      ],
+      "section": "copying and merging -- arrays only",
+      "description": "Return a duplicate of the list."
+    },
+    {
+      "kind": "method",
+      "name": "mergeListsInto",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "destination"
+        },
+        {
+          "name": "...sources"
+        }
+      ],
+      "section": "copying and merging -- arrays only",
+      "description": "Merge all `source` list(s) into `destination`, in place."
+    },
+    {
+      "kind": "method",
+      "name": "mergeLists",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collections"
+        },
+        {
+          "name": "constructor"
+        }
+      ],
+      "section": "copying and merging -- arrays only",
+      "description": "Given a list of lists, merge into a new one of the same type as the first in the list."
+    },
+    {
+      "kind": "method",
+      "name": "startsWith",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "thing"
+        }
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "Is `thing` the first thing in `collection`?  Array only."
+    },
+    {
+      "kind": "method",
+      "name": "endsWith",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "thing"
+        }
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "Is `thing` the last thing in `collection`?  Array only."
+    },
+    {
+      "kind": "method",
+      "name": "prepend",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "...things"
+        }
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "Add `things` to front of `collection`, pushing everything else down.  Array only."
+    },
+    {
+      "kind": "method",
+      "name": "append",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "...things"
+        }
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "Add `things` to end of `collection`.  Array only."
+    },
+    {
+      "kind": "method",
+      "name": "addBefore",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "item"
+        },
+        {
+          "name": "...things"
+        }
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "Add `things` just before `item` in `collection`, pushing `item` and what follows down.  Array only."
+    },
+    {
+      "kind": "method",
+      "name": "addAfter",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "item"
+        },
+        {
+          "name": "...things"
+        }
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "Add `things` just after `item` in `collection`, pushing what follows it down.  Array only."
+    },
+    {
+      "kind": "method",
+      "name": "setItemsOf",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "start"
+        },
+        {
+          "name": "...values"
+        }
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "Set the items from index `start` on to `values`, in turn."
+    },
+    {
+      "kind": "method",
+      "name": "reverse",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "Reverse list in-place.  Array only."
+    },
+    {
+      "kind": "method",
+      "name": "rangeBetween",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "start"
+        },
+        {
+          "name": "end"
+        }
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "The items of `collection` from index `start` up to, not including, `end`:  `slice()`'s range."
+    },
+    {
+      "kind": "method",
+      "name": "removeRangeBetween",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "start"
+        },
+        {
+          "name": "end"
+        }
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "Remove the items of `collection` from index `start` up to, not including, `end`, as `rangeBetween()` reads them."
+    },
+    {
+      "kind": "method",
+      "name": "rangeStartingAt",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "start"
+        },
+        {
+          "name": "count"
+        }
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "`count` items of `collection` from index `start` on.  Array only."
+    },
+    {
+      "kind": "method",
+      "name": "forEach",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "method"
+        }
+      ],
+      "section": "iteration",
+      "description": "Execute `method` for each item in `collection`, ignoring results."
+    },
+    {
+      "kind": "method",
+      "name": "forEachSequential",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "method"
+        }
+      ],
+      "section": "iteration",
+      "description": "Execute `method` for each item of map, `await`ing method's completion."
+    },
+    {
+      "kind": "method",
+      "name": "map",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "method"
+        }
+      ],
+      "section": "iteration",
+      "description": "Execute `method` for each item in `collection`, returning results in same type as `collection`."
+    },
+    {
+      "kind": "method",
+      "name": "filter",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "condition"
+        }
+      ],
+      "section": "iteration",
+      "description": "Return new `collection` of only things which match `condition` filter."
+    },
+    {
+      "kind": "method",
+      "name": "all",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "condition"
+        }
+      ],
+      "section": "iteration",
+      "description": "Return `true` if all items in collection match `condition`, called as `condition(value, position, collection)`."
+    },
+    {
+      "kind": "method",
+      "name": "any",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "condition"
+        }
+      ],
+      "section": "iteration",
+      "description": "Return `true` if at least one item in collection matches `condition`, called as `condition(value, position, collection)`."
+    },
+    {
+      "kind": "method",
+      "name": "removeItemsAt",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "...positions"
+        }
+      ],
+      "section": "iteration",
+      "description": "Remove the items at `positions` of `collection`."
+    },
+    {
+      "kind": "method",
+      "name": "remove",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "...things"
+        }
+      ],
+      "section": "iteration",
+      "description": "Remove all occurrences of `things` from collection, in-place."
+    },
+    {
+      "kind": "method",
+      "name": "removeWhere",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "condition"
+        }
+      ],
+      "section": "iteration",
+      "description": "Remove items from `collection` which match `condition`, called as `condition(value, position, collection)`."
+    },
+    {
+      "kind": "method",
+      "name": "move",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "thing"
+        },
+        {
+          "name": "collection"
+        }
+      ],
+      "section": "Moving -- a list's guards",
+      "description": "Move `thing` to `collection` -- `move the card to the tableau`: if the list holding it lets it go, and `collection` takes it."
+    },
+    {
+      "kind": "method",
+      "name": "canTake",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "thing"
+        }
+      ],
+      "section": "Moving -- a list's guards",
+      "description": "Would `collection` take `thing`, moved there?"
+    },
+    {
+      "kind": "method",
+      "name": "canGiveUp",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "thing"
+        }
+      ],
+      "section": "Moving -- a list's guards",
+      "description": "Would `collection` give up `thing`, moved elsewhere?"
+    },
+    {
+      "kind": "method",
+      "name": "randomItemOf",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ],
+      "section": "Randomizing / random item selection",
+      "description": "Return a single item from `collection`, picked randomly."
+    },
+    {
+      "kind": "method",
+      "name": "randomItemsOf",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "count"
+        }
+      ],
+      "section": "Randomizing / random item selection",
+      "description": "Return list of up to `count` items from `collection`, picked randomly, each item at most once."
+    },
+    {
+      "kind": "method",
+      "name": "randomize",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ],
+      "section": "Randomizing / random item selection",
+      "description": "Randomize `collection` in-place."
+    },
+    {
+      "kind": "method",
+      "name": "smallestOf",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ],
+      "section": "Randomizing / random item selection",
+      "description": "Return smallest item of `collection` according to `<` comparison."
+    },
+    {
+      "kind": "method",
+      "name": "largestOf",
+      "of": "spellCore",
+      "module": "collection-other",
+      "params": [
+        {
+          "name": "collection"
+        }
+      ],
+      "section": "Randomizing / random item selection",
+      "description": "Return largest item of `collection` according to `>` comparison."
+    },
+    {
+      "kind": "method",
+      "name": "doubleQuote",
+      "of": "spellCore",
+      "module": "string",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ],
+      "description": "Wrap `thing` in double quotes -- no-op if `thing` is already a double-quoted string."
+    },
+    {
+      "kind": "method",
+      "name": "backTickQuote",
+      "of": "spellCore",
+      "module": "string",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ],
+      "description": "Wrap `thing` in back-ticks -- no-op if `thing` is already a back-ticked string."
+    },
+    {
+      "kind": "method",
+      "name": "upperCase",
+      "of": "spellCore",
+      "module": "string",
+      "params": [
+        {
+          "name": "string"
+        }
+      ],
+      "description": "Stringify and convert to UPPERCASE."
+    },
+    {
+      "kind": "method",
+      "name": "lowerCase",
+      "of": "spellCore",
+      "module": "string",
+      "params": [
+        {
+          "name": "string"
+        }
+      ],
+      "description": "Stringify and convert to lowercase."
+    },
+    {
+      "property": "TIME_UNITS_MAP",
+      "of": "spellCore",
+      "module": "ui",
+      "section": "Time",
+      "description": "Multiplier from a unit name to milliseconds, e.g. `spellCore.TIME_UNITS_MAP.tick`."
+    },
+    {
+      "kind": "method",
+      "name": "pauseFor",
+      "of": "spellCore",
+      "module": "ui",
+      "params": [
+        {
+          "name": "number"
+        },
+        {
+          "name": "units"
+        }
+      ],
+      "section": "Time",
+      "description": "Return promise which resolves after `number` `units` have elapsed."
+    },
+    {
+      "kind": "method",
+      "name": "notify",
+      "of": "spellCore",
+      "module": "ui",
+      "params": [
+        {
+          "name": "message"
+        },
+        {
+          "name": "closeText"
+        }
+      ],
+      "section": "Talking to the person",
+      "description": "Show `message` for a moment, in a toast -- compiled from `notify \"Saved!\"`."
+    },
+    {
+      "kind": "method",
+      "name": "alert",
+      "of": "spellCore",
+      "module": "ui",
+      "params": [
+        {
+          "name": "message"
+        },
+        {
+          "name": "okText"
+        }
+      ],
+      "section": "Talking to the person",
+      "description": "Show `message` in a dialog, and wait until it's closed -- compiled from `alert \"Yo!\"` (`await`ed)."
+    },
+    {
+      "kind": "method",
+      "name": "confirm",
+      "of": "spellCore",
+      "module": "ui",
+      "params": [
+        {
+          "name": "message"
+        },
+        {
+          "name": "okText"
+        },
+        {
+          "name": "cancelText"
+        }
+      ],
+      "section": "Talking to the person",
+      "description": "Ask a yes / no question in a dialog:  `true` for ok -- compiled from `confirm \"Delete?\"` (`await`ed)."
+    },
+    {
+      "kind": "method",
+      "name": "prompt",
+      "of": "spellCore",
+      "module": "ui",
+      "params": [
+        {
+          "name": "message"
+        },
+        {
+          "name": "value"
+        }
+      ],
+      "section": "Talking to the person",
+      "description": "Ask for some text in a dialog:  what was typed, or `undefined` if cancelled."
+    },
+    {
+      "kind": "method",
+      "name": "installStyles",
+      "of": "spellCore",
+      "module": "ui",
+      "params": [
+        {
+          "name": "name"
+        },
+        {
+          "name": "safeCSS"
+        }
+      ],
+      "section": "Styles",
+      "description": "Create/initialize a `name`d stylesheet with specified `css` text."
+    },
+    {
+      "kind": "method",
+      "name": "drawThing",
+      "of": "spellCore",
+      "module": "drawing",
+      "params": [
+        {
+          "name": "drawable"
+        }
+      ],
+      "section": "Drawing things",
+      "description": "`drawable` drawn -- `null` if it can't draw (no `draw()`)."
+    },
+    {
+      "kind": "method",
+      "name": "drawOwn",
+      "of": "spellCore",
+      "module": "drawing",
+      "params": [
+        {
+          "name": "drawable"
+        }
+      ],
+      "section": "Drawing things",
+      "description": "`drawable`'s OWN drawing, in its own error boundary, never its element -- `null` if it can't draw (no `draw()`)."
+    },
+    {
+      "kind": "method",
+      "name": "drawItems",
+      "of": "spellCore",
+      "module": "drawing",
+      "params": [
+        {
+          "name": "list"
+        }
+      ],
+      "section": "Drawing things",
+      "description": "Each item of `list`, drawn in its own error boundary -- `null` if `list` has no items to draw."
+    },
+    {
+      "kind": "method",
+      "name": "mountApp",
+      "of": "spellCore",
+      "module": "drawing",
+      "params": [
+        {
+          "name": "app"
+        },
+        {
+          "name": "element"
+        }
+      ],
+      "section": "Mounting",
+      "description": "Mount `app`'s drawing into `element` -- replacing what was there -- and return how to take it down again."
+    },
+    {
+      "property": "elementDefiner",
+      "of": "spellCore",
+      "module": "elements",
+      "description": "How the page defines the element for a drawable class -- `undefined` until the page running programs sets it."
+    },
+    {
+      "kind": "method",
+      "name": "defineElement",
+      "of": "spellCore",
+      "module": "elements",
+      "params": [
+        {
+          "name": "Class"
+        },
+        {
+          "name": "project"
+        }
+      ],
+      "description": "Name the element of drawable class `Class`, in project `project`, e.g. `<solitaire-card>` -- its tag."
+    },
+    {
+      "kind": "method",
+      "name": "useElement",
+      "of": "spellCore",
+      "module": "elements",
+      "params": [
+        {
+          "name": "Class"
+        },
+        {
+          "name": "ElementClass"
+        }
+      ],
+      "description": "Hand the page `ElementClass`, the element class compiled TypeScript writes for drawable class `Class` (epic `drawable-thing` P10, J41): `spellCore.useElement(Card, CardElement)`, right after `class CardElement extends SpellElement<Card>`."
+    },
+    {
+      "kind": "method",
+      "name": "elementClassOf",
+      "of": "spellCore",
+      "module": "elements",
+      "params": [
+        {
+          "name": "Class"
+        }
+      ],
+      "description": "The element class handed for drawable class `Class` (`useElement()`) -- `undefined` if none was."
+    },
+    {
+      "kind": "method",
+      "name": "elementFor",
+      "of": "spellCore",
+      "module": "elements",
+      "params": [
+        {
+          "name": "drawable"
+        }
+      ],
+      "description": "Tag of `drawable`'s element, defined on the page."
+    },
+    {
+      "kind": "method",
+      "name": "elementApiOf",
+      "of": "spellCore",
+      "module": "elements",
+      "params": [
+        {
+          "name": "Class"
+        }
+      ],
+      "description": "What drawable class `Class` shows on the outside of its element (epic `drawable-thing` P8):"
+    },
+    {
+      "kind": "method",
+      "name": "thingFor",
+      "of": "spellCore",
+      "module": "elements",
+      "params": [
+        {
+          "name": "Class"
+        },
+        {
+          "name": "id"
+        }
+      ],
+      "description": "The program's thing of class `Class` that a tag's `id` names (epic `drawable-thing` P9, J43): e.g. the tableau named `T1` for `<solitaire-tableau id=\"T1\">`."
+    },
+    {
+      "kind": "method",
+      "name": "elementTagOf",
+      "of": "spellCore",
+      "module": "elements",
+      "params": [
+        {
+          "name": "drawable"
+        }
+      ],
+      "description": "Tag of `drawable`'s element, e.g. `solitaire-card` -- `undefined` if its class has none."
+    },
+    {
+      "kind": "method",
+      "name": "searchThings",
+      "of": "spellCore",
+      "module": "references",
+      "params": [
+        {
+          "name": "things"
+        }
+      ],
+      "description": "Look things up in `things` from now on, not in the running program's."
+    },
+    {
+      "kind": "method",
+      "name": "thingForReference",
+      "of": "spellCore",
+      "module": "references",
+      "params": [
+        {
+          "name": "reference"
+        }
+      ],
+      "description": "The program's thing `reference` names, e.g. the tableau named T1 for `Tableau#T1` -- `undefined` if none."
+    },
+    {
+      "kind": "method",
+      "name": "thingCalled",
+      "of": "spellCore",
+      "module": "references",
+      "params": [
+        {
+          "name": "Class"
+        },
+        {
+          "name": "text"
+        }
+      ],
+      "description": "The program's thing of class `Class` that `text` names -- `undefined` if none."
+    },
+    {
+      "kind": "method",
+      "name": "thingNamed",
+      "of": "spellCore",
+      "module": "references",
+      "params": [
+        {
+          "name": "Class"
+        },
+        {
+          "name": "name"
+        }
+      ],
+      "description": "The program's thing of class `Class`, or of a sub-class, named `name` -- `undefined` if none."
+    },
+    {
+      "kind": "method",
+      "name": "thingAtPlace",
+      "of": "spellCore",
+      "module": "references",
+      "params": [
+        {
+          "name": "Class"
+        },
+        {
+          "name": "place"
+        }
+      ],
+      "description": "The program's thing of class `Class` at place `place`, in the order it made them, counting from 1 -- `undefined` if there's none there."
+    },
+    {
+      "kind": "method",
+      "name": "referenceFor",
+      "of": "spellCore",
+      "module": "references",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ],
+      "description": "The reference that finds `thing` again, e.g. `Tableau#T1` -- `undefined` if no reference does."
+    },
+    {
+      "kind": "method",
+      "name": "elementIdFor",
+      "of": "spellCore",
+      "module": "references",
+      "params": [
+        {
+          "name": "thing"
+        }
+      ],
+      "description": "The `id` an element the program draws for `thing` takes:  its name, e.g. `queen-of-spades` (J43) -- `undefined` for a thing with no name."
+    },
+    {
+      "kind": "method",
+      "name": "getPath",
+      "of": "spellCore",
+      "module": "paths",
+      "params": [
+        {
+          "name": "object"
+        },
+        {
+          "name": "path"
+        }
+      ],
+      "description": "Given an `object` and a string `path`, walk it to get the leaf value -- see `getPath()` in `$/util`."
+    },
+    {
+      "kind": "method",
+      "name": "setPath",
+      "of": "spellCore",
+      "module": "paths",
+      "params": [
+        {
+          "name": "object"
+        },
+        {
+          "name": "path"
+        },
+        {
+          "name": "value"
+        }
+      ],
+      "description": "Given an `object`, walk `path` and set leaf step to `value` -- see `setPath()` in `$/util`."
+    },
+    {
+      "kind": "method",
+      "name": "splitPath",
+      "of": "spellCore",
+      "module": "paths",
+      "params": [
+        {
+          "name": "path"
+        }
+      ],
+      "description": "Split `path` into an array of steps, e.g. `[\"a\", \"b\", 0, \"c\"]` -- see `splitPath()` in `$/util`."
+    },
+    {
+      "property": "ACTIVE_TEST",
+      "of": "spellCore",
+      "module": "tests",
+      "description": "Currently-running dynamic test, if any."
+    },
+    {
+      "kind": "method",
+      "name": "test",
+      "of": "spellCore",
+      "module": "tests",
+      "params": [
+        {
+          "name": "message"
+        },
+        {
+          "name": "testMethod"
+        },
+        {
+          "name": "collapse"
+        }
+      ],
+      "description": "Dynamic test: prints to console for now..."
+    },
+    {
+      "kind": "method",
+      "name": "startTest",
+      "of": "spellCore",
+      "module": "tests",
+      "params": [
+        {
+          "name": "message"
+        },
+        {
+          "name": "collapse"
+        }
+      ],
+      "description": "Begin a named test run, becoming `spellCore.ACTIVE_TEST`."
+    },
+    {
+      "kind": "method",
+      "name": "echo",
+      "of": "spellCore",
+      "module": "tests",
+      "params": [
+        {
+          "name": "message"
+        }
+      ],
+      "description": "Print `message`, grouped under current test if one's running."
+    },
+    {
+      "kind": "method",
+      "name": "echoTestAction",
+      "of": "spellCore",
+      "module": "tests",
+      "params": [
+        {
+          "name": "message"
+        }
+      ],
+      "description": "Print `▶️ Executing` plus back-tick-quoted `message`, grouped under current test if one's running."
+    },
+    {
+      "kind": "method",
+      "name": "endTest",
+      "of": "spellCore",
+      "module": "tests",
+      "description": "End currently-running test (if any), logging its icon-prefixed `message` as a console group containing all buffered `output`."
+    },
+    {
+      "kind": "method",
+      "name": "expect",
+      "of": "spellCore",
+      "module": "tests",
+      "params": [
+        {
+          "name": "thing"
+        },
+        {
+          "name": "thingSource"
+        },
+        {
+          "name": "otherThing"
+        },
+        {
+          "name": "otherSource"
+        }
+      ],
+      "description": "Return message as to whether a runtime assertion is true or false."
+    },
+    {
+      "property": "console",
+      "of": "spellCore",
+      "module": "console",
+      "description": "The shared `SpellConsole` instance, exposed as `spellCore.console`."
+    },
+    {
+      "property": "DEBUG_RUNTIME",
+      "of": "spellCore",
+      "module": "runtime",
+      "description": "Set to `true` to show debug messages for `spellCore.RUNTIME` actions."
+    },
+    {
+      "property": "DEBUG_PROCESSES",
+      "of": "spellCore",
+      "module": "runtime",
+      "description": "Set to `true` to show debug messages for process start/stop actions."
+    },
+    {
+      "kind": "method",
+      "name": "on",
+      "of": "spellCore",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "eventType"
+        },
+        {
+          "name": "callback"
+        }
+      ],
+      "section": "Events -- the running program's, on RUNTIME",
+      "description": "`spellCore.on(...)`:  compiled JavaScript's spelling of `on()` -- see `on()`."
+    },
+    {
+      "kind": "method",
+      "name": "off",
+      "of": "spellCore",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "eventType"
+        },
+        {
+          "name": "callback"
+        }
+      ],
+      "section": "Events -- the running program's, on RUNTIME",
+      "description": "`spellCore.off(...)` -- see `off()`."
+    },
+    {
+      "kind": "method",
+      "name": "once",
+      "of": "spellCore",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "eventType"
+        },
+        {
+          "name": "callback"
+        }
+      ],
+      "section": "Events -- the running program's, on RUNTIME",
+      "description": "`spellCore.once(...)` -- see `once()`."
+    },
+    {
+      "kind": "method",
+      "name": "trigger",
+      "of": "spellCore",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "event"
+        },
+        {
+          "name": "props"
+        }
+      ],
+      "section": "Events -- the running program's, on RUNTIME",
+      "description": "`spellCore.trigger(...)` -- see `trigger()`."
+    },
+    {
+      "property": "RUNTIME",
+      "of": "spellCore",
+      "module": "runtime",
+      "section": "Runtime State",
+      "description": "Global runtime state root."
+    },
+    {
+      "kind": "method",
+      "name": "resetRuntime",
+      "of": "spellCore",
+      "module": "runtime",
+      "section": "Runtime State",
+      "description": "Reset `spellCore.RUNTIME`, e.g. when a project starts or a test is run. Returns the new runtime."
+    },
+    {
+      "kind": "method",
+      "name": "clearRuntime",
+      "of": "spellCore",
+      "module": "runtime",
+      "section": "Runtime State",
+      "description": "Clear `spellCore.RUNTIME`:  unset again, as before the first `resetRuntime()` -- see `RUNTIME`."
+    },
+    {
+      "kind": "method",
+      "name": "getRuntimeState",
+      "of": "spellCore",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "name"
+        },
+        {
+          "name": "initializer"
+        }
+      ],
+      "section": "Runtime State",
+      "description": "Return `name`d section of state in our `RUNTIME` environment:"
+    },
+    {
+      "kind": "method",
+      "name": "clearRuntimeState",
+      "of": "spellCore",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "name"
+        }
+      ],
+      "section": "Runtime State",
+      "description": "Reset (clear) `name`d state in our `RUNTIME`. Warns if RUNTIME is not set up."
+    },
+    {
+      "kind": "method",
+      "name": "getProcessFlags",
+      "of": "spellCore",
+      "module": "runtime",
+      "section": "Process Management",
+      "description": "Initialize and return process flags for the current `spellCore.RUNTIME`. If `RUNTIME` is not set up, warns and returns a new object each time."
+    },
+    {
+      "kind": "method",
+      "name": "startProcess",
+      "of": "spellCore",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "name"
+        },
+        {
+          "name": "exclusively"
+        }
+      ],
+      "section": "Process Management",
+      "description": "Start a conceptual process by `name`."
+    },
+    {
+      "kind": "method",
+      "name": "processIsRunning",
+      "of": "spellCore",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "name"
+        }
+      ],
+      "section": "Process Management",
+      "description": "Is a given process running?"
+    },
+    {
+      "kind": "method",
+      "name": "stopProcess",
+      "of": "spellCore",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "name"
+        }
+      ],
+      "section": "Process Management",
+      "description": "Stop a given process."
+    },
+    {
+      "property": "things",
+      "of": "spellCore",
+      "module": "things",
+      "section": "Inspecting things",
+      "description": "Each still alive, in the order they were made."
+    },
+    {
+      "kind": "method",
+      "name": "heading",
+      "of": "spellCore",
+      "module": "things",
+      "params": [
+        {
+          "name": "text"
+        }
+      ],
+      "section": "The program's classes",
+      "description": "The program's running the code under heading `text` now, e.g. `set up all piles` for `## set up all piles`: what it makes from here on was made under it."
+    },
+    {
+      "kind": "method",
+      "name": "fromJSON",
+      "of": "spellCore",
+      "module": "json",
+      "params": [
+        {
+          "name": "json"
+        }
+      ],
+      "description": "`json` read back as what it was:  each object with a `\"$type\"` rebuilt as the program's class of that name, each of its props rebuilt the same way, and so on down."
+    },
+    {
+      "property": "isCarryingOver",
+      "of": "spellCore",
+      "module": "carry",
+      "description": "Is a recompiled program loading, to take over the last run's things?"
+    },
+    {
+      "kind": "method",
+      "name": "carryOver",
+      "of": "spellCore",
+      "module": "carry",
+      "params": [
+        {
+          "name": "previous"
+        },
+        {
+          "name": "exports"
+        }
+      ],
+      "description": "Put the last run's things in place of the new run's -- see the file's header."
+    },
+    {
+      "kind": "method",
+      "name": "carryProblems",
+      "of": "spellCore",
+      "module": "carry",
+      "params": [
+        {
+          "name": "previous"
+        },
+        {
+          "name": "exports"
+        }
+      ],
+      "description": "Why each of the last run's things that `carryOver()` would start afresh can't come over -- `[]` if they all can."
+    },
+    {
+      "property": "BASE_TYPES",
+      "of": "spellCore",
+      "module": "classes",
+      "description": "Base types known to the `spell` language/parser -- see `SPELL_BASE_TYPES`."
+    },
+    {
+      "property": "appLayout",
+      "of": "spellCore",
+      "module": "classes",
+      "description": "Is the app's page laid out in markup, around the program?  Then `App.start()` draws nothing: the markup is the app's drawing, and its tags find their things (epic `drawable-thing` P9)."
+    },
+    {
+      "property": "REACT_APP_ROOT_ID",
+      "of": "spellCore",
+      "module": "classes",
+      "description": "DOM `id` of the element an `App` mounts into when the host set no `appRoot`."
+    },
+    {
+      "property": "appRoot",
+      "of": "spellCore",
+      "module": "classes",
+      "description": "Element `App.start()` mounts into, if the host says -- e.g. `<spell-app>`'s, inside its shadow root."
+    },
+    {
+      "kind": "method",
+      "name": "appElement",
+      "of": "spellCore",
+      "module": "classes",
+      "description": "Element the app mounts into:  `appRoot`, else `#spell-app-root` in `document` -- `null` if neither."
+    },
+    {
+      "kind": "method",
+      "name": "domRoot",
+      "of": "spellCore",
+      "module": "classes",
+      "description": "Document or shadow root the app lives in:  `appRoot`'s shadow root, if it's in one, else `document`."
+    },
+    {
+      "type": "Thing",
+      "module": "classes/Thing",
+      "description": "`Thing`: base for all object-like things in spell -- what `a task is a thing` extends. All things can be drawn, with Solid (`drawing.ts`), e.g.:"
+    },
+    {
+      "type": "List",
+      "module": "classes/List",
+      "description": "`List`: our array concept -- what `a deck is a list` extends."
+    },
+    {
+      "type": "App",
+      "superType": "Thing",
+      "module": "classes/App",
+      "description": "`App`: a `Thing` that draws a whole application -- what `a game is an app` extends."
+    },
+    {
+      "type": "Drawable",
+      "superType": "Thing",
+      "module": "classes/Drawable",
+      "description": "`Drawable`:  a `Thing` drawn as its own custom element -- what `a card is a drawable thing` extends."
+    },
+    {
+      "type": "DrawableList",
+      "superType": "List",
+      "module": "classes/DrawableList",
+      "description": "`DrawableList`:  a `List` drawn as its own custom element, its items inside it -- what `a pile is a drawable list of cards` extends."
+    },
+    {
+      "kind": "function",
+      "name": "h",
+      "module": "drawing",
+      "params": [
+        {
+          "name": "...rawArgs"
+        }
+      ],
+      "description": "Solid's own `h()`, what compiled JavaScript draws with:  `import { h } from \"@spell/core\"`."
+    },
+    {
+      "kind": "function",
+      "name": "css",
+      "module": "elements",
+      "params": [
+        {
+          "name": "strings"
+        },
+        {
+          "name": "...values"
+        }
+      ],
+      "description": "A drawable type's style sheet, as TEXT:  what its `<css>` block compiles to (epic `drawable-thing`, P10, J14)."
+    },
+    {
+      "kind": "function",
+      "name": "positionOf",
+      "module": "collection-core",
+      "params": [
+        {
+          "name": "collection"
+        },
+        {
+          "name": "thing"
+        }
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Position of the first `thing` in `collection` -- see `positionOf()`, below, which it is."
+    },
+    {
+      "kind": "function",
+      "name": "on",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "eventType"
+        },
+        {
+          "name": "callback"
+        }
+      ],
+      "section": "Events -- the running program's, on RUNTIME",
+      "description": "`spellCore.on(...)`:  compiled JavaScript's spelling of `on()` -- see `on()`."
+    },
+    {
+      "kind": "function",
+      "name": "off",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "eventType"
+        },
+        {
+          "name": "callback"
+        }
+      ],
+      "section": "Events -- the running program's, on RUNTIME",
+      "description": "`spellCore.off(...)` -- see `off()`."
+    },
+    {
+      "kind": "function",
+      "name": "once",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "eventType"
+        },
+        {
+          "name": "callback"
+        }
+      ],
+      "section": "Events -- the running program's, on RUNTIME",
+      "description": "`spellCore.once(...)` -- see `once()`."
+    },
+    {
+      "kind": "function",
+      "name": "trigger",
+      "module": "runtime",
+      "params": [
+        {
+          "name": "event"
+        },
+        {
+          "name": "props"
+        }
+      ],
+      "section": "Events -- the running program's, on RUNTIME",
+      "description": "`spellCore.trigger(...)` -- see `trigger()`."
+    }
+  ]
+}

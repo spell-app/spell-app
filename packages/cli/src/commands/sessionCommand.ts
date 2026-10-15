@@ -2,7 +2,7 @@ import { spawnSync } from "child_process"
 import { relative } from "path"
 
 // Import directly:  the `$/server/site` barrel is browser code (the site header)
-import { epicStateFor } from "$/server/site/EpicState"
+import { epicStateFor } from "$/epics/list/EpicState"
 import { CLI } from "$/cli"
 
 /** Longest prompt and reply a transcript digest prints, in characters. */
@@ -233,7 +233,7 @@ function refreshIcons(session: CLI.CliSession, dryRun: boolean): number {
 /**
  * The icon work `name`'s state calls for (`TITLE_ICONS`), from its worktree, branch and epic page (`nameStatus()`);
  * `null` when `name` isn't work this repo knows.
- * - with an epic page, its epic's state (`$/server/site/EpicState`;  a session of it running counts as touched):
+ * - with an epic page, its epic's state (`$/epics/list/EpicState`;  a session of it running counts as touched):
  *   📅 future, 🚧 in progress, 🚨 errors (every phase done, items need Owen), ⏸️ paused (untouched for days)
  * - ✅ finished:  its branch merged into `main`, or every phase of its plan done with nothing left to merge
  * - 🚧 under way:  a worktree, a branch with commits `main` lacks, or a plan done that waits to merge

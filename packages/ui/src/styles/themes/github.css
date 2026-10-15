@@ -2,7 +2,7 @@
  * GitHub theme:  port of Fomantic's `src/themes/github/` (GitHub's look, circa 2015), `@layer ui.theme`.
  * - Applied ON TOP of `classic.css` (`ThemeSheets.apply("github")`):  only GitHub's differences live here.
  * - Two halves:  tokens on `:root` (they inherit into shadow roots), then class-grammar overrides, which reach
- *   component markup because the theme is adopted into every shadow root too (`docs/theming.md` "Themes").
+ *   component markup because the theme is adopted into every shadow root too (`notes/theming.md` "Themes").
  * - Touches:  site (13px, Arial, palette, links, borders, radius, disabled opacity), button, header, image, input,
  *   label, segment, step, breadcrumb, form, grid, menu, message, table, dropdown, popup.
  * - Dark scheme:  Fomantic had none.  Neutrals are `light-dark()` pairs whose dark half keeps the default recipe;

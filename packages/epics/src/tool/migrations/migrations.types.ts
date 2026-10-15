@@ -6,7 +6,7 @@
 /**
  * Every KIND of page a migration step can be for (epic `epic-workflow`, J44), by the names P14 proposes.
  * - `epic`:  an epic page (`epics/<name>/<name>.plan.html`):  its steps are `Migrations`, here
- * - the rest are the docs package's (`packages/docs/tools/migrate.js` `KINDS`, kept the same:  its test checks)
+ * - the rest are the docs package's (`packages/epics/tools/migrate.js` `KINDS`, kept the same:  its test checks)
  * - `goal`:  none yet;  Goals Foundation (P15) adds the pages and their steps
  */
 export const PAGE_KINDS = [

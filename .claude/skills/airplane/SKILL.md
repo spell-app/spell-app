@@ -11,7 +11,7 @@ Airplane mode:  Owen works on the pages ALONE, with no internet and no Claude (e
 - Every page saves to this laptop's page server.
 - `/airplane` gets the laptop ready before;  `/airplane land` works through what he left, after.
 
-- The repo actions are `epic airplane ...` ([airplane.ts](packages/docs/tools/airplane.ts));
+- The repo actions are `epic airplane ...` ([airplane.ts](packages/epics/tools/airplane.ts));
   this skill holds the dialog.
 - The switch:  `~/.spell/airplane.json`, read by [`AirplaneMode`](packages/server/src/page/AirplaneMode.ts).
   - While it's on, the page server tells every page.

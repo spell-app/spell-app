@@ -4,7 +4,8 @@
  */
 
 import isArrayLikeObject from "lodash/isArrayLikeObject"
-import { spellCore } from "$/core"
+// Import directly, never through the barrel:  `$/core/model` loads this file, and must not load drawing (Solid)
+import { spellCore } from "./core"
 
 /** Callable `assert` function, plus extra assertion helpers hung off of it. */
 export type Assert = {

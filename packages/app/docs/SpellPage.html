@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>SpellPage</title>
+    <meta name="description" content="A whole page's box:  its look, and its children laid out down or across it." />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="SpellPage">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../../packages/app/src/solid/SpellPage.tsx"
+              icon="code"
+              aria-label="Its code, SpellPage.tsx"
+              title="Its code, SpellPage.tsx"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            SpellPage
+            <ui-header>A whole page's box: its look, and its children laid out down or across it.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <p class="lede">
+            The outermost box of each of the editor's pages: the project chooser, the editor and the runner. It fills
+            the window, gives the page its dark background, and stacks the page's toolbar above what's under it.
+          </p>
+          <ui-list class="spell-meta">
+            <ui-item icon="user">Written for: anyone changing the spell app's pages, or reading their code</ui-item>
+            <ui-item icon="image">A picture, not live: it's the box around a whole page of the editor</ui-item>
+          </ui-list>
+
+          <ui-section id="1-what-it-looks-like" header="1. What it looks like" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="image"></ui-icon>
+            <p>
+              The project chooser, the page the editor opens on. The SpellPage is the dark grey box filling the window:
+              the violet menu across its top, then the white card of projects.
+            </p>
+            <ui-image
+              src="_images/SpellPage.png"
+              alt="The project chooser: a violet menu over a dark page holding a white card of projects, examples, guides and test fixtures"
+              bordered
+              rounded
+            ></ui-image>
+            <p class="meta">
+              A picture, taken by <code>yarn site:pictures</code> in
+              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="code"></ui-icon>
+            <p>Each page is one, holding its toolbar, then its content, down the window:</p>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>ProjectChooser.tsx · the project chooser · 9 lines</ui-title>
+              <ui-content>
+                <ui-code language="typescript"
+                  ><script type="text/plain">
+                    <SpellPage id="ProjectChooser" fillWindow dark rows>
+                      <ChooserToolbar />
+                      <br />
+                      <ui-container>
+                        <ui-segment>
+                          {/* projects, examples, guides ... */}
+                        </ui-segment>
+                      </ui-container>
+                    </SpellPage>
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+            <ul>
+              <li>
+                Its look is a set of switches, each a class on its <code>&lt;div&gt;</code>: bordered, dark, light,
+                rounded, spaced, padded, scrolling.
+              </li>
+              <li><code>fillWindow</code> makes it as big as the window, whatever is around it.</li>
+              <li>
+                <code>rows</code> lays its children out down the page, <code>columns</code> across it: a flexbox either
+                way.
+              </li>
+              <li>Every other prop (<code>id</code>, <code>style</code> ...) goes to the <code>&lt;div&gt;</code>.</li>
+              <li>
+                The editor and runner pages put a
+                <a href="SplitPanel.html" target="src-packages-app-docs-splitpanel-html">SplitPanel</a> under their
+                toolbar, to split the rest of the page into panes.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="3-props" header="3. Props, and where it's drawn" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="list check"></ui-icon>
+            <ui-docs-api family="SpellPage"></ui-docs-api>
+            <p class="meta">
+              From its code, by <code>yarn site:data</code> in
+              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="4-its-code" header="4. Its code" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="folder open"></ui-icon>
+            <ul>
+              <li>
+                <a href="../../packages/app/src/solid/SpellPage.tsx" target="src-packages-app-src-solid-spellpage-tsx"
+                  ><code title="packages/app/src/solid/SpellPage.tsx">SpellPage.tsx</code></a
+                >: the component, and its props
+              </li>
+              <li>
+                <a href="../../packages/app/src/solid/SpellPage.css" target="src-packages-app-src-solid-spellpage-css"
+                  ><code title="packages/app/src/solid/SpellPage.css">SpellPage.css</code></a
+                >: its look, one class per switch
+              </li>
+              <li>
+                <a
+                  href="../../tests/app/src/solid/shell.browser.test.tsx"
+                  target="src-tests-app-src-solid-shell-browser-test-tsx"
+                  ><code title="tests/app/src/solid/shell.browser.test.tsx">shell.browser.test.tsx</code></a
+                >: its tests, with the other pieces of the pages' shell
+              </li>
+              <li>
+                In the app's Solid components, <code>$/app/solid</code>:
+                <a href="../../packages/app/src/solid/" target="src-packages-app-src-solid"
+                  ><code title="packages/app/src/solid/">src/solid/</code></a
+                >
+              </li>
+            </ul>
+          </ui-section>
+
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">Last checked 2026-10-12 against branch <code>epic-workflow</code>.</p>
+          </footer>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

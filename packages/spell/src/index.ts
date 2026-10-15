@@ -3,8 +3,9 @@
  * - All other files MUST only import from here (or a direct peer file):
  *   reaching into a leaf file from outside `$/spell` risks circular import problems.
  * - NOTE: this barrel is also pulled into the server:
- *   `src/server/project-utils.ts` does `import { SP } from "$/spell"`,
+ *   spaces' `project-utils.ts` does `import { SP } from "$/spell"`,
  *   and calls `SP.SpellLocation...` / `SP.spellParser.compile()` directly.
+ * - NOTE: its project groups are spaces' (`$/spaces`):  load them before reading a path -- see `SpellSetup`.
  *   - So nothing reachable from here can rely on browser-only globals at module-evaluation time.
  *   - Methods that only run client-side are fine:  the server just never calls them.
  * - NOTE: nothing here imports `spellCore`'s code -- only its types file.
@@ -21,12 +22,12 @@ export * as SP from "./"
 export * from "./spell.types"
 
 export * from "./SpellLocation"
-export * from "./SpellProjectRoot"
 export * from "./SpellProject"
 export * from "./SpellFile"
 export * from "./SpellJSFile"
 export * from "./SpellCSSFile"
 export * from "./SpellSetup"
+export * from "./SpellUrls"
 export * from "./SpellParser"
 export * from "./builtinTypes"
 

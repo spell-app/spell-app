@@ -466,12 +466,12 @@ const ROOT = fileURLToPath(new URL("../", import.meta.url))
 
 /** Source files the scenarios edit. */
 const FILES = {
-  button: `${ROOT}src/components/ui-button/UIButton.tsx`,
-  dropdown: `${ROOT}src/components/ui-dropdown/UIDropdown.tsx`,
-  css: `${ROOT}src/components/ui-button/UIButton.css`,
-  vocabulary: `${ROOT}src/components/ui-button/UIButton.en.ts`,
-  orVocabulary: `${ROOT}src/components/ui-button/UIOr.en.ts`,
-  shared: `${ROOT}src/elements/UIComponent.tsx`
+  button: `${ROOT}components/ui-button/UIButton.tsx`,
+  dropdown: `${ROOT}components/ui-dropdown/UIDropdown.tsx`,
+  css: `${ROOT}components/ui-button/UIButton.css`,
+  vocabulary: `${ROOT}components/ui-button/UIButton.en.ts`,
+  orVocabulary: `${ROOT}components/ui-button/UIOr.en.ts`,
+  shared: `${ROOT}../spell-solid/src/UIComponent.tsx`
 } as const
 
 /** Preferred dev server port (the next free one is taken if busy). */

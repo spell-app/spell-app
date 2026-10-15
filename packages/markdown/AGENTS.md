@@ -23,9 +23,10 @@ when working with code in this package, `@spell-app/markdown`.
   - whitespace rides on the token before it (`LEADING_ONLY`), so rulex's spacing (`{spaces}`, touching parts) sees it
 - Rules are written in rulex as much as possible ([the Rulex guide](../../guides/rulex/rulex.html)).
   - What rulex can't say is hand-written:  block nesting, emphasis pairing, "any token but a backtick".
+- The tests live in the repo's `tests/markdown/`, at the same paths as the code.
 - `src/spec/`:  the GFM spec examples, and their test.
   - `gfm-spec.json`:  the examples, from cmark-gfm's `spec.txt`, by `yarn spec:update <spec.txt>`
-  - `spec.test.ts` renders each with the PLAIN-HTML tags, and pins the pass count per section in a snapshot.
+  - [spec.test.ts](../../tests/markdown/src/spec/spec.test.ts) renders each with the PLAIN-HTML tags, and pins the pass count per section in a snapshot.
     - A regression fails it.
     - A gain updates it:  `vitest -u`, after reading the diff.
 

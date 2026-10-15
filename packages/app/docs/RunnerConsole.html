@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>RunnerConsole</title>
+    <meta name="description" content="One running program's console, in a runner." />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="RunnerConsole">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../../packages/app/src/runner/RunnerConsole.tsx"
+              icon="code"
+              aria-label="Its code, RunnerConsole.tsx"
+              title="Its code, RunnerConsole.tsx"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            RunnerConsole
+            <ui-header>One running program's console, in a runner.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <p class="lede">
+            What a running program says: each <code>print</code>, and what it logs, a line at a time as they come. A
+            runner shows it on its debug pane's Console tab, or on top for a program with no app of its own.
+          </p>
+          <ui-list class="spell-meta">
+            <ui-item icon="user">Written for: anyone changing the runner, or how a program's output shows</ui-item>
+            <ui-item icon="play"
+              >Live: inside a real <code>&lt;spell-app&gt;</code>, from the app's element build this page loads</ui-item
+            >
+          </ui-list>
+
+          <ui-section id="1-example" header="1. Example" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="eye"></ui-icon>
+            <p>
+              FizzBuzz has no app, so the runner shows its console on top: that list of lines is a RunnerConsole. The
+              debug pane below it has the explorers.
+            </p>
+            <ui-docs-example description="A program with no app:  its console on top.">
+              <spell-app project="@spell/examples/fizzbuzz" toolbar debug="console" height="360px"></spell-app>
+            </ui-docs-example>
+            <p class="meta">
+              Live, from <code>/element/spell.pack.js</code> (<code>yarn build:element</code> in
+              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >), which this set's pages load.
+            </p>
+          </ui-section>
+
+          <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="code"></ui-icon>
+            <p><code>&lt;spell-app&gt;</code>'s runner shows its own runtime's console, once that's loaded:</p>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>SpellAppRunner.tsx · the program's console · 7 lines</ui-title>
+              <ui-content>
+                <ui-code language="typescript"
+                  ><script type="text/plain">
+                    function output() {
+                      return (
+                        <Show when={loaded()} keyed>
+                          {(copy) => <RunnerConsole console={copy.runtime.spellCore.console} />}
+                        </Show>
+                      )
+                    }
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+            <ul>
+              <li>
+                <code>console</code> is the program's own: each <code>&lt;spell-app&gt;</code> runs on its own copy of
+                the spell runtime, so each shows its own console.
+              </li>
+              <li>
+                It reads <code>console</code> once: draw a new one for another, as the <code>keyed</code> above does.
+              </li>
+              <li>Its lines are followed as they change, so a line logged adds a row at once.</li>
+              <li>
+                It draws them as the editor's
+                <a href="ConsoleViewer.html" target="src-packages-app-docs-consoleviewer-html">ConsoleViewer</a>
+                does, with
+                <a href="ConsoleLines.html" target="src-packages-app-docs-consolelines-html">ConsoleLines</a>, and
+                scrolls within its pane, a
+                <a href="RunnerPane.html" target="src-packages-app-docs-runnerpane-html">RunnerPane</a>.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="3-props" header="3. Props, and where it's drawn" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="list check"></ui-icon>
+            <ui-docs-api family="RunnerConsole"></ui-docs-api>
+            <p class="meta">
+              From its code, by <code>yarn site:data</code> in
+              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="4-its-code" header="4. Its code" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="folder open"></ui-icon>
+            <ul>
+              <li>
+                <a
+                  href="../../packages/app/src/runner/RunnerConsole.tsx"
+                  target="src-packages-app-src-runner-runnerconsole-tsx"
+                  ><code title="packages/app/src/runner/RunnerConsole.tsx">RunnerConsole.tsx</code></a
+                >: the component, and its props
+              </li>
+              <li>
+                <a
+                  href="../../packages/app/src/runner/RunnerConsole.css"
+                  target="src-packages-app-src-runner-runnerconsole-css"
+                  ><code title="packages/app/src/runner/RunnerConsole.css">RunnerConsole.css</code></a
+                >: its look, on top of the console lines'
+              </li>
+              <li>
+                <a
+                  href="../../tests/app/src/runner/runner.browser.test.tsx"
+                  target="src-tests-app-src-runner-runner-browser-test-tsx"
+                  ><code title="tests/app/src/runner/runner.browser.test.tsx">runner.browser.test.tsx</code></a
+                >: its tests, through the runner that draws it
+              </li>
+              <li>
+                In the runner's pieces, <code>$/app/runner</code>:
+                <a href="../../packages/app/src/runner/" target="src-packages-app-src-runner"
+                  ><code title="packages/app/src/runner/">src/runner/</code></a
+                >
+              </li>
+            </ul>
+          </ui-section>
+
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">Last checked 2026-10-12 against branch <code>epic-workflow</code>.</p>
+          </footer>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

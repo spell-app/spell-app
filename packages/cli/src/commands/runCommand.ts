@@ -4,7 +4,7 @@ import { tmpdir } from "os"
 import { delimiter, dirname, resolve } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 
-import environment from "$/spell/node/environment"
+import environment from "$/spaces/server/node/environment"
 import { buildTsx } from "$/spell/node/buildTsx"
 import { SP } from "$/spell"
 import { LSP } from "$/lsp"
@@ -45,7 +45,7 @@ async function runPython(
 ): Promise<ChildResult> {
   const folder = mkdtempSync(resolve(tmpdir(), "spell-run-"))
   try {
-    const entry = resolve(folder, `${name}.compiled${PY}`)
+    const entry = resolve(folder, `${name}.spell${PY}`)
     writeFileSync(entry, code)
     const imports = Object.values(projects).map((url) => dirname(fileURLToPath(url)))
     const args = ["run", "--quiet", "--project", SPELL_CORE_PY_DIR, "python", "-m", "spell_core.run", entry]
@@ -96,7 +96,7 @@ export async function testCommand(session: CLI.CliSession, args: string[], optio
 /**
  * Compile `resolved`'s project and run it -- or its tests -- in a fresh node process, `runProject.ts`.
  * - Its compiled javascript goes to a temp file:  running writes nothing into the project.
- *   Projects it imports need their `<Project>.compiled.js`, compiling any which have none.
+ *   Projects it imports need their `<Project>.spell.js`, compiling any which have none.
  * - Errors in the spell are listed, but it runs anyway:  a line which doesn't parse compiles to a comment.
  * - The child shares our terminal, so its output streams straight through.
  * - Returns the child's exit code.
@@ -203,10 +203,10 @@ export async function runCode(
   const folder = mkdtempSync(resolve(tmpdir(), "spell-run-"))
   try {
     if (extension === TSX) {
-      code = await buildTsx(code, { filename: `${name}.compiled${TSX}` })
+      code = await buildTsx(code, { filename: `${name}.spell${TSX}` })
       extension = ".mjs"
     }
-    const entry = resolve(folder, `${name}.compiled${extension}`)
+    const entry = resolve(folder, `${name}.spell${extension}`)
     writeFileSync(entry, code)
     const spec: CLI.RunSpec = {
       mode,

@@ -1,8 +1,9 @@
 /**
  * The Type Explorer's data on a page with NO parser, e.g. in `<spell-app>`:  scope packs, loaded as scripts.
- * - See `LSP.ScopePack`.  A later source may parse in the page instead -- anything giving a `ScopesSource`.
+ * - See `LSP.ScopePack`.
+ * - A later source may parse in the page instead:  anything giving a `ScopesSource`.
  * - A pack leaves out each declaration's `spell` and `compiled`:
- *   they're worked out when shown, from the project's sources and compiled output -- if we can have them.
+ *   they're worked out when shown, from the project's sources and compiled output, if we can have them.
  *   See `ScopesSourceHooks`.
  */
 import JSON5 from "json5"
@@ -17,6 +18,9 @@ import {
   type ScopeNode,
   type ScopePack
 } from "$/lsp/lsp.types"
+// Import directly:  spell's light URL helper, and spaces' groups, which it splits an address by -- no parser, no barrel
+import { SpellUrls } from "$/spell/SpellUrls"
+import "$/spaces/models/projectGroups"
 
 /** What a Type Explorer shows:  a tree, and the details of what's in it, by `path`. */
 export type ScopesSource = {
@@ -28,12 +32,12 @@ export type ScopesSource = {
 
 /** How a `ScopesSource` from packs gets what they leave out -- see `scopesFromPacks()`. */
 export type ScopesSourceHooks = {
-  /** Text of spell file `uri`, e.g. `spell:/@system:examples:Solitaire/Card.spell` -- if it can be had. */
+  /** Text of spell file `uri`, e.g. `spell:/@spell/examples/solitaire/Card.spell` -- if it can be had. */
   loadSource?: (uri: string) => Promise<string | undefined>
-  /** Compiled javascript of project `projectId`, e.g. `@system:examples:Solitaire` -- if it can be had. */
+  /** Compiled javascript of project `projectId`, e.g. `@spell/examples/solitaire` -- if it can be had. */
   loadCompiled?: (projectId: string) => Promise<string | undefined>
   /**
-   * Project `projectId`'s declarations, its `<Project>.declarations.json` -- if it can be had:
+   * Project `projectId`'s declarations, its `<Project>.declarations.json5` -- if it can be had:
    * where each declaration's code starts in its compiled javascript.
    */
   loadDeclarations?: (projectId: string) => Promise<CompiledDeclarations | undefined>
@@ -54,9 +58,10 @@ export type CompiledDeclarations = {
  * A `ScopesSource` of `packs` -- the built-ins' first.  See `LSP.scopeTreeFromPacks()`.
  * - A declaration's `spell` is its `line`s of its file, from `hooks.loadSource()`.
  * - Its `compiled` is its statement's code in its project's compiled output, from `hooks.loadCompiled()`.
- *   - Found by the project's declarations (`hooks.loadDeclarations()`), whose `codeLines` say where each starts:
- *     the statement in the same file which declares it, e.g. `of: "Card"` + `property: "suit"`
- *     for `.../type:Card/property:suit`.  See `declaredPaths()`.
+ *   - Found by the project's declarations (`hooks.loadDeclarations()`):
+ *     - the statement is the one in the same file which declares it,
+ *       e.g. `of: "Card"` + `property: "suit"` for `.../type:Card/property:suit` (see `declaredPaths()`)
+ *     - their `codeLines` say where each statement's code starts
  *   - So NO source needed.
  *   - Compiled output from before declarations files has `/*! SPELL: DECLARES ... *\/` markers inline instead:
  *     read from those.
@@ -165,9 +170,11 @@ type CompiledMarker = {
 /**
  * Every declaration marker in `compiled`, with its code after it -- see `declarationCode()`.
  * - Up to the next marker at its indent or less, or the end of its file.
- *   A marker for a class member is indented in its class's body, so a class's code runs on past its members' markers.
- * - A marker says which file its statement's in as `defined: "/Card.spell:70-87"`,
- *   and what it declares as `SP.SpellDeclaration` props, e.g. `property: "suit", of: "Card"` -- see `declaredPaths()`.
+ *   - A marker for a class member is indented in its class's body,
+ *     so a class's code runs on past its members' markers.
+ * - A marker says:
+ *   - which file its statement's in, as `defined: "/Card.spell:70-87"`
+ *   - what it declares, as `SP.SpellDeclaration` props, e.g. `property: "suit", of: "Card"` (see `declaredPaths()`)
  */
 function compiledMarkers(compiled: string): CompiledMarker[] {
   const found = [...compiled.matchAll(DECLARES)].map((match) => ({ match, indent: indentAt(compiled, match.index) }))
@@ -345,11 +352,8 @@ function linesOf(source: string | undefined, line: ScopeLine): string | undefine
     .trimEnd()
 }
 
-/** Project id and file path of spell file `uri`, e.g. `spell:/@system:examples:Solitaire/Card.spell`. */
+/** Project id and file path of spell file `uri`, e.g. `spell:/@spell/examples/solitaire/Card.spell`. */
 function splitSpellUri(uri: string): { projectId: string; filePath: string } {
-  const path = decodeURI(uri.replace(/^spell:\//, ""))
-  const slash = path.indexOf("/")
-  return slash < 0
-    ? { projectId: path, filePath: "" }
-    : { projectId: path.slice(0, slash), filePath: path.slice(slash) }
+  const { projectId, rest } = SpellUrls.split(decodeURI(uri.replace(/^spell:\//, "")))
+  return { projectId, filePath: rest && `/${rest}` }
 }

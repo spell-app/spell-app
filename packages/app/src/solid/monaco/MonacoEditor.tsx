@@ -18,7 +18,7 @@ import "./MonacoEditor.css"
  * - Works in a shadow root too, e.g. `<spell-editor>`'s -- see `keepMouseMovesInShadowRoot()`.
  * - NOTE: the editor is a plain variable, not a signal:  the effects below only follow PROPS, and making the
  *   editor reads the props as they are then, so a prop changed before it's made is still taken.
- * - SEE:  its App UI components page, `packages/app/components/MonacoEditor.html` (`/app-ui/MonacoEditor.html`).
+ * - SEE:  its App UI components page, `packages/app/docs/MonacoEditor.html` (`/components/app/MonacoEditor.html`).
  ****************/
 export function MonacoEditor(props: MonacoEditorProps) {
   let element!: HTMLDivElement

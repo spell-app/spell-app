@@ -3,8 +3,7 @@ import { mkdtempSync, readdirSync, rmSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
 import { basename, join, resolve } from "path"
 
-import environment from "$/spell/node/environment"
-import { nodeBinary } from "$/spell/node/typecheck"
+import { CODE_FOLDERS, nodeBinary } from "$/spell/node/typecheck"
 
 /**
  * Type-check compiled spell's Python (the `py` target) with pyright:  the errors it finds, by file.
@@ -52,7 +51,7 @@ export function describePyrightError({ line, rule, message }: PyrightError): str
 const PYRIGHT_CONFIG = {
   pythonVersion: "3.12",
   typeCheckingMode: "basic",
-  extraPaths: [resolve(environment.packagesDir, "py", "core")]
+  extraPaths: [resolve(CODE_FOLDERS.packagesDir, "py", "core")]
 }
 
 /** One of pyright's diagnostics, as `--outputjson` writes it. */

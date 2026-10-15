@@ -12,7 +12,7 @@ argument-hint: "[page]"
      The docs need only the page server.
 1. From the checkout this session is in (a worktree shows ITS docs):  `spell dev docs open $ARGUMENTS --vs`.
    - No argument:  the docs' home page, `pages/index.html` (the page server's `/`).
-   - `<page>` is relative to `packages/docs`.
+   - `<page>` is from the checkout's root, or from an area (`solid/solid-2` is a guide).
      `.html` and a folder's own page may be left off (`solid/solid-2`, `server`).
    - It starts the page server first (live reload).
      Then it asks THIS session's window, through the spell extension, to show the page in the doc preview:
@@ -23,7 +23,7 @@ argument-hint: "[page]"
    - Its title bar:  back, forward, reload, restart the page server, open in the browser.
    - Mid-move to a worktree's window (`/isolate`, `/epic`):  shown there, once the session has moved.
    - Not running in VS Code (a CLI session in another terminal):  Chrome, as `spell dev docs open` without `--vs`.
-2. `no page <page>`:  `ls packages/docs` (and the folder it named).
+2. `no page <page>`:  `ls guides` (and the folder it named).
    Offer the closest in AskUserQuestion, and run again.
 3. Nothing shows up (it fell back to the `vscode://` link, or the window has no bridge):
    `spell dev vscode`, reload the window, and try again.

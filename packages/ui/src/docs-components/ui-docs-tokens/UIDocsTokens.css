@@ -17,7 +17,7 @@
  *   - the description
  *   - with `playground`, `td > ui-input.value[part="input"]`
  * - Public tokens (`--ui-docs-tokens-*`) are never declared:  each is read through a private alias
- *   (`docs/theming.md` "Component tokens").
+ *   (`notes/theming.md` "Component tokens").
  *   The swatch's size and ring go through `<ui-label>`'s own public tokens (`--ui-label-empty-size`)
  *   and its `::part(label)`, as a page would.
  */

@@ -2,7 +2,7 @@ import { readFileSync } from "fs"
 import { fileURLToPath } from "node:url"
 import { defineConfig, type Plugin } from "vite"
 
-import environment from "../spell/src/node/environment.ts"
+import environment from "../spaces/src/server/node/environment.ts"
 import { appConfig, sharedSolid } from "./vite.shared.ts"
 
 /**
@@ -112,7 +112,7 @@ const PACK = { name: "spell", prefix: "spell-" }
  *     <script type="module" src="/element/spell-ui.js"></script>
  *     <ui-root>
  *       <ui-components source="/element/spell.pack.js"></ui-components>
- *       <spell-app project="@examples/Solitaire" toolbar></spell-app>
+ *       <spell-app project="@spell/examples/solitaire" toolbar></spell-app>
  *     </ui-root>
  *
  * - A classic script calling `SpellUI.registerPack({ name, prefix, catalog, define })` as it runs:

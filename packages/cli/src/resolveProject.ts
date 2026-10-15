@@ -1,97 +1,93 @@
 /**
  * Turns a command-line argument into what it names:  a project, a `.spell` file, or a whole project root.
- * - Spell paths:
- *   - `@library/cards`, `@test/Solitaire/Card.spell`:  a root's `alias`, see `SpellSetup.expandAlias()`
- *   - `@examples/Solitaire`:  a root's domain
- *   - `@system:library:cards`:  full id
- *   - `@library`, `@system:examples`, `@user`, `@system`:  a bare root -- or several, for an owner with more than one
- * - `@workspace` ~== `.`, and `@workspace/Foo.spell` ~== `./Foo.spell`.
+ * - Spell addresses (`SP.SpellLocation.isAddress()`, epic `people-and-orgs` P4):
+ *   - `@spell/library/cards`, `owen@spell/errors`:  a project
+ *   - `@spell/test/solitaire/Card.spell`:  a file in one
+ *   - `@spell/examples`, `owen@spell`:  a whole group;  `@spell`:  every group in that space
+ * - `@here` ~== `.`, and `@here/Foo.spell` ~== `./Foo.spell`:
+ *   the command line's own word, not an address.
  * - Anything else is a path on disk, from the current folder:
- *   - a `.spell` file, or a project's `project.json`
- *   - a folder:  the project it's in, or a known root's folder, e.g. `projects/system/examples`
- * - NEVER a folder that isn't inside a project:  loading it would WRITE a `project.json` there,
- *   see `projectUtils.getIndex()`.
+ *   - a `.spell` file, or a project's file (`__project.json5`)
+ *   - a folder:  the project it's in, or a known root's folder, e.g. `packages/spaces/@spell/examples`
+ * - NEVER a folder that isn't inside a project:
+ *   loading it would WRITE a project file there (see `projectUtils.getIndex()`).
  * - Throws `CLI.CliError` for anything it can't place.
  */
 import { existsSync, statSync } from "fs"
 import { basename, dirname, extname, resolve } from "path"
 
 import { SP } from "$/spell"
-import { locationForDiskPath } from "$/spell/node/disk-fetch"
-import * as projectUtils from "$/spell/node/project-utils"
+import { hasProjectFile } from "$/spell/node/projectFile"
+import { locationForDiskPath } from "$/spaces/server/node/projects/disk-fetch"
+import * as projectUtils from "$/spaces/server/node/projects/project-utils"
 import { CLI } from "$/cli"
 
-/** Stands for the current folder:  `@workspace` ~== `.` */
-export const WORKSPACE_ARG = "@workspace"
+/** Stands for the current folder:  `@here` ~== `.` */
+export const HERE_ARG = "@here"
+
+/** The space of the groups made at runtime, as folders turn up:  `@local/<folder>`. */
+export const LOCAL_SPACE = "@local"
 
 /**
  * What `arg` names, relative to `cwd` if it's a path on disk.
- * - SIDE EFFECT:  a project outside the known roots registers a `@workspace:<folder>` root -- see `locationForDiskPath()`.
+ * - SIDE EFFECT:  a project outside the known groups registers a group of its own, `@local/<folder>`
+ *   - see `locationForDiskPath()`
  */
 export async function resolveProject(arg: string, cwd = process.cwd()): Promise<CLI.CliProject> {
-  if (arg === WORKSPACE_ARG) return resolveDiskPath(arg, cwd)
-  if (arg.startsWith(`${WORKSPACE_ARG}/`))
-    return resolveDiskPath(arg, resolve(cwd, arg.slice(WORKSPACE_ARG.length + 1)))
-  if (arg.startsWith("@")) return resolveSpellPath(arg)
+  if (arg === HERE_ARG) return resolveDiskPath(arg, cwd)
+  if (arg.startsWith(`${HERE_ARG}/`)) return resolveDiskPath(arg, resolve(cwd, arg.slice(HERE_ARG.length + 1)))
+  if (SP.SpellLocation.isAddress(arg)) return resolveSpellPath(arg)
   return resolveDiskPath(arg, resolve(cwd, arg))
 }
 
 /**
- * Project roots `name` stands for, e.g. `@library` => `[@system:library]`, `@system` => its three roots.
- * - Tries, in order:  a root's full path, its `alias`, `@<domain>`, then `@<owner>`.
- * - Leaves out `@workspace:*` roots:  they're only made as folders turn up.
+ * Project groups `name` stands for, e.g. `@spell/library` => that group, `@spell` => every group in that space.
+ * - Leaves out the `@local/<folder>` groups:  they're only made as folders turn up.
  */
 export function rootsNamed(name: string): SP.ProjectRootSpec[] {
-  const roots = Object.values(SP.SpellSetup.projectRoots).filter((spec) => spec.owner !== WORKSPACE_ARG)
-  const exact = roots.filter((spec) => spec.path === name || spec.alias === name)
+  const roots = knownRoots()
+  const exact = roots.filter((spec) => spec.path === name)
   if (exact.length) return exact
-  const byDomain = roots.filter((spec) => `@${spec.domain}` === name)
-  if (byDomain.length) return byDomain
-  return roots.filter((spec) => spec.owner === name)
+  return roots.filter((spec) => spec.space === name)
 }
 
-/** Project roots a person names, in setup order -- not the `@workspace:*` ones made as folders turn up. */
+/** Project groups a person names, in setup order -- not the `@local/<folder>` ones made as folders turn up. */
 export function knownRoots(): SP.ProjectRootSpec[] {
-  return Object.values(SP.SpellSetup.projectRoots).filter((spec) => spec.owner !== WORKSPACE_ARG)
+  return Object.values(SP.SpellSetup.projectRoots).filter((spec) => spec.space !== LOCAL_SPACE)
 }
 
-/**
- * What to type for root `spec`, as `resolveProject()` reads it:  its `alias`, e.g. `@library`;  else its owner if
- * it's the owner's only root, e.g. `@user`;  else `@<domain>`.
- */
+/** What to type for group `spec`, as `resolveProject()` reads it:  its address, e.g. `@spell/library`. */
 export function rootName(spec: SP.ProjectRootSpec): string {
-  if (spec.alias) return spec.alias
-  return knownRoots().filter((it) => it.owner === spec.owner).length === 1 ? spec.owner : `@${spec.domain}`
+  return spec.path
 }
 
 /**
- * Ids of the projects in `roots`, e.g. `["@system:library:cards"]`.
- * - Only folders holding a `project.json` -- see the header.
- * - A root whose folder doesn't exist, e.g. `@guides` before any guide is written, has none.
+ * Ids of the projects in `roots`, e.g. `["@spell/library/cards"]`.
+ * - Only folders holding a project file -- see the header.
+ * - A root whose folder doesn't exist, e.g. `@spell/guides` before any guide is written, has none.
  */
 export async function projectIdsIn(roots: SP.ProjectRootSpec[]): Promise<string[]> {
   const present = roots.filter((spec) => existsSync(projectUtils.serverPathForRoot(spec.path)))
   const lists = await Promise.all(present.map((spec) => projectUtils.getProjectList(spec.path)))
-  return lists.flat().filter((projectId) => hasManifest(new SP.SpellLocation(projectId).serverPath))
+  return lists
+    .flat()
+    .map(({ path, title }) => {
+      // a title of its own, for the picker (`SpellProject.listedTitles`, decision Q45)
+      if (title) SP.SpellProject.listedTitles.set(path, title)
+      return path
+    })
+    .filter((projectId) => hasProjectFile(new SP.SpellLocation(projectId).serverPath))
 }
 
 ////////////////
 // ## Spell paths
 ////////////////
 
-/** `arg` starting with `@`, other than `@workspace`. */
+/** `arg`, an address:  a group or a space, else a project or a file. */
 async function resolveSpellPath(arg: string): Promise<CLI.CliProject> {
-  const [head, ...rest] = arg.split("/")
-  const roots = rootsNamed(head!)
-  if (!roots.length) return resolveLocation(arg, arg)
-  if (!rest.length) return resolveRoots(arg, roots)
-  if (roots.length > 1) {
-    const names = roots.map((spec) => spec.alias ?? spec.path).join(", ")
-    throw new CLI.CliError(
-      `'${head}' is several project roots (${names}) -- name one, e.g. '${roots[0]!.path}:${rest[0]}'`
-    )
-  }
-  return resolveLocation(arg, `${roots[0]!.path}:${rest.join("/")}`)
+  const roots = rootsNamed(arg)
+  if (roots.length) return resolveRoots(arg, roots)
+  return resolveLocation(arg, arg)
 }
 
 /** What full spell path `path` names:  a project, or a `.spell` file in one. */
@@ -105,7 +101,8 @@ async function resolveLocation(arg: string, path: string): Promise<CLI.CliProjec
   if (location.isProjectRoot) return resolveRoots(arg, [SP.SpellSetup.projectSpectForRootPath(location.projectRoot)])
 
   const projectDir = new SP.SpellLocation(location.projectId).serverPath
-  if (!hasManifest(projectDir)) throw new CLI.CliError(`No project '${location.projectId}' (looked in ${projectDir})`)
+  if (!hasProjectFile(projectDir))
+    throw new CLI.CliError(`No project '${location.projectId}' (looked in ${projectDir})`)
   if (location.isProjectPath) return { kind: "project", arg, project: new SP.SpellProject(location.projectId) }
 
   if (location.extension !== ".spell") throw new CLI.CliError(`'${arg}' isn't a .spell file`)
@@ -127,9 +124,9 @@ async function resolveRoots(arg: string, roots: SP.ProjectRootSpec[]): Promise<C
 async function resolveDiskPath(arg: string, path: string): Promise<CLI.CliProject> {
   if (!existsSync(path)) throw new CLI.CliError(`No such file or folder:  ${arg}`)
   const isFolder = statSync(path).isDirectory()
-  const isManifest = basename(path) === SP.PROJECT_FILE
+  const isManifest = SP.isProjectFile(basename(path))
   if (!isFolder && !isManifest && extname(path) !== ".spell") {
-    throw new CLI.CliError(`'${arg}' isn't a .spell file, a project.json or a folder`)
+    throw new CLI.CliError(`'${arg}' isn't a .spell file, a project's ${SP.PROJECT_FILE} or a folder`)
   }
 
   if (isFolder) {
@@ -139,12 +136,12 @@ async function resolveDiskPath(arg: string, path: string): Promise<CLI.CliProjec
     if (roots.length) return resolveRoots(arg, roots)
   }
 
-  // `locationForDiskPath()` falls back to a file's own folder, which loading would write a `project.json` into
+  // `locationForDiskPath()` falls back to a file's own folder, which loading would write a project file into
   const folder = isFolder ? path : dirname(path)
   if (!projectDirAbove(folder)) {
     throw new CLI.CliError(`'${arg}' isn't in a spell project:  no ${SP.PROJECT_FILE} in ${folder} or above it`)
   }
-  // it looks for `project.json` from a FILE's folder up, so hand it one in the folder
+  // it looks for a project file from a FILE's folder up, so hand it one in the folder
   const location = locationForDiskPath(isFolder ? resolve(path, SP.PROJECT_FILE) : path)
   if (!location) throw new CLI.CliError(`'${arg}' has a folder or file name spell can't use`)
 
@@ -153,15 +150,10 @@ async function resolveDiskPath(arg: string, path: string): Promise<CLI.CliProjec
   return { kind: "file", arg, file: new SP.SpellFile(location.path) }
 }
 
-/** Nearest folder at or above `folder` holding a `project.json`, if any. */
+/** Nearest folder at or above `folder` holding a project file (`__project.json5`, or an old `project.json`), if any. */
 export function projectDirAbove(folder: string): string | undefined {
   for (let dir = folder; ; dir = dirname(dir)) {
-    if (hasManifest(dir)) return dir
+    if (hasProjectFile(dir)) return dir
     if (dirname(dir) === dir) return undefined
   }
-}
-
-/** Does folder `projectDir` hold a `project.json`? */
-function hasManifest(projectDir: string): boolean {
-  return existsSync(resolve(projectDir, SP.PROJECT_FILE))
 }

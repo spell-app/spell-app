@@ -1,6 +1,6 @@
 import type { E } from "$/ui/core"
-// Import directly to avoid circular import
-import { DOMElement } from "./DOMElement"
+// Import directly to avoid circular import:  spell-solid imports nothing of Spell UI, so it has always loaded first
+import { DOMElement } from "$/spell-solid"
 
 /****************
  * ### `DOMLoadableElement`

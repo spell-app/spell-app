@@ -1,0 +1,239 @@
+<!doctype html>
+<!--
+  A <brand-*> element's page in the brand's docs set (`packages/brand/docs/`, served at `/components/brand/`), in
+  Spell UI's component page shape:  masthead, then Examples / Usage / API / Theming tabs.
+  - The set's layout (`__parts/layout.html`) loads Spell UI's site bundle and the brand pack;  API and tokens come
+    from `__data/components.json` (`yarn site:data` in `packages/brand`).
+  - Example ids:  `<tab>-<section>-<example>`, as Spell UI's pages.
+  - What the examples need, styles and script, is INSIDE `main`:  the site swaps only `main` between its pages.
+    A script adds its listeners once (`window.<flag>`):  the site runs it again each time the page is shown.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Brand Color Set</title>
+    <meta
+      name="description"
+      content="<brand-color-set>:  colour chips in a row or a grid;  `selectable` makes it a radio group to pick one."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Brand Color Set">
+      <style>
+        /* an example's panel:  a sensible width, so the box reads as an inspector */
+        .brand-docs-panel {
+          display: block;
+          width: min(380px, 100%);
+        }
+      </style>
+
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../../packages/brand/components/brand-color-set/"
+              icon="code"
+              aria-label="Its code"
+              title="Its code"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Brand Color Set
+            <ui-label color="yellow" size="small">New</ui-label>
+            <ui-header>Colour chips in a row or a grid, to pick one from or just to show.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-presets" header="Presets" sticky collapsible dividing>
+                <ui-docs-example
+                  description="The Color Set Chooser's presets:  `selectable` makes the set a radio group;  `value` is the chosen chip's `name`.  Click a chip, or tab in and use the arrow keys."
+                >
+                  <ui-panel header="Color Set" color="accent" class="brand-docs-panel">
+                    <ui-panel header="Presets">
+                      <brand-color-set
+                        selectable
+                        value="violet"
+                        aria-label="Presets"
+                        style="--brand-color-size: 28px"
+                      >
+                        <brand-color name="brand" value="#8E96B5" details></brand-color>
+                        <brand-color name="accent" value="#F1E7D4" details></brand-color>
+                        <brand-color name="violet" value="#6550CA" details></brand-color>
+                        <brand-color name="teal" value="#14A39A" details></brand-color>
+                        <brand-color name="rose" value="#E8436A" details></brand-color>
+                        <brand-color name="amber" value="#F0A020" details></brand-color>
+                      </brand-color-set>
+                    </ui-panel>
+                  </ui-panel>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-families" header="Families grid" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`columns`:  a grid of equal cells, each chip filling its cell.  The brand's 20 colour sets, each at its seed's step (the Chooser's &quot;Or start from a family&quot;)."
+                >
+                  <brand-color-set
+                    columns="10"
+                    selectable
+                    value="brand"
+                    aria-label="Colour families"
+                    class="brand-docs-panel"
+                    style="--brand-color-set-gap: 4px"
+                  >
+                    <brand-color name="brand" value="#8E96B5"></brand-color>
+                    <brand-color name="accent" value="#F1E7D4"></brand-color>
+                    <brand-color name="red" value="#FB2C36"></brand-color>
+                    <brand-color name="orange" value="#FC7100"></brand-color>
+                    <brand-color name="amber" value="#F69E00"></brand-color>
+                    <brand-color name="yellow" value="#EAB300"></brand-color>
+                    <brand-color name="lime" value="#82CC00"></brand-color>
+                    <brand-color name="green" value="#00C65A"></brand-color>
+                    <brand-color name="emerald" value="#00B981"></brand-color>
+                    <brand-color name="teal" value="#00B9A6"></brand-color>
+                    <brand-color name="cyan" value="#00B6D4"></brand-color>
+                    <brand-color name="sky" value="#00A5EA"></brand-color>
+                    <brand-color name="blue" value="#3280FF"></brand-color>
+                    <brand-color name="indigo" value="#6260FF"></brand-color>
+                    <brand-color name="violet" value="#6550CA"></brand-color>
+                    <brand-color name="purple" value="#AB4EFF"></brand-color>
+                    <brand-color name="fuchsia" value="#E12AFB"></brand-color>
+                    <brand-color name="pink" value="#F6339A"></brand-color>
+                    <brand-color name="rose" value="#FF2357"></brand-color>
+                    <brand-color name="grey" value="#868992"></brand-color>
+                  </brand-color-set>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-row" header="Laid-out row" sticky collapsible dividing>
+                <ui-docs-example
+                  description="Without `selectable`, just a row:  each chip keeps its own look and behaviour (`label`, `copy` ...).  Too narrow, every chip shrinks alike."
+                >
+                  <brand-color-set>
+                    <brand-color name="brand-300" value="#C8CEE7" label="step" copy="token"></brand-color>
+                    <brand-color name="brand-400" value="#A9B1CF" label="step" copy="token"></brand-color>
+                    <brand-color
+                      name="brand-500"
+                      value="#8E96B5"
+                      label="step"
+                      copy="token"
+                      selected
+                    ></brand-color>
+                    <brand-color name="brand-600" value="#767D9A" label="step" copy="token"></brand-color>
+                    <brand-color name="brand-700" value="#5D637D" label="step" copy="token"></brand-color>
+                  </brand-color-set>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-value" header="Value" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`value` names the chosen chip by `name`, or by colour however written (`20 163 154` finds `#14A39A`).  Unset, the chips' own `selected` stand."
+                >
+                  <brand-color-set selectable value="20 163 154" aria-label="Accent colour">
+                    <brand-color value="#6550CA"></brand-color>
+                    <brand-color value="#14A39A"></brand-color>
+                    <brand-color value="#E8436A"></brand-color>
+                  </brand-color-set>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Put `<brand-color>` chips inside. Add `selectable` to let people pick one, and an `aria-label` to
+                  name the group.
+
+                  - `value` is the chosen chip's `name`, else its colour; set it to choose one from code.
+                  - A choice dispatches `ui-change` (`{ value }`), then sets `value`. Re-set `value` in the handler to
+                    refuse it.
+                  - Without `columns`, chips sit in one row at their own size (`--brand-color-size`); with it, they
+                    fill a grid's cells.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const presets = document.querySelector("brand-color-set")
+                  presets.addEventListener("ui-change", (event) => {
+                    document.querySelector("brand-color-range").value =
+                      presets.querySelector(`[name="${event.detail.value}"]`).getAttribute("value")
+                  })
+                </script>
+              </ui-code>
+            </ui-section>
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A `selectable` set is one Tab stop: the chosen chip, else the first.
+
+                  - Arrow keys move to the next or previous chip and choose it, wrapping at the ends (left and right
+                    swap in right-to-left text).
+                  - Home and End go to the first and last chip.
+                  - Enter or Space chooses the focused chip.
+                </script>
+              </ui-markdown>
+            </ui-section>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - `selectable`: the set is a radio group (named by its own `aria-label`), each chip a radio named
+                    by its name and colour, checked when chosen.
+                  - Chips in a `selectable` set never copy: a click chooses.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <ui-docs-api family="brand-color-set"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Set a `--brand-color-set-*` token on the set, any ancestor or `:root`; the chips take
+                  `--brand-color-*`. Edit a value below to try it.
+                </script>
+              </ui-markdown>
+              <ui-docs-tokens family="brand-color-set" playground>
+                <brand-color-set selectable value="violet" aria-label="Presets" style="--brand-color-size: 28px">
+                  <brand-color name="brand" value="#8E96B5"></brand-color>
+                  <brand-color name="accent" value="#F1E7D4"></brand-color>
+                  <brand-color name="violet" value="#6550CA"></brand-color>
+                  <brand-color name="teal" value="#14A39A"></brand-color>
+                  <brand-color name="rose" value="#E8436A"></brand-color>
+                  <brand-color name="amber" value="#F0A020"></brand-color>
+                </brand-color-set>
+              </ui-docs-tokens>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

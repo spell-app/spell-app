@@ -41,7 +41,7 @@ import { windowCommand } from "$/cli/commands/windowCommand"
 export function spellProgram(): Command {
   return new Command("spell")
     .description("Compile, check and explore spell projects.")
-    .option("--all", "a whole root, e.g. @library, means ALL its projects")
+    .option("--all", "a whole root, e.g. @spell/library, means ALL its projects")
     .option("--verbose", "show spell's own logging, on stderr")
 }
 
@@ -143,7 +143,7 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
   dev
     .command("docs")
     .description(
-      "the docs tools:  update, index, new, open, link a page, fuss over writing, offline check (packages/docs/tools)"
+      "the docs tools:  update, index, new, open, link a page, fuss over writing, offline check (packages/epics/tools)"
     )
     .argument("[verb]", DOCS_VERBS.join(" | "))
     .argument("[args...]", "the tool's arguments, e.g. open solid/solid-2 --vs")

@@ -12,19 +12,20 @@ The code is in `src/`, imported as `$/cli`.
 
 This package holds ONLY the command line.
 Spell itself is the spell-family packages beside this one in the monorepo, along with `ui`:
-the parser, the language, the language server, the runtime, and the projects in `spell/projects/`.
+the parser, the language, the language server, the runtime, and `spaces`, where the projects are.
 
 ```
 packages/
   cli/         this package
-  spell/       the spell language, and `projects/`:  its SOURCE runs, straight from `../spell/src`
+  spell/       the spell language:  its SOURCE runs, straight from `../spell/src`
+  spaces/      where projects live:  the built-in ones (`@spell/`), and projects on disk
   parser/      the generic parser
   core/        the runtime compiled spell runs on, and its Python twin
   lsp/         the language server
   ui/          `@spell-app/ui`
 ```
 
-- This package depends on `spell` and `ui` as workspaces, and the aliases reach the rest.
+- This package depends on spell, spaces and ui as workspaces, and the aliases reach the rest.
   - `package.json` lists them as `workspace:*`.
   - One `yarn` at the monorepo root installs everything.
 - `$/cli` is this package's `src/`.
@@ -55,14 +56,14 @@ Every command takes one or more projects (a lone spell file counts as a one-file
 | You type | Means |
 |---|---|
 | `Card.spell`, `./path/to/Project`, `.` | a spell file, or the project in a folder |
-| `@workspace` | the project in the current folder |
-| `@library/cards`, `@test/Solitaire`, `@examples/Solitaire` | one project, by its root's short name |
-| `@system:library:cards` | one project, by full id |
-| `@library`, `@examples`, `@user`, `@system` | a whole root:  pick from a list, with "All projects" first |
+| `@here` | the project in the current folder |
+| `@spell/library/cards`, `@spell/examples/solitaire`, `owen@spell/errors` | one project, by its address |
+| `@spell/test/solitaire/Card.spell` | a file in one:  its name has a dot |
+| `@spell/library`, `owen@spell`, `@spell` | a group, or all of a space's groups:  pick from a list, with "All projects" first |
 
-- `--all` takes every project in a root without asking, e.g. in a script.
-- With no terminal to ask on, a bare root lists its projects and exits `2`.
-- A root holding just one project uses it without asking.
+- `--all` takes every project in a group without asking, e.g. in a script.
+- With no terminal to ask on, a group lists its projects and exits `2`.
+- A group holding just one project uses it without asking.
 
 ### Commands
 
@@ -84,7 +85,7 @@ Longer notes on some of them follow the table.
 | `spell dev vscode [build\|install]` | The VS Code extension:  build it, install it, or (no verb) both. |
 | `spell icons [query]` | Finds `@spell-app/ui` icons by name, alias or keyword. |
 | `spell static <pages...>` | `@spell-app/ui` pages as plain HTML, for crawlers and no-JS readers. |
-| `spell compile <projects...>` | Compiles each project, writing its output beside it. |
+| `spell compile <projects...>` | Compiles each project, writing its output into `build/`, its declarations and words beside it. |
 | `spell check <projects...>` | Lists errors on stdout as `path:line:col  message`.  `--json` for a JSON list. |
 | `spell describe <project> [name] [member]` | What the Type Explorer shows, as text.  E.g. `spell describe Card.spell Card color`.  `--compiled`, `--inherited`, `--json`. |
 | `spell explore [project]` | Full-screen Type Explorer.  Reloads as files change. |
@@ -92,12 +93,12 @@ Longer notes on some of them follow the table.
 | `spell run [project]` | Compiles and runs the project under node.  Its `print`s show as they happen.  `--target ts` / `py` runs it as that target compiles it:  a Python program that draws is served as its web app.  `yarn dev`, `dev:ts`, `dev:py` from a project's folder. |
 | `spell test [projects...]` | Runs each `to test ...` and reports ✓, or ✗ with the checks that failed. |
 | `spell format <projects...>` | Tidies `.spell` files' whitespace, as VS Code's Format Document does. |
-| `spell projects [root]` | Lists the project roots, or one root's projects, with the names to type.  `--json`. |
+| `spell projects [group]` | Lists the project groups, or one group's projects, by address.  `--json`. |
 | `spell speed [module]` | Times the parser's rule tests (`SP.spellParser.speedTest()`), 3 fresh runs, as a markdown table. |
 | `spell parse "<text>"` | How spell reads a line:  its match tree, then its javascript. |
 | `spell repl [project]` | `spell parse`, a line at a time:  what a line declares, later lines know. |
 | `spell explain <word>` | Rules `word` names or starts (`print`, `repeat`):  syntax and an example. |
-| `spell new <name>` | Makes `<name>/project.json`, and a starter `<name>.spell` that prints a hello. |
+| `spell new <name>` | Makes `<name>/__project.json5`, and a starter `<name>.spell` that prints a hello. |
 | `epic <verb> <epic>[#<id>] ...` | Edits an epic's page as the `/epic` skill does, from anywhere:  `epic summary seo`, `epic close seo#J3`. |
 | `epic ask <verb> ...` | Details pages:  the `/details` skill's tool. |
 | `epic choices <verb> ...` | Choice pages:  a table of names Claude recommends, one row per use site, which Owen goes through one by one. |
@@ -127,16 +128,30 @@ Longer notes on some of them follow the table.
   - `--inline-css`:  each page's own `<style>` instead.
   - `--no-minify`.
   - A folder:  every `.html` in it.
-- `compile`:  writes each project's compiled javascript and its declarations, beside it.
-  - That's `<Project>.compiled.js` and `<Project>.declarations.json`.
+- `compile`:  writes each project's compiled javascript, and its declarations and words.
+  - The compiled javascript, `<Project>.spell.js`, goes in the project's build folder.
+  - Its declarations and words are committed beside its source:
+    `<Project>.declarations.json5` and `<Project>.en.js`.
+  - The build folder:  in `build/` at the repo root, never committed, at the project's own path.
+    - under `packages/`:  `build/spaces/@spell/examples/solitaire`
+    - under `tests/`:  `build/spaces/@spell/test/fizzbuzz`
+    - in spell-spaces:  `build/spell-spaces/@spell/owen@/errors`
+    - A project anywhere else keeps its output beside its source.
+    - See "Projects" in [PARSING.md](../spell/PARSING.md).
   - Also each other target's output, e.g. Python's:  the project's targets, or the one `--target <name>` names.
-    - A project's targets are the `"targets"` in its `project.json`.
+    - A project's targets are the `"targets"` in its project file.
       Every target is in `SP.TARGETS`.
   - A target with a type checker is checked once written:  TypeScript by `tsc`, Python by `pyright`.
     Its errors are listed, but don't fail the compile.
   - With no errors, its scope pack, `<Project>.scopes.js`.
   - `--stdout` prints it and writes nothing.
   - `--force` recompiles the projects it imports, too.
+  - `--stale` compiles only the projects that are out of date, and the same for what they import;
+    the rest say "up to date".
+    - Out of date:  a file it builds is missing, or one of its files, its project file,
+      an import's declarations or spell's compiler changed since its build (`CLI.staleBecause()`).
+    - The page server runs `spell compile --stale --all @spell/examples @spell/library` as it starts,
+      and spaces' routes compile a project whose built file is missing:  nothing to run by hand in a fresh checkout.
   - A `.spell` file prints its javascript.
 - `explore`'s keys:
   - `↑↓` move, `←→` fold
@@ -159,7 +174,7 @@ Longer notes on some of them follow the table.
   - `--watch` is `spell watch --test`.
 - `format`:
   - `--check` writes nothing, lists what would change, and exits 1 if anything would.
-  - Never writes into `projects/test/`.
+  - Never writes into the test projects, `tests/spaces/@spell/test/`.
 - `speed`:
   - `--against HEAD` times that commit too, in a temp worktree, and adds a Change row.
   - `--runs`, `--json`.
@@ -172,7 +187,8 @@ Longer notes on some of them follow the table.
   - Piped, it reads stdin.
 - `explain`:  `--in <project>`:  also what that project declares by that name, as the editor's hover.
   `--json`.
-- `new`:  makes the project in `@user`'s folder.
+- `new`:  makes the project in Owen's own space, `owen@spell`.
+  - Its folder:  `../spell-spaces/@spell/owen@/`, in spell-spaces beside the main checkout.
   - `--in <folder>`:  in that folder instead.
   - Refuses a folder with anything in it.
 
@@ -195,7 +211,7 @@ Longer notes on some of them follow the table.
   - Exits 1 on a broken one.  `--json`.
 - `dev goals`:  PARKED (epic `epic-workflow` P6):  a stub that says so.
   - The goals tool, its skills and routes are in `packages/goals.zip`;  epic `epic-goals` rebuilds them.
-- `dev docs`:  each verb runs as the root's `yarn docs:<verb>` did, in the docs package.
+- `dev docs`:  each verb runs as the root's `yarn docs:<verb>` did, in the docs tools' package, [epics](../epics/).
   - Arguments are passed as they are, e.g. `spell dev docs open solid/solid-2 --vs`.
 - `dev server`:  this checkout's page server.
   - Its verbs:
@@ -224,11 +240,11 @@ Longer notes on some of them follow the table.
     - Only the files it lacks;  `package.json` is merged.
     - The templates:  [the package templates](templates/pack/package/).
   - `element <pack> <tag>`:  adds one family, from [the element templates](templates/pack/element/).
-  - `build <pack>`:  writes `pack/`.
+  - `build <pack>`:  writes `components/__pack/`.
     - the catalog, from the vocabularies, by Spell UI's [`RootCatalog.ts`](../ui/tools/RootCatalog.ts)
     - the entry
     - ONE classic script, `<pack>.pack.js`
-  - `check [<pack>]`:  exits 1 when `pack/` is stale.  No pack:  every pack.
+  - `check [<pack>]`:  exits 1 when `components/__pack/` is stale.  No pack:  every pack.
   - Making a pack or an element builds it too, unless `--no-build`.
   - `--json`.
 - `dev window`:  runs [`window.mjs`](../../scripts/window.mjs).
@@ -259,15 +275,17 @@ Longer notes on some of them follow the table.
 
 #### The `epic` command
 
-- `epic` is the epic tools' own command (epic `epic-workflow` P9):  epic pages, the pages Owen answers on, agents,
-  airplane mode.
+- `epic` is the epic tools' own command (epic `epic-workflow` P9):
+  epic pages, the pages Owen answers on, agents, airplane mode.
   - A second bin of this package, [epic.mjs](bin/epic.mjs):  `yarn cli:install` links it beside `spell`.
-    Root `yarn epic`, and `yarn ask` for `epic ask`.
-  - It starts LEAN, as `spell dev` does:  [`epicMain.ts`](src/epicMain.ts) loads no spell.
-    - `send`, `requests`, `file`, `home` and `merge` need spell's session helpers:  they hand over to `main.ts`,
-      and take the usual half second.
-  - Its tree:  [`epicProgram.ts`](src/epicProgram.ts).
-  - `epic --help` lists every verb, under headings;  `epic help <verb>` (or `epic <verb> --help`) shows one's.
+    - Root `yarn epic` runs it too.
+    - `yarn ask` runs `epic ask`.
+  - It starts LEAN, as `spell dev` does:  [epicMain.ts](src/epicMain.ts) loads no spell.
+    - Some verbs need spell's session helpers:  they hand over to `main.ts`, and take the usual half second.
+      They are `send`, `requests`, `file`, `home` and `merge`.
+  - Its tree:  [epicProgram.ts](src/epicProgram.ts).
+  - `epic --help` lists every verb, under headings.
+  - `epic help <verb>` shows one verb's;  so does `epic <verb> --help`.
 - What a verb acts on:  `epic <verb> <epic>#<id>`.
 
   ```
@@ -277,21 +295,29 @@ Longer notes on some of them follow the table.
   seo#J      a new item of that kind, for add:  epic add seo#J "Title"
   ```
 
-  - E.g. `epic summary seo`, `epic close seo#J3`, `epic phase seo#3 done --done "<ul>...</ul>"`,
-    `epic update seo#P3 --goal "<p>...</p>" --estimate 2h`.
-  - [`epicArgs.ts`](src/epic/epicArgs.ts) turns `seo#J3` into the `epic` tool's own arguments (`close seo J3`).
+  - E.g.:
+
+    ```sh
+    epic summary seo
+    epic close seo#J3
+    epic phase seo#3 done --done "<ul>...</ul>"
+    epic update seo#P3 --goal "<p>...</p>" --estimate 2h
+    ```
+
+  - [epicArgs.ts](src/epic/epicArgs.ts) turns `seo#J3` into the `epic` tool's own arguments (`close seo J3`).
 - The OLD spellings still work, until no caller is left:
-  - `spell dev plan-doc <command> <name> ...`,
-    and `spell dev details | choices | comments | notes | agents | airplane`, hidden from `spell dev --help`.
-    Root `yarn plan-doc` and `yarn details` still run them.
+  - `spell dev plan-doc <command> <name> ...`
+  - `spell dev details | choices | comments | notes | agents | airplane`
+    - These two are hidden from `spell dev --help`.
+      Root `yarn plan-doc` and `yarn details` still run them.
   - `spell epic <verb>`.
   - `spell plan-doc` is GONE:  it was deprecated, and its callers moved.
-- An epic's page:  `new`, `summary`, `phase`, `add`, `close`, `inbox` ... edit `<name>.plan.html`, in the epic's own
-  folder.
+- An epic's page:  its verbs edit `<name>.plan.html`, in the epic's own folder.
+  - `new`, `summary`, `phase`, `add`, `close`, `inbox` ...
   - Works in the nearest checkout:  a worktree's, when run in one.
   - The `epic` tool runs in this process:  `epic summary seo` takes ~0.4s.
-- `ask`:  details pages, the `/details` skill's tool.  Runs [`details.js`](../docs/tools/details.js).
-- `choices`:  runs [`choices.js`](../docs/tools/choices.js).
+- `ask`:  details pages, the `/details` skill's tool.  Runs [`details.js`](../epics/tools/details.js).
+- `choices`:  runs [`choices.js`](../epics/tools/choices.js).
   - Its verbs:
 
     ```
@@ -304,15 +330,22 @@ Longer notes on some of them follow the table.
 
   - Owen sends a page with "Do it".
   - What they are:  [the choice-page guide](../../guides/syntax-choices.html).
-- `notes`:  runs [`notes.ts`](../docs/tools/notes.ts), in the caller's folder.
+- `notes`:  runs [`notes.ts`](../epics/tools/notes.ts), in the caller's folder.
   The notes are written into the pages.
   - `list [--all] [--json]`:  the default;  every `new` note in the shared folders.
   - `answer <page> <id> --file <html>`:  Claude's reply under the note, which is then `answered`.
   - `done <page> <id>`.
-- `comments`:  runs [`comments.ts`](../docs/tools/comments.ts):  comments Owen leaves on docs pages.
-  - `list [<epic>]`, `gather`, `working <page> <id> on | off`, `answer <page> <id> --file <html>`.
+- `comments`:  runs [`comments.ts`](../epics/tools/comments.ts):  comments Owen leaves on docs pages.
+  - Its verbs:
+
+    ```
+    list [<epic>]
+    gather
+    working <page> <id> on | off
+    answer <page> <id> --file <html>
+    ```
 - `agents`:  for the `/bg` skill, and every agent Claude starts.
-  Runs [`agents.ts`](../docs/tools/agents.ts).
+  Runs [`agents.ts`](../epics/tools/agents.ts).
   - The list:  this checkout's epic's, else the checkout's.  Both git-ignored.
     - an epic's:  `agents.json`, in its `epics/<epic>/` folder
     - a checkout's:  `.spell-agents.json`, at its root
@@ -332,13 +365,21 @@ Longer notes on some of them follow the table.
   - Names get a prefix:  the epic's, else the worktree's, else `main`.
     E.g. `add aaa` in epic skillz makes `skillz-aaa`.
   - An entry leaves when its agent finishes;  the file goes when empty.
-- `airplane`:  runs [`airplane.ts`](../docs/tools/airplane.ts):  `status`, `on`, `off`, `check [--fix]`, `inbox`.
+- `airplane`:  runs [airplane.ts](../epics/tools/airplane.ts).
+  - Its verbs:
+
+    ```
+    status  on  off  check [--fix]  inbox
+    ```
 
 #### Everywhere
 
 - No project named:  the project here, for every command.
   - Outside a project, in a terminal, `spell` asks, completing as you type, like a shell.
-    - `Tab` completes a root (`@examples/`), then a project, then "entire project" or one of its files.
+    - `Tab` completes, a level at a time:
+      - a group, `@spell/examples/`
+      - then a project, `@spell/examples/solitaire/`
+      - then "entire project", or one of its files
   - Your last 3 picks come first (kept in `.recent-projects.json`, gitignored).
   - Piped, it says to name one.
 - Names in `describe` ignore case, and a space, a dash and an underscore are all alike.
@@ -359,8 +400,10 @@ Longer notes on some of them follow the table.
 
 ### What can write files
 
-- `compile` writes `<Project>.compiled.js`, as the app does.
-  - With no errors, also `<Project>.scopes.js`, as the language server does.
+- `compile` writes the compiled javascript, `<Project>.spell.js`, into the project's build folder, as the app does.
+  - With no errors, also `<Project>.scopes.js` there, as the language server does.
+  - `--stale` writes only the projects that are out of date.
+  - And its declarations and words beside its source, `<Project>.declarations.json5` and `<Project>.en.js`.
   - `--stdout` writes neither.
   - `watch` the same after each rebuild, unless `--check-only`.
 - `static` writes:
@@ -374,15 +417,15 @@ Longer notes on some of them follow the table.
   ```
 
   - But if a project imports one that has NEVER been compiled, it's compiled first,
-    which writes that project's `.compiled.js`.
+    which writes that project's `.spell.js`.
     Parsing fails without it.
-- An imported project's existing `.compiled.js` is used as is, even if its sources changed since.
+- An imported project's existing `.spell.js` is used as is, even if its sources changed since.
   Compile it first.
 - `run` / `test` compile to a temp file, never into the project.
-- A folder, or a loose `.spell` file, with no `project.json` at or above it is REFUSED:
+- A folder, or a loose `.spell` file, with no project file at or above it is REFUSED:
   loading it would write one there.
   - That's `projectUtils.getIndex()`.
-- Loading any project may still rewrite its `project.json`, if its imports are out of step with its files.
+- Loading any project may still rewrite its project file, if its imports are out of step with its files.
   That's `getIndex()`, the same as in the app.
 
 - `dev pack new` / `element` write a pack's files, never over one that's there.
@@ -393,7 +436,7 @@ Longer notes on some of them follow the table.
   src/dev/mergeMain.ts, and the shared commands page, guides/dev/commands/commands.json
   ```
 
-- `dev pack build` writes the pack's `pack/`.
+- `dev pack build` writes the pack's `components/__pack/`.
 
 ### `dev pack`
 
@@ -453,7 +496,7 @@ Longer notes on some of them follow the table.
 ### `serve`
 
 - Starts this checkout's PAGE SERVER if it isn't running:  [`packages/server`](../server/), on port 4747, else any free one.
-  - Its route modules serve the app's `/api` (app's `appRoutes.ts`), docs, epics and Spell UI's docs.
+  - Its route modules serve the app's `/api` (spaces' `appRoutes.ts`), docs, epics and Spell UI's docs.
 - Runs the app's own `yarn start:dev` (vite), in its own process group, passing `/api` on to the page server.
   - Records it in `.spell-server.editor.json`,
     so the site header's "Editor" (`/editor` on the page server) reaches it.
@@ -524,8 +567,8 @@ Longer notes on some of them follow the table.
 
 ### `watch`
 
-- It watches each project's folder:  its spell files, CSS and `project.json`.
-  It ignores `*.compiled.js` and `*.scopes.js`.
+- It watches each project's folder:  its spell files, CSS and project file.
+  It ignores `*.spell.js` and `*.scopes.js`.
 - Watching both a project and one it imports:  the importer rebuilds, from scratch, after the imported one does.
   - A project imported but not watched isn't seen changing.
 - On macOS a save arrives as a `rename` event, so `watch` ignores event types and looks at what's on disk.
@@ -546,7 +589,7 @@ Longer notes on some of them follow the table.
   - And `yarn ts` here reports their type errors too.
 - **Startup takes about half a second:**  `tsx` compiles their source on each run, and caches it.
   - `spell dev ...` and `epic ...` start in about a fifth of that:
-    the bin scripts run [`devMain.ts`](src/devMain.ts) and [`epicMain.ts`](src/epicMain.ts), which load no spell.
+    the bin scripts run [devMain.ts](src/devMain.ts) and [epicMain.ts](src/epicMain.ts), which load no spell.
     - Then the tool, as a child `node`:  `spell dev window which` takes ~0.17s.
     - Or the `epic` tool, in the same process:  `epic summary` takes ~0.4s.
   - Its commands that need spell (`session`, `stock` ...) take the usual half second.
@@ -563,9 +606,9 @@ Longer notes on some of them follow the table.
   See the parser's section of [the suspected-bugs log](../../agents/SUSPECTED-BUGS.md).
 - **Name clashes:**  a shell alias or function named `spell` hides the command.
   Check `type -a spell` in a login shell.
-- **Test projects:**  running a test project (`projects/test/`) from VS Code's ▶ Run Project writes into it.
-  - It writes `<Project>.compiled.js` and `settings.json5`.
-  - Test projects should stay frozen, so delete those.
+- **Test projects:**  running a test project (`tests/spaces/@spell/test/`) from VS Code's ▶ Run Project writes into it.
+  - It writes `settings.json5` there;  its compiled javascript goes in `build/`.
+  - Test projects should stay frozen, so delete it.
 
 
 ## TODO
@@ -587,11 +630,11 @@ Longer notes on some of them follow the table.
 ### Review items
 
 - Not yet reviewed by a person.
-  - Tests:  54 in all, in `src/**/*.test.ts(x)`.
+  - Tests:  54 in all, in the repo's `tests/cli/src/**/*.test.ts(x)`.
     They include end-to-end runs of the bin script ([spell.mjs](bin/spell.mjs)).
 - The one thing it needs IN spell, in [`SpellProject.ts`](../spell/src/SpellProject.ts):
   `SpellProject.compile(parentScope, { save })`.
-  - `save: false` skips writing `<Project>.compiled.js`.
+  - `save: false` skips writing `<Project>.spell.js`.
   - Without it, `compile --stdout` would write into the project, as would running or testing it.
 - Brought up to date with the parser's scope-tree rework when it moved here:
   - things in the Type Explorer's tree are named by `path`, not `id`

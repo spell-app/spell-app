@@ -17,16 +17,38 @@
  *   - spell's words for one thing, `tableau T1` and `the first tableau`, compile to `thingNamed()` and `thingAtPlace()`
  * - And the other way:  an element the program draws takes its thing's name as its `id`,
  *   `<solitaire-card id="queen-of-spades">` -- see `elementIdFor()`.
- * - Part of `spellCore`:  imported by `$/core`'s barrel for its side effect.
+ * - WHERE they look:  the running program's things, or what the caller hands `searchThings()` instead
+ *   (epic `people-and-orgs` P9, Q44).
+ *   - So a library's code finds things by name too, under `$/core/model`, which has no running program:
+ *     the people store searches its people and orgs, `Person#owen`.
+ * - Part of `spellCore`:  imported by `$/core`'s barrel, and by `$/core/model`, for its side effect.
+ *   - The model has no drawing, so no `elementIdFor()`:  it says so if it's called there.
  */
 
 import { untrackCells } from "$/util"
 
-import { spellCore } from "./core"
+import { programThings, spellCore } from "./core"
 import { defineSpellCoreModule } from "./spellCore.types"
 
 /** `spellCore`'s methods for thing references. */
 export const referencesMethods = defineSpellCoreModule({
+  /**
+   * Look things up in `things` from now on, not in the running program's.
+   * - Returns what was searched before, to put back.
+   * - `undefined`:  the running program's things again.
+   * - What a library's code needs under `$/core/model`, which has no running program, e.g. the people store's:
+   *
+   *   ```ts
+   *   const before = spellCore.searchThings({ all: () => people, classNamed: (name) => classes[name] })
+   *   try { spellCore.thingForReference("Person#owen") } finally { spellCore.searchThings(before) }
+   *   ```
+   */
+  searchThings(things: ThingsToSearch | undefined): ThingsToSearch | undefined {
+    const before = searched
+    searched = things
+    return before
+  },
+
   /**
    * The program's thing `reference` names, e.g. the tableau named T1 for `Tableau#T1` -- `undefined` if none.
    * - `Type#name`:  its thing of `Type` or a sub-type with that name, as `thingNamed()` finds it.
@@ -35,14 +57,15 @@ export const referencesMethods = defineSpellCoreModule({
    *   - Digits are always a place:  a thing named "3" can't be found by its name.
    *   - A place across sub-types, `Pile#2` for the second pile of any kind, is a todo (T10).
    * - `Type` is a class's name, exactly as the program declares it:  `Tableau`, never `tableau`.
-   *   Found by `spellCore.things.classNamed()`, which knows a class once one of its things is made.
+   *   Found by `spellCore.things.classNamed()`, which knows a class once one of its things is made;
+   *   or by the `classNamed()` of what `searchThings()` says.
    * - Tracked:  a reader re-runs as things are made, so it finds the thing as soon as the program makes it.
    */
   thingForReference(reference: string): object | undefined {
     const parts = REFERENCE.exec(reference.trim())
     if (!parts) return undefined
     const [, type, name] = parts as unknown as [string, string, string]
-    const Class = spellCore.things.classNamed(type)
+    const Class = thingsSearched().classNamed(type)
     return Class ? spellCore.thingCalled(Class, name) : undefined
   },
 
@@ -70,11 +93,11 @@ export const referencesMethods = defineSpellCoreModule({
    * - Tracked, as `thingForReference()`.
    */
   thingNamed<T>(Class: abstract new (...args: never[]) => T, name: string): T | undefined {
-    const { things } = spellCore
+    const things = thingsSearched()
     for (const thing of things.all()) {
       if (thing instanceof Class && nameOf(thing) === name) return thing
     }
-    const kept = things.exported[name]
+    const kept = things.exported?.[name]
     return kept instanceof Class ? kept : undefined
   },
 
@@ -88,7 +111,9 @@ export const referencesMethods = defineSpellCoreModule({
    * - Tracked, as `thingForReference()`.
    */
   thingAtPlace<T>(Class: abstract new (...args: never[]) => T, place: number): T | undefined {
-    const things = spellCore.things.all().filter((thing) => thing.constructor === Class)
+    const things = thingsSearched()
+      .all()
+      .filter((thing) => thing.constructor === Class)
     if (!Number.isInteger(place) || place === 0) return undefined
     return things.at(place > 0 ? place - 1 : place) as T | undefined
   },
@@ -102,10 +127,10 @@ export const referencesMethods = defineSpellCoreModule({
    * - Tracked, as `thingForReference()`:  it follows the thing's name.
    */
   referenceFor(thing: unknown): string | undefined {
-    const { things } = spellCore
-    if (!things.isThing(thing)) return undefined
+    if (!thing || typeof thing !== "object") return undefined
+    const things = thingsSearched()
     const Class = thing.constructor as abstract new (...args: never[]) => unknown
-    const name = nameOf(thing) ?? things.nameOf(thing)
+    const name = nameOf(thing) ?? topLevelNameOf(things, thing)
     if (name && !PLACE.test(name) && spellCore.thingNamed(Class, name) === thing) return `${Class.name}#${name}`
     const place = things
       .all()
@@ -129,6 +154,7 @@ export const referencesMethods = defineSpellCoreModule({
    */
   elementIdFor(thing: unknown): string | undefined {
     if (!thing || typeof thing !== "object") return undefined
+    if (!programThings()) throw new Error("elementIdFor() needs drawing:  import $/core, not $/core/model")
     const name = idNameOf(thing)
     if (!name) return undefined
     const kept = ELEMENT_IDS.get(thing)
@@ -140,6 +166,36 @@ export const referencesMethods = defineSpellCoreModule({
   }
 })
 Object.assign(spellCore, referencesMethods)
+
+/**
+ * What the lookups search:  a list of things, and their classes by name.
+ * - The running program's things (`spellCore.things`), or what `searchThings()` was given.
+ */
+export type ThingsToSearch = {
+  /** Every thing to search, in the order they were made:  a place counts in it. */
+  all(): readonly object[]
+  /** The class named `name`, e.g. `Person` for `Person#owen`;  `undefined` if there's none. */
+  classNamed(name: string): (abstract new (...args: never[]) => unknown) | undefined
+  /** Things kept under a top-level name, e.g. `{ game }`:  found by that name too.  None if left out. */
+  readonly exported?: Readonly<Record<string, unknown>>
+}
+
+/** What `searchThings()` was last given:  `undefined` for the running program's things. */
+let searched: ThingsToSearch | undefined
+
+/** Nothing to search:  under `$/core/model`, before `searchThings()`. */
+const NOTHING: ThingsToSearch = { all: () => [], classNamed: () => undefined }
+
+/** What the lookups search now:  `searchThings()`'s, else the running program's things, else nothing. */
+function thingsSearched(): ThingsToSearch {
+  return searched ?? programThings() ?? NOTHING
+}
+
+/** The top-level name `things` keep `thing` under, e.g. `game` -- `undefined` if none. */
+function topLevelNameOf(things: ThingsToSearch, thing: object): string | undefined {
+  const { exported = {} } = things
+  return Object.keys(exported).find((name) => exported[name] === thing)
+}
 
 /** A reference, its type and its name or place captured:  `Tableau#T1`, `Card#queen-of-spades`, `Tableau#1`. */
 const REFERENCE = /^([A-Za-z_$][\w$]*)#(.+)$/
@@ -177,8 +233,22 @@ function idNameOf(thing: object): string | undefined {
 
 /** `thing`'s name, as text -- `undefined` if it has none, or reading it throws. */
 function nameOf(thing: object): string | undefined {
-  const read = spellCore.things.read(thing as Parameters<typeof spellCore.things.read>[0], "name")
+  const read = readName(thing)
   if (!("value" in read)) return undefined
   const { value } = read
   return value === undefined || value === null || value === "" ? undefined : `${value as string | number}`
+}
+
+/**
+ * `thing`'s `name`, or the error reading it threw.
+ * - Through the running program's things when there are any:  quietly, so a computed name makes nothing of theirs.
+ */
+function readName(thing: object): { value: unknown } | { error: string } {
+  const things = programThings()
+  if (things) return things.read(thing as Parameters<typeof things.read>[0], "name")
+  try {
+    return { value: (thing as { name?: unknown }).name }
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : String(error) }
+  }
 }

@@ -7,8 +7,15 @@
   // - Paths are fixed, never `${configDir}`:  `tsx` can't resolve it (4.20 throws, 4.23 ignores it).
   // - `$` means `packages/`:  `$/name` is a package's barrel, `$/name/...` a file in its `src/`, and `$/ui/test/...`
   //   `ui`'s test helpers.  It can't collide with an npm name (`@spell-app/...`) the way a bare `name/...` could.
+  //   A component set's elements live in its package's `components/`, outside `src/`:  `$/<set>/components/...`
+  //   (`ui`, `app`, `brand`, `epics`), longer than `$/<set>/*`, so it wins.
   // - From ANOTHER package, import the barrel only, except these entry points:  `$/parser/rulex` (opt-in),
-  //   `$/parser/test` / `$/spell/test` (test helpers), `$/spell/node/...` (node-only:  environment, files on disk),
+  //   `$/parser/test` / `$/spell/test` (test helpers),
+  //   `$/spell/node/...` (node-only:  `typecheck`, `pyright`, `buildTsx`, `packageVersion.node`, `spellSyntax`),
+  //   `$/spell/SpellSetup` + `$/spell/SpellUrls` (light, without the parser:  for `<spell-app>`),
+  //   `$/spaces/models/projectGroups` (light:  registers spell's project groups, for `<spell-app>`),
+  //   `$/spaces/server/node/...` (node-only:  `environment`, projects on disk in `projects/`, and the routes:  the
+  //   editor's server, its route module and `ProjectBuild`),
   //   `$/ui/tools/IconPackBuilder` (node-only:  `ui`'s icon pack builder, for the `spell` CLI),
   //   `$/ui/tools/SiteDataBuilder` (node-only:  the docs data builder, for `brand`'s `yarn site:data`),
   //   `$/ui/tools/StaticRenderer` + `$/ui/tools/tools.types` (node-only:  `spell static`'s Vite server for `ui`'s
@@ -17,11 +24,14 @@
   //   `$/epics/tool/...` (node-only:  the `epic` tool, for the `spell` CLI and `docs`' forwarders, `tools/plan-doc.js`
   //   ...;  never in the `$/epics` barrel), `$/epics/links` (pure:  short addresses, `SAGA:/...`, for the docs
   //   runtime, which must not bundle the rest of `$/epics`),
-  //   and `$/util/class` etc. (`util`'s GENERIC files, imported one by one by `ui`'s `src/util/index.ts` only:  the
-  //   `$/util` barrel also holds spell's heavy utilities, which `ui` must not bundle).
+  //   `$/spell-solid/timing` (`ui`'s `src/util/index.ts`:  a leaf below `ui`'s core),
+  //   `$/spell-solid/elements.types` + `$/spell-solid/vocabulary.types` (where `ui` augments the names it adds),
+  //   `$/spell-solid/HotDefinitions` (dev-only, a side effect:  `ui`'s HMR plugin),
+  //   and `$/util/class` etc. (`util`'s GENERIC files, imported one by one by `ui`'s `src/util/index.ts` and
+  //   `spell-solid`'s barrel only:  the `$/util` barrel also holds spell's heavy utilities, which `ui` must not bundle).
   // - NOTE: every alias works from every package.  The one-way dependency rule is by convention:
-  //   `cli` -> `app` -> `lsp` -> `spell` -> `parser` / `core` -> `util`, `markdown` -> `parser`, and
-  //   `ui` -> `util`.  e.g. `ui` MUST NOT import `$/spell`.
+  //   `cli` -> `app` -> `lsp` -> `spaces` -> `spell` -> `parser` / `core` -> `util`, `markdown` -> `parser`, and
+  //   `ui` -> `spell-solid` -> `util`.  e.g. `ui` MUST NOT import `$/spell`, and `spell` MUST NOT import `$/spaces`.
   //   `server` is a LEAF (node built-ins only):  anything may import it.  Its opt-in entry points:  `$/server/page/...`
   //   (the page server) and `$/server/site/...` (the site header);  `$/server/test/...` are its test helpers.
   //   `assembler` (assembling pages:  link targets, formatting) is node-only and imports no package:  `docs` and
@@ -37,11 +47,15 @@
       "$/markdown/*": ["./packages/markdown/src/*"],
       "$/core": ["./packages/core/src/index.ts"],
       "$/core/*": ["./packages/core/src/*"],
-      // Python's writers, in `py/ts/` (its Python is `py/core/` and `py/quart/`, uv projects beside it)
+      // Python's writers, in `py/ts/` (its Python is `py/core/`, a uv project beside it)
       "$/py": ["./packages/py/ts/index.ts"],
       "$/py/*": ["./packages/py/ts/*"],
       "$/spell": ["./packages/spell/src/index.ts"],
       "$/spell/*": ["./packages/spell/src/*"],
+      // where projects and people live:  `$/spaces` is its models, safe in a browser;  `$/spaces/server/node/...` is
+      // node only (its Python web server, `src/server/py/`, is a uv project)
+      "$/spaces": ["./packages/spaces/src/index.ts"],
+      "$/spaces/*": ["./packages/spaces/src/*"],
       "$/lsp": ["./packages/lsp/src/index.ts"],
       "$/lsp/*": ["./packages/lsp/src/*"],
       "$/app": ["./packages/app/src/index.tsx"],
@@ -57,15 +71,25 @@
       "$/assembler": ["./packages/assembler/src/index.ts"],
       "$/assembler/*": ["./packages/assembler/src/*"],
 
-      // ## `ui`:  barrel, files, test helpers and node tools;  `$/ui/test/*` / `$/ui/tools/*` are longer than
-      // `$/ui/*`, so they win
+      // ## `spell-solid`:  what makes a custom element on Solid, for every component set;  it imports only `$/util`'s
+      // generic files.  `$/spell-solid/elements.types` and `$/spell-solid/vocabulary.types`:  where a set augments its
+      // names (animations, value sets, topics);  `$/spell-solid/timing` and `$/spell-solid/HotDefinitions`:  for `ui`
+      "$/spell-solid": ["./packages/spell-solid/src/index.ts"],
+      "$/spell-solid/*": ["./packages/spell-solid/src/*"],
+
+      // ## `ui`:  barrel, files, elements, test helpers and node tools;  its `<ui-*>` families live in
+      // `packages/ui/components/` (epic `people-and-orgs` P18), outside `src/`, as every component set's do;
+      // `$/ui/components/*`, `$/ui/test/*` and `$/ui/tools/*` are longer than `$/ui/*`, so they win.  No
+      // `$/ui/components` barrel:  `$/ui` is the one that registers every family
       "$/ui": ["./packages/ui/src/index.ts"],
       "$/ui/*": ["./packages/ui/src/*"],
+      "$/ui/components/*": ["./packages/ui/components/*"],
       "$/ui/test/*": ["./packages/ui/test/*"],
       "$/ui/tools/*": ["./packages/ui/tools/*"],
 
-      // ## `brand`:  barrel and files;  its `<ui-brand-*>` elements live in `packages/brand/components/` (Owen,
-      // 2026-10-04), outside `src/`, so `$/brand/components` is longer than `$/brand/*` and wins
+      // ## `brand`:  a component pack (`spell dev pack`);  barrel and files;  its `<brand-*>` elements live in
+      // `packages/brand/components/` (Owen, 2026-10-04), outside `src/`, so `$/brand/components` is longer than
+      // `$/brand/*` and wins
       "$/brand": ["./packages/brand/src/index.ts"],
       "$/brand/*": ["./packages/brand/src/*"],
       "$/brand/components": ["./packages/brand/components/index.ts"],

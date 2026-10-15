@@ -65,6 +65,7 @@ export function EditorToolbar() {
       <Submenu right spring>
         <Actions.aboutSpell />
         <Actions.showDocs />
+        <Actions.you />
         <MoreMenu stub />
       </Submenu>
     </AppMenu>

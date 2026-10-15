@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process"
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join, relative, resolve, sep } from "node:path"
 
+import { atDepth } from "../../tools/pages.js"
 import { OPEN_KINDS, PlanDocError, REVIEW_SECTIONS, TITLE_PREFIX, type Phase, type PlanSummary } from "./planDoc.types"
 
 import { EpicDocs, GROUPS, type EpicDecisions, type EpicDocList } from "./EpicDocs"
@@ -33,17 +34,19 @@ import { Sagas } from "./Sagas"
  *   `reopen`, `commit`, `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `docs`, `decisions`, `check`,
  *   `open`, `migrate`, `convert`, `split`, `join`, `inbox`, `details`, `status`, `original`
  *   (`spell dev plan-doc` with no command lists them:  `USAGE`).
- * - `docs`, `decisions`:  the docs an epic wrote besides its epic page, and what its epic page settled
- *   (`EpicDocs`), for `/docs-check`
- * - the `<epic-*>` markup only:  every command refuses a doc still in the old markup
- *   (one restored from an old backup) before it writes anything:  `convert` it first (`PlanDocFiles.read()`)
- * - `saga`:  the sagas' list and each epic's saga (`SagaCommands`, epic `epic-workflow` P15);  `new --saga` sets it
- *   at birth
- * - `migrate`:  pages brought up to today's markup, by page kind (`MigrateCommands`, epic `epic-workflow` P8);
- *   `relayout` is gone:  the converter (`convert`, `$/epics/convert`) replaced it
- * - `inbox`:  the marks Owen left on the doc's page, waiting in `<name>.inbox.json` beside it (`ReviewInbox`):
- *   printed, waited on (`wait`, a background command that wakes the `/epic review` session), applied (`apply`),
- *   cleared (`InboxCommands`);  `details` writes an agent's details or reply into one item
+ * - `docs`, `decisions` (`EpicDocs`, for `/docs-check`):
+ *   the docs an epic wrote besides its epic page, and what its epic page settled
+ * - the `<epic-*>` markup only:  every command refuses a doc still in the old markup before it writes anything
+ *   (one restored from an old backup):  `convert` it first (`PlanDocFiles.read()`)
+ * - `saga`:  the sagas' list and each epic's saga (`SagaCommands`, epic `epic-workflow` P15)
+ *   - `new --saga` sets it at birth
+ * - `migrate`:  pages brought up to today's markup, by page kind (`MigrateCommands`, epic `epic-workflow` P8)
+ *   - `relayout` is gone:  the converter (`convert`, `$/epics/convert`) replaced it
+ * - `inbox`:  the marks Owen left on the doc's page, waiting in `<name>.inbox.json` beside it (`ReviewInbox`)
+ *   - printed, waited on, applied and cleared (`InboxCommands`)
+ *   - `wait`:  a background command that wakes the `/epic review` session
+ *   - `apply`:  the marks, into the doc
+ * - `details`:  writes an agent's details or reply into one item
  * - an item's text is never dropped:  a rewrite moves it into the item's folded Original Discussion;
  *   `original` puts text recovered from git there
  * - the docs, their files and git:  `PlanDocFiles`, for ONE checkout (the caller's:  `spell dev plan-doc` finds it)
@@ -51,9 +54,9 @@ import { Sagas } from "./Sagas"
  * - output goes straight to `process.stdout` / `stderr`, never `console.*`, which the `spell` CLI silences
  *   (`packages/cli/src/consoleGuard.ts`);  `run()` resolves to the exit code instead of exiting
  * - Node only:  NOT in the `$/epics` barrel, imported by path (`$/epics/tool/PlanDocCommands`).
- *   Runs `docs`' tools as children (the docs index, `check-spell.js`, `open.js`), never imports them:
- *   `epics` may not import `docs`.
- * - From `packages/docs/tools/plan-doc.js`'s command line (epic `epic-components`, P7), which now forwards here.
+ *   Runs the docs tools' scripts as children (the docs index, `check-spell.js`, `open.js`), as their command
+ *   lines run them;  imports their helpers (`tools/pages.js` `atDepth()`).
+ * - From `packages/epics/tools/plan-doc.js`'s command line (epic `epic-components`, P7), which now forwards here.
  ****************/
 export class PlanDocCommands {
   /** the checkout's epic pages:  STATIC for the object's life */
@@ -379,8 +382,14 @@ export class PlanDocCommands {
       worktree: files.git("rev-parse", "--show-toplevel") || files.root
     }
     // `atDepth()`:  the template's asset paths, pack and site header for the doc's own depth (`epics/<name>/`:  2)
-    const html = atDepth(readFileSync(files.template, "utf8"), relative(files.root, file).split(sep).length - 1)
-      .replace(/\{\{(\w+)\}\}/g, (whole, key: string) => (key in fill ? PlanMarkup.escapeAll(fill[key]) : whole))
+    const fixed: string = atDepth(
+      readFileSync(files.template, "utf8"),
+      relative(files.root, file).split(sep).length - 1
+    )
+    const html = fixed
+      .replace(/\{\{(\w+)\}\}/g, (whole: string, key: string) =>
+        key in fill ? PlanMarkup.escapeAll(fill[key]) : whole
+      )
       .replace(/\n\s*<!--\s*PLAN DOC TEMPLATE\.[\s\S]*?-->/, "")
     const plan = PlanDoc.parse(html, now)
     plan.document.querySelector("title")!.textContent = `${TITLE_PREFIX}${title}`
@@ -641,7 +650,7 @@ export class PlanDocCommands {
    *     doesn't name (`EpicTargets.problemsIn()`)
    * - a split doc's parts:  a missing one is a problem;  a host with content of its own besides its part (moved
    *   into the part on the next edit), or a part file nothing loads, is a note
-   * - the browser check:  `packages/docs/tools/check-spell.js`, a child `node` (its stderr passed on)
+   * - the browser check:  `packages/epics/tools/check-spell.js`, a child `node` (its stderr passed on)
    */
   private check(file: string, { noBrowser, links: strictLinks }: Flags): number | void {
     const { files } = this
@@ -699,9 +708,9 @@ export class PlanDocCommands {
   /**
    * Show `file` in VS Code's doc preview, in the right side bar's Review tab (an epic page's place, Owen's rule
    * 2026-10-07), or its Spell Docs tab (`view` `docs`), or Chrome when not run from VS Code:
-   * `packages/docs/tools/open.js --review <file>` (`--vs` for Spell Docs), a child `node` with this terminal
+   * `packages/epics/tools/open.js --review <file>` (`--vs` for Spell Docs), a child `node` with this terminal
    * attached, which starts the page server and asks the session's window (`pages.js` `openInVSCode()`).
-   * - a child, not an import:  `epics` may not import `docs`, nor the repo root's `scripts/window.mjs`
+   * - a child, not an import:  `open.js` with this terminal attached, as its command line runs it
    * - NEVER throws, nor fails the command:  as before, a doc not shown is no error
    */
   openInVSCode(file: string, view: "review" | "docs" = "review"): void {
@@ -1132,26 +1141,4 @@ export function movedDown(phases: Phase[], added: number): string {
 /** `kebab-name` -> `Kebab Name`. */
 function titleCase(name: string): string {
   return name.replace(/(^|-)(\w)/g, (_, dash: string, letter: string) => `${dash ? " " : ""}${letter.toUpperCase()}`)
-}
-
-/**
- * A template's `html` fixed for a page `depth` folders below the checkout's root (`epics/a/a.plan.html` is 2).
- * - rewrites whatever depth the template assumed:  `_assets` paths (`<up>packages/docs/tools/_assets/`), the docs
- *   home's paths (`<up>pages/index.html`), the areas' list pages (`<up>epics/index.html` ...), the site
- *   header's `root` (`<up>`:  the path up to the root), and the epics pack (`<up>packages/epics/pack/`)
- * - drops the template's `TEMPLATE:` how-to comment
- * - a private copy of `packages/docs/tools/pages.js` `atDepth()` (plus the pack):  `epics` may not import `docs`
- */
-function atDepth(html: string, depth: number): string {
-  const up = "../".repeat(depth)
-  return html
-    .replace(/(source=")(?:\.\.\/)*packages\/epics\/pack\//g, `$1${up}packages/epics/pack/`)
-    .replace(
-      /((?:href|src)=")(?:\.\.\/)*(?:packages\/docs\/)?(?:tools\/)?_assets\//g,
-      `$1${up}packages/docs/tools/_assets/`
-    )
-    .replace(/((?:href|src)=")(?:\.\.\/)*(?:pages\/)?index\.html/g, `$1${up}pages/index.html`)
-    .replace(/((?:href|src)=")(?:\.\.\/)*(epics|guides|templates|brand)\/index\.html/g, `$1${up}$2/index.html`)
-    .replace(/(<spell-site-header\b[^>]*?\broot=")[^"]*"/, `$1${up.replace(/\/$/, "") || "."}"`)
-    .replace(/\n\s*<!--\s*TEMPLATE:[\s\S]*?-->/, "")
 }

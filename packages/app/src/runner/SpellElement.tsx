@@ -40,7 +40,7 @@ import { spellElementVocabulary } from "./SpellElement.en"
  *   - It reaches compiled code as `@spell/elements`:  see `spellElements.ts`.
  * - Part of `spell-runtime.js`:  NEVER value-imports `$/core`.
  *   Each runtime copy hands itself over in `installSpellElements()`.
- * - SEE:  its App UI components page, `packages/app/components/spell-element.html` (`/app-ui/spell-element.html`).
+ * - SEE:  its App UI components page, `packages/app/docs/spell-element.html` (`/components/app/spell-element.html`).
  ****************/
 export class SpellElement<Thing extends object = object> extends E.UIComponent<typeof spellElementVocabulary> {
   @E.proto static vocabulary = spellElementVocabulary
@@ -399,6 +399,8 @@ export class SpellElement<Thing extends object = object> extends E.UIComponent<t
       }
     }
     const TagClass = Component.define()
+    // the page's runtime has installed its settings by now (a program runs on it), so the tag is defined at once
+    if (!TagClass) throw new Error(`SpellElement:  <${tag}> isn't defined:  no runtime for its elements yet`)
     SpellElement.readThroughThing(TagClass, properties)
     SpellElement.addMethods(TagClass, api.methods, Base)
   }

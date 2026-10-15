@@ -10,3 +10,4 @@ export * from "./modals.types"
 
 export * from "./dialogs"
 export * from "./Chooser"
+export * from "./YouPanel"

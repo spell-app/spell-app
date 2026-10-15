@@ -32,7 +32,7 @@ import { SeeAlso } from "./SeeAlso"
  *   a session busy between `wait`s still counts as listening
  * - the loop, step by step:  `templates/epics/plan-doc.md`, "Review inbox"
  * - Prints through its owner (`PlanDocCommands`), whose files and edits it uses:  NOT a command line of its own.
- * - From `packages/docs/tools/plan-doc.js` `inbox()`, `printInbox()`, `waitForWork()`, `printWork()`,
+ * - From the docs tools' `plan-doc.js` `inbox()`, `printInbox()`, `waitForWork()`, `printWork()`,
  *   `applyInbox()` (epic `epic-components`, P7).
  ****************/
 export class InboxCommands {

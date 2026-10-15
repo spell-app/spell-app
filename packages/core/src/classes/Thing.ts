@@ -2,7 +2,7 @@
  * Base classes for spell.
  */
 import { Observable, runsCreate, typedJSON, type PropInfo } from "$/util"
-import { spellCore } from "$/core/core"
+import { registerThing, spellCore } from "$/core/core"
 import type { Drawing } from "$/core/drawing"
 import { Eventful } from "$/core/SpellEvent"
 import type { PropCheck } from "$/core/spellCore.types"
@@ -27,12 +27,18 @@ import { ID_PROP } from "./ids"
  */
 export class Thing extends Eventful(Observable) {
   /**
-   * Is a thing of this class saved INSIDE its owner, rather than in a file of its own?
-   * - Compiled from `a dated-event is saved inline.`, as `static savedInline = true` in its class:
+   * Is a thing of this class saved in a FILE OF ITS OWN, rather than inside what holds it (decision Q42)?
+   * - Compiled from `a person is saved in its own file.`, as `static savedInFile = true` in its class:
    *   sub-classes inherit it.
-   * - The saver writes such a thing whole, inside the thing holding it;
-   *   every other thing, as a reference to its own file, by its `id`.
-   * - A drawable kind is never saved inline.
+   * - The saver gives such a thing an entry of its own, and what holds it a reference to that.
+   * - Every other thing is written whole inside what holds it, and a reference after (`saving.ts`).
+   */
+  static savedInFile = false
+
+  /**
+   * Is a thing of this class saved inside what holds it?  The default since decision Q42, so this only says it.
+   * - Compiled from `a dated-event is saved inline.`, as `static savedInline = true`.
+   * - Kept so a program compiled before then still loads.
    */
   static savedInline = false
 
@@ -41,27 +47,30 @@ export class Thing extends Eventful(Observable) {
   }
 
   /**
-   * SIDE EFFECT:  registers itself in `spellCore.things`, for the Thing Explorer.
+   * SIDE EFFECT:  registers itself in `spellCore.things`, for the Thing Explorer -- see `registerThing()`.
    * - `props` optional:  `a new game` compiles to `new Game()`.
    */
   constructor(props?: Record<string, unknown>) {
     super(props)
-    spellCore.things.add(this)
+    registerThing(this)
     if (runsCreate(Thing, new.target)) this.create()
   }
 
   /**
    * Called once per instance, after constructor props are assigned -- override in a subclass to set up initial state.
-   * - NOTE: runs from THIS constructor, before any subclass field initializer:  a plain field set here is clobbered
-   *   by its initializer.  Compiled classes have no fields, so they're safe;  a hand-written subclass with fields
-   *   MUST be `@thing` (`$/util`), which runs `create()` after them instead.  Exactly once either way.
+   * - Exactly once, whichever runs it.
+   * - NOTE: runs from THIS constructor, before any subclass field initializer:
+   *   a plain field set here is clobbered by its initializer.
+   *   - Compiled classes have no fields, so they're safe.
+   *   - A hand-written subclass with fields MUST be `@thing` (`$/util`), which runs `create()` after them instead.
    */
   create(): void {}
 
   /**
    * Set reactive `property` to `value` -- see `Observable.setProp()`.
-   * - Compiled property setters call this, e.g. `set title(value) { this.setProp('title', value) }`:  what it's
-   *   checked against is declared in the class's schema, `static { this.declareProp('title', { type: 'text' }) }`.
+   * - Compiled property setters call this, e.g. `set title(value) { this.setProp('title', value) }`.
+   *   - What it's checked against is declared in the class's schema:
+   *     `static { this.declareProp('title', { type: 'text' }) }`.
    * - `check`:  how compiled spell said it BEFORE the schema, e.g. `this.setProp('title', value, { type: 'text' })` --
    *   still honoured, warning first if it fails, so programs compiled then still run.
    * - Same as `List.setProp()`.
@@ -99,17 +108,17 @@ export class Thing extends Eventful(Observable) {
 
   /**
    * Are we of type `typeName`, or a sub-type of it?  e.g. `"card"` for a joker, if `a joker is a card`.
-   * - What `spellCore.isOfType(thing, typeName)` does;  hand-written TypeScript says `card instanceof Joker` for a
-   *   class it can name (Q37).
+   * - What `spellCore.isOfType(thing, typeName)` does.
+   * - Hand-written TypeScript says `card instanceof Joker` for a class it can name (Q37).
    */
   isOfType(typeName: string): boolean {
     return spellCore.isOfType(this, typeName)
   }
 
   /**
-   * Our JSON:  our class's name as `"@type"`, then our props -- `{ "@type": "Card", "rank": "ace", ... }`.
+   * Our JSON:  our class's name as `"$type"`, then our props -- `{ "$type": "Card", "rank": "ace", ... }`.
    * - So it reads back as what it was:  `spellCore.fromJSON()` (`json.ts`).
-   * - `"@type"` is our CLASS's name, even if this instance overrides `type`:  the class is what's rebuilt.
+   * - `"$type"` is our CLASS's name, even if this instance overrides `type`:  the class is what's rebuilt.
    * - Tracked:  a reader re-runs when a prop comes, goes or changes, e.g. `<ui-form debug>`.
    */
   toJSON(): Record<string, unknown> {

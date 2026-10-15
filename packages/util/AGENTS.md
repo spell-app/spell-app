@@ -61,6 +61,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - Spell's layer of reactivity:  `Observable`, and [spellDecorators.ts](src/spell/spellDecorators.ts) (`@thing`).
   - The engine under it is `src/reactive/` (below).
 - Tests:
+  - they live in the repo's `tests/util/`, at the same paths as the code (`tests/util/src/spell/...`)
   - the generic ones run in a real browser (`util:browser`)
   - `src/spell/**` and `src/reactive/**` run in node (`util:spell`)
   - `vitest.config.ts` exports `utilProjects()` for the root run
@@ -72,7 +73,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - spell CELLS:  `cells.ts` (the page-wide context, tracking, `flushCells()`), `Cell`, `Derived`, `Reaction`
   - the records, [extend.ts](src/reactive/extend.ts):
     - `getProp` / `setProp`, `getState` / `setState`, `derive()`
-    - `typedJSON()`:  an object's props, its class's name first, `"@type"` (what a spell object's JSON says)
+    - `typedJSON()`:  an object's props, its class's name first, `"$type"` (what a spell object's JSON says)
   - `Schema`:  per-class prop types
   - the decorators, [decorators.ts](src/reactive/decorators.ts):  `@prop`, `@state`, `@derived`
     - `{ equals }` on the last two

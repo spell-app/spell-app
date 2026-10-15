@@ -3,7 +3,7 @@
  * them (epic `epic-workflow` P12).
  * - a DETAILS page:  questions (`<epic-ask>`), comment and notes boxes (`<epic-text-box>`), Send (`<epic-send>`)
  * - a CHOICE page:  rows (`<epic-choice-row>`) and their bar (`<epic-choices-bar>`)
- * - The answers' shapes are COPIES of the page server's routes' (`packages/docs/tools/detailsRoutes.ts`,
+ * - The answers' shapes are COPIES of the page server's routes' (`packages/epics/tools/detailsRoutes.ts`,
  *   `choicesRoutes.ts`):  `epics` never imports `docs` (the root's dependency rule).
  * - Pure data and types:  nothing here runs.
  */
@@ -13,13 +13,13 @@
 ////////////////
 
 /** A details page's answer route (`detailsRoutes.ts`):  `POST` sends it, `GET ?page=` reads it back. */
-export const DETAILS_API = "/api/details/answer"
+export const DETAILS_API = "/api/docs/details/answer"
 
 /**
  * A details page's draft route (`detailsRoutes.ts`, epic `epic-workflow` P18):  `POST` saves what's typed and not
  * sent, `GET ?page=` reads it back.  It never wakes anyone:  only Send does.
  */
-export const DETAILS_DRAFT_API = "/api/details/draft"
+export const DETAILS_DRAFT_API = "/api/docs/details/draft"
 
 /**
  * How long after the last change a details page saves its draft, in ms:  "a moment after he stops typing"
@@ -46,7 +46,7 @@ export const NOTES_KEY = "notes"
 export const DETAILS_PAGE = /\/details\/[^/]+\.html$/
 
 /** A choice page's routes (`choicesRoutes.ts`):  `<api>/draft` and `<api>/answer`, `POST` and `GET ?page=`. */
-export const CHOICES_API = "/api/choices"
+export const CHOICES_API = "/api/docs/choices"
 
 /** How long after the last change a choice page saves its draft, in ms (Owen:  "5 sec debounce is fine"). */
 export const CHOICES_SAVE_MS = 5000

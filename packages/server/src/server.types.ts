@@ -69,7 +69,7 @@ export type Mount = {
 ////////////////
 
 /**
- * What a running server writes to its pid file, and answers `/_server/ping` with.
+ * What a running server writes to its pid file, and answers `/api/server` (`SERVER_API`) with.
  * - `root`:  the folder it serves;  a pid file whose server answers for another root is stale
  */
 export type ServerInfo = {

@@ -1,8 +1,8 @@
 /**
  * `yarn scopes`:  write scope packs -- what `<spell-app>`'s Type Explorer shows with no parser.  See `LSP.ScopePack`.
- * - `yarn scopes @system:examples:Solitaire @examples/Calculator ...`:  each project's `<Project>.scopes.js`,
- *   beside its compiled output -- parsing it, and the projects it imports, first.
- * - `yarn scopes --compile <projectId...>`:  compile each first, to `<Project>.compiled.js` -- in the order given,
+ * - `yarn scopes @spell/examples/solitaire @spell/examples/calculator ...`:  each project's `<Project>.scopes.js`,
+ *   beside its compiled output, in its build folder (`build/`) -- parsing it, and the projects it imports, first.
+ * - `yarn scopes --compile <projectId...>`:  compile each first, to `<Project>.spell.js` -- in the order given,
  *   so a project another imports goes first.
  * - `yarn scopes --builtins`:  the built-in types' pack, `core`'s `src/spellCore.scopes.js`.
  *   GENERATED from `SP.BUILT_IN_TYPE_TABLE`, whose entries hold its docs:  edit those, then run this.
@@ -16,7 +16,7 @@ import "$/spell/node/packageVersion.node"
 import { writeFileSync } from "fs"
 import { relative, resolve } from "path"
 
-import environment from "$/spell/node/environment"
+import environment from "$/spaces/server/node/environment"
 import { SP } from "$/spell"
 import { LSP } from "$/lsp"
 import { SpellDiskWorkspace } from "$/lsp/SpellDiskWorkspace"
@@ -44,7 +44,7 @@ for (const arg of args) {
 process.exit(failed ? 1 : 0)
 
 /**
- * Write the scope pack of the project `arg` names -- a full id, or a root's alias, e.g. `@examples/Solitaire`.
+ * Write the scope pack of the project `arg` names -- a full id, or a root's alias, e.g. `@spell/examples/solitaire`.
  * - With `--compile`, compile it first -- throwing if it has parse errors, as the language server won't write
  *   its pack then either.
  */

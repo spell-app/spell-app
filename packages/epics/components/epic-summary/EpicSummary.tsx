@@ -1,7 +1,7 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 
 import { SUMMARY_ID } from "$/epics/review"
 // its view of the review inbox:  the file, not `epic-review`'s barrel (`index.ts` defines that family)

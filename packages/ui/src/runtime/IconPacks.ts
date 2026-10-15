@@ -6,7 +6,7 @@ import { IconPack } from "./IconPack"
 
 /****************
  * ### `IconPacks`
- * Icon packs and the SVG cache, as `UI.icons` (`docs/icons.md`).
+ * Icon packs and the SVG cache, as `UI.icons` (`notes/icons.md`).
  * - In the runtime's lazy chunk;  imports the icon PACK format (`$/ui/icons`) and `IconPack`, never a pack itself.
  * - A pack is a folder of SVGs plus its index, `pack.js`.  Packs are added in order and the LAST one added wins a
  *   name;  `prefix:name` asks one pack.

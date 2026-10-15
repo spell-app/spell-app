@@ -1,0 +1,174 @@
+/**
+ * Tests of `PlanDocFiles`:  reading a doc whole (either markup), editing it under its lock, writing it as a skeleton
+ * and parts (`EpicParts`) or one file, and refusing what an edit mustn't touch.
+ */
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
+import { fileURLToPath } from "node:url"
+
+import { afterEach, describe, expect, test } from "vite-plus/test"
+
+import { Markup } from "$/epics/markup"
+
+import { PlanDocError } from "$/epics/tool/planDoc.types"
+
+import { PlanDoc } from "$/epics/tool/PlanDoc"
+import { PlanDocFiles } from "$/epics/tool/PlanDocFiles"
+
+/** The tracked fixtures:  a new doc in `<epic-*>` markup, and one in the old markup. */
+const FIXTURES = fileURLToPath(new URL("fixtures", import.meta.url))
+
+/** This checkout's epic pages:  the edits below are on temp files, linked and formatted as a real doc's. */
+const FILES = new PlanDocFiles()
+
+/** When the tests' edits happen:  local 2026-10-01 09:05. */
+const NOW = new Date(2026, 9, 1, 9, 5)
+
+/**
+ * An epic page with a body in every kind of host:  an Overview sub-section (with an `h4` id and a link), a phase,
+ * an item with details (and a commit), an item without, the log.
+ */
+function richPlan() {
+  const plan = PlanDoc.parse(readFileSync(join(FIXTURES, "epic-plan.html"), "utf8"), NOW)
+  plan.document.getElementById("o1")!.innerHTML =
+    '<p>See <a href="../../guides/x.html" target="src-x">x</a> and <a href="#c1">C1</a>.</p><h4 id="o1-deep">Deep</h4>'
+  plan.addPhase("One", { goal: "<ul><li>a goal</li></ul>" })
+  plan.addItem("caveat", "with details", { details: '<p>why, <a href="https://example.com">out</a></p>' })
+  plan.addItem("todo", "bare line")
+  plan.addCommit({ item: "c1" }, "a".repeat(40), "fixed it")
+  plan.log("a line")
+  return plan
+}
+
+/** `<epic-page>`, whitespace squashed:  two docs with the same content compare equal however they're laid out. */
+function squashedPage(plan: PlanDoc) {
+  return plan.page.outerHTML.replace(/\s+/g, " ").replace(/> </g, "><").replace(/ <\//g, "</")
+}
+
+describe("PlanDocFiles", () => {
+  const dirs: string[] = []
+  afterEach(() => {
+    for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
+  })
+
+  /** A fresh temp folder. */
+  function folder() {
+    const dir = mkdtempSync(join(tmpdir(), "plan-doc-files-"))
+    dirs.push(dir)
+    return dir
+  }
+
+  /** `richPlan()` as a one-file doc in a temp folder:  its path. */
+  async function oneFile() {
+    const file = join(folder(), "x.plan.html")
+    writeFileSync(file, "")
+    await FILES.writeDoc(file, richPlan(), false)
+    return file
+  }
+
+  test("one file stays one file;  split writes a skeleton and parts;  join puts it back;  nothing lost", async () => {
+    const file = await oneFile()
+    const parts = join(file, "..", "parts")
+    await FILES.edit(file, (plan) => plan.log("still one file"))
+    expect(existsSync(parts)).toBe(false)
+    const whole = squashedPage(FILES.read(file))
+    await FILES.edit(file, () => {}, { split: true })
+    expect(readdirSync(parts).sort()).toEqual(["c1.html", "log.html", "o1.html", "p-one.html"])
+    const skeleton = readFileSync(file, "utf8")
+    expect(skeleton).toMatch(/<epic-phase[^>]*source="parts\/p-one.html"/)
+    expect(skeleton).toMatch(/<epic-item\s+id="c1"[^>]*source="parts\/c1.html"[^>]*commits/)
+    expect(readFileSync(join(parts, "o1.html"), "utf8")).toContain('href="../../../guides/x.html"')
+    const plan = FILES.read(file)
+    expect(plan.parts).toMatchObject({ split: true, hosts: ["o1", "p-one", "c1", "log"], missing: [] })
+    expect(squashedPage(plan)).toBe(whole)
+    expect(Markup.validate(plan.document)).toEqual([])
+    await FILES.edit(file, () => {}, { split: false })
+    expect(existsSync(parts)).toBe(false)
+    expect(squashedPage(FILES.read(file))).toBe(whole)
+  })
+
+  test("an edit rewrites only the parts it changed, and every command reads the doc whole", async () => {
+    const file = await oneFile()
+    await FILES.edit(file, () => {}, { split: true })
+    const parts = join(file, "..", "parts")
+    const stamps = (): Record<string, number> =>
+      Object.fromEntries(readdirSync(parts).map((name) => [name, statSync(join(parts, name)).mtimeMs]))
+    const before = stamps()
+    await new Promise((done) => setTimeout(done, 20))
+    await FILES.edit(file, (plan) => plan.log("one more"))
+    let after = stamps()
+    expect(Object.keys(after).filter((name) => after[name] !== before[name])).toEqual(["log.html"])
+    await FILES.edit(file, (plan) => plan.setDetails("c1", "<p>rewritten</p>"))
+    const now = stamps()
+    expect(Object.keys(now).filter((name) => now[name] !== after[name])).toEqual(["c1.html"])
+    after = now
+    await FILES.edit(file, (plan) => plan.setItem("t1", "done"))
+    const last = stamps()
+    expect(Object.keys(last).filter((name) => last[name] !== after[name])).toEqual([])
+    expect(readFileSync(file, "utf8")).toMatch(/<epic-item\s+id="t1"\s+title="bare line"\s+status="done"/)
+    expect(FILES.read(file).item("c1").textContent).toContain("rewritten")
+  })
+
+  test("an item that gets details later gets a part on the next write", async () => {
+    const file = await oneFile()
+    await FILES.edit(file, () => {}, { split: true })
+    await FILES.edit(file, (plan) => plan.setDetails("t1", "<p>now with details</p>"))
+    expect(readFileSync(join(file, "..", "parts", "t1.html"), "utf8")).toContain("now with details")
+    expect(readFileSync(file, "utf8")).toMatch(/<epic-item\s+id="t1"[^>]*source="parts\/t1.html"/)
+  })
+
+  test("an old-markup doc (restored from an old backup):  refused, read or edited, writing nothing", async () => {
+    const file = join(folder(), "old.plan.html")
+    const html = readFileSync(join(FIXTURES, "plan.html"), "utf8").replaceAll("{{title}}", "Old")
+    writeFileSync(file, html)
+    expect(() => FILES.read(file)).toThrow(
+      /is in the old markup, which the tool no longer reads:  convert it first \(epic convert old --out <folder>/
+    )
+    expect(() => FILES.requireNewMarkup(file)).toThrow(PlanDocError)
+    await expect(FILES.edit(file, (doc) => doc.log("x"))).rejects.toThrow(/old markup/)
+    expect(readFileSync(file, "utf8")).toBe(html)
+  })
+
+  test("an edit that would break the markup is refused, writing nothing", async () => {
+    const file = await oneFile()
+    const before = readFileSync(file, "utf8")
+    await expect(
+      FILES.edit(file, (plan) => plan.findSection("todos")!.append(plan.make("epic-event", { at: "2026-10-01" })))
+    ).rejects.toThrow(/nothing written:  the edit would break the doc/)
+    expect(readFileSync(file, "utf8")).toBe(before)
+  })
+
+  test("an edit migrates an older split doc first (`updates-as-epic-update`):  its phase's part rewritten, logged", async () => {
+    const file = await oneFile()
+    await FILES.edit(
+      file,
+      (plan) => {
+        const old = '<epic-updated slot="changes" at="2026-10-01 08:00" phase="1"><p>Split it. Why.</p></epic-updated>'
+        plan.phase(1).insertAdjacentHTML("afterbegin", old)
+        plan.findSection("phases")!.insertAdjacentHTML("afterbegin", old.replace('phase="1"', 'phase="1" of="1"'))
+      },
+      { split: true }
+    )
+    // written as the tool wrote it until 2026-10-11:  the line in the phase's part, the copy in the skeleton
+    expect(readFileSync(join(file, "..", "parts", "p-one.html"), "utf8")).toContain("<epic-updated")
+    await FILES.edit(file, (plan) => plan.addPhaseUpdate(1, "<p>Joined again.</p>"))
+    const part = readFileSync(join(file, "..", "parts", "p-one.html"), "utf8")
+    expect(part).not.toContain("<epic-updated")
+    expect(part.match(/<epic-update\b[^>]*>/g)).toEqual([
+      expect.stringMatching(/at="2026-10-01 08:00"[^>]*summary="Split it"/),
+      expect.stringMatching(/summary="Joined again"/)
+    ])
+    const skeleton = readFileSync(file, "utf8")
+    expect(skeleton).not.toContain("<epic-updated")
+    expect(skeleton).toMatch(/<epic-phase\s+id="p-one"[^>]*changes="2"/)
+    expect(FILES.read(file).document.querySelector("#log")!.textContent).toMatch(/migrated:\s+updates-as-epic-update/)
+  })
+
+  test("& in an attribute survives a write and a read (I2)", async () => {
+    const file = await oneFile()
+    await FILES.edit(file, (plan) => plan.addItem("todo", "A &lt; B & C"))
+    expect(readFileSync(file, "utf8")).toContain('title="A &amp;lt; B &amp; C"')
+    expect(FILES.read(file).items("todo").at(-1)!.title).toBe("A &lt; B & C")
+  })
+})

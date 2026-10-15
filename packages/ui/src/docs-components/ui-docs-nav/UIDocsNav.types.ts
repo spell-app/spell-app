@@ -67,7 +67,7 @@ export const NavGroups = ["start", "favorites", "components", "foundation"] as c
 /** One of `NavGroups`, e.g. `"components"`. */
 export type NavGroup = (typeof NavGroups)[number]
 
-/** `current` when the page's own file name says nothing (`/ui/`):  the overview. */
+/** `current` when the page's own file name says nothing (`/components/ui/`):  the overview. */
 export const INDEX_PAGE = "index"
 
 /** Extension stripped from the page's file name to get `current`. */

@@ -3,13 +3,13 @@ import { CliError } from "$/cli/cli.types"
 import { DOCS_VERBS, runTool, type ToolName } from "$/cli/dev/passThrough"
 
 /**
- * `spell dev docs <verb> ...`:  the docs tools in `packages/docs/tools`, the nearest checkout's, `args` verbatim.
+ * `spell dev docs <verb> ...`:  the docs tools in `packages/epics/tools`, the nearest checkout's, `args` verbatim.
  * - `update`, `index`, `new`, `open`, `link`:  root `yarn docs:<verb>` aliases each;  the tools' usage is in their
  *   headers, e.g. `spell dev docs open solid/solid-2 --vs`, `spell dev docs link <page> --hash <id> --show`
  * - `fuss`:  the writing checker, `spell dev docs fuss <paths...> | --branch [--json]`
  * - `offline`:  what docs pages load from the internet, `spell dev docs offline [paths...] [--fix] [--json]`
- * - Runs each as `packages/docs/package.json`'s script did (`TOOLS` in `dev/passThrough.ts`):
- *   in `packages/docs`, under `node`, `link` under `tsx`
+ * - Runs each as `packages/epics/package.json`'s script does (`TOOLS` in `dev/passThrough.ts`):
+ *   in `packages/epics`, under `node`, `link` under `tsx`
  * - `fuss` and `offline` run under `tsx` in the caller's folder, so their paths are from there.
  * - Throws `CliError` for no verb, or another one.
  * - Returns the tool's exit code.

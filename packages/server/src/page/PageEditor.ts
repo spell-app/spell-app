@@ -1,11 +1,10 @@
-import { readFile, rename, stat, writeFile } from "node:fs/promises"
-import { basename, dirname, join } from "node:path"
+import { readFile, stat } from "node:fs/promises"
 import { parse } from "parse5"
 
 import { SRV } from "$/server"
 
 /**
- * Edits pages IN PLACE, for the page server:  `/_server/page`.
+ * Edits pages IN PLACE, for the page server:  `/api/pages` (`PREFIX`).
  * - `GET ?path=<url path>[&id=<id>][&parent=<tag>][&inner=1]`:
  *   the page's source (or one element's), and its `ETag`
  * - `PUT ?path=`:  the whole file;  body `text/*` (`text/html`, `text/plain` ...), or JSON `{ html }`
@@ -20,11 +19,14 @@ import { SRV } from "$/server"
  * - safety:
  *   - writes need the `Guard` token and same origin
  *   - under the root only, through `resolveInside()` (no dot files, no `..`)
+ *   - WRITES only inside the `writable` folders, as `/api/files` (`SRV.FileOperations.writableFile()`):
+ *     the root `package.json`'s `"pageServer"` `"writable"` list, the shared content folders;  anything else:  403
+ *     - reading (`GET`) isn't held to it:  any text file the server serves
  *   - which files:  `.html` for `PATCH`, any `TEXT_FILE` for `GET` / `PUT`
  *   - `If-Match` MUST be the `ETag` the page was served with
  *     - the file changed since (an editor, an agent):  409, and the caller reloads
  *     - missing:  428
- *   - written under `FileLock`, atomically (temp file + rename)
+ *   - written through `FileOperations.save()`:  under `FileLock`, all at once (temp file + rename)
  */
 export class PageEditor {
   /** Files `PATCH` edits:  pages. */
@@ -36,19 +38,26 @@ export class PageEditor {
    */
   static readonly TEXT_FILE = /\.(html?|md|markdown|txt|ts|tsx|js|mjs|cjs|jsx|css|spell|ya?ml|svg)$/i
 
+  /** where `route()` listens */
+  static readonly PREFIX = "/api/pages"
+
   /** folder pages live under */
   readonly root: string
 
-  constructor(root: string) {
+  /** what decides which files it may write:  the same `writable` list as `/api/files` */
+  private files: SRV.FileOperations
+
+  constructor({ root, writable = [] }: PageEditorProps) {
     this.root = root
+    this.files = new SRV.FileOperations({ root, writable })
   }
 
-  /** add the `/_server/page` routes to `router`, guarded by `guard`;  bodies up to 10mb */
+  /** add the `/api/pages` routes to `router`, guarded by `guard`;  bodies up to 10mb */
   route(router: SRV.Router, guard: SRV.Guard): void {
     const body = SRV.parseBodies({ limit: 10 * 1024 * 1024 })
-    router.get("/_server/page", (request, reply) => this.read(request, reply))
-    router.put("/_server/page", guard.writeCheck, body, (request, reply) => this.write(request, reply, "put"))
-    router.patch("/_server/page", guard.writeCheck, body, (request, reply) => this.write(request, reply, "patch"))
+    router.get(PageEditor.PREFIX, (request, reply) => this.read(request, reply))
+    router.put(PageEditor.PREFIX, guard.writeCheck, body, (request, reply) => this.write(request, reply, "put"))
+    router.patch(PageEditor.PREFIX, guard.writeCheck, body, (request, reply) => this.write(request, reply, "patch"))
   }
 
   /** answer `GET`:  `{ path, etag, html }` */
@@ -65,32 +74,27 @@ export class PageEditor {
   /** answer `PUT` / `PATCH`:  `{ path, etag }`, the file's new `ETag` */
   private async write(request: SRV.Request, reply: SRV.Reply, how: "put" | "patch"): Promise<void> {
     const { path, file } = this.pageFile(request, how === "put" ? PageEditor.TEXT_FILE : PageEditor.PAGE_FILE)
+    // 403 outside the `writable` folders, as `/api/files`
+    this.files.writableFile(path)
     const expected = request.get("if-match")
     if (!expected) throw new SRV.HttpError(428, "If-Match required:  send the ETag the page was served with")
     const body = request.body as string | { html?: unknown; id?: unknown; inner?: unknown; parent?: unknown }
-    const etag = await SRV.FileLock.runAsync(file, async () => {
-      const current = SRV.StaticHandler.etagOf(await stat(file))
-      if (current !== expected)
-        throw new SRV.HttpError(409, "the page changed since it was loaded:  reload it", {
-          error: "the page changed since it was loaded:  reload it",
-          etag: current
-        })
-      const source = await readFile(file, "utf8")
-      let next: string
-      if (how === "put") {
-        next = typeof body === "string" ? body : typeof body.html === "string" ? body.html : ""
-        if (!next.trim()) throw new SRV.HttpError(400, "nothing to write")
-      } else {
+    // the edit is made holding the file's lock, after the `If-Match` check:  nobody writes in between
+    const etag = await SRV.FileOperations.save(
+      file,
+      (source) => {
+        if (how === "put") {
+          const next = typeof body === "string" ? body : typeof body.html === "string" ? body.html : ""
+          if (!next.trim()) throw new SRV.HttpError(400, "nothing to write")
+          return next
+        }
         if (typeof body !== "object" || typeof body.id !== "string" || typeof body.html !== "string")
           throw new SRV.HttpError(400, "PATCH body must be JSON { id, html, inner?, parent? }")
         const parent = typeof body.parent === "string" ? body.parent : undefined
-        next = replaceById(source, body.id, body.html, Boolean(body.inner), parent)
-      }
-      const temp = join(dirname(file), `.${basename(file)}.${process.pid}.tmp`)
-      await writeFile(temp, next)
-      await rename(temp, file)
-      return SRV.StaticHandler.etagOf(await stat(file))
-    })
+        return replaceById(source, body.id, body.html, Boolean(body.inner), parent)
+      },
+      { ifMatch: expected }
+    )
     reply.set("Cache-Control", "no-store").json({ path, etag })
   }
 
@@ -109,6 +113,14 @@ export class PageEditor {
     return { path, file: resolved.file }
   }
 }
+
+/**
+ * `new PageEditor()` props.
+ * - `root`:  folder pages live under (the checkout)
+ * - `writable`:  folders, relative to `root`, whose files it may write
+ *   (the root `package.json`'s `"pageServer"` `"writable"`);  none by default:  it reads, and writes nothing
+ */
+export type PageEditorProps = { root: string; writable?: string[] }
 
 /**
  * Where one element sits in a page's source:  character offsets.

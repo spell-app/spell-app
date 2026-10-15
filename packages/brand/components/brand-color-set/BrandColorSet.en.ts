@@ -1,0 +1,54 @@
+/**
+ * Every name `<brand-color-set>` uses:  tag, attributes, events, slots, parts.  Schema:  `E.ComponentVocabulary`.
+ * - Pure data:  `import type` only.
+ * - Class words:  `selectable` its name.
+ *   The component adds `color brand` before the noun (`color brand set`).
+ */
+
+import type { E } from "$/spell-solid"
+
+/****************
+ * ### `<brand-color-set>`
+ * A row or grid of `<brand-color>` chips:  to pick one from (`selectable`, a radio group), or just laid out.
+ ****************/
+export const brandColorSetVocabulary = {
+  tag: "brand-color-set",
+  topics: ["selection", "controls"],
+  aka: ["swatches", "swatch picker", "color picker", "palette", "color presets", "color choices"],
+  skeleton: "3 tall",
+  noun: "set",
+  ui: false,
+  description:
+    "A brand color set lays out colour chips in a row or a grid;  `selectable` makes it a radio group to pick one.",
+  attributes: [
+    {
+      name: "value",
+      kind: "string",
+      description:
+        "The chosen chip:  its `name`, else its colour.  Setting it selects the matching chip;  choosing a chip sets it."
+    },
+    {
+      name: "columns",
+      kind: "number",
+      description:
+        "Chips per row:  a grid of equal cells, each chip filling its cell.  None:  one row, chips shrinking to fit."
+    },
+    {
+      name: "selectable",
+      kind: "keyOnly",
+      description:
+        "A radio group:  click, Enter or Space chooses a chip, the arrow keys move and choose, Home / End go to the ends."
+    }
+  ],
+  events: [
+    {
+      name: "ui-change",
+      detail: "{ value: string, originalEvent?: Event }",
+      description: "A chip was chosen (`selectable`):  `value` is its `name`, else its colour."
+    }
+  ],
+  slots: [{ name: "", description: "The `<brand-color>` chips." }],
+  parts: [{ name: "set", description: "The box laying the chips out." }],
+  states: [],
+  texts: []
+} as const satisfies E.ComponentVocabulary

@@ -2,8 +2,9 @@
  * Loose types, constants, errors and small pure helpers of the page's server clients:
  * the review inbox's (`ReviewClient`), the running agents' (`AgentsClient`),
  * and the link both write through (`ServerLink`).
- * - The inbox's shapes are the route's own (`$/epics/tool/ReviewInbox`), imported as TYPES only:
- *   erased, so the node-only inbox never reaches the pack, and a reply can't drift from what the server writes.
+ * - The inbox's shapes are the route's own (`$/epics/tool/ReviewInbox`), and the running agents' the list's
+ *   (`tools/AgentList.ts`), imported as TYPES only:
+ *   erased, so the node-only files never reach the pack, and a reply can't drift from what the server writes.
  */
 
 import { PlanDates } from "$/epics/dates"
@@ -22,12 +23,14 @@ import type {
 } from "$/epics/tool/ReviewInbox"
 import type { WakeResult } from "$/epics/tool/ReviewStart"
 
+import type { Redirect, RunningAgent as ListedAgent } from "../../tools/AgentList"
+
 ////////////////
 // ## Constants
 ////////////////
 
 /** The review store's routes (`$/epics/tool/reviewRoutes.ts`):  every reply is the page's whole inbox. */
-export const REVIEW_API = "/api/review"
+export const REVIEW_API = "/api/epics/review"
 
 /**
  * The pages the routes review:  an epic page's own path, `.../epics/<name>/<name>.plan.html` (`reviewRoutes.ts`
@@ -117,8 +120,8 @@ export const NEW_TITLE_MAX = 300
 /** The page's own reload of its HTML:  the server's current token, as it serves the page now. */
 export const SERVER_INFO = /window\.SPELL_SERVER = (\{.*?\})<\/script>/
 
-/** The running-agents routes (`packages/docs/tools/agentRoutes.ts`):  every reply is the epic's list, `{ agents }`. */
-export const AGENTS_API = "/api/agents"
+/** The running-agents routes (`packages/epics/tools/agentRoutes.ts`):  every reply is the epic's list, `{ agents }`. */
+export const AGENTS_API = "/api/epics/agents"
 
 /** The running-agents list's file, beside the epic page (`AgentList.ts`):  the page server announces its changes. */
 export const AGENTS_FILE = "agents.json"
@@ -199,31 +202,16 @@ export type WriteOptions = {
 }
 
 /**
- * One running agent, as the page shows it:  `AgentList.ts`'s `RunningAgent`, every field there (`agentsOf()`).
- * - a COPY of that shape:  `epics` never imports `docs`, which holds the list (the root's dependency rule)
+ * One running agent, as the page shows it.
+ * - the list's own `RunningAgent` (`tools/AgentList.ts`), every field filled in (`agentsOf()`)
+ * - `started`:  `""` for unknown
+ * - `redirects`:  `[]` for none
+ * - not `taskId`:  the page has no use for it
  */
-export type RunningAgent = {
-  /** its full name, prefixed:  `skillz-aaa` */
-  name: string
-  /** what it does, a sentence or less */
-  task: string
-  /** `active`, or `blocked on <name>` */
-  status: string
-  /** when it was added, ISO;  `""` for unknown */
-  started: string
-  /** Owen's notes to it so far, oldest first */
-  redirects: AgentRedirect[]
-}
+export type RunningAgent = Required<Omit<ListedAgent, "taskId" | "redirects">> & { redirects: AgentRedirect[] }
 
-/** A note Owen sent a running agent from the page. */
-export type AgentRedirect = {
-  /** what he typed */
-  note: string
-  /** when he sent it, ISO */
-  at: string
-  /** when a session passed it on, ISO;  `""`:  not yet */
-  told: string
-}
+/** A note Owen sent a running agent from the page:  the list's `Redirect`, `told` filled in (`""`:  not yet). */
+export type AgentRedirect = Required<Redirect>
 
 export type {
   InboxDraft,
@@ -378,7 +366,8 @@ function isObject(value: unknown): boolean {
 }
 
 /**
- * The page server's answer to "start a review" (`POST /api/review/start`, epic `airplane` P12):  its `StartResult`.
+ * The page server's answer to "start a review" (`POST /api/epics/review/start`, epic `airplane` P12):
+ * its `StartResult`.
  * - `sent`:  typed into the one session titled for the epic;  `none` / `several` / `no-window`:  nothing sent
  */
 export type StartAnswer = {

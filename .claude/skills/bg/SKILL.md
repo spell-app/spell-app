@@ -13,7 +13,7 @@ Hand a task to a helper agent that works in the background (epic `skillz`), so t
 - Every agent this session starts, `/bg` or not, is NAMED and LISTED the same way.
   - That's the root `CLAUDE.md`'s rule, "Delegated work".
   - This skill is that rule's full text.
-- The list:  `epic agents` ([agents.ts](packages/docs/tools/agents.ts)).
+- The list:  `epic agents` ([agents.ts](packages/epics/tools/agents.ts)).
   - In an epic, it's `epics/<epic>/agents.json`;  else `.spell-agents.json` at the checkout's root.
   - Git-ignored, and gone when empty.
 
@@ -129,7 +129,7 @@ The helper's report reaches this session as a notice, between whatever else it's
 
 In an epic, the epic page shows its running agents at the top ("Agents running"), each with a note box.
 - Owen types there to STEER an agent mid-task
-  (P3 of epic `skillz`;  [agentRoutes.ts](packages/docs/tools/agentRoutes.ts)).
+  (P3 of epic `skillz`;  [agentRoutes.ts](packages/epics/tools/agentRoutes.ts)).
 - The note waits in the list, untold, until this session passes it on.
 - The waiter:  `epic agents wait`, with Bash `run_in_background: true`.
   - ONE per session, while any agent this session started runs.

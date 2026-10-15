@@ -338,7 +338,7 @@ export class DocView implements vscode.WebviewViewProvider {
 
   /**
    * Restart the page server behind the page in view, then show the same page from it again.
-   * - which checkout:  the server's own `/_server/ping` says (`root`)
+   * - which checkout:  the server's own `/api/server` says (`root`)
    * - runs `spell dev server stop`, then `spell dev server ensure`, in a LOGIN shell (`$SHELL -lc`):
    *   a GUI VS Code's own `PATH` may have no `node`
    * - that checkout's own CLI (`node packages/cli/bin/spell.mjs`), never the `spell` on `PATH`:  another checkout's
@@ -537,7 +537,7 @@ export class DocView implements vscode.WebviewViewProvider {
    * A link the page couldn't follow in the frame (see `followInFrame()` in `liveClient.ts`):
    * - `external`:  in the browser
    * - `file`:  a file on the page server, opened in the editor;  a folder, revealed in the Explorer.  Which checkout:
-   *   the server's `/_server/ping` (`root`);  a worktree's file on the main server is `/worktrees/<w>/...`
+   *   the server's `/api/server` (`root`);  a worktree's file on the main server is `/worktrees/<w>/...`
    */
   static async open({ url, kind }: OpenLink): Promise<void> {
     if (!url) return
@@ -611,9 +611,9 @@ export function samePage(a: string, b: string): boolean {
   return first.href === second.href
 }
 
-/** The checkout the page server at `origin` serves (its `/_server/ping`'s `root`);  `undefined`:  not a page server. */
+/** The checkout the page server at `origin` serves (its `/api/server`'s `root`);  `undefined`:  not a page server. */
 async function serverRoot(origin: string): Promise<string | undefined> {
-  const info = await fetch(`${origin}/_server/ping`, { signal: AbortSignal.timeout(2000) })
+  const info = await fetch(`${origin}/api/server`, { signal: AbortSignal.timeout(2000) })
     .then((answer) => (answer.ok ? (answer.json() as Promise<{ root?: string }>) : undefined))
     .catch(() => undefined)
   return info?.root

@@ -80,7 +80,7 @@ export class SpellFile extends TextFile {
     return this.derived("project", () => new SP.SpellProject(this.projectId))
   }
 
-  /** Does our project parse us, i.e. are we active in its `project.json`? */
+  /** Does our project parse us, i.e. are we active in its project file? */
   get isActive(): boolean {
     return this.project.spellFiles.includes(this)
   }
@@ -256,9 +256,14 @@ export class SpellFile extends TextFile {
     return true
   }
 
-  /** URL to serve the file. */
+  /** URL to read the file:  `/spaces/<project>/<file>` (`SP.SpellUrls.fileUrl()`). */
   get url(): string {
-    return `/api/projects/file/${this.projectId}${this.filePath}`
+    return SP.SpellUrls.fileUrl(this.path)
+  }
+
+  /** Saved by a call, not to `url`:  `POST /api/projects/file/<project>/<file>` (`SP.SpellUrls.saveUrl()`). */
+  get saveParams() {
+    return { ...super.saveParams, url: SP.SpellUrls.saveUrl(this.path) }
   }
 
   ////////////////

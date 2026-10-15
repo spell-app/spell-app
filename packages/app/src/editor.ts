@@ -2,6 +2,7 @@ import { UIError, Observable, prop, setPrefKey, getPref, setPref, CONFIRM } from
 
 import { P } from "$/parser"
 import { SP } from "$/spell"
+import { SPACES } from "$/spaces"
 import type { SpellConsole } from "$/core/console"
 import type { SpellRuntime } from "$/app/runner"
 import type * as UIT from "$/app/ui/ui.types"
@@ -32,11 +33,11 @@ export class EditorStore extends Observable {
   ////////////////
 
   /**
-   * `SP.SpellProjectRoot` shown in `SpellEditor`.
+   * `SPACES.SpellProjectRoot` shown in `SpellEditor`.
    * - Update with `editor.showEditor()`.
    */
   @prop()
-  accessor projectRoot: SP.SpellProjectRoot | undefined
+  accessor projectRoot: SPACES.SpellProjectRoot | undefined
   /** Get/save last viewed `projectPath` for `projectRootPath`. */
   lastProjectForRoot = lastProjectForRoot
   /** Human-readable type of current `projectRoot`, e.g. `"Example"` -- falls back to `"Project"` if none selected. */
@@ -113,9 +114,18 @@ export class EditorStore extends Observable {
   showHelp(): void {
     console.warn("TODO: editor.showHelp() not yet implemented")
   }
-  /** Log the user in. TODO: not yet implemented. */
-  logIn(): void {
-    console.warn("TODO: editor.logIn() not yet implemented")
+  /**
+   * Show the "You" panel (`openYouPanel()`, epic `people-and-orgs` P9):
+   * this machine's person to change, and their orgs.
+   * - Save writes their `__me.json5`.
+   * - An error reading or saving them shows as the editor's error.
+   */
+  async showYou(): Promise<void> {
+    try {
+      await (await dialogs()).openYouPanel()
+    } catch (error) {
+      editor.showError(error)
+    }
   }
   /** Publish the current `project`. TODO: not yet implemented. */
   publishApp(): void {
@@ -140,11 +150,11 @@ export class EditorStore extends Observable {
     } catch {
       console.warn(`editor.selectPath('${path}'): invalid path`)
       // default to user projects if `new SP.SpellLocation()` throws
-      location = new SP.SpellLocation("@user:projects")
+      location = new SP.SpellLocation("owen@spell")
     }
     console.info("editor.selectPath", { path, location })
 
-    const projectRoot = new SP.SpellProjectRoot(location.projectRoot)
+    const projectRoot = new SPACES.SpellProjectRoot(location.projectRoot)
     const sameRoot = editor.projectRoot === projectRoot
     if (!sameRoot) {
       console.info("selecting projectRoot", projectRoot)
@@ -235,7 +245,7 @@ export class EditorStore extends Observable {
    * Create an app in `projectRoot` (default:  the current one), and show it.
    * - No `projectId`:  asks the user for one.
    */
-  async createApp(projectRoot?: SP.SpellProjectRoot, projectId?: string): Promise<void> {
+  async createApp(projectRoot?: SPACES.SpellProjectRoot, projectId?: string): Promise<void> {
     // NOTE: defaulted here, NOT in the signature -- a default referencing `editor` would make
     // `typeof EDITOR_DEFAULTS` circular, since defaults are part of the member's type.
     projectRoot ??= editor.projectRoot!
@@ -243,7 +253,7 @@ export class EditorStore extends Observable {
       const project = await projectRoot.createApp(projectId)
       if (project) {
         editor.showEditor(project.path)
-        editor.showNotice(`Created ${project.type} ${project.projectName}.`)
+        editor.showNotice(`Created ${project.type} ${project.title}.`)
       }
     } catch (e) {
       editor.showError(e)
@@ -346,7 +356,7 @@ export class EditorStore extends Observable {
    *   (epic `drawable-thing` P16), unless:
    *   - `restartApp()` asked for a fresh start
    *   - or the edit changed the program's start (`runCompiled()`, P17)
-   * - Runs what it wrote to `<Project>.compiled.js`:  its declarations are in `<Project>.declarations.json`.
+   * - Runs what it wrote to `<Project>.spell.js`:  its declarations are in `<Project>.declarations.json5`.
    * - Each project it imports is fetched afresh, so a recompiled library shows at once.
    * - An error's stack goes to devtools too -- `runCompiled()` logs it.
    */
@@ -435,25 +445,25 @@ export class EditorStore extends Observable {
   ////////////////
   // ## Projects actions
   ////////////////
-  /** Create a new project under `SP.SpellProjectRoot.projects`. */
+  /** Create a new project under `SPACES.SpellProjectRoot.projects`. */
   createProject(projectId?: string): Promise<void> {
-    return editor.createApp(SP.SpellProjectRoot.projects, projectId)
+    return editor.createApp(SPACES.SpellProjectRoot.projects, projectId)
   }
 
   ////////////////
   // ## Examples actions
   ////////////////
-  /** Create a new example under `SP.SpellProjectRoot.examples`. */
+  /** Create a new example under `SPACES.SpellProjectRoot.examples`. */
   async createExample(projectId?: string): Promise<void> {
-    return editor.createApp(SP.SpellProjectRoot.examples, projectId)
+    return editor.createApp(SPACES.SpellProjectRoot.examples, projectId)
   }
 
   ////////////////
   // ## Guides actions
   ////////////////
-  /** Create a new guide under `SP.SpellProjectRoot.guides`. */
+  /** Create a new guide under `SPACES.SpellProjectRoot.guides`. */
   async createGuide(projectId?: string): Promise<void> {
-    return editor.createApp(SP.SpellProjectRoot.guides, projectId)
+    return editor.createApp(SPACES.SpellProjectRoot.guides, projectId)
   }
 
   ////////////////
@@ -478,7 +488,7 @@ export class EditorStore extends Observable {
   async createFile(filePath?: string, contents?: string): Promise<void> {
     editor.clearCompileAppSoon()
     try {
-      const newFile = await editor.project!.createFile(filePath, contents)
+      const newFile = await new SPACES.ProjectFiles(editor.project!).create(filePath, contents)
       if (newFile) {
         editor.showEditor(newFile.path)
         editor.showNotice("File created.")
@@ -491,7 +501,7 @@ export class EditorStore extends Observable {
   async duplicateFile(newPath?: string): Promise<void> {
     editor.clearCompileAppSoon()
     try {
-      const newFile = await editor.project!.duplicateFile(editor.file!.filePath!, newPath)
+      const newFile = await new SPACES.ProjectFiles(editor.project!).duplicate(editor.file!.filePath!, newPath)
       if (newFile) {
         editor.showEditor(newFile.path)
         editor.showNotice("File duplicated.")
@@ -504,7 +514,7 @@ export class EditorStore extends Observable {
   async renameFile(newPath?: string): Promise<void> {
     editor.clearCompileAppSoon()
     try {
-      const renamedFile = await editor.project!.renameFile(editor.file!.filePath!, newPath)
+      const renamedFile = await new SPACES.ProjectFiles(editor.project!).rename(editor.file!.filePath!, newPath)
       if (renamedFile) {
         editor.showEditor(renamedFile.path)
         editor.showNotice("File renamed.")
@@ -524,7 +534,7 @@ export class EditorStore extends Observable {
       const fileIndex = files.indexOf(file)
       const nextFile = files[fileIndex + (fileIndex === files.length - 1 ? -1 : 1)]
       // actually remove the file
-      const removed = await project.deleteFile(file.filePath!, CONFIRM)
+      const removed = await new SPACES.ProjectFiles(project).delete(file.filePath!, CONFIRM)
       if (removed) {
         // select the nextFile, or the project (which will select another file)
         editor.showEditor(nextFile?.path || project.path)
@@ -865,9 +875,14 @@ function runtimeUrl(): string {
   return new URL(path, location.href).href
 }
 
-/** Compiled javascript of project `projectId`, which the program imports -- fetched afresh, from the server. */
+/**
+ * Compiled javascript of project `projectId`, which the program imports -- fetched afresh, from the server:
+ * its `<Project>.spell.js`, at `/spaces/<project>/<Project>.spell.js` (`SP.SpellUrls`).
+ */
 async function fetchCompiled(projectId: string): Promise<string> {
-  const response = await fetch(`/api/projects/compiled/${projectId}`, { cache: "no-cache" })
+  const { projectName } = new SP.SpellLocation(projectId)
+  const url = SP.SpellUrls.fileUrl(SP.SpellLocation.join(projectId, `${projectName}${SP.COMPILED_JS_SUFFIX}`))
+  const response = await fetch(url, { cache: "no-cache" })
   if (!response.ok) throw new Error(`Couldn't load project '${projectId}':  ${response.status} ${response.statusText}`)
   return response.text()
 }

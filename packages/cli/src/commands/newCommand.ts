@@ -1,14 +1,15 @@
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from "fs"
 import { resolve } from "path"
 
-import environment from "$/spell/node/environment"
+import environment from "$/spaces/server/node/environment"
 import { SP } from "$/spell"
+import { hasProjectFile } from "$/spell/node/projectFile"
 import { CLI } from "$/cli"
 
 /**
- * `spell new <name>`:  make a spell project -- folder `<name>/`, holding `project.json` and a starter
+ * `spell new <name>`:  make a spell project -- folder `<name>/`, holding `__project.json5` and a starter
  * `<name>.spell` which prints a hello, so `spell run` shows something straight away.
- * - In `--in <folder>`, or by default `@user`'s folder, `projects/user/`.
+ * - In `--in <folder>`, or by default `owen@spell`'s folder, your space in spell-spaces (`@spell/owen@/`).
  * - Writes the files itself:  `projectUtils.createProject()` would go through `getIndex()`, which adds an
  *   `Untitled.spell`.
  * - Refuses a folder that's already there with anything in it.
@@ -23,7 +24,7 @@ export async function newCommand(session: CLI.CliSession, args: string[], option
   if (!existsSync(parent)) throw new CLI.CliError(`No such folder:  ${options.in ?? parent}`)
   const folder = resolve(parent, name)
   if (existsSync(folder) && readdirSync(folder).length) {
-    const what = existsSync(resolve(folder, SP.PROJECT_FILE)) ? "a project" : "files"
+    const what = hasProjectFile(folder) ? "a project" : "files"
     throw new CLI.CliError(`${session.relative(folder)} already holds ${what}`)
   }
 

@@ -2,7 +2,7 @@
  * Formatting a page's text in memory, as `vp fmt` would format its file:  no `yarn vp fmt` per write (about 0.5s
  * each), and a page written once, already tidy.
  * - Imports `vite-plus/fmt` (oxfmt) and the repo root's `vite.lint.ts`, nothing from another package.
- * - From `packages/docs/tools/plan-parts.js` (epic `epic-components`, P7).
+ * - From `packages/epics/tools/plan-parts.js` (epic `epic-components`, P7).
  */
 import { basename } from "node:path"
 

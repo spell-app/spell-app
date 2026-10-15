@@ -12,42 +12,43 @@
 # ui:  pre-compiled spell highlighter and markdown (`yarn gen:spell`, `yarn gen:markdown`)
 packages/ui/src/languages/spell.*                             linguist-generated merge=binary
 packages/ui/src/languages/spell.*.bundle.js                   -diff
-packages/ui/src/components/ui-markdown/md.bundle.*            linguist-generated merge=binary
-packages/ui/src/components/ui-markdown/md.bundle.js           -diff
-packages/ui/src/components/ui-markdown/MDBundle.ts            linguist-generated merge=binary
+packages/ui/components/ui-markdown/md.bundle.*                linguist-generated merge=binary
+packages/ui/components/ui-markdown/md.bundle.js               -diff
+packages/ui/components/ui-markdown/MDBundle.ts                linguist-generated merge=binary
 
 # ui:  Spell UI site data (`yarn site:data`);  `pages.json` is hand-kept.  Its bundle, `_assets/`, isn't committed:
 # the page server builds it (root `.gitignore`)
-packages/ui/site/_data/components.json                        linguist-generated merge=binary
-packages/ui/site/_data/icons.json                             linguist-generated merge=binary -diff
-packages/ui/site/_data/custom-elements.json                   linguist-generated merge=binary
-packages/ui/site/_data/html-custom-data.json                  linguist-generated merge=binary
+packages/ui/docs/__data/components.json                       linguist-generated merge=binary
+packages/ui/docs/__data/icons.json                            linguist-generated merge=binary -diff
+packages/ui/docs/__data/custom-elements.json                  linguist-generated merge=binary
+packages/ui/docs/__data/html-custom-data.json                 linguist-generated merge=binary
 
 # the component sets' data (`yarn site:data` in packages/epics and packages/app);  `pages.json` is hand-kept
-packages/epic-components/_data/components.json                linguist-generated merge=binary
-packages/epic-components/_data/search.json                    linguist-generated merge=binary
-packages/app/components/_data/components.json                 linguist-generated merge=binary
-packages/app/components/_data/search.json                     linguist-generated merge=binary
+packages/epics/docs/__data/components.json                    linguist-generated merge=binary
+packages/epics/docs/__data/search.json                        linguist-generated merge=binary
+packages/app/docs/__data/components.json                      linguist-generated merge=binary
+packages/app/docs/__data/search.json                          linguist-generated merge=binary
 
 # docs:  the single-file bundle for docs pages (`node tools/bundle-spell-ui.js`)
-packages/docs/tools/_assets/spell-ui.js                       linguist-generated merge=binary -diff
-packages/docs/tools/_assets/emoji/**                          linguist-generated merge=binary -diff
-packages/docs/tools/_assets/lazy/**                           linguist-generated merge=binary -diff
+packages/epics/tools/_assets/spell-ui.js                       linguist-generated merge=binary -diff
+packages/epics/tools/_assets/emoji/**                          linguist-generated merge=binary -diff
+packages/epics/tools/_assets/lazy/**                           linguist-generated merge=binary -diff
 # docs:  highlight.js 11.9.0, vendored as cdnjs serves it, so pages load offline (epic `airplane` P1)
-packages/docs/tools/_assets/highlight.min.js                  linguist-vendored -diff
+packages/epics/tools/_assets/highlight.min.js                  linguist-vendored -diff
 
-# brand:  its pages' data (`yarn site:data`);  `pages.json` is hand-kept.  Its bundle, `_assets/ui/`, isn't
+# brand:  its docs set's data (`yarn site:data`);  `pages.json` is hand-kept.  Its bundle, `_assets/ui/`, isn't
 # committed:  the page server builds it (root `.gitignore`)
-packages/brand/_data/components.json                         linguist-generated merge=binary
-packages/brand/_data/custom-elements.json                     linguist-generated merge=binary
-packages/brand/_data/html-custom-data.json                    linguist-generated merge=binary
+packages/brand/docs/__data/components.json                    linguist-generated merge=binary
+packages/brand/docs/__data/custom-elements.json               linguist-generated merge=binary
+packages/brand/docs/__data/html-custom-data.json              linguist-generated merge=binary
+packages/brand/docs/__data/search.json                        linguist-generated merge=binary
 
 # spell:  the spell syntax table, every rule's example in each writer (`yarn gen:syntax`), drawn by the spell syntax
 # guide
 packages/spell/spellSyntax.json                               linguist-generated merge=binary
 
 # ui:  emoji data, from a reference clone (`yarn gen:emoji`):  collapsed only, never regenerated on a merge
-packages/ui/src/components/ui-emoji/data/**                   linguist-generated -diff
+packages/ui/components/ui-emoji/data/**                       linguist-generated -diff
 
 # vendored Fomantic build
 packages/app/static/semantic-ui-css/**                        linguist-vendored -diff
@@ -55,5 +56,16 @@ packages/app/static/semantic-ui-css/**                        linguist-vendored 
 # yarn.lock stays a LINE merge:  `yarn install` resolves its conflict markers itself
 yarn.lock                                                     linguist-generated
 
+# spell:  what a project offers its importers, written by each compile beside its source;  and the core's method list
+# (`yarn gen:declarations` in packages/core).  JSON5 since epic `people-and-orgs` P12, `.declarations.json` before
+packages/spaces/@spell/**/*.declarations.json5                linguist-generated
+packages/core/spellCore.declarations.json5                    linguist-generated
+
+# spell:  its compiled libraries, the `ts/lib` target (`spell compile @library`)
+packages/spaces/@spell/library/**/*.lib.ts                    linguist-generated merge=binary
+
 # epics:  its component pack (`spell dev pack build epics`)
-packages/epics/pack/**                                        linguist-generated merge=binary -diff
+packages/epics/components/__pack/**                           linguist-generated merge=binary -diff
+
+# brand:  its component pack (`spell dev pack build brand`)
+packages/brand/components/__pack/**                           linguist-generated merge=binary -diff

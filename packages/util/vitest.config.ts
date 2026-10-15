@@ -1,3 +1,5 @@
+import { resolve } from "node:path"
+
 import { defineConfig, type TestProjectConfiguration } from "vite-plus"
 import { playwright } from "vite-plus/test/browser-playwright"
 
@@ -27,6 +29,8 @@ export function utilProjects({
       ...(root && { root }),
       test: {
         name: `${prefix}browser`,
+        // the tests live in the repo's tests/ folder, at the same paths as the code
+        dir: resolve(import.meta.dirname, "../../tests/util"),
         include: ["src/**/*.test.ts"],
         exclude: ["**/node_modules/**", "src/spell/**", "src/reactive/**"],
         browser: {
@@ -44,6 +48,7 @@ export function utilProjects({
       test: {
         name: `${prefix}spell`,
         environment: "node",
+        dir: resolve(import.meta.dirname, "../../tests/util"),
         include: ["src/spell/**/*.test.ts", "src/reactive/**/*.test.ts"]
       }
     }

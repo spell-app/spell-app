@@ -4,7 +4,7 @@ import { join } from "node:path"
 import { parseHTML } from "linkedom"
 
 // Import directly:  the `$/server/site` barrel is browser code (the site header);  this file imports nothing
-import { URGENT_SELECTOR } from "$/server/site/EpicState"
+import { URGENT_SELECTOR } from "$/epics/list/EpicState"
 
 import type { SagaEpic, SagaEpicsAnswer } from "$/epics/components/epic-cards/EpicCards.types"
 
@@ -15,7 +15,7 @@ import { PlanDocFiles } from "./PlanDocFiles"
  * The epics serving a saga, as a saga page's Epics draws them (`<epic-cards>`, epic `epic-workflow` P15):
  * every epic page whose `<epic-page saga>` names it.
  * - GATHERED when asked, from each epic page's SKELETON (no parts):  its title, summary, phases' statuses, `updated`,
- *   `future`, `standing` and the items that need Owen -- what `$/server/site/EpicState` reads an epic's state from
+ *   `future`, `standing` and the items that need Owen -- what `$/epics/list/EpicState` reads an epic's state from
  * - nothing kept:  an epic that joins or leaves the saga, or finishes a phase, shows on the next ask
  * - read by the page server (`GET /api/epics/saga?saga=<id>`, `epicRoutes.ts`), which `<epic-cards>` asks
  * - Node only (`node:fs`, linkedom):  NOT in the `$/epics` barrel, imported by path.

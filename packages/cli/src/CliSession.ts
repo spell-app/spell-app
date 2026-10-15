@@ -70,14 +70,14 @@ export class CliSession {
 
   /**
    * The project when none was given:
-   * - In a project's folder, or below it:  that project, `@workspace`.
+   * - In a project's folder, or below it:  that project, `@here`.
    * - Otherwise, in a terminal:  ask, at a `<ProjectPrompt>`.  Throws `CLI.CliError` if cancelled.
    * - Otherwise:  throws `CLI.CliError`, saying to name one.
    */
   async defaultProject(): Promise<string> {
-    if (CLI.projectDirAbove(process.cwd())) return CLI.WORKSPACE_ARG
+    if (CLI.projectDirAbove(process.cwd())) return CLI.HERE_ARG
     if (!this.isInteractive) {
-      throw new CLI.CliError("No spell project here -- name one, e.g. @examples/Solitaire, or `spell projects`")
+      throw new CLI.CliError("No spell project here -- name one, e.g. @spell/examples/solitaire, or `spell projects`")
     }
     const picked = await CLI.promptForProject()
     if (!picked) throw new CLI.CliError("Cancelled")
@@ -117,29 +117,39 @@ export class CliSession {
   }
 
   /**
-   * Compile each project `project` imports -- and what THEY import -- which has no `<Project>.compiled.js` yet.
+   * Compile each project `project` imports -- and what THEY import -- which has no `<Project>.spell.js` yet.
    * - Why:  a compiled import is read from that file, so parsing `project` fails without it.
-   * - NOTE: an existing one is used as is, even if its sources have changed since -- unless `force`
-   *   (`spell compile --force`), which recompiles them all, what they import first.
+   * - NOTE: an existing one is used as is, even if its sources have changed since -- unless:
+   *   - `stale` (`spell compile --stale`):  recompiles those that are out of date, see `CLI.staleBecause()`
+   *   - `force` (`spell compile --force`):  recompiles them all
+   *   - either way, what they import first
    * - Shows each on `status`, if given.
    */
   async compileImports(
     project: SP.SpellProject,
     status?: CLI.StatusReporter,
-    force = false,
+    { force = false, stale = false }: { force?: boolean; stale?: boolean } = {},
     seen = new Set<SP.SpellProject>()
   ) {
     await project.load(undefined)
     for (const imported of LSP.ScopeExplorer.importedProjects(project)) {
       if (seen.has(imported)) continue
       seen.add(imported)
-      if (!force && existsSync(imported.outputFile.location.serverPath)) continue
+      // what it imports first:  with `stale`, a rebuilt import makes this one out of date too
+      await this.compileImports(imported, status, { force, stale }, seen)
+      const why = force
+        ? "forced"
+        : stale
+          ? await CLI.staleBecause(imported)
+          : existsSync(imported.outputFile.location.serverPath)
+            ? undefined
+            : "never compiled"
+      if (!why) continue
 
       const row = status?.start(`${imported.projectId}  (imported by ${project.projectName})`)
-      await this.compileImports(imported, status, force, seen)
       await imported.compile()
-      if (row)
-        this.report(status!, row, imported, { note: `wrote ${this.relative(imported.outputFile.location.serverPath)}` })
+      const wrote = `wrote ${this.relative(imported.outputFile.location.serverPath)}`
+      if (row) this.report(status!, row, imported, { note: `${why} · ${wrote}` })
     }
   }
 
@@ -175,8 +185,8 @@ export class CliSession {
   }
 
   /**
-   * Options for describing `project`'s `tree` as text -- see `CLI.describeOverview()`:  `options`, plus how to
-   * find each thing's details, and where it's declared.
+   * Options for describing `project`'s `tree` as text -- see `CLI.describeOverview()`:
+   * `options`, plus how to find each thing's details, and where it's declared.
    */
   describeOptions(
     project: SP.SpellProject,

@@ -543,10 +543,10 @@ class List(SpellObject, MutableSequence[Any]):
         return True
 
     def to_json(self) -> dict[str, object]:
-        """Our JSON:  our class's name as `"@type"`, our own properties, then our items under `"@items"`.
+        """Our JSON:  our class's name as `"$type"`, our own properties, then our items under `"$items"`.
 
         ```python
-        {"@type": "Pile", "name": "stock", "@items": [{"@type": "Card", "rank": "ace"}]}
+        {"$type": "Pile", "name": "stock", "$items": [{"$type": "Card", "rank": "ace"}]}
         ```
 
         - Each item as its own JSON.  Reads back as what it was:  `core.from_json()`.

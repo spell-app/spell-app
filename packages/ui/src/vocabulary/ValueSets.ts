@@ -1,5 +1,5 @@
 import { numberToWord, proto, suggest } from "$/ui/util"
-import type { AttributeKind, AttributeSpec, ValueSetName } from "./vocabulary.types"
+import type { AttributeKind, AttributeSpec, ValueSetName } from "$/spell-solid/vocabulary.types"
 
 /****************
  * ### `ValueSets`
@@ -335,3 +335,12 @@ const PERCENT = /^(\d+(?:\.\d+)?)\s*%$/
 
 /** Plain column count. */
 const NUMBER = /^\d+(?:\.\d+)?$/
+
+/**
+ * Spell UI's value sets and topics, added to spell-solid's vocabulary types (where every set's vocabularies are
+ * typed), so a vocabulary's `values: "hues"` and its `topics` are checked against this class.
+ */
+declare module "$/spell-solid/vocabulary.types" {
+  interface ValueSetNames extends Record<keyof ValueSets, true> {}
+  interface TopicNames extends Record<(typeof ValueSets.topics)[number], true> {}
+}

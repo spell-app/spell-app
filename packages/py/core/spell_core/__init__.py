@@ -14,7 +14,7 @@ from spell_core.core import SpellCore, core
 from spell_core.drawing import h
 from spell_core.lists import List
 from spell_core.positions import end_position, position, spell_position, with_spell_positions
-from spell_core.saving import Loader, Saved, Saver
+from spell_core.saving import Loader, Saved, SavedRef, Saver, parse_ref, ref_text
 from spell_core.state import StateMirror, StateWriter
 from spell_core.things import Thing, prop
 
@@ -25,6 +25,7 @@ __all__ = [
     "List",
     "Loader",
     "Saved",
+    "SavedRef",
     "Saver",
     "SpellConsole",
     "SpellCore",
@@ -34,8 +35,10 @@ __all__ = [
     "core",
     "end_position",
     "h",
+    "parse_ref",
     "position",
     "prop",
+    "ref_text",
     "spell_position",
     "with_spell_positions",
 ]

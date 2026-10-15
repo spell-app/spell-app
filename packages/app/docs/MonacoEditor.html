@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>MonacoEditor</title>
+    <meta name="description" content="A Monaco editor, filling its parent:  what every code editor in the app is." />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="MonacoEditor">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../../packages/app/src/solid/monaco/MonacoEditor.tsx"
+              icon="code"
+              aria-label="Its code, MonacoEditor.tsx"
+              title="Its code, MonacoEditor.tsx"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            MonacoEditor
+            <ui-header>A Monaco editor, filling its parent: what every code editor in the app is.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <p class="lede">
+            Monaco, the code editor VS Code is built on, as a Solid component that fills the box it's in. Every code
+            editor in the app is one: the code pane, the "Javascript Output" pane, and the editor in a
+            <a href="spell-editor.html" target="src-packages-app-docs-spell-editor-html"
+              ><code>&lt;spell-editor&gt;</code></a
+            >.
+          </p>
+          <ui-list class="spell-meta">
+            <ui-item icon="user">Written for: anyone changing a code editor in the app, or reading its code</ui-item>
+            <ui-item icon="image">A picture, not live: Monaco needs the editor's page around it</ui-item>
+          </ui-list>
+
+          <ui-section id="1-what-it-looks-like" header="1. What it looks like" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="image"></ui-icon>
+            <p>
+              The one in the editor's "Javascript Output" pane, without the pane's toolbar: Solitaire's Card.spell,
+              compiled.
+            </p>
+            <ui-image
+              src="_images/MonacoEditor.png"
+              alt="A Monaco editor showing compiled javascript, with line numbers"
+              bordered
+              rounded
+            >
+            </ui-image>
+            <p class="meta">
+              A picture, taken by <code>yarn site:pictures</code> in
+              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="code"></ui-icon>
+            <p>
+              The "Javascript Output" pane draws one on some text, read only. It loads it lazily, so it goes inside a
+              <code>&lt;Loading&gt;</code> that shows "Loading editor…" till it's in:
+            </p>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>OutputEditor.tsx · the compiled javascript · 3 lines</ui-title>
+              <ui-content>
+                <ui-code language="typescript"
+                  ><script type="text/plain">
+                    <Loading fallback={<LazyMonaco.Loading />}>
+                      <LazyMonaco.MonacoEditor value={compiled()} language="javascript" options={{ readOnly: true }} />
+                    </Loading>
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+            <ul>
+              <li>
+                Monaco is most of the app's code, and only the editor's pages need it. So it's never imported directly:
+                the app loads it the first time it's drawn, through <code>LazyMonaco</code>, and a
+                <code>&lt;spell-editor&gt;</code> through its own loader.
+              </li>
+              <li>
+                It shows <code>model</code>, a file's text the app keeps, which wins; else <code>value</code>, in
+                <code>language</code>, in a model of its own. The
+                <a href="FileEditor.html" target="src-packages-app-docs-fileeditor-html">FileEditor</a> hands it a
+                file's model.
+              </li>
+              <li>
+                It's made once, when it's settled into the page: draw a new one for a fresh editor, such as one per
+                file.
+              </li>
+              <li>
+                A new <code>value</code> goes in only if it differs, as a new starting point: undo can't go back past
+                it, and <code>onChange</code> isn't called. That's only for the person's own edits.
+              </li>
+              <li>
+                <code>onMount</code> and <code>onUnmount</code> hand out the editor itself, to add keys or follow the
+                cursor.
+              </li>
+              <li>
+                It works inside a shadow root too, as in a <code>&lt;spell-editor&gt;</code>: it keeps mouse moves over
+                it there, so its hovers stay up.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="3-props" header="3. Props, and where it's drawn" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="list check"></ui-icon>
+            <ui-docs-api family="MonacoEditor"></ui-docs-api>
+            <p class="meta">
+              From its code, by <code>yarn site:data</code> in
+              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="4-its-code" header="4. Its code" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="folder open"></ui-icon>
+            <ul>
+              <li>
+                <a
+                  href="../../packages/app/src/solid/monaco/MonacoEditor.tsx"
+                  target="src-packages-app-src-solid-monaco-monacoeditor-tsx"
+                  ><code title="packages/app/src/solid/monaco/MonacoEditor.tsx">MonacoEditor.tsx</code></a
+                >: the component, and its props
+              </li>
+              <li>
+                <a
+                  href="../../packages/app/src/solid/monaco/MonacoEditor.css"
+                  target="src-packages-app-src-solid-monaco-monacoeditor-css"
+                  ><code title="packages/app/src/solid/monaco/MonacoEditor.css">MonacoEditor.css</code></a
+                >: its look
+              </li>
+              <li>
+                <a href="../../packages/app/src/solid/LazyMonaco.tsx" target="src-packages-app-src-solid-lazymonaco-tsx"
+                  ><code title="packages/app/src/solid/LazyMonaco.tsx">LazyMonaco.tsx</code></a
+                >: how the app loads it, the first time it's drawn
+              </li>
+              <li>
+                <a
+                  href="../../packages/app/src/spellEditor/SpellEditorPane.tsx"
+                  target="src-packages-app-src-spelleditor-spelleditorpane-tsx"
+                  ><code title="packages/app/src/spellEditor/SpellEditorPane.tsx">SpellEditorPane.tsx</code></a
+                >: the one in a <code>&lt;spell-editor&gt;</code>
+              </li>
+              <li>
+                Its tests, with the code pane's:
+                <a
+                  href="../../tests/app/src/solid/InputEditor.browser.test.tsx"
+                  target="src-tests-app-src-solid-inputeditor-browser-test-tsx"
+                  ><code title="tests/app/src/solid/InputEditor.browser.test.tsx">InputEditor.browser.test.tsx</code></a
+                >
+              </li>
+              <li>
+                Monaco's plumbing under it, spell's language in it:
+                <a href="../../packages/app/src/ui/monaco/" target="src-packages-app-src-ui-monaco"
+                  ><code title="packages/app/src/ui/monaco/">src/ui/monaco/</code></a
+                >
+              </li>
+            </ul>
+          </ui-section>
+
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">Last checked 2026-10-12 against branch <code>epic-workflow</code>.</p>
+          </footer>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

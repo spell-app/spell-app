@@ -1,11 +1,11 @@
 """Playing a program the way its page does:  by the page's messages, checking each patch.
 
 ```python
-game = play_page("Solitaire.compiled.py", seed=1)
+game = play_page("Solitaire.spell.py", seed=1)
 stock = game.named("stock")                   # what the page holds of it:  its JSON, by id
-patch = game.trigger("card-click", card=game.ref(stock["@items"][-1]))
-assert [thing["@type"] for thing in patch] == ["Card", "StockPile", "DiscardPile"]
-assert game.thing(stock["@id"])["@items"] == stock["@items"][:-1]
+patch = game.trigger("card-click", card=game.ref(stock["$items"][-1]))
+assert [thing["$type"] for thing in patch] == ["Card", "StockPile", "DiscardPile"]
+assert game.thing(stock["$id"])["$items"] == stock["$items"][:-1]
 ```
 
 - What a test sees is what a page sees:  the state it started from, then each patch, by id (`spell_core.state`).
@@ -17,7 +17,7 @@ assert game.thing(stock["@id"])["@items"] == stock["@items"][:-1]
   - Pauses don't wait unless asked (`pauses=True`).
 - After each, a check that nothing was left out:
   a mirror reads every patch so far, and must hold the program's whole state;  else `PatchMismatchError`.
-- A thing is named by its id, `{"@id": "12"}` (`ref()`), or by a reference, `"Card#queen-of-spades"` (`reference()`).
+- A thing is named by its id, `{"$id": "12"}` (`ref()`), or by a reference, `"Card#queen-of-spades"` (`reference()`).
 - Epic python-target, P30.
 """
 
@@ -61,11 +61,11 @@ class PagePlayer:
 
     def ids_of_type(self, type_name: str) -> list[str]:
         """The ids of every thing of type `type_name` the page holds, in the order it was sent them."""
-        return [the_id for the_id, thing in self._by_id.items() if thing.get("@type") == type_name]
+        return [the_id for the_id, thing in self._by_id.items() if thing.get("$type") == type_name]
 
     @staticmethod
     def ref(thing: dict[str, Any] | str) -> dict[str, str]:
-        """How a message names `thing` (its JSON, or its id):  `{"@id": "12"}`."""
+        """How a message names `thing` (its JSON, or its id):  `{"$id": "12"}`."""
         return {ID_KEY: thing if isinstance(thing, str) else thing[ID_KEY]}
 
     def reference(self, the_id: str) -> str | None:
@@ -122,7 +122,7 @@ class PagePlayer:
 
 
 def _by_ref(value: Any) -> Any:
-    """`value`, each thing in it named by its id alone, `{"@id": "12"}`:  how one thing's JSON holds another."""
+    """`value`, each thing in it named by its id alone, `{"$id": "12"}`:  how one thing's JSON holds another."""
     if isinstance(value, list):
         return [_by_ref(item) for item in value]
     if isinstance(value, dict):

@@ -11,7 +11,7 @@ class Card(Thing):
 card = Card(rank="queen")
 card.rank       # "queen"
 card.name       # "", its default
-card.to_json()  # {"@type": "Card", "rank": "queen"}
+card.to_json()  # {"$type": "Card", "rank": "queen"}
 ```
 
 - A property is a `prop()` in the class body:  reading it gives its value, or its default while it's unset.
@@ -40,10 +40,10 @@ from spell_core.kinds import is_same
 if TYPE_CHECKING:
     from spell_core.core import SpellCore
 
-# The key a spell object's JSON names its class under:  `{"@type": "Card", ...}`.
-TYPE_KEY = "@type"
-# The key a spell list's JSON holds its items under:  `{"@type": "Deck", "@items": [...]}`.
-ITEMS_KEY = "@items"
+# The key a spell object's JSON names its class under:  `{"$type": "Card", ...}`.
+TYPE_KEY = "$type"
+# The key a spell list's JSON holds its items under:  `{"$type": "Deck", "$items": [...]}`.
+ITEMS_KEY = "$items"
 # Defaults that would be ONE object shared by every instance:  `init=list` makes one each.
 SHARED_DEFAULTS = (list, dict, set)
 # Characters a made-up id's random part is written in:  base 36, lower case.
@@ -264,11 +264,12 @@ class SpellObject:
     - Every one has an `id`, built in:  made the first time it's read, or set (`ThingIdProp`).
     """
 
-    # Is a thing of this class saved INSIDE its owner, rather than in a file of its own?
-    # - Compiled from `a dated-event is saved inline.`, as `DatedEvent.saved_inline = True`:  sub-classes inherit it.
-    # - The saver writes such a thing whole, inside the thing holding it;
-    #   every other thing, as a reference to its own file, by its `id`.
-    # - A drawable kind is never saved inline.
+    # Is a thing of this class saved in a FILE OF ITS OWN, rather than inside what holds it (decision Q42)?
+    # - Compiled from `a person is saved in its own file.`, as `Person.saved_in_file = True`:  sub-classes inherit it.
+    # - The saver gives such a thing an entry of its own, and what holds it a reference to that.
+    # - Every other thing is written whole inside what holds it, and a reference after (`saving.py`).
+    saved_in_file: ClassVar[bool] = False
+    # `a dated-event is saved inline.`, compiled as `DatedEvent.saved_inline = True`:  saying the default (Q42).
     saved_inline: ClassVar[bool] = False
     # Our id:  what we're saved and referred to by, e.g. `dated-event-k3x9q2mf`.
     id = ThingIdProp()
@@ -369,15 +370,15 @@ class SpellObject:
         return program_core().is_of_type(self, type_name)
 
     def to_json(self) -> dict[str, object]:
-        """Our JSON:  our class's name as `"@type"`, then our properties in the order they were first set.
+        """Our JSON:  our class's name as `"$type"`, then our properties in the order they were first set.
 
         ```python
-        Card(rank="ace", suit="spades").to_json()  # {"@type": "Card", "rank": "ace", "suit": "spades"}
+        Card(rank="ace", suit="spades").to_json()  # {"$type": "Card", "rank": "ace", "suit": "spades"}
         ```
 
         - Each value as its own JSON, all the way down:  `json.dumps()` takes what this returns.
         - Python's names, as declared:  `is_set_up`, not JavaScript's `isSetUp`.
-        - `"@type"` is our CLASS's name, even if this one says otherwise (`type`):  the class is what's rebuilt.
+        - `"$type"` is our CLASS's name, even if this one says otherwise (`type`):  the class is what's rebuilt.
         - Reads back as what it was:  `core.from_json()`.
         """
         return {TYPE_KEY: type(self).__name__, **{name: to_json_value(value) for name, value in self._props.items()}}

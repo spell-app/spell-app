@@ -4,11 +4,12 @@
 
 - Shadow DOM, `@layer`s, OKLCH tokens, anchor positioning, `<dialog>` / popover, accessibility built in.
 - Usable from any framework, or plain HTML.
-- Built on Solid 2, with a custom-element layer of its own:
-  `DOMElement`, `UIComponent`, in [the element core](src/elements/).
-- Every family, its status and what's deferred:  [the status checklist](docs/status.md).
-- Measurements, framework hosts, HMR and fallbacks:  [the report](docs/report.md).
-- Design:  [the plan](docs/plan.md), and [the docs folder](docs/README.md) for the rest.
+- Built on Solid 2, its elements made by [spell-solid](../spell-solid/AGENTS.md),
+  the custom-element layer every set's elements are written on:  `DOMElement`, `UIComponent`.
+  - Spell UI's own half of the element core:  [`src/elements/`](src/elements/).
+- Every family, its status and what's deferred:  [the status checklist](notes/status.md).
+- Measurements, framework hosts, HMR and fallbacks:  [the report](notes/report.md).
+- Design:  [the plan](notes/plan.md), and [the notes folder](notes/README.md) for the rest.
 - Conventions for humans and agents:  [AGENTS.md](AGENTS.md).
 
 ```sh
@@ -24,21 +25,23 @@ Every command:  [AGENTS.md](AGENTS.md), "Commands".
 
 If you find yourself writing a second copy of any of these, stop and reuse.
 
-- One element base:  `E.UIComponent`, a component per element, its `render()` returning JSX.
+- One element base, spell-solid's `E.UIComponent`:  a component per element, its `render()` returning JSX.
   - `F.FormComponent`, for a control with a value.
 - One vocabulary per tag (`UI<Name>.en.ts`):
   every attribute, value, event, slot, part and text string the tag uses.
   - NEVER a string literal for one in a template.
 - One class grammar builder:  `E.ClassBuilder` (`ui small primary button`).
-- One home for constants several families share:  `UIT` ([the shared types](src/components/components.types.ts)).
+- One home for constants several families share:  `UIT` ([the shared types](components/components.types.ts)).
   - Key names are `UIT.Key`.
-- One way to warn:  `E.Warnings.warn()` / `devWarn()`, printing `[@spell-app/ui] <source>:  ...`.
+- One way to warn:  `E.Warnings.warn()` / `devWarn()`.
+  - It prints `[@spell-app/ui] <source>:  ...`.
 - One runtime per page:  `UI`.
   - `UI.keyboard`, `UI.overlays`, `UI.focus`, `UI.transitions`, `UI.ids`
   - `UI.toasts`, `UI.modals`, `UI.icons`, `UI.sources`, `UI.themes` ...
 - One generic CSS rule set per hue and size, switched by token remap (`--ui-color`, `--ui-scale`).
   - Breakpoints from [the media sheet](src/styles/media.css).
-- One DOM climb across shadow roots:  `$/util/dom`'s `flatParentFor()`, `closestAcrossShadow()`.
+- One DOM climb across shadow roots, in `$/util/dom`:
+  - `flatParentFor()`, `closestAcrossShadow()`
 - Tooling:
   - ONE reader of environment variables:  [`environment`](tools/environment.ts)
   - ONE printer:  [`Terminal`](tools/Terminal.ts)
@@ -53,21 +56,23 @@ If you find yourself writing a second copy of any of these, stop and reuse.
 | `src/core.ts` | `@spell-app/ui/core`, the `E` namespace:  the element core and the foundation every family needs, in ONE chunk |
 | `src/forms.ts` | `@spell-app/ui/forms`, the `F` namespace:  what only form controls need (`FormComponent`, `Validator`, `MenuOptions` ...) |
 | `src/api.ts` | `@spell-app/ui/api`:  `E`, `F`, and the vocabulary layer as `V` |
-| `src/elements/` | the element core:  `UIComponent`, `DOMElement`, `Reactive`, `Cell`, `PartContext`, `NativeFallback`, `LoadableComponent` ... |
-| `src/components/` | one folder per component FAMILY (`ui-button/`):  element classes, vocabularies, sheet, fallback, tests, examples;  `components.types.ts` (`UIT`), `ComponentDefinitions.ts` (every tag's vocabulary, rolled up) |
+| `src/elements/` | Spell UI's own half of the element core:  `ClassBuilder`, `NativeFallback`, `LoadableComponent`, `PartComponent`, `SpellUISettings` ... |
+| *(none -- [`$/spell-solid`](../spell-solid/AGENTS.md))* | the element bases, out of `src/elements/` since epic `people-and-orgs` P17:  `UIComponent`, `DOMElement`, `Reactive`, `Cell`, `PartContext` ... |
+| `components/` | one folder per component FAMILY (`ui-button/`):  element classes, vocabularies, sheet, fallback, tests, examples;  `components.types.ts` (`UIT`), `ComponentDefinitions.ts` (every tag's vocabulary, rolled up) |
 | `src/docs-components/` | the docs site's own `<ui-docs-*>` families:  laid out like components, never in the library's entries |
 | `src/runtime/` | the `UI` runtime:  one instance per page, its services as classes (`Keyboard`, `Overlays`, `Focus` ...) |
 | `src/vocabulary/` | the naming layer:  vocabulary schema, value sets, `Vocabulary` (translated names), `Converters` |
 | `src/styles/` | layers, tokens, colours, sizes, reset, typography, utilities, themes;  `tokens.css` / `colors.css` / `sizes.css` are GENERATED (`yarn gen:styles`) |
 | `src/icons/` | the icon pack format and the built-in packs (`icon-packs/`, GENERATED by `yarn gen:icons`) |
-| `src/util/` | `$/ui/util`:  `$/util`'s generic files, re-exported, plus `Warnings` and the timing helpers (`timing.ts`:  `afterSolidUpdate()`, `after()` ...) |
+| `src/util/` | `$/ui/util`:  `$/util`'s generic files and spell-solid's timing helpers (`afterSolidUpdate()`, `after()` ...), re-exported, plus `Warnings` |
 | `src/static/` | `$/ui/static` (`SSR`, node only):  the static server render, `ui-*` markup to plain HTML |
 | `src/languages/` | GENERATED (`yarn gen:spell`):  spell's pre-compiled highlighter |
-| `test/` | shared test helpers (`Fixture`, `ElementFixture`, `A11y` ...) and cross-family tests |
+| `test/` | shared test helpers (`Fixture`, `ElementFixture`, `A11y` ...);  the tests themselves are in the repo's [`tests/ui/`](../../tests/ui/), at the same paths as the code |
 | `tools/` | node tooling (classes):  measure, vendor, smoke, report, site data and checks, design export, visual tests;  see [`tools/README.md`](tools/README.md) |
 | `scripts/` | one file per yarn script, named for it (`site:data` -> `site-data.ts`), plus the helpers they share |
-| `site/` | the docs site's BUILT half:  bundle (`_assets/`), data (`_data/`), its entry (`_src/`);  the pages are the shared `ui/` |
-| `docs/` | design docs (`plan.md`, `theming.md`, `grammar.md` ...), `status.md`, the generated `report.md` |
+| `docs/` | the docs site's PAGES, a component set (served at `/components/ui/`):  `*.html`, `__parts/`, `__data/` (the site data, `yarn site:data`) |
+| `site/` | the docs site's BUILD:  bundle (`_assets/`, git-ignored) and its entry (`_src/`) |
+| `notes/` | design notes (`plan.md`, `theming.md`, `grammar.md` ...), `status.md`, the generated `report.md` |
 
 ## Environment variables
 
@@ -85,7 +90,7 @@ Read ONLY in [`environment`](tools/environment.ts) (WWOD §11):  by `tools/`, `s
 
 ## Adding a new family
 
-1. Make the folder, `ui-<name>/` in [the components folder](src/components/),
+1. Make the folder, `ui-<name>/` in [the components folder](components/),
    laid out like `ui-button/` ([AGENTS.md](AGENTS.md), "Overview"):
    - `UI<Name>.tsx`
    - `index.ts`:  calls `define()`, and re-exports the classes
@@ -95,19 +100,19 @@ Read ONLY in [`environment`](tools/environment.ts) (WWOD §11):  by `tools/`, `s
 2. Write one `UI<Name>.en.ts` per tag, with `topics` and `aka` included.
    - `topics`:  2+ ids from `ValueSets.topics`
    - `aka`:  other libraries' names
-   - [The component definitions test](src/components/ComponentDefinitions.test.ts) fails on a tag without them.
+   - [The component definitions test](../../tests/ui/components/ComponentDefinitions.test.ts) fails on a tag without them.
 3. Make it a lib entry:
    - `COMPONENTS` in `vite.config.ts`
    - `exports` and `sideEffects` in `package.json`
    - re-export it from [the package's entry](src/index.ts)
 4. `yarn gen:root`:  `<ui-root>`'s catalog of tag => family.
-   - [Its test](src/components/ui-root/UIRoot.catalog.test.ts) fails while it's stale.
+   - [Its test](../../tests/ui/components/ui-root/UIRoot.catalog.test.ts) fails while it's stale.
 5. `yarn site:data`:  the docs site's data.
-   - [Its test](tools/SiteDataBuilder.test.ts) fails while it's stale.
-   - Add the family's facts to [the pages data](site/_data/pages.json).
+   - [Its test](../../tests/ui/tools/SiteDataBuilder.test.ts) fails while it's stale.
+   - Add the family's facts to [the pages data](docs/__data/pages.json).
 6. `yarn site:new <tag>`:  its docs page, from the template.
    - Then `yarn site:build`, and `yarn site:check <tag>`.
-7. Add its row to [the status checklist](docs/status.md).
+7. Add its row to [the status checklist](notes/status.md).
 
 ## Deferred
 
@@ -115,8 +120,11 @@ Read ONLY in [`environment`](tools/environment.ts) (WWOD §11):  by `tools/`, `s
   the `site:sections` command, and the `SiteSections` converter three other scripts import.
   - Its class should move to a file of its own.
   - But the name `SiteSections` is taken by the browser side, [the site's own](site/_src/SiteSections.ts).
-- Some design notes are in `docs/`, where WWOD §6 wants them in `epics/`.
-  - [the plan](docs/plan.md), `plan-promote-solid.md`, `plan-shared-runtime.md`, `spike-lit-vs-solid.md`
+- Some design notes are in `notes/`, where WWOD §6 wants them in `epics/`.
+  - [the plan](notes/plan.md)
+  - [promoting the Solid spike](notes/plan-promote-solid.md), [the shared runtime](notes/plan-shared-runtime.md)
+  - [Lit vs Solid](notes/spike-lit-vs-solid.md)
   - Where they go is an open question (epic `wwod-spell-ui`).
-- `gen:icons` and `gen:emoji` need the git-ignored `reference/Fomantic-UI/` clone, and `gen:icons` the network.
-  - So a fresh checkout can't run them.
+- A fresh checkout can't run `gen:icons` and `gen:emoji`:
+  - both need the git-ignored `reference/Fomantic-UI/` clone
+  - `gen:icons` needs the network too

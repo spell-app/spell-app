@@ -9,17 +9,18 @@ import { FamilyFiles } from "./FamilyFiles.ts"
 /****************
  * ### `FamilyTokens`
  * The public CSS tokens of one family, read from its sheets:  the token table of its docs page (`yarn site:data`).
- * - Ported from the old Astro site's `CssTokens` table (deleted with it, epic `spell-ui-pages` P7):  the same rows,
- *   plus a `type` for each.
- * - A sheet never declares its public tokens (`docs/theming.md` "Component tokens").  Two kinds of rows:
+ * - A sheet never declares its public tokens (`notes/theming.md`, "Component tokens").  Two kinds of rows:
  *   - ALIASED tokens, the ones a variation swaps:  `--_ui-button-radius: var(--ui-button-radius, var(--ui-radius))`.
- *     The public name, its default, the comment right above as the description, unless it's a group header
- *     (`/* ## Owner tokens ... *\/`).
- *   - tokens READ WHERE THEY PAINT, varied by nothing:  `padding: var(--ui-modal-content-padding, 1.5em)`.  The first
- *     read's fallback is the default, the comment right above that property the description.
- * - Defaults show the PUBLIC names of the tokens they derive from;  a default built from sheet plumbing reads badly,
- *   so the family's seed (`site/_data/pages.json`) may pass readable text (`defaults`), other prefixes, or a whole
- *   hand-written `list`.
+ *     - the public name, and its default
+ *     - the comment right above as the description, unless it's a group header (`/* ## Owner tokens ... *\/`)
+ *   - tokens READ WHERE THEY PAINT, varied by nothing:  `padding: var(--ui-modal-content-padding, 1.5em)`.
+ *     - the first read's fallback is the default
+ *     - the comment right above that property is the description
+ * - Defaults show the PUBLIC names of the tokens they derive from.
+ *   - A default built from sheet plumbing reads badly, so the family's seed (`docs/__data/pages.json`) may pass:
+ *     readable text (`defaults`), other prefixes, or a whole hand-written `list`.
+ * - Ported from the old Astro site's `CssTokens` table (deleted with it, epic `spell-ui-pages` P7):
+ *   the same rows, plus a `type` for each.
  * - Foundation names that share a prefix (`--ui-text-muted` for `text`) are left out.
  ****************/
 export class FamilyTokens {
@@ -43,6 +44,8 @@ export class FamilyTokens {
   read(folder: string, name: string, seed: SiteTokenSeed = {}): SiteToken[] {
     if (seed.list) return seed.list.map((row) => ({ ...row, type: FamilyTokens.typeFor(row.name, row.default) }))
     const prefixes = seed.prefixes ?? [`--${name}-`]
+    // the tokens' first word:  `ui` for Spell UI's families, the set's own for another's (`brand-logo` => `brand`)
+    const words = name.split("-")[0]!
     const defaults = seed.defaults ?? {}
     const main = basename(FamilyFiles.path(folder, ".css"))
     const sheets = readdirSync(folder)
@@ -55,11 +58,11 @@ export class FamilyTokens {
       if (rows.has(row.name) || this.foundation.has(row.name)) return
       if (prefixes.some((prefix) => row.name.startsWith(prefix))) rows.set(row.name, row)
     }
-    for (const css of sheets) for (const row of ComponentTokens.aliases(css)) add(row)
-    const aliased = new Set(sheets.flatMap((css) => ComponentTokens.aliases(css).map((row) => row.name)))
-    for (const css of sheets) for (const row of FamilyTokens.reads(css)) add(row)
+    for (const css of sheets) for (const row of ComponentTokens.aliases(css, words)) add(row)
+    const aliased = new Set(sheets.flatMap((css) => ComponentTokens.aliases(css, words).map((row) => row.name)))
+    for (const css of sheets) for (const row of FamilyTokens.reads(css, words)) add(row)
     return [...rows.values()].map((row) => {
-      const value = defaults[row.name] ?? FamilyTokens.publicNames(row.default, aliased)
+      const value = defaults[row.name] ?? FamilyTokens.publicNames(row.default, aliased, words)
       const description = row.description?.startsWith("## ") ? undefined : row.description
       return {
         name: row.name,
@@ -85,9 +88,12 @@ export class FamilyTokens {
     return "other"
   }
 
-  /** `value` with each ALIAS read by its public name (`--_ui-x` => `--ui-x`);  a private switch keeps its name. */
-  private static publicNames(value: string, aliased: Set<string>): string {
-    return value.replace(/--_ui-[a-z0-9-]+/g, (name) =>
+  /**
+   * `value` with each ALIAS read by its public name (`--_ui-x` => `--ui-x`);  a private switch keeps its name.
+   * - `prefix`:  the tokens' first word (`ui`, `brand`)
+   */
+  private static publicNames(value: string, aliased: Set<string>, prefix: string): string {
+    return value.replace(new RegExp(`--_${prefix}-[a-z0-9-]+`, "g"), (name) =>
       aliased.has(`--${name.slice(3)}`) ? `--${name.slice(3)}` : name
     )
   }
@@ -95,11 +101,12 @@ export class FamilyTokens {
   /**
    * Public tokens `css` reads with a fallback, `var(--ui-x, <default>)`, first read wins.
    * - Includes the public read inside an alias or a dual read;  `read()` drops those already listed.
+   * - `prefix`:  the tokens' first word (`ui`, `brand`)
    */
-  private static reads(css: string): Row[] {
+  private static reads(css: string, prefix: string): Row[] {
     const stripped = ComponentTokens.stripComments(css)
     const found: Row[] = []
-    for (const match of stripped.matchAll(/var\(\s*(--ui-[a-z0-9-]+)\s*,/g)) {
+    for (const match of stripped.matchAll(new RegExp(`var\\(\\s*(--${prefix}-[a-z0-9-]+)\\s*,`, "g"))) {
       const start = match.index + match[0].length
       let depth = 0
       let end = start

@@ -12,11 +12,16 @@ __pycache__/
 .spell-server.*.json
 
 
-# bundles the page server builds when it starts, if stale (`spell dev bundles build --stale`;  `$/assembler` `BUNDLES`):
+# bundles the page server builds when it starts, if stale (`spell dev bundles build --stale`;  the root package.json's
+# `pageServer.bundles`, each built as `$/assembler`'s `BUNDLES` says):
 # never committed, since their chunk names carry content hashes:  every Spell UI change deleted and re-added most of
 # their files in every diff and merge (epic epic-components, 2026-10-07)
 /packages/ui/site/_assets/
 /packages/brand/_assets/ui/
+
+# what spell compiles for each project under `packages/`, at its path there (epic people-and-orgs P11):  never
+# committed, rebuilt by `spell compile`.  Which files:  "Projects" in packages/spell/PARSING.md
+/build/
 
 # `/park`'s note on where parked work stopped:  never committed
 PARKED-*.md
@@ -26,8 +31,10 @@ PARKED-*.md
 
 # the component sets' waiting comments (`<page>.inbox.json` beside a page, and its lock;  the comment route, epic
 # epic-workflow P10 / P11):  per machine, never the record, as the shared pages' are
-/packages/epic-components/**/*.inbox.json*
-/packages/app/components/**/*.inbox.json*
+/packages/epics/docs/**/*.inbox.json*
+/packages/app/docs/**/*.inbox.json*
+/packages/ui/docs/**/*.inbox.json*
+/packages/brand/docs/**/*.inbox.json*
 
 # `/details` scratch pages and review inboxes (`pages/details/`, `epics/*/*.inbox.json`):  ignored by the shared
 # content repo's own `.gitignore` (`../spell-app-dev`);  here the whole folders are ignored (`# shared:` block below)

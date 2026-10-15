@@ -7,7 +7,7 @@ import type {
   LocalizedVocabulary,
   NameMap,
   NamePair
-} from "./vocabulary.types"
+} from "$/spell-solid/vocabulary.types"
 import { SharedVocabulary } from "./SharedVocabulary"
 import { ValueSets } from "./ValueSets"
 
@@ -22,7 +22,7 @@ import { ValueSets } from "./ValueSets"
  * - `canonicalize()` / `localize()` convert single names both ways, for attribute parsing and rendering.
  * - Pure data, NO DOM:  the runtime's `UI.vocabulary` service wraps one of these.
  *   - Imports only `$/ui/util` and its folder's peers, so node can load it too.
- * - See `docs/translation.md`.
+ * - See `notes/translation.md`.
  ****************/
 export class Vocabulary {
   /**

@@ -2,7 +2,7 @@ import { transformAsync as compileSolidJsx } from "@solidjs/compiler"
 import { transform } from "esbuild"
 
 /**
- * Compiled spell's Solid TypeScript (the `ts/solid` target, a `.compiled.tsx`) built into JavaScript that runs:
+ * Compiled spell's Solid TypeScript (the `ts/solid` target, a `.spell.tsx`) built into JavaScript that runs:
  * the build a hand-written Solid app gets from Vite, in two steps.
  *   1. esbuild, as `vite.decorators.ts` (repo root) does:  strips the types and lowers standard decorators
  *      (`@prop`, `@drawn` ...), keeping the JSX and the class names (`keepNames`:  `Thing.type` reads them)
@@ -13,7 +13,7 @@ import { transform } from "esbuild"
  *   two Solids, which fail silently.
  * - Why this order:  the app's own, where `vite.decorators.ts` runs before Solid's plugin.  Solid's compiler takes
  *   TypeScript too (keeping its types and decorators for esbuild), so the other order works as well.
- * - `filename`:  for error messages, e.g. `Solitaire.compiled.tsx`.
+ * - `filename`:  for error messages, e.g. `Solitaire.spell.tsx`.
  * - throws esbuild's or Solid's error when `code` isn't valid TSX.
  * - Used by `cli`'s `runCode()`, for a `.tsx`.  NODE-ONLY.
  */

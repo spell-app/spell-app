@@ -9,7 +9,7 @@ import { VisualSettings } from "./VisualSettings.ts"
 
 /****************
  * ### `VisualExamples`
- * Finds what `yarn test:visual` captures:  every `src/components/ui-<family>/examples/elements/<name>.html`, with its
+ * Finds what `yarn test:visual` captures:  every `components/ui-<family>/examples/elements/<name>.html`, with its
  * optional `<name>.visual.ts` hooks, and names the baseline files they make.
  * - Discovery, not a list:  a new example (or hook file) is a new test with no edit anywhere.
  * - Hooks are IMPORTED here for their state names, `capture` and `mask`;  their `open()` runs in the page.
@@ -18,7 +18,7 @@ import { VisualSettings } from "./VisualSettings.ts"
 export class VisualExamples {
   /** Every element example, by family then name. */
   static async load(): Promise<VisualExample[]> {
-    const components = `${VisualSettings.ROOT}src/components`
+    const components = `${VisualSettings.ROOT}components`
     const examples: VisualExample[] = []
     for (const family of readdirSync(components).sort()) {
       const folder = `${components}/${family}/examples/elements`

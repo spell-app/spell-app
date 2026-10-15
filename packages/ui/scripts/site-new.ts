@@ -1,29 +1,38 @@
 /**
- * `yarn site:new <tag|page> [--title "Title"] [--summary "One line."] [--force]`:  write a page of Spell UI's docs
- * site from the template, `templates/spell-ui-docs.html`:  a components page or a components guide page.
- * - A TAG (`ui-button`, `button`, `ui-or`:  any tag of a family) writes `ui/components/<main tag>.html` (the shared
- *   pages, `SITE_PAGES`), the component layout:  masthead with the family's theme picker, Examples / Usage / API /
- *   Theming tabs.  Title, summary and status come from `site/_data/pages.json` (`--title` / `--summary` override
- *   them).
- * - A sub-tag with a page of its OWN (pages.json `pages`, e.g. `ui-radio`) writes `ui/components/<tag>.html`:  its
- *   own title, summary and status, ONE tag's API tables (`<ui-docs-api tag>`), and the Theming tab only when one of
- *   the family's tokens names it (`--ui-checkbox-radio-size`;  `ui-meta` has none:  its owners style it).
- * - Anything else is a PAGE:  `ui/<page>.html`, one content column, no tabs;  `--title` (default:  the name in
- *   Title Case) and `--summary`.
- * - Fills the template's `{{...}}` placeholders, keeps the `site:component` OR `site:page` blocks (and drops the
- *   status label for a `done` family, the Fomantic link when Fomantic has no such page), and rewrites the
- *   template's `../ui/` paths for the page's depth.  The page is its `<head>` and `main` alone:  the chrome is
- *   `ui/_parts/layout.html`.
- * - Refuses to overwrite an existing page without `--force`.  Prints the path and the page server URL hint.
- * - The Fomantic link:  `reference/Fomantic-UI-Docs/server/documents/<group>/<name>.html.eco` (git-ignored clone,
- *   epic page P1), by the family name, or `FOMANTIC_PAGES` for the families whose page has another name.
+ * `yarn site:new <tag|page> [--title "Title"] [--summary "One line."] [--force]`:
+ * write a page of Spell UI's docs site from the template, `templates/spell-ui-docs.html`:
+ * a components page or a components guide page.
+ * - Pages land in the site's one folder, `docs/` (`SITE_PAGES`).
+ * - A TAG (`ui-button`, `button`, `ui-or`:  any tag of a family) writes `docs/<main tag>.html`, the component layout:
+ *   - a masthead with the family's theme picker
+ *   - Examples / Usage / API / Theming tabs
+ *   - title, summary and status from `docs/__data/pages.json` (`--title` / `--summary` override them)
+ * - A sub-tag with a page of its OWN (pages.json `pages`, e.g. `ui-radio`) writes `docs/<tag>.html`:
+ *   - its own title, summary and status
+ *   - ONE tag's API tables (`<ui-docs-api tag>`)
+ *   - the Theming tab only when one of the family's tokens names it
+ *     (`--ui-checkbox-radio-size`;  `ui-meta` has none:  its owners style it)
+ * - Anything else is a PAGE:  `docs/<page>.html`, one content column, no tabs.
+ *   - `--title` (default:  the name in Title Case) and `--summary`
+ * - What it does to the template:
+ *   - fills its `{{...}}` placeholders
+ *   - keeps the `site:component` OR `site:page` blocks
+ *   - drops the status label for a `done` family, and the Fomantic link when Fomantic has no such page
+ *   - rewrites its paths to the site for the page's place
+ *     (`../ui/`, `../components/ui/` once the template follows the move)
+ * - The page is its `<head>` and `main` alone:  the chrome is `docs/__parts/layout.html`.
+ * - Refuses to overwrite an existing page without `--force`.
+ * - Prints the path and the page server URL hint.
+ * - The Fomantic link:  by the family name, or `FOMANTIC_PAGES` for the families whose page has another name.
+ *   - Fomantic's page, in a git-ignored clone (epic page P1):
+ *     `reference/Fomantic-UI-Docs/server/documents/<group>/<name>.html.eco`
  */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { parseArgs } from "node:util"
 
 import { Terminal } from "../tools/Terminal.ts"
-import { SITE_BUILD, SITE_PAGES } from "../tools/tools.types.ts"
+import { SITE_DATA, SITE_PAGES } from "../tools/tools.types.ts"
 
 import { STATUS_TEXT, escapeHtml } from "./generatedFiles.ts"
 import { SiteSections } from "./site-sections.ts"
@@ -35,7 +44,7 @@ const UI = path.resolve(import.meta.dirname, "..")
 const TEMPLATE = path.resolve(UI, "../../templates/spell-ui-docs.html")
 
 /** The template's own path prefix to the site's pages (it lives in `templates/`, beside `ui/`). */
-const TEMPLATE_SITE = "../ui/"
+const TEMPLATE_SITE = /\.\.\/(?:components\/)?ui\//g
 
 /** Fomantic's docs pages, by group folder. */
 const FOMANTIC_DOCS = path.join(UI, "reference/Fomantic-UI-Docs/server/documents")
@@ -73,7 +82,7 @@ type Family = {
 
 /** What fills a template. */
 type PageFacts = {
-  /** `ui/`-relative output path, e.g. `components/ui-button.html` */
+  /** output path in the site's folder, e.g. `ui-button.html` */
   file: string
   title: string
   summary: string
@@ -96,12 +105,12 @@ type PageFacts = {
  * Turns the template into one page:  facts from the site data, blocks kept or dropped, paths fixed for depth.
  ****************/
 class SitePageWriter {
-  /** the site's pages, `ui/` */
+  /** the site's pages, `docs/` */
   readonly site = path.join(UI, SITE_PAGES)
 
   /** Every family of `components.json`, by folder. */
   private readonly families: Record<string, Family> = JSON.parse(
-    readFileSync(path.join(UI, SITE_BUILD, "_data/components.json"), "utf8")
+    readFileSync(path.join(UI, SITE_DATA, "components.json"), "utf8")
   ).families
 
   /** The facts for `name` (a tag, a family folder or a page name), with `--title` / `--summary` applied. */
@@ -126,7 +135,7 @@ class SitePageWriter {
     if (own) {
       const noun = tag.replace(/^ui-/, "")
       return {
-        file: `components/${tag}.html`,
+        file: `${tag}.html`,
         title: options.title ?? own.title,
         summary: options.summary ?? own.summary,
         status: own.status,
@@ -138,7 +147,7 @@ class SitePageWriter {
       }
     }
     return {
-      file: `components/${family.mainTag}.html`,
+      file: `${family.mainTag}.html`,
       title: options.title ?? family.title,
       summary: options.summary ?? family.summary,
       status: family.status,

@@ -1,4 +1,4 @@
-import { PLAN_DATE, type ReadPlanDate } from "./dates.types"
+import { PLAN_DATE, type ReadPlanDate } from "./dates.types.ts"
 
 /****************
  * ### `PlanDates`
@@ -10,6 +10,8 @@ import { PLAN_DATE, type ReadPlanDate } from "./dates.types"
  * - formats at draw time:  the docs keep their attributes as they are, no migration
  * - NOT the log's (`<epic-event>` keeps `2026-10-08 14:34`), nor the agents panel's ages (`3m`)
  * - STATIC, pure, node-safe:  no DOM, no clock;  elements and node tools alike import it (`$/epics/dates`)
+ *   - plain `node` too, by path (the Epics page's cards, `$/epics/list/EpicCards`):  its one import is by file
+ *     name, and NEVER an `enum` or a parameter property here, which plain `node` can't strip
  ****************/
 export class PlanDates {
   /**

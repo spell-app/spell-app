@@ -16,21 +16,21 @@ import { Terminal } from "./Terminal.ts"
 
 /****************
  * ### `SiteCheck`
- * Checks the plain-HTML pages of Spell UI's docs site in headless chromium,
- * served by this checkout's page server at `/ui/`.
- * - The pages:  `ui/*.html`, `ui/components/ui-<name>.html` (the shared pages, `SITE_PAGES`).
+ * Checks the plain-HTML pages of Spell UI's docs site in headless chromium, served by this checkout's page server at
+ * `/components/ui/`.
+ * - The pages:  `docs/*.html`, in one folder (`SITE_PAGES`;  an element's page is its tag, `ui-button.html`).
  * - Run:  `yarn site:check <page...>` (in `packages/ui`), or `yarn site:check --all`.
  *   - `--out <dir>` for the screenshots (default `tools/results/site-check/`, git-ignored).
  *   - `scripts/site-check.ts` is the command, which hands its arguments to `SiteCheck.main()`:
  *     a class file runs nothing when imported.
  * - A page is one of (`resolvePage()`):
- *   - a path:  absolute, from the cwd, or from `ui/`
- *   - a tag:  `ui-button` => `ui/components/ui-button.html`
- *   - a name:  `index` => `ui/index.html`
+ *   - a path:  absolute, from the cwd, or from `docs/`
+ *   - a tag:  `ui-button` => `docs/ui-button.html`
+ *   - a name:  `index` => `docs/index.html`
  * - Problems (`PageReport.problems`;  exit 1):
  *   - console errors, page errors, failed requests and responses >= 400 (the favicon too:  the page server has one)
  *   - `ui-*` / `spell-*` elements still undefined once settled;  defined `ui-*` with no shadow root
- *   - components pages (`components/ui-*.html`, not the index):
+ *   - components pages (`ui-*.html`):
  *     - not exactly one `ui-tabs.site-tabs` with panes `examples`, `usage`, `api`, `theming` (`theming` optional)
  *     - a pane that isn't the shown one when loaded with its `#hash`, or shows under 50px
  *   - `ui-docs-toc`:  hidden or empty on desktop, visible on phone
@@ -47,7 +47,7 @@ import { Terminal } from "./Terminal.ts"
  * - Look at the screenshots too:  the checks can't see overlap, clipping or ugly wrapping.
  * - Throws `SiteCheckError` when it can't start:  no such page, or no page server serving the site (exit 2).
  * - Replaces the Astro site's `check` script.
- *   Model:  the docs' checker, `packages/docs/tools/check-spell.js`.
+ *   Model:  the docs' checker, `packages/epics/tools/check-spell.js`.
  * - Node only;  reads the site's `FOLDS_KEY` (`site/_src/site.types.ts`, pure data) and `TocIndex.slug()`.
  ****************/
 export class SiteCheck {
@@ -110,22 +110,13 @@ export class SiteCheck {
    * Find a page file from what was typed, first match wins:
    * - absolute path
    * - relative to `cwd`
-   * - relative to `ui/`
-   * - a tag, `ui-button` => `ui/components/ui-button.html`
-   * - a name, `index` => `ui/index.html`
-   * - a file under the shared repo's `ui/` (`../spell-app-dev/ui/...`) is the same page:  returned under `ui/`
-   * - throws `SiteCheckError` when nothing matches, or the page isn't under `ui/` (the server wouldn't serve it)
+   * - relative to `docs/`
+   * - a tag, `ui-button` => `docs/ui-button.html`;  a name, `index` => `docs/index.html`
+   * - throws `SiteCheckError` when nothing matches, or the page isn't under `docs/` (the server wouldn't serve it)
    */
   static resolvePage(name: string, cwd: string): string {
     const html = name.endsWith(".html") ? name : `${name}.html`
-    const candidates = isAbsolute(name)
-      ? [name]
-      : [
-          resolve(cwd, name),
-          join(SITE, name),
-          ...(TAG_NAME.test(name) ? [join(SITE, "components", html)] : []),
-          join(SITE, html)
-        ]
+    const candidates = isAbsolute(name) ? [name] : [resolve(cwd, name), join(SITE, name), join(SITE, html)]
     const file = candidates.find((path) => existsSync(path) && statSync(path).isFile())
     if (!file) {
       throw new SiteCheckError(`SiteCheck.resolvePage():  no page "${name}";  tried:\n  ${candidates.join("\n  ")}`)
@@ -139,16 +130,13 @@ export class SiteCheck {
     return join(SITE, inside)
   }
 
-  /** Every page:  `ui/*.html` and `ui/components/*.html`, minus `_`-prefixed ones (smoke pages, partials). */
+  /** Every page:  `docs/*.html`, minus `_`-prefixed ones (smoke pages, partials). */
   static allPages(): string[] {
-    return [SITE, join(SITE, "components")].flatMap((folder) =>
-      existsSync(folder)
-        ? readdirSync(folder)
-            .filter((file) => file.endsWith(".html") && !file.startsWith("_"))
-            .sort()
-            .map((file) => join(folder, file))
-        : []
-    )
+    if (!existsSync(SITE)) return []
+    return readdirSync(SITE)
+      .filter((file) => file.endsWith(".html") && !file.startsWith("_"))
+      .sort()
+      .map((file) => join(SITE, file))
   }
 
   /**
@@ -187,7 +175,7 @@ export class SiteCheck {
    * The page server's origin, once it serves the site bundle.
    * - `spell dev server ensure` prints `{ base, port, ... }` as JSON, maybe after other lines:
    *   parsed from the first `{`
-   * - throws `SiteCheckError` when there's no server, or it doesn't serve `/ui/_assets/site.js`
+   * - throws `SiteCheckError` when there's no server, or it doesn't serve `/components/ui/_assets/site.js`
    */
   async ensureServer(): Promise<string> {
     let base: string
@@ -205,7 +193,7 @@ export class SiteCheck {
           `${error};  start it by hand and read its output`
       )
     }
-    const probe = `${base}/ui/_assets/site.js`
+    const probe = `${base}${SITE_ADDRESS}/_assets/site.js`
     const status = await fetch(probe, { signal: AbortSignal.timeout(PROBE_MS) }).then(
       (response) => response.status,
       (error: unknown) => String(error)
@@ -224,7 +212,7 @@ export class SiteCheck {
     const path = relative(SITE, file).split(sep).join("/")
     const report: PageReport = {
       page: path,
-      url: `${this.base}/ui/${path}`,
+      url: `${this.base}${SITE_ADDRESS}/${path}`,
       ok: false,
       problems: [],
       notes: [],
@@ -283,8 +271,8 @@ export class SiteCheck {
       for (const [tag, count] of Object.entries(elements.unrendered)) problem(`${count} <${tag}> without a shadow root`)
 
       const tabs = await page.evaluate(tabsState)
-      // a components page (`components/ui-<tag>.html`:  a family's or a sub-tag's), NOT `components/index.html`
-      const isComponent = check.path.startsWith("components/ui-")
+      // a components page (`ui-<tag>.html`:  a family's or a sub-tag's), NOT the component index
+      const isComponent = check.path.startsWith("ui-")
       report.counts.tabs = tabs.values
       let values: string[] = []
       if (isComponent) {
@@ -568,9 +556,9 @@ export type SiteCheckProps = {
  *   a check that can't START throws `SiteCheckError` instead.
  */
 export type PageReport = {
-  /** path under `ui/`, e.g. `components/ui-button.html` */
+  /** path under `docs/`, e.g. `ui-button.html` */
   page: string
-  /** served URL, under `/ui/` */
+  /** served URL, under `/components/ui/` */
   url: string
   /** no problems */
   ok: boolean
@@ -684,8 +672,11 @@ function parseCommandLine(argv: string[]) {
 /** `packages/ui/`. */
 const PACKAGE = fileURLToPath(new URL("..", import.meta.url))
 
-/** The site's pages, the checkout's `ui/` (`SITE_PAGES`):  what the page server serves at `/ui/`. */
+/** The site's pages, `docs/` (`SITE_PAGES`):  what the page server serves at `SITE_ADDRESS`. */
 const SITE = join(PACKAGE, SITE_PAGES)
+
+/** Where the page server serves Spell UI's docs (`COMPONENT_SETS` in `$/server/page`). */
+const SITE_ADDRESS = "/components/ui"
 
 /** Repo root (of this worktree):  where `spell dev server ensure` runs. */
 const REPO = resolve(PACKAGE, "..", "..")
@@ -698,12 +689,9 @@ const DEFAULT_OUT = join(PACKAGE, "tools", "results", "site-check")
 
 /** Printed on bad arguments and `--help`. */
 const USAGE = `usage:  yarn site:check <page...> | --all  [--out <dir>]
-  page:  a path (absolute, from here, or from ui/), a tag (ui-button), or a name (index)
-  --all:  ui/*.html + ui/components/*.html, minus _-prefixed files
+  page:  a path (absolute, from here, or from docs/), a tag (ui-button), or a name (index)
+  --all:  docs/*.html, minus _-prefixed files
   --out:  screenshot folder (default ${DEFAULT_OUT})`
-
-/** A name typed as a tag (`ui-button`):  its page is `components/<tag>.html`. */
-const TAG_NAME = /^[a-z]+(-[a-z0-9]+)+$/
 
 /**
  * Components pages' tab panes, in order.

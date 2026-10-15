@@ -1,11 +1,11 @@
 /**
  * The core's method list:  what every core must have, so another target's core can check itself against it.
- * - Written to `spellCore.declarations.json`, at the package's root, by `yarn gen:declarations`
+ * - Written to `spellCore.declarations.json5`, at the package's root, by `yarn gen:declarations`
  *   (`writeCoreDeclarations.ts`).
  *   - `coreDeclarations.test.ts` fails when that file and the core differ.
  *   - Python's core reads it in a test, to find what it hasn't ported yet
- *     (`packages/py/core/tests/test_core_declarations.py`).
- * - In the format projects write their own declarations in (`<Project>.declarations.json`),
+ *     (`tests/py/core/tests/test_core_declarations.py`).
+ * - In the format projects write their own declarations in (`<Project>.declarations.json5`),
  *   see `SP.SpellDeclarationsData`, with one key more, `module`:  the core's file that has it.
  * - Read from the core itself, as it runs:  each module's methods object, so nothing is listed by hand.
  *   - Parameters by name, from each function's own source:  `getItemAt(collection, position, startAt)`.
@@ -85,7 +85,7 @@ const CORE_EXPORTS: Record<string, { value: unknown; module: string }> = {
 const SPELL_CORE = "spellCore"
 
 /**
- * The core's method list, as `spellCore.declarations.json` holds it.
+ * The core's method list, as `spellCore.declarations.json5` holds it.
  * - `provides`:  what compiled code imports by name, `spellCore` first.
  * - `statements`:  one per member of `spellCore`, by module, in the order each module lists them;
  *   then one per name in `provides` after `spellCore`.
@@ -274,7 +274,7 @@ export type MemberDocs = { section?: string; description?: string }
 type AnyFunction = (...args: never[]) => unknown
 
 /**
- * What `spellCore.declarations.json` holds:  `SP.SpellDeclarationsData`'s shape, without its versions.
+ * What `spellCore.declarations.json5` holds:  `SP.SpellDeclarationsData`'s shape, without its versions.
  * - The core can't import the language's `SPELL_VERSION`, and no project imports this file.
  */
 export type CoreDeclarationsData = {

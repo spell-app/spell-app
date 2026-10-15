@@ -36,7 +36,7 @@ export type AnswerFormOptions = ServerLinkOptions & {
  *   - each box, `<epic-text-box>`:  Other, a comment (on a section, on an option), the page's notes
  * - `<epic-send>` draws it:  where the answer stands ("Not sent", "Sent 10/8/26 14:34 · 5 of 17 decided"),
  *   Send's fill, the draft's save, and why a send failed.
- * - Sending:  `POST /api/details/answer` (`packages/docs/tools/detailsRoutes.ts`), which writes `<slug>.answer.json`
+ * - Sending:  `POST /api/docs/details/answer` (`packages/epics/tools/detailsRoutes.ts`), which writes `<slug>.answer.json`
  *   beside the page, and wakes the waiting session (`epic ask wait`).
  *   - through a `ServerLink`, as the epic page's clients write:  the token, and its one refresh after a restart
  *   - NEVER locks (Owen, 2026-10-08):  a partial answer is fine, everything stays editable, and every Send sends the
@@ -46,7 +46,7 @@ export type AnswerFormOptions = ServerLinkOptions & {
  * - Keeps a DRAFT of what's typed and not sent (P18:  agents rewrote a page under Owen, and lost what he typed):
  *   - every change Owen makes (`edited()`) goes into `typed`, the page as he left it, at once;  a copy goes into
  *     the browser's storage at once, and to the page server a moment later (`DETAILS_SAVE_MS`,
- *     `POST /api/details/draft`, `<slug>.draft.json`), and as the page goes away (`watch()`)
+ *     `POST /api/docs/details/draft`, `<slug>.draft.json`), and as the page goes away (`watch()`)
  *   - the draft wakes nobody:  only Send does;  Send deletes it
  *   - on load, the newest draft newer than the answer (the server's, else the browser's) goes back into the parts,
  *     by id, over the answer sent (`AnswerDraft.over()`):  "Changes not sent"

@@ -8,7 +8,6 @@
     "packages/assembler",
     "packages/brand",
     "packages/cli",
-    "packages/docs",
     "packages/lsp",
     "packages/markdown",
     "packages/parser",
@@ -17,6 +16,8 @@
     "packages/core",
     "packages/py",
     "packages/server",
+    "packages/spaces",
+    "packages/spell-solid",
     "packages/ui",
     "packages/util",
     "packages/epics"
@@ -70,15 +71,16 @@
   "packageManager": "yarn@4.18.0",
   "pageServer": {
     "routes": [
-      "packages/docs/tools/detailsRoutes.ts",
-      "packages/docs/tools/choicesRoutes.ts",
-      "packages/docs/tools/commentsRoutes.ts",
+      "packages/epics/tools/detailsRoutes.ts",
+      "packages/epics/tools/choicesRoutes.ts",
+      "packages/epics/tools/commentsRoutes.ts",
       "packages/epics/src/tool/reviewRoutes.ts",
       "packages/epics/src/tool/epicRoutes.ts",
       "packages/epics/src/tool/linkRoutes.ts",
-      "packages/docs/tools/agentRoutes.ts",
-      "packages/docs/tools/showRoutes.ts",
-      "packages/app/src/server/appRoutes.ts"
+      "packages/epics/src/list/runningRoutes.ts",
+      "packages/epics/tools/agentRoutes.ts",
+      "packages/epics/tools/showRoutes.ts",
+      "packages/spaces/src/server/node/routes/appRoutes.ts"
     ],
     "watch": [
       "epics",
@@ -86,9 +88,21 @@
       "pages",
       "templates",
       "brand",
-      "packages/docs/tools/_assets",
+      "packages/epics/tools/_assets",
       "packages/brand",
-      "packages/epics/pack"
+      "packages/epics/components/__pack",
+      "packages/brand/components/__pack"
+    ],
+    "writable": [
+      "epics",
+      "guides",
+      "pages",
+      "templates",
+      "brand"
+    ],
+    "bundles": [
+      "packages/ui/site/_assets",
+      "packages/brand/_assets/ui"
     ]
   },
   "shared": {

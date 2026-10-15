@@ -30,7 +30,7 @@ export const docsNavVocabulary = {
       kind: "string",
       description:
         "The page shown:  a component tag (`ui-button`) or a page's file name without `.html` (`getting-started`).  " +
-        "Default:  the page's own file name (`/ui/` is `index`)."
+        "Default:  the page's own file name (`/components/ui/` is `index`)."
     },
     {
       name: "base",

@@ -1,21 +1,21 @@
 /**
  * Types of `$/epics/definitions`:  the ONE description of every `<epic-*>` element, shared by the browser elements
  * and the node tools (the converter, the epic tool).
- * - An element's description IS its vocabulary, `components/<family>/<Name>.en.ts`:  Spell UI's
- *   `ComponentVocabulary`, plus what it lacks for a DOCUMENT format -- the children each element allows (its content
+ * - An element's description IS its vocabulary, `components/<family>/<Name>.en.ts`:  every set's
+ *   `ComponentVocabulary` (`$/spell-solid`), plus what it lacks for a DOCUMENT format -- the children each element allows (its content
  *   model), required attributes and value formats.
  * - Bottom of the folder's import graph:  `import type` only, so it loads anywhere (node, browser, a vocabulary).
  *   `definitions.types` <- `Definitions` <- `$/epics/markup`.
  */
 
-// NOTE:  Spell UI's vocabulary TYPES file, not `$/ui/core`:  core loads the element layer (JSX, Vite-only imports),
-// which a node tool's type check -- `docs`, through the epic-page forwarders -- can't compile.
-import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary/vocabulary.types"
+// NOTE:  spell-solid's vocabulary TYPES file, not its barrel or `$/ui/core`:  those load the element layer (JSX,
+// Vite-only imports), which a node tool's type check -- the docs tools, through the epic-page forwarders -- can't compile.
+import type { AttributeSpec, ComponentVocabulary } from "$/spell-solid/vocabulary.types"
 
 import type { Definitions } from "./Definitions"
 
-/** `allow-additions` => `allowAdditions`, at the type level:  Spell UI's `CamelCase` (`$/ui/elements/elements.types`,
- * behind the element layer), restated here so the definitions stay node-safe. */
+/** `allow-additions` => `allowAdditions`, at the type level:  spell-solid's `CamelCase` (`$/spell-solid/elements.types`,
+ * beside the element layer), restated here so the definitions stay node-safe. */
 export type CamelCase<S extends string> = S extends `${infer Head}-${infer Tail}`
   ? `${Head}${Capitalize<CamelCase<Tail>>}`
   : S

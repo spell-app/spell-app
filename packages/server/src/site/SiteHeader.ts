@@ -68,7 +68,7 @@ export class SiteHeader extends HTMLElement {
   /** event a router dispatches on `document` after swapping the page in place:  re-draw */
   static readonly PAGE_EVENT = "spell-site:page"
 
-  /** server info, once known:  injected `SPELL_SERVER`, else `/_server/ping` */
+  /** server info, once known:  injected `SPELL_SERVER`, else `/api/server` */
   private info?: Partial<ServerInfo & ServerConfig>
 
   /** re-draw on `PAGE_EVENT` */
@@ -136,7 +136,7 @@ export class SiteHeader extends HTMLElement {
    * (server-only, from `file://`).
    * - A worktree's page on the main checkout's server (`/worktrees/<w>/...`) keeps that prefix on repo paths,
    *   so a tab stays in the worktree:  a property only the branch has (Brand, before it merges) is a 404 on `main`.
-   * - A server route (`/ui/`, `/editor/`) is the server's own:  never prefixed.
+   * - A server route (`/components/ui/`, `/editor/`) is the server's own:  never prefixed.
    */
   href(property: Pick<SiteProperty, "path" | "serverOnly">): string | undefined {
     if (this.served) {
@@ -268,7 +268,7 @@ export class SiteHeader extends HTMLElement {
   /** ask the server who it is, for the badge (pages it proxies have no `SPELL_SERVER`) */
   private async ping(): Promise<void> {
     try {
-      const answer = await fetch("/_server/ping")
+      const answer = await fetch("/api/server")
       if (!answer.ok) return
       this.info = (await answer.json()) as ServerInfo
       this.render()

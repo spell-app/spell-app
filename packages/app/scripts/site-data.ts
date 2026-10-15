@@ -1,7 +1,7 @@
 /**
- * `yarn site:data [--check]` (in `packages/app`):  the App UI docs set's data, `components/_data/components.json`
+ * `yarn site:data [--check]` (in `packages/app`):  the App UI docs set's data, `docs/__data/components.json`
  * and `search.json`,
- * from `components/_data/pages.json` (hand-kept), the web components' vocabularies and the Solid components' source
+ * from `docs/__data/pages.json` (hand-kept), the web components' vocabularies and the Solid components' source
  * (`tools/AppUIDataBuilder.ts`).
  * - The set's pages read it (`<ui-docs-nav>`'s side column, `<ui-docs-api>`'s tables), as they are:  COMMITTED.
  * - Rerun it after changing a documented component's banner, props or uses, a vocabulary, or `pages.json`;

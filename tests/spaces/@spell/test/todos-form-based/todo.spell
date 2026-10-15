@@ -1,0 +1,72 @@
+## Todo app example
+a task is a thing
+a task has a title as text
+a task has a property completed as yes or no
+a task "is complete" if its completed is yes
+a task "is active" if its completed is no
+
+a todos-app is an app
+a todos-app has a property tasks as a new list of tasks
+a todos-app has a property newTaskName as text
+a todos-app has a filter as one of all, active or completed
+
+the shownTasks of a todos-app is:
+	if its filter is "active" return tasks in its tasks where it is active
+	if its filter is "completed" return tasks in its tasks where it is complete
+	return its tasks
+
+set app to a new todos-app
+set the filter of the app to "all"
+set the newTaskName of the app to ""
+
+to create a new task (with title as text, completed as a choice)
+	if the title is undefined
+		if the newTaskName of the app is "" return
+		set the title to the newTaskName of the app
+		set the newTaskName of the app to ""
+	get a new task with title = the title, completed = the completed or no
+	add it to the tasks of the app
+
+create a new task with title = "Create todos app", completed = yes
+create a new task with title = "Teach it to draw"
+create a new task with title = "Test app"
+
+to draw (a todos-app)
+	return
+		<ui-container>
+			<ui-segment>
+				<ui-menu inverted color="violet" borderless>
+					<ui-item type="header">To Do:</ui-item>
+					<ui-menu position="right">
+						<ui-item>Show:</ui-item>
+						<ui-item onClick={set the filter of the app to "all"} selected={the filter of the app is "all"}>All</ui-item>
+						<ui-item onClick={set the filter of the app to "active"} selected={the filter of the app is "active"}>Active</ui-item>
+						<ui-item onClick={set the filter of the app to "completed"} selected={the filter of the app is "completed"}>Completed</ui-item>
+					</ui-menu>
+				</ui-menu>
+				<ui-form debug value={the app}>
+					<ui-repeat items={the shownTasks of the app}>
+						<ui-fields>
+							<ui-field width="1"><ui-checkbox name="completed" aria-label="Done"/></ui-field>
+							<ui-field width="10"><ui-input name="title" aria-label="Task"/></ui-field>
+						</ui-fields>
+					</ui-repeat>
+					<ui-fields>
+						<ui-field width="11"><ui-input name="newTaskName" placeholder="New task name" label="New task:"/></ui-field>
+						<ui-field><ui-button disabled={the newTaskName of the app is ""} onClick={create a new task}>Add Task</ui-button></ui-field>
+					</ui-fields>
+				</ui-form>
+				<br/>
+				<br/>
+				<ui-menu inverted color="grey">
+					<ui-item type="header">Test:</ui-item>
+					<ui-item onClick={create a new task with title = "Moar"}>Add Item</ui-item>
+					<ui-item onClick={remove the first item of the tasks of the app}>Remove Item</ui-item>
+					<ui-item onClick={set the title of the first item of the tasks of the app to "New title"}>Change name</ui-item>
+					<ui-item onClick={remove items in (the tasks of the app) where it is complete}>Remove Completed</ui-item>
+				</ui-menu>
+			</ui-segment>
+		</ui-container>
+
+start the app
+print the app

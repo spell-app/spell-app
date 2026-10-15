@@ -17,9 +17,9 @@ import type {
 /**
  * What one command-line argument names -- see `resolveProject()`.
  * - `arg`:  what was typed, for messages.
- * - `project`:  one spell project, e.g. `@library/cards`, a project folder, `@workspace`.
+ * - `project`:  one spell project, e.g. `@spell/library/cards`, a project folder, `@here`.
  * - `file`:  one `.spell` file, inside its project.
- * - `root`:  a whole project root, e.g. `@library` -- commands turn it into projects with `CliSession.projectsFor()`.
+ * - `root`:  a whole project root, e.g. `@spell/library` -- commands turn it into projects with `CliSession.projectsFor()`.
  */
 export type CliProject =
   | { kind: "project"; arg: string; project: SP.SpellProject }
@@ -45,13 +45,15 @@ export type GlobalOptions = {
 
 /**
  * `spell compile` flags.
- * - `stdout`:  print a project's compiled output rather than writing `<Project>.compiled.js`.
+ * - `stdout`:  print a project's compiled output rather than writing `<Project>.spell.js`.
  * - `force`:  recompile the projects it imports, too, even those already compiled
+ * - `stale`:  compile only the projects whose build is missing or out of date -- see `CLI.staleBecause()`
  */
 export type CompileOptions = GlobalOptions & {
   stdout?: boolean
   force?: boolean
-  /** Compile to this target, this run, instead of `project.json`'s -- see `SP.TARGETS`. */
+  stale?: boolean
+  /** Compile to this target, this run, instead of the project file's -- see `SP.TARGETS`. */
   target?: string
 }
 
@@ -168,7 +170,7 @@ export type FormatOptions = GlobalOptions & {
 /**
  * `spell parse` flags.
  * - `rule`:  parse as this rule only, e.g. `expression`
- * - `in`:  parse inside this project's scope, e.g. `@test/Solitaire`
+ * - `in`:  parse inside this project's scope, e.g. `@spell/test/solitaire`
  * - `json`:  print the result as JSON
  * - `tree`:  print the spell tree (what it means), not the match tree
  * - `html`:  with `tree`, print it as a `<ui-tree-diagram>` for a docs page
@@ -183,7 +185,7 @@ export type ParseOptions = GlobalOptions & {
 
 /**
  * `spell explain` flags.
- * - `in`:  look in this project, too, e.g. `@test/Solitaire`
+ * - `in`:  look in this project, too, e.g. `@spell/test/solitaire`
  * - `json`:  print what was found as JSON
  */
 export type ExplainOptions = GlobalOptions & {
@@ -278,7 +280,7 @@ export type StaticOptions = GlobalOptions & {
 
 /**
  * `spell new` flags.
- * - `in`:  make the project in this folder -- default `@user`'s, `projects/user/`
+ * - `in`:  make the project in this folder -- default `owen@spell`'s, your space's (`<spell-spaces>/@spell/owen@/`)
  */
 export type NewOptions = GlobalOptions & {
   in?: string
@@ -294,7 +296,7 @@ export type NewOptions = GlobalOptions & {
  * - `mode`:  `run` the project, or run its `test ...` functions and report
  * - `name`:  the project's, for messages
  * - `entry`:  URL of its compiled javascript -- a temp file, never in the project
- * - `projects`:  URL of each project it imports' `<Project>.compiled.js`, by id -- for `@spell/project/<id>`
+ * - `projects`:  URL of each project it imports' `<Project>.spell.js`, by id -- for `@spell/project/<id>`
  * - `spellCore`:  URL of `core`'s `src/index.ts`, for `@spell/core`
  * - `verbose`:  `test` shows every check, and anything printed, not just failures
  * - `filter`:  `test` runs only tests whose names contain it -- see `runProject.ts`
@@ -400,7 +402,7 @@ export type StatusState = "running" | "ok" | "errors" | "failed"
 /**
  * One line of progress in a `StatusReporter`, e.g. one project compiling.
  * - `label`:  what's being worked on, e.g. a project id
- * - `note`:  short outcome after the label, e.g. `3 errors · wrote Foo.compiled.js`
+ * - `note`:  short outcome after the label, e.g. `3 errors · wrote Foo.spell.js`
  * - `details`:  lines listed under it, e.g. each error
  */
 export type StatusRow = {

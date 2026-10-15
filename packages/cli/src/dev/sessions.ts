@@ -283,7 +283,7 @@ export function ancestorPids(): Set<number> {
  * The icon a session's title starts with, saying where its work stands (Owen, 2026-10-07):  🚧 under way
  * (`/isolate`, `/epic <name>`, `/unpark`, `/epic resume`:  the prompt hook, `.claude/hooks/prompt-gate.mjs`, which
  * keeps its own copy), 📅 a future epic written down (`/epic future`), ✅ merged (`spell dev session done`);
- * and from its epic's state (`spell dev session icons`;  `$/server/site/EpicState`):  🚨 errors (every phase done,
+ * and from its epic's state (`spell dev session icons`;  `$/epics/list/EpicState`):  🚨 errors (every phase done,
  * items need Owen), ⏸️ paused (phases left, untouched for days).
  */
 export const TITLE_ICONS = { active: "🚧", future: "📅", done: "✅", errors: "🚨", paused: "⏸️" } as const

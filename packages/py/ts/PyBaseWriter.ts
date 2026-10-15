@@ -37,7 +37,7 @@ export class PyBaseWriter extends P.ProgramWriter {
    * as Python's linters ask (see `module()`).
    * - `spellCore` is `core`.
    * - Another project's names:  from its module, by project id (see `projectModule()`),
-   *   e.g. `@test:fixtures:Cards` => `cards`.
+   *   e.g. `@spell/test/cards` => `cards`.
    */
   importsHeader(imports: P.ModuleImport[]): string {
     const lines = imports
@@ -60,7 +60,7 @@ export class PyBaseWriter extends P.ProgramWriter {
   /** The Python module a project's compiled code is, from its `@spell/project/<id>`:  its name, snake_case. */
   static projectModule(module: string): string {
     const id = module.replace(/^@spell\/project\//, "")
-    const name = (id.split(":").at(-1) ?? id).replace(/[^\w$]+/g, "_")
+    const name = (id.split("/").at(-1) ?? id).replace(/[^\w$]+/g, "_")
     return new P.Naming({ all: "snake_case" }).nameOf(name, "variable")
   }
 

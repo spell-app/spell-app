@@ -10,7 +10,7 @@ const INBOX_VERSION = 1
 /****************
  * ### `GuideInbox`
  * GUIDE COMMENTS (epic `airplane`, P11):  what Owen wrote on a docs page's blocks, from the bullhorn beside each or
- * on selected text (`packages/docs/tools/_assets/spell-doc-runtime.js`, "Comments"), waiting for Claude in the
+ * on selected text (`packages/epics/tools/_assets/spell-doc-runtime.js`, "Comments"), waiting for Claude in the
  * page's INBOX FILE.
  * - the file:  `<page>.inbox.json` beside `<page>.html` (`fileFor()`);  absent until the first comment, deleted
  *   once the last is deleted;  git-ignored in the shared repo, as the epics' review inboxes
@@ -24,9 +24,9 @@ const INBOX_VERSION = 1
  *   - nobody listening:  they wait, sent, for the epic's next `/epic review` (its `wait` takes them at once) or
  *     `/airplane land`
  * - EVERY write through `update()` / `updateAsync()`:  under the file's lock (`SRV.FileLock`), atomic
- * - Works with no Claude and no network:  the page server writes it (`packages/docs/tools/commentsRoutes.ts`)
+ * - Works with no Claude and no network:  the page server writes it (`packages/epics/tools/commentsRoutes.ts`)
  * - Node only (`node:fs`, `$/server`'s lock):  NOT in the `$/epics` barrel, imported by path.
- *   Here, not in `packages/docs/tools` where it began:  the epic tool's `inbox wait` reads it, and nothing
+ *   Here, not in the docs tools (`packages/epics/tools`) where it began:  the epic tool's `inbox wait` reads it, and nothing
  *   imports `docs`.
  ****************/
 export class GuideInbox {

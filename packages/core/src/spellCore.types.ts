@@ -64,7 +64,7 @@ export const SPELL_BASE_TYPES = ["Object", ...SPELL_CLASSES]
  *   - What it must print is pinned by the `cli`'s `contract.test.ts`.
  *   - Except `deprecatedMethods`:  old names, for programs compiled before they changed.
  *     A new core has none.
- *   - Listed by name, for another core to check itself against, in `spellCore.declarations.json`:
+ *   - Listed by name, for another core to check itself against, in `spellCore.declarations.json5`:
  *     see `coreDeclarations()`.  A module added here goes in its `CORE_MODULES` too.
  */
 export type SpellCore = typeof coreMethods &

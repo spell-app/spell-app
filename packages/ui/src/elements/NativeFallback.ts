@@ -6,7 +6,7 @@ import { E } from "$/ui/core"
  * ### `NativeFallback`
  * The base class of the form controls' fallbacks:
  * plain native DOM a DOM element shows when its component's render throws, so its form keeps working
- * (`docs/fallback.md`:  only form controls have one).
+ * (`notes/fallback.md`:  only form controls have one).
  * - No Solid, so the fallback works whatever broke the Solid render:
  *   - of the core (`E`), it uses only the foundation and `E.ClassBuilder`, NEVER Solid or the runtime (`UI`)
  *   - it builds with `createElement` + `setAttribute` (NEVER `innerHTML` with user text)

@@ -20,11 +20,11 @@ import {
  * - One per page (`forPage()`).
  * - Each row, `<epic-choice-row>`, registers while connected (`add()`);
  *   `<epic-choices-bar>` holds the feedback and "Do it", and draws where things stand.
- * - Saving the draft (`packages/docs/tools/choicesRoutes.ts`, `POST /api/choices/draft`):
+ * - Saving the draft (`packages/epics/tools/choicesRoutes.ts`, `POST /api/docs/choices/draft`):
  *   - `CHOICES_SAVE_MS` (5s) after the last change
  *   - and as the page goes away (`watch()`:  `pagehide`, the page hidden), a request that outlives the page
  *   - the draft never wakes anyone:  only "Do it" does
- * - "Do it" (`send()`):  `POST /api/choices/answer`, which `epic choices wait` exits with;  pressed again after
+ * - "Do it" (`send()`):  `POST /api/docs/choices/answer`, which `epic choices wait` exits with;  pressed again after
  *   changes, it sends again.
  * - On load (`restore()`):  the draft (else the answer) comes back into the boxes and the feedback.
  * - Only the boxes that differ from the recommendation are sent, by row id (`values`), with the feedback.
@@ -344,7 +344,7 @@ export class ChoicesForm {
   ////////////////
 
   /**
-   * POST the page's boxes to `/api/choices/<what>`;  the route's reply.
+   * POST the page's boxes to `/api/docs/choices/<what>`;  the route's reply.
    * - throws an `Error` saying, in Owen's words, what to do:  reload, restart the server, open it from the server
    */
   private async post(what: "draft" | "answer", keepalive = false): Promise<unknown> {
@@ -360,7 +360,7 @@ export class ChoicesForm {
     return this.link.post(`${CHOICES_API}/${what}`, body, { keepalive })
   }
 
-  /** `GET /api/choices/<what>` for this page:  the draft or answer, or `undefined`. */
+  /** `GET /api/docs/choices/<what>` for this page:  the draft or answer, or `undefined`. */
   private async fetchJson(what: "draft" | "answer"): Promise<unknown> {
     const response = await this.options.fetch(`${CHOICES_API}/${what}?page=${encodeURIComponent(this.options.page)}`, {
       cache: "no-store"

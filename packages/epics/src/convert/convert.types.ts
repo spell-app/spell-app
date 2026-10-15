@@ -297,7 +297,7 @@ export const UPGRADE_EXCLUSIONS = [
 export const PLAN_DOC_CSS = 'head > link[href$="/plan-doc.css"]'
 
 /** The pack a converted page loads, from `epics/<name>/`:  `<ui-components source>`. */
-export const PACK_SOURCE = "../../packages/epics/pack/epics.pack.js"
+export const PACK_SOURCE = "../../packages/epics/components/__pack/epics.pack.js"
 
 /** `<body>` attributes that move onto `<epic-page>` (camelCase key there). */
 export const BODY_DATA = {

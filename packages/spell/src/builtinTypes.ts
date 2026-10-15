@@ -621,7 +621,7 @@ const READ_AS_TEMPLATE =
 ////////////////
 
 /**
- * Built-in docs `text`, for a project whose lists start at `startAt` (`project.json`'s `"listsStartAt"`).
+ * Built-in docs `text`, for a project whose lists start at `startAt` (its project file's `"listsStartAt"`).
  * - Counting from 0:  "counts from 1" says 0, and `card 1 of the deck` says `card 0`.
  * - Counting from 1:  `text` as it is.
  * - Epic `python-target` P2.

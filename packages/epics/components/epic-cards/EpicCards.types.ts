@@ -3,7 +3,7 @@
  * - Data only:  nothing here runs.  The route that answers (`$/epics/tool/SagaEpics`) imports these types too.
  */
 
-import type { EpicFacts } from "$/server/site/EpicState"
+import type { EpicFacts } from "$/epics/list/EpicState"
 
 /** Where the cards come from:  `GET /api/epics/saga?saga=<id>` (`$/epics/tool/epicRoutes.ts`). */
 export const SAGA_EPICS_API = "/api/epics/saga"
@@ -18,7 +18,7 @@ export type SagaEpic = {
   href: string
   /** its `<epic-summary>`, as text;  `""` with none */
   summary: string
-  /** what its state is read from (`$/server/site/EpicState`) */
+  /** what its state is read from (`$/epics/list/EpicState`) */
   facts: EpicFacts
 }
 
@@ -29,7 +29,7 @@ export type SagaEpicsAnswer = { saga: string; epics: SagaEpic[] }
 export type CardsProblem = "file" | "server" | "none"
 
 /**
- * The groups the cards fall in, in the Epics page's order (`$/server/site/EpicCards` `EPIC_GROUPS`, less Favorites,
+ * The groups the cards fall in, in the Epics page's order (`$/epics/list/EpicCards` `EPIC_GROUPS`, less Favorites,
  * which is Owen's own list there):  each one's icon, and its title's text key.
  */
 export const CARD_GROUPS = [

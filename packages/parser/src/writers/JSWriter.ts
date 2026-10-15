@@ -93,7 +93,7 @@ export class JSWriter extends ProgramWriter {
 
   /**
    * Member `property`'s name, by our name (`nameOf()`) -- spell's as is when it isn't a legal identifier,
-   * for whoever writes it to quote:  `["@type"]`.
+   * for whoever writes it to quote:  `["$type"]`.
    */
   propertyName(property: P.ASTPropertyLiteral): string {
     return property.isLegalIdentifier ? this.nameOf(property.value) : property.value

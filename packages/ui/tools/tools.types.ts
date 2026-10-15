@@ -25,7 +25,7 @@ export type PackageConfig = {
   root: string
   /** Vite config file, relative to `root`;  default `vite.config.ts` */
   configFile?: string
-  /** family name => entry file, e.g. `{ "ui-button": "src/components/ui-button/index.ts" }` */
+  /** family name => entry file, e.g. `{ "ui-button": "components/ui-button/index.ts" }` */
   entries: Record<string, string>
   /**
    * Shared entries, in load order, e.g. `[{ name: "core", entry: "src/core.ts" }, { name: "forms", entry: ... }]`.
@@ -122,7 +122,7 @@ export function kB(bytes: number): string {
 /** One family's own cost:  the whole, then split by kind (`OwnKinds`). */
 export type OwnSize = Size &
   Record<OwnKind, Size> & {
-    /** its modules, short ids (`src/components/ui-button/UIButton.tsx`) */
+    /** its modules, short ids (`components/ui-button/UIButton.tsx`) */
     modules: string[]
   }
 
@@ -300,21 +300,31 @@ export type ImportMap = {
 ////////////////
 
 /**
- * Spell UI's docs site's HAND-WRITTEN half, from `packages/ui/`:  the checkout's `ui/`, a link into the shared
- * content repo, `../spell-app-dev/ui/` (claude-design P6, 2026-10-05).
- * - the pages (`*.html`, `components/`), the layout (`_parts/`), the files examples load (`examples/`), Fomantic's
- *   images (`images/`) and the site's `README.md`:  ONE copy for every checkout, edited without a commit
- * - NOT the bundle or the data:  `SITE_BUILD`
- * - the page server serves it at `/ui/`, with `SITE_BUILD`'s `_assets/` and `_data/` laid over it
- *   (`packages/server`'s `UI_SITE`), so a page's `_assets/site.js` and `_data/...` links resolve unchanged
- * - NOTE:  a checkout without the link (`spell dev shared link` not run since merging P6) has no pages
+ * Spell UI's docs site's PAGES, from `packages/ui/`:  its `docs/` folder, a component set laid out as every set is
+ * (epic `people-and-orgs` P18;  until then shared content, the checkout's `ui/`, from claude-design P6).
+ * - What's in it:
+ *   - the pages, `*.html`, flat:  an element's page is its tag, `ui-button.html`
+ *   - the component index, `components.html`
+ *   - the layout (`__parts/`), the data (`__data/`, `SITE_DATA`)
+ *   - the files examples load (`examples/`), Fomantic's images (`images/`), the site's `README.md`
+ * - Tracked with the branch, so a page changes in the same commit as its element.
+ * - The page server serves it at `/components/ui/`, with the site bundle (`SITE_BUILD`'s `_assets/`) laid over it,
+ *   so a page's `_assets/site.js` resolves (`COMPONENT_SETS` in `packages/server`).
  */
-export const SITE_PAGES = "../../ui"
+export const SITE_PAGES = "docs"
 
 /**
- * Spell UI's docs site's BUILT half, from `packages/ui/`:  what each branch builds and commits.
- * - `_src/`:  the bundle's entry;  `_assets/`:  the bundle (`yarn site:bundle`)
- * - `_data/`:  the data (`yarn site:data`), and the hand-kept `pages.json` it's built from
+ * Spell UI's docs site's DATA, from `packages/ui/`:  `docs/__data/`.
+ * - GENERATED, committed (`yarn site:data`):
+ *   - `components.json`, `icons.json`, `search.json`
+ *   - `custom-elements.json`, `html-custom-data.json`
+ * - hand-kept:  `pages.json`, the per-family facts they're built from
+ */
+export const SITE_DATA = `${SITE_PAGES}/__data`
+
+/**
+ * Spell UI's docs site's BUILD, from `packages/ui/`:  `site/`.
+ * - `_src/`:  the bundle's entry;  `_assets/`:  the bundle (`yarn site:bundle`), never committed
  */
 export const SITE_BUILD = "site"
 

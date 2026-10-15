@@ -6,8 +6,9 @@ import { definePlugin, defineRule, type ESTree, type Rule } from "vite-plus/lint
  * - Each rule flags something a component does BY HAND that a decorator or a helper already does,
  *   and its message names that decorator or helper.
  * - Turned on only for the component folders `PATTERN_FOLDERS` names (`vite.lint.ts`):
- *   Spell UI's own, the epic pages' (`epics`) and the brand pages'.
- *   Not the app, not the element core, not tests.
+ *   every set's elements, all written on `$/spell-solid`:  Spell UI's own, the epic pages' (`epics`), the brand pages'
+ *   and the app's (`<spell-app>`, `<spell-editor>`).
+ *   Not the app's function components, not the element core, not tests.
  * - A use that has to stay says why, on the line above:
  *   `// oxlint-disable-next-line spell-ui/no-untrack -- a starting value, read once as the component is built`.
  *   `--report-unused-disable-directives` (every package's `yarn lint`) reports one left behind.
@@ -120,7 +121,7 @@ const noUntrack = defineRule({
   }
 })
 
-/** The platform's timing calls, and the helper (`packages/ui/src/util/timing.ts`) that says WHEN instead. */
+/** The platform's timing calls, and the helper (`packages/spell-solid/src/timing.ts`) that says WHEN instead. */
 const TIMERS: Record<string, string> = {
   setTimeout: "`E.after(seconds, fn)` (or `E.soon(fn)` for a zero delay)",
   setInterval: "`E.every(seconds, fn)`",

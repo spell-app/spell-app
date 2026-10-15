@@ -60,7 +60,7 @@ for (const bundle of AS.Bundle.all(root)) if (bundle.isStale) bundle.build()
 
 1. A class per capability, `src/<Name>.ts`, its types in `src/assembler.types.ts`.
 2. Export it from `src/index.ts`.
-3. Its test beside it, `src/<Name>.test.ts` (node).
+3. Its test in the repo's `tests/assembler/`, at the same path:  `tests/assembler/src/<Name>.test.ts` (node).
 4. A row in the files table above, and a line in `AGENTS.md` "Overview".
 
 ## Deferred
@@ -68,6 +68,6 @@ for (const bundle of AS.Bundle.all(root)) if (bundle.isStale) bundle.build()
 - The page server's assembly code moves in here, so other assembly tools can be built on it
   (e.g. a redone goals package).
   - It's in [the page server's folder](../server/src/page/).
-- The docs tools' [pages.js](../docs/tools/pages.js) still has its own copy of the area folders (`AREAS`),
+- The docs tools' [pages.js](../epics/tools/pages.js) still has its own copy of the area folders (`AREAS`),
   for `findPages()`.
   `Linker` has the list it indexes.
