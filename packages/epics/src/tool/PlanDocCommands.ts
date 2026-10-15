@@ -19,6 +19,8 @@ import type { PlanReader } from "./PlanReader"
 import { PlanTime } from "./PlanTime"
 import { ReviewBackfill } from "./ReviewBackfill"
 import { LISTEN_HEARTBEAT_MS, LISTEN_STALE_MS, ReviewInbox } from "./ReviewInbox"
+import { SagaCommands } from "./SagaCommands"
+import { Sagas } from "./Sagas"
 
 /****************
  * ### `PlanDocCommands`
@@ -34,6 +36,8 @@ import { LISTEN_HEARTBEAT_MS, LISTEN_STALE_MS, ReviewInbox } from "./ReviewInbox
  *   (`EpicDocs`), for `/docs-check`
  * - the `<epic-*>` markup only:  every command refuses a doc still in the old markup
  *   (one restored from an old backup) before it writes anything:  `convert` it first (`PlanDocFiles.read()`)
+ * - `saga`:  the sagas' list and each epic's saga (`SagaCommands`, epic `epic-workflow` P15);  `new --saga` sets it
+ *   at birth
  * - `migrate`:  pages brought up to today's markup, by page kind (`MigrateCommands`, epic `epic-workflow` P8);
  *   `relayout` is gone:  the converter (`convert`, `$/epics/convert`) replaced it
  * - `inbox`:  the marks Owen left on the doc's page, waiting in `<name>.inbox.json` beside it (`ReviewInbox`):
@@ -60,6 +64,9 @@ export class PlanDocCommands {
   /** the `migrate` command, on this object's files and output */
   readonly migrator: MigrateCommands
 
+  /** the `saga` commands, on this object's files and output */
+  readonly sagas: SagaCommands
+
   /**
    * - `files`:  the checkout's epic pages
    * - `sessionsOf`:  an epic's running sessions, for `migrate --notify`;  the `spell` CLI gives it (`epicSessions()`)
@@ -68,6 +75,7 @@ export class PlanDocCommands {
     this.files = files
     this.inbox = new InboxCommands(this)
     this.migrator = new MigrateCommands(this, sessionsOf)
+    this.sagas = new SagaCommands(this)
   }
 
   ////////////////
@@ -97,6 +105,7 @@ export class PlanDocCommands {
     if (command === "backfill") return this.backfill(name, flags)
     if (command === "relayout") throw new PlanDocError(replaced(command))
     if (command === "migrate") return this.migrator.run(positional.slice(1), flags)
+    if (command === "saga") return this.sagas.run(positional.slice(1), flags)
     if (command === "convert") return this.convert(positional.slice(1), flags)
     if (command === "split" && flags.done) return this.splitDone(flags)
     if (!command || !name) return this.usage()
@@ -332,15 +341,25 @@ export class PlanDocCommands {
    * - `<title>`:  `Epic: <title>` (`TITLE_PREFIX`);  `<epic-page title>` holds the title alone (it draws the h1)
    * - refuses to overwrite:  the skill asks the user whether to reuse an existing doc
    * - a future epic, now planned (`/epic <name>`):  promoted where it is, its prompt and answers kept
+   * - `--saga <id>`:  the saga it serves, from the start (epic `epic-workflow` P15);  refused, writing nothing, for a
+   *   saga not in the list
    */
   private async create(name: string, file: string, flags: Flags): Promise<void> {
-    const { title = titleCase(name), prompt, promptFile, future = false } = flags as CreateFlags
+    const { title = titleCase(name), prompt, promptFile, future = false, saga } = flags as CreateFlags
     const { files } = this
+    if (saga !== undefined)
+      new Sagas(files.root).need(need(saga === true ? undefined : saga, "--saga <id>"), "new --saga")
+    const nameSaga = (plan: PlanDoc) => typeof saga === "string" && plan.setSaga(saga)
     const found = PlanDocFiles.planDocIn(dirname(file), name)
     if (found && !future) {
       const branch = files.git("branch", "--show-current") || "(detached)"
       const worktree = files.git("rev-parse", "--show-toplevel") || files.root
-      if (await this.edit(found, (plan) => plan.promote({ branch, worktree }))) {
+      const promoted = (plan: PlanDoc) => {
+        const was = plan.promote({ branch, worktree })
+        if (was) nameSaga(plan)
+        return was
+      }
+      if (await this.edit(found, promoted)) {
         files.reindex()
         return this.print(`${relative(process.cwd(), found)}:  was a future epic, now planned here`)
       }
@@ -366,6 +385,7 @@ export class PlanDocCommands {
     // the prompt that started the plan, in the Overview's `prompt` slot;  none:  no quote
     plan.setPrompt(promptFile ? readFileSync(promptFile, "utf8") : (prompt ?? ""))
     if (future) plan.makeFuture()
+    nameSaga(plan)
     mkdirSync(dirname(file), { recursive: true })
     // split from the start (J... of `claude-design`):  a doc being planned is the one edited most, so it gains most
     await files.writeDoc(file, plan, true)
@@ -832,15 +852,16 @@ export class PlanDocCommands {
 export type Flags = Record<string, string | true>
 
 /** `new`'s flags. */
-type CreateFlags = { title?: string; prompt?: string; promptFile?: string; future?: boolean }
+type CreateFlags = { title?: string; prompt?: string; promptFile?: string; future?: boolean; saga?: string | true }
 
 /** Usage, printed with no command or a bad one. */
 export const USAGE = `usage:  spell dev plan-doc <command> <name> ...    (doc:  epics/<name>/<name>.plan.html)
   The old spelling of the epic command:  \`epic --help\` lists today's names (\`epic close seo#J3\` ...).
-  new <name> [--title "Title"] [--prompt "text" | --prompt-file path] [--future]
+  new <name> [--title "Title"] [--prompt "text" | --prompt-file path] [--future] [--saga <id>]
                                                    copy the template, fill it in, update the home page;
                                                    --future:  an epic not planned yet (/epic future);  new on
-                                                   a future epic's doc plans it:  promoted where it is
+                                                   a future epic's doc plans it:  promoted where it is;
+                                                   --saga:  the saga it serves (epic saga list)
   add-phase <name> "Short Name" --symptom html --changes html [--goal html] [--files html] [--verify html]
             [--estimate 2h] [--before N]           a phase:  Symptom (one line), Changes (two or three), then
                                                    the details (goal, files, verify);  --before N:  inserted as
@@ -856,6 +877,13 @@ export const USAGE = `usage:  spell dev plan-doc <command> <name> ...    (doc:  
   rename <name> <P6 | id> "New title" [--html]     retitle a phase or an item;  links to it that say the old
                                                    title ("P6 · Old", "Old") say the new one;  logged;  then
                                                    links-agree (stderr);  --html (last):  the title is HTML
+  saga list [--json]                               the sagas in order (sagas/sagas.json), each with its epics
+                                                   and how many guides name it;  then the epics with none
+  saga set <epic> <saga> | <epic> --none           the saga an epic serves (<epic-page saga>), logged
+  saga new <id> "Title" --purpose "..." [--after <id>]  /  move <id> --before|--after <id>  /  title <id> "Title"
+                                                   the list:  a new saga, its place, its title
+  saga rename <old> <new>                          a saga's id;  its epic pages, guides' metas, folder and the
+                                                   SAGA:/ addresses in the shared pages follow
   standing <name> [on|off]                         a standing epic:  open for good, each phase merging on its own,
                                                    never done (epic epic-workflow)
   request <name> <N> <rN> --from "..." --file path a request sent from another session, into phase N's Requests

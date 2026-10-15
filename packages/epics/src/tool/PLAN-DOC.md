@@ -141,6 +141,10 @@ As `plan-doc.md`, "Ids":
   - A phase:  each item queued for it (`work="P6 · Old"`) follows too.
   - An item is stamped and flagged UPDATE, as any change to it.
   - Logged:  `P6 renamed:  "Old" -> "New" (2 links)`.
+- `<epic-page saga="<id>">` (epic `epic-workflow` P15):  the saga the epic serves, one of `sagas/sagas.json`'s ids.
+  `saga set <name> <saga>` sets it (`--none` clears it), logged;  `new <name> --saga <id>` at birth;  refused for a
+  saga not in the list.  The page draws it in its meta lines, a link to the saga's page;  `summary --json` and
+  `list --json` carry it.  No migration step:  an epic with none simply names no saga.
 - `<epic-page standing>` (epic `epic-workflow`):  a STANDING epic, open for good;  each phase merges into `main` on its
   own, and every phase done is NOT done (STANDING, not DONE).  `update <name> --standing [on|off]` sets it.
 - Requests (epic `epic-workflow`):  what Owen sent the phase from other sessions, one labelled block per request.

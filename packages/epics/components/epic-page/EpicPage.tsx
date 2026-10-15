@@ -32,7 +32,9 @@ import {
   COPIED_TOAST_ID,
   SEE_ALSO,
   SEE_ALSO_KINDS,
+  type SagaLink,
   type SeeAlsoLink,
+  sagaHref,
   COPIED_TOAST_MS,
   FLASH_MS,
   GIT,
@@ -86,7 +88,10 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  *     icon, but bigger)";  then the state went into the step label:  "Into the pill")
  *   - the toolbar's bar, sticky again, right below the header (`--epic-head-h`):  the new item form, the toolbar
  *   - the review line, and the pill under it while it shows
- *   - the meta lines (branch, worktree, dates, the guide's link from `slot="durable"`)
+ *   - the meta lines (branch, worktree, dates, the saga it serves, the guide's link from `slot="durable"`)
+ *     - the saga (`saga`, epic `epic-workflow` P15):  a link to its saga page, by its title and with its purpose
+ *       as the tooltip once the page server says them (`GET /api/epics/pages`'s `saga`);  by its id until then, and
+ *       from `file://`
  *   - a future epic's notice, then its children
  * - The step label follows the phases, in the colours of decision Q20:
  *   - the active one (outlined blue:  Claude is on it;  links to it)
@@ -216,6 +221,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     folder: new E.IconGlyph({ owner: this, name: () => "folder" }),
     calendar: new E.IconGlyph({ owner: this, name: () => "calendar" }),
     book: new E.IconGlyph({ owner: this, name: () => "book" }),
+    saga: new E.IconGlyph({ owner: this, name: () => "bullseye" }),
     git: new E.IconGlyph({ owner: this, name: () => "git" }),
     chevron: new E.IconGlyph({ owner: this, name: () => "chevron right" }),
     send: new E.IconGlyph({ owner: this, name: () => "paper plane" }),
@@ -466,6 +472,9 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   /** The pages the epic made or leans on (`GET /api/epics/pages`), in the server's order;  none until asked. */
   @E.state accessor seeAlso: SeeAlsoLink[] = []
 
+  /** The saga the epic serves, as the page server says it (`GET /api/epics/pages`'s `saga`);  none until asked. */
+  @E.state accessor sagaLink: SagaLink | undefined = undefined
+
   /**
    * Ask for them while connected, and again when a page in the epic's folder changes:  a details page made, a part
    * linking a guide (never its inbox files, which change with every mark).
@@ -489,8 +498,9 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     try {
       const answer = await fetch(`/api/epics/pages?epic=${encodeURIComponent(this.epic ?? "")}`)
       if (!answer.ok) return
-      const { pages } = (await answer.json()) as { pages?: SeeAlsoLink[] }
+      const { pages, saga } = (await answer.json()) as { pages?: SeeAlsoLink[]; saga?: SagaLink | null }
       this.seeAlso = Array.isArray(pages) ? pages : []
+      this.sagaLink = saga ?? undefined
     } catch {
       // no page server:  no box
     }
@@ -617,7 +627,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     )
   }
 
-  /** The meta lines:  branch, worktree, dates, guide. */
+  /** The meta lines:  branch, worktree, dates, saga, guide. */
   private metaLines(): JSX.Element {
     return (
       <ul class={META} part={this.partForName("meta")} onClick={(event) => this.copyMeta(event)}>
@@ -663,6 +673,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
             </span>
           </li>
         </Show>
+        <Show when={this.saga}>{(saga) => this.sagaLine(saga())}</Show>
         <li class="durable" hidden={!this.slots.hasContent(this.slotForName("durable"))}>
           {this.icon(this.icons.book)}
           <span>
@@ -670,6 +681,29 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
           </span>
         </li>
       </ul>
+    )
+  }
+
+  /**
+   * The saga's meta line:  `Saga:` and a link to its saga page, by title once the page server says it (`sagaLink`),
+   * else by its id (`id`).
+   */
+  private sagaLine(id: string): JSX.Element {
+    const known = () => (this.sagaLink?.id === id ? this.sagaLink : undefined)
+    return (
+      <li class="saga">
+        {this.icon(this.icons.saga)}
+        <span>
+          <b>{this.translationForKey("saga")}</b>{" "}
+          <a
+            href={known()?.href ?? sagaHref(id)}
+            target={`saga-${id}`}
+            title={known() ? this.translationForKey("sagaTip", { purpose: known()!.purpose }) : undefined}
+          >
+            {known()?.title ?? id}
+          </a>
+        </span>
+      </li>
     )
   }
 

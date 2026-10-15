@@ -118,6 +118,11 @@ export class PlanDoc extends PlanReader {
     return Boolean(this.document.querySelector("epic-page")?.hasAttribute("standing"))
   }
 
+  /** The saga this epic serves (epic `epic-workflow` P15):  `<epic-page saga>`, its id;  `null` when it names none. */
+  get saga(): string | null {
+    return this.document.querySelector("epic-page")?.getAttribute("saga") || null
+  }
+
   /** The phases a `/bedtime` run is on:  `<epic-page bedtime>`, `null` when none is. */
   get bedtimeRun(): string | null {
     return this.document.querySelector("epic-page")?.getAttribute("bedtime") || null
@@ -1478,6 +1483,20 @@ export class PlanDoc extends PlanReader {
   setStanding(on: boolean): void {
     Markup.set(this.page, { standing: on })
     this.log(on ? "standing:  open for good, each phase merging on its own" : "no longer standing")
+  }
+
+  /**
+   * Name saga `saga` as the one this epic serves, or none (`null`):  `<epic-page saga="<id>">` (epic `epic-workflow`
+   * P15);  returns whether it changed.
+   * - which ids are sagas is the caller's to check (`Sagas`, `sagas/sagas.json`):  this doc doesn't know the list
+   * - SIDE EFFECT:  logs it, when it changed
+   */
+  setSaga(saga: string | null): boolean {
+    const was = this.saga
+    if (was === saga) return false
+    Markup.set(this.page, { saga: saga ?? undefined })
+    this.log(saga ? `saga:  ${saga}${was ? ` (was ${was})` : ""}` : `no saga (was ${was})`)
+    return true
   }
 
   /**

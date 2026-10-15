@@ -97,8 +97,32 @@ describe("POST /api/epics/favorite", () => {
       ["details/bare.html", "bare", "details"],
       ["details/names.html", "Boolean names", "choices"]
     ])
-    expect(JSON.parse((await ask(port, "GET", "/api/epics/pages?epic=nothing-here")).text)).toEqual({ pages: [] })
+    expect(JSON.parse((await ask(port, "GET", "/api/epics/pages?epic=nothing-here")).text)).toEqual({
+      pages: [],
+      saga: null
+    })
     expect((await ask(port, "GET", "/api/epics/pages?epic=../etc")).status).toBe(400)
+  })
+
+  // epic `epic-workflow` P15:  `<epic-page>` links the saga by its title
+  test("GET pages:  the saga the epic page names, from the sagas' list;  null for none, or one not in it", async () => {
+    mkdirSync(join(root, "sagas"), { recursive: true })
+    writeFileSync(
+      join(root, "sagas", "sagas.json"),
+      JSON.stringify({ sagas: [{ id: "epics", title: "Epic Tooling", purpose: "epics" }] })
+    )
+    const page = join(root, "epics", "named", "named.plan.html")
+    mkdirSync(join(root, "epics", "named"), { recursive: true })
+    writeFileSync(page, `<epic-page epic="named" title="Named"\n  saga="epics"></epic-page>`)
+    const sagaOf = async () => JSON.parse((await ask(port, "GET", "/api/epics/pages?epic=named")).text).saga
+    expect(await sagaOf()).toEqual({
+      id: "epics",
+      title: "Epic Tooling",
+      purpose: "epics",
+      href: "../../sagas/epics/epics.saga.html"
+    })
+    writeFileSync(page, `<epic-page epic="named" title="Named" saga="gone"></epic-page>`)
+    expect(await sagaOf()).toBeNull()
   })
 
   test("refuses a name that isn't an epic's, a missing flag, and a write without the token", async () => {

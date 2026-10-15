@@ -1100,6 +1100,54 @@ pre code {
   color: var(--spell-state-old-on);
 }
 /*
+ * ## Sagas on the Epics page (epic `epic-workflow` P15, `$/server/site/EpicCards`)
+ * - the SAGA CHIPS above the groups:  a pill per saga and "No saga", each with its count;  pressed (the toolbar's
+ *   deeper ivory) while its epics show, outlined while hidden (the runtime's `wireSagaChips()`)
+ * - a card's saga:  a small label under its description;  a card whose saga is hidden goes (`data-spell-saga-hidden`)
+ */
+.spell-doc-main .spell-saga-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 14px;
+}
+.spell-doc-main button.spell-saga-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border: 1px solid var(--spell-rail-edge);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--spell-muted);
+  font: 500 0.8rem var(--spell-sans);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--spell-rail-hover);
+  }
+  &[aria-pressed="true"] {
+    background: var(--spell-rail-selected);
+    color: var(--spell-rail-ink);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--spell-doc-accent));
+    outline-offset: 1px;
+  }
+  .spell-saga-count {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+}
+.spell-doc-main ui-cards.spell-epics {
+  .spell-epic-saga {
+    margin-top: 4px;
+  }
+  > [data-spell-saga-hidden] {
+    display: none;
+  }
+}
+/*
  * the Epics page's sort buttons (the runtime's `wireEpicSort()`):  one grouped pill, A–Z and Date, the one in use
  * pressed (the toolbar's deeper ivory, as its current section)
  */

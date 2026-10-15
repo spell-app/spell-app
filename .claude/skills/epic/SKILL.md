@@ -194,8 +194,13 @@ All in the FIRST turn, in this order, then the turn ends.
 3. The STUB doc:
 
    ```sh
-   epic new <name> --title "<Title>" --prompt-file ~/.spell/prompts/<name>.md   # no file:  no --prompt-file
+   epic new <name> --title "<Title>" --saga <saga> --prompt-file ~/.spell/prompts/<name>.md   # no file:  no --prompt-file
    ```
+
+   - Its SAGA (epic `epic-workflow` P15):  `epic saga list --json` gives the sagas, in Owen's order.
+     - Ask in a modal which saga the epic serves:  the likeliest first, "(Recommended)", each option the saga's title
+       and its purpose;  "No saga" too.  No saga:  no `--saga`.
+     - Later:  `epic saga set <name> <saga>`.
 
    - The prompt is quoted at the top of the Overview, and in the "Plan hung?" notice above it.
      That notice has a copy button and restart steps;  it goes once P1 starts.

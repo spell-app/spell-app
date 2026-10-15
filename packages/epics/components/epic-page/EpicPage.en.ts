@@ -64,6 +64,14 @@ export const epicPageVocabulary = {
         "adding phases to;  each phase merges into `main` on its own, and every phase done is NOT done."
     },
     {
+      name: "saga",
+      kind: "string",
+      format: "saga id",
+      description:
+        "The saga this epic serves, by id (`drawable-spell`;  epic `epic-workflow` P15):  one of `sagas/sagas.json`'s, " +
+        "set by `epic saga set`.  Drawn in the meta lines, a link to its saga page;  absent:  no saga."
+    },
+    {
       name: "bedtime",
       kind: "string",
       description: "A `/bedtime` run is on, and what it runs (`P3-P6`):  items it changes are `recent`."
@@ -183,7 +191,7 @@ export const epicPageVocabulary = {
         "Under the header:  `To review this doc, type /epic review <name>` (airplane mode:  `/airplane land`), " +
         "copied on click."
     },
-    { name: "meta", description: "The meta lines:  branch, worktree, dates, guide." },
+    { name: "meta", description: "The meta lines:  branch, worktree, dates, saga, guide." },
     { name: "notice", description: "A future epic's notice:  not planned yet." },
     {
       name: "hung",
@@ -237,6 +245,12 @@ export const epicPageVocabulary = {
     { key: "started", text: "Started", description: "Meta line:  `Started 10/6/26, updated 10/7/26`." },
     { key: "updated", text: "updated", description: "Meta line:  before the last change's day." },
     { key: "durable", text: "Guide:", description: "Meta line:  before the guide's link." },
+    { key: "saga", text: "Saga:", description: "Meta line:  before the link to the saga the epic serves." },
+    {
+      key: "sagaTip",
+      text: "The saga this epic serves:  {purpose}",
+      description: "The saga link's tooltip, once the page server has said what the saga is for."
+    },
     { key: "done", text: "DONE", description: "Step label:  every phase is done." },
     { key: "future", text: "FUTURE", description: "Step label:  a future epic." },
     {

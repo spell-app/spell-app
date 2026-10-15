@@ -60,6 +60,9 @@ export function planDocArgs(verb: string, args: string[]): string[][] {
       return [["open", ...args.filter((arg) => arg !== "--review"), ...(args.includes("--review") ? [] : ["--docs"])]]
     case "update":
       return updateArgs(args, at, target)
+    case "saga":
+      // its own verbs and arguments (`saga set seo epics`):  no epic page to aim at
+      return [["saga", ...args]]
     default:
       if (ITEM_VERBS.includes(verb)) return [[verb, ...around(ref === undefined ? [] : [ref])]]
       refused(verb, target)

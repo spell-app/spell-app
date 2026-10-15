@@ -41,8 +41,10 @@ The shared folders:
   `PAGES`, `GUIDES`, `EPICS`, `TEMPLATES`.
 - [The docs' home page](../../pages/index.html):  a routing page (P5 of `claude-design`).
   - One card per area, in the top bar's order, each with its count:
-    Guides · Goals · Epics · Epic/UI · Spell/UI · App · App/UI · Brand · Templates
+    Guides · Sagas · Epics · Epic/UI · Spell/UI · App · App/UI · Brand · Templates
     - Owen's order (2026-10-11, epic `epic-workflow` J40);  the slashed names are the tabs' labels (J41).
+    - Sagas was Goals until P15:  its tab opens the Sagas list page, and lights on the saga pages and the parked
+      goal sets (`goals/`) too.
     - Epic/UI and App/UI are the COMPONENT SETS (`COMPONENT_SETS` in `$/server/page`):  tracked package folders
       (`packages/epic-components/`, `packages/app/components/`) served at `/epic-ui/` and `/app-ui/`, in Spell UI's
       page shape.
@@ -50,7 +52,8 @@ The shared folders:
     Edit only outside the markers.
   - NOT `index:start` / `index:end`:  on those, an older checkout's `index.js` would stop on the shared home,
     instead of writing its three lists back into it.
-- Each area's LIST PAGE, its top-bar tab's home:  `index.html` in `epics/`, `guides/`, `templates/` and `brand/`.
+- Each area's LIST PAGE, its top-bar tab's home:  `index.html` in `epics/`, `guides/`, `sagas/`, `templates/` and
+  `brand/`.
   - A card per page (epics open first).
   - `spell dev docs index` writes them, between `<!-- index:start -->` / `<!-- index:end -->`.
   - A missing one is made from [`skeleton()`](tools/index.js).
@@ -82,8 +85,24 @@ The shared folders:
         - its last log line (the `log.html` part)
         - its branch's last commit (one `git for-each-ref`)
       - A running epic's card keeps the home page's date when it's later than its doc's.
+    - SAGAS (epic `epic-workflow` P15):  each card names its saga, a small label (the saga's title, its purpose the
+      tooltip).
+      - Above the groups, a row of SAGA CHIPS, one per saga in Owen's order, then "No saga", each with its count.
+      - A click shows only that saga's epics, by the state chips' rule (`nextShown()`):  the runtime's
+        `wireSagaChips()`;  remembered in this browser (`spell-epics-sagas`), for every Epics page.
+      - The groups count only the cards that show.
+      - `$/server/site/EpicCards` draws both (`epicSagaHtml()`, `epicSagaChipsHtml()`), the sagas passed in by
+        `docs index`;  each card carries its saga in `data-saga*` attributes, for the page server.
     - The docs' home page's Epics count is by the same groups:
       `2 favorites · 5 active · 2 planning · 17 urgent · 7 done`.
+  - The GUIDES page (epic `epic-workflow` P15):  a section per saga, in Owen's order, each headed by the saga's title
+    linking its saga page (made or not yet), its purpose under it;  then "Misc", last.
+    - A guide names its saga in its head, right after its description meta:
+      `<meta name="spell-saga" content="<id>">` (`Sagas.withSaga()` writes it, `sagaOf()` reads it).
+    - None, or a saga not in the list:  Misc.  `docs index` prints both kinds.
+    - `epic saga rename` rewrites the metas.
+  - The SAGAS page:  a card per saga, in Owen's order (`sagas/sagas.json`):  its title linking its saga page, its
+    purpose, how many epics and guides name it;  a note on the parked first sagas (`goals/`).
   - The Templates page also holds the "Writing docs" notes;  the Brand page, its folder's files.
 - `guides/`:  every other page.
   - [The changelog](../../guides/changelog.html):  what the repo shipped, newest first.
@@ -1131,7 +1150,8 @@ In this order, from `packages/docs`:
   - the push record:  `design-system.json` in `brand/`, shared
 - `spell dev docs index` ([index.js](tools/index.js)) rewrites:
   - the docs' home page's area cards
-  - each area's list page:  `index.html` in `epics/`, `guides/`, `templates/`, `brand/`
+  - each area's list page:  `index.html` in `epics/`, `guides/`, `sagas/`, `templates/`, `brand/`
+  - it reads the sagas through `Sagas` (`packages/epics/src/tool/Sagas.ts`, by path)
 - `spell dev docs new` ([new-page.js](tools/new-page.js)):  a page from a template, at any depth.
 - `spell dev docs open [page] [--vs | --review]` ([open.js](tools/open.js)):  shows a page, by default the index.
   - `page` may be a short address:  `SAGA:/drawable-spell`, `SAGA:/drawable-spell/python-target#T1` (landing on T1)
@@ -1193,7 +1213,7 @@ In this order, from `packages/docs`:
   - Exits 1 on any miss.
   - Runs in the caller's folder, so its paths are from there.
 - [pages.js](tools/pages.js):  shared by the scripts.
-  - the areas:  `EPICS`, `GUIDES`, `PAGES`, `TEMPLATES`, `BRAND`, `GOALS`, `HOME`, `LIST_PAGES`
+  - the areas:  `EPICS`, `GUIDES`, `PAGES`, `TEMPLATES`, `BRAND`, `GOALS`, `SAGAS`, `HOME`, `LIST_PAGES`
   - `findPages()`
   - `pageFile()`:  a page argument to its file
   - `atDepth()`:  a template at a page's depth

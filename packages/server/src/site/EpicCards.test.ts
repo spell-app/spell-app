@@ -5,6 +5,7 @@ import {
   epicCardHtml,
   epicGroupFor,
   epicGroupsHtml,
+  epicSagaChipsHtml,
   epicWorkedHtml,
   eventTimesIn,
   lastWorked,
@@ -43,6 +44,32 @@ describe("epicGroupsHtml()", () => {
     ])
     expect(Array.from(html.matchAll(/data-epic="(\w+)"/g), (m) => m[1])).toEqual(["s", "a", "b"])
     expect(byTitle("Epic 9", "epic 10")).toBeLessThan(0)
+  })
+})
+
+// epic `epic-workflow` P15
+describe("sagas", () => {
+  test("a card names its saga:  a label, its purpose the tooltip;  the chips count each saga's cards, then No saga", () => {
+    const saga = { id: "epics", title: "Epic Tooling", purpose: "Epics <3" }
+    const card = (name: string, withSaga = true) =>
+      epicCardHtml(
+        { name, title: name, href: "x", meta: name, facts: { phases: [] }, saga: withSaga ? saga : undefined },
+        NOW
+      )
+    const named = card("a")
+    expect(named.html).toContain(`data-saga="epics" data-saga-title="Epic Tooling" data-saga-purpose="Epics &lt;3"`)
+    expect(named.html).toContain(
+      `<ui-label class="spell-epic-saga" size="mini" basic="" icon="bullseye" title="Epics &lt;3">Epic Tooling</ui-label>`
+    )
+    const chips = epicSagaChipsHtml(
+      [saga, { id: "tooling", title: "Dev Tooling", purpose: "tools" }],
+      [named, card("b"), card("c", false)]
+    )
+    expect(
+      Array.from(chips.matchAll(/data-saga="([^"]*)"[^>]*>([^<]*) <span class="spell-saga-count">(\d+)/g), (m) =>
+        m.slice(1).join("|")
+      )
+    ).toEqual(["epics|Epic Tooling|2", "tooling|Dev Tooling|0", "|No saga|1"])
   })
 })
 

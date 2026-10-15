@@ -124,6 +124,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       finds nobody listening (epic `epic-workflow` P16:  its session typed into, or a new session in its window)
     - the inboxes:  `ReviewInbox` (an epic page's marks and comments), `GuideInbox` (a docs page's comments and its
       Send:  epic `epic-workflow` P13), one shape of comment for both (`CommentList`)
+    - SAGAS (P15):  `Sagas`, the shared list in Owen's order (`sagas/sagas.json`, node only, loaded by path by the docs
+      index too), and each guide's saga meta (`guides()`, `sagaOf()`, `withSaga()`);  `SagaCommands`, `epic saga list |
+      set | new | move | title | rename`;  `epicRoutes`' `GET /api/epics/pages` answers the epic's saga too
+      (`<epic-page>`'s meta line)
     - `SeeAlso` (P13):  an epic's See Also, GATHERED from its files, never kept by hand
       - its guide (`<a slot="durable">`), its `details/` pages, every `guides/` page its page and parts link to
       - which epic a docs page belongs to (`ownerOf()`):  where that page's Send hands its comments

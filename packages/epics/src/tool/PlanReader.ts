@@ -92,6 +92,9 @@ export abstract class PlanReader {
   /** A STANDING epic (epic `epic-workflow`):  open for good, each phase merging on its own;  never done. */
   abstract get standing(): boolean
 
+  /** The saga this epic serves, its id (epic `epic-workflow` P15);  `null` when it names none. */
+  abstract get saga(): string | null
+
   /** The phases a `/bedtime` run is on (`P3-P6`);  `null` when none is. */
   abstract get bedtimeRun(): string | null
 
@@ -190,6 +193,7 @@ export abstract class PlanReader {
       bedtime: this.bedtimeRun,
       future: this.future,
       standing: this.standing,
+      saga: this.saga,
       open
     }
   }

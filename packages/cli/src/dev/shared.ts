@@ -224,7 +224,8 @@ export function commitShared(
 
 /**
  * The commit group of shared-repo path `path` (`commitShared()`):  what the commit's message names.
- * - `epics/<name>/...`:  `epic <name>`;  `goals/<set>/...`:  `goals/<set>`;  a file right under either:  the folder
+ * - `epics/<name>/...`:  `epic <name>`;  `sagas/<id>/...`:  `saga <id>`;  `goals/<set>/...`:  `goals/<set>`;
+ *   a file right under any of them (`sagas/sagas.json`):  the folder (`sagas`)
  * - `guides/<x>`, `<x>` a folder or a file:  `guides/<x>`
  * - the other shared folders (`pages`, `templates`, `ui`, `brand`, `agents`):  the folder
  * - anything else (the repo's own files, old-path links):  `other`
@@ -233,6 +234,7 @@ export function sharedGroup(path: string): string {
   const [top, next, ...rest] = path.split("/")
   const inFolder = rest.length > 0
   if (top === "epics") return inFolder ? `epic ${next}` : top
+  if (top === "sagas") return inFolder ? `saga ${next}` : top
   if (top === "goals") return inFolder ? `goals/${next}` : top
   if (top === "guides") return next ? `guides/${next}` : top
   return next && WHOLE_FOLDERS.has(top) ? top : "other"

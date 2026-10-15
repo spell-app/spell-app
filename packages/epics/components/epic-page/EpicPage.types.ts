@@ -90,6 +90,26 @@ export type SeeAlsoLink = {
   updated: string
 }
 
+/**
+ * The saga an epic serves, as the page server answers it beside the See Also pages (`GET /api/epics/pages`'s `saga`;
+ * epic `epic-workflow` P15).
+ */
+export type SagaLink = {
+  /** its id:  `drawable-spell` */
+  id: string
+  /** "Drawable Spell" */
+  title: string
+  /** one line:  what it's for */
+  purpose: string
+  /** its saga page, from the epic page's folder:  `../../sagas/<id>/<id>.saga.html` */
+  href: string
+}
+
+/** A saga's page from an epic page's folder (`epics/<name>/`), until the page server says:  `SagaLink.href`'s. */
+export function sagaHref(id: string): string {
+  return `../../sagas/${id}/${id}.saga.html`
+}
+
 /** What a See Also page is to its epic. */
 export type SeeAlsoKind = "durable" | "guide" | "details" | "choices"
 

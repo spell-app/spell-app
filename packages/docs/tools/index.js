@@ -9,20 +9,26 @@
  *     into the home) runs against it too;  finding no markers, it stops instead of writing its lists back
  * - The list pages (`LISTS`), each `<area>/index.html`, written between `<!-- index:start -->` and
  *   `<!-- index:end -->`;  a missing one is made from `skeleton()` first, so the rest of it is hand-authored after:
- *   - Epics:  `epics/<name>/<name>.plan.html`, in five groups (`$/server/site/EpicCards`:  Favorites, Active,
+ *   - Epics:  `epics/<name>/<name>.plan.html`, under a row of saga chips (each saga's count;  the runtime filters by
+ *     them), in five groups (`$/server/site/EpicCards`:  Favorites, Active,
  *     Planning, Urgent, Done), alphabetical within each;  each card's title after its state's mark
  *     (`$/server/site/EpicState`:  in progress, errors, paused, future, done),
  *     read from its phases, its "updated" date and the items that need Owen;
  *     a star at its top right (`FAVORITES_FILE`), the day it was last worked on at its bottom right (`worked()`);
  *     the page server adds the running epics' cards, marks every card again and regroups them by the favourites
  *     as it serves the page (a session running, today's date, a star clicked since)
- *   - Guides:  `guides/**`
+ *   - Guides:  `guides/**`, a section per saga in the sagas' order (epic `epic-workflow` P15), each headed by the
+ *     saga's title linking its saga page;  each guide under the saga its meta names
+ *     (`<meta name="spell-saga" content="<id>">`), and a "Misc" section last for the rest
+ *   - Sagas:  a card per saga, in Owen's order (`sagas/sagas.json`, through `Sagas`):  its title linking its saga
+ *     page (made or not yet), its purpose, how many epics and guides name it
  *   - Templates:  `templates/**`, and the "Writing docs" notes (`WRITING_DOCS`, in its skeleton)
  *   - Brand:  `brand/**` but the rich Brand index's own (`BRAND_OWN`:  Claude Design's export and its copies, the
  *     element pages, Compare), in its section 6 (`section`:  the index's own sections hold an id `brand` already)
  * - Paths are from the checkout's root;  links from the page's own folder.
  * - Page notes Owen left in a written part (`<spell-notes>`, `PageNotes.js`) go back into the new one
  *   (`replaceBetween()`).
+ * - Prints the guides that went to Misc, and those naming a saga that isn't in the list.
  * - Then tidies the pages like any other (`pages.js` `tidy()`, link targets and oxfmt),
  *   so a re-run with nothing new changes nothing.
  */
@@ -41,14 +47,29 @@ import {
   FAVORITES_FILE,
   epicCardHtml,
   epicGroupsHtml,
+  epicSagaChipsHtml,
   eventTimesIn,
   lastWorked,
   parseFavorites
 } from "../../server/src/site/EpicCards.ts"
 import { URGENT_SELECTOR } from "../../server/src/site/EpicState.ts"
 import { COMPONENT_SETS } from "../../server/src/page/page.types.ts"
+import { Sagas } from "../../epics/src/tool/Sagas.ts"
 import { PageNotes } from "./PageNotes.js"
-import { BRAND, EPICS, GOALS, GUIDES, HOME, LIST_PAGES, ROOT, TEMPLATES, UI_PAGES, findPages, tidy } from "./pages.js"
+import {
+  BRAND,
+  EPICS,
+  GOALS,
+  GUIDES,
+  HOME,
+  LIST_PAGES,
+  ROOT,
+  SAGAS,
+  TEMPLATES,
+  UI_PAGES,
+  findPages,
+  tidy
+} from "./pages.js"
 
 /** The home page, from the checkout's root. */
 const INDEX = relative(ROOT, HOME)
@@ -86,6 +107,17 @@ const WRITING_DOCS = `<ui-section id="writing-docs" header="Writing docs" sticky
 <a href="../guides/spell-docs/spell-docs.md">spell-docs.md</a>.</li>
 <li><code>docs new</code> lists the page on its area's page;  after renaming one or changing its title, run
 <code>spell dev docs index</code>.</li>
+</ul>
+</ui-section>`
+
+/** The Sagas page's notes:  the parked first sagas, and how the list changes. */
+const SAGA_NOTES = `<ui-section id="parked" header="Parked sagas" sticky collapsible dividing collapsed>
+<ui-icon slot="icon" name="folder"></ui-icon>
+<ul>
+<li>The first sagas, by topic, with the questions still open:  <a href="../goals/index.html" target="_self">the parked
+saga sets</a>, read only (epic <code>epic-goals</code> rebuilds them).</li>
+<li>The list, its order and each epic's saga:  <code>epic saga list</code>, <code>new</code>, <code>move</code>,
+<code>title</code>, <code>rename</code>, <code>set</code>.  Then <code>spell dev docs index</code> writes this page again.</li>
 </ul>
 </ui-section>`
 
@@ -132,6 +164,18 @@ export const LISTS = [
     lede: "Every guide in the spell monorepo:  design notes, references, how things work and why."
   },
   {
+    id: "sagas",
+    dir: SAGAS,
+    title: "Sagas",
+    icon: "bullseye",
+    // its cards are the sagas' list, not pages found (`sagaCards()`)
+    has: () => false,
+    none: 'No sagas yet:  epic saga new <id> "Title" --purpose "...".',
+    description: "Every saga, an epic of epics:  the larger aims the epics serve, most exciting first.",
+    lede: "Every saga, an epic of epics:  the larger aims the epics serve, in Owen's order, most exciting first.",
+    extra: SAGA_NOTES
+  },
+  {
     id: "templates",
     dir: TEMPLATES,
     title: "Templates",
@@ -159,10 +203,11 @@ export const LISTS = [
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) main()
 
-/** Write every list page, then the home's cards;  tidy them;  print what each holds. */
+/** Write every list page, then the home's cards;  tidy them;  print what each holds, and the guides in Misc. */
 function main() {
   const lists = new Set(LIST_PAGES.map((file) => relative(ROOT, file)))
   const branches = branchCommits()
+  const sagas = readSagas()
   const pages = [...findPages(), ...findPages(BRAND)]
     .map((path) => relative(ROOT, path))
     .filter((path) => path !== INDEX && !lists.has(path))
@@ -173,15 +218,32 @@ function main() {
     if (!existsSync(list.dir)) continue
     const file = join(list.dir, "index.html")
     if (!existsSync(file)) writeFileSync(file, skeleton(list))
-    const mine = pages.filter((page) => list.has(page.path))
-    if (!writeBetween(file, START, END, listSection(list, mine))) process.exit(1)
+    const mine = list.id === "sagas" ? pages : pages.filter((page) => list.has(page.path))
+    if (!writeBetween(file, START, END, listSection(list, mine, undefined, sagas))) process.exit(1)
     written.push(file)
-    report.push(`${relative(ROOT, file)}:  ${mine.length}`)
+    report.push(`${relative(ROOT, file)}:  ${list.id === "sagas" ? sagas.length : mine.length}`)
   }
-  const cards = areaCards(pages)
+  const cards = areaCards(pages, undefined, sagas)
   if (!writeBetween(HOME, HOME_START, HOME_END, homeSection(cards))) process.exit(1)
   if (!tidy([HOME, ...written])) process.exit(1)
   console.log(`${INDEX}:  ${cards.length} areas;  ${report.join(", ")}`)
+  const guides = pages.filter((page) => LISTS.find((list) => list.id === "guides").has(page.path))
+  const ids = new Set(sagas.map((saga) => saga.id))
+  const misc = guides.filter((page) => !page.saga)
+  const unknown = guides.filter((page) => page.saga && !ids.has(page.saga))
+  if (misc.length) console.log(`guides in Misc (no saga):  ${misc.map((page) => page.path).join(", ")}`)
+  for (const page of unknown)
+    console.log(`NOTE:  ${page.path} names saga "${page.saga}", which isn't in the list:  Misc`)
+}
+
+/** The sagas, in Owen's order (`sagas/sagas.json`, through `Sagas`);  none when the list is missing or won't read. */
+export function readSagas() {
+  try {
+    return new Sagas(ROOT).list()
+  } catch (error) {
+    console.error(`sagas/sagas.json won't read:  ${error.message}`)
+    return []
+  }
 }
 
 /**
@@ -212,7 +274,9 @@ export function replaceBetween(html, start, end, body) {
 }
 
 /**
- * What the lists show for page `path`:  title, description, and a plan's status and last-worked moment.
+ * What the lists show for page `path`:  title, description, the saga it names, and a plan's status and last-worked
+ * moment.
+ * - `saga`:  a guide's saga meta (`Sagas.sagaOf()`), an epic page's `<epic-page saga>`;  `null` for none
  * - title falls back to the file name, so a page without one still shows up (and looks wrong enough to fix)
  * - an epic page's title without its `Epic: ` (`planDoc.types` `TITLE_PREFIX`):  its card is in Epics already
  * - `branches`:  each branch's last commit (`branchCommits()`), for `worked()`
@@ -225,7 +289,7 @@ function describe(path, branches = new Map()) {
   const description = document.querySelector('meta[name="description"]')?.getAttribute("content")?.trim() ?? ""
   // Epics only:  the runtime's test page (`spell-docs/ui-section-test.html`) has phases too
   if (!path.startsWith("epics/")) {
-    return { path, title, description, phases: [], updated: null, future: false, urgent: [] }
+    return { path, title, description, saga: Sagas.sagaOf(html), phases: [], updated: null, future: false, urgent: [] }
   }
   const plan = planOf(document)
   return { path, title, description, ...plan, worked: worked(path, html, plan.updated, branches) }
@@ -274,11 +338,12 @@ function branchCommits() {
  * - `updated`:  the `epic` tool's "updated" stamp (`touch()`):  how long since anyone worked on it
  * - `future`:  an epic written down with `/epic future`, not planned yet
  * - `standing`:  open for good, every phase merging on its own (epic `epic-workflow`):  never shown done
+ * - `saga`:  the saga it serves, its id (`<epic-page saga>`, epic `epic-workflow` P15);  `null` for none
  * - `urgent`:  the ids of the items that need Owen (`URGENT_SELECTOR`:  their red and orange chips)
  */
 export function planOf(document) {
   const page = document.querySelector("epic-page")
-  if (!page) return { phases: [], updated: null, future: false, urgent: [] }
+  if (!page) return { phases: [], updated: null, future: false, saga: null, urgent: [] }
   const phases = Array.from(
     document.querySelectorAll('epic-page > epic-section[kind="phases"] > epic-phase'),
     (phase) => ({
@@ -291,6 +356,7 @@ export function planOf(document) {
     updated: page.getAttribute("updated") || null,
     future: page.hasAttribute("future"),
     standing: page.hasAttribute("standing"),
+    saga: page.getAttribute("saga") || null,
     urgent: Array.from(document.querySelectorAll(URGENT_SELECTOR), (item) => item.id)
   }
 }
@@ -313,7 +379,8 @@ function epicFacts(page) {
 
 /**
  * The home's cards, in the top bar's order (Owen, 2026-10-11, J40 of `epic-workflow`):
- * Guides, Goals, Epics, Epic/UI, Spell/UI, App, App/UI, Brand, Templates.
+ * Guides, Sagas, Epics, Epic/UI, Spell/UI, App, App/UI, Brand, Templates.
+ * - Sagas was Goals until epic `epic-workflow` P15 (Owen, 2026-10-13:  "saga means roughly epic of epics")
  * - Owen's words:  "Docs toolbar:  Guides Goals Epics Epic/UI Spell/UI App App/UI";  Brand and Templates "At the end"
  * - the slashed titles are the tabs' labels as he typed them (J41);  prose keeps "Epic UI", "Spell UI", "App UI"
  * - (before, claude-design Q6, 2026-10-05:  Epics, Guides, Brand, Spell UI, Templates, Goals, App)
@@ -326,9 +393,10 @@ function epicFacts(page) {
  * - Epic UI, App UI (`COMPONENT_SETS`):  their home in their package folder (`packages/epic-components/index.html`),
  *   which the page server sends on to the short address (`/epic-ui/`);  their page counts from their folders
  * - `pages`:  every page `describe()`d, so the counts come from the same data as the list pages;
- *   the Epics count by the Epics page's groups, `favorites` the starred epics' names (`readFavorites()`)
+ *   the Epics count by the Epics page's groups, `favorites` the starred epics' names (`readFavorites()`);
+ *   the Sagas count is `sagas`' (`readSagas()`)
  */
-export function areaCards(pages, favorites = readFavorites()) {
+export function areaCards(pages, favorites = readFavorites(), sagas = readSagas()) {
   const of = (id) => pages.filter((page) => LISTS.find((list) => list.id === id).has(page.path))
   const groups = of("epics").map((page) => epicCard(page, "epics", favorites).group)
   const counts = EPIC_GROUPS.map((name) => [name, groups.filter((group) => group === name).length])
@@ -343,13 +411,14 @@ export function areaCards(pages, favorites = readFavorites()) {
       description: "Design notes, references and how-tos:  how each part of spell works, and why."
     },
     {
-      id: "goals",
-      title: "Goals",
+      id: "sagas",
+      title: "Sagas",
       icon: "bullseye",
-      href: "../goals/index.html",
-      count: plural(goalSets(), "saga set"),
+      href: "../sagas/index.html",
+      count: plural(sagas.length, "saga"),
       description:
-        "Parked:  the first sagas (epics of epics), by topic, with the questions still open and Owen's thoughts."
+        "Each saga an epic of epics:  the larger aims the epics serve, in Owen's order, most exciting first.",
+      meta: `and ${plural(goalSets(), "parked saga set")}, read only`
     },
     {
       id: "epics",
@@ -529,20 +598,87 @@ ${list.extra ?? ""}
  * - id and header:  `list.section`'s when it has one (Brand:  its index has sections of its own), else the list's
  * - Epics:  ALWAYS its five groups (`$/server/site/EpicCards` `epicGroupsHtml()`), between the page server's
  *   markers (`EPIC_CARDS_START` / `_END`):  it adds the running epics' cards there, and regroups them all by the
- *   favourites (`favorites`:  the starred epics' names) as it serves the page
+ *   favourites (`favorites`:  the starred epics' names) as it serves the page;  before the markers, the saga chips
+ *   (`epicSagaChipsHtml()`), each card naming its saga (`sagas`:  the list, `readSagas()`)
+ * - Guides:  a section per saga, then Misc (`guideSections()`);  Sagas:  a card per saga (`sagaSection()`)
  * - open, not `collapsed`:  the list IS the page
  */
-export function listSection(list, pages, favorites = readFavorites()) {
+export function listSection(list, pages, favorites = readFavorites(), sagas = readSagas()) {
   const epics = list.id === "epics"
   const from = relative(ROOT, list.dir)
-  const groups = () => epicGroupsHtml(pages.map((page) => epicCard(page, from, favorites)))
+  if (list.id === "guides") return guideSections(list, pages, sagas)
+  if (list.id === "sagas") return sagaSection(list, pages, sagas)
+  const placed = () => pages.map((page) => epicCard(page, from, favorites, sagas))
+  const groups = (cards) => `${epicSagaChipsHtml(sagas, cards)}\n${EPIC_CARDS_START}\n${epicGroupsHtml(cards)}`
   const body = epics
-    ? `${EPIC_CARDS_START}\n${groups()}\n${EPIC_CARDS_END}`
+    ? `${groups(placed())}\n${EPIC_CARDS_END}`
     : pages.length
       ? `<ui-cards class="spell-grid" stackable>\n${pages.map((page) => card(page, from)).join("\n")}\n</ui-cards>`
       : `<p class="meta">${text(list.none)}</p>`
   const section = list.section ?? { id: list.id, title: list.title }
   return `<ui-section id="${section.id}" header="${attr(section.title)}" sticky collapsible dividing>
+<ui-icon slot="icon" name="${list.icon}"></ui-icon>
+${body}
+</ui-section>`
+}
+
+/**
+ * The Guides page's sections (epic `epic-workflow` P15):  one per saga, in `sagas`' order, each headed by the saga's
+ * title linking its saga page (`sagas/<id>/<id>.saga.html`, made or not yet), its purpose under it;  then "Misc",
+ * for the guides that name no saga, or one that isn't in the list.
+ * - a guide's saga:  its `<meta name="spell-saga" content="<id>">` (`describe()`'s `saga`)
+ * - each section's id `saga-<id>`, Misc's `misc`:  the toolbar lists the sagas
+ * - a saga with no guides yet says so
+ */
+export function guideSections(list, pages, sagas) {
+  if (!pages.length) return `<p class="meta">${text(list.none)}</p>`
+  const from = relative(ROOT, list.dir)
+  const ids = new Set(sagas.map((saga) => saga.id))
+  const cards = (mine) =>
+    mine.length
+      ? `<ui-cards class="spell-grid" stackable>\n${mine.map((page) => card(page, from)).join("\n")}\n</ui-cards>`
+      : `<p class="meta">No guides name this saga yet.</p>`
+  const sections = sagas.map((saga) => {
+    const link = `<a href="${attr(href(Sagas.pageOf(saga.id), from))}">${text(saga.title)}</a>`
+    return `<ui-section id="saga-${saga.id}" sticky collapsible dividing>
+<ui-icon slot="icon" name="bullseye"></ui-icon>
+<span slot="header">${link}</span>
+<p class="meta">${text(saga.purpose)}</p>
+${cards(pages.filter((page) => page.saga === saga.id))}
+</ui-section>`
+  })
+  const misc = pages.filter((page) => !page.saga || !ids.has(page.saga))
+  return [
+    ...sections,
+    `<ui-section id="misc" header="Misc" sticky collapsible dividing>
+<ui-icon slot="icon" name="folder"></ui-icon>
+<p class="meta">Guides that serve no one saga.</p>
+${misc.length ? cards(misc) : `<p class="meta">None.</p>`}
+</ui-section>`
+  ].join("\n")
+}
+
+/**
+ * The Sagas page's one section:  a card per saga, in `sagas`' order:  its title linking its saga page (made or not
+ * yet), its purpose, and how many epics and guides name it (of `pages`, every page `describe()`d).
+ */
+export function sagaSection(list, pages, sagas) {
+  const from = relative(ROOT, list.dir)
+  const count = (id, area) => pages.filter((page) => page.path.startsWith(`${area}/`) && page.saga === id).length
+  const body = sagas.length
+    ? `<ui-cards class="spell-grid" stackable>\n${sagas
+        .map((saga) => {
+          const page = Sagas.pageOf(saga.id)
+          const counts = [plural(count(saga.id, "epics"), "epic"), plural(count(saga.id, "guides"), "guide"), page]
+          return `<ui-card id="${saga.id}"><ui-content>
+<ui-header><ui-icon name="bullseye"></ui-icon> <a href="${attr(href(page, from))}">${text(saga.title)}</a></ui-header>
+<ui-description>${text(saga.purpose)}</ui-description>
+<ui-meta>${text(counts.join(" · "))}</ui-meta>
+</ui-content></ui-card>`
+        })
+        .join("\n")}\n</ui-cards>`
+    : `<p class="meta">${text(list.none)}</p>`
+  return `<ui-section id="${list.id}" header="${attr(list.title)}" sticky collapsible dividing>
 <ui-icon slot="icon" name="${list.icon}"></ui-icon>
 ${body}
 </ui-section>`
@@ -571,12 +707,13 @@ ${page.description ? `<ui-description>${text(page.description)}</ui-description>
 /**
  * An epic's card, on the list page in folder `from`, with the group it goes in (`$/server/site/EpicCards`
  * `epicCardHtml()`):  the state's mark, linked title, description, the active phase in the meta line, the star
- * (`favorites`:  the starred epics' names), the last-worked date.
+ * (`favorites`:  the starred epics' names), the last-worked date, its saga's label (`sagas`:  the list).
  * - SAME markup as `$/server/page` `RunningEpics`' cards:  both draw them with `epicCardHtml()`
  */
-function epicCard(page, from, favorites) {
+function epicCard(page, from, favorites, sagas = []) {
   const name = page.path.split("/")[1]
   const active = page.phases.find((phase) => phase.status === "active")
+  const saga = sagas.find((each) => each.id === page.saga)
   return epicCardHtml({
     name,
     title: page.title,
@@ -585,7 +722,8 @@ function epicCard(page, from, favorites) {
     meta: `${active ? `${active.label} · ` : ""}${page.path}`,
     facts: epicFacts(page),
     worked: page.worked,
-    favorite: favorites.has(name)
+    favorite: favorites.has(name),
+    saga
   })
 }
 

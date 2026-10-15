@@ -98,6 +98,7 @@
                       worktree="/Users/owen/www/spell-app/spell-app/.claude/worktrees/seo"
                       started="2026-10-01"
                       updated="2026-10-07"
+                      saga="spell-ui"
                     >
                       <epic-overview id="overview" estimate="2h-3h in all, 1h left">
                         <epic-summary>Every docs page gets a title, a description and a sitemap entry, so search engines can find it.</epic-summary>
@@ -124,7 +125,9 @@
               </li>
               <li>
                 under the header, the review line (<code>To review this doc, type /epic review seo</code>), then the
-                meta lines: the branch, the worktree, <code>Started 10/1/26, updated 10/7/26</code>
+                meta lines: the branch, the worktree, <code>Started 10/1/26, updated 10/7/26</code>, and
+                <code>Saga: Spell UI</code>, a link to the saga's page, its purpose the tooltip (the page server says
+                the saga's title and purpose;  until it does, and from disk, the link reads <code>spell-ui</code>)
               </li>
               <li>
                 served by the page server, a See Also box above the blocks: the epic's guide, every page it made
@@ -409,6 +412,15 @@
                     <td></td>
                   </tr>
                   <tr>
+                    <td><code>saga</code></td>
+                    <td>text: saga id</td>
+                    <td>
+                      The saga this epic serves, by id (<code>drawable-spell</code>): one of the sagas' list, set by
+                      <code>epic saga set</code>. Drawn in the meta lines, a link to its saga page; absent: no saga.
+                    </td>
+                    <td></td>
+                  </tr>
+                  <tr>
                     <td><code>bedtime</code></td>
                     <td>text</td>
                     <td>
@@ -558,7 +570,7 @@
                     </tr>
                     <tr>
                       <td><code>meta</code></td>
-                      <td>The meta lines: branch, worktree, dates, guide.</td>
+                      <td>The meta lines: branch, worktree, dates, saga, guide.</td>
                     </tr>
                     <tr>
                       <td><code>see-also</code></td>
