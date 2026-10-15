@@ -1,5 +1,5 @@
 {
-  "$comment": "HAND-KEPT facts of Epic UI's side column, read by `yarn site:data` in packages/epics (src/site/EpicUISite.ts), which writes components.json and search.json beside this.  `groups`:  the side column's groups, in order, as the set's home groups the elements;  an element no group names shows under Other.  `drawnOnly`:  elements drawn only inside other elements' shadow roots, never written in a doc:  no page, never listed.  `nav`:  the side column's own links (`file` relative to the set's root, `/components/epics/`) and band titles.  Shape:  `EpicUIPages` in packages/epics/src/site/EpicUISite.ts.",
+  "$comment": "HAND-KEPT facts of Epic UI's side column, read by `yarn site:data` in packages/epics (src/site/EpicUISite.ts), which writes components.json5 and search.json5 beside this.  `groups`:  the side column's groups, in order, as the set's home groups the elements;  an element no group names shows under Other.  `drawnOnly`:  elements drawn only inside other elements' shadow roots, never written in a doc:  no page, never listed.  `nav`:  the side column's own links (`file` relative to the set's root, `/components/epics/`) and band titles.  Shape:  `EpicUIPages` in packages/epics/src/site/EpicUISite.ts.",
   "groups": [
     {
       "id": "page",

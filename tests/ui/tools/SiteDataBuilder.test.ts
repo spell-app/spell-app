@@ -1,23 +1,40 @@
-import { readFileSync } from "node:fs"
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { describe, expect, it } from "vite-plus/test"
 
+import { keepingCommentsIn as asWritten, readJSON5File } from "$/assembler/json5"
+import type { SitePagesFile } from "$/ui/docs-components/docs-components.types"
 import { SiteDataBuilder } from "$/ui/tools/SiteDataBuilder"
 import { SITE_PAGES } from "$/ui/tools/tools.types"
 
+import { writeOrCheck } from "../../../packages/ui/scripts/generatedFiles.ts"
+
 /**
  * The site's committed data is what `yarn site:data` would write now.
- * - The data:  `docs/__data/`'s `components.json`, `pages.json`, `icons.json`, `search.json`
- * - Run it after changing a vocabulary, a family sheet's tokens, `pages.json` or a page's sections.
+ * - The data:  `docs/__data/`'s `components.json5`, `pages.json5`, `icons.json5`, `search.json5`
+ * - Run it after changing a vocabulary, a family sheet's tokens, `pages.json5` or a page's sections.
+ * - A comment written into one of them is kept by the writer (`keepingCommentsIn()`):  compared as it would write it.
  */
 describe("SiteDataBuilder.build()", () => {
   it("is current (else run `yarn site:data`)", async () => {
     const builder = new SiteDataBuilder()
     const { data, pages } = await builder.build()
-    expect(readFileSync(builder.pagesFile, "utf8"), "pages.json").toBe(SiteDataBuilder.stringify(pages))
-    expect(readFileSync(builder.dataFile, "utf8") === SiteDataBuilder.stringify(data), "components.json").toBe(true)
-    expect(readFileSync(builder.iconsFile, "utf8") === builder.iconsText(), "icons.json").toBe(true)
-    expect(readFileSync(builder.searchFile, "utf8") === builder.searchText(), "search.json").toBe(true)
+    expect(readFileSync(builder.pagesFile, "utf8"), "pages.json5").toBe(
+      asWritten(builder.pagesFile, SiteDataBuilder.stringify(pages))
+    )
+    expect(
+      readFileSync(builder.dataFile, "utf8") === asWritten(builder.dataFile, SiteDataBuilder.stringify(data)),
+      "components.json5"
+    ).toBe(true)
+    expect(
+      readFileSync(builder.iconsFile, "utf8") === asWritten(builder.iconsFile, builder.iconsText()),
+      "icons.json5"
+    ).toBe(true)
+    expect(
+      readFileSync(builder.searchFile, "utf8") === asWritten(builder.searchFile, builder.searchText()),
+      "search.json5"
+    ).toBe(true)
   }, 60_000)
 
   it("lists components and doc-only tags apart, each linked to its page", async () => {
@@ -37,7 +54,7 @@ describe("SiteDataBuilder.build()", () => {
     expect(data.topics[0]).toEqual({ id: "basic", title: "Basic" })
   }, 60_000)
 
-  it("links a sub-tag with a page of its own (pages.json `pages`) to that page", async () => {
+  it("links a sub-tag with a page of its own (pages.json5 `pages`) to that page", async () => {
     const { data } = await new SiteDataBuilder().build()
     const radio = data.components.find((entry) => entry.tag === "ui-radio")!
     expect(radio).toMatchObject({ folder: "ui-checkbox", main: false, page: true, href: "ui-radio.html" })
@@ -81,4 +98,25 @@ describe("SiteDataBuilder.build()", () => {
     })
     expect(theme("systemfont")).toMatchObject({ families: [], global: true })
   }, 60_000)
+})
+
+describe("`yarn site:data`'s save (`writeOrCheck()`)", () => {
+  it("keeps a comment written by hand into a data file, and writes the new value", () => {
+    const folder = mkdtempSync(join(tmpdir(), "site-data-"))
+    try {
+      const file = join(folder, "pages.json5")
+      const kept = readFileSync(new SiteDataBuilder().pagesFile, "utf8")
+      writeFileSync(file, kept.replace("{\n", "{\n  // a note written by hand\n"))
+      const pages = readJSON5File<SitePagesFile>(file)
+      const button = { ...pages.families["ui-button"]!, summary: "Changed." }
+      const text = SiteDataBuilder.stringify({ ...pages, families: { ...pages.families, "ui-button": button } })
+      writeOrCheck([[file, text]], { command: "site:data", isCheck: false })
+      expect(readFileSync(file, "utf8")).toContain("// a note written by hand")
+      expect(readJSON5File<SitePagesFile>(file).families["ui-button"]!.summary).toBe("Changed.")
+      // written once, current from then on
+      expect(writeOrCheck([[file, text]], { command: "site:data", isCheck: true })).toEqual([])
+    } finally {
+      rmSync(folder, { recursive: true, force: true })
+    }
+  })
 })

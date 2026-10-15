@@ -168,7 +168,7 @@ describe("BundleBuild.bundleFileFor()", () => {
     expect(build.bundleFileFor("/packages/brand/_assets/ui/a%20b.js")).toBe(
       join(repo, "packages/brand/_assets/ui/a b.js")
     )
-    expect(build.bundleFileFor("/components/ui/__data/components.json")).toBeUndefined()
+    expect(build.bundleFileFor("/components/ui/__data/components.json5")).toBeUndefined()
     expect(build.bundleFileFor("/components/epics/_assets/site.js")).toBe(
       join(repo, "packages/ui/site/_assets/sets/site.js")
     )

@@ -1,5 +1,5 @@
 {
-  "$comment": "HAND-KEPT facts of the brand's docs set, read by `yarn site:data` in packages/brand (scripts/site-data.ts), which writes components.json and search.json beside this.  `families`:  Spell UI's per-family facts (title, summary, status ...;  `SitePagesFile` in packages/ui/src/docs-components/docs-components.types.ts), a new family seeded here once.  `groups`:  the side column's groups, in order;  a tag no group names shows under Other.  `nav`:  the side column's own links (`file` relative to the set's root, `/components/brand/`) and band titles (`SiteNav`).",
+  "$comment": "HAND-KEPT facts of the brand's docs set, read by `yarn site:data` in packages/brand (scripts/site-data.ts), which writes components.json5 and search.json5 beside this.  `families`:  Spell UI's per-family facts (title, summary, status ...;  `SitePagesFile` in packages/ui/src/docs-components/docs-components.types.ts), a new family seeded here once.  `groups`:  the side column's groups, in order;  a tag no group names shows under Other.  `nav`:  the side column's own links (`file` relative to the set's root, `/components/brand/`) and band titles (`SiteNav`).",
   "families": {
     "brand-blob": {
       "title": "Brand blob",

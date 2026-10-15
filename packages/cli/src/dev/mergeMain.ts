@@ -145,7 +145,7 @@ const SNAPSHOT_UPDATE = (tests: string[]) => ["yarn", "vp", "test", "run", ...te
  * - Snapshots aren't here:  `generatorsFor()` makes one per package, after these.
  * - The same paths are `merge=binary` in the root `.gitattributes`:  keep the two in step.
  * - NOT here:
- *   - `pages.json` (hand-kept)
+ *   - `pages.json5` (hand-kept)
  *   - emoji data (`gen:emoji` needs a reference clone)
  *   - the bundles the page server builds on demand, which aren't committed:
  *     Spell UI's site and the brand pages (`spell dev bundles`)
@@ -162,7 +162,10 @@ export const GENERATORS: Generator[] = [
   },
   {
     name: "Spell UI site data",
-    outputs: ["packages/ui/docs/__data/{components,icons,search,custom-elements,html-custom-data}.json"],
+    outputs: [
+      "packages/ui/docs/__data/{components,icons,search}.json5",
+      "packages/ui/docs/__data/{custom-elements,html-custom-data}.json"
+    ],
     cwd: "packages/ui",
     run: ["yarn", "site:data"]
   },
@@ -174,7 +177,10 @@ export const GENERATORS: Generator[] = [
   },
   {
     name: "brand data",
-    outputs: ["packages/brand/docs/__data/{components,custom-elements,html-custom-data,search}.json"],
+    outputs: [
+      "packages/brand/docs/__data/{components,search}.json5",
+      "packages/brand/docs/__data/{custom-elements,html-custom-data}.json"
+    ],
     cwd: "packages/brand",
     run: ["yarn", "site:data"]
   },
@@ -187,13 +193,13 @@ export const GENERATORS: Generator[] = [
   },
   {
     name: "Epic UI data",
-    outputs: ["packages/epics/docs/__data/{components,search}.json"],
+    outputs: ["packages/epics/docs/__data/{components,search}.json5"],
     cwd: "packages/epics",
     run: ["yarn", "site:data"]
   },
   {
     name: "App UI data",
-    outputs: ["packages/app/docs/__data/{components,search}.json"],
+    outputs: ["packages/app/docs/__data/{components,search}.json5"],
     cwd: "packages/app",
     run: ["yarn", "site:data"]
   },

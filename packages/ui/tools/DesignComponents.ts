@@ -9,7 +9,7 @@ import type { DesignExample, DesignFamily, DesignSource } from "./tools.types.ts
  * ### `DesignComponents`
  * The component half of the design-system export (`DesignExport`):  for each family (one card per MAIN tag), its
  * `components/<Comp>/README.md` and `preview.html`, plus `components/index.d.ts` for every tag.
- * - All from the site data (`components.json`:  every vocabulary) and the families' element examples
+ * - All from the site data (`components.json5`:  every vocabulary) and the families' element examples
  *   (`components/<folder>/examples/elements/*.html`), so nothing about a tag is guessed.
  * - Card groups:  a small fixed set (`GROUPS`), picked from each main tag's topics, in its own topic order.
  * - `sources`:  cards from outside Spell UI (the brand's `<ui-brand-*>`, `DesignBrand`):  their site data merged into

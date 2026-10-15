@@ -10,7 +10,7 @@
  *   1. `./snapshot`:  every `<ui-docs-example>`'s markup, kept before anything upgrades
  *   2. the page CSS:  `@spell-app/ui`'s foundation (`ui.css`:  layers, tokens, reset, typography, native markup) +
  *      the site's layout glue (`./site.css`) -- extracted to `_assets/site.css`, which the page links
- *   3. `SiteData`, `BuiltInPacks`:  pointed at `__data/components.json` and `_assets/icon-packs/` from THIS file's
+ *   3. `SiteData`, `BuiltInPacks`:  pointed at `__data/components.json5` and `_assets/icon-packs/` from THIS file's
  *      URL, so a page at any depth finds them;  `DocsFamilies.add()`:  `<ui-root>` may load the `<ui-docs-*>`
  *      families (the library's root knows only the library's;  their skeletons are in its catalog already)
  *   4. `ThemePreference.restore()`:  the viewer's theme and colour scheme, re-applied (the scheme already was, by
@@ -27,6 +27,8 @@
  * - Lazy, by `import()`:  families, the runtime, icon packs (`_assets/icon-packs/`), emoji names, `<ui-code>`'s and
  *   `<ui-markdown>`'s engines, spell's highlighter, the Temporal polyfill.
  * - `window.UI`:  the runtime (`UI.load()` works at once;  the rest after it), for poking in DevTools.
+ * - `window.SiteData`:  the site's data reader, for a page's own script:
+ *   the icon browser reads `__data/icons.json5` with `SiteData.json()` (JSON5, so a comment written into it reads too).
  */
 import "./snapshot"
 
@@ -52,9 +54,9 @@ const ASSETS = import.meta.url.slice(0, import.meta.url.lastIndexOf("/") + 1)
 const SITE_ROOT = new URL("../", ASSETS)
 
 E.BuiltInPacks.base = ASSETS
-SiteData.url ??= `${ASSETS}../__data/components.json`
+SiteData.url ??= `${ASSETS}../__data/components.json5`
 DocsFamilies.add()
-Object.assign(globalThis, { UI })
+Object.assign(globalThis, { UI, SiteData })
 
 // the viewer's theme + scheme (`<ui-docs-themes>`):  started NOW, beside the layout's fetch;  `<ui-root>` waits for it
 const theme = ThemePreference.restore().catch((error: unknown) =>

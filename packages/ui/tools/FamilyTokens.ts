@@ -17,7 +17,7 @@ import { FamilyFiles } from "./FamilyFiles.ts"
  *     - the first read's fallback is the default
  *     - the comment right above that property is the description
  * - Defaults show the PUBLIC names of the tokens they derive from.
- *   - A default built from sheet plumbing reads badly, so the family's seed (`docs/__data/pages.json`) may pass:
+ *   - A default built from sheet plumbing reads badly, so the family's seed (`docs/__data/pages.json5`) may pass:
  *     readable text (`defaults`), other prefixes, or a whole hand-written `list`.
  * - Ported from the old Astro site's `CssTokens` table (deleted with it, epic `spell-ui-pages` P7):
  *   the same rows, plus a `type` for each.

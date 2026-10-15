@@ -8,14 +8,14 @@ import { FamilyFiles } from "./FamilyFiles.ts"
 
 /****************
  * ### `ElementManifests`
- * The two STANDARD element descriptions, from the site data (`docs/__data/components.json`, every vocabulary):
+ * The two STANDARD element descriptions, from the site data (`docs/__data/components.json5`, every vocabulary):
  * - `custom-elements.json`:  a Custom Elements Manifest (schema 2.1),
  *   what web-component tools read (Storybook, linters, IDE plugins, Claude)
  *   - `package.json`'s `customElements` points at it
  * - `html-custom-data.json`:  VS Code's HTML custom data (`html.customData`),
  *   autocomplete and hover docs for every `<ui-*>` tag, attribute and value in any `.html` file
  *   - the repo's `.vscode/settings.json` loads it
- * - Written by `yarn site:data` beside `components.json`, and committed:  editors read them with no build.
+ * - Written by `yarn site:data` beside `components.json5`, and committed:  editors read them with no build.
  *   - `tests/ui/tools/DesignExport.test.ts` fails while they're stale.
  * - Both list COMPONENT tags only, not the doc-only `<ui-docs-*>`.
  * - Why not the `custom-elements-manifest analyze` script (`yarn manifest`):

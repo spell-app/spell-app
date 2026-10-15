@@ -91,7 +91,7 @@ export class DOMDocsNavElement extends E.DOMElement<UIDocsNav> {
  *     (`closingTopics`, ended by the fold's `transitionend`).
  *   - The motion is the sheet's, only under `prefers-reduced-motion: no-preference`;
  *     a topic opened after `:state(settled)` eases open too.
- * - Data:  `SiteData` (`components.json`), fetched once;  `NavIndex` makes the rows and topics.
+ * - Data:  `SiteData` (`components.json5`), fetched once;  `NavIndex` makes the rows and topics.
  *   - Docs-only tags are never listed.
  *   - Links are `base` + the data's `href`.
  * - Search:  the field is `<ui-docs-search>`, the SITE's search

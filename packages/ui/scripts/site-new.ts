@@ -6,8 +6,8 @@
  * - A TAG (`ui-button`, `button`, `ui-or`:  any tag of a family) writes `docs/<main tag>.html`, the component layout:
  *   - a masthead with the family's theme picker
  *   - Examples / Usage / API / Theming tabs
- *   - title, summary and status from `docs/__data/pages.json` (`--title` / `--summary` override them)
- * - A sub-tag with a page of its OWN (pages.json `pages`, e.g. `ui-radio`) writes `docs/<tag>.html`:
+ *   - title, summary and status from `docs/__data/pages.json5` (`--title` / `--summary` override them)
+ * - A sub-tag with a page of its OWN (pages.json5 `pages`, e.g. `ui-radio`) writes `docs/<tag>.html`:
  *   - its own title, summary and status
  *   - ONE tag's API tables (`<ui-docs-api tag>`)
  *   - the Theming tab only when one of the family's tokens names it
@@ -30,6 +30,8 @@
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { parseArgs } from "node:util"
+
+import { readJSON5File } from "$/assembler/json5"
 
 import { Terminal } from "../tools/Terminal.ts"
 import { SITE_DATA, SITE_PAGES } from "../tools/tools.types.ts"
@@ -67,7 +69,7 @@ const FOMANTIC_TAG_PAGES: Record<string, string> = {
   "ui-textarea": "collections/form"
 }
 
-/** A family as `components.json` describes it (the fields used here). */
+/** A family as `components.json5` describes it (the fields used here). */
 type Family = {
   folder: string
   mainTag: string
@@ -108,9 +110,9 @@ class SitePageWriter {
   /** the site's pages, `docs/` */
   readonly site = path.join(UI, SITE_PAGES)
 
-  /** Every family of `components.json`, by folder. */
-  private readonly families: Record<string, Family> = JSON.parse(
-    readFileSync(path.join(UI, SITE_DATA, "components.json"), "utf8")
+  /** Every family of `components.json5`, by folder. */
+  private readonly families: Record<string, Family> = readJSON5File<{ families: Record<string, Family> }>(
+    path.join(UI, SITE_DATA, "components.json5")
   ).families
 
   /** The facts for `name` (a tag, a family folder or a page name), with `--title` / `--summary` applied. */

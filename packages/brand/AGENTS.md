@@ -80,12 +80,12 @@ when working with code in this package, `@spell-app/brand`.
       So what an example needs, styles and scripts, goes INSIDE `main`.
     - A script adds its listeners once (`window.<flag>`), as the site runs it again.
   - `__data/`:
-    - `pages.json`:  HAND-KEPT.
+    - `pages.json5`:  HAND-KEPT.
       - Spell UI's per-family facts (title, summary, status)
       - the set's own `groups` (the side column's) and `nav` (its own links)
     - GENERATED, committed (`yarn site:data`):
-      - `components.json`:  the pages' API and tokens, and the design system's Brand cards
-      - `search.json`:  every page's sections, for the side column's search
+      - `components.json5`:  the pages' API and tokens, and the design system's Brand cards
+      - `search.json5`:  every page's sections, for the side column's search
       - VS Code autocomplete for `<brand-*>`, loaded by [the repo's VS Code settings](../../.vscode/settings.json):
         `custom-elements.json` and `html-custom-data.json`
 - `src/` (`$/brand`, self-namespace `B`):  shared code.
@@ -204,14 +204,14 @@ when working with code in this package, `@spell-app/brand`.
     1. `spell dev pack element brand brand-<name>`
     2. fill in its vocabulary, `<Name>.en.ts` (topics, aka, description)
     3. `yarn pack:build`
-    4. copy a page, and file it in the `groups` of [the hand-kept facts](docs/__data/pages.json)
+    4. copy a page, and file it in the `groups` of [the hand-kept facts](docs/__data/pages.json5)
   - The set's home and side column list them.
   - NOTE:  its Theming tab's token table is EMPTY for now.
     - Spell UI's token readers (`FamilyTokens`, `ComponentTokens`) find only `--ui-*` tokens.
     - The brand's are `--brand-*` since P18 (people-and-orgs issue, at P18).
 - The claude.ai design system shows each family as a card in its "Brand" group
   ([DesignBrand.ts](../ui/tools/DesignBrand.ts), epic `claude-design` P11).
-  - its API:  from `components.json` in `docs/__data/`
+  - its API:  from `components.json5` in `docs/__data/`
   - its examples:  from its docs page's Examples tab
     - each `<ui-docs-example>`, titled by its section, with the page's own styles
   - So an example there must work on its own:  no page script, no file to load.
@@ -271,7 +271,7 @@ As the root's, plus these reaches into `ui` past its barrel, each because the ba
   - `$/ui/docs-components/docs-components.types`
 - `$/ui/test/...`, in tests
 - NEVER the other way:  `ui` imports nothing of `brand`.
-  - Its design export (`DesignBrand`) READS the docs set's `components.json` and its pages, as data.
+  - Its design export (`DesignBrand`) READS the docs set's `components.json5` and its pages, as data.
 - The pack's script may import only what a page shares (`PACK_MODULES` in the CLI's pack build):
   - `$/spell-solid`, `$/ui/core`, `$/ui/forms`, Solid
   - `$/brand` (`src/`) is bundled into it

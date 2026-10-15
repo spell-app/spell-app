@@ -3,7 +3,7 @@
   A <brand-*> element's page in the brand's docs set (`packages/brand/docs/`, served at `/components/brand/`), in
   Spell UI's component page shape:  masthead, then Examples / Usage / API / Theming tabs.
   - The set's layout (`__parts/layout.html`) loads Spell UI's site bundle and the brand pack;  API and tokens come
-    from `__data/components.json` (`yarn site:data` in `packages/brand`).
+    from `__data/components.json5` (`yarn site:data` in `packages/brand`).
   - Example ids:  `<tab>-<section>-<example>`, as Spell UI's pages.
   - The family chips are plain buttons with a `data-pick` colour;  the script at the end of `main` hands it to the picker
     they're in, closes a popup from its picker's close button, and writes `ui-copy` into a `data-copy-log` line.

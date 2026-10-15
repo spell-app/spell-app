@@ -7,9 +7,9 @@ import type { SiteSearchFile, SiteSearchPage } from "../src/docs-components/docs
 
 /****************
  * ### `SiteSearchBuilder`
- * Builds the Spell UI site's search file, `docs/__data/search.json` (`SiteSearchFile`):
+ * Builds the Spell UI site's search file, `docs/__data/search.json5` (`SiteSearchFile`):
  * every page's title and sections, read from the page FILES' markup, for `<ui-docs-search>`'s jumps to other pages.
- * - Run by `yarn site:data` beside `components.json`
+ * - Run by `yarn site:data` beside `components.json5`
  *   (`scripts/site-data.ts`, through `SiteDataBuilder.searchText()`).
  *   - `tests/ui/tools/SiteDataBuilder.test.ts` fails while it's stale.
  *   - Rerun after adding, renaming or moving a section (`yarn site:sections` included).
@@ -50,7 +50,7 @@ export class SiteSearchBuilder {
   }
 
   /**
-   * The text of `search.json`:  2-space JSON, but ONE section per line (a third of the size, and a diff still names
+   * The text of `search.json5`:  2-space JSON, but ONE section per line (a third of the size, and a diff still names
    * the section that changed).
    */
   text(): string {

@@ -131,7 +131,7 @@ Two words for the two objects behind every tag (epic `wwod-spell-ui`, P15):
     - The site's bundle does;  the library's own `RootLoader` never does (epic `wwod-spell-ui`, I12).
   - A family that renders other widgets in its shadow root imports their families in its barrel,
     and adds their tags to `DocsJSXTags`.
-  - They read the site's data through `SiteData` ([the components data](docs/__data/components.json)), NEVER the vocabularies.
+  - They read the site's data through `SiteData` ([the components data](docs/__data/components.json5)), NEVER the vocabularies.
   - The barrel's header says how to add one.
 - [`src/static/`](src/static/) (`$/ui/static`, `SSR`):  the STATIC server render, for SEO.
   - `StaticRender.page()` / `fragment()` turn `ui-*` markup into plain light-DOM HTML in node:
@@ -347,7 +347,7 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
       Before 2026-10-12 `snapshot.ts` wasn't, and the build dropped its snapshot (epic `epic-workflow` P10).
     - It takes the folder above its `_assets/` as the site's root:
       - its layout is `__parts/layout.html` there
-      - its data is `__data/components.json` there
+      - its data is `__data/components.json5` there
   - The COMPONENT SETS' build (epic `epic-workflow` P10):  the same site again, into `site/_assets/sets/`.
     - Its entry:  [sets.ts](site/_src/sets.ts).
     - `yarn site:bundle` builds both;  mode `sets` in `vite.site.config.ts`.
@@ -362,14 +362,14 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
     - Each set's side column reads its own `__data/`:
       `SiteDataFile.nav` gives `<ui-docs-nav>` its own start and Foundation links and band titles (absent:  Spell UI's).
 - The DATA, `docs/__data/`:  GENERATED, committed.
-  - `components.json`
-  - `icons.json`:  the icon browser's search terms
-  - `search.json`:  every page's sections
+  - `components.json5`
+  - `icons.json5`:  the icon browser's search terms
+  - `search.json5`:  every page's sections
   - Written by `yarn site:data`;  with them, the editors' manifests:
     `custom-elements.json`, `html-custom-data.json`.
   - Their shapes, `SiteDataFile` / `SiteIconsFile` / `SiteSearchFile`:
     [the docs components' types](src/docs-components/docs-components.types.ts).
-  - And `pages.json`, hand-kept per-family facts it reads:
+  - And `pages.json5`, hand-kept per-family facts it reads:
     title, summary, status, token-table overrides, `pages` (the sub-tags with a page of their own).
   - Rerun `yarn site:data` after renaming or moving a section.
 
@@ -418,7 +418,7 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
   - `yarn report` rewrites the tables of [the report](notes/report.md).
     Run it twice:  no diff.
 - `yarn site:build` ~== these four, in turn:
-  - `yarn site:data`:  `components.json`, `icons.json` and `search.json`, in `docs/__data/`
+  - `yarn site:data`:  `components.json5`, `icons.json5` and `search.json5`, in `docs/__data/`
   - `yarn site:index`:  the cards of [the component index](docs/components.html) (`--check`)
   - `yarn site:kitchen`:  the examples of [the kitchen sink](docs/kitchen-sink.html) (`--check`),
     from every family's `types.html` in `examples/elements/`
@@ -442,7 +442,7 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
   - For a tag:  `docs/<main tag>.html`.
     A sub-tag its family's `pages` lists gets `<tag>.html` (`ui-radio`).
   - Else `<page>.html`, in `docs/` too.
-  - Title, summary and status come from [the pages data](docs/__data/pages.json).
+  - Title, summary and status come from [the pages data](docs/__data/pages.json5).
   - How to write one:  [the pages guide](../../epics/spell-ui-pages/PAGES.md).
 - `yarn site:sections [--check] [page...]` ([its script](scripts/site-sections.ts)):
   nests every page's flat level 2 / 3 headers and headed examples into `<ui-section>`s.
@@ -1257,5 +1257,5 @@ As WWOD §20, plus:
 
 - Generated files are never edited, only regenerated:
   - `src/languages/`, `md.bundle.js`
-  - `site/_assets/`, `docs/__data/` (all but the hand-kept `pages.json`)
+  - `site/_assets/`, `docs/__data/` (all but the hand-kept `pages.json5`)
   - `UIRoot.catalog.ts`

@@ -119,6 +119,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - It keeps each folder's list, and one recursive watcher drops a folder's when anyone changes it.
   - JSON5 is read and written in ONE place, [json5.ts](src/server/node/storage/json5.ts), on json5-writer:
     an edit writes the whole value back, every comment where it was;  double quotes, no trailing commas.
+    - The editing itself, `json5Edited()`, is the assembler's ([json5.ts](../assembler/src/json5.ts)):
+      the component sets' site data writers use it too, and ui may import no spell-family package
+      (epic `epic-workflow` P20).
   - The page server's `--spaces <dir>` points it elsewhere (`SPELL_SPACES_DIR`).
 - The PEOPLE STORE ([PeopleStore.ts](src/server/node/people/PeopleStore.ts), P9):
   people and orgs, as the people library's things (`@spell/library/people`).

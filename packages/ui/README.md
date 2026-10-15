@@ -109,7 +109,7 @@ Read ONLY in [`environment`](tools/environment.ts) (WWOD §11):  by `tools/`, `s
    - [Its test](../../tests/ui/components/ui-root/UIRoot.catalog.test.ts) fails while it's stale.
 5. `yarn site:data`:  the docs site's data.
    - [Its test](../../tests/ui/tools/SiteDataBuilder.test.ts) fails while it's stale.
-   - Add the family's facts to [the pages data](docs/__data/pages.json).
+   - Add the family's facts to [the pages data](docs/__data/pages.json5).
 6. `yarn site:new <tag>`:  its docs page, from the template.
    - Then `yarn site:build`, and `yarn site:check <tag>`.
 7. Add its row to [the status checklist](notes/status.md).

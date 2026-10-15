@@ -9,12 +9,13 @@ import {
 
 /****************
  * ### `SiteData`
- * The docs site's generated data, `docs/__data/components.json` (`yarn site:data`),
+ * The docs site's generated data, `docs/__data/components.json5` (`yarn site:data`),
  * fetched once per page and shared by every docs element (`<ui-docs-api>`, `<ui-docs-tokens>`, `<ui-docs-nav>` ...).
  * - Where it is:  `SiteData.url`.
  *   - The site bundle's entry (`site/_src/site.ts`) sets it from its own location
- *     (`_assets/` => `../__data/components.json`), so a page at any depth finds it.
- *   - Unset:  a `<meta name="ui-docs-data" content="...">` in the page, else `__data/components.json` against the page.
+ *     (`_assets/` => `../__data/components.json5`), so a page at any depth finds it.
+ *   - Unset:  a `<meta name="ui-docs-data" content="...">` in the page,
+ *     else `__data/components.json5` against the page.
  * - Fails loudly:  a missing or broken file rejects `load()` (and stays rejected until `url` is set again).
  *   An element shows its error;  it never guesses.
  * - Plain fetch, no Solid:  elements wrap `load()` in their own async memo.
@@ -25,7 +26,7 @@ import {
  ****************/
 export class SiteData {
   /**
-   * URL of `components.json`, absolute or against the page;  see the class.
+   * URL of `components.json5`, absolute or against the page;  see the class.
    * - Setting it (to a new URL, the same one, or `undefined`) makes the next `load()` fetch again:
    *   tests, a rebuilt file.
    * - `undefined`:  back to the page's own (`<meta>`, else `SITE_DATA_PATH`).
@@ -79,6 +80,23 @@ export class SiteData {
     })
   }
 
+  /**
+   * `response`'s body, a data file `yarn site:data` wrote (`__data/*.json5`), read.
+   * - As plain JSON first, as the writers write it:  fast, and json5 never loads.
+   * - Once somebody has written a comment into the file:  through json5, loaded then (`import()`).
+   * - Rejects with json5's `SyntaxError` when it won't read even so.
+   * - Public:  `SearchData` and the icon browser's page (`docs/icons.html`) read their files through it too.
+   */
+  static async json<T>(response: Response): Promise<T> {
+    const text = await response.text()
+    try {
+      return JSON.parse(text) as T
+    } catch {
+      const { default: JSON5 } = await import("json5")
+      return JSON5.parse(text) as T
+    }
+  }
+
   /** Where to fetch from:  `url`, else the page's `<meta name="ui-docs-data">`, else `SITE_DATA_PATH`. */
   private static resolve(): string {
     const meta = document.querySelector<HTMLMetaElement>(`meta[name="${SITE_DATA_META}"]`)?.content
@@ -88,7 +106,7 @@ export class SiteData {
   /** Fetch and parse `url`;  rejects with what went wrong (`request()`). */
   private static async fetch(url: string): Promise<SiteDataFile> {
     const response = await SiteData.request(url, { method: "SiteData.load()", fix: REBUILD })
-    return (await response.json()) as SiteDataFile
+    return SiteData.json<SiteDataFile>(response)
   }
 }
 

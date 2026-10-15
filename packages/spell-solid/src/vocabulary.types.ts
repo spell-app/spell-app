@@ -42,7 +42,7 @@
  *   - `"false"` / `"no"` => none (`undefined`), even over a default
  * - NOTE: camelCase, not WWOD §9's English values, on purpose (epic `wwod-spell-ui`, P4 judgement):
  *   they're PUBLISHED data, which these read (all Spell UI's, in `packages/ui/`):
- *   - the docs data, `docs/__data/components.json`
+ *   - the docs data, `docs/__data/components.json5`
  *   - `<ui-docs-api>`'s Kind column (`KIND_LABELS`)
  *   - `tools/ElementManifests.ts`
  *   - `notes/grammar.md`, and the docs page `docs/grammar.html`

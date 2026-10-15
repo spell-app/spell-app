@@ -21,9 +21,9 @@ const EXAMPLES = import.meta.glob<string>("/src/docs-components/ui-docs-tokens/e
   eager: true
 })
 
-/** The real `components.json`, as a served URL (the examples document real families). */
+/** The real `components.json5`, as a served URL (the examples document real families). */
 const REAL_DATA = Object.values(
-  import.meta.glob<string>("/docs/__data/components.json", { query: "?url", import: "default", eager: true })
+  import.meta.glob<string>("/docs/__data/components.json5", { query: "?url", import: "default", eager: true })
 )[0]!
 
 /** A tag entry with nothing but its names. */
@@ -236,7 +236,7 @@ describe("<ui-docs-tokens family>", () => {
   })
 
   it("says when the data can't load", async () => {
-    const host = await render(`<ui-docs-tokens family="x-button"></ui-docs-tokens>`, "/no/such/components.json")
+    const host = await render(`<ui-docs-tokens family="x-button"></ui-docs-tokens>`, "/no/such/components.json5")
     expect(host.shadowRoot!.querySelector("[part~=message]")!.textContent).toMatch(/^Couldn't load the token data:/)
     expect(host.matches(":state(error)")).toBe(true)
   })

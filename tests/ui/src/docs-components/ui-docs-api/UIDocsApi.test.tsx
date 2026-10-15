@@ -20,9 +20,9 @@ const EXAMPLES = import.meta.glob<string>("/src/docs-components/ui-docs-api/exam
   eager: true
 })
 
-/** The real `components.json`, as a served URL (the examples document real tags). */
+/** The real `components.json5`, as a served URL (the examples document real tags). */
 const REAL_DATA = Object.values(
-  import.meta.glob<string>("/docs/__data/components.json", { query: "?url", import: "default", eager: true })
+  import.meta.glob<string>("/docs/__data/components.json5", { query: "?url", import: "default", eager: true })
 )[0]!
 
 /** A tag entry with nothing but `overrides`. */
@@ -392,7 +392,7 @@ describe("<ui-docs-api> messages and states", () => {
   })
 
   it("says when the data can't be loaded", async () => {
-    const host = await render(`<ui-docs-api tag="x-or"></ui-docs-api>`, "/no/such/components.json")
+    const host = await render(`<ui-docs-api tag="x-or"></ui-docs-api>`, "/no/such/components.json5")
     const message = host.shadowRoot!.querySelector("[part~=message]")!
     expect(message.getAttribute("state")).toBe("negative")
     expect(message.textContent).toContain("Couldn't load the API data")

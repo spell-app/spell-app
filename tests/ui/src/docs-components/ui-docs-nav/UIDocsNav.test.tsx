@@ -256,7 +256,7 @@ describe("<ui-docs-nav> lists", () => {
     const nav = await render(`current="getting-started"`)
     expect(find(nav, '[data-nav-link="getting-started"]').getAttribute("aria-current")).toBe("page")
 
-    SiteData.url = "/no-such-folder/__data/components.json"
+    SiteData.url = "/no-such-folder/__data/components.json5"
     const broken = await render()
     expect(find(broken, "ui-message").getAttribute("header")).toBe("The component list didn't load")
     expect(broken.matches(":state(listed)")).toBe(true)

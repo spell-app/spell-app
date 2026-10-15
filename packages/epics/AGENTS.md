@@ -128,10 +128,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - used by `<epic-link>`, the docs runtime (`SAGA:/` links rewritten), and the tool's `EpicTargets`
   - `site/` -- `EpicUISite`:  the data of Epic UI, the elements' docs set, in Spell UI's site shapes.
     - the set:  `docs/`, at `/components/epics/` (see "Epic UI, the docs set")
-    - `components.json`, in `__data/`:  one entry per element from `Definitions.all`, plus the side column's own links
-      - filed by the groups in the set's hand-kept `pages.json`
+    - `components.json5`, in `__data/`:  one entry per element from `Definitions.all`, plus the side column's own links
+      - filed by the groups in the set's hand-kept `pages.json5`
       - a new element:  under Other, `planned` until its page exists
-    - `search.json`, in `__data/`:  every page's sections, for its search
+    - `search.json5`, in `__data/`:  every page's sections, for its search
     - written by `yarn site:data` ([its script](scripts/site-data.ts));  `EpicUISite.test.ts` fails while stale
   - `list/` -- [the Epics list](../../epics/index.html), out of the page server since P16 of `people-and-orgs`:
     - `EpicState`:  an epic's state, the ONE rule every list and page draws it by
@@ -290,8 +290,8 @@ Laid out as every set is since P18 of `people-and-orgs` (the root's `AGENTS.md`)
   | `<tag>.html` | one page per element, `epic-item.html`;  every page but the home is an element's |
   | `__parts/layout.html` | every page's chrome, written once:  the brand, the side column, the epics pack's `<ui-components>` |
   | `__parts/footer.html` | every page's footer |
-  | `__data/pages.json` | HAND-KEPT:  the side column's groups, the elements with no page, the side column's own links |
-  | `__data/components.json`, `__data/search.json` | GENERATED, committed:  `yarn site:data` |
+  | `__data/pages.json5` | HAND-KEPT:  the side column's groups, the elements with no page, the side column's own links |
+  | `__data/components.json5`, `__data/search.json5` | GENERATED, committed:  `yarn site:data` |
 
 - A new page:
   1. copy a page like it, or the shared template once it's been moved on at the merge

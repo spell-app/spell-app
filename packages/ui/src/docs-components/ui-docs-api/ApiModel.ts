@@ -13,7 +13,7 @@ import type { ApiCell, ApiNote, ApiRow, ApiSection } from "./UIDocsApi.types"
 /****************
  * ### `ApiModel`
  * A tag's API as tables (`ApiSection`s):  what `<ui-docs-api>` draws.
- * - Pure data in, pure data out:  a `SiteTag` from `components.json`;
+ * - Pure data in, pure data out:  a `SiteTag` from `components.json5`;
  *   titles and column headers as TEXT KEYS (the component translates them), cells as `ApiCell`s.
  * - Only the tables a tag has:  an empty one is left out.
  * - `json` attributes (rich data) are the `properties` table, not `attributes`:  they have no attribute.
@@ -230,7 +230,7 @@ const JSON_KIND = "json"
 
 /**
  * How each `AttributeKind` reads to an author, in the Kind column.
- * - NOTE: English only, like every description in `components.json`:  the site's data isn't translated.
+ * - NOTE: English only, like every description in `components.json5`:  the site's data isn't translated.
  */
 const KIND_LABELS: Readonly<Record<string, string>> = {
   keyOnly: "boolean",

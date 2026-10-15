@@ -39,7 +39,7 @@ If you find yourself writing a second copy of any of these, stop and reuse.
 | `components/__pack/` | GENERATED, committed:  `brand.catalog.ts`, `brand.entry.ts`, `brand.pack.js` |
 | `docs/` | Brand UI:  `index.html` and one page per family, `<tag>.html` |
 | `docs/__parts/` | every docs page's frame:  `layout.html` (loads the pack), `footer.html` |
-| `docs/__data/` | `pages.json` (hand-kept);  `components.json`, `search.json`, the editor manifests (generated) |
+| `docs/__data/` | `pages.json5` (hand-kept);  `components.json5`, `search.json5`, the editor manifests (generated) |
 | `src/index.ts` | `$/brand`:  `Palette`, the brand's types |
 | `src/brand-ui.ts` | the Brand tab copies' bundle entry, `_assets/ui/brand-ui.js` (git-ignored) |
 | `src/brand-design.ts` | the elements for the claude.ai design bundle |
@@ -57,7 +57,7 @@ If you find yourself writing a second copy of any of these, stop and reuse.
    - rebuilds `components/__pack/`
 2. Fill in its vocabulary (description, `topics`, `aka`, attributes, parts, skeleton), its class and sheet
 3. Copy a page in `docs/` to `brand-<name>.html`.
-   File the tag in the `groups` of [the hand-kept facts](docs/__data/pages.json).
+   File the tag in the `groups` of [the hand-kept facts](docs/__data/pages.json5).
 4. `yarn pack:build`, then `yarn review`
 5. Commit the pack and the docs data (`components/__pack/`, `docs/__data/`) with the change
 

@@ -3,6 +3,8 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { readJSON5File } from "$/assembler/json5"
+
 import { DesignBrand } from "./DesignBrand.ts"
 import { DesignComponents } from "./DesignComponents.ts"
 import { DesignTokens } from "./DesignTokens.ts"
@@ -28,7 +30,7 @@ import {
  * - `components/Cover/preview.html` -- the cover;  `design-system.json` -- the system's index
  * - NOT `components/bundle.js` / `bundle.css`:  the design bundle's build (P8) writes those into the same folder,
  *   and `write()` leaves them there.
- * - Sources:  `docs/__data/components.json` (`yarn site:data`:  every vocabulary), the element examples, the theme
+ * - Sources:  `docs/__data/components.json5` (`yarn site:data`:  every vocabulary), the element examples, the theme
  *   sheets, and the brand book's "CONTENT FUNDAMENTALS" (`brand/spell-design-system/readme.md`, shared).
  * - Plus the brand's `<brand-*>` cards, a "Brand" group (`DesignBrand`, epic `claude-design` P11):  read as data.
  ****************/
@@ -48,9 +50,7 @@ export class DesignExport {
 
   constructor(options: DesignExportOptions = {}) {
     this.uiFolder = options.uiFolder ?? UI_FOLDER
-    this.data =
-      options.data ??
-      (JSON.parse(readFileSync(join(this.uiFolder, SITE_DATA, "components.json"), "utf8")) as SiteDataFile)
+    this.data = options.data ?? readJSON5File<SiteDataFile>(join(this.uiFolder, SITE_DATA, "components.json5"))
     this.git = options.git ?? DesignExport.readGit(this.uiFolder)
     this.now = options.now ?? new Date()
     this.sources = options.sources ?? DesignExport.defaultSources(this.uiFolder)
@@ -164,9 +164,9 @@ export class DesignExport {
     const lines = ["---", "", "## Not synced", ""]
     lines.push(
       `- Made by \`yarn design:build\` (packages/ui) from ${tokens.meta.repo}@${this.git.sha}:  the vocabularies ` +
-        "(`docs/__data/components.json`), the element examples and the `spell-brand` theme's sheets" +
+        "(`docs/__data/components.json5`), the element examples and the `spell-brand` theme's sheets" +
         (this.sources.length
-          ? ";  the Brand cards from the brand's (`packages/brand/docs/__data/components.json`, its docs pages' examples)"
+          ? ";  the Brand cards from the brand's (`packages/brand/docs/__data/components.json5`, its docs pages' examples)"
           : "") +
         ".  Edits made here are overwritten by the next build."
     )
@@ -212,10 +212,10 @@ export class DesignExport {
           "src/styles/themes/spell-brand.css"
         ],
         docs: [
-          `${SITE_DATA}/components.json`,
+          `${SITE_DATA}/components.json5`,
           "components/*/examples/elements/*.html",
           `../../${BRAND_BOOK}`,
-          ...(this.sources.length ? ["../brand/docs/__data/components.json", "../brand/docs/brand-*.html"] : [])
+          ...(this.sources.length ? ["../brand/docs/__data/components.json5", "../brand/docs/brand-*.html"] : [])
         ]
       },
       components: Object.fromEntries(
@@ -338,7 +338,7 @@ export class DesignExport {
 export type DesignExportOptions = {
   /** `packages/ui`, absolute */
   uiFolder?: string
-  /** site data;  default:  `docs/__data/components.json` */
+  /** site data;  default:  `docs/__data/components.json5` */
   data?: SiteDataFile
   /** commit facts;  default:  asked of git (`readGit()`) */
   git?: DesignGit

@@ -3,7 +3,7 @@
   A <brand-*> element's page in the brand's docs set (`packages/brand/docs/`, served at `/components/brand/`), in
   Spell UI's component page shape:  masthead, then Examples / Usage / API / Theming tabs.
   - The set's layout (`__parts/layout.html`) loads Spell UI's site bundle and the brand pack;  API and tokens come
-    from `__data/components.json` (`yarn site:data` in `packages/brand`).
+    from `__data/components.json5` (`yarn site:data` in `packages/brand`).
   - One family, two tags:  `<brand-checklist>` and its `<brand-check>`s.
   - Example ids:  `<tab>-<section>-<example>`, as Spell UI's pages.
   - The script at the end of `main` wires the live examples:  a `data-cast` button runs its card's checklist through every

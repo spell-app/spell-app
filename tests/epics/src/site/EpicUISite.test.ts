@@ -3,6 +3,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, describe, expect, it } from "vite-plus/test"
 
+import { keepingCommentsIn } from "$/assembler/json5"
 import { Definitions } from "$/epics/definitions"
 
 import { EpicUISite, type EpicUIPages } from "$/epics/site/EpicUISite"
@@ -14,12 +15,12 @@ afterEach(() => {
   for (const folder of made.splice(0)) rmSync(folder, { recursive: true, force: true })
 })
 
-/** A set folder holding `pages` as its `pages.json`, and `files` (relative path => text). */
+/** A set folder holding `pages` as its `pages.json5`, and `files` (relative path => text). */
 function setFolder(pages: EpicUIPages, files: Record<string, string> = {}): string {
   const folder = mkdtempSync(join(tmpdir(), "epics-docs-"))
   made.push(folder)
   mkdirSync(join(folder, "__data"), { recursive: true })
-  writeFileSync(join(folder, "__data", "pages.json"), JSON.stringify(pages))
+  writeFileSync(join(folder, "__data", "pages.json5"), JSON.stringify(pages))
   for (const [path, text] of Object.entries(files)) {
     mkdirSync(join(folder, path, ".."), { recursive: true })
     writeFileSync(join(folder, path), text)
@@ -43,11 +44,14 @@ const PAGES: EpicUIPages = {
 describe("EpicUISite", () => {
   it("writes the committed data as it is:  `yarn site:data` in packages/epics if not", () => {
     const site = new EpicUISite()
-    for (const [name, text] of Object.entries(site.files()))
-      expect(readFileSync(join(site.folder, "__data", name), "utf8"), `${name} is stale:  yarn site:data`).toBe(text)
+    for (const [name, text] of Object.entries(site.files())) {
+      const file = join(site.folder, "__data", name)
+      // as the script writes it:  a comment written into the file stays
+      expect(readFileSync(file, "utf8"), `${name} is stale:  yarn site:data`).toBe(keepingCommentsIn(file, text))
+    }
   })
 
-  it("lists every element of the pack's definitions but the drawn-only ones, A-Z, filed by pages.json", () => {
+  it("lists every element of the pack's definitions but the drawn-only ones, A-Z, filed by pages.json5", () => {
     const data = new EpicUISite(setFolder(PAGES, { "epic-item.html": page("<epic-item>", "One item.") })).data()
     const listed = Definitions.tags.filter((tag) => !PAGES.drawnOnly.includes(tag))
     expect(data.components.map((tag) => tag.tag)).toEqual([...listed].sort())

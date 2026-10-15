@@ -3,6 +3,7 @@ import path from "node:path"
 
 import { describe, expect, test } from "vite-plus/test"
 
+import { keepingCommentsIn } from "$/assembler/json5"
 import { SiteDataBuilder } from "$/ui/tools/SiteDataBuilder"
 
 import { AppUIDataBuilder } from "../../../packages/app/tools/AppUIDataBuilder.ts"
@@ -19,12 +20,14 @@ const BUILDER = new AppUIDataBuilder()
 const DATA = await BUILDER.build()
 
 describe("AppUIDataBuilder.build()", () => {
-  test("components.json is up to date:  run `yarn site:data` in packages/app after changing what it reads", () => {
-    expect(readFileSync(BUILDER.dataFile, "utf8")).toBe(SiteDataBuilder.stringify(DATA))
+  test("components.json5 is up to date:  run `yarn site:data` in packages/app after changing what it reads", () => {
+    expect(readFileSync(BUILDER.dataFile, "utf8")).toBe(
+      keepingCommentsIn(BUILDER.dataFile, SiteDataBuilder.stringify(DATA))
+    )
   })
 
-  test("search.json is up to date with the pages' sections", () => {
-    expect(readFileSync(BUILDER.searchFile, "utf8")).toBe(BUILDER.searchText())
+  test("search.json5 is up to date with the pages' sections", () => {
+    expect(readFileSync(BUILDER.searchFile, "utf8")).toBe(keepingCommentsIn(BUILDER.searchFile, BUILDER.searchText()))
   })
 
   test("EVERY page it lists is there, in the set's folder", () => {

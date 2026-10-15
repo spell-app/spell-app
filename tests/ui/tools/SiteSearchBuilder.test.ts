@@ -3,7 +3,7 @@ import { describe, expect, it } from "vite-plus/test"
 import { SiteSearchBuilder } from "$/ui/tools/SiteSearchBuilder"
 
 /**
- * `SiteSearchBuilder`:  a page's entry in `docs/__data/search.json`, from its markup.  (That the committed file is
+ * `SiteSearchBuilder`:  a page's entry in `docs/__data/search.json5`, from its markup.  (That the committed file is
  * current:  `SiteDataBuilder.test.ts`.)
  */
 describe("SiteSearchBuilder.page()", () => {

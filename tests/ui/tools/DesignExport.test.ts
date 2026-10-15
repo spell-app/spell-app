@@ -1,8 +1,8 @@
-import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
+import { readJSON5File } from "$/assembler/json5"
 import { DesignColor } from "$/ui/tools/DesignColor"
 import { DesignExport } from "$/ui/tools/DesignExport"
 import { ElementManifests } from "$/ui/tools/ElementManifests"
@@ -20,9 +20,9 @@ import type { DesignExportResult, DesignTokensFile, ThemedValue } from "$/ui/too
 ////////////////
 
 const UI = fileURLToPath(new URL("../../../packages/ui/", import.meta.url))
-const DATA = JSON.parse(readFileSync(join(UI, "docs/__data/components.json"), "utf8")) as SiteDataFile
+const DATA = readJSON5File<SiteDataFile>(join(UI, "docs/__data/components.json5"))
 const BRAND = join(UI, "../brand")
-const BRAND_DATA = JSON.parse(readFileSync(join(BRAND, "docs/__data/components.json"), "utf8")) as SiteDataFile
+const BRAND_DATA = readJSON5File<SiteDataFile>(join(BRAND, "docs/__data/components.json5"))
 /** Spell UI's site data with the brand's merged in, as the export sees it */
 let all: SiteDataFile
 let result: DesignExportResult

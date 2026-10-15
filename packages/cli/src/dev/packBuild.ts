@@ -44,7 +44,7 @@ export async function buildPack(root: string, name: string): Promise<PackBuildRe
 }
 
 /**
- * Write the set's docs data, `docs/__data/` (`components.json`, `search.json` ...), with the pack's OWN data builder:
+ * Write the set's docs data, `docs/__data/` (`components.json5`, `search.json5` ...), with the pack's OWN data builder:
  * its `package.json`'s `site:data` script, run in the package (epic `people-and-orgs` P18).
  * - One builder per set, since each reads its elements its own way:
  *   - Epic UI's from the pack's definitions

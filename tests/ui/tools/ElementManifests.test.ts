@@ -3,6 +3,7 @@ import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { describe, expect, test } from "vite-plus/test"
 
+import { readJSON5File } from "$/assembler/json5"
 import type { SiteDataFile } from "$/ui/docs-components/docs-components.types"
 import { ElementManifests } from "$/ui/tools/ElementManifests"
 
@@ -11,8 +12,8 @@ const UI = fileURLToPath(new URL("../../../packages/ui/", import.meta.url))
 const BRAND = join(UI, "../brand")
 
 /** The committed site data of each. */
-const DATA = JSON.parse(readFileSync(join(UI, "docs/__data/components.json"), "utf8")) as SiteDataFile
-const BRAND_DATA = JSON.parse(readFileSync(join(BRAND, "docs/__data/components.json"), "utf8")) as SiteDataFile
+const DATA = readJSON5File<SiteDataFile>(join(UI, "docs/__data/components.json5"))
+const BRAND_DATA = readJSON5File<SiteDataFile>(join(BRAND, "docs/__data/components.json5"))
 
 describe("ElementManifests.outputs()", () => {
   test("are current (else run `yarn site:data`)", () => {

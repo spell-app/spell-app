@@ -3,7 +3,7 @@
   A <brand-*> element's page in the brand's docs set (`packages/brand/docs/`, served at `/components/brand/`), in
   Spell UI's component page shape:  masthead, then Examples / Usage / API / Theming tabs.
   - The set's layout (`__parts/layout.html`) loads Spell UI's site bundle and the brand pack;  API and tokens come
-    from `__data/components.json` (`yarn site:data` in `packages/brand`).
+    from `__data/components.json5` (`yarn site:data` in `packages/brand`).
   - Example ids:  `<tab>-<section>-<example>`, as Spell UI's pages.
   - What the examples need, styles and script, is INSIDE `main`:  the site swaps only `main` between its pages.
     A script adds its listeners once (`window.<flag>`):  the site runs it again each time the page is shown.

@@ -120,6 +120,7 @@ More on some of them:
   - link targets (`Linker`)
   - in-memory formatting (`formatHTML()`)
   - the bundles built on demand (`Bundle`)
+  - JSON5 written with its comments kept (`$/assembler/json5`):  spaces' files, the component sets' site data
   - later, the page server's assembly code
 - brand:  Claude Design's pages and tokens (never edited), and their Spell UI copies (`*.spell.html`).
   - And the `<brand-*>` elements those copies need:  a component pack.
@@ -164,8 +165,9 @@ ui -> util
     one folder for main and every worktree (`SPELL_SPACES_DIR` sets it).
 - `server` is a LEAF (node built-ins only, imports no package).
   - ANY package may import it, `ui`'s tools too.
-- `assembler` is node-only and imports no package (it uses linkedom and oxfmt).
+- `assembler` is node-only and imports no package (it uses linkedom, oxfmt and json5-writer).
   - epics (its docs tools and its `epic` tool) imports it.
+  - So do spaces and ui's tools (the site data writers), for `$/assembler/json5`.
   - Any other node-side package or tool may import it too.
 - The ONE exception:  `ui` ships spell's highlighter PRE-COMPILED.
   - It's a committed bundle per language:  [`spell.<lang>.js`](packages/ui/src/languages/).
@@ -188,7 +190,8 @@ ui -> util
   - Used bare, no import (WWOD §9 › "Ambient globals used bare").
   - Every spell-family `tsconfig.json` includes that folder.
   - The types:  `Prettify`, `Class`, `AbstractClass`, `SplitString`, `__PACKAGE_VERSION__`.
-  - And the module `json5-writer`'s, which ships no types of its own.
+  - NOT json5-writer's, which ships no types of its own:  the one file that uses it types what it uses,
+    [the assembler's json5.ts](packages/assembler/src/json5.ts).
 - `vite.decorators.ts` and `vite.packageVersion.ts` are at the repo root.
 - No `~/` or `#name` alias exists any more.
   - `$` means the packages folder, so ui is `$/ui` like the rest.

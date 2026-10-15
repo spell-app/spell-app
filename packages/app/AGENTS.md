@@ -229,14 +229,14 @@ when working with code in this package, `@spell-app/app`.
     - `../../` is the checkout's root
     - `../ui/ui-button.html` is a Spell UI page
     - the layout and footer, in `__parts/`, are one level deeper
-  - What it documents, and in which group:  [the hand-kept facts](docs/__data/pages.json).
+  - What it documents, and in which group:  [the hand-kept facts](docs/__data/pages.json5).
   - Each page's props, attributes and "Used in" tables come from the code:  `yarn site:data`.
     - [The data builder](tools/AppUIDataBuilder.ts) reads, for each listed file:
       - its exported components with a banner (`### `<Name>``)
       - their props types ([ComponentSource](tools/ComponentSource.ts))
       - and every JSX use in the app
     - The web components and the drawable thing's element:  their vocabularies, by Spell UI's own builder.
-    - It writes the set's data, COMMITTED:  `components.json` and `search.json`, in `__data/`.
+    - It writes the set's data, COMMITTED:  `components.json5` and `search.json5`, in `__data/`.
     - [Its test](../../tests/app/tools/AppUIDataBuilder.test.ts) fails while:
       - they're stale
       - a listed page is missing, or unlinked from the home
@@ -251,7 +251,7 @@ when working with code in this package, `@spell-app/app`.
   - Live examples (the web components, the runner's pieces) need `yarn build:element`:
     the layout loads `/element/spell.pack.js`.
   - A new page:
-    1. its entry in `pages.json`, then `yarn site:data`
+    1. its entry in `pages.json5`, then `yarn site:data`
     2. a copy of a page like it:  `Notice.html` for a picture, `spell-app.html` for a live one
     3. linked from `index.html`
 - `src/spellEditor/` is `<spell-editor>`'s pane:  the app's Monaco editor, as a web component.

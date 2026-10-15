@@ -24,7 +24,7 @@ import apiCSS from "./UIDocsApi.css?inline"
  *
  * - One `<ui-table celled compact definition>` per section, each under a `<ui-header>` title:
  *   attributes, properties, events, slots, parts, states, texts;  only the sections the tag has.
- * - Data:  `components.json`, through `SiteData` (fetched once per page);  NEVER the vocabularies.
+ * - Data:  `components.json5`, through `SiteData` (fetched once per page);  NEVER the vocabularies.
  *   What the tables hold comes from `ApiModel`.
  * - `family`:  each tag in its own `<section part="tag">`, under a `dividing` `<ui-header>`
  *   whose id is the tag and whose text links to itself.

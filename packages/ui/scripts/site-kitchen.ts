@@ -32,6 +32,8 @@ import { existsSync, readdirSync, readFileSync } from "node:fs"
 import path from "node:path"
 import { parseArgs } from "node:util"
 
+import { readJSON5File } from "$/assembler/json5"
+
 import type { SiteDataFile, SiteFamily, SiteTag } from "../src/docs-components/docs-components.types.ts"
 import { Terminal } from "../tools/Terminal.ts"
 import { SITE_DATA, SITE_PAGES } from "../tools/tools.types.ts"
@@ -52,7 +54,7 @@ class KitchenSinkWriter {
   readonly file = path.join(UI, SITE_PAGES, "kitchen-sink.html")
 
   /** The site's data:  titles, summaries, topics. */
-  readonly data: SiteDataFile = JSON.parse(readFileSync(path.join(UI, SITE_DATA, "components.json"), "utf8"))
+  readonly data: SiteDataFile = readJSON5File<SiteDataFile>(path.join(UI, SITE_DATA, "components.json5"))
 
   /** `page` with its generated block replaced by a fresh one. */
   render(page: string): string {

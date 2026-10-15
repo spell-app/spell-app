@@ -1,6 +1,8 @@
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
+import { readJSON5File } from "$/assembler/json5"
+
 import { DesignComponents } from "./DesignComponents.ts"
 import type { SiteDataFile } from "../src/docs-components/docs-components.types.ts"
 import type { DesignExample, DesignSource } from "./tools.types.ts"
@@ -11,7 +13,7 @@ import type { DesignExample, DesignSource } from "./tools.types.ts"
  * (`DesignSource`;  epic `claude-design`, P11):  one "Brand" card per family, beside Spell UI's own.
  * - Read as DATA, never imported:  `ui` must not depend on `brand` (root `AGENTS.md`, "Overview").
  *   So this reads files the brand writes, as the brand book's "CONTENT FUNDAMENTALS" already was:
- *   - `packages/brand/docs/__data/components.json` --
+ *   - `packages/brand/docs/__data/components.json5` --
  *     its docs set's data, the same shape as ours (`yarn site:data` in `packages/brand`)
  *   - `packages/brand/docs/<tag>.html` -- its docs set's pages (served at `/components/brand/`):
  *     the examples are their Examples tab's `<ui-docs-example>`s, titled by the `<ui-section>` around each
@@ -36,7 +38,7 @@ export class DesignBrand {
   static read(root: string): DesignSource | undefined {
     const file = join(root, DATA)
     if (!existsSync(file)) return undefined
-    return new DesignBrand({ root, data: JSON.parse(readFileSync(file, "utf8")) as SiteDataFile }).source()
+    return new DesignBrand({ root, data: readJSON5File<SiteDataFile>(file) }).source()
   }
 
   /** This brand as a `DesignSource`. */
@@ -105,4 +107,4 @@ const GROUP = "Brand"
 const PAGES = "packages/brand/docs"
 
 /** The brand's docs set's data, repo-relative. */
-const DATA = `${PAGES}/__data/components.json`
+const DATA = `${PAGES}/__data/components.json5`

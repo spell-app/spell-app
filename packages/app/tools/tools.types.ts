@@ -11,7 +11,7 @@ import type { SiteDataBuilder } from "$/ui/tools/SiteDataBuilder"
 // ## The data file
 ////////////////
 
-/** `__data/components.json`:  Spell UI's `SiteDataFile`, as its builder makes it. */
+/** `__data/components.json5`:  Spell UI's `SiteDataFile`, as its builder makes it. */
 export type AppUIData = Awaited<ReturnType<SiteDataBuilder["build"]>>["data"]
 
 /** One entry of the data file:  a web component's tag, or a Solid component. */
@@ -27,11 +27,11 @@ export type AppUIProp = NonNullable<AppUITag["props"]>[number]
 export type AppUIUse = NonNullable<AppUITag["usedIn"]>[number]
 
 ////////////////
-// ## pages.json
+// ## pages.json5
 ////////////////
 
 /**
- * `__data/pages.json`:  the set's hand-kept facts, which `yarn site:data` reads and never writes.
+ * `__data/pages.json5`:  the set's hand-kept facts, which `yarn site:data` reads and never writes.
  * - Its `families` are Spell UI's page seeds too (`SitePagesFile`):  Spell UI's builder reads the two web
  *   components' entries from it.
  */

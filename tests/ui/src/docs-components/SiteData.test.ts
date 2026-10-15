@@ -17,7 +17,7 @@ afterEach(() => (SiteData.url = undefined))
 
 describe("SiteData.root()", () => {
   test("defaults `base` to the site root above the data file", () => {
-    SiteData.url = "/somewhere/docs/__data/components.json"
+    SiteData.url = "/somewhere/docs/__data/components.json5"
     expect(SiteData.root()).toBe(`${location.origin}/somewhere/docs/`)
   })
 })
@@ -35,5 +35,19 @@ describe("SiteData.family()", () => {
     expect(SiteData.family(DATA, "x-or")).toBe(DATA.families["x-button"])
     expect(SiteData.family(DATA, "x-button")).toBe(DATA.families["x-button"])
     expect(SiteData.family(DATA, "toString")).toBeUndefined()
+  })
+})
+
+describe("SiteData.json()", () => {
+  test("reads a data file as plain JSON, as its writer writes it", async () => {
+    expect(await SiteData.json(new Response('{"version": 1}'))).toEqual({ version: 1 })
+  })
+
+  test("reads it as JSON5 once somebody has written a comment into it", async () => {
+    expect(await SiteData.json(new Response('{\n  // why it is 1\n  "version": 1\n}\n'))).toEqual({ version: 1 })
+  })
+
+  test("rejects a file that won't read even as JSON5", async () => {
+    await expect(SiteData.json(new Response("{ nope"))).rejects.toThrow(SyntaxError)
   })
 })

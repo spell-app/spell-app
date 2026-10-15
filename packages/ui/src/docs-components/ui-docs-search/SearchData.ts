@@ -4,11 +4,11 @@ import { SITE_SEARCH_PATH, type SiteSearchFile } from "$/ui/docs-components/docs
 
 /****************
  * ### `SearchData`
- * The site's search file, `__data/search.json` (`docs/__data/search.json`, `yarn site:data`):
+ * The site's search file, `__data/search.json5` (`docs/__data/search.json5`, `yarn site:data`):
  * every page's sections, fetched once per page, on the first search (~170 KB, ~25 KB compressed:  never on load).
  * - `SiteData`'s twin, the same surface:  `url` (setting it fetches again), `load()`;
  *   fetched through `SiteData.request()`.
- * - Where it is:  `SearchData.url`, else beside the data file:  `__data/search.json` under `SiteData.root()`.
+ * - Where it is:  `SearchData.url`, else beside the data file:  `__data/search.json5` under `SiteData.root()`.
  * - Fails loudly, like `SiteData`:  `load()` rejects (until `url` is set again).
  *   The search then finds the other pages' TITLES only through their components, never their sections.
  * - Plain fetch, no Solid.
@@ -16,7 +16,7 @@ import { SITE_SEARCH_PATH, type SiteSearchFile } from "$/ui/docs-components/docs
  ****************/
 export class SearchData {
   /**
-   * URL of `search.json`, absolute or against the page;  unset:  beside the data file.
+   * URL of `search.json5`, absolute or against the page;  unset:  beside the data file.
    * - Setting it (to a new URL, the same one, or `undefined`) makes the next `load()` fetch again, as `SiteData.url`.
    */
   @E.resets("load") static accessor url: string | undefined
@@ -33,6 +33,6 @@ export class SearchData {
       method: "SearchData.load()",
       fix: "run `yarn site:data` in packages/ui, or check `SearchData.url`"
     })
-    return (await response.json()) as SiteSearchFile
+    return SiteData.json<SiteSearchFile>(response)
   }
 }

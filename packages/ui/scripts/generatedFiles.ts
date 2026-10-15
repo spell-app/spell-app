@@ -11,6 +11,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { keepingCommentsIn } from "$/assembler/json5"
+
 import { Terminal } from "../tools/Terminal.ts"
 
 ////////////////
@@ -30,12 +32,15 @@ export function formatFiles(files: string[]): void {
 
 /**
  * Write each of `outputs` whose file is missing or holds other text;  returns those files, relative to the cwd.
+ * - A `.json5` file (the site data, `docs/__data/`) keeps the comments somebody wrote into it (`keepingCommentsIn()`):
+ *   a value that didn't change leaves the file as it is.
  * - `isCheck`:  write nothing;  print each stale file to stderr, naming `yarn <command>`, and set exit code 1 if any
  *   (0 if none)
  * - SIDE EFFECT:  writes files (making their folders), or sets `process.exitCode`
  */
 export function writeOrCheck(outputs: GeneratedOutput[], { command, isCheck }: WriteOrCheckOptions): string[] {
-  const stale = outputs.filter(([file, text]) => !existsSync(file) || readFileSync(file, "utf8") !== text)
+  const written = outputs.map(([file, text]): GeneratedOutput => [file, keepingCommentsIn(file, text)])
+  const stale = written.filter(([file, text]) => !existsSync(file) || readFileSync(file, "utf8") !== text)
   const names = stale.map(([file]) => path.relative(process.cwd(), file))
   if (isCheck) {
     for (const name of names) Terminal.err(`stale:  ${name} (run \`yarn ${command}\`)`)
@@ -72,7 +77,7 @@ const PACKAGE_ROOT = fileURLToPath(new URL("../", import.meta.url))
 // ## Markup
 ////////////////
 
-/** A family's `status` (`docs/__data/pages.json`) as its label's words;  `done` shows none. */
+/** A family's `status` (`docs/__data/pages.json5`) as its label's words;  `done` shows none. */
 export const STATUS_TEXT: Readonly<Record<string, string>> = { planned: "Planned", "in-progress": "In progress" }
 
 /** `text` safe inside an attribute or element. */

@@ -1,6 +1,6 @@
 /**
  * `yarn site:index [--check]`:  write the component index, `docs/components.html`'s card grid (the site's pages,
- * `SITE_PAGES`), from the site's data (`docs/__data/components.json`).
+ * `SITE_PAGES`), from the site's data (`docs/__data/components.json5`).
  * - One section per topic (`<ui-header level="2" dividing>`), each a `<ui-cards>` of `<ui-card href header meta
  *   description>`:  every COMPONENT tag, under EACH of its topics, A-Z.  The same groups and links as the sidebar's
  *   Topics view, because both come from `NavIndex`.
@@ -15,6 +15,8 @@
 import { readFileSync } from "node:fs"
 import path from "node:path"
 import { parseArgs } from "node:util"
+
+import { readJSON5File } from "$/assembler/json5"
 
 import type { SiteDataFile, SiteTag } from "../src/docs-components/docs-components.types.ts"
 import { NavIndex } from "../src/docs-components/ui-docs-nav/NavIndex.ts"
@@ -37,7 +39,7 @@ class ComponentIndexWriter {
   readonly file = path.join(UI, SITE_PAGES, "components.html")
 
   /** The site's data. */
-  readonly data: SiteDataFile = JSON.parse(readFileSync(path.join(UI, SITE_DATA, "components.json"), "utf8"))
+  readonly data: SiteDataFile = readJSON5File<SiteDataFile>(path.join(UI, SITE_DATA, "components.json5"))
 
   /** `page` with its generated block replaced by a fresh one. */
   render(page: string): string {

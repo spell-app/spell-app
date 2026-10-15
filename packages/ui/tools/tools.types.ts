@@ -316,9 +316,9 @@ export const SITE_PAGES = "docs"
 /**
  * Spell UI's docs site's DATA, from `packages/ui/`:  `docs/__data/`.
  * - GENERATED, committed (`yarn site:data`):
- *   - `components.json`, `icons.json`, `search.json`
+ *   - `components.json5`, `icons.json5`, `search.json5`
  *   - `custom-elements.json`, `html-custom-data.json`
- * - hand-kept:  `pages.json`, the per-family facts they're built from
+ * - hand-kept:  `pages.json5`, the per-family facts they're built from
  */
 export const SITE_DATA = `${SITE_PAGES}/__data`
 

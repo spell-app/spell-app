@@ -52,7 +52,7 @@
             ICONS:  the old `icons.astro`, deleted in P7 (the icon browser), on `<ui-*>` widgets:  a segmented pack switcher,
             a search input, a wrapping labeled-icon menu of every icon (click to copy its name), "Show more" in steps of 300.
             - Behaviour:  the page script at the bottom (`IconBrowser`);  the pack lists come from the packs' own indexes
-              through `UI.icons`, Font Awesome's search terms from `__data/icons.json` (`yarn site:data`), fetched on first search.
+              through `UI.icons`, Font Awesome's search terms from `__data/icons.json5` (`yarn site:data`), fetched on first search.
           -->
           <ui-section id="icon-packs-2" header="Icon packs" sticky collapsible dividing>
             <ui-markdown>
@@ -136,7 +136,7 @@
                *   tooltip.  An icon whose name another entry took is labelled by its first alias.
                * - Sorted by Font Awesome file name, so an outline tile follows its solid icon;  Fomantic:  one tile per Fomantic
                *   name, alphabetically.
-               * - Search also matches Font Awesome's search terms (`__data/icons.json`, fetched on the first search), keyed by FA
+               * - Search also matches Font Awesome's search terms (`__data/icons.json5`, fetched on the first search), keyed by FA
                *   file name, so an outline or Fomantic tile matches its solid icon's terms.
                * - Renders the first 300 matches, then "Show more" in steps of 300:  cheap enough without a virtual list.
                * - A render "generation" drops stale async results when the pack or query changes mid-load.
@@ -283,8 +283,9 @@
                 /** Font Awesome's search terms by file name (`SiteIconsFile.terms`);  `{}` if they won't load. */
                 static async loadTerms() {
                   try {
-                    const response = await fetch(new URL("__data/icons.json", document.baseURI))
-                    return (await response.json()).terms
+                    const response = await fetch(new URL("__data/icons.json5", document.baseURI))
+                    // JSON5, read by the site's own reader (`SiteData.json()`):  a comment written into the file reads too
+                    return (await SiteData.json(response)).terms
                   } catch {
                     return {}
                   }

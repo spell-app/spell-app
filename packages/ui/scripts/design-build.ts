@@ -1,9 +1,9 @@
 /**
  * `yarn design:build [--out <dir>]` (also `spell dev design build`):  write the claude.ai Design System's files for
  * Spell UI into `<dir>/project/` (default `packages/ui/build/design-system/`, git-ignored), from the vocabularies
- * (`docs/__data/components.json`), the element examples and the Spell theme (see `tools/DesignExport.ts`).
+ * (`docs/__data/components.json5`), the element examples and the Spell theme (see `tools/DesignExport.ts`).
  * - `<dir>` is relative to the folder `yarn` ran from (`environment.invocationDir`).
- * - Reads `components.json` as committed:  run `yarn site:data` first after changing a vocabulary.
+ * - Reads `components.json5` as committed:  run `yarn site:data` first after changing a vocabulary.
  * - Leaves `project/components/bundle.js` / `bundle.css` alone:  the design bundle's build (epic `claude-design`, P8).
  * - Prints what it wrote:  cards per group, tokens per family, tokens left out.
  */
