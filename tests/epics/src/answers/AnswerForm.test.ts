@@ -2,7 +2,14 @@ import { parseHTML } from "linkedom"
 import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 
 import { AnswerForm } from "$/epics/answers/AnswerForm"
-import type { AnswerPart, AskState, DetailsDraft, PageAnswer, PartLabels, SentAnswer } from "$/epics/answers/answers.types"
+import type {
+  AnswerPart,
+  AskState,
+  DetailsDraft,
+  PageAnswer,
+  PartLabels,
+  SentAnswer
+} from "$/epics/answers/answers.types"
 
 ////////////////
 // ## Fakes

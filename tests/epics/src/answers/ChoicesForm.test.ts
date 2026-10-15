@@ -16,7 +16,7 @@ class FakeServer {
   posts: [string, Record<string, unknown>][] = []
 
   readonly fetch = vi.fn(async (url: string, init?: RequestInit): Promise<Response> => {
-    const what = /\/api\/choices\/(draft|answer)/.exec(url)![1] as "draft" | "answer"
+    const what = /\/api\/docs\/choices\/(draft|answer)/.exec(url)![1] as "draft" | "answer"
     if (!init?.method) return json({ [what]: this[what] })
     const body = JSON.parse(init.body as string) as Record<string, unknown>
     this.posts.push([what, body])

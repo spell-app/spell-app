@@ -180,7 +180,7 @@ describe("migratePages", () => {
     const html = readFileSync(join(root, "epics/big/details/pick.html"), "utf8")
     expect(html).not.toMatch(/spell-question|spell-option|details\.(js|css)|data-details-status/)
     expect(html).toContain(
-      '<ui-root><ui-components source="../../../packages/epics/pack/epics.pack.js"></ui-components>'
+      '<ui-root><ui-components source="../../../packages/epics/components/__pack/epics.pack.js"></ui-components>'
     )
     expect(html).toContain("<h1>Pick</h1><epic-send></epic-send>")
     expect(html).toContain('<epic-field label="Asked by" data-details-by>session <code>w</code></epic-field>')
@@ -238,7 +238,7 @@ describe("migratePages", () => {
     migratePages(pagesFor(root, "template"), { tidied: false })
     const html = readFileSync(join(root, "templates/details.html"), "utf8")
     expect(html).toContain("<epic-ask>")
-    expect(html).toContain('source="../packages/epics/pack/epics.pack.js"')
+    expect(html).toContain('source="../packages/epics/components/__pack/epics.pack.js"')
   })
 
   test("a saga page is never a step's:  it keeps the old markup", () => {

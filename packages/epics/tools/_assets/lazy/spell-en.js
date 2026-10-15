@@ -1,9 +1,9 @@
 "use strict"
 var __spellHighlightEn = (() => {
   var mc = Object.defineProperty
-  var ak = Object.getOwnPropertyDescriptor
-  var ik = Object.getOwnPropertyNames
-  var nk = Object.prototype.hasOwnProperty
+  var pk = Object.getOwnPropertyDescriptor
+  var ck = Object.getOwnPropertyNames
+  var dk = Object.prototype.hasOwnProperty
   var l = (a, e) => mc(a, "name", { value: e, configurable: !0 }),
     Gi = ((a) =>
       typeof require < "u"
@@ -14,27 +14,27 @@ var __spellHighlightEn = (() => {
       if (typeof require < "u") return require.apply(this, arguments)
       throw Error('Dynamic require of "' + a + '" is not supported')
     })
-  var ok = (a, e) => {
+  var hk = (a, e) => {
       for (var t in e) mc(a, t, { get: e[t], enumerable: !0 })
     },
-    lk = (a, e, t, r) => {
+    mk = (a, e, t, r) => {
       if ((e && typeof e == "object") || typeof e == "function")
-        for (let s of ik(e))
-          !nk.call(a, s) && s !== t && mc(a, s, { get: () => e[s], enumerable: !(r = ak(e, s)) || r.enumerable })
+        for (let s of ck(e))
+          !dk.call(a, s) && s !== t && mc(a, s, { get: () => e[s], enumerable: !(r = pk(e, s)) || r.enumerable })
       return a
     }
-  var uk = (a) => lk(mc({}, "__esModule", { value: !0 }), a)
-  var vB = {}
-  ok(vB, { default: () => yB })
-  var YD = {}
+  var fk = (a) => mk(mc({}, "__esModule", { value: !0 }), a)
+  var wB = {}
+  hk(wB, { default: () => AB })
+  var sk = {}
   var JS = Object.create,
     vl = Object.defineProperty,
     KS = Object.getOwnPropertyDescriptor,
-    pk = Object.getOwnPropertyNames,
-    ck = Object.getPrototypeOf,
-    dk = Object.prototype.hasOwnProperty,
+    gk = Object.getOwnPropertyNames,
+    yk = Object.getPrototypeOf,
+    vk = Object.prototype.hasOwnProperty,
     XS = l((a, e) => ((e = Symbol[a]) ? e : Symbol.for("Symbol." + a)), "lx"),
-    Wp = l((a) => {
+    Up = l((a) => {
       throw TypeError(a)
     }, "hp"),
     HS = l(
@@ -42,7 +42,7 @@ var __spellHighlightEn = (() => {
       "dx"
     ),
     p = l((a, e) => vl(a, "name", { value: e, configurable: !0 }), "a"),
-    hk = ((a) =>
+    Sk = ((a) =>
       typeof Gi < "u"
         ? Gi
         : typeof Proxy < "u"
@@ -64,32 +64,32 @@ var __spellHighlightEn = (() => {
     Wo = l((a, e) => {
       for (var t in e) vl(a, t, { get: e[t], enumerable: !0 })
     }, "jo"),
-    mk = l((a, e, t, r) => {
+    bk = l((a, e, t, r) => {
       if ((e && typeof e == "object") || typeof e == "function")
-        for (let s of pk(e))
-          !dk.call(a, s) &&
+        for (let s of gk(e))
+          !vk.call(a, s) &&
             s !== t &&
             vl(a, s, { get: l(() => e[s], "get"), enumerable: !(r = KS(e, s)) || r.enumerable })
       return a
-    }, "Iq"),
+    }, "qq"),
     Be = l(
       (a, e, t) => (
-        (t = a != null ? JS(ck(a)) : {}),
-        mk(e || !a || !a.__esModule ? vl(t, "default", { value: a, enumerable: !0 }) : t, a)
+        (t = a != null ? JS(yk(a)) : {}),
+        bk(e || !a || !a.__esModule ? vl(t, "default", { value: a, enumerable: !0 }) : t, a)
       ),
       "Ae"
     ),
     $ = l((a) => [, , , JS(a?.[XS("metadata")] ?? null)], "P"),
     YS = ["class", "method", "getter", "setter", "accessor", "field", "value", "get", "set"],
-    Sp = l((a) => (a !== void 0 && typeof a != "function" ? Wp("Function expected") : a), "fp"),
-    fk = l(
+    Ap = l((a) => (a !== void 0 && typeof a != "function" ? Up("Function expected") : a), "fp"),
+    Ak = l(
       (a, e, t, r, s) => ({
         kind: YS[a],
         name: e,
         metadata: r,
-        addInitializer: l((i) => (t._ ? Wp("Already initialized") : s.push(Sp(i || null))), "addInitializer")
+        addInitializer: l((i) => (t._ ? Up("Already initialized") : s.push(Ap(i || null))), "addInitializer")
       }),
-      "Lq"
+      "Gq"
     ),
     k = l((a, e) => HS(e, XS("metadata"), a[3]), "S"),
     h = l((a, e, t, r) => {
@@ -129,29 +129,29 @@ var __spellHighlightEn = (() => {
             ))
       g ? y && g < 4 && p(i, (g > 2 ? "set " : g > 1 ? "get " : "") + t) : p(s, t)
       for (var j = r.length - 1; j >= 0; j--)
-        ((d = fk(g, t, (c = {}), a[3], x)),
+        ((d = Ak(g, t, (c = {}), a[3], x)),
           g &&
             ((d.static = f),
             (d.private = y),
-            (m = d.access = { has: y ? (O) => gk(s, O) : (O) => t in O }),
-            g ^ 3 && (m.get = y ? (O) => (g ^ 1 ? AS : yk)(O, s, g ^ 4 ? i : E.get) : (O) => O[t]),
+            (m = d.access = { has: y ? (O) => wk(s, O) : (O) => t in O }),
+            g ^ 3 && (m.get = y ? (O) => (g ^ 1 ? AS : Tk)(O, s, g ^ 4 ? i : E.get) : (O) => O[t]),
             g > 2 && (m.set = y ? (O, R) => wS(O, s, R, g ^ 4 ? i : E.set) : (O, R) => (O[t] = R))),
           (u = (0, r[j])(g ? (g < 4 ? (y ? i : E[A]) : g > 4 ? void 0 : { get: E.get, set: E.set }) : s, d)),
           (c._ = 1),
           g ^ 4 || u === void 0
-            ? Sp(u) && (g > 4 ? D.unshift(u) : g ? (y ? (i = u) : (E[A] = u)) : (s = u))
+            ? Ap(u) && (g > 4 ? D.unshift(u) : g ? (y ? (i = u) : (E[A] = u)) : (s = u))
             : typeof u != "object" || u === null
-              ? Wp("Object expected")
-              : (Sp((o = u.get)) && (E.get = o), Sp((o = u.set)) && (E.set = o), Sp((o = u.init)) && D.unshift(o)))
+              ? Up("Object expected")
+              : (Ap((o = u.get)) && (E.get = o), Ap((o = u.set)) && (E.set = o), Ap((o = u.init)) && D.unshift(o)))
       return (g || k(a, s), E && vl(s, t, E), y ? (g ^ 4 ? i : E) : s)
     }, "h"),
     v = l((a, e, t) => HS(a, typeof e != "symbol" ? e + "" : e, t), "f"),
-    cy = l((a, e, t) => e.has(a) || Wp("Cannot " + t), "tm"),
-    gk = l((a, e) => (Object(e) !== e ? Wp('Cannot use the "in" operator on this value') : a.has(e)), "Bq"),
+    cy = l((a, e, t) => e.has(a) || Up("Cannot " + t), "rm"),
+    wk = l((a, e) => (Object(e) !== e ? Up('Cannot use the "in" operator on this value') : a.has(e)), "Wq"),
     AS = l((a, e, t) => (cy(a, e, "read from private field"), t ? t.call(a) : e.get(a)), "ax"),
     wS = l((a, e, t, r) => (cy(a, e, "write to private field"), r ? r.call(a, t) : e.set(a, t), t), "ux"),
-    yk = l((a, e, t) => (cy(a, e, "access private method"), t), "qq"),
-    vk = T((a, e) => {
+    Tk = l((a, e, t) => (cy(a, e, "access private method"), t), "Vq"),
+    xk = T((a, e) => {
       "use strict"
       var t
       ;(typeof window < "u"
@@ -186,7 +186,7 @@ var __spellHighlightEn = (() => {
         r = t.Symbol
       e.exports = r
     }),
-    Sk = T((a, e) => {
+    Ek = T((a, e) => {
       "use strict"
       var t = Sl(),
         r = Object.prototype,
@@ -203,36 +203,36 @@ var __spellHighlightEn = (() => {
         var f = i.call(c)
         return (g && (d ? (c[o] = m) : delete c[o]), f)
       }
-      ;(l(u, "G3"), p(u, "getRawTag"), (e.exports = u))
+      ;(l(u, "U3"), p(u, "getRawTag"), (e.exports = u))
     }),
-    bk = T((a, e) => {
+    Ck = T((a, e) => {
       "use strict"
       var t = Object.prototype,
         r = t.toString
       function s(i) {
         return r.call(i)
       }
-      ;(l(s, "U3"), p(s, "objectToString"), (e.exports = s))
+      ;(l(s, "J3"), p(s, "objectToString"), (e.exports = s))
     }),
     bl = T((a, e) => {
       "use strict"
       var t = Sl(),
-        r = Sk(),
-        s = bk(),
+        r = Ek(),
+        s = Ck(),
         i = "[object Null]",
         o = "[object Undefined]",
         u = t ? t.toStringTag : void 0
       function c(d) {
         return d == null ? (d === void 0 ? o : i) : u && u in Object(d) ? r(d) : s(d)
       }
-      ;(l(c, "X3"), p(c, "baseGetTag"), (e.exports = c))
+      ;(l(c, "Q3"), p(c, "baseGetTag"), (e.exports = c))
     }),
     Bi = T((a, e) => {
       "use strict"
       function t(r) {
         return r != null && typeof r == "object"
       }
-      ;(l(t, "Y3"), p(t, "isObjectLike"), (e.exports = t))
+      ;(l(t, "_3"), p(t, "isObjectLike"), (e.exports = t))
     }),
     dy = T((a, e) => {
       "use strict"
@@ -242,7 +242,7 @@ var __spellHighlightEn = (() => {
       function i(o) {
         return typeof o == "symbol" || (r(o) && t(o) == s)
       }
-      ;(l(i, "e8"), p(i, "isSymbol"), (e.exports = i))
+      ;(l(i, "n8"), p(i, "isSymbol"), (e.exports = i))
     }),
     hy = T((a, e) => {
       "use strict"
@@ -257,7 +257,7 @@ var __spellHighlightEn = (() => {
           ? !0
           : i.test(u) || !s.test(u) || (c != null && u in Object(c))
       }
-      ;(l(o, "i8"), p(o, "isKey"), (e.exports = o))
+      ;(l(o, "u8"), p(o, "isKey"), (e.exports = o))
     }),
     Vo = T((a, e) => {
       "use strict"
@@ -265,7 +265,7 @@ var __spellHighlightEn = (() => {
         var s = typeof r
         return r != null && (s == "object" || s == "function")
       }
-      ;(l(t, "o8"), p(t, "isObject"), (e.exports = t))
+      ;(l(t, "p8"), p(t, "isObject"), (e.exports = t))
     }),
     ZS = T((a, e) => {
       "use strict"
@@ -280,17 +280,17 @@ var __spellHighlightEn = (() => {
         var m = t(d)
         return m == i || m == o || m == s || m == u
       }
-      ;(l(c, "f8"), p(c, "isFunction"), (e.exports = c))
+      ;(l(c, "g8"), p(c, "isFunction"), (e.exports = c))
     }),
-    Ak = T((a, e) => {
+    Dk = T((a, e) => {
       "use strict"
       var t = Hs(),
         r = t["__core-js_shared__"]
       e.exports = r
     }),
-    wk = T((a, e) => {
+    kk = T((a, e) => {
       "use strict"
-      var t = Ak(),
+      var t = Dk(),
         r = (function () {
           var i = /[^.]+$/.exec((t && t.keys && t.keys.IE_PROTO) || "")
           return i ? "Symbol(src)_1." + i : ""
@@ -298,7 +298,7 @@ var __spellHighlightEn = (() => {
       function s(i) {
         return !!r && r in i
       }
-      ;(l(s, "g8"), p(s, "isMasked"), (e.exports = s))
+      ;(l(s, "P8"), p(s, "isMasked"), (e.exports = s))
     }),
     eb = T((a, e) => {
       "use strict"
@@ -315,12 +315,12 @@ var __spellHighlightEn = (() => {
         }
         return ""
       }
-      ;(l(s, "P8"), p(s, "toSource"), (e.exports = s))
+      ;(l(s, "x8"), p(s, "toSource"), (e.exports = s))
     }),
-    Tk = T((a, e) => {
+    $k = T((a, e) => {
       "use strict"
       var t = ZS(),
-        r = wk(),
+        r = kk(),
         s = Vo(),
         i = eb(),
         o = /[\\^$.*+?()[\]{}|]/g,
@@ -342,24 +342,24 @@ var __spellHighlightEn = (() => {
         var A = t(w) ? f : u
         return A.test(i(w))
       }
-      ;(l(y, "$8"), p(y, "baseIsNative"), (e.exports = y))
+      ;(l(y, "R8"), p(y, "baseIsNative"), (e.exports = y))
     }),
-    xk = T((a, e) => {
+    Ok = T((a, e) => {
       "use strict"
       function t(r, s) {
         return r?.[s]
       }
-      ;(l(t, "F8"), p(t, "getValue"), (e.exports = t))
+      ;(l(t, "N8"), p(t, "getValue"), (e.exports = t))
     }),
     Uo = T((a, e) => {
       "use strict"
-      var t = Tk(),
-        r = xk()
+      var t = $k(),
+        r = Ok()
       function s(i, o) {
         var u = r(i, o)
         return t(u) ? u : void 0
       }
-      ;(l(s, "N8"), p(s, "getNative"), (e.exports = s))
+      ;(l(s, "L8"), p(s, "getNative"), (e.exports = s))
     }),
     Kc = T((a, e) => {
       "use strict"
@@ -367,23 +367,23 @@ var __spellHighlightEn = (() => {
         r = t(Object, "create")
       e.exports = r
     }),
-    Ek = T((a, e) => {
+    jk = T((a, e) => {
       "use strict"
       var t = Kc()
       function r() {
         ;((this.__data__ = t ? t(null) : {}), (this.size = 0))
       }
-      ;(l(r, "L8"), p(r, "hashClear"), (e.exports = r))
+      ;(l(r, "G8"), p(r, "hashClear"), (e.exports = r))
     }),
-    Ck = T((a, e) => {
+    Fk = T((a, e) => {
       "use strict"
       function t(r) {
         var s = this.has(r) && delete this.__data__[r]
         return ((this.size -= s ? 1 : 0), s)
       }
-      ;(l(t, "B8"), p(t, "hashDelete"), (e.exports = t))
+      ;(l(t, "W8"), p(t, "hashDelete"), (e.exports = t))
     }),
-    Dk = T((a, e) => {
+    Pk = T((a, e) => {
       "use strict"
       var t = Kc(),
         r = "__lodash_hash_undefined__",
@@ -397,9 +397,9 @@ var __spellHighlightEn = (() => {
         }
         return i.call(c, u) ? c[u] : void 0
       }
-      ;(l(o, "U8"), p(o, "hashGet"), (e.exports = o))
+      ;(l(o, "J8"), p(o, "hashGet"), (e.exports = o))
     }),
-    kk = T((a, e) => {
+    Nk = T((a, e) => {
       "use strict"
       var t = Kc(),
         r = Object.prototype,
@@ -408,9 +408,9 @@ var __spellHighlightEn = (() => {
         var u = this.__data__
         return t ? u[o] !== void 0 : s.call(u, o)
       }
-      ;(l(i, "H8"), p(i, "hashHas"), (e.exports = i))
+      ;(l(i, "Z8"), p(i, "hashHas"), (e.exports = i))
     }),
-    $k = T((a, e) => {
+    Rk = T((a, e) => {
       "use strict"
       var t = Kc(),
         r = "__lodash_hash_undefined__"
@@ -418,15 +418,15 @@ var __spellHighlightEn = (() => {
         var u = this.__data__
         return ((this.size += this.has(i) ? 0 : 1), (u[i] = t && o === void 0 ? r : o), this)
       }
-      ;(l(s, "Z8"), p(s, "hashSet"), (e.exports = s))
+      ;(l(s, "eG"), p(s, "hashSet"), (e.exports = s))
     }),
-    Ok = T((a, e) => {
+    Ik = T((a, e) => {
       "use strict"
-      var t = Ek(),
-        r = Ck(),
-        s = Dk(),
-        i = kk(),
-        o = $k()
+      var t = jk(),
+        r = Fk(),
+        s = Pk(),
+        i = Nk(),
+        o = Rk()
       function u(c) {
         var d = -1,
           m = c == null ? 0 : c.length
@@ -444,19 +444,19 @@ var __spellHighlightEn = (() => {
         (u.prototype.set = o),
         (e.exports = u))
     }),
-    jk = T((a, e) => {
+    Lk = T((a, e) => {
       "use strict"
       function t() {
         ;((this.__data__ = []), (this.size = 0))
       }
-      ;(l(t, "nG"), p(t, "listCacheClear"), (e.exports = t))
+      ;(l(t, "oG"), p(t, "listCacheClear"), (e.exports = t))
     }),
     my = T((a, e) => {
       "use strict"
       function t(r, s) {
         return r === s || (r !== r && s !== s)
       }
-      ;(l(t, "sG"), p(t, "eq"), (e.exports = t))
+      ;(l(t, "aG"), p(t, "eq"), (e.exports = t))
     }),
     Xc = T((a, e) => {
       "use strict"
@@ -465,9 +465,9 @@ var __spellHighlightEn = (() => {
         for (var o = s.length; o--;) if (t(s[o][0], i)) return o
         return -1
       }
-      ;(l(r, "oG"), p(r, "assocIndexOf"), (e.exports = r))
+      ;(l(r, "pG"), p(r, "assocIndexOf"), (e.exports = r))
     }),
-    Fk = T((a, e) => {
+    Bk = T((a, e) => {
       "use strict"
       var t = Xc(),
         r = Array.prototype,
@@ -479,9 +479,9 @@ var __spellHighlightEn = (() => {
         var d = u.length - 1
         return (c == d ? u.pop() : s.call(u, c, 1), --this.size, !0)
       }
-      ;(l(i, "cG"), p(i, "listCacheDelete"), (e.exports = i))
+      ;(l(i, "fG"), p(i, "listCacheDelete"), (e.exports = i))
     }),
-    Nk = T((a, e) => {
+    Mk = T((a, e) => {
       "use strict"
       var t = Xc()
       function r(s) {
@@ -489,17 +489,17 @@ var __spellHighlightEn = (() => {
           o = t(i, s)
         return o < 0 ? void 0 : i[o][1]
       }
-      ;(l(r, "dG"), p(r, "listCacheGet"), (e.exports = r))
+      ;(l(r, "mG"), p(r, "listCacheGet"), (e.exports = r))
     }),
-    Pk = T((a, e) => {
+    _k = T((a, e) => {
       "use strict"
       var t = Xc()
       function r(s) {
         return t(this.__data__, s) > -1
       }
-      ;(l(r, "hG"), p(r, "listCacheHas"), (e.exports = r))
+      ;(l(r, "yG"), p(r, "listCacheHas"), (e.exports = r))
     }),
-    Rk = T((a, e) => {
+    Wk = T((a, e) => {
       "use strict"
       var t = Xc()
       function r(s, i) {
@@ -507,15 +507,15 @@ var __spellHighlightEn = (() => {
           u = t(o, s)
         return (u < 0 ? (++this.size, o.push([s, i])) : (o[u][1] = i), this)
       }
-      ;(l(r, "gG"), p(r, "listCacheSet"), (e.exports = r))
+      ;(l(r, "PG"), p(r, "listCacheSet"), (e.exports = r))
     }),
     Hc = T((a, e) => {
       "use strict"
-      var t = jk(),
-        r = Fk(),
-        s = Nk(),
-        i = Pk(),
-        o = Rk()
+      var t = Lk(),
+        r = Bk(),
+        s = Mk(),
+        i = _k(),
+        o = Wk()
       function u(c) {
         var d = -1,
           m = c == null ? 0 : c.length
@@ -540,59 +540,59 @@ var __spellHighlightEn = (() => {
         s = t(r, "Map")
       e.exports = s
     }),
-    Ik = T((a, e) => {
+    Vk = T((a, e) => {
       "use strict"
-      var t = Ok(),
+      var t = Ik(),
         r = Hc(),
         s = fy()
       function i() {
         ;((this.size = 0), (this.__data__ = { hash: new t(), map: new (s || r)(), string: new t() }))
       }
-      ;(l(i, "DG"), p(i, "mapCacheClear"), (e.exports = i))
+      ;(l(i, "MG"), p(i, "mapCacheClear"), (e.exports = i))
     }),
-    Lk = T((a, e) => {
+    Uk = T((a, e) => {
       "use strict"
       function t(r) {
         var s = typeof r
         return s == "string" || s == "number" || s == "symbol" || s == "boolean" ? r !== "__proto__" : r === null
       }
-      ;(l(t, "CG"), p(t, "isKeyable"), (e.exports = t))
+      ;(l(t, "$G"), p(t, "isKeyable"), (e.exports = t))
     }),
     Yc = T((a, e) => {
       "use strict"
-      var t = Lk()
+      var t = Uk()
       function r(s, i) {
         var o = s.__data__
         return t(i) ? o[typeof i == "string" ? "string" : "hash"] : o.map
       }
-      ;(l(r, "MG"), p(r, "getMapData"), (e.exports = r))
+      ;(l(r, "OG"), p(r, "getMapData"), (e.exports = r))
     }),
-    Bk = T((a, e) => {
+    Gk = T((a, e) => {
       "use strict"
       var t = Yc()
       function r(s) {
         var i = t(this, s).delete(s)
         return ((this.size -= i ? 1 : 0), i)
       }
-      ;(l(r, "FG"), p(r, "mapCacheDelete"), (e.exports = r))
+      ;(l(r, "NG"), p(r, "mapCacheDelete"), (e.exports = r))
     }),
-    Mk = T((a, e) => {
+    zk = T((a, e) => {
       "use strict"
       var t = Yc()
       function r(s) {
         return t(this, s).get(s)
       }
-      ;(l(r, "RG"), p(r, "mapCacheGet"), (e.exports = r))
+      ;(l(r, "IG"), p(r, "mapCacheGet"), (e.exports = r))
     }),
-    _k = T((a, e) => {
+    qk = T((a, e) => {
       "use strict"
       var t = Yc()
       function r(s) {
         return t(this, s).has(s)
       }
-      ;(l(r, "jG"), p(r, "mapCacheHas"), (e.exports = r))
+      ;(l(r, "BG"), p(r, "mapCacheHas"), (e.exports = r))
     }),
-    Wk = T((a, e) => {
+    Jk = T((a, e) => {
       "use strict"
       var t = Yc()
       function r(s, i) {
@@ -600,15 +600,15 @@ var __spellHighlightEn = (() => {
           u = o.size
         return (o.set(s, i), (this.size += o.size == u ? 0 : 1), this)
       }
-      ;(l(r, "LG"), p(r, "mapCacheSet"), (e.exports = r))
+      ;(l(r, "GG"), p(r, "mapCacheSet"), (e.exports = r))
     }),
     gy = T((a, e) => {
       "use strict"
-      var t = Ik(),
-        r = Bk(),
-        s = Mk(),
-        i = _k(),
-        o = Wk()
+      var t = Vk(),
+        r = Gk(),
+        s = zk(),
+        i = qk(),
+        o = Jk()
       function u(c) {
         var d = -1,
           m = c == null ? 0 : c.length
@@ -626,7 +626,7 @@ var __spellHighlightEn = (() => {
         (u.prototype.set = o),
         (e.exports = u))
     }),
-    Vk = T((a, e) => {
+    Kk = T((a, e) => {
       "use strict"
       var t = gy(),
         r = "Expected a function"
@@ -642,11 +642,11 @@ var __spellHighlightEn = (() => {
         }, "memoized")
         return ((u.cache = new (s.Cache || t)()), u)
       }
-      ;(l(s, "Am"), p(s, "memoize"), (s.Cache = t), (e.exports = s))
+      ;(l(s, "xm"), p(s, "memoize"), (s.Cache = t), (e.exports = s))
     }),
-    Uk = T((a, e) => {
+    Xk = T((a, e) => {
       "use strict"
-      var t = Vk(),
+      var t = Kk(),
         r = 500
       function s(i) {
         var o = t(i, function (c) {
@@ -655,11 +655,11 @@ var __spellHighlightEn = (() => {
           u = o.cache
         return o
       }
-      ;(l(s, "JG"), p(s, "memoizeCapped"), (e.exports = s))
+      ;(l(s, "YG"), p(s, "memoizeCapped"), (e.exports = s))
     }),
-    Gk = T((a, e) => {
+    Hk = T((a, e) => {
       "use strict"
-      var t = Uk(),
+      var t = Xk(),
         r = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g,
         s = /\\(\\)?/g,
         i = t(function (o) {
@@ -680,9 +680,9 @@ var __spellHighlightEn = (() => {
         for (var i = -1, o = r == null ? 0 : r.length, u = Array(o); ++i < o;) u[i] = s(r[i], i, r)
         return u
       }
-      ;(l(t, "QG"), p(t, "arrayMap"), (e.exports = t))
+      ;(l(t, "t9"), p(t, "arrayMap"), (e.exports = t))
     }),
-    zk = T((a, e) => {
+    Yk = T((a, e) => {
       "use strict"
       var t = Sl(),
         r = tb(),
@@ -698,26 +698,26 @@ var __spellHighlightEn = (() => {
         var g = m + ""
         return g == "0" && 1 / m == -o ? "-0" : g
       }
-      ;(l(d, "ww"), p(d, "baseToString"), (e.exports = d))
+      ;(l(d, "Dw"), p(d, "baseToString"), (e.exports = d))
     }),
-    Vp = T((a, e) => {
+    Gp = T((a, e) => {
       "use strict"
-      var t = zk()
+      var t = Yk()
       function r(s) {
         return s == null ? "" : t(s)
       }
-      ;(l(r, "s9"), p(r, "toString"), (e.exports = r))
+      ;(l(r, "a9"), p(r, "toString"), (e.exports = r))
     }),
-    Up = T((a, e) => {
+    zp = T((a, e) => {
       "use strict"
       var t = Bs(),
         r = hy(),
-        s = Gk(),
-        i = Vp()
+        s = Hk(),
+        i = Gp()
       function o(u, c) {
         return t(u) ? u : r(u, c) ? [u] : s(i(u))
       }
-      ;(l(o, "p9"), p(o, "castPath"), (e.exports = o))
+      ;(l(o, "d9"), p(o, "castPath"), (e.exports = o))
     }),
     Al = T((a, e) => {
       "use strict"
@@ -728,18 +728,18 @@ var __spellHighlightEn = (() => {
         var o = i + ""
         return o == "0" && 1 / i == -r ? "-0" : o
       }
-      ;(l(s, "d9"), p(s, "toKey"), (e.exports = s))
+      ;(l(s, "m9"), p(s, "toKey"), (e.exports = s))
     }),
     yy = T((a, e) => {
       "use strict"
-      var t = Up(),
+      var t = zp(),
         r = Al()
       function s(i, o) {
         o = t(o, i)
         for (var u = 0, c = o.length; i != null && u < c;) i = i[r(o[u++])]
         return u && u == c ? i : void 0
       }
-      ;(l(s, "m9"), p(s, "baseGet"), (e.exports = s))
+      ;(l(s, "S9"), p(s, "baseGet"), (e.exports = s))
     }),
     Qc = T((a, e) => {
       "use strict"
@@ -748,7 +748,7 @@ var __spellHighlightEn = (() => {
         var u = s == null ? void 0 : t(s, i)
         return u === void 0 ? o : u
       }
-      ;(l(r, "y9"), p(r, "get"), (e.exports = r))
+      ;(l(r, "T9"), p(r, "get"), (e.exports = r))
     }),
     rb = T((a, e) => {
       "use strict"
@@ -763,16 +763,16 @@ var __spellHighlightEn = (() => {
         for (var c = Array(u); ++o < u;) c[o] = r[o + s]
         return c
       }
-      ;(l(t, "S9"), p(t, "baseSlice"), (e.exports = t))
+      ;(l(t, "A9"), p(t, "baseSlice"), (e.exports = t))
     }),
-    qk = T((a, e) => {
+    Qk = T((a, e) => {
       "use strict"
       var t = rb()
       function r(s, i, o) {
         var u = s.length
         return ((o = o === void 0 ? u : o), !i && o >= u ? s : t(s, i, o))
       }
-      ;(l(r, "T9"), p(r, "castSlice"), (e.exports = r))
+      ;(l(r, "b9"), p(r, "castSlice"), (e.exports = r))
     }),
     sb = T((a, e) => {
       "use strict"
@@ -787,16 +787,16 @@ var __spellHighlightEn = (() => {
       function m(g) {
         return d.test(g)
       }
-      ;(l(m, "k9"), p(m, "hasUnicode"), (e.exports = m))
+      ;(l(m, "F9"), p(m, "hasUnicode"), (e.exports = m))
     }),
-    Jk = T((a, e) => {
+    Zk = T((a, e) => {
       "use strict"
       function t(r) {
         return r.split("")
       }
-      ;(l(t, "M9"), p(t, "asciiToArray"), (e.exports = t))
+      ;(l(t, "O9"), p(t, "asciiToArray"), (e.exports = t))
     }),
-    Kk = T((a, e) => {
+    e$ = T((a, e) => {
       "use strict"
       var t = "\\ud800-\\udfff",
         r = "\\u0300-\\u036f",
@@ -818,27 +818,27 @@ var __spellHighlightEn = (() => {
         j = x + D + E,
         O = "(?:" + [f + d + "?", d, y, w, c].join("|") + ")",
         R = RegExp(m + "(?=" + m + ")|" + O + j, "g")
-      function M(P) {
-        return P.match(R) || []
+      function M(N) {
+        return N.match(R) || []
       }
-      ;(l(M, "V9"), p(M, "unicodeToArray"), (e.exports = M))
+      ;(l(M, "K9"), p(M, "unicodeToArray"), (e.exports = M))
     }),
-    Xk = T((a, e) => {
+    t$ = T((a, e) => {
       "use strict"
-      var t = Jk(),
+      var t = Zk(),
         r = sb(),
-        s = Kk()
+        s = e$()
       function i(o) {
         return r(o) ? s(o) : t(o)
       }
-      ;(l(i, "J9"), p(i, "stringToArray"), (e.exports = i))
+      ;(l(i, "Y9"), p(i, "stringToArray"), (e.exports = i))
     }),
     ab = T((a, e) => {
       "use strict"
-      var t = qk(),
+      var t = Qk(),
         r = sb(),
-        s = Xk(),
-        i = Vp()
+        s = t$(),
+        i = Gp()
       function o(u) {
         return function (c) {
           c = i(c)
@@ -848,29 +848,29 @@ var __spellHighlightEn = (() => {
           return m[u]() + g
         }
       }
-      ;(l(o, "Q9"), p(o, "createCaseFirst"), (e.exports = o))
+      ;(l(o, "t6"), p(o, "createCaseFirst"), (e.exports = o))
     }),
-    Hk = T((a, e) => {
+    r$ = T((a, e) => {
       "use strict"
       var t = ab(),
         r = t("toLowerCase")
       e.exports = r
     }),
-    Yk = T((a, e) => {
+    s$ = T((a, e) => {
       "use strict"
-      var t = Vp()
+      var t = Gp()
       function r(s) {
         return t(s).toLowerCase()
       }
-      ;(l(r, "r6"), p(r, "toLower"), (e.exports = r))
+      ;(l(r, "i6"), p(r, "toLower"), (e.exports = r))
     }),
-    Qk = T((a, e) => {
+    a$ = T((a, e) => {
       "use strict"
       var t = ab(),
         r = t("toUpperCase")
       e.exports = r
     }),
-    Zk = T((a, e) => {
+    i$ = T((a, e) => {
       "use strict"
       function t(r, s, i, o) {
         var u = -1,
@@ -878,20 +878,20 @@ var __spellHighlightEn = (() => {
         for (o && c && (i = r[++u]); ++u < c;) i = s(i, r[u], u, r)
         return i
       }
-      ;(l(t, "i6"), p(t, "arrayReduce"), (e.exports = t))
+      ;(l(t, "u6"), p(t, "arrayReduce"), (e.exports = t))
     }),
-    e$ = T((a, e) => {
+    n$ = T((a, e) => {
       "use strict"
       function t(r) {
         return function (s) {
           return r?.[s]
         }
       }
-      ;(l(t, "o6"), p(t, "basePropertyOf"), (e.exports = t))
+      ;(l(t, "p6"), p(t, "basePropertyOf"), (e.exports = t))
     }),
-    t$ = T((a, e) => {
+    o$ = T((a, e) => {
       "use strict"
-      var t = e$(),
+      var t = n$(),
         r = {
           À: "A",
           Á: "A",
@@ -1087,10 +1087,10 @@ var __spellHighlightEn = (() => {
         s = t(r)
       e.exports = s
     }),
-    r$ = T((a, e) => {
+    l$ = T((a, e) => {
       "use strict"
-      var t = t$(),
-        r = Vp(),
+      var t = o$(),
+        r = Gp(),
         s = /[\xc0-\xd6\xd8-\xf6\xf8-\xff\u0100-\u017f]/g,
         i = "\\u0300-\\u036f",
         o = "\\ufe20-\\ufe2f",
@@ -1101,25 +1101,25 @@ var __spellHighlightEn = (() => {
       function g(f) {
         return ((f = r(f)), f && f.replace(s, t).replace(m, ""))
       }
-      ;(l(g, "P6"), p(g, "deburr"), (e.exports = g))
+      ;(l(g, "x6"), p(g, "deburr"), (e.exports = g))
     }),
-    s$ = T((a, e) => {
+    u$ = T((a, e) => {
       "use strict"
       var t = /[^\x00-\x2f\x3a-\x40\x5b-\x60\x7b-\x7f]+/g
       function r(s) {
         return s.match(t) || []
       }
-      ;(l(r, "A6"), p(r, "asciiWords"), (e.exports = r))
+      ;(l(r, "w6"), p(r, "asciiWords"), (e.exports = r))
     }),
-    a$ = T((a, e) => {
+    p$ = T((a, e) => {
       "use strict"
       var t = /[a-z][A-Z]|[A-Z]{2}[a-z]|[0-9][a-zA-Z]|[a-zA-Z][0-9]|[^a-zA-Z0-9 ]/
       function r(s) {
         return t.test(s)
       }
-      ;(l(r, "b6"), p(r, "hasUnicodeWord"), (e.exports = r))
+      ;(l(r, "v6"), p(r, "hasUnicodeWord"), (e.exports = r))
     }),
-    i$ = T((a, e) => {
+    c$ = T((a, e) => {
       "use strict"
       var t = "\\ud800-\\udfff",
         r = "\\u0300-\\u036f",
@@ -1143,8 +1143,8 @@ var __spellHighlightEn = (() => {
         O = "[" + u + "]",
         R = "[" + c + "]",
         M = "[^" + t + A + j + u + c + y + "]",
-        P = "\\ud83c[\\udffb-\\udfff]",
-        _ = "(?:" + E + "|" + P + ")",
+        N = "\\ud83c[\\udffb-\\udfff]",
+        _ = "(?:" + E + "|" + N + ")",
         G = "[^" + t + "]",
         V = "(?:\\ud83c[\\udde6-\\uddff]){2}",
         ue = "[\\ud800-\\udbff][\\udc00-\\udfff]",
@@ -1177,24 +1177,24 @@ var __spellHighlightEn = (() => {
       function pe(de) {
         return de.match(H) || []
       }
-      ;(l(pe, "K6"), p(pe, "unicodeWords"), (e.exports = pe))
+      ;(l(pe, "X6"), p(pe, "unicodeWords"), (e.exports = pe))
     }),
-    n$ = T((a, e) => {
+    d$ = T((a, e) => {
       "use strict"
-      var t = s$(),
-        r = a$(),
-        s = Vp(),
-        i = i$()
+      var t = u$(),
+        r = p$(),
+        s = Gp(),
+        i = c$()
       function o(u, c, d) {
         return ((u = s(u)), (c = d ? void 0 : c), c === void 0 ? (r(u) ? i(u) : t(u)) : u.match(c) || [])
       }
-      ;(l(o, "Z6"), p(o, "words"), (e.exports = o))
+      ;(l(o, "eW"), p(o, "words"), (e.exports = o))
     }),
-    o$ = T((a, e) => {
+    h$ = T((a, e) => {
       "use strict"
-      var t = Zk(),
-        r = r$(),
-        s = n$(),
+      var t = i$(),
+        r = l$(),
+        s = d$(),
         i = "['\u2019]",
         o = RegExp(i, "g")
       function u(c) {
@@ -1202,20 +1202,20 @@ var __spellHighlightEn = (() => {
           return t(s(r(d).replace(o, "")), c, "")
         }
       }
-      ;(l(u, "nW"), p(u, "createCompounder"), (e.exports = u))
+      ;(l(u, "oW"), p(u, "createCompounder"), (e.exports = u))
     }),
-    l$ = T((a, e) => {
+    m$ = T((a, e) => {
       "use strict"
-      var t = o$(),
+      var t = h$(),
         r = t(function (s, i, o) {
           return s + (o ? "_" : "") + i.toLowerCase()
         })
       e.exports = r
     }),
-    u$ = T((a, e) => {
+    f$ = T((a, e) => {
       "use strict"
       ;(function (t, r) {
-        typeof hk == "function" && typeof a == "object" && typeof e == "object"
+        typeof Sk == "function" && typeof a == "object" && typeof e == "object"
           ? (e.exports = r())
           : typeof define == "function" && define.amd
             ? define(function () {
@@ -1636,9 +1636,9 @@ var __spellHighlightEn = (() => {
             return O.call(C, L)
           }, "_has"),
           M = 0,
-          P = Math.random(),
+          N = Math.random(),
           _ = p(function (C) {
-            return "Symbol(".concat(C === void 0 ? "" : C, ")_", (++M + P).toString(36))
+            return "Symbol(".concat(C === void 0 ? "" : C, ")_", (++M + N).toString(36))
           }, "_uid"),
           G = !1,
           V = t(function (C) {
@@ -1661,10 +1661,10 @@ var __spellHighlightEn = (() => {
               return ue.call(Y)
             }),
               (C.exports = function (Y, me, ke, ze) {
-                var Pt = typeof ke == "function"
-                ;(Pt && (R(ke, "name") || j(ke, "name", me)),
+                var Nt = typeof ke == "function"
+                ;(Nt && (R(ke, "name") || j(ke, "name", me)),
                   Y[me] !== ke &&
-                    (Pt && (R(ke, L) || j(ke, L, Y[me] ? "" + Y[me] : ee.join(String(me)))),
+                    (Nt && (R(ke, L) || j(ke, L, Y[me] ? "" + Y[me] : ee.join(String(me)))),
                     Y === r ? (Y[me] = ke) : ze ? (Y[me] ? (Y[me] = ke) : j(Y, me, ke)) : (delete Y[me], j(Y, me, ke))))
               })(
                 Function.prototype,
@@ -1705,21 +1705,21 @@ var __spellHighlightEn = (() => {
               me = C & Te.S,
               ke = C & Te.P,
               ze = C & Te.B,
-              Pt = Y ? r : me ? r[L] || (r[L] = {}) : (r[L] || {})[Re],
+              Nt = Y ? r : me ? r[L] || (r[L] = {}) : (r[L] || {})[Re],
               va = Y ? s : s[L] || (s[L] = {}),
-              Fl = va[Re] || (va[Re] = {}),
+              Nl = va[Re] || (va[Re] = {}),
               mt,
               ra,
               Rt,
               Sa
             Y && (z = L)
             for (mt in z)
-              ((ra = !ee && Pt && Pt[mt] !== void 0),
-                (Rt = (ra ? Pt : z)[mt]),
+              ((ra = !ee && Nt && Nt[mt] !== void 0),
+                (Rt = (ra ? Nt : z)[mt]),
                 (Sa = ze && ra ? we(Rt, r) : ke && typeof Rt == "function" ? we(Function.call, Rt) : Rt),
-                Pt && Ae(Pt, mt, Rt, C & Te.U),
+                Nt && Ae(Nt, mt, Rt, C & Te.U),
                 va[mt] != Rt && j(va, mt, Sa),
-                ke && Fl[mt] != Rt && (Fl[mt] = Rt))
+                ke && Nl[mt] != Rt && (Nl[mt] = Rt))
           }, "$export")
         ;((r.core = s),
           (Te.F = 1),
@@ -1790,15 +1790,15 @@ var __spellHighlightEn = (() => {
             /[\xAA\xB5\xBA\xC0-\xD6\xD8-\xF6\xF8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0370-\u0374\u0376\u0377\u037A-\u037D\u037F\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u052F\u0531-\u0556\u0559\u0561-\u0587\u05D0-\u05EA\u05F0-\u05F2\u0620-\u064A\u066E\u066F\u0671-\u06D3\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0815\u081A\u0824\u0828\u0840-\u0858\u0860-\u086A\u08A0-\u08B4\u08B6-\u08BD\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC\u09DD\u09DF-\u09E1\u09F0\u09F1\u09FC\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0\u0AE1\u0AF9\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D\u0B5C\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C39\u0C3D\u0C58-\u0C5A\u0C60\u0C61\u0C80\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDE\u0CE0\u0CE1\u0CF1\u0CF2\u0D05-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D\u0D4E\u0D54-\u0D56\u0D5F-\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0E01-\u0E30\u0E32\u0E33\u0E40-\u0E46\u0E81\u0E82\u0E84\u0E87\u0E88\u0E8A\u0E8D\u0E94-\u0E97\u0E99-\u0E9F\u0EA1-\u0EA3\u0EA5\u0EA7\u0EAA\u0EAB\u0EAD-\u0EB0\u0EB2\u0EB3\u0EBD\u0EC0-\u0EC4\u0EC6\u0EDC-\u0EDF\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C\u1000-\u102A\u103F\u1050-\u1055\u105A-\u105D\u1061\u1065\u1066\u106E-\u1070\u1075-\u1081\u108E\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F5\u13F8-\u13FD\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16EE-\u16F8\u1700-\u170C\u170E-\u1711\u1720-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1780-\u17B3\u17D7\u17DC\u1820-\u1877\u1880-\u1884\u1887-\u18A8\u18AA\u18B0-\u18F5\u1900-\u191E\u1950-\u196D\u1970-\u1974\u1980-\u19AB\u19B0-\u19C9\u1A00-\u1A16\u1A20-\u1A54\u1AA7\u1B05-\u1B33\u1B45-\u1B4B\u1B83-\u1BA0\u1BAE\u1BAF\u1BBA-\u1BE5\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1C80-\u1C88\u1CE9-\u1CEC\u1CEE-\u1CF1\u1CF5\u1CF6\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2160-\u2188\u2C00-\u2C2E\u2C30-\u2C5E\u2C60-\u2CE4\u2CEB-\u2CEE\u2CF2\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2E2F\u3005-\u3007\u3021-\u3029\u3031-\u3035\u3038-\u303C\u3041-\u3096\u309D-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312E\u3131-\u318E\u31A0-\u31BA\u31F0-\u31FF\u3400-\u4DB5\u4E00-\u9FEA\uA000-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA67F-\uA69D\uA6A0-\uA6EF\uA717-\uA71F\uA722-\uA788\uA78B-\uA7AE\uA7B0-\uA7B7\uA7F7-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA8F2-\uA8F7\uA8FB\uA8FD\uA90A-\uA925\uA930-\uA946\uA960-\uA97C\uA984-\uA9B2\uA9CF\uA9E0-\uA9E4\uA9E6-\uA9EF\uA9FA-\uA9FE\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAA60-\uAA76\uAA7A\uAA7E-\uAAAF\uAAB1\uAAB5\uAAB6\uAAB9-\uAABD\uAAC0\uAAC2\uAADB-\uAADD\uAAE0-\uAAEA\uAAF2-\uAAF4\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uAB30-\uAB5A\uAB5C-\uAB65\uAB70-\uABE2\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]|\uD800[\uDC00-\uDC0B\uDC0D-\uDC26\uDC28-\uDC3A\uDC3C\uDC3D\uDC3F-\uDC4D\uDC50-\uDC5D\uDC80-\uDCFA\uDD40-\uDD74\uDE80-\uDE9C\uDEA0-\uDED0\uDF00-\uDF1F\uDF2D-\uDF4A\uDF50-\uDF75\uDF80-\uDF9D\uDFA0-\uDFC3\uDFC8-\uDFCF\uDFD1-\uDFD5]|\uD801[\uDC00-\uDC9D\uDCB0-\uDCD3\uDCD8-\uDCFB\uDD00-\uDD27\uDD30-\uDD63\uDE00-\uDF36\uDF40-\uDF55\uDF60-\uDF67]|\uD802[\uDC00-\uDC05\uDC08\uDC0A-\uDC35\uDC37\uDC38\uDC3C\uDC3F-\uDC55\uDC60-\uDC76\uDC80-\uDC9E\uDCE0-\uDCF2\uDCF4\uDCF5\uDD00-\uDD15\uDD20-\uDD39\uDD80-\uDDB7\uDDBE\uDDBF\uDE00\uDE10-\uDE13\uDE15-\uDE17\uDE19-\uDE33\uDE60-\uDE7C\uDE80-\uDE9C\uDEC0-\uDEC7\uDEC9-\uDEE4\uDF00-\uDF35\uDF40-\uDF55\uDF60-\uDF72\uDF80-\uDF91]|\uD803[\uDC00-\uDC48\uDC80-\uDCB2\uDCC0-\uDCF2]|\uD804[\uDC03-\uDC37\uDC83-\uDCAF\uDCD0-\uDCE8\uDD03-\uDD26\uDD50-\uDD72\uDD76\uDD83-\uDDB2\uDDC1-\uDDC4\uDDDA\uDDDC\uDE00-\uDE11\uDE13-\uDE2B\uDE80-\uDE86\uDE88\uDE8A-\uDE8D\uDE8F-\uDE9D\uDE9F-\uDEA8\uDEB0-\uDEDE\uDF05-\uDF0C\uDF0F\uDF10\uDF13-\uDF28\uDF2A-\uDF30\uDF32\uDF33\uDF35-\uDF39\uDF3D\uDF50\uDF5D-\uDF61]|\uD805[\uDC00-\uDC34\uDC47-\uDC4A\uDC80-\uDCAF\uDCC4\uDCC5\uDCC7\uDD80-\uDDAE\uDDD8-\uDDDB\uDE00-\uDE2F\uDE44\uDE80-\uDEAA\uDF00-\uDF19]|\uD806[\uDCA0-\uDCDF\uDCFF\uDE00\uDE0B-\uDE32\uDE3A\uDE50\uDE5C-\uDE83\uDE86-\uDE89\uDEC0-\uDEF8]|\uD807[\uDC00-\uDC08\uDC0A-\uDC2E\uDC40\uDC72-\uDC8F\uDD00-\uDD06\uDD08\uDD09\uDD0B-\uDD30\uDD46]|\uD808[\uDC00-\uDF99]|\uD809[\uDC00-\uDC6E\uDC80-\uDD43]|[\uD80C\uD81C-\uD820\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872\uD874-\uD879][\uDC00-\uDFFF]|\uD80D[\uDC00-\uDC2E]|\uD811[\uDC00-\uDE46]|\uD81A[\uDC00-\uDE38\uDE40-\uDE5E\uDED0-\uDEED\uDF00-\uDF2F\uDF40-\uDF43\uDF63-\uDF77\uDF7D-\uDF8F]|\uD81B[\uDF00-\uDF44\uDF50\uDF93-\uDF9F\uDFE0\uDFE1]|\uD821[\uDC00-\uDFEC]|\uD822[\uDC00-\uDEF2]|\uD82C[\uDC00-\uDD1E\uDD70-\uDEFB]|\uD82F[\uDC00-\uDC6A\uDC70-\uDC7C\uDC80-\uDC88\uDC90-\uDC99]|\uD835[\uDC00-\uDC54\uDC56-\uDC9C\uDC9E\uDC9F\uDCA2\uDCA5\uDCA6\uDCA9-\uDCAC\uDCAE-\uDCB9\uDCBB\uDCBD-\uDCC3\uDCC5-\uDD05\uDD07-\uDD0A\uDD0D-\uDD14\uDD16-\uDD1C\uDD1E-\uDD39\uDD3B-\uDD3E\uDD40-\uDD44\uDD46\uDD4A-\uDD50\uDD52-\uDEA5\uDEA8-\uDEC0\uDEC2-\uDEDA\uDEDC-\uDEFA\uDEFC-\uDF14\uDF16-\uDF34\uDF36-\uDF4E\uDF50-\uDF6E\uDF70-\uDF88\uDF8A-\uDFA8\uDFAA-\uDFC2\uDFC4-\uDFCB]|\uD83A[\uDC00-\uDCC4\uDD00-\uDD43]|\uD83B[\uDE00-\uDE03\uDE05-\uDE1F\uDE21\uDE22\uDE24\uDE27\uDE29-\uDE32\uDE34-\uDE37\uDE39\uDE3B\uDE42\uDE47\uDE49\uDE4B\uDE4D-\uDE4F\uDE51\uDE52\uDE54\uDE57\uDE59\uDE5B\uDE5D\uDE5F\uDE61\uDE62\uDE64\uDE67-\uDE6A\uDE6C-\uDE72\uDE74-\uDE77\uDE79-\uDE7C\uDE7E\uDE80-\uDE89\uDE8B-\uDE9B\uDEA1-\uDEA3\uDEA5-\uDEA9\uDEAB-\uDEBB]|\uD869[\uDC00-\uDED6\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF34\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1\uDEB0-\uDFFF]|\uD87A[\uDC00-\uDFE0]|\uD87E[\uDC00-\uDE1D]/,
           Bd =
             /[\xAA\xB5\xBA\xC0-\xD6\xD8-\xF6\xF8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0300-\u0374\u0376\u0377\u037A-\u037D\u037F\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u0483-\u0487\u048A-\u052F\u0531-\u0556\u0559\u0561-\u0587\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7\u05D0-\u05EA\u05F0-\u05F2\u0610-\u061A\u0620-\u0669\u066E-\u06D3\u06D5-\u06DC\u06DF-\u06E8\u06EA-\u06FC\u06FF\u0710-\u074A\u074D-\u07B1\u07C0-\u07F5\u07FA\u0800-\u082D\u0840-\u085B\u0860-\u086A\u08A0-\u08B4\u08B6-\u08BD\u08D4-\u08E1\u08E3-\u0963\u0966-\u096F\u0971-\u0983\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BC-\u09C4\u09C7\u09C8\u09CB-\u09CE\u09D7\u09DC\u09DD\u09DF-\u09E3\u09E6-\u09F1\u09FC\u0A01-\u0A03\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A3C\u0A3E-\u0A42\u0A47\u0A48\u0A4B-\u0A4D\u0A51\u0A59-\u0A5C\u0A5E\u0A66-\u0A75\u0A81-\u0A83\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABC-\u0AC5\u0AC7-\u0AC9\u0ACB-\u0ACD\u0AD0\u0AE0-\u0AE3\u0AE6-\u0AEF\u0AF9-\u0AFF\u0B01-\u0B03\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3C-\u0B44\u0B47\u0B48\u0B4B-\u0B4D\u0B56\u0B57\u0B5C\u0B5D\u0B5F-\u0B63\u0B66-\u0B6F\u0B71\u0B82\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BBE-\u0BC2\u0BC6-\u0BC8\u0BCA-\u0BCD\u0BD0\u0BD7\u0BE6-\u0BEF\u0C00-\u0C03\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C39\u0C3D-\u0C44\u0C46-\u0C48\u0C4A-\u0C4D\u0C55\u0C56\u0C58-\u0C5A\u0C60-\u0C63\u0C66-\u0C6F\u0C80-\u0C83\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBC-\u0CC4\u0CC6-\u0CC8\u0CCA-\u0CCD\u0CD5\u0CD6\u0CDE\u0CE0-\u0CE3\u0CE6-\u0CEF\u0CF1\u0CF2\u0D00-\u0D03\u0D05-\u0D0C\u0D0E-\u0D10\u0D12-\u0D44\u0D46-\u0D48\u0D4A-\u0D4E\u0D54-\u0D57\u0D5F-\u0D63\u0D66-\u0D6F\u0D7A-\u0D7F\u0D82\u0D83\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0DCA\u0DCF-\u0DD4\u0DD6\u0DD8-\u0DDF\u0DE6-\u0DEF\u0DF2\u0DF3\u0E01-\u0E3A\u0E40-\u0E4E\u0E50-\u0E59\u0E81\u0E82\u0E84\u0E87\u0E88\u0E8A\u0E8D\u0E94-\u0E97\u0E99-\u0E9F\u0EA1-\u0EA3\u0EA5\u0EA7\u0EAA\u0EAB\u0EAD-\u0EB9\u0EBB-\u0EBD\u0EC0-\u0EC4\u0EC6\u0EC8-\u0ECD\u0ED0-\u0ED9\u0EDC-\u0EDF\u0F00\u0F18\u0F19\u0F20-\u0F29\u0F35\u0F37\u0F39\u0F3E-\u0F47\u0F49-\u0F6C\u0F71-\u0F84\u0F86-\u0F97\u0F99-\u0FBC\u0FC6\u1000-\u1049\u1050-\u109D\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u135D-\u135F\u1380-\u138F\u13A0-\u13F5\u13F8-\u13FD\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u16EE-\u16F8\u1700-\u170C\u170E-\u1714\u1720-\u1734\u1740-\u1753\u1760-\u176C\u176E-\u1770\u1772\u1773\u1780-\u17D3\u17D7\u17DC\u17DD\u17E0-\u17E9\u180B-\u180D\u1810-\u1819\u1820-\u1877\u1880-\u18AA\u18B0-\u18F5\u1900-\u191E\u1920-\u192B\u1930-\u193B\u1946-\u196D\u1970-\u1974\u1980-\u19AB\u19B0-\u19C9\u19D0-\u19D9\u1A00-\u1A1B\u1A20-\u1A5E\u1A60-\u1A7C\u1A7F-\u1A89\u1A90-\u1A99\u1AA7\u1AB0-\u1ABD\u1B00-\u1B4B\u1B50-\u1B59\u1B6B-\u1B73\u1B80-\u1BF3\u1C00-\u1C37\u1C40-\u1C49\u1C4D-\u1C7D\u1C80-\u1C88\u1CD0-\u1CD2\u1CD4-\u1CF9\u1D00-\u1DF9\u1DFB-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u203F\u2040\u2054\u2071\u207F\u2090-\u209C\u20D0-\u20DC\u20E1\u20E5-\u20F0\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2160-\u2188\u2C00-\u2C2E\u2C30-\u2C5E\u2C60-\u2CE4\u2CEB-\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D7F-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2DE0-\u2DFF\u2E2F\u3005-\u3007\u3021-\u302F\u3031-\u3035\u3038-\u303C\u3041-\u3096\u3099\u309A\u309D-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312E\u3131-\u318E\u31A0-\u31BA\u31F0-\u31FF\u3400-\u4DB5\u4E00-\u9FEA\uA000-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA62B\uA640-\uA66F\uA674-\uA67D\uA67F-\uA6F1\uA717-\uA71F\uA722-\uA788\uA78B-\uA7AE\uA7B0-\uA7B7\uA7F7-\uA827\uA840-\uA873\uA880-\uA8C5\uA8D0-\uA8D9\uA8E0-\uA8F7\uA8FB\uA8FD\uA900-\uA92D\uA930-\uA953\uA960-\uA97C\uA980-\uA9C0\uA9CF-\uA9D9\uA9E0-\uA9FE\uAA00-\uAA36\uAA40-\uAA4D\uAA50-\uAA59\uAA60-\uAA76\uAA7A-\uAAC2\uAADB-\uAADD\uAAE0-\uAAEF\uAAF2-\uAAF6\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uAB30-\uAB5A\uAB5C-\uAB65\uAB70-\uABEA\uABEC\uABED\uABF0-\uABF9\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE00-\uFE0F\uFE20-\uFE2F\uFE33\uFE34\uFE4D-\uFE4F\uFE70-\uFE74\uFE76-\uFEFC\uFF10-\uFF19\uFF21-\uFF3A\uFF3F\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]|\uD800[\uDC00-\uDC0B\uDC0D-\uDC26\uDC28-\uDC3A\uDC3C\uDC3D\uDC3F-\uDC4D\uDC50-\uDC5D\uDC80-\uDCFA\uDD40-\uDD74\uDDFD\uDE80-\uDE9C\uDEA0-\uDED0\uDEE0\uDF00-\uDF1F\uDF2D-\uDF4A\uDF50-\uDF7A\uDF80-\uDF9D\uDFA0-\uDFC3\uDFC8-\uDFCF\uDFD1-\uDFD5]|\uD801[\uDC00-\uDC9D\uDCA0-\uDCA9\uDCB0-\uDCD3\uDCD8-\uDCFB\uDD00-\uDD27\uDD30-\uDD63\uDE00-\uDF36\uDF40-\uDF55\uDF60-\uDF67]|\uD802[\uDC00-\uDC05\uDC08\uDC0A-\uDC35\uDC37\uDC38\uDC3C\uDC3F-\uDC55\uDC60-\uDC76\uDC80-\uDC9E\uDCE0-\uDCF2\uDCF4\uDCF5\uDD00-\uDD15\uDD20-\uDD39\uDD80-\uDDB7\uDDBE\uDDBF\uDE00-\uDE03\uDE05\uDE06\uDE0C-\uDE13\uDE15-\uDE17\uDE19-\uDE33\uDE38-\uDE3A\uDE3F\uDE60-\uDE7C\uDE80-\uDE9C\uDEC0-\uDEC7\uDEC9-\uDEE6\uDF00-\uDF35\uDF40-\uDF55\uDF60-\uDF72\uDF80-\uDF91]|\uD803[\uDC00-\uDC48\uDC80-\uDCB2\uDCC0-\uDCF2]|\uD804[\uDC00-\uDC46\uDC66-\uDC6F\uDC7F-\uDCBA\uDCD0-\uDCE8\uDCF0-\uDCF9\uDD00-\uDD34\uDD36-\uDD3F\uDD50-\uDD73\uDD76\uDD80-\uDDC4\uDDCA-\uDDCC\uDDD0-\uDDDA\uDDDC\uDE00-\uDE11\uDE13-\uDE37\uDE3E\uDE80-\uDE86\uDE88\uDE8A-\uDE8D\uDE8F-\uDE9D\uDE9F-\uDEA8\uDEB0-\uDEEA\uDEF0-\uDEF9\uDF00-\uDF03\uDF05-\uDF0C\uDF0F\uDF10\uDF13-\uDF28\uDF2A-\uDF30\uDF32\uDF33\uDF35-\uDF39\uDF3C-\uDF44\uDF47\uDF48\uDF4B-\uDF4D\uDF50\uDF57\uDF5D-\uDF63\uDF66-\uDF6C\uDF70-\uDF74]|\uD805[\uDC00-\uDC4A\uDC50-\uDC59\uDC80-\uDCC5\uDCC7\uDCD0-\uDCD9\uDD80-\uDDB5\uDDB8-\uDDC0\uDDD8-\uDDDD\uDE00-\uDE40\uDE44\uDE50-\uDE59\uDE80-\uDEB7\uDEC0-\uDEC9\uDF00-\uDF19\uDF1D-\uDF2B\uDF30-\uDF39]|\uD806[\uDCA0-\uDCE9\uDCFF\uDE00-\uDE3E\uDE47\uDE50-\uDE83\uDE86-\uDE99\uDEC0-\uDEF8]|\uD807[\uDC00-\uDC08\uDC0A-\uDC36\uDC38-\uDC40\uDC50-\uDC59\uDC72-\uDC8F\uDC92-\uDCA7\uDCA9-\uDCB6\uDD00-\uDD06\uDD08\uDD09\uDD0B-\uDD36\uDD3A\uDD3C\uDD3D\uDD3F-\uDD47\uDD50-\uDD59]|\uD808[\uDC00-\uDF99]|\uD809[\uDC00-\uDC6E\uDC80-\uDD43]|[\uD80C\uD81C-\uD820\uD840-\uD868\uD86A-\uD86C\uD86F-\uD872\uD874-\uD879][\uDC00-\uDFFF]|\uD80D[\uDC00-\uDC2E]|\uD811[\uDC00-\uDE46]|\uD81A[\uDC00-\uDE38\uDE40-\uDE5E\uDE60-\uDE69\uDED0-\uDEED\uDEF0-\uDEF4\uDF00-\uDF36\uDF40-\uDF43\uDF50-\uDF59\uDF63-\uDF77\uDF7D-\uDF8F]|\uD81B[\uDF00-\uDF44\uDF50-\uDF7E\uDF8F-\uDF9F\uDFE0\uDFE1]|\uD821[\uDC00-\uDFEC]|\uD822[\uDC00-\uDEF2]|\uD82C[\uDC00-\uDD1E\uDD70-\uDEFB]|\uD82F[\uDC00-\uDC6A\uDC70-\uDC7C\uDC80-\uDC88\uDC90-\uDC99\uDC9D\uDC9E]|\uD834[\uDD65-\uDD69\uDD6D-\uDD72\uDD7B-\uDD82\uDD85-\uDD8B\uDDAA-\uDDAD\uDE42-\uDE44]|\uD835[\uDC00-\uDC54\uDC56-\uDC9C\uDC9E\uDC9F\uDCA2\uDCA5\uDCA6\uDCA9-\uDCAC\uDCAE-\uDCB9\uDCBB\uDCBD-\uDCC3\uDCC5-\uDD05\uDD07-\uDD0A\uDD0D-\uDD14\uDD16-\uDD1C\uDD1E-\uDD39\uDD3B-\uDD3E\uDD40-\uDD44\uDD46\uDD4A-\uDD50\uDD52-\uDEA5\uDEA8-\uDEC0\uDEC2-\uDEDA\uDEDC-\uDEFA\uDEFC-\uDF14\uDF16-\uDF34\uDF36-\uDF4E\uDF50-\uDF6E\uDF70-\uDF88\uDF8A-\uDFA8\uDFAA-\uDFC2\uDFC4-\uDFCB\uDFCE-\uDFFF]|\uD836[\uDE00-\uDE36\uDE3B-\uDE6C\uDE75\uDE84\uDE9B-\uDE9F\uDEA1-\uDEAF]|\uD838[\uDC00-\uDC06\uDC08-\uDC18\uDC1B-\uDC21\uDC23\uDC24\uDC26-\uDC2A]|\uD83A[\uDC00-\uDCC4\uDCD0-\uDCD6\uDD00-\uDD4A\uDD50-\uDD59]|\uD83B[\uDE00-\uDE03\uDE05-\uDE1F\uDE21\uDE22\uDE24\uDE27\uDE29-\uDE32\uDE34-\uDE37\uDE39\uDE3B\uDE42\uDE47\uDE49\uDE4B\uDE4D-\uDE4F\uDE51\uDE52\uDE54\uDE57\uDE59\uDE5B\uDE5D\uDE5F\uDE61\uDE62\uDE64\uDE67-\uDE6A\uDE6C-\uDE72\uDE74-\uDE77\uDE79-\uDE7C\uDE7E\uDE80-\uDE89\uDE8B-\uDE9B\uDEA1-\uDEA3\uDEA5-\uDEA9\uDEAB-\uDEBB]|\uD869[\uDC00-\uDED6\uDF00-\uDFFF]|\uD86D[\uDC00-\uDF34\uDF40-\uDFFF]|\uD86E[\uDC00-\uDC1D\uDC20-\uDFFF]|\uD873[\uDC00-\uDEA1\uDEB0-\uDFFF]|\uD87A[\uDC00-\uDFE0]|\uD87E[\uDC00-\uDE1D]|\uDB40[\uDD00-\uDDEF]/,
-          kl = { Space_Separator: ea, ID_Start: Ld, ID_Continue: Bd },
+          Ol = { Space_Separator: ea, ID_Start: Ld, ID_Continue: Bd },
           Ie = {
             isSpaceSeparator: p(function (C) {
-              return typeof C == "string" && kl.Space_Separator.test(C)
+              return typeof C == "string" && Ol.Space_Separator.test(C)
             }, "isSpaceSeparator"),
             isIdStartChar: p(function (C) {
               return (
                 typeof C == "string" &&
-                ((C >= "a" && C <= "z") || (C >= "A" && C <= "Z") || C === "$" || C === "_" || kl.ID_Start.test(C))
+                ((C >= "a" && C <= "z") || (C >= "A" && C <= "Z") || C === "$" || C === "_" || Ol.ID_Start.test(C))
               )
             }, "isIdStartChar"),
             isIdContinueChar: p(function (C) {
@@ -1811,7 +1811,7 @@ var __spellHighlightEn = (() => {
                   C === "_" ||
                   C === "\u200C" ||
                   C === "\u200D" ||
-                  kl.ID_Continue.test(C))
+                  Ol.ID_Continue.test(C))
               )
             }, "isIdContinueChar"),
             isDigit: p(function (C) {
@@ -1821,28 +1821,28 @@ var __spellHighlightEn = (() => {
               return typeof C == "string" && /[0-9A-Fa-f]/.test(C)
             }, "isHexDigit")
           },
-          $l,
+          jl,
           ie,
           dt,
           ge,
           ht,
-          He,
+          Ye,
           _e,
           ma,
-          Nt,
+          Pt,
           nt = p(function (C, L) {
-            ;(($l = String(C)),
+            ;((jl = String(C)),
               (ie = "start"),
               (dt = []),
               (ge = 0),
               (ht = 1),
-              (He = 0),
+              (Ye = 0),
               (_e = void 0),
               (ma = void 0),
-              (Nt = void 0))
-            do ((_e = Ol()), QD[ie]())
+              (Pt = void 0))
+            do ((_e = Fl()), ak[ie]())
             while (_e.type !== "eof")
-            return typeof L == "function" ? ta({ "": Nt }, "", L) : Nt
+            return typeof L == "function" ? ta({ "": Pt }, "", L) : Pt
           }, "parse")
         function ta(C, L, z) {
           var ee = C[L]
@@ -1857,42 +1857,42 @@ var __spellHighlightEn = (() => {
               }
             else
               for (var ze in ee) {
-                var Pt = ta(ee, ze, z)
-                Pt === void 0
+                var Nt = ta(ee, ze, z)
+                Nt === void 0
                   ? delete ee[ze]
-                  : Object.defineProperty(ee, ze, { value: Pt, writable: !0, enumerable: !0, configurable: !0 })
+                  : Object.defineProperty(ee, ze, { value: Nt, writable: !0, enumerable: !0, configurable: !0 })
               }
           return z.call(C, L, ee)
         }
-        ;(l(ta, "Qh"), p(ta, "internalize"))
+        ;(l(ta, "_h"), p(ta, "internalize"))
         var se, ae, fa, ot, ce
-        function Ol() {
+        function Fl() {
           for (se = "default", ae = "", fa = !1, ot = 1; ;) {
             ce = tr()
             var C = hr[se]()
             if (C) return C
           }
         }
-        ;(l(Ol, "Aq"), p(Ol, "lex"))
+        ;(l(Fl, "wq"), p(Fl, "lex"))
         function tr() {
-          if ($l[ge]) return String.fromCodePoint($l.codePointAt(ge))
+          if (jl[ge]) return String.fromCodePoint(jl.codePointAt(ge))
         }
         ;(l(tr, "os"), p(tr, "peek"))
-        function N() {
+        function P() {
           var C = tr()
           return (
             C ===
             `
 `
-              ? (ht++, (He = 0))
+              ? (ht++, (Ye = 0))
               : C
-                ? (He += C.length)
-                : He++,
+                ? (Ye += C.length)
+                : Ye++,
             C && (ge += C.length),
             C
           )
         }
-        ;(l(N, "C"), p(N, "read"))
+        ;(l(P, "C"), p(P, "read"))
         var hr = {
           default: p(function () {
             switch (ce) {
@@ -1907,16 +1907,16 @@ var __spellHighlightEn = (() => {
               case "\r":
               case "\u2028":
               case "\u2029":
-                N()
+                P()
                 return
               case "/":
-                ;(N(), (se = "comment"))
+                ;(P(), (se = "comment"))
                 return
               case void 0:
-                return (N(), ye("eof"))
+                return (P(), ye("eof"))
             }
             if (Ie.isSpaceSeparator(ce)) {
-              N()
+              P()
               return
             }
             return hr[ie]()
@@ -1924,36 +1924,36 @@ var __spellHighlightEn = (() => {
           comment: p(function () {
             switch (ce) {
               case "*":
-                ;(N(), (se = "multiLineComment"))
+                ;(P(), (se = "multiLineComment"))
                 return
               case "/":
-                ;(N(), (se = "singleLineComment"))
+                ;(P(), (se = "singleLineComment"))
                 return
             }
-            throw Oe(N())
+            throw Oe(P())
           }, "comment"),
           multiLineComment: p(function () {
             switch (ce) {
               case "*":
-                ;(N(), (se = "multiLineCommentAsterisk"))
+                ;(P(), (se = "multiLineCommentAsterisk"))
                 return
               case void 0:
-                throw Oe(N())
+                throw Oe(P())
             }
-            N()
+            P()
           }, "multiLineComment"),
           multiLineCommentAsterisk: p(function () {
             switch (ce) {
               case "*":
-                N()
+                P()
                 return
               case "/":
-                ;(N(), (se = "default"))
+                ;(P(), (se = "default"))
                 return
               case void 0:
-                throw Oe(N())
+                throw Oe(P())
             }
-            ;(N(), (se = "multiLineComment"))
+            ;(P(), (se = "multiLineComment"))
           }, "multiLineCommentAsterisk"),
           singleLineComment: p(function () {
             switch (ce) {
@@ -1962,33 +1962,33 @@ var __spellHighlightEn = (() => {
               case "\r":
               case "\u2028":
               case "\u2029":
-                ;(N(), (se = "default"))
+                ;(P(), (se = "default"))
                 return
               case void 0:
-                return (N(), ye("eof"))
+                return (P(), ye("eof"))
             }
-            N()
+            P()
           }, "singleLineComment"),
           value: p(function () {
             switch (ce) {
               case "{":
               case "[":
-                return ye("punctuator", N())
+                return ye("punctuator", P())
               case "n":
-                return (N(), ga("ull"), ye("null", null))
+                return (P(), ga("ull"), ye("null", null))
               case "t":
-                return (N(), ga("rue"), ye("boolean", !0))
+                return (P(), ga("rue"), ye("boolean", !0))
               case "f":
-                return (N(), ga("alse"), ye("boolean", !1))
+                return (P(), ga("alse"), ye("boolean", !1))
               case "-":
               case "+":
-                ;(N() === "-" && (ot = -1), (se = "sign"))
+                ;(P() === "-" && (ot = -1), (se = "sign"))
                 return
               case ".":
-                ;((ae = N()), (se = "decimalPointLeading"))
+                ;((ae = P()), (se = "decimalPointLeading"))
                 return
               case "0":
-                ;((ae = N()), (se = "zero"))
+                ;((ae = P()), (se = "zero"))
                 return
               case "1":
               case "2":
@@ -1999,22 +1999,22 @@ var __spellHighlightEn = (() => {
               case "7":
               case "8":
               case "9":
-                ;((ae = N()), (se = "decimalInteger"))
+                ;((ae = P()), (se = "decimalInteger"))
                 return
               case "I":
-                return (N(), ga("nfinity"), ye("numeric", 1 / 0))
+                return (P(), ga("nfinity"), ye("numeric", 1 / 0))
               case "N":
-                return (N(), ga("aN"), ye("numeric", NaN))
+                return (P(), ga("aN"), ye("numeric", NaN))
               case '"':
               case "'":
-                ;((fa = N() === '"'), (ae = ""), (se = "string"))
+                ;((fa = P() === '"'), (ae = ""), (se = "string"))
                 return
             }
-            throw Oe(N())
+            throw Oe(P())
           }, "value"),
           identifierNameStartEscape: p(function () {
-            if (ce !== "u") throw Oe(N())
-            N()
+            if (ce !== "u") throw Oe(P())
+            P()
             var C = pc()
             switch (C) {
               case "$":
@@ -2032,21 +2032,21 @@ var __spellHighlightEn = (() => {
               case "_":
               case "\u200C":
               case "\u200D":
-                ae += N()
+                ae += P()
                 return
               case "\\":
-                ;(N(), (se = "identifierNameEscape"))
+                ;(P(), (se = "identifierNameEscape"))
                 return
             }
             if (Ie.isIdContinueChar(ce)) {
-              ae += N()
+              ae += P()
               return
             }
             return ye("identifier", ae)
           }, "identifierName"),
           identifierNameEscape: p(function () {
-            if (ce !== "u") throw Oe(N())
-            N()
+            if (ce !== "u") throw Oe(P())
+            P()
             var C = pc()
             switch (C) {
               case "$":
@@ -2063,10 +2063,10 @@ var __spellHighlightEn = (() => {
           sign: p(function () {
             switch (ce) {
               case ".":
-                ;((ae = N()), (se = "decimalPointLeading"))
+                ;((ae = P()), (se = "decimalPointLeading"))
                 return
               case "0":
-                ;((ae = N()), (se = "zero"))
+                ;((ae = P()), (se = "zero"))
                 return
               case "1":
               case "2":
@@ -2077,27 +2077,27 @@ var __spellHighlightEn = (() => {
               case "7":
               case "8":
               case "9":
-                ;((ae = N()), (se = "decimalInteger"))
+                ;((ae = P()), (se = "decimalInteger"))
                 return
               case "I":
-                return (N(), ga("nfinity"), ye("numeric", ot * (1 / 0)))
+                return (P(), ga("nfinity"), ye("numeric", ot * (1 / 0)))
               case "N":
-                return (N(), ga("aN"), ye("numeric", NaN))
+                return (P(), ga("aN"), ye("numeric", NaN))
             }
-            throw Oe(N())
+            throw Oe(P())
           }, "sign$1"),
           zero: p(function () {
             switch (ce) {
               case ".":
-                ;((ae += N()), (se = "decimalPoint"))
+                ;((ae += P()), (se = "decimalPoint"))
                 return
               case "e":
               case "E":
-                ;((ae += N()), (se = "decimalExponent"))
+                ;((ae += P()), (se = "decimalExponent"))
                 return
               case "x":
               case "X":
-                ;((ae += N()), (se = "hexadecimal"))
+                ;((ae += P()), (se = "hexadecimal"))
                 return
             }
             return ye("numeric", ot * 0)
@@ -2105,35 +2105,35 @@ var __spellHighlightEn = (() => {
           decimalInteger: p(function () {
             switch (ce) {
               case ".":
-                ;((ae += N()), (se = "decimalPoint"))
+                ;((ae += P()), (se = "decimalPoint"))
                 return
               case "e":
               case "E":
-                ;((ae += N()), (se = "decimalExponent"))
+                ;((ae += P()), (se = "decimalExponent"))
                 return
             }
             if (Ie.isDigit(ce)) {
-              ae += N()
+              ae += P()
               return
             }
             return ye("numeric", ot * Number(ae))
           }, "decimalInteger"),
           decimalPointLeading: p(function () {
             if (Ie.isDigit(ce)) {
-              ;((ae += N()), (se = "decimalFraction"))
+              ;((ae += P()), (se = "decimalFraction"))
               return
             }
-            throw Oe(N())
+            throw Oe(P())
           }, "decimalPointLeading"),
           decimalPoint: p(function () {
             switch (ce) {
               case "e":
               case "E":
-                ;((ae += N()), (se = "decimalExponent"))
+                ;((ae += P()), (se = "decimalExponent"))
                 return
             }
             if (Ie.isDigit(ce)) {
-              ;((ae += N()), (se = "decimalFraction"))
+              ;((ae += P()), (se = "decimalFraction"))
               return
             }
             return ye("numeric", ot * Number(ae))
@@ -2142,11 +2142,11 @@ var __spellHighlightEn = (() => {
             switch (ce) {
               case "e":
               case "E":
-                ;((ae += N()), (se = "decimalExponent"))
+                ;((ae += P()), (se = "decimalExponent"))
                 return
             }
             if (Ie.isDigit(ce)) {
-              ae += N()
+              ae += P()
               return
             }
             return ye("numeric", ot * Number(ae))
@@ -2155,39 +2155,39 @@ var __spellHighlightEn = (() => {
             switch (ce) {
               case "+":
               case "-":
-                ;((ae += N()), (se = "decimalExponentSign"))
+                ;((ae += P()), (se = "decimalExponentSign"))
                 return
             }
             if (Ie.isDigit(ce)) {
-              ;((ae += N()), (se = "decimalExponentInteger"))
+              ;((ae += P()), (se = "decimalExponentInteger"))
               return
             }
-            throw Oe(N())
+            throw Oe(P())
           }, "decimalExponent"),
           decimalExponentSign: p(function () {
             if (Ie.isDigit(ce)) {
-              ;((ae += N()), (se = "decimalExponentInteger"))
+              ;((ae += P()), (se = "decimalExponentInteger"))
               return
             }
-            throw Oe(N())
+            throw Oe(P())
           }, "decimalExponentSign"),
           decimalExponentInteger: p(function () {
             if (Ie.isDigit(ce)) {
-              ae += N()
+              ae += P()
               return
             }
             return ye("numeric", ot * Number(ae))
           }, "decimalExponentInteger"),
           hexadecimal: p(function () {
             if (Ie.isHexDigit(ce)) {
-              ;((ae += N()), (se = "hexadecimalInteger"))
+              ;((ae += P()), (se = "hexadecimalInteger"))
               return
             }
-            throw Oe(N())
+            throw Oe(P())
           }, "hexadecimal"),
           hexadecimalInteger: p(function () {
             if (Ie.isHexDigit(ce)) {
-              ae += N()
+              ae += P()
               return
             }
             return ye("numeric", ot * Number(ae))
@@ -2195,34 +2195,34 @@ var __spellHighlightEn = (() => {
           string: p(function () {
             switch (ce) {
               case "\\":
-                ;(N(), (ae += fS()))
+                ;(P(), (ae += fS()))
                 return
               case '"':
-                if (fa) return (N(), ye("string", ae))
-                ae += N()
+                if (fa) return (P(), ye("string", ae))
+                ae += P()
                 return
               case "'":
-                if (!fa) return (N(), ye("string", ae))
-                ae += N()
+                if (!fa) return (P(), ye("string", ae))
+                ae += P()
                 return
               case `
 `:
               case "\r":
-                throw Oe(N())
+                throw Oe(P())
               case "\u2028":
               case "\u2029":
                 yS(ce)
                 break
               case void 0:
-                throw Oe(N())
+                throw Oe(P())
             }
-            ae += N()
+            ae += P()
           }, "string"),
           start: p(function () {
             switch (ce) {
               case "{":
               case "[":
-                return ye("punctuator", N())
+                return ye("punctuator", P())
             }
             se = "value"
           }, "start"),
@@ -2230,27 +2230,27 @@ var __spellHighlightEn = (() => {
             switch (ce) {
               case "$":
               case "_":
-                ;((ae = N()), (se = "identifierName"))
+                ;((ae = P()), (se = "identifierName"))
                 return
               case "\\":
-                ;(N(), (se = "identifierNameStartEscape"))
+                ;(P(), (se = "identifierNameStartEscape"))
                 return
               case "}":
-                return ye("punctuator", N())
+                return ye("punctuator", P())
               case '"':
               case "'":
-                ;((fa = N() === '"'), (se = "string"))
+                ;((fa = P() === '"'), (se = "string"))
                 return
             }
             if (Ie.isIdStartChar(ce)) {
-              ;((ae += N()), (se = "identifierName"))
+              ;((ae += P()), (se = "identifierName"))
               return
             }
-            throw Oe(N())
+            throw Oe(P())
           }, "beforePropertyName"),
           afterPropertyName: p(function () {
-            if (ce === ":") return ye("punctuator", N())
-            throw Oe(N())
+            if (ce === ":") return ye("punctuator", P())
+            throw Oe(P())
           }, "afterPropertyName"),
           beforePropertyValue: p(function () {
             se = "value"
@@ -2259,36 +2259,36 @@ var __spellHighlightEn = (() => {
             switch (ce) {
               case ",":
               case "}":
-                return ye("punctuator", N())
+                return ye("punctuator", P())
             }
-            throw Oe(N())
+            throw Oe(P())
           }, "afterPropertyValue"),
           beforeArrayValue: p(function () {
-            if (ce === "]") return ye("punctuator", N())
+            if (ce === "]") return ye("punctuator", P())
             se = "value"
           }, "beforeArrayValue"),
           afterArrayValue: p(function () {
             switch (ce) {
               case ",":
               case "]":
-                return ye("punctuator", N())
+                return ye("punctuator", P())
             }
-            throw Oe(N())
+            throw Oe(P())
           }, "afterArrayValue"),
           end: p(function () {
-            throw Oe(N())
+            throw Oe(P())
           }, "end")
         }
         function ye(C, L) {
-          return { type: C, value: L, line: ht, column: He }
+          return { type: C, value: L, line: ht, column: Ye }
         }
         ;(l(ye, "he"), p(ye, "newToken"))
         function ga(C) {
           for (var L = 0, z = C; L < z.length; L += 1) {
             var ee = z[L],
               Y = tr()
-            if (Y !== ee) throw Oe(N())
-            N()
+            if (Y !== ee) throw Oe(P())
+            P()
           }
         }
         ;(l(ga, "$o"), p(ga, "literal"))
@@ -2296,39 +2296,39 @@ var __spellHighlightEn = (() => {
           var C = tr()
           switch (C) {
             case "b":
-              return (N(), "\b")
+              return (P(), "\b")
             case "f":
-              return (N(), "\f")
+              return (P(), "\f")
             case "n":
               return (
-                N(),
+                P(),
                 `
 `
               )
             case "r":
-              return (N(), "\r")
+              return (P(), "\r")
             case "t":
-              return (N(), "	")
+              return (P(), "	")
             case "v":
-              return (N(), "\v")
+              return (P(), "\v")
             case "0":
-              if ((N(), Ie.isDigit(tr()))) throw Oe(N())
+              if ((P(), Ie.isDigit(tr()))) throw Oe(P())
               return "\0"
             case "x":
-              return (N(), gS())
+              return (P(), gS())
             case "u":
-              return (N(), pc())
+              return (P(), pc())
             case `
 `:
             case "\u2028":
             case "\u2029":
-              return (N(), "")
+              return (P(), "")
             case "\r":
               return (
-                N(),
+                P(),
                 tr() ===
                   `
-` && N(),
+` && P(),
                 ""
               )
             case "1":
@@ -2340,30 +2340,30 @@ var __spellHighlightEn = (() => {
             case "7":
             case "8":
             case "9":
-              throw Oe(N())
+              throw Oe(P())
             case void 0:
-              throw Oe(N())
+              throw Oe(P())
           }
-          return N()
+          return P()
         }
-        ;(l(fS, "xq"), p(fS, "escape"))
+        ;(l(fS, "Eq"), p(fS, "escape"))
         function gS() {
           var C = "",
             L = tr()
-          if (!Ie.isHexDigit(L) || ((C += N()), (L = tr()), !Ie.isHexDigit(L))) throw Oe(N())
-          return ((C += N()), String.fromCodePoint(parseInt(C, 16)))
+          if (!Ie.isHexDigit(L) || ((C += P()), (L = tr()), !Ie.isHexDigit(L))) throw Oe(P())
+          return ((C += P()), String.fromCodePoint(parseInt(C, 16)))
         }
-        ;(l(gS, "bq"), p(gS, "hexEscape"))
+        ;(l(gS, "vq"), p(gS, "hexEscape"))
         function pc() {
           for (var C = "", L = 4; L-- > 0;) {
             var z = tr()
-            if (!Ie.isHexDigit(z)) throw Oe(N())
-            C += N()
+            if (!Ie.isHexDigit(z)) throw Oe(P())
+            C += P()
           }
           return String.fromCodePoint(parseInt(C, 16))
         }
-        ;(l(pc, "_h"), p(pc, "unicodeEscape"))
-        var QD = {
+        ;(l(pc, "em"), p(pc, "unicodeEscape"))
+        var ak = {
           start: p(function () {
             if (_e.type === "eof") throw ya()
             cc()
@@ -2375,7 +2375,7 @@ var __spellHighlightEn = (() => {
                 ;((ma = _e.value), (ie = "afterPropertyName"))
                 return
               case "punctuator":
-                jl()
+                Pl()
                 return
               case "eof":
                 throw ya()
@@ -2392,7 +2392,7 @@ var __spellHighlightEn = (() => {
           beforeArrayValue: p(function () {
             if (_e.type === "eof") throw ya()
             if (_e.type === "punctuator" && _e.value === "]") {
-              jl()
+              Pl()
               return
             }
             cc()
@@ -2404,7 +2404,7 @@ var __spellHighlightEn = (() => {
                 ie = "beforePropertyName"
                 return
               case "}":
-                jl()
+                Pl()
             }
           }, "afterPropertyValue"),
           afterArrayValue: p(function () {
@@ -2414,7 +2414,7 @@ var __spellHighlightEn = (() => {
                 ie = "beforeArrayValue"
                 return
               case "]":
-                jl()
+                Pl()
             }
           }, "afterArrayValue"),
           end: p(function () {}, "end")
@@ -2439,7 +2439,7 @@ var __spellHighlightEn = (() => {
               C = _e.value
               break
           }
-          if (Nt === void 0) Nt = C
+          if (Pt === void 0) Pt = C
           else {
             var L = dt[dt.length - 1]
             Array.isArray(L)
@@ -2453,33 +2453,33 @@ var __spellHighlightEn = (() => {
             z == null ? (ie = "end") : Array.isArray(z) ? (ie = "afterArrayValue") : (ie = "afterPropertyValue")
           }
         }
-        ;(l(cc, "em"), p(cc, "push"))
-        function jl() {
+        ;(l(cc, "tm"), p(cc, "push"))
+        function Pl() {
           dt.pop()
           var C = dt[dt.length - 1]
           C == null ? (ie = "end") : Array.isArray(C) ? (ie = "afterArrayValue") : (ie = "afterPropertyValue")
         }
-        ;(l(jl, "Hc"), p(jl, "pop"))
+        ;(l(Pl, "Hc"), p(Pl, "pop"))
         function Oe(C) {
           return dc(
             C === void 0
-              ? "JSON5: invalid end of input at " + ht + ":" + He
-              : "JSON5: invalid character '" + _d(C) + "' at " + ht + ":" + He
+              ? "JSON5: invalid end of input at " + ht + ":" + Ye
+              : "JSON5: invalid character '" + _d(C) + "' at " + ht + ":" + Ye
           )
         }
         ;(l(Oe, "me"), p(Oe, "invalidChar"))
         function ya() {
-          return dc("JSON5: invalid end of input at " + ht + ":" + He)
+          return dc("JSON5: invalid end of input at " + ht + ":" + Ye)
         }
         ;(l(ya, "Fo"), p(ya, "invalidEOF"))
         function Md() {
-          return ((He -= 5), dc("JSON5: invalid identifier character at " + ht + ":" + He))
+          return ((Ye -= 5), dc("JSON5: invalid identifier character at " + ht + ":" + Ye))
         }
         ;(l(Md, "ix"), p(Md, "invalidIdentifier"))
         function yS(C) {
           console.warn("JSON5: '" + _d(C) + "' in strings is not valid ECMAScript; consider escaping")
         }
-        ;(l(yS, "Eq"), p(yS, "separatorChar"))
+        ;(l(yS, "Cq"), p(yS, "separatorChar"))
         function _d(C) {
           var L = {
             "'": "\\'",
@@ -2505,28 +2505,28 @@ var __spellHighlightEn = (() => {
         ;(l(_d, "ox"), p(_d, "formatChar"))
         function dc(C) {
           var L = new SyntaxError(C)
-          return ((L.lineNumber = ht), (L.columnNumber = He), L)
+          return ((L.lineNumber = ht), (L.columnNumber = Ye), L)
         }
         ;(l(dc, "Xc"), p(dc, "syntaxError"))
-        var ZD = p(function (C, L, z) {
+        var ik = p(function (C, L, z) {
             var ee = [],
               Y = "",
               me,
               ke,
               ze = "",
-              Pt
+              Nt
             if (
               (L != null &&
                 typeof L == "object" &&
                 !Array.isArray(L) &&
-                ((z = L.space), (Pt = L.quote), (L = L.replacer)),
+                ((z = L.space), (Nt = L.quote), (L = L.replacer)),
               typeof L == "function")
             )
               ke = L
             else if (Array.isArray(L)) {
               me = []
-              for (var va = 0, Fl = L; va < Fl.length; va += 1) {
-                var mt = Fl[va],
+              for (var va = 0, Nl = L; va < Nl.length; va += 1) {
+                var mt = Nl[va],
                   ra = void 0
                 ;(typeof mt == "string"
                   ? (ra = mt)
@@ -2613,7 +2613,7 @@ var __spellHighlightEn = (() => {
                 at += ut
               }
               var sa =
-                Pt ||
+                Nt ||
                 Object.keys(lt).reduce(function (ba, Ui) {
                   return lt[ba] < lt[Ui] ? ba : Ui
                 })
@@ -2638,10 +2638,10 @@ var __spellHighlightEn = (() => {
                 var hc
                 if (ze === "") ((hc = at.join(",")), (Ui = "{" + hc + "}"))
                 else {
-                  var sk =
+                  var uk =
                     `,
 ` + Y
-                  ;((hc = at.join(sk)),
+                  ;((hc = at.join(uk)),
                     (Ui =
                       `{
 ` +
@@ -2695,10 +2695,10 @@ var __spellHighlightEn = (() => {
               return (ee.pop(), (Y = lt), ut)
             }
           }, "stringify"),
-          ek = { parse: nt, stringify: ZD },
-          tk = ek,
-          rk = tk
-        return rk
+          nk = { parse: nt, stringify: ik },
+          ok = nk,
+          lk = ok
+        return lk
       })
     }),
     ib = T((a, e) => {
@@ -2718,7 +2718,7 @@ var __spellHighlightEn = (() => {
       function r(s, i, o) {
         i == "__proto__" && t ? t(s, i, { configurable: !0, enumerable: !0, value: o, writable: !0 }) : (s[i] = o)
       }
-      ;(l(r, "bW"), p(r, "baseAssignValue"), (e.exports = r))
+      ;(l(r, "vW"), p(r, "baseAssignValue"), (e.exports = r))
     }),
     by = T((a, e) => {
       "use strict"
@@ -2730,7 +2730,7 @@ var __spellHighlightEn = (() => {
         var m = u[c]
         ;(!(i.call(u, c) && r(m, d)) || (d === void 0 && !(c in u))) && t(u, c, d)
       }
-      ;(l(o, "CW"), p(o, "assignValue"), (e.exports = o))
+      ;(l(o, "$W"), p(o, "assignValue"), (e.exports = o))
     }),
     Ay = T((a, e) => {
       "use strict"
@@ -2740,12 +2740,12 @@ var __spellHighlightEn = (() => {
         var u = typeof i
         return ((o = o ?? t), !!o && (u == "number" || (u != "symbol" && r.test(i))) && i > -1 && i % 1 == 0 && i < o)
       }
-      ;(l(s, "$W"), p(s, "isIndex"), (e.exports = s))
+      ;(l(s, "RW"), p(s, "isIndex"), (e.exports = s))
     }),
-    p$ = T((a, e) => {
+    g$ = T((a, e) => {
       "use strict"
       var t = by(),
-        r = Up(),
+        r = zp(),
         s = Ay(),
         i = Vo(),
         o = Al()
@@ -2764,22 +2764,22 @@ var __spellHighlightEn = (() => {
         }
         return c
       }
-      ;(l(u, "jW"), p(u, "baseSet"), (e.exports = u))
+      ;(l(u, "BW"), p(u, "baseSet"), (e.exports = u))
     }),
-    c$ = T((a, e) => {
+    y$ = T((a, e) => {
       "use strict"
-      var t = p$()
+      var t = g$()
       function r(s, i, o) {
         return s == null ? s : t(s, i, o)
       }
-      ;(l(r, "LW"), p(r, "set"), (e.exports = r))
+      ;(l(r, "GW"), p(r, "set"), (e.exports = r))
     }),
-    d$ = T((a, e) => {
+    v$ = T((a, e) => {
       "use strict"
       e.exports = (t) =>
         encodeURIComponent(t).replace(/[!'()*]/g, (r) => `%${r.charCodeAt(0).toString(16).toUpperCase()}`)
     }),
-    h$ = T((a, e) => {
+    S$ = T((a, e) => {
       "use strict"
       var t = "%[a-f0-9]{2}",
         r = new RegExp("(" + t + ")|([^%]+?)", "gi"),
@@ -2794,7 +2794,7 @@ var __spellHighlightEn = (() => {
           g = c.slice(d)
         return Array.prototype.concat.call([], i(m), i(g))
       }
-      ;(l(i, "jm"), p(i, "decodeComponents"))
+      ;(l(i, "Im"), p(i, "decodeComponents"))
       function o(c) {
         try {
           return decodeURIComponent(c)
@@ -2803,7 +2803,7 @@ var __spellHighlightEn = (() => {
           return c
         }
       }
-      ;(l(o, "BW"), p(o, "decode"))
+      ;(l(o, "WW"), p(o, "decode"))
       function u(c) {
         for (var d = { "%FE%FF": "\uFFFD\uFFFD", "%FF%FE": "\uFFFD\uFFFD" }, m = s.exec(c); m;) {
           try {
@@ -2821,7 +2821,7 @@ var __spellHighlightEn = (() => {
         }
         return c
       }
-      ;(l(u, "qW"),
+      ;(l(u, "VW"),
         p(u, "customDecodeURIComponent"),
         (e.exports = function (c) {
           if (typeof c != "string")
@@ -2833,7 +2833,7 @@ var __spellHighlightEn = (() => {
           }
         }))
     }),
-    m$ = T((a, e) => {
+    b$ = T((a, e) => {
       "use strict"
       e.exports = (t, r) => {
         if (!(typeof t == "string" && typeof r == "string"))
@@ -2843,7 +2843,7 @@ var __spellHighlightEn = (() => {
         return s === -1 ? [t] : [t.slice(0, s), t.slice(s + r.length)]
       }
     }),
-    f$ = T((a, e) => {
+    A$ = T((a, e) => {
       "use strict"
       e.exports = function (t, r) {
         for (var s = {}, i = Object.keys(t), o = Array.isArray(r), u = 0; u < i.length; u++) {
@@ -2854,12 +2854,12 @@ var __spellHighlightEn = (() => {
         return s
       }
     }),
-    g$ = T((a) => {
+    w$ = T((a) => {
       "use strict"
-      var e = d$(),
-        t = h$(),
-        r = m$(),
-        s = f$(),
+      var e = v$(),
+        t = S$(),
+        r = b$(),
+        s = A$(),
         i = p((x) => x == null, "isNullOrUndefined")
       function o(x) {
         switch (x.arrayFormat) {
@@ -2896,7 +2896,7 @@ var __spellHighlightEn = (() => {
                   : [...j, [d(E, x), "=", d(O, x)].join("")]
         }
       }
-      ;(l(o, "zW"), p(o, "encoderForArrayFormat"))
+      ;(l(o, "HW"), p(o, "encoderForArrayFormat"))
       function u(x) {
         let E
         switch (x.arrayFormat) {
@@ -2924,9 +2924,9 @@ var __spellHighlightEn = (() => {
           case "separator":
             return (j, O, R) => {
               let M = typeof O == "string" && O.includes(x.arrayFormatSeparator),
-                P = typeof O == "string" && !M && m(O, x).includes(x.arrayFormatSeparator)
-              O = P ? m(O, x) : O
-              let _ = M || P ? O.split(x.arrayFormatSeparator).map((G) => m(G, x)) : O === null ? O : m(O, x)
+                N = typeof O == "string" && !M && m(O, x).includes(x.arrayFormatSeparator)
+              O = N ? m(O, x) : O
+              let _ = M || N ? O.split(x.arrayFormatSeparator).map((G) => m(G, x)) : O === null ? O : m(O, x)
               R[j] = _
             }
           default:
@@ -2939,12 +2939,12 @@ var __spellHighlightEn = (() => {
             }
         }
       }
-      ;(l(u, "KW"), p(u, "parserForArrayFormat"))
+      ;(l(u, "XW"), p(u, "parserForArrayFormat"))
       function c(x) {
         if (typeof x != "string" || x.length !== 1)
           throw new TypeError("arrayFormatSeparator must be single character string")
       }
-      ;(l(c, "Av"), p(c, "validateArrayFormatSeparator"))
+      ;(l(c, "wv"), p(c, "validateArrayFormatSeparator"))
       function d(x, E) {
         return E.encode ? (E.strict ? e(x) : encodeURIComponent(x)) : x
       }
@@ -2962,24 +2962,24 @@ var __spellHighlightEn = (() => {
                 .map((E) => x[E])
             : x
       }
-      ;(l(g, "xv"), p(g, "keysSorter"))
+      ;(l(g, "Ev"), p(g, "keysSorter"))
       function f(x) {
         let E = x.indexOf("#")
         return (E !== -1 && (x = x.slice(0, E)), x)
       }
-      ;(l(f, "bv"), p(f, "removeHash"))
+      ;(l(f, "vv"), p(f, "removeHash"))
       function y(x) {
         let E = "",
           j = x.indexOf("#")
         return (j !== -1 && (E = x.slice(j)), E)
       }
-      ;(l(y, "JW"), p(y, "getHash"))
+      ;(l(y, "YW"), p(y, "getHash"))
       function w(x) {
         x = f(x)
         let E = x.indexOf("?")
         return E === -1 ? "" : x.slice(E + 1)
       }
-      ;(l(w, "wv"), p(w, "extract"))
+      ;(l(w, "Dv"), p(w, "extract"))
       function A(x, E) {
         return (
           E.parseNumbers && !Number.isNaN(Number(x)) && typeof x == "string" && x.trim() !== ""
@@ -2991,7 +2991,7 @@ var __spellHighlightEn = (() => {
           x
         )
       }
-      ;(l(A, "Pv"), p(A, "parseValue"))
+      ;(l(A, "xv"), p(A, "parseValue"))
       function D(x, E) {
         ;((E = Object.assign(
           { decode: !0, sort: !0, arrayFormat: "none", arrayFormatSeparator: ",", parseNumbers: !1, parseBooleans: !1 },
@@ -3003,22 +3003,22 @@ var __spellHighlightEn = (() => {
         if (typeof x != "string" || ((x = x.trim().replace(/^[?#&]/, "")), !x)) return O
         for (let R of x.split("&")) {
           if (R === "") continue
-          let [M, P] = r(E.decode ? R.replace(/\+/g, " ") : R, "=")
-          ;((P = P === void 0 ? null : ["comma", "separator"].includes(E.arrayFormat) ? P : m(P, E)), j(m(M, E), P, O))
+          let [M, N] = r(E.decode ? R.replace(/\+/g, " ") : R, "=")
+          ;((N = N === void 0 ? null : ["comma", "separator"].includes(E.arrayFormat) ? N : m(N, E)), j(m(M, E), N, O))
         }
         for (let R of Object.keys(O)) {
           let M = O[R]
-          if (typeof M == "object" && M !== null) for (let P of Object.keys(M)) M[P] = A(M[P], E)
+          if (typeof M == "object" && M !== null) for (let N of Object.keys(M)) M[N] = A(M[N], E)
           else O[R] = A(M, E)
         }
         return E.sort === !1
           ? O
           : (E.sort === !0 ? Object.keys(O).sort() : Object.keys(O).sort(E.sort)).reduce((R, M) => {
-              let P = O[M]
-              return (P && typeof P == "object" && !Array.isArray(P) ? (R[M] = g(P)) : (R[M] = P), R)
+              let N = O[M]
+              return (N && typeof N == "object" && !Array.isArray(N) ? (R[M] = g(N)) : (R[M] = N), R)
             }, Object.create(null))
       }
-      ;(l(D, "Ev"),
+      ;(l(D, "Cv"),
         p(D, "parse"),
         (a.extract = w),
         (a.parse = D),
@@ -3026,24 +3026,24 @@ var __spellHighlightEn = (() => {
           if (!x) return ""
           ;((E = Object.assign({ encode: !0, strict: !0, arrayFormat: "none", arrayFormatSeparator: "," }, E)),
             c(E.arrayFormatSeparator))
-          let j = p((P) => (E.skipNull && i(x[P])) || (E.skipEmptyString && x[P] === ""), "shouldFilter"),
+          let j = p((N) => (E.skipNull && i(x[N])) || (E.skipEmptyString && x[N] === ""), "shouldFilter"),
             O = o(E),
             R = {}
-          for (let P of Object.keys(x)) j(P) || (R[P] = x[P])
+          for (let N of Object.keys(x)) j(N) || (R[N] = x[N])
           let M = Object.keys(R)
           return (
             E.sort !== !1 && M.sort(E.sort),
-            M.map((P) => {
-              let _ = x[P]
+            M.map((N) => {
+              let _ = x[N]
               return _ === void 0
                 ? ""
                 : _ === null
-                  ? d(P, E)
+                  ? d(N, E)
                   : Array.isArray(_)
-                    ? _.reduce(O(P), []).join("&")
-                    : d(P, E) + "=" + d(_, E)
+                    ? _.reduce(O(N), []).join("&")
+                    : d(N, E) + "=" + d(_, E)
             })
-              .filter((P) => P.length > 0)
+              .filter((N) => N.length > 0)
               .join("&")
           )
         }),
@@ -3061,10 +3061,10 @@ var __spellHighlightEn = (() => {
             O = a.extract(x.url),
             R = a.parse(O, { sort: !1 }),
             M = Object.assign(R, x.query),
-            P = a.stringify(M, E)
-          P && (P = `?${P}`)
+            N = a.stringify(M, E)
+          N && (N = `?${N}`)
           let _ = y(x.url)
-          return (x.fragmentIdentifier && (_ = `#${d(x.fragmentIdentifier, E)}`), `${j}${P}${_}`)
+          return (x.fragmentIdentifier && (_ = `#${d(x.fragmentIdentifier, E)}`), `${j}${N}${_}`)
         }),
         (a.pick = (x, E, j) => {
           j = Object.assign({ parseFragmentIdentifier: !0 }, j)
@@ -3076,38 +3076,38 @@ var __spellHighlightEn = (() => {
           return a.pick(x, O, j)
         }))
     }),
-    y$ = T((a, e) => {
+    T$ = T((a, e) => {
       "use strict"
       var t = Hc()
       function r() {
         ;((this.__data__ = new t()), (this.size = 0))
       }
-      ;(l(r, "YW"), p(r, "stackClear"), (e.exports = r))
+      ;(l(r, "_W"), p(r, "stackClear"), (e.exports = r))
     }),
-    v$ = T((a, e) => {
+    x$ = T((a, e) => {
       "use strict"
       function t(r) {
         var s = this.__data__,
           i = s.delete(r)
         return ((this.size = s.size), i)
       }
-      ;(l(t, "ZW"), p(t, "stackDelete"), (e.exports = t))
+      ;(l(t, "eV"), p(t, "stackDelete"), (e.exports = t))
     }),
-    S$ = T((a, e) => {
+    E$ = T((a, e) => {
       "use strict"
       function t(r) {
         return this.__data__.get(r)
       }
-      ;(l(t, "QW"), p(t, "stackGet"), (e.exports = t))
+      ;(l(t, "tV"), p(t, "stackGet"), (e.exports = t))
     }),
-    b$ = T((a, e) => {
+    C$ = T((a, e) => {
       "use strict"
       function t(r) {
         return this.__data__.has(r)
       }
-      ;(l(t, "_W"), p(t, "stackHas"), (e.exports = t))
+      ;(l(t, "rV"), p(t, "stackHas"), (e.exports = t))
     }),
-    A$ = T((a, e) => {
+    D$ = T((a, e) => {
       "use strict"
       var t = Hc(),
         r = fy(),
@@ -3122,16 +3122,16 @@ var __spellHighlightEn = (() => {
         }
         return (d.set(u, c), (this.size = d.size), this)
       }
-      ;(l(o, "sV"), p(o, "stackSet"), (e.exports = o))
+      ;(l(o, "aV"), p(o, "stackSet"), (e.exports = o))
     }),
     wy = T((a, e) => {
       "use strict"
       var t = Hc(),
-        r = y$(),
-        s = v$(),
-        i = S$(),
-        o = b$(),
-        u = A$()
+        r = T$(),
+        s = x$(),
+        i = E$(),
+        o = C$(),
+        u = D$()
       function c(d) {
         var m = (this.__data__ = new t(d))
         this.size = m.size
@@ -3145,26 +3145,26 @@ var __spellHighlightEn = (() => {
         (c.prototype.set = u),
         (e.exports = c))
     }),
-    w$ = T((a, e) => {
+    k$ = T((a, e) => {
       "use strict"
       var t = "__lodash_hash_undefined__"
       function r(s) {
         return (this.__data__.set(s, t), this)
       }
-      ;(l(r, "dV"), p(r, "setCacheAdd"), (e.exports = r))
+      ;(l(r, "mV"), p(r, "setCacheAdd"), (e.exports = r))
     }),
-    T$ = T((a, e) => {
+    $$ = T((a, e) => {
       "use strict"
       function t(r) {
         return this.__data__.has(r)
       }
-      ;(l(t, "fV"), p(t, "setCacheHas"), (e.exports = t))
+      ;(l(t, "gV"), p(t, "setCacheHas"), (e.exports = t))
     }),
-    x$ = T((a, e) => {
+    O$ = T((a, e) => {
       "use strict"
       var t = gy(),
-        r = w$(),
-        s = T$()
+        r = k$(),
+        s = $$()
       function i(o) {
         var u = -1,
           c = o == null ? 0 : o.length
@@ -3172,26 +3172,26 @@ var __spellHighlightEn = (() => {
       }
       ;(l(i, "wl"), p(i, "SetCache"), (i.prototype.add = i.prototype.push = r), (i.prototype.has = s), (e.exports = i))
     }),
-    E$ = T((a, e) => {
+    j$ = T((a, e) => {
       "use strict"
       function t(r, s) {
         for (var i = -1, o = r == null ? 0 : r.length; ++i < o;) if (s(r[i], i, r)) return !0
         return !1
       }
-      ;(l(t, "yV"), p(t, "arraySome"), (e.exports = t))
+      ;(l(t, "TV"), p(t, "arraySome"), (e.exports = t))
     }),
-    C$ = T((a, e) => {
+    F$ = T((a, e) => {
       "use strict"
       function t(r, s) {
         return r.has(s)
       }
-      ;(l(t, "SV"), p(t, "cacheHas"), (e.exports = t))
+      ;(l(t, "AV"), p(t, "cacheHas"), (e.exports = t))
     }),
     nb = T((a, e) => {
       "use strict"
-      var t = x$(),
-        r = E$(),
-        s = C$(),
+      var t = O$(),
+        r = j$(),
+        s = F$(),
         i = 1,
         o = 2
       function u(c, d, m, g, f, y) {
@@ -3207,8 +3207,8 @@ var __spellHighlightEn = (() => {
           R = m & o ? new t() : void 0
         for (y.set(c, d), y.set(d, c); ++j < A;) {
           var M = c[j],
-            P = d[j]
-          if (g) var _ = w ? g(P, M, j, d, c, y) : g(M, P, j, c, d, y)
+            N = d[j]
+          if (g) var _ = w ? g(N, M, j, d, c, y) : g(M, N, j, c, d, y)
           if (_ !== void 0) {
             if (_) continue
             O = !1
@@ -3223,14 +3223,14 @@ var __spellHighlightEn = (() => {
               O = !1
               break
             }
-          } else if (!(M === P || f(M, P, m, g, y))) {
+          } else if (!(M === N || f(M, N, m, g, y))) {
             O = !1
             break
           }
         }
         return (y.delete(c), y.delete(d), O)
       }
-      ;(l(u, "wV"), p(u, "equalArrays"), (e.exports = u))
+      ;(l(u, "DV"), p(u, "equalArrays"), (e.exports = u))
     }),
     ob = T((a, e) => {
       "use strict"
@@ -3238,7 +3238,7 @@ var __spellHighlightEn = (() => {
         r = t.Uint8Array
       e.exports = r
     }),
-    D$ = T((a, e) => {
+    P$ = T((a, e) => {
       "use strict"
       function t(r) {
         var s = -1,
@@ -3250,9 +3250,9 @@ var __spellHighlightEn = (() => {
           i
         )
       }
-      ;(l(t, "DV"), p(t, "mapToArray"), (e.exports = t))
+      ;(l(t, "MV"), p(t, "mapToArray"), (e.exports = t))
     }),
-    k$ = T((a, e) => {
+    N$ = T((a, e) => {
       "use strict"
       function t(r) {
         var s = -1,
@@ -3264,16 +3264,16 @@ var __spellHighlightEn = (() => {
           i
         )
       }
-      ;(l(t, "CV"), p(t, "setToArray"), (e.exports = t))
+      ;(l(t, "$V"), p(t, "setToArray"), (e.exports = t))
     }),
-    $$ = T((a, e) => {
+    R$ = T((a, e) => {
       "use strict"
       var t = Sl(),
         r = ob(),
         s = my(),
         i = nb(),
-        o = D$(),
-        u = k$(),
+        o = P$(),
+        u = N$(),
         c = 1,
         d = 2,
         m = "[object Boolean]",
@@ -3289,7 +3289,7 @@ var __spellHighlightEn = (() => {
         O = "[object DataView]",
         R = t ? t.prototype : void 0,
         M = R ? R.valueOf : void 0
-      function P(_, G, V, ue, Ae, Q, we) {
+      function N(_, G, V, ue, Ae, Q, we) {
         switch (V) {
           case O:
             if (_.byteLength != G.byteLength || _.byteOffset != G.byteOffset) return !1
@@ -3320,7 +3320,7 @@ var __spellHighlightEn = (() => {
         }
         return !1
       }
-      ;(l(P, "KV"), p(P, "equalByTag"), (e.exports = P))
+      ;(l(N, "XV"), p(N, "equalByTag"), (e.exports = N))
     }),
     Ty = T((a, e) => {
       "use strict"
@@ -3328,7 +3328,7 @@ var __spellHighlightEn = (() => {
         for (var i = -1, o = s.length, u = r.length; ++i < o;) r[u + i] = s[i]
         return r
       }
-      ;(l(t, "JV"), p(t, "arrayPush"), (e.exports = t))
+      ;(l(t, "YV"), p(t, "arrayPush"), (e.exports = t))
     }),
     lb = T((a, e) => {
       "use strict"
@@ -3338,9 +3338,9 @@ var __spellHighlightEn = (() => {
         var c = o(i)
         return r(i) ? c : t(c, u(i))
       }
-      ;(l(s, "YV"), p(s, "baseGetAllKeys"), (e.exports = s))
+      ;(l(s, "_V"), p(s, "baseGetAllKeys"), (e.exports = s))
     }),
-    O$ = T((a, e) => {
+    I$ = T((a, e) => {
       "use strict"
       function t(r, s) {
         for (var i = -1, o = r == null ? 0 : r.length, u = 0, c = []; ++i < o;) {
@@ -3349,18 +3349,18 @@ var __spellHighlightEn = (() => {
         }
         return c
       }
-      ;(l(t, "ZV"), p(t, "arrayFilter"), (e.exports = t))
+      ;(l(t, "e5"), p(t, "arrayFilter"), (e.exports = t))
     }),
     ub = T((a, e) => {
       "use strict"
       function t() {
         return []
       }
-      ;(l(t, "QV"), p(t, "stubArray"), (e.exports = t))
+      ;(l(t, "t5"), p(t, "stubArray"), (e.exports = t))
     }),
     xy = T((a, e) => {
       "use strict"
-      var t = O$(),
+      var t = I$(),
         r = ub(),
         s = Object.prototype,
         i = s.propertyIsEnumerable,
@@ -3377,15 +3377,15 @@ var __spellHighlightEn = (() => {
           : r
       e.exports = u
     }),
-    j$ = T((a, e) => {
+    L$ = T((a, e) => {
       "use strict"
       function t(r, s) {
         for (var i = -1, o = Array(r); ++i < r;) o[i] = s(i)
         return o
       }
-      ;(l(t, "s5"), p(t, "baseTimes"), (e.exports = t))
+      ;(l(t, "a5"), p(t, "baseTimes"), (e.exports = t))
     }),
-    F$ = T((a, e) => {
+    B$ = T((a, e) => {
       "use strict"
       var t = bl(),
         r = Bi(),
@@ -3393,11 +3393,11 @@ var __spellHighlightEn = (() => {
       function i(o) {
         return r(o) && t(o) == s
       }
-      ;(l(i, "u5"), p(i, "baseIsArguments"), (e.exports = i))
+      ;(l(i, "l5"), p(i, "baseIsArguments"), (e.exports = i))
     }),
     Ey = T((a, e) => {
       "use strict"
-      var t = F$(),
+      var t = B$(),
         r = Bi(),
         s = Object.prototype,
         i = s.hasOwnProperty,
@@ -3413,17 +3413,17 @@ var __spellHighlightEn = (() => {
             }
       e.exports = u
     }),
-    N$ = T((a, e) => {
+    M$ = T((a, e) => {
       "use strict"
       function t() {
         return !1
       }
-      ;(l(t, "f5"), p(t, "stubFalse"), (e.exports = t))
+      ;(l(t, "g5"), p(t, "stubFalse"), (e.exports = t))
     }),
     Cy = T((a, e) => {
       "use strict"
       var t = Hs(),
-        r = N$(),
+        r = M$(),
         s = typeof a == "object" && a && !a.nodeType && a,
         i = s && typeof e == "object" && e && !e.nodeType && e,
         o = i && i.exports === s,
@@ -3438,9 +3438,9 @@ var __spellHighlightEn = (() => {
       function r(s) {
         return typeof s == "number" && s > -1 && s % 1 == 0 && s <= t
       }
-      ;(l(r, "T5"), p(r, "isLength"), (e.exports = r))
+      ;(l(r, "b5"), p(r, "isLength"), (e.exports = r))
     }),
-    P$ = T((a, e) => {
+    _$ = T((a, e) => {
       "use strict"
       var t = bl(),
         r = Dy(),
@@ -3463,19 +3463,19 @@ var __spellHighlightEn = (() => {
         O = "[object Float32Array]",
         R = "[object Float64Array]",
         M = "[object Int8Array]",
-        P = "[object Int16Array]",
+        N = "[object Int16Array]",
         _ = "[object Int32Array]",
         G = "[object Uint8Array]",
         V = "[object Uint8ClampedArray]",
         ue = "[object Uint16Array]",
         Ae = "[object Uint32Array]",
         Q = {}
-      ;((Q[O] = Q[R] = Q[M] = Q[P] = Q[_] = Q[G] = Q[V] = Q[ue] = Q[Ae] = !0),
+      ;((Q[O] = Q[R] = Q[M] = Q[N] = Q[_] = Q[G] = Q[V] = Q[ue] = Q[Ae] = !0),
         (Q[i] = Q[o] = Q[E] = Q[u] = Q[j] = Q[c] = Q[d] = Q[m] = Q[g] = Q[f] = Q[y] = Q[w] = Q[A] = Q[D] = Q[x] = !1))
       function we(Re) {
         return s(Re) && r(Re.length) && !!Q[t(Re)]
       }
-      ;(l(we, "H5"), p(we, "baseIsTypedArray"), (e.exports = we))
+      ;(l(we, "Z5"), p(we, "baseIsTypedArray"), (e.exports = we))
     }),
     ky = T((a, e) => {
       "use strict"
@@ -3484,7 +3484,7 @@ var __spellHighlightEn = (() => {
           return r(s)
         }
       }
-      ;(l(t, "X5"), p(t, "baseUnary"), (e.exports = t))
+      ;(l(t, "Q5"), p(t, "baseUnary"), (e.exports = t))
     }),
     $y = T((a, e) => {
       "use strict"
@@ -3503,7 +3503,7 @@ var __spellHighlightEn = (() => {
     }),
     pb = T((a, e) => {
       "use strict"
-      var t = P$(),
+      var t = _$(),
         r = ky(),
         s = $y(),
         i = s && s.isTypedArray,
@@ -3512,7 +3512,7 @@ var __spellHighlightEn = (() => {
     }),
     cb = T((a, e) => {
       "use strict"
-      var t = j$(),
+      var t = L$(),
         r = Ey(),
         s = Bs(),
         i = Cy(),
@@ -3540,7 +3540,7 @@ var __spellHighlightEn = (() => {
             E.push(O)
         return E
       }
-      ;(l(m, "c4"), p(m, "arrayLikeKeys"), (e.exports = m))
+      ;(l(m, "f4"), p(m, "arrayLikeKeys"), (e.exports = m))
     }),
     Oy = T((a, e) => {
       "use strict"
@@ -3550,7 +3550,7 @@ var __spellHighlightEn = (() => {
           o = (typeof i == "function" && i.prototype) || t
         return s === o
       }
-      ;(l(r, "d4"), p(r, "isPrototype"), (e.exports = r))
+      ;(l(r, "m4"), p(r, "isPrototype"), (e.exports = r))
     }),
     db = T((a, e) => {
       "use strict"
@@ -3559,18 +3559,18 @@ var __spellHighlightEn = (() => {
           return r(s(i))
         }
       }
-      ;(l(t, "f4"), p(t, "overArg"), (e.exports = t))
+      ;(l(t, "g4"), p(t, "overArg"), (e.exports = t))
     }),
-    R$ = T((a, e) => {
+    W$ = T((a, e) => {
       "use strict"
       var t = db(),
         r = t(Object.keys, Object)
       e.exports = r
     }),
-    I$ = T((a, e) => {
+    V$ = T((a, e) => {
       "use strict"
       var t = Oy(),
-        r = R$(),
+        r = W$(),
         s = Object.prototype,
         i = s.hasOwnProperty
       function o(u) {
@@ -3579,7 +3579,7 @@ var __spellHighlightEn = (() => {
         for (var d in Object(u)) i.call(u, d) && d != "constructor" && c.push(d)
         return c
       }
-      ;(l(o, "T4"), p(o, "baseKeys"), (e.exports = o))
+      ;(l(o, "b4"), p(o, "baseKeys"), (e.exports = o))
     }),
     jy = T((a, e) => {
       "use strict"
@@ -3588,29 +3588,29 @@ var __spellHighlightEn = (() => {
       function s(i) {
         return i != null && r(i.length) && !t(i)
       }
-      ;(l(s, "b4"), p(s, "isArrayLike"), (e.exports = s))
+      ;(l(s, "v4"), p(s, "isArrayLike"), (e.exports = s))
     }),
-    Gp = T((a, e) => {
+    qp = T((a, e) => {
       "use strict"
       var t = cb(),
-        r = I$(),
+        r = V$(),
         s = jy()
       function i(o) {
         return s(o) ? t(o) : r(o)
       }
-      ;(l(i, "D4"), p(i, "keys"), (e.exports = i))
+      ;(l(i, "M4"), p(i, "keys"), (e.exports = i))
     }),
     hb = T((a, e) => {
       "use strict"
       var t = lb(),
         r = xy(),
-        s = Gp()
+        s = qp()
       function i(o) {
         return t(o, s, r)
       }
-      ;(l(i, "$4"), p(i, "getAllKeys"), (e.exports = i))
+      ;(l(i, "R4"), p(i, "getAllKeys"), (e.exports = i))
     }),
-    L$ = T((a, e) => {
+    U$ = T((a, e) => {
       "use strict"
       var t = hb(),
         r = 1,
@@ -3632,7 +3632,7 @@ var __spellHighlightEn = (() => {
         if (O && R) return O == c && R == u
         var M = !0
         ;(f.set(u, c), f.set(c, u))
-        for (var P = y; ++E < A;) {
+        for (var N = y; ++E < A;) {
           j = w[E]
           var _ = u[j],
             G = c[j]
@@ -3641,9 +3641,9 @@ var __spellHighlightEn = (() => {
             M = !1
             break
           }
-          P || (P = j == "constructor")
+          N || (N = j == "constructor")
         }
-        if (M && !P) {
+        if (M && !N) {
           var ue = u.constructor,
             Ae = c.constructor
           ue != Ae &&
@@ -3654,30 +3654,30 @@ var __spellHighlightEn = (() => {
         }
         return (f.delete(u), f.delete(c), M)
       }
-      ;(l(o, "N4"), p(o, "equalObjects"), (e.exports = o))
+      ;(l(o, "L4"), p(o, "equalObjects"), (e.exports = o))
     }),
-    B$ = T((a, e) => {
+    G$ = T((a, e) => {
       "use strict"
       var t = Uo(),
         r = Hs(),
         s = t(r, "DataView")
       e.exports = s
     }),
-    M$ = T((a, e) => {
+    z$ = T((a, e) => {
       "use strict"
       var t = Uo(),
         r = Hs(),
         s = t(r, "Promise")
       e.exports = s
     }),
-    _$ = T((a, e) => {
+    q$ = T((a, e) => {
       "use strict"
       var t = Uo(),
         r = Hs(),
         s = t(r, "Set")
       e.exports = s
     }),
-    W$ = T((a, e) => {
+    J$ = T((a, e) => {
       "use strict"
       var t = Uo(),
         r = Hs(),
@@ -3686,11 +3686,11 @@ var __spellHighlightEn = (() => {
     }),
     Zc = T((a, e) => {
       "use strict"
-      var t = B$(),
+      var t = G$(),
         r = fy(),
-        s = M$(),
-        i = _$(),
-        o = W$(),
+        s = z$(),
+        i = q$(),
+        o = J$(),
         u = bl(),
         c = eb(),
         d = "[object Map]",
@@ -3712,8 +3712,8 @@ var __spellHighlightEn = (() => {
         (o && O(new o()) != y)) &&
         (O = p(function (R) {
           var M = u(R),
-            P = M == m ? R.constructor : void 0,
-            _ = P ? c(P) : ""
+            N = M == m ? R.constructor : void 0,
+            _ = N ? c(N) : ""
           if (_)
             switch (_) {
               case A:
@@ -3731,12 +3731,12 @@ var __spellHighlightEn = (() => {
         }, "getTag")),
         (e.exports = O))
     }),
-    V$ = T((a, e) => {
+    K$ = T((a, e) => {
       "use strict"
       var t = wy(),
         r = nb(),
-        s = $$(),
-        i = L$(),
+        s = R$(),
+        i = U$(),
         o = Zc(),
         u = Bs(),
         c = Cy(),
@@ -3748,9 +3748,9 @@ var __spellHighlightEn = (() => {
         w = Object.prototype,
         A = w.hasOwnProperty
       function D(x, E, j, O, R, M) {
-        var P = u(x),
+        var N = u(x),
           _ = u(E),
-          G = P ? f : o(x),
+          G = N ? f : o(x),
           V = _ ? f : o(E)
         ;((G = G == g ? y : G), (V = V == g ? y : V))
         var ue = G == y,
@@ -3758,9 +3758,9 @@ var __spellHighlightEn = (() => {
           Q = G == V
         if (Q && c(x)) {
           if (!c(E)) return !1
-          ;((P = !0), (ue = !1))
+          ;((N = !0), (ue = !1))
         }
-        if (Q && !ue) return (M || (M = new t()), P || d(x) ? r(x, E, j, O, R, M) : s(x, E, G, j, O, R, M))
+        if (Q && !ue) return (M || (M = new t()), N || d(x) ? r(x, E, j, O, R, M) : s(x, E, G, j, O, R, M))
         if (!(j & m)) {
           var we = ue && A.call(x, "__wrapped__"),
             Re = Ae && A.call(E, "__wrapped__")
@@ -3772,16 +3772,16 @@ var __spellHighlightEn = (() => {
         }
         return Q ? (M || (M = new t()), i(x, E, j, O, R, M)) : !1
       }
-      ;(l(D, "oU"), p(D, "baseIsEqualDeep"), (e.exports = D))
+      ;(l(D, "pU"), p(D, "baseIsEqualDeep"), (e.exports = D))
     }),
     Fy = T((a, e) => {
       "use strict"
-      var t = V$(),
+      var t = K$(),
         r = Bi()
       function s(i, o, u, c, d) {
         return i === o ? !0 : i == null || o == null || (!r(i) && !r(o)) ? i !== i && o !== o : t(i, o, u, c, s, d)
       }
-      ;(l(s, "y0"), p(s, "baseIsEqual"), (e.exports = s))
+      ;(l(s, "T0"), p(s, "baseIsEqual"), (e.exports = s))
     }),
     mb = T((a, e) => {
       "use strict"
@@ -3789,17 +3789,17 @@ var __spellHighlightEn = (() => {
       function r(s, i) {
         return t(s, i)
       }
-      ;(l(r, "pU"), p(r, "isEqual"), (e.exports = r))
+      ;(l(r, "dU"), p(r, "isEqual"), (e.exports = r))
     }),
-    U$ = T((a, e) => {
+    X$ = T((a, e) => {
       "use strict"
       function t(r, s) {
         for (var i = -1, o = r == null ? 0 : r.length; ++i < o && s(r[i], i, r) !== !1;);
         return r
       }
-      ;(l(t, "bU"), p(t, "arrayEach"), (e.exports = t))
+      ;(l(t, "vU"), p(t, "arrayEach"), (e.exports = t))
     }),
-    zp = T((a, e) => {
+    Jp = T((a, e) => {
       "use strict"
       var t = by(),
         r = Sy()
@@ -3813,31 +3813,31 @@ var __spellHighlightEn = (() => {
         }
         return u
       }
-      ;(l(s, "vU"), p(s, "copyObject"), (e.exports = s))
+      ;(l(s, "kU"), p(s, "copyObject"), (e.exports = s))
     }),
-    G$ = T((a, e) => {
+    H$ = T((a, e) => {
       "use strict"
-      var t = zp(),
-        r = Gp()
+      var t = Jp(),
+        r = qp()
       function s(i, o) {
         return i && t(o, r(o), i)
       }
-      ;(l(s, "kU"), p(s, "baseAssign"), (e.exports = s))
+      ;(l(s, "FU"), p(s, "baseAssign"), (e.exports = s))
     }),
-    z$ = T((a, e) => {
+    Y$ = T((a, e) => {
       "use strict"
       function t(r) {
         var s = []
         if (r != null) for (var i in Object(r)) s.push(i)
         return s
       }
-      ;(l(t, "MU"), p(t, "nativeKeysIn"), (e.exports = t))
+      ;(l(t, "OU"), p(t, "nativeKeysIn"), (e.exports = t))
     }),
-    q$ = T((a, e) => {
+    Q$ = T((a, e) => {
       "use strict"
       var t = Vo(),
         r = Oy(),
-        s = z$(),
+        s = Y$(),
         i = Object.prototype,
         o = i.hasOwnProperty
       function u(c) {
@@ -3847,28 +3847,28 @@ var __spellHighlightEn = (() => {
         for (var g in c) (g == "constructor" && (d || !o.call(c, g))) || m.push(g)
         return m
       }
-      ;(l(u, "jU"), p(u, "baseKeysIn"), (e.exports = u))
+      ;(l(u, "BU"), p(u, "baseKeysIn"), (e.exports = u))
     }),
-    Ny = T((a, e) => {
+    Py = T((a, e) => {
       "use strict"
       var t = cb(),
-        r = q$(),
+        r = Q$(),
         s = jy()
       function i(o) {
         return s(o) ? t(o, !0) : r(o)
       }
-      ;(l(i, "qU"), p(i, "keysIn"), (e.exports = i))
+      ;(l(i, "VU"), p(i, "keysIn"), (e.exports = i))
     }),
-    J$ = T((a, e) => {
+    Z$ = T((a, e) => {
       "use strict"
-      var t = zp(),
-        r = Ny()
+      var t = Jp(),
+        r = Py()
       function s(i, o) {
         return i && t(o, r(o), i)
       }
-      ;(l(s, "VU"), p(s, "baseAssignIn"), (e.exports = s))
+      ;(l(s, "KU"), p(s, "baseAssignIn"), (e.exports = s))
     }),
-    K$ = T((a, e) => {
+    eO = T((a, e) => {
       "use strict"
       var t = Hs(),
         r = typeof a == "object" && a && !a.nodeType && a,
@@ -3882,9 +3882,9 @@ var __spellHighlightEn = (() => {
           f = u ? u(g) : new d.constructor(g)
         return (d.copy(f), f)
       }
-      ;(l(c, "KU"), p(c, "cloneBuffer"), (e.exports = c))
+      ;(l(c, "XU"), p(c, "cloneBuffer"), (e.exports = c))
     }),
-    X$ = T((a, e) => {
+    tO = T((a, e) => {
       "use strict"
       function t(r, s) {
         var i = -1,
@@ -3892,18 +3892,18 @@ var __spellHighlightEn = (() => {
         for (s || (s = Array(o)); ++i < o;) s[i] = r[i]
         return s
       }
-      ;(l(t, "JU"), p(t, "copyArray"), (e.exports = t))
+      ;(l(t, "YU"), p(t, "copyArray"), (e.exports = t))
     }),
-    H$ = T((a, e) => {
+    rO = T((a, e) => {
       "use strict"
-      var t = zp(),
+      var t = Jp(),
         r = xy()
       function s(i, o) {
         return t(i, r(i), o)
       }
-      ;(l(s, "YU"), p(s, "copySymbols"), (e.exports = s))
+      ;(l(s, "_U"), p(s, "copySymbols"), (e.exports = s))
     }),
-    Py = T((a, e) => {
+    Ny = T((a, e) => {
       "use strict"
       var t = db(),
         r = t(Object.getPrototypeOf, Object)
@@ -3912,7 +3912,7 @@ var __spellHighlightEn = (() => {
     fb = T((a, e) => {
       "use strict"
       var t = Ty(),
-        r = Py(),
+        r = Ny(),
         s = xy(),
         i = ub(),
         o = Object.getOwnPropertySymbols,
@@ -3924,26 +3924,26 @@ var __spellHighlightEn = (() => {
           : i
       e.exports = u
     }),
-    Y$ = T((a, e) => {
+    sO = T((a, e) => {
       "use strict"
-      var t = zp(),
+      var t = Jp(),
         r = fb()
       function s(i, o) {
         return t(i, r(i), o)
       }
-      ;(l(s, "a7"), p(s, "copySymbolsIn"), (e.exports = s))
+      ;(l(s, "c7"), p(s, "copySymbolsIn"), (e.exports = s))
     }),
     gb = T((a, e) => {
       "use strict"
       var t = lb(),
         r = fb(),
-        s = Ny()
+        s = Py()
       function i(o) {
         return t(o, s, r)
       }
-      ;(l(i, "l7"), p(i, "getAllKeysIn"), (e.exports = i))
+      ;(l(i, "h7"), p(i, "getAllKeysIn"), (e.exports = i))
     }),
-    Q$ = T((a, e) => {
+    aO = T((a, e) => {
       "use strict"
       var t = Object.prototype,
         r = t.hasOwnProperty
@@ -3952,7 +3952,7 @@ var __spellHighlightEn = (() => {
           u = new i.constructor(o)
         return (o && typeof i[0] == "string" && r.call(i, "index") && ((u.index = i.index), (u.input = i.input)), u)
       }
-      ;(l(s, "h7"), p(s, "initCloneArray"), (e.exports = s))
+      ;(l(s, "y7"), p(s, "initCloneArray"), (e.exports = s))
     }),
     Ry = T((a, e) => {
       "use strict"
@@ -3961,27 +3961,27 @@ var __spellHighlightEn = (() => {
         var i = new s.constructor(s.byteLength)
         return (new t(i).set(new t(s)), i)
       }
-      ;(l(r, "m7"), p(r, "cloneArrayBuffer"), (e.exports = r))
+      ;(l(r, "S7"), p(r, "cloneArrayBuffer"), (e.exports = r))
     }),
-    Z$ = T((a, e) => {
+    iO = T((a, e) => {
       "use strict"
       var t = Ry()
       function r(s, i) {
         var o = i ? t(s.buffer) : s.buffer
         return new s.constructor(o, s.byteOffset, s.byteLength)
       }
-      ;(l(r, "y7"), p(r, "cloneDataView"), (e.exports = r))
+      ;(l(r, "T7"), p(r, "cloneDataView"), (e.exports = r))
     }),
-    eO = T((a, e) => {
+    nO = T((a, e) => {
       "use strict"
       var t = /\w*$/
       function r(s) {
         var i = new s.constructor(s.source, t.exec(s))
         return ((i.lastIndex = s.lastIndex), i)
       }
-      ;(l(r, "P7"), p(r, "cloneRegExp"), (e.exports = r))
+      ;(l(r, "x7"), p(r, "cloneRegExp"), (e.exports = r))
     }),
-    tO = T((a, e) => {
+    oO = T((a, e) => {
       "use strict"
       var t = Sl(),
         r = t ? t.prototype : void 0,
@@ -3989,24 +3989,24 @@ var __spellHighlightEn = (() => {
       function i(o) {
         return s ? Object(s.call(o)) : {}
       }
-      ;(l(i, "T7"), p(i, "cloneSymbol"), (e.exports = i))
+      ;(l(i, "b7"), p(i, "cloneSymbol"), (e.exports = i))
     }),
-    rO = T((a, e) => {
+    lO = T((a, e) => {
       "use strict"
       var t = Ry()
       function r(s, i) {
         var o = i ? t(s.buffer) : s.buffer
         return new s.constructor(o, s.byteOffset, s.length)
       }
-      ;(l(r, "x7"), p(r, "cloneTypedArray"), (e.exports = r))
+      ;(l(r, "E7"), p(r, "cloneTypedArray"), (e.exports = r))
     }),
-    sO = T((a, e) => {
+    uO = T((a, e) => {
       "use strict"
       var t = Ry(),
-        r = Z$(),
-        s = eO(),
-        i = tO(),
-        o = rO(),
+        r = iO(),
+        s = nO(),
+        i = oO(),
+        o = lO(),
         u = "[object Boolean]",
         c = "[object Date]",
         d = "[object Map]",
@@ -4023,7 +4023,7 @@ var __spellHighlightEn = (() => {
         O = "[object Int16Array]",
         R = "[object Int32Array]",
         M = "[object Uint8Array]",
-        P = "[object Uint8ClampedArray]",
+        N = "[object Uint8ClampedArray]",
         _ = "[object Uint16Array]",
         G = "[object Uint32Array]"
       function V(ue, Ae, Q) {
@@ -4042,7 +4042,7 @@ var __spellHighlightEn = (() => {
           case O:
           case R:
           case M:
-          case P:
+          case N:
           case _:
           case G:
             return o(ue, Q)
@@ -4059,9 +4059,9 @@ var __spellHighlightEn = (() => {
             return i(ue)
         }
       }
-      ;(l(V, "J7"), p(V, "initCloneByTag"), (e.exports = V))
+      ;(l(V, "Y7"), p(V, "initCloneByTag"), (e.exports = V))
     }),
-    aO = T((a, e) => {
+    pO = T((a, e) => {
       "use strict"
       var t = Vo(),
         r = Object.create,
@@ -4081,17 +4081,17 @@ var __spellHighlightEn = (() => {
         })()
       e.exports = s
     }),
-    iO = T((a, e) => {
+    cO = T((a, e) => {
       "use strict"
-      var t = aO(),
-        r = Py(),
+      var t = pO(),
+        r = Ny(),
         s = Oy()
       function i(o) {
         return typeof o.constructor == "function" && !s(o) ? t(r(o)) : {}
       }
-      ;(l(i, "_7"), p(i, "initCloneObject"), (e.exports = i))
+      ;(l(i, "rz"), p(i, "initCloneObject"), (e.exports = i))
     }),
-    nO = T((a, e) => {
+    dO = T((a, e) => {
       "use strict"
       var t = Zc(),
         r = Bi(),
@@ -4099,18 +4099,18 @@ var __spellHighlightEn = (() => {
       function i(o) {
         return r(o) && t(o) == s
       }
-      ;(l(i, "nz"), p(i, "baseIsMap"), (e.exports = i))
+      ;(l(i, "oz"), p(i, "baseIsMap"), (e.exports = i))
     }),
-    oO = T((a, e) => {
+    hO = T((a, e) => {
       "use strict"
-      var t = nO(),
+      var t = dO(),
         r = ky(),
         s = $y(),
         i = s && s.isMap,
         o = i ? r(i) : t
       e.exports = o
     }),
-    lO = T((a, e) => {
+    mO = T((a, e) => {
       "use strict"
       var t = Zc(),
         r = Bi(),
@@ -4118,41 +4118,41 @@ var __spellHighlightEn = (() => {
       function i(o) {
         return r(o) && t(o) == s
       }
-      ;(l(i, "cz"), p(i, "baseIsSet"), (e.exports = i))
+      ;(l(i, "fz"), p(i, "baseIsSet"), (e.exports = i))
     }),
-    uO = T((a, e) => {
+    fO = T((a, e) => {
       "use strict"
-      var t = lO(),
+      var t = mO(),
         r = ky(),
         s = $y(),
         i = s && s.isSet,
         o = i ? r(i) : t
       e.exports = o
     }),
-    pO = T((a, e) => {
+    gO = T((a, e) => {
       "use strict"
       var t = wy(),
-        r = U$(),
+        r = X$(),
         s = by(),
-        i = G$(),
-        o = J$(),
-        u = K$(),
-        c = X$(),
-        d = H$(),
-        m = Y$(),
+        i = H$(),
+        o = Z$(),
+        u = eO(),
+        c = tO(),
+        d = rO(),
+        m = sO(),
         g = hb(),
         f = gb(),
         y = Zc(),
-        w = Q$(),
-        A = sO(),
-        D = iO(),
+        w = aO(),
+        A = uO(),
+        D = cO(),
         x = Bs(),
         E = Cy(),
-        j = oO(),
+        j = hO(),
         O = Vo(),
-        R = uO(),
-        M = Gp(),
-        P = Ny(),
+        R = fO(),
+        M = qp(),
+        N = Py(),
         _ = 1,
         G = 2,
         V = 4,
@@ -4179,9 +4179,9 @@ var __spellHighlightEn = (() => {
         ea = "[object Int16Array]",
         Ld = "[object Int32Array]",
         Bd = "[object Uint8Array]",
-        kl = "[object Uint8ClampedArray]",
+        Ol = "[object Uint8ClampedArray]",
         Ie = "[object Uint16Array]",
-        $l = "[object Uint32Array]",
+        jl = "[object Uint32Array]",
         ie = {}
       ;((ie[ue] =
         ie[Ae] =
@@ -4202,17 +4202,17 @@ var __spellHighlightEn = (() => {
         ie[re] =
         ie[J] =
         ie[Bd] =
-        ie[kl] =
+        ie[Ol] =
         ie[Ie] =
-        ie[$l] =
+        ie[jl] =
           !0),
         (ie[Re] = ie[Te] = ie[H] = !1))
-      function dt(ge, ht, He, _e, ma, Nt) {
+      function dt(ge, ht, Ye, _e, ma, Pt) {
         var nt,
           ta = ht & _,
           se = ht & G,
           ae = ht & V
-        if ((He && (nt = ma ? He(ge, _e, ma, Nt) : He(ge)), nt !== void 0)) return nt
+        if ((Ye && (nt = ma ? Ye(ge, _e, ma, Pt) : Ye(ge)), nt !== void 0)) return nt
         if (!O(ge)) return ge
         var fa = x(ge)
         if (fa) {
@@ -4228,61 +4228,61 @@ var __spellHighlightEn = (() => {
             nt = A(ge, ot, ta)
           }
         }
-        Nt || (Nt = new t())
-        var Ol = Nt.get(ge)
-        if (Ol) return Ol
-        ;(Nt.set(ge, nt),
+        Pt || (Pt = new t())
+        var Fl = Pt.get(ge)
+        if (Fl) return Fl
+        ;(Pt.set(ge, nt),
           R(ge)
             ? ge.forEach(function (hr) {
-                nt.add(dt(hr, ht, He, hr, ge, Nt))
+                nt.add(dt(hr, ht, Ye, hr, ge, Pt))
               })
             : j(ge) &&
               ge.forEach(function (hr, ye) {
-                nt.set(ye, dt(hr, ht, He, ye, ge, Nt))
+                nt.set(ye, dt(hr, ht, Ye, ye, ge, Pt))
               }))
-        var tr = ae ? (se ? f : g) : se ? P : M,
-          N = fa ? void 0 : tr(ge)
+        var tr = ae ? (se ? f : g) : se ? N : M,
+          P = fa ? void 0 : tr(ge)
         return (
-          r(N || ge, function (hr, ye) {
-            ;(N && ((ye = hr), (hr = ge[ye])), s(nt, ye, dt(hr, ht, He, ye, ge, Nt)))
+          r(P || ge, function (hr, ye) {
+            ;(P && ((ye = hr), (hr = ge[ye])), s(nt, ye, dt(hr, ht, Ye, ye, ge, Pt)))
           }),
           nt
         )
       }
       ;(l(dt, "zl"), p(dt, "baseClone"), (e.exports = dt))
     }),
-    cO = T((a, e) => {
+    yO = T((a, e) => {
       "use strict"
       function t(r) {
         var s = r == null ? 0 : r.length
         return s ? r[s - 1] : void 0
       }
-      ;(l(t, "uK"), p(t, "last"), (e.exports = t))
+      ;(l(t, "lK"), p(t, "last"), (e.exports = t))
     }),
-    dO = T((a, e) => {
+    vO = T((a, e) => {
       "use strict"
       var t = yy(),
         r = rb()
       function s(i, o) {
         return o.length < 2 ? i : t(i, r(o, 0, -1))
       }
-      ;(l(s, "lK"), p(s, "parent"), (e.exports = s))
+      ;(l(s, "hK"), p(s, "parent"), (e.exports = s))
     }),
-    hO = T((a, e) => {
+    SO = T((a, e) => {
       "use strict"
-      var t = Up(),
-        r = cO(),
-        s = dO(),
+      var t = zp(),
+        r = yO(),
+        s = vO(),
         i = Al()
       function o(u, c) {
         return ((c = t(c, u)), (u = s(u, c)), u == null || delete u[i(r(c))])
       }
-      ;(l(o, "gK"), p(o, "baseUnset"), (e.exports = o))
+      ;(l(o, "PK"), p(o, "baseUnset"), (e.exports = o))
     }),
-    mO = T((a, e) => {
+    bO = T((a, e) => {
       "use strict"
       var t = bl(),
-        r = Py(),
+        r = Ny(),
         s = Bi(),
         i = "[object Object]",
         o = Function.prototype,
@@ -4297,17 +4297,17 @@ var __spellHighlightEn = (() => {
         var w = d.call(y, "constructor") && y.constructor
         return typeof w == "function" && w instanceof w && c.call(w) == m
       }
-      ;(l(g, "EK"), p(g, "isPlainObject"), (e.exports = g))
+      ;(l(g, "CK"), p(g, "isPlainObject"), (e.exports = g))
     }),
-    fO = T((a, e) => {
+    AO = T((a, e) => {
       "use strict"
-      var t = mO()
+      var t = bO()
       function r(s) {
         return t(s) ? void 0 : s
       }
-      ;(l(r, "DK"), p(r, "customOmitClone"), (e.exports = r))
+      ;(l(r, "MK"), p(r, "customOmitClone"), (e.exports = r))
     }),
-    gO = T((a, e) => {
+    wO = T((a, e) => {
       "use strict"
       var t = Sl(),
         r = Ey(),
@@ -4316,12 +4316,12 @@ var __spellHighlightEn = (() => {
       function o(u) {
         return s(u) || r(u) || !!(i && u && u[i])
       }
-      ;(l(o, "MK"), p(o, "isFlattenable"), (e.exports = o))
+      ;(l(o, "OK"), p(o, "isFlattenable"), (e.exports = o))
     }),
     yb = T((a, e) => {
       "use strict"
       var t = Ty(),
-        r = gO()
+        r = wO()
       function s(i, o, u, c, d) {
         var m = -1,
           g = i.length
@@ -4331,18 +4331,18 @@ var __spellHighlightEn = (() => {
         }
         return d
       }
-      ;(l(s, "YC"), p(s, "baseFlatten"), (e.exports = s))
+      ;(l(s, "_C"), p(s, "baseFlatten"), (e.exports = s))
     }),
-    yO = T((a, e) => {
+    TO = T((a, e) => {
       "use strict"
       var t = yb()
       function r(s) {
         var i = s == null ? 0 : s.length
         return i ? t(s, 1) : []
       }
-      ;(l(r, "RK"), p(r, "flatten"), (e.exports = r))
+      ;(l(r, "IK"), p(r, "flatten"), (e.exports = r))
     }),
-    vO = T((a, e) => {
+    xO = T((a, e) => {
       "use strict"
       function t(r, s, i) {
         switch (i.length) {
@@ -4357,11 +4357,11 @@ var __spellHighlightEn = (() => {
         }
         return r.apply(s, i)
       }
-      ;(l(t, "NK"), p(t, "apply"), (e.exports = t))
+      ;(l(t, "LK"), p(t, "apply"), (e.exports = t))
     }),
-    SO = T((a, e) => {
+    EO = T((a, e) => {
       "use strict"
-      var t = vO(),
+      var t = xO(),
         r = Math.max
       function s(i, o, u) {
         return (
@@ -4374,27 +4374,27 @@ var __spellHighlightEn = (() => {
           }
         )
       }
-      ;(l(s, "IK"), p(s, "overRest"), (e.exports = s))
+      ;(l(s, "qK"), p(s, "overRest"), (e.exports = s))
     }),
-    bO = T((a, e) => {
+    CO = T((a, e) => {
       "use strict"
       function t(r) {
         return function () {
           return r
         }
       }
-      ;(l(t, "LK"), p(t, "constant"), (e.exports = t))
+      ;(l(t, "GK"), p(t, "constant"), (e.exports = t))
     }),
     Iy = T((a, e) => {
       "use strict"
       function t(r) {
         return r
       }
-      ;(l(t, "BK"), p(t, "identity"), (e.exports = t))
+      ;(l(t, "WK"), p(t, "identity"), (e.exports = t))
     }),
-    AO = T((a, e) => {
+    DO = T((a, e) => {
       "use strict"
-      var t = bO(),
+      var t = CO(),
         r = ib(),
         s = Iy(),
         i = r
@@ -4404,7 +4404,7 @@ var __spellHighlightEn = (() => {
           : s
       e.exports = i
     }),
-    wO = T((a, e) => {
+    kO = T((a, e) => {
       "use strict"
       var t = 800,
         r = 16,
@@ -4421,34 +4421,34 @@ var __spellHighlightEn = (() => {
           return o.apply(void 0, arguments)
         }
       }
-      ;(l(i, "KK"), p(i, "shortOut"), (e.exports = i))
+      ;(l(i, "XK"), p(i, "shortOut"), (e.exports = i))
     }),
-    TO = T((a, e) => {
+    $O = T((a, e) => {
       "use strict"
-      var t = AO(),
-        r = wO(),
+      var t = DO(),
+        r = kO(),
         s = r(t)
       e.exports = s
     }),
-    xO = T((a, e) => {
+    OO = T((a, e) => {
       "use strict"
-      var t = yO(),
-        r = SO(),
-        s = TO()
+      var t = TO(),
+        r = EO(),
+        s = $O()
       function i(o) {
         return s(r(o, void 0, t), o + "")
       }
-      ;(l(i, "_K"), p(i, "flatRest"), (e.exports = i))
+      ;(l(i, "rJ"), p(i, "flatRest"), (e.exports = i))
     }),
-    EO = T((a, e) => {
+    jO = T((a, e) => {
       "use strict"
       var t = tb(),
-        r = pO(),
-        s = hO(),
-        i = Up(),
-        o = zp(),
-        u = fO(),
-        c = xO(),
+        r = gO(),
+        s = SO(),
+        i = zp(),
+        o = Jp(),
+        u = AO(),
+        c = OO(),
         d = gb(),
         m = 1,
         g = 2,
@@ -4475,9 +4475,9 @@ var __spellHighlightEn = (() => {
         var o = i == null ? 0 : i.length
         return o ? t(i, r) : []
       }
-      ;(l(s, "EJ"), p(s, "flattenDeep"), (e.exports = s))
+      ;(l(s, "CJ"), p(s, "flattenDeep"), (e.exports = s))
     }),
-    CO = T((a, e) => {
+    FO = T((a, e) => {
       "use strict"
       function t(r, s, i, o) {
         for (var u = -1, c = r == null ? 0 : r.length; ++u < c;) {
@@ -4486,9 +4486,9 @@ var __spellHighlightEn = (() => {
         }
         return o
       }
-      ;(l(t, "DJ"), p(t, "arrayAggregator"), (e.exports = t))
+      ;(l(t, "MJ"), p(t, "arrayAggregator"), (e.exports = t))
     }),
-    DO = T((a, e) => {
+    PO = T((a, e) => {
       "use strict"
       function t(r) {
         return function (s, i, o) {
@@ -4499,24 +4499,24 @@ var __spellHighlightEn = (() => {
           return s
         }
       }
-      ;(l(t, "CJ"), p(t, "createBaseFor"), (e.exports = t))
+      ;(l(t, "$J"), p(t, "createBaseFor"), (e.exports = t))
     }),
-    kO = T((a, e) => {
+    NO = T((a, e) => {
       "use strict"
-      var t = DO(),
+      var t = PO(),
         r = t()
       e.exports = r
     }),
-    $O = T((a, e) => {
+    RO = T((a, e) => {
       "use strict"
-      var t = kO(),
-        r = Gp()
+      var t = NO(),
+        r = qp()
       function s(i, o) {
         return i && t(i, o, r)
       }
-      ;(l(s, "OJ"), p(s, "baseForOwn"), (e.exports = s))
+      ;(l(s, "jJ"), p(s, "baseForOwn"), (e.exports = s))
     }),
-    OO = T((a, e) => {
+    IO = T((a, e) => {
       "use strict"
       var t = jy()
       function r(s, i) {
@@ -4527,18 +4527,18 @@ var __spellHighlightEn = (() => {
           return o
         }
       }
-      ;(l(r, "NJ"), p(r, "createBaseEach"), (e.exports = r))
+      ;(l(r, "LJ"), p(r, "createBaseEach"), (e.exports = r))
     }),
-    jO = T((a, e) => {
+    LO = T((a, e) => {
       "use strict"
-      var t = $O(),
-        r = OO(),
+      var t = RO(),
+        r = IO(),
         s = r(t)
       e.exports = s
     }),
-    FO = T((a, e) => {
+    BO = T((a, e) => {
       "use strict"
-      var t = jO()
+      var t = LO()
       function r(s, i, o, u) {
         return (
           t(s, function (c, d, m) {
@@ -4547,9 +4547,9 @@ var __spellHighlightEn = (() => {
           u
         )
       }
-      ;(l(r, "qJ"), p(r, "baseAggregator"), (e.exports = r))
+      ;(l(r, "VJ"), p(r, "baseAggregator"), (e.exports = r))
     }),
-    NO = T((a, e) => {
+    MO = T((a, e) => {
       "use strict"
       var t = wy(),
         r = Fy(),
@@ -4579,7 +4579,7 @@ var __spellHighlightEn = (() => {
         }
         return !0
       }
-      ;(l(o, "zJ"), p(o, "baseIsMatch"), (e.exports = o))
+      ;(l(o, "HJ"), p(o, "baseIsMatch"), (e.exports = o))
     }),
     Sb = T((a, e) => {
       "use strict"
@@ -4587,12 +4587,12 @@ var __spellHighlightEn = (() => {
       function r(s) {
         return s === s && !t(s)
       }
-      ;(l(r, "JJ"), p(r, "isStrictComparable"), (e.exports = r))
+      ;(l(r, "YJ"), p(r, "isStrictComparable"), (e.exports = r))
     }),
-    PO = T((a, e) => {
+    _O = T((a, e) => {
       "use strict"
       var t = Sb(),
-        r = Gp()
+        r = qp()
       function s(i) {
         for (var o = r(i), u = o.length; u--;) {
           var c = o[u],
@@ -4601,7 +4601,7 @@ var __spellHighlightEn = (() => {
         }
         return o
       }
-      ;(l(s, "YJ"), p(s, "getMatchData"), (e.exports = s))
+      ;(l(s, "_J"), p(s, "getMatchData"), (e.exports = s))
     }),
     bb = T((a, e) => {
       "use strict"
@@ -4610,12 +4610,12 @@ var __spellHighlightEn = (() => {
           return i == null ? !1 : i[r] === s && (s !== void 0 || r in Object(i))
         }
       }
-      ;(l(t, "ZJ"), p(t, "matchesStrictComparable"), (e.exports = t))
+      ;(l(t, "eH"), p(t, "matchesStrictComparable"), (e.exports = t))
     }),
-    RO = T((a, e) => {
+    WO = T((a, e) => {
       "use strict"
-      var t = NO(),
-        r = PO(),
+      var t = MO(),
+        r = _O(),
         s = bb()
       function i(o) {
         var u = r(o)
@@ -4625,18 +4625,18 @@ var __spellHighlightEn = (() => {
               return c === o || t(c, o, u)
             }
       }
-      ;(l(i, "tH"), p(i, "baseMatches"), (e.exports = i))
+      ;(l(i, "sH"), p(i, "baseMatches"), (e.exports = i))
     }),
-    IO = T((a, e) => {
+    VO = T((a, e) => {
       "use strict"
       function t(r, s) {
         return r != null && s in Object(r)
       }
-      ;(l(t, "rH"), p(t, "baseHasIn"), (e.exports = t))
+      ;(l(t, "iH"), p(t, "baseHasIn"), (e.exports = t))
     }),
-    LO = T((a, e) => {
+    UO = T((a, e) => {
       "use strict"
-      var t = Up(),
+      var t = zp(),
         r = Ey(),
         s = Bs(),
         i = Ay(),
@@ -4651,22 +4651,22 @@ var __spellHighlightEn = (() => {
         }
         return w || ++f != y ? w : ((y = d == null ? 0 : d.length), !!y && o(y) && i(A, y) && (s(d) || r(d)))
       }
-      ;(l(c, "pH"), p(c, "hasPath"), (e.exports = c))
+      ;(l(c, "dH"), p(c, "hasPath"), (e.exports = c))
     }),
-    BO = T((a, e) => {
+    GO = T((a, e) => {
       "use strict"
-      var t = IO(),
-        r = LO()
+      var t = VO(),
+        r = UO()
       function s(i, o) {
         return i != null && r(i, o, t)
       }
-      ;(l(s, "dH"), p(s, "hasIn"), (e.exports = s))
+      ;(l(s, "mH"), p(s, "hasIn"), (e.exports = s))
     }),
-    MO = T((a, e) => {
+    zO = T((a, e) => {
       "use strict"
       var t = Fy(),
         r = Qc(),
-        s = BO(),
+        s = GO(),
         i = hy(),
         o = Sb(),
         u = bb(),
@@ -4681,18 +4681,18 @@ var __spellHighlightEn = (() => {
               return A === void 0 && A === y ? s(w, f) : t(y, A, d | m)
             }
       }
-      ;(l(g, "xH"), p(g, "baseMatchesProperty"), (e.exports = g))
+      ;(l(g, "EH"), p(g, "baseMatchesProperty"), (e.exports = g))
     }),
-    _O = T((a, e) => {
+    qO = T((a, e) => {
       "use strict"
       function t(r) {
         return function (s) {
           return s?.[r]
         }
       }
-      ;(l(t, "bH"), p(t, "baseProperty"), (e.exports = t))
+      ;(l(t, "vH"), p(t, "baseProperty"), (e.exports = t))
     }),
-    WO = T((a, e) => {
+    JO = T((a, e) => {
       "use strict"
       var t = yy()
       function r(s) {
@@ -4700,36 +4700,36 @@ var __spellHighlightEn = (() => {
           return t(i, s)
         }
       }
-      ;(l(r, "EH"), p(r, "basePropertyDeep"), (e.exports = r))
+      ;(l(r, "CH"), p(r, "basePropertyDeep"), (e.exports = r))
     }),
-    VO = T((a, e) => {
+    KO = T((a, e) => {
       "use strict"
-      var t = _O(),
-        r = WO(),
+      var t = qO(),
+        r = JO(),
         s = hy(),
         i = Al()
       function o(u) {
         return s(u) ? t(i(u)) : r(u)
       }
-      ;(l(o, "MH"), p(o, "property"), (e.exports = o))
+      ;(l(o, "OH"), p(o, "property"), (e.exports = o))
     }),
-    UO = T((a, e) => {
+    XO = T((a, e) => {
       "use strict"
-      var t = RO(),
-        r = MO(),
+      var t = WO(),
+        r = zO(),
         s = Iy(),
         i = Bs(),
-        o = VO()
+        o = KO()
       function u(c) {
         return typeof c == "function" ? c : c == null ? s : typeof c == "object" ? (i(c) ? r(c[0], c[1]) : t(c)) : o(c)
       }
-      ;(l(u, "jH"), p(u, "baseIteratee"), (e.exports = u))
+      ;(l(u, "BH"), p(u, "baseIteratee"), (e.exports = u))
     }),
-    GO = T((a, e) => {
+    HO = T((a, e) => {
       "use strict"
-      var t = CO(),
-        r = FO(),
-        s = UO(),
+      var t = FO(),
+        r = BO(),
+        s = XO(),
         i = Bs()
       function o(u, c) {
         return function (d, m) {
@@ -4738,12 +4738,12 @@ var __spellHighlightEn = (() => {
           return g(d, u, s(m, 2), f)
         }
       }
-      ;(l(o, "GH"), p(o, "createAggregator"), (e.exports = o))
+      ;(l(o, "UH"), p(o, "createAggregator"), (e.exports = o))
     }),
-    zO = T((a, e) => {
+    YO = T((a, e) => {
       "use strict"
       var t = Sy(),
-        r = GO(),
+        r = HO(),
         s = Object.prototype,
         i = s.hasOwnProperty,
         o = r(function (u, c, d) {
@@ -4751,7 +4751,7 @@ var __spellHighlightEn = (() => {
         })
       e.exports = o
     }),
-    qO = T((a, e) => {
+    QO = T((a, e) => {
       "use strict"
       function t(r, s) {
         for (var i, o = -1, u = r.length; ++o < u;) {
@@ -4760,18 +4760,18 @@ var __spellHighlightEn = (() => {
         }
         return i
       }
-      ;(l(t, "JH"), p(t, "baseSum"), (e.exports = t))
+      ;(l(t, "YH"), p(t, "baseSum"), (e.exports = t))
     }),
-    JO = T((a, e) => {
+    ZO = T((a, e) => {
       "use strict"
-      var t = qO(),
+      var t = QO(),
         r = Iy()
       function s(i) {
         return i && i.length ? t(i, r) : 0
       }
-      ;(l(s, "YH"), p(s, "sum"), (e.exports = s))
+      ;(l(s, "_H"), p(s, "sum"), (e.exports = s))
     }),
-    qp = T((a, e) => {
+    Kp = T((a, e) => {
       "use strict"
       var t = "2.0.0",
         r = Number.MAX_SAFE_INTEGER || 9007199254740991,
@@ -4800,9 +4800,9 @@ var __spellHighlightEn = (() => {
           : () => {}
       e.exports = t
     }),
-    Jp = T((a, e) => {
+    Xp = T((a, e) => {
       "use strict"
-      var { MAX_SAFE_COMPONENT_LENGTH: t, MAX_SAFE_BUILD_LENGTH: r, MAX_LENGTH: s } = qp(),
+      var { MAX_SAFE_COMPONENT_LENGTH: t, MAX_SAFE_BUILD_LENGTH: r, MAX_LENGTH: s } = Kp(),
         i = ed()
       a = e.exports = {}
       var o = (a.re = []),
@@ -4909,8 +4909,8 @@ var __spellHighlightEn = (() => {
     ct = T((a, e) => {
       "use strict"
       var t = ed(),
-        { MAX_LENGTH: r, MAX_SAFE_INTEGER: s } = qp(),
-        { safeRe: i, t: o } = Jp(),
+        { MAX_LENGTH: r, MAX_SAFE_INTEGER: s } = Kp(),
+        { safeRe: i, t: o } = Xp(),
         u = Ly(),
         { compareIdentifiers: c } = Ab(),
         d = p((g, f) => {
@@ -5105,7 +5105,7 @@ var __spellHighlightEn = (() => {
         }, "parse")
       e.exports = r
     }),
-    KO = T((a, e) => {
+    ej = T((a, e) => {
       "use strict"
       var t = Go(),
         r = p((s, i) => {
@@ -5114,7 +5114,7 @@ var __spellHighlightEn = (() => {
         }, "valid")
       e.exports = r
     }),
-    XO = T((a, e) => {
+    tj = T((a, e) => {
       "use strict"
       var t = Go(),
         r = p((s, i) => {
@@ -5123,7 +5123,7 @@ var __spellHighlightEn = (() => {
         }, "clean")
       e.exports = r
     }),
-    HO = T((a, e) => {
+    rj = T((a, e) => {
       "use strict"
       var t = ct(),
         r = p((s, i, o, u, c) => {
@@ -5136,7 +5136,7 @@ var __spellHighlightEn = (() => {
         }, "inc")
       e.exports = r
     }),
-    YO = T((a, e) => {
+    sj = T((a, e) => {
       "use strict"
       var t = Go(),
         r = p((s, i) => {
@@ -5163,25 +5163,25 @@ var __spellHighlightEn = (() => {
         }, "diff")
       e.exports = r
     }),
-    QO = T((a, e) => {
+    aj = T((a, e) => {
       "use strict"
       var t = ct(),
         r = p((s, i) => new t(s, i).major, "major")
       e.exports = r
     }),
-    ZO = T((a, e) => {
+    ij = T((a, e) => {
       "use strict"
       var t = ct(),
         r = p((s, i) => new t(s, i).minor, "minor")
       e.exports = r
     }),
-    ej = T((a, e) => {
+    nj = T((a, e) => {
       "use strict"
       var t = ct(),
         r = p((s, i) => new t(s, i).patch, "patch")
       e.exports = r
     }),
-    tj = T((a, e) => {
+    oj = T((a, e) => {
       "use strict"
       var t = Go(),
         r = p((s, i) => {
@@ -5196,13 +5196,13 @@ var __spellHighlightEn = (() => {
         r = p((s, i, o) => new t(s, o).compare(new t(i, o)), "compare")
       e.exports = r
     }),
-    rj = T((a, e) => {
+    lj = T((a, e) => {
       "use strict"
       var t = Ms(),
         r = p((s, i, o) => t(i, s, o), "rcompare")
       e.exports = r
     }),
-    sj = T((a, e) => {
+    uj = T((a, e) => {
       "use strict"
       var t = Ms(),
         r = p((s, i) => t(s, i, !0), "compareLoose")
@@ -5218,13 +5218,13 @@ var __spellHighlightEn = (() => {
         }, "compareBuild")
       e.exports = r
     }),
-    aj = T((a, e) => {
+    pj = T((a, e) => {
       "use strict"
       var t = By(),
         r = p((s, i) => s.sort((o, u) => t(o, u, i)), "sort")
       e.exports = r
     }),
-    ij = T((a, e) => {
+    cj = T((a, e) => {
       "use strict"
       var t = By(),
         r = p((s, i) => s.sort((o, u) => t(u, o, i)), "rsort")
@@ -5300,11 +5300,11 @@ var __spellHighlightEn = (() => {
         }, "cmp")
       e.exports = c
     }),
-    nj = T((a, e) => {
+    dj = T((a, e) => {
       "use strict"
       var t = ct(),
         r = Go(),
-        { safeRe: s, t: i } = Jp(),
+        { safeRe: s, t: i } = Xp(),
         o = p((u, c) => {
           if (u instanceof t) return u
           if ((typeof u == "number" && (u = String(u)), typeof u != "string")) return null
@@ -5329,10 +5329,10 @@ var __spellHighlightEn = (() => {
         }, "coerce")
       e.exports = o
     }),
-    oj = T((a, e) => {
+    hj = T((a, e) => {
       "use strict"
       var t = Go(),
-        r = qp(),
+        r = Kp(),
         s = ct(),
         i = p((d, m, g) => {
           if (!r.RELEASE_TYPES.includes(m)) return null
@@ -5358,7 +5358,7 @@ var __spellHighlightEn = (() => {
         c = p((d) => d.startsWith("pre"), "isPrerelease")
       e.exports = i
     }),
-    lj = T((a, e) => {
+    mj = T((a, e) => {
       "use strict"
       var t = class {
         static {
@@ -5499,14 +5499,14 @@ var __spellHighlightEn = (() => {
           }
         }
       e.exports = r
-      var s = lj(),
+      var s = mj(),
         i = new s(),
         o = Ly(),
         u = rd(),
         c = ed(),
         d = ct(),
-        { safeRe: m, src: g, t: f, comparatorTrimReplace: y, tildeTrimReplace: w, caretTrimReplace: A } = Jp(),
-        { FLAG_INCLUDE_PRERELEASE: D, FLAG_LOOSE: x } = qp(),
+        { safeRe: m, src: g, t: f, comparatorTrimReplace: y, tildeTrimReplace: w, caretTrimReplace: A } = Xp(),
+        { FLAG_INCLUDE_PRERELEASE: D, FLAG_LOOSE: x } = Kp(),
         E = new RegExp(g[f.BUILD], "g"),
         j = p((W) => W.value === "<0.0.0-0", "isNullSet"),
         O = p((W) => W.value === "", "isAny"),
@@ -5533,8 +5533,8 @@ var __spellHighlightEn = (() => {
           ),
           "parseComparator"
         ),
-        P = p((W) => !W || W.toLowerCase() === "x" || W === "*", "isX"),
-        _ = p((W, B, K) => (P(W) && !P(B)) || (P(B) && K && !P(K)), "invalidXRangeOrder"),
+        N = p((W) => !W || W.toLowerCase() === "x" || W === "*", "isX"),
+        _ = p((W, B, K) => (N(W) && !N(B)) || (N(B) && K && !N(K)), "invalidXRangeOrder"),
         G = p(
           (W, B) =>
             W.trim()
@@ -5550,11 +5550,11 @@ var __spellHighlightEn = (() => {
             c("tilde", W, re, J, H, pe, de)
             let he
             return (
-              P(J)
+              N(J)
                 ? (he = "")
-                : P(H)
+                : N(H)
                   ? (he = `>=${J}.0.0${X} <${+J + 1}.0.0-0`)
-                  : P(pe)
+                  : N(pe)
                     ? (he = `>=${J}.${H}.0${X} <${J}.${+H + 1}.0-0`)
                     : de
                       ? (c("replaceTilde pr", de), (he = `>=${J}.${H}.${pe}-${de} <${J}.${+H + 1}.0-0`))
@@ -5580,11 +5580,11 @@ var __spellHighlightEn = (() => {
             c("caret", W, re, J, H, pe, de)
             let he
             return (
-              P(J)
+              N(J)
                 ? (he = "")
-                : P(H)
+                : N(H)
                   ? (he = `>=${J}.0.0${X} <${+J + 1}.0.0-0`)
-                  : P(pe)
+                  : N(pe)
                     ? J === "0"
                       ? (he = `>=${J}.${H}.0${X} <${J}.${+H + 1}.0-0`)
                       : (he = `>=${J}.${H}.0${X} <${+J + 1}.0.0-0`)
@@ -5620,9 +5620,9 @@ var __spellHighlightEn = (() => {
           let K = B.loose ? m[f.XRANGELOOSE] : m[f.XRANGE]
           return W.replace(K, (X, re, J, H, pe, de) => {
             if ((c("xRange", W, X, re, J, H, pe, de), _(J, H, pe))) return W
-            let he = P(J),
-              xe = he || P(H),
-              Zs = xe || P(pe),
+            let he = N(J),
+              xe = he || N(H),
+              Zs = xe || N(pe),
               ea = Zs
             return (
               re === "=" && ea && (re = ""),
@@ -5654,20 +5654,20 @@ var __spellHighlightEn = (() => {
         ),
         Ge = p(
           (W) => (B, K, X, re, J, H, pe, de, he, xe, Zs, ea) => (
-            P(X)
+            N(X)
               ? (K = "")
-              : P(re)
+              : N(re)
                 ? (K = `>=${X}.0.0${W ? "-0" : ""}`)
-                : P(J)
+                : N(J)
                   ? (K = `>=${X}.${re}.0${W ? "-0" : ""}`)
                   : H
                     ? (K = `>=${K}`)
                     : (K = `>=${K}${W ? "-0" : ""}`),
-            P(he)
+            N(he)
               ? (de = "")
-              : P(xe)
+              : N(xe)
                 ? (de = `<${+he + 1}.0.0-0`)
-                : P(Zs)
+                : N(Zs)
                   ? (de = `<${he}.${+xe + 1}.0-0`)
                   : ea
                     ? (de = `<=${he}.${xe}.${Zs}-${ea}`)
@@ -5769,7 +5769,7 @@ var __spellHighlightEn = (() => {
         }
       e.exports = r
       var s = Ly(),
-        { safeRe: i, t: o } = Jp(),
+        { safeRe: i, t: o } = Xp(),
         u = xb(),
         c = ed(),
         d = ct(),
@@ -5788,7 +5788,7 @@ var __spellHighlightEn = (() => {
         }, "satisfies")
       e.exports = r
     }),
-    uj = T((a, e) => {
+    fj = T((a, e) => {
       "use strict"
       var t = _s(),
         r = p(
@@ -5804,7 +5804,7 @@ var __spellHighlightEn = (() => {
         )
       e.exports = r
     }),
-    pj = T((a, e) => {
+    gj = T((a, e) => {
       "use strict"
       var t = ct(),
         r = _s(),
@@ -5826,7 +5826,7 @@ var __spellHighlightEn = (() => {
         }, "maxSatisfying")
       e.exports = s
     }),
-    cj = T((a, e) => {
+    yj = T((a, e) => {
       "use strict"
       var t = ct(),
         r = _s(),
@@ -5848,7 +5848,7 @@ var __spellHighlightEn = (() => {
         }, "minSatisfying")
       e.exports = s
     }),
-    dj = T((a, e) => {
+    vj = T((a, e) => {
       "use strict"
       var t = ct(),
         r = _s(),
@@ -5883,7 +5883,7 @@ var __spellHighlightEn = (() => {
         }, "minVersion")
       e.exports = i
     }),
-    hj = T((a, e) => {
+    Sj = T((a, e) => {
       "use strict"
       var t = _s(),
         r = p((s, i) => {
@@ -5922,17 +5922,17 @@ var __spellHighlightEn = (() => {
           if (o(f, y, A)) return !1
           for (let R = 0; R < y.set.length; ++R) {
             let M = y.set[R],
-              P = null,
+              N = null,
               _ = null
             if (
               (M.forEach((G) => {
                 ;(G.semver === s && (G = new r(">=0.0.0")),
-                  (P = P || G),
+                  (N = N || G),
                   (_ = _ || G),
-                  D(G.semver, P.semver, A) ? (P = G) : E(G.semver, _.semver, A) && (_ = G))
+                  D(G.semver, N.semver, A) ? (N = G) : E(G.semver, _.semver, A) && (_ = G))
               }),
-              P.operator === j ||
-                P.operator === O ||
+              N.operator === j ||
+                N.operator === O ||
                 ((!_.operator || _.operator === j) && x(f, _.semver)) ||
                 (_.operator === O && E(f, _.semver)))
             )
@@ -5942,25 +5942,25 @@ var __spellHighlightEn = (() => {
         }, "outside")
       e.exports = g
     }),
-    mj = T((a, e) => {
+    bj = T((a, e) => {
       "use strict"
       var t = Vy(),
         r = p((s, i, o) => t(s, i, ">", o), "gtr")
       e.exports = r
     }),
-    fj = T((a, e) => {
+    Aj = T((a, e) => {
       "use strict"
       var t = Vy(),
         r = p((s, i, o) => t(s, i, "<", o), "ltr")
       e.exports = r
     }),
-    gj = T((a, e) => {
+    wj = T((a, e) => {
       "use strict"
       var t = _s(),
         r = p((s, i, o) => ((s = new t(s, o)), (i = new t(i, o)), s.intersects(i, o)), "intersects")
       e.exports = r
     }),
-    yj = T((a, e) => {
+    Tj = T((a, e) => {
       "use strict"
       var t = sd(),
         r = Ms()
@@ -5987,7 +5987,7 @@ var __spellHighlightEn = (() => {
         return f.length < y.length ? f : i
       }
     }),
-    vj = T((a, e) => {
+    xj = T((a, e) => {
       "use strict"
       var t = _s(),
         r = rd(),
@@ -6044,13 +6044,13 @@ var __spellHighlightEn = (() => {
           let O,
             R,
             M,
-            P,
+            N,
             _ = E && !A.includePrerelease && E.semver.prerelease.length ? E.semver : !1,
             G = x && !A.includePrerelease && x.semver.prerelease.length ? x.semver : !1
           _ && _.prerelease.length === 1 && E.operator === "<" && _.prerelease[0] === 0 && (_ = !1)
           for (let V of w) {
             if (
-              ((P = P || V.operator === ">" || V.operator === ">="),
+              ((N = N || V.operator === ">" || V.operator === ">="),
               (M = M || V.operator === "<" || V.operator === "<="),
               x)
             ) {
@@ -6083,7 +6083,7 @@ var __spellHighlightEn = (() => {
             }
             if (!V.operator && (E || x) && j !== 0) return !1
           }
-          return !((x && M && !E && j !== 0) || (E && P && !x && j !== 0) || G || _)
+          return !((x && M && !E && j !== 0) || (E && N && !x && j !== 0) || G || _)
         }, "simpleSubset"),
         g = p((y, w, A) => {
           if (!y) return w
@@ -6097,50 +6097,50 @@ var __spellHighlightEn = (() => {
         }, "lowerLT")
       e.exports = u
     }),
-    Sj = T((a, e) => {
+    Ej = T((a, e) => {
       "use strict"
-      var t = Jp(),
-        r = qp(),
+      var t = Xp(),
+        r = Kp(),
         s = ct(),
         i = Ab(),
         o = Go(),
-        u = KO(),
-        c = XO(),
-        d = HO(),
-        m = YO(),
-        g = QO(),
-        f = ZO(),
-        y = ej(),
-        w = tj(),
+        u = ej(),
+        c = tj(),
+        d = rj(),
+        m = sj(),
+        g = aj(),
+        f = ij(),
+        y = nj(),
+        w = oj(),
         A = Ms(),
-        D = rj(),
-        x = sj(),
+        D = lj(),
+        x = uj(),
         E = By(),
-        j = aj(),
-        O = ij(),
+        j = pj(),
+        O = cj(),
         R = td(),
         M = My(),
-        P = wb(),
+        N = wb(),
         _ = Tb(),
         G = _y(),
         V = Wy(),
         ue = xb(),
-        Ae = nj(),
-        Q = oj(),
+        Ae = dj(),
+        Q = hj(),
         we = rd(),
         Re = _s(),
         Te = sd(),
-        Ge = uj(),
-        er = pj(),
-        W = cj(),
-        B = dj(),
-        K = hj(),
+        Ge = fj(),
+        er = gj(),
+        W = yj(),
+        B = vj(),
+        K = Sj(),
         X = Vy(),
-        re = mj(),
-        J = fj(),
-        H = gj(),
-        pe = yj(),
-        de = vj()
+        re = bj(),
+        J = Aj(),
+        H = wj(),
+        pe = Tj(),
+        de = xj()
       e.exports = {
         parse: o,
         valid: u,
@@ -6159,7 +6159,7 @@ var __spellHighlightEn = (() => {
         rsort: O,
         gt: R,
         lt: M,
-        eq: P,
+        eq: N,
         neq: _,
         gte: G,
         lte: V,
@@ -6192,69 +6192,79 @@ var __spellHighlightEn = (() => {
     }),
     F = {}
   Wo(F, {
-    BODY_KEYWORDS: l(() => $b, "BODY_KEYWORDS"),
-    BUILT_IN_TYPE_TABLE: l(() => rc, "BUILT_IN_TYPE_TABLE"),
+    BODY_KEYWORDS: l(() => Pb, "BODY_KEYWORDS"),
+    BUILT_IN_TYPE_TABLE: l(() => ac, "BUILT_IN_TYPE_TABLE"),
     Block: l(() => Js, "Block"),
-    BlockLine: l(() => xT, "BlockLine"),
-    COMPILED_JS_SUFFIX: l(() => Eb, "COMPILED_JS_SUFFIX"),
-    COMPILED_PY_SUFFIX: l(() => Db, "COMPILED_PY_SUFFIX"),
-    COMPILED_TSX_SUFFIX: l(() => Cb, "COMPILED_TSX_SUFFIX"),
-    DECLARATIONS_JSON_SUFFIX: l(() => Aj, "DECLARATIONS_JSON_SUFFIX"),
-    ELEMENTS_JS_SUFFIX: l(() => kb, "ELEMENTS_JS_SUFFIX"),
+    BlockLine: l(() => $T, "BlockLine"),
+    COMPILED_JS_SUFFIX: l(() => $b, "COMPILED_JS_SUFFIX"),
+    COMPILED_PY_SUFFIX: l(() => jb, "COMPILED_PY_SUFFIX"),
+    COMPILED_TSX_SUFFIX: l(() => Ob, "COMPILED_TSX_SUFFIX"),
+    DECLARATIONS_JSON_SUFFIX: l(() => Cj, "DECLARATIONS_JSON_SUFFIX"),
+    ELEMENTS_JS_SUFFIX: l(() => Fb, "ELEMENTS_JS_SUFFIX"),
     MarkdownBlock: l(() => Zv, "MarkdownBlock"),
-    MarkdownDescription: l(() => z1, "MarkdownDescription"),
+    MarkdownDescription: l(() => H1, "MarkdownDescription"),
     Negatable: l(() => Wi, "Negatable"),
-    PROJECT_FILE: l(() => bj, "PROJECT_FILE"),
+    OLD_PROJECT_FILES: l(() => Cb, "OLD_PROJECT_FILES"),
+    PROJECT_FILE: l(() => Eb, "PROJECT_FILE"),
+    PROJECT_FILES: l(() => Db, "PROJECT_FILES"),
     ParseError: l(() => tS, "ParseError"),
-    RUNNING_TARGET: l(() => fB, "RUNNING_TARGET"),
-    SCOPES_JS_SUFFIX: l(() => Tj, "SCOPES_JS_SUFFIX"),
-    SNAPSHOT_JS_SUFFIX: l(() => wj, "SNAPSHOT_JS_SUFFIX"),
+    RUNNING_TARGET: l(() => SB, "RUNNING_TARGET"),
+    SCOPES_JS_SUFFIX: l(() => kj, "SCOPES_JS_SUFFIX"),
+    SNAPSHOT_JS_SUFFIX: l(() => Dj, "SNAPSHOT_JS_SUFFIX"),
     SP: l(() => F, "SP"),
-    SPELL_PROJECT_MODULE: l(() => Ej, "SPELL_PROJECT_MODULE"),
-    SPELL_TAG_NAMES: l(() => O0, "SPELL_TAG_NAMES"),
-    SPELL_VERSION: l(() => Cj, "SPELL_VERSION"),
-    SpellCSSFile: l(() => kP, "SpellCSSFile"),
-    SpellDeclarations: l(() => sB, "SpellDeclarations"),
-    SpellFile: l(() => CP, "SpellFile"),
-    SpellHighlighter: l(() => gB, "SpellHighlighter"),
-    SpellJSFile: l(() => DP, "SpellJSFile"),
-    SpellLocation: l(() => Dj, "SpellLocation"),
+    SPELL_PROJECT_MODULE: l(() => Oj, "SPELL_PROJECT_MODULE"),
+    SPELL_TAG_NAMES: l(() => R0, "SPELL_TAG_NAMES"),
+    SPELL_VERSION: l(() => jj, "SPELL_VERSION"),
+    SpellCSSFile: l(() => PN, "SpellCSSFile"),
+    SpellDeclarations: l(() => oB, "SpellDeclarations"),
+    SpellFile: l(() => jN, "SpellFile"),
+    SpellHighlighter: l(() => bB, "SpellHighlighter"),
+    SpellJSFile: l(() => FN, "SpellJSFile"),
+    SpellLocation: l(() => Fj, "SpellLocation"),
     SpellParser: l(() => Me, "SpellParser"),
-    SpellProject: l(() => EP, "SpellProject"),
-    SpellSetup: l(() => Pp, "SpellSetup"),
+    SpellProject: l(() => ON, "SpellProject"),
+    SpellSetup: l(() => Ip, "SpellSetup"),
     SpellStatement: l(() => I, "SpellStatement"),
     SpellUrls: l(() => et, "SpellUrls"),
-    SpellWarnings: l(() => mB, "SpellWarnings"),
-    SpellWords: l(() => pB, "SpellWords"),
+    SpellWarnings: l(() => vB, "SpellWarnings"),
+    SpellWords: l(() => mB, "SpellWords"),
     TARGETS: l(() => py, "TARGETS"),
-    TYPE_WORDS: l(() => A0, "TYPE_WORDS"),
-    WORDS_JS_SUFFIX: l(() => xj, "WORDS_JS_SUFFIX"),
+    TYPE_WORDS: l(() => C0, "TYPE_WORDS"),
+    WORDS_JS_SUFFIX: l(() => $j, "WORDS_JS_SUFFIX"),
     builtInMemberName: l(() => yl, "builtInMemberName"),
-    builtInMembersOfRule: l(() => E0, "builtInMembersOfRule"),
-    builtInTypeEntry: l(() => x0, "builtInTypeEntry"),
+    builtInMembersOfRule: l(() => O0, "builtInMembersOfRule"),
+    builtInTypeEntry: l(() => $0, "builtInTypeEntry"),
     commitStatement: l(() => Ed, "commitStatement"),
-    docsCountingFrom: l(() => T0, "docsCountingFrom"),
-    hoistClassMembers: l(() => qD, "hoistClassMembers"),
-    isBuiltInStoredMember: l(() => D0, "isBuiltInStoredMember"),
-    isBuiltInTypeScope: l(() => C0, "isBuiltInTypeScope"),
-    loadBuiltInTypes: l(() => w0, "loadBuiltInTypes"),
-    parseExpression: l(() => rB, "parseExpression"),
+    docsCountingFrom: l(() => k0, "docsCountingFrom"),
+    hoistClassMembers: l(() => QD, "hoistClassMembers"),
+    isBuiltInStoredMember: l(() => F0, "isBuiltInStoredMember"),
+    isBuiltInTypeScope: l(() => j0, "isBuiltInTypeScope"),
+    isProjectFile: l(() => kb, "isProjectFile"),
+    loadBuiltInTypes: l(() => D0, "loadBuiltInTypes"),
+    parseExpression: l(() => nB, "parseExpression"),
     parseReadAsTemplate: l(() => Xv, "parseReadAsTemplate"),
     spellParser: l(() => Yo, "spellParser"),
-    targetFor: l(() => HD, "targetFor"),
+    targetFor: l(() => rk, "targetFor"),
     typeName: l(() => Kv, "typeName")
   })
-  var bj = "project.json",
-    Eb = ".spell.js",
-    Cb = ".spell.tsx",
-    Db = ".spell.py",
-    Aj = ".declarations.json",
-    wj = ".snapshot.js",
-    kb = ".elements.spell.js",
-    Tj = ".scopes.js",
-    xj = ".en.js",
-    Ej = "@spell/project/",
-    $b = {
+  var Eb = "__project.json5",
+    Cb = ["project.json"],
+    Db = [Eb, ...Cb]
+  function kb(a) {
+    return Db.includes(a)
+  }
+  l(kb, "Uq")
+  p(kb, "isProjectFile")
+  var $b = ".spell.js",
+    Ob = ".spell.tsx",
+    jb = ".spell.py",
+    Cj = ".declarations.json5",
+    Dj = ".snapshot.js",
+    Fb = ".elements.spell.js",
+    kj = ".scopes.js",
+    $j = ".en.js",
+    Oj = "@spell/project/",
+    Pb = {
       statement_body: { inlineAs: "statement", nestedAs: "block" },
       inline_statement: { inlineAs: "statement" },
       nested_statements: { nestedAs: "block" },
@@ -6263,8 +6273,8 @@ var __spellHighlightEn = (() => {
       inline_expression: { inlineAs: "expression" },
       nested_expression: { nestedAs: "expression" }
     },
-    Cj = "0.8.0",
-    Dj = class Qe {
+    jj = "0.8.0",
+    Fj = class Ze {
       static {
         l(this, "n")
       }
@@ -6286,8 +6296,8 @@ var __spellHighlightEn = (() => {
       extension
       constructor(e, t) {
         try {
-          if (Qe.useRegistry) {
-            let u = Qe.registry.get(e)
+          if (Ze.useRegistry) {
+            let u = Ze.registry.get(e)
             if (u) return u
           }
           if (typeof e != "string" || !e) throw "Path must be a string"
@@ -6311,10 +6321,10 @@ var __spellHighlightEn = (() => {
                 (this.extension = d.length ? `.${d.join(".")}` : void 0))
             }
           }
-          let o = !this.projectName || (Qe.isValidPathSegment(this.projectName) && !this.projectName.includes("."))
-          if ((o && this.filePath && (o = !!this.projectName && Qe.isValidPath(this.filePath)), !o))
+          let o = !this.projectName || (Ze.isValidPathSegment(this.projectName) && !this.projectName.includes("."))
+          if ((o && this.filePath && (o = !!this.projectName && Ze.isValidPath(this.filePath)), !o))
             throw "Invalid path"
-          Qe.useRegistry && Qe.registry.set(e, this)
+          Ze.useRegistry && Ze.registry.set(e, this)
         } catch (r) {
           throw (t && t(r), new TypeError(`new SpellLocation('${e}'):: ${r}`, { cause: r }))
         }
@@ -6350,17 +6360,17 @@ var __spellHighlightEn = (() => {
           .join("/")
       }
       static getProjectRoot(e) {
-        let t = new Qe(e)
-        return t.isProjectRoot ? t : new Qe(t.projectRoot)
+        let t = new Ze(e)
+        return t.isProjectRoot ? t : new Ze(t.projectRoot)
       }
       static getProjectLocation(e) {
-        let t = new Qe(e)
-        return t.isProjectPath ? t : new Qe(t.projectId)
+        let t = new Ze(e)
+        return t.isProjectPath ? t : new Ze(t.projectId)
       }
       static getFileLocation(e, t) {
         let r = e
-        typeof t == "string" && (r = Qe.isAddress(t) ? t : Qe.join(e, t))
-        let s = new Qe(r)
+        typeof t == "string" && (r = Ze.isAddress(t) ? t : Ze.join(e, t))
+        let s = new Ze(r)
         if (!s.isFilePath) throw new TypeError(`You must pass a valid filePath, got '${t}': ${r}`)
         return s
       }
@@ -6369,7 +6379,7 @@ var __spellHighlightEn = (() => {
       }
       static filePathOf(e) {
         try {
-          return new Qe(e).filePath
+          return new Ze(e).filePath
         } catch {
           return
         }
@@ -6380,7 +6390,7 @@ var __spellHighlightEn = (() => {
       static typeFor(e) {
         let t = e.lastIndexOf("/"),
           r = /^([A-Z][\w$]*?)(?:__v(\d+))?$/.exec(e.slice(t + 1))
-        if (!Qe.isAddress(e) || t < 0 || !r)
+        if (!Ze.isAddress(e) || t < 0 || !r)
           throw new TypeError(
             `SpellLocation.typeFor('${e}'):  not a type's address, e.g. '@spell/library/people/Person'`
           )
@@ -6395,24 +6405,24 @@ var __spellHighlightEn = (() => {
           .replace(/^-+|-+$/g, "")
       }
       static titleFor(e) {
-        return e !== Qe.kebab(e) ? e : e.replace(/(^|-)([a-z0-9])/g, (t, r, s) => `${r ? " " : ""}${s.toUpperCase()}`)
+        return e !== Ze.kebab(e) ? e : e.replace(/(^|-)([a-z0-9])/g, (t, r, s) => `${r ? " " : ""}${s.toUpperCase()}`)
       }
       static isValidPathSegment(e) {
         let t = /^[\w\d-$. ]+$/
         return typeof e == "string" && ![".", ".."].includes(e) && t.test(e)
       }
       static isValidPath(e) {
-        return typeof e == "string" && e.split("/").filter(Boolean).every(Qe.isValidPathSegment)
+        return typeof e == "string" && e.split("/").filter(Boolean).every(Ze.isValidPathSegment)
       }
       toString() {
         return `SpellLocation: ${this.path}`
       }
     }
-  function Ob(a, e) {
+  function Nb(a, e) {
     return a != null && Object.hasOwn(a, e)
   }
-  l(Ob, "mx")
-  p(Ob, "hasOwnProp")
+  l(Nb, "Sx")
+  p(Nb, "hasOwnProp")
   function S(a, e) {
     if (!e.static) throw new TypeError(`@proto ${String(e.name)}: only works on 'static' fields.`)
     return function (t) {
@@ -6426,58 +6436,58 @@ var __spellHighlightEn = (() => {
   l(S, "m")
   p(S, "proto")
   function ad(a) {
-    return (kj[a] ??= a.replace(/[A-Z]/g, (e) => `-${e.toLowerCase()}`))
+    return (Pj[a] ??= a.replace(/[A-Z]/g, (e) => `-${e.toLowerCase()}`))
   }
   l(ad, "mp")
   p(ad, "kebabCase")
-  var kj = Object.create(null)
+  var Pj = Object.create(null)
   function Uy(a) {
-    return ($j[a] ??= a.replace(/-([a-z0-9])/g, (e, t) => t.toUpperCase()))
+    return (Nj[a] ??= a.replace(/-([a-z0-9])/g, (e, t) => t.toUpperCase()))
   }
   l(Uy, "Qc")
   p(Uy, "camelCase")
-  var $j = Object.create(null),
+  var Nj = Object.create(null),
     TS = Symbol.for("@spell-app/cells"),
-    Op = Pb()
-  function Kp() {
-    return Op.collector !== null
+    Fp = Bb()
+  function Hp() {
+    return Fp.collector !== null
   }
-  l(Kp, "yp")
-  p(Kp, "isTrackingCells")
+  l(Hp, "yp")
+  p(Hp, "isTrackingCells")
   function Gy(a) {
-    let e = Op.collector
+    let e = Fp.collector
     e && (a.subs.add(e), e.srcs.set(a, a.version))
   }
   l(Gy, "_c")
   p(Gy, "linkCell")
-  function jb(a) {
+  function Rb(a) {
     for (let e of a.srcs.keys()) e.subs.delete(a)
     a.srcs.clear()
   }
-  l(jb, "Yq")
-  p(jb, "unlinkCells")
-  function Fb(a, e) {
-    jb(a)
-    let t = Op.collector
-    Op.collector = a
+  l(Rb, "_q")
+  p(Rb, "unlinkCells")
+  function Ib(a, e) {
+    Rb(a)
+    let t = Fp.collector
+    Fp.collector = a
     try {
       return e()
     } finally {
-      Op.collector = t
+      Fp.collector = t
     }
   }
-  l(Fb, "yx")
-  p(Fb, "trackCells")
-  function Nb(a) {
+  l(Ib, "Tx")
+  p(Ib, "trackCells")
+  function Lb(a) {
     for (let [e, t] of a.srcs) if ((e.refresh?.(), e.version !== t)) return !0
     return !1
   }
-  l(Nb, "Sx")
-  p(Nb, "cellSourcesChanged")
+  l(Lb, "Ax")
+  p(Lb, "cellSourcesChanged")
   var Wd = 0,
     xS = 1,
     Sc = 2
-  function Pb() {
+  function Bb() {
     let a = globalThis,
       e = a[TS]
     if (e) {
@@ -6497,8 +6507,8 @@ var __spellHighlightEn = (() => {
     }
     return (Object.defineProperty(a, TS, { value: t }), t)
   }
-  l(Pb, "Zq")
-  p(Pb, "sharedContext")
+  l(Bb, "e3")
+  p(Bb, "sharedContext")
   var zy = class {
       static {
         l(this, "yu")
@@ -6515,11 +6525,11 @@ var __spellHighlightEn = (() => {
         if ((this.version++, !!this.subs.size)) for (let a of [...this.subs]) a.mark(Sc)
       }
     },
-    Oj = class {
+    Rj = class {
       static {
         l(this, "tl")
       }
-      constructor(a, e, t = Rb) {
+      constructor(a, e, t = Mb) {
         ;((this.fn = a), (this.self = e), (this.equals = t))
       }
       fn
@@ -6539,25 +6549,25 @@ var __spellHighlightEn = (() => {
         if (((this.state = a), e && this.subs.size)) for (let t of [...this.subs]) t.mark(xS)
       }
       refresh() {
-        if ((this.state === xS && (this.state = Nb(this) ? Sc : Wd), this.state !== Sc)) return
-        let a = Fb(this, () => this.fn.call(this.self))
+        if ((this.state === xS && (this.state = Lb(this) ? Sc : Wd), this.state !== Sc)) return
+        let a = Ib(this, () => this.fn.call(this.self))
         ;((this.state = Wd), (this.version === 0 || !this.equals(this.value, a)) && ((this.value = a), this.version++))
       }
       get() {
         return (this.refresh(), Gy(this), this.value)
       }
     }
-  function Rb(a, e) {
+  function Mb(a, e) {
     return a === e
   }
-  l(Rb, "Qq")
-  p(Rb, "isIdentical")
+  l(Mb, "t3")
+  p(Mb, "isIdentical")
   Symbol.metadata ??= Symbol.for("Symbol.metadata")
   var ES = Symbol.metadata,
     Vd = Symbol("schema"),
-    jj = class {
+    Ij = class {
       static {
-        l(this, "cm")
+        l(this, "lm")
       }
       constructor(a) {
         this.parent = a
@@ -6577,11 +6587,11 @@ var __spellHighlightEn = (() => {
         if (e == null) return
         let s = this.observed.get(a)
         if (
-          (s || this.observed.set(a, (s = [])), s.some((o) => (typeof o == "function" ? e instanceof o : o === Pc(e))))
+          (s || this.observed.set(a, (s = [])), s.some((o) => (typeof o == "function" ? e instanceof o : o === Nc(e))))
         )
           return
-        let i = typeof e == "object" ? (e.constructor ?? "object") : Pc(e)
-        ;(s.length && Mb(`${t}.${a}:  was ${Jd(s)}, now also ${Jy(i)}`), s.push(i))
+        let i = typeof e == "object" ? (e.constructor ?? "object") : Nc(e)
+        ;(s.length && Ub(`${t}.${a}:  was ${Jd(s)}, now also ${Jy(i)}`), s.push(i))
       }
       typeOf(a) {
         let e = this.info(a)?.type
@@ -6597,18 +6607,18 @@ var __spellHighlightEn = (() => {
     let e = a
     if (Object.hasOwn(a, Vd)) return e[Vd]
     let t = Object.getPrototypeOf(a),
-      r = new jj(t && t !== Function.prototype && Lb(t) ? cl(t) : void 0)
-    for (let [s, i] of Bb(a)) r.declared.set(s, i)
+      r = new Ij(t && t !== Function.prototype && Wb(t) ? cl(t) : void 0)
+    for (let [s, i] of Vb(a)) r.declared.set(s, i)
     return (Object.defineProperty(a, Vd, { value: r }), r)
   }
   l(cl, "Io")
   p(cl, "schemaOf")
-  function Ib(a, e, t) {
+  function _b(a, e, t) {
     cl(a).declared.set(e, t)
   }
-  l(Ib, "xx")
-  p(Ib, "declareProp")
-  function Pc(a) {
+  l(_b, "Ex")
+  p(_b, "declareProp")
+  function Nc(a) {
     if (a == null) return "nothing"
     switch (typeof a) {
       case "number":
@@ -6622,73 +6632,73 @@ var __spellHighlightEn = (() => {
     }
     return Array.isArray(a) ? "list" : (a.constructor?.name ?? "object")
   }
-  l(Pc, "rl")
-  p(Pc, "spellTypeOf")
+  l(Nc, "rl")
+  p(Nc, "spellTypeOf")
   var CS = Symbol("props")
-  function Lb(a) {
+  function Wb(a) {
     return a[qy] === !0
   }
-  l(Lb, "_q")
-  p(Lb, "hasSchema")
+  l(Wb, "r3")
+  p(Wb, "hasSchema")
   var qy = Symbol("hasSchema")
-  function Bb(a) {
+  function Vb(a) {
     let e = a[ES]
     if (!e || !Object.hasOwn(e, CS)) return new Map()
     let t = Object.getPrototypeOf(a)
     return t && t[ES] === e ? new Map() : e[CS]
   }
-  l(Bb, "e3")
-  p(Bb, "decoratedProps")
+  l(Vb, "n3")
+  p(Vb, "decoratedProps")
   function Jd(a) {
     return a.map(Jy).join(" | ")
   }
-  l(Jd, "Ax")
+  l(Jd, "wx")
   p(Jd, "typeNames")
   function Jy(a) {
     return typeof a == "function" ? a.name || "object" : a
   }
-  l(Jy, "bx")
+  l(Jy, "vx")
   p(Jy, "typeName")
-  function Mb(a) {
-    YD.env?.PROD || console.warn(`spell property type widened:  ${a}`)
+  function Ub(a) {
+    sk.env?.PROD || console.warn(`spell property type widened:  ${a}`)
   }
-  l(Mb, "t3")
-  p(Mb, "warnInDev")
+  l(Ub, "s3")
+  p(Ub, "warnInDev")
   var tt = {}
   Wo(tt, {
     DERIVED: l(() => id, "DERIVED"),
-    ITEMS_KEY: l(() => Fj, "ITEMS_KEY"),
+    ITEMS_KEY: l(() => Lj, "ITEMS_KEY"),
     KEYS: l(() => _i, "KEYS"),
     PROPS: l(() => Ks, "PROPS"),
     PROP_CELLS: l(() => zo, "PROP_CELLS"),
     STATE: l(() => Mi, "STATE"),
     STATE_CELLS: l(() => Ro, "STATE_CELLS"),
-    TYPE_KEY: l(() => Gb, "TYPE_KEY"),
-    clearDerived: l(() => Qb, "clearDerived"),
+    TYPE_KEY: l(() => Kb, "TYPE_KEY"),
+    clearDerived: l(() => rA, "clearDerived"),
     deleteProp: l(() => Hy, "deleteProp"),
     dependenciesMatch: l(() => tv, "dependenciesMatch"),
-    derive: l(() => Hb, "derive"),
+    derive: l(() => eA, "derive"),
     extend: l(() => tt, "extend"),
     extendedFor: l(() => Gt, "extendedFor"),
     getDerived: l(() => nd, "getDerived"),
-    getDerivedFrom: l(() => Yb, "getDerivedFrom"),
+    getDerivedFrom: l(() => tA, "getDerivedFrom"),
     getProp: l(() => Ky, "getProp"),
     getProps: l(() => Yy, "getProps"),
-    getState: l(() => qb, "getState"),
-    hasState: l(() => Jb, "hasState"),
-    initializeExtended: l(() => _b, "initializeExtended"),
-    keysOf: l(() => Ub, "keysOf"),
+    getState: l(() => Hb, "getState"),
+    hasState: l(() => Yb, "hasState"),
+    initializeExtended: l(() => Gb, "initializeExtended"),
+    keysOf: l(() => Jb, "keysOf"),
     objectFromWeakRef: l(() => Rc, "objectFromWeakRef"),
     objectToWeakRef: l(() => ev, "objectToWeakRef"),
     overrideProp: l(() => Zy, "overrideProp"),
-    peekState: l(() => Kb, "peekState"),
-    reactiveObject: l(() => Wb, "reactiveObject"),
-    resetState: l(() => Xb, "resetState"),
-    setProp: l(() => Ip, "setProp"),
-    setProps: l(() => Vb, "setProps"),
+    peekState: l(() => Qb, "peekState"),
+    reactiveObject: l(() => zb, "reactiveObject"),
+    resetState: l(() => Zb, "resetState"),
+    setProp: l(() => Bp, "setProp"),
+    setProps: l(() => qb, "setProps"),
     setState: l(() => Qy, "setState"),
     storeProp: l(() => Xy, "storeProp"),
-    typedJSON: l(() => zb, "typedJSON")
+    typedJSON: l(() => Xb, "typedJSON")
   })
   var Ks = Symbol("props"),
     Mi = Symbol("state"),
@@ -6701,30 +6711,30 @@ var __spellHighlightEn = (() => {
     for (let e of [Mi, zo, Ro, _i, id]) Object.defineProperty(a, e, { value: null, writable: !0, configurable: !0 })
     return (Object.defineProperty(a, Ks, { value: new Map(), writable: !0, configurable: !0 }), a)
   }
-  l(Gt, "Jt")
+  l(Gt, "Ht")
   p(Gt, "extendedFor")
-  function _b(a, ...e) {
+  function Gb(a, ...e) {
     Gt(a)
   }
-  l(_b, "r3")
-  p(_b, "initializeExtended")
+  l(Gb, "i3")
+  p(Gb, "initializeExtended")
   function Ky(a, e, t) {
     let r = Gt(a)
-    Kp() && od(r, zo, e).read()
+    Hp() && od(r, zo, e).read()
     let s = r[Ks]
     if (s.has(e)) return s.get(e)
     let i
-    if (!t && ((i = Zb(a, e)), (t = i?.init), !t)) return i?.default
+    if (!t && ((i = sA(a, e)), (t = i?.init), !t)) return i?.default
     let o = t.call(a)
     return o === void 0 ? i?.default : (s.set(e, o), r[_i]?.changed(), o)
   }
-  l(Ky, "wx")
+  l(Ky, "Dx")
   p(Ky, "getProp")
-  function Ip(a, e, t) {
+  function Bp(a, e, t) {
     return (Xy(a, e, t), t)
   }
-  l(Ip, "nl")
-  p(Ip, "setProp")
+  l(Bp, "nl")
+  p(Bp, "setProp")
   function Xy(a, e, t) {
     if (t === void 0) return Hy(a, e)
     let r = Gt(a),
@@ -6732,15 +6742,15 @@ var __spellHighlightEn = (() => {
       i = !s.has(e)
     return !i && s.get(e) === t ? !1 : (s.set(e, t), r[zo]?.get(e)?.changed(), i && r[_i]?.changed(), !0)
   }
-  l(Xy, "Ex")
+  l(Xy, "Cx")
   p(Xy, "storeProp")
   function Hy(a, e) {
     let t = Gt(a)
     return t[Ks].delete(e) ? (t[zo]?.get(e)?.changed(), t[_i]?.changed(), !0) : !1
   }
-  l(Hy, "vx")
+  l(Hy, "kx")
   p(Hy, "deleteProp")
-  function Wb(a) {
+  function zb(a) {
     let e = {}
     for (let [t, r] of Object.entries(Object.getOwnPropertyDescriptors(a))) {
       if (r.get || r.set || typeof r.value == "function") {
@@ -6749,55 +6759,55 @@ var __spellHighlightEn = (() => {
       }
       ;(Object.defineProperty(e, t, {
         get: p(() => Ky(e, t), "get"),
-        set: p((s) => Ip(e, t, s), "set"),
+        set: p((s) => Bp(e, t, s), "set"),
         enumerable: !0,
         configurable: !0
       }),
-        Ip(e, t, r.value))
+        Bp(e, t, r.value))
     }
     return e
   }
-  l(Wb, "n3")
-  p(Wb, "reactiveObject")
-  function Vb(a, e) {
-    for (let [t, r] of Object.entries(e)) Ip(a, t, r)
+  l(zb, "o3")
+  p(zb, "reactiveObject")
+  function qb(a, e) {
+    for (let [t, r] of Object.entries(e)) Bp(a, t, r)
   }
-  l(Vb, "s3")
-  p(Vb, "setProps")
-  function Ub(a) {
+  l(qb, "a3")
+  p(qb, "setProps")
+  function Jb(a) {
     let e = Gt(a)
-    return (Kp() && (e[_i] ??= new zy()).read(), [...e[Ks].keys()])
+    return (Hp() && (e[_i] ??= new zy()).read(), [...e[Ks].keys()])
   }
-  l(Ub, "i3")
-  p(Ub, "keysOf")
+  l(Jb, "u3")
+  p(Jb, "keysOf")
   function Yy(a) {
     let e = Gt(a)
-    if (Kp()) {
+    if (Hp()) {
       ;(e[_i] ??= new zy()).read()
       for (let t of e[Ks].keys()) od(e, zo, t).read()
     }
     return Object.fromEntries(e[Ks])
   }
-  l(Yy, "Dx")
+  l(Yy, "Mx")
   p(Yy, "getProps")
-  var Gb = "$type",
-    Fj = "$items"
-  function zb(a, e = a.constructor.name) {
-    return { [Gb]: e, ...Yy(a) }
+  var Kb = "$type",
+    Lj = "$items"
+  function Xb(a, e = a.constructor.name) {
+    return { [Kb]: e, ...Yy(a) }
   }
-  l(zb, "a3")
-  p(zb, "typedJSON")
-  function qb(a, e, t) {
+  l(Xb, "c3")
+  p(Xb, "typedJSON")
+  function Hb(a, e, t) {
     let r = Gt(a)
-    Kp() && od(r, Ro, e).read()
+    Hp() && od(r, Ro, e).read()
     let s = (r[Mi] ??= new Map())
     if (s.has(e)) return s.get(e)
     if (!t) return
     let i = t.call(a)
     return (i !== void 0 && s.set(e, i), i)
   }
-  l(qb, "u3")
-  p(qb, "getState")
+  l(Hb, "l3")
+  p(Hb, "getState")
   function Qy(a, e, t) {
     let r = Gt(a),
       s = (r[Mi] ??= new Map()),
@@ -6813,49 +6823,49 @@ var __spellHighlightEn = (() => {
       u = e.slice(i + 1),
       c = s.get(o)
     if (t === void 0) {
-      if (!c || !tA(c, u)) return t
+      if (!c || !iA(c, u)) return t
     } else {
       if (c && rv(c, u) === t) return t
-      ;(c || s.set(o, (c = {})), eA(c, u, t))
+      ;(c || s.set(o, (c = {})), aA(c, u, t))
     }
     return (r[Ro]?.get(o)?.changed(), t)
   }
-  l(Qy, "kx")
+  l(Qy, "Fx")
   p(Qy, "setState")
-  function Jb(a, e) {
+  function Yb(a, e) {
     return Gt(a)[Mi]?.has(e) ?? !1
   }
-  l(Jb, "p3")
-  p(Jb, "hasState")
-  function Kb(a, e) {
+  l(Yb, "d3")
+  p(Yb, "hasState")
+  function Qb(a, e) {
     return Gt(a)[Mi]?.get(e)
   }
-  l(Kb, "c3")
-  p(Kb, "peekState")
-  function Xb(a, ...e) {
+  l(Qb, "f3")
+  p(Qb, "peekState")
+  function Zb(a, ...e) {
     let t = Gt(a)[Mi]
     if (t) {
       e.length === 0 && (e = [...t.keys()])
       for (let r of e) Qy(a, r, void 0)
     }
   }
-  l(Xb, "l3")
-  p(Xb, "resetState")
-  function Hb(a, e, t, r) {
+  l(Zb, "h3")
+  p(Zb, "resetState")
+  function eA(a, e, t, r) {
     let s = Gt(a),
       i = (s[id] ??= new Map()),
       o = i.get(e)
-    return (o || i.set(e, (o = new Oj(t, a, r))), o.get())
+    return (o || i.set(e, (o = new Rj(t, a, r))), o.get())
   }
-  l(Hb, "d3")
-  p(Hb, "derive")
+  l(eA, "m3")
+  p(eA, "derive")
   function nd(a, e, t) {
     let r = ld(a)
-    return (Ob(r, e) || (r[e] = { value: t.apply(a) }), r[e].value)
+    return (Nb(r, e) || (r[e] = { value: t.apply(a) }), r[e].value)
   }
   l(nd, "sl")
   p(nd, "getDerived")
-  function Yb(a, e, t, r) {
+  function tA(a, e, t, r) {
     if (!r) return nd(a, e, t)
     let s = ld(a),
       i = s[e]
@@ -6865,14 +6875,14 @@ var __spellHighlightEn = (() => {
       i.value
     )
   }
-  l(Yb, "f3")
-  p(Yb, "getDerivedFrom")
-  function Qb(a, ...e) {
+  l(tA, "g3")
+  p(tA, "getDerivedFrom")
+  function rA(a, ...e) {
     let t = ld(a)
     ;(e.length === 0 && (e = Object.keys(t)), e.forEach((r) => delete t[r]))
   }
-  l(Qb, "h3")
-  p(Qb, "clearDerived")
+  l(rA, "y3")
+  p(rA, "clearDerived")
   function Zy(a, e, t) {
     Object.defineProperty(a, e, {
       get() {
@@ -6884,17 +6894,17 @@ var __spellHighlightEn = (() => {
       configurable: !0
     })
   }
-  l(Zy, "Mx")
+  l(Zy, "Ox")
   p(Zy, "overrideProp")
   function ev(a) {
     return a instanceof Object ? new WeakRef(a) : a
   }
-  l(ev, "$x")
+  l(ev, "Rx")
   p(ev, "objectToWeakRef")
   function Rc(a) {
     return a instanceof WeakRef ? a.deref() : a
   }
-  l(Rc, "lm")
+  l(Rc, "dm")
   p(Rc, "objectFromWeakRef")
   function tv(a, e) {
     if (!Array.isArray(a) || !Array.isArray(e) || a.length !== e.length) return !1
@@ -6905,21 +6915,21 @@ var __spellHighlightEn = (() => {
     }
     return !0
   }
-  l(tv, "Fx")
+  l(tv, "Nx")
   p(tv, "dependenciesMatch")
   function od(a, e, t) {
     let r = (a[e] ??= new Map()),
       s = r.get(t)
     return (s || r.set(t, (s = new zy())), s)
   }
-  l(od, "dm")
+  l(od, "fm")
   p(od, "cellOf")
-  function Zb(a, e) {
+  function sA(a, e) {
     let t = a.constructor
     return t?.[qy] ? cl(t).info(e) : void 0
   }
-  l(Zb, "m3")
-  p(Zb, "declared")
+  l(sA, "S3")
+  p(sA, "declared")
   function rv(a, e) {
     for (let t of e.split(".")) {
       if (a == null) return
@@ -6927,28 +6937,28 @@ var __spellHighlightEn = (() => {
     }
     return a
   }
-  l(rv, "Ox")
+  l(rv, "jx")
   p(rv, "getPath")
-  function eA(a, e, t) {
+  function aA(a, e, t) {
     let r = e.split("."),
       s = r.pop()
     for (let i of r) ((a[i] == null || typeof a[i] != "object") && (a[i] = {}), (a = a[i]))
     a[s] = t
   }
-  l(eA, "g3")
-  p(eA, "setPath")
-  function tA(a, e) {
+  l(aA, "P3")
+  p(aA, "setPath")
+  function iA(a, e) {
     let t = e.split("."),
       r = t.pop(),
       s = t.length ? rv(a, t.join(".")) : a
     return s == null || typeof s != "object" || !Object.hasOwn(s, r) ? !1 : (delete s[r], !0)
   }
-  l(tA, "y3")
-  p(tA, "unsetPath")
+  l(iA, "T3")
+  p(iA, "unsetPath")
   function ld(a) {
     return (a.__derived__ || Object.defineProperty(a, "__derived__", { value: {} }), a.__derived__)
   }
-  l(ld, "fm")
+  l(ld, "hm")
   p(ld, "derivedFor")
   var te = "OPTIONAL",
     Le = "NONE",
@@ -6965,7 +6975,7 @@ var __spellHighlightEn = (() => {
       svg: "image/svg+xml",
       binary: "binary"
     },
-    Nj = ["binary", "blob", zs.gif, zs.png, zs.jpeg, zs.binary],
+    Bj = ["binary", "blob", zs.gif, zs.png, zs.jpeg, zs.binary],
     DS = p(
       (a = 0) =>
         (e) =>
@@ -6984,7 +6994,7 @@ var __spellHighlightEn = (() => {
           `\x1B[${38 + a};2;${e};${t};${r}m`,
       "wrapAnsi16m"
     ),
-    Pe = {
+    Ne = {
       modifier: {
         reset: [0, 0],
         bold: [1, 22],
@@ -7037,28 +7047,28 @@ var __spellHighlightEn = (() => {
         bgWhiteBright: [107, 49]
       }
     },
-    bB = Object.keys(Pe.modifier),
-    Pj = Object.keys(Pe.color),
-    Rj = Object.keys(Pe.bgColor),
-    AB = [...Pj, ...Rj]
-  function rA() {
+    xB = Object.keys(Ne.modifier),
+    Mj = Object.keys(Ne.color),
+    _j = Object.keys(Ne.bgColor),
+    EB = [...Mj, ..._j]
+  function nA() {
     let a = new Map()
-    for (let [e, t] of Object.entries(Pe)) {
+    for (let [e, t] of Object.entries(Ne)) {
       for (let [r, s] of Object.entries(t))
-        ((Pe[r] = { open: `\x1B[${s[0]}m`, close: `\x1B[${s[1]}m` }), (t[r] = Pe[r]), a.set(s[0], s[1]))
-      Object.defineProperty(Pe, e, { value: t, enumerable: !1 })
+        ((Ne[r] = { open: `\x1B[${s[0]}m`, close: `\x1B[${s[1]}m` }), (t[r] = Ne[r]), a.set(s[0], s[1]))
+      Object.defineProperty(Ne, e, { value: t, enumerable: !1 })
     }
     return (
-      Object.defineProperty(Pe, "codes", { value: a, enumerable: !1 }),
-      (Pe.color.close = "\x1B[39m"),
-      (Pe.bgColor.close = "\x1B[49m"),
-      (Pe.color.ansi = DS()),
-      (Pe.color.ansi256 = kS()),
-      (Pe.color.ansi16m = $S()),
-      (Pe.bgColor.ansi = DS(10)),
-      (Pe.bgColor.ansi256 = kS(10)),
-      (Pe.bgColor.ansi16m = $S(10)),
-      Object.defineProperties(Pe, {
+      Object.defineProperty(Ne, "codes", { value: a, enumerable: !1 }),
+      (Ne.color.close = "\x1B[39m"),
+      (Ne.bgColor.close = "\x1B[49m"),
+      (Ne.color.ansi = DS()),
+      (Ne.color.ansi256 = kS()),
+      (Ne.color.ansi16m = $S()),
+      (Ne.bgColor.ansi = DS(10)),
+      (Ne.bgColor.ansi256 = kS(10)),
+      (Ne.bgColor.ansi16m = $S(10)),
+      Object.defineProperties(Ne, {
         rgbToAnsi256: {
           value(e, t, r) {
             return e === t && t === r
@@ -7082,7 +7092,7 @@ var __spellHighlightEn = (() => {
           },
           enumerable: !1
         },
-        hexToAnsi256: { value: p((e) => Pe.rgbToAnsi256(...Pe.hexToRgb(e)), "value"), enumerable: !1 },
+        hexToAnsi256: { value: p((e) => Ne.rgbToAnsi256(...Ne.hexToRgb(e)), "value"), enumerable: !1 },
         ansi256ToAnsi: {
           value(e) {
             if (e < 8) return 30 + e
@@ -7101,16 +7111,16 @@ var __spellHighlightEn = (() => {
           },
           enumerable: !1
         },
-        rgbToAnsi: { value: p((e, t, r) => Pe.ansi256ToAnsi(Pe.rgbToAnsi256(e, t, r)), "value"), enumerable: !1 },
-        hexToAnsi: { value: p((e) => Pe.ansi256ToAnsi(Pe.hexToAnsi256(e)), "value"), enumerable: !1 }
+        rgbToAnsi: { value: p((e, t, r) => Ne.ansi256ToAnsi(Ne.rgbToAnsi256(e, t, r)), "value"), enumerable: !1 },
+        hexToAnsi: { value: p((e) => Ne.ansi256ToAnsi(Ne.hexToAnsi256(e)), "value"), enumerable: !1 }
       }),
-      Pe
+      Ne
     )
   }
-  l(rA, "T3")
-  p(rA, "assembleStyles")
-  var Ij = rA(),
-    Gs = Ij,
+  l(nA, "b3")
+  p(nA, "assembleStyles")
+  var Wj = nA(),
+    Gs = Wj,
     fc = (() => {
       if (!("navigator" in globalThis)) return 0
       if (globalThis.navigator.userAgentData) {
@@ -7120,9 +7130,9 @@ var __spellHighlightEn = (() => {
       return /\b(Chrome|Chromium)\//.test(globalThis.navigator.userAgent) ? 1 : 0
     })(),
     OS = fc !== 0 && { level: fc, hasBasic: !0, has256: fc >= 2, has16m: fc >= 3 },
-    Lj = { stdout: OS, stderr: OS },
-    Bj = Lj
-  function sA(a, e, t) {
+    Vj = { stdout: OS, stderr: OS },
+    Uj = Vj
+  function oA(a, e, t) {
     let r = a.indexOf(e)
     if (r === -1) return a
     let s = e.length,
@@ -7132,9 +7142,9 @@ var __spellHighlightEn = (() => {
     while (r !== -1)
     return ((o += a.slice(i)), o)
   }
-  l(sA, "qx")
-  p(sA, "stringReplaceAll")
-  function aA(a, e, t, r) {
+  l(oA, "Vx")
+  p(oA, "stringReplaceAll")
+  function lA(a, e, t, r) {
     let s = 0,
       i = ""
     do {
@@ -7157,26 +7167,26 @@ var __spellHighlightEn = (() => {
     } while (r !== -1)
     return ((i += a.slice(s)), i)
   }
-  l(aA, "Gx")
-  p(aA, "stringEncaseCRLFWithFirstIndex")
-  var { stdout: jS, stderr: FS } = Bj,
+  l(lA, "Ux")
+  p(lA, "stringEncaseCRLFWithFirstIndex")
+  var { stdout: jS, stderr: FS } = Uj,
     Kd = Symbol("GENERATOR"),
     dl = Symbol("STYLER"),
-    Lp = Symbol("IS_EMPTY"),
-    NS = ["ansi", "ansi", "ansi256", "ansi16m"],
+    Mp = Symbol("IS_EMPTY"),
+    PS = ["ansi", "ansi", "ansi256", "ansi16m"],
     hl = Object.create(null),
-    Mj = p((a, e = {}) => {
+    Gj = p((a, e = {}) => {
       if (e.level && !(Number.isInteger(e.level) && e.level >= 0 && e.level <= 3))
         throw new Error("The `level` option should be an integer from 0 to 3")
       let t = jS ? jS.level : 0
       a.level = e.level === void 0 ? t : e.level
     }, "applyOptions"),
-    _j = p((a) => {
+    zj = p((a) => {
       let e = p((...t) => t.join(" "), "chalk")
-      return (Mj(e, a), Object.setPrototypeOf(e, wl.prototype), e)
+      return (Gj(e, a), Object.setPrototypeOf(e, wl.prototype), e)
     }, "chalkFactory")
   function wl(a) {
-    return _j(a)
+    return zj(a)
   }
   l(wl, "Ap")
   p(wl, "createChalk")
@@ -7184,7 +7194,7 @@ var __spellHighlightEn = (() => {
   for (let [a, e] of Object.entries(Gs))
     hl[a] = {
       get() {
-        let t = Ic(this, Hd(e.open, e.close, this[dl]), this[Lp])
+        let t = Ic(this, Hd(e.open, e.close, this[dl]), this[Mp])
         return (Object.defineProperty(this, a, { value: t }), t)
       }
     }
@@ -7207,14 +7217,14 @@ var __spellHighlightEn = (() => {
             : Gs[t][a](...r),
       "getModelAnsi"
     ),
-    Wj = ["rgb", "hex", "ansi256"]
-  for (let a of Wj) {
+    qj = ["rgb", "hex", "ansi256"]
+  for (let a of qj) {
     hl[a] = {
       get() {
         let { level: t } = this
         return function (...r) {
-          let s = Hd(Xd(a, NS[t], "color", ...r), Gs.color.close, this[dl])
-          return Ic(this, s, this[Lp])
+          let s = Hd(Xd(a, PS[t], "color", ...r), Gs.color.close, this[dl])
+          return Ic(this, s, this[Mp])
         }
       }
     }
@@ -7223,13 +7233,13 @@ var __spellHighlightEn = (() => {
       get() {
         let { level: t } = this
         return function (...r) {
-          let s = Hd(Xd(a, NS[t], "bgColor", ...r), Gs.bgColor.close, this[dl])
-          return Ic(this, s, this[Lp])
+          let s = Hd(Xd(a, PS[t], "bgColor", ...r), Gs.bgColor.close, this[dl])
+          return Ic(this, s, this[Mp])
         }
       }
     }
   }
-  var Vj = Object.defineProperties(() => {}, {
+  var Jj = Object.defineProperties(() => {}, {
       ...hl,
       level: {
         enumerable: !0,
@@ -7249,24 +7259,24 @@ var __spellHighlightEn = (() => {
       )
     }, "createStyler"),
     Ic = p((a, e, t) => {
-      let r = p((...s) => Uj(r, s.length === 1 ? "" + s[0] : s.join(" ")), "builder")
-      return (Object.setPrototypeOf(r, Vj), (r[Kd] = a), (r[dl] = e), (r[Lp] = t), r)
+      let r = p((...s) => Kj(r, s.length === 1 ? "" + s[0] : s.join(" ")), "builder")
+      return (Object.setPrototypeOf(r, Jj), (r[Kd] = a), (r[dl] = e), (r[Mp] = t), r)
     }, "createBuilder"),
-    Uj = p((a, e) => {
-      if (a.level <= 0 || !e) return a[Lp] ? "" : e
+    Kj = p((a, e) => {
+      if (a.level <= 0 || !e) return a[Mp] ? "" : e
       let t = a[dl]
       if (t === void 0) return e
       let { openAll: r, closeAll: s } = t
-      if (e.includes("\x1B")) for (; t !== void 0;) ((e = sA(e, t.close, t.open)), (t = t.parent))
+      if (e.includes("\x1B")) for (; t !== void 0;) ((e = oA(e, t.close, t.open)), (t = t.parent))
       let i = e.indexOf(`
 `)
-      return (i !== -1 && (e = aA(e, s, r, i)), r + e + s)
+      return (i !== -1 && (e = lA(e, s, r, i)), r + e + s)
     }, "applyStyle")
   Object.defineProperties(wl.prototype, hl)
-  var Gj = wl(),
-    wB = wl({ level: FS ? FS.level : 0 }),
-    zj = Gj,
-    PS = ["OFF", "ERROR", "WARN", "INFO", "DEBUG"],
+  var Xj = wl(),
+    CB = wl({ level: FS ? FS.level : 0 }),
+    Hj = Xj,
+    NS = ["OFF", "ERROR", "WARN", "INFO", "DEBUG"],
     RS = class qi {
       static {
         l(this, "n")
@@ -7287,8 +7297,8 @@ var __spellHighlightEn = (() => {
       group = p((...e) => this.output(qi.INFO, "group", e), "group")
       groupEnd = p(() => console.groupEnd(), "groupEnd")
       output(e, t, r) {
-        let s = PS.indexOf(this.level)
-        PS.indexOf(e) > s || (this.prefix && r.unshift(zj.hex(this.color)(this.prefix)), console[t](...r))
+        let s = NS.indexOf(this.level)
+        NS.indexOf(e) > s || (this.prefix && r.unshift(Hj.hex(this.color)(this.prefix)), console[t](...r))
       }
       static OFF = "OFF"
       static ERROR = "ERROR"
@@ -7296,28 +7306,28 @@ var __spellHighlightEn = (() => {
       static INFO = "INFO"
       static DEBUG = "DEBUG"
     }
-  function iA(a) {
+  function uA(a) {
     if (typeof a != "string") throw new TypeError(`Expected a string value, got ${typeof a}`)
     return a
   }
-  l(iA, "k3")
-  p(iA, "assertString")
-  function nA(a) {
+  l(uA, "F3")
+  p(uA, "assertString")
+  function pA(a) {
     if (typeof a != "number") throw new TypeError(`Expected a number value, got ${typeof a}`)
     return a
   }
-  l(nA, "M3")
-  p(nA, "assertNumber")
-  function oA(a) {
+  l(pA, "O3")
+  p(pA, "assertNumber")
+  function cA(a) {
     if (typeof a != "boolean") throw new TypeError(`Expected a boolean value, got ${typeof a}`)
     return a
   }
-  l(oA, "$3")
-  p(oA, "assertBoolean")
-  var ua = { string: iA, number: nA, boolean: oA },
-    Xp = class {
+  l(cA, "R3")
+  p(cA, "assertBoolean")
+  var ua = { string: uA, number: pA, boolean: cA },
+    Yp = class {
       static {
-        l(this, "cr")
+        l(this, "lr")
       }
       static {
         p(this, "Derivative")
@@ -7347,9 +7357,9 @@ var __spellHighlightEn = (() => {
             ? a === void 0
             : a instanceof e
   }
-  l(sv, "Fw")
+  l(sv, "Nw")
   p(sv, "checkType")
-  var lA = class extends Xp {
+  var dA = class extends Yp {
       static {
         l(this, "Eu")
       }
@@ -7380,18 +7390,18 @@ Actual value:
         Array.isArray(r) && r.forEach((s, i) => this.assertType(`${a}[${i}]`, e))
       }
     },
-    TB = Be(Hk(), 1),
-    xB = Be(Yk(), 1),
-    ml = Be(Qk(), 1),
-    qj = Be(l$(), 1),
-    uA = Be(u$(), 1)
+    DB = Be(r$(), 1),
+    kB = Be(s$(), 1),
+    ml = Be(a$(), 1),
+    Yj = Be(m$(), 1),
+    hA = Be(f$(), 1)
   function Xt(a) {
-    return Tl(a, Jj, Kj)
+    return Tl(a, Qj, Zj)
   }
   l(Xt, "dt")
   p(Xt, "typeCase")
-  var Jj = {},
-    Kj = p(
+  var Qj = {},
+    Zj = p(
       (a) =>
         rt(`${a}`)
           .split(/[-_]+/)
@@ -7399,47 +7409,47 @@ Actual value:
           .join(""),
       "toTypeCase"
     ),
-    Lo = p((a) => Tl(a, Hj, Xj), "instanceCase"),
-    Xj = p((a) => rt(`${a}`).toLowerCase(), "toInstanceCase"),
-    Hj = {},
-    Bo = p((a) => Tl(a, Yj, qj.default), "snakeCase"),
-    Yj = {},
-    rt = p((a) => Tl(a, Zj, Qj), "singularize"),
-    Qj = p((a) => uA.default.singular(`${a}`), "toSingular"),
-    Zj = {},
-    Ls = p((a) => Tl(a, tF, eF), "pluralize"),
-    eF = p((a) => (0, uA.default)(a), "toPlural"),
-    tF = {}
-  function pA(a) {
+    Lo = p((a) => Tl(a, tF, eF), "instanceCase"),
+    eF = p((a) => rt(`${a}`).toLowerCase(), "toInstanceCase"),
+    tF = {},
+    Bo = p((a) => Tl(a, rF, Yj.default), "snakeCase"),
+    rF = {},
+    rt = p((a) => Tl(a, aF, sF), "singularize"),
+    sF = p((a) => hA.default.singular(`${a}`), "toSingular"),
+    aF = {},
+    Ls = p((a) => Tl(a, nF, iF), "pluralize"),
+    iF = p((a) => (0, hA.default)(a), "toPlural"),
+    nF = {}
+  function mA(a) {
     let e = LS[a]
     if (e !== void 0) return e
     let t = a === rt(a),
       r = a === Ls(a)
     return (LS[a] = t && r ? "either" : t ? "singular" : "plural")
   }
-  l(pA, "WE")
-  p(pA, "getPlurality")
+  l(mA, "zE")
+  p(mA, "getPlurality")
   var LS = {}
-  function bp(a) {
+  function wp(a) {
     return typeof a != "string" ? a : a.replace(/\n/g, "\xAC").replace(/\t/g, "\u2206")
   }
-  l(bp, "Mp")
-  p(bp, "showWhitespace")
+  l(wp, "Mp")
+  p(wp, "showWhitespace")
   function Tl(a, e, t) {
     return e[a] !== void 0 ? e[a] : (e[a] = t(a))
   }
   l(Tl, "$p")
   p(Tl, "getExistingOrTransform")
-  function cA(a, e) {
+  function fA(a, e) {
     let t = bc(a)
       .split("-")
-      .filter((r) => !rF.test(r))
+      .filter((r) => !oF.test(r))
       .join("-")
     return `${rt(bc(t)) || "spell"}-${bc(e)}`
   }
-  l(cA, "VE")
-  p(cA, "elementTagFor")
-  var rF = /^drawables?$/
+  l(fA, "KE")
+  p(fA, "elementTagFor")
+  var oF = /^drawables?$/
   function bc(a) {
     return ad(a.replace(/_/g, "-"))
       .toLowerCase()
@@ -7447,13 +7457,13 @@ Actual value:
       .replace(/-+/g, "-")
       .replace(/^[^a-z]+|-+$/g, "")
   }
-  l(bc, "Fm")
+  l(bc, "Om")
   p(bc, "tagWords")
-  function dA(a, e, t) {
+  function gA(a, e, t) {
     let r = ad(a.replace(/_/g, "-"))
-    if (iF.has(r)) return
-    let s = t ? "owner" : e && aF.test(e) ? "thing" : void 0,
-      i = s ? "string" : (sF[e ?? "text"] ?? "json")
+    if (pF.has(r)) return
+    let s = t ? "owner" : e && uF.test(e) ? "thing" : void 0,
+      i = s ? "string" : (lF[e ?? "text"] ?? "json")
     return {
       name: r,
       property: Uy(r),
@@ -7462,9 +7472,9 @@ Actual value:
       ...(s ? { reference: s } : {})
     }
   }
-  l(dA, "UE")
-  p(dA, "drawableAttributeFor")
-  var sF = {
+  l(gA, "JE")
+  p(gA, "drawableAttributeFor")
+  var lF = {
       text: "string",
       character: "string",
       date: "string",
@@ -7472,8 +7482,8 @@ Actual value:
       integer: "number",
       choice: "boolean"
     },
-    aF = /^[A-Z]/,
-    iF = new Set([
+    uF = /^[A-Z]/,
+    pF = new Set([
       "thing",
       "id",
       "class",
@@ -7491,8 +7501,8 @@ Actual value:
       "visible",
       "animation"
     ]),
-    nF = Be(vy(), 1)
-  function hA(a, e = "random text", t) {
+    cF = Be(vy(), 1)
+  function yA(a, e = "random text", t) {
     try {
       return JSON.parse(a)
     } catch (r) {
@@ -7520,11 +7530,11 @@ Actual value:
       return
     }
   }
-  l(hA, "KE")
-  p(hA, "parseJSON")
-  function mA(a, e = "random text", t) {
+  l(yA, "XE")
+  p(yA, "parseJSON")
+  function vA(a, e = "random text", t) {
     try {
-      return nF.default.parse(a)
+      return cF.default.parse(a)
     } catch (r) {
       let s = (r instanceof Error ? r.message : String(r)).match(/at position (\d+)/)
       if (s) {
@@ -7550,9 +7560,9 @@ Actual value:
       return
     }
   }
-  l(mA, "JE")
-  p(mA, "parseJSON5")
-  function fA(a, e) {
+  l(vA, "YE")
+  p(vA, "parseJSON5")
+  function SA(a, e) {
     let t = [],
       r = -1 / 0
     for (let s of a) {
@@ -7561,8 +7571,8 @@ Actual value:
     }
     return t
   }
-  l(fA, "HE")
-  p(fA, "itemsWithHighest")
+  l(SA, "ZE")
+  p(SA, "itemsWithHighest")
   var av = class extends Error {
       static {
         l(this, "Go")
@@ -7583,15 +7593,15 @@ Actual value:
         return this.props.activity ? `${this.name} ${this.props.activity}` : this.name
       }
     },
-    oF = Be(vk(), 1)
-  function gA(a) {
+    dF = Be(xk(), 1)
+  function bA(a) {
     return a.name === "AbortError"
   }
-  l(gA, "YE")
-  p(gA, "isAbortError")
-  function yA(a, e = {}) {
+  l(bA, "_E")
+  p(bA, "isAbortError")
+  function AA(a, e = {}) {
     let t = !1,
-      r = new oF.default.AbortController()
+      r = new dF.default.AbortController()
     function s(o) {
       return Object.assign(o, {
         cancel() {
@@ -7617,11 +7627,11 @@ Actual value:
       s(i)
     )
   }
-  l(yA, "ZE")
-  p(yA, "abortableFetch")
+  l(AA, "ev")
+  p(AA, "abortableFetch")
   var BS = Be(Qc(), 1),
-    MS = Be(c$(), 1),
-    lF = Be(g$(), 1),
+    MS = Be(y$(), 1),
+    hF = Be(w$(), 1),
     _S = class extends av {
       static {
         l(this, "Fp")
@@ -7644,7 +7654,7 @@ Actual value:
         if (this.props.response) return this.props.response.status
       }
     },
-    uF = class extends xl {
+    mF = class extends xl {
       static {
         l(this, "Sl")
       }
@@ -7655,7 +7665,7 @@ Actual value:
         super({ message: "You must be online to do this.", ...a })
       }
     },
-    pF = class extends xl {
+    fF = class extends xl {
       static {
         l(this, "Pl")
       }
@@ -7666,7 +7676,7 @@ Actual value:
         super({ message: "There was a problem loading this thing.", ...a })
       }
     },
-    cF = class extends xl {
+    gF = class extends xl {
       static {
         l(this, "Tl")
       }
@@ -7677,7 +7687,7 @@ Actual value:
         super({ message: "You are not authorized to do this.", ...a })
       }
     },
-    dF = class extends xl {
+    yF = class extends xl {
       static {
         l(this, "Al")
       }
@@ -7688,7 +7698,7 @@ Actual value:
         super({ message: "There was an error understanding the response.", ...a })
       }
     },
-    hF = class extends xl {
+    vF = class extends xl {
       static {
         l(this, "xl")
       }
@@ -7715,9 +7725,9 @@ Actual value:
       e
     )
   }
-  l(Yd, "Bm")
+  l(Yd, "qm")
   p(Yd, "merge$fetchParms")
-  function vA(a) {
+  function wA(a) {
     let {
         url: e,
         query: t,
@@ -7733,8 +7743,8 @@ Actual value:
       (d.headers = i),
       r != null && (d.body = typeof r == "string" ? r : JSON.stringify(r)))
     let m = e
-    typeof t == "string" ? (m += `?${t}`) : t && (m += lF.default.stringify(t))
-    let g = yA(m, d)
+    typeof t == "string" ? (m += `?${t}`) : t && (m += hF.default.stringify(t))
+    let g = AA(m, d)
     async function f(w) {
       let A = { url: e, status: w.status, ...d }
       if (!w.ok) {
@@ -7742,36 +7752,36 @@ Actual value:
         switch (w.status) {
           case 404:
             if (c !== void 0) return c
-            throw new pF({ ...A, message: D })
+            throw new fF({ ...A, message: D })
           case 401:
           case 403:
-            throw new cF({ ...A, message: D })
+            throw new gF({ ...A, message: D })
           default:
             throw new xl({ ...A, message: D })
         }
       }
       try {
-        if (Nj.includes(u)) return await w.blob()
+        if (Bj.includes(u)) return await w.blob()
         let D = await w.text()
         return u === zs.json || u.toLowerCase() === "json"
-          ? hA(D)
+          ? yA(D)
           : u === zs.json5 || u.toLowerCase() === "json5"
-            ? mA(D)
+            ? vA(D)
             : D
       } catch (D) {
-        throw new dF({ ...A, error: D })
+        throw new yF({ ...A, error: D })
       }
     }
     ;(l(f, "T"), p(f, "success"))
     async function y(w) {
       if (c !== void 0) return c
-      throw gA(w) ? new hF({ url: e, error: w, ...d }) : new uF({ url: e, error: w, ...d })
+      throw bA(w) ? new vF({ url: e, error: w, ...d }) : new mF({ url: e, error: w, ...d })
     }
     return (l(y, "A"), p(y, "failure"), g.then(f, y))
   }
-  l(vA, "Cv")
-  p(vA, "$fetch")
-  var SA = class extends Xp {
+  l(wA, "$v")
+  p(wA, "$fetch")
+  var TA = class extends Yp {
     static {
       l(this, "Du")
     }
@@ -7792,7 +7802,7 @@ Actual value:
       return cl(this)
     }
     static declareProp(a, e) {
-      Ib(this, a, e)
+      _b(this, a, e)
     }
     getProp(a, e) {
       return tt.getProp(this, a, e)
@@ -7812,11 +7822,11 @@ Actual value:
       return tt.keysOf(this)
     }
     checkPropType(a, e, t) {
-      if (YD.env?.PROD) return
+      if (sk.env?.PROD) return
       let r = typeof t.oneOf == "function" ? t.oneOf() : t.oneOf
       r && !r.includes(e)
         ? console.warn(`${this.constructor.name}.${a}:  expected one of ${r.join(", ")}, got`, e)
-        : t.type && !bA(e, t.type) && console.warn(`${this.constructor.name}.${a}:  expected ${t.type}, got`, e)
+        : t.type && !xA(e, t.type) && console.warn(`${this.constructor.name}.${a}:  expected ${t.type}, got`, e)
     }
     derive(a, e) {
       return tt.derive(this, a, e)
@@ -7840,16 +7850,16 @@ Actual value:
   }
   l(pt, "We")
   p(pt, "batch")
-  function bA(a, e) {
-    if (Pc(a) === e) return !0
+  function xA(a, e) {
+    if (Nc(a) === e) return !0
     if (typeof a != "object" || a === null) return !1
     for (let t = Object.getPrototypeOf(a); t; t = Object.getPrototypeOf(t)) if (t.constructor?.name === e) return !0
     return !1
   }
-  l(bA, "HW")
-  p(bA, "isOfType")
+  l(xA, "ZW")
+  p(xA, "isOfType")
   var WS = Be(mb(), 1),
-    mF = class extends SA {
+    SF = class extends TA {
       static {
         l(this, "jl")
       }
@@ -8013,14 +8023,14 @@ Actual value:
         )
       }
     },
-    AA = class Qd extends mF {
+    EA = class Qd extends SF {
       static {
         l(this, "n")
       }
       static {
         p(this, "LoadableFile")
       }
-      static fetch = vA
+      static fetch = wA
       constructor(e) {
         super(typeof e == "string" ? { url: e } : e)
       }
@@ -8085,7 +8095,7 @@ Actual value:
         this.override("extension", e)
       }
     },
-    iv = class extends AA {
+    iv = class extends EA {
       static {
         l(this, "$s")
       }
@@ -8093,7 +8103,7 @@ Actual value:
         p(this, "TextFile")
       }
     },
-    fF = class extends AA {
+    bF = class extends EA {
       static {
         l(this, "Ll")
       }
@@ -8107,9 +8117,9 @@ Actual value:
         return { requestFormat: zs.json5, format: zs.json5 }
       }
     },
-    Ni = class extends SA {
+    Pi = class extends TA {
       static {
-        l(this, "hr")
+        l(this, "mr")
       }
       static {
         p(this, "Task")
@@ -8274,7 +8284,7 @@ execution:`,
         }
       }
     },
-    Ap = class extends Ni {
+    Tp = class extends Pi {
       static {
         l(this, "Fs")
       }
@@ -8335,7 +8345,7 @@ execution:`,
       }
       addTasks(...a) {
         a.forEach((e) => {
-          if (!(e instanceof Ni)) throw new TypeError("TaskList.addTasks() added non-task")
+          if (!(e instanceof Pi)) throw new TypeError("TaskList.addTasks() added non-task")
           ;((e.taskList = this), this.tasks.push(e))
         })
       }
@@ -8392,12 +8402,12 @@ execution:`,
         this.debug && console.groupEnd()
       }
       static forEach({ list: a, getTask: e, ...t }) {
-        return new gF({ resolveWith: Ud.RESULTS, ...t }, a, e)
+        return new AF({ resolveWith: Ud.RESULTS, ...t }, a, e)
       }
     },
-    gF = class extends Ap {
+    AF = class extends Tp {
       static {
-        l(this, "sg")
+        l(this, "ig")
       }
       constructor(a, e, t) {
         ;(super(a), (this.list = e), (this.getTask = t))
@@ -8414,199 +8424,199 @@ execution:`,
     },
     n = {}
   Wo(n, {
-    ALPHANUMERIC_WORD_WITH_DASHES: l(() => yF, "ALPHANUMERIC_WORD_WITH_DASHES"),
-    ASTArrayLiteral: l(() => cw, "ASTArrayLiteral"),
-    ASTAssignmentStatement: l(() => WN, "ASTAssignmentStatement"),
-    ASTAwaitExpression: l(() => dw, "ASTAwaitExpression"),
-    ASTBackTickExpression: l(() => kN, "ASTBackTickExpression"),
-    ASTBacktickSubstitution: l(() => $N, "ASTBacktickSubstitution"),
-    ASTBannerComment: l(() => PN, "ASTBannerComment"),
+    ALPHANUMERIC_WORD_WITH_DASHES: l(() => wF, "ALPHANUMERIC_WORD_WITH_DASHES"),
+    ASTArrayLiteral: l(() => fw, "ASTArrayLiteral"),
+    ASTAssignmentStatement: l(() => qP, "ASTAssignmentStatement"),
+    ASTAwaitExpression: l(() => gw, "ASTAwaitExpression"),
+    ASTBackTickExpression: l(() => PP, "ASTBackTickExpression"),
+    ASTBacktickSubstitution: l(() => NP, "ASTBacktickSubstitution"),
+    ASTBannerComment: l(() => MP, "ASTBannerComment"),
     ASTBlankLine: l(() => hd, "ASTBlankLine"),
     ASTBlockComment: l(() => Sv, "ASTBlockComment"),
-    ASTBooleanLiteral: l(() => lw, "ASTBooleanLiteral"),
-    ASTClassDeclaration: l(() => UN, "ASTClassDeclaration"),
+    ASTBooleanLiteral: l(() => dw, "ASTBooleanLiteral"),
+    ASTClassDeclaration: l(() => KP, "ASTClassDeclaration"),
     ASTClassMember: l(() => qo, "ASTClassMember"),
     ASTComment: l(() => ca, "ASTComment"),
-    ASTConsoleMethodInvocation: l(() => RN, "ASTConsoleMethodInvocation"),
-    ASTConstantExpression: l(() => MN, "ASTConstantExpression"),
+    ASTConsoleMethodInvocation: l(() => _P, "ASTConsoleMethodInvocation"),
+    ASTConstantExpression: l(() => GP, "ASTConstantExpression"),
     ASTCoreMethodInvocation: l(() => Mo, "ASTCoreMethodInvocation"),
-    ASTDestructuredAssignment: l(() => VN, "ASTDestructuredAssignment"),
-    ASTDocComment: l(() => FN, "ASTDocComment"),
-    ASTEchoInvocation: l(() => LN, "ASTEchoInvocation"),
-    ASTElseIfStatement: l(() => YN, "ASTElseIfStatement"),
-    ASTElseStatement: l(() => QN, "ASTElseStatement"),
-    ASTEnumeration: l(() => DN, "ASTEnumeration"),
-    ASTExpectMethodInvocation: l(() => IN, "ASTExpectMethodInvocation"),
+    ASTDestructuredAssignment: l(() => JP, "ASTDestructuredAssignment"),
+    ASTDocComment: l(() => LP, "ASTDocComment"),
+    ASTEchoInvocation: l(() => VP, "ASTEchoInvocation"),
+    ASTElseIfStatement: l(() => rN, "ASTElseIfStatement"),
+    ASTElseStatement: l(() => sN, "ASTElseStatement"),
+    ASTEnumeration: l(() => FP, "ASTEnumeration"),
+    ASTExpectMethodInvocation: l(() => WP, "ASTExpectMethodInvocation"),
     ASTExpression: l(() => U, "ASTExpression"),
     ASTExpressionWithComment: l(() => yv, "ASTExpressionWithComment"),
-    ASTHeadingInvocation: l(() => BN, "ASTHeadingInvocation"),
+    ASTHeadingInvocation: l(() => UP, "ASTHeadingInvocation"),
     ASTIfStatement: l(() => Tv, "ASTIfStatement"),
-    ASTInfixExpression: l(() => yw, "ASTInfixExpression"),
-    ASTInvocationArgs: l(() => Sw, "ASTInvocationArgs"),
-    ASTJSXAttribute: l(() => xw, "ASTJSXAttribute"),
-    ASTJSXElement: l(() => Tw, "ASTJSXElement"),
-    ASTJSXEndTag: l(() => Ew, "ASTJSXEndTag"),
+    ASTInfixExpression: l(() => Aw, "ASTInfixExpression"),
+    ASTInvocationArgs: l(() => Tw, "ASTInvocationArgs"),
+    ASTJSXAttribute: l(() => kw, "ASTJSXAttribute"),
+    ASTJSXElement: l(() => Dw, "ASTJSXElement"),
+    ASTJSXEndTag: l(() => $w, "ASTJSXEndTag"),
     ASTJSXExpression: l(() => hh, "ASTJSXExpression"),
-    ASTJSXLiveValue: l(() => Dw, "ASTJSXLiveValue"),
-    ASTJSXText: l(() => Cw, "ASTJSXText"),
-    ASTKeywordLiteral: l(() => CN, "ASTKeywordLiteral"),
-    ASTLineComment: l(() => jN, "ASTLineComment"),
-    ASTListExpression: l(() => zN, "ASTListExpression"),
+    ASTJSXLiveValue: l(() => jw, "ASTJSXLiveValue"),
+    ASTJSXText: l(() => Ow, "ASTJSXText"),
+    ASTKeywordLiteral: l(() => jP, "ASTKeywordLiteral"),
+    ASTLineComment: l(() => IP, "ASTLineComment"),
+    ASTListExpression: l(() => HP, "ASTListExpression"),
     ASTLiteral: l(() => Qt, "ASTLiteral"),
     ASTMethodDefinition: l(() => qs, "ASTMethodDefinition"),
-    ASTMethodInvocation: l(() => bw, "ASTMethodInvocation"),
-    ASTMissingExpression: l(() => uw, "ASTMissingExpression"),
-    ASTMultiInfixExpression: l(() => vw, "ASTMultiInfixExpression"),
-    ASTNewInstanceExpression: l(() => GN, "ASTNewInstanceExpression"),
+    ASTMethodInvocation: l(() => xw, "ASTMethodInvocation"),
+    ASTMissingExpression: l(() => hw, "ASTMissingExpression"),
+    ASTMultiInfixExpression: l(() => ww, "ASTMultiInfixExpression"),
+    ASTNewInstanceExpression: l(() => XP, "ASTNewInstanceExpression"),
     ASTNode: l(() => pa, "ASTNode"),
-    ASTNotExpression: l(() => fw, "ASTNotExpression"),
-    ASTNothingLiteral: l(() => pw, "ASTNothingLiteral"),
-    ASTNumericLiteral: l(() => nw, "ASTNumericLiteral"),
+    ASTNotExpression: l(() => Sw, "ASTNotExpression"),
+    ASTNothingLiteral: l(() => mw, "ASTNothingLiteral"),
+    ASTNumericLiteral: l(() => pw, "ASTNumericLiteral"),
     ASTObjectLiteral: l(() => Av, "ASTObjectLiteral"),
     ASTObjectLiteralProperty: l(() => ch, "ASTObjectLiteralProperty"),
-    ASTOrdinalLiteral: l(() => AN, "ASTOrdinalLiteral"),
+    ASTOrdinalLiteral: l(() => CP, "ASTOrdinalLiteral"),
     ASTParenthesizedExpression: l(() => gl, "ASTParenthesizedExpression"),
-    ASTParseError: l(() => Yp, "ASTParseError"),
-    ASTParserAnnotation: l(() => hw, "ASTParserAnnotation"),
-    ASTPatchedMember: l(() => HN, "ASTPatchedMember"),
-    ASTPreservedComment: l(() => NN, "ASTPreservedComment"),
-    ASTProgramStart: l(() => ZN, "ASTProgramStart"),
-    ASTPropertyDefinition: l(() => qN, "ASTPropertyDefinition"),
+    ASTParseError: l(() => Zp, "ASTParseError"),
+    ASTParserAnnotation: l(() => yw, "ASTParserAnnotation"),
+    ASTPatchedMember: l(() => tN, "ASTPatchedMember"),
+    ASTPreservedComment: l(() => BP, "ASTPreservedComment"),
+    ASTProgramStart: l(() => aN, "ASTProgramStart"),
+    ASTPropertyDefinition: l(() => YP, "ASTPropertyDefinition"),
     ASTPropertyExpression: l(() => vv, "ASTPropertyExpression"),
     ASTPropertyLiteral: l(() => la, "ASTPropertyLiteral"),
-    ASTPrototypeExpression: l(() => Aw, "ASTPrototypeExpression"),
+    ASTPrototypeExpression: l(() => Ew, "ASTPrototypeExpression"),
     ASTQuotedExpression: l(() => Bc, "ASTQuotedExpression"),
-    ASTReactiveProperty: l(() => JN, "ASTReactiveProperty"),
-    ASTRegExpLiteral: l(() => xN, "ASTRegExpLiteral"),
+    ASTReactiveProperty: l(() => QP, "ASTReactiveProperty"),
+    ASTRegExpLiteral: l(() => $P, "ASTRegExpLiteral"),
     ASTReturnStatement: l(() => wv, "ASTReturnStatement"),
     ASTScopedMethodInvocation: l(() => bv, "ASTScopedMethodInvocation"),
-    ASTSelfLiteral: l(() => EN, "ASTSelfLiteral"),
+    ASTSelfLiteral: l(() => OP, "ASTSelfLiteral"),
     ASTSpellCoreExpression: l(() => md, "ASTSpellCoreExpression"),
-    ASTStartProcessInvocation: l(() => tP, "ASTStartProcessInvocation"),
+    ASTStartProcessInvocation: l(() => nN, "ASTStartProcessInvocation"),
     ASTStatement: l(() => st, "ASTStatement"),
     ASTStatementBlock: l(() => Ut, "ASTStatementBlock"),
     ASTStatementGroup: l(() => fd, "ASTStatementGroup"),
-    ASTStaticDefinition: l(() => KN, "ASTStaticDefinition"),
-    ASTStaticMethod: l(() => XN, "ASTStaticMethod"),
-    ASTStopProcessInvocation: l(() => rP, "ASTStopProcessInvocation"),
+    ASTStaticDefinition: l(() => ZP, "ASTStaticDefinition"),
+    ASTStaticMethod: l(() => eN, "ASTStaticMethod"),
+    ASTStopProcessInvocation: l(() => oN, "ASTStopProcessInvocation"),
     ASTStringLiteral: l(() => dr, "ASTStringLiteral"),
-    ASTTaggedTemplate: l(() => TN, "ASTTaggedTemplate"),
-    ASTTemplateString: l(() => ow, "ASTTemplateString"),
-    ASTTernaryExpression: l(() => eP, "ASTTernaryExpression"),
-    ASTTripleBackTickExpression: l(() => ON, "ASTTripleBackTickExpression"),
-    ASTTryCatchBlock: l(() => _N, "ASTTryCatchBlock"),
-    ASTTypeExpression: l(() => Pi, "ASTTypeExpression"),
-    ASTTypeNameLiteral: l(() => wN, "ASTTypeNameLiteral"),
+    ASTTaggedTemplate: l(() => kP, "ASTTaggedTemplate"),
+    ASTTemplateString: l(() => cw, "ASTTemplateString"),
+    ASTTernaryExpression: l(() => iN, "ASTTernaryExpression"),
+    ASTTripleBackTickExpression: l(() => RP, "ASTTripleBackTickExpression"),
+    ASTTryCatchBlock: l(() => zP, "ASTTryCatchBlock"),
+    ASTTypeExpression: l(() => Ni, "ASTTypeExpression"),
+    ASTTypeNameLiteral: l(() => DP, "ASTTypeNameLiteral"),
     ASTVariableExpression: l(() => fl, "ASTVariableExpression"),
-    AST_OPERATORS: l(() => gw, "AST_OPERATORS"),
-    BACKSLASH: l(() => AF, "BACKSLASH"),
-    BUILT_IN_CLASSES: l(() => TA, "BUILT_IN_CLASSES"),
+    AST_OPERATORS: l(() => bw, "AST_OPERATORS"),
+    BACKSLASH: l(() => CF, "BACKSLASH"),
+    BUILT_IN_CLASSES: l(() => DA, "BUILT_IN_CLASSES"),
     BUILT_IN_CLASS_NAMES: l(() => ud, "BUILT_IN_CLASS_NAMES"),
-    BUILT_IN_TYPES: l(() => wA, "BUILT_IN_TYPES"),
-    BlankLine: l(() => XF, "BlankLine"),
-    BlockScope: l(() => Hp, "BlockScope"),
-    BlockToken: l(() => BF, "BlockToken"),
-    Choice: l(() => GA, "Choice"),
-    CommentToken: l(() => IF, "CommentToken"),
-    DOUBLE_QUOTE: l(() => wF, "DOUBLE_QUOTE"),
-    Expectations: l(() => UF, "Expectations"),
-    FileScope: l(() => mN, "FileScope"),
-    Group: l(() => JF, "Group"),
-    ImportScope: l(() => hN, "ImportScope"),
-    IncrementalParse: l(() => lN, "IncrementalParse"),
-    IncrementalProject: l(() => uN, "IncrementalProject"),
-    IndentToken: l(() => xF, "IndentToken"),
-    InlineWhitespaceToken: l(() => EF, "InlineWhitespaceToken"),
+    BUILT_IN_TYPES: l(() => CA, "BUILT_IN_TYPES"),
+    BlankLine: l(() => eP, "BlankLine"),
+    BlockScope: l(() => Qp, "BlockScope"),
+    BlockToken: l(() => UF, "BlockToken"),
+    Choice: l(() => KA, "Choice"),
+    CommentToken: l(() => WF, "CommentToken"),
+    DOUBLE_QUOTE: l(() => DF, "DOUBLE_QUOTE"),
+    Expectations: l(() => KF, "Expectations"),
+    FileScope: l(() => SP, "FileScope"),
+    Group: l(() => QF, "Group"),
+    ImportScope: l(() => vP, "ImportScope"),
+    IncrementalParse: l(() => hP, "IncrementalParse"),
+    IncrementalProject: l(() => mP, "IncrementalProject"),
+    IndentToken: l(() => $F, "IndentToken"),
+    InlineWhitespaceToken: l(() => OF, "InlineWhitespaceToken"),
     JSWriter: l(() => Dc, "JSWriter"),
-    JSXAttributeToken: l(() => NF, "JSXAttributeToken"),
-    JSXElementToken: l(() => jF, "JSXElementToken"),
-    JSXEndTagToken: l(() => FF, "JSXEndTagToken"),
-    JSXExpressionToken: l(() => RF, "JSXExpressionToken"),
-    JSXTextToken: l(() => PF, "JSXTextToken"),
+    JSXAttributeToken: l(() => BF, "JSXAttributeToken"),
+    JSXElementToken: l(() => IF, "JSXElementToken"),
+    JSXEndTagToken: l(() => LF, "JSXEndTagToken"),
+    JSXExpressionToken: l(() => _F, "JSXExpressionToken"),
+    JSXTextToken: l(() => MF, "JSXTextToken"),
     JSXToken: l(() => El, "JSXToken"),
-    Keyword: l(() => KF, "Keyword"),
-    Keywords: l(() => HF, "Keywords"),
-    LIBRARY_CORE_MODULE: l(() => Zw, "LIBRARY_CORE_MODULE"),
-    LibraryWriter: l(() => uP, "LibraryWriter"),
-    LineToken: l(() => LF, "LineToken"),
+    Keyword: l(() => ZF, "Keyword"),
+    Keywords: l(() => tP, "Keywords"),
+    LIBRARY_CORE_MODULE: l(() => s0, "LIBRARY_CORE_MODULE"),
+    LibraryWriter: l(() => mN, "LibraryWriter"),
+    LineToken: l(() => VF, "LineToken"),
     Literal: l(() => lv, "Literal"),
     Literals: l(() => uv, "Literals"),
-    Match: l(() => VF, "Match"),
-    MethodScope: l(() => gN, "MethodScope"),
+    Match: l(() => JF, "Match"),
+    MethodScope: l(() => AP, "MethodScope"),
     Naming: l(() => Cc, "Naming"),
-    NewlineToken: l(() => CF, "NewlineToken"),
-    NumberToken: l(() => OF, "NumberToken"),
+    NewlineToken: l(() => jF, "NewlineToken"),
+    NumberToken: l(() => RF, "NumberToken"),
     P: l(() => n, "P"),
-    ParseJournal: l(() => oN, "ParseJournal"),
+    ParseJournal: l(() => dP, "ParseJournal"),
     Parser: l(() => mv, "Parser"),
-    ParserError: l(() => SF, "ParserError"),
-    Pattern: l(() => QF, "Pattern"),
-    ProgramWriter: l(() => Iw, "ProgramWriter"),
-    ProjectScope: l(() => dN, "ProjectScope"),
-    RULEX_SPECIALS: l(() => FA, "RULEX_SPECIALS"),
-    Repeat: l(() => eN, "Repeat"),
+    ParserError: l(() => xF, "ParserError"),
+    Pattern: l(() => sP, "Pattern"),
+    ProgramWriter: l(() => _w, "ProgramWriter"),
+    ProjectScope: l(() => yP, "ProjectScope"),
+    RULEX_SPECIALS: l(() => IA, "RULEX_SPECIALS"),
+    Repeat: l(() => iP, "Repeat"),
     RootScope: l(() => gv, "RootScope"),
     Rule: l(() => Xs, "Rule"),
-    SINGLE_QUOTE: l(() => TF, "SINGLE_QUOTE"),
+    SINGLE_QUOTE: l(() => kF, "SINGLE_QUOTE"),
     Scope: l(() => fv, "Scope"),
-    ScopeConstant: l(() => SN, "ScopeConstant"),
-    ScopeList: l(() => cN, "ScopeList"),
-    ScopeMethod: l(() => bN, "ScopeMethod"),
-    ScopeVariable: l(() => vN, "ScopeVariable"),
-    Sequence: l(() => ZA, "Sequence"),
-    SubjectScope: l(() => yN, "SubjectScope"),
-    Subrule: l(() => rN, "Subrule"),
-    Symbol: l(() => KA, "Symbol"),
-    SymbolToken: l(() => kF, "SymbolToken"),
-    Symbols: l(() => YF, "Symbols"),
-    TSWriter: l(() => qw, "TSWriter"),
-    TextToken: l(() => $F, "TextToken"),
+    ScopeConstant: l(() => xP, "ScopeConstant"),
+    ScopeList: l(() => gP, "ScopeList"),
+    ScopeMethod: l(() => EP, "ScopeMethod"),
+    ScopeVariable: l(() => TP, "ScopeVariable"),
+    Sequence: l(() => sw, "Sequence"),
+    SubjectScope: l(() => wP, "SubjectScope"),
+    Subrule: l(() => oP, "Subrule"),
+    Symbol: l(() => QA, "Symbol"),
+    SymbolToken: l(() => PF, "SymbolToken"),
+    Symbols: l(() => rP, "Symbols"),
+    TSWriter: l(() => Hw, "TSWriter"),
+    TextToken: l(() => NF, "TextToken"),
     Token: l(() => Ys, "Token"),
-    TokenFormatter: l(() => MF, "TokenFormatter"),
-    TokenType: l(() => tw, "TokenType"),
-    Tokenizer: l(() => jA, "Tokenizer"),
-    TreeWriter: l(() => cP, "TreeWriter"),
-    TypeScope: l(() => fN, "TypeScope"),
-    WhitespacePolicy: l(() => bF, "WhitespacePolicy"),
+    TokenFormatter: l(() => GF, "TokenFormatter"),
+    TokenType: l(() => iw, "TokenType"),
+    Tokenizer: l(() => RA, "Tokenizer"),
+    TreeWriter: l(() => gN, "TreeWriter"),
+    TypeScope: l(() => bP, "TypeScope"),
+    WhitespacePolicy: l(() => EF, "WhitespacePolicy"),
     WhitespaceToken: l(() => cd, "WhitespaceToken"),
-    Word: l(() => sN, "Word"),
-    WordToken: l(() => DF, "WordToken"),
+    Word: l(() => lP, "Word"),
+    WordToken: l(() => FF, "WordToken"),
     Writer: l(() => Cv, "Writer"),
     WriterProject: l(() => fh, "WriterProject"),
-    asAST: l(() => CA, "asAST"),
+    asAST: l(() => OA, "asAST"),
     camelCaseOf: l(() => bd, "camelCaseOf"),
-    classCase: l(() => xA, "classCase"),
-    concatGroupSpecs: l(() => LA, "concatGroupSpecs"),
+    classCase: l(() => kA, "classCase"),
+    concatGroupSpecs: l(() => WA, "concatGroupSpecs"),
     constantCaseOf: l(() => _c, "constantCaseOf"),
-    definedOnly: l(() => IA, "definedOnly"),
+    definedOnly: l(() => _A, "definedOnly"),
     elseOnItsLine: l(() => Vc, "elseOnItsLine"),
-    enumerationInitializer: l(() => iw, "enumerationInitializer"),
-    escapeRulex: l(() => NA, "escapeRulex"),
+    enumerationInitializer: l(() => uw, "enumerationInitializer"),
+    escapeRulex: l(() => LA, "escapeRulex"),
     forEachNode: l(() => Ri, "forEachNode"),
-    getLineStarts: l(() => $A, "getLineStarts"),
-    isBuiltInType: l(() => Bp, "isBuiltInType"),
+    getLineStarts: l(() => PA, "getLineStarts"),
+    isBuiltInType: l(() => _p, "isBuiltInType"),
     isDeclaration: l(() => Uv, "isDeclaration"),
-    isValueType: l(() => EA, "isValueType"),
+    isValueType: l(() => $A, "isValueType"),
     itemTypeOf: l(() => Lc, "itemTypeOf"),
-    joinRulex: l(() => PA, "joinRulex"),
-    jsShapes: l(() => kw, "jsShapes"),
-    jsText: l(() => Lw, "jsText"),
+    joinRulex: l(() => BA, "joinRulex"),
+    jsShapes: l(() => Fw, "jsShapes"),
+    jsText: l(() => Ww, "jsText"),
     libraryHalf: l(() => xd, "libraryHalf"),
     listNamedBy: l(() => ll, "listNamedBy"),
     listOf: l(() => nv, "listOf"),
-    matchAST: l(() => DA, "matchAST"),
-    mergeGroupSpecs: l(() => BA, "mergeGroupSpecs"),
-    normalizeRuleTest: l(() => kA, "normalizeRuleTest"),
-    positionForOffset: l(() => OA, "positionForOffset"),
+    matchAST: l(() => jA, "matchAST"),
+    mergeGroupSpecs: l(() => VA, "mergeGroupSpecs"),
+    normalizeRuleTest: l(() => FA, "normalizeRuleTest"),
+    positionForOffset: l(() => NA, "positionForOffset"),
     rulexSpacing: l(() => ov, "rulexSpacing"),
-    spacingAllows: l(() => RA, "spacingAllows"),
+    spacingAllows: l(() => MA, "spacingAllows"),
     spellValueOf: l(() => dd, "spellValueOf"),
-    stringifyGroupSpec: l(() => MA, "stringifyGroupSpec"),
+    stringifyGroupSpec: l(() => UA, "stringifyGroupSpec"),
     typeCaseOf: l(() => Sd, "typeCaseOf"),
     typeName: l(() => pd, "typeName")
   })
-  var yF = /^[a-zA-Z][\w-]*$/,
-    wA = {
+  var wF = /^[a-zA-Z][\w-]*$/,
+    CA = {
       text: void 0,
       number: void 0,
       integer: "number",
@@ -8621,42 +8631,42 @@ execution:`,
       nothing: void 0
     },
     ud = { list: "List", thing: "Thing", app: "App", drawable: "Drawable", "drawable list": "DrawableList" },
-    TA = Object.keys(ud),
-    vF = new Set(Object.values(ud))
-  function xA(a) {
-    return ud[`${a}`.toLowerCase()] ?? (vF.has(a) ? a : Xt(a))
+    DA = Object.keys(ud),
+    TF = new Set(Object.values(ud))
+  function kA(a) {
+    return ud[`${a}`.toLowerCase()] ?? (TF.has(a) ? a : Xt(a))
   }
-  l(xA, "dU")
-  p(xA, "classCase")
+  l(kA, "mU")
+  p(kA, "classCase")
   function pd(a, e = {}) {
     let t = `${a}`.trim().replace(/\s+/g, " "),
       r = /^(\S+) of (.+)$/i.exec(t)
     return r && Zd(r[1], e) === "list" ? nv(pd(r[2], e)) : (Zd(t, e) ?? Xt(t))
   }
-  l(pd, "ag")
+  l(pd, "ug")
   p(pd, "typeName")
   function Zd(a, e) {
     let t = a.toLowerCase(),
       r = rt(t),
-      s = Bp(t) ? t : Bp(r) ? r : void 0
+      s = _p(t) ? t : _p(r) ? r : void 0
     return e[t] ?? e[r] ?? s
   }
-  l(Zd, "T0")
+  l(Zd, "b0")
   p(Zd, "builtInTypeWritten")
-  function Bp(a) {
-    return a !== void 0 && Object.hasOwn(wA, a)
+  function _p(a) {
+    return a !== void 0 && Object.hasOwn(CA, a)
   }
-  l(Bp, "Bl")
-  p(Bp, "isBuiltInType")
-  function EA(a) {
-    return Bp(a) && !TA.includes(a)
+  l(_p, "Bl")
+  p(_p, "isBuiltInType")
+  function $A(a) {
+    return _p(a) && !DA.includes(a)
   }
-  l(EA, "fU")
-  p(EA, "isValueType")
+  l($A, "gU")
+  p($A, "isValueType")
   function nv(a) {
     return `list of ${Ls(a.toLowerCase())}`
   }
-  l(nv, "b0")
+  l(nv, "v0")
   p(nv, "listOf")
   function Lc(a) {
     let e = a && /^list of (.+)$/.exec(a)
@@ -8664,25 +8674,25 @@ execution:`,
   }
   l(Lc, "Gl")
   p(Lc, "itemTypeOf")
-  function CA(a) {
+  function OA(a) {
     return a
   }
-  l(CA, "hU")
-  p(CA, "asAST")
-  function DA(a) {
+  l(OA, "yU")
+  p(OA, "asAST")
+  function jA(a) {
     return a?.AST
   }
-  l(DA, "mU")
-  p(DA, "matchAST")
-  var SF = class extends av {
+  l(jA, "SU")
+  p(jA, "matchAST")
+  var xF = class extends av {
     static {
-      l(this, "og")
+      l(this, "ag")
     }
     static {
       p(this, "ParserError")
     }
   }
-  function kA(a) {
+  function FA(a) {
     let {
       input: e,
       js: t,
@@ -8692,21 +8702,21 @@ execution:`,
     } = Array.isArray(a) ? { input: a[0], js: a[1], ts: a[2], skip: !1, title: void 0 } : a
     return { input: Ac(e), js: Ac(t), ts: Ac(r), skip: s, title: i }
   }
-  l(kA, "gU")
-  p(kA, "normalizeRuleTest")
+  l(FA, "PU")
+  p(FA, "normalizeRuleTest")
   function Ac(a) {
     return Array.isArray(a)
       ? a.join(`
 `)
       : a
   }
-  l(Ac, "ig")
+  l(Ac, "og")
   p(Ac, "joinLines")
-  var bF = { ALL: "ALL", NONE: "NONE", LEADING_ONLY: "LEADING_ONLY" },
-    AF = "\\",
-    wF = '"',
-    TF = "'"
-  function $A(a) {
+  var EF = { ALL: "ALL", NONE: "NONE", LEADING_ONLY: "LEADING_ONLY" },
+    CF = "\\",
+    DF = '"',
+    kF = "'"
+  function PA(a) {
     let e = [0]
     for (
       let t = a.indexOf(`
@@ -8721,9 +8731,9 @@ execution:`,
       e.push(t + 1)
     return e
   }
-  l($A, "AU")
-  p($A, "getLineStarts")
-  function OA(a, e) {
+  l(PA, "wU")
+  p(PA, "getLineStarts")
+  function NA(a, e) {
     let t = 0,
       r = a.length - 1
     for (; t < r;) {
@@ -8732,11 +8742,11 @@ execution:`,
     }
     return { line: t, ch: e - a[t] }
   }
-  l(OA, "xU")
-  p(OA, "positionForOffset")
+  l(NA, "EU")
+  p(NA, "positionForOffset")
   var Ys = class {
       static {
-        l(this, "mr")
+        l(this, "gr")
       }
       static {
         p(this, "Token")
@@ -8799,25 +8809,25 @@ execution:`,
         return this.start + this.length
       }
     },
-    xF = class extends cd {
+    $F = class extends cd {
       static {
-        l(this, "ug")
+        l(this, "pg")
       }
       static {
         p(this, "IndentToken")
       }
     },
-    EF = class extends cd {
+    OF = class extends cd {
       static {
-        l(this, "pg")
+        l(this, "cg")
       }
       static {
         p(this, "InlineWhitespaceToken")
       }
     },
-    CF = class extends cd {
+    jF = class extends cd {
       static {
-        l(this, "cg")
+        l(this, "lg")
       }
       static {
         p(this, "NewlineToken")
@@ -8834,25 +8844,25 @@ execution:`,
 `
       }
     },
-    DF = class extends Ys {
+    FF = class extends Ys {
       static {
-        l(this, "lg")
+        l(this, "dg")
       }
       static {
         p(this, "WordToken")
       }
     },
-    kF = class extends Ys {
+    PF = class extends Ys {
       static {
-        l(this, "dg")
+        l(this, "fg")
       }
       static {
         p(this, "SymbolToken")
       }
     },
-    $F = class extends Ys {
+    NF = class extends Ys {
       static {
-        l(this, "fg")
+        l(this, "hg")
       }
       static {
         p(this, "TextToken")
@@ -8866,9 +8876,9 @@ execution:`,
         )
       }
     },
-    OF = class extends Ys {
+    RF = class extends Ys {
       static {
-        l(this, "hg")
+        l(this, "mg")
       }
       static {
         p(this, "NumberToken")
@@ -8882,9 +8892,9 @@ execution:`,
         p(this, "JSXToken")
       }
     },
-    jF = class extends El {
+    IF = class extends El {
       static {
-        l(this, "mg")
+        l(this, "gg")
       }
       static {
         p(this, "JSXElementToken")
@@ -8902,9 +8912,9 @@ execution:`,
         return this.record.isUnaryTag
       }
     },
-    FF = class extends El {
+    LF = class extends El {
       static {
-        l(this, "gg")
+        l(this, "yg")
       }
       static {
         p(this, "JSXEndTagToken")
@@ -8913,9 +8923,9 @@ execution:`,
         return this.record.tagName
       }
     },
-    NF = class extends El {
+    BF = class extends El {
       static {
-        l(this, "yg")
+        l(this, "Sg")
       }
       static {
         p(this, "JSXAttributeToken")
@@ -8924,17 +8934,17 @@ execution:`,
         return this.record.name
       }
     },
-    PF = class extends El {
+    MF = class extends El {
       static {
-        l(this, "Sg")
+        l(this, "Pg")
       }
       static {
         p(this, "JSXTextToken")
       }
     },
-    RF = class extends El {
+    _F = class extends El {
       static {
-        l(this, "Pg")
+        l(this, "Tg")
       }
       static {
         p(this, "JSXExpressionToken")
@@ -8952,9 +8962,9 @@ execution:`,
         this.record.innerTokens = a
       }
     },
-    IF = class extends Ys {
+    WF = class extends Ys {
       static {
-        l(this, "Tg")
+        l(this, "Ag")
       }
       static {
         p(this, "CommentToken")
@@ -8966,9 +8976,9 @@ execution:`,
         return this.record.initialWhitespace
       }
     },
-    LF = class extends Ys {
+    VF = class extends Ys {
       static {
-        l(this, "Ag")
+        l(this, "xg")
       }
       static {
         p(this, "LineToken")
@@ -8999,9 +9009,9 @@ execution:`,
         )
       }
     },
-    BF = class extends Ys {
+    UF = class extends Ys {
       static {
-        l(this, "xg")
+        l(this, "bg")
       }
       static {
         p(this, "BlockToken")
@@ -9020,7 +9030,7 @@ execution:`,
 `)
       }
     },
-    jA = class wc {
+    RA = class wc {
       static {
         l(this, "n")
       }
@@ -9494,7 +9504,7 @@ execution:`,
         return t === 0 ? e : e.slice(t)
       }, "removeLeadingWhitespace")
     },
-    MF = class Tc {
+    GF = class Tc {
       static {
         l(this, "n")
       }
@@ -9595,19 +9605,19 @@ execution:`,
         }
       }
     },
-    EB = typeof window < "u" && typeof window.document < "u",
-    _F = typeof process < "u" && process.versions != null && process.versions.node != null,
-    CB = typeof self == "object" && self.constructor && self.constructor.name === "DedicatedWorkerGlobalScope",
-    DB =
+    $B = typeof window < "u" && typeof window.document < "u",
+    zF = typeof process < "u" && process.versions != null && process.versions.node != null,
+    OB = typeof self == "object" && self.constructor && self.constructor.name === "DedicatedWorkerGlobalScope",
+    jB =
       (typeof window < "u" && window.name === "nodejs") ||
       (typeof navigator < "u" &&
         "userAgent" in navigator &&
         typeof navigator.userAgent == "string" &&
         (navigator.userAgent.includes("Node.js") || navigator.userAgent.includes("jsdom"))),
-    kB = typeof Deno < "u" && typeof Deno.version < "u" && typeof Deno.version.deno < "u",
-    $B = typeof process < "u" && process.versions != null && process.versions.bun != null,
-    WF = Be(EO(), 1),
-    VF = class el extends lA {
+    FB = typeof Deno < "u" && typeof Deno.version < "u" && typeof Deno.version.deno < "u",
+    PB = typeof process < "u" && process.versions != null && process.versions.bun != null,
+    qF = Be(jO(), 1),
+    JF = class el extends dA {
       static {
         l(this, "n")
       }
@@ -9768,7 +9778,7 @@ execution:`,
         return this.compile()
       }
       toPrint() {
-        return _F ? { rule: this.rule.name, ...(0, WF.default)(this, ["rule", "scope"]) } : this
+        return zF ? { rule: this.rule.name, ...(0, qF.default)(this, ["rule", "scope"]) } : this
       }
       toJSON() {
         let { name: e, rule: t, scope: r, raw: s, value: i, matched: o, items: u } = this
@@ -9783,7 +9793,7 @@ execution:`,
         }
       }
     },
-    UF = class wp {
+    KF = class xp {
       static {
         l(this, "n")
       }
@@ -9792,13 +9802,13 @@ execution:`,
       }
       static current
       static collect(e) {
-        let t = wp.current,
-          r = new wp()
-        wp.current = r
+        let t = xp.current,
+          r = new xp()
+        xp.current = r
         try {
           e()
         } finally {
-          wp.current = t
+          xp.current = t
         }
         return r.results()
       }
@@ -9854,35 +9864,35 @@ execution:`,
         return (r === void 0 && e.set(t, (r = e.size)), `#${r}`)
       }
     },
-    FA = ["?", "*", "+", "(", ")", "[", "]", "{", "}", "|", ":", "\\"]
-  function NA(a) {
-    return FA.includes(a) ? `\\${a}` : a
+    IA = ["?", "*", "+", "(", ")", "[", "]", "{", "}", "|", ":", "\\"]
+  function LA(a) {
+    return IA.includes(a) ? `\\${a}` : a
   }
-  l(NA, "dJ")
-  p(NA, "escapeRulex")
+  l(LA, "mJ")
+  p(LA, "escapeRulex")
   function ov(a) {
     return a === "none" ? "" : a === "one" ? "{space}" : a === "some" ? "{spaces}" : " "
   }
-  l(ov, "Ak")
+  l(ov, "wk")
   p(ov, "rulexSpacing")
-  function PA(a) {
+  function BA(a) {
     return a.map((e, t) => (t ? ov(e.spacing) : "") + e.toRulexSyntax()).join("")
   }
-  l(PA, "fJ")
-  p(PA, "joinRulex")
-  function RA(a, e) {
+  l(BA, "gJ")
+  p(BA, "joinRulex")
+  function MA(a, e) {
     if (!e || !a) return !0
     let t = a.whitespace ?? ""
     return e === "none" ? t === "" : e === "one" ? t === " " : /^[ \t]+$/.test(t)
   }
-  l(RA, "hJ")
-  p(RA, "spacingAllows")
-  function IA(a) {
+  l(MA, "yJ")
+  p(MA, "spacingAllows")
+  function _A(a) {
     return Object.fromEntries(Object.entries(a).filter(([, e]) => e !== void 0))
   }
-  l(IA, "mJ")
-  p(IA, "definedOnly")
-  function LA(...a) {
+  l(_A, "SJ")
+  p(_A, "definedOnly")
+  function WA(...a) {
     let e = new Map()
     for (let t of a.flat()) {
       let r = e.get(t.name)
@@ -9890,9 +9900,9 @@ execution:`,
     }
     return [...e.values()]
   }
-  l(LA, "gJ")
-  p(LA, "concatGroupSpecs")
-  function BA(...a) {
+  l(WA, "PJ")
+  p(WA, "concatGroupSpecs")
+  function VA(...a) {
     let e = new Map()
     for (let t of a.flat()) {
       let r = e.get(t.name),
@@ -9901,20 +9911,20 @@ execution:`,
     }
     return [...e.values()]
   }
-  l(BA, "yJ")
-  p(BA, "mergeGroupSpecs")
-  function MA(a) {
+  l(VA, "TJ")
+  p(VA, "mergeGroupSpecs")
+  function UA(a) {
     return a.map(({ name: e, optional: t, array: r }) => `${e}${r ? "[]" : ""}${t ? "?" : ""}`).join("|")
   }
-  l(MA, "SJ")
-  p(MA, "stringifyGroupSpec")
-  var _A,
-    WA,
-    VA,
-    UA,
+  l(UA, "AJ")
+  p(UA, "stringifyGroupSpec")
+  var GA,
+    zA,
+    qA,
+    JA,
     eh,
     It,
-    be = class Nr extends ((eh = Xp), (UA = [S]), (VA = [S]), (WA = [S]), (_A = [S]), eh) {
+    be = class Pr extends ((eh = Yp), (JA = [S]), (qA = [S]), (zA = [S]), (GA = [S]), eh) {
       static {
         l(this, "Q")
       }
@@ -9931,7 +9941,7 @@ execution:`,
           ...i
         } = e
         if (r || (Object.hasOwn(this, "skip") && this.skip)) return
-        let o = i.name || (Object.hasOwn(this, "ruleName") && this.ruleName) || Nr.ruleNameFor(this.name)
+        let o = i.name || (Object.hasOwn(this, "ruleName") && this.ruleName) || Pr.ruleNameFor(this.name)
         if (!o)
           throw new n.ParserError({
             message: "Rule class must have a name or `static ruleName`.",
@@ -9939,7 +9949,7 @@ execution:`,
             activity: "instantiate"
           })
         let u = Object.keys(this).filter(
-          (m) => !zF.includes(m) && !/^[A-Z][A-Z0-9_]*$/.test(m) && !(m in this.prototype)
+          (m) => !HF.includes(m) && !/^[A-Z][A-Z0-9_]*$/.test(m) && !(m in this.prototype)
         )
         if (u.length)
           throw new n.ParserError({
@@ -9955,12 +9965,12 @@ execution:`,
       }
       static ruleNameFor(e) {
         return /^[A-Z]/.test(e)
-          ? (qF[e] ??= e.replace(/(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/g, "_").toLowerCase())
+          ? (YF[e] ??= e.replace(/(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/g, "_").toLowerCase())
           : e
       }
       static protoDefined(e, t) {
         if (e !== "importableAs" || typeof t != "string") return
-        let r = Nr.IMPORTABLE_RULES.get(t)
+        let r = Pr.IMPORTABLE_RULES.get(t)
         if (r && r.name !== this.name)
           throw new n.ParserError({
             message: `Rules '${r.name}' and '${this.name}' are both importable as '${t}'.`,
@@ -9968,10 +9978,10 @@ execution:`,
             activity: "protoDefined",
             params: { importableAs: t }
           })
-        Nr.IMPORTABLE_RULES.set(t, this)
+        Pr.IMPORTABLE_RULES.set(t, this)
       }
       static importableRule(e) {
-        return Nr.IMPORTABLE_RULES.get(e)
+        return Pr.IMPORTABLE_RULES.get(e)
       }
       static specialize(e, t = e) {
         let { ruleName: r, ...s } = e,
@@ -9994,14 +10004,14 @@ execution:`,
         return { ...e, syntax: t }
       }
       initFromSyntax(e) {
-        let t = Nr.compileSyntax(e, this)
+        let t = Pr.compileSyntax(e, this)
         if (this instanceof n.Sequence && !(t instanceof n.Sequence)) {
           Object.assign(this, { rules: [t] })
           return
         }
         let r = t.constructor
-        for (; r !== Nr && !(this instanceof r);) r = Object.getPrototypeOf(r)
-        if (r === Nr)
+        for (; r !== Pr && !(this instanceof r);) r = Object.getPrototypeOf(r)
+        if (r === Pr)
           throw new n.ParserError({
             message: `Syntax '${e}' compiles to a ${t.constructor.name}, which ${this.constructor.name} does not extend.`,
             context: this,
@@ -10013,7 +10023,7 @@ execution:`,
         Object.assign(this, s)
       }
       get hasStructure() {
-        return GF.some((e) => this[e] !== void 0)
+        return XF.some((e) => this[e] !== void 0)
       }
       static compileSyntax(e, t) {
         let { rulexParser: r } = n.Parser
@@ -10034,11 +10044,11 @@ execution:`,
       freeze() {
         if (Object.isFrozen(this)) return this
         for (let e of Object.values(this))
-          e instanceof Nr
+          e instanceof Pr
             ? e.freeze()
             : Array.isArray(e) &&
               e.length &&
-              e.every((t) => t instanceof Nr) &&
+              e.every((t) => t instanceof Pr) &&
               (e.forEach((t) => t.freeze()), Object.freeze(e))
         return Object.freeze(this)
       }
@@ -10070,7 +10080,7 @@ execution:`,
       }
       mutateScope(e) {}
       getScopeChanges(e) {
-        return this.changesScope ? this.changesScope : this.mutateScope === Nr.prototype.mutateScope ? void 0 : "global"
+        return this.changesScope ? this.changesScope : this.mutateScope === Pr.prototype.mutateScope ? void 0 : "global"
       }
       getDeclaration(e) {
         let { declares: t } = this,
@@ -10108,10 +10118,10 @@ execution:`,
       }
     }
   ;((It = $(eh)),
-    b(It, 13, "priority", UA, be),
-    b(It, 13, "changesScope", VA, be),
-    b(It, 13, "declares", WA, be),
-    b(It, 13, "highlightAs", _A, be),
+    b(It, 13, "priority", JA, be),
+    b(It, 13, "changesScope", qA, be),
+    b(It, 13, "declares", zA, be),
+    b(It, 13, "highlightAs", GA, be),
     k(It, be),
     p(be, "Rule"),
     v(be, "ruleName"),
@@ -10134,11 +10144,11 @@ execution:`,
     v(be, "description"),
     v(be, "syntax"))
   var Xs = be,
-    GF = ["rules", "rule", "literal", "literals"],
-    zF = ["ruleName", "tests", "skip", "specializedFrom", "specializedWith"],
-    qF = Object.create(null),
+    XF = ["rules", "rule", "literal", "literals"],
+    HF = ["ruleName", "tests", "skip", "specializedFrom", "specializedWith"],
+    YF = Object.create(null),
     Qo = !1,
-    GA = class zA extends Xs {
+    KA = class XA extends Xs {
       static {
         l(this, "n")
       }
@@ -10211,7 +10221,7 @@ execution:`,
       }
       getBestMatch(e) {
         if (e.length === 1) return e[0]
-        let t = fA(e, (i) => i.priority ?? i.rule.priority)
+        let t = SA(e, (i) => i.priority ?? i.rule.priority)
         if (t.length === 1) return t[0]
         let r, s
         for (let i = t.length; (r = t[--i]);) (!s || r.length >= s.length) && (s = r)
@@ -10219,7 +10229,7 @@ execution:`,
       }
       toRulexSyntax() {
         let { matchGroup: e, optional: t } = this.getRulexFlags(),
-          r = this.rules.map((s) => zA.choiceSyntax(s)).join("|")
+          r = this.rules.map((s) => XA.choiceSyntax(s)).join("|")
         return `(${e}${r})${t}`
       }
       static choiceSyntax(e) {
@@ -10228,9 +10238,9 @@ execution:`,
           : e.toRulexSyntax()
       }
     },
-    JF = class extends GA {
+    QF = class extends KA {
       static {
-        l(this, "kg")
+        l(this, "Mg")
       }
       static {
         p(this, "Group")
@@ -10271,39 +10281,39 @@ execution:`,
         return a || t || (this.isEscaped && r) ? `(${t}${e})${s}${r}` : `${e}${s}${r}`
       }
     },
-    qA,
+    HA,
     th,
-    Nl,
-    Ji = class extends ((th = lv), (qA = [S]), th) {
+    Rl,
+    Ji = class extends ((th = lv), (HA = [S]), th) {
       static {
         l(this, "Rs")
       }
     }
-  ;((Nl = $(th)),
-    b(Nl, 13, "highlightAs", qA, Ji),
-    k(Nl, Ji),
+  ;((Rl = $(th)),
+    b(Rl, 13, "highlightAs", HA, Ji),
+    k(Rl, Ji),
     p(Ji, "Keyword"),
-    v(Ji, "highlightAs", h(Nl, 8, Ji, "keyword")),
-    h(Nl, 11, Ji))
-  var KF = Ji,
-    JA,
+    v(Ji, "highlightAs", h(Rl, 8, Ji, "keyword")),
+    h(Rl, 11, Ji))
+  var ZF = Ji,
+    YA,
     rh,
-    Pl,
-    Ki = class extends ((rh = lv), (JA = [S]), rh) {
+    Il,
+    Ki = class extends ((rh = lv), (YA = [S]), rh) {
       static {
         l(this, "Ns")
       }
     }
-  ;((Pl = $(rh)),
-    b(Pl, 13, "highlightAs", JA, Ki),
-    k(Pl, Ki),
+  ;((Il = $(rh)),
+    b(Il, 13, "highlightAs", YA, Ki),
+    k(Il, Ki),
     p(Ki, "Symbol"),
-    v(Ki, "highlightAs", h(Pl, 8, Ki, "operator")),
-    h(Pl, 11, Ki))
-  var KA = Ki,
-    XF = class extends KA {
+    v(Ki, "highlightAs", h(Il, 8, Ki, "operator")),
+    h(Il, 11, Ki))
+  var QA = Ki,
+    eP = class extends QA {
       static {
-        l(this, "$g")
+        l(this, "Fg")
       }
       static {
         p(this, "BlankLine")
@@ -10376,39 +10386,39 @@ execution:`,
         return a || (e && this.literals.length > 1) ? `(${a}${t})${e}` : `${t}${e}`
       }
     },
-    XA,
+    ZA,
     sh,
-    Rl,
-    Xi = class extends ((sh = uv), (XA = [S]), sh) {
+    Ll,
+    Xi = class extends ((sh = uv), (ZA = [S]), sh) {
       static {
         l(this, "js")
       }
     }
-  ;((Rl = $(sh)),
-    b(Rl, 13, "highlightAs", XA, Xi),
-    k(Rl, Xi),
+  ;((Ll = $(sh)),
+    b(Ll, 13, "highlightAs", ZA, Xi),
+    k(Ll, Xi),
     p(Xi, "Keywords"),
-    v(Xi, "highlightAs", h(Rl, 8, Xi, "keyword")),
-    h(Rl, 11, Xi))
-  var HF = Xi,
-    HA,
+    v(Xi, "highlightAs", h(Ll, 8, Xi, "keyword")),
+    h(Ll, 11, Xi))
+  var tP = Xi,
+    ew,
     ah,
-    Il,
-    Hi = class extends ((ah = uv), (HA = [S]), ah) {
+    Bl,
+    Hi = class extends ((ah = uv), (ew = [S]), ah) {
       static {
         l(this, "Is")
       }
     }
-  ;((Il = $(ah)),
-    b(Il, 13, "highlightAs", HA, Hi),
-    k(Il, Hi),
+  ;((Bl = $(ah)),
+    b(Bl, 13, "highlightAs", ew, Hi),
+    k(Bl, Hi),
     p(Hi, "Symbols"),
-    v(Hi, "highlightAs", h(Il, 8, Hi, "operator")),
-    h(Il, 11, Hi))
-  var YF = Hi,
-    QF = class extends Xs {
+    v(Hi, "highlightAs", h(Bl, 8, Hi, "operator")),
+    h(Bl, 11, Hi))
+  var rP = Hi,
+    sP = class extends Xs {
       static {
-        l(this, "Rg")
+        l(this, "Ng")
       }
       static {
         p(this, "Pattern")
@@ -10420,7 +10430,7 @@ execution:`,
         ;(a instanceof RegExp && (a = { pattern: a }),
           Array.isArray(a.blacklist) && (a.blacklist = a.blacklist.reduce((e, t) => ((e[t] = !0), e), {})),
           super(a),
-          Array.isArray(this.blacklist) && YA(this))
+          Array.isArray(this.blacklist) && tw(this))
       }
       test(a, e, t = 0) {
         return t >= e.length ? !1 : e[t].matchesPattern(this.pattern, this.blacklist)
@@ -10438,7 +10448,7 @@ execution:`,
         return a.value
       }
     }
-  function YA(a) {
+  function tw(a) {
     let e = Object.getPrototypeOf(a)
     for (; e && !Object.hasOwn(e, "blacklist");) e = Object.getPrototypeOf(e)
     if (!e) return
@@ -10446,12 +10456,12 @@ execution:`,
     for (let r of e.blacklist) t[r] = !0
     e.blacklist = t
   }
-  l(YA, "xJ")
-  p(YA, "normalizeProtoBlacklist")
-  var ZF = Be(vb(), 1),
-    eN = class extends Xs {
+  l(tw, "EJ")
+  p(tw, "normalizeProtoBlacklist")
+  var aP = Be(vb(), 1),
+    iP = class extends Xs {
       static {
-        l(this, "jg")
+        l(this, "Ig")
       }
       static {
         p(this, "Repeat")
@@ -10496,7 +10506,7 @@ execution:`,
           rule: this,
           matched: t,
           items: r,
-          tokens: (0, ZF.default)(t.map((c) => c.tokens)),
+          tokens: (0, aP.default)(t.map((c) => c.tokens)),
           scope: a
         })
         return (this.matchGroup && (u.matchGroup = this.matchGroup), u)
@@ -10526,11 +10536,11 @@ execution:`,
         return (s && r.startsWith("(") && r.endsWith(")") && (r = r.slice(1, -1)), s ? `(${a}${r})${t}` : `${r}${t}`)
       }
     },
-    tN = Be(vb(), 1),
-    QA,
+    nP = Be(vb(), 1),
+    rw,
     ih,
-    Ll,
-    Yi = class extends ((ih = Xs), (QA = [S]), ih) {
+    Ml,
+    Yi = class extends ((ih = Xs), (rw = [S]), ih) {
       static {
         l(this, "Ls")
       }
@@ -10570,7 +10580,7 @@ execution:`,
           rule: this,
           matched: i,
           value: d.join("").trim(),
-          tokens: (0, tN.default)(i.map((m) => m.tokens)),
+          tokens: (0, nP.default)(i.map((m) => m.tokens)),
           scope: e
         })
       }
@@ -10619,13 +10629,13 @@ execution:`,
           : ((pv = n.Expectations.current !== void 0), cv(this.rules, e, t, [{ start: r, skipped: !1 }]).length > 0)
       }
     }
-  ;((Ll = $(ih)),
-    b(Ll, 13, "compileSeparator", QA, Yi),
-    k(Ll, Yi),
+  ;((Ml = $(ih)),
+    b(Ml, 13, "compileSeparator", rw, Yi),
+    k(Ml, Yi),
     p(Yi, "Sequence"),
-    v(Yi, "compileSeparator", h(Ll, 8, Yi, " ")),
-    h(Ll, 11, Yi))
-  var ZA = Yi,
+    v(Yi, "compileSeparator", h(Ml, 8, Yi, " ")),
+    h(Ml, 11, Yi))
+  var sw = Yi,
     pv = !1
   function cv(a, e, t, r) {
     for (let s of a) {
@@ -10634,11 +10644,11 @@ execution:`,
     }
     return r
   }
-  l(cv, "Gk")
+  l(cv, "Uk")
   p(cv, "testPlacesAfterRules")
   function dv(a, e, t, r) {
     let s
-    if (a instanceof ZA) s = cv(a.rules, e, t, r)
+    if (a instanceof sw) s = cv(a.rules, e, t, r)
     else if (a instanceof n.Choice && a.rules.length) s = a.rules.flatMap((i) => dv(i, e, t, r))
     else if (a instanceof n.Literals) {
       s = r
@@ -10650,9 +10660,9 @@ execution:`,
       a instanceof n.Literal || a instanceof n.Pattern || a instanceof n.TokenType
         ? (s = nh((i) => a.test(e, t, i) !== !1, t, r))
         : ((s = r.map(({ start: i }) => ({ start: i + 1, skipped: !0 }))), pv && (s = hv(r, s, t)))
-    return (a.optional && (s = [...r, ...s]), ew(s, t))
+    return (a.optional && (s = [...r, ...s]), aw(s, t))
   }
-  l(dv, "Wk")
+  l(dv, "zk")
   p(dv, "testPlacesAfterRule")
   function nh(a, e, t) {
     let r = []
@@ -10662,14 +10672,14 @@ execution:`,
     }
     return pv ? hv(t, r, e) : r
   }
-  l(nh, "Ik")
+  l(nh, "qk")
   p(nh, "testPlacesAfterToken")
   function hv(a, e, t) {
     return a.some(({ start: r, skipped: s }) => s || r >= t.length) ? [...e, { start: t.length, skipped: !1 }] : e
   }
-  l(hv, "Vk")
+  l(hv, "Kk")
   p(hv, "runOutPlaces")
-  function ew(a, e) {
+  function aw(a, e) {
     let t = e.length + 1
     for (let { start: i, skipped: o } of a) o && i < t && (t = i)
     let r = [],
@@ -10677,11 +10687,11 @@ execution:`,
     for (let i of a) i.start > e.length || i.start >= t || s.has(i.start) || (s.add(i.start), r.push(i))
     return (t <= e.length && r.push({ start: t, skipped: !0 }), r)
   }
-  l(ew, "vJ")
-  p(ew, "pruneTestPlaces")
-  var rN = class extends Xs {
+  l(aw, "kJ")
+  p(aw, "pruneTestPlaces")
+  var oP = class extends Xs {
       static {
-        l(this, "Lg")
+        l(this, "Bg")
       }
       static {
         p(this, "Subrule")
@@ -10713,7 +10723,7 @@ execution:`,
         return `{${a}${this.rule}}${e}`
       }
     },
-    tw = class extends Xs {
+    iw = class extends Xs {
       static {
         l(this, "Gp")
       }
@@ -10746,9 +10756,9 @@ execution:`,
         return a.value
       }
     },
-    sN = class extends tw {
+    lP = class extends iw {
       static {
-        l(this, "Bg")
+        l(this, "qg")
       }
       static {
         p(this, "Word")
@@ -10757,10 +10767,10 @@ execution:`,
         return n.WordToken
       }
     },
-    aN = Be(mb(), 1),
-    iN = Be(zO(), 1),
-    nN = Be(JO(), 1),
-    mv = class extends Xp {
+    uP = Be(mb(), 1),
+    pP = Be(YO(), 1),
+    cP = Be(ZO(), 1),
+    mv = class extends Yp {
       static {
         l(this, "Ko")
       }
@@ -10939,7 +10949,7 @@ execution:`,
           let d = this.testRules(a, !1).time
           ;(console.debug(`   run #${c}: ${d} msec`), s.push(d))
         }
-        let i = (0, nN.default)(s) / r,
+        let i = (0, cP.default)(s) / r,
           o = Math.min(...s),
           u = Math.max(...s)
         return (
@@ -10960,7 +10970,7 @@ execution:`,
         let s = this.rules._testable_,
           i = s instanceof n.Group ? s.rules : s ? [s] : void 0
         return (
-          a && i && (i = (0, iN.default)(i, "module")[a]),
+          a && i && (i = (0, pP.default)(i, "module")[a]),
           i
             ? i.forEach(({ name: o, tests: u }) => {
                 u &&
@@ -10979,18 +10989,18 @@ execution:`,
                         } catch (x) {
                           D = x
                         }
-                        ;(0, aN.default)(D, y) || (D instanceof Error && y === void 0)
-                          ? (e && console.debug("PASS:  ", bp(f)), r.pass++)
+                        ;(0, uP.default)(D, y) || (D instanceof Error && y === void 0)
+                          ? (e && console.debug("PASS:  ", wp(f)), r.pass++)
                           : (e &&
                               console.debug(
                                 "FAIL:  ",
-                                bp(f),
+                                wp(f),
                                 `
   EXPECTED: `,
-                                typeof y == "string" ? bp(y) : y,
+                                typeof y == "string" ? wp(y) : y,
                                 `
        GOT: `,
-                                typeof D == "string" ? bp(D) : D
+                                typeof D == "string" ? wp(D) : D
                               ),
                             r.fail++,
                             r.failed.push({ ruleName: o, input: f, expected: y, result: D }))
@@ -11006,9 +11016,9 @@ execution:`,
         )
       }
     },
-    oN = class {
+    dP = class {
       static {
-        l(this, "Wg")
+        l(this, "Vg")
       }
       static {
         p(this, "ParseJournal")
@@ -11049,7 +11059,7 @@ execution:`,
         for (let e of a) ("redo" in e && e.redo(), this.#e.push(e))
       }
     },
-    lN = class oh {
+    hP = class oh {
       static {
         l(this, "n")
       }
@@ -11109,12 +11119,12 @@ execution:`,
           x = !1,
           E = g
         for (; E < i.length;) {
-          let O = E >= D && !x ? this.items.findIndex((P) => P.index === E - A) : -1
+          let O = E >= D && !x ? this.items.findIndex((N) => N.index === E - A) : -1
           if (O !== -1 && ((x = !0), this.canKeepFrom(O, m, w, y))) {
-            let P = this.items[O].mark,
+            let N = this.items[O].mark,
               _ = O === m,
-              G = _ ? this.journal.mark() : P
-            this.journal.replay(_ ? f : f.slice(f.indexOf(P)))
+              G = _ ? this.journal.mark() : N
+            this.journal.replay(_ ? f : f.slice(f.indexOf(N)))
             let V = s.slice(E - A),
               ue = [...s.slice(0, g), ...i.slice(g, E), ...V],
               Ae = this.items.slice(O).map((Q, we) => ({ ...Q, index: Q.index + A, mark: we === 0 ? G : Q.mark }))
@@ -11213,16 +11223,16 @@ execution:`,
       u = r[i]
     return o.constructor !== u.constructor || o.indent !== u.indent ? !1 : uh(a, e, t) === uh(r, s, i)
   }
-  l(lh, "BM")
+  l(lh, "WM")
   p(lh, "itemsMatch")
   function uh(a, e, t) {
     return e.slice(a[t].start, a[t + 1]?.start ?? e.length)
   }
-  l(uh, "qM")
+  l(uh, "VM")
   p(uh, "itemText")
-  var uN = class {
+  var mP = class {
       static {
-        l(this, "Ug")
+        l(this, "zg")
       }
       static {
         p(this, "IncrementalProject")
@@ -11280,8 +11290,8 @@ execution:`,
         )
       }
     },
-    pN = Be(Qc(), 1),
-    cN = class rw {
+    fP = Be(Qc(), 1),
+    gP = class nw {
       static {
         l(this, "n")
       }
@@ -11298,7 +11308,7 @@ execution:`,
       }
       get parent() {
         let { target: e, parentProp: t } = this.props
-        return e && t ? (0, pN.default)(e, t) : void 0
+        return e && t ? (0, fP.default)(e, t) : void 0
       }
       getKeyFor(e) {
         if (e) return this.normalizeKey(e[this.props.keyProp])
@@ -11320,7 +11330,7 @@ execution:`,
       add(...e) {
         let t = e.map(this.transform)
         this.setItems([...this.#e, ...t])
-        for (let r of t) rw.noteDeclared(r)
+        for (let r of t) nw.noteDeclared(r)
         return t
       }
       static noteDeclared(e) {
@@ -11352,7 +11362,7 @@ execution:`,
       }
       transform = p((e) => (this.props.transformer ? this.props.transformer(e) : e), "transform")
     },
-    fv = class extends Xp {
+    fv = class extends Yp {
       static {
         l(this, "Jo")
       }
@@ -11427,7 +11437,7 @@ execution:`,
         return this.parser?.compile(a, e, t)
       }
     },
-    Hp = class extends fv {
+    Qp = class extends fv {
       static {
         l(this, "bn")
       }
@@ -11465,7 +11475,7 @@ execution:`,
         )
       }
     },
-    gv = class extends Hp {
+    gv = class extends Qp {
       static {
         l(this, "Ho")
       }
@@ -11507,17 +11517,17 @@ execution:`,
         return this.derived("rules", () => new n.ScopeList({ target: this, keyProp: "name" }))
       }
     },
-    dN = class extends gv {
+    yP = class extends gv {
       static {
-        l(this, "Kg")
+        l(this, "Jg")
       }
       static {
         p(this, "ProjectScope")
       }
     },
-    hN = class extends gv {
+    vP = class extends gv {
       static {
-        l(this, "Jg")
+        l(this, "Hg")
       }
       static {
         p(this, "ImportScope")
@@ -11525,15 +11535,15 @@ execution:`,
       origins = new Map()
       modules = new Map()
     },
-    mN = class extends Hp {
+    SP = class extends Qp {
       static {
-        l(this, "Hg")
+        l(this, "Xg")
       }
       static {
         p(this, "FileScope")
       }
     },
-    fN = class ph extends Hp {
+    bP = class ph extends Qp {
       static {
         l(this, "n")
       }
@@ -11684,9 +11694,9 @@ execution:`,
         )
       }
     },
-    gN = class extends Hp {
+    AP = class extends Qp {
       static {
-        l(this, "Yg")
+        l(this, "Zg")
       }
       static {
         p(this, "MethodScope")
@@ -11712,7 +11722,7 @@ execution:`,
         return arguments.length === 0 ? e : e.find((t) => t.name === a)
       }
     },
-    yN = class sw extends fv {
+    wP = class ow extends fv {
       static {
         l(this, "n")
       }
@@ -11727,14 +11737,14 @@ execution:`,
       }
       static of(e) {
         for (let t = e; t; t = t.parentScope) {
-          if (t instanceof sw) return t
+          if (t instanceof ow) return t
           if (t instanceof n.MethodScope) return
         }
       }
     },
-    vN = class {
+    TP = class {
       static {
-        l(this, "Qg")
+        l(this, "_g")
       }
       static {
         p(this, "ScopeVariable")
@@ -11744,7 +11754,7 @@ execution:`,
           throw new TypeError("Variables must be created with a 'name'")
       }
     },
-    SN = class aw {
+    xP = class lw {
       static {
         l(this, "n")
       }
@@ -11759,7 +11769,7 @@ execution:`,
             activity: "constructor",
             params: { props: e }
           })
-        ;((this.name = aw.stripEnclosingQuotes(this.name)),
+        ;((this.name = lw.stripEnclosingQuotes(this.name)),
           this.value === void 0 && (this.value = this.output === void 0 ? this.name : dd(this.output)),
           this.output === void 0 && (this.output = `'${this.name}'`))
       }
@@ -11773,16 +11783,16 @@ execution:`,
   function dd(a) {
     return typeof a == "string" ? a.replace(/^'([^']*)'$|^"([^"]*)"$/, "$1$2") : a
   }
-  l(dd, "ey")
+  l(dd, "ty")
   p(dd, "spellValueOf")
-  function iw(a) {
+  function uw(a) {
     return `[${a.map((e) => (typeof e == "string" ? `'${dd(e)}'` : e)).join(", ")}]`
   }
-  l(iw, "ZH")
-  p(iw, "enumerationInitializer")
-  var bN = class {
+  l(uw, "eX")
+  p(uw, "enumerationInitializer")
+  var EP = class {
     static {
-      l(this, "ty")
+      l(this, "ry")
     }
     static {
       p(this, "ScopeMethod")
@@ -11803,7 +11813,7 @@ execution:`,
   }
   l(Io, "Iu")
   p(Io, "convertStatementsToBlock")
-  var pa = class extends lA {
+  var pa = class extends dA {
       static {
         l(this, "wn")
       }
@@ -11867,7 +11877,7 @@ execution:`,
         p(this, "ASTLiteral")
       }
     },
-    nw = class extends Qt {
+    pw = class extends Qt {
       static {
         l(this, "ed")
       }
@@ -11881,9 +11891,9 @@ execution:`,
         ;(typeof e == "number" && (e = { value: e }), super(a, e), this.assertType("value", "number"))
       }
     },
-    AN = class extends nw {
+    CP = class extends pw {
       static {
-        l(this, "ry")
+        l(this, "ny")
       }
       static {
         p(this, "ASTOrdinalLiteral")
@@ -11909,15 +11919,15 @@ execution:`,
           ))
       }
     },
-    wN = class extends dr {
+    DP = class extends dr {
       static {
-        l(this, "ny")
+        l(this, "sy")
       }
       static {
         p(this, "ASTTypeNameLiteral")
       }
     },
-    ow = class extends U {
+    cw = class extends U {
       static {
         l(this, "td")
       }
@@ -11931,9 +11941,9 @@ execution:`,
         ;(super(a, e), this.assertArrayType("parts", ["string", U]))
       }
     },
-    TN = class extends ow {
+    kP = class extends cw {
       static {
-        l(this, "sy")
+        l(this, "iy")
       }
       static {
         p(this, "ASTTaggedTemplate")
@@ -11942,7 +11952,7 @@ execution:`,
         ;(super(a, e), this.assertType("tag", "string"))
       }
     },
-    lw = class extends Qt {
+    dw = class extends Qt {
       static {
         l(this, "rd")
       }
@@ -11956,9 +11966,9 @@ execution:`,
         ;(typeof e == "boolean" && (e = { value: e }), super(a, e), this.assertType("value", "boolean"))
       }
     },
-    xN = class extends Qt {
+    $P = class extends Qt {
       static {
-        l(this, "iy")
+        l(this, "oy")
       }
       static {
         p(this, "ASTRegExpLiteral")
@@ -11970,7 +11980,7 @@ execution:`,
         ;(super(a, e), this.assertType("value", RegExp))
       }
     },
-    uw = class extends Qt {
+    hw = class extends Qt {
       static {
         l(this, "nd")
       }
@@ -11984,7 +11994,7 @@ execution:`,
         ;(super(a, e), this.assertType("value", void 0))
       }
     },
-    pw = class extends Qt {
+    mw = class extends Qt {
       static {
         l(this, "sd")
       }
@@ -11998,17 +12008,17 @@ execution:`,
         ;(super(a, e), this.assertType("value", void 0))
       }
     },
-    EN = class extends Qt {
+    OP = class extends Qt {
       static {
-        l(this, "oy")
+        l(this, "ay")
       }
       static {
         p(this, "ASTSelfLiteral")
       }
     },
-    CN = class extends Qt {
+    jP = class extends Qt {
       static {
-        l(this, "ay")
+        l(this, "uy")
       }
       static {
         p(this, "ASTKeywordLiteral")
@@ -12023,7 +12033,7 @@ execution:`,
         ;(super(a, e), this.assertType("value", "string"), this.assertType("raw", "string", te))
       }
     },
-    cw = class extends Qt {
+    fw = class extends Qt {
       static {
         l(this, "id")
       }
@@ -12040,9 +12050,9 @@ execution:`,
         this.override("wrap", a)
       }
     },
-    DN = class extends Qt {
+    FP = class extends Qt {
       static {
-        l(this, "uy")
+        l(this, "py")
       }
       static {
         p(this, "ASTEnumeration")
@@ -12070,9 +12080,9 @@ execution:`,
           this.assertType("expression", U))
       }
     },
-    kN = class extends U {
+    PP = class extends U {
       static {
-        l(this, "py")
+        l(this, "cy")
       }
       static {
         p(this, "ASTBackTickExpression")
@@ -12089,9 +12099,9 @@ execution:`,
           this.assertType("expression", U))
       }
     },
-    $N = class extends U {
+    NP = class extends U {
       static {
-        l(this, "cy")
+        l(this, "ly")
       }
       static {
         p(this, "ASTBacktickSubstitution")
@@ -12108,9 +12118,9 @@ execution:`,
           this.assertType("expression", U))
       }
     },
-    ON = class extends U {
+    RP = class extends U {
       static {
-        l(this, "ly")
+        l(this, "dy")
       }
       static {
         p(this, "ASTTripleBackTickExpression")
@@ -12174,7 +12184,7 @@ execution:`,
           this.assertType("raw", "string", te))
       }
     },
-    dw = class extends U {
+    gw = class extends U {
       static {
         l(this, "od")
       }
@@ -12193,9 +12203,9 @@ execution:`,
         p(this, "ASTComment")
       }
     },
-    jN = class extends ca {
+    IP = class extends ca {
       static {
-        l(this, "dy")
+        l(this, "fy")
       }
       static {
         p(this, "ASTLineComment")
@@ -12218,9 +12228,9 @@ execution:`,
         ;(super(a, e), this.assertType("value", "string"))
       }
     },
-    FN = class extends ca {
+    LP = class extends ca {
       static {
-        l(this, "fy")
+        l(this, "hy")
       }
       static {
         p(this, "ASTDocComment")
@@ -12229,9 +12239,9 @@ execution:`,
         ;(super(a, e), this.assertArrayType("lines", "string"))
       }
     },
-    NN = class extends ca {
+    BP = class extends ca {
       static {
-        l(this, "hy")
+        l(this, "my")
       }
       static {
         p(this, "ASTPreservedComment")
@@ -12240,9 +12250,9 @@ execution:`,
         ;(super(a, e), this.assertArrayType("lines", "string"))
       }
     },
-    PN = class extends ca {
+    MP = class extends ca {
       static {
-        l(this, "my")
+        l(this, "gy")
       }
       static {
         p(this, "ASTBannerComment")
@@ -12251,7 +12261,7 @@ execution:`,
         ;(super(a, e), this.assertType("value", "string"))
       }
     },
-    hw = class extends Sv {
+    yw = class extends Sv {
       static {
         l(this, "ad")
       }
@@ -12265,7 +12275,7 @@ execution:`,
         this.override("annotation", a)
       }
     },
-    Yp = class extends hw {
+    Zp = class extends yw {
       static {
         l(this, "Xo")
       }
@@ -12279,7 +12289,7 @@ execution:`,
         this.override("annotation", a)
       }
     },
-    gl = class mw extends U {
+    gl = class vw extends U {
       static {
         l(this, "n")
       }
@@ -12287,14 +12297,14 @@ execution:`,
         p(this, "ASTParenthesizedExpression")
       }
       constructor(e, t) {
-        for (super(e, t), this.assertType("expression", U); this.expression instanceof mw;)
+        for (super(e, t), this.assertType("expression", U); this.expression instanceof vw;)
           this.expression = this.expression.expression
       }
       get datatype() {
         return this.expression.datatype
       }
     },
-    fw = class extends U {
+    Sw = class extends U {
       static {
         l(this, "ud")
       }
@@ -12308,7 +12318,7 @@ execution:`,
         ;(super(a, e), this.assertType("expression", U))
       }
     },
-    gw = [
+    bw = [
       "and",
       "or",
       "equals",
@@ -12324,7 +12334,7 @@ execution:`,
       "times",
       "divided by"
     ],
-    yw = class extends U {
+    Aw = class extends U {
       static {
         l(this, "pd")
       }
@@ -12334,23 +12344,23 @@ execution:`,
       constructor(a, e) {
         ;(super(a, e),
           this.assertType("lhs", U),
-          this.assert(gw.includes(this.operator), `ASTInfixExpression: unknown operator '${this.operator}'`),
+          this.assert(bw.includes(this.operator), `ASTInfixExpression: unknown operator '${this.operator}'`),
           this.assertType("rhs", U))
       }
     }
-  function vw(a, { expressions: e, operator: t }) {
+  function ww(a, { expressions: e, operator: t }) {
     if (e.length < 2) return e[0]
     let r = [...e],
       s = r.pop()
     for (; r.length;) {
       let i = r.pop()
-      s = new yw(a, { lhs: i, operator: t, rhs: s })
+      s = new Aw(a, { lhs: i, operator: t, rhs: s })
     }
     return s
   }
-  l(vw, "QH")
-  p(vw, "ASTMultiInfixExpression")
-  var Sw = class extends pa {
+  l(ww, "tX")
+  p(ww, "ASTMultiInfixExpression")
+  var Tw = class extends pa {
       static {
         l(this, "cd")
       }
@@ -12374,7 +12384,7 @@ execution:`,
         this.override("wrap", a)
       }
     },
-    bw = class extends U {
+    xw = class extends U {
       static {
         l(this, "ld")
       }
@@ -12391,10 +12401,10 @@ execution:`,
         ;(super(a, r),
           this.assertType("methodName", "string"),
           this.assertType("datatype", "string", te),
-          (this.args = new Sw(a, { args: e, wrap: t })))
+          (this.args = new Tw(a, { args: e, wrap: t })))
       }
     },
-    bv = class extends bw {
+    bv = class extends xw {
       static {
         l(this, "zp")
       }
@@ -12405,9 +12415,9 @@ execution:`,
         ;(super(a, e), this.assertType("thing", U))
       }
     },
-    RN = class extends bv {
+    _P = class extends bv {
       static {
-        l(this, "gy")
+        l(this, "yy")
       }
       static {
         p(this, "ASTConsoleMethodInvocation")
@@ -12451,9 +12461,9 @@ execution:`,
         super(a, { ...e, thing: new md(a) })
       }
     },
-    IN = class extends Mo {
+    WP = class extends Mo {
       static {
-        l(this, "yy")
+        l(this, "Sy")
       }
       static {
         p(this, "ASTExpectMethodInvocation")
@@ -12477,9 +12487,9 @@ execution:`,
           super(a, { methodName: "expect", args: o, wrap: !1 }))
       }
     },
-    LN = class extends Mo {
+    VP = class extends Mo {
       static {
-        l(this, "Sy")
+        l(this, "Py")
       }
       static {
         p(this, "ASTEchoInvocation")
@@ -12496,9 +12506,9 @@ execution:`,
         ;(typeof r == "string" && (r = new dr(a, { value: r, quote: "`" })), super(a, { methodName: t, args: [r] }))
       }
     },
-    BN = class extends Mo {
+    UP = class extends Mo {
       static {
-        l(this, "Py")
+        l(this, "Ty")
       }
       static {
         p(this, "ASTHeadingInvocation")
@@ -12507,9 +12517,9 @@ execution:`,
         super(a, { methodName: "heading", args: [new dr(a, { value: e, quote: '"' })] })
       }
     },
-    Pi = class extends U {
+    Ni = class extends U {
       static {
-        l(this, "Fn")
+        l(this, "On")
       }
       static {
         p(this, "ASTTypeExpression")
@@ -12531,7 +12541,7 @@ execution:`,
         return a instanceof n.TypeScope ? a : void 0
       }
     },
-    Aw = class extends U {
+    Ew = class extends U {
       static {
         l(this, "dd")
       }
@@ -12540,13 +12550,13 @@ execution:`,
       }
       constructor(a, e) {
         ;(super(a, e),
-          typeof this.type == "string" && (this.type = new Pi(a, { name: this.type })),
-          this.assertType("type", Pi))
+          typeof this.type == "string" && (this.type = new Ni(a, { name: this.type })),
+          this.assertType("type", Ni))
       }
     },
-    MN = class extends U {
+    GP = class extends U {
       static {
-        l(this, "Ty")
+        l(this, "Ay")
       }
       static {
         p(this, "ASTConstantExpression")
@@ -12567,7 +12577,7 @@ execution:`,
     },
     qs = class extends U {
       static {
-        l(this, "gr")
+        l(this, "yr")
       }
       static {
         p(this, "ASTMethodDefinition")
@@ -12579,7 +12589,7 @@ execution:`,
           this.assertType("inline", "boolean", te),
           this.assertType("asProperty", "boolean", te),
           this.assertType("methodName", "string", te),
-          this.assertType("error", Yp, te),
+          this.assertType("error", Zp, te),
           this.assertType("datatype", "string", te),
           this.assertType("async", "boolean", te),
           this.assertType("exported", "boolean", te),
@@ -12657,7 +12667,7 @@ execution:`,
           typeof this.property == "string" && (this.property = new la(this.match, this.property)),
           this.assertType("property", la),
           this.assertType("value", U, te),
-          this.assertType("error", Yp, te))
+          this.assertType("error", Zp, te))
       }
     },
     st = class extends pa {
@@ -12706,9 +12716,9 @@ execution:`,
         this.override("wrap", a)
       }
     },
-    _N = class extends fd {
+    zP = class extends fd {
       static {
-        l(this, "Ay")
+        l(this, "xy")
       }
       static {
         p(this, "ASTTryCatchBlock")
@@ -12729,9 +12739,9 @@ execution:`,
             ((this.finallyBlock = Io(this.finallyBlock.match, this.finallyBlock)), (this.finallyBlock.wrap = !0)))
       }
     },
-    WN = class extends st {
+    qP = class extends st {
       static {
-        l(this, "xy")
+        l(this, "by")
       }
       static {
         p(this, "ASTAssignmentStatement")
@@ -12743,9 +12753,9 @@ execution:`,
           this.assertType("isNewVariable", "boolean", te))
       }
     },
-    VN = class extends st {
+    JP = class extends st {
       static {
-        l(this, "by")
+        l(this, "wy")
       }
       static {
         p(this, "ASTDestructuredAssignment")
@@ -12768,7 +12778,7 @@ execution:`,
         ;(super(a, e), this.assertType("value", U, te))
       }
     },
-    UN = class ww extends st {
+    KP = class Cw extends st {
       static {
         l(this, "n")
       }
@@ -12777,29 +12787,29 @@ execution:`,
       }
       constructor(e, t) {
         ;(super(e, t),
-          this.assertType("type", Pi),
-          this.assertType("superType", Pi, te),
+          this.assertType("type", Ni),
+          this.assertType("superType", Ni, te),
           this.assertArrayType("members", [qo, ca, hd], te))
       }
       withMembers(e) {
         let { match: t, type: r, superType: s } = this
-        return new ww(t, { type: r, superType: s, members: [...(this.members ?? []), ...e] })
+        return new Cw(t, { type: r, superType: s, members: [...(this.members ?? []), ...e] })
       }
     },
-    GN = class extends U {
+    XP = class extends U {
       static {
-        l(this, "Ey")
+        l(this, "vy")
       }
       static {
         p(this, "ASTNewInstanceExpression")
       }
       constructor(a, e) {
-        ;(super(a, e), this.assertType("type", Pi), this.assertType("props", Av, te))
+        ;(super(a, e), this.assertType("type", Ni), this.assertType("props", Av, te))
       }
     },
-    zN = class extends U {
+    HP = class extends U {
       static {
-        l(this, "vy")
+        l(this, "Dy")
       }
       static {
         p(this, "ASTListExpression")
@@ -12817,19 +12827,19 @@ execution:`,
       }
       constructor(a, e) {
         ;(super(a, e),
-          typeof this.type == "string" && (this.type = new Pi(a, { name: this.type })),
-          this.assertType("type", Pi))
+          typeof this.type == "string" && (this.type = new Ni(a, { name: this.type })),
+          this.assertType("type", Ni))
       }
       get typeName() {
         return this.type.name
       }
       get prototypeExpression() {
-        return new Aw(this.match, { type: this.type })
+        return new Ew(this.match, { type: this.type })
       }
     },
-    qN = class extends qo {
+    YP = class extends qo {
       static {
-        l(this, "Dy")
+        l(this, "Cy")
       }
       static {
         p(this, "ASTPropertyDefinition")
@@ -12843,9 +12853,9 @@ execution:`,
           this.assert(!this.method != !this.get, "ASTPropertyDefinition: pass exactly one of `method` or `get`", e))
       }
     },
-    JN = class extends qo {
+    QP = class extends qo {
       static {
-        l(this, "Cy")
+        l(this, "ky")
       }
       static {
         p(this, "ASTReactiveProperty")
@@ -12858,9 +12868,9 @@ execution:`,
           this.assertType("initializer", U, te))
       }
     },
-    KN = class extends qo {
+    ZP = class extends qo {
       static {
-        l(this, "ky")
+        l(this, "My")
       }
       static {
         p(this, "ASTStaticDefinition")
@@ -12872,9 +12882,9 @@ execution:`,
           this.assertType("value", U))
       }
     },
-    XN = class extends qo {
+    eN = class extends qo {
       static {
-        l(this, "My")
+        l(this, "$y")
       }
       static {
         p(this, "ASTStaticMethod")
@@ -12887,9 +12897,9 @@ execution:`,
           this.assertType("getter", "boolean", te))
       }
     },
-    HN = class extends st {
+    tN = class extends st {
       static {
-        l(this, "$y")
+        l(this, "Fy")
       }
       static {
         p(this, "ASTPatchedMember")
@@ -12913,9 +12923,9 @@ execution:`,
           (this.statements = Io(this.match, this.statements)))
       }
     },
-    YN = class extends st {
+    rN = class extends st {
       static {
-        l(this, "Fy")
+        l(this, "Oy")
       }
       static {
         p(this, "ASTElseIfStatement")
@@ -12928,9 +12938,9 @@ execution:`,
           (this.statements = Io(this.match, this.statements)))
       }
     },
-    QN = class extends st {
+    sN = class extends st {
       static {
-        l(this, "Oy")
+        l(this, "Ry")
       }
       static {
         p(this, "ASTElseStatement")
@@ -12939,21 +12949,21 @@ execution:`,
         ;(super(a, e), (this.statements = Io(this.match, this.statements)))
       }
     },
-    ZN = class extends Tv {
+    aN = class extends Tv {
       static {
-        l(this, "Ry")
+        l(this, "Ny")
       }
       static {
         p(this, "ASTProgramStart")
       }
       constructor(a, { statement: e }) {
         let t = new vv(a, { object: new md(a), property: "isCarryingOver" })
-        super(a, { condition: new fw(a, { expression: t }), statements: new Ut(a, { statements: [e] }) })
+        super(a, { condition: new Sw(a, { expression: t }), statements: new Ut(a, { statements: [e] }) })
       }
     },
-    eP = class extends U {
+    iN = class extends U {
       static {
-        l(this, "Ny")
+        l(this, "jy")
       }
       static {
         p(this, "ASTTernaryExpression")
@@ -12965,9 +12975,9 @@ execution:`,
           this.assertType("falseValue", U))
       }
     },
-    tP = class extends fd {
+    nN = class extends fd {
       static {
-        l(this, "jy")
+        l(this, "Iy")
       }
       static {
         p(this, "ASTStartProcessInvocation")
@@ -12984,9 +12994,9 @@ execution:`,
           this.statements.push(new Mo(a, { methodName: "startProcess", args: i })))
       }
     },
-    rP = class extends Mo {
+    oN = class extends Mo {
       static {
-        l(this, "Iy")
+        l(this, "Ly")
       }
       static {
         p(this, "ASTStopProcessInvocation")
@@ -12995,7 +13005,7 @@ execution:`,
         super(a, { methodName: "stopProcess", args: [new Bc(a, e)] })
       }
     },
-    Tw = class dh extends U {
+    Dw = class dh extends U {
       static {
         l(this, "n")
       }
@@ -13005,8 +13015,8 @@ execution:`,
       constructor(e, t) {
         ;(super(e, t),
           this.assertType("tagName", "string"),
-          this.assertArrayType("attrs", xw, te),
-          this.assertArrayType("children", [dh, Ew, Cw, hh]))
+          this.assertArrayType("attrs", kw, te),
+          this.assertArrayType("children", [dh, $w, Ow, hh]))
       }
       static tagError(e) {
         if (!/^[a-zA-Z][\w-]*$/.test(e)) return `<${e}> isn't an element:  write Spell UI's own tag, e.g. <ui-form>`
@@ -13019,7 +13029,7 @@ execution:`,
         )
       }
     },
-    xw = class extends U {
+    kw = class extends U {
       static {
         l(this, "hd")
       }
@@ -13030,16 +13040,16 @@ execution:`,
         ;(super(a, e),
           this.assertType("name", "string"),
           this.assertType("value", U, te),
-          this.assertType("error", Yp, te))
+          this.assertType("error", Zp, te))
       }
       get propValue() {
         return this.derived("propValue", () => {
-          let a = this.value || (this.error ? new pw(this.match) : new lw(this.match, !0))
+          let a = this.value || (this.error ? new mw(this.match) : new dw(this.match, !0))
           return a instanceof qs || this.name.startsWith("on") ? a : xv(a)
         })
       }
     },
-    Ew = class extends U {
+    $w = class extends U {
       static {
         l(this, "md")
       }
@@ -13051,7 +13061,7 @@ execution:`,
       }
       get output() {}
     },
-    Cw = class extends U {
+    Ow = class extends U {
       static {
         l(this, "gd")
       }
@@ -13073,19 +13083,19 @@ execution:`,
         p(this, "ASTJSXExpression")
       }
       constructor(a, e) {
-        ;(super(a, e), this.assertType("expression", U, te), this.assertType("error", Yp, te))
+        ;(super(a, e), this.assertType("expression", U, te), this.assertType("error", Zp, te))
       }
       get output() {
         return this.derived("output", () => {
           if (this.error) {
-            let a = this.expression || new uw(this.match)
+            let a = this.expression || new hw(this.match)
             return new yv(this.match, { expression: a, comment: this.error })
           }
           return this.expression
         })
       }
     },
-    Dw = class extends U {
+    jw = class extends U {
       static {
         l(this, "yd")
       }
@@ -13097,27 +13107,27 @@ execution:`,
       }
     }
   function xv(a) {
-    return !a || Ev(a) ? a : new Dw(a.match, { expression: a })
+    return !a || Ev(a) ? a : new jw(a.match, { expression: a })
   }
-  l(xv, "VM")
+  l(xv, "KM")
   p(xv, "liveValueOf")
   function Ev(a) {
-    return a instanceof cw
+    return a instanceof fw
       ? !1
       : a instanceof yv
         ? Ev(a.expression)
-        : a instanceof Qt || a instanceof qs || a instanceof Tw
+        : a instanceof Qt || a instanceof qs || a instanceof Dw
   }
-  l(Ev, "UM")
+  l(Ev, "JM")
   p(Ev, "isFixedJSXValue")
   function Mc(a) {
-    return a instanceof dw
+    return a instanceof gw
       ? !0
       : !(a instanceof pa) || a instanceof qs
         ? !1
         : Object.entries(a).some(([e, t]) => (e === "match" ? !1 : Array.isArray(t) ? t.some(Mc) : Mc(t)))
   }
-  l(Mc, "Ly")
+  l(Mc, "By")
   p(Mc, "containsAwait")
   var Cv = class {
       static {
@@ -13157,15 +13167,15 @@ execution:`,
         return (this.methods.set(t, r), r)
       }
     },
-    kw = {}
-  Wo(kw, {
-    ATTRIBUTES_ONLY: l(() => Pw, "ATTRIBUTES_ONLY"),
-    CORE_IMPORT: l(() => Rw, "CORE_IMPORT"),
-    EVENTS: l(() => jw, "EVENTS"),
-    IMPORTED_HELPERS: l(() => Fw, "IMPORTED_HELPERS"),
-    LOOSE_CORE_CALL: l(() => Ow, "LOOSE_CORE_CALL"),
+    Fw = {}
+  Wo(Fw, {
+    ATTRIBUTES_ONLY: l(() => Bw, "ATTRIBUTES_ONLY"),
+    CORE_IMPORT: l(() => Mw, "CORE_IMPORT"),
+    EVENTS: l(() => Rw, "EVENTS"),
+    IMPORTED_HELPERS: l(() => Iw, "IMPORTED_HELPERS"),
+    LOOSE_CORE_CALL: l(() => Nw, "LOOSE_CORE_CALL"),
     PROJECT_IMPORT: l(() => $v, "PROJECT_IMPORT"),
-    TEMPLATE_TAGS: l(() => Nw, "TEMPLATE_TAGS"),
+    TEMPLATE_TAGS: l(() => Lw, "TEMPLATE_TAGS"),
     alike: l(() => il, "alike"),
     attributeName: l(() => vd, "attributeName"),
     elementProjectOf: l(() => jv, "elementProjectOf"),
@@ -13173,9 +13183,9 @@ execution:`,
     importedClasses: l(() => Ov, "importedClasses"),
     isCoreCall: l(() => Rs, "isCoreCall"),
     isKnownType: l(() => kv, "isKnownType"),
-    isNumber: l(() => $w, "isNumber"),
+    isNumber: l(() => Pw, "isNumber"),
     isTight: l(() => gd, "isTight"),
-    kindFromDatatype: l(() => jp, "kindFromDatatype"),
+    kindFromDatatype: l(() => Pp, "kindFromDatatype"),
     kindOfType: l(() => nl, "kindOfType"),
     newListItemName: l(() => yd, "newListItemName"),
     readsMember: l(() => Dv, "readsMember"),
@@ -13204,19 +13214,19 @@ execution:`,
     for (; a instanceof n.ASTParenthesizedExpression;) a = a.expression
     return a instanceof n.ASTScopedMethodInvocation && a.thing instanceof n.ASTSpellCoreExpression
   }
-  l(Rs, "Xt")
+  l(Rs, "Yt")
   p(Rs, "isCoreCall")
-  function $w(a, e) {
+  function Pw(a, e) {
     let t = a && Z(a)
     return t instanceof n.ASTNumericLiteral && Number(t.value) === e
   }
-  l($w, "_H")
-  p($w, "isNumber")
+  l(Pw, "rX")
+  p(Pw, "isNumber")
   function Dv(a, e) {
     let t = Z(a)
     return t instanceof n.ASTPropertyExpression && t.property.value === e
   }
-  l(Dv, "qy")
+  l(Dv, "Gy")
   p(Dv, "readsMember")
   function il(a) {
     let [e] = a
@@ -13233,7 +13243,7 @@ execution:`,
   }
   l(yd, "Qp")
   p(yd, "newListItemName")
-  function jp(a) {
+  function Pp(a) {
     if (!(typeof a != "string" || !a || a.startsWith("list")))
       return a === "text" || a === "character"
         ? "text"
@@ -13245,8 +13255,8 @@ execution:`,
               ? a
               : void 0
   }
-  l(jp, "_p")
-  p(jp, "kindFromDatatype")
+  l(Pp, "_p")
+  p(Pp, "kindFromDatatype")
   function nl(a) {
     if (!(typeof a != "string" || !a || a.startsWith("list")))
       return Object.hasOwn(mh, a) ? mh[a] : /^[A-Z]\w*$/.test(a) ? a : void 0
@@ -13256,7 +13266,7 @@ execution:`,
   function kv(a) {
     return typeof a != "string" || !a ? !1 : a.startsWith("list") || Object.hasOwn(mh, a) || /^[A-Z][\w$]*$/.test(a)
   }
-  l(kv, "Gy")
+  l(kv, "Wy")
   p(kv, "isKnownType")
   var mh = {
       text: "text",
@@ -13270,17 +13280,17 @@ execution:`,
       app: "App",
       list: void 0
     },
-    Ow = /^!|^typeof |\s(?:===|!==|instanceof)\s/,
-    jw = new Set(["on", "off", "once", "trigger"]),
-    Fw = new Set(["positionOf"]),
-    Nw = new Set(["css"])
+    Nw = /^!|^typeof |\s(?:===|!==|instanceof)\s/,
+    Rw = new Set(["on", "off", "once", "trigger"]),
+    Iw = new Set(["positionOf"]),
+    Lw = new Set(["css"])
   function vd(a, e, t) {
     return e === "className"
       ? "class"
       : e === "htmlFor"
         ? "for"
         : a.includes("-")
-          ? !e.startsWith("on") && !e.includes("-") && !Pw.has(e) && t
+          ? !e.startsWith("on") && !e.includes("-") && !Bw.has(e) && t
             ? `prop:${e}`
             : e
           : !e.startsWith("on") && /[a-z][A-Z]/.test(e)
@@ -13289,9 +13299,9 @@ execution:`,
   }
   l(vd, "ec")
   p(vd, "attributeName")
-  var Pw = new Set(["class", "className", "style", "id", "slot", "part"]),
+  var Bw = new Set(["class", "className", "style", "id", "slot", "part"]),
     $v = /^import \{ ([^}]*) \} from "(@spell\/project\/[^"]*)"$/gm,
-    Rw = /^import \{ ([^}]*) \} from "@spell\/core"$/m
+    Mw = /^import \{ ([^}]*) \} from "@spell\/core"$/m
   function Ov(a) {
     let e = new Map()
     for (let [, t, r] of a.matchAll($v))
@@ -13301,7 +13311,7 @@ execution:`,
       }
     return e
   }
-  l(Ov, "Jy")
+  l(Ov, "Hy")
   p(Ov, "importedClasses")
   function jv(a) {
     for (let e of a.members ?? []) {
@@ -13309,16 +13319,16 @@ execution:`,
       if (t !== void 0) return t
     }
   }
-  l(jv, "Hy")
+  l(jv, "Xy")
   p(jv, "elementProjectOf")
   function Fv(a) {
     if (!(a instanceof n.ASTStaticDefinition) || a.name !== "elementTag") return
-    let e = a.value instanceof n.ASTStringLiteral && sP.exec(a.value.value)
+    let e = a.value instanceof n.ASTStringLiteral && lN.exec(a.value.value)
     return e ? JSON.parse(e[1]) : void 0
   }
-  l(Fv, "KM")
+  l(Fv, "XM")
   p(Fv, "elementTagProject")
-  var sP = /^spellCore\.defineElement\(this, ("(?:[^"\\]|\\.)*")\)$/,
+  var lN = /^spellCore\.defineElement\(this, ("(?:[^"\\]|\\.)*")\)$/,
     fh = class gh {
       static {
         l(this, "n")
@@ -13589,7 +13599,7 @@ execution:`,
   function yh(a) {
     return a instanceof n.ASTArrayLiteral || a instanceof n.ASTEnumeration || a instanceof n.ASTListExpression
   }
-  l(yh, "JM")
+  l(yh, "YM")
   p(yh, "isListLiteral")
   function _c(a) {
     return a
@@ -13597,7 +13607,7 @@ execution:`,
       .replace(/[$_]+/g, "_")
       .toUpperCase()
   }
-  l(_c, "Yy")
+  l(_c, "Zy")
   p(_c, "constantCaseOf")
   function Sd(a) {
     let e = bd(a)
@@ -13612,7 +13622,7 @@ execution:`,
   }
   l(bd, "Td")
   p(bd, "camelCaseOf")
-  var Iw = class Us extends Cv {
+  var _w = class Us extends Cv {
       static {
         l(this, "n")
       }
@@ -13750,7 +13760,7 @@ execution:`,
             i = s instanceof n.ASTVariableExpression && s.name === r.name,
             o = s && !i ? this.kindOf(s, t + 1) : void 0,
             u = i ? s : r
-          return o ?? jp(u.datatype ?? u.variable?.datatype)
+          return o ?? Pp(u.datatype ?? u.variable?.datatype)
         }
         if (r instanceof n.ASTPropertyExpression) {
           if (r.object instanceof n.ASTTypeExpression && this.isStaticList(r)) return "array"
@@ -13767,7 +13777,7 @@ execution:`,
             if (s) return s
           }
         }
-        return jp(r.datatype ?? r.match?.datatype)
+        return Pp(r.datatype ?? r.match?.datatype)
       }
       isList(e) {
         let t = this.kindOf(e)
@@ -13815,7 +13825,7 @@ execution:`,
       definitionsKind(e) {
         let t = e.map(
           ({ type: r, method: s }) =>
-            jp(s.datatype) ?? this.inPlace({ typeName: r, methods: [s] }, () => this.returnedKind(s))
+            Pp(s.datatype) ?? this.inPlace({ typeName: r, methods: [s] }, () => this.returnedKind(s))
         )
         return il(new Set(t))
       }
@@ -13993,11 +14003,11 @@ execution:`,
       }
       static ITEM_READS = new Set(["getItemAt", "randomItemOf", "thingNamed", "thingAtPlace"])
     },
-    Lw = {}
-  Wo(Lw, {
+    Ww = {}
+  Wo(Ww, {
     BACK_TICK: l(() => ia, "BACK_TICK"),
-    Block: l(() => Po, "Block"),
-    COMMA: l(() => Pv, "COMMA"),
+    Block: l(() => No, "Block"),
+    COMMA: l(() => Nv, "COMMA"),
     DOUBLE_QUOTE: l(() => vh, "DOUBLE_QUOTE"),
     EMPTY_ARRAY: l(() => _v, "EMPTY_ARRAY"),
     EMPTY_BLOCK: l(() => Wc, "EMPTY_BLOCK"),
@@ -14005,13 +14015,13 @@ execution:`,
     INDENT: l(() => Ii, "INDENT"),
     INDENTED_COMMA: l(() => xc, "INDENTED_COMMA"),
     INDENTED_NEWLINE: l(() => Ad, "INDENTED_NEWLINE"),
-    InBackTicks: l(() => Mw, "InBackTicks"),
-    InCurlies: l(() => Ww, "InCurlies"),
-    InDoubleQuotes: l(() => iP, "InDoubleQuotes"),
+    InBackTicks: l(() => Uw, "InBackTicks"),
+    InCurlies: l(() => zw, "InCurlies"),
+    InDoubleQuotes: l(() => pN, "InDoubleQuotes"),
     InParens: l(() => Ec, "InParens"),
-    InSingleQuotes: l(() => Bw, "InSingleQuotes"),
+    InSingleQuotes: l(() => Vw, "InSingleQuotes"),
     InSquareBrackets: l(() => bh, "InSquareBrackets"),
-    InTripleBackTicks: l(() => _w, "InTripleBackTicks"),
+    InTripleBackTicks: l(() => Gw, "InTripleBackTicks"),
     LEFT_CURLY: l(() => wd, "LEFT_CURLY"),
     LEFT_PAREN: l(() => Rv, "LEFT_PAREN"),
     LEFT_SQUARE_BRACKET: l(() => Bv, "LEFT_SQUARE_BRACKET"),
@@ -14020,34 +14030,34 @@ execution:`,
     RIGHT_PAREN: l(() => Iv, "RIGHT_PAREN"),
     RIGHT_SQUARE_BRACKET: l(() => Mv, "RIGHT_SQUARE_BRACKET"),
     SINGLE_QUOTE: l(() => Sh, "SINGLE_QUOTE"),
-    SPACE: l(() => Qp, "SPACE"),
-    SPACED_COMMA: l(() => Tp, "SPACED_COMMA"),
-    inQuotes: l(() => _p, "inQuotes"),
+    SPACE: l(() => ec, "SPACE"),
+    SPACED_COMMA: l(() => Ep, "SPACED_COMMA"),
+    inQuotes: l(() => Vp, "inQuotes"),
     indented: l(() => ul, "indented"),
-    isLegalIdentifier: l(() => Mp, "isLegalIdentifier"),
-    quoted: l(() => Nv, "quoted")
+    isLegalIdentifier: l(() => Wp, "isLegalIdentifier"),
+    quoted: l(() => Pv, "quoted")
   })
-  var aP = /^[a-zA-Z][\w$]*$/
-  function Mp(a) {
-    return aP.test(a)
+  var uN = /^[a-zA-Z][\w$]*$/
+  function Wp(a) {
+    return uN.test(a)
   }
-  l(Mp, "rc")
-  p(Mp, "isLegalIdentifier")
-  function Nv(a) {
+  l(Wp, "rc")
+  p(Wp, "isLegalIdentifier")
+  function Pv(a) {
     return `'${a.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`
   }
-  l(Nv, "HM")
-  p(Nv, "quoted")
-  function _p(a, e) {
+  l(Pv, "ZM")
+  p(Pv, "quoted")
+  function Vp(a, e) {
     return e === '"'
       ? JSON.stringify(a)
       : e === "'"
-        ? Nv(a)
+        ? Pv(a)
         : `\`${a.replace(/\\/g, "\\\\").replace(/`/g, "\\`").replace(/\$\{/g, "\\${")}\``
   }
-  l(_p, "nc")
-  p(_p, "inQuotes")
-  var Qp = " ",
+  l(Vp, "nc")
+  p(Vp, "inQuotes")
+  var ec = " ",
     Ii = "  ",
     Ee = `
 `,
@@ -14060,42 +14070,42 @@ execution:`,
   }
   l(ul, "Zo")
   p(ul, "indented")
-  var Pv = ",",
-    Tp = `${Pv}${Qp}`,
-    xc = `${Pv}${Ee}`,
+  var Nv = ",",
+    Ep = `${Nv}${ec}`,
+    xc = `${Nv}${Ee}`,
     Rv = "(",
     Iv = ")",
     Lv = `${Rv}${Iv}`,
     Ec = p(({ children: a = "", wrap: e = !1, space: t = !1 }) => {
       if (a == null || a === "") return Lv
-      let r = (e && Ee) || (t && Qp) || ""
+      let r = (e && Ee) || (t && ec) || ""
       return (e && (a = a.split(Ee).join(Ad)), `${Rv}${r}${a}${r}${Iv}`)
     }, "InParens"),
     vh = '"',
-    iP = p(({ children: a = "" }) => `${vh}${a}${vh}`, "InDoubleQuotes"),
+    pN = p(({ children: a = "" }) => `${vh}${a}${vh}`, "InDoubleQuotes"),
     Sh = "'",
-    Bw = p(({ children: a = "" }) => `${Sh}${a}${Sh}`, "InSingleQuotes"),
+    Vw = p(({ children: a = "" }) => `${Sh}${a}${Sh}`, "InSingleQuotes"),
     ia = "`",
-    Mw = p(({ children: a = "" }) => `${ia}${a}${ia}`, "InBackTicks"),
-    _w = p(({ children: a = "" }) => `${ia}${ia}${ia}${a}${ia}${ia}${ia}`, "InTripleBackTicks"),
+    Uw = p(({ children: a = "" }) => `${ia}${a}${ia}`, "InBackTicks"),
+    Gw = p(({ children: a = "" }) => `${ia}${ia}${ia}${a}${ia}${ia}${ia}`, "InTripleBackTicks"),
     wd = "{",
     Td = "}",
     Wc = `${wd}${Td}`,
-    Ww = p(({ children: a = "", wrap: e = !1, space: t = !1 }) => {
+    zw = p(({ children: a = "", wrap: e = !1, space: t = !1 }) => {
       if (a == null || a === "") return Wc
-      let r = (e && Ee) || (t && Qp) || ""
+      let r = (e && Ee) || (t && ec) || ""
       return (e && (a = `${Ii}${a.split(Ee).join(Ad)}`), `${wd}${r}${a}${r}${Td}`)
     }, "InCurlies"),
-    Po = p(({ children: a = "", wrap: e = !1, space: t = !e }) => Ww({ wrap: e, space: t, children: a }), "Block"),
+    No = p(({ children: a = "", wrap: e = !1, space: t = !e }) => zw({ wrap: e, space: t, children: a }), "Block"),
     Bv = "[",
     Mv = "]",
     _v = `${Bv}${Mv}`,
     bh = p(({ children: a = "", wrap: e = !1, space: t = !1 }) => {
       if (a == null || a === "") return _v
-      let r = (e && Ee) || (t && Qp) || ""
+      let r = (e && Ee) || (t && ec) || ""
       return (e && (a = `${Ii}${a.split(Ee).join(Ad)}`), `${Bv}${r}${a}${r}${Mv}`)
     }, "InSquareBrackets"),
-    Cc = class Vw {
+    Cc = class qw {
       static {
         l(this, "n")
       }
@@ -14146,9 +14156,9 @@ execution:`,
         let r = this.caseOf(t)
         if (r === "as written") return e
         if (r === "camelCase") return bd(e)
-        let s = Vw.wordsOf(e)
+        let s = qw.wordsOf(e)
         return r === "PascalCase"
-          ? s.map(Uw).join("")
+          ? s.map(Jw).join("")
           : r === "snake_case"
             ? s.map((i) => i.toLowerCase()).join("_")
             : s.map((i) => i.toUpperCase()).join("_")
@@ -14160,12 +14170,12 @@ execution:`,
           .filter(Boolean)
       }
     }
-  function Uw(a) {
+  function Jw(a) {
     return a.charAt(0).toUpperCase() + a.slice(1)
   }
-  l(Uw, "nX")
-  p(Uw, "upperFirst")
-  var Dc = class Jt extends Iw {
+  l(Jw, "oX")
+  p(Jw, "upperFirst")
+  var Dc = class Jt extends _w {
     static {
       l(this, "n")
     }
@@ -14180,7 +14190,7 @@ execution:`,
     module(e) {
       let t = this.coreImportNames(e)
       if (t.length) {
-        let r = e.replace(Rw, (s, i) => `import { ${[...i.split(/,\s*/), ...t].join(", ")} } from "@spell/core"`)
+        let r = e.replace(Mw, (s, i) => `import { ${[...i.split(/,\s*/), ...t].join(", ")} } from "@spell/core"`)
         e =
           r !== e
             ? r
@@ -14220,19 +14230,19 @@ ${e}`
 `
     }
     quoted(e) {
-      return _p(e, '"')
+      return Vp(e, '"')
     }
-    list(e, t = Tp) {
+    list(e, t = Ep) {
       return !e || !e.length ? "" : e.map((r) => (r ? String(this.write(r)) : "")).join(t)
     }
     args(e, t = (e?.length ?? 0) > 3) {
       if (!e || e.length === 0) return Lv
-      let r = this.list(e, t ? xc : Tp)
+      let r = this.list(e, t ? xc : Ep)
       return (t && r.includes(Ee) && (r = `${Ii}${r}`), Ec({ wrap: t, children: r }))
     }
     array(e, t = !1) {
       if (!e || e.length === 0) return _v
-      let r = t ? xc : Tp
+      let r = t ? xc : Ep
       return bh({ wrap: t, children: this.list(e, r) })
     }
     ASTBlankLine(e) {
@@ -14245,7 +14255,7 @@ ${e}`
       return e.value
     }
     ASTStringLiteral(e) {
-      return e.quote ? Ah(e.raw ?? _p(e.value, e.quote)) : e.value
+      return e.quote ? Ah(e.raw ?? Vp(e.value, e.quote)) : e.value
     }
     ASTTypeNameLiteral(e) {
       return this.project.isClass(e.value) ? this.quoted(this.typeNameOf(e.value)) : this.ASTStringLiteral(e)
@@ -14254,7 +14264,7 @@ ${e}`
       return `\`${e.parts.map((t) => (typeof t == "string" ? t.replace(/`/g, "\\`").replace(/\$\{/g, "\\${") : `\${${this.write(t)}}`)).join("")}\``
     }
     ASTTaggedTemplate(e) {
-      return (Nw.has(e.tag) && this.coreImports.add(e.tag), `${e.tag}${this.ASTTemplateString(e)}`)
+      return (Lw.has(e.tag) && this.coreImports.add(e.tag), `${e.tag}${this.ASTTemplateString(e)}`)
     }
     ASTBooleanLiteral(e) {
       return e.value ? "true" : "false"
@@ -14275,16 +14285,16 @@ ${e}`
       return this.array(e.enumeration)
     }
     ASTQuotedExpression(e) {
-      return Ah(Bw({ children: String(this.write(e.expression)) }))
+      return Ah(Vw({ children: String(this.write(e.expression)) }))
     }
     ASTBackTickExpression(e) {
-      return Mw({ children: String(this.write(e.expression)) })
+      return Uw({ children: String(this.write(e.expression)) })
     }
     ASTBacktickSubstitution(e) {
       return "${" + this.write(e.expression) + "}"
     }
     ASTTripleBackTickExpression(e) {
-      return _w({ children: String(this.write(e.expression)) })
+      return Gw({ children: String(this.write(e.expression)) })
     }
     ASTPropertyLiteral(e) {
       let t = this.propertyName(e)
@@ -14432,7 +14442,7 @@ ${e}`
       let t = Z(e)
       if (!this.bindsTightly(t)) return `(${this.write(t)})`
       let r = String(this.write(t))
-      return Rs(t) && Ow.test(r) ? `(${r})` : r
+      return Rs(t) && Nw.test(r) ? `(${r})` : r
     }
     bindsTightly(e) {
       return gd(e) || e instanceof n.ASTJSXElement
@@ -14481,7 +14491,7 @@ ${e}`
         i = e.methodName
       if (i === "isDefined" && r) return `${this.tight(r)} !== undefined`
       if (r && i in VS) return `Math.${VS[i]}(${this.bare(r)})`
-      if (jw.has(i)) return this.eventCall(i, t)
+      if (Rw.has(i)) return this.eventCall(i, t)
       if (!r) return
       let o = this.kindOf(r)
       if (o === "text") {
@@ -14503,7 +14513,7 @@ ${e}`
         if (u !== void 0) return u
       }
       if (o === "array" && (i === "map" || i === "forEach") && this.statements.has(e)) return this.forEachOf(r, s[0])
-      if (Fw.has(i)) return (this.coreImports.add(i), this.positionOut(`${i}${this.helperArgs(e)}`, e))
+      if (Iw.has(i)) return (this.coreImports.add(i), this.positionOut(`${i}${this.helperArgs(e)}`, e))
     }
     typeTest(e, t) {
       let r = Z(t),
@@ -14709,12 +14719,12 @@ ${e}`
       let { methodName: t } = e
       if (!t) return ""
       let r = this.nameOf(t)
-      return e.asProperty && !Mp(r) ? this.quoted(r) : r
+      return e.asProperty && !Wp(r) ? this.quoted(r) : r
     }
     ASTObjectLiteral(e) {
       let { wrap: t } = e,
-        r = t ? xc : Tp
-      return Po({ wrap: t, space: !t, children: this.list(e.properties, r) })
+        r = t ? xc : Ep
+      return No({ wrap: t, space: !t, children: this.list(e.properties, r) })
     }
     ASTObjectLiteralProperty(e) {
       let t = e.error ? ` ${this.write(e.error)}` : "",
@@ -14854,9 +14864,9 @@ ${ul(r)}
       return this.inClass(e.typeName, () => {
         if (e.get) {
           let s = [`${this.methodNamed(e.get, "get", e.typeName)},`, "configurable: true"].join(Ee)
-          return `Object.defineProperty(${r}, ${this.quoted(t)}, ${Po({ wrap: !0, children: s })})`
+          return `Object.defineProperty(${r}, ${this.quoted(t)}, ${No({ wrap: !0, children: s })})`
         }
-        return `${r}${zw(t)} = ${this.anonymousFunction(e.method, e.typeName)}`
+        return `${r}${Xw(t)} = ${this.anonymousFunction(e.method, e.typeName)}`
       })
     }
     ASTReactivePropertyAsMember(e) {
@@ -14877,7 +14887,7 @@ ${ul(r)}
             `set(${this.setterParams(e, e.typeName)}) ${this.setterBody(e)},`,
             "configurable: true"
           ],
-          r = Po({ wrap: !0, children: t.join(Ee) }),
+          r = No({ wrap: !0, children: t.join(Ee) }),
           s = `Object.defineProperty(${this.write(e.prototypeExpression)}, ${this.propertyKey(e)}, ${r})`,
           i = this.declareCall(e, this.write(e.type))
         return i ? [i, s].join(Ee) : s
@@ -14920,7 +14930,7 @@ ${ul(r)}
         r = this.nameOf(e.name)
       if (e.getter) {
         let s = [`${this.methodNamed(e.method, "get")},`, "configurable: true"].join(Ee)
-        return `Object.defineProperty(${t}, ${this.quoted(r)}, ${Po({ wrap: !0, children: s })})`
+        return `Object.defineProperty(${t}, ${this.quoted(r)}, ${No({ wrap: !0, children: s })})`
       }
       return `${t}.${r} = ${this.anonymousFunction(e.method)}`
     }
@@ -14946,7 +14956,7 @@ ${ul(r)}
     body(e) {
       let t = (e.statements ?? []).filter((s) => !(s instanceof n.ASTBlankLine)),
         [r] = t
-      if (t.length === 1 && Gw(r)) {
+      if (t.length === 1 && Kw(r)) {
         let s = String(this.write(r))
         if (!s.includes(Ee)) return s
       }
@@ -14990,7 +15000,7 @@ ${ul(
           let i = s.propValue,
             o = vd(e.tagName, s.name, i instanceof n.ASTJSXLiveValue),
             u = s.error ? ` ${this.write(s.error)}` : ""
-          return `${Mp(o) ? o : JSON.stringify(o)}: ${this.write(i)}${u}`
+          return `${Wp(o) ? o : JSON.stringify(o)}: ${this.write(i)}${u}`
         })
         .sort((s, i) => Number(i.startsWith("class:")) - Number(s.startsWith("class:")))
       if (!t.length) return ""
@@ -15047,20 +15057,20 @@ ${ul(
       e instanceof n.ASTStatementGroup && !(e instanceof n.ASTTryCatchBlock) ? Wv(e) : [e]
     )
   }
-  l(Wv, "QM")
+  l(Wv, "t1")
   p(Wv, "flattened")
   function Vc(a) {
     return a.replace(/\}\n[ \t]*else\b/g, "} else")
   }
-  l(Vc, "aS")
+  l(Vc, "uS")
   p(Vc, "elseOnItsLine")
-  function Gw(a) {
+  function Kw(a) {
     return a instanceof n.ASTAssignmentStatement
       ? !a.isNewVariable
       : a instanceof n.ASTReturnStatement || a instanceof n.ASTExpression
   }
-  l(Gw, "sX")
-  p(Gw, "isSimpleStatement")
+  l(Kw, "aX")
+  p(Kw, "isSimpleStatement")
   var zi = {
     or: 3,
     and: 4,
@@ -15077,18 +15087,18 @@ ${ul(
     times: 12,
     "divided by": 12
   }
-  function zw(a) {
-    return Mp(a) ? `.${a}` : `[${_p(a, '"')}]`
+  function Xw(a) {
+    return Wp(a) ? `.${a}` : `[${Vp(a, '"')}]`
   }
-  l(zw, "iX")
-  p(zw, "propertyAccess")
+  l(Xw, "uX")
+  p(Xw, "propertyAccess")
   function Ah(a) {
     return /^'[^'"\\]*'$/.test(a) ? `"${a.slice(1, -1)}"` : a
   }
-  l(Ah, "YM")
+  l(Ah, "_M")
   p(Ah, "doubleQuoted")
   var VS = { round: "round", roundUp: "ceil", roundDown: "floor" },
-    qw = class it extends Dc {
+    Hw = class it extends Dc {
       static {
         l(this, "n")
       }
@@ -15117,7 +15127,7 @@ ${ul(
       untypedItems = !1
       elementTags = new Map()
       module(e) {
-        let t = oP.filter((i) => new RegExp(`<${i}[\\s>]`).test(e))
+        let t = dN.filter((i) => new RegExp(`<${i}[\\s>]`).test(e))
         ;((e = super.module(e)),
           this.elementTags.size &&
             ((e = this.withElementsImport(e)),
@@ -15129,7 +15139,7 @@ ${this.elementTagsDeclaration()}`)))
           let u = o.map((c) => this.undeclaredMember(i, c))
           e = `${e.replace(/\n*$/, "")}
 export interface ${this.typeNameOf(i)} {
-${Ye(
+${Qe(
   u.join(`
 `)
 )}
@@ -15144,7 +15154,7 @@ ${Ye(
             if (!c) return i
             let [d, m] = c
             return `declare module "${d}" {
-${Ye(`interface ${m} ${u}`)}
+${Qe(`interface ${m} ${u}`)}
 }`
           })),
           t.length
@@ -15154,7 +15164,7 @@ ${e}`
         )
       }
       coreImportNames(e) {
-        return [...nP.filter((t) => new RegExp(`^\\s*@${t}\\b`, "m").test(e)), ...super.coreImportNames(e)]
+        return [...cN.filter((t) => new RegExp(`^\\s*@${t}\\b`, "m").test(e)), ...super.coreImportNames(e)]
       }
       typeFor(e) {
         if (!(typeof e != "string" || !e)) {
@@ -15256,7 +15266,7 @@ ${e}`
       methodNamed(e, t, r) {
         if (!t.startsWith("get ")) return this.methodNamedOf(e, t, r)
         let s = this.getterDefault
-        this.getterDefault = Kw(e)
+        this.getterDefault = Qw(e)
         try {
           return this.methodNamedOf(e, t, r)
         } finally {
@@ -15406,12 +15416,12 @@ ${f.join(`
           ;(y.length &&
             (m = `${m}
 export interface ${this.typeNameOf(u.name)} {
-${Ye(
+${Qe(
   y.join(`
 `)
 )}
 }`),
-            Xw(t) &&
+            Zw(t) &&
               (m = `@thing
 ${m}`))
           let w = this.elementClassFor(t)
@@ -15463,7 +15473,7 @@ ${w}`
         let t = this.nameOf(e.property.value)
         if (e.get) {
           let r = this.methodNamed(e.get, `get ${t}`)
-          return Hw(e.get)
+          return e0(e.get)
             ? `@derived
 ${r}`
             : r
@@ -15532,7 +15542,7 @@ ${this.drawMethod(e.method)}`
             if (!e.get) return `${s}.${t} = ${this.anonymousFunction(e.method, e.typeName)}`
             let o = [`${this.methodNamed(e.get, "get", e.typeName)},`, "configurable: true"].join(`
 `)
-            return `Object.defineProperty(${s}, ${this.quoted(t)}, ${Po({ wrap: !0, children: o })})`
+            return `Object.defineProperty(${s}, ${this.quoted(t)}, ${No({ wrap: !0, children: o })})`
           })
         return [this.mergedInterface(e.typeName, r), i].join(Ee)
       }
@@ -15562,15 +15572,15 @@ ${this.drawMethod(e.method)}`
         if (t === void 0) return
         let r = this.typeNameOf(e.type.name),
           s = this.elementClassName(r),
-          i = cA(t, r)
+          i = fA(t, r)
         this.elementTags.set(s, i)
-        let o = Yw(r),
+        let o = t0(r),
           u = this.elementAttributes(e),
           c = [
             `@E.proto static vocabulary = ${
               u.length
                 ? `SpellElement.vocabularyFor(${this.quoted(i)}, ${this.quoted(o)}, [
-${Ye(
+${Qe(
   u.join(`,
 `)
 )}
@@ -15580,7 +15590,7 @@ ${Ye(
           ]
         if (e.members?.some((y) => y instanceof n.ASTStaticDefinition && y.name === "css")) {
           let y = `{
-${Ye(`styleSheets: { ${this.quoted(i)}: ${r}.css }`)}
+${Qe(`styleSheets: { ${this.quoted(i)}: ${r}.css }`)}
 }`
           c.push(`@E.protoMerged static elementSetup = ${y} satisfies Partial<E.ElementSetup>`)
         }
@@ -15596,7 +15606,7 @@ ${d.join(`
 `),
           g = [
             "/**",
-            ` * \`<${i}>\`:  ${Qw(o)} ${o}, drawn in its own element, e.g. by \`draw the ${o}\`.`,
+            ` * \`<${i}>\`:  ${r0(o)} ${o}, drawn in its own element, e.g. by \`draw the ${o}\`.`,
             " * - The page defines its tag with this class:  `spellCore.useElement()`, below.",
             ` * - Its attributes are its ${o}'s properties;  its methods call its ${o}'s.`,
             ` * - What every drawable thing's element does, e.g. drawing its ${o}, is \`SpellElement\`'s.`,
@@ -15604,7 +15614,7 @@ ${d.join(`
           ].join(`
 `),
           f = `export class ${s} extends SpellElement<${r}> {
-${Ye(m)}
+${Qe(m)}
 }`
         return `${g}
 ${f}
@@ -15619,7 +15629,7 @@ spellCore.useElement(${r}, ${s})`
         let t = []
         for (let r of e.members ?? []) {
           if (!(r instanceof n.ASTReactiveProperty)) continue
-          let s = dA(String(this.write(r.property)), this.declaredTypeOf(r))
+          let s = gA(String(this.write(r.property)), this.declaredTypeOf(r))
           if (!s) continue
           let { name: i, kind: o, description: u } = s
           t.push(`{ name: ${this.quoted(i)}, kind: ${this.quoted(o)}, description: ${this.quoted(u)} }`)
@@ -15650,7 +15660,7 @@ spellCore.useElement(${r}, ${s})`
           t.set(
             s,
             `${s}${this.forwardedParams(r.method)} {
-${Ye(o)}
+${Qe(o)}
 }`
           )
         }
@@ -15683,7 +15693,7 @@ ${e}`
 ${this.quoted(s)}: HTMLAttributes<HTMLElement> & { [attribute: string]: unknown }`
           ),
           t = `interface IntrinsicElements {
-${Ye(
+${Qe(
   e.join(`
 `)
 )}
@@ -15691,8 +15701,8 @@ ${Ye(
         return [
           "// each drawable type's tag, for the JSX",
           `declare module "@solidjs/web/types/jsx.js" {
-${Ye(`namespace JSX {
-${Ye(t)}
+${Qe(`namespace JSX {
+${Qe(t)}
 }`)}
 }`
         ].join(`
@@ -15792,7 +15802,7 @@ ${Ye(t)}
         return t && (this.typeFor(t) ?? t)
       }
       drawMethod(e) {
-        let t = Jw(e.body.statements ?? [], this.project)
+        let t = Yw(e.body.statements ?? [], this.project)
         if (!t) return this.methodNamed(e, "draw")
         let r = { accessors: this.accessors, sharedHandlers: this.sharedHandlers }
         ;((this.accessors = new Set(
@@ -15808,7 +15818,7 @@ ${Ye(t)}
           return (
             s.push(...this.shareHandlers(t, new Set(s.map((i) => i.split(" ")[1])))),
             s.push(`return ${this.parenthesized(this.drawingOf(t))}`),
-            `draw() ${Po({ wrap: !0, children: s.join(Ee) })}`
+            `draw() ${No({ wrap: !0, children: s.join(Ee) })}`
           )
         } finally {
           ;((this.accessors = r.accessors), (this.sharedHandlers = r.sharedHandlers))
@@ -15820,27 +15830,27 @@ ${Ye(t)}
         let r = t.includes(`
 `)
           ? `fallback={
-${Ye(t)}
+${Qe(t)}
 }`
           : `fallback={${t}}`
         if (e.branches.length === 1) {
           let [{ condition: i, value: o }] = e.branches
           return `${`<Show
-${Ye(`when={${this.bare(i)}}
+${Qe(`when={${this.bare(i)}}
 ${r}`)}
 >`}
-${Ye(this.jsxOf(o))}
+${Qe(this.jsxOf(o))}
 </Show>`
         }
         let s = e.branches.map(
           ({ condition: i, value: o }) => `<Match when={${this.bare(i)}}>
-${Ye(this.jsxOf(o))}
+${Qe(this.jsxOf(o))}
 </Match>`
         )
         return `<Switch
-${Ye(r)}
+${Qe(r)}
 >
-${Ye(
+${Qe(
   s.join(`
 `)
 )}
@@ -15855,7 +15865,7 @@ ${Ye(
           e.includes(`
 `)
           ? `(
-${Ye(e)}
+${Qe(e)}
 )`
           : e
       }
@@ -15892,10 +15902,10 @@ ${Ye(e)}
         return !i.some((u) => u.startsWith("<")) &&
           !o.includes(`
 `) &&
-          s.length + o.length < lP
+          s.length + o.length < hN
           ? `${s}>${o}</${t}>`
           : `${s}>
-${Ye(
+${Qe(
   i.join(`
 `)
 )}
@@ -15928,7 +15938,7 @@ ${Ye(
           : `${i}={${this.bare(s)}}`
       }
     }
-  function Jw(a, e) {
+  function Yw(a, e) {
     let t = { comments: [], locals: [], branches: [] },
       r = a.filter((s) => !(s instanceof n.ASTBlankLine))
     for (let [s, i] of r.entries()) {
@@ -15952,36 +15962,36 @@ ${Ye(
     }
     if (t.final && !(!t.locals.length && !t.branches.length)) return t
   }
-  l(Jw, "oX")
-  p(Jw, "drawingShape")
-  function Kw(a) {
+  l(Yw, "pX")
+  p(Yw, "drawingShape")
+  function Qw(a) {
     let [e] = (a.body.statements ?? []).filter((r) => !(r instanceof n.ASTBlankLine))
     if (!(e instanceof n.ASTIfStatement)) return
     let [t] = (e.statements.statements ?? []).filter((r) => !(r instanceof n.ASTBlankLine))
     if (!(!(t instanceof n.ASTReturnStatement) || !t.value))
       return Z(t.value) instanceof n.ASTLiteral ? t.value : void 0
   }
-  l(Kw, "aX")
-  p(Kw, "earlyReturnOf")
-  var nP = ["prop", "state", "derived", "thing", "drawn"],
-    oP = ["Show", "For", "Switch", "Match"],
-    lP = 100
+  l(Qw, "cX")
+  p(Qw, "earlyReturnOf")
+  var cN = ["prop", "state", "derived", "thing", "drawn"],
+    dN = ["Show", "For", "Switch", "Match"],
+    hN = 100
   function wh(a) {
     let e = Z(a)
     return e instanceof n.ASTArrayLiteral || e instanceof n.ASTEnumeration
       ? !1
       : e instanceof n.ASTLiteral || e instanceof n.ASTMethodDefinition || e instanceof n.ASTJSXElement
   }
-  l(wh, "_M")
+  l(wh, "r1")
   p(wh, "isFixedValue")
-  function Xw(a) {
+  function Zw(a) {
     return (a.members ?? []).some(
       (e) => e instanceof n.ASTPropertyDefinition && e.method && e.property.value === "create"
     )
   }
-  l(Xw, "lX")
-  p(Xw, "hasCreate")
-  function Hw(a) {
+  l(Zw, "hX")
+  p(Zw, "hasCreate")
+  function e0(a) {
     let e = !1
     return (
       Ri(a.body, (t) => {
@@ -15990,36 +16000,36 @@ ${Ye(
       e
     )
   }
-  l(Hw, "dX")
-  p(Hw, "loopsOverAList")
+  l(e0, "mX")
+  p(e0, "loopsOverAList")
   function Th(a, e) {
     let t = e.indexOf(a) - 1
     for (; e[t] instanceof n.ASTPreservedComment;) t--
     let r = e[t]
     return r instanceof n.ASTDocComment ? r : void 0
   }
-  l(Th, "e1")
+  l(Th, "n1")
   p(Th, "docstringAbove")
-  var Ye = ul
-  function Yw(a) {
+  var Qe = ul
+  function t0(a) {
     return a.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase()
   }
-  l(Yw, "fX")
-  p(Yw, "wordsOf")
-  function Qw(a) {
+  l(t0, "gX")
+  p(t0, "wordsOf")
+  function r0(a) {
     return /^[aeiou]/.test(a) ? "an" : "a"
   }
-  l(Qw, "hX")
-  p(Qw, "a")
-  var Zw = "@spell-app/core/model",
-    uP = class e0 extends qw {
+  l(r0, "yX")
+  p(r0, "a")
+  var s0 = "@spell-app/core/model",
+    mN = class a0 extends Hw {
       static {
         l(this, "n")
       }
       static {
         p(this, "LibraryWriter")
       }
-      static instance = new e0()
+      static instance = new a0()
       atTopLevel = !0
       forProject(e, t, r) {
         let s = super.forProject(e, t, r)
@@ -16035,7 +16045,7 @@ ${Ye(
         }
       }
       module(e) {
-        return r0(super.module(e))
+        return n0(super.module(e))
       }
     }
   function xd(a = []) {
@@ -16044,40 +16054,40 @@ ${Ye(
       a.forEach((t, r) => {
         t instanceof n.ASTStatementGroup && !(t instanceof n.ASTTryCatchBlock)
           ? e.push(...xd(t.statements))
-          : (t instanceof n.ASTDocComment ? t0(a, r) : Vv(t)) && e.push(t)
+          : (t instanceof n.ASTDocComment ? i0(a, r) : Vv(t)) && e.push(t)
       }),
       e
     )
   }
-  l(xd, "pS")
+  l(xd, "cS")
   p(xd, "libraryHalf")
   function Vv(a) {
     return Uv(a) || (a instanceof n.ASTMethodDefinition && !!a.methodName)
   }
-  l(Vv, "r1")
+  l(Vv, "i1")
   p(Vv, "isKept")
-  function t0(a, e) {
+  function i0(a, e) {
     let t = a.slice(e + 1).find((r) => !(r instanceof n.ASTBlankLine))
     return !!t && !(t instanceof n.ASTDocComment) && Vv(t)
   }
-  l(t0, "mX")
-  p(t0, "documentsKept")
+  l(i0, "SX")
+  p(i0, "documentsKept")
   function Uv(a) {
-    return s0().some((e) => a instanceof e)
+    return o0().some((e) => a instanceof e)
   }
-  l(Uv, "n1")
+  l(Uv, "o1")
   p(Uv, "isDeclaration")
-  function r0(a) {
+  function n0(a) {
     return a.replace(n.jsShapes.CORE_IMPORT, (e, t) => {
       let r = a.replace(n.jsShapes.CORE_IMPORT, ""),
         s = t.split(/,\s*/).filter((i) => new RegExp(`\\b${i}\\b`).test(r))
-      return s.length ? `import { ${s.join(", ")} } from "${Zw}"` : ""
+      return s.length ? `import { ${s.join(", ")} } from "${s0}"` : ""
     })
   }
-  l(r0, "gX")
-  p(r0, "libraryImports")
-  function s0() {
-    return (pP ??= [
+  l(n0, "PX")
+  p(n0, "libraryImports")
+  function o0() {
+    return (fN ??= [
       n.ASTClassDeclaration,
       n.ASTPropertyDefinition,
       n.ASTReactiveProperty,
@@ -16092,10 +16102,10 @@ ${Ye(
       n.ASTBlankLine
     ])
   }
-  l(s0, "yX")
-  p(s0, "declarationKinds")
-  var pP,
-    cP = class xh extends Cv {
+  l(o0, "TX")
+  p(o0, "declarationKinds")
+  var fN,
+    gN = class xh extends Cv {
       static {
         l(this, "n")
       }
@@ -16107,7 +16117,7 @@ ${Ye(
         if (!(!e || e instanceof n.ASTBlankLine)) return xh.instance.write(e)
       }
       ASTNode(e) {
-        return this.box(e, a0(e))
+        return this.box(e, l0(e))
       }
       box(e, t, r = [], { fromMatch: s = !0 } = {}) {
         let i = (typeof e.datatype == "string" ? e.datatype : void 0) ?? (s ? e.match?.datatype : void 0),
@@ -16229,15 +16239,15 @@ ${Ye(
         return { label: e }
       }
     }
-  function a0(a) {
+  function l0(a) {
     let e = String(a.nodeType)
       .replace(/^AST/, "")
       .replace(/([a-z])([A-Z])/g, "$1 $2")
       .toLowerCase()
     return e.charAt(0).toUpperCase() + e.slice(1)
   }
-  l(a0, "PX")
-  p(a0, "kindOf")
+  l(l0, "xX")
+  p(l0, "kindOf")
   function ol(a) {
     return Array.isArray(a)
       ? a.flatMap(ol)
@@ -16257,46 +16267,46 @@ ${Ye(
   p(ol, "unwrapped")
   var pl = {}
   Wo(pl, {
-    ElementsWriter: l(() => AP, "ElementsWriter"),
+    ElementsWriter: l(() => CN, "ElementsWriter"),
     PY: l(() => pl, "PY"),
-    PyBaseWriter: l(() => xp, "PyBaseWriter"),
-    PyWriter: l(() => vP, "PyWriter"),
-    isUneditedApp: l(() => y0, "isUneditedApp"),
-    pyText: l(() => i0, "pyText"),
-    quartApp: l(() => g0, "quartApp")
+    PyBaseWriter: l(() => Cp, "PyBaseWriter"),
+    PyWriter: l(() => TN, "PyWriter"),
+    isUneditedApp: l(() => A0, "isUneditedApp"),
+    pyText: l(() => u0, "pyText"),
+    quartApp: l(() => b0, "quartApp")
   })
-  var i0 = {}
-  Wo(i0, {
-    INDENT: l(() => n0, "INDENT"),
-    LINE: l(() => o0, "LINE"),
-    NEWLINE: l(() => dP, "NEWLINE"),
-    TOP_LEVEL_GAP: l(() => hP, "TOP_LEVEL_GAP"),
+  var u0 = {}
+  Wo(u0, {
+    INDENT: l(() => p0, "INDENT"),
+    LINE: l(() => c0, "LINE"),
+    NEWLINE: l(() => yN, "NEWLINE"),
+    TOP_LEVEL_GAP: l(() => vN, "TOP_LEVEL_GAP"),
     block: l(() => Kt, "block"),
-    call: l(() => Xe, "call"),
-    comment: l(() => Np, "comment"),
-    docstring: l(() => Fp, "docstring"),
+    call: l(() => He, "call"),
+    comment: l(() => Rp, "comment"),
+    docstring: l(() => Np, "docstring"),
     inQuotes: l(() => Uc, "inQuotes"),
-    indented: l(() => Zp, "indented")
+    indented: l(() => tc, "indented")
   })
-  var n0 = "    ",
-    dP = `
+  var p0 = "    ",
+    yN = `
 `,
-    hP = `
+    vN = `
 
 
 `
-  function Zp(a) {
+  function tc(a) {
     return a
       .split(`
 `)
-      .map((e) => e && `${n0}${e}`).join(`
+      .map((e) => e && `${p0}${e}`).join(`
 `)
   }
-  l(Zp, "fc")
-  p(Zp, "indented")
+  l(tc, "fc")
+  p(tc, "indented")
   function Kt(a, e) {
     return `${a}:
-${Zp(e.trim() ? e : "pass")}`
+${tc(e.trim() ? e : "pass")}`
   }
   l(Kt, "jt")
   p(Kt, "block")
@@ -16305,7 +16315,7 @@ ${Zp(e.trim() ? e : "pass")}`
   }
   l(Uc, "Ed")
   p(Uc, "inQuotes")
-  function Fp(a) {
+  function Np(a) {
     let e = a.map((r) => r.replace(/\\/g, "\\\\").replace(/"""/g, '\\"\\"\\"')),
       t = e.length === 1 ? e[0].replace(/^"/, '\\"').replace(/"$/, '\\"') : void 0
     return t !== void 0
@@ -16313,36 +16323,36 @@ ${Zp(e.trim() ? e : "pass")}`
       : ['"""', ...e, '"""'].join(`
 `)
   }
-  l(Fp, "hc")
-  p(Fp, "docstring")
-  var o0 = 88
-  function Xe(a, e, [t, r] = ["(", ")"]) {
+  l(Np, "hc")
+  p(Np, "docstring")
+  var c0 = 88
+  function He(a, e, [t, r] = ["(", ")"]) {
     let s = `${a}${t}${e.join(", ")}${r}`
-    return (s.length <= o0 &&
+    return (s.length <= c0 &&
       !s.includes(`
 `)) ||
       !e.length
       ? s
       : `${a}${t}
-${Zp(
+${tc(
   e.map((i) => `${i},`).join(`
 `)
 )}
 ${r}`
   }
-  l(Xe, "Ne")
-  p(Xe, "call")
-  function Np(a) {
+  l(He, "Ne")
+  p(He, "call")
+  function Rp(a) {
     return a
       .split(`
 `)
       .map((e) => (e ? `# ${e}` : "#")).join(`
 `)
   }
-  l(Np, "mc")
-  p(Np, "comment")
-  var { attributeName: mP, isCoreCall: $i, kindFromDatatype: fP, unwrapped: ve } = n.jsShapes,
-    xp = class tl extends n.ProgramWriter {
+  l(Rp, "mc")
+  p(Rp, "comment")
+  var { attributeName: SN, isCoreCall: $i, kindFromDatatype: bN, unwrapped: ve } = n.jsShapes,
+    Cp = class tl extends n.ProgramWriter {
       static {
         l(this, "n")
       }
@@ -16386,7 +16396,7 @@ ${r}`
 `)
               ),
               c = [...o.split(/,\s*/), ...tl.CORE_EXTRAS].filter((d) =>
-                new RegExp(`\\b${d}\\b${gP.has(d) ? "\\(" : ""}`).test(u)
+                new RegExp(`\\b${d}\\b${AN.has(d) ? "\\(" : ""}`).test(u)
               )
             return c.length ? `from spell_core import ${c.join(", ")}` : ""
           }),
@@ -16425,7 +16435,7 @@ ${s}`
           return `core.install_styles(${r}, """${s}""")`
         }
         return e.trim()
-          ? Np(`javascript, which Python can't run:
+          ? Rp(`javascript, which Python can't run:
 ${e}`)
           : ""
       }
@@ -16472,10 +16482,10 @@ ${e}`)
         return "self"
       }
       ASTArrayLiteral(e) {
-        return Xe("", this.items(e.items), ["[", "]"])
+        return He("", this.items(e.items), ["[", "]"])
       }
       ASTEnumeration(e) {
-        return Xe("", this.items(e.enumeration), ["[", "]"])
+        return He("", this.items(e.enumeration), ["[", "]"])
       }
       ASTQuotedExpression(e) {
         return this.quoted(String(this.write(e.expression)))
@@ -16521,10 +16531,10 @@ ${e}`)
         return `#${e.initialWhitespace ?? " "}${e.value}`
       }
       ASTBlockComment(e) {
-        return Np(e.value)
+        return Rp(e.value)
       }
       ASTDocComment(e) {
-        return Np(
+        return Rp(
           e.lines.join(`
 `)
         )
@@ -16624,13 +16634,13 @@ ${e}`)
           : `(${r})`
       }
       ASTInvocationArgs(e) {
-        return Xe("", this.items(e.args))
+        return He("", this.items(e.args))
       }
       items(e) {
         return (e ?? []).map((t) => (t == null ? "None" : this.bare(t)))
       }
       ASTMethodInvocation(e) {
-        return Xe(this.nameOf(e.methodName), this.items(e.args.args))
+        return He(this.nameOf(e.methodName), this.items(e.args.args))
       }
       ASTScopedMethodInvocation(e) {
         if (e instanceof n.ASTConsoleMethodInvocation) return this.consoleCall(e)
@@ -16642,18 +16652,18 @@ ${e}`)
               s in n.ProgramWriter.POSITION_ARGS || n.ProgramWriter.POSITION_LOOPS.has(s)
                 ? this.positionArgs(s, e.args.args ?? [])
                 : (e.args.args ?? []).map((u) => this.bare(u)),
-            o = Xe(`core.${this.nameOf(s)}`, i)
+            o = He(`core.${this.nameOf(s)}`, i)
           return n.ProgramWriter.POSITION_RESULTS.has(s) ? this.positionOut(o) : o
         }
         let t = this.tight(e.thing)
-        return (this.assertThere(e.thing, t), Xe(`${t}.${this.nameOf(e.methodName)}`, this.items(e.args.args)))
+        return (this.assertThere(e.thing, t), He(`${t}.${this.nameOf(e.methodName)}`, this.items(e.args.args)))
       }
       consoleCall(e) {
         let t = e.args.args ?? [],
           r = t.map((s) => this.bare(s))
         return e.methodName === "log" && t.every((s) => this.printsNatively(s))
-          ? Xe("print", r)
-          : Xe(`core.console.${this.nameOf(e.methodName)}`, r)
+          ? He("print", r)
+          : He(`core.console.${this.nameOf(e.methodName)}`, r)
       }
       printsNatively(e) {
         let t = ve(e)
@@ -16694,7 +16704,7 @@ ${e}`)
                   ]
                 : []
             )
-            return Xe("core.trigger", [this.bare(r), ...d])
+            return He("core.trigger", [this.bare(r), ...d])
           }
         }
         if (!r) return
@@ -16852,16 +16862,16 @@ ${e}`)
             ;((i ??= r.length), r.push(String(this.write(u))))
             continue
           }
-          let c = p0(u) || u0(u),
+          let c = m0(u) || h0(u),
             d = this.withLifted(() => (c ? this.definition(u, s) : this.statement(u)))
           c ? (s = void 0) : o()
           let m = i ?? r.length
           if (((i = void 0), !d)) continue
           let g = t ? 2 : u instanceof n.ASTClassMember ? 1 : 0
-          ;(c && g && c0(r, m, g), r.push(d), c && g && r.push(...Array(g).fill("")))
+          ;(c && g && f0(r, m, g), r.push(d), c && g && r.push(...Array(g).fill("")))
         }
         for (o(); r.at(-1) === "";) r.pop()
-        return d0(
+        return g0(
           r.join(`
 `),
           t
@@ -16931,7 +16941,7 @@ ${s}`
           if (r && t)
             return r.replace(
               /^((?:@.*\n)*def .*:\n)/,
-              `$1${Zp(Fp(t.lines))}
+              `$1${tc(Np(t.lines))}
 `
             )
           if (r) return r
@@ -17009,7 +17019,7 @@ ${s}`
             ? `${this.quoted(this.nameOf(r.methodName ?? ""))}: ${this.inlineFunction(r)}`
             : String(this.write(r))
         )
-        return Xe("", t, ["{", "}"])
+        return He("", t, ["{", "}"])
       }
       ASTObjectLiteralProperty(e) {
         let t = this.quoted(this.nameOf(e.property.value, "property")),
@@ -17017,7 +17027,7 @@ ${s}`
         return `${t}: ${r}`
       }
       ASTTemplateString(e) {
-        return this.fString(e.parts.map((t) => (typeof t == "string" ? h0(t) : { value: t })))
+        return this.fString(e.parts.map((t) => (typeof t == "string" ? y0(t) : { value: t })))
       }
       ASTBackTickExpression(e) {
         return this.fString([{ value: e.expression }])
@@ -17037,13 +17047,13 @@ ${s}`
         let t = (e.attrs ?? [])
             .map((i) => {
               let o = i.propValue,
-                u = mP(e.tagName, i.name, o instanceof n.ASTJSXLiveValue)
+                u = SN(e.tagName, i.name, o instanceof n.ASTJSXLiveValue)
               return `${this.quoted(u)}: ${o ? this.bare(o) : "True"}`
             })
             .sort((i, o) => Number(o.startsWith('"class"')) - Number(i.startsWith('"class"'))),
-          r = t.length ? [Xe("", t, ["{", "}"])] : [],
+          r = t.length ? [He("", t, ["{", "}"])] : [],
           s = e.childValues.map((i) => this.bare(i))
-        return Xe("h", [this.quoted(e.tagName), ...r, ...s])
+        return He("h", [this.quoted(e.tagName), ...r, ...s])
       }
       ASTJSXLiveValue(e) {
         return this.bare(e.expression)
@@ -17060,10 +17070,10 @@ ${s}`
             m = this.inBlock(() => (this.noteParams(e), this.blockBody(e.body))),
             g = this.returnHint(e),
             f = t
-              ? `${Fp(t.lines)}
+              ? `${Np(t.lines)}
 `
               : "",
-            y = `${Xe(`def ${o}`, d)} -> ${g ?? "Any"}`,
+            y = `${He(`def ${o}`, d)} -> ${g ?? "Any"}`,
             w = [...i.map((A) => `@${A}`), y]
           return Kt(
             w.join(`
@@ -17076,7 +17086,7 @@ ${s}`
       }
       param(e) {
         let t = this.variableName(e),
-          r = this.hintOf(l0(e.datatype ?? e.variable?.datatype)) ?? "Any",
+          r = this.hintOf(d0(e.datatype ?? e.variable?.datatype)) ?? "Any",
           s = e.default ? this.bare(e.default) : void 0
         return s === void 0 ? `${t}: ${r}` : `${t}: ${r} = ${s}`
       }
@@ -17148,7 +17158,7 @@ ${s}`
       classDeclaration(e, t) {
         let { type: r, superType: s, members: i } = e,
           o = s ? `(${this.typeNameOf(s.name)})` : "",
-          u = t ? Fp(t.lines) : "",
+          u = t ? Np(t.lines) : "",
           c = this.inClassBody
         this.inClassBody = !0
         try {
@@ -17170,10 +17180,10 @@ ${s}`
             i = r.value ? this.bare(r.value) : this.nameOf(r.property.value, "variable")
           return `${s}=${i}`
         })
-        return Xe(String(this.write(e.type)), t)
+        return He(String(this.write(e.type)), t)
       }
       ASTListExpression(e) {
-        return Xe("", this.items(e.items), ["[", "]"])
+        return He("", this.items(e.items), ["[", "]"])
       }
       ASTTypeExpression(e) {
         return this.typeNameOf(e.name)
@@ -17226,7 +17236,7 @@ ${s}`
       ASTStaticDefinitionAsMember(e) {
         let t = ve(e.value),
           r = t instanceof n.ASTEnumeration ? t.enumeration : t instanceof n.ASTArrayLiteral ? t.items : void 0,
-          s = r ? Xe("", [...this.items(r), ...(r.length === 1 ? [""] : [])], ["(", ")"]) : this.bare(e.value)
+          s = r ? He("", [...this.items(r), ...(r.length === 1 ? [""] : [])], ["(", ")"]) : this.bare(e.value)
         return `${this.staticName(e.name)} = ${s.replace(/, \)$/, ",)")}`
       }
       ASTStaticDefinition(e) {
@@ -17297,30 +17307,30 @@ ${t}.${r} = staticmethod(${s})`
       for (let [t, r] of Object.entries(a)) t !== "match" && Gc(r, e)
     }
   }
-  l(Gc, "lS")
+  l(Gc, "dS")
   p(Gc, "forEachReturn")
-  function l0(a) {
-    return fP(a)
+  function d0(a) {
+    return bN(a)
   }
-  l(l0, "bX")
-  p(l0, "kindOfDatatype")
+  l(d0, "vX")
+  p(d0, "kindOfDatatype")
   function Gv(a) {
     return (a.statements ?? []).flatMap((e) =>
       e instanceof n.ASTStatementGroup && !(e instanceof n.ASTTryCatchBlock) ? Gv(e) : [e]
     )
   }
-  l(Gv, "p1")
+  l(Gv, "d1")
   p(Gv, "flattened")
-  function u0(a) {
+  function h0(a) {
     let e = a instanceof n.ASTExpression ? ve(a) : void 0
     if (!e || !$i(e)) return !1
     let { methodName: t, args: r } = e,
       s = r.args?.[1]
     return (t === "on" || t === "once") && !!s && ve(s) instanceof n.ASTMethodDefinition
   }
-  l(u0, "wX")
-  p(u0, "isHandlerCall")
-  function p0(a) {
+  l(h0, "DX")
+  p(h0, "isHandlerCall")
+  function m0(a) {
     return (
       (a instanceof n.ASTMethodDefinition && !a.inline) ||
       a instanceof n.ASTClassDeclaration ||
@@ -17328,13 +17338,13 @@ ${t}.${r} = staticmethod(${s})`
       a instanceof n.ASTStaticMethod
     )
   }
-  l(p0, "EX")
-  p(p0, "isDefinitionStatement")
+  l(m0, "CX")
+  p(m0, "isDefinitionStatement")
   function Eh(a) {
     let e = ve(a)
     return e instanceof n.ASTStringLiteral && e.quote ? e.value : void 0
   }
-  l(Eh, "a1")
+  l(Eh, "c1")
   p(Eh, "textLiteral")
   function Ch(a) {
     let e = a && ve(a)
@@ -17344,17 +17354,17 @@ ${t}.${r} = staticmethod(${s})`
     let t = e.expression
     return t instanceof n.ASTLiteral ? String(t.value) : void 0
   }
-  l(Ch, "u1")
+  l(Ch, "l1")
   p(Ch, "textValue")
-  function c0(a, e, t) {
+  function f0(a, e, t) {
     let r = e
     for (; r > 0 && a[r - 1] === "";) r--
     let s = r === 0 ? [] : Array(t).fill("")
     a.splice(r, e - r, ...s)
   }
-  l(c0, "vX")
-  p(c0, "separateAt")
-  function d0(a, e) {
+  l(f0, "kX")
+  p(f0, "separateAt")
+  function g0(a, e) {
     return a.replace(
       e ? /\n{4,}/g : /\n{3,}/g,
       e
@@ -17367,10 +17377,10 @@ ${t}.${r} = staticmethod(${s})`
 `
     )
   }
-  l(d0, "DX")
-  p(d0, "collapseBlankLines")
-  var gP = new Set(["position", "spell_position", "end_position", "with_spell_positions"])
-  function h0(a) {
+  l(g0, "MX")
+  p(g0, "collapseBlankLines")
+  var AN = new Set(["position", "spell_position", "end_position", "with_spell_positions"])
+  function y0(a) {
     return a.replace(
       /\\([\s\S])/g,
       (e, t) =>
@@ -17382,17 +17392,17 @@ ${t}.${r} = staticmethod(${s})`
         })[t] ?? t
     )
   }
-  l(h0, "kX")
-  p(h0, "unescaped")
-  var { isCoreCall: gc, unwrapped: yP } = n.jsShapes,
-    vP = class m0 extends xp {
+  l(y0, "FX")
+  p(y0, "unescaped")
+  var { isCoreCall: gc, unwrapped: wN } = n.jsShapes,
+    TN = class v0 extends Cp {
       static {
         l(this, "n")
       }
       static {
         p(this, "PyWriter")
       }
-      static instance = new m0()
+      static instance = new v0()
       waitingNames = new Set()
       waitingMethods = new WeakSet()
       atTopLevel = !1
@@ -17437,9 +17447,9 @@ ${t}.${r} = staticmethod(${s})`
                   t = !0
                   return
                 }
-                if (gc(s) && SP.has(s.methodName)) {
+                if (gc(s) && xN.has(s.methodName)) {
                   let i = s.args.args?.[1],
-                    o = i && yP(i)
+                    o = i && wN(i)
                   if (o instanceof n.ASTMethodDefinition && this.waitingMethods.has(o)) {
                     t = !0
                     return
@@ -17472,7 +17482,7 @@ ${t}.${r} = staticmethod(${s})`
         return this.waitingNames.has(e.methodName) ? `await ${t}` : t
       }
       ASTScopedMethodInvocation(e) {
-        if (gc(e) && e.methodName === "pauseFor") return `await ${Xe("core.pause_for", this.items(e.args.args))}`
+        if (gc(e) && e.methodName === "pauseFor") return `await ${He("core.pause_for", this.items(e.args.args))}`
         let t = super.ASTScopedMethodInvocation(e)
         return !gc(e) && this.waitingNames.has(e.methodName) ? `await ${t}` : t
       }
@@ -17517,11 +17527,11 @@ asyncio.run(${t}())`
       module(e) {
         let t = super.module(e)
         if (!/\basyncio\.run\(/.test(t)) return t
-        let r = t.startsWith(xp.FUTURE)
-            ? `${xp.FUTURE}
+        let r = t.startsWith(Cp.FUTURE)
+            ? `${Cp.FUTURE}
 `
             : "",
-          s = t.slice(r ? xp.FUTURE.length : 0).replace(/^\n+/, "")
+          s = t.slice(r ? Cp.FUTURE.length : 0).replace(/^\n+/, "")
         return `${r}import asyncio
 ${
   /^(?:import \w+|from typing import)/.test(s)
@@ -17531,16 +17541,16 @@ ${
 }${s}`
       }
     },
-    SP = new Set(["map", "forEach", "forEachSequential"]),
-    { unwrapped: bP } = n.jsShapes,
-    AP = class f0 extends n.JSWriter {
+    xN = new Set(["map", "forEach", "forEachSequential"]),
+    { unwrapped: EN } = n.jsShapes,
+    CN = class S0 extends n.JSWriter {
       static {
         l(this, "n")
       }
       static {
         p(this, "ElementsWriter")
       }
-      static instance = new f0()
+      static instance = new S0()
       python = new n.Naming(n.Naming.PYTHON, n.Naming.PYTHON_CLASHES)
       bound = []
       atTopLevel = !0
@@ -17574,7 +17584,7 @@ ${
         return t
       }
       isMade(e) {
-        let t = bP(e)
+        let t = EN(e)
         return !(t instanceof n.ASTLiteral || t instanceof n.ASTArrayLiteral || t instanceof n.ASTObjectLiteral)
       }
       standIns = new WeakSet()
@@ -17634,7 +17644,7 @@ ${this.bound.map(({ name: r, python: s }) => `  ${r} = state[${this.quoted(s)}]`
     },
     Gd = ".elements.spell.js",
     Dh = "# Written by spell compile, hash "
-  function g0({ projectName: a, program: e, elements: t, outputs: r, projects: s = {} }) {
+  function b0({ projectName: a, program: e, elements: t, outputs: r, projects: s = {} }) {
     let i = [t, ...Object.values(s)],
       o = Object.entries(s).map(([c, d]) => `        ${na(c)}: ${na(`/${d}`)},`),
       u = `"""${a}, as a web app:  \`uv run python ${a}.app.py\`, then open http://localhost:5000.
@@ -17649,10 +17659,10 @@ from pathlib import Path
 
 from quart import Quart, make_response, request, send_from_directory, websocket
 
-from spell_quart import ASSETS_URL, SpellSessions, assets_folder, fresh, page_html, remember_visitor, visitor_of
+from spell_quart import ${T0(r)}
 
 HERE = Path(__file__).parent
-${v0(r)}
+${w0(r)}
 
 app = Quart(__name__)
 
@@ -17710,43 +17720,57 @@ if __name__ == "__main__":
     return `${Dh}${zv(u)}:  edit below, and compiling again leaves this file be.
 ${u}`
   }
-  l(g0, "OX")
-  p(g0, "quartApp")
-  function y0(a) {
+  l(b0, "jX")
+  p(b0, "quartApp")
+  function A0(a) {
     if (!a) return !0
     let e = a.indexOf(`
 `),
       t = a.slice(0, e)
     return e < 0 || !t.startsWith(Dh) ? !1 : t.slice(Dh.length).startsWith(`${zv(a.slice(e + 1))}:`)
   }
-  l(y0, "RX")
-  p(y0, "isUneditedApp")
-  function v0(a) {
+  l(A0, "IX")
+  p(A0, "isUneditedApp")
+  function w0(a) {
     return a === "."
       ? `# the compiled program and its page file:  beside this app
 OUTPUTS = HERE`
-      : `# the compiled program and its page file:  where \`spell compile\` builds them
-OUTPUTS = (HERE / ${na(a)}).resolve()`
+      : `# the compiled program and its page file:  where \`spell compile\` builds them, in this checkout's build/
+OUTPUTS = built_folder(${na(a)})`
   }
-  l(v0, "NX")
-  p(v0, "outputsLine")
+  l(w0, "LX")
+  p(w0, "outputsLine")
+  function T0(a) {
+    return [
+      "ASSETS_URL",
+      "SpellSessions",
+      "assets_folder",
+      ...(a === "." ? [] : ["built_folder"]),
+      "fresh",
+      "page_html",
+      "remember_visitor",
+      "visitor_of"
+    ].join(", ")
+  }
+  l(T0, "BX")
+  p(T0, "importsOf")
   function zv(a) {
     let e = 2166136261
     for (let t = 0; t < a.length; t++) ((e ^= a.charCodeAt(t)), (e = Math.imul(e, 16777619) >>> 0))
     return e.toString(16).padStart(8, "0")
   }
-  l(zv, "c1")
+  l(zv, "f1")
   p(zv, "hashOf")
   function na(a) {
     return Array.isArray(a) ? `[${a.map(na).join(", ")}]` : JSON.stringify(a)
   }
   l(na, "Vs")
   p(na, "py")
-  var wP = "@spell/core",
-    S0 = ["Thing", "List", "App", "Drawable", "DrawableList"],
-    TP = ["spellCore", ...S0],
-    xP = ["Object", ...S0],
-    EP = class Ze extends fF {
+  var DN = "@spell/core",
+    x0 = ["Thing", "List", "App", "Drawable", "DrawableList"],
+    kN = ["spellCore", ...x0],
+    $N = ["Object", ...x0],
+    ON = class qe extends bF {
       static {
         l(this, "n")
       }
@@ -17755,14 +17779,14 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
       static registry = new Map()
       constructor(e) {
-        let t = Ze.registry.get(e)
+        let t = qe.registry.get(e)
         if (t) return t
         if ((super({}), Object.assign(this, { path: e }), !this.location.isProjectPath))
           throw new TypeError(`new SpellProject('${e}'): Must be initialized with project path.`)
-        Ze.registry.set(e, this)
+        qe.registry.set(e, this)
       }
       onRemove() {
-        ;(super.onRemove(), this.files.forEach((e) => e.onRemove()), Ze.registry.delete(this.path))
+        ;(super.onRemove(), this.files.forEach((e) => e.onRemove()), qe.registry.delete(this.path))
       }
       get location() {
         return this.derived("location", () => new F.SpellLocation(this.path))
@@ -17777,8 +17801,11 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return this.location.projectName
       }
       get title() {
-        return F.SpellLocation.titleFor(this.projectName ?? "")
+        return (
+          this.contents?.title ?? qe.listedTitles.get(this.path) ?? F.SpellLocation.titleFor(this.projectName ?? "")
+        )
       }
+      static listedTitles = new Map()
       get projectRootSpec() {
         return F.SpellSetup.projectSpectForRootPath(this.location.projectRoot)
       }
@@ -17903,10 +17930,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return this.derived(
           "parser",
           () =>
-            new Ap({
+            new Tp({
               name: `Parsing ${this.type}: ${this.projectName}`,
               tasks: [
-                new Ni({
+                new Pi({
                   name: `Loading ${this.type}`,
                   run: p(async (e) => {
                     if ((await this.load(void 0), this.needsFullParse)) {
@@ -17920,15 +17947,15 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
                     }
                   }, "run")
                 }),
-                Ap.forEach({
+                Tp.forEach({
                   name: "Loading imports",
                   list: p(() => [...this.sourceImportFiles, ...this.activeImports], "list"),
                   getTask: p(
-                    (e) => new Ni({ name: `Loading import: ${e.file}`, run: p(() => e.load(void 0), "run") }),
+                    (e) => new Pi({ name: `Loading import: ${e.file}`, run: p(() => e.load(void 0), "run") }),
                     "getTask"
                   )
                 }),
-                new Ni({
+                new Pi({
                   name: "Parsing imports",
                   run: p(async () => {
                     try {
@@ -17948,20 +17975,20 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return this.derived(
           "compiler",
           () =>
-            new Ap({
+            new Tp({
               debug: !1,
               name: `Compiling ${this.type}: ${this.projectName}`,
               tasks: [
                 this.parser,
-                Ap.forEach({
+                Tp.forEach({
                   name: "Compiling imports",
                   list: p(() => [...this.sourceImportFiles, ...this.activeImports], "list"),
                   getTask: p(
-                    (e) => new Ni({ name: `Compiling import: ${e.file}`, run: p(() => e.compile(), "run") }),
+                    (e) => new Pi({ name: `Compiling import: ${e.file}`, run: p(() => e.compile(), "run") }),
                     "getTask"
                   )
                 }),
-                new Ni({
+                new Pi({
                   name: "Combining output",
                   run: p(async (e) => {
                     let t = [...this.sourceImportFiles, ...this.activeImports].map((i, o) =>
@@ -17969,14 +17996,14 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
                       ),
                       { version: r, exports: s } = this.contents ?? {}
                     for (let i of this.targets) {
-                      if (i.can.draw === !1 && Ze.draws(t))
+                      if (i.can.draw === !1 && qe.draws(t))
                         throw new n.ParserError({
                           message: `'${this.projectName}' draws a UI, which target '${i.name}' can't.`,
                           activity: "SpellProject.compile",
                           params: { target: i.name }
                         })
                       let o = this.importHeader(i.writer),
-                        u = Ze.combineCompiled(t, i.writer, o, this.scope, {
+                        u = qe.combineCompiled(t, i.writer, o, this.scope, {
                           listsStartAt: this.contents?.listsStartAt
                         }),
                         { code: c, declarations: d } = F.SpellDeclarations.split(u, this.scope, {
@@ -17987,9 +18014,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
                       let m = this.wordsFileFor(i)
                       m && (m.contents = F.SpellWords.json(F.SpellWords.of(d, i.writer)))
                       let g = this.elementsFileFor(i)
-                      if (g && Ze.draws(t)) {
+                      if (g && qe.draws(t)) {
                         let f = pl.ElementsWriter.instance,
-                          y = Ze.combineCompiled(t, f, this.importHeader(f), this.scope, {
+                          y = qe.combineCompiled(t, f, this.importHeader(f), this.scope, {
                             listsStartAt: this.contents?.listsStartAt
                           })
                         if (
@@ -18019,7 +18046,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
                     return this.compiled
                   }, "run")
                 }),
-                new Ni({
+                new Pi({
                   name: "Saving compiled output",
                   run: p(async () => {
                     if (!this.saveCompiled) return this.outputFile.contents
@@ -18096,7 +18123,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
           () =>
             this.contents?.manifest
               ? (Object.entries(this.contents.manifest).forEach(([e, t]) => {
-                  ;((t.path = e), (t.location = new F.SpellLocation(e)), (t.file = Ze.getFileForPath(e)))
+                  ;((t.path = e), (t.location = new F.SpellLocation(e)), (t.file = qe.getFileForPath(e)))
                 }),
                 this.contents.manifest)
               : {},
@@ -18115,7 +18142,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
                   .filter(({ path: e }) => !F.SpellLocation.isAddress(e))
                   .map(({ path: e, active: t }) => {
                     let r = F.SpellLocation.getFileLocation(this.projectId, e),
-                      s = Ze.getFileForPath(r.path)
+                      s = qe.getFileForPath(r.path)
                     return { path: r.path, active: t, location: r, file: s }
                   })
               : [],
@@ -18144,7 +18171,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
           .filter(({ path: e, active: t }) => F.SpellLocation.isAddress(e) && t !== !1)
           .map(({ path: e, import: t, version: r, source: s }) => ({
             from: e,
-            projectId: Ze.projectIdForImport(e),
+            projectId: qe.projectIdForImport(e),
             import: t,
             version: r,
             source: s
@@ -18167,7 +18194,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
               })
             continue
           }
-          let i = await Ze.declarationsOf(s)
+          let i = await qe.declarationsOf(s)
           if (!i)
             throw new n.ParserError({
               message: `Can't import '${r.from}':  it has no compiled declarations -- compile it first.`,
@@ -18197,13 +18224,13 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return o ? F.SpellDeclarations.fromComments(o) : void 0
       }
       importHeader(e = n.JSWriter.instance) {
-        return Ze.importHeaderFor(this.scope, e)
+        return qe.importHeaderFor(this.scope, e)
       }
       static importHeaderFor(e, t = n.JSWriter.instance) {
-        return t.importsHeader(Ze.importsOf(e))
+        return t.importsHeader(qe.importsOf(e))
       }
       static importsOf(e) {
-        let t = [{ module: wP, names: [...TP] }],
+        let t = [{ module: DN, names: [...kN] }],
           r = e?.parentScope
         if (r instanceof n.ImportScope) for (let [s, i] of r.modules) t.push({ module: s, names: i })
         return t
@@ -18215,8 +18242,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
       static extensionMap
       static getFileForPath(e) {
-        Ze.extensionMap ||
-          (Ze.extensionMap = {
+        qe.extensionMap ||
+          (qe.extensionMap = {
             ".css": F.SpellCSSFile,
             ".js": F.SpellJSFile,
             ".jsx": F.SpellJSFile,
@@ -18225,7 +18252,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         let t = new F.SpellLocation(e)
         if (!t.isFilePath) throw new TypeError(`SpellProject.getFileForPath('${e}'): path is not a file path.`)
         let r = t.extension,
-          s = (r && Ze.extensionMap[r]) || Ze.extensionMap.default
+          s = (r && qe.extensionMap[r]) || qe.extensionMap.default
         return new s(e)
       }
       getFileLocation(e) {
@@ -18261,9 +18288,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
           ? Object.entries(a).some(([e, t]) => e !== "match" && zc(t))
           : !1
   }
-  l(zc, "yS")
+  l(zc, "SS")
   p(zc, "containsJSX")
-  var CP = class Ep extends iv {
+  var jN = class Dp extends iv {
       static {
         l(this, "n")
       }
@@ -18272,14 +18299,14 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
       static registry = new Map()
       constructor(e) {
-        let t = Ep.registry.get(e)
+        let t = Dp.registry.get(e)
         if (t) return t
         if ((super({}), Object.assign(this, { path: e }), !this.location.isFilePath))
           throw new TypeError(`new SpellFile('${e}'): Must be initialized with valid file path.`)
-        Ep.registry.set(e, this)
+        Dp.registry.set(e, this)
       }
       onRemove() {
-        ;(super.onRemove(), Ep.registry.delete(this.path), F.SpellLocation.registry.delete(this.path))
+        ;(super.onRemove(), Dp.registry.delete(this.path), F.SpellLocation.registry.delete(this.path))
       }
       get location() {
         return this.derived("location", () => new F.SpellLocation(this.path))
@@ -18392,7 +18419,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
       static errorConsole
       logParseErrors() {
-        let e = Ep.errorConsole
+        let e = Dp.errorConsole
         e &&
           (this.match && F.Block.getParseErrors(this.match))?.forEach((t) => {
             let r = `${t.AST?.value} on line ${t.line + 1}`,
@@ -18424,7 +18451,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return `${this.constructor.name}: ${this.path}`
       }
     },
-    DP = class kc extends iv {
+    FN = class kc extends iv {
       static {
         l(this, "n")
       }
@@ -18485,7 +18512,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return `${this.constructor.name}: ${this.path}`
       }
     },
-    kP = class $c extends iv {
+    PN = class $c extends iv {
       static {
         l(this, "n")
       }
@@ -18601,7 +18628,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return `${this.constructor.name}: ${this.path}`
       }
     },
-    Pp = {
+    Ip = {
       projectRoots: {},
       addProjectRoot(a) {
         return (this.projectRoots[a.path] ??= a)
@@ -18610,7 +18637,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return Object.keys(this.projectRoots)
       },
       projectSpectForRootPath(a) {
-        let e = Pp.projectRoots[a]
+        let e = Ip.projectRoots[a]
         if (!e) throw new TypeError(`Path '${a}' must be one of: "${this.projectRootPaths.join('", "')}"!`)
         return e
       },
@@ -18640,13 +18667,13 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return et.LIST + et.encodeAddress(a)
       },
       fileForUrl(a) {
-        let e = $h(b0(a, [et.SPACES, et.SAVE]), a),
+        let e = $h(E0(a, [et.SPACES, et.SAVE]), a),
           { projectId: t, rest: r } = et.split(e)
         if (!r) throw new TypeError(`SpellUrls.fileForUrl('${a}'):  no file after the project`)
         return { projectId: t, filePath: `/${r}`, path: e }
       },
       split(a) {
-        let e = Pp.groupFor(a)
+        let e = Ip.groupFor(a)
         if (!e) throw new TypeError(`SpellUrls:  no project group holds '${a}'`)
         if (a === e.path) return { projectId: a, rest: "" }
         let [t, ...r] = a.slice(e.path.length + 1).split("/")
@@ -18655,13 +18682,13 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       projectIdFor(a) {
         ;/%/.test(a) && (a = $h(a, a))
         for (let r of [et.INDEX, et.LIST]) a.startsWith(r) && (a = a.slice(r.length))
-        let e = Pp.groupFor(a),
+        let e = Ip.groupFor(a),
           t = e ? a.slice(e.path.length + 1) : ""
         if (!e || t.includes("/")) throw new TypeError(`SpellUrls.projectIdFor('${a}'):  no project group there`)
         return a
       },
       withoutPage(a) {
-        if (!Pp.groupFor(a)) return a
+        if (!Ip.groupFor(a)) return a
         let { projectId: e, rest: t } = et.split(a),
           r = t.slice(t.lastIndexOf("/") + 1)
         return !t || t.endsWith("/") || r.includes(".") ? a : e
@@ -18691,7 +18718,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
     if (!e.slice(e.lastIndexOf("/") + 1).includes(".")) throw new TypeError(`SpellUrls:  '${e}' isn't a file's address`)
     return et.encodeAddress(e)
   }
-  l(kh, "m1")
+  l(kh, "S1")
   p(kh, "tailFor")
   function $h(a, e) {
     try {
@@ -18703,16 +18730,16 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       throw new TypeError(`SpellUrls:  can't decode '${e}'`)
     }
   }
-  l($h, "g1")
+  l($h, "P1")
   p($h, "decodeParts")
-  function b0(a, e) {
+  function E0(a, e) {
     let t = a.split(/[?#]/)[0],
       r = e.find((s) => t.startsWith(s))
     return r ? t.slice(r.length) : t
   }
-  l(b0, "jX")
-  p(b0, "tailOf")
-  var $P = class extends jA {
+  l(E0, "qX")
+  p(E0, "tailOf")
+  var NN = class extends RA {
       static {
         l(this, "Dd")
       }
@@ -18736,7 +18763,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return /^[0-9]+/
       }
     },
-    Rp = class Oc extends mv {
+    Lp = class Oc extends mv {
       static {
         l(this, "n")
       }
@@ -18747,7 +18774,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         Object.defineProperty(this.prototype, "defaultRule", { value: "sequence", writable: !0 })
       }
       get tokenizer() {
-        return this.derived("tokenizer", () => new $P({ whitespacePolicy: n.WhitespacePolicy.LEADING_ONLY }))
+        return this.derived("tokenizer", () => new NN({ whitespacePolicy: n.WhitespacePolicy.LEADING_ONLY }))
       }
       compile(e, t = this.defaultRule, r = this.getScope()) {
         let s = this.tokenize(e, t) ?? [],
@@ -18875,11 +18902,11 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return t
       }
     },
-    je = new Rp({ module: "rulex" })
+    je = new Lp({ module: "rulex" })
   mv.rulexParser = je
-  var OP = class extends n.Sequence {
+  var RN = class extends n.Sequence {
     static {
-      l(this, "AS")
+      l(this, "xS")
     }
     static {
       p(this, "matchGroupRule")
@@ -18888,7 +18915,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       return a.groups.matchGroup.value
     }
   }
-  je.addRule(OP, {
+  je.addRule(RN, {
     name: "matchGroup",
     rules: [new n.Word({ matchGroup: "matchGroup" }), new n.Symbol(":")],
     optional: !0,
@@ -18902,9 +18929,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var jP = class extends n.Symbol {
+  var IN = class extends n.Symbol {
     static {
-      l(this, "xS")
+      l(this, "bS")
     }
     static {
       p(this, "repeatFlagRule")
@@ -18913,7 +18940,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       return a.matched[0].value
     }
   }
-  je.addRule(jP, {
+  je.addRule(IN, {
     name: "repeatFlag",
     literal: ["?", "*", "+"],
     optional: !0,
@@ -18929,9 +18956,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var FP = class extends n.Sequence {
+  var LN = class extends n.Sequence {
     static {
-      l(this, "bS")
+      l(this, "wS")
     }
     static {
       p(this, "intervalRule")
@@ -18949,7 +18976,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       return s
     }
   }
-  je.addRule(FP, {
+  je.addRule(LN, {
     name: "interval",
     rules: [
       new n.Symbol("{"),
@@ -18972,9 +18999,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var NP = class extends n.Sequence {
+  var BN = class extends n.Sequence {
     static {
-      l(this, "wS")
+      l(this, "ES")
     }
     static {
       p(this, "caseFlagRule")
@@ -18983,16 +19010,16 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       return !0
     }
   }
-  je.addRule(NP, {
+  je.addRule(BN, {
     name: "caseFlag",
     rules: [new n.Symbol("/"), new n.Keyword({ literal: "i", spacing: "none" })],
     spacing: "none",
     optional: !0
   })
-  var { matchGroup: qv, repeatFlag: ec, interval: tc, caseFlag: Jv } = je.rules,
-    PP = class extends n.Sequence {
+  var { matchGroup: qv, repeatFlag: rc, interval: sc, caseFlag: Jv } = je.rules,
+    MN = class extends n.Sequence {
       static {
-        l(this, "ES")
+        l(this, "vS")
       }
       static {
         p(this, "symbolRule")
@@ -19005,7 +19032,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return (s instanceof n.Repeat && !e.tokens.at(-1)?.whitespace && (s.itemSpacing = "none"), s)
       }
     }
-  je.addRule(PP, {
+  je.addRule(MN, {
     name: "symbol",
     alias: "rule",
     rules: [
@@ -19018,8 +19045,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
           new n.TokenType({ tokenType: n.SymbolToken, matchGroup: "literal", blacklist: ["|", ")", "[", "{", "("] })
         ]
       }),
-      ec,
-      tc
+      rc,
+      sc
     ],
     tests: [
       {
@@ -19053,9 +19080,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var RP = class extends n.Sequence {
+  var _N = class extends n.Sequence {
     static {
-      l(this, "vS")
+      l(this, "DS")
     }
     static {
       p(this, "keyword")
@@ -19066,9 +19093,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       return je.applyFlags(t, a)
     }
   }
-  je.addRule(RP, {
+  je.addRule(_N, {
     alias: "rule",
-    rules: [new n.Word({ matchGroup: "literal" }), Jv, ec, tc],
+    rules: [new n.Word({ matchGroup: "literal" }), Jv, rc, sc],
     tests: [
       {
         title: "matches single keyword",
@@ -19084,9 +19111,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var IP = class extends n.Sequence {
+  var WN = class extends n.Sequence {
     static {
-      l(this, "DS")
+      l(this, "CS")
     }
     static {
       p(this, "numberRule")
@@ -19097,10 +19124,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       return je.applyFlags(t, a)
     }
   }
-  je.addRule(IP, {
+  je.addRule(WN, {
     name: "number",
     alias: "rule",
-    rules: [new n.TokenType({ tokenType: n.NumberToken, matchGroup: "number" }), ec, tc],
+    rules: [new n.TokenType({ tokenType: n.NumberToken, matchGroup: "number" }), rc, sc],
     tests: [
       {
         title: "matches single keyword",
@@ -19113,9 +19140,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var LP = class extends n.Sequence {
+  var VN = class extends n.Sequence {
     static {
-      l(this, "CS")
+      l(this, "kS")
     }
     static {
       p(this, "subrule")
@@ -19125,9 +19152,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       return je.applyFlags(e, a)
     }
   }
-  je.addRule(LP, {
+  je.addRule(VN, {
     alias: "rule",
-    rules: [new n.Symbol("{"), qv, new n.Word({ matchGroup: "rule" }), new n.Symbol("}"), Jv, ec, tc],
+    rules: [new n.Symbol("{"), qv, new n.Word({ matchGroup: "rule" }), new n.Symbol("}"), Jv, rc, sc],
     tests: [
       {
         title: "matches subrule",
@@ -19144,22 +19171,22 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var BP = class extends n.Sequence {
+  var UN = class extends n.Sequence {
     static {
-      l(this, "kS")
+      l(this, "MS")
     }
     static {
       p(this, "list")
     }
     compile(a) {
       let { ruleName: e, delimiter: t } = a.groups,
-        r = Rp.compileMatchOrDie(t)
-      Rp.touching(e) && (r.spacing = "none")
-      let s = new n.Repeat({ rule: Rp.compileMatchOrDie(e), delimiter: r })
+        r = Lp.compileMatchOrDie(t)
+      Lp.touching(e) && (r.spacing = "none")
+      let s = new n.Repeat({ rule: Lp.compileMatchOrDie(e), delimiter: r })
       return je.applyFlags(s, a)
     }
   }
-  je.addRule(BP, {
+  je.addRule(UN, {
     alias: "rule",
     rules: [
       new n.Symbol("["),
@@ -19206,21 +19233,21 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var MP = class extends n.Sequence {
+  var GN = class extends n.Sequence {
     static {
-      l(this, "MS")
+      l(this, "$S")
     }
     static {
       p(this, "choices")
     }
     compile(a) {
-      let e = a.groups.choices.items.map((r) => Rp.compileMatchOrDie(r))
+      let e = a.groups.choices.items.map((r) => Lp.compileMatchOrDie(r))
       ;((e = je.consolidateLiterals(e, n.Keyword, "literal")), (e = je.consolidateLiterals(e, n.Symbol, "literal")))
       let t
       return (e.length === 1 ? (t = e[0]) : (t = new n.Choice({ rules: e })), je.applyFlags(t, a))
     }
   }
-  je.addRule(MP, {
+  je.addRule(GN, {
     alias: "rule",
     rules: [
       new n.Symbol("("),
@@ -19228,8 +19255,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       new n.Repeat({ matchGroup: "choices", rule: new n.Subrule("sequence"), delimiter: new n.Symbol("|") }),
       new n.Symbol(")"),
       Jv,
-      ec,
-      tc
+      rc,
+      sc
     ],
     tests: [
       {
@@ -19288,9 +19315,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var _P = class extends n.Repeat {
+  var zN = class extends n.Repeat {
     static {
-      l(this, "$S")
+      l(this, "FS")
     }
     static {
       p(this, "sequence")
@@ -19307,7 +19334,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       return t.length === 1 ? t[0] : new n.Sequence(t)
     }
   }
-  je.addRule(_P, {
+  je.addRule(zN, {
     rule: new n.Subrule("rule"),
     tests: [
       {
@@ -19514,7 +19541,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       static get rootScope() {
         return nd(this, "rootScope", () => {
           let e = new n.RootScope({ name: "spellRoot", parser: F.spellParser })
-          xP.forEach((t) => e.types.add(t))
+          $N.forEach((t) => e.types.add(t))
           for (let [t, r] of Object.entries(n.BUILT_IN_TYPES)) {
             let s = e.types.get(t, "LOCAL_ONLY")
             s ? r && (s.superType = n.classCase(r)) : e.types.add({ name: t, superType: r })
@@ -19582,7 +19609,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       '  `a new person with id = "owen"`, or `set the id of the person to "owen"`.',
       "- Saving uses it:  a thing saved in its own file is referred to by it."
     ),
-    rc = [
+    ac = [
       {
         name: "thing",
         detail: "base type",
@@ -20030,7 +20057,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         ]
       }
     ],
-    A0 = {
+    C0 = {
       text: "text",
       string: "text",
       number: "number",
@@ -20058,12 +20085,12 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       null: "nothing"
     }
   function Kv(a) {
-    return n.typeName(a, A0)
+    return n.typeName(a, C0)
   }
-  l(Kv, "P1")
+  l(Kv, "x1")
   p(Kv, "typeName")
-  function w0(a) {
-    for (let e of rc) {
+  function D0(a) {
+    for (let e of ac) {
       let t = a.types.get(e.name, "LOCAL_ONLY")
       if (!t) throw new TypeError(`Built-in type '${e.name}' isn't in the root scope:  see P.BUILT_IN_TYPES`)
       e.itemType && (t.itemType = e.itemType)
@@ -20081,15 +20108,15 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   }
-  l(w0, "IX")
-  p(w0, "loadBuiltInTypes")
+  l(D0, "GX")
+  p(D0, "loadBuiltInTypes")
   function yl(a) {
     return Bo(a)
   }
   l(yl, "Pc")
   p(yl, "builtInMemberName")
   function Xv(a) {
-    let e = WP.exec(a)
+    let e = qN.exec(a)
     if (!e) return
     let [, t, r, s, i, o] = e
     return t
@@ -20100,38 +20127,38 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
           ? { form: "spellCore", name: s }
           : { form: "static", type: i, name: o }
   }
-  l(Xv, "T1")
+  l(Xv, "b1")
   p(Xv, "parseReadAsTemplate")
-  var WP = /^(?:\{it\}\.(\w+)|\{it\}\.(\w+)\(\)|spellCore\.(\w+)\(\{it\}\)|(?!spellCore\.)([A-Z]\w*)\.(\w+)\(\{it\}\))$/
-  function T0(a, e = 1) {
+  var qN = /^(?:\{it\}\.(\w+)|\{it\}\.(\w+)\(\)|spellCore\.(\w+)\(\{it\}\)|(?!spellCore\.)([A-Z]\w*)\.(\w+)\(\{it\}\))$/
+  function k0(a, e = 1) {
     return e !== 0
       ? a
       : a.replace(/([Cc])ounts from 1/g, "$1ounts from 0").replace(/`card 1 of the deck`/g, "`card 0 of the deck`")
   }
-  l(T0, "BX")
-  p(T0, "docsCountingFrom")
-  function x0(a) {
+  l(k0, "VX")
+  p(k0, "docsCountingFrom")
+  function $0(a) {
     let e = Kv(a)
-    return rc.find((t) => t.name === e)
+    return ac.find((t) => t.name === e)
   }
-  l(x0, "qX")
-  p(x0, "builtInTypeEntry")
-  function E0(a) {
-    return rc.flatMap((e) => e.members.filter((t) => t.rules?.includes(a)).map((t) => ({ type: e, member: t })))
+  l($0, "UX")
+  p($0, "builtInTypeEntry")
+  function O0(a) {
+    return ac.flatMap((e) => e.members.filter((t) => t.rules?.includes(a)).map((t) => ({ type: e, member: t })))
   }
-  l(E0, "GX")
-  p(E0, "builtInMembersOfRule")
-  function C0(a) {
+  l(O0, "zX")
+  p(O0, "builtInMembersOfRule")
+  function j0(a) {
     return !!a && F.SpellParser.rootScope.types.get(a.name, "LOCAL_ONLY") === a
   }
-  l(C0, "WX")
-  p(C0, "isBuiltInTypeScope")
-  function D0(a) {
+  l(j0, "KX")
+  p(j0, "isBuiltInTypeScope")
+  function F0(a) {
     let e = yl(a)
-    return rc.some((t) => t.members.some((r) => r.stored && yl(r.words) === e))
+    return ac.some((t) => t.members.some((r) => r.stored && yl(r.words) === e))
   }
-  l(D0, "VX")
-  p(D0, "isBuiltInStoredMember")
+  l(F0, "JX")
+  p(F0, "isBuiltInStoredMember")
   function oe(...a) {
     return a.join(`
 `)
@@ -20317,11 +20344,11 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return e.tokens[0].value
       }
     },
-    k0,
-    $0,
+    P0,
+    N0,
     Oh,
     Aa,
-    Pr = class Rr extends ((Oh = n.Sequence), ($0 = [S]), (k0 = [S]), Oh) {
+    Nr = class Rr extends ((Oh = n.Sequence), (N0 = [S]), (P0 = [S]), Oh) {
       static {
         l(this, "be")
       }
@@ -20334,7 +20361,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       extractBodySpecFromRules() {
         let e = this.rules.at(-1),
           t = (e instanceof n.Subrule ? [e] : e instanceof n.Choice ? e.rules : []).map((s) =>
-            s instanceof n.Subrule ? $b[s.rule] : void 0
+            s instanceof n.Subrule ? Pb[s.rule] : void 0
           )
         if (!e || !t.length || t.some((s) => !s)) return
         let r = Object.assign({ syntaxRule: e }, ...t)
@@ -20466,15 +20493,15 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((Aa = $(Oh)),
-    b(Aa, 13, "operandInExpressions", $0, Pr),
-    b(Aa, 13, "flatBody", k0, Pr),
-    k(Aa, Pr),
-    p(Pr, "SpellStatement"),
-    v(Pr, "operandInExpressions", h(Aa, 8, Pr, !1)),
-    h(Aa, 11, Pr),
-    v(Pr, "flatBody", h(Aa, 12, Pr, !1)),
-    h(Aa, 15, Pr))
-  var I = Pr
+    b(Aa, 13, "operandInExpressions", N0, Nr),
+    b(Aa, 13, "flatBody", P0, Nr),
+    k(Aa, Nr),
+    p(Nr, "SpellStatement"),
+    v(Nr, "operandInExpressions", h(Aa, 8, Nr, !1)),
+    h(Aa, 11, Nr),
+    v(Nr, "flatBody", h(Aa, 12, Nr, !1)),
+    h(Aa, 15, Nr))
+  var I = Nr
   function Ed(a, e) {
     ;(a.rule.mutateScope(a), Hv(a))
     let t = {}
@@ -20495,11 +20522,11 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
     e && !e.is(Js) && e.rule.mutateScope(e)
     for (let t of a.matched) t instanceof n.Match && Hv(t)
   }
-  l(Hv, "w1")
+  l(Hv, "D1")
   p(Hv, "mutateScopeForInlineStatements")
   var Jo = new Me({ module: "JSX" }),
-    O0 = new Map([["children", "slot"]]),
-    VP = new Map([["in", "slot"]])
+    R0 = new Map([["children", "slot"]]),
+    JN = new Map([["in", "slot"]])
   function Cd(a) {
     let e = (a.children ?? [])
       .filter((r) => r instanceof n.JSXTextToken)
@@ -20514,53 +20541,29 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
   }
   l(Cd, "Hu")
   p(Cd, "rawTextOf")
-  var j0 = "markdown",
+  var I0 = "markdown",
     Zt = new Me({ module: "core" }),
-    F0,
+    L0,
     jh,
-    Bl,
-    Zi = class extends ((jh = n.Repeat), (F0 = [S]), jh) {
+    _l,
+    Zi = class extends ((jh = n.Repeat), (L0 = [S]), jh) {
       static {
         l(this, "zs")
       }
     }
-  ;((Bl = $(jh)),
-    b(Bl, 13, "datatype", F0, Zi),
-    k(Bl, Zi),
+  ;((_l = $(jh)),
+    b(_l, 13, "datatype", L0, Zi),
+    k(_l, Zi),
     p(Zi, "EatWhitespace"),
-    v(Zi, "datatype", h(Bl, 8, Zi, "text")),
-    h(Bl, 11, Zi))
-  var UP = Zi
-  Zt.addRule(UP, { syntax: "{whitespace}*" })
-  var N0,
-    P0,
+    v(Zi, "datatype", h(_l, 8, Zi, "text")),
+    h(_l, 11, Zi))
+  var KN = Zi
+  Zt.addRule(KN, { syntax: "{whitespace}*" })
+  var B0,
+    M0,
     Fh,
     wa,
-    Ir = class extends ((Fh = n.TokenType), (P0 = [S]), (N0 = [S]), Fh) {
-      static {
-        l(this, "yr")
-      }
-      getAST(e) {
-        let { value: t, raw: r } = e
-        return new n.ASTStringLiteral(e, { value: ua.string(t), raw: r })
-      }
-    }
-  ;((wa = $(Fh)),
-    b(wa, 13, "datatype", P0, Ir),
-    b(wa, 13, "tokenType", N0, Ir),
-    k(wa, Ir),
-    p(Ir, "Whitespace"),
-    v(Ir, "datatype", h(wa, 8, Ir, "text")),
-    h(wa, 11, Ir),
-    v(Ir, "tokenType", h(wa, 12, Ir, n.WhitespaceToken)),
-    h(wa, 15, Ir))
-  var GP = Ir
-  Zt.addRule(GP)
-  var R0,
-    I0,
-    Nh,
-    Ta,
-    Lr = class extends ((Nh = n.TokenType), (I0 = [S]), (R0 = [S]), Nh) {
+    Ir = class extends ((Fh = n.TokenType), (M0 = [S]), (B0 = [S]), Fh) {
       static {
         l(this, "Sr")
       }
@@ -20569,22 +20572,22 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return new n.ASTStringLiteral(e, { value: ua.string(t), raw: r })
       }
     }
-  ;((Ta = $(Nh)),
-    b(Ta, 13, "datatype", I0, Lr),
-    b(Ta, 13, "tokenType", R0, Lr),
-    k(Ta, Lr),
-    p(Lr, "Indent"),
-    v(Lr, "datatype", h(Ta, 8, Lr, "text")),
-    h(Ta, 11, Lr),
-    v(Lr, "tokenType", h(Ta, 12, Lr, n.IndentToken)),
-    h(Ta, 15, Lr))
-  var zP = Lr
-  Zt.addRule(zP)
-  var L0,
-    B0,
+  ;((wa = $(Fh)),
+    b(wa, 13, "datatype", M0, Ir),
+    b(wa, 13, "tokenType", B0, Ir),
+    k(wa, Ir),
+    p(Ir, "Whitespace"),
+    v(Ir, "datatype", h(wa, 8, Ir, "text")),
+    h(wa, 11, Ir),
+    v(Ir, "tokenType", h(wa, 12, Ir, n.WhitespaceToken)),
+    h(wa, 15, Ir))
+  var XN = Ir
+  Zt.addRule(XN)
+  var _0,
+    W0,
     Ph,
-    xa,
-    Br = class extends ((Ph = n.TokenType), (B0 = [S]), (L0 = [S]), Ph) {
+    Ta,
+    Lr = class extends ((Ph = n.TokenType), (W0 = [S]), (_0 = [S]), Ph) {
       static {
         l(this, "Pr")
       }
@@ -20593,22 +20596,22 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return new n.ASTStringLiteral(e, { value: ua.string(t), raw: r })
       }
     }
-  ;((xa = $(Ph)),
-    b(xa, 13, "datatype", B0, Br),
-    b(xa, 13, "tokenType", L0, Br),
-    k(xa, Br),
-    p(Br, "Newline"),
-    v(Br, "datatype", h(xa, 8, Br, "text")),
-    h(xa, 11, Br),
-    v(Br, "tokenType", h(xa, 12, Br, n.NewlineToken)),
-    h(xa, 15, Br))
-  var qP = Br
-  Zt.addRule(qP)
-  var M0,
-    _0,
-    Rh,
-    Ea,
-    Mr = class extends ((Rh = n.TokenType), (_0 = [S]), (M0 = [S]), Rh) {
+  ;((Ta = $(Ph)),
+    b(Ta, 13, "datatype", W0, Lr),
+    b(Ta, 13, "tokenType", _0, Lr),
+    k(Ta, Lr),
+    p(Lr, "Indent"),
+    v(Lr, "datatype", h(Ta, 8, Lr, "text")),
+    h(Ta, 11, Lr),
+    v(Lr, "tokenType", h(Ta, 12, Lr, n.IndentToken)),
+    h(Ta, 15, Lr))
+  var HN = Lr
+  Zt.addRule(HN)
+  var V0,
+    U0,
+    Nh,
+    xa,
+    Br = class extends ((Nh = n.TokenType), (U0 = [S]), (V0 = [S]), Nh) {
       static {
         l(this, "Tr")
       }
@@ -20617,24 +20620,48 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return new n.ASTStringLiteral(e, { value: ua.string(t), raw: r })
       }
     }
+  ;((xa = $(Nh)),
+    b(xa, 13, "datatype", U0, Br),
+    b(xa, 13, "tokenType", V0, Br),
+    k(xa, Br),
+    p(Br, "Newline"),
+    v(Br, "datatype", h(xa, 8, Br, "text")),
+    h(xa, 11, Br),
+    v(Br, "tokenType", h(xa, 12, Br, n.NewlineToken)),
+    h(xa, 15, Br))
+  var YN = Br
+  Zt.addRule(YN)
+  var G0,
+    z0,
+    Rh,
+    Ea,
+    Mr = class extends ((Rh = n.TokenType), (z0 = [S]), (G0 = [S]), Rh) {
+      static {
+        l(this, "Ar")
+      }
+      getAST(e) {
+        let { value: t, raw: r } = e
+        return new n.ASTStringLiteral(e, { value: ua.string(t), raw: r })
+      }
+    }
   ;((Ea = $(Rh)),
-    b(Ea, 13, "datatype", _0, Mr),
-    b(Ea, 13, "tokenType", M0, Mr),
+    b(Ea, 13, "datatype", z0, Mr),
+    b(Ea, 13, "tokenType", G0, Mr),
     k(Ea, Mr),
     p(Mr, "InlineWhitespace"),
     v(Mr, "datatype", h(Ea, 8, Mr, "text")),
     h(Ea, 11, Mr),
     v(Mr, "tokenType", h(Ea, 12, Mr, n.InlineWhitespaceToken)),
     h(Ea, 15, Mr))
-  var JP = Mr
-  Zt.addRule(JP)
-  var W0,
-    V0,
-    U0,
-    G0,
+  var QN = Mr
+  Zt.addRule(QN)
+  var q0,
+    J0,
+    K0,
+    X0,
     Ih,
     Lt,
-    We = class extends ((Ih = n.TokenType), (G0 = [S]), (U0 = [S]), (V0 = [S]), (W0 = [S]), Ih) {
+    We = class extends ((Ih = n.TokenType), (X0 = [S]), (K0 = [S]), (J0 = [S]), (q0 = [S]), Ih) {
       static {
         l(this, "Me")
       }
@@ -20644,10 +20671,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((Lt = $(Ih)),
-    b(Lt, 13, "highlightAs", G0, We),
-    b(Lt, 13, "alias", U0, We),
-    b(Lt, 13, "datatype", V0, We),
-    b(Lt, 13, "tokenType", W0, We),
+    b(Lt, 13, "highlightAs", X0, We),
+    b(Lt, 13, "alias", K0, We),
+    b(Lt, 13, "datatype", J0, We),
+    b(Lt, 13, "tokenType", q0, We),
     k(Lt, We),
     p(We, "NumberLiteral"),
     v(We, "ruleName", "number"),
@@ -20659,8 +20686,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
     h(Lt, 19, We),
     v(We, "tokenType", h(Lt, 20, We, n.NumberToken)),
     h(Lt, 23, We))
-  var KP = We
-  Zt.addRule(KP, {
+  var ZN = We
+  Zt.addRule(ZN, {
     tests: [
       {
         title: "correctly matches numbers",
@@ -20687,13 +20714,13 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       { title: "requires negative sign to touch the number", tests: [["- 1", void 0]] }
     ]
   })
-  var z0,
-    q0,
-    J0,
-    K0,
+  var H0,
+    Y0,
+    Q0,
+    Z0,
     Lh,
     Bt,
-    qe = class extends ((Lh = n.Pattern), (K0 = [S]), (J0 = [S]), (q0 = [S]), (z0 = [S]), Lh) {
+    Je = class extends ((Lh = n.Pattern), (Z0 = [S]), (Q0 = [S]), (Y0 = [S]), (H0 = [S]), Lh) {
       static {
         l(this, "je")
       }
@@ -20703,22 +20730,22 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((Bt = $(Lh)),
-    b(Bt, 13, "alias", K0, qe),
-    b(Bt, 13, "datatype", J0, qe),
-    b(Bt, 13, "pattern", q0, qe),
-    b(Bt, 13, "VALUE_MAP", z0, qe),
-    k(Bt, qe),
-    p(qe, "NumberAsString"),
-    v(qe, "alias", h(Bt, 8, qe, ["expression", "number"])),
-    h(Bt, 11, qe),
-    v(qe, "datatype", h(Bt, 12, qe, "number")),
-    h(Bt, 15, qe),
-    v(qe, "pattern", h(Bt, 16, qe, /^(zero|one|two|three|four|five|six|seven|eight|nine|ten)$/)),
-    h(Bt, 19, qe),
+    b(Bt, 13, "alias", Z0, Je),
+    b(Bt, 13, "datatype", Q0, Je),
+    b(Bt, 13, "pattern", Y0, Je),
+    b(Bt, 13, "VALUE_MAP", H0, Je),
+    k(Bt, Je),
+    p(Je, "NumberAsString"),
+    v(Je, "alias", h(Bt, 8, Je, ["expression", "number"])),
+    h(Bt, 11, Je),
+    v(Je, "datatype", h(Bt, 12, Je, "number")),
+    h(Bt, 15, Je),
+    v(Je, "pattern", h(Bt, 16, Je, /^(zero|one|two|three|four|five|six|seven|eight|nine|ten)$/)),
+    h(Bt, 19, Je),
     v(
-      qe,
+      Je,
       "VALUE_MAP",
-      h(Bt, 20, qe, {
+      h(Bt, 20, Je, {
         zero: 0,
         one: 1,
         two: 2,
@@ -20732,9 +20759,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         ten: 10
       })
     ),
-    h(Bt, 23, qe))
-  var XP = qe
-  Zt.addRule(XP, {
+    h(Bt, 23, Je))
+  var eR = Je
+  Zt.addRule(eR, {
     tests: [
       {
         title: "correctly matches number strings",
@@ -20754,13 +20781,13 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var X0,
-    H0,
-    Y0,
-    Q0,
+  var eT,
+    tT,
+    rT,
+    sT,
     Bh,
     Mt,
-    Ve = class extends ((Bh = n.Pattern), (Q0 = [S]), (Y0 = [S]), (H0 = [S]), (X0 = [S]), Bh) {
+    Ve = class extends ((Bh = n.Pattern), (sT = [S]), (rT = [S]), (tT = [S]), (eT = [S]), Bh) {
       static {
         l(this, "$e")
       }
@@ -20770,10 +20797,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((Mt = $(Bh)),
-    b(Mt, 13, "alias", Q0, Ve),
-    b(Mt, 13, "datatype", Y0, Ve),
-    b(Mt, 13, "pattern", H0, Ve),
-    b(Mt, 13, "VALUE_MAP", X0, Ve),
+    b(Mt, 13, "alias", sT, Ve),
+    b(Mt, 13, "datatype", rT, Ve),
+    b(Mt, 13, "pattern", tT, Ve),
+    b(Mt, 13, "VALUE_MAP", eT, Ve),
     k(Mt, Ve),
     p(Ve, "BooleanLiteral"),
     v(Ve, "ruleName", "boolean"),
@@ -20789,8 +20816,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       h(Mt, 20, Ve, { true: !0, false: !1, yes: !0, no: !1, ok: !0, cancel: !1, always: !0, never: !1 })
     ),
     h(Mt, 23, Ve))
-  var HP = Ve
-  Zt.addRule(HP, {
+  var tR = Ve
+  Zt.addRule(tR, {
     tests: [
       {
         title: "correctly matches booleans",
@@ -20816,13 +20843,13 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var Z0,
-    eT,
-    tT,
-    rT,
+  var aT,
+    iT,
+    nT,
+    oT,
     Mh,
     _t,
-    Ue = class sT extends ((Mh = n.TokenType), (rT = [S]), (tT = [S]), (eT = [S]), (Z0 = [S]), Mh) {
+    Ue = class lT extends ((Mh = n.TokenType), (oT = [S]), (nT = [S]), (iT = [S]), (aT = [S]), Mh) {
       static {
         l(this, "we")
       }
@@ -20836,7 +20863,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       getAST(e) {
         if (e.data.fillIns) return kd(e, e.data.fillIns)
         let t = ua.string(e.value)
-        return new n.ASTStringLiteral(e, { value: sT.plainText(t, e.matched[0]), quote: '"', raw: t })
+        return new n.ASTStringLiteral(e, { value: lT.plainText(t, e.matched[0]), quote: '"', raw: t })
       }
       static plainText(e, t) {
         try {
@@ -20847,10 +20874,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((_t = $(Mh)),
-    b(_t, 13, "alias", rT, Ue),
-    b(_t, 13, "highlightAs", tT, Ue),
-    b(_t, 13, "datatype", eT, Ue),
-    b(_t, 13, "tokenType", Z0, Ue),
+    b(_t, 13, "alias", oT, Ue),
+    b(_t, 13, "highlightAs", nT, Ue),
+    b(_t, 13, "datatype", iT, Ue),
+    b(_t, 13, "tokenType", aT, Ue),
     k(_t, Ue),
     p(Ue, "TextLiteral"),
     v(Ue, "ruleName", "text"),
@@ -20862,8 +20889,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
     h(_t, 19, Ue),
     v(Ue, "tokenType", h(_t, 20, Ue, n.TextToken)),
     h(_t, 23, Ue))
-  var YP = Ue
-  Zt.addRule(YP, {
+  var rR = Ue
+  Zt.addRule(rR, {
     tests: [
       {
         title: "correctly matches text",
@@ -20918,20 +20945,20 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       r = a.parse(t, "expression")
     return r && r.inputText.trim() === t ? r : void 0
   }
-  l(Yv, "VS")
+  l(Yv, "US")
   p(Yv, "parseFillIn")
   function kd(a, e) {
     return new n.ASTTemplateString(a, { parts: e.map((t) => (typeof t == "string" ? t : n.matchAST(t))) })
   }
   l(kd, "bc")
   p(kd, "fillInsAST")
-  var aT,
-    iT,
+  var uT,
+    pT,
     _h,
     Ca,
-    rr = class extends ((_h = n.TokenType), (iT = [S]), (aT = [S]), _h) {
+    rr = class extends ((_h = n.TokenType), (pT = [S]), (uT = [S]), _h) {
       static {
-        l(this, "er")
+        l(this, "tr")
       }
       getAST(e) {
         let [t] = e.matched
@@ -20941,8 +20968,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((Ca = $(_h)),
-    b(Ca, 13, "tokenType", iT, rr),
-    b(Ca, 13, "highlightAs", aT, rr),
+    b(Ca, 13, "tokenType", pT, rr),
+    b(Ca, 13, "highlightAs", uT, rr),
     k(Ca, rr),
     p(rr, "CommentLine"),
     v(rr, "ruleName", "comment"),
@@ -20950,8 +20977,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
     h(Ca, 11, rr),
     v(rr, "highlightAs", h(Ca, 12, rr, "comment")),
     h(Ca, 15, rr))
-  var QP = rr
-  Zt.addRule(QP, {
+  var sR = rr
+  Zt.addRule(sR, {
     tests: [
       {
         compileAs: "comment",
@@ -20965,21 +20992,21 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var nT,
-    oT,
+  var cT,
+    dT,
     Wh,
     Da,
-    sr = class extends ((Wh = n.Literal), (oT = [S]), (nT = [S]), Wh) {
+    sr = class extends ((Wh = n.Literal), (dT = [S]), (cT = [S]), Wh) {
       static {
-        l(this, "tr")
+        l(this, "rr")
       }
       getAST(e) {
         return new n.ASTNothingLiteral(e)
       }
     }
   ;((Da = $(Wh)),
-    b(Da, 13, "alias", oT, sr),
-    b(Da, 13, "datatype", nT, sr),
+    b(Da, 13, "alias", dT, sr),
+    b(Da, 13, "datatype", cT, sr),
     k(Da, sr),
     p(sr, "UndefinedLiteral"),
     v(sr, "ruleName", "undefined"),
@@ -20987,8 +21014,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
     h(Da, 11, sr),
     v(sr, "datatype", h(Da, 12, sr, "nothing")),
     h(Da, 15, sr))
-  var ZP = sr
-  Zt.addRule(ZP, {
+  var aR = sr
+  Zt.addRule(aR, {
     syntax: "(undefined|nothing)",
     tests: [
       {
@@ -21000,10 +21027,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var lT,
+  var hT,
     Vh,
-    Ml,
-    Oi = class extends ((Vh = n.Pattern), (lT = [S]), Vh) {
+    Wl,
+    Oi = class extends ((Vh = n.Pattern), (hT = [S]), Vh) {
       static {
         l(this, "Ss")
       }
@@ -21015,15 +21042,15 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return new n.ASTKeywordLiteral(e, { value: ua.string(t), raw: r })
       }
     }
-  ;((Ml = $(Vh)),
-    b(Ml, 13, "pattern", lT, Oi),
-    k(Ml, Oi),
+  ;((Wl = $(Vh)),
+    b(Wl, 13, "pattern", hT, Oi),
+    k(Wl, Oi),
     p(Oi, "KeywordRule"),
     v(Oi, "ruleName", "keyword"),
-    v(Oi, "pattern", h(Ml, 8, Oi, /^[a-zA-Z][\w-]*$/)),
-    h(Ml, 11, Oi))
-  var eR = Oi
-  Zt.addRule(eR, {
+    v(Oi, "pattern", h(Wl, 8, Oi, /^[a-zA-Z][\w-]*$/)),
+    h(Wl, 11, Oi))
+  var iR = Oi
+  Zt.addRule(iR, {
     tests: [
       {
         title: "correctly matches words",
@@ -21061,18 +21088,18 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
   }
   l(Qv, "$d")
   p(Qv, "declaredPrefix")
-  var uT,
-    pT,
-    cT,
+  var mT,
+    fT,
+    gT,
     Uh,
     fr,
-    ft = class Gh extends ((Uh = n.TokenType), (cT = [S]), (pT = [S]), (uT = [S]), Uh) {
+    ft = class Gh extends ((Uh = n.TokenType), (gT = [S]), (fT = [S]), (mT = [S]), Uh) {
       static {
         l(this, "Ze")
       }
       parse(e, t) {
         let [r] = t
-        if (!(r instanceof n.JSXElementToken) || r.tagName !== j0) return
+        if (!(r instanceof n.JSXElementToken) || r.tagName !== I0) return
         let s = super.parse(e, t)
         if (!s) return
         let i = []
@@ -21099,18 +21126,18 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
             r === void 0
               ? new n.ASTJSXExpression(e, {
                   expression: new n.ASTTemplateString(e, {
-                    parts: t.map((i) => (typeof i == "string" ? Gh.escaped(i) : dT(i)))
+                    parts: t.map((i) => (typeof i == "string" ? Gh.escaped(i) : yT(i)))
                   })
                 })
               : new n.ASTJSXExpression(e, { expression: new n.ASTStringLiteral(e, { value: r, quote: '"' }) })
-        return new n.ASTJSXElement(e, { tagName: tR, attrs: [], children: [s] })
+        return new n.ASTJSXElement(e, { tagName: nR, attrs: [], children: [s] })
       }
       static partsOf(e) {
         let t = [],
           r = "",
           s
         for (let i of e.split(/(?<=\n)/)) {
-          let o = rR.exec(i)?.[1]
+          let o = oR.exec(i)?.[1]
           if (s) {
             ;(o && o[0] === s[0] && o.length >= s.length && (s = void 0), (r += i))
             continue
@@ -21122,8 +21149,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
           let u = 0
           for (; u < i.length;) {
             let c = i.slice(u),
-              d = sR.exec(c)?.[0],
-              m = aR.exec(c)
+              d = lR.exec(c)?.[0],
+              m = uR.exec(c)
             c.startsWith("\\{")
               ? ((r += "\\{"), (u += 2))
               : d
@@ -21140,9 +21167,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((fr = $(Uh)),
-    b(fr, 13, "alias", cT, ft),
-    b(fr, 13, "tokenType", pT, ft),
-    b(fr, 13, "priority", uT, ft),
+    b(fr, 13, "alias", gT, ft),
+    b(fr, 13, "tokenType", fT, ft),
+    b(fr, 13, "priority", mT, ft),
     k(fr, ft),
     p(ft, "MarkdownBlock"),
     v(ft, "alias", h(fr, 8, ft, ["jsxChild", "expression"])),
@@ -21225,17 +21252,17 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  function dT(a) {
+  function yT(a) {
     return a.rule.name !== "parse_error"
       ? n.matchAST(a)
       : new n.ASTExpressionWithComment(a, { expression: new n.ASTMissingExpression(a), comment: n.matchAST(a) })
   }
-  l(dT, "UX")
-  p(dT, "holeAST")
-  var tR = "ui-markdown",
-    rR = /^\s*(`{3,}|~{3,})/,
-    sR = /^(`+).*?[^`]\1(?!`)/,
-    aR = /^\{([^{}\n]*[^{}\s][^{}\n]*)\}/,
+  l(yT, "HX")
+  p(yT, "holeAST")
+  var nR = "ui-markdown",
+    oR = /^\s*(`{3,}|~{3,})/,
+    lR = /^(`+).*?[^`]\1(?!`)/,
+    uR = /^\{([^{}\n]*[^{}\s][^{}\n]*)\}/,
     eS = class extends n.TokenType {
       static {
         l(this, "Js")
@@ -21262,11 +21289,11 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
           (e.innerTokens ??= []).push(...a.tokens))
       }
     },
-    hT,
-    mT,
+    vT,
+    ST,
     zh,
     ka,
-    ar = class fT extends ((zh = n.TokenType), (mT = [S]), (hT = [S]), zh) {
+    ar = class bT extends ((zh = n.TokenType), (ST = [S]), (vT = [S]), zh) {
       static {
         l(this, "Lt")
       }
@@ -21284,7 +21311,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
       getAST(e) {
         let { tagName: t } = e.matched[0],
-          r = O0.get(t) ?? t,
+          r = R0.get(t) ?? t,
           s = e.data.attributes?.map((o) => n.asAST(o?.AST)),
           i = e.data.children?.map((o) => n.asAST(o?.AST)).filter(Boolean) ?? []
         return new n.ASTJSXElement(e, { tagName: r, attrs: s, children: i })
@@ -21295,7 +21322,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         function r(s) {
           if (s.rule.name === "block") return
           let i = [...s.matched]
-          ;(s.is(fT) &&
+          ;(s.is(bT) &&
             (s.data.error && t.push(s.data.error), i.push(...(s.data.attributes ?? []), ...(s.data.children ?? []))),
             s.is(eS) && (s.data.error && t.push(s.data.error), i.push(s.data.expression, s.data.statement)),
             s.is(Zv) && t.push(...(s.data.errors ?? [])),
@@ -21305,8 +21332,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((ka = $(zh)),
-    b(ka, 13, "alias", mT, ar),
-    b(ka, 13, "tokenType", hT, ar),
+    b(ka, 13, "alias", ST, ar),
+    b(ka, 13, "tokenType", vT, ar),
     k(ka, ar),
     p(ar, "SpellJSX"),
     v(ar, "ruleName", "jsxElement"),
@@ -21314,8 +21341,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
     h(ka, 11, ar),
     v(ar, "tokenType", h(ka, 12, ar, n.JSXElementToken)),
     h(ka, 15, ar))
-  var gT = ar
-  Jo.addRule(gT, {
+  var AT = ar
+  Jo.addRule(AT, {
     tests: [
       {
         title: "Simple nested elements",
@@ -21496,10 +21523,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var yT,
+  var wT,
     qh,
-    _l,
-    ji = class extends ((qh = eS), (yT = [S]), qh) {
+    Vl,
+    ji = class extends ((qh = eS), (wT = [S]), qh) {
       static {
         l(this, "Ps")
       }
@@ -21555,26 +21582,26 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
                     : i ||
                       (console.warn("jsxAttribute.getAST: don't know how to render value", u, " for match ", e),
                       (c = new n.ASTNothingLiteral(e))),
-          new n.ASTJSXAttribute(e, { name: VP.get(t) ?? t, value: c, error: i?.AST })
+          new n.ASTJSXAttribute(e, { name: JN.get(t) ?? t, value: c, error: i?.AST })
         )
       }
     }
-  ;((_l = $(qh)),
-    b(_l, 13, "tokenType", yT, ji),
-    k(_l, ji),
+  ;((Vl = $(qh)),
+    b(Vl, 13, "tokenType", wT, ji),
+    k(Vl, ji),
     p(ji, "SpellJSXAttribute"),
     v(ji, "ruleName", "jsxAttribute"),
-    v(ji, "tokenType", h(_l, 8, ji, n.JSXAttributeToken)),
-    h(_l, 11, ji))
-  var iR = ji
-  Jo.addRule(iR)
-  var vT,
-    ST,
+    v(ji, "tokenType", h(Vl, 8, ji, n.JSXAttributeToken)),
+    h(Vl, 11, ji))
+  var pR = ji
+  Jo.addRule(pR)
+  var TT,
+    xT,
     Jh,
     $a,
-    ir = class extends ((Jh = n.TokenType), (ST = [S]), (vT = [S]), Jh) {
+    ir = class extends ((Jh = n.TokenType), (xT = [S]), (TT = [S]), Jh) {
       static {
-        l(this, "rr")
+        l(this, "nr")
       }
       parse(e, t) {
         let r = super.parse(e, t),
@@ -21591,8 +21618,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;(($a = $(Jh)),
-    b($a, 13, "alias", ST, ir),
-    b($a, 13, "tokenType", vT, ir),
+    b($a, 13, "alias", xT, ir),
+    b($a, 13, "tokenType", TT, ir),
     k($a, ir),
     p(ir, "SpellJSXText"),
     v(ir, "ruleName", "jsxText"),
@@ -21600,15 +21627,15 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
     h($a, 11, ir),
     v(ir, "tokenType", h($a, 12, ir, n.JSXTextToken)),
     h($a, 15, ir))
-  var nR = ir
-  Jo.addRule(nR)
-  var bT,
-    AT,
+  var cR = ir
+  Jo.addRule(cR)
+  var ET,
+    CT,
     Kh,
     Oa,
-    nr = class extends ((Kh = n.TokenType), (AT = [S]), (bT = [S]), Kh) {
+    nr = class extends ((Kh = n.TokenType), (CT = [S]), (ET = [S]), Kh) {
       static {
-        l(this, "nr")
+        l(this, "sr")
       }
       getAST(e) {
         let { tagName: t } = e.matched[0]
@@ -21616,8 +21643,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((Oa = $(Kh)),
-    b(Oa, 13, "alias", AT, nr),
-    b(Oa, 13, "tokenType", bT, nr),
+    b(Oa, 13, "alias", CT, nr),
+    b(Oa, 13, "tokenType", ET, nr),
     k(Oa, nr),
     p(nr, "SpellJSXEndTag"),
     v(nr, "ruleName", "jsxEndTag"),
@@ -21625,15 +21652,15 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
     h(Oa, 11, nr),
     v(nr, "tokenType", h(Oa, 12, nr, n.JSXEndTagToken)),
     h(Oa, 15, nr))
-  var oR = nr
-  Jo.addRule(oR)
-  var wT,
-    TT,
+  var dR = nr
+  Jo.addRule(dR)
+  var DT,
+    kT,
     Xh,
     ja,
-    or = class extends ((Xh = eS), (TT = [S]), (wT = [S]), Xh) {
+    or = class extends ((Xh = eS), (kT = [S]), (DT = [S]), Xh) {
       static {
-        l(this, "sr")
+        l(this, "ir")
       }
       parse(e, t) {
         let r = super.parse(e, t)
@@ -21653,8 +21680,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((ja = $(Xh)),
-    b(ja, 13, "alias", TT, or),
-    b(ja, 13, "tokenType", wT, or),
+    b(ja, 13, "alias", kT, or),
+    b(ja, 13, "tokenType", DT, or),
     k(ja, or),
     p(or, "SpellJSXExpression"),
     v(or, "ruleName", "jsxExpression"),
@@ -21662,8 +21689,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
     h(ja, 11, or),
     v(or, "tokenType", h(ja, 12, or, n.JSXExpressionToken)),
     h(ja, 15, or))
-  var lR = or
-  Jo.addRule(lR)
+  var hR = or
+  Jo.addRule(hR)
   var tS = class extends n.Rule {
       static {
         l(this, "Hs")
@@ -21681,7 +21708,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return new n.ASTParseError(a, { value: a.message || `Don't understand "${a.inputText}"` })
       }
     },
-    uR = class extends n.BlankLine {
+    mR = class extends n.BlankLine {
       static {
         l(this, "Od")
       }
@@ -21693,7 +21720,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return new n.ASTBlankLine(a)
       }
     },
-    xT = class Cp extends n.Rule {
+    $T = class kp extends n.Rule {
       static {
         l(this, "n")
       }
@@ -21704,7 +21731,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       static lineAt(e, t) {
         let r = e.matchStackForOffset(t).reverse()
         return (
-          r[0]?.rule instanceof Cp && (r = e.matchStackForOffset(t - 1).reverse()), r.find((s) => s.rule instanceof Cp)
+          r[0]?.rule instanceof kp && (r = e.matchStackForOffset(t - 1).reverse()), r.find((s) => s.rule instanceof kp)
         )
       }
       parse(e, t) {
@@ -21731,21 +21758,21 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
             A = e.parser?.parse([w], "comment", e)
           A && ((y -= 1), s.push(A))
           let D = g.slice(0, y)
-          Cp.isBullet(D) && s.push(D.shift())
+          kp.isBullet(D) && s.push(D.shift())
           let x = e.parser?.parse(D, "statement", e)
           if (
             (x?.is(tS) && (i.push(x), s.push(x), D.splice(0, x.length), (x = void 0)),
             x && ((u = x), s.push(x), D.splice(0, x.length)),
-            D.length && !x && Cp.isOutlineLineOutsideBody(e, D))
+            D.length && !x && kp.isOutlineLineOutsideBody(e, D))
           ) {
-            let E = F.spellParser.createParseError(e, D, pR)
+            let E = F.spellParser.createParseError(e, D, fR)
             ;(i.push(E), s.push(E))
           } else if (D.length) {
             let E = e.parser?.parse(D, "parse_error", e)
             E && (i.push(E), s.push(E))
           }
           if (x) {
-            i.push(...gT.parseErrorsIn(x))
+            i.push(...AT.parseErrorsIn(x))
             let E = t[1],
               j = x.rule instanceof I ? x.rule.getBody(x) : void 0,
               O = Ed(x, E),
@@ -21758,7 +21785,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
             ) {
               let M = F.spellParser.createParseError(
                 e,
-                [r, E].filter((P) => P !== void 0),
+                [r, E].filter((N) => N !== void 0),
                 "Got both inline statement and nested block"
               )
               ;(i.push(M), s.push(M))
@@ -21818,7 +21845,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
           : new n.ASTStatementGroup(e, { statements: e.matched.filter((r) => r instanceof n.Match).map((r) => r.AST) })
       }
     },
-    pR = '"it" and "its" mean a type only in its outline, indented under e.g. "a card is a thing where:"',
+    fR = '"it" and "its" mean a type only in its outline, indented under e.g. "a card is a thing where:"',
     da = new Me({ module: "types" }),
     $d = {
       are: 1,
@@ -21927,10 +21954,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       ninth: 1,
       tenth: 1
     },
-    ET,
+    OT,
     Hh,
-    Wl,
-    Fi = class sl extends ((Hh = n.Pattern), (ET = [S]), Hh) {
+    Ul,
+    Fi = class sl extends ((Hh = n.Pattern), (OT = [S]), Hh) {
       static {
         l(this, "Bt")
       }
@@ -21987,12 +22014,12 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return new n.ASTTypeExpression(e, { raw: r, name: t })
       }
     }
-  ;((Wl = $(Hh)),
-    b(Wl, 13, "highlightAs", ET, Fi),
-    k(Wl, Fi),
+  ;((Ul = $(Hh)),
+    b(Ul, 13, "highlightAs", OT, Fi),
+    k(Ul, Fi),
     p(Fi, "SpellType"),
-    v(Fi, "highlightAs", h(Wl, 8, Fi, "type")),
-    h(Wl, 11, Fi),
+    v(Fi, "highlightAs", h(Ul, 8, Fi, "type")),
+    h(Ul, 11, Fi),
     v(Fi, "MAX_NAME_WORDS", 4))
   var Yt = Fi
   function Ht(a) {
@@ -22002,15 +22029,15 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
   }
   l(Ht, "Ve")
   p(Ht, "getKnownType")
-  var cR = class extends Yt {
+  var gR = class extends Yt {
     static {
-      l(this, "ZS")
+      l(this, "QS")
     }
     static {
       p(this, "Type")
     }
   }
-  da.addRule(cR, {
+  da.addRule(gR, {
     tests: [
       {
         tests: [
@@ -22024,9 +22051,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var dR = class extends Yt {
+  var yR = class extends Yt {
     static {
-      l(this, "QS")
+      l(this, "_S")
     }
     static {
       p(this, "SingularType")
@@ -22040,7 +22067,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       return ((e.plurality = "singular"), e)
     }
   }
-  da.addRule(dR, {
+  da.addRule(yR, {
     tests: [
       {
         tests: [
@@ -22056,9 +22083,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var hR = class extends Yt {
+  var vR = class extends Yt {
     static {
-      l(this, "_S")
+      l(this, "eP")
     }
     static {
       p(this, "PluralType")
@@ -22072,7 +22099,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       return ((e.plurality = "plural"), e)
     }
   }
-  da.addRule(hR, {
+  da.addRule(vR, {
     tests: [
       {
         tests: [
@@ -22088,7 +22115,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var mR = class Yh extends Yt {
+  var SR = class Yh extends Yt {
     static {
       l(this, "n")
     }
@@ -22111,10 +22138,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
     static nameOf(e, t) {
       if (!(e instanceof n.TextToken)) return
       let r = e.innerText
-      if (!(!fR.test(r) || t?.[r.toLowerCase()])) return r
+      if (!(!bR.test(r) || t?.[r.toLowerCase()])) return r
     }
   }
-  da.addRule(mR, {
+  da.addRule(SR, {
     tests: [
       {
         tests: [
@@ -22126,14 +22153,14 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var fR = /^[A-Za-z][\w-]*$/,
-    CT,
-    DT,
+  var bR = /^[A-Za-z][\w-]*$/,
+    jT,
+    FT,
     Qh,
     Fa,
-    _r = class extends ((Qh = Yt), (DT = [S]), (CT = [S]), Qh) {
+    _r = class extends ((Qh = Yt), (FT = [S]), (jT = [S]), Qh) {
       static {
-        l(this, "Ar")
+        l(this, "xr")
       }
       test(e, t, r = 0) {
         let s = t[r]
@@ -22152,43 +22179,43 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((Fa = $(Qh)),
-    b(Fa, 13, "highlightAs", DT, _r),
-    b(Fa, 13, "word", CT, _r),
+    b(Fa, 13, "highlightAs", FT, _r),
+    b(Fa, 13, "word", jT, _r),
     k(Fa, _r),
     p(_r, "SubjectRule"),
     v(_r, "highlightAs", h(Fa, 8, _r, "variable")),
     h(Fa, 11, _r),
     v(_r, "word", h(Fa, 12, _r, "it")),
     h(Fa, 15, _r))
-  var kT = _r,
-    gR = class extends kT {
+  var PT = _r,
+    AR = class extends PT {
       static {
-        l(this, "tP")
+        l(this, "rP")
       }
       static {
         p(this, "SubjectIt")
       }
     }
-  da.addRule(gR)
-  var $T,
+  da.addRule(AR)
+  var NT,
     Zh,
-    Vl,
-    en = class extends ((Zh = kT), ($T = [S]), Zh) {
+    Gl,
+    en = class extends ((Zh = PT), (NT = [S]), Zh) {
       static {
         l(this, "Ys")
       }
     }
-  ;((Vl = $(Zh)),
-    b(Vl, 13, "word", $T, en),
-    k(Vl, en),
+  ;((Gl = $(Zh)),
+    b(Gl, 13, "word", NT, en),
+    k(Gl, en),
     p(en, "SubjectIts"),
-    v(en, "word", h(Vl, 8, en, "its")),
-    h(Vl, 11, en))
-  var yR = en
-  da.addRule(yR)
-  var vR = class extends Yt {
+    v(en, "word", h(Gl, 8, en, "its")),
+    h(Gl, 11, en))
+  var wR = en
+  da.addRule(wR)
+  var TR = class extends Yt {
     static {
-      l(this, "nP")
+      l(this, "sP")
     }
     static {
       p(this, "KnownType")
@@ -22198,7 +22225,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       if (t?.data.scopeType !== Le) return t
     }
   }
-  da.addRule(vR, {
+  da.addRule(TR, {
     tests: [
       {
         beforeEach(a) {
@@ -22227,7 +22254,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var SR = class OT extends Yt {
+  var xR = class RT extends Yt {
     static {
       l(this, "n")
     }
@@ -22245,10 +22272,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       return ((o.data.scopeType = e.types?.get(i) ?? Le), o)
     }
     isNameWord(e, t, r) {
-      return this.test(e, t, r) && !OT.STOP_WORDS.has(`${t[r].value}`.toLowerCase())
+      return this.test(e, t, r) && !RT.STOP_WORDS.has(`${t[r].value}`.toLowerCase())
     }
   }
-  da.addRule(SR, {
+  da.addRule(xR, {
     tests: [
       {
         tests: [
@@ -22264,11 +22291,11 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
     ]
   })
   var Cl = new Me({ module: "variables" }),
-    jT = "the? {identifier}",
-    FT,
+    IT = "the? {identifier}",
+    LT,
     em,
-    Ul,
-    tn = class extends ((em = n.Pattern), (FT = [S]), em) {
+    zl,
+    tn = class extends ((em = n.Pattern), (LT = [S]), em) {
       static {
         l(this, "Zs")
       }
@@ -22276,7 +22303,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         super({ pattern: n.ALPHANUMERIC_WORD_WITH_DASHES, blacklist: $d, ...e })
       }
       getPlurality(e) {
-        return pA(`${e.raw ?? e.value}`)
+        return mA(`${e.raw ?? e.value}`)
       }
       mapValue(e) {
         return `${e}`.replace(/-/g, "_").replace(/\s/g, "_")
@@ -22298,25 +22325,25 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return new n.ASTVariableExpression(e, { raw: e.raw, name: s, variable: r, plurality: i })
       }
     }
-  ;((Ul = $(em)),
-    b(Ul, 13, "highlightAs", FT, tn),
-    k(Ul, tn),
+  ;((zl = $(em)),
+    b(zl, 13, "highlightAs", LT, tn),
+    k(zl, tn),
     p(tn, "SpellIdentifier"),
-    v(tn, "highlightAs", h(Ul, 8, tn, "variable")),
-    h(Ul, 11, tn))
-  var sc = tn,
-    bR = class extends sc {
+    v(tn, "highlightAs", h(zl, 8, tn, "variable")),
+    h(zl, 11, tn))
+  var ic = tn,
+    ER = class extends ic {
       static {
-        l(this, "iP")
+        l(this, "oP")
       }
       static {
         p(this, "Identifier")
       }
     }
-  Cl.addRule(bR)
-  var AR = class extends sc {
+  Cl.addRule(ER)
+  var CR = class extends ic {
     static {
-      l(this, "oP")
+      l(this, "aP")
     }
     static {
       p(this, "SingularIdentifier")
@@ -22329,7 +22356,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       return "singular"
     }
   }
-  Cl.addRule(AR, {
+  Cl.addRule(CR, {
     tests: [
       {
         tests: [
@@ -22342,9 +22369,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var wR = class extends sc {
+  var DR = class extends ic {
     static {
-      l(this, "aP")
+      l(this, "uP")
     }
     static {
       p(this, "PluralIdentifier")
@@ -22357,7 +22384,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       return "plural"
     }
   }
-  Cl.addRule(wR, {
+  Cl.addRule(DR, {
     tests: [
       {
         tests: [
@@ -22370,7 +22397,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var NT = class extends n.Sequence {
+  var BT = class extends n.Sequence {
     static {
       l(this, "Ec")
     }
@@ -22390,12 +22417,12 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
     }
     getPlurality(a) {
       let { identifier: e } = a.groups
-      if (!e.is(sc)) throw new TypeError(`Expected an identifier, got '${e.raw}'.`)
+      if (!e.is(ic)) throw new TypeError(`Expected an identifier, got '${e.raw}'.`)
       return e.rule.getPlurality(e)
     }
   }
-  Cl.addRule(NT, {
-    syntax: jT,
+  Cl.addRule(BT, {
+    syntax: IT,
     tests: [
       {
         tests: [
@@ -22408,10 +22435,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var PT,
+  var MT,
     tm,
-    Gl,
-    rn = class extends ((tm = NT), (PT = [S]), tm) {
+    ql,
+    rn = class extends ((tm = BT), (MT = [S]), tm) {
       static {
         l(this, "Qs")
       }
@@ -22420,15 +22447,15 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         if (r?.data.scopeVar !== Le) return r
       }
     }
-  ;((Gl = $(tm)),
-    b(Gl, 13, "alias", PT, rn),
-    k(Gl, rn),
+  ;((ql = $(tm)),
+    b(ql, 13, "alias", MT, rn),
+    k(ql, rn),
     p(rn, "KnownVariable"),
-    v(rn, "alias", h(Gl, 8, rn, "expression")),
-    h(Gl, 11, rn))
-  var TR = rn
-  Cl.addRule(TR, {
-    syntax: jT,
+    v(rn, "alias", h(ql, 8, rn, "expression")),
+    h(ql, 11, rn))
+  var kR = rn
+  Cl.addRule(kR, {
+    syntax: IT,
     tests: [
       {
         compileAs: "known_variable",
@@ -22445,10 +22472,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
     ]
   })
   var rS = new Me({ module: "constants" }),
-    RT,
+    _T,
     rm,
-    zl,
-    sn = class IT extends ((rm = n.Pattern), (RT = [S]), rm) {
+    Jl,
+    sn = class WT extends ((rm = n.Pattern), (_T = [S]), rm) {
       static {
         l(this, "Ts")
       }
@@ -22465,7 +22492,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return new n.ASTConstantExpression(e, { name: r, value: t ? t.value : r, constant: t })
       }
       static declareValue(e, t) {
-        if (!t?.is(IT)) return
+        if (!t?.is(WT)) return
         let r = t.data.scopeConstant
         if (r && r !== Le) return
         let { scope: s } = e,
@@ -22474,22 +22501,22 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         o && (t.data.scopeConstant = o)
       }
     }
-  ;((zl = $(rm)),
-    b(zl, 13, "highlightAs", RT, sn),
-    k(zl, sn),
+  ;((Jl = $(rm)),
+    b(Jl, 13, "highlightAs", _T, sn),
+    k(Jl, sn),
     p(sn, "SpellConstant"),
-    v(sn, "highlightAs", h(zl, 8, sn, "enumMember")),
-    h(zl, 11, sn))
-  var ac = sn,
-    xR = class extends ac {
+    v(sn, "highlightAs", h(Jl, 8, sn, "enumMember")),
+    h(Jl, 11, sn))
+  var Dl = sn,
+    $R = class extends Dl {
       static {
-        l(this, "pP")
+        l(this, "cP")
       }
       static {
         p(this, "Constant")
       }
     }
-  rS.addRule(xR, {
+  rS.addRule($R, {
     tests: [
       {
         tests: [
@@ -22500,10 +22527,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var LT,
+  var VT,
     sm,
-    ql,
-    an = class extends ((sm = ac), (LT = [S]), sm) {
+    Kl,
+    an = class extends ((sm = Dl), (VT = [S]), sm) {
       static {
         l(this, "_s")
       }
@@ -22512,14 +22539,14 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         if (r?.data.scopeConstant !== Le) return r
       }
     }
-  ;((ql = $(sm)),
-    b(ql, 13, "alias", LT, an),
-    k(ql, an),
+  ;((Kl = $(sm)),
+    b(Kl, 13, "alias", VT, an),
+    k(Kl, an),
     p(an, "KnownConstant"),
-    v(an, "alias", h(ql, 8, an, "expression")),
-    h(ql, 11, an))
-  var ER = an
-  rS.addRule(ER, {
+    v(an, "alias", h(Kl, 8, an, "expression")),
+    h(Kl, 11, an))
+  var OR = an
+  rS.addRule(OR, {
     tests: [
       {
         compileAs: "known_constant",
@@ -22537,7 +22564,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
   })
   var Ko = new Me({ module: "assignment" }),
     Qs = new Me({ module: "properties" }),
-    BT = new Set([
+    UT = new Set([
       "of",
       "the",
       "a",
@@ -22568,20 +22595,20 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       "by",
       "at"
     ]),
-    MT = new Set(["with", "for", "from", "in", "on", "by", "at", "into"])
+    GT = new Set(["with", "for", "from", "in", "on", "by", "at", "into"])
   function Od(a) {
     let e = a.data.itVar === Le ? void 0 : a.data.itVar
     return e ? new n.ASTVariableExpression(a, { raw: "it", name: e.output || e.name }) : new n.ASTSelfLiteral(a)
   }
   l(Od, "Qu")
   p(Od, "itsObject")
-  var CR = /^[a-z][\w-]*$/,
-    _T,
-    WT,
-    VT,
+  var jR = /^[a-z][\w-]*$/,
+    zT,
+    qT,
+    JT,
     am,
     gr,
-    gt = class extends ((am = n.Pattern), (VT = [S]), (WT = [S]), (_T = [S]), am) {
+    gt = class extends ((am = n.Pattern), (JT = [S]), (qT = [S]), (zT = [S]), am) {
       static {
         l(this, "mt")
       }
@@ -22593,26 +22620,26 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((gr = $(am)),
-    b(gr, 13, "pattern", VT, gt),
-    b(gr, 13, "blacklist", WT, gt),
-    b(gr, 13, "highlightAs", _T, gt),
+    b(gr, 13, "pattern", JT, gt),
+    b(gr, 13, "blacklist", qT, gt),
+    b(gr, 13, "highlightAs", zT, gt),
     k(gr, gt),
     p(gt, "Property"),
-    v(gt, "pattern", h(gr, 8, gt, CR)),
+    v(gt, "pattern", h(gr, 8, gt, jR)),
     h(gr, 11, gt),
     v(gt, "blacklist", h(gr, 12, gt, $d)),
     h(gr, 15, gt),
     v(gt, "highlightAs", h(gr, 16, gt, "property")),
     h(gr, 19, gt))
-  var DR = gt
-  Qs.addRule(DR)
-  var UT,
-    GT,
+  var FR = gt
+  Qs.addRule(FR)
+  var KT,
+    XT,
     im,
-    Na,
-    Wr = class nm extends ((im = n.Pattern), (GT = [S]), (UT = [S]), im) {
+    Pa,
+    Wr = class nm extends ((im = n.Pattern), (XT = [S]), (KT = [S]), im) {
       static {
-        l(this, "qt")
+        l(this, "Gt")
       }
       test(e, t, r = 0) {
         return r < t.length && nm.isMemberWord(t[r], this.pattern, !0)
@@ -22637,20 +22664,20 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       static isMemberWord(e, t, r = !1) {
         if (!(e instanceof n.WordToken) || !e.matchesPattern(t)) return !1
         let s = `${e.value}`.toLowerCase()
-        return !BT.has(s) || (r && MT.has(s))
+        return !UT.has(s) || (r && GT.has(s))
       }
     }
-  ;((Na = $(im)),
-    b(Na, 13, "pattern", GT, Wr),
-    b(Na, 13, "highlightAs", UT, Wr),
-    k(Na, Wr),
+  ;((Pa = $(im)),
+    b(Pa, 13, "pattern", XT, Wr),
+    b(Pa, 13, "highlightAs", KT, Wr),
+    k(Pa, Wr),
     p(Wr, "MemberWords"),
-    v(Wr, "pattern", h(Na, 8, Wr, n.ALPHANUMERIC_WORD_WITH_DASHES)),
-    h(Na, 11, Wr),
-    v(Wr, "highlightAs", h(Na, 12, Wr, "property")),
-    h(Na, 15, Wr))
-  var kR = Wr
-  Qs.addRule(kR, {
+    v(Wr, "pattern", h(Pa, 8, Wr, n.ALPHANUMERIC_WORD_WITH_DASHES)),
+    h(Pa, 11, Wr),
+    v(Wr, "highlightAs", h(Pa, 12, Wr, "property")),
+    h(Pa, 15, Wr))
+  var PR = Wr
+  Qs.addRule(PR, {
     tests: [
       {
         tests: [
@@ -22665,12 +22692,12 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var zT,
+  var HT,
     om,
-    Jl,
-    nn = class lm extends ((om = n.Rule), (zT = [S]), om) {
+    Xl,
+    nn = class lm extends ((om = n.Rule), (HT = [S]), om) {
       static {
-        l(this, "jn")
+        l(this, "In")
       }
       test(e, t, r = 0) {
         return lm.wordsOf(t[r]) !== void 0
@@ -22702,19 +22729,19 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         let t = e.innerText.trim().split(/\s+/),
           r = p((s, i) => {
             let o = s.toLowerCase()
-            return OR.test(s) && (!BT.has(o) || (i === 0 && MT.has(o)))
+            return RR.test(s) && (!UT.has(o) || (i === 0 && GT.has(o)))
           }, "isMemberWord")
         return t[0] && t.every(r) ? t : void 0
       }
     }
-  ;((Jl = $(om)),
-    b(Jl, 13, "highlightAs", zT, nn),
-    k(Jl, nn),
+  ;((Xl = $(om)),
+    b(Xl, 13, "highlightAs", HT, nn),
+    k(Xl, nn),
     p(nn, "QuotedMember"),
-    v(nn, "highlightAs", h(Jl, 8, nn, "property")),
-    h(Jl, 11, nn))
-  var $R = nn
-  Qs.addRule($R, {
+    v(nn, "highlightAs", h(Xl, 8, nn, "property")),
+    h(Xl, 11, nn))
+  var NR = nn
+  Qs.addRule(NR, {
     tests: [
       {
         tests: [
@@ -22727,7 +22754,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var OR = /^[A-Za-z][\w-]*$/,
+  var RR = /^[A-Za-z][\w-]*$/,
     $e = new Me({ module: "expressions" }),
     Se = { ternary: 4, or: 5, and: 6, equality: 10, comparison: 11, takesSum: 12, sum: 13, product: 14 },
     oa = {
@@ -22745,25 +22772,25 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return !oa.current || a.couldBeA(oa.current.datatype, e)
       }
     },
-    qT,
-    JT,
+    YT,
+    QT,
     um,
-    Pa,
-    Vr = class extends ((um = I), (JT = [S]), (qT = [S]), um) {
+    Na,
+    Vr = class extends ((um = I), (QT = [S]), (YT = [S]), um) {
       static {
         l(this, "Er")
       }
     }
-  ;((Pa = $(um)),
-    b(Pa, 13, "parenthesize", JT, Vr),
-    b(Pa, 13, "alias", qT, Vr),
-    k(Pa, Vr),
+  ;((Na = $(um)),
+    b(Na, 13, "parenthesize", QT, Vr),
+    b(Na, 13, "alias", YT, Vr),
+    k(Na, Vr),
     p(Vr, "SpellExpression"),
-    v(Vr, "parenthesize", h(Pa, 8, Vr, !1)),
-    h(Pa, 11, Vr),
-    v(Vr, "alias", h(Pa, 12, Vr, "expression")),
-    h(Pa, 15, Vr))
-  var Ne = Vr,
+    v(Vr, "parenthesize", h(Na, 8, Vr, !1)),
+    h(Na, 11, Vr),
+    v(Vr, "alias", h(Na, 12, Vr, "expression")),
+    h(Na, 15, Vr))
+  var Pe = Vr,
     Wi = class extends n.Choice {
       static {
         l(this, "Ft")
@@ -22783,12 +22810,12 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
   $e.addRule(Wi.specialize({ ruleName: "can" }), { syntax: "(can|(negated:can not|cannot|can't|cant))" })
   $e.addRule(Wi.specialize({ ruleName: "will" }), { syntax: "(will|(negated:will not|won't|wont))" })
   $e.addRule(Wi.specialize({ ruleName: "has" }), { syntax: "(has|(negated:does not have|doesn't have|doesnt have))" })
-  var KT,
-    XT,
-    HT,
+  var ZT,
+    e1,
+    t1,
     pm,
     yr,
-    yt = class extends ((pm = Ne), (HT = [S]), (XT = [S]), (KT = [S]), pm) {
+    yt = class extends ((pm = Pe), (t1 = [S]), (e1 = [S]), (ZT = [S]), pm) {
       static {
         l(this, "gt")
       }
@@ -22829,9 +22856,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((yr = $(pm)),
-    b(yr, 13, "alias", HT, yt),
-    b(yr, 13, "datatype", XT, yt),
-    b(yr, 13, "precedence", KT, yt),
+    b(yr, 13, "alias", t1, yt),
+    b(yr, 13, "datatype", e1, yt),
+    b(yr, 13, "precedence", ZT, yt),
     k(yr, yt),
     p(yt, "InfixOperatorSuffix"),
     v(yt, "alias", h(yr, 8, yt, "expression_suffix")),
@@ -22852,9 +22879,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         throw new TypeError("Must implement compileASTExpression()")
       }
     },
-    jR = class extends Ne {
+    IR = class extends Pe {
       static {
-        l(this, "hP")
+        l(this, "mP")
       }
       static {
         p(this, "ParenthesizedExpression")
@@ -22867,7 +22894,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return new n.ASTParenthesizedExpression(a, { expression: e.AST })
       }
     }
-  $e.addRule(jR, {
+  $e.addRule(IR, {
     syntax: "\\( {expression} \\)",
     tests: [
       {
@@ -22900,11 +22927,11 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var YT,
-    QT,
+  var r1,
+    s1,
     cm,
     Ra,
-    lr = class aa extends ((cm = Ne), (QT = [S]), (YT = [S]), cm) {
+    lr = class aa extends ((cm = Pe), (s1 = [S]), (r1 = [S]), cm) {
       static {
         l(this, "Fe")
       }
@@ -23007,8 +23034,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((Ra = $(cm)),
-    b(Ra, 13, "alias", QT, lr),
-    b(Ra, 13, "bound", YT, lr),
+    b(Ra, 13, "alias", s1, lr),
+    b(Ra, 13, "bound", r1, lr),
     k(Ra, lr),
     p(lr, "CompoundExpression"),
     v(lr, "ruleName", "expression"),
@@ -23016,8 +23043,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
     h(Ra, 11, lr),
     v(lr, "bound", h(Ra, 12, lr, 0)),
     h(Ra, 15, lr))
-  var ZT = lr
-  $e.addRule(ZT, {
+  var a1 = lr
+  $e.addRule(a1, {
     syntax: "{lhs:operand} {rhsChain:expression_suffix}*",
     tests: [
       {
@@ -23051,22 +23078,22 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var e1,
+  var i1,
     dm,
-    Kl,
-    on = class extends ((dm = ZT), (e1 = [S]), dm) {
+    Hl,
+    on = class extends ((dm = a1), (i1 = [S]), dm) {
       static {
         l(this, "ei")
       }
     }
-  ;((Kl = $(dm)),
-    b(Kl, 13, "bound", e1, on),
-    k(Kl, on),
+  ;((Hl = $(dm)),
+    b(Hl, 13, "bound", i1, on),
+    k(Hl, on),
     p(on, "ArithmeticExpression"),
-    v(on, "bound", h(Kl, 8, on, Se.takesSum)),
-    h(Kl, 11, on))
-  var FR = on
-  $e.addRule(FR, {
+    v(on, "bound", h(Hl, 8, on, Se.takesSum)),
+    h(Hl, 11, on))
+  var LR = on
+  $e.addRule(LR, {
     syntax: "{lhs:operand} {rhsChain:expression_suffix}*",
     tests: [
       {
@@ -23081,11 +23108,11 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var t1,
-    r1,
+  var n1,
+    o1,
     hm,
     Ia,
-    Ur = class extends ((hm = Fe), (r1 = [S]), (t1 = [S]), hm) {
+    Ur = class extends ((hm = Fe), (o1 = [S]), (n1 = [S]), hm) {
       static {
         l(this, "vr")
       }
@@ -23094,16 +23121,16 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((Ia = $(hm)),
-    b(Ia, 13, "precedence", r1, Ur),
-    b(Ia, 13, "parenthesize", t1, Ur),
+    b(Ia, 13, "precedence", o1, Ur),
+    b(Ia, 13, "parenthesize", n1, Ur),
     k(Ia, Ur),
     p(Ur, "And"),
     v(Ur, "precedence", h(Ia, 8, Ur, Se.and)),
     h(Ia, 11, Ur),
     v(Ur, "parenthesize", h(Ia, 12, Ur, !0)),
     h(Ia, 15, Ur))
-  var NR = Ur
-  $e.addRule(NR, {
+  var BR = Ur
+  $e.addRule(BR, {
     syntax: "(operator:and) {expression:operand}",
     tests: [
       {
@@ -23119,11 +23146,11 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var s1,
-    a1,
+  var l1,
+    u1,
     mm,
     La,
-    Gr = class extends ((mm = Fe), (a1 = [S]), (s1 = [S]), mm) {
+    Gr = class extends ((mm = Fe), (u1 = [S]), (l1 = [S]), mm) {
       static {
         l(this, "Dr")
       }
@@ -23132,16 +23159,16 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((La = $(mm)),
-    b(La, 13, "precedence", a1, Gr),
-    b(La, 13, "parenthesize", s1, Gr),
+    b(La, 13, "precedence", u1, Gr),
+    b(La, 13, "parenthesize", l1, Gr),
     k(La, Gr),
     p(Gr, "Or"),
     v(Gr, "precedence", h(La, 8, Gr, Se.or)),
     h(La, 11, Gr),
     v(Gr, "parenthesize", h(La, 12, Gr, !0)),
     h(La, 15, Gr))
-  var PR = Gr
-  $e.addRule(PR, {
+  var MR = Gr
+  $e.addRule(MR, {
     syntax: "(operator:or) {expression:operand}",
     tests: [
       {
@@ -23153,11 +23180,11 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var i1,
-    n1,
+  var p1,
+    c1,
     fm,
     Ba,
-    zr = class extends ((fm = Fe), (n1 = [S]), (i1 = [S]), fm) {
+    zr = class extends ((fm = Fe), (c1 = [S]), (p1 = [S]), fm) {
       static {
         l(this, "Cr")
       }
@@ -23166,16 +23193,16 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((Ba = $(fm)),
-    b(Ba, 13, "precedence", n1, zr),
-    b(Ba, 13, "parenthesize", i1, zr),
+    b(Ba, 13, "precedence", c1, zr),
+    b(Ba, 13, "parenthesize", p1, zr),
     k(Ba, zr),
     p(zr, "IsEqual"),
     v(zr, "precedence", h(Ba, 8, zr, Se.equality)),
     h(Ba, 11, zr),
     v(zr, "parenthesize", h(Ba, 12, zr, !0)),
     h(Ba, 15, zr))
-  var RR = zr
-  $e.addRule(RR, {
+  var _R = zr
+  $e.addRule(_R, {
     syntax: "(operator:is not?) {expression:operand}",
     tests: [
       {
@@ -23190,11 +23217,11 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var o1,
-    l1,
+  var d1,
+    h1,
     gm,
     Ma,
-    qr = class extends ((gm = Fe), (l1 = [S]), (o1 = [S]), gm) {
+    qr = class extends ((gm = Fe), (h1 = [S]), (d1 = [S]), gm) {
       static {
         l(this, "kr")
       }
@@ -23203,16 +23230,16 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((Ma = $(gm)),
-    b(Ma, 13, "precedence", l1, qr),
-    b(Ma, 13, "parenthesize", o1, qr),
+    b(Ma, 13, "precedence", h1, qr),
+    b(Ma, 13, "parenthesize", d1, qr),
     k(Ma, qr),
     p(qr, "IsExactly"),
     v(qr, "precedence", h(Ma, 8, qr, Se.equality)),
     h(Ma, 11, qr),
     v(qr, "parenthesize", h(Ma, 12, qr, !0)),
     h(Ma, 15, qr))
-  var IR = qr
-  $e.addRule(IR, {
+  var WR = qr
+  $e.addRule(WR, {
     syntax: "(operator:is not? exactly) {expression:operand}",
     tests: [
       {
@@ -23227,10 +23254,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var u1,
+  var m1,
     ym,
-    Xl,
-    ln = class extends ((ym = Fe), (u1 = [S]), ym) {
+    Yl,
+    ln = class extends ((ym = Fe), (m1 = [S]), ym) {
       static {
         l(this, "ti")
       }
@@ -23245,14 +23272,14 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return new n.ASTCoreMethodInvocation(e, { methodName: "isOfType", args: [t, s] })
       }
     }
-  ;((Xl = $(ym)),
-    b(Xl, 13, "precedence", u1, ln),
-    k(Xl, ln),
+  ;((Yl = $(ym)),
+    b(Yl, 13, "precedence", m1, ln),
+    k(Yl, ln),
     p(ln, "IsA"),
-    v(ln, "precedence", h(Xl, 8, ln, Se.comparison)),
-    h(Xl, 11, ln))
-  var LR = ln
-  $e.addRule(LR, {
+    v(ln, "precedence", h(Yl, 8, ln, Se.comparison)),
+    h(Yl, 11, ln))
+  var VR = ln
+  $e.addRule(VR, {
     syntax: "(operator:is not? (a|an)) {expression:known_type}",
     tests: [
       {
@@ -23273,10 +23300,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var p1,
+  var f1,
     vm,
-    Hl,
-    un = class extends ((vm = Fe), (p1 = [S]), vm) {
+    Ql,
+    un = class extends ((vm = Fe), (f1 = [S]), vm) {
       static {
         l(this, "ri")
       }
@@ -23287,14 +23314,14 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return new n.ASTCoreMethodInvocation(e, { methodName: "matchesType", args: [t, r] })
       }
     }
-  ;((Hl = $(vm)),
-    b(Hl, 13, "precedence", p1, un),
-    k(Hl, un),
+  ;((Ql = $(vm)),
+    b(Ql, 13, "precedence", f1, un),
+    k(Ql, un),
     p(un, "IsSameTypeAs"),
-    v(un, "precedence", h(Hl, 8, un, Se.comparison)),
-    h(Hl, 11, un))
-  var BR = un
-  $e.addRule(BR, {
+    v(un, "precedence", h(Ql, 8, un, Se.comparison)),
+    h(Ql, 11, un))
+  var UR = un
+  $e.addRule(UR, {
     syntax: "(operator:is not? the same type as) {expression:operand}",
     tests: [
       {
@@ -23309,10 +23336,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var c1,
+  var g1,
     Sm,
-    Yl,
-    pn = class extends ((Sm = Fe), (c1 = [S]), Sm) {
+    Zl,
+    pn = class extends ((Sm = Fe), (g1 = [S]), Sm) {
       static {
         l(this, "ni")
       }
@@ -23324,14 +23351,14 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return new n.ASTCoreMethodInvocation(e, { methodName: "includes", args: [r, t] })
       }
     }
-  ;((Yl = $(Sm)),
-    b(Yl, 13, "precedence", c1, pn),
-    k(Yl, pn),
+  ;((Zl = $(Sm)),
+    b(Zl, 13, "precedence", g1, pn),
+    k(Zl, pn),
     p(pn, "IsIn"),
-    v(pn, "precedence", h(Yl, 8, pn, Se.comparison)),
-    h(Yl, 11, pn))
-  var d1 = pn
-  $e.addRule(d1, {
+    v(pn, "precedence", h(Zl, 8, pn, Se.comparison)),
+    h(Zl, 11, pn))
+  var y1 = pn
+  $e.addRule(y1, {
     syntax:
       "(operator:is (not? in|not? one of|either|not either of?|neither)) (expression:{operand}|{identifier_list})",
     tests: [
@@ -23353,7 +23380,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  $e.addRule(d1, {
+  $e.addRule(y1, {
     syntax: "(operator:is not?) (expression:{value_choices})",
     tests: [
       {
@@ -23369,10 +23396,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var h1,
+  var v1,
     bm,
-    Ql,
-    cn = class extends ((bm = Fe), (h1 = [S]), bm) {
+    eu,
+    cn = class extends ((bm = Fe), (v1 = [S]), bm) {
       static {
         l(this, "si")
       }
@@ -23380,14 +23407,14 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return new n.ASTCoreMethodInvocation(e, { methodName: "includes", args: [t, r] })
       }
     }
-  ;((Ql = $(bm)),
-    b(Ql, 13, "precedence", h1, cn),
-    k(Ql, cn),
+  ;((eu = $(bm)),
+    b(eu, 13, "precedence", v1, cn),
+    k(eu, cn),
     p(cn, "Includes"),
-    v(cn, "precedence", h(Ql, 8, cn, Se.comparison)),
-    h(Ql, 11, cn))
-  var MR = cn
-  $e.addRule(MR, {
+    v(cn, "precedence", h(eu, 8, cn, Se.comparison)),
+    h(eu, 11, cn))
+  var GR = cn
+  $e.addRule(GR, {
     syntax: "(operator:includes|contains) {expression:operand}",
     tests: [
       {
@@ -23402,10 +23429,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var m1,
+  var S1,
     Am,
-    Zl,
-    dn = class extends ((Am = Fe), (m1 = [S]), Am) {
+    tu,
+    dn = class extends ((Am = Fe), (S1 = [S]), Am) {
       static {
         l(this, "ii")
       }
@@ -23416,14 +23443,14 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return new n.ASTCoreMethodInvocation(e, { methodName: "includes", args: [t, r] })
       }
     }
-  ;((Zl = $(Am)),
-    b(Zl, 13, "precedence", m1, dn),
-    k(Zl, dn),
+  ;((tu = $(Am)),
+    b(tu, 13, "precedence", S1, dn),
+    k(tu, dn),
     p(dn, "DoesNotInclude"),
-    v(dn, "precedence", h(Zl, 8, dn, Se.comparison)),
-    h(Zl, 11, dn))
-  var _R = dn
-  $e.addRule(_R, {
+    v(dn, "precedence", h(tu, 8, dn, Se.comparison)),
+    h(tu, 11, dn))
+  var zR = dn
+  $e.addRule(zR, {
     syntax: "(operator:does not (include|contain)) {expression:operand}",
     tests: [
       {
@@ -23438,11 +23465,11 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var f1,
-    g1,
+  var b1,
+    A1,
     wm,
     _a,
-    Jr = class extends ((wm = Is), (g1 = [S]), (f1 = [S]), wm) {
+    Jr = class extends ((wm = Is), (A1 = [S]), (b1 = [S]), wm) {
       static {
         l(this, "Mr")
       }
@@ -23454,16 +23481,16 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((_a = $(wm)),
-    b(_a, 13, "priority", g1, Jr),
-    b(_a, 13, "precedence", f1, Jr),
+    b(_a, 13, "priority", A1, Jr),
+    b(_a, 13, "precedence", b1, Jr),
     k(_a, Jr),
     p(Jr, "IsDefined"),
     v(Jr, "priority", h(_a, 8, Jr, fe.preferred)),
     h(_a, 11, Jr),
     v(Jr, "precedence", h(_a, 12, Jr, Se.comparison)),
     h(_a, 15, Jr))
-  var WR = Jr
-  $e.addRule(WR, {
+  var qR = Jr
+  $e.addRule(qR, {
     syntax: "is (defined|undefined|not defined)",
     tests: [
       {
@@ -23479,10 +23506,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var y1,
+  var w1,
     Tm,
-    eu,
-    hn = class extends ((Tm = Is), (y1 = [S]), Tm) {
+    ru,
+    hn = class extends ((Tm = Is), (w1 = [S]), Tm) {
       static {
         l(this, "oi")
       }
@@ -23493,14 +23520,14 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return new n.ASTCoreMethodInvocation(e, { methodName: "isDefined", args: [t] })
       }
     }
-  ;((eu = $(Tm)),
-    b(eu, 13, "precedence", y1, hn),
-    k(eu, hn),
+  ;((ru = $(Tm)),
+    b(ru, 13, "precedence", w1, hn),
+    k(ru, hn),
     p(hn, "Exists"),
-    v(hn, "precedence", h(eu, 8, hn, Se.comparison)),
-    h(eu, 11, hn))
-  var VR = hn
-  $e.addRule(VR, {
+    v(hn, "precedence", h(ru, 8, hn, Se.comparison)),
+    h(ru, 11, hn))
+  var JR = hn
+  $e.addRule(JR, {
     syntax: "(exists|does not exist)",
     tests: [
       {
@@ -23515,10 +23542,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var v1,
+  var T1,
     xm,
-    tu,
-    mn = class extends ((xm = Ne), (v1 = [S]), xm) {
+    su,
+    mn = class extends ((xm = Pe), (T1 = [S]), xm) {
       static {
         l(this, "ai")
       }
@@ -23530,14 +23557,14 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
           : r
       }
     }
-  ;((tu = $(xm)),
-    b(tu, 13, "datatype", v1, mn),
-    k(tu, mn),
+  ;((su = $(xm)),
+    b(su, 13, "datatype", T1, mn),
+    k(su, mn),
     p(mn, "ThereIsA"),
-    v(mn, "datatype", h(tu, 8, mn, "choice")),
-    h(tu, 11, mn))
-  var UR = mn
-  $e.addRule(UR, {
+    v(mn, "datatype", h(su, 8, mn, "choice")),
+    h(su, 11, mn))
+  var KR = mn
+  $e.addRule(KR, {
     syntax: "there (operator:is not? (a|an)|is no such) {expression:operand}",
     tests: [
       {
@@ -23555,10 +23582,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var S1,
+  var x1,
     Em,
-    ru,
-    fn = class extends ((Em = Is), (S1 = [S]), Em) {
+    au,
+    fn = class extends ((Em = Is), (x1 = [S]), Em) {
       static {
         l(this, "ui")
       }
@@ -23569,14 +23596,14 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return new n.ASTCoreMethodInvocation(e, { methodName: "isEmpty", args: [t] })
       }
     }
-  ;((ru = $(Em)),
-    b(ru, 13, "precedence", S1, fn),
-    k(ru, fn),
+  ;((au = $(Em)),
+    b(au, 13, "precedence", x1, fn),
+    k(au, fn),
     p(fn, "IsEmpty"),
-    v(fn, "precedence", h(ru, 8, fn, Se.comparison)),
-    h(ru, 11, fn))
-  var GR = fn
-  $e.addRule(GR, {
+    v(fn, "precedence", h(au, 8, fn, Se.comparison)),
+    h(au, 11, fn))
+  var XR = fn
+  $e.addRule(XR, {
     syntax: "(operator:is not? empty)",
     tests: [
       {
@@ -23591,11 +23618,11 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var b1,
-    A1,
+  var E1,
+    C1,
     Cm,
     Wa,
-    Kr = class extends ((Cm = Is), (A1 = [S]), (b1 = [S]), Cm) {
+    Kr = class extends ((Cm = Is), (C1 = [S]), (E1 = [S]), Cm) {
       static {
         l(this, "$r")
       }
@@ -23604,16 +23631,16 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((Wa = $(Cm)),
-    b(Wa, 13, "precedence", A1, Kr),
-    b(Wa, 13, "datatype", b1, Kr),
+    b(Wa, 13, "precedence", C1, Kr),
+    b(Wa, 13, "datatype", E1, Kr),
     k(Wa, Kr),
     p(Kr, "AsUppercase"),
     v(Kr, "precedence", h(Wa, 8, Kr, Se.comparison)),
     h(Wa, 11, Kr),
     v(Kr, "datatype", h(Wa, 12, Kr, "text")),
     h(Wa, 15, Kr))
-  var zR = Kr
-  $e.addRule(zR, {
+  var HR = Kr
+  $e.addRule(HR, {
     syntax: "as (upper case|uppercase)",
     tests: [
       {
@@ -23625,11 +23652,11 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var w1,
-    T1,
+  var D1,
+    k1,
     Dm,
     Va,
-    Xr = class extends ((Dm = Is), (T1 = [S]), (w1 = [S]), Dm) {
+    Xr = class extends ((Dm = Is), (k1 = [S]), (D1 = [S]), Dm) {
       static {
         l(this, "Fr")
       }
@@ -23638,16 +23665,16 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((Va = $(Dm)),
-    b(Va, 13, "precedence", T1, Xr),
-    b(Va, 13, "datatype", w1, Xr),
+    b(Va, 13, "precedence", k1, Xr),
+    b(Va, 13, "datatype", D1, Xr),
     k(Va, Xr),
     p(Xr, "AsLowercase"),
     v(Xr, "precedence", h(Va, 8, Xr, Se.comparison)),
     h(Va, 11, Xr),
     v(Xr, "datatype", h(Va, 12, Xr, "text")),
     h(Va, 15, Xr))
-  var qR = Xr
-  $e.addRule(qR, {
+  var YR = Xr
+  $e.addRule(YR, {
     syntax: "as (lower case|lowercase)",
     tests: [
       {
@@ -23659,11 +23686,11 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var x1,
-    E1,
+  var $1,
+    O1,
     km,
     Ua,
-    Hr = class extends ((km = Is), (E1 = [S]), (x1 = [S]), km) {
+    Hr = class extends ((km = Is), (O1 = [S]), ($1 = [S]), km) {
       static {
         l(this, "Or")
       }
@@ -23681,16 +23708,16 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((Ua = $(km)),
-    b(Ua, 13, "precedence", E1, Hr),
-    b(Ua, 13, "description", x1, Hr),
+    b(Ua, 13, "precedence", O1, Hr),
+    b(Ua, 13, "description", $1, Hr),
     k(Ua, Hr),
     p(Hr, "AsAType"),
     v(Hr, "precedence", h(Ua, 8, Hr, Se.comparison)),
     h(Ua, 11, Hr),
     v(Hr, "description", h(Ua, 12, Hr, "Convert a value to a specific type, e.g. an integer.")),
     h(Ua, 15, Hr))
-  var C1 = Hr
-  $e.addRule(C1, {
+  var j1 = Hr
+  $e.addRule(j1, {
     syntax: "as (a|an) (type:string|number|fraction|integer)",
     tests: [
       {
@@ -23706,8 +23733,8 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  $e.addRule(C1, { syntax: "as (type:text)", tests: [{ compileAs: "expression", tests: [["1 as text", "`${1}`"]] }] })
-  var Li = class al extends Ne {
+  $e.addRule(j1, { syntax: "as (type:text)", tests: [{ compileAs: "expression", tests: [["1 as text", "`${1}`"]] }] })
+  var Li = class al extends Pe {
       static {
         l(this, "n")
       }
@@ -23772,10 +23799,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return new n.ASTCoreMethodInvocation(e, { methodName: i, args: [t] })
       }
     },
-    D1,
+    F1,
     $m,
-    su,
-    gn = class k1 extends (($m = Li), (D1 = [S]), $m) {
+    iu,
+    gn = class P1 extends (($m = Li), (F1 = [S]), $m) {
       static {
         l(this, "As")
       }
@@ -23785,7 +23812,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         let { property: s, expression: i } = r.groups,
           o = (r.data.ownerType = e.getType(i.datatype))
         if (this.resolveMember(r, o, `${s.raw}`)) return r
-        if (k1.isLooseProperty(e, s))
+        if (P1.isLooseProperty(e, s))
           return ((r.data.member = o?.getMember(`${s.value}`)), r.data.member || Li.warnIfUndeclared(r, o, s), r)
       }
       getAST(e) {
@@ -23796,14 +23823,14 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return t.length === 1 && e.getRuleOrDie("property").test(e, t.tokens, 0) !== !1
       }
     }
-  ;((su = $($m)),
-    b(su, 13, "priority", D1, gn),
-    k(su, gn),
+  ;((iu = $($m)),
+    b(iu, 13, "priority", F1, gn),
+    k(iu, gn),
     p(gn, "PropertyExpression"),
-    v(gn, "priority", h(su, 8, gn, fe.preferred)),
-    h(su, 11, gn))
-  var JR = gn
-  Qs.addRule(JR, {
+    v(gn, "priority", h(iu, 8, gn, fe.preferred)),
+    h(iu, 11, gn))
+  var QR = gn
+  Qs.addRule(QR, {
     syntax: "the {property:member_words} of {expression:operand}",
     tests: [
       {
@@ -23868,10 +23895,10 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var $1,
+  var N1,
     Om,
-    au,
-    yn = class extends ((Om = Li), ($1 = [S]), Om) {
+    nu,
+    yn = class extends ((Om = Li), (N1 = [S]), Om) {
       static {
         l(this, "pi")
       }
@@ -23891,14 +23918,14 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         return this.getMemberAST(e, Od(e), e.groups.property)
       }
     }
-  ;((au = $(Om)),
-    b(au, 13, "priority", $1, yn),
-    k(au, yn),
+  ;((nu = $(Om)),
+    b(nu, 13, "priority", N1, yn),
+    k(nu, yn),
     p(yn, "ItsKnownProperty"),
-    v(yn, "priority", h(au, 8, yn, fe.preferred)),
-    h(au, 11, yn))
-  var KR = yn
-  Qs.addRule(KR, {
+    v(yn, "priority", h(nu, 8, yn, fe.preferred)),
+    h(nu, 11, yn))
+  var ZR = yn
+  Qs.addRule(ZR, {
     syntax: "its {property:member_words}",
     tests: [
       {
@@ -23923,9 +23950,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var XR = class extends Li {
+  var eI = class extends Li {
     static {
-      l(this, "FP")
+      l(this, "OP")
     }
     static {
       p(this, "ItsProperty")
@@ -23946,7 +23973,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       return new n.ASTPropertyExpression(a, { object: Od(a), property: e })
     }
   }
-  Qs.addRule(XR, {
+  Qs.addRule(eI, {
     syntax: "its {property}",
     tests: [
       {
@@ -23991,9 +24018,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var HR = class extends Ne {
+  var tI = class extends Pe {
     static {
-      l(this, "OP")
+      l(this, "RP")
     }
     static {
       p(this, "ItsOrdinal")
@@ -24012,7 +24039,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       return new n.ASTCoreMethodInvocation(a, { methodName: "getItemAt", args: [Od(a), n.asAST(e.AST)] })
     }
   }
-  Qs.addRule(HR, {
+  Qs.addRule(tI, {
     syntax: "its {ordinal} {arg:singular_identifier}",
     tests: [
       {
@@ -24052,9 +24079,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var YR = class extends n.Sequence {
+  var rI = class extends n.Sequence {
     static {
-      l(this, "RP")
+      l(this, "NP")
     }
     static {
       p(this, "ObjectLiteralProperty")
@@ -24064,7 +24091,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       return new n.ASTObjectLiteralProperty(a, { property: n.asAST(e.AST), value: n.asAST(t.AST) })
     }
   }
-  Qs.addRule(YR, {
+  Qs.addRule(rI, {
     syntax: "(property:{member_words}|{property}) (=|is|of) {value:expression}",
     tests: [
       {
@@ -24085,9 +24112,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var QR = class extends n.Repeat {
+  var sI = class extends n.Repeat {
     static {
-      l(this, "NP")
+      l(this, "jP")
     }
     static {
       p(this, "ObjectLiteralProperties")
@@ -24096,7 +24123,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       return new n.ASTObjectLiteral(a, { properties: a.items.map((e) => n.asAST(e.AST)) })
     }
   }
-  Qs.addRule(QR, {
+  Qs.addRule(sI, {
     syntax: "[{object_literal_property} (,|and)]",
     tests: [
       {
@@ -24127,20 +24154,20 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
   l(qc, "Dc")
   p(qc, "placeholderData")
   function sS(a) {
-    return ZR.some((e) => a.isA(e))
+    return aI.some((e) => a.isA(e))
   }
   l(sS, "nf")
   p(sS, "isDrawableType")
-  var ZR = ["drawable", "drawable list"],
-    eI = class extends n.Sequence {
+  var aI = ["drawable", "drawable list"],
+    iI = class extends n.Sequence {
       static {
-        l(this, "jP")
+        l(this, "IP")
       }
       static {
         p(this, "WithNestedStatements")
       }
     }
-  q.addRule(eI, {
+  q.addRule(iI, {
     syntax: "(where|with)? :",
     tests: [
       {
@@ -24153,12 +24180,12 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var O1,
-    j1,
-    F1,
+  var R1,
+    I1,
+    L1,
     jm,
     vr,
-    vt = class jc extends ((jm = I), (F1 = [S]), (j1 = [S]), (O1 = [S]), jm) {
+    vt = class jc extends ((jm = I), (L1 = [S]), (I1 = [S]), (R1 = [S]), jm) {
       static {
         l(this, "Ue")
       }
@@ -24203,9 +24230,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     }
   ;((vr = $(jm)),
-    b(vr, 13, "priority", F1, vt),
-    b(vr, 13, "alias", j1, vt),
-    b(vr, 13, "flatBody", O1, vt),
+    b(vr, 13, "priority", L1, vt),
+    b(vr, 13, "alias", I1, vt),
+    b(vr, 13, "flatBody", R1, vt),
     k(vr, vt),
     p(vt, "TypeDeclaration"),
     v(vt, "priority", h(vr, 8, vt, fe.declaration)),
@@ -24218,12 +24245,12 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
   function Fm(a) {
     return ad(a).replace(/-/g, " ").trim()
   }
-  l(Fm, "sO")
+  l(Fm, "aO")
   p(Fm, "wordsOf")
-  var N1,
-    Nm,
-    iu,
-    vn = class extends ((Nm = Jc), (N1 = [S]), Nm) {
+  var B1,
+    Pm,
+    ou,
+    vn = class extends ((Pm = Jc), (B1 = [S]), Pm) {
       static {
         l(this, "li")
       }
@@ -24247,14 +24274,14 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         })
       }
     }
-  ;((iu = $(Nm)),
-    b(iu, 13, "declares", N1, vn),
-    k(iu, vn),
+  ;((ou = $(Pm)),
+    b(ou, 13, "declares", B1, vn),
+    k(ou, vn),
     p(vn, "CreateType"),
-    v(vn, "declares", h(iu, 8, vn, { kind: "type", name: "type", detail: "superType" })),
-    h(iu, 11, vn))
-  var P1 = vn
-  q.addRule(P1, {
+    v(vn, "declares", h(ou, 8, vn, { kind: "type", name: "type", detail: "superType" })),
+    h(ou, 11, vn))
+  var M1 = vn
+  q.addRule(M1, {
     syntax: "(a|an) {type:type_words} (aka {aka:singular_type})? is (a|an) {superType:type} {with_nested_statements}?",
     tests: [
       {
@@ -24358,18 +24385,18 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  q.addRule(P1, {
+  q.addRule(M1, {
     syntax: "(a|an) {type:quoted_type} is (a|an) {superType:type} {with_nested_statements}?",
     tests: [
       { compileAs: "statement", tests: [['a "card" is a thing', "export class Card extends Thing {}"]] },
       { compileAs: "block", tests: [['a "card" is a thing where:', "export class Card extends Thing {}"]] }
     ]
   })
-  var R1,
-    I1,
-    Pm,
+  var _1,
+    W1,
+    Nm,
     Ga,
-    Yr = class extends ((Pm = Jc), (I1 = [S]), (R1 = [S]), Pm) {
+    Yr = class extends ((Nm = Jc), (W1 = [S]), (_1 = [S]), Nm) {
       static {
         l(this, "Rr")
       }
@@ -24410,9 +24437,9 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
         )
       }
     }
-  ;((Ga = $(Pm)),
-    b(Ga, 13, "declares", I1, Yr),
-    b(Ga, 13, "listType", R1, Yr),
+  ;((Ga = $(Nm)),
+    b(Ga, 13, "declares", W1, Yr),
+    b(Ga, 13, "listType", _1, Yr),
     k(Ga, Yr),
     p(Yr, "CreateListType"),
     v(Yr, "declares", h(Ga, 8, Yr, { kind: "type", name: "type", detail: "instanceType" })),
@@ -24486,22 +24513,22 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var L1,
+  var V1,
     Rm,
-    nu,
-    Sn = class extends ((Rm = jd), (L1 = [S]), Rm) {
+    lu,
+    Sn = class extends ((Rm = jd), (V1 = [S]), Rm) {
       static {
         l(this, "di")
       }
     }
-  ;((nu = $(Rm)),
-    b(nu, 13, "listType", L1, Sn),
-    k(nu, Sn),
+  ;((lu = $(Rm)),
+    b(lu, 13, "listType", V1, Sn),
+    k(lu, Sn),
     p(Sn, "CreateDrawableListType"),
-    v(Sn, "listType", h(nu, 8, Sn, "drawable list")),
-    h(nu, 11, Sn))
-  var tI = Sn
-  q.addRule(tI, {
+    v(Sn, "listType", h(lu, 8, Sn, "drawable list")),
+    h(lu, 11, Sn))
+  var nI = Sn
+  q.addRule(nI, {
     syntax:
       "(a|an) {type:type_words} (aka {aka:singular_type})? is (a|an) drawable list of {instanceType:type} {with_nested_statements}?",
     tests: [
@@ -24569,18 +24596,18 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
       }
     ]
   })
-  var B1,
-    M1,
-    _1,
+  var U1,
+    G1,
+    z1,
     Im,
     Sr,
-    St = class extends ((Im = n.TokenType), (_1 = [S]), (M1 = [S]), (B1 = [S]), Im) {
+    St = class extends ((Im = n.TokenType), (z1 = [S]), (G1 = [S]), (U1 = [S]), Im) {
       static {
         l(this, "yt")
       }
       parse(e, t) {
         let [r] = t
-        if (!(r instanceof n.JSXElementToken) || r.tagName !== sI) return
+        if (!(r instanceof n.JSXElementToken) || r.tagName !== lI) return
         let s = super.parse(e, t)
         if (!s) return
         let i = e instanceof n.SubjectScope ? e.subjectType : void 0
@@ -24595,7 +24622,7 @@ OUTPUTS = (HERE / ${na(a)}).resolve()`
           s = r
             .split(`
 `)
-            .map((i) => i && `${aI}${i}`).join(`
+            .map((i) => i && `${uI}${i}`).join(`
 `)
         return new n.ASTStaticDefinition(e, {
           type: new n.ASTTypeExpression(e, { name: t }),
@@ -24612,9 +24639,9 @@ ${s}
       }
     }
   ;((Sr = $(Im)),
-    b(Sr, 13, "alias", _1, St),
-    b(Sr, 13, "tokenType", M1, St),
-    b(Sr, 13, "priority", B1, St),
+    b(Sr, 13, "alias", z1, St),
+    b(Sr, 13, "tokenType", G1, St),
+    b(Sr, 13, "priority", U1, St),
     k(Sr, St),
     p(St, "CSSBlock"),
     v(St, "alias", h(Sr, 8, St, "statement")),
@@ -24623,8 +24650,8 @@ ${s}
     h(Sr, 15, St),
     v(St, "priority", h(Sr, 16, St, fe.declaration)),
     h(Sr, 19, St))
-  var rI = St
-  q.addRule(rI, {
+  var oI = St
+  q.addRule(oI, {
     tests: [
       {
         compileAs: "block",
@@ -24668,20 +24695,20 @@ ${s}
       }
     ]
   })
-  var sI = "css",
-    aI = "  ",
-    W1,
-    V1,
-    U1,
+  var lI = "css",
+    uI = "  ",
+    q1,
+    J1,
+    K1,
     Lm,
     br,
-    bt = class G1 extends ((Lm = n.TokenType), (U1 = [S]), (V1 = [S]), (W1 = [S]), Lm) {
+    bt = class X1 extends ((Lm = n.TokenType), (K1 = [S]), (J1 = [S]), (q1 = [S]), Lm) {
       static {
         l(this, "it")
       }
       parse(e, t) {
         let [r] = t
-        if (!(r instanceof n.JSXElementToken) || r.tagName !== j0) return
+        if (!(r instanceof n.JSXElementToken) || r.tagName !== I0) return
         let s = super.parse(e, t)
         if (!s) return
         let i = e instanceof n.SubjectScope ? e.subjectType : void 0
@@ -24701,13 +24728,13 @@ ${s}
         })
       }
       static descriptionOf(e) {
-        return e?.is(G1) ? e.data.markdown : void 0
+        return e?.is(X1) ? e.data.markdown : void 0
       }
     }
   ;((br = $(Lm)),
-    b(br, 13, "alias", U1, bt),
-    b(br, 13, "tokenType", V1, bt),
-    b(br, 13, "priority", W1, bt),
+    b(br, 13, "alias", K1, bt),
+    b(br, 13, "tokenType", J1, bt),
+    b(br, 13, "priority", q1, bt),
     k(br, bt),
     p(bt, "MarkdownDescription"),
     v(bt, "alias", h(br, 8, bt, "statement")),
@@ -24716,8 +24743,8 @@ ${s}
     h(br, 15, bt),
     v(bt, "priority", h(br, 16, bt, fe.declaration)),
     h(br, 19, bt))
-  var z1 = bt
-  q.addRule(z1, {
+  var H1 = bt
+  q.addRule(H1, {
     tests: [
       {
         compileAs: "block",
@@ -24738,12 +24765,12 @@ ${s}
       }
     ]
   })
-  var q1,
-    J1,
-    K1,
+  var Y1,
+    Q1,
+    Z1,
     Bm,
     Ar,
-    At = class Fc extends ((Bm = I), (K1 = [S]), (J1 = [S]), (q1 = [S]), Bm) {
+    At = class Fc extends ((Bm = I), (Z1 = [S]), (Q1 = [S]), (Y1 = [S]), Bm) {
       static {
         l(this, "ze")
       }
@@ -24800,9 +24827,9 @@ ${s}
       }
     }
   ;((Ar = $(Bm)),
-    b(Ar, 13, "priority", K1, At),
-    b(Ar, 13, "alias", J1, At),
-    b(Ar, 13, "declares", q1, At),
+    b(Ar, 13, "priority", Z1, At),
+    b(Ar, 13, "alias", Q1, At),
+    b(Ar, 13, "declares", Y1, At),
     k(Ar, At),
     p(At, "BelongsToOne"),
     v(At, "priority", h(Ar, 8, At, fe.declaration)),
@@ -24811,8 +24838,8 @@ ${s}
     h(Ar, 15, At),
     v(At, "declares", h(Ar, 16, At, { kind: "property", name: "list", of: "type" })),
     h(Ar, 19, At))
-  var X1 = At
-  q.addRule(X1, {
+  var ex = At
+  q.addRule(ex, {
     syntax: "(a|an) {type} belongs to one {list:type}",
     tests: [
       {
@@ -24869,12 +24896,12 @@ ${s}
       }
     ]
   })
-  q.addRule(X1, { syntax: "{type:subject_it} belongs to (one|a|an) {list:type}" })
-  var H1,
-    Y1,
+  q.addRule(ex, { syntax: "{type:subject_it} belongs to (one|a|an) {list:type}" })
+  var tx,
+    rx,
     Mm,
     za,
-    Qr = class extends ((Mm = I), (Y1 = [S]), (H1 = [S]), Mm) {
+    Qr = class extends ((Mm = I), (rx = [S]), (tx = [S]), Mm) {
       static {
         l(this, "Nr")
       }
@@ -24883,16 +24910,16 @@ ${s}
       }
     }
   ;((za = $(Mm)),
-    b(za, 13, "priority", Y1, Qr),
-    b(za, 13, "alias", H1, Qr),
+    b(za, 13, "priority", rx, Qr),
+    b(za, 13, "alias", tx, Qr),
     k(za, Qr),
     p(Qr, "CanBelongToMany"),
     v(Qr, "priority", h(za, 8, Qr, fe.declaration)),
     h(za, 11, Qr),
     v(Qr, "alias", h(za, 12, Qr, "statement")),
     h(za, 15, Qr))
-  var iI = Qr
-  q.addRule(iI, {
+  var pI = Qr
+  q.addRule(pI, {
     syntax: "(a|an) {type:known_type} can belong to many {list:known_type}",
     tests: [
       {
@@ -24908,11 +24935,11 @@ ${s}
       }
     ]
   })
-  var Q1,
-    Z1,
+  var sx,
+    ax,
     _m,
     qa,
-    Zr = class extends ((_m = I), (Z1 = [S]), (Q1 = [S]), _m) {
+    Zr = class extends ((_m = I), (ax = [S]), (sx = [S]), _m) {
       static {
         l(this, "jr")
       }
@@ -24937,16 +24964,16 @@ ${s}
       }
     }
   ;((qa = $(_m)),
-    b(qa, 13, "priority", Z1, Zr),
-    b(qa, 13, "alias", Q1, Zr),
+    b(qa, 13, "priority", ax, Zr),
+    b(qa, 13, "alias", sx, Zr),
     k(qa, Zr),
     p(Zr, "SavedInline"),
     v(Zr, "priority", h(qa, 8, Zr, fe.declaration)),
     h(qa, 11, Zr),
     v(Zr, "alias", h(qa, 12, Zr, "statement")),
     h(qa, 15, Zr))
-  var ex = Zr
-  q.addRule(ex, {
+  var ix = Zr
+  q.addRule(ix, {
     syntax: "(a|an) {type:known_type} is saved inline",
     tests: [
       {
@@ -24974,12 +25001,12 @@ ${s}
       }
     ]
   })
-  q.addRule(ex, { syntax: "{type:subject_it} is saved inline" })
-  var tx,
-    rx,
+  q.addRule(ix, { syntax: "{type:subject_it} is saved inline" })
+  var nx,
+    ox,
     Wm,
     Ja,
-    es = class extends ((Wm = I), (rx = [S]), (tx = [S]), Wm) {
+    es = class extends ((Wm = I), (ox = [S]), (nx = [S]), Wm) {
       static {
         l(this, "Ir")
       }
@@ -25004,16 +25031,16 @@ ${s}
       }
     }
   ;((Ja = $(Wm)),
-    b(Ja, 13, "priority", rx, es),
-    b(Ja, 13, "alias", tx, es),
+    b(Ja, 13, "priority", ox, es),
+    b(Ja, 13, "alias", nx, es),
     k(Ja, es),
     p(es, "SavedInFile"),
     v(es, "priority", h(Ja, 8, es, fe.declaration)),
     h(Ja, 11, es),
     v(es, "alias", h(Ja, 12, es, "statement")),
     h(Ja, 15, es))
-  var sx = es
-  q.addRule(sx, {
+  var lx = es
+  q.addRule(lx, {
     syntax: "(a|an) {type:known_type} is saved in its own file",
     tests: [
       {
@@ -25032,32 +25059,32 @@ ${s}
       }
     ]
   })
-  q.addRule(sx, { syntax: "{type:subject_it} is saved in its own file" })
-  var ax,
-    ix,
+  q.addRule(lx, { syntax: "{type:subject_it} is saved in its own file" })
+  var ux,
+    px,
     Vm,
     Ka,
-    ts = class Dp extends ((Vm = I), (ix = [S]), (ax = [S]), Vm) {
+    ts = class $p extends ((Vm = I), (px = [S]), (ux = [S]), Vm) {
       static {
         l(this, "St")
       }
       parse(e, t) {
         let r = super.parse(e, t)
         if (!r) return
-        let s = Dp.versionOf(r)
+        let s = $p.versionOf(r)
         return !Number.isInteger(s) || s < 2
           ? I.refuse(r, "A version step starts at version 2:  a file with no version is version 1")
           : r
       }
       getAST(e) {
         let { type: t, from: r, to: s } = e.groups,
-          i = Dp.versionOf(e),
-          o = Dp.storedName(r),
+          i = $p.versionOf(e),
+          o = $p.storedName(r),
           u = new n.ASTStaticDefinition(e, {
             type: n.matchAST(t),
             name: s ? `v${i}_renames_${o}` : `v${i}_drops_${o}`,
             value: s
-              ? new n.ASTStringLiteral(e, { value: Dp.storedName(s), quote: '"' })
+              ? new n.ASTStringLiteral(e, { value: $p.storedName(s), quote: '"' })
               : new n.ASTBooleanLiteral(e, !0)
           })
         return new n.ASTPatchedMember(e, { member: u })
@@ -25070,16 +25097,16 @@ ${s}
       }
     }
   ;((Ka = $(Vm)),
-    b(Ka, 13, "priority", ix, ts),
-    b(Ka, 13, "alias", ax, ts),
+    b(Ka, 13, "priority", px, ts),
+    b(Ka, 13, "alias", ux, ts),
     k(Ka, ts),
     p(ts, "VersionStep"),
     v(ts, "priority", h(Ka, 8, ts, fe.declaration)),
     h(Ka, 11, ts),
     v(ts, "alias", h(Ka, 12, ts, "statement")),
     h(Ka, 15, ts))
-  var nx = ts
-  q.addRule(nx, {
+  var cx = ts
+  q.addRule(cx, {
     syntax: "(a|an) {type:known_type} version {version:number} renames {from:identifier} to {to:identifier}",
     tests: [
       {
@@ -25099,7 +25126,7 @@ ${s}
       }
     ]
   })
-  q.addRule(nx, {
+  q.addRule(cx, {
     syntax: "(a|an) {type:known_type} version {version:number} (drops:drops) {from:identifier}",
     tests: [
       {
@@ -25111,13 +25138,13 @@ ${s}
       }
     ]
   })
-  var ox,
-    lx,
+  var dx,
+    hx,
     Um,
     Xa,
-    rs = class Gm extends ((Um = I), (lx = [S]), (ox = [S]), Um) {
+    rs = class Gm extends ((Um = I), (hx = [S]), (dx = [S]), Um) {
       static {
-        l(this, "Wt")
+        l(this, "Vt")
       }
       getDeclaration(e) {
         let { type: t, version: r } = e.groups
@@ -25159,16 +25186,16 @@ ${s}
       }
     }
   ;((Xa = $(Um)),
-    b(Xa, 13, "priority", lx, rs),
-    b(Xa, 13, "alias", ox, rs),
+    b(Xa, 13, "priority", hx, rs),
+    b(Xa, 13, "alias", dx, rs),
     k(Xa, rs),
     p(rs, "UpgradeMethod"),
     v(rs, "priority", h(Xa, 8, rs, fe.declaration)),
     h(Xa, 11, rs),
     v(rs, "alias", h(Xa, 12, rs, "statement")),
     h(Xa, 15, rs))
-  var nI = rs
-  q.addRule(nI, {
+  var cI = rs
+  q.addRule(cI, {
     syntax: "to upgrade \\( (a|an) {type:known_type} \\) to version {version:number} :? {statement_body}?",
     tests: [
       {
@@ -25200,13 +25227,13 @@ ${s}
       }
     ]
   })
-  var ux,
-    px,
+  var mx,
+    fx,
     zm,
     Ha,
-    ss = class qm extends ((zm = I), (px = [S]), (ux = [S]), zm) {
+    ss = class qm extends ((zm = I), (fx = [S]), (mx = [S]), zm) {
       static {
-        l(this, "Vt")
+        l(this, "Ut")
       }
       getDeclaration(e) {
         let { type: t, never: r, verb: s, item: i } = e.groups
@@ -25246,8 +25273,8 @@ ${s}
       }
     }
   ;((Ha = $(zm)),
-    b(Ha, 13, "priority", px, ss),
-    b(Ha, 13, "alias", ux, ss),
+    b(Ha, 13, "priority", fx, ss),
+    b(Ha, 13, "alias", mx, ss),
     k(Ha, ss),
     p(ss, "ListGuard"),
     v(ss, "priority", h(Ha, 8, ss, fe.declaration)),
@@ -25368,12 +25395,12 @@ ${s}
       }
     ]
   })
-  var cx,
+  var gx,
     Jm,
-    ou,
-    bn = class Km extends ((Jm = I), (cx = [S]), Jm) {
+    uu,
+    bn = class Km extends ((Jm = I), (gx = [S]), Jm) {
       static {
-        l(this, "Wn")
+        l(this, "Vn")
       }
       getDatatype(e) {
         return F.typeName(`${e.groups.type.value}`)
@@ -25411,12 +25438,12 @@ ${s}
         return (Zo.get(e) ?? []).filter((r) => r.name === t).length
       }
     }
-  ;((ou = $(Jm)),
-    b(ou, 13, "alias", cx, bn),
-    k(ou, bn),
+  ;((uu = $(Jm)),
+    b(uu, 13, "alias", gx, bn),
+    k(uu, bn),
     p(bn, "NewThing"),
-    v(bn, "alias", h(ou, 8, bn, "expression")),
-    h(ou, 11, bn))
+    v(bn, "alias", h(uu, 8, bn, "expression")),
+    h(uu, 11, bn))
   var Fd = bn
   q.addRule(Fd, {
     syntax: "a new {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
@@ -25440,10 +25467,10 @@ ${s}
     ]
   })
   var Zo = new WeakMap(),
-    dx,
+    yx,
     Xm,
-    lu,
-    An = class extends ((Xm = I), (dx = [S]), Xm) {
+    pu,
+    An = class extends ((Xm = I), (yx = [S]), Xm) {
       static {
         l(this, "fi")
       }
@@ -25468,14 +25495,14 @@ ${s}
         })
       }
     }
-  ;((lu = $(Xm)),
-    b(lu, 13, "alias", dx, An),
-    k(lu, An),
+  ;((pu = $(Xm)),
+    b(pu, 13, "alias", yx, An),
+    k(pu, An),
     p(An, "NewList"),
-    v(An, "alias", h(lu, 8, An, "expression")),
-    h(lu, 11, An))
-  var hx = An
-  q.addRule(hx, {
+    v(An, "alias", h(pu, 8, An, "expression")),
+    h(pu, 11, An))
+  var vx = An
+  q.addRule(vx, {
     syntax: "a new (list|List) of {instanceType:type}?",
     tests: [
       {
@@ -25498,10 +25525,10 @@ ${s}
       }
     ]
   })
-  var mx,
+  var Sx,
     Hm,
-    uu,
-    wn = class extends ((Hm = I), (mx = [S]), Hm) {
+    cu,
+    wn = class extends ((Hm = I), (Sx = [S]), Hm) {
       static {
         l(this, "hi")
       }
@@ -25513,14 +25540,14 @@ ${s}
         return new n.ASTNewInstanceExpression(e, { type: n.matchAST(t), props: n.matchAST(r) })
       }
     }
-  ;((uu = $(Hm)),
-    b(uu, 13, "alias", mx, wn),
-    k(uu, wn),
+  ;((cu = $(Hm)),
+    b(cu, 13, "alias", Sx, wn),
+    k(cu, wn),
     p(wn, "CreateThing"),
-    v(wn, "alias", h(uu, 8, wn, ["expression", "statement"])),
-    h(uu, 11, wn))
-  var oI = wn
-  q.addRule(oI, {
+    v(wn, "alias", h(cu, 8, wn, ["expression", "statement"])),
+    h(cu, 11, wn))
+  var dI = wn
+  q.addRule(dI, {
     syntax: "create (a|an) {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
     tests: [
       {
@@ -25549,30 +25576,30 @@ ${s}
       }
     ]
   })
-  var fx,
+  var bx,
     Ym,
-    pu,
-    Tn = class extends ((Ym = n.Sequence), (fx = [S]), Ym) {
+    du,
+    Tn = class extends ((Ym = n.Sequence), (bx = [S]), Ym) {
       static {
         l(this, "mi")
       }
       getAST(e) {
         let t = n.matchAST(e.groups.enumeration).items ?? []
-        return new n.ASTEnumeration(e, { enumeration: t, values: t.map(gx) })
+        return new n.ASTEnumeration(e, { enumeration: t, values: t.map(Ax) })
       }
     }
-  ;((pu = $(Ym)),
-    b(pu, 13, "alias", fx, Tn),
-    k(pu, Tn),
+  ;((du = $(Ym)),
+    b(du, 13, "alias", bx, Tn),
+    k(du, Tn),
     p(Tn, "TypeSpecifierEnum"),
-    v(Tn, "alias", h(pu, 8, Tn, "type_specifier")),
-    h(pu, 11, Tn))
+    v(Tn, "alias", h(du, 8, Tn, "type_specifier")),
+    h(du, 11, Tn))
   var iS = Tn
-  function gx(a) {
+  function Ax(a) {
     return n.spellValueOf(a.compile())
   }
-  l(gx, "rY")
-  p(gx, "valueOf")
+  l(Ax, "oY")
+  p(Ax, "valueOf")
   q.addRule(iS, {
     syntax: "as (either|one of) {enumeration:identifier_list}",
     tests: [
@@ -25584,10 +25611,10 @@ ${s}
       }
     ]
   })
-  var yx,
+  var wx,
     Qm,
-    cu,
-    xn = class extends ((Qm = n.Sequence), (yx = [S]), Qm) {
+    hu,
+    xn = class extends ((Qm = n.Sequence), (wx = [S]), Qm) {
       static {
         l(this, "gi")
       }
@@ -25598,14 +25625,14 @@ ${s}
         return n.matchAST(e.groups.datatype)
       }
     }
-  ;((cu = $(Qm)),
-    b(cu, 13, "alias", yx, xn),
-    k(cu, xn),
+  ;((hu = $(Qm)),
+    b(hu, 13, "alias", wx, xn),
+    k(hu, xn),
     p(xn, "TypeSpecifierDatatype"),
-    v(xn, "alias", h(cu, 8, xn, "type_specifier")),
-    h(cu, 11, xn))
-  var vx = xn
-  q.addRule(vx, {
+    v(xn, "alias", h(hu, 8, xn, "type_specifier")),
+    h(hu, 11, xn))
+  var Tx = xn
+  q.addRule(Tx, {
     syntax: "as (a|an)? {datatype:singular_type}",
     tests: [
       {
@@ -25616,10 +25643,10 @@ ${s}
       }
     ]
   })
-  var Sx,
+  var xx,
     Zm,
-    du,
-    En = class extends ((Zm = n.Sequence), (Sx = [S]), Zm) {
+    mu,
+    En = class extends ((Zm = n.Sequence), (xx = [S]), Zm) {
       static {
         l(this, "yi")
       }
@@ -25633,14 +25660,14 @@ ${s}
         return e.groups.new_list ?? e.groups.new_thing
       }
     }
-  ;((du = $(Zm)),
-    b(du, 13, "alias", Sx, En),
-    k(du, En),
+  ;((mu = $(Zm)),
+    b(mu, 13, "alias", xx, En),
+    k(mu, En),
     p(En, "TypeSpecifierInstance"),
-    v(En, "alias", h(du, 8, En, "type_specifier")),
-    h(du, 11, En))
-  var lI = En
-  q.addRule(lI, {
+    v(En, "alias", h(mu, 8, En, "type_specifier")),
+    h(mu, 11, En))
+  var hI = En
+  q.addRule(hI, {
     syntax: "as ({new_list}|{new_thing})",
     tests: [
       {
@@ -25656,11 +25683,11 @@ ${s}
       }
     ]
   })
-  var bx,
-    Ax,
+  var Ex,
+    Cx,
     ef,
     Ya,
-    as = class extends ((ef = n.Sequence), (Ax = [S]), (bx = [S]), ef) {
+    as = class extends ((ef = n.Sequence), (Cx = [S]), (Ex = [S]), ef) {
       static {
         l(this, "Lr")
       }
@@ -25669,21 +25696,21 @@ ${s}
       }
     }
   ;((Ya = $(ef)),
-    b(Ya, 13, "alias", Ax, as),
-    b(Ya, 13, "datatype", bx, as),
+    b(Ya, 13, "alias", Cx, as),
+    b(Ya, 13, "datatype", Ex, as),
     k(Ya, as),
     p(as, "TypeSpecifierYesOrNo"),
     v(as, "alias", h(Ya, 8, as, "type_specifier")),
     h(Ya, 11, as),
     v(as, "datatype", h(Ya, 12, as, "choice")),
     h(Ya, 15, as))
-  var wx = as
-  q.addRule(wx, { syntax: "as either? (yes or no|true or false)", tests: [{ tests: [["as yes or no", "choice"]] }] })
-  var Tx,
-    xx,
+  var Dx = as
+  q.addRule(Dx, { syntax: "as either? (yes or no|true or false)", tests: [{ tests: [["as yes or no", "choice"]] }] })
+  var kx,
+    $x,
     tf,
     Qa,
-    is = class extends ((tf = Ne), (xx = [S]), (Tx = [S]), tf) {
+    is = class extends ((tf = Pe), ($x = [S]), (kx = [S]), tf) {
       static {
         l(this, "Br")
       }
@@ -25707,16 +25734,16 @@ ${s}
       }
     }
   ;((Qa = $(tf)),
-    b(Qa, 13, "priority", xx, is),
-    b(Qa, 13, "datatype", Tx, is),
+    b(Qa, 13, "priority", $x, is),
+    b(Qa, 13, "datatype", kx, is),
     k(Qa, is),
     p(is, "ClassMember"),
     v(is, "priority", h(Qa, 8, is, fe.userDeclared)),
     h(Qa, 11, is),
     v(is, "datatype", h(Qa, 12, is, "list")),
     h(Qa, 15, is))
-  var uI = is
-  q.addRule(uI, {
+  var mI = is
+  q.addRule(mI, {
     syntax: "{type:known_type} {member:member_words}",
     tests: [
       {
@@ -25742,12 +25769,12 @@ ${s}
       }
     ]
   })
-  var Ex,
-    Cx,
-    Dx,
+  var Ox,
+    jx,
+    Fx,
     rf,
     wr,
-    wt = class sf extends ((rf = I), (Dx = [S]), (Cx = [S]), (Ex = [S]), rf) {
+    wt = class sf extends ((rf = I), (Fx = [S]), (jx = [S]), (Ox = [S]), rf) {
       static {
         l(this, "_e")
       }
@@ -25803,7 +25830,7 @@ ${s}
           u = o
             ? i.is(nS) && !/^(either|one of)\b/i.test(o)
               ? ` as one of ${o}`
-              : i.is(Fx)
+              : i.is(Lx)
                 ? ` as ${o.replace(/^a (?!new\b)/i, "a new ")}`
                 : ` as ${o}`
             : ""
@@ -25853,9 +25880,9 @@ ${s}
       }
     }
   ;((wr = $(rf)),
-    b(wr, 13, "priority", Dx, wt),
-    b(wr, 13, "alias", Cx, wt),
-    b(wr, 13, "declares", Ex, wt),
+    b(wr, 13, "priority", Fx, wt),
+    b(wr, 13, "alias", jx, wt),
+    b(wr, 13, "declares", Ox, wt),
     k(wr, wt),
     p(wt, "DefinePropertyHas"),
     v(wt, "priority", h(wr, 8, wt, fe.declaration)),
@@ -26135,10 +26162,10 @@ ${s}
   })
   q.addRule(Xo, { syntax: "{type:subject_its} {property:quoted_member} is {specifier:outline_specifier}" })
   q.addRule(Xo, { syntax: "{type:subject_its} {property:member_words} is {specifier:outline_specifier}" })
-  var kx,
+  var Px,
     af,
-    hu,
-    Cn = class extends ((af = iS), (kx = [S]), af) {
+    fu,
+    Cn = class extends ((af = iS), (Px = [S]), af) {
       static {
         l(this, "Si")
       }
@@ -26150,12 +26177,12 @@ ${s}
         return s.items.length >= 2 && i ? r : void 0
       }
     }
-  ;((hu = $(af)),
-    b(hu, 13, "alias", kx, Cn),
-    k(hu, Cn),
+  ;((fu = $(af)),
+    b(fu, 13, "alias", Px, Cn),
+    k(fu, Cn),
     p(Cn, "OutlineSpecifierEnum"),
-    v(Cn, "alias", h(hu, 8, Cn, "outline_specifier")),
-    h(hu, 11, Cn))
+    v(Cn, "alias", h(fu, 8, Cn, "outline_specifier")),
+    h(fu, 11, Cn))
   var nS = Cn
   q.addRule(nS, {
     syntax: "(either|one of) {enumeration:identifier_list}",
@@ -26173,20 +26200,20 @@ ${s}
       }
     ]
   })
-  var $x,
+  var Nx,
     nf,
-    mu,
-    Dn = class extends ((nf = vx), ($x = [S]), nf) {
+    gu,
+    Dn = class extends ((nf = Tx), (Nx = [S]), nf) {
       static {
         l(this, "Pi")
       }
     }
-  ;((mu = $(nf)),
-    b(mu, 13, "alias", $x, Dn),
-    k(mu, Dn),
+  ;((gu = $(nf)),
+    b(gu, 13, "alias", Nx, Dn),
+    k(gu, Dn),
     p(Dn, "OutlineSpecifierDatatype"),
-    v(Dn, "alias", h(mu, 8, Dn, "outline_specifier")),
-    h(mu, 11, Dn))
+    v(Dn, "alias", h(gu, 8, Dn, "outline_specifier")),
+    h(gu, 11, Dn))
   var oS = Dn
   q.addRule(oS, { syntax: "(a|an) {datatype:singular_type}", tests: [{ tests: [["a number", "number"]] }] })
   q.addRule(oS, {
@@ -26204,38 +26231,38 @@ ${s}
       }
     ]
   })
-  var Ox,
+  var Rx,
     of,
-    fu,
-    kn = class extends ((of = wx), (Ox = [S]), of) {
+    yu,
+    kn = class extends ((of = Dx), (Rx = [S]), of) {
       static {
         l(this, "Ti")
       }
     }
-  ;((fu = $(of)),
-    b(fu, 13, "alias", Ox, kn),
-    k(fu, kn),
+  ;((yu = $(of)),
+    b(yu, 13, "alias", Rx, kn),
+    k(yu, kn),
     p(kn, "OutlineSpecifierYesOrNo"),
-    v(kn, "alias", h(fu, 8, kn, "outline_specifier")),
-    h(fu, 11, kn))
-  var pI = kn
-  q.addRule(pI, { syntax: "either? (yes or no|true or false)", tests: [{ tests: [["yes or no", "choice"]] }] })
-  var jx,
+    v(kn, "alias", h(yu, 8, kn, "outline_specifier")),
+    h(yu, 11, kn))
+  var fI = kn
+  q.addRule(fI, { syntax: "either? (yes or no|true or false)", tests: [{ tests: [["yes or no", "choice"]] }] })
+  var Ix,
     lf,
-    gu,
-    $n = class extends ((lf = hx), (jx = [S]), lf) {
+    vu,
+    $n = class extends ((lf = vx), (Ix = [S]), lf) {
       static {
         l(this, "Ai")
       }
     }
-  ;((gu = $(lf)),
-    b(gu, 13, "alias", jx, $n),
-    k(gu, $n),
+  ;((vu = $(lf)),
+    b(vu, 13, "alias", Ix, $n),
+    k(vu, $n),
     p($n, "OutlineSpecifierList"),
-    v($n, "alias", h(gu, 8, $n, "outline_specifier")),
-    h(gu, 11, $n))
-  var Fx = $n
-  q.addRule(Fx, {
+    v($n, "alias", h(vu, 8, $n, "outline_specifier")),
+    h(vu, 11, $n))
+  var Lx = $n
+  q.addRule(Lx, {
     syntax: "a new? (list|List) of {instanceType:type}",
     tests: [
       {
@@ -26250,12 +26277,12 @@ ${s}
       }
     ]
   })
-  var Nx,
-    Px,
-    Rx,
+  var Bx,
+    Mx,
+    _x,
     uf,
     Tr,
-    Tt = class pf extends ((uf = I), (Rx = [S]), (Px = [S]), (Nx = [S]), uf) {
+    Tt = class pf extends ((uf = I), (_x = [S]), (Mx = [S]), (Bx = [S]), uf) {
       static {
         l(this, "et")
       }
@@ -26300,9 +26327,9 @@ ${s}
       }
     }
   ;((Tr = $(uf)),
-    b(Tr, 13, "priority", Rx, Tt),
-    b(Tr, 13, "alias", Px, Tt),
-    b(Tr, 13, "declares", Nx, Tt),
+    b(Tr, 13, "priority", _x, Tt),
+    b(Tr, 13, "alias", Mx, Tt),
+    b(Tr, 13, "declares", Bx, Tt),
     k(Tr, Tt),
     p(Tt, "ValueKind"),
     v(Tt, "priority", h(Tr, 8, Tt, fe.declaration)),
@@ -26311,63 +26338,63 @@ ${s}
     h(Tr, 15, Tt),
     v(Tt, "declares", h(Tr, 16, Tt, { kind: "type", name: "values" })),
     h(Tr, 19, Tt))
-  var cI = Tt
-  q.addRule(cI, { syntax: "{values:quoted_member} {specifier:type_specifier}" })
-  var Ix,
+  var gI = Tt
+  q.addRule(gI, { syntax: "{values:quoted_member} {specifier:type_specifier}" })
+  var Wx,
     cf,
-    yu,
-    On = class extends ((cf = n.Sequence), (Ix = [S]), cf) {
+    Su,
+    On = class extends ((cf = n.Sequence), (Wx = [S]), cf) {
       static {
         l(this, "xi")
       }
     }
-  ;((yu = $(cf)),
-    b(yu, 13, "alias", Ix, On),
-    k(yu, On),
+  ;((Su = $(cf)),
+    b(Su, 13, "alias", Wx, On),
+    k(Su, On),
     p(On, "ThePropertyOfAThing"),
-    v(On, "alias", h(yu, 8, On, "type_property")),
-    h(yu, 11, On))
-  var Lx = On
-  q.addRule(Lx, { syntax: "the {property:member_words} of (a|an) {type}" })
-  q.addRule(Lx, { syntax: "the {property:quoted_member} of (a|an) {type}" })
-  var Bx,
+    v(On, "alias", h(Su, 8, On, "type_property")),
+    h(Su, 11, On))
+  var Vx = On
+  q.addRule(Vx, { syntax: "the {property:member_words} of (a|an) {type}" })
+  q.addRule(Vx, { syntax: "the {property:quoted_member} of (a|an) {type}" })
+  var Ux,
     df,
-    vu,
-    jn = class extends ((df = n.Sequence), (Bx = [S]), df) {
+    bu,
+    jn = class extends ((df = n.Sequence), (Ux = [S]), df) {
       static {
         l(this, "bi")
       }
     }
-  ;((vu = $(df)),
-    b(vu, 13, "alias", Bx, jn),
-    k(vu, jn),
+  ;((bu = $(df)),
+    b(bu, 13, "alias", Ux, jn),
+    k(bu, jn),
     p(jn, "AThingsProperty"),
-    v(jn, "alias", h(vu, 8, jn, "type_property")),
-    h(vu, 11, jn))
-  var dI = jn
-  q.addRule(dI, { syntax: "(a|an) {type:plural_type} {property:member_words}" })
-  var Mx,
+    v(jn, "alias", h(bu, 8, jn, "type_property")),
+    h(bu, 11, jn))
+  var yI = jn
+  q.addRule(yI, { syntax: "(a|an) {type:plural_type} {property:member_words}" })
+  var Gx,
     hf,
-    Su,
-    Fn = class extends ((hf = n.Sequence), (Mx = [S]), hf) {
+    Au,
+    Fn = class extends ((hf = n.Sequence), (Gx = [S]), hf) {
       static {
         l(this, "wi")
       }
     }
-  ;((Su = $(hf)),
-    b(Su, 13, "alias", Mx, Fn),
-    k(Su, Fn),
+  ;((Au = $(hf)),
+    b(Au, 13, "alias", Gx, Fn),
+    k(Au, Fn),
     p(Fn, "ItsQuotedProperty"),
-    v(Fn, "alias", h(Su, 8, Fn, "type_property")),
-    h(Su, 11, Fn))
-  var _x = Fn
-  q.addRule(_x, { syntax: "{type:subject_its} {property:quoted_member}" })
-  q.addRule(_x, { syntax: "{type:subject_its} {property:member_words}" })
-  var Wx,
-    Vx,
+    v(Fn, "alias", h(Au, 8, Fn, "type_property")),
+    h(Au, 11, Fn))
+  var zx = Fn
+  q.addRule(zx, { syntax: "{type:subject_its} {property:quoted_member}" })
+  q.addRule(zx, { syntax: "{type:subject_its} {property:member_words}" })
+  var qx,
+    Jx,
     mf,
     Za,
-    ns = class extends ((mf = I), (Vx = [S]), (Wx = [S]), mf) {
+    ns = class extends ((mf = I), (Jx = [S]), (qx = [S]), mf) {
       static {
         l(this, "qr")
       }
@@ -26383,7 +26410,7 @@ ${s}
           { value: r, otherValue: s, type_property: i } = e.groups,
           { type: o, property: u } = i.groups
         n.TypeScope.getOrStub(t, o.value, e).declareProperty(`${u.value}`, e, { asWritten: u.raw })
-        for (let c of [r, s]) ac.declareValue(e, c)
+        for (let c of [r, s]) Dl.declareValue(e, c)
       }
       getAST(e) {
         let { value: t, otherValue: r, type_property: s, condition: i } = e.groups,
@@ -26408,16 +26435,16 @@ ${s}
       }
     }
   ;((Za = $(mf)),
-    b(Za, 13, "alias", Vx, ns),
-    b(Za, 13, "declares", Wx, ns),
+    b(Za, 13, "alias", Jx, ns),
+    b(Za, 13, "declares", qx, ns),
     k(Za, ns),
     p(ns, "PropertyValueEither"),
     v(ns, "alias", h(Za, 8, ns, "statement")),
     h(Za, 11, ns),
     v(ns, "declares", h(Za, 12, ns, { kind: "property", name: "type_property.property", of: "type_property.type" })),
     h(Za, 15, ns))
-  var hI = ns
-  q.addRule(hI, {
+  var vI = ns
+  q.addRule(vI, {
     syntax:
       "{type_property} is (value:{constant}|{expression}) if {condition:expression} (otherwise it is (otherValue:{constant}|{expression}))?",
     tests: [
@@ -26473,11 +26500,11 @@ ${s}
       }
     ]
   })
-  var Ux,
-    Gx,
+  var Kx,
+    Xx,
     ff,
     ei,
-    os = class extends ((ff = I), (Gx = [S]), (Ux = [S]), ff) {
+    os = class extends ((ff = I), (Xx = [S]), (Kx = [S]), ff) {
       static {
         l(this, "Gr")
       }
@@ -26542,16 +26569,16 @@ ${s}
       }
     }
   ;((ei = $(ff)),
-    b(ei, 13, "alias", Gx, os),
-    b(ei, 13, "declares", Ux, os),
+    b(ei, 13, "alias", Xx, os),
+    b(ei, 13, "declares", Kx, os),
     k(ei, os),
     p(os, "PropertyValueGetter"),
     v(os, "alias", h(ei, 8, os, "statement")),
     h(ei, 11, os),
     v(os, "declares", h(ei, 12, os, { kind: "property", name: "property", of: "type" })),
     h(ei, 15, os))
-  var Nd = os
-  q.addRule(Nd, {
+  var Pd = os
+  q.addRule(Pd, {
     syntax: "the {property:member_words} of (a|an) {type:known_type} is :? {expression_body}?",
     tests: [
       {
@@ -26639,15 +26666,15 @@ a pile is a list of cards`)
       }
     ]
   })
-  q.addRule(Nd, { syntax: "{type:subject_its} {property:quoted_member} is :? {expression_body}?" })
-  q.addRule(Nd, { syntax: "{type:subject_its} {property:member_words} is :? {expression_body}?" })
-  q.addRule(Nd, { syntax: "the {property:quoted_member} of (a|an) {type:known_type} is :? {expression_body}?" })
-  var zx,
-    qx,
-    Jx,
+  q.addRule(Pd, { syntax: "{type:subject_its} {property:quoted_member} is :? {expression_body}?" })
+  q.addRule(Pd, { syntax: "{type:subject_its} {property:member_words} is :? {expression_body}?" })
+  q.addRule(Pd, { syntax: "the {property:quoted_member} of (a|an) {type:known_type} is :? {expression_body}?" })
+  var Hx,
+    Yx,
+    Qx,
     gf,
     xr,
-    xt = class extends ((gf = I), (Jx = [S]), (qx = [S]), (zx = [S]), gf) {
+    xt = class extends ((gf = I), (Qx = [S]), (Yx = [S]), (Hx = [S]), gf) {
       static {
         l(this, "Pt")
       }
@@ -26659,7 +26686,7 @@ a pile is a list of cards`)
       parse(e, t) {
         let r = super.parse(e, t)
         if (!r || !n.SubjectScope.of(e)?.subjectType) return
-        let s = fI.exec(`${r.groups.alias.value}`.replace(/^["']|["']$/g, ""))?.[1]
+        let s = bI.exec(`${r.groups.alias.value}`.replace(/^["']|["']$/g, ""))?.[1]
         if (s) return ((r.data.side = Bo(s)), r)
       }
       mutateScope(e) {
@@ -26709,9 +26736,9 @@ a pile is a list of cards`)
       }
     }
   ;((xr = $(gf)),
-    b(xr, 13, "priority", Jx, xt),
-    b(xr, 13, "alias", qx, xt),
-    b(xr, 13, "declares", zx, xt),
+    b(xr, 13, "priority", Qx, xt),
+    b(xr, 13, "alias", Yx, xt),
+    b(xr, 13, "declares", Hx, xt),
     k(xr, xt),
     p(xt, "DrawSide"),
     v(xt, "priority", h(xr, 8, xt, fe.declaration)),
@@ -26720,15 +26747,15 @@ a pile is a list of cards`)
     h(xr, 15, xt),
     v(xt, "declares", h(xr, 16, xt, { kind: "property", name: "alias" })),
     h(xr, 19, xt))
-  var mI = xt
-  q.addRule(mI, { syntax: "to {alias:text} :? ({inline_expression}|{nested_expression})?" })
-  var fI = /^draw its ([a-z][\w-]*(?: [a-z][\w-]*)*)$/i,
-    Kx,
-    Xx,
-    Hx,
+  var SI = xt
+  q.addRule(SI, { syntax: "to {alias:text} :? ({inline_expression}|{nested_expression})?" })
+  var bI = /^draw its ([a-z][\w-]*(?: [a-z][\w-]*)*)$/i,
+    Zx,
+    eE,
+    tE,
     yf,
     Er,
-    Et = class Yx extends ((yf = Fe), (Hx = [S]), (Xx = [S]), (Kx = [S]), yf) {
+    Et = class rE extends ((yf = Fe), (tE = [S]), (eE = [S]), (Zx = [S]), yf) {
       static {
         l(this, "ot")
       }
@@ -26747,7 +26774,7 @@ a pile is a list of cards`)
         if (!r || !this.ruleData.some((u) => u.kind)) return r
         let s = r.groups.expression,
           i = Array.isArray(s) ? s : s ? [s] : [],
-          o = this.ruleData.map((u, c) => (u.kind ? Yx.kindValue(e, u, i[c]) : void 0))
+          o = this.ruleData.map((u, c) => (u.kind ? rE.kindValue(e, u, i[c]) : void 0))
         if (!this.ruleData.some((u, c) => u.kind && o[c] === void 0)) return ((r.data.kindArgs = o), r)
       }
       static kindValue(e, t, r) {
@@ -26780,9 +26807,9 @@ a pile is a list of cards`)
       }
     }
   ;((Er = $(yf)),
-    b(Er, 13, "importableAs", Hx, Et),
-    b(Er, 13, "priority", Xx, Et),
-    b(Er, 13, "precedence", Kx, Et),
+    b(Er, 13, "importableAs", tE, Et),
+    b(Er, 13, "priority", eE, Et),
+    b(Er, 13, "precedence", Zx, Et),
     k(Er, Et),
     p(Et, "QuotedPropertyRule"),
     v(Et, "importableAs", h(Er, 8, Et, "quoted_property")),
@@ -26791,13 +26818,13 @@ a pile is a list of cards`)
     h(Er, 15, Et),
     v(Et, "precedence", h(Er, 16, Et, Se.comparison)),
     h(Er, 19, Et))
-  var gI = Et,
-    Qx,
-    Zx,
-    eE,
+  var AI = Et,
+    sE,
+    aE,
+    iE,
     vf,
     Cr,
-    Ct = class Nn extends ((vf = I), (eE = [S]), (Zx = [S]), (Qx = [S]), vf) {
+    Ct = class Pn extends ((vf = I), (iE = [S]), (aE = [S]), (sE = [S]), vf) {
       static {
         l(this, "ve")
       }
@@ -26807,7 +26834,7 @@ a pile is a list of cards`)
         let s = `${r.groups.alias.value}`.replace(/^["']|["']$/g, ""),
           i = s.split(" ")
         if (i[0] !== "is") return
-        if (r.groups.sources) return Nn.resolveSources(r)
+        if (r.groups.sources) return Pn.resolveSources(r)
         if (t.slice(r.length).join("").trim()) return
         let o = I.subjectWords(r) ?? "thing"
         if (!s.includes("("))
@@ -26815,7 +26842,7 @@ a pile is a list of cards`)
             r,
             `"${s}" has no blank:  put the word that varies in parens, e.g. "is a (suit)", or say when it's true, "${s}" if ...`
           )
-        let u = Nn.inferPlaceholders(i, Ht(r.groups.type))
+        let u = Pn.inferPlaceholders(i, Ht(r.groups.type))
         if (u)
           return "unlisted" in u
             ? I.refuse(
@@ -26829,7 +26856,7 @@ a pile is a list of cards`)
           r = []
         for (let s of e.groups.sources.items) {
           let i = `${s.groups.property?.value}`,
-            o = Nn.listedProperty(t, [i, rt(i)])
+            o = Pn.listedProperty(t, [i, rt(i)])
           if (!o)
             return I.refuse(
               e,
@@ -26843,7 +26870,7 @@ a pile is a list of cards`)
         for (let r of t) {
           let s = e.variables.get(r)
           if (!s) continue
-          if (Nn.enumerationOf(e, r)) return s.name
+          if (Pn.enumerationOf(e, r)) return s.name
           let i = e.getType(s.datatype)
           if (i?.valueKind || i?.stub) return s.name
         }
@@ -26860,7 +26887,7 @@ a pile is a list of cards`)
         for (let s of e) {
           let i = /^\((.+)\)$/.exec(s)?.[1]
           if (!i) continue
-          let o = Nn.listedProperty(t, [rt(i)])
+          let o = Pn.listedProperty(t, [rt(i)])
           if (!o) return { unlisted: i }
           r.push(o)
         }
@@ -26892,7 +26919,7 @@ a pile is a list of cards`)
                 x = e.scope.types?.get(s),
                 E = x?.variables.get(D),
                 j = E?.datatype ? x?.getType(E.datatype) : void 0,
-                O = (x && Nn.enumerationOf(x, `${D}`)) ?? j?.valueKind?.values
+                O = (x && Pn.enumerationOf(x, `${D}`)) ?? j?.valueKind?.values
               if (E && O) {
                 let R = qc(A, E.enumerationValues || O)
                 ;(d.push(R), c.push(`(expression:${R.enumeration.join("|")})`))
@@ -26911,7 +26938,7 @@ a pile is a list of cards`)
         let { syntax: t, property: r, ruleData: s, type: i } = this.getBits(e),
           o = s.filter(({ kind: u }) => u).map(({ instanceVar: u, kind: c }) => [u, c])
         e.scope.addRule(
-          gI.specialize({
+          AI.specialize({
             output: r,
             of: i,
             values: Object.fromEntries(s.map(({ instanceVar: u, values: c }) => [u, c])),
@@ -26951,9 +26978,9 @@ a pile is a list of cards`)
       }
     }
   ;((Cr = $(vf)),
-    b(Cr, 13, "priority", eE, Ct),
-    b(Cr, 13, "alias", Zx, Ct),
-    b(Cr, 13, "declares", Qx, Ct),
+    b(Cr, 13, "priority", iE, Ct),
+    b(Cr, 13, "alias", aE, Ct),
+    b(Cr, 13, "declares", sE, Ct),
     k(Cr, Ct),
     p(Ct, "QuotedPropertyFormula"),
     v(Ct, "priority", h(Cr, 8, Ct, fe.declaration)),
@@ -27031,11 +27058,11 @@ a pile is a list of cards`)
   })
   q.addRule(lS, { syntax: "{type:subject_it} {alias:text} for [sources:(its {property:member_words}) and]" })
   q.addRule(lS, { syntax: "{type:subject_it} {alias:text}" })
-  var tE,
-    rE,
+  var nE,
+    oE,
     Sf,
     ti,
-    ls = class extends ((Sf = n.Pattern), (rE = [S]), (tE = [S]), Sf) {
+    ls = class extends ((Sf = n.Pattern), (oE = [S]), (nE = [S]), Sf) {
       static {
         l(this, "Wr")
       }
@@ -27044,16 +27071,16 @@ a pile is a list of cards`)
       }
     }
   ;((ti = $(Sf)),
-    b(ti, 13, "matchGroup", rE, ls),
-    b(ti, 13, "pattern", tE, ls),
+    b(ti, 13, "matchGroup", oE, ls),
+    b(ti, 13, "pattern", nE, ls),
     k(ti, ls),
     p(ls, "ThingName"),
     v(ls, "matchGroup", h(ti, 8, ls, "name")),
     h(ti, 11, ls),
     v(ls, "pattern", h(ti, 12, ls, /^[A-Z][\w-]*$/)),
     h(ti, 15, ls))
-  var sE = ls
-  q.addRule(sE, {
+  var lE = ls
+  q.addRule(lE, {
     tests: [
       {
         tests: [
@@ -27064,7 +27091,7 @@ a pile is a list of cards`)
       }
     ]
   })
-  var aE = class iE extends Ne {
+  var uE = class pE extends Pe {
     static {
       l(this, "n")
     }
@@ -27076,7 +27103,7 @@ a pile is a list of cards`)
       let s = r + Yt.MAX_NAME_WORDS
       for (let i = r + 1; i <= s && i < t.length; i++) {
         let o = t[i]
-        if (o instanceof n.TextToken || o.matchesPattern(sE.prototype.pattern)) return !0
+        if (o instanceof n.TextToken || o.matchesPattern(lE.prototype.pattern)) return !0
       }
       return s >= t.length && n.Expectations.current ? void 0 : !1
     }
@@ -27084,7 +27111,7 @@ a pile is a list of cards`)
       let r = super.parse(e, t)
       if (!r) return
       let s = Ht(r.groups.type),
-        i = iE.nameOf(r.groups.name),
+        i = pE.nameOf(r.groups.name),
         o = F.typeName(s.name).toLowerCase()
       return (
         F.SpellWarnings.noteIf(
@@ -27107,7 +27134,7 @@ a pile is a list of cards`)
       return t instanceof n.ASTStringLiteral ? t.value : `${e.value}`
     }
   }
-  q.addRule(aE, {
+  q.addRule(uE, {
     syntax: "{type:known_type} {name:thing_name}",
     tests: [
       {
@@ -27127,7 +27154,7 @@ a pile is a list of cards`)
       }
     ]
   })
-  q.addRule(aE, {
+  q.addRule(uE, {
     syntax: "{type:known_type} {name:text}",
     tests: [
       {
@@ -27143,9 +27170,9 @@ a pile is a list of cards`)
       }
     ]
   })
-  var yI = class extends Ne {
+  var wI = class extends Pe {
     static {
-      l(this, "XP")
+      l(this, "YP")
     }
     static {
       p(this, "ThingAtPlace")
@@ -27158,7 +27185,7 @@ a pile is a list of cards`)
       return new n.ASTCoreMethodInvocation(a, { methodName: "thingAtPlace", args: [n.matchAST(t), n.matchAST(e)] })
     }
   }
-  q.addRule(yI, {
+  q.addRule(wI, {
     syntax: "the {ordinal} {type:known_type}",
     tests: [
       {
@@ -27178,11 +27205,11 @@ a pile is a list of cards`)
       }
     ]
   })
-  var nE,
-    oE,
+  var cE,
+    dE,
     bf,
     ri,
-    ur = class kp extends ((bf = I), (oE = [S]), (nE = [S]), bf) {
+    ur = class Op extends ((bf = I), (dE = [S]), (cE = [S]), bf) {
       static {
         l(this, "at")
       }
@@ -27209,7 +27236,7 @@ a pile is a list of cards`)
             { variables: u } = o,
             { datatype: c } = r
           if (i === "it") {
-            ;((e.data.newIt = kp.declareIt(o, e, c)), (e.data.isNewVariable = !0))
+            ;((e.data.newIt = Op.declareIt(o, e, c)), (e.data.isNewVariable = !0))
             return
           }
           let d = u.get(i)
@@ -27218,7 +27245,7 @@ a pile is a list of cards`)
               ? d.isAlias && u.replace({ name: d.name, datatype: c, declaredBy: e })
               : u.add({ name: i, datatype: c, declaredBy: e }),
             (e.data.originalVar = d),
-            e.data.isNewVariable && c === "list" && kp.warnListOfNothing(e, s))
+            e.data.isNewVariable && c === "list" && Op.warnListOfNothing(e, s))
         } else this.declareProperty(e)
       }
       static warnListOfNothing(e, t) {
@@ -27241,7 +27268,7 @@ a pile is a list of cards`)
           (e.data.autoDeclared = {
             typeName: i.name,
             property: m,
-            checkType: kp.checkTypeFor(e.scope, d),
+            checkType: Op.checkTypeFor(e.scope, d),
             typeDeclaredBy: i.declaredBy
           }),
           !d)
@@ -27275,7 +27302,7 @@ a pile is a list of cards`)
       static declareIt(e, t, r) {
         let { variables: s } = e,
           i = s.get("it"),
-          o = i && !i.isAlias ? kp.itNumber(i) + 1 : 1
+          o = i && !i.isAlias ? Op.itNumber(i) + 1 : 1
         for (; o > 1 && s.get(`it_${o}`);) o++
         let u = o === 1 ? void 0 : `it_${o}`,
           [c] = s.replace({ name: "it", output: u, datatype: r, declaredBy: t })
@@ -27287,8 +27314,8 @@ a pile is a list of cards`)
       }
     }
   ;((ri = $(bf)),
-    b(ri, 13, "alias", oE, ur),
-    b(ri, 13, "declares", nE, ur),
+    b(ri, 13, "alias", dE, ur),
+    b(ri, 13, "declares", cE, ur),
     k(ri, ur),
     p(ur, "AssignmentStatement"),
     v(ur, "ruleName", "assignment"),
@@ -27296,12 +27323,12 @@ a pile is a list of cards`)
     h(ri, 11, ur),
     v(ur, "declares", h(ri, 12, ur, { kind: "variable", name: "thing" })),
     h(ri, 15, ur))
-  var ic = ur
-  Ko.addRule(ic, {
+  var nc = ur
+  Ko.addRule(nc, {
     syntax: "(thing:{expression}|{variable}) = {value:expression}",
     tests: [
       {
-        ...nc(),
+        ...oc(),
         tests: [
           {
             title: "non-existing var",
@@ -27314,11 +27341,11 @@ a pile is a list of cards`)
       }
     ]
   })
-  Ko.addRule(ic, {
+  Ko.addRule(nc, {
     syntax: "let (thing:{expression}|{variable}) = {value:expression}",
     tests: [
       {
-        ...nc(),
+        ...oc(),
         tests: [
           {
             title: "non-existing var: property set (won't work)",
@@ -27330,11 +27357,11 @@ a pile is a list of cards`)
       }
     ]
   })
-  Ko.addRule(ic, {
+  Ko.addRule(nc, {
     syntax: "set (thing:{expression}|{variable}) to {value:expression}",
     tests: [
       {
-        ...nc(),
+        ...oc(),
         tests: [
           {
             title: "non-existing var",
@@ -27353,11 +27380,11 @@ a pile is a list of cards`)
       }
     ]
   })
-  Ko.addRule(ic, {
+  Ko.addRule(nc, {
     syntax: "{thing:variable} is {value:expression}",
     tests: [
       {
-        ...nc(),
+        ...oc(),
         tests: [
           {
             title: "non-existing var",
@@ -27369,7 +27396,7 @@ a pile is a list of cards`)
       }
     ]
   })
-  function nc() {
+  function oc() {
     return {
       compileAs: "block",
       beforeEach(a) {
@@ -27378,19 +27405,19 @@ a pile is a list of cards`)
       }
     }
   }
-  l(nc, "kf")
-  p(nc, "setupAssignmentStatement")
-  var lE,
-    uE,
+  l(oc, "kf")
+  p(oc, "setupAssignmentStatement")
+  var hE,
+    mE,
     Af,
     si,
-    us = class extends ((Af = I), (uE = [S]), (lE = [S]), Af) {
+    us = class extends ((Af = I), (mE = [S]), (hE = [S]), Af) {
       static {
         l(this, "Vr")
       }
       mutateScope(e) {
         let t = e.scope
-        ;((e.data.itVar = ic.declareIt(t, e, e.groups.value.datatype)), Fd.noteNameGiven(e.groups.value, e))
+        ;((e.data.itVar = nc.declareIt(t, e, e.groups.value.datatype)), Fd.noteNameGiven(e.groups.value, e))
       }
       getAST(e) {
         let { value: t } = e.groups,
@@ -27403,16 +27430,16 @@ a pile is a list of cards`)
       }
     }
   ;((si = $(Af)),
-    b(si, 13, "alias", uE, us),
-    b(si, 13, "changesScope", lE, us),
+    b(si, 13, "alias", mE, us),
+    b(si, 13, "changesScope", hE, us),
     k(si, us),
     p(us, "Get"),
     v(us, "alias", h(si, 8, us, ["assignment", "statement"])),
     h(si, 11, us),
     v(us, "changesScope", h(si, 12, us, "internal")),
     h(si, 15, us))
-  var vI = us
-  Ko.addRule(vI, {
+  var TI = us
+  Ko.addRule(TI, {
     syntax: "get {value:expression}",
     tests: [
       {
@@ -27480,10 +27507,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var pE,
+  var fE,
     wf,
-    bu,
-    Pn = class extends ((wf = I), (pE = [S]), wf) {
+    wu,
+    Nn = class extends ((wf = I), (fE = [S]), wf) {
       static {
         l(this, "vi")
       }
@@ -27495,14 +27522,14 @@ a pile is a list of cards`)
         return new n.ASTReturnStatement(e, { value: t?.AST })
       }
     }
-  ;((bu = $(wf)),
-    b(bu, 13, "alias", pE, Pn),
-    k(bu, Pn),
-    p(Pn, "ReturnStatement"),
-    v(Pn, "alias", h(bu, 8, Pn, "statement")),
-    h(bu, 11, Pn))
-  var SI = Pn
-  Ko.addRule(SI, {
+  ;((wu = $(wf)),
+    b(wu, 13, "alias", fE, Nn),
+    k(wu, Nn),
+    p(Nn, "ReturnStatement"),
+    v(Nn, "alias", h(wu, 8, Nn, "statement")),
+    h(wu, 11, Nn))
+  var xI = Nn
+  Ko.addRule(xI, {
     syntax: "(return|exit with?) {expression}? {nested_expression}?",
     tests: [
       {
@@ -27554,11 +27581,11 @@ a pile is a list of cards`)
       }
     ]
   })
-  var cE = new Me({ module: "statements" }),
-    dE,
+  var gE = new Me({ module: "statements" }),
+    yE,
     Tf,
-    Au,
-    Rn = class extends ((Tf = I), (dE = [S]), Tf) {
+    Tu,
+    Rn = class extends ((Tf = I), (yE = [S]), Tf) {
       static {
         l(this, "Di")
       }
@@ -27566,22 +27593,22 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "doNothing" })
       }
     }
-  ;((Au = $(Tf)),
-    b(Au, 13, "alias", dE, Rn),
-    k(Au, Rn),
+  ;((Tu = $(Tf)),
+    b(Tu, 13, "alias", yE, Rn),
+    k(Tu, Rn),
     p(Rn, "DoNothing"),
-    v(Rn, "alias", h(Au, 8, Rn, "statement")),
-    h(Au, 11, Rn))
-  var bI = Rn
-  cE.addRule(bI, {
+    v(Rn, "alias", h(Tu, 8, Rn, "statement")),
+    h(Tu, 11, Rn))
+  var EI = Rn
+  gE.addRule(EI, {
     syntax: "do nothing",
     tests: [{ compileAs: "statement", tests: [['do nothing"', "spellCore.doNothing()"]] }]
   })
   var Ho = new Me({ module: "if" }),
-    hE,
+    vE,
     xf,
-    wu,
-    In = class extends ((xf = I), (hE = [S]), xf) {
+    xu,
+    In = class extends ((xf = I), (vE = [S]), xf) {
       static {
         l(this, "Ci")
       }
@@ -27593,14 +27620,14 @@ a pile is a list of cards`)
         return new n.ASTIfStatement(e, { condition: t.AST, statements: this.getBody(e)?.AST })
       }
     }
-  ;((wu = $(xf)),
-    b(wu, 13, "alias", hE, In),
-    k(wu, In),
+  ;((xu = $(xf)),
+    b(xu, 13, "alias", vE, In),
+    k(xu, In),
     p(In, "If"),
-    v(In, "alias", h(wu, 8, In, "statement")),
-    h(wu, 11, In))
-  var AI = In
-  Ho.addRule(AI, {
+    v(In, "alias", h(xu, 8, In, "statement")),
+    h(xu, 11, In))
+  var CI = In
+  Ho.addRule(CI, {
     syntax: "if {condition:expression} (then|:)? {statement_body}?",
     tests: [
       {
@@ -27679,11 +27706,11 @@ a pile is a list of cards`)
       }
     ]
   })
-  var mE,
-    fE,
+  var SE,
+    bE,
     Ef,
     ai,
-    ps = class extends ((Ef = I), (fE = [S]), (mE = [S]), Ef) {
+    ps = class extends ((Ef = I), (bE = [S]), (SE = [S]), Ef) {
       static {
         l(this, "Ur")
       }
@@ -27696,16 +27723,16 @@ a pile is a list of cards`)
       }
     }
   ;((ai = $(Ef)),
-    b(ai, 13, "alias", fE, ps),
-    b(ai, 13, "priority", mE, ps),
+    b(ai, 13, "alias", bE, ps),
+    b(ai, 13, "priority", SE, ps),
     k(ai, ps),
     p(ps, "ElseIf"),
     v(ps, "alias", h(ai, 8, ps, "statement")),
     h(ai, 11, ps),
     v(ps, "priority", h(ai, 12, ps, fe.preferred)),
     h(ai, 15, ps))
-  var wI = ps
-  Ho.addRule(wI, {
+  var DI = ps
+  Ho.addRule(DI, {
     syntax: "(else|otherwise) if {condition:expression} (then|:)? {statement_body}?",
     tests: [
       {
@@ -27770,10 +27797,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var gE,
+  var AE,
     Cf,
-    Tu,
-    Ln = class extends ((Cf = I), (gE = [S]), Cf) {
+    Eu,
+    Ln = class extends ((Cf = I), (AE = [S]), Cf) {
       static {
         l(this, "ki")
       }
@@ -27784,14 +27811,14 @@ a pile is a list of cards`)
         return new n.ASTElseStatement(e, { statements: this.getBody(e)?.AST })
       }
     }
-  ;((Tu = $(Cf)),
-    b(Tu, 13, "alias", gE, Ln),
-    k(Tu, Ln),
+  ;((Eu = $(Cf)),
+    b(Eu, 13, "alias", AE, Ln),
+    k(Eu, Ln),
     p(Ln, "Else"),
-    v(Ln, "alias", h(Tu, 8, Ln, "statement")),
-    h(Tu, 11, Ln))
-  var TI = Ln
-  Ho.addRule(TI, {
+    v(Ln, "alias", h(Eu, 8, Ln, "statement")),
+    h(Eu, 11, Ln))
+  var kI = Ln
+  Ho.addRule(kI, {
     syntax: "(else|otherwise) :? {statement_body}?",
     tests: [
       {
@@ -27844,10 +27871,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var yE,
+  var wE,
     Df,
-    xu,
-    Bn = class extends ((Df = Fe), (yE = [S]), Df) {
+    Cu,
+    Bn = class extends ((Df = Fe), (wE = [S]), Df) {
       static {
         l(this, "Mi")
       }
@@ -27858,14 +27885,14 @@ a pile is a list of cards`)
         return new n.ASTTernaryExpression(e, { condition: r.AST, trueValue: t, falseValue: s })
       }
     }
-  ;((xu = $(Df)),
-    b(xu, 13, "precedence", yE, Bn),
-    k(xu, Bn),
+  ;((Cu = $(Df)),
+    b(Cu, 13, "precedence", wE, Bn),
+    k(Cu, Bn),
     p(Bn, "BackwardsIf"),
-    v(Bn, "precedence", h(xu, 8, Bn, Se.ternary)),
-    h(xu, 11, Bn))
-  var xI = Bn
-  Ho.addRule(xI, {
+    v(Bn, "precedence", h(Cu, 8, Bn, Se.ternary)),
+    h(Cu, 11, Bn))
+  var $I = Bn
+  Ho.addRule($I, {
     syntax: "if {operator:expression} (else|otherwise) {expression}",
     tests: [
       {
@@ -27886,16 +27913,16 @@ a pile is a list of cards`)
       }
     ]
   })
-  var vE,
-    SE,
+  var TE,
+    xE,
     kf,
     ii,
-    cs = class extends ((kf = I), (SE = [S]), (vE = [S]), kf) {
+    cs = class extends ((kf = I), (xE = [S]), (TE = [S]), kf) {
       static {
         l(this, "zr")
       }
       mutateScope(e) {
-        ac.declareValue(e, e.groups.value)
+        Dl.declareValue(e, e.groups.value)
       }
       getAST(e) {
         let { value: t, condition: r } = e.groups
@@ -27906,16 +27933,16 @@ a pile is a list of cards`)
       }
     }
   ;((ii = $(kf)),
-    b(ii, 13, "priority", SE, cs),
-    b(ii, 13, "alias", vE, cs),
+    b(ii, 13, "priority", xE, cs),
+    b(ii, 13, "alias", TE, cs),
     k(ii, cs),
     p(cs, "ValueIf"),
     v(cs, "priority", h(ii, 8, cs, fe.overridable)),
     h(ii, 11, cs),
     v(cs, "alias", h(ii, 12, cs, "statement")),
     h(ii, 15, cs))
-  var EI = cs
-  Ho.addRule(EI, {
+  var OI = cs
+  Ho.addRule(OI, {
     syntax: "(value:{expression}|{constant}) if {condition:expression}",
     tests: [
       {
@@ -27927,16 +27954,16 @@ a pile is a list of cards`)
       }
     ]
   })
-  var bE,
-    AE,
+  var EE,
+    CE,
     $f,
     ni,
-    ds = class extends (($f = I), (AE = [S]), (bE = [S]), $f) {
+    ds = class extends (($f = I), (CE = [S]), (EE = [S]), $f) {
       static {
         l(this, "Kr")
       }
       mutateScope(e) {
-        ac.declareValue(e, e.groups.value)
+        Dl.declareValue(e, e.groups.value)
       }
       getAST(e) {
         return new n.ASTReturnStatement(e, { value: e.groups.value.AST })
@@ -27946,21 +27973,21 @@ a pile is a list of cards`)
       }
     }
   ;((ni = $($f)),
-    b(ni, 13, "priority", AE, ds),
-    b(ni, 13, "alias", bE, ds),
+    b(ni, 13, "priority", CE, ds),
+    b(ni, 13, "alias", EE, ds),
     k(ni, ds),
     p(ds, "ValueOtherwise"),
     v(ds, "priority", h(ni, 8, ds, fe.overridable)),
     h(ni, 11, ds),
     v(ds, "alias", h(ni, 12, ds, "statement")),
     h(ni, 15, ds))
-  var CI = ds
-  Ho.addRule(CI, {
+  var jI = ds
+  Ho.addRule(jI, {
     syntax: "(value:{expression}|{constant}) (otherwise|else)",
     tests: [{ compileAs: "statement", tests: [["black otherwise", 'return "black"']] }]
   })
   var le = new Me({ module: "lists" })
-  function oc(a, e, t) {
+  function lc(a, e, t) {
     let r = rt(e.value),
       s = t && a.scope.getItemType(t.datatype),
       i = new n.ScopeVariable({ name: r, datatype: s, declaredBy: e })
@@ -27969,9 +27996,9 @@ a pile is a list of cards`)
       new n.MethodScope({ parentScope: a.scope, args: [i], mapItTo: r, itDatatype: s, declaredBy: e })
     )
   }
-  l(oc, "$i")
-  p(oc, "getWhereScope")
-  function lc(a, e, t) {
+  l(lc, "$i")
+  p(lc, "getWhereScope")
+  function uc(a, e, t) {
     let { itemVariable: r } = a.data
     return new n.ASTMethodDefinition(t || a, {
       inline: !0,
@@ -27979,17 +28006,17 @@ a pile is a list of cards`)
       body: n.matchAST(t)
     })
   }
-  l(lc, "Fi")
-  p(lc, "getWhereMethod")
-  var wE,
+  l(uc, "Fi")
+  p(uc, "getWhereMethod")
+  var DE,
     Of,
-    Eu,
-    Mn = class TE extends ((Of = n.Repeat), (wE = [S]), Of) {
+    Du,
+    Mn = class kE extends ((Of = n.Repeat), (DE = [S]), Of) {
       static {
         l(this, "ws")
       }
       getAST(e) {
-        return new n.ASTListExpression(e, { items: TE.itemASTs(e) })
+        return new n.ASTListExpression(e, { items: kE.itemASTs(e) })
       }
       static itemASTs(e) {
         return e.items.flatMap((t) => {
@@ -27998,14 +28025,14 @@ a pile is a list of cards`)
         })
       }
     }
-  ;((Eu = $(Of)),
-    b(Eu, 13, "datatype", wE, Mn),
-    k(Eu, Mn),
+  ;((Du = $(Of)),
+    b(Du, 13, "datatype", DE, Mn),
+    k(Du, Mn),
     p(Mn, "IdentifierList"),
-    v(Mn, "datatype", h(Eu, 8, Mn, "list")),
-    h(Eu, 11, Mn))
-  var xE = Mn
-  le.addRule(xE, {
+    v(Mn, "datatype", h(Du, 8, Mn, "list")),
+    h(Du, 11, Mn))
+  var $E = Mn
+  le.addRule($E, {
     syntax: "[({number_range}|{known_variable}|{constant}|{number}) (,|or|and|nor)]",
     tests: [
       {
@@ -28020,9 +28047,9 @@ a pile is a list of cards`)
       }
     ]
   })
-  var DI = class extends n.Sequence {
+  var FI = class extends n.Sequence {
     static {
-      l(this, "iT")
+      l(this, "oT")
     }
     static {
       p(this, "NumberRange")
@@ -28032,7 +28059,7 @@ a pile is a list of cards`)
       if (!t) return
       let r = Number(t.groups.start.value),
         s = Number(t.groups.end.value)
-      return Number.isInteger(r) && Number.isInteger(s) && s > r && s - r < kI ? t : void 0
+      return Number.isInteger(r) && Number.isInteger(s) && s > r && s - r < PI ? t : void 0
     }
     getAST(a) {
       let e = Number(a.groups.start.value),
@@ -28041,7 +28068,7 @@ a pile is a list of cards`)
       return new n.ASTListExpression(a, { items: r })
     }
   }
-  le.addRule(DI, {
+  le.addRule(FI, {
     syntax: "{start:number} ... {end:number}",
     tests: [
       {
@@ -28053,10 +28080,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var kI = 1e3,
-    $I = class extends xE {
+  var PI = 1e3,
+    NI = class extends $E {
       static {
-        l(this, "oT")
+        l(this, "aT")
       }
       static {
         p(this, "ValueChoices")
@@ -28070,7 +28097,7 @@ a pile is a list of cards`)
             : void 0
       }
     }
-  le.addRule($I, {
+  le.addRule(NI, {
     syntax: "[({known_constant}|{number}) (,|or)]",
     tests: [
       {
@@ -28087,11 +28114,11 @@ a pile is a list of cards`)
       }
     ]
   })
-  var EE,
-    CE,
+  var OE,
+    jE,
     jf,
     oi,
-    hs = class extends ((jf = n.Sequence), (CE = [S]), (EE = [S]), jf) {
+    hs = class extends ((jf = n.Sequence), (jE = [S]), (OE = [S]), jf) {
       static {
         l(this, "Jr")
       }
@@ -28107,16 +28134,16 @@ a pile is a list of cards`)
       }
     }
   ;((oi = $(jf)),
-    b(oi, 13, "alias", CE, hs),
-    b(oi, 13, "datatype", EE, hs),
+    b(oi, 13, "alias", jE, hs),
+    b(oi, 13, "datatype", OE, hs),
     k(oi, hs),
     p(hs, "BracketedList"),
     v(hs, "alias", h(oi, 8, hs, "expression")),
     h(oi, 11, hs),
     v(hs, "datatype", h(oi, 12, hs, "list")),
     h(oi, 15, hs))
-  var OI = hs
-  le.addRule(OI, {
+  var RI = hs
+  le.addRule(RI, {
     syntax: "\\[ [list:{expression} ,]? \\]",
     tests: [
       {
@@ -28140,9 +28167,9 @@ a pile is a list of cards`)
       }
     ]
   })
-  var jI = class extends Ne {
+  var II = class extends Pe {
     static {
-      l(this, "uT")
+      l(this, "pT")
     }
     static {
       p(this, "CopyList")
@@ -28157,7 +28184,7 @@ a pile is a list of cards`)
       return (t && r.push(n.matchAST(t)), new n.ASTCoreMethodInvocation(a, { methodName: "duplicateList", args: r }))
     }
   }
-  le.addRule(jI, {
+  le.addRule(II, {
     syntax: "a (copy|duplicate) of list? {expression:operand} (as (a|an) {type:known_type})?",
     tests: [
       {
@@ -28172,9 +28199,9 @@ a pile is a list of cards`)
       }
     ]
   })
-  var FI = class extends Ne {
+  var LI = class extends Pe {
     static {
-      l(this, "pT")
+      l(this, "cT")
     }
     static {
       p(this, "MergeLists")
@@ -28189,7 +28216,7 @@ a pile is a list of cards`)
       return (t && r.push(n.matchAST(t)), new n.ASTCoreMethodInvocation(a, { methodName: "mergeLists", args: r }))
     }
   }
-  le.addRule(FI, {
+  le.addRule(LI, {
     syntax: "merge lists? {expression:operand} ((as|into) (a|an) new? {type:known_type})?",
     tests: [
       {
@@ -28204,37 +28231,37 @@ a pile is a list of cards`)
       }
     ]
   })
-  var DE,
-    kE,
+  var FE,
+    PE,
     Ff,
     li,
-    ms = class extends ((Ff = Ne), (kE = [S]), (DE = [S]), Ff) {
+    ms = class extends ((Ff = Pe), (PE = [S]), (FE = [S]), Ff) {
       static {
         l(this, "Hr")
       }
       getNestedScopeForMatch(e) {
-        return oc(e, e.groups.arg, e.groups.list)
+        return lc(e, e.groups.arg, e.groups.list)
       }
       getAST(e) {
         let { arg: t, list: r } = e.groups,
           s = this.getBody(e),
           i = s
-            ? new n.ASTCoreMethodInvocation(e, { methodName: "filter", args: [n.matchAST(r), lc(e, t, s)] })
+            ? new n.ASTCoreMethodInvocation(e, { methodName: "filter", args: [n.matchAST(r), uc(e, t, s)] })
             : n.matchAST(r)
         return new n.ASTCoreMethodInvocation(e, { methodName: "itemCountOf", args: [i] })
       }
     }
   ;((li = $(Ff)),
-    b(li, 13, "priority", kE, ms),
-    b(li, 13, "datatype", DE, ms),
+    b(li, 13, "priority", PE, ms),
+    b(li, 13, "datatype", FE, ms),
     k(li, ms),
     p(ms, "ListLength"),
     v(ms, "priority", h(li, 8, ms, fe.mostSpecific)),
     h(li, 11, ms),
     v(ms, "datatype", h(li, 12, ms, "number")),
     h(li, 15, ms))
-  var $E = ms
-  le.addRule($E, {
+  var NE = ms
+  le.addRule(NE, {
     syntax: "the? number of {arg:plural_identifier} (in|of) {list:operand}",
     tests: [
       {
@@ -28250,7 +28277,7 @@ a pile is a list of cards`)
       }
     ]
   })
-  le.addRule($E, {
+  le.addRule(NE, {
     syntax: "the? number of {arg:plural_identifier} (in|of) {list:operand} where {inline_expression}?",
     tests: [
       {
@@ -28268,11 +28295,11 @@ a pile is a list of cards`)
       }
     ]
   })
-  var OE,
-    jE,
-    Nf,
+  var RE,
+    IE,
+    Pf,
     ui,
-    fs = class extends ((Nf = Ne), (jE = [S]), (OE = [S]), Nf) {
+    fs = class extends ((Pf = Pe), (IE = [S]), (RE = [S]), Pf) {
       static {
         l(this, "Xr")
       }
@@ -28284,17 +28311,17 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "itemCountOf", args: [n.matchAST(e.groups.list)] })
       }
     }
-  ;((ui = $(Nf)),
-    b(ui, 13, "priority", jE, fs),
-    b(ui, 13, "datatype", OE, fs),
+  ;((ui = $(Pf)),
+    b(ui, 13, "priority", IE, fs),
+    b(ui, 13, "datatype", RE, fs),
     k(ui, fs),
     p(fs, "ListCount"),
     v(fs, "priority", h(ui, 8, fs, fe.mostSpecific)),
     h(ui, 11, fs),
     v(fs, "datatype", h(ui, 12, fs, "number")),
     h(ui, 15, fs))
-  var NI = fs
-  le.addRule(NI, {
+  var BI = fs
+  le.addRule(BI, {
     syntax: "the? number of {list:operand}",
     tests: [
       {
@@ -28313,11 +28340,11 @@ a pile is a list of cards`)
       }
     ]
   })
-  var FE,
-    NE,
-    Pf,
+  var LE,
+    BE,
+    Nf,
     pi,
-    gs = class extends ((Pf = Ne), (NE = [S]), (FE = [S]), Pf) {
+    gs = class extends ((Nf = Pe), (BE = [S]), (LE = [S]), Nf) {
       static {
         l(this, "Yr")
       }
@@ -28326,17 +28353,17 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "positionOf", args: [n.matchAST(r), n.matchAST(t)] })
       }
     }
-  ;((pi = $(Pf)),
-    b(pi, 13, "priority", NE, gs),
-    b(pi, 13, "datatype", FE, gs),
+  ;((pi = $(Nf)),
+    b(pi, 13, "priority", BE, gs),
+    b(pi, 13, "datatype", LE, gs),
     k(pi, gs),
     p(gs, "ListPosition"),
     v(gs, "priority", h(pi, 8, gs, fe.mostSpecific)),
     h(pi, 11, gs),
     v(gs, "datatype", h(pi, 12, gs, "number")),
     h(pi, 15, gs))
-  var PI = gs
-  le.addRule(PI, {
+  var MI = gs
+  le.addRule(MI, {
     syntax: "the? position of {thing:expression} in {list:operand}",
     tests: [
       {
@@ -28352,10 +28379,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var PE,
+  var ME,
     Rf,
-    Cu,
-    _n = class extends ((Rf = Fe), (PE = [S]), Rf) {
+    ku,
+    _n = class extends ((Rf = Fe), (ME = [S]), Rf) {
       static {
         l(this, "Oi")
       }
@@ -28366,14 +28393,14 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "startsWith", args: [t, r] })
       }
     }
-  ;((Cu = $(Rf)),
-    b(Cu, 13, "precedence", PE, _n),
-    k(Cu, _n),
+  ;((ku = $(Rf)),
+    b(ku, 13, "precedence", ME, _n),
+    k(ku, _n),
     p(_n, "StartsWith"),
-    v(_n, "precedence", h(Cu, 8, _n, Se.comparison)),
-    h(Cu, 11, _n))
-  var RI = _n
-  le.addRule(RI, {
+    v(_n, "precedence", h(ku, 8, _n, Se.comparison)),
+    h(ku, 11, _n))
+  var _I = _n
+  le.addRule(_I, {
     syntax: "(operator:starts with|does not start with|doesnt start with|doesn't start with) {expression:operand}",
     tests: [
       {
@@ -28391,10 +28418,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var RE,
+  var _E,
     If,
-    Du,
-    Wn = class extends ((If = Fe), (RE = [S]), If) {
+    $u,
+    Wn = class extends ((If = Fe), (_E = [S]), If) {
       static {
         l(this, "Ri")
       }
@@ -28405,14 +28432,14 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "endsWith", args: [t, r] })
       }
     }
-  ;((Du = $(If)),
-    b(Du, 13, "precedence", RE, Wn),
-    k(Du, Wn),
+  ;(($u = $(If)),
+    b($u, 13, "precedence", _E, Wn),
+    k($u, Wn),
     p(Wn, "EndsWith"),
-    v(Wn, "precedence", h(Du, 8, Wn, Se.comparison)),
-    h(Du, 11, Wn))
-  var II = Wn
-  le.addRule(II, {
+    v(Wn, "precedence", h($u, 8, Wn, Se.comparison)),
+    h($u, 11, Wn))
+  var WI = Wn
+  le.addRule(WI, {
     syntax: "(operator:ends with|does not end with|doesnt end with|doesn't end with) {expression:operand}",
     tests: [
       {
@@ -28430,12 +28457,12 @@ a pile is a list of cards`)
       }
     ]
   })
-  var IE,
-    LE,
-    BE,
+  var WE,
+    VE,
+    UE,
     Lf,
     Dr,
-    Dt = class extends ((Lf = n.Pattern), (BE = [S]), (LE = [S]), (IE = [S]), Lf) {
+    Dt = class extends ((Lf = n.Pattern), (UE = [S]), (VE = [S]), (WE = [S]), Lf) {
       static {
         l(this, "Tt")
       }
@@ -28445,9 +28472,9 @@ a pile is a list of cards`)
       }
     }
   ;((Dr = $(Lf)),
-    b(Dr, 13, "matchGroup", BE, Dt),
-    b(Dr, 13, "pattern", LE, Dt),
-    b(Dr, 13, "VALUE_MAP", IE, Dt),
+    b(Dr, 13, "matchGroup", UE, Dt),
+    b(Dr, 13, "pattern", VE, Dt),
+    b(Dr, 13, "VALUE_MAP", WE, Dt),
     k(Dr, Dt),
     p(Dt, "Ordinal"),
     v(Dt, "matchGroup", h(Dr, 8, Dt, "ordinal")),
@@ -28485,8 +28512,8 @@ a pile is a list of cards`)
       })
     ),
     h(Dr, 19, Dt))
-  var LI = Dt
-  le.addRule(LI, {
+  var VI = Dt
+  le.addRule(VI, {
     tests: [
       {
         tests: [
@@ -28509,10 +28536,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var ME,
+  var GE,
     Bf,
-    ku,
-    Vn = class extends ((Bf = Ne), (ME = [S]), Bf) {
+    Ou,
+    Vn = class extends ((Bf = Pe), (GE = [S]), Bf) {
       static {
         l(this, "Ni")
       }
@@ -28525,17 +28552,17 @@ a pile is a list of cards`)
         return e.data.itemType
       }
     }
-  ;((ku = $(Bf)),
-    b(ku, 13, "listGroup", ME, Vn),
-    k(ku, Vn),
+  ;((Ou = $(Bf)),
+    b(Ou, 13, "listGroup", GE, Vn),
+    k(Ou, Vn),
     p(Vn, "ListItemExpression"),
-    v(Vn, "listGroup", h(ku, 8, Vn, "list")),
-    h(ku, 11, Vn))
+    v(Vn, "listGroup", h(Ou, 8, Vn, "list")),
+    h(Ou, 11, Vn))
   var uS = Vn,
-    _E,
+    zE,
     Mf,
-    $u,
-    Un = class extends ((Mf = uS), (_E = [S]), Mf) {
+    ju,
+    Un = class extends ((Mf = uS), (zE = [S]), Mf) {
       static {
         l(this, "Ii")
       }
@@ -28544,14 +28571,14 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "getItemAt", args: [n.matchAST(r), n.matchAST(t)] })
       }
     }
-  ;(($u = $(Mf)),
-    b($u, 13, "listGroup", _E, Un),
-    k($u, Un),
+  ;((ju = $(Mf)),
+    b(ju, 13, "listGroup", zE, Un),
+    k(ju, Un),
     p(Un, "PositionExpression"),
-    v(Un, "listGroup", h($u, 8, Un, "expression")),
-    h($u, 11, Un))
-  var BI = Un
-  le.addRule(BI, {
+    v(Un, "listGroup", h(ju, 8, Un, "expression")),
+    h(ju, 11, Un))
+  var UI = Un
+  le.addRule(UI, {
     syntax: "{arg:singular_identifier} {position:expression} of {expression:operand}",
     tests: [
       {
@@ -28567,10 +28594,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var WE,
+  var qE,
     _f,
-    Ou,
-    Gn = class extends ((_f = uS), (WE = [S]), _f) {
+    Fu,
+    Gn = class extends ((_f = uS), (qE = [S]), _f) {
       static {
         l(this, "Li")
       }
@@ -28579,14 +28606,14 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "getItemAt", args: [n.matchAST(r), n.matchAST(t)] })
       }
     }
-  ;((Ou = $(_f)),
-    b(Ou, 13, "listGroup", WE, Gn),
-    k(Ou, Gn),
+  ;((Fu = $(_f)),
+    b(Fu, 13, "listGroup", qE, Gn),
+    k(Fu, Gn),
     p(Gn, "OrdinalPositionExpression"),
-    v(Gn, "listGroup", h(Ou, 8, Gn, "expression")),
-    h(Ou, 11, Gn))
-  var MI = Gn
-  le.addRule(MI, {
+    v(Gn, "listGroup", h(Fu, 8, Gn, "expression")),
+    h(Fu, 11, Gn))
+  var GI = Gn
+  le.addRule(GI, {
     syntax: "the {ordinal} {arg:singular_identifier} (in|of) {expression:operand}",
     tests: [
       {
@@ -28602,9 +28629,9 @@ a pile is a list of cards`)
       }
     ]
   })
-  var _I = class extends uS {
+  var zI = class extends uS {
     static {
-      l(this, "yT")
+      l(this, "ST")
     }
     static {
       p(this, "RandomItemExpression")
@@ -28614,7 +28641,7 @@ a pile is a list of cards`)
       return new n.ASTCoreMethodInvocation(a, { methodName: "randomItemOf", args: [n.matchAST(e)] })
     }
   }
-  le.addRule(_I, {
+  le.addRule(zI, {
     syntax: "a random {arg:singular_identifier} (of|from|in) {list:operand}",
     tests: [
       {
@@ -28630,9 +28657,9 @@ a pile is a list of cards`)
       }
     ]
   })
-  var WI = class extends Ne {
+  var qI = class extends Pe {
     static {
-      l(this, "ST")
+      l(this, "PT")
     }
     static {
       p(this, "RandomItemsExpression")
@@ -28645,7 +28672,7 @@ a pile is a list of cards`)
       return new n.ASTCoreMethodInvocation(a, { methodName: "randomItemsOf", args: [n.matchAST(t), n.matchAST(e)] })
     }
   }
-  le.addRule(WI, {
+  le.addRule(qI, {
     syntax: "{number} random {arg:plural_identifier} (of|from|in) {list:operand}",
     tests: [
       {
@@ -28661,9 +28688,9 @@ a pile is a list of cards`)
       }
     ]
   })
-  var VI = class extends Ne {
+  var JI = class extends Pe {
     static {
-      l(this, "PT")
+      l(this, "TT")
     }
     static {
       p(this, "RangeBetweenExpression")
@@ -28679,7 +28706,7 @@ a pile is a list of cards`)
       })
     }
   }
-  le.addRule(VI, {
+  le.addRule(JI, {
     syntax: "{arg:variable} {start:expression} to {end:expression} (of|in|from) {list:operand}",
     tests: [
       {
@@ -28695,9 +28722,9 @@ a pile is a list of cards`)
       }
     ]
   })
-  var UI = class extends Ne {
+  var KI = class extends Pe {
     static {
-      l(this, "TT")
+      l(this, "AT")
     }
     static {
       p(this, "RangeStartingWithExpression")
@@ -28711,7 +28738,7 @@ a pile is a list of cards`)
       return new n.ASTCoreMethodInvocation(a, { methodName: "rangeStartingAt", args: [n.matchAST(t), r] })
     }
   }
-  le.addRule(UI, {
+  le.addRule(KI, {
     syntax: "{arg:plural_identifier} (in|of) {list:expression} starting with {thing:operand}",
     tests: [
       {
@@ -28732,9 +28759,9 @@ a pile is a list of cards`)
       }
     ]
   })
-  var GI = class extends Ne {
+  var XI = class extends Pe {
     static {
-      l(this, "AT")
+      l(this, "xT")
     }
     static {
       p(this, "RangeCountExpression")
@@ -28746,11 +28773,11 @@ a pile is a list of cards`)
       let { list: e, ordinal: t, number: r } = a.groups
       return new n.ASTCoreMethodInvocation(a, {
         methodName: "rangeStartingAt",
-        args: [n.matchAST(e), VE(n.matchAST(t), n.matchAST(r)), n.matchAST(r)]
+        args: [n.matchAST(e), JE(n.matchAST(t), n.matchAST(r)), n.matchAST(r)]
       })
     }
   }
-  le.addRule(GI, {
+  le.addRule(XI, {
     syntax: "{ordinal} {number} {arg:plural_identifier} (of|in|from) {list:operand}",
     tests: [
       {
@@ -28767,40 +28794,40 @@ a pile is a list of cards`)
       }
     ]
   })
-  function VE(a, e) {
+  function JE(a, e) {
     if (!(a instanceof n.ASTOrdinalLiteral) || a.value >= 0 || !(e instanceof n.ASTNumericLiteral)) return a
     let t = a.value - (e.value - 1)
     return new n.ASTOrdinalLiteral(a.match, { value: t, raw: String(t) })
   }
-  l(VE, "iY")
-  p(VE, "startOf")
-  var UE,
+  l(JE, "pY")
+  p(JE, "startOf")
+  var KE,
     Wf,
-    ju,
-    zn = class extends ((Wf = Ne), (UE = [S]), Wf) {
+    Pu,
+    zn = class extends ((Wf = Pe), (KE = [S]), Wf) {
       static {
         l(this, "Bi")
       }
       getNestedScopeForMatch(e) {
-        return oc(e, e.groups.arg, e.groups.list)
+        return lc(e, e.groups.arg, e.groups.list)
       }
       getDatatype(e) {
         return e.groups.list.datatype
       }
       getAST(e) {
         let { arg: t, list: r } = e.groups,
-          s = lc(e, t, this.getBody(e))
+          s = uc(e, t, this.getBody(e))
         return new n.ASTCoreMethodInvocation(e, { methodName: "filter", args: [n.matchAST(r), s] })
       }
     }
-  ;((ju = $(Wf)),
-    b(ju, 13, "priority", UE, zn),
-    k(ju, zn),
+  ;((Pu = $(Wf)),
+    b(Pu, 13, "priority", KE, zn),
+    k(Pu, zn),
     p(zn, "ListFilter"),
-    v(zn, "priority", h(ju, 8, zn, fe.specific)),
-    h(ju, 11, zn))
-  var zI = zn
-  le.addRule(zI, {
+    v(zn, "priority", h(Pu, 8, zn, fe.specific)),
+    h(Pu, 11, zn))
+  var HI = zn
+  le.addRule(HI, {
     syntax: "the? {arg:plural_identifier} (in|of) {list:expression} where {inline_expression}?",
     tests: [
       {
@@ -28823,32 +28850,32 @@ a pile is a list of cards`)
       }
     ]
   })
-  var GE,
+  var XE,
     Vf,
-    Fu,
-    qn = class extends ((Vf = Is), (GE = [S]), Vf) {
+    Nu,
+    qn = class extends ((Vf = Is), (XE = [S]), Vf) {
       static {
         l(this, "qi")
       }
       getNestedScopeForMatch(e) {
-        return oc(e, e.groups.arg, void 0)
+        return lc(e, e.groups.arg, void 0)
       }
       shouldNegateOutput(e) {
         return e.value !== "has"
       }
       compileASTExpression(e, { lhs: t }) {
-        let r = lc(e, e.groups.arg, this.getBody(e))
+        let r = uc(e, e.groups.arg, this.getBody(e))
         return new n.ASTCoreMethodInvocation(e, { methodName: "any", args: [t, r], datatype: "choice" })
       }
     }
-  ;((Fu = $(Vf)),
-    b(Fu, 13, "precedence", GE, qn),
-    k(Fu, qn),
+  ;((Nu = $(Vf)),
+    b(Nu, 13, "precedence", XE, qn),
+    k(Nu, qn),
     p(qn, "ListMembershipTest"),
-    v(qn, "precedence", h(Fu, 8, qn, Se.comparison)),
-    h(Fu, 11, qn))
-  var qI = qn
-  le.addRule(qI, {
+    v(qn, "precedence", h(Nu, 8, qn, Se.comparison)),
+    h(Nu, 11, qn))
+  var YI = qn
+  le.addRule(YI, {
     syntax: "(operator:has|has no|doesnt have|does not have) {arg:plural_identifier} where {inline_expression}?",
     tests: [
       {
@@ -28870,10 +28897,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var zE,
+  var HE,
     Uf,
-    Nu,
-    Jn = class extends ((Uf = I), (zE = [S]), Uf) {
+    Ru,
+    Jn = class extends ((Uf = I), (HE = [S]), Uf) {
       static {
         l(this, "Gi")
       }
@@ -28883,14 +28910,14 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: i, args: [n.matchAST(r), n.matchAST(t)] })
       }
     }
-  ;((Nu = $(Uf)),
-    b(Nu, 13, "alias", zE, Jn),
-    k(Nu, Jn),
+  ;((Ru = $(Uf)),
+    b(Ru, 13, "alias", HE, Jn),
+    k(Ru, Jn),
     p(Jn, "ListAdd"),
-    v(Jn, "alias", h(Nu, 8, Jn, "statement")),
-    h(Nu, 11, Jn))
-  var JI = Jn
-  le.addRule(JI, {
+    v(Jn, "alias", h(Ru, 8, Jn, "statement")),
+    h(Ru, 11, Jn))
+  var QI = Jn
+  le.addRule(QI, {
     syntax: "add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {list:expression}",
     tests: [
       {
@@ -28910,10 +28937,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var qE,
+  var YE,
     Gf,
-    Pu,
-    Kn = class extends ((Gf = I), (qE = [S]), Gf) {
+    Iu,
+    Kn = class extends ((Gf = I), (YE = [S]), Gf) {
       static {
         l(this, "Wi")
       }
@@ -28922,14 +28949,14 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "prepend", args: [n.matchAST(r), n.matchAST(t)] })
       }
     }
-  ;((Pu = $(Gf)),
-    b(Pu, 13, "alias", qE, Kn),
-    k(Pu, Kn),
+  ;((Iu = $(Gf)),
+    b(Iu, 13, "alias", YE, Kn),
+    k(Iu, Kn),
     p(Kn, "ListPrepend"),
-    v(Kn, "alias", h(Pu, 8, Kn, "statement")),
-    h(Pu, 11, Kn))
-  var KI = Kn
-  le.addRule(KI, {
+    v(Kn, "alias", h(Iu, 8, Kn, "statement")),
+    h(Iu, 11, Kn))
+  var ZI = Kn
+  le.addRule(ZI, {
     syntax: "prepend {thing:expression} to {list:expression}",
     tests: [
       {
@@ -28941,10 +28968,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var JE,
+  var QE,
     zf,
-    Ru,
-    Xn = class extends ((zf = I), (JE = [S]), zf) {
+    Lu,
+    Xn = class extends ((zf = I), (QE = [S]), zf) {
       static {
         l(this, "Vi")
       }
@@ -28953,14 +28980,14 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "append", args: [n.matchAST(r), n.matchAST(t)] })
       }
     }
-  ;((Ru = $(zf)),
-    b(Ru, 13, "alias", JE, Xn),
-    k(Ru, Xn),
+  ;((Lu = $(zf)),
+    b(Lu, 13, "alias", QE, Xn),
+    k(Lu, Xn),
     p(Xn, "ListAppend"),
-    v(Xn, "alias", h(Ru, 8, Xn, "statement")),
-    h(Ru, 11, Xn))
-  var XI = Xn
-  le.addRule(XI, {
+    v(Xn, "alias", h(Lu, 8, Xn, "statement")),
+    h(Lu, 11, Xn))
+  var eL = Xn
+  le.addRule(eL, {
     syntax: "append {thing:expression} to {list:expression}",
     tests: [
       {
@@ -28972,10 +28999,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var KE,
+  var ZE,
     qf,
-    Iu,
-    Hn = class extends ((qf = I), (KE = [S]), qf) {
+    Bu,
+    Hn = class extends ((qf = I), (ZE = [S]), qf) {
       static {
         l(this, "Ui")
       }
@@ -28987,14 +29014,14 @@ a pile is a list of cards`)
         })
       }
     }
-  ;((Iu = $(qf)),
-    b(Iu, 13, "alias", KE, Hn),
-    k(Iu, Hn),
+  ;((Bu = $(qf)),
+    b(Bu, 13, "alias", ZE, Hn),
+    k(Bu, Hn),
     p(Hn, "ListAddRelative"),
-    v(Hn, "alias", h(Iu, 8, Hn, "statement")),
-    h(Iu, 11, Hn))
-  var HI = Hn
-  le.addRule(HI, {
+    v(Hn, "alias", h(Bu, 8, Hn, "statement")),
+    h(Bu, 11, Hn))
+  var tL = Hn
+  le.addRule(tL, {
     syntax: "add {thing:expression} to {list:expression} (operator:before|after) {item:expression}",
     tests: [
       {
@@ -29009,10 +29036,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var XE,
+  var eC,
     Jf,
-    Lu,
-    Yn = class extends ((Jf = I), (XE = [S]), Jf) {
+    Mu,
+    Yn = class extends ((Jf = I), (eC = [S]), Jf) {
       static {
         l(this, "zi")
       }
@@ -29021,14 +29048,14 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "clear", args: [n.matchAST(t)] })
       }
     }
-  ;((Lu = $(Jf)),
-    b(Lu, 13, "alias", XE, Yn),
-    k(Lu, Yn),
+  ;((Mu = $(Jf)),
+    b(Mu, 13, "alias", eC, Yn),
+    k(Mu, Yn),
     p(Yn, "ListEmpty"),
-    v(Yn, "alias", h(Lu, 8, Yn, "statement")),
-    h(Lu, 11, Yn))
-  var YI = Yn
-  le.addRule(YI, {
+    v(Yn, "alias", h(Mu, 8, Yn, "statement")),
+    h(Mu, 11, Yn))
+  var rL = Yn
+  le.addRule(rL, {
     syntax: "(empty|clear) {list:expression}",
     tests: [
       {
@@ -29043,10 +29070,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var HE,
+  var tC,
     Kf,
-    Bu,
-    Qn = class extends ((Kf = I), (HE = [S]), Kf) {
+    _u,
+    Qn = class extends ((Kf = I), (tC = [S]), Kf) {
       static {
         l(this, "Ki")
       }
@@ -29055,14 +29082,14 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "removeItemAt", args: [n.matchAST(r), n.matchAST(t)] })
       }
     }
-  ;((Bu = $(Kf)),
-    b(Bu, 13, "alias", HE, Qn),
-    k(Bu, Qn),
+  ;((_u = $(Kf)),
+    b(_u, 13, "alias", tC, Qn),
+    k(_u, Qn),
     p(Qn, "ListRemoveOrdinal"),
-    v(Qn, "alias", h(Bu, 8, Qn, "statement")),
-    h(Bu, 11, Qn))
-  var QI = Qn
-  le.addRule(QI, {
+    v(Qn, "alias", h(_u, 8, Qn, "statement")),
+    h(_u, 11, Qn))
+  var sL = Qn
+  le.addRule(sL, {
     syntax: "remove the? {position:ordinal} {arg:singular_identifier} of {list:expression}",
     tests: [
       {
@@ -29077,10 +29104,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var YE,
+  var rC,
     Xf,
-    Mu,
-    Zn = class extends ((Xf = I), (YE = [S]), Xf) {
+    Wu,
+    Zn = class extends ((Xf = I), (rC = [S]), Xf) {
       static {
         l(this, "Ji")
       }
@@ -29089,14 +29116,14 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "removeItemAt", args: [n.matchAST(r), n.matchAST(t)] })
       }
     }
-  ;((Mu = $(Xf)),
-    b(Mu, 13, "alias", YE, Zn),
-    k(Mu, Zn),
+  ;((Wu = $(Xf)),
+    b(Wu, 13, "alias", rC, Zn),
+    k(Wu, Zn),
     p(Zn, "ListRemovePosition"),
-    v(Zn, "alias", h(Mu, 8, Zn, "statement")),
-    h(Mu, 11, Zn))
-  var ZI = Zn
-  le.addRule(ZI, {
+    v(Zn, "alias", h(Wu, 8, Zn, "statement")),
+    h(Wu, 11, Zn))
+  var aL = Zn
+  le.addRule(aL, {
     syntax: "remove {arg:singular_identifier} {number:expression} of {list:expression}",
     tests: [
       {
@@ -29108,10 +29135,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var QE,
+  var sC,
     Hf,
-    _u,
-    eo = class extends ((Hf = I), (QE = [S]), Hf) {
+    Vu,
+    eo = class extends ((Hf = I), (sC = [S]), Hf) {
       static {
         l(this, "Hi")
       }
@@ -29123,14 +29150,14 @@ a pile is a list of cards`)
         })
       }
     }
-  ;((_u = $(Hf)),
-    b(_u, 13, "alias", QE, eo),
-    k(_u, eo),
+  ;((Vu = $(Hf)),
+    b(Vu, 13, "alias", sC, eo),
+    k(Vu, eo),
     p(eo, "ListRemoveRange"),
-    v(eo, "alias", h(_u, 8, eo, "statement")),
-    h(_u, 11, eo))
-  var eL = eo
-  le.addRule(eL, {
+    v(eo, "alias", h(Vu, 8, eo, "statement")),
+    h(Vu, 11, eo))
+  var iL = eo
+  le.addRule(iL, {
     syntax: "remove {arg:plural_identifier} {start:expression} to {end:expression} of {list:expression}",
     tests: [
       {
@@ -29142,10 +29169,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var ZE,
+  var aC,
     Yf,
-    Wu,
-    to = class extends ((Yf = I), (ZE = [S]), Yf) {
+    Uu,
+    to = class extends ((Yf = I), (aC = [S]), Yf) {
       static {
         l(this, "Xi")
       }
@@ -29157,14 +29184,14 @@ a pile is a list of cards`)
         })
       }
     }
-  ;((Wu = $(Yf)),
-    b(Wu, 13, "alias", ZE, to),
-    k(Wu, to),
+  ;((Uu = $(Yf)),
+    b(Uu, 13, "alias", aC, to),
+    k(Uu, to),
     p(to, "ListRemoveRangeOrdinal"),
-    v(to, "alias", h(Wu, 8, to, "statement")),
-    h(Wu, 11, to))
-  var tL = to
-  le.addRule(tL, {
+    v(to, "alias", h(Uu, 8, to, "statement")),
+    h(Uu, 11, to))
+  var nL = to
+  le.addRule(nL, {
     syntax: "remove {start:ordinal} to {end:ordinal} {arg:plural_identifier} of {list:expression}",
     tests: [
       {
@@ -29176,10 +29203,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var eC,
+  var iC,
     Qf,
-    Vu,
-    ro = class extends ((Qf = I), (eC = [S]), Qf) {
+    Gu,
+    ro = class extends ((Qf = I), (iC = [S]), Qf) {
       static {
         l(this, "Yi")
       }
@@ -29188,14 +29215,14 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "remove", args: [n.matchAST(r), n.matchAST(t)] })
       }
     }
-  ;((Vu = $(Qf)),
-    b(Vu, 13, "alias", eC, ro),
-    k(Vu, ro),
+  ;((Gu = $(Qf)),
+    b(Gu, 13, "alias", iC, ro),
+    k(Gu, ro),
     p(ro, "ListRemove"),
-    v(ro, "alias", h(Vu, 8, ro, "statement")),
-    h(Vu, 11, ro))
-  var rL = ro
-  le.addRule(rL, {
+    v(ro, "alias", h(Gu, 8, ro, "statement")),
+    h(Gu, 11, ro))
+  var oL = ro
+  le.addRule(oL, {
     syntax: "remove {thing:expression} from {list:expression}",
     tests: [
       {
@@ -29207,30 +29234,30 @@ a pile is a list of cards`)
       }
     ]
   })
-  var tC,
+  var nC,
     Zf,
-    Uu,
-    so = class extends ((Zf = I), (tC = [S]), Zf) {
+    zu,
+    so = class extends ((Zf = I), (nC = [S]), Zf) {
       static {
         l(this, "Zi")
       }
       getNestedScopeForMatch(e) {
-        return oc(e, e.groups.arg, e.groups.list)
+        return lc(e, e.groups.arg, e.groups.list)
       }
       getAST(e) {
         let { arg: t, list: r } = e.groups,
-          s = lc(e, t, this.getBody(e))
+          s = uc(e, t, this.getBody(e))
         return new n.ASTCoreMethodInvocation(e, { methodName: "removeWhere", args: [n.matchAST(r), s] })
       }
     }
-  ;((Uu = $(Zf)),
-    b(Uu, 13, "alias", tC, so),
-    k(Uu, so),
+  ;((zu = $(Zf)),
+    b(zu, 13, "alias", nC, so),
+    k(zu, so),
     p(so, "ListRemoveWhere"),
-    v(so, "alias", h(Uu, 8, so, "statement")),
-    h(Uu, 11, so))
-  var sL = so
-  le.addRule(sL, {
+    v(so, "alias", h(zu, 8, so, "statement")),
+    h(zu, 11, so))
+  var lL = so
+  le.addRule(lL, {
     syntax: "remove {arg:plural_identifier} (in|of|from) {list:expression} where {inline_expression}?",
     tests: [
       {
@@ -29260,13 +29287,13 @@ a pile is a list of cards`)
       }
     ]
   })
-  var rC,
-    sC,
-    aC,
-    iC,
+  var oC,
+    lC,
+    uC,
+    pC,
     eg,
     Wt,
-    Je = class extends ((eg = I), (iC = [S]), (aC = [S]), (sC = [S]), (rC = [S]), eg) {
+    Ke = class extends ((eg = I), (pC = [S]), (uC = [S]), (lC = [S]), (oC = [S]), eg) {
       static {
         l(this, "Le")
       }
@@ -29276,22 +29303,22 @@ a pile is a list of cards`)
       }
     }
   ;((Wt = $(eg)),
-    b(Wt, 13, "priority", iC, Je),
-    b(Wt, 13, "alias", aC, Je),
-    b(Wt, 13, "datatype", sC, Je),
-    b(Wt, 13, "operandInExpressions", rC, Je),
-    k(Wt, Je),
-    p(Je, "ListMove"),
-    v(Je, "priority", h(Wt, 8, Je, fe.overridable)),
-    h(Wt, 11, Je),
-    v(Je, "alias", h(Wt, 12, Je, ["statement", "expression"])),
-    h(Wt, 15, Je),
-    v(Je, "datatype", h(Wt, 16, Je, "choice")),
-    h(Wt, 19, Je),
-    v(Je, "operandInExpressions", h(Wt, 20, Je, !0)),
-    h(Wt, 23, Je))
-  var aL = Je
-  le.addRule(aL, {
+    b(Wt, 13, "priority", pC, Ke),
+    b(Wt, 13, "alias", uC, Ke),
+    b(Wt, 13, "datatype", lC, Ke),
+    b(Wt, 13, "operandInExpressions", oC, Ke),
+    k(Wt, Ke),
+    p(Ke, "ListMove"),
+    v(Ke, "priority", h(Wt, 8, Ke, fe.overridable)),
+    h(Wt, 11, Ke),
+    v(Ke, "alias", h(Wt, 12, Ke, ["statement", "expression"])),
+    h(Wt, 15, Ke),
+    v(Ke, "datatype", h(Wt, 16, Ke, "choice")),
+    h(Wt, 19, Ke),
+    v(Ke, "operandInExpressions", h(Wt, 20, Ke, !0)),
+    h(Wt, 23, Ke))
+  var uL = Ke
+  le.addRule(uL, {
     syntax: "move {thing:expression} to {list:expression}",
     tests: [
       {
@@ -29306,10 +29333,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var nC,
+  var cC,
     tg,
-    Gu,
-    ao = class extends ((tg = Fe), (nC = [S]), tg) {
+    qu,
+    ao = class extends ((tg = Fe), (cC = [S]), tg) {
       static {
         l(this, "Qi")
       }
@@ -29317,14 +29344,14 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "canTake", args: [t, r] })
       }
     }
-  ;((Gu = $(tg)),
-    b(Gu, 13, "precedence", nC, ao),
-    k(Gu, ao),
+  ;((qu = $(tg)),
+    b(qu, 13, "precedence", cC, ao),
+    k(qu, ao),
     p(ao, "CanTake"),
-    v(ao, "precedence", h(Gu, 8, ao, Se.comparison)),
-    h(Gu, 11, ao))
-  var iL = ao
-  le.addRule(iL, {
+    v(ao, "precedence", h(qu, 8, ao, Se.comparison)),
+    h(qu, 11, ao))
+  var pL = ao
+  le.addRule(pL, {
     syntax: "{operator:can} (add|take) {expression:operand}",
     tests: [
       {
@@ -29340,10 +29367,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var oC,
+  var dC,
     rg,
-    zu,
-    io = class extends ((rg = Fe), (oC = [S]), rg) {
+    Ju,
+    io = class extends ((rg = Fe), (dC = [S]), rg) {
       static {
         l(this, "_i")
       }
@@ -29351,14 +29378,14 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "canGiveUp", args: [t, r] })
       }
     }
-  ;((zu = $(rg)),
-    b(zu, 13, "precedence", oC, io),
-    k(zu, io),
+  ;((Ju = $(rg)),
+    b(Ju, 13, "precedence", dC, io),
+    k(Ju, io),
     p(io, "CanGiveUp"),
-    v(io, "precedence", h(zu, 8, io, Se.comparison)),
-    h(zu, 11, io))
-  var nL = io
-  le.addRule(nL, {
+    v(io, "precedence", h(Ju, 8, io, Se.comparison)),
+    h(Ju, 11, io))
+  var cL = io
+  le.addRule(cL, {
     syntax: "{operator:can} (release|remove|give up|let go of) {expression:operand}",
     tests: [
       {
@@ -29374,10 +29401,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var lC,
+  var hC,
     sg,
-    qu,
-    no = class extends ((sg = I), (lC = [S]), sg) {
+    Ku,
+    no = class extends ((sg = I), (hC = [S]), sg) {
       static {
         l(this, "eo")
       }
@@ -29386,14 +29413,14 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "reverse", args: [n.matchAST(t)] })
       }
     }
-  ;((qu = $(sg)),
-    b(qu, 13, "alias", lC, no),
-    k(qu, no),
+  ;((Ku = $(sg)),
+    b(Ku, 13, "alias", hC, no),
+    k(Ku, no),
     p(no, "ListReverse"),
-    v(no, "alias", h(qu, 8, no, "statement")),
-    h(qu, 11, no))
-  var oL = no
-  le.addRule(oL, {
+    v(no, "alias", h(Ku, 8, no, "statement")),
+    h(Ku, 11, no))
+  var dL = no
+  le.addRule(dL, {
     syntax: "reverse (the? {arg:plural_identifier} (in|of))? {list:expression}",
     tests: [
       {
@@ -29408,10 +29435,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var uC,
+  var mC,
     ag,
-    Ju,
-    oo = class extends ((ag = I), (uC = [S]), ag) {
+    Xu,
+    oo = class extends ((ag = I), (mC = [S]), ag) {
       static {
         l(this, "to")
       }
@@ -29420,14 +29447,14 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "randomize", args: [n.matchAST(t)] })
       }
     }
-  ;((Ju = $(ag)),
-    b(Ju, 13, "alias", uC, oo),
-    k(Ju, oo),
+  ;((Xu = $(ag)),
+    b(Xu, 13, "alias", mC, oo),
+    k(Xu, oo),
     p(oo, "ListShuffle"),
-    v(oo, "alias", h(Ju, 8, oo, "statement")),
-    h(Ju, 11, oo))
-  var lL = oo
-  le.addRule(lL, {
+    v(oo, "alias", h(Xu, 8, oo, "statement")),
+    h(Xu, 11, oo))
+  var hL = oo
+  le.addRule(hL, {
     syntax: "(randomize|shuffle) (the? {arg:plural_identifier} (in|of))? {list:expression}",
     tests: [
       {
@@ -29443,10 +29470,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var pC,
+  var fC,
     ig,
-    Ku,
-    lo = class extends ((ig = I), (pC = [S]), ig) {
+    Hu,
+    lo = class extends ((ig = I), (fC = [S]), ig) {
       static {
         l(this, "ro")
       }
@@ -29471,14 +29498,14 @@ a pile is a list of cards`)
         return r.isAsync ? new n.ASTAwaitExpression(e, { expression: i }) : i
       }
     }
-  ;((Ku = $(ig)),
-    b(Ku, 13, "alias", pC, lo),
-    k(Ku, lo),
+  ;((Hu = $(ig)),
+    b(Hu, 13, "alias", fC, lo),
+    k(Hu, lo),
     p(lo, "RepeatNTimes"),
-    v(lo, "alias", h(Ku, 8, lo, ["statement", "expression"])),
-    h(Ku, 11, lo))
-  var uL = lo
-  le.addRule(uL, {
+    v(lo, "alias", h(Hu, 8, lo, ["statement", "expression"])),
+    h(Hu, 11, lo))
+  var mL = lo
+  le.addRule(mL, {
     syntax: "repeat {number:expression} (time|times) :? {statement_body}?",
     tests: [
       {
@@ -29507,10 +29534,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var cC,
+  var gC,
     ng,
-    Xu,
-    uo = class extends ((ng = I), (cC = [S]), ng) {
+    Yu,
+    uo = class extends ((ng = I), (gC = [S]), ng) {
       static {
         l(this, "no")
       }
@@ -29541,14 +29568,14 @@ a pile is a list of cards`)
           : new n.ASTCoreMethodInvocation(e, { methodName: "map", args: [n.matchAST(t), u] })
       }
     }
-  ;((Xu = $(ng)),
-    b(Xu, 13, "alias", cC, uo),
-    k(Xu, uo),
+  ;((Yu = $(ng)),
+    b(Yu, 13, "alias", gC, uo),
+    k(Yu, uo),
     p(uo, "ListIteration"),
-    v(uo, "alias", h(Xu, 8, uo, ["statement", "expression"])),
-    h(Xu, 11, uo))
-  var pL = uo
-  le.addRule(pL, {
+    v(uo, "alias", h(Yu, 8, uo, ["statement", "expression"])),
+    h(Yu, 11, uo))
+  var fL = uo
+  le.addRule(fL, {
     syntax:
       "for each? {item:singular_identifier} ((and|,) {position:singular_identifier})? (in|of) {list:expression} :? {statement_body}?",
     tests: [
@@ -29616,10 +29643,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var dC,
+  var yC,
     og,
-    Hu,
-    po = class extends ((og = I), (dC = [S]), og) {
+    Qu,
+    po = class extends ((og = I), (yC = [S]), og) {
       static {
         l(this, "so")
       }
@@ -29643,14 +29670,14 @@ a pile is a list of cards`)
         return o.isAsync ? new n.ASTAwaitExpression(e, { expression: u }) : u
       }
     }
-  ;((Hu = $(og)),
-    b(Hu, 13, "alias", dC, po),
-    k(Hu, po),
+  ;((Qu = $(og)),
+    b(Qu, 13, "alias", yC, po),
+    k(Qu, po),
     p(po, "ListRangeIteration"),
-    v(po, "alias", h(Hu, 8, po, "statement")),
-    h(Hu, 11, po))
-  var cL = po
-  le.addRule(cL, {
+    v(po, "alias", h(Qu, 8, po, "statement")),
+    h(Qu, 11, po))
+  var gL = po
+  le.addRule(gL, {
     syntax:
       "for each? {item:singular_identifier} from {start:expression} down? to {end:expression} :? {statement_body}?",
     tests: [
@@ -29672,11 +29699,11 @@ a pile is a list of cards`)
     ]
   })
   var Ws = new Me({ module: "math" }),
-    hC,
-    mC,
+    vC,
+    SC,
     lg,
     ci,
-    ys = class extends ((lg = Fe), (mC = [S]), (hC = [S]), lg) {
+    ys = class extends ((lg = Fe), (SC = [S]), (vC = [S]), lg) {
       static {
         l(this, "Zr")
       }
@@ -29690,16 +29717,16 @@ a pile is a list of cards`)
       }
     }
   ;((ci = $(lg)),
-    b(ci, 13, "precedence", mC, ys),
-    b(ci, 13, "parenthesize", hC, ys),
+    b(ci, 13, "precedence", SC, ys),
+    b(ci, 13, "parenthesize", vC, ys),
     k(ci, ys),
     p(ys, "GtLt"),
     v(ys, "precedence", h(ci, 8, ys, Se.comparison)),
     h(ci, 11, ys),
     v(ys, "parenthesize", h(ci, 12, ys, !0)),
     h(ci, 15, ys))
-  var dL = ys
-  Ws.addRule(dL, {
+  var yL = ys
+  Ws.addRule(yL, {
     syntax: "(operator:(<|>) =?) {expression:operand}",
     tests: [
       {
@@ -29720,11 +29747,11 @@ a pile is a list of cards`)
       }
     ]
   })
-  var fC,
-    gC,
+  var bC,
+    AC,
     ug,
     di,
-    vs = class extends ((ug = Fe), (gC = [S]), (fC = [S]), ug) {
+    vs = class extends ((ug = Fe), (AC = [S]), (bC = [S]), ug) {
       static {
         l(this, "Qr")
       }
@@ -29738,16 +29765,16 @@ a pile is a list of cards`)
       }
     }
   ;((di = $(ug)),
-    b(di, 13, "precedence", gC, vs),
-    b(di, 13, "parenthesize", fC, vs),
+    b(di, 13, "precedence", AC, vs),
+    b(di, 13, "parenthesize", bC, vs),
     k(di, vs),
     p(vs, "IsGtLt"),
     v(vs, "precedence", h(di, 8, vs, Se.comparison)),
     h(di, 11, vs),
     v(vs, "parenthesize", h(di, 12, vs, !0)),
     h(di, 15, vs))
-  var hL = vs
-  Ws.addRule(hL, {
+  var vL = vs
+  Ws.addRule(vL, {
     syntax: "(operator:is (greater|less) than (or equal to)?) {expression:operand}",
     tests: [
       {
@@ -29764,17 +29791,17 @@ a pile is a list of cards`)
       }
     ]
   })
-  var yC,
-    vC,
+  var wC,
+    TC,
     pg,
     hi,
-    Ss = class $p extends ((pg = Fe), (vC = [S]), (yC = [S]), pg) {
+    Ss = class jp extends ((pg = Fe), (TC = [S]), (wC = [S]), pg) {
       static {
         l(this, "At")
       }
       getResultDatatype(e, t, r) {
-        if ($p.isTextual(t) || $p.isTextual(r)) return "text"
-        if ($p.isNumeric(t) && $p.isNumeric(r)) return "number"
+        if (jp.isTextual(t) || jp.isTextual(r)) return "text"
+        if (jp.isNumeric(t) && jp.isNumeric(r)) return "number"
       }
       getOperator() {
         return "plus"
@@ -29787,16 +29814,16 @@ a pile is a list of cards`)
       }
     }
   ;((hi = $(pg)),
-    b(hi, 13, "precedence", vC, Ss),
-    b(hi, 13, "parenthesize", yC, Ss),
+    b(hi, 13, "precedence", TC, Ss),
+    b(hi, 13, "parenthesize", wC, Ss),
     k(hi, Ss),
     p(Ss, "Plus"),
     v(Ss, "precedence", h(hi, 8, Ss, Se.sum)),
     h(hi, 11, Ss),
     v(Ss, "parenthesize", h(hi, 12, Ss, !0)),
     h(hi, 15, Ss))
-  var mL = Ss
-  Ws.addRule(mL, {
+  var SL = Ss
+  Ws.addRule(SL, {
     syntax: "(operator:plus|+) {expression:operand}",
     tests: [
       {
@@ -29812,12 +29839,12 @@ a pile is a list of cards`)
       }
     ]
   })
-  var SC,
-    bC,
-    AC,
+  var xC,
+    EC,
+    CC,
     cg,
     kr,
-    kt = class extends ((cg = Fe), (AC = [S]), (bC = [S]), (SC = [S]), cg) {
+    kt = class extends ((cg = Fe), (CC = [S]), (EC = [S]), (xC = [S]), cg) {
       static {
         l(this, "xt")
       }
@@ -29826,9 +29853,9 @@ a pile is a list of cards`)
       }
     }
   ;((kr = $(cg)),
-    b(kr, 13, "precedence", AC, kt),
-    b(kr, 13, "parenthesize", bC, kt),
-    b(kr, 13, "datatype", SC, kt),
+    b(kr, 13, "precedence", CC, kt),
+    b(kr, 13, "parenthesize", EC, kt),
+    b(kr, 13, "datatype", xC, kt),
     k(kr, kt),
     p(kt, "Minus"),
     v(kt, "precedence", h(kr, 8, kt, Se.sum)),
@@ -29837,8 +29864,8 @@ a pile is a list of cards`)
     h(kr, 15, kt),
     v(kt, "datatype", h(kr, 16, kt, "number")),
     h(kr, 19, kt))
-  var fL = kt
-  Ws.addRule(fL, {
+  var bL = kt
+  Ws.addRule(bL, {
     syntax: "(operator:minus|-) {expression:operand}",
     tests: [
       {
@@ -29853,12 +29880,12 @@ a pile is a list of cards`)
       }
     ]
   })
-  var wC,
-    TC,
-    xC,
+  var DC,
+    kC,
+    $C,
     dg,
     $r,
-    $t = class extends ((dg = Fe), (xC = [S]), (TC = [S]), (wC = [S]), dg) {
+    $t = class extends ((dg = Fe), ($C = [S]), (kC = [S]), (DC = [S]), dg) {
       static {
         l(this, "bt")
       }
@@ -29867,9 +29894,9 @@ a pile is a list of cards`)
       }
     }
   ;(($r = $(dg)),
-    b($r, 13, "precedence", xC, $t),
-    b($r, 13, "parenthesize", TC, $t),
-    b($r, 13, "datatype", wC, $t),
+    b($r, 13, "precedence", $C, $t),
+    b($r, 13, "parenthesize", kC, $t),
+    b($r, 13, "datatype", DC, $t),
     k($r, $t),
     p($t, "Times"),
     v($t, "precedence", h($r, 8, $t, Se.product)),
@@ -29878,8 +29905,8 @@ a pile is a list of cards`)
     h($r, 15, $t),
     v($t, "datatype", h($r, 16, $t, "number")),
     h($r, 19, $t))
-  var gL = $t
-  Ws.addRule(gL, {
+  var AL = $t
+  Ws.addRule(AL, {
     syntax: "(operator:*|times) {expression:operand}",
     tests: [
       {
@@ -29895,12 +29922,12 @@ a pile is a list of cards`)
       }
     ]
   })
-  var EC,
-    CC,
-    DC,
+  var OC,
+    jC,
+    FC,
     hg,
     Or,
-    Ot = class extends ((hg = Fe), (DC = [S]), (CC = [S]), (EC = [S]), hg) {
+    Ot = class extends ((hg = Fe), (FC = [S]), (jC = [S]), (OC = [S]), hg) {
       static {
         l(this, "wt")
       }
@@ -29909,9 +29936,9 @@ a pile is a list of cards`)
       }
     }
   ;((Or = $(hg)),
-    b(Or, 13, "precedence", DC, Ot),
-    b(Or, 13, "parenthesize", CC, Ot),
-    b(Or, 13, "datatype", EC, Ot),
+    b(Or, 13, "precedence", FC, Ot),
+    b(Or, 13, "parenthesize", jC, Ot),
+    b(Or, 13, "datatype", OC, Ot),
     k(Or, Ot),
     p(Ot, "DividedBy"),
     v(Ot, "precedence", h(Or, 8, Ot, Se.product)),
@@ -29920,8 +29947,8 @@ a pile is a list of cards`)
     h(Or, 15, Ot),
     v(Ot, "datatype", h(Or, 16, Ot, "number")),
     h(Or, 19, Ot))
-  var yL = Ot
-  Ws.addRule(yL, {
+  var wL = Ot
+  Ws.addRule(wL, {
     syntax: "(operator:/|divided by) {expression:operand}",
     tests: [
       {
@@ -29937,10 +29964,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var kC,
+  var PC,
     mg,
-    Yu,
-    co = class extends ((mg = Ne), (kC = [S]), mg) {
+    Zu,
+    co = class extends ((mg = Pe), (PC = [S]), mg) {
       static {
         l(this, "io")
       }
@@ -29953,14 +29980,14 @@ a pile is a list of cards`)
         })
       }
     }
-  ;((Yu = $(mg)),
-    b(Yu, 13, "datatype", kC, co),
-    k(Yu, co),
+  ;((Zu = $(mg)),
+    b(Zu, 13, "datatype", PC, co),
+    k(Zu, co),
     p(co, "AbsoluteValue"),
-    v(co, "datatype", h(Yu, 8, co, "number")),
-    h(Yu, 11, co))
-  var vL = co
-  Ws.addRule(vL, {
+    v(co, "datatype", h(Zu, 8, co, "number")),
+    h(Zu, 11, co))
+  var TL = co
+  Ws.addRule(TL, {
     syntax: "(operator:the? absolute value of) {expression:arithmetic_expression}",
     tests: [
       {
@@ -29972,11 +29999,11 @@ a pile is a list of cards`)
       }
     ]
   })
-  var $C,
-    OC,
+  var NC,
+    RC,
     fg,
     mi,
-    bs = class extends ((fg = Ne), (OC = [S]), ($C = [S]), fg) {
+    bs = class extends ((fg = Pe), (RC = [S]), (NC = [S]), fg) {
       static {
         l(this, "_r")
       }
@@ -29986,16 +30013,16 @@ a pile is a list of cards`)
       }
     }
   ;((mi = $(fg)),
-    b(mi, 13, "priority", OC, bs),
-    b(mi, 13, "datatype", $C, bs),
+    b(mi, 13, "priority", RC, bs),
+    b(mi, 13, "datatype", NC, bs),
     k(mi, bs),
     p(bs, "Max"),
     v(bs, "priority", h(mi, 8, bs, fe.specific)),
     h(mi, 11, bs),
     v(bs, "datatype", h(mi, 12, bs, "number")),
     h(mi, 15, bs))
-  var SL = bs
-  Ws.addRule(SL, {
+  var xL = bs
+  Ws.addRule(xL, {
     syntax: "(operator:the? (biggest|largest)) {argument:singular_identifier}? (of|in) {expression:operand}",
     tests: [
       {
@@ -30011,11 +30038,11 @@ a pile is a list of cards`)
       }
     ]
   })
-  var jC,
-    FC,
+  var IC,
+    LC,
     gg,
     fi,
-    As = class extends ((gg = Ne), (FC = [S]), (jC = [S]), gg) {
+    As = class extends ((gg = Pe), (LC = [S]), (IC = [S]), gg) {
       static {
         l(this, "en")
       }
@@ -30029,16 +30056,16 @@ a pile is a list of cards`)
       }
     }
   ;((fi = $(gg)),
-    b(fi, 13, "priority", FC, As),
-    b(fi, 13, "datatype", jC, As),
+    b(fi, 13, "priority", LC, As),
+    b(fi, 13, "datatype", IC, As),
     k(fi, As),
     p(As, "Min"),
     v(As, "priority", h(fi, 8, As, fe.specific)),
     h(fi, 11, As),
     v(As, "datatype", h(fi, 12, As, "number")),
     h(fi, 15, As))
-  var bL = As
-  Ws.addRule(bL, {
+  var EL = As
+  Ws.addRule(EL, {
     syntax: "(operator:the? smallest) {argument:singular_identifier}? (of|in) {expression:operand}",
     tests: [
       {
@@ -30053,11 +30080,11 @@ a pile is a list of cards`)
       }
     ]
   })
-  var NC,
-    PC,
+  var BC,
+    MC,
     yg,
     gi,
-    ws = class extends ((yg = Ne), (PC = [S]), (NC = [S]), yg) {
+    ws = class extends ((yg = Pe), (MC = [S]), (BC = [S]), yg) {
       static {
         l(this, "tn")
       }
@@ -30071,16 +30098,16 @@ a pile is a list of cards`)
       }
     }
   ;((gi = $(yg)),
-    b(gi, 13, "priority", PC, ws),
-    b(gi, 13, "datatype", NC, ws),
+    b(gi, 13, "priority", MC, ws),
+    b(gi, 13, "datatype", BC, ws),
     k(gi, ws),
     p(ws, "RoundNumber"),
     v(ws, "priority", h(gi, 8, ws, fe.preferred)),
     h(gi, 11, ws),
     v(ws, "datatype", h(gi, 12, ws, "number")),
     h(gi, 15, ws))
-  var AL = ws
-  Ws.addRule(AL, {
+  var CL = ws
+  Ws.addRule(CL, {
     syntax: "round {expression:arithmetic_expression} (operator:off|up|down)?",
     tests: [
       {
@@ -30098,10 +30125,10 @@ a pile is a list of cards`)
     ]
   })
   var pS = new Me({ module: "events" }),
-    RC,
+    _C,
     vg,
-    Qu,
-    ho = class extends ((vg = I), (RC = [S]), vg) {
+    ep,
+    ho = class extends ((vg = I), (_C = [S]), vg) {
       static {
         l(this, "oo")
       }
@@ -30111,14 +30138,14 @@ a pile is a list of cards`)
         return (r && s.push(n.asAST(r.AST)), new n.ASTCoreMethodInvocation(e, { methodName: "trigger", args: s }))
       }
     }
-  ;((Qu = $(vg)),
-    b(Qu, 13, "alias", RC, ho),
-    k(Qu, ho),
+  ;((ep = $(vg)),
+    b(ep, 13, "alias", _C, ho),
+    k(ep, ho),
     p(ho, "Trigger"),
-    v(ho, "alias", h(Qu, 8, ho, "statement")),
-    h(Qu, 11, ho))
-  var wL = ho
-  pS.addRule(wL, {
+    v(ho, "alias", h(ep, 8, ho, "statement")),
+    h(ep, 11, ho))
+  var DL = ho
+  pS.addRule(DL, {
     syntax: "(trigger|fire|send) event? {eventName:keyword} (with {props:object_literal_properties})?",
     tests: [
       {
@@ -30131,13 +30158,13 @@ a pile is a list of cards`)
     ]
   })
   var zt = new Me({ module: "methods" }),
-    IC,
-    LC,
-    BC,
-    MC,
+    WC,
+    VC,
+    UC,
+    GC,
     Sg,
     Vt,
-    Ke = class extends ((Sg = Fe), (MC = [S]), (BC = [S]), (LC = [S]), (IC = [S]), Sg) {
+    Xe = class extends ((Sg = Fe), (GC = [S]), (UC = [S]), (VC = [S]), (WC = [S]), Sg) {
       static {
         l(this, "Be")
       }
@@ -30160,27 +30187,27 @@ a pile is a list of cards`)
       }
     }
   ;((Vt = $(Sg)),
-    b(Vt, 13, "importableAs", MC, Ke),
-    b(Vt, 13, "priority", BC, Ke),
-    b(Vt, 13, "precedence", LC, Ke),
-    b(Vt, 13, "parenthesize", IC, Ke),
-    k(Vt, Ke),
-    p(Ke, "MethodInfixRule"),
-    v(Ke, "importableAs", h(Vt, 8, Ke, "method_infix")),
-    h(Vt, 11, Ke),
-    v(Ke, "priority", h(Vt, 12, Ke, fe.userDeclared)),
-    h(Vt, 15, Ke),
-    v(Ke, "precedence", h(Vt, 16, Ke, Se.comparison)),
-    h(Vt, 19, Ke),
-    v(Ke, "parenthesize", h(Vt, 20, Ke, !0)),
-    h(Vt, 23, Ke))
-  var TL = Ke,
-    _C,
-    WC,
-    VC,
+    b(Vt, 13, "importableAs", GC, Xe),
+    b(Vt, 13, "priority", UC, Xe),
+    b(Vt, 13, "precedence", VC, Xe),
+    b(Vt, 13, "parenthesize", WC, Xe),
+    k(Vt, Xe),
+    p(Xe, "MethodInfixRule"),
+    v(Xe, "importableAs", h(Vt, 8, Xe, "method_infix")),
+    h(Vt, 11, Xe),
+    v(Xe, "priority", h(Vt, 12, Xe, fe.userDeclared)),
+    h(Vt, 15, Xe),
+    v(Xe, "precedence", h(Vt, 16, Xe, Se.comparison)),
+    h(Vt, 19, Xe),
+    v(Xe, "parenthesize", h(Vt, 20, Xe, !0)),
+    h(Vt, 23, Xe))
+  var kL = Xe,
+    zC,
+    qC,
+    JC,
     bg,
     jr,
-    jt = class extends ((bg = Is), (VC = [S]), (WC = [S]), (_C = [S]), bg) {
+    jt = class extends ((bg = Is), (JC = [S]), (qC = [S]), (zC = [S]), bg) {
       static {
         l(this, "Et")
       }
@@ -30204,9 +30231,9 @@ a pile is a list of cards`)
       }
     }
   ;((jr = $(bg)),
-    b(jr, 13, "importableAs", VC, jt),
-    b(jr, 13, "priority", WC, jt),
-    b(jr, 13, "precedence", _C, jt),
+    b(jr, 13, "importableAs", JC, jt),
+    b(jr, 13, "priority", qC, jt),
+    b(jr, 13, "precedence", zC, jt),
     k(jr, jt),
     p(jt, "MethodPostfixRule"),
     v(jt, "importableAs", h(jr, 8, jt, "method_postfix")),
@@ -30215,11 +30242,11 @@ a pile is a list of cards`)
     h(jr, 15, jt),
     v(jt, "precedence", h(jr, 16, jt, Se.comparison)),
     h(jr, 19, jt))
-  var xL = jt,
-    UC,
+  var $L = jt,
+    KC,
     Ag,
-    Zu,
-    mo = class Nc extends ((Ag = I), (UC = [S]), Ag) {
+    tp,
+    mo = class Pc extends ((Ag = I), (KC = [S]), Ag) {
       static {
         l(this, "kn")
       }
@@ -30228,7 +30255,7 @@ a pile is a list of cards`)
         if (this.inlineInitialType && s) {
           ;((t.instanceType = s.name), t.args.splice(s.argIndex, 1))
           let i = t.methodBits[s.methodIndex - 1]
-          ;(i && EL.test(i)
+          ;(i && OL.test(i)
             ? (t.methodBits[s.methodIndex] = s.name.replace(/-/g, "_"))
             : t.methodBits.splice(s.methodIndex, 1),
             (t.syntaxBits[s.syntaxIndex] = "{thisArg:expression}"),
@@ -30262,7 +30289,7 @@ a pile is a list of cards`)
         let c = new n.MethodScope({
           parentScope: e.scope,
           name: t,
-          args: r.map((d) => new n.ScopeVariable({ name: d.name, datatype: Nc.argDatatype(d) })),
+          args: r.map((d) => new n.ScopeVariable({ name: d.name, datatype: Pc.argDatatype(d) })),
           thisVar: i,
           mapItTo: i && "this",
           itDatatype: i && F.typeName(i),
@@ -30309,7 +30336,7 @@ a pile is a list of cards`)
       getOwnerAndParams(e) {
         let { args: t, instanceType: r } = this.getSignature(e),
           s = r ? e.scope.types?.get(r) : void 0
-        return { type: s, of: s?.name ?? (r && Xt(r)), params: t.map((i) => Nc.paramOf(i)) }
+        return { type: s, of: s?.name ?? (r && Xt(r)), params: t.map((i) => Pc.paramOf(i)) }
       }
       static findMethod(e, t, r) {
         let s = e.getType(r)
@@ -30332,15 +30359,15 @@ a pile is a list of cards`)
           { of: f, params: y } = this.getOwnerAndParams(e)
         if (o) {
           let A = c ? { output: g, of: f, staticOf: c } : { output: g, of: f }
-          d.addRule(xL.specialize(A), { syntax: i }, m)
+          d.addRule($L.specialize(A), { syntax: i }, m)
           return
         }
         if (u) {
-          d.addRule(TL.specialize({ output: g, of: f, params: y }), { syntax: i }, m)
+          d.addRule(kL.specialize({ output: g, of: f, params: y }), { syntax: i }, m)
           return
         }
         let w = t ? "statement" : ["statement", "expression"]
-        d.addRule(DL.specialize({ output: g, alias: w, of: f, params: y }), { syntax: i }, m)
+        d.addRule(FL.specialize({ output: g, alias: w, of: f, params: y }), { syntax: i }, m)
       }
       getPropsAssignment(e) {
         let { props: t } = this.getSignature(e)
@@ -30420,31 +30447,31 @@ a pile is a list of cards`)
         return typeof t == "string" ? t : void 0
       }
       static paramOf(e) {
-        let t = Nc.argDatatype(e)
+        let t = Pc.argDatatype(e)
         return t ? { name: e.name, datatype: t } : { name: e.name }
       }
     }
-  ;((Zu = $(Ag)),
-    b(Zu, 13, "inlineInitialType", UC, mo),
-    k(Zu, mo),
+  ;((tp = $(Ag)),
+    b(tp, 13, "inlineInitialType", KC, mo),
+    k(tp, mo),
     p(mo, "MethodDefinition"),
-    v(mo, "inlineInitialType", h(Zu, 8, mo, !1)),
-    h(Zu, 11, mo))
-  var Pd = mo,
-    EL =
+    v(mo, "inlineInitialType", h(tp, 8, mo, !1)),
+    h(tp, 11, mo))
+  var Nd = mo,
+    OL =
       /^(of|to|from|in|into|on|onto|at|by|for|with|without|before|after|about|under|through|between|within|upon|against|toward|towards)$/i
   function wg(a) {
     return a instanceof n.FileScope || a instanceof n.ProjectScope
   }
-  l(wg, "FI")
+  l(wg, "NI")
   p(wg, "isTopLevel")
-  var CL = /^test_/,
-    GC,
-    zC,
-    qC,
+  var jL = /^test_/,
+    XC,
+    HC,
+    YC,
     Tg,
     Fr,
-    Ft = class extends ((Tg = I), (qC = [S]), (zC = [S]), (GC = [S]), Tg) {
+    Ft = class extends ((Tg = I), (YC = [S]), (HC = [S]), (XC = [S]), Tg) {
       static {
         l(this, "vt")
       }
@@ -30459,10 +30486,10 @@ a pile is a list of cards`)
       parse(e, t) {
         let r = super.parse(e, t)
         if (!(!r || !this.argumentsFit(r)))
-          return ((r.data.method = Pd.findMethod(e, this.methodName, r.groups.thisArg?.datatype)), r)
+          return ((r.data.method = Nd.findMethod(e, this.methodName, r.groups.thisArg?.datatype)), r)
       }
       startsTheProgram() {
-        return this.alias === "statement" && CL.test(this.methodName)
+        return this.alias === "statement" && jL.test(this.methodName)
       }
       argumentsFit(e) {
         let { scope: t } = e,
@@ -30493,9 +30520,9 @@ a pile is a list of cards`)
       }
     }
   ;((Fr = $(Tg)),
-    b(Fr, 13, "importableAs", qC, Ft),
-    b(Fr, 13, "operandInExpressions", zC, Ft),
-    b(Fr, 13, "methodName", GC, Ft),
+    b(Fr, 13, "importableAs", YC, Ft),
+    b(Fr, 13, "operandInExpressions", HC, Ft),
+    b(Fr, 13, "methodName", XC, Ft),
     k(Fr, Ft),
     p(Ft, "DynamicMethodRule"),
     v(Ft, "importableAs", h(Fr, 8, Ft, "method_call")),
@@ -30504,12 +30531,12 @@ a pile is a list of cards`)
     h(Fr, 15, Ft),
     v(Ft, "methodName", h(Fr, 16, Ft)),
     h(Fr, 19, Ft))
-  var DL = Ft,
-    JC,
-    KC,
+  var FL = Ft,
+    QC,
+    ZC,
     xg,
     yi,
-    Ts = class extends ((xg = n.Pattern), (KC = [S]), (JC = [S]), xg) {
+    Ts = class extends ((xg = n.Pattern), (ZC = [S]), (QC = [S]), xg) {
       static {
         l(this, "rn")
       }
@@ -30522,21 +30549,21 @@ a pile is a list of cards`)
       }
     }
   ;((yi = $(xg)),
-    b(yi, 13, "pattern", KC, Ts),
-    b(yi, 13, "highlightAs", JC, Ts),
+    b(yi, 13, "pattern", ZC, Ts),
+    b(yi, 13, "highlightAs", QC, Ts),
     k(yi, Ts),
     p(Ts, "MethodKeyword"),
     v(Ts, "pattern", h(yi, 8, Ts, /^[a-zA-Z][\w-]*$/)),
     h(yi, 11, Ts),
     v(Ts, "highlightAs", h(yi, 12, Ts, "function")),
     h(yi, 15, Ts))
-  var XC = Ts
-  zt.addRule(XC)
-  var HC,
-    YC,
+  var eD = Ts
+  zt.addRule(eD)
+  var tD,
+    rD,
     Eg,
     vi,
-    xs = class extends ((Eg = sc), (YC = [S]), (HC = [S]), Eg) {
+    xs = class extends ((Eg = ic), (rD = [S]), (tD = [S]), Eg) {
       static {
         l(this, "nn")
       }
@@ -30554,20 +30581,20 @@ a pile is a list of cards`)
       }
     }
   ;((vi = $(Eg)),
-    b(vi, 13, "alias", YC, xs),
-    b(vi, 13, "highlightAs", HC, xs),
+    b(vi, 13, "alias", rD, xs),
+    b(vi, 13, "highlightAs", tD, xs),
     k(vi, xs),
     p(xs, "VarMethodArg"),
     v(xs, "alias", h(vi, 8, xs, ["method_arg", "simple_method_arg"])),
     h(vi, 11, xs),
     v(xs, "highlightAs", h(vi, 12, xs, "parameter")),
     h(vi, 15, xs))
-  var kL = xs
-  zt.addRule(kL)
-  var QC,
+  var PL = xs
+  zt.addRule(PL)
+  var sD,
     Cg,
-    ep,
-    fo = class extends ((Cg = I), (QC = [S]), Cg) {
+    rp,
+    fo = class extends ((Cg = I), (sD = [S]), Cg) {
       static {
         l(this, "ao")
       }
@@ -30584,18 +30611,18 @@ a pile is a list of cards`)
         )
       }
     }
-  ;((ep = $(Cg)),
-    b(ep, 13, "alias", QC, fo),
-    k(ep, fo),
+  ;((rp = $(Cg)),
+    b(rp, 13, "alias", sD, fo),
+    k(rp, fo),
     p(fo, "ValuedVarMethodArg"),
-    v(fo, "alias", h(ep, 8, fo, ["method_arg", "simple_method_arg"])),
-    h(ep, 11, fo))
-  var $L = fo
-  zt.addRule($L, { syntax: "{identifier} (=|is|of|as|set to) {value:expression}" })
-  var ZC,
+    v(fo, "alias", h(rp, 8, fo, ["method_arg", "simple_method_arg"])),
+    h(rp, 11, fo))
+  var NL = fo
+  zt.addRule(NL, { syntax: "{identifier} (=|is|of|as|set to) {value:expression}" })
+  var aD,
     Dg,
-    tp,
-    go = class extends ((Dg = n.Sequence), (ZC = [S]), Dg) {
+    sp,
+    go = class extends ((Dg = n.Sequence), (aD = [S]), Dg) {
       static {
         l(this, "uo")
       }
@@ -30616,38 +30643,38 @@ a pile is a list of cards`)
         )
       }
     }
-  ;((tp = $(Dg)),
-    b(tp, 13, "alias", ZC, go),
-    k(tp, go),
+  ;((sp = $(Dg)),
+    b(sp, 13, "alias", aD, go),
+    k(sp, go),
     p(go, "TypeMethodArg"),
-    v(go, "alias", h(tp, 8, go, ["method_arg", "simple_method_arg"])),
-    h(tp, 11, go))
-  var eD = go
-  zt.addRule(eD, { syntax: "(a|an) {type}" })
-  var tD,
-    rD,
+    v(go, "alias", h(sp, 8, go, ["method_arg", "simple_method_arg"])),
+    h(sp, 11, go))
+  var iD = go
+  zt.addRule(iD, { syntax: "(a|an) {type}" })
+  var nD,
+    oD,
     kg,
     Si,
-    Es = class extends ((kg = eD), (rD = [S]), (tD = [S]), kg) {
+    Es = class extends ((kg = iD), (oD = [S]), (nD = [S]), kg) {
       static {
         l(this, "sn")
       }
     }
   ;((Si = $(kg)),
-    b(Si, 13, "alias", rD, Es),
-    b(Si, 13, "highlightAs", tD, Es),
+    b(Si, 13, "alias", oD, Es),
+    b(Si, 13, "highlightAs", nD, Es),
     k(Si, Es),
     p(Es, "BareTypeArg"),
     v(Es, "alias", h(Si, 8, Es, [])),
     h(Si, 11, Es),
     v(Es, "highlightAs", h(Si, 12, Es, "parameter")),
     h(Si, 15, Es))
-  var sD = Es
-  zt.addRule(sD, { syntax: "(a|an) {type:known_type}" })
-  var aD,
+  var lD = Es
+  zt.addRule(lD, { syntax: "(a|an) {type:known_type}" })
+  var uD,
     $g,
-    rp,
-    yo = class extends (($g = n.Sequence), (aD = [S]), $g) {
+    ap,
+    yo = class extends (($g = n.Sequence), (uD = [S]), $g) {
       static {
         l(this, "po")
       }
@@ -30666,18 +30693,18 @@ a pile is a list of cards`)
         )
       }
     }
-  ;((rp = $($g)),
-    b(rp, 13, "alias", aD, yo),
-    k(rp, yo),
+  ;((ap = $($g)),
+    b(ap, 13, "alias", uD, yo),
+    k(ap, yo),
     p(yo, "TypedMethodArg"),
-    v(yo, "alias", h(rp, 8, yo, ["method_arg", "simple_method_arg"])),
-    h(rp, 11, yo))
-  var OL = yo
-  zt.addRule(OL, { syntax: "{identifier} as (a|an)? {type}" })
-  var iD,
+    v(yo, "alias", h(ap, 8, yo, ["method_arg", "simple_method_arg"])),
+    h(ap, 11, yo))
+  var RL = yo
+  zt.addRule(RL, { syntax: "{identifier} as (a|an)? {type}" })
+  var pD,
     Og,
-    sp,
-    vo = class extends ((Og = n.Sequence), (iD = [S]), Og) {
+    ip,
+    vo = class extends ((Og = n.Sequence), (pD = [S]), Og) {
       static {
         l(this, "co")
       }
@@ -30700,17 +30727,17 @@ a pile is a list of cards`)
         )
       }
     }
-  ;((sp = $(Og)),
-    b(sp, 13, "alias", iD, vo),
-    k(sp, vo),
+  ;((ip = $(Og)),
+    b(ip, 13, "alias", pD, vo),
+    k(ip, vo),
     p(vo, "WithPropsArg"),
-    v(vo, "alias", h(sp, 8, vo, ["method_arg"])),
-    h(sp, 11, vo))
+    v(vo, "alias", h(ip, 8, vo, ["method_arg"])),
+    h(ip, 11, vo))
   var jg = vo
   zt.addRule(jg, { syntax: "with [{simple_method_arg} (,|and)]" })
-  var jL = class extends n.Repeat {
+  var IL = class extends n.Repeat {
     static {
-      l(this, "nA")
+      l(this, "sA")
     }
     static {
       p(this, "MethodSignature")
@@ -30721,7 +30748,7 @@ a pile is a list of cards`)
     }
     buildSignatureData(a) {
       let e = a.data
-      ;((e.items = a.items.map((t) => (t.is(XC) || t.is(sD) ? t.data : t.matched[1].data))),
+      ;((e.items = a.items.map((t) => (t.is(eD) || t.is(lD) ? t.data : t.matched[1].data))),
         (e.startsWithKeyword = !1),
         (e.foundKeyword = !1),
         (e.methodBits = []),
@@ -30755,12 +30782,12 @@ a pile is a list of cards`)
         }))
     }
   }
-  zt.addRule(jL, { syntax: "({bare_type_arg}|{method_keyword}|\\( {method_arg} \\))+" })
-  var nD,
-    oD,
+  zt.addRule(IL, { syntax: "({bare_type_arg}|{method_keyword}|\\( {method_arg} \\))+" })
+  var cD,
+    dD,
     Fg,
     bi,
-    Cs = class extends ((Fg = n.TokenType), (oD = [S]), (nD = [S]), Fg) {
+    Cs = class extends ((Fg = n.TokenType), (dD = [S]), (cD = [S]), Fg) {
       static {
         l(this, "on")
       }
@@ -30774,36 +30801,36 @@ a pile is a list of cards`)
       }
     }
   ;((bi = $(Fg)),
-    b(bi, 13, "tokenType", oD, Cs),
-    b(bi, 13, "highlightAs", nD, Cs),
+    b(bi, 13, "tokenType", dD, Cs),
+    b(bi, 13, "highlightAs", cD, Cs),
     k(bi, Cs),
     p(Cs, "QuotedMethodSignature"),
     v(Cs, "tokenType", h(bi, 8, Cs, n.TextToken)),
     h(bi, 11, Cs),
     v(Cs, "highlightAs", h(bi, 12, Cs, "function")),
     h(bi, 15, Cs))
-  var FL = Cs
-  zt.addRule(FL)
-  var lD,
-    uD,
-    Ng,
+  var LL = Cs
+  zt.addRule(LL)
+  var hD,
+    mD,
+    Pg,
     Ai,
-    Ds = class extends ((Ng = Pd), (uD = [S]), (lD = [S]), Ng) {
+    Ds = class extends ((Pg = Nd), (mD = [S]), (hD = [S]), Pg) {
       static {
         l(this, "an")
       }
     }
-  ;((Ai = $(Ng)),
-    b(Ai, 13, "alias", uD, Ds),
-    b(Ai, 13, "inlineInitialType", lD, Ds),
+  ;((Ai = $(Pg)),
+    b(Ai, 13, "alias", mD, Ds),
+    b(Ai, 13, "inlineInitialType", hD, Ds),
     k(Ai, Ds),
     p(Ds, "ToDoSomething"),
     v(Ds, "alias", h(Ai, 8, Ds, "statement")),
     h(Ai, 11, Ds),
     v(Ds, "inlineInitialType", h(Ai, 12, Ds, !0)),
     h(Ai, 15, Ds))
-  var NL = Ds
-  zt.addRule(NL, {
+  var BL = Ds
+  zt.addRule(BL, {
     syntax: "to (asTest:test)? {signature:method_signature} :? {statement_body}?",
     tests: [
       {
@@ -31395,26 +31422,26 @@ a pile is a list of cards`)
       }
     ]
   })
-  var pD,
-    cD,
-    Pg,
+  var fD,
+    gD,
+    Ng,
     wi,
-    ks = class extends ((Pg = Pd), (cD = [S]), (pD = [S]), Pg) {
+    ks = class extends ((Ng = Nd), (gD = [S]), (fD = [S]), Ng) {
       static {
         l(this, "un")
       }
     }
-  ;((wi = $(Pg)),
-    b(wi, 13, "alias", cD, ks),
-    b(wi, 13, "inlineInitialType", pD, ks),
+  ;((wi = $(Ng)),
+    b(wi, 13, "alias", gD, ks),
+    b(wi, 13, "inlineInitialType", fD, ks),
     k(wi, ks),
     p(ks, "CreateAnimation"),
     v(ks, "alias", h(wi, 8, ks, "statement")),
     h(wi, 11, ks),
     v(ks, "inlineInitialType", h(wi, 12, ks, !0)),
     h(wi, 15, ks))
-  var PL = ks
-  zt.addRule(PL, {
+  var ML = ks
+  zt.addRule(ML, {
     syntax: "(asAnimation:create? animation) {signature:method_signature} :? {statement_body}?",
     tests: [
       {
@@ -31460,13 +31487,13 @@ a pile is a list of cards`)
       }
     ]
   })
-  var dD,
-    hD,
+  var yD,
+    vD,
     Rg,
     Ti,
-    $s = class Ig extends ((Rg = Pd), (hD = [S]), (dD = [S]), Rg) {
+    $s = class Ig extends ((Rg = Nd), (vD = [S]), (yD = [S]), Rg) {
       static {
-        l(this, "zt")
+        l(this, "Kt")
       }
       parse(e, t) {
         let r = super.parse(e, t)
@@ -31521,16 +31548,16 @@ a pile is a list of cards`)
       }
     }
   ;((Ti = $(Rg)),
-    b(Ti, 13, "priority", hD, $s),
-    b(Ti, 13, "alias", dD, $s),
+    b(Ti, 13, "priority", vD, $s),
+    b(Ti, 13, "alias", yD, $s),
     k(Ti, $s),
     p($s, "QuotedTypeExpression"),
     v($s, "priority", h(Ti, 8, $s, fe.belowDeclaration)),
     h(Ti, 11, $s),
     v($s, "alias", h(Ti, 12, $s, "statement")),
     h(Ti, 15, $s))
-  var mD = $s
-  zt.addRule(mD, {
+  var SD = $s
+  zt.addRule(SD, {
     syntax: "(a|an) {type:singular_type} {signature:quoted_method_signature} (if|is)? :? {expression_body}?",
     tests: [
       {
@@ -31843,12 +31870,12 @@ a pile is a list of cards`)
       }
     ]
   })
-  zt.addRule(mD, { syntax: "{type:subject_it} {signature:quoted_method_signature} (if|is)? :? {expression_body}?" })
-  var fD,
-    gD,
+  zt.addRule(SD, { syntax: "{type:subject_it} {signature:quoted_method_signature} (if|is)? :? {expression_body}?" })
+  var bD,
+    AD,
     Lg,
     xi,
-    Os = class extends ((Lg = I), (gD = [S]), (fD = [S]), Lg) {
+    Os = class extends ((Lg = I), (AD = [S]), (bD = [S]), Lg) {
       static {
         l(this, "pn")
       }
@@ -31879,16 +31906,16 @@ a pile is a list of cards`)
       }
     }
   ;((xi = $(Lg)),
-    b(xi, 13, "alias", gD, Os),
-    b(xi, 13, "declares", fD, Os),
+    b(xi, 13, "alias", AD, Os),
+    b(xi, 13, "declares", bD, Os),
     k(xi, Os),
     p(Os, "On"),
     v(Os, "alias", h(xi, 8, Os, "statement")),
     h(xi, 11, Os),
     v(Os, "declares", h(xi, 12, Os, { kind: "event", name: "eventName" })),
     h(xi, 15, Os))
-  var RL = Os
-  pS.addRule(RL, {
+  var _L = Os
+  pS.addRule(_L, {
     syntax: "on event? {eventName:keyword} {props:with_props_arg}? :? {statement_body}?",
     tests: [
       {
@@ -31934,10 +31961,10 @@ a pile is a list of cards`)
     ]
   })
   var ha = new Me({ module: "UI" }),
-    yD,
+    wD,
     Bg,
-    ap,
-    So = class extends ((Bg = I), (yD = [S]), Bg) {
+    np,
+    So = class extends ((Bg = I), (wD = [S]), Bg) {
       static {
         l(this, "lo")
       }
@@ -31958,14 +31985,14 @@ a pile is a list of cards`)
         return new n.ASTConsoleMethodInvocation(e, { methodName: s, args: r.items.map((i) => n.asAST(i.AST)) })
       }
     }
-  ;((ap = $(Bg)),
-    b(ap, 13, "alias", yD, So),
-    k(ap, So),
+  ;((np = $(Bg)),
+    b(np, 13, "alias", wD, So),
+    k(np, So),
     p(So, "Print"),
-    v(So, "alias", h(ap, 8, So, "statement")),
-    h(ap, 11, So))
-  var IL = So
-  ha.addRule(IL, {
+    v(So, "alias", h(np, 8, So, "statement")),
+    h(np, 11, So))
+  var WL = So
+  ha.addRule(WL, {
     syntax: "print (operator:info|warning|error|collapsed? group)? [expressions:{expression} ,]",
     tests: [
       {
@@ -31980,10 +32007,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var vD,
+  var TD,
     Mg,
-    ip,
-    bo = class extends ((Mg = I), (vD = [S]), Mg) {
+    op,
+    bo = class extends ((Mg = I), (TD = [S]), Mg) {
       static {
         l(this, "fo")
       }
@@ -31991,21 +32018,21 @@ a pile is a list of cards`)
         return new n.ASTConsoleMethodInvocation(e, { methodName: "groupEnd" })
       }
     }
-  ;((ip = $(Mg)),
-    b(ip, 13, "alias", vD, bo),
-    k(ip, bo),
+  ;((op = $(Mg)),
+    b(op, 13, "alias", TD, bo),
+    k(op, bo),
     p(bo, "EndPrintGroup"),
-    v(bo, "alias", h(ip, 8, bo, "statement")),
-    h(ip, 11, bo))
-  var LL = bo
-  ha.addRule(LL, {
+    v(bo, "alias", h(op, 8, bo, "statement")),
+    h(op, 11, bo))
+  var VL = bo
+  ha.addRule(VL, {
     syntax: "end print group",
     tests: [{ compileAs: "statement", tests: [['end print group"', "spellCore.console.groupEnd()"]] }]
   })
-  var SD,
+  var xD,
     _g,
-    np,
-    Ao = class extends ((_g = I), (SD = [S]), _g) {
+    lp,
+    Ao = class extends ((_g = I), (xD = [S]), _g) {
       static {
         l(this, "ho")
       }
@@ -32015,14 +32042,14 @@ a pile is a list of cards`)
         return (r && s.push(n.asAST(r.AST)), new n.ASTCoreMethodInvocation(e, { methodName: "notify", args: s }))
       }
     }
-  ;((np = $(_g)),
-    b(np, 13, "alias", SD, Ao),
-    k(np, Ao),
+  ;((lp = $(_g)),
+    b(lp, 13, "alias", xD, Ao),
+    k(lp, Ao),
     p(Ao, "Notify"),
-    v(Ao, "alias", h(np, 8, Ao, ["statement", "async"])),
-    h(np, 11, Ao))
-  var BL = Ao
-  ha.addRule(BL, {
+    v(Ao, "alias", h(lp, 8, Ao, ["statement", "async"])),
+    h(lp, 11, Ao))
+  var UL = Ao
+  ha.addRule(UL, {
     syntax: "notify {message:expression} (with {okButton:text})?",
     tests: [
       {
@@ -32034,10 +32061,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var bD,
+  var ED,
     Wg,
-    op,
-    wo = class extends ((Wg = I), (bD = [S]), Wg) {
+    up,
+    wo = class extends ((Wg = I), (ED = [S]), Wg) {
       static {
         l(this, "mo")
       }
@@ -32052,14 +32079,14 @@ a pile is a list of cards`)
         )
       }
     }
-  ;((op = $(Wg)),
-    b(op, 13, "alias", bD, wo),
-    k(op, wo),
+  ;((up = $(Wg)),
+    b(up, 13, "alias", ED, wo),
+    k(up, wo),
     p(wo, "Alert"),
-    v(wo, "alias", h(op, 8, wo, ["statement", "async"])),
-    h(op, 11, wo))
-  var ML = wo
-  ha.addRule(ML, {
+    v(wo, "alias", h(up, 8, wo, ["statement", "async"])),
+    h(up, 11, wo))
+  var GL = wo
+  ha.addRule(GL, {
     syntax: "alert {message:expression} (with {okButton:text})?",
     tests: [
       {
@@ -32071,10 +32098,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var AD,
+  var CD,
     Vg,
-    lp,
-    To = class extends ((Vg = I), (AD = [S]), Vg) {
+    pp,
+    To = class extends ((Vg = I), (CD = [S]), Vg) {
       static {
         l(this, "go")
       }
@@ -32087,14 +32114,14 @@ a pile is a list of cards`)
         )
       }
     }
-  ;((lp = $(Vg)),
-    b(lp, 13, "alias", AD, To),
-    k(lp, To),
+  ;((pp = $(Vg)),
+    b(pp, 13, "alias", CD, To),
+    k(pp, To),
     p(To, "Warn"),
-    v(To, "alias", h(lp, 8, To, "statement")),
-    h(lp, 11, To))
-  var _L = To
-  ha.addRule(_L, {
+    v(To, "alias", h(pp, 8, To, "statement")),
+    h(pp, 11, To))
+  var zL = To
+  ha.addRule(zL, {
     syntax: "warn {message:expression} (with {okButton:text})?",
     tests: [
       {
@@ -32106,10 +32133,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var wD,
+  var DD,
     Ug,
-    up,
-    xo = class extends ((Ug = I), (wD = [S]), Ug) {
+    cp,
+    xo = class extends ((Ug = I), (DD = [S]), Ug) {
       static {
         l(this, "yo")
       }
@@ -32125,14 +32152,14 @@ a pile is a list of cards`)
         )
       }
     }
-  ;((up = $(Ug)),
-    b(up, 13, "alias", wD, xo),
-    k(up, xo),
+  ;((cp = $(Ug)),
+    b(cp, 13, "alias", DD, xo),
+    k(cp, xo),
     p(xo, "Confirm"),
-    v(xo, "alias", h(up, 8, xo, "statement")),
-    h(up, 11, xo))
-  var WL = xo
-  ha.addRule(WL, {
+    v(xo, "alias", h(cp, 8, xo, "statement")),
+    h(cp, 11, xo))
+  var qL = xo
+  ha.addRule(qL, {
     syntax: "confirm {message:expression} (with {okButton:text} ((and|or) {cancelButton:text})?)?",
     tests: [
       {
@@ -32145,10 +32172,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var TD,
+  var kD,
     Gg,
-    pp,
-    Eo = class extends ((Gg = I), (TD = [S]), Gg) {
+    dp,
+    Eo = class extends ((Gg = I), (kD = [S]), Gg) {
       static {
         l(this, "So")
       }
@@ -32163,14 +32190,14 @@ a pile is a list of cards`)
         )
       }
     }
-  ;((pp = $(Gg)),
-    b(pp, 13, "alias", TD, Eo),
-    k(pp, Eo),
+  ;((dp = $(Gg)),
+    b(dp, 13, "alias", kD, Eo),
+    k(dp, Eo),
     p(Eo, "Prompt"),
-    v(Eo, "alias", h(pp, 8, Eo, "statement")),
-    h(pp, 11, Eo))
-  var VL = Eo
-  ha.addRule(VL, {
+    v(Eo, "alias", h(dp, 8, Eo, "statement")),
+    h(dp, 11, Eo))
+  var JL = Eo
+  ha.addRule(JL, {
     syntax: "prompt {message:expression} (with {defaultValue:expression})?",
     tests: [
       {
@@ -32182,13 +32209,13 @@ a pile is a list of cards`)
       }
     ]
   })
-  var xD,
-    ED,
+  var $D,
+    OD,
     zg,
     Ei,
-    pr = class extends ((zg = n.TokenType), (ED = [S]), (xD = [S]), zg) {
+    pr = class extends ((zg = n.TokenType), (OD = [S]), ($D = [S]), zg) {
       static {
-        l(this, "ur")
+        l(this, "pr")
       }
       getAST(e) {
         let { value: t } = e,
@@ -32201,8 +32228,8 @@ a pile is a list of cards`)
       }
     }
   ;((Ei = $(zg)),
-    b(Ei, 13, "alias", ED, pr),
-    b(Ei, 13, "tokenType", xD, pr),
+    b(Ei, 13, "alias", OD, pr),
+    b(Ei, 13, "tokenType", $D, pr),
     k(Ei, pr),
     p(pr, "CSSStyles"),
     v(pr, "ruleName", "css"),
@@ -32210,8 +32237,8 @@ a pile is a list of cards`)
     h(Ei, 11, pr),
     v(pr, "tokenType", h(Ei, 12, pr, n.TextToken)),
     h(Ei, 15, pr))
-  var UL = pr
-  ha.addRule(UL, {
+  var KL = pr
+  ha.addRule(KL, {
     tests: [
       {
         title: "correctly matches css",
@@ -32225,12 +32252,12 @@ a pile is a list of cards`)
       }
     ]
   })
-  var Dl = new Me({ module: "async" }),
-    CD,
-    DD,
+  var kl = new Me({ module: "async" }),
+    jD,
+    FD,
     qg,
     Ci,
-    js = class extends ((qg = I), (DD = [S]), (CD = [S]), qg) {
+    js = class extends ((qg = I), (FD = [S]), (jD = [S]), qg) {
       static {
         l(this, "ln")
       }
@@ -32240,16 +32267,16 @@ a pile is a list of cards`)
       }
     }
   ;((Ci = $(qg)),
-    b(Ci, 13, "alias", DD, js),
-    b(Ci, 13, "operandInExpressions", CD, js),
+    b(Ci, 13, "alias", FD, js),
+    b(Ci, 13, "operandInExpressions", jD, js),
     k(Ci, js),
     p(js, "Await"),
     v(js, "alias", h(Ci, 8, js, ["expression", "statement"])),
     h(Ci, 11, js),
     v(js, "operandInExpressions", h(Ci, 12, js, !0)),
     h(Ci, 15, js))
-  var GL = js
-  Dl.addRule(GL, {
+  var XL = js
+  kl.addRule(XL, {
     syntax: "(await|wait for) :? {expression}?",
     tests: [
       {
@@ -32277,10 +32304,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var kD,
+  var PD,
     Jg,
-    cp,
-    Co = class extends ((Jg = I), (kD = [S]), Jg) {
+    hp,
+    Co = class extends ((Jg = I), (PD = [S]), Jg) {
       static {
         l(this, "Po")
       }
@@ -32294,14 +32321,14 @@ a pile is a list of cards`)
         })
       }
     }
-  ;((cp = $(Jg)),
-    b(cp, 13, "alias", kD, Co),
-    k(cp, Co),
+  ;((hp = $(Jg)),
+    b(hp, 13, "alias", PD, Co),
+    k(hp, Co),
     p(Co, "Pause"),
-    v(Co, "alias", h(cp, 8, Co, "statement")),
-    h(cp, 11, Co))
-  var zL = Co
-  Dl.addRule(zL, {
+    v(Co, "alias", h(hp, 8, Co, "statement")),
+    h(hp, 11, Co))
+  var HL = Co
+  kl.addRule(HL, {
     syntax: "pause for {number:expression} (units:second|seconds|sec|millisecond|milliseconds|msec|tick|ticks)",
     tests: [
       {
@@ -32315,10 +32342,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var $D,
+  var ND,
     Kg,
-    dp,
-    Do = class extends ((Kg = I), ($D = [S]), Kg) {
+    mp,
+    Do = class extends ((Kg = I), (ND = [S]), Kg) {
       static {
         l(this, "To")
       }
@@ -32327,14 +32354,14 @@ a pile is a list of cards`)
         return new n.ASTStartProcessInvocation(e, { name: r.value, exclusive: t?.value === "exclusive" })
       }
     }
-  ;((dp = $(Kg)),
-    b(dp, 13, "alias", $D, Do),
-    k(dp, Do),
+  ;((mp = $(Kg)),
+    b(mp, 13, "alias", ND, Do),
+    k(mp, Do),
     p(Do, "StartProcess"),
-    v(Do, "alias", h(dp, 8, Do, "statement")),
-    h(dp, 11, Do))
-  var qL = Do
-  Dl.addRule(qL, {
+    v(Do, "alias", h(mp, 8, Do, "statement")),
+    h(mp, 11, Do))
+  var YL = Do
+  kl.addRule(YL, {
     syntax: "start (operator:exclusive|non-exclusive|nonexclusive)? (animation|process) {name:constant}",
     tests: [
       {
@@ -32352,10 +32379,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var OD,
+  var RD,
     Xg,
-    hp,
-    ko = class extends ((Xg = I), (OD = [S]), Xg) {
+    fp,
+    ko = class extends ((Xg = I), (RD = [S]), Xg) {
       static {
         l(this, "Ao")
       }
@@ -32365,14 +32392,14 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "stopProcess", args: r })
       }
     }
-  ;((hp = $(Xg)),
-    b(hp, 13, "alias", OD, ko),
-    k(hp, ko),
+  ;((fp = $(Xg)),
+    b(fp, 13, "alias", RD, ko),
+    k(fp, ko),
     p(ko, "StopProcess"),
-    v(ko, "alias", h(hp, 8, ko, "statement")),
-    h(hp, 11, ko))
-  var JL = ko
-  Dl.addRule(JL, {
+    v(ko, "alias", h(fp, 8, ko, "statement")),
+    h(fp, 11, ko))
+  var QL = ko
+  kl.addRule(QL, {
     syntax: "(stop|end|finish|cancel) (animation|process) {name:constant}",
     tests: [
       {
@@ -32387,9 +32414,9 @@ a pile is a list of cards`)
       }
     ]
   })
-  var KL = class extends Ne {
+  var ZL = class extends Pe {
     static {
-      l(this, "TA")
+      l(this, "AA")
     }
     static {
       p(this, "CheckProcess")
@@ -32403,7 +32430,7 @@ a pile is a list of cards`)
       return Wi.isNegated(e) ? new n.ASTNotExpression(a, { expression: r }) : r
     }
   }
-  Dl.addRule(KL, {
+  kl.addRule(ZL, {
     syntax: "(animation|process) {name:constant} {operator:is} (running|active)",
     tests: [
       {
@@ -32417,11 +32444,11 @@ a pile is a list of cards`)
     ]
   })
   var Rd = new Me({ module: "draw" }),
-    jD,
-    FD,
+    ID,
+    LD,
     Hg,
     Di,
-    Fs = class extends ((Hg = I), (FD = [S]), (jD = [S]), Hg) {
+    Fs = class extends ((Hg = I), (LD = [S]), (ID = [S]), Hg) {
       static {
         l(this, "dn")
       }
@@ -32430,21 +32457,21 @@ a pile is a list of cards`)
       }
     }
   ;((Di = $(Hg)),
-    b(Di, 13, "alias", FD, Fs),
-    b(Di, 13, "priority", jD, Fs),
+    b(Di, 13, "alias", LD, Fs),
+    b(Di, 13, "priority", ID, Fs),
     k(Di, Fs),
     p(Fs, "DrawThing"),
     v(Fs, "alias", h(Di, 8, Fs, ["statement", "expression"])),
     h(Di, 11, Fs),
     v(Fs, "priority", h(Di, 12, Fs, fe.preferred)),
     h(Di, 15, Fs))
-  var XL = Fs
-  Rd.addRule(XL, { syntax: "draw {expression}" })
-  var ND,
-    PD,
+  var eB = Fs
+  Rd.addRule(eB, { syntax: "draw {expression}" })
+  var BD,
+    MD,
     Yg,
     ki,
-    Ns = class extends ((Yg = I), (PD = [S]), (ND = [S]), Yg) {
+    Ps = class extends ((Yg = I), (MD = [S]), (BD = [S]), Yg) {
       static {
         l(this, "fn")
       }
@@ -32453,16 +32480,16 @@ a pile is a list of cards`)
       }
     }
   ;((ki = $(Yg)),
-    b(ki, 13, "alias", PD, Ns),
-    b(ki, 13, "priority", ND, Ns),
-    k(ki, Ns),
-    p(Ns, "DrawItems"),
-    v(Ns, "alias", h(ki, 8, Ns, ["statement", "expression"])),
-    h(ki, 11, Ns),
-    v(Ns, "priority", h(ki, 12, Ns, fe.specific)),
-    h(ki, 15, Ns))
-  var HL = Ns
-  Rd.addRule(HL, {
+    b(ki, 13, "alias", MD, Ps),
+    b(ki, 13, "priority", BD, Ps),
+    k(ki, Ps),
+    p(Ps, "DrawItems"),
+    v(Ps, "alias", h(ki, 8, Ps, ["statement", "expression"])),
+    h(ki, 11, Ps),
+    v(Ps, "priority", h(ki, 12, Ps, fe.specific)),
+    h(ki, 15, Ps))
+  var tB = Ps
+  Rd.addRule(tB, {
     syntax: "draw (each {variable}|(the|all)? {plural_identifier}) (of|in) {expression}",
     tests: [
       {
@@ -32495,10 +32522,10 @@ a pile is a list of cards`)
       }
     ]
   })
-  var RD,
+  var _D,
     Qg,
-    mp,
-    $o = class extends ((Qg = I), (RD = [S]), Qg) {
+    gp,
+    $o = class extends ((Qg = I), (_D = [S]), Qg) {
       static {
         l(this, "bo")
       }
@@ -32509,21 +32536,24 @@ a pile is a list of cards`)
         return new n.ASTScopedMethodInvocation(e, { thing: n.asAST(e.groups.app.AST), methodName: "start" })
       }
     }
-  ;((mp = $(Qg)),
-    b(mp, 13, "alias", RD, $o),
-    k(mp, $o),
+  ;((gp = $(Qg)),
+    b(gp, 13, "alias", _D, $o),
+    k(gp, $o),
     p($o, "StartApp"),
-    v($o, "alias", h(mp, 8, $o, "statement")),
-    h(mp, 11, $o))
-  var YL = $o
-  Rd.addRule(YL, { syntax: "start {app:expression}" })
-  var uc = new Me({ module: "tests" }),
-    ID,
+    v($o, "alias", h(gp, 8, $o, "statement")),
+    h(gp, 11, $o))
+  var rB = $o
+  Rd.addRule(rB, { syntax: "start {app:expression}" })
+  var $l = new Me({ module: "tests" }),
+    WD,
     Zg,
-    fp,
-    Oo = class extends ((Zg = I), (ID = [S]), Zg) {
+    yp,
+    Oo = class extends ((Zg = I), (WD = [S]), Zg) {
       static {
         l(this, "wo")
+      }
+      mutateScope(e) {
+        Dl.declareValue(e, e.groups.value)
       }
       getAST(e) {
         let { expression: t, value: r } = e.groups,
@@ -32536,20 +32566,19 @@ a pile is a list of cards`)
         })
       }
     }
-  ;((fp = $(Zg)),
-    b(fp, 13, "alias", ID, Oo),
-    k(fp, Oo),
+  ;((yp = $(Zg)),
+    b(yp, 13, "alias", WD, Oo),
+    k(yp, Oo),
     p(Oo, "ExpectTest"),
-    v(Oo, "alias", h(fp, 8, Oo, ["statement"])),
-    h(fp, 11, Oo))
-  var QL = Oo
-  uc.addRule(QL, {
-    syntax: "expect that? {expression} (to be {value:expression})?",
+    v(Oo, "alias", h(yp, 8, Oo, ["statement"])),
+    h(yp, 11, Oo))
+  var VD = Oo
+  $l.addRule(VD, {
+    syntax: "expect that? {expression} (to be (value:{expression}|{constant}))?",
     tests: [
       {
         beforeEach(a) {
-          ;(a.compile("a card is a thing", "block"),
-            a.compile('it = a new thing with rank = "queen", is-face-up = yes', "block"),
+          ;(a.compile('it = a new thing with rank = "queen", is-face-up = yes', "block"),
             a.compile("my-list is a new list", "block"))
         },
         tests: [
@@ -32563,15 +32592,35 @@ a pile is a list of cards`)
             "expect the number of items in my-list to be 0",
             "spellCore.expect(spellCore.itemCountOf(myList), `the number of items in my-list`, 0, `0`)"
           ],
-          ["expect that it is a thing", 'spellCore.expect(spellCore.isOfType(it, "Thing"), `it is a thing`)']
+          ["expect that it is a thing", 'spellCore.expect(spellCore.isOfType(it, "Thing"), `it is a thing`)'],
+          ["expect its rank to be queen", 'spellCore.expect(it.rank, `its rank`, "queen", `queen`)']
         ]
       }
     ]
   })
-  var LD,
+  $l.addRule(VD, {
+    syntax: "{expression} should be (value:{expression}|{constant})",
+    tests: [
+      {
+        beforeEach(a) {
+          ;(a.compile('it = a new thing with rank = "queen", is-face-up = yes', "block"),
+            a.compile("my-list is a new list", "block"))
+        },
+        tests: [
+          ["its rank should be queen", 'spellCore.expect(it.rank, `its rank`, "queen", `queen`)'],
+          ['the rank of it should be "queen"', 'spellCore.expect(it.rank, `the rank of it`, "queen", `"queen"`)'],
+          [
+            "the number of items in my-list should be 0",
+            "spellCore.expect(spellCore.itemCountOf(myList), `the number of items in my-list`, 0, `0`)"
+          ]
+        ]
+      }
+    ]
+  })
+  var UD,
     ey,
-    gp,
-    jo = class extends ((ey = I), (LD = [S]), ey) {
+    vp,
+    jo = class extends ((ey = I), (UD = [S]), ey) {
       static {
         l(this, "Eo")
       }
@@ -32583,18 +32632,18 @@ a pile is a list of cards`)
         })
       }
     }
-  ;((gp = $(ey)),
-    b(gp, 13, "alias", LD, jo),
-    k(gp, jo),
+  ;((vp = $(ey)),
+    b(vp, 13, "alias", UD, jo),
+    k(vp, jo),
     p(jo, "StartTest"),
-    v(jo, "alias", h(gp, 8, jo, "statement")),
-    h(gp, 11, jo))
-  var ZL = jo
-  uc.addRule(ZL, { syntax: "start (quiet:quiet)? test {message:text}" })
-  var BD,
+    v(jo, "alias", h(vp, 8, jo, "statement")),
+    h(vp, 11, jo))
+  var sB = jo
+  $l.addRule(sB, { syntax: "start (quiet:quiet)? test {message:text}" })
+  var GD,
     ty,
-    yp,
-    Fo = class extends ((ty = I), (BD = [S]), ty) {
+    Sp,
+    Fo = class extends ((ty = I), (GD = [S]), ty) {
       static {
         l(this, "vo")
       }
@@ -32602,18 +32651,18 @@ a pile is a list of cards`)
         return new n.ASTCoreMethodInvocation(e, { methodName: "endTest" })
       }
     }
-  ;((yp = $(ty)),
-    b(yp, 13, "alias", BD, Fo),
-    k(yp, Fo),
+  ;((Sp = $(ty)),
+    b(Sp, 13, "alias", GD, Fo),
+    k(Sp, Fo),
     p(Fo, "EndTest"),
-    v(Fo, "alias", h(yp, 8, Fo, "statement")),
-    h(yp, 11, Fo))
-  var eB = Fo
-  uc.addRule(eB, { syntax: "end test" })
-  var MD,
+    v(Fo, "alias", h(Sp, 8, Fo, "statement")),
+    h(Sp, 11, Fo))
+  var aB = Fo
+  $l.addRule(aB, { syntax: "end test" })
+  var zD,
     ry,
-    vp,
-    No = class extends ((ry = I), (MD = [S]), ry) {
+    bp,
+    Po = class extends ((ry = I), (zD = [S]), ry) {
       static {
         l(this, "Do")
       }
@@ -32622,14 +32671,14 @@ a pile is a list of cards`)
         return new n.ASTEchoInvocation(e, { expression: n.asAST(t.AST) })
       }
     }
-  ;((vp = $(ry)),
-    b(vp, 13, "alias", MD, No),
-    k(vp, No),
-    p(No, "Echo"),
-    v(No, "alias", h(vp, 8, No, ["statement"])),
-    h(vp, 11, No))
-  var tB = No
-  uc.addRule(tB, {
+  ;((bp = $(ry)),
+    b(bp, 13, "alias", zD, Po),
+    k(bp, Po),
+    p(Po, "Echo"),
+    v(Po, "alias", h(bp, 8, Po, ["statement"])),
+    h(bp, 11, Po))
+  var iB = Po
+  $l.addRule(iB, {
     syntax: "echo {expression}",
     tests: [
       {
@@ -32642,15 +32691,15 @@ a pile is a list of cards`)
     ]
   })
   var Yo = new Me({ module: "spell" }),
-    rB = p((a, e) => Yo.parse(a, "expression", e), "parseExpression")
-  Yo.addRule(uR)
+    nB = p((a, e) => Yo.parse(a, "expression", e), "parseExpression")
+  Yo.addRule(mR)
   Yo.addRule(Js)
-  Yo.addRule(xT)
+  Yo.addRule($T)
   Yo.addRule(tS)
-  Yo.import(Zt, da, Cl, rS, Ko, $e, cE, Ws, Qs, pS, Ho, le, ha, q, zt, Dl, uc, Rd, Jo)
+  Yo.import(Zt, da, Cl, rS, Ko, $e, gE, Ws, Qs, pS, Ho, le, ha, q, zt, kl, $l, Rd, Jo)
   var zd = Be(vy(), 1),
-    yc = Be(Sj(), 1),
-    sB = class Ce {
+    yc = Be(Ej(), 1),
+    oB = class Ce {
       static {
         l(this, "n")
       }
@@ -32665,12 +32714,12 @@ a pile is a list of cards`)
 `)
         for (let m = 0; m < c.length; m++) {
           let g = c[m]
-          if (!nB.test(g)) {
+          if (!pB.test(g)) {
             i.push(g)
             continue
           }
           let f = []
-          for (; m < c.length && !oB.test(c[m]);) f.push(c[m++])
+          for (; m < c.length && !cB.test(c[m]);) f.push(c[m++])
           f.push(c[m] ?? "")
           let y = f.join(`
 `)
@@ -32730,14 +32779,14 @@ a pile is a list of cards`)
                 ? f.scope instanceof n.TypeScope && g(Ce.variableDeclaration(f, f.scope, r))
                 : f instanceof n.ScopeConstant
                   ? (i.push(f.name), f.output !== `'${f.name}'` && (o[f.name] = f.output))
-                  : _D(f) && g({ ...Ce.ruleDeclaration(f), of: Ce.ownerOf(e) })
+                  : qD(f) && g({ ...Ce.ruleDeclaration(f), of: Ce.ownerOf(e) })
         let u = ay(s.enumeration),
           c = i.filter((f) => !u.includes(f))
         if ((c.length && (s.constants = c), Object.keys(o).length && (s.constantOutputs = o), !Object.keys(s).length))
           return
         let { kind: d, name: m } = e.rule.getDeclaration(e) ?? {}
         return (
-          d && !(d in s) && ((s.kind = d), m !== s.syntax && (s.name = m)), WD({ ...s, defined: Ce.definedAt(e) })
+          d && !(d in s) && ((s.kind = d), m !== s.syntax && (s.name = m)), JD({ ...s, defined: Ce.definedAt(e) })
         )
         function g(f) {
           for (let [y, w] of Object.entries(f))
@@ -32762,7 +32811,7 @@ a pile is a list of cards`)
         }
       }
       static fromComments(e) {
-        let t = e.match(new RegExp(`/\\*! ${aB} (\\{.*\\}) \\*/`))
+        let t = e.match(new RegExp(`/\\*! ${lB} (\\{.*\\}) \\*/`))
         if (!t) return
         let r = [...e.matchAll(zS)].map(([, s]) => zd.default.parse(s))
         return { ...zd.default.parse(t[1]), statements: r }
@@ -32792,7 +32841,7 @@ a pile is a list of cards`)
           }
           ;(Ce.loadVariables(e, g, y, w), Ce.loadConstants(e, t, g, y, w))
           let { rule: A } = y
-          ;(A && A !== iB && Ce.loadRule(e, t, g, A, y, w), Ce.loadMethod(e, g, y, w))
+          ;(A && A !== uB && Ce.loadRule(e, t, g, A, y, w), Ce.loadMethod(e, g, y, w))
         }
       }
       static checkImportClashes(e) {
@@ -32838,7 +32887,7 @@ a pile is a list of cards`)
             ),
           u)
         ) {
-          let A = cr({ name: u, enumeration: UD(g), initializer: iy(g), declaredAt: s })
+          let A = cr({ name: u, enumeration: XD(g), initializer: iy(g), declaredAt: s })
           ;(w.classVariables.add({ ...A }), w.variables.add({ ...A }))
         }
       }
@@ -32955,7 +33004,7 @@ a pile is a list of cards`)
             : { property: s, asWritten: i, of: g, datatype: o, autoDeclared: d, exclusive: m, initializer: y }
       }
       static methodDeclaration({ params: e, returns: t, declaredBy: r }) {
-        return cr({ params: e.length ? e : void 0, returns: t, waits: VD(r) || void 0 })
+        return cr({ params: e.length ? e : void 0, returns: t, waits: KD(r) || void 0 })
       }
       static ruleDeclaration({ name: e, rule: t, definition: r }) {
         let s = t,
@@ -32983,13 +33032,13 @@ a pile is a list of cards`)
           : `${(F.SpellLocation.isAddress(t) && F.SpellLocation.filePathOf(t)) || t}:${r}-${s}`
       }
     },
-    aB = "SPELL: PROJECT",
-    iB = "enumeration",
+    lB = "SPELL: PROJECT",
+    uB = "enumeration",
     cS = "SPELL: DECLARES",
     zS = new RegExp(`/\\*! ${cS} (\\{[\\s\\S]*?\\}) \\*/`, "g"),
-    nB = new RegExp(`^[ \\t]*/\\*! ${cS} \\{`),
-    oB = /\} \*\/\s*$/,
-    lB = 100,
+    pB = new RegExp(`^[ \\t]*/\\*! ${cS} \\{`),
+    cB = /\} \*\/\s*$/,
+    dB = 100,
     qS = [
       "type",
       "superType",
@@ -33017,28 +33066,28 @@ a pile is a list of cards`)
       "constantOutputs",
       "enumeration"
     ]
-  function _D(a) {
+  function qD(a) {
     return !!a && typeof a == "object" && "rule" in a && "definition" in a
   }
-  l(_D, "T_")
-  p(_D, "isScopeRule")
-  function WD(a) {
+  l(qD, "w_")
+  p(qD, "isScopeRule")
+  function JD(a) {
     let e = p((r) => (r === "defined" ? 1e3 : qS.indexOf(r) + 1 || qS.length + 1), "rank"),
       t = Object.entries(cr(a)).sort(([r], [s]) => e(r) - e(s))
     return Object.fromEntries(t)
   }
-  l(WD, "A_")
-  p(WD, "orderedProps")
+  l(JD, "E_")
+  p(JD, "orderedProps")
   function sy(a) {
     let e = [],
       t = ""
     for (let [r, s] of Object.entries(a)) {
       let i = `${dS(r)}: ${_o(s)},`
-      t && 2 + t.length + 1 + i.length > lB ? (e.push(`  ${t}`), (t = i)) : (t = t ? `${t} ${i}` : i)
+      t && 2 + t.length + 1 + i.length > dB ? (e.push(`  ${t}`), (t = i)) : (t = t ? `${t} ${i}` : i)
     }
     return (t && e.push(`  ${t}`), e)
   }
-  l(sy, "_2")
+  l(sy, "rq")
   p(sy, "packProps")
   function _o(a) {
     if (Array.isArray(a)) return `[${a.map(_o).join(", ")}]`
@@ -33062,9 +33111,9 @@ a pile is a list of cards`)
   function dS(a) {
     return /^[A-Za-z_$][\w$]*$/.test(a) ? a : _o(a)
   }
-  l(dS, "rq")
+  l(dS, "iq")
   p(dS, "literalKey")
-  function VD(a) {
+  function KD(a) {
     let e
     return (
       n.forEachNode(a?.AST, (t) => {
@@ -33073,30 +33122,30 @@ a pile is a list of cards`)
       !!e?.isAsync
     )
   }
-  l(VD, "x_")
-  p(VD, "waits")
+  l(KD, "v_")
+  p(KD, "waits")
   function ay(a) {
     return (a ?? []).filter((e) => typeof e == "string").map(n.spellValueOf)
   }
-  l(ay, "eq")
+  l(ay, "nq")
   p(ay, "enumerationConstants")
   function iy(a) {
     return a && n.enumerationInitializer(a)
   }
-  l(iy, "tq")
+  l(iy, "sq")
   p(iy, "enumerationInitializer")
-  function UD(a) {
+  function XD(a) {
     return a?.map(n.spellValueOf)
   }
-  l(UD, "b_")
-  p(UD, "spellValues")
+  l(XD, "D_")
+  p(XD, "spellValues")
   function cr(a) {
     return Object.fromEntries(Object.entries(a).filter(([, e]) => e !== void 0))
   }
-  l(cr, "Mn")
+  l(cr, "$n")
   p(cr, "definedOnly")
-  var uB = Be(vy(), 1),
-    pB = class ny {
+  var hB = Be(vy(), 1),
+    mB = class ny {
       static {
         l(this, "n")
       }
@@ -33118,7 +33167,7 @@ a pile is a list of cards`)
       static memberOf(e, t = n.JSWriter.instance) {
         let { property: r, output: s, kind: i, name: o, syntax: u } = e
         if (r) return { name: oy(t, r), words: e.asWritten ?? r }
-        if (i === "method" && s) return { name: oy(t, s), words: zD(o ?? u ?? s) }
+        if (i === "method" && s) return { name: oy(t, s), words: YD(o ?? u ?? s) }
       }
       static script(e, t) {
         let r = Object.entries(e.types).map(([s, i]) => {
@@ -33129,7 +33178,7 @@ ${o.join(`,
     }`
         })
         return [
-          `/*! ${cB} ${t} ${e.lang} */`,
+          `/*! ${fB} ${t} ${e.lang} */`,
           "export const words = {",
           `  lang: ${JSON.stringify(e.lang)},`,
           r.length
@@ -33144,17 +33193,17 @@ ${r.join(`,
 `)
       }
       static read(e) {
-        let t = e.match(dB)?.[1]
+        let t = e.match(gB)?.[1]
         if (t)
           try {
-            let r = uB.default.parse(t)
+            let r = hB.default.parse(t)
             return typeof r.lang != "string" || !r.types || typeof r.types != "object" ? void 0 : r
           } catch {
             return
           }
       }
       static isWordsFile(e, t) {
-        return e.startsWith(`${t}.`) && hB.test(e.slice(t.length + 1))
+        return e.startsWith(`${t}.`) && yB.test(e.slice(t.length + 1))
       }
       static json(e) {
         return `${JSON.stringify(e, null, 2)}
@@ -33162,26 +33211,26 @@ ${r.join(`,
       }
       static LANG = "en"
     },
-    cB = "SPELL: WORDS",
-    dB = /export const words = (\{[\s\S]*\})\s*$/,
-    hB = /^[a-z]{2}(-[A-Za-z]{2,4})?\.js$/
+    fB = "SPELL: WORDS",
+    gB = /export const words = (\{[\s\S]*\})\s*$/,
+    yB = /^[a-z]{2}(-[A-Za-z]{2,4})?\.js$/
   function oy(a, e) {
-    return GD.test(e) ? a.nameOf(e) : e
+    return HD.test(e) ? a.nameOf(e) : e
   }
-  l(oy, "nq")
+  l(oy, "oq")
   p(oy, "compiledName")
-  var GD = /^[A-Za-z_$][\w$]*$/
-  function zD(a) {
+  var HD = /^[A-Za-z_$][\w$]*$/
+  function YD(a) {
     return a.replace(/^"(.*)"$/, "$1")
   }
-  l(zD, "D_")
-  p(zD, "unquoted")
+  l(YD, "$_")
+  p(YD, "unquoted")
   function ly(a) {
-    return GD.test(a) ? a : JSON.stringify(a)
+    return HD.test(a) ? a : JSON.stringify(a)
   }
-  l(ly, "sq")
+  l(ly, "aq")
   p(ly, "literalKey")
-  var mB = class uy {
+  var vB = class uy {
     static {
       l(this, "n")
     }
@@ -33226,7 +33275,7 @@ ${r.join(`,
       return e.getType(F.typeName(t)) ? t : "text"
     }
   }
-  function qD(a) {
+  function QD(a) {
     let e = new Set()
     for (let s of a) for (let i of s) hS(i, (o) => e.add(o.type.name))
     if (!e.size) return a
@@ -33240,28 +33289,28 @@ ${r.join(`,
             o.push(c)
             continue
           }
-          let d = JD(c)
+          let d = ZD(c)
           if (d && e.has(d)) {
             let m = o.findIndex((y) => y instanceof n.ASTComment),
               g = m < 0 ? [] : o.slice(m)
             ;(i.push(...(m < 0 ? o : o.slice(0, m))), i.push(...g.filter((y) => y instanceof n.ASTHeadingInvocation)))
             let f = g.filter((y) => !(y instanceof n.ASTHeadingInvocation))
-            ;(KD(t, d, [...f, c]), (u = !0))
+            ;(ek(t, d, [...f, c]), (u = !0))
           } else i.push(...o, c)
           o = []
         }
-        return (i.push(...o), u ? XD(i) : i)
+        return (i.push(...o), u ? tk(i) : i)
       })
     return t.size ? r.map((s) => s.map((i) => mS(i, t))) : a
   }
-  l(qD, "C_")
-  p(qD, "hoistClassMembers")
+  l(QD, "F_")
+  p(QD, "hoistClassMembers")
   function hS(a, e) {
     a instanceof n.ASTClassDeclaration
       ? e(a)
       : a instanceof n.ASTStatementGroup && a.statements?.forEach((t) => hS(t, e))
   }
-  l(hS, "aq")
+  l(hS, "cq")
   p(hS, "forEachClass")
   function Id(a) {
     if (a instanceof n.ASTClassMember || a instanceof n.ASTComment) return [a]
@@ -33277,20 +33326,20 @@ ${r.join(`,
   }
   l(Id, "QA")
   p(Id, "classBodyItems")
-  function JD(a) {
+  function ZD(a) {
     let e = Id(a)?.filter((r) => r instanceof n.ASTClassMember),
       t = e?.[0]?.typeName
     if (!(!t || !e.every((r) => r.typeName === t))) return t
   }
-  l(JD, "k_")
-  p(JD, "memberOf")
-  function KD(a, e, t) {
+  l(ZD, "O_")
+  p(ZD, "memberOf")
+  function ek(a, e, t) {
     let r = t.flatMap((i) => Id(i) ?? []),
       s = a.get(e)
     s ? s.push(new n.ASTBlankLine(t[0].match), ...r) : a.set(e, r)
   }
-  l(KD, "M_")
-  p(KD, "addMember")
+  l(ek, "R_")
+  p(ek, "addMember")
   function mS(a, e) {
     if (a instanceof n.ASTClassDeclaration) {
       let r = e.get(a.type.name)
@@ -33303,9 +33352,9 @@ ${r.join(`,
     let t = a.statements.map((r) => mS(r, e))
     return t.every((r, s) => r === a.statements[s]) ? a : new n.ASTStatementGroup(a.match, { statements: t })
   }
-  l(mS, "uq")
+  l(mS, "lq")
   p(mS, "withMembers")
-  function XD(a) {
+  function tk(a) {
     let e = a.filter((r, s) =>
         r instanceof n.ASTHeadingInvocation
           ? !(a.slice(s + 1).find((i) => !(i instanceof n.ASTBlankLine)) instanceof n.ASTHeadingInvocation)
@@ -33320,18 +33369,18 @@ ${r.join(`,
     for (; t.at(-1) instanceof n.ASTBlankLine;) t.pop()
     return t
   }
-  l(XD, "$_")
-  p(XD, "tidyBlankLines")
+  l(tk, "N_")
+  p(tk, "tidyBlankLines")
   var py = {
-      "js/solid": { name: "js/solid", writer: n.JSWriter.instance, suffix: Eb, can: { draw: "dom" } },
-      "ts/solid": { name: "ts/solid", writer: n.TSWriter.instance, suffix: Cb, can: { draw: "dom" }, checkedBy: "tsc" },
+      "js/solid": { name: "js/solid", writer: n.JSWriter.instance, suffix: $b, can: { draw: "dom" } },
+      "ts/solid": { name: "ts/solid", writer: n.TSWriter.instance, suffix: Ob, can: { draw: "dom" }, checkedBy: "tsc" },
       py: {
         name: "py",
         writer: pl.PyWriter.instance,
-        suffix: Db,
+        suffix: jb,
         can: { draw: "html" },
-        wordsSuffix: ".py.en.json",
-        elementsSuffix: kb,
+        wordsSuffix: ".py.en.json5",
+        elementsSuffix: Fb,
         appSuffix: ".app.py",
         checkedBy: "pyright"
       },
@@ -33343,8 +33392,8 @@ ${r.join(`,
         checkedBy: "tsc"
       }
     },
-    fB = "js/solid"
-  function HD(a) {
+    SB = "js/solid"
+  function rk(a) {
     let e = py[a]
     if (!e)
       throw new n.ParserError({
@@ -33354,9 +33403,9 @@ ${r.join(`,
       })
     return e
   }
-  l(HD, "O_")
-  p(HD, "targetFor")
-  var gB = class Ps {
+  l(rk, "I_")
+  p(rk, "targetFor")
+  var bB = class Ns {
       static {
         l(this, "n")
       }
@@ -33381,7 +33430,7 @@ ${r.join(`,
         let t = new Map()
         try {
           n.Tokenizer.forEachToken(F.spellParser.tokenize(e, "") ?? [], (s) => {
-            let i = Ps.tokenKind(s)
+            let i = Ns.tokenKind(s)
             i && t.set(s.start, { start: s.start, end: s.end, kind: i })
           })
         } catch (s) {
@@ -33389,16 +33438,16 @@ ${r.join(`,
         }
         try {
           let s = F.spellParser.parse(e, "block")
-          s && Ps.walk(s, t, new Set())
+          s && Ns.walk(s, t, new Set())
         } catch {}
         let r = [...t.values()].sort((s, i) => s.start - i.start)
         return r.filter((s, i) => i === 0 || s.start >= r[i - 1].end)
       }
       static tokenKind(e) {
-        if (e instanceof n.CommentToken) return e.commentSymbol.startsWith("#") ? Ps.HEADING : Ps.SCOPES.comment
-        if (e instanceof n.TextToken) return Ps.SCOPES.string
-        if (e instanceof n.NumberToken) return Ps.SCOPES.number
-        if (e instanceof n.SymbolToken) return Ps.SCOPES.operator
+        if (e instanceof n.CommentToken) return e.commentSymbol.startsWith("#") ? Ns.HEADING : Ns.SCOPES.comment
+        if (e instanceof n.TextToken) return Ns.SCOPES.string
+        if (e instanceof n.NumberToken) return Ns.SCOPES.number
+        if (e instanceof n.SymbolToken) return Ns.SCOPES.operator
       }
       static walk(e, t, r) {
         if (r.has(e)) return
@@ -33414,8 +33463,8 @@ ${r.join(`,
               i instanceof n.SymbolToken ||
               i instanceof n.NumberToken ||
               i instanceof n.TextToken) &&
-              t.set(i.start, { start: i.start, end: i.end, kind: Ps.SCOPES[s] }))
-        for (let i of Ps.children(e)) Ps.walk(i, t, r)
+              t.set(i.start, { start: i.start, end: i.end, kind: Ns.SCOPES[s] }))
+        for (let i of Ns.children(e)) Ns.walk(i, t, r)
       }
       static children(e) {
         let t = new Set()
@@ -33425,6 +33474,6 @@ ${r.join(`,
         return [...t]
       }
     },
-    yB = { highlight: p((a) => F.SpellHighlighter.spans(a), "highlight") }
-  return uk(vB)
+    AB = { highlight: p((a) => F.SpellHighlighter.spans(a), "highlight") }
+  return fk(wB)
 })()

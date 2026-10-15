@@ -17,7 +17,10 @@ SpellUI.registerPack({
       import("../epic-agents"),
       import("../epic-answer"),
       import("../epic-aside"),
+      import("../epic-ask"),
+      import("../epic-choice-rows"),
       import("../epic-choices"),
+      import("../epic-choices-bar"),
       import("../epic-code"),
       import("../epic-commit"),
       import("../epic-event"),
@@ -33,8 +36,10 @@ SpellUI.registerPack({
       import("../epic-question"),
       import("../epic-review"),
       import("../epic-section"),
+      import("../epic-send"),
       import("../epic-status"),
       import("../epic-summary"),
+      import("../epic-text-box"),
       import("../epic-update")
     ]).then(() => undefined)
 })

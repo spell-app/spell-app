@@ -17,6 +17,10 @@
     {
       "id": "log",
       "title": "Log and commits"
+    },
+    {
+      "id": "answering",
+      "title": "Pages Owen answers on"
     }
   ],
   "components": [
@@ -198,6 +202,428 @@
       ]
     },
     {
+      "tag": "epic-ask",
+      "name": "epic-ask",
+      "folder": "epic-ask",
+      "mainTag": "epic-ask",
+      "main": true,
+      "page": true,
+      "href": "epic-ask.html",
+      "topics": [
+        "answering"
+      ],
+      "aka": [
+        "question",
+        "ask",
+        "poll",
+        "multiple choice",
+        "form question",
+        "picker"
+      ],
+      "description": "A question Owen answers ON the page (a details page's;  epic `epic-workflow` P12):  its text an `<epic-question>`, its options an `<epic-choices>` of `<epic-option>`s, each with a tick box, then an Other box.  Its line shows a chip in the epic page's state colours (red:  nothing yet;  green:  picked;  blue:  Claude has more to do).  Its answer goes under its section's id.",
+      "noun": "ask",
+      "attributes": [
+        {
+          "name": "name",
+          "kind": "string",
+          "description": "The key its answer goes under (`q1`);  none:  its `<ui-section>`'s id.  Its options' comments are `<key>-<letter>` (`q1-B`)."
+        },
+        {
+          "name": "multiple",
+          "kind": "boolean",
+          "description": "Pick several (tick boxes);  without it, pick one (round ones)."
+        },
+        {
+          "name": "select-all",
+          "kind": "boolean",
+          "description": "With `multiple`:  a Select all / Select none button on its line, for the options shown."
+        },
+        {
+          "name": "filter",
+          "kind": "boolean",
+          "description": "An Open | All toggle on its line:  Open (the default) hides the options marked `done`."
+        },
+        {
+          "name": "more-details",
+          "kind": "boolean",
+          "description": "A (?) on each option, \"Provide more details\":  pressed, the option is ticked too, and the answer carries its letter under `<key>-more`, so Claude explains it in full before asking again."
+        }
+      ],
+      "slots": [
+        {
+          "name": "",
+          "description": "The question:  an `<epic-question>`, then an `<epic-choices>`;  prose too."
+        }
+      ],
+      "events": [],
+      "parts": [
+        {
+          "name": "base",
+          "description": "The question's box."
+        },
+        {
+          "name": "line",
+          "description": "Its line:  the chip, how to answer, its tools."
+        },
+        {
+          "name": "chip",
+          "description": "Its id chip (`Q1`), in the epic page's state colours:  red needs Owen, green picked, blue Claude's."
+        },
+        {
+          "name": "how",
+          "description": "`Pick one` or `Pick several`."
+        },
+        {
+          "name": "tools",
+          "description": "Its buttons:  Select all, Open | All."
+        },
+        {
+          "name": "other",
+          "description": "The Other box, an `<epic-text-box type=\"other\">`, after the options."
+        }
+      ],
+      "states": [
+        {
+          "name": "attention",
+          "description": "Nothing picked or written yet:  red."
+        },
+        {
+          "name": "done",
+          "description": "An option picked:  green."
+        },
+        {
+          "name": "working",
+          "description": "\"Provide more details\" asked, or only Other written:  blue, Claude's to do."
+        }
+      ],
+      "texts": [
+        {
+          "key": "pickOne",
+          "text": "Pick one",
+          "description": "Its line, without `multiple`."
+        },
+        {
+          "key": "pickSeveral",
+          "text": "Pick several",
+          "description": "Its line, with `multiple`."
+        },
+        {
+          "key": "selectAll",
+          "text": "Select all",
+          "description": "Ticks every option shown."
+        },
+        {
+          "key": "selectNone",
+          "text": "Select none",
+          "description": "Once every option shown is ticked:  unticks them."
+        },
+        {
+          "key": "open",
+          "text": "Open",
+          "description": "The filter's first half:  only the options not marked `done`."
+        },
+        {
+          "key": "all",
+          "text": "All",
+          "description": "The filter's second half:  every option."
+        },
+        {
+          "key": "openTip",
+          "text": "Show only the open ones",
+          "description": "Tooltip of Open."
+        },
+        {
+          "key": "allTip",
+          "text": "Show every option",
+          "description": "Tooltip of All."
+        },
+        {
+          "key": "otherOne",
+          "text": "Other:  your own answer",
+          "description": "The Other box's placeholder, pick one."
+        },
+        {
+          "key": "otherSeveral",
+          "text": "Other:  add your own",
+          "description": "The Other box's placeholder, pick several."
+        },
+        {
+          "key": "attentionTip",
+          "text": "{id}:  needs your answer",
+          "description": "The chip's tooltip:  nothing yet."
+        },
+        {
+          "key": "doneTip",
+          "text": "{id}:  decided",
+          "description": "The chip's tooltip:  an option picked."
+        },
+        {
+          "key": "workingTip",
+          "text": "{id}:  Claude has more to do",
+          "description": "The chip's tooltip:  more details asked, or only Other written."
+        }
+      ]
+    },
+    {
+      "tag": "epic-choice-row",
+      "name": "epic-choice-row",
+      "folder": "epic-choice-row",
+      "mainTag": "epic-choice-row",
+      "main": true,
+      "page": true,
+      "href": "epic-choice-row.html",
+      "topics": [
+        "answering"
+      ],
+      "aka": [
+        "syntax choice",
+        "rename",
+        "name choice",
+        "row"
+      ],
+      "description": "One row of a choice page (epic `epic-workflow` P12), in an `<epic-choice-rows>`:  the use site (File, opening VS Code at the line), what it's for, how it reads today, and a box pre-filled with Claude's recommendation.  Owen types over it, or leaves it;  a changed box is orange, with a round button putting the recommendation back.  In a table Owen puts in order (`<epic-choice-rows reorder>`), its place first, with move up / move down.",
+      "noun": "choice row",
+      "attributes": [
+        {
+          "name": "name",
+          "kind": "string",
+          "description": "Its id in the rows file (`q1-UISection-169`):  its box's key in the draft and the answer."
+        },
+        {
+          "name": "file",
+          "kind": "string",
+          "description": "Its file, from the repo's root:  the File cell opens it in VS Code."
+        },
+        {
+          "name": "line",
+          "kind": "number",
+          "description": "Its line in `file`, from 1."
+        },
+        {
+          "name": "purpose",
+          "kind": "string",
+          "description": "What it's for, in words a reader new to it follows."
+        },
+        {
+          "name": "note",
+          "kind": "string",
+          "description": "A short why, small, under the purpose;  `` `code` `` in it shows as code."
+        },
+        {
+          "name": "current",
+          "kind": "string",
+          "description": "How the use site reads today (`this.isOpen()`)."
+        },
+        {
+          "name": "recommended",
+          "kind": "string",
+          "description": "Claude's call, the box's starting text;  the same as `current` for a row that stays."
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "parts": [
+        {
+          "name": "base",
+          "description": "Its cells, laid out on its table's columns."
+        },
+        {
+          "name": "order",
+          "description": "The Order cell, in a table Owen puts in order:  its place, and its move up / move down buttons."
+        },
+        {
+          "name": "up",
+          "description": "The move up button:  it swaps places with the row above."
+        },
+        {
+          "name": "down",
+          "description": "The move down button:  it swaps places with the row below."
+        },
+        {
+          "name": "file",
+          "description": "The File cell:  the file's name and line, a link into VS Code;  its folder under it."
+        },
+        {
+          "name": "purpose",
+          "description": "The Purpose cell:  the purpose, `stays` when it stays, the note."
+        },
+        {
+          "name": "current",
+          "description": "The Current cell:  today's text, as code."
+        },
+        {
+          "name": "pick",
+          "description": "The Recommended cell:  the box, and the reset button once it differs."
+        },
+        {
+          "name": "box",
+          "description": "The `<textarea>`:  one line of text, wrapping and growing;  Enter adds no line."
+        },
+        {
+          "name": "reset",
+          "description": "The round button putting the recommendation back."
+        }
+      ],
+      "states": [
+        {
+          "name": "changed",
+          "description": "Its box differs from the recommendation:  orange."
+        },
+        {
+          "name": "stays",
+          "description": "Claude recommends no change."
+        }
+      ],
+      "texts": [
+        {
+          "key": "stays",
+          "text": "stays",
+          "description": "The tag after a purpose whose row stays."
+        },
+        {
+          "key": "boxLabel",
+          "text": "Recommended for {current}",
+          "description": "The box's name, for a screen reader."
+        },
+        {
+          "key": "reset",
+          "text": "Back to the recommendation",
+          "description": "The reset button's name."
+        },
+        {
+          "key": "resetTip",
+          "text": "Back to {recommended}",
+          "description": "The reset button's tooltip."
+        },
+        {
+          "key": "openTip",
+          "text": "Open {file}:{line} in VS Code",
+          "description": "The file link's tooltip."
+        },
+        {
+          "key": "up",
+          "text": "Move up",
+          "description": "The move up button's name and tooltip."
+        },
+        {
+          "key": "down",
+          "text": "Move down",
+          "description": "The move down button's name and tooltip."
+        }
+      ]
+    },
+    {
+      "tag": "epic-choice-rows",
+      "name": "epic-choice-rows",
+      "folder": "epic-choice-rows",
+      "mainTag": "epic-choice-rows",
+      "main": true,
+      "page": true,
+      "href": "epic-choice-rows.html",
+      "topics": [
+        "answering"
+      ],
+      "aka": [
+        "syntax choices",
+        "names table",
+        "rename table",
+        "choices table"
+      ],
+      "description": "One section's table on a choice page (epic `epic-workflow` P12):  the column heads File | Purpose | Current | Recommended, then its rows, each an `<epic-choice-row>` whose Recommended box Owen types over.  It counts its section's rows on the section's title (`3 to change · 1 stay · 1 changed`).  With `reorder`, Owen puts the rows in order too (epic `epic-workflow` P15).  Under 720px it scrolls inside its own box.",
+      "noun": "choice rows",
+      "attributes": [
+        {
+          "name": "stacked",
+          "kind": "boolean",
+          "description": "Current and Recommended in ONE column, Syntax:  today's text over the box (`stacked: true`)."
+        },
+        {
+          "name": "no-file",
+          "kind": "boolean",
+          "description": "No File column (`fileColumn: false`):  for rows whose place in the code doesn't matter to the reader."
+        },
+        {
+          "name": "reorder",
+          "kind": "boolean",
+          "description": "Owen puts the rows in order (a section's `reorder: true`):  a first column, Order, with each row's place and its move up / move down buttons.  The order goes with the draft and \"Do it\"."
+        }
+      ],
+      "slots": [
+        {
+          "name": "",
+          "description": "Its rows, `<epic-choice-row>`s, in order."
+        }
+      ],
+      "events": [],
+      "parts": [
+        {
+          "name": "base",
+          "description": "The box that scrolls sideways when narrow."
+        },
+        {
+          "name": "table",
+          "description": "The grid:  the heads, then the rows."
+        },
+        {
+          "name": "head",
+          "description": "The column heads' row."
+        }
+      ],
+      "states": [],
+      "texts": [
+        {
+          "key": "file",
+          "text": "File",
+          "description": "The File column's head."
+        },
+        {
+          "key": "purpose",
+          "text": "Purpose",
+          "description": "The Purpose column's head."
+        },
+        {
+          "key": "current",
+          "text": "Current",
+          "description": "The Current column's head."
+        },
+        {
+          "key": "recommended",
+          "text": "Recommended",
+          "description": "The Recommended column's head."
+        },
+        {
+          "key": "syntax",
+          "text": "Syntax:  today, then yours",
+          "description": "The one column of `stacked`."
+        },
+        {
+          "key": "order",
+          "text": "Order",
+          "description": "The Order column's head, with `reorder`."
+        },
+        {
+          "key": "count",
+          "text": "{renames} to change · {stay} stay",
+          "description": "Its section's badge:  the rows Claude would change, and those he'd keep."
+        },
+        {
+          "key": "countOrdered",
+          "text": "{rows} in order",
+          "description": "Its section's badge with `reorder`:  how many rows there are to put in order."
+        },
+        {
+          "key": "countMoved",
+          "text": "{count} · moved",
+          "description": "Its section's badge with `reorder`, once Owen moved a row from the order Claude proposed."
+        },
+        {
+          "key": "countChanged",
+          "text": "{count} · {changed} changed",
+          "description": "Its section's badge, once Owen changed some."
+        }
+      ]
+    },
+    {
       "tag": "epic-choices",
       "name": "epic-choices",
       "folder": "epic-choices",
@@ -256,6 +682,10 @@
         {
           "name": "open",
           "description": "Answered, and its options unfolded."
+        },
+        {
+          "name": "answering",
+          "description": "An `<epic-ask>`'s options (a page Owen answers on):  one card a row, each with a tick box."
         }
       ],
       "texts": [
@@ -278,6 +708,87 @@
           "key": "chosen",
           "text": "Chosen:  {name}",
           "description": "After the heading:  the chosen option, `{name}` its letter and title (`B · Bananas`)."
+        }
+      ]
+    },
+    {
+      "tag": "epic-choices-bar",
+      "name": "epic-choices-bar",
+      "folder": "epic-choices-bar",
+      "mainTag": "epic-choices-bar",
+      "main": true,
+      "page": true,
+      "href": "epic-choices-bar.html",
+      "topics": [
+        "answering"
+      ],
+      "aka": [
+        "do it",
+        "toolbar",
+        "send bar",
+        "feedback"
+      ],
+      "description": "A choice page's bar (epic `epic-workflow` P12), last on the page and pinned to the window's bottom:  the feedback box, then \"Do it\", which sends every changed box and the feedback to Claude;  under them, Expand all, and the save status when a save failed;  then what was sent, or why not.  What's typed saves itself as a draft 5s after typing stops, and as the page goes away.  Once a page.",
+      "noun": "choices bar",
+      "attributes": [],
+      "slots": [],
+      "events": [],
+      "parts": [
+        {
+          "name": "base",
+          "description": "The bar."
+        },
+        {
+          "name": "feedback",
+          "description": "The feedback box, an `<epic-text-box type=\"feedback\">`."
+        },
+        {
+          "name": "send",
+          "description": "\"Do it\" (`<ui-button>`):  its tooltip counts the changed boxes."
+        },
+        {
+          "name": "meta",
+          "description": "The line under them:  the save status (only when it failed), Expand all."
+        },
+        {
+          "name": "expand",
+          "description": "Expand all / Collapse all:  every section of rows."
+        },
+        {
+          "name": "error",
+          "description": "Why \"Do it\" failed."
+        },
+        {
+          "name": "sent",
+          "description": "What was sent, and when;  orange once changed since."
+        }
+      ],
+      "states": [
+        {
+          "name": "stale",
+          "description": "Changed since the answer was sent:  press Do it again."
+        }
+      ],
+      "texts": [
+        {
+          "key": "doIt",
+          "text": "Do it",
+          "description": "The button."
+        },
+        {
+          "key": "sendTip",
+          "text": "Send {changed} changed of {rows}, and the feedback, to Claude",
+          "description": "The button's tooltip:  the count."
+        },
+        {
+          "key": "expandAll",
+          "text": "Expand all",
+          "description": "Unfolds every section of rows."
+        },
+        {
+          "key": "collapseAll",
+          "text": "Collapse all",
+          "description": "Once every section is open:  folds them."
         }
       ]
     },
@@ -1333,6 +1844,41 @@
           "name": "recommended",
           "kind": "boolean",
           "description": "The one Claude recommends."
+        },
+        {
+          "name": "selected",
+          "kind": "boolean",
+          "description": "In an `<epic-ask>`:  ticked to start with, until Owen picks (the review's item picker ticks what isn't reviewed yet).  The tick itself is page state, its question's."
+        },
+        {
+          "name": "done",
+          "kind": "boolean",
+          "description": "In an `<epic-ask filter>`:  hidden while the filter shows Open."
+        },
+        {
+          "name": "badge",
+          "kind": "string",
+          "description": "In an `<epic-ask>`:  a small label after its title (`deferred`)."
+        },
+        {
+          "name": "badge-color",
+          "kind": "string",
+          "description": "Its badge's colour, a Spell UI hue (`blue`, `orange` ...);  none:  grey."
+        },
+        {
+          "name": "state-icon",
+          "kind": "string",
+          "description": "In an `<epic-ask>`:  an icon at the end of its header saying where it stands (the item picker's `circle check`:  reviewed), from the page's icons."
+        },
+        {
+          "name": "state-color",
+          "kind": "string",
+          "description": "Its state icon's colour, a Spell UI hue;  none:  grey."
+        },
+        {
+          "name": "state-label",
+          "kind": "string",
+          "description": "Its state icon's words:  its tooltip, and its name."
         }
       ],
       "slots": [
@@ -1345,7 +1891,13 @@
           "description": "A title with markup, in place of `title`."
         }
       ],
-      "events": [],
+      "events": [
+        {
+          "name": "ui-change",
+          "detail": "{ letter: string, selected: boolean, more: boolean }",
+          "description": "In an `<epic-ask>`:  Owen ticked or unticked it (`selected`), or pressed its (?) (`more`).  Its question takes it, and draws the result."
+        }
+      ],
       "parts": [
         {
           "name": "base",
@@ -1382,6 +1934,26 @@
         {
           "name": "body",
           "description": "Its pros and cons;  hidden (`until-found`) while folded."
+        },
+        {
+          "name": "tick",
+          "description": "In an `<epic-ask>`:  its tick box (round for pick one), labelled by its title."
+        },
+        {
+          "name": "badge",
+          "description": "In an `<epic-ask>`:  its `badge`, a small `<ui-label>`."
+        },
+        {
+          "name": "more",
+          "description": "In an `<epic-ask more-details>`:  the (?) `<button aria-pressed>`."
+        },
+        {
+          "name": "state",
+          "description": "In an `<epic-ask>`:  its state icon, `state-label` its tooltip."
+        },
+        {
+          "name": "comment",
+          "description": "In an `<epic-ask>`:  the comment box under it, an `<epic-text-box>` for `<key>-<letter>`."
         }
       ],
       "states": [
@@ -1400,6 +1972,18 @@
         {
           "name": "picked",
           "description": "Its letter is the item's pick in the review inbox, in its card set, not applied yet:  framed green:  dashed until sent, then outlined."
+        },
+        {
+          "name": "answering",
+          "description": "An option of an `<epic-ask>`:  a tick box, a comment box."
+        },
+        {
+          "name": "ticked",
+          "description": "In an `<epic-ask>`:  ticked, framed green (a pick is a decision)."
+        },
+        {
+          "name": "filtered",
+          "description": "In an `<epic-ask filter>`:  `done`, and hidden while it shows Open."
         }
       ],
       "texts": [
@@ -1462,6 +2046,21 @@
           "key": "tipApplied",
           "text": "{letter} is the chosen option",
           "description": "The chosen option's pill's tooltip:  the pick applied."
+        },
+        {
+          "key": "moreTip",
+          "text": "Provide more details",
+          "description": "In an `<epic-ask>`:  the (?)'s tooltip."
+        },
+        {
+          "key": "commentOn",
+          "text": "Comment on {letter}",
+          "description": "In an `<epic-ask>`:  its comment box's hint."
+        },
+        {
+          "key": "commentLabel",
+          "text": "Comment on {letter} · {title}",
+          "description": "In an `<epic-ask>`:  its comment box's name, for a screen reader."
         }
       ]
     },
@@ -1546,7 +2145,7 @@
         "introduction",
         "kickoff"
       ],
-      "description": "A plan doc's Overview:  the two-sentence summary, the prompt that started the plan, the total estimate, then the substance in numbered sub-sections.",
+      "description": "An epic page's Overview:  the two-sentence summary, the prompt that started the plan, the total estimate, then the substance in numbered sub-sections.",
       "noun": "overview",
       "attributes": [
         {
@@ -1566,7 +2165,7 @@
         {
           "name": "open",
           "kind": "boolean",
-          "description": "Unfolded:  PAGE state, never written in a doc (plan docs open folded).  A click on the title, a link to it (or into it) and find-in-page set it;  set it from code to open it."
+          "description": "Unfolded:  PAGE state, never written in a doc (epic pages open folded).  A click on the title, a link to it (or into it) and find-in-page set it;  set it from code to open it."
         }
       ],
       "slots": [
@@ -1702,12 +2301,13 @@
         "page"
       ],
       "aka": [
+        "epic page",
         "plan doc",
         "epic",
         "plan",
         "project plan"
       ],
-      "description": "A plan doc:  one epic's page -- its crumbs, header and meta lines, the Overview, then its sections in a fixed order.  Runs edge to edge:  it breaks out of the docs' `<main>` padding (`--spell-doc-pad-inline`).",
+      "description": "An epic page:  one epic's page -- its crumbs, header and meta lines, the Overview, then its sections in a fixed order.  Runs edge to edge:  it breaks out of the docs' `<main>` padding (`--spell-doc-pad-inline`).",
       "noun": "page",
       "attributes": [
         {
@@ -1734,7 +2334,7 @@
         {
           "name": "started",
           "kind": "string",
-          "description": "The day the plan doc was made."
+          "description": "The day the epic page was made."
         },
         {
           "name": "updated",
@@ -1779,11 +2379,11 @@
         },
         {
           "name": "durable",
-          "description": "A link to the durable doc, once Doc Review wrote one:  `<a slot=\"durable\" href=\"../../guides/x.html\">X</a>`."
+          "description": "A link to the guide, once Doc Review wrote one:  `<a slot=\"durable\" href=\"../../guides/x.html\">X</a>`."
         },
         {
           "name": "toolbar",
-          "description": "The sticky bar's last row:  the section toolbar the docs runtime adds to a plan doc (`<nav slot=\"toolbar\" class=\"spell-toolbar\">`, `spell-doc-runtime.js` `buildToolbar()`);  never in a doc."
+          "description": "The sticky bar's last row:  the section toolbar the docs runtime adds to an epic page (`<nav slot=\"toolbar\" class=\"spell-toolbar\">`, `spell-doc-runtime.js` `buildToolbar()`);  never in a doc."
         }
       ],
       "events": [],
@@ -1822,7 +2422,7 @@
         },
         {
           "name": "pill",
-          "description": "Under the review line, while marks wait and nobody can take them:  no Claude session reviewing (orange), or airplane mode;  a click copies the review line's command."
+          "description": "Under the review line, while marks, comments or Do Now requests wait and nobody can take them:  no Claude session reviewing (orange), or airplane mode;  once a Send or Do Now woke the epic, what the wake did (`Typed /epic review <name> into 🚧 <name>:  press Enter there`).  A click copies the review line's command."
         },
         {
           "name": "send",
@@ -1850,7 +2450,7 @@
         },
         {
           "name": "meta",
-          "description": "The meta lines:  branch, worktree, dates, durable doc."
+          "description": "The meta lines:  branch, worktree, dates, guide."
         },
         {
           "name": "notice",
@@ -1863,6 +2463,10 @@
         {
           "name": "expand-all",
           "description": "The toolbar's expand-all button:  opens every section, phase and item."
+        },
+        {
+          "name": "see-also",
+          "description": "Above the blocks:  the pages the epic made for itself (its `details/` folder), each a link;  none, no box."
         },
         {
           "name": "agents",
@@ -1901,19 +2505,44 @@
           "description": "The crumbs, spoken."
         },
         {
+          "key": "seeAlso",
+          "text": "See Also",
+          "description": "The See Also box's title."
+        },
+        {
+          "key": "seeAlsoDurable",
+          "text": "guide",
+          "description": "A See Also page's kind:  the epic's guide."
+        },
+        {
+          "key": "seeAlsoGuide",
+          "text": "guide",
+          "description": "A See Also page's kind:  a guide the epic page links to."
+        },
+        {
+          "key": "seeAlsoDetails",
+          "text": "details",
+          "description": "A See Also page's kind:  a details page."
+        },
+        {
+          "key": "seeAlsoChoices",
+          "text": "choice",
+          "description": "A See Also page's kind:  a choice page."
+        },
+        {
           "key": "crumbDocs",
           "text": "Docs",
-          "description": "The crumbs' first:  the docs home."
+          "description": "The crumbs' first:  the docs' home page."
         },
         {
           "key": "crumbEpics",
           "text": "Epics",
-          "description": "The crumbs' second:  the epics' index."
+          "description": "The crumbs' second:  the Epics list page."
         },
         {
           "key": "planDoc",
-          "text": "Plan doc for",
-          "description": "Meta line:  `Plan doc for /epic x, branch x`."
+          "text": "Epic page for",
+          "description": "Meta line:  `Epic page for /epic x, branch x`."
         },
         {
           "key": "branch",
@@ -1952,8 +2581,8 @@
         },
         {
           "key": "durable",
-          "text": "Durable doc:",
-          "description": "Meta line:  before the durable doc's link."
+          "text": "Guide:",
+          "description": "Meta line:  before the guide's link."
         },
         {
           "key": "done",
@@ -2002,12 +2631,12 @@
         },
         {
           "key": "futureBody",
-          "text": "No worktree, no phases yet.  Its high-level open questions are on its analysis page, answered in the side bar's Review tab;  the answers land here as decided questions.",
+          "text": "No worktree, no phases yet.  Its high-level open questions are on its review page, answered in the side bar's Review tab;  the answers land here as decided questions.",
           "description": "A future epic's notice."
         },
         {
           "key": "analysisPage",
-          "text": "Open its analysis page",
+          "text": "Open its review page",
           "description": "The notice's link."
         },
         {
@@ -2252,12 +2881,12 @@
         {
           "name": "changes",
           "kind": "number",
-          "description": "How many plan changes (`<epic-update>` blocks) it holds, written by the plan-doc tool on every edit:  its title row says so while it isn't done, folded too (its body, a part, loads only when it opens)."
+          "description": "How many plan changes (`<epic-update>` blocks) it holds, written by the epic tool on every edit:  its title row says so while it isn't done, folded too (its body, a part, loads only when it opens)."
         },
         {
           "name": "open",
           "kind": "boolean",
-          "description": "Unfolded:  PAGE state, never written in a doc (plan docs open folded).  A click on the title, a link to it (or into it) and find-in-page set it;  set it from code to open it."
+          "description": "Unfolded:  PAGE state, never written in a doc (epic pages open folded).  A click on the title, a link to it (or into it) and find-in-page set it;  set it from code to open it."
         }
       ],
       "slots": [
@@ -2271,7 +2900,7 @@
         },
         {
           "name": "changes",
-          "description": "An OLDER doc's plan changes (`<epic-updated slot=\"changes\">`, 2026-10-11, P6):  drawn at the end of its body, unboxed, until the plan-doc tool migrates them to `<epic-update>` blocks (`updates-as-epic-update`)."
+          "description": "An OLDER doc's plan changes (`<epic-updated slot=\"changes\">`, 2026-10-11, P6):  drawn at the end of its body, unboxed, until the epic tool migrates them to `<epic-update>` blocks (`updates-as-epic-update`)."
         },
         {
           "name": "status",
@@ -2612,7 +3241,7 @@
         "chapter",
         "panel"
       ],
-      "description": "One section of a plan doc, by `kind`:  its phases, its items or its log;  or, inside `<epic-overview>`, one of the Overview's sub-sections (`overview-part`), which gets review notes as items do;  or a report a run wrote (`report`:  an overnight `/bedtime` report), after the Overview, unnumbered.",
+      "description": "One section of an epic page, by `kind`:  its phases, its items or its log;  or, inside `<epic-overview>`, one of the Overview's sub-sections (`overview-part`), which gets review notes as items do;  or a report a run wrote (`report`:  an overnight `/bedtime` report), after the Overview, unnumbered.",
       "noun": "section",
       "attributes": [
         {
@@ -2657,7 +3286,7 @@
         {
           "name": "open",
           "kind": "boolean",
-          "description": "Unfolded:  PAGE state, never written in a doc (plan docs open folded).  A click on the title, a link to it (or into it) and find-in-page set it;  set it from code to open it."
+          "description": "Unfolded:  PAGE state, never written in a doc (epic pages open folded).  A click on the title, a link to it (or into it) and find-in-page set it;  set it from code to open it."
         }
       ],
       "slots": [
@@ -2671,7 +3300,7 @@
         },
         {
           "name": "changes",
-          "description": "An OLDER doc's Plan changes copies in the Phases section (T14, until 2026-10-11).  NOT drawn:  no slot of the shadow root takes them, since each phase draws its own;  the plan-doc tool removes them on its next write."
+          "description": "An OLDER doc's Plan changes copies in the Phases section (T14, until 2026-10-11).  NOT drawn:  no slot of the shadow root takes them, since each phase draws its own;  the epic tool removes them on its next write."
         },
         {
           "name": "status",
@@ -2989,6 +3618,73 @@
       ]
     },
     {
+      "tag": "epic-send",
+      "name": "epic-send",
+      "folder": "epic-send",
+      "mainTag": "epic-send",
+      "main": true,
+      "page": true,
+      "href": "epic-send.html",
+      "topics": [
+        "answering"
+      ],
+      "aka": [
+        "send",
+        "submit",
+        "send bar",
+        "answer"
+      ],
+      "description": "A details page's Send, in its sticky header (epic `epic-workflow` P12):  where the answer stands (`Not sent`, `Changes not sent`, `Sent 10/8/26 14:34 · 5 of 17 decided`), then a round blue Send.  It sends the whole page, partial answers too, as often as Owen likes:  the page never locks.  Beside them, the draft's save (P18):  what's typed and not sent is kept beside the page, and comes back when it reloads.  Once a page.",
+      "noun": "send",
+      "attributes": [],
+      "slots": [],
+      "events": [],
+      "parts": [
+        {
+          "name": "base",
+          "description": "Its box:  the line, then an error when there is one."
+        },
+        {
+          "name": "state",
+          "description": "Where the answer stands, in its colour:  grey, blue (not sent), green (sent)."
+        },
+        {
+          "name": "draft",
+          "description": "The draft's save (P18), muted:  `draft saved 14:04`, `draft from 14:04 put back`;  orange when the page server can't take it (the browser still keeps it)."
+        },
+        {
+          "name": "send",
+          "description": "The round Send (`<ui-button>`), by the fill rule:  a grey outline with nothing to send, dashed blue with changes not sent, a blue outline once sent."
+        },
+        {
+          "name": "error",
+          "description": "Why it couldn't send, under them."
+        }
+      ],
+      "states": [
+        {
+          "name": "pending",
+          "description": "Something on the page isn't sent yet."
+        },
+        {
+          "name": "sent",
+          "description": "The page as sent."
+        }
+      ],
+      "texts": [
+        {
+          "key": "send",
+          "text": "Send",
+          "description": "The button's name, for a screen reader."
+        },
+        {
+          "key": "sendTip",
+          "text": "Send what's on the page:  a partial answer is fine, send again any time",
+          "description": "The button's tooltip."
+        }
+      ]
+    },
+    {
       "tag": "epic-status",
       "name": "epic-status",
       "folder": "epic-status",
@@ -3191,6 +3887,136 @@
       ]
     },
     {
+      "tag": "epic-text-box",
+      "name": "epic-text-box",
+      "folder": "epic-text-box",
+      "mainTag": "epic-text-box",
+      "main": true,
+      "page": true,
+      "href": "epic-text-box.html",
+      "topics": [
+        "answering"
+      ],
+      "aka": [
+        "notes box",
+        "comment box",
+        "textarea",
+        "text field",
+        "other",
+        "feedback"
+      ],
+      "description": "A box Owen types in, on a page he answers on (epic `epic-workflow` P12):  one line to start, growing with its text.  What he types is part of the page's answer, by `type` and `for`:  the page's notes, a comment on a section or an option, a question's Other, a choice page's feedback.  The page's notes box also shows what the page KEPT (P18):  text typed for a question, option or section an agent's rewrite took off the page, under its old title, sent with the rest until Owen drops it.",
+      "noun": "text box",
+      "attributes": [
+        {
+          "name": "type",
+          "kind": "enum",
+          "values": [
+            "notes",
+            "comment",
+            "other",
+            "feedback"
+          ],
+          "default": "comment",
+          "description": "What it holds:  `notes` (the page's notes for Claude, once a page), `comment` (on the section `for` names, or an option, `q1-B`), `other` (question `for`'s Other, drawn by `<epic-ask>`), `feedback` (a choice page's, drawn by `<epic-choices-bar>`)."
+        },
+        {
+          "name": "for",
+          "kind": "string",
+          "property": "htmlFor",
+          "description": "Whose it is:  a comment's section id (`context`) or option (`q1-B`), Other's question key (`q1`).  Notes and feedback need none."
+        },
+        {
+          "name": "placeholder",
+          "kind": "string",
+          "description": "Its grey hint while empty;  none:  its type's own (`Notes for Claude:  anything, any time`)."
+        },
+        {
+          "name": "label",
+          "kind": "string",
+          "description": "Its name for a screen reader;  none:  its placeholder."
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "parts": [
+        {
+          "name": "base",
+          "description": "The box around the text field."
+        },
+        {
+          "name": "field",
+          "description": "The `<textarea>`:  one line to start, growing with its text to a third of the window."
+        },
+        {
+          "name": "kept",
+          "description": "A notes box's KEPT text, above its field, while there is any:  an orange-edged box, \"Kept from before the page changed\", then each text."
+        },
+        {
+          "name": "kept-item",
+          "description": "One kept text:  its old title (the id it was under on hover), what was typed, and a × to drop it."
+        }
+      ],
+      "states": [
+        {
+          "name": "filled",
+          "description": "Something is typed in it."
+        }
+      ],
+      "texts": [
+        {
+          "key": "notes",
+          "text": "Notes for Claude:  anything, any time",
+          "description": "A `notes` box's placeholder."
+        },
+        {
+          "key": "notesTitle",
+          "text": "Notes",
+          "description": "The notes' title, where a draft keeps them."
+        },
+        {
+          "key": "keptTitle",
+          "text": "Kept from before the page changed",
+          "description": "The title of a notes box's kept text."
+        },
+        {
+          "key": "keptWhy",
+          "text": "The page was rewritten since you typed these, and what they were for is gone from it.  They're sent with the rest:  drop one once it's said elsewhere.",
+          "description": "Under the kept text's title:  what it is."
+        },
+        {
+          "key": "keptIdTip",
+          "text": "It was under {id}",
+          "description": "A kept text's title's tooltip:  its old id."
+        },
+        {
+          "key": "keptDrop",
+          "text": "Drop {label}",
+          "description": "A kept text's ×, for a screen reader."
+        },
+        {
+          "key": "keptDropTip",
+          "text": "Drop this:  it's no longer sent",
+          "description": "A kept text's ×'s tooltip."
+        },
+        {
+          "key": "comment",
+          "text": "Comment on this section",
+          "description": "A `comment` box's placeholder."
+        },
+        {
+          "key": "other",
+          "text": "Other:  your own answer",
+          "description": "An `other` box's placeholder."
+        },
+        {
+          "key": "feedback",
+          "text": "Feedback for Claude:  anything the boxes don't say",
+          "description": "A `feedback` box's placeholder."
+        }
+      ]
+    },
+    {
       "tag": "epic-update",
       "name": "epic-update",
       "folder": "epic-update",
@@ -3325,7 +4151,7 @@
         "revision",
         "amendment"
       ],
-      "description": "RETIRED (Owen, 2026-10-11):  an older doc's change to a phase's plan, a dated fence.  Still drawn, until the plan-doc tool's next write makes it an `<epic-update at summary>` block at the end of its phase's description (`updates-as-epic-update`).",
+      "description": "RETIRED (Owen, 2026-10-11):  an older doc's change to a phase's plan, a dated fence.  Still drawn, until the epic tool's next write makes it an `<epic-update at summary>` block at the end of its phase's description (`updates-as-epic-update`).",
       "noun": "updated",
       "attributes": [
         {
@@ -3341,7 +4167,7 @@
         {
           "name": "of",
           "kind": "number",
-          "description": "An OLDER doc's COPY in the Phases section (T14, until 2026-10-11):  the phase whose plan it changes (`5`).  Never drawn;  the plan-doc tool removes the copies on its next write.  Never on the line in its phase."
+          "description": "An OLDER doc's COPY in the Phases section (T14, until 2026-10-11):  the phase whose plan it changes (`5`).  Never drawn;  the epic tool removes the copies on its next write.  Never on the line in its phase."
         }
       ],
       "slots": [
@@ -3489,6 +4315,42 @@
       ],
       "tokens": []
     },
+    "epic-ask": {
+      "folder": "epic-ask",
+      "mainTag": "epic-ask",
+      "title": "<epic-ask>",
+      "summary": "A question Owen answers on the page: its options with tick boxes, Other, its state as a chip.",
+      "status": "done",
+      "docs": false,
+      "tags": [
+        "epic-ask"
+      ],
+      "tokens": []
+    },
+    "epic-choice-row": {
+      "folder": "epic-choice-row",
+      "mainTag": "epic-choice-row",
+      "title": "<epic-choice-row>",
+      "summary": "One row of a choice page: a use site, and the box holding Claude's recommendation.",
+      "status": "done",
+      "docs": false,
+      "tags": [
+        "epic-choice-row"
+      ],
+      "tokens": []
+    },
+    "epic-choice-rows": {
+      "folder": "epic-choice-rows",
+      "mainTag": "epic-choice-rows",
+      "title": "<epic-choice-rows>",
+      "summary": "A choice page's table: its column heads, then its rows.",
+      "status": "done",
+      "docs": false,
+      "tags": [
+        "epic-choice-rows"
+      ],
+      "tokens": []
+    },
     "epic-choices": {
       "folder": "epic-choices",
       "mainTag": "epic-choices",
@@ -3501,11 +4363,23 @@
       ],
       "tokens": []
     },
+    "epic-choices-bar": {
+      "folder": "epic-choices-bar",
+      "mainTag": "epic-choices-bar",
+      "title": "<epic-choices-bar>",
+      "summary": "A choice page's bar: the feedback, Do it, and where things stand.",
+      "status": "done",
+      "docs": false,
+      "tags": [
+        "epic-choices-bar"
+      ],
+      "tokens": []
+    },
     "epic-code": {
       "folder": "epic-code",
       "mainTag": "epic-code",
       "title": "<epic-code>",
-      "summary": "The <epic-code> element: a folded, highlighted code block in a plan doc's prose.",
+      "summary": "The <epic-code> element: a folded, highlighted code block in an epic page's prose.",
       "status": "done",
       "docs": false,
       "tags": [
@@ -3529,7 +4403,7 @@
       "folder": "epic-event",
       "mainTag": "epic-event",
       "title": "<epic-event>",
-      "summary": "The <epic-event> element: one line of a plan doc's log, its icon and time drawn.",
+      "summary": "The <epic-event> element: one line of an epic page's log, its icon and time drawn.",
       "status": "done",
       "docs": false,
       "tags": [
@@ -3553,7 +4427,7 @@
       "folder": "epic-item",
       "mainTag": "epic-item",
       "title": "<epic-item>",
-      "summary": "One item of a plan doc: a question, judgement call, caveat, todo, issue or test, drawn as a line that unfolds.",
+      "summary": "One item of an epic page: a question, judgement call, caveat, todo, issue or test, drawn as a line that unfolds.",
       "status": "done",
       "docs": false,
       "tags": [
@@ -3625,7 +4499,7 @@
       "folder": "epic-overview",
       "mainTag": "epic-overview",
       "title": "<epic-overview>",
-      "summary": "The <epic-overview> element: a plan doc's first section, 1. Overview.",
+      "summary": "The <epic-overview> element: an epic page's first section, 1. Overview.",
       "status": "done",
       "docs": false,
       "tags": [
@@ -3637,7 +4511,7 @@
       "folder": "epic-page",
       "mainTag": "epic-page",
       "title": "<epic-page>",
-      "summary": "The <epic-page> element: a whole plan doc, one epic's page.",
+      "summary": "The <epic-page> element: a whole epic page, one epic's page.",
       "status": "done",
       "docs": false,
       "tags": [
@@ -3697,11 +4571,23 @@
       "folder": "epic-section",
       "mainTag": "epic-section",
       "title": "<epic-section>",
-      "summary": "The <epic-section> element: one section of a plan doc (Phases, Questions ... Log), an Overview sub-section, or a report.",
+      "summary": "The <epic-section> element: one section of an epic page (Phases, Questions ... Log), an Overview sub-section, or a report.",
       "status": "done",
       "docs": false,
       "tags": [
         "epic-section"
+      ],
+      "tokens": []
+    },
+    "epic-send": {
+      "folder": "epic-send",
+      "mainTag": "epic-send",
+      "title": "<epic-send>",
+      "summary": "A details page's Send: where the answer stands, and the round button that sends it.",
+      "status": "done",
+      "docs": false,
+      "tags": [
+        "epic-send"
       ],
       "tokens": []
     },
@@ -3726,6 +4612,18 @@
       "docs": false,
       "tags": [
         "epic-summary"
+      ],
+      "tokens": []
+    },
+    "epic-text-box": {
+      "folder": "epic-text-box",
+      "mainTag": "epic-text-box",
+      "title": "<epic-text-box>",
+      "summary": "A box Owen types in on a page he answers on: notes, a comment, Other, feedback.",
+      "status": "done",
+      "docs": false,
+      "tags": [
+        "epic-text-box"
       ],
       "tokens": []
     },
@@ -3787,19 +4685,19 @@
       {
         "id": "review",
         "file": "../../guides/epic-components/review.html",
-        "label": "Reviewing a Plan Doc",
+        "label": "Reviewing an Epic Page",
         "icon": "check"
       },
       {
         "id": "tool",
         "file": "../../guides/epic-components/tool.html",
-        "label": "The Plan-Doc Tool",
+        "label": "The Epic Tool",
         "icon": "terminal"
       },
       {
         "id": "colours",
         "file": "../../guides/epic-components/colours.html",
-        "label": "Plan Doc Colours",
+        "label": "Epic Page Colours",
         "icon": "palette"
       }
     ],

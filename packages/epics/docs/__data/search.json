@@ -4,7 +4,7 @@
     {
       "path": "index.html",
       "title": "The Epic Elements",
-      "summary": "Every <epic-*> element a plan doc is made of, how they nest, and a page for each.",
+      "summary": "Every <epic-*> element an epic page is made of, how they nest, and a page for each.",
       "sections": [
         {
           "id": "1-how-they-nest",
@@ -127,6 +127,184 @@
       ]
     },
     {
+      "path": "epic-ask.html",
+      "title": "<epic-ask>",
+      "summary": "A question Owen answers on the page: its options with tick boxes, Other, its state as a chip.",
+      "tag": "epic-ask",
+      "sections": [
+        {
+          "id": "1-example",
+          "title": "1. Example"
+        },
+        {
+          "id": "2-markup",
+          "title": "2. Markup"
+        },
+        {
+          "id": "3-where-it-goes",
+          "title": "3. Where it goes"
+        },
+        {
+          "id": "4-attributes",
+          "title": "4. Attributes"
+        },
+        {
+          "id": "epic-ask-slots",
+          "title": "Slots",
+          "parent": 3
+        },
+        {
+          "id": "epic-ask-parts",
+          "title": "Parts",
+          "parent": 3
+        },
+        {
+          "id": "epic-ask-states",
+          "title": "States",
+          "parent": 3
+        },
+        {
+          "id": "5-how-it-looks",
+          "title": "5. How it looks"
+        },
+        {
+          "id": "6-written-by",
+          "title": "6. Written by"
+        }
+      ]
+    },
+    {
+      "path": "epic-choice-row.html",
+      "title": "<epic-choice-row>",
+      "summary": "One row of a choice page: a use site, and the box holding Claude's recommendation.",
+      "tag": "epic-choice-row",
+      "sections": [
+        {
+          "id": "1-example",
+          "title": "1. Example"
+        },
+        {
+          "id": "2-markup",
+          "title": "2. Markup"
+        },
+        {
+          "id": "3-where-it-goes",
+          "title": "3. Where it goes"
+        },
+        {
+          "id": "4-attributes",
+          "title": "4. Attributes"
+        },
+        {
+          "id": "epic-choice-row-parts",
+          "title": "Parts",
+          "parent": 3
+        },
+        {
+          "id": "epic-choice-row-states",
+          "title": "States",
+          "parent": 3
+        },
+        {
+          "id": "5-how-it-looks",
+          "title": "5. How it looks"
+        },
+        {
+          "id": "6-written-by",
+          "title": "6. Written by"
+        }
+      ]
+    },
+    {
+      "path": "epic-choice-rows.html",
+      "title": "<epic-choice-rows>",
+      "summary": "A choice page's table: its column heads, then its rows.",
+      "tag": "epic-choice-rows",
+      "sections": [
+        {
+          "id": "1-example",
+          "title": "1. Example"
+        },
+        {
+          "id": "1-reorder",
+          "title": "With reorder",
+          "parent": 0
+        },
+        {
+          "id": "2-markup",
+          "title": "2. Markup"
+        },
+        {
+          "id": "3-where-it-goes",
+          "title": "3. Where it goes"
+        },
+        {
+          "id": "4-attributes",
+          "title": "4. Attributes"
+        },
+        {
+          "id": "epic-choice-rows-slots",
+          "title": "Slots",
+          "parent": 4
+        },
+        {
+          "id": "epic-choice-rows-parts",
+          "title": "Parts",
+          "parent": 4
+        },
+        {
+          "id": "5-how-it-looks",
+          "title": "5. How it looks"
+        },
+        {
+          "id": "6-written-by",
+          "title": "6. Written by"
+        }
+      ]
+    },
+    {
+      "path": "epic-choices-bar.html",
+      "title": "<epic-choices-bar>",
+      "summary": "A choice page's bar: the feedback, Do it, and where things stand.",
+      "tag": "epic-choices-bar",
+      "sections": [
+        {
+          "id": "1-example",
+          "title": "1. Example"
+        },
+        {
+          "id": "2-markup",
+          "title": "2. Markup"
+        },
+        {
+          "id": "3-where-it-goes",
+          "title": "3. Where it goes"
+        },
+        {
+          "id": "4-attributes",
+          "title": "4. Attributes"
+        },
+        {
+          "id": "epic-choices-bar-parts",
+          "title": "Parts",
+          "parent": 3
+        },
+        {
+          "id": "epic-choices-bar-states",
+          "title": "States",
+          "parent": 3
+        },
+        {
+          "id": "5-how-it-looks",
+          "title": "5. How it looks"
+        },
+        {
+          "id": "6-written-by",
+          "title": "6. Written by"
+        }
+      ]
+    },
+    {
       "path": "epic-choices.html",
       "title": "<epic-choices>",
       "summary": "A set of option cards: side by side while open, folded under Choices with the chosen one marked once answered.",
@@ -176,7 +354,7 @@
     {
       "path": "epic-code.html",
       "title": "<epic-code>",
-      "summary": "The <epic-code> element: a folded, highlighted code block in a plan doc's prose.",
+      "summary": "The <epic-code> element: a folded, highlighted code block in an epic page's prose.",
       "tag": "epic-code",
       "sections": [
         {
@@ -265,7 +443,7 @@
     {
       "path": "epic-event.html",
       "title": "<epic-event>",
-      "summary": "The <epic-event> element: one line of a plan doc's log, its icon and time drawn.",
+      "summary": "The <epic-event> element: one line of an epic page's log, its icon and time drawn.",
       "tag": "epic-event",
       "sections": [
         {
@@ -359,7 +537,7 @@
     {
       "path": "epic-item.html",
       "title": "<epic-item>",
-      "summary": "One item of a plan doc: a question, judgement call, caveat, todo, issue or test, drawn as a line that unfolds.",
+      "summary": "One item of an epic page: a question, judgement call, caveat, todo, issue or test, drawn as a line that unfolds.",
       "tag": "epic-item",
       "sections": [
         {
@@ -597,6 +775,11 @@
           "parent": 3
         },
         {
+          "id": "epic-option-events",
+          "title": "Events",
+          "parent": 3
+        },
+        {
           "id": "5-how-it-looks",
           "title": "5. How it looks"
         },
@@ -656,7 +839,7 @@
     {
       "path": "epic-overview.html",
       "title": "<epic-overview>",
-      "summary": "The <epic-overview> element: a plan doc's first section, 1. Overview.",
+      "summary": "The <epic-overview> element: an epic page's first section, 1. Overview.",
       "tag": "epic-overview",
       "sections": [
         {
@@ -718,7 +901,7 @@
     {
       "path": "epic-page.html",
       "title": "<epic-page>",
-      "summary": "The <epic-page> element: a whole plan doc, one epic's page.",
+      "summary": "The <epic-page> element: a whole epic page, one epic's page.",
       "tag": "epic-page",
       "sections": [
         {
@@ -978,7 +1161,7 @@
     {
       "path": "epic-section.html",
       "title": "<epic-section>",
-      "summary": "The <epic-section> element: one section of a plan doc (Phases, Questions ... Log), an Overview sub-section, or a report.",
+      "summary": "The <epic-section> element: one section of an epic page (Phases, Questions ... Log), an Overview sub-section, or a report.",
       "tag": "epic-section",
       "sections": [
         {
@@ -1026,6 +1209,48 @@
           "id": "epic-section-events",
           "title": "Events",
           "parent": 5
+        },
+        {
+          "id": "5-how-it-looks",
+          "title": "5. How it looks"
+        },
+        {
+          "id": "6-written-by",
+          "title": "6. Written by"
+        }
+      ]
+    },
+    {
+      "path": "epic-send.html",
+      "title": "<epic-send>",
+      "summary": "A details page's Send: where the answer stands, and the round button that sends it.",
+      "tag": "epic-send",
+      "sections": [
+        {
+          "id": "1-example",
+          "title": "1. Example"
+        },
+        {
+          "id": "2-markup",
+          "title": "2. Markup"
+        },
+        {
+          "id": "3-where-it-goes",
+          "title": "3. Where it goes"
+        },
+        {
+          "id": "4-attributes",
+          "title": "4. Attributes"
+        },
+        {
+          "id": "epic-send-parts",
+          "title": "Parts",
+          "parent": 3
+        },
+        {
+          "id": "epic-send-states",
+          "title": "States",
+          "parent": 3
         },
         {
           "id": "5-how-it-looks",
@@ -1125,6 +1350,48 @@
           "id": "epic-summary-parts",
           "title": "Parts",
           "parent": 5
+        },
+        {
+          "id": "5-how-it-looks",
+          "title": "5. How it looks"
+        },
+        {
+          "id": "6-written-by",
+          "title": "6. Written by"
+        }
+      ]
+    },
+    {
+      "path": "epic-text-box.html",
+      "title": "<epic-text-box>",
+      "summary": "A box Owen types in on a page he answers on: notes, a comment, Other, feedback.",
+      "tag": "epic-text-box",
+      "sections": [
+        {
+          "id": "1-example",
+          "title": "1. Example"
+        },
+        {
+          "id": "2-markup",
+          "title": "2. Markup"
+        },
+        {
+          "id": "3-where-it-goes",
+          "title": "3. Where it goes"
+        },
+        {
+          "id": "4-attributes",
+          "title": "4. Attributes"
+        },
+        {
+          "id": "epic-text-box-parts",
+          "title": "Parts",
+          "parent": 3
+        },
+        {
+          "id": "epic-text-box-states",
+          "title": "States",
+          "parent": 3
         },
         {
           "id": "5-how-it-looks",
