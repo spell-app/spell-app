@@ -100,6 +100,7 @@
       "brand",
       "ui",
       "goals",
+      "sagas",
       "agents"
     ]
   }

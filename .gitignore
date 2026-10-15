@@ -40,6 +40,7 @@ PARKED-*.md
 /brand
 /ui
 /goals
+/sagas
 /agents
 # the old content link, in checkouts cut before 2026-10-05:  remove with the old-path links (claude-design T1)
 /packages/docs/content
