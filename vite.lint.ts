@@ -330,12 +330,13 @@ export const fmtConfig = {
     "**/ui/site/_assets/**",
     // the brand set's data, ALL of it (`yarn site:data` in `packages/brand`):  `pages.json` too, which it rewrites
     "**/brand/docs/__data/**",
-    // App UI's and Epic UI's generated data (`yarn site:data` in `packages/app`, `packages/epics`):  the bytes stay
-    // the generator's (`**/docs/...`:  matched from the root AND from the package, whose `vp fmt .` runs there)
+    // App UI's and Epic UI's generated data (`yarn site:data` in `packages/app`, `packages/epics`):
+    // the bytes stay the generator's.
+    // `**/docs/...`:  matched from the root AND from the package, whose `vp fmt .` runs there
     "**/docs/__data/components.json",
     "**/docs/__data/search.json",
-    // Spell UI's hand-laid-out pages, their parts and data (`packages/ui/docs/`;  the shared `ui/` at the root until
-    // epic `people-and-orgs` P18:  until it merges, that folder too)
+    // Spell UI's hand-laid-out pages, their parts and data (`packages/ui/docs/`;
+    // the shared `ui/` at the root until epic `people-and-orgs` P18:  until it merges, that folder too)
     "**/ui/docs/**",
     "ui/**",
     "**/vendor/**",

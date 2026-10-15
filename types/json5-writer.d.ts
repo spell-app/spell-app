@@ -1,8 +1,9 @@
 /**
  * Types for `json5-writer`, which ships none (decision J41):  what spaces' `json5.ts` uses of it.
  * - Here, in the root's `types/`, so every package compiling spaces' node code sees them (its tests, cli, lsp ...).
- * - `load(source)`:  a writer on JSON5 text;  `write(value)` replaces its value, keeping comments;  `toSource()` its
- *   text again.
+ * - `load(source)`:  a writer on JSON5 text
+ * - `write(value)`:  replaces its value, keeping comments
+ * - `toSource()`:  its text again
  */
 declare module "json5-writer" {
   /** How `toSource()` writes:  quotes, key quotes, trailing commas. */

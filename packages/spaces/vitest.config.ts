@@ -8,8 +8,8 @@ import { packageVersion } from "../../vite.packageVersion.ts"
 /**
  * vitest config for `@spell-app/spaces`:  every test in node, since what it tests today is its node servers.
  * - Aliases (`$/spell` ...) come from the repo root's `tsconfig.base.json`, through `resolve.tsconfigPaths`.
- * - `standardDecorators()` lowers standard decorators (spell's, which the routes load):  vite 8's own transform
- *   (oxc) doesn't.
+ * - `standardDecorators()` lowers standard decorators (spell's, which the routes load):
+ *   vite 8's own transform (oxc) doesn't.
  * - Python's web server has its own tests, pytest's:  `yarn test` runs them after these.
  */
 export default defineConfig({

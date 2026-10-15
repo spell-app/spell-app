@@ -54,8 +54,8 @@ function isSameChips(a: readonly SetChip[], b: readonly SetChip[]): boolean {
  *   - Click, Enter or Space chooses;  the arrows move and choose (wrapping;  left / right swap right-to-left);
  *     Home / End go to the ends.
  *   - A choice sends `ui-change`, then sets `value`, unless a handler set it first.
- * - Watches its children and their `name` / `value` / `selected` (`@watches`), so chips added,
- *   removed or recoloured later just work.
+ * - Watches its children and their `name` / `value` / `selected` (`@watches`),
+ *   so chips added, removed or recoloured later just work.
  * - SIDE EFFECT:  writes its chips' `selected` (while `value` is set), `choice` and `tabindex` (while `selectable`);
  *   a chip that leaves the set gets its `choice` and `tabindex` back.
  ****************/

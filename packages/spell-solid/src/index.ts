@@ -2,11 +2,14 @@
  * Barrel for `$/spell-solid`:  what makes a custom element on Solid, for every component set
  * (Spell UI's, the epics', the app's, the brand's, a space's).
  * - `UIComponent`, the COMPONENT base:  one instance per element, its `render()` returns JSX
- * - `DOMElement`, the DOM element base;  `ElementDefinition`:  a vocabulary => the DOM element's attributes
- * - `Reactive`:  the reactive members' decorators, `@state`, `@controlled`, `@derived`, `@cssState`, `@onChange` ...
- * - `Cell`, `SlotContent`, `PartContext` and `OwnerContext` (the generic content parts and their owners)
+ * - `DOMElement`, the DOM element base
+ * - `ElementDefinition`:  a vocabulary => the DOM element's attributes
+ * - `Reactive`:  the decorators of an element's reactive members (`@state`, `@controlled`, `@derived` ...)
+ * - `Cell`, `SlotContent`
+ * - `PartContext` and `OwnerContext`:  the generic content parts, and the elements they belong to
  * - `SpellSolid`:  the settings a set's runtime hands it as it loads (Spell UI's, as `$/ui/core` loads)
- * - the vocabulary's types (`ComponentVocabulary` ...), and `timing` (`afterSolidUpdate()`, `after()` ...)
+ * - the vocabulary's types (`ComponentVocabulary` ...)
+ * - `timing`:  when to run something (`afterSolidUpdate()`, `after()` ...)
  * - `$/util`'s GENERIC helpers, as `$/ui/util` has them (`@proto`, `@lazy`, `camelCase()` ...):
  *   a component file reads them through `E` too (`@E.proto`)
  * - It imports only `$/util`'s generic files and Solid:  NEVER Spell UI, or any other package.

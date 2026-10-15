@@ -30,15 +30,17 @@ import { LISTEN_HEARTBEAT_MS, LISTEN_STALE_MS, ReviewInbox } from "./ReviewInbox
  *   `reopen`, `commit`, `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `docs`, `decisions`, `check`,
  *   `open`, `migrate`, `convert`, `split`, `join`, `inbox`, `details`, `status`, `original`
  *   (`spell dev plan-doc` with no command lists them:  `USAGE`).
- * - `docs`, `decisions`:  the docs an epic wrote besides its plan doc, and what its plan doc settled
- *   (`EpicDocs`), for `/docs-check`
- * - the `<epic-*>` markup only:  every command refuses a doc still in the old markup
- *   (one restored from an old backup) before it writes anything:  `convert` it first (`PlanDocFiles.read()`)
- * - `migrate`:  pages brought up to today's markup, by page kind (`MigrateCommands`, epic `epic-workflow` P8);
- *   `relayout` is gone:  the converter (`convert`, `$/epics/convert`) replaced it
- * - `inbox`:  the marks Owen left on the doc's page, waiting in `<name>.inbox.json` beside it (`ReviewInbox`):
- *   printed, waited on (`wait`, a background command that wakes the `/epic review` session), applied (`apply`),
- *   cleared (`InboxCommands`);  `details` writes an agent's details or reply into one item
+ * - `docs`, `decisions` (`EpicDocs`, for `/docs-check`):
+ *   the docs an epic wrote besides its plan doc, and what its plan doc settled
+ * - the `<epic-*>` markup only:  every command refuses a doc still in the old markup before it writes anything
+ *   (one restored from an old backup):  `convert` it first (`PlanDocFiles.read()`)
+ * - `migrate`:  pages brought up to today's markup, by page kind (`MigrateCommands`, epic `epic-workflow` P8)
+ *   - `relayout` is gone:  the converter (`convert`, `$/epics/convert`) replaced it
+ * - `inbox`:  the marks Owen left on the doc's page, waiting in `<name>.inbox.json` beside it (`ReviewInbox`)
+ *   - printed, waited on, applied and cleared (`InboxCommands`)
+ *   - `wait`:  a background command that wakes the `/epic review` session
+ *   - `apply`:  the marks, into the doc
+ * - `details`:  writes an agent's details or reply into one item
  * - an item's text is never dropped:  a rewrite moves it into the item's folded Original Discussion;
  *   `original` puts text recovered from git there
  * - the docs, their files and git:  `PlanDocFiles`, for ONE checkout (the caller's:  `spell dev plan-doc` finds it)

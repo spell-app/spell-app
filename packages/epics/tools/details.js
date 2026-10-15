@@ -1,24 +1,28 @@
 /**
  * `spell dev details <command>`:  details pages, questions Claude explains on a page and Owen answers ON it (`/details`,
  * `.claude/skills/details/SKILL.md`).
- * - `new <slug> [--title "..."] [--epic <name>] [--description "..."] [--from <questions.json>]` -- a page from
- *   `templates/details.html`;  prints its path.  `--from`:  the whole page from a JSON list of questions
- *   (`DetailsSpec`, below), so a skill with many questions to ask (`/worktrees`, `/bedtime`) needn't hand-write it
+ * - `new <slug> [--title "..."] [--epic <name>] [--description "..."] [--from <questions.json>]` --
+ *   a page from `templates/details.html`;  prints its path
+ *   - `--from`:  the whole page from a JSON list of questions (`DetailsSpec`, below),
+ *     so a skill with many questions to ask (`/worktrees`, `/bedtime`) needn't hand-write it
  *   - scratch:  `pages/details/<slug>.html`, ignored by version control, swept after 14 days
  *   - `--epic <name>`:  `epics/<name>/details/<slug>.html`, committed with the plan doc
- * - `show <page> [--wait]` -- start the page server if needed, show the page in THIS session's VS Code window (the
- *   right side bar's "Review" view, where Owen answers things;  Chrome outside VS Code;  epic `windows-and-review`
- *   P6, Owen 2026-10-06);  `--wait`:  then `wait`
- * - `wait <page> [--timeout 8h]` -- block until Owen sends an answer NEWER than the wait's start, print it as plain
- *   text, exit 0.  Run it in the BACKGROUND:  its exit wakes the session.  Timeout:  exit 2, saying so.
+ * - `show <page> [--wait]` -- start the page server if needed, and show the page in THIS session's VS Code window
+ *   - the right side bar's "Review" view, where Owen answers things (epic `windows-and-review` P6, Owen 2026-10-06)
+ *   - Chrome outside VS Code
+ *   - `--wait`:  then `wait`
+ * - `wait <page> [--timeout 8h]` -- block until Owen sends an answer NEWER than the wait's start
+ *   - prints it as plain text, exit 0
+ *   - run it in the BACKGROUND:  its exit wakes the session
+ *   - timeout:  exit 2, saying so
  * - `answer <page>` -- print the answer already sent (exit 1 if none)
  * - `list` -- every details page, answered or waiting
- * - `sweep [--days 14]` -- delete scratch pages (and their answers) older than that;  never an epic's.  `new` sweeps
- *   first, by itself
+ * - `sweep [--days 14]` -- delete scratch pages (and their answers) older than that;  never an epic's
+ *   - `new` sweeps first, by itself
  * - `<page>`:  a slug (`pick-layout`), `<epic>/<slug>`, or a path
  *   (absolute, or from the root, `pages/` or `packages/epics`)
  * - paths print absolute:  they mean the same in whichever checkout Claude reads them
- * - The answer itself is written by the page server's route module (`scripts/detailsRoutes.ts`) into
+ * - The answer itself is written by the page server's route module (`tools/detailsRoutes.ts`) into
  *   `<slug>.answer.json` beside the page.
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs"
@@ -213,13 +217,16 @@ export function attr(text) {
  *   - `selectAll`:  "Select all" / "Select none" in its title (with `multiple`)
  *   - `filter`:  "Open | All" in its title;  Open (the default) hides options marked `done`
  *   - `moreDetails`:  a (?) "Provide more details" on each option;  the ones pressed come back as `<id>-more`
- * - an option:  `{ letter?, title, summary?, body?, details?, detailsTitle?, recommended?, checked?, done?, badge?,
- *   badgeColor? }`
+ * - an option:
+ *   `{ letter?, title, summary?, body?, details?, detailsTitle?, recommended?, checked?, done?, badge?, badgeColor? }`
  *   - letters default to A, B ...
- *   - `summary`:  one line;  `body`:  block HTML after it (the whole text:  long ones clamp to 150px, "Show more")
+ *   - `summary`:  one line
+ *   - `body`:  block HTML after it (the whole text:  long ones clamp to 150px, "Show more")
  *   - `details`:  folded, under `detailsTitle` (default "Details");  only when there IS more than the body
- *   - `checked`:  ticked to start with;  `done`:  hidden under "Open";  `badge` / `badgeColor`:  a label beside the
- *     title;  `state`:  `{ icon, color, label }`, an icon under the tick box (in `ICONS`), `label` on hover
+ *   - `checked`:  ticked to start with
+ *   - `done`:  hidden under "Open"
+ *   - `badge` / `badgeColor`:  a label beside the title
+ *   - `state`:  `{ icon, color, label }`, an icon under the tick box (in `ICONS`), `label` on hover
  * - plain JS:  no type, this comment is the spec
  */
 
@@ -297,8 +304,8 @@ export function readAnswer(page) {
 }
 
 /**
- * Wait for an answer to `page` sent after `since` (ms;  default:  now), checking every `poll` ms;  the answer, or
- * `undefined` once `timeout` ms pass.
+ * Wait for an answer to `page` sent after `since` (ms;  default:  now), checking every `poll` ms.
+ * - returns the answer, or `undefined` once `timeout` ms pass
  * - newer than `since`:  a page asked again (Owen changed his answer) waits for the NEW one
  */
 export async function waitForAnswer(page, { since = Date.now(), timeout, poll = POLL } = {}) {

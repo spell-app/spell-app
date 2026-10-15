@@ -9,9 +9,8 @@ import { ClassBuilder } from "./ClassBuilder"
 
 /****************
  * ### `SpellUISettings`
- * What Spell UI hands spell-solid as it loads (`SpellSolid.install()`):
- * its runtime (`UI`), its vocabulary layer, its style sheets, focus and animations,
- * which every set's elements draw with (`E.SpellSolidSettings`).
+ * What Spell UI hands spell-solid as it loads (`SpellSolid.install()`), which every set's elements draw with:
+ * its runtime (`UI`), its vocabulary layer, its style sheets, focus and animations (`E.SpellSolidSettings`).
  * - Installed as `$/ui/core` loads (`core.ts` imports this file), so before any family's `define()`:
  *   a family imports `$/ui/core` first.
  * - What each one is in Spell UI:
@@ -23,14 +22,15 @@ import { ClassBuilder } from "./ClassBuilder"
  *   - `warn`:  `Warnings.warn()`, `[@spell-app/ui] ...`
  * - SIDE EFFECT:  installs them;  listed in `package.json`'s `sideEffects`.
  * - Imported for that by `core.ts`, AND by `$/ui`'s barrel (`index.ts`) and the root's (`ui-root/index.ts`):
- *   - `core.ts` alone isn't enough in a bundle:  it's only re-exports, so a bundler that sees nothing of it used
- *     drops its side-effect import too (Spell UI's site and the brand's pages lost it).  Every page has a root, or
- *     loads `$/ui`.
- *   - Not `core.ts` in `sideEffects` instead:  that re-chunks the app's `spell-solid.js` (its `BuiltInPacks` moves out,
- *     away from where `<spell-app>` finds its icons).
- * - A code-split build may run a family's chunk first (the app's `spell-solid.js` ran `<ui-components>`'s before its
- *   entry's body, where this file lands):  that family's `define()` waits for the install
- *   (`SpellSolid.whenInstalled()`).
+ *   - `core.ts` alone isn't enough in a bundle, since it's only re-exports:
+ *     a bundler that sees nothing of it used drops its side-effect import too.
+ *     Spell UI's site and the brand's pages lost it.
+ *   - Every page has a root, or loads `$/ui`.
+ *   - Not `core.ts` in `sideEffects` instead:  that re-chunks the app's `spell-solid.js`
+ *     (its `BuiltInPacks` moves out, away from where `<spell-app>` finds its icons).
+ * - A code-split build may run a family's chunk first:
+ *   that family's `define()` waits for the install (`SpellSolid.whenInstalled()`).
+ *   - The app's `spell-solid.js` ran `<ui-components>`'s before its entry's body, where this file lands.
  ****************/
 export class SpellUISettings {
   /** The settings, as spell-solid reads them. */

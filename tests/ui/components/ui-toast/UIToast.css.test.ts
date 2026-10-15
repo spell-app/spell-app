@@ -14,8 +14,8 @@ import containerRaw from "$/ui/components/ui-toast/UIToast.container.css?raw"
 
 /**
  * `UIToast.css` (and the page sheet `UIToast.container.css`) on their own, before any element exists:
- * the sheets' source rules and the computed styles of the light-DOM examples -- the same class grammar the shadow root
- * uses.
+ * - the sheets' source rules
+ * - the computed styles of the light-DOM examples:  the same class grammar the shadow root uses
  * - Sheets are adopted into the document per test and removed again.
  */
 

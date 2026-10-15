@@ -3,7 +3,7 @@
  * then bundles `_assets/spell-ui.entry.js` into `_assets/spell-ui.js`:  ONE minified classic script (IIFE),
  * because docs open from `file://`, where browsers refuse ES modules.
  *
- *   node scripts/bundle-spell-ui.js [--skip-ui-build]
+ *   node tools/bundle-spell-ui.js [--skip-ui-build]
  *
  * - `--skip-ui-build`:  reuse `../ui/dist` as is.
  * - `SPELL_UI_DIR` overrides where UI lives.
@@ -55,7 +55,7 @@
  *   The build FAILS if one survives, if any `import()` / `import.meta` does, or if it's over `DESIGN_MAX_BYTES`.
  * - No `bundle.css`:  every element adopts its own sheets and the theme its page sheet;
  *   page typography is UI's opt-in `class="ui-typography"` on `<body>`.
- * - The brand's `<ui-brand-*>` elements too (P11):
+ * - The brand's `<brand-*>` elements too (P11;  `<ui-brand-*>` before epic `people-and-orgs` P18):
  *   `@spell-app/brand/design` is the brand's own build of them, `packages/brand/dist/brand-design.js`.
  *   - Built by `vite.design.config.ts`, run first unless `--skip-ui-build`
  *     (Solid JSX needs the Solid compiler, which esbuild isn't).

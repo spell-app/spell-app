@@ -29,16 +29,17 @@ import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
  *   - In a shared chunk, every app on a page would share one -- one runtime, one console --
  *     and a runner would show a `spellCore` its program doesn't run on.
  *   - So nothing a runner itself imports may import `spellCore`.
- * - And `spell-runtime.js` draws with the page's one Solid:
- *   it imports Solid and `h` through `spell-solid-shared.js`, bundles none of its own, and never loads `ui`
- *   (epic `output-targets` P10).  It exports that same `h`:  what compiled javascript draws with (P20).
+ * - And `spell-runtime.js` draws with the page's one Solid (epic `output-targets` P10):
+ *   - it imports Solid and `h` through `spell-solid-shared.js`, bundles none of its own, and never loads `ui`
+ *   - it exports that same `h`:  what compiled javascript draws with (P20)
  * - Monaco only in `<spell-editor>`'s lazy chunks:  the parser compiles, and apps run, before it loads.
  * - Icon packs beside the chunk holding `BuiltInPacks`, where it looks -- complete enough for every Fomantic name.
  * - Every bundle MUST parse:  a build can succeed and still write javascript no browser runs --
  *   e.g. vite's module preloading once moved an `await` into a non-`async` arrow.  See `agents/PAPERCUTS.md`.
  * - What a chunk holds comes from its sourcemap's `sources` (every build here writes maps),
- *   not from guessing at minified text;  `spellCore` is the exception, by `resetRuntime` --
- *   `spell-editor.js` holds a few of `core`'s runtime-light modules.
+ *   not from guessing at minified text.
+ *   - `spellCore` is the exception, found by `resetRuntime`:
+ *     `spell-editor.js` holds a few of `core`'s runtime-light modules.
  */
 describe("runner builds", () => {
   /** `dist-element/` and `dist-runner/`, built once in `beforeAll()`. */

@@ -401,12 +401,12 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
     - `the length of the deck` => `spellCore.itemCountOf(deck)`
   - Its datatype is the member's.
   - An unknown type still reads loose:  `x.length`.
-- A `stored` member is a property the runtime class KEEPS:  `id`, on `thing` and `list`.
+- A `stored` member is a property the runtime class KEEPS, e.g. `id`, on `thing` and `list`.
   - Loaded into scope with no template, so it reads and sets like a declared property:
     - `the id of the person` => `person.id`
-    - `set the id of the person to "owen"` => `person.id = "owen"`:  allowed, unlike a `readAs` member
-  - No type may declare its own:  `a person has an id as text` is refused
-    (`SpellStatement.refuseBuiltInType()`, through `SP.isBuiltInStoredMember()`).
+    - a set is allowed, unlike a `readAs` member's:  `set the id of the person to "owen"` => `person.id = "owen"`
+  - No type may declare its own, e.g. `a person has an id as text` is refused.
+    - That's `SpellStatement.refuseBuiltInType()`, through `SP.isBuiltInStoredMember()`.
   - See "Ids and saving" below.
 - A member with only `rules` (no `readAs`) is DOCS, for what built-in rules already spell.
   - e.g. `shuffle (a list)` => `list_shuffle`
@@ -470,8 +470,9 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 
 ## Ids and saving:  `a person is saved in its own file`
 
-Every thing and list has an `id`, built in, and is saved INSIDE what holds it:  written whole the first time,
-a reference after (epic `people-and-orgs`, decision Q42).  A kind that says so is saved in a file of its own.
+Every thing and list has an `id`, built in, and is saved INSIDE what holds it (epic `people-and-orgs`, decision Q42):
+written whole the first time, a reference after.
+A kind that says so is saved in a file of its own.
 - The `id` is a `stored` built-in member (see "Built-in types"):
   - nobody declares it, and declaring one is refused
   - the runtime makes one up on first read, e.g. `person-k3x9q2mf`, unless it was set first
@@ -479,16 +480,18 @@ a reference after (epic `people-and-orgs`, decision Q42).  A kind that says so i
   - `a person has dates as a new list of dated-events`
   - or in its outline body, `- its "dates" is a list of dated-events` ([`outline_specifier_list`](src/rules/classes/OutlineSpecifierList.ts))
   - both compile to `this.declareProp("dates", { itemType: "DatedEvent", init: () => new List(...) })`
-- [`saved_in_file`](src/rules/classes/SavedInFile.ts):  `a person is saved in its own file`, or
-  `- it is saved in its own file` in its outline body.
-  - A person then gets a file (an entry) of their own, and what holds one saves a reference to it.
+- [`saved_in_file`](src/rules/classes/SavedInFile.ts):  a person gets a file (an entry) of their own.
+  - e.g. `a person is saved in its own file`, or `- it is saved in its own file` in its outline body
+  - What holds one saves a reference to it.
   - It compiles to `Person.savedInFile = true`, after the class:  `Thing` says `false`.
   - Refused for a built-in type.
-- [`saved_inline`](src/rules/classes/SavedInline.ts):  `a dated-event is saved inline` says the default;  it
-  compiles to `DatedEvent.savedInline = true`, which changes nothing.
-- Versions (P6):  [`version_step`](src/rules/classes/VersionStep.ts), `a person version 2 renames name to names`,
-  `a person version 3 drops nickname`;  [`upgrade_method`](src/rules/classes/UpgradeMethod.ts),
-  `to upgrade (a person) to version 4: ...`.  The core reads them as it loads an older file:  core's AGENTS.md.
+- [`saved_inline`](src/rules/classes/SavedInline.ts):  says the default, e.g. `a dated-event is saved inline`.
+  - It compiles to `DatedEvent.savedInline = true`, which changes nothing.
+- Versions (P6):  the core reads them as it loads an older file ([core's AGENTS.md](../core/AGENTS.md)).
+  - [`version_step`](src/rules/classes/VersionStep.ts):  a rename or a drop
+    - e.g. `a person version 2 renames name to names`
+    - e.g. `a person version 3 drops nickname`
+  - [`upgrade_method`](src/rules/classes/UpgradeMethod.ts):  anything else, e.g. `to upgrade (a person) to version 4: ...`
 - Nothing goes in scope:  the class says it when the code runs.
 
 ## One thing by name or place:  `tableau T1`, `the first tableau`
@@ -532,18 +535,20 @@ a reference after (epic `people-and-orgs`, decision Q42).  A kind that says so i
   - It's hoisted into the class like any member.
   - A sub-type inherits it.
   - No scope record and no declaration:  it's the class's own method, which an importer gets with it.
-- [`list_move`](src/rules/lists/ListMove.ts):  `move the card to the tableau` => `spellCore.move(card, tableau)`.
+- [`list_move`](src/rules/lists/ListMove.ts):  moves a thing from one list to another.
+  - e.g. `move the card to the tableau` => `spellCore.move(card, tableau)`
   - It's a statement, or a yes / no (`operandInExpressions`):  `if move the card to the tableau then ...`.
   - It asks the list of the card's family holding it to give it up, then the target to take it.
   - Refused:  nothing changes.
   - A card that belongs to no family:  only the target is asked.
   - `Priority.overridable`:  a project's own `to move (a card) to (a pile)` wins, e.g. the frozen Solitaire's.
 - Only `move` asks.
-  `add`, `remove` and `empty` never do:  they're for dealing, gathering cards back, shuffling.
-- Asking without moving:  `can_take` / `can_give_up`, `Negatable` suffixes.
+  - The other list statements never do:  they're for dealing, gathering cards back, shuffling.
+  - They're `add`, `remove` and `empty`.
+- Asking without moving:  two `Negatable` suffixes, `can_take` and `can_give_up`.
   - `the tableau can take the card` => `spellCore.canTake(tableau, card)`
   - `cannot give up` negates
-- Probe ledger, `X1` ... `X9`:  `probeMembership()`.
+- Probe ledger:  `probeMembership()`, probes `X1` ... `X9`.
   - It uses the frozen `Card` and `Deck`.
     Its `Pile.spell` is the probe's own.
   - Compiled and RUN:  [membership.test.ts](../../tests/spell/src/parserTests/membership.test.ts).
@@ -984,41 +989,58 @@ a reference after (epic `people-and-orgs`, decision Q42).  A kind that says so i
 - Projects come in GROUPS (project roots), and the groups are spaces', not spell's:
   `SPACES.PROJECT_GROUPS`, in [projectGroups.ts](../spaces/src/models/projectGroups.ts).
   - Spell's registry, `SpellSetup`, starts empty:  loading spaces' groups registers them there.
-  - So every program that reads a spell path loads them first:
-    through `$/spaces`, spaces' disk reader, or `$/spaces/models/projectGroups` alone (`<spell-app>` does that).
+  - So every program that reads a spell path loads them first, through one of:
+    - `$/spaces`
+    - spaces' disk reader
+    - `$/spaces/models/projectGroups` alone, as `<spell-app>` does
   - Spell never imports spaces.
 - Everything is named by its ADDRESS (epic `people-and-orgs` P4, [SpellLocation](src/SpellLocation.ts)):
-  - a group:  `@spell/examples`, `@spell/library`, `@spell/guides`, `@spell/test`, and `owen@spell`, Owen's own
-    space (`SPACES.LOCAL_PERSON`)
-  - a project:  its group's, a slash, its name, ONE part, lower-kebab (decision Q39):
-    `@spell/examples/solitaire`, `owen@spell/errors`
-  - a file in it:  a slash, then the file, whose name has a dot (decision Q41):  `@spell/examples/solitaire/Card.spell`;
-    a folder ends in a slash, `...//folder/` (decision J47)
-  - a page of a running app:  more after the project, no dot in its last part:  `owen@spell/solitaire/rules`
-    (the app's `/run/` URLs;  apps have no pages yet)
+  - a group, e.g. `@spell/examples`
+    - spell's own:  `@spell/examples`, `@spell/library`, `@spell/guides`, `@spell/test`
+    - `owen@spell`, Owen's own space (`SPACES.LOCAL_PERSON`)
+  - a project:  its group's, a slash, its name, ONE part, lower-kebab (decision Q39)
+    - e.g. `@spell/examples/solitaire`, `owen@spell/errors`
+  - a file in it:  a slash, then the file, whose name has a dot (decision Q41)
+    - e.g. `@spell/examples/solitaire/Card.spell`
+    - a folder ends in a slash, `@spell/examples/drawable-solitaire/assets/`
+  - a page of a running app:  more after the project, no dot in its last part
+    - e.g. `owen@spell/solitaire/rules`
+    - the app's `/run/` URLs;  apps have no pages yet
   - A `@local/<folder>` group is added at runtime for a folder an editor opened.
   - No other form is read:  not `@system:examples:Solitaire`, not `@examples/Solitaire` (decision Q30).
 - On disk, by address ([SpellUrls](src/SpellUrls.ts)'s `folderFor()`, then `serverPathForRoot()` in spaces'
   [project-utils.ts](../spaces/src/server/node/projects/project-utils.ts)):
-  - `@spell/examples/...`, `@spell/library/...`:  spaces' built-ins, `packages/spaces/@spell/<group>/<Project>/`,
-    committed
-  - `@spell/test/...`:  the test projects, `tests/spaces/@spell/test/<Project>/`, committed and frozen
-  - `owen@spell/...`:  in spell-spaces, outside git, `<main checkout>/../spell-spaces/@spell/owen@/<project>/`
+  - spaces' built-ins, committed:
+    - `@spell/examples/...`, `@spell/library/...`
+    - in `packages/spaces/@spell/<group>/<Project>/`
+  - the test projects, committed and frozen:
+    - `@spell/test/...`
+    - in `tests/spaces/@spell/test/<Project>/`
+  - Owen's own, in spell-spaces, outside git:
+    - `owen@spell/...`
+    - in `<main checkout>/../spell-spaces/@spell/owen@/<project>/`
     - One folder for main and every worktree;  `SPELL_SPACES_DIR` sets it.
     - A person's space is inside their org's, so `@` says what each folder is.
   - A `@local/<folder>` group says where itself, with its `serverPath`.
-  - The folders are spaces' `environment` ([environment.ts](../spaces/src/server/node/environment.ts)):
-    `spaceFolders` (`builtins`, `tests`, `spaces`).
-    Tests point them at temporary folders:  `SPELL_BUILTINS_DIR`, `SPELL_TESTS_DIR`, `SPELL_SPACES_DIR`.
-  - A project's folder is its name:  `packages/spaces/@spell/examples/drawable-solitaire/` (decision Q39).
+  - The folders are spaces' `environment` ([environment.ts](../spaces/src/server/node/environment.ts)), its `spaceFolders`:
+    - `builtins`, `tests` and `spaces`
+    - Tests point them at temporary folders, with environment variables:
+
+      ```sh
+      SPELL_BUILTINS_DIR  SPELL_TESTS_DIR  SPELL_SPACES_DIR
+      ```
+
+  - A project's folder is its name, e.g. `packages/spaces/@spell/examples/drawable-solitaire/` (decision Q39).
     The editor shows its title, `Drawable Solitaire` (`SpellProject.title`).
   - A group with `devOnly` is listed in the app's UI in dev only.
 - A group's projects are its folder's sub-folders, less spaces' own `__` names.
-  - Spaces' list, `SPACES.SPACE_NAMES` (`isSpaceName()`):  `__members/`, `__project.json5` ...
+  - Spaces' list:  `SPACES.SPACE_NAMES` (`isSpaceName()`).
+    - e.g. `__members/`, `__project.json5` ...
   - Known by that list, never by the `__` alone:  `__init__.py` and `__snapshots__/` are a project's files.
-- A `project.json` imports another project by its address, `{ "path": "@spell/library/cards" }`;  its own files by
-  their paths in it, `{ "path": "/Card.spell" }` (`SpellLocation.isAddress()` tells them apart:  only an address has
-  an `@` in its first part).
+- A project's file, `__project.json5` (`SP.PROJECT_FILE`;  an old `project.json` is read too), imports:
+  - another project by its address, `{ "path": "@spell/library/cards" }`
+  - its own files by their paths in it, `{ "path": "/Card.spell" }`
+  - `SpellLocation.isAddress()` tells them apart:  only an address has an `@` in its first part.
 - Compiled output is never one of a project's own files.
   - The server's index lists only spell, CSS and javascript files:  see `isManifestFile()`.
     - `.spell`, `.css`, `.js` and `.jsx`
@@ -1030,7 +1052,7 @@ a reference after (epic `people-and-orgs`, decision Q42).  A kind that says so i
     - a Python program's page file, `<Project>.elements.spell.js`
     - the same files by their names before epic `people-and-orgs` P11, e.g. `<Project>.compiled.js`:
       an old copy left in a checkout
-  - Else the index would add them to `project.json`.
+  - Else the index would add them to the project file.
   - The list:  `GENERATED_SUFFIXES`, beside `isManifestFile()`.
 - What spell BUILDS for a project goes in its build folder, not beside its source (epic `people-and-orgs` P11).
   - That's `build/` at the repo root, never committed, each checkout its own.
@@ -1038,46 +1060,63 @@ a reference after (epic `people-and-orgs`, decision Q42).  A kind that says so i
     - under `packages/`:  `packages/spaces/@spell/examples/solitaire` => `build/spaces/@spell/examples/solitaire`
     - under `tests/`:  `tests/spaces/@spell/test/fizzbuzz` => `build/spaces/@spell/test/fizzbuzz`
     - in spell-spaces:  `@spell/owen@/errors` => `build/spell-spaces/@spell/owen@/errors`
-  - The files:  `<Project>.spell.js`, `.spell.tsx`, `.spell.py`, `.elements.spell.js` and `.scopes.js`.
-  - Committed beside the source:  everything else, e.g. `<Project>.declarations.json5`, `.en.js`, `.py.en.json5`,
-    `.lib.ts`, `.app.py`.
-  - Every reader asks for a file by project and name, as for any file;
-    ONE mapping decides where it is on disk:  the server's `serverPath` (`isBuiltFile()`, `buildFolderFor()`,
-    in spaces' [project-utils.ts](../spaces/src/server/node/projects/project-utils.ts)).
-  - A project anywhere else (a temp `@local/<folder>` group, a VS Code workspace elsewhere) keeps them beside its
-    source.
+  - The files:  its compiled code and its scope pack.
+
+    ```text
+    <Project>.spell.js  .spell.tsx  .spell.py  .elements.spell.js  .scopes.js
+    ```
+
+  - Committed beside the source:  everything else.
+
+    ```text
+    <Project>.declarations.json5  .en.js  .py.en.json5  .lib.ts  .app.py
+    ```
+
+  - Every reader asks for a file by project and name, as for any file.
+    - ONE mapping decides where it is on disk:  the server's `serverPath`.
+    - It's `isBuiltFile()` and `buildFolderFor()`, in spaces' [project-utils.ts](../spaces/src/server/node/projects/project-utils.ts).
+  - A project anywhere else keeps them beside its source:
+    a temp `@local/<folder>` group, a VS Code workspace elsewhere.
   - Built when needed, so a fresh checkout or worktree needs nothing run by hand:
-    - the page server, as it starts:  the built-in projects that are out of date, `@spell/examples` and `@spell/library`,
-      in the background (`spell compile --stale --all @spell/examples @spell/library`)
+    - the page server, as it starts:  the built-in projects that are out of date, in the background
+      - `@spell/examples` and `@spell/library`
+      - `spell compile --stale --all @spell/examples @spell/library`
     - spaces' routes:  a request for a built file that isn't there compiles its project first, then serves it
-      (`/spaces/<project>/<project>.spell.js`, `.scopes.js` ...);
-      one compile per project at a time, a request waits at most a minute
+      - e.g. `/spaces/<project>/<project>.spell.js`, `.scopes.js` ...
+      - one compile per project at a time, a request waits at most a minute
     - Both are `ProjectBuild`, in the editor's server ([ProjectBuild.ts](../spaces/src/server/node/routes/ProjectBuild.ts)),
       running the checkout's own `spell compile` as a child.
-    - By hand:  `spell compile --all <root>`, or `--stale` for only what's out of date (`CLI.staleBecause()`):
-      a built file missing, or one of the project's files, its `project.json`, an import's declarations
-      or spell's compiler newer than its build.
-  - Renaming or duplicating a project leaves its build folder behind:  its files are named for the old project,
-    so the next compile writes the new one's.  Deleting a project deletes it.
-  - A Python program's web app, `<Project>.app.py`, names its program's folder inside the checkout's `build/`,
-    the project index's `buildFolder` (`PY.QuartAppSpec.outputs`), e.g. `spaces/@spell/examples/solitaire`;
-    `spell_quart.built_folder()` finds that checkout's (epic `people-and-orgs` J33).
-- [`SpellProject`](src/SpellProject.ts):  files in `project.json` order, e.g. Card → Deck → Pile → Solitaire.
-- `SpellProject` / `SpellFile` load over HTTP, with `$fetch()`, on URLs from ONE function,
-  [SpellUrls](src/SpellUrls.ts) (`SP.SpellUrls`):
+    - By hand:  `spell compile --all <root>`.
+    - Add `--stale` for only what's out of date (`CLI.staleBecause()`).
+      Out of date means something is newer than its build, or a built file is missing:
+      - one of the project's files, or its project file
+      - an import's declarations
+      - spell's compiler
+  - Renaming a project deletes its build folder, and duplicating one doesn't copy it:
+    its files are named for the old project, so the next compile writes the new one's (`renameApp()`, `duplicateApp()`).
+    Deleting a project deletes it too.
+  - A Python program's web app names its program's folder inside the checkout's `build/` (epic `people-and-orgs` J33).
+    - The app:  `<Project>.app.py`
+    - The folder:  the project index's `buildFolder`, e.g. `spaces/@spell/examples/solitaire`
+      - It's what `PY.QuartAppSpec.outputs` holds.
+    - `spell_quart.built_folder()` finds that checkout's.
+- [`SpellProject`](src/SpellProject.ts):  files in its project file's order, e.g. Card → Deck → Pile → Solitaire.
+- `SpellProject` and each `SpellFile` load over HTTP, with `$fetch()`.
+  Their URLs come from ONE function, [SpellUrls](src/SpellUrls.ts) (`SP.SpellUrls`):
   - a file is READ at `/spaces/<project>/<file>`, e.g. `/spaces/@spell/examples/solitaire/Card.spell`
   - and SAVED by `POST /api/projects/file/<project>/<file>`
   - a project's index:  `/api/projects/index/<project>`
   - a group's projects:  `/api/projects/list/<group>`, e.g. `/api/projects/list/owen@spell`
-  - What spell builds is read as a file too, e.g. `/spaces/@spell/examples/solitaire/solitaire.spell.js`,
-    `.scopes.js`, `.declarations.json5`, `.en.js`:  the server finds a built one in the build folder.
-  - Where the project ends:  its group's address, then ONE part (`SpellUrls.split()`);  the file follows, its name
-    with a dot (decision Q41).
+  - What spell builds is read as a file too:  the server finds a built one in the build folder.
+    - e.g. `/spaces/@spell/examples/solitaire/solitaire.spell.js`
+    - and its `.scopes.js`, `.declarations.json5`, `.en.js`
+  - Where the project ends:  its group's address, then ONE part (`SpellUrls.split()`).
+    The file follows, its name with a dot (decision Q41).
     - each part is encoded and decoded on its own, never the whole address
     - every URL starts `/spaces/` or `/api/`, and is written whole, never relative
-  - They go through `LoadableFile.fetch`, which a node host swaps for spaces' disk reader,
-    [`diskFetch()`](../spaces/src/server/node/projects/disk-fetch.ts) (`installDiskFetch()`),
-    to answer the same URLs from disk.
+  - They go through `LoadableFile.fetch`.
+    A node host swaps that for spaces' disk reader, to answer the same URLs from disk:
+    [`diskFetch()`](../spaces/src/server/node/projects/disk-fetch.ts), by `installDiskFetch()`.
 - A project's FILE create, copy, rename and delete are spaces', not `SpellProject`'s (decision Q20):
   `SPACES.ProjectFiles`, which the editor calls.
   - `SpellProject` reads, compiles and saves.
@@ -1093,8 +1132,8 @@ a reference after (epic `people-and-orgs`, decision Q42).  A kind that says so i
     - It's a `/*! SPELL: DECLARES {...} */` comment.
     - It goes below any docstring.
     - For a class member, it's indented in its class's body (`commentFor()`).
-    - It's ONE flat JS object literal, 3-7 lines, merging the scope records it added (`declarationFor()`), e.g.
-      `{ property: "suit", classVariable: "Suits", of: "Card", enumeration: [...] }`.
+    - It's ONE flat JS object literal, 3-7 lines, merging the scope records it added (`declarationFor()`):
+      e.g. `{ property: "suit", classVariable: "Suits", of: "Card", enumeration: [...] }`.
   - `SpellProject`'s "Combining output" `split()`s the markers back OUT.
     - The compiled JS is just code.
     - Each marker's object goes in the declarations, with `codeLines`:
@@ -1139,7 +1178,7 @@ a reference after (epic `people-and-orgs`, decision Q42).  A kind that says so i
       - `declared` on its rules:
         - owner, what `getDeclaration()` said, and `declaredAt`
   - `SpellProject.projectImports`:  the entries of `imports` that name a project.
-    They're in `project.json`.
+    They're in its project file.
     - e.g. `@spell/library/cards` ~== `@spell/library/cards`
     - Its "Loading" task reads each one's `<Project>.declarations.json5`.
       - That's `SpellProject.declarationsOf()`.
@@ -1264,12 +1303,12 @@ a reference after (epic `people-and-orgs`, decision Q42).  A kind that says so i
     - `ts/solid`, by `P.TSWriter`:  checked by `tsc`
     - `py`, by `PY.PyWriter`:  Python on asyncio, checked by pyright
       - with a words file of its own, by Python's names:  `<Project>.py.en.json5`
-    - `ts/lib`, by `P.LibraryWriter`:  a LIBRARY, the project's classes alone, for other code to import
-      (epic `people-and-orgs` P3)
+    - `ts/lib`, by `P.LibraryWriter` (epic `people-and-orgs` P3):
+      a LIBRARY, the project's classes alone, for other code to import
       - one TypeScript file, `<Project>.lib.ts`, its own types, checked by `tsc`
       - no drawing, none of its top-level steps, the core with no Solid (`@spell-app/core/model`)
   - Each writes a file of its own, e.g. `Solitaire.spell.py`:  see each target's `suffix`.
-  - A project lists the others it wants in its `project.json`, e.g. `"targets": ["ts/solid", "py"]`.
+  - A project lists the others it wants in its project file, e.g. `"targets": ["ts/solid", "py"]`.
   - What every program's writer shares is `P.ProgramWriter`, which the javascript and Python writers extend.
     - `forProject()` reads the whole project first, so it knows what each value is.
   - `ASTNode.compile()` is `P.JSWriter.instance.write(node)`.

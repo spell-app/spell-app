@@ -7,9 +7,10 @@ import { installDiskFetch, locationForDiskPath } from "$/spaces/server/node/proj
 import { LSP } from "$/lsp"
 
 /**
- * The stdio language server's view of the editor's files, hosted on `SP.SpellProject` / `SP.SpellFile` loading from disk.
+ * The stdio language server's view of the editor's files:
+ * the same `SP.SpellProject` / `SP.SpellFile` the app uses, loading from disk.
  * - Maps editor document URIs <=> `SpellFile`s (`LSP.FileAddresses`).
- *   A file's project is its nearest `project.json` folder -- see `locationForDiskPath()`.
+ * - A file's project is the nearest folder with a project file:  see `locationForDiskPath()`.
  * - Open documents' text wins over disk:  it goes through `project.updateText()`, as the app's editor's does.
  * - Every method that changes anything returns the spell files whose parse changed,
  *   so the server can publish their diagnostics.
@@ -37,7 +38,7 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
 
   /**
    * `SpellFile` for document `uri`, or `undefined` if it isn't a `.spell` file on disk we can place in a project.
-   * - Cached per URI:  finding the project looks for `project.json` up the folder tree.
+   * - Cached per URI:  finding the project looks for a project file up the folder tree.
    */
   fileFor(uri: string): SP.SpellFile | undefined {
     let file = this.#fileByUri.get(uri)
@@ -91,9 +92,10 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
 
   /**
    * A file changed on disk, e.g. a `git checkout`, or another editor saved it.
-   * - `project.json`, or a `.spell` file appearing / disappearing:  the file list may have changed,
+   * - a project file, or a `.spell` file appearing / disappearing:  the file list may have changed,
    *   so the project re-reads its index and parses from scratch.
-   * - A `.spell` file that isn't open:  reloads it.  An open one keeps the editor's text.
+   * - A `.spell` file that isn't open:  reloads it.
+   * - An open one keeps the editor's text.
    */
   async diskChanged(uri: string, change: LSP.DiskChange): Promise<SP.SpellFile[]> {
     const path = uri.startsWith("file:") ? fileURLToPath(uri) : undefined
@@ -111,8 +113,9 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
   }
 
   /**
-   * Parse `project` if we haven't yet, and keep it up to date from then on, as its files change on disk --
-   * e.g. a project another one imports, which no open file belongs to.  See `diskChanged()`.
+   * Parse `project` if we haven't yet, and keep it up to date from then on, as its files change on disk.
+   * - e.g. a project another one imports, which no open file belongs to
+   * - See `diskChanged()`.
    */
   track(project: SP.SpellProject): Promise<void> {
     return this.parseOnce(project)

@@ -2,8 +2,9 @@
  * What `ui`'s Vitest settings (`packages/ui/vitest.config.ts`) add to Vitest's types, for `ui`'s tests:
  * - `inject("ci")`:  running on CI, so a timing test skips its budget (the dropdown's speed test)
  * - `commands.emulateReducedMotion()`:  a browser command turning "reduced motion" on (the reveal's test)
- * - Here, beside the tests that use them (decision J28 of epic `people-and-orgs`):  an augmentation reaches only the
- *   copy of Vitest its own file finds, and a test in this folder finds the repo root's copy.
+ * - Here, beside the tests that use them (decision J28 of epic `people-and-orgs`):
+ *   an augmentation reaches only the copy of Vitest its own file finds,
+ *   and a test in this folder finds the repo root's copy.
  */
 
 declare module "vitest" {

@@ -53,7 +53,7 @@ export type CompileOptions = GlobalOptions & {
   stdout?: boolean
   force?: boolean
   stale?: boolean
-  /** Compile to this target, this run, instead of `project.json`'s -- see `SP.TARGETS`. */
+  /** Compile to this target, this run, instead of the project file's -- see `SP.TARGETS`. */
   target?: string
 }
 

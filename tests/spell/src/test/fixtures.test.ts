@@ -15,8 +15,8 @@ import {
 } from "$/spell/test"
 
 /**
- * Every fixture project in `tests/spaces/@spell/test/` compiled, against the snapshots beside it,
- * in `tests/spaces/@spell/test/<Project>/`:
+ * Every fixture project in `tests/spaces/@spell/test/` compiled,
+ * against the snapshots beside it, in `tests/spaces/@spell/test/<Project>/`:
  * - `<Project>.snapshot.js`:  the javascript (`js/solid` target)
  * - `<Project>.snapshot.declarations.json5`:  its declarations
  * - `<Project>.en.snapshot.js`:  its words

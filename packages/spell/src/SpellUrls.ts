@@ -4,18 +4,20 @@ import type { SpellLocation } from "./SpellLocation"
 import { SpellSetup } from "./SpellSetup"
 
 /**
- * Where a project and its files are, by URL and by folder:  the ONE function spell, spaces' routes and spaces' disk
- * reader share (epic `people-and-orgs` P15).
+ * Where a project and its files are, by URL and by folder (epic `people-and-orgs` P15).
+ * - The ONE function spell, spaces' routes and spaces' disk reader share.
  * - A project's URLs hold its ADDRESS as it is (P4), e.g. `@spell/examples/solitaire`.
  * - A file's URL is its address:  `/spaces/@spell/examples/solitaire/Card.spell`.
  *   - Saving it is a call:  `/api/projects/file/@spell/examples/solitaire/Card.spell`.
- *   - A project's index:  `/api/projects/index/<address>`;  a group's projects:  `/api/projects/list/<address>`.
- * - Where the project ends:  its group's address, then ONE part (`split()`);  what follows is the file, which has a
- *   dot in its name (decision Q41).
+ *   - A project's index:  `/api/projects/index/<address>`.
+ *   - A group's projects:  `/api/projects/list/<address>`.
+ * - Where the project ends:  its group's address, then ONE part (`split()`).
+ *   What follows is the file, which has a dot in its name (decision Q41).
  * - Each part is encoded on its own (`encodeAddress()`), so the address's slashes stay slashes.
  * - Every URL starts `/spaces/` or `/api/`, and is written whole, never relative.
- * - Its folder (`folderFor()`):  a base folder and a path under it, e.g. `@spell/examples/solitaire` is
- *   `@spell/examples/solitaire` under spaces' built-ins.  Which real folder each base is, only spaces knows.
+ * - Its folder (`folderFor()`):  a base folder and a path under it.
+ *   - e.g. `@spell/examples/solitaire` is `@spell/examples/solitaire` under spaces' built-ins.
+ *   - Which real folder each base is, only spaces knows.
  * - NOTE: imports only `SpellSetup`:  it never sees a path on disk, and never loads the parser.
  */
 export const SpellUrls = {
@@ -61,9 +63,9 @@ export const SpellUrls = {
   ////////////////
 
   /**
-   * The project and file a file's URL names, from `/spaces/...` or `/api/projects/file/...` (or just its tail,
-   * the address), e.g. `{ projectId: "@spell/examples/solitaire", filePath: "/Card.spell",
-   * path: "@spell/examples/solitaire/Card.spell" }`.
+   * The project and file a file's URL names.
+   * - from `/spaces/...` or `/api/projects/file/...`, or just its tail, the address
+   * - e.g. `{ projectId: "@spell/examples/solitaire", filePath: "/Card.spell", path: "@spell/examples/solitaire/Card.spell" }`
    * - Decodes each part on its own, then splits off the group and the project (`split()`).
    * - throws `TypeError`:  a part that won't decode, a project no group holds, or no file after it
    * - NOTE: says nothing of whether its parts are valid names:  `new SpellLocation(path)` checks that.
@@ -76,8 +78,8 @@ export const SpellUrls = {
   },
 
   /**
-   * `address` split where its project ends:  its group's address, then ONE part (decision Q41), e.g.
-   * `@spell/examples/solitaire/a/Card.spell` => `{ projectId: "@spell/examples/solitaire", rest: "a/Card.spell" }`.
+   * `address` split where its project ends:  its group's address, then ONE part (decision Q41).
+   * - e.g. `@spell/examples/solitaire/a/Card.spell` => `{ projectId: "@spell/examples/solitaire", rest: "a/Card.spell" }`
    * - `rest` is `""` for a project or a group alone.
    * - throws `TypeError` if no group holds it
    */
@@ -90,8 +92,9 @@ export const SpellUrls = {
   },
 
   /**
-   * The project (or group) address `place` names, checked:  a group's address, or a group's and ONE more part,
-   * the project's name, e.g. `@spell/examples/solitaire`, `@spell/examples`.
+   * The project (or group) address `place` names, checked.
+   * - a group's address, or a group's and ONE more part, the project's name
+   * - e.g. `@spell/examples/solitaire`, `@spell/examples`
    * - Takes a URL's tail too, still encoded:  `/api/projects/index/<address>` => its project.
    * - throws `TypeError` if no group holds it, or more than one part follows the group's address
    */
@@ -107,8 +110,8 @@ export const SpellUrls = {
 
   /**
    * `address` without a page of its running app:  `owen@spell/solitaire/rules` => `owen@spell/solitaire`.
-   * - A page is what follows a project when its last part has no dot and no slash after it (decision Q41);
-   *   a file's address (`.../Card.spell`) or a folder's (`.../assets/`) is as it is.
+   * - A page is what follows a project when its last part has no dot and no slash after it (decision Q41).
+   * - A file's address (`.../Card.spell`) or a folder's (`.../assets/`) is as it is.
    * - An address no group holds:  as it is, for `new SpellLocation()` to refuse.
    */
   withoutPage(address: string): string {
@@ -126,11 +129,11 @@ export const SpellUrls = {
    * Which folder holds `place`:  a `base` and the `path` under it, `/`-separated.
    * - `@spell/test/fizzbuzz` => `{ base: "tests", path: "@spell/test/fizzbuzz" }`:  the repo's `tests/spaces/`
    * - `@spell/examples/solitaire` => `{ base: "builtins", path: "@spell/examples/solitaire" }`:  `packages/spaces/`
-   * - `owen@spell/errors` => `{ base: "spaces", path: "@spell/owen@/errors" }`:  spell-spaces, beside the repo;
-   *   a person's space is inside their org's, so `@` says what each folder is
+   * - `owen@spell/errors` => `{ base: "spaces", path: "@spell/owen@/errors" }`:  spell-spaces, beside the repo
+   *   - A person's space is inside their org's, so `@` says what each folder is.
    * - `@three-degrees/bubble-trouble` => `{ base: "spaces", path: "@three-degrees/bubble-trouble" }`
-   * - `undefined` for a place with no folder of its own, e.g. `@local/my-folder`:  its group says where
-   *   (`SP.ProjectRootSpec.serverPath`)
+   * - `undefined` for a place with no folder of its own, e.g. `@local/my-folder`:
+   *   its group says where (`SP.ProjectRootSpec.serverPath`)
    */
   folderFor(place: string): { base: SP.SpaceFolderBase; path: string } | undefined {
     const [space = "", ...rest] = place.split("/")

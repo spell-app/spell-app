@@ -31,9 +31,10 @@ export type LinkCheck = {
 
 /**
  * A bundle the page server serves, BUILT on demand from the checkout's source instead of committed (`Bundle`).
- * - Why not committed:  its chunk names carry content hashes, so every Spell UI change deleted and re-added most of
- *   its files in every diff and merge (Owen, epic `epic-components`, 2026-10-07)
  * - `output` is git-ignored;  its build clears it first, then `Bundle.build()` records the sources' hash in it
+ * - Why not committed:  its chunk names carry content hashes,
+ *   so every Spell UI change deleted and re-added most of its files in every diff and merge
+ *   (Owen, epic `epic-components`, 2026-10-07)
  */
 export type BundleSpec = {
   /** what the command line calls it, e.g. `brand` */
@@ -86,9 +87,13 @@ export type BundleRecord = {
 export const BUNDLE_RECORD = ".bundle.json"
 
 /**
- * What both bundles read of Spell UI:  its source (`Bundle.sourceFiles()` skips the icon packs, which each bundle
- * LINKS, never bundles), its families (`components/`, outside `src/`), the element layer they're written on
- * (`$/spell-solid`), its Vite config (`baseConfig()`), the site header (`$/server/site`), and the lock file.
+ * What both bundles read of Spell UI:
+ * - its source (`Bundle.sourceFiles()` skips the icon packs, which each bundle LINKS, never bundles)
+ * - its families (`components/`, outside `src/`)
+ * - the element layer they're written on (`$/spell-solid`)
+ * - its Vite config (`baseConfig()`)
+ * - the site header (`$/server/site`)
+ * - the lock file
  */
 const SPELL_UI_SOURCES = [
   "packages/ui/src",
@@ -104,8 +109,8 @@ const SPELL_UI_SOURCES = [
  * - WHICH are built:  the ones whose `output` folders the repo root's `package.json` names
  *   (`"pageServer": { "bundles": [...] }`, `Bundle.specs()`), the list the page server reads too
  * - the page server builds the stale ones when it starts (`spell dev bundles build --stale`)
- * - `sources`:  generous, so a change never leaves one stale unnoticed;
- *   `Bundle.sourceFiles()` skips tests, snapshots, dot files and the icon packs
+ * - `sources`:  generous, so a change never leaves one stale unnoticed
+ *   - `Bundle.sourceFiles()` skips tests, snapshots, dot files and the icon packs
  * - their `output` folders are in the root `.gitignore`
  */
 export const BUNDLES: BundleSpec[] = [

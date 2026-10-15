@@ -53,11 +53,12 @@ export function parseSpellProject(
 }
 
 /**
- * Frozen projects tests run against:  `tests/spaces/@spell/test/<project>/` at the repo root, e.g. `solitaire`,
- * the `@spell/test` group.
+ * Frozen projects tests run against, the `@spell/test` group.
+ * - Their folder:  `tests/spaces/@spell/test/<project>/` at the repo root, e.g. `solitaire`.
  * - Why:  tests assert exact lines, docstrings and compiled output, and the live examples get edited.
- * - Tests read ONLY here:  editing or deleting a built-in example (`packages/spaces/@spell/`) or your own project
- *   (spell-spaces) can't break one.
+ * - Tests read ONLY here.
+ *   So editing or deleting a built-in example (`packages/spaces/@spell/`) or your own project (spell-spaces)
+ *   can't break one.
  * - The same folder as spaces' `environment.testFilesRoot` (a test checks):  spell never imports spaces.
  * - NEVER update a fixture to follow its example:  it's frozen so tests don't move.
  *   - Change a test's input in the test, or add another fixture:
@@ -101,8 +102,8 @@ export const PYTHON_FIXTURES = new Set([
 ])
 
 /**
- * The fixtures compiled as a LIBRARY too (the `ts/lib` target, epic `people-and-orgs` P3):  their `.lib.snapshot.ts`
- * is checked.
+ * The fixtures compiled as a LIBRARY too (the `ts/lib` target, epic `people-and-orgs` P3).
+ * - Their `.lib.snapshot.ts` is checked.
  * - Only fixtures that draw nothing:  a library can't.
  */
 export const LIBRARY_FIXTURES = new Set(["people"])
@@ -146,13 +147,13 @@ export function fixtureWords(projectName: string): string {
 
 /**
  * Fixture `projectName` compiled as `SpellProject` would:  its `code` and its `declarations`.
- * - Files combine through the SAME `SP.SpellProject.combineCompiled()`, so a class gets members from every file,
- *   and split through the same `SP.SpellDeclarations.split()`.
+ * - Files combine through the SAME `SP.SpellProject.combineCompiled()`, so a class gets members from every file.
+ *   They split through the same `SP.SpellDeclarations.split()`.
  * - Its `.css` files compile as `SpellCSSFile` does:  the whole text through the root scope's `css` rule.
  * - Parse errors lead its code, as comments, so a snapshot of it shows them too.
  * - Against the fixtures it imports, e.g. `@spell/test/cards`:
- *   their declarations, as a compiled import's (see `fixtureImportScope()`).
- *   NOT their code:  that's theirs.
+ *   - their declarations, as a compiled import's (see `fixtureImportScope()`)
+ *   - NOT their code:  that's theirs
  * - `version` / `exports` / `listsStartAt` from its `project.json`, as a compile would.
  * - `target`'s writer writes it, `js/solid`'s by default -- or `target` itself, a writer.
  * - `draws`:  does it hold a drawing -- see `SP.SpellProject.draws()`.
@@ -181,8 +182,9 @@ function compileFixture(
 }
 
 /**
- * The fixtures fixture `projectName` imports, by the module its compiled code imports each from, e.g.
- * `{ "@spell/project/@spell/test/cards": "Cards" }` -- none:  `{}`.
+ * The fixtures fixture `projectName` imports, by the module its compiled code imports each from.
+ * - e.g. `{ "@spell/project/@spell/test/cards": "Cards" }`
+ * - none:  `{}`
  * - throws if it imports a project that isn't a fixture:  tests read ONLY `FIXTURES_DIR`.
  */
 export function fixtureImports(projectName: string): Record<string, string> {

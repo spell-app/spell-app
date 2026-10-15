@@ -8,15 +8,16 @@ import { SP } from "$/spell"
 /**
  * Encapsulate a spell ADDRESS (its `path`) so we can get various bits quickly and easily.
  * - Roughly analagous to `window.location` object in browser.
- * - It's impossible to make a `SpellLocation` with an invalid address -- throws on construction
- *   if `path` passed in is invalid.
+ * - It's impossible to make a `SpellLocation` with an invalid address:
+ *   throws on construction if `path` passed in is invalid.
  * - If you're in the middle of a process with a `die()` routine, pass that to constructor
  *   to throw via your `die()` rather than creating a generic `TypeError`.
- * - Immutable objects, stored in a registry.  Doing this repeatedly with same `path` will
- *   always return same object.
+ * - Immutable objects, stored in a registry.
+ *   Doing this repeatedly with same `path` will always return same object.
  * - Use `.isProjectRoot`, `.isProjectPath` or `.isFilePath` etc to figure path type.
- * - An address is a group's address, then a project's name, then a file, a slash between each (epic `people-and-orgs`
- *   P4, decisions Q28 and Q41):  `@spell/examples/solitaire/folder/Card.spell`, which is:
+ * - An address is a group's address, then a project's name, then a file, a slash between each
+ *   (epic `people-and-orgs` P4, decisions Q28 and Q41).
+ *   `@spell/examples/solitaire/folder/Card.spell` is:
  *  - `isValid`     `true`
  *  - `projectRoot` `@spell/examples`                   the group, one of `SpellSetup.projectRoots`
  *  - `space`       `@spell`                            its space:  an org (`@spell`), or a person at one (`owen@spell`)
@@ -32,8 +33,9 @@ import { SP } from "$/spell"
  * - What follows the project, by its last part (decision Q41):
  *   - a dot:  a file, `.../solitaire/Card.spell`, `.../solitaire/.hidden`;  so every file has one
  *   - a slash at the end:  a folder, `.../solitaire/assets/`;  the project's own, `.../solitaire/`
- *   - neither:  a page of the running app, `owen@spell/solitaire/rules` -- or a type where a type is expected
- *     (`typeFor()`):  never a `SpellLocation`
+ *   - neither:  never a `SpellLocation`
+ *     - a page of the running app, `owen@spell/solitaire/rules`
+ *     - or a type, where a type is expected (`typeFor()`)
  * - A group's, a project's or a page's name holds no dot.
  */
 export class SpellLocation {
@@ -216,8 +218,7 @@ export class SpellLocation {
   /**
    * Get `SpellLocation` for a full file `path`, or a `projectId` and a `filePath` in it (`Card.spell` or `/Card.spell`).
    * - A `filePath` that's an address of its own (`SpellLocation.isAddress()`) is taken whole.
-   * - NOTE: unlike `getProjectLocation` and `getProjectRoot`, this throws if it's not a valid
-   *   FILE path.
+   * - NOTE: this throws if it's not a valid FILE path, unlike `getProjectLocation` and `getProjectRoot`.
    */
   static getFileLocation(projectId: string, filePath?: string): SpellLocation {
     let fullPath = projectId
@@ -247,21 +248,25 @@ export class SpellLocation {
   }
 
   /**
-   * Is `text` an address, `@spell/library/cards` or `owen@spell/errors`, rather than a file's path in a project
-   * (`/Card.spell`)?  Its first part holds an `@`, which no file's name may (`isValidPathSegment()`).
+   * Is `text` an address, `@spell/library/cards` or `owen@spell/errors`,
+   * rather than a file's path in a project (`/Card.spell`)?
+   * - An address's first part holds an `@`, which no file's name may (`isValidPathSegment()`).
    */
   static isAddress(text: string): boolean {
     return /^[^/]*@/.test(text)
   }
 
   /**
-   * The type a TYPE's address names, e.g. for a file's `"$schema"` (decision J3):  its project, its name, and the
-   * version it names, if any.
-   * - `@spell/library/people/Person` => `{ projectId: "@spell/library/people", type: "Person" }`:  the newest version
-   * - `@spell/library/people/Person__v2` => `{ ..., type: "Person", version: 2 }` (decision J51)
-   * - A type looks like a page of the running app:  where the address is used says it names a type (decision Q41).
-   * - throws `TypeError` if it isn't one:  no project before it, or a name that isn't a type's:  a type's starts with a
-   *   capital, as spell's do (`Card.spell`, `people`, `a-b` aren't)
+   * The type a TYPE's address names, e.g. for a file's `"$schema"` (decision J3).
+   * - Its project, its name, and the version it names, if any:
+   *   - `@spell/library/people/Person` => `{ projectId: "@spell/library/people", type: "Person" }`:  the newest version
+   *   - `@spell/library/people/Person__v2` => `{ ..., type: "Person", version: 2 }` (decision J51)
+   * - A type looks like a page of the running app:
+   *   where the address is used says it names a type (decision Q41).
+   * - throws `TypeError` if it isn't one:
+   *   - no project before it
+   *   - or a name that isn't a type's:  a type's starts with a capital, as spell's do
+   *     (`Card.spell`, `people`, `a-b` aren't)
    * - Its project's group isn't checked:  that waits for loading it.
    */
   static typeFor(address: string): { projectId: string; type: string; version?: number } {
@@ -276,8 +281,10 @@ export class SpellLocation {
   }
 
   /**
-   * `name` as a project's name, lower-kebab (decision Q39):  `Drawable Solitaire` => `drawable-solitaire`,
-   * `OutlineSolitaire` => `outline-solitaire`;  `""` if nothing's left.
+   * `name` as a project's name, lower-kebab (decision Q39).
+   * - `Drawable Solitaire` => `drawable-solitaire`
+   * - `OutlineSolitaire` => `outline-solitaire`
+   * - `""` if nothing's left
    */
   static kebab(name: string): string {
     return name

@@ -90,8 +90,8 @@ function page(name: string): string {
 }
 
 /**
- * Build `<spell-app>` -- `yarn build:element` in `app` -- if `dist-element/` isn't there yet, e.g. in a fresh
- * checkout.  Shows it as a status row:  it takes a while.
+ * Build `<spell-app>` -- `yarn build:element` in `app` -- if `dist-element/` isn't there yet, e.g. in a fresh checkout.
+ * - Shows it as a status row:  it takes a while.
  * - Throws `CLI.CliError` with the build's last lines if it fails.
  */
 async function ensureElementBuilt(session: CLI.CliSession): Promise<void> {

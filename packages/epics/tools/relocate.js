@@ -1,28 +1,37 @@
 /**
- * The docs' three moves:  where each repo path went, and how to rewrite a file's links and path mentions to match.
- * - the CONTENT move (epic `shared-content`, P2, 2026-10-04):  `packages/docs` kept only the package and `tools/`;
- *   every page, plan doc and template moved to `packages/docs/content/`, the docs scripts and `_assets` to
- *   `packages/docs/tools/` (now `packages/epics/tools/`), the goals tooling to `tools/goals/`, the three root logs
- *   to `agents/` (`CONTENT_MOVE`, `repairCheckout()`)
- * - the REORG (epic `claude-design`, P4, 2026-10-05):  the shared repo's `packages/docs/content/` split into root
- *   folders, each linked at the root of every checkout:  `epics/`, `templates/`, `guides/` (every other page) and
- *   `pages/` (the docs home and the scratch details pages).  Old-path links stay behind in the shared repo's
- *   `packages/docs/content/`, for checkouts on older code (`REORG_MOVE`, `reorgShared()`)
- * - the DOCS PACKAGE'S END (epic `people-and-orgs`, P16, 2026-10-13):  `packages/docs` went;  its tools and their
- *   `_assets` moved to `packages/epics/tools/`, its `AGENTS.md` merged into epics', its package files went with them
- *   (`DOCS_END_MOVE`, `relinkDocsPackage()`)
- * - each ran once on everything;  since then by `spell dev shared repair`:  after a branch from before a move merges
- *   `main`, or when older code wrote pages the old way
- * - `node tools/relocate.js repair [--root <checkout>] [--shared <dir>] [--dry-run] [--json]`:  `repairCheckout()`,
- *   then, with `--shared`, `reorgShared()` and `relinkDocsPackage()`
+ * The docs' moves:  where each repo path went, and how to rewrite a file's links and path mentions to match.
+ *
+ * The moves:
+ * - the CONTENT move (epic `shared-content`, P2, 2026-10-04;  `CONTENT_MOVE`, `repairCheckout()`):
+ *   - `packages/docs` kept only the package and `tools/`
+ *   - every page, plan doc and template moved to `packages/docs/content/`
+ *   - the docs scripts and `_assets` to `packages/docs/tools/` (now `packages/epics/tools/`)
+ *   - the goals tooling to `tools/goals/`, the three root logs to `agents/`
+ * - the REORG (epic `claude-design`, P4, 2026-10-05;  `REORG_MOVE`, `reorgShared()`):
+ *   - the shared repo's `packages/docs/content/` split into root folders, each linked at the root of every checkout
+ *   - `epics/`, `templates/`, `guides/` (every other page) and `pages/` (the docs home and the scratch details pages)
+ *   - old-path links stay behind in the shared repo's `packages/docs/content/`, for checkouts on older code
+ * - the DOCS PACKAGE'S END (epic `people-and-orgs`, P16, 2026-10-13;  `DOCS_END_MOVE`, `relinkDocsPackage()`):
+ *   - `packages/docs` went
+ *   - its tools and their `_assets` moved to `packages/epics/tools/`
+ *   - its `AGENTS.md` merged into epics', its package files went with them
+ * - the COMPONENT SETS' layout (epic `people-and-orgs`, P18, 2026-10-13;  `SETS_LINKS`, `relinkSets()`):
+ *   - every set's pages in its package's `docs/`, served at `/components/<set>/`
+ *   - Spell UI's elements in `components/`, its notes in `notes/`
+ *   - the packs in `components/__pack/`
+ *   - the brand's tags `brand-`
+ * - each ran once on everything;  since then by `spell dev shared repair`:
+ *   after a branch from before a move merges `main`, or when older code wrote pages the old way
+ *
+ * The commands, `node tools/relocate.js <command>`:
+ * - `repair [--root <checkout>] [--shared <dir>] [--dry-run] [--json]`:
+ *   `repairCheckout()`, then, with `--shared`, `reorgShared()` and `relinkDocsPackage()`
  * - `reorg --shared <dir>`:  `reorgShared()` alone (`spell dev shared commit`, every turn)
- * - `relink --shared <dir> [--root <checkout>] [--dry-run] [--json]`:  `relinkDocsPackage()` alone (once, when
- *   `people-and-orgs` merges into `main`)
- * - the COMPONENT SETS' layout (epic `people-and-orgs`, P18, 2026-10-13):  every set's pages in its package's `docs/`,
- *   served at `/components/<set>/`;  Spell UI's elements in `components/`, its notes in `notes/`;  the packs in
- *   `components/__pack/`;  the brand's tags `brand-` (`SETS_LINKS`, `relinkSets()`)
- * - `relink-sets --shared <dir> [--dry-run] [--json]`:  `relinkSets()` (ONCE, when `people-and-orgs` merges into
- *   `main`, after `relink`;  never by `repair`:  a later page's `packages/ui/docs/` means the new pages, not the notes)
+ * - `relink --shared <dir> [--root <checkout>] [--dry-run] [--json]`:  `relinkDocsPackage()` alone
+ *   - once, when `people-and-orgs` merges into `main`
+ * - `relink-sets --shared <dir> [--dry-run] [--json]`:  `relinkSets()`
+ *   - ONCE, when `people-and-orgs` merges into `main`, after `relink`
+ *   - never by `repair`:  a later page's `packages/ui/docs/` means the new pages, not the notes
  */
 import { spawnSync } from "node:child_process"
 import {
@@ -152,8 +161,8 @@ export function relocateLinks(text, oldFile, newFile, move = CONTENT_MOVE) {
  *   written by older code through an old-path link:  their links are relative to the old place, the rest of the
  *   page's to the new
  * - `exists(repoPath)` -- whether a repo-relative path exists
- * - `oldPlace(file)` -- where `file` was before `move`, or `undefined`;  default the content move's
- *   (`packages/docs/content/<x>` was `packages/docs/<x>`)
+ * - `oldPlace(file)` -- where `file` was before `move`, or `undefined`
+ *   - default the content move's:  `packages/docs/content/<x>` was `packages/docs/<x>`
  */
 export function repairLinks(
   text,
@@ -236,8 +245,8 @@ export const REORG_MOVE = { moved: reorgPath, settled: () => false }
 
 /**
  * A path written out in prose or code under the old content folder:  `[1]` its first entry, `[2]` the rest.
- * - a leading `/` only from a server root (`"/packages/docs/content/index.html"`):  `x/packages/docs/content/...` is
- *   some other folder's copy (a worktree, `shared-pending/`), and stays
+ * - a leading `/` only from a server root (`"/packages/docs/content/index.html"`)
+ * - `x/packages/docs/content/...` is some other folder's copy (a worktree, `shared-pending/`), and stays
  */
 const REORG_MENTION = /(?<![\w.-]|[\w.-]\/)packages\/docs\/content\/([\w.-]+)((?:\/[\w.*<>{}-]+)*\/?)/g
 
@@ -263,24 +272,29 @@ export function headerRoot(text, file) {
 }
 
 /**
- * The reorg, run in shared repo `dir` (`spell dev shared repair --shared`;  once for real on 2026-10-05).  Idempotent:
- * re-run, it moves only what older code wrote at the old paths since.  Returns what it did (or, `dryRun`, would do),
- * repo-relative:  `{ moved, merged, conflicts, links, rewritten }`.
+ * The reorg, run in shared repo `dir` (`spell dev shared repair --shared`;  once for real on 2026-10-05).
+ * - idempotent:  re-run, it moves only what older code wrote at the old paths since
+ * - returns what it did (or, `dryRun`, would do), repo-relative:  `{ moved, merged, conflicts, links, rewritten }`
+ *
  * 1. every REAL entry in `packages/docs/content/` (not one of the old-path links) goes to its new place
- *    (`reorgEntry()`):  renamed whole when the place is free (`moved`), else merged file by file (`merged`;  a file
- *    already there and different stays put:  `conflicts`, for a person)
- * 2. an old-path link takes its place (`links`):  `packages/docs/content/epics -> ../../../epics`, so older code
- *    still finds it
- * 3. every `.html` / `.md` in the shared repo (links not followed):  links relocated (a moved file's from its old
- *    place;  anyone's into the moved ones), links that point nowhere re-read as written at the old place
- *    (`repairLinks()`), tab names (`retarget()`), the site header's `root`, path mentions;  `.json` mentions only
- *    (`rewritten`).  Links into Spell UI's pages too, which left `packages/ui/site/` for `ui/` (`uiSitePath()`,
- *    claude-design P6)
+ *    (`reorgEntry()`):
+ *    - renamed whole when the place is free (`moved`)
+ *    - else merged file by file (`merged`);  a file already there and different stays put (`conflicts`, for a person)
+ * 2. an old-path link takes its place (`links`), so older code still finds it:
+ *    `packages/docs/content/epics -> ../../../epics`
+ * 3. every `.html` / `.md` in the shared repo (links not followed) is rewritten (`rewritten`):
+ *    - links relocated:  a moved file's from its old place;  anyone's into the moved ones
+ *    - links that point nowhere, re-read as written at the old place (`repairLinks()`)
+ *    - tab names (`retarget()`), the site header's `root`, path mentions
+ *    - `.json`:  path mentions only
+ *    - links into Spell UI's pages too, which left `packages/ui/site/` for `ui/` (`uiSitePath()`, claude-design P6)
+ *
  * - `checkout`:  where repo paths outside the shared folders resolve (`exists`), e.g. `packages/ui/...`
- * - path MENTIONS in prose (`reorgMentions()`) only in files that moved just now, unless `allMentions` (the first run,
- *   2026-10-05):  a page in place may name an old path on purpose (history, the old-path links)
- * - plan docs are rewritten under their lock (`<file>.lock`, as `spell dev plan-doc` takes it);  the moves wait for
- *   every plan doc's lock, so no edit lands mid-move
+ * - path MENTIONS in prose (`reorgMentions()`) only in files that moved just now,
+ *   unless `allMentions` (the first run, 2026-10-05):  a page in place may name an old path on purpose
+ *   (history, the old-path links)
+ * - plan docs are rewritten under their lock (`<file>.lock`, as `spell dev plan-doc` takes it);
+ *   the moves wait for every plan doc's lock, so no edit lands mid-move
  */
 export function reorgShared(dir, checkout, { dryRun = false, allMentions = false } = {}) {
   const report = { moved: [], merged: [], conflicts: [], links: [], rewritten: [] }
@@ -506,8 +520,8 @@ export function withLocks(files, fn) {
  *   export (`spell-design-system/`, its `.spell.html` copies included), `leonardo/`, and the element docs pages
  *   (`components/*.html`)
  * - stayed:  the elements' code (`components/<tag>/`), `src/`, `scripts/`, `_assets/`, `_data/`, configs
- * - git moved them once;  `relocateLinks(text, old, new, BRAND_MOVE)` rewrote their links (and the shared pages'
- *   links into them)
+ * - git moved them once
+ * - `relocateLinks(text, old, new, BRAND_MOVE)` rewrote their links, and the shared pages' links into them
  */
 const BRAND_PAGES =
   /^packages\/brand\/(index\.html|compare\.html|(?:spell-design-system|leonardo)(?:\/.*)?|components\/[^/]+\.html)$/
@@ -549,8 +563,8 @@ export const DOCS_END_MOVE = { moved: docsEndPath, settled: () => false }
 /**
  * A path into what the docs package left, written out in prose or code (`packages/docs/tools/pages.js`,
  * `<code title="packages/docs/AGENTS.md">`):  `[1]` what follows `packages/docs/`.
- * - never the tail of a longer path or a URL (`../packages/docs/tools/x`, `/packages/docs/tools/_assets/x`):  a link
- *   is `relocateLinks()`'s, and a server path names the old URL
+ * - never the tail of a longer path or a URL (`../packages/docs/tools/x`, `/packages/docs/tools/_assets/x`):
+ *   a link is `relocateLinks()`'s, and a server path names the old URL
  */
 const DOCS_END_MENTION =
   /(?<![\w./-])packages\/docs\/(tools(?:\/[\w.*{},<>-]+)*\/?|(?:AGENTS|CLAUDE|README)\.md|package\.json|tsconfig\.json|vitest\.config\.ts)(?![\w-])/g
@@ -586,12 +600,15 @@ const DOCS_END_TARGET =
 const DOCS_END_KEEP = /^epics\/people-and-orgs\//
 
 /**
- * The docs package's end, in shared repo `dir`:  ONCE, when `people-and-orgs` merges into `main`;  idempotent, so
- * `spell dev shared repair` runs it too.  Returns what it did (or, `dryRun`, would do):  `rewritten`, the files
- * (repo-relative), and how many `links`, `targets` and `mentions` changed.
- * - every `.html` / `.htm` / `.md`:  links into `packages/docs/tools/` (and the package's own files) point into
- *   `packages/epics/` (`DOCS_END_MOVE`), and their tab names follow (`retarget()`, as `doc-links.js` names them);
- *   path mentions in prose and code too (`docsEndMentions()`);  a `.json`:  its mentions only
+ * The docs package's end, in shared repo `dir`:  ONCE, when `people-and-orgs` merges into `main`.
+ * - idempotent, so `spell dev shared repair` runs it too
+ * - returns what it did (or, `dryRun`, would do):
+ *   `rewritten`, the files (repo-relative), and how many `links`, `targets` and `mentions` changed
+ * - every `.html` / `.htm` / `.md`:
+ *   - links into `packages/docs/tools/` (and the package's own files) point into `packages/epics/` (`DOCS_END_MOVE`)
+ *   - their tab names follow (`retarget()`, as `doc-links.js` names them)
+ *   - path mentions in prose and code too (`docsEndMentions()`)
+ * - a `.json`:  its mentions only
  * - `people-and-orgs`' own pages keep their mentions:  they tell the move's story (`DOCS_END_KEEP`)
  * - plan docs, and their parts, are rewritten under the doc's lock, as `reorgShared()` does
  * - `reorgShared()`, every turn, fixes the links (not the mentions) in pages older code writes since
@@ -625,16 +642,20 @@ export function relinkDocsPackage(dir, { dryRun = false } = {}) {
 ////////////////
 
 /**
- * Where a link's target went in the component sets' layout (epic `people-and-orgs` P18, 2026-10-13):  `[pattern,
- * replacement]` on the repo-relative path a link points at, first match wins.
+ * Where a link's target went in the component sets' layout (epic `people-and-orgs` P18, 2026-10-13).
+ * - each `[pattern, replacement]`, on the repo-relative path a link points at;  first match wins
  * - a set's PAGES are linked at their SERVED address, `components/<set>/<page>` (the page server's `COMPONENT_SETS`):
  *   a set's folder doesn't draw its pages at its own address, only there
- *   - Spell UI's, from the shared `ui/` (its component index is `components.html` now, its pages flat);  Epic UI's,
- *     from `packages/epic-components/` or `epic-ui/`;  App UI's, from `packages/app/components/` or `app-ui/`;  the
- *     brand elements', from the shared `brand/components/`, their tags `brand-` now (Q26)
- * - CODE moved too:  Spell UI's elements (`src/components/` -> `components/`, their tests likewise), its design notes
- *   (`docs/` -> `notes/`), the sets' data (`_data/` -> `docs/__data/`), the epics pack (`pack/` ->
- *   `components/__pack/`), the brand's families (`ui-brand-x/UIBrandX.tsx` -> `brand-x/BrandX.tsx`)
+ *   - Spell UI's:  from the shared `ui/` (its component index is `components.html` now, its pages flat)
+ *   - Epic UI's:  from `packages/epic-components/` or `epic-ui/`
+ *   - App UI's:  from `packages/app/components/` or `app-ui/`
+ *   - the brand elements':  from the shared `brand/components/`, their tags `brand-` now (Q26)
+ * - CODE moved too:
+ *   - Spell UI's elements:  `src/components/` -> `components/`, their tests likewise
+ *   - its design notes:  `docs/` -> `notes/`
+ *   - the sets' data:  `_data/` -> `docs/__data/`
+ *   - the epics pack:  `pack/` -> `components/__pack/`
+ *   - the brand's families:  `ui-brand-x/UIBrandX.tsx` -> `brand-x/BrandX.tsx`
  */
 const SETS_LINKS = [
   [/^ui\/components(?:\/index\.html)?$/, "components/ui/components.html"],
@@ -712,8 +733,8 @@ export function setsMentionPath(path) {
 }
 
 /**
- * `link`, in page `file` (repo-relative), pointing where its target is linked now in the sets' layout;  unchanged
- * when its target didn't move.
+ * `link`, in page `file` (repo-relative), pointing where its target is linked now in the sets' layout.
+ * - unchanged when its target didn't move
  * - relative links, and server-absolute ones (`/ui/x.html`, `/worktrees/<w>/epic-ui/`)
  * - a folder link stays a folder link;  one whose folder became a page (`ui/components/`) links the page
  */
@@ -753,8 +774,8 @@ const SETS_HOMES = { ui: "/components/ui", "epic-ui": "/components/epics", "app-
  * `text` with every path it mentions that the sets' layout moved updated (`setsMentionPath()`), and the old
  * addresses (`/ui/`, `/epic-ui/`, `/app-ui/`) the new ones.
  * - a line naming the new places too is the move's story, and stays (`SETS_HISTORY`)
- *   - `original`:  the text as it was before its links were moved, line for line, to tell it by:  a moved link is no
- *     story
+ *   - `original`:  the text as it was before its links were moved, line for line, to tell it by:
+ *     a moved link is no story
  * - `addresses:  false`:  paths only, the old addresses stay (a plan doc:  what was served then, its record)
  */
 export function setsMentions(text, { addresses = true, original = text } = {}) {
@@ -817,22 +838,25 @@ export function setsRetarget(text, file) {
 }
 
 /**
- * Shared pages that keep their old paths in prose:  `people-and-orgs`, which tells the move's story;  the changelog and
- * the papercuts log, which are history.  Their LINKS are fixed all the same.
+ * Shared pages that keep their old paths in prose;  their LINKS are fixed all the same.
+ * - `people-and-orgs`, which tells the move's story
+ * - the changelog and the papercuts log, which are history
  */
 const SETS_KEEP = /^(?:epics\/people-and-orgs\/|guides\/changelog\.html$|agents\/PAPERCUTS\.md$)/
 
 /**
- * The component sets' layout, in shared repo `dir`:  ONCE, when `people-and-orgs` merges into `main`;  a second run
- * changes nothing.
- * Returns what it did (or, `dryRun`, would do):  `rewritten`, the files (repo-relative), and how many `links` and
- * `mentions` changed.
- * - every `.html` / `.htm` / `.md`:  links into a moved place point where it is now (`setsLink()`):  a set's page at
- *   its address, `/components/<set>/`;  their tab names follow (`setsRetarget()`);  path mentions and old addresses
- *   in prose and code too (`setsMentions()`), but a plan doc's addresses:  its record of what was served then;  a
- *   `.json`:  its mentions only
- * - the folders that moved OUT of the shared repo are skipped:  `ui/`, and `brand/components/` (delete them after,
- *   T3);  Claude Design's export (`brand/spell-design-system/`, but its `.spell.html` copies) is never edited
+ * The component sets' layout, in shared repo `dir`:  ONCE, when `people-and-orgs` merges into `main`.
+ * - a second run changes nothing
+ * - returns what it did (or, `dryRun`, would do):
+ *   `rewritten`, the files (repo-relative), and how many `links` and `mentions` changed
+ * - every `.html` / `.htm` / `.md`:
+ *   - links into a moved place point where it is now (`setsLink()`):  a set's page at its address, `/components/<set>/`
+ *   - their tab names follow (`setsRetarget()`)
+ *   - path mentions and old addresses in prose and code too (`setsMentions()`),
+ *     but not a plan doc's addresses:  its record of what was served then
+ * - a `.json`:  its mentions only
+ * - the folders that moved OUT of the shared repo are skipped:  `ui/`, and `brand/components/` (delete them after, T3)
+ * - Claude Design's export (`brand/spell-design-system/`, but its `.spell.html` copies) is never edited
  * - `people-and-orgs`' own pages keep theirs:  they tell the move's story (`SETS_KEEP`)
  * - plan docs, and their parts, are rewritten under the doc's lock, as `relinkDocsPackage()` does
  * - the brand's TAGS (`<ui-brand-logo>` -> `<brand-logo>`) are the brand package's own script's
@@ -887,13 +911,18 @@ const OLD_TOOLING = new Set(["scripts", "_assets", "templates", "epics-tools", "
 /**
  * Put checkout `root` right after a branch from before the CONTENT move merged `main`:  `spell dev shared repair`.
  * Returns what it did (or, `dryRun`, would do):  `{ moved, same, conflicts, linked, leftovers }`, repo-relative paths.
- * 1. pages left at the top of `packages/docs` (`packages/docs/<x>`, not the package's own files):  each file goes
- *    to `packages/docs/content/<x>` with its links relocated (`moved`), unless content has it already:  identical
- *    (`same`) or different (`conflicts`:  left in place, for a person);  then git forgets the old path
- * 2. every page in a REAL `content/` folder (not the shared repo's link):  links written for the old layout are
- *    repaired (`repairLinks()`), and a local link's tab name follows where it points now (`retarget()`):  `linked`
- * - `leftovers`:  old tooling folders (`packages/docs/scripts`, `packages/docs/tools` ...) and root logs
- *   (`PAPERCUTS.md` ...):  only reported
+ *
+ * 1. pages left at the top of `packages/docs` (`packages/docs/<x>`, not the package's own files):
+ *    - each file goes to `packages/docs/content/<x>` with its links relocated (`moved`)
+ *    - unless content has it already:  identical (`same`), or different (`conflicts`:  left in place, for a person)
+ *    - then git forgets the old path
+ * 2. every page in a REAL `content/` folder (not the shared repo's link), in `linked`:
+ *    - links written for the old layout are repaired (`repairLinks()`)
+ *    - a local link's tab name follows where it points now (`retarget()`)
+ *
+ * - `leftovers`:  only reported
+ *   - old tooling folders (`packages/docs/scripts`, `packages/docs/tools` ...)
+ *   - root logs (`PAPERCUTS.md` ...)
  * - NOTE:  pages that land in a linked `content/` (the shared repo, on older code) are the reorg's to move on:
  *   `reorgShared()`
  * - a checkout with no `packages/docs` at all (the docs package's end):  step 1 has nothing to do

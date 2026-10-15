@@ -1,7 +1,9 @@
 # `$/brand` -- Spell's brand, and its `<brand-*>` elements
 
-Spell's brand in code:  the colour math the Brand tab's pages use, the bundle their Spell UI copies load, and the
-`<brand-*>` elements those copies are built from.
+Spell's brand in code:
+- the colour math the Brand tab's pages use
+- the bundle their Spell UI copies load
+- the `<brand-*>` elements those copies are built from
 - The elements are a COMPONENT PACK:  a page loads them on demand through `<ui-root>`, as it loads the epics pack's.
 - Their docs pages, Brand UI, live here too (`docs/`), served at `/components/brand/`.
 - The Brand tab's pages themselves are SHARED, in the repo root's `brand/`:  see [AGENTS.md](AGENTS.md).
@@ -13,19 +15,20 @@ Spell's brand in code:  the colour math the Brand tab's pages use, the bundle th
 </ui-root>
 ```
 
-The page must load Spell UI's docs bundle (`packages/epics/tools/_assets/spell-ui.js`) or a set's site bundle first:
-the pack registers there (`SpellUI.registerPack()`) and takes Solid and Spell UI's shared code from it
-(`SpellUI.packModules`).
+The page must load Spell UI's [docs bundle](../epics/tools/_assets/spell-ui.js), or a set's site bundle, first:
+- the pack registers there (`SpellUI.registerPack()`)
+- and takes Solid and Spell UI's shared code from it (`SpellUI.packModules`)
 
 ## The DRY rule (one of each)
 
 If you find yourself writing a second copy of any of these, stop and reuse.
 
-- the pack's build, catalog and staleness check:  the CLI's, `spell dev pack` (`packages/cli/src/dev/packBuild.ts`)
-- reading a vocabulary's tag and skeleton:  Spell UI's `RootCatalog` (`packages/ui/tools/RootCatalog.ts`)
-- the docs data:  Spell UI's `SiteDataBuilder`, `SiteSearchBuilder` and `ElementManifests` (`scripts/site-data.ts`)
+- the pack's build, catalog and staleness check:  the CLI's, `spell dev pack` ([packBuild.ts](../cli/src/dev/packBuild.ts))
+- reading a vocabulary's tag and skeleton:  Spell UI's [`RootCatalog`](../ui/tools/RootCatalog.ts)
+- the docs data, in [site-data.ts](scripts/site-data.ts):  Spell UI's builders
+  - `SiteDataBuilder`, `SiteSearchBuilder`, `ElementManifests`
 - the element authoring API:  `$/spell-solid`, and Spell UI's `$/ui/core`
-- the brand's colour math:  `Palette` (`src/Palette.ts`)
+- the brand's colour math:  [`Palette`](src/Palette.ts)
 
 ## Files
 
@@ -48,14 +51,18 @@ If you find yourself writing a second copy of any of these, stop and reuse.
 
 ## Adding a new element
 
-1. `spell dev pack element brand brand-<name>`:  writes `components/brand-<name>/` and its test, adds it to
-   `components/index.ts`, and rebuilds `components/__pack/`
+1. `spell dev pack element brand brand-<name>`:
+   - writes the family's folder, `components/brand-<name>/`, and its test
+   - adds it to [the barrel](components/index.ts)
+   - rebuilds `components/__pack/`
 2. Fill in its vocabulary (description, `topics`, `aka`, attributes, parts, skeleton), its class and sheet
-3. Copy a page in `docs/` to `brand-<name>.html`, and file the tag in `docs/__data/pages.json`'s `groups`
-4. `yarn pack:build`, then `yarn review`;  commit `components/__pack/` and `docs/__data/` with the change
+3. Copy a page in `docs/` to `brand-<name>.html`.
+   File the tag in the `groups` of [the hand-kept facts](docs/__data/pages.json).
+4. `yarn pack:build`, then `yarn review`
+5. Commit the pack and the docs data (`components/__pack/`, `docs/__data/`) with the change
 
 ## Deferred
 
-- The Theming tab's token tables:  Spell UI's token readers find only `--ui-*` tokens, and the brand's are
-  `--brand-*`.
+- The Theming tab's token tables:
+  Spell UI's token readers find only `--ui-*` tokens, and the brand's are `--brand-*`.
 - Generic elements (the field, the colour chips) move into Spell UI later (epic `design-system`, D2).

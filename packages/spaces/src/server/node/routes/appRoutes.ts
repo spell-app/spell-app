@@ -11,23 +11,25 @@ import { api, projectBuild, spaceFiles } from "./api"
 import { APP_DIR, EDITOR_FILE, EditorServer } from "./EditorServer"
 
 /**
- * The app on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`), listed in the repo root's
- * `package.json` `"pageServer": { "routes": [...] }`.  What `spell serve` runs everything on.
+ * The app on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`),
+ * listed in the repo root's `package.json` `"pageServer": { "routes": [...] }`.
+ * - What `spell serve` runs everything on.
  * - It's spaces' (epic `people-and-orgs` P14):  where projects live, and the servers that serve them.
- * - `/api/...` -- the app's API, `./api` (as `cli.ts` serves it alone, `yarn start:server`);  bodies as JSON5
- * - `/spaces/<project>/<file>` -- a project's file, by its URL (`spaceFiles`, `./api`):  how spell reads every file
- * - `/hello` -- liveness
- * - `/element/...` -- `<spell-app>` / `<spell-editor>`'s bundles, `dist-element/` (`yarn build:element`), for the
- *   demo pages, `/demo/spell-app.html` on the editor:  vite passes `/element` on to us, as it does `/api`
- * - the editor UI (`EditorServer`):  vite's dev server, started once the page server listens and stopped with it --
- *   the page server and the editor are ONE thing to start
- * - `/editor` -- the site header's "Editor":  redirects to the editor, from its record (`EDITOR_FILE`);  not up yet
- *   (vite takes seconds) or not running:  says so
- * - writes refuse a foreign `Origin` (another site posting into our projects):  the API has no token, since the
- *   editor calls it from vite's origin, through vite's proxy
- * - as it starts:  compiles the built-in projects that are out of date (`@spell/examples`, `@spell/library`), in the background,
- *   so the demo pages and App UI's live examples find their compiled output in `build/` (`ProjectBuild`, `start()`);
- *   stopped with the page server
+ * - What it serves:
+ *   - `/api/...` -- the app's API, `./api` (as `cli.ts` serves it alone, `yarn start:server`);  bodies as JSON5
+ *   - `/spaces/<project>/<file>` -- a project's file, by its URL (`spaceFiles`, `./api`):  how spell reads every file
+ *   - `/hello` -- liveness
+ *   - `/element/...` -- `<spell-app>` / `<spell-editor>`'s bundles, `dist-element/` (`yarn build:element`)
+ *     - for the demo pages, `/demo/spell-app.html` on the editor:  vite passes `/element` on to us, as it does `/api`
+ *   - `/editor` -- the site header's "Editor":  redirects to the editor, from its record (`EDITOR_FILE`)
+ *     - not up yet (vite takes seconds) or not running:  says so
+ * - The editor UI (`EditorServer`):  vite's dev server, started once the page server listens and stopped with it.
+ *   The page server and the editor are ONE thing to start.
+ * - Writes refuse a foreign `Origin` (another site posting into our projects).
+ *   - The API has no token, since the editor calls it from vite's origin, through vite's proxy.
+ * - As it starts:  compiles the built-in projects that are out of date (`@spell/examples`, `@spell/library`),
+ *   in the background;  stopped with the page server.
+ *   - So the demo pages and App UI's live examples find their compiled output in `build/` (`ProjectBuild`, `start()`).
  */
 const appRoutes: RouteModule = {
   name: "app",

@@ -7,7 +7,7 @@ import { hasProjectFile } from "$/spell/node/projectFile"
 import { CLI } from "$/cli"
 
 /**
- * `spell new <name>`:  make a spell project -- folder `<name>/`, holding `project.json` and a starter
+ * `spell new <name>`:  make a spell project -- folder `<name>/`, holding `__project.json5` and a starter
  * `<name>.spell` which prints a hello, so `spell run` shows something straight away.
  * - In `--in <folder>`, or by default `owen@spell`'s folder, your space in spell-spaces (`@spell/owen@/`).
  * - Writes the files itself:  `projectUtils.createProject()` would go through `getIndex()`, which adds an

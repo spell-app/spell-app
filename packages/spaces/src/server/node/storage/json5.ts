@@ -1,14 +1,14 @@
 /**
- * Reading and writing JSON5 so its COMMENTS stay:  the one helper every JSON5 edit goes through (epic
- * `people-and-orgs` P8, decisions Q4 and J41).
+ * Reading and writing JSON5 so its COMMENTS stay:  the one helper every JSON5 edit goes through
+ * (epic `people-and-orgs` P8, decisions Q4 and J41).
  *
  * ```ts
  * json5Edited('{\n  // who\n  "name": "Owen"\n}', { name: "O" })
  * // => '{\n  // who\n  "name": "O"\n}'
  * ```
  *
- * - On json5-writer, Owen's pick:  it writes a WHOLE value at a time and removes any key the value leaves out, so an
- *   edit reads the file, changes the object, and writes all of it back (`editJSON5()`).
+ * - On json5-writer, Owen's pick:  it writes a WHOLE value at a time, and removes any key the value leaves out.
+ *   So an edit reads the file, changes the object, and writes all of it back (`editJSON5()`).
  * - Spell writes the JSON-compatible part of JSON5:  keys and text in double quotes, no trailing commas;
  *   a person's comments, wherever they are, stay.
  * - Behind this one file, so the library can be swapped later.
@@ -23,8 +23,9 @@ import type { SpaceStorage } from "$/spaces/models/SpaceStorage"
 const SPELL_STYLE = { quote: "double", quoteKeys: true, trailingComma: false } as const
 
 /**
- * `source` (a JSON5 file's text) with its value replaced by `value`:  every comment, and every key `value` keeps,
- * where it was;  a key `value` leaves out, gone;  a new one added at the end.
+ * `source` (a JSON5 file's text) with its value replaced by `value`:
+ * - every comment, and every key `value` keeps, where it was
+ * - a key `value` leaves out, gone;  a new one added at the end
  * - An empty `source`:  `value` alone, two-space indented.
  */
 export function json5Edited(source: string, value: object): string {
@@ -42,8 +43,9 @@ export async function readJSON5<T = unknown>(storage: SpaceStorage, path: string
 }
 
 /**
- * Write `value` into JSON5 file `path`, keeping the comments already there (`json5Edited()`);  a new file if there's
- * none.  Returns the text written.
+ * Write `value` into JSON5 file `path`, keeping the comments already there (`json5Edited()`).
+ * - A new file if there's none.
+ * - Returns the text written.
  */
 export async function writeJSON5(storage: SpaceStorage, path: string, value: object): Promise<string> {
   const text = json5Edited((await storage.read(path)) ?? "", value)

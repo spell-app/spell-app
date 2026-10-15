@@ -24,19 +24,23 @@ import { VocabularyFiles } from "./VocabularyFiles.ts"
 
 /****************
  * ### `SiteDataBuilder`
- * Builds the Spell UI site's data:  `docs/__data/components.json` (`SiteDataFile`) from every vocabulary and family
- * sheet, and keeps `docs/__data/pages.json` (`SitePagesFile`, the hand-kept per-family facts) complete.
- * - Run by `yarn site:data` (`scripts/site-data.ts`), which writes both;
- *   `tools/SiteDataBuilder.test.ts` fails while either is stale.
+ * Builds the Spell UI site's data:
+ * - `docs/__data/components.json` (`SiteDataFile`), from every vocabulary and family sheet
+ * - and keeps `docs/__data/pages.json` (`SitePagesFile`, the hand-kept per-family facts) complete
+ *
+ * - Run by `yarn site:data` (`scripts/site-data.ts`), which writes both.
+ *   - `tests/ui/tools/SiteDataBuilder.test.ts` fails while either is stale.
  * - Reads the vocabulary FILES (`import()` each `UI<Name>.en.ts`), as `yarn gen:root` does:
  *   `ComponentDefinitions` needs Vite's `import.meta.glob`.
- *   Components from `components/`, doc-only elements from `src/docs-components/`.
- * - pages.json:  a family missing from it is SEEDED, once, from its vocabulary (title from the tag, summary its
- *   description, `done`);  after that the file is the source.  The first seeds came from the old Astro site's MDX
- *   pages (frontmatter + token-table props), deleted with it (epic `spell-ui-pages`, P7).
+ *   - Components from `components/`, doc-only elements from `src/docs-components/`.
+ * - pages.json:  a family missing from it is SEEDED, once, from its vocabulary;  after that the file is the source.
+ *   - The seed:  title from the tag, summary its description, `done`.
+ *   - The first seeds came from the old Astro site's MDX pages (frontmatter + token-table props),
+ *     deleted with it (epic `spell-ui-pages`, P7).
  * - Also the FOUNDATION tokens, grouped (`foundation`, `tools/FoundationTokens.ts`), for the theming page's tables.
- * - And the theme sheets (`themes`, `tools/ThemeFamilies.ts`):  title and the families each touches, for
- *   `<ui-docs-themes>`;  titles are pages.json's `themes`, seeded once per new sheet.
+ * - And the theme sheets (`themes`, `tools/ThemeFamilies.ts`), for `<ui-docs-themes>`:
+ *   - each one's title, and the families it touches
+ *   - titles are pages.json's `themes`, seeded once per new sheet
  * - And the search file, `docs/__data/search.json` (`searchText()`, `tools/SiteSearchBuilder.ts`):
  *   every page's sections, read from the pages' markup.
  * - Deterministic:  sorted, no dates, so a rebuild with nothing changed writes the same bytes.

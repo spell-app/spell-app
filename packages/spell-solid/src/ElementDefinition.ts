@@ -14,11 +14,11 @@ import { E } from "$/spell-solid"
  *   - `convert()`:  attribute text or property value => value
  *   - `attributeText()`:  value => attribute text
  * - Values:  localized values (`rojo`) are canonicalized on the way IN, from attributes and property writes alike,
- *   so `ClassBuilder` and the component only ever see canonical English (`red`);
+ *   so the class-grammar `builder` and the component only ever see canonical English (`red`);
  *   reflection writes them localized again.
  * - One instance per tag;  the canonical tag and each translated alias get their own.
- * - The vocabulary layer itself (the registry of names, the value sets, the converters, the class words) is the
- *   page's runtime's:  Spell UI's, reached through `SpellSolid.settings.words`.
+ * - The vocabulary layer itself is the page's runtime's:  Spell UI's, reached through `SpellSolid.settings.words`.
+ *   - the registry of names, the value sets, the converters, the class words
  * - No Solid, no DOM:  so the server render (`$/ui/static`) builds one in node.
  ****************/
 export class ElementDefinition {
@@ -46,7 +46,7 @@ export class ElementDefinition {
   /** The vocabulary layer:  the page's runtime's (`SpellSolid.settings.words`). */
   private readonly words = E.SpellSolid.settings.words
 
-  /** Private registry, so `canonicalValue()` can map multi-word values for THIS tag without the runtime. */
+  /** Private registry, so `canonicalValue()` can map multi-word values for THIS tag without the page's registry. */
   private readonly names = this.words.names()
 
   constructor(vocabulary: E.ComponentVocabulary, { tag, dictionary }: ElementDefinitionProps = {}) {
@@ -97,7 +97,7 @@ export class ElementDefinition {
   }
 
   /**
-   * Does this tag take the SHARED attribute `name` (`SharedVocabulary`)?
+   * Does this tag take the SHARED attribute `name` (Spell UI's `SharedVocabulary`)?
    * - False when its vocabulary declares its own of that name:  `<ui-sidebar>`'s `visible` starts hidden.
    */
   takesShared(name: string): boolean {

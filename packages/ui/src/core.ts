@@ -36,8 +36,9 @@
  *     comes from its own file instead (WWOD §4 › "Circular imports").
  *   - The order below puts each such file before its readers.
  *   - `tests/ui/src/elements/barrel.test.ts` checks every export is live.
- * - `$/spell-solid` (the element bases, what every set's elements are written on) is re-exported WHOLE, and its
- *   settings installed as this module loads (`SpellUISettings`, a side effect;  a tag defined before that waits).
+ * - `$/spell-solid` (the element bases, what every set's elements are written on) is re-exported WHOLE.
+ *   - Its settings are installed as this module loads (`SpellUISettings`, a side effect).
+ *   - A tag defined before that waits.
  * - NOTE: `solid-js` and `@solidjs/web` are NOT re-exported:
  *   peer dependencies, external in the build (`vite.config.ts`).
  *   The custom-element layer is `$/spell-solid` (`DOMElement`, `UIComponent`, `ShadowEvents`), bundled here.

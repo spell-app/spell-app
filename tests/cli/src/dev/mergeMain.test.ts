@@ -7,8 +7,10 @@ import { afterAll, describe, expect, test } from "vite-plus/test"
 import { CLI, type Generator } from "$/cli"
 
 /**
- * Throwaway repos:  `src/{a,b}.txt` is the source;  `gen/` its generated output, with a hashed chunk name as a site
- * bundle has;  `packages/p/src/__snapshots__/x.test.ts.snap` a snapshot of both, and of the two together.
+ * Throwaway repos:
+ * - `src/{a,b}.txt`:  the source
+ * - `gen/`:  its generated output, with a hashed chunk name as a site bundle has
+ * - `packages/p/src/__snapshots__/x.test.ts.snap`:  a snapshot of both, and of the two together
  */
 const TEMP = realpathSync(mkdtempSync(join(tmpdir(), "merge-main-")))
 afterAll(() => rmSync(TEMP, { recursive: true, force: true }))

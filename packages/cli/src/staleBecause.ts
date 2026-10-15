@@ -10,8 +10,8 @@ import { LSP } from "$/lsp"
 /**
  * Why `project`'s build is out of date, e.g. `"Card.spell changed since"`;  `undefined` when it's up to date.
  * - What `spell compile --stale` asks of each project, and of each project it imports.
- * - Out of date when one of the files it BUILDS is missing, or anything it's built FROM changed since the oldest of
- *   them.
+ * - Out of date when one of the files it BUILDS is missing,
+ *   or anything it's built FROM changed since the oldest of them.
  * - The files it builds:
  *   - each target's output (`project.targets`), e.g. `Solitaire.spell.js`, `Solitaire.lib.ts`
  *   - its declarations and words, e.g. `Solitaire.declarations.json5`, `Solitaire.en.js`

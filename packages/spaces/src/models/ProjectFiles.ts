@@ -6,15 +6,16 @@ import { SP } from "$/spell"
  * - The editor calls these, never spell:  `SpellProject` only reads, compiles and saves (decision Q20).
  * - Each asks spaces' server (`/api/projects/create/file` ...), which answers the project's new index,
  *   and sets it as the project's `contents`, so its `files` follow at once.
- * - Each throws (through `getDier()`) with what it was doing, e.g. "renaming file", for the editor to show;
- *   a prompt you cancel returns `undefined`.
+ * - Each throws (through `getDier()`) with what it was doing, e.g. "renaming file", for the editor to show.
+ * - A prompt you cancel returns `undefined`.
  * - It was `SpellProject`'s, until epic `people-and-orgs` P15.
  */
 export class ProjectFiles {
   /**
    * Format of what the editor sends:  JSON, as `application/json`, so the server parses it.
-   * - It was a bare `"json"`, which the server took for no body at all:  every create, copy, rename and delete of a
-   *   project or a file failed with "Path must be a string" (found in epic `people-and-orgs` P15).
+   * - It was a bare `"json"`, which the server took for no body at all:
+   *   every create, copy, rename and delete of a project or a file failed with "Path must be a string"
+   *   (found in epic `people-and-orgs` P15).
    */
   static REQUEST_FORMAT_JSON = KnownFormat.json
 
@@ -27,8 +28,8 @@ export class ProjectFiles {
 
   /**
    * Create a new file within the project, and return it.
-   * - `filePath` is relative to the project, and may or may not start with `/`;  none:  asks for one (`prompt()`),
-   *   suggesting `newFileName`.
+   * - `filePath` is relative to the project, and may or may not start with `/`.
+   * - No `filePath`:  asks for one (`prompt()`), suggesting `newFileName`.
    * - NOTE: in theory this handles nested files.
    * - throws if the file is already there, or the server says no;  `undefined` if the prompt is cancelled
    */

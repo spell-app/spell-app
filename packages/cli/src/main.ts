@@ -48,7 +48,7 @@ program
   .description("compile projects to <Project>.spell.js, or print a file's compiled javascript")
   .argument("[projects...]", PROJECTS_ARG)
   .option("--stdout", "print a project's compiled output instead of writing it")
-  .option("--target <name>", 'compile to this target too, e.g. ts/solid -- default project.json\'s "targets"')
+  .option("--target <name>", 'compile to this target too, e.g. ts/solid -- default the project file\'s "targets"')
   .option("--force", "recompile the projects it imports too, even those already compiled")
   .option("--stale", "compile only the projects whose build is missing or older than what it's built from")
   .action((args: string[], _options, command) => run(CLI.compileCommand, args, command.optsWithGlobals()))
@@ -171,7 +171,7 @@ program
 
 program
   .command("new")
-  .description("make a spell project:  <name>/project.json and a starter <name>.spell")
+  .description("make a spell project:  <name>/__project.json5 and a starter <name>.spell")
   .argument("<name>", "the project's name, e.g. Snake")
   .option("--in <folder>", "make it in this folder -- default owen@spell's, your space in spell-spaces")
   .action((name: string, _options, command) => run(CLI.newCommand, [name], command.optsWithGlobals()))

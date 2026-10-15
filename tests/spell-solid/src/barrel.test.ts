@@ -7,8 +7,9 @@ import * as core from "$/ui/core"
  * `$/spell-solid`'s barrel, and how Spell UI carries it.
  * - The files import the barrel back as `E`:  a cycle, on purpose.
  *   A binding the cycle leaves `undefined` slips past `tsc` and the bundler alike;  this catches it.
- * - Spell UI's `$/ui/core` re-exports every name, so its `E` holds them too, and a component pack that imports
- *   `$/spell-solid` reads Spell UI's core module from the page (`SpellUI.packModules`):  ONE copy on a page.
+ * - Spell UI's `$/ui/core` re-exports every name, so its `E` holds them too.
+ * - A component pack that imports `$/spell-solid` reads Spell UI's core module from the page (`SpellUI.packModules`):
+ *   ONE copy on a page.
  * - It imports only `$/util`'s generic files and Solid:  never Spell UI, or any other package.
  */
 describe("$/spell-solid", () => {

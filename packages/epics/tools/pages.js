@@ -59,8 +59,9 @@ export const GOALS = join(ROOT, "goals")
 export const AREAS = [PAGES, GUIDES, EPICS, TEMPLATES]
 
 /**
- * Each area's list page, `<area>/index.html`, written by `index.js` (claude-design P5):  every epic, guide,
- * template and brand page.  Never listed themselves.
+ * Each area's list page, `<area>/index.html`, written by `index.js` (claude-design P5).
+ * - every epic, guide, template and brand page
+ * - never listed themselves
  */
 export const LIST_PAGES = [EPICS, GUIDES, TEMPLATES, BRAND].map((area) => join(area, "index.html"))
 
@@ -98,18 +99,19 @@ function reorgEntry(name) {
 /**
  * Folders that hold no pages.
  * - `examples`:  fragments a page includes (`ui-import/examples/part.html`), not pages:  no sections, no contents
- * - `details`:  details pages (`spell dev details`), questions for one session:  not in the index, not checked with the
- *   docs (scratch `details/`, and an epic's `epics/<name>/details/`);  NOT the `details` epic's own folder,
- *   `epics/details/` (`findPages()`)
- * - `parts`:  a split plan doc's bodies (`epics/<name>/parts/<id>.html`, `PlanParts`):  fragments its page loads,
- *   told from pages by this folder alone since they're `.html` (Q12 of `epic-components`;  `.htm` before)
+ * - `details`:  details pages (`spell dev details`), questions for one session
+ *   - not in the index, not checked with the docs
+ *   - scratch `details/`, and an epic's `epics/<name>/details/`
+ *   - NOT the `details` epic's own folder, `epics/details/` (`findPages()`)
+ * - `parts`:  a split plan doc's bodies (`epics/<name>/parts/<id>.html`, `PlanParts`), fragments its page loads
+ *   - told from pages by this folder alone, since they're `.html` (Q12 of `epic-components`;  `.htm` before)
  */
 const SKIP_DIRS = new Set(["node_modules", "experiments", "examples", "details", "parts"])
 
 /**
- * Epic `name`'s plan doc in folder `dir` (`epics/<name>/`):  `<name>.plan.html`, else `<name>.html` when that is a
- * plan doc (`<body class="... plan-doc">`, or one in `<epic-*>` markup:  an `<epic-page>`);  `undefined` when
- * there's neither.
+ * Epic `name`'s plan doc in folder `dir` (`epics/<name>/`):  `<name>.plan.html`, else `<name>.html`.
+ * - `<name>.html` only when that is a plan doc:  `<body class="... plan-doc">`, or an `<epic-page>`
+ * - `undefined` when there's neither
  * - why both names:  plan docs were renamed `<name>.plan.html` on 2026-10-04 (`review-review` P4), and a worktree
  *   cut before then still has `<name>.html` until it merges `main`
  * - `packages/epics/src/tool/PlanDocFiles.ts` `planDocIn()` is the same:  change both
@@ -124,8 +126,8 @@ export function planDocIn(dir, name) {
 }
 
 /**
- * Every `.html` page under `dir` (a folder, or several;  default:  every area, `AREAS`), sorted, skipping tooling
- * folders.
+ * Every `.html` page under `dir`, sorted, skipping tooling folders.
+ * - `dir`:  a folder, or several;  default:  every area, `AREAS`
  * - follows a link to a folder (each area is one, into the shared content repo):  the page keeps the link's path
  * - a missing folder has no pages
  */
@@ -177,8 +179,9 @@ export function tidy(files) {
 }
 
 /**
- * How to run `doc-links.js` with `args` as a child `node`, for `spawnSync(command, args, { env })`:  under `tsx`,
- * which maps its `$/assembler` import through this package's `tsconfig.json`, from whatever folder it runs in.
+ * How to run `doc-links.js` with `args` as a child `node`, for `spawnSync(command, args, { env })`.
+ * - under `tsx`, which maps its `$/assembler` import through this package's `tsconfig.json`,
+ *   from whatever folder it runs in
  * - the one way the tools run it (`tidy()`, `update.js`, goals' check, its own test)
  */
 export function docLinksRun(args) {
@@ -193,10 +196,10 @@ export function docLinksRun(args) {
 const VSCODE_PREVIEW = "vscode://spell-app.spell-language/doc-preview"
 
 /**
- * This checkout's page server (`spell dev server`), started in the background if it isn't running:  `{ base, port }`,
- * or `undefined` if it can't start (the caller falls back to `file://`).
- * - runs `packages/server/src/page/cli.ts ensure` under `tsx`, with that package's `tsconfig.json` for its aliases;
- *   ~1s when it has to start, ~0.3s when it runs
+ * This checkout's page server (`spell dev server`), started in the background if it isn't running.
+ * - returns `{ base, port }`, or `undefined` if it can't start (the caller falls back to `file://`)
+ * - runs `packages/server/src/page/cli.ts ensure` under `tsx`, with that package's `tsconfig.json` for its aliases
+ * - ~1s when it has to start, ~0.3s when it runs
  * - `SPELL_NO_SERVER=1`:  never starts it
  */
 export function ensurePageServer() {
@@ -224,11 +227,15 @@ export function ensurePageServer() {
 /**
  * A template's `html` fixed for a page `depth` folders below the checkout's root (`guides/glossary.html` is 1,
  * `epics/a/a.plan.html` 2).
- * - rewrites whatever depth the template assumed:  `_assets` paths (`<up>packages/epics/tools/_assets/`), the docs
- *   home's paths (`<up>pages/index.html`), the areas' list pages (`<up>epics/index.html` ...), the site
- *   header's `root` (`<up>`:  the path up to the root), and the epics pack (`<up>packages/epics/components/__pack/`;  its old folder, `pack/`, too)
- *   - `_assets` from wherever the template had them:  `tools/_assets/`, `packages/epics/tools/_assets/`, or the
- *     docs package's old `packages/docs/tools/_assets/` (before epic `people-and-orgs` P16)
+ * - rewrites whatever depth the template assumed, `<up>` being the path up to the root:
+ *   - `_assets` paths:  `<up>packages/epics/tools/_assets/`
+ *   - the docs home's paths:  `<up>pages/index.html`
+ *   - the areas' list pages:  `<up>epics/index.html` ...
+ *   - the site header's `root`:  `<up>`
+ *   - the epics pack:  `<up>packages/epics/components/__pack/` (its old folder, `pack/`, too)
+ *   - `_assets` from wherever the template had them:
+ *     `tools/_assets/`, `packages/epics/tools/_assets/`, or the docs package's old `packages/docs/tools/_assets/`
+ *     (before epic `people-and-orgs` P16)
  * - drops the template's `TEMPLATE:` how-to comment
  * - `docs:new`, `details new`, and the plan-doc tool's `epic new` (`PlanDocCommands`)
  */
@@ -255,19 +262,22 @@ export function serverUrl(base, file) {
 }
 
 /**
- * Show `file` rendered in VS Code's doc preview:  `spell dev plan-doc open <name>`, `spell dev plan-doc phase`, `/spell-docs`.
- * - starts this checkout's page server first (`ensurePageServer()`), so the page live-reloads;  the spell extension
- *   (`spell dev vscode`) finds it by its pid file and shows the page in a tab of the right side bar (or Simple Browser,
- *   `spell.docPreview.location`).  The page already in that tab isn't reloaded:  it updates itself.
- * - first asks THIS session's window, through the extension's window bridge (the repo root's
- *   `scripts/window.mjs`);  a `vscode://` URI goes to whichever window is focused
- * - NOT run from VS Code (`Window.inVSCode`:  a CLI session in another terminal):  `openInChrome()` instead, and
- *   `hash` and `view` are dropped
+ * Show `file` rendered in VS Code's doc preview.
+ * - for `spell dev plan-doc open <name>`, `spell dev plan-doc phase`, `/spell-docs`
+ * - starts this checkout's page server first (`ensurePageServer()`), so the page live-reloads
+ * - the spell extension (`spell dev vscode`) finds the server by its pid file,
+ *   and shows the page in a tab of the right side bar (or Simple Browser, `spell.docPreview.location`)
+ *   - the page already in that tab isn't reloaded:  it updates itself
+ * - first asks THIS session's window, through the extension's window bridge (the repo root's `scripts/window.mjs`);
+ *   a `vscode://` URI goes to whichever window is focused
+ * - NOT run from VS Code (`Window.inVSCode`:  a CLI session in another terminal):
+ *   `openInChrome()` instead, and `hash` and `view` are dropped
  * - `hash`:  an id on the page to land on, e.g. a goal `g1`
- * - `view`:  which side bar tab, `"docs"` ("Spell Docs", the default) or `"review"` ("Review":  `/epic review`,
- *   `spell dev docs open <page> --review`);  each keeps its own page
- * - the session is moving to a worktree's window (`/isolate`, `/epic`:  a pending handoff):  shown THERE once it
- *   has moved, not in the window it's leaving
+ * - `view`:  which side bar tab;  each keeps its own page
+ *   - `"docs"`:  "Spell Docs", the default
+ *   - `"review"`:  "Review" (`/epic review`, `spell dev docs open <page> --review`)
+ * - the session is moving to a worktree's window (`/isolate`, `/epic`:  a pending handoff):
+ *   shown THERE once it has moved, not in the window it's leaving
  * - no bridge (extension not reloaded, or not run from a VS Code window), or it failed:  the `vscode://` URI
  * - `open` can't fail (macOS):  without the extension, VS Code says it can't handle the URI
  * - `open` itself failed (not macOS):  falls back to Chrome
@@ -296,13 +306,14 @@ export async function openInVSCode(file, { hash, view = "docs" } = {}) {
 /**
  * Show `file` in Chrome, in ONE tab per page, IN THE BACKGROUND:  `spell dev docs open <page>`;  `openInVSCode()`'s fallback.
  * - from this checkout's page server (live reload), started if need be;  `file://` if it can't start
- * - The tab is keyed by the page's path from the root (`/epics/<name>/<name>.plan.html`), not its full URL, so
- *   the same page from another checkout (a worktree) reuses it:  re-pointed if the URL differs, else reloaded.
- *   The page names its tab the same way (`spell-doc-runtime.js` `window.name`;  links use that `target`).
- * - Never brings Chrome or its window forward:  the tab is made active in ITS window only;  a new tab goes in the
- *   front window.  (`openUrlInChrome()` with `front` does, for a link Owen clicked.)
- * - Chrome not running, or AppleScript refused:  `open -g -a "Google Chrome"`, which can't reuse a tab, and Chrome
- *   may still raise itself for a URL it's handed (seen 2026-10-01).
+ * - The tab is keyed by the page's path from the root (`/epics/<name>/<name>.plan.html`), not its full URL.
+ *   - so the same page from another checkout (a worktree) reuses it:  re-pointed if the URL differs, else reloaded
+ *   - the page names its tab the same way (`spell-doc-runtime.js` `window.name`;  links use that `target`)
+ * - Never brings Chrome or its window forward:  the tab is made active in ITS window only.
+ *   - a new tab goes in the front window
+ *   - `openUrlInChrome()` with `front` does bring it forward, for a link Owen clicked
+ * - Chrome not running, or AppleScript refused:  `open -g -a "Google Chrome"`, which can't reuse a tab.
+ *   Chrome may still raise itself for a URL it's handed (seen 2026-10-01).
  * - NOTE: `key` is an AppleScript keyword:  the variable is `pageKey`.
  */
 export function openInChrome(file) {
@@ -313,8 +324,8 @@ export function openInChrome(file) {
 
 /**
  * Show `url` in Chrome, reusing the tab whose URL contains `key` (see `openInChrome()`).
- * - `front`:  bring Chrome and that tab's window forward -- a link Owen clicked (`showRoutes.ts`);  else in the
- *   background
+ * - `front`:  bring Chrome and that tab's window forward -- a link Owen clicked (`showRoutes.ts`)
+ * - else in the background
  */
 export function openUrlInChrome(url, key, { front = false } = {}) {
   const script = `

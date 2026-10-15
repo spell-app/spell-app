@@ -24,8 +24,9 @@ import {
  *   - `/api/files` -> `SRV.FileOperations`:  files and folders saved, made, moved, copied and deleted
  *   - `/api/pages` -> `PageEditor`:  a page's source, saving it, saving one section
  *   - both write only inside the root `package.json`'s `"pageServer"` `"writable"` folders (the shared content ones)
- *   - the rest come from route modules:  `/api/epics/...` and `/api/docs/...` (epics), `/api/projects/...` and
- *     `/api/spaces/...` (spaces)
+ *   - the rest come from route modules:
+ *     - epics':  `/api/epics/...` and `/api/docs/...`
+ *     - spaces':  `/api/projects/...` and `/api/spaces/...`
  * - `/` -> the docs home (`pages/index.html`)
  * - `/components/<set>/` -> the component sets' docs (`COMPONENT_SETS`):  Spell UI's, Epic UI's, App UI's, the brand's
  *   - each its package's `docs/` folder, with Spell UI's site bundle laid over it at `_assets/` (`componentSetPath()`)
@@ -36,9 +37,11 @@ import {
  *   and a request for one of their files waits while that runs
  * - route modules (`RouteModule`) from the root `package.json`'s `"pageServer"` add the rest, e.g. the running epics
  * - NO redirects for old URLs (epic `people-and-orgs`, Q30):  an old address answers "not found"
- *   - until `people-and-orgs` merges into `main`, two temporary bridges for the SHARED pages, which every checkout
- *     shows:  folders this branch moved still serve from their new place (`movedFolderPath()`), and folders it moved
- *     out of the shared content answer "not found" here though the shared repo still holds them (`MOVED_OUT`)
+ *   - until `people-and-orgs` merges into `main`, two temporary bridges
+ *     for the SHARED pages, which every checkout shows:
+ *     - folders this branch moved still serve from their new place (`movedFolderPath()`)
+ *     - folders it moved out of the shared content answer "not found" here,
+ *       though the shared repo still holds them (`MOVED_OUT`)
  * - port:  `DEFAULT_PORT` (4747) if free, else any
  *   - the real one goes in `<root>/.spell-server.json`, where `spell dev server ensure` and the openers find it
  * - Run it with `spell dev server` (`page/cli.ts`), never by hand.
@@ -114,7 +117,8 @@ export class PageServer {
     router.get(SERVER_API, (_request, reply) => reply.set("Cache-Control", "no-store").json(this.info))
     this.bundles = new BundleBuild({ root: this.root })
     router.use(this.bundles.wait)
-    // NOTE: no body parsing here:  each route parses its own (the app's `/api` is JSON5), and the proxy streams
+    // NOTE: no body parsing here:  each route parses its own (the app's `/api` is JSON5), and the proxy streams.
+
     // `/api/pages` and `/api/files`:  saving, making, moving and deleting files, only inside the `"writable"` folders
     new PageEditor({ root: this.root, writable }).route(router, this.web.guard)
     new SRV.FileOperations({ root: this.root, writable }).route(router, this.web.guard)
@@ -138,8 +142,8 @@ export class PageServer {
     const settings = this.settings()
     for (const dir of settings.watch ?? DEFAULT_WATCH)
       this.web.live!.watch(join(this.root, dir), { ignore: /(^|\/)(scripts|experiments)\// })
-    // the component sets' pages, parts and data, and their site bundle (rebuilt by `yarn site:dev`), as their pages
-    // load them:  `/components/ui/_assets/site.js`, so a rebuilt bundle reloads them
+    // the component sets' pages, parts and data, and their site bundle (rebuilt by `yarn site:dev`),
+    // as their pages load them:  `/components/ui/_assets/site.js`, so a rebuilt bundle reloads them
     for (const set of COMPONENT_SETS) {
       this.web.live!.watch(join(this.root, set.dir), { servedAt: set.prefix })
       this.web.live!.watch(join(this.root, set.assets), { servedAt: `${set.prefix}/${SET_ASSETS}` })
@@ -276,9 +280,9 @@ const DEFAULT_WATCH = ["epics", "guides", "pages", "templates", "brand", "packag
 
 /**
  * The URL path a component set's address serves (`COMPONENT_SETS`, epic `people-and-orgs` P18);  else `undefined`.
- * - `/components/<set>/_assets/<x>` -> the set's site bundle (`assets`):  Spell UI's own for `/components/ui/`, the
- *   sets' build for the others (`SETS_BUNDLE`);  the bundle then takes `/components/<set>/` as its site's root (the
- *   folder above its `_assets/`)
+ * - `/components/<set>/_assets/<x>` -> the set's site bundle (`assets`)
+ *   - Spell UI's own for `/components/ui/`, the sets' build for the others (`SETS_BUNDLE`)
+ *   - the bundle then takes `/components/<set>/` as its site's root (the folder above its `_assets/`)
  * - `/components/<set>/<x>` -> its `docs/` folder:  the set's pages, `__parts/` and `__data/`
  * - the same under `/worktrees/<w>/` (that worktree's set and bundle)
  * - a `StaticHandler` overlay:  served only when the file is there, else the path as asked (a 404)
@@ -294,11 +298,11 @@ export function componentSetPath(path: string): string | undefined {
 }
 
 /**
- * The URL path a folder this branch MOVED serves from its new place (`MOVED_FOLDERS`, and the same under
- * `/worktrees/<w>/`);  else `undefined`.
- * - TEMPORARY (epic `people-and-orgs`, P16 J49, P18):  the shared pages, which every checkout shows, keep linking
- *   the old folders until this branch merges into `main`;  then a script rewrites their links (`relocate.js
- *   relink`, `relink-sets`) and this overlay goes (the epic's T3)
+ * The URL path a folder this branch MOVED serves from its new place;  else `undefined`.
+ * - the folders:  `MOVED_FOLDERS`, and the same under `/worktrees/<w>/`
+ * - TEMPORARY (epic `people-and-orgs`, P16 J49, P18):
+ *   the shared pages, which every checkout shows, keep linking the old folders until this branch merges into `main`.
+ *   Then a script rewrites their links (`relocate.js relink`, `relink-sets`) and this overlay goes (the epic's T3).
  * - a `StaticHandler` overlay:  served only when the file is there
  */
 export function movedFolderPath(path: string): string | undefined {
@@ -321,8 +325,8 @@ const MOVED_FOLDERS: readonly (readonly [from: string, to: string])[] = [
 
 /**
  * TEMPORARY (until the merge, T3):  what this branch moved OUT of the shared folders into its packages, as URL paths.
- * The shared repo still holds them for `main` and every other checkout, so the root mount would serve them:  here they
- * answer "not found", as they will everywhere once this branch merges (Q30).
+ * The shared repo still holds them for `main` and every other checkout, so the root mount would serve them:
+ * here they answer "not found", as they will everywhere once this branch merges (Q30).
  * - `/ui`:  Spell UI's docs, now `/components/ui/` (`packages/ui/docs/`)
  * - `/brand/components`:  the brand elements' docs, now `/components/brand/` (`packages/brand/docs/`)
  */

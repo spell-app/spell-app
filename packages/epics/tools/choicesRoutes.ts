@@ -3,15 +3,16 @@
  * listed in the repo root's `package.json` `"pageServer": { "routes": [...] }`.
  * - A SYNTAX-CHOICES PAGE:  a table of names Claude recommends, one row per use site, each pre-filled in a box Owen
  *   types over (`spell dev choices`, `choices.js`);  `_assets/syntax-choices.js` posts here.
- * - `GET /api/docs/choices/draft?page=<path>` -- what was typed so far, `{ draft: ChoicesDraft | null }`:  the page
- *   restores it on load
- * - `POST /api/docs/choices/draft` `{ page, values, feedback }` -- save it to `<slug>.draft.json` beside the page.
- *   Every 5s while Owen types, and as the page goes away.
- *   Wakes NOBODY:  `spell dev choices wait` watches the answer only
+ * - `GET /api/docs/choices/draft?page=<path>` -- what was typed so far, `{ draft: ChoicesDraft | null }`:
+ *   the page restores it on load
+ * - `POST /api/docs/choices/draft` `{ page, values, feedback }` -- save it to `<slug>.draft.json` beside the page
+ *   - every 5s while Owen types, and as the page goes away
+ *   - wakes NOBODY:  `spell dev choices wait` watches the answer only
  * - `GET /api/docs/choices/answer?page=<path>` -- the answer sent, `{ answer: ChoicesAnswer | null }`
- * - `POST /api/docs/choices/answer` `{ page, values, feedback }` -- "Do it":  writes `<slug>.answer.json`
- *   (and the draft, so a reload shows what was sent);  sent again, `changes` counts up.
- *   `spell dev choices wait` exits with it
+ * - `POST /api/docs/choices/answer` `{ page, values, feedback }` -- "Do it":
+ *   - writes `<slug>.answer.json`, and the draft, so a reload shows what was sent
+ *   - sent again, `changes` counts up
+ *   - `spell dev choices wait` exits with it
  * - `page`:  the page's URL path, as served (a worktree's `/worktrees/<w>/...` too);
  *   ONLY a details-folder page with its `<slug>.rows.json` beside it,
  *   or a docs page naming its rows (`<body data-choices-rows>`, e.g. the spell syntax guide):

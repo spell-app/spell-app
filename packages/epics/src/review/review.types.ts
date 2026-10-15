@@ -175,9 +175,10 @@ export type WriteOptions = {
 }
 
 /**
- * One running agent, as the page shows it:  the list's own `RunningAgent` (`tools/AgentList.ts`), every field
- * filled in (`agentsOf()`).
- * - `started`:  `""` for unknown;  `redirects`:  `[]` for none
+ * One running agent, as the page shows it.
+ * - the list's own `RunningAgent` (`tools/AgentList.ts`), every field filled in (`agentsOf()`)
+ * - `started`:  `""` for unknown
+ * - `redirects`:  `[]` for none
  * - not `taskId`:  the page has no use for it
  */
 export type RunningAgent = Required<Omit<ListedAgent, "taskId" | "redirects">> & { redirects: AgentRedirect[] }

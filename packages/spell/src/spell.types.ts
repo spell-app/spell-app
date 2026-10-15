@@ -26,15 +26,15 @@ export type CompilableSpellFile = SpellFile | SpellCSSFile
  * Name of the file in a project's folder saying what it is and what it imports, e.g. its title, imports and targets.
  * - Its folder IS the project, e.g. for `locationForDiskPath()`.
  * - Its shape:  `ProjectFileJSON`, in `$/spaces/server/node/projects/server.types`.
- * - JSON5, a comment kept when spell saves it;  one of spaces' own `__` names, so no file list shows it
- *   (epic `people-and-orgs` P12, Q33).
+ * - JSON5, a comment kept when spell saves it.
+ * - One of spaces' own `__` names, so no file list shows it (epic `people-and-orgs` P12, Q33).
  * - It was `project.json` before:  read still, never written (`OLD_PROJECT_FILES`).
  */
 export const PROJECT_FILE = "__project.json5"
 
 /**
- * A project file's old names, read while a project still has one, newest first:  a save writes `PROJECT_FILE`, and
- * removes the old one.
+ * A project file's old names, read while a project still has one, newest first.
+ * - A save writes `PROJECT_FILE`, and removes the old one.
  */
 export const OLD_PROJECT_FILES = ["project.json"] as const
 
@@ -51,26 +51,29 @@ export function isProjectFile(name: string): boolean {
  * - NEVER one of a project's own files:  the server leaves it out of the manifest.
  * - In the project's build folder, `build/` at the repo root, not beside its source:
  *   `buildFolderFor()`, in `$/spaces/server/node/projects/project-utils`.
- * - It was `.compiled.js` until epic `people-and-orgs` P11:
- *   the server leaves those out of the manifest too (`isManifestFile()`, in `$/spaces/server/node/projects/project-utils`).
+ * - It was `.compiled.js` until epic `people-and-orgs` P11.
+ *   The server leaves those out of the manifest too:  `isManifestFile()`, in the same file.
  */
 export const COMPILED_JS_SUFFIX = ".spell.js"
 
 /**
  * End of a project's compiled TypeScript file's name, for the `ts/solid` target, e.g. `Solitaire.spell.tsx`.
- * - In the project's build folder, and was `.compiled.tsx` until epic `people-and-orgs` P11, as `COMPILED_JS_SUFFIX`.
+ * - In the project's build folder, as `COMPILED_JS_SUFFIX`.
+ * - It was `.compiled.tsx` until epic `people-and-orgs` P11.
  */
 export const COMPILED_TSX_SUFFIX = ".spell.tsx"
 
 /**
  * End of a project's compiled Python file's name, for the `py` target, e.g. `Solitaire.spell.py`.
- * - In the project's build folder, and was `.compiled.py` until epic `people-and-orgs` P11, as `COMPILED_JS_SUFFIX`.
+ * - In the project's build folder, as `COMPILED_JS_SUFFIX`.
+ * - It was `.compiled.py` until epic `people-and-orgs` P11.
  */
 export const COMPILED_PY_SUFFIX = ".spell.py"
 
 /**
- * End of a project's declarations file's name, e.g. `Solitaire.declarations.json5`:
- * what it offers importers, committed beside its source -- see `SpellProject.declarationsFile`.
+ * End of a project's declarations file's name, e.g. `Solitaire.declarations.json5`.
+ * - The file:  what it offers importers, committed beside its source.
+ *   See `SpellProject.declarationsFile`.
  * - Its shape:  `SP.SpellDeclarationsData`.
  * - NEVER one of a project's own files:  the server lists only `.spell`, `.css`, `.js` and `.jsx`.
  */
@@ -84,16 +87,19 @@ export const DECLARATIONS_JSON_SUFFIX = ".declarations.json5"
 export const SNAPSHOT_JS_SUFFIX = ".snapshot.js"
 
 /**
- * End of a Python program's page file's name, e.g. `Solitaire.elements.spell.js`:  its drawing half in javascript,
- * for a page that mirrors it (epic `python-target` P19, `PY.ElementsWriter`) -- see `SP.Target.elementsSuffix`.
+ * End of a Python program's page file's name, e.g. `Solitaire.elements.spell.js` (epic `python-target` P19).
+ * - The file:  its drawing half in javascript, for a page that mirrors it (`PY.ElementsWriter`).
+ *   See `SP.Target.elementsSuffix`.
  * - NEVER one of a project's own files:  the server leaves it out of the manifest, as `COMPILED_JS_SUFFIX`.
- * - In the project's build folder, and was `.elements.js` until epic `people-and-orgs` P11, as `COMPILED_JS_SUFFIX`.
+ * - In the project's build folder, as `COMPILED_JS_SUFFIX`.
+ * - It was `.elements.js` until epic `people-and-orgs` P11.
  */
 export const ELEMENTS_JS_SUFFIX = ".elements.spell.js"
 
 /**
- * End of a project's scope pack file's name, e.g. `Solitaire.scopes.js`:
- * what its Type Explorer shows, for pages which run it without the parser, e.g. `<spell-app>`.  See `LSP.ScopePack`.
+ * End of a project's scope pack file's name, e.g. `Solitaire.scopes.js`.
+ * - The file:  what its Type Explorer shows, for pages which run it without the parser, e.g. `<spell-app>`.
+ *   See `LSP.ScopePack`.
  * - NEVER one of a project's own files:  the server leaves it out of the manifest, as `COMPILED_JS_SUFFIX`.
  * - In the project's build folder, as `COMPILED_JS_SUFFIX`.
  */
@@ -111,7 +117,8 @@ export const WORDS_JS_SUFFIX = ".en.js"
 /**
  * Start of the ES module specifier for another project's compiled JS, e.g. `@spell/project/@spell/library/cards`.
  * - A runner fetches that project's compiled JS from the server, at its file's URL,
- *   `/spaces/<project>/<Project>.spell.js` (`SpellUrls.fileUrl()`), and points the specifier at it -- see `runCompiled()` in `$/app/runner/runCompiled`.
+ *   `/spaces/<project>/<Project>.spell.js` (`SpellUrls.fileUrl()`), and points the specifier at it.
+ * - See `runCompiled()` in `$/app/runner/runCompiled`.
  */
 export const SPELL_PROJECT_MODULE = "@spell/project/"
 
@@ -132,8 +139,8 @@ export type ProjectManifestJSON5 = {
   /** Where its lists start counting, from its project file:  `1` (the default) or `0` -- see `P.WriterOptions`. */
   listsStartAt?: 0 | 1
   /**
-   * Where the server puts what compiling builds, e.g. `Solitaire.spell.py`, inside the checkout's `build/`:
-   * e.g. `spaces/@spell/examples/solitaire`, for a project under `packages/` (epic `people-and-orgs` J33).
+   * Where the server puts what compiling builds, e.g. `Solitaire.spell.py`, inside the checkout's `build/`.
+   * - e.g. `spaces/@spell/examples/solitaire`, for a project under `packages/` (epic `people-and-orgs` J33)
    * - Not there:  beside its source.
    * - Only a Python program's web app needs it so far, to find the program:  `PY.QuartAppSpec.outputs`.
    */
@@ -158,12 +165,13 @@ export type ProjectManifestEntry = {
 
 /**
  * A single entry in `contents.imports`, as read/written to `project.json` on the server.
- * - A FILE of ours, e.g. `/Card.spell`, or ANOTHER PROJECT, e.g. `@spell/library/cards` -- see `SpellProject.projectImports`.
+ * - A FILE of ours, e.g. `/Card.spell`
+ * - or ANOTHER PROJECT, e.g. `@spell/library/cards`:  see `SpellProject.projectImports`
  */
 export type ProjectManifestImport = {
   /**
    * Local `filePath`, e.g. `/Card.spell`.
-   * - Or another project:  `@library/<name>` (~== `@spell/library:<name>`) or a full `@owner:domain:name`.
+   * - Or another project, by its address:  `@spell/library/cards` (see `SpellProject.projectIdForImport()`).
    */
   path: string
   /** `true` if file should be included when compiling the project. */
@@ -219,7 +227,8 @@ export type ProjectPathList = string[]
 // ## SpellProjectRoot
 
 /**
- * Which folder an address's `SpellUrls.folderFor()` path is under -- spaces' `environment` says where each one is:
+ * Which folder an address's `SpellUrls.folderFor()` path is under.
+ * Spaces' `environment` says where each one is:
  * - `builtins`:  the repo's built-in projects, `packages/spaces/` (`@spell/examples/...`)
  * - `tests`:  the repo's test projects, `tests/spaces/` (`@spell/test/...`)
  * - `spaces`:  every person's and org's space, spell-spaces beside the main checkout (`@spell/owen@/...`)
@@ -227,9 +236,9 @@ export type ProjectPathList = string[]
 export type SpaceFolderBase = "builtins" | "tests" | "spaces"
 
 /**
- * A project group's ADDRESS, what its projects' addresses start with (epic `people-and-orgs` P4):
- * one of spaces' groups (`SPACES.PROJECT_GROUPS`, e.g. `@spell/examples`, `owen@spell`), or one added at runtime
- * with `SpellSetup.addProjectRoot()`, e.g. `@local/my-folder`.
+ * A project group's ADDRESS, what its projects' addresses start with (epic `people-and-orgs` P4).
+ * - one of spaces' groups (`SPACES.PROJECT_GROUPS`), e.g. `@spell/examples`, `owen@spell`
+ * - or one added at runtime with `SpellSetup.addProjectRoot()`, e.g. `@local/my-folder`
  */
 export type ProjectRootPath = `${string}@${string}`
 
@@ -240,8 +249,8 @@ export type ProjectRootPath = `${string}@${string}`
  */
 export type ProjectRootSpec = {
   /**
-   * Its address, e.g. `@spell/examples`:  each of its projects' is that, a slash and the project's name,
-   * `@spell/examples/solitaire`;  `owen@spell` (`owen@spell/errors`).
+   * Its address, e.g. `@spell/examples` or `owen@spell`.
+   * - Each of its projects' is that, a slash and the project's name:  `@spell/examples/solitaire`, `owen@spell/errors`.
    * - A project's URLs and folder come from it:  `SpellUrls.fileUrl()`, `SpellUrls.folderFor()`.
    * - A runtime group's is `@local/<folder name>`:  it has no folder of its own, so it says `serverPath`.
    */
@@ -440,8 +449,8 @@ export type ReadAsTemplate = {
 
 /**
  * Semver of the spell LANGUAGE and its compiler -- stamped on every project's declarations as `spellVersion`.
- * - Set by hand, NOT from `package.json`:  the app's version (`PACKAGE_VERSION` in `$/util`) changes for
- *   reasons that don't touch what compiled projects can read.
+ * - Set by hand, NOT from `package.json`:
+ *   the app's version (`PACKAGE_VERSION` in `$/util`) changes for reasons that don't touch what compiled projects can read.
  * - Bump the MAJOR when declarations' shape, or generated-name mangling (e.g. `frobnicate_$thing`), changes:
  *   declarations from another major are refused.
  */
@@ -475,7 +484,8 @@ export type SpellDeclarationsData = {
 
 /**
  * A project's words in one language:  spell's wording of each member of its types,
- * by the name its compiled code uses -- what `<Project>.en.js` exports as `words`.  See `SpellWords`.
+ * by the name its compiled code uses.
+ * - What `<Project>.en.js` exports as `words`.  See `SpellWords`.
  * - e.g. `{ lang: "en", types: { Card: { moveToPile: "move (a card) to (a pile)", isSetUp: "is-set-up" } } }`
  * - Another language is another file of the same shape, e.g. `Solitaire.es.js`.
  * - A target with words of its own writes the same shape as JSON, by its names:  Python's `<Project>.py.en.json5`.
@@ -490,8 +500,8 @@ export type SpellWordsData = {
 /**
  * What ONE statement declared, flat:  a `/*! SPELL: DECLARES {...} *\/` comment.
  * - e.g. `{ property: "suit", classVariable: "Suits", of: "Card", enumeration: [...] }`
- * - Only what can't be worked out from the rest, e.g. `constants` are left out when they're just
- *   `enumeration`'s strings.
+ * - Only what can't be worked out from the rest:
+ *   e.g. `constants` are left out when they're just `enumeration`'s strings.
  * - Keys are shared by what it declared:  `of` is both a property's type and its rules' owner.
  */
 export type SpellDeclaration = {

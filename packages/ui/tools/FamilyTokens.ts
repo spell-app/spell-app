@@ -9,17 +9,18 @@ import { FamilyFiles } from "./FamilyFiles.ts"
 /****************
  * ### `FamilyTokens`
  * The public CSS tokens of one family, read from its sheets:  the token table of its docs page (`yarn site:data`).
- * - Ported from the old Astro site's `CssTokens` table (deleted with it, epic `spell-ui-pages` P7):  the same rows,
- *   plus a `type` for each.
- * - A sheet never declares its public tokens (`notes/theming.md` "Component tokens").  Two kinds of rows:
+ * - A sheet never declares its public tokens (`notes/theming.md`, "Component tokens").  Two kinds of rows:
  *   - ALIASED tokens, the ones a variation swaps:  `--_ui-button-radius: var(--ui-button-radius, var(--ui-radius))`.
- *     The public name, its default, the comment right above as the description, unless it's a group header
- *     (`/* ## Owner tokens ... *\/`).
- *   - tokens READ WHERE THEY PAINT, varied by nothing:  `padding: var(--ui-modal-content-padding, 1.5em)`.  The first
- *     read's fallback is the default, the comment right above that property the description.
- * - Defaults show the PUBLIC names of the tokens they derive from;  a default built from sheet plumbing reads badly,
- *   so the family's seed (`docs/__data/pages.json`) may pass readable text (`defaults`), other prefixes, or a whole
- *   hand-written `list`.
+ *     - the public name, and its default
+ *     - the comment right above as the description, unless it's a group header (`/* ## Owner tokens ... *\/`)
+ *   - tokens READ WHERE THEY PAINT, varied by nothing:  `padding: var(--ui-modal-content-padding, 1.5em)`.
+ *     - the first read's fallback is the default
+ *     - the comment right above that property is the description
+ * - Defaults show the PUBLIC names of the tokens they derive from.
+ *   - A default built from sheet plumbing reads badly, so the family's seed (`docs/__data/pages.json`) may pass:
+ *     readable text (`defaults`), other prefixes, or a whole hand-written `list`.
+ * - Ported from the old Astro site's `CssTokens` table (deleted with it, epic `spell-ui-pages` P7):
+ *   the same rows, plus a `type` for each.
  * - Foundation names that share a prefix (`--ui-text-muted` for `text`) are left out.
  ****************/
 export class FamilyTokens {

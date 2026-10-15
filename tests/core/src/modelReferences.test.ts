@@ -3,8 +3,9 @@ import { afterEach, describe, test, expect } from "vite-plus/test"
 import { spellCore, Thing, type ThingsToSearch } from "$/core/model"
 
 /**
- * References by name and place under `$/core/model`, which has no running program:  they search what the caller
- * says (`searchThings()`, epic `people-and-orgs` P9, Q44).  This file loads the model ALONE, never the barrel.
+ * References by name and place under `$/core/model`, which has no running program (epic `people-and-orgs` P9, Q44).
+ * - They search what the caller hands `searchThings()`.
+ * - This file loads the model ALONE, never the barrel.
  */
 describe("references, in the model core", () => {
   class Person extends Thing {

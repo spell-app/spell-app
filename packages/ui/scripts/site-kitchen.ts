@@ -1,26 +1,32 @@
 /**
- * `yarn site:kitchen [--check]`:  write the kitchen sink's examples, `docs/kitchen-sink.html` (the site's pages,
- * `SITE_PAGES`), from every component family's MAIN example file:
- * `components/ui-<family>/examples/elements/types.html`, else its first `.html`.
+ * `yarn site:kitchen [--check]`:  write the kitchen sink's examples, from every component family's MAIN example file.
+ * - The page:  `docs/kitchen-sink.html`, one of the site's pages (`SITE_PAGES`).
+ * - A family's main file:  `components/ui-<family>/examples/elements/types.html`, else its first `.html`.
+ *   - `MAIN_FILES` names it where `types.html` isn't the main one (`ui-parts`:  `header.html`).
  * - Why generated:  the old Astro page read the same files at build time;  a static page would drift from them.
- *   The markup is the files' own (the families' tests render them), so it keeps their native bits (`<p>`, a
- *   `style=` box around a loader, `<div class="ui-stack">` around radios).
- * - Grouped as Fomantic's kitchen sink is:  Elements, Collections, Views, Modules (each family's Fomantic topic),
- *   then our own families;  A-Z by title inside a group.  Families without an element example (`item`:  `items`
- *   shows it) are left out.
+ *   - The markup is the files' own (the families' tests render them),
+ *     so it keeps their native bits (`<p>`, a `style=` box around a loader, `<div class="ui-stack">` around radios).
+ * - Grouped as Fomantic's kitchen sink is:
+ *   - Elements, Collections, Views, Modules (each family's Fomantic topic), then our own families
+ *   - A-Z by title inside a group
+ *   - Families without an element example are left out (`item`:  `items` shows it).
  * - Example sources (`<ui-include source>` ...) point at the site's copies in `docs/examples/` (`SITE_SOURCES`).
- * - `MAIN_FILES` names the file where `types.html` isn't the main one (`ui-parts`:  `header.html`).  Sections holding
- *   `stub-*` stand-ins (the tests' `StubOwner`, not real elements) are left out;  at most `MAX_SECTIONS` (3) per
- *   family, so the page stays scannable (the family's page has the rest).
- * - Each file's `<section><h4>Title</h4>...</section>` becomes a `<ui-docs-example>`:  the family's first one headed
- *   with its title and summary (+ a link to its page, and to its sub-tags' own pages), the rest a header-less continuation described by their
- *   `<h4>`.  A section's own class (`ui-dark ui-p-m`) becomes a `<div>` around its body.  A file without sections is
- *   one example.
- * - Writes ONLY between the page's `<!-- kitchen:start -->` and `<!-- kitchen:end -->` markers;  the rest of the page
- *   is hand-kept.  Written flat (a header per group, the family's first example headed), then nested into
- *   `<ui-section>`s by `yarn site:sections`' converter (`SiteSections`), as every page is.  Lines keep the example
- *   files' own layout, re-indented, so oxfmt may re-wrap a long one:  rerun.
- * - Rerun after changing an example (`yarn site:build` runs it).  `--check`:  write nothing;  exit 1 if stale.
+ * - Sections left out:
+ *   - those holding `stub-*` stand-ins (the tests' `StubOwner`, not real elements)
+ *   - all past `MAX_SECTIONS` (3) per family, so the page stays scannable (the family's page has the rest)
+ * - Each file's `<section><h4>Title</h4>...</section>` becomes a `<ui-docs-example>`:
+ *   - the family's first one headed with its title and summary,
+ *     plus a link to its page, and to its sub-tags' own pages
+ *   - the rest a header-less continuation, described by their `<h4>`
+ *   - A section's own class (`ui-dark ui-p-m`) becomes a `<div>` around its body.
+ *   - A file without sections is one example.
+ * - Writes ONLY between the page's `<!-- kitchen:start -->` and `<!-- kitchen:end -->` markers:
+ *   the rest of the page is hand-kept.
+ *   - Written flat (a header per group, the family's first example headed),
+ *     then nested into `<ui-section>`s by `yarn site:sections`' converter (`SiteSections`), as every page is.
+ *   - Lines keep the example files' own layout, re-indented, so oxfmt may re-wrap a long one:  rerun.
+ * - Rerun after changing an example (`yarn site:build` runs it).
+ * - `--check`:  write nothing;  exit 1 if stale.
  */
 import { existsSync, readdirSync, readFileSync } from "node:fs"
 import path from "node:path"
@@ -102,8 +108,8 @@ class KitchenSinkWriter {
   }
 
   /**
-   * Links to `family`'s sub-tags with a page of their own (`SiteFamily.pages`), one line each after the family page's
-   * link;  none for a family without them.
+   * Links to `family`'s sub-tags with a page of their own (`SiteFamily.pages`),
+   * one line each after the family page's link;  none for a family without them.
    * - The examples stay the family's:  e.g. `ui-checkbox`'s main file shows radios too.
    */
   private static ownPages(family: SiteFamily): string[] {
@@ -125,8 +131,8 @@ class KitchenSinkWriter {
   }
 
   /**
-   * An example file's sections:  each `<section>` at the wrapper's top level, its `<h4>` title and its body
-   * (dedented);  a file without sections is one untitled section, the whole file minus its comments.
+   * An example file's sections:  each `<section>` at the wrapper's top level, its `<h4>` title and its body (dedented).
+   * - A file without sections is one untitled section, the whole file minus its comments.
    */
   private static sections(html: string): Section[] {
     const lines = html.replace(/<!--[\s\S]*?-->\n?/g, "").split("\n")
@@ -209,8 +215,8 @@ const MAX_SECTIONS = 3
 const MAIN_FILES: Readonly<Record<string, string>> = { "ui-parts": "header.html" }
 
 /**
- * The site's copies of the example source files (`ui/examples/`), by the source's file name, where the name
- * differs;  a `source="/components/.../examples/sources/<file>"` (a dev-server path) points at the copy.
+ * The site's copies of the example source files (`docs/examples/`), by the source's file name, where the name differs.
+ * - A `source="/components/.../examples/sources/<file>"` (a dev-server path) points at the copy.
  */
 const SITE_SOURCES: Readonly<Record<string, string>> = { "notes.html": "release-notes.html" }
 

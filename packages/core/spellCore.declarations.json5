@@ -1382,7 +1382,7 @@
           "name": "things"
         }
       ],
-      "description": "Look things up in `things` from now on, not in the running program's -- returns what was searched before, to put back."
+      "description": "Look things up in `things` from now on, not in the running program's."
     },
     {
       "kind": "method",

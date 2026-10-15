@@ -54,20 +54,21 @@ export interface DOMSpellEditorElement extends E.AttributeValues<typeof spellEdi
 
 /****************
  * ### `SpellEditor`
- * The component behind `<spell-editor>`:  edits a spell project in any page, in Monaco, and feeds `<spell-app>`s on
- * the page what it compiles.
- * - `project="@spell/examples/solitaire"` (or `@spell/examples/solitaire`):  from the spell server's `/api`, as
- *   `<spell-app project>`.  Edits SAVE back to it:  every compile saves the files edited since, and Cmd+S saves.
+ * The component behind `<spell-editor>`:  edits a spell project in any page, in Monaco,
+ * and feeds `<spell-app>`s on the page what it compiles.
+ * - `project="@spell/examples/solitaire"` (or `@spell/examples/solitaire`):
+ *   from the spell server's `/api`, as `<spell-app project>`.
+ *   - Edits SAVE back to it:  every compile saves the files edited since, and Cmd+S saves.
  * - Compiles when it opens the project, `COMPILE_DELAY` after typing stops, and at once on Cmd+Enter.
  *   After each compile with no parse errors:
  *   - `compiled` holds what it made, a `SpellCompiled`
  *   - sends `spell-compiled` (`SPELL_COMPILED_EVENT`), bubbling out of the shadow root, with it as `detail`
  *   - hands it to each app `app` names:  `run(compiled)` (`pushToApps()`)
  * - Compiles WITHOUT Monaco, so apps run straight away.  Monaco, most of our code, loads after, for the view.
- * - Several may edit several projects on a page (`SpellModels.use()`).  Two of ONE project share its files, so
- *   typing in one shows in the other.
- * - Draws `<SpellEditorPane>` (no `<ui-*>`):  plain tabs and status line, styled by `spell-editor.css`, adopted
- *   from `assets` (default, beside its script).
+ * - Several may edit several projects on a page (`SpellModels.use()`).
+ *   Two of ONE project share its files, so typing in one shows in the other.
+ * - Draws `<SpellEditorPane>` (no `<ui-*>`):  plain tabs and status line.
+ *   Styled by `spell-editor.css`, adopted from `assets` (default, beside its script).
  * - Leaving the page lets go of the project, a microtask later:  a move in one go keeps it.
  * - SEE:  its App UI page, `packages/app/docs/spell-editor.html` (`/components/app/spell-editor.html`).
  ****************/

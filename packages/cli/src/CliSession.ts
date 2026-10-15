@@ -185,8 +185,8 @@ export class CliSession {
   }
 
   /**
-   * Options for describing `project`'s `tree` as text -- see `CLI.describeOverview()`:  `options`, plus how to
-   * find each thing's details, and where it's declared.
+   * Options for describing `project`'s `tree` as text -- see `CLI.describeOverview()`:
+   * `options`, plus how to find each thing's details, and where it's declared.
    */
   describeOptions(
     project: SP.SpellProject,

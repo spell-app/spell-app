@@ -9,10 +9,10 @@ import { classes } from "./classes.parser"
  * `version_step` rule:  how a saved thing is brought up to a newer version of its type (epic `people-and-orgs` P6):
  * - `a person version 2 renames name to names`:  a file saved before version 2 has `name`;  read, it's `names`
  * - `a person version 3 drops nickname`:  a file saved before version 3 may have `nickname`;  read, it's gone
- * - A type's version is the highest any of its steps names (or its `to upgrade` methods, `upgrade_method`):
- *   a type with none is version 1.  Only renaming, dropping or changing a property needs one:  adding one doesn't.
- * - The saver writes a thing's type's version, `"$version": 3`, when it's past 1;  the loader reads a file of an
- *   older one step by step:  `SC.upgradeEntry()`.
+ * - A type's version is the highest any of its steps names (or its `to upgrade` methods, `upgrade_method`).
+ *   A type with none is version 1;  only renaming, dropping or changing a property needs one, not adding one.
+ * - The saver writes a thing's type's version, `"$version": 3`, when it's past 1.
+ * - The loader reads a file of an older one step by step:  `SC.upgradeEntry()`.
  * - Compiles to a static the loader finds by its name, after the class:
  *   `Person.v2_renames_name = "names"`, `Person.v3_drops_nickname = true`.
  */

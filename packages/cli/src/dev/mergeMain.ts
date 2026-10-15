@@ -4,21 +4,25 @@ import { basename, dirname, join, matchesGlob, relative } from "path"
 import { CLI, type Generator, type MergeMainOptions, type MergeMainReport, type SnapshotReview } from "$/cli"
 
 /**
- * `spell dev worktree merge-main`:  merge `main` into this checkout's branch, REGENERATING every generated file both
- * sides changed instead of merging it.  `/isolate done`, `/unpark` and `/wait-for` use it.
- * - Why:  a generated file (a bundle, a snapshot) is a function of BOTH branches' source, so neither side's copy, and
- *   no line merge of the two, is right.  Its generator, run on the merged source, is.
- * - The root `.gitattributes` marks the same files `merge=binary`, so git never interleaves two versions:  it keeps
- *   ours and marks the file conflicted.  `-diff` and `linguist-generated` there keep them out of diffs and PRs.
- * - "Both sides changed", not just "conflicted":  a bundle with hashed chunk names leaves each side's chunks behind in
- *   a clean merge, and only its generator, which clears the folder, removes them.
- * - Generated output one side no longer commits (the bundles the page server builds since 2026-10-07:  `spell dev
- *   bundles`):  a file `main` changed, or in conflict, that the merged `.gitignore` ignores and one side's tree lacks
+ * `spell dev worktree merge-main`:  merge `main` into this checkout's branch,
+ * REGENERATING every generated file both sides changed instead of merging it.
+ * - `/isolate done`, `/unpark` and `/wait-for` use it.
+ * - Why:  a generated file (a bundle, a snapshot) is a function of BOTH branches' source.
+ *   So neither side's copy, and no line merge of the two, is right:  its generator, run on the merged source, is.
+ * - The root `.gitattributes` marks the same files `merge=binary`, so git never interleaves two versions:
+ *   it keeps ours and marks the file conflicted.
+ *   `-diff` and `linguist-generated` there keep them out of diffs and PRs.
+ * - "Both sides changed", not just "conflicted":
+ *   a bundle with hashed chunk names leaves each side's chunks behind in a clean merge,
+ *   and only its generator, which clears the folder, removes them.
+ * - Generated output one side no longer commits:
+ *   a file `main` changed, or in conflict, that the merged `.gitignore` ignores and one side's tree lacks,
  *   leaves the index and stays on disk (`untracked`).
- * - Snapshots are regenerated with `vp test run --update`, then each entry is compared to both sides:  one NEITHER
- *   side had is new behaviour nobody reviewed, so it's reported (`review`), never hidden.
- * - Any OTHER file in conflict stops it mid-merge:  Claude resolves those, `git add`s them, and runs it again with
- *   `--continue`.
+ *   - e.g. the bundles the page server builds since 2026-10-07 (`spell dev bundles`)
+ * - Snapshots are regenerated with `vp test run --update`, then each entry is compared to both sides:
+ *   one NEITHER side had is new behaviour nobody reviewed, so it's reported (`review`), never hidden.
+ * - Any OTHER file in conflict stops it mid-merge:
+ *   Claude resolves those, `git add`s them, and runs it again with `--continue`.
  * - Node built-ins and git only:  no spell.
  */
 export function mergeMain(root: string, options: MergeMainOptions = {}): MergeMainReport {
@@ -56,8 +60,9 @@ export function mergeMain(root: string, options: MergeMainOptions = {}): MergeMa
   }
 
   ////////
-  // Generated output one side no longer commits (the page server's bundles, since 2026-10-07):  a file `main` changed
-  // or in conflict, that the merged `.gitignore` ignores and ONE side's tree lacks, leaves the index, kept on disk.
+  // Generated output one side no longer commits (the page server's bundles, since 2026-10-07):
+  // a file `main` changed or in conflict, that the merged `.gitignore` ignores and ONE side's tree lacks,
+  // leaves the index, kept on disk.
   // (A file both sides track, though ignored, stays:  the `workspaces/*.code-workspace` files)
   const base = gitOut(root, ["merge-base", "HEAD", "MERGE_HEAD"])
   const conflicted = gitLines(root, ["diff", "--name-only", "--diff-filter=U"])
@@ -139,8 +144,11 @@ const SNAPSHOT_UPDATE = (tests: string[]) => ["yarn", "vp", "test", "run", ...te
  * - The docs bundle builds UI first, whose `<ui-code>` loads the spell highlighter, so `gen:spell` comes before it.
  * - Snapshots aren't here:  `generatorsFor()` makes one per package, after these.
  * - The same paths are `merge=binary` in the root `.gitattributes`:  keep the two in step.
- * - NOT here:  `pages.json` (hand-kept), emoji data (`gen:emoji` needs a reference clone), and the bundles the page
- *   server builds on demand (Spell UI's site, the brand pages:  `spell dev bundles`), which aren't committed.
+ * - NOT here:
+ *   - `pages.json` (hand-kept)
+ *   - emoji data (`gen:emoji` needs a reference clone)
+ *   - the bundles the page server builds on demand, which aren't committed:
+ *     Spell UI's site and the brand pages (`spell dev bundles`)
  */
 // oxfmt-ignore
 export const GENERATORS: Generator[] = [
@@ -194,8 +202,8 @@ export const GENERATORS: Generator[] = [
 ]
 
 /**
- * The generators `files` need, in run order, each with the files it covers:  the table's, then one snapshot update
- * per package.
+ * The generators `files` need, in run order, each with the files it covers:
+ * the table's, then one snapshot update per package.
  * - a file no generator covers isn't in any step
  */
 export function generatorsFor(

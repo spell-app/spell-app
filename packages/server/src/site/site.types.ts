@@ -7,8 +7,8 @@
  * One PROPERTY of the site:  a part with its own home page, switched between in the site header.
  * - `path`:  home page, relative to the repo root (`pages/index.html`), or server-absolute (`/components/ui/`)
  * - `serverOnly`:  only exists when served by the page server
- *   - `/components/<set>/`:  a component set's `docs/` folder, with Spell UI's site bundle laid over it
- *     (`COMPONENT_SETS`)
+ *   - `/components/<set>/`:  a component set's `docs/` folder,
+ *     with Spell UI's site bundle laid over it (`COMPONENT_SETS`)
  *   - `/editor/`:  the app
  * - `ownTab`:  always opens in its own browser tab (`target`), never in place
  *   - the app is a whole program, too big for VS Code's side bar
@@ -32,8 +32,8 @@ export const SITE_HOME = "pages/index.html"
 /**
  * Every property, in header order (Owen, 2026-10-11, epic `epic-workflow` J40):
  * Guides · Goals · Epics · Epic/UI · Spell/UI · App · App/UI · Brand · Templates.
- * - Owen's words:  "Docs toolbar:  Guides Goals Epics Epic/UI Spell/UI App App/UI";  asked where Brand and
- *   Templates go, "At the end"
+ * - Owen's words:  "Docs toolbar:  Guides Goals Epics Epic/UI Spell/UI App App/UI";
+ *   asked where Brand and Templates go, "At the end"
  * - the slashed names are the tab labels as he typed them (J41):  "the UI set of Epic", "of Spell", "of the app";
  *   prose keeps "Epic UI", "Spell UI", "App UI"
  * - (before, claude-design Q6, 2026-10-05:  Epics · Guides · Brand · Spell UI · Templates · Goals · App)
@@ -44,8 +44,8 @@ export const SITE_HOME = "pages/index.html"
  *   - a template (the plan template under `templates/epics/` too):  Templates
  *   - the home and the scratch details pages:  none
  * - each area's list page is its tab's home (`<area>/index.html`)
- * - the component sets (`COMPONENT_SETS` in `$/server/page`, served at `/components/<set>/`;  epic `people-and-orgs`
- *   P18) light on their address and on their `docs/` folder's long one (`componentSet()`)
+ * - the component sets light on their address and on their `docs/` folder's long one (`componentSet()`)
+ *   - `COMPONENT_SETS` in `$/server/page`, served at `/components/<set>/` (epic `people-and-orgs` P18)
  *   - the brand's set has no tab of its own:  it lights Brand, beside the Brand tab's own pages
  * - App means the editor, opened in its own browser tab
  */
@@ -74,11 +74,11 @@ export const PROPERTIES: SiteProperty[] = [
 ]
 
 /**
- * Which component set page path `path` is in (`location.pathname`), by its served address `/components/<set>/`
- * (a worktree's too, `/worktrees/<w>/components/<set>/`) or its folder's long one, `packages/<package>/docs/`
- * (a `file://` page too);  `undefined` for anything else.
- * - the sets:  `ui`, `epics`, `app`, `brand`, as `COMPONENT_SETS` in `$/server/page` names them (its prefixes'
- *   tails, and their packages:  `docs/` of `packages/ui`, `packages/epics` ...)
+ * Which component set page path `path` is in (`location.pathname`);  `undefined` for anything else.
+ * - by its served address, `/components/<set>/` (a worktree's too, `/worktrees/<w>/components/<set>/`)
+ * - or by its folder's long one, `packages/<package>/docs/` (a `file://` page too)
+ * - the sets:  `ui`, `epics`, `app`, `brand`, as `COMPONENT_SETS` in `$/server/page` names them
+ *   (its prefixes' tails, and their packages:  `docs/` of `packages/ui`, `packages/epics` ...)
  */
 export function componentSet(path: string): string | undefined {
   return (

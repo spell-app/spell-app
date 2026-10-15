@@ -1,6 +1,8 @@
 /**
- * Tests of the review route module on a real page server, over HTTP, in a scratch checkout:  its own plan doc, a
- * worktree's (as the main checkout's server serves it), and pages that aren't plan docs.
+ * Tests of the review route module on a real page server, over HTTP, in a scratch checkout:
+ * - its own plan doc
+ * - a worktree's, as the main checkout's server serves it
+ * - pages that aren't plan docs
  * - From the docs tools' `reviewRoutes.test.ts` (epic `epic-components`, P7):  every case.
  */
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"

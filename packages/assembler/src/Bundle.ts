@@ -6,14 +6,16 @@ import { join, relative, sep } from "node:path"
 import { AS } from "$/assembler"
 
 /**
- * One bundle of the checkout at `root` that is BUILT on demand, never committed (`AS.BUNDLES`):  the brand pages' and
- * the Spell UI docs site's, which only the page server serves.
- * - `check()`:  stale when never built, its entry is missing or newer than its build, or its sources' hash isn't
- *   the one its last build recorded (`AS.BUNDLE_RECORD`, in its output folder)
+ * One bundle of the checkout at `root` that is BUILT on demand, never committed (`AS.BUNDLES`).
+ * - The brand pages' and the Spell UI docs site's:  only the page server serves them.
+ * - `check()`:  stale when
+ *   - never built
+ *   - its entry is missing, or newer than its build
+ *   - its sources' hash isn't the one its last build recorded (`AS.BUNDLE_RECORD`, in its output folder)
  * - `build()`:  runs its build command, then records the hash
  * - The page server runs `spell dev bundles build --stale` when it starts, so a page always loads a current build.
- * - WHICH bundles:  the ones whose output folders the checkout's root `package.json` names, in
- *   `"pageServer": { "bundles": [...] }`, the list the page server reads too (`Bundle.specs()`)
+ * - WHICH bundles:  the ones whose output folders the checkout's root `package.json` names,
+ *   in `"pageServer": { "bundles": [...] }`, the list the page server reads too (`Bundle.specs()`)
  * - Knows the checkout's LAYOUT as folder names only (`AS.BUNDLES`):  imports no other package.
  */
 export class Bundle {
@@ -129,8 +131,8 @@ export class Bundle {
   }
 
   /**
-   * Its source files, relative to the checkout, `/`-separated and sorted:  every file under `spec.sources`, minus
-   * `SKIPPED` (tests, snapshots, dot files, the icon packs).
+   * Its source files, relative to the checkout, `/`-separated and sorted:
+   * every file under `spec.sources`, minus `SKIPPED` (tests, snapshots, dot files, the icon packs).
    */
   sourceFiles(): string[] {
     const files: string[] = []
@@ -166,7 +168,7 @@ export class Bundle {
 const BUNDLE_FORMAT = "bundle 1"
 
 /**
- * Names never part of a bundle's sources:  dot files, `node_modules`, snapshots, tests, and the icon packs (each
- * bundle LINKS `packages/ui/src/icons/icon-packs`, never bundles it).
+ * Names never part of a bundle's sources:  dot files, `node_modules`, snapshots, tests, and the icon packs
+ * (each bundle LINKS `packages/ui/src/icons/icon-packs`, never bundles it).
  */
 const SKIPPED = /^(\..*|node_modules|__snapshots__|icon-packs|.*\.test\.[cm]?[jt]sx?)$/

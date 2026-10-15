@@ -1,10 +1,10 @@
 # `@spell-app/ui` docs site -- the build
 
 The site bundle every Spell UI docs page loads, and its entry.
-- The PAGES are in [`../docs/`](../docs/README.md):  Spell UI's component set, served at `/components/ui/` (epic
-  `people-and-orgs` P18;  the shared `ui/` before it, from claude-design P6).
-- The page server lays this folder's `_assets/` over every set's pages at `/components/<set>/_assets/`
-  (`COMPONENT_SETS`, in the [page server](../../server/)).
+- The PAGES are in [the docs folder](../docs/README.md):  Spell UI's component set, served at `/components/ui/`.
+  - Since epic `people-and-orgs` P18;  from claude-design P6 until then, the shared `ui/`.
+- The page server lays this folder's `_assets/` over every set's pages, at `/components/<set>/_assets/`.
+  - `COMPONENT_SETS`, in the [page server](../../server/)
 
 | Path | What |
 | --- | --- |

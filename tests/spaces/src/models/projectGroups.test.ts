@@ -3,8 +3,9 @@ import { describe, expect, test, vi } from "vite-plus/test"
 import { SPACES } from "$/spaces"
 
 /**
- * Spell's project groups are spaces' (`SPACES.PROJECT_GROUPS`):  spell's registry starts empty, and every program
- * that reads a spell path must load them first, or every address is "invalid" (epic `people-and-orgs` P15).
+ * Spell's project groups are spaces' (`SPACES.PROJECT_GROUPS`), and spell's registry starts empty
+ * (epic `people-and-orgs` P15).
+ * - So every program that reads a spell path must load them first, or every address is "invalid".
  * - One test per ENTRY POINT:  each, loaded alone in a fresh module graph, registers them.
  * - The browser's entries (the editor, `<spell-app>`) load `$/spaces` / `$/spaces/models/projectGroups` the same way.
  */

@@ -3,15 +3,16 @@
  * and the translation `Dictionary` contract.
  * - Why a schema:  vocabulary files own EVERY name a component uses
  *   (tag, attributes, values, events, slots, parts, states, texts),
- *   so templates and `ClassBuilder` never hold string literals,
+ *   so templates and Spell UI's `ClassBuilder` never hold string literals,
  *   and a translation can rename all of them in one place.
  * - Canonical names are English and never change;  CSS, `ClassBuilder` output and `:state()`s always use them.
  *   - A `Dictionary` only renames what AUTHORS type:  tags, attribute names, attribute values, events, slots, parts.
- * - Here, in spell-solid, since every set's elements are declared by one;
- *   the code that reads them (the registry, value sets, converters, class words) is Spell UI's, `$/ui/vocabulary`,
- *   which spell-solid reaches through its settings (`SpellSolidSettings.words`).
- *   - The shared value sets and topics are Spell UI's too:  it names them by augmenting `ValueSetNames` and
- *     `TopicNames` (`$/ui/vocabulary`'s `ValueSets`).
+ * - The types live here, in spell-solid, since every set's elements are declared by one.
+ *   - The code that reads them is Spell UI's, `$/ui/vocabulary`:
+ *     the registry, value sets, converters, class words.
+ *   - spell-solid reaches it through its settings (`SpellSolidSettings.words`).
+ *   - The shared value sets and topics are Spell UI's too (`$/ui/vocabulary`'s `ValueSets`):
+ *     it names them by augmenting `ValueSetNames` and `TopicNames`.
  * - Types only, importing nothing:  it erases completely.
  *   - Node reads it with every vocabulary (`yarn site:data`, `yarn gen:root`):  it MUST NOT reach the element layer.
  */
@@ -21,7 +22,7 @@
 ////////////////
 
 /**
- * How an attribute turns into Fomantic classes (see `ClassBuilder`, `notes/grammar.md`)
+ * How an attribute turns into Fomantic classes (see Spell UI's `ClassBuilder`, `packages/ui/notes/grammar.md`)
  * or, for the last six, into a plain property with no class.
  * - `keyOnly` -- `basic` => `basic`
  * - `valueAndKey` -- `floated="left"` => `left floated`;  bare `floated` => nothing
@@ -40,11 +41,11 @@
  *   - bare / `"true"` / `"yes"` => `spec.default`, else `""` ("the element's own icon", none if it has none)
  *   - `"false"` / `"no"` => none (`undefined`), even over a default
  * - NOTE: camelCase, not WWOD §9's English values, on purpose (epic `wwod-spell-ui`, P4 judgement):
- *   they're PUBLISHED data, which these read:
- *   - `site/_data/components.json`
+ *   they're PUBLISHED data, which these read (all Spell UI's, in `packages/ui/`):
+ *   - the docs data, `docs/__data/components.json`
  *   - `<ui-docs-api>`'s Kind column (`KIND_LABELS`)
  *   - `tools/ElementManifests.ts`
- *   - `notes/grammar.md` and the site's `grammar.html`
+ *   - `notes/grammar.md`, and the docs page `docs/grammar.html`
  */
 export type AttributeKind =
   | "keyOnly"
@@ -69,7 +70,7 @@ export type ClassAttributeKind = Exclude<AttributeKind, "boolean" | "enum" | "st
 
 /**
  * One attribute of a component, as declared in its vocabulary.
- * - Primitive attributes reflect;  rich data (`kind: "json"`) is a property only, see `AGENTS.md`.
+ * - Primitive attributes reflect;  rich data (`kind: "json"`) is a property only, see Spell UI's `AGENTS.md`.
  */
 export type AttributeSpec = {
   /** Canonical English attribute name, kebab-case, e.g. `text-align`, `allow-additions`. */
@@ -157,7 +158,10 @@ export type StateSpec = {
   description: string
 }
 
-/** Text people read, looked up through `UI.i18n`, e.g. `{ key: "noResults", text: "No results found." }`. */
+/**
+ * Text people read, e.g. `{ key: "noResults", text: "No results found." }`.
+ * - Looked up through the runtime's texts:  Spell UI's `UI.i18n`.
+ */
 export type TextSpec = {
   /** Lookup key, camelCase, unique within the component. */
   key: string
@@ -211,7 +215,7 @@ export type ComponentVocabulary = {
   /**
    * What the tag is filed under, so people find it however they look:
    * `ValueSets.topics` ids, several per tag (`ui-button`:  `buttons`, `basic`, `controls`, `forms`, `elements`).
-   * - Rolled up in `components/ComponentDefinitions.ts`.
+   * - Rolled up in Spell UI's `ComponentDefinitions` (`packages/ui/components/ComponentDefinitions.ts`).
    * - A translation maps them (`Dictionary.values.topics`).
    */
   topics?: readonly ComponentTopic[]
@@ -230,7 +234,7 @@ export type ComponentVocabulary = {
    *   or a tag with nothing to show (`ui-popup`).
    * - Text, not a `SkeletonSpec`:  one form for Spell UI's vocabularies and a component pack's.
    *   - `yarn gen:root` (and `spell dev pack build`) parse it into a catalog.
-   *   - `test/vocabularies.test.ts` parses every one.
+   *   - Spell UI's vocabularies test (`tests/ui/test/vocabularies.test.ts`) parses every one.
    * - NEVER translated:  drawing data, like `states`.
    */
   skeleton?: string
@@ -286,7 +290,8 @@ export type ComponentTopic = NamesOf<TopicNames>
 ////////////////
 
 /**
- * Names of the shared English value sets in `ValueSets`:  the sets its instances declare, so the class is the ONE list.
+ * Names of the shared English value sets in Spell UI's `ValueSets`.
+ * - The sets its instances declare, so the class is the ONE list.
  * - `hues` -- Fomantic's `@variationAllColors`;  extensible
  * - `sizes` -- `mini` ... `massive`;  `medium` is the no-op default
  * - `positions` -- popup / tooltip positions (`top left` ... `right center`)
@@ -331,8 +336,8 @@ export type NameMap = Readonly<Record<string, string>>
  *   and map to a localized STEM (`tarjeta`, `cambio`):
  *   `Vocabulary.define(prefix, dictionary)` adds the prefix (`ie-tarjeta`).
  * - Attribute, slot and part names map name to name (`header` => `encabezado`).
- * - NOT here:  states (a CSS contract), CSS classes, text strings (owned by `UI.i18n`).
- * - See `notes/translation.md`.
+ * - NOT here:  states (a CSS contract), CSS classes, text strings (owned by Spell UI's `UI.i18n`).
+ * - See Spell UI's `packages/ui/notes/translation.md`.
  */
 export type Dictionary = {
   /** BCP 47 language tag, e.g. `es`. */

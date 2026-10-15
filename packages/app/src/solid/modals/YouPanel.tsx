@@ -13,8 +13,10 @@ const ME_URL = "/api/people/me"
 /****************
  * ### `<YouPanel>`
  * The "You" panel (epic `people-and-orgs` P9, Q13):  this machine's person, to change, and their orgs, to read.
- * - A `<ui-modal>` with a `<ui-form>`:  names, nickname, emails (one a line) and dated events (a label and a day,
- *   added and removed by row).
+ * - A `<ui-modal>` with a `<ui-form>`:
+ *   - names, nickname
+ *   - emails, one a line
+ *   - dated events, each a label and a day, added and removed by row
  * - Their orgs, and their role in each, read only.
  * - What their file got wrong (`checkEntry()`'s problems), above the form:  read anyway.
  * - Save writes their `__me.json5` through the server (`POST /api/people/me`), its comments kept;

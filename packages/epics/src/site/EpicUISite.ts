@@ -19,19 +19,22 @@ import type { EpicTag, EpicVocabulary } from "$/epics/definitions"
 
 /****************
  * ### `EpicUISite`
- * The data of Epic UI, the docs set of the `<epic-*>` elements (`packages/epics/docs/`, served at
- * `/components/epics/`;  epic `epic-workflow` P10):  what its side column, search and look controls read, in Spell UI's
- * shapes, since its pages load Spell UI's site bundle.
+ * The data of Epic UI, the docs set of the `<epic-*>` elements:
+ * what its side column, search and look controls read.
+ * - In Spell UI's shapes, since its pages load Spell UI's site bundle.
+ * - The set:  `packages/epics/docs/`, served at `/components/epics/` (epic `epic-workflow` P10).
  * - The set's pages are ONE flat folder:  its home, `index.html`, and one page per element, `<tag>.html`.
- * - `__data/components.json` (`SiteDataFile`):  one entry per element, from the pack's own definitions
- *   (`Definitions.all`:  each vocabulary as data), filed under the groups of the set's hand-kept `__data/pages.json`;
- *   plus the set's own side-column links (`nav`)
+ * - `__data/components.json` (`SiteDataFile`):  one entry per element, from the pack's own definitions.
+ *   - `Definitions.all`:  each vocabulary as data
+ *   - filed under the groups of the set's hand-kept `__data/pages.json`
+ *   - plus the set's own side-column links (`nav`)
  *   - a new element shows up by itself:  under "Other" until `pages.json` files it, `planned` until its page exists
  *   - the elements drawn only inside others' shadow roots (`pages.json` `drawnOnly`) are never listed
- * - `__data/search.json` (`SiteSearchFile`):  every page's title and sections, read from the page files by Spell UI's
- *   own rules (`PageOutline`), for the side column's search
- * - Written by `yarn site:data` (`scripts/site-data.ts`);  `EpicUISite.test.ts` fails while they're stale:  rerun
- *   after adding or changing an element, or a page's sections.
+ * - `__data/search.json` (`SiteSearchFile`):  every page's title and sections, for the side column's search.
+ *   Read from the page files by Spell UI's own rules (`PageOutline`).
+ * - Written by `yarn site:data` (`scripts/site-data.ts`).
+ *   - `EpicUISite.test.ts` fails while they're stale
+ *   - rerun after adding or changing an element, or a page's sections
  * - Node only (`node:fs`, linkedom);  deterministic:  no dates.
  ****************/
 export class EpicUISite {

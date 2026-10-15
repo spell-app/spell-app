@@ -10,8 +10,8 @@ const settle = () => new Promise((done) => setTimeout(done, 60))
 
 /**
  * Draw a `<ProjectPrompt>` with `recents`, type each of `keys`, and return the last frame and what it picked.
- * - `untilPicked`:  then wait (5s at most) for the pick, rather than one `settle()`:  keys typed together wait on each
- *   other's choices, read from disk, which take longer on a busy machine.
+ * - `untilPicked`:  then wait (5s at most) for the pick, rather than one `settle()`
+ *   - keys typed together wait on each other's choices, read from disk, which take longer on a busy machine
  */
 async function prompt(keys: string[], recents: string[] = [], { untilPicked = false } = {}) {
   const onDone = vi.fn()

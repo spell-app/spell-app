@@ -1,8 +1,9 @@
 /**
  * The Type Explorer's data on a page with NO parser, e.g. in `<spell-app>`:  scope packs, loaded as scripts.
- * - See `LSP.ScopePack`.  A later source may parse in the page instead -- anything giving a `ScopesSource`.
+ * - See `LSP.ScopePack`.
+ * - A later source may parse in the page instead:  anything giving a `ScopesSource`.
  * - A pack leaves out each declaration's `spell` and `compiled`:
- *   they're worked out when shown, from the project's sources and compiled output -- if we can have them.
+ *   they're worked out when shown, from the project's sources and compiled output, if we can have them.
  *   See `ScopesSourceHooks`.
  */
 import JSON5 from "json5"
@@ -57,9 +58,10 @@ export type CompiledDeclarations = {
  * A `ScopesSource` of `packs` -- the built-ins' first.  See `LSP.scopeTreeFromPacks()`.
  * - A declaration's `spell` is its `line`s of its file, from `hooks.loadSource()`.
  * - Its `compiled` is its statement's code in its project's compiled output, from `hooks.loadCompiled()`.
- *   - Found by the project's declarations (`hooks.loadDeclarations()`), whose `codeLines` say where each starts:
- *     the statement in the same file which declares it, e.g. `of: "Card"` + `property: "suit"`
- *     for `.../type:Card/property:suit`.  See `declaredPaths()`.
+ *   - Found by the project's declarations (`hooks.loadDeclarations()`):
+ *     - the statement is the one in the same file which declares it,
+ *       e.g. `of: "Card"` + `property: "suit"` for `.../type:Card/property:suit` (see `declaredPaths()`)
+ *     - their `codeLines` say where each statement's code starts
  *   - So NO source needed.
  *   - Compiled output from before declarations files has `/*! SPELL: DECLARES ... *\/` markers inline instead:
  *     read from those.
@@ -168,9 +170,11 @@ type CompiledMarker = {
 /**
  * Every declaration marker in `compiled`, with its code after it -- see `declarationCode()`.
  * - Up to the next marker at its indent or less, or the end of its file.
- *   A marker for a class member is indented in its class's body, so a class's code runs on past its members' markers.
- * - A marker says which file its statement's in as `defined: "/Card.spell:70-87"`,
- *   and what it declares as `SP.SpellDeclaration` props, e.g. `property: "suit", of: "Card"` -- see `declaredPaths()`.
+ *   - A marker for a class member is indented in its class's body,
+ *     so a class's code runs on past its members' markers.
+ * - A marker says:
+ *   - which file its statement's in, as `defined: "/Card.spell:70-87"`
+ *   - what it declares, as `SP.SpellDeclaration` props, e.g. `property: "suit", of: "Card"` (see `declaredPaths()`)
  */
 function compiledMarkers(compiled: string): CompiledMarker[] {
   const found = [...compiled.matchAll(DECLARES)].map((match) => ({ match, indent: indentAt(compiled, match.index) }))

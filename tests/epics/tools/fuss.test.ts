@@ -1,6 +1,7 @@
 /**
- * Tests of `spell dev docs fuss` (`fuss.ts`):  each kind of miss found at its line, what it skips, and the files it
- * walks.  Owen's own before / after (epic `skillz`, P7's goal) are the fixtures.
+ * Tests of `spell dev docs fuss` (`fuss.ts`):
+ * each kind of miss found at its line, what it skips, and the files it walks.
+ * - Owen's own before / after (epic `skillz`, P7's goal) are the fixtures.
  */
 import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"

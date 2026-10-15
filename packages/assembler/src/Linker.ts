@@ -7,23 +7,28 @@ import { parseHTML } from "linkedom"
 import type { AS } from "$/assembler"
 
 /**
- * Links source references in a page of the spell-app checkout at `root`:  one named target per destination, so
- * re-clicks reuse a tab.  Rules:  `packages/epics/AGENTS.md`, "Links".
- * - `link()`:  `<code>path</code>` outside `<pre>` / `<a>` / `<head>` becomes a link when the path resolves to a real
- *   file or folder;  an existing `<a href>` without a target gets one (external:  per URL;  sibling docs:  per file)
+ * Links source references in a page of the spell-app checkout at `root`:
+ * one named target per destination, so re-clicks reuse a tab.
+ * - Rules:  `packages/epics/AGENTS.md`, "Links".
+ * - `link()`:  `<code>path</code>` outside `<pre>` / `<a>` / `<head>` becomes a link,
+ *   when the path resolves to a real file or folder
+ *   - an existing `<a href>` without a target gets one (external:  per URL;  sibling docs:  per file)
  *   - a name with its path as its tooltip, `<code title="path">name</code>`, links to that path the same way
- * - `check()`:  every local href resolves INSIDE the repo, every non-anchor link has a target, one target per
- *   destination (`target="_self"`, a same-tab link, is exempt from the last)
- *   - a missing target version control IGNORES is fine:  runtime files and local clones exist only on some
- *     machines, or while a server runs (`isGitIgnored()`)
+ * - `check()`:
+ *   - every local href resolves INSIDE the repo
+ *   - every non-anchor link has a target
+ *   - one target per destination (`target="_self"`, a same-tab link, is exempt)
+ *   - a missing target version control IGNORES is fine:
+ *     runtime files and local clones exist only on some machines, or while a server runs (`isGitIgnored()`)
  * - Works on the page's TEXT with regexes, never a parsed DOM:  the edits touch only what they link, byte for byte.
- * - Knows the checkout's LAYOUT (`packages/*`, the shared areas `pages/`, `guides/`, `epics/`, `templates/`) as
- *   folder names only:  imports no other package, so the docs tools and the plan-doc tool (`epics`) both import it.
+ * - Knows the checkout's LAYOUT as folder names only:
+ *   `packages/*`, and the shared areas `pages/`, `guides/`, `epics/`, `templates/`.
+ *   It imports no other package, so the docs tools and the plan-doc tool (`epics`) both import it.
+ * - SERVED folders (`served`, epic `epic-workflow` P10):  a folder the page server serves at another address.
+ *   - E.g. a component set:  `packages/epics/docs/` at `/components/epics/`.
+ *   - Its pages' links are written as from that address, so they hold under `/worktrees/<w>/` too.
+ *   - Give such a page `servedDir()` of its folder as its `pageDir`:  links then resolve, and are written, from there.
  * - From `packages/epics/tools/doc-links.js` (epic `epic-components`, P7), which now runs its command line on this.
- * - SERVED folders (`served`, epic `epic-workflow` P10):  a folder the page server serves at another address (a
- *   component set:  `packages/epics/docs/` at `/components/epics/`) has its pages' links written as from that address,
- *   so they hold under `/worktrees/<w>/` too.  Give such a page `servedDir()` of its folder as its `pageDir`:  links
- *   then resolve, and are written, from there.
  */
 export class Linker {
   /** the checkout's root:  links resolve inside it, and a target is a slug of the path relative to it */
@@ -45,8 +50,8 @@ export class Linker {
   readonly special: Map<string, string>
 
   /**
-   * the served folders, absolute:  `[address folder, the folder it serves]`, e.g.
-   * `[<root>/components/epics, <root>/packages/epics/docs]`
+   * the served folders, absolute, each `[address folder, the folder it serves]`
+   * - e.g. `[<root>/components/epics, <root>/packages/epics/docs]`
    */
   readonly served: readonly (readonly [string, string])[]
 
@@ -54,9 +59,9 @@ export class Linker {
   private index?: Map<string, string[]>
 
   /**
-   * - `served`:  the address folder => the folder it serves, both relative to `root`, e.g.
-   *   `{ "components/epics": "packages/epics/docs" }` (`COMPONENT_SETS` in `$/server/page`, which this package can't
-   *   import)
+   * - `served`:  the address folder => the folder it serves, both relative to `root`,
+   *   e.g. `{ "components/epics": "packages/epics/docs" }`
+   *   (`COMPONENT_SETS` in `$/server/page`, which this package can't import)
    */
   constructor(root: string, { served = {} }: { served?: Readonly<Record<string, string>> } = {}) {
     this.root = root
@@ -181,9 +186,13 @@ export class Linker {
 
   /**
    * A code span's text -> an existing absolute path or `https://` URL, else `undefined`.
-   * - tries, in order:  `special`, `solid-js/...` in `nodeModules`, `solidjs.com` pages,
-   *   then the path against the page's folder, its `experiments/`, the repo root, `packages/`,
-   *   the docs home's folder (`pages/`) and UI;  a bare file name last, when ONE file outside a `test/` folder has it
+   * - tries, in order:
+   *   - `special`
+   *   - `solid-js/...` in `nodeModules`
+   *   - `solidjs.com` pages
+   *   - the path against the page's folder, its `experiments/`, the repo root, `packages/`,
+   *     the docs home's folder (`pages/`) and UI
+   *   - a bare file name last, when ONE file outside a `test/` folder has it
    * - `file.ts:75` drops its line number
    * - NOTE:  the alias form is `#name/...`, from before the `$/` aliases:  a `$/name/...` span never resolves
    */
@@ -221,8 +230,8 @@ export class Linker {
    * Where bare file names (`withSolid.ts`) are looked up:
    * - every package's `src/`, and its `components/` (a component set's elements:  `UIButton.tsx`)
    * - the repo's `tests/`, where every package's tests live (`List.test.ts`)
-   * - the docs' pages (every area:  `pages/`, `guides/`, `epics/`, `templates/`) and tools, and UI's design notes,
-   *   `notes/`
+   * - the docs' pages (every area:  `pages/`, `guides/`, `epics/`, `templates/`) and tools
+   * - UI's design notes, `notes/`
    */
   private get indexRoots(): string[] {
     return [
@@ -252,8 +261,11 @@ export class Linker {
   /**
    * The links of `text` (a page in `pageDir`), outside `<pre>`:
    * - `destinations`:  how many distinct destinations the targeted links have
-   * - `problems`:  nested links, missing or outside-the-repo files, links with no target, a destination with several
-   *   targets, a target shared by several destinations
+   * - `problems`:
+   *   - nested links
+   *   - missing or outside-the-repo files
+   *   - links with no target
+   *   - a destination with several targets, or a target shared by several destinations
    * - SIDE EFFECT:  runs `git check-ignore` once per missing local file
    */
   check(text: string, pageDir: string): AS.LinkCheck {
@@ -294,8 +306,8 @@ export class Linker {
   }
 
   /**
-   * Whether version control ignores `path`:  a local-only or runtime file (`.spell-server.json`, a local clone in
-   * `packages/ui/reference/`), fine to be missing here.
+   * Whether version control ignores `path`:  a local-only or runtime file, fine to be missing here.
+   * - e.g. `.spell-server.json`, a local clone in `packages/ui/reference/`
    * - a folder MUST keep its trailing `/`:  a missing path can't match a folder-only rule (`ongoing/`) without it
    */
   private isGitIgnored(path: string): boolean {
@@ -331,8 +343,9 @@ const SKIP_DIRS = new Set([
 ])
 
 /**
- * A plan doc, `epics/<name>/<name>.plan.html` (before 2026-10-04 `<name>.html`;
- * before 2026-10-05 under `packages/docs/content/` or `packages/docs/`), relative to the repo root:  `[1]` is its name.
+ * A plan doc, `epics/<name>/<name>.plan.html`, relative to the repo root:  `[1]` is its name.
+ * - and its old places:  `<name>.html` before 2026-10-04;
+ *   under `packages/docs/content/` or `packages/docs/` before 2026-10-05
  * - same as `packages/epics/tools/relocate.js` `PLAN_DOC`
  */
 const PLAN_DOC = /(?:^|\/)(?:packages\/docs\/(?:content\/)?)?epics\/([^/]+)\/\1(?:\.plan)?\.html$/
@@ -345,8 +358,8 @@ const URL_START = /^https?:\/\//
 
 /**
  * A code span:  `[2]` its text;
- * `[1]` its `title`, when that's its only attribute:  a name with its path as its tooltip (WWOD §6 › "Plain text,
- * plain paths")
+ * `[1]` its `title`, when that's its only attribute:
+ * a name with its path as its tooltip (WWOD §6 › "Plain text, plain paths")
  */
 const CODE_SPAN = /<code(?:\s+title="([^"]+)")?\s*>([^<]+)<\/code\s*>/g
 

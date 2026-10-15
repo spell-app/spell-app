@@ -1,8 +1,8 @@
 # `$/epics` -- a component pack of `<epic-*>` elements
 
 Custom elements a page loads ON DEMAND.
-Written exactly like Spell UI's own element families, on its `$/ui/core`.
-- `<ui-root>` reads [the pack's script](pack/epics.pack.js) when the page names it.
+Written exactly like Spell UI's own element families, on `$/spell-solid` and Spell UI's `$/ui/core`.
+- `<ui-root>` reads [the pack's script](components/__pack/epics.pack.js) when the page names it.
   - It's a classic script, so it works from `file://` too.
 - It shows each tag's skeleton until it's defined, then defines them all.
 
@@ -23,7 +23,7 @@ If you find yourself writing a second copy of any of these, stop and reuse.
 
 - the pack's build, catalog and staleness check:  the CLI's, `spell dev pack` ([packBuild.ts](../cli/src/dev/packBuild.ts))
 - reading a vocabulary's tag and skeleton:  Spell UI's `RootCatalog` ([RootCatalog.ts](../ui/tools/RootCatalog.ts))
-- the element authoring API:  `$/ui/core`
+- the element authoring API:  `$/spell-solid`, and Spell UI's `$/ui/core`
 
 ## Files
 
@@ -34,9 +34,9 @@ If you find yourself writing a second copy of any of these, stop and reuse.
 | `src/index.ts` | `$/epics` (`EP`):  code the elements and the node tools share |
 | `src/definitions/` | the ONE description of every element:  its vocabulary as data, plus the children it takes |
 | `src/markup/` | read, write and check a plan doc's `<epic-*>` markup through the definitions (node and browser) |
-| `src/review/` | the page's server clients, each POSTing and watching through a `ServerLink` (the token and its refresh):  the review inbox's, `ReviewClient` (reads and writes, polling, note-draft backups;  the elements' review controls use it);  the running agents', `AgentsClient` (`<epic-page>`'s "Agents running" panel) |
-| `src/convert/` | the converter:  a plan doc in the old markup => `<epic-*>` markup (`spell dev plan-doc convert`), with a proof that no id, link or word was lost.  Every live doc was converted at P12;  it stays for a doc restored from an old backup |
-| `src/tool/` | the plan-doc tool (`spell dev plan-doc`), node only;  not in the pack.  `PLAN-DOC.md`:  the rules for a doc's data.  `templates/plan.html`:  a new doc |
+| `src/review/` | the page's two server clients, each POSTing and watching through a `ServerLink` (the token and its refresh):  `ReviewClient`, the review inbox's, which the elements' review controls use;  `AgentsClient`, the running agents', for `<epic-page>`'s "Agents running" panel |
+| `src/convert/` | the converter (`spell dev plan-doc convert`):  a plan doc in the old markup => `<epic-*>` markup, with a proof that no id, link or word was lost;  every live doc was converted at P12, and it stays for a doc restored from an old backup |
+| `src/tool/` | the plan-doc tool (`spell dev plan-doc`), node only, not in the pack;  `PLAN-DOC.md`, the rules for a doc's data;  `templates/plan.html`, a new doc |
 | `tests/epics/src/pack.test.ts` (repo root) | runs `spell dev pack check epics`:  `components/__pack/` and `docs/__data/` are current |
 | `components/__pack/` | GENERATED, committed:  `epics.catalog.ts`, `epics.entry.ts`, `epics.pack.js` |
 | `docs/` | Epic UI, the elements' docs pages, served at `/components/epics/`:  `index.html`, `<tag>.html`, `__parts/`, `__data/` ([AGENTS.md](AGENTS.md), "Epic UI, the docs set") |
@@ -47,7 +47,11 @@ If you find yourself writing a second copy of any of these, stop and reuse.
 ## Adding a new element
 
 1. `spell dev pack element epics epic-<name>`:
-   writes `components/epic-<name>/`, adds it to `components/index.ts`, and rebuilds `components/__pack/`
+   - writes the family's folder, `components/epic-<name>/`
+   - adds it to [the barrel](components/index.ts)
+   - rebuilds `components/__pack/`
 2. Fill in its vocabulary (description, `topics`, `aka`, attributes, parts, skeleton), its class and sheet
-3. Its page, `docs/epic-<name>.html` (a copy of a page like it), then `yarn site:data`
-4. `yarn pack:build`, then `yarn review`;  commit `components/__pack/` and `docs/` with the change
+3. Its page in `docs/`, `epic-<name>.html`:  a copy of a page like it.
+   Then `yarn site:data`.
+4. `yarn pack:build`, then `yarn review`
+5. Commit the pack and the docs set (`components/__pack/`, `docs/`) with the change

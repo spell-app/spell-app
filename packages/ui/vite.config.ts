@@ -203,9 +203,11 @@ export default defineConfig(() => {
 })
 
 /**
- * Chunk file names:  an emoji data chunk (`components/ui-emoji/data/<set>/<letter>.json`) goes to
- * `emoji/<set>/<letter>-[hash].js`, so the two name sets' chunks are told apart -- by a reader of `dist/`, and by the
- * docs' single-file bundler, which loads them lazily instead of inlining them (`packages/epics/tools/bundle-spell-ui.js`).
+ * Chunk file names:  an emoji data chunk (`components/ui-emoji/data/<set>/<letter>.json`)
+ * goes to `emoji/<set>/<letter>-[hash].js`, so the two name sets' chunks are told apart:
+ * - by a reader of `dist/`
+ * - by the docs' single-file bundler, which loads them lazily instead of inlining them
+ *   (`packages/epics/tools/bundle-spell-ui.js`)
  */
 function emojiChunkNames(chunk: { facadeModuleId: string | null; moduleIds: readonly string[] }): string {
   const data = EMOJI_DATA.exec(chunk.facadeModuleId ?? chunk.moduleIds[0] ?? "")
@@ -219,15 +221,18 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  * `vite-plugin-dts` options for the published declarations:
  * `dist/index.d.ts`, `dist/core.d.ts`, `dist/components/ui-<name>/index.d.ts` ... --
  * the paths `package.json` `exports` names.
- * - `src/` imports `$/util` (`../util/src`) and `$/spell-solid` (`../spell-solid/src`), OUTSIDE this package, so the
- *   program's root is `packages/` (`compilerOptions.rootDir`, else TS6059) and all three `src/` trees are included,
- *   with ui's `components/`.
- * - Then `beforeWriteFile` moves what the plugin wrote to `dist/ui/src/**` up to `dist/**`,
- *   `dist/ui/components/**` to `dist/components/**` (where it was while the families lived in `src/components/`),
- *   `dist/util/src/**` to `dist/_util/**` (not `dist/util/`:  that's `src/util/`'s) and `dist/spell-solid/src/**` to
- *   `dist/_spell-solid/**`, and rewrites `$/util`, `$/spell-solid` and `$/ui` specifiers to relative ones (a
- *   `declare module` augmentation's too).  `pathsToAliases: false`:  the plugin's own rewrite measures from the layout
- *   BEFORE the move, and gets `../packages/ui/src/...`.
+ * - `src/` imports `$/util` (`../util/src`) and `$/spell-solid` (`../spell-solid/src`), OUTSIDE this package.
+ *   - So the program's root is `packages/` (`compilerOptions.rootDir`, else TS6059).
+ *   - All three `src/` trees are included, with ui's `components/`.
+ * - Then `beforeWriteFile` moves what the plugin wrote:
+ *   - `dist/ui/src/**` up to `dist/**`
+ *   - `dist/ui/components/**` to `dist/components/**` (where it was while the families lived in `src/components/`)
+ *   - `dist/util/src/**` to `dist/_util/**` (not `dist/util/`:  that's `src/util/`'s)
+ *   - `dist/spell-solid/src/**` to `dist/_spell-solid/**`
+ * - It also rewrites `$/util`, `$/spell-solid` and `$/ui` specifiers to relative ones
+ *   (a `declare module` augmentation's too).
+ *   - `pathsToAliases: false`:
+ *     the plugin's own rewrite measures from the layout BEFORE the move, and gets `../packages/ui/src/...`.
  * - `?inline` CSS imports (`styles/index.ts`) become `declare const x: string`:  only `vite/client` types them.
  * - Why not `bundleTypes`:  it rolls each entry up on its own, so a class like `UIComponent` is copied into every entry
  *   that reaches it, and a class with private members is a DIFFERENT type in each copy.

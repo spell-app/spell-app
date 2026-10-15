@@ -3,14 +3,26 @@ import { describe, test, expect } from "vite-plus/test"
 import { checkEntry, jsonSchemaFor, kindOf, List, Saver, Thing } from "$/core"
 
 /**
- * A saved entry checked against its class, and the JSON Schema VS Code checks the same file with (`checking.ts`,
- * epic `people-and-orgs` P5, decision Q43).
+ * A saved entry checked against its class, and the JSON Schema VS Code checks the same file with
+ * (`checking.ts`, epic `people-and-orgs` P5, decision Q43).
  * - The classes are what spell compiles from:
- *   - `a person is a thing where:`, `- its "name" is text`, `- its "age" is a number`,
- *     `- its "mood" is one of "happy", "grumpy"`, `- its "dates" is a list of dated-events`,
- *     `- its "friends" is a list of people`, `- its "best" is a person`
- *   - `a dated-event is a thing where:`, `- its "label" is text`, `- its "day" is a date`, `- it is saved inline`
- *   - `a pen-pal is a person`
+ *
+ *   ```spell
+ *   a person is a thing where:
+ *   - its "name" is text
+ *   - its "age" is a number
+ *   - its "mood" is one of "happy", "grumpy"
+ *   - its "dates" is a list of dated-events
+ *   - its "friends" is a list of people
+ *   - its "best" is a person
+ *
+ *   a dated-event is a thing where:
+ *   - its "label" is text
+ *   - its "day" is a date
+ *   - it is saved inline
+ *
+ *   a pen-pal is a person
+ *   ```
  */
 class Person extends Thing {
   static {

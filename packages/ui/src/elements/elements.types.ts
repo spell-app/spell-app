@@ -1,8 +1,9 @@
 /**
- * Shared types for `$/ui/elements` -- Spell UI's own half of the element core
- * (what makes an element at all, `UIComponent`, `DOMElement` and their types, is `$/spell-solid`'s):
- * - the parts with no Solid:  class building, validation, menu options, shorthand, native fallbacks
- * - the elements that show a text file, the dropdown's entries, the sticky watch
+ * Shared types for `$/ui/elements`, Spell UI's own half of the element core.
+ * - What makes an element at all is `$/spell-solid`'s:  `UIComponent`, `DOMElement` and their types.
+ * - Here:
+ *   - the parts with no Solid:  class building, validation, menu options, shorthand, native fallbacks
+ *   - the elements that show a text file, the dropdown's entries, the sticky watch
  * - Runtime-light:  types, plus a few constants
  *   (`WHITESPACE`, `StickyWatchEdges` and `StickyWatch`'s thresholds, the source URL attributes, `SourceEvent`).
  * - The BOTTOM of the folder's import graph:  `import type` only (the core's types as `E`, erased),

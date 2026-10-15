@@ -7,8 +7,8 @@ import { checkEntry, Loader, Saver } from "$/core/model"
 
 /**
  * The people library, `@spell/library/people` (epic `people-and-orgs` P7):  people, orgs and what they keep.
- * - The first test that reads a LIVE project, not a frozen test project:  its committed library must be what its
- *   spell compiles to now (J23).
+ * - The first test that reads a LIVE project, not a frozen test project:
+ *   its committed library must be what its spell compiles to now (J23).
  */
 const REPO = resolve(import.meta.dirname, "../../../..")
 const LIBRARY = resolve(REPO, "packages/spaces/@spell/library/people/people.lib.ts")

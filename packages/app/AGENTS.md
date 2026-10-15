@@ -20,8 +20,8 @@ when working with code in this package, `@spell-app/app`.
   - No React:  every `.tsx` is Solid.
   - `build.test.ts` pins that no chunk holds React, `spell-runtime.js` included.
   - Two test projects (`vitest.config.ts`):
-    - Both read the repo's `tests/app/`, where the tests live at the same paths as the code
-      (`src/solid.test.tsx` is `tests/app/src/solid.test.tsx`).
+    - Both read the repo's `tests/app/`, where the tests live at the same paths as the code:
+      `src/`'s [solid.test.tsx](../../tests/app/src/solid.test.tsx) is in `tests/app/src/`.
     - `node`, for most tests:  there Solid is its SERVER build
       (`renderToString`;  writes NOT staged, see [solid.test.tsx](../../tests/app/src/solid.test.tsx))
     - `browser` (chromium), for `*.browser.test.ts(x)`:  Solid's client build, as in the app
@@ -40,9 +40,13 @@ when working with code in this package, `@spell-app/app`.
   - `spellEditor/`:  `<spell-editor>`'s pane (below)
   - `editor.ts`:  the editor's state and actions, ONE `editor` for the page
   - `index.tsx`:  the entry, drawing the app into `#app-root`
-- Its server is NOT here (epic `people-and-orgs` P14):  the API, the editor's route module and `ProjectBuild` are
-  spaces', in its `src/server/node/routes/` ([spaces' AGENTS.md](../spaces/AGENTS.md)).
-- `index.html`, `demo/`, `static/` and the `vite*.config.ts` files are here too.
+- Its server is NOT here (epic `people-and-orgs` P14):  it's spaces' ([spaces' AGENTS.md](../spaces/AGENTS.md)).
+  - the API, the editor's route module and `ProjectBuild`
+  - in spaces' [route modules folder](../spaces/src/server/node/routes/)
+- Here too:
+  - the page, `index.html`
+  - `demo/`, `static/`
+  - the vite configs, `vite*.config.ts`
 - Scripts run HERE (`cd packages/app`):
   - The editor (vite, port 3000 if free, else any) is the PAGE SERVER's child.
     - Spaces' [appRoutes.ts](../spaces/src/server/node/routes/appRoutes.ts) starts it (`EditorServer`)
@@ -210,32 +214,46 @@ when working with code in this package, `@spell-app/app`.
     - Never a second copy (T3).
   - Leaving the page releases each (`domElement.dispose()`) a microtask later.
     A move in one go keeps it.
-- `docs/` is App UI (epic `epic-workflow` P11):  the docs pages of the app's components, a COMPONENT SET, served at
-  `/components/app/` (laid out as every set is since P18 of `people-and-orgs`, the root's `AGENTS.md`).
-  - ONE flat folder:  a page per documented component, `<Name>.html` (the web components' `spell-app.html`
-    ...);  its home `index.html`;  `__parts/` (the layout and footer, every page's frame), `__data/`;
-    `_images/` (the pictures) and `_examples/` (snippets a page shows), which aren't frame or data, so keep one `_`.
-  - Spell UI's page shape, on Spell UI's site bundle:  the page server lays its `_assets/` over the folder
-    (`COMPONENT_SETS`, [the page server's types](../server/src/page/page.types.ts)).
-  - Links are written as from the page's SERVED address (`/components/app/x.html`):  `../../` is the checkout's
-    root, `../ui/ui-button.html` a Spell UI page;  the layout and footer, in `__parts/`, one level deeper.
+- `docs/` is App UI (epic `epic-workflow` P11):  the docs pages of the app's components, a COMPONENT SET.
+  - Served at `/components/app/`.
+  - Laid out as every set is since P18 of `people-and-orgs` (the root's `AGENTS.md`).
+  - ONE flat folder:
+    - a page per documented component, `<Name>.html` (the web components' `spell-app.html` ...)
+    - its home, `index.html`
+    - `__parts/` (the layout and footer, every page's frame) and `__data/`
+    - `_images/` (the pictures) and `_examples/` (snippets a page shows):
+      they aren't frame or data, so they keep one `_`
+  - Spell UI's page shape, on Spell UI's site bundle:  the page server lays its `_assets/` over the folder.
+    - `COMPONENT_SETS`, in [the page server's types](../server/src/page/page.types.ts)
+  - Links are written as from the page's SERVED address (`/components/app/x.html`):
+    - `../../` is the checkout's root
+    - `../ui/ui-button.html` is a Spell UI page
+    - the layout and footer, in `__parts/`, are one level deeper
   - What it documents, and in which group:  [the hand-kept facts](docs/__data/pages.json).
   - Each page's props, attributes and "Used in" tables come from the code:  `yarn site:data`.
-    - [The data builder](tools/AppUIDataBuilder.ts) reads each listed file's exported components with a banner
-      (`### `<Name>``) and their props types ([ComponentSource](tools/ComponentSource.ts)), and every JSX use in the app.
+    - [The data builder](tools/AppUIDataBuilder.ts) reads, for each listed file:
+      - its exported components with a banner (`### `<Name>``)
+      - their props types ([ComponentSource](tools/ComponentSource.ts))
+      - and every JSX use in the app
     - The web components and the drawable thing's element:  their vocabularies, by Spell UI's own builder.
-    - Writes `__data/components.json` and `search.json`, COMMITTED;  [its test](../../tests/app/tools/AppUIDataBuilder.test.ts) fails
-      while they're stale, while a listed page is missing, unlinked from the home, or its component's banner
-      doesn't point at it.
+    - It writes the set's data, COMMITTED:  `components.json` and `search.json`, in `__data/`.
+    - [Its test](../../tests/app/tools/AppUIDataBuilder.test.ts) fails while:
+      - they're stale
+      - a listed page is missing, or unlinked from the home
+      - its component's banner doesn't point at it
     - So rerun it after changing a documented component's banner, props or uses.
-  - Pictures, for what needs the whole editor around it:  `yarn site:pictures [name...]`,
-    headless screenshots of this checkout's running editor, into `docs/_images/` ([its script](scripts/site-pictures.ts)).
-    - Opening the editor compiles its project, which may rewrite its `*.declarations.json5` / `*.en.js`:
-      check `git status` after.  (Its `*.spell.js` goes in `build/`, never committed.)
+  - Pictures, for what needs the whole editor around it:  `yarn site:pictures [name...]`.
+    - headless screenshots of this checkout's running editor, into `docs/_images/` ([its script](scripts/site-pictures.ts))
+    - Opening the editor compiles its project, which may rewrite its declarations and words files:
+      check `git status` after.
+      - `*.declarations.json5` / `*.en.js`
+      - its `*.spell.js` goes in `build/`, never committed
   - Live examples (the web components, the runner's pieces) need `yarn build:element`:
     the layout loads `/element/spell.pack.js`.
-  - A new page:  its entry in `pages.json`, `yarn site:data`, then a copy of a page like it
-    (`Notice.html` for a picture, `spell-app.html` for a live one), linked from `index.html`.
+  - A new page:
+    1. its entry in `pages.json`, then `yarn site:data`
+    2. a copy of a page like it:  `Notice.html` for a picture, `spell-app.html` for a live one
+    3. linked from `index.html`
 - `src/spellEditor/` is `<spell-editor>`'s pane:  the app's Monaco editor, as a web component.
   - `yarn build:element` => `spell-editor.js`
   - its demo:  `/demo/spell-editor.html`
@@ -260,12 +278,17 @@ when working with code in this package, `@spell-app/app`.
 - Nothing imports THIS package except `cli`.
   And the `<script>` entries in its own pages:  `index.html` and the demos.
 - It may import spaces' models, `$/spaces`;  NEVER `$/spaces/server/node/...`, which is node only.
-  - The editor ([editor.ts](src/editor.ts)) does:  a group's projects are `SPACES.SpellProjectRoot`,
-    and a project's file create, copy, rename and delete are `SPACES.ProjectFiles` (never `SpellProject`'s).
-  - The "You" panel ([YouPanel.tsx](src/solid/modals/YouPanel.tsx), epic `people-and-orgs` P9) talks to spaces'
-    people routes (`/api/people/me`) in plain JSON, typed by `SPACES.MeAnswer`:  it never loads the people library.
+  - The editor ([editor.ts](src/editor.ts)) does:
+    - a group's projects are `SPACES.SpellProjectRoot`
+    - a project's file create, copy, rename and delete are `SPACES.ProjectFiles` (never `SpellProject`'s)
+  - The "You" panel ([YouPanel.tsx](src/solid/modals/YouPanel.tsx), epic `people-and-orgs` P9)
+    talks to spaces' people routes in plain JSON:  it never loads the people library.
+    - the route:  `/api/people/me`
+    - typed by `SPACES.MeAnswer`
   - `<spell-app>` loads only the light files, without the parser:
-    `$/spaces/models/projectGroups` (registers spell's project groups), `$/spell/SpellSetup` and `$/spell/SpellUrls`.
+    - `$/spaces/models/projectGroups`, which registers spell's project groups
+    - `$/spell/SpellSetup`
+    - `$/spell/SpellUrls`
   - Every project file's URL comes from `SP.SpellUrls`:  `/spaces/<project>/<file>`, compiled files too.
 
 ## Decorators

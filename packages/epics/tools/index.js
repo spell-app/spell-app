@@ -5,21 +5,24 @@
  * - The home, `pages/index.html`:  a routing page, one card per area in the top bar's order
  *   (`areaCards()`;  the site header's `PROPERTIES`), each with its count,
  *   written between `<!-- areas:start -->` and `<!-- areas:end -->`
- *   - NOT `index:start` / `index:end`:  the home is shared, so an older checkout's `index.js` (which wrote three lists
- *     into the home) runs against it too;  finding no markers, it stops instead of writing its lists back
+ *   - NOT `index:start` / `index:end`:  the home is shared, so an older checkout's `index.js` runs against it too
+ *     - that one wrote three lists into the home
+ *     - finding no markers, it stops instead of writing its lists back
  * - The list pages (`LISTS`), each `<area>/index.html`, written between `<!-- index:start -->` and
- *   `<!-- index:end -->`;  a missing one is made from `skeleton()` first, so the rest of it is hand-authored after:
- *   - Epics:  `epics/<name>/<name>.plan.html`, in five groups (`$/epics/list/EpicCards`:  Favorites, Active,
- *     Planning, Urgent, Done), alphabetical within each;  each card's title after its state's mark
- *     (`$/epics/list/EpicState`:  in progress, errors, paused, future, done),
- *     read from its phases, its "updated" date and the items that need Owen;
- *     a star at its top right (`FAVORITES_FILE`), the day it was last worked on at its bottom right (`worked()`);
- *     the page server adds the running epics' cards, marks every card again and regroups them by the favourites
- *     as it serves the page (a session running, today's date, a star clicked since)
+ *   `<!-- index:end -->`.
+ *   - a missing one is made from `skeleton()` first, so the rest of it is hand-authored after
+ *   - Epics:  `epics/<name>/<name>.plan.html`, alphabetical within five groups
+ *     - the groups (`$/epics/list/EpicCards`):  Favorites, Active, Planning, Urgent, Done
+ *     - each card's title after its state's mark (`$/epics/list/EpicState`:  in progress, errors, paused, future,
+ *       done), read from its phases, its "updated" date and the items that need Owen
+ *     - a star at its top right (`FAVORITES_FILE`), the day it was last worked on at its bottom right (`worked()`)
+ *     - the page server adds the running epics' cards, marks every card again and regroups them by the favourites
+ *       as it serves the page (a session running, today's date, a star clicked since)
  *   - Guides:  `guides/**`
  *   - Templates:  `templates/**`, and the "Writing docs" notes (`WRITING_DOCS`, in its skeleton)
- *   - Brand:  `brand/**` but the rich Brand index's own (`BRAND_OWN`:  Claude Design's export and its copies, the
- *     element pages, Compare), in its section 6 (`section`:  the index's own sections hold an id `brand` already)
+ *   - Brand:  `brand/**`, in its section 6, but not the rich Brand index's own pages
+ *     - its own (`BRAND_OWN`):  Claude Design's export and its copies, the element pages, Compare
+ *     - `section`:  the index's own sections hold an id `brand` already
  * - Paths are from the checkout's root;  links from the page's own folder.
  * - Page notes Owen left in a written part (`<spell-notes>`, `PageNotes.js`) go back into the new one
  *   (`replaceBetween()`).
@@ -242,8 +245,10 @@ function worked(path, html, updated, branches) {
 }
 
 /**
- * Each local branch's last commit time (`git for-each-ref`, ONE call), by branch name:  `airplane` ->
- * `2026-10-09T22:01:59-04:00`.  Empty when git won't answer (no repo, a scratch checkout).  NEVER throws.
+ * Each local branch's last commit time, by branch name:  `airplane` -> `2026-10-09T22:01:59-04:00`.
+ * - `git for-each-ref`, ONE call
+ * - empty when git won't answer (no repo, a scratch checkout)
+ * - NEVER throws
  */
 function branchCommits() {
   try {
@@ -266,8 +271,8 @@ function branchCommits() {
 /**
  * What a plan doc's card shows, from its skeleton:  `{ phases, updated, future, urgent }`.
  * - each `<epic-phase status title>` (its label `P2 · <title>`), `<epic-page updated future>`
- * - a doc still in the old markup (no `<epic-page>`:  one restored from an old backup) shows as an empty plan:  the
- *   plan-doc tool refuses it until it's converted (epic `epic-components` P15)
+ * - a doc still in the old markup (no `<epic-page>`:  one restored from an old backup) shows as an empty plan:
+ *   the plan-doc tool refuses it until it's converted (epic `epic-components` P15)
  * - `updated`:  the plan-doc tool's "updated" stamp (`touch()`):  how long since anyone worked on it
  * - `future`:  an epic written down with `/epic future`, not planned yet
  * - `standing`:  open for good, every phase merging on its own (epic `epic-workflow`):  never shown done
@@ -313,13 +318,15 @@ function epicFacts(page) {
  * Guides, Goals, Epics, Epic/UI, Spell/UI, App, App/UI, Brand, Templates.
  * - Owen's words:  "Docs toolbar:  Guides Goals Epics Epic/UI Spell/UI App App/UI";  Brand and Templates "At the end"
  * - the slashed titles are the tabs' labels as he typed them (J41);  prose keeps "Epic UI", "Spell UI", "App UI"
- * - (before, claude-design Q6, 2026-10-05:  Epics, Guides, Brand, Spell UI, Templates, Goals, App)
+ * - the order before (claude-design Q6, 2026-10-05):  Epics, Guides, Brand, Spell UI, Templates, Goals, App
+ *
  * Each `{ id, title, icon, href?, count?, description, meta? }`.
  * - `id`:  the card's id, so the old `pages/index.html#epics` / `#guides` / `#templates` links land on its card
  * - `href`:  from the home's folder;  none for the App, which only the page server has (`/editor/`):
  *   a link there would break from `file://`, and `doc-links.js --check` can't resolve it
- * - Spell UI, Epic UI, App UI (`COMPONENT_SETS`):  their home at its served address (`/components/epics/`), since
- *   their pages load their site bundle from there;  their page counts from their folders (`packages/epics/docs/`)
+ * - Spell UI, Epic UI, App UI (`COMPONENT_SETS`):
+ *   - their home at its served address (`/components/epics/`), since their pages load their site bundle from there
+ *   - their page counts from their folders (`packages/epics/docs/`)
  * - `pages`:  every page `describe()`d, so the counts come from the same data as the list pages;
  *   the Epics count by the Epics page's groups, `favorites` the starred epics' names (`readFavorites()`)
  */
@@ -415,9 +422,10 @@ export function areaCards(pages, favorites = readFavorites()) {
 }
 
 /**
- * How many pages a component set has (`COMPONENT_SETS`), besides its home:  the `.html` files of its folder, or only
- * those starting `prefix` (Spell UI's element pages, `ui-*.html`, beside its other pages);  its layout and footer
- * (`__parts/`) never count.
+ * How many pages a component set has (`COMPONENT_SETS`), besides its home.
+ * - the `.html` files of its folder
+ * - or only those starting `prefix`:  Spell UI's element pages, `ui-*.html`, beside its other pages
+ * - its layout and footer (`__parts/`) never count
  */
 function setPages(set, prefix = "") {
   return htmlFiles(join(ROOT, set.dir)).filter((name) => name !== "index.html" && name.startsWith(prefix)).length

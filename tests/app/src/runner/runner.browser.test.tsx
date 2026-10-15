@@ -133,8 +133,9 @@ globalThis.cardGame = { ace, king, game, Card }
 `
 
 /**
- * A drawable tile, with an element class of its own handed to the page, as compiled TypeScript does (epic
- * `drawable-thing` P10):  `TileElement`, from `@spell/elements`, with a method of its own.
+ * A drawable tile, with an element class of its own handed to the page,
+ * as compiled TypeScript does (epic `drawable-thing` P10).
+ * - `TileElement`, from `@spell/elements`, with a method of its own
  * - Plain javascript, so no decorators:  its vocabulary and sheet are the page's, as for a bare element.
  */
 const HANDED = `

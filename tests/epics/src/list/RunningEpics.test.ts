@@ -18,8 +18,8 @@ import {
 import runningRoutes from "$/epics/list/runningRoutes"
 
 /**
- * A plan doc in `<epic-*>` markup with `phases`, each `[status, header]` (`P2 · Title`), `updated` that day;  its
- * phase tags spread over lines, as oxfmt writes them.
+ * A plan doc in `<epic-*>` markup with `phases`, each `[status, header]` (`P2 · Title`), `updated` that day.
+ * - its phase tags spread over lines, as oxfmt writes them
  */
 function planDoc(title: string, phases: [string, string][] = [], updated?: string): string {
   const tags = phases.map(

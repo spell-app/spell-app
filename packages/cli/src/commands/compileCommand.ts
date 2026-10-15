@@ -13,7 +13,7 @@ import { CLI } from "$/cli"
  *   - `<Project>.spell.js`, `<Project>.declarations.json5`
  *   - its words, `<Project>.en.js` (`SP.SpellWords`)
  *   - each other target's, e.g. `<Project>.spell.tsx` -- see `SP.TARGETS`
- *   - `--target <name>`:  that target, this run, instead of `project.json`'s
+ *   - `--target <name>`:  that target, this run, instead of the project file's
  *   - `--stdout`:  prints one (the target asked for, else the one that runs), and writes nothing
  * - A target with a checker is checked once written:  `tsc` on `ts/solid` and a library (`ts/lib`), `pyright` on `py`.
  *   Its errors are listed, but don't fail the compile -- see `typecheckTargets()`.
@@ -24,9 +24,11 @@ import { CLI } from "$/cli"
  * - A `.spell` file:  prints its compiled javascript.  Writes nothing.
  * - Projects it imports that have never been compiled are compiled first -- see `CliSession.compileImports()`.
  *   `--force`:  ALL of them, even those already compiled.
- * - `--stale`:  only the projects whose build is missing or out of date, and the same for what they import;
- *   the rest are listed as up to date.  What counts:  `CLI.staleBecause()`.
- *   What the page server runs when it starts, for `@spell/examples` and `@spell/library` (`ProjectBuild`, in `$/spaces`).
+ * - `--stale`:  only the projects whose build is missing or out of date, and the same for what they import.
+ *   - the rest are listed as up to date
+ *   - what counts:  `CLI.staleBecause()`
+ *   - the page server runs it when it starts, for `@spell/examples` and `@spell/library`
+ *     (`ProjectBuild`, in `$/spaces`)
  * - Returns the exit code:  `EXIT.ERRORS` if anything had errors.
  *   Warnings, e.g. a property with no type (`SP.SpellWarnings`), are listed under the errors, never counted:
  *   a project with only warnings compiles clean, its scope pack too.

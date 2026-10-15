@@ -1,20 +1,22 @@
 /**
- * Link source references in `.html` docs:  one named target per destination, new tab.  See `packages/epics/AGENTS.md`
- * "Links".
+ * Link source references in `.html` docs:  one named target per destination, new tab.
+ * - see `packages/epics/AGENTS.md`, "Links"
+ *
  * Usage (from `packages/epics`):
  *   yarn tsx tools/doc-links.js <folder>/<doc>.html ...           -- add links (idempotent)
  *   yarn tsx tools/doc-links.js --check <folder>/<doc>.html ...   -- verify, exit 1 on problems
  *   ... --root <checkout> ...                                     -- links resolve in that checkout, not this one
- * - The rules (what becomes a link, how a link gets its target, what `--check` verifies) live in `$/assembler`'s
- *   `Linker` (epic `epic-components`, P7):  shared with the plan-doc tool (`src/tool/`).  This file is its command
- *   line, on files.
- * - `--root`:  for a copy of the pages beside a copy of the code (a dry run of `relocate.js relink`, say);  version
- *   control's ignores are that checkout's, so it should be a git repo with the repo's `.gitignore`
- * - Runs under `tsx`, which maps `$/assembler` through this package's `tsconfig.json`:  plain `node` can't.  The
- *   tools that run it (`update.js`, `pages.js` `tidy()`, goals' check) go through `pages.js` `docLinksRun()`.
- * - A component set's pages (`packages/epics/docs/`, served at `/components/epics/`:  `COMPONENT_SETS` in
- *   `$/server/page`) link as from their SERVED address, so their links hold at `/worktrees/<w>/components/epics/`
- *   too:  their links are written and checked from there (`Linker`'s `served`, `servedDir()`).
+ * - This file is the command line, on files, of `$/assembler`'s `Linker` (epic `epic-components`, P7).
+ *   - the rules live there:  what becomes a link, how a link gets its target, what `--check` verifies
+ *   - shared with the plan-doc tool (`src/tool/`)
+ * - `--root`:  for a copy of the pages beside a copy of the code (a dry run of `relocate.js relink`, say)
+ *   - version control's ignores are that checkout's, so it should be a git repo with the repo's `.gitignore`
+ * - Runs under `tsx`, which maps `$/assembler` through this package's `tsconfig.json`:  plain `node` can't.
+ *   - the tools that run it (`update.js`, `pages.js` `tidy()`, goals' check) go through `pages.js` `docLinksRun()`
+ * - A component set's pages link as from their SERVED address,
+ *   so their links hold at `/worktrees/<w>/components/epics/` too.
+ *   - e.g. `packages/epics/docs/`, served at `/components/epics/` (`COMPONENT_SETS` in `$/server/page`)
+ *   - their links are written and checked from there (`Linker`'s `served`, `servedDir()`)
  * - NOTE:  ported from `doc-links.py` on 2026-10-03;  makes the same edits to every page.
  */
 import { readFileSync, writeFileSync } from "node:fs"

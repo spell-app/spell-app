@@ -21,29 +21,37 @@ import { ReviewInbox } from "./ReviewInbox"
 
 /****************
  * ### `PlanDocFiles`
- * The plan docs of ONE spell-app checkout, on disk:  where each epic's doc is, reading it whole, editing it under its
- * lock, writing it back tidy, and the git facts the tool needs about it.
+ * The plan docs of ONE spell-app checkout, on disk.
+ * - where each epic's doc is, reading it whole, editing it under its lock, writing it back tidy
+ * - and the git facts the tool needs about it
+ *
  * - the doc is the checkout's `epics/<name>/`:  a link to the one shared copy every checkout edits (`findDoc()`)
- * - a doc is FOUND under either name (`planDocIn()`):  `<name>.plan.html` since 2026-10-04, else the old
- *   `<name>.html`, which worktrees cut before then still have
- * - the `<epic-*>` markup only (a `PlanDoc`):  a doc still in the old `ui-*` markup (one restored from an old backup)
- *   is REFUSED by every command, reading or editing, writing nothing:  "convert it first".  The tool read such a doc
- *   until every doc was converted (epic `epic-components`, P12);  no more since P15.
- * - every edit (`edit()`):  takes the doc's lock (parallel agents queue instead of clobbering each other), parses
- *   it, changes it through `PlanDoc`, recolours every item (`updateStates()`), stamps "updated", checks it against the
- *   definitions (an edit that breaks the markup is refused), tidies it in memory (link targets, oxfmt) and writes
- *   each file once, atomically (`writeDoc()`)
- * - a doc may be SPLIT:  a skeleton plus part files, `parts/<id>.html` (`EpicParts`).  Reading assembles it into one
- *   document, `writeDoc()` splits it again:  every command works on either shape, and a part file is written only
- *   when its body changed.
- * - Node only (`node:fs`, git, `$/server`'s lock, `$/assembler`'s linker and formatter):  NOT in the `$/epics`
- *   barrel, imported by path.  Knows nothing of the command line (`PlanDocCommands`);  the docs index is rebuilt
- *   by running its tool, `tools/index.js`, as it runs from the command line (`reindex()`).
+ * - a doc is FOUND under either name (`planDocIn()`):
+ *   `<name>.plan.html` since 2026-10-04, else the old `<name>.html`, which worktrees cut before then still have
+ * - the `<epic-*>` markup only (a `PlanDoc`):
+ *   - a doc still in the old `ui-*` markup (one restored from an old backup) is REFUSED by every command,
+ *     reading or editing, writing nothing:  "convert it first"
+ *   - the tool read such a doc until every doc was converted (epic `epic-components`, P12);  no more since P15
+ * - every edit (`edit()`), in order:
+ *   - takes the doc's lock:  parallel agents queue instead of clobbering each other
+ *   - parses it, and changes it through `PlanDoc`
+ *   - recolours every item (`updateStates()`), and stamps "updated"
+ *   - checks it against the definitions:  an edit that breaks the markup is refused
+ *   - tidies it in memory (link targets, oxfmt), and writes each file once, atomically (`writeDoc()`)
+ * - a doc may be SPLIT:  a skeleton plus part files, `parts/<id>.html` (`EpicParts`).
+ *   - reading assembles it into one document;  `writeDoc()` splits it again
+ *   - so every command works on either shape
+ *   - a part file is written only when its body changed
+ * - Node only (`node:fs`, git, `$/server`'s lock, `$/assembler`'s linker and formatter):
+ *   NOT in the `$/epics` barrel, imported by path.
+ * - Knows nothing of the command line (`PlanDocCommands`).
+ *   It rebuilds the docs index by running its tool, `tools/index.js`, as the command line does (`reindex()`).
  ****************/
 export class PlanDocFiles {
   /**
-   * the checkout's root:  its `epics/`, `pages/` and docs tools.  STATIC for the object's life;  the command line
-   * makes one for the checkout it runs in (a worktree's, while the code may be main's)
+   * the checkout's root:  its `epics/`, `pages/` and docs tools
+   * - STATIC for the object's life
+   * - the command line makes one for the checkout it runs in (a worktree's, while the code may be main's)
    */
   readonly root: string
 
@@ -83,8 +91,8 @@ export class PlanDocFiles {
   ////////////////
 
   /**
-   * The doc `new` makes for plan `name`, in this checkout:  `epics/<name>/<name>.plan.html`;  names are
-   * lower-kebab-case, as the folder.
+   * The doc `new` makes for plan `name`, in this checkout:  `epics/<name>/<name>.plan.html`.
+   * - names are lower-kebab-case, as the folder
    */
   docPath(name: string): string {
     if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(name)) throw new PlanDocError(`name "${name}" must be lower-kebab-case`)
@@ -116,10 +124,12 @@ export class PlanDocFiles {
   }
 
   /**
-   * Every epic, once each:  `{ name, title, status, checkout, notReviewed, total, file }`, in progress first, then
-   * future, then done;  most not reviewed first in each.
-   * - `status`:  `in progress` while any phase isn't done (or there are none yet), `future` for an epic not planned
-   *   yet, else `done`
+   * Every epic, once each:  `{ name, title, status, checkout, notReviewed, total, file }`.
+   * - in progress first, then future, then done;  most not reviewed first in each
+   * - `status`:
+   *   - `in progress` while any phase isn't done (or there are none yet)
+   *   - `future` for an epic not planned yet
+   *   - else `done`
    * - `checkout`:  `main`, or `.claude/worktrees/<name>`:  where it runs (`epicCheckout()`)
    * - SIDE EFFECT:  a doc that won't read (in the old markup:  `read()`) is left out, and named on stderr
    */
@@ -198,14 +208,16 @@ export class PlanDocFiles {
   }
 
   /**
-   * Change the doc at `file` with `change(plan)`, under its lock (`SRV.FileLock`:  parallel agents, and the page
-   * server's page edits, take turns);  resolves with what `change` returned.
-   * - first the MIGRATIONS (`plan.migrate()`, `Migrations`):  an older doc comes up to today's markup on its first
-   *   edit, logged;  a migration that would break the doc refuses the edit, as any change does
+   * Change the doc at `file` with `change(plan)`, under its lock;  resolves with what `change` returned.
+   * - the lock (`SRV.FileLock`):  parallel agents, and the page server's page edits, take turns
+   * - first the MIGRATIONS (`plan.migrate()`, `Migrations`):
+   *   - an older doc comes up to today's markup on its first edit, logged
+   *   - a migration that would break the doc refuses the edit, as any change does
    * - then the whole-doc pass (`updateStates()`), with the page's `recent-since` from the doc's checkout
-   *   (`recentSince()`), stamps "updated", and writes it (`writeDoc()`)
-   * - REFUSES, writing nothing:  a doc in the old markup (`read()`);  an edit after which `Markup.validate()` finds a
-   *   problem the doc didn't have before
+   *   (`recentSince()`);  then it stamps "updated", and writes it (`writeDoc()`)
+   * - REFUSES, writing nothing:
+   *   - a doc in the old markup (`read()`)
+   *   - an edit after which `Markup.validate()` finds a problem the doc didn't have before
    * - `split`:  how to store it:  `true` a skeleton and parts, `false` one file;  default as it was
    */
   edit<T>(file: string, change: (plan: PlanDoc) => T, { split }: { split?: boolean } = {}): Promise<T> {
@@ -227,10 +239,12 @@ export class PlanDocFiles {
   }
 
   /**
-   * Run the epic page MIGRATIONS on the doc at `file` (`Migrations`:  every step, or those named in `only`), under its
-   * lock, as an edit is;  resolves with what they did:  `{ ran, notes, moves, written }`.
-   * - `ran`:  the steps that changed the page;  `notes`:  what they fixed or found, a line each;  `moves`:  comments
-   *   whose block moved, written into the page's review inbox after the page (`links-agree`)
+   * Run the epic page MIGRATIONS on the doc at `file`, under its lock, as an edit is.
+   * - `Migrations`:  every step, or those named in `only`
+   * - resolves with what they did:  `{ ran, notes, moves, written }`
+   * - `ran`:  the steps that changed the page
+   * - `notes`:  what they fixed or found, a line each
+   * - `moves`:  comments whose block moved, written into the page's review inbox after the page (`links-agree`)
    * - writes only when something changed, logged (`migrated:  links-agree`), the items recoloured
    *   (`updateStates()`);  NOT stamped "updated":  nobody worked on the epic
    * - `dryRun`:  the same report, nothing written
@@ -276,12 +290,13 @@ export class PlanDocFiles {
   }
 
   /**
-   * Write `plan` to `file`, tidied as a page must be (link targets, oxfmt), each file ONCE and atomically:  links
-   * and formatting happen in memory (`AS.Linker.link()`, `PlanParts.formatHTML()`).
-   * - `split`:  a skeleton plus part files (`EpicParts.split()`):  parts first, then the skeleton, so a page that
-   *   sees the new skeleton finds its new parts;  only files whose text changed are written
-   *   (`PlanParts.writeChanged()`), so an edit to one item rewrites its part (if its details changed) and the
-   *   skeleton, and the page re-fetches that part alone
+   * Write `plan` to `file`, tidied as a page must be (link targets, oxfmt), each file ONCE and atomically.
+   * - links and formatting happen in memory (`AS.Linker.link()`, `PlanParts.formatHTML()`)
+   * - `split`:  a skeleton plus part files (`EpicParts.split()`)
+   *   - parts first, then the skeleton, so a page that sees the new skeleton finds its new parts
+   *   - only files whose text changed are written (`PlanParts.writeChanged()`)
+   *   - so an edit to one item rewrites its part (if its details changed) and the skeleton,
+   *     and the page re-fetches that part alone
    * - one file:  as is, plus the parts folder of a doc that was split gone (`join`)
    * - links are made against the whole doc, at the page's folder:  a part's URLs are rebased to `parts/` after
    */
@@ -309,12 +324,12 @@ export class PlanDocFiles {
 
   /**
    * Rewrite the docs index:  a plan's status badge follows its phases.
-   * - by running `packages/epics/tools/index.js`, a child `node`:  the docs index's script, as `spell dev docs index`
-   *   runs it
-   * - shared content (`pages` a link):  ONE `pages/index.html` for every checkout, not tracked by spell-app, so a
-   *   worktree rewrites it too:  nothing to conflict on merge
-   * - a checkout WITHOUT the link (its own tracked home) in a worktree:  left alone, or two epics' worktrees would
-   *   conflict on merge
+   * - by running the docs index's script, `packages/epics/tools/index.js`, as a child `node`,
+   *   as `spell dev docs index` runs it
+   * - shared content (`pages` a link):  ONE `pages/index.html` for every checkout, not tracked by spell-app,
+   *   so a worktree rewrites it too:  nothing to conflict on merge
+   * - a checkout WITHOUT the link (its own tracked home) in a worktree:
+   *   left alone, or two epics' worktrees would conflict on merge
    * - SIDE EFFECT:  says on stderr when it failed
    */
   reindex(): void {
@@ -375,8 +390,9 @@ export class PlanDocFiles {
   }
 
   /**
-   * The spell-app checkout a doc belongs to:  its path up to `/epics/<name>/` (another worktree's, maybe;  or an
-   * old one's `/epics/`), else this one.  Git for a doc runs there, never in the doc's folder (`git()`).
+   * The spell-app checkout a doc belongs to:  its path up to `/epics/<name>/`, else this one.
+   * - another worktree's, maybe;  or an old one's `/epics/`
+   * - git for a doc runs there, never in the doc's folder (`git()`)
    */
   checkoutOf(file: string): string {
     const m = /^(.+?)[\\/](?:packages[\\/]docs[\\/](?:content[\\/])?)?epics[\\/][^\\/]+[\\/][^\\/]+$/.exec(file)
@@ -399,9 +415,9 @@ export class PlanDocFiles {
 
   /**
    * The doc's commits, newest first:  its git history when the checkout tracks it, else `sharedDocLog()`.
-   * - a doc spell-app tracks:  `git log --follow` (every phase commit touches the plan doc);  the doc as HEAD has
-   *   it:  a rename to `<name>.plan.html` not committed yet has no history of its own, so follow the old name;  once
-   *   committed, `--follow` goes through the rename
+   * - a doc spell-app tracks:  `git log --follow` (every phase commit touches the plan doc), on the doc as HEAD has it
+   *   - a rename to `<name>.plan.html` not committed yet has no history of its own, so follow the old name
+   *   - once committed, `--follow` goes through the rename
    * - a SHARED doc (`epics` a link into the shared content repo):  spell-app has no history of it
    */
   docLog(file: string): CommitLogEntry[] {
@@ -417,8 +433,8 @@ export class PlanDocFiles {
   }
 
   /**
-   * A shared doc's commits:  `checkout`'s commits since the doc was started whose subject names THIS epic's work,
-   * newest first.
+   * A shared doc's commits, newest first:
+   * `checkout`'s commits since the doc was started whose subject names THIS epic's work.
    * - the start:  `<epic-page started>`
    * - `<epic> ...` (`shared-content P3:`, `shared-content I3:`)
    * - `P3:  <P3's name> -- ...`:  the phase name must match, since other epics have a P3 too
@@ -525,10 +541,11 @@ function isEpicMarkup(html: string): boolean {
 }
 
 /**
- * Put a split `<epic-*>` doc's parts back (`EpicParts.assemble()`), reading them beside `file`;  what was there:
- * `{ split, hosts, missing, inline }`.
- * - `inline`:  a host holding a body of its own beside its `source` (a hand edit in the skeleton):  kept, the part's
- *   after it;  the next write moves both into the part
+ * Put a split `<epic-*>` doc's parts back (`EpicParts.assemble()`), reading them beside `file`.
+ * - returns what was there:  `{ split, hosts, missing, inline }`
+ * - `inline`:  a host holding a body of its own beside its `source` (a hand edit in the skeleton)
+ *   - kept, the part's after it
+ *   - the next write moves both into the part
  */
 function assembleEpic(document: Document, file: string): PlanDocParts {
   const hosts = Array.from(document.querySelectorAll("[source]")).filter(

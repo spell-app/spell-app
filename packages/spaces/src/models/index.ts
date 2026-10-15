@@ -5,7 +5,7 @@
  * - `ProjectFiles`:  a project's file create, copy, rename and delete (decision Q20).
  * - `SPACE_NAMES`:  spaces' own `__` names, never a project's file.
  * - `SpaceStorage`:  where spaces' files are kept (a type;  the disk's is `$/spaces/server/node/storage/DiskStorage`).
- * - Next:  people and orgs (epic `people-and-orgs` P5-P9).
+ * - `PersonView`, `MeAnswer` ...:  what the app and the server say about people (types, epic `people-and-orgs` P9).
  * - NOTE: nothing here may touch `node:*`, `process` or the disk:  the editor imports it.
  *   Node-only code is `$/spaces/server/node/...`.
  */

@@ -6,9 +6,9 @@ import { SiteDataBuilder } from "$/ui/tools/SiteDataBuilder"
 import { SITE_PAGES } from "$/ui/tools/tools.types"
 
 /**
- * The site's committed data (`docs/__data/`:  `components.json`, `pages.json`, `icons.json`, `search.json`) is what
- * `yarn site:data` would write now:  run it after changing a vocabulary, a family sheet's tokens, `pages.json` or a
- * page's sections.
+ * The site's committed data is what `yarn site:data` would write now.
+ * - The data:  `docs/__data/`'s `components.json`, `pages.json`, `icons.json`, `search.json`
+ * - Run it after changing a vocabulary, a family sheet's tokens, `pages.json` or a page's sections.
  */
 describe("SiteDataBuilder.build()", () => {
   it("is current (else run `yarn site:data`)", async () => {

@@ -46,11 +46,12 @@ export async function buildPack(root: string, name: string): Promise<PackBuildRe
 /**
  * Write the set's docs data, `docs/__data/` (`components.json`, `search.json` ...), with the pack's OWN data builder:
  * its `package.json`'s `site:data` script, run in the package (epic `people-and-orgs` P18).
- * - One builder per set, since each reads its elements its own way:  Epic UI's from the pack's definitions, the
- *   brand's through Spell UI's `SiteDataBuilder`.
+ * - One builder per set, since each reads its elements its own way:
+ *   - Epic UI's from the pack's definitions
+ *   - the brand's through Spell UI's `SiteDataBuilder`
  * - `check`:  runs it with `--check`, writing nothing;  `false` when the data is stale.
- * - `false` when there's no builder (no `site:data` script:  a pack without a docs set yet):  nothing written, and
- *   nothing to check (`checkPack()` asks `hasSiteData()` first).
+ * - `false` when there's no builder (no `site:data` script:  a pack without a docs set yet):
+ *   nothing written, and nothing to check (`checkPack()` asks `hasSiteData()` first).
  * - Throws `CliError` when the builder fails (not just stale).
  */
 export function buildSiteData(pack: PackInfo, { check = false } = {}): boolean {
@@ -201,13 +202,13 @@ export function packFamilies(pack: PackInfo): string[] {
 ////////////////
 
 /**
- * The modules a pack SHARES with the page instead of bundling:  the exact import specifiers its build leaves
- * external, each read from `globalThis.SpellUI.packModules[<specifier>]` (the docs bundle's, `spell-ui.entry.js`).
+ * The modules a pack SHARES with the page instead of bundling:  the exact import specifiers its build leaves external.
+ * - Each is read from `globalThis.SpellUI.packModules[<specifier>]` (the docs bundle's, `spell-ui.entry.js`).
  * - `$/spell-solid`:  what the pack's elements are written on (`E.UIComponent` ...).
  *   The page's is Spell UI's core module, which carries all of it, so a page has one (`packModules`).
- * - Any other `$/ui...`, `$/spell-solid/...`, Solid or `@spell-app/...` import fails the build:  a second copy of
- *   spell-solid, Spell UI's core or Solid on a page breaks them.  Another one:  add it here AND to Spell UI's
- *   `packModules`, AND to the guides' copy
+ * - Any other `$/ui...`, `$/spell-solid/...`, Solid or `@spell-app/...` import fails the build:
+ *   a second copy of spell-solid, Spell UI's core or Solid on a page breaks them.
+ * - Another one:  add it here AND to Spell UI's `packModules`, AND to the guides' copy
  *   (`packages/epics/tools/bundle-experiment.ts`, which builds a guide's live elements the same way).
  */
 export const PACK_MODULES = ["solid-js", "@solidjs/web", "$/spell-solid", "$/ui/core", "$/ui/forms"]

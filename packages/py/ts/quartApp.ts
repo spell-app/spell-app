@@ -7,9 +7,10 @@
  *   - `/spell/...`:  the javascript core, Solid, Spell UI and Semantic UI (`spell_quart.assets_folder()`)
  *   - `/ws`:  the WebSocket:  a click up, the state and what changed down;  a game per visitor
  *   - a place for their own routes
- * - The app is committed beside the project's source;  the program and its page file are BUILT,
- *   into the project's build folder (epic `people-and-orgs` P11):  the app names it inside the checkout's `build/`,
- *   and `spell_quart.built_folder()` finds that checkout's (J33), so no path climbs out of the app's folder.
+ * - The app is committed beside the project's source.
+ * - The program and its page file are BUILT, into the project's build folder (epic `people-and-orgs` P11).
+ *   - The app names that folder inside the checkout's `build/`,
+ *     and `spell_quart.built_folder()` finds that checkout's (J33):  so no path climbs out of the app's folder.
  * - Run it:  `uv run python Solitaire.app.py`, then open http://localhost:5000 (or `$PORT`).
  * - Compiling again rewrites it only while nobody has edited it:  its first line holds a hash of the rest (J45).
  *   See `isUneditedApp()`.
@@ -26,7 +27,8 @@ export type QuartAppSpec = {
   /**
    * The folder holding `program` and `elements`, `/`-separated:
    * - the project's build folder, inside the checkout's `build/`, e.g. `spaces/@spell/examples/solitaire`
-   *   (the project index's `buildFolder`):  `spell_quart.built_folder()` finds it
+   *   - the project index's `buildFolder`
+   *   - `spell_quart.built_folder()` finds it
    * - `.`:  beside the app, e.g. in `spell run`'s temp folder, or for a project outside the checkout
    */
   outputs: string
@@ -129,8 +131,8 @@ export function isUneditedApp(text: string | undefined): boolean {
 }
 
 /**
- * The app's line saying where the program and its page file are, `OUTPUTS`:  beside it, or `outputs` in the
- * checkout's build folder (`built_folder()`).
+ * The app's line saying where the program and its page file are, `OUTPUTS`:
+ * beside it, or `outputs` in the checkout's build folder (`built_folder()`).
  */
 function outputsLine(outputs: string): string {
   if (outputs === ".") return "# the compiled program and its page file:  beside this app\nOUTPUTS = HERE"

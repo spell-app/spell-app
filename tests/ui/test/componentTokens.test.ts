@@ -3,14 +3,15 @@ import { describe, expect, it } from "vite-plus/test"
 import { ComponentTokens } from "$/ui/styles/ComponentTokens"
 
 /**
- * The component-token rule (`notes/theming.md` "Component tokens"):  a component sheet NEVER declares a public
- * `--ui-<tag>-*` token, of its own family or any other.  It reads each through a private alias declared where the
- * public one used to be (`--_ui-button-radius: var(--ui-button-radius, var(--ui-radius))`), so a value set on
- * `:root`, an ancestor, the host, `::part()` or in the app stylesheet reaches the box.
+ * The component-token rule (`notes/theming.md`, "Component tokens"):
+ * a component sheet NEVER declares a public `--ui-<tag>-*` token, of its own family or any other.
+ * - It reads each through a private alias, declared where the public one used to be:
+ *   `--_ui-button-radius: var(--ui-button-radius, var(--ui-radius))`.
+ * - So a value set on `:root`, an ancestor, the host, `::part()` or in the app stylesheet reaches the box.
  * - Why a test:  one declaration of the public name on an inner box silently blocks every value set from outside
  *   (the bug this rule fixes);  nothing else would notice.
- * - Reads are fine;  foundation / remap names (`--ui-color`, `--ui-scale`, `--ui-inverted`, `--ui-size-*`) are
- *   not component tokens.
+ * - Reads are fine.
+ * - Foundation / remap names are not component tokens:  `--ui-color`, `--ui-scale`, `--ui-inverted`, `--ui-size-*`.
  */
 
 /** Every component sheet, by path. */
@@ -27,9 +28,10 @@ const VOCABULARIES = import.meta.glob<string>("/components/*/*.en.ts", {
 const FOUNDATION = import.meta.glob<string>("/src/styles/*.css", { query: "?raw", import: "default", eager: true })
 
 /**
- * Public tokens a sheet MAY declare, by sheet, each with why.  Only for an owner that deliberately themes a NESTED
- * component of another family, exactly as the page would -- it overrides a value the page set above the owner,
- * which is the point.  A stale entry fails.
+ * Public tokens a sheet MAY declare, by sheet, each with why.
+ * - Only for an owner that deliberately themes a NESTED component of another family, exactly as the page would:
+ *   it overrides a value the page set above the owner, which is the point.
+ * - A stale entry fails.
  */
 const EXCEPTIONS: Record<string, Record<string, string>> = {
   "ui-search/UISearch.css": {

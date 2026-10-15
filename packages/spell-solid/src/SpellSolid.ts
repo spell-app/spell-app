@@ -9,15 +9,17 @@ import { E } from "$/spell-solid"
  *   What an element needs of the page's runtime (its words, style sheets, focus, animations) comes through here.
  * - Spell UI installs its own as `$/ui/core` loads (`packages/ui/src/elements/SpellUISettings.ts`):
  *   every other set's elements draw on a page that has Spell UI's runtime.
- * - A tag defined BEFORE any settings are in waits for them (`whenInstalled()`, `UIComponent.define()`):
- *   a code-split bundle may run a family's chunk before the chunk that installs them, whatever the source's order
- *   (the app's `spell-solid.js` did:  `<ui-components>` before Spell UI's core).
+ * - A tag defined BEFORE any settings are in waits for them (`whenInstalled()`, `UIComponent.define()`).
+ *   - Why:  a code-split bundle may run a family's chunk before the chunk that installs them,
+ *     whatever the source's order.
+ *   - The app's `spell-solid.js` did:  `<ui-components>` before Spell UI's core.
  * - STATIC and instance-free on purpose:  ONE set of settings per page, as there is one spell-solid.
  ****************/
 export class SpellSolid {
   /**
    * Hand spell-solid the page's settings.
-   * - As the runtime loads:  `$/ui/core` installs Spell UI's.  Tags defined before that are defined now.
+   * - Called as the runtime loads:  `$/ui/core` installs Spell UI's.
+   * - Tags defined before that are defined now.
    * - A second call replaces the first (tests, a page that swaps its runtime).
    */
   static install(settings: E.SpellSolidSettings) {

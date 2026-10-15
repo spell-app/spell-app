@@ -4,13 +4,13 @@
  *   - `@spell/library/cards`, `owen@spell/errors`:  a project
  *   - `@spell/test/solitaire/Card.spell`:  a file in one
  *   - `@spell/examples`, `owen@spell`:  a whole group;  `@spell`:  every group in that space
- * - `@here` ~== `.`, and `@here/Foo.spell` ~== `./Foo.spell`:  the command line's own word, not an
- *   address.
+ * - `@here` ~== `.`, and `@here/Foo.spell` ~== `./Foo.spell`:
+ *   the command line's own word, not an address.
  * - Anything else is a path on disk, from the current folder:
- *   - a `.spell` file, or a project's `project.json`
+ *   - a `.spell` file, or a project's file (`__project.json5`)
  *   - a folder:  the project it's in, or a known root's folder, e.g. `packages/spaces/@spell/examples`
- * - NEVER a folder that isn't inside a project:  loading it would WRITE a `project.json` there,
- *   see `projectUtils.getIndex()`.
+ * - NEVER a folder that isn't inside a project:
+ *   loading it would WRITE a project file there (see `projectUtils.getIndex()`).
  * - Throws `CLI.CliError` for anything it can't place.
  */
 import { existsSync, statSync } from "fs"
@@ -30,8 +30,8 @@ export const LOCAL_SPACE = "@local"
 
 /**
  * What `arg` names, relative to `cwd` if it's a path on disk.
- * - SIDE EFFECT:  a project outside the known groups registers a `@local/<folder>` group -- see
- *   `locationForDiskPath()`.
+ * - SIDE EFFECT:  a project outside the known groups registers a group of its own, `@local/<folder>`
+ *   - see `locationForDiskPath()`
  */
 export async function resolveProject(arg: string, cwd = process.cwd()): Promise<CLI.CliProject> {
   if (arg === HERE_ARG) return resolveDiskPath(arg, cwd)

@@ -19,8 +19,8 @@ import darkThemeCSS from "$/ui/styles/themes/dark.css?inline"
 /**
  * The CSS foundation, in a real browser:  sheets adopted into the document and into shadow roots.
  * - Page-level sheets are adopted per test and removed again, so the fallback tests can run without them.
- * - Design tests that depend on `light-dark()` resolving where USED read the `?raw` sheets:  the barrel's
- *   `?inline` sheets are only faithful once `css.lightningcss.targets` is modern (see `index.ts`).
+ * - Design tests that depend on `light-dark()` resolving where USED read the `?raw` sheets:
+ *   the barrel's `?inline` sheets are only faithful once `css.lightningcss.targets` is modern (see `index.ts`).
  */
 
 /** Every `.css` file under `src/styles/`, as written. */

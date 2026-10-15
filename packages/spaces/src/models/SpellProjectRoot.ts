@@ -4,8 +4,8 @@ import { SP } from "$/spell"
 import { LOCAL_PERSON } from "./projectGroups"
 
 /**
- * A project GROUP's list of projects, e.g. `@spell/examples`:  loadable, and the group's project create, copy,
- * rename and delete.
+ * A project GROUP's list of projects, e.g. `@spell/examples`.
+ * - Loadable, and it creates, copies, renames and deletes the group's projects.
  * - One per group:  `new SpellProjectRoot("@spell/examples")` answers the one already made.
  * - Its groups are spaces' (`PROJECT_GROUPS`):  loading this file registers them with spell.
  * - It was spell's, until epic `people-and-orgs` P15 (decision Q20):  spell never lists projects.
@@ -13,8 +13,9 @@ import { LOCAL_PERSON } from "./projectGroups"
 export class SpellProjectRoot extends JSON5File<SP.ProjectList> {
   /**
    * Format of what the editor sends:  JSON, as `application/json`, so the server parses it.
-   * - It was a bare `"json"`, which the server took for no body at all:  every create, copy, rename and delete of a
-   *   project or a file failed with "Path must be a string" (found in epic `people-and-orgs` P15).
+   * - It was a bare `"json"`, which the server took for no body at all:
+   *   every create, copy, rename and delete of a project or a file failed with "Path must be a string"
+   *   (found in epic `people-and-orgs` P15).
    */
   static REQUEST_FORMAT_JSON = KnownFormat.json
 
@@ -92,9 +93,9 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectList> {
 
   /**
    * Given `projectRoot` as `@spell/examples` etc, return a singleton `SpellProjectRoot`.
-   * Throws if `projectRoot` is not in `SpellSetup.projectRoots`.
-   * - TODO: Calling this with `new ()` will return existing record.  This violates the principle
-   *   of least surprise, move to `rootForProjectRootPath()`?
+   * - throws if `projectRoot` is not in `SpellSetup.projectRoots`
+   * - TODO: Calling this with `new ()` will return existing record.
+   *   This violates the principle of least surprise, move to `rootForProjectRootPath()`?
    */
   constructor(path: SP.ProjectRootPath) {
     // Return immediately from registry if already present.
@@ -196,8 +197,8 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectList> {
   }
 
   /**
-   * The title typed for each project `promptForProjectId()` named, by its id, sent with its create, copy or rename
-   * (decision Q45):
+   * The title typed for each project `promptForProjectId()` named, by its id:
+   * sent with its create, copy or rename (decision Q45).
    * - text:  what was typed, when the name made from the folder can't say it, `Todos - Form Based`
    * - `null`:  it can, so the project file keeps no title
    * - none:  not prompted for;  the project file's title stays as it is
@@ -308,7 +309,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectList> {
         format: "json"
       })
       this.contents = newContents
-      // Have the project clean itself up in a tick (delay is so React doesn't barf on hooks).
+      // Have the project clean itself up in a tick (doing it at once trips whatever is drawing it)
       setTimeout(() => project.onRemove(), 10)
     } catch (e) {
       die(`Server error renaming ${this.type}`, e)
@@ -349,8 +350,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectList> {
     // Barf if the project still exists
     if (this.getProject(projectId)) die(`Server didn't delete ${this.type}.`)
 
-    // Have the project clean itself up in a tick
-    // (delay is so React doesn't barf on hooks).
+    // Have the project clean itself up in a tick (doing it at once trips whatever is drawing it)
     setTimeout(() => project.onRemove(), 10)
     return true
   }

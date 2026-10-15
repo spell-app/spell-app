@@ -5,8 +5,10 @@ import { ElementFixture } from "$/ui/test/ElementFixture"
 import { openYouPanel } from "$/app/solid/modals"
 
 /**
- * The "You" panel (epic `people-and-orgs` P9), in the browser:  the server's answers stood in for (`fetch`), the
- * fields read from the person, and Save sending what they say.
+ * The "You" panel (epic `people-and-orgs` P9), in the browser:
+ * - the server's answers stood in for (`fetch`)
+ * - the fields read from the person
+ * - Save sending what they say
  */
 
 /** A `<ui-modal>` host, as the tests poke it. */

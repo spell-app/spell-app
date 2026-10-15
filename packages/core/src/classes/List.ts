@@ -70,8 +70,8 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * SIDE EFFECT:  a sub-class's instance, e.g. a `Deck`, registers itself in `spellCore.things`:
-   *   see `registerThing()`.
+   * SIDE EFFECT:  a sub-class's instance, e.g. a `Deck`, registers itself in `spellCore.things`.
+   * - See `registerThing()`.
    * - `props` optional:  `a new deck` compiles to `new Deck()`.
    */
   constructor(props?: Record<string, unknown>) {
@@ -626,7 +626,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
    * ```
    * - A plain `List`, with no props, or a scratch list:  `{ "$type": "List", "$items": [...] }`.
    * - So it reads back as what it was:  `spellCore.fromJSON()` (`json.ts`).
-   * - `"$items"` never collides with a prop, as `"$type"` never does:  no prop is named `@...`.
+   * - `"$items"` never collides with a prop, as `"$type"` never does:  no prop is named `$...`.
    * - Tracked:  a reader re-runs when a prop or the items change (and, through each item's `toJSON()`, when they do).
    */
   toJSON(): Record<string, unknown> {

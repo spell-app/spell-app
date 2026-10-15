@@ -23,12 +23,16 @@ const HOME_ORG = "spell"
 
 /****************
  * ### `PeopleStore`
- * People and orgs in spell-spaces, read and written through a `SpaceStorage` (epic `people-and-orgs` P9):
- * - A person is `Person#owen@spell`, kept in `@spell/owen@/__me.json5`;  an org is `Org#spell`, in `@spell/__org.json5`.
- * - Read:  each file read as JSON5, checked against its class (`checkEntry()`), brought up to its class's version
- *   (the `Loader`), and every person or org it names read too, so `owen.friendLists ... person` is matt himself.
- * - Written:  ONE file at a time, its comments kept (`writeJSON5()`);  a friend it names is written as a reference,
- *   `{ "$ref": "Person#matt@three-degrees" }`, never into their file.
+ * People and orgs in spell-spaces, read and written through a `SpaceStorage` (epic `people-and-orgs` P9).
+ * - Their files:
+ *   - a person, `Person#owen@spell`:  `@spell/owen@/__me.json5`
+ *   - an org, `Org#spell`:  `@spell/__org.json5`
+ * - Read:
+ *   - each file read as JSON5, checked against its class (`checkEntry()`)
+ *   - brought up to its class's version (the `Loader`)
+ *   - every person or org it names read too, so `owen.friendLists ... person` is matt himself
+ * - Written:  ONE file at a time, its comments kept (`writeJSON5()`).
+ *   - A friend it names is written as a reference, `{ "$ref": "Person#matt@three-degrees" }`, never into their file.
  * - The person's library is `@spell/library/people`, its compiled `people.lib.ts`.
  * - Nobody's refused a save yet, under `@spell` either (J46):  the permissions UI is todo T8.
  ****************/
@@ -48,8 +52,9 @@ export class PeopleStore {
   ////////////////
 
   /**
-   * Person `id` of org `org` (`owen`, `spell`), with every person and org their file names;  `undefined` if they have
-   * no file.  `problems`:  what each file read got wrong, by property;  read anyway.
+   * Person `id` of org `org` (`owen`, `spell`), with every person and org their file names.
+   * - `person`:  `undefined` if they have no file.
+   * - `problems`:  what each file read got wrong, by property;  read anyway.
    */
   async person(id: string, org = HOME_ORG): Promise<{ person?: People.Person; problems: FileProblem[] }> {
     const { thing, problems } = await this.load(`Person#${id}@${org}`)
@@ -57,8 +62,8 @@ export class PeopleStore {
   }
 
   /**
-   * Person `id`'s file, made first if there's none:  their names and email from git (`git config user.name`), and a
-   * comment saying what the file is.  Returns the person, as `person()` does.
+   * Person `id`, their file made first if there's none:  returns the person, as `person()` does.
+   * - The file made:  their names and email from git (`git config user.name`), and a comment saying what it is.
    */
   async me(id: string, org = HOME_ORG): Promise<{ person: People.Person; problems: FileProblem[] }> {
     const file = personFile(id, org)
@@ -144,8 +149,8 @@ export class PeopleStore {
   ////////////////
 
   /**
-   * The thing saved under `ref` (`Person#owen@spell`, `Org#spell`), its file and every file it names read first;
-   * `problems`, each file's.
+   * The thing saved under `ref` (`Person#owen@spell`, `Org#spell`), its file and every file it names read first.
+   * - `problems`:  each file's.
    * - While it loads, references by name (`Person#owen`) search what's read (`spellCore.searchThings()`, Q44).
    */
   protected async load(ref: string): Promise<{ thing?: object; problems: FileProblem[] }> {
@@ -168,8 +173,8 @@ export class PeopleStore {
 
   /**
    * Entry `ref`, and every person's or org's it names, by key:  each file read once, and checked.
-   * - Each person's reference given its org, so one person is one key, read once:  `Person#matt` in owen's file is
-   *   `Person#matt@spell`, as owen's org is spell's.
+   * - Each person's reference is given its org, so one person is one key, read once:
+   *   `Person#matt` in owen's file is `Person#matt@spell`, as owen's org is spell's.
    */
   protected async entriesFrom(ref: string): Promise<{ entries: Map<string, Entry>; problems: FileProblem[] }> {
     const entries = new Map<string, Entry>()

@@ -24,8 +24,8 @@ import checklistCSS from "./BrandChecklist.css?inline"
  *   then a visually hidden live region (`part="status"`).
  * - `step` (progress, the build card):
  *   checks before index `step` are done, the one at `step` active, the rest pending;  at or past the end, all done.
- *   - Each check asks `checkState()` (it finds this list through `PartContext`:  `ownsParts:  check`),
- *     so a page moves the whole list with one attribute.
+ *   - Each check asks `checkState()`, so a page moves the whole list with one attribute.
+ *   - A check finds this list through `PartContext` (`ownsParts:  check`).
  * - Announces progress politely:  "<text> done" as `step` moves past a check, "All done" at the end.
  *   Never on first render, nor when `step` goes back.
  * - `checkable` (the phone's habits):  every check is a checkbox;  their `ui-change`s bubble through the list.

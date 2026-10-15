@@ -15,83 +15,109 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Docs:  [the page server guide](../../guides/server.html):  the library, the page server's flows,
     route modules, safety, why.
 - What's in it:
-  - `mime.ts` -- ONE content-type table, `typeFor()`
-  - `safePath.ts` -- `resolveInside()`:  URL path -> file under a root, never outside it;
-    `fileInside()`, the same for a file that may not be there yet
+  - [mime.ts](src/mime.ts) -- ONE content-type table, `typeFor()`
+  - [safePath.ts](src/safePath.ts):
+    - `resolveInside()`:  URL path -> file under a root, never outside it
+    - `fileInside()`:  the same, for a file that may not be there yet
   - `StaticHandler` -- folders under URL prefixes, with:
     - html / per-extension hooks
     - overlays:  one folder laid over another
     - an `ETag`
-  - `Request` / `Reply` / `Router` / `bodies.ts` -- the part of Express the app's `api.ts` uses
-  - `listener.ts` -- `toListener()`:  a `Handler` as node's `(req, res)`, with the 404 / error answers
-  - `ports.ts` -- `isFree`, `freePort`, `listenPreferred`
-  - `open.ts` -- browser, new window, reused Chrome tab, VS Code's Simple Browser
+  - `Request`, `Reply`, `Router` and [bodies.ts](src/bodies.ts) -- the part of Express the app's API uses
+  - [listener.ts](src/listener.ts) -- `toListener()`:  a handler as node's `(req, res)`, with the 404 / error answers
+  - [ports.ts](src/ports.ts) -- choosing a port:
+
+    ```ts
+    isFree    freePort    listenPreferred
+    ```
+
+  - [open.ts](src/open.ts) -- browser, new window, reused Chrome tab, VS Code's Simple Browser
   - `FileLock` -- `<file>.lock`, so tools writing the same file take turns
-  - `FileOperations` -- files and folders saved, created, renamed, duplicated and deleted,
-    each under the `FileLock`, a save all at once (temp file, then rename).
-    Nothing of pages or projects.
+  - `FileOperations` -- files and folders saved, created, renamed, duplicated and deleted.
+    - each under the `FileLock`
+    - a save all at once:  a temp file, then a rename
+    - nothing of pages or projects
     - In-process, on absolute paths, checking no list:  `SRV.FileOperations.save(file, contents, { ifMatch })` ...
-      Spaces saves its projects' files this way;  the page editor (`/api/pages`) saves through `save()` too.
+      - Spaces saves its projects' files this way.
+      - The page editor (`/api/pages`) saves through `save()` too.
     - Over HTTP, `/api/files` (`route()`), for pages the server served:
       - `PUT ?path=` (save), `POST /create`, `/rename`, `/duplicate`, `DELETE ?path=`
       - every one needs `Guard`'s strong write check (this run's token, same origin)
-      - ONLY inside the root `package.json`'s `"pageServer"` `"writable"` folders, the shared content ones:
-        `epics`, `guides`, `pages`, `templates`, `brand`.  Anything else:  403.
-      - `/api/pages`' writes are held to the same list (`FileOperations.writableFile()`).
-      - those are links into the shared repo:  paths are resolved (`fileInside()`), never followed,
-        so they stay "inside"
-  - `LiveReload` + `liveClient.ts` -- live reload over a websocket,
-    and the page-side client (`/api/server/live.js`, `editPage()`), its websocket `/api/server/live`.
-    - `webSocket.ts` -- the server's half of one (node built-ins).
+      - ONLY inside the writable folders, the shared content ones;  anything else:  403
+        - the list:  `"writable"`, in the page server's settings (below)
+        - today:  `epics`, `guides`, `pages`, `templates`, `brand`
+      - The page editor's writes are held to the same list (`FileOperations.writableFile()`).
+      - Those folders are links into the shared repo:
+        paths are resolved (`fileInside()`), never followed, so they stay "inside".
+  - `LiveReload` + [liveClient.ts](src/liveClient.ts) -- live reload over a websocket, and the page-side client.
+    - The client:  `/api/server/live.js` (`editPage()`).
+    - Its websocket:  `/api/server/live`.
+    - [webSocket.ts](src/webSocket.ts) -- the server's half of one (node built-ins).
     - NEVER an `EventSource`, or any other request held open:
       each takes one of Chrome's 6 connections per host, and every VS Code window shares them.
   - `Guard` -- `Host` check, per-run token, same-origin writes
-  - `PidFile` -- a background server's `<root>/.spell-server.json`:  status, ensure, stop.
-    - `ensure` restarts a server that started before its code last changed (`sources`, `newestChange()`):
-      after a merge, the next opener gets the new routes.
-  - `mainServer.ts` -- `mainServerUrl()`:  a worktree's file on the MAIN checkout's page server, asking it for
-    `/api/epics/running` (`RUNNING_EPICS_API`)
-  - `proxy.ts` -- `proxyTo()` / `proxyUpgrade()`:  HTTP and websockets to another local server
-  - `WebServer` -- all of the above on `node:http`
-  - `untilInterrupted.ts` -- run until `Ctrl-C`
+  - `PidFile` -- a background server's `.spell-server.json`, at its root:  status, ensure, stop.
+    - `ensure` restarts a server that started before its code last changed.
+      So after a merge, the next opener gets the new routes.
+      - its code:  the `sources` folders, by `newestChange()`
+  - [mainServer.ts](src/mainServer.ts) -- `mainServerUrl()`:  a worktree's file on the MAIN checkout's page server.
+    - It asks that server for `/api/epics/running` (`RUNNING_EPICS_API`).
+  - [proxy.ts](src/proxy.ts) -- `proxyTo()` / `proxyUpgrade()`:  HTTP and websockets to another local server
+  - `WebServer` -- all of the above on node's HTTP server
+  - [untilInterrupted.ts](src/untilInterrupted.ts) -- run until `Ctrl-C`
 - It's a LEAF:  node built-ins only (json5 / esbuild come in as hooks), and it imports NO other package.
   - So anything may import it:
-    `ui`'s tools and site, spaces' `server/node/`, `cli`, `app`, `epics`, `goals`, the VS Code extension.
+    ui's tools and site, spaces' node server, cli, app, epics, goals, the VS Code extension.
 - NOT in the barrel, opt-in by path (WWOD §8 › "Barrels"):
   - `$/server/page/...` -- the page server (one per checkout):
-    its CLI (`spell dev server`), page edits (`PageEditor`, `/api/pages`), its info (`/api/server`).
-    - Its settings:  the root `package.json`'s `"pageServer"` block (`pageServerSettings()`, `settings.ts`):
-      route modules, watched folders, writable folders, bundles.
+    - its CLI, `spell dev server`
+    - page edits:  `PageEditor`, `/api/pages`
+    - its info:  `/api/server`
+    - Its settings:  the `"pageServer"` block of the root `package.json`.
+      - Read by `pageServerSettings()`, in [settings.ts](src/page/settings.ts).
+      - route modules, watched folders, writable folders, bundles
     - It mounts every worktree's files at `/worktrees/<w>/`.
-      The running epics' list is epics' route module ([runningRoutes.ts](../epics/src/list/runningRoutes.ts),
-      `/api/epics/running`), not the server's.
-    - Every call is under `/api/`, one prefix per package that answers it;  the old paths answer "not found" (no
-      redirects, Q30 of `people-and-orgs`).
+      - The running epics' list is epics' route module, not the server's:
+        [runningRoutes.ts](../epics/src/list/runningRoutes.ts), at `/api/epics/running`.
+    - Every call is under `/api/`, one prefix per package that answers it.
+      The old paths answer "not found" (no redirects, Q30 of `people-and-orgs`).
     - It may use deps (`parse5`).
     - It serves the repo at `/`.
       - TEMPORARY until `people-and-orgs` merges into `main` (its T3), for the SHARED pages every checkout shows:
-        - folders this branch moved still serve from their new place (`movedFolderPath()`):  the docs assets' old
-          folder, `/packages/docs/tools/_assets/<x>` (J49), and the epics pack's, `/packages/epics/pack/<x>` (P18)
-        - what it moved OUT of the shared folders answers "not found", though the shared repo still holds it for
-          the other checkouts (`MOVED_OUT`):  `/ui/` and `/brand/components/`
+        - folders this branch moved still serve from their new place (`movedFolderPath()`):
+          - the docs assets' old folder, `/packages/docs/tools/_assets/<x>` (J49)
+          - the epics pack's, `/packages/epics/pack/<x>` (P18)
+        - what it moved OUT of the shared folders answers "not found" (`MOVED_OUT`),
+          though the shared repo still holds it for the other checkouts
+          - `/ui/` and `/brand/components/`
         - At the merge, a script relinks the shared pages, and both go.
-    - And the COMPONENT SETS (`COMPONENT_SETS`, `page.types.ts`;  epic `epic-workflow` P10 / P11, one layout since
-      `people-and-orgs` P18):  the docs of each set of elements, in Spell UI's page shape, in its package's `docs/`.
-      - Each at `/components/<set>/`:  Spell UI (`packages/ui/docs/`) at `/components/ui/`, Epic UI
-        (`packages/epics/docs/`) at `/components/epics/`, App UI (`packages/app/docs/`) at `/components/app/`, the
-        brand's (`packages/brand/docs/`) at `/components/brand/`.  A new set is one more entry.
+    - And the COMPONENT SETS:  the docs of each set of elements, in Spell UI's page shape, in its package's `docs/`.
+      - The list:  `COMPONENT_SETS`, in [page.types.ts](src/page/page.types.ts).
+      - Since epic `epic-workflow` P10 / P11;  one layout since `people-and-orgs` P18.
+      - Each at `/components/<set>/`.  A new set is one more entry.
+        - Spell UI:  [ui's docs/](../ui/docs/), at `/components/ui/`
+        - Epic UI:  [epics' docs/](../epics/docs/), at `/components/epics/`
+        - App UI:  [app's docs/](../app/docs/), at `/components/app/`
+        - the brand's:  [brand's docs/](../brand/docs/), at `/components/brand/`
       - No dev server:  the pages are static, loading Spell UI's site bundle.
-      - ONE overlay (`componentSetPath()`):  `<prefix>/_assets/` is the set's site bundle (`assets`:  Spell UI's own,
-        `SITE_BUNDLE`, for Spell UI;  the sets' build, `SETS_BUNDLE` in `packages/ui/site/_assets/sets/`, for the
-        others), the rest the set's own folder (its pages, `__parts/`, `__data/`).
+      - ONE overlay (`componentSetPath()`):
+        - `<prefix>/_assets/` is the set's site bundle (`assets`)
+          - for Spell UI:  its own, `SITE_BUNDLE`
+          - for the others:  the sets' build, `SETS_BUNDLE`, in Spell UI's bundle's `sets/`
+        - the rest is the set's own folder:  its pages, `__parts/`, `__data/`
       - The same at `/worktrees/<w>/components/<set>/`.
       - `<prefix>` redirects to `<prefix>/`:  the one redirect left.
       - Live reload watches each set's folder and its bundle, reporting their changes at the set's address.
     - `BundleBuild` -- the bundles it serves are NOT committed, so it builds them.
-      - They're the root `package.json`'s `"pageServer": { "bundles": [...] }`, read through `pageServerSettings()`
-        (the assembler reads the same list):
-        - Spell UI's site:  `packages/ui/site/_assets/` (the component sets' build in its `sets/`)
-        - the brand pages':  `packages/brand/_assets/ui/`
+      - They're the bundle list in the root `package.json`, read through `pageServerSettings()`;
+        the assembler reads the same list:
+
+        ```json
+        "pageServer": { "bundles": [...] }
+        ```
+
+        - Spell UI's site:  [ui's site/_assets/](../ui/site/), with the component sets' build in its `sets/`
+        - the brand pages':  [brand's _assets/ui/](../brand/)
       - On `start()`, it runs the checkout's own `spell dev bundles build --stale`, as a child.
         `$/assembler`'s `Bundle` does the work;  the server only spawns it.
       - It logs that child's output (`bundles:  ...`).
@@ -99,24 +125,34 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - Live reload reloads the pages when it ends.
       - Only this checkout's:  a worktree's pages, served at `/worktrees/<w>/`,
         use the bundles that worktree's own page server built.
-    - Spell projects' compiled output (`build/`, never committed) is built the same way, but by the app's route
-      module, not here:  `ProjectBuild`, in [spaces' routes](../spaces/src/server/node/routes/ProjectBuild.ts), runs
-      `spell compile --stale --all @spell/examples @spell/library` as the page server starts.
-      The page server knows nothing of spell projects.
+    - Spell projects' compiled output (`build/`, never committed) is built the same way,
+      but by the app's route module, not here.
+      - [ProjectBuild](../spaces/src/server/node/routes/ProjectBuild.ts), in spaces' routes,
+        runs `spell compile --stale --all @spell/examples @spell/library` as the page server starts.
+      - The page server knows nothing of spell projects.
   - `$/server/site/...` -- browser code:
     - the site header every page shows
     - Spell's favicon, `favicon.ts`:
       - GENERATED from the hat mark, by `yarn favicon` ([favicon.ts](scripts/favicon.ts), in `scripts/`)
-      - `WebServer` serves it at the root:  `/favicon.svg`, `/favicon-32.png`, `/apple-touch-icon.png`,
-        `/favicon.ico`, after the static files (a folder's own icons win);
-        importing the leaf, never the browser-only barrel
-    - An epic's state and the Epics page's cards left for `$/epics/list/` (`EpicState`, `EpicCards`;
-      epic `people-and-orgs` P16).
+      - `WebServer` serves it at the root, after the static files (a folder's own icons win):
+
+        ```
+        /favicon.svg  /favicon-32.png  /apple-touch-icon.png  /favicon.ico
+        ```
+
+      - `WebServer` imports the leaf, never the browser-only barrel.
+    - An epic's state and the Epics page's cards left for `$/epics/list/` (epic `people-and-orgs` P16).
+      - `EpicState`, `EpicCards`
   - `$/server/test/...` -- test helpers (`serveHandler`, `ask`)
 - Commands:
-  - `yarn review`, `yarn ts`, `yarn lint`, `yarn format`, `yarn test` (node)
-  - The tests live in the repo's `tests/server/`, at the same paths as the code;
-    their helpers are still here, in `test/`.
+  - the usual five (node tests):
+
+    ```sh
+    yarn review    yarn ts    yarn lint    yarn format    yarn test
+    ```
+
+  - The tests live in the repo's `tests/server/`, at the same paths as the code.
+    Their helpers are still here, in `test/`.
   - `yarn favicon [--hat 0.74]` after the hat mark changes (headless Chromium renders the PNGs)
 
 ## Express, on purpose
@@ -132,7 +168,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 ## Imports
 
 - As WWOD §4.
-- Tests use `$/server/test/serve` (`serveHandler`, `ask`):  real HTTP through `node:http`.
+- Tests use `$/server/test/serve` (`serveHandler`, `ask`):  real HTTP, through node's HTTP client.
   Never `fetch`, which resolves `..` before sending.
 
 ## Types / Exports

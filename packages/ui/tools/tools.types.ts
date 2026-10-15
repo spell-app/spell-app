@@ -301,20 +301,23 @@ export type ImportMap = {
 
 /**
  * The Spell UI docs site's PAGES, from `packages/ui/`:  its `docs/` folder, a component set laid out as every set is
- * (epic `people-and-orgs` P18;  shared content, the checkout's `ui/`, from claude-design P6 until then).
- * - the pages (`*.html`, flat:  an element's page is its tag, `ui-button.html`;  the component index
- *   `components.html`), the layout (`__parts/`), the data (`__data/`, `SITE_DATA`), the files examples load
- *   (`examples/`), Fomantic's images (`images/`) and the site's `README.md`
- * - tracked with the branch, so a page changes in the same commit as its element
- * - the page server serves it at `/components/ui/`, with the site bundle (`SITE_BUILD`'s `_assets/`) laid over it
- *   (`COMPONENT_SETS` in `packages/server`), so a page's `_assets/site.js` resolves
+ * (epic `people-and-orgs` P18;  until then shared content, the checkout's `ui/`, from claude-design P6).
+ * - What's in it:
+ *   - the pages, `*.html`, flat:  an element's page is its tag, `ui-button.html`
+ *   - the component index, `components.html`
+ *   - the layout (`__parts/`), the data (`__data/`, `SITE_DATA`)
+ *   - the files examples load (`examples/`), Fomantic's images (`images/`), the site's `README.md`
+ * - Tracked with the branch, so a page changes in the same commit as its element.
+ * - The page server serves it at `/components/ui/`, with the site bundle (`SITE_BUILD`'s `_assets/`) laid over it,
+ *   so a page's `_assets/site.js` resolves (`COMPONENT_SETS` in `packages/server`).
  */
 export const SITE_PAGES = "docs"
 
 /**
  * The Spell UI docs site's DATA, from `packages/ui/`:  `docs/__data/`.
- * - GENERATED, committed (`yarn site:data`):  `components.json`, `icons.json`, `search.json`, `custom-elements.json`,
- *   `html-custom-data.json`
+ * - GENERATED, committed (`yarn site:data`):
+ *   - `components.json`, `icons.json`, `search.json`
+ *   - `custom-elements.json`, `html-custom-data.json`
  * - hand-kept:  `pages.json`, the per-family facts they're built from
  */
 export const SITE_DATA = `${SITE_PAGES}/__data`

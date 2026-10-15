@@ -1,29 +1,35 @@
 /**
  * Check a `.html` doc in a real browser.
- * Usage:  node scripts/check-spell.js <folder>/<doc>.html [outDir]
- * - screenshots:  desktop top, desktop mid-page, phone mid-page (outDir, default a temp folder);  a plan doc also a
- *   phone-width open item, its line stuck (`phone-item.png`)
+ * Usage:  node tools/check-spell.js <folder>/<doc>.html [outDir]
+ * - screenshots (into outDir, default a temp folder):
+ *   - desktop top, desktop mid-page, phone mid-page
+ *   - a plan doc:  also a phone-width open item, its line stuck (`phone-item.png`)
  * - fails (exit 1) on:
  *   - console / page errors
- *   - a `ui-*` or `epic-*` element (the `epics` pack's, a plan doc's) that isn't defined, or never rendered (no
- *     shadow root)
- *   - a toolbar (`nav.spell-toolbar`, epic `airplane` P8) that doesn't list every top-level section (the goals
- *     pages':  the h2s heading a sticky section;  a plan doc's:  its `<epic-*>` blocks), or an entry that points
- *     nowhere;  and a page that still draws the old floating rail (`nav.spell-rail`)
+ *   - a `ui-*` or `epic-*` element (the `epics` pack's, a plan doc's) that isn't defined,
+ *     or never rendered (no shadow root)
+ *   - a toolbar (`nav.spell-toolbar`, epic `airplane` P8) that doesn't list every top-level section,
+ *     or an entry that points nowhere
+ *     - the goals pages' sections:  the h2s heading a sticky section
+ *     - a plan doc's:  its `<epic-*>` blocks
+ *   - a page that still draws the old floating rail (`nav.spell-rail`)
  *   - horizontal scroll at phone width
  *   - a content column squeezed at phone width (a wide-screen grid rule leaking into the narrow layout)
- *   - a top-level section's title (`<ui-section>` pages, a plan doc's `<epic-*>` blocks) or h2 (`section.s2` pages)
- *     that doesn't stick when scrolled into its section, or sticks under the fixed site header.  A plan doc's start
- *     folded:  its largest item section is opened first (`openBiggestSection()`)
+ *   - a top-level section's title that doesn't stick when scrolled into its section, or sticks under the fixed site
+ *     header
+ *     - its title:  `<ui-section>` pages, a plan doc's `<epic-*>` blocks;  its h2:  `section.s2` pages
+ *     - a plan doc's start folded:  its largest item section is opened first (`openBiggestSection()`)
  *   - no toolbar entry marked current after scrolling
  *   - a `ui-accordion.spell-code` without a `<pre>`
  *   - a toolbar not stuck at the top at phone width, or wider than the window
- *   - a plan doc's open item (`<epic-item>`, epic `windows-and-review` Q6) whose line doesn't stick right under its
- *     section's stuck title while its details are read;  at desktop and phone width (`checkItemLine()`)
+ *   - a plan doc's open item (`<epic-item>`, epic `windows-and-review` Q6) whose line doesn't stick right under
+ *     its section's stuck title while its details are read
+ *     - at desktop and phone width (`checkItemLine()`)
  * - loads the page from `file://`, or from the page server when its `<body>` says `data-spell-needs-server`
- * - a component set's page (`packages/epics/docs/`:  `COMPONENT_SETS` in `$/server/page`) from the page server at
- *   its address (`/components/epics/...`), since it loads its site bundle from there;  `--base <url>` checks it
- *   on another server, e.g. the main checkout's `http://localhost:4747/worktrees/<w>`
+ * - a component set's page:  from the page server at its address (`/components/epics/...`),
+ *   since it loads its site bundle from there
+ *   - the sets:  `packages/epics/docs/` ..., `COMPONENT_SETS` in `$/server/page`
+ *   - `--base <url>` checks it on another server, e.g. the main checkout's `http://localhost:4747/worktrees/<w>`
  *   - it has Spell UI's page shape, no toolbar:  the toolbar checks find no top-level section, and pass
  * - reports, never fails on:  icons with no `<svg>` drawn in their shadow tree (no reliable "done loading" signal)
  * - prints a JSON summary on stdout (last thing written), problems on stderr
@@ -41,8 +47,8 @@ import { COMPONENT_SETS } from "../../server/src/page/page.types.ts"
 import { ROOT, ensurePageServer, pageFile, serverUrl } from "./pages.js"
 
 /**
- * Elements the page's packs define, as `ui-*` (Spell UI) and `epic-*` (the `epics` pack, plan docs):  a tag that
- * looks like one of theirs must be defined and draw into a shadow root.
+ * Elements the page's packs define, as `ui-*` (Spell UI) and `epic-*` (the `epics` pack, plan docs):
+ * a tag that looks like one of theirs must be defined and draw into a shadow root.
  */
 const PACK_TAG = /^(ui|epic)-/
 
@@ -195,13 +201,16 @@ async function settle(page) {
 }
 
 /**
- * The FOLD check:  a reader's fold works, and the page remembers it.  The check that would have caught the old
- * markup's dead chevron (2026-10-01).
- * - target:  `<ui-section>` pages, the first top-level `ui-section[collapsible]` (an open one if any);  old pages,
- *   the first `section.s2`'s h2
+ * The FOLD check:  a reader's fold works, and the page remembers it.
+ * - the check that would have caught the old markup's dead chevron (2026-10-01)
+ * - target:
+ *   - `<ui-section>` pages:  the first top-level `ui-section[collapsible]` (an open one if any)
+ *   - old pages:  the first `section.s2`'s h2
  * - clicks its toggle as a reader would:  the shadow `button[part~=toggle]`, or the old chevron `ui-button.spell-fold`
- * - expects it folded (`collapsed` + `:state(collapsed)`, or `section.spell-folded`) with its content hidden;  still
- *   folded after a reload;  unfolded by a second click
+ * - expects it:
+ *   - folded (`collapsed` + `:state(collapsed)`, or `section.spell-folded`), with its content hidden
+ *   - still folded after a reload
+ *   - unfolded by a second click
  * - returns `{ target, steps, problem? }`;  starts from the page's own state, whatever it is
  * - SIDE EFFECT:  clears the page's saved folds (`localStorage` `spell-folds:<path>`) at the end
  */
@@ -359,8 +368,8 @@ function foldTarget() {
 }
 
 /**
- * The element a reader clicks to fold the target:  the shadow toggle button (a plan doc's block:  the one of the
- * `<ui-section>` it draws in its shadow root), or the old chevron host.
+ * The element a reader clicks to fold the target:  the shadow toggle button, or the old chevron host.
+ * - a plan doc's block:  the toggle of the `<ui-section>` it draws in its shadow root
  */
 function foldToggle({ id, kind }) {
   const element = document.getElementById(id)
@@ -371,8 +380,8 @@ function foldToggle({ id, kind }) {
 
 /**
  * The target's fold:  `{ folded, contentVisible }`.
- * - `<ui-section>`:  folded when its `collapsed` is true AND it says `:state(collapsed)`;  content:  its first
- *   unslotted child
+ * - `<ui-section>`:  folded when its `collapsed` is true AND it says `:state(collapsed)`;
+ *   content:  its first unslotted child
  * - a plan doc's block:  folded when it isn't `open` and doesn't say `:state(open)`;  content:  the same
  * - old markup:  `section.spell-folded`;  content:  the element after the heading's `ui-sticky`
  * - visible:  `checkVisibility()`, which sees `hidden="until-found"` (content-visibility) and `display: none`
@@ -408,10 +417,10 @@ function foldState({ id, kind }) {
 }
 
 /**
- * Static checks, run in the page:  element definitions and rendering, the rail vs the top-level sections, code
- * blocks, icons.
- * - the packs' elements:  `ui-*` (Spell UI) and `epic-*` (the `epics` pack:  `PACK_TAG`, written out here, as this
- *   runs in the page)
+ * Static checks, run in the page:
+ * element definitions and rendering, the rail vs the top-level sections, code blocks, icons.
+ * - the packs' elements:  `ui-*` (Spell UI) and `epic-*` (the `epics` pack)
+ *   - `PACK_TAG`, written out here, as this runs in the page
  * - "rendered" means has a shadow root:  every @spell-app/ui element renders into one, and so does every pack's.
  * - icons:  `<ui-icon>` plus any `ui-*` with an `icon` attribute, looked for an `<svg>` anywhere in its shadow tree.
  */
@@ -468,9 +477,10 @@ function inspectPage(nav) {
 }
 
 /**
- * In the page:  a plan doc starts folded, so nothing would be tall enough to stick over:  open its top-level item
- * section with the most items (they're in the doc itself, never in a part), as a reader would to read it.  Not saved
- * (no event):  the fold check starts from it.
+ * In the page:  open a plan doc's top-level item section with the most items, as a reader would to read it.
+ * - why:  a plan doc starts folded, so nothing would be tall enough to stick over
+ * - its items are in the doc itself, never in a part
+ * - not saved (no event):  the fold check starts from it
  */
 function openBiggestSection() {
   const sections = [...document.querySelectorAll("main epic-page > epic-section[id]")]
@@ -510,14 +520,16 @@ function scrollToMiddleSection() {
 
 /**
  * Whether section / h2 `id`'s title sits at the top of the viewport, and which rail entry is current.
- * - stuck:  its title's top is within 160px BELOW the fixed site header (`--spell-site-header-height`;  never under
- *   it) -- room for a sticky bar above it, e.g. a plan doc's page header, CHEATSHEET's filter -- AND it's what shows
- *   at its own middle.  Scrolled mid-section, a title that DIDN'T stick
- *   is far above;  one stuck but covered, e.g. by an h3 sticking at the same offset, doesn't count.
- *   - `<ui-section>`:  its title is its shadow `title` part, and it must ALSO say `:state(stuck)`;  what shows
- *     there is the section host (the shadow retargets to it), not a nested section's
- *   - a plan doc's block:  the same, of the `<ui-section>` it draws in its shadow root;  what shows there is the
- *     block's host
+ * - stuck:  both of
+ *   - its title's top is within 160px BELOW the fixed site header (`--spell-site-header-height`;  never under it):
+ *     room for a sticky bar above it, e.g. a plan doc's page header, CHEATSHEET's filter
+ *   - it's what shows at its own middle
+ *   - Scrolled mid-section, a title that DIDN'T stick is far above.
+ *     One stuck but covered, e.g. by an h3 sticking at the same offset, doesn't count.
+ *   - `<ui-section>`:  its title is its shadow `title` part, and it must ALSO say `:state(stuck)`;
+ *     what shows there is the section host (the shadow retargets to it), not a nested section's
+ *   - a plan doc's block:  the same, of the `<ui-section>` it draws in its shadow root;
+ *     what shows there is the block's host
  *   - h2:  one its short section's end pushed out (`:state(bound)`) counts:  it stuck, then left with its section
  * - active:  the rail's `selected` entry
  */

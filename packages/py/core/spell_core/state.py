@@ -13,7 +13,7 @@ mirror.read(writer.patch())                 # or only what changed since:  the s
 ```
 
 - The same JSON as `to_json()`, plus:
-  - an `"$id"` on each thing and spell list, after its `"$type"`, as JSON-LD spells it
+  - an `"$id"` on each thing and spell list, after its `"$type"`:  every key of our own starts with `$` (J3)
   - its plain fields, after its properties:  what it was made with and doesn't declare, e.g. a foundation's `symbol`
 - The first mention of a thing is whole;  each later one is `{"$id": "3"}` alone:
   so a card in two places is one card, read back.

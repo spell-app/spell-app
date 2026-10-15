@@ -64,9 +64,10 @@ Object.defineProperty(SP.SpellLocation.prototype, "serverPath", {
 /**
  * Folder on disk holding project root `rootPath`'s projects, one sub-folder each.
  * - A root added at runtime says where with `spec.serverPath`.
- * - One of spaces' groups:  its address's folder (`SP.SpellUrls.folderFor()`), under the folder `environment` names
- *   for its base, e.g. `@spell/examples` => `packages/spaces/@spell/examples`, `owen@spell` =>
- *   `<spell-spaces>/@spell/owen@`.
+ * - One of spaces' groups (`SP.SpellUrls.folderFor()`):
+ *   its address's folder, under the folder `environment` names for its base.
+ *   - `@spell/examples` => `packages/spaces/@spell/examples`
+ *   - `owen@spell` => `<spell-spaces>/@spell/owen@`
  * - Throws if `rootPath` isn't a known root, or its place has no folder.
  */
 export function serverPathForRoot(rootPath: SP.ProjectRootPath): string {
@@ -115,16 +116,16 @@ export function isBuiltFile(location: SP.SpellLocation): boolean {
 /**
  * Folder on disk for what spell builds for the project in folder `projectFolder`, e.g. its `Solitaire.spell.js`:
  * its path MIRRORED under `build/` at the repo root (epic `people-and-orgs` P11).
- * - Under `packages/` or the repo's `tests/`:  the same path under `build/`, e.g.
- *   `packages/spaces/@spell/examples/solitaire` => `build/spaces/@spell/examples/solitaire`,
- *   `tests/spaces/@spell/test/fizzbuzz` => `build/spaces/@spell/test/fizzbuzz`.
- * - Under spell-spaces:  under `build/spell-spaces/`, e.g. `<spell-spaces>/@spell/owen@/errors` =>
- *   `build/spell-spaces/@spell/owen@/errors`:  each checkout builds its own.
- * - A project anywhere else -- a temp `@local/<folder>` group, a VS Code workspace elsewhere:
+ * - Under `packages/` or the repo's `tests/`:  the same path under `build/`
+ *   - `packages/spaces/@spell/examples/solitaire` => `build/spaces/@spell/examples/solitaire`
+ *   - `tests/spaces/@spell/test/fizzbuzz` => `build/spaces/@spell/test/fizzbuzz`
+ * - Under spell-spaces:  under `build/spell-spaces/`, so each checkout builds its own
+ *   - `<spell-spaces>/@spell/owen@/errors` => `build/spell-spaces/@spell/owen@/errors`
+ * - A project anywhere else -- a temporary `@local/<folder>` group, a VS Code workspace elsewhere:
  *   `projectFolder` itself, beside its source, as before `build/`.
- *   NEVER a `build/` inside its root's folder:  that would list as one of its projects.
- * - `folders`:  where `packages/`, `tests/`, spell-spaces and `build/` are, default `environment`'s;
- *   tests pass their own.
+ *   - NEVER a `build/` inside its root's folder:  that would list as one of its projects.
+ * - `folders`:  where `packages/`, `tests/`, spell-spaces and `build/` are.
+ *   - `environment`'s by default;  tests pass their own.
  */
 export function buildFolderFor(projectFolder: string, folders: BuildFolders = environment): string {
   const mirrors: Array<[string | undefined, string]> = [
@@ -149,8 +150,8 @@ export function buildFolderFor(projectFolder: string, folders: BuildFolders = en
 export type BuildFolders = { packagesDir: string; buildDir: string; repoDir?: string; spellSpacesDir?: string }
 
 /**
- * Where project `projectId`'s built files go, inside the checkout's build folder, `/`-separated:  its index's
- * `buildFolder`.
+ * Where project `projectId`'s built files go, inside the checkout's build folder:
+ * its index's `buildFolder`, `/`-separated.
  * - e.g. `spaces/@spell/examples/solitaire`, for `build/spaces/@spell/examples/solitaire`
  * - No `../` (decision J33):  a Python web app names it so, and `spell_quart.built_folder()` finds the checkout's.
  * - `undefined` for a project whose built files sit beside its source (`buildFolderFor()`).
@@ -240,8 +241,8 @@ function isPreloadFile(name: string) {
 }
 
 /**
- * Path on disk of a project's file:  the one it has, `__project.json5` or an old `project.json`, else where
- * `__project.json5` would be (`projectFileFor()`).
+ * Path on disk of a project's file:  the one it has, `__project.json5` or an old `project.json`.
+ * - Else where `__project.json5` would be (`projectFileFor()`).
  */
 export function projectFilePath(projectId: string): string {
   return projectFileFor(SP.SpellLocation.getProjectLocation(projectId).serverPath)
@@ -270,8 +271,8 @@ export async function saveProjectFile(projectId: string, contents: ProjectFileJS
 /**
  * Return `index` for a project as a JSON blob -- see `ProjectIndexJSON`.
  * - `manifest` portion always reflects current state of file system.
- * - `imports` portion is synced with `manifest` (missing files dropped, new files appended as `active`),
- *   and SIDE EFFECT: saved to disk in `project.json` if anything changed.
+ * - `imports` portion is synced with `manifest` (missing files dropped, new files appended as `active`).
+ *   - SIDE EFFECT:  saved to disk, in the project's file (`saveProjectFile()`), if anything changed.
  * - HACKY: if project has zero manifest-worthy files, creates `DEFAULT_FILE` so there's always at least one.
  */
 export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => {
@@ -351,8 +352,8 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
 }
 
 /**
- * `GET /api/projects/index/<project>` -- fetch (and resync) a project's index,
- * e.g. `/api/projects/index/@spell/examples/solitaire`.
+ * `GET /api/projects/index/<project>` -- fetch (and resync) a project's index.
+ * - e.g. `/api/projects/index/@spell/examples/solitaire`
  * - Returns: `ProjectIndexJSON`.
  * - Failure: 500 if the place isn't a project's (`SP.SpellUrls.projectIdFor()`).
  */
@@ -376,9 +377,10 @@ function tailOf(request: Request, prefix: string): string {
 ////////////////
 
 /**
- * The file a file's URL names, e.g. `/spaces/@spell/examples/solitaire/Card.spell` or
- * `/api/projects/file/<project>/<file>`, as a `SpellLocation`:  split by its group and project BEFORE any path is made
- * (`SP.SpellUrls.fileForUrl()`), then checked part by part (`new SP.SpellLocation()`).
+ * The file a file's URL names, as a `SpellLocation`.
+ * - e.g. `/spaces/@spell/examples/solitaire/Card.spell` or `/api/projects/file/<project>/<file>`
+ * - Split by its group and project BEFORE any path is made (`SP.SpellUrls.fileForUrl()`),
+ *   then checked part by part (`new SP.SpellLocation()`).
  * - throws `TypeError` if it names no project's file
  */
 export function locationForUrl(url: string): SP.SpellLocation {
@@ -386,22 +388,10 @@ export function locationForUrl(url: string): SP.SpellLocation {
 }
 
 /**
- * `GET /spaces/<project>/<file>` -- one project file, as it is on disk, e.g. `/spaces/@spell/examples/solitaire/Card.spell`.
- * - A file spell BUILDS (`Solitaire.spell.js`, `.scopes.js` ...) is served from the project's build folder
- *   (`serverPath`):  its URL sits beside its source's.
- * - Returns: raw file body via `SRV.Reply.sendFile()` (mime type set from extension, `.js` as javascript, so a runner
- *   imports a compiled project from here, and `<spell-app>` loads its scope pack).
- *   `{ dotfiles: "allow" }`, so dotfiles can be fetched too.
- * - Failure:
- *   - 404 (via `responseUtils.sendFile()`) if file not found
- *   - 400 if the URL names no project's file (no file after the project, an unknown group, a bad part)
- * - NOTE: deliberately NOT wrapped in `respondWithJSON` -- that would send a JSON body on top of the file
- *   we already streamed.  We catch by hand instead so a rejection can't go unhandled and hang the client.
- */
-/**
- * Path on disk of file `serverPath`, or of its OLD name when it's a `.json5` file not there yet (epic
- * `people-and-orgs` P12):  `Errors.declarations.json5` is read from an `Errors.declarations.json` that a compile before
- * the rename left, until the project compiles again.
+ * Path on disk of file `serverPath`, or of its OLD name when it's a `.json5` file not there yet
+ * (epic `people-and-orgs` P12).
+ * - `Errors.declarations.json5` is read from an `Errors.declarations.json` that a compile before the rename left,
+ *   until the project compiles again.
  */
 export function fileOrOldName(serverPath: string): string {
   if (!serverPath.endsWith(".json5") || existsSync(serverPath)) return serverPath
@@ -409,6 +399,19 @@ export function fileOrOldName(serverPath: string): string {
   return existsSync(old) ? old : serverPath
 }
 
+/**
+ * `GET /spaces/<project>/<file>` -- one project file, as it is on disk, e.g. `/spaces/@spell/examples/solitaire/Card.spell`.
+ * - A file spell BUILDS (`Solitaire.spell.js`, `.scopes.js` ...) is served from the project's build folder
+ *   (`serverPath`):  its URL sits beside its source's.
+ * - Returns:  raw file body via `SRV.Reply.sendFile()`, `{ dotfiles: "allow" }`, so dotfiles can be fetched too.
+ *   - Its mime type is set from its extension, `.js` as javascript:
+ *     so a runner imports a compiled project from here, and `<spell-app>` loads its scope pack.
+ * - Failure:
+ *   - 404 (via `responseUtils.sendFile()`) if file not found
+ *   - 400 if the URL names no project's file (no file after the project, an unknown group, a bad part)
+ * - NOTE: deliberately NOT wrapped in `respondWithJSON` -- that would send a JSON body on top of the file
+ *   we already streamed.  We catch by hand instead so a rejection can't go unhandled and hang the client.
+ */
 export const request_getFile = async (request: Request, response: Response) => {
   let location: SP.SpellLocation
   try {
@@ -438,8 +441,8 @@ export const saveFile = async (projectId: string, filePath: string, contents: an
 }
 
 /**
- * `POST /api/projects/file/<project>/<file>` -- save/overwrite one project file, e.g.
- * `/api/projects/file/owen@spell/errors/1.spell`.  Reading it is `GET /spaces/<project>/<file>`.
+ * `POST /api/projects/file/<project>/<file>` -- save/overwrite one project file.
+ * - e.g. `/api/projects/file/owen@spell/errors/1.spell`;  reading it is `GET /spaces/<project>/<file>`.
  * - Client sends: raw body as file contents.
  *   Text or JSON per `Content-Type`:  see the body parsing in `routes/appRoutes.ts`.
  * - Returns: `true` on success.
@@ -478,8 +481,9 @@ export const request_createProject = respondWithJSON(async (request) => {
 
 /**
  * Duplicate project `projectId` as `newProjectId` -- recursive folder copy via `fileUtils.copyPath()`.
- * - Its build folder is NOT copied, nor what spell wrote for it beside its source:  all named for the old project,
- *   e.g. `Old.spell.js`, `Old.en.js`.  The copy's first compile writes its own.  See `forgetBuilt()`.
+ * - Its build folder is NOT copied, nor what spell wrote for it beside its source:
+ *   all named for the old project, e.g. `Old.spell.js`, `Old.en.js`.
+ * - The copy's first compile writes its own.  See `forgetBuilt()`.
  */
 export const duplicateApp = async (projectId: string, newProjectId: string) => {
   const location = SP.SpellLocation.getProjectLocation(projectId)
@@ -504,8 +508,9 @@ export const request_duplicateApp = respondWithJSON(async (request) => {
 
 /**
  * Rename project `projectId` to `newProjectId` -- folder move via `fileUtils.movePath()`.
- * - Its build folder is deleted, not moved, as is what spell wrote for it beside its source:  all named for the old
- *   project, e.g. `Old.spell.js`, `Old.en.js`.  The next compile writes the new project's.  See `forgetBuilt()`.
+ * - Its build folder is deleted, not moved, as is what spell wrote for it beside its source:
+ *   all named for the old project, e.g. `Old.spell.js`, `Old.en.js`.
+ * - The next compile writes the new project's.  See `forgetBuilt()`.
  */
 export const renameApp = async (projectId: string, newProjectId: string) => {
   const location = SP.SpellLocation.getProjectLocation(projectId)
@@ -564,8 +569,9 @@ async function clearBuildFolder(projectFolder: string): Promise<void> {
 }
 
 /**
- * SIDE EFFECT:  project `location` was just copied or moved to `newLocation`:  delete what spell wrote for the old
- * one there, so it never serves output built for another project, or for an older one of its name.
+ * SIDE EFFECT:  project `location` was just copied or moved to `newLocation`:
+ * delete what spell wrote for the old one there, so it never serves output built for another project,
+ * or for an older one of its name.
  * - `newLocation`'s build folder, if it has one, e.g. a deleted project of that name's.
  * - When the name changed, the old name's generated files beside its source (`isGeneratedFileOf()`),
  *   e.g. `Old.declarations.json5`;  `Old.en.js` would list as one of its javascript files.
@@ -601,7 +607,8 @@ function isGeneratedFileOf(name: string, projectName: string): boolean {
  * `DELETE /api/projects/remove/project` -- permanently delete a project.
  * - Client sends body: `{ projectId }`.
  *   - NOTE: a `DELETE` request carrying a JSON body, which `SpellProjectRoot.deleteApp()` on the client relies on.
- *   - It works here because body parsers in `server/index.ts` are mounted unconditionally, not just for `POST`.
+ *   - It works because the routes' body parser (`SRV.parseBodies()`, in `cli.ts` and `appRoutes.ts`) reads a body
+ *     for every verb, not just `POST`.
  * - Returns: updated project list for `projectId`'s `projectRoot`.
  * - Failure: 500 if `projectId` is invalid.
  * - No confirmation/undo server-side:  deletion is immediate and permanent.
@@ -628,7 +635,7 @@ export const createFile = async (projectId: string, filePath: string, contents: 
  * - Returns: updated `ProjectIndexJSON` -- `getIndex()` will pick up new file and `import` it at the end.
  * - Failure: 500 if `projectId`/`filePath` invalid, or on write error.
  * - NOTE: no check that file doesn't already exist:  this silently overwrites.
- *   Client-side `SpellProject.createFile()` checks first, but nothing stops another caller skipping that.
+ *   Client-side `SPACES.ProjectFiles.create()` checks first, but nothing stops another caller skipping that.
  */
 export const request_createFile = respondWithJSON(async (request) => {
   const { projectId, filePath, contents } = request.body
@@ -668,7 +675,7 @@ export const request_renameFile = respondWithJSON(async (request) => {
   return await getIndex(projectId)
 })
 
-/** Delete a project file.  Does NOT touch `project.json` directly -- next `getIndex()` resyncs it away. */
+/** Delete a project file.  Does NOT touch the project's file directly -- next `getIndex()` resyncs it away. */
 export const deleteFile = async (projectId: string, filePath: string) => {
   const location = SP.SpellLocation.getFileLocation(projectId, filePath)
   return await fileUtils.deletePath(location.serverPath)
@@ -680,7 +687,7 @@ export const deleteFile = async (projectId: string, filePath: string) => {
  * - Returns: updated `ProjectIndexJSON`.
  * - Failure: 500 if `projectId`/`filePath` invalid.
  * - No server-side check this isn't the project's last file:
- *   that guard lives only in client's `SpellProject.deleteFile()`.
+ *   that guard lives only in client's `SPACES.ProjectFiles.delete()`.
  */
 export const request_deleteFile = respondWithJSON(async (request) => {
   const { projectId, filePath } = request.body

@@ -7,17 +7,17 @@ import type { DesignExample, DesignSource } from "./tools.types.ts"
 
 /****************
  * ### `DesignBrand`
- * The brand's `<brand-*>` elements (a component pack) as a card source of the design system (`DesignSource`;
- * epic `claude-design`, P11):  one "Brand" card per family, beside Spell UI's own.
- * - Read as DATA, never imported:  `ui` must not depend on `brand` (root `AGENTS.md`, "Overview"), so this reads files
- *   the brand writes, as the brand book's "CONTENT FUNDAMENTALS" already was:
- *   - `packages/brand/docs/__data/components.json` -- its docs set's data (`yarn site:data` in `packages/brand`), the
- *     same shape as ours
- *   - `packages/brand/docs/<tag>.html` -- its docs set's pages (served at `/components/brand/`):  the examples are
- *     their Examples tab's `<ui-docs-example>`s, titled by the `<ui-section>` around each
+ * The brand's `<brand-*>` elements (a component pack) as a card source of the design system
+ * (`DesignSource`;  epic `claude-design`, P11):  one "Brand" card per family, beside Spell UI's own.
+ * - Read as DATA, never imported:  `ui` must not depend on `brand` (root `AGENTS.md`, "Overview").
+ *   So this reads files the brand writes, as the brand book's "CONTENT FUNDAMENTALS" already was:
+ *   - `packages/brand/docs/__data/components.json` --
+ *     its docs set's data, the same shape as ours (`yarn site:data` in `packages/brand`)
+ *   - `packages/brand/docs/<tag>.html` -- its docs set's pages (served at `/components/brand/`):
+ *     the examples are their Examples tab's `<ui-docs-example>`s, titled by the `<ui-section>` around each
  *   - each page's own `<style>`s:  the classes those examples use (`.brand-docs-row`, `.stage` ...)
- * - The elements themselves reach the bundle from the docs tool (`bundle-spell-ui.js --design`), which may import any
- *   package.
+ * - The elements themselves reach the bundle from the docs tool (`bundle-spell-ui.js --design`),
+ *   which may import any package.
  ****************/
 export class DesignBrand {
   /** the repo root, absolute */

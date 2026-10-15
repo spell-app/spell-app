@@ -7,8 +7,9 @@ import { loadFixtureProject, parseSpellProject, summarize, type SpellSourceFile 
 
 /**
  * `files` compiled as a project would be:
- * - `marked`:  each file's code, with its statements' `/*! SPELL: DECLARES` markers inline -- a class member's in its
- *   class's body -- as `SpellProject` combines them, before `split()`
+ * - `marked`:  each file's code, with its statements' `/*! SPELL: DECLARES` markers inline,
+ *   as `SpellProject` combines them, before `split()`
+ *   - a class member's in its class's body
  * - `code`:  that, markers out, as its `<Project>.spell.js`
  * - `declarations`:  as its `<Project>.declarations.json5`, read back as another project would
  */
@@ -21,8 +22,8 @@ function compiledProject(files: SpellSourceFile[], options: { version?: string; 
 }
 
 /**
- * A project's declarations:  marked inline while compiling, then split out into its declarations file,
- * what another project imports it by.
+ * A project's declarations:  marked inline while compiling, then split out into its declarations file.
+ * - That file is what another project imports it by.
  * - Snapshot pins Solitaire's, so a change to what a project declares shows up in review.
  */
 describe("SpellDeclarations, inline", () => {
@@ -421,8 +422,8 @@ describe("SpellDeclarations of a multi-word member", () => {
 })
 
 /**
- * A DERIVED property -- a getter works it out -- is declared as a stored one is:  every member is named the same way,
- * `card.shortRank`, `card.isSetUp`, so an importer needn't know which it is (epic `output-targets`, Q56).
+ * A DERIVED property (a getter works it out) is declared as a stored one is (epic `output-targets`, Q56).
+ * - Every member is named the same way, `card.shortRank`, `card.isSetUp`, so an importer needn't know which it is.
  */
 describe("SpellDeclarations of a derived property", () => {
   const library = [

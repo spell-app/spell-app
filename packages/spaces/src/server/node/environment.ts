@@ -10,8 +10,8 @@ const repoDir = resolve(packagesDir, "..")
 /**
  * Where compiled output goes, `build/` at the repo root (epic `people-and-orgs` P11):  never committed.
  * - Each project's own folder there MIRRORS its path:  `buildFolderFor()`, in `projects/project-utils.ts`.
- *   - under `packages/` or `tests/`:  the same path under `build/`,
- *     `packages/spaces/@spell/examples/solitaire` => `build/spaces/@spell/examples/solitaire`
+ *   - under `packages/` or `tests/`:  the same path under `build/`
+ *     - `packages/spaces/@spell/examples/solitaire` => `build/spaces/@spell/examples/solitaire`
  *   - under spell-spaces:  under `build/spell-spaces/`, `build/spell-spaces/@spell/owen@/errors`
  * - `SPELL_BUILD_DIR` sets it, e.g. the server's contract test's temporary folder.
  */
@@ -32,10 +32,10 @@ const mainRepoDir = /[/\\]\.claude[/\\]worktrees[/\\][^/\\]+$/.test(repoDir)
   : repoDir
 
 /**
- * spell-spaces:  every person's and org's space, ONE folder for main and every worktree, outside git
- * (decisions Q10, Q24).
- * - `SPELL_SPACES_DIR` sets it, e.g. tests' temporary folder;  by default it's beside the main checkout,
- *   `<main checkout>/../spell-spaces`.
+ * spell-spaces:  every person's and org's space (decisions Q10, Q24).
+ * - ONE folder for main and every worktree, outside git.
+ * - By default it's beside the main checkout, `<main checkout>/../spell-spaces`.
+ * - `SPELL_SPACES_DIR` sets it, e.g. tests' temporary folder.
  * - Laid out by org, each person's space inside it:  `@spell/owen@/errors/` is `owen@spell/errors`.
  * - The page server's `--spaces <dir>` sets it (P8).
  */
@@ -48,8 +48,8 @@ const spellSpacesDir = process.env.SPELL_SPACES_DIR
  * - `builtins`:  `packages/spaces/`, holding the `@spell` space's built-in projects, `@spell/examples/` ...
  * - `tests`:  `tests/spaces/`, holding the test projects, `@spell/test/`
  * - `spaces`:  spell-spaces
- * - `SPELL_BUILTINS_DIR` / `SPELL_TESTS_DIR` set the first two, so the server's contract test (`api.test.ts`) can
- *   point the server at a temp copy and never write into the repo.
+ * - `SPELL_BUILTINS_DIR` / `SPELL_TESTS_DIR` set the first two:
+ *   so the server's contract test (`api.test.ts`) can point the server at a temporary copy, and never write into the repo.
  */
 const spaceFolders = {
   builtins: process.env.SPELL_BUILTINS_DIR ? resolve(process.env.SPELL_BUILTINS_DIR) : resolve(packagesDir, "spaces"),
@@ -82,8 +82,8 @@ const environment = {
   testFilesRoot: resolve(spaceFolders.tests, "@spell", "test"),
   /**
    * This machine's person's own projects, e.g. `<spell-spaces>/@spell/owen@/errors` -- `owen@spell`.
-   * - MUST be the folder of `SPACES.LOCAL_PERSON`'s space (a test checks):  this file imports nothing,
-   *   since vite's configs load it too.
+   * - MUST be the folder of `SPACES.LOCAL_PERSON`'s space (a test checks).
+   *   - It can't import that name:  this file imports nothing, since vite's configs load it too.
    */
   userFilesRoot: resolve(spellSpacesDir, "@spell", "owen@")
 }

@@ -5,10 +5,13 @@ import { dirname, join, resolve } from "path"
 import { fileURLToPath } from "url"
 
 /**
- * The repo's code folders, found from this file's (`packages/spell/src/node/`):  what compiled spell is checked
- * against.
- * - `srcDir`:  spell's `src/`;  `packagesDir`:  the repo's `packages/`;  `spellCoreDir`:  `core`'s `src/`
- * - Spell's own:  where PROJECTS are is spaces' (`$/spaces/server/node/environment`), which spell never imports.
+ * The repo's code folders:  what compiled spell is checked against.
+ * - Found from this file's folder, `packages/spell/src/node/`.
+ * - `srcDir`:  spell's `src/`
+ * - `packagesDir`:  the repo's `packages/`
+ * - `spellCoreDir`:  `core`'s `src/`
+ * - Spell's own folders only.
+ *   Where PROJECTS are is spaces' (`$/spaces/server/node/environment`), which spell never imports.
  */
 export const CODE_FOLDERS = (() => {
   const srcDir = resolve(fileURLToPath(import.meta.url), "..", "..")
@@ -18,14 +21,15 @@ export const CODE_FOLDERS = (() => {
 
 /**
  * `tsc` on compiled spell's TypeScript (the `ts/solid` target):  what it says is wrong, by file.
- * - Checked against `@spell/core`'s SOURCE, with `core`'s own `strict` settings, `strictFunctionTypes` too:
- *   a collection helper's callback takes its collection's item type (`CollectionOf`),
- *   e.g. a `Card` for a `List<Card>` (epic `output-targets`, J14, T7).
- * - Solid's JSX, as `app` checks its own (`jsx: "preserve"`, `jsxImportSource: "@solidjs/web"`),
- *   with `<ui-*>` tags typed as `app` types them (`UI_JSX_TYPES`).
+ * - Checked against `@spell/core`'s SOURCE, with `core`'s own `strict` settings, `strictFunctionTypes` too.
+ *   - So a collection helper's callback takes its collection's item type (`CollectionOf`),
+ *     e.g. a `Card` for a `List<Card>` (epic `output-targets`, J14, T7).
+ * - Solid's JSX, read as `app` reads its own (`jsx: "preserve"`, `jsxImportSource: "@solidjs/web"`).
+ *   - `<ui-*>` tags are typed as `app` types them (`UI_JSX_TYPES`).
  * - Standard decorators (`@prop`, `@drawn`), never `experimentalDecorators`.
- * - A drawable type's element class, `class CardElement extends SpellElement<Card>` (epic `drawable-thing` P10):
- *   checked against app's `SpellElement` and Spell UI's source, as `@spell/elements` is app's `spellElements.ts`.
+ * - A drawable type's element class (epic `drawable-thing` P10), `class CardElement extends SpellElement<Card>`:
+ *   - checked against app's `SpellElement` and Spell UI's source
+ *   - as `@spell/elements` is app's `spellElements.ts`
  *   - With the 2023 javascript library, which Spell UI's own files use (`toReversed()`, `findLast()`).
  * - `files`:  each file's name, e.g. `Solitaire.tsx`, and its code.
  *   - Written to a temp folder, checked together.
@@ -71,7 +75,8 @@ export function describeTypecheckError({ line, column, code, message }: Typechec
 
 /**
  * The first `node_modules/.bin/<name>` at or above `packages/spell/`, e.g. `tsc`.
- * - Why a search:  yarn hoists to the monorepo root.  Throws if none, i.e. no `yarn install`.
+ * - Why a search:  yarn hoists to the monorepo root.
+ * - Throws if none, i.e. no `yarn install`.
  */
 export function nodeBinary(name: string): string {
   const start = resolve(CODE_FOLDERS.srcDir, "..")
@@ -90,8 +95,8 @@ function nodeModulesDir(): string {
 
 /**
  * `<ui-*>` tags' JSX types:  `app`'s, which types each `ui-*` tag loosely (HTML attributes, plus anything else).
- * - `@spell-app/ui` ships no JSX types:  this is where the app's Solid code gets them, so compiled spell's
- *   `<ui-button>` checks the same way.
+ * - `@spell-app/ui` ships no JSX types:  this is where the app's Solid code gets them,
+ *   so compiled spell's `<ui-button>` checks the same way.
  * - A declaration file only:  nothing of `app`'s runs here.
  */
 const UI_JSX_TYPES = "app/src/solid/solid.types.ts"
@@ -105,8 +110,8 @@ const SPELL_ELEMENTS_SOURCE = "app/src/runner/spellElements.ts"
 /**
  * A `tsconfig.json` checking `names`, with `@spell/core` pointing at `core`'s source.
  * - `core`'s settings, plus Solid's JSX and `<ui-*>`'s JSX types -- see `typecheck()`.
- * - `@spell/elements` pointing at app's source, and the aliases Spell UI's files import each other by
- *   (`$/spell-solid` too, which Spell UI's core re-exports).
+ * - `@spell/elements` pointing at app's source.
+ * - The aliases Spell UI's files import each other by:  `$/spell-solid` too, which Spell UI's core re-exports.
  */
 function tsconfig(names: string[], projects: Record<string, string>) {
   const { packagesDir, spellCoreDir } = CODE_FOLDERS
@@ -144,8 +149,8 @@ function tsconfig(names: string[], projects: Record<string, string>) {
 }
 
 /**
- * `run(folder)`, with `files` written into a new temp folder, and a `tsconfig.json` for them (`tsconfig()`);
- * the folder removed after.
+ * `run(folder)`, with `files` written into a new temp folder, and a `tsconfig.json` for them (`tsconfig()`).
+ * - The folder is removed after.
  * - The folder links the repo's `node_modules`, so `solid-js` and `@solidjs/web` resolve from it.
  */
 function inTscFolder<T>(

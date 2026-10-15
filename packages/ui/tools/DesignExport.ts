@@ -147,8 +147,8 @@ export class DesignExport {
   }
 
   /**
-   * The brand book's "CONTENT FUNDAMENTALS" section, as written there (voice, casing, headlines, ledes ...);  empty
-   * when that file isn't in this checkout.
+   * The brand book's "CONTENT FUNDAMENTALS" section, as written there (voice, casing, headlines, ledes ...).
+   * - Empty when that file isn't in this checkout.
    */
   private contentFundamentals(): string[] {
     const file = join(this.uiFolder, "../..", BRAND_BOOK)

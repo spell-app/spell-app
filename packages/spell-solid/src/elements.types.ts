@@ -15,13 +15,14 @@ import type { E } from "$/spell-solid"
 ////////////////
 
 /**
- * `ClassBuilder.build()` input:  property values keyed by CANONICAL attribute name.
+ * A class builder's `build()` input (`ClassMaker`, Spell UI's `ClassBuilder`):
+ * property values keyed by CANONICAL attribute name.
  * - Values are post-conversion:  `true` / `false` for keyOnly, strings / numbers / `true` otherwise.
  * - Unknown keys are ignored, so an element can pass its whole property bag.
  */
 export type ClassInput = Readonly<Record<string, unknown>>
 
-/** Options for `ClassBuilder.build()`. */
+/** Options for a class builder's `build()` (`ClassMaker`). */
 export type ClassBuildOptions = {
   /** Classes put just before the noun, e.g. a state (`active`) or a caller's own class:  `ui primary icon button`. */
   extra?: string
@@ -122,7 +123,7 @@ export type PartName<V extends E.ComponentVocabulary> = V["parts"][number]["name
 /** Custom state names of `V` (`:state(open)`). */
 export type StateName<V extends E.ComponentVocabulary> = V["states"][number]["name"]
 
-/** Text keys of `V`, looked up through `UI.i18n`. */
+/** Text keys of `V`, looked up through the runtime's texts (Spell UI's `UI.i18n`). */
 export type TextKey<V extends E.ComponentVocabulary> = V["texts"][number]["key"]
 
 ////////////////
@@ -230,7 +231,7 @@ export type ElementSetup = {
    * The component's own style sheets, as `name => CSS text`, in order:  `{ button: buttonCSS }`.
    * - Default none.
    * - Every element of the class uses the same sheets:
-   *   registered with the runtime (`UI.styles`) once per class,
+   *   registered with the runtime (Spell UI's `UI.styles`) once per class,
    *   then adopted into each element's shadow root, after the shared foundation sheets.
    * - A subclass's REPLACE its base's whole (only the top level of `elementSetup` is inherited key by key);
    *   spread the base's to add to them:
@@ -314,7 +315,8 @@ export type ElementSetup = {
   /**
    * The plain-DOM stand-in this element shows when it breaks (`UI<Name>.fallback.ts`).
    * - Default none:  a broken element shows a bare `<slot>`, so its children stay visible.
-   * - Only form controls have one, so a broken control still submits, validates and resets (`notes/fallback.md`).
+   * - Only form controls have one, so a broken control still submits, validates and resets
+   *   (Spell UI's `packages/ui/notes/fallback.md`).
    * - It can't use the component:  it runs after the component is gone.
    */
   Fallback: FallbackClass | undefined
@@ -542,8 +544,9 @@ export type WordSettings = {
   /** The text for `key` in the page's language, as tag `tag` says it, with `params` filled in. */
   text(key: string, params: Record<string, string | number> | undefined, tag: string): string
   /**
-   * Hand a defined tag's vocabulary to the runtime:  `"register"` the first time,
-   * `"replace"` for a new version of it (hot reload, a server render).
+   * Hand a defined tag's vocabulary to the runtime.
+   * - `"register"` the first time
+   * - `"replace"` for a new version of it (hot reload, a server render)
    */
   registerVocabulary(vocabulary: E.ComponentVocabulary, how: "register" | "replace"): void
   /** Hand the runtime tag `tag`'s English texts, as defaults:  a translation's, or an app's own, win. */

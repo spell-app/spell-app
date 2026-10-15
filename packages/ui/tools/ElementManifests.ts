@@ -9,17 +9,20 @@ import { FamilyFiles } from "./FamilyFiles.ts"
 /****************
  * ### `ElementManifests`
  * The two STANDARD element descriptions, from the site data (`docs/__data/components.json`, every vocabulary):
- * - `custom-elements.json`:  a Custom Elements Manifest (schema 2.1), what web-component tools read (Storybook, linters,
- *   IDE plugins, Claude);  `package.json`'s `customElements` points at it
- * - `html-custom-data.json`:  VS Code's HTML custom data (`html.customData`):  autocomplete and hover docs for every
- *   `<ui-*>` tag, attribute and value in any `.html` file;  the repo's `.vscode/settings.json` loads it
- * - Written by `yarn site:data` beside `components.json` (committed:  editors read them with no build);
- *   `tools/DesignExport.test.ts` fails while they're stale.
+ * - `custom-elements.json`:  a Custom Elements Manifest (schema 2.1),
+ *   what web-component tools read (Storybook, linters, IDE plugins, Claude)
+ *   - `package.json`'s `customElements` points at it
+ * - `html-custom-data.json`:  VS Code's HTML custom data (`html.customData`),
+ *   autocomplete and hover docs for every `<ui-*>` tag, attribute and value in any `.html` file
+ *   - the repo's `.vscode/settings.json` loads it
+ * - Written by `yarn site:data` beside `components.json`, and committed:  editors read them with no build.
+ *   - `tests/ui/tools/DesignExport.test.ts` fails while they're stale.
  * - Both list COMPONENT tags only, not the doc-only `<ui-docs-*>`.
- * - Why not the `custom-elements-manifest analyze` script (`yarn manifest`):  it reads classes, and our attributes,
- *   events and slots live in the vocabulary objects, which it can't see.
- * - Another package's elements written the same way (the brand's `<ui-brand-*>`):  its own `yarn site:data` makes
- *   one of these with its own folders (`packages/brand/scripts/site-data.ts`), beside ITS site data.
+ * - Why not the `custom-elements-manifest analyze` script (`yarn manifest`):
+ *   it reads classes, and our attributes, events and slots live in the vocabulary objects, which it can't see.
+ * - Another package's elements written the same way (the brand's `<brand-*>`):
+ *   its own `yarn site:data` makes one of these with its own folders, beside ITS site data
+ *   (`packages/brand/scripts/site-data.ts`).
  * - Pure data in, text out:  reads only the family barrels' file names (`className()`).
  ****************/
 export class ElementManifests {

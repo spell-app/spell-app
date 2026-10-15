@@ -32,7 +32,7 @@ export type GetFolderContentsOptions = {
 ////////////////
 
 /**
- * One entry in a project's `imports` list -- both on disk (`project.json`) and in `ProjectIndexJSON`.
+ * One entry in a project's `imports` list -- both on disk (its project file) and in `ProjectIndexJSON`.
  * - `path` -- file path relative to project, e.g. `/foo.spell`.
  *   A leading `@` instead means it refers to another project.
  * - `active` -- `true` if file should be included in compilation.
@@ -92,8 +92,7 @@ export type ManifestJSON = Record<string, ManifestEntryJSON>
  * - And for other project-file routes that return the updated index.
  * - `manifest` -- current on-disk manifest:  NOT persisted, always freshly computed from file system.
  * - `imports` -- import list, synced with `manifest` and persisted back to the project file when it changes.
- * - `title` / `version` / `exports` / `targets` / `listsStartAt` -- straight from the project file, see
- *   `ProjectFileJSON`.
+ * - `title` / `version` / `exports` / `targets` / `listsStartAt` -- straight from the project file (`ProjectFileJSON`).
  * - `buildFolder` -- where its compiled output goes, inside the checkout's `build/`:  `project-utils.buildFolderInBuild()`.
  */
 export type ProjectIndexJSON = {

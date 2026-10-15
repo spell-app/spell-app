@@ -5,10 +5,10 @@ import { anchorOf, blocksIn, excerptOf, kindOf, PAGE_ANCHOR, sectionOf, textOf }
  * Where a COMMENT's anchor lands on an epic page read from disk, and where its block went when the page changed:
  * what `links-agree` checks Owen's comments by (epic `epic-workflow`, P8).
  * - an anchor is a block's id, `page`, or `<container id | page>#<kind>-<n>` (`p3#field-2`, phase 3's second field)
- * - the RULES are the docs tools' `BlockAnchors.js`, which the page's runtime draws comments by:  the same block
- *   kinds, containers and excerpts, imported (one package since epic `people-and-orgs` P16, no copy)
- * - what's its own:  `find()`, which says HOW it found a block (`exact`, `moved`, `changed`, `gone`), for the
- *   migration's report;  the runtime's `findBlock()` only says whether it's exact
+ * - the RULES are the docs tools' `BlockAnchors.js`, which the page's runtime draws comments by:
+ *   the same block kinds, containers and excerpts, imported (one package since epic `people-and-orgs` P16, no copy)
+ * - what's its own:  `find()`, which says HOW it found a block, for the migration's report
+ *   (`exact`, `moved`, `changed`, `gone`);  the runtime's `findBlock()` only says whether it's exact
  * - STATIC:  pure, on a parsed document (linkedom or the browser's)
  ****************/
 export class PlanAnchors {

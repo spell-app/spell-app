@@ -536,7 +536,7 @@ Dark mode follows the OS by default:  `color-scheme: light dark` on `:root`.
 - Started 2026-10-04 as a FULL COPY of `spell.css`, so the two may drift.
   - Whether it replaces `spell` is a later call.
 - Also in `UI.themes.own`, and in the docs' theme picker as "Spell Brand", second.
-- The docs pages wear it:  their bundle (`packages/epics/tools/_assets/spell-ui.js`) applies it (epic `design-system`, P9).
+- The docs pages wear it:  [their bundle](../../epics/tools/_assets/spell-ui.js) applies it (epic `design-system`, P9).
 - It adds the brand's own semantic roles that no `--ui-*` token covers, as `--spell-*` `light-dark()` pairs:
   - surfaces:  `--spell-surface-tint`, `-warm`, `-selected`, `-code`, `-inverse`
   - text
@@ -546,7 +546,7 @@ Dark mode follows the OS by default:  `color-scheme: light dark` on `:root`.
   - shadows:  `--spell-shadow-xs` ... `-lg`
   - type roles:  `--spell-type-eyebrow`, `-lede`, `-spell` ...
   - the Polished Ivory ladder
-  - They're read by `packages/brand`'s `<ui-brand-*>` elements and `.spell.html` pages, never by `<ui-*>` elements.
+  - They're read by `packages/brand`'s `<brand-*>` elements and `.spell.html` pages, never by `<ui-*>` elements.
 - The brand pages load it through `packages/brand`'s bundle (`brand-ui.js`, in its `_assets/ui/`).
 
 ### Fomantic themes

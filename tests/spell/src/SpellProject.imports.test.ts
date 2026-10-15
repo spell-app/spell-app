@@ -22,8 +22,8 @@ describe("SpellProject imports", () => {
   let root = ""
 
   /**
-   * Project `name` in the workspace:  `spellFiles` copied from Solitaire -- or written, if given `sources` for them --
-   * then `imports` ahead of them.
+   * Project `name` in the workspace:  `spellFiles` copied from Solitaire, then `imports` ahead of them.
+   * - Or written, if given `sources` for them.
    */
   function makeProject(
     name: string,
@@ -52,8 +52,9 @@ describe("SpellProject imports", () => {
 
   /**
    * Run compiled `app` in node, linked as a runner links it -- `libIds` are the projects it imports.
-   * - A resolve hook does `runCompiled()`'s linking:  `@spell/core` => `spellCore`'s source (via `tsx`),
-   *   `@spell/project/<id>` => that project's compiled file.
+   * - A resolve hook does `runCompiled()`'s linking:
+   *   - `@spell/core` => `spellCore`'s source (via `tsx`)
+   *   - `@spell/project/<id>` => that project's compiled file
    */
   function runLinked(app: SP.SpellProject, libIds: string[]) {
     // compiled `.js` files are ES modules

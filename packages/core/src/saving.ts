@@ -14,22 +14,28 @@
  * loader.load(root)   // owen again;  his friend matt is loaded once, however many hold him
  * ```
  *
- * - A thing is saved INSIDE what holds it, by default (decision Q42):  written whole the first time it's reached,
- *   and a REFERENCE after, `{ "$ref": "Card#ace" }`, so a card in two piles is one card, read back.
- *   - Written whole with its `id` only when something else holds it too.
+ * - A thing is saved INSIDE what holds it, by default (decision Q42):
+ *   - written whole the first time it's reached
+ *   - a REFERENCE after, `{ "$ref": "Card#ace" }`:  so a card in two piles is one card, read back
+ *   - written whole with its `id` only when something else holds it too
  *   - A reference from another entry names the entry it's written in, `{ "$ref": "Card#ace", "$in": "Game#g" }`.
- *   - A kind saved IN ITS OWN FILE (`a person is saved in its own file`, `static savedInFile = true`) gets an entry
- *     of its own, and what holds it writes a reference to that, `{ "$ref": "Person#matt" }`.
+ *   - A kind saved IN ITS OWN FILE gets an entry of its own, and what holds it writes a reference to that,
+ *     `{ "$ref": "Person#matt" }`.
+ *     - Compiled from `a person is saved in its own file`, as `static savedInFile = true`.
  *   - What `save()` is given always gets an entry, whatever its kind.
  *   - A plain list a property holds (`its "dates" is a list of dated-events`) is its items alone, a JSON array:
- *     it's part of its owner.  A list TYPE (`a club is a list of people`) is a thing, inside like any other.
+ *     it's part of its owner.
+ *     - A list TYPE (`a club is a list of people`) is a thing, inside like any other.
  *   - `a dated-event is saved inline` (`static savedInline = true`) says the default:  no change.
- * - An entry is what `toJSON()` writes, `"$type"` first, then its `id`, then its other props,
- *   then the plain fields it was made with (a foundation's `symbol`), then a list's `"$items"`.
- * - What an entry's key and a reference say is `refOf`'s, `"Person#matt"` by default:
- *   the people store (P9) names them by address instead, `"matt@spell"`.
- * - A thing kept in ANOTHER place (`placeOf`) is a reference with that place, `"Person#matt@three-degrees"`,
- *   and gets no entry:  its own place saves it.  `parseRef()` reads one, `refText()` writes one (P4, Q18).
+ * - An entry is what `toJSON()` writes, in this order:
+ *   - `"$type"`, then its `id`, then its other props
+ *   - the plain fields it was made with (a foundation's `symbol`)
+ *   - a list's `"$items"`
+ * - What an entry's key and a reference say is `refOf`'s, `"Person#matt"` by default.
+ *   - The people store (P9) gives each person its org, `"Person#matt@spell"`, through `placeOf` (below).
+ * - A thing kept in ANOTHER place (`placeOf`) is a reference with that place, `"Person#matt@three-degrees"`.
+ *   - It gets no entry:  its own place saves it.
+ *   - `parseRef()` reads one, `refText()` writes one (P4, Q18).
  *   - So an id may never hold an `@`:  saving one throws.
  * - Where entries live is the caller's:  a `Map` here, one file each in the people store.
  * - The twin of Python's `spell_core.saving`:  both write `savedById.expected.json5`, and read it.
@@ -81,8 +87,8 @@ export type SaverOptions = {
 }
 
 /**
- * A saved reference's parts:  `Person#matt@three-degrees` is `{ type: "Person", id: "matt", place: "three-degrees" }`
- * -- see `parseRef()` and `refText()`.
+ * A saved reference's parts -- see `parseRef()` and `refText()`.
+ * - `Person#matt@three-degrees` is `{ type: "Person", id: "matt", place: "three-degrees" }`.
  */
 export type SavedRef = {
   /** The thing's kind, e.g. `Person`. */
@@ -120,10 +126,10 @@ export class Saver {
   }
 
   /**
-   * `root` as an entry, and every thing it reaches that's saved in its own file, each as an entry of its own;
-   * every other thing written inside what holds it.
-   * - SIDE EFFECT:  reads each entry's `id`, and a kept-inside thing's held twice, so one with none is given one
-   *   now -- and keeps it.
+   * `root` as an entry, and every thing it reaches that's saved in its own file, each as an entry of its own.
+   * - Every other thing is written inside what holds it.
+   * - SIDE EFFECT:  reads the `id` of each entry, and of each kept-inside thing held twice:
+   *   one with none is given one now, and keeps it.
    */
   save(root: SpellObject): Saved {
     const entries = new Map<string, Record<string, unknown>>()
@@ -163,8 +169,8 @@ export class Saver {
   }
 
   /**
-   * How many places hold each thing `root` reaches, for `save()`:  a thing kept inside and held twice is written
-   * whole once, with its id, and as a reference to it after.
+   * How many places hold each thing `root` reaches, for `save()`.
+   * - A thing kept inside and held twice is written whole once, with its id, and as a reference to it after.
    * - Never past a thing kept in another place (`placeOf`):  its own place saves it.
    */
   protected holdsOf(root: SpellObject): Map<SpellObject, number> {
@@ -218,9 +224,12 @@ export class Saver {
    * `value` as an entry holds it:
    * - a plain list:  its items, as an array
    * - a thing or a list type saved in its own file:  a reference to its entry
-   * - any other thing or list:  written whole, here, the first time it's reached;  a reference after,
-   *   `{ "$ref": "Card#ace" }`, with the entry it's written in when that's another one, `"$in": "Game#g"`
-   * - arrays and plain objects:  each value written so;  a date as its ISO text;  anything else as it is
+   * - any other thing or list:  written whole, here, the first time it's reached
+   *   - a reference after, `{ "$ref": "Card#ace" }`
+   *   - with the entry it's written in, when that's another one:  `"$in": "Game#g"`
+   * - arrays and plain objects:  each value written so
+   * - a date:  its ISO text
+   * - anything else:  as it is
    */
   protected write(value: unknown, reference: (thing: SpellObject) => unknown): unknown {
     if (value instanceof List && value.constructor === List) {
@@ -248,8 +257,8 @@ export class Loader {
   /** What it loaded, by key:  a second reference to one gets the same thing. */
   protected loaded = new Map<string, SpellObject>()
   /**
-   * The things written whole inside each entry it read, by their key, `"Card#ace"`:  what a reference to one finds
-   * (`index()`).
+   * The things written whole inside each entry it read, by their key, `"Card#ace"`.
+   * - What a reference to one finds (`index()`).
    */
   protected inside = new Map<string, Record<string, unknown>>()
 
@@ -286,8 +295,10 @@ export class Loader {
   }
 
   /**
-   * `json` read back:  a reference followed (`follow()`), a thing written whole made, arrays and objects read
-   * through.
+   * `json` read back:
+   * - a reference, followed (`follow()`)
+   * - a thing written whole, made
+   * - arrays and objects, read through
    */
   read(json: unknown): unknown {
     // a reference to nothing saved is left out:  the list holds what loaded
@@ -304,8 +315,8 @@ export class Loader {
   }
 
   /**
-   * The thing reference `json` names:  an entry, or a thing written whole inside one -- the entry it's in (`"$in"`)
-   * read first, when that's another one not read yet.
+   * The thing reference `json` names:  an entry, or a thing written whole inside one.
+   * - The entry it's in (`"$in"`) is read first, when that's another one not read yet.
    */
   protected follow(json: Record<string, unknown>): SpellObject | undefined {
     const ref = json[REF_KEY] as string
@@ -328,8 +339,8 @@ export class Loader {
 
   /**
    * A thing made from `json`, an entry or a thing saved inline -- kept as `ref`'s, if it's an entry.
-   * - Made with its plain values (text, numbers ...) through its setters, so its `create()` sees them;
-   *   then its things and lists set, once it's kept:  one of them may hold it back, a person's friend's friend.
+   * - Made with its plain values (text, numbers ...) through its setters, so its `create()` sees them.
+   * - Then its things and lists are set, once it's kept:  one of them may hold it back, a person's friend's friend.
    * - Its class unknown:  the entry read as a plain object, its `"$type"` kept.
    */
   protected make(json: Record<string, unknown>, ref?: string): unknown {
@@ -384,8 +395,9 @@ const VERSION_STEP = /^v(\d+)(Renames|Drops)([A-Z]\w*)$/
 const UPGRADE_METHOD = /^upgradeToVersion(\d+)$/
 
 /**
- * `Class`'s version:  the highest any of its version steps or upgrade methods names, its superclasses' too;
- * 1 if none (`a person version 2 renames name to names`, `to upgrade (a person) to version 4:`).
+ * `Class`'s version:  the highest any of its version steps or upgrade methods names, its superclasses' too.
+ * - 1 if none.
+ * - e.g. `a person version 2 renames name to names`, `to upgrade (a person) to version 4:`
  */
 export function versionOf(Class: Function): number {
   let version = 1
@@ -395,11 +407,13 @@ export function versionOf(Class: Function): number {
 }
 
 /**
- * Saved `entry`, of `Class`, brought up to `Class`'s version (epic `people-and-orgs` P6):  the entry as it should
- * read now, and the upgrade methods still to run on the thing made from it, in order.
+ * Saved `entry`, of `Class`, brought up to `Class`'s version (epic `people-and-orgs` P6).
+ * - Returns the entry as it should read now, and the upgrade methods still to run on the thing made from it,
+ *   in order.
  * - Its version is its `"$version"`, 1 if it has none.
- * - Each version after it in turn:  its renames (`name` => `names`), then its drops;  its upgrade method, if any,
- *   runs on the made thing after (`upgradeToVersion4`), where what the old file held is still there to read.
+ * - Each version after it in turn:  its renames (`name` => `names`), then its drops.
+ *   - Its upgrade method, if any, runs on the made thing after (`upgradeToVersion4`):
+ *     what the old file held is still there to read.
  * - Already at its type's version, or past it (a newer file):  as it is.
  * - A new copy:  `entry` itself is never changed.
  */
@@ -478,9 +492,9 @@ function headOf(thing: SpellObject): Record<string, unknown> {
 
 /**
  * A saved reference read:  `Person#matt@three-degrees` => `{ type: "Person", id: "matt", place: "three-degrees" }`.
- * - The type runs up to the `#`;  the id from there to the FIRST `@`;  everything after that `@` is the place,
- *   which may hold an `@` of its own:  `Card#26@matt@three-degrees:bubble-trouble`'s place is
- *   `matt@three-degrees:bubble-trouble` (epic `people-and-orgs` Q18).
+ * - The type runs up to the `#`;  the id from there to the FIRST `@`.
+ * - Everything after that `@` is the place, which may hold an `@` of its own (epic `people-and-orgs` Q18):
+ *   `Card#26@matt@three-degrees:bubble-trouble`'s place is `matt@three-degrees:bubble-trouble`.
  * - No `@`:  no place, the thing is kept here, `Person#matt`.
  * - throws `TypeError` with no `#`, or nothing before or after it
  */

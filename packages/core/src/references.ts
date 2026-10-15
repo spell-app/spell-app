@@ -17,8 +17,8 @@
  *   - spell's words for one thing, `tableau T1` and `the first tableau`, compile to `thingNamed()` and `thingAtPlace()`
  * - And the other way:  an element the program draws takes its thing's name as its `id`,
  *   `<solitaire-card id="queen-of-spades">` -- see `elementIdFor()`.
- * - WHERE they look:  the running program's things, or what the caller says to search instead
- *   (`searchThings()`, epic `people-and-orgs` P9, Q44).
+ * - WHERE they look:  the running program's things, or what the caller hands `searchThings()` instead
+ *   (epic `people-and-orgs` P9, Q44).
  *   - So a library's code finds things by name too, under `$/core/model`, which has no running program:
  *     the people store searches its people and orgs, `Person#owen`.
  * - Part of `spellCore`:  imported by `$/core`'s barrel, and by `$/core/model`, for its side effect.
@@ -33,8 +33,8 @@ import { defineSpellCoreModule } from "./spellCore.types"
 /** `spellCore`'s methods for thing references. */
 export const referencesMethods = defineSpellCoreModule({
   /**
-   * Look things up in `things` from now on, not in the running program's -- returns what was searched before, to
-   * put back.
+   * Look things up in `things` from now on, not in the running program's.
+   * - Returns what was searched before, to put back.
    * - `undefined`:  the running program's things again.
    * - What a library's code needs under `$/core/model`, which has no running program, e.g. the people store's:
    *
@@ -168,8 +168,8 @@ export const referencesMethods = defineSpellCoreModule({
 Object.assign(spellCore, referencesMethods)
 
 /**
- * What the lookups search:  a list of things, and their classes by name -- the running program's things
- * (`spellCore.things`), or what `searchThings()` was given.
+ * What the lookups search:  a list of things, and their classes by name.
+ * - The running program's things (`spellCore.things`), or what `searchThings()` was given.
  */
 export type ThingsToSearch = {
   /** Every thing to search, in the order they were made:  a place counts in it. */

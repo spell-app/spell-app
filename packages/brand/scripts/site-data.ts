@@ -1,21 +1,23 @@
 /**
- * `yarn site:data [--check]` (in `packages/brand`):  the data of the brand's docs set, `docs/__data/`, served at
- * `/components/brand/__data/` with the set's pages (epic `people-and-orgs` P18).
- * - `components.json` (`SiteDataFile`):  every `<brand-*>` tag, from its vocabulary and sheet, by Spell UI's own
- *   builder (`packages/ui/tools/SiteDataBuilder.ts`), then made the set's:
+ * `yarn site:data [--check]` (in `packages/brand`):  the data of the brand's docs set, `docs/__data/`.
+ * - Served at `/components/brand/__data/`, with the set's pages (epic `people-and-orgs` P18).
+ * - `components.json` (`SiteDataFile`):  every `<brand-*>` tag, from its vocabulary and sheet.
+ *   Spell UI's own builder writes it (`packages/ui/tools/SiteDataBuilder.ts`), then it's made the set's:
  *   - each tag's page is `<tag>.html`, beside the data's folder (the set's pages are ONE flat folder)
  *   - its topics are the set's groups, from `pages.json` (the side column's groups, as Epic UI's)
  *   - `nav`:  the side column's own links and band titles, from `pages.json`
- * - `pages.json`:  HAND-KEPT.  Spell UI's per-family facts (title, summary, status;  a new family is seeded here, once),
- *   plus the set's own `groups` and `nav`, which this script keeps.
- * - `search.json` (`SiteSearchFile`):  every page's title and sections, read from the pages' markup by Spell UI's rules
- *   (`SiteSearchBuilder.page()`);  an element's page names its tag.
- * - `custom-elements.json` (`package.json`'s `customElements`) and `html-custom-data.json` (VS Code's
- *   `html.customData`, loaded by the repo's `.vscode/settings.json`):  the editors' element descriptions, by Spell UI's
- *   `ElementManifests`.
+ * - `pages.json`:  HAND-KEPT.
+ *   - Spell UI's per-family facts (title, summary, status);  a new family is seeded here, once
+ *   - the set's own `groups` and `nav`, which this script keeps
+ * - `search.json` (`SiteSearchFile`):  every page's title and sections, read from the pages' markup.
+ *   - by Spell UI's rules (`SiteSearchBuilder.page()`)
+ *   - an element's page names its tag
+ * - The editors' element descriptions, by Spell UI's `ElementManifests`:
+ *   - `custom-elements.json`:  `package.json`'s `customElements`
+ *   - `html-custom-data.json`:  VS Code's `html.customData`, loaded by the repo's `.vscode/settings.json`
  * - `--check`:  writes nothing;  exits 1 while any file is stale (`spell dev pack check brand` runs it).
- * - `spell dev pack build brand` runs it after the pack.  Rerun it after changing a vocabulary, a sheet's tokens or a
- *   page's sections, and commit what it writes.
+ * - `spell dev pack build brand` runs it after the pack.
+ *   Rerun it after changing a vocabulary, a sheet's tokens or a page's sections, and commit what it writes.
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import path from "node:path"

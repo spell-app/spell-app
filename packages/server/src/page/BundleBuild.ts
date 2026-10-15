@@ -8,8 +8,8 @@ import { BUNDLE_WAIT_MS, componentSetPath, pageServerSettings } from "$/server/p
 
 /**
  * Builds the bundles the page server serves, when the server starts.
- * - the bundles (`folders`, the root `package.json`'s `"pageServer": { "bundles": [...] }`):  the Spell UI docs
- *   site's, the brand pages';  built on demand, never committed
+ * - the bundles:  the Spell UI docs site's, the brand pages';  built on demand, never committed
+ *   - `folders`:  the root `package.json`'s `"pageServer": { "bundles": [...] }`
  * - `start()`:  runs `spell dev bundles build --stale` in the background, with the checkout's OWN CLI
  *   - it builds only the bundles whose sources changed since their last build (the logic:  `$/assembler` `Bundle`)
  *   - so a start with nothing changed builds nothing

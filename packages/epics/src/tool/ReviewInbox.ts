@@ -770,8 +770,8 @@ export type InboxRecord = {
 }
 
 /**
- * The inbox as the routes answer (`ReviewInbox.forPage()`):  the file's JSON, plus
- * `unsentComments`, the ids of the comments the page's Send would hand over.
+ * The inbox as the routes answer (`ReviewInbox.forPage()`):
+ * the file's JSON, plus `unsentComments`, the ids of the comments the page's Send would hand over.
  */
 export type PageInbox = InboxRecord & { unsentComments: string[] }
 

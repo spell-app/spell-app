@@ -10,10 +10,11 @@
  * ```
  *
  * - `modules`:  the program's drawing half, `<Project>.elements.spell.js` (`P.ElementsWriter`),
- *   and those of the projects it imports:  their classes,
- *   and the program's own `adopt()`, which binds the things it keeps from the state.
+ *   and those of the projects it imports:
+ *   - their classes
+ *   - the program's own `adopt()`, which binds the things it keeps from the state
  * - `state`:  the program's state, by id (`StateWriter`):  `{ "game": {...}, "stock": {...} }`.
- * - `send`:  where its messages go, as JSON, each thing in it by its id:
+ * - `send`:  where its messages go, as JSON:
  *   - a call, `{ "call": "play_from_the_stock_pile", "args": [] }`,
  *     of a thing's method, `{ "call": "turn_over", "on": "Card#queen-of-spades", "args": [] }` -- see `sendCall()`
  *   - an event, `{ "trigger": "card-click", "target": "Card#queen-of-spades" }` -- see `sendTrigger()`
@@ -121,8 +122,8 @@ export function javascriptName(name: string): string {
 const CORE_NAMES: Record<string, string> = { item_type: "instanceType" }
 
 /**
- * `value`, each thing in it by reference, `"Card#ace-of-hearts"` (`spellCore.referenceFor()`, epic `python-target` P27):
- * plain values, arrays and objects all the way down.
+ * `value`, each thing in it by reference, `"Card#ace-of-hearts"`:  plain values, arrays and objects all the way down.
+ * - The reference is `spellCore.referenceFor()`'s (epic `python-target` P27).
  * - A thing no reference finds (no name, not the program's):  its id, `{ "$id": "3" }`.
  */
 function byReference(value: unknown, mirror: StateMirror): unknown {
@@ -141,8 +142,9 @@ function byReference(value: unknown, mirror: StateMirror): unknown {
  * the first message is the whole state, which starts the page (`startPage()`);  each after it, a patch.
  * - What the page sends goes up the same socket, as JSON.
  * - `modules`:  as `startPage()`'s.
- * - `log`:  write each frame to the browser's console, both ways (`logFrame()`), to watch the page and its program
- *   talk, each line starting with a coloured badge:
+ * - `log`:  write each frame to the browser's console, both ways (`logFrame()`):
+ *   to watch the page and its program talk.
+ *   Each line starts with a coloured badge:
  *   - `SENDING  >  event card-click (#26)`, in blue
  *   - `RECEIVED <  patch:  Card #26, StockPile #3`, in green
  * - Errors show whether or not `log` is on, as `< ERROR  >`, in red (`logError()`):
@@ -219,9 +221,9 @@ function badgeStyle(badge: keyof typeof BADGES): string {
 }
 
 /**
- * SIDE EFFECT:  one frame between a page and its program, in the browser's console:
- * folded, its line a coloured badge (`SENDING  >` or `RECEIVED <`), what it is (`frameSummary()`) and its size;
- * the JSON inside.
+ * SIDE EFFECT:  one frame between a page and its program, in the browser's console, folded.
+ * - Its line:  a coloured badge (`SENDING  >` or `RECEIVED <`), what it is (`frameSummary()`), and its size.
+ * - Inside:  the JSON.
  */
 export function logFrame(direction: "sent" | "received", frame: unknown, size: number): void {
   console.groupCollapsed(
@@ -241,9 +243,13 @@ export function logError(what: string, detail: unknown): void {
 
 /**
  * What a frame is, in a line:
- * - the page's:  `call play_from_the_stock_pile()`, `call turn_over() on Card#3`,
- *   `event card-click (Card#ace-of-hearts)`;  a thing by its id, `#26`
- * - the program's:  `state:  game, stock, discards ...` (its first), `patch:  Card #26, StockPile #3`
+ * - the page's:
+ *   - `call play_from_the_stock_pile()`, `call turn_over() on Card#3`
+ *   - `event card-click (Card#ace-of-hearts)`
+ *   - a thing by its id:  `#26`
+ * - the program's:
+ *   - its first:  `state:  game, stock, discards ...`
+ *   - `patch:  Card #26, StockPile #3`
  */
 export function frameSummary(frame: unknown): string {
   if (Array.isArray(frame)) return `patch:  ${frame.map(thingLabel).join(", ")}`

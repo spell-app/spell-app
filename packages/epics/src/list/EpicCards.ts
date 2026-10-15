@@ -9,9 +9,10 @@
  *   - Urgent:  every phase done, items waiting on Owen (the `errors` state)
  *   - Done:  every phase done, nothing waiting
  *   - alphabetical by title within each;  an empty group is in the markup, `hidden`
- * - each card (`epicCardHtml()`):  the state's mark and the linked title, description, meta line;
- *   a STAR at its top right (`epicStarHtml()`:  click to star / unstar, the docs runtime's "Favorite epics");
- *   the date it was last worked on at its bottom right, without the year (`epicWorkedHtml()`:  `10/9`)
+ * - each card (`epicCardHtml()`):
+ *   - the state's mark and the linked title, description, meta line
+ *   - a STAR at its top right (`epicStarHtml()`):  click to star / unstar, the docs runtime's "Favorite epics"
+ *   - the date it was last worked on at its bottom right, without the year (`epicWorkedHtml()`:  `10/9`)
  * - favourites are stored in ONE shared file, `FAVORITES_FILE` (`["airplane", "spell-element"]`):
  *   the page server's route writes it (`packages/epics/src/tool/epicRoutes.ts`), every checkout reads it
  *
@@ -21,9 +22,10 @@
  *   cards, re-marks every card and regroups them by the favourites as it serves the page
  * - the docs runtime moves a card between groups when its star is clicked (plain DOM:  it reads `data-group`)
  *
- * Its position:  browser-safe, and imports ONLY files that load in plain `node`, each by its file name and relative
- * path (plain `node` resolves nothing else):  `./EpicState.ts`, and the plan docs' dates (`PlanDates`).
- * NEVER an alias, an `enum` or a parameter property:  plain `node` can't strip those.
+ * Its position:  browser-safe, and imports ONLY files that load in plain `node`.
+ * - each by its file name and relative path:  plain `node` resolves nothing else
+ * - those files:  `./EpicState.ts`, and the plan docs' dates (`PlanDates`)
+ * - NEVER an alias, an `enum` or a parameter property:  plain `node` can't strip those
  */
 import { PlanDates } from "../dates/PlanDates.ts"
 import { epicStateFor, epicStateMark, type EpicFacts, type EpicState } from "./EpicState.ts"
@@ -92,8 +94,9 @@ export function epicGroupFor(state: EpicState): Exclude<EpicGroupName, "favorite
  * - `id="epic-<name>"`:  a live update of the page matches the card by it, wherever it moved
  * - `data-epic`:  its name;  `data-title`:  what the groups sort by;  `data-group`:  its group when not a favourite
  * - `data-status`:  `done` or `open`, so the section counts it and its filter steps through them
- * - `data-phases`, `data-updated`, `data-urgent`, `data-future`, `data-standing`:  what its state is read from, so the page server
- *   marks it again as it serves the page;  `data-worked`:  its last-worked moment
+ * - `data-phases`, `data-updated`, `data-urgent`, `data-future`, `data-standing`:  what its state is read from,
+ *   so the page server marks it again as it serves the page
+ * - `data-worked`:  its last-worked moment
  */
 export function epicCardHtml(card: EpicCard, now: Date = new Date()): PlacedCard {
   const { name, title, facts, worked, favorite = false } = card
@@ -119,14 +122,16 @@ export function epicCardHtml(card: EpicCard, now: Date = new Date()): PlacedCard
 }
 
 /**
- * The cards in their groups, as the Epics page shows them:  each group a `div.spell-epic-group[data-group]`
- * holding its heading (title, count) and a `ui-cards.spell-epics` of its cards, alphabetical by title.
+ * The cards in their groups, as the Epics page shows them.
+ * - each group a `div.spell-epic-group[data-group]`, holding:
+ *   - its heading (title, count)
+ *   - a `ui-cards.spell-epics` of its cards, alphabetical by title
  * - every group is written, an empty one `hidden`:  the runtime moves a card into it when it's starred
  */
 export function epicGroupsHtml(cards: readonly PlacedCard[]): string {
   return EPIC_GROUPS.map((group) => {
-    // `filter()` makes a new array, so sorting it in place leaves `cards` alone (no `toSorted()`:  every package that
-    // type-checks this file must know it, and `cli`'s target doesn't)
+    // `filter()` makes a new array, so sorting it in place leaves `cards` alone.
+    // No `toSorted()`:  every package that type-checks this file must know it, and `cli`'s target doesn't.
     const mine = cards.filter((card) => card.group === group).sort((a, b) => byTitle(a.title, b.title))
     const { title, icon } = GROUP_LOOKS[group]
     return (

@@ -102,7 +102,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    *  its tag, attributes, events, slots, parts, states and texts, from `UI<Name>.en.ts`.
    * - No default:  each component sets its own (`@proto static vocabulary = buttonVocabulary`).
    * - Set on the class, not on each element:
-   *   `define()` needs it before any element exists, and the runtime keeps the same object (`UI.vocabulary`).
+   *   `define()` needs it before any element exists,
+   *   and the runtime keeps the same object (Spell UI's `UI.vocabulary`).
    */
   declare vocabulary: V
 
@@ -338,7 +339,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - Read once, when this object is built.
    * - Why not a Solid context:  each element draws in a Solid root of its own, with no parent,
    *   so a Solid app's providers don't reach inside `ui-*` tags (epic `spell-element`, Q9).
-   * - `tools/frameworks/solid/identity.js` uses it to prove an app's value reaches inside custom elements.
+   * - Spell UI's framework check uses it to prove an app's value reaches inside custom elements
+   *   (`packages/ui/tools/frameworks/solid/identity.js`).
    */
   readonly appContext: unknown
 
@@ -672,7 +674,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    *     and wherever motion is off (`animationToRun`).
    *   - An attention animation (`shake`) shows and hides at once too.
    * - While a hide runs, the element stays on screen (`:state(hiding)`);  it's hidden once the promise settles.
-   * - Default:  `animation` in or out on the boxes at the top of the shadow root, through `UI.transitions`.
+   * - Default:  `animation` in or out on the boxes at the top of the shadow root,
+   *   through the runtime (Spell UI's `UI.transitions`).
    *   - Why not the element:  most `ui-*` DOM elements are `display: contents`, with no box of their own.
    *   - An element whose shadow root is only a `<slot>` shows and hides at once.
    * - Override it to show and hide your own way (a dialog's `showModal()` / `close()`).
@@ -1036,8 +1039,9 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - `UIButton.define("ie-boton", es)` registers `<ie-boton primario color="rojo">`:
    *   its translated attribute, property and event names all reach the same component.
    * - Does nothing for a tag already defined.
-   * - Returns the element class;  `undefined` while the page's runtime hasn't installed its settings yet
-   *   (`SpellSolid`):  then the tag is defined as they're installed.
+   * - Returns the element class.
+   * - Returns `undefined` while the page's runtime hasn't installed its settings yet (`SpellSolid`):
+   *   then the tag is defined as they're installed.
    * - throws a `TypeError` on a name in `elementSetup.cssStates` the tag has no attribute or member for (a typo)
    */
   static define(
@@ -1102,7 +1106,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
       isAPart: this.prototype.elementSetup.isAPart,
       isConditionalOwner: "isOwnerOf" in this.prototype
     })
-    // Hand the vocabulary to the runtime (`UI.vocabulary`), and its English texts to `UI.i18n`:
+    // Hand the vocabulary to the runtime (Spell UI's `UI.vocabulary`), and its English texts to its `UI.i18n`:
     // - when the class is DEFINED, not when its first element connects,
     //   so translations can find them before any element exists
     // - the texts are English DEFAULTS for this component only:
@@ -1141,7 +1145,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * This component's whole vocabulary, for code that wants to look at it:  `UIButton.describe().topics`.
    * - Tag, attributes (kinds, values, defaults), events, slots, parts, states, texts, descriptions, `topics`, `aka`.
    * - The same object the element itself reads.
-   * - Every tag's summary at once:  `ComponentDefinitions` (`components/ComponentDefinitions.ts`).
+   * - Every tag's summary at once:
+   *   Spell UI's `ComponentDefinitions` (`packages/ui/components/ComponentDefinitions.ts`).
    */
   static describe<T extends { prototype: { vocabulary: E.ComponentVocabulary } }>(
     this: T

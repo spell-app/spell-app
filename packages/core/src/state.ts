@@ -17,7 +17,7 @@
  *   and its plain fields after its props:  what it was made with and doesn't declare, e.g. a foundation's `symbol`.
  *   - The first mention of one is whole;  each later one is `{ "$id": "3" }` alone:
  *     so a card in two places is one card, read back.
- *   - `"$id"` as JSON-LD spells it, beside its `"$type"`.
+ *   - `"$id"` beside its `"$type"`:  every key of our own starts with `$` (decision J3).
  * - Each `StateWriter` gives a thing its id the first time it writes it, and keeps it:
  *   every state it writes after names that thing the same.
  *   - One writer per page:  ids are its own, counted from 1.

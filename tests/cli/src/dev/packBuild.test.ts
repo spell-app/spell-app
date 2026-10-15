@@ -17,8 +17,9 @@ import { afterAll, beforeAll, describe, expect, test } from "vite-plus/test"
 import { CLI } from "$/cli"
 
 /**
- * ONE throwaway checkout, with a tiny pack in it:  `pack new` + `pack element` (unbuilt), on copies of the root files,
- * with `packages/ui` a link to this checkout's (the build needs Spell UI's `baseConfig()`).  The tests run in order.
+ * ONE throwaway checkout, with a tiny pack in it:  `pack new` + `pack element` (unbuilt), on copies of the root files.
+ * - `packages/ui` is a link to this checkout's (the build needs Spell UI's `baseConfig()`)
+ * - the tests run in order
  */
 const ROOT = realpathSync(mkdtempSync(join(tmpdir(), "pack-build-")))
 afterAll(() => rmSync(ROOT, { recursive: true, force: true }))

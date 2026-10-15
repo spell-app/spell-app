@@ -9,8 +9,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 `$/epics` holds TWO things (Q23 of epic `people-and-orgs`, 2026-10-13):
 - the plan docs' elements and tool:  the `<epic-*>` component pack, and `epic` ("Overview", "Rules", "Plan docs")
-- EVERY docs page's tooling, not only the epics':  `tools/`, the scripts and the `_assets` every page loads
-  ("Layout" onwards)
+- EVERY docs page's tooling, not only the epics' ("Layout" onwards):
+  `tools/`, the scripts and the `_assets` every page loads
   - That was the docs package (`@spell-app/docs`, its own folder in `packages/`) until P16 of `people-and-orgs`.
   - The pages themselves are shared root folders, tracked by no package (the root's `AGENTS.md`, "Shared content").
 
@@ -34,11 +34,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Written exactly like a Spell UI family:
     [ui's AGENTS.md](../ui/AGENTS.md), "Overview" and "Solid authoring".
   - Every file named for its COMPONENT:
-    - `<Name>.tsx` (the component, on `E.UIComponent`:  [`$/spell-solid`](../spell-solid/AGENTS.md)'s)
-    - `<Name>.en.ts` (its tag's vocabulary:  topics + aka, skeleton text)
-    - `<Name>.css`, `<Name>.types.ts` (only what several of its files share)
-    - its test, `<Name>.test.tsx`, at the same path in the repo's `tests/epics/` (`tests/epics/components/<tag>/`)
-    - `index.ts` (defines its tags:  SIDE EFFECT)
+    - `<Name>.tsx`:  the component, on [`$/spell-solid`](../spell-solid/AGENTS.md)'s `E.UIComponent`
+    - `<Name>.en.ts`:  its tag's vocabulary (topics + aka, skeleton text)
+    - `<Name>.css`
+    - `<Name>.types.ts`:  only what several of its files share
+    - its test, `<Name>.test.tsx`, at the same path in the repo's `tests/epics/`:
+      `tests/epics/components/<tag>/`
+    - `index.ts`:  defines its tags (SIDE EFFECT)
   - No native fallback:  only form controls have one.
   - A new one:  `spell dev pack element epics <tag>`, the tag starting `epic-`.
   - Every component is a family, as in Spell UI (P10 of epic `spell-element`).
@@ -53,27 +55,29 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - Each family that draws one imports its barrel first,
       so it's defined wherever they are.
     - Unless it can't be a tag.
-      The fold button and chevron every fold draws are methods of `Fold`:  `fold.button()`, `Fold.chevron()`.
+      The fold button and chevron every fold draws are methods of `Fold`:
+      `fold.button()` and `Fold.chevron()`.
       - The button is named by ids in the card's own shadow root.
       - The chevron shows in the first frame.
 - `src/` (`$/epics`, `EP`) -- code the elements and the node tools share.
-  Its test `pack.test.ts` (in the repo's `tests/epics/src/`) runs `spell dev pack check epics`.
+  - Its test, [pack.test.ts](../../tests/epics/src/pack.test.ts), runs `spell dev pack check epics`.
   - `definitions/` -- the ONE description of every element:
     - `Definitions.all`:  each vocabulary as data, plus `children` (the content model)
     - Node-safe:  imports vocabulary files, never a family's barrel.
-  - `markup/` -- `Markup` (make, read, set, append) and `MarkupCheck` (validate a doc).
-    On linkedom, or the browser's DOM.
-  - `dates/` -- `PlanDates`:  every date an element draws, `10/8/26 14:34` (`10/8/26` for a day),
-    from whatever form the doc holds.
+  - `markup/` -- making, reading and checking a doc's markup, on linkedom or the browser's DOM.
+    - `Markup`:  make, read, set, append
+    - `MarkupCheck`:  validate a doc
+  - `dates/` -- `PlanDates`:  every date an element draws, from whatever form the doc holds.
+    - `10/8/26 14:34`;  `10/8/26` for a day
     - NOT the log's (`<epic-event>`).
     - A time alone (`saved 14:42`):  `PlanDates.clock()`.
   - `review/` -- `ReviewClient`, one per page:  the review inbox's reads and writes (`/api/epics/review/*`).
     - Also token refresh, polling, and note-draft backups (the old page runtime's localStorage keys).
     - It touches no browser global until `forPage()` / `watch()`.
     - Used by:
-      - `<epic-review>`:  the review controls `<epic-item>`, `<epic-section>` (Overview parts),
-        `<epic-phase>` and `<epic-summary>` draw
-      - `<epic-new-item>`:  `<epic-page>`'s toolbar button, and the Todos and Questions sections' New todo / question
+      - `<epic-review>`:  the review controls drawn by items, sections (Overview parts), phases and the summary
+        - `<epic-item>`, `<epic-section>`, `<epic-phase>`, `<epic-summary>`
+      - `<epic-new-item>`:  the page's toolbar button, and the Todos and Questions sections' New todo / question
       - `<epic-option>`'s Choose pill
       - The controls show while `<epic-page reviewing>` is set.
     - `AgentsClient`, one per page:  the epic's running agents, and Owen's redirects.
@@ -82,19 +86,22 @@ Only what's local is below;  a section named like a WWOD rule extends it.
         `<epic-agents>`, in its shadow root, before its blocks (not a section).
       - Both clients POST and watch through the same code, a `ServerLink` each:
         the token, its one refresh on a 403, the poll and `spell-server:file`.
-  - `site/` -- `EpicUISite`:  the data of Epic UI, the elements' docs set (`docs/`, at `/components/epics/`;  see
-    "Epic UI, the docs set"), in Spell UI's site shapes:
-    - `__data/components.json`:  one entry per element from `Definitions.all`, filed by the set's hand-kept
-      `__data/pages.json` groups (a new element:  under Other, `planned` until its page exists), plus the side
-      column's own links;  `__data/search.json`:  every page's sections, for its search
+  - `site/` -- `EpicUISite`:  the data of Epic UI, the elements' docs set, in Spell UI's site shapes.
+    - the set:  `docs/`, at `/components/epics/` (see "Epic UI, the docs set")
+    - `components.json`, in `__data/`:  one entry per element from `Definitions.all`, plus the side column's own links
+      - filed by the groups in the set's hand-kept `pages.json`
+      - a new element:  under Other, `planned` until its page exists
+    - `search.json`, in `__data/`:  every page's sections, for its search
     - written by `yarn site:data` ([its script](scripts/site-data.ts));  `EpicUISite.test.ts` fails while stale
-  - `list/` -- the Epics list (`epics/index.html`), out of the page server since P16 of `people-and-orgs`:
+  - `list/` -- [the Epics list](../../epics/index.html), out of the page server since P16 of `people-and-orgs`:
     - `EpicState`:  an epic's state, the ONE rule every list and page draws it by
-    - `EpicCards`:  the list's cards and groups, drawn alike by the docs index (`tools/index.js`) and the page server
+    - `EpicCards`:  the list's cards and groups, drawn alike by the docs index and the page server
+      - the docs index:  [index.js](tools/index.js)
     - `RunningEpics`:  the running epics, still in their worktrees, on the main checkout's page server
-    - [runningRoutes.ts](src/list/runningRoutes.ts):  its route module, `GET /api/epics/running`, and the list page's
-      running cards as it's served
-    - `EpicState.ts` and `EpicCards.ts` load in plain `node` too (the docs index):  their headers say what that forbids
+    - [runningRoutes.ts](src/list/runningRoutes.ts):  its route module
+      - `GET /api/epics/running`
+      - the list page's running cards, as it's served
+    - `EpicState` and `EpicCards` load in plain `node` too (the docs index):  their headers say what that forbids
   - `convert/` -- the converter, old markup => `<epic-*>` (`Converter`, `ConvertRun`).
     - A `ConversionProof` per doc:  every id, link target and word kept.
     - Every live doc was converted at the switch (P12 of epic `epic-components`).
@@ -103,15 +110,16 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - It reads and writes `<epic-*>` markup only (through `Markup`),
       and refuses a doc still in the old markup ("convert it first").
     - Its rules for a doc's DATA (ids, statuses, review marks, prose):  [PLAN-DOC.md](src/tool/PLAN-DOC.md)
-    - `migrations/`:  the named, dated steps that bring an older epic page up to today's markup (`Migrations`),
-      which `epic migrate` runs (`MigrateCommands`), by page kind (PLAN-DOC.md, "Migrations")
+    - `migrations/`:  the named, dated steps that bring an older epic page up to today's markup (`Migrations`)
+      - `epic migrate` runs them, by page kind (`MigrateCommands`;  PLAN-DOC.md, "Migrations")
     - its template:  [plan.html](src/tool/templates/plan.html), in `tool/templates/`
     - The old hand-written prose shapes have ONE set of rules, `ProseShapes`:
       a `Net effect` paragraph, a code accordion, an option grid ...
       - `ProseRewrite` turns them into elements,
         for the tool's way in (`IncomingHtml`) and the converter's second pass alike.
-- `components/__pack/` -- GENERATED, committed (`spell dev pack build epics`, `yarn pack:build`;  `pack/` until P18 of
-  `people-and-orgs`:  every pack is built inside its families' folder, `__` marking it as no family).  NEVER edit:
+- `components/__pack/` -- GENERATED, committed.  NEVER edit.
+  - Built by `spell dev pack build epics` (`yarn pack:build`).
+  - `pack/` until P18 of `people-and-orgs`:  every pack is built inside its families' folder, `__` marking it as no family.
   - `epics.catalog.ts` -- tag => family folder + skeleton, read from the vocabularies.
     Its second line records the hash of the sources it was built from.
   - `epics.entry.ts` -- the script's entry:
@@ -119,26 +127,29 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `epics.pack.js` -- the CLASSIC script (an IIFE) a page loads, minified
     - Solid, spell-solid and Spell UI's shared modules are NOT in it:
       `solid-js`, `@solidjs/web`, `$/spell-solid`, `$/ui/core`, `$/ui/forms`.
-    - It takes them from `globalThis.SpellUI.packModules`, the docs bundle's,
-      so a page has ONE Solid and one `UIComponent` (`$/spell-solid` there is Spell UI's core, which carries it).
+    - It takes them from the docs bundle's `globalThis.SpellUI.packModules`,
+      so a page has ONE Solid and one `UIComponent`.
+      - `$/spell-solid` there is Spell UI's core, which carries it.
 - `tools/` -- every docs page's tooling:  the scripts, their route modules, and `_assets/` (see "Layout", "Scripts").
-  - Plain `node` scripts (`.js`) beside `tsx` ones (`.ts`);  `tsconfig.json` takes both (`allowJs`).
+  - Plain `node` scripts (`.js`) beside `tsx` ones (`.ts`).
+    `tsconfig.json` takes both (`allowJs`).
   - The tools and `src/` import each other directly, by relative path.
   - Their tests:  in the repo's `tests/epics/tools/`, run by the `node` project (`yarn test`).
 
 ## Rules
 
-- Change an element -- its vocabulary above all, or any file under `components/` or `src/` --
-  then `spell dev pack build epics` (`yarn pack:build`), and commit `components/__pack/` (and `docs/__data/`, which
-  the build writes too) in the same change.
+- Change an element -- its vocabulary above all, or any file under `components/` or `src/` -- then:
+  1. `spell dev pack build epics` (`yarn pack:build`)
+  2. in the same change, commit the pack, `components/__pack/`, and the docs data the build writes too, `docs/__data/`
   - `yarn pack:check` exits 1 while either is stale, and the pack's test (`pack.test.ts`) runs it:
     so `yarn test` and `yarn review` fail until you build.
 - Elements are written on `$/spell-solid`:  `import { E } from "$/spell-solid"` (`E.UIComponent`, `@E.state` ...).
-  - A file that also uses Spell UI's own pieces (`E.IconGlyph`, `E.LoadableBody`, `E.Converters` ...) takes `E` from
-    `$/ui/core` instead:  the same names, and Spell UI's on top (epic `people-and-orgs` P17).
-- They import Spell UI's code ONLY from `$/ui/core` / `$/ui/forms` (as a Spell UI family does),
-  and Solid from `solid-js` / `@solidjs/web`.
-  - The build fails on any other `$/ui/...`, `$/spell-solid/...` or Solid import, which the page couldn't share.
+  - A file that also uses Spell UI's own pieces (`E.IconGlyph`, `E.LoadableBody`, `E.Converters` ...)
+    takes `E` from `$/ui/core` instead:  the same names, and Spell UI's on top (epic `people-and-orgs` P17).
+- They import Spell UI's code ONLY from `$/ui/core` / `$/ui/forms`, as a Spell UI family does.
+  - Solid only from `solid-js` / `@solidjs/web`.
+  - The build fails on any other Spell UI, spell-solid or Solid import, which the page couldn't share:
+    a deeper `$/ui/...` or `$/spell-solid/...`, say.
   - Another shared module:
     add it to Spell UI's `packModules` AND to `PACK_MODULES`, in [packBuild.ts](../cli/src/dev/packBuild.ts).
 - Every tag starts `epic-`:  `<ui-root>` knows the pack's tags by that prefix.
@@ -146,49 +157,56 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Spell UI keeps ONE sheet per name for the whole page, and the first class to register a name wins.
   - So a bare `item` drew `<epic-item>` with `<ui-item>`'s sheet, on any page that had both (I9).
   - [The barrel's test](../../tests/epics/components/index.test.tsx) checks every class the barrel exports.
-- A change to epic page markup (what the tool writes, or what an element reads) adds its MIGRATION STEP in the SAME
-  commit (epic `epic-workflow` P8):  a class in [migrations/](src/tool/migrations/), last in `Migrations.all`, with
-  its test.  Another page kind's markup:  its step in the docs tools' `STEPS` ([migrate.js](tools/migrate.js)).
-  - Then `epic migrate --all --dry-run` to see what it would change, and once it's on `main`,
-    `epic migrate --all --notify`:  idle epics are migrated, running ones are told (the epic skill's
-    "Migrations" says what the receiving session does).
+- A change to epic page markup adds its MIGRATION STEP in the SAME commit (epic `epic-workflow` P8).
+  - epic page markup:  what the tool writes, or what an element reads
+  - the step:  a class in [migrations/](src/tool/migrations/), last in `Migrations.all`, with its test
+  - another page kind's markup:  its step in the docs tools' `STEPS` ([migrate.js](tools/migrate.js))
+  - Then `epic migrate --all --dry-run`, to see what it would change.
+  - Once it's on `main`, `epic migrate --all --notify`:  idle epics are migrated, running ones are told.
+    - What the receiving session does:  the epic skill's "Migrations".
   - How a step is written:  [PLAN-DOC.md](src/tool/PLAN-DOC.md), "Migrations".
-- Every element has a page in Epic UI, [`docs/`](docs/index.html), served at `/components/epics/` (see "Epic UI, the
-  docs set"):  change it in the SAME commit as the element, then `yarn site:data`.
+- Every element has a page in Epic UI, [`docs/`](docs/index.html), served at `/components/epics/`.
+  - Change it in the SAME commit as the element, then `yarn site:data` (see "Epic UI, the docs set").
   - Its pages are tracked here, per branch:  a worktree's show at `/worktrees/<w>/components/epics/` until it merges.
 - A pack drawn by pages EVERY checkout shows (the shared `epics/`, `guides/` ...):
-  those pages load `main`'s `components/__pack/`, through the main checkout's page server.  So:
+  those pages load `main`'s pack, through the main checkout's page server.  So:
   - small fixes straight on `main`
   - real changes in a worktree, merged promptly:  until then, those pages show `main`'s elements
 
 ## Commands
 
-- `yarn pack:build` ~== `spell dev pack build epics` -- the catalog, the entry and the script, into
-  `components/__pack/`;  then Epic UI's data, `docs/__data/` (`yarn site:data`)
+- `yarn pack:build` ~== `spell dev pack build epics`
+  - the catalog, the entry and the script, into `components/__pack/`
+  - then Epic UI's data, `docs/__data/` (`yarn site:data`)
 - `yarn pack:check` ~== `spell dev pack check epics` -- exits 1 while either is stale
-- `yarn site:data [--check]` -- Epic UI's data (`src/site/EpicUISite.ts`, `scripts/site-data.ts`):  rerun after
-  changing an element or a page's sections, and commit `docs/__data/`
-- `yarn test` -- `node` (`src/`) and `browser` (`components/`, chromium);
-  the root's `yarn test` runs them as `epics:node` / `epics:browser`
+- `yarn site:data [--check]` -- Epic UI's data ([EpicUISite.ts](src/site/EpicUISite.ts), [its script](scripts/site-data.ts))
+  - rerun after changing an element or a page's sections, and commit `docs/__data/`
+- `yarn test` -- `node` (`src/`) and `browser` (`components/`, chromium)
+  - the root's `yarn test` runs them as `epics:node` / `epics:browser`
 - `yarn ts`, `yarn lint`, `yarn format`, `yarn review`
 - the docs tools' own (see "Scripts"):
-  - `yarn docs:update | docs:index | docs:new | docs:open | docs:link` ~== `spell dev docs update | index | new | open
-    | link`
-  - `yarn plan-doc`, `yarn details`
-  - `yarn design:bundle`, `yarn design:check`
+
+  ```text
+  yarn docs:update | docs:index | docs:new | docs:open | docs:link   ~==  spell dev docs update | index | new | open | link
+  yarn plan-doc,  yarn details
+  yarn design:bundle,  yarn design:check
+  ```
 
 ## Epic UI, the docs set
 
-`docs/`:  the pages of the `<epic-*>` elements, a COMPONENT SET (epic `epic-workflow` P10;  laid out as every set is
-since P18 of `people-and-orgs`, the root's `AGENTS.md`).
-- Served at `/components/epics/` by the page server (`COMPONENT_SETS`, [page.types.ts](../server/src/page/page.types.ts)),
-  and at `/worktrees/<w>/components/epics/` for a worktree's.  The top bar's Epic/UI tab opens it.
-  - Its folder's own address (`/packages/epics/docs/...`) is NOT a way in:  its pages load their site bundle from
-    `_assets/` beside them, which only the set's address has.
+`docs/`:  the pages of the `<epic-*>` elements, a COMPONENT SET (epic `epic-workflow` P10).
+Laid out as every set is since P18 of `people-and-orgs` (the root's `AGENTS.md`).
+- Served by the page server (`COMPONENT_SETS`, [page.types.ts](../server/src/page/page.types.ts)):
+  - at `/components/epics/`
+  - and at `/worktrees/<w>/components/epics/` for a worktree's
+  - The top bar's Epic/UI tab opens it.
+  - Its folder's own address (`/packages/epics/docs/...`) is NOT a way in:
+    its pages load their site bundle from `_assets/` beside them, which only the set's address has.
 - Tracked and versioned with the branch, like code:  an element's page changes in the same commit as the element.
-- In Spell UI's page shape:  the top bar, a side column of every element by group, the page's contents list, the
-  theme switch.  The pages load the sets' build of Spell UI's site (`_assets/`, laid over the folder by the page
-  server), which loads the epics pack for the live examples.
+- In Spell UI's page shape:
+  - the top bar, a side column of every element by group, the page's contents list, the theme switch
+  - The pages load the sets' build of Spell UI's site (`_assets/`, laid over the folder by the page server).
+    It loads the epics pack for the live examples.
 - ONE flat folder:
 
   | Path | What |
@@ -200,16 +218,26 @@ since P18 of `people-and-orgs`, the root's `AGENTS.md`).
   | `__data/pages.json` | HAND-KEPT:  the side column's groups, the elements with no page, the side column's own links |
   | `__data/components.json`, `__data/search.json` | GENERATED, committed:  `yarn site:data` |
 
-- A new page:  copy a page like it (or the shared template, `templates/component-set-docs.html`, once it's been
-  moved on at the merge), then `yarn site:data`.  An element added to the pack shows in the side column by itself
-  (under Other, `planned`) once the data is rebuilt.
-- Links are written as from the page's SERVED address (`/components/epics/x.html`):  `../../` is the checkout's root,
-  `x.html` a sibling, `../ui/ui-button.html` a Spell UI page, `../app/spell-app.html` an App UI page.
+- A new page:
+  1. copy a page like it, or the shared template once it's been moved on at the merge
+     ([the component set docs template](../../templates/component-set-docs.html))
+  2. `yarn site:data`
+  - An element added to the pack shows in the side column by itself (under Other, `planned`) once the data is rebuilt.
+- Links are written as from the page's SERVED address (`/components/epics/x.html`):
+
+  ```text
+  ../../                   the checkout's root
+  x.html                   a sibling
+  ../ui/ui-button.html     a Spell UI page
+  ../app/spell-app.html    an App UI page
+  ```
+
   - The layout and footer are served from `__parts/`:  one level deeper, `../../../` to the root.
-  - `doc-links.js` checks them that way (`yarn tsx tools/doc-links.js --check ../epics/docs/<tag>.html`).
+  - `doc-links.js` checks them that way:  `yarn tsx tools/doc-links.js --check ../epics/docs/<tag>.html`.
 - Check a page:  `node tools/check-spell.js docs/<tag>.html`, which loads it from the page server at its address.
-- Comments:  the comment route takes them (`<page>.inbox.json` beside a page, git-ignored), but no bullhorn draws on
-  these pages yet:  they load Spell UI's site, not the docs bundle that draws them.
+- Comments:  the comment route takes them, but no bullhorn draws on these pages yet.
+  - kept in `<page>.inbox.json` beside a page, git-ignored
+  - why no bullhorn:  they load Spell UI's site, not the docs bundle that draws them
 - The epic's write-up and how-to guides stay in the shared guides:
   [Epic Pages as Components](../../guides/epic-components/epic-components.html),
   [Reviewing a Plan Doc](../../guides/epic-components/review.html),
@@ -218,8 +246,9 @@ since P18 of `people-and-orgs`, the root's `AGENTS.md`).
 
 ## Layout
 
-The pages live in SHARED root folders;  the tooling lives here, in `tools/` (epics `shared-content`,
-`claude-design` P4;  in the docs package's own `tools/` until P16 of `people-and-orgs`).
+The pages live in SHARED root folders;  the tooling lives here, in `tools/`.
+- epics `shared-content` and `claude-design` P4
+- the tooling was in the docs package's own `tools/` until P16 of `people-and-orgs`
 - The pages, plan docs and templates are root folders of every checkout.
   - Each is a folder link into the shared content repo, `../spell-app-dev`
     (the root's `AGENTS.md`, "Shared content").
@@ -234,7 +263,7 @@ The pages live in SHARED root folders;  the tooling lives here, in `tools/` (epi
     - The old URLs answer "not found":  the page server redirects none (Q30 of `people-and-orgs`).
 - `tools/`:  the tooling, tracked here and versioned per branch.
   - the scripts (see "Scripts")
-  - their tests:  in the repo's `tests/epics/tools/`, by the same names (`tools/fuss.test.ts`)
+  - their tests:  in the repo's `tests/epics/tools/`, by the same names ([fuss.test.ts](../../tests/epics/tools/fuss.test.ts))
   - `_assets/`
   - Run a script from `packages/epics`, or through its `yarn` script:
 
@@ -242,36 +271,44 @@ The pages live in SHARED root folders;  the tooling lives here, in `tools/` (epi
     node tools/check-spell.js guides/x.html
     ```
 
-  - A page argument is from the root, or from an area:
-    `solid/solid-2.html` is a guide ([`pageFile()`](tools/pages.js)).
+  - A page argument is from the root, or from an area ([`pageFile()`](tools/pages.js)):
+    `solid/solid-2.html` is a guide.
 
 The shared folders:
-- [pages.js](tools/pages.js) has a constant for each, and `findPages()` walks them:
-  `PAGES`, `GUIDES`, `EPICS`, `TEMPLATES`.
+- [pages.js](tools/pages.js) has a constant for each, and `findPages()` walks them.
+  - `PAGES`, `GUIDES`, `EPICS`, `TEMPLATES`
 - [The docs home](../../pages/index.html):  a routing page (P5 of `claude-design`).
   - One card per area, in the top bar's order, each with its count:
     Guides · Goals · Epics · Epic/UI · Spell/UI · App · App/UI · Brand · Templates
     - Owen's order (2026-10-11, epic `epic-workflow` J40);  the slashed names are the tabs' labels (J41).
-    - Spell/UI, Epic/UI and App/UI are COMPONENT SETS (`COMPONENT_SETS` in `$/server/page`):  tracked package
-      folders (`packages/ui/docs/`, `packages/epics/docs/`, `packages/app/docs/`) served at `/components/ui/`,
-      `/components/epics/` and `/components/app/`, in Spell UI's page shape.  Their cards link those addresses.
-    - NEVER run `spell dev docs index` from a branch whose sets' addresses `main` doesn't serve yet:  it writes the
-      shared home, which `main`'s page server shows too.
-  - `spell dev docs index` writes the cards, between `<!-- areas:start -->` / `<!-- areas:end -->`.
+    - Spell/UI, Epic/UI and App/UI are COMPONENT SETS (`COMPONENT_SETS` in `$/server/page`), in Spell UI's page shape.
+      Their cards link the sets' addresses:
+
+      ```text
+      packages/ui/docs/      served at  /components/ui/
+      packages/epics/docs/   served at  /components/epics/
+      packages/app/docs/     served at  /components/app/
+      ```
+
+    - NEVER run `spell dev docs index` from a branch whose sets' addresses `main` doesn't serve yet:
+      it writes the shared home, which `main`'s page server shows too.
+  - `spell dev docs index` writes the cards, between the `areas:start` / `areas:end` markers.
     Edit only outside the markers.
   - NOT `index:start` / `index:end`:  on those, an older checkout's `index.js` would stop on the shared home,
     instead of writing its three lists back into it.
 - Each area's LIST PAGE, its top-bar tab's home:  `index.html` in `epics/`, `guides/`, `templates/` and `brand/`.
   - A card per page (epics open first).
-  - `spell dev docs index` writes them, between `<!-- index:start -->` / `<!-- index:end -->`.
+  - `spell dev docs index` writes them, between the `index:start` / `index:end` markers.
   - A missing one is made from [`skeleton()`](tools/index.js).
   - The Epics page (epic `airplane` P8, Owen 2026-10-10) sorts its cards into five GROUPS.
     - Each group is a small heading with its count;  cards are alphabetical by title within each.
-    - Or newest first:  the page header's sort buttons, A–Z and Date (`wireEpicSort()`;  Owen, 2026-10-13), sort the
-      cards inside each group by title or by when each was last worked on;  remembered in this browser.
+    - Or newest first:  the page header's sort buttons, A–Z and Date (`wireEpicSort()`;  Owen, 2026-10-13).
+      - They sort the cards inside each group by title, or by when each was last worked on.
+      - Remembered in this browser.
     - An empty group is hidden.
-    - `$/epics/list/EpicCards` draws them, for both the docs index and the page server, where the running epics'
-      route module ([runningRoutes.ts](src/list/runningRoutes.ts), `RunningEpics`) adds the running epics' cards.
+    - `$/epics/list/EpicCards` draws them, for both the docs index and the page server.
+      - On the page server, the running epics' route module adds the running epics' cards
+        ([runningRoutes.ts](src/list/runningRoutes.ts), `RunningEpics`).
     - The groups:
       - Favorites:  starred, whatever their state.  A starred epic shows only here.
       - Active:  phases left.  In progress, and paused (its mark grey).
@@ -284,8 +321,8 @@ The shared folders:
         - The one yellow that doesn't mean "open".
       - A click stars or unstars it at once:  the runtime's `wireFavorites()` moves the card.
       - Then the page posts it to [epicRoutes.ts](src/tool/epicRoutes.ts) (`POST /api/epics/favorite`).
-        That writes the ONE shared file, `favorites.json` in `epics/`:  a JSON list of names
-        (through `SRV.FileOperations.save()`, as every route module's save).
+        - That writes the ONE shared file, `favorites.json` in `epics/`:  a JSON list of names.
+        - through `SRV.FileOperations.save()`, as every route module's save
       - The page server regroups by it as it serves the page.
       - From `file://` the stars show, disabled.
     - The day it was last worked on, bottom right, no year (`10/9`).
@@ -301,37 +338,38 @@ The shared folders:
 - `guides/`:  every other page.
   - [The changelog](../../guides/changelog.html):  what the repo shipped, newest first.
     - Every `/isolate` and `/epic` adds to it (the root's `AGENTS.md`, "Changelog").
-  - `guides/<topic>/<topic>.html`:  a doc, folder and file in lower-kebab-case, e.g. `solid/solid-2.html`.
-    - One-file docs with nothing beside them MAY sit at the top level:  `guides/<name>.html`.
+  - A doc:  `<topic>/<topic>.html`, folder and file in lower-kebab-case, e.g. `solid/solid-2.html`.
+    - One-file docs with nothing beside them MAY sit at the top level:  `<name>.html`.
     - `<topic>/experiments/`:  runnable scripts backing the doc's claims (see "Experiments").
     - `<topic>/<topic>.md`:  a distilled version for agents, when agents need the doc's rules (see "Agent rules").
   - `spell-docs/`:  how the pages work, and the @spell-app/ui problems they hit.
     - [spell-docs.md](../../guides/spell-docs/spell-docs.md):  how the pages work
     - [spell-ui-findings.md](../../guides/spell-docs/spell-ui-findings.md):  the problems
 - `templates/`:  starting points, one per kind of doc (see "Templates").
-- `epics/<name>/<name>.plan.html`:  plan docs, one per `/epic` session (see "Plan docs").
+- `epics/`:  plan docs, one per `/epic` session, each `<name>/<name>.plan.html` (see "Plan docs").
   - `<name>.html` before 2026-10-04.
     - The tools find either ([`planDocIn()`](tools/pages.js)).
     - A worktree cut before keeps the old name until it merges `main`.
     - The old URL answers "not found":  no redirect (Q30 of `people-and-orgs`).
     - [plan-rename.js](tools/plan-rename.js) did the rename.
-  - A SPLIT doc's bodies are part files, `parts/<id>.html` in its folder:
+  - A SPLIT doc's bodies are part files, `<id>.html` in its folder's `parts/`:
     the page loads them when opened (see "Plan docs").
     - `.htm` before Q12 of `epic-components`:  read no more.
-    - Every page walker skips `parts/` folders (`findPages()`, `relocate.js`, `spell static`),
-      so a part is never taken for a page.
-- `pages/details/<slug>.html`:  DETAILS PAGES.
+    - Every page walker skips `parts/` folders, so a part is never taken for a page.
+      - `findPages()`, `relocate.js`, `spell static`
+- `pages/details/`:  DETAILS PAGES, each `<slug>.html`.
   - A question Claude explains, and Owen answers on the page (`/details`, see "Details pages").
   - Scratch:  ignored by the shared repo's git, swept after 14 days.
   - An epic's go in its folder's `details/`, kept (auto-committed with the shared repo).
   - SYNTAX-CHOICES pages live there too (see "Syntax-choices pages").
 - `brand/`:  the brand pages, and the design system's push record.
   - the pony, from Claude Design;  the rest from P11 of `claude-design`
-  - Not in `findPages()`'s areas:  `docs update` doesn't check them (`BRAND`, in [pages.js](tools/pages.js)).
+  - Not in `findPages()`'s areas:  `docs update` doesn't check them.
+    - its constant:  `BRAND`, in [pages.js](tools/pages.js)
 
 In `tools/`:
 - `_assets/`:  shared page assets.
-  - Pages reach them as `<up>packages/epics/tools/_assets/`, `<up>` being the way up to the checkout's root.
+  - Pages reach them from the checkout's root:  `<up>packages/epics/tools/_assets/`, `<up>` being the way up.
   - `spell-doc.css`:  page layout, and what UI doesn't cover.
     It reaches into widgets via UI tokens and `::part()`.
   - `spell-doc-runtime.js`:  page behaviour.
@@ -340,8 +378,9 @@ In `tools/`:
   - `spell-ui.entry.js` -> `spell-ui.js`:  the ONE classic script a page loads.
     - Solid + @spell-app/ui + the runtime
     - GENERATED by [bundle-spell-ui.js](tools/bundle-spell-ui.js).  NEVER edit `spell-ui.js`.
-  - `spell-ui.design.entry.js`:  the same, for Claude Design's `bundle.js` (`bundle-spell-ui.js --design`).
-  - `emoji/<set>/<letter>.js`:  UI's emoji name chunks, as classic scripts.
+  - `spell-ui.design.entry.js`:  the same, for Claude Design's `bundle.js`.
+    - built by `bundle-spell-ui.js --design`
+  - `emoji/`:  UI's emoji name chunks, as classic scripts, `<set>/<letter>.js`.
     - The bundle loads one lazily, on first use of a name.
     - both sets:  `cldr`, `fomantic`
     - GENERATED with `spell-ui.js`:  never edit.
@@ -353,29 +392,34 @@ In `tools/`:
   - `syntax-choices.css`, `syntax-choices.js`:  syntax-choices pages.
     - It draws their tables from `<slug>.rows.json`, saves what's typed, and sends "Do it".
     - Then it loads `spell-ui.js` itself:  it's loaded INSTEAD of the bundle, as `commands.js` is.
-  - `goals.css`, `goals-live.js`:  goals pages (the repo root's `goals/`, and `templates/goals/`).
+  - `goals.css`, `goals-live.js`:  goals pages, in the repo root's `goals/` and in `templates/goals/`.
     - their look, and their live buttons:  PARKED since 2026-10-11, each says "TODO:  this will ..." (`parked()`)
     - `goals.css` holds every rule the goals pages took from `plan-doc.css`, which they no longer link.
   - `commands.js`:  command reference pages ([the commands template](../../templates/commands.html)).
     - It draws their tables from the page's JSON, then loads `spell-ui.js` itself.
     - The page loads `commands.js` INSTEAD of the bundle.
   - `spell-syntax.js`, `spell-syntax.css`:  [the spell syntax guide](../../guides/spell-syntax/spell-syntax.html).
-    - It draws one table per module of the base spell language, a row per rule class, from spell's generated
-      [spellSyntax.json](../spell/spellSyntax.json) (`yarn gen:syntax` in `packages/spell`).
-    - Each row:  the class's name, opening its source;  its syntaxes and aliases;  an example of each syntax in each
-      writer;  its purpose.  Every section starts open, with Expand all and Collapse all in the toolbar.
-    - Built from elements, never markup in strings;  its boxes and toolbar are a syntax-choices page's
-      (`syntax-choices.css`, `choicesRoutes.ts`), the page naming its rows on `<body data-choices-rows>`.
+    - It draws one table per module of the base spell language, a row per rule class.
+      - from spell's generated [spellSyntax.json](../spell/spellSyntax.json) (`yarn gen:syntax`, in spell)
+    - Each row:
+      - the class's name, opening its source
+      - its syntaxes and aliases
+      - an example of each syntax in each writer
+      - its purpose
+    - Every section starts open, with Expand all and Collapse all in the toolbar.
+    - Built from elements, never markup in strings.
+    - Its boxes and toolbar are a syntax-choices page's (`syntax-choices.css`, `choicesRoutes.ts`).
+      The page names its rows on `<body data-choices-rows>`.
     - Each row's wand adds a comment on it ("Provide more details here"):  see "Comments".
     - Then it loads `spell-ui.js` itself, as `commands.js` does.
-  - `core-reference.js`:  [the core reference page](../../guides/targets/core-reference.html) (epic `python-target` P29).
+  - `core-reference.js`:  [the core reference page](../../guides/targets/core-reference.html), epic `python-target` P29.
     - It draws one table per core file, from two lists:
       - core's [spellCore.declarations.json5](../core/spellCore.declarations.json5)
       - py's [not_ported_yet.json5](../py/core/not_ported_yet.json5)
     - Both are read from the checkout serving the page, so each branch shows its own core.
     - Then it loads `spell-ui.js` itself, as `commands.js` does.
 - The scripts, `*.js` and `*.ts`:  see "Scripts".
-- The goals tooling:  PARKED (epic `epic-workflow` P6), in `packages/goals.zip`.
+- The goals tooling:  PARKED (epic `epic-workflow` P6), in [goals.zip](../goals.zip).
   - Epic `epic-goals` rebuilds it ([goals' AGENTS.md](../../goals/AGENTS.md), at the repo root).
 
 ## Writing a page
@@ -399,36 +443,38 @@ In `tools/`:
   - But the openers (`docs open`, `epic open`) show them from this checkout's PAGE SERVER
     (`spell dev server`, see [server's AGENTS.md](../server/AGENTS.md)).
     - It adds live reload, edit mode, and the server-only properties (Spell UI, Editor).
-  - The exceptions:  a `commands` page, the core reference page and the spell syntax guide fetch their JSON,
-    so they draw their tables only from the page server.
+  - The exceptions fetch their JSON, so they draw their tables only from the page server:
+    a `commands` page, the core reference page and the spell syntax guide.
     - From `file://` each says so, where they'd go.
     - Its `<body data-spell-needs-server>` makes `check-spell.js` load it from the server.
     - Why:  Owen chose a plain JSON file over a JS data file, or tables rendered into the HTML (epic `commands`, D4).
-- The MEASURE:  a page's reading column is `--spell-measure` wide (880px, its 16px side padding included), centred
-  (`spell-doc.css`, "Layout").
+- The MEASURE:  a page's reading column is `--spell-measure` wide, centred (`spell-doc.css`, "Layout").
+  - 880px, its 16px side padding included
   - Today it holds EVERYTHING in `<main>`:  nice for prose, "horrible for tables" (Owen, 2026-10-12).
   - The WIDE LAYOUT, opt-in while Owen tries it:  `<body class="... spell-wide">`.
-    On the spell syntax guide and `epic-workflow`'s plan doc so far;  every page's once he approves
-    (that epic's todo, "Make the wide layout the default on every page").
+    - On the spell syntax guide and `epic-workflow`'s plan doc so far.
+    - Every page's once he approves (that epic's todo, "Make the wide layout the default on every page").
     - `<main>` runs the window's full width, and each kind of block places itself:
       - BARS (the sticky page header and its toolbar, section titles, the footer, a bottom bar):
         background and rule edge to edge, their contents in the column
-      - TABLES (`ui-table`, a bare `table`):  in the column, as prose, with an EXPAND button above each one's top-left
-        corner that runs it the full width, less a 16px gutter (Owen, 2026-10-13)
-        - remembered per table, in this browser (`spell-table-wide:<path>`), by the table's id, else the nearest id above
-          it and which table it is under that (`p14#table-1`)
-        - the runtime's `wireTableWidths()`:  it measures how far in a table starts, so one inside a list item or an
-          epic item's details goes out to the gutter too
+      - TABLES (`ui-table`, a bare `table`):  in the column, as prose (Owen, 2026-10-13)
+        - an EXPAND button above each one's top-left corner runs it the full width, less a 16px gutter
+        - remembered per table, in this browser (`spell-table-wide:<path>`):
+          by the table's id, else the nearest id above it and which table it is under that (`p14#table-1`)
+        - the runtime's `wireTableWidths()` measures how far in a table starts,
+          so one inside a list item or an epic item's details goes out to the gutter too
         - no button at phone width:  the column is the page already
-      - the page's HEAD (breadcrumb, title, toolbar):  one ivory band from the site header down;  an epic page's header
-        and subtitle too (`EpicPage.css`)
+      - the page's HEAD (breadcrumb, title, toolbar):  one ivory band from the site header down
+        - an epic page's header and subtitle too (`EpicPage.css`)
       - everything else, prose and insets (paragraphs, lists, asides, code, messages, cards, comment threads):
         the column, centred
       - a block that should run full width anyway:  `class="spell-full-width"`
-    - A bare `<table>` is celled like a `ui-table celled compact`;  both draw their cells in `--spell-table-rule`.
-      At phone width a bare table scrolls inside its own box.
-    - A plan doc:  `<epic-page>`'s `--epic-inset` becomes the column's inset, so its bands run edge to edge
-      and everything in them sits in the column.  The pack itself doesn't change.
+    - A bare `<table>` is celled like a `ui-table celled compact`.
+      - both draw their cells in `--spell-table-rule`
+      - at phone width a bare table scrolls inside its own box
+    - A plan doc:  `<epic-page>`'s `--epic-inset` becomes the column's inset,
+      so its bands run edge to edge and everything in them sits in the column.
+      The pack itself doesn't change.
     - `--spell-column-inset`:  from the window's edge to the column, at least 16px.
       Worked out once in px, on `<main>`, so a block at any depth (shadow roots too) inherits the same number.
     - Phone width looks as before:  a 16px gutter, nothing wider than the window.
@@ -451,11 +497,13 @@ In `tools/`:
   - a title with markup:  a `<span slot="header">`, instead of `header`
   - A sticky page header above them, on EVERY page (the templates have it), so the title stays on screen:
     `<ui-sticky class="spell-h1"><header class="spell-page-head">` around the h1.
-    - The runtime draws it on ONE line, as an epic page's (`oneLineHead()`;  Owen, 2026-10-13):  a copy of the
-      breadcrumb goes into the h1, `DOCS / SPELL SYNTAX`, the title in the crumbs' type (mono capitals), twice their
-      size and bold;  the breadcrumb above it hides.  A lighter ivory than the toolbar under it.
-    - While a sub-section's title is stuck under its parent's, the two are one row:  `2. Files on disk › 2.1 The
-      repo` (`wireStuckTrail()`).
+    - The runtime draws it on ONE line, as an epic page's (`oneLineHead()`;  Owen, 2026-10-13):
+      - a copy of the breadcrumb goes into the h1:  `DOCS / SPELL SYNTAX`
+      - the title in the crumbs' type (mono capitals), twice their size and bold
+      - the breadcrumb above it hides
+      - a lighter ivory than the toolbar under it
+    - While a sub-section's title is stuck under its parent's, the two are one row (`wireStuckTrail()`):
+      `2. Files on disk › 2.1 The repo`.
   - The OLD markup is for the goals pages only;  the runtime still drives it.
     - It's `section.s2|s3` > `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>`.
     - `node tools/to-ui-section.js <page>` converts a page.
@@ -677,12 +725,13 @@ In `tools/`:
   - one question each (keep, change, talk over), then "Where first?"
   - saved from `ui-docs-rework`'s morning review, as the model
 - `templates/goals/`:  goals pages, laid out as a goals folder is, so their links work in place.
-  - `index.html`:  the home page, every goal set
-  - `set/index.html`:  a set's contents page
-  - `set/topic/topic.html` and `topic.md`:  a topic's page, and its agent notes
-  - Parked with goals:  `spell dev goals new-set` / `new` filled them;  a copy is in `packages/goals.zip`.
+  - the home page, every goal set:  `index.html`
+  - a set's contents page:  `index.html` in `set/`
+  - a topic's page, and its agent notes:  `topic.html` and `topic.md` in `set/topic/`
+  - Parked with goals:  `spell dev goals new-set` / `new` filled them.
+    A copy is in [goals.zip](../goals.zip).
   - The rules:  [goals' AGENTS.md](../../goals/AGENTS.md), at the repo root.
-- [spell-ui-docs.html](../../templates/spell-ui-docs.html):  a Spell UI docs page, for Spell UI's set (`packages/ui/docs/`).
+- [spell-ui-docs.html](../../templates/spell-ui-docs.html):  a Spell UI docs page, for Spell UI's set ([its docs](../ui/docs/)).
   - Fomantic's docs layout in `<ui-*>` widgets:
     nav, masthead, Examples / Usage / API / Theming tabs, an "On this page" rail.
   - It loads the UI site's bundle, NOT `spell-ui.js`.
@@ -698,11 +747,11 @@ In `tools/`:
 ## Plan docs
 
 - `/epic <name>` ([the epic skill](../../.claude/skills/epic/SKILL.md)) runs a planning session
-  against `epics/<name>/<name>.plan.html`.
-- A plan doc is `<epic-*>` markup, drawn by the `epics` component pack (epic `epic-components`).
+  against the epic's plan doc, `<name>.plan.html` in `epics/<name>/`.
+- A plan doc is `<epic-*>` markup, drawn by the epics component pack (epic `epic-components`).
   Its code is in `src/` and `components/`, beside the docs tools:
-  - the elements, the review client, and the plan-doc tool ([the tool's folder](src/tool/),
-    which `epic` runs):  "Overview" above
+  - the elements, the review client, and the plan-doc tool ([the tool's folder](src/tool/), which `epic` runs):
+    "Overview" above
   - what the tool writes, and the rules for a doc's DATA in that markup (ids, phases, items, log, parts):
     [PLAN-DOC.md](src/tool/PLAN-DOC.md)
   - how to write one (rules, ids, prose, explaining a question, the review loop):
@@ -712,7 +761,7 @@ In `tools/`:
     - "Convert it first":  `epic convert <name>`.
 - Edit through `epic <verb>` wherever a command exists (phase status, items, log).
   It keeps ids, icons and UPDATE markers consistent.
-- SPLIT docs (P3 of `claude-design`;  new docs start split):  a skeleton, plus part files, `parts/<id>.html`.
+- SPLIT docs (P3 of `claude-design`;  new docs start split):  a skeleton, plus part files, `<id>.html` in `parts/`.
   - The code:
     - `PlanParts`, `$/epics/tool/PlanParts`
     - `EpicParts`, `$/epics/tool/EpicParts`, splits and assembles an `<epic-*>` doc
@@ -732,8 +781,9 @@ In `tools/`:
   - the forwarders (see "Scripts"):  new code imports `src/tool/` (`$/epics/tool/...`) instead
     - [plan-doc.js](tools/plan-doc.js), also `yarn plan-doc`
     - `plan-parts.js`, `inbox.js`, `review-backfill.js`
-  - the tool, in turn, uses the docs tools' own code rather than a copy:  `BlockAnchors.js` (`PlanAnchors`),
-    `pages.js` `atDepth()` and `planDocIn()` (`PlanDocCommands`, `PlanDocFiles`)
+  - the tool, in turn, uses the docs tools' own code rather than a copy:
+    - `BlockAnchors.js`, in `PlanAnchors`
+    - `pages.js`'s `atDepth()` and `planDocIn()`, in `PlanDocCommands` and `PlanDocFiles`
 
 ### Review inbox
 
@@ -950,7 +1000,7 @@ In `tools/`:
         (`--epic-item-indent` left, 6px right);  so is a thread under a paragraph inside the item
       - else the block's it's under:  a guide's paragraph (its 72ch measure too), table, code ...;  a phase's field
       - Before 2026-10-10:  32px in from the text on each side.
-  - A thread's LOOK (the mockup, `pages/details/comment-thread-mock.html`, and Owen's notes on it):
+  - A thread's LOOK (the mockup, `comment-thread-mock.html`, a scratch details page, and Owen's notes on it):
     - ALL ivory, whoever spoke last ("Make the entire thing ivory"):
       the pane's `--spell-rail-bg`, outline and corners;  no shadow.
     - ORANGE while it's Owen's turn:  Claude spoke last, and he hasn't answered (✓, a reply, ×) (`unseen()`).
@@ -1083,10 +1133,11 @@ In `tools/`:
   - A page served under `/worktrees/<w>/` redraws on its inbox's change too:  the server announces a shared
     folder's files without that prefix (`inboxPaths`).
   - pages under `guides/`, `pages/`, `epics/` (plan docs too)
-  - a component set's pages, at its address (`/components/epics/...`):  their inbox beside each, in the set's tracked
-    `docs/` folder, git-ignored there;  never its `__parts/`.
-    - NOTE:  those pages load Spell UI's site bundle, not `spell-ui.js`, so no bullhorn draws on them yet:
-      the route takes their comments, the page can't make one (epic `epic-workflow` P10).
+  - a component set's pages, at its address (`/components/epics/...`), never its `__parts/`
+    - their inbox beside each, in the set's tracked `docs/` folder, git-ignored there
+    - NOTE:  no bullhorn draws on them yet (epic `epic-workflow` P10):
+      the route takes their comments, the page can't make one.
+      Those pages load Spell UI's site bundle, not `spell-ui.js`.
   - NOT:
     - a plan doc's `parts/`
     - details pages with questions, syntax-choices pages
@@ -1218,7 +1269,7 @@ In this order, from `packages/epics`:
     - the engines and every Font Awesome Free icon inlined
     - `<!--` / `</script` escaped
     - fails over 6 MB
-    - default out:  `packages/ui/build/design-system/project/components/`
+    - default out:  `project/components/`, in Spell UI's `build/design-system/`
 - `yarn tsx tools/bundle-experiment.ts <entry.ts> [<out.js>]`:  a guide's live elements, as one classic script.
   - See "Experiments".
   - default out:  `<name>.bundle.js`, beside `<name>.entry.ts`
@@ -1345,8 +1396,8 @@ In this order, from `packages/epics`:
 - [migrate.js](tools/migrate.js):  the MIGRATION steps of every page kind but the epic page's (epic `epic-workflow` P8).
   - `epic migrate [<kind>] [--file <page>]` runs it as a child, beside the epic page's own steps
     ([PLAN-DOC.md](src/tool/PLAN-DOC.md), "Migrations").
-  - `KINDS`:  the page kinds, the same list as the plan-doc tool's `PAGE_KINDS` (its test checks);  `pageKind()`:  a
-    page's kind, from where it lives and what it loads.
+  - `KINDS`:  the page kinds, the same list as the plan-doc tool's `PAGE_KINDS` (its test checks).
+  - `pageKind()`:  a page's kind, from where it lives and what it loads.
   - `STEPS`, oldest first, each named and dated, each page under its lock (`withLocks()`, from `relocate.js`).
     Today:  `ui-section` (`to-ui-section.js`).
   - The shared-content repair (`relocate.js`) is NOT a step:  it moves files between folders, and
@@ -1354,18 +1405,24 @@ In this order, from `packages/epics`:
   - A change to a page kind's markup adds its step here, in the same commit.
 - [doc-links.js](tools/doc-links.js):  see "Links".
   - Text and regexes, not a DOM:  it edits only what it links.
-  - Its page arguments are from where it runs:  from `packages/epics`, `../../guides/x.html`.
+  - Its page arguments are from where it runs:  a guide, from epics' folder, is `../../guides/x.html`.
   - `--root <checkout>`:  links resolve in another checkout (a copy of the pages beside a copy of the code).
   - The linking itself is `$/assembler`'s `Linker`.
   - `PlanParts.formatHTML()` is `$/assembler`'s `formatHTML()` too.
-- [relocate.js](tools/relocate.js):  the docs' three moves, and their repairs.
+- [relocate.js](tools/relocate.js):  the docs' moves, and their repairs.
   - into the docs package's `content/`, 2026-10-04
   - out into the root folders, 2026-10-05
-  - the docs package's end, 2026-10-13 (`people-and-orgs` P16):  its tools to `packages/epics/tools/`
-    (`relinkDocsPackage()`)
+  - the docs package's end, 2026-10-13 (`people-and-orgs` P16;  `relinkDocsPackage()`):
+    its tools moved into epics' `tools/`
     - The shared pages' links to the old tools and `_assets`, their tab names, and path mentions in prose.
-    - Run ONCE when `people-and-orgs` merges into `main`:
-      `node packages/epics/tools/relocate.js relink --shared ../spell-app-dev [--dry-run]`, from the main checkout.
+    - Run ONCE when `people-and-orgs` merges into `main`, from the main checkout:
+
+      ```sh
+      node packages/epics/tools/relocate.js relink --shared ../spell-app-dev [--dry-run]
+      ```
+
+  - the component sets' layout, 2026-10-13 (`people-and-orgs` P18;  `relinkSets()`):
+    `relink-sets`, ONCE at that merge, after `relink`;  never by `repair` (the script's header says why)
   - `spell dev shared repair` runs them all.
   - `spell dev shared commit` runs the reorg's (`reorgShared()`):
     pages older code wrote at old paths move on, and old-style links are fixed (the old tools' too).

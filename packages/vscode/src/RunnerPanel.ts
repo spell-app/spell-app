@@ -36,7 +36,7 @@ export class RunnerPanel {
   declare project: string
   /** One of the project's spell files, to name the project in requests. */
   declare uri: string
-  /** The project's `settings.json5`, beside its `project.json` -- see `readSettings()`. */
+  /** The project's `settings.json5`, beside its project file -- see `readSettings()`. */
   declare settingsUri: vscode.Uri
   /** The project's words, `<Project>.en.js`, beside its spell files -- see `sendWords()`. */
   declare wordsUri: vscode.Uri
@@ -286,15 +286,16 @@ export class RunnerPanel {
   /**
    * Webview HTML:  Semantic UI + Lato from `statics`, then the runner bundle from `runner`.
    * - The runner draws in Solid on `@spell-app/ui`;  programs still draw with React + Semantic UI, so its CSS stays.
-   * - `<ui-root icons="fomantic">` around `#runner-root`:  the runner's icon names are Fomantic's (as the web app's
-   *   `index.html`).  Its packs load from `runner`'s `icon-packs/`, beside `@spell-app/ui`'s chunks.
+   * - `<ui-root icons="fomantic">` around `#runner-root`:
+   *   the runner's icon names are Fomantic's (as the web app's `index.html`).
+   *   Its packs load from `runner`'s `icon-packs/`, beside `@spell-app/ui`'s chunks.
    * - CSP allows, all from `runner` (inside `localResourceRoots`):
    *   - `blob:` scripts:  how the runner imports its copy of the spell runtime and the project's javascript
    *   - scripts:  the bundle's lazy chunks
    *     - `@spell-app/ui`'s families and runtime, emoji data, each icon pack's `pack.js`
    *   - fetching:  the runtime's source, for its copy, and the icons' SVG files
-   *   - inline styles:  `spellCore.installStyles()` adds them, and `<ui-*>` elements set inline styles (their sheets
-   *     are constructable, adopted by their shadow roots)
+   *   - inline styles:  `spellCore.installStyles()` adds them, and `<ui-*>` elements set inline styles
+   *     (their sheets are constructable, adopted by their shadow roots)
    * - NOTE: `semantic.min.css` `@import`s Lato from Google, which the CSP blocks -- harmless, we load our own.
    */
   static html(webview: vscode.Webview, runner: vscode.Uri, statics: vscode.Uri): string {
@@ -394,7 +395,7 @@ type SetDescriptionParams = { uri: string; line?: number; file?: boolean; text: 
  */
 type ProjectSettings = Record<string, unknown>
 
-/** Name of a project's settings file, beside its `project.json`.  Git-ignored, and not one of its files in the editor. */
+/** Name of a project's settings file, beside its project file.  Git-ignored, and not one of its files in the editor. */
 const SETTINGS_FILE = "settings.json5"
 
 /** First line of `settings.json5`, saying what it is. */

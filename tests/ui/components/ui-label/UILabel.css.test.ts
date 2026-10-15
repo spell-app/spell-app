@@ -195,8 +195,8 @@ describe("UILabel.css in shadow roots", () => {
   it("styles a `<ui-detail href>`'s own link, and one slotted inside it, from their own shadow root", () => {
     Sheets.adopt(foundationCSS)
     // Stands in for `<ui-detail href>`:  its OWN shadow renders `<a class="detail">`,
-    // with no `.ui.label` ancestor in that tree -- the label sheet's link rule must key on `.detail` standalone to
-    // reach it.
+    // with no `.ui.label` ancestor in that tree --
+    // the label sheet's link rule must key on `.detail` standalone to reach it.
     const link = Sheets.host(`<a class="detail" part="detail" href="#view">View Mail</a>`, [...foundationCSS, labelCSS])
     expect(getComputedStyle(Sheets.inner(link)).cursor).toBe("pointer")
 

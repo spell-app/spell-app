@@ -9,12 +9,12 @@ import { classes } from "./classes.parser"
 import { type MethodBody } from "./classes.shared"
 
 /**
- * `upgrade_method` rule:  what bringing a saved thing up to a version takes, beyond renames and drops
- * (epic `people-and-orgs` P6):
+ * `upgrade_method` rule:  what bringing a saved thing up to a version takes,
+ * beyond renames and drops (epic `people-and-orgs` P6):
  * - `to upgrade (a person) to version 4: set its full-name to its first-name`
- * - Its body runs on the thing just read from an OLDER file, after that version's renames and drops
- *   (`version_step`):  `it`, `its` and `the person` are the thing;  what the old file held that its type doesn't
- *   declare is there to read too, as the thing's plain fields (and saved with it, until a step drops it).
+ * - Its body runs on the thing just read from an OLDER file, after that version's renames and drops (`version_step`).
+ *   - `it`, `its` and `the person` are the thing.
+ *   - Fields the old file held that its type doesn't declare are there to read too, saved until a step drops them.
  * - Its version counts towards its type's version, as a step's does.
  * - Compiles to a method the loader finds by its name, `upgradeToVersion4()`:  `SC.upgradeEntry()`.
  */

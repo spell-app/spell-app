@@ -7,7 +7,8 @@ import { E } from "$/spell-solid"
  * an edited component re-renders every live element in place,
  * keeping the element objects, their attributes and their property values.
  * - Dev-only;  NEVER in a build.
- * - Loaded by the Vite plugin (`tools/HotElements.ts`) into every component barrel, before its `define()` calls run.
+ * - Loaded into every component barrel, before its `define()` calls run,
+ *   by Spell UI's Vite plugin (`packages/ui/tools/HotElements.ts`).
  * - SIDE EFFECT:
  *   `install()` wraps `UIComponent.define`, and hooks into every DOM element made (`DOMElement.hotReloadHooks`).
  * - Why:  `define()` is idempotent per tag, so a barrel re-run by HMR would return the OLD element class.
@@ -24,14 +25,16 @@ import { E } from "$/spell-solid"
  *   which re-renders every live element of the swapped classes.
  *   - Their component-internal state (a query, an open menu) resets;  their attributes and properties don't.
  * - Also:
- *   - English texts the edit changed reach `UI.i18n` (`define()` never overwrites a registered text)
+ *   - English texts the edit changed reach the page's runtime, Spell UI's `UI.i18n`
+ *     (`define()` never overwrites a registered text)
  *   - `updateStyle()` re-registers a component sheet whose `?inline` CSS changed
  * - NOTE: a vocabulary whose tag was renamed defines the NEW tag;  instances of the old one keep the old class.
- * - `UI.vocabulary.replace()` swaps a changed vocabulary in, and re-resolves the runtime's translated names from it.
+ * - A changed vocabulary is swapped into the runtime, which re-resolves its translated names from it
+ *   (Spell UI's `UI.vocabulary.replace()`).
  * - Imports the package through `$/spell-solid`, as a component file does:  it's loaded into component barrels,
  *   and NOTHING in the package imports it (it's not in the `$/spell-solid` barrel).
  * - STATIC and instance-free on purpose:  ONE record of definitions per page, as `customElements` is.
- * - Began as solid-element's hot reload, merged into its one user (epic `spell-element`, Q11).
+ * - Began as `@spell-app/solid-element`'s hot reload, merged into its one user (epic `spell-element`, Q11).
  ****************/
 export class HotDefinitions {
   /** Wrap `UIComponent.define`, and hook into every DOM element made;  idempotent. */
@@ -175,9 +178,10 @@ export class HotDefinitions {
    *   elements register their sheets by that bare name (`elementSetup = { styleSheets: { button: buttonCSS } }`).
    * - A second sheet (`UIDimmer.page.css`) or a sheet registered under another name isn't matched:
    *   an edit to it shows after a page reload.
-   * - `Styles.register()` replaces the rules of the sheet every shadow root already adopted:  no re-render.
+   * - The runtime's `styles.register()` replaces the rules of the sheet every shadow root already adopted:
+   *   no re-render (Spell UI's `Styles.register()`).
    * - Registered even if no element used it yet, so a later `adoptStyleSheets()` finds the new text
-   *   (`UI.styles.registerOnce()` only registers names that are missing).
+   *   (Spell UI's `UI.styles.registerOnce()` only registers names that are missing).
    */
   static updateStyle(this: void, id: string, css: string) {
     const stem = /(?:^|\/)UI([A-Za-z0-9]+)\.css(?:\?|$)/.exec(id)?.[1]
@@ -266,7 +270,7 @@ export class HotDefinitions {
 
   /**
    * English texts the `next` version of a vocabulary changed, as its new defaults.
-   * - Defaults sit below every registered string (`I18n.registerDefaults()`), so a translation still wins.
+   * - Defaults sit below every registered string (Spell UI's `I18n.registerDefaults()`), so a translation still wins.
    */
   private static updateTexts(previous: E.ComponentVocabulary, next: E.ComponentVocabulary) {
     const previousTexts = new Map(previous.texts.map(({ key, text }) => [key, text]))

@@ -7,10 +7,11 @@ import { PeopleStore } from "./PeopleStore"
 
 /**
  * People's routes, under `/api/people/` (epic `people-and-orgs` P9):  what the app's "You" panel reads and saves.
- * - `GET /api/people/me`:  this machine's person, their orgs and roles (read only), and what their files got wrong
- *   (`MeAnswer`).  The first time, it writes their starter `__me.json5`, from git's name and email.
- * - `POST /api/people/me`, body `PersonChanges`:  changes them, writes their file with its comments kept, and answers
- *   as `GET` does.
+ * - `GET /api/people/me`:  this machine's person, their orgs and roles (read only),
+ *   and what their files got wrong (`MeAnswer`).
+ *   - The first time, it writes their starter `__me.json5`, from git's name and email.
+ * - `POST /api/people/me`, body `PersonChanges`:  changes them, and writes their file with its comments kept.
+ *   - It answers as `GET` does.
  * - This machine's person is `SPACES.LOCAL_PERSON` of spell's own org, `owen@spell`, for now.
  * - Nobody's refused a save (J46):  the permissions UI is todo T8.
  */

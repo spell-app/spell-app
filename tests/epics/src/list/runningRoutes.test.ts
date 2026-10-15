@@ -1,6 +1,8 @@
 /**
- * Tests of the running epics' route module, in a scratch checkout with one worktree:  the list as JSON, the Epics
- * page served with its card, and the watcher closed with the server.
+ * Tests of the running epics' route module, in a scratch checkout with one worktree:
+ * - the list as JSON
+ * - the Epics page served with its card
+ * - the watcher closed with the server
  */
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"

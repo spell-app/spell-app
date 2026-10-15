@@ -2,9 +2,9 @@
  * Spaces' DISK READER:  `$fetch()` answered from disk, in-process, for node hosts of `SpellProject` & co. --
  * the language server, the `spell` command, tests.
  * - `LoadableFile.fetch` is how every `SpellProject` / `SpellFile` / `SpellProjectRoot` reaches its `url`.
- * - `installDiskFetch()` swaps `$fetch()` for `diskFetch()`, which answers the same URLs spell builds
- *   (`SP.SpellUrls`:  `/spaces/<project>/<file>`, `/api/projects/...`) with the same `project-utils` functions the
- *   routes call -- see `routes/api.ts` for that route table.
+ * - `installDiskFetch()` swaps `$fetch()` for `diskFetch()`, which answers the same URLs spell builds:
+ *   `/spaces/<project>/<file>`, `/api/projects/...` (`SP.SpellUrls`).
+ *   - With the same `project-utils` functions the routes call:  see `routes/api.ts` for that route table.
  * - Spell never sees a path on disk:  in a browser the page server answers these URLs, here this does.
  * - `locationForDiskPath()` maps a file on disk back to a `SpellLocation`,
  *   registering a `@local/<folder>` project group for a folder outside the built-in ones.
@@ -25,8 +25,9 @@ import * as projectUtils from "./project-utils"
 import { isFileOrFolderNotFoundError } from "./response-utils"
 
 /**
- * URL shapes we answer, as `routes/api.ts` does -- by their prefix (`SP.SpellUrls`), each handed the URL as it is,
- * still encoded:  an address is decoded part by part, never as a whole, then split by its group (`SP.SpellUrls`).
+ * URL shapes we answer, as `routes/api.ts` does, by their prefix (`SP.SpellUrls`).
+ * - Each is handed the URL as it is, still encoded:
+ *   an address is decoded part by part, never as a whole, then split by its group (`SP.SpellUrls`).
  * - `GET` unless the caller passes `contents`.
  */
 const ROUTES: Array<{ prefix: string; handle: (url: string, $params: $FetchParams) => Promise<unknown> }> = [
@@ -82,8 +83,10 @@ export function installDiskFetch() {
 
 /**
  * `SpellLocation` for the file at absolute `diskPath`, e.g. an editor's open document.
- * - Its project is the nearest enclosing folder holding `project.json`, else the file's own folder.
- * - A project under a known root's folder maps onto that root, e.g. `packages/spaces/@spell/examples`, or your space's in spell-spaces.
+ * - Its project is the nearest enclosing folder holding a project file (`__project.json5`, or an old `project.json`),
+ *   else the file's own folder.
+ * - A project under a known root's folder maps onto that root:
+ *   e.g. `packages/spaces/@spell/examples`, or your space's in spell-spaces.
  * - Otherwise the project's PARENT folder becomes a new `@local/<folder-name>` group.
  *   SIDE EFFECT: registers that root with `SpellSetup.addProjectRoot()`.
  * - Returns `undefined` if any folder or file name can't be a `SpellLocation` segment,

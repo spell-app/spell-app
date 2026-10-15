@@ -135,16 +135,17 @@ export class RunningEpics {
   }
 
   /**
-   * `page` (the Epics list page) with every card marked as of now, the running epics' cards added, and the cards in
-   * their groups by the favourites as they are now.
+   * `page` (the Epics list page) as of now:
+   * every card marked again, the running epics' cards added, and the cards grouped by the favourites as they are now.
    * - no `MARKER`:  as is
    * - each card the docs index wrote (its `data-phases` ...):  its state's mark again, and its star (`favorites()`)
    *   - the mark from a session running for it (`runningNames()`) and today's date
    *   - a card without them (an older index):  as is
-   * - a merged epic's card of the same name (`data-epic`) goes:  the worktree's doc is the live one;
-   *   its last-worked moment (`data-worked`:  it may hold the branch's last commit) carries over to the running card
+   * - a merged epic's card of the same name (`data-epic`) goes:  the worktree's doc is the live one
+   *   - its last-worked moment (`data-worked`:  it may hold the branch's last commit) carries over to the running card
    * - between the markers (`EPIC_CARDS_START` / `_END`, the docs index writes them):
-   *   every card regrouped (`epicGroupsHtml()`);  a starred one under Favorites, else in its own group (`data-group`)
+   *   every card regrouped (`epicGroupsHtml()`)
+   *   - a starred one under Favorites, else in its own group (`data-group`)
    * - an index without the end marker (written before the groups):  the running cards at the marker, as before
    * - the cards' markup:  `EpicCards` `epicCardHtml()`, as the docs index draws them
    */
@@ -218,9 +219,10 @@ export class RunningEpics {
   }
 
   /**
-   * The names live Claude sessions run for:  for each session whose process is alive (`sessions/<pid>.json`),
-   * the worktree it works in (its `cwd` under `.claude/worktrees/<w>`), and its title without its icon
-   * (`🚧 airplane` -> `airplane`:  `/isolate` and `/epic` title a session for its epic).
+   * The names live Claude sessions run for.
+   * - for each session whose process is alive (`sessions/<pid>.json`):
+   *   - the worktree it works in (its `cwd` under `.claude/worktrees/<w>`)
+   *   - its title without its icon (`🚧 airplane` -> `airplane`:  `/isolate` and `/epic` title a session for its epic)
    * - NEVER throws:  an unreadable record is skipped
    */
   runningNames(): Set<string> {
@@ -360,9 +362,12 @@ function isAlive(pid: number): boolean {
 
 /**
  * One running epic.
- * - `name`:  the epic;  `worktree`:  the worktree it's in;  `url`:  its plan doc on the main page server
+ * - `name`:  the epic
+ * - `worktree`:  the worktree it's in
+ * - `url`:  its plan doc on the main page server
  * - `title`:  the doc's `<title>`
- * - `phases`:  each phase's status, in order;  `done` / `total`:  how many phases are done, of all
+ * - `phases`:  each phase's status, in order
+ * - `done` / `total`:  how many phases are done, of all
  * - `active`:  the active phase's header (`P2 · Name`), if any
  * - `updated`:  the doc's "updated" date (`YYYY-MM-DD`), if any
  *   - with phases left, no session running and no update for a few days, it's paused (`EpicState`)
@@ -427,8 +432,9 @@ function folders(dir: string): string[] {
 }
 
 /**
- * Title, phases and urgent items of the plan doc at `file`, by pattern:  the Epics page is served on every request,
- * and a pattern reads the few attributes it needs without parsing the whole doc.
+ * Title, phases and urgent items of the plan doc at `file`, by pattern.
+ * - why:  the Epics page is served on every request,
+ *   and a pattern reads the few attributes it needs without parsing the whole doc
  * - attributes in any order, across lines:
  *   - each `<epic-phase id="pN" title="..." status="S">` (the label `PN · <title>`)
  *   - `<epic-page updated future>`

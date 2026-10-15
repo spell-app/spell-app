@@ -17,10 +17,11 @@ import { ComponentSource } from "./ComponentSource.ts"
 
 /****************
  * ### `AppUIDataBuilder`
- * Builds the App UI docs set's data, `docs/__data/components.json`:
- * the side column's list, and each page's API tables (epic `epic-workflow`, P11);
- * and its search file, `search.json` (`searchText()`).
- * - Run by `yarn site:data` (`scripts/site-data.ts`);  `AppUIDataBuilder.test.ts` fails while the file is stale.
+ * Builds the App UI docs set's data (epic `epic-workflow`, P11):
+ * - `docs/__data/components.json`:  the side column's list, and each page's API tables
+ * - its search file, `search.json` (`searchText()`)
+ * - Run by `yarn site:data` (`scripts/site-data.ts`).
+ *   `AppUIDataBuilder.test.ts` fails while the file is stale.
  * - The file is Spell UI's `SiteDataFile`, so the set's pages draw it with Spell UI's docs elements:
  *   `<ui-docs-nav>` lists it, `<ui-docs-api>` draws a page's tables.
  * - Three kinds of entry, one page each, as `__data/pages.json` (hand-kept, never written) lists them:

@@ -117,8 +117,8 @@ export class PageEditor {
 /**
  * `new PageEditor()` props.
  * - `root`:  folder pages live under (the checkout)
- * - `writable`:  folders, relative to `root`, whose files it may write (the root `package.json`'s
- *   `"pageServer"` `"writable"`);  none by default:  it reads, and writes nothing
+ * - `writable`:  folders, relative to `root`, whose files it may write
+ *   (the root `package.json`'s `"pageServer"` `"writable"`);  none by default:  it reads, and writes nothing
  */
 export type PageEditorProps = { root: string; writable?: string[] }
 

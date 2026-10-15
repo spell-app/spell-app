@@ -10,8 +10,8 @@ import { fmtConfig, packageLint } from "../../vite.lint.ts"
  * - Tests:  `vitest.config.ts` beside this.
  */
 export default defineConfig({
-  // the `@spell` space's projects, as spell and its compiler write them:  the root's `**/spaces/@spell/**` is read from
-  // the repo root, not from this folder
+  // the `@spell` space's projects, as spell and its compiler write them:
+  // the root's `**/spaces/@spell/**` is read from the repo root, not from this folder
   fmt: { ...fmtConfig, ignorePatterns: [...fmtConfig.ignorePatterns, "@spell/**"] },
   lint: packageLint({ ignorePatterns: ["build", "dist", ".cache", "**/.venv", "@spell"] })
 })

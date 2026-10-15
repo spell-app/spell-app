@@ -25,13 +25,17 @@ and suggest where it belongs before building it (see "Commands").
 
 - Spell:  the parser, the spell language and its tools, and `@spell-app/ui`.
   - One yarn workspace per folder in `packages/`.
-  - The root's yarn scripts of these names run each package's own script of that name:
-    `yarn ts`, `yarn test`, and `yarn review`.
-  - Every package's TESTS live in `tests/<package>/`, at the same path as the code they test:
-    `packages/core/src/saving.ts` is tested by `tests/core/src/saving.test.ts`.
+  - Three of the root's yarn scripts run each package's own script of the same name:
+
+    ```sh
+    yarn ts    yarn test    yarn review
+    ```
+
+  - Every package's TESTS live in `tests/<package>/`, at the same path as the code they test.
+    - E.g. core's [saving.ts](packages/core/src/saving.ts) is tested by [saving.test.ts](tests/core/src/saving.test.ts).
     - With their snapshots and test data;  each package's `yarn test`, `yarn ts`, lint and format still cover them.
-    - Each package's Vitest finds them (its config's `dir`), and `tests/<package>/tsconfig.json` gives them the
-      package's own settings and the aliases.
+    - Each package's Vitest finds them (its config's `dir`).
+    - A `tsconfig.json` in each package's tests folder gives them the package's own settings and the aliases.
     - Test helpers (`$/spell/test`, `$/ui/test` ...) stay in their packages, for now.
     - Spell's test projects are spaces' test data:  `tests/spaces/@spell/test/`, frozen.
 - This file holds what's about THIS repo:  packages, worktrees, changelog, commands, toolchain, ledgers.
@@ -47,7 +51,7 @@ and suggest where it belongs before building it (see "Commands").
 ### Packages
 
 Each folder links to its own `AGENTS.md`:  read it before working there.
-- Alias:  how code imports the package, `$/name`, with `$` meaning `packages/`.
+- Alias:  how code imports the package, `$/name`, where `$` is the packages folder.
 - Namespace:  the package's self-namespace (WWOD §8).
 
 | Folder | Package | Alias | Namespace | What it is |
@@ -71,19 +75,28 @@ Each folder links to its own `AGENTS.md`:  read it before working there.
 | [brand](packages/brand/AGENTS.md) | `@spell-app/brand` | `$/brand` | | Spell's brand, the site header's Brand tab (below);  its `<brand-*>` elements (a component pack) and their docs pages (Brand UI, `docs/`, at `/components/brand/`) |
 
 More on some of them:
-- COMPONENT SETS (epic `epic-workflow` P10;  one layout since `people-and-orgs` P18):  a set of elements and their
-  docs pages in Spell UI's page shape, tracked with their branch, beside the code they describe.
-  - `<package>/components/`:  the elements;  `<package>/docs/`:  ONE flat folder of pages (an element's page is its
-    tag, `epic-item.html`), with `__parts/` (every page's frame) and `__data/` (the side column's data).
-  - Served at `/components/<set>/` by the page server, which lays a build of Spell UI's site over the folder at
-    `_assets/` (`COMPONENT_SETS`, [server's AGENTS.md](packages/server/AGENTS.md)).
-  - Spell UI:  `packages/ui/docs/`, at `/components/ui/`;  Epic UI:  `packages/epics/docs/`, at `/components/epics/`;
-    App UI:  `packages/app/docs/`, at `/components/app/`;  Brand UI:  `packages/brand/docs/`, at `/components/brand/`.
-  - A set that's a component PACK (epics, brand) has it built into `components/__pack/` by `spell dev pack build`,
-    which writes the set's `docs/__data/` too.
+- COMPONENT SETS (epic `epic-workflow` P10;  one layout since `people-and-orgs` P18):
+  a set of elements and their docs pages in Spell UI's page shape,
+  tracked with their branch, beside the code they describe.
+  - In the set's package:
+    - `components/`:  the elements
+    - `docs/`:  ONE flat folder of pages;  an element's page is its tag, `epic-item.html`
+      - `__parts/`:  every page's frame
+      - `__data/`:  the side column's data
+  - Served at `/components/<set>/` by the page server,
+    which lays a build of Spell UI's site over the folder at `_assets/`.
+    - The list:  `COMPONENT_SETS` ([server's AGENTS.md](packages/server/AGENTS.md)).
+  - The sets:
+    - Spell UI:  [ui's docs/](packages/ui/docs/), at `/components/ui/`
+    - Epic UI:  [epics' docs/](packages/epics/docs/), at `/components/epics/`
+    - App UI:  [app's docs/](packages/app/docs/), at `/components/app/`
+    - Brand UI:  [brand's docs/](packages/brand/docs/), at `/components/brand/`
+  - A set that's a component PACK (epics, brand) is built by `spell dev pack build`.
+    - It writes the pack, `components/__pack/`, and the set's `docs/__data/` too.
   - The top bar's Spell/UI, Epic/UI and App/UI tabs;  the brand's set lights the Brand tab.
   - The old addresses (`/ui/`, `/epic-ui/`, `/app-ui/`, `/brand/components/`) answer "not found" (Q30).
-- `packages/vscode/` is its own yarn project (own `package.json` + `yarn.lock`), NOT a workspace.
+- The VS Code extension, [packages/vscode/](packages/vscode/), is its own yarn project, NOT a workspace:
+  its own `package.json` and `yarn.lock`.
   - `spell dev vscode` builds and installs it.
   - Or its two steps:  `spell dev vscode build`, then `install`.
 - epics:  the docs pages' tooling, since the docs package went into it (epic `people-and-orgs` P16, Q23).
@@ -95,18 +108,24 @@ More on some of them:
 - server:  static folders, an Express-shaped router, live reload, ports, openers, a file lock.
   - And the ONE page server per checkout (`spell dev server`),
     which serves docs, epics, goals and Spell UI docs.
-  - Every call under `/api/`, one prefix per package that answers it:  the server's own `/api/server`,
-    `/api/pages` (the page editor) and `/api/files`;  the old paths answer "not found" (Q30, no redirects).
-  - Its settings, the root `package.json`'s `"pageServer"` block:  route modules, watched and writable folders,
-    and the ONE list of bundles (`bundles`), which the assembler reads too.
+  - Every call is under `/api/`, one prefix per package that answers it.
+    - The server's own:  `/api/server` and `/api/files`.
+    - Its page editor's:  `/api/pages`.
+    - The old paths answer "not found" (Q30, no redirects).
+  - Its settings:  the `"pageServer"` block of the root `package.json`.
+    - route modules
+    - watched and writable folders
+    - the ONE list of bundles (`bundles`), which the assembler reads too
 - assembler:
   - link targets (`Linker`)
   - in-memory formatting (`formatHTML()`)
   - the bundles built on demand (`Bundle`)
   - later, the page server's assembly code
 - brand:  Claude Design's pages and tokens (never edited), and their Spell UI copies (`*.spell.html`).
-  - And the `<brand-*>` elements those copies need:  a component pack, prefix `brand-` (`<ui-brand-*>` before
-    `people-and-orgs` P18, Q26), with its docs set, Brand UI (`packages/brand/docs/`, at `/components/brand/`).
+  - And the `<brand-*>` elements those copies need:  a component pack.
+    - Its prefix:  `brand-`.
+      It was `<ui-brand-*>` before `people-and-orgs` P18 (Q26).
+    - Its docs set:  Brand UI, [brand's docs/](packages/brand/docs/), at `/components/brand/`.
 
 ### Which package may import which
 
@@ -127,20 +146,20 @@ ui / epics / app / brand -> spell-solid -> util   (every set's elements are writ
 ui -> util
 ```
 
-- NEVER make `ui` import `spell` or any package above it:  `@spell-app/ui` lives on its own.
+- NEVER make `ui` import `spell` or any package above it:  Spell UI lives on its own.
 - `spell-solid` (epic `people-and-orgs` P17):  what makes a custom element on Solid, out of Spell UI.
-  - NEVER make it import `ui`, or any package but `util`'s generic files (`$/util/class` ...):
+  - NEVER make it import `ui`, or any package but util's generic files (`$/util/class` ...):
     what an element needs of the page's runtime (words, styles, animations) Spell UI hands it as it loads
     ([spell-solid's AGENTS.md](packages/spell-solid/AGENTS.md), "Settings").
   - ONE copy per page:  Spell UI's `core` entry re-exports all of it, and a component pack reads it from the page
     (`SpellUI.packModules`), as it reads Solid.
 - `spaces` (epic `people-and-orgs`):  where projects and people live, and the servers that serve them.
-  - NEVER make it import `app`, `lsp` or `cli`;  NEVER make `spell` import it.
+  - NEVER make it import the app, lsp or cli packages;  NEVER make `spell` import it.
   - Its models (`$/spaces`) are safe in a browser;  `$/spaces/server/node/...` is node only, imported by path.
   - The page server loads its route module by PATH (the root `package.json`'s `"pageServer"`), not by import.
-  - Spell's project groups (`@spell/examples`, `owen@spell` ...) are spaces':  loading `$/spaces` registers them
-    with spell.
-    So every program that reads a spell path loads spaces first ([spaces' AGENTS.md](packages/spaces/AGENTS.md)).
+  - Spell's project groups (`@spell/examples`, `owen@spell` ...) are spaces'.
+    Loading `$/spaces` registers them with spell,
+    so every program that reads a spell path loads spaces first ([spaces' AGENTS.md](packages/spaces/AGENTS.md)).
   - Owen's own projects are NOT in git:  they're in spell-spaces, `../spell-spaces` beside the main checkout,
     one folder for main and every worktree (`SPELL_SPACES_DIR` sets it).
 - `server` is a LEAF (node built-ins only, imports no package).
@@ -168,13 +187,13 @@ ui -> util
 - Global ambient types are in the root `types/` folder.
   - Used bare, no import (WWOD §9 › "Ambient globals used bare").
   - Every spell-family `tsconfig.json` includes that folder.
-  - The types:  `Prettify`, `Class`, `AbstractClass`, `SplitString`, `__PACKAGE_VERSION__`;  and the module
-    `json5-writer`, which ships no types of its own.
+  - The types:  `Prettify`, `Class`, `AbstractClass`, `SplitString`, `__PACKAGE_VERSION__`.
+  - And the module `json5-writer`'s, which ships no types of its own.
 - `vite.decorators.ts` and `vite.packageVersion.ts` are at the repo root.
 - No `~/` or `#name` alias exists any more.
-  - `$` means `packages/`, so `ui` is `$/ui` like the rest.
+  - `$` means the packages folder, so ui is `$/ui` like the rest.
   - That can't collide with an npm package name (`@spell-app/...`, `solid-js`),
-    the way a bare `name/...` could.
+    the way a bare name could.
 
 ## Worktrees
 
@@ -198,9 +217,9 @@ ui -> util
 
 ### Entering one
 
-- Enter a worktree with `/isolate <name>` (`/epic` does it too), or `EnterWorktree`.
+- Enter a worktree with `/isolate <name>` (`/epic` does it too), or with Claude's own `EnterWorktree`.
 - The `WorktreeCreate` hook ([worktree.mjs](.claude/hooks/worktree.mjs)):
-  - makes `.claude/worktrees/<name>` on branch `<name>`, from local `main`
+  - makes the worktree `.claude/worktrees/<name>` on its own branch, `<name>`, from local main
   - keeps the session saved at the root
     (Claude's own worktrees move it, and it drops out of every window's list)
 - New window, or stay?
@@ -246,7 +265,7 @@ ui -> util
     so Claude offers one.
     - `spell dev window launch <name>`:  a NEW session there.
     - The epic skill's "From another worktree" has the steps.
-- The window's file, `workspaces/ongoing/<name>.code-workspace`, is git-ignored.
+- The window's file is git-ignored:  `<name>.code-workspace`, in `workspaces/ongoing/`.
   - Its look:  that of the window it's opened from, or the one asked for.
   - `/epic <name> -purple`:  Tomorrow Night Blue's look in one of 12 hues (`spell dev window color`).
   - `/epic color <look>` recolours the window you're in, live.
@@ -272,7 +291,7 @@ ui -> util
 
 - Leave with `ExitWorktree` `keep`.
   - The hook's `remove` never deletes uncommitted or unmerged work.
-- Merge `main` into a branch with `spell dev worktree merge-main`, never a bare `git merge main`.
+- Merge main into a branch with `spell dev worktree merge-main`, never a bare `git merge main`.
   - It REGENERATES each generated file both sides changed, from the merged source:
     bundles, site and brand data, snapshots, `yarn.lock`.
   - It stops on any other conflict;  `--continue` once they're resolved and added.
@@ -309,13 +328,13 @@ ui -> util
   - Epic `shared-content` made them, live since 2026-10-04.
   - Epic `claude-design` P4 split them into root folders, 2026-10-05.
 - The folders:
-  - `epics/` -- plan docs, `epics/<name>/<name>.plan.html`, with their inboxes and details pages
+  - `epics/` -- plan docs, one folder per epic, its page `<name>.plan.html`, with their inboxes and details pages
   - `guides/` -- every other docs page ([the Solid 2 guide](guides/solid/solid-2.html), say),
-    with its `.md`, `.json`, `experiments/`
+    with its Markdown, JSON and `experiments/`
   - `templates/` -- one starting point per kind of page
   - `pages/` -- [the docs home](pages/index.html), and the scratch details pages, `pages/details/`
-  - `ui/` -- Spell UI's hand-written docs pages (claude-design P6), LEFT for the other checkouts:  since epic
-    `people-and-orgs` P18 they're in [ui's docs/](packages/ui/docs/), served at `/components/ui/`.
+  - `ui/` -- Spell UI's hand-written docs pages (claude-design P6), LEFT for the other checkouts.
+    - Since epic `people-and-orgs` P18 they're in [ui's docs/](packages/ui/docs/), served at `/components/ui/`.
     - This branch's page server answers "not found" for `/ui/`;  the merge removes the folder (that epic's T3).
   - `brand/` -- the Brand tab's pages ([brand's AGENTS.md](packages/brand/AGENTS.md)):
     Claude Design's exports and their Spell UI copies
@@ -347,11 +366,16 @@ ui -> util
   - A checkout's links are its OWN branch's manifest's:
     `spell dev shared link` after merging a manifest change.
 - Old paths last until every checkout has merged the reorg (claude-design T1).
-  - The shared repo's `packages/docs/content/` holds a link per old entry into the root folders:
-    `epics -> ../../../epics`, `solid -> ../../../guides/solid`.
-  - So older code still finds `packages/docs/content/...`.
-  - The old URLs, `/packages/docs/content/<x>`, answer "not found":  the page server redirects none since
-    `people-and-orgs` P16 (Q30).
+  - The shared repo's old docs folder holds a link per old entry into the root folders,
+    so older code still finds its files there:
+
+    ```text
+    packages/docs/content/epics -> ../../../epics
+    packages/docs/content/solid -> ../../../guides/solid
+    ```
+
+  - The old URLs, `/packages/docs/content/<x>`, answer "not found":
+    the page server redirects none since `people-and-orgs` P16 (Q30).
   - Older code writes old-style links, and pages at old paths.
     - `spell dev shared commit` (every turn) runs the reorg's repair first.
     - `spell dev shared repair` does it by hand
@@ -366,7 +390,7 @@ ui -> util
   - `auto: epic <name>`
   - `auto: guides/<folder or file>`
   - `auto: goals/<set>`
-  - `auto: agents`;  `pages`, `templates`, `ui` and `brand` likewise
+  - `auto: agents`, and likewise for pages, templates, ui and brand
   - else `auto: other`
 - Trailers:
   - `Turn-end: <checkout>`:  whose turn swept them up, NOT their author.
@@ -390,8 +414,9 @@ ui -> util
 - After merging a branch from before the docs move:  `spell dev shared repair`.
   - It moves pages the branch left in the old docs package's folder into their shared folders.
   - It fixes links (and their tab names) written for an old layout.
-  - And the docs package's end (`people-and-orgs` P16):  the shared pages' links into the docs package's old
-    `tools/` point into `packages/epics/tools/`, once, when that epic merges into `main` (`relocate.js relink`).
+  - And the docs package's end (`people-and-orgs` P16):
+    the shared pages' links into its old tools folder point into [epics' tools/](packages/epics/tools/),
+    once, when that epic merges into main (`relocate.js relink`).
 - Shared docs may link code another branch has and this one doesn't yet:
   `doc-links.js --check` reports those as missing in this checkout.
 - Package windows show `spell-app-dev` as a folder, with its own Source Control:  the auto commits.
@@ -468,7 +493,8 @@ ui -> util
   - vitest, oxlint, oxfmt and tsgolint
   - The versions are the yarn `catalog:` in `.yarnrc.yml`.
 - Node 24 (`engines`).
-- Bump them together:  `vite-plus` and every `catalog:` entry, to what `vp toolchain` lists.
+- Bump them together:  `vite-plus` and every `catalog:` entry.
+  - To what `vp toolchain` lists.
   - NEVER pin one tool on its own.
 - Commands, run in a package or the root:
 
@@ -492,22 +518,22 @@ ui -> util
   - Tests:  WWOD §20 › "Test APIs come from Vite+".
 - `yarn tsc`, never `npx tsc`:  yarn picks the workspace's TypeScript 7.
   - Why:  a dependency's own TypeScript can take `.bin/tsc`.
-    - E.g. `ui`'s `vite-plugin-dts` needs TypeScript 6 (`@typescript/typescript6`).
+    - E.g. ui's `vite-plugin-dts` needs TypeScript 6 (`@typescript/typescript6`).
     - Today `.bin/tsc` is the root's 7, but only by luck of the hoister
       ([the papercuts log](agents/PAPERCUTS.md), "## ui").
 - NEVER hard-code `<package>/node_modules/<dep>`:  yarn hoists to the root.
   - Node code resolves the package instead (in `ui`:  [NodePackage](packages/ui/tools/NodePackage.ts)).
 - Lint / format settings:  the repo root's `vite.lint.ts`.
-  - Every `vite.config.ts` spreads it, in its `lint` / `fmt` blocks.
+  - Every `vite.config.ts` spreads it, in its lint and fmt blocks.
   - No `.oxlintrc.json` / `.oxfmtrc.json` any more.
-  - The editor and `vp check` read the ROOT block only:
-    a rule for some packages goes in `rootLint()`'s `overrides` too.
+  - The editor and `vp check` read the ROOT block only.
+    So a rule for some packages goes in `rootLint()`'s `overrides` too.
   - Our own rules:  `vite.lint.patterns.ts` beside it, a JS plugin.
     - Its rules, `spell-ui/*`, guard Spell UI's patterns in component files:
       "The lint guard" in [ui's AGENTS.md](packages/ui/AGENTS.md).
-- The root's `ts`, `test:packages` and `review` are `vp run` over every `@spell-app/*` package.
-  - `ts` and `test:packages` run 4 at a time.
-  - `review` runs one at a time:  its tests flake under load.
+- Three of the root's scripts run over every `@spell-app/*` package, with `vp run`:
+  - `ts` and `test:packages`, 4 at a time
+  - `review`, one at a time:  its tests flake under load
   - NEVER `vp run --cache` a plain script.
     Its file tracking misses TS 7's native `tsc`, so it replays a stale pass.
   - A cached task needs `run.tasks` with explicit `cache.input` (epic `vite-plus`, I1).

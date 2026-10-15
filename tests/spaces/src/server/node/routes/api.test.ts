@@ -3,14 +3,18 @@
  * - Talk HTTP only:  spawn the server as a child process, never import the server framework, so the same
  *   file passes unchanged when the framework is swapped.
  * - Pins the behaviour, quirks and all (marked `QUIRK`);  a deliberate change fails here on purpose.
- * - Written against Express, kept for `$/server`'s `SRV.Router` (unified-server P6).  What changed ON PURPOSE is
- *   marked `CHANGED`:  nested `:filePath*` paths work, an unknown DELETE gets the API's 404, a `.spell` file is
- *   text, and a bad body is JSON, not an HTML error page.
- * - Files are named by URL, as spell names them (`SP.SpellUrls`, epic `people-and-orgs` P15):  read at
- *   `/spaces/<project>/<file>`, saved by `POST /api/projects/file/<project>/<file>`.
- * - SIDE EFFECT: starts a server on a free port with its folders in a temp dir (`SPELL_SPACES_DIR`,
- *   `SPELL_BUILTINS_DIR`, `SPELL_TESTS_DIR`, `SPELL_BUILD_DIR`), so the repo and your spell-spaces are never written.
- *   Deleted afterwards.
+ * - Written against Express, kept for `$/server`'s `SRV.Router` (unified-server P6).
+ * - What changed ON PURPOSE is marked `CHANGED`:
+ *   - nested `:filePath*` paths work
+ *   - an unknown DELETE gets the API's 404
+ *   - a `.spell` file is text
+ *   - a bad body is JSON, not an HTML error page
+ * - Files are named by URL, as spell names them (`SP.SpellUrls`, epic `people-and-orgs` P15):
+ *   - read at `/spaces/<project>/<file>`
+ *   - saved by `POST /api/projects/file/<project>/<file>`
+ * - SIDE EFFECT:  starts a server on a free port, its folders in a temporary folder, deleted afterwards:
+ *   so the repo and your spell-spaces are never written.
+ *   - `SPELL_SPACES_DIR`, `SPELL_BUILTINS_DIR`, `SPELL_TESTS_DIR`, `SPELL_BUILD_DIR`
  * - Node environment (spaces' `vitest.config.ts`).
  */
 import { type ChildProcess, spawn } from "node:child_process"

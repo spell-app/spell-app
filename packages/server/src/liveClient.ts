@@ -475,16 +475,17 @@ export function liveClient(): void {
   }
 
   /**
-   * A right-click in the page while it's in VS Code's side-bar view:  sent to the view's wrapper,
-   * `{ spell: "menu", x, y, field, selection }`, which right-clicks again at the same place, where VS Code listens
-   * (`DocView.ts` `html()`), so VS Code shows the view's menu:  Cut, Copy, Paste, Select All, Back, Forward, Reload,
-   * Open in Browser, Inspect
+   * A right-click in the page while it's in VS Code's side-bar view:
+   * sent to the view's wrapper as `{ spell: "menu", x, y, field, selection }`.
+   * - The wrapper right-clicks again at the same place, where VS Code listens (`DocView.ts` `html()`),
+   *   so VS Code shows the view's menu:  Cut, Copy, Paste, Select All, Back, Forward, Reload, Open in Browser, Inspect
+   * - `field`:  in a text field (the menu offers Cut and Paste)
+   * - `selection`:  something is selected (Cut, Copy)
+   * - sent once every handler has had the click:
+   *   one the page took (`preventDefault()`:  its own menu) stays the page's
    * - why:  VS Code hears right-clicks on the view's own page only (`pre/index.html`, its `contextmenu` listener),
-   *   and this page is a frame inside it, from another origin:  right-click showed nothing (epic `airplane`,
-   *   2026-10-10)
-   * - `field`:  in a text field (the menu offers Cut and Paste);  `selection`:  something is selected (Cut, Copy)
-   * - sent once every handler has had the click:  one the page took (`preventDefault()`:  its own menu) stays the
-   *   page's
+   *   and this page is a frame inside it, from another origin.
+   *   Right-click showed nothing (epic `airplane`, 2026-10-10).
    */
   function forwardMenu(event: MouseEvent) {
     const { clientX: x, clientY: y } = event
@@ -644,8 +645,8 @@ export function liveClient(): void {
   }
 
   /**
-   * Is VS Code's `edit` message for `command` the page's own key again (`editKey()` just did it)?  Then it's
-   * dropped:  once is what was meant.
+   * Is VS Code's `edit` message for `command` the page's own key again (`editKey()` just did it)?
+   * Then it's dropped:  once is what was meant.
    * - a paste:  the first one after the page asked is its answer;  another one right after it is the repeat
    */
   function isRepeat(command: string): boolean {

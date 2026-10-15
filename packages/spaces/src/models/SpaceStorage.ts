@@ -25,8 +25,8 @@ export interface SpaceStorage {
   remove(path: string): Promise<void>
 
   /**
-   * Call `onChange(path)` with each file or folder that changes under `folder`, by anyone, until the returned
-   * function is called.
+   * Call `onChange(path)` with each file or folder that changes under `folder`, by anyone.
+   * - Until the function it returns is called.
    */
   watch(folder: string, onChange: (path: string) => void): () => void
 }

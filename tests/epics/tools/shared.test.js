@@ -30,8 +30,9 @@ import {
 } from "../../../packages/epics/tools/relocate.js"
 
 /**
- * The docs tools with SHARED content (epic `shared-content`):  `packages/docs/content` a link to a folder in the
- * content repo beside the checkout.  Real links in a temp folder.
+ * The docs tools with SHARED content (epic `shared-content`):
+ * `packages/docs/content` a link to a folder in the content repo beside the checkout.
+ * - real links, in a temp folder
  */
 const temp = mkdtempSync(join(tmpdir(), "docs-shared-"))
 afterAll(() => rmSync(temp, { recursive: true, force: true }))

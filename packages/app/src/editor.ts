@@ -115,8 +115,10 @@ export class EditorStore extends Observable {
     console.warn("TODO: editor.showHelp() not yet implemented")
   }
   /**
-   * Show the "You" panel (`openYouPanel()`, epic `people-and-orgs` P9):  this machine's person to change, and their
-   * orgs;  Save writes their `__me.json5`.  An error reading or saving them shows as the editor's error.
+   * Show the "You" panel (`openYouPanel()`, epic `people-and-orgs` P9):
+   * this machine's person to change, and their orgs.
+   * - Save writes their `__me.json5`.
+   * - An error reading or saving them shows as the editor's error.
    */
   async showYou(): Promise<void> {
     try {

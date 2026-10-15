@@ -15,7 +15,8 @@ import { SP } from "$/spell"
  *   - `split()` takes the markers back OUT of the project's compiled text, into the declarations,
  *     noting where each statement's code starts (`codeLines`), so a Type Explorer can still show it
  * - Each marker is a JS object literal, read back with `JSON5`.
- * - `read()` reads a declarations file;  `load()` replays it into another project's import layer.
+ * - `read()` reads a declarations file.
+ * - `load()` replays it into another project's import layer.
  * - A project compiled before the file existed has its declarations in its compiled `.js` instead:
  *   `fromComments()`.
  */
@@ -29,7 +30,7 @@ export class SpellDeclarations {
    * - `code`:  the text, markers out
    * - `declarations`:  its versions, what it `provides`, each marker's statement and where its code starts
    *
-   * - `version` / `exports` come from its `project.json` -- see `provides()`.
+   * - `version` / `exports` come from its project file -- see `provides()`.
    * - A marker MUST start its line, and end one:  as `ASTPreservedComment` writes it, indented in a class body.
    */
   static split(
@@ -68,7 +69,7 @@ export class SpellDeclarations {
 
   /**
    * Names parsed project `scope` offers importers:  its own types, then its top-level functions.
-   * - `exports` from its `project.json` limits them, default everything.
+   * - `exports` from its project file limits them, default everything.
    * - Throws if it names something the project doesn't declare.
    */
   static provides(scope: P.ProjectScope, exports?: string[]): string[] {
@@ -111,14 +112,17 @@ export class SpellDeclarations {
    * What `statement` declared, as ONE flat object:  from the scope records it noted while parsing.
    * - Those are `match.data.declared` -- see `P.ScopeList.noteDeclared()`.
    * - `undefined` if nothing another project could see.
-   * - Records share keys, e.g. a method's `of` is also its rule's owner.  Throws if two disagree.
+   * - Records share keys, e.g. a method's `of` is also its rule's owner.
+   *   Throws if two disagree.
    * - Leaves out what loading works out again -- see `SP.SpellDeclaration`.
    * - Its `kind` and `name` are what its rule's `getDeclaration()` says -- unless a key already says, e.g. `type`.
-   * - Skips what it no longer declares, e.g. a type it stubbed which a later `a card is a thing` claimed,
-   *   and what never leaves its file, e.g. local variables.
+   * - Skips:
+   *   - what it no longer declares, e.g. a type it stubbed which a later `a card is a thing` claimed
+   *   - what never leaves its file, e.g. local variables
    * - A record is ours if its `declaredBy` holds the SAME `declared` list:
-   *   this statement, or a clone of it which incremental parsing re-bodied (`BlockLine.reparseBody()`).
-   *   `Match.clone()` copies `data` shallowly.
+   *   - this statement
+   *   - or a clone of it which incremental parsing re-bodied (`BlockLine.reparseBody()`):
+   *     `Match.clone()` copies `data` shallowly
    * - Throws if a rule it built wasn't `specialize()`d from a class with an `importableAs`:
    *   another project couldn't rebuild it.  See `P.Rule.importableAs`.
    */
@@ -243,11 +247,12 @@ export class SpellDeclarations {
    *   its properties, constants and rules, e.g. `Card` brings `card suits`.
    * - A type picked as `Card:Playingcard` loads as `Playingcard`, everywhere a loaded record names it:
    *   see `renamed()`.
-   *   Its `runtimeName` stays `Card`:  its class is still called that when the code runs.
+   *   - Its `runtimeName` stays `Card`:  its class is still called that when the code runs.
    * - Records where each name came from in `scope.origins`, and what `module` provides in `scope.modules`.
-   * - Each record keeps where it was declared, in `projectId`'s sources, for editors:
-   *   `declaredAt` on types, variables and constants, and `declared` on rules (see `P.DeclaredAt`).
-   *   It has no `declaredBy`.
+   * - Each record keeps where it was declared, in `projectId`'s sources, for editors (see `P.DeclaredAt`):
+   *   - `declaredAt` on types, variables and constants
+   *   - `declared` on rules
+   *   - It has no `declaredBy`.
    * - Throws `P.ParserError`, rather than loading something half right, if
    *   - it was written by a compiler of another MAJOR version -- see `SP.SPELL_VERSION`
    *   - its `version` doesn't satisfy the importer's range
@@ -291,8 +296,8 @@ export class SpellDeclarations {
    * Throws `P.ParserError` if parsed project `scope` itself declares a type it also imports,
    * e.g. its own `a card is a thing` when `Card` comes from `@spell/library/cards`.
    * - Its imports are the `P.ImportScope` above it -- nothing to check without one.
-   * - Types only:  a RULE name may repeat, e.g. `draw` methods on two types merge into one `P.Group`, as they
-   *   would parsing everything from source.
+   * - Types only:  a RULE name may repeat.
+   *   - e.g. `draw` methods on two types merge into one `P.Group`, as they would parsing everything from source
    * - Only a project's own names can clash:  parse it first.
    */
   static checkImportClashes(scope: P.ProjectScope) {
@@ -382,8 +387,8 @@ export class SpellDeclarations {
   }
 
   /**
-   * `declaration`'s rule, if its owner was picked:  class `importableAs`, `specialize()`d with `declaration`,
-   * which picks out what it needs.
+   * `declaration`'s rule, if its owner was picked.
+   * - The rule:  class `importableAs`, `specialize()`d with `declaration`, which picks out what it needs.
    * - Owner:  type `of`, else itself, for a top-level function.
    * - Its `P.ScopeRule.declared` keeps its owner, what its statement declared and where -- for editors.
    */

@@ -8,7 +8,7 @@ import { ParkMiller } from "$/core/ParkMiller"
 /**
  * What the seeded random must give, from each seed:  made by lodash itself, on Park and Miller numbers.
  * - Python's core reads the same file, so the two cores deal the same cards
- *   (`packages/py/core/tests/test_seeded_random.py`).
+ *   (`tests/py/core/tests/test_seeded_random.py`).
  */
 const EXPECTED = JSON.parse(
   readFileSync(resolve(import.meta.dirname, "..", "seededRandom.expected.json5"), "utf8")

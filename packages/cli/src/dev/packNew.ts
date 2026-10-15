@@ -55,12 +55,14 @@ export async function newPack(root: string, name: string, options: NewPackOption
 
 /**
  * `spell dev pack element <pack> <tag>`:
- * one element family, `packages/<pack>/components/<tag>/`, from `templates/pack/element/` --
- * `<Name>.tsx` (the component), `<Name>.en.ts` (its vocabulary:  topics + aka, skeleton text),
- * `<Name>.css`, `index.ts` -- every file named for its component;  its test, `<Name>.test.tsx`, in the repo's
- * `tests/<pack>/components/<tag>/` (`templates/pack/element-tests/`) --
- * as Spell UI's families are written (no native fallback:  only form controls have one);
- * then its line in `components/index.ts`.
+ * one element family, `packages/<pack>/components/<tag>/`, from `templates/pack/element/`,
+ * as Spell UI's families are written (no native fallback:  only form controls have one).
+ * - every file named for its component:
+ *   - `<Name>.tsx`:  the component
+ *   - `<Name>.en.ts`:  its vocabulary (topics + aka, skeleton text)
+ *   - `<Name>.css`, `index.ts`
+ * - its test, `<Name>.test.tsx`, in the repo's `tests/<pack>/components/<tag>/` (`templates/pack/element-tests/`)
+ * - then its line in `components/index.ts`
  * - Files already there are left alone (`skipped`);  idempotent.
  * - Then builds the pack, unless `build: false`.
  * - Throws `CliError` when `pack` isn't a pack, or `tag` isn't a custom element name starting with its prefix.

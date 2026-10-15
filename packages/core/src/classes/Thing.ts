@@ -30,14 +30,15 @@ export class Thing extends Eventful(Observable) {
    * Is a thing of this class saved in a FILE OF ITS OWN, rather than inside what holds it (decision Q42)?
    * - Compiled from `a person is saved in its own file.`, as `static savedInFile = true` in its class:
    *   sub-classes inherit it.
-   * - The saver gives such a thing an entry of its own, and what holds it a reference to that;
-   *   every other thing is written whole inside what holds it, and a reference after (`saving.ts`).
+   * - The saver gives such a thing an entry of its own, and what holds it a reference to that.
+   * - Every other thing is written whole inside what holds it, and a reference after (`saving.ts`).
    */
   static savedInFile = false
 
   /**
-   * `a dated-event is saved inline.`, compiled as `static savedInline = true`:  saying the default, inside what
-   * holds it (since decision Q42).  Kept so a program compiled before then still loads.
+   * Is a thing of this class saved inside what holds it?  The default since decision Q42, so this only says it.
+   * - Compiled from `a dated-event is saved inline.`, as `static savedInline = true`.
+   * - Kept so a program compiled before then still loads.
    */
   static savedInline = false
 
@@ -57,16 +58,19 @@ export class Thing extends Eventful(Observable) {
 
   /**
    * Called once per instance, after constructor props are assigned -- override in a subclass to set up initial state.
-   * - NOTE: runs from THIS constructor, before any subclass field initializer:  a plain field set here is clobbered
-   *   by its initializer.  Compiled classes have no fields, so they're safe;  a hand-written subclass with fields
-   *   MUST be `@thing` (`$/util`), which runs `create()` after them instead.  Exactly once either way.
+   * - Exactly once, whichever runs it.
+   * - NOTE: runs from THIS constructor, before any subclass field initializer:
+   *   a plain field set here is clobbered by its initializer.
+   *   - Compiled classes have no fields, so they're safe.
+   *   - A hand-written subclass with fields MUST be `@thing` (`$/util`), which runs `create()` after them instead.
    */
   create(): void {}
 
   /**
    * Set reactive `property` to `value` -- see `Observable.setProp()`.
-   * - Compiled property setters call this, e.g. `set title(value) { this.setProp('title', value) }`:  what it's
-   *   checked against is declared in the class's schema, `static { this.declareProp('title', { type: 'text' }) }`.
+   * - Compiled property setters call this, e.g. `set title(value) { this.setProp('title', value) }`.
+   *   - What it's checked against is declared in the class's schema:
+   *     `static { this.declareProp('title', { type: 'text' }) }`.
    * - `check`:  how compiled spell said it BEFORE the schema, e.g. `this.setProp('title', value, { type: 'text' })` --
    *   still honoured, warning first if it fails, so programs compiled then still run.
    * - Same as `List.setProp()`.
@@ -104,8 +108,8 @@ export class Thing extends Eventful(Observable) {
 
   /**
    * Are we of type `typeName`, or a sub-type of it?  e.g. `"card"` for a joker, if `a joker is a card`.
-   * - What `spellCore.isOfType(thing, typeName)` does;  hand-written TypeScript says `card instanceof Joker` for a
-   *   class it can name (Q37).
+   * - What `spellCore.isOfType(thing, typeName)` does.
+   * - Hand-written TypeScript says `card instanceof Joker` for a class it can name (Q37).
    */
   isOfType(typeName: string): boolean {
     return spellCore.isOfType(this, typeName)

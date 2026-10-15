@@ -1,6 +1,7 @@
 /**
- * `yarn rename:shared --shared <dir> [--dry-run]` (in `packages/brand`):  bring the SHARED Brand tab pages up to the
- * brand pack (epic `people-and-orgs` P18, Q26), once, as the branch merges into `main`.
+ * `yarn rename:shared --shared <dir> [--dry-run]` (in `packages/brand`):
+ * bring the SHARED Brand tab pages up to the brand pack, once, as the branch merges into `main`
+ * (epic `people-and-orgs` P18, Q26).
  * - `<dir>`:  the shared `brand/` folder, `/Users/owen/www/spell-app/spell-app-dev/brand` (or a copy, to try it).
  * - In the pages the BRAND owns, and nothing else:
  *   - `index.html`, `compare.html` and `README.md` at the folder's top
@@ -11,11 +12,12 @@
  *     named only in history)
  *   - tokens `--ui-brand-<x>-*` => `--brand-<x>-*`, private `--_ui-brand-*` => `--_brand-*`
  *   - the composer's event `ui-cast` => `brand-cast` (a pack's own events take its prefix)
- *   - links to the old element pages, `components/ui-brand-<x>.html`, => the docs set's `/components/brand/brand-<x>.html`
- *     (relative, from each page's folder), `components/components.spell.html` => its home, `index.html`;
- *     their link targets alike
+ *   - links to the old element pages, relative, from each page's folder;  their link targets alike:
+ *     - `components/ui-brand-<x>.html` => the docs set's `/components/brand/brand-<x>.html`
+ *     - `components/components.spell.html` => its home, `index.html`
  * - Then deletes the old element pages' folder, `components/`:  they live in `packages/brand/docs/` now.
- * - Idempotent:  a second run finds nothing.  `--dry-run` says what it would do, and changes nothing.
+ * - Idempotent:  a second run finds nothing.
+ * - `--dry-run` says what it would do, and changes nothing.
  * - Node only;  imports nothing.
  */
 import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"

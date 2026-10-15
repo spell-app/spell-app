@@ -12,8 +12,8 @@ const { unwrapped } = P.jsShapes
  * - As `P.JSWriter`, with:
  *   - its CLASSES as they are:  their properties, getters, `to draw`, styles
  *   - the program's top-level steps LEFT OUT (dealing, tests, `start the game`):  Python ran them
- *   - each thing it keeps at its top level a variable, `export let stock`, bound from Python's state by `adopt()`,
- *     under Python's name for it:  `stock = state["stock"]`, `allPiles = state["all_piles"]`
+ *   - each thing it keeps at its top level a variable, `export let stock`, bound from Python's state by `adopt()`
+ *     - under Python's name for it:  `stock = state["stock"]`, `allPiles = state["all_piles"]`
  *   - each top-level function a stand-in that asks Python to run it:
  *
  *     ```js
@@ -26,7 +26,7 @@ const { unwrapped } = P.jsShapes
  *     `this.turnOver()` => `sendCall("turn_over", [], this)`
  *   - an event, ANYWHERE, goes to Python's handlers:  `trigger("card-click", { card: this })` => `sendTrigger(...)`
  * - Python's names in what it sends, `Naming.PYTHON`, as the `py` target writes them.
- * - A thing in a message is sent by its id:  see `sendCall()` in `@spell/core`'s `page.ts`.
+ * - A thing in a message is sent by its reference, else by its id:  see `sendCall()` in `@spell/core`'s `page.ts`.
  ****************/
 export class ElementsWriter extends P.JSWriter {
   /** The writer with no project. */

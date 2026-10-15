@@ -80,7 +80,7 @@ export class SpellFile extends TextFile {
     return this.derived("project", () => new SP.SpellProject(this.projectId))
   }
 
-  /** Does our project parse us, i.e. are we active in its `project.json`? */
+  /** Does our project parse us, i.e. are we active in its project file? */
   get isActive(): boolean {
     return this.project.spellFiles.includes(this)
   }

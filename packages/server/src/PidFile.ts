@@ -106,9 +106,10 @@ export class PidFile {
   }
 
   /**
-   * Stop the pid file's server when it's alive and still holds its port, but doesn't answer `SERVER_API`:
-   * this checkout's server on code from before its calls moved under `/api/` (epic `people-and-orgs` P16), which
-   * `status()` can't see.  Left running, it would keep the port, and every page, on the old code.
+   * Stop the pid file's server when it's alive and still holds its port, but doesn't answer `SERVER_API`.
+   * - That's this checkout's server on code from before its calls moved under `/api/` (epic `people-and-orgs` P16),
+   *   which `status()` can't see.
+   *   Left running, it would keep the port, and every page, on the old code.
    * - only the pid the file names, for THIS root, while something answers HTTP on its port
    * - NEVER throws
    */

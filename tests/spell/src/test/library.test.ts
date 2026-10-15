@@ -3,8 +3,8 @@ import { fileURLToPath } from "url"
 import { describe, test, expect } from "vite-plus/test"
 
 /**
- * A compiled LIBRARY imported as other code imports it (the `ts/lib` target, epic `people-and-orgs` P3):
- * People's, `People.lib.snapshot.ts`, which `fixtures.test.ts` keeps up to date.
+ * A compiled LIBRARY imported as other code imports it (the `ts/lib` target, epic `people-and-orgs` P3).
+ * - The library:  People's, `People.lib.snapshot.ts`, which `fixtures.test.ts` keeps up to date.
  * - Its module graph has no Solid, and no drawing:  it loads the core through `@spell-app/core/model`.
  * - Importing it runs nothing but its classes:  no heading, no test, no thing made.
  * - What it makes is a plain thing, in no running program's list.

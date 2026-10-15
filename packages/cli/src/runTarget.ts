@@ -84,8 +84,8 @@ export async function runTarget(
 type WrittenImport = { url: string; module: string; elements?: string }
 
 /**
- * SIDE EFFECT:  each project `project` imports, and each they import, compiled for `target` and written into
- * `folder`, as its code imports it.  Returns them by project id.
+ * SIDE EFFECT:  each project `project` imports, and each they import,
+ * compiled for `target` and written into `folder`, as its code imports it.  Returns them by project id.
  * - Python:  a module of the project's name, `cards.py`, beside the program:  `from cards import Card`;
  *   and its drawing half, `cards.elements.spell.js`, which the app serves.
  * - TypeScript:  built (`buildTsx()`) to `<Project>.spell.mjs`.
@@ -199,8 +199,8 @@ function untilDone(child: ChildProcess): Promise<number> {
 }
 
 /**
- * Build the page side a Python app's page loads (`yarn build:page` in `app`, `dist-page/`), when it's missing
- * or older than the newest file it's built from:  the core, Spell UI, the app's runner.
+ * Build the page side a Python app's page loads (`yarn build:page` in `app`, `dist-page/`),
+ * when it's missing or older than the newest file it's built from:  the core, Spell UI, the app's runner.
  * - A few seconds;  shown as a status row.
  * - Throws `CLI.CliError` with the build's last lines if it fails.
  */

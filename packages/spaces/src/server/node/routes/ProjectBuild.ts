@@ -14,15 +14,15 @@ import { hasProjectFile } from "$/spell/node/projectFile"
  * (epic `people-and-orgs` P11), never committed, so a fresh checkout or worktree has none.
  * - `start()`:  when the page server starts, compiles the built-in projects that are out of date, in the background:
  *   `spell compile --stale --all @spell/examples @spell/library` (`STARTUP_PROJECTS`), as `BundleBuild` builds the bundles
- * - `builtFirst()`:  a route's handler;  a request for a built file that isn't there (`/spaces/<project>/<file>`)
- *   compiles its project first,
- *   `spell compile <projectId>`, then goes on to be served
+ * - `builtFirst()`:  a route's handler.
+ *   A request for a built file that isn't there (`/spaces/<project>/<file>`) compiles its project first,
+ *   `spell compile <projectId>`, then goes on to be served:
  *   - while the startup build runs, it waits for that instead
  *   - one compile per project at a time:  a second request for it waits on the first's
  *   - at most `timeout` ms in all;  then it's served as it is (a 404), while the compile carries on
- *   - only a project that's there (it has a `project.json`):  an unknown one 404s at once
- *   - a file that's there is served at once, even if its sources changed since:  `start()` and `spell compile --stale`
- *     catch those
+ *   - only a project that's there (it has a project file):  an unknown one 404s at once
+ *   - a file that's there is served at once, even if its sources changed since:
+ *     `start()` and `spell compile --stale` catch those
  * - A child process, the checkout's OWN `spell` CLI, never this one:
  *   - it compiles exactly as `spell compile` does:  every target, the scope pack, the checks
  *   - the page server runs the API in its own process, and keeps serving pages while it compiles

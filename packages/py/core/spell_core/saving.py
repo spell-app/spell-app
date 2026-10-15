@@ -12,23 +12,27 @@ loader = Loader(entry_for=saved.entries.get)
 loader.load(saved.root)   # owen again;  his friend matt is loaded once, however many hold him
 ```
 
-- A thing is saved INSIDE what holds it, by default (decision Q42):  written whole the first time it's reached,
-  and a REFERENCE after, `{"$ref": "Card#ace"}`, so a card in two piles is one card, read back.
-  - Written whole with its `id` only when something else holds it too.
+- A thing is saved INSIDE what holds it, by default (decision Q42):
+  - written whole the first time it's reached
+  - a REFERENCE after, `{"$ref": "Card#ace"}`:  so a card in two piles is one card, read back
+  - written whole with its `id` only when something else holds it too
   - A reference from another entry names the entry it's written in, `{"$ref": "Card#ace", "$in": "Game#g"}`.
-  - A kind saved IN ITS OWN FILE (`a person is saved in its own file`, `saved_in_file = True`) gets an entry of
-    its own, and what holds it writes a reference to that, `{"$ref": "Person#matt"}`.
+  - A kind saved IN ITS OWN FILE gets an entry of its own, and what holds it writes a reference to that,
+    `{"$ref": "Person#matt"}`.
+    - Compiled from `a person is saved in its own file`, as `saved_in_file = True`.
   - What `save()` is given always gets an entry, whatever its kind.
   - A plain list a property holds (`its "dates" is a list of dated-events`) is its items alone, a JSON array:
-    it's part of its owner.  A list TYPE (`a club is a list of people`) is a thing, inside like any other.
+    it's part of its owner.
+    - A list TYPE (`a club is a list of people`) is a thing, inside like any other.
 - An entry is what `to_json()` writes:  `"$type"` first, then its `id`, then its other props, then a list's `"$items"`.
   - Its props by Python's names, as `to_json()` and a page's state (`state.py`) write them:  `is_set_up`.
   - Then its plain fields, what it was made with and doesn't declare, as a page's state writes them too.
   - A date (`datetime`) as its ISO text, as JavaScript's `toISOString()` writes it:  `1970-01-01T00:00:00.000Z`.
-- What an entry's key and a reference say is `ref_of`'s, `"Person#matt"` by default:
-  the people store (P9) names them by address instead, `"matt@spell"`.
-- A thing kept in ANOTHER place (`place_of`) is a reference with that place, `"Person#matt@three-degrees"`,
-  and gets no entry:  its own place saves it.  `parse_ref()` reads one, `ref_text()` writes one (P4, Q18).
+- What an entry's key and a reference say is `ref_of`'s, `"Person#matt"` by default.
+  - The people store (P9) names them by address instead, `"matt@spell"`.
+- A thing kept in ANOTHER place (`place_of`) is a reference with that place, `"Person#matt@three-degrees"`.
+  - It gets no entry:  its own place saves it.
+  - `parse_ref()` reads one, `ref_text()` writes one (P4, Q18).
   - So an id may never hold an `@`:  saving one raises.
 - Where entries live is the caller's:  a dict here, one file each in the people store.
 - The twin of the JavaScript core's `Saver` and `Loader` (`saving.ts`):
@@ -77,18 +81,19 @@ class Saver:
         """A saver naming entries and references by `ref_of`:  `"<Class>#<id>"` by default, `"Person#owen"`.
 
         - `place_of`:  where a thing is kept when it's NOT with what's being saved, e.g. `"three-degrees"`;
-          `None` when it's saved here.  A thing kept elsewhere is a reference with its place,
-          `{"$ref": "Person#matt@three-degrees"}`, and gets no entry here.
+          `None` when it's saved here.
+          - A thing kept elsewhere is a reference with its place, `{"$ref": "Person#matt@three-degrees"}`,
+            and gets no entry here.
         """
         self.ref_of = ref_of or default_ref_of
         self.place_of = place_of or (lambda _thing: None)
 
     def save(self, root: SpellObject) -> Saved:
-        """`root` as an entry, and every thing it reaches that's saved in its own file, each as an entry of its own;
-        every other thing written inside what holds it.
+        """`root` as an entry, and every thing it reaches that's saved in its own file, each as an entry of its own.
 
-        - SIDE EFFECT:  reads each entry's `id`, and a kept-inside thing's held twice, so one with none is given one
-          now -- and keeps it.
+        - Every other thing is written inside what holds it.
+        - SIDE EFFECT:  reads the `id` of each entry, and of each kept-inside thing held twice:
+          one with none is given one now, and keeps it.
         """
         entries: dict[str, Entry] = {}
         holds = self._holds_of(root)
@@ -186,7 +191,9 @@ class Saver:
         - a plain list (exactly `List`, a property's list):  its items, as an array
         - a thing or a list type saved in its own file:  a reference to its entry
         - any other thing or list:  written whole, here, the first time it's reached;  a reference after
-        - lists, tuples and dicts:  each value written so;  a date as its ISO text;  anything else as it is
+        - lists, tuples and dicts:  each value written so
+        - a date:  its ISO text
+        - anything else:  as it is
         """
         if type(value) is List:
             return [self._write(item, reference) for item in value.items]
@@ -264,8 +271,11 @@ class Loader:
                 self._index(value)
 
     def read(self, json: object) -> Any:
-        """`json` read back:  a reference loaded (`load()`), a thing saved inline made, lists and dicts read through.
+        """`json` read back.
 
+        - a reference, loaded (`load()`)
+        - a thing saved inline, made
+        - lists and dicts, read through
         - A reference to nothing saved is left out of a list:  the list holds what loaded.
         """
         if isinstance(json, list):
@@ -282,8 +292,8 @@ class Loader:
     def _make(self, json: Entry, ref: str | None = None) -> object:
         """A thing made from `json`, an entry or a thing saved inline -- kept as `ref`'s, if it's an entry.
 
-        - Made with its plain values (text, numbers ...) through its class, so its `create()` sees them;
-          then its things and lists set, once it's kept:  one of them may hold it back, a person's friend's friend.
+        - Made with its plain values (text, numbers ...) through its class, so its `create()` sees them.
+        - Then its things and lists are set, once it's kept:  one of them may hold it back, a person's friend's friend.
         - Its class unknown:  the entry read as a plain dict, its `"$type"` kept.
         """
         cls = self.class_named(str(json[TYPE_KEY]))
@@ -338,8 +348,9 @@ class SavedRef:
 def parse_ref(text: str) -> SavedRef:
     """A saved reference read:  `Person#matt@three-degrees` => `SavedRef("Person", "matt", "three-degrees")`.
 
-    - The type runs up to the `#`;  the id from there to the FIRST `@`;  everything after that `@` is the place,
-      which may hold an `@` of its own (`Card#26@matt@three-degrees:bubble-trouble`).
+    - The type runs up to the `#`;  the id from there to the FIRST `@`.
+    - Everything after that `@` is the place, which may hold an `@` of its own
+      (`Card#26@matt@three-degrees:bubble-trouble`).
     - No `@`:  no place, the thing is kept here, `Person#matt`.
     - raises `ValueError` with no `#`, or nothing before or after it
     """

@@ -7,9 +7,9 @@ import { SRV } from "$/server"
 /**
  * Changes files and folders on disk:  save, create, rename, duplicate, delete.
  * - Two ways in:
- *   - in-process, on ABSOLUTE paths:  the static methods (`FileOperations.save(file, contents)` ...).
- *     They check no list of writable folders:  that's the caller's job.
- *     Spaces saves its projects' files this way, and the page editor its pages.
+ *   - in-process, on ABSOLUTE paths:  the static methods (`FileOperations.save(file, contents)` ...)
+ *     - they check no list of writable folders:  that's the caller's job
+ *     - spaces saves its projects' files this way, and the page editor its pages
  *   - over HTTP, for pages the server served:  `/api/files` (`route()`), on URL paths,
  *     and ONLY inside the folders of a `writable` list (the page server's:  the shared content folders).
  *     The page editor (`/api/pages`) checks its writes against the same list (`writableFile()`).
@@ -38,8 +38,9 @@ export class FileOperations {
   /**
    * Add the `/api/files` routes to `router`:  every one is a write,
    * so each needs `guard`'s strong check (this run's token, the server's own origin).
-   * - `PUT /api/files?path=<url path>`:  save the whole file;  body the contents
-   *   (`text/*`, or JSON `{ contents }`);  `If-Match` optional
+   * - `PUT /api/files?path=<url path>`:  save the whole file
+   *   - body:  the contents (`text/*`, or JSON `{ contents }`)
+   *   - `If-Match` optional
    * - `POST /api/files/create`:  `{ path, contents? }`, or `{ path, folder: true }`
    * - `POST /api/files/rename`:  `{ path, to }`
    * - `POST /api/files/duplicate`:  `{ path, to }`

@@ -9,8 +9,9 @@ import type { SpaceStorage } from "$/spaces/models/SpaceStorage"
  * ### `DiskStorage`
  * Spaces' files on the disk:  `SpaceStorage` on a folder, spell-spaces by default (epic `people-and-orgs` P8).
  * - Writes through the page server's file operations (`SRV.FileOperations`):  under the file's lock, all at once.
- * - Each folder's list is an INDEX it keeps, made on the first `list()` and rebuilt when anything in the folder
- *   changes, by anyone:  a watcher on the root (`fs.watch`, recursive) drops a changed folder's.
+ * - Each folder's list is an INDEX it keeps:
+ *   made on the first `list()`, and rebuilt when anything in the folder changes, by anyone.
+ *   - A watcher on the root (`fs.watch`, recursive) drops a changed folder's.
  * - Every path stays inside its root:  `..`, an absolute path or a dot file is refused (`SRV.fileInside()`).
  * - `close()` stops its watcher.
  ****************/

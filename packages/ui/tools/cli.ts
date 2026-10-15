@@ -6,13 +6,14 @@
  *   in `vendor/` + `vendor/importmap.json`, tree-shaken to what `dist/` and the smoke pages import
  * - `measure` -- `BundleMeasure`:
  *   `tools/results/measure-results.json` (library / core / forms / own per family / scenarios / checks)
- * - `smoke` -- `SmokeRunner`:  `dist/` + `vendor/` through an import map, the framework host pages (the Solid 2 app
- *   on the SAME vendored Solid as the components) + the extra pages, headless chromium;
- *   `tools/results/smoke-results.json`
+ * - `smoke` -- `SmokeRunner`, in headless chromium:  `tools/results/smoke-results.json`
+ *   - `dist/` + `vendor/`, through an import map
+ *   - the framework host pages (the Solid 2 app on the SAME vendored Solid as the components)
+ *   - the extra pages
  * - `declarations` -- `DeclarationCheck`:  `dist/**.d.ts` resolve for a consumer (no `$/` alias, nothing outside `dist/`)
  * - `serve` -- the same pages and import map for a person:  prints the URLs, runs until killed
- * - `loc` / `report` -- `LocCount` (`loc-results.json`),
- *   then `ReportTables` rewrites `notes/report.md`'s generated tables
+ * - `loc` / `report` -- `LocCount` writes `loc-results.json`;
+ *   `ReportTables` then rewrites `notes/report.md`'s generated tables
  * - `icons:pack <folder> --id <id> [--label <text>] [--license <text>] [--sanitize]
  *   [--skip-unsafe | --allow-unsafe] [--force]` -- `IconPackBuilder`:
  *   verify a folder of SVGs and write its `pack.js` (keeps hand edits of an existing one)

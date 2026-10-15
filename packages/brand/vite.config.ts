@@ -16,9 +16,9 @@ export const BRAND_ENTRY = `${ROOT}src/brand-ui.ts`
 /**
  * The brand pages' bundle (`yarn build`, run by `scripts/build.ts`):
  * `src/brand-ui.ts` => `_assets/ui/brand-ui.js`, with `brand-ui.css` and lazy chunks.
- * - Only the Brand tab's own pages load it;  the docs set's pages (`docs/`) load Spell UI's site bundle and the
- *   brand pack instead (`docs/__parts/layout.html`).
- * See the entry for what's in it.
+ * - What's in it:  see the entry.
+ * - Only the Brand tab's own pages load it.
+ *   The docs set's pages (`docs/`) load Spell UI's site bundle and the brand pack instead (`docs/__parts/layout.html`).
  * - Modelled on Spell UI's site bundle (`packages/ui/vite.site.config.ts`):
  *   `baseConfig()` (decorators BEFORE Solid, Solid dedupe, Lightning CSS targets),
  *   an APP build of one entry, code-split, `base: "./"` so chunk URLs are relative to the chunk that imports them.

@@ -6,8 +6,9 @@ import { afterAll, beforeEach, describe, expect, test } from "vite-plus/test"
 import { CLI } from "$/cli"
 
 /**
- * A throwaway checkout per test:  copies of the real root files `pack new` edits (never the real ones), and a small
- * commands page.  `build: false` throughout:  `packBuild.test.ts` builds.
+ * A throwaway checkout per test:
+ * copies of the real root files `pack new` edits (never the real ones), and a small commands page.
+ * - `build: false` throughout:  `packBuild.test.ts` builds.
  */
 const TEMP = realpathSync(mkdtempSync(join(tmpdir(), "pack-new-")))
 afterAll(() => rmSync(TEMP, { recursive: true, force: true }))

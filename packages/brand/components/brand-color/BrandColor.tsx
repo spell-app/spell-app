@@ -43,8 +43,9 @@ export class DOMBrandColorElement extends E.DOMElement<BrandColor> {
 
 /****************
  * ### `BrandColor`
- * The component behind `<brand-color>`:  a square colour CHIP, as the brand's Color Palette and
- * Color Set Chooser pages draw them (the brand's rule:  `aspect-ratio: 1`, an 8px radius).
+ * The component behind `<brand-color>`:
+ * a square colour CHIP, as the brand's Color Palette and Color Set Chooser pages draw them.
+ * - the brand's rule:  `aspect-ratio: 1`, an 8px radius
  *
  * - Its shadow DOM:  `<button class="… color brand" part="chip">` with `copy`, else `<span role="img">`,
  *   holding the label, the AA mark and, after a copy, a check;

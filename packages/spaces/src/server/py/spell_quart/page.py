@@ -9,11 +9,13 @@ page_html("Solitaire", elements="/Solitaire.elements.spell.js")
 - The program's drawing half, `<Project>.elements.spell.js`, and those of the projects it imports (`projects`).
 - Semantic UI's CSS, which spell's drawings use (`ui button`), and the program's own, in its drawing half.
 - Its app draws into `<div id="spell-app-root">`, as `App.start()` draws.
-- Until it does, a "Loading <title>" block with a spinner (`LOADING`):  plain HTML and CSS, so it shows the moment
-  the page arrives, before any script has loaded;  it fades out once the app draws its first thing.
+- Until it does, a "Loading <title>" block with a spinner (`LOADING`).
+  - Plain HTML and CSS, so it shows the moment the page arrives, before any script has loaded.
+  - It fades out once the app draws its first thing.
 - Each frame to and from the program is written to the browser's console, folded, one line each, its badge coloured:
-  `SENDING  >  event card-click (#26)` (blue), `RECEIVED <  patch:  Card #26, StockPile #3` (green);
-  and anything that goes wrong, `< ERROR  >` (red).
+  - `SENDING  >  event card-click (#26)` (blue)
+  - `RECEIVED <  patch:  Card #26, StockPile #3` (green)
+  - anything that goes wrong, `< ERROR  >` (red)
 """
 
 import html
@@ -87,8 +89,9 @@ def built_folder(path: str) -> Path:
 
     - e.g. `built_folder("spaces/@spell/examples/solitaire")`:  where `spell compile` builds Solitaire
       (epic `people-and-orgs` J33).
-    - Found as `assets_folder()` finds the page side:  each checkout's app runs its own spell_quart, so it loads its
-      own checkout's build, in a worktree or after a move;  `$SPELL_BUILD_DIR` is the variable the node side reads.
+    - Found as `assets_folder()` finds the page side:  each checkout's app runs its own spell_quart,
+      so it loads its own checkout's build, in a worktree or after a move.
+    - `$SPELL_BUILD_DIR` is the variable the node side reads.
     """
     named = os.environ.get("SPELL_BUILD_DIR")
     build = Path(named) if named else Path(__file__).resolve().parents[6] / "build"

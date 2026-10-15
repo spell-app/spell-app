@@ -13,14 +13,14 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - [ts/](ts/index.ts):  the TypeScript that writes Python, `$/py` (`PY`)
   - [core/](core/pyproject.toml):  `spell_core`, what compiled Python imports
   - NOT here:  `spell_quart`, Python's web server, which serves a program as a web app on Quart.
-    It's the spaces package's, in its `src/server/py/` ([spaces' AGENTS.md](../spaces/AGENTS.md);
-    epic `people-and-orgs` P14).
+    It's in the spaces package, [its Python side](../spaces/src/server/py/pyproject.toml)
+    ([spaces' AGENTS.md](../spaces/AGENTS.md);  epic `people-and-orgs` P14).
 - ONE yarn workspace, `@spell-app/py`.
-  - Its TypeScript is in `ts/`, not the usual `src/`:
+  - Its TypeScript is in `ts/`, not the usual source folder:
     [the alias table](../../tsconfig.base.json) points `$/py` there.
   - `core/` is a uv project of its own, beside it:  yarn doesn't look in it.
-- It imports only `$/parser` (`P`) and `$/util`.
-  - The parser's helpers the writers share come through its barrel:
+- It imports only `$/parser` and `$/util`.
+  - The parser's helpers the writers share come through its barrel, `P`:
     - `P.ProgramWriter`
     - `P.JSWriter`
     - `P.Naming`
@@ -31,7 +31,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `ts/`:  tsc, oxlint / oxfmt and vitest
   - then `core/`:  ruff and pytest
 - Tests live in the repo's `tests/py/`, at the same paths as the code they test:
-  - `ts/PyWriter.ts` => `tests/py/ts/PyWriter.test.ts`, found by vitest (`vitest.config.ts` points there)
+  - TypeScript, found by vitest (our `vitest.config.ts` points there):
+    - [PyWriter.ts](ts/PyWriter.ts) => [PyWriter.test.ts](../../tests/py/ts/PyWriter.test.ts)
   - `core/tests/` => `tests/py/core/tests/`
     - Its pytest finds them by its `testpaths`;  the yarn scripts hand ruff their folder too.
 
@@ -60,10 +61,17 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - a long call broken one item a line, as Black (Python's usual formatter) does
 - `PY.quartApp()`:  a program's web app, `<Project>.app.py` (P20)
   - Each compile rewrites it only while nobody has edited it (`PY.isUneditedApp()`).
-  - It's committed beside the project's source;  its program and page file are built into the project's build
-    folder.  It names that folder inside the checkout's `build/`, and spell_quart finds the checkout's:
-    `OUTPUTS = built_folder("spaces/@spell/examples/solitaire")`, from `QuartAppSpec.outputs` (the project index's
-    `buildFolder`;  `.` for `spell run`'s temp folder).  No `../` in it (epic `people-and-orgs` J33).
+  - It's committed beside the project's source.
+  - Its program and page file are built into the project's build folder.
+    - It names that folder inside the checkout's `build/`, and spell_quart finds the checkout's:
+
+      ```py
+      OUTPUTS = built_folder("spaces/@spell/examples/solitaire")
+      ```
+
+    - The name comes from `QuartAppSpec.outputs`:  the project index's `buildFolder`.
+      - `.` for `spell run`'s temporary folder
+    - No `../` in it (epic `people-and-orgs` J33).
 
 ## `spell_core` (`core/`)
 
@@ -92,13 +100,19 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `--state`:  print its state as JSON by id
 - `PageSession` (`spell_core.page`):  a program's side of a page that draws it.
   - `python -m spell_core.page <program> --seed n` talks to a page over stdin and stdout, a JSON line each.
-- References (`spell_core.references`, P27):  a thing named in text, `Card#queen-of-spades`, `Tableau#1`.
+- References (`spell_core.references`, P27):  a thing named in text.
+  - e.g. `Card#queen-of-spades`, `Tableau#1`
   - The javascript core's words (drawable-thing's `references.ts`), read the same way.
-  - A page's message may name things so:  an event's `"target"`, a call's `"on"`;  the handler gets the thing as
-    `event.target`, and as `event.card`.  `{"$id": ...}` still works.
+  - A page's message may name things so:  an event's `"target"`, a call's `"on"`.
+    - The handler gets the thing as `event.target`, and as `event.card`.
+    - `{"$id": ...}` still works.
   - A place counts the things a page was sent, in the order it was sent them:  the order its copies were made in.
-  - The program's own core reads them too (`core.thing_for_reference()`, `thing_named()`, `thing_at_place()`,
-    `reference_for()`, in `spell_core.reference_methods`):  its places count the things that core made, in order.
+  - The program's own core reads them too:  its places count the things that core made, in order.
+    - Its methods, in `spell_core.reference_methods`:
+      - `core.thing_for_reference()`
+      - `thing_named()`
+      - `thing_at_place()`
+      - `reference_for()`
     - Not counted:  a plain `List`, a thing made inside a test, a helper's scratch result (made `core.quietly()`).
     - A name falls back to a thing the program keeps at its top level, as javascript's does.
 - A drawable program (P28) draws its own elements (`<solitaire-card>`) on the page:  the page's javascript defines them,

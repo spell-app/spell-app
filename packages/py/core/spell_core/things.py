@@ -266,8 +266,8 @@ class SpellObject:
 
     # Is a thing of this class saved in a FILE OF ITS OWN, rather than inside what holds it (decision Q42)?
     # - Compiled from `a person is saved in its own file.`, as `Person.saved_in_file = True`:  sub-classes inherit it.
-    # - The saver gives such a thing an entry of its own, and what holds it a reference to that;
-    #   every other thing is written whole inside what holds it, and a reference after (`saving.py`).
+    # - The saver gives such a thing an entry of its own, and what holds it a reference to that.
+    # - Every other thing is written whole inside what holds it, and a reference after (`saving.py`).
     saved_in_file: ClassVar[bool] = False
     # `a dated-event is saved inline.`, compiled as `DatedEvent.saved_inline = True`:  saying the default (Q42).
     saved_inline: ClassVar[bool] = False

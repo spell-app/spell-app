@@ -9,14 +9,16 @@ import type { SiteSearchFile, SiteSearchPage } from "../src/docs-components/docs
  * ### `SiteSearchBuilder`
  * Builds the Spell UI site's search file, `docs/__data/search.json` (`SiteSearchFile`):
  * every page's title and sections, read from the page FILES' markup, for `<ui-docs-search>`'s jumps to other pages.
- * - Run by `yarn site:data` (`scripts/site-data.ts`, through `SiteDataBuilder.searchText()`) beside
- *   `components.json`;  `tools/SiteDataBuilder.test.ts` fails while it's stale:  rerun after adding, renaming or moving
- *   a section (`yarn site:sections` included).
- * - What a section is, its title, parent and tab:  `PageOutline.sections()`, the SAME rules the element reads the page
- *   shown with, run here on linkedom (a DOM in node), read only.
- * - Page title:  its `main`'s `data-toc-header`, else its `<title>` without ` | Spell UI`;  a component page
- *   (`ui-*.html`:  its file name starts with the set's tag prefix) names the tag it documents (a family's main tag,
- *   or a sub-tag with its own page):  the search lists it as that component, not as a page.
+ * - Run by `yarn site:data` beside `components.json`
+ *   (`scripts/site-data.ts`, through `SiteDataBuilder.searchText()`).
+ *   - `tests/ui/tools/SiteDataBuilder.test.ts` fails while it's stale.
+ *   - Rerun after adding, renaming or moving a section (`yarn site:sections` included).
+ * - What a section is, its title, parent and tab:  `PageOutline.sections()`.
+ *   - The SAME rules the element reads the page shown with, run here on linkedom (a DOM in node), read only.
+ * - Page title:  its `main`'s `data-toc-header`, else its `<title>` without ` | Spell UI`.
+ * - A component page names the tag it documents (a family's main tag, or a sub-tag with its own page):
+ *   the search lists it as that component, not as a page.
+ *   - A component page is `ui-*.html`:  its file name starts with the set's tag prefix.
  * - Every page sits in the set's one folder (epic `people-and-orgs` P18):  `components.html` is the component index.
  * - Deterministic:  pages in a fixed order (`pageFiles()`), sections in document order, no dates.
  ****************/

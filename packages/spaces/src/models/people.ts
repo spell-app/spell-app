@@ -1,6 +1,6 @@
 /**
- * What the app and the server say about people, over `/api/people/...` (epic `people-and-orgs` P9):  plain JSON,
- * so the app needs no people library to show one.
+ * What the app and the server say about people, over `/api/people/...` (epic `people-and-orgs` P9).
+ * - Plain JSON, so the app needs no people library to show one.
  * - Types only:  safe in a browser.
  * - The server's side:  `PeopleStore` (`$/spaces/server/node/people/PeopleStore`), and its routes.
  */

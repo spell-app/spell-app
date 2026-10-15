@@ -15,10 +15,10 @@
  *   (`AGENTS.md`, "Solid authoring").
  *   - Only what sits BELOW `core` imports it by name (`import { proto, suggest } from "$/ui/util"`):
  *     `$/ui/vocabulary`, `$/ui/icons`, the runtime, types files.
- * - Package-specific:
- *   - `timing.ts` -- run a function later:
+ * - Also:
+ *   - spell-solid's timing helpers (`$/spell-solid/timing`), to run a function later:
  *     `afterSolidUpdate()`, `beforeNextPaint()`, `soon()`, `after()`, `every()`
- *   - `Warnings` -- `ui`'s console warnings
+ *   - `Warnings` -- `ui`'s console warnings, its own
  */
 
 export * from "$/util/class"

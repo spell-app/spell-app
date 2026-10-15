@@ -7,11 +7,11 @@ import { SpellStatement } from "$/spell/rules/Statement"
 import { classes } from "./classes.parser"
 
 /**
- * `saved_inline` rule:  `a dated-event is saved inline` -- a dated event is saved INSIDE what holds it
- * (epic `people-and-orgs`, Q9 and J1).
+ * `saved_inline` rule:  `a dated-event is saved inline` --
+ * a dated event is saved INSIDE what holds it (epic `people-and-orgs`, Q9 and J1).
  * - Since decision Q42 that's every thing's default:  written whole the first time, a reference after.
- *   So this says the default, and changes nothing;  `a person is saved in its own file` (`saved_in_file`) is what
- *   changes it.
+ *   - So this says the default, and changes nothing.
+ *   - What changes it:  `a person is saved in its own file` (`saved_in_file`).
  * - Refused for a built-in type, e.g. `a thing is saved inline`:  every project shares it.
  * - Compiles to `DatedEvent.savedInline = true`, after the class.
  */

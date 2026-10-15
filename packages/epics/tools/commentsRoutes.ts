@@ -1,9 +1,11 @@
 /**
  * Comments on docs pages and plan docs, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`),
  * listed in the repo root's `package.json` `"pageServer": { "routes": [...] }` (epic `airplane`, P11).
- * - A COMMENT:  what Owen writes on one block of a page, from the bullhorn beside it, or on text he selected there
- *   (⌘ I, or the floating bullhorn):  `_assets/spell-doc-runtime.js`, "Comments".  No Claude needed, so it works on
- *   a plane.  Its shape and every change to it:  `CommentList` (`$/epics/tool/CommentList`).
+ * - A COMMENT:  what Owen writes on one block of a page, from the bullhorn beside it, or on text he selected there.
+ *   - selected text:  ⌘ I, or the floating bullhorn
+ *   - the page's side:  `_assets/spell-doc-runtime.js`, "Comments"
+ *   - no Claude needed, so it works on a plane
+ *   - its shape and every change to it:  `CommentList` (`$/epics/tool/CommentList`)
  * - Where it's kept (`inboxOf()`):
  *   - a docs page's:  its own inbox file, `<page>.inbox.json` beside it (`GuideInbox`);
  *     Claude takes them into epic `guide-changes` with `spell dev comments gather`
@@ -13,26 +15,28 @@
  * - `GET /api/docs/comments?page=<path>` -- the page's comments, every status:  `{ page, takesComments, comments }`
  *   - the runtime asks as the page loads, and draws the bullhorns only when `takesComments`:
  *     a server without this module, `file://`, or a page that takes none shows none
- *   - each comment with its thread (`replies`, `done`) and whose `turn` it is (`CommentList.turnOf()`);  `working`
- *     while Claude thinks about it (`spell dev comments working`):  the thread's "Claude: thinking…" stub
+ *   - each comment with its thread (`replies`, `done`) and whose `turn` it is (`CommentList.turnOf()`)
+ *   - `working` while Claude thinks about it (`spell dev comments working`):  the thread's "Claude: thinking…" stub
  * - `POST /api/docs/comments` `{ page, action, ... }` -- change one comment;  answers `{ ok, id, comments }`
  *   - `add` `{ anchor, kind, label, excerpt, quote?, offset?, text }`:  a new comment;  answers its `id`
  *   - `edit` `{ id, text }`, `delete` `{ id }`:  only while the comment is `new` (else 409)
  *   - `clear` `{ id }`:  gone, whatever its status (`CommentList.clear()`)
- *   - `restore` `{ id, comment }`:  a comment deleted or cleared a moment ago, back as the GET gave it (the page's
- *     Undo:  `CommentList.restore()`);  answers its `id`, the same unless a new comment took it meanwhile
+ *   - `restore` `{ id, comment }`:  a comment deleted or cleared a moment ago, back as the GET gave it
+ *     - the page's Undo (`CommentList.restore()`)
+ *     - answers its `id`, the same unless a new comment took it meanwhile
  *   - the THREAD (Owen, 2026-10-10):
- *     - `reply` `{ id, text }`:  Owen's reply, saved as he types (`CommentList.reply()`);  blank empties his pending
- *       one
+ *     - `reply` `{ id, text }`:  Owen's reply, saved as he types (`CommentList.reply()`);
+ *       blank empties his pending one
  *     - `resolve` `{ id, how: "good" | "skip" }`:  "that's good" or "skip it" closes the thread
  *     - `reopen` `{ id }`:  open again (Undo, Reopen)
  * - `page`:  the page's URL path, as served (a worktree's `/worktrees/<w>/...` too).
  *   Which pages take comments (`commentsPage()`):
- *   - any `.html` under `guides/`, `pages/` (the docs home, details pages) and `epics/` (plan docs, an epic's own
- *     pages)
- *   - a component set's pages, at its address (`/components/epics/...`, `/components/app/...`:  `COMPONENT_SETS`,
- *     epic `people-and-orgs` P18), but not its `__parts/`:  kept in `<page>.inbox.json` beside each, in the set's
- *     tracked `docs/` folder, git-ignored there (the repo's `.gitignore`)
+ *   - any `.html` under `guides/`, `pages/` (the docs home, details pages)
+ *     and `epics/` (plan docs, an epic's own pages)
+ *   - a component set's pages, at its address (`/components/epics/...`, `/components/app/...`), but not its `__parts/`
+ *     - the sets:  `COMPONENT_SETS`, epic `people-and-orgs` P18
+ *     - kept in `<page>.inbox.json` beside each, in the set's tracked `docs/` folder,
+ *       git-ignored there (the repo's `.gitignore`)
  *   - NOT a split plan doc's `parts/` (they're shown inside their doc), nor a plan doc's pre-2026-10-04 name
  *   - NOT a details page with questions, or a syntax-choices page:  they're answered on the page
  *   - NOT `templates/`, the goals pages (they have thoughts), or the Brand tab's own pages (`brand/`)

@@ -57,8 +57,8 @@ export function resolveInside(root: string, urlPath: string, options: ResolveOpt
 /**
  * The path under `root` that URL path `urlPath` names, by `resolveInside()`'s rules, whether or not it's there:
  * what `FileOperations` creates, or moves something to.
- * - NEVER follows links:  `path.resolve()`, not `realpath()`,
- *   so a folder linked in from elsewhere (the shared content folders) is still inside
+ * - NEVER follows links (`path.resolve()`, not `realpath()`):
+ *   a folder linked in from elsewhere (the shared content folders) is still inside
  * - NEVER touches the disk
  * - throws `HttpError(400)` for a bad encoding, `HttpError(403)` for `..`, `.` or a dot file (unless `dotFiles`)
  */

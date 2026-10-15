@@ -1,23 +1,30 @@
 /**
- * `yarn site:new <tag|page> [--title "Title"] [--summary "One line."] [--force]`:  write a Spell UI docs page from the
- * template, `templates/spell-ui-docs.html`.
- * - A TAG (`ui-button`, `button`, `ui-or`:  any tag of a family) writes `docs/<main tag>.html` (the site's pages,
- *   `SITE_PAGES`), the component layout:  masthead with the family's theme picker, Examples / Usage / API /
- *   Theming tabs.  Title, summary and status come from `docs/__data/pages.json` (`--title` / `--summary` override
- *   them).
- * - A sub-tag with a page of its OWN (pages.json `pages`, e.g. `ui-radio`) writes `docs/<tag>.html`:  its
- *   own title, summary and status, ONE tag's API tables (`<ui-docs-api tag>`), and the Theming tab only when one of
- *   the family's tokens names it (`--ui-checkbox-radio-size`;  `ui-meta` has none:  its owners style it).
- * - Anything else is a PAGE:  `docs/<page>.html`, one content column, no tabs;  `--title` (default:  the name in
- *   Title Case) and `--summary`.
- * - Fills the template's `{{...}}` placeholders, keeps the `site:component` OR `site:page` blocks (and drops the
- *   status label for a `done` family, the Fomantic link when Fomantic has no such page), and rewrites the
- *   template's paths to the site (`../ui/`, `../components/ui/` once the template follows the move) for the page's
- *   place:  every page sits in the site's one folder.  The page is its `<head>` and `main` alone:  the chrome is
- *   `docs/__parts/layout.html`.
- * - Refuses to overwrite an existing page without `--force`.  Prints the path and the page server URL hint.
- * - The Fomantic link:  `reference/Fomantic-UI-Docs/server/documents/<group>/<name>.html.eco` (git-ignored clone,
- *   plan doc P1), by the family name, or `FOMANTIC_PAGES` for the families whose page has another name.
+ * `yarn site:new <tag|page> [--title "Title"] [--summary "One line."] [--force]`:
+ * write a Spell UI docs page from the template, `templates/spell-ui-docs.html`.
+ * - Pages land in the site's one folder, `docs/` (`SITE_PAGES`).
+ * - A TAG (`ui-button`, `button`, `ui-or`:  any tag of a family) writes `docs/<main tag>.html`, the component layout:
+ *   - a masthead with the family's theme picker
+ *   - Examples / Usage / API / Theming tabs
+ *   - title, summary and status from `docs/__data/pages.json` (`--title` / `--summary` override them)
+ * - A sub-tag with a page of its OWN (pages.json `pages`, e.g. `ui-radio`) writes `docs/<tag>.html`:
+ *   - its own title, summary and status
+ *   - ONE tag's API tables (`<ui-docs-api tag>`)
+ *   - the Theming tab only when one of the family's tokens names it
+ *     (`--ui-checkbox-radio-size`;  `ui-meta` has none:  its owners style it)
+ * - Anything else is a PAGE:  `docs/<page>.html`, one content column, no tabs.
+ *   - `--title` (default:  the name in Title Case) and `--summary`
+ * - What it does to the template:
+ *   - fills its `{{...}}` placeholders
+ *   - keeps the `site:component` OR `site:page` blocks
+ *   - drops the status label for a `done` family, and the Fomantic link when Fomantic has no such page
+ *   - rewrites its paths to the site for the page's place
+ *     (`../ui/`, `../components/ui/` once the template follows the move)
+ * - The page is its `<head>` and `main` alone:  the chrome is `docs/__parts/layout.html`.
+ * - Refuses to overwrite an existing page without `--force`.
+ * - Prints the path and the page server URL hint.
+ * - The Fomantic link:  by the family name, or `FOMANTIC_PAGES` for the families whose page has another name.
+ *   - Fomantic's page, in a git-ignored clone (plan doc P1):
+ *     `reference/Fomantic-UI-Docs/server/documents/<group>/<name>.html.eco`
  */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import path from "node:path"

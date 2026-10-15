@@ -194,7 +194,7 @@ export class SpellLanguageServer {
   }
 
   /**
-   * Ask the editor to tell us when `project.json` or `.spell` files change on disk, if it lets servers ask.
+   * Ask the editor to tell us when a project file or `.spell` files change on disk, if it lets servers ask.
    * - Otherwise its extension has to set that up itself (`synchronize.fileEvents` in `vscode-languageclient`).
    */
   private watchFiles() {

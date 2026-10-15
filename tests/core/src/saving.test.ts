@@ -7,8 +7,8 @@ import { Loader, parseRef, refText, Saver, spellCore, Thing, List } from "$/core
 /**
  * Things saved by id (`saving.ts`):  written by a `Saver`, read back by a `Loader`.
  * - `savedById.expected.json5`, beside `src/`, holds the entries these tests write.
- *   Python's core writes the same things and reads the same file, so the two agree
- *   (`packages/py/core/tests/test_saving.py`).
+ * - Python's core writes the same things and reads the same file, so the two agree
+ *   (`tests/py/core/tests/test_saving.py`).
  * - The classes are what spell compiles from:
  *   - `a person is a thing where:`, `- its "name" is text`, `- its "dates" is a list of dated-events`,
  *     `- its "friends" is a list of people`

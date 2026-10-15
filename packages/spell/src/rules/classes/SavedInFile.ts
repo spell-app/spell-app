@@ -7,8 +7,8 @@ import { SpellStatement } from "$/spell/rules/Statement"
 import { classes } from "./classes.parser"
 
 /**
- * `saved_in_file` rule:  `a person is saved in its own file` -- a person gets an entry, a file, of its own, and what
- * holds one saves a reference to it (epic `people-and-orgs`, decision Q42).
+ * `saved_in_file` rule:  `a person is saved in its own file` -- a person gets an entry, a file, of its own,
+ * and what holds one saves a reference to it (epic `people-and-orgs`, decision Q42).
  * - Every other thing is saved INSIDE what holds it:  written whole the first time, a reference after.
  * - Say it of things worth a file each, that other files point at:  a person, an org.
  * - Refused for a built-in type, e.g. `a thing is saved in its own file`:  every project shares it.

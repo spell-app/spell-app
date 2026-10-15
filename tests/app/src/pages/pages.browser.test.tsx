@@ -12,10 +12,13 @@ import { Routes, createAppRouter } from "$/app/pages/routes"
 import { EDITOR_HOTKEYS, editorHotkeys } from "$/app/pages/editorHotkeys"
 
 /**
- * The pages, in the browser:  the router (`routes.tsx`) draws the page each URL names and hands its params to
- * `editor.selectPath()`;  `editor` navigates through it (`navigation.ts`);  the editor page's hotkeys.
- * - `editor.selectPath()` is a spy:  a real one loads projects from the API server, which tests don't have.  So
- *   `editor.file` stays unset and the panes draw empty.
+ * The pages, in the browser:
+ * - the router (`routes.tsx`) draws the page each URL names, and hands its params to `editor.selectPath()`
+ * - `editor` navigates through it (`navigation.ts`)
+ * - the editor page's hotkeys
+ *
+ * - `editor.selectPath()` is a spy:  a real one loads projects from the API server, which tests don't have.
+ *   So `editor.file` stays unset and the panes draw empty.
  * - Each router runs on `memoryHistory()`, never the browser's:  the test page's own URL stays put.
  */
 

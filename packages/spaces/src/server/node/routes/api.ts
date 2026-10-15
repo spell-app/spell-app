@@ -1,10 +1,12 @@
 /**
  * Router for all `/api/...` calls, and `spaceFiles`, the router for `/spaces/...`:  reading a file.
- * - Route table below just wires paths to `project-utils.ts` handlers -- see each `request_*` function
- *   there for its full contract (what client sends, what comes back, failure modes).
- * - A project or a file is named by its ADDRESS in a URL (`SP.SpellUrls`), e.g. `@spell/examples/solitaire`, and a
- *   file in it:  `/spaces/@spell/examples/solitaire/Card.spell`.  Handlers split the URL as it arrived, by its group
- *   and project, before any path on disk is made (`SP.SpellUrls.split()`).
+ * - The route table below just wires paths to `project-utils.ts` handlers.
+ *   Each `request_*` function there has its full contract:  what the client sends, what comes back, failure modes.
+ * - A project or a file is named by its ADDRESS in a URL (`SP.SpellUrls`):
+ *   - a project:  `@spell/examples/solitaire`
+ *   - a file in it:  `/spaces/@spell/examples/solitaire/Card.spell`
+ * - Handlers split the URL as it arrived, by its group and project, before any path on disk is made
+ *   (`SP.SpellUrls.split()`).
  */
 
 import chalk from "chalk"
@@ -50,8 +52,7 @@ api.use((request, _response, next) => {
 // ## Project manipulation
 ////////////////
 
-// working with projects -- see `projectUtils.request_getProjectList` / `request_createProject` /
-// `request_renameApp` / `request_duplicateApp` / `request_deleteApp` for each route's contract.
+// working with projects:  each route's contract is on its `projectUtils.request_*` handler
 // A group's address (`@spell/examples`) holds `/`s:  `*` takes the rest of the path.
 api.get("/projects/list/*", projectUtils.request_getProjectList)
 api.post("/projects/create/project", projectUtils.request_createProject)
@@ -59,15 +60,14 @@ api.post("/projects/rename/project", projectUtils.request_renameApp)
 api.post("/projects/duplicate/project", projectUtils.request_duplicateApp)
 api.delete("/projects/remove/project", projectUtils.request_deleteApp)
 
-// working with project files -- see `projectUtils.request_createFile` / `request_renameFile` /
-// `request_deleteFile`.
+// working with project files:  each route's contract is on its `projectUtils.request_*` handler
 api.post("/projects/create/file", projectUtils.request_createFile)
 api.post("/projects/rename/file", projectUtils.request_renameFile)
 api.delete("/projects/remove/file", projectUtils.request_deleteFile)
 
-// a project's index, and saving one of its files -- see `projectUtils.request_getIndex` / `request_saveFile`.
-// Reading a file is `/spaces/<project>/<file>`:  `spaceFiles`, below.
-// `*` captures the REST of the URL, `/`s included;  the handlers read it as it arrived.
+// a project's index, and saving one of its files:  see `projectUtils.request_getIndex` / `request_saveFile`
+// - reading a file is `/spaces/<project>/<file>`:  `spaceFiles`, below
+// - `*` captures the REST of the URL, `/`s included;  the handlers read it as it arrived
 api.get("/projects/index/*", projectUtils.request_getIndex)
 api.post("/projects/file/*", projectUtils.request_saveFile)
 
@@ -109,10 +109,12 @@ api.get("/error", (request, response) => response.status(500).send("No soup for 
 api.all("*", (request, response) => response.status(404).send(`API routine not defined on server:   '${request.url}'`))
 
 /**
- * Router mounted at `/spaces` by `./cli.ts` and `./appRoutes.ts`:  a project's file, by its URL,
- * `/spaces/<project>/<file>` -- see `projectUtils.request_getFile`.
- * - Compiled files are files:  `/spaces/@spell/examples/solitaire/solitaire.spell.js` (its program),
- *   `.scopes.js` (its scope pack), `.declarations.json5`, `.en.js`.  The handler finds a built one in `build/`.
+ * Router mounted at `/spaces` by `./cli.ts` and `./appRoutes.ts`:
+ * a project's file, by its URL, `/spaces/<project>/<file>` -- see `projectUtils.request_getFile`.
+ * - Compiled files are files, e.g. `/spaces/@spell/examples/solitaire/solitaire.spell.js` (its program):
+ *   - `.scopes.js`, its scope pack
+ *   - `.declarations.json5`, `.en.js`
+ *   - The handler finds a built one in `build/`.
  * - A file spell BUILDS (`<Project>.spell.js` ...), missing, is compiled first:  `projectBuild.builtFirst()`.
  */
 export const spaceFiles = new SRV.Router()

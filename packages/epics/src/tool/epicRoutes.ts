@@ -1,19 +1,22 @@
 /**
- * The Epics page's writes, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`), listed in the
- * repo root's `package.json` `"pageServer": { "routes": [...] }`.
+ * The Epics page's writes, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`).
+ * - listed in the repo root's `package.json`, `"pageServer": { "routes": [...] }`
  *
  * NEW EPIC (epic `airplane` P7):
- * - Owen writes an idea down on the Epics page (`epics/index.html`'s New epic button, the docs runtime's "New epic"):
- *   a title and the kickoff prompt.  No Claude needed, so it works on a plane.
- * - It becomes a FUTURE epic at once, as `/epic future` makes one (`spell dev plan-doc new <name> --future`):  the
- *   stub plan doc with the prompt quoted, listed in the Epics index with its seedling;  its log says it came from
- *   the page (`FROM_PAGE`), which is how `/airplane land` finds the ones to offer (`AirplaneInbox`)
+ * - Owen writes an idea down on the Epics page:  a title and the kickoff prompt.
+ *   - its New epic button (`epics/index.html`), the docs runtime's "New epic"
+ *   - no Claude needed, so it works on a plane
+ * - It becomes a FUTURE epic at once, as `/epic future` makes one (`spell dev plan-doc new <name> --future`):
+ *   - the stub plan doc with the prompt quoted, listed in the Epics index with its seedling
+ *   - its log says it came from the page (`FROM_PAGE`),
+ *     which is how `/airplane land` finds the ones to offer (`AirplaneInbox`)
  * - `POST /api/epics/new` `{ title, prompt }` -- answers `{ name, page }`, the new plan doc's URL path
  *   - `name`:  the title, lower-kebab-cased (`Docs Index` -> `docs-index`);  taken, `-2`, `-3` ...
  *   - 400:  no title, or nothing to name it by
  *
- * FAVORITES (epic `airplane` P8, Owen 2026-10-10:  "Add a "favorite" icon in the top-right of the epics cards.  Sort
- * those first."):  a card's star, clicked on the Epics page (the docs runtime's "Favorite epics")
+ * FAVORITES:  a card's star, clicked on the Epics page (the docs runtime's "Favorite epics").
+ * - epic `airplane` P8, Owen 2026-10-10:
+ *   "Add a "favorite" icon in the top-right of the epics cards.  Sort those first."
  * - `POST /api/epics/favorite` `{ name, favorite }` -- stars (`true`) or unstars epic `name`;
  *   answers `{ favorites }`, every starred epic's name, sorted
  *   - 400:  no name, or not an epic's name (lower-kebab-case);  `favorite` not a boolean

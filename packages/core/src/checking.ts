@@ -10,12 +10,13 @@
  * // => { "title": "Person", "type": "object", "properties": { "name": { "type": "string" }, ... } }
  * ```
  *
- * - The spell declaration is the one description of a type:  both read what the compiled class says of each
- *   property (`schemaOf()`:  its type, a list's item type, its legal values) through ONE function, `kindOf()`,
- *   so they can't disagree.
+ * - The spell declaration is the one description of a type.
+ *   - Both read what the compiled class says of each property through ONE function, `kindOf()`,
+ *     so they can't disagree.
+ *   - What it says (`schemaOf()`):  its type, a list's item type, its legal values.
  * - The app, the people store and the `spell` command check with `checkEntry()`:  no JSON Schema library.
- * - JSON Schema is only MADE, for VS Code's own JSON checking, completion and hover text:  never committed, never
- *   written by hand.
+ * - JSON Schema is only MADE, for VS Code's own JSON checking, completion and hover text:
+ *   never committed, never written by hand.
  * - Keys starting with `$` are the file's own (`$type`, `$schema`, `$version`, `$ref` ...), never a property.
  * - A property holding a thing takes a reference to it, `{ "$ref": "Person#matt" }`, or the thing written whole,
  *   inside (`"$type"` first).
@@ -176,9 +177,10 @@ const JSON_SCHEMA_DRAFT = "http://json-schema.org/draft-07/schema#"
  * The JSON Schema VS Code checks a saved `Class` with:  one per version of a type, made, never written by hand.
  * - Its properties are the class's declared ones, each of its kind (`kindOf()`), plus the file's own `$` keys.
  * - A property holding a thing takes a reference, `{ "$ref": "Person#matt" }`, or the thing written whole.
- *   - NOTE: `$ref` here is a PROPERTY's name, never JSON Schema's keyword;  so no sample reference goes in an
- *     example or a default:  some tools follow every `$ref` they find (decision J3).
- * - `additionalProperties: false`:  VS Code underlines a property the class doesn't declare, as `checkEntry()` refuses it.
+ *   - NOTE: `$ref` here is a PROPERTY's name, never JSON Schema's keyword.
+ *     So no sample reference goes in an example or a default:  some tools follow every `$ref` they find (decision J3).
+ * - `additionalProperties: false`:  VS Code underlines a property the class doesn't declare,
+ *   as `checkEntry()` refuses it.
  */
 export function jsonSchemaFor(Class: Function): Record<string, unknown> {
   return {
@@ -236,8 +238,8 @@ const REFERENCE_SCHEMA = {
 }
 
 /**
- * Every property `Class` declares, inherited and its own, by name:  a superclass's first (`id`), a subclass's
- * declaration winning.
+ * Every property `Class` declares, inherited and its own, by name.
+ * - A superclass's come first (`id`);  a subclass's declaration of the same name wins.
  */
 function declaredProps(Class: Function): Map<string, PropInfo> {
   const chain: ReturnType<typeof schemaOf>[] = []

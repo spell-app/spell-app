@@ -8,7 +8,7 @@ import { spellCore, StateMirror, StateWriter, Thing, List } from "$/core"
  * A program's state as JSON by id (`state.ts`):  written by a `StateWriter`, read into a `StateMirror`.
  * - `stateById.expected.json5`, beside `src/`, holds the state these tests write.
  *   Python's core writes the same things and reads the same file, so the two agree
- *   (`packages/py/core/tests/test_state.py`).
+ *   (`tests/py/core/tests/test_state.py`).
  * - The classes are what spell compiles from:
  *   - `a chip is a thing` + `a chip has a color as text` + `a chip has a value as a number`
  *   - `a stack is a list of chips` + `a stack has a name as text` + `a chip belongs to one stack`

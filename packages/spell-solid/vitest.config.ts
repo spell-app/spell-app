@@ -5,13 +5,14 @@ import { playwright } from "vite-plus/test/browser-playwright"
 import { baseConfig } from "../ui/vite.config.ts"
 
 /**
- * vitest config for `@spell-app/spell-solid`:  its tests, in a REAL browser (Vitest browser mode + Playwright,
- * chromium), as Spell UI's are (`packages/ui/vitest.config.ts`, its `browser` project).
+ * Vitest config for `@spell-app/spell-solid`:  its tests run in a REAL browser, as Spell UI's do.
+ * - Vitest browser mode + Playwright, chromium:
+ *   as Spell UI's `browser` project (`packages/ui/vitest.config.ts`).
  * - `baseConfig()`:  Spell UI's plugins (decorators BEFORE Solid), Solid dedupe, Lightning CSS.
  * - The tests draw their elements on a page with Spell UI's runtime, as every page has:
- *   Spell UI's setup file loads `$/ui/core` (which installs Spell UI's settings), and they use Spell UI's test
- *   helpers (`$/ui/test/...`).
- *   The package itself never imports Spell UI.
+ *   - Spell UI's setup file loads `$/ui/core`, which installs Spell UI's settings
+ *   - they use Spell UI's test helpers (`$/ui/test/...`)
+ *   - The package itself never imports Spell UI.
  * - The repo root's `vitest.config.ts` picks this up as project `spell-solid`.
  */
 export default defineConfig({

@@ -15,8 +15,8 @@ import { APPLE_TOUCH_ICON_PNG, FAVICON_PNG_32, FAVICON_SVG } from "$/server/site
  * - `live`:  watches nothing by itself -- call `live.watch(dir)`
  *   - every `.html` page gets, before `</head>`:  Spell's favicon links (unless it links its own icon),
  *     `window.SPELL_SERVER` and the live client
- * - Spell's favicon on EVERY server, live or not, at the root:  `/favicon.svg`, `/favicon-32.png`,
- *   `/apple-touch-icon.png`, and `/favicon.ico` (its 32px PNG)
+ * - Spell's favicon on EVERY server, live or not, at the root:
+ *   `/favicon.svg`, `/favicon-32.png`, `/apple-touch-icon.png`, and `/favicon.ico` (its 32px PNG)
  *   - after the static files, so a folder's own icons win
  * - loopback only (`127.0.0.1`) unless `listen()` says otherwise
  */
@@ -188,8 +188,9 @@ export type UpgradeHandler = (raw: IncomingMessage, socket: Duplex, head: Buffer
 
 /**
  * The page server's own calls, under `/api/` like every call (epic `people-and-orgs`, P16).
- * - `GET /api/server`:  the page server's `ServerInfo` (which checkout, branch and port):  what the openers ask
- *   (`PageServer` answers it;  a plain `WebServer` doesn't)
+ * - `GET /api/server`:  the page server's `ServerInfo` (which checkout, branch and port)
+ *   - what the openers ask
+ *   - `PageServer` answers it;  a plain `WebServer` doesn't
  * - `/api/server/live` (`LIVE_EVENTS`) and `/api/server/live.js` (`LIVE_SCRIPT`):  live reload, on any live `WebServer`
  */
 export const SERVER_API = "/api/server"

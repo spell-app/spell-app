@@ -5,26 +5,27 @@ import { TSWriter } from "./TSWriter"
 
 /**
  * What a compiled LIBRARY imports its core from:  the core with no drawing, so no Solid -- `$/core/model`.
- * - By the core's PACKAGE name, as its `package.json` exports it, never the `$/core/...` alias:
- *   the repo's aliases reach only the files a `tsconfig.json` includes, and a library lives with its project,
- *   e.g. `packages/spaces/@spell/...`, which none does.
- * - node, vite and `tsx` all read a package's exports, wherever the importing file is.
+ * - By the core's PACKAGE name, as its `package.json` exports it, never the `$/core/...` alias.
+ *   - The repo's aliases reach only the files a `tsconfig.json` includes.
+ *   - A library lives with its project, e.g. `packages/spaces/@spell/...`, which none includes.
+ *   - node, vite and `tsx` all read a package's exports, wherever the importing file is.
  */
 export const LIBRARY_CORE_MODULE = "@spell-app/core/model"
 
 /****************
  * ### `LibraryWriter`
- * Writes a project as a LIBRARY:  its classes as ONE TypeScript module, for other code to import, e.g.
- * `import { Person } from "./People.lib.ts"` (the `ts/lib` target, epic `people-and-orgs` P3).
+ * Writes a project as a LIBRARY:  its classes as ONE TypeScript module, for other code to import.
+ * - e.g. `import { Person } from "./People.lib.ts"`
+ * - the `ts/lib` target (epic `people-and-orgs` P3)
  * - As `P.TSWriter`, with:
  *   - its classes as they are:  their properties, getters, methods, statics, with the types spell knows
  *   - its top-level functions, as they are
  *   - the program's top-level STEPS left out:  headings, tests, `print`, the things it makes
- *     -- importing it runs nothing but the class declarations
+ *     - So importing it runs nothing but the class declarations.
  *   - its core imported from `@spell-app/core/model` (`LIBRARY_CORE_MODULE`), and only what it uses:
  *     no Solid, and a thing it makes registers in no program's list
- * - One file, its own types:  the repo's code imports it as it imports any TypeScript (vite, `tsx`, `tsc`),
- *   with no `.d.ts` beside it (Owen's pick, the layout page's Q5).
+ * - One file, its own types, with no `.d.ts` beside it (Owen's pick, the layout page's Q5).
+ *   - The repo's code imports it as it imports any TypeScript (vite, `tsx`, `tsc`).
  *   - A browser page with no build step, or plain node, can't load it as is:  it needs a build, as the core does.
  * - A project that draws can't be a library:  its target says it can't draw (`SP.TARGETS`).
  ****************/
@@ -64,10 +65,13 @@ export class LibraryWriter extends TSWriter {
 ////////////////
 
 /**
- * Of `statements`, the top level of a file, what a library keeps:  its declarations (`isDeclaration()`),
- * and its top-level functions.
- * - A nested group's (e.g. under a heading) the same way;  a `try` block is a step, and goes.
- * - A docstring goes with what it documents:  a heading's `/** Using them *\/`, above the steps, goes too.
+ * Of `statements`, the top level of a file, what a library keeps:
+ * - its declarations (`isDeclaration()`)
+ * - its top-level functions
+ * - A nested group's (e.g. under a heading), the same way.
+ *   A `try` block is a step, and goes.
+ * - A docstring goes with what it documents:
+ *   a heading's `/** Using them *\/`, above the steps, goes too.
  */
 export function libraryHalf(statements: P.ASTNode[] = []): P.ASTNode[] {
   const kept: P.ASTNode[] = []

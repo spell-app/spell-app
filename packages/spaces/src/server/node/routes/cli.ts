@@ -11,14 +11,17 @@ import { APP_DIR } from "./EditorServer"
 
 /**
  * The app's API server, on `$/server`'s `WebServer` (it was Express):  `yarn start:server`, in `packages/app`.
- * - `/api/...` -- see `./api` for the route table;  `/spaces/<project>/<file>` -- a project's file;  `/hello` -- liveness
- * - bodies parse for EVERY verb (a `DELETE` with a JSON body too), as JSON5 (forgiving JSON), text or a form, up to
- *   10mb
+ * - What it serves:
+ *   - `/api/...` -- see `./api` for the route table
+ *   - `/spaces/<project>/<file>` -- a project's file
+ *   - `/hello` -- liveness
+ * - Bodies parse for EVERY verb (a `DELETE` with a JSON body too), up to 10mb:
+ *   as JSON5 (forgiving JSON), text or a form.
  * - production (`NODE_ENV=production`):  `dist/`, and `index.html` for any other path (the SPA's client routing)
  * - development:  `/static`, `/element` (`<spell-app>`'s bundle) and `/demo`;  the editor UI itself is vite's
  * - those folders are the app's (`APP_DIR`), wherever it's started from
- * - binds 0.0.0.0, as Express did:  vite (and a LAN device) reach it;  no `Host` check, since vite's proxy and the
- *   page server pass requests on with their own
+ * - binds 0.0.0.0, as Express did:  vite (and a LAN device) reach it
+ *   - no `Host` check, since vite's proxy and the page server pass requests on with their own
  */
 const server = new SRV.WebServer({
   checkHost: false,

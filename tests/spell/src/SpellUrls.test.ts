@@ -6,8 +6,8 @@ import { SP } from "$/spell"
 import "$/spaces/models/projectGroups"
 
 /**
- * `SP.SpellUrls`:  a project's files' URLs and its folder (epic `people-and-orgs` P15);  since P4, every URL holds
- * the address as it is, one slash between each part (decision Q41).
+ * `SP.SpellUrls`:  a project's files' URLs and its folder (epic `people-and-orgs` P15).
+ * - Since P4, every URL holds the address as it is, one slash between each part (decision Q41).
  * - That the page server and spaces' disk reader both ANSWER these URLs:  spaces' `api.test.ts`.
  */
 describe("SpellUrls", () => {

@@ -62,10 +62,11 @@ export const DOCS_VERBS = ["update", "index", "new", "open", "link", "fuss", "of
 export const DESIGN_VERBS = ["build", "bundle", "check", "pull", "changed", "pushed", "state"] as const
 
 /**
- * Run tool `name` of the nearest checkout from the current folder (`findCheckout()`), with `args` verbatim and
- * this terminal attached.  Returns its exit code.
- * - a child `node`, under the CLI checkout's `tsx` when `tsx` is set:  the tool's own `tsconfig.json` then maps its
- *   `$/...` imports into the TOOL's checkout, which may be a worktree while `spell` runs from main
+ * Run tool `name` of the nearest checkout from the current folder (`findCheckout()`),
+ * with `args` verbatim and this terminal attached.  Returns its exit code.
+ * - a child `node`, under the CLI checkout's `tsx` when `tsx` is set:
+ *   the tool's own `tsconfig.json` then maps its `$/...` imports into the TOOL's checkout,
+ *   which may be a worktree while `spell` runs from main
  * - `env`:  added to this process's
  */
 export function runTool(name: ToolName, args: string[], env: NodeJS.ProcessEnv = {}): Promise<number> {
