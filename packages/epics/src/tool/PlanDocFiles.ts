@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url"
 import { parseHTML } from "linkedom"
 
 import { AS } from "$/assembler"
+import { DataFile, type DataFileMove } from "$/epics/data/DataFile"
 import { SRV } from "$/server"
 
 import { planDocIn } from "../../tools/pages.js"
@@ -278,6 +279,8 @@ export class PlanDocFiles {
       const context: MigrationContext = {
         now,
         epic: basename(file).replace(/(\.plan)?\.html$/, ""),
+        folder: dirname(file),
+        root: this.root,
         inbox: inboxView(ReviewInbox.read(inboxFile)),
         notes: [],
         moves: []
@@ -289,6 +292,7 @@ export class PlanDocFiles {
         notes: context.notes!,
         moves: context.moves!,
         renames: context.renames ?? {},
+        files: context.files ?? [],
         written: false
       }
       if (!ran.length || dryRun) return done
@@ -302,16 +306,23 @@ export class PlanDocFiles {
       await this.writeDoc(file, plan, plan.parts!.split)
       return { ...done, written: true }
     })
-    if (dryRun || (!result.moves.length && !Object.keys(result.renames).length)) return result
-    // after the page, under the inbox's own lock:  never both locks at once
-    await ReviewInbox.updateAsync(inboxFile, (inbox) => {
-      for (const move of result.moves) {
-        const comment = inbox.comments[move.id]
-        if (comment?.anchor === move.from) comment.anchor = move.to
-      }
-      inbox.renameIds(result.renames)
-    })
-    return { ...result, written: true }
+    if (dryRun) return result
+    let written = result.written
+    if (result.moves.length || Object.keys(result.renames).length) {
+      // after the page, under the inbox's own lock:  never both locks at once
+      await ReviewInbox.updateAsync(inboxFile, (inbox) => {
+        for (const move of result.moves) {
+          const comment = inbox.comments[move.id]
+          if (comment?.anchor === move.from) comment.anchor = move.to
+        }
+        inbox.renameIds(result.renames)
+      })
+      written = true
+    }
+    // last, each under its new name's lock, the one its writers take:  an inbox the step above rewrote is renamed by it
+    for (const move of result.files)
+      if (await SRV.FileLock.runAsync(move.to, async () => DataFile.rename(move))) written = true
+    return { ...result, written }
   }
 
   /** The migration steps `migrate()` can run, oldest first:  for listings and checking `--step`. */
@@ -517,6 +528,8 @@ export type MigrateResult = {
   moves: AnchorMove[]
   /** ids the page changed, old => new, which its inbox follows (`stable-phase-ids`) */
   renames: Record<string, string>
+  /** data files beside the page to rename, `.json` => `.json5` (`json5-data-files`);  a clash is left */
+  files: DataFileMove[]
   /** was anything written:  the page, or its inbox */
   written: boolean
 }

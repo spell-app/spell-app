@@ -1524,7 +1524,7 @@ export class PlanDoc extends PlanReader {
   /**
    * Name saga `saga` as the one this epic serves, or none (`null`):  `<epic-page saga="<id>">` (epic `epic-workflow`
    * P15);  returns whether it changed.
-   * - which ids are sagas is the caller's to check (`Sagas`, `sagas/sagas.json`):  this doc doesn't know the list
+   * - which ids are sagas is the caller's to check (`Sagas`, `sagas/sagas.json5`):  this doc doesn't know the list
    * - SIDE EFFECT:  logs it, when it changed
    */
   setSaga(saga: string | null): boolean {

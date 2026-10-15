@@ -114,7 +114,7 @@ async function post(body: object, extra?: Record<string, string>) {
 
 /** the inbox file of page `relative`, as written */
 function inboxOf(relative: string) {
-  return JSON.parse(readFileSync(join(root, relative.replace(/\.html$/, ".inbox.json")), "utf8"))
+  return JSON.parse(readFileSync(join(root, relative.replace(/\.html$/, ".inbox.json5")), "utf8"))
 }
 
 test("adds a comment to the page's INBOX FILE, never the page;  the answer lists the page's comments", async () => {
@@ -149,7 +149,7 @@ test("a docs page's SEND:  its epic, who is listening, what waits;  Send marks t
   expect((await get("/epics/big/big.plan.html")).send).toBeUndefined()
   const added = await post({ page, action: "add", anchor: "page", kind: "page", text: "Say more" })
   expect(added.answer.send).toMatchObject({ unsent: ["cm1"], waiting: ["cm1"] })
-  ReviewInbox.update(join(root, "epics/py/py.inbox.json"), (box) => box.setListening("session-1"))
+  ReviewInbox.update(join(root, "epics/py/py.inbox.json5"), (box) => box.setListening("session-1"))
   const sendTo = (body: object) =>
     ask(port, "POST", "/api/docs/comments/send", { body: JSON.stringify(body), headers: headers() })
   const sent = await sendTo({ page })
@@ -175,7 +175,7 @@ test("a docs page's SEND:  its epic, who is listening, what waits;  Send marks t
 // epic `epic-workflow` I12:  a guide's Send wakes its epic as an epic page's does (P16), when nobody listens
 test("Send with nobody listening wakes the page's epic, and says what that did;  a listener:  no wake", async () => {
   const page = "/guides/py.html"
-  ReviewInbox.update(join(root, "epics/py/py.inbox.json"), (box) => box.setListening(null))
+  ReviewInbox.update(join(root, "epics/py/py.inbox.json5"), (box) => box.setListening(null))
   await post({ page, action: "add", anchor: "page", kind: "page", text: "Wake up" })
   const answer = JSON.parse(
     (await ask(port, "POST", "/api/docs/comments/send", { body: JSON.stringify({ page }), headers: headers() })).text
@@ -191,14 +191,14 @@ test("edits and deletes a new comment;  the last one out takes the file", async 
   const edited = await post({ page, action: "edit", id: "cm1", text: "one, better" })
   expect(edited.answer.comments[0]).toMatchObject({ text: "one, better", edited: expect.any(String) })
   expect((await post({ page, action: "delete", id: "cm1" })).answer.comments).toEqual([])
-  expect(existsSync(join(root, "pages/index.inbox.json"))).toBe(false)
+  expect(existsSync(join(root, "pages/index.inbox.json5"))).toBe(false)
   expect((await post({ page, action: "delete", id: "cm1" })).status).toBe(404)
 })
 
 test("a taken comment can't change:  409", async () => {
   const page = "/epics/big/notes.html"
   const { id } = (await post({ page, action: "add", ...ON_TABLE, text: "x" })).answer
-  GuideInbox.update(join(root, "epics/big/notes.inbox.json"), (comments) =>
+  GuideInbox.update(join(root, "epics/big/notes.inbox.json5"), (comments) =>
     comments.take(id, { epic: "guide-changes", phase: 1 })
   )
   expect((await post({ page, action: "edit", id, text: "y" })).status).toBe(409)
@@ -208,7 +208,7 @@ test("a taken comment can't change:  409", async () => {
 test("any comment clears, taken or not;  an unknown one is a 404", async () => {
   const page = "/epics/big/notes.html"
   const { id } = (await post({ page, action: "add", ...ON_TABLE, text: "x" })).answer
-  GuideInbox.update(join(root, "epics/big/notes.inbox.json"), (comments) =>
+  GuideInbox.update(join(root, "epics/big/notes.inbox.json5"), (comments) =>
     comments.take(id, { epic: "guide-changes", phase: 1 })
   )
   const cleared = await post({ page, action: "clear", id })
@@ -225,7 +225,7 @@ test("Undo:  `restore` brings back a deleted comment, or a cleared one Claude ha
   const back = await post({ page, action: "restore", id, comment: waiting })
   expect([back.status, back.answer.id]).toEqual([200, id])
   expect(back.answer.comments.find((comment: { id: string }) => comment.id === id)).toEqual(waiting)
-  GuideInbox.update(join(root, "epics/big/notes.inbox.json"), (list) => {
+  GuideInbox.update(join(root, "epics/big/notes.inbox.json5"), (list) => {
     list.take(id, { epic: "guide-changes", phase: 2 })
     list.answer(id, "<p>Yes.</p>")
   })
@@ -241,7 +241,7 @@ test("Undo:  `restore` brings back a deleted comment, or a cleared one Claude ha
 
 test("a THREAD:  `reply` (saved as typed), `resolve` (that's good / skip it), `reopen`;  each with its `turn`", async () => {
   const page = "/epics/big/notes.html"
-  const inbox = join(root, "epics/big/notes.inbox.json")
+  const inbox = join(root, "epics/big/notes.inbox.json5")
   const { id, comments } = (await post({ page, action: "add", ...ON_TABLE, text: "Why?" })).answer
   expect(comments.find((each: { id: string }) => each.id === id).turn).toBe("claude")
   GuideInbox.update(inbox, (list) => list.answer(id, "<p>Because.</p>"))
@@ -364,7 +364,7 @@ test("an epic page's comments go in the epic's REVIEW INBOX, beside its marks;  
   const quoted = { ...ON_TABLE, anchor: "p3#field-2", kind: "field", quote: "the inbox file", offset: 14 }
   const { status, answer } = await post({ page, action: "add", ...quoted, text: "which one?" })
   expect([status, answer.id]).toEqual([200, "cm1"])
-  expect(JSON.parse(readFileSync(join(root, "epics/big/big.inbox.json"), "utf8"))).toMatchObject({
+  expect(JSON.parse(readFileSync(join(root, "epics/big/big.inbox.json5"), "utf8"))).toMatchObject({
     marks: {},
     comments: { cm1: { anchor: "p3#field-2", quote: "the inbox file", offset: 14, text: "which one?" } }
   })
@@ -377,7 +377,7 @@ test("a saga page's comments go in its own REVIEW INBOX beside it;  its Send is 
   const page = "/sagas/epics/epics.saga.html"
   const { status, answer } = await post({ page, action: "add", ...ON_TABLE, anchor: "o1#field-1", text: "more?" })
   expect([status, answer.id]).toEqual([200, "cm1"])
-  expect(JSON.parse(readFileSync(join(root, "sagas/epics/epics.inbox.json"), "utf8"))).toMatchObject({
+  expect(JSON.parse(readFileSync(join(root, "sagas/epics/epics.inbox.json5"), "utf8"))).toMatchObject({
     comments: { cm1: { anchor: "o1#field-1", text: "more?" } }
   })
   const read = JSON.parse((await ask(port, "GET", `/api/docs/comments?page=${encodeURIComponent(page)}`)).text)

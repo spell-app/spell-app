@@ -227,7 +227,7 @@ test("sweep:  old scratch pages and answers go;  new ones and epics' stay", () =
   utimesSync(join(docs, "epics/big/details/shape.html"), old, old)
   createPage(docs, "fresh")
   expect(sweep(docs, 14).sort()).toEqual(
-    [join(docs, "pages/details/pick-layout.answer.json"), join(docs, "pages/details/pick-layout.html")].sort()
+    [join(docs, "pages/details/pick-layout.answer.json5"), join(docs, "pages/details/pick-layout.html")].sort()
   )
   expect(listPages(docs)).toEqual([join(docs, "pages/details/fresh.html"), join(docs, "epics/big/details/shape.html")])
 })

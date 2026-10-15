@@ -1,6 +1,8 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs"
 import { dirname, join, posix, relative, resolve, sep } from "node:path"
 
+import { DataFile } from "$/epics/data/DataFile"
+
 /** The catch-all epic for comments on a page no epic owns (`spell dev comments gather`, `GuideChanges`). */
 export const GUIDE_CHANGES = "guide-changes"
 
@@ -12,7 +14,7 @@ export const GUIDE_CHANGES = "guide-changes"
  * - `guide`:  every docs page under `guides/` its PHASES link to (the changelog too, when linked):  a phase's part
  *   file, `parts/p<N>.html`;  never an item's, or the Overview's, which only mention a guide in passing (Owen, J94:
  *   "Only links in phases count, not in items")
- * - `details` / `choices`:  every page in its `details/` folder:  details pages, choice pages (a `<slug>.rows.json`
+ * - `details` / `choices`:  every page in its `details/` folder:  details pages, choice pages (a `<slug>.rows.json5`
  *   beside it), its review page
  * - NOT:  other epics' pages, nor changelog entries it doesn't link
  *
@@ -67,7 +69,7 @@ export class SeeAlso {
     }
     const newestFirst = (a: SeeAlsoLink, b: SeeAlsoLink) => b.updated.localeCompare(a.updated)
     const own = detailsPages(this.root, name).map((path) =>
-      page(path, existsSync(join(this.root, path.replace(/\.html$/, ".rows.json"))) ? "choices" : "details")
+      page(path, DataFile.exists(DataFile.besidePage(join(this.root, path), "rows")) ? "choices" : "details")
     )
     return [
       ...durable.map((path) => page(path, "durable")),

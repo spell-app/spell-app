@@ -256,7 +256,7 @@ export class EpicDocs {
   /**
    * Does checkout path `path` (`/`-separated) hold a doc a person reads?
    * - yes:  any `.md` (`AGENTS.md`, `README.md`, a skill's `SKILL.md`, notes beside code);
-   *   in the shared doc folders (`SHARED_DOC_DIRS`) also `.html` pages and `.json` page data
+   *   in the shared doc folders (`SHARED_DOC_DIRS`) also `.html` pages and `.json5` page data (`.json`, its old name)
    * - no:  epic pages (`epics/`), the home page (`pages/`), the logs (`agents/*.md`), the changelog (listed apart),
    *   a shared folder's generated `index.html`, a session's own notes (`PARKED-*.md`, `MORNING-*.md`),
    *   fixtures, assets, dependencies
@@ -267,7 +267,7 @@ export class EpicDocs {
     const top = path.split("/")[0]!
     if (SHARED_DOC_DIRS.some((dir) => path.startsWith(`${dir}/`))) {
       if (path === `${top}/index.html`) return false
-      return /\.(html|md|json)$/.test(path)
+      return /\.(html|md|json5?)$/.test(path)
     }
     return path.endsWith(".md")
   }
@@ -455,7 +455,7 @@ export type EpicDecisions = {
 /** `EpicDoc`'s groups, most sure first. */
 export const GROUPS = ["wrote", "related", "linked", "swept"] as const
 
-/** The shared folders whose pages are docs:  searched for mentions, and their `.html` / `.json` listed. */
+/** The shared folders whose pages are docs:  searched for mentions, and their `.html` / `.json5` listed. */
 export const SHARED_DOC_DIRS = ["guides", "templates", "ui", "agents/wwod"]
 
 /** The changelog:  listed apart, as `changelog`, never as a doc. */

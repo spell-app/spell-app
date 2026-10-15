@@ -2,8 +2,10 @@
  * The RUNNING-AGENTS LIST of an epic or a checkout (epic `skillz`):  every background agent a Claude session started
  * (`/bg`, or on its own), by name, while it runs.
  * - the file:
- *   - in an epic:  `epics/<epic>/agents.json`, beside the epic page (shared content;  git-ignored in the shared repo)
- *   - else:  `<checkout root>/.spell-agents.json` (git-ignored in spell-app)
+ *   - in an epic:  `epics/<epic>/agents.json5`, beside the epic page (shared content;  git-ignored in the shared repo)
+ *   - else:  `<checkout root>/.spell-agents.json5` (git-ignored in spell-app)
+ *   - JSON5, saved keeping any comment added by hand (`DataFile`, epic `epic-workflow` P21);  its old `.json` name is
+ *     read while there's no `.json5`, and removed by the next write
  * - names carry a PREFIX:  the epic's name, else the worktree's, else `main`;  `add("aaa")` in epic `skillz` is
  *   `skillz-aaa`.  Every method takes the short name or the full one.
  * - writers:  `spell dev agents` (`agents.ts`;  sessions and their helpers, at the same time) and the page server's
@@ -14,9 +16,10 @@
  * - an agent leaves the list when it finishes (`done()`):  the list is what's RUNNING;  empty, the file goes
  * - NOT in the record:  the epic page says what agents DID;  this says what they're doing now
  */
-import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync } from "node:fs"
 import { basename, dirname, join, resolve } from "node:path"
 
+import { DataFile } from "$/epics/data/DataFile"
 import { SRV } from "$/server"
 
 export class AgentList {
@@ -51,10 +54,9 @@ export class AgentList {
     return name.startsWith(`${this.prefix}-`) ? name : `${this.prefix}-${name}`
   }
 
-  /** The agents running, oldest first;  none (no file):  `[]`. */
+  /** The agents running, oldest first;  none (no file):  `[]`.  Its old `.json` while there's no `.json5`. */
   get agents(): RunningAgent[] {
-    if (!existsSync(this.file)) return []
-    return JSON.parse(readFileSync(this.file, "utf8")) as RunningAgent[]
+    return DataFile.read<RunningAgent[]>(this.file) ?? []
   }
 
   /**
@@ -123,12 +125,15 @@ export class AgentList {
     if (!note) throw new AgentListError("AgentList.redirect():  an empty note")
     if (note.length > MAX_NOTE) throw new AgentListError(`AgentList.redirect():  a note over ${MAX_NOTE} characters`)
     let agents: RunningAgent[] = []
-    await SRV.FileOperations.save(this.file, (current) => {
-      agents = current ? (JSON.parse(current) as RunningAgent[]) : []
-      const agent = this.find(agents, name)
-      ;(agent.redirects ??= []).push({ note, at: new Date().toISOString() })
-      return `${JSON.stringify(agents, null, 2)}\n`
-    })
+    await SRV.FileOperations.save(this.file, (current) =>
+      DataFile.edited<RunningAgent[]>(this.file, current, (read) => {
+        agents = read ?? []
+        const agent = this.find(agents, name)
+        ;(agent.redirects ??= []).push({ note, at: new Date().toISOString() })
+        return agents
+      })
+    )
+    DataFile.removeOld(this.file)
     return agents
   }
 
@@ -171,16 +176,13 @@ export class AgentList {
   }
 
   /**
-   * Write `agents` atomically (a temp file renamed over it);  none:  remove the file.
+   * Write `agents` atomically (a temp file renamed over it), its comments kept (`DataFile.write()`);  none:  remove
+   * the file (and its old `.json`).
    * - call it under the lock, or two writers may lose each other's changes
    */
   private write(agents: RunningAgent[]) {
-    if (agents.length === 0) {
-      rmSync(this.file, { force: true })
-    } else {
-      writeFileSync(`${this.file}.tmp`, `${JSON.stringify(agents, null, 2)}\n`)
-      renameSync(`${this.file}.tmp`, this.file)
-    }
+    if (agents.length === 0) DataFile.remove(this.file)
+    else DataFile.write(this.file, agents)
   }
 }
 
@@ -192,10 +194,10 @@ function checkStatus(status: string) {
 }
 
 /** An epic's list, in `epics/<epic>/`. */
-export const LIST_FILE = "agents.json"
+export const LIST_FILE = "agents.json5"
 
 /** A checkout's list, at its root, when it has no epic. */
-export const CHECKOUT_LIST_FILE = ".spell-agents.json"
+export const CHECKOUT_LIST_FILE = ".spell-agents.json5"
 
 /** A worktree's root:  `.../.claude/worktrees/<name>`. */
 const WORKTREE_ROOT = /[/\\]\.claude[/\\]worktrees[/\\]([^/\\]+)[/\\]?$/

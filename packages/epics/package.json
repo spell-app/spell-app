@@ -33,6 +33,7 @@
   "dependencies": {
     "@spell-app/assembler": "workspace:*",
     "@spell-app/server": "workspace:*",
+    "json5": "^2.1.1",
     "linkedom": "^0.18.13"
   },
   "devDependencies": {

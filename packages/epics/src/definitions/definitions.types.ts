@@ -131,7 +131,7 @@ export type AttributeTest = {
  * - `sha` -- a git commit, 7 to 40 hex digits
  * - `letter` -- an option's letter, `A` to `Z`
  * - `epic name` -- the epic's folder name, `epic-components`
- * - `saga id` -- a saga's id, one or two words:  `drawable-spell`, `epics` (`sagas/sagas.json`;  epic `epic-workflow` P15)
+ * - `saga id` -- a saga's id, one or two words:  `drawable-spell`, `epics` (`sagas/sagas.json5`;  epic `epic-workflow` P15)
  */
 export const Formats = {
   date: /^\d{4}-\d{2}-\d{2}$/,

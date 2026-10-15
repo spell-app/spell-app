@@ -95,9 +95,12 @@ export class ServerLink {
    * Keep a client fresh on `window`'s page:  `refresh()` every `REVIEW_POLL_MS` while visible, when the page becomes
    * visible, and when the page server says `file` changed (`spell-server:file`, the page's live client:  never a
    * connection of our own, each holds one of Chrome's 6 per host).  Returns the undo.
+   * - a data file (`<name>.json5`) by its old name too, `<name>.json`:  a checkout on older code writes that
+   *   (epic `epic-workflow` P21)
    */
   watch(window: Window, file: string, refresh: () => void): () => void {
     const { document } = window
+    const names = [file, file.replace(/\.json5$/, ".json")]
     const timer = window.setInterval(() => {
       if (document.visibilityState === "visible") refresh()
     }, REVIEW_POLL_MS)
@@ -105,7 +108,7 @@ export class ServerLink {
       if (document.visibilityState === "visible") refresh()
     }
     const onFile = (event: Event) => {
-      if ((event as CustomEvent<{ path?: string }>).detail?.path === file) refresh()
+      if (names.includes((event as CustomEvent<{ path?: string }>).detail?.path ?? "")) refresh()
     }
     document.addEventListener("visibilitychange", onVisible)
     window.addEventListener("spell-server:file", onFile)

@@ -1,12 +1,13 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs"
 import { join, relative } from "node:path"
 
+import { DataFile } from "$/epics/data/DataFile"
 import { CommentList, type Comment, type IdentifiedComment } from "$/epics/tool/CommentList"
 import { FROM_PAGE } from "$/epics/tool/epicRoutes"
 import { GuideInbox } from "$/epics/tool/GuideInbox"
 import { SeeAlso } from "$/epics/tool/SeeAlso"
 
-import { readAnswer, listPages } from "./details.js"
+import { answerFile, readAnswer, listPages } from "./details.js"
 import { GuideChanges } from "./GuideChanges"
 import { notesIn, type PageNote } from "./notesOnDisk"
 
@@ -17,17 +18,17 @@ const NOTE_FOLDERS = ["pages", "guides", "epics"]
  * ### `AirplaneInbox`
  * Everything Owen left while he worked with no Claude (epic `airplane` P5):
  * what `/airplane land` works through, gathered from every place it waits.
- * - each epic's review inbox (`epics/<name>/<name>.inbox.json`, `ReviewInbox`):
+ * - each epic's review inbox (`epics/<name>/<name>.inbox.json5`, `ReviewInbox`):
  *   - marks SENT OR NOT (Owen's decision Q3 of `airplane`:  on the plane, nobody was there to send them to)
  *   - drafts (typed, never submitted:  asked about, never acted on)
  *   - the requests for now (Do Now, revisit now)
  *   - comments on the doc's blocks still waiting (`comments`, P11)
- * - guide comments still waiting:  each docs page's inbox file (`<page>.inbox.json`, `GuideInbox`, P11), sent or not
+ * - guide comments still waiting:  each docs page's inbox file (`<page>.inbox.json5`, `GuideInbox`, P11), sent or not
  *   - a page an epic owns (`SeeAlso.ownerOf()`, epic `epic-workflow` P13):  its `epic`, whose session answers them
  *   - the rest:  `spell dev comments gather` takes them into epic `guide-changes`
  * - new epics from the Epics page's New epic button, not started yet (future, their log says so:  `epicRoutes.ts`)
  * - page notes not yet answered (`<spell-note status="new">` in guides and other pages:  `notesOnDisk.ts`)
- * - details pages answered since the flight began (`<slug>.answer.json`, newer than `since`)
+ * - details pages answered since the flight began (`<slug>.answer.json5`, newer than `since`)
  * - goals thoughts not yet digested (`li.goals-thought[data-status="new"]` in the saga pages)
  * - read only:  taking the work is each place's own command (`plan-doc inbox apply`, `details answer`, `/goals-update`)
  ****************/
@@ -167,7 +168,7 @@ export type GuideCommentWaiting = IdentifiedComment & { page: string; epic?: str
 function guideCommentsWaiting(root: string): GuideCommentWaiting[] {
   const owners = new SeeAlso(root)
   return new GuideChanges({ root }).inboxFiles().flatMap((file) => {
-    const page = relative(root, file).replace(/\.inbox\.json$/, ".html")
+    const page = relative(root, file).replace(/\.inbox\.json5?$/, ".html")
     const epic = owners.ownerOf(page)
     return GuideInbox.read(file).commentList.waiting.map((comment) => ({ page, ...comment, ...(epic && { epic }) }))
   })
@@ -186,9 +187,8 @@ function epicsWaiting(root: string): EpicWaiting[] {
   return readdirSync(epics)
     .sort()
     .flatMap((name) => {
-      const file = join(epics, name, `${name}.inbox.json`)
-      if (!existsSync(file)) return []
-      const inbox = JSON.parse(readFileSync(file, "utf8")) as InboxFile
+      const inbox = DataFile.read<InboxFile>(join(epics, name, `${name}.inbox${DataFile.SUFFIX}`))
+      if (!inbox) return []
       const sent = inbox.sent ? Date.parse(inbox.sent) : 0
       const marks = Object.entries(inbox.marks ?? {}).map(([id, mark]) => ({
         id,
@@ -215,8 +215,8 @@ type InboxFile = {
 /** Details pages whose answer was saved after `since` (ms). */
 function detailsAnswered(root: string, since: number): DetailsAnswered[] {
   return (listPages(root) as string[]).flatMap((page) => {
-    const answer = page.replace(/\.html$/, ".answer.json")
-    if (!existsSync(answer) || statSync(answer).mtimeMs < since || !readAnswer(page)) return []
+    const answer = DataFile.found(answerFile(page))
+    if (!answer || statSync(answer).mtimeMs < since || !readAnswer(page)) return []
     return [{ page: relative(root, page), answered: statSync(answer).mtime.toISOString() }]
   })
 }

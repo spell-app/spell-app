@@ -83,7 +83,7 @@ describe("GuideChanges.gather()", () => {
     )
     expect(doc).toContain("Too wide on a phone?")
     expect(doc).toContain("Still true?")
-    const inbox = GuideInbox.read(join(root, "guides", "memory", "memory.inbox.json"))
+    const inbox = GuideInbox.read(join(root, "guides", "memory", "memory.inbox.json5"))
     expect(inbox.comments[id]).toMatchObject({ status: "taken", taken: { epic: "gc", phase: 1 } })
     const page = readFileSync(join(root, "guides", "memory", "memory.html"), "utf8")
     expect(page).toMatch(

@@ -73,7 +73,7 @@ function answer(path: string, answers: unknown = { q1: { picked: ["B"] } }, head
 
 /** the answer file written for page `relative` */
 function written(relative: string): DetailsAnswer {
-  return JSON.parse(readFileSync(join(root, relative.replace(/\.html$/, ".answer.json")), "utf8"))
+  return JSON.parse(readFileSync(join(root, relative.replace(/\.html$/, ".answer.json5")), "utf8"))
 }
 
 test("writes the answer beside the page, and counts changes", async () => {
@@ -140,7 +140,7 @@ test("bad answers are refused", async () => {
 
 test("a draft:  saved beside the page, read back, never an answer;  Send deletes it, and carries the kept text", async () => {
   const path = "/pages/details/drafted.html"
-  const draftPath = join(root, "pages/details/drafted.draft.json")
+  const draftPath = join(root, "pages/details/drafted.draft.json5")
   const kept = [{ id: "q3", label: "Q3 · Gone", text: "picked A · Blue" }]
   const saved = await ask(port, "POST", "/api/docs/details/draft", {
     body: JSON.stringify({
@@ -158,7 +158,7 @@ test("a draft:  saved beside the page, read back, never an answer;  Send deletes
   expect(draft).toMatchObject({ page: path, comments: { context: "half a thought" }, labels: { q1: "Q1 · Which?" } })
   expect(draft.kept).toEqual(kept)
   // a draft wakes nobody:  no answer file
-  expect(existsSync(join(root, "pages/details/drafted.answer.json"))).toBe(false)
+  expect(existsSync(join(root, "pages/details/drafted.answer.json5"))).toBe(false)
   const back = await ask(port, "GET", `/api/docs/details/draft?page=${encodeURIComponent(path)}`)
   expect(JSON.parse(back.text).draft.saved).toBe(draft.saved)
   const sent = await ask(port, "POST", "/api/docs/details/answer", {

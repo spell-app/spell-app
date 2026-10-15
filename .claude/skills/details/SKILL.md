@@ -110,7 +110,7 @@ Dense, terse pages make him ask "what do you mean?" (2026-10-03), so:
 
 ### Rewriting a page Owen may have open
 
-- What he typed and picked and hasn't sent is a DRAFT beside the page, `<slug>.draft.json`
+- What he typed and picked and hasn't sent is a DRAFT beside the page, `<slug>.draft.json5`
   (epic `epic-workflow` P18):  saved a moment after each change, and in his browser too.
   - Your rewrite reloads the page (or patches it in place);  the draft comes back into it, by question / option /
     section id, over what he sent, and Send says "Changes not sent".

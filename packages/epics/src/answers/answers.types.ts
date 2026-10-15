@@ -100,7 +100,7 @@ export type PartLabels = Record<string, string>
 export type TypedAnswer = PageAnswer & { labels: PartLabels }
 
 /**
- * A details page's draft, `<slug>.draft.json` beside it (P18):  what was typed and not sent, saved a moment after
+ * A details page's draft, `<slug>.draft.json5` beside it (P18):  what was typed and not sent, saved a moment after
  * each change, and put back when the page loads again (a reload, an agent's rewrite).
  * - `page`:  the page's URL path;  `saved`:  when, ISO
  * - only a draft NEWER than the answer sent counts:  Send deletes it
@@ -111,7 +111,7 @@ export type DetailsDraft = TypedAnswer & { page: string; saved: string }
 export type AskAnswer = { picked: string[]; other?: string }
 
 /**
- * A details page's `<slug>.answer.json`, as the route wrote it:  what was sent, plus when, how often, and what
+ * A details page's `<slug>.answer.json5`, as the route wrote it:  what was sent, plus when, how often, and what
  * changed since the send before (`changed`:  question keys, `comment:<id>`, `notes`).
  */
 export type SentAnswer = PageAnswer & {
@@ -196,8 +196,8 @@ export type ChoicesValues = { values: Record<string, string>; feedback: string; 
 /** Each reorderable table's row ids, in the order Owen left them, by its section's id. */
 export type ChoicesOrder = Record<string, string[]>
 
-/** A choice page's draft (`<slug>.draft.json`):  its values, and when it was saved. */
+/** A choice page's draft (`<slug>.draft.json5`):  its values, and when it was saved. */
 export type ChoicesDraft = ChoicesValues & { saved: string }
 
-/** A choice page's answer (`<slug>.answer.json`):  its values, when, and how often sent. */
+/** A choice page's answer (`<slug>.answer.json5`):  its values, when, and how often sent. */
 export type ChoicesAnswer = ChoicesValues & { answered: string; changes?: number }

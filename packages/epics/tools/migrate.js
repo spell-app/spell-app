@@ -11,17 +11,23 @@
  *     both) in the epics pack's elements, its old page script gone (epic `epic-workflow` P12)
  *   - NOT the shared-content repair (`relocate.js`):  it moves files between folders rather than fixing a page's
  *     markup, and `spell dev shared commit` runs its reorg every turn already
+ * - `DATA_FILES`, beside the steps:  the tooling's data files outside the epics' folders renamed `.json` -> `.json5`
+ *   (epic `epic-workflow` P21;  `dataFileMoves()`), and every page's links to a data file by its old name, but an epic
+ *   page's (`dataFileLinks()`).  Not a page kind's step:  it renames files, and touches only links.  An epic's own
+ *   files and links are its page's step, `json5-data-files` (`$/epics/tool/migrations`)
  * - A new step:  an entry in `STEPS`, LAST, in the same commit as the markup change it follows;  it must change
  *   nothing on a page it has migrated already, and keep every word
  * - `node tools/migrate.js [--root <checkout>] [<kind>] [--file <page>] [--step <name>] [--dry-run] [--list]`:
  *   every kind with steps, or one kind;  one page (`--file`, its kind found unless given);  `--list`:  the steps
+ *   - the data files' renames run with every kind (no `<kind>`, no `--file`), or alone with `--step json5-data-files`
  */
-import { existsSync, readFileSync, realpathSync, writeFileSync } from "node:fs"
-import { basename, isAbsolute, join, relative, resolve, sep } from "node:path"
+import { existsSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs"
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path"
 import { pathToFileURL } from "node:url"
 
 import { parseHTML } from "linkedom"
 
+import { DataFile } from "../src/data/DataFile.ts"
 import { TOOL_TEMPLATES } from "./answerPages.js"
 import { checkData, rowsFile } from "./choices.js"
 import { listPages } from "./details.js"
@@ -112,8 +118,8 @@ export const STEPS = [
       }
       if (document.querySelector('script[src$="syntax-choices.js"]')) {
         const rows = rowsFile(file)
-        if (!existsSync(rows)) return { changed: false, notes: [`SKIPPED:  no ${basename(rows)} beside it`] }
-        return convertChoicesPage(document, checkData(JSON.parse(readFileSync(rows, "utf8"))))
+        if (!DataFile.exists(rows)) return { changed: false, notes: [`SKIPPED:  no ${basename(rows)} beside it`] }
+        return convertChoicesPage(document, checkData(DataFile.read(rows)))
       }
       return convertDetailsPage(document)
     }
@@ -122,12 +128,13 @@ export const STEPS = [
 
 /**
  * Which kind page `file` is (`KINDS`), from where it lives in checkout `root` and what it loads.
- * - a details page with `<slug>.rows.json` beside it is a choice page;  a review page counts as a details page
+ * - a details page with `<slug>.rows.json5` (or its old `.json`) beside it is a choice page;  a review page counts as
+ *   a details page
  * - under `guides/`:  a page loading `commands.js` is a commands page, one with a card filter a cheatsheet
  */
 export function pageKind(file, root = ROOT, html = existsSync(file) ? readFileSync(file, "utf8") : "") {
   const path = relative(root, file).split(sep).join("/")
-  if (/(^|\/)details\//.test(path)) return existsSync(file.replace(/\.html$/, ".rows.json")) ? "choice" : "detail"
+  if (/(^|\/)details\//.test(path)) return DataFile.exists(rowsFile(file)) ? "choice" : "detail"
   if (/^epics\/([^/]+)\/\1(\.plan)?\.html$/.test(path) || /<epic-page\b/.test(html)) return "epic"
   if (/\.goal\.html$/.test(path)) return "goal"
   if (path === "pages/index.html") return "home"
@@ -227,6 +234,143 @@ export function report(results, root, { dryRun = false, all = false } = {}) {
   return lines
 }
 
+/**
+ * The DATA FILES' renames (epic `epic-workflow` P21):  the tooling's data files in checkout `root` still named
+ * `.json`, outside the epics' own folders (those are their page's step, `json5-data-files`), as `DataFile.moveOf()`
+ * gives them (`{ from, to, clash }`), sorted.  The files:
+ * - the docs home's:  the tooling home and the starred epics (`epics/home.json`, `epics/favorites.json`)
+ * - the sagas' list (`sagas/sagas.json`), and a saga page's review inbox
+ * - a docs page's comments (`<page>.inbox.json` beside it):  in `guides/`, `pages/`, a component set's `docs/`
+ * - a scratch details page's answer, draft and rows (`pages/details/`)
+ * - a commands page's data (`<page>.json` beside a page loading `commands.js`), and its template's
+ * - the choice page template's example rows (`templates/syntax-choices.rows.json`)
+ */
+export function dataFileMoves(root) {
+  const found = [
+    ...["epics/home.json", "epics/favorites.json", "sagas/sagas.json", "templates/syntax-choices.rows.json"].map(
+      (path) => join(root, path)
+    ),
+    ...filesUnder(join(root, "sagas"), INBOX),
+    ...filesUnder(join(root, "guides"), INBOX),
+    ...filesUnder(join(root, "pages"), INBOX),
+    ...filesUnder(join(root, "pages", "details"), DETAILS_DATA),
+    ...COMMAND_FOLDERS.flatMap((folder) => filesUnder(join(root, folder), /\.json$/)).filter(isCommandsData),
+    ...readdirOr(join(root, "packages")).flatMap((name) => filesUnder(join(root, "packages", name, "docs"), INBOX))
+  ]
+  return [...new Set(found)]
+    .filter((file) => existsSync(file))
+    .sort((one, other) => one.localeCompare(other))
+    .map((file) => DataFile.moveOf(file))
+}
+
+/** Rename `moves` (`dataFileMoves()`), each under its new name's lock, the one its writers take;  the renamed ones. */
+export function renameDataFiles(moves) {
+  return moves.filter((move) => withLocks([move.to], () => DataFile.rename(move)))
+}
+
+/**
+ * Point every page's links to a data file by its old name at its new one (`DataFile.linkFor()`), in checkout `root`:
+ * guides, details and choice pages, templates, saga pages, the list pages ...;  NOT an epic page or its parts (its
+ * own step's, `json5-data-files`).  Returns `{ file, links }` for each page with any, sorted.
+ * - only the links' text changes, every other byte kept;  each page under its lock
+ * - `dryRun`:  the same count, nothing written
+ */
+export function dataFileLinks(root, { dryRun = false } = {}) {
+  const pages = LINKING_FOLDERS.flatMap((folder) => filesUnder(join(root, folder), /\.html$/)).filter(
+    (file) => !EPIC_PAGE.test(relative(root, file).split(sep).join("/"))
+  )
+  const changed = []
+  for (const file of pages.sort((one, other) => one.localeCompare(other))) {
+    const links = withLocks(dryRun ? [] : [file], () => {
+      let count = 0
+      const before = readFileSync(file, "utf8")
+      const after = before.replace(HREF, (whole, open, href, close) => {
+        const to = DataFile.linkFor(href, dirname(file), root)
+        if (to === undefined) return whole
+        count++
+        return `${open}${to}${close}`
+      })
+      if (count && !dryRun) writeFileSync(file, after)
+      return count
+    })
+    if (links) changed.push({ file, links })
+  }
+  return changed
+}
+
+/** The data files' report:  what was (or would be) renamed, what's left with both names there, the links. */
+function dataFilesReport(moves, links, root, { dryRun = false } = {}) {
+  const renamed = moves.filter((move) => !move.clash)
+  const clashes = moves.filter((move) => move.clash)
+  const linked = links.reduce((sum, page) => sum + page.links, 0)
+  return [
+    ...renamed.map((move) => `${relative(root, move.from)}:  ${dryRun ? "would be " : ""}renamed ${basename(move.to)}`),
+    ...clashes.map(
+      (move) => `${relative(root, move.from)}:  LEFT, ${basename(move.to)} is there too (merge them by hand)`
+    ),
+    ...links.map(
+      ({ file, links: n }) =>
+        `${relative(root, file)}:  ${dryRun ? "would point " : ""}${n} link${n === 1 ? "" : "s"} to .json5`
+    ),
+    `data files:  ${renamed.length} ${dryRun ? "would be renamed" : "renamed"} .json -> .json5${clashes.length ? `, ${clashes.length} left` : ""};  ` +
+      `${linked} link${linked === 1 ? "" : "s"} in ${links.length} page${links.length === 1 ? "" : "s"}`
+  ]
+}
+
+/** Run the data files' pass in checkout `root` (renames, then links), and say what it did. */
+function migrateDataFiles(root, { dryRun = false } = {}, say) {
+  const moves = dataFileMoves(root)
+  if (!dryRun) renameDataFiles(moves)
+  const links = dataFileLinks(root, { dryRun })
+  for (const line of dataFilesReport(moves, links, root, { dryRun })) say(line)
+}
+
+/** The files under `folder` (any depth, never a split epic page's `parts/`, experiments or packages) matching `pattern`. */
+function filesUnder(folder, pattern) {
+  let names
+  try {
+    names = readdirSync(folder, { recursive: true, encoding: "utf8" })
+  } catch {
+    return []
+  }
+  return names.filter((name) => pattern.test(name) && !NOT_PAGES.test(name)).map((name) => join(folder, name))
+}
+
+/** The names in `folder`;  none when there's no folder. */
+function readdirOr(folder) {
+  return existsSync(folder) ? readdirSync(folder) : []
+}
+
+/** Is `file` a commands page's data:  `<page>.json` beside a `<page>.html` that loads `commands.js`? */
+function isCommandsData(file) {
+  const page = file.replace(/\.json$/, ".html")
+  return existsSync(page) && /\bcommands\.js\b/.test(readFileSync(page, "utf8"))
+}
+
+/** A page's old-named review or comments inbox. */
+const INBOX = /\.inbox\.json$/
+
+/** A details page's old-named answer (an archived round's too), draft or rows. */
+const DETAILS_DATA = /\.(answer|draft|rows)\.json$/
+
+/** Where commands pages and their template live. */
+const COMMAND_FOLDERS = ["guides", "templates"]
+
+/** The shared folders whose pages may link a data file. */
+const LINKING_FOLDERS = ["epics", "guides", "pages", "templates", "sagas", "brand"]
+
+/** An epic page, from the checkout's root:  `epics/<name>/<name>.plan.html` (or an older `<name>.html`). */
+const EPIC_PAGE = /^epics\/([^/]+)\/\1(\.plan)?\.html$/
+
+/** A link's address in a page's text:  `href="..."`, in its three parts. */
+const HREF = /(\bhref=")([^"]*)(")/g
+
+/** What's under a docs folder but no page's:  a split epic page's bodies, experiments, installed packages. */
+const NOT_PAGES = /(^|\/)(parts|experiments|node_modules)(\/|$)/
+
+/** The data files' renames, as `--step` and `--list` name them:  the epic page's step's name. */
+const DATA_FILES = "json5-data-files"
+
 /** A problem to say, not a stack trace:  exit 2. */
 export class MigrateError extends Error {}
 
@@ -252,9 +396,18 @@ export function main(argv, say = (line) => process.stdout.write(`${line}\n`)) {
     if (flags.list) {
       for (const step of STEPS.filter((each) => !kind || each.kinds.includes(kind)))
         say(`${step.kinds.join(",").padEnd(11)} ${step.date}  ${step.name.padEnd(24)} ${step.description}`)
+      if (!kind)
+        say(`${"data-files".padEnd(11)} 2026-10-14  ${DATA_FILES.padEnd(24)} the docs' data files:  .json -> .json5`)
       return 0
     }
     const step = typeof flags.step === "string" ? flags.step : undefined
+    const dryRun = Boolean(flags["dry-run"])
+    const dataFiles = !kind && typeof flags.file !== "string" && (!step || step === DATA_FILES)
+    if (step === DATA_FILES) {
+      if (!dataFiles) throw new MigrateError(`${DATA_FILES} renames files, not pages:  no <kind>, no --file`)
+      migrateDataFiles(root, { dryRun }, say)
+      return 0
+    }
     let pages
     if (typeof flags.file === "string") {
       const file = fileOf(flags.file, root)
@@ -267,9 +420,9 @@ export function main(argv, say = (line) => process.stdout.write(`${line}\n`)) {
       say(`${kindPages(kind)}:  no steps${step ? ` called ${step}` : ""} for them yet`)
       return 0
     }
-    const dryRun = Boolean(flags["dry-run"])
     const { results } = migratePages(pages, { step, dryRun })
     for (const line of report(results, root, { dryRun, all: typeof flags.file === "string" })) say(line)
+    if (dataFiles) migrateDataFiles(root, { dryRun }, say)
     return 0
   } catch (error) {
     if (!(error instanceof MigrateError)) throw error

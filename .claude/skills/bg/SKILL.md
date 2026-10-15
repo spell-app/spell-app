@@ -14,7 +14,7 @@ Hand a task to a helper agent that works in the background (epic `skillz`), so t
   - That's the root `CLAUDE.md`'s rule, "Delegated work".
   - This skill is that rule's full text.
 - The list:  `epic agents` ([agents.ts](packages/epics/tools/agents.ts)).
-  - In an epic, it's `epics/<epic>/agents.json`;  else `.spell-agents.json` at the checkout's root.
+  - In an epic, it's `epics/<epic>/agents.json5`;  else `.spell-agents.json5` at the checkout's root.
   - Git-ignored, and gone when empty.
 
 ## Forms

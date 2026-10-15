@@ -80,7 +80,7 @@ export const epicPageVocabulary = {
       kind: "string",
       format: "saga id",
       description:
-        "The saga this epic serves, by id (`drawable-spell`;  epic `epic-workflow` P15):  one of `sagas/sagas.json`'s, " +
+        "The saga this epic serves, by id (`drawable-spell`;  epic `epic-workflow` P15):  one of `sagas/sagas.json5`'s, " +
         "set by `epic saga set`.  Drawn in the meta lines, a link to its saga page;  absent:  no saga."
     },
     {

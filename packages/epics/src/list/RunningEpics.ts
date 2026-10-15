@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync, realpathSync, watch, type FSWatc
 import { homedir } from "node:os"
 import { basename, dirname, join, relative, sep } from "node:path"
 
+import { DataFile } from "$/epics/data/DataFile"
 import type { SRV } from "$/server"
 
 import { planDocIn } from "../../tools/pages.js"
@@ -14,7 +15,7 @@ import {
   epicStarHtml,
   eventTimesIn,
   lastWorked,
-  parseFavorites,
+  favoritesIn,
   type EpicGroupName,
   type PlacedCard,
   type SagaLook
@@ -225,11 +226,10 @@ export class RunningEpics {
 
   /** The starred epics' names (`FAVORITES_FILE`, shared:  the page server's `/api/epics/favorite` writes it). */
   favorites(): Set<string> {
-    const file = join(this.root, FAVORITES_FILE)
     try {
-      return parseFavorites(readFileSync(file, "utf8"))
+      return favoritesIn(DataFile.read(join(this.root, FAVORITES_FILE)))
     } catch {
-      // none starred yet:  no file
+      // a file that won't read:  none starred, rather than no list page
       return new Set()
     }
   }

@@ -146,6 +146,17 @@ describe("epicHome() and setEpicHome()", () => {
     CLI.setEpicHome(ROOT, "tooling")
     expect(CLI.epicHome(ROOT)).toBe("tooling")
   })
+
+  test("epics/home.json5 (epic `epic-workflow` P21):  its old home.json read;  a comment added by hand kept", () => {
+    const home = join(ROOT, "epics", "home.json5")
+    rmSync(home, { force: true })
+    writeFileSync(join(ROOT, "epics", "home.json"), '{ "epic": "tooling", "set": "2026-10-11" }')
+    expect(CLI.epicHome(ROOT)).toBe("tooling")
+    writeFileSync(home, '// Owen:  where tooling requests go\n{ "epic": "tooling", "set": "2026-10-11" }\n')
+    CLI.setEpicHome(ROOT, "tooling")
+    expect(readFileSync(home, "utf8")).toContain("// Owen:  where tooling requests go")
+    expect(existsSync(join(ROOT, "epics", "home.json"))).toBe(false)
+  })
 })
 
 describe("nextRequestId()", () => {

@@ -23,7 +23,7 @@
  *     - each headed by the saga's title linking its saga page
  *     - each guide under the saga its meta names (`<meta name="spell-saga" content="<id>">`)
  *     - and a "Misc" section last for the rest
- *   - Sagas:  a card per saga, in Owen's order (`sagas/sagas.json`, through `Sagas`)
+ *   - Sagas:  a card per saga, in Owen's order (`sagas/sagas.json5`, through `Sagas`)
  *     - its title linking its saga page (made or not yet), its purpose, how many epics and guides name it
  *   - Templates:  `templates/**`, and the "Writing docs" notes (`WRITING_DOCS`, in its skeleton)
  *   - Brand:  `brand/**`, in its section 6, but not the rich Brand index's own pages
@@ -54,10 +54,11 @@ import {
   epicSagaChipsHtml,
   eventTimesIn,
   lastWorked,
-  parseFavorites
+  favoritesIn
 } from "../src/list/EpicCards.ts"
 import { URGENT_SELECTOR } from "../src/list/EpicState.ts"
 import { COMPONENT_SETS } from "../../server/src/page/page.types.ts"
+import { DataFile } from "../src/data/DataFile.ts"
 import { Sagas } from "../src/tool/Sagas.ts"
 import { PageNotes } from "./PageNotes.js"
 import { BRAND, EPICS, GOALS, GUIDES, HOME, LIST_PAGES, ROOT, SAGAS, TEMPLATES, findPages, tidy } from "./pages.js"
@@ -224,12 +225,12 @@ function main() {
     console.log(`NOTE:  ${page.path} names saga "${page.saga}", which isn't in the list:  Misc`)
 }
 
-/** The sagas, in Owen's order (`sagas/sagas.json`, through `Sagas`);  none when the list is missing or won't read. */
+/** The sagas, in Owen's order (`sagas/sagas.json5`, through `Sagas`);  none when the list is missing or won't read. */
 export function readSagas() {
   try {
     return new Sagas(ROOT).list()
   } catch (error) {
-    console.error(`sagas/sagas.json won't read:  ${error.message}`)
+    console.error(`sagas/sagas.json5 won't read:  ${error.message}`)
     return []
   }
 }
@@ -684,10 +685,13 @@ ${body}
 </ui-section>`
 }
 
-/** The starred epics' names (`FAVORITES_FILE`, shared);  none when it's missing or won't read. */
+/** The starred epics' names (`FAVORITES_FILE`, shared;  its old `.json` too);  none when it's missing or won't read. */
 export function readFavorites() {
-  const file = join(ROOT, FAVORITES_FILE)
-  return parseFavorites(existsSync(file) ? readFileSync(file, "utf8") : undefined)
+  try {
+    return favoritesIn(DataFile.read(join(ROOT, FAVORITES_FILE)))
+  } catch {
+    return new Set()
+  }
 }
 
 /** Page `path` (from the checkout's root) as a link from folder `from` (a list page's):  `solid/solid-2.html`. */

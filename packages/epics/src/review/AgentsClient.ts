@@ -16,7 +16,7 @@ import { ServerLink } from "./ServerLink"
  * - it re-reads the list (`watch()`, as the review inbox does):
  *   - every `REVIEW_POLL_MS` while the page is visible
  *   - when the page becomes visible
- *   - when the page server says the list's file changed (`agents.json`, beside the epic page)
+ *   - when the page server says the list's file changed (`agents.json5`, beside the epic page)
  * - Node-safe at import, and without `watch()`:  no `window` / `document` touched;
  *   `fetch` comes in through `ServerLinkOptions`, so tests stub it
  * - Position in the import graph:  its peers (types, `ServerLink`) only.
@@ -100,7 +100,7 @@ export class AgentsClient {
     return true
   }
 
-  /** Keep the list fresh on `window`'s page (`ServerLink.watch()`, on `agents.json`).  Returns the undo. */
+  /** Keep the list fresh on `window`'s page (`ServerLink.watch()`, on `agents.json5`).  Returns the undo. */
   watch(window: Window): () => void {
     const listFile = this.link.file.replace(/[^/]*$/, AGENTS_FILE)
     return this.link.watch(window, listFile, () => void this.refresh())

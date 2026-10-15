@@ -627,7 +627,7 @@ The item's id chip follows too (PLAN-DOC.md "Colours"):
      A quick yes / no:  a modal.
    - A call made name by name (he wants each name's context before a rule's renames go in):
      a CHOICE page ([the Choice Pages guide](guides/syntax-choices.html)).
-     - `epic choices new <slug> --epic <name> --rows <rows.json>`.
+     - `epic choices new <slug> --epic <name> --rows <rows.json5>`.
      - Then `show <slug> --wait`, in the background.
    - "picks B · <card>, asks:  <note>" (a pick with a revisit, "B, but ..."):  `apply` leaves it.
      - `status ... underway`, then answer the note about B.

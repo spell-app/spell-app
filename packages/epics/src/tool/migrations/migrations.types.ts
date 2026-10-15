@@ -2,6 +2,7 @@
  * Types the epic page MIGRATIONS share (`Migrations`, each step, `MigrateCommands`).
  * - Data only:  nothing here runs.
  */
+import type { DataFileMove } from "$/epics/data/DataFile"
 
 /**
  * Every KIND of page a migration step can be for (epic `epic-workflow`, J44), by the names P14 proposes.
@@ -59,6 +60,10 @@ export type MigrationContext = {
   now: Date
   /** The page's epic, as its file names it (`seo` for `seo.plan.html`), when the runner knows the file. */
   epic?: string
+  /** The page's folder (`epics/seo`), when the runner knows the file:  for a step about the files beside it. */
+  folder?: string
+  /** The checkout's root, when the runner knows it. */
+  root?: string
   /**
    * The page's review inbox as it stands (its marks and comments:  `ReviewInbox`), when the runner read it
    * (`migrate`);  steps READ it, never write it:  they say what to change in `moves`.
@@ -73,6 +78,11 @@ export type MigrationContext = {
    * runner rekeys the inbox after the page, and after `moves` (`ReviewInbox.renameIds()`)
    */
   renames?: Record<string, string>
+  /**
+   * Data files to rename (`json5-data-files`:  `seo.inbox.json` => `seo.inbox.json5`), which the runner renames after
+   * the page (`DataFile.rename()`);  a clash (both names there) is left
+   */
+  files?: DataFileMove[]
 }
 
 /** What a step reads of a review inbox:  the keys of what's waiting on an item, and each comment's place. */

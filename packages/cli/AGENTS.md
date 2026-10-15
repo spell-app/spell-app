@@ -89,7 +89,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - A new or renamed command:
     FIRST [the commands guide](../../guides/dev/commands/commands.md) (root `AGENTS.md`, "Commands").
     - Suggest where it belongs.
-    - Then add it to the commands page's `commands.json`, and run `spell dev commands check`.
+    - Then add it to the commands page's `commands.json5`, and run `spell dev commands check`.
   - `spell dev commands` reads the TEXT of the command trees, for each `<receiver>.command(...)` call.
     - The files:  [main.ts](src/main.ts), [devProgram.ts](src/devProgram.ts), [epicProgram.ts](src/epicProgram.ts).
     - The calls:

@@ -366,7 +366,7 @@ ui -> util
   - `brand/` -- the Brand tab's pages ([brand's AGENTS.md](packages/brand/AGENTS.md)):
     Claude Design's exports and their Spell UI copies
   - `sagas/` -- the SAGAS, each an epic of epics (epic `epic-workflow` P15):
-    - `sagas/sagas.json`:  the list, in Owen's order;  changed only through `epic saga ...`
+    - `sagas/sagas.json5`:  the list, in Owen's order;  changed only through `epic saga ...`
     - `sagas/<id>/<id>.saga.html`:  each saga's page;  `sagas/index.html`:  the Sagas list page, the top bar's tab
     - an epic names its saga with `<epic-page saga="<id>">`, a guide with `<meta name="spell-saga" content="<id>">`
   - `goals/` -- the first saga pages (once goal sets), PARKED since 2026-10-11 (epic `epic-workflow` P6):
@@ -484,7 +484,7 @@ ui -> util
 
 - Three ways to make the repo do something:  the `spell` CLI, Claude skills, yarn scripts.
 - Their map, one row per operation:  [the commands page](guides/dev/commands/commands.html).
-  - Its data:  `commands.json` beside it.
+  - Its data:  `commands.json5` beside it.
   - Shown by the page server:  `spell dev docs open guides/dev/commands/commands.html`.
 - Target:  the CLI drives everything.
   - Repo tools are `spell dev <noun> <verb>`.
@@ -494,8 +494,8 @@ ui -> util
   - READ [the commands guide](guides/dev/commands/commands.md).
   - Then SUGGEST, before building:  where it belongs, its name, what it replaces,
     which roadmap move it advances.
-- MUST keep the page true in the same change:  `commands.json`, then `spell dev commands check`.
-  - `commands.json` and `commands.md` are shared, but the check reads each branch's CLI.
+- MUST keep the page true in the same change:  `commands.json5`, then `spell dev commands check`.
+  - `commands.json5` and `commands.md` are shared, but the check reads each branch's CLI.
   - So a branch adding a command can make main's check fail until it merges
     ([the code-debt log](agents/CODE-DEBT.md), "docs").
 - Tools are TypeScript (or node JS in [the docs tools](packages/epics/tools/)), never python:  one language.

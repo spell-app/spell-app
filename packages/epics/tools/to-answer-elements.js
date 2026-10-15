@@ -6,7 +6,7 @@
  *   drawn by `_assets/details.js`, becomes a `<ui-section>` holding an `<epic-ask>` of an `<epic-question>` and an
  *   `<epic-choices>` of `<epic-option>`s;  the comment boxes, notes and Send that script added become
  *   `<epic-text-box>`es and an `<epic-send>`, written into the page
- * - a SYNTAX-CHOICES page (`convertChoicesPage()`):  its tables, drawn from `<slug>.rows.json` by
+ * - a SYNTAX-CHOICES page (`convertChoicesPage()`):  its tables, drawn from `<slug>.rows.json5` by
  *   `_assets/syntax-choices.js`, are written into the page from that file, as `<epic-choice-rows>` of
  *   `<epic-choice-row>`s, with its `<epic-choices-bar>`
  * - both:  the meta list and the "Where we are" box become `<epic-field label>`s, and the page loads the epics pack

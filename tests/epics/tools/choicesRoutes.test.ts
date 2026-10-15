@@ -44,7 +44,7 @@ beforeAll(async () => {
   )
   for (const page of CHOICES)
     writeFileSync(
-      join(root, page.replace(/\.html$/, ".rows.json")),
+      join(root, page.replace(/\.html$/, ".rows.json5")),
       JSON.stringify({ rows: [{ id: "a" }, { id: "b" }] })
     )
   server = new PageServer({ root })
@@ -93,9 +93,9 @@ async function get(what: "draft" | "answer", path: string) {
   return { status: got.status, body: got.status === 200 ? JSON.parse(got.text) : undefined }
 }
 
-/** the JSON file `<slug>.<kind>.json` beside page `relative` */
+/** the data file `<slug>.<kind>.json5` beside page `relative` */
 function written<T>(relative: string, kind: "draft" | "answer"): T {
-  return JSON.parse(readFileSync(join(root, relative.replace(/\.html$/, `.${kind}.json`)), "utf8"))
+  return JSON.parse(readFileSync(join(root, relative.replace(/\.html$/, `.${kind}.json5`)), "utf8"))
 }
 
 test("a draft is saved beside the page, read back, and never makes an answer", async () => {
@@ -107,7 +107,7 @@ test("a draft is saved beside the page, read back, and never makes an answer", a
     feedback: "looks right"
   })
   expect((await get("draft", "/pages/details/names.html")).body.draft.values).toEqual({ a: "isA" })
-  expect(existsSync(join(root, "pages/details/names.answer.json"))).toBe(false)
+  expect(existsSync(join(root, "pages/details/names.answer.json5"))).toBe(false)
 })
 
 test("Do it writes the answer and the draft;  sent again, changes counts up", async () => {

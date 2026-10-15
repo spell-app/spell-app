@@ -20,6 +20,9 @@ const COMMENT_FOLDERS = ["guides", "pages", "epics"]
 /** Folders under those that hold no pages of their own:  a split epic page's bodies, experiments' output. */
 const SKIPPED = /(^|\/)(parts|experiments|node_modules)(\/|$)/
 
+/** A docs page's inbox file, by its name or its old one (epic `epic-workflow` P21):  `<page>.inbox.json5`. */
+const INBOX_FILE = /\.inbox\.json5?$/
+
 /** The kickoff prompt of the epic, when the first gather makes it. */
 const PROMPT =
   "Owen's comments on the docs pages (guides, the home page, epics' own pages), gathered from each page's inbox by " +
@@ -31,7 +34,7 @@ const PROMPT =
  * Gathers the comments Owen left on docs pages into ONE epic, `guide-changes` (epic `airplane`, P11):
  * `epic comments gather` (`comments.ts`), and `/airplane land`.
  * - what it gathers, per page:
- *   - its inbox's comments still waiting (`GuideInbox`, `<page>.inbox.json`;  `CommentList` `waiting`), on a page
+ *   - its inbox's comments still waiting (`GuideInbox`, `<page>.inbox.json5`;  `CommentList` `waiting`), on a page
  *     NO epic owns (`SeeAlso.ownerOf()`, epic `epic-workflow` P13):  an owned page's go to its epic's session with
  *     the page's Send (`plan-doc inbox <epic> wait`), or wait for its next `/epic review`;  a page the caller names
  *     is gathered all the same
@@ -73,7 +76,7 @@ export class GuideChanges {
     }
     const owners = new SeeAlso(this.root)
     for (const inbox of this.inboxFiles()) {
-      const page = relative(this.root, inbox).replace(/\.inbox\.json$/, ".html")
+      const page = relative(this.root, inbox).replace(INBOX_FILE, ".html")
       // another epic's page:  its comments are that epic's, unless the caller named the page
       const owner = !pages && owners.ownerOf(page)
       if (owner && owner !== this.epic) continue
@@ -209,7 +212,10 @@ export class GuideChanges {
   // ## Finding inboxes
   ////////////////
 
-  /** Every docs page's inbox file (`<page>.inbox.json` beside a `<page>.html`, never an epic page's), sorted. */
+  /**
+   * Every docs page's inbox file (`<page>.inbox.json5` beside a `<page>.html`, never an epic page's), sorted.
+   * - by its `.json5` name, also when only its old `.json` is there (`GuideInbox.read()` reads either)
+   */
   inboxFiles(): string[] {
     return COMMENT_FOLDERS.flatMap((folder) => {
       const top = join(this.root, folder)
@@ -219,11 +225,11 @@ export class GuideChanges {
       } catch {
         return []
       }
-      return names
-        .filter((name) => name.endsWith(".inbox.json") && !SKIPPED.test(name))
-        .map((name) => join(top, name))
-        .filter((file) => existsSync(file.replace(/\.inbox\.json$/, ".html")))
-        .sort()
+      const pages = names
+        .filter((name) => INBOX_FILE.test(name) && !SKIPPED.test(name))
+        .map((name) => join(top, name.replace(INBOX_FILE, ".html")))
+        .filter((page) => existsSync(page))
+      return [...new Set(pages)].map((page) => GuideInbox.fileFor(page)).sort()
     })
   }
 }

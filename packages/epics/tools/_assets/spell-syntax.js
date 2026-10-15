@@ -27,8 +27,8 @@
  *     the second example's `AssignmentStatement.js.2`, and so on.
  *   - Saved through the syntax-choices routes (`choicesRoutes.ts`), never into the code:
  *     - 5s after typing stops, and as the page goes away:
- *       `POST /api/docs/choices/draft`, `spell-syntax.draft.json` beside the page
- *     - Send:  `POST /api/docs/choices/answer`, `spell-syntax.answer.json`, which `epic choices wait <page>` exits with
+ *       `POST /api/docs/choices/draft`, `spell-syntax.draft.json5` beside the page
+ *     - Send:  `POST /api/docs/choices/answer`, `spell-syntax.answer.json5`, which `epic choices wait <page>` exits with
  *   - Kept apart from the generated data, so regenerating it keeps them:
  *     a box whose code now says what Owen typed is no longer a change, and one for a rule that's gone is kept as is.
  * - The WAND beside each purpose asks Claude for more details there:

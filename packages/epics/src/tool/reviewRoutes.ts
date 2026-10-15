@@ -3,12 +3,12 @@
  * root's `package.json` `"pageServer": { "routes": [...] }`.
  * - Owen marks an epic page's items ON the page (the elements' review controls, `$/epics/review`):
  *   approve, todo, details, revisit, pick an option card, an id chip's urgency.
- *   The marks wait in the doc's INBOX FILE, `<name>.inbox.json` beside `<name>.plan.html` (`ReviewInbox`),
+ *   The marks wait in the doc's INBOX FILE, `<name>.inbox.json5` beside `<name>.plan.html` (`ReviewInbox`),
  *   until a Claude session takes them (P6 of `review-review`, `spell dev plan-doc inbox`)
  * - `page`:  the epic page's URL path, as it was served:
  *   `/epics/x/x.plan.html`, or a worktree's `/worktrees/<w>/...` on the main checkout's server.
  *   ONLY an epic page, or a SAGA page (`/sagas/x/x.saga.html`, epic `epic-workflow` P15):  anything else is a 403
- *   - a saga page's marks and comments wait in its own inbox, `<id>.inbox.json` beside it, the same shape;
+ *   - a saga page's marks and comments wait in its own inbox, `<id>.inbox.json5` beside it, the same shape;
  *     the session that takes them is the one running `/epic review SAGA:/<id>` (`SAGA_PREFIX`)
  * - every answer is the whole inbox, as `ReviewInbox` keeps it (an empty one when there's no file),
  *   except a `listening` whose heartbeat stopped:

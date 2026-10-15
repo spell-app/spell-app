@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
 import { dirname, join } from "path"
-import { afterAll, describe, expect, test } from "vite-plus/test"
+import { afterAll, describe, expect, test, vi } from "vite-plus/test"
 
 import { CLI } from "$/cli"
 
@@ -56,6 +56,31 @@ describe("pageNames()", () => {
       families: [{ rows: [{ cli: { names: "spell compile" }, yarn: { names: ["root ts", "parser test"] } }, {}] }]
     })
     expect([...names].sort()).toEqual(["parser test", "root ts", "spell compile"])
+  })
+})
+
+describe("the commands page's data (epic `epic-workflow` P21)", () => {
+  /** `spell dev commands list --json` in checkout `ROOT`:  what it printed, parsed. */
+  async function listed(): Promise<{ commands: { name: string; named: boolean }[] }> {
+    const printed: string[] = []
+    const out = vi.spyOn(CLI.CliSession.prototype, "out").mockImplementation((text) => void printed.push(text))
+    const cwd = process.cwd()
+    process.chdir(ROOT)
+    try {
+      expect(await CLI.commandsCommand(new CLI.CliSession(), ["list"], { json: true } as CLI.CommandsOptions)).toBe(0)
+    } finally {
+      process.chdir(cwd)
+      out.mockRestore()
+    }
+    return JSON.parse(printed.join(""))
+  }
+
+  test("its old commands.json still read;  commands.json5 first, comments and all", async () => {
+    const page = { families: [{ rows: [{ cli: { names: "spell compile" } }] }] }
+    write(ROOT, "guides/dev/commands/commands.json", page)
+    expect((await listed()).commands.find((it) => it.name === "spell compile")?.named).toBe(true)
+    write(ROOT, "guides/dev/commands/commands.json5", `// Owen:  the rows\n${JSON.stringify({ families: [] })}`)
+    expect((await listed()).commands.find((it) => it.name === "spell compile")?.named).toBe(false)
   })
 })
 

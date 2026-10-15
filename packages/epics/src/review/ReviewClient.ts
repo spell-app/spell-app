@@ -198,7 +198,7 @@ export class ReviewClient {
    *   never a connection of our own, each holds one of Chrome's 6 per host)
    */
   watch(window: Window): () => void {
-    const inboxFile = this.link.file.replace(/(?:\.plan)?\.html$/, ".inbox.json")
+    const inboxFile = this.link.file.replace(/(?:\.plan|\.saga)?\.html$/, ".inbox.json5")
     return this.link.watch(window, inboxFile, () => void this.refresh())
   }
 

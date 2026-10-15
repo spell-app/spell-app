@@ -220,6 +220,12 @@ export type LiveSession = {
   used: boolean
 }
 
+/**
+ * The commands page's data, from a checkout's root (`spell dev commands`, `spell dev pack new`):  a data file
+ * (`DataFile`, epic `epic-workflow` P21), JSON5, its old `commands.json` read while there's no `.json5`.
+ */
+export const COMMANDS_JSON = "guides/dev/commands/commands.json5"
+
 /** Entrypoints of LOCAL sessions:  web, cloud and SDK sessions are left out. */
 export const LOCAL_ENTRYPOINTS = new Set(["cli", "claude-vscode", "claude-desktop"])
 

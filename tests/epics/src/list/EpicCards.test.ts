@@ -9,7 +9,7 @@ import {
   epicWorkedHtml,
   eventTimesIn,
   lastWorked,
-  parseFavorites,
+  favoritesIn,
   readEpicDate
 } from "$/epics/list/EpicCards"
 import { epicStateFor } from "$/epics/list/EpicState"
@@ -93,9 +93,9 @@ describe("last worked", () => {
   })
 })
 
-test("parseFavorites():  a JSON list of names;  anything else is none", () => {
-  expect(parseFavorites('["airplane", 3, "seo"]')).toEqual(new Set(["airplane", "seo"]))
-  expect(parseFavorites("{}")).toEqual(new Set())
-  expect(parseFavorites("not json")).toEqual(new Set())
-  expect(parseFavorites(undefined)).toEqual(new Set())
+test("favoritesIn():  a list of names;  anything else is none", () => {
+  expect(favoritesIn(["airplane", 3, "seo"])).toEqual(new Set(["airplane", "seo"]))
+  expect(favoritesIn({})).toEqual(new Set())
+  expect(favoritesIn("not a list")).toEqual(new Set())
+  expect(favoritesIn(undefined)).toEqual(new Set())
 })
