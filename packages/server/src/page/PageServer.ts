@@ -41,6 +41,8 @@ import {
  *   `start()` builds the stale ones in the background (`BundleBuild`),
  *   and a request for one of their files waits while that runs
  * - route modules (`RouteModule`) from the root `package.json`'s `"pageServer"` add the rest, e.g. the running epics
+ * - `/_epic/assets/...`, `/_epic/pack/...` -> the engine's files, at the routes spell-epic's server serves them at,
+ *   which migrated pages load (`engineRoutePath()`, epic `epic-eject` P7)
  * - NO redirects for old URLs (epic `people-and-orgs`, Q30):  an old address answers "not found"
  *   - until `people-and-orgs` merges into `main`, two temporary bridges
  *     for the SHARED pages, which every checkout shows:
@@ -102,14 +104,15 @@ export class PageServer {
         worktree: this.info.worktree,
         // a worktree's page served from here (`/worktrees/<w>/`):  ITS branch and name, for the header's badge
         ...(this.worktrees && worktreeOf(served.file, this.worktrees)),
-        ...(this.worktrees && { worktrees: this.worktrees }),
+        // and as the URL path live reload reports their changes under (`SRV.servedPath()`)
+        ...(this.worktrees && { worktrees: this.worktrees, worktreesPath: urlPathOf(this.root, this.worktrees) }),
         edit: PageEditor.PREFIX,
         etag: SRV.StaticHandler.etagOf(statSync(served.file)),
         // e.g. Owen is offline, no Claude:  pages say "queued for when you land" (epics' airplane mode)
         ...Object.assign({}, ...this.pageConfigs.map((add) => add(served)))
       })
     })
-    this.web.files.overlays.push(componentSetPath, movedFolderPath)
+    this.web.files.overlays.push(componentSetPath, movedFolderPath, engineRoutePath)
     const router = this.web.router
     router.get("/", (_request, reply) => reply.redirect(DOCS_HOME))
     // TEMPORARY (until the merge):  what this branch moved out of the shared folders, though they still hold it
@@ -155,6 +158,9 @@ export class PageServer {
       this.web.live!.watch(join(this.root, set.dir), { servedAt: set.prefix })
       this.web.live!.watch(join(this.root, set.assets), { servedAt: `${set.prefix}/${SET_ASSETS}` })
     }
+    // the engine's files at their routes too, so a page loading `/_epic/...` hot-reloads them (`engineRoutePath()`)
+    for (const [route, folder] of ENGINE_ROUTES)
+      this.web.live!.watch(join(this.root, folder.slice(1)), { servedAt: route })
     if (routes) for (const path of settings.routes ?? []) await this.loadRoutes(path)
     const { port: actual } = await this.web.listen({ port })
     this.info.port = actual
@@ -251,6 +257,15 @@ export class PageServer {
 /** `html`, its cdnjs highlight.js tag (`HIGHLIGHT_JS.cdn`) pointing at the repo's copy:  pages load offline. */
 export function localHighlight(html: string): string {
   return html.replaceAll(HIGHLIGHT_JS.cdn, HIGHLIGHT_JS.local)
+}
+
+/**
+ * Folder `dir` as a URL path from `root`, ending `/`:  `/.claude/worktrees/` for `<root>/.claude/worktrees`.
+ * - outside `root` (worktrees beside the repo):  its `../` path, as `LiveReload` reports a file there
+ */
+export function urlPathOf(root: string, dir: string): string {
+  const inside = relative(root, dir).split(sep).map(encodeURIComponent).join("/")
+  return `/${inside}${inside ? "/" : ""}`
 }
 
 /** `page/cli.ts`:  `spell dev server`. */
@@ -370,6 +385,25 @@ export function movedFolderPath(path: string): string | undefined {
 const MOVED_FOLDERS: readonly (readonly [from: string, to: string])[] = [
   ["/packages/docs/tools/_assets", "/packages/epics/tools/_assets"],
   ["/packages/epics/pack", "/packages/epics/components/__pack"]
+]
+
+/**
+ * The URL path an ENGINE ROUTE serves from in this checkout:  `/_epic/assets/<x>` => `/packages/epics/tools/_assets/<x>`,
+ * `/_epic/pack/<x>` => `/packages/epics/components/__pack/<x>`;  else `undefined`.
+ * - the routes spell-epic's one page server per machine serves the engine at (epic `epic-eject` P7):  the shared pages
+ *   load the engine from them once migrated (`engine-asset-routes`), and this server must draw them too
+ * - TEMPORARY:  until spell-app's pages are served by spell-epic's server (the switch, I5 of `epic-eject`)
+ * - a `StaticHandler` overlay:  served only when the file is there
+ */
+export function engineRoutePath(path: string): string | undefined {
+  const route = ENGINE_ROUTES.find(([prefix]) => path.startsWith(prefix))
+  return route && `${route[1]}${path.slice(route[0].length)}`
+}
+
+/** The engine's routes (`engineRoutePath()`):  each URL prefix, and the folder it is in this checkout, as a URL path. */
+const ENGINE_ROUTES: readonly (readonly [route: string, folder: string])[] = [
+  ["/_epic/assets/", "/packages/epics/tools/_assets/"],
+  ["/_epic/pack/", "/packages/epics/components/__pack/"]
 ]
 
 /**

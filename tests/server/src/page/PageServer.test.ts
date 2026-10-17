@@ -4,7 +4,16 @@ import { join } from "node:path"
 import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
 import { SRV } from "$/server"
-import { HIGHLIGHT_JS, PageServer, componentSetPath, findById, movedFolderPath, replaceById } from "$/server/page"
+import {
+  HIGHLIGHT_JS,
+  PageServer,
+  componentSetPath,
+  engineRoutePath,
+  findById,
+  movedFolderPath,
+  replaceById,
+  urlPathOf
+} from "$/server/page"
 import { ask } from "$/server/test/serve"
 
 /** A page whose formatting an edit must keep, byte for byte. */
@@ -210,6 +219,29 @@ describe("PageServer", () => {
     writeFileSync(join(worktree, "packages", "ui", "site", "_assets", "sets", "site.js"), "// w\n")
     expect((await ask(port, "GET", "/worktrees/w/components/epics/")).text).toContain("<p>W</p>")
     expect((await ask(port, "GET", "/worktrees/w/components/epics/_assets/site.js")).text).toBe("// w\n")
+    // and pages are told the folder, and the URL path live reload reports its files under (`SRV.servedPath()`)
+    expect(await config()).toMatchObject({
+      worktrees: join(root, ".claude", "worktrees"),
+      worktreesPath: "/.claude/worktrees/"
+    })
+  })
+
+  it("urlPathOf():  a folder as a URL path from the root, inside it or beside it", () => {
+    expect(urlPathOf("/r/app", "/r/app/.claude/worktrees")).toBe("/.claude/worktrees/")
+    expect(urlPathOf("/r/app", "/r/app.worktrees")).toBe("/../app.worktrees/")
+    expect(urlPathOf("/r/app", "/r/app")).toBe("/")
+  })
+
+  it("serves the engine's routes (/_epic/assets/, /_epic/pack/) from its own epics package (engineRoutePath())", async () => {
+    mkdirSync(join(root, "packages", "epics", "tools", "_assets"), { recursive: true })
+    writeFileSync(join(root, "packages", "epics", "tools", "_assets", "engine.js"), "// engine\n")
+    mkdirSync(join(root, "packages", "epics", "components", "__pack"), { recursive: true })
+    writeFileSync(join(root, "packages", "epics", "components", "__pack", "epics.pack.js"), "// pack\n")
+    expect((await ask(port, "GET", "/_epic/assets/engine.js")).text).toBe("// engine\n")
+    expect((await ask(port, "GET", "/_epic/pack/epics.pack.js")).text).toBe("// pack\n")
+    expect((await ask(port, "GET", "/_epic/assets/missing.js")).status).toBe(404)
+    expect(engineRoutePath("/_epic/assets/emoji/cldr/a.js")).toBe("/packages/epics/tools/_assets/emoji/cldr/a.js")
+    expect(engineRoutePath("/epics/x.html")).toBeUndefined()
   })
 
   it('answers "not found" at the sets\' old addresses:  no redirect (Q30)', async () => {

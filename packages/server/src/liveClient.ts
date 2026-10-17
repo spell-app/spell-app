@@ -34,6 +34,11 @@ export type ServerConfig = {
   worktree?: string
   /** the folder `/worktrees/<w>/` serves, on the main checkout's server (`PageServer.serveWorktrees()`) */
   worktrees?: string
+  /**
+   * that folder as a URL path from the server's root, as live reload reports a worktree's changes:
+   * `/.claude/worktrees/` (`servedPath()`;  epic `epic-eject` P7)
+   */
+  worktreesPath?: string
   edit?: string
   /**
    * airplane mode is on:  Owen works with no Claude, everything waits for `/airplane land` (epics' `AirplaneMode`,
@@ -343,7 +348,7 @@ export function liveClient(): void {
 
   /** Does stylesheet `sheet` (at `href`) come from `path`, or `@import` it? */
   function usesSheet(sheet: CSSStyleSheet | null, href: string | null, path: string): boolean {
-    if (href && servedPath(href, location.href) === path) return true
+    if (href && servedPath(href, location.href, config!.worktreesPath) === path) return true
     try {
       for (const rule of Array.from(sheet?.cssRules ?? []))
         if (rule instanceof CSSImportRule && usesSheet(rule.styleSheet, rule.styleSheet?.href ?? rule.href, path))
@@ -362,7 +367,8 @@ export function liveClient(): void {
     const found = new Set(fetched)
     const tags = 'script[src], link[rel="modulepreload"][href]'
     for (const tag of document.querySelectorAll<HTMLScriptElement | HTMLLinkElement>(tags)) {
-      const path = servedPath(tag instanceof HTMLScriptElement ? tag.src : tag.href, location.href)
+      const url = tag instanceof HTMLScriptElement ? tag.src : tag.href
+      const path = servedPath(url, location.href, config!.worktreesPath)
       if (path) found.add(path)
     }
     return [...found]
@@ -377,7 +383,9 @@ export function liveClient(): void {
   function watchFetches() {
     const keep = (entries: PerformanceEntryList) => {
       for (const entry of entries) {
-        const path = /\.m?js([?#]|$)/.test(entry.name) ? servedPath(entry.name, location.href) : undefined
+        const path = /\.m?js([?#]|$)/.test(entry.name)
+          ? servedPath(entry.name, location.href, config!.worktreesPath)
+          : undefined
         if (path) fetched.add(path)
       }
     }
@@ -900,18 +908,18 @@ export type LiveAction = "page" | "style" | "script" | "ignore" | "file"
 /**
  * URL `url`, fetched by a page at `base`, as the server reports its changes;  `undefined` for another origin's.
  * - the path, without query or hash
- * - a worktree's file through the main server's `/worktrees/<w>/...`:  `/.claude/worktrees/<w>/...`,
+ * - a worktree's file through the main server's `/worktrees/<w>/...`:  `<worktreesPath><w>/...`,
  *   its path from the main checkout (as `LiveReload` reports it, and as `SPELL_SERVER.file` names a worktree's page)
- *   - `WORKTREES_PATH`:  the worktrees' folder as that path, its default place;  the page can't read the repo's
- *     `.epic/config.json5`.  HACK:  assumes worktrees inside the main checkout (epic `epic-eject` P7)
+ *   - `worktreesPath`:  the worktrees' folder as that path, as the server tells the page
+ *     (`SPELL_SERVER.worktreesPath`:  the repo's `.epic/config.json5` through `PageServer.serveWorktrees()`;
+ *     epic `epic-eject` P7)
+ *   - none told (a server serving no worktrees, or one from before P7):  `/.claude/worktrees/`, their default place
  * - MUST stay self-contained:  `liveClientScript()` serves it beside `liveClient()`
  */
-export function servedPath(url: string, base: string): string | undefined {
-  // here, not at module level:  this function is served on its own, as text
-  const WORKTREES_PATH = "/.claude/worktrees/"
+export function servedPath(url: string, base: string, worktreesPath = "/.claude/worktrees/"): string | undefined {
   const at = new URL(url, base)
   if (at.origin !== new URL(base).origin) return undefined
-  return at.pathname.replace(/^\/worktrees\//, WORKTREES_PATH)
+  return at.pathname.replace(/^\/worktrees\//, worktreesPath)
 }
 
 /**

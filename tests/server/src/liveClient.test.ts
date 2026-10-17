@@ -131,6 +131,14 @@ describe("servedPath()", () => {
     const url = "http://127.0.0.1:4747/worktrees/seo/packages/epics/tools/_assets/spell-ui.js"
     expect(SRV.servedPath(url, base)).toBe("/.claude/worktrees/seo/packages/epics/tools/_assets/spell-ui.js")
   })
+
+  test("the worktrees' folder as the server tells it (`SPELL_SERVER.worktreesPath`):  beside the repo too", () => {
+    const url = "http://127.0.0.1:4747/worktrees/seo/packages/epics/tools/_assets/spell-ui.js"
+    expect(SRV.servedPath(url, base, "/../spell-app.worktrees/")).toBe(
+      "/../spell-app.worktrees/seo/packages/epics/tools/_assets/spell-ui.js"
+    )
+    expect(SRV.servedPath("http://127.0.0.1:4747/epics/x.js", base, "/w/")).toBe("/epics/x.js")
+  })
 })
 
 describe("reloadGate():  one hot reload, not while typing", () => {

@@ -73,6 +73,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - A worktree's pages on the main server (`/worktrees/<w>/`):
       epics' `RunningEpics` reports that worktree's docs assets and packs too, as `/.claude/worktrees/<w>/...`,
       the path the live client reads them under (`servedPath()`).
+      - That path is the worktrees' folder from the root, which the server tells every page:
+        `SPELL_SERVER.worktreesPath` (`urlPathOf()`, epic `epic-eject` P7), so worktrees beside the repo work too.
   - `Guard` -- `Host` check, per-run token, same-origin writes
   - `PidFile` -- a background server's `.spell-server.json`, at its root:  status, ensure, stop.
     - `ensure` restarts a server that started before its code last changed.
@@ -110,7 +112,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
         [runningRoutes.ts](../epics/src/list/runningRoutes.ts), which also answers `/api/epics/running`.
       - Why:  the worktrees' folder is the repo's `.epic/config.json5`'s (epics' `EpicConfig`),
         and this package imports no other.
-      - It then tells pages and `/api/server` the folder:  `worktrees`.
+      - It then tells pages and `/api/server` the folder:  `worktrees` (and pages its URL path, `worktreesPath`).
+    - It serves the ENGINE ROUTES too, `/_epic/assets/` and `/_epic/pack/`, from this checkout's epics package
+      (`engineRoutePath()`, epic `epic-eject` P7):  where spell-epic's one server per machine serves the engine, and
+      where migrated pages load it from.
+      - TEMPORARY:  until spell-app's pages are served by spell-epic's server (I5 of `epic-eject`).
     - Route modules add to every page's `window.SPELL_SERVER`:  `addPageConfig()`.
       - e.g. epics' airplane mode ([airplaneRoutes.ts](../epics/tools/airplaneRoutes.ts)),
         whose switch, `AirplaneMode`, moved to epics in `epic-eject` P4.
