@@ -29,7 +29,10 @@ this session builds, SEND it, don't do it:  `/send` (`.claude/skills/send/`) wri
 - NOT this session's own epic's content ("fix P4's file list"):  that's its job.  Unsure:  ask in the modal.
 - The tooling home's own session (`🚧 <home>`) does tooling work itself.
 
-When a summary closes out the session's work (merged, worktree gone, `/isolate done`, a `/bedtime` night reviewed ...), end it with a line of its own, `*You can close this tab*`, if nothing is left for THIS session:  no uncommitted or unmerged work, no background task or agent still running, no question waiting on Owen.  Open items may remain only if they're recorded elsewhere (epic page, `agents/CODE-DEBT.md` ...) and need no context from this session.  Otherwise leave the line out, and say what's keeping the tab open.
+When a summary closes out the session's work (merged, worktree gone, a worktree left with `ExitWorktree`, `/isolate done`, a `/bedtime` night reviewed ...), end it with a line of its own, `*You can close this tab*`, if nothing is left for THIS session:  no uncommitted or unmerged work, no background task or agent still running, no question waiting on Owen.  Open items may remain only if they're recorded elsewhere (epic page, `agents/CODE-DEBT.md` ...) and need no context from this session.  Otherwise leave the line out, and say what's keeping the tab open.
 - With the closing line, ALSO ask (AskUserQuestion) whether to run `/isolate done` when this session's worktree is
   still there (or the worktrees it made and left:  `/isolate done`'s step 0 cleans those up):  options "Run
   `/isolate done`" (recommended) and "Leave it" (Owen, 2026-10-07).
+- Leaving a worktree counts (`ExitWorktree`, keep or remove;  Owen, 2026-10-17, epic `epic-eject` r1):  the reply
+  that says the session left ends with the line, on the same checks.  Kept, the worktree is still on disk:  ask the
+  question above too.

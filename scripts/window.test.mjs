@@ -17,11 +17,13 @@ import {
   LOOKS,
   Window,
   claudeSessions,
+  launchPlan,
   look,
   parseLsof,
   processTable,
   stayAdvice,
   tint,
+  titledFor,
   withLook,
   withoutStay,
   withStay,
@@ -474,6 +476,96 @@ test("stayAdvice():  stay when it's the window's only session;  else a window of
 
   // no bridge:  a new window can't open, so staying is all there is
   assert.equal(stayAdvice({ window: null, others: [{ pid: 302, cwd: "/repo" }] }).recommend, "stay")
+})
+
+test("launchPlan():  wake the epic's running session;  else a new one in its open window;  open it only when it's closed", () => {
+  const session = (id, more = {}) => ({
+    sessionId: id,
+    title: "🚧 seo",
+    self: false,
+    inWindow: true,
+    window: {},
+    ...more
+  })
+  const plan = (windowOpen, sessions) => {
+    const { action, rewrite, open, start, wake } = launchPlan({ windowOpen, sessions })
+    return { action, rewrite, open, start, wake: wake?.sessionId ?? null }
+  }
+  const neither = { rewrite: false, open: false, start: false, wake: null }
+  // Owen's r2:  the epic's window open, its session running there:  typed into it, the window file left alone
+  assert.deepEqual(plan(true, [session("a")]), { ...neither, action: "wake", wake: "a" })
+  // its window open, no session:  a new one there, still no rewrite
+  assert.deepEqual(plan(true, []), { ...neither, action: "start", start: true })
+  // closed, nothing running:  the old way, a fresh look
+  assert.deepEqual(plan(false, []), { action: "open", rewrite: true, open: true, start: true, wake: null })
+  // closed, but its session runs in another window (it stayed in a main one):  woken there
+  assert.deepEqual(plan(false, [session("b", { inWindow: false })]), { ...neither, action: "wake", wake: "b" })
+  // its window's own session wins over one elsewhere
+  assert.deepEqual(plan(true, [session("b", { inWindow: false }), session("a")]), {
+    ...neither,
+    action: "wake",
+    wake: "a"
+  })
+  // several:  nothing typed;  a terminal's:  nothing either;  the caller is the epic's own:  nothing to wake
+  const several = launchPlan({ windowOpen: true, sessions: [session("a"), session("c")] })
+  assert.equal(several.action, "several")
+  assert.deepEqual(
+    several.sessions.map((it) => it.sessionId),
+    ["a", "c"]
+  )
+  assert.deepEqual(plan(false, [session("a", { window: null, inWindow: false })]), { ...neither, action: "no-window" })
+  assert.deepEqual(plan(true, [session("a", { self: true })]), { ...neither, action: "own" })
+})
+
+test("titledFor():  the epic's name, without the icon, or as a whole word in the title", () => {
+  assert.equal(titledFor("🚧 epic-eject", "epic-eject"), true)
+  assert.equal(titledFor("epic-eject review", "epic-eject"), true)
+  assert.equal(titledFor("epic-eject-2", "epic-eject"), false)
+  assert.equal(titledFor("try-layout", "epic-eject"), false)
+  assert.equal(titledFor("", "epic-eject"), false)
+})
+
+test("launch():  the epic's window open, its session running:  typed into it;  none:  a new one;  no window file written", async () => {
+  const seen = []
+  const server = createServer((request, response) => {
+    let body = ""
+    request.on("data", (chunk) => (body += chunk))
+    request.on("end", () => {
+      seen.push([request.url, JSON.parse(body)])
+      response.writeHead(200, { "Content-Type": "application/json" })
+      response.end(JSON.stringify({ ok: true }))
+    })
+  })
+  await new Promise((done) => server.listen(0, "127.0.0.1", done))
+  const name = `test-launch-${process.pid}`
+  const file = Window.worktreeFile(name)
+  // the epic's window:  this test process, the sessions' parent (a window's extension host)
+  const entry = { pid: process.pid, port: server.address().port, token: "t", folders: [], workspaceFile: file }
+  writeFileSync(join(dir, `${process.pid}.json`), JSON.stringify(entry))
+  const home = mkdtempSync(join(tmpdir(), "spell-claude-home-"))
+  mkdirSync(join(home, "sessions"))
+  process.env.SPELL_CLAUDE_HOME = home
+  const record = (id, title) =>
+    writeFileSync(
+      join(home, "sessions", `${id}.json`),
+      JSON.stringify({ pid: sleeper.pid, sessionId: id, name: title })
+    )
+  try {
+    record(SESSION, `🚧 ${name}`)
+    record("other", "try-layout")
+    const woken = await Window.launch(name, "spell-app", { prompt: "/epic request x r1" })
+    assert.equal(woken.action, "wake")
+    assert.deepEqual(seen.splice(0), [["/open-session", { sessionId: SESSION, prompt: "/epic request x r1" }]])
+    rmSync(join(home, "sessions", `${SESSION}.json`))
+    assert.equal((await Window.launch(name, "spell-app", { prompt: "/epic x" })).action, "start")
+    assert.deepEqual(seen.splice(0), [["/open-session", { prompt: "/epic x" }]])
+    // never written:  an open window's file changing would recolour it, live
+    assert.equal(existsSync(file), false)
+  } finally {
+    delete process.env.SPELL_CLAUDE_HOME
+    rmSync(home, { recursive: true, force: true })
+    server.close()
+  }
 })
 
 /** Write a registry entry for `pid` with `folders`. */

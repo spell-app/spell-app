@@ -407,7 +407,9 @@ export const GROUP_VERBS: Record<GroupName, GroupVerb[]> = {
     {
       name: "launch",
       usage: "<name> [--pkg <pkg>] [--color <look>] [--prompt <text>]",
-      description: "make worktree <name> if needed, open its window, and start a NEW session there",
+      description:
+        "wake epic <name>:  its running session, else a NEW one in its open window (look untouched), else make " +
+        "worktree <name> if needed, open its window, a NEW session there",
       example: 'epic window launch seo --prompt "/epic request seo r3"'
     },
     {

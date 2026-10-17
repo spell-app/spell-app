@@ -293,6 +293,8 @@ ui -> util
   - Except `/epic <name>` inside another worktree:  it means "open a window for `<name>`",
     so Claude offers one.
     - `epic window launch <name>`:  a NEW session there.
+      - Its window already open:  its file and look stay, and the epic's running session there is typed into;
+        a new one starts only when none runs (epic `epic-eject` P10, Owen's r2).
     - The epic skill's "From another worktree" has the steps.
 - The window's file is git-ignored:  `<name>.code-workspace`, in `workspaces/ongoing/`.
   - Its look:  that of the window it's opened from, or the one asked for.

@@ -165,6 +165,8 @@ means "open a window for epic `<name>`" (Owen, 2026-10-07).
 4. `epic window launch <name> [--color <look>]`, a look after the name as in "1. Name".
    - It makes the worktree, opens its window,
      and starts a NEW session there with `/epic <name>` typed in.
+   - Its window already open:  it leaves the window's look alone,
+     and types into the epic's session running there (a new one only when none runs).
    - One line:  "`⎇ <name>` is open:  press enter on `/epic <name>` there".
    - Then carry on with `<other>`'s work, if any was waiting.
    - It fails (no window bridge, an old extension:  `unknown op` / `bad session id`):

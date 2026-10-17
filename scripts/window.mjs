@@ -103,10 +103,14 @@
  *   window;  `<pkg>` (a package, or any `workspaces/<pkg>.code-workspace`) defaults to this session's window's
  *   package, else `spell-app` (the whole repo's window);  its look:  `--pkg`'s window's when named, else this
  *   session's window's.  `close <name>`:  close that window, delete the file.
- * - `launch <name> [--pkg <pkg>] [--color <look>] [--prompt <text>]`:  make worktree `<name>` if needed, `open` it
- *   (`<pkg>` default `spell-app`;  its look `--color`'s, else `<pkg>`'s, tinted:  never this window's), and start a
- *   NEW Claude Code session in it, `<text>` typed in (default `/epic <name>`).  This session stays where it is:
- *   `/epic <name>` typed in another epic's session (the `/epic` skill's "From another worktree")
+ * - `launch <name> [--pkg <pkg>] [--color <look>] [--prompt <text>]`:  wake epic `<name>`, `<text>` typed in
+ *   (default `/epic <name>`).  This session stays where it is:  `/epic <name>` typed in another epic's session (the
+ *   `/epic` skill's "From another worktree"), `/send`.  Which, by `launchPlan()` (epic `epic-eject` P10):
+ *   - one of its sessions is running:  typed into it, in its window
+ *   - none, but its window is open:  a NEW session there;  the window's file and look untouched
+ *   - neither:  make worktree `<name>` if needed, `open` it (`<pkg>` default `spell-app`;  its look `--color`'s,
+ *     else `<pkg>`'s, tinted:  never this window's), and start a NEW session in it
+ *   - several running, or its one session in a terminal:  nothing;  exits 1, saying so
  * - `handoff <name> [--back] [--prompt <text>]`:  move this session to worktree `<name>`'s window when its turn
  *   ends;  `--back`:  from it to its package's window, closing it after;  `--prompt`:  typed into the new tab.
  *   Needs `$CLAUDE_CODE_SESSION_ID` (Claude sets it in a session's commands).
@@ -450,22 +454,63 @@ export class Window {
   }
 
   /**
-   * `launch`:  make worktree `name` if needed (the `WorktreeCreate` hook's own `create`, from the MAIN checkout), open
-   * its window, and start a NEW Claude Code session there, `prompt` typed in (not sent);  resolves to `{ file }`.
-   * - for `/epic <name>` typed in ANOTHER epic's session (Owen, 2026-10-07):  that session stays where it is
-   * - its look:  `color`, else `pkg`'s window's theme, the title bar tinted `name`'s own colour;
-   *   never the look of the window it's launched from, another epic's
+   * `launch`:  wake epic `name`'s session, or start one, `prompt` typed in (not sent:  Owen presses Enter);
+   * resolves to `launchPlan()`'s answer, plus `file`, the epic's window file.
+   * - for `/epic <name>` typed in ANOTHER epic's session (Owen, 2026-10-07), and `/send` waking an epic:
+   *   the session running this stays where it is
+   * - what it does (`launchPlan()`;  epic `epic-eject` P10, Owen's r2:  "you changed color on me in this VSC window"):
+   *   - a session of the epic is running:  `prompt` typed into it, in its window;  nothing opened, nothing written
+   *   - none, but the epic's window is open:  a NEW session there;  its window file and look untouched
+   *   - neither:  make worktree `name` if needed (the `WorktreeCreate` hook's own `create`, from the MAIN checkout),
+   *     write its window file, open it, and start a NEW session there
+   *     - its look:  `color`, else `pkg`'s window's theme, the title bar tinted `name`'s own colour;
+   *       never the look of the window it's launched from, another epic's
+   * - several of the epic's sessions running, or its one session in a terminal:  nothing done, `action` says why
    */
   static async launch(name, pkg, { color = null, prompt = null } = {}) {
+    const file = Window.worktreeFile(name)
+    const open = Window.windowOf(file)
+    const plan = launchPlan({ windowOpen: Boolean(open), sessions: Window.epicSessions(name, open) })
+    const typed = prompt ? { prompt } : {}
+    if (plan.wake) await Window.request("open-session", { sessionId: plan.wake.sessionId, ...typed }, plan.wake.window)
+    if (plan.start && !plan.open) await Window.request("open-session", typed, open)
+    if (!plan.open) return { ...plan, file }
     const hook = join(MAIN_ROOT, ".claude", "hooks", "worktree.mjs")
     const input = JSON.stringify({ name, cwd: MAIN_ROOT })
     const made = spawnSync(process.execPath, [hook, "create"], { input, encoding: "utf8" })
     if (made.status !== 0) throw new Error(`worktree ${name} not made:  ${made.stderr.trim()}`)
-    const { file, colors } = Window.open(name, pkg, { color, fromCurrent: false })
+    const { colors } = Window.open(name, pkg, { color, fromCurrent: false })
     const window = await Window.waitFor(file)
     if (colors) await Window.applyColors(file, colors)
-    await Window.request("open-session", prompt ? { prompt } : {}, window)
-    return { file }
+    await Window.request("open-session", typed, window)
+    return { ...plan, file }
+  }
+
+  /**
+   * The live Claude Code sessions of epic `name`, for `launchPlan()`:
+   * `{ sessionId, title, self, inWindow, window }` each.
+   * - a session of the epic:  titled for it (`titledFor()`), or working in its worktree
+   * - `self`:  the session running this (`$CLAUDE_CODE_SESSION_ID`)
+   * - `inWindow`:  it runs in window `open` (a registry entry, or `null`), the epic's
+   * - `window`:  the registry entry of the window it runs in, the nearest of its ancestors with one;
+   *   `null` for a session in a terminal, or a window without the bridge
+   */
+  static epicSessions(name, open, { self = process.env.CLAUDE_CODE_SESSION_ID } = {}) {
+    const worktree = real(CONFIG.worktreeFolder(name))
+    const entries = Window.entries()
+    const processes = processTable()
+    return liveSessions()
+      .filter(({ title, cwd }) => {
+        const at = cwd ? real(cwd) : ""
+        return titledFor(title, name) || at === worktree || at.startsWith(worktree + sep)
+      })
+      .map(({ pid, sessionId, title }) => ({
+        sessionId,
+        title,
+        self: Boolean(self) && sessionId === self,
+        inWindow: Boolean(open) && isAncestor(open.pid, pid, processes),
+        window: windowAbove(pid, entries, processes)
+      }))
   }
 
   /** The registry entry of the window opened from `file`, once it's up;  throws after `WINDOW_START_TIMEOUT`. */
@@ -843,9 +888,9 @@ export class Window {
         const pkg = flags.pkg ?? DEFAULT_WINDOW
         const color = typeof flags.color === "string" ? flags.color : null
         const prompt = typeof flags.prompt === "string" ? flags.prompt : `/epic ${name}`
-        const { file } = await Window.launch(name, pkg, { color, prompt })
-        console.log(`opened ${relative(MAIN_ROOT, file)}, a new session there:  ${prompt}`)
-        return 0
+        const launched = await Window.launch(name, pkg, { color, prompt })
+        console.log(launchedLine(name, prompt, launched))
+        return ["several", "no-window"].includes(launched.action) ? 1 : 0
       }
       if (command === "close") {
         const closed = await Window.close(name)
@@ -903,8 +948,10 @@ const USAGE = `usage:  epic window <command>
                                open worktree <name> in a new window (default package:  this window's;
                                default look:  this window's)
   launch <name> [--pkg <pkg>] [--color <look>] [--prompt <text>]
-                               make worktree <name> if needed, open its window, and start a NEW session
-                               there, <text> typed in (default:  /epic <name>);  this session stays put
+                               wake epic <name>, <text> typed in (default:  /epic <name>):  into its
+                               running session;  else a NEW session in its open window (look untouched);
+                               else make worktree <name> if needed, open its window, a NEW session there;
+                               this session stays put
   color [<look>]               give this window a look:  Tomorrow Night Blue's, in a hue (no look:  list them)
   stay <name> | --end          a session staying here for worktree <name>:  title the window ⎇ <name>, tint its
                                title bar  /  put both back
@@ -1197,6 +1244,105 @@ export function claudeSessions(processes, hostPid) {
   return [...processes]
     .filter(([, { ppid, command }]) => ppid === hostPid && /(^|\/)claude$/.test(command))
     .map(([pid]) => pid)
+}
+
+/**
+ * What `launch` does for an epic (epic `epic-eject` P10, Owen's r2):  pure, from what's open and running.
+ * - `windowOpen`:  whether the epic's window is open
+ * - `sessions`:  the epic's live sessions, as `Window.epicSessions()` gives them
+ * - returns `{ action, rewrite, open, start, wake, sessions }`:
+ *   - `action`, one of:
+ *     - `own`:  the session running this IS the epic's:  nothing to wake
+ *     - `wake`:  type the prompt into `wake`, the epic's one running session, in its window
+ *     - `several`:  several of its sessions run (`sessions`):  guessing could type into the wrong one
+ *     - `no-window`:  its one session has no window bridge (a terminal):  type it there by hand
+ *     - `start`:  a NEW session in the epic's open window
+ *     - `open`:  write the window file, open it, a NEW session in it
+ *   - `rewrite`:  write the epic's window file, a fresh look;  `open`:  open it with `code`;  only for `open`
+ *   - `start`:  start a new session in the epic's window;  `wake`:  the session to type into, else `null`
+ * - the epic's window's own sessions first:  one elsewhere (it stayed in a main window) counts only when it has none
+ * - an open window is never rewritten:  a live change to its file recolours it under Owen
+ */
+export function launchPlan({ windowOpen, sessions }) {
+  const nothing = { rewrite: false, open: false, start: false, wake: null, sessions: [] }
+  if (sessions.some((session) => session.self)) return { ...nothing, action: "own" }
+  const inWindow = sessions.filter((session) => session.inWindow)
+  const running = inWindow.length ? inWindow : sessions
+  if (running.length > 1) return { ...nothing, action: "several", sessions: running }
+  const [session] = running
+  if (session && !session.window) return { ...nothing, action: "no-window", sessions: running }
+  if (session) return { ...nothing, action: "wake", wake: session, sessions: running }
+  if (windowOpen) return { ...nothing, action: "start", start: true }
+  return { ...nothing, action: "open", rewrite: true, open: true, start: true }
+}
+
+/** What `launch` did for epic `name` (`Window.launch()`'s answer, `launched`), in one line. */
+function launchedLine(name, prompt, { action, file, sessions }) {
+  const titles = sessions.map(({ title, sessionId }) => title || sessionId.slice(0, 8)).join(", ")
+  switch (action) {
+    case "own":
+      return `this session is ${name}'s own:  nothing to wake`
+    case "wake":
+      return `${titles} is running:  ${prompt} typed into it, in its window (nothing opened or recoloured)`
+    case "several":
+      return `${sessions.length} sessions of ${name} are running (${titles}):  nothing typed;  type ${prompt} in one`
+    case "no-window":
+      return `${titles} is running, but not in a VS Code window with the bridge:  type ${prompt} there`
+    case "start":
+      return `${name}'s window is open:  a new session there, ${prompt} typed in (its look untouched)`
+    default:
+      return `opened ${relative(MAIN_ROOT, file)}, a new session there:  ${prompt}`
+  }
+}
+
+/**
+ * Every live Claude Code session:  `{ pid, sessionId, title, cwd }` each, from Claude's own registry,
+ * `sessions/<pid>.json` in `$SPELL_CLAUDE_HOME`, else `~/.claude`;  a record whose process is gone is skipped.
+ * - `title`:  its name, icon and all (`🚧 seo`);  `""` when it has none
+ * - the same records `RunningEpics.liveSessions()` reads, in `$/epics`
+ */
+function liveSessions() {
+  const folder = join(process.env.SPELL_CLAUDE_HOME || join(homedir(), ".claude"), "sessions")
+  if (!existsSync(folder)) return []
+  const sessions = []
+  for (const name of readdirSync(folder)) {
+    if (!name.endsWith(".json")) continue
+    try {
+      const record = JSON.parse(readFileSync(join(folder, name), "utf8"))
+      if (!Number.isInteger(record.pid) || !record.sessionId || !isAlive(record.pid)) continue
+      sessions.push({ pid: record.pid, sessionId: record.sessionId, title: record.name ?? "", cwd: record.cwd ?? "" })
+    } catch {
+      // half-written, or not a session's:  skip it
+    }
+  }
+  return sessions
+}
+
+/**
+ * Whether session title `title` names epic `name`:  without its icon it IS the name (`🚧 seo`), or holds it as a
+ * whole word (`seo review`;  never `seo-pages`).
+ * - the same rule as `titleNames()` in `$/epics` (`RunningEpics`), which this plain script can't import
+ */
+export function titledFor(title, name) {
+  const bare = title
+    .replace(/^[^\p{L}\p{N}]+/u, "")
+    .trim()
+    .toLowerCase()
+  const epic = name.toLowerCase()
+  if (!epic || !bare) return false
+  if (bare === epic) return true
+  const escaped = epic.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  return new RegExp(`(^|[^a-z0-9_-])${escaped}($|[^a-z0-9_-])`, "u").test(bare)
+}
+
+/** The registry entry of the window process `pid` runs in:  the nearest of it and its ancestors with one, else `null`. */
+function windowAbove(pid, entries, processes) {
+  const seen = new Set()
+  for (; pid > 1 && !seen.has(pid); pid = processes.get(pid)?.ppid ?? 0) {
+    if (entries.has(pid)) return entries.get(pid)
+    seen.add(pid)
+  }
+  return null
 }
 
 /** Whether `ancestor` is `pid` or one of its ancestors in `processes`. */
