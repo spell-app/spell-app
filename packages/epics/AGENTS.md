@@ -727,6 +727,13 @@ In `tools/`:
     - Anything the runtime adds inside `main` must carry `data-spell-added`, so the patch steps around it.
     - Pages with scripts of their own still reload.
       Inert data blocks (`<script type="text/plain">`) don't count.
+  - The page's CODE changing hot-reloads it (the live client's `liveAction()`, epic `epic-workflow` P24):
+    - a stylesheet it uses (`spell-doc.css` ...):  swapped in place, no reload
+    - a script it loaded (`spell-ui.js` and its lazy chunks, the runtime, `epics.pack.js`, an experiment's bundle),
+      or the page server restarting (a merge changed its code):  ONE reload, half a second after the last change
+    - it keeps its place:  the scroll (the live client), the folds and comment drafts (this runtime, `localStorage`)
+    - not while you type in a field:  an "Updated:  reload" pill waits, and it reloads once you leave the field
+    - so a merge's new widgets show up by themselves:  VS Code's window needs reloading only when the EXTENSION changes
     - `<body>`'s attributes are patched too.
     - An epic page's `<epic-*>` elements are patched, never replaced, keeping their page state
       (`open` ..., `carryEpicState()`).
