@@ -58,6 +58,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - HOT RELOAD (epic `epic-workflow` P24):  what a changed file means to a page is `liveAction()`:
       - its own file:  patched in place (the docs runtime), else reloaded
       - a stylesheet it uses:  swapped in place, no reload
+        - in VS Code's side-bar views too (Spell Docs, Review):  the live client runs inside their frame,
+          with its own socket (the frame is cross-origin to the view)
+        - nothing caches a stale one:  every answer is `Cache-Control: no-store`, `_assets/` included,
+          so a reload always fetches the stylesheet as it is now
       - a script it loaded, or one beside it:  reloaded, keeping the scroll
         - which:  its `<script src>` tags, and `performance`'s resource entries
           (lazy chunks, `epics.pack.js`, an experiment's `*.bundle.js`)
