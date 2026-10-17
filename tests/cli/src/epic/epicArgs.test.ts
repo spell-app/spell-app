@@ -116,7 +116,10 @@ describe("planDocArgs()", () => {
     ])
   })
 
-  test("inbox:  a comment's id, and a flag after the inbox's verb", () => {
+  test("inbox:  a comment's id (M3, as the page shows it;  the old cm3 too), and a flag after the inbox's verb", () => {
+    expect(CLI.planDocArgs("inbox", ["seo#M3", "done", "--file", "a.html"])).toEqual([
+      ["inbox", "seo", "done", "M3", "--file", "a.html"]
+    ])
     expect(CLI.planDocArgs("inbox", ["seo#cm3", "done", "--file", "a.html"])).toEqual([
       ["inbox", "seo", "done", "cm3", "--file", "a.html"]
     ])

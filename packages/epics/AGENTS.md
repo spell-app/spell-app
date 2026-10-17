@@ -654,6 +654,16 @@ In `tools/`:
       the page's state filter, collapse-all, the new item button.
     - Cmd / Ctrl + K asks which item to jump to (`J7`, `q3`, any id), and lands there as a link would.
       - An id that isn't there:  the dialog says so, and stays open (`wireJumpKey()`).
+      - A comment's id too, `M3`:  see "Jumping to comments" below.
+  - JUMPING TO COMMENTS (epic `epic-workflow` P23;  Owen, 2026-10-10:  "⌘K taking comment ids", "Is there a way to
+    jump to comments in replies?"), on every page that takes comments (an epic page's and a guide's alike):
+    - a BULLHORN at the right of the toolbar, an orange badge counting the threads waiting on Owen (Claude spoke last)
+      - each click lands on the next, in page order, round again after the last:  opened, below the stuck titles
+      - hidden while none waits;  `PageComments.drawWaiting()`, its place in `waitingHome()`
+    - Cmd / Ctrl + K takes a comment's id (`M3`, `m3` or the old `cm3`) and lands on its thread, opened
+      - under its box, the threads waiting on Owen, a line each, "M3 · his first words", that lands there
+      - a guide's dialog asks "Jump to which comment?", and takes any other id on the page too
+    - [check-comment-jump.mjs](demo/check-comment-jump.mjs) checks both, on stubbed comments
   - Sticky titles:  each top-level section's title sticks below the page header.
     - Nested ones stack below their parents'.
     - The runtime sets the top-level `offset`s.
@@ -717,6 +727,13 @@ In `tools/`:
     - Anything the runtime adds inside `main` must carry `data-spell-added`, so the patch steps around it.
     - Pages with scripts of their own still reload.
       Inert data blocks (`<script type="text/plain">`) don't count.
+  - The page's CODE changing hot-reloads it (the live client's `liveAction()`, epic `epic-workflow` P24):
+    - a stylesheet it uses (`spell-doc.css` ...):  swapped in place, no reload
+    - a script it loaded (`spell-ui.js` and its lazy chunks, the runtime, `epics.pack.js`, an experiment's bundle),
+      or the page server restarting (a merge changed its code):  ONE reload, half a second after the last change
+    - it keeps its place:  the scroll (the live client), the folds and comment drafts (this runtime, `localStorage`)
+    - not while you type in a field:  an "Updated:  reload" pill waits, and it reloads once you leave the field
+    - so a merge's new widgets show up by themselves:  VS Code's window needs reloading only when the EXTENSION changes
     - `<body>`'s attributes are patched too.
     - An epic page's `<epic-*>` elements are patched, never replaced, keeping their page state
       (`open` ..., `carryEpicState()`).
@@ -959,13 +976,13 @@ Each kind of page has ONE name, written everywhere a person reads it.
   - A new todo or question asked for from the page (epic `airplane` P2):  a mark under its own key, `new1` ...
     - `setNew()`:  `{ action: "new", kind, title, note?, near? }`
     - `epic inbox <name> apply` makes the item.
-  - `comments`:  Owen's comments on the doc's blocks, and on selected text (P11, see "Comments"):  `cm1` ...
+  - `comments`:  Owen's comments on the doc's blocks, and on selected text (P11, see "Comments"):  `M1` ...
     - Written through the comments route.
     - Sent with Send, as marks are (Owen, 2026-10-10:  he keeps Send as the way comments reach Claude).
       - Unsent (`unsentComments`):  waiting for Claude, and Owen's last words on the thread newer than `sent`.
       - A new comment, or his reply on a thread, turns Send blue;  its tooltip counts both ("2 marks, 1 comment").
       - `wait` hands each over once (`takeWork()`'s `sent.comments`), until Owen speaks on its thread again.
-    - Waiting until answered (`epic inbox <name>#cm3 done`).
+    - Waiting until answered (`epic inbox <name>#M3 done`).
   - `listening.seen`:  the session's heartbeat (`LISTEN_HEARTBEAT_MS`, 30s, from `wait`).
     - Older than `LISTEN_STALE_MS` (90s), the session is gone:  `liveListener()` returns `null`.
   - `woken`:  the page server's last WAKE of the epic (epic `epic-workflow` P16), `{ at, state, did, message }`.
@@ -1213,6 +1230,7 @@ Each kind of page has ONE name, written everywhere a person reads it.
     - Its header:
       - a chevron
       - the bullhorn (a green check circle once done)
+      - its id, `M3`:  small and muted, an outline and no fill (epic `epic-workflow` P23)
       - the pane's summary (`headline()`):  the quote's first words, else the block's;  its tooltip the full place
       - No date:  each message has its time.
     - Then OWEN'S ANSWER, while it's his turn:  an epic page item's review pills
@@ -1326,7 +1344,14 @@ Each kind of page has ONE name, written everywhere a person reads it.
     - [GuideInbox.ts](src/tool/GuideInbox.ts), in the `epic` tool since P13:  the tool's `wait` reads it
   - an epic page's:  the epic's review inbox, under `comments` (`ReviewInbox`, see "Review inbox")
   - One shape for both, and every change:  [`CommentList`](src/tool/CommentList.ts).
-  - ids `cm1`, `cm2` ... (`c1` is a caveat's)
+  - IDS (epic `epic-workflow` P23):  shown `M1`, `M2` ... ("M" for mark;  Owen, 2026-10-10:  "use `M3` for mark 1")
+    - small and muted in each thread's header, before its summary
+    - every tool prints `M3`, and takes `M3`, `m3` or the old `cm3` (`CommentList.idOf()`, `label()`)
+    - the inbox files KEY them `m1`, `m2` ... too (Owen, 2026-10-17, J178:  "Switch to m3 now";  `cm1` before)
+      - an older file's `cm3` is read as `m3`, and written so at its next write (`CommentList.migrate()`)
+      - a checkout on older code finds a comment by its key as it is:  until it merges `main`, it misses the
+        comments written as `m3`, and its new ones are `cm1` ... again (read as `m` by this code, a clash renumbered)
+    - `c1` is a caveat's
 - Where a comment is:  its ANCHOR ([BlockAnchors.js](tools/BlockAnchors.js), shared by the runtime and the tools).
   - the block's id, else `<nearest section or plan part id>#<kind>-<n>`
     - e.g. `memory#table-2`, `p3#field-2`, `p3#update-1`
@@ -1391,10 +1416,10 @@ Each kind of page has ONE name, written everywhere a person reads it.
 - Claude's side, for epic pages:  `epic inbox <name>` lists them, and Owen's replies under them.
   - They reach Claude with the page's SEND, as marks do (see "Review inbox"):
     a send with only comments wakes `wait`, which prints them.
-  - `epic inbox <name>#cm3 working on | off`:  the thinking stub, as `comments working`.
+  - `epic inbox <name>#M3 working on | off`:  the thinking stub, as `comments working`.
     With an item's id:  its spinner, as before.
   - Answered like a revisit's note, then:
-    - `epic inbox <name>#cm3 done [--file <html>] [--commit <sha>]`, or `<name>#cm3 clear`
+    - `epic inbox <name>#M3 done [--file <html>] [--commit <sha>]`, or `<name>#M3 clear`
     - `done` turns `working` off.
   - `--file`:  the answer on the thread too.  Without it, "Answered in the epic page".
 
@@ -1620,6 +1645,11 @@ In this order, from `packages/epics`:
     - the state filter
     - each phase's title pen and plan changes (`<epic-update>` blocks, no box)
     - at 280 / 900px, light and dark
+  - `node packages/epics/demo/check-comment-jump.mjs [--guide <page>] [--doc <epic>] [outDir]`, from the root:
+    - comment ids (`M1` ...), the toolbar's bullhorn and its count, Cmd-K on a comment's id and its waiting list,
+      on a guide and an epic page (epic `epic-workflow` P23)
+    - their comments stubbed in the browser, every POST aborted:  no inbox read or written, nobody woken
+    - Run it after touching the comments' runtime, the toolbar or the jump dialog.
   - `node packages/epics/demo/check-fold-epics.mjs [--doc <name>] [--item <id>] [--guide <path>] [outDir]`, from the root:
     - A fold never moves what was clicked:  the line or title stays put, within 1px, for 1.5s after the click.
     - Items a link landed on (at once, mid window, near the page's end), one opened by a click,

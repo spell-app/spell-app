@@ -112,7 +112,7 @@ export class AirplaneInbox {
       ...this.notes.map((note) => `note ${note.page} ${note.id} (${note.label}):  ${note.text.slice(0, 80)}`),
       ...this.comments.map(
         (comment) =>
-          `guide comment ${comment.page} ${comment.id} (${comment.label || comment.anchor}` +
+          `guide comment ${comment.page} ${CommentList.label(comment.id)} (${comment.label || comment.anchor}` +
           `${comment.epic ? `, epic ${comment.epic}` : ""}):  ${comment.text.slice(0, 80)}`
       ),
       ...this.details.map((page) => `details ${page.page}:  answered ${page.answered}`),

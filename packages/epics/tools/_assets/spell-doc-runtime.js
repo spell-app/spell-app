@@ -21,6 +21,8 @@
  *   the titles shrinking, then gone on a narrow window.  No contents list:  Owen, 2026-10-08
  *   - an EPIC PAGE's (`buildToolbar()`):  its blocks' icons only, with badges of the items waiting on Owen, in
  *     `<epic-page>`'s header;  and Cmd / Ctrl + K asks for an item to jump to (`wireJumpKey()`)
+ *   - at its right, on any page that takes comments, a bullhorn counting the threads waiting on Owen, landing on the
+ *     next at each click (`PageComments.drawWaiting()`);  Cmd / Ctrl + K takes a comment's id there too (`M3`)
  * - sticky headers:  the page header (`ui-sticky.spell-h1`) sticks at the top, each top-level title below it,
  *   nested ones below their parents' (re-measured on resize);
  *   CSS variables on the sections let anchors land below them all
@@ -201,7 +203,7 @@ async function start() {
   wireAddresses()
   const { jump, go, canGo } = wireAnchors(main, outline, sticky, follow, folds)
   wirePaging(main)
-  if (document.body.classList.contains("plan-doc")) wireJumpKey(go, canGo)
+  wireJumpKey(go, canGo)
   wireFilter(main)
   wireTableWidths(main)
   wireStuckTrail(main)
@@ -211,7 +213,7 @@ async function start() {
   land(landing, jump, follow)
   live.ready({ main, rail, sticky, follow, entries: railKey(outline, counts) })
   wireNotes(main)
-  void wireComments(main)
+  void wireComments(main, go)
   wireNewEpic(main)
   wireSagaChips(main)
   wireEpicSort(main)
@@ -2317,7 +2319,8 @@ function h2HeightAbove(sticky) {
  * - returns `{ jump, go, canGo }`:
  *   - `jump(id, { unfoldTarget })`:  `unfoldTarget: false` unfolds only what's AROUND a folded target section
  *     (`land()`:  a reload lands on the section being read as it was, folded or not)
- *   - `go(id)`:  as a click on a link to `#id` (a history entry, then the jump);  `canGo(id)`:  is there one to land on
+ *   - `go(id)`:  as a click on a link to `#id` (a history entry, then the jump), resolving once landed;
+ *     `canGo(id)`:  is there one to land on
  */
 function wireAnchors(main, outline, sticky, follow, folds) {
   document.addEventListener("click", (event) => {
@@ -2332,13 +2335,16 @@ function wireAnchors(main, outline, sticky, follow, folds) {
   if (window.parent !== window) addEventListener("message", onMessage)
   return { jump, go, canGo: (id) => !!(targetIn(id) || hostHolding(main, id)) }
 
-  /** Follow a same-page link to `id`:  a history entry (unless the address is there already), then the jump. */
+  /**
+   * Follow a same-page link to `id`:  a history entry (unless the address is there already), then the jump;  resolves
+   * once it has landed (`jump()`).
+   */
   function go(id) {
     if (hashId() !== id) {
       history.pushState(null, "", `#${id}`)
       dispatchEvent(new Event("spell-doc:place"))
     }
-    jump(id)
+    return jump(id)
   }
 
   /** The frame's parent posted `{ spell: "go", hash }`:  go there, as a link to it would. */
@@ -2482,6 +2488,10 @@ function wireAddresses() {
  * ui-prompt asking what number I want to jump to (e.g. J7)"), and lands there exactly as a link to `#j7` does
  * (`go()`:  what hides it unfolds, an item opens, it lands below the stuck titles).
  * - any id on the page, case and a `#` aside:  `J7`, `q3`, `P2`, `o1`, `#decisions`
+ * - a COMMENT's (epic `epic-workflow` P23;  Owen, 2026-10-10:  "⌘K taking comment ids"):  `M3` (`m3`, the old `cm3`)
+ *   lands on its thread, opened, below the stuck titles (`PageComments.landOn()`);  under the box, the threads
+ *   waiting on Owen (Claude spoke last), each a line "M3 · his first words" that lands there
+ * - an epic page, and every page that takes comments (a guide:  comment ids, and any other id on it)
  * - an id that isn't there:  the dialog says so and stays open, the text selected for typing over
  * - never while typing in a field (a note box, the new item form), nor with a dialog already open
  * - the dialog is a `<ui-modal>` built as `UI.modals.prompt()` builds its own (`ModalDialogs`):
@@ -2490,25 +2500,32 @@ function wireAddresses() {
  * - K is free:  the live client takes only Cmd / Ctrl + A C X V Z in VS Code's view (`liveClient.ts` `editKey()`)
  */
 function wireJumpKey(go, canGo) {
+  const epicPage = document.body.classList.contains("plan-doc")
   document.addEventListener("keydown", (event) => {
     if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.defaultPrevented) return
-    if (event.key.toLowerCase() !== "k" || event.isComposing) return
+    if (event.key.toLowerCase() !== "k" || event.isComposing || !(epicPage || pageComments)) return
     if (document.querySelector("dialog[open], ui-modal:not([hidden])") || typingIn(event)) return
     event.preventDefault()
     openJumpPrompt(go, canGo)
   })
 }
 
-/** The jump dialog:  an id typed, Go lands there;  Cancel or Escape just closes it. */
+/**
+ * The jump dialog:  an id typed, Go lands there;  Cancel or Escape just closes it.
+ * - a comment's id (`M3`) lands on its thread, opened;  the threads waiting on Owen are listed under the box
+ *   (`jumpWaitingList()`)
+ */
 function openJumpPrompt(go, canGo) {
+  const epicPage = document.body.classList.contains("plan-doc")
+  const header = epicPage ? "Jump to which item?" : "Jump to which comment?"
   const modal = document.createElement("ui-modal")
-  for (const [name, value] of Object.entries({ size: "tiny", closedby: "closerequest", header: "Jump to which item?" }))
+  for (const [name, value] of Object.entries({ size: "tiny", closedby: "closerequest", header }))
     modal.setAttribute(name, value)
   modal.dataset.spellAdded = ""
   const content = document.createElement("ui-content")
   const label = document.createElement("label")
   label.className = "ui-native spell-jump"
-  label.append("Its id:  J7, q3, P2 ...")
+  label.append(epicPage ? "Its id:  J7, q3, P2, M3 ..." : "Its id:  M3, or any id on the page")
   const input = document.createElement("input")
   input.type = "text"
   input.autofocus = true
@@ -2529,14 +2546,28 @@ function openJumpPrompt(go, canGo) {
   approve.setAttribute("primary", "")
   approve.textContent = "Go"
   actions.append(cancel, approve)
+  const waiting = jumpWaitingList((id) => {
+    input.value = id
+    approve.click()
+  })
+  if (waiting) content.append(waiting)
   modal.append(content, actions)
   let target = ""
+  let thread = ""
   input.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") approve.click()
+    if (event.key !== "Enter") return
+    // its default would press what has the focus by then:  a comment's thread takes it to its fold, which folds it
+    event.preventDefault()
+    approve.click()
   })
   input.addEventListener("input", () => (miss.hidden = true))
   modal.addEventListener("ui-approve", (event) => {
     const id = input.value.trim().replace(/^#/, "").toLowerCase()
+    const comment = pageComments?.find(id)
+    if (comment) {
+      thread = comment.id
+      return
+    }
     if (id && canGo(id)) {
       target = id
       return
@@ -2551,7 +2582,8 @@ function openJumpPrompt(go, canGo) {
     "ui-hide",
     () => {
       modal.remove()
-      if (target) go(target)
+      if (thread) void pageComments.landOn(thread)
+      else if (target) go(target)
     },
     { once: true }
   )
@@ -2559,6 +2591,37 @@ function openJumpPrompt(go, canGo) {
   modal.visible = true
   // the input once the dialog has drawn:  `autofocus` alone loses to the dialog's own focus on some opens
   void nextFrames(2).then(() => input.focus())
+}
+
+/**
+ * The jump dialog's list of the threads waiting on Owen (Claude spoke last;  `PageComments.waitingOnOwen`), in page
+ * order:  a line each, "M3 · his first words", that `pick(label)` takes;  `undefined` when none wait, or the page takes
+ * no comments.
+ */
+function jumpWaitingList(pick) {
+  const waiting = pageComments?.waitingInPageOrder() ?? []
+  if (!waiting.length) return undefined
+  const list = document.createElement("div")
+  list.className = "spell-jump-waiting"
+  const title = document.createElement("p")
+  title.className = "spell-jump-waiting-title"
+  title.textContent = waiting.length === 1 ? "Waiting on you:" : `${waiting.length} waiting on you:`
+  list.append(title)
+  for (const comment of waiting) {
+    const label = commentLabel(comment.id)
+    const line = document.createElement("button")
+    line.type = "button"
+    line.className = "spell-jump-thread"
+    line.title = `${aboutTip({ id: comment.id, place: comment })}\n(Jump there)`
+    const id = document.createElement("b")
+    id.textContent = label
+    const words = document.createElement("span")
+    words.textContent = firstWords(comment.text)
+    line.append(id, " · ", words)
+    line.addEventListener("click", () => pick(label))
+    list.append(line)
+  }
+  return list
 }
 
 /** Is `event`'s key typed into a field (an input, a textarea, a select, editable text)? */
@@ -2997,6 +3060,9 @@ function drawNoteCards(main) {
 /** The page server's comments routes (`packages/epics/tools/commentsRoutes.ts`). */
 const COMMENTS_API = "/api/docs/comments"
 
+/** The page's comments, once the page server says it takes them (`wireComments()`):  Cmd / Ctrl + K reads them. */
+let pageComments = null
+
 /** `localStorage` key prefix of a page's unsaved comments (`{ [anchor | comment id]: text }`), per page. */
 const COMMENT_DRAFT_KEY_PREFIX = "spell-comment-draft:"
 
@@ -3095,16 +3161,26 @@ const KIND_NAMES = {
  *   - the trash, on a thread or the pane:  one click (`delete` while it waits, else `clear`);  Undo in the toast
  *   - the BULLHORN only ever starts a new comment:  no count, since the block's threads are right there (Owen,
  *     2026-10-10:  "Bullhorn to the far right is unnecessary")
+ * - IDS (epic `epic-workflow` P23;  Owen, 2026-10-10:  "use `M3` for mark 1"):  shown `M3`, small and muted in each
+ *   thread's header, before its summary (`threadHead()`);  the server keys them `m3`, and a typed id takes `M3`,
+ *   `m3` or `cm3` (`commentNumber()`)
+ * - JUMPING to the threads waiting on Owen (Claude spoke last;  Owen, 2026-10-10:  "Is there a way to jump to comments
+ *   in replies?"):
+ *   - a BULLHORN at the right of the page's toolbar, an orange count of them on it:  each click lands on the next, in
+ *     page order, round again after the last, opened, below the stuck titles (`nextWaiting()`);  none:  hidden
+ *   - Cmd / Ctrl + K takes a comment's id, and lists them (`openJumpPrompt()`)
  * - drawn again after a live patch (`spell-doc:updated`), when the page's content changes (an epic page's part
  *   loading), when the inbox file changes (`spell-server:file`:  another window, Claude), and when the page comes
  *   back into view
  * - what it adds in `main` carries `data-spell-added`:  a patch steps around it, the anchors never count it
  * - NEVER throws:  a page with no server, or a server without the routes, shows no bullhorns
+ * - `go(id)`:  lands on an id as a link to it does (`wireAnchors()`)
  */
-async function wireComments(main) {
+async function wireComments(main, go) {
   if (!window.SPELL_SERVER?.token || location.protocol === "file:") return
-  const comments = new PageComments(main)
+  const comments = new PageComments(main, go)
   if (!(await comments.load())) return
+  pageComments = comments
   comments.draw()
   const reload = () => void comments.load().then((takes) => takes && comments.draw())
   addEventListener("spell-doc:updated", () => comments.draw())
@@ -3143,10 +3219,17 @@ function inboxPathsOf(inbox) {
  * - NEVER throws:  a failed save says so (the floppy turns red), the text kept in the pane
  ****************/
 class PageComments {
-  /** - `main`:  the page's `main`, where the blocks are */
-  constructor(main) {
+  /**
+   * - `main`:  the page's `main`, where the blocks are
+   * - `go(id)`:  lands on the element with `id` as a link to it does (`wireAnchors()`), resolving once landed
+   */
+  constructor(main, go) {
     /** the page's `main` */
     this.main = main
+    /** lands on an id as a link does */
+    this.go = go
+    /** the thread the toolbar's bullhorn last landed on (`nextWaiting()`):  the next click goes on from it */
+    this.lastWaiting = ""
     /** the comments, as the server last answered (`CommentList` `all`) */
     this.list = []
     /**
@@ -3443,10 +3526,115 @@ class PageComments {
     this.quotes = highlightQuotes(quotes)
     this.makeRoom()
     this.watchSeen()
+    this.drawWaiting()
     if (onFold) main.querySelector(`#${CSS.escape(folded)} .spell-thread-fold`)?.focus({ preventScroll: true })
     if (!typing || !field.isConnected) return
     field.focus({ preventScroll: true })
     field.setSelectionRange(start, end)
+  }
+
+  ////////////////
+  // ## Jumping to the threads waiting on Owen
+  ////////////////
+
+  /** The comments waiting on Owen:  Claude spoke last on their threads (`turn` `owen`). */
+  get waitingOnOwen() {
+    return this.list.filter((comment) => comment.turn === "owen")
+  }
+
+  /** The comments waiting on Owen whose threads are drawn, in page order. */
+  waitingInPageOrder() {
+    return this.waitingOnOwen
+      .map((comment) => ({ comment, thread: this.threadOf(comment.id) }))
+      .filter((each) => each.thread)
+      .sort((a, b) => (a.thread.compareDocumentPosition(b.thread) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
+      .map((each) => each.comment)
+  }
+
+  /** Comment `id`'s thread, if drawn. */
+  threadOf(id) {
+    return this.main.querySelector(`#comment-${CSS.escape(id)}`)
+  }
+
+  /** The comment with id `typed` (`M3`, `m3`, the old `cm3`, a `#` aside), else `undefined`. */
+  find(typed) {
+    const number = commentNumber(typed)
+    return number === undefined ? undefined : this.list.find((each) => commentNumber(each.id) === number)
+  }
+
+  /**
+   * The toolbar's BULLHORN (Owen, 2026-10-10:  "a bullhorn at the right of the toolbar, with an orange count, jumps to
+   * the next thread waiting on you"):  at the right of the page's toolbar (`nav.spell-toolbar`, an epic page's and a
+   * guide's alike), an orange count of the threads waiting on Owen;  hidden when none.
+   * - made again whenever the toolbar is (a live update builds it anew, then draws the comments again)
+   * - where it goes:  `waitingHome()`, the one place to change to move it
+   */
+  drawWaiting() {
+    const home = this.waitingHome()
+    if (!home) return
+    let box = home.querySelector(":scope > .spell-toolbar-waiting")
+    if (!box) {
+      box = document.createElement("div")
+      box.className = "spell-toolbar-waiting"
+      box.hidden = true
+      const button = document.createElement("button")
+      button.type = "button"
+      button.className = "spell-toolbar-item"
+      button.addEventListener("click", () => this.nextWaiting())
+      box.append(button)
+    }
+    if (home.lastElementChild !== box) home.append(box)
+    const button = box.firstElementChild
+    const count = this.waitingInPageOrder().length
+    const tip = `${count} ${count === 1 ? "thread waits" : "threads wait"} on you:  jump to the next`
+    if (button.dataset.count !== String(count)) {
+      button.dataset.count = String(count)
+      button.innerHTML =
+        `<span class="spell-toolbar-icon"><ui-icon name="bullhorn"></ui-icon><span class="spell-toolbar-badges">` +
+        `<span class="spell-toolbar-count replied">${count}</span></span></span>`
+    }
+    button.title = tip
+    button.setAttribute("aria-label", tip)
+    if (box.hidden === !count) return
+    box.hidden = !count
+    // a guide's titles share the row with it:  fitted again
+    if (home.classList.contains("spell-toolbar-titled")) fitTitles(home)
+  }
+
+  /**
+   * Where the toolbar's bullhorn goes:  the page's toolbar (`nav.spell-toolbar`), last in its row, after a page's own
+   * tools there (the spell syntax guide's Expand all and Collapse all);  none without a toolbar.
+   */
+  waitingHome() {
+    return document.querySelector("nav.spell-toolbar")
+  }
+
+  /**
+   * The toolbar's bullhorn, clicked:  land on the next thread waiting on Owen after the one it last landed on, in
+   * page order;  after the last, the first again.
+   */
+  nextWaiting() {
+    const waiting = this.waitingInPageOrder()
+    if (!waiting.length) return
+    const at = waiting.findIndex((each) => each.id === this.lastWaiting)
+    void this.landOn(waiting[(at + 1) % waiting.length].id)
+  }
+
+  /**
+   * Land on comment `id`'s thread, opened:  as a link to it would (`go()`:  what hides it unfolds, it lands below the
+   * stuck titles, the address says `#comment-m3`), then the focus to its header without scrolling.  Seen
+   * (`markSeen()`).
+   */
+  async landOn(id) {
+    if (!this.list.some((each) => each.id === id)) return
+    this.lastWaiting = id
+    this.folds.set(id, true)
+    this.draw()
+    this.markSeen(id)
+    const anchor = `comment-${id}`
+    if (this.go) await this.go(anchor)
+    else document.getElementById(anchor)?.scrollIntoView({ block: "start" })
+    document.getElementById(anchor)?.querySelector(".spell-thread-fold")?.focus({ preventScroll: true })
   }
 
   /** Every reply box there is:  each thread's (`replyBoxes`), and the pen's (`editing`). */
@@ -4310,12 +4498,12 @@ function aboutTip({ id, place }) {
   const named = place.kind === "section" || place.kind === "item"
   const on = named && place.label ? `“${place.label}”` : what
   const where = place.kind === "page" || named || !place.label ? "" : ` in “${place.label}”`
-  return `${id ? `Comment ${id}, on` : "On"} ${on}${where}${place.quote ? `:  “${place.quote}”` : ""}`
+  return `${id ? `Comment ${commentLabel(id)}, on` : "On"} ${on}${where}${place.quote ? `:  “${place.quote}”` : ""}`
 }
 
 /**
- * A thread's header (`PageComments.thread()`):  a chevron, the bullhorn (a check circle once done), the pane's
- * summary (`headline()`:  the quote's first words, else the block's;  its tooltip the full place), then
+ * A thread's header (`PageComments.thread()`):  a chevron, the bullhorn (a check circle once done), its id (`M3`,
+ * small and muted;  epic `epic-workflow` P23), the pane's summary (`headline()`:  the quote's first words, else the block's;  its tooltip the full place), then
  * - Owen's answer while it's his turn (`answerButtons()`);  Reopen once done
  * - the pen while his first words wait for Claude, unread (`pendingOf()`);  not while its box is open (`withPen`).
  *   His pending reply needs none:  it's in the reply box
@@ -4326,11 +4514,13 @@ function threadHead(comment, open, withPen) {
   const done = comment.turn === "done"
   const tip = `${aboutTip({ id: comment.id, place: comment })}\n(${open ? "Fold" : "Unfold"} this thread)`
   const pending = withPen && pendingOf(comment) === "edit" && "edit"
+  const label = commentLabel(comment.id)
   return (
     `<div class="spell-thread-head">` +
     `<button type="button" class="spell-thread-fold" aria-expanded="${open}" title="${attr(tip)}">` +
     `<span class="spell-thread-chevron"><ui-icon name="chevron right"></ui-icon></span>` +
     `<span class="spell-thread-mark"><ui-icon name="${done ? "circle check" : "bullhorn"}"></ui-icon></span>` +
+    `<span class="spell-thread-id">${text(label)}</span>` +
     `<span class="spell-thread-headline">${text(headline(comment))}</span></button>` +
     (comment.turn === "owen" ? answerButtons(THREAD_ANSWERS) : done ? answerButtons([REOPEN]) : "") +
     (pending
@@ -4438,6 +4628,29 @@ function latestClaudeAt(comment) {
  */
 function withTurns(comments = []) {
   return comments.map((comment) => (comment.turn ? comment : { ...comment, turn: turnOf(comment) }))
+}
+
+/**
+ * A comment id's number, however typed or keyed:  `M3`, `m3`, `cm3` (any case, a `#` before it aside) -> 3;  else
+ * `undefined`.  As `CommentList.idOf()`.
+ */
+function commentNumber(typed) {
+  const number = /^#?c?m(\d+)$/i.exec(String(typed ?? "").trim())?.[1]
+  return number === undefined ? undefined : Number(number)
+}
+
+/** A comment's id as Owen sees it:  `M3` (`cm3`, `m3` alike;  `CommentList.label()`). */
+function commentLabel(id) {
+  const number = commentNumber(id)
+  return number === undefined ? String(id) : `M${number}`
+}
+
+/** The first line of `words`, cut to a short line with `…`. */
+function firstWords(words) {
+  const line = String(words ?? "")
+    .split("\n")[0]
+    .trim()
+  return line.length > 60 ? `${line.slice(0, 60).trimEnd()}…` : line
 }
 
 /** Whose turn it is on `comment`'s thread, as `CommentList.turnOf()` has it:  `done`, `owen` or `claude`. */

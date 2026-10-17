@@ -113,13 +113,18 @@ export class RunningEpics {
 
   /**
    * Reload pages when a worktree's epic page changes:  that doc's own page, and the Epics page (its list).
+   * - and a worktree's page assets (`ASSET_FILE`:  its docs runtime and bundle, its packs), so its pages served here
+   *   (`/worktrees/<w>/...`) hot-reload when that worktree rebuilds them (the live client's `liveAction()`)
    * - SIDE EFFECT:  one recursive `fs.watch` on `.claude/worktrees`, if it exists;  `close()` ends it
    */
   watch(live: SRV.LiveReload): this {
     if (!existsSync(this.worktrees)) return this
     try {
       this.watcher = watch(this.worktrees, { recursive: true }, (_event, name) => {
-        if (!name || !EPIC_FILE.test(name.split(sep).join("/"))) return
+        const path = name?.split(sep).join("/")
+        if (!name || !path) return
+        if (ASSET_FILE.test(path)) return live.changed(join(this.worktrees, name))
+        if (!EPIC_FILE.test(path)) return
         live.changed(join(this.worktrees, name))
         live.changed(this.index)
       })
@@ -437,6 +442,14 @@ const EPICS_DIRS = ["epics", "packages/docs/content/epics", "packages/docs/epics
  *   or with the old name `<name>.html`
  */
 const EPIC_FILE = /^[^/]+\/(?:packages\/docs\/(?:content\/)?)?epics\/([^/]+)\/\1(?:\.plan)?\.html$/
+
+/**
+ * A worktree's page asset, from `.claude/worktrees/`:  `<w>/packages/epics/tools/_assets/...` (the docs runtime, its
+ * stylesheet, the docs bundle and its chunks) or a component pack (`<w>/packages/<pkg>/components/__pack/...`).
+ * - a worktree on older code:  `packages/docs/tools/_assets/` and `packages/epics/pack/`
+ */
+const ASSET_FILE =
+  /^[^/]+\/packages\/(?:epics\/tools\/_assets|docs\/tools\/_assets|[^/]+\/components\/__pack|epics\/pack)\/.+\.(?:m?js|css)$/
 
 /** `path` with every link resolved, or `path` itself when it doesn't exist. */
 function realOrSelf(path: string): string {

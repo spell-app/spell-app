@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { statSync, watch, type FSWatcher } from "node:fs"
 import { join, relative, resolve, sep } from "node:path"
 import type { Duplex } from "node:stream"
@@ -10,8 +11,11 @@ import { SRV, type UpgradeHandler } from "$/server"
  * - `liveClient()`, in the page, acts on each change:
  *   - the page's own file:  offers it the new version (the docs runtime patches itself in place, else it reloads)
  *   - a stylesheet it uses:  swaps it
- *   - a script in the folder of one it loads:  reloads
+ *   - a script it loaded, or one beside it:  hot-reloads (`liveAction()`)
  * - each message is JSON `{ event, data }`, e.g. `{ event: "change", data: { path: "/guides/x.html" } }`
+ * - a page's socket opens with `{ event: "hello", data: { run } }`:  this server's `run`
+ *   - a page served by an EARLIER run (the server restarted:  a merge changed its code) reloads,
+ *     so it gets the new `/api/server/live.js` and write token
  * - websockets, not server-sent events:  an `EventSource` holds one of Chrome's 6 connections per host for good,
  *   and every VS Code window shares them (see `webSocket.ts`)
  * - a write is often two (write, then a formatter), so each path waits `debounce` ms (250) for quiet
@@ -22,6 +26,12 @@ import { SRV, type UpgradeHandler } from "$/server"
 export class LiveReload {
   /** folder that paths are reported relative to, as URL paths (`/guides/x.html`) */
   readonly root: string
+
+  /**
+   * this run of the server, a random id:  every page gets it (`SPELL_SERVER.run`), and every socket hears it
+   * when it opens (`hello`), so a page from an earlier run knows to reload
+   */
+  readonly run = randomUUID().slice(0, 8)
 
   /** ms a path must be quiet before it's reported */
   readonly debounce: number
@@ -52,9 +62,13 @@ export class LiveReload {
     return this.clients.size
   }
 
-  /** the `/api/server/live` upgrade:  accepts the websocket and adds it to the clients until it closes */
+  /**
+   * the `/api/server/live` upgrade:  accepts the websocket, says `hello` (`run`),
+   * and adds it to the clients until it closes
+   */
   events: UpgradeHandler = (raw, socket) => {
     if (!SRV.acceptWebSocket(raw, socket)) return
+    socket.write(SRV.textFrame(JSON.stringify({ event: "hello", data: { run: this.run } })))
     this.clients.add(socket)
     socket.on("close", () => this.clients.delete(socket))
   }

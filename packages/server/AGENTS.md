@@ -55,11 +55,35 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - [webSocket.ts](src/webSocket.ts) -- the server's half of one (node built-ins).
     - NEVER an `EventSource`, or any other request held open:
       each takes one of Chrome's 6 connections per host, and every VS Code window shares them.
+    - HOT RELOAD (epic `epic-workflow` P24):  what a changed file means to a page is `liveAction()`:
+      - its own file:  patched in place (the docs runtime), else reloaded
+      - a stylesheet it uses:  swapped in place, no reload
+        - in VS Code's side-bar views too (Spell Docs, Review):  the live client runs inside their frame,
+          with its own socket (the frame is cross-origin to the view)
+        - nothing caches a stale one:  every answer is `Cache-Control: no-store`, `_assets/` included,
+          so a reload always fetches the stylesheet as it is now
+      - a script it loaded, or one beside it:  reloaded, keeping the scroll
+        - which:  its `<script src>` tags, and `performance`'s resource entries
+          (lazy chunks, `epics.pack.js`, an experiment's `*.bundle.js`)
+      - anything else:  `spell-server:file`, and the page decides
+    - Each socket opens with `hello` and the server's `run` (`LiveReload.run`, also `SPELL_SERVER.run`):
+      a page from an earlier run (the server restarted) reloads, for the new `/api/server/live.js` and token.
+    - Reloads go through `reloadGate()`:  one, 500ms after the last change.
+      - While the reader types in a field, an "Updated:  reload" pill waits;  it reloads once focus leaves the field.
+    - A worktree's pages on the main server (`/worktrees/<w>/`):
+      epics' `RunningEpics` reports that worktree's docs assets and packs too, as `/.claude/worktrees/<w>/...`,
+      the path the live client reads them under (`servedPath()`).
   - `Guard` -- `Host` check, per-run token, same-origin writes
   - `PidFile` -- a background server's `.spell-server.json`, at its root:  status, ensure, stop.
     - `ensure` restarts a server that started before its code last changed.
       So after a merge, the next opener gets the new routes.
       - its code:  the `sources` folders, by `newestChange()`
+      - Nothing restarts it by itself:  the next `spell dev server ensure` (an opener, `/airplane`),
+        or the side bar's "Restart Page Server".  Its open pages then reload (`hello`).
+    - `stop` waits for the old PROCESS to end (`SIGTERM`, then `SIGKILL` after 10s), not just for it to stop answering.
+      - Why:  it stops answering before it lets go of its port.
+        `ensure` started the new one while the old one held the port, so the new one took another port,
+        and pages on the old one found the server down (epic `airplane`, 2026-10-10).
   - [mainServer.ts](src/mainServer.ts) -- `mainServerUrl()`:  a worktree's file on the MAIN checkout's page server.
     - It asks that server for `/api/epics/running` (`RUNNING_EPICS_API`).
   - [proxy.ts](src/proxy.ts) -- `proxyTo()` / `proxyUpgrade()`:  HTTP and websockets to another local server

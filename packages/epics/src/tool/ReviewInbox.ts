@@ -57,10 +57,10 @@ import { CommentList, type Comment, type IdentifiedComment } from "./CommentList
  *       `liveListener()` is `null`, and the routes answer `listening: null` (`forPage()`)
  *   - `handedOver`:  the `sent` time a waiting session last took (`takeWork()`), else `null`:
  *     so a second `plan-doc inbox wait` doesn't hand the same send over again
- *   - `comments`:  `{ [cm1 ...]: comment }`, Owen's comments on the page's blocks and on selected text
+ *   - `comments`:  `{ [m1 ...]: comment }` (shown `M1`;  `cm1` in an older file:  `CommentList.label()`), Owen's comments on the page's blocks and on selected text
  *     (epic `airplane` P11), in the shape a guide's inbox holds them (`CommentList`)
  *     - waiting until Claude answers them like a revisit's note (`/epic review`, `/airplane land`),
- *       then `answered` (`plan-doc inbox done cm3`)
+ *       then `answered` (`epic inbox <name>#M3 done`)
  *     - Send hands them over, as it does marks (Owen, 2026-10-10:  he keeps Send as the way comments reach Claude):
  *       a waiting comment whose last words are newer than `sent` is unsent (`unsentComments`);
  *       a waiting session takes it with the send (`takeWork()`), once, until Owen speaks on its thread again
@@ -95,7 +95,7 @@ export class ReviewInbox {
   listening: InboxListener | null = null
   /** the `sent` time a waiting session last took, else `null` */
   handedOver: string | null = null
-  /** Owen's comments on the page's blocks, by id (`cm1` ...):  `CommentList` */
+  /** Owen's comments on the page's blocks, by id (`m1` ...;  `cm1` in an older file):  `CommentList` */
   comments: Record<string, Comment> = {}
   /** the page server's last wake of the epic (P16), else `null` */
   woken: InboxWoken | null = null
@@ -103,9 +103,11 @@ export class ReviewInbox {
   /**
    * An inbox:  empty, or the fields of `record` (a file's JSON) over an empty one's.
    * - a field the record lacks keeps its empty value, so readers never check;  a key it adds is kept, after them
+   * - a comment key spelt the other way (`m3`) respelt (`CommentList.migrate()`)
    */
   constructor(record: Partial<InboxRecord> & Record<string, unknown> = {}) {
     Object.assign(this, record)
+    CommentList.migrate(this.comments)
   }
 
   /** The comments, to read or change (in place). */

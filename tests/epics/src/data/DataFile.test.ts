@@ -68,9 +68,9 @@ describe("textFor():  the text a save writes", () => {
 
   test("saved again and again, the layout stays JSON.stringify's:  no blank lines, no hugged brackets", () => {
     let text = COMMENTED
-    for (let n = 1; n <= 3; n++) text = DataFile.textFor(text, { version: 1, marks: {}, comments: [{ id: `cm${n}` }] })
+    for (let n = 1; n <= 3; n++) text = DataFile.textFor(text, { version: 1, marks: {}, comments: [{ id: `m${n}` }] })
     expect(text).not.toMatch(/\n\s*\n/)
-    expect(text).toContain('  "comments": [\n    {\n      "id": "cm3"\n    }\n  ]')
+    expect(text).toContain('  "comments": [\n    {\n      "id": "m3"\n    }\n  ]')
     expect(text).toContain("// Owen:  why this list exists")
   })
 

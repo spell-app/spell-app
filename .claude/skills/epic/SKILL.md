@@ -643,7 +643,7 @@ The item's id chip follows too (PLAN-DOC.md "Colours"):
      - A long talk without them shows "nobody is reviewing", until `wait` runs again.
 
 3b. COMMENTS (epic `airplane` P11):  Owen's comments on the doc's blocks, or on text he selected (the bullhorns).
-   - Ids `cm1` ...
+   - Ids `M1` ... (epic `epic-workflow` P23), as the page shows them, keyed `m1` in the inbox;  `m1` and the old `cm1` read the same.
    - Each is a THREAD on the page:  his comment, your answers, his replies, until he closes it
      ("that's good" / "skip it").
    - `epic inbox <name>` lists the ones waiting, under "comments".
@@ -655,13 +655,13 @@ The item's id chip follows too (PLAN-DOC.md "Colours"):
      - `wait` prints them under the send:  "comments, to answer on their threads", with his latest reply.
      - Each goes over once, until he speaks on its thread again.
      - A comment never wakes `wait` by itself, unsent.  Still check `inbox` on every wake:  one may wait unsent.
-   - FIRST, as you start on one:  `epic inbox <name>#cm3 working on`.
+   - FIRST, as you start on one:  `epic inbox <name>#M3 working on`.
      - His thread shows "Claude: thinking…" at its end (a turning notch) until your answer lands:
-       `inbox <name>#cm3 done` turns it off.  Dropped without an answer:  `inbox <name>#cm3 working off`.
+       `inbox <name>#M3 done` turns it off.  Dropped without an answer:  `inbox <name>#M3 working off`.
      - What he said before it counts as read:  more words of his go after it, as a new reply (waiting again).
    - Answer each like a revisit's note:  INTO the item it's on (`details --append`, his comment quoted).
      On a phase field or Overview prose:  into that phase or part.
-   - Then `epic inbox <name>#cm3 done --file <answer.html> [--commit <sha>]`.
+   - Then `epic inbox <name>#M3 done --file <answer.html> [--commit <sha>]`.
      - The answer goes on his thread too (a line or two;  the full one is in the doc):  his turn, the thread opens.
      - `--commit`:  the commit it was built in;  his Done line shows it.
      - No `--file`:  the thread says "Answered in the epic page".
@@ -671,9 +671,9 @@ The item's id chip follows too (PLAN-DOC.md "Colours"):
    - `wait` prints them under "sent from the pages <name> owns", each under its page;
      `epic inbox <name>` lists the ones waiting, sent or not.
    - One at a time, with the guide commands (not `epic inbox`):
-     - `epic comments working <page> <cm id> on` as you start:  his thread shows "Claude: thinking…".
+     - `epic comments working <page>#M3 on` as you start:  his thread shows "Claude: thinking…".
      - Work it into the page (or say why not).
-     - `epic comments answer <page> <cm id> --file <answer.html> [--commit <sha>]`:  his turn, the thread opens.
+     - `epic comments answer <page>#M3 --file <answer.html> [--commit <sha>]`:  his turn, the thread opens.
 4. Arm `wait` again (always, unless he said stop), then reply:
    - what landed:  bullets, items in words, ids after
    - what's being worked on in the background

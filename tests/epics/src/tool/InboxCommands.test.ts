@@ -252,8 +252,8 @@ test("done:  a Do Now request done is `review-as=now`;  a revisit talked over, `
   expect(["j1", "j2"].map((id) => plan.findItem(id)!.getAttribute("state"))).not.toContain("recent")
 })
 
-test("done cm1 --file:  the answer goes on the comment's thread;  Owen's reply lists it as waiting again", async () => {
-  const id = "cm1"
+test("done M1 --file:  the answer goes on the comment's thread;  Owen's reply lists it as waiting again", async () => {
+  const id = "m1"
   ReviewInbox.update(inboxFile, (inbox) => void inbox.commentList.add({ anchor: "j1", kind: "item" }, "Why?"))
   const answer = join(root, "answer.html")
   writeFileSync(answer, "<p>Because.</p>\n")
@@ -263,7 +263,7 @@ test("done cm1 --file:  the answer goes on the comment's thread;  Owen's reply l
   ])
   ReviewInbox.update(inboxFile, (inbox) => inbox.commentList.reply(id, "Say more"))
   await commands().inbox.run("x", file, [], {})
-  expect(printed.join("\n")).toMatch(/CM1 {2}on j1 \(item\)[^\n]*\n {4}Owen replied:  "Say more"/)
+  expect(printed.join("\n")).toMatch(/M1 {2}on j1 \(item\)[^\n]*\n {4}Owen replied:  "Say more"/)
 })
 
 // Owen, 2026-10-10:  "send button at top of page doesn't appear to be hooked up" -- he keeps Send as the way comments
@@ -283,10 +283,10 @@ test("wait:  a send with ONLY comments wakes it, and prints each comment and Owe
   const said = printed.join("\n")
   expect(said).toMatch(/^sent [^\n]* \(0 marks, 2 comments\):/)
   expect(said).toMatch(
-    /CM1 {2}on j1 \(item\) {2}quoting "a real choice" {2}"Why\?"[^\n]*\n {6}Owen replied:  "Say more"/
+    /M1 {2}on j1 \(item\) {2}quoting "a real choice" {2}"Why\?"[^\n]*\n {6}Owen replied:  "Say more"/
   )
-  expect(said).toMatch(/CM2 {2}on p1#field-1 \(field\) {2}"Is this hooked up\?"/)
-  expect(said).toMatch(/epic inbox x#<cm id> working on/)
+  expect(said).toMatch(/M2 {2}on p1#field-1 \(field\) {2}"Is this hooked up\?"/)
+  expect(said).toMatch(/epic inbox x#<M id> working on/)
   // nothing to apply:  no line saying so
   expect(said).not.toMatch(/epic inbox x apply/)
   // handed over:  the next wait has nothing until Owen speaks again
@@ -311,14 +311,14 @@ test("wait:  a Send on a guide the epic owns wakes it, each comment under its pa
   })
   await commands().inbox.run("x", file, [], {})
   expect(printed.join("\n")).toMatch(
-    /comments on the pages x owns, waiting for an answer \(1\):\n {2}guides\/x\.html {2}\(sent never\)\n {4}- CM1 {2}on summary \(section\) {2}"Too long\?"[^\n]*· unsent/
+    /comments on the pages x owns, waiting for an answer \(1\):\n {2}guides\/x\.html {2}\(sent never\)\n {4}- M1 {2}on summary \(section\) {2}"Too long\?"[^\n]*· unsent/
   )
   printed = []
   GuideInbox.update(guide, (_comments, inbox) => inbox.markSent(T2))
   expect(await commands().inbox.run("x", file, ["wait"], { timeout: "5" })).toBeUndefined()
   const said = printed.join("\n")
-  expect(said).toMatch(/^sent from the pages x owns \(1 comment\):\n {2}guides\/x\.html {2}\(sent [^)]+\):\n {4}- CM1/)
-  expect(said).toMatch(/epic comments working <page>#<cm id> on/)
+  expect(said).toMatch(/^sent from the pages x owns \(1 comment\):\n {2}guides\/x\.html {2}\(sent [^)]+\):\n {4}- M1/)
+  expect(said).toMatch(/epic comments working <page>#<M id> on/)
   expect(GuideInbox.read(guide).hasNewSend).toBe(false)
 })
 
@@ -329,25 +329,25 @@ test("wait --json:  the send's comments, as the inbox holds them", async () => {
   })
   await commands().inbox.run("x", file, ["wait"], { timeout: "5", json: true })
   const work = JSON.parse(printed.join("\n")) as { sent: { comments: { id: string; text: string }[] } }
-  expect(work.sent.comments).toMatchObject([{ id: "cm1", text: "Why?" }])
+  expect(work.sent.comments).toMatchObject([{ id: "m1", text: "Why?" }])
 })
 
-test("working cm1 on | off:  the thread's thinking stub, not an item's spinner;  done cm1 turns it off", async () => {
-  const id = "cm1"
+test("working M1 on | off (m1, the old m1 too):  the thread's thinking stub, not an item's spinner;  done turns it off", async () => {
+  const id = "m1"
   ReviewInbox.update(inboxFile, (inbox) => void inbox.commentList.add({ anchor: "j1", kind: "item" }, "Why?"))
   const comment = () => ReviewInbox.read(inboxFile).comments[id]
-  await commands().inbox.run("x", file, ["working", "CM1", "on"], {})
+  await commands().inbox.run("x", file, ["working", "M1", "on"], {})
   expect(comment().working).toEqual(expect.any(String))
   expect(ReviewInbox.read(inboxFile).working).toEqual({})
   // being thought about:  no longer waiting for Claude
   expect(ReviewInbox.read(inboxFile).commentList.waiting).toEqual([])
-  await commands().inbox.run("x", file, ["working", "cm1", "off"], {})
+  await commands().inbox.run("x", file, ["working", "m1", "off"], {})
   expect(comment().working).toBeUndefined()
   await commands().inbox.run("x", file, ["working", "cm1", "on"], {})
   await commands().inbox.run("x", file, ["done", id], {})
   expect(comment().working).toBeUndefined()
-  expect(printed).toEqual(["CM1 working:  on", "CM1 working:  off", "CM1 working:  on", "comments answered:  CM1"])
-  await expect(commands().inbox.run("x", file, ["working", "cm9", "on"], {})).rejects.toThrow(/no comment cm9/)
+  expect(printed).toEqual(["M1 working:  on", "M1 working:  off", "M1 working:  on", "comments answered:  M1"])
+  await expect(commands().inbox.run("x", file, ["working", "cm9", "on"], {})).rejects.toThrow(/no comment M9/)
 })
 
 test("status:  underway writes the card AND turns the page's spinner on;  done turns both;  done again is refused", async () => {

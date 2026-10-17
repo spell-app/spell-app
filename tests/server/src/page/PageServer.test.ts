@@ -316,6 +316,14 @@ describe("PageServer", () => {
     events.close()
   })
 
+  it("says hello with its run, the run its pages got:  a page from an earlier run knows to reload", async () => {
+    const events = await listen(port)
+    const { run } = await config()
+    expect(run).toMatch(/^[0-9a-f]{8}$/)
+    expect(await events.next("hello")).toEqual({ run })
+    events.close()
+  })
+
   it("serves a script's fetch() the file AS IS:  no injected tags", async () => {
     const fetched = await ask(port, "GET", "/docs/page.html", { headers: { "sec-fetch-dest": "empty" } })
     expect(fetched.text).toBe(readFileSync(page, "utf8"))
@@ -398,21 +406,29 @@ describe("PageServer", () => {
 
 /**
  * Listen to the live-reload websocket (`SRV.LIVE_EVENTS`) on `port`, as a page does.
- * - `next(event, path)`:  resolves with the data of the next `event` about `path`
+ * - `next(event, path)`:  resolves with the data of the next `event` about `path` (none:  an event with no path)
+ * - the `hello` every socket opens with is kept, so `next("hello")` finds it however late it asks
  */
-function listen(port: number): Promise<{ next: (event: string, path: string) => Promise<unknown>; close: () => void }> {
+function listen(
+  port: number
+): Promise<{ next: (event: string, path?: string) => Promise<unknown>; close: () => void }> {
   return new Promise((done, fail) => {
-    const waiting: { event: string; path: string; resolve: (data: unknown) => void }[] = []
+    const waiting: { event: string; path?: string; resolve: (data: unknown) => void }[] = []
+    let hello: unknown
     const socket = new WebSocket(`ws://127.0.0.1:${port}${SRV.LIVE_EVENTS}`)
     socket.addEventListener("message", (message: MessageEvent<string>) => {
       const { event, data } = JSON.parse(message.data) as { event: string; data: { path?: string } }
+      if (event === "hello") hello = data
       const at = waiting.findIndex((each) => each.event === event && each.path === data.path)
       if (at >= 0) waiting.splice(at, 1)[0]!.resolve(data)
     })
     socket.addEventListener("error", () => fail(new Error(`no live-reload websocket on port ${port}`)))
     socket.addEventListener("open", () =>
       done({
-        next: (event, path) => new Promise((resolve) => waiting.push({ event, path, resolve })),
+        next: (event, path) =>
+          event === "hello" && hello
+            ? Promise.resolve(hello)
+            : new Promise((resolve) => waiting.push({ event, path, resolve })),
         close: () => socket.close()
       })
     )

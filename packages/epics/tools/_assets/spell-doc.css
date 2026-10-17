@@ -1229,6 +1229,14 @@ pre code {
   border-radius: 999px;
   background: var(--spell-bg);
 }
+/*
+ * a folding block's title row (`<epic-code>`, `<epic-aside>`) is its fold button, the row's whole width:  it ends
+ * short of the bullhorn over its corner, so the two sit side by side, never one on the other (Owen, 2026-10-17:
+ * "the bullhorn appears to be overlapping with the collapse button")
+ */
+.spell-doc-main .spell-comment-mark.at-block + :is(epic-code, epic-aside)::part(toggle) {
+  width: calc(100% - 34px);
+}
 .spell-doc-main .spell-comment-mark:not(.at-block) {
   position: relative;
 }
@@ -1358,6 +1366,21 @@ pre code {
 }
 .spell-doc-main .spell-thread[data-turn="done"] .spell-thread-mark {
   color: var(--spell-thread-green);
+}
+/*
+ * its id (`M3`;  epic `epic-workflow` P23, Owen 2026-10-10:  "use `M3` for mark 1"):  small and muted, an outline and
+ * no fill, quieter than an epic page item's id chip;  Cmd / Ctrl + K takes it
+ */
+.spell-doc-main .spell-thread-id {
+  flex: none;
+  padding: 1px 5px;
+  border: 1px solid var(--spell-rail-rule);
+  border-radius: 999px;
+  color: color-mix(in srgb, var(--spell-rail-ink) 65%, transparent);
+  font: 600 10px/1.2 var(--spell-mono);
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
 }
 /* what it's on, as the pane's header says it (`headline()`) */
 .spell-doc-main .spell-thread-headline {
@@ -2049,6 +2072,50 @@ ui-accordion.spell-aside::part(content) {
 }
 
 /*
+ * The BULLHORN at the toolbar's right (the comments' runtime adds it:  `PageComments.drawWaiting()`;  epic
+ * `epic-workflow` P23):  the threads waiting on Owen, their count an orange badge as an epic page's "replied" one;
+ * each click lands on the next.  Hidden while none waits.  Last in the row, the section buttons taking the room left:
+ * an epic page's, just left of `<epic-page>`'s own tools;  a guide's, at the band's right
+ */
+.spell-toolbar:has(> .spell-toolbar-waiting:not([hidden])) {
+  display: flex;
+  align-items: center;
+}
+.spell-toolbar:has(> .spell-toolbar-waiting:not([hidden])) > .spell-toolbar-items {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.spell-toolbar-waiting {
+  display: flex;
+  flex: none;
+  /* room above for its badge, as the section buttons have */
+  padding: 4px 4px 4px 2px;
+}
+.spell-toolbar-titled > .spell-toolbar-waiting {
+  padding-inline-end: calc(var(--_out) - 7px);
+}
+.spell-toolbar-waiting[hidden] {
+  display: none;
+}
+.spell-doc-page .spell-toolbar-waiting > button.spell-toolbar-item {
+  width: 30px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.spell-doc-page .spell-toolbar-waiting > button.spell-toolbar-item:hover {
+  background: var(--spell-rail-hover);
+}
+/* the pointer lands on the titled button, so its tooltip shows ("TOOLTIPS that show") */
+.spell-toolbar-waiting > button > * {
+  pointer-events: none;
+}
+.spell-toolbar-waiting .spell-toolbar-icon {
+  position: relative;
+}
+
+/*
  * ## Every other page's toolbar (`nav.spell-toolbar-titled`, the runtime's `buildPageToolbar()`;  Owen, 2026-10-10:
  * "Make the floating sidebar in guides a sticky top toolbar like the epic page.  Have section titles in this one"):
  * the last row of the sticky page header (`.spell-page-head`), or of the filter bar, or a sticky bar of its own
@@ -2141,7 +2208,10 @@ ui-accordion.spell-aside::part(content) {
   color: var(--spell-state-progress-on);
 }
 
-/* ## The jump dialog (Cmd / Ctrl + K on an epic page, the runtime's `openJumpPrompt()`):  a miss says so in red */
+/*
+ * ## The jump dialog (Cmd / Ctrl + K, the runtime's `openJumpPrompt()`):  a miss says so in red;  the threads waiting on
+ * Owen listed under the box, a line each, "M3 · his first words" (epic `epic-workflow` P23)
+ */
 .spell-jump {
   display: grid;
   gap: 0.5em;
@@ -2150,6 +2220,42 @@ ui-accordion.spell-aside::part(content) {
   margin: 0.5em 0 0;
   color: var(--ui-red-text, var(--spell-state-attention));
   font-size: 0.9em;
+}
+.spell-jump-waiting {
+  display: grid;
+  gap: 1px;
+  margin-top: 0.9em;
+}
+.spell-jump-waiting-title {
+  margin: 0 0 0.25em;
+  color: color-mix(in srgb, currentColor 65%, transparent);
+  font-size: 0.85em;
+}
+.spell-jump-thread {
+  overflow: hidden;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.9em;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.spell-jump-thread:hover,
+.spell-jump-thread:focus-visible {
+  background: var(--spell-rail-hover, rgb(0 0 0 / 6%));
+}
+/* the pointer lands on the titled line, so its tooltip shows ("TOOLTIPS that show") */
+.spell-jump-thread > * {
+  pointer-events: none;
+}
+.spell-jump-thread > b {
+  color: var(--ui-orange-text, var(--spell-state-replied));
+  font: 600 0.9em var(--spell-mono);
 }
 
 /*******************************

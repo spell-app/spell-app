@@ -1873,7 +1873,7 @@ const SUMMARY_SLOT = "summary"
 /** The slot of Owen's kept notes on the summary (`<epic-reply slot="notes">`, `PlanDoc.keepNote()`). */
 const NOTES_SLOT = "notes"
 
-/** An item's id, or what may be one:  `j3`, `cm3`, `o2` (but an old phase id, `p3`:  `OLD_PHASE_REF`). */
+/** An item's id, or what may be one:  `j3`, a comment's `m3` / `cm3`, `o2` (but an old phase id, `p3`:  `OLD_PHASE_REF`). */
 const ITEM_REF = /^[a-z]{1,2}\d+$/
 
 /** A phase by its number:  `p3`, `3`. */

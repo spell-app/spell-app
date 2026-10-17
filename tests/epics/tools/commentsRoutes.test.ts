@@ -9,6 +9,7 @@ import { afterAll, beforeAll, expect, test, vi } from "vite-plus/test"
 
 import { PageServer } from "$/server/page"
 import { ask } from "$/server/test/serve"
+import { CommentList } from "$/epics/tool/CommentList"
 import { GuideInbox } from "$/epics/tool/GuideInbox"
 import { ReviewInbox } from "$/epics/tool/ReviewInbox"
 
@@ -125,10 +126,10 @@ test("adds a comment to the page's INBOX FILE, never the page;  the answer lists
     text: "Too wide on a phone?"
   })
   expect(status).toBe(200)
-  expect(answer).toMatchObject({ ok: true, id: "cm1", comments: [{ id: "cm1", ...ON_TABLE, status: "new" }] })
+  expect(answer).toMatchObject({ ok: true, id: "m1", comments: [{ id: "m1", ...ON_TABLE, status: "new" }] })
   expect(inboxOf("guides/solid/solid-2.html")).toMatchObject({
     version: 1,
-    comments: { cm1: { ...ON_TABLE, text: "Too wide on a phone?", status: "new" } }
+    comments: { m1: { ...ON_TABLE, text: "Too wide on a phone?", status: "new" } }
   })
   expect(readFileSync(join(root, "guides/solid/solid-2.html"), "utf8")).toBe(PAGE)
 })
@@ -148,7 +149,7 @@ test("a docs page's SEND:  its epic, who is listening, what waits;  Send marks t
   expect((await get("/guides/solid/solid-2.html")).send).toMatchObject({ epic: "guide-changes", owned: false })
   expect((await get("/epics/big/big.plan.html")).send).toBeUndefined()
   const added = await post({ page, action: "add", anchor: "page", kind: "page", text: "Say more" })
-  expect(added.answer.send).toMatchObject({ unsent: ["cm1"], waiting: ["cm1"] })
+  expect(added.answer.send).toMatchObject({ unsent: ["m1"], waiting: ["m1"] })
   ReviewInbox.update(join(root, "epics/py/py.inbox.json5"), (box) => box.setListening("session-1"))
   const sendTo = (body: object) =>
     ask(port, "POST", "/api/docs/comments/send", { body: JSON.stringify(body), headers: headers() })
@@ -158,7 +159,7 @@ test("a docs page's SEND:  its epic, who is listening, what waits;  Send marks t
     listening: "session-1",
     sent: expect.any(String),
     unsent: [],
-    waiting: ["cm1"]
+    waiting: ["m1"]
   })
   expect(inboxOf("guides/py.html").sent).toEqual(expect.any(String))
   expect((await sendTo({ page: "/epics/big/big.plan.html" })).status).toBe(400)
@@ -187,12 +188,12 @@ test("Send with nobody listening wakes the page's epic, and says what that did; 
 
 test("edits and deletes a new comment;  the last one out takes the file", async () => {
   const page = "/pages/index.html"
-  expect((await post({ page, action: "add", anchor: "page", kind: "page", text: "one" })).answer.id).toBe("cm1")
-  const edited = await post({ page, action: "edit", id: "cm1", text: "one, better" })
+  expect((await post({ page, action: "add", anchor: "page", kind: "page", text: "one" })).answer.id).toBe("m1")
+  const edited = await post({ page, action: "edit", id: "m1", text: "one, better" })
   expect(edited.answer.comments[0]).toMatchObject({ text: "one, better", edited: expect.any(String) })
-  expect((await post({ page, action: "delete", id: "cm1" })).answer.comments).toEqual([])
+  expect((await post({ page, action: "delete", id: "m1" })).answer.comments).toEqual([])
   expect(existsSync(join(root, "pages/index.inbox.json5"))).toBe(false)
-  expect((await post({ page, action: "delete", id: "cm1" })).status).toBe(404)
+  expect((await post({ page, action: "delete", id: "m1" })).status).toBe(404)
 })
 
 test("a taken comment can't change:  409", async () => {
@@ -235,7 +236,7 @@ test("Undo:  `restore` brings back a deleted comment, or a cleared one Claude ha
   const again = await post({ page, action: "restore", id, comment: had })
   expect(again.answer.comments.find((comment: { id: string }) => comment.id === id)).toEqual(had)
   expect((await post({ page, action: "restore", id })).status).toBe(400)
-  expect((await post({ page, action: "restore", id: "cm99", comment: { ...had, text: " " } })).status).toBe(400)
+  expect((await post({ page, action: "restore", id: "m99", comment: { ...had, text: " " } })).status).toBe(400)
   await post({ page, action: "clear", id })
 })
 
@@ -267,7 +268,7 @@ test("a THREAD:  `reply` (saved as typed), `resolve` (that's good / skip it), `r
   expect((await post({ page, action: "resolve", id, how: "skip" })).status).toBe(200)
   expect(GuideInbox.read(inbox).commentList.comment(id).done?.how).toBe("skip")
   expect((await post({ page, action: "resolve", id, how: "maybe" })).status).toBe(400)
-  expect((await post({ page, action: "reply", id: "cm99", text: "x" })).status).toBe(404)
+  expect((await post({ page, action: "reply", id: "m99", text: "x" })).status).toBe(404)
   expect((await post({ page, action: "reply", id })).status).toBe(400)
   await post({ page, action: "clear", id })
 })
@@ -294,7 +295,7 @@ test("WORKING:  `spell dev comments working` -- the GET carries it (the thread's
     expect(await shown()).toMatchObject({ turn: "owen" })
     expect((await shown()).working).toBeUndefined()
     // a comment that isn't there:  1;  on | off missing:  usage
-    expect(await run(["working", file, "cm99", "on"], {})).toBe(1)
+    expect(await run(["working", file, "m99", "on"], {})).toBe(1)
     expect(await run(["working", file, id, "maybe"], {})).toBe(2)
   } finally {
     log.mockRestore()
@@ -314,7 +315,7 @@ test("WAIT:  `epic comments wait <page>` exits with a comment new since it start
     const { id } = (await post({ page, action: "add", ...ON_TABLE, text: "Provide more details here." })).answer
     expect(await waiting).toBe(0)
     const printed = log.mock.calls.map(([line]) => String(line)).join("\n")
-    expect(printed).toContain(`${id}  table`)
+    expect(printed).toContain(`#${CommentList.label(id)}  table`)
     expect(printed).toContain("Provide more details here.")
     expect(printed).not.toContain("Already here")
     await post({ page, action: "clear", id })
@@ -330,26 +331,26 @@ test("the page reads its comments back, every status", async () => {
   expect(JSON.parse(got.text)).toMatchObject({
     page: "/guides/solid/solid-2.html",
     takesComments: true,
-    comments: [{ id: "cm1" }]
+    comments: [{ id: "m1" }]
   })
 })
 
 test("a worktree's page through /worktrees/, an epic's own page, a details page without questions", async () => {
   for (const page of ["/worktrees/w/guides/far.html", "/epics/big/notes.html", "/pages/details/plain.html"])
     expect((await post({ page, action: "add", ...ON_TABLE, text: "x" })).status).toBe(200)
-  expect(inboxOf(".claude/worktrees/w/guides/far.html").comments.cm1.text).toBe("x")
+  expect(inboxOf(".claude/worktrees/w/guides/far.html").comments.m1.text).toBe("x")
 })
 
 test("a component set's page, at its address:  its inbox beside it in the set's folder;  never its __parts", async () => {
   const page = "/components/epics/epic-item.html"
   const { status, answer } = await post({ page, action: "add", ...ON_TABLE, text: "Show a reply too?" })
   expect(status).toBe(200)
-  expect(answer.id).toBe("cm1")
+  expect(answer.id).toBe("m1")
   expect(inboxOf("packages/epics/docs/epic-item.html")).toMatchObject({
-    comments: { cm1: { text: "Show a reply too?", status: "new" } }
+    comments: { m1: { text: "Show a reply too?", status: "new" } }
   })
   const read = JSON.parse((await ask(port, "GET", `/api/docs/comments?page=${page}`)).text)
-  expect(read).toMatchObject({ takesComments: true, comments: [{ id: "cm1" }] })
+  expect(read).toMatchObject({ takesComments: true, comments: [{ id: "m1" }] })
   const layout = JSON.parse(
     (await ask(port, "GET", "/api/docs/comments?page=/components/epics/__parts/layout.html")).text
   )
@@ -363,25 +364,25 @@ test("an epic page's comments go in the epic's REVIEW INBOX, beside its marks;  
   const page = "/epics/big/big.plan.html"
   const quoted = { ...ON_TABLE, anchor: "p3#field-2", kind: "field", quote: "the inbox file", offset: 14 }
   const { status, answer } = await post({ page, action: "add", ...quoted, text: "which one?" })
-  expect([status, answer.id]).toEqual([200, "cm1"])
+  expect([status, answer.id]).toEqual([200, "m1"])
   expect(JSON.parse(readFileSync(join(root, "epics/big/big.inbox.json5"), "utf8"))).toMatchObject({
     marks: {},
-    comments: { cm1: { anchor: "p3#field-2", quote: "the inbox file", offset: 14, text: "which one?" } }
+    comments: { m1: { anchor: "p3#field-2", quote: "the inbox file", offset: 14, text: "which one?" } }
   })
   const read = await ask(port, "GET", "/api/docs/comments?page=%2Fepics%2Fbig%2Fbig.plan.html")
-  expect(JSON.parse(read.text)).toMatchObject({ takesComments: true, comments: [{ id: "cm1", status: "new" }] })
+  expect(JSON.parse(read.text)).toMatchObject({ takesComments: true, comments: [{ id: "m1", status: "new" }] })
 })
 
 // epic `epic-workflow` P15:  a saga page is an epic page of kind "saga"
 test("a saga page's comments go in its own REVIEW INBOX beside it;  its Send is the page's own, not this route's", async () => {
   const page = "/sagas/epics/epics.saga.html"
   const { status, answer } = await post({ page, action: "add", ...ON_TABLE, anchor: "o1#field-1", text: "more?" })
-  expect([status, answer.id]).toEqual([200, "cm1"])
+  expect([status, answer.id]).toEqual([200, "m1"])
   expect(JSON.parse(readFileSync(join(root, "sagas/epics/epics.inbox.json5"), "utf8"))).toMatchObject({
-    comments: { cm1: { anchor: "o1#field-1", text: "more?" } }
+    comments: { m1: { anchor: "o1#field-1", text: "more?" } }
   })
   const read = JSON.parse((await ask(port, "GET", `/api/docs/comments?page=${encodeURIComponent(page)}`)).text)
-  expect(read).toMatchObject({ takesComments: true, comments: [{ id: "cm1" }] })
+  expect(read).toMatchObject({ takesComments: true, comments: [{ id: "m1" }] })
   expect(read.send).toBeUndefined()
   const send = await ask(port, "POST", "/api/docs/comments/send", {
     body: JSON.stringify({ page }),

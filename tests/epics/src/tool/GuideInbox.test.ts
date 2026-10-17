@@ -51,6 +51,6 @@ test("the file keeps `sent` and `handedOver`;  with no comment left, it goes", (
   expect(GuideInbox.read(file)).toMatchObject({ sent: T2, handedOver: null })
   expect(GuideInbox.update(file, (_comments, inbox) => inbox.takeSent())?.comments).toHaveLength(1)
   expect(GuideInbox.read(file)).toMatchObject({ sent: T2, handedOver: T2 })
-  GuideInbox.update(file, (comments) => comments.clear("cm1"))
+  GuideInbox.update(file, (comments) => comments.clear("m1"))
   expect(existsSync(file)).toBe(false)
 })

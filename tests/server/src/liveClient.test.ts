@@ -1,4 +1,6 @@
-import { describe, expect, test } from "vite-plus/test"
+import { Script } from "node:vm"
+
+import { afterEach, beforeEach, describe, expect, test, vi } from "vite-plus/test"
 
 import { SRV } from "$/server"
 
@@ -65,5 +67,131 @@ describe("forVsCode()", () => {
 
   test("a key still being composed (an IME) is never sent", () => {
     expect(SRV.forVsCode({ ...press("p", "meta"), isComposing: true }, MAC)).toBe(false)
+  })
+})
+
+describe("liveAction():  what a changed file means to a page", () => {
+  /** an epic page that loaded the docs runtime, the docs bundle, a lazy chunk and the epics pack */
+  const page = {
+    file: "/epics/x/x.plan.html",
+    scripts: [
+      "/api/server/live.js",
+      "/packages/epics/tools/_assets/spell-doc-runtime.js",
+      "/packages/epics/tools/_assets/spell-ui.js",
+      "/packages/epics/tools/_assets/lazy/ui-code-AbC123.js",
+      "/packages/epics/components/__pack/epics.pack.js"
+    ]
+  }
+
+  test("its own file:  the page, patched in place or reloaded", () => {
+    expect(SRV.liveAction("/epics/x/x.plan.html", page)).toBe("page")
+  })
+
+  test("a stylesheet:  swapped in place (when the page uses it)", () => {
+    expect(SRV.liveAction("/packages/epics/tools/_assets/spell-doc.css", page)).toBe("style")
+    expect(SRV.liveAction("/components/ui/_assets/site.css", page)).toBe("style")
+  })
+
+  test("the runtime, the bundle, a chunk (old name or new), the pack:  hot reload", () => {
+    const paths = [
+      "/packages/epics/tools/_assets/spell-doc-runtime.js",
+      "/packages/epics/tools/_assets/spell-ui.js",
+      "/packages/epics/tools/_assets/lazy/ui-code-XyZ789.js",
+      "/packages/epics/components/__pack/epics.pack.js"
+    ]
+    expect(paths.map((path) => SRV.liveAction(path, page))).toEqual(paths.map(() => "script"))
+  })
+
+  test("an experiment's bundle its guide loaded:  hot reload", () => {
+    const guide = { file: "/guides/c/c.html", scripts: ["/guides/c/experiments/c.bundle.js"] }
+    expect(SRV.liveAction("/guides/c/experiments/c.bundle.js", guide)).toBe("script")
+  })
+
+  test("a script it never loaded (a repo tool), or beside the live client under /api/:  ignored", () => {
+    expect(SRV.liveAction("/packages/epics/tools/doc-links.js", page)).toBe("ignore")
+    expect(SRV.liveAction("/api/server/other.js", page)).toBe("ignore")
+  })
+
+  test("any other file:  the page decides (spell-server:file)", () => {
+    expect(SRV.liveAction("/epics/x/parts/q2.html", page)).toBe("file")
+    expect(SRV.liveAction("/guides/x/data.json5", page)).toBe("file")
+  })
+})
+
+describe("servedPath()", () => {
+  const base = "http://127.0.0.1:4747/epics/x/x.plan.html"
+
+  test("the path, without query or hash;  another origin's:  none", () => {
+    const pack = "/packages/epics/components/__pack/epics.pack.js"
+    expect(SRV.servedPath(`${pack}?v=2#x`, base)).toBe(pack)
+    expect(SRV.servedPath("https://cdn.example/x.js", base)).toBeUndefined()
+  })
+
+  test("a worktree's file on the main server:  its path from the main checkout, as changes are reported", () => {
+    const url = "http://127.0.0.1:4747/worktrees/seo/packages/epics/tools/_assets/spell-ui.js"
+    expect(SRV.servedPath(url, base)).toBe("/.claude/worktrees/seo/packages/epics/tools/_assets/spell-ui.js")
+  })
+})
+
+describe("reloadGate():  one hot reload, not while typing", () => {
+  beforeEach(() => void vi.useFakeTimers())
+  afterEach(() => void vi.useRealTimers())
+
+  /** a gate whose reader types while `state.typing`;  `reloads` counts reloads, `waits` the pill's states */
+  function gate() {
+    const state = { typing: false, reloads: 0, waits: [] as boolean[] }
+    const it = SRV.reloadGate({
+      wait: 500,
+      typing: () => state.typing,
+      reload: () => void state.reloads++,
+      waiting: (on) => void state.waits.push(on)
+    })
+    return { state, it }
+  }
+
+  test("a build's many changes:  ONE reload, 500ms after the last", () => {
+    const { state, it } = gate()
+    for (let at = 0; at < 5; at++) {
+      it.request()
+      vi.advanceTimersByTime(200)
+    }
+    expect(state.reloads).toBe(0)
+    vi.advanceTimersByTime(300)
+    expect(state.reloads).toBe(1)
+    vi.advanceTimersByTime(5000)
+    expect(state.reloads).toBe(1)
+  })
+
+  test("typing in a field:  waits (the pill shows), then reloads once focus leaves it", () => {
+    const { state, it } = gate()
+    state.typing = true
+    it.request()
+    vi.advanceTimersByTime(500)
+    expect(state).toMatchObject({ reloads: 0, waits: [true] })
+    // focus moves on to another field:  still typing, still waiting
+    it.settle()
+    vi.advanceTimersByTime(500)
+    expect(state.reloads).toBe(0)
+    state.typing = false
+    it.settle()
+    vi.advanceTimersByTime(500)
+    expect(state).toMatchObject({ reloads: 1, waits: [true, true, false] })
+  })
+
+  test("focus leaving a field with no reload waiting:  nothing", () => {
+    const { state, it } = gate()
+    it.settle()
+    vi.advanceTimersByTime(5000)
+    expect(state.reloads).toBe(0)
+  })
+})
+
+describe("liveClientScript()", () => {
+  test("serves the helpers the client calls beside it, as one classic script", () => {
+    const script = SRV.liveClientScript()
+    for (const helper of ["forVsCode", "liveAction", "servedPath", "reloadGate"])
+      expect(script).toContain(`function ${helper}(`)
+    // compiled, never run:  it reaches for `window`
+    expect(() => new Script(script)).not.toThrow()
   })
 })

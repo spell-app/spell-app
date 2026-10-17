@@ -4,11 +4,11 @@
  *   (`GuideInbox`);  this is Claude's side:
  *
  *     epic comments list
- *     guides/solid/solid-2.html#cm3  table in 2. Memory  2026-10-10T14:02:00.000Z
+ *     guides/solid/solid-2.html#M3  table in 2. Memory  2026-10-10T14:02:00.000Z
  *       Too wide on a phone?
  *     epic comments gather
- *     guides/solid/solid-2.html  ->  guide-changes#P4 (new phase):  cm3
- *     epic comments answer guides/solid/solid-2.html#cm3 --file /tmp/reply.html
+ *     guides/solid/solid-2.html  ->  guide-changes#P4 (new phase):  M3
+ *     epic comments answer guides/solid/solid-2.html#M3 --file /tmp/reply.html
  *
  * - `list [<epic>] [--all] [--json]` (default):  every comment still waiting, on every docs page, by page
  *   - `<epic>`:  only that epic's:  on a page it owns (its own `epics/<epic>/details/`, or a guide its See Also
@@ -29,7 +29,9 @@
  * - a THREAD:  Owen answers Claude's answer on the page (that's good, reply, skip it:  `CommentList`);  his reply is
  *   waiting work, as a new comment is:  `list` shows it under the comment, `gather` takes it again
  * - `<page>`:  from the checkout's root (`guides/x.html`), or from an area (`pages.js` `pageFile()`);  a comment on
- *   it, `<page>#<id>`, as on an epic page (`seo#cm3`), or as two words, `<page> <id>` (`pageAndId()`)
+ *   it, `<page>#<id>`, as on an epic page (`seo#M3`), or as two words, `<page> <id>` (`pageAndId()`)
+ * - `<id>`:  a comment's, as the page shows it, `M3`;  `m3` and the old `cm3` read the same (`CommentList.idOf()`).
+ *   Printed `M3`
  * - epic pages' comments wait in their epic's review inbox instead:  `epic inbox <name>`
  * - a page an epic owns (epic `epic-workflow` P13):  its header's Send hands its comments to that epic's session
  *   (`epic inbox <epic> wait` prints them under the page);  `working` and `answer`, here, take them one at a time.
@@ -68,7 +70,7 @@ export async function run([verb = "list", ...rest]: string[], flags: Record<stri
     const commit = typeof flags.commit === "string" ? flags.commit : undefined
     GuideInbox.update(GuideInbox.fileFor(pageFile(page)), (comments) => comments.answer(id, reply, new Date(), commit))
     touchOwner(page)
-    console.log(`${relative(ROOT, pageFile(page))}#${id}  answered`)
+    console.log(`${relative(ROOT, pageFile(page))}#${CommentList.label(id)}  answered`)
     return 0
   } catch (error) {
     if (!(error instanceof CommentsError) && !isMissingFile(error)) throw error
@@ -85,7 +87,7 @@ function working([page, id, on]: string[]): number {
   if (!page || !id || (on !== "on" && on !== "off")) return usage()
   GuideInbox.update(GuideInbox.fileFor(pageFile(page)), (comments) => comments.setWorking(id, on === "on"))
   touchOwner(page)
-  console.log(`${relative(ROOT, pageFile(page))}#${id}  working:  ${on}`)
+  console.log(`${relative(ROOT, pageFile(page))}#${CommentList.label(id)}  working:  ${on}`)
   return 0
 }
 
@@ -166,7 +168,7 @@ function printComments(comments: ReturnType<typeof pageComments>) {
     const where =
       comment.kind === "section" ? comment.label : `${comment.kind}${comment.label ? ` in ${comment.label}` : ""}`
     const state = comment.status === "new" ? "" : `  (${comment.status})`
-    console.log(`${comment.page}#${comment.id}  ${where || comment.anchor}  ${comment.at}${state}`)
+    console.log(`${comment.page}#${CommentList.label(comment.id)}  ${where || comment.anchor}  ${comment.at}${state}`)
     if (comment.quote) console.log(`  on "${comment.quote}"`)
     for (const line of comment.text.split("\n")) console.log(line ? `  ${line}` : "")
     // his reply on the thread since Claude answered:  the work now
@@ -194,7 +196,7 @@ async function gather(pages: string[], flags: Record<string, string | true>): Pr
     for (const each of gathered)
       console.log(
         `${each.page}  ->  ${each.epic}#P${each.phase} (${each.as === "phase" ? "new phase" : "updated"}):  ` +
-          [...each.comments, ...each.notes].join(" ")
+          [...each.comments.map(CommentList.label), ...each.notes].join(" ")
       )
   return 0
 }

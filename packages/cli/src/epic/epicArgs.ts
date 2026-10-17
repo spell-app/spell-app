@@ -6,7 +6,7 @@ import { CliError } from "$/cli/cli.types"
  * a thin translation, so the tool itself (`$/epics/tool/PlanDocCommands`) keeps its arguments.
  * - Owen's scheme (Command Review Page, 2026-10-12):  `epic <verb> <epic>#<id>` for anything inside an epic page
  *   - `seo`:  the page
- *   - `seo#J3`:  an item (or a comment, `seo#cm3`;  or an Overview section)
+ *   - `seo#J3`:  an item (or a comment, `seo#M3`, `m3` and the old `cm3` read the same;  or an Overview section)
  *   - `seo#P3`:  a phase, by its number, the one way help and messages write it;  `seo#p3` and `seo#3` read the
  *     same.  `seo#p-epic-migrate`:  by its stable id (epic `epic-workflow` P15);  a verb that takes only a phase
  *     (`phase`, `updated`, `add-request`) takes its name too (`seo#epic-migrate`, `"seo#Epic Migrate"`):  the tool
@@ -336,7 +336,7 @@ const PHASE_EXAMPLES: Record<string, string> = {
 /** A phase ref by number:  `P3`, `p3`, `3`. */
 const PHASE_REF = /^[Pp]?(\d+)$/
 
-/** An item's id (or a comment's, an Overview section's):  `J3`, `cm3`, `o2`. */
+/** An item's id (or a comment's, an Overview section's):  `J3`, `M3` (`cm3`), `o2`. */
 const ITEM_REF = /^[A-Za-z]{1,2}\d+$/
 
 /** A phase's stable id (`$/epics` `PhaseIds`, copied:  `epic` imports no barrel):  `p-epic-migrate`. */

@@ -36,6 +36,8 @@
  *   - answers `{ ok, comments, send, wake }`;  `wake`:  what waking did, else `null`
  *   - an epic page:  400 (its Send is `/api/epics/review/send`)
  * - `POST /api/docs/comments` `{ page, action, ... }` -- change one comment;  answers `{ ok, id, comments, send? }`
+ *   - ids:  as the inbox keys them, `m1`, `m2` ... (shown `M1`;  an older inbox's `cm1` read as `m1`);  an `id` asked may be `M3`, `m3` or `cm3`
+ *     (`CommentList.idOf()`)
  *   - `add` `{ anchor, kind, label, excerpt, quote?, offset?, text }`:  a new comment;  answers its `id`
  *   - `edit` `{ id, text }`, `delete` `{ id }`:  only while the comment is `new` (else 409)
  *   - `clear` `{ id }`:  gone, whatever its status (`CommentList.clear()`)
@@ -257,7 +259,7 @@ export async function changeComments<T>(file: string, change: (comments: Comment
   return result as T
 }
 
-/** Make `change` in `comments`;  returns the comment's id. */
+/** Make `change` in `comments`;  returns the comment's id, as the file keys it (`m3`, asked as `M3` or the old `cm3` too). */
 function changeComment(comments: CommentList, change: CommentChange): string {
   if (change.action === "add") return comments.add(change.place, change.text)
   if (change.action === "restore") return comments.restore(change.id, change.comment)
@@ -267,7 +269,7 @@ function changeComment(comments: CommentList, change: CommentChange): string {
   else if (change.action === "reopen") comments.reopen(change.id)
   else if (change.action === "clear") comments.clear(change.id)
   else comments.remove(change.id)
-  return change.id
+  return CommentList.idOf(change.id)
 }
 
 /** The actions on one comment, by its `id`. */

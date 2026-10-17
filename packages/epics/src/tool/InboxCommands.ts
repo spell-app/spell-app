@@ -73,7 +73,7 @@ export class InboxCommands {
         const on = this.owner.need(args[1], "on | off")
         if (!["on", "off"].includes(on)) throw new PlanDocError(`working ${id} on | off, not '${on}'`)
         this.setWorking(file, id, on === "on")
-        return this.owner.print(`${id.toUpperCase()} working:  ${on}`)
+        return this.owner.print(`${shown(id)} working:  ${on}`)
       }
       case "done":
       case "clear":
@@ -86,8 +86,8 @@ export class InboxCommands {
   /**
    * The page's spinner on item `id` of the doc at `file`, on or off (`inbox working`;  `status` too):
    * the inbox's `working` entry, and the session's heartbeat.
-   * - a comment's id (`cm3`):  its thread's "Claude: thinking…" stub instead (`CommentList.setWorking()`);
-   *   `done cm3` turns it off too.  Throws when there's no such comment.
+   * - a comment's id (`M3`;  `m3`, `cm3` too):  its thread's "Claude: thinking…" stub instead
+   *   (`CommentList.setWorking()`);  `done` turns it off too.  Throws when there's no such comment.
    * - SIDE EFFECT:  writes the inbox, under its lock
    */
   setWorking(file: string, id: string, on: boolean): void {
@@ -340,8 +340,8 @@ export class InboxCommands {
         )
       if (sent.comments.length)
         lines.push(
-          `then each comment:  \`epic inbox ${name}#<cm id> working on\`, answer it in the doc, ` +
-            `then \`epic inbox ${name}#<cm id> done --file <answer.html>\``
+          `then each comment:  \`epic inbox ${name}#<M id> working on\`, answer it in the doc, ` +
+            `then \`epic inbox ${name}#<M id> done --file <answer.html>\``
         )
     }
     if (guides.length) {
@@ -352,8 +352,8 @@ export class InboxCommands {
         for (const comment of guide.comments) lines.push(...commentLines(comment, "    "))
       }
       lines.push(
-        "then each one, on its page:  `epic comments working <page>#<cm id> on`, work it into the page (or say why " +
-          "not), then `epic comments answer <page>#<cm id> --file <answer.html> [--commit <sha>]`"
+        "then each one, on its page:  `epic comments working <page>#<M id> on`, work it into the page (or say why " +
+          "not), then `epic comments answer <page>#<M id> --file <answer.html> [--commit <sha>]`"
       )
     }
     this.owner.print(lines.join("\n"))
@@ -507,7 +507,7 @@ export class InboxCommands {
   }
 
   /**
-   * `done` / `clear` comments `ids` (`cm3`, epic `airplane` P11).
+   * `done` / `clear` comments `ids` (`M3`, `m3` or `cm3`;  epic `airplane` P11).
    * - `done`:  answered;  Owen's turn on the page's thread
    *   - `--file <html>`:  the answer, on the thread (its markup, as is);  none:  answered in the doc
    *   - `--commit <sha>`:  the commit it was built in (the thread's Done line shows it)
@@ -522,7 +522,7 @@ export class InboxCommands {
       for (const id of ids) {
         box.commentList.comment(id)
         if (what === "done") box.commentList.answer(id, html, new Date(), commit)
-        else delete box.comments[id]
+        else box.commentList.clear(id)
       }
       box.touchListening()
     })
@@ -670,7 +670,7 @@ function workOf(mark: { action: string } | undefined): "revisit" | "details" {
 function commentLines(comment: IdentifiedComment, indent: string, unsent = false): string[] {
   const quote = comment.quote ? `  quoting "${comment.quote.slice(0, 60)}"` : ""
   const lines = [
-    `${indent}- ${comment.id.toUpperCase()}  on ${comment.anchor} (${comment.kind})${quote}  ` +
+    `${indent}- ${CommentList.label(comment.id)}  on ${comment.anchor} (${comment.kind})${quote}  ` +
       `"${comment.text.slice(0, 120)}"  (${comment.at})${unsent ? "  · unsent" : ""}`
   ]
   const reply = comment.replies?.findLast((each) => each.by === "Owen")
@@ -683,7 +683,12 @@ function plural(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? "" : "s"}`
 }
 
-/** `["q7", "i2"]` -> `Q7, I2` */
+/** `["q7", "i2", "m3"]` -> `Q7, I2, M3` */
 function upper(ids: string[]): string {
-  return ids.map((id) => id.toUpperCase()).join(", ")
+  return ids.map(shown).join(", ")
+}
+
+/** An item's id as Owen reads it:  `q7` -> `Q7`;  a comment's, `M3` (`cm3`, `m3`:  `CommentList.label()`). */
+function shown(id: string): string {
+  return CommentList.isCommentId(id) ? CommentList.label(id) : id.toUpperCase()
 }

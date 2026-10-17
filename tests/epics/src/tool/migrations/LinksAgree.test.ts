@@ -45,9 +45,9 @@ function context(): MigrationContext & { notes: string[]; moves: AnchorMove[] } 
   const inbox: InboxView = {
     keyed: { mark: { t9: {}, j1: {}, summary: {}, new1: {} } },
     comments: {
-      cm1: { anchor: "p3#field-2", excerpt: "Write the docs." },
-      cm2: { anchor: "t9", excerpt: "Gone" },
-      cm3: { anchor: "p2#field-1", excerpt: "Two's goal." }
+      m1: { anchor: "p3#field-2", excerpt: "Write the docs." },
+      m2: { anchor: "t9", excerpt: "Gone" },
+      m3: { anchor: "p2#field-1", excerpt: "Two's goal." }
     }
   }
   return { now: new Date(2026, 9, 11), inbox, notes: [], moves: [] }
@@ -68,7 +68,7 @@ describe("links-agree", () => {
     expect(links(document)).toEqual(["#p2 P2 · Two", "#j1 New call", "#p4 P4 · Docs", "#t9 T9 · Gone", "#p1 P1"])
     expect(run.notes.filter((note) => /gone/.test(note))).toEqual([
       'links-agree:  #t9 is gone (a link saying "T9 · Gone"):  left for you',
-      "links-agree:  comment cm2 is on t9, which is gone:  left for you",
+      "links-agree:  comment m2 is on t9, which is gone:  left for you",
       "links-agree:  mark on #t9, which is gone:  left for you"
     ])
     // the log is history:  its link keeps the old title
@@ -78,14 +78,14 @@ describe("links-agree", () => {
   test("a comment whose block moved is re-anchored (a move for the inbox);  one in place stays", () => {
     const run = context()
     STEP.run(page(), run)
-    expect(run.moves).toEqual([{ id: "cm1", from: "p3#field-2", to: "p4#field-2" }])
+    expect(run.moves).toEqual([{ id: "m1", from: "p3#field-2", to: "p4#field-2" }])
   })
 
   test("idempotent:  a second run changes nothing, and reports only what's gone", () => {
     const document = page()
     STEP.run(document, context())
     const again = context()
-    again.inbox!.comments.cm1!.anchor = "p4#field-2"
+    again.inbox!.comments.m1!.anchor = "p4#field-2"
     expect(STEP.run(document, again)).toBe(false)
     expect(again.moves).toEqual([])
     expect(again.notes.every((note) => /gone/.test(note))).toBe(true)

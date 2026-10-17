@@ -36,8 +36,8 @@ describe("AirplaneInbox.gather()", () => {
       now: [{ id: "q4", action: "details", at: "2026-10-10T10:00:00.000Z" }],
       sent: "2026-10-10T10:30:00.000Z",
       comments: {
-        cm1: { ...COMMENT, text: "Answered already", status: "answered" },
-        cm2: { ...COMMENT, anchor: "p3#field-2", kind: "field", text: "Which file?" }
+        m1: { ...COMMENT, text: "Answered already", status: "answered" },
+        m2: { ...COMMENT, anchor: "p3#field-2", kind: "field", text: "Which file?" }
       }
     })
   )
@@ -66,7 +66,7 @@ describe("AirplaneInbox.gather()", () => {
     join(root, "guides", "guide.inbox.json5"),
     JSON.stringify({
       version: 1,
-      comments: { cm1: { ...COMMENT, text: "Too long?" }, cm2: { ...COMMENT, status: "taken", text: "Old" } }
+      comments: { m1: { ...COMMENT, text: "Too long?" }, m2: { ...COMMENT, status: "taken", text: "Old" } }
     })
   )
 
@@ -118,8 +118,8 @@ describe("AirplaneInbox.gather()", () => {
 
   it("takes the comments still waiting:  a guide's, from its inbox file;  an epic page's, from its review inbox", () => {
     const inbox = AirplaneInbox.gather(root)
-    expect(inbox.comments).toMatchObject([{ page: "guides/guide.html", id: "cm1", text: "Too long?" }])
-    expect(inbox.epics[0]!.comments).toMatchObject([{ id: "cm2", text: "Which file?" }])
+    expect(inbox.comments).toMatchObject([{ page: "guides/guide.html", id: "m1", text: "Too long?" }])
+    expect(inbox.epics[0]!.comments).toMatchObject([{ id: "m2", text: "Which file?" }])
   })
 
   it("says it in a line per place", () => {
@@ -127,7 +127,7 @@ describe("AirplaneInbox.gather()", () => {
       "epic demo:  2 marks (1 not sent), 1 new item, 1 draft, 1 for now, 1 comment",
       "new epic idea:  idea title",
       expect.stringMatching(/^note guides\/guide\.html n1 \(.*\):  Is this still true\?$/),
-      "guide comment guides/guide.html cm1 (1. Intro):  Too long?",
+      "guide comment guides/guide.html M1 (1. Intro):  Too long?",
       expect.stringMatching(/^details epics\/demo\/details\/onboard\.html:  answered /)
     ])
   })

@@ -64,7 +64,7 @@ describe("writers keep a hand-added comment", () => {
       comments.add({ anchor: "model#table-2", kind: "table", label: "1. The model", excerpt: "x" }, "Too long?")
     )
     expect(read("guides/g.inbox.json5")).toContain(NOTE)
-    expect(Object.keys(GuideInbox.read(file).comments)).toEqual(["cm1"])
+    expect(Object.keys(GuideInbox.read(file).comments)).toEqual(["m1"])
   })
 
   test("AgentList:  add(), and redirect() through the page server's save", async () => {
@@ -118,11 +118,11 @@ describe("readers read the old .json name", () => {
     expect(Object.keys(ReviewInbox.read(file).marks)).toEqual(["j1"])
   })
 
-  test("GuideInbox, and GuideChanges listing it by its new name", () => {
+  test("GuideInbox (its comments' old cm1 keys read as m1), and GuideChanges listing it by its new name", () => {
     put("guides/old/old.html", "<title>Old</title>")
     put("guides/old/old.inbox.json", JSON.stringify({ version: 1, comments: { cm1: { text: "x", status: "new" } } }))
     const file = GuideInbox.fileFor(join(root, "guides/old/old.html"))
-    expect(Object.keys(GuideInbox.read(file).comments)).toEqual(["cm1"])
+    expect(Object.keys(GuideInbox.read(file).comments)).toEqual(["m1"])
     expect(new GuideChanges({ root }).inboxFiles()).toContain(file)
   })
 

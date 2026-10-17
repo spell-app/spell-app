@@ -95,7 +95,7 @@ export type InboxView = {
 
 /** A comment whose block moved:  its anchor `from`, and `to` where the block is now. */
 export type AnchorMove = {
-  /** the comment's id, `cm3` */
+  /** the comment's id, `m3` */
   id: string
   /** its anchor as the inbox holds it, `p10#field-1` */
   from: string

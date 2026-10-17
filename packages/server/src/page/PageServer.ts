@@ -140,8 +140,7 @@ export class PageServer {
   }: StartOptions = {}): Promise<this> {
     if (bundles) this.bundles.start()
     const settings = this.settings()
-    for (const dir of settings.watch ?? DEFAULT_WATCH)
-      this.web.live!.watch(join(this.root, dir), { ignore: /(^|\/)(scripts|experiments)\// })
+    for (const dir of settings.watch ?? DEFAULT_WATCH) this.web.live!.watch(join(this.root, dir), { ignore: UNWATCHED })
     // the component sets' pages, parts and data, and their site bundle (rebuilt by `yarn site:dev`),
     // as their pages load them:  `/components/ui/_assets/site.js`, so a rebuilt bundle reloads them
     for (const set of COMPONENT_SETS) {
@@ -274,6 +273,13 @@ export const DOCS_HOME = "/pages/index.html"
 
 /** Spell UI's docs site:  every set is a tab of the top bar from there. */
 const COMPONENTS_HOME = `${COMPONENT_SETS[0].prefix}/`
+
+/**
+ * Paths in the watched folders that live reload never reports:  a guide's `scripts/` and `experiments/` (their
+ * sources, their own tools' output) -- but an experiment's built bundle, `*.bundle.js`, which its guide loads, so a
+ * rebuild hot-reloads the guide (the live client's `liveAction()`, epic `epic-workflow` P24).
+ */
+const UNWATCHED = /(^|\/)scripts\/|(^|\/)experiments\/(?!(.*\/)?[^/]+\.bundle\.js$)/
 
 /** Folders the page server live-reloads when the root `package.json` names none:  the docs areas and their bundle. */
 const DEFAULT_WATCH = ["epics", "guides", "pages", "templates", "brand", "packages/epics/tools/_assets"]
