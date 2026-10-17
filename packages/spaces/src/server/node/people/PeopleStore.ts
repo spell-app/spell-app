@@ -1,15 +1,6 @@
 import { execFileSync } from "child_process"
 
-import {
-  checkEntry,
-  Loader,
-  parseRef,
-  REF_KEY,
-  Saver,
-  spellCore,
-  upgradeEntry,
-  type ThingsToSearch
-} from "$/core/model"
+import { checkEntry, Loader, parseRef, REF_KEY, Saver, core, upgradeEntry, type ThingsToSearch } from "$/core/model"
 import type { FileProblem, OrgRole, PersonChanges, PersonView } from "$/spaces/models/people"
 import type { SpaceStorage } from "$/spaces/models/SpaceStorage"
 import { readJSON5, writeJSON5 } from "$/spaces/server/node/storage/json5"
@@ -151,13 +142,13 @@ export class PeopleStore {
   /**
    * The thing saved under `ref` (`Person#owen@spell`, `Org#spell`), its file and every file it names read first.
    * - `problems`:  each file's.
-   * - While it loads, references by name (`Person#owen`) search what's read (`spellCore.searchThings()`, Q44).
+   * - While it loads, references by name (`Person#owen`) search what's read (`core.searchThings()`, Q44).
    */
   protected async load(ref: string): Promise<{ thing?: object; problems: FileProblem[] }> {
     const { entries, problems } = await this.entriesFrom(ref)
     const loader = new Loader({ entryFor: (key) => entries.get(key), classNamed })
     const made: object[] = []
-    const before = spellCore.searchThings({ all: () => made, classNamed } satisfies ThingsToSearch)
+    const before = core.searchThings({ all: () => made, classNamed } satisfies ThingsToSearch)
     try {
       for (const key of entries.keys()) {
         const thing = loader.load(key)
@@ -166,7 +157,7 @@ export class PeopleStore {
         this.places.set(thing, parseRef(key).place ?? "")
       }
     } finally {
-      spellCore.searchThings(before)
+      core.searchThings(before)
     }
     return { thing: loader.load(ref), problems }
   }

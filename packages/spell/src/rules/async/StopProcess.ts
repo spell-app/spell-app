@@ -6,7 +6,7 @@ import { _async } from "./async.parser"
 
 /**
  * `stop_process` rule:  stop a conceptual animation or process.
- * - e.g. `stop animation dealing` => `spellCore.stopProcess('dealing')`
+ * - e.g. `stop animation dealing` => `core.stopProcess('dealing')`
  */
 export class StopProcess extends SpellStatement<"name"> {
   @proto static alias = "statement"
@@ -26,11 +26,11 @@ _async.addRule(StopProcess, {
     {
       compileAs: "statement",
       tests: [
-        [`stop animation dealing`, 'spellCore.stopProcess("dealing")'],
-        [`stop process dealing`, 'spellCore.stopProcess("dealing")'],
-        [`end process dealing`, 'spellCore.stopProcess("dealing")'],
-        [`finish process dealing`, 'spellCore.stopProcess("dealing")'],
-        [`cancel process dealing`, 'spellCore.stopProcess("dealing")']
+        [`stop animation dealing`, 'core.stopProcess("dealing")'],
+        [`stop process dealing`, 'core.stopProcess("dealing")'],
+        [`end process dealing`, 'core.stopProcess("dealing")'],
+        [`finish process dealing`, 'core.stopProcess("dealing")'],
+        [`cancel process dealing`, 'core.stopProcess("dealing")']
       ]
     }
   ]

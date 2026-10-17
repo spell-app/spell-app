@@ -5,7 +5,7 @@ import { lists } from "./lists.parser"
 /**
  * `random_item_expression` rule:  pick a single random item from list, e.g. `a random item of my-list`.
  * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
- * - Compiles to `spellCore.randomItemOf(list)`.
+ * - Compiles to `core.randomItemOf(list)`.
  */
 export class RandomItemExpression extends ListItemExpression<"arg|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
@@ -26,9 +26,9 @@ lists.addRule(RandomItemExpression, {
         scope.variables?.add("deck")
       },
       tests: [
-        ["a random item of my-list", "spellCore.randomItemOf(myList)"],
-        [`a random word in "some words"`, `spellCore.randomItemOf("some words")`],
-        ["a random card from the deck", "spellCore.randomItemOf(deck)"]
+        ["a random item of my-list", "core.randomItemOf(myList)"],
+        [`a random word in "some words"`, `core.randomItemOf("some words")`],
+        ["a random card from the deck", "core.randomItemOf(deck)"]
       ]
     }
   ]

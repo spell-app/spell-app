@@ -1,14 +1,14 @@
 /**
- * `spellCore.fromJSON()`:  a spell object's JSON read back as what it was (epic `output-targets`, P15, Q49).
+ * `core.fromJSON()`:  a spell object's JSON read back as what it was (epic `output-targets`, P15, Q49).
  * - A thing's JSON says its class first, `"$type"`, then its props:  `Thing.toJSON()`.
  * - A list's says its class, its own props, then its items (`List.toJSON()`):
  *   `{ "$type": "Pile", "name": "stock", "$items": [...] }`.
  */
-import { spellCore } from "./core"
-import { defineSpellCoreModule } from "./spellCore.types"
+import { core } from "./core"
+import { defineCoreModule } from "./core.types"
 import { StateMirror } from "./state"
 
-export const jsonMethods = defineSpellCoreModule({
+export const jsonMethods = defineCoreModule({
   /**
    * `json` read back as what it was:  each object with a `"$type"` rebuilt as the program's class of that name,
    * each of its props rebuilt the same way, and so on down.
@@ -31,4 +31,4 @@ export const jsonMethods = defineSpellCoreModule({
     return new StateMirror().read(typeof json === "string" ? JSON.parse(json) : json)
   }
 })
-Object.assign(spellCore, jsonMethods)
+Object.assign(core, jsonMethods)

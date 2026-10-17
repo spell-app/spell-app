@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList, h, positionOf, sendTrigger, sendCall } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, h, positionOf, sendTrigger, sendCall } from "@spell/core"
 
 /** definition of a Card with nice english aliases for working with it */
 export class Card extends Thing {
@@ -21,7 +21,7 @@ export class Card extends Thing {
 
   /** color as derivation of suit */
   get color() {
-    if (spellCore.includes(["diamonds", "hearts"], this.suit)) return "red"
+    if (core.includes(["diamonds", "hearts"], this.suit)) return "red"
     return "black"
   }
 
@@ -51,7 +51,7 @@ export class Card extends Thing {
 
   /** `card is a face card` */
   get isAFaceCard() {
-    return spellCore.includes(["jack", "queen", "king"], this.rank)
+    return core.includes(["jack", "queen", "king"], this.rank)
   }
 
   /** "card is a spade", "...is a club" etc */
@@ -85,7 +85,7 @@ export class Card extends Thing {
   get shortRank() {
     if (this.rank === undefined) return "?"
     if (typeof this.rank === "number") return `${this.rank}`
-    return `${spellCore.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
+    return `${core.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
   }
 
   get shortDirection() {
@@ -109,12 +109,12 @@ export class Card extends Thing {
    */
   async turnFaceUp() {
     this.direction = "up"
-    await spellCore.pauseFor(50, "msec")
+    await core.pauseFor(50, "msec")
   }
 
   async turnFaceDown() {
     this.direction = "down"
-    await spellCore.pauseFor(50, "msec")
+    await core.pauseFor(50, "msec")
   }
 
   /**
@@ -124,7 +124,7 @@ export class Card extends Thing {
   async turnOver() {
     if (this.direction == "up") this.turnFaceDown()
     else this.turnFaceUp()
-    await spellCore.pauseFor(50, "msec")
+    await core.pauseFor(50, "msec")
   }
 
   draw() {
@@ -167,7 +167,7 @@ export class Deck extends List {
   display() {
     const cardNames = new List()
     this.forEach((card) => cardNames.append(card.shortName))
-    spellCore.echo(`deck: ${cardNames}`)
+    core.echo(`deck: ${cardNames}`)
   }
 
   // set the is-set-up of the deck to yes

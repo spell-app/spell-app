@@ -44,7 +44,7 @@ export class TypeScope extends BlockScope {
   declare valueKind?: ValueKind
   /**
    * Name of our class when the code runs, if not `name` -- e.g. `Card` for a type imported as `Playingcard`.
-   * - Why:  runtime type checks compare class names as strings, e.g. `spellCore.isOfType(thing, 'Card')`.
+   * - Why:  runtime type checks compare class names as strings, e.g. `core.isOfType(thing, 'Card')`.
    *   Compiled code names the class by `name` -- `import { Card as Playingcard }` -- but that doesn't rename it.
    * - See `P.ASTTypeExpression.runtimeName`.
    */

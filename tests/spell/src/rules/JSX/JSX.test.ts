@@ -2,11 +2,11 @@ import { describe, test, expect } from "vite-plus/test"
 import { unitTestModuleRules } from "$/spell/test"
 import { P } from "$/parser"
 import { spellParser } from "$/spell"
-import { spellCore } from "$/core"
+import { core } from "$/core"
 import type { JSXMatchData } from "$/spell/rules/JSX/JSX.shared"
 
 describe("testing spell module JSX", () => {
-  unitTestModuleRules(spellParser, "JSX", spellCore.resetRuntime)
+  unitTestModuleRules(spellParser, "JSX", core.resetRuntime)
 
   test("a dotted tag is reported with the block's parse errors", () => {
     const scope = spellParser.getScope("jsx-dotted-tag")

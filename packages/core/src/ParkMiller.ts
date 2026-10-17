@@ -1,7 +1,7 @@
 /**
  * A repeatable stream of random numbers from 0 up to 1:  Park and Miller's "minimal standard" generator.
  * - Each number comes from the one before, so the same seed gives the same numbers in the same order.
- * - What every random thing in the core draws from:  `spellCore.random()`, `seedRandom()`, `shuffled()` ...
+ * - What every random thing in the core draws from:  `core.random()`, `seedRandom()`, `shuffled()` ...
  * - Python's core has the very same one (`ParkMiller`, in `py/spell_core/seeded_random.py`),
  *   so one seed deals the same cards on every target (epic page python-target, Q13).
  *

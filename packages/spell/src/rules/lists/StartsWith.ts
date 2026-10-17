@@ -6,7 +6,7 @@ import { lists } from "./lists.parser"
 
 /**
  * `starts_with` rule:  does list start with some value,
- * e.g. `my-list starts with thing` => `spellCore.startsWith(myList, thing)`.
+ * e.g. `my-list starts with thing` => `core.startsWith(myList, thing)`.
  * - `Precedence.comparison`, like the other comparisons.
  */
 export class StartsWith extends InfixOperatorSuffix<"operator|expression"> {
@@ -36,11 +36,11 @@ lists.addRule(StartsWith, {
         scope.variables?.add("thing")
       },
       tests: [
-        ["my-list starts with thing", "spellCore.startsWith(myList, thing)"],
-        ["[1,2,3] starts with 1", "spellCore.startsWith([1, 2, 3], 1)"],
-        ["[1,2,3] does not start with 10", "!spellCore.startsWith([1, 2, 3], 10)"],
-        ["[1,2,3] doesn't start with 10", "!spellCore.startsWith([1, 2, 3], 10)"],
-        ["[1,2,3] doesnt start with 10", "!spellCore.startsWith([1, 2, 3], 10)"]
+        ["my-list starts with thing", "core.startsWith(myList, thing)"],
+        ["[1,2,3] starts with 1", "core.startsWith([1, 2, 3], 1)"],
+        ["[1,2,3] does not start with 10", "!core.startsWith([1, 2, 3], 10)"],
+        ["[1,2,3] doesn't start with 10", "!core.startsWith([1, 2, 3], 10)"],
+        ["[1,2,3] doesnt start with 10", "!core.startsWith([1, 2, 3], 10)"]
       ]
     }
   ]

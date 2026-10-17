@@ -33,9 +33,9 @@ UI.addRule(Confirm, {
     {
       compileAs: "statement",
       tests: [
-        [`confirm "Yo!"`, `await spellCore.confirm("Yo!")`],
-        [`confirm "Yo!" with "yep"`, `await spellCore.confirm("Yo!", "yep")`],
-        [`confirm "Yo!" with "yep" and "nope"`, `await spellCore.confirm("Yo!", "yep", "nope")`]
+        [`confirm "Yo!"`, `await core.confirm("Yo!")`],
+        [`confirm "Yo!" with "yep"`, `await core.confirm("Yo!", "yep")`],
+        [`confirm "Yo!" with "yep" and "nope"`, `await core.confirm("Yo!", "yep", "nope")`]
       ]
     }
   ]

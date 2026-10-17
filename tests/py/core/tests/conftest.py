@@ -2,10 +2,10 @@
 
 import pytest
 
-from spell_core import SpellCore
+from spell_core import Core
 
 
 @pytest.fixture
-def core() -> SpellCore:
+def core() -> Core:
     """A new core:  its own console (writing to pytest's captured stdout / stderr), random seeded with 1."""
-    return SpellCore()
+    return Core()

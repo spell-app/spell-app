@@ -212,7 +212,7 @@ export class SpellFile extends TextFile {
   /**
    * Where parse errors are logged as files parse -- none by default:  the parser has no console of its own.
    * - The app points it at the console of the runtime its programs run on, so they show in "Program Output".
-   * - NOT `spellCore.console`:  the parser MUST NOT load `spellCore`, as each runner runs its own copy.
+   * - NOT `core.console`:  the parser MUST NOT load `core`, as each runner runs its own copy.
    *   See `spellRuntime.ts`.
    */
   static errorConsole?: { error(...args: unknown[]): void }

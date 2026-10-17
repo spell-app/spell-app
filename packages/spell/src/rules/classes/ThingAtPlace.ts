@@ -10,7 +10,7 @@ import { classes } from "./classes.parser"
  * - Its place:  the order the program made the things of that type, counting from 1.
  *   - `last` counts from the end.
  *   - Only that type's own things count, not a sub-type's (T10).
- * - Compiles to core's `spellCore.thingAtPlace(Tableau, 1)`:  the reference `Tableau#1`.
+ * - Compiles to core's `core.thingAtPlace(Tableau, 1)`:  the reference `Tableau#1`.
  *   Nothing (`undefined`) when the program hasn't made that many.
  * - NOT `the first card of the deck`:  that's an item of a list, `ordinal_position_expression`.
  */
@@ -37,9 +37,9 @@ classes.addRule(ThingAtPlace, {
         scope.compile(["a pile is a list of things", "a tableau is a pile"].join("\n"), "block")
       },
       tests: [
-        ["the first tableau", "spellCore.thingAtPlace(Tableau, 1)"],
-        ["the second tableau", "spellCore.thingAtPlace(Tableau, 2)"],
-        ["the last tableau", "spellCore.thingAtPlace(Tableau, -1)"]
+        ["the first tableau", "core.thingAtPlace(Tableau, 1)"],
+        ["the second tableau", "core.thingAtPlace(Tableau, 2)"],
+        ["the last tableau", "core.thingAtPlace(Tableau, -1)"]
       ]
     }
   ]

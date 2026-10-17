@@ -4,7 +4,7 @@ import { parseSync } from "vite-plus"
 
 import { P } from "$/parser"
 import { PY } from "$/py"
-import { spellCore } from "$/core"
+import { core } from "$/core"
 import { spellParser } from "$/spell"
 
 /**
@@ -213,7 +213,7 @@ function writeExample(
   ruleName: string,
   beforeEach?: (scope: P.Scope) => void
 ): SpellSyntaxOutputs {
-  spellCore.resetRuntime()
+  core.resetRuntime()
   const scope = parser.getScope(`syntax_${ruleName}`)
   beforeEach?.(scope)
   let match: P.Match | undefined

@@ -1,15 +1,15 @@
 import { getPath, setPath, splitPath, type PathStep } from "$/util"
 
-import { spellCore } from "./core"
-import { defineSpellCoreModule } from "./spellCore.types"
+import { core } from "./core"
+import { defineCoreModule } from "./core.types"
 
 export type { PathStep }
 
 /**
  * Getting and setting values by path, e.g. `"a.b[0].c"` -- spell's own names for `$/util`'s, which the app's forms
- * use too, WITHOUT importing `spellCore`.  See `$/util/spell/paths.ts`.
+ * use too, WITHOUT importing `core`.  See `$/util/spell/paths.ts`.
  */
-export const pathMethods = defineSpellCoreModule({
+export const pathMethods = defineCoreModule({
   /** Given an `object` and a string `path`, walk it to get the leaf value -- see `getPath()` in `$/util`. */
   getPath(object: unknown, path: string): unknown {
     return getPath(object, path)
@@ -25,4 +25,4 @@ export const pathMethods = defineSpellCoreModule({
     return splitPath(path)
   }
 })
-Object.assign(spellCore, pathMethods)
+Object.assign(core, pathMethods)

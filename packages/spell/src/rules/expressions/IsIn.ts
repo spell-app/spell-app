@@ -10,7 +10,7 @@ import { expressions } from "./expressions.parser"
  * - `expression` group accepts either an `operand` (a list variable) or an inline
  *   `identifier_list`, e.g. `either red or green`.
  * - `shouldNegateOutput()` negates for any variant containing `not` or `neither`.
- * - Compiles to `spellCore.includes(list, lhs)` -- NOTE argument order is reversed from `lhs`/`rhs`.
+ * - Compiles to `core.includes(list, lhs)` -- NOTE argument order is reversed from `lhs`/`rhs`.
  */
 export class IsIn extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.comparison
@@ -38,14 +38,14 @@ expressions.addRule(IsIn, {
         scope.variables?.add("theList")
       },
       tests: [
-        ["thing is in theList", "spellCore.includes(theList, thing)"],
-        ["thing is one of theList", "spellCore.includes(theList, thing)"],
-        ["thing is not in theList", "!spellCore.includes(theList, thing)"],
-        ["thing is not one of theList", "!spellCore.includes(theList, thing)"],
-        ["thing is either red or green", 'spellCore.includes([red, "green"], thing)'],
-        ["thing is not either red or green", '!spellCore.includes([red, "green"], thing)'],
-        ["thing is not either of red or green", '!spellCore.includes([red, "green"], thing)'],
-        ["thing is neither red nor green", '!spellCore.includes([red, "green"], thing)']
+        ["thing is in theList", "core.includes(theList, thing)"],
+        ["thing is one of theList", "core.includes(theList, thing)"],
+        ["thing is not in theList", "!core.includes(theList, thing)"],
+        ["thing is not one of theList", "!core.includes(theList, thing)"],
+        ["thing is either red or green", 'core.includes([red, "green"], thing)'],
+        ["thing is not either red or green", '!core.includes([red, "green"], thing)'],
+        ["thing is not either of red or green", '!core.includes([red, "green"], thing)'],
+        ["thing is neither red nor green", '!core.includes([red, "green"], thing)']
       ]
     }
   ]
@@ -62,8 +62,8 @@ expressions.addRule(IsIn, {
         scope.constants?.add("blue")
       },
       tests: [
-        ["thing is green or blue", 'spellCore.includes(["green", "blue"], thing)'],
-        ["thing is not green or blue", '!spellCore.includes(["green", "blue"], thing)'],
+        ["thing is green or blue", 'core.includes(["green", "blue"], thing)'],
+        ["thing is not green or blue", '!core.includes(["green", "blue"], thing)'],
         ["thing is green or thing is blue", '(thing == "green" || thing == "blue")']
       ]
     }

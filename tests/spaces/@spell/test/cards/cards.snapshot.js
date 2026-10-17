@@ -1,6 +1,6 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList, h, positionOf, spellPosition, trigger } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, h, positionOf, spellPosition, trigger } from "@spell/core"
 
-spellCore.heading("definition of a Card with nice english aliases for working with it")
+core.heading("definition of a Card with nice english aliases for working with it")
 /** definition of a Card with nice english aliases for working with it */
 export class Card extends Thing {
   /////////////////////////
@@ -22,7 +22,7 @@ export class Card extends Thing {
 
   /** color as derivation of suit */
   get color() {
-    if (spellCore.includes(["diamonds", "hearts"], this.suit)) return "red"
+    if (core.includes(["diamonds", "hearts"], this.suit)) return "red"
     return "black"
   }
 
@@ -52,7 +52,7 @@ export class Card extends Thing {
 
   /** `card is a face card` */
   get isAFaceCard() {
-    return spellCore.includes(["jack", "queen", "king"], this.rank)
+    return core.includes(["jack", "queen", "king"], this.rank)
   }
 
   /** "card is a spade", "...is a club" etc */
@@ -86,7 +86,7 @@ export class Card extends Thing {
   get shortRank() {
     if (this.rank === undefined) return "?"
     if (typeof this.rank === "number") return `${this.rank}`
-    return `${spellCore.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
+    return `${core.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
   }
 
   get shortDirection() {
@@ -110,12 +110,12 @@ export class Card extends Thing {
    */
   async turnFaceUp() {
     this.direction = "up"
-    await spellCore.pauseFor(50, "msec")
+    await core.pauseFor(50, "msec")
   }
 
   async turnFaceDown() {
     this.direction = "down"
-    await spellCore.pauseFor(50, "msec")
+    await core.pauseFor(50, "msec")
   }
 
   /**
@@ -125,7 +125,7 @@ export class Card extends Thing {
   async turnOver() {
     if (this.direction == "up") this.turnFaceDown()
     else this.turnFaceUp()
-    await spellCore.pauseFor(50, "msec")
+    await core.pauseFor(50, "msec")
   }
 
   draw() {
@@ -146,55 +146,55 @@ export class Card extends Thing {
   }
 }
 
-spellCore.heading("create a card instance with default properties")
+core.heading("create a card instance with default properties")
 /** create a card instance with default properties */
 export function testCardSetup() {
-  return spellCore.test("test card setup", function testCardSetup() {
-    spellCore.echoTestAction(`the card is a new card whose rank is queen, suit is spades and direction is up`)
+  return core.test("test card setup", function testCardSetup() {
+    core.echoTestAction(`the card is a new card whose rank is queen, suit is spades and direction is up`)
     const card = new Card({
       rank: "queen",
       suit: "spades",
       direction: "up"
     })
-    spellCore.echo(card)
-    spellCore.expect(card.rank, `the rank of the card`, "queen", `queen`)
-    spellCore.expect(card.suit, `the suit of the card`, "spades", `spades`)
-    spellCore.expect(card.name, `the name of the card`, "queen-of-spades", `"queen-of-spades"`)
-    spellCore.expect(card.color, `the color of the card`, "black", `black`)
-    spellCore.expect(card.value, `the value of the card`, 12, `12`)
-    spellCore.expect(card.shortSuit, `the short suit of the card`, "♠️", `"♠️"`)
-    spellCore.expect(card.shortRank, `the short rank of the card`, "Q", `"Q"`)
-    spellCore.expect(card.shortName, `the short name of the card`, "Q♠️", `"Q♠️"`)
+    core.echo(card)
+    core.expect(card.rank, `the rank of the card`, "queen", `queen`)
+    core.expect(card.suit, `the suit of the card`, "spades", `spades`)
+    core.expect(card.name, `the name of the card`, "queen-of-spades", `"queen-of-spades"`)
+    core.expect(card.color, `the color of the card`, "black", `black`)
+    core.expect(card.value, `the value of the card`, 12, `12`)
+    core.expect(card.shortSuit, `the short suit of the card`, "♠️", `"♠️"`)
+    core.expect(card.shortRank, `the short rank of the card`, "Q", `"Q"`)
+    core.expect(card.shortName, `the short name of the card`, "Q♠️", `"Q♠️"`)
 
-    spellCore.expect(card.isFaceUp, `the card is face up`, true, `yes`)
-    spellCore.expect(card.isFaceDown, `the card is face down`, false, `no`)
+    core.expect(card.isFaceUp, `the card is face up`, true, `yes`)
+    core.expect(card.isFaceDown, `the card is face down`, false, `no`)
 
-    spellCore.expect(card.isAFaceCard, `the card is a face card`, true, `yes`)
-    spellCore.expect(!card.isAFaceCard, `the card is not a face card`, false, `false`)
+    core.expect(card.isAFaceCard, `the card is a face card`, true, `yes`)
+    core.expect(!card.isAFaceCard, `the card is not a face card`, false, `false`)
 
-    spellCore.expect(card.isASuit("spades"), `the card is a spade`, true, `true`)
-    spellCore.expect(card.isASuit("clubs"), `the card is a club`, false, `false`)
+    core.expect(card.isASuit("spades"), `the card is a spade`, true, `true`)
+    core.expect(card.isASuit("clubs"), `the card is a club`, false, `false`)
 
-    spellCore.expect(card.isARank("queen"), `the card is a queen`, true, `true`)
-    spellCore.expect(card.isARank("ace"), `the card is an ace`, false, `false`)
-    spellCore.expect(card.isARank(2), `the card is a 2`, false, `false`)
+    core.expect(card.isARank("queen"), `the card is a queen`, true, `true`)
+    core.expect(card.isARank("ace"), `the card is an ace`, false, `false`)
+    core.expect(card.isARank(2), `the card is a 2`, false, `false`)
 
-    spellCore.expect(card.isTheRankOfSuits("queen", "spades"), `the card is the queen of spades`, true, `true`)
-    spellCore.expect(card.isTheRankOfSuits("queen", "clubs"), `the card is the queen of clubs`, false, `false`)
-    spellCore.expect(!card.isTheRankOfSuits(2, "diamonds"), `the card is not the 2 of diamonds`, true, `true`)
+    core.expect(card.isTheRankOfSuits("queen", "spades"), `the card is the queen of spades`, true, `true`)
+    core.expect(card.isTheRankOfSuits("queen", "clubs"), `the card is the queen of clubs`, false, `false`)
+    core.expect(!card.isTheRankOfSuits(2, "diamonds"), `the card is not the 2 of diamonds`, true, `true`)
 
-    spellCore.echoTestAction(`turn the card face down`)
+    core.echoTestAction(`turn the card face down`)
     card.turnFaceDown()
-    spellCore.expect(card.direction, `the direction of the card`, "down", `down`)
+    core.expect(card.direction, `the direction of the card`, "down", `down`)
 
-    spellCore.echoTestAction(`turn the card over`)
+    core.echoTestAction(`turn the card over`)
     card.turnOver()
-    spellCore.expect(card.isFaceUp, `the card is face up`, true, `true`)
+    core.expect(card.isFaceUp, `the card is face up`, true, `true`)
   })
 }
-if (!spellCore.isCarryingOver) testCardSetup()
+if (!core.isCarryingOver) testCardSetup()
 // -----------
-spellCore.heading("Deck:   US standard card deck (without jokers currently)")
+core.heading("Deck:   US standard card deck (without jokers currently)")
 //## Deck:   US standard card deck (without jokers currently)
 
 export class Deck extends List {
@@ -212,7 +212,7 @@ export class Deck extends List {
   display() {
     const cardNames = new List()
     this.forEach((card) => cardNames.append(card.shortName))
-    spellCore.echo(`deck: ${cardNames}`)
+    core.echo(`deck: ${cardNames}`)
   }
 
   // set the is-set-up of the deck to yes
@@ -222,30 +222,30 @@ export class Deck extends List {
 }
 
 export function testDeckCreation() {
-  return spellCore.test("test deck creation", function testDeckCreation() {
-    spellCore.echoTestAction(`the deck is a new deck`)
+  return core.test("test deck creation", function testDeckCreation() {
+    core.echoTestAction(`the deck is a new deck`)
     const deck = new Deck()
-    spellCore.echoTestAction(`set up the deck`)
+    core.echoTestAction(`set up the deck`)
     deck.setUp()
-    spellCore.expect(deck.length, `the number of cards in the deck`, 52, `52`)
-    spellCore.echoTestAction(`set up the deck`)
+    core.expect(deck.length, `the number of cards in the deck`, 52, `52`)
+    core.echoTestAction(`set up the deck`)
     deck.setUp()
-    spellCore.expect(deck.length, `the number of cards in the deck`, 52, `52`)
-    spellCore.echoTestAction(`set the queens to the cards in the deck where the rank of the card is "queen"`)
+    core.expect(deck.length, `the number of cards in the deck`, 52, `52`)
+    core.echoTestAction(`set the queens to the cards in the deck where the rank of the card is "queen"`)
     const queens = deck.filter((card) => card.rank == "queen")
-    spellCore.expect(queens.length, `the number of cards in the queens`, 4, `4`)
-    spellCore.expect(deck.lastItem?.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
-    spellCore.expect(deck.firstItem?.shortName, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
+    core.expect(queens.length, `the number of cards in the queens`, 4, `4`)
+    core.expect(deck.lastItem?.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
+    core.expect(deck.firstItem?.shortName, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
 
-    spellCore.echo("the deck before shuffling:")
-    spellCore.echoTestAction(`display the deck`)
+    core.echo("the deck before shuffling:")
+    core.echoTestAction(`display the deck`)
     deck.display()
-    spellCore.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs"), `the first card of the deck is the ace of clubs`, true, `yes`)
+    core.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs"), `the first card of the deck is the ace of clubs`, true, `yes`)
   })
 }
-if (!spellCore.isCarryingOver) testDeckCreation()
+if (!core.isCarryingOver) testDeckCreation()
 // -----------
-spellCore.heading("Pile of playing cards")
+core.heading("Pile of playing cards")
 /** Pile of playing cards */
 export class Pile extends List {
   static instanceType = Card

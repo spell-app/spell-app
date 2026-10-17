@@ -40,7 +40,7 @@ describe("<ReplScreen>", () => {
     expect(frame).toContain("› x is 3\n")
     expect(frame).toContain("=> export const x = 3\n")
     expect(frame).toContain("expression: operand › known_variable  x\n")
-    expect(frame).toContain("=> spellCore.console.log(x)\n")
+    expect(frame).toContain("=> core.console.log(x)\n")
   })
 
   test("a line that doesn't parse says so", async () => {

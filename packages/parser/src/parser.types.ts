@@ -16,7 +16,7 @@ export const ALPHANUMERIC_WORD_WITH_DASHES = /^[a-zA-Z][\w-]*$/
  * - A user's type:  by its `TypeScope` name, e.g. `Card`.
  * - A list of something says so:  `list of cards` -- see `listOf()` / `itemTypeOf()`.
  * - `undefined` ~== unknown, which is compatible with everything:  nothing stops parsing for want of a type.
- * - ONE vocabulary, the runtime's too:  `spellCore.typeOf()` says `text` for a string, `choice` for a boolean.
+ * - ONE vocabulary, the runtime's too:  `core.typeOf()` says `text` for a string, `choice` for a boolean.
  * - Other ways to write a type, e.g. `string`, `boolean` or `array`, are the language's,
  *   accepted only where a user WRITES them -- see `typeName()`.
  */

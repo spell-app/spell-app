@@ -4,7 +4,7 @@ import { UI } from "./UI.parser"
 
 /**
  * `css` rule:  parse CSS from a `TextToken` WITHOUT quotes.
- * - Compiles to `spellCore.installStyles(file, css)`; newlines in `css` are escaped to `¬` so the
+ * - Compiles to `core.installStyles(file, css)`; newlines in `css` are escaped to `¬` so the
  *   value survives being embedded in a backtick template literal.
  * - Class named `CSSStyles`, not `CSS`, which would hide the DOM's `CSS`.
  */
@@ -33,11 +33,8 @@ UI.addRule(CSSStyles, {
     {
       title: "correctly matches css",
       tests: [
-        [`""`, `spellCore.installStyles(undefined, \`""\`)`],
-        [
-          `".Card {\\n\\theight:30px;\\n}\\n"`,
-          `spellCore.installStyles(undefined, \`".Card {\\n\\theight:30px;\\n}\\n"\`)`
-        ]
+        [`""`, `core.installStyles(undefined, \`""\`)`],
+        [`".Card {\\n\\theight:30px;\\n}\\n"`, `core.installStyles(undefined, \`".Card {\\n\\theight:30px;\\n}\\n"\`)`]
       ]
     }
   ]
@@ -46,7 +43,7 @@ UI.addRule(CSSStyles, {
 /** What `css` rule expects on its matches. */
 type CSSMatchData = {
   /**
-   * Name of file the CSS came from, first argument to `spellCore.installStyles()`.
+   * Name of file the CSS came from, first argument to `core.installStyles()`.
    * - Meant to be set by whoever parsed the file, i.e. `SpellCSSFile.parse()`.
    * - TODO: nobody sets it, so we always output `undefined` -- see agents/SUSPECTED-BUGS.md.
    */

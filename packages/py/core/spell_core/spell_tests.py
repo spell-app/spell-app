@@ -53,7 +53,7 @@ class ActiveTest:
 class SpellTestMethods:
     """`core`'s side of spell's tests:  `test()`, `expect()`, `echo()` ..."""
 
-    # where every line goes:  `SpellCore` sets it
+    # where every line goes:  `Core` sets it
     console: "SpellConsole"
     # the test running now, if any
     active_test: ActiveTest | None = None

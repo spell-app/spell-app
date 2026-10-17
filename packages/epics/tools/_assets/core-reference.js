@@ -8,13 +8,13 @@
  * - The data:  two JSON files, fetched from the checkout SERVING the page,
  *   so the page shows that checkout's core and can't go stale.
  *   Their paths are relative to the page, in `<body>`'s data attributes:
- *   - `data-core-declarations`:  `packages/core/spellCore.declarations.json5`, the core's method list
+ *   - `data-core-declarations`:  `packages/core/core.declarations.json5`, the core's method list
  *     (`yarn gen:declarations` in `packages/core`, `coreDeclarations.ts`);  `{ provides, statements: [Statement] }`
  *   - `data-not-ported`:  `packages/py/core/not_ported_yet.json5`, what spell_core doesn't have yet;
  *     `{ about, groups: [{ why, names: [javascript name] }] }`.  Optional:  without it the Python column says "?"
  * - `Statement`, by its keys:
- *   - a method of `spellCore`:  `{ kind: "method", name, of, module, params?: [{ name }], section?, description? }`
- *   - a property of `spellCore`:  `{ property, of, module, section?, description? }`
+ *   - a method of `core`:  `{ kind: "method", name, of, module, params?: [{ name }], section?, description? }`
+ *   - a property of `core`:  `{ property, of, module, section?, description? }`
  *   - a class compiled code imports:  `{ type, superType?, module, description? }`
  *   - a function compiled code imports:  `{ kind: "function", name, module, params?, description? }`
  *   - `module`:  the core's file under `packages/core/src/`, without `.ts` (`classes` is `classes/index.ts`);
@@ -157,7 +157,7 @@
 
   /**
    * A file's names in the list's order (the file's), cut into runs under one heading:  `[{ heading, rows }]`.
-   * - members of `spellCore` under their `section`;  one without, after one with, stays under the one before
+   * - members of `core` under their `section`;  one without, after one with, stays under the one before
    *   - the list says no section for a few whose first declaration is above every heading:
    *     an overload, an interface's member
    * - what compiled code imports by name, classes and functions, under "imported by name"
@@ -166,7 +166,7 @@
     const runs = []
     for (const statement of statements) {
       const heading =
-        statement.of === "spellCore" ? (statement.section ?? runs.at(-1)?.heading ?? "") : "imported by name"
+        statement.of === "core" ? (statement.section ?? runs.at(-1)?.heading ?? "") : "imported by name"
       if (runs.at(-1)?.heading !== heading) runs.push({ heading, rows: [] })
       runs.at(-1).rows.push(statement)
     }
@@ -179,7 +179,7 @@
     return `<tr id="${attr(rowId(statement))}"><td>${nameHTML(statement)}</td><td><code>${escape(pythonName(statement))}</code></td>${portedHTML(name, missing)}<td>${text(statement.description ?? "")}</td></tr>`
   }
 
-  /** The javascript name, with its parameters, and a label saying what it is unless it's a method of `spellCore`. */
+  /** The javascript name, with its parameters, and a label saying what it is unless it's a method of `core`. */
   function nameHTML(statement) {
     const params = statement.params ? `(${statement.params.map((param) => param.name).join(", ")})` : ""
     const code = `<code>${escape(jsName(statement) + (statement.kind ? params || "()" : ""))}</code>`
@@ -261,7 +261,7 @@
 
   /**
    * Python's name for `statement`, as spell_core's test looks for it.
-   * - a member of `spellCore`:  `core.get_item_at()`, `core.time_units_map` (a constant may keep its capitals)
+   * - a member of `core`:  `core.get_item_at()`, `core.time_units_map` (a constant may keep its capitals)
    * - a class:  `spell_core.Thing`;  a function compiled code imports:  `position_of()`, on `core` or the package
    */
   function pythonName(statement) {

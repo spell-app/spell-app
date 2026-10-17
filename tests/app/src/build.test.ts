@@ -11,7 +11,7 @@ import { describe, test, expect } from "vite-plus/test"
  * - `vite.config.ts` sets `output.keepNames` to prevent that;  this fails if someone removes it.
  * - Standard decorators MUST be lowered by `vite.decorators.ts` -- vite's own transformer passes them
  *   through raw, which no browser can run.
- * - `spellCore` MUST be in `spell-runtime.js` alone -- the runtime programs run on -- NOT in the app's chunks.
+ * - `core` MUST be in `spell-runtime.js` alone -- the runtime programs run on -- NOT in the app's chunks.
  * - And `spell-runtime.js` holds no Solid or `@spell-app/ui`:  compiled spell draws with the APP's Solid, from a
  *   shared chunk (epic `output-targets` P10).  Only `@solidjs/h` is its own, a thin layer over that Solid.
  * - No React anywhere:  not in the app's chunks (P9), nor in what programs run on (epic `output-targets` P11).
@@ -19,7 +19,7 @@ import { describe, test, expect } from "vite-plus/test"
  * - Built with `--sourcemap` (the config writes none):  what a chunk holds comes from its map's `sources`.
  */
 describe("production build", () => {
-  test("keeps rule class names, lowers decorators, keeps `spellCore` in `spell-runtime.js`, emits icon packs", () => {
+  test("keeps rule class names, lowers decorators, keeps `core` in `spell-runtime.js`, emits icon packs", () => {
     const outDir = mkdtempSync(join(tmpdir(), "spell-build-"))
     try {
       execFileSync(
@@ -34,7 +34,7 @@ describe("production build", () => {
       const assets = join(outDir, "assets")
       const files = readdirSync(assets).filter((file) => file.endsWith(".js"))
       const chunks = files.map((file) => readFileSync(join(assets, file), "utf8"))
-      // the runtime programs run on -- its own entry, holding ALL of `spellCore` (`resetRuntime` is its own);
+      // the runtime programs run on -- its own entry, holding ALL of `core` (`resetRuntime` is its own);
       // none of the app's chunks may load a second one.  See `spellRuntime.ts`.
       const runtime = readFileSync(join(outDir, "spell-runtime.js"), "utf8")
       expect(runtime).toContain("resetRuntime")

@@ -1,6 +1,6 @@
 /**
  * The core's method list:  what every core must have, so another target's core can check itself against it.
- * - Written to `spellCore.declarations.json5`, at the package's root, by `yarn gen:declarations`
+ * - Written to `core.declarations.json5`, at the package's root, by `yarn gen:declarations`
  *   (`writeCoreDeclarations.ts`).
  *   - `coreDeclarations.test.ts` fails when that file and the core differ.
  *   - Python's core reads it in a test, to find what it hasn't ported yet
@@ -20,7 +20,7 @@
 import { readFileSync } from "fs"
 import { resolve } from "path"
 
-import { App, css, Drawable, DrawableList, h, List, off, on, once, positionOf, spellCore, Thing, trigger } from "$/core"
+import { App, css, Drawable, DrawableList, h, List, off, on, once, positionOf, core, Thing, trigger } from "$/core"
 import { coreMethods } from "./core"
 import { collectionCoreMethods } from "./collection-core"
 import { collectionOtherMethods } from "./collection-other"
@@ -40,8 +40,8 @@ import { classesMethods } from "./classes"
 import { deprecatedMethods } from "./deprecated"
 
 /**
- * Each part of `spellCore`, by the file it's in (under `src/`):
- * every module `SC.SpellCore` is made from, except `deprecated`.
+ * Each part of `core`, by the file it's in (under `src/`):
+ * every module `SC.Core` is made from, except `deprecated`.
  */
 const CORE_MODULES: Record<string, object> = {
   core: coreMethods,
@@ -63,8 +63,8 @@ const CORE_MODULES: Record<string, object> = {
 }
 
 /**
- * What compiled code imports from `@spell/core` by name, besides `spellCore`, by the file each is in:
- * `import { spellCore, Thing, List, h, trigger } from "@spell/core"`.
+ * What compiled code imports from `@spell/core` by name, besides `core`, by the file each is in:
+ * `import { core, Thing, List, h, trigger } from "@spell/core"`.
  */
 const CORE_EXPORTS: Record<string, { value: unknown; module: string }> = {
   Thing: { value: Thing, module: "classes/Thing" },
@@ -81,14 +81,14 @@ const CORE_EXPORTS: Record<string, { value: unknown; module: string }> = {
   trigger: { value: trigger, module: "runtime" }
 }
 
-/** The name compiled code calls the core by:  `spellCore.getItemAt(...)`. */
-const SPELL_CORE = "spellCore"
+/** The name compiled code calls the core by:  `core.getItemAt(...)`. */
+const SPELL_CORE = "core"
 
 /**
- * The core's method list, as `spellCore.declarations.json5` holds it.
- * - `provides`:  what compiled code imports by name, `spellCore` first.
- * - `statements`:  one per member of `spellCore`, by module, in the order each module lists them;
- *   then one per name in `provides` after `spellCore`.
+ * The core's method list, as `core.declarations.json5` holds it.
+ * - `provides`:  what compiled code imports by name, `core` first.
+ * - `statements`:  one per member of `core`, by module, in the order each module lists them;
+ *   then one per name in `provides` after `core`.
  * - NEVER throws.
  */
 export function coreDeclarations(): CoreDeclarationsData {
@@ -106,16 +106,16 @@ export function coreDeclarations(): CoreDeclarationsData {
 }
 
 /**
- * Names on the running `spellCore` that the method list must NOT have:
+ * Names on the running `core` that the method list must NOT have:
  * the old names `deprecated.ts` keeps, and the core's own `_` helpers.
- * - So a test can check every other name is listed:  a module added to `SC.SpellCore`
+ * - So a test can check every other name is listed:  a module added to `SC.Core`
  *   but not to `CORE_MODULES` fails it.
  */
 export function unlistedCoreNames(): string[] {
-  return Object.keys(spellCore).filter((name) => name.startsWith("_") || Object.hasOwn(deprecatedMethods, name))
+  return Object.keys(core).filter((name) => name.startsWith("_") || Object.hasOwn(deprecatedMethods, name))
 }
 
-/** One member of `spellCore`:  a method with its parameters, or a property. */
+/** One member of `core`:  a method with its parameters, or a property. */
 function memberDeclaration(name: string, value: unknown, module: string): CoreDeclaration {
   if (typeof value !== "function") return { property: name, of: SPELL_CORE, module }
   return withParams({ kind: "method", name, of: SPELL_CORE, module }, value as AnyFunction)
@@ -209,7 +209,7 @@ const MODULE_DOCS = new Map<string, Map<string, MemberDocs>>()
  * - `section`:  the `// ## Heading` it's under, e.g. `Events -- the running program's, on RUNTIME`
  * - A name declared twice (an overload, an interface's member, a getter and its setter):
  *   its first docstring under a heading, else its first.
- *   E.g. `spellCore.addAtPosition()`'s, not the custom collection interface's above it.
+ *   E.g. `core.addAtPosition()`'s, not the custom collection interface's above it.
  * - Its file:  `src/<module>.ts`, or a folder's `src/<module>/index.ts` (`classes`);  none, no docs.
  */
 export function docsIn(module: string): Map<string, MemberDocs> {
@@ -274,20 +274,20 @@ export type MemberDocs = { section?: string; description?: string }
 type AnyFunction = (...args: never[]) => unknown
 
 /**
- * What `spellCore.declarations.json5` holds:  `SP.SpellDeclarationsData`'s shape, without its versions.
+ * What `core.declarations.json5` holds:  `SP.SpellDeclarationsData`'s shape, without its versions.
  * - The core can't import the language's `SPELL_VERSION`, and no project imports this file.
  */
 export type CoreDeclarationsData = {
-  /** What compiled code imports from `@spell/core` by name, `spellCore` first. */
+  /** What compiled code imports from `@spell/core` by name, `core` first. */
   provides: string[]
-  /** One per member of `spellCore`, then one per other name in `provides`. */
+  /** One per member of `core`, then one per other name in `provides`. */
   statements: CoreDeclaration[]
 }
 
 /**
  * One of the core's names, as a project's declarations write one (`SP.SpellDeclaration`).
- * - A method of `spellCore`:  `{ kind: "method", name: "getItemAt", of: "spellCore", params: [...] }`
- * - A property of `spellCore`:  `{ property: "console", of: "spellCore" }`
+ * - A method of `core`:  `{ kind: "method", name: "getItemAt", of: "core", params: [...] }`
+ * - A property of `core`:  `{ property: "console", of: "core" }`
  * - A class compiled code imports:  `{ type: "App", superType: "Thing" }`
  * - A function compiled code imports:  `{ kind: "function", name: "trigger", params: [...] }`
  */
@@ -302,7 +302,7 @@ export type CoreDeclaration = {
   kind?: string
   /** a method's or function's name, e.g. `getItemAt` */
   name?: string
-  /** what it's a member of:  `spellCore` */
+  /** what it's a member of:  `core` */
   of?: string
   /** its parameters, by name, in order */
   params?: Array<{ name: string }>

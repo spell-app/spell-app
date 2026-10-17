@@ -1,7 +1,7 @@
 import { describe, test, expect, vi } from "vite-plus/test"
 
 import {
-  spellCore,
+  core,
   Thing,
   List,
   App,
@@ -186,7 +186,7 @@ describe("outline style", () => {
       expect(js).toContain('static Suits = ["clubs", "diamonds", "hearts", "spades"]')
       expect(js).toContain('static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"]')
       expect(js).toMatch(/export class Suit \{\s+static color\(suit\) \{/)
-      expect(js).toContain('if (spellCore.includes(["diamonds", "hearts"], suit)) return "red"')
+      expect(js).toContain('if (core.includes(["diamonds", "hearts"], suit)) return "red"')
       expect(js).toMatch(LAZY_SUITS)
       expect(js).toContain("return Suit.color(this.suit)")
     })
@@ -203,7 +203,7 @@ describe("outline style", () => {
 
     test("`is jack, queen or king`:  one of those values", () => {
       const js = compile([...DECK, '\t- it "is a face card" if its rank is jack, queen or king'])
-      expect(js).toContain('spellCore.includes(["jack", "queen", "king"], this.rank)')
+      expect(js).toContain('core.includes(["jack", "queen", "king"], this.rank)')
     })
 
     test("a property of a type nobody declared is an error, not a class that doesn't exist", () => {
@@ -279,7 +279,7 @@ describe("outline style", () => {
       ]
       const js = compile(lines)
       expect(js).toMatch(/export class Rank \{\s+static isAFaceCard\(rank\) \{/)
-      expect(js).toContain('spellCore.includes(["jack", "queen", "king"], rank)')
+      expect(js).toContain('core.includes(["jack", "queen", "king"], rank)')
       expect(js).toContain("const face = Rank.isAFaceCard(queen.rank)")
       expect(runSpell(lines)("face, low")).toEqual({ face: true, low: false })
     })
@@ -453,7 +453,7 @@ describe("outline style", () => {
     // its deck, card, dealing and piles -- not the game itself, which starts an app
     const files = loadFixtureProject("outline-solitaire").filter(({ path }) => !path.endsWith("Solitaire.spell"))
     const lines: string[] = []
-    const console = spellCore.console as unknown as Record<string, (...args: unknown[]) => void>
+    const console = core.console as unknown as Record<string, (...args: unknown[]) => void>
     for (const method of ["log", "group", "groupCollapsed", "warn", "error", "info"].filter((it) => console[it])) {
       vi.spyOn(console, method).mockImplementation((...args) => void lines.push(args.join(" ")))
     }
@@ -493,9 +493,9 @@ function runSpellFiles(sources: Array<{ path: string; contents: string }>) {
     // `@spell/core`'s helpers it imports by name, e.g. `trigger()`, as the import it lost would give them
     const imported = { on, off, once, trigger, positionOf, position, spellPosition, endPosition, withSpellPositions }
     // oxlint-disable-next-line no-implied-eval -- running compiled spell, as a runner does, is the test
-    const fn = new Function("spellCore", "Thing", "List", "App", ...Object.keys(imported), body)
-    const run = () => fn(spellCore, Thing, List, App, ...Object.values(imported))
-    return spellCore.things.quietly(run) as Record<string, unknown>
+    const fn = new Function("core", "Thing", "List", "App", ...Object.keys(imported), body)
+    const run = () => fn(core, Thing, List, App, ...Object.values(imported))
+    return core.things.quietly(run) as Record<string, unknown>
   }
 }
 

@@ -2,7 +2,7 @@
  * Names for a drawable thing's own custom element (epic `drawable-thing`):
  * `a card is a drawable thing` in a solitaire app is `<solitaire-card>`, and its `rank` is the attribute `rank`.
  * - Here, not in `core` or `app`, so every side names them alike:
- *   - core names the tag as the class is declared (`spellCore.defineElement()`)
+ *   - core names the tag as the class is declared (`core.defineElement()`)
  *   - app's `SpellElement` makes the element, with an attribute per property
  *   - the TypeScript writer (`P.TSWriter`, in `parser`, which can't import either) writes each type's element class
  */
@@ -42,7 +42,7 @@ function tagWords(name: string): string {
 /**
  * The attribute a drawable type's property `name` is on its element, e.g. `short-rank` for `shortRank` --
  * `undefined` for a name the page or Spell UI already means something by (`id`, `hidden` ...).
- * - `type`:  the property's declared type, as `spellCore.elementApiOf()` gives it:
+ * - `type`:  the property's declared type, as `core.elementApiOf()` gives it:
  *   e.g. `number`, `Pile`, `list`;  none is text.
  * - `owner`:  is it the list holding the thing, e.g. a card's `pile` for `a card belongs to one pile`?
  * - Its kind, as a Spell UI vocabulary says it:

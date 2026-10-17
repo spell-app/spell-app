@@ -7,7 +7,7 @@ import { expressions } from "./expressions.parser"
 /**
  * `is_same_type_as` rule:  `{lhs} is [not] the same type as {rhs}`, e.g. `thing is the same type as other`.
  * - `shouldNegateOutput()` handles `is not the same type as`.
- * - Compiles to `spellCore.matchesType(lhs, rhs)`.
+ * - Compiles to `core.matchesType(lhs, rhs)`.
  */
 export class IsSameTypeAs extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.comparison
@@ -32,8 +32,8 @@ expressions.addRule(IsSameTypeAs, {
         scope.variables?.add("other")
       },
       tests: [
-        ["thing is the same type as other", "spellCore.matchesType(thing, other)"],
-        ["thing is not the same type as other", "!spellCore.matchesType(thing, other)"]
+        ["thing is the same type as other", "core.matchesType(thing, other)"],
+        ["thing is not the same type as other", "!core.matchesType(thing, other)"]
       ]
     }
   ]

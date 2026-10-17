@@ -10,7 +10,7 @@ import { getWhereScope, getWhereMethod } from "./lists.shared"
  * - A postfix suffix:  the list is the expression before it, e.g. `the foo of the bar has items where ...`.
  * - Trailing `where` expects an inline expression as predicate (`{inline_expression}?`) -- see `getWhereScope()`.
  *   NOTE: so it eats the rest of the line, and is always the last suffix.
- * - Compiles to `spellCore.any(list, (item) => { ... })`, negated (wrapped in `NotExpression`) unless
+ * - Compiles to `core.any(list, (item) => { ... })`, negated (wrapped in `NotExpression`) unless
  *   `operator` is exactly `has`.
  */
 export class ListMembershipTest extends PostfixOperatorSuffix<"operator|arg|body?"> {
@@ -47,14 +47,14 @@ lists.addRule(ListMembershipTest, {
         scope.variables?.add("bar")
       },
       tests: [
-        ["my-list has items where", "spellCore.any(myList, () => {})"],
-        ["my-list has items where the item is 1", "spellCore.any(myList, (item) => item == 1)"],
-        ["my-list has items where it is 1", "spellCore.any(myList, (item) => item == 1)"],
-        ["my-list has items where its foo is 1", "spellCore.any(myList, (item) => item.foo == 1)"],
-        ["my-list has no items where item is 1", "!spellCore.any(myList, (item) => item == 1)"],
-        ["my-list has no items where it is 1", "!spellCore.any(myList, (item) => item == 1)"],
-        ["my-list doesnt have items where item is 1", "!spellCore.any(myList, (item) => item == 1)"],
-        ["the foo of the bar does not have items where item is 1", "!spellCore.any(bar.foo, (item) => item == 1)"]
+        ["my-list has items where", "core.any(myList, () => {})"],
+        ["my-list has items where the item is 1", "core.any(myList, (item) => item == 1)"],
+        ["my-list has items where it is 1", "core.any(myList, (item) => item == 1)"],
+        ["my-list has items where its foo is 1", "core.any(myList, (item) => item.foo == 1)"],
+        ["my-list has no items where item is 1", "!core.any(myList, (item) => item == 1)"],
+        ["my-list has no items where it is 1", "!core.any(myList, (item) => item == 1)"],
+        ["my-list doesnt have items where item is 1", "!core.any(myList, (item) => item == 1)"],
+        ["the foo of the bar does not have items where item is 1", "!core.any(bar.foo, (item) => item == 1)"]
       ]
     }
   ]

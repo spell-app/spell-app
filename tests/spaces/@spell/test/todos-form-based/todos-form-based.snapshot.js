@@ -1,6 +1,6 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList, h } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, h } from "@spell/core"
 
-spellCore.heading("Todo app example")
+core.heading("Todo app example")
 /** Todo app example */
 export class Task extends Thing {
   // a task has a title as text
@@ -40,8 +40,8 @@ export class TodosApp extends App {
   set filter(value) { this.setProp("filter", value) }
 
   get shownTasks() {
-    if (this.filter == "active") return spellCore.filter(this.tasks, (task) => task.isActive)
-    if (this.filter == "completed") return spellCore.filter(this.tasks, (task) => task.isComplete)
+    if (this.filter == "active") return core.filter(this.tasks, (task) => task.isActive)
+    if (this.filter == "completed") return core.filter(this.tasks, (task) => task.isComplete)
     return this.tasks
   }
 
@@ -86,11 +86,9 @@ export class TodosApp extends App {
         h("ui-menu", { inverted: true, color: "grey" },
           h("ui-item", { type: "header" }, "Test:"),
           h("ui-item", { onClick: () => createANewTask({ title: "Moar" }) }, "Add Item"),
-          h("ui-item", { onClick: () => spellCore.removeItemAt(app.tasks, 0) }, "Remove Item"),
-          h("ui-item", { onClick: () => (spellCore.getItemAt(app.tasks, 0).title = "New title") },
-            "Change name"
-          ),
-          h("ui-item", { onClick: () => spellCore.removeWhere(app.tasks, (item) => item.isComplete) },
+          h("ui-item", { onClick: () => core.removeItemAt(app.tasks, 0) }, "Remove Item"),
+          h("ui-item", { onClick: () => (core.getItemAt(app.tasks, 0).title = "New title") }, "Change name"),
+          h("ui-item", { onClick: () => core.removeWhere(app.tasks, (item) => item.isComplete) },
             "Remove Completed"
           )
         )
@@ -111,12 +109,12 @@ export function createANewTask(props = {}) {
     app.newTaskName = ""
   }
   const it = new Task({ title: title, completed: completed || false })
-  spellCore.append(app.tasks, it)
+  core.append(app.tasks, it)
 }
 
 createANewTask({ title: "Create todos app", completed: true })
 createANewTask({ title: "Teach it to draw" })
 createANewTask({ title: "Test app" })
 
-if (!spellCore.isCarryingOver) app.start()
-spellCore.console.log(app)
+if (!core.isCarryingOver) app.start()
+core.console.log(app)

@@ -125,7 +125,7 @@ when working with code in this package, `@spell-app/app`.
       - e.g. `$/app/solid/ThingExplorer`, `.../ConsoleLines`, `.../loadUI`
     - `<spell-app>` is a root itself, with Fomantic's icons by default.
     - VS Code's webview HTML wraps its `#runner-root` in `<ui-root icons="fomantic">`.
-  - The PROGRAM draws with the page's Solid too:  `App.start()` mounts its own root (`spellCore.mountApp()`).
+  - The PROGRAM draws with the page's Solid too:  `App.start()` mounts its own root (`core.mountApp()`).
     - A runner hands it `appRoot`, a `<div>` drawn once and never touched again.
     - Semantic UI's CSS stays wherever programs draw.
     - Each drawn thing has its own error boundary:  a stand-in, a `ui-error`, and the rest keeps drawing.
@@ -133,7 +133,7 @@ when working with code in this package, `@spell-app/app`.
     - It's built from [spellRuntime.ts](src/runner/spellRuntime.ts).
     - The app loads it once (`editor.loadRuntime()`), and so does the VS Code runner.
     - Each `<spell-app>` loads its OWN copy (`loadRuntime()`).
-      So apps on a page don't share a `spellCore`.
+      So apps on a page don't share a `core`.
     - No import map:  `runCompiled()` links each program's imports.
     - A recompile of the same program keeps its things, e.g. the game in progress
       (`keepThings`, epic `drawable-thing` P16).
@@ -143,15 +143,15 @@ when working with code in this package, `@spell-app/app`.
         - the edit changed the file that starts its app
         - or one of its things can't come over
   - So ONLY `spellRuntime.ts` may value-import `$/core`.
-    - The program finds its elements through `spellCore.domRoot()`, never `document`.
+    - The program finds its elements through `core.domRoot()`, never `document`.
     - SEE [core's AGENTS.md](../core/AGENTS.md), "Who may value-import it".
     - Mind barrels:  `$/app/runner` holds `runCompiled()`, so a bundle's entry imports its runner's file directly.
   - A drawable thing draws as its own Spell UI element (epic `drawable-thing`).
     - e.g. `a card is a drawable thing` draws as `<solitaire-card>`.
     - The element:  [SpellElement.tsx](src/runner/SpellElement.tsx).
     - A drawable class names its tag as it's declared:
-      `static elementTag = spellCore.defineElement(this, ...)`.
-      - Core asks `spellCore.elementDefiner` once the class is whole.
+      `static elementTag = core.defineElement(this, ...)`.
+      - Core asks `core.elementDefiner` once the class is whole.
       - `installSpellElements()` fills that in, per runtime copy.
     - `draw the card` then draws `<solitaire-card>`.
       Its `thing` is the card, which the element draws inside it (`drawOwn()`).
@@ -160,7 +160,7 @@ when working with code in this package, `@spell-app/app`.
     - Compiled TypeScript writes each type's element class itself (P10):
       - e.g. `class CardElement extends SpellElement<Card>`
       - saying only its attributes, methods and sheet
-      - and hands it over:  `spellCore.useElement(Card, CardElement)`
+      - and hands it over:  `core.useElement(Card, CardElement)`
       - The page builds the tag on it (`defineFor()`), adding what it left out:
         so both targets draw the same element.
       - It imports `SpellElement` by the name `@spell/elements` ([spellElements.ts](src/runner/spellElements.ts)):
@@ -169,7 +169,7 @@ when working with code in this package, `@spell-app/app`.
   - Its Type Explorer reads scope packs, `<Project>.scopes.js` (`LSP.ScopePack`):  no parser in the page.
     - `yarn scopes [--compile] <projectId...>` (in `../lsp`) writes them.
     - So does the language server, after each clean compile.
-  - Its Thing Explorer reads the runtime copy's `spellCore.things` (`ThingRegistry`).
+  - Its Thing Explorer reads the runtime copy's `core.things` (`ThingRegistry`).
     - Each `Thing`, and each instance of a `List` sub-class, registers itself as it's made.
     - The program's exports are its top-level things.
     - It labels their properties and actions in spell's words, `move (a card) to (a pile)`.

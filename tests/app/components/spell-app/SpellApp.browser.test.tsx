@@ -34,9 +34,9 @@ shown.start()
 
 /** A program with two named tiles, drawable, and an app whose own drawing a layout replaces. */
 const TILES = `
-import { spellCore, App, Drawable, h } from "@spell/core"
+import { core, App, Drawable, h } from "@spell/core"
 export class Tile extends Drawable {
-  static elementTag = spellCore.defineElement(this, "Layout")
+  static elementTag = core.defineElement(this, "Layout")
   get name() { return this.getProp('name') }
   set name(value) { this.setProp('name', value) }
   draw() { return h("b", { class: "tile" }, () => this.name) }
@@ -96,15 +96,15 @@ describe("<spell-app> laid out in markup (epic `drawable-thing` P9)", () => {
 describe("<spell-app>'s layout:  a tag's id is its thing's reference (P18, J43)", () => {
   /** Two piles, a sub-type's:  a tableau is a pile.  The project's word "drawable" stays out of its tags. */
   const PILES = `
-import { spellCore, App, Drawable, h } from "@spell/core"
+import { core, App, Drawable, h } from "@spell/core"
 export class Pile extends Drawable {
-  static elementTag = spellCore.defineElement(this, "Drawable Floor")
+  static elementTag = core.defineElement(this, "Drawable Floor")
   get name() { return this.getProp('name') }
   set name(value) { this.setProp('name', value) }
   draw() { return h("b", {}, () => this.name) }
 }
 export class Tableau extends Pile {
-  static elementTag = spellCore.defineElement(this, "Drawable Floor")
+  static elementTag = core.defineElement(this, "Drawable Floor")
 }
 export class Board extends App {
   draw() { return h("p", {}, "its own") }

@@ -4,7 +4,7 @@ import { render } from "@solidjs/web"
 import { describe, test, expect, vi, beforeAll, beforeEach, afterEach } from "vite-plus/test"
 
 import { bridgeSolid } from "$/util"
-import { spellCore, Thing, List, prop, drawn, h } from "$/core"
+import { core, Thing, List, prop, drawn, h } from "$/core"
 import { isElementThunk, type Drawing } from "$/core/drawing"
 
 // counts each error boundary drawn:  `drawing.ts` makes one with `createComponent(Errored, ...)`
@@ -15,7 +15,7 @@ vi.mock("solid-js", async (importOriginal) => {
 
 /**
  * Each drawn thing in its own error boundary, ONE boundary for both targets:
- * - compiled JavaScript:  `spellCore.drawThing(card)` puts a plain `draw()` in it
+ * - compiled JavaScript:  `core.drawThing(card)` puts a plain `draw()` in it
  * - compiled TypeScript and hand-written classes:  `@drawn draw()` puts itself in it, so a parent draws a child with
  *   a plain `card.draw()`, and `drawThing()` adds no second boundary
  * - Solid's CLIENT build (`vitest.config.ts`), drawing into a fake page (linkedom).
@@ -43,7 +43,7 @@ class Card extends Thing {
 
   /** Its index in `Card.Ranks`:  `positionOf()` takes a read-only list. */
   get value() {
-    return spellCore.positionOf(Card.Ranks, this.rank)
+    return core.positionOf(Card.Ranks, this.rank)
   }
 
   @drawn
@@ -73,7 +73,7 @@ class PlainPile extends List<Card> {
   override draw(): Drawing {
     drawCalls.set(this, (drawCalls.get(this) ?? 0) + 1)
     return h("div", { class: "pile", ref: (node: Element) => madeNodes.push(node) }, () =>
-      spellCore.drawItems(this)
+      core.drawItems(this)
     ) as Drawing
   }
 }
@@ -124,24 +124,24 @@ describe("@drawn", () => {
   beforeEach(() => {
     element = page.document.createElement("div")
     page.document.body.appendChild(element)
-    spellCore.appRoot = element
+    core.appRoot = element
     drawCalls.clear()
     vi.mocked(Errored).mockClear()
-    vi.spyOn(spellCore.console, "error").mockImplementation(() => undefined)
+    vi.spyOn(core.console, "error").mockImplementation(() => undefined)
   })
 
   afterEach(() => {
     dispose?.()
     dispose = undefined
     element.remove()
-    spellCore.appRoot = undefined
+    core.appRoot = undefined
     vi.restoreAllMocks()
   })
 
   /** Draw `drawing()` into `element`, as `mountApp()` does. */
   function draw(drawing: () => Drawing) {
     dispose = render(drawing, element)
-    spellCore.flush()
+    core.flush()
   }
 
   test("draws ONCE:  a live value updates in place, and the parent's plain call never re-runs it", () => {
@@ -150,7 +150,7 @@ describe("@drawn", () => {
     expect(element.innerHTML).toBe(`<span class="card">ace hearts</span>`)
 
     card.suit = "spades"
-    spellCore.flush()
+    core.flush()
     expect(element.innerHTML).toBe(`<span class="card">ace spades</span>`)
     expect(drawCalls.get(card)).toBe(1)
   })
@@ -167,32 +167,32 @@ describe("@drawn", () => {
       `<div><span class="card">2 hearts</span>` +
         `<span class="spell-draw-error" role="alert" title="this card is broken">⚠ Card can't draw</span></div>`
     )
-    expect(spellCore.console.error).toHaveBeenCalledTimes(1)
+    expect(core.console.error).toHaveBeenCalledTimes(1)
     expect(sentErrors).toEqual([bad])
 
     good.suit = "clubs"
-    spellCore.flush()
+    core.flush()
     expect(element.querySelector(".card")!.textContent).toBe("2 clubs")
   })
 
   test("drawThing() calls a @drawn draw() straight:  ONE boundary per thing, not two", () => {
     const card = new Card({ rank: "king" })
-    draw(() => spellCore.drawThing(card))
+    draw(() => core.drawThing(card))
     expect(element.innerHTML).toBe(`<span class="card">king hearts</span>`)
     expect(Errored).toHaveBeenCalledTimes(1)
   })
 
   test("drawThing() puts a plain draw() in the same boundary, as compiled JavaScript draws", () => {
     const card = new PlainCard({ rank: "ace" })
-    draw(() => spellCore.drawThing(card))
+    draw(() => core.drawThing(card))
     expect(element.innerHTML).toBe(`<i>hearts</i>`)
     expect(Errored).toHaveBeenCalledTimes(1)
   })
 
   test("mountApp() draws a @drawn app in its one boundary", () => {
     const card = new Card({ rank: "ace", suit: "clubs" })
-    dispose = spellCore.mountApp(card, element).unmount
-    spellCore.flush()
+    dispose = core.mountApp(card, element).unmount
+    core.flush()
     expect(element.innerHTML).toBe(`<span class="card">ace clubs</span>`)
     expect(Errored).toHaveBeenCalledTimes(1)
   })
@@ -202,13 +202,13 @@ describe("@drawn", () => {
     const pile = new PlainPile()
     const [first, second] = [new PlainCard({ rank: "ace" }), new PlainCard({ rank: 2, suit: "clubs" })]
     pile.add(first, second)
-    draw(() => spellCore.drawThing(pile))
+    draw(() => core.drawThing(pile))
     expect(element.innerHTML).toBe(`<div class="pile"><i>hearts</i><i>clubs</i></div>`)
     const [pileNode, firstNode] = madeNodes
 
     pile.add(new PlainCard({ rank: 3, suit: "spades" }))
     first.suit = "diamonds"
-    spellCore.flush()
+    core.flush()
     expect(element.innerHTML).toBe(`<div class="pile"><i>diamonds</i><i>clubs</i><i>spades</i></div>`)
     expect(madeNodes).toHaveLength(4)
     expect(element.firstChild).toBe(pileNode)
@@ -218,18 +218,18 @@ describe("@drawn", () => {
 
   test("a throw while h()'s thunk is made lands in the boundary:  the stand-in, said once", () => {
     const card = new HalfCard({ rank: "king" })
-    draw(() => spellCore.drawThing(card))
+    draw(() => core.drawThing(card))
     expect(element.innerHTML).toBe(
       `<span class="spell-draw-error" role="alert" title="no face">⚠ HalfCard can't draw</span>`
     )
-    expect(spellCore.console.error).toHaveBeenCalledTimes(1)
+    expect(core.console.error).toHaveBeenCalledTimes(1)
     expect(Errored).toHaveBeenCalledTimes(1)
   })
 
   test("mountApp() makes a plain draw()'s h() thunk in its one boundary", () => {
     const card = new PlainCard({ rank: "ace", suit: "clubs" })
-    dispose = spellCore.mountApp(card, element).unmount
-    spellCore.flush()
+    dispose = core.mountApp(card, element).unmount
+    core.flush()
     expect(element.innerHTML).toBe(`<i>clubs</i>`)
     expect(Errored).toHaveBeenCalledTimes(1)
   })
@@ -240,10 +240,10 @@ describe("@drawn", () => {
     expect(isElementThunk("text")).toBe(false)
 
     const card = new LiveCard({ rank: "ace" })
-    draw(() => spellCore.drawThing(card))
+    draw(() => core.drawThing(card))
     expect(element.innerHTML).toBe(`hearts`)
     card.suit = "spades"
-    spellCore.flush()
+    core.flush()
     expect(element.innerHTML).toBe(`spades`)
     expect(drawCalls.get(card)).toBe(1)
   })

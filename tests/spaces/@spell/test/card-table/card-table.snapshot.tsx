@@ -1,11 +1,11 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList, prop, drawn } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, prop, drawn } from "@spell/core"
 import { E, SpellElement } from "@spell/elements"
 
-spellCore.heading("A card table:  a drawable list whose frame has a named place, filled by a child that says it goes there")
+core.heading("A card table:  a drawable list whose frame has a named place, filled by a child that says it goes there")
 //## A card table:  a drawable list whose frame has a named place, filled by a child that says it goes there
 
 export class Card extends Drawable {
-  static elementTag = spellCore.defineElement(this, "test-project")
+  static elementTag = core.defineElement(this, "test-project")
 
   // a card has a rank as text
   @prop({ type: "text" })
@@ -18,7 +18,7 @@ export class Card extends Drawable {
 
 /**
  * `<test-project-card>`:  a card, drawn in its own element, e.g. by `draw the card`.
- * - The page defines its tag with this class:  `spellCore.useElement()`, below.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its card's properties;  its methods call its card's.
  * - What every drawable thing's element does, e.g. drawing its card, is `SpellElement`'s.
  */
@@ -27,12 +27,12 @@ export class CardElement extends SpellElement<Card> {
     { name: "rank", kind: "string", description: "Its rank." }
   ])
 }
-spellCore.useElement(Card, CardElement)
+core.useElement(Card, CardElement)
 
 /** its frame:  a header place, then where its cards show */
 export class Pile extends DrawableList<Card> {
   static instanceType = Card
-  static elementTag = spellCore.defineElement(this, "test-project")
+  static elementTag = core.defineElement(this, "test-project")
 
   // a pile has a name as text
   @prop({ type: "text" })
@@ -52,7 +52,7 @@ export class Pile extends DrawableList<Card> {
 
 /**
  * `<test-project-pile>`:  a pile, drawn in its own element, e.g. by `draw the pile`.
- * - The page defines its tag with this class:  `spellCore.useElement()`, below.
+ * - The page defines its tag with this class:  `core.useElement()`, below.
  * - Its attributes are its pile's properties;  its methods call its pile's.
  * - What every drawable thing's element does, e.g. drawing its pile, is `SpellElement`'s.
  */
@@ -61,7 +61,7 @@ export class PileElement extends SpellElement<Pile> {
     { name: "name", kind: "string", description: "Its name." }
   ])
 }
-spellCore.useElement(Pile, PileElement)
+core.useElement(Pile, PileElement)
 
 export class Table extends App {
   /**
@@ -84,7 +84,7 @@ export const pile = new Pile({ name: "Pile 1" })
 pile.append(new Card({ rank: "A" }))
 pile.append(new Card({ rank: "K" }))
 
-if (!spellCore.isCarryingOver) table.start()
+if (!core.isCarryingOver) table.start()
 
 // each drawable type's tag, for the JSX
 declare module "@solidjs/web/types/jsx.js" {

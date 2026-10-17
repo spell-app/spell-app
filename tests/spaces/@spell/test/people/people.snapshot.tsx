@@ -1,6 +1,6 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList, prop } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, prop } from "@spell/core"
 
-spellCore.heading("People, and what they keep about each other (epic `people-and-orgs`, P1)")
+core.heading("People, and what they keep about each other (epic `people-and-orgs`, P1)")
 //////////////////////////////////////////////////////////////////////////////
 // ## People, and what they keep about each other (epic `people-and-orgs`, P1)
 //////////////////////////////////////////////////////////////////////////////
@@ -68,14 +68,14 @@ export class FriendList extends Thing {
   accessor relationships!: List<Relationship>
 }
 
-spellCore.heading("Using them")
+core.heading("Using them")
 /** Using them */
 export const owen = new Person({ id: "owen", name: "Owen" })
 export const matt = new Person({ id: "matt", name: "Matt" })
 matt.nickname = "Matty"
 
 export const family = new FriendList({ name: "family" })
-spellCore.append(family.relationships, new Relationship({ kind: "brother", person: matt }))
+core.append(family.relationships, new Relationship({ kind: "brother", person: matt }))
 
-spellCore.console.log(owen.id)
-spellCore.map(family.relationships, (relationship: Relationship) => spellCore.console.log(relationship.person.id))
+core.console.log(owen.id)
+core.map(family.relationships, (relationship: Relationship) => core.console.log(relationship.person.id))

@@ -4,10 +4,10 @@
 import _ from "lodash"
 
 import { Cell, isTrackingCells, ITEMS_KEY, Observable, runsCreate, typedJSON, type PropInfo } from "$/util"
-import { registerThing, spellCore } from "$/core/core"
+import { registerThing, core } from "$/core/core"
 import type { CollectionIterationCallback } from "$/core/collection-other"
 import type { Drawing } from "$/core/drawing"
-import type { PropCheck } from "$/core/spellCore.types"
+import type { PropCheck } from "$/core/core.types"
 import { zeroIndexOf } from "$/core/positions"
 
 import { ID_PROP } from "./ids"
@@ -20,10 +20,10 @@ import { ID_PROP } from "./ids"
  *   trigger re-renders of anything observing this `List`.
  * - Copy on write:  each mutation sets `items` to a NEW array --
  *   a spell cell notifies on a new value, never on a change made in place.
- * - Delegates JS collection duck-typing (`itemCount`, `getKeys`, `getItem`, ...) to `spellCore`'s
+ * - Delegates JS collection duck-typing (`itemCount`, `getKeys`, `getItem`, ...) to `core`'s
  *   generic collection methods -- see `CollectionLike` in `collection-core.ts`.
  * - Has its own list methods for hand-written TypeScript, e.g. `pile.filter(...)`, `pile.lastItem`:
- *   each calls its `spellCore` twin -- see "List methods" below.
+ *   each calls its `core` twin -- see "List methods" below.
  * - Iterable:  `for (const card of pile)`.
  * - EXCLUSIVE lists (`exclusive`, from `a card belongs to one pile`):
  *   an item is in at most ONE list of a FAMILY (epic page D7, D8).
@@ -70,7 +70,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * SIDE EFFECT:  a sub-class's instance, e.g. a `Deck`, registers itself in `spellCore.things`.
+   * SIDE EFFECT:  a sub-class's instance, e.g. a `Deck`, registers itself in `core.things`.
    * - See `registerThing()`.
    * - `props` optional:  `a new deck` compiles to `new Deck()`.
    */
@@ -104,13 +104,13 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
    * - `check`:  how compiled spell said it before the class schema, still honoured.
    */
   protected setProp<T>(property: string, value: T, check?: PropCheck) {
-    if (check) spellCore.checkProp(property, value, check)
+    if (check) core.checkProp(property, value, check)
     return super.setProp(property, value)
   }
 
   /** A declared prop was set:  warn on the PROGRAM's console if `value` isn't what `info` declares. */
   protected checkPropType(property: string, value: unknown, info: PropInfo): void {
-    spellCore.checkProp(property, value, info)
+    core.checkProp(property, value, info)
   }
 
   /**
@@ -142,19 +142,19 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
    * `list.draw()` draws its items, each in its own error boundary.
    * - Override in a subclass to draw a wrapper element, etc.,
    *   and use `draw items of {list}` or `draw each of {list}` to draw the items inside it.
-   * - `draw the deck` calls it through `spellCore.drawThing()` (`drawing.ts`).
+   * - `draw the deck` calls it through `core.drawThing()` (`drawing.ts`).
    */
   draw(): Drawing {
     return this.drawItems()
   }
 
   /**
-   * Its items, each drawn in its own error boundary, kept by identity -- see `spellCore.drawItems()`.
-   * - Compiles from `draw each card in the deck` / `draw cards of the deck` => `spellCore.drawItems(deck)`
+   * Its items, each drawn in its own error boundary, kept by identity -- see `core.drawItems()`.
+   * - Compiles from `draw each card in the deck` / `draw cards of the deck` => `core.drawItems(deck)`
    *   -- see `rules/draw/DrawItems.ts`.
    */
   drawItems(): Drawing {
-    return spellCore.drawItems(this)
+    return core.drawItems(this)
   }
 
   /** Syntactic sugar for `itemCount()`. */
@@ -162,9 +162,9 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
     return this.itemCount()
   }
 
-  /** Append `items` to the end of this list -- delegates to `spellCore.append()`.  See `append()`, which chains. */
+  /** Append `items` to the end of this list -- delegates to `core.append()`.  See `append()`, which chains. */
   add(...items: T[]): void {
-    spellCore.append(this, ...items)
+    core.append(this, ...items)
   }
 
   /** The index `index` reaches in our items:  `undefined` for none.  Negative counts from the end, `-1` the last. */
@@ -263,11 +263,11 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   // ## List methods
   //  What hand-written TypeScript calls, e.g. `allPiles.filter((pile) => pile.droppable)`
   //  (epic `output-targets`, Q33, Q35).
-  //  Each does EXACTLY what its `spellCore` twin does, by calling it:  one copy of the logic.
+  //  Each does EXACTLY what its `core` twin does, by calling it:  one copy of the logic.
   //  - every position is an index, from 0, as an array's
   //  - a list result is SCRATCH, of our class, and owns nothing:
   //    filtering the piles never takes a card out of its pile -- see `asScratch()`
-  //  - a callback gets `(value, position, list)`, as `spellCore.forEach()`'s does
+  //  - a callback gets `(value, position, list)`, as `core.forEach()`'s does
   //  - a change returns us, so calls chain:  `pile.append(card).reverse()`
   ////////////////
 
@@ -281,19 +281,19 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
     return this.getItem(-1)
   }
 
-  /** Do we hold nothing?  `my-list is empty` -- see `spellCore.isEmpty()`. */
+  /** Do we hold nothing?  `my-list is empty` -- see `core.isEmpty()`. */
   get isEmpty(): boolean {
-    return spellCore.isEmpty(this)
+    return core.isEmpty(this)
   }
 
-  /** Largest item, by `>`;  `undefined` if we're empty -- `the largest of my-list`, see `spellCore.largestOf()`. */
+  /** Largest item, by `>`;  `undefined` if we're empty -- `the largest of my-list`, see `core.largestOf()`. */
   get max(): T | undefined {
-    return spellCore.largestOf(this) as T | undefined
+    return core.largestOf(this) as T | undefined
   }
 
-  /** Smallest item, by `<`;  `undefined` if we're empty -- `the smallest of my-list`, see `spellCore.smallestOf()`. */
+  /** Smallest item, by `<`;  `undefined` if we're empty -- `the smallest of my-list`, see `core.smallestOf()`. */
   get min(): T | undefined {
-    return spellCore.smallestOf(this) as T | undefined
+    return core.smallestOf(this) as T | undefined
   }
 
   /**
@@ -307,45 +307,45 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
 
   /** One item, picked at random;  `undefined` if we're empty -- `a random card from the deck`. */
   randomItem(): T | undefined {
-    return spellCore.randomItemOf<T>(this)
+    return core.randomItemOf<T>(this)
   }
 
   /**
    * Up to `count` items, picked at random, each at most once -- scratch, of our class.
    * - No `count`:  all of them, shuffled.
-   * - `3 random cards from the deck`, see `spellCore.randomItemsOf()`.
+   * - `3 random cards from the deck`, see `core.randomItemsOf()`.
    */
   randomItems(count?: number): this {
-    return spellCore.randomItemsOf(this, count) as this
+    return core.randomItemsOf(this, count) as this
   }
 
   /**
-   * Do we hold EVERY one of `values`?  `false` for none -- `my-list includes thing`, see `spellCore.includes()`.
+   * Do we hold EVERY one of `values`?  `false` for none -- `my-list includes thing`, see `core.includes()`.
    * - Asks about anything, not just a `T`:  `pile.includes(maybeCard)`.
    */
   includes(...values: unknown[]): boolean {
-    return spellCore.includes(this, ...values)
+    return core.includes(this, ...values)
   }
 
-  /** Do we hold ANY of `values`?  See `spellCore.includesAny()`. */
+  /** Do we hold ANY of `values`?  See `core.includesAny()`. */
   includesAny(...values: unknown[]): boolean {
-    return spellCore.includesAny(this, ...values)
+    return core.includesAny(this, ...values)
   }
 
   /**
    * Does `condition` say yes for every item?  No `condition`:  is every item truthy?
-   * - NOTE:  `false` if we're empty, as `spellCore.all()`.
+   * - NOTE:  `false` if we're empty, as `core.all()`.
    */
   all(condition?: ListCallback<T, this>): boolean {
-    return spellCore.all<T>(this, condition as Callback<T>)
+    return core.all<T>(this, condition as Callback<T>)
   }
 
   /**
    * Does `condition` say yes for any item?
-   * - No `condition`:  is any item truthy?  See `spellCore.any()`.
+   * - No `condition`:  is any item truthy?  See `core.any()`.
    */
   any(condition?: ListCallback<T, this>): boolean {
-    return spellCore.any<T>(this, condition as Callback<T>)
+    return core.any<T>(this, condition as Callback<T>)
   }
 
   /**
@@ -353,118 +353,118 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
    * - Doesn't wait for one that returns a promise:  write a `for (const card of pile)` loop for that.
    */
   forEach(callback: ListCallback<T, this>): void {
-    spellCore.forEach<T>(this, callback as Callback<T>)
+    core.forEach<T>(this, callback as Callback<T>)
   }
 
   /**
-   * What `callback` answers for each item, in a scratch list of our class -- see `spellCore.map()`.
+   * What `callback` answers for each item, in a scratch list of our class -- see `core.map()`.
    * - NOTE:  typed as a plain `List<R>`:  TypeScript can't say "our class, holding `R`".
    */
   map<R>(callback: ListCallback<T, this, R>): List<R> {
-    return spellCore.map<T>(this, callback as Callback<T>) as List<R>
+    return core.map<T>(this, callback as Callback<T>) as List<R>
   }
 
   /**
    * The items `condition` says yes to, in a scratch list of our class:
    * a `Pile` filtered is a `Pile`, which owns none of them.
    * - No `condition`:  the truthy ones.
-   * - `words in "a word list" where ...`, see `spellCore.filter()`.
+   * - `words in "a word list" where ...`, see `core.filter()`.
    */
   filter(condition?: ListCallback<T, this>): this {
-    return spellCore.filter<T, this>(this, condition as Callback<T>)
+    return core.filter<T, this>(this, condition as Callback<T>)
   }
 
-  /** SIDE EFFECT:  add `things` at the end.  Returns us -- see `spellCore.append()`. */
+  /** SIDE EFFECT:  add `things` at the end.  Returns us -- see `core.append()`. */
   append(...things: T[]): this {
-    spellCore.append(this, ...things)
+    core.append(this, ...things)
     return this
   }
 
-  /** SIDE EFFECT:  add `things` at the start, pushing the rest down.  Returns us -- see `spellCore.prepend()`. */
+  /** SIDE EFFECT:  add `things` at the start, pushing the rest down.  Returns us -- see `core.prepend()`. */
   prepend(...things: T[]): this {
-    spellCore.prepend(this, ...things)
+    core.prepend(this, ...things)
     return this
   }
 
   /**
    * SIDE EFFECT:  add `things` at index `position`, pushing what was there down.  Returns us.
-   * - `add card to the pile at position 2`, see `spellCore.addAtPosition()`.
+   * - `add card to the pile at position 2`, see `core.addAtPosition()`.
    */
   addAt(position: number, ...things: T[]): this {
-    spellCore.addAtPosition(this, position, ...things)
+    core.addAtPosition(this, position, ...things)
     return this
   }
 
   /**
    * SIDE EFFECT:  add `things` just before `item`.  Returns us.
    * - `item` isn't here:  at the START.
-   * - `add card to the pile before other-card`, see `spellCore.addBefore()`.
+   * - `add card to the pile before other-card`, see `core.addBefore()`.
    */
   addBefore(item: unknown, ...things: T[]): this {
-    spellCore.addBefore(this, item, ...things)
+    core.addBefore(this, item, ...things)
     return this
   }
 
   /**
    * SIDE EFFECT:  add `things` just after `item`.  Returns us.
    * - `item` isn't here:  at the END.
-   * - `add card to the pile after other-card`, see `spellCore.addAfter()`.
+   * - `add card to the pile after other-card`, see `core.addAfter()`.
    */
   addAfter(item: unknown, ...things: T[]): this {
-    spellCore.addAfter(this, item, ...things)
+    core.addAfter(this, item, ...things)
     return this
   }
 
-  /** SIDE EFFECT:  take out every one of `things`, wherever it is.  Returns us -- see `spellCore.remove()`. */
+  /** SIDE EFFECT:  take out every one of `things`, wherever it is.  Returns us -- see `core.remove()`. */
   remove(...things: unknown[]): this {
-    spellCore.remove(this, ...things)
+    core.remove(this, ...things)
     return this
   }
 
-  /** SIDE EFFECT:  take out each item `condition` says yes to.  Returns us -- see `spellCore.removeWhere()`. */
+  /** SIDE EFFECT:  take out each item `condition` says yes to.  Returns us -- see `core.removeWhere()`. */
   removeWhere(condition: ListCallback<T, this>): this {
-    spellCore.removeWhere<T>(this, condition as Callback<T>)
+    core.removeWhere<T>(this, condition as Callback<T>)
     return this
   }
 
   /**
    * SIDE EFFECT:  take out the items from index `start` up to, not including, `end`, as `slice()` reads them.
    * - Returns us.
-   * - `remove items 2 to 4 of my-list`, its indexes worked out, see `spellCore.removeRangeBetween()`.
+   * - `remove items 2 to 4 of my-list`, its indexes worked out, see `core.removeRangeBetween()`.
    */
   removeBetween(start: number, end: number): this {
-    spellCore.removeRangeBetween(this, start, end)
+    core.removeRangeBetween(this, start, end)
     return this
   }
 
   /**
    * SIDE EFFECT:  set the items from `position` on to `values`, replacing what's there.  Returns us.
-   * - See `spellCore.setItemsOf()`.
+   * - See `core.setItemsOf()`.
    */
   setItems(position: number, ...values: T[]): this {
-    spellCore.setItemsOf(this, position, ...values)
+    core.setItemsOf(this, position, ...values)
     return this
   }
 
-  /** SIDE EFFECT:  reverse our order, in place.  Returns us -- see `spellCore.reverse()`. */
+  /** SIDE EFFECT:  reverse our order, in place.  Returns us -- see `core.reverse()`. */
   reverse(): this {
-    spellCore.reverse(this)
+    core.reverse(this)
     return this
   }
 
-  /** SIDE EFFECT:  shuffle our items, in place -- `shuffle the deck`.  Returns us, see `spellCore.randomize()`. */
+  /** SIDE EFFECT:  shuffle our items, in place -- `shuffle the deck`.  Returns us, see `core.randomize()`. */
   randomize(): this {
-    spellCore.randomize(this)
+    core.randomize(this)
     return this
   }
 
   /**
    * The items from index `index` to the end, in a scratch list of our class.
    * - A negative `index` counts from the end:  `-2` is the last two.
-   * - See `spellCore.rangeStartingAt()`.
+   * - See `core.rangeStartingAt()`.
    */
   startingFrom(index: number): this {
-    return spellCore.rangeStartingAt(this, index, undefined)
+    return core.rangeStartingAt(this, index, undefined)
   }
 
   /**
@@ -473,26 +473,26 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
    *   As compiled spell does it, `rangeStartingAt(list, positionOf(list, item))`.
    */
   startingWith(item: unknown): this {
-    return spellCore.rangeStartingAt(this, spellCore.positionOf(this, item))
+    return core.rangeStartingAt(this, core.positionOf(this, item))
   }
 
   /**
    * The items from index `start` up to, not including, `end`, in a scratch list of our class, as an array's `slice()`.
    * - Negative counts from the end;  no `end`:  to the end.  Out of range:  an empty one.
-   * - `items 1 to 2 of my-list` compiles to `myList.slice(0, 2)` -- see `spellCore.rangeBetween()`.
+   * - `items 1 to 2 of my-list` compiles to `myList.slice(0, 2)` -- see `core.rangeBetween()`.
    */
   slice(start?: number, end?: number): this {
-    return spellCore.rangeBetween(this, start, end) as this
+    return core.rangeBetween(this, start, end) as this
   }
 
-  /** Is `thing` our first item?  `false` for `undefined` -- see `spellCore.startsWith()`. */
+  /** Is `thing` our first item?  `false` for `undefined` -- see `core.startsWith()`. */
   startsWith(thing: unknown): boolean {
-    return spellCore.startsWith(this, thing)
+    return core.startsWith(this, thing)
   }
 
-  /** Is `thing` our last item?  `false` for `undefined` -- see `spellCore.endsWith()`. */
+  /** Is `thing` our last item?  `false` for `undefined` -- see `core.endsWith()`. */
   endsWith(thing: unknown): boolean {
-    return spellCore.endsWith(this, thing)
+    return core.endsWith(this, thing)
   }
 
   /**
@@ -500,17 +500,17 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
    * `a copy of discards`, or `a copy of discards as a pile` when a discard-pile already is a pile (Q36).
    */
   clone(): this {
-    return spellCore.duplicateList(this)
+    return core.duplicateList(this)
   }
 
-  /** A scratch copy of us, as `Class` -- `a copy of discards as a hand`.  See `spellCore.duplicateList()`. */
+  /** A scratch copy of us, as `Class` -- `a copy of discards as a hand`.  See `core.duplicateList()`. */
   cloneAs<L>(Class: new () => L): L {
-    return spellCore.duplicateList(this, Class)
+    return core.duplicateList(this, Class)
   }
 
-  /** SIDE EFFECT:  add every item of each of `lists`, in turn.  Returns us -- see `spellCore.mergeListsInto()`. */
+  /** SIDE EFFECT:  add every item of each of `lists`, in turn.  Returns us -- see `core.mergeListsInto()`. */
   appendAll(...lists: unknown[]): this {
-    spellCore.mergeListsInto(this, ...lists)
+    core.mergeListsInto(this, ...lists)
     return this
   }
 
@@ -518,17 +518,17 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
    * We're a list of lists:  their items, all in one scratch list -- `merge the piles`.
    * - No `Class`:  of our first list's class, `undefined` if we're empty.
    * - `merge the piles as a pile`:  of `Class`.
-   * - See `spellCore.mergeLists()`.
+   * - See `core.mergeLists()`.
    */
   merged(): T | undefined
   merged<L>(Class: new () => L): L
   merged<L>(Class?: new () => L): T | L | undefined {
-    return spellCore.mergeLists<T, T | L>(this, Class)
+    return core.mergeLists<T, T | L>(this, Class)
   }
 
-  /** Are we of type `typeName`, or a sub-type of it?  e.g. `"pile"`, `"list"` -- see `spellCore.isOfType()`. */
+  /** Are we of type `typeName`, or a sub-type of it?  e.g. `"pile"`, `"list"` -- see `core.isOfType()`. */
   isOfType(typeName: string): boolean {
-    return spellCore.isOfType(this, typeName)
+    return core.isOfType(this, typeName)
   }
 
   ////////////////
@@ -581,7 +581,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
    * Will we take `item`, moved here?  Yes -- unless a sub-class says otherwise:
    * `a tableau can take a card if: ...` compiles to `canTake(card) {...}` in `Tableau`.
    * - Only a move asks (`moveHere()`):  `add` never does, e.g. dealing (epic page Q25).
-   * - Compiled spell's `the tableau can take the card` -- see `spellCore.canTake()`.
+   * - Compiled spell's `the tableau can take the card` -- see `core.canTake()`.
    */
   canTake(_item: unknown): boolean {
     return true
@@ -592,7 +592,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
    * `a foundation can never let go of a card` compiles to `canGiveUp(card) { return false }`.
    * - Only a move asks (`moveHere()`):  `remove` and `clear` never do,
    *   e.g. gathering every card back to deal again (epic page Q25).
-   * - Compiled spell's `the pile can give up the card` -- see `spellCore.canGiveUp()`.
+   * - Compiled spell's `the pile can give up the card` -- see `core.canGiveUp()`.
    */
   canGiveUp(_item: unknown): boolean {
     return true
@@ -603,7 +603,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
    * - Returns whether it moved.  Refused:  nothing changes.
    * - The list holding it:  the one of our family, if we're exclusive.  Else none is asked:  just `canTake()`.
    * - Then added, as `add`:  its owner changes ONCE -- see `writeItems()`.
-   * - See `spellCore.move()`.
+   * - See `core.move()`.
    */
   moveHere(item: T): boolean {
     const owner = this.family?.ownerOf(item, "UNTRACKED")
@@ -625,7 +625,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
    * { "$type": "Pile", "name": "stock", "$items": [{ "$type": "Card", ... }] }
    * ```
    * - A plain `List`, with no props, or a scratch list:  `{ "$type": "List", "$items": [...] }`.
-   * - So it reads back as what it was:  `spellCore.fromJSON()` (`json.ts`).
+   * - So it reads back as what it was:  `core.fromJSON()` (`json.ts`).
    * - `"$items"` never collides with a prop, as `"$type"` never does:  no prop is named `$...`.
    * - Tracked:  a reader re-runs when a prop or the items change (and, through each item's `toJSON()`, when they do).
    */
@@ -650,7 +650,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
  */
 export type ListCallback<T, L, R = unknown> = (value: T, position: number, list: L) => R
 
-/** Its `spellCore` twin's callback:  a `ListCallback` passes as one, as a list's keys are its positions. */
+/** Its `core` twin's callback:  a `ListCallback` passes as one, as a list's keys are its positions. */
 type Callback<T> = CollectionIterationCallback<T>
 
 /**

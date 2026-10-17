@@ -56,9 +56,9 @@ class ParkMiller:
 class RandomMethods:
     """`core`'s random numbers:  `seed_random()`, `random_number()`, `shuffled()` ..."""
 
-    # where a bad call warns:  `SpellCore` sets it
+    # where a bad call warns:  `Core` sets it
     console: "SpellConsole"
-    # every random number comes from it:  `SpellCore` makes it, `seed_random()` replaces it
+    # every random number comes from it:  `Core` makes it, `seed_random()` replaces it
     generator: ParkMiller
 
     def seed_random(self, seed: float) -> None:

@@ -7,11 +7,11 @@
  *   - For objects: use natural key order for position.
  * - TODO: collections for `words`, `lines`, etc?
  */
-import { spellCore } from "./core"
+import { core } from "./core"
 // Import directly, never through the barrel:  `$/core/model` loads this file, and must not load drawing (Solid)
 import { assert } from "./assert"
 import { List } from "./classes/List"
-import { defineSpellCoreModule } from "./spellCore.types"
+import { defineCoreModule } from "./core.types"
 import type { CollectionOf } from "./collection-core"
 
 /** A valid `{ start, end }` range of indexes, as `Array.slice()` takes them:  from `start` up to, not including, `end`. */
@@ -36,7 +36,7 @@ export type CollectionIterationCallback<T = unknown> = (
   collection: unknown
 ) => unknown
 
-/** A list with guards, e.g. a `List` -- see `spellCore.move()`, `List.moveHere()`. */
+/** A list with guards, e.g. a `List` -- see `core.move()`, `List.moveHere()`. */
 type Guarded = {
   /** Move `thing` here, if allowed -- returns whether it moved. */
   moveHere(thing: unknown): boolean
@@ -46,7 +46,7 @@ type Guarded = {
   canGiveUp(thing: unknown): unknown
 }
 
-export const collectionOtherMethods = defineSpellCoreModule({
+export const collectionOtherMethods = defineCoreModule({
   ////////////////
   // ## composite accessors
   ////////////////
@@ -58,9 +58,9 @@ export const collectionOtherMethods = defineSpellCoreModule({
    *   -- see `rules/expressions/`.
    */
   includes(collection?: unknown, ...values: unknown[]): boolean {
-    if (!assert.isDefined(collection, "spellCore.includes(collection)")) return false
+    if (!assert.isDefined(collection, "core.includes(collection)")) return false
     if (!values.length) return false
-    return spellCore.all(values, (value) => spellCore.positionOf(collection, value) !== undefined)
+    return core.all(values, (value) => core.positionOf(collection, value) !== undefined)
   },
 
   /**
@@ -68,8 +68,8 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - If more than one value specified, only one must be included.
    */
   includesAny(collection?: unknown, ...values: unknown[]): boolean {
-    if (!assert.isDefined(collection, "spellCore.includesAny(collection)")) return false
-    return spellCore.any(values, (value) => spellCore.positionOf(collection, value) !== undefined)
+    if (!assert.isDefined(collection, "core.includesAny(collection)")) return false
+    return core.any(values, (value) => core.positionOf(collection, value) !== undefined)
   },
 
   ////////////////
@@ -82,17 +82,17 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Typed as what it makes:  a `Pile` copied is a `Pile`;  copied `as` a class, that class.
    */
   duplicateList<C, K = C>(collection?: C, constructor?: new () => K): K {
-    if (!assert.isArrayLike(collection, "spellCore.duplicateList(collection)")) return false as K
-    // a copy owns nothing -- see `spellCore.newScratch()`
-    const result = constructor ? spellCore.newScratch(constructor) : spellCore.newThingLike(collection)
-    return spellCore.mergeListsInto(result, collection) as K
+    if (!assert.isArrayLike(collection, "core.duplicateList(collection)")) return false as K
+    // a copy owns nothing -- see `core.newScratch()`
+    const result = constructor ? core.newScratch(constructor) : core.newThingLike(collection)
+    return core.mergeListsInto(result, collection) as K
   },
 
   /** Merge all `source` list(s) into `destination`, in place. */
   mergeListsInto(destination?: unknown, ...sources: unknown[]): unknown {
-    if (!assert.isArrayLike(destination, "spellCore.mergeListsInto(collection)")) return false
+    if (!assert.isArrayLike(destination, "core.mergeListsInto(collection)")) return false
     sources.forEach((source) => {
-      if (source) spellCore.forEach(source, (item) => spellCore.append(destination, item))
+      if (source) core.forEach(source, (item) => core.append(destination, item))
     })
     return destination
   },
@@ -103,17 +103,17 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Typed as what it makes:  piles merged are a `Pile`;  merged `as` a class, that class.
    */
   mergeLists<T = unknown, K = T>(collections?: CollectionOf<T>, constructor?: new () => K): K | undefined {
-    if (!assert.isArrayLike(collections, "spellCore.mergeLists(collection)")) return undefined
+    if (!assert.isArrayLike(collections, "core.mergeLists(collection)")) return undefined
     let merged: unknown
-    // a merge owns nothing -- see `spellCore.newScratch()`
+    // a merge owns nothing -- see `core.newScratch()`
     if (constructor) {
-      merged = spellCore.newScratch(constructor)
+      merged = core.newScratch(constructor)
     } else {
-      const first = spellCore.getItemAt(collections, 0)
-      if (!assert.isArrayLike(first, "spellCore.mergeLists(collection)")) return undefined
-      merged = spellCore.newThingLike(first)
+      const first = core.getItemAt(collections, 0)
+      if (!assert.isArrayLike(first, "core.mergeLists(collection)")) return undefined
+      merged = core.newThingLike(first)
     }
-    spellCore.forEach(collections, (next) => spellCore.mergeListsInto(merged, next))
+    core.forEach(collections, (next) => core.mergeListsInto(merged, next))
     return merged as K
   },
 
@@ -126,9 +126,9 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Compiles from `my-list starts with thing` -- see `rules/lists/StartsWith.ts`.
    */
   startsWith(collection?: unknown, thing?: unknown): boolean {
-    if (!assert.isArrayLike(collection, "spellCore.startsWith(collection)")) return false
+    if (!assert.isArrayLike(collection, "core.startsWith(collection)")) return false
     if (thing == null) return false
-    return spellCore.getItemAt(collection, 0) === thing
+    return core.getItemAt(collection, 0) === thing
   },
 
   /**
@@ -136,19 +136,19 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Compiles from `my-list ends with thing` -- see `rules/lists/EndsWith.ts`.
    */
   endsWith(collection?: unknown, thing?: unknown): boolean {
-    if (!assert.isArrayLike(collection, "spellCore.endsWith(collection)")) return false
+    if (!assert.isArrayLike(collection, "core.endsWith(collection)")) return false
     if (thing == null) return false
-    return spellCore.getItemAt(collection, spellCore.itemCountOf(collection) - 1) === thing
+    return core.getItemAt(collection, core.itemCountOf(collection) - 1) === thing
   },
 
   /** Add `things` to front of `collection`, pushing everything else down.  Array only. */
   prepend(collection?: unknown, ...things: unknown[]): void {
-    spellCore.addAtPosition(collection, 0, ...things)
+    core.addAtPosition(collection, 0, ...things)
   },
 
   /** Add `things` to end of `collection`.  Array only. */
   append(collection?: unknown, ...things: unknown[]): void {
-    spellCore.addAtPosition(collection, spellCore.itemCountOf(collection), ...things)
+    core.addAtPosition(collection, core.itemCountOf(collection), ...things)
   },
 
   /**
@@ -158,9 +158,9 @@ export const collectionOtherMethods = defineSpellCoreModule({
    *   `List.addBefore()` calls it.
    */
   addBefore(collection?: unknown, item?: unknown, ...things: unknown[]): void {
-    if (!assert.isArrayLike(collection, "spellCore.addBefore(collection)")) return
-    const position = spellCore.positionOf(collection, item) as number | undefined
-    spellCore.addAtPosition(collection, position ?? 0, ...things)
+    if (!assert.isArrayLike(collection, "core.addBefore(collection)")) return
+    const position = core.positionOf(collection, item) as number | undefined
+    core.addAtPosition(collection, position ?? 0, ...things)
   },
 
   /**
@@ -170,10 +170,10 @@ export const collectionOtherMethods = defineSpellCoreModule({
    *   `List.addAfter()` calls it.
    */
   addAfter(collection?: unknown, item?: unknown, ...things: unknown[]): void {
-    if (!assert.isArrayLike(collection, "spellCore.addAfter(collection)")) return
-    const position = spellCore.positionOf(collection, item) as number | undefined
-    if (position === undefined) spellCore.append(collection, ...things)
-    else spellCore.addAtPosition(collection, position + 1, ...things)
+    if (!assert.isArrayLike(collection, "core.addAfter(collection)")) return
+    const position = core.positionOf(collection, item) as number | undefined
+    if (position === undefined) core.append(collection, ...things)
+    else core.addAtPosition(collection, position + 1, ...things)
   },
 
   /**
@@ -181,17 +181,17 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Replaces existing values.
    */
   setItemsOf(collection?: unknown, start?: number, ...values: unknown[]): void {
-    if (!assert.isArrayLike(collection, "spellCore.setItemsOf(collection)")) return
+    if (!assert.isArrayLike(collection, "core.setItemsOf(collection)")) return
     values.forEach((value, index) => {
-      spellCore.setItemAt(collection, (start ?? 0) + index, value)
+      core.setItemAt(collection, (start ?? 0) + index, value)
     })
   },
 
   /** Reverse list in-place.  Array only. */
   reverse(collection?: unknown): void {
-    if (!assert.isArrayLike(collection, "spellCore.reverse(collection)")) return
-    const reversed = spellCore.valuesOf(collection).reverse()
-    spellCore.setItemsOf(collection, 0, ...reversed)
+    if (!assert.isArrayLike(collection, "core.reverse(collection)")) return
+    const reversed = core.valuesOf(collection).reverse()
+    core.setItemsOf(collection, 0, ...reversed)
   },
 
   /**
@@ -206,9 +206,9 @@ export const collectionOtherMethods = defineSpellCoreModule({
     itemCount: number
   ): Range | undefined {
     if (itemCount === 0) return undefined
-    if (spellCore.isANumber(start) && start < -itemCount) return undefined
-    const from = !spellCore.isANumber(start) ? 0 : start < 0 ? itemCount + start : start
-    const to = !spellCore.isANumber(end) ? itemCount : end < 0 ? Math.max(itemCount + end, 0) : Math.min(end, itemCount)
+    if (core.isANumber(start) && start < -itemCount) return undefined
+    const from = !core.isANumber(start) ? 0 : start < 0 ? itemCount + start : start
+    const to = !core.isANumber(end) ? itemCount : end < 0 ? Math.max(itemCount + end, 0) : Math.min(end, itemCount)
     return from < to ? { start: from, end: to } : undefined
   },
 
@@ -221,12 +221,12 @@ export const collectionOtherMethods = defineSpellCoreModule({
    *   `myList.slice(1, 4)` -- see `rules/lists/RangeBetweenExpression.ts`.
    */
   rangeBetween(collection?: unknown, start?: number | null, end?: number | null): unknown {
-    if (!assert.isArrayLike(collection, "spellCore.rangeBetween(collection)")) return []
-    const range = spellCore._validateRangeBetween(start, end, spellCore.itemCountOf(collection))
+    if (!assert.isArrayLike(collection, "core.rangeBetween(collection)")) return []
+    const range = core._validateRangeBetween(start, end, core.itemCountOf(collection))
     if (!range) return emptyRangeOf(collection)
-    const results = spellCore.newThingLike(collection)
+    const results = core.newThingLike(collection)
     for (let i = range.start; i < range.end; i++) {
-      spellCore.append(results, spellCore.getItemAt(collection, i))
+      core.append(results, core.getItemAt(collection, i))
     }
     return results
   },
@@ -239,11 +239,11 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Compiles from `remove items 2 to 4 of my-list` -- see `rules/lists/ListRemoveRange.ts`.
    */
   removeRangeBetween(collection?: unknown, start?: number | null, end?: number | null): void {
-    if (!assert.isArrayLike(collection, "spellCore.removeRangeBetween(collection)")) return
-    const range = spellCore._validateRangeBetween(start, end, spellCore.itemCountOf(collection))
+    if (!assert.isArrayLike(collection, "core.removeRangeBetween(collection)")) return
+    const range = core._validateRangeBetween(start, end, core.itemCountOf(collection))
     if (!range) return
     if (typeof (collection as { removeItem?: unknown }).removeItem === "function") {
-      for (let index = range.end - 1; index >= range.start; index--) spellCore.removeItemAt(collection, index)
+      for (let index = range.end - 1; index >= range.start; index--) core.removeItemAt(collection, index)
       return
     }
     Array.prototype.splice.call(collection, range.start, range.end - range.start)
@@ -259,10 +259,10 @@ export const collectionOtherMethods = defineSpellCoreModule({
     count: number | null | undefined,
     itemCount: number
   ): Range | undefined {
-    if (spellCore.isANumber(start) && (start < -itemCount || start >= itemCount)) return undefined
-    const from = !spellCore.isANumber(start) ? 0 : start < 0 ? itemCount + start : start
-    const to = spellCore.isANumber(count) ? from + count : itemCount
-    return spellCore._validateRangeBetween(from, to, itemCount)
+    if (core.isANumber(start) && (start < -itemCount || start >= itemCount)) return undefined
+    const from = !core.isANumber(start) ? 0 : start < 0 ? itemCount + start : start
+    const to = core.isANumber(count) ? from + count : itemCount
+    return core._validateRangeBetween(from, to, itemCount)
   },
 
   /**
@@ -273,10 +273,10 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Typed as its collection:  a range of a `Pile` is a `Pile`.
    */
   rangeStartingAt<C>(collection?: C, start?: number | null, count?: number | null): C {
-    if (!assert.isArrayLike(collection, "spellCore.rangeStartingAt(collection)")) return [] as C
-    const range = spellCore._validateRangeStartingAt(start, count, spellCore.itemCountOf(collection))
+    if (!assert.isArrayLike(collection, "core.rangeStartingAt(collection)")) return [] as C
+    const range = core._validateRangeStartingAt(start, count, core.itemCountOf(collection))
     if (!range) return emptyRangeOf(collection) as C
-    return spellCore.rangeBetween(collection, range.start, range.end) as C
+    return core.rangeBetween(collection, range.start, range.end) as C
   },
 
   ////////////////
@@ -288,9 +288,9 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - `method` gets `(value, position, collection)`, the position an index from 0 (a plain object's:  its key).
    */
   forEach<T = unknown>(collection?: CollectionOf<T>, method?: CollectionIterationCallback<NoInfer<T>>): void {
-    if (!assert.isDefined(collection, "spellCore.forEach(collection)")) return
+    if (!assert.isDefined(collection, "core.forEach(collection)")) return
     if (!method) return
-    const iterator = spellCore.getIteratorFor(collection)
+    const iterator = core.getIteratorFor(collection)
     let result = iterator.next()
     while (!result.done) {
       const [value, position, coll] = result.value
@@ -309,9 +309,9 @@ export const collectionOtherMethods = defineSpellCoreModule({
     collection?: CollectionOf<T>,
     method?: CollectionIterationCallback<NoInfer<T>>
   ): Promise<void> {
-    if (!assert.isDefined(collection, "spellCore.forEachSequential(collection)")) return
+    if (!assert.isDefined(collection, "core.forEachSequential(collection)")) return
     if (!method) return
-    const iterator = spellCore.getIteratorFor(collection)
+    const iterator = core.getIteratorFor(collection)
     let result = iterator.next()
     while (!result.done) {
       const [value, position, coll] = result.value
@@ -323,16 +323,16 @@ export const collectionOtherMethods = defineSpellCoreModule({
   /**
    * Execute `method` for each item in `collection`, returning results in same type as `collection`.
    * - Compiles from `for each number from 1 to 10: ...` / `repeat 3 times: ...` as
-   *   `spellCore.map(spellCore.getRange(...), (number) => { ... })` -- see `rules/lists/`.
+   *   `core.map(core.getRange(...), (number) => { ... })` -- see `rules/lists/`.
    * - `method` gets `(value, position, collection)`, as `forEach()`.
    * TODO: rename???
    */
   map<T = unknown>(collection?: CollectionOf<T>, method?: CollectionIterationCallback<NoInfer<T>>): unknown {
-    if (!assert.isDefined(collection, "spellCore.map(collection)")) return undefined
-    const results = spellCore.newThingLike(collection)
+    if (!assert.isDefined(collection, "core.map(collection)")) return undefined
+    const results = core.newThingLike(collection)
     if (!method) return results
-    spellCore.forEach(collection, (value, position, coll) => {
-      spellCore.setItemAt(results, position, method(value, position, coll))
+    core.forEach(collection, (value, position, coll) => {
+      core.setItemAt(results, position, method(value, position, coll))
     })
     return results
   },
@@ -348,20 +348,20 @@ export const collectionOtherMethods = defineSpellCoreModule({
     collection?: C & CollectionOf<T>,
     condition?: CollectionIterationCallback<NoInfer<T>>
   ): C {
-    if (!assert.isDefined(collection, "spellCore.filter(collection)")) return undefined as C
+    if (!assert.isDefined(collection, "core.filter(collection)")) return undefined as C
     if (!condition) condition = (it) => it
-    const results = spellCore.newThingLike(collection)
+    const results = core.newThingLike(collection)
     let filter: CollectionIterationCallback<T>
-    if (spellCore.isArrayLike(collection)) {
+    if (core.isArrayLike(collection)) {
       filter = (value, position, _collection) => {
-        if (condition!(value, position, _collection)) spellCore.append(results, value)
+        if (condition!(value, position, _collection)) core.append(results, value)
       }
     } else {
       filter = (value, position, _collection) => {
-        if (condition!(value, position, _collection)) spellCore.setItemAt(results, position, value)
+        if (condition!(value, position, _collection)) core.setItemAt(results, position, value)
       }
     }
-    spellCore.forEach(collection, filter)
+    core.forEach(collection, filter)
     return results as C
   },
 
@@ -370,9 +370,9 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * called as `condition(value, position, collection)`.
    */
   all<T = unknown>(collection?: CollectionOf<T>, condition?: CollectionIterationCallback<NoInfer<T>>): boolean {
-    if (!assert.isDefined(collection, "spellCore.all(collection)")) return false
+    if (!assert.isDefined(collection, "core.all(collection)")) return false
     if (!condition) condition = (it) => it
-    const iterator = spellCore.getIteratorFor(collection)
+    const iterator = core.getIteratorFor(collection)
     let result = iterator.next()
     if (result.done) return false
     while (!result.done) {
@@ -388,9 +388,9 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Compiles from `my-list has items where ...` -- see `rules/lists/ListMembershipTest.ts`.
    */
   any<T = unknown>(collection?: CollectionOf<T>, condition?: CollectionIterationCallback<NoInfer<T>>): boolean {
-    if (!assert.isDefined(collection, "spellCore.any(collection)")) return false
+    if (!assert.isDefined(collection, "core.any(collection)")) return false
     if (!condition) condition = (it) => it
-    const iterator = spellCore.getIteratorFor(collection)
+    const iterator = core.getIteratorFor(collection)
     let result = iterator.next()
     if (result.done) return false
     while (!result.done) {
@@ -406,13 +406,13 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - For object: `positions` are string keys.
    */
   removeItemsAt(collection?: unknown, ...positions: Array<string | number>): void {
-    if (!assert.isDefined(collection, "spellCore.removeItemsAt(collection)")) return
+    if (!assert.isDefined(collection, "core.removeItemsAt(collection)")) return
     // Sort numeric positions DESCENDING so we don't have to worry about renumbering as we go.
     // NOTE: MUST pass a comparator:
     // bare `.sort()` is lexicographic, so positions 2 and 10 came back in the wrong order,
     // and removal renumbered the wrong items.
-    if (spellCore.isArrayLike(collection)) positions = positions.sort((a, b) => Number(b) - Number(a))
-    positions.forEach((position) => spellCore.removeItemAt(collection, position))
+    if (core.isArrayLike(collection)) positions = positions.sort((a, b) => Number(b) - Number(a))
+    positions.forEach((position) => core.removeItemAt(collection, position))
   },
 
   /**
@@ -421,12 +421,12 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Compiles from `remove thing from my-list` -- see `rules/lists/ListRemove.ts`.
    */
   remove(collection?: unknown, ...things: unknown[]): void {
-    if (!assert.isDefined(collection, "spellCore.remove(collection)")) return
+    if (!assert.isDefined(collection, "core.remove(collection)")) return
     things.forEach((thing) => {
-      let position = spellCore.positionOf(collection, thing)
+      let position = core.positionOf(collection, thing)
       while (position !== undefined) {
-        spellCore.removeItemAt(collection, position)
-        position = spellCore.positionOf(collection, thing)
+        core.removeItemAt(collection, position)
+        position = core.positionOf(collection, thing)
       }
     })
   },
@@ -436,10 +436,10 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Compiles from `remove items from my-list where ...` -- see `rules/lists/ListRemoveWhere.ts`.
    */
   removeWhere<T = unknown>(collection?: CollectionOf<T>, condition?: CollectionIterationCallback<NoInfer<T>>): void {
-    if (!assert.isDefined(collection, "spellCore.removeWhere(collection)")) return
-    const itemsToRemove = spellCore.filter(collection, condition)
-    if (spellCore.isArrayLike(collection)) spellCore.remove(collection, ...(itemsToRemove as unknown[]))
-    else spellCore.removeItemsAt(collection, ...Object.keys(itemsToRemove as object))
+    if (!assert.isDefined(collection, "core.removeWhere(collection)")) return
+    const itemsToRemove = core.filter(collection, condition)
+    if (core.isArrayLike(collection)) core.remove(collection, ...(itemsToRemove as unknown[]))
+    else core.removeItemsAt(collection, ...Object.keys(itemsToRemove as object))
   },
 
   ////////////////
@@ -455,10 +455,10 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Compiles from `move thing to my-list`, a statement or a yes / no -- see `rules/lists/ListMove.ts`.
    */
   move(thing?: unknown, collection?: unknown): boolean {
-    if (!assert.isArrayLike(collection, "spellCore.move(thing, collection)")) return false
+    if (!assert.isArrayLike(collection, "core.move(thing, collection)")) return false
     const guarded = collection as Partial<Guarded>
     if (typeof guarded.moveHere === "function") return guarded.moveHere(thing)
-    spellCore.append(collection, thing)
+    core.append(collection, thing)
     return true
   },
 
@@ -468,7 +468,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Compiles from `the tableau can take the card` -- see `rules/lists/CanTake.ts`.
    */
   canTake(collection?: unknown, thing?: unknown): boolean {
-    if (!assert.isArrayLike(collection, "spellCore.canTake(collection)")) return false
+    if (!assert.isArrayLike(collection, "core.canTake(collection)")) return false
     const guarded = collection as Partial<Guarded>
     return typeof guarded.canTake === "function" ? !!guarded.canTake(thing) : true
   },
@@ -479,7 +479,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Compiles from `the pile can give up the card` -- see `rules/lists/CanGiveUp.ts`.
    */
   canGiveUp(collection?: unknown, thing?: unknown): boolean {
-    if (!assert.isArrayLike(collection, "spellCore.canGiveUp(collection)")) return false
+    if (!assert.isArrayLike(collection, "core.canGiveUp(collection)")) return false
     const guarded = collection as Partial<Guarded>
     return typeof guarded.canGiveUp === "function" ? !!guarded.canGiveUp(thing) : true
   },
@@ -488,16 +488,16 @@ export const collectionOtherMethods = defineSpellCoreModule({
   // ## Randomizing / random item selection
   ////////////////
 
-  // Each draws from `spellCore.random()`, so `seedRandom()` makes it repeatable.
+  // Each draws from `core.random()`, so `seedRandom()` makes it repeatable.
 
   /** Return a random key of `collection`. */
   _randomKeyOf(collection?: unknown): string | number | undefined {
-    if (!assert.isDefined(collection, "spellCore._randomKeyOf(collection)")) return undefined
-    if (spellCore.itemCountOf(collection) === 0) return undefined
-    const position = spellCore.randomNumber(1, spellCore.itemCountOf(collection))
+    if (!assert.isDefined(collection, "core._randomKeyOf(collection)")) return undefined
+    if (core.itemCountOf(collection) === 0) return undefined
+    const position = core.randomNumber(1, core.itemCountOf(collection))
     // from 1, then an index:  the same numbers as ever from the same seed
-    if (spellCore.isArrayLike(collection)) return (position as number) - 1
-    return spellCore.keysOf(collection)[(position as number) - 1]
+    if (core.isArrayLike(collection)) return (position as number) - 1
+    return core.keysOf(collection)[(position as number) - 1]
   },
 
   /**
@@ -507,10 +507,10 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Typed by `collection`, as `getItemAt()`.
    */
   randomItemOf<T = unknown>(collection?: CollectionOf<T>): T | undefined {
-    if (!assert.isDefined(collection, "spellCore.randomItemOf(collection)")) return undefined
-    const key = spellCore._randomKeyOf(collection)
+    if (!assert.isDefined(collection, "core.randomItemOf(collection)")) return undefined
+    const key = core._randomKeyOf(collection)
     if (key === undefined) return undefined
-    return spellCore.getItemAt(collection, key)
+    return core.getItemAt(collection, key)
   },
 
   /**
@@ -520,18 +520,18 @@ export const collectionOtherMethods = defineSpellCoreModule({
    *   -- see `rules/lists/RandomItemsExpression.ts`.
    */
   randomItemsOf(collection?: unknown, count?: number): unknown {
-    if (!assert.isDefined(collection, "spellCore.randomItemsOf(collection)")) return undefined
-    if (!spellCore.isANumber(count)) count = spellCore.itemCountOf(collection)
-    const results = spellCore.newThingLike(collection)
+    if (!assert.isDefined(collection, "core.randomItemsOf(collection)")) return undefined
+    if (!core.isANumber(count)) count = core.itemCountOf(collection)
+    const results = core.newThingLike(collection)
     if (count === 0) return results
-    const shuffledKeys = spellCore.shuffled(spellCore.keysOf(collection)).slice(0, count)
-    if (spellCore.isArrayLike(collection)) {
+    const shuffledKeys = core.shuffled(core.keysOf(collection)).slice(0, count)
+    if (core.isArrayLike(collection)) {
       shuffledKeys.forEach((key) => {
-        spellCore.append(results, spellCore.getItemAt(collection, key))
+        core.append(results, core.getItemAt(collection, key))
       })
     } else {
       shuffledKeys.forEach((key) => {
-        spellCore.setItemAt(results, key, spellCore.getItemAt(collection, key))
+        core.setItemAt(results, key, core.getItemAt(collection, key))
       })
     }
     return results
@@ -543,10 +543,10 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Compiles from `shuffle my-list` / `randomize my-list` -- see `rules/lists/ListShuffle.ts`.
    */
   randomize(collection?: unknown): void {
-    if (!assert.isDefined(collection, "spellCore.randomize(collection)")) return
-    if (!spellCore.isArrayLike(collection)) return
-    const randomized = spellCore.randomItemsOf(collection)
-    spellCore.setItemsOf(collection, 0, ...(randomized as unknown[]))
+    if (!assert.isDefined(collection, "core.randomize(collection)")) return
+    if (!core.isArrayLike(collection)) return
+    const randomized = core.randomItemsOf(collection)
+    core.setItemsOf(collection, 0, ...(randomized as unknown[]))
   },
 
   /**
@@ -554,9 +554,9 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Compiles from `smallest of prices` / `smallest value in prices` -- see `rules/math/Min.ts`.
    */
   smallestOf(collection?: unknown): unknown {
-    if (!assert.isDefined(collection, "spellCore.smallestOf(collection)")) return undefined
-    if (spellCore.itemCountOf(collection) === 0) return undefined
-    const values = spellCore.valuesOf(collection) as Array<number | string>
+    if (!assert.isDefined(collection, "core.smallestOf(collection)")) return undefined
+    if (core.itemCountOf(collection) === 0) return undefined
+    const values = core.valuesOf(collection) as Array<number | string>
     return values.reduce((smallest, next) => (next < smallest ? next : smallest), values[0])
   },
 
@@ -565,13 +565,13 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Compiles from `largest of the prices` / `biggest in prices` -- see `rules/math/Max.ts`.
    */
   largestOf(collection?: unknown): unknown {
-    if (!assert.isDefined(collection, "spellCore.largestOf(collection)")) return undefined
-    if (spellCore.itemCountOf(collection) === 0) return undefined
-    const values = spellCore.valuesOf(collection) as Array<number | string>
+    if (!assert.isDefined(collection, "core.largestOf(collection)")) return undefined
+    if (core.itemCountOf(collection) === 0) return undefined
+    const values = core.valuesOf(collection) as Array<number | string>
     return values.reduce((largest, next) => (next > largest ? next : largest), values[0])
   }
 })
-Object.assign(spellCore, collectionOtherMethods)
+Object.assign(core, collectionOtherMethods)
 
 /**
  * What a range of `collection` that holds nothing is:
@@ -580,5 +580,5 @@ Object.assign(spellCore, collectionOtherMethods)
  * - else `[]`, as before lists had methods
  */
 function emptyRangeOf(collection: unknown): unknown {
-  return collection instanceof List ? spellCore.newThingLike(collection) : []
+  return collection instanceof List ? core.newThingLike(collection) : []
 }

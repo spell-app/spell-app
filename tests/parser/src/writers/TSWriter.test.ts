@@ -83,21 +83,21 @@ describe("TSWriter", () => {
     expect(project.write(count())).toBe("let count: number = 0")
   })
 
-  test("an item read from spellCore says its type as a type argument, when spell knows it", () => {
+  test("an item read from core says its type as a type argument, when spell knows it", () => {
     const pick = () => new P.ASTCoreMethodInvocation(match, { methodName: "randomItemOf", datatype: "Card" })
     const card = new P.ASTAssignmentStatement(match, {
       thing: new P.ASTVariableExpression(match, { name: "card" }),
       value: pick(),
       isNewVariable: true
     })
-    expect(writer.write(card)).toBe("const card = spellCore.randomItemOf<Card>()")
+    expect(writer.write(card)).toBe("const card = core.randomItemOf<Card>()")
     const thing = new P.ASTAssignmentStatement(match, {
       thing: new P.ASTVariableExpression(match, { name: "thing" }),
       value: new P.ASTCoreMethodInvocation(match, { methodName: "randomItemOf" }),
       isNewVariable: true
     })
     // core types it from the list:  `T | undefined`
-    expect(writer.write(thing)).toBe("const thing = spellCore.randomItemOf()")
+    expect(writer.write(thing)).toBe("const thing = core.randomItemOf()")
   })
 
   test("a list says what it holds:  its class, and a new one", () => {
@@ -128,10 +128,10 @@ describe("TSWriter", () => {
       object: top(),
       property: new P.ASTPropertyLiteral(match, "name")
     })
-    expect(writer.write(name)).toBe("spellCore.getItemAt(deck)?.name")
+    expect(writer.write(name)).toBe("core.getItemAt(deck)?.name")
     const flip = new P.ASTScopedMethodInvocation(match, { thing: top(), methodName: "flip" })
-    expect(writer.write(flip)).toBe("spellCore.getItemAt(deck)?.flip()")
-    expect(P.JSWriter.instance.write(name)).toBe("spellCore.getItemAt(deck)?.name")
+    expect(writer.write(flip)).toBe("core.getItemAt(deck)?.flip()")
+    expect(P.JSWriter.instance.write(name)).toBe("core.getItemAt(deck)?.name")
   })
 
   test("TypeScript's names:  every member camelCase, stored properties too;  functions and variables", () => {
@@ -258,7 +258,7 @@ describe("TSWriter", () => {
       args: [new P.ASTVariableExpression(match, { name: "deck" }), new P.ASTNumericLiteral(match, -1)]
     })
     expect(writer.write(new P.ASTPropertyExpression(match, { object: last, property: "name" }))).toBe(
-      "spellCore.getItemAt(deck, -1)?.name"
+      "core.getItemAt(deck, -1)?.name"
     )
   })
 

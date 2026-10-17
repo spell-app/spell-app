@@ -242,15 +242,12 @@ classes.addRule(DefinePropertyHas, {
       tests: [
         // every way to reach an enumeration names its class variable --
         // was CODE-DEBT "Enumerated properties are reachable under inconsistent names"
-        ["print Card suits", "spellCore.console.log(Card.Suits)"],
-        ["print card suits", "spellCore.console.log(Card.Suits)"],
-        [
-          "print the suit of the card is in card suits",
-          "spellCore.console.log(spellCore.includes(Card.Suits, card.suit))"
-        ],
-        ["print the suit of the card", "spellCore.console.log(card.suit)"],
-        ["print the suits of the card", "spellCore.console.log(Card.Suits)"],
-        ["print the number of card suits", "spellCore.console.log(spellCore.itemCountOf(Card.Suits))"]
+        ["print Card suits", "core.console.log(Card.Suits)"],
+        ["print card suits", "core.console.log(Card.Suits)"],
+        ["print the suit of the card is in card suits", "core.console.log(core.includes(Card.Suits, card.suit))"],
+        ["print the suit of the card", "core.console.log(card.suit)"],
+        ["print the suits of the card", "core.console.log(Card.Suits)"],
+        ["print the number of card suits", "core.console.log(core.itemCountOf(Card.Suits))"]
       ]
     },
     {
@@ -270,9 +267,9 @@ classes.addRule(DefinePropertyHas, {
       tests: [
         [
           ["get a new card", "print its suits"],
-          ["const it = new Card()", "spellCore.console.log(Card.Suits)"]
+          ["const it = new Card()", "core.console.log(Card.Suits)"]
         ],
-        ["print bank-account account-types", "spellCore.console.log(BankAccount.AccountTypes)"]
+        ["print bank-account account-types", "core.console.log(BankAccount.AccountTypes)"]
       ]
     },
     {
@@ -289,7 +286,7 @@ classes.addRule(DefinePropertyHas, {
         { input: "a club has an id", js: '/* PARSE ERROR: Can\'t add "id" to Club:  every thing has one, built in */' },
         {
           input: ["person = a new person", "print the id of the person"],
-          js: ["export const person = new Person()", "spellCore.console.log(person.id)"]
+          js: ["export const person = new Person()", "core.console.log(person.id)"]
         },
         {
           input: ["person = a new person", 'set the id of the person to "owen"'],
@@ -297,7 +294,7 @@ classes.addRule(DefinePropertyHas, {
         },
         {
           input: ["club = a new club", "print the id of the club"],
-          js: ["export const club = new Club()", "spellCore.console.log(club.id)"]
+          js: ["export const club = new Club()", "core.console.log(club.id)"]
         }
       ]
     },

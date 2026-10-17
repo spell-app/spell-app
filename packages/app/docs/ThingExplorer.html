@@ -89,7 +89,7 @@
                         <Show when={loaded()} keyed>
                           {(copy) => (
                             <ThingExplorer
-                              things={copy.runtime.spellCore.things}
+                              things={copy.runtime.core.things}
                               words={words()}
                               state={thingsState}
                               onStateChange={(state) => (thingsState = state)}

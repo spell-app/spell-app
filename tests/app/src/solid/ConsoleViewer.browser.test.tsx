@@ -17,13 +17,13 @@ import { ConsoleRoot, ConsoleViewer, EDITOR_INSPECTOR } from "$/app/solid/Consol
  */
 
 /** The runtime's console, cleared before each test. */
-let output: SpellRuntime["spellCore"]["console"]
+let output: SpellRuntime["core"]["console"]
 
 /** Undo for each test:  unmount, restore `editor` fields. */
 const cleanups: (() => void)[] = []
 
 beforeAll(async () => {
-  output = (await editor.loadRuntime()).spellCore.console
+  output = (await editor.loadRuntime()).core.console
 })
 
 afterEach(() => {
@@ -242,7 +242,7 @@ function text(element: Element): string {
   return element.textContent?.trim() ?? ""
 }
 
-/** Run `log`, keeping the native `console` calls `spellCore.console` forwards to out of the test output. */
+/** Run `log`, keeping the native `console` calls `core.console` forwards to out of the test output. */
 function quietly(log: () => void) {
   const spies = (["log", "info", "warn", "error", "group", "groupCollapsed", "groupEnd"] as const).map((method) =>
     vi.spyOn(console, method).mockImplementation(() => {})

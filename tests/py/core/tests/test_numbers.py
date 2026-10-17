@@ -2,7 +2,7 @@
 
 import pytest
 
-from spell_core import SpellCore
+from spell_core import Core
 
 
 @pytest.mark.parametrize(
@@ -15,15 +15,15 @@ from spell_core import SpellCore
         (0.5, 2, [0.5, 1.5]),
     ],
 )
-def test_get_range_includes_both_ends(core: SpellCore, start: float, end: float, numbers: list[float]) -> None:
+def test_get_range_includes_both_ends(core: Core, start: float, end: float, numbers: list[float]) -> None:
     assert core.get_range(start, end) == numbers
 
 
-def test_get_range_warns_without_two_numbers(core: SpellCore, capsys: pytest.CaptureFixture[str]) -> None:
+def test_get_range_warns_without_two_numbers(core: Core, capsys: pytest.CaptureFixture[str]) -> None:
     assert core.get_range("a", 3) == []  # type: ignore[arg-type]
     assert capsys.readouterr().err == "get_range(): you must pass two numbers, got a 3\n"
 
 
 @pytest.mark.parametrize(("count", "numbers"), [(3, [1, 2, 3]), (1, [1]), (0, []), (-2, []), (2.5, [1, 2])])
-def test_count_to_counts_from_1(core: SpellCore, count: float, numbers: list[int]) -> None:
+def test_count_to_counts_from_1(core: Core, count: float, numbers: list[int]) -> None:
     assert core.count_to(count) == numbers

@@ -1,6 +1,6 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList } from "@spell/core"
 
-spellCore.heading("Thing references:  one thing by its type and its name, or its place")
+core.heading("Thing references:  one thing by its type and its name, or its place")
 /////////////////////////////////////////////////////////////////////////
 // ## Thing references:  one thing by its type and its name, or its place
 /////////////////////////////////////////////////////////////////////////
@@ -32,20 +32,20 @@ export const spare = new DiscardPile({ name: "spare" })
 export const otherSpare = new DiscardPile({ name: "spare" })
 
 // names worked out as the program runs are never counted
-spellCore.getRange(3, 4).forEach((number) => {
+core.getRange(3, 4).forEach((number) => {
   const it3 = new Tableau({ name: `T${number}` })
 })
 
-spellCore.heading("by name")
+core.heading("by name")
 //## by name
-spellCore.console.log(spellCore.thingNamed(Tableau, "T1")?.name)
-spellCore.console.log(spellCore.thingNamed(Tableau, "T2")?.name)
-spellCore.console.log(spellCore.thingNamed(Foundation, "hearts")?.name)
+core.console.log(core.thingNamed(Tableau, "T1")?.name)
+core.console.log(core.thingNamed(Tableau, "T2")?.name)
+core.console.log(core.thingNamed(Foundation, "hearts")?.name)
 // a tableau is a pile:  `pile T2` finds it
-spellCore.console.log(spellCore.thingNamed(Pile, "T2")?.name)
+core.console.log(core.thingNamed(Pile, "T2")?.name)
 
-spellCore.heading("by place")
+core.heading("by place")
 //## by place
-spellCore.console.log(spellCore.thingAtPlace(Tableau, 1)?.name)
-spellCore.console.log(spellCore.thingAtPlace(Foundation, 2)?.name)
-spellCore.console.log(spellCore.thingAtPlace(Tableau, -1)?.name)
+core.console.log(core.thingAtPlace(Tableau, 1)?.name)
+core.console.log(core.thingAtPlace(Foundation, 2)?.name)
+core.console.log(core.thingAtPlace(Tableau, -1)?.name)

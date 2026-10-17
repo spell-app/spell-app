@@ -29,7 +29,7 @@ math.addRule(AbsoluteValue, {
       beforeEach(scope: P.Scope) {
         scope.variables?.add("difference")
       },
-      tests: [["the absolute value of the difference", "spellCore.absoluteValue(difference)"]]
+      tests: [["the absolute value of the difference", "core.absoluteValue(difference)"]]
     }
   ]
 })

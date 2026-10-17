@@ -6,7 +6,7 @@ import { expressions } from "./expressions.parser"
 
 /**
  * `includes` rule:  `{lhs} includes`/`contains {rhs}`, e.g. `theList includes thing`.
- * - Compiles to `spellCore.includes(lhs, rhs)`.
+ * - Compiles to `core.includes(lhs, rhs)`.
  */
 export class Includes extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.comparison
@@ -28,8 +28,8 @@ expressions.addRule(Includes, {
         scope.variables?.add("thing")
       },
       tests: [
-        ["theList includes thing", "spellCore.includes(theList, thing)"],
-        ["theList contains thing", "spellCore.includes(theList, thing)"]
+        ["theList includes thing", "core.includes(theList, thing)"],
+        ["theList contains thing", "core.includes(theList, thing)"]
       ]
     }
   ]

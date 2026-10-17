@@ -14,7 +14,7 @@ import type { DOMSpellAppElement } from "$/app/components/spell-app"
  * The Solid runners, in the browser:
  * `<SpellAppRunner>` running compiled spell into its app root, live, and the `<spell-app>` element around it.
  * - The runtime:  `spellRuntime.ts` as vite serves it, imported by its URL.
- *   - It's ALSO the program's `@spell/core`, so the program and the runner share its `spellCore`,
+ *   - It's ALSO the program's `@spell/core`, so the program and the runner share its `core`,
  *     as with a real `spell-runtime.js` copy.
  *   - `loadRuntime()`'s `blob:` copy can't load in dev:
  *     vite's imports are root-relative, which a `blob:` URL can't resolve.
@@ -33,7 +33,7 @@ vi.mock("$/app/runner/shadowStyles", async (importOriginal) => {
 
 /** A program with an app:  a counter, drawn as a button that counts its clicks.  It logs as it starts. */
 const COUNTER = `
-import { spellCore, Thing, App, h } from "@spell/core"
+import { core, Thing, App, h } from "@spell/core"
 export class Counter extends App {
   get count() { return this.getProp('count') }
   set count(value) { this.setProp('count', value) }
@@ -43,7 +43,7 @@ export class Counter extends App {
 }
 export let counter = new Counter()
 counter.count = 1
-spellCore.console.log("started")
+core.console.log("started")
 counter.start()
 `
 
@@ -53,7 +53,7 @@ counter.start()
  * - a print at its top level, which isn't part of its start
  */
 const TESTED_COUNTER = `
-import { spellCore, Thing, App, h } from "@spell/core"
+import { core, Thing, App, h } from "@spell/core"
 export class Counter extends App {
   get count() { return this.getProp('count') }
   set count(value) { this.setProp('count', value) }
@@ -64,22 +64,22 @@ export class Counter extends App {
 export let counter = new Counter()
 counter.count = 1
 export function testTheCounter() {
-  return spellCore.test("test the counter", function testTheCounter() { spellCore.console.log("testing the counter") })
+  return core.test("test the counter", function testTheCounter() { core.console.log("testing the counter") })
 }
-if (!spellCore.isCarryingOver) testTheCounter()
-spellCore.console.log("printed at the top")
-if (!spellCore.isCarryingOver) counter.start()
+if (!core.isCarryingOver) testTheCounter()
+core.console.log("printed at the top")
+if (!core.isCarryingOver) counter.start()
 `
 
 /** A program with no app:  it only prints. */
 const PRINTER = `
-import { spellCore } from "@spell/core"
-spellCore.console.log("hello from a program")
+import { core } from "@spell/core"
+core.console.log("hello from a program")
 `
 
 /** A program that starts its app LATER, from a timer -- after the run has finished. */
 const LATE = `
-import { spellCore, App, h } from "@spell/core"
+import { core, App, h } from "@spell/core"
 export class Late extends App {
   draw() { return h("p", { class: "late" }, "late!") }
 }
@@ -98,7 +98,7 @@ setTimeout(() => late.start(), 50)
  *   `draw()` returns `h()`'s thunk:  the error boundary makes it.
  */
 const CARDS = `
-import { spellCore, Thing, List, App, h } from "@spell/core"
+import { core, Thing, List, App, h } from "@spell/core"
 export class Card extends Thing {
   get rank() { return this.getProp('rank') }
   set rank(value) { this.setProp('rank', value) }
@@ -117,7 +117,7 @@ export class Game extends App {
   draw() {
     return h("table",
       h("tr",
-        h("td", { colspan: "2", class: "pile" }, () => spellCore.drawThing(this.pile))
+        h("td", { colspan: "2", class: "pile" }, () => core.drawThing(this.pile))
       )
     )
   }
@@ -139,10 +139,10 @@ globalThis.cardGame = { ace, king, game, Card }
  * - Plain javascript, so no decorators:  its vocabulary and sheet are the page's, as for a bare element.
  */
 const HANDED = `
-import { spellCore, App, Drawable, h } from "@spell/core"
+import { core, App, Drawable, h } from "@spell/core"
 import { SpellElement } from "@spell/elements"
 export class Tile extends Drawable {
-  static elementTag = spellCore.defineElement(this, "Handed")
+  static elementTag = core.defineElement(this, "Handed")
   get label() { return this.getProp('label') }
   set label(value) { this.setProp('label', value) }
   tap() { return "tapped " + this.label }
@@ -152,9 +152,9 @@ export class Tile extends Drawable {
 export class TileElement extends SpellElement {
   tap() { return "tapped by its element:  " + this.currentThing?.label }
 }
-spellCore.useElement(Tile, TileElement)
+core.useElement(Tile, TileElement)
 export class Board extends App {
-  draw() { return h("div", { class: "board" }, () => spellCore.drawThing(tile)) }
+  draw() { return h("div", { class: "board" }, () => core.drawThing(tile)) }
 }
 export let tile = new Tile({ label: "A" })
 export let board = new Board()
@@ -341,7 +341,7 @@ describe("compiled spell draws with Solid", () => {
   })
 
   test("`notify` shows a toast, on the page's Spell UI", async () => {
-    await mount(source(`import { spellCore } from "@spell/core"\nspellCore.notify("hello from spell")`, "Notifier"))
+    await mount(source(`import { core } from "@spell/core"\ncore.notify("hello from spell")`, "Notifier"))
     const toast = await waitFor(() =>
       [...document.querySelectorAll("ui-toast")].find((it) => it.getAttribute("message") === "hello from spell")
     )
@@ -526,11 +526,11 @@ describe("compiled spell draws with Solid", () => {
     await new Promise((resolve) => setTimeout(resolve, 300))
     expect(game()).toEqual(before)
     // ONE card each, held by the deck AND its pile;  the cards the new run dealt are gone
-    const { spellCore } = (await testRuntime()).runtime
-    const { deck, allPiles } = spellCore.things.exported as Record<string, { items: Array<{ items: unknown[] }> }>
+    const { core } = (await testRuntime()).runtime
+    const { deck, allPiles } = core.things.exported as Record<string, { items: Array<{ items: unknown[] }> }>
     const inPiles = new Set(allPiles!.items.flatMap((pile) => pile.items))
     expect(deck!.items.every((card) => inPiles.has(card))).toBe(true)
-    expect(spellCore.things.all().filter((thing) => thing.type === "Card")).toHaveLength(52)
+    expect(core.things.all().filter((thing) => thing.type === "Card")).toHaveLength(52)
     expect(said.mock.calls.flat().join()).toContain("Kept allPiles, deck, discards, foundations, game, stock, tableaus")
     // its start skipped:  its tests don't print again (P17)
     const printed = consoleText()
@@ -772,7 +772,7 @@ describe("<spell-app>", () => {
 async function testRuntime() {
   const url = new URL("/src/runner/spellRuntime.ts", location.href).href
   const runtime = (await import(/* @vite-ignore */ url)) as typeof import("$/app/runner/spellRuntime")
-  testSpellCore = runtime.spellCore
+  testCore = runtime.core
   return { runtime, coreUrl: url, release: () => {} }
 }
 
@@ -781,11 +781,11 @@ function consoleText(): string {
   type Line = { message?: unknown[]; lines?: Line[] }
   const textOf = (lines: Line[]): string[] =>
     lines.flatMap((line) => [(line.message ?? []).map(String).join(" "), ...textOf(line.lines ?? [])])
-  return textOf(testSpellCore!.console.lines as Line[]).join("\n")
+  return textOf(testCore!.console.lines as Line[]).join("\n")
 }
 
-/** The test runtime's `spellCore`, once a runner has loaded it -- see `testRuntime()`. */
-let testSpellCore: (typeof import("$/app/runner/spellRuntime"))["spellCore"] | undefined
+/** The test runtime's `core`, once a runner has loaded it -- see `testRuntime()`. */
+let testCore: (typeof import("$/app/runner/spellRuntime"))["core"] | undefined
 
 /**
  * Fixture project `name`'s compiled javascript, as text:  its blessed snapshot, `<name>.snapshot.js`.

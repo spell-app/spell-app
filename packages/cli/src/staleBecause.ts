@@ -58,7 +58,7 @@ export async function staleBecause(project: SP.SpellProject): Promise<string | u
  * - core's built-in types' declarations, which every project parses against
  * - NOT core's runtime:  compiled code imports it, so a change to it needs no rebuild
  */
-export const COMPILER_SOURCES = ["parser/src", "spell/src", "lsp/src", "py/ts", "core/spellCore.declarations.json5"]
+export const COMPILER_SOURCES = ["parser/src", "spell/src", "lsp/src", "py/ts", "core/core.declarations.json5"]
 
 ////////////////
 // ## Helpers

@@ -1,5 +1,5 @@
 /**
- * SpellCore `Events` -- bridge between generic spellCore base and UIs.
+ * Core `Events` -- bridge between generic core base and UIs.
  *
  * TODO: event heiarchy
  * TODO: pass/etc events

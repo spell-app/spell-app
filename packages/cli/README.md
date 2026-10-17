@@ -480,7 +480,7 @@ Longer notes on some of them follow the table.
 
 ### `run` / `test`
 
-- They run in a separate node process, so each run gets a fresh `spellCore`.
+- They run in a separate node process, so each run gets a fresh `core`.
 - Under node, what needs a browser does nothing, with a note:
   starting a UI (`start the game`), and installing styles.
 - Then `run` on a UI project opens it in your browser:
@@ -497,7 +497,7 @@ Longer notes on some of them follow the table.
   - A test the project runs ITSELF as it loads counts once, and isn't run again.
     A second run would start from what the first left behind, e.g. a dealt deck.
   - A test that throws FAILS, with the error.
-    Spell's own `spellCore.test()` swallows it silently.
+    Spell's own `core.test()` swallows it silently.
   - It finds tests by their exported function names:  `test_*`.
   - `print` inside a test is hidden unless `--verbose`.
 

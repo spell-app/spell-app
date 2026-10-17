@@ -4,10 +4,10 @@ import { P } from "$/parser"
 import { SP, spellParser } from "$/spell"
 import { Precedence } from "$/spell/rules/expressions"
 import { Priority } from "$/spell/rules/rules.types"
-import { spellCore } from "$/core"
+import { core } from "$/core"
 
 describe("testing spell module expressions", () => {
-  unitTestModuleRules(spellParser, "expressions", spellCore.resetRuntime)
+  unitTestModuleRules(spellParser, "expressions", core.resetRuntime)
 
   // describe("integration tests", () => {})
 })

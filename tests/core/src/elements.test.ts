@@ -1,11 +1,11 @@
 import { describe, test, expect, afterEach } from "vite-plus/test"
 
-import { spellCore, Thing, Drawable, DrawableList, css, elementTagFor } from "$/core"
+import { core, Thing, Drawable, DrawableList, css, elementTagFor } from "$/core"
 
 /** A drawable class's element:  its tag, named here, defined by the page's `elementDefiner`. */
 describe("drawable things' elements", () => {
   afterEach(() => {
-    spellCore.elementDefiner = undefined
+    core.elementDefiner = undefined
   })
 
   test("a tag is the project's name made singular, then the class's, kebab-cased", () => {
@@ -26,30 +26,30 @@ describe("drawable things' elements", () => {
 
   test("defineElement() names a drawable class's tag as it's declared;  the page hears of it once the class is whole", async () => {
     const defined: string[] = []
-    spellCore.elementDefiner = (tag, Class) => defined.push(`${tag} ${Class.name}`)
+    core.elementDefiner = (tag, Class) => defined.push(`${tag} ${Class.name}`)
     class Card extends Drawable {
-      static elementTag = spellCore.defineElement(this, "Solitaire")
+      static elementTag = core.defineElement(this, "Solitaire")
     }
     class Pile extends DrawableList<Card> {
-      static elementTag = spellCore.defineElement(this, "Solitaire")
+      static elementTag = core.defineElement(this, "Solitaire")
     }
     class Note extends Thing {
-      static elementTag = spellCore.defineElement(this, "Solitaire")
+      static elementTag = core.defineElement(this, "Solitaire")
     }
     expect(defined).toEqual([])
-    expect(spellCore.elementFor(new Pile())).toBe("solitaire-pile")
+    expect(core.elementFor(new Pile())).toBe("solitaire-pile")
     await Promise.resolve()
     expect(defined).toEqual(["solitaire-pile Pile", "solitaire-card Card"])
     expect(Card.elementTag).toBe("solitaire-card")
-    expect(spellCore.elementTagOf(new Pile())).toBe("solitaire-pile")
+    expect(core.elementTagOf(new Pile())).toBe("solitaire-pile")
     expect(Note.elementTag).toBeUndefined()
-    expect(spellCore.elementTagOf(new Note())).toBeUndefined()
+    expect(core.elementTagOf(new Note())).toBeUndefined()
   })
 
   test("with no definer, the tag is still named", () => {
     class Card extends Drawable {}
-    spellCore.defineElement(Card, "games")
-    expect(spellCore.elementTagOf(new Card())).toBe("game-card")
+    core.defineElement(Card, "games")
+    expect(core.elementTagOf(new Card())).toBe("game-card")
   })
 
   test("useElement() keeps the element class compiled TypeScript hands over, for the definer to build on (P10)", () => {
@@ -57,13 +57,13 @@ describe("drawable things' elements", () => {
     class Joker extends Card {}
     class Note extends Thing {}
     class CardElement {}
-    spellCore.useElement(Card, CardElement)
-    spellCore.useElement(Note, CardElement)
-    expect(spellCore.elementClassOf(Card)).toBe(CardElement)
+    core.useElement(Card, CardElement)
+    core.useElement(Note, CardElement)
+    expect(core.elementClassOf(Card)).toBe(CardElement)
     // its own only:  a sub-class with none doesn't take its super-class's
-    expect(spellCore.elementClassOf(Joker)).toBeUndefined()
+    expect(core.elementClassOf(Joker)).toBeUndefined()
     // not drawable:  nothing kept
-    expect(spellCore.elementClassOf(Note)).toBeUndefined()
+    expect(core.elementClassOf(Note)).toBeUndefined()
   })
 })
 
@@ -84,7 +84,7 @@ describe("elementApiOf():  what a drawable class shows on its element", () => {
       wink() {}
     }
     Joker.declareProp("grin", { type: "choice" })
-    expect(spellCore.elementApiOf(Joker)).toEqual({
+    expect(core.elementApiOf(Joker)).toEqual({
       properties: [
         { name: "grin", type: "choice" },
         { name: "rank", type: "number" },
@@ -109,7 +109,7 @@ describe("elementApiOf():  what a drawable class shows on its element", () => {
     })
     // the program's classes are known once one of their things is made
     new Heap()
-    expect(spellCore.elementApiOf(Chip).properties).toEqual([
+    expect(core.elementApiOf(Chip).properties).toEqual([
       { name: "marks", type: "list" },
       { name: "heap", type: "Heap", owner: true }
     ])

@@ -6,11 +6,11 @@
  *   - the web app's (`yarn build`)
  * - A runner loads it to run programs on.
  *   `<spell-app>` loads its OWN copy per element (see `loadRuntime()`),
- *   so each has its own `spellCore`:  its own `RUNTIME`, console, event listeners and mount point.
+ *   so each has its own `core`:  its own `RUNTIME`, console, event listeners and mount point.
  * - It IS a program's `@spell/core`:
  *   compiled spell's `import ... from "@spell/core"` is pointed at this module's URL -- see `runApp()`.
  *   It exports what compiled spell imports:
- *   - `spellCore`, `Thing`, `List`, `App`, `Drawable`, `DrawableList`
+ *   - `core`, `Thing`, `List`, `App`, `Drawable`, `DrawableList`
  *   - Solid's `h()`, which it draws with
  *   - the helpers it calls by name:  `on()`, `trigger()`, `positionOf()` ...
  *   - the `css` tag a drawable type's style sheet is written with
@@ -18,11 +18,11 @@
  *   `SpellElement`, and Spell UI's `E` as they use it -- see `spellElements.ts`.
  * - Programs draw with Solid, on the page's Spell UI:  `<ui-form>`, `<ui-button>` ... by their own tags.
  * - A drawable thing draws as its own Spell UI element, e.g. `<solitaire-card>`:  see `SpellElement`.
- * - MUST be the only module in a bundle that imports `spellCore`'s code,
+ * - MUST be the only module in a bundle that imports `core`'s code,
  *   so it's all HERE, not in a shared chunk -- see `element.build.test.ts`, `parser/build.test.ts`.
  */
 import {
-  spellCore,
+  core,
   Thing,
   List,
   App,
@@ -45,7 +45,7 @@ import { installSpellElements } from "./SpellElement"
 import { E as UIElements, SpellElement } from "./spellElements"
 
 // a drawable thing's element, e.g. `<solitaire-card>`:  Spell UI's, which core can't make itself
-installSpellElements(spellCore)
+installSpellElements(core)
 
 /**
  * Spell UI's `E`, as compiled TypeScript's element classes use it as they run (epic `drawable-thing` P10):
@@ -55,7 +55,7 @@ installSpellElements(spellCore)
  */
 const E = { proto: UIElements.proto, protoMerged: UIElements.protoMerged }
 
-// What compiled spell imports, e.g. `import { spellCore, Thing, List, App, h } from "@spell/core"`.
+// What compiled spell imports, e.g. `import { core, Thing, List, App, h } from "@spell/core"`.
 // - `Drawable`, `DrawableList`:  what a drawable type extends (epic `drawable-thing`).
 // - The helpers it calls by name, e.g. `trigger("card-click", ...)`, `positionOf(...)` (epic `output-targets`, P19).
 // - `h`:  what compiled spell draws with (P20), Solid's own.
@@ -65,7 +65,7 @@ const E = { proto: UIElements.proto, protoMerged: UIElements.protoMerged }
 // - `E`, `SpellElement`:  what compiled TypeScript's element classes build on, imported as `@spell/elements` (P10).
 //   Spell UI's core comes from `spell-solid-shared.js`, as `SpellElement`'s does:  never a copy of its own.
 export {
-  spellCore,
+  core,
   Thing,
   List,
   App,
@@ -91,19 +91,19 @@ export {
 /**
  * Run `compiled` spell javascript in this copy, drawing any app into `appRoot` -- see `runCompiled()`.
  * - Afresh, unless `keepThings`:  then the last run's things carry over, e.g. the game in progress.
- * - No `appRoot`:  wherever it last drew -- else `#spell-app-root`, see `spellCore.appElement()`.
- * - `coreUrl` MUST be this copy's own URL, so the program's `@spell/core` is this `spellCore`.
+ * - No `appRoot`:  wherever it last drew -- else `#spell-app-root`, see `core.appElement()`.
+ * - `coreUrl` MUST be this copy's own URL, so the program's `@spell/core` is this `core`.
  * - Answers the error message if it threw, else `undefined`.
  */
 export function runApp(compiled: string, { appRoot, layout, ...options }: RunAppOptions): Promise<string | undefined> {
-  if (appRoot) spellCore.appRoot = appRoot
-  spellCore.appLayout = !!layout
+  if (appRoot) core.appRoot = appRoot
+  core.appLayout = !!layout
   return runCompiled(compiled, options)
 }
 
 /** Options for `runApp()`. */
 export type RunAppOptions = RunCompiledOptions & {
-  /** Where the app draws -- see `spellCore.appRoot`. */
+  /** Where the app draws -- see `core.appRoot`. */
   appRoot?: HTMLElement
   /** Is the app's page laid out in markup, e.g. inside its `<spell-app>`?  Then its `to draw` isn't drawn. */
   layout?: boolean

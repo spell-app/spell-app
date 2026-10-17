@@ -17,7 +17,7 @@ import "./cellsBridge"
  * - Every re-read notifies (`equals: false`):  the value may be the same object with something else changed.  Read
  *   narrowly (`() => editor.project?.title`, not `() => editor`).
  * - The value is Solid's, so STAGED:  right after a write, the accessor still has the old value until the
- *   microtask or `flush()` (`spellCore.flush()`).  A plain `editor.x` read is never stale.
+ *   microtask or `flush()` (`core.flush()`).  A plain `editor.x` read is never stale.
  * - Boxed, so `read()` may return a function or a Promise as a VALUE:  Solid would call / await them.
  * - Owned by the calling owner (component, root), and disposed with it.  With no owner it lives until `dispose()`:
  *   call it.

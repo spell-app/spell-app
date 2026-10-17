@@ -44,7 +44,7 @@ export abstract class ProgramWriter extends Writer {
 
   /**
    * The lines a module starts with:  what it imports, by module, in order.
-   * - e.g. `import { spellCore, Thing } from "@spell/core"`
+   * - e.g. `import { core, Thing } from "@spell/core"`
    * - spell's runtime first, then other projects
    * - Ends with a blank line, ready for the code.
    */
@@ -55,7 +55,7 @@ export abstract class ProgramWriter extends Writer {
 
   /**
    * A project part that comes as code, not a tree, in our language,
-   * e.g. a `.css` file's `spellCore.installStyles(...)`.
+   * e.g. a `.css` file's `core.installStyles(...)`.
    * - As it is by default:  javascript's.  Python writes its own -- see `PyWriter`'s.
    */
   codePart(code: string): string {
@@ -186,7 +186,7 @@ export abstract class ProgramWriter extends Writer {
   ////////////////
 
   /**
-   * `spellCore`'s helpers that take positions, by the argument each is:  `index` or a range's included `end`
+   * `core`'s helpers that take positions, by the argument each is:  `index` or a range's included `end`
    * -- see `index()`, `endIndex()`.
    */
   static POSITION_ARGS: Record<string, Array<"index" | "end" | undefined>> = {
@@ -199,10 +199,10 @@ export abstract class ProgramWriter extends Writer {
     rangeStartingAt: [undefined, "index"]
   }
 
-  /** `spellCore`'s helpers that give a position:  what they give is an index -- see `positionOut()`. */
+  /** `core`'s helpers that give a position:  what they give is an index -- see `positionOut()`. */
   static POSITION_RESULTS = new Set(["positionOf"])
 
-  /** `spellCore`'s loops, which hand their function the position too -- see `positionedCallback()`. */
+  /** `core`'s loops, which hand their function the position too -- see `positionedCallback()`. */
   static POSITION_LOOPS = new Set(["map", "forEach", "forEachSequential"])
 
   /** How our language says nothing, for a range with no end:  javascript's `undefined`. */
@@ -276,7 +276,7 @@ export abstract class ProgramWriter extends Writer {
   }
 
   /**
-   * `spellCore` helper `name`'s `args`, written:
+   * `core` helper `name`'s `args`, written:
    * - its positions as indexes -- see `POSITION_ARGS`
    * - a loop's function as `positionedCallback()` says
    * - a range's open end as `nothing`
@@ -310,7 +310,7 @@ export abstract class ProgramWriter extends Writer {
    * `"text"`, `"number"`, `"choice"`, `"array"` (JavaScript's), `"list"` (spell's `List`),
    * or a class's name, e.g. `"Pile"`.
    * - From where it came from:  a literal, `new Pile(...)`, `this` in a class, what a variable was set to,
-   *   a property's declared type, a `spellCore` helper's result -- else spell's own datatype for it.
+   *   a property's declared type, a `core` helper's result -- else spell's own datatype for it.
    * - Spell's `list` datatype is left out:  it's a `List` or a plain array, and only where it came from tells.
    */
   kindOf(node: P.ASTExpression, depth = 0): string | undefined {
@@ -331,7 +331,7 @@ export abstract class ProgramWriter extends Writer {
     if (inner instanceof P.ASTNewInstanceExpression) return inner.type.name === "List" ? "list" : inner.type.name
     if (inner instanceof P.ASTInfixExpression) return this.infixKindOf(inner, depth)
     if (inner instanceof P.ASTNotExpression) return "choice"
-    if (inner instanceof P.ASTVariableExpression && !(inner instanceof P.ASTSpellCoreExpression)) {
+    if (inner instanceof P.ASTVariableExpression && !(inner instanceof P.ASTCoreExpression)) {
       if (inner.name === "this") return this.currentClass
       const value = this.localValue(inner.name) ?? this.project.moduleValues.get(inner.name)
       // a parameter (noted as itself):  its own datatype
@@ -352,7 +352,7 @@ export abstract class ProgramWriter extends Writer {
     }
     if (inner instanceof P.ASTScopedMethodInvocation) {
       if (inner.thing instanceof P.ASTTypeExpression && inner.methodName === "ownerOf") return inner.thing.name
-      if (inner.thing instanceof P.ASTSpellCoreExpression) {
+      if (inner.thing instanceof P.ASTCoreExpression) {
         const kind = this.coreKindOf(inner, depth)
         if (kind) return kind
       }
@@ -534,7 +534,7 @@ export abstract class ProgramWriter extends Writer {
     return alike(kinds)
   }
 
-  /** What a `spellCore` helper's result is, from what it's given -- see `kindOf()`. */
+  /** What a `core` helper's result is, from what it's given -- see `kindOf()`. */
   private coreKindOf(node: P.ASTScopedMethodInvocation, depth: number): string | undefined {
     const [first, second] = node.args.args ?? []
     switch (node.methodName) {
@@ -620,7 +620,7 @@ export abstract class ProgramWriter extends Writer {
   /**
    * SIDE EFFECT:  notes that after a guard, the value it checks is THERE for the rest of the block:
    * read off it with `.`, not `?.` -- see `mayBeNothing()`.
-   * - A guard:  `if (!spellCore.isDefined(endPile)) return false`.
+   * - A guard:  `if (!core.isDefined(endPile)) return false`.
    */
   protected noteGuard(node: P.ASTIfStatement) {
     const condition = unwrapped(node.condition)
@@ -636,7 +636,7 @@ export abstract class ProgramWriter extends Writer {
     const checked = unwrapped(condition.expression)
     const isDefined =
       checked instanceof P.ASTScopedMethodInvocation &&
-      checked.thing instanceof P.ASTSpellCoreExpression &&
+      checked.thing instanceof P.ASTCoreExpression &&
       checked.methodName === "isDefined"
     const [value] = isDefined ? ((checked as P.ASTScopedMethodInvocation).args.args ?? []) : []
     const variable = value && unwrapped(value)
@@ -667,16 +667,16 @@ export abstract class ProgramWriter extends Writer {
 
   /**
    * May `node` be nothing?
-   * - Yes for:  an item read from a list (`spellCore.getItemAt(pile, -1)`), what's read off one,
+   * - Yes for:  an item read from a list (`core.getItemAt(pile, -1)`), what's read off one,
    *   or a variable set to one.
-   * - And for one of the program's things found by name or place, `spellCore.thingNamed(Tableau, "T1")`:
+   * - And for one of the program's things found by name or place, `core.thingNamed(Tableau, "T1")`:
    *   the program may not have made it (yet).
    * - Reading off it is written `?.`, so spell reads off nothing as nothing and never throws
    *   (epic `output-targets`, Q38).
    */
   mayBeNothing(node: P.ASTExpression): boolean {
     const inner = unwrapped(node)
-    if (inner instanceof P.ASTScopedMethodInvocation && inner.thing instanceof P.ASTSpellCoreExpression) {
+    if (inner instanceof P.ASTScopedMethodInvocation && inner.thing instanceof P.ASTCoreExpression) {
       if (ProgramWriter.ITEM_READS.has(inner.methodName)) {
         // the first or last item of a list a guard found has items:  there
         const [list, position] = inner.args.args ?? []
@@ -692,14 +692,14 @@ export abstract class ProgramWriter extends Writer {
     // read off what may be nothing:  `?.`, so it may be nothing too
     if (inner instanceof P.ASTPropertyExpression) return this.mayBeNothing(inner.object)
     if (inner instanceof P.ASTScopedMethodInvocation) return this.mayBeNothing(inner.thing)
-    if (!(inner instanceof P.ASTVariableExpression) || inner instanceof P.ASTSpellCoreExpression) return false
+    if (!(inner instanceof P.ASTVariableExpression) || inner instanceof P.ASTCoreExpression) return false
     const value = this.localValue(inner.name)
     if (!value || value === ProgramWriter.FOUND || value === node) return false
     return this.mayBeNothing(value)
   }
 
   /**
-   * The `spellCore` helpers that read ONE item, which may be nothing:  see `mayBeNothing()`.
+   * The `core` helpers that read ONE item, which may be nothing:  see `mayBeNothing()`.
    * - one item of a list:  `getItemAt()`, `randomItemOf()`
    * - one of the program's things, by its name or place:  `tableau T1`, `the first tableau` (epic `drawable-thing` P19)
    */

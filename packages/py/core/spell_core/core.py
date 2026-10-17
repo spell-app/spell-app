@@ -7,8 +7,8 @@ core.seed_random(42)
 core.expect(len(deck), "the number of cards in the deck", 52, "52")
 ```
 
-- The Python twin of the JavaScript core's `spellCore`, with the same methods in snake_case:
-  `spellCore.randomItemOf()` is `core.random_item_of()`.
+- The Python twin of the JavaScript core's `core`, with the same methods in snake_case:
+  `core.randomItemOf()` is `core.random_item_of()`.
 - Compiled Python calls it only where Python has no word for what spell says (epic page python-target, Q8):
   spell's test lines, a seeded shuffle, spell's types.
   Loops, `len()`, `in`, `==` on plain values are Python's own.
@@ -33,7 +33,7 @@ from spell_core.thing_methods import ThingMethods
 from spell_core.word_methods import WordMethods
 
 
-class SpellCore(
+class Core(
     TypeMethods,
     NumberMethods,
     RandomMethods,
@@ -88,19 +88,19 @@ class SpellCore(
 
 
 # The core a program uses when nothing says otherwise:  a program run on its own, and the tests.
-default_core = SpellCore()
+default_core = Core()
 
 # The core of the program running now, where a host gives each its own:  see `using_core()`.
-_current: ContextVar[SpellCore] = ContextVar("spell_core.current_core")
+_current: ContextVar[Core] = ContextVar("spell_core.current_core")
 
 
-def current_core() -> SpellCore:
+def current_core() -> Core:
     """The core of the program running now:  the one `using_core()` gave, else `default_core`."""
     return _current.get(default_core)
 
 
 @contextmanager
-def using_core(a_core: SpellCore) -> Iterator[SpellCore]:
+def using_core(a_core: Core) -> Iterator[Core]:
     """While in this block, `core` is `a_core`:  the program running here, and what it starts, use it.
 
     ```python
@@ -139,4 +139,4 @@ class CoreStandIn:
 
 
 # What compiled Python imports, `from spell_core import core`:  the core of the program running now.
-core: SpellCore = cast(SpellCore, CoreStandIn())
+core: Core = cast(Core, CoreStandIn())

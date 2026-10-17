@@ -13,13 +13,13 @@ import { lists } from "./lists.parser"
  * - Its pile:  the one it's in, if `a card belongs to one pile`.  Else only the tableau is asked.
  * - `add`, `remove` and `clear` never ask:  dealing, gathering cards back.
  * - `Priority.overridable`:  a project's own `to move (a card) to (a pile)` runs instead.
- * - Compiles to `spellCore.move(card, tableau)`.
+ * - Compiles to `core.move(card, tableau)`.
  */
 export class ListMove extends SpellStatement<"thing|list"> {
   @proto static priority = Priority.overridable
   @proto static alias = ["statement", "expression"]
   @proto static datatype: P.Datatype = "choice"
-  /** `move x to the pile is yes` => `spellCore.move(x, pile) == true` -- see `operandInExpressions`. */
+  /** `move x to the pile is yes` => `core.move(x, pile) == true` -- see `operandInExpressions`. */
   @proto static operandInExpressions = true
 
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
@@ -40,8 +40,8 @@ lists.addRule(ListMove, {
         scope.variables?.add("tableau")
       },
       tests: [
-        ["move card to tableau", "spellCore.move(card, tableau)"],
-        ["if move card to tableau then print 1", "if (spellCore.move(card, tableau)) spellCore.console.log(1)"]
+        ["move card to tableau", "core.move(card, tableau)"],
+        ["if move card to tableau then print 1", "if (core.move(card, tableau)) core.console.log(1)"]
       ]
     }
   ]

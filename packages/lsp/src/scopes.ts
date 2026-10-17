@@ -4,7 +4,7 @@
  *   beside its compiled output, in its build folder (`build/`) -- parsing it, and the projects it imports, first.
  * - `yarn scopes --compile <projectId...>`:  compile each first, to `<Project>.spell.js` -- in the order given,
  *   so a project another imports goes first.
- * - `yarn scopes --builtins`:  the built-in types' pack, `core`'s `src/spellCore.scopes.js`.
+ * - `yarn scopes --builtins`:  the built-in types' pack, `core`'s `src/core.scopes.js`.
  *   GENERATED from `SP.BUILT_IN_TYPE_TABLE`, whose entries hold its docs:  edit those, then run this.
  * - The language server writes a project's pack itself after each clean compile, as do `spell compile` and
  *   `spell watch` (`packages/cli`) -- all through `SpellDiskWorkspace.writeScopes()`.
@@ -63,9 +63,9 @@ async function writeProject(arg: string): Promise<string> {
   return workspace.writeScopes(project, explorer)
 }
 
-/** Write the built-in types' pack to `core`'s `src/spellCore.scopes.js`. */
+/** Write the built-in types' pack to `core`'s `src/core.scopes.js`. */
 function writeBuiltIns(): string {
-  const path = resolve(environment.spellCoreDir, `spellCore${SP.SCOPES_JS_SUFFIX}`)
+  const path = resolve(environment.coreDir, `core${SP.SCOPES_JS_SUFFIX}`)
   writeFileSync(path, LSP.scopePackScript(explorer.exportBuiltIns()))
   return path
 }

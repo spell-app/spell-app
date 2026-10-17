@@ -31,9 +31,9 @@ math.addRule(Max, {
         scope.variables?.add("price")
       },
       tests: [
-        ["largest of the prices", "spellCore.largestOf(prices)"],
-        ["biggest in prices", "spellCore.largestOf(prices)"],
-        ["the biggest number in prices", "spellCore.largestOf(prices)"]
+        ["largest of the prices", "core.largestOf(prices)"],
+        ["biggest in prices", "core.largestOf(prices)"],
+        ["the biggest number in prices", "core.largestOf(prices)"]
       ]
     }
   ]

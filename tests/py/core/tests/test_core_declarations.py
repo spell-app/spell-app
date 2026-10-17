@@ -1,4 +1,4 @@
-"""spell_core against the core's method list, `spellCore.declarations.json5`:  nothing the JavaScript core has
+"""spell_core against the core's method list, `core.declarations.json5`:  nothing the JavaScript core has
 is missed.
 
 - The list is written from the JavaScript core by `yarn gen:declarations` (in `packages/core`), beside `py/`.
@@ -21,7 +21,7 @@ REPO = Path(__file__).parents[4]
 
 # The JavaScript core's method list:  see `coreDeclarations.ts`.
 DECLARATIONS: dict[str, Any] = json.loads(
-    (REPO / "packages" / "core" / "spellCore.declarations.json5").read_text(encoding="utf-8")
+    (REPO / "packages" / "core" / "core.declarations.json5").read_text(encoding="utf-8")
 )
 
 # What spell_core doesn't have yet, by the JavaScript name, grouped by why:
@@ -53,11 +53,11 @@ def js_name(statement: dict[str, Any]) -> str:
 def is_ported(statement: dict[str, Any]) -> bool:
     """Does spell_core have what `statement` declares?
 
-    - a member of `spellCore`:  on `core`, snake_cased;  a constant may keep its capitals (`core.REACT_APP_ROOT_ID`)
+    - a member of `core`:  on `core`, snake_cased;  a constant may keep its capitals (`core.REACT_APP_ROOT_ID`)
     - a class:  on the package, by its own name
     - a function compiled code imports:  on `core` or the package, snake_cased
     """
-    if statement.get("of") == "spellCore":
+    if statement.get("of") == "core":
         name = js_name(statement)
         return hasattr(core, snake_case(name)) or (name.isupper() and hasattr(core, name))
     if "type" in statement:
@@ -89,6 +89,6 @@ def test_not_ported_yet_holds_only_what_is_missing() -> None:
     assert ported == [], "spell_core has these now:  take them out of not_ported_yet.json5"
 
 
-def test_the_list_names_spellcore_first() -> None:
-    assert DECLARATIONS["provides"][0] == "spellCore"
+def test_the_list_names_core_first() -> None:
+    assert DECLARATIONS["provides"][0] == "core"
     assert spell_core.core is core

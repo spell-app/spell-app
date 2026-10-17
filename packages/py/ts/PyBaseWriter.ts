@@ -35,7 +35,6 @@ export class PyBaseWriter extends P.ProgramWriter {
   /**
    * The import lines:  `from spell_core import core, Thing` for spell's runtime -- only what the code uses,
    * as Python's linters ask (see `module()`).
-   * - `spellCore` is `core`.
    * - Another project's names:  from its module, by project id (see `projectModule()`),
    *   e.g. `@spell/test/cards` => `cards`.
    */
@@ -44,8 +43,7 @@ export class PyBaseWriter extends P.ProgramWriter {
       .filter(({ names }) => names.length)
       .map(({ module, names }) => {
         const from = module === "@spell/core" ? "spell_core" : PyBaseWriter.projectModule(module)
-        const named = names.map((name) => (name === "spellCore" ? "core" : name))
-        return `from ${from} import ${named.join(", ")}`
+        return `from ${from} import ${names.join(", ")}`
       })
     // two blank lines after them, as PEP 8 wants before a top-level `def` or `class`
     return `${lines.join(pyText.NEWLINE)}\n\n\n`
@@ -96,12 +94,12 @@ export class PyBaseWriter extends P.ProgramWriter {
   static FUTURE = "from __future__ import annotations\n"
 
   /**
-   * A `.css` file's part, `spellCore.installStyles(undefined, \`...\`)`, as Python:
+   * A `.css` file's part, `core.installStyles(undefined, \`...\`)`, as Python:
    * `core.install_styles(None, """...""")`, its lines as they were (javascript's has them as `¬`).
    * - Anything else that comes as javascript code:  a comment saying so, as Python can't run it.
    */
   codePart(code: string): string {
-    const styles = /^spellCore\.installStyles\((undefined|"[^"]*"), `([\s\S]*)`\)$/.exec(code.trim())
+    const styles = /^core\.installStyles\((undefined|"[^"]*"), `([\s\S]*)`\)$/.exec(code.trim())
     if (styles) {
       const file = styles[1] === "undefined" ? "None" : styles[1]
       const css = styles[2]!.replace(/¬/g, "\n").replace(/\\/g, "\\\\").replace(/"""/g, '\\"\\"\\"')
@@ -247,9 +245,9 @@ export class PyBaseWriter extends P.ProgramWriter {
     return node.default ? `${name}=${this.bare(node.default)}` : name
   }
 
-  /** `node`'s name as we write a variable's:  `start_pile`;  `spellCore` is `core`. */
+  /** `node`'s name as we write a variable's:  `start_pile`;  the core as `core`, a spell variable of that name `core_`. */
   variableName(node: P.ASTVariableExpression): string {
-    if (node instanceof P.ASTSpellCoreExpression || node.name === "spellCore") return "core"
+    if (node instanceof P.ASTCoreExpression) return "core"
     // the thing a method runs on, where the tree still names it javascript's way
     if (node.name === "this") return "self"
     return node.type === "global" ? node.name : this.nameOf(node.name, "variable")
@@ -434,11 +432,11 @@ export class PyBaseWriter extends P.ProgramWriter {
 
   /**
    * `thing.method(args)`, by our name:  `card.move_to_pile(end_pile)`.
-   * - A `spellCore` helper is written as Python says it where it can:  see `coreCall()`.  Else `core.<name>()`.
+   * - A `core` helper is written as Python says it where it can:  see `coreCall()`.  Else `core.<name>()`.
    */
   ASTScopedMethodInvocation(node: P.ASTScopedMethodInvocation): string {
     if (node instanceof P.ASTConsoleMethodInvocation) return this.consoleCall(node)
-    if (node.thing instanceof P.ASTSpellCoreExpression) {
+    if (node.thing instanceof P.ASTCoreExpression) {
       const written = this.coreCall(node)
       if (written !== undefined) return written
       const name = node.methodName
@@ -477,11 +475,11 @@ export class PyBaseWriter extends P.ProgramWriter {
   }
 
   ////////////////
-  // ## `spellCore`'s helpers, as Python says them
+  // ## `core`'s helpers, as Python says them
   ////////////////
 
   /**
-   * A `spellCore` helper as Python says it, where it can -- `undefined` for `core.<name>()`:
+   * A `core` helper as Python says it, where it can -- `undefined` for `core.<name>()`:
    * - `heading`:  nothing, a comment above says it (Python has no Thing Explorer to tell)
    * - `is an integer`:  `(x).is_integer()`, an `int`'s and a `float`'s own
    * - `is defined`:  `x is not None`
@@ -551,7 +549,7 @@ export class PyBaseWriter extends P.ProgramWriter {
   }
 
   /**
-   * `spellCore.isOfType(thing, type)` as Python tests a type -- `undefined` to leave it to `core`:
+   * `core.isOfType(thing, type)` as Python tests a type -- `undefined` to leave it to `core`:
    * - a class:  `isinstance(x, Tableau)`
    * - a number:  `isinstance(x, (int, float))`;  text:  `isinstance(x, str)`
    * - a whole number:  `(x).is_integer()`, an `int`'s and a `float`'s own
@@ -651,7 +649,7 @@ export class PyBaseWriter extends P.ProgramWriter {
   }
 
   /**
-   * A spell test, `spellCore.test(name, function)`, as a block:
+   * A spell test, `core.test(name, function)`, as a block:
    *
    * ```python
    * with core.test("test card setup"):
@@ -685,7 +683,7 @@ export class PyBaseWriter extends P.ProgramWriter {
 
   /**
    * A loop as Python says it, `for item in items:`.
-   * - For `spellCore.map()` / `forEach()` with a function of its own, written as a statement.
+   * - For `core.map()` / `forEach()` with a function of its own, written as a statement.
    * - `undefined` for anything else.
    * - With the position too, `for item, index in my-list`:
    *   `for index, item in enumerate(items):`, from 1 unless the project counts from 0.
@@ -854,7 +852,7 @@ export class PyBaseWriter extends P.ProgramWriter {
       const getter = this.project.getterOf(owner, inner.property.value)
       return !!getter && /\| None$/.test(this.returnHint(getter) ?? "")
     }
-    if (inner instanceof P.ASTVariableExpression && !(inner instanceof P.ASTSpellCoreExpression)) {
+    if (inner instanceof P.ASTVariableExpression && !(inner instanceof P.ASTCoreExpression)) {
       const value = this.localValue(inner.name)
       if (!value || value === P.ProgramWriter.FOUND || value === node) return false
       return this.hintedMaybeNothing(value, depth + 1)
@@ -908,7 +906,7 @@ export class PyBaseWriter extends P.ProgramWriter {
   /**
    * A line of the program's start, e.g. `start the game`:  the line alone, `game.start()`.
    * - javascript skips it while an edit keeps the last run's things (epic `drawable-thing` P17):
-   *   `if (!spellCore.isCarryingOver)`.
+   *   `if (!core.isCarryingOver)`.
    *   A Python program never keeps them, so here it always runs.
    * - Written as its statement is at this level:
    *   at the top, one that waits still runs through `asyncio.run()`.
@@ -942,7 +940,7 @@ export class PyBaseWriter extends P.ProgramWriter {
 
   /**
    * `return value`, or a bare `return`.
-   * - A spell test's `return spellCore.test(...)`:  its `with core.test(...):` block -- see `testBlock()`.
+   * - A spell test's `return core.test(...)`:  its `with core.test(...):` block -- see `testBlock()`.
    */
   ASTReturnStatement(node: P.ASTReturnStatement): string {
     // in a loop's body, written from a function per item:  ends that turn only
@@ -1200,7 +1198,7 @@ export class PyBaseWriter extends P.ProgramWriter {
   }
 
   /**
-   * An event's handler, `spellCore.on("card-click", (event) => {...})`, as Python registers one:
+   * An event's handler, `core.on("card-click", (event) => {...})`, as Python registers one:
    * a decorator on a function named for the event --
    *
    * ```python
@@ -1490,7 +1488,7 @@ function flattened(group: P.ASTStatementGroup): P.ASTNode[] {
 }
 
 /**
- * Is `node` an event's handler, `spellCore.on("card-click", (event) => {...})`?
+ * Is `node` an event's handler, `core.on("card-click", (event) => {...})`?
  * - Written as a `def` -- see `handlerBlock()`.
  */
 function isHandlerCall(node: P.ASTNode): boolean {

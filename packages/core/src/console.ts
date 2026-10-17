@@ -1,13 +1,13 @@
 import { Observable, prop } from "$/util"
-import { spellCore } from "./core"
-import { defineSpellCoreModule } from "./spellCore.types"
+import { core } from "./core"
+import { defineCoreModule } from "./core.types"
 
 /** Kind of console line -- matches native `console.*` method names, plus `groupEnd` to close a group. */
 export type ConsoleLevel = "debug" | "info" | "warn" | "error" | "group" | "groupEnd"
 
-/** One logged line (or group), as tracked by `spellCore.console`. */
+/** One logged line (or group), as tracked by `core.console`. */
 export type ConsoleLine = {
-  /** Args passed to the log call, e.g. `spellCore.console.log(1, 2)` => `[1, 2]`. */
+  /** Args passed to the log call, e.g. `core.console.log(1, 2)` => `[1, 2]`. */
   message: unknown[]
   /** Which `console.*` method this line was logged at. */
   level: ConsoleLevel
@@ -42,13 +42,13 @@ export class SpellConsoleGroup extends Observable<
   @prop({ type: "list", init: () => [] })
   accessor lines!: ConsoleLine[]
 
-  /** Whether this group is collapsed:  starts so from `spellCore.console.groupCollapsed()`, a UI toggles it. */
+  /** Whether this group is collapsed:  starts so from `core.console.groupCollapsed()`, a UI toggles it. */
   @prop({ type: "choice", default: false })
   accessor collapsed!: boolean
 }
 
 /**
- * `spellCore.console` -- structured, observable console log backing spell's `print` statements.
+ * `core.console` -- structured, observable console log backing spell's `print` statements.
  * - Tracks `lines` (and nested `groups`) as `ConsoleLine`s, and also forwards each to the native `console`:
  *   a UI can render the log reactively (e.g. a debug panel), and it still shows up in devtools.
  * - Compiles from spell `print` / `print warning` / `print error` / `print group` /
@@ -95,7 +95,7 @@ export class SpellConsole extends Observable<Record<string, unknown>, { lines: C
     // if we got a `group`, push it into our `groups`.
     if ((line as ConsoleLine).level === "group") this.groups.unshift(line as SpellConsoleGroup)
 
-    spellCore.trigger("console-log", line)
+    core.trigger("console-log", line)
   }
 
   /** Log at `debug` level:  a dump through `printDump()`. */
@@ -155,7 +155,7 @@ export class SpellConsole extends Observable<Record<string, unknown>, { lines: C
   groupEnd(): void {
     const group = this.groups.shift()
     // oxlint-disable-next-line typescript/no-misused-spread
-    if (group) spellCore.trigger("console-log", { ...group, level: "groupEnd" })
+    if (group) core.trigger("console-log", { ...group, level: "groupEnd" })
     console.groupEnd()
   }
 
@@ -163,7 +163,7 @@ export class SpellConsole extends Observable<Record<string, unknown>, { lines: C
   clear(): void {
     this.lines = []
     this.groups = []
-    spellCore.trigger("console-clear")
+    core.trigger("console-clear")
     // console.clear()
   }
 }
@@ -183,9 +183,9 @@ export function isPlainValue(value: unknown): boolean {
   return prototype === Object.prototype || prototype === null
 }
 
-/** Assembled `spellCore.console` module -- a fresh `SpellConsole` instance shared by all consumers. */
-export const consoleMethods = defineSpellCoreModule({
-  /** The shared `SpellConsole` instance, exposed as `spellCore.console`. */
+/** Assembled `core.console` module -- a fresh `SpellConsole` instance shared by all consumers. */
+export const consoleMethods = defineCoreModule({
+  /** The shared `SpellConsole` instance, exposed as `core.console`. */
   console: new SpellConsole()
 })
-Object.assign(spellCore, consoleMethods)
+Object.assign(core, consoleMethods)

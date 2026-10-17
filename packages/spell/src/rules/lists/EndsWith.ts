@@ -6,7 +6,7 @@ import { lists } from "./lists.parser"
 
 /**
  * `ends_with` rule:  does list end with some value,
- * e.g. `my-list ends with thing` => `spellCore.endsWith(myList, thing)`.
+ * e.g. `my-list ends with thing` => `core.endsWith(myList, thing)`.
  */
 export class EndsWith extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.comparison
@@ -35,11 +35,11 @@ lists.addRule(EndsWith, {
         scope.variables?.add("thing")
       },
       tests: [
-        ["my-list ends with thing", "spellCore.endsWith(myList, thing)"],
-        ["[1,2,3] ends with 1", "spellCore.endsWith([1, 2, 3], 1)"],
-        ["[1,2,3] does not end with 10", "!spellCore.endsWith([1, 2, 3], 10)"],
-        ["[1,2,3] doesnt end with 10", "!spellCore.endsWith([1, 2, 3], 10)"],
-        ["[1,2,3] doesn't end with 10", "!spellCore.endsWith([1, 2, 3], 10)"]
+        ["my-list ends with thing", "core.endsWith(myList, thing)"],
+        ["[1,2,3] ends with 1", "core.endsWith([1, 2, 3], 1)"],
+        ["[1,2,3] does not end with 10", "!core.endsWith([1, 2, 3], 10)"],
+        ["[1,2,3] doesnt end with 10", "!core.endsWith([1, 2, 3], 10)"],
+        ["[1,2,3] doesn't end with 10", "!core.endsWith([1, 2, 3], 10)"]
       ]
     }
   ]

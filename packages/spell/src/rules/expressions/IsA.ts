@@ -13,7 +13,7 @@ import { expressions } from "./expressions.parser"
  *   - or mentioned earlier -- a `stub`, e.g. by `a joker has a color ...` above `a joker is a card`.
  *     See `P.TypeScope.getOrStub()`.
  * - `shouldNegateOutput()` handles `is not a`.
- * - Compiles to `spellCore.isOfType(lhs, 'TypeName')`, the type's name as text (`P.ASTTypeNameLiteral`):
+ * - Compiles to `core.isOfType(lhs, 'TypeName')`, the type's name as text (`P.ASTTypeNameLiteral`):
  *   its RUNTIME name, which differs for a type imported renamed -- see `P.ASTTypeExpression.runtimeName`.
  *   - A writer may test it its own way, e.g. javascript's `lhs instanceof TypeName`.
  */
@@ -48,8 +48,8 @@ expressions.addRule(IsA, {
         ["thing is not a Bee", "!(thing instanceof Bee)"],
         ["thing is not an Animal", "!(thing instanceof Animal)"],
         ["thing is a number", 'typeof thing === "number"'],
-        ["thing is a boolean", 'spellCore.isOfType(thing, "choice")'],
-        ["thing is a list", 'spellCore.isOfType(thing, "List")'],
+        ["thing is a boolean", 'core.isOfType(thing, "choice")'],
+        ["thing is a list", 'core.isOfType(thing, "List")'],
         // an unknown type is no type:  `is a crad` doesn't parse
         ["thing is a crad", "thing"]
       ]

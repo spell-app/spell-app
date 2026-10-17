@@ -5,9 +5,9 @@ import { SpellExpression } from "$/spell/rules/expressions"
 import { lists } from "./lists.parser"
 
 /**
- * `copy_list` rule:  duplicate a list, e.g. `a copy of the piles` => `spellCore.duplicateList(piles)`.
+ * `copy_list` rule:  duplicate a list, e.g. `a copy of the piles` => `core.duplicateList(piles)`.
  * - QUESTIONABLE SYNTAX: `as (a|an) {type}` clause ??? -- picks constructor for result, e.g.
- *   `a duplicate of list the piles as a list` => `spellCore.duplicateList(piles, List)`.
+ *   `a duplicate of list the piles as a list` => `core.duplicateList(piles, List)`.
  */
 export class CopyList extends SpellExpression<"expression|type?"> {
   /** The type it's copied `as`, else what it copies. */
@@ -35,8 +35,8 @@ lists.addRule(CopyList, {
         scope.variables?.add("piles")
       },
       tests: [
-        ["a copy of the piles", "spellCore.duplicateList(piles)"],
-        ["a duplicate of list the piles as a list", "spellCore.duplicateList(piles, List)"]
+        ["a copy of the piles", "core.duplicateList(piles)"],
+        ["a duplicate of list the piles as a list", "core.duplicateList(piles, List)"]
       ]
     }
   ]

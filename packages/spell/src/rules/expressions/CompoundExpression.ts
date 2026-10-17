@@ -256,8 +256,8 @@ expressions.addRule(CompoundExpression, {
         scope.variables?.add("y")
       },
       tests: [
-        ["x + y is empty", "spellCore.isEmpty(x + y)"],
-        ["x is 1 and y is empty", "(x == 1 && spellCore.isEmpty(y))"]
+        ["x + y is empty", "core.isEmpty(x + y)"],
+        ["x is 1 and y is empty", "(x == 1 && core.isEmpty(y))"]
       ]
     }
   ]

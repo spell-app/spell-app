@@ -24,7 +24,7 @@
  * - The app the state holds starts, drawn into the page as `App.start()` draws it.
  * - ONE page at a time:  the messages go to the last one started.
  */
-import { spellCore } from "./core"
+import { core } from "./core"
 import { App } from "./classes/App"
 import { List } from "./classes/List"
 import { Thing } from "./classes/Thing"
@@ -59,7 +59,7 @@ let current: { mirror: StateMirror; send: (message: PageMessage) => void } | und
 export function startPage({ modules, state, send }: PageSpec): Page {
   const mirror = new StateMirror({ nameOf: javascriptName })
   current = { mirror, send }
-  for (const module of modules) spellCore.things.addClasses(module)
+  for (const module of modules) core.things.addClasses(module)
   const things = mirror.read(state) as Record<string, unknown>
   for (const module of modules) (module.adopt as ((state: unknown) => void) | undefined)?.(things)
   const app = Object.values(things).find((value) => value instanceof App) as App | undefined
@@ -123,12 +123,12 @@ const CORE_NAMES: Record<string, string> = { item_type: "instanceType" }
 
 /**
  * `value`, each thing in it by reference, `"Card#ace-of-hearts"`:  plain values, arrays and objects all the way down.
- * - The reference is `spellCore.referenceFor()`'s (epic `python-target` P27).
+ * - The reference is `core.referenceFor()`'s (epic `python-target` P27).
  * - A thing no reference finds (no name, not the program's):  its id, `{ "$id": "3" }`.
  */
 function byReference(value: unknown, mirror: StateMirror): unknown {
   if (value instanceof Thing || value instanceof List) {
-    return spellCore.referenceFor(value) ?? { [ID_KEY]: mirror.idOf(value) }
+    return core.referenceFor(value) ?? { [ID_KEY]: mirror.idOf(value) }
   }
   if (Array.isArray(value)) return value.map((item) => byReference(item, mirror))
   if (typeof value === "object" && value !== null && Object.getPrototypeOf(value) === Object.prototype) {

@@ -1,7 +1,7 @@
 /**
  * Base classes for spell.
  */
-import { spellCore } from "$/core/core"
+import { core } from "$/core/core"
 import { Thing } from "./Thing"
 
 /**
@@ -10,24 +10,24 @@ import { Thing } from "./Thing"
  */
 export class App extends Thing {
   /**
-   * Mount this app's drawing into `spellCore.appElement()` (`spellCore.mountApp()`), creating a
-   * `spellCore.REACT_APP_ROOT_ID` container `div` if there's none.
+   * Mount this app's drawing into `core.appElement()` (`core.mountApp()`), creating a
+   * `core.REACT_APP_ROOT_ID` container `div` if there's none.
    * - Compiles from `start the game` -- see `rules/draw/StartApp.ts` (a method call on the app instance, not a global).
    * - Starting again replaces the app drawn there.
    * - SIDE EFFECT: appends a `div` to `document.body` the first time it's called, if the host set no `appRoot`.
-   * - With `spellCore.appLayout` (a `<spell-app>` with markup inside it):  draws nothing, saying so on the console.
+   * - With `core.appLayout` (a `<spell-app>` with markup inside it):  draws nothing, saying so on the console.
    */
   start(): void {
-    if (spellCore.appLayout) {
-      spellCore.console.log(`${this.constructor.name}:  its page's markup draws it, not its \`to draw\``)
+    if (core.appLayout) {
+      core.console.log(`${this.constructor.name}:  its page's markup draws it, not its \`to draw\``)
       return
     }
-    let element = spellCore.appElement()
+    let element = core.appElement()
     if (!element) {
       element = document.createElement("div")
-      element.id = spellCore.REACT_APP_ROOT_ID
+      element.id = core.REACT_APP_ROOT_ID
       document.body.appendChild(element)
     }
-    spellCore.mountApp(this, element)
+    core.mountApp(this, element)
   }
 }

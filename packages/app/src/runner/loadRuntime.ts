@@ -22,7 +22,7 @@ export async function loadRuntime(url: string): Promise<LoadedRuntime> {
 
 /** A copy of the runtime, as `loadRuntime()` answers it. */
 export type LoadedRuntime = {
-  /** The copy's exports -- its own `spellCore`, and `runApp()`. */
+  /** The copy's exports -- its own `core`, and `runApp()`. */
   runtime: SpellRuntime
   /** `blob:` URL it was loaded from -- what the app's `@spell/core` points at. */
   coreUrl: string

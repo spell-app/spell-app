@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 
-import { spellCore, Thing, List, App } from "$/core"
+import { core, Thing, List, App } from "$/core"
 
 /**
- * `spellCore.carryOver()` (epic `drawable-thing` P16):  a recompiled program takes over the last run's things.
+ * `core.carryOver()` (epic `drawable-thing` P16):  a recompiled program takes over the last run's things.
  * - Each test runs a "program" twice, as a runner does on a recompile:
  *   the first version's things, then a reset, then the second version's classes and top-level things.
  * - The classes are what spell compiles from a Solitaire-like program;  `cardGame()` makes one version of them.
@@ -107,16 +107,16 @@ function dealt({ Card, Pile, Board }: CardGame) {
  * - Answers the second run's top-level things, after the carry-over, and the names kept.
  */
 function recompile(first: CardVersion, second: CardVersion) {
-  spellCore.resetRuntime()
+  core.resetRuntime()
   const before = dealt(cardGame(first))
   before.board.score = 15
   const previous = Object.entries(before).map(([name, thing]) => ({ name, thing }))
-  spellCore.resetRuntime()
+  core.resetRuntime()
   const game = cardGame(second)
   const after = { ...dealt(game), ...game }
-  spellCore.things.setTopLevel(after)
+  core.things.setTopLevel(after)
   const exports = { ...after }
-  const kept = spellCore.carryOver(previous, after)
+  const kept = core.carryOver(previous, after)
   return { before, after, exports, kept }
 }
 
@@ -130,14 +130,14 @@ const afresh = (warned: { mock: { calls: unknown[][] } }) =>
 
 afterEach(() => {
   vi.restoreAllMocks()
-  spellCore.console.clear()
+  core.console.clear()
 })
 
 ////////////////
 // ## Tests
 ////////////////
 
-describe("spellCore.carryOver():  a recompile keeps the program's things", () => {
+describe("core.carryOver():  a recompile keeps the program's things", () => {
   test("each top-level thing takes the last run's state, in place:  the game in progress, as the new classes", () => {
     const { before, after, exports, kept } = recompile({ nickname: true }, { nickname: true })
     expect(kept).toEqual(["board", "deck", "stock", "discards"])
@@ -159,7 +159,7 @@ describe("spellCore.carryOver():  a recompile keeps the program's things", () =>
     const inPiles = [...after.stock.items, ...after.discards.items]
     expect(after.deck.items).toEqual(inPiles)
     after.deck.items.forEach((card, index) => expect(card).toBe(inPiles[index]))
-    const cards = spellCore.things.all().filter((thing) => thing.type === "Card")
+    const cards = core.things.all().filter((thing) => thing.type === "Card")
     expect(cards).toHaveLength(3)
     expect(cards.every((card) => inPiles.includes(card as never))).toBe(true)
   })
@@ -173,7 +173,7 @@ describe("spellCore.carryOver():  a recompile keeps the program's things", () =>
   })
 
   test("a property whose type changed:  each thing holding one starts afresh, and the console says so", () => {
-    const warned = vi.spyOn(spellCore.console, "warn")
+    const warned = vi.spyOn(core.console, "warn")
     const { after, kept } = recompile({}, { rank: { type: "number" } })
     expect(kept).toEqual(["board"])
     expect(after.board.score).toBe(15)
@@ -189,18 +189,18 @@ describe("spellCore.carryOver():  a recompile keeps the program's things", () =>
   })
 
   test("a type renamed or gone:  each thing holding one starts afresh, and the console says so", () => {
-    const warned = vi.spyOn(spellCore.console, "warn")
-    spellCore.resetRuntime()
+    const warned = vi.spyOn(core.console, "warn")
+    core.resetRuntime()
     const before = dealt(cardGame())
     const previous = Object.entries(before).map(([name, thing]) => ({ name, thing }))
-    spellCore.resetRuntime()
+    core.resetRuntime()
     // the new program calls its cards `PlayingCard`, and its board a `Table`
     const { Pile } = cardGame()
     class PlayingCard extends Thing {}
     class Table extends App {}
     const after = { board: new Table(), stock: new Pile({ name: "stock" }), PlayingCard, Pile, Table }
-    spellCore.things.setTopLevel(after)
-    expect(spellCore.carryOver(previous, after)).toEqual([])
+    core.things.setTopLevel(after)
+    expect(core.carryOver(previous, after)).toEqual([])
     expect(afresh(warned)).toEqual([
       "board starts afresh:  its type was Board, now Table",
       "stock starts afresh:  type Card is gone"
@@ -208,13 +208,13 @@ describe("spellCore.carryOver():  a recompile keeps the program's things", () =>
   })
 
   test("carryProblems():  which things can't come over, and why -- changing nothing", () => {
-    spellCore.resetRuntime()
+    core.resetRuntime()
     const before = dealt(cardGame())
     const previous = Object.entries(before).map(([name, thing]) => ({ name, thing }))
-    spellCore.resetRuntime()
+    core.resetRuntime()
     const game = cardGame({ rank: { type: "number" } })
     const after = { ...dealt(game), ...game }
-    expect(spellCore.carryProblems(previous, after)).toEqual([
+    expect(core.carryProblems(previous, after)).toEqual([
       "deck:  Card's rank changed its type",
       "stock:  Card's rank changed its type",
       "discards:  Card's rank changed its type"
@@ -223,16 +223,16 @@ describe("spellCore.carryOver():  a recompile keeps the program's things", () =>
     expect(after.stock.items[0]).toBeInstanceOf(after.Card)
     // the same classes:  nothing
     const same = cardGame()
-    expect(spellCore.carryProblems(previous, { ...dealt(same), ...same })).toEqual([])
+    expect(core.carryProblems(previous, { ...dealt(same), ...same })).toEqual([])
   })
 
   test("while a recompiled program loads, a pause never ends:  its start stops there", async () => {
     let paused = false
-    spellCore.isCarryingOver = true
-    void spellCore.pauseFor(1, "msec").then(() => (paused = true))
-    spellCore.isCarryingOver = false
+    core.isCarryingOver = true
+    void core.pauseFor(1, "msec").then(() => (paused = true))
+    core.isCarryingOver = false
     await new Promise((resolve) => setTimeout(resolve, 20))
     expect(paused).toBe(false)
-    await spellCore.pauseFor(1, "msec")
+    await core.pauseFor(1, "msec")
   })
 })

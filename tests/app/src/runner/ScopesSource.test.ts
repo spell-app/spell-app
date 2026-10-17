@@ -14,7 +14,7 @@ describe("scopesFromPacks()", () => {
     `}`
   ]
   const COMPILED = [
-    `import { spellCore, Thing } from "@spell/core"`,
+    `import { core, Thing } from "@spell/core"`,
     `/*! SPELL: DECLARES {\n  type: "Card", superType: "Thing",\n  defined: "/Card.spell:9-26",\n} */`,
     ...CARD_CLASS,
     `/** a pile of cards */`,

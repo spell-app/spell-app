@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from "vite-plus/test"
 import { flush } from "solid-js"
 import h from "@solidjs/h"
 
-import { spellCore, App, Drawable, DrawableList } from "$/core"
+import { core, App, Drawable, DrawableList } from "$/core"
 import { P } from "$/parser"
 import { E } from "$/ui/core"
 import { ElementFixture } from "$/ui/test/ElementFixture"
@@ -16,7 +16,7 @@ import "$/app/solid/cellsBridge"
  *   and each draws its `thing` in its own shadow root, as a Spell UI element does.
  */
 describe("SpellElement", () => {
-  installSpellElements(spellCore)
+  installSpellElements(core)
 
   /** A card that draws its rank. */
   class Card extends Drawable {
@@ -32,13 +32,13 @@ describe("SpellElement", () => {
   }
 
   test("a project's drawable class gets its tag, defined on the page once the class is whole", async () => {
-    spellCore.defineElement(Card, "Solitaire")
+    core.defineElement(Card, "Solitaire")
     await Promise.resolve()
     expect(customElements.get("solitaire-card")).toBeDefined()
   })
 
   test("the element draws its thing, live, in its own shadow root, with the page's styles", async () => {
-    spellCore.defineElement(Card, "Solitaire")
+    core.defineElement(Card, "Solitaire")
     await Promise.resolve()
     const card = new Card()
     card.rank = "ace"
@@ -49,7 +49,7 @@ describe("SpellElement", () => {
     expect(element.shadowRoot!.adoptedStyleSheets.length).toBeGreaterThan(0)
 
     card.rank = "king"
-    spellCore.flush()
+    core.flush()
     expect(element.shadowRoot!.querySelector(".rank")?.textContent).toBe("king")
   })
 
@@ -63,8 +63,8 @@ describe("SpellElement", () => {
     class Memo extends Note {
       static css = ".note { background-color: rgb(4, 5, 6) }"
     }
-    spellCore.defineElement(Note, "Notes")
-    spellCore.defineElement(Memo, "Notes")
+    core.defineElement(Note, "Notes")
+    core.defineElement(Memo, "Notes")
     await Promise.resolve()
     const element = await ElementFixture.render<HTMLElement & { thing?: Memo }>("<note-memo></note-memo>")
     element.thing = new Memo()
@@ -76,14 +76,14 @@ describe("SpellElement", () => {
 
   test("defining it again, as a program run again does, keeps the tag", () => {
     const defined = customElements.get("solitaire-card")
-    spellCore.defineElement(Card, "Solitaire")
+    core.defineElement(Card, "Solitaire")
     expect(customElements.get("solitaire-card")).toBe(defined)
   })
 
   describe("a program draws a drawable thing as its element (P5)", () => {
     /** A card that draws its rank as a button, counting its clicks;  a rank of `bad` throws. */
     class Ace extends Drawable {
-      static elementTag = spellCore.defineElement(this, "Game")
+      static elementTag = core.defineElement(this, "Game")
       clicks = 0
       get rank() {
         return this.getProp("rank")
@@ -101,7 +101,7 @@ describe("SpellElement", () => {
     class Table extends App {
       cards = [new Ace(), new Ace()]
       draw(): ReturnType<Drawable["draw"]> {
-        const children = this.cards.map((card) => () => spellCore.drawThing(card))
+        const children = this.cards.map((card) => () => core.drawThing(card))
         return (h("div", { class: "table" }, ...children) as unknown as () => ReturnType<Drawable["draw"]>)()
       }
     }
@@ -112,7 +112,7 @@ describe("SpellElement", () => {
       table.cards[1]!.rank = "bad"
       const root = document.createElement("div")
       document.body.append(root)
-      spellCore.mountApp(table, root)
+      core.mountApp(table, root)
       flush()
       const [ace, bad] = [...root.querySelectorAll("game-ace")] as Array<HTMLElement & { ready: Promise<void> }>
       await Promise.all([ace!.ready, bad!.ready])
@@ -124,7 +124,7 @@ describe("SpellElement", () => {
       // `draw()` read the rank to choose:  it runs again, inside the card's element;  nothing else is drawn again
       const badDrawing = bad!.shadowRoot!.firstElementChild
       table.cards[0]!.rank = "king"
-      spellCore.flush()
+      core.flush()
       expect([...root.querySelectorAll("game-ace")]).toEqual([ace, bad])
       expect(bad!.shadowRoot!.firstElementChild).toBe(badDrawing)
       expect(ace!.shadowRoot!.querySelector("button")!.textContent).toBe("king")
@@ -139,7 +139,7 @@ describe("SpellElement", () => {
   describe("a drawable list's items are its element's children (P6)", () => {
     /** A card, drawn as its name. */
     class Chip extends Drawable {
-      static elementTag = spellCore.defineElement(this, "Games")
+      static elementTag = core.defineElement(this, "Games")
       constructor(public label = "") {
         super()
       }
@@ -149,7 +149,7 @@ describe("SpellElement", () => {
     }
     /** A pile:  its outside a box around its slot. */
     class Heap extends DrawableList<Chip> {
-      static elementTag = spellCore.defineElement(this, "Games")
+      static elementTag = core.defineElement(this, "Games")
       static instanceType = Chip
       draw(): ReturnType<Drawable["draw"]> {
         return (h("div", { class: "heap" }, h("slot", {})) as unknown as () => ReturnType<Drawable["draw"]>)()
@@ -160,7 +160,7 @@ describe("SpellElement", () => {
       left = new Heap()
       right = new Heap()
       draw(): ReturnType<Drawable["draw"]> {
-        const heaps = [() => spellCore.drawThing(this.left), () => spellCore.drawThing(this.right)]
+        const heaps = [() => core.drawThing(this.left), () => core.drawThing(this.right)]
         return (h("div", {}, ...heaps) as unknown as () => ReturnType<Drawable["draw"]>)()
       }
     }
@@ -168,11 +168,11 @@ describe("SpellElement", () => {
     test("<game-heap> holds <game-chip>s, shown through its frame's slot;  a chip moved moves to the other heap", async () => {
       const board = new Board()
       const [a, b] = [new Chip("a"), new Chip("b")]
-      spellCore.append(board.left, a)
-      spellCore.append(board.left, b)
+      core.append(board.left, a)
+      core.append(board.left, b)
       const root = document.createElement("div")
       document.body.append(root)
-      spellCore.mountApp(board, root)
+      core.mountApp(board, root)
       flush()
       const [left, right] = [...root.querySelectorAll("game-heap")] as HTMLElement[]
       await ElementFixture.settle(root)
@@ -182,9 +182,9 @@ describe("SpellElement", () => {
       expect(left!.shadowRoot!.querySelector(".heap slot")).not.toBeNull()
       expect((left!.children[0] as HTMLElement).assignedSlot).toBe(left!.shadowRoot!.querySelector("slot"))
 
-      spellCore.remove(board.left, a)
-      spellCore.append(board.right, a)
-      spellCore.flush()
+      core.remove(board.left, a)
+      core.append(board.right, a)
+      core.flush()
       await ElementFixture.settle(root)
       expect(labels(left!)).toEqual(["game-chip b"])
       expect(labels(right!)).toEqual(["game-chip a"])
@@ -205,7 +205,7 @@ describe("SpellElement", () => {
 
     test("its CSS changes in the elements already on the page;  its new things draw with its new draw()", async () => {
       const First = badgeVersion("rgb(1, 2, 3)", "first")
-      spellCore.defineElement(First, "Swaps")
+      core.defineElement(First, "Swaps")
       await Promise.resolve()
       const old = await ElementFixture.render<HTMLElement & { thing?: unknown }>("<swap-badge></swap-badge>")
       old.thing = new First()
@@ -215,7 +215,7 @@ describe("SpellElement", () => {
 
       // the edited program, run again:  a new class for the same tag
       const Second = badgeVersion("rgb(7, 8, 9)", "second")
-      spellCore.defineElement(Second, "Swaps")
+      core.defineElement(Second, "Swaps")
       await Promise.resolve()
       expect(old.shadowRoot!.querySelector(".badge")).toBe(oldBadge)
       expect(getComputedStyle(oldBadge).color).toBe("rgb(7, 8, 9)")
@@ -232,7 +232,7 @@ describe("SpellElement", () => {
   describe("its outside is its type's:  attributes, properties, methods (P8)", () => {
     /** A playing card:  its rank (one of ace, 2 ... 12), suit and side, drawn as e.g. `ace of spades`. */
     class Ace2 extends Drawable {
-      static elementTag = spellCore.defineElement(this, "Plain")
+      static elementTag = core.defineElement(this, "Plain")
       get rank() {
         return this.getProp("rank")
       }
@@ -264,7 +264,7 @@ describe("SpellElement", () => {
     Ace2.declareProp("face_up", { type: "choice" })
     /** A pile of them. */
     class Stack2 extends DrawableList<Ace2> {
-      static elementTag = spellCore.defineElement(this, "Plain")
+      static elementTag = core.defineElement(this, "Plain")
       static instanceType = Ace2
     }
 
@@ -275,7 +275,7 @@ describe("SpellElement", () => {
         '<plain-stack2><plain-ace2 rank="ace" suit="spades" face-up></plain-ace2></plain-stack2>'
       )
       await ElementFixture.settle(stack)
-      spellCore.flush()
+      core.flush()
       flush()
       const card = stack.firstElementChild as HTMLElement & {
         rank: unknown
@@ -288,13 +288,13 @@ describe("SpellElement", () => {
 
       // a legal value given as text is the value:  "2" is 2
       card.rank = "2"
-      spellCore.flush()
+      core.flush()
       flush()
       expect(card.component!.currentThing!.rank).toBe(2)
       expect(card.shadowRoot!.querySelector(".face")!.textContent).toBe("2 of spades")
 
       card.turnOver()
-      spellCore.flush()
+      core.flush()
       flush()
       expect(card.shadowRoot!.querySelector(".face")!.textContent).toBe("back")
     })
@@ -303,7 +303,7 @@ describe("SpellElement", () => {
   describe("the element and its thing agree, both ways (P13)", () => {
     /** A card:  its rank (one of ace, 2, 3, 12), suit, direction (up or down) and whether it's marked. */
     class Deuce extends Drawable {
-      static elementTag = spellCore.defineElement(this, "Agree")
+      static elementTag = core.defineElement(this, "Agree")
       get rank() {
         return this.getProp("rank")
       }
@@ -351,7 +351,7 @@ describe("SpellElement", () => {
 
     /** Let the thing's and Solid's changes run. */
     function settle() {
-      spellCore.flush()
+      core.flush()
       flush()
     }
 
@@ -439,14 +439,14 @@ describe("SpellElement", () => {
       class Felt extends App {
         cards = [new Deuce({ rank: 2, suit: "clubs", direction: "down", marked: false }), new Deuce({ rank: "ace" })]
         draw(): ReturnType<Drawable["draw"]> {
-          const children = this.cards.map((card) => () => spellCore.drawThing(card))
+          const children = this.cards.map((card) => () => core.drawThing(card))
           return (h("div", {}, ...children) as unknown as () => ReturnType<Drawable["draw"]>)()
         }
       }
       const felt = new Felt()
       const root = document.createElement("div")
       document.body.append(root)
-      spellCore.mountApp(felt, root)
+      core.mountApp(felt, root)
       flush()
       await ElementFixture.settle(root)
       settle()
@@ -468,7 +468,7 @@ describe("SpellElement", () => {
   describe("thing references:  Type#name, Type#1, an attribute holding a thing (P18)", () => {
     /** A chip:  drawn as its label;  its home a stack, declared;  the stack holding it, worked out. */
     class Chip extends Drawable {
-      static elementTag = spellCore.defineElement(this, "Drawable Board")
+      static elementTag = core.defineElement(this, "Drawable Board")
       get label() {
         return this.getProp("label")
       }
@@ -489,7 +489,7 @@ describe("SpellElement", () => {
     Chip.declareProp("home", { type: "Stack" })
     /** A stack of chips, each in one stack at a time:  drawn as its name. */
     class Stack extends DrawableList<Chip> {
-      static elementTag = spellCore.defineElement(this, "Drawable Board")
+      static elementTag = core.defineElement(this, "Drawable Board")
       static instanceType = Chip
       get name() {
         return this.getProp("name")
@@ -512,11 +512,11 @@ describe("SpellElement", () => {
     })
     /** A column is a stack. */
     class Column extends Stack {
-      static elementTag = spellCore.defineElement(this, "Drawable Board")
+      static elementTag = core.defineElement(this, "Drawable Board")
     }
     /** A stack that takes nothing. */
     class Locked extends Stack {
-      static elementTag = spellCore.defineElement(this, "Drawable Board")
+      static elementTag = core.defineElement(this, "Drawable Board")
       canTake() {
         return false
       }
@@ -532,7 +532,7 @@ describe("SpellElement", () => {
 
     /** Let the things' and Solid's changes run. */
     function settle() {
-      spellCore.flush()
+      core.flush()
       flush()
     }
 
@@ -587,7 +587,7 @@ describe("SpellElement", () => {
       expect(Stack.ownerOf(thing)).toBe(c1)
       expect(chip.stack).toBe("Column#C1")
 
-      spellCore.move(thing, c2)
+      core.move(thing, c2)
       settle()
       expect(chip.getAttribute("stack")).toBe("Column#C2")
 
@@ -626,7 +626,7 @@ describe("SpellElement", () => {
   describe("an element the program draws is named after its thing, by its id (J43)", () => {
     /** A playing card, named for its rank and suit as Drawable Solitaire's is;  drawn as its name. */
     class Playing extends Drawable {
-      static elementTag = spellCore.defineElement(this, "Drawable Parlor")
+      static elementTag = core.defineElement(this, "Drawable Parlor")
       get rank(): string | undefined {
         return this.getProp("rank") as string | undefined
       }
@@ -652,14 +652,14 @@ describe("SpellElement", () => {
     class Parlor extends App {
       cards: Playing[] = []
       draw(): ReturnType<Drawable["draw"]> {
-        const children = this.cards.map((card) => () => spellCore.drawThing(card))
+        const children = this.cards.map((card) => () => core.drawThing(card))
         return (h("div", {}, ...children) as unknown as () => ReturnType<Drawable["draw"]>)()
       }
     }
 
     /** Let the things' and Solid's changes run. */
     function settle() {
-      spellCore.flush()
+      core.flush()
       flush()
     }
 
@@ -677,7 +677,7 @@ describe("SpellElement", () => {
     async function drawn(app: Drawable) {
       const root = document.createElement("div")
       document.body.append(root)
-      spellCore.mountApp(app, root)
+      core.mountApp(app, root)
       flush()
       await ElementFixture.settle(root)
       settle()
@@ -736,7 +736,7 @@ describe("SpellElement", () => {
   describe("an element class compiled TypeScript hands over:  the page builds the tag on it (P10)", () => {
     /** A tile, labelled, drawn as its label. */
     class Tile extends Drawable {
-      static elementTag = spellCore.defineElement(this, "Board")
+      static elementTag = core.defineElement(this, "Board")
       static css = ".tile { color: rgb(7, 8, 9) }"
       get label() {
         return this.getProp("label")
@@ -777,11 +777,11 @@ describe("SpellElement", () => {
         return `element: ${this.currentThing?.flip()}`
       }
     }
-    spellCore.useElement(Tile, TileElement)
+    core.useElement(Tile, TileElement)
 
     /** A tile with a sheet of its own too, and an element class saying only that. */
     class Gem extends Tile {
-      static elementTag = spellCore.defineElement(this, "Board")
+      static elementTag = core.defineElement(this, "Board")
       static css = ".tile { background-color: rgb(4, 5, 6) }"
     }
     class GemElement extends SpellElement<Gem> {
@@ -790,7 +790,7 @@ describe("SpellElement", () => {
         styleSheets: { "board-gem": Gem.css }
       } satisfies Partial<E.ElementSetup>
     }
-    spellCore.useElement(Gem, GemElement)
+    core.useElement(Gem, GemElement)
 
     type TileTag = HTMLElement & {
       label: unknown
@@ -804,7 +804,7 @@ describe("SpellElement", () => {
       await Promise.resolve()
       const element = await ElementFixture.render<TileTag>('<board-tile label="A" glow></board-tile>')
       await ElementFixture.settle(element)
-      spellCore.flush()
+      core.flush()
       flush()
       expect(element.component).toBeInstanceOf(TileElement)
       const attributes = element.component!.vocabulary.attributes as readonly E.AttributeSpec[]
@@ -817,7 +817,7 @@ describe("SpellElement", () => {
       // the element and its thing agree, as for a bare element:  one the class names, and one it left out
       element.label = "B"
       element.size = 3
-      spellCore.flush()
+      core.flush()
       flush()
       expect(element.component!.currentThing!.label).toBe("B")
       expect(element.component!.currentThing!.size).toBe(3)
@@ -841,7 +841,7 @@ describe("SpellElement", () => {
 
     test("the page defines the tag once:  defining it again keeps it", () => {
       const defined = customElements.get("board-tile")
-      SpellElement.defineFor("board-tile", Tile, spellCore)
+      SpellElement.defineFor("board-tile", Tile, core)
       expect(customElements.get("board-tile")).toBe(defined)
     })
 

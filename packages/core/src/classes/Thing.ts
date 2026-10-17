@@ -2,10 +2,10 @@
  * Base classes for spell.
  */
 import { Observable, runsCreate, typedJSON, type PropInfo } from "$/util"
-import { registerThing, spellCore } from "$/core/core"
+import { registerThing, core } from "$/core/core"
 import type { Drawing } from "$/core/drawing"
 import { Eventful } from "$/core/SpellEvent"
-import type { PropCheck } from "$/core/spellCore.types"
+import type { PropCheck } from "$/core/core.types"
 
 import { ID_PROP } from "./ids"
 
@@ -47,7 +47,7 @@ export class Thing extends Eventful(Observable) {
   }
 
   /**
-   * SIDE EFFECT:  registers itself in `spellCore.things`, for the Thing Explorer -- see `registerThing()`.
+   * SIDE EFFECT:  registers itself in `core.things`, for the Thing Explorer -- see `registerThing()`.
    * - `props` optional:  `a new game` compiles to `new Game()`.
    */
   constructor(props?: Record<string, unknown>) {
@@ -76,13 +76,13 @@ export class Thing extends Eventful(Observable) {
    * - Same as `List.setProp()`.
    */
   protected setProp<T>(property: string, value: T, check?: PropCheck) {
-    if (check) spellCore.checkProp(property, value, check)
+    if (check) core.checkProp(property, value, check)
     return super.setProp(property, value)
   }
 
   /** A declared prop was set:  warn on the PROGRAM's console if `value` isn't what `info` declares -- see `checkProp()`. */
   protected checkPropType(property: string, value: unknown, info: PropInfo): void {
-    spellCore.checkProp(property, value, info)
+    core.checkProp(property, value, info)
   }
 
   /**
@@ -108,16 +108,16 @@ export class Thing extends Eventful(Observable) {
 
   /**
    * Are we of type `typeName`, or a sub-type of it?  e.g. `"card"` for a joker, if `a joker is a card`.
-   * - What `spellCore.isOfType(thing, typeName)` does.
+   * - What `core.isOfType(thing, typeName)` does.
    * - Hand-written TypeScript says `card instanceof Joker` for a class it can name (Q37).
    */
   isOfType(typeName: string): boolean {
-    return spellCore.isOfType(this, typeName)
+    return core.isOfType(this, typeName)
   }
 
   /**
    * Our JSON:  our class's name as `"$type"`, then our props -- `{ "$type": "Card", "rank": "ace", ... }`.
-   * - So it reads back as what it was:  `spellCore.fromJSON()` (`json.ts`).
+   * - So it reads back as what it was:  `core.fromJSON()` (`json.ts`).
    * - `"$type"` is our CLASS's name, even if this instance overrides `type`:  the class is what's rebuilt.
    * - Tracked:  a reader re-runs when a prop comes, goes or changes, e.g. `<ui-form debug>`.
    */
@@ -127,7 +127,7 @@ export class Thing extends Eventful(Observable) {
 
   /**
    * Subclasses (or a spell-compiled `to draw` method) implement this to draw themselves.
-   * - `draw the card` calls it through `spellCore.drawThing()`, in the card's own error boundary (`drawing.ts`).
+   * - `draw the card` calls it through `core.drawThing()`, in the card's own error boundary (`drawing.ts`).
    * - throws:  a thing with no `to draw` can't be drawn.  Its boundary shows a stand-in.
    */
   draw(): Drawing {

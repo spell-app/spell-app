@@ -12,14 +12,14 @@ import isEqual from "lodash/isEqual"
 import { flushCells } from "$/util"
 // Import directly, never through the barrel:  `$/core/model` loads this file, and must not load drawing (Solid)
 import { assert } from "./assert"
-import { defineSpellCoreModule, type PropCheck, type SpellCore } from "./spellCore.types"
+import { defineCoreModule, type PropCheck, type Core } from "./core.types"
 import { ParkMiller } from "./ParkMiller"
 
 /** Special methods for `isOfType()`, keyed by type name. */
 type IsOfTypeSpecials = Record<string, (thing: unknown) => boolean>
 
 /**
- * Where every random number in the core comes from:  `spellCore.random()` reads it, `seedRandom()` replaces it.
+ * Where every random number in the core comes from:  `core.random()` reads it, `seedRandom()` replaces it.
  * - Unseeded, it starts from a seed picked with `Math.random()`, so each run deals differently.
  */
 let generator = new ParkMiller(ParkMiller.randomSeed())
@@ -27,7 +27,7 @@ let generator = new ParkMiller(ParkMiller.randomSeed())
 /**
  * Random whole number from `min` to `max`, BOTH included.
  * - One number only:  from 1 to it, so `randomNumber(6)` rolls a die.
- * - Comes from `spellCore.random()`, so `seedRandom()` makes it repeatable.
+ * - Comes from `core.random()`, so `seedRandom()` makes it repeatable.
  */
 export function randomNumber(): number | undefined
 export function randomNumber(max: number): number | undefined
@@ -35,34 +35,29 @@ export function randomNumber(min: number, max: number): number | undefined
 export function randomNumber(min?: number, max?: number): number | undefined {
   if (arguments.length === 1) [max, min] = [min, 1]
   if (
-    !assert(
-      spellCore.isANumber(min) && spellCore.isANumber(max),
-      "spellCore.randomNumber(): you must pass two numbers, got",
-      min,
-      max
-    )
+    !assert(core.isANumber(min) && core.isANumber(max), "core.randomNumber(): you must pass two numbers, got", min, max)
   )
     return undefined
-  return Math.floor(spellCore.random() * (max! - min! + 1)) + min!
+  return Math.floor(core.random() * (max! - min! + 1)) + min!
 }
 
 /**
- * The `spellCore` singleton -- compiled `spell` code calls `spellCore.foo(...)` for every built-in.
+ * The `core` singleton -- compiled `spell` code calls `core.foo(...)` for every built-in.
  * - Built from an instance of an inline class (rather than a plain object)
- *   purely so it prints as `spellCore {...}` -- not `Object {...}` -- when logged / inspected while debugging.
- * - Cast to `SpellCore` since its real shape is assembled piecemeal by every module's `Object.assign()` call:
- *   below, and in `collection-core.ts`, `collection-other.ts`, etc -- see `spellCore.types.ts`.
+ *   purely so it prints as `core {...}` -- not `Object {...}` -- when logged / inspected while debugging.
+ * - Cast to `Core` since its real shape is assembled piecemeal by every module's `Object.assign()` call:
+ *   below, and in `collection-core.ts`, `collection-other.ts`, etc -- see `core.types.ts`.
  */
-export const spellCore = new (class spellCore {})() as SpellCore
+export const core = new (class core {})() as Core
 
 /**
- * The running program's things, `spellCore.things` (`things.ts`), for the Thing Explorer.
+ * The running program's things, `core.things` (`things.ts`), for the Thing Explorer.
  * - `undefined` under `$/core/model`, which leaves them out:
  *   a thing made there, e.g. a `Person` the server loads, belongs to no running program.
- * - So code the model loads asks here, never `spellCore.things` itself.
+ * - So code the model loads asks here, never `core.things` itself.
  */
-export function programThings(): SpellCore["things"] | undefined {
-  return (spellCore as Partial<Pick<SpellCore, "things">>).things
+export function programThings(): Core["things"] | undefined {
+  return (core as Partial<Pick<Core, "things">>).things
 }
 
 /**
@@ -70,11 +65,11 @@ export function programThings(): SpellCore["things"] | undefined {
  * - `Thing` and `List` call it as they're made.
  */
 export function registerThing(thing: object): void {
-  programThings()?.add(thing as Parameters<SpellCore["things"]["add"]>[0])
+  programThings()?.add(thing as Parameters<Core["things"]["add"]>[0])
 }
 
 /** Meta-programming, exports, type-checking, path access, equality, math and iteration primitives. */
-export const coreMethods = defineSpellCoreModule({
+export const coreMethods = defineCoreModule({
   /** Do nothing -- use this as a placeholder, e.g. in an `if` branch. */
   doNothing(): void {},
 
@@ -100,13 +95,13 @@ export const coreMethods = defineSpellCoreModule({
    *   `set title(value) { this.setProp('title', value, { type: 'text' }) }`.
    */
   checkProp(property: string, value: unknown, check?: PropCheck): boolean {
-    if (check?.type && !spellCore.isOfType(value, check.type)) {
-      spellCore.console.warn(`Expected ${property} to be type '${check.type}', got:`, value)
+    if (check?.type && !core.isOfType(value, check.type)) {
+      core.console.warn(`Expected ${property} to be type '${check.type}', got:`, value)
       return false
     }
     const oneOf = typeof check?.oneOf === "function" ? check.oneOf() : check?.oneOf
     if (oneOf && !oneOf.includes(value)) {
-      spellCore.console.warn(`Expected ${property} to be one of '${oneOf}', got:`, value)
+      core.console.warn(`Expected ${property} to be one of '${oneOf}', got:`, value)
       return false
     }
     return true
@@ -117,15 +112,15 @@ export const coreMethods = defineSpellCoreModule({
    * - What collection helpers build their results in, e.g. `map()`, `filter()`, `duplicateList()`.
    * - NOT registered for the Thing Explorer (see `ThingRegistry.quietly()`),
    *   so a copy the program keeps doesn't show either.  See `agents/CODE-DEBT.md`.
-   * - A SCRATCH list:  an exclusive one, e.g. a `Pile`, owns nothing -- see `spellCore.newScratch()`.
+   * - A SCRATCH list:  an exclusive one, e.g. a `Pile`, owns nothing -- see `core.newScratch()`.
    * - TODO: number? string?  non-constructable thing???
    */
   newThingLike(thing: unknown): unknown {
-    if (!assert.isDefined(thing, "spellCore.newThingLike()")) return undefined
-    // if (spellCore.isArrayLike(thing)) return []
+    if (!assert.isDefined(thing, "core.newThingLike()")) return undefined
+    // if (core.isArrayLike(thing)) return []
     try {
       const target = thing as { constructor: new () => unknown }
-      return spellCore.newScratch(target.constructor)
+      return core.newScratch(target.constructor)
     } catch (e) {
       return {}
     }
@@ -169,7 +164,7 @@ export const coreMethods = defineSpellCoreModule({
     const objectType = typeof thing
     const constructor = (thing as object).constructor.name.toLowerCase()
     const type = objectType !== "object" || constructor === "object" ? objectType : constructor
-    return spellCore.TYPE_NAME_CONVERSIONS[type] || type
+    return core.TYPE_NAME_CONVERSIONS[type] || type
   },
 
   /**
@@ -177,9 +172,9 @@ export const coreMethods = defineSpellCoreModule({
    * (`integer`, `character`, `char`) -- checked instead of a plain `=== typeOf(thing)` comparison.
    */
   IS_OF_TYPE_SPECIALS: {
-    integer: (thing: unknown): boolean => spellCore.isAnInteger(thing),
-    character: (thing: unknown): boolean => spellCore.typeOf(thing) === "text" && (thing as string).length === 1,
-    char: (thing: unknown): boolean => spellCore.isOfType(thing, "character")
+    integer: (thing: unknown): boolean => core.isAnInteger(thing),
+    character: (thing: unknown): boolean => core.typeOf(thing) === "text" && (thing as string).length === 1,
+    char: (thing: unknown): boolean => core.isOfType(thing, "character")
   } as IsOfTypeSpecials,
 
   /**
@@ -189,7 +184,7 @@ export const coreMethods = defineSpellCoreModule({
    * - By class NAME, lowercased and converted as `typeOf()` does -- skipping any unnamed class, e.g. a mixin's.
    */
   typesOf(thing: unknown): string[] {
-    const types = [spellCore.typeOf(thing)]
+    const types = [core.typeOf(thing)]
     if (thing === null || typeof thing !== "object") return types
     // `typeOf()` already has its own class:  start with its super-class
     for (
@@ -198,21 +193,21 @@ export const coreMethods = defineSpellCoreModule({
       proto = Object.getPrototypeOf(proto) as object | null
     ) {
       const name = (proto.constructor as { name?: string } | undefined)?.name?.toLowerCase()
-      const type = name && (spellCore.TYPE_NAME_CONVERSIONS[name] || name)
+      const type = name && (core.TYPE_NAME_CONVERSIONS[name] || name)
       if (type && !types.includes(type)) types.push(type)
     }
     return types
   },
 
   /**
-   * Is `thing` an instance of string `type`, or of a sub-type of it -- as per `spellCore.typesOf()`?
-   * - Compiles from `thing is a Bee` => `spellCore.isOfType(thing, 'Bee')` -- see `rules/expressions/IsA.ts`.
+   * Is `thing` an instance of string `type`, or of a sub-type of it -- as per `core.typesOf()`?
+   * - Compiles from `thing is a Bee` => `core.isOfType(thing, 'Bee')` -- see `rules/expressions/IsA.ts`.
    * - e.g. a joker is a card, if `a joker is a card`.
    */
   isOfType(thing: unknown, type: string): boolean {
     if (typeof type === "string") type = type.toLowerCase()
-    if (spellCore.IS_OF_TYPE_SPECIALS[type]) return spellCore.IS_OF_TYPE_SPECIALS[type](thing)
-    return spellCore.typesOf(thing).includes(type)
+    if (core.IS_OF_TYPE_SPECIALS[type]) return core.IS_OF_TYPE_SPECIALS[type](thing)
+    return core.typesOf(thing).includes(type)
   },
 
   /**
@@ -221,7 +216,7 @@ export const coreMethods = defineSpellCoreModule({
    * - NOT symmetrical:  a joker is the same type as a card, but a card isn't the same type as a joker.
    */
   matchesType(thing: unknown, otherThing: unknown): boolean {
-    return spellCore.isOfType(thing, spellCore.typeOf(otherThing))
+    return core.isOfType(thing, core.typeOf(otherThing))
   },
 
   /** Is `thing` a valid number (doesn't include NaN). */
@@ -298,7 +293,7 @@ export const coreMethods = defineSpellCoreModule({
    * - Not a number:  a failed assertion, and `undefined`.
    */
   absoluteValue(number: number): number | undefined {
-    if (!assert(spellCore.isANumber(number), "spellCore.absoluteValue(): you must pass a number, got", number)) {
+    if (!assert(core.isANumber(number), "core.absoluteValue(): you must pass a number, got", number)) {
       return undefined
     }
     return Math.abs(number)
@@ -340,7 +335,7 @@ export const coreMethods = defineSpellCoreModule({
     const shuffled = [...items]
     const count = shuffled.length
     for (let index = 0; index < count; index++) {
-      const swap = index + Math.floor(spellCore.random() * (count - index))
+      const swap = index + Math.floor(core.random() * (count - index))
       ;[shuffled[index], shuffled[swap]] = [shuffled[swap]!, shuffled[index]!]
     }
     return shuffled
@@ -365,8 +360,8 @@ export const coreMethods = defineSpellCoreModule({
     const range: number[] = []
     if (
       !assert(
-        spellCore.isANumber(start) && spellCore.isANumber(end),
-        "spellCore.getRange(): you must pass two numbers, got",
+        core.isANumber(start) && core.isANumber(end),
+        "core.getRange(): you must pass two numbers, got",
         start,
         end
       )
@@ -387,7 +382,7 @@ export const coreMethods = defineSpellCoreModule({
 
   /**
    * Call `callback()` `count` times, ignoring its return value.
-   * TODO: `repeat {number} times` currently compiles to `spellCore.map(spellCore.getRange(...), ...)`
+   * TODO: `repeat {number} times` currently compiles to `core.map(core.getRange(...), ...)`
    * instead (see `rules/lists/RepeatNTimes.ts`) --
    * no rule currently calls this method; confirm whether it's still needed.
    */
@@ -395,4 +390,4 @@ export const coreMethods = defineSpellCoreModule({
     for (let i = 0; i < count; i++) callback()
   }
 })
-Object.assign(spellCore, coreMethods)
+Object.assign(core, coreMethods)

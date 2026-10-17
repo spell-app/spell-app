@@ -6,14 +6,14 @@ import time
 import pytest
 
 from spell_core import Thing
-from spell_core.core import SpellCore
+from spell_core.core import Core
 
 
 class Card(Thing):
     """A thing with events of its own."""
 
 
-def test_a_handler_hears_the_programs_event_with_its_payload(core: SpellCore) -> None:
+def test_a_handler_hears_the_programs_event_with_its_payload(core: Core) -> None:
     heard = []
 
     @core.on("card-click")
@@ -25,13 +25,13 @@ def test_a_handler_hears_the_programs_event_with_its_payload(core: SpellCore) ->
     assert heard == [card]
 
 
-def test_event_types_ignore_case_and_return_what_handlers_return(core: SpellCore) -> None:
+def test_event_types_ignore_case_and_return_what_handlers_return(core: Core) -> None:
     core.on("Card-Click", lambda: "first")
     core.on("card-click", lambda event: "second")
     assert core.trigger("CARD-CLICK") == ["first", "second"]
 
 
-def test_once_hears_one_event_then_forgets(core: SpellCore) -> None:
+def test_once_hears_one_event_then_forgets(core: Core) -> None:
     heard = []
     core.once("ping", lambda: heard.append("ping"))
     core.trigger("ping")
@@ -39,7 +39,7 @@ def test_once_hears_one_event_then_forgets(core: SpellCore) -> None:
     assert heard == ["ping"]
 
 
-def test_off_stops_a_handler(core: SpellCore) -> None:
+def test_off_stops_a_handler(core: Core) -> None:
     def handler() -> None:
         raise AssertionError("not heard after off()")
 
@@ -48,7 +48,7 @@ def test_off_stops_a_handler(core: SpellCore) -> None:
     assert core.trigger("ping") == []
 
 
-def test_a_failing_handler_warns_and_the_rest_still_run(core: SpellCore, capsys: pytest.CaptureFixture[str]) -> None:
+def test_a_failing_handler_warns_and_the_rest_still_run(core: Core, capsys: pytest.CaptureFixture[str]) -> None:
     def broken() -> None:
         raise ValueError("oops")
 
@@ -66,7 +66,7 @@ def test_a_thing_has_events_of_its_own_and_passes_them_to_its_parent() -> None:
     assert child.trigger("flip") == ["child heard", "parent heard flip"]
 
 
-def test_a_new_runtime_forgets_handlers_and_processes(core: SpellCore) -> None:
+def test_a_new_runtime_forgets_handlers_and_processes(core: Core) -> None:
     core.on("ping", lambda: "heard")
     core.start_process("deal")
     core.reset_runtime()
@@ -74,7 +74,7 @@ def test_a_new_runtime_forgets_handlers_and_processes(core: SpellCore) -> None:
     assert not core.process_is_running("deal")
 
 
-def test_processes_run_alone_or_counted(core: SpellCore) -> None:
+def test_processes_run_alone_or_counted(core: Core) -> None:
     core.start_process("deal", "EXCLUSIVE")
     assert core.process_is_running("deal")
     assert core.stop_process("deal") is False
@@ -83,11 +83,11 @@ def test_processes_run_alone_or_counted(core: SpellCore) -> None:
     assert core.stop_process("animation") is False
 
 
-def test_ticks_are_sixtieths_of_a_second(core: SpellCore) -> None:
+def test_ticks_are_sixtieths_of_a_second(core: Core) -> None:
     assert core.TIME_UNITS_MAP["ticks"] == pytest.approx(1000 / 60)
 
 
-def test_a_pause_waits_unless_pauses_are_off(core: SpellCore) -> None:
+def test_a_pause_waits_unless_pauses_are_off(core: Core) -> None:
     start = time.perf_counter()
     asyncio.run(core.pause_for(30, "msec"))
     assert time.perf_counter() - start >= 0.025
@@ -97,7 +97,7 @@ def test_a_pause_waits_unless_pauses_are_off(core: SpellCore) -> None:
     assert time.perf_counter() - start < 0.05
 
 
-def test_an_async_handler_runs_to_its_end_outside_a_loop(core: SpellCore) -> None:
+def test_an_async_handler_runs_to_its_end_outside_a_loop(core: Core) -> None:
     heard = []
 
     @core.on("ping")
@@ -109,7 +109,7 @@ def test_an_async_handler_runs_to_its_end_outside_a_loop(core: SpellCore) -> Non
     assert heard == ["ping"]
 
 
-def test_an_async_handler_is_a_task_inside_the_loop(core: SpellCore) -> None:
+def test_an_async_handler_is_a_task_inside_the_loop(core: Core) -> None:
     heard = []
 
     @core.on("ping")

@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from spell_core import App, Drawable, DrawableList, List, SpellCore, Thing, core, h, prop
+from spell_core import App, Core, Drawable, DrawableList, List, Thing, core, h, prop
 from spell_core.drawing import Element
 from spell_core.run import main
 
@@ -134,14 +134,14 @@ class Broken(Thing):
         raise ValueError("no rank")
 
 
-def test_draw_thing_draws_what_can_draw_and_nothing_else(core: SpellCore) -> None:
+def test_draw_thing_draws_what_can_draw_and_nothing_else(core: Core) -> None:
     assert str(core.draw_thing(Card(rank="ace"))) == '<div class="card">ace</div>'
     assert core.draw_thing(None) is None
     assert core.draw_thing("text") is None
     assert core.draw_thing(Thing()) is None
 
 
-def test_draw_items_draws_each_item_of_a_spell_list(core: SpellCore) -> None:
+def test_draw_items_draws_each_item_of_a_spell_list(core: Core) -> None:
     pile = Pile([Card(rank="ace"), None, Card(rank=2)])
     assert str(core.draw_thing(pile)) == '<div class="pile"><div class="card">ace</div><div class="card">2</div></div>'
     assert core.draw_items(Pile()) == []
@@ -149,7 +149,7 @@ def test_draw_items_draws_each_item_of_a_spell_list(core: SpellCore) -> None:
     assert core.draw_items(None) is None
 
 
-def test_a_draw_that_fails_shows_a_stand_in(core: SpellCore, capsys: pytest.CaptureFixture[str]) -> None:
+def test_a_draw_that_fails_shows_a_stand_in(core: Core, capsys: pytest.CaptureFixture[str]) -> None:
     drawn = h("td", None, core.draw_thing(Broken()), core.draw_thing(Card(rank="ace")))
     assert str(drawn) == (
         '<td><span class="spell-draw-error" role="alert" title="no rank">⚠ Broken can\'t draw</span>'
@@ -158,7 +158,7 @@ def test_a_draw_that_fails_shows_a_stand_in(core: SpellCore, capsys: pytest.Capt
     assert capsys.readouterr().err == "Broken:  draw() failed ValueError('no rank')\n"
 
 
-def test_drawable_things_draw_as_any_thing_and_a_drawable_list_as_its_slot(core: SpellCore) -> None:
+def test_drawable_things_draw_as_any_thing_and_a_drawable_list_as_its_slot(core: Core) -> None:
     class Token(Drawable):
         def draw(self) -> Element:
             return h("i", {"class": "token"})
@@ -167,7 +167,7 @@ def test_drawable_things_draw_as_any_thing_and_a_drawable_list_as_its_slot(core:
     assert str(core.draw_thing(DrawableList([Token()]))) == "<slot></slot>"
 
 
-def test_install_styles_keeps_the_css_and_draws_nothing(core: SpellCore) -> None:
+def test_install_styles_keeps_the_css_and_draws_nothing(core: Core) -> None:
     core.install_styles(None, ".card {¬  color: red;¬}")
     assert core.page.styles == {"anonymous-css": ".card {\n  color: red;\n}"}
     assert core.page.body_html() == ""

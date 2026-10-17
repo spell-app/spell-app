@@ -153,13 +153,13 @@ export class TreeWriter extends Writer<P.TreeNode> {
     return this.box(node, `Call ${node.methodName}`)
   }
 
-  /** `Call name` with what it's called on;  `spellCore.x()` is `Core x`, its `spellCore` left out. */
+  /** `Call name` with what it's called on;  `core.x()` is `Core x`, its `core` left out. */
   ASTScopedMethodInvocation(node: P.ASTScopedMethodInvocation): P.TreeNode {
-    if (node.thing instanceof P.ASTSpellCoreExpression) return this.box(node, `Core ${node.methodName}`, ["thing"])
+    if (node.thing instanceof P.ASTCoreExpression) return this.box(node, `Core ${node.methodName}`, ["thing"])
     return this.box(node, `Call ${node.methodName}`)
   }
 
-  /** `spellCore.console.log()` is `Print`. */
+  /** `core.console.log()` is `Print`. */
   ASTConsoleMethodInvocation(node: P.ASTConsoleMethodInvocation): P.TreeNode {
     const label = node.methodName === "log" ? "Print" : `Console ${node.methodName}`
     return this.box(node, label, ["thing"])

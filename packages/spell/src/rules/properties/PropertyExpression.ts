@@ -95,7 +95,7 @@ properties.addRule(PropertyExpression, {
       },
       tests: [
         ["the length of the name", "name.length"],
-        ["the length of the deck", "spellCore.itemCountOf(deck)"],
+        ["the length of the deck", "core.itemCountOf(deck)"],
         ["the year of the due", "due.getFullYear()"],
         { title: "unknown type:  a loose read, as before", input: "the length of bar", js: "bar.length" }
       ]

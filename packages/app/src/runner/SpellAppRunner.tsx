@@ -28,7 +28,7 @@ import "./SpellAppRunner.css"
  *   - again when `source` changes (a NEW object)
  *   - and on Restart, which fetches the program afresh, so a recompiled one shows
  *     -- or runs `source.compiled` again, if set
- * - The program draws with Solid (`App.start()` mounts its own root, `spellCore.mountApp()`):
+ * - The program draws with Solid (`App.start()` mounts its own root, `core.mountApp()`):
  *   we only hand it `appRoot`, a `<div>` drawn once and never touched again.
  *   The app it mounted is unmounted with us.
  * - A program with NO app shows its console on top instead, and the explorers below.
@@ -243,7 +243,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
       <Show when={loaded()} keyed>
         {(copy) => (
           <ThingExplorer
-            things={copy.runtime.spellCore.things}
+            things={copy.runtime.core.things}
             words={words()}
             state={thingsState}
             onStateChange={(state) => (thingsState = state)}
@@ -257,7 +257,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
   function output() {
     return (
       <Show when={loaded()} keyed>
-        {(copy) => <RunnerConsole console={copy.runtime.spellCore.console} />}
+        {(copy) => <RunnerConsole console={copy.runtime.core.console} />}
       </Show>
     )
   }
@@ -274,7 +274,7 @@ export type SpellAppRunnerProps = {
   toolbar: boolean
   /**
    * The element whose markup lays the app out, inside its `<spell-app>`:  the `<spell-app>` itself, if it has some.
-   * - That markup shows, through a slot, and the app's `to draw` isn't drawn -- see `spellCore.appLayout`.
+   * - That markup shows, through a slot, and the app's `to draw` isn't drawn -- see `core.appLayout`.
    * - Its spell (holes, actions, `<spell>` blocks) is compiled in the page, after each run -- see `LayoutSpell`.
    */
   layout?: Element
@@ -284,7 +284,7 @@ export type SpellAppRunnerProps = {
   fluid: boolean
   /** URL of `spell-runtime.js`, which each app loads a copy of. */
   runtimeUrl: string
-  /** URL of the built-in types' scope pack, `spellCore.scopes.js`. */
+  /** URL of the built-in types' scope pack, `core.scopes.js`. */
   builtInsUrl: string
   /** A Type Explorer link clicked, e.g. `spell:/@spell/examples/solitaire/Card.spell#L12`. */
   onOpen: (href: string) => void
@@ -431,8 +431,8 @@ async function bindLayout(copy: LoadedRuntime, source: SpellAppSource, root: Ele
     import("./LayoutSpell"),
     source.declarations ?? fetchJSON(source.declarationsUrl)
   ])
-  const { spellCore } = copy.runtime
-  return new LayoutSpell({ root, projectId: source.name, declarations, spellCore }).bind()
+  const { core } = copy.runtime
+  return new LayoutSpell({ root, projectId: source.name, declarations, core }).bind()
 }
 
 /**
@@ -599,7 +599,7 @@ function messageOf(problem: unknown): string {
   return problem instanceof Error ? problem.message : String(problem)
 }
 
-/** The app's mount point, with the mounted app `App.start()` leaves on it (`spellCore.mountApp()`). */
+/** The app's mount point, with the mounted app `App.start()` leaves on it (`core.mountApp()`). */
 type AppElement = HTMLElement & { spellRoot?: { unmount(): void } }
 
 /** Compiled javascript the last run loaded, by project id -- a box, so the Type Explorer reads the latest. */

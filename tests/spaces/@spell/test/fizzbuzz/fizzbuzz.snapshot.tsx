@@ -1,13 +1,13 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList } from "@spell/core"
 
-spellCore.heading("File FizzBuzz.spell")
+core.heading("File FizzBuzz.spell")
 /** File FizzBuzz.spell */
 export function playFizzbuzz() {
-  spellCore.getRange(1, 100).forEach((number) => {
-    if (spellCore.isOfType(number / 15, "integer")) spellCore.console.log(number, "fizzbuzz")
-    else if (spellCore.isOfType(number / 3, "integer")) spellCore.console.log(number, "fizz")
-    else if (spellCore.isOfType(number / 5, "integer")) spellCore.console.log(number, "buzz")
-    else spellCore.console.log(number)
+  core.getRange(1, 100).forEach((number) => {
+    if (core.isOfType(number / 15, "integer")) core.console.log(number, "fizzbuzz")
+    else if (core.isOfType(number / 3, "integer")) core.console.log(number, "fizz")
+    else if (core.isOfType(number / 5, "integer")) core.console.log(number, "buzz")
+    else core.console.log(number)
   })
 }
 

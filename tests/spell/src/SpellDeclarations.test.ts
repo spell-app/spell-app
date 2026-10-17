@@ -250,7 +250,7 @@ describe("SpellDeclarations.importScope()", () => {
       export const deck = new Deck()
       export const pile = new Pile()
       card.moveToPile(pile)
-      spellCore.move(card, deck)
+      core.move(card, deck)
       export const moved = card.moveToPile(pile)"
     `)
   })
@@ -302,7 +302,7 @@ describe("SpellDeclarations.importScope()", () => {
 
     test("a runtime type check uses its class's real name", () => {
       scope.variables.add("thing")
-      expect(scope.parse("thing is a playingcard", "expression")?.compile()).toBe('spellCore.isOfType(thing, "Card")')
+      expect(scope.parse("thing is a playingcard", "expression")?.compile()).toBe('core.isOfType(thing, "Card")')
       // ...and so does a property's, when it's set
       expect(scope.parse("a hand has a top as a playingcard", "block")?.compile()).toContain('type: "Card"')
     })
@@ -387,7 +387,7 @@ describe("SpellDeclarations of `a card belongs to one pile`", () => {
     })
     expect([files[0]!.compiled, ...files[0]!.errors].join("\n")).toMatchInlineSnapshot(`
       "export const card = new Card()
-      spellCore.console.log(card.pile)
+      core.console.log(card.pile)
       /* PARSE ERROR: Can't set the pile of a Card:  it's the Pile holding it -- move it to a Pile instead */
       3:0 Can't set the pile of a Card:  it's the Pile holding it -- move it to a Pile instead"
     `)

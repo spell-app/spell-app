@@ -10,7 +10,7 @@
  *   which only those resolve (`tsconfig.json`'s `exclude`).
  */
 import { Show, For } from "solid-js"
-import { spellCore, List, App, Thing, prop, thing, drawn } from "@spell/core"
+import { core, List, App, Thing, prop, thing, drawn } from "@spell/core"
 
 /** card ranks */
 const RANKS = ["ace", 2, 3, "king"] as const
@@ -34,7 +34,7 @@ export class Card extends Thing {
 
   /** value as a derivation of rank */
   get value() {
-    return spellCore.positionOf(Card.Ranks, this.rank)
+    return core.positionOf(Card.Ranks, this.rank)
   }
 
   get isFaceDown() {
@@ -42,14 +42,14 @@ export class Card extends Thing {
   }
 
   get shortRank() {
-    if (spellCore.isOfType(this.rank, "number")) return `${this.rank}`
-    return spellCore.upperCase(spellCore.getItemAt(this.rank, 0))
+    if (core.isOfType(this.rank, "number")) return `${this.rank}`
+    return core.upperCase(core.getItemAt(this.rank, 0))
   }
 
   /** Flip card to opposite direction */
   async turnOver() {
     this.direction = this.direction == "up" ? "down" : "up"
-    await spellCore.pauseFor(50, "msec")
+    await core.pauseFor(50, "msec")
   }
 
   @drawn
@@ -110,7 +110,7 @@ export class Game extends App {
           Score {this.score}
         </ui-button>
         {this.stock.draw()}
-        <p class="top">{spellCore.getItemAt(this.stock, -1)?.draw()}</p>
+        <p class="top">{core.getItemAt(this.stock, -1)?.draw()}</p>
       </div>
     )
   }

@@ -5,7 +5,7 @@ import JSON5 from "json5"
 
 import { P } from "$/parser"
 import { SP } from "$/spell"
-import { editor, runtimeSpellCore } from "$/app/editor"
+import { editor, runtimeCore } from "$/app/editor"
 
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
@@ -23,5 +23,5 @@ Object.assign(global, {
   editor
 })
 
-// the `spellCore` programs run on -- the runtime's, NOT one of our own:  see `runtimeSpellCore()`
-Object.defineProperty(global, "spellCore", { get: runtimeSpellCore, configurable: true })
+// the `core` programs run on -- the runtime's, NOT one of our own:  see `runtimeCore()`
+Object.defineProperty(global, "core", { get: runtimeCore, configurable: true })

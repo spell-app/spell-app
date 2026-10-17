@@ -6,7 +6,7 @@
  * - Enough for `class CardElement extends SpellElement<Card> { @E.proto static vocabulary = ... }` to load:
  *   - `SpellElement`:  an empty class, with the one helper an element class calls as it's made, `vocabularyFor()`
  *   - `E`:  the two decorators an element class uses, doing nothing
- * - Nothing draws it:  there's no page definer, so `spellCore.useElement()` only keeps the class,
+ * - Nothing draws it:  there's no page definer, so `core.useElement()` only keeps the class,
  *   and the program prints what its javascript prints.
  * - `hooks.mjs` points `@spell/elements` here.
  */

@@ -49,7 +49,7 @@ _if_.addRule(BackwardsIf, {
       tests: [
         {
           input: "print 1 if bar else 2",
-          js: "spellCore.console.log(bar ? 1 : 2)"
+          js: "core.console.log(bar ? 1 : 2)"
         },
         {
           input: "get the foo of the bar if bar is defined otherwise the bar of the foo",

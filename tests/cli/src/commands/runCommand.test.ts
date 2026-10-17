@@ -18,8 +18,8 @@ const CLICKS = `
 setTimeout(() => {
   document.querySelector(".face-down")!.dispatchEvent(new Event("click", { bubbles: true }))
   document.querySelector(".score")!.dispatchEvent(new Event("click", { bubbles: true }))
-  spellCore.flush()
-  spellCore.console.log("score:", game.score, "cards:", game.stock.items.map((card) => card.direction).join(", "))
+  core.flush()
+  core.console.log("score:", game.score, "cards:", game.stock.items.map((card) => card.direction).join(", "))
 })
 `
 

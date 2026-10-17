@@ -6,7 +6,7 @@ import { lists } from "./lists.parser"
 
 /**
  * `list_shuffle` rule:  shuffle (randomize) list in-place:
- * e.g. `shuffle my-list` => `spellCore.randomize(myList)`.
+ * e.g. `shuffle my-list` => `core.randomize(myList)`.
  */
 export class ListShuffle extends SpellStatement<"arg?|list"> {
   @proto static alias = "statement"
@@ -29,9 +29,9 @@ lists.addRule(ListShuffle, {
         scope.variables?.add("my-list")
       },
       tests: [
-        ["shuffle cards of deck", "spellCore.randomize(deck)"],
-        ["shuffle the cards of the deck", "spellCore.randomize(deck)"],
-        ["randomize my-list", "spellCore.randomize(myList)"]
+        ["shuffle cards of deck", "core.randomize(deck)"],
+        ["shuffle the cards of the deck", "core.randomize(deck)"],
+        ["randomize my-list", "core.randomize(myList)"]
       ]
     }
   ]

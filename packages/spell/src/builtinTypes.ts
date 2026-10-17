@@ -3,12 +3,12 @@
  * - The parser reads it:  `SpellParser.rootScope` loads it into each built-in type's `P.TypeScope`
  *   (see `loadBuiltInTypes()`), so a member read resolves through the type of what it reads:
  *   - `the length of the name` => `name.length`
- *   - `the length of the deck` => `spellCore.itemCountOf(deck)`
+ *   - `the length of the deck` => `core.itemCountOf(deck)`
  * - Editors read it:  hover and completion show its members' docs, and the Type Explorer lists its types.
- *   - `LSP.ScopeExplorer`'s `yarn scopes --builtins` GENERATES `core`'s `src/spellCore.scopes.js` from it.
+ *   - `LSP.ScopeExplorer`'s `yarn scopes --builtins` GENERATES `core`'s `src/core.scopes.js` from it.
  * - Why data (epic page D25):  no `.spell` file to parse at startup, and no statics on runtime classes --
- *   the parser never imports `spellCore`'s code.
- * - Adding a member:  one entry here, and the `spellCore` method or javascript property its `readAs` names.
+ *   the parser never imports `core`'s code.
+ * - Adding a member:  one entry here, and the `core` method or javascript property its `readAs` names.
  *   - `builtinTypes.test.ts` pins each one.
  *   - See "Built-in types" in `PARSING.md`.
  * - NOTE:  a type's NAME and super-type are `P.BUILT_IN_TYPES`' (the parser's vocabulary):
@@ -35,7 +35,7 @@ const ID_DOCSTRING = md(
 /**
  * Spell's built-in types, in the order the Type Explorer lists them -- see `SP.BuiltInType`.
  * - TODO:  members still to add:
- *   - `number`'s `absolute value` and `round`:  their rules (`math/`) compile to `spellCore` methods
+ *   - `number`'s `absolute value` and `round`:  their rules (`math/`) compile to `core` methods
  *     which don't exist yet
  *   - a `date`'s `month` (javascript counts months from 0)
  *   - a text's `words`
@@ -130,7 +130,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "length",
         kind: "property",
         datatype: "number",
-        readAs: "spellCore.itemCountOf({it})",
+        readAs: "core.itemCountOf({it})",
         docstring: md(
           "How many items it has, e.g. `the length of the deck`.",
           "- ~== `the size of the deck`, `the number of cards in the deck`."
@@ -140,7 +140,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "size",
         kind: "property",
         datatype: "number",
-        readAs: "spellCore.itemCountOf({it})",
+        readAs: "core.itemCountOf({it})",
         docstring: md("How many items it has, e.g. `the size of the deck` -- its `length`.")
       },
       {
@@ -436,7 +436,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
         words: "characters",
         kind: "property",
         datatype: "list of characters",
-        readAs: "spellCore.valuesOf({it})",
+        readAs: "core.valuesOf({it})",
         docstring: md("Its characters, one by one, as a new list, e.g. `the characters of the name`.")
       },
       {
@@ -605,16 +605,16 @@ export function parseReadAsTemplate(template: string): SP.ReadAsTemplate | undef
   const [, property, method, helper, type, staticName] = match
   if (property) return { form: "property", name: property }
   if (method) return { form: "method", name: method }
-  if (helper) return { form: "spellCore", name: helper }
+  if (helper) return { form: "core", name: helper }
   return { form: "static", type: type!, name: staticName! }
 }
 
 /**
- * What `parseReadAsTemplate()` reads:  `{it}.name`, `{it}.name()`, `spellCore.name({it})`, `Type.name({it})`.
+ * What `parseReadAsTemplate()` reads:  `{it}.name`, `{it}.name()`, `core.name({it})`, `Type.name({it})`.
  * - The last is a VALUE kind's property, e.g. `Suit.color({it})` -- never in the table:  see `value_kind`.
  */
 const READ_AS_TEMPLATE =
-  /^(?:\{it\}\.(\w+)|\{it\}\.(\w+)\(\)|spellCore\.(\w+)\(\{it\}\)|(?!spellCore\.)([A-Z]\w*)\.(\w+)\(\{it\}\))$/
+  /^(?:\{it\}\.(\w+)|\{it\}\.(\w+)\(\)|core\.(\w+)\(\{it\}\)|(?!core\.)([A-Z]\w*)\.(\w+)\(\{it\}\))$/
 
 ////////////////
 // ## Lookups
