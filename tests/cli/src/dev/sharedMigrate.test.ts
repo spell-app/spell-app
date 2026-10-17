@@ -20,11 +20,7 @@ afterAll(() => rmSync(TEMP, { recursive: true, force: true }))
 mkdirSync(MAIN)
 git(MAIN, "init", "-q", "-b", "main")
 // the cutover's manifest (before the reorg, claude-design P4):  one docs link, `packages/docs/content`
-put(
-  MAIN,
-  "package.json",
-  JSON.stringify({ shared: { dir: "../spell-app-dev", links: ["packages/docs/content", "goals", "agents"] } })
-)
+put(MAIN, "package.json", JSON.stringify({ shared: { links: ["packages/docs/content", "goals", "agents"] } }))
 put(MAIN, ".gitignore", "/.claude/worktrees\n")
 put(MAIN, "packages/docs/tools/relocate.js", "// the move\n")
 put(MAIN, "packages/docs/content/index.html", "<h1>Docs</h1>\n")

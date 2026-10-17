@@ -11,6 +11,7 @@ import { join } from "node:path"
 import { afterAll, beforeAll, beforeEach, expect, test } from "vite-plus/test"
 
 import { ReviewStart } from "$/epics/tool/ReviewStart"
+import { fakeMainCheckout, fakeWorktree } from "$/server/test/checkouts"
 
 let home: string
 let root: string
@@ -25,7 +26,7 @@ const launched: [string[], string][] = []
 
 beforeAll(async () => {
   home = mkdtempSync(join(tmpdir(), "review-wake-"))
-  root = mkdtempSync(join(tmpdir(), "review-wake-root-"))
+  root = fakeMainCheckout(mkdtempSync(join(tmpdir(), "review-wake-root-")))
   mkdirSync(join(home, "sessions"))
   mkdirSync(join(home, "windows"))
   process.env.SPELL_CLAUDE_HOME = home
@@ -71,11 +72,9 @@ function window(folders: string[], workspaceFile: string | null = null) {
   writeFileSync(join(home, "windows", `${process.pid}.json`), JSON.stringify(entry))
 }
 
-/** epic `name`'s worktree, made in the scratch checkout */
+/** epic `name`'s worktree, made in the scratch checkout as git leaves one */
 function worktree(name: string): string {
-  const folder = join(root, ".claude", "worktrees", name)
-  mkdirSync(folder, { recursive: true })
-  return folder
+  return fakeWorktree(root, join(root, ".claude", "worktrees", name))
 }
 
 test("a worktree, its window closed:  `spell dev window launch <epic>`, from the main checkout, the command as its prompt", async () => {

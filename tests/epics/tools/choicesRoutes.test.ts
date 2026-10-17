@@ -47,17 +47,9 @@ beforeAll(async () => {
       join(root, page.replace(/\.html$/, ".rows.json5")),
       JSON.stringify({ rows: [{ id: "a" }, { id: "b" }] })
     )
-  server = new PageServer({ root })
-  await choicesRoutes.setup({
-    root,
-    router: server.web.router,
-    guard: server.web.guard,
-    live: server.web.live!,
-    web: server.web,
-    info: server.info,
-    onListening: () => {},
-    onStop: () => {}
-  })
+  // worktrees at `/worktrees/<w>/`, as epics' running-epics route module has the main server serve them
+  server = new PageServer({ root }).serveWorktrees(join(root, ".claude", "worktrees"))
+  await choicesRoutes.setup(server.routeContext())
   await server.start({ port: 0, routes: false, pidFile: false })
   port = server.info.port
 })

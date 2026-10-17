@@ -4,6 +4,7 @@
  *   - content types, safe paths, static folders
  *   - an Express-shaped router, with body parsing
  *   - ports, and openers (browser, Chrome tab, VS Code)
+ *   - the git checkout a path is in, and its main checkout (`checkoutOf()`)
  *   - a file lock, file operations (save, create, rename, duplicate, delete), live reload, a write guard, pid files
  *   - `WebServer`, putting them together
  * - Node built-ins only:  json5 / esbuild come in as hooks from the caller, so anything may import this.
@@ -16,6 +17,7 @@ export * from "./mime"
 export * from "./safePath"
 export * from "./ports"
 export * from "./open"
+export * from "./checkout"
 export * from "./untilInterrupted"
 export * from "./FileLock"
 export * from "./FileOperations"

@@ -37,16 +37,7 @@ beforeAll(async () => {
   }
   list = new AgentList(root, { epic: "big" })
   server = new PageServer({ root })
-  await agentRoutes.setup({
-    root,
-    router: server.web.router,
-    guard: server.web.guard,
-    live: server.web.live!,
-    web: server.web,
-    info: server.info,
-    onListening: () => {},
-    onStop: () => {}
-  })
+  await agentRoutes.setup(server.routeContext())
   await server.start({ port: 0, routes: false, pidFile: false })
   port = server.info.port
 })

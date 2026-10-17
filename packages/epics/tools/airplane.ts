@@ -31,12 +31,13 @@ import { homedir } from "node:os"
 import { join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { EpicConfig } from "$/epics/config/EpicConfig"
 import { DataFile } from "$/epics/data/DataFile"
 import { SRV } from "$/server"
-import { AirplaneMode } from "$/server/page/AirplaneMode"
 import { PageServer } from "$/server/page/PageServer"
 
 import { AirplaneInbox } from "./AirplaneInbox.ts"
+import { AirplaneMode } from "./AirplaneMode.ts"
 import { DOCS_FOLDERS, HIGHLIGHT, Offline } from "./offline.ts"
 import { ROOT, parseArgs } from "./pages.js"
 
@@ -55,7 +56,7 @@ export async function preFlight(root: string, { fix = false } = {}): Promise<Fli
 
 /** The main checkout, not a worktree:  its page server is the one the side bar shows on the plane. */
 function checkoutCheck(root: string): FlightCheck {
-  const worktree = /[/\\]\.claude[/\\]worktrees[/\\]/.test(root)
+  const worktree = EpicConfig.of(root).worktreeNameOf(root) !== undefined
   return worktree
     ? { name: "checkout", status: "fail", detail: `${root} is a worktree:  run it from the main checkout` }
     : { name: "checkout", status: "ok", detail: root }

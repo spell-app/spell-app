@@ -537,17 +537,18 @@ export class DocView implements vscode.WebviewViewProvider {
    * A link the page couldn't follow in the frame (see `followInFrame()` in `liveClient.ts`):
    * - `external`:  in the browser
    * - `file`:  a file on the page server, opened in the editor;  a folder, revealed in the Explorer.  Which checkout:
-   *   the server's `/api/server` (`root`);  a worktree's file on the main server is `/worktrees/<w>/...`
+   *   the server's `/api/server` (`root`);  a worktree's file on the main server is `/worktrees/<w>/...`, in the folder
+   *   it serves them from (`/api/server`'s `worktrees`)
    */
   static async open({ url, kind }: OpenLink): Promise<void> {
     if (!url) return
     const target = new URL(url)
     if (kind !== "file") return void vscode.env.openExternal(vscode.Uri.parse(url))
-    const root = await serverRoot(target.origin)
-    if (!root) return void vscode.env.openExternal(vscode.Uri.parse(url))
+    const info = await serverInfo(target.origin)
+    if (!info?.root) return void vscode.env.openExternal(vscode.Uri.parse(url))
     const parts = target.pathname.split("/").filter(Boolean).map(decodeURIComponent)
-    const inside = parts[0] === "worktrees" ? [".claude", ...parts] : parts
-    const file = vscode.Uri.file(join(root, ...inside))
+    const inWorktree = parts[0] === "worktrees" && info.worktrees
+    const file = vscode.Uri.file(inWorktree ? join(info.worktrees!, ...parts.slice(1)) : join(info.root, ...parts))
     const stat = await vscode.workspace.fs.stat(file).then(
       (each) => each,
       () => undefined
@@ -613,10 +614,17 @@ export function samePage(a: string, b: string): boolean {
 
 /** The checkout the page server at `origin` serves (its `/api/server`'s `root`);  `undefined`:  not a page server. */
 async function serverRoot(origin: string): Promise<string | undefined> {
-  const info = await fetch(`${origin}/api/server`, { signal: AbortSignal.timeout(2000) })
-    .then((answer) => (answer.ok ? (answer.json() as Promise<{ root?: string }>) : undefined))
+  return (await serverInfo(origin))?.root
+}
+
+/**
+ * What the page server at `origin` says of itself (`/api/server`):  its checkout (`root`), and the folder its
+ * `/worktrees/<w>/` serves (`worktrees`, the main checkout's server only);  `undefined`:  not a page server.
+ */
+async function serverInfo(origin: string): Promise<{ root?: string; worktrees?: string } | undefined> {
+  return fetch(`${origin}/api/server`, { signal: AbortSignal.timeout(2000) })
+    .then((answer) => (answer.ok ? (answer.json() as Promise<{ root?: string; worktrees?: string }>) : undefined))
     .catch(() => undefined)
-  return info?.root
 }
 
 /**

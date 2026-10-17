@@ -8,8 +8,11 @@ import { dirname, join } from "node:path"
  * - ONE switch per machine:  `~/.spell/airplane.json`, `{ on: true, since }`;  no file:  off
  *   - `epic airplane on | off` (`packages/epics/tools/airplane.ts`) flips it;
  *     `/airplane` and `/airplane land` call those
- * - The page server tells every page as it serves it (`window.SPELL_SERVER.airplane`):
- *   the review controls then say "queued for when you land", never "start `/epic review`"
+ * - The page server tells every page as it serves it (`window.SPELL_SERVER.airplane`), through this package's
+ *   route module (`airplaneRoutes.ts`):  the review controls then say "queued for when you land", never
+ *   "start `/epic review`"
+ * - Here since epic `epic-eject` P4 (it was the server's `$/server/page/AirplaneMode`):  the switch is the epics'
+ *   tooling's, and the server imports no other package
  * - Read on every call:  the switch changes while servers run, and tests point it elsewhere
  */
 export class AirplaneMode {

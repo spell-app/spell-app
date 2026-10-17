@@ -293,12 +293,17 @@ export class ChoicesForm {
   /**
    * `file` (from the repo's root) at `line`, for VS Code:  `vscode://file/<checkout>/<file>:<line>`, which VS Code
    * opens AT the line;  `#` before the page server says where the checkout is (the link then does nothing).
-   * - the checkout:  the one the page server serves (`root`);  a `/worktrees/<w>/` page's, that worktree
+   * - the checkout:  the one the page server serves (`root`);  a `/worktrees/<w>/` page's, that worktree, in the
+   *   folder the server serves them from (`worktrees`, `SPELL_SERVER.worktrees`)
    */
-  static fileUrl(file: string, line: number, { root, pathname }: { root?: string; pathname: string }): string {
+  static fileUrl(
+    file: string,
+    line: number,
+    { root, worktrees, pathname }: { root?: string; worktrees?: string; pathname: string }
+  ): string {
     if (!root) return "#"
     const worktree = /^\/worktrees\/([^/]+)\//.exec(pathname)?.[1]
-    const checkout = worktree ? `${root}/.claude/worktrees/${worktree}` : root
+    const checkout = worktree && worktrees ? `${worktrees}/${worktree}` : root
     return `vscode://file${encodeURI(`${checkout}/${file}`)}:${line}`
   }
 

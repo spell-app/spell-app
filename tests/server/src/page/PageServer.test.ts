@@ -4,15 +4,7 @@ import { join } from "node:path"
 import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
 import { SRV } from "$/server"
-import {
-  AirplaneMode,
-  HIGHLIGHT_JS,
-  PageServer,
-  componentSetPath,
-  findById,
-  movedFolderPath,
-  replaceById
-} from "$/server/page"
+import { HIGHLIGHT_JS, PageServer, componentSetPath, findById, movedFolderPath, replaceById } from "$/server/page"
 import { ask } from "$/server/test/serve"
 
 /** A page whose formatting an edit must keep, byte for byte. */
@@ -137,18 +129,13 @@ describe("PageServer", () => {
     expect(answer.text).not.toContain("cdnjs")
   })
 
-  it("tells pages when airplane mode is on", async () => {
-    const before = process.env.SPELL_AIRPLANE_FILE
-    process.env.SPELL_AIRPLANE_FILE = join(root, "airplane.json")
-    try {
-      expect((await config()).airplane).toBeUndefined()
-      AirplaneMode.turn(true)
-      expect((await config()).airplane).toBe(true)
-    } finally {
-      AirplaneMode.turn(false)
-      if (before === undefined) delete process.env.SPELL_AIRPLANE_FILE
-      else process.env.SPELL_AIRPLANE_FILE = before
-    }
+  it("tells pages what route modules add (`addPageConfig()`), as each page is served", async () => {
+    let flying = false
+    server.addPageConfig(() => (flying ? { airplane: true } : {}))
+    expect((await config()).airplane).toBeUndefined()
+    flying = true
+    expect((await config()).airplane).toBe(true)
+    flying = false
   })
 
   it("sends / to the home page", async () => {
@@ -213,6 +200,9 @@ describe("PageServer", () => {
   })
 
   it("serves a worktree's component set from the worktree, at /worktrees/<w>/components/<set>/", async () => {
+    // where epics' route module says the worktrees are
+    server.serveWorktrees(join(root, ".claude", "worktrees"))
+    expect(server.info.worktrees).toBe(join(root, ".claude", "worktrees"))
     const worktree = join(root, ".claude", "worktrees", "w")
     mkdirSync(join(worktree, "packages", "epics", "docs"), { recursive: true })
     mkdirSync(join(worktree, "packages", "ui", "site", "_assets", "sets"), { recursive: true })

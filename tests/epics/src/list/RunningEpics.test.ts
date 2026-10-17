@@ -70,16 +70,7 @@ describe("RunningEpics", () => {
     put(root, ".claude/worktrees/vite/packages/docs/epics/notes/notes.html", "<html><body>notes</body></html>\n")
     // the page server as it runs:  its `/worktrees/` mount, and epics' route module for the running epics
     server = new PageServer({ root })
-    await runningRoutes.setup({
-      root,
-      router: server.web.router,
-      guard: server.web.guard,
-      live: server.web.live!,
-      web: server.web,
-      info: server.info,
-      onListening: () => {},
-      onStop: () => {}
-    })
+    await runningRoutes.setup(server.routeContext())
     await server.start({ port: 0, routes: false, pidFile: false })
     port = server.info.port
   })

@@ -17,6 +17,7 @@ import {
 import { basename, dirname, join, relative, resolve } from "path"
 
 import { CLI, type LinkReport, type SharedConfig, type SharedStatus } from "$/cli"
+import { EpicConfig } from "$/epics/config/EpicConfig"
 
 /**
  * Shared content (epic `shared-content`):  docs pages, goal sets and the agents' logs live ONCE, in a content repo
@@ -27,7 +28,8 @@ import { CLI, type LinkReport, type SharedConfig, type SharedStatus } from "$/cl
  *   `packages/ui/site/`
  * - before 2026-10-05 (epic `claude-design` P4) the docs were ONE link, `packages/docs/content`:  the shared repo keeps
  *   old-path links there for checkouts on older code (`packages/epics/tools/relocate.js` `reorgShared()`)
- * - the manifest:  the root `package.json`'s `"shared"` (`sharedConfig()`)
+ * - the manifest:  the root `package.json`'s `"shared"` (`sharedConfig()`);  where the shared repo and the worktrees
+ *   are:  the repo's `.epic/config.json5` (`EpicConfig`:  `contentFolder`, `worktreesFolder`)
  * - only FOLDERS are linked:  Claude's Edit refuses to write through a link to a file
  * - the shared repo is committed by itself, after every turn (`commitShared()`, the `Stop` hook
  *   `.claude/hooks/shared-commit.mjs`)
@@ -50,21 +52,29 @@ const GIT_WAIT = 30_000
 
 /**
  * The shared-content manifest of checkout `root` (any checkout).
- * - `dir`:  `"shared": { "dir" }` in the MAIN checkout's `package.json`, relative to it;  `SPELL_SHARED_DIR`
- *   overrides it (tests, a scratch repo)
+ * - `dir`:  `contentFolder` in the repo's `.epic/config.json5` (the MAIN checkout's);  `SPELL_SHARED_DIR` overrides
+ *   it (tests, a scratch repo)
+ *   - it was `"shared": { "dir" }` in the main checkout's `package.json` until epic `epic-eject` P4
+ * - `worktrees`:  `worktreesFolder` in the same file:  where `sharedCheckouts()` finds the worktrees
  * - `links`:  `"shared": { "links" }` in `root`'s OWN `package.json` (else the main one's), else `DEFAULT_LINKS`:
  *   which folders a checkout links is its branch's business (the reorg changed them, claude-design P4)
  */
 export function sharedConfig(root = CLI.mainRoot()): SharedConfig {
   const main = CLI.mainRoot(root)
+  const epic = new EpicConfig(main)
   const mine = manifest(root)
   const theirs = manifest(main)
-  const dir = process.env.SPELL_SHARED_DIR ?? resolve(main, theirs.dir ?? mine.dir ?? "../spell-app-dev")
-  return { main, dir: resolve(dir), links: mine.links ?? theirs.links ?? DEFAULT_LINKS }
+  const dir = process.env.SPELL_SHARED_DIR ?? epic.contentFolder
+  return {
+    main,
+    dir: resolve(dir),
+    worktrees: epic.worktreesFolder,
+    links: mine.links ?? theirs.links ?? DEFAULT_LINKS
+  }
 }
 
 /** The `"shared"` field of checkout `root`'s `package.json`;  `{}` without one. */
-function manifest(root: string): Partial<{ dir: string; links: string[] }> {
+function manifest(root: string): Partial<{ links: string[] }> {
   try {
     return JSON.parse(readFileSync(join(root, "package.json"), "utf8")).shared ?? {}
   } catch {
@@ -72,9 +82,8 @@ function manifest(root: string): Partial<{ dir: string; links: string[] }> {
   }
 }
 
-/** The main checkout, then every worktree under `.claude/worktrees` (a folder with a `.git` file). */
-export function sharedCheckouts(main: string): string[] {
-  const trees = join(main, ".claude", "worktrees")
+/** The main checkout, then every worktree in `config.worktrees` (a folder with a `.git` file). */
+export function sharedCheckouts({ main, worktrees: trees }: SharedConfig): string[] {
   const worktrees = existsSync(trees)
     ? readdirSync(trees, { withFileTypes: true })
         .filter((entry) => entry.isDirectory() && existsSync(join(trees, entry.name, ".git")))
@@ -115,7 +124,7 @@ export function sharedStatus(config = sharedConfig()): SharedStatus {
     isRepo,
     dirty: isRepo ? CLI.git(["status", "--porcelain"], config.dir).out.split("\n").filter(Boolean).length : 0,
     last: isRepo ? CLI.git(["log", "-1", "--format=%h %cr %s"], config.dir).out : "",
-    checkouts: sharedCheckouts(config.main).map((checkout) => ({
+    checkouts: sharedCheckouts(config).map((checkout) => ({
       checkout: relative(config.main, checkout) || ".",
       links: linksOf(checkout, config).map((path) => ({ path, state: linkState(checkout, path, config) }))
     }))
@@ -207,7 +216,7 @@ export function commitShared(
     // `Object.groupBy()` needs lib `es2024`;  ours is older
     const groups: Record<string, string[]> = {}
     for (const path of pendingPaths(config.dir)) (groups[sharedGroup(path)] ??= []).push(path)
-    const trailers = [checkout && `Turn-end: ${checkoutName(config.main, checkout)}`, session && `Session: ${session}`]
+    const trailers = [checkout && `Turn-end: ${checkoutName(config, checkout)}`, session && `Session: ${session}`]
     const footer = trailers.filter(Boolean).join("\n")
     return Object.keys(groups)
       .sort()
@@ -258,10 +267,12 @@ function pendingPaths(dir: string): string[] {
   return paths
 }
 
-/** `checkout`'s short name:  `main`, a worktree's name, else its path relative to `main`. */
-function checkoutName(main: string, checkout: string): string {
+/** `checkout`'s short name:  `main` (the main checkout), a worktree's name, else its path relative to the main one. */
+function checkoutName({ main, worktrees }: SharedConfig, checkout: string): string {
   const where = relative(main, checkout)
-  return where ? where.replace(/^\.claude[\\/]worktrees[\\/]/, "") : "main"
+  const inWorktrees = relative(worktrees, checkout)
+  if (inWorktrees && !inWorktrees.startsWith("..")) return inWorktrees
+  return where || "main"
 }
 
 /** The shared repo's `.gitignore`. */
@@ -286,15 +297,16 @@ epics/*/agents.json
 epics/*/agents.json5
 `
 
-/** The shared repo's `README.md`. */
+/** The shared repo's `README.md`:  named for its folder and the repo's (`spell-app-dev`, `spell-app`). */
 function readme(config: SharedConfig): string {
-  return `# spell-app-dev
+  const repo = basename(config.main)
+  return `# ${basename(config.dir)}
 
-Shared content for \`spell-app\` (epic \`shared-content\`):  ${config.links.map((path) => `\`${path}\``).join(", ")}.
+Shared content for \`${repo}\` (epic \`shared-content\`):  ${config.links.map((path) => `\`${path}\``).join(", ")}.
 
-- Content only:  the tools that read and write it live in \`spell-app\`.
-- Every checkout of \`spell-app\` (main and each worktree) links these folders in, so edits show everywhere at once.
-- Edit through the links in \`spell-app\`;  every Claude Code turn commits here by itself (\`spell dev shared commit\`).
+- Content only:  the tools that read and write it live in \`${repo}\`.
+- Every checkout of \`${repo}\` (main and each worktree) links these folders in, so edits show everywhere at once.
+- Edit through the links in \`${repo}\`;  every Claude Code turn commits here by itself (\`spell dev shared commit\`).
 `
 }
 

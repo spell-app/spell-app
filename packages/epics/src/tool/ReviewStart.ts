@@ -29,7 +29,9 @@ import { existsSync, mkdirSync, openSync, readdirSync, readFileSync, realpathSyn
 import { homedir } from "node:os"
 import { join, resolve, sep } from "node:path"
 
-import { AirplaneMode } from "$/server/page/AirplaneMode"
+import { EpicConfig } from "$/epics/config/EpicConfig"
+
+import { AirplaneMode } from "../../tools/AirplaneMode"
 
 import { RunningEpics, sessionsTitledFor, type LiveSession } from "../list/RunningEpics"
 import { ReviewInbox, type InboxWoken, type PageInbox, type WakeClaim, type WokenState } from "./ReviewInbox"
@@ -97,12 +99,16 @@ export class ReviewStart {
   /** the main checkout:  where the worktrees and window files are */
   readonly mainRoot: string
 
+  /** the repo's `.epic/config.json5`:  where the worktrees are */
+  readonly config: EpicConfig
+
   /** the real world, or a test's stand-ins */
   private readonly options: ReviewStartOptions
 
   constructor(root: string, options: ReviewStartOptions = {}) {
     this.root = root
-    this.mainRoot = root.split(`${sep}.claude${sep}worktrees${sep}`)[0]!
+    this.config = EpicConfig.of(root)
+    this.mainRoot = this.config.main
     this.options = options
   }
 
@@ -291,7 +297,7 @@ export class ReviewStart {
 
   /** Epic `epic`'s worktree:  `.claude/worktrees/<epic>` in the main checkout (`/epic` names it for the epic). */
   worktreeOf(epic: string): string {
-    return join(this.mainRoot, ".claude", "worktrees", epic)
+    return this.config.worktreeFolder(epic)
   }
 
   /**
@@ -315,7 +321,7 @@ export class ReviewStart {
    */
   mainWindow(): WindowEntry | undefined {
     const main = real(this.mainRoot)
-    const worktrees = `${real(join(this.mainRoot, ".claude", "worktrees"))}${sep}`
+    const worktrees = `${real(this.config.worktreesFolder)}${sep}`
     return [...ReviewStart.windows().values()]
       .filter((entry) => entry.folders?.length && real(entry.folders[0]!) === main)
       .filter((entry) => !entry.folders!.some((folder) => real(folder).startsWith(worktrees)))

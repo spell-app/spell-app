@@ -19,6 +19,7 @@
 import { existsSync } from "node:fs"
 import { basename, dirname, join, resolve } from "node:path"
 
+import { EpicConfig } from "$/epics/config/EpicConfig"
 import { DataFile } from "$/epics/data/DataFile"
 import { SRV } from "$/server"
 
@@ -26,7 +27,10 @@ export class AgentList {
   /** the list's file */
   readonly file: string
 
-  /** what every agent's name starts with, before its `-`:  the epic's name, else the worktree's, else `main` */
+  /**
+   * what every agent's name starts with, before its `-`:  the epic's name, else the worktree's, else `main`
+   * (`MAIN_PREFIX`:  the main checkout's, not a branch)
+   */
   readonly prefix: string
 
   /**
@@ -34,10 +38,10 @@ export class AgentList {
    * - `epic`:  the epic it's for;  default:  the worktree's name, when `epics/<name>/<name>.plan.html` is there
    */
   constructor(root: string, { epic }: { epic?: string } = {}) {
-    const worktree = WORKTREE_ROOT.exec(root)?.[1]
+    const worktree = EpicConfig.of(root).worktreeNameOf(root)
     epic ??= worktree && existsSync(join(root, "epics", worktree, `${worktree}.plan.html`)) ? worktree : undefined
     this.file = epic ? join(root, "epics", epic, LIST_FILE) : join(root, CHECKOUT_LIST_FILE)
-    this.prefix = epic ?? worktree ?? "main"
+    this.prefix = epic ?? worktree ?? MAIN_PREFIX
   }
 
   /**
@@ -199,8 +203,8 @@ export const LIST_FILE = "agents.json5"
 /** A checkout's list, at its root, when it has no epic. */
 export const CHECKOUT_LIST_FILE = ".spell-agents.json5"
 
-/** A worktree's root:  `.../.claude/worktrees/<name>`. */
-const WORKTREE_ROOT = /[/\\]\.claude[/\\]worktrees[/\\]([^/\\]+)[/\\]?$/
+/** The agents' prefix in the main checkout, with no epic:  its name, `main`. */
+const MAIN_PREFIX = "main"
 
 /** The statuses an agent can have. */
 const STATUS = /^(active|blocked on \S+)$/

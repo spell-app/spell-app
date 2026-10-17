@@ -240,8 +240,12 @@ export class EpicChoiceRow extends E.UIComponent<typeof epicChoiceRowVocabulary>
   /** Its file at its line, for VS Code;  `#` off the page server. */
   get fileUrl(): string {
     if (isServer) return "#"
-    const server = (window as { SPELL_SERVER?: { root?: string } }).SPELL_SERVER
-    return ChoicesForm.fileUrl(this.file ?? "", this.line ?? 1, { root: server?.root, pathname: location.pathname })
+    const server = (window as { SPELL_SERVER?: { root?: string; worktrees?: string } }).SPELL_SERVER
+    return ChoicesForm.fileUrl(this.file ?? "", this.line ?? 1, {
+      root: server?.root,
+      worktrees: server?.worktrees,
+      pathname: location.pathname
+    })
   }
 
   /** `text` with its `` `code` `` spans as code. */

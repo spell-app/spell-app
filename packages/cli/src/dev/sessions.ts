@@ -14,6 +14,7 @@ import { homedir } from "os"
 import { basename, join } from "path"
 
 import { CLI } from "$/cli"
+import { EpicConfig } from "$/epics/config/EpicConfig"
 
 /**
  * Claude Code's own folder:  `~/.claude`, or `SPELL_CLAUDE_HOME` (tests point it at a fixture).
@@ -134,7 +135,8 @@ export function summarizeSession(path: string): CLI.SessionSummary | undefined {
  * project.  Used by `spell dev session find`, and by worktree / park status.
  */
 export function sessionsNamed(name: string, home = claudeHome()): CLI.NamedSession[] {
-  const worktree = `/.claude/worktrees/${name}`
+  // a `cwd` in worktree `name`:  the worktrees folder from the repo's `.epic/config.json5`
+  const config = EpicConfig.of(CLI.mainRoot())
   const found: CLI.NamedSession[] = []
   for (const path of transcripts(home)) {
     let title: string | null = null
@@ -149,7 +151,7 @@ export function sessionsNamed(name: string, home = claudeHome()): CLI.NamedSessi
       if (typeof entry.cwd === "string" && entry.cwd) {
         cwd = entry.cwd
         last = (entry.timestamp as string) ?? last
-        inWorktree ||= cwd.endsWith(worktree) || cwd.includes(`${worktree}/`)
+        inWorktree ||= config.worktreeNameOf(cwd) === name
       }
     }
     // titled `<name>`, with or without its icon (`🚧 <name>`, `✅ <name>`:  `bareTitle()`)

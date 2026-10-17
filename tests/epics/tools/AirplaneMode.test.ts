@@ -1,9 +1,14 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterAll, beforeEach, describe, expect, it } from "vite-plus/test"
 
-import { AirplaneMode } from "$/server/page"
+import type { SRV } from "$/server"
+import { PageServer } from "$/server/page"
+import { ask } from "$/server/test/serve"
+
+import { AirplaneMode } from "../../../packages/epics/tools/AirplaneMode"
+import airplaneRoutes from "../../../packages/epics/tools/airplaneRoutes"
 
 describe("AirplaneMode", () => {
   const folder = mkdtempSync(join(tmpdir(), "airplane-"))
@@ -38,5 +43,26 @@ describe("AirplaneMode", () => {
     AirplaneMode.turn(true)
     writeFileSync(file, "{ not json")
     expect(AirplaneMode.isOn).toBe(false)
+  })
+
+  it("tells every page the page server serves, through its route module (`airplaneRoutes`)", async () => {
+    const root = join(folder, "checkout")
+    mkdirSync(join(root, "docs"), { recursive: true })
+    writeFileSync(join(root, "docs", "page.html"), "<!doctype html><head></head><p>page</p>\n")
+    const server = new PageServer({ root })
+    await airplaneRoutes.setup(server.routeContext())
+    await server.start({ port: 0, routes: false, pidFile: false, bundles: false })
+    /** the page's `window.SPELL_SERVER`, as served */
+    const config = async () => {
+      const answer = await ask(server.info.port, "GET", "/docs/page.html")
+      return JSON.parse(/window\.SPELL_SERVER = (.*?)<\/script>/.exec(answer.text)![1]!) as SRV.ServerConfig
+    }
+    try {
+      expect((await config()).airplane).toBeUndefined()
+      AirplaneMode.turn(true)
+      expect((await config()).airplane).toBe(true)
+    } finally {
+      await server.stop()
+    }
   })
 })

@@ -1,17 +1,18 @@
 import { spawnSync } from "node:child_process"
 import { existsSync, statSync } from "node:fs"
-import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path"
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
 import { SRV, type ServerInfo } from "$/server"
 import {
-  AirplaneMode,
   BundleBuild,
   COMPONENT_SETS,
   HIGHLIGHT_JS,
   PageEditor,
   pageServerSettings,
+  type PageConfig,
   type PageServerSettings,
+  type RouteContext,
   type RouteModule
 } from "$/server/page"
 
@@ -32,6 +33,10 @@ import {
  *   - each its package's `docs/` folder, with Spell UI's site bundle laid over it at `_assets/` (`componentSetPath()`)
  *   - live-reloading like every page;  the same at `/worktrees/<w>/components/<set>/`
  * - `/worktrees/<w>/...` -> worktree `<w>`'s checkout, with the same URLs inside (dot files still refused)
+ *   - once a route module says where the worktrees are (`serveWorktrees()`):  epics' running epics, in the main
+ *     checkout;  the server itself knows no worktree folder
+ * - what pages are told (`window.SPELL_SERVER`):  the checkout, its branch, the edit API ... and what route modules
+ *   add (`addPageConfig()`), e.g. epics' airplane mode
  * - the bundles it serves (Spell UI's site, the brand pages) aren't committed:
  *   `start()` builds the stale ones in the background (`BundleBuild`),
  *   and a request for one of their files waits while that runs
@@ -68,6 +73,12 @@ export class PageServer {
   /** run on `stop()`, from route modules */
   private stops: (() => unknown)[] = []
 
+  /** more fields for every page's `window.SPELL_SERVER`, from route modules (`addPageConfig()`) */
+  private pageConfigs: PageConfig[] = []
+
+  /** the folder `/worktrees/<w>/` serves, once `serveWorktrees()` has said */
+  private worktrees: string | undefined
+
   constructor({ root, token }: { root: string; token?: string }) {
     this.root = resolve(root)
     this.pidFile = new SRV.PidFile(this.root)
@@ -76,29 +87,26 @@ export class PageServer {
       port: 0,
       root: this.root,
       started: new Date().toISOString(),
-      ...checkout(this.root)
+      ...checkoutInfo(this.root)
     }
     const { writable } = this.settings()
     this.web = new SRV.WebServer({
       root: this.root,
       token,
       live: true,
-      mounts: [
-        { prefix: "/", dir: this.root },
-        // every worktree's checkout, so the main server shows a running epic's epic page (epics' running epics)
-        { prefix: "/worktrees/", dir: join(this.root, ".claude", "worktrees") }
-      ],
+      mounts: [{ prefix: "/", dir: this.root }],
       html: [localHighlight],
       configure: (served) => ({
         root: this.root,
         branch: this.info.branch,
         worktree: this.info.worktree,
         // a worktree's page served from here (`/worktrees/<w>/`):  ITS branch and name, for the header's badge
-        ...worktreeOf(served.file, this.root),
+        ...(this.worktrees && worktreeOf(served.file, this.worktrees)),
+        ...(this.worktrees && { worktrees: this.worktrees }),
         edit: PageEditor.PREFIX,
         etag: SRV.StaticHandler.etagOf(statSync(served.file)),
-        // Owen is offline, no Claude:  pages say "queued for when you land" (epic `airplane`)
-        ...(AirplaneMode.isOn && { airplane: true })
+        // e.g. Owen is offline, no Claude:  pages say "queued for when you land" (epics' airplane mode)
+        ...Object.assign({}, ...this.pageConfigs.map((add) => add(served)))
       })
     })
     this.web.files.overlays.push(componentSetPath, movedFolderPath)
@@ -184,6 +192,27 @@ export class PageServer {
     })
   }
 
+  /**
+   * Serve every worktree in folder `dir` at `/worktrees/<w>/`, with the same URLs inside (dot files refused), so the
+   * main checkout's server shows a running epic's pages;  returns `this`.
+   * - called by epics' running-epics route module, in the main checkout:  the worktrees' folder is the repo's
+   *   `.epic/config.json5`'s, which this package can't read (it imports no other package)
+   * - a page served from one gets ITS branch and worktree name (the header's badge), and every page the folder
+   *   (`SPELL_SERVER.worktrees`), as `/api/server` does (`ServerInfo.worktrees`)
+   */
+  serveWorktrees(dir: string): this {
+    this.worktrees = resolve(dir)
+    this.info.worktrees = this.worktrees
+    this.web.files.mount({ prefix: WORKTREES_PREFIX, dir: this.worktrees })
+    return this
+  }
+
+  /** Add `add`'s fields to every page's `window.SPELL_SERVER`, from a route module;  returns `this`. */
+  addPageConfig(add: PageConfig): this {
+    this.pageConfigs.push(add)
+    return this
+  }
+
   /** the root `package.json`'s `"pageServer"` field */
   settings(): PageServerSettings {
     return pageServerSettings(this.root)
@@ -193,18 +222,28 @@ export class PageServer {
   private async loadRoutes(path: string): Promise<void> {
     try {
       const module = (await import(pathToFileURL(join(this.root, path)).href)) as { default: RouteModule }
-      await module.default.setup({
-        root: this.root,
-        router: this.web.router,
-        guard: this.web.guard,
-        live: this.web.live!,
-        web: this.web,
-        info: this.info,
-        onListening: (start) => this.listenings.push(start),
-        onStop: (stop) => this.stops.push(stop)
-      })
+      await module.default.setup(this.routeContext())
     } catch (error) {
       console.error(`page server:  route module ${path} failed to load:`, error)
+    }
+  }
+
+  /**
+   * What a route module's `setup()` gets:  this server's router, guard, live reload ..., and its hooks.
+   * - tests set a route module up by hand with it, on a server started with `routes: false`
+   */
+  routeContext(): RouteContext {
+    return {
+      root: this.root,
+      router: this.web.router,
+      guard: this.web.guard,
+      live: this.web.live!,
+      web: this.web,
+      info: this.info,
+      serveWorktrees: (dir) => void this.serveWorktrees(dir),
+      addPageConfig: (add) => void this.addPageConfig(add),
+      onListening: (start) => this.listenings.push(start),
+      onStop: (stop) => this.stops.push(stop)
     }
   }
 }
@@ -222,6 +261,9 @@ const SOURCE = fileURLToPath(new URL("..", import.meta.url))
 
 /** This package's `tsconfig.json`:  the alias table a background server needs. */
 const TSCONFIG = fileURLToPath(new URL("../../tsconfig.json", import.meta.url))
+
+/** Where worktrees are served, once a route module says where they are (`serveWorktrees()`). */
+const WORKTREES_PREFIX = "/worktrees/"
 
 /** Port the page server asks for first:  `SPELL_SERVER_PORT`, else 4747 (the goals server's old port). */
 export const DEFAULT_PORT = Number(process.env.SPELL_SERVER_PORT) || 4747
@@ -250,15 +292,16 @@ export function findRoot(start: string): string | undefined {
 }
 
 /**
- * Branch and worktree name of the worktree `file` is in, when it's under `<root>/.claude/worktrees/`;  else `{}`.
+ * Branch and worktree name of the worktree `file` is in, when it's in worktrees' folder `worktrees`;  else `{}`.
  * - cached per worktree:  every page served asks
  */
-function worktreeOf(file: string, root: string): { branch?: string; worktree?: string } {
-  const inside = relative(join(root, ".claude", "worktrees"), file)
+function worktreeOf(file: string, worktrees: string): { branch?: string; worktree?: string } {
+  const inside = relative(worktrees, file)
   if (!inside || inside.startsWith("..") || isAbsolute(inside)) return {}
   const name = inside.split(sep)[0]!
   let found = WORKTREES.get(name)
-  if (!found) WORKTREES.set(name, (found = checkout(join(root, ".claude", "worktrees", name))))
+  // its name is its folder's, in the worktrees' folder
+  if (!found) WORKTREES.set(name, (found = { ...checkoutInfo(join(worktrees, name)), worktree: name }))
   return found
 }
 
@@ -338,10 +381,14 @@ const MOVED_FOLDERS: readonly (readonly [from: string, to: string])[] = [
  */
 const MOVED_OUT = ["/ui", "/brand/components"]
 
-/** Branch and worktree name of the checkout at `root`, when git knows. */
-function checkout(root: string): { branch?: string; worktree?: string } {
+/**
+ * Branch and worktree name of the checkout at `root`, when git knows.
+ * - `worktree`:  when `root` is a worktree's own folder (`SRV.checkoutOf()`)
+ */
+function checkoutInfo(root: string): { branch?: string; worktree?: string } {
   const run = spawnSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], { cwd: root, encoding: "utf8" })
   const branch = run.status === 0 ? run.stdout.trim() : undefined
-  const worktree = /[/\\]\.claude[/\\]worktrees[/\\][^/\\]+$/.test(root) ? basename(root) : undefined
+  const found = SRV.checkoutOf(root)
+  const worktree = found?.root === resolve(root) ? found.worktree : undefined
   return { ...(branch && { branch }), ...(worktree && { worktree }) }
 }

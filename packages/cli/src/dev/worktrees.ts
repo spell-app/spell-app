@@ -4,6 +4,7 @@ import { basename, dirname, join, relative, resolve } from "path"
 import { pathToFileURL } from "url"
 
 // Import directly:  the `$/server/site` barrel is browser code (the site header)
+import { EpicConfig } from "$/epics/config/EpicConfig"
 import { URGENT_STATES } from "$/epics/list/EpicState"
 import { CLI } from "$/cli"
 
@@ -49,9 +50,10 @@ export function worktreesOf(root: string): { path: string; branch: string }[] {
  * - git runs in the MAIN checkout:  branches are shared, so every worktree gets the same answer
  */
 export function nameStatus(name: string, ids?: string[], main = CLI.mainRoot()): CLI.NameStatus {
-  const worktree = join(main, ".claude", "worktrees", name)
+  const config = new EpicConfig(main)
+  const worktree = config.worktreeFolder(name)
   const branch = CLI.git(["rev-parse", "--verify", "--quiet", `refs/heads/${name}`], main).ok ? name : null
-  const ahead = branch ? Number(CLI.git(["rev-list", "--count", `main..${name}`], main).out || 0) : 0
+  const ahead = branch ? Number(CLI.git(["rev-list", "--count", `${config.baseBranch}..${name}`], main).out || 0) : 0
   const reflog = branch ? CLI.git(["reflog", "show", "--format=%H", `refs/heads/${name}`], main).out : ""
   const moved = reflog.split("\n").filter(Boolean).length > 1
   const merged = !!branch && moved && ahead === 0

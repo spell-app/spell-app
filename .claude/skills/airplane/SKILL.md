@@ -13,7 +13,7 @@ Airplane mode:  Owen works on the pages ALONE, with no internet and no Claude (e
 
 - The repo actions are `epic airplane ...` ([airplane.ts](packages/epics/tools/airplane.ts));
   this skill holds the dialog.
-- The switch:  `~/.spell/airplane.json`, read by [`AirplaneMode`](packages/server/src/page/AirplaneMode.ts).
+- The switch:  `~/.spell/airplane.json`, read by [`AirplaneMode`](packages/epics/tools/AirplaneMode.ts).
   - While it's on, the page server tells every page.
   - Then the review controls say "queued for when you land", instead of "start `/epic review`".
 - Works from ANY session, a worktree's too (Owen, 2026-10-10:  "when I land in any session, all should come back

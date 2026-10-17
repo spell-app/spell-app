@@ -12,6 +12,9 @@
  * - Each file shows ONCE in Explorer and Quick Open (`filesExclude()`):  `.claude/worktrees/` hidden, and the shared
  *   links shown only under the `spell-app-dev` folder.  Generated files, icons and screenshots stay out of Quick
  *   Open and Find through the root's `.vscode/settings.json` (`search.exclude`).
+ * - The folders and names come from the repo's `.epic/config.json5` (`EpicConfig`, `CONFIG`):  the content repo
+ *   (`contentFolder`), the worktrees' folder (`worktreesFolder`), the window names (`windows`).  The names in this
+ *   header are their defaults.
  * - A saved workspace can gain and lose folders (a worktree, while a session works in it) without restarting
  *   extensions;  a one-folder window can't, and its Claude panel restarts.
  *   - NEVER add one any more:  VS Code writes the folder into the window file, where it outlives the worktree,
@@ -122,11 +125,16 @@ import { homedir } from "node:os"
 import { dirname, join, relative, resolve, sep } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
+import { EpicConfig } from "../packages/epics/src/config/EpicConfig.ts"
+
 /** The repo root:  a worktree's own, when run from one. */
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
 
-/** The MAIN checkout's root, even when run from a worktree:  where `.claude/worktrees/` is. */
-const MAIN_ROOT = mainRoot(ROOT)
+/** The repo's `.epic/config.json5`, the MAIN checkout's:  its folders and window names. */
+const CONFIG = EpicConfig.of(ROOT)
+
+/** The MAIN checkout's root, even when run from a worktree:  where the window files are. */
+const MAIN_ROOT = CONFIG.main
 
 /** Each package's starting theme:  VS Code's built-ins, all different.  Owen picks real ones in the files. */
 const THEMES = {
@@ -145,8 +153,11 @@ const THEMES = {
 /** A package that isn't in `THEMES`. */
 const FALLBACK_THEME = "Default Dark+"
 
-/** `open`'s window file when this session's window isn't a package's:  `workspaces/spell-app.code-workspace`. */
-const DEFAULT_WINDOW = "spell-app"
+/**
+ * `open`'s window file when this session's window isn't a package's:  `workspaces/<default>.code-workspace`, the
+ * whole repo's (`windows.default`, `spell-app`).
+ */
+const DEFAULT_WINDOW = CONFIG.windows.default
 
 /** The MAIN checkout's marker file (git-ignored):  worktree windows hide what's beside it (`filesExclude()`). */
 const MAIN_MARKER = ".spell-main"
@@ -200,23 +211,25 @@ export class Window {
 
   /** A package window's folders, relative to `workspaces/`:  the repo root, then the shared content repo. */
   static packageFolders() {
-    return [{ path: "..", name: "spell-app" }, ...Window.sharedFolder(join(ROOT, "workspaces"))]
+    return [{ path: "..", name: CONFIG.windows.repoName }, ...Window.sharedFolder(join(ROOT, "workspaces"))]
   }
 
   /**
    * A window's `files.exclude`, so Explorer and Quick Open show each file ONCE.  It applies to every folder of the
    * window, each pattern relative to the folder;  a `when` hides an entry only beside a sibling of that name.
-   * - `.claude/worktrees`:  a worktree is its own folder (a worktree window), or its own repo in Source Control
+   * - `.claude/worktrees` (`worktreesFolder`, while it's inside the checkout):  a worktree is its own folder (a
+   *   worktree window), or its own repo in Source Control
    * - the shared links (`epics`, `guides` ...) in a CHECKOUT (beside its `package.json`):
-   *   their files show once, under the `spell-app-dev` folder, at the real path edits need
+   *   their files show once, under the `spell-app-dev` folder (`windows.contentName`), at the real path edits need
    *   (root `AGENTS.md`, "Shared content")
    * - `worktree`:  also everything in the MAIN checkout's folder (beside its `.spell-main` marker,
    *   `ensureMainMarker()`):  the worktree's folder has the same files.  The main root stays the first folder, for
    *   the Claude panel, and keeps its Source Control.
    */
   static filesExclude({ worktree = false } = {}) {
+    const worktrees = CONFIG.worktreesPattern
     return {
-      ".claude/worktrees": true,
+      ...(worktrees && { [worktrees]: true }),
       ...(worktree && { "*": { when: MAIN_MARKER } }),
       ...Object.fromEntries(sharedLinks().map((link) => [link, { when: "package.json" }]))
     }
@@ -274,17 +287,11 @@ export class Window {
    * `fromDir` (where the window file is);  `[]` when it doesn't exist.
    * - its own Source Control entry (the auto commits) and search;  permanent, so unlike a worktree it belongs in
    *   every window.  Its own `.vscode/settings.json` hides its `packages/` (the old-path links)
-   * - where:  `"shared": { "dir" }` in the main checkout's `package.json`, else `../spell-app-dev`
+   * - where:  `contentFolder` in the repo's `.epic/config.json5`;  named `windows.contentName`
    */
   static sharedFolder(fromDir) {
-    let dir = "../spell-app-dev"
-    try {
-      dir = JSON.parse(readFileSync(join(MAIN_ROOT, "package.json"), "utf8")).shared?.dir ?? dir
-    } catch {
-      // no manifest:  the default
-    }
-    const shared = resolve(MAIN_ROOT, dir)
-    return existsSync(shared) ? [{ path: relative(fromDir, shared), name: "spell-app-dev" }] : []
+    const shared = CONFIG.contentFolder
+    return existsSync(shared) ? [{ path: relative(fromDir, shared), name: CONFIG.windows.contentName }] : []
   }
 
   ////////////////
@@ -318,11 +325,12 @@ export class Window {
       if (source.settings["workbench.colorCustomizations"])
         settings["workbench.colorCustomizations"] = source.settings["workbench.colorCustomizations"]
     } else settings["workbench.colorCustomizations"] = tint(name)
+    const ongoing = join(MAIN_ROOT, "workspaces", "ongoing")
     return {
       folders: [
-        { path: "../..", name: "spell-app" },
-        { path: `../../.claude/worktrees/${name}`, name: `⎇ ${name}` },
-        ...Window.sharedFolder(join(MAIN_ROOT, "workspaces", "ongoing"))
+        { path: relative(ongoing, MAIN_ROOT), name: CONFIG.windows.repoName },
+        { path: relative(ongoing, CONFIG.worktreeFolder(name)), name: `⎇ ${name}` },
+        ...Window.sharedFolder(ongoing)
       ],
       settings,
       spell: { package: pkg }
@@ -377,7 +385,7 @@ export class Window {
    *   `colors` go in once the window is up (`applyColors()`), a live change
    */
   static open(name, pkg, { color = null, fromCurrent = true } = {}) {
-    if (!existsSync(join(MAIN_ROOT, ".claude", "worktrees", name))) throw new Error(`no worktree ${name}`)
+    if (!existsSync(CONFIG.worktreeFolder(name))) throw new Error(`no worktree ${name}`)
     // a package, or any other window file (`spell-app`:  the whole repo's)
     if (!Window.packages.includes(pkg) && !existsSync(join(MAIN_ROOT, "workspaces", `${pkg}.code-workspace`)))
       throw new Error(`no package ${pkg}`)
@@ -955,11 +963,6 @@ function isAlive(pid) {
   }
 }
 
-/** The main checkout's root of `root`:  the part before `/.claude/worktrees/`, if `root` is a worktree. */
-export function mainRoot(root) {
-  return root.split(`${sep}.claude${sep}worktrees${sep}`)[0]
-}
-
 /**
  * Title-bar colours for worktree `name`:  a hue of its own (a hash of the name), dark enough for white text;
  * dimmer while the window isn't focused.
@@ -1221,11 +1224,9 @@ export function parseLsof(text) {
   return cwds
 }
 
-/** The worktree `cwd` is in (`.../.claude/worktrees/<name>/...`), else `null`. */
+/** The worktree `cwd` is in (`.../.claude/worktrees/<name>/...`:  `EpicConfig.worktreeNameOf()`), else `null`. */
 export function worktreeOf(cwd) {
-  const marker = `${sep}.claude${sep}worktrees${sep}`
-  const at = (cwd ?? "").indexOf(marker)
-  return at < 0 ? null : cwd.slice(at + marker.length).split(sep)[0] || null
+  return CONFIG.worktreeNameOf(cwd) ?? null
 }
 
 /**

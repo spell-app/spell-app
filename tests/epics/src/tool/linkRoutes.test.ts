@@ -33,16 +33,7 @@ describe("link routes", () => {
       `<title>Epic: SEO</title><epic-page epic="seo" saga="spell-ui"><epic-item id="j3" title="Titles"></epic-item></epic-page>`
     )
     server = new PageServer({ root })
-    await linkRoutes.setup({
-      root,
-      router: server.web.router,
-      guard: server.web.guard,
-      live: server.web.live!,
-      web: server.web,
-      info: server.info,
-      onListening: () => {},
-      onStop: () => {}
-    })
+    await linkRoutes.setup(server.routeContext())
     await server.start({ port: 0, routes: false, pidFile: false })
     port = server.info.port
   })

@@ -627,7 +627,7 @@ export class PlanDocCommands {
   private async splitDone({ dryRun }: Flags): Promise<void> {
     for (const epic of this.files.listEpics()) {
       if (epic.status !== "done") continue
-      if (epic.checkout !== "main") {
+      if (epic.checkout !== PlanDocFiles.MAIN_CHECKOUT) {
         this.print(`${epic.name}:  skipped, still has a worktree (${epic.checkout})`)
         continue
       }
@@ -735,7 +735,7 @@ export class PlanDocCommands {
       if (!group.length) continue
       lines.push(`${status}:  (not reviewed / items)`)
       for (const epic of group) {
-        const where = epic.checkout === "main" ? "" : `  (${epic.checkout})`
+        const where = epic.checkout === PlanDocFiles.MAIN_CHECKOUT ? "" : `  (${epic.checkout})`
         lines.push(`  ${epic.name.padEnd(24)} ${String(epic.notReviewed).padStart(3)} / ${epic.total}${where}`)
       }
     }

@@ -51,7 +51,7 @@ export async function sharedCommand(
       return CLI.EXIT.OK
     }
     case "link": {
-      const reports = linkAll(session, config, options.all ? CLI.sharedCheckouts(config.main) : [checkout])
+      const reports = linkAll(session, config, options.all ? CLI.sharedCheckouts(config) : [checkout])
       return reports.some((report) => report.action === "diverged") ? CLI.EXIT.ERRORS : CLI.EXIT.OK
     }
     case "commit": {
@@ -71,7 +71,7 @@ export async function sharedCommand(
     case "migrate": {
       const name = args[1]
       if (!name) throw new CLI.CliError("migrate:  which worktree?")
-      const worktree = join(config.main, ".claude", "worktrees", name)
+      const worktree = join(config.worktrees, name)
       if (!existsSync(join(worktree, ".git"))) throw new CLI.CliError(`no worktree ${worktree}`)
       const report = CLI.migrateWorktree(worktree, config, { dryRun: options.dryRun })
       if (options.json)

@@ -797,8 +797,9 @@
   function fileUrl(rule) {
     const root = server?.root
     if (!root) return "#"
+    // a worktree's page on the main server:  the folder it serves worktrees from (`SPELL_SERVER.worktrees`)
     const worktree = location.pathname.match(/^\/worktrees\/([^/]+)\//)?.[1]
-    const checkout = worktree ? `${root}/.claude/worktrees/${worktree}` : root
+    const checkout = worktree && server.worktrees ? `${server.worktrees}/${worktree}` : root
     return `vscode://file${encodeURI(`${checkout}/${rule.file}`)}:${rule.line}`
   }
 

@@ -1,30 +1,44 @@
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { describe, expect, it } from "vite-plus/test"
+import { afterAll, describe, expect, it } from "vite-plus/test"
 
 import { SRV } from "$/server"
 import { PageServer } from "$/server/page"
+import { fakeMainCheckout, fakeWorktree } from "$/server/test/checkouts"
 
 describe("worktreePath()", () => {
+  /** A main checkout and its worktree `seo`, as git leaves them. */
+  const top = mkdtempSync(join(tmpdir(), "srv-path-"))
+  const main = fakeMainCheckout(join(top, "repo"))
+  const seo = fakeWorktree(main, join(main, ".claude", "worktrees", "seo"))
+  afterAll(() => rmSync(top, { recursive: true, force: true }))
+
   it("splits a worktree's file into main checkout, worktree and path", () => {
-    expect(SRV.worktreePath("/repo/.claude/worktrees/seo/packages/docs/content/a b.html")).toEqual({
-      main: "/repo",
+    expect(SRV.worktreePath(join(seo, "packages/docs/content/a b.html"))).toEqual({
+      main,
+      root: seo,
       worktree: "seo",
       path: ["packages", "docs", "content", "a b.html"]
     })
   })
 
   it("is `undefined` outside a worktree", () => {
-    expect(SRV.worktreePath("/repo/packages/docs/content/a.html")).toBeUndefined()
-    expect(SRV.worktreePath("/repo/.claude/worktrees")).toBeUndefined()
+    expect(SRV.worktreePath(join(main, "packages/docs/content/a.html"))).toBeUndefined()
+    expect(SRV.worktreePath(join(main, ".claude", "worktrees"))).toBeUndefined()
   })
 })
 
 describe("mainServerUrl()", () => {
   it("answers on the main server once it runs and serves worktrees;  else `undefined`", async () => {
-    const root = mkdtempSync(join(tmpdir(), "srv-main-"))
-    const file = join(root, ".claude", "worktrees", "seo", "packages", "docs", "content", "a b.html")
+    const root = fakeMainCheckout(mkdtempSync(join(tmpdir(), "srv-main-")))
+    const file = join(
+      fakeWorktree(root, join(root, ".claude", "worktrees", "seo")),
+      "packages",
+      "docs",
+      "content",
+      "a b.html"
+    )
     mkdirSync(join(file, ".."), { recursive: true })
     writeFileSync(file, "<p>a</p>")
     writeFileSync(join(root, "package.json"), "{}")
@@ -47,9 +61,8 @@ describe("mainServerUrl()", () => {
     const top = mkdtempSync(join(tmpdir(), "srv-shared-"))
     const root = join(top, "repo")
     const shared = join(top, "repo-dev", "epics")
-    const worktree = join(root, ".claude", "worktrees", "seo")
+    const worktree = fakeWorktree(root, join(root, ".claude", "worktrees", "seo"))
     mkdirSync(join(shared, "seo"), { recursive: true })
-    mkdirSync(worktree, { recursive: true })
     writeFileSync(join(shared, "seo", "seo.plan.html"), "<p>plan</p>")
     writeFileSync(join(root, "package.json"), "{}")
     symlinkSync(shared, join(root, "epics"))

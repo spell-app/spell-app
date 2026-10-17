@@ -8,10 +8,16 @@
  * - live reload:  a worktree's epic page changing reloads its page and the Epics list (`RunningEpics.watch()`);
  *   its rebuilt page assets (docs bundle, packs) hot-reload its pages served here;
  *   the watcher closes when the server stops
- * - worktree `<w>`'s files, at `/worktrees/<w>/...`, are the page server's own mount, not this module's
+ * - worktree `<w>`'s files, at `/worktrees/<w>/...`:  the page server's mount, which this module tells it to make
+ *   (`serveWorktrees()`), in the MAIN checkout only:  the worktrees' folder is the repo's `.epic/config.json5`'s
+ *   (`EpicConfig`), which the server can't read
  * - reads only:  nothing here needs the page server's token
  */
+import { resolve } from "node:path"
+
 import type { RouteModule } from "$/server/page"
+
+import { EpicConfig } from "$/epics/config/EpicConfig"
 
 import { RunningEpics } from "./RunningEpics"
 
@@ -20,7 +26,10 @@ export const RUNNING_API = "/api/epics/running"
 
 const runningRoutes: RouteModule = {
   name: "running epics",
-  setup({ root, router, web, live, onStop }) {
+  setup({ root, router, web, live, onStop, serveWorktrees }) {
+    const config = EpicConfig.of(root)
+    // the main checkout's server shows every worktree;  a worktree's own server shows none
+    if (config.main === resolve(root)) serveWorktrees(config.worktreesFolder)
     const epics = new RunningEpics(root)
     router.get(RUNNING_API, (_request, reply) => reply.set("Cache-Control", "no-store").json(epics.list()))
     web.files.html.push((page, served) => (served.file === epics.index ? epics.render(page) : page))

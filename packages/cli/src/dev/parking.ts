@@ -2,6 +2,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "fs"
 import { join } from "path"
 
 import { CLI } from "$/cli"
+import { EpicConfig } from "$/epics/config/EpicConfig"
 
 /**
  * What `/wait-for ?` offers, each `{ name, label }`:  unfinished worktrees and epics, then running sessions outside
@@ -9,18 +10,19 @@ import { CLI } from "$/cli"
  * - a worktree or epic counts while it isn't finished and has a worktree or commits of its own
  */
 export function waitCandidates(main = CLI.mainRoot()): CLI.WaitCandidate[] {
-  const names = new Set([...folders(join(main, ".claude", "worktrees")), ...folders(CLI.epicsDir(main))])
+  const config = new EpicConfig(main)
+  const names = new Set([...folders(config.worktreesFolder), ...folders(CLI.epicsDir(main))])
   const found: CLI.WaitCandidate[] = []
   for (const name of [...names].sort()) {
     const status = CLI.nameStatus(name, [], main)
     if (status.finished || !(status.ahead || status.worktree)) continue
-    const ahead = status.ahead ? `${status.ahead} commits not in main` : "nothing committed yet"
+    const ahead = status.ahead ? `${status.ahead} commits not in ${config.baseBranch}` : "nothing committed yet"
     const bits = [status.branch ? ahead : null, status.plan ? "epic page" : null].filter(Boolean)
     found.push({ name, label: bits.join(", ") || "worktree" })
   }
   const mine = CLI.ancestorPids()
   for (const record of CLI.repoSessions(main)) {
-    if (mine.has(record.pid) || record.cwd?.includes("/.claude/worktrees/")) continue
+    if (mine.has(record.pid) || config.worktreeNameOf(record.cwd)) continue
     const name = CLI.sessionTitle(record.sessionId) || record.name || record.sessionId.slice(0, 8)
     found.push({ name, label: `running session (${record.status ?? "?"})` })
   }
@@ -29,9 +31,10 @@ export function waitCandidates(main = CLI.mainRoot()): CLI.WaitCandidate[] {
 
 /** Every parked worktree's note, `.claude/worktrees/<name>/PARKED-<name>.md`, sorted by path. */
 export function parkedNotes(main = CLI.mainRoot()): CLI.ParkedNote[] {
+  const config = new EpicConfig(main)
   const found: CLI.ParkedNote[] = []
-  for (const name of folders(join(main, ".claude", "worktrees")).sort()) {
-    const dir = join(main, ".claude", "worktrees", name)
+  for (const name of folders(config.worktreesFolder).sort()) {
+    const dir = config.worktreeFolder(name)
     for (const file of readdirSync(dir).sort()) {
       if (!/^PARKED-.*\.md$/.test(file)) continue
       const lines = readFileSync(join(dir, file), "utf8").split("\n")

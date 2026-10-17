@@ -2,6 +2,7 @@ import { existsSync, readdirSync, statSync } from "fs"
 import { basename, join, relative } from "path"
 
 import { CLI } from "$/cli"
+import { EpicConfig } from "$/epics/config/EpicConfig"
 
 /** Hours:  touched within `RECENT_HOURS` is in process;  a session idle for `STALE_HOURS` is dead. */
 export const RECENT_HOURS = 6
@@ -25,6 +26,7 @@ export const STOCK_TITLES: Record<CLI.StockGroup, string> = {
  * - a session working in a worktree belongs to that worktree's item;  the rest are items of their own
  */
 export function takeStock(main = CLI.mainRoot()): CLI.StockReport {
+  const config = new EpicConfig(main)
   const sessions = liveSessions(main)
   const items: CLI.StockItem[] = []
   // every epic page in one tool run, not one each
@@ -34,9 +36,7 @@ export function takeStock(main = CLI.mainRoot()): CLI.StockReport {
     : []
   const every = [...planNames.sort(), ...worktreeNames(main).map((it) => it.name)]
   CLI.planSummaries(
-    every
-      .map((name) => CLI.planFile(name, join(main, ".claude", "worktrees", name), main))
-      .filter((file): file is string => !!file),
+    every.map((name) => CLI.planFile(name, config.worktreeFolder(name), main)).filter((file): file is string => !!file),
     main
   )
   const claimed = new Set<string>()
@@ -46,7 +46,7 @@ export function takeStock(main = CLI.mainRoot()): CLI.StockReport {
   for (const branch of CLI.git(["for-each-ref", "--format=%(refname:short)", "refs/heads"], main)
     .out.split("\n")
     .filter(Boolean)) {
-    if (!branchesSeen.has(branch) && branch !== "main")
+    if (!branchesSeen.has(branch) && branch !== config.baseBranch)
       items.push(checkoutItem(main, branch, null, branch, sessions, claimed))
   }
   const names = new Set(items.map((item) => item.name))
@@ -82,16 +82,18 @@ function checkoutItem(
 ): CLI.StockItem {
   const here = sessions.filter((session) => worktree && inFolder(session.cwd, worktree))
   for (const session of here) claimed.add(session.id)
-  const ahead = branch ? count(main, `main..${branch}`) : 0
-  const behind = branch ? count(main, `${branch}..main`) : 0
-  // commits whose patch is already in `main` (squashed, cherry-picked) don't count as work
+  const config = new EpicConfig(main)
+  const base = config.baseBranch
+  const ahead = branch ? count(main, `${base}..${branch}`) : 0
+  const behind = branch ? count(main, `${branch}..${base}`) : 0
+  // commits whose patch is already in the base branch (squashed, cherry-picked) don't count as work
   const unique = ahead
-    ? lines(CLI.git(["cherry", "main", branch!], main).out).filter((line) => line.startsWith("+")).length
+    ? lines(CLI.git(["cherry", base, branch!], main).out).filter((line) => line.startsWith("+")).length
     : 0
   const dirty = worktree ? lines(CLI.git(["status", "--short"], worktree).out) : []
   const moved =
     !!branch && lines(CLI.git(["reflog", "show", "--format=%H", `refs/heads/${branch}`], main).out).length > 1
-  const plan = CLI.planStatus(name, join(main, ".claude", "worktrees", name), main)
+  const plan = CLI.planStatus(name, config.worktreeFolder(name), main)
   const item: CLI.StockItem = {
     key: worktree ? `worktree:${name}` : `branch:${name}`,
     kind: worktree ? "worktree" : "branch",
@@ -174,7 +176,7 @@ function notes(item: CLI.StockItem, parked: CLI.StockItem["parked"]): string[] {
 
 /** An epic page with no worktree or branch:  stalled if phases are left, else nothing to report. */
 function planItem(main: string, name: string): CLI.StockItem | undefined {
-  const plan = CLI.planStatus(name, join(main, ".claude", "worktrees", name), main)
+  const plan = CLI.planStatus(name, new EpicConfig(main).worktreeFolder(name), main)
   if (!plan.folder || plan.done) return undefined
   const item: CLI.StockItem = {
     key: `plan:${name}`,
@@ -235,7 +237,7 @@ function stashItems(main: string): CLI.StockItem[] {
     const name = tag[1]
     const item: CLI.StockItem = { key: `stash:${sha.slice(0, 8)}`, kind: "stash", name, stash: sha, sessions: [] }
     const actions = [
-      action("apply", `apply it in worktree \`${name}\``, [`git -C .claude/worktrees/${name} stash apply ${sha}`]),
+      action("apply", `apply it in worktree \`${name}\``, [`git -C ${worktreeAt(main, name)} stash apply ${sha}`]),
       action("drop", "drop it (look first)", [`git stash show -p ${sha}`, `git stash drop <ref of ${sha}>`])
     ]
     items.push(setGroup(item, "stalled", [`\`/park\` stash left behind (${ref}):  \`${subject}\``], actions))
@@ -458,9 +460,14 @@ function pendingQuestion(tail: string): { question: string; minutes: number } | 
 // ## Checkouts
 ////////////////
 
-/** Each worktree under `.claude/worktrees/`:  `{ name, path, branch }`. */
+/** Worktree `name`'s folder as a command typed in the main checkout gives it:  `.claude/worktrees/<name>`. */
+function worktreeAt(main: string, name: string): string {
+  return relative(main, new EpicConfig(main).worktreeFolder(name))
+}
+
+/** Each worktree in the worktrees' folder (`.claude/worktrees/`):  `{ name, path, branch }`. */
 function worktreeNames(main: string): { name: string; path: string; branch: string }[] {
-  const root = join(main, ".claude", "worktrees")
+  const root = new EpicConfig(main).worktreesFolder
   return CLI.worktreesOf(main)
     .filter((it) => it.path.startsWith(`${root}/`) && it.branch !== "(detached)")
     .map((it) => ({ name: basename(it.path), path: it.path, branch: it.branch }))

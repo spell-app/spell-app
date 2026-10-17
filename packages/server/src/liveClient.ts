@@ -32,8 +32,13 @@ export type ServerConfig = {
   root?: string
   branch?: string
   worktree?: string
+  /** the folder `/worktrees/<w>/` serves, on the main checkout's server (`PageServer.serveWorktrees()`) */
+  worktrees?: string
   edit?: string
-  /** airplane mode is on:  Owen works with no Claude, everything waits for `/airplane land` (`AirplaneMode`) */
+  /**
+   * airplane mode is on:  Owen works with no Claude, everything waits for `/airplane land` (epics' `AirplaneMode`,
+   * told by its route module)
+   */
   airplane?: boolean
   editPage?: (edit: PageEdit) => Promise<PageEditResult>
   saveFile?: (save: FileSave) => Promise<PageEditResult>
@@ -897,12 +902,16 @@ export type LiveAction = "page" | "style" | "script" | "ignore" | "file"
  * - the path, without query or hash
  * - a worktree's file through the main server's `/worktrees/<w>/...`:  `/.claude/worktrees/<w>/...`,
  *   its path from the main checkout (as `LiveReload` reports it, and as `SPELL_SERVER.file` names a worktree's page)
+ *   - `WORKTREES_PATH`:  the worktrees' folder as that path, its default place;  the page can't read the repo's
+ *     `.epic/config.json5`.  HACK:  assumes worktrees inside the main checkout (epic `epic-eject` P7)
  * - MUST stay self-contained:  `liveClientScript()` serves it beside `liveClient()`
  */
 export function servedPath(url: string, base: string): string | undefined {
+  // here, not at module level:  this function is served on its own, as text
+  const WORKTREES_PATH = "/.claude/worktrees/"
   const at = new URL(url, base)
   if (at.origin !== new URL(base).origin) return undefined
-  return at.pathname.replace(/^\/worktrees\//, "/.claude/worktrees/")
+  return at.pathname.replace(/^\/worktrees\//, WORKTREES_PATH)
 }
 
 /**

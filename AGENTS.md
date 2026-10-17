@@ -247,6 +247,8 @@ ui -> util
 - Enter a worktree with `/isolate <name>` (`/epic` does it too), or with Claude's own `EnterWorktree`.
 - The `WorktreeCreate` hook ([worktree.mjs](.claude/hooks/worktree.mjs)):
   - makes the worktree `.claude/worktrees/<name>` on its own branch, `<name>`, from local main
+    - the folder and the branch:  `worktreesFolder` and `baseBranch` in [`.epic/config.json5`](.epic/config.json5),
+      the repo's epic settings (`EpicConfig`;  `epic config` prints them)
   - keeps the session saved at the root
     (Claude's own worktrees move it, and it drops out of every window's list)
 - New window, or stay?
@@ -383,17 +385,20 @@ ui -> util
 
 - In EVERY checkout (main and each worktree) they're folder SYMLINKS into one shared content repo.
   - It's `../spell-app-dev`, beside the main checkout:  an ordinary git repo, local only.
+  - Where it is comes from `.epic/config.json5` (`contentFolder`), the repo's epic settings (epic `epic-eject` P4):
+    `epic config contentFolder` prints it.
   - So every worktree sees every edit at once:  no per-branch copy, and these files never conflict on merge.
   - Folders, never single-file links:  Claude's Edit refuses to write through a link to a file.
 - Claude edits shared files at their REAL path, from main or any worktree.
-  - That's `/Users/owen/www/spell-app/spell-app-dev/<path>`.
+  - That's `/Users/owen/www/spell-app/spell-app-dev/<path>`:  `$(epic config contentFolder)/<path>`.
   - E.g. `.../spell-app-dev/agents/PAPERCUTS.md`.
   - A worktree session's Edit / Write refuses a path through the links, before any hook could step in.
     It says "Edit the worktree copy of this file instead of the shared-checkout path":
     there is no worktree copy.
   - Reading and tools (`epic`, the page server) use the links as usual.
 - The manifest has two parts:
-  - the root `package.json`'s `"shared": { "dir", "links" }`
+  - the root `package.json`'s `"shared": { "links" }`
+    (its `"dir"` is `.epic/config.json5`'s `contentFolder` since epic `epic-eject` P4)
   - the `# shared:start` ... `# shared:end` block in `.gitignore`
   - A checkout's links are its OWN branch's manifest's:
     `spell dev shared link` after merging a manifest change.

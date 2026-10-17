@@ -74,17 +74,9 @@ beforeAll(async () => {
     mkdirSync(dirname(join(root, page)), { recursive: true })
     writeFileSync(join(root, page), html)
   }
-  server = new PageServer({ root })
-  await commentsRoutes.setup({
-    root,
-    router: server.web.router,
-    guard: server.web.guard,
-    live: server.web.live!,
-    web: server.web,
-    info: server.info,
-    onListening: () => {},
-    onStop: () => {}
-  })
+  // worktrees at `/worktrees/<w>/`, as epics' running-epics route module has the main server serve them
+  server = new PageServer({ root }).serveWorktrees(join(root, ".claude", "worktrees"))
+  await commentsRoutes.setup(server.routeContext())
   await server.start({ port: 0, routes: false, pidFile: false })
   port = server.info.port
 })

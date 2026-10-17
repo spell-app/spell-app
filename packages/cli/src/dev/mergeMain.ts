@@ -2,6 +2,7 @@ import { spawnSync } from "child_process"
 import { basename, dirname, join, matchesGlob, relative } from "path"
 
 import { CLI, type Generator, type MergeMainOptions, type MergeMainReport, type SnapshotReview } from "$/cli"
+import { EpicConfig } from "$/epics/config/EpicConfig"
 
 /**
  * `spell dev worktree merge-main`:  merge `main` into this checkout's branch,
@@ -29,6 +30,8 @@ export function mergeMain(root: string, options: MergeMainOptions = {}): MergeMa
   const { mode = "start", generators = GENERATORS, snapshotUpdate = SNAPSHOT_UPDATE } = options
   const branch = gitOut(root, ["branch", "--show-current"])
   if (!branch) throw new CLI.CliError("merge-main:  not on a branch;  check out the worktree's branch first")
+  // the branch merged in:  the repo's base branch (`.epic/config.json5`)
+  const upstream = EpicConfig.of(root).baseBranch
   const report: MergeMainReport = {
     branch,
     result: "merged",
@@ -47,15 +50,18 @@ export function mergeMain(root: string, options: MergeMainOptions = {}): MergeMa
     if (gitOut(root, ["status", "--porcelain", "--untracked-files=no"])) {
       throw new CLI.CliError("merge-main:  uncommitted changes;  commit them first")
     }
-    if (CLI.git(["merge-base", "--is-ancestor", MAIN, "HEAD"], root).ok) return { ...report, result: "up-to-date" }
-    if (CLI.git(["merge-base", "--is-ancestor", "HEAD", MAIN], root).ok) {
-      mustGit(root, ["merge", "--ff-only", MAIN])
+    if (CLI.git(["merge-base", "--is-ancestor", upstream, "HEAD"], root).ok) return { ...report, result: "up-to-date" }
+    if (CLI.git(["merge-base", "--is-ancestor", "HEAD", upstream], root).ok) {
+      mustGit(root, ["merge", "--ff-only", upstream])
       return { ...report, result: "fast-forward" }
     }
     // Exits 1 on conflicts, which is fine:  MERGE_HEAD says it started
-    const merge = CLI.git(["merge", "--no-commit", "--no-ff", "-m", `Merge ${MAIN} into ${branch}`, MAIN], root)
+    const merge = CLI.git(["merge", "--no-commit", "--no-ff", "-m", `Merge ${upstream} into ${branch}`, upstream], root)
     if (!CLI.git(["rev-parse", "-q", "--verify", "MERGE_HEAD"], root).ok) {
-      throw new CLI.CliError(`merge-main:  \`git merge ${MAIN}\` failed:  ${merge.err || merge.out}`, CLI.EXIT.ERRORS)
+      throw new CLI.CliError(
+        `merge-main:  \`git merge ${upstream}\` failed:  ${merge.err || merge.out}`,
+        CLI.EXIT.ERRORS
+      )
     }
   }
 
@@ -120,9 +126,6 @@ export function mergeMain(root: string, options: MergeMainOptions = {}): MergeMa
   mustGit(root, ["commit", "--no-edit"])
   return report
 }
-
-/** The branch merged in. */
-const MAIN = "main"
 
 /**
  * A Vitest snapshot file:  its test is `<dir>/../<name>` less `.snap`.

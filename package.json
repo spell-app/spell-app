@@ -80,6 +80,7 @@
       "packages/epics/src/list/runningRoutes.ts",
       "packages/epics/tools/agentRoutes.ts",
       "packages/epics/tools/showRoutes.ts",
+      "packages/epics/tools/airplaneRoutes.ts",
       "packages/spaces/src/server/node/routes/appRoutes.ts"
     ],
     "watch": [
@@ -106,7 +107,6 @@
     ]
   },
   "shared": {
-    "dir": "../spell-app-dev",
     "links": [
       "epics",
       "guides",

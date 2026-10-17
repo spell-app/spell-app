@@ -36,7 +36,7 @@ Plan, then build, in worktree `<name>`, keeping the EPIC PAGE current the whole 
       - `q7.html`:  Q7's details
       - `log.html`
     - Edit a body's prose in ITS part file, at its real path:
-      `/Users/owen/www/spell-app/spell-app-dev/epics/<name>/parts/<id>.html`.
+      `<content>/epics/<name>/parts/<id>.html`, `<content>` being what `epic config contentFolder` prints.
     - Its relative links are relative to `parts/`:  one `../` more than the skeleton's.
   - A new Overview sub-section:  write it whole into the skeleton, inside `#overview`.
     - The next `epic` command moves its body into `parts/<id>.html`.
@@ -189,7 +189,7 @@ All in the FIRST turn, in this order, then the turn ends.
 1. Isolate:  read [the isolate skill](.claude/skills/isolate/SKILL.md),
    and follow "Start", step 3 (and step 0 mid-session), with this `<name>`:  `EnterWorktree`.
    - A skill can't invoke another, so follow its steps here.
-2. `yarn install` in the worktree, a few seconds.
+2. The install command in the worktree (`epic config installCommand`:  `yarn install`), a few seconds.
    - The work needs it;  `epic` doesn't, since it runs the MAIN checkout's CLI.
 3. The STUB doc:
 

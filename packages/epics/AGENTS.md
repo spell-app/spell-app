@@ -144,6 +144,17 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - `GET /api/epics/running`
       - the list page's running cards, as it's served
     - `EpicState` and `EpicCards` load in plain `node` too (`docs index`):  their headers say what that forbids
+  - `config/` -- `EpicConfig`:  where a repo keeps its epic things, from ONE file, `.epic/config.json5`
+    (epic `epic-eject` P4).
+    - the keys:  the content folder, the base branch, the worktrees' folder, the install command, the window names,
+      whether session folders are linked;  each one's default is spell-app's layout before the file existed
+    - the MAIN checkout's file, found through git's common dir (`SRV.checkoutOf()`), so every worktree reads the same
+    - `epic config [key] [--json]` prints the values, for the skills (folders absolute)
+    - node only, NOT in the `$/epics` barrel (`$/epics/config/EpicConfig`);  plain `node` loads it by path too:
+      the hooks (`.claude/hooks/`) and the window script (`scripts/window.mjs`), before a worktree's `yarn install`
+      - so it reads its JSON5 itself (comments and trailing commas), not through `DataFile`, which needs `json5`
+    - the page server never reads it:  the running epics' route module tells it where the worktrees are
+      (`serveWorktrees()`, in the main checkout)
   - `data/` -- `DataFile`:  the tooling's DATA FILES in the shared folders, as JSON5 (epic `epic-workflow` P21).
     - review inboxes, details pages' answers and drafts, choice pages' rows, running agents, the docs home's lists
       (`home.json5`, `favorites.json5`), the sagas' list, the commands page's data

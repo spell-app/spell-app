@@ -2,6 +2,8 @@ import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { basename, join } from "node:path"
 
+import { EpicConfig } from "$/epics/config/EpicConfig"
+
 /****************
  * ### `ReviewBackfill`
  * `epic backfill <name> | --all [--apply]`:  the one-off walk through an epic's past sessions, finding
@@ -39,17 +41,20 @@ export class ReviewBackfill {
    */
   sessionsOf(name: string, mainRoot: string): BackfillSession[] {
     const slug = ReviewBackfill.projectSlug(mainRoot)
+    const config = new EpicConfig(mainRoot)
+    // the project folder Claude made for a session started IN the worktree:  its folder's slug
+    const worktreeSlug = ReviewBackfill.projectSlug(config.worktreeFolder(name))
     if (!existsSync(this.projects)) return []
     const found: BackfillSession[] = []
     for (const folder of readdirSync(this.projects)) {
       if (folder !== slug && !folder.startsWith(`${slug}-`)) continue
       // an older session made its worktree's own project folder:  every session in it is the epic's
-      const worktreeFolder = folder === `${slug}--claude-worktrees-${name}`
+      const worktreeFolder = folder === worktreeSlug
       for (const file of readdirSync(join(this.projects, folder))) {
         if (!file.endsWith(".jsonl")) continue
         const path = join(this.projects, folder, file)
         const { title, cwds } = scan(path)
-        const inWorktree = cwds.some((cwd) => cwd.includes(`/.claude/worktrees/${name}`))
+        const inWorktree = cwds.some((cwd) => config.worktreeNameOf(cwd) === name)
         if (worktreeFolder || title === name || inWorktree)
           found.push({ id: basename(file, ".jsonl"), file: path, title })
       }

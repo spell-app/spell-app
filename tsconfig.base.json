@@ -23,7 +23,8 @@
   //   `$/ui/tools/RootCatalog` (node-only:  a `<ui-root>` catalog from vocabularies, for `spell dev pack build`),
   //   `$/epics/tool/...` (node-only:  the `epic` tool, for the `spell` CLI and `docs`' forwarders, `tools/plan-doc.js`
   //   ...;  never in the `$/epics` barrel), `$/epics/links` (pure:  short addresses, `SAGA:/...`, for the docs
-  //   runtime, which must not bundle the rest of `$/epics`),
+  //   runtime, which must not bundle the rest of `$/epics`), `$/epics/config/EpicConfig` (node-only:  the repo's
+  //   `.epic/config.json5`, for the CLI;  plain `node` loads it by path too),
   //   `$/spell-solid/timing` (`ui`'s `src/util/index.ts`:  a leaf below `ui`'s core),
   //   `$/spell-solid/elements.types` + `$/spell-solid/vocabulary.types` (where `ui` augments the names it adds),
   //   `$/spell-solid/HotDefinitions` (dev-only, a side effect:  `ui`'s HMR plugin),

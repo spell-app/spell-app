@@ -16,14 +16,19 @@ describe("vscodeSteps()", () => {
 
 describe("behindMainError()", () => {
   test("main, or a branch with all of main in it, may build;  one BEHIND main is refused, saying how to fix it", () => {
-    expect(CLI.behindMainError("main", 0)).toBeUndefined()
-    expect(CLI.behindMainError("main", 3)).toBeUndefined()
-    expect(CLI.behindMainError("epic-eject", 0)).toBeUndefined()
-    expect(CLI.behindMainError("epic-eject", 51)).toBe(
+    expect(CLI.behindMainError("main", 0, "main")).toBeUndefined()
+    expect(CLI.behindMainError("main", 3, "main")).toBeUndefined()
+    expect(CLI.behindMainError("epic-eject", 0, "main")).toBeUndefined()
+    expect(CLI.behindMainError("epic-eject", 51, "main")).toBe(
       "epic-eject is 51 commits behind main:  building the extension from it would downgrade every window.  " +
         "Merge main first (`spell dev worktree merge-main`), or pass --force."
     )
-    expect(CLI.behindMainError("x", 1)).toMatch(/^x is 1 commit behind main:/)
+    expect(CLI.behindMainError("x", 1, "main")).toMatch(/^x is 1 commit behind main:/)
+  })
+
+  test("the base branch is the repo's (`.epic/config.json5`), not always main", () => {
+    expect(CLI.behindMainError("trunk", 4, "trunk")).toBeUndefined()
+    expect(CLI.behindMainError("main", 2, "trunk")).toMatch(/^main is 2 commits behind trunk:.*Merge trunk first/)
   })
 })
 

@@ -114,7 +114,7 @@ From `decisions --json`, later beats earlier:
    - Tracked docs (`AGENTS.md`, `README.md`, skills):  the diff waits in Source Control.
    - Shared docs (`guides/`, `templates/`, `ui/`, `agents/wwod/`):  edit at the REAL path
      (the root `AGENTS.md`, "Shared content").
-     - That's `/Users/owen/www/spell-app/spell-app-dev/<path>`.
+     - That's `<content>/<path>`, `<content>` being what `epic config contentFolder` prints.
      - The turn's end commits them (`auto: guides/...`), one commit per folder, which Owen can revert whole.
    - An edited docs page:  [epics' AGENTS.md](packages/epics/AGENTS.md), "Finishing a page", steps 2-4
      (format, links, check-spell).

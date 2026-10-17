@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync, realpathSync, watch, type FSWatc
 import { homedir } from "node:os"
 import { basename, dirname, join, relative, sep } from "node:path"
 
+import { EpicConfig } from "$/epics/config/EpicConfig"
 import { DataFile } from "$/epics/data/DataFile"
 import type { SRV } from "$/server"
 
@@ -55,7 +56,7 @@ export class RunningEpics {
   /** the main checkout */
   readonly root: string
 
-  /** `<root>/.claude/worktrees` */
+  /** the folder holding the worktrees, `<root>/.claude/worktrees` (`worktreesFolder` in `.epic/config.json5`) */
   readonly worktrees: string
 
   /** the Epics list page, `epics/index.html`, whose marker becomes the list (`spell dev docs index` writes it) */
@@ -75,7 +76,7 @@ export class RunningEpics {
     { claudeHome = process.env.SPELL_CLAUDE_HOME || join(homedir(), ".claude") }: { claudeHome?: string } = {}
   ) {
     this.root = root
-    this.worktrees = join(root, ".claude", "worktrees")
+    this.worktrees = new EpicConfig(root).worktreesFolder
     this.index = join(root, "epics", "index.html")
     this.claudeHome = claudeHome
   }

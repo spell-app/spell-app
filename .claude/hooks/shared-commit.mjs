@@ -10,34 +10,23 @@
  */
 import { spawn } from "node:child_process"
 import { existsSync, openSync, readFileSync } from "node:fs"
-import { dirname, join, resolve } from "node:path"
-import { fileURLToPath } from "node:url"
-
-/**
- * The MAIN checkout:  this hook's (`.claude/hooks/` is two folders down), or the one above it when the hook is a
- * worktree's copy (`<main>/.claude/worktrees/<w>`).  The shared repo's `dir` is relative to it.
- */
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..").replace(/[\\/]\.claude[\\/]worktrees[\\/][^\\/]+$/, "")
+import { join } from "node:path"
 
 try {
   const { session_id: session, cwd } = JSON.parse(readFileSync(0, "utf8") || "{}")
-  const dir = resolve(ROOT, sharedDir())
+  // the MAIN checkout's config, from this hook's checkout (a worktree's copy too):  the shared repo is its
+  // `contentFolder`.  Loaded in here, so a config that won't read never fails the hook
+  const { EpicConfig } = await import("../../packages/epics/src/config/EpicConfig.ts")
+  const config = EpicConfig.of(import.meta.dirname)
+  const main = config.main
+  const dir = config.contentFolder
   if (existsSync(join(dir, ".git"))) {
     const log = openSync(join(dir, ".git", "spell-shared.log"), "a")
-    const args = [join(ROOT, "packages/cli/bin/spell.mjs"), "dev", "shared", "commit", "--quiet"]
+    const args = [join(main, "packages/cli/bin/spell.mjs"), "dev", "shared", "commit", "--quiet"]
     if (session) args.push("--session", session)
-    spawn(process.execPath, args, { cwd: cwd ?? ROOT, detached: true, stdio: ["ignore", log, log] }).unref()
+    spawn(process.execPath, args, { cwd: cwd ?? main, detached: true, stdio: ["ignore", log, log] }).unref()
   }
 } catch {
   // never block a turn
 }
 process.exit(0)
-
-/** The shared repo, relative to `ROOT`:  `"shared": { "dir" }` in the root `package.json`, else `../spell-app-dev`. */
-function sharedDir() {
-  try {
-    return JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).shared?.dir ?? "../spell-app-dev"
-  } catch {
-    return "../spell-app-dev"
-  }
-}

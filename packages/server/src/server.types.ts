@@ -80,9 +80,22 @@ export type ServerInfo = {
   started: string
   /** branch checked out at `root`, if any */
   branch?: string
-  /** worktree name, when `root` is `.claude/worktrees/<name>` */
+  /** worktree name, when `root` is a worktree of a main checkout (`SRV.checkoutOf()`) */
   worktree?: string
+  /**
+   * the folder its `/worktrees/<w>/` serves, when it serves worktrees (`PageServer.serveWorktrees()`):
+   * the main checkout's server, once epics' running-epics route module has told it where they are
+   */
+  worktrees?: string
 }
+
+/**
+ * A git checkout, as `SRV.checkoutOf()` finds it.
+ * - `root`:  the checkout's own folder
+ * - `main`:  the MAIN checkout's folder:  `root` itself, unless `root` is a worktree
+ * - `worktree`:  the worktree's folder name, in a worktree only
+ */
+export type Checkout = { root: string; main: string; worktree?: string }
 
 ////////////////
 // ## Errors

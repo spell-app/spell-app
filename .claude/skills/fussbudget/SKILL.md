@@ -38,7 +38,7 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 - `<path...>`:  every file under each path, whole.
 - `epic <name>`:  the epic page's prose:  Overview, phases, items' details.
   - Through its part files, at the shared REAL path:
-    `/Users/owen/www/spell-app/spell-app-dev/epics/<name>/parts/<id>.html`.
+    `<content>/epics/<name>/parts/<id>.html`, `<content>` being what `epic config contentFolder` prints.
   - Never its structure:  no ids, no sections, no item lines, nothing `epic` writes.
 - `branch`:  every file this branch changed or added since `main`, WHOLE.
   - The files:
@@ -86,7 +86,7 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
    - Drop what "What it rewrites" says never to touch.
 4. The checker, for the mechanical list, and its count BEFORE:
    - `spell dev docs fuss <paths...> --json`, or `spell dev docs fuss --branch --json`
-   - an epic page:  `spell dev docs fuss /Users/owen/www/spell-app/spell-app-dev/epics/<name>/parts --json`
+   - an epic page:  `spell dev docs fuss <content>/epics/<name>/parts --json` (`<content>`:  `epic config contentFolder`)
    - In HTML it checks everything but `phrase-split`:  the formatter wraps those lines.
 5. Big scope:  fan out ("Fanning out").  Else the session does it itself.
 6. Each file, top to bottom:

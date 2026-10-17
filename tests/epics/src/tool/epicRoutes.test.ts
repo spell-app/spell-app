@@ -44,16 +44,7 @@ describe("POST /api/epics/favorite", () => {
 
   beforeAll(async () => {
     server = new PageServer({ root })
-    await epicRoutes.setup({
-      root,
-      router: server.web.router,
-      guard: server.web.guard,
-      live: server.web.live!,
-      web: server.web,
-      info: server.info,
-      onListening: () => {},
-      onStop: () => {}
-    })
+    await epicRoutes.setup(server.routeContext())
     await server.start({ port: 0, routes: false, pidFile: false })
     port = server.info.port
   })

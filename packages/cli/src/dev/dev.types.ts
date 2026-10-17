@@ -244,8 +244,9 @@ export const ENTRYPOINT_PLACES: Record<string, string> = {
  * The shared-content manifest (`sharedConfig()`).
  * - `main`:  the main checkout;  `dir`:  the shared repo, absolute;  `links`:  folders every checkout links,
  *   relative to a checkout's root
+ * - `worktrees`:  the folder holding the worktrees, absolute (`.epic/config.json5`'s `worktreesFolder`)
  */
-export type SharedConfig = { main: string; dir: string; links: string[] }
+export type SharedConfig = { main: string; dir: string; worktrees: string; links: string[] }
 
 /**
  * One link in one checkout:  its `state` (`linkState()`), and what `linkCheckout()` did about it (`action`).

@@ -38,6 +38,8 @@ import { existsSync, readFileSync, readdirSync, realpathSync, statSync } from "n
 import { extname, join, relative, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { EpicConfig } from "../src/config/EpicConfig.ts"
+
 /**
  * The checker:  finds the misses in a file's text, and the files to check.
  * - All `static`:  it keeps no state, so a test checks a plain string with `Fuss.check()`.
@@ -93,7 +95,8 @@ export class Fuss {
   }
 
   /**
-   * The files this branch changed since `main`, as `--branch` checks them.
+   * The files this branch changed since `main` (the repo's base branch, `.epic/config.json5`), as `--branch` checks
+   * them.
    * - committed (`git diff main...HEAD`) and not (`git status`:  staged, unstaged, untracked)
    * - only those still there, in a format `check()` reads, and not generated
    * - throws `FussError` outside a git checkout, or with no `main` branch
@@ -101,8 +104,10 @@ export class Fuss {
   static branchFiles({ cwd = process.cwd() } = {}): string[] {
     const root = gitRoot(cwd)
     if (!root) throw new FussError("--branch:  not in a git checkout")
-    const committed = git(root, ["diff", "--name-only", "-z", "main...HEAD"])
-    if (committed === undefined) throw new FussError("--branch:  can't compare with `main` (`git diff main...HEAD`)")
+    const base = EpicConfig.of(root).baseBranch
+    const committed = git(root, ["diff", "--name-only", "-z", `${base}...HEAD`])
+    if (committed === undefined)
+      throw new FussError(`--branch:  can't compare with \`${base}\` (\`git diff ${base}...HEAD\`)`)
     const changed = statusPaths(git(root, ["status", "--porcelain=v1", "-z", "--untracked-files=all"]) ?? "")
     const files = unique([...committed.split("\0"), ...changed])
       .filter(Boolean)

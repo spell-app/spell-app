@@ -18,7 +18,6 @@ import {
   Window,
   claudeSessions,
   look,
-  mainRoot,
   parseLsof,
   processTable,
   stayAdvice,
@@ -270,11 +269,6 @@ test("tint():  a dark hue per name, the same every time", () => {
     .match(/../g)
     .map((hex) => parseInt(hex, 16))
   assert.ok(Math.max(r, g, b) < 0xb0, "dark enough for white text")
-})
-
-test("mainRoot():  the checkout a worktree is in;  a main checkout is its own", () => {
-  assert.equal(mainRoot("/repo/.claude/worktrees/seo"), "/repo")
-  assert.equal(mainRoot("/repo"), "/repo")
 })
 
 test("packageOf():  a package window's package, else null", () => {

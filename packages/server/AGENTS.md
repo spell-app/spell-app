@@ -86,6 +86,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
         and pages on the old one found the server down (epic `airplane`, 2026-10-10).
   - [mainServer.ts](src/mainServer.ts) -- `mainServerUrl()`:  a worktree's file on the MAIN checkout's page server.
     - It asks that server for `/api/epics/running` (`RUNNING_EPICS_API`).
+  - [checkout.ts](src/checkout.ts) -- `checkoutOf()`:  the git checkout a path is in, and its MAIN checkout,
+    read from the disk as git finds them (a worktree's `.git` file, git's common dir), with no `git` run.
+    - Plain `node` loads it by path (epics' `EpicConfig`, for the hooks), so node built-ins only.
+    - Test helpers that fake one:  `$/server/test/checkouts` (`fakeMainCheckout()`, `fakeWorktree()`).
   - [proxy.ts](src/proxy.ts) -- `proxyTo()` / `proxyUpgrade()`:  HTTP and websockets to another local server
   - `WebServer` -- all of the above on node's HTTP server
   - [untilInterrupted.ts](src/untilInterrupted.ts) -- run until `Ctrl-C`
@@ -100,9 +104,17 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - Its settings:  the `"pageServer"` block of the root `package.json`.
       - Read by `pageServerSettings()`, in [settings.ts](src/page/settings.ts).
       - route modules, watched folders, writable folders, bundles
-    - It mounts every worktree's files at `/worktrees/<w>/`.
-      - The running epics' list is epics' route module, not the server's:
-        [runningRoutes.ts](../epics/src/list/runningRoutes.ts), at `/api/epics/running`.
+    - It mounts every worktree's files at `/worktrees/<w>/`, once a route module says where they are:
+      `serveWorktrees(dir)` (epic `epic-eject` P4).
+      - The running epics' route module does, in the main checkout:
+        [runningRoutes.ts](../epics/src/list/runningRoutes.ts), which also answers `/api/epics/running`.
+      - Why:  the worktrees' folder is the repo's `.epic/config.json5`'s (epics' `EpicConfig`),
+        and this package imports no other.
+      - It then tells pages and `/api/server` the folder:  `worktrees`.
+    - Route modules add to every page's `window.SPELL_SERVER`:  `addPageConfig()`.
+      - e.g. epics' airplane mode ([airplaneRoutes.ts](../epics/tools/airplaneRoutes.ts)),
+        whose switch, `AirplaneMode`, moved to epics in `epic-eject` P4.
+    - Tests set a route module up by hand with `server.routeContext()`.
     - Every call is under `/api/`, one prefix per package that answers it.
       The old paths answer "not found" (no redirects, Q30 of `people-and-orgs`).
     - It may use deps (`parse5`).

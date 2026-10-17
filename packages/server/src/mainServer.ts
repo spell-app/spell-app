@@ -8,13 +8,13 @@
  *     worktree drew with that worktree's old `<epic-*>` elements (epic `epic-eject` P1).
  */
 import { realpathSync } from "node:fs"
-import { join, resolve, sep } from "node:path"
+import { join, relative, resolve, sep } from "node:path"
 
 import { SRV } from "$/server"
 
 /**
  * `file`'s URL on the main checkout's page server;  else `undefined`.
- * - only when `file` is in a worktree (`<main>/.claude/worktrees/<w>/...`),
+ * - only when `file` is in a worktree of a main checkout (`SRV.checkoutOf()`:  `<main>/.claude/worktrees/<w>/...`),
  *   and that server is running and serves worktrees
  * - "serves worktrees":  its running epics answer (`RUNNING_EPICS_API`, epics' route module)
  *   - so a main server started before it learned to (an older checkout, not yet restarted)
@@ -42,11 +42,11 @@ export async function mainServerUrl(file: string): Promise<string | undefined> {
  * Whether `at`'s file is shared content:  its top folder in the worktree and in the main checkout
  * are the same real folder (both links into the shared repo).
  */
-function isShared(at: { main: string; worktree: string; path: string[] }): boolean {
+function isShared(at: WorktreePath): boolean {
   const top = at.path[0]
   if (!top || at.path.length < 2) return false
   try {
-    const own = realpathSync(join(at.main, ".claude", "worktrees", at.worktree, top))
+    const own = realpathSync(join(at.root, top))
     return own === realpathSync(join(at.main, top))
   } catch {
     return false
@@ -56,19 +56,20 @@ function isShared(at: { main: string; worktree: string; path: string[] }): boole
 /**
  * Where `file` sits, when it's inside a worktree of a main checkout;  else `undefined`.
  * - `main`:  the main checkout
+ * - `root`:  the worktree's folder
  * - `worktree`:  the worktree's name
  * - `path`:  the path inside the worktree, as segments
+ * - found as git finds it (`SRV.checkoutOf()`), wherever the worktree's folder is
  */
-export function worktreePath(file: string): { main: string; worktree: string; path: string[] } | undefined {
-  const parts = resolve(file).split(sep)
-  for (let i = parts.length - 3; i >= 1; i--) {
-    if (parts[i] !== ".claude" || parts[i + 1] !== "worktrees") continue
-    const worktree = parts[i + 2]
-    if (!worktree) return undefined
-    return { main: parts.slice(0, i).join(sep) || sep, worktree, path: parts.slice(i + 3) }
-  }
-  return undefined
+export function worktreePath(file: string): WorktreePath | undefined {
+  const checkout = SRV.checkoutOf(file)
+  if (!checkout?.worktree) return undefined
+  const path = relative(checkout.root, resolve(file)).split(sep).filter(Boolean)
+  return { main: checkout.main, root: checkout.root, worktree: checkout.worktree, path }
 }
+
+/** Where a worktree's file sits (`worktreePath()`). */
+export type WorktreePath = { main: string; root: string; worktree: string; path: string[] }
 
 /**
  * Where the main page server lists the running epics:  epics' route module answers it (`$/epics/list/runningRoutes`).

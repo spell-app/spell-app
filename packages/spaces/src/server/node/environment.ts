@@ -1,6 +1,10 @@
 import { fileURLToPath } from "url"
 import { dirname, resolve } from "path"
 
+// By relative path, `.ts` and all:  app's `vite.config.ts` loads this file, bundled with no alias table.  The
+// server's checkout finder, node built-ins only:  the main checkout from any worktree
+import { checkoutOf } from "../../../../server/src/checkout.ts"
+
 /** spaces' `src/`:  this file is in `src/server/node/`. */
 const spacesSrcDir = resolve(fileURLToPath(import.meta.url), "..", "..", "..")
 /** The monorepo's `packages/`. */
@@ -24,12 +28,11 @@ const spellCoreDir = resolve(packagesDir, "core", "src")
 const staticDir = resolve(packagesDir, "app", "static")
 
 /**
- * The MAIN checkout's root, from this checkout's:  a worktree is `<main>/.claude/worktrees/<name>`.
+ * The MAIN checkout's root, from this checkout's:  the one a worktree's git shares (`SRV.checkoutOf()`), wherever the
+ * worktree's folder is.
  * - spell-spaces sits beside it, so every worktree reads the same spaces.
  */
-const mainRepoDir = /[/\\]\.claude[/\\]worktrees[/\\][^/\\]+$/.test(repoDir)
-  ? resolve(repoDir, "..", "..", "..")
-  : repoDir
+const mainRepoDir = checkoutOf(repoDir)?.main ?? repoDir
 
 /**
  * spell-spaces:  every person's and org's space (decisions Q10, Q24).

@@ -6,6 +6,7 @@
  * - The groups (`ask`, `choices`, `comments`, `notes`, `agents`, `airplane`):  the docs tools, passed through as
  *   `spell dev` passes them, their arguments verbatim;  each group's verbs are listed (`epicGroups.ts`) for their
  *   help, `epic ask new --help`, and an unknown one is refused
+ * - `config`:  the repo's `.epic/config.json5`, a value or all of them (`configCommand()`), in this process
  * - `send`, `requests`, `file`, `home`, `merge`:  need the `$/cli` barrel (which loads spell), so they're handed
  *   over to `main.ts` (`handOver`), as `spell dev`'s barrel commands are
  * - Every verb's help has its usage, what it does and an example (`epic close --help`);  an unknown verb exits 1,
@@ -24,6 +25,7 @@ import { agentsCommand } from "$/cli/commands/agentsCommand"
 import { airplaneCommand } from "$/cli/commands/airplaneCommand"
 import { choicesCommand } from "$/cli/commands/choicesCommand"
 import { commentsCommand } from "$/cli/commands/commentsCommand"
+import { configCommand } from "$/cli/commands/configCommand"
 import { detailsCommand } from "$/cli/commands/detailsCommand"
 import { notesCommand } from "$/cli/commands/notesCommand"
 import { planDocCommand } from "$/cli/commands/planDocCommand"
@@ -310,6 +312,21 @@ export function epicProgram(handOver: () => Promise<never>): Command {
     .addHelpText("after", SAGA_HELP)
 
   ////////////////
+  // ## The repo's settings
+  ////////////////
+
+  epic.commandsGroup("The repo's settings:")
+
+  epic
+    .command("config")
+    .description("where this repo keeps its epic things (.epic/config.json5):  a value, or all of them")
+    .usage("[<key>] [--json]")
+    .argument("[args...]")
+    .allowUnknownOption()
+    .addHelpText("after", CONFIG_HELP)
+    .action(() => runLean(configCommand, rawArgs("config")))
+
+  ////////////////
   // ## Groups:  the docs tools
   ////////////////
 
@@ -472,6 +489,23 @@ Examples:
   epic inbox seo wait
 
 epic <verb> --help says more about each;  an id always goes after a #, never as a word of its own.`
+
+/** After `epic config --help`. */
+const CONFIG_HELP = `
+The keys (folders print absolute;  the file's are relative to the main checkout):
+  contentFolder        the shared content repo:  epics, guides, sagas, the logs
+  baseBranch           the branch worktrees start from and merge into
+  worktreesFolder      where worktrees go, <worktreesFolder>/<name>
+  installCommand       what makes a new worktree ready to run
+  windows.default      the window a worktree's window is opened from, by default
+  windows.repoName     the repo root's folder name in every window
+  windows.contentName  the content repo's folder name in every window
+  linkSessionFolders   whether worktrees' saved-session folders are linked to main's
+Any worktree reads the main checkout's file;  a key it leaves out takes its default.
+
+Examples:
+  epic config contentFolder
+  epic config --json`
 
 /** After `epic file --help`. */
 const FILE_HELP = `

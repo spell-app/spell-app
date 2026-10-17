@@ -49,10 +49,10 @@
  */
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
-import { join, sep } from "node:path"
+import { join } from "node:path"
 import { pathToFileURL } from "node:url"
 
-import { LOOKS, Window } from "../../scripts/window.mjs"
+import { LOOKS, Window, worktreeOf } from "../../scripts/window.mjs"
 
 /**
  * The session's icons (Owen, 2026-10-07):  🚧 work under way, 📅 a future epic written down, ✅ merged;  🚨 errors
@@ -235,9 +235,8 @@ export function kebab(name) {
  * The worktree, other than `name`, that the session is in:  by `cwd`, else by its window;  `null` when none.
  */
 export function otherWorktree(cwd, window, name) {
-  const marker = `${sep}.claude${sep}worktrees${sep}`
-  const at = (cwd ?? "").indexOf(marker)
-  const byCwd = at >= 0 ? (cwd.slice(at + marker.length).split(sep)[0] ?? "") : ""
+  // the worktrees' folder from the repo's `.epic/config.json5` (`worktreesFolder`)
+  const byCwd = worktreeOf(cwd)
   if (byCwd) return byCwd === name ? null : byCwd
   const file = window?.workspaceFile ?? ""
   const ongoing = /[\\/]workspaces[\\/]ongoing[\\/]([^\\/]+)\.code-workspace$/.exec(file)

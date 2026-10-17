@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url"
 import { parseHTML } from "linkedom"
 
 import { AS } from "$/assembler"
+import { EpicConfig } from "$/epics/config/EpicConfig"
 import { DataFile, type DataFileMove } from "$/epics/data/DataFile"
 import { SRV } from "$/server"
 
@@ -380,7 +381,7 @@ export class PlanDocFiles {
   reindex(): void {
     const pages = join(this.root, "pages")
     const shared = lstatSync(pages, { throwIfNoEntry: false })?.isSymbolicLink()
-    if (!shared && /[\\/]\.claude[\\/]worktrees[\\/]/.test(pages)) return
+    if (!shared && EpicConfig.of(this.root).worktreeNameOf(pages)) return
     const run = spawnSync("node", [join(this.docsTools, "index.js")], { cwd: this.docsPackage, encoding: "utf8" })
     if (run.status !== 0) process.stderr.write(`epic:  docs index not updated\n${run.stdout}${run.stderr}`)
   }
@@ -426,13 +427,17 @@ export class PlanDocFiles {
   }
 
   /**
-   * Where epic `name` runs:  `.claude/worktrees/<name>` while that worktree exists, else `main`.
+   * Where epic `name` runs:  `.claude/worktrees/<name>` while that worktree exists (the repo's `worktreesFolder`,
+   * from the main checkout), else `main` (`MAIN_CHECKOUT`).
    * - `list`'s `checkout`, which `/epics` reads;  the doc itself is the shared one either way (`findDoc()`)
    */
   epicCheckout(name: string, main = this.mainRoot()): string {
-    const own = join(main, ".claude/worktrees", name)
-    return existsSync(own) ? relative(main, own) : "main"
+    const own = new EpicConfig(main).worktreeFolder(name)
+    return existsSync(own) ? relative(main, own) : PlanDocFiles.MAIN_CHECKOUT
   }
+
+  /** An epic's `checkout` when it runs in the main checkout (`epicCheckout()`):  the checkout's name, not a branch. */
+  static readonly MAIN_CHECKOUT = "main"
 
   /**
    * The spell-app checkout a doc belongs to:  its path up to `/epics/<name>/`, else this one.

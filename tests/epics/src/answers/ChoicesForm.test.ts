@@ -163,7 +163,9 @@ describe("ChoicesForm", () => {
     expect(ChoicesForm.fileUrl("packages/a b/A.ts", 7, { root, pathname: "/pages/details/x.html" })).toBe(
       "vscode://file/Users/owen/spell/packages/a%20b/A.ts:7"
     )
-    expect(ChoicesForm.fileUrl("A.ts", 2, { root, pathname: "/worktrees/seo/pages/details/x.html" })).toBe(
+    // the folder the main server serves worktrees from (`SPELL_SERVER.worktrees`)
+    const worktrees = `${root}/.claude/worktrees`
+    expect(ChoicesForm.fileUrl("A.ts", 2, { root, worktrees, pathname: "/worktrees/seo/pages/details/x.html" })).toBe(
       "vscode://file/Users/owen/spell/.claude/worktrees/seo/A.ts:2"
     )
     expect(ChoicesForm.fileUrl("A.ts", 2, { pathname: "/x.html" })).toBe("#")

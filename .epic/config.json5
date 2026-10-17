@@ -1,0 +1,33 @@
+// Where this repo keeps its epic things (epic `epic-eject` P4), read by `EpicConfig`
+// (packages/epics/src/config/EpicConfig.ts).  Folders are relative to the MAIN checkout;  every worktree reads
+// the main checkout's copy of this file.  A key left out takes its default:  these are the defaults.
+// `epic config [key]` prints what's in force (`--json`:  all of it).
+{
+  // The shared content repo:  epics, guides, sagas, pages, templates, brand, the logs.
+  // Every checkout links its folders in (`spell dev shared link`);  each turn's end commits it.
+  "contentFolder": "../spell-app-dev",
+
+  // The branch worktrees start from and merge into.
+  "baseBranch": "main",
+
+  // Where worktrees go:  one folder each, `<worktreesFolder>/<name>`, on branch `<name>`.
+  "worktreesFolder": ".claude/worktrees",
+
+  // What makes a new worktree ready to run, from its root (`/isolate`, `/epic`).
+  "installCommand": "yarn install",
+
+  // The VS Code windows (`spell dev window`).
+  "windows": {
+    // The window a worktree's window is opened from when the session's isn't a package's:
+    // `workspaces/<default>.code-workspace`, the whole repo's.
+    "default": "spell-app",
+    // The repo root's folder name in every window.
+    "repoName": "spell-app",
+    // The content repo's folder name in every window.
+    "contentName": "spell-app-dev"
+  },
+
+  // Whether each worktree's saved-session folder is linked to the main checkout's.
+  // Nothing does the linking yet:  it's for worktrees beside the repo (epic `epic-eject` P8).
+  "linkSessionFolders": false
+}

@@ -24,16 +24,7 @@ beforeAll(async () => {
   writeFileSync(join(root, "guides/data.json"), "{}")
   process.env.SPELL_WINDOWS_DIR = join(root, "no-windows")
   server = new PageServer({ root })
-  await showRoutes.setup({
-    root,
-    router: server.web.router,
-    guard: server.web.guard,
-    live: server.web.live!,
-    web: server.web,
-    info: server.info,
-    onListening: () => {},
-    onStop: () => {}
-  })
+  await showRoutes.setup(server.routeContext())
   await server.start({ port: 0, routes: false, pidFile: false })
   port = server.info.port
 })

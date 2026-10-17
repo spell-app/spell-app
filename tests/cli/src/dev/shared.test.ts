@@ -28,7 +28,9 @@ afterAll(() => rmSync(TEMP, { recursive: true, force: true }))
 
 mkdirSync(MAIN)
 git(MAIN, "init", "-q", "-b", "main")
-put("package.json", JSON.stringify({ shared: { dir: "../spell-app-dev" } }))
+// the shared repo beside it, by the repo's config (its default, written out)
+put("package.json", "{}")
+put(".epic/config.json5", '// where the shared repo is\n{ "contentFolder": "../spell-app-dev" }\n')
 put(".gitignore", "/epics\n/guides\n/pages\n/templates\n/brand\n/ui\n/goals\n/agents\n/.claude/worktrees\n")
 git(MAIN, "add", "-A")
 commit(MAIN, "first")
@@ -49,6 +51,7 @@ describe("sharedConfig()", () => {
     expect(config).toEqual({
       main: MAIN,
       dir: PEER,
+      worktrees: join(MAIN, ".claude", "worktrees"),
       links: ["epics", "guides", "pages", "templates", "brand", "ui", "goals", "agents"]
     })
     expect(CLI.sharedConfig(WT)).toEqual(config)

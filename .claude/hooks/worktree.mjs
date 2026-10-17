@@ -11,6 +11,8 @@
  *   (`scripts/window.mjs`).  Checked with CLI 2.1.287.
  * - Names agree:  worktree `.claude/worktrees/<name>`, branch `<name>` (Claude's own adds `worktree-`).
  * - Branches from local `main` (unpushed work included), not `origin/main`.
+ * - The folders and the branch come from the repo's `.epic/config.json5` (`EpicConfig`):  `worktreesFolder`,
+ *   `baseBranch`, `contentFolder`;  the names above are their defaults.
  *
  * ## create
  * - stdin `{ name, cwd, session_id, transcript_path, ... }`  (CLI 2.1.287:  no branch or base field, whatever the
@@ -30,11 +32,10 @@
  * - An agent's `<owner>-agent-<id>` counts as merged when its commits are in `main` OR in branch `<owner>`.
  */
 import { execFileSync } from "node:child_process"
-import { existsSync, readFileSync, realpathSync } from "node:fs"
+import { existsSync, realpathSync } from "node:fs"
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path"
 
-/** The branch new worktrees start from. */
-const BASE = "main"
+import { EpicConfig } from "../../packages/epics/src/config/EpicConfig.ts"
 
 /** Allowed worktree / branch names. */
 const NAME = /^[A-Za-z0-9][A-Za-z0-9._-]*$/
@@ -69,45 +70,40 @@ class Worktree {
     }
   }
 
-  /** The worktree `cwd` is in (`.claude/worktrees/<name>/...`):  its name, else `""` (the main checkout). */
+  /** The worktree `cwd` is in (`<worktreesFolder>/<name>/...`):  its name, else `""` (the main checkout). */
   static owner(root, cwd) {
     // real paths:  git gives `root` with symlinks resolved (`/tmp` -> `/private/tmp`)
-    const rest = relative(join(root, ".claude", "worktrees"), realpathSync(cwd))
+    const rest = relative(new EpicConfig(root).worktreesFolder, realpathSync(cwd))
     return rest && !rest.startsWith("..") && !isAbsolute(rest) ? rest.split(sep)[0] : ""
   }
 
-  /** `create`:  make (or reuse) `.claude/worktrees/<name>` on branch `<name>`;  returns its path. */
+  /** `create`:  make (or reuse) `<worktreesFolder>/<name>` on branch `<name>`;  returns its path. */
   static create({ name, cwd }) {
     if (!NAME.test(name ?? "")) throw new Error(`worktree name must match ${NAME}:  got "${name}"`)
     const root = Worktree.root(cwd)
+    const config = new EpicConfig(root)
     const owner = AGENT.test(name) ? Worktree.owner(root, cwd) : ""
     if (owner) name = `${owner}-${name}`
-    const path = join(root, ".claude", "worktrees", name)
+    const path = config.worktreeFolder(name)
     if (existsSync(join(path, ".git"))) {
       console.error(`worktree hook:  reusing ${path}`)
       return path
     }
-    const args = Worktree.hasBranch(root, name) ? [path, name] : ["-b", name, path, BASE]
+    const args = Worktree.hasBranch(root, name) ? [path, name] : ["-b", name, path, config.baseBranch]
     console.error(`worktree hook:  git worktree add ${args.join(" ")}`)
     Worktree.git(root, "worktree", "add", "--quiet", ...args)
-    Worktree.linkShared(root, path)
+    Worktree.linkShared(root, path, config)
     return path
   }
 
   /**
    * Link the shared content into worktree `path`:  the main checkout's `spell dev shared link`, run in the worktree.
-   * - only when the shared repo exists (`"shared": { "dir" }` in the root `package.json`, default
-   *   `../spell-app-dev`):  before the cutover there's nothing to link
+   * - only when the shared repo exists (`contentFolder` in `.epic/config.json5`):  before the cutover there's nothing
+   *   to link
    * - its output goes to stderr (stdout is the worktree's path);  a failure is a warning
    */
-  static linkShared(root, path) {
-    let dir = "../spell-app-dev"
-    try {
-      dir = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).shared?.dir ?? dir
-    } catch {
-      // no manifest:  the default
-    }
-    if (!existsSync(join(resolve(root, dir), ".git"))) return
+  static linkShared(root, path, config) {
+    if (!existsSync(join(config.contentFolder, ".git"))) return
     try {
       execFileSync(process.execPath, [join(root, "packages/cli/bin/spell.mjs"), "dev", "shared", "link"], {
         cwd: path,
@@ -119,12 +115,12 @@ class Worktree {
   }
 
   /**
-   * The branch all of `branch`'s commits are in:  `main`, else (an agent's `<owner>-agent-<id>`) `<owner>`;  else
-   * `""`.
+   * The branch all of `branch`'s commits are in:  the base branch (`main`), else (an agent's `<owner>-agent-<id>`)
+   * `<owner>`;  else `""`.
    */
   static mergedInto(root, branch) {
     const owner = branch.match(OWNED_AGENT)?.[1]
-    const intos = [BASE, ...(owner && Worktree.hasBranch(root, owner) ? [owner] : [])]
+    const intos = [new EpicConfig(root).baseBranch, ...(owner && Worktree.hasBranch(root, owner) ? [owner] : [])]
     return intos.find((into) => Worktree.git(root, "rev-list", "--count", `${into}..${branch}`) === "0") ?? ""
   }
 
@@ -133,16 +129,17 @@ class Worktree {
     path = resolve(path)
     if (!existsSync(path)) return `${path} is already gone`
     const root = Worktree.root(path)
+    const base = new EpicConfig(root).baseBranch
     const branch = Worktree.git(path, "branch", "--show-current")
     if (Worktree.git(path, "status", "--porcelain")) throw new Error(`kept ${path}:  it has uncommitted changes`)
     const into = branch && Worktree.mergedInto(root, branch)
     if (branch && !into) {
       const owner = branch.match(OWNED_AGENT)?.[1]
-      throw new Error(`kept ${path}:  branch ${branch} has commits ${owner ?? BASE} doesn't;  merge it first`)
+      throw new Error(`kept ${path}:  branch ${branch} has commits ${owner ?? base} doesn't;  merge it first`)
     }
     Worktree.git(root, "worktree", "remove", path)
-    // `-d` checks against `main` only:  in its owner's branch alone (checked above) needs `-D`
-    if (branch) Worktree.git(root, "branch", into === BASE ? "-d" : "-D", branch)
+    // `-d` checks against the base branch only:  in its owner's branch alone (checked above) needs `-D`
+    if (branch) Worktree.git(root, "branch", into === base ? "-d" : "-D", branch)
     return `removed ${path}${branch ? ` and branch ${branch}` : ""}`
   }
 }

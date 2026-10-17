@@ -5,6 +5,7 @@ import { CliError, EXIT } from "$/cli/cli.types"
 import { git } from "$/cli/dev/git"
 import { behindMainError, runChild, vscodeSteps } from "$/cli/dev/passThrough"
 import { findCheckout } from "$/cli/findCheckout"
+import { EpicConfig } from "$/epics/config/EpicConfig"
 
 /** The extension, relative to a checkout's root:  its own yarn project, not a workspace. */
 const VSCODE = join("packages", "vscode")
@@ -22,9 +23,10 @@ export async function vscodeCommand(args: string[]): Promise<number> {
   const steps = vscodeSteps(args.find((arg) => arg !== "--force"))
   const root = findCheckout(join(VSCODE, "package.json"))
   if (!force) {
+    const base = EpicConfig.of(root).baseBranch
     const branch = git(["rev-parse", "--abbrev-ref", "HEAD"], root).out
-    const behind = Number(git(["rev-list", "--count", "HEAD..main"], root).out || 0)
-    const error = behindMainError(branch, behind)
+    const behind = Number(git(["rev-list", "--count", `HEAD..${base}`], root).out || 0)
+    const error = behindMainError(branch, behind, base)
     if (error) throw new CliError(error, EXIT.ERRORS)
   }
   for (const step of steps) {
