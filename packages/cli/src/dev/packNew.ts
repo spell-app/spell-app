@@ -277,7 +277,7 @@ function solidVersion(root: string): string {
  * - `vitest.config.ts`:  the pack's `node` + `browser` projects (`SPECIAL`)
  * - `vite.lint.ts`:  `components/__pack/` out of lint and format
  * - `.gitattributes`:  `components/__pack/**` generated, `merge=binary -diff`
- * - `packages/epics/src/command/MainMerge.ts`:  a `GENERATORS` entry, `yarn pack:build`
+ * - `.epic/generators.json5`:  the pack's generated files, rebuilt at a merge by `yarn pack:build` (epic `epic-eject` T4)
  * - `guides/dev/commands/commands.json5` (shared):  the pack's yarn scripts in the commands page's rows
  *   - a data file (`DataFile`, epic `epic-workflow` P21):  its old `commands.json` read while there's no `.json5`,
  *     and written as the `.json5`, its comments kept
@@ -397,12 +397,9 @@ function wiringSteps(pack: PackInfo): WiringStep[] {
       }
     },
     {
-      file: "packages/epics/src/command/MainMerge.ts",
-      what: `GENERATORS:  ${name} pack`,
-      edit: (text) =>
-        text.includes(`"packages/${name}/${PACK_FOLDER}/**"`)
-          ? undefined
-          : addToList(text, ["static readonly GENERATORS: Generator[] = ["], [generatorLine(text, name)])
+      file: ".epic/generators.json5",
+      what: `the ${name} pack's generator`,
+      edit: (text) => (text.includes(`"packages/${name}/${PACK_FOLDER}/**"`) ? undefined : withGenerator(text, name))
     },
     {
       file: COMMANDS_JSON,
@@ -422,14 +419,25 @@ function addOnce(list: string[] | undefined, value: string): number {
 }
 
 /**
- * `GENERATORS`' line for pack `name`, its columns lined up with the table's first one-line entry (`// oxfmt-ignore`).
+ * `.epic/generators.json5`'s text with pack `name`'s generator last in its list, the rest of the text as it was:
+ * `{ "name": "<name> pack", "outputs": ["packages/<name>/components/__pack/**"], "cwd": "packages/<name>", ... }`
+ * - `undefined` when the text has no list to add to
  */
-function generatorLine(text: string, name: string): string {
-  const sample = /^ *(\{ name: .*?)$/m.exec(text.slice(text.indexOf("static readonly GENERATORS")))?.[1] ?? ""
-  const columns = ["outputs:", "cwd:", "run:"].map((field) => sample.indexOf(field))
-  const fields = [
-    `{ name: ${JSON.stringify(`${name} pack`)},`,
-    `outputs: [${JSON.stringify(`packages/${name}/${PACK_FOLDER}/**`)}],`,
+function withGenerator(text: string, name: string): string | undefined {
+  const end = text.lastIndexOf("]")
+  if (end < 0 || !text.includes('"generators"')) return undefined
+  const before = text.slice(0, end).replace(/\s*$/, "")
+  const entry = JSON.stringify({
+    name: `${name} pack`,
+    outputs: [`packages/${name}/${PACK_FOLDER}/**`],
+    cwd: `packages/${name}`,
+    run: ["yarn", "pack:build"]
+  }).replace(/([:,])(?=["[{])/g, "$1 ")
+  const comma = before.endsWith("[") || before.endsWith(",") ? "" : ","
+  return `${before}${comma}\n    ${entry.replace(/^\{/, "{ ").replace(/\}$/, " }")}\n  ${text.slice(end)}`
+}
+
+/**`)}],`,
     `cwd: ${JSON.stringify(`packages/${name}`)},`,
     `run: ["yarn", "pack:build"] }`
   ]

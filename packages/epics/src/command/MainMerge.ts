@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process"
+import { existsSync, readFileSync } from "node:fs"
 import { basename, dirname, join, matchesGlob, relative } from "node:path"
 
 import { EpicConfig } from "$/epics/config/EpicConfig"
@@ -56,11 +57,11 @@ export class MainMerge {
 
   /**
    * - `root`:  the checkout (a worktree, usually)
-   * - `generators`:  default `MainMerge.GENERATORS`;  `snapshotUpdate`:  default `yarn vp test run <tests> --update`
+   * - `generators`:  default the checkout's own list (`generatorsOf()`);  `snapshotUpdate`:  default `yarn vp test run <tests> --update`
    */
-  constructor({ root, generators = MainMerge.GENERATORS, snapshotUpdate = SNAPSHOT_UPDATE }: MainMergeProps) {
+  constructor({ root, generators, snapshotUpdate = SNAPSHOT_UPDATE }: MainMergeProps) {
     this.root = root
-    this.generators = generators
+    this.generators = generators ?? MainMerge.generatorsOf(root)
     this.snapshotUpdate = snapshotUpdate
   }
 
@@ -175,83 +176,46 @@ export class MainMerge {
     return report
   }
 
+  /** where a checkout lists its generated files:  `<root>/.epic/generators.json5` (epic `epic-eject` T4) */
+  static readonly GENERATORS_FILE = ".epic/generators.json5"
+
   /**
-   * The generated outputs, IN ORDER:  a later one may read an earlier one's output.
-   * - The docs bundle builds UI first, whose `<ui-code>` loads the spell highlighter, so `gen:spell` comes before it.
-   * - Snapshots aren't here:  `generatorsFor()` makes one per package, after these.
-   * - The same paths are `merge=binary` in the root `.gitattributes`:  keep the two in step.
-   * - NOT here:
-   *   - `pages.json5` (hand-kept)
-   *   - emoji data (`gen:emoji` needs a reference clone)
-   *   - the bundles the page server builds on demand, which aren't committed:
-   *     Spell UI's site and the brand pages (`spell dev bundles`)
+   * The generated outputs checkout `root` lists, IN ORDER (a later one may read an earlier one's output):
+   * its `.epic/generators.json5`, `{ "generators": [{ name, outputs, cwd, run }, ...] }`.
+   * - the checkout's OWN file, not the main checkout's:  a branch that adds a generated file lists it, and its own
+   *   merge knows it
+   * - no file:  none, so only snapshots are regenerated
+   * - Why a file:  the epic code is every repo's, and the generators are one repo's own (spell-app's bundles, its
+   *   packs ...);  `spell dev pack new` adds a pack's line
+   * - throws `SyntaxError` on a file that won't read, `TypeError` on an entry of the wrong shape:  each names the file
    */
-  // oxfmt-ignore
-  static readonly GENERATORS: Generator[] = [
-    { name: "yarn.lock",                outputs: ["yarn.lock"],                                           cwd: ".",               run: ["yarn", "install"] },
-    { name: "spell highlighter",        outputs: ["packages/ui/src/languages/spell.*"],                   cwd: "packages/ui",     run: ["yarn", "gen:spell"] },
-    {
-      name: "markdown bundle",
-      outputs: ["packages/ui/components/ui-markdown/md.bundle.*", "packages/ui/components/ui-markdown/MDBundle.ts"],
-      cwd: "packages/ui",
-      run: ["yarn", "gen:markdown"]
-    },
-    {
-      name: "Spell UI site data",
-      outputs: [
-        "packages/ui/docs/__data/{components,icons,search}.json5",
-        "packages/ui/docs/__data/{custom-elements,html-custom-data}.json"
-      ],
-      cwd: "packages/ui",
-      run: ["yarn", "site:data"]
-    },
-    {
-      name: "docs bundle",
-      outputs: ["packages/epics/tools/_assets/spell-ui.js", "packages/epics/tools/_assets/{emoji,lazy}/**"],
-      cwd: "packages/epics",
-      run: ["node", "tools/bundle-spell-ui.js"]
-    },
-    {
-      name: "brand data",
-      outputs: [
-        "packages/brand/docs/__data/{components,search}.json5",
-        "packages/brand/docs/__data/{custom-elements,html-custom-data}.json"
-      ],
-      cwd: "packages/brand",
-      run: ["yarn", "site:data"]
-    },
-    { name: "epics pack",               outputs: ["packages/epics/components/__pack/**"],                 cwd: "packages/epics",  run: ["yarn", "pack:build"] },
-    {
-      name: "spell libraries",
-      outputs: ["packages/spaces/@spell/library/**/*.lib.ts"],
-      cwd: ".",
-      run: ["node", "packages/cli/bin/spell.mjs", "compile", "@spell/library"]
-    },
-    {
-      name: "Epic UI data",
-      outputs: ["packages/epics/docs/__data/{components,search}.json5"],
-      cwd: "packages/epics",
-      run: ["yarn", "site:data"]
-    },
-    {
-      name: "App UI data",
-      outputs: ["packages/app/docs/__data/{components,search}.json5"],
-      cwd: "packages/app",
-      run: ["yarn", "site:data"]
-    },
-    { name: "spell syntax table",       outputs: ["packages/spell/spellSyntax.json"],                     cwd: "packages/spell",  run: ["yarn", "gen:syntax"] },
-    { name: "brand pack",               outputs: ["packages/brand/components/__pack/**"],                 cwd: "packages/brand",  run: ["yarn", "pack:build"] }
-  ]
+  static generatorsOf(root: string): Generator[] {
+    const file = join(root, MainMerge.GENERATORS_FILE)
+    if (!existsSync(file)) return []
+    const data = EpicConfig.parse(readFileSync(file, "utf8"), file) as { generators?: unknown }
+    const list = data?.generators
+    if (!Array.isArray(list)) throw new TypeError(`MainMerge:  ${file} must hold { "generators": [...] }`)
+    return list.map((entry, index) => {
+      const { name, outputs, cwd, run } = (entry ?? {}) as Record<string, unknown>
+      const strings = (value: unknown) =>
+        Array.isArray(value) && value.length > 0 && value.every((v) => typeof v === "string")
+      if (typeof name !== "string" || typeof cwd !== "string" || !strings(outputs) || !strings(run))
+        throw new TypeError(
+          `MainMerge:  ${file}'s generator ${index + 1} must be { "name": "...", "outputs": [...], "cwd": "...", "run": [...] }`
+        )
+      return { name, outputs: outputs as string[], cwd, run: run as string[] }
+    })
+  }
 
   /**
    * The generators `files` need, in run order, each with the files it covers:
-   * the table's, then one snapshot update per package.
+   * `generators`' (a checkout's list, `generatorsOf()`), then one snapshot update per package.
    * - a file no generator covers isn't in any step
    * - static:  pure
    */
   static generatorsFor(
     files: string[],
-    generators = MainMerge.GENERATORS,
+    generators: Generator[],
     snapshotUpdate = SNAPSHOT_UPDATE
   ): { generator: Generator; files: string[] }[] {
     const steps = generators

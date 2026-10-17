@@ -329,7 +329,8 @@ ui -> util
     - `-diff`, when minified
     - `linguist-generated`:  collapsed in GitHub's PR diffs
   - A new committed generated file:
-    add it there AND to `GENERATORS` in [MainMerge.ts](packages/epics/src/command/MainMerge.ts).
+    add it there AND to [the generators list](.epic/generators.json5), `.epic/generators.json5`
+    (each branch's own, read by `MainMerge`).
   - NOT committed at all (since 2026-10-07):  the bundles only the page server serves,
     whose hashed chunk names churned every diff.
     - Spell UI's docs site:  its `_assets/`, in [ui's site](packages/ui/site/)

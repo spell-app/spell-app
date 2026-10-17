@@ -231,7 +231,7 @@ Longer notes on some of them follow the table.
 - `epic worktree merge-main` (was `dev worktree merge-main`, which still works):  `/isolate done` and park's Resume
   use it.
   - The generated files it regenerates:  bundles, site and brand assets, snapshots, `yarn.lock`.
-    The table:  `GENERATORS` in [`MainMerge.ts`](../epics/src/command/MainMerge.ts), the epic code's.
+    The list:  the repo's own [`.epic/generators.json5`](../../.epic/generators.json5), each branch's (`MainMerge.generatorsOf()`).
   - Then commits "Merge main into `<branch>`".
   - Another file in conflict stops it mid-merge:  resolve, `git add`, then `--continue`.
   - Lists snapshot entries neither side had, to review.
@@ -445,7 +445,7 @@ Longer notes on some of them follow the table.
 
   ```
   package.json, tsconfig.base.json, vitest.config.ts, vite.lint.ts, .gitattributes,
-  packages/epics/src/command/MainMerge.ts, and the shared commands page, guides/dev/commands/commands.json5
+  .epic/generators.json5, and the shared commands page, guides/dev/commands/commands.json5
   ```
 
 - `dev pack build` writes the pack's `components/__pack/`.

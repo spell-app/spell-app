@@ -209,7 +209,7 @@ leaves its worktree:  NOT "Finish" below.
        - Generated:  the root `.gitattributes`' `merge=binary` paths, and `yarn.lock`.
          Those paths are bundles, site and brand assets, snapshots.
        - `merge-main` rebuilds each one both sides changed, from the merged source,
-         with the command in `GENERATORS` ([MainMerge.ts](packages/epics/src/command/MainMerge.ts)).
+         with the command the checkout lists for it, in `.epic/generators.json5`.
          Then it commits the merge ("Merge main into `<name>`").
        - Its `REVIEW` lines:  snapshot entries with a value NEITHER side had, i.e. new behaviour nobody looked at.
          Show each to Owen, in bold, in the summary.

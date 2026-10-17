@@ -109,15 +109,53 @@ describe("MainMerge.run()", () => {
   })
 })
 
+/** A repo's list as spell-app's `.epic/generators.json5` starts, in a throwaway checkout:  read as the merge reads it */
+const REPO_GENERATORS = (() => {
+  const dir = join(TEMP, "repo-generators")
+  mkdirSync(join(dir, ".epic"), { recursive: true })
+  const line = (name: string, output: string, cwd: string, run: string[]) =>
+    JSON.stringify({ name, outputs: [output], cwd, run })
+  writeFileSync(
+    join(dir, ".epic/generators.json5"),
+    '// in order\n{\n  "generators": [\n' +
+      [
+        line("yarn.lock", "yarn.lock", ".", ["yarn", "install"]),
+        line("spell highlighter", "packages/ui/src/languages/spell.*", "packages/ui", ["yarn", "gen:spell"]),
+        line("docs bundle", "packages/epics/tools/_assets/{emoji,lazy}/**", "packages/epics", ["node", "b.js"])
+      ].join(",\n") +
+      ",\n  ]\n}\n"
+  )
+  return MainMerge.generatorsOf(dir)
+})()
+
+describe("generatorsOf()", () => {
+  test("a checkout's `.epic/generators.json5`, in order;  none without one;  a bad entry named", () => {
+    expect(REPO_GENERATORS.slice(0, 2).map((generator) => generator.name)).toEqual(["yarn.lock", "spell highlighter"])
+    const dir = join(TEMP, "generators-of")
+    mkdirSync(join(dir, ".epic"), { recursive: true })
+    expect(MainMerge.generatorsOf(dir)).toEqual([])
+    writeFileSync(
+      join(dir, ".epic/generators.json5"),
+      '// a comment\n{ "generators": [{ "name": "gen", "outputs": ["gen/**"], "cwd": ".", "run": ["node", "x.js"] },] }\n'
+    )
+    expect(MainMerge.generatorsOf(dir)).toEqual(GENERATORS.map((g) => ({ ...g, run: ["node", "x.js"] })))
+    writeFileSync(join(dir, ".epic/generators.json5"), '{ "generators": [{ "name": "gen" }] }')
+    expect(() => MainMerge.generatorsOf(dir)).toThrow(/generator 1 must be/)
+  })
+})
+
 describe("generatorsFor()", () => {
-  test("the table's generators in order, then one snapshot run per package, with its test files", () => {
-    const steps = MainMerge.generatorsFor([
-      "packages/spell/src/rules/__snapshots__/lists.test.ts.snap",
-      "packages/epics/tools/_assets/lazy/spell-en.js",
-      "packages/ui/src/languages/spell.en.bundle.js",
-      "packages/spell/src/__snapshots__/SpellProject.test.ts.snap",
-      "packages/ui/src/Thing.ts"
-    ])
+  test("the list's generators in order, then one snapshot run per package, with its test files", () => {
+    const steps = MainMerge.generatorsFor(
+      [
+        "packages/spell/src/rules/__snapshots__/lists.test.ts.snap",
+        "packages/epics/tools/_assets/lazy/spell-en.js",
+        "packages/ui/src/languages/spell.en.bundle.js",
+        "packages/spell/src/__snapshots__/SpellProject.test.ts.snap",
+        "packages/ui/src/Thing.ts"
+      ],
+      REPO_GENERATORS
+    )
     expect(steps.map(({ generator, files }) => [generator.name, generator.cwd, files.length])).toEqual([
       ["spell highlighter", "packages/ui", 1],
       ["docs bundle", "packages/epics", 1],
@@ -135,10 +173,13 @@ describe("generatorsFor()", () => {
   })
 
   test("a snapshot under tests/<package>/ is that package's:  run in packages/<package>, its test found from there", () => {
-    const steps = MainMerge.generatorsFor([
-      "tests/spell/src/rules/lists/__snapshots__/lists.test.ts.snap",
-      "tests/core/src/__snapshots__/json.test.ts.snap"
-    ])
+    const steps = MainMerge.generatorsFor(
+      [
+        "tests/spell/src/rules/lists/__snapshots__/lists.test.ts.snap",
+        "tests/core/src/__snapshots__/json.test.ts.snap"
+      ],
+      REPO_GENERATORS
+    )
     expect(steps.map(({ generator }) => [generator.name, generator.cwd, generator.run])).toEqual([
       [
         "spell snapshots",

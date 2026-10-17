@@ -21,7 +21,7 @@ const ROOT_FILES = [
   "vitest.config.ts",
   "vite.lint.ts",
   ".gitattributes",
-  "packages/epics/src/command/MainMerge.ts"
+  ".epic/generators.json5"
 ]
 
 /** The commands page, cut down:  a check row naming `brand`'s scripts, and the pack rows. */
@@ -110,7 +110,7 @@ describe("CLI.newPack()", () => {
       "vitest.config.ts",
       "vite.lint.ts",
       ".gitattributes",
-      "packages/epics/src/command/MainMerge.ts",
+      ".epic/generators.json5",
       COMMANDS_JSON
     ])
     const json = JSON.parse(read("package.json"))
@@ -138,10 +138,17 @@ describe("CLI.newPack()", () => {
     expect(read(".gitattributes")).toMatch(
       /\n# my-pack:.*\npackages\/my-pack\/components\/__pack\/\*\* +linguist-generated merge=binary -diff\n$/
     )
-    const generator = /^ *\{ name: "my-pack pack",.*$/m.exec(read("packages/epics/src/command/MainMerge.ts"))![0]
-    const yarnLock = /^ *\{ name: "yarn\.lock",.*$/m.exec(read("packages/epics/src/command/MainMerge.ts"))![0]
-    expect(generator.indexOf("outputs:")).toBe(yarnLock.indexOf("outputs:"))
-    expect(generator).toContain(`run: ["yarn", "pack:build"] }`)
+    // last in the list, still JSON5 the merge reads
+    const generators = JSON.parse(read(".epic/generators.json5").replace(/^\s*\/\/.*$/gm, "")).generators
+    expect(generators.at(-1)).toEqual({
+      name: "my-pack pack",
+      outputs: ["packages/my-pack/components/__pack/**"],
+      cwd: "packages/my-pack",
+      run: ["yarn", "pack:build"]
+    })
+    expect(read(".epic/generators.json5")).toContain(
+      '\n    { "name": "my-pack pack", "outputs": ["packages/my-pack/components/__pack/**"]'
+    )
     const rows = JSON.parse(read(COMMANDS_JSON)).families[0].rows
     expect(rows.map((row: { yarn: { names: string[] } }) => row.yarn.names)).toEqual([
       ["root ts", "brand ts", "my-pack ts", "ui ts"],

@@ -405,7 +405,8 @@ export type MigrateReport = {
 ////////////////
 
 /**
- * One generated output family, and the command that rebuilds it from the merged source (`MainMerge.GENERATORS`).
+ * One generated output family, and the command that rebuilds it from the merged source:  a line of a checkout's
+ * `.epic/generators.json5` (`MainMerge.generatorsOf()`).
  * - `outputs`:  globs, relative to a checkout's root (`path.matchesGlob()`);  a folder is `<folder>/**`
  * - `run`:  the command, run in `cwd` (relative to a checkout's root)
  */
