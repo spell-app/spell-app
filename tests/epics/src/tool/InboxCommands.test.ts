@@ -252,8 +252,8 @@ test("done:  a Do Now request done is `review-as=now`;  a revisit talked over, `
   expect(["j1", "j2"].map((id) => plan.findItem(id)!.getAttribute("state"))).not.toContain("recent")
 })
 
-test("done cm1 --file:  the answer goes on the comment's thread;  Owen's reply lists it as waiting again", async () => {
-  const id = "cm1"
+test("done M1 --file:  the answer goes on the comment's thread;  Owen's reply lists it as waiting again", async () => {
+  const id = "m1"
   ReviewInbox.update(inboxFile, (inbox) => void inbox.commentList.add({ anchor: "j1", kind: "item" }, "Why?"))
   const answer = join(root, "answer.html")
   writeFileSync(answer, "<p>Because.</p>\n")
@@ -329,11 +329,11 @@ test("wait --json:  the send's comments, as the inbox holds them", async () => {
   })
   await commands().inbox.run("x", file, ["wait"], { timeout: "5", json: true })
   const work = JSON.parse(printed.join("\n")) as { sent: { comments: { id: string; text: string }[] } }
-  expect(work.sent.comments).toMatchObject([{ id: "cm1", text: "Why?" }])
+  expect(work.sent.comments).toMatchObject([{ id: "m1", text: "Why?" }])
 })
 
-test("working M1 on | off (m1, the old cm1 too):  the thread's thinking stub, not an item's spinner;  done turns it off", async () => {
-  const id = "cm1"
+test("working M1 on | off (m1, the old m1 too):  the thread's thinking stub, not an item's spinner;  done turns it off", async () => {
+  const id = "m1"
   ReviewInbox.update(inboxFile, (inbox) => void inbox.commentList.add({ anchor: "j1", kind: "item" }, "Why?"))
   const comment = () => ReviewInbox.read(inboxFile).comments[id]
   await commands().inbox.run("x", file, ["working", "M1", "on"], {})

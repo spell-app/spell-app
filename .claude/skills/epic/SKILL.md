@@ -643,7 +643,7 @@ The item's id chip follows too (PLAN-DOC.md "Colours"):
      - A long talk without them shows "nobody is reviewing", until `wait` runs again.
 
 3b. COMMENTS (epic `airplane` P11):  Owen's comments on the doc's blocks, or on text he selected (the bullhorns).
-   - Ids `M1` ... (epic `epic-workflow` P23), as the page shows them;  `m1` and the old `cm1` read the same.
+   - Ids `M1` ... (epic `epic-workflow` P23), as the page shows them, keyed `m1` in the inbox;  `m1` and the old `cm1` read the same.
    - Each is a THREAD on the page:  his comment, your answers, his replies, until he closes it
      ("that's good" / "skip it").
    - `epic inbox <name>` lists the ones waiting, under "comments".

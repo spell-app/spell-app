@@ -8,7 +8,7 @@
  *   this checkout's page server (`ensurePageServer()`), so the runtime is this branch's bundle
  * - their COMMENTS ARE STUBBED (Playwright's `page.route`):  three threads on each page, on its first top-level
  *   sections (a guide) or its first items (an epic page), Claude having spoken last on the first and the third, so two
- *   wait on Owen.  The ids are keyed `cm1` ... as an inbox file keys them
+ *   wait on Owen.  The ids are keyed `m1` ... as an inbox file keys them
  * - reads and writes NOTHING on disk:  no inbox file is read for comments, and every POST to `/api/` is aborted, so
  *   nothing is sent and no session is woken
  * - checks, on each page:
@@ -81,7 +81,7 @@ async function stubbedPage(url, anchors, answered = [true, false, true]) {
     const ids = (await page.evaluate(anchors)).slice(0, 3)
     const at = "2026-10-17T10:00:00.000Z"
     const comments = ids.map((anchor, index) => ({
-      id: `cm${index + 1}`,
+      id: `m${index + 1}`,
       anchor,
       kind: "section",
       label: "",
@@ -168,8 +168,8 @@ async function checkPage(name, url, anchors) {
   await page.waitForTimeout(1200)
   now = await state(page)
   check(
-    `${name}:  Cmd-K cm3 lands on M3's thread, opened, on screen`,
-    now.thread === "comment-cm3" && now.open && now.onScreen,
+    `${name}:  Cmd-K cm3 (the old spelling) lands on M3's thread, opened, on screen`,
+    now.thread === "comment-m3" && now.open && now.onScreen,
     JSON.stringify(now)
   )
   check(`${name}:  no page errors`, page.errors.length === 0, page.errors.join(" | "))

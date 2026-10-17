@@ -26,16 +26,15 @@ const OWEN = "Owen"
 const COMMIT = /^[0-9a-f]{7,40}$/
 
 /**
- * A comment's id AS AN INBOX FILE KEYS IT:  `cm` and its number, `cm3`, as every checkout's code has written it since
- * comments began (epic `airplane` P11).  Owen sees and types `M3` ("M" for mark;  Owen, 2026-10-10:  "use `M3` for
+ * A comment's id AS AN INBOX FILE KEYS IT:  `m` and its number, `m3` (`cm3` from comments' start, epic `airplane`
+ * P11, until epic `epic-workflow` P23).  Owen sees and types `M3` ("M" for mark;  Owen, 2026-10-10:  "use `M3` for
  * mark 1"):  `label()`, `idOf()`.
- * - why the files keep `cm3` (epic `epic-workflow` P23):  a checkout on older code reads these SHARED files too, and
- *   finds a comment by its key as it is;  written as `m3`, its `epic inbox <epic>#cm3 done`, its page server and its
- *   next new comment (`cm1` again, next to an `m1`) would all go wrong
- * - the switch to `m3` keys, once every checkout has this code:  change this one prefix.  Nothing else changes, since
- *   every reader already takes either key (`migrate()`)
+ * - the files key them `m3` (Owen, 2026-10-17, J178:  "Switch to m3 now");  an older file's `cm3` is read as `m3`
+ *   and written so at its next write (`migrate()`)
+ * - a checkout on older code reads these SHARED files too, and finds a comment by its key as it is:  until it merges
+ *   `main`, its `epic inbox <epic>#cm3` commands and its page server miss the comments written since
  */
-const STORED = "cm"
+const STORED = "m"
 
 /** Any way an id may be typed, or keyed in a file:  `M3`, `m3`, the old `cm3`;  any case, a `#` before it aside. */
 const ANY_ID = /^#?c?m(\d+)$/i
@@ -61,10 +60,9 @@ CommentsError.prototype.name = "CommentsError"
 /****************
  * ### `CommentList`
  * COMMENTS Owen leaves on a page's blocks (epic `airplane`, P11), as an inbox file holds them:
- * `{ cm1: {...}, cm2: {...} }`, edited in place.
+ * `{ m1: {...}, m2: {...} }`, edited in place.
  * - IDS (epic `epic-workflow` P23):  shown `M1`, `M2` ... (`label()`);  every method taking an id takes `M3`, `m3` or
- *   `cm3` (`idOf()`).  The file keys them `cm3` still (`STORED`), and a key spelt the other way (`m3`, from a checkout
- *   once the keys switch) is read as one (`migrate()`)
+ *   `cm3` (`idOf()`).  The file keys them `m3` (`STORED`), and an older file's `cm3` is read as one (`migrate()`)
  * - two homes, one shape:
  *   - a docs page's own inbox file, `<page>.inbox.json5` (`GuideInbox`)
  *   - an epic page's review inbox, its `comments` (`ReviewInbox`)
@@ -98,7 +96,7 @@ export class CommentList {
   ////////////////
 
   /**
-   * Comment id `id` as the file keys it (`cm3`), however it's typed:  `M3`, `m3`, `cm3`, any case, a `#` before it
+   * Comment id `id` as the file keys it (`m3`), however it's typed:  `M3`, `m3`, `cm3`, any case, a `#` before it
    * aside;  anything else as it is, so a lookup says there's no such comment.
    */
   static idOf(this: void, id: string): string {
@@ -118,10 +116,11 @@ export class CommentList {
   }
 
   /**
-   * Respell the keys of `comments` (an inbox's record) that aren't the file's spelling (`m3` while it's `cm3`:
-   * `STORED`) IN PLACE;  returns `comments`.
-   * - why:  so the switch to `m3` keys, one day, breaks no checkout on this code:  it reads them as its own
-   * - a number both ways (`cm3` AND `m3`, from two checkouts):  the respelt one takes the next free number
+   * Respell the keys of `comments` (an inbox's record) that aren't the file's spelling (`STORED`:  an older file's
+   * `cm3` is `m3`) IN PLACE;  returns `comments`.
+   * - so an inbox written before epic `epic-workflow` P23 reads as one written since, and is written so next time
+   * - a number both ways (`cm3` AND `m3`:  a checkout on older code added one since):  the respelt one takes the next
+   *   free number
    * - the order kept:  by number, as `all` reads them
    */
   static migrate(this: void, comments: Record<string, Comment>): Record<string, Comment> {
@@ -230,7 +229,7 @@ export class CommentList {
   ////////////////
 
   /**
-   * Add a comment on the block at `where`;  returns its id, as the file keys it (`cm3`).
+   * Add a comment on the block at `where`;  returns its id, as the file keys it (`m3`).
    * - throws on a bad anchor or kind, or blank text
    */
   add(where: CommentPlace, text: string, now = new Date()): string {
@@ -410,7 +409,7 @@ export class CommentList {
     delete comment.working
   }
 
-  /** The id a new comment gets:  one past the highest (`cm3` after `cm2`). */
+  /** The id a new comment gets:  one past the highest (`m3` after `m2`). */
   private nextId(): string {
     return nextFree(this.comments)
   }
@@ -480,7 +479,7 @@ export type Resolution = "good" | "skip"
 /** Whose turn it is on a thread (`CommentList.turnOf()`). */
 export type Turn = "owen" | "claude" | "done"
 
-/** A comment with its id (`cm3`). */
+/** A comment with its id (`m3`). */
 export type IdentifiedComment = Comment & { id: string }
 
 /** When Claude last took `comment`, ISO;  `taken` with no record of it:  when written;  never taken:  `undefined`. */
@@ -520,12 +519,12 @@ function stamp(value: unknown): string | undefined {
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
 }
 
-/** A comment id's number:  `cm12` (`m12`, `M12`) -> 12;  0 for anything else. */
+/** A comment id's number:  `m12` (`M12`, the old `cm12`) -> 12;  0 for anything else. */
 function numberOf(id: string): number {
   return Number(ANY_ID.exec(id)?.[1] ?? 0)
 }
 
-/** The id one past the highest of `comments`' (`cm3` after `cm2`, or after an `m2`;  `cm1` for none). */
+/** The id one past the highest of `comments`' (`m3` after `m2`, or after an old `cm2`;  `m1` for none). */
 function nextFree(comments: Record<string, Comment>): string {
   return `${STORED}${Math.max(0, ...Object.keys(comments).map(numberOf)) + 1}`
 }

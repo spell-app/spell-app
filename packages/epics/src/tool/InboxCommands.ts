@@ -683,7 +683,7 @@ function plural(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? "" : "s"}`
 }
 
-/** `["q7", "i2", "cm3"]` -> `Q7, I2, M3` */
+/** `["q7", "i2", "m3"]` -> `Q7, I2, M3` */
 function upper(ids: string[]): string {
   return ids.map(shown).join(", ")
 }

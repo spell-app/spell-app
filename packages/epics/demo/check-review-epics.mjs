@@ -550,7 +550,7 @@ async function run() {
   ReviewInbox.update(inboxFile, (box) => void box.commentList.add({ anchor: question, kind: "item" }, COMMENT))
   await waitHeader(page, (state) => state.send === "unsent", "Send, with only a comment waiting:  blue (unsent)")
   const unsent = await readInbox(page)
-  expect("the inbox:  the comment unsent", unsent.unsentComments, ["cm1"])
+  expect("the inbox:  the comment unsent", unsent.unsentComments, ["m1"])
   await page.locator("epic-page button.send").click()
   await waitInbox(
     page,

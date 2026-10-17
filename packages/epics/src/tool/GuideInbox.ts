@@ -35,7 +35,7 @@ export class GuideInbox {
   /** the file's shape version */
   version = INBOX_VERSION
 
-  /** every comment, by id (`cm1` ...;  shown `M1`:  `CommentList.label()`), in the order written */
+  /** every comment, by id (`m1` ...;  `cm1` in an older file;  shown `M1`:  `CommentList.label()`), in the order written */
   comments: Record<string, Comment> = {}
 
   /** ISO time of Owen's last Send on the page, else `null` */

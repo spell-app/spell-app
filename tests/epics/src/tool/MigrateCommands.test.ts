@@ -166,7 +166,7 @@ describe("migrate:  the runner", () => {
   test("links-agree moves a comment whose block moved, in the inbox, after the page", async () => {
     const inbox = ReviewInbox.pathFor(docOf("new"))
     ReviewInbox.update(inbox, (each) => {
-      each.comments.cm1 = {
+      each.comments.m1 = {
         anchor: "p-one#field-9",
         kind: "field",
         label: "",
@@ -178,7 +178,7 @@ describe("migrate:  the runner", () => {
     })
     expect(await commands().run(["migrate", "new", "--step", "links-agree"])).toBe(0)
     expect(printed[0]).toBe("new:  links-agree")
-    expect(ReviewInbox.read(inbox).comments.cm1!.anchor).toMatch(/^p-three#field-\d$/)
+    expect(ReviewInbox.read(inbox).comments.m1!.anchor).toMatch(/^p-three#field-\d$/)
   })
 
   test("stable-phase-ids:  old ids, their links, part files and inbox entries follow;  a second run:  up to date", async () => {
@@ -216,7 +216,7 @@ describe("migrate:  the runner", () => {
     expect(Object.keys(after.marks).sort()).toEqual(["new1", "p-two"])
     expect(after.marks.new1!.near).toBe("p-two")
     expect(Object.keys(after.drafts)).toEqual(["p-three"])
-    expect(after.comments.cm1!.anchor).toBe("p-two#field-1")
+    expect(after.comments.m1!.anchor).toBe("p-two#field-1")
 
     printed = []
     expect(await commands().run(["migrate", "new"])).toBe(0)

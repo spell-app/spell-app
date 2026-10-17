@@ -102,7 +102,7 @@ describe("GuideChanges.gather()", () => {
     expect(epicText()).toMatch(
       /<epic-update[^>]*summary="1 comment more from Owen"[^>]*>[\s\S]*1 comment more from Owen[\s\S]*And the second table\?/
     )
-    expect(other).toBe("cm1")
+    expect(other).toBe("m1")
   })
 
   // epic `epic-workflow` P13:  a page an epic owns sends its comments to that epic, never into guide-changes

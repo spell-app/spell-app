@@ -57,7 +57,7 @@ import { CommentList, type Comment, type IdentifiedComment } from "./CommentList
  *       `liveListener()` is `null`, and the routes answer `listening: null` (`forPage()`)
  *   - `handedOver`:  the `sent` time a waiting session last took (`takeWork()`), else `null`:
  *     so a second `plan-doc inbox wait` doesn't hand the same send over again
- *   - `comments`:  `{ [cm1 ...]: comment }` (shown `M1`:  `CommentList.label()`), Owen's comments on the page's blocks and on selected text
+ *   - `comments`:  `{ [m1 ...]: comment }` (shown `M1`;  `cm1` in an older file:  `CommentList.label()`), Owen's comments on the page's blocks and on selected text
  *     (epic `airplane` P11), in the shape a guide's inbox holds them (`CommentList`)
  *     - waiting until Claude answers them like a revisit's note (`/epic review`, `/airplane land`),
  *       then `answered` (`epic inbox <name>#M3 done`)
@@ -95,7 +95,7 @@ export class ReviewInbox {
   listening: InboxListener | null = null
   /** the `sent` time a waiting session last took, else `null` */
   handedOver: string | null = null
-  /** Owen's comments on the page's blocks, by id (`cm1` ...):  `CommentList` */
+  /** Owen's comments on the page's blocks, by id (`m1` ...;  `cm1` in an older file):  `CommentList` */
   comments: Record<string, Comment> = {}
   /** the page server's last wake of the epic (P16), else `null` */
   woken: InboxWoken | null = null

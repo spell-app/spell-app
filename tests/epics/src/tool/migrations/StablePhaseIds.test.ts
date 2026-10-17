@@ -40,7 +40,7 @@ function context(): MigrationContext & { notes: string[] } {
     now: new Date(2026, 9, 14),
     inbox: {
       keyed: { mark: { p2: {} }, draft: { p3: {} } },
-      comments: { cm1: { anchor: "p2#field-1" } }
+      comments: { m1: { anchor: "p2#field-1" } }
     },
     notes: []
   }

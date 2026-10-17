@@ -1347,9 +1347,10 @@ Each kind of page has ONE name, written everywhere a person reads it.
   - IDS (epic `epic-workflow` P23):  shown `M1`, `M2` ... ("M" for mark;  Owen, 2026-10-10:  "use `M3` for mark 1")
     - small and muted in each thread's header, before its summary
     - every tool prints `M3`, and takes `M3`, `m3` or the old `cm3` (`CommentList.idOf()`, `label()`)
-    - the inbox files still KEY them `cm1`, `cm2` ...:  a checkout on older code reads these shared files, and finds a
-      comment by its key as it is.  Every reader takes an `m3` key too (`CommentList.migrate()`), so the switch to
-      writing `m3` is one constant (`STORED`), once every checkout has this code
+    - the inbox files KEY them `m1`, `m2` ... too (Owen, 2026-10-17, J178:  "Switch to m3 now";  `cm1` before)
+      - an older file's `cm3` is read as `m3`, and written so at its next write (`CommentList.migrate()`)
+      - a checkout on older code finds a comment by its key as it is:  until it merges `main`, it misses the
+        comments written as `m3`, and its new ones are `cm1` ... again (read as `m` by this code, a clash renumbered)
     - `c1` is a caveat's
 - Where a comment is:  its ANCHOR ([BlockAnchors.js](tools/BlockAnchors.js), shared by the runtime and the tools).
   - the block's id, else `<nearest section or plan part id>#<kind>-<n>`

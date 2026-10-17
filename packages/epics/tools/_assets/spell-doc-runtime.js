@@ -3162,7 +3162,7 @@ const KIND_NAMES = {
  *   - the BULLHORN only ever starts a new comment:  no count, since the block's threads are right there (Owen,
  *     2026-10-10:  "Bullhorn to the far right is unnecessary")
  * - IDS (epic `epic-workflow` P23;  Owen, 2026-10-10:  "use `M3` for mark 1"):  shown `M3`, small and muted in each
- *   thread's header, before its summary (`threadHead()`);  the server keys them `cm3`, and a typed id takes `M3`,
+ *   thread's header, before its summary (`threadHead()`);  the server keys them `m3`, and a typed id takes `M3`,
  *   `m3` or `cm3` (`commentNumber()`)
  * - JUMPING to the threads waiting on Owen (Claude spoke last;  Owen, 2026-10-10:  "Is there a way to jump to comments
  *   in replies?"):
@@ -3622,7 +3622,7 @@ class PageComments {
 
   /**
    * Land on comment `id`'s thread, opened:  as a link to it would (`go()`:  what hides it unfolds, it lands below the
-   * stuck titles, the address says `#comment-cm3`), then the focus to its header without scrolling.  Seen
+   * stuck titles, the address says `#comment-m3`), then the focus to its header without scrolling.  Seen
    * (`markSeen()`).
    */
   async landOn(id) {
