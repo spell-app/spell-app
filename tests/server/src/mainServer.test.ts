@@ -56,6 +56,8 @@ describe("mainServerUrl()", () => {
     symlinkSync(shared, join(worktree, "epics"))
     const server = await new PageServer({ root }).start({ port: 0, routes: false })
     try {
+      // as epics' route module answers, so the server counts as one that shows worktrees
+      server.web.router.get(SRV.RUNNING_EPICS_API, (_request, reply) => reply.json([]))
       const url = await SRV.mainServerUrl(join(worktree, "epics", "seo", "seo.plan.html"))
       expect(url).toBe(`http://127.0.0.1:${server.info.port}/epics/seo/seo.plan.html`)
     } finally {
