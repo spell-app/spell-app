@@ -1177,11 +1177,24 @@ export class JSWriter extends ProgramWriter {
     })
   }
 
-  /** In its class's body:  `static { this.declareProp(...) }` (if it declares anything), its getter and setter. */
+  /**
+   * A comment saying the spell that made `node`:  `// - its "friend-lists" is a list of friend-lists`
+   * -- `undefined` when there's none (`spellOf()`).
+   */
+  spellComment(node: P.ASTNode): string | undefined {
+    const spell = this.spellOf(node)
+    return spell && `// ${spell}`
+  }
+
+  /**
+   * In its class's body:  the spell that made it as a comment, `static { this.declareProp(...) }` (if it declares
+   * anything), its getter and setter.
+   */
   ASTReactivePropertyAsMember(node: P.ASTReactiveProperty): string {
     const name = this.memberKey(node.property)
     const declare = this.declareCall(node, "this")
     return [
+      this.spellComment(node),
       declare && `static { ${declare} }`,
       `get ${name}()${this.valueType(node)} ${this.getterBody(node)}`,
       `set ${name}(${this.setterParams(node)}) ${this.setterBody(node)}`
@@ -1204,7 +1217,7 @@ export class JSWriter extends ProgramWriter {
       const block = jsText.Block({ wrap: true, children: descriptor.join(jsText.NEWLINE) })
       const define = `Object.defineProperty(${this.write(node.prototypeExpression)}, ${this.propertyKey(node)}, ${block})`
       const declare = this.declareCall(node, this.write(node.type))
-      return declare ? [declare, define].join(jsText.NEWLINE) : define
+      return [this.spellComment(node), declare, define].filter(Boolean).join(jsText.NEWLINE)
     })
   }
 
@@ -1275,13 +1288,18 @@ export class JSWriter extends ProgramWriter {
     return `${type}.${name} = ${this.anonymousFunction(node.method)}`
   }
 
-  /** `static Name = value`, by our name. */
+  /** `static Name = value`, by our name;  a list of values below the spell that made it (`spellOf()`). */
   ASTStaticDefinitionAsMember(node: P.ASTStaticDefinition): string {
-    return `static ${this.nameOf(node.name)} = ${this.bare(node.value)}`
+    return this.withSpell(node, `static ${this.nameOf(node.name)} = ${this.bare(node.value)}`)
   }
 
   ASTStaticDefinition(node: P.ASTStaticDefinition): string {
-    return `${this.write(node.type)}.${this.nameOf(node.name)} = ${this.bare(node.value)}`
+    return this.withSpell(node, `${this.write(node.type)}.${this.nameOf(node.name)} = ${this.bare(node.value)}`)
+  }
+
+  /** `code`, below the spell that made `node`, if any (`spellComment()`). */
+  withSpell(node: P.ASTNode, code: string): string {
+    return [this.spellComment(node), code].filter(Boolean).join(jsText.NEWLINE)
   }
 
   /** Its `member`, patched onto its class from outside, wherever that class is written. */

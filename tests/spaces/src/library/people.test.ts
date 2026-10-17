@@ -57,21 +57,24 @@ describe("the people library", () => {
     expect(loaded.dates.items[0].day).toEqual(new Date("1970-01-01T00:00:00.000Z"))
   })
 
-  test("an org, and its memberships:  a person and their role", async () => {
+  test("an org, and its members:  each a membership, a person and their role", async () => {
     const People = (await import(LIBRARY)) as Record<string, any>
     const owen = new People.Person({ id: "owen", names: "Owen" })
     const spell = new People.Org({ id: "spell", name: "Spell" })
-    spell.memberships.add(new People.Membership({ person: owen, role: "spell-admin" }))
-    expect(People.Membership.Roles).toEqual(["member", "admin", "spell-admin"])
+    spell.members.add(new People.Membership({ person: owen, role: "spell-admin" }))
+    expect(People.Membership.Roles).toEqual(["guest", "member", "admin", "spell-admin"])
     const { entries } = new Saver().save(spell)
-    expect(entries.get("Org#spell")!.memberships).toEqual([
+    expect(entries.get("Org#spell")!.members).toEqual([
       { $type: "Membership", person: { $ref: "Person#owen" }, role: "spell-admin" }
     ])
     const classNamed = (name: string) => People[name]
     expect(
-      checkEntry({ ...entries.get("Org#spell")!, memberships: [{ $type: "Membership", role: "boss" }] }, { classNamed })
+      checkEntry({ ...entries.get("Org#spell")!, members: [{ $type: "Membership", role: "boss" }] }, { classNamed })
     ).toEqual([
-      { property: "memberships[0].role", message: 'memberships[0].role is one of "member", "admin", "spell-admin"' }
+      {
+        property: "members[0].role",
+        message: 'members[0].role is one of "guest", "member", "admin", "spell-admin"'
+      }
     ])
   })
 })

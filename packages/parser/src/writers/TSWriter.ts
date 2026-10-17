@@ -624,7 +624,7 @@ export class TSWriter extends JSWriter {
   ASTStaticDefinitionAsMember(node: P.ASTStaticDefinition): string {
     const list = [...this.project.lists.values()].find((it) => it.definition === node)
     if (!list) return super.ASTStaticDefinitionAsMember(node)
-    return `static ${this.nameOf(node.name)} = ${list.constant}`
+    return this.withSpell(node, `static ${this.nameOf(node.name)} = ${list.constant}`)
   }
 
   ////////////////
@@ -640,9 +640,9 @@ export class TSWriter extends JSWriter {
     const name = this.nameOf(node.property.value)
     if (node.get) {
       const getter = this.methodNamed(node.get, `get ${name}`)
-      return loopsOverAList(node.get) ? `@derived\n${getter}` : getter
+      return loopsOverAList(node.get) ? `@derived ${getter}` : getter
     }
-    if (name === "draw") return `@drawn\n${this.drawMethod(node.method!)}`
+    if (name === "draw") return `@drawn ${this.drawMethod(node.method!)}`
     return this.methodNamed(node.method!, name)
   }
 
@@ -655,7 +655,10 @@ export class TSWriter extends JSWriter {
     // TypeScript won't let an `accessor` do that, so the pair javascript writes
     if (this.project.isInherited(node.typeName, node.property.value)) return super.ASTReactivePropertyAsMember(node)
     const info = this.propInfo(node)
-    return `@prop(${info ?? ""}) accessor ${this.write(node.property)}!: ${this.propertyType(node) ?? TSWriter.UNKNOWN}`
+    // a decorator with arguments on its own line, one without on its member's (Owen, epic `people-and-orgs` P19)
+    const decorator = info ? `@prop(${info})${jsText.NEWLINE}` : "@prop() "
+    const accessor = `accessor ${this.write(node.property)}!: ${this.propertyType(node) ?? TSWriter.UNKNOWN}`
+    return [this.spellComment(node), `${decorator}${accessor}`].filter(Boolean).join(jsText.NEWLINE)
   }
 
   /** What `@prop()` declares:  `node`'s `check`, `init` for its `initializer`, a hoisted list by its constant. */

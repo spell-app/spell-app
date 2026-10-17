@@ -244,10 +244,12 @@ describe("grammar probes", () => {
     expect(probe("a todo is a thing", "a todo has a done as choice", "todos have a flag as a boolean"))
       .toMatchInlineSnapshot(`
         "export class Todo extends Thing {
+          // a todo has a done as choice
           static { this.declareProp("done", { type: "choice" }) }
           get done() { return this.getProp("done") }
           set done(value) { this.setProp("done", value) }
 
+          // todos have a flag as a boolean
           static { this.declareProp("flag", { type: "choice" }) }
           get flag() { return this.getProp("flag") }
           set flag(value) { this.setProp("flag", value) }
@@ -352,7 +354,8 @@ describe("grammar probes", () => {
 
   test("M3  `a card has short rank as text`:  blacklisted words, no article", () => {
     expect(probe("a card has long rank as text")).toMatchInlineSnapshot(`
-      "Card.declareProp("longRank", { type: "text" })
+      "// a card has long rank as text
+      Card.declareProp("longRank", { type: "text" })
       Object.defineProperty(Card.prototype, "longRank", {
         get() { return this.getProp("longRank") },
         set(value) { this.setProp("longRank", value) },
@@ -378,7 +381,8 @@ describe("grammar probes", () => {
         "set the owner of the card to x"
       )
     ).toMatchInlineSnapshot(`
-      "Card.declareProp("owner", { type: "Pile" })
+      "// set the owner of the card to the pile
+      Card.declareProp("owner", { type: "Pile" })
       Object.defineProperty(Card.prototype, "owner", {
         get() { return this.getProp("owner") },
         set(value) { this.setProp("owner", value) },
@@ -524,7 +528,8 @@ describe("grammar probes", () => {
         ["print the pile of the card"]
       )
     ).toMatchInlineSnapshot(`
-      "Card.declareProp("pile", { type: "Pile" })
+      "// set the pile of the card to the pile
+      Card.declareProp("pile", { type: "Pile" })
       Object.defineProperty(Card.prototype, "pile", {
         get() { return this.getProp("pile") },
         set(value) { this.setProp("pile", value) },

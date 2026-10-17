@@ -61,7 +61,8 @@ describe("TSWriter", () => {
       ]
     })
     const score = new P.ASTReactiveProperty(match, { type: "Game", property: "score", check })
-    expect(writer.writeAsMember(score)).toBe(`@prop({ type: "number" }) accessor score!: number`)
+    // a decorator with arguments on the line above its accessor (epic `people-and-orgs` P19)
+    expect(writer.writeAsMember(score)).toBe(`@prop({ type: "number" })\naccessor score!: number`)
     expect(writer.write(score)).toMatch(/^export interface Game \{ score: number \}\n/)
     expect(writer.write(score)).toContain("set(this: Game, value: number)")
   })
@@ -208,7 +209,8 @@ describe("TSWriter", () => {
         ``,
         `export class Card extends Thing {`,
         `  static Suits = SUITS`,
-        `  @prop({ oneOf: SUITS }) accessor suit!: Suit`,
+        `  @prop({ oneOf: SUITS })`,
+        `  accessor suit!: Suit`,
         `}`
       ].join("\n")
     )

@@ -45,12 +45,14 @@ export class Card extends Drawable {
   // ## properties of cards
   /////////////////////////
   /** card ranks */
+  // cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
   static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"]
   static { this.declareProp("rank", { oneOf: Card.Ranks }) }
   get rank() { return this.getProp("rank") }
   set rank(value) { this.setProp("rank", value) }
 
   /** card suits */
+  // cards have a suit as one of clubs, diamonds, hearts or spades
   static Suits = ["clubs", "diamonds", "hearts", "spades"]
   static { this.declareProp("suit", { oneOf: Card.Suits }) }
   get suit() { return this.getProp("suit") }
@@ -68,6 +70,7 @@ export class Card extends Drawable {
   }
 
   /** card direction:  up or down */
+  // a card has a direction as either up or down
   static Directions = ["up", "down"]
   static { this.declareProp("direction", { oneOf: Card.Directions }) }
   get direction() { return this.getProp("direction") }
@@ -232,6 +235,7 @@ export class Deck extends List {
     spellCore.echo(`deck: ${cardNames}`)
   }
 
+  // set the is-set-up of the deck to yes
   static { this.declareProp("isSetUp", { type: "choice" }) }
   get isSetUp() { return this.getProp("isSetUp") }
   set isSetUp(value) { this.setProp("isSetUp", value) }
@@ -283,6 +287,7 @@ export class Pile extends DrawableList {
     }
   `
 
+  // a pile has a name as text
   static { this.declareProp("name", { type: "text" }) }
   get name() { return this.getProp("name") }
   set name(value) { this.setProp("name", value) }
@@ -314,6 +319,7 @@ export class Pile extends DrawableList {
 
 /** Game bits */
 export class Game extends App {
+  // a game has a score as a number
   static { this.declareProp("score", { type: "number" }) }
   get score() { return this.getProp("score") }
   set score(value) { this.setProp("score", value) }

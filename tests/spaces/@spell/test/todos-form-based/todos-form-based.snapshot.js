@@ -3,10 +3,12 @@ import { spellCore, Thing, List, App, Drawable, DrawableList, h } from "@spell/c
 spellCore.heading("Todo app example")
 /** Todo app example */
 export class Task extends Thing {
+  // a task has a title as text
   static { this.declareProp("title", { type: "text" }) }
   get title() { return this.getProp("title") }
   set title(value) { this.setProp("title", value) }
 
+  // a task has a property completed as yes or no
   static { this.declareProp("completed", { type: "choice" }) }
   get completed() { return this.getProp("completed") }
   set completed(value) { this.setProp("completed", value) }
@@ -21,14 +23,17 @@ export class Task extends Thing {
 }
 
 export class TodosApp extends App {
+  // a todos-app has a property tasks as a new list of tasks
   static { this.declareProp("tasks", { itemType: "Task", init: () => new List({ instanceType: "Task" }) }) }
   get tasks() { return this.getProp("tasks") }
   set tasks(value) { this.setProp("tasks", value) }
 
+  // a todos-app has a property newTaskName as text
   static { this.declareProp("newTaskName", { type: "text" }) }
   get newTaskName() { return this.getProp("newTaskName") }
   set newTaskName(value) { this.setProp("newTaskName", value) }
 
+  // a todos-app has a filter as one of all, active or completed
   static Filters = ["all", "active", "completed"]
   static { this.declareProp("filter", { oneOf: TodosApp.Filters }) }
   get filter() { return this.getProp("filter") }

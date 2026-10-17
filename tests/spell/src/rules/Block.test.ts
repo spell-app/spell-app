@@ -85,11 +85,13 @@ describe("compiling docstrings and headings", () => {
     // in a class body too
     const property = compile("a card is a thing\n\n// card ranks\ncards have a rank as one of ace or king")
     const propertyDoc = property.indexOf("  /** card ranks */")
-    expect(property.slice(propertyDoc, propertyDoc + 5)).toEqual([
+    // its code starts with the spell that made it (epic `people-and-orgs` P19)
+    expect(property.slice(propertyDoc, propertyDoc + 6)).toEqual([
       "  /** card ranks */",
       "  /*! SPELL: DECLARES {",
       '    property: "rank", classVariable: "Ranks", of: "Card", enumeration: ["ace", "king"],',
       "  } */",
+      "  // cards have a rank as one of ace or king",
       '  static Ranks = ["ace", "king"]'
     ])
   })
@@ -142,6 +144,7 @@ describe("class members go in their class's body", () => {
     ]
     expect(code(text.join("\n"))).toEqual([
       "export class Task extends Thing {",
+      "  // a task has a title as text",
       '  static { this.declareProp("title", { type: "text" }) }',
       '  get title() { return this.getProp("title") }',
       '  set title(value) { this.setProp("title", value) }',
@@ -162,6 +165,7 @@ describe("class members go in their class's body", () => {
   test("a member declared ABOVE its class", () => {
     expect(code("cards have a rank as text\na card is a thing")).toEqual([
       "export class Card extends Thing {",
+      "  // cards have a rank as text",
       '  static { this.declareProp("rank", { type: "text" }) }',
       '  get rank() { return this.getProp("rank") }',
       '  set rank(value) { this.setProp("rank", value) }',
@@ -187,6 +191,7 @@ describe("class members go in their class's body", () => {
       "  ////////////////",
       "  // of cards",
       "",
+      "  // cards have a rank as text",
       '  static { this.declareProp("rank", { type: "text" }) }',
       '  get rank() { return this.getProp("rank") }',
       '  set rank(value) { this.setProp("rank", value) }',
@@ -210,6 +215,7 @@ describe("class members go in their class's body", () => {
       "  }",
       "}",
       "export class Joker extends Card {",
+      "  // jokers have a color as either red or black",
       '  static Colors = ["red", "black"]',
       '  static { this.declareProp("color", { oneOf: Joker.Colors }) }',
       '  get color() { return this.getProp("color") }',
@@ -286,6 +292,7 @@ describe("headings, as the program runs:  `spellCore.heading()`", () => {
       "  // ## Properties",
       "  ////////////////",
       "  /** of cards */",
+      "  // cards have a rank as text",
       '  static { this.declareProp("rank", { type: "text" }) }',
       '  get rank() { return this.getProp("rank") }',
       '  set rank(value) { this.setProp("rank", value) }',

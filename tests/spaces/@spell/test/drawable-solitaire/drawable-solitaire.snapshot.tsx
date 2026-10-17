@@ -59,11 +59,15 @@ export class Card extends Drawable {
   /////////////////////////
   // ## properties of cards
   /////////////////////////
+  // cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
   static Ranks = RANKS
-  @prop({ oneOf: RANKS }) accessor rank!: Rank
+  @prop({ oneOf: RANKS })
+  accessor rank!: Rank
 
+  // cards have a suit as one of clubs, diamonds, hearts or spades
   static Suits = SUITS
-  @prop({ oneOf: SUITS }) accessor suit!: Suit
+  @prop({ oneOf: SUITS })
+  accessor suit!: Suit
 
   /** color as derivation of suit */
   get color() {
@@ -76,8 +80,10 @@ export class Card extends Drawable {
     return spellPosition(positionOf(Card.Ranks, this.rank))
   }
 
+  // a card has a direction as either up or down
   static Directions = DIRECTIONS
-  @prop({ oneOf: DIRECTIONS }) accessor direction!: Direction
+  @prop({ oneOf: DIRECTIONS })
+  accessor direction!: Direction
 
   /////////////
   // ## aliases
@@ -169,8 +175,7 @@ export class Card extends Drawable {
     await spellCore.pauseFor(50, "msec")
   }
 
-  @drawn
-  draw() {
+  @drawn draw() {
     const className = () => `card face-${this.direction} ${this.rank} ${this.suit} `
     const click = () => trigger("card-click", { card: this })
     return (
@@ -338,7 +343,9 @@ export class Deck extends List<Card> {
     spellCore.echo(`deck: ${cardNames}`)
   }
 
-  @prop({ type: "choice" }) accessor isSetUp!: boolean
+  // set the is-set-up of the deck to yes
+  @prop({ type: "choice" })
+  accessor isSetUp!: boolean
 }
 
 export function testDeckCreation() {
@@ -408,7 +415,9 @@ export class Pile extends DrawableList<Card> {
     }
   `
 
-  @prop({ type: "text" }) accessor name!: string
+  // a pile has a name as text
+  @prop({ type: "text" })
+  accessor name!: string
 
   get color() {
     if (this.isEmpty) return "none"
@@ -420,8 +429,7 @@ export class Pile extends DrawableList<Card> {
     return this.lastItem!.value
   }
 
-  @derived
-  get state() {
+  @derived get state() {
     let state = `${this.name || "pile"}:`
     this.forEach((card) => (state = `${state} ${card.state}`))
     return state
@@ -462,19 +470,19 @@ spellCore.heading("Klondike Solitaire Card Game")
 spellCore.heading("Game bits")
 /** Game bits */
 export class Game extends App {
-  @prop({ type: "number" }) accessor score!: number
+  // a game has a score as a number
+  @prop({ type: "number" })
+  accessor score!: number
 
   //## actions
 
-  @derived
-  get state() {
+  @derived get state() {
     let state = new List<string>({ instanceType: "text" })
     allPiles.forEach((pile) => state.append(pile.state))
     return state
   }
 
-  @drawn
-  draw() {
+  @drawn draw() {
     return (
       <div class="ui container">
         <div class="board">
@@ -540,8 +548,7 @@ export class StockPile extends Pile {
     return card === this.lastItem
   }
 
-  @drawn
-  draw() {
+  @drawn draw() {
     return (
       <div class="pile stock">
         <div class="placeholder" onClick={() => playFromTheStockPile()} />
@@ -576,8 +583,7 @@ export class DiscardPile extends Pile {
     return card === this.lastItem
   }
 
-  @drawn
-  draw() {
+  @drawn draw() {
     return (
       <div class="pile discards">
         <slot />
@@ -622,8 +628,7 @@ export class Foundation extends Pile {
 
   // each pile draws its outside:  its cards show in its <slot/>, each card its own element
 
-  @drawn
-  draw() {
+  @drawn draw() {
     const color = () => this.name === "diamonds" || this.name === "hearts" ? "red" : "black"
     return (
       <div class="pile foundation">
@@ -706,8 +711,7 @@ export class Tableau extends Pile {
     return this.color !== card.color && this.value === card.value + 1
   }
 
-  @drawn
-  draw() {
+  @drawn draw() {
     return (
       <div class="pile tableau">
         <slot />

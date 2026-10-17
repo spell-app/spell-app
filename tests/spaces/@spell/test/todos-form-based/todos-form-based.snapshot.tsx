@@ -3,9 +3,13 @@ import { spellCore, Thing, List, App, Drawable, DrawableList, prop, derived, dra
 spellCore.heading("Todo app example")
 /** Todo app example */
 export class Task extends Thing {
-  @prop({ type: "text" }) accessor title!: string
+  // a task has a title as text
+  @prop({ type: "text" })
+  accessor title!: string
 
-  @prop({ type: "choice" }) accessor completed!: boolean
+  // a task has a property completed as yes or no
+  @prop({ type: "choice" })
+  accessor completed!: boolean
 
   get isComplete() {
     return this.completed
@@ -20,22 +24,26 @@ const FILTERS = ["all", "active", "completed"] as const
 export type Filter = (typeof FILTERS)[number]
 
 export class TodosApp extends App {
-  @prop({ itemType: "Task", init: () => new List<Task>({ instanceType: "Task" }) }) accessor tasks!: List<Task>
+  // a todos-app has a property tasks as a new list of tasks
+  @prop({ itemType: "Task", init: () => new List<Task>({ instanceType: "Task" }) })
+  accessor tasks!: List<Task>
 
-  @prop({ type: "text" }) accessor newTaskName!: string
+  // a todos-app has a property newTaskName as text
+  @prop({ type: "text" })
+  accessor newTaskName!: string
 
+  // a todos-app has a filter as one of all, active or completed
   static Filters = FILTERS
-  @prop({ oneOf: FILTERS }) accessor filter!: Filter
+  @prop({ oneOf: FILTERS })
+  accessor filter!: Filter
 
-  @derived
-  get shownTasks() {
+  @derived get shownTasks() {
     if (this.filter == "active") return spellCore.filter(this.tasks, (task: Task) => task.isActive)
     if (this.filter == "completed") return spellCore.filter(this.tasks, (task: Task) => task.isComplete)
     return this.tasks
   }
 
-  @drawn
-  draw() {
+  @drawn draw() {
     return (
       <ui-container>
         <ui-segment>

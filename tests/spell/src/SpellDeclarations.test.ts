@@ -47,7 +47,9 @@ describe("SpellDeclarations, inline", () => {
     const lines = code.split("\n")
     expect(declarations.codeLines).toHaveLength(declarations.statements.length)
     const rank = declarations.statements.findIndex(({ property, of }) => property === "rank" && of === "Card")
-    expect(lines[declarations.codeLines![rank]!]).toMatch(/^ {2}static Ranks = /)
+    // its code starts with the spell that made it (epic `people-and-orgs` P19)
+    expect(lines[declarations.codeLines![rank]!]).toMatch(/^ {2}\/\/ cards have a rank as one of /)
+    expect(lines[declarations.codeLines![rank]! + 1]).toMatch(/^ {2}static Ranks = /)
     const card = declarations.statements.findIndex(({ type }) => type === "Card")
     expect(lines[declarations.codeLines![card]!]).toBe("export class Card extends Thing {")
   })
@@ -147,9 +149,9 @@ describe("SpellDeclarations.importScope()", () => {
     const fromDeclarations = summarize(parseSpellProject(app, { parentScope: importLibrary() }))
     // bar two things.  `set the name of cards-to-move to ...` declares a pile's `name`
     // only on a type the project declares itself (see `AssignmentStatement.declareProperty()`),
-    // and so only there asks what it is
+    // and so only there asks what it is.  Its declaration:  the comment, the spell that set it, then its five lines
     const autoDeclared =
-      /\/\*! SPELL: DECLARES \{\n {2}property: "name", of: "Pile", autoDeclared: true,\n.*\n\} \*\/\n(.*\n){5}/
+      /\/\*! SPELL: DECLARES \{\n {2}property: "name", of: "Pile", autoDeclared: true,\n.*\n\} \*\/\n\/\/ set .*\n(.*\n){5}/
     const asksWhatItIs = /Say what "name" is/
     // And a member read its type never declares warns only where the type is the project's own, never an import's:
     // the importer may give it anything -- see `MemberReadExpression.warnIfUndeclared()`

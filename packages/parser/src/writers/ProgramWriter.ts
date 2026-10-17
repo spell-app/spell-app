@@ -122,12 +122,45 @@ export abstract class ProgramWriter extends Writer {
     return this.naming.nameOf(name, kind === "member" ? "method" : kind)
   }
 
-  /** `node` with the members the project wrote for it elsewhere -- see `WriterProject.movedMembers`. */
+  /**
+   * The spell that made `node`, as written, on one line:  `- its "friend-lists" is a list of friend-lists`
+   * -- `undefined` when there's none to show (a node made by the writer).
+   * - Written in a comment above a property, by every target (Owen, epic `people-and-orgs` P19).
+   * - A property that lists its values (`its "role" is one of guest, member ...`):
+   *   above the list, `static Roles = [...]`, which its statement writes first.
+   */
+  spellOf(node: P.ASTNode): string | undefined {
+    if (node instanceof P.ASTReactiveProperty && listsItsValues(node)) return undefined
+    if (node instanceof P.ASTStaticDefinition && !(unwrapped(node.value) instanceof P.ASTEnumeration)) return undefined
+    const text = node.match?.inputText.replace(/\s+/g, " ").trim()
+    if (!text) return undefined
+    // an outline line (`it` / `its` the type it's in) gets back the dash it was written with, which isn't matched
+    return /^its?\b/.test(text) ? `- ${text}` : text
+  }
+
+  /**
+   * `node` with the members the project wrote for it elsewhere -- see `WriterProject.movedMembers`.
+   * - After its own members;  except a kind's FILE SETTING, `static savedInFile = true` (`a person is saved in its own
+   *   file`) or `savedInline`, which goes FIRST, with its comments, wherever its sentence sits (Owen, epic
+   *   `people-and-orgs` P19).
+   */
   protected withProjectMembers(node: P.ASTClassDeclaration): P.ASTClassDeclaration {
     const moved = this.project.movedMembers.get(node.type.name)
     if (!moved?.length) return node
-    const separator = node.members?.length ? [new P.ASTBlankLine(node.match)] : []
-    return node.withMembers([...separator, ...moved])
+    // each moved member with the comments above it, as moving them grouped them:  blank lines between
+    const groups: Array<typeof moved> = [[]]
+    for (const item of moved) {
+      if (item instanceof P.ASTBlankLine) groups.push([])
+      else groups.at(-1)!.push(item)
+    }
+    const settings = groups.filter((group) => group.some(isFileSetting))
+    const rest = groups.filter((group) => group.length && !group.some(isFileSetting))
+    const own = node.members ?? []
+    const blank = () => new P.ASTBlankLine(node.match)
+    const parts = [...settings, ...(own.length ? [own] : []), ...rest]
+    const members = parts.flatMap((part, index) => (index ? [blank(), ...part] : part))
+    const { match, type, superType } = node
+    return new P.ASTClassDeclaration(match, { type, superType, members })
   }
 
   /** spell's type `name`, e.g. `BankAccount`, as we write a type's name -- `naming`'s `type`;  a value type as is. */
@@ -671,4 +704,20 @@ export abstract class ProgramWriter extends Writer {
    * - one of the program's things, by its name or place:  `tableau T1`, `the first tableau` (epic `drawable-thing` P19)
    */
   static ITEM_READS = new Set(["getItemAt", "randomItemOf", "thingNamed", "thingAtPlace"])
+}
+
+/** A kind's file setting:  `static savedInFile = true` or `static savedInline = true` -- see `withProjectMembers()`. */
+function isFileSetting(member: P.ASTNode): boolean {
+  return member instanceof P.ASTStaticDefinition && (member.name === "savedInFile" || member.name === "savedInline")
+}
+
+/**
+ * Whether `property`'s own statement listed its values, as a static above it:
+ * `cards have a suit as one of clubs ...` writes `Card.Suits`, then `suit` as one of them.
+ */
+function listsItsValues(property: P.ASTReactiveProperty): boolean {
+  const oneOf = property.check?.properties.find(
+    (it): it is P.ASTObjectLiteralProperty => it instanceof P.ASTObjectLiteralProperty && it.property.value === "oneOf"
+  )?.value
+  return oneOf instanceof P.ASTPropertyExpression && oneOf.match === property.match
 }

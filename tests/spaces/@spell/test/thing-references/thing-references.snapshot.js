@@ -9,6 +9,7 @@ spellCore.heading("Thing references:  one thing by its type and its name, or its
 export class Pile extends List {
   static instanceType = Thing
 
+  // a pile has a name as text
   static { this.declareProp("name", { type: "text" }) }
   get name() { return this.getProp("name") }
   set name(value) { this.setProp("name", value) }

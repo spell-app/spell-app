@@ -20,10 +20,12 @@ class Card(Drawable):
     # ## properties of cards
     ########################
     # card ranks
+    # cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
     RANKS = ("ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king")
     rank = prop(one_of=RANKS)
 
     # card suits
+    # cards have a suit as one of clubs, diamonds, hearts or spades
     SUITS = ("clubs", "diamonds", "hearts", "spades")
     suit = prop(one_of=SUITS)
 
@@ -40,6 +42,7 @@ class Card(Drawable):
         return spell_position(core.position_of(Card.RANKS, self.rank))
 
     # card direction:  up or down
+    # a card has a direction as either up or down
     DIRECTIONS = ("up", "down")
     direction = prop(one_of=DIRECTIONS)
 
@@ -276,6 +279,7 @@ class Deck(List):
             card_names.append(card.short_name)
         core.echo(f"deck: {card_names}")
 
+    # set the is-set-up of the deck to yes
     is_set_up = prop(type="choice")
 
 
@@ -336,6 +340,7 @@ class Pile(DrawableList):
 
     css = "\n  :host {\n  \tdisplay: block;\n  \tposition: relative;\n  \tmin-height: 30px;\n  }\n  .pile {\n  \tposition: relative;\n  \tmin-height: 30px;\n  }\n  /* its cards, stacked:  the last on top */\n  ::slotted(*) {\n  \tposition: absolute;\n  \tleft: 0;\n  \ttop: 0;\n  \twidth: 100%;\n  }\n  .placeholder {\n  \tbox-sizing: border-box;\n  \theight: 30px;\n  \tborder: 1px dashed #b0b0b0;\n  \tborder-radius: 4px;\n  \ttext-align: center;\n  \tcursor: pointer;\n  }\n  .placeholder.red {\n  \tcolor: crimson;\n  }\n  .placeholder .suit {\n  \tfont-size: 1.4rem;\n  \tline-height: 28px;\n  }\n"
 
+    # a pile has a name as text
     name = prop(type="text")
 
     @property
@@ -375,6 +380,7 @@ class Pile(DrawableList):
 class Game(App):
     """Game bits"""
 
+    # a game has a score as a number
     score = prop(type="number")
 
     # actions

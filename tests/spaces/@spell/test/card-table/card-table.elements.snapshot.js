@@ -5,6 +5,7 @@ import { spellCore, Thing, List, App, Drawable, DrawableList, h } from "@spell/c
 export class Card extends Drawable {
   static elementTag = spellCore.defineElement(this, "test-project")
 
+  // a card has a rank as text
   static { this.declareProp("rank", { type: "text" }) }
   get rank() { return this.getProp("rank") }
   set rank(value) { this.setProp("rank", value) }
@@ -19,6 +20,7 @@ export class Pile extends DrawableList {
   static instanceType = Card
   static elementTag = spellCore.defineElement(this, "test-project")
 
+  // a pile has a name as text
   static { this.declareProp("name", { type: "text" }) }
   get name() { return this.getProp("name") }
   set name(value) { this.setProp("name", value) }

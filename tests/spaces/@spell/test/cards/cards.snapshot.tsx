@@ -19,11 +19,15 @@ export class Card extends Thing {
   /////////////////////////
   // ## properties of cards
   /////////////////////////
+  // cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
   static Ranks = RANKS
-  @prop({ oneOf: RANKS }) accessor rank!: Rank
+  @prop({ oneOf: RANKS })
+  accessor rank!: Rank
 
+  // cards have a suit as one of clubs, diamonds, hearts or spades
   static Suits = SUITS
-  @prop({ oneOf: SUITS }) accessor suit!: Suit
+  @prop({ oneOf: SUITS })
+  accessor suit!: Suit
 
   /** color as derivation of suit */
   get color() {
@@ -36,8 +40,10 @@ export class Card extends Thing {
     return spellPosition(positionOf(Card.Ranks, this.rank))
   }
 
+  // a card has a direction as either up or down
   static Directions = DIRECTIONS
-  @prop({ oneOf: DIRECTIONS }) accessor direction!: Direction
+  @prop({ oneOf: DIRECTIONS })
+  accessor direction!: Direction
 
   /////////////
   // ## aliases
@@ -129,8 +135,7 @@ export class Card extends Thing {
     await spellCore.pauseFor(50, "msec")
   }
 
-  @drawn
-  draw() {
+  @drawn draw() {
     const className = () => `Card face-${this.direction} ${this.rank} ${this.suit} ui button compact fluid `
     const click = () => trigger("card-click", { card: this })
     return (
@@ -224,7 +229,9 @@ export class Deck extends List<Card> {
     spellCore.echo(`deck: ${cardNames}`)
   }
 
-  @prop({ type: "choice" }) accessor isSetUp!: boolean
+  // set the is-set-up of the deck to yes
+  @prop({ type: "choice" })
+  accessor isSetUp!: boolean
 }
 
 export function testDeckCreation() {
@@ -266,8 +273,7 @@ export class Pile extends List<Card> {
     return this.lastItem!.value
   }
 
-  @derived
-  get state() {
+  @derived get state() {
     let state = `${this.name || "pile"}:`
     this.forEach((card) => (state = `${state} ${card.state}`))
     return state

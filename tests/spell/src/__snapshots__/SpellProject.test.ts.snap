@@ -19,6 +19,7 @@ export class Card extends Thing {
     enumeration: ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"],
     defined: "/Card.spell:126-206",
   } */
+  // cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
   static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"]
   static { this.declareProp("rank", { oneOf: Card.Ranks }) }
   get rank() { return this.getProp("rank") }
@@ -30,6 +31,7 @@ export class Card extends Thing {
     enumeration: ["clubs", "diamonds", "hearts", "spades"],
     defined: "/Card.spell:222-283",
   } */
+  // cards have a suit as one of clubs, diamonds, hearts or spades
   static Suits = ["clubs", "diamonds", "hearts", "spades"]
   static { this.declareProp("suit", { oneOf: Card.Suits }) }
   get suit() { return this.getProp("suit") }
@@ -59,6 +61,7 @@ export class Card extends Thing {
     property: "direction", classVariable: "Directions", of: "Card", enumeration: ["up", "down"],
     defined: "/Card.spell:534-577",
   } */
+  // a card has a direction as either up or down
   static Directions = ["up", "down"]
   static { this.declareProp("direction", { oneOf: Card.Directions }) }
   get direction() { return this.getProp("direction") }
@@ -344,6 +347,7 @@ export class Deck extends List {
     property: "is_set_up", asWritten: "is-set-up", of: "Deck", datatype: "choice", autoDeclared: true,
     defined: "/Deck.spell:277-313",
   } */
+  // set the is-set-up of the deck to yes
   static { this.declareProp("isSetUp", { type: "choice" }) }
   get isSetUp() { return this.getProp("isSetUp") }
   set isSetUp(value) { this.setProp("isSetUp", value) }
@@ -390,6 +394,7 @@ if (!spellCore.isCarryingOver) testDeckCreation()",
   property: "pile", of: "Card", datatype: "Pile", autoDeclared: true,
   defined: "/Pile.spell:500-536",
 } */
+// set the pile of the card to the pile
 Card.declareProp("pile", { type: "Pile" })
 Object.defineProperty(Card.prototype, "pile", {
   get() { return this.getProp("pile") },
@@ -460,6 +465,7 @@ Card.prototype.moveToPile = async function (pile) {
   property: "name", of: "Pile", autoDeclared: true,
   defined: "/Solitaire.spell:3765-3824",
 } */
+// set the name of cards-to-move to the name of the start-pile
 Object.defineProperty(Pile.prototype, "name", {
   get() { return this.getProp("name") },
   set(value) { this.setProp("name", value) },
@@ -482,6 +488,7 @@ export class Game extends App {
     property: "score", of: "Game", datatype: "number",
     defined: "/Solitaire.spell:166-196",
   } */
+  // a game has a score as a number
   static { this.declareProp("score", { type: "number" }) }
   get score() { return this.getProp("score") }
   set score(value) { this.setProp("score", value) }

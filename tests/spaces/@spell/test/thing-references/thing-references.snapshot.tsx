@@ -9,7 +9,9 @@ spellCore.heading("Thing references:  one thing by its type and its name, or its
 export class Pile extends List<Thing> {
   static instanceType = Thing
 
-  @prop({ type: "text" }) accessor name!: string
+  // a pile has a name as text
+  @prop({ type: "text" })
+  accessor name!: string
 }
 export class Tableau extends Pile {}
 export class Foundation extends Pile {}

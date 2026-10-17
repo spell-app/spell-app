@@ -30,10 +30,13 @@ export class Deck extends List {
     spellCore.echo(`deck: ${cardNames}`)
   }
 
+  // "suits" as one of clubs, diamonds, hearts or spades
   static Suits = ["clubs", "diamonds", "hearts", "spades"]
 
+  // "ranks" as one of ace, 2 ... 10, jack, queen or king
   static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"]
 
+  // set the is-set-up of the deck to yes
   static { this.declareProp("isSetUp", { type: "choice" }) }
   get isSetUp() { return this.getProp("isSetUp") }
   set isSetUp(value) { this.setProp("isSetUp", value) }
@@ -54,6 +57,7 @@ spellCore.heading("Definition of a card -- in the outline style:  a heading, the
 /** Definition of a card -- in the outline style:  a heading, then what's true of it */
 export class Card extends Thing {
   /** suit and rank */
+  // - its "suit" is a suit of its deck
   static { this.declareProp("suit", { oneOf: () => Deck.Suits }) }
   get suit() { return this.getProp("suit") }
   set suit(value) { this.setProp("suit", value) }
@@ -67,6 +71,7 @@ export class Card extends Thing {
     return this.suit === suit
   }
 
+  // - its "rank" is a rank of its deck
   static { this.declareProp("rank", { oneOf: () => Deck.Ranks }) }
   get rank() { return this.getProp("rank") }
   set rank(value) { this.setProp("rank", value) }
@@ -90,6 +95,7 @@ export class Card extends Thing {
   }
 
   /** direction */
+  // - its direction is up or down
   static Directions = ["up", "down"]
   static { this.declareProp("direction", { oneOf: Card.Directions }) }
   get direction() { return this.getProp("direction") }
@@ -313,6 +319,7 @@ export class Pile extends List {
 
   static exclusive = true
 
+  // set the name of cards-to-move to the name of the start-pile
   get name() { return this.getProp("name") }
   set name(value) { this.setProp("name", value) }
 }
@@ -327,6 +334,7 @@ spellCore.heading("Klondike Solitaire Card Game")
 spellCore.heading("Game bits")
 /** Game bits */
 export class Game extends App {
+  // a game has a score as a number
   static { this.declareProp("score", { type: "number" }) }
   get score() { return this.getProp("score") }
   set score(value) { this.setProp("score", value) }

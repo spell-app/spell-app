@@ -146,12 +146,19 @@ classes.addRule(CreateType, {
           ["a card is a thing with:", "\t- it has a rank as a number"],
           [
             "export class Card extends Thing {",
+            "  // - it has a rank as a number",
             '  static { this.declareProp("rank", { type: "number" }) }',
             '  get rank() { return this.getProp("rank") }',
             '  set rank(value) { this.setProp("rank", value) }',
             "}"
           ],
-          ["export class Card extends Thing {", '  @prop({ type: "number" }) accessor rank!: number', "}"]
+          [
+            "export class Card extends Thing {",
+            "  // - it has a rank as a number",
+            '  @prop({ type: "number" })',
+            "  accessor rank!: number",
+            "}"
+          ]
         ]
       ]
     }

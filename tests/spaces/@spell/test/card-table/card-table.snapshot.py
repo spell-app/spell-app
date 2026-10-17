@@ -9,6 +9,7 @@ from spell_core import core, App, Drawable, DrawableList, prop, h
 
 
 class Card(Drawable):
+    # a card has a rank as text
     rank = prop(type="text")
 
     def draw(self) -> Any:
@@ -20,6 +21,7 @@ class Pile(DrawableList):
 
     item_type = Card
 
+    # a pile has a name as text
     name = prop(type="text")
 
     def draw(self) -> Any:

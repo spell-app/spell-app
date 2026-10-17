@@ -500,8 +500,10 @@ function runSpellFiles(sources: Array<{ path: string; contents: string }>) {
 }
 
 /**
- * Compiled `lines`, as one file of its own project:
- * without its `SPELL: DECLARES` comments, which say where each declaration is.
+ * Compiled `lines`, as one file of its own project:  the CODE alone.
+ * - without its `SPELL: DECLARES` comments, which say where each declaration is
+ * - without its line comments:  each property's says the spell that made it (epic `people-and-orgs` P19), which is
+ *   the outline's line in one, the sentence in the other
  * - Throws on a parse error, naming it.
  */
 function compile(lines: string[]): string {
@@ -511,7 +513,7 @@ function compile(lines: string[]): string {
   return file!.compiled
     .replace(/\/\*! SPELL: DECLARES[^]*?\*\//g, "")
     .split("\n")
-    .filter((line) => line.trim())
+    .filter((line) => line.trim() && !line.trim().startsWith("//"))
     .join("\n")
 }
 

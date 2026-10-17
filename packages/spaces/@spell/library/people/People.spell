@@ -4,22 +4,26 @@
 // an org's `__org.json5` in its.  Everything else is saved inside what holds it.
 // Every thing has an `id`, built in:  nobody declares it.
 
-a person is a thing where:
+a person is a thing:
+	- it is saved in its own file
 	- it has names as text
 	- it has a nickname as text
 	- its "emails" is a list of text
 	- its "dates" is a list of dated-events
 	- its "friend-lists" is a list of friend-lists
 	- its "notes" is a list of notes
-	- it is saved in its own file
 
 ## What a person keeps
-a dated-event is a thing where:
+a dated-event is a thing:
 	- it has a label as text
 	- it has a day as a date
+	- its "notes" is a list of notes
 
 a note is a thing where:
+	- it has a title as text
 	- it has a body as text
+	- it has created as a date
+	- it has a modified as date
 
 a relationship is a thing where:
 	- it has a kind as text
@@ -34,10 +38,10 @@ a friend-list is a thing where:
 // A membership is its own thing:  a person and their role in one org.
 // A spell-admin may change the `@spell` org's own files, once there's a permissions UI (T8).
 an org is a thing where:
-	- it has a name as text
-	- its "memberships" is a list of memberships
 	- it is saved in its own file
+	- it has a name as text
+	- its "members" is a list of memberships
 
 a membership is a thing where:
 	- it has a person as a person
-	- its "role" is one of member, admin, spell-admin
+	- its "role" is one of guest, member, admin, spell-admin

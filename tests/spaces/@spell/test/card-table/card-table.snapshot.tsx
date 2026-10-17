@@ -7,10 +7,11 @@ spellCore.heading("A card table:  a drawable list whose frame has a named place,
 export class Card extends Drawable {
   static elementTag = spellCore.defineElement(this, "test-project")
 
-  @prop({ type: "text" }) accessor rank!: string
+  // a card has a rank as text
+  @prop({ type: "text" })
+  accessor rank!: string
 
-  @drawn
-  draw() {
+  @drawn draw() {
     return <div class="card">{this.rank}</div>
   }
 }
@@ -33,10 +34,11 @@ export class Pile extends DrawableList<Card> {
   static instanceType = Card
   static elementTag = spellCore.defineElement(this, "test-project")
 
-  @prop({ type: "text" }) accessor name!: string
+  // a pile has a name as text
+  @prop({ type: "text" })
+  accessor name!: string
 
-  @drawn
-  draw() {
+  @drawn draw() {
     return (
       <div class="pile">
         <div class="header">
@@ -66,8 +68,7 @@ export class Table extends App {
    * a pile written by hand, its <h3> in its header place
    * - its tag is its project's and its type's:  this fixture compiles as project "test-project"
    */
-  @drawn
-  draw() {
+  @drawn draw() {
     return (
       <div class="table">
         {pile.draw()}

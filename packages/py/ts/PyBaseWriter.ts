@@ -1333,14 +1333,21 @@ export class PyBaseWriter extends P.ProgramWriter {
    * - its first value:  `default=` (a value) or `init=` (made new for each thing)
    */
   ASTReactivePropertyAsMember(node: P.ASTReactiveProperty): string {
-    return `${this.nameOf(node.property.value, "property")} = prop(${this.propArguments(node)})`
+    // the spell that made it, above it (Owen, epic `people-and-orgs` P19)
+    return this.withSpell(node, `${this.nameOf(node.property.value, "property")} = prop(${this.propArguments(node)})`)
   }
 
   /** From outside its class:  `Deck.declare_prop("is_set_up", type="choice")`. */
   ASTReactiveProperty(node: P.ASTReactiveProperty): string {
     const name = this.quoted(this.nameOf(node.property.value, "property"))
     const args = this.propArguments(node)
-    return `${this.write(node.type)}.declare_prop(${args ? `${name}, ${args}` : name})`
+    return this.withSpell(node, `${this.write(node.type)}.declare_prop(${args ? `${name}, ${args}` : name})`)
+  }
+
+  /** `code`, below a comment saying the spell that made `node`, if any (`spellOf()`). */
+  withSpell(node: P.ASTNode, code: string): string {
+    const spell = this.spellOf(node)
+    return spell ? [pyText.comment(spell), code].join(pyText.NEWLINE) : code
   }
 
   /** A stored property's `prop()` keywords:  its check's, then `default=` or `init=` -- see above. */
@@ -1377,11 +1384,11 @@ export class PyBaseWriter extends P.ProgramWriter {
     const written = items
       ? pyText.call("", [...this.items(items), ...(items.length === 1 ? [""] : [])], ["(", ")"])
       : this.bare(node.value)
-    return `${this.staticName(node.name)} = ${written.replace(/, \)$/, ",)")}`
+    return this.withSpell(node, `${this.staticName(node.name)} = ${written.replace(/, \)$/, ",)")}`)
   }
 
   ASTStaticDefinition(node: P.ASTStaticDefinition): string {
-    return `${this.write(node.type)}.${this.staticName(node.name)} = ${this.bare(node.value)}`
+    return this.withSpell(node, `${this.write(node.type)}.${this.staticName(node.name)} = ${this.bare(node.value)}`)
   }
 
   /**

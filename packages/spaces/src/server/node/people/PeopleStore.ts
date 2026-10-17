@@ -138,7 +138,7 @@ export class PeopleStore {
   async rolesOf(person: People.Person): Promise<OrgRole[]> {
     const { orgs } = await this.orgs()
     return orgs.flatMap((org) =>
-      org.memberships.items
+      org.members.items
         .filter((membership) => membership.person === person || sameAs(membership.person, person))
         .map((membership) => ({ id: org.id, name: org.name || org.id, role: membership.role }))
     )

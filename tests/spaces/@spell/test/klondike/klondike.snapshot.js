@@ -12,6 +12,7 @@ spellCore.heading("Game bits")
 export class Game extends App {
   static description = "A game of **Klondike**:  its piles, and its score."
 
+  // a game has a score as a number
   static { this.declareProp("score", { type: "number" }) }
   get score() { return this.getProp("score") }
   set score(value) { this.setProp("score", value) }

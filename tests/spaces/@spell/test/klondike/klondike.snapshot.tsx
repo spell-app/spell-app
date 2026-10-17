@@ -13,19 +13,19 @@ spellCore.heading("Game bits")
 export class Game extends App {
   static description = "A game of **Klondike**:  its piles, and its score."
 
-  @prop({ type: "number" }) accessor score!: number
+  // a game has a score as a number
+  @prop({ type: "number" })
+  accessor score!: number
 
   //## actions
 
-  @derived
-  get state() {
+  @derived get state() {
     const state: any /* spell: list */ = []
     allPiles.forEach((pile) => spellCore.append(state, pile.state))
     return state
   }
 
-  @drawn
-  draw() {
+  @drawn draw() {
     return (
       <div class="ui container">
         <div class="board">
@@ -94,8 +94,7 @@ export class StockPile extends Pile {
     return card === this.lastItem
   }
 
-  @drawn
-  draw() {
+  @drawn draw() {
     return (
       <div class="Pile Stock stacked">
         <div class="Placeholder ui button basic compact fluid" onClick={() => playFromTheStockPile()} />
@@ -113,8 +112,7 @@ export class DiscardPile extends Pile {
     return card === this.lastItem
   }
 
-  @drawn
-  draw() {
+  @drawn draw() {
     return <div class="Pile Discards stacked">{this.lastItem?.draw()}</div>
   }
 }
@@ -138,8 +136,7 @@ export class Foundation extends Pile {
 
   // note: tableaus just draw as a (vertical) list of cards
 
-  @drawn
-  draw() {
+  @drawn draw() {
     const color = () => this.name === "diamonds" || this.name === "hearts" ? "red" : "black"
     return (
       <div class="Pile Foundation stacked">
@@ -190,8 +187,7 @@ export class Tableau extends Pile {
     return this.color != card.color && this.value === card.value + 1
   }
 
-  @drawn
-  draw() {
+  @drawn draw() {
     return (
       <div class="Pile Tableau staggered">
         <For each={this.items}>{(item) => item.draw()}</For>

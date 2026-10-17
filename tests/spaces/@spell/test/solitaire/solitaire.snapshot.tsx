@@ -19,11 +19,15 @@ export class Card extends Thing {
   /////////////////////////
   // ## properties of cards
   /////////////////////////
+  // cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
   static Ranks = RANKS
-  @prop({ oneOf: RANKS }) accessor rank!: Rank
+  @prop({ oneOf: RANKS })
+  accessor rank!: Rank
 
+  // cards have a suit as one of clubs, diamonds, hearts or spades
   static Suits = SUITS
-  @prop({ oneOf: SUITS }) accessor suit!: Suit
+  @prop({ oneOf: SUITS })
+  accessor suit!: Suit
 
   /** color as derivation of suit */
   get color() {
@@ -36,8 +40,10 @@ export class Card extends Thing {
     return spellPosition(positionOf(Card.Ranks, this.rank))
   }
 
+  // a card has a direction as either up or down
   static Directions = DIRECTIONS
-  @prop({ oneOf: DIRECTIONS }) accessor direction!: Direction
+  @prop({ oneOf: DIRECTIONS })
+  accessor direction!: Direction
 
   /////////////
   // ## aliases
@@ -129,8 +135,7 @@ export class Card extends Thing {
     await spellCore.pauseFor(50, "msec")
   }
 
-  @drawn
-  draw() {
+  @drawn draw() {
     const className = () => `Card face-${this.direction} ${this.rank} ${this.suit} ui button compact fluid `
     const click = () => trigger("card-click", { card: this })
     return (
@@ -193,7 +198,9 @@ export class Card extends Thing {
     return true
   }
 
-  @prop({ type: "Pile" }) accessor pile!: Pile
+  // set the pile of the card to the pile
+  @prop({ type: "Pile" })
+  accessor pile!: Pile
 }
 
 spellCore.heading("create a card instance with default properties")
@@ -265,7 +272,9 @@ export class Deck extends List<Card> {
     spellCore.echo(`deck: ${cardNames}`)
   }
 
-  @prop({ type: "choice" }) accessor isSetUp!: boolean
+  // set the is-set-up of the deck to yes
+  @prop({ type: "choice" })
+  accessor isSetUp!: boolean
 }
 
 export function testDeckCreation() {
@@ -309,13 +318,13 @@ export class Pile extends List<Card> {
     return this.lastItem!.value
   }
 
-  @derived
-  get state() {
+  @derived get state() {
     let state = `${this.name || "pile"}:`
     this.forEach((card) => (state = `${state} ${card.state}`))
     return state
   }
 
+  // set the name of cards-to-move to the name of the start-pile
   @prop() accessor name!: string
 
   declare droppable: boolean
@@ -334,19 +343,19 @@ spellCore.heading("Klondike Solitaire Card Game")
 spellCore.heading("Game bits")
 /** Game bits */
 export class Game extends App {
-  @prop({ type: "number" }) accessor score!: number
+  // a game has a score as a number
+  @prop({ type: "number" })
+  accessor score!: number
 
   //## actions
 
-  @derived
-  get state() {
+  @derived get state() {
     let state: any /* spell: list */ = []
     allPiles.forEach((pile) => spellCore.append(state, pile.state))
     return state
   }
 
-  @drawn
-  draw() {
+  @drawn draw() {
     return (
       <div class="ui container">
         <div class="board">
@@ -410,8 +419,7 @@ export class StockPile extends Pile {
     return card === this.lastItem
   }
 
-  @drawn
-  draw() {
+  @drawn draw() {
     return (
       <div class="Pile Stock stacked">
         <div class="Placeholder ui button basic compact fluid" onClick={() => playFromTheStockPile()} />
@@ -429,8 +437,7 @@ export class DiscardPile extends Pile {
     return card === this.lastItem
   }
 
-  @drawn
-  draw() {
+  @drawn draw() {
     return <div class="Pile Discards stacked">{this.lastItem?.draw()}</div>
   }
 }
@@ -452,8 +459,7 @@ export class Foundation extends Pile {
 
   // note: tableaus just draw as a (vertical) list of cards
 
-  @drawn
-  draw() {
+  @drawn draw() {
     const color = () => this.name === "diamonds" || this.name === "hearts" ? "red" : "black"
     return (
       <div class="Pile Foundation stacked">
@@ -504,8 +510,7 @@ export class Tableau extends Pile {
     return this.color !== card.color && this.value === card.value + 1
   }
 
-  @drawn
-  draw() {
+  @drawn draw() {
     return (
       <div class="Pile Tableau staggered">
         <For each={this.items}>{(card) => card.draw()}</For>
