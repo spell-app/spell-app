@@ -509,6 +509,20 @@ ui -> util
   - `spell` is the link `yarn cli:install` makes, once per machine.
   - Without it:  `node packages/cli/bin/spell.mjs dev ...` from a checkout's root.
 
+### spell-epic
+
+- The epic tooling has a repo of its own beside this one, `../spell-epic` (epic `epic-eject` P6, 2026-10-17).
+  - A Claude Code plugin:  the epics package, the `epic` command (`bin/epic`), the hooks, the window script,
+    the epic skills and every template.
+  - It takes `ui`, `server`, `assembler`, `util` and `spell-solid` from a spell-app checkout (`portal:`).
+  - Its README says how it's laid out and installed.
+- NOT live yet:  this repo's own copies still run in every session
+  (`packages/epics`, `tests/epics`, `scripts/window.mjs`, `.claude/hooks`, the epic skills).
+  - What blocks the switch:  `epic-eject` I5.
+  - Until then, make epic changes HERE, as before:  spell-epic is a snapshot, brought up to date at the switch.
+- The generated files `epic worktree merge-main` rebuilds are this repo's own list, each branch's:
+  [.epic/generators.json5](.epic/generators.json5) (T4).
+
 ## Solid 2
 
 - `spell`'s editor app, runners and web components are Solid 2, on `@spell-app/ui`.
