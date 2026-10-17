@@ -2,19 +2,25 @@
 // (packages/epics/src/config/EpicConfig.ts).  Folders are relative to the MAIN checkout;  every worktree reads
 // the main checkout's copy of this file.  A key left out takes its default:  these are the defaults.
 // `epic config [key]` prints what's in force (`--json`:  all of it).
+// The folders move (epic `epic-eject` P8) is a MORNING job, after the switch to spell-epic:  its README's
+// "Switching a repo over" says which values change, and in what order.  Until then, today's layout.
 {
   // The shared content repo:  epics, guides, sagas, pages, templates, brand, the logs.
   // Every checkout links its folders in (`epic shared link`);  each turn's end commits it.
+  // Morning:  `epic shared rename spell-app.epics` writes the new name here itself (and `windows.contentName`).
   "contentFolder": "../spell-app-dev",
 
   // The branch worktrees start from and merge into.
   "baseBranch": "main",
 
-  // Where worktrees go:  one folder each, `<worktreesFolder>/<name>`, on branch `<name>`.
+  // Where NEW worktrees go:  one folder each, `<worktreesFolder>/<name>`, on branch `<name>`.
+  // Morning:  "../spell-app.worktrees", beside the repo;  spell-epic still finds the old ones in .claude/worktrees.
   "worktreesFolder": ".claude/worktrees",
 
   // What makes a new worktree ready to run, from its root (`/isolate`, `/epic`).
   "installCommand": "yarn install",
+  // spell-epic only (P8):  "installOnCreate": true makes the worktree hook run it BEFORE the window opens (I2);
+  // "installTimeout" (seconds, 600) bounds it.  Both left out:  off, and the skills run the install.
 
   // The VS Code windows (`epic window`).
   "windows": {
@@ -25,9 +31,12 @@
     "repoName": "spell-app",
     // The content repo's folder name in every window.
     "contentName": "spell-app-dev"
+    // spell-epic only (P8):  "worktreeOnly": true gives EVERY worktree a window of its own folder and the content
+    // folder alone;  a worktree beside the repo gets that window anyway.
   },
 
-  // Whether each worktree's saved-session folder is linked to the main checkout's.
-  // Nothing does the linking yet:  it's for worktrees beside the repo (epic `epic-eject` P8).
+  // Whether the worktree hook links each NEW worktree's saved-session folder to the main checkout's, so every
+  // window's Claude panel lists every session (spell-epic's hook, P8;  spell-app's own copy never links).
+  // Morning:  true, with the worktrees beside the repo.
   "linkSessionFolders": false
 }
