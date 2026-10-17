@@ -1,6 +1,8 @@
 /**
- * Tests of the running-agents route module on a real page server, over HTTP, in a scratch checkout:  the list of an
- * epic, read and redirected from its epic page, its worktree copy too;  pages that aren't epic pages;  the guard.
+ * Tests of the running-agents route module on a real page server, over HTTP, in a scratch checkout:
+ * - the list of an epic, read and redirected from its epic page, its worktree copy too
+ * - pages that aren't epic pages
+ * - the guard
  */
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"

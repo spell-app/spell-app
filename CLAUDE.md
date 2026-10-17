@@ -33,6 +33,6 @@ When a summary closes out the session's work (merged, worktree gone, a worktree 
 - With the closing line, ALSO ask (AskUserQuestion) whether to run `/isolate done` when this session's worktree is
   still there (or the worktrees it made and left:  `/isolate done`'s step 0 cleans those up):  options "Run
   `/isolate done`" (recommended) and "Leave it" (Owen, 2026-10-07).
-- Leaving a worktree counts (`ExitWorktree`, keep or remove;  Owen, 2026-10-17, epic `epic-eject` r1):  the reply
-  that says the session left ends with the line, on the same checks.  Kept, the worktree is still on disk:  ask the
-  question above too.
+- Leaving a worktree counts (`ExitWorktree`, keep or remove;  Owen, 2026-10-17, epic `epic-eject` r1):
+  - the reply that says the session left ends with the line, on the same checks
+  - kept, the worktree is still on disk:  ask the question above too

@@ -1,6 +1,7 @@
 /**
- * Tests of the Epics page's routes, in a scratch checkout:  a future epic made from the page (New epic), and the
- * favourites (a card's star), over HTTP.
+ * Tests of the Epics page's routes, over HTTP, in a scratch checkout:
+ * - a future epic made from the page (New epic)
+ * - the favourites (a card's star)
  */
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"

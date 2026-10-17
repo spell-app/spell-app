@@ -19,24 +19,36 @@ import { Shared } from "./Shared"
 
 /****************
  * ### `SharedMigration`
- * Move a worktree cut before the cutover (epic `shared-content`, P5) onto the shared content:  `epic shared
- * migrate <worktree> [--dry-run]`.  `run()` returns what it did, or would do.
- * 1. Refuses when the branch lacks the content layout (it must have merged `main` after P2:  `packages/docs/content`,
- *    `packages/docs/tools/relocate.js`), a merge or rebase is under way, or a session is busy in the worktree.
- * 2. Folds the worktree's shared files into the shared repo, file by file, 3-way:  base = the branch's merge base
- *    with the cutover's import commit, ours = the shared repo, theirs = the worktree's file (committed, staged,
- *    dirty or untracked).  Changed only in the worktree:  taken;  changed on both sides:  logs (`agents/`) are
- *    union-merged, anything else is a CONFLICT, and nothing at all is written.
- * 3. Commits the shared repo (`Migrate <w>`), then makes ONE commit on the branch that stops tracking the shared
- *    folders and adds main's `.gitignore` block, without touching the index's or the working tree's other changes
- *    (a temp index, `commit-tree`, `update-ref`).  So the branch merges `main` later without conflicts in them.
+ * Move a worktree cut before the cutover (epic `shared-content`, P5) onto the shared content:
+ * `epic shared migrate <worktree> [--dry-run]`.
+ * - `run()` returns what it did, or would do.
+ *
+ * 1. Refuses when:
+ *    - the branch lacks the content layout (`packages/docs/content`, `packages/docs/tools/relocate.js`):
+ *      it must have merged `main` after P2
+ *    - a merge or rebase is under way
+ *    - a session is busy in the worktree
+ * 2. Folds the worktree's shared files into the shared repo, file by file, 3-way:
+ *    - base = the branch's merge base with the cutover's import commit
+ *    - ours = the shared repo
+ *    - theirs = the worktree's file (committed, staged, dirty or untracked)
+ *    - Changed only in the worktree:  taken.
+ *    - Changed on both sides:  logs (`agents/`) are union-merged;
+ *      anything else is a CONFLICT, and nothing at all is written.
+ * 3. Commits the shared repo (`Migrate <w>`), then makes ONE commit on the branch:
+ *    it stops tracking the shared folders and adds main's `.gitignore` block.
+ *    - It touches none of the index's or the working tree's other changes (a temp index, `commit-tree`, `update-ref`).
+ *    - So the branch merges `main` later without conflicts in them.
  * 4. Swaps the worktree's real folders for links (`Shared.link()`), and checks its other changes are as before.
- * - always in the CUTOVER's layout (`CUTOVER_LINKS`), whatever the manifest says now:  a branch that old tracks
- *   `packages/docs/content/`, and its code looks there.  Since the reorg (claude-design P4) that folder of the shared
- *   repo is old-path links into the root folders, so its files still land in the right place;  a new top-level page
- *   lands in it as a real file, and the next `epic shared commit` moves it on (`relocate.js reorg`)
- * - Its helpers are free functions below, each given the worktree and the manifest:  a one-off migration tool,
- *   kept as it was ported (it ran once per old worktree, in 2026-10)
+ *
+ * - Always in the CUTOVER's layout (`CUTOVER_LINKS`), whatever the manifest says now:
+ *   a branch that old tracks `packages/docs/content/`, and its code looks there.
+ *   - Since the reorg (claude-design P4) that folder of the shared repo is old-path links into the root folders,
+ *     so its files still land in the right place.
+ *   - A new top-level page lands in it as a real file,
+ *     and the next `epic shared commit` moves it on (`relocate.js reorg`).
+ * - Its helpers are free functions below, each given the worktree and the manifest:
+ *   a one-off migration tool, kept as it was ported (it ran once per old worktree, in 2026-10).
  ****************/
 export class SharedMigration {
   /** the worktree to migrate:  STATIC for the object's life */
@@ -118,8 +130,12 @@ const CUTOVER_LINKS = ["packages/docs/content", "goals", "agents"]
 ////////////////
 
 /**
- * What to do with shared file `file` (repo-relative) of `worktree`:  `skip`, `take` (write the worktree's into the
- * shared repo), `delete` (from the shared repo), `union` (logs changed on both sides:  merged), or `conflict`.
+ * What to do with shared file `file` (repo-relative) of `worktree`:
+ * - `skip`
+ * - `take`:  write the worktree's into the shared repo
+ * - `delete`:  from the shared repo
+ * - `union`:  logs changed on both sides, merged
+ * - `conflict`
  */
 function fold(worktree: string, base: string, file: string, config: SharedConfig): FoldReport {
   const baseText = show(worktree, base, file)
@@ -136,8 +152,8 @@ function fold(worktree: string, base: string, file: string, config: SharedConfig
 }
 
 /**
- * Shared files a tool writes:  changed on both sides, the shared copy stays and the tool runs again once the rest
- * is folded in (`rebuildDocsIndex()`).
+ * Shared files a tool writes:  changed on both sides, the shared copy stays,
+ * and the tool runs again once the rest is folded in (`rebuildDocsIndex()`).
  */
 const BUILT = new Set(["packages/docs/content/index.html"])
 
@@ -178,8 +194,9 @@ function unionMerge(ours: string, base: string, theirs: string): string {
 ////////////////
 
 /**
- * One commit on `branch` that untracks the shared folders and adds main's `# shared:` `.gitignore` block;  then the
- * worktree's own index and `.gitignore` follow it.  Other staged and unstaged work stays as it was.
+ * One commit on `branch` that untracks the shared folders and adds main's `# shared:` `.gitignore` block.
+ * - Then the worktree's own index and `.gitignore` follow it.
+ * - Other staged and unstaged work stays as it was.
  */
 function untrackOnBranch(worktree: string, branch: string, config: SharedConfig): void {
   const head = git(worktree, "rev-parse", "HEAD")
@@ -196,8 +213,8 @@ function untrackOnBranch(worktree: string, branch: string, config: SharedConfig)
     const message = `Migrate ${branch} to shared content:  untrack ${config.links.join(", ")}`
     const commit = git(worktree, "-c", "commit.gpgsign=false", "commit-tree", tree, "-p", head, "-m", message)
     git(worktree, "update-ref", `refs/heads/${branch}`, commit, head)
-    // the worktree's own index and .gitignore follow the new HEAD;  `-f`:  its entries no longer match HEAD, and
-    // their content is in the shared repo already
+    // the worktree's own index and .gitignore follow the new HEAD;
+    // `-f`:  its entries no longer match HEAD, and their content is in the shared repo already
     git(worktree, "rm", "-r", "--cached", "-f", "-q", "--ignore-unmatch", "--", ...config.links)
     git(worktree, "update-index", "--add", "--cacheinfo", `100644,${blob},.gitignore`)
     if (readOrNull(join(worktree, ".gitignore")) === oldIgnore) writeFileSync(join(worktree, ".gitignore"), newIgnore)
@@ -279,8 +296,8 @@ function readOrNull(file: string): string | null {
 }
 
 /**
- * `worktree`'s `git status --porcelain`, leaving out the shared folders and `.gitignore`:  what migrating must not
- * change.
+ * `worktree`'s `git status --porcelain`, leaving out the shared folders and `.gitignore`:
+ * what migrating must not change.
  */
 function otherChanges(worktree: string, config: SharedConfig): string {
   // untrimmed:  a status line starts with a space when only the working tree changed

@@ -6,9 +6,10 @@ import { afterAll, describe, expect, test } from "vite-plus/test"
 import { EpicTools } from "$/epics/command/EpicTools"
 
 /**
- * Two fake checkouts:  CODE (the running `epic`'s, its tools fake scripts that report what they got) and DATA (the
- * caller's, where the command runs from, with the same files).  ONE copy of the code (epic `epic-eject` P5):  every
- * epic tool must be CODE's script, working on DATA.
+ * Two fake checkouts:
+ * - CODE:  the running `epic`'s, its tools fake scripts that report what they got
+ * - DATA:  the caller's, where the command runs from, with the same files
+ * - ONE copy of the code (epic `epic-eject` P5):  every epic tool must be CODE's script, working on DATA.
  */
 const TEMP = realpathSync(mkdtempSync(join(tmpdir(), "epic-tools-")))
 const CODE = join(TEMP, "code")

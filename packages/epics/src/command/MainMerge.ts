@@ -17,7 +17,8 @@ const SNAPSHOTS = ["tests/*/**/__snapshots__/*.snap", "packages/*/**/__snapshots
 /** Is `file` a Vitest snapshot file -- see `SNAPSHOTS`? */
 const isSnapshot = (file: string) => SNAPSHOTS.some((glob) => matchesGlob(file, glob))
 
-/** The command that updates the snapshots of `tests` (relative to their package), run in the package.
+/**
+ * The command that updates the snapshots of `tests` (relative to their package), run in the package.
  * - `--update` AFTER the files:  it takes an optional value, so before them it swallows the first one
  */
 const SNAPSHOT_UPDATE = (tests: string[]) => ["yarn", "vp", "test", "run", ...tests, "--update"]
@@ -57,7 +58,8 @@ export class MainMerge {
 
   /**
    * - `root`:  the checkout (a worktree, usually)
-   * - `generators`:  default the checkout's own list (`generatorsOf()`);  `snapshotUpdate`:  default `yarn vp test run <tests> --update`
+   * - `generators`:  default the checkout's own list (`generatorsOf()`)
+   * - `snapshotUpdate`:  default `yarn vp test run <tests> --update`
    */
   constructor({ root, generators, snapshotUpdate = SNAPSHOT_UPDATE }: MainMergeProps) {
     this.root = root
@@ -130,7 +132,8 @@ export class MainMerge {
     const unmerged = conflicted.filter((file) => !report.untracked.includes(file))
 
     ////////
-    // What to regenerate:  every generated file conflicted or changed on both sides;  anything else conflicted stops it
+    // What to regenerate:  every generated file conflicted or changed on both sides;
+    // anything else conflicted stops it
     const ours = new Set(gitLines(root, ["diff", "--name-only", base, "HEAD"]))
     const touched = [...new Set([...unmerged, ...theirs.filter((file) => !report.untracked.includes(file))])]
     const candidates = touched.filter((file) => unmerged.includes(file) || ours.has(file))
@@ -143,7 +146,8 @@ export class MainMerge {
     // Regenerate, in table order, staging what each one wrote
     for (const { generator, files } of plan) {
       for (const file of files) {
-        // Ours, without conflict markers, for a tool that reads its old output;  yarn reads (and resolves) the markers
+        // Ours, without conflict markers, for a tool that reads its old output;
+        // yarn reads (and resolves) the markers
         if (unmerged.includes(file) && file !== "yarn.lock") Git.run(["checkout", "--ours", "--", file], root)
       }
       const run = spawnSync(generator.run[0], generator.run.slice(1), {
@@ -182,11 +186,11 @@ export class MainMerge {
   /**
    * The generated outputs checkout `root` lists, IN ORDER (a later one may read an earlier one's output):
    * its `.epic/generators.json5`, `{ "generators": [{ name, outputs, cwd, run }, ...] }`.
-   * - the checkout's OWN file, not the main checkout's:  a branch that adds a generated file lists it, and its own
-   *   merge knows it
+   * - the checkout's OWN file, not the main checkout's:
+   *   a branch that adds a generated file lists it, and its own merge knows it
    * - no file:  none, so only snapshots are regenerated
-   * - Why a file:  the epic code is every repo's, and the generators are one repo's own (spell-app's bundles, its
-   *   packs ...);  `spell dev pack new` adds a pack's line
+   * - Why a file:  the epic code is every repo's, and the generators are one repo's own
+   *   (spell-app's bundles, its packs ...);  `spell dev pack new` adds a pack's line
    * - throws `SyntaxError` on a file that won't read, `TypeError` on an entry of the wrong shape:  each names the file
    */
   static generatorsOf(root: string): Generator[] {

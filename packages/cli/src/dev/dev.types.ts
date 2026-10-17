@@ -10,8 +10,9 @@
 ////////////////
 
 /**
- * The commands page's data, from a checkout's root (`spell dev commands`, `spell dev pack new`):  a data file
- * (`DataFile`, epic `epic-workflow` P21), JSON5, its old `commands.json` read while there's no `.json5`.
+ * The commands page's data, from a checkout's root (`spell dev commands`, `spell dev pack new`).
+ * - a data file (`DataFile`, epic `epic-workflow` P21), JSON5
+ * - its old `commands.json` is read while there's no `.json5`
  */
 export const COMMANDS_JSON = "guides/dev/commands/commands.json5"
 
@@ -24,8 +25,8 @@ export const COMMANDS_JSON = "guides/dev/commands/commands.json5"
  * - `tool`:  the script, relative to a checkout's root
  * - `tsx`:  the `tsconfig.json` it runs under `tsx` with, relative to a checkout's root;  none:  plain `node`
  * - `cwd`:  the folder it runs in, relative to a checkout's root;  none:  the caller's
- *   - the docs tools run in `packages/epics` (as `yarn workspace` ran them in the docs package), and print paths
- *     relative to it
+ *   - the docs tools run in `packages/epics` (as `yarn workspace` ran them in the docs package),
+ *     and print paths relative to it
  */
 export type ToolSpec = { tool: string; tsx?: string; cwd?: string }
 

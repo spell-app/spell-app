@@ -35,8 +35,8 @@ export type ServerConfig = {
   /** the folder `/worktrees/<w>/` serves, on the main checkout's server (`PageServer.serveWorktrees()`) */
   worktrees?: string
   /**
-   * that folder as a URL path from the server's root, as live reload reports a worktree's changes:
-   * `/.claude/worktrees/` (`servedPath()`;  epic `epic-eject` P7)
+   * that folder as a URL path from the server's root, e.g. `/.claude/worktrees/`
+   * - live reload reports a worktree's changes under it (`servedPath()`;  epic `epic-eject` P7)
    */
   worktreesPath?: string
   edit?: string
@@ -108,8 +108,8 @@ export type PageEditResult = { ok: boolean; status: number; etag?: string; error
  *   - not while the reader types in a field:  a small "Updated:  reload" pill says a reload waits,
  *     and it comes once focus leaves the field (or on a click on the pill)
  *   - any other `.js` (a repo tool) is none of the page's business
- * - the server restarted (its socket says `hello` from another `run`):  reloads the same way,
- *   for the new `/api/server/live.js` and write token
+ * - the server restarted (its socket says `hello` from another `run`):
+ *   reloads the same way, for the new `/api/server/live.js` and write token
  * - any other file changed:  says so (`spell-server:file`, `FileChange`), and does nothing else
  *   - a page that loads it (a body from a file) re-fetches it
  * - keeps its place across a reload:  the scroll position (`sessionStorage`, when it works);
@@ -617,15 +617,19 @@ export function liveClient(): void {
   }
 
   /**
-   * The page's FIND BAR, while framed (Cmd / Ctrl + F):  VS Code's side-bar views have none (Owen, 2026-10-10:
-   * "Find with command-F doesn't work in the sidebar").
-   * - a small box at the top right, with "3 of 12" and a close button (×;  Owen, 2026-10-13);  each keystroke
-   *   finds from the top, Enter or Cmd-G the next, Shift the one before (wrapping), Escape or × closes it;  not
-   *   found:  the box turns red
-   * - its own search (`findMatches()`), not `window.find()`:  that one also matched the box's own text, and never
-   *   looked inside the elements' shadow roots, where an epic page draws its titles
-   * - a match inside something folded (most of an epic page starts folded):  revealed through its nearest id, as a link
-   *   to it would be (`location.hash`:  the docs runtime unfolds what hides it and lands there), then selected
+   * The page's FIND BAR, while framed (Cmd / Ctrl + F):  VS Code's side-bar views have none.
+   * - Owen, 2026-10-10:  "Find with command-F doesn't work in the sidebar"
+   * - a small box at the top right, with "3 of 12" and a close button (×;  Owen, 2026-10-13)
+   *   - each keystroke finds from the top
+   *   - Enter or Cmd-G:  the next;  with Shift, the one before (wrapping)
+   *   - Escape or × closes it
+   *   - not found:  the box turns red
+   * - its own search (`findMatches()`), not `window.find()`:
+   *   that one also matched the box's own text,
+   *   and never looked inside the elements' shadow roots, where an epic page draws its titles
+   * - a match inside something folded (most of an epic page starts folded):
+   *   revealed through its nearest id, as a link to it would be, then selected
+   *   - `location.hash`:  the docs runtime unfolds what hides it and lands there
    * - text not loaded yet (a split epic page's body, until it's opened) isn't found
    * - outside `main`'s patching:  a live update never touches it (`data-spell-added`)
    */
@@ -725,11 +729,13 @@ export function liveClient(): void {
   }
 
   /**
-   * Show a match and bring it into view;  first, when it's hidden (folded), land on its nearest id, as a link to
-   * that id would, so the docs runtime unfolds what hides it.
-   * - HIGHLIGHTED (`CSS.highlights`, `highlight()`), not selected, while the bar is open:  selecting it moved the
-   *   page's caret out of the box, and each keystroke after the first went nowhere (Owen, 2026-10-13:  "every
-   *   keystroke exits the input");  closing the bar selects it (`closeFind()`)
+   * Show a match and bring it into view.
+   * - hidden (folded):  first land on its nearest id, as a link to that id would,
+   *   so the docs runtime unfolds what hides it
+   * - HIGHLIGHTED (`CSS.highlights`, `highlight()`), not selected, while the bar is open
+   *   - why:  selecting it moved the page's caret out of the box, and each keystroke after the first went nowhere
+   *     (Owen, 2026-10-13:  "every keystroke exits the input")
+   *   - closing the bar selects it (`closeFind()`)
    */
   function showMatch(match: { node: Text; offset: number }, length: number) {
     const select = () => {
@@ -908,12 +914,14 @@ export type LiveAction = "page" | "style" | "script" | "ignore" | "file"
 /**
  * URL `url`, fetched by a page at `base`, as the server reports its changes;  `undefined` for another origin's.
  * - the path, without query or hash
- * - a worktree's file through the main server's `/worktrees/<w>/...`:  `<worktreesPath><w>/...`,
- *   its path from the main checkout (as `LiveReload` reports it, and as `SPELL_SERVER.file` names a worktree's page)
- *   - `worktreesPath`:  the worktrees' folder as that path, as the server tells the page
- *     (`SPELL_SERVER.worktreesPath`:  the repo's `.epic/config.json5` through `PageServer.serveWorktrees()`;
- *     epic `epic-eject` P7)
- *   - none told (a server serving no worktrees, or one from before P7):  `/.claude/worktrees/`, their default place
+ * - a worktree's file through the main server's `/worktrees/<w>/...`:
+ *   `<worktreesPath><w>/...`, its path from the main checkout
+ *   - as `LiveReload` reports it, and as `SPELL_SERVER.file` names a worktree's page
+ *   - `worktreesPath`:  the worktrees' folder as that path, as the server tells the page (epic `epic-eject` P7)
+ *     - that's `SPELL_SERVER.worktreesPath`,
+ *       from the repo's `.epic/config.json5` through `PageServer.serveWorktrees()`
+ *   - none told (a server serving no worktrees, or one from before P7):
+ *     `/.claude/worktrees/`, their default place
  * - MUST stay self-contained:  `liveClientScript()` serves it beside `liveClient()`
  */
 export function servedPath(url: string, base: string, worktreesPath = "/.claude/worktrees/"): string | undefined {

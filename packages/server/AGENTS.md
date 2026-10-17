@@ -71,10 +71,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - Reloads go through `reloadGate()`:  one, 500ms after the last change.
       - While the reader types in a field, an "Updated:  reload" pill waits;  it reloads once focus leaves the field.
     - A worktree's pages on the main server (`/worktrees/<w>/`):
-      epics' `RunningEpics` reports that worktree's docs assets and packs too, as `/.claude/worktrees/<w>/...`,
-      the path the live client reads them under (`servedPath()`).
-      - That path is the worktrees' folder from the root, which the server tells every page:
-        `SPELL_SERVER.worktreesPath` (`urlPathOf()`, epic `epic-eject` P7), so worktrees beside the repo work too.
+      epics' `RunningEpics` reports that worktree's docs assets and packs too.
+      - It reports them as `/.claude/worktrees/<w>/...`, the path the live client reads them under (`servedPath()`).
+      - The path starts with the worktrees' folder, from the root, which the server tells every page:
+        `SPELL_SERVER.worktreesPath`, by `urlPathOf()`.
+        So worktrees beside the repo work too (epic `epic-eject` P7).
   - `Guard` -- `Host` check, per-run token, same-origin writes
   - `PidFile` -- a background server's `.spell-server.json`, at its root:  status, ensure, stop.
     - `ensure` restarts a server that started before its code last changed.
@@ -88,10 +89,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
         and pages on the old one found the server down (epic `airplane`, 2026-10-10).
   - [mainServer.ts](src/mainServer.ts) -- `mainServerUrl()`:  a worktree's file on the MAIN checkout's page server.
     - It asks that server for `/api/epics/running` (`RUNNING_EPICS_API`).
-  - [checkout.ts](src/checkout.ts) -- `checkoutOf()`:  the git checkout a path is in, and its MAIN checkout,
-    read from the disk as git finds them (a worktree's `.git` file, git's common dir), with no `git` run.
+  - [checkout.ts](src/checkout.ts) -- `checkoutOf()`:  the git checkout a path is in, and its MAIN checkout.
+    - Read from the disk as git finds them (a worktree's `.git` file, git's common dir), with no `git` run.
     - Plain `node` loads it by path (epics' `EpicConfig`, for the hooks), so node built-ins only.
-    - Test helpers that fake one:  `$/server/test/checkouts` (`fakeMainCheckout()`, `fakeWorktree()`).
+    - [Test helpers](test/checkouts.ts) that fake one:  `fakeMainCheckout()`, `fakeWorktree()`.
   - [proxy.ts](src/proxy.ts) -- `proxyTo()` / `proxyUpgrade()`:  HTTP and websockets to another local server
   - `WebServer` -- all of the above on node's HTTP server
   - [untilInterrupted.ts](src/untilInterrupted.ts) -- run until `Ctrl-C`
@@ -110,12 +111,14 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       `serveWorktrees(dir)` (epic `epic-eject` P4).
       - The running epics' route module does, in the main checkout:
         [runningRoutes.ts](../epics/src/list/runningRoutes.ts), which also answers `/api/epics/running`.
-      - Why:  the worktrees' folder is the repo's `.epic/config.json5`'s (epics' `EpicConfig`),
+      - Why:  the worktrees' folder is in the repo's epic settings (`.epic/config.json5`, read by epics' `EpicConfig`),
         and this package imports no other.
-      - It then tells pages and `/api/server` the folder:  `worktrees` (and pages its URL path, `worktreesPath`).
-    - It serves the ENGINE ROUTES too, `/_epic/assets/` and `/_epic/pack/`, from this checkout's epics package
-      (`engineRoutePath()`, epic `epic-eject` P7):  where spell-epic's one server per machine serves the engine, and
-      where migrated pages load it from.
+      - It then tells the folder:
+        - to `/api/server` and pages:  `worktrees`
+        - to pages, its URL path too:  `worktreesPath`
+    - It serves the ENGINE ROUTES too, from this checkout's epics package (`engineRoutePath()`, epic `epic-eject` P7):
+      - the routes:  `/_epic/assets/` and `/_epic/pack/`
+      - where spell-epic's one server per machine serves the engine, and where migrated pages load it from
       - TEMPORARY:  until spell-app's pages are served by spell-epic's server (I5 of `epic-eject`).
     - Route modules add to every page's `window.SPELL_SERVER`:  `addPageConfig()`.
       - e.g. epics' airplane mode ([airplaneRoutes.ts](../epics/tools/airplaneRoutes.ts)),

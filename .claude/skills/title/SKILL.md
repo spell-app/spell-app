@@ -7,7 +7,7 @@ argument-hint: "[<title>]"
 # /title
 
 The command:  `epic session title [<title>]` ([Sessions.ts](packages/epics/src/command/Sessions.ts)).
-Other skills that rename a session (`/isolate`, `/park`, `/unpark`, `/session`) run the same command.
+Other skills that rename a session run the same command:  `/isolate`, `/park`, `/unpark` and `/session`.
 
 ## 1. With a title:  `/title <title>`
 
@@ -29,9 +29,11 @@ Other skills that rename a session (`/isolate`, `/park`, `/unpark`, `/session`) 
 
 - Claude can't run `/rename`, so:
   - the command writes `~/.claude/session-titles/<session id>`
-  - the `UserPromptSubmit` hook, `~/.claude/hooks/session-title.mjs`, returns it as `sessionTitle` on Owen's NEXT message
+  - the `UserPromptSubmit` hook returns it as `sessionTitle` on Owen's NEXT message
+    - the hook:  `~/.claude/hooks/session-title.mjs`
   - then deletes the file
   - Say so.
 - NOTE:  undocumented hook output, found in CLI 2.1.287.
-  If a later message shows the title didn't change:  say so, and fall back to
-  "rename it from the tab's context menu" (VS Code), or `/rename <title>` (terminal).
+  If a later message shows the title didn't change:  say so, and fall back to one of these.
+  - VS Code:  "rename it from the tab's context menu"
+  - the terminal:  `/rename <title>`

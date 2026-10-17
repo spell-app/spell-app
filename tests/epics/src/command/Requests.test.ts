@@ -22,7 +22,8 @@ writeFileSync(join(ROOT, "epics", "tooling", "tooling.plan.html"), "<html></html
 const RED = Buffer.from("red pixel").toString("base64")
 const BLUE = Buffer.from("blue pixel").toString("base64")
 
-// the sender:  Owen pasted RED, then BLUE;  a tool read a picture, and a subagent saw one, which don't count
+// the sender:  Owen pasted RED, then BLUE;
+// a tool read a picture, and a subagent saw one, which don't count
 transcript("sender11", [
   { type: "custom-title", customTitle: "🚧 python" },
   {

@@ -5,8 +5,8 @@
  * - Each command is `CLI.<name>Command(session, args, options)`, resolving to the exit code.
  * - `spell dev ...` starts in the lean `devMain.ts` instead, which loads no spell;
  *   its commands that need spell come back here.  Their tree:  `devProgram.ts`.
- * - `epic ...` (and its old spelling, `spell epic ...`) starts in the lean `epicMain.ts`:  the epic code's
- *   `EpicProgram`, which loads no spell for any verb.
+ * - `epic ...` (and its old spelling, `spell epic ...`) starts in the lean `epicMain.ts`:
+ *   the epic code's `EpicProgram`, which loads no spell for any verb.
  */
 import "./consoleGuard"
 // Defines `__PACKAGE_VERSION__` -- the PARSER's, which `spell --version` prints -- before anything reads it

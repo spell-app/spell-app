@@ -38,7 +38,8 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 - `<path...>`:  every file under each path, whole.
 - `epic <name>`:  the epic page's prose:  Overview, phases, items' details.
   - Through its part files, at the shared REAL path:
-    `<content>/epics/<name>/parts/<id>.html`, `<content>` being what `epic config contentFolder` prints.
+    - the files:  `<content>/epics/<name>/parts/<id>.html`
+    - `<content>`:  what `epic config contentFolder` prints
   - Never its structure:  no ids, no sections, no item lines, nothing `epic` writes.
 - `branch`:  every file this branch changed or added since `main`, WHOLE.
   - The files:
@@ -86,7 +87,7 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
    - Drop what "What it rewrites" says never to touch.
 4. The checker, for the mechanical list, and its count BEFORE:
    - `spell dev docs fuss <paths...> --json`, or `spell dev docs fuss --branch --json`
-   - an epic page:  `spell dev docs fuss <content>/epics/<name>/parts --json` (`<content>`:  `epic config contentFolder`)
+   - an epic page:  `spell dev docs fuss <content>/epics/<name>/parts --json` (`<content>` as in "Forms")
    - In HTML it checks everything but `phrase-split`:  the formatter wraps those lines.
 5. Big scope:  fan out ("Fanning out").  Else the session does it itself.
 6. Each file, top to bottom:
@@ -140,7 +141,7 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 - Each one NAMED and LISTED, as the root `CLAUDE.md`'s "Delegated work" says
   ([the bg skill](.claude/skills/bg/SKILL.md), "Names"):
   - `epic agents add fussbudget-<folder> "<its task>"`:  prints its full name
-  - an `Agent` call (`general-purpose`, `run_in_background: true`),
+  - an `Agent` call:  type `general-purpose`, in the background (`run_in_background: true`),
     its `description` starting with that full name
   - `epic agents done fussbudget-<folder>` when it's back
 - Its prompt carries:

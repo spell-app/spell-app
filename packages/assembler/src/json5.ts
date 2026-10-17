@@ -1,8 +1,9 @@
 /**
  * Reading and writing JSON5 so its COMMENTS stay:  the one helper every JSON5 edit goes through.
- * - Born in spaces (epic `people-and-orgs` P8, decisions Q4 and J41);  here since epic `epic-workflow` P20,
- *   so every tool that writes JSON5 may import it:  spaces' people and projects, and the component sets' site data,
+ * - In this package so every tool that writes JSON5 may import it:
+ *   spaces' people and projects, and the component sets' site data,
  *   whose writers are in ui, which may import no spell-family package.
+ *   - Born in spaces (epic `people-and-orgs` P8, decisions Q4 and J41);  here since epic `epic-workflow` P20.
  *
  * ```ts
  * json5Edited('{\n  // who\n  "name": "Owen"\n}', { name: "O" })
@@ -26,9 +27,9 @@ import JSON5 from "json5"
 /**
  * json5-writer, which ships no types (decision J41):  loaded with node's `require()`, as the CommonJS it is,
  * and typed below, so no program that compiles this file needs an ambient declaration of it.
- * - on first use, not as this file loads:  a bundle that only READS JSON5 through this file's importers (spell-epic's
- *   VS Code extension, a CommonJS bundle with no `import.meta.url` and no `node_modules`) loads it fine (epic
- *   `epic-eject` P7)
+ * - loaded on first use, not as this file loads (epic `epic-eject` P7)
+ *   - so a bundle that only READS JSON5 through this file's importers loads it fine
+ *   - e.g. spell-epic's VS Code extension:  a CommonJS bundle with no `import.meta.url` and no `node_modules`
  */
 function json5Writer(): Json5Writer {
   return (loadedWriter ??= createRequire(import.meta.url)("json5-writer") as Json5Writer)

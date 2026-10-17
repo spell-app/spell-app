@@ -33,16 +33,16 @@ import {
  *   - each its package's `docs/` folder, with Spell UI's site bundle laid over it at `_assets/` (`componentSetPath()`)
  *   - live-reloading like every page;  the same at `/worktrees/<w>/components/<set>/`
  * - `/worktrees/<w>/...` -> worktree `<w>`'s checkout, with the same URLs inside (dot files still refused)
- *   - once a route module says where the worktrees are (`serveWorktrees()`):  epics' running epics, in the main
- *     checkout;  the server itself knows no worktree folder
+ *   - once a route module says where the worktrees are (`serveWorktrees()`):
+ *     epics' running epics, in the main checkout;  the server itself knows no worktree folder
  * - what pages are told (`window.SPELL_SERVER`):  the checkout, its branch, the edit API ... and what route modules
  *   add (`addPageConfig()`), e.g. epics' airplane mode
  * - the bundles it serves (Spell UI's site, the brand pages) aren't committed:
  *   `start()` builds the stale ones in the background (`BundleBuild`),
  *   and a request for one of their files waits while that runs
  * - route modules (`RouteModule`) from the root `package.json`'s `"pageServer"` add the rest, e.g. the running epics
- * - `/_epic/assets/...`, `/_epic/pack/...` -> the engine's files, at the routes spell-epic's server serves them at,
- *   which migrated pages load (`engineRoutePath()`, epic `epic-eject` P7)
+ * - `/_epic/assets/...`, `/_epic/pack/...` -> the engine's files (`engineRoutePath()`, epic `epic-eject` P7)
+ *   - at the routes spell-epic's server serves them at, which migrated pages load
  * - NO redirects for old URLs (epic `people-and-orgs`, Q30):  an old address answers "not found"
  *   - until `people-and-orgs` merges into `main`, two temporary bridges
  *     for the SHARED pages, which every checkout shows:
@@ -104,7 +104,7 @@ export class PageServer {
         worktree: this.info.worktree,
         // a worktree's page served from here (`/worktrees/<w>/`):  ITS branch and name, for the header's badge
         ...(this.worktrees && worktreeOf(served.file, this.worktrees)),
-        // and as the URL path live reload reports their changes under (`SRV.servedPath()`)
+        // the worktrees' folder, and its URL path:  live reload reports their changes under it (`SRV.servedPath()`)
         ...(this.worktrees && { worktrees: this.worktrees, worktreesPath: urlPathOf(this.root, this.worktrees) }),
         edit: PageEditor.PREFIX,
         etag: SRV.StaticHandler.etagOf(statSync(served.file)),
@@ -199,12 +199,14 @@ export class PageServer {
   }
 
   /**
-   * Serve every worktree in folder `dir` at `/worktrees/<w>/`, with the same URLs inside (dot files refused), so the
-   * main checkout's server shows a running epic's pages;  returns `this`.
-   * - called by epics' running-epics route module, in the main checkout:  the worktrees' folder is the repo's
-   *   `.epic/config.json5`'s, which this package can't read (it imports no other package)
-   * - a page served from one gets ITS branch and worktree name (the header's badge), and every page the folder
-   *   (`SPELL_SERVER.worktrees`), as `/api/server` does (`ServerInfo.worktrees`)
+   * Serve every worktree in folder `dir` at `/worktrees/<w>/`, with the same URLs inside (dot files refused);
+   * returns `this`.
+   * - so the main checkout's server shows a running epic's pages
+   * - called by epics' running-epics route module, in the main checkout:
+   *   the worktrees' folder is set in the repo's `.epic/config.json5`,
+   *   which this package can't read (it imports no other package)
+   * - a page served from one gets ITS branch and worktree name (the header's badge)
+   * - every page gets the folder (`SPELL_SERVER.worktrees`), as `/api/server` does (`ServerInfo.worktrees`)
    */
   serveWorktrees(dir: string): this {
     this.worktrees = resolve(dir)
@@ -333,9 +335,10 @@ export const DOCS_HOME = "/pages/index.html"
 const COMPONENTS_HOME = `${COMPONENT_SETS[0].prefix}/`
 
 /**
- * Paths in the watched folders that live reload never reports:  a guide's `scripts/` and `experiments/` (their
- * sources, their own tools' output) -- but an experiment's built bundle, `*.bundle.js`, which its guide loads, so a
- * rebuild hot-reloads the guide (the live client's `liveAction()`, epic `epic-workflow` P24).
+ * Paths in the watched folders that live reload never reports:
+ * a guide's `scripts/` and `experiments/` (their sources, their own tools' output).
+ * - except an experiment's built bundle, `*.bundle.js`, which its guide loads:
+ *   a rebuild hot-reloads the guide (the live client's `liveAction()`, epic `epic-workflow` P24)
  */
 const UNWATCHED = /(^|\/)scripts\/|(^|\/)experiments\/(?!(.*\/)?[^/]+\.bundle\.js$)/
 
@@ -388,10 +391,12 @@ const MOVED_FOLDERS: readonly (readonly [from: string, to: string])[] = [
 ]
 
 /**
- * The URL path an ENGINE ROUTE serves from in this checkout:  `/_epic/assets/<x>` => `/packages/epics/tools/_assets/<x>`,
- * `/_epic/pack/<x>` => `/packages/epics/components/__pack/<x>`;  else `undefined`.
- * - the routes spell-epic's one page server per machine serves the engine at (epic `epic-eject` P7):  the shared pages
- *   load the engine from them once migrated (`engine-asset-routes`), and this server must draw them too
+ * The URL path an ENGINE ROUTE serves from in this checkout;  else `undefined`.
+ * - `/_epic/assets/<x>` => `/packages/epics/tools/_assets/<x>`
+ * - `/_epic/pack/<x>` => `/packages/epics/components/__pack/<x>`
+ * - the routes spell-epic's one page server per machine serves the engine at (epic `epic-eject` P7)
+ *   - the shared pages load the engine from them once migrated (`engine-asset-routes`),
+ *     and this server must draw them too
  * - TEMPORARY:  until spell-app's pages are served by spell-epic's server (the switch, I5 of `epic-eject`)
  * - a `StaticHandler` overlay:  served only when the file is there
  */

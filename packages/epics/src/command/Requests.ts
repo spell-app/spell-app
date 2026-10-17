@@ -22,23 +22,25 @@ import { Sessions } from "./Sessions"
 
 /****************
  * ### `Requests`
- * REQUESTS:  what Owen asks one epic for while he's working in another session (epic `epic-workflow`), and the
- * epic-wide verbs beside them:  `epic send | requests | file | home | merge`.
+ * REQUESTS:  what Owen asks one epic for while he's working in another session (epic `epic-workflow`),
+ * and the epic-wide verbs beside them:  `epic send | requests | file | home | merge`.
  * - Each request is a folder in the epic's shared folder, `epics/<epic>/requests/r3/`:
  *   - `request.md`:  his words verbatim, who sent it, what it was looking at, and where it went
  *   - `image-1.png` ...:  the screenshots he pasted, taken from the sender's transcript
  * - Written BEFORE anyone is told, so nothing is lost if the epic's own session is closed.
  * - The epic's session (the RECEIVER) turns each into a phase, then marks it filed (`file()`).
  * - The verbs (`run()`):
- *   - `send [<epic>] --text "..." | --file f [--images N] [--context "..."]`:  write a request into `<epic>`, with
- *     the newest N screenshots pasted into this session;  then print its id and the epic's running sessions to tell
- *     (`SendMessage`), or the command that opens its window when none runs.  No `<epic>`:  the tooling home's.
+ *   - `send [<epic>] --text "..." | --file f [--images N] [--context "..."]`:  write a request into `<epic>`,
+ *     with the newest N screenshots pasted into this session
+ *     - then print its id and the epic's running sessions to tell (`SendMessage`),
+ *       or the command that opens its window when none runs
+ *     - no `<epic>`:  the tooling home's
  *   - `requests <epic> [--json]`:  every request sent to `<epic>`, and where each went
- *   - `file <epic>#P7 <id>`:  file a request into phase P7:  his words and screenshots in its Requests field
- *     (the `epic` tool's `add-request`), the request marked filed, `P7`
+ *   - `file <epic>#P7 <id>`:  file a request into phase P7:
+ *     his words and screenshots in its Requests field (the `epic` tool's `add-request`), the request marked filed, `P7`
  *     - `file <epic> <id> "<where>"`, no phase:  only marked filed, saying where it went (`"dropped:  done in P3"`)
- *     - `add-request`, its old name, hidden (epic `epic-workflow` P19):  the same, its `--from` and `--file` (the
- *       request as html) taken as given rather than read from the epic's `requests/`
+ *     - `add-request`, its old name, hidden (epic `epic-workflow` P19), does the same,
+ *       its `--from` and `--file` (the request as html) taken as given rather than read from the epic's `requests/`
  *   - `home [<epic>]`:  the TOOLING HOME, the epic dev-tooling requests go to;  with `<epic>`, set it
  *   - `merge <epic>`:  a STANDING epic's phase onto `main` at once, fast-forward only;  run in the main checkout
  ****************/
@@ -135,8 +137,9 @@ export class Requests {
   }
 
   /**
-   * `epic file <epic>#P7 <id>`:  request `id` into the phase's Requests field, by the `epic` tool, then marked filed
-   * there;  `epic file <epic> <id> "<where>"`:  only marked filed, saying where it went.
+   * `epic file <epic>#P7 <id>`:  request `id` into the phase's Requests field, by the `epic` tool,
+   * then marked filed there.
+   * - `epic file <epic> <id> "<where>"`:  only marked filed, saying where it went
    * - `--from` and `--file` (`add-request`'s shape):  the request as given;  marked filed only if `requests/` has it
    * - the old order, the phase a word of its own (`file seo r3 7`):  refused, spelled right
    */
@@ -278,11 +281,13 @@ export class Requests {
   /**
    * The TOOLING HOME's epic:  the epic every session sends dev-tooling requests to (epic `epic-workflow`, Q2 and Q7);
    * `null` when none is set (or its file won't read).
-   * - Dev tooling:  how Owen works, not what a session builds:  the epic page, comments, the Review tab, every
-   *   skill and hook, windows, worktrees, `epic` itself (the rule:  the root `CLAUDE.md`).
-   * - Kept in `epics/home.json5`, shared content:  every checkout reads the same one, and the turn-end hook commits
-   *   it.  A data file (`DataFile`):  JSON5, a comment added by hand kept, its old `home.json` read while there's no
-   *   `.json5`.  `{ "epic": "epic-workflow", "set": "2026-10-11" }`
+   * - Dev tooling:  how Owen works, not what a session builds (the rule:  the root `CLAUDE.md`).
+   *   - the epic page, comments, the Review tab, every skill and hook, windows, worktrees, `epic` itself
+   * - Kept in `epics/home.json5`, shared content:
+   *   every checkout reads the same one, and the turn-end hook commits it.
+   * - A data file (`DataFile`):  JSON5, a comment added by hand kept,
+   *   its old `home.json` read while there's no `.json5`.
+   * - Its shape:  `{ "epic": "epic-workflow", "set": "2026-10-11" }`
    */
   home(): string | null {
     let home: { epic?: unknown } | undefined
@@ -318,8 +323,9 @@ export class Requests {
   /**
    * A STANDING epic's phase, onto `main` at once (epic `epic-workflow`, Q8):  `epic merge <epic>`.
    * - `main`:  the repo's base branch, `baseBranch` in `.epic/config.json5` (`EpicConfig`)
-   * - Run in the MAIN checkout, by the epic's session after `ExitWorktree` (`keep`);  it goes back with
-   *   `EnterWorktree`.  A worktree session can't move `main` itself:  its git runs in its own worktree only.
+   * - Run in the MAIN checkout, by the epic's session after `ExitWorktree` (`keep`);
+   *   it goes back with `EnterWorktree`.
+   *   A worktree session can't move `main` itself:  its git runs in its own worktree only.
    * - Fast-forward only, after the checks `/isolate done` makes (its "Finish", step 7):
    *   - this is the main checkout, on `main`, with nothing uncommitted (another session may work there)
    *   - branch `<epic>` holds all of `main`:  else `main` moved, and the branch merges it first
@@ -370,8 +376,8 @@ export class Requests {
   }
 
   /**
-   * A request as the HTML its phase's Requests field shows (`epic file`):  his words quoted, the
-   * context, when it came, then each screenshot (a link to it full size).
+   * A request as the HTML its phase's Requests field shows (`epic file`):
+   * his words quoted, the context, when it came, then each screenshot (a link to it full size).
    * - URLs are the epic page's:  `requests/r3/image-1.png`
    * - static:  pure
    */

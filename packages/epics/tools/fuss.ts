@@ -95,8 +95,8 @@ export class Fuss {
   }
 
   /**
-   * The files this branch changed since `main` (the repo's base branch, `.epic/config.json5`), as `--branch` checks
-   * them.
+   * The files this branch changed since `main`, as `--branch` checks them.
+   * - `main`:  the repo's base branch (`.epic/config.json5`)
    * - committed (`git diff main...HEAD`) and not (`git status`:  staged, unstaged, untracked)
    * - only those still there, in a format `check()` reads, and not generated
    * - throws `FussError` outside a git checkout, or with no `main` branch
@@ -306,8 +306,9 @@ function pathWhy(paths: string[], format: Format): string {
  * Whether `token` is a file path a reader would open, not a name:
  * - a file in a folder (`tools/fuss.ts`), or a file and its line (`fuss.ts:12`)
  * - 3 or more parts from a top folder of the checkout or a package (`packages/epics/tools`)
- * - NOT a folder alone (`packages/`, `packages/epics/`), a package (`@spell-app/ui`), an alias (`$/epics/tool`),
- *   a URL, a route (`/api/review`), a date (`10/9/26`), a file alone (`fuss.ts`), or words like "read/write/check"
+ * - NOT:
+ *   - a folder alone (`packages/`, `packages/epics/`), a package (`@spell-app/ui`), an alias (`$/epics/tool`)
+ *   - a URL, a route (`/api/review`), a date (`10/9/26`), a file alone (`fuss.ts`), or words like "read/write/check"
  */
 function isFilePath(token: string): boolean {
   const trimmed = token.replace(/[.,;:!?)]+$/, "")
@@ -519,7 +520,10 @@ function codeUnits(source: string): ProseUnit[] {
 /** A comment with a license in it:  skipped whole. */
 const LICENSE = /@license|copyright|SPDX-License-Identifier/i
 
-/** A block comment's lines from line `line`, column `column`:  its opening and closing marks gone, and each line's leading `*`. */
+/**
+ * A block comment's lines from line `line`, column `column`:
+ * its opening and closing marks gone, and each line's leading `*`.
+ */
 function blockLines(text: string, line: number, column: number): ProseLine[] {
   return text.split("\n").map((raw, index) => {
     let start = 0
@@ -533,7 +537,8 @@ function blockLines(text: string, line: number, column: number): ProseLine[] {
 
 /**
  * The comments in JS / TS `source`, in order, each with its offset and text (markers included).
- * - Skips strings, template literals (their `${}` code read too) and regex literals, so a `//` in them isn't a comment.
+ * - Skips strings, template literals (their `${}` code read too) and regex literals,
+ *   so a `//` in them isn't a comment.
  * - A light lexer, not a parser:  JSX text with a `//` in it reads as a comment.
  */
 function commentsIn(source: string): { start: number; text: string; isBlock: boolean }[] {

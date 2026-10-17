@@ -6,15 +6,18 @@ import { EpicCommandError } from "./command.types"
  * - Owen's scheme (Command Review Page, 2026-10-12):  `epic <verb> <epic>#<id>` for anything inside an epic page
  *   - `seo`:  the page
  *   - `seo#J3`:  an item (or a comment, `seo#M3`, `m3` and the old `cm3` read the same;  or an Overview section)
- *   - `seo#P3`:  a phase, by its number, the one way help and messages write it;  `seo#p3` and `seo#3` read the
- *     same.  `seo#p-epic-migrate`:  by its stable id (epic `epic-workflow` P15);  a verb that takes only a phase
- *     (`phase`, `updated`, `add-request`) takes its name too (`seo#epic-migrate`, `"seo#Epic Migrate"`):  the tool
- *     finds it (`PlanDoc.phaseNumber()`)
+ *   - `seo#P3`:  a phase, by its number, the one way help and messages write it
+ *     - `seo#p3` and `seo#3` read the same
+ *     - `seo#p-epic-migrate`:  by its stable id (epic `epic-workflow` P15)
+ *     - a verb that takes only a phase (`phase`, `updated`, `add-request`) takes its name too:
+ *       `seo#epic-migrate`, `"seo#Epic Migrate"` (the tool finds it, `PlanDoc.phaseNumber()`)
  *   - `seo#J`:  a NEW item of that kind, for `add`
- * - The tool's own order, with no `#` (`epic close seo J3`), is REFUSED, the message spelling it right
- *   (`epic close seo#J3`):  run silently, it taught agents the old shape (epic `epic-workflow` P19).
- *   `spell dev plan-doc close seo J3` still runs it:  that's the tool's own command line, not this.
- * - Pure:  no files, no output.  Throws `EpicCommandError` (a usage error, exit 2) for a target the verb can't take.
+ * - The tool's own order, with no `#` (`epic close seo J3`), is REFUSED,
+ *   the message spelling it right (`epic close seo#J3`).
+ *   - Why:  run silently, it taught agents the old shape (epic `epic-workflow` P19).
+ *   - `spell dev plan-doc close seo J3` still runs it:  that's the tool's own command line, not this.
+ * - Pure:  no files, no output.
+ * - Throws `EpicCommandError` (a usage error, exit 2) for a target the verb can't take.
  * - Lean:  imports only the folder's types, so `epic` starts fast.
  */
 export function planDocArgs(verb: string, args: string[]): string[][] {
@@ -92,8 +95,9 @@ export function parseTarget(text: string): EpicTarget {
 }
 
 /**
- * The phase a ref names, as the tool takes it:  a number (`P3`, `p3`, `3` -> `3`), or a stable id as it is
- * (`p-epic-migrate`);  `undefined` when it names something else (an item, or a phase's name:  `phaseRef()`).
+ * The phase a ref names, as the tool takes it:
+ * a number (`P3`, `p3`, `3` -> `3`), or a stable id as it is (`p-epic-migrate`).
+ * - `undefined` when it names something else (an item, or a phase's name:  `phaseRef()`)
  */
 export function phaseOf(ref: string): string | undefined {
   const match = PHASE_REF.exec(ref)
@@ -112,7 +116,10 @@ function needPhase(verb: string, text: string, ref: string): string {
   return ref
 }
 
-/** The item kind a ref names for `add`:  a kind's letter (`J`, `q` ...) or its word (`judgement`);  else `undefined`. */
+/**
+ * The item kind a ref names for `add`:  a kind's letter (`J`, `q` ...) or its word (`judgement`);
+ * else `undefined`.
+ */
 function kindOf(ref: string): string | undefined {
   const lower = ref.toLowerCase()
   if (KIND_WORDS.includes(lower)) return lower
@@ -140,8 +147,9 @@ export function phaseRanges(text: string): string {
 /**
  * `epic update <target> --field value ...`:  ONE verb setting a phase's or an item's fields, or the page's flags
  * (Owen, 2026-10-12);  the tool's commands it takes, run in order.
- * - a phase (`seo#P3`):  `--symptom`, `--changes`, `--goal`, `--files`, `--verify` (`phase-body`;  `""` removes
- *   one), `--estimate` (`estimate`), `--title` [`--html`] (`rename`)
+ * - a phase (`seo#P3`):
+ *   - `--symptom`, `--changes`, `--goal`, `--files`, `--verify` (`phase-body`;  `""` removes one)
+ *   - `--estimate` (`estimate`), `--title` [`--html`] (`rename`)
  * - an item (`seo#J3`):  `--title` [`--html`] (`rename`), `--calm` / `--loud` (`calm`)
  * - the page (`seo`):  `--standing` [`on` | `off`], `--no-standing` (`standing`)
  * - throws `EpicCommandError` for no field, or one the target doesn't have
@@ -206,8 +214,8 @@ export function phaseLabel(phase: string): string {
 
 /**
  * A usage error for the tool's old order, with no `#`, spelling it right:  `epic close seo J3` -> "epic close seo#J3".
- * - for the verbs whose target is inside the page:  an item, a phase, a new item's kind, `inbox`'s item verbs;
- *   `update` and `commit` given their target as a word or a flag
+ * - for the verbs whose target is inside the page:  an item, a phase, a new item's kind, `inbox`'s item verbs
+ * - and for `update` and `commit` given their target as a word or a flag
  * - nothing after the epic:  which item or phase, with an example
  * - `epic`:  the epic, as typed;  `at`:  its place in `args`
  */
@@ -308,8 +316,10 @@ const ITEM_VERBS = [
 ]
 
 /**
- * Verbs that run with no epic named:  on every epic (`list`, `migrate`), or by a flag (`split --done`,
- * `backfill --all`, `convert --all`), or not on one (`saga`'s own verbs, `summaries`' files).
+ * Verbs that run with no epic named:
+ * - on every epic (`list`, `migrate`)
+ * - or by a flag (`split --done`, `backfill --all`, `convert --all`)
+ * - or not on one (`saga`'s own verbs, `summaries`' files)
  */
 const NO_EPIC_VERBS = ["list", "migrate", "split", "backfill", "convert", "saga", "summaries", "update"]
 
@@ -352,8 +362,8 @@ const STABLE_PHASE_ID = /^p-[a-z0-9]+(?:-[a-z0-9]+)*$/
 const PHASE_RANGE = /^[Pp]?(\d+)(?:\s*-\s*[Pp]?(\d+))?$/
 
 /**
- * The item kinds' letters, for `add seo#J`:  each kind's id prefix (the `epic` tool's `KINDS`), plus `d` for a
- * decision (whose ids are questions')
+ * The item kinds' letters, for `add seo#J`:  each kind's id prefix (the `epic` tool's `KINDS`),
+ * plus `d` for a decision (whose ids are questions')
  * - a private copy:  importing `$/epics/tool/planDoc.types` here would load the tool's types into every call
  */
 const KIND_LETTERS: Record<string, string> = {

@@ -22,8 +22,9 @@ import type { Checkout } from "./server.types"
  * - `worktree`:  the worktree folder's name, which is how the main page server serves it (`/worktrees/<name>/`)
  * - paths as found, links not resolved:  a `cwd` inside a shared-content link (`epics/`) is still this checkout's
  * - NEVER throws:  a `.git` file it can't read counts as a checkout of its own
- * - Its position:  imports only node's own modules, so plain `node` loads it by path, types stripped
- *   (epics' `EpicConfig`, which the hooks and window script load);  NEVER an alias, an `enum` or a parameter property
+ * - Its position:  imports only node's own modules,
+ *   so plain `node` loads it by path, types stripped (epics' `EpicConfig`, which the hooks and window script load)
+ *   - NEVER an alias, an `enum` or a parameter property
  */
 export function checkoutOf(path: string): Checkout | undefined {
   for (let dir = resolve(path); ; dir = dirname(dir)) {

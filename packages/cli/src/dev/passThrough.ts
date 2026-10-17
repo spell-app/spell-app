@@ -19,9 +19,10 @@ import { REPO_ROOT, findCheckout } from "$/cli/findCheckout"
  * - `design bundle` / `design check`:  `packages/epics`' `design:bundle` (`bundle-spell-ui.js --design`) / `design:check`
  * - `design sync`:  `packages/epics/tools/design.js`, its verb first (`pull`, `changed` ...), in the caller's folder
  * - NOTE: `vscode` runs yarn itself (`vscodeSteps()`)
- * - NOT here:  the epic tools (`details`, `choices`, `notes`, `comments`, `agents`, `airplane`, `window`), which the
- *   `epic` command runs from ITS OWN checkout, the caller's being the data (`$/epics/command/EpicTools`, epic
- *   `epic-eject` P5).  These docs and server tools still run the nearest checkout's copy, as before.
+ * - NOT here:  the epic tools (`details`, `choices`, `notes`, `comments`, `agents`, `airplane`, `window`).
+ *   - The `epic` command runs those from ITS OWN checkout, the caller's being the data
+ *     (`$/epics/command/EpicTools`, epic `epic-eject` P5).
+ *   - These docs and server tools still run the nearest checkout's copy, as before.
  */
 export const TOOLS = {
   "docs update": { tool: "packages/epics/tools/update.js", cwd: "packages/epics" },
@@ -78,8 +79,8 @@ export function toolArgs(spec: ToolSpec, root: string): string[] {
 export const TSX_LOADER = pathToFileURL(join(REPO_ROOT, "node_modules", "tsx", "dist", "loader.mjs")).href
 
 /**
- * Run `command` with `args` as a child, with this terminal attached, and resolve to its exit code:
- * `EpicTools.runChild()`, the one copy (signals passed on, `128 +` a signal's number).
+ * Run `command` with `args` as a child, with this terminal attached, and resolve to its exit code.
+ * - the one copy is `EpicTools.runChild()`:  signals passed on, `128 +` a signal's number
  */
 export const runChild = EpicTools.runChild
 
@@ -100,8 +101,9 @@ export function vscodeSteps(verb?: string): string[][] {
 }
 
 /**
- * Why `spell dev vscode` refuses to run from `branch`, `behind` commits behind base branch `main` (the repo's
- * `baseBranch`);  `undefined` when it may.
+ * Why `spell dev vscode` refuses to run from `branch`, `behind` commits behind base branch `main`;
+ * `undefined` when it may.
+ * - `main`:  the repo's `baseBranch`
  * - `main` itself, or a branch with all of `main` in it, may
  * - Why:  every VS Code window runs the ONE installed extension,
  *   so one built from an older branch downgrades them all

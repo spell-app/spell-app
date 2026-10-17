@@ -86,8 +86,8 @@ const VIEWS: Record<DocViewName, { id: string; empty: string }> = {
 const EPIC = "node packages/cli/bin/epic.mjs"
 
 /**
- * The same checkout's `spell` CLI:  `spell dev server`, for a checkout from before `epic server` (P5), which has no
- * such verb.
+ * The same checkout's `spell` CLI, for `spell dev server`:
+ * a checkout from before P5 has no `epic server` verb.
  * - TODO:  drop it once every worktree has merged P5
  */
 const SPELL = "node packages/cli/bin/spell.mjs"
@@ -176,9 +176,10 @@ export class DocView implements vscode.WebviewViewProvider {
   /**
    * The Inspect and Show Console buttons, on both views' title bars:  open the developer tools that hold the page,
    * and close them on the next click (Owen, 2026-10-10:  "can't close the browser console pane, no (x)").
-   * - VS Code's "Developer:  Toggle Developer Tools" (`workbench.action.toggleDevTools`):  the window's tools, the
-   *   same ones "Open Webview Developer Tools" opens in desktop VS Code (`webviewCommands.ts` calls
-   *   `nativeHostService.openDevTools()`), but it closes them too
+   * - VS Code's "Developer:  Toggle Developer Tools" (`workbench.action.toggleDevTools`):  the window's tools
+   *   - the same ones "Open Webview Developer Tools" opens in desktop VS Code
+   *     (`webviewCommands.ts` calls `nativeHostService.openDevTools()`)
+   *   - but this one closes them too
    * - both open the SAME tools, on the tab last used:  neither command takes a tab or mode
    *   - so each button's tooltip says what to pick next:  the element picker (Cmd + Shift + C), or the Console tab
    *     and the page's frame (`127.0.0.1`) in its context menu
@@ -348,10 +349,10 @@ export class DocView implements vscode.WebviewViewProvider {
    * - which checkout:  the server's own `/api/server` says (`root`)
    * - runs `epic server stop`, then `epic server ensure`, in a LOGIN shell (`$SHELL -lc`):
    *   a GUI VS Code's own `PATH` may have no `node`
-   *   - a checkout from before `epic server` (epic `epic-eject` P5):  `spell dev server stop` / `ensure` instead,
-   *     when `epic` refuses the verb
-   * - that checkout's own command (`node packages/cli/bin/epic.mjs`), never the `epic` on `PATH`:  the page server
-   *   is per checkout, and `epic server` runs the caller's copy of it
+   *   - a checkout from before `epic server` (epic `epic-eject` P5):
+   *     `spell dev server stop` / `ensure` instead, when `epic` refuses the verb
+   * - that checkout's own command (`node packages/cli/bin/epic.mjs`), never the `epic` on `PATH`:
+   *   the page server is per checkout, and `epic server` runs the caller's copy of it
    * - its port may change (a worktree's server takes any free one):  the page comes back on the new `base`
    */
   async restartServer(): Promise<void> {
@@ -424,8 +425,8 @@ export class DocView implements vscode.WebviewViewProvider {
   async remembered(): Promise<string | undefined> {
     const url = DocView.memory?.get<string>(`${this.id}.page`)
     if (!url) return undefined
-    // a page server restarting (`spell dev server ensure` after a merge) is back in a few seconds:  wait for it
-    // rather than forget the page (Owen, 2026-10-10:  "reloading either of those tabs forgets what page was shown")
+    // a page server restarting (`spell dev server ensure` after a merge) is back in a few seconds:
+    // wait for it rather than forget the page (Owen, 2026-10-10:  "reloading either of those tabs forgets what page was shown")
     for (let tries = 0; tries < REMEMBER_TRIES; tries++) {
       if (await serverRoot(new URL(url).origin)) return url
       await new Promise((done) => setTimeout(done, REMEMBER_WAIT_MS))
@@ -682,8 +683,9 @@ type EditCommand = { spell: "edit"; command: "copy" | "cut" | "paste" | "selectA
 type Clipboard = { spell: "clipboard"; text?: string }
 
 /**
- * What VS Code passes a right-click menu item:  the frame's `data-vscode-context` (`rightClick()` in `html()`), and the
- * view's id, `webview`.
+ * What VS Code passes a right-click menu item:
+ * - the frame's `data-vscode-context` (`rightClick()` in `html()`)
+ * - the view's id, `webview`
  */
 type MenuContext = { webview?: string; spellField?: boolean; spellSelection?: boolean }
 

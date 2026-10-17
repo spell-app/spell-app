@@ -43,11 +43,12 @@ describe("devProgram.ts", () => {
 })
 
 /**
- * Every file of ours `entry` loads by static `import` (and `export ... from`), followed;  and the other packages'
- * specifiers it names.
+ * What `entry` loads up front, followed file by file:
+ * - `files`:  every file of ours it loads by static `import` (and `export ... from`)
+ * - `packages`:  the other packages' specifiers those files name
  * - ours:  `$/cli/...`, `$/epics/...` (the epic command) and relative imports
- * - `import type` and dynamic `import()` aren't followed:  the first loads nothing, the second only when a verb
- *   needs it (the `epic` tool)
+ * - `import type` and dynamic `import()` aren't followed:
+ *   the first loads nothing, the second only when a verb needs it (the `epic` tool)
  */
 function staticImports(entry: string): { files: string[]; packages: string[] } {
   const files = new Set<string>()
@@ -74,8 +75,9 @@ function staticImports(entry: string): { files: string[]; packages: string[] } {
 }
 
 /**
- * The `.ts` / `.tsx` file an import of `path` means:  itself, or its folder's `index.ts`;  `undefined` for a plain
- * script (`window.mjs`, a docs tool's `.js`), which isn't followed.
+ * The `.ts` / `.tsx` file an import of `path` means:  itself, or its folder's `index.ts`.
+ * - `undefined` for a plain script (`window.mjs`, a docs tool's `.js`), which isn't followed
+ * - throws if nothing is there
  */
 function sourceFile(path: string): string | undefined {
   for (const each of [path, `${path}.ts`, `${path}.tsx`, join(path, "index.ts")])

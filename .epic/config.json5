@@ -1,12 +1,16 @@
-// Where this repo keeps its epic things (epic `epic-eject` P4), read by `EpicConfig`
-// (packages/epics/src/config/EpicConfig.ts).  Folders are relative to the MAIN checkout;  every worktree reads
-// the main checkout's copy of this file.  A key left out takes its default:  these are the defaults.
-// `epic config [key]` prints what's in force (`--json`:  all of it).
-// The folders move (epic `epic-eject` P8) is a MORNING job, after the switch to spell-epic:  its README's
-// "Switching a repo over" says which values change, and in what order.  Until then, today's layout.
+// Where this repo keeps its epic things (epic `epic-eject` P4):  its folders, branch and windows.
+// - Read by `EpicConfig` (packages/epics/src/config/EpicConfig.ts).
+// - Folders are relative to the MAIN checkout:
+//   every worktree reads the main checkout's copy of this file.
+// - A key left out takes its default:  these are the defaults.
+// - `epic config [key]` prints what's in force (`--json`:  all of it).
+// - "Morning:" below:  the folders move (epic `epic-eject` P8), a job for after the switch to spell-epic.
+//   - spell-epic's README, "Switching a repo over", says which values change, and in what order.
+//   - Until then, today's layout.
 {
   // The shared content repo:  epics, guides, sagas, pages, templates, brand, the logs.
-  // Every checkout links its folders in (`epic shared link`);  each turn's end commits it.
+  // - Every checkout links its folders in (`epic shared link`).
+  // - Each turn's end commits it.
   // Morning:  `epic shared rename spell-app.epics` writes the new name here itself (and `windows.contentName`).
   "contentFolder": "../spell-app-dev",
 
@@ -14,29 +18,34 @@
   "baseBranch": "main",
 
   // Where NEW worktrees go:  one folder each, `<worktreesFolder>/<name>`, on branch `<name>`.
-  // Morning:  "../spell-app.worktrees", beside the repo;  spell-epic still finds the old ones in .claude/worktrees.
+  // Morning:  "../spell-app.worktrees", beside the repo.
+  // spell-epic still finds the old ones in .claude/worktrees.
   "worktreesFolder": ".claude/worktrees",
 
   // What makes a new worktree ready to run, from its root (`/isolate`, `/epic`).
   "installCommand": "yarn install",
-  // spell-epic only (P8):  "installOnCreate": true makes the worktree hook run it BEFORE the window opens (I2);
-  // "installTimeout" (seconds, 600) bounds it.  Both left out:  off, and the skills run the install.
+  // spell-epic only (P8), two more keys:
+  // - "installOnCreate": true makes the worktree hook run it BEFORE the window opens (I2)
+  // - "installTimeout" (seconds, 600) bounds it
+  // - both left out:  off, and the skills run the install
 
   // The VS Code windows (`epic window`).
   "windows": {
-    // The window a worktree's window is opened from when the session's isn't a package's:
+    // The window a worktree's window is opened from, when the session's own window isn't a package's:
     // `workspaces/<default>.code-workspace`, the whole repo's.
     "default": "spell-app",
     // The repo root's folder name in every window.
     "repoName": "spell-app",
     // The content repo's folder name in every window.
     "contentName": "spell-app-dev"
-    // spell-epic only (P8):  "worktreeOnly": true gives EVERY worktree a window of its own folder and the content
-    // folder alone;  a worktree beside the repo gets that window anyway.
+    // spell-epic only (P8):  "worktreeOnly": true gives EVERY worktree a window of just two folders,
+    // its own and the content folder.
+    // - A worktree beside the repo gets that window anyway.
   },
 
-  // Whether the worktree hook links each NEW worktree's saved-session folder to the main checkout's, so every
-  // window's Claude panel lists every session (spell-epic's hook, P8;  spell-app's own copy never links).
+  // Whether the worktree hook links each NEW worktree's saved-session folder to the main checkout's,
+  // so every window's Claude panel lists every session.
+  // - spell-epic's hook only (P8):  spell-app's own copy never links.
   // Morning:  true, with the worktrees beside the repo.
   "linkSessionFolders": false
 }

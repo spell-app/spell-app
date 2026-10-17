@@ -17,8 +17,9 @@ import { REPO_ROOT } from "$/cli/findCheckout"
  *   - Its tests:  `templates/pack/tests/`, into the repo's `tests/<name>/` (where every package's tests live).
  *   - A file already there is LEFT ALONE and listed in `skipped`, so it works on a folder that has some files.
  *   - `package.json` is MERGED:  the template's keys it lacks (`scripts`, `spellPack` ...) are added, its own kept.
- * - The checkout (`wirePack()`):  workspace, aliases, root vitest, lint / format ignores, `.gitattributes`, the
- *   merge-main generator, the commands page.
+ * - The checkout (`wirePack()`):
+ *   workspace, aliases, root vitest, lint / format ignores, `.gitattributes`, the merge-main generator,
+ *   the commands page.
  * - Then builds the pack (`buildPack()`), unless `build: false`.
  * - Idempotent:  a second run creates nothing and changes nothing.
  * - Throws `CliError` for a bad name or prefix, a core package's name, or a prefix other than the pack's own.
@@ -435,18 +436,6 @@ function withGenerator(text: string, name: string): string | undefined {
   }).replace(/([:,])(?=["[{])/g, "$1 ")
   const comma = before.endsWith("[") || before.endsWith(",") ? "" : ","
   return `${before}${comma}\n    ${entry.replace(/^\{/, "{ ").replace(/\}$/, " }")}\n  ${text.slice(end)}`
-}
-
-/**`)}],`,
-    `cwd: ${JSON.stringify(`packages/${name}`)},`,
-    `run: ["yarn", "pack:build"] }`
-  ]
-  let line = ""
-  fields.forEach((field, index) => {
-    const column = index ? columns[index - 1]! : 0
-    line = index ? `${line.padEnd(Math.max(column, line.length + 1))}${field}` : field
-  })
-  return line
 }
 
 /**

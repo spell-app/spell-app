@@ -1,8 +1,8 @@
 import { fileURLToPath } from "url"
 import { dirname, resolve } from "path"
 
-// By relative path, `.ts` and all:  app's `vite.config.ts` loads this file, bundled with no alias table.  The
-// server's checkout finder, node built-ins only:  the main checkout from any worktree
+// The server's checkout finder, node built-ins only:  the main checkout from any worktree.
+// By relative path, `.ts` and all:  app's `vite.config.ts` loads this file, bundled with no alias table.
 import { checkoutOf } from "../../../../server/src/checkout.ts"
 
 /** spaces' `src/`:  this file is in `src/server/node/`. */
@@ -28,8 +28,8 @@ const spellCoreDir = resolve(packagesDir, "core", "src")
 const staticDir = resolve(packagesDir, "app", "static")
 
 /**
- * The MAIN checkout's root, from this checkout's:  the one a worktree's git shares (`SRV.checkoutOf()`), wherever the
- * worktree's folder is.
+ * The MAIN checkout's root, from this checkout's:  the one a worktree's git shares (`SRV.checkoutOf()`).
+ * - found wherever the worktree's folder is
  * - spell-spaces sits beside it, so every worktree reads the same spaces.
  */
 const mainRepoDir = checkoutOf(repoDir)?.main ?? repoDir

@@ -20,7 +20,8 @@ import { RootCatalog } from "$/ui/tools/RootCatalog"
  * - `<pack>.pack.js`:  the entry built by Vite as ONE classic script (an IIFE), minified,
  *   on Spell UI's `baseConfig()` (decorators BEFORE Solid, Solid's JSX, Lightning CSS),
  *   with every `PACK_MODULES` specifier left external and read from `globalThis.SpellUI.packModules[<specifier>]`:
- *   the page's one Solid, one spell-solid and one Spell UI core.  Its banner records the same hash.
+ *   the page's one Solid, one spell-solid and one Spell UI core
+ *   - its banner records the same hash
  * - Node built-ins, `RootCatalog` and (only while building) Vite:  no spell, so it runs on the lean `spell dev` entry.
  * - Throws `CliError` for a package that isn't a pack, a tag without the pack's prefix, or an import of Spell UI or
  *   Solid the page can't share.
@@ -74,10 +75,12 @@ export function hasSiteData(pack: PackInfo): boolean {
 }
 
 /**
- * `spell dev pack check [<pack>]`:  whether a pack's generated files are CURRENT -- built from its sources as they
- * are now.  `stale` names each one that isn't, and why;  none means current.
- * - The catalog:  its recorded hash is the sources' (`packHash()`), and its text is what a build writes now (so a
- *   hand edit shows too);  the entry:  its text;  the script:  its banner's hash
+ * `spell dev pack check [<pack>]`:  whether a pack's generated files are CURRENT,
+ * built from its sources as they are now.
+ * - `stale` names each one that isn't, and why;  none means current.
+ * - The catalog:  its recorded hash is the sources' (`packHash()`),
+ *   and its text is what a build writes now (so a hand edit shows too)
+ * - The entry:  its text;  the script:  its banner's hash
  * - And the set's docs data:  its builder's `--check` (`buildSiteData()`)
  * - Doesn't build:  fast enough for every `yarn test` (the pack's `src/pack.test.ts` runs it)
  */

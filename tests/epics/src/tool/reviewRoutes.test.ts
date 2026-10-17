@@ -54,7 +54,10 @@ const EPIC_PLAN = `<!doctype html><title>x</title><body class="plan-doc"><epic-p
 <epic-section id="judgements" kind="judgements"><epic-item id="j4" title="a call" status="open"></epic-item></epic-section>
 </epic-page>`
 
-/** a saga page (epic `epic-workflow` P15):  an epic page of kind "saga", its summary, an Overview part, a todo */
+/**
+ * a saga page (epic `epic-workflow` P15):  an epic page of kind "saga",
+ * with its summary, an Overview part, a todo
+ */
 const SAGA = `<!doctype html><title>x</title><body class="plan-doc"><epic-page kind="saga" saga="epics" title="Epic Tooling">
 <epic-overview id="overview"><epic-summary>Epics.</epic-summary><epic-section id="o1" kind="overview-part" title="Done so far"></epic-section></epic-overview>
 <epic-section id="todos" kind="todos"><epic-item id="t1" title="a todo" status="open"></epic-item></epic-section>
@@ -346,7 +349,8 @@ test("urgency:  an id chip's calm set and dropped;  only a call or an issue of t
   expect(existsSync(inboxFile(PAGES.epic))).toBe(false)
 })
 
-// epic `airplane` P12:  "start a review" types `/epic review <epic>` into the ONE session titled for the epic;
+// epic `airplane` P12:  "start a review" types `/epic review <epic>`
+// into the ONE session titled for the epic;
 // epic `epic-workflow` P16:  Send and Do Now, nobody listening, wake the epic
 describe("start, and waking the epic", () => {
   let bridge: Server

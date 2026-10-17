@@ -8,8 +8,10 @@ import { Shared } from "$/epics/command/Shared"
 import { SharedMigration } from "$/epics/command/SharedMigration"
 
 /**
- * A worktree cut before the cutover, migrated:  `spell-app` with the docs tracked in the new layout, worktree `feat`
- * branched from it with edits to shared AND other files, then main cuts over (`init --import`, untrack, link).
+ * A worktree cut before the cutover, migrated:
+ * - `spell-app` with the docs tracked in the new layout
+ * - worktree `feat` branched from it, with edits to shared AND other files
+ * - then main cuts over (`init --import`, untrack, link)
  */
 const TEMP = realpathSync(mkdtempSync(join(tmpdir(), "migrate-")))
 const MAIN = join(TEMP, "spell-app")
@@ -32,7 +34,8 @@ put(MAIN, "agents/PAPERCUTS.md", "# Papercuts\n\n- one\n")
 put(MAIN, "src/app.ts", "export const app = 1\n")
 commitAll(MAIN, "first")
 
-// the worktree:  a committed edit, a new page, a deleted page, a dirty log line;  and unrelated staged + dirty work
+// the worktree:  a committed edit, a new page, a deleted page, a dirty log line;
+// and unrelated staged + dirty work
 git(MAIN, "worktree", "add", "-q", "-b", "feat", FEAT)
 put(FEAT, "packages/docs/content/guide.html", "<p>guide, edited on feat</p>\n")
 put(FEAT, "packages/docs/content/epics/feat/feat.plan.html", "<h1>Feat</h1>\n")

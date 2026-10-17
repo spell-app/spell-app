@@ -18,16 +18,21 @@ import { Worktrees } from "./Worktrees"
 
 /****************
  * ### `Stock`
- * `epic stock [--json]`:  every running session and where it works, then everything open in this repo --
- * worktrees, branches, parked and `/bedtime` work, plans with phases left, stashes and window files left behind --
- * sorted into "in process", "hung or parked" and "dead, still hanging on", each with what `/worktrees` can do about
- * it.  Read-only.  Was `whassup.py`, then `worktrees.py` (`/worktrees`).
- * - text:  the sessions table (`Worktrees.table()`), then one section per group, an item per line with its
- *   reasons, then its actions (`> id:  label`)
+ * `epic stock [--json]`:  every running session and where it works, then everything open in this repo,
+ * sorted into "in process", "hung or parked" and "dead, still hanging on",
+ * each with what `/worktrees` can do about it.
+ * - Read-only.
+ * - Was `whassup.py`, then `worktrees.py` (`/worktrees`).
+ * - text:  the sessions table (`Worktrees.table()`), then one section per group,
+ *   an item per line with its reasons, then its actions (`> id:  label`)
  * - `--json`:  `{ generated, main, sessions, idle, groups, items }`, each action with the shell lines it runs
- * - looks at:  worktrees and branches;  running Claude sessions, in this repo or anywhere on the machine;  `/park`
- *   notes and `/bedtime` reports in worktrees;  epic pages with phases left;  `park:<name>` stashes left behind;
- *   window files (`workspaces/ongoing/<name>.code-workspace`) with no worktree
+ * - looks at:
+ *   - worktrees and branches
+ *   - running Claude sessions, in this repo or anywhere on the machine
+ *   - `/park` notes and `/bedtime` reports in worktrees
+ *   - epic pages with phases left
+ *   - `park:<name>` stashes left behind
+ *   - window files (`workspaces/ongoing/<name>.code-workspace`) with no worktree
  * - a session working in a worktree belongs to that worktree's item;  the rest are items of their own
  ****************/
 export class Stock {
@@ -183,8 +188,9 @@ export class Stock {
     }
     if (why.length) return setGroup(item, "stalled", [...why, ...notes(item, parked)], this.stalledActions(item))
 
-    // a session moving in it beats a leftover morning report.  Not a `/park` note:  parking is the LAST thing a
-    // session does (so it was just active), and resuming sets the note to `resumed`
+    // a session moving in it beats a leftover morning report.
+    // Not a `/park` note:  parking is the LAST thing a session does (so it was just active),
+    // and resuming sets the note to `resumed`
     const moving = sessions.some(
       (session) =>
         ["busy", "waiting"].includes(session.state) || (!parked && hoursSince(session.lastActive) < Stock.RECENT_HOURS)
@@ -478,8 +484,8 @@ function activeActions(item: StockItem): StockAction[] {
 
 /**
  * Merge a finished branch into `main`.
- * - NOTE: `--no-edit` makes a merge commit, where `/isolate done` fast-forwards (`--ff-only`):  `agents/SUSPECTED-BUGS.md`,
- *   "claude-code";  one policy is roadmap R3's `epic worktree merge`
+ * - NOTE: `--no-edit` makes a merge commit, where `/isolate done` fast-forwards (`--ff-only`):
+ *   `agents/SUSPECTED-BUGS.md`, "claude-code";  one policy is roadmap R3's `epic worktree merge`
  */
 function merge(item: StockItem): StockAction {
   return action("merge", `merge \`${item.branch}\` into \`main\` (${item.unique} commits)`, [

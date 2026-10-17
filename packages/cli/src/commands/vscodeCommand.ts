@@ -11,10 +11,13 @@ import { findCheckout } from "$/cli/findCheckout"
 const VSCODE = join("packages", "vscode")
 
 /**
- * `spell dev vscode [build|install] [--force]`:  the VS Code extension of the nearest checkout -- `build` packs
- * `spell-language.vsix`, `install` installs it into VS Code, no verb does both.
+ * `spell dev vscode [build|install] [--force]`:  the VS Code extension of the nearest checkout.
+ * - `build` packs `spell-language.vsix`
+ * - `install` installs it into VS Code
+ * - no verb does both
  * - Root `yarn vscode`, `vscode:build`, `vscode:install` alias it.
  * - Refuses (`CliError`) from a branch behind `main` (`behindMainError()`), unless `--force`.
+ *   - `main`:  the repo's base branch, `EpicConfig`'s `baseBranch`
  * - Runs `vscodeSteps()` one by one, `yarn` in `packages/vscode`, stopping at the first that fails.
  * - Returns the exit code of the last step run.
  */

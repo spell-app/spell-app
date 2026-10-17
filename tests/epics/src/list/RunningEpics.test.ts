@@ -65,7 +65,8 @@ describe("RunningEpics", () => {
       ])
     )
     // a worktree cut before the rename to `<name>.plan.html` and the move into `content/`:
-    // its epic page under the old name and folder still counts;  a page of that name that isn't an epic page doesn't
+    // its epic page under the old name and folder still counts;
+    // a page of that name that isn't an epic page doesn't
     put(root, ".claude/worktrees/vite/packages/docs/epics/vite/vite.html", planDoc("Vite"))
     put(root, ".claude/worktrees/vite/packages/docs/epics/notes/notes.html", "<html><body>notes</body></html>\n")
     // the page server as it runs:  its `/worktrees/` mount, and epics' route module for the running epics
@@ -196,7 +197,8 @@ describe("RunningEpics", () => {
     }
   })
 
-  // epic `epic-components` P8:  converted docs say it in attributes (the old markup read no more since P15)
+  // epic `epic-components` P8:  converted docs say it in attributes
+  // (the old markup read no more since P15)
   it("reads an epic page in <epic-*> markup:  phases, the active one's label, the page's updated date", () => {
     const fresh = mkdtempSync(join(tmpdir(), "srv-epics-new-"))
     try {
@@ -329,7 +331,8 @@ describe("RunningEpics", () => {
       expect(groups.slice(2).every((group) => group.includes(" hidden>"))).toBe(true)
       expect(html).toContain('aria-pressed="false" aria-label="Star alpha"')
       expect(html.match(/data-epic="seo"/g)).toHaveLength(1)
-      // last worked:  the merged card's (its branch's commit, as `docs index` read it) beat the doc's log line
+      // last worked:  the merged card's beat the doc's log line
+      // (its branch's commit, as `docs index` read it)
       // the same moment, in whatever time zone this machine writes it in
       const worked = /data-epic="seo"[^>]*data-worked="([^"]+)"/.exec(html)?.[1]
       expect(worked && new Date(worked).toISOString()).toBe(new Date("2026-10-09T20:00-04:00").toISOString())
@@ -355,7 +358,8 @@ describe("RunningEpics", () => {
   })
 })
 
-// shared content (epics `shared-content`, `claude-design` P4):  every checkout's `epics` is a link to the same folder;
+// shared content (epics `shared-content`, `claude-design` P4):
+// every checkout's `epics` is a link to the same folder;
 // a checkout on older code reaches it through its `packages/docs/content` link and the old-path links
 describe("RunningEpics, shared content", () => {
   const temp = mkdtempSync(join(tmpdir(), "srv-epics-shared-"))

@@ -1,6 +1,7 @@
 /**
- * `spell dev <noun> <verb>`:  the repo's OWN tools (worktrees, docs, servers ...), as opposed to the spell language --
- * the commander tree both entries build:  `main.ts` (so `spell --help` lists `dev`) and the lean `devMain.ts`.
+ * `spell dev <noun> <verb>`:  the repo's OWN tools (worktrees, docs, servers ...), as opposed to the spell language.
+ * - This file is the commander tree both entries build:
+ *   `main.ts` (so `spell --help` lists `dev`) and the lean `devMain.ts`.
  * - The plan for them, and every command the repo has:  `guides/dev/commands/commands.html`
  * - Each finds the nearest checkout from the current folder (`findCheckout()`), so it works in a worktree
  * - Kinds:
@@ -9,8 +10,8 @@
  *   - the epic verbs' OLD spellings, hidden from `spell dev --help`:  the `epic` command has them now
  *     (`$/epics/command/`), and these run the same code, the epic code's, until no caller is left
  *     - `plan-doc`:  the `epic` tool in its own order (`EpicTools.planDoc()`)
- *     - `details` (`epic ask`), `choices`, `comments`, `notes`, `agents`, `airplane`, `window`:  its tools
- *       (`EpicTools.run()`)
+ *     - its tools (`EpicTools.run()`):
+ *       `details` (`epic ask`), `choices`, `comments`, `notes`, `agents`, `airplane`, `window`
  *     - `session`, `worktree`, `park`, `stock`, `shared` (epic `epic-eject` P5):  its classes
  *   - lean commands of our own (`pack`, `bundles`):
  *     `(args, options) => Promise<exitCode>`, imported directly the same way
@@ -204,8 +205,8 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
 
 /**
  * Run pass-through `command` for `args`, then exit with the code it returns.
- * - A `CliError` (or the epic code's `EpicCommandError`) prints just its message;  anything else is a crash, and
- *   prints its stack.
+ * - A `CliError` (or the epic code's `EpicCommandError`) prints just its message.
+ * - Anything else is a crash, and prints its stack.
  */
 export async function runLean(command: (args: string[]) => Promise<number>, args: string[]): Promise<never> {
   let exitCode: number
@@ -222,8 +223,8 @@ export async function runLean(command: (args: string[]) => Promise<number>, args
 }
 
 /**
- * Make `command` the old spelling of an epic tool, `spell dev <noun>`:  the epic code's tool `tool` (`EpicTools`),
- * its arguments verbatim;  hidden.
+ * Make `command` the old spelling of an epic tool, `spell dev <noun>`;  hidden.
+ * - it runs the epic code's tool `tool` (`EpicTools`), its arguments verbatim
  * - `description`:  where it went, `epic ask:  ...`
  */
 function oldTool(command: Command, tool: EpicToolName, description: string): Command {
@@ -237,8 +238,9 @@ function oldTool(command: Command, tool: EpicToolName, description: string): Com
 }
 
 /**
- * Make `command` the old spelling of an epic verb group, `spell dev <noun>`:  the epic code's class, run with the
- * arguments verbatim (`run`);  hidden.  Its flags are the class's to read, as the `epic` command passes them.
+ * Make `command` the old spelling of an epic verb group, `spell dev <noun>`;  hidden.
+ * - it runs the epic code's class (`run`), its arguments verbatim
+ * - its flags are the class's to read, as the `epic` command passes them
  */
 function oldVerbs(command: Command, description: string, run: (args: string[]) => Promise<number>): Command {
   const noun = command.name()

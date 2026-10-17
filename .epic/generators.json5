@@ -3,7 +3,9 @@
 //   a branch that adds a generated file adds its line here, and its merge already knows it.
 // - IN ORDER:  a later one may read an earlier one's output.
 //   - The docs bundle builds UI first, whose `<ui-code>` loads the spell highlighter, so `gen:spell` comes before it.
-// - `outputs`:  globs from the checkout's root;  `cwd`:  where `run` runs, from the checkout's root.
+// - Each line's keys:
+//   - `outputs`:  globs, from the checkout's root
+//   - `cwd`:  where `run` runs, from the checkout's root
 // - Snapshots aren't here:  the merge makes one update per package, after these.
 // - The same paths are `merge=binary` in the root `.gitattributes`:  keep the two in step.
 // - NOT here:

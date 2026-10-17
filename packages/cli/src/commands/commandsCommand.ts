@@ -10,11 +10,13 @@ import { DataFile } from "$/epics/data/DataFile"
 export { COMMANDS_JSON }
 
 /**
- * `spell dev commands [list|check]`:  every command the repo has -- yarn scripts, `spell` commands, skills -- against
- * the commands page's `commands.json5` (`guides/dev/commands/`), which maps each to the operations it does.
+ * `spell dev commands [list|check]`:  every command the repo has, against the commands page.
+ * - the commands:  yarn scripts, `spell` commands, skills
+ * - the page's data:  `commands.json5` (`guides/dev/commands/`), which maps each command to the operations it does
  * - `list` (default):  every command, with whether the page names it (`✓` / `✗`)
- * - `check`:  just the problems:  commands the page never names, and names on the page no command has;  exits 1
- *   if there are any.  Run it after adding, renaming or removing a command (root `yarn commands:check`).
+ * - `check`:  just the problems:  commands the page never names, and names on the page no command has
+ *   - exits 1 if there are any
+ *   - run it after adding, renaming or removing a command (root `yarn commands:check`)
  * - `--json`:  `{ commands: [{ name, surface, named }], missing, stale }`
  * - Which checkout:  the nearest one from the current folder up (`CLI.findCheckout()`), so a worktree checks its own.
  * - What counts:  `commandSources()`;  what the page names:  `pageNames()`.

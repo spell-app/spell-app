@@ -1,18 +1,21 @@
 /**
- * The RUNNING-AGENTS LIST of an epic or a checkout (epic `skillz`):  every background agent a Claude session started
- * (`/bg`, or on its own), by name, while it runs.
+ * The RUNNING-AGENTS LIST of an epic or a checkout (epic `skillz`):
+ * every background agent a Claude session started (`/bg`, or on its own), by name, while it runs.
  * - the file:
  *   - in an epic:  `epics/<epic>/agents.json5`, beside the epic page (shared content;  git-ignored in the shared repo)
  *   - else:  `<checkout root>/.spell-agents.json5` (git-ignored in spell-app)
- *   - JSON5, saved keeping any comment added by hand (`DataFile`, epic `epic-workflow` P21);  its old `.json` name is
- *     read while there's no `.json5`, and removed by the next write
- * - names carry a PREFIX:  the epic's name, else the worktree's, else `main`;  `add("aaa")` in epic `skillz` is
- *   `skillz-aaa`.  Every method takes the short name or the full one.
- * - writers:  `epic agents` (`agents.ts`;  sessions and their helpers, at the same time) and the page server's
- *   route (`agentRoutes.ts`:  Owen's redirect notes from the epic page's Agents box).  Every write is under the
- *   file's lock (`SRV.FileLock`), and atomic (a temp file renamed over it), as the review inbox's (`ReviewInbox`).
- * - REDIRECTS:  a note Owen sends a running agent from the page waits in its entry, untold, until a session waiting
- *   on the list (`epic agents wait`) passes it on (`SendMessage`) and marks it `told()`
+ *   - JSON5, saved keeping any comment added by hand (`DataFile`, epic `epic-workflow` P21)
+ *   - its old `.json` name is read while there's no `.json5`, and removed by the next write
+ * - names carry a PREFIX:  the epic's name, else the worktree's, else `main`
+ *   - `add("aaa")` in epic `skillz` is `skillz-aaa`
+ *   - every method takes the short name or the full one
+ * - writers:
+ *   - `epic agents` (`agents.ts`):  sessions and their helpers, at the same time
+ *   - the page server's route (`agentRoutes.ts`):  Owen's redirect notes from the epic page's Agents box
+ *   - Every write is under the file's lock (`SRV.FileLock`), and atomic (a temp file renamed over it),
+ *     as the review inbox's (`ReviewInbox`).
+ * - REDIRECTS:  a note Owen sends a running agent from the page waits in its entry, untold,
+ *   until a session waiting on the list (`epic agents wait`) passes it on (`SendMessage`) and marks it `told()`
  * - an agent leaves the list when it finishes (`done()`):  the list is what's RUNNING;  empty, the file goes
  * - NOT in the record:  the epic page says what agents DID;  this says what they're doing now
  */
@@ -58,7 +61,10 @@ export class AgentList {
     return name.startsWith(`${this.prefix}-`) ? name : `${this.prefix}-${name}`
   }
 
-  /** The agents running, oldest first;  none (no file):  `[]`.  Its old `.json` while there's no `.json5`. */
+  /**
+   * The agents running, oldest first;  none (no file):  `[]`.
+   * - read from its old `.json` while there's no `.json5`
+   */
   get agents(): RunningAgent[] {
     return DataFile.read<RunningAgent[]>(this.file) ?? []
   }
@@ -118,10 +124,11 @@ export class AgentList {
   }
 
   /**
-   * Owen's `note` for agent `name`, from the epic page's Agents box (`agentRoutes.ts`):  added to its `redirects`,
-   * untold;  returns the list after.
-   * - through the page server's one safe write (`SRV.FileOperations.save()`):  read and written under the list's
-   *   lock, all at once;  async, so the page server keeps serving while it waits for the lock
+   * Owen's `note` for agent `name`, from the epic page's Agents box (`agentRoutes.ts`):
+   * added to its `redirects`, untold;  returns the list after.
+   * - through the page server's one safe write (`SRV.FileOperations.save()`):
+   *   read and written under the list's lock, all at once
+   * - async, so the page server keeps serving while it waits for the lock
    * - throws if the note is empty or too long, or no such agent is running
    */
   async redirect(name: string, note: string): Promise<RunningAgent[]> {
@@ -180,8 +187,8 @@ export class AgentList {
   }
 
   /**
-   * Write `agents` atomically (a temp file renamed over it), its comments kept (`DataFile.write()`);  none:  remove
-   * the file (and its old `.json`).
+   * Write `agents` atomically (a temp file renamed over it), its comments kept (`DataFile.write()`).
+   * - none:  remove the file (and its old `.json`)
    * - call it under the lock, or two writers may lose each other's changes
    */
   private write(agents: RunningAgent[]) {

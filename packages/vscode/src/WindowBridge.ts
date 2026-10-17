@@ -1,37 +1,45 @@
 /**
- * Lets a Claude Code session (or any script it runs) talk to ITS OWN VS Code window:  add or remove a folder
- * (a worktree), show a doc in a side bar doc view, close the session's tab;  or to a worktree's window
- * (`epic window open`):  open the session there, close the window.  The client is the repo root's
- * `scripts/window.mjs` (`epic window`).
+ * Lets a Claude Code session (or any script it runs) talk to a VS Code window.
+ * - to ITS OWN window:  add or remove a folder (a worktree), show a doc in a side bar doc view, close the session's tab
+ * - to a worktree's window (`epic window open`):  open the session there, close the window
+ * - The client is the repo root's `scripts/window.mjs` (`epic window`).
  * - Why not a `vscode://` URI:  macOS hands it to whichever window is FOCUSED, often not the session's.
- * - How a session finds its window:  by PID.  A session's process tree is `claude` -> `Code Helper (Plugin)` (the
- *   window's EXTENSION HOST, one per window) -> `Code`, and this code runs in that extension host.  So
- *   `process.pid` here is an ancestor of every command the window's sessions run:  `scripts/window.mjs` walks up
- *   its parent pids until one has a registry file.
+ * - How a session finds its window:  by PID.
+ *   - A session's process tree is `claude` -> `Code Helper (Plugin)` -> `Code`,
+ *     the middle one being the window's EXTENSION HOST, one per window, where this code runs.
+ *   - So `process.pid` here is an ancestor of every command the window's sessions run.
+ *   - `scripts/window.mjs` walks up its parent pids until one has a registry file.
  * - Registry file:  `~/.spell/windows/<process.pid>.json` (`SPELL_WINDOWS_DIR` overrides the folder, for tests)
- *   ~== `{ pid, port, token, workspaceFile, folders }`;  folder 700, file 600, since `token` is the password.
+ *   ~== `{ pid, port, token, workspaceFile, folders }`
+ *   - folder 700, file 600, since `token` is the password
  *   - rewritten when the window's folders change;  deleted on dispose
  *   - files of dead pids (a crashed window) are deleted when any window starts
- * - Server:  http on `127.0.0.1`, a free port.  `POST /<op>`, JSON body, `Authorization: Bearer <token>`;
- *   answers `{ ok: true, ... }`, or `{ ok: false, error }` with a 4xx / 5xx status.  Ops:
+ * - Server:  http on `127.0.0.1`, a free port.
+ *   - Requests:  `POST /<op>`, JSON body, `Authorization: Bearer <token>`.
+ *   - Answers:  `{ ok: true, ... }`, or `{ ok: false, error }` with a 4xx / 5xx status.
+ * - Ops:
  *   - `add-folder { path, name? }`:  add `path` as the window's last folder;  already there:  ok, no-op
  *   - `remove-folder { path }`:  remove it;  never folder 0 (the repo root);  not there:  ok, no-op
- *   - `show-doc { file, hash?, view? }`:  `DocPreview.show(file, hash, view)`;  `hash` an id on the page to land
- *     on;  `view` the side bar tab:  `"docs"` ("Spell Docs", the default) or `"review"` ("Review")
+ *   - `show-doc { file, hash?, view? }`:  `DocPreview.show(file, hash, view)`
+ *     - `hash`:  an id on the page to land on
+ *     - `view`:  the side bar tab, `"docs"` ("Spell Docs", the default) or `"review"` ("Review")
  *   - `reload-view { view? }`:  rebuild that doc view from scratch, a new iframe at the page in view
  *     (`DocView.rebuild()`);  answers its `url`, `null` when the view was never shown
  *   - `close-window {}`:  close this window, just after answering (`/isolate done` closes the worktree's window)
- *   - `open-session { sessionId?, prompt? }`:  open Claude Code session `sessionId` in an editor tab (never the
- *     sidebar), `prompt` typed into its input (not sent:  Owen presses enter);  `/isolate` hands its session to
- *     the worktree's window this way.  No `sessionId`:  a NEW session (`/epic <name>` from another epic's
- *     session starts its own this way:  `epic window launch`)
- *   - `close-session-tab { titles }`:  close the ONE Claude Code tab labelled with the first of `titles` that
- *     exactly one tab shows;  none (or only several-tab matches):  ok, `closed: false`, `matches` per title.
- *     Closing the tab ends that tab's `claude` process.  (`{ title }`, one title, still works.)
- * - NEVER adds a folder unless the window was opened from a SAVED workspace file (`workspaces/<pkg>.code-workspace`):
- *   in a one-folder or untitled window, the change re-opens the window as a new workspace, which restarts every
- *   extension -- including the Claude panel whose session asked.  `remove-folder` has no such rule:  it only ever
- *   takes away a folder `add-folder` put there.
+ *   - `open-session { sessionId?, prompt? }`:  open Claude Code session `sessionId` in an editor tab (never the sidebar)
+ *     - `prompt` is typed into its input, not sent:  Owen presses enter
+ *     - `/isolate` hands its session to the worktree's window this way
+ *     - no `sessionId`:  a NEW session
+ *       - `/epic <name>` from another epic's session starts its own this way (`epic window launch`)
+ *   - `close-session-tab { titles }`:
+ *     close the ONE Claude Code tab labelled with the first of `titles` that exactly one tab shows
+ *     - none (or only several-tab matches):  ok, `closed: false`, `matches` per title
+ *     - closing the tab ends that tab's `claude` process
+ *     - `{ title }`, one title, still works
+ * - NEVER adds a folder unless the window was opened from a SAVED workspace file (`workspaces/<pkg>.code-workspace`).
+ *   - Why:  in a one-folder or untitled window, the change re-opens the window as a new workspace,
+ *     which restarts every extension -- including the Claude panel whose session asked.
+ *   - `remove-folder` has no such rule:  it only ever takes away a folder `add-folder` put there.
  * - NOTE:  a saved workspace's folders live in its file:  adding and removing a folder rewrites
  *   `<pkg>.code-workspace` on disk (VS Code does it, not us).
  */

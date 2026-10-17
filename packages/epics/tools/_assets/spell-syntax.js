@@ -12,25 +12,29 @@
  *   - Fetched from the checkout SERVING the page, so each branch shows its own rules.
  *   - From `file://` it says so where the tables go:  the page needs the page server.
  * - Built from elements (`el()`), never from markup in strings.
- * - Each module:  a nested `<ui-section>` where `[data-syntax-modules]` is, holding a table Rule name | Syntax |
- *   Purpose, a row per rule class (its internal classes first).
- *   - OPEN, as every section of this page, unlike other docs pages (Owen, 2026-10-12:  "Start out with all
- *     everything expanded")
+ * - Each module:  a nested `<ui-section>` where `[data-syntax-modules]` is,
+ *   holding a table Rule name | Syntax | Purpose, a row per rule class (its internal classes first).
+ *   - OPEN, as every section of this page, unlike other docs pages
+ *     (Owen, 2026-10-12:  "Start out with all everything expanded")
  * - EXPAND ALL and COLLAPSE ALL at the right of the page toolbar, the ivory band (`wireFoldAll()`).
- * - Rule name:  the class's name, a link to its source (its rule names its tooltip), with a pencil to suggest another
- *   name;  then each syntax it's registered with, a bullet each;  then its aliases, "aka:  `expression`".
+ * - Rule name:
+ *   - the class's name, a link to its source (its rule names its tooltip), with a pencil to suggest another name
+ *   - then each syntax it's registered with, a bullet each
+ *   - then its aliases, "aka:  `expression`"
  * - Syntax:  each syntax's example, from its tests, and what each writer makes of it.
- * - BOXES, pre-filled with what the code has:  the class's name (behind its pencil), and each example's output from
- *   each writer.
+ * - BOXES, pre-filled with what the code has:
+ *   the class's name (behind its pencil), and each example's output from each writer.
  *   - Owen types over one to suggest another;  a changed box is marked, its round button puts the code's back.
  *   - Keyed `<Class>.<field>`:  `IsGtLt.name`, `IsGtLt.js`, `IsGtLt.ts`, `IsGtLt.py`;
  *     the second example's `AssignmentStatement.js.2`, and so on.
  *   - Saved through the syntax-choices routes (`choicesRoutes.ts`), never into the code:
  *     - 5s after typing stops, and as the page goes away:
  *       `POST /api/docs/choices/draft`, `spell-syntax.draft.json5` beside the page
- *     - Send:  `POST /api/docs/choices/answer`, `spell-syntax.answer.json5`, which `epic choices wait <page>` exits with
+ *     - Send:
+ *       `POST /api/docs/choices/answer`, `spell-syntax.answer.json5`, which `epic choices wait <page>` exits with
  *   - Kept apart from the generated data, so regenerating it keeps them:
- *     a box whose code now says what Owen typed is no longer a change, and one for a rule that's gone is kept as is.
+ *     - a box whose code now says what Owen typed is no longer a change
+ *     - one for a rule that's gone is kept as is
  * - The WAND beside each purpose asks Claude for more details there:
  *   - it adds a COMMENT (`POST /api/docs/comments`, `commentsRoutes.ts`) on the module's table, quoting the purpose,
  *     "Provide more details here:  `IsGtLt`."
@@ -59,7 +63,10 @@
     [false, "angles down", "Expand all"],
     [true, "angles up", "Collapse all"]
   ]
-  /** Where the runtime remembers this page's folds, `{ [section id]: folded }`:  `spell-doc-runtime.js` `wireFolds()`. */
+  /**
+   * Where the runtime remembers this page's folds, `{ [section id]: folded }`:
+   * `spell-doc-runtime.js` `wireFolds()`.
+   */
   const FOLDS_KEY = `spell-folds:${location.pathname}`
   const script = document.currentScript
   const bundle = new URL("spell-ui.js", script.src).href
@@ -181,8 +188,10 @@
   }
 
   /**
-   * Rule name:  the class's name, opening its source, its rule names as its tooltip;  its pencil, showing the box to
-   * suggest another name;  each syntax, a bullet;  then its aliases, "aka:  `expression`".
+   * Rule name:
+   * - the class's name, opening its source, its rule names as its tooltip
+   * - its pencil, showing the box to suggest another name
+   * - each syntax, a bullet;  then its aliases, "aka:  `expression`"
    */
   function nameCell(rule) {
     const tip = rule.ruleNames.length ? rule.ruleNames.join(", ") : "no rule name of its own"
@@ -314,8 +323,11 @@
   }
 
   /**
-   * The toolbar after the last section, pinned to the window's bottom (`syntax-choices.css`, as a syntax-choices
-   * page's):  feedback with Send to its right;  under them the count and the save status;  then an error or "Sent".
+   * The toolbar after the last section, pinned to the window's bottom
+   * (`syntax-choices.css`, as a syntax-choices page's):
+   * - feedback with Send to its right
+   * - under them the count and the save status
+   * - then an error or "Sent"
    */
   function drawBar() {
     const feedback = el("ui-textarea", {
@@ -367,8 +379,8 @@
   ////////////////
 
   /**
-   * Expand all and Collapse all, at the right of the page toolbar:  the ivory band the runtime builds in the page
-   * header once the bundle runs (`buildPageToolbar()`).
+   * Expand all and Collapse all, at the right of the page toolbar:
+   * the ivory band the runtime builds in the page header once the bundle runs (`buildPageToolbar()`).
    * - added as soon as the toolbar is there, and again whenever the runtime builds it anew (a live update)
    * - each opens or folds every section and sub-section (`foldAll()`)
    * - drawn as the toolbar's section buttons:  their words go when the section titles go (`fitTitles()`)
@@ -403,8 +415,8 @@
   }
 
   /**
-   * Fold (`isFolded`) or open every section and sub-section at once, without their height animation, remembered as
-   * the reader's folds (`saveFolds()`).
+   * Fold (`isFolded`) or open every section and sub-section at once, without their height animation,
+   * remembered as the reader's folds (`saveFolds()`).
    * - folding them all shows the page from its top:  every title, folded, fits in a window or two
    */
   function foldAll(isFolded) {
@@ -419,8 +431,8 @@
 
   /**
    * The reader folded or opened one section:  remember every section's fold again, after the runtime saved that one.
-   * - why:  the runtime saves the folds it knows of when the page loaded, plus that one;  it doesn't know what
-   *   Expand all / Collapse all did, and a reload would undo it
+   * - why:  the runtime saves the folds it knows of when the page loaded, plus that one;
+   *   it doesn't know what Expand all / Collapse all did, and a reload would undo it
    * - a `ui-open` it can't cancel is the browser's own reveal (find in page):  not the reader's, as for the runtime
    */
   function keepFolds(event) {
@@ -430,8 +442,8 @@
   }
 
   /**
-   * Remember every section's fold as it is now (`changing` as it's about to be), where the runtime reads them
-   * when the page loads (`FOLDS_KEY`).
+   * Remember every section's fold as it is now (`changing` as it's about to be),
+   * where the runtime reads them when the page loads (`FOLDS_KEY`).
    */
   function saveFolds(changing = {}) {
     const folds = {}
@@ -508,8 +520,8 @@
   }
 
   /**
-   * Show the class name's box, `one`, under the name (and focus it), or hide it:  its pencil's click (`toggle`), or a
-   * changed name (`show`).
+   * Show the class name's box, `one`, under the name (and focus it), or hide it:
+   * its pencil's click (`toggle`), or a changed name (`show`).
    * - a changed name's box never hides:  the pencil focuses it instead
    */
   function showNameBox(one, how) {
@@ -535,8 +547,8 @@
   }
 
   /**
-   * The count, on Send's tooltip:  no line of its own under the bar (Owen, 2026-10-13:  "Lose the `0 boxes saved`
-   * bit").
+   * The count, on Send's tooltip:  no line of its own under the bar
+   * (Owen, 2026-10-13:  "Lose the `0 boxes saved` bit").
    */
   function count() {
     const changes = [...boxes.values()].filter(isBoxChanged).length
@@ -697,8 +709,8 @@
   ////////////////
 
   /**
-   * Ask Claude for more details on `rule`'s purpose:  a comment on its module's table, quoting `text` (the purpose),
-   * so its thread shows in that cell.
+   * Ask Claude for more details on `rule`'s purpose:
+   * a comment on its module's table, quoting `text` (the purpose), so its thread shows in that cell.
    * - once per wait:  while its comment waits for Claude, a click does nothing more
    * - NEVER throws:  a failure shows in the toolbar
    */
@@ -756,8 +768,8 @@
   }
 
   /**
-   * `block`'s text as a comment reads it (`BlockAnchors.js` `textOf()`):  its text nodes, a space after each
-   * element's, the runtime's own additions left out.
+   * `block`'s text as a comment reads it (`BlockAnchors.js` `textOf()`):
+   * its text nodes, a space after each element's, the runtime's own additions left out.
    */
   function textOf(block) {
     return runsOf(block)

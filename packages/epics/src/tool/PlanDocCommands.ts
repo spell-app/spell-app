@@ -37,7 +37,7 @@ import { Sagas } from "./Sagas"
  * - `docs`, `decisions` (`EpicDocs`, for `/docs-check`):
  *   the docs an epic wrote besides its epic page, and what its epic page settled
  * - the `<epic-*>` markup only:  every command refuses a doc still in the old markup before it writes anything
- *   (one restored from an old backup):  `convert` it first (`PlanDocFiles.read()`)
+ *   (one restored from an old backup).  `convert` it first (`PlanDocFiles.read()`).
  * - `saga`:  the sagas' list and each epic's saga (`SagaCommands`, epic `epic-workflow` P15)
  *   - `new --saga` sets it at birth
  * - `migrate`:  pages brought up to today's markup, by page kind (`MigrateCommands`, epic `epic-workflow` P8)
@@ -47,15 +47,17 @@ import { Sagas } from "./Sagas"
  *   - `wait`:  a background command that wakes the `/epic review` session
  *   - `apply`:  the marks, into the doc
  * - `details`:  writes an agent's details or reply into one item
- * - an item's text is never dropped:  a rewrite moves it into the item's folded Original Discussion;
- *   `original` puts text recovered from git there
+ * - an item's text is never dropped:  a rewrite moves it into the item's folded Original Discussion
+ *   - `original` puts text recovered from git there
  * - the docs, their files and git:  `PlanDocFiles`, for ONE checkout (the caller's:  `spell dev plan-doc` finds it)
  * - the doc itself:  `PlanDoc`, pure
- * - output goes straight to `process.stdout` / `stderr`, never `console.*`, which the `spell` CLI silences
- *   (`packages/cli/src/consoleGuard.ts`);  `run()` resolves to the exit code instead of exiting
+ * - output goes straight to `process.stdout` / `stderr`,
+ *   never `console.*`, which the `spell` CLI silences (`packages/cli/src/consoleGuard.ts`)
+ *   - `run()` resolves to the exit code instead of exiting
  * - Node only:  NOT in the `$/epics` barrel, imported by path (`$/epics/tool/PlanDocCommands`).
- *   Runs the docs tools' scripts as children (the docs index, `check-spell.js`, `open.js`), as their command
- *   lines run them;  imports their helpers (`tools/pages.js` `atDepth()`).
+ *   - Runs the docs tools' scripts as children, as their command lines run them:
+ *     the docs index, `check-spell.js`, `open.js`
+ *   - Imports their helpers (`tools/pages.js` `atDepth()`).
  * - From `packages/epics/tools/plan-doc.js`'s command line (epic `epic-components`, P7), which now forwards here.
  ****************/
 export class PlanDocCommands {
@@ -73,7 +75,8 @@ export class PlanDocCommands {
 
   /**
    * - `files`:  the checkout's epic pages
-   * - `sessionsOf`:  an epic's running sessions, for `migrate --notify`;  the `spell` CLI gives it (`epicSessions()`)
+   * - `sessionsOf`:  an epic's running sessions, for `migrate --notify`
+   *   - the `spell` CLI gives it (`epicSessions()`)
    */
   constructor({ files = new PlanDocFiles(), sessionsOf }: { files?: PlanDocFiles; sessionsOf?: SessionFinder } = {}) {
     this.files = files
@@ -88,8 +91,10 @@ export class PlanDocCommands {
 
   /**
    * Run the command line `argv` (everything after `plan-doc`);  resolves to the exit code.
-   * - a `PlanDocError` is a message, `epic:  <message>` on stderr, exit 1;  anything else is a bug, and throws
-   * - `2`:  usage (no command, or a bad one), or `inbox wait` timing out;  `1`:  `check` found problems
+   * - a `PlanDocError` is a message, `epic:  <message>` on stderr, exit 1
+   * - anything else is a bug, and throws
+   * - `2`:  usage (no command, or a bad one), or `inbox wait` timing out
+   * - `1`:  `check` found problems
    */
   async run(argv: string[]): Promise<number> {
     try {
@@ -116,8 +121,9 @@ export class PlanDocCommands {
     if (command === "split" && flags.done) return this.splitDone(flags)
     if (!command || !name) return this.usage()
     if (command === "summaries") return this.printSummaries(positional.slice(1))
-    // the shared doc, by THIS checkout's path (`findDoc()`);  `--here` meant that before every checkout shared one
-    // copy:  accepted and ignored, so old callers keep working (T3 of `review-review`)
+    // the shared doc, by THIS checkout's path (`findDoc()`);
+    // `--here` meant that before every checkout shared one copy:
+    // accepted and ignored, so old callers keep working (T3 of `review-review`)
     if (flags.here) this.warn("epic:  --here is no longer needed:  every checkout edits the one shared doc")
     const file = command === "new" ? this.files.docPath(name) : this.files.findDoc(name)
     switch (command) {
@@ -329,8 +335,9 @@ export class PlanDocCommands {
   }
 
   /**
-   * After a rename or an insert:  the `links-agree` step on the doc at `file` (`PlanDocFiles.migrate()`), so links
-   * and Owen's comments follow what moved;  what it fixed or left, on stderr (stdout holds the command's answer).
+   * After a rename or an insert:  the `links-agree` step on the doc at `file` (`PlanDocFiles.migrate()`),
+   * so links and Owen's comments follow what moved.
+   * - what it fixed or left goes on stderr (stdout holds the command's answer)
    */
   private async agree(file: string): Promise<void> {
     const { notes } = await this.files.migrate(file, { only: ["links-agree"] })
@@ -342,13 +349,13 @@ export class PlanDocCommands {
   ////////////////
 
   /**
-   * `new`:  copy the tool's template (`templates/plan.html`, `<epic-*>` markup) to `file`, fill in name, title,
-   * dates, branch and worktree, then update the index.
+   * `new`:  copy the tool's template (`templates/plan.html`, `<epic-*>` markup) to `file`,
+   * fill in name, title, dates, branch and worktree, then update the index.
    * - `<title>`:  `Epic: <title>` (`TITLE_PREFIX`);  `<epic-page title>` holds the title alone (it draws the h1)
    * - refuses to overwrite:  the skill asks the user whether to reuse an existing doc
    * - a future epic, now planned (`/epic <name>`):  promoted where it is, its prompt and answers kept
-   * - `--saga <id>`:  the saga it serves, from the start (epic `epic-workflow` P15);  refused, writing nothing, for a
-   *   saga not in the list
+   * - `--saga <id>`:  the saga it serves, from the start (epic `epic-workflow` P15)
+   *   - refused, writing nothing, for a saga not in the list
    */
   private async create(name: string, file: string, flags: Flags): Promise<void> {
     const { title = titleCase(name), prompt, promptFile, future = false, saga } = flags as CreateFlags
@@ -381,7 +388,8 @@ export class PlanDocCommands {
       branch: files.git("branch", "--show-current") || "(detached)",
       worktree: files.git("rev-parse", "--show-toplevel") || files.root
     }
-    // `atDepth()`:  the template's asset paths, pack and site header for the doc's own depth (`epics/<name>/`:  2)
+    // `atDepth()`:  the template's asset paths, pack and site header
+    // for the doc's own depth (`epics/<name>/`:  2)
     const fixed: string = atDepth(
       readFileSync(files.template, "utf8"),
       relative(files.root, file).split(sep).length - 1
@@ -399,15 +407,16 @@ export class PlanDocCommands {
     if (future) plan.makeFuture()
     nameSaga(plan)
     mkdirSync(dirname(file), { recursive: true })
-    // split from the start (J... of `claude-design`):  a doc being planned is the one edited most, so it gains most
+    // split from the start (J... of `claude-design`):
+    // a doc being planned is the one edited most, so it gains most
     await files.writeDoc(file, plan, true)
     files.reindex()
     this.print(relative(process.cwd(), file))
   }
 
   /**
-   * `saga page <id> [--force]`:  saga `id`'s page from the template (`SagaPage.make()`), then the docs index;  prints
-   * its path.
+   * `saga page <id> [--force]`:  saga `id`'s page from the template (`SagaPage.make()`), then the docs index.
+   * - prints its path
    */
   private async sagaPage([id]: string[], { force }: Flags): Promise<void> {
     const file = await new SagaPage(this.files).make(need(id, "a saga id"), { force: Boolean(force) })
@@ -416,8 +425,9 @@ export class PlanDocCommands {
   }
 
   /**
-   * `commit <name> <sha> --phase N | --item <id> "sentence"`:  list commit `sha` (resolved to its full sha in the
-   * doc's checkout) under a phase or an item, replacing its entry there.
+   * `commit <name> <sha> --phase N | --item <id> "sentence"`:
+   * list commit `sha` under a phase or an item, replacing its entry there.
+   * - `sha` is resolved to its full sha in the doc's checkout
    */
   private async commit(file: string, [sha, sentence]: string[], { phase, item }: Flags): Promise<void> {
     need(sha, "a commit sha")
@@ -436,8 +446,9 @@ export class PlanDocCommands {
   }
 
   /**
-   * `commits <name> --backfill`:  the doc's phase and item commits into its phases' and items' commit lists
-   * (`PlanDoc.backfillCommits()`);  prints what it added.
+   * `commits <name> --backfill`:
+   * the doc's phase and item commits into its phases' and items' commit lists (`PlanDoc.backfillCommits()`).
+   * - prints what it added
    * - the doc's history:  `PlanDocFiles.docLog()` (git's, or a shared doc's `sharedDocLog()`)
    */
   private async backfillCommits(file: string): Promise<void> {
@@ -478,14 +489,17 @@ export class PlanDocCommands {
   /**
    * `status <name> <id> underway "<reading>"` / `done ["<summary>"]` / `noted "<what>"`:
    * Claude's status card on an item or an Overview sub-section (P13), and the page's spinner on it.
-   * - `underway`:  a new blue card (`PlanDoc.addStatus()`), stamped now;  the spinner on (`inbox working`), so
-   *   one call does both
-   * - `done`:  WORK was done (an answer written, code changed, a phase built):  its latest underway card turns
-   *   green (`PlanDoc.finishStatus()`), the summary under its reading when given;  the spinner off.
-   *   Refused on an item with no underway card
-   * - `noted`:  Claude only RECORDED what Owen chose (Owen, 2026-10-10):  a calm Noted card, `what` saying what was
-   *   recorded and what happens next (`PlanDoc.noteStatus()`:  an underway card turns noted, else one born noted);
-   *   the spinner off.  `inbox apply` writes these itself for picks, todos and new items (Q19)
+   * - `underway`:  a new blue card (`PlanDoc.addStatus()`), stamped now
+   *   - the spinner on (`inbox working`), so one call does both
+   * - `done`:  WORK was done (an answer written, code changed, a phase built)
+   *   - its latest underway card turns green (`PlanDoc.finishStatus()`), the summary under its reading when given
+   *   - the spinner off
+   *   - refused on an item with no underway card
+   * - `noted`:  Claude only RECORDED what Owen chose (Owen, 2026-10-10)
+   *   - a calm Noted card, `what` saying what was recorded and what happens next
+   *     (`PlanDoc.noteStatus()`:  an underway card turns noted, else one born noted)
+   *   - the spinner off
+   *   - `inbox apply` writes these itself for picks, todos and new items (Q19)
    *   - `done --filed "<what>"`, the older spelling, means `noted` too:  what was filed is a record
    * - reading, summary:  HTML, as `updated` takes (plain text works as it is)
    * - NOT logged:  the mark it answers already is (`inbox apply`, `details`)
@@ -508,7 +522,10 @@ export class PlanDocCommands {
     this.print(`${id.toUpperCase()} ${said}:  ${title}`)
   }
 
-  /** `original <name> <id> --file <html> [--as-of "YYYY-MM-DD HH:MM"]`:  earlier text into an item's Original Discussion. */
+  /**
+   * `original <name> <id> --file <html> [--as-of "YYYY-MM-DD HH:MM"]`:
+   * earlier text into an item's Original Discussion.
+   */
   private async original(file: string, rest: string[], flags: Flags): Promise<void> {
     const id = need(rest[0], "an item id")
     const html = readFileSync(need(flags.file as string | undefined, "--file <html file>"), "utf8")
@@ -525,9 +542,10 @@ export class PlanDocCommands {
   }
 
   /**
-   * `backfill`:  for epic `name` (or every epic, `--all`), the items not reviewed that Owen named in a past session
-   * of it (`ReviewBackfill`);  prints each with its first evidence, and with `--apply` marks them reviewed, dated
-   * that day, logging the evidence.
+   * `backfill`:  for epic `name` (or every epic, `--all`),
+   * the items not reviewed that Owen named in a past session of it (`ReviewBackfill`).
+   * - prints each with its first evidence
+   * - `--apply`:  marks them reviewed, dated that day, logging the evidence
    */
   private async backfill(name: string | undefined, { all, apply }: Flags): Promise<void> {
     if (!name && !all) throw new PlanDocError(`backfill needs a name, or --all  (${USAGE_HINT})`)
@@ -567,9 +585,10 @@ export class PlanDocCommands {
   }
 
   /**
-   * `convert <name> ... | --all [--dry-run] [--out <folder>] [--verbose]`:  rewrite docs from the old markup into
-   * `<epic-*>` markup, and prove nothing was lost (`$/epics/convert` `ConvertRun`);  prints its report;
-   * exit code 1 when any doc fails.
+   * `convert <name> ... | --all [--dry-run] [--out <folder>] [--verbose]`:
+   * rewrite docs from the old markup into `<epic-*>` markup,
+   * and prove nothing was lost (`$/epics/convert` `ConvertRun`).
+   * - prints its report;  exit code 1 when any doc fails
    * - writes ONLY under `--out` (copies):  every live doc was converted at P12;
    *   a doc restored from an old backup is converted to `--out`, then copied back by hand
    * - loaded on first use:  the converter is big, and no other command needs it
@@ -590,8 +609,9 @@ export class PlanDocCommands {
   }
 
   /**
-   * `split <name> [--dry-run]`:  store the doc at `file` as a skeleton plus part files (`EpicParts`), logged;
-   * prints how many parts.  Already split:  says so, writes nothing.
+   * `split <name> [--dry-run]`:  store the doc at `file` as a skeleton plus part files (`EpicParts`), logged.
+   * - prints how many parts
+   * - already split:  says so, writes nothing
    * - `dryRun`:  what it would make, nothing written
    */
   private async splitDoc(file: string, { dryRun }: Flags = {}): Promise<void> {
@@ -620,9 +640,10 @@ export class PlanDocCommands {
   }
 
   /**
-   * `split --done [--dry-run]`:  split every FINISHED epic's doc (Q12 of `claude-design`):  every phase done, and no
-   * worktree of its own (`list`'s `checkout` is `main`:  a worktree may still edit it with older code);
-   * prints what it split and what it skipped, and why.
+   * `split --done [--dry-run]`:  split every FINISHED epic's doc (Q12 of `claude-design`).
+   * - finished:  every phase done, and no worktree of its own
+   *   (`list`'s `checkout` is `main`:  a worktree may still edit it with older code)
+   * - prints what it split and what it skipped, and why
    */
   private async splitDone({ dryRun }: Flags): Promise<void> {
     for (const epic of this.files.listEpics()) {
@@ -643,13 +664,15 @@ export class PlanDocCommands {
   /**
    * `check`:  structural problems, then the browser check;  exit code 1 on any.
    * - a split doc is checked WHOLE (`read()` assembles it):  ids and `#id` links across skeleton and parts
-   * - links:  `AS.Linker.check()` on the whole doc, at the page's folder (a part's links are written relative to
-   *   `parts/`, and rebased when assembled), so the parts' links are checked too;
-   *   printed (`LINK:`), failing only with `--links`
-   *   - and its short addresses and `<epic-link>`s:  a saga, page or id that isn't there, an epic under a saga it
-   *     doesn't name (`EpicTargets.problemsIn()`)
-   * - a split doc's parts:  a missing one is a problem;  a host with content of its own besides its part (moved
-   *   into the part on the next edit), or a part file nothing loads, is a note
+   * - links:  `AS.Linker.check()` on the whole doc, at the page's folder, so the parts' links are checked too
+   *   (a part's links are written relative to `parts/`, and rebased when assembled)
+   *   - printed (`LINK:`), failing only with `--links`
+   *   - and its short addresses and `<epic-link>`s:
+   *     a saga, page or id that isn't there, an epic under a saga it doesn't name (`EpicTargets.problemsIn()`)
+   * - a split doc's parts:
+   *   - a missing one is a problem
+   *   - a note:  a host with content of its own besides its part (moved into the part on the next edit),
+   *     or a part file nothing loads
    * - the browser check:  `packages/epics/tools/check-spell.js`, a child `node` (its stderr passed on)
    */
   private check(file: string, { noBrowser, links: strictLinks }: Flags): number | void {
@@ -658,14 +681,15 @@ export class PlanDocCommands {
     const parts = plan.parts!
     const problems = plan.check()
     const html = plan.toString()
-    // short addresses and `<epic-link>`s (epic `epic-workflow` P15):  the sagas, pages and ids they point at
+    // short addresses and `<epic-link>`s (epic `epic-workflow` P15):
+    // the sagas, pages and ids they point at
     const linkProblems = [
       ...files.linker.check(html, dirname(file)).problems,
       ...new EpicTargets(files.root).problemsIn(html, relative(files.root, file))
     ]
     const links = linkProblems.map((problem) => `link:  ${problem}`)
-    // printed, but failing only with `--links`:  older docs hold broken links from the docs' moves (I... of
-    // `claude-design`), which `check` never looked at before
+    // printed, but failing only with `--links`:
+    // older docs hold broken links from the docs' moves (I... of `claude-design`), which `check` never looked at before
     if (strictLinks) problems.push(...links)
     else for (const link of links) this.print(`LINK:  ${link}`)
     problems.push(...parts.missing.map((id) => `part ${PARTS_DIR}/${id}${PART_EXT} is missing`))
@@ -707,11 +731,12 @@ export class PlanDocCommands {
   }
 
   /**
-   * Show `file` in VS Code's doc preview, in the right side bar's Review tab (an epic page's place, Owen's rule
-   * 2026-10-07), or its Spell Docs tab (`view` `docs`), or Chrome when not run from VS Code:
-   * `packages/epics/tools/open.js --review <file>` (`--vs` for Spell Docs), a child `node` with this terminal
-   * attached, which starts the page server and asks the session's window (`pages.js` `openInVSCode()`).
-   * - a child, not an import:  `open.js` with this terminal attached, as its command line runs it
+   * Show `file` in VS Code's doc preview, in the right side bar's Review tab
+   * (an epic page's place, Owen's rule 2026-10-07), or its Spell Docs tab (`view` `docs`),
+   * or Chrome when not run from VS Code.
+   * - It runs `packages/epics/tools/open.js --review <file>` (`--vs` for Spell Docs),
+   *   which starts the page server and asks the session's window (`pages.js` `openInVSCode()`).
+   * - a child `node`, not an import:  `open.js` with this terminal attached, as its command line runs it
    * - NEVER throws, nor fails the command:  as before, a doc not shown is no error
    */
   openInVSCode(file: string, view: "review" | "docs" = "review"): void {
@@ -793,8 +818,9 @@ export class PlanDocCommands {
   }
 
   /**
-   * `decisions`:  what an epic's page settled, for checking its docs against:  each phase and its Done list,
-   * then the items, their status, chosen option and answer (or JSON, with every item's text, for `/docs-check`).
+   * `decisions`:  what an epic's page settled, for checking its docs against.
+   * - each phase and its Done list, then the items, their status, chosen option and answer
+   * - or JSON, with every item's text, for `/docs-check`
    */
   private printDecisions(decisions: EpicDecisions, json: boolean): void {
     if (json) return this.print(JSON.stringify(decisions, null, 2))
@@ -813,8 +839,9 @@ export class PlanDocCommands {
   }
 
   /**
-   * `items`:  where reviews stand, then each section with items (or `--section <kind or label>` only), its counts
-   * and the items `--filter` picks;  `--json`:  `{ file, status, sections }`.
+   * `items`:  where reviews stand, then each section with items, its counts and the items `--filter` picks.
+   * - `--section <kind or label>`:  that section only
+   * - `--json`:  `{ file, status, sections }`
    * - `--spec <file>`:  the review's item picker instead (`ItemPicker.spec()`), written to that file
    */
   private printItems(plan: PlanReader, file: string, { section, filter = "unreviewed", json, spec }: Flags): void {
@@ -857,7 +884,8 @@ export class PlanDocCommands {
 
   /**
    * `summaries`:  `summary` of each doc at `files`, as one JSON object keyed by file.
-   * - by PATH, so it reads a worktree's copy too, with no `node_modules/` there;  one run for every epic
+   * - by PATH, so it reads a worktree's copy too, with no `node_modules/` there
+   * - one run for every epic
    * - a doc that won't read gets `{ error }`, and the rest still print
    */
   private printSummaries(files: string[]): void {
@@ -1093,8 +1121,8 @@ export function parseArgs(argv: string[]): { positional: string[]; flags: Flags 
 }
 
 /**
- * Item `id` not urgent (`calm`) or urgent again, as the page's id chip does (`PlanDoc.setCalm()`), logged;
- * returns the line to print:  `J11 not urgent:  <title>`, or `J11 not urgent already:  <title>` (not logged).
+ * Item `id` not urgent (`calm`) or urgent again, as the page's id chip does (`PlanDoc.setCalm()`), logged.
+ * - returns the line to print:  `J11 not urgent:  <title>`, or `J11 not urgent already:  <title>` (not logged)
  */
 function calmItem(plan: PlanDoc, id: string, calm: boolean): string {
   const did = plan.setCalm(id, calm)
@@ -1119,8 +1147,9 @@ function need(value: string | undefined, what: string): string {
 const USAGE_HINT = "`epic <verb> --help`;  a phase is `<epic>#P3` (or its name), an item `<epic>#J3`"
 
 /**
- * A flag's phase, as its number in `plan` (`--before 3`, `--before P3`, `--before epic-migrate` ...:
- * `PlanDoc.phaseNumber()`);  `undefined` without the flag.
+ * A flag's phase, as its number in `plan` (`PlanDoc.phaseNumber()`):
+ * `--before 3`, `--before P3`, `--before epic-migrate` ...
+ * - `undefined` without the flag
  * - throws a `PlanDocError` for the flag bare, or a phase the doc doesn't have
  */
 function phaseFlag(plan: PlanDoc, value: string | true | undefined, flag: string): number | undefined {

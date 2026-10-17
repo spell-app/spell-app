@@ -1,6 +1,7 @@
 /**
- * Tests of the link routes (epic `epic-workflow` P15), over HTTP on a scratch checkout:  a typed `/saga/...` address
- * redirects to its page, and `GET /api/epics/target` answers what an `<epic-link>` points at.
+ * Tests of the link routes (epic `epic-workflow` P15), over HTTP on a scratch checkout:
+ * - a typed `/saga/...` address redirects to its page
+ * - `GET /api/epics/target` answers what an `<epic-link>` points at
  */
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"

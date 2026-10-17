@@ -190,8 +190,8 @@ ui -> util
   - Used bare, no import (WWOD §9 › "Ambient globals used bare").
   - Every spell-family `tsconfig.json` includes that folder.
   - The types:  `Prettify`, `Class`, `AbstractClass`, `SplitString`, `__PACKAGE_VERSION__`.
-  - NOT json5-writer's, which ships no types of its own:  the one file that uses it types what it uses,
-    [the assembler's json5.ts](packages/assembler/src/json5.ts).
+  - NOT json5-writer's, which ships no types of its own:
+    the one file that uses it types what it uses, [the assembler's json5.ts](packages/assembler/src/json5.ts).
 - `vite.decorators.ts` and `vite.packageVersion.ts` are at the repo root.
 - No `~/` or `#name` alias exists any more.
   - `$` means the packages folder, so ui is `$/ui` like the rest.
@@ -211,8 +211,10 @@ ui -> util
   - "durable doc" -- the epic's guide;  "syntax-choices page" -- a choice page;
     "analysis page" -- a review page;  "docs index", "docs home" -- the home page;
     "goal", "goals page" -- a saga (an epic of epics), a saga page
-- Names only code reads keep the old words:  `<epic-id>.plan.html`, `PlanDoc`, `plan-doc.md`,
-  the `spell dev plan-doc` spelling.  So do the record:  log entries, quotes, commit messages.
+- Names only code reads keep the old words:
+  - `<epic-id>.plan.html`, `PlanDoc`, `plan-doc.md`
+  - the `spell dev plan-doc` spelling
+  - So does the record:  log entries, quotes, commit messages.
 - Pointing at a saga, an epic or an item (epic `epic-workflow` P15, J32):
   - In Owen's prompts, "saga drawable-spell" names a saga, and a SHORT ADDRESS names a saga, an epic or an item:
     `SAGA:/drawable-spell` (the saga page), `SAGA:/drawable-spell/python-target#T1` (item T1 of that epic).
@@ -247,8 +249,8 @@ ui -> util
 - Enter a worktree with `/isolate <name>` (`/epic` does it too), or with Claude's own `EnterWorktree`.
 - The `WorktreeCreate` hook ([worktree.mjs](.claude/hooks/worktree.mjs)):
   - makes the worktree `.claude/worktrees/<name>` on its own branch, `<name>`, from local main
-    - the folder and the branch:  `worktreesFolder` and `baseBranch` in [`.epic/config.json5`](.epic/config.json5),
-      the repo's epic settings (`EpicConfig`;  `epic config` prints them)
+    - which folder and branch:  `worktreesFolder` and `baseBranch` in [the repo's epic settings](.epic/config.json5)
+      (`EpicConfig`;  `epic config` prints them)
   - keeps the session saved at the root
     (Claude's own worktrees move it, and it drops out of every window's list)
 - New window, or stay?
@@ -293,8 +295,9 @@ ui -> util
   - Except `/epic <name>` inside another worktree:  it means "open a window for `<name>`",
     so Claude offers one.
     - `epic window launch <name>`:  a NEW session there.
-      - Its window already open:  its file and look stay, and the epic's running session there is typed into;
-        a new one starts only when none runs (epic `epic-eject` P10, Owen's r2).
+      - Its window already open (epic `epic-eject` P10, Owen's r2):
+        - the window's file and look stay as they are
+        - the epic's running session there is typed into;  a new one starts only when none runs
     - The epic skill's "From another worktree" has the steps.
 - The window's file is git-ignored:  `<name>.code-workspace`, in `workspaces/ongoing/`.
   - Its look:  that of the window it's opened from, or the one asked for.
@@ -331,7 +334,7 @@ ui -> util
     - `-diff`, when minified
     - `linguist-generated`:  collapsed in GitHub's PR diffs
   - A new committed generated file:
-    add it there AND to [the generators list](.epic/generators.json5), `.epic/generators.json5`
+    add it there AND to [the generators list](.epic/generators.json5)
     (each branch's own, read by `MainMerge`).
   - NOT committed at all (since 2026-10-07):  the bundles only the page server serves,
     whose hashed chunk names churned every diff.
@@ -372,7 +375,8 @@ ui -> util
     Claude Design's exports and their Spell UI copies
   - `sagas/` -- the SAGAS, each an epic of epics (epic `epic-workflow` P15):
     - `sagas/sagas.json5`:  the list, in Owen's order;  changed only through `epic saga ...`
-    - `sagas/<id>/<id>.saga.html`:  each saga's page;  `sagas/index.html`:  the Sagas list page, the top bar's tab
+    - `sagas/<id>/<id>.saga.html`:  each saga's page
+    - `sagas/index.html`:  the Sagas list page, the top bar's tab
     - an epic names its saga with `<epic-page saga="<id>">`, a guide with `<meta name="spell-saga" content="<id>">`
   - `goals/` -- the first saga pages (once goal sets), PARKED since 2026-10-11 (epic `epic-workflow` P6):
     read only, buttons saying TODO.
@@ -388,7 +392,7 @@ ui -> util
 
 - In EVERY checkout (main and each worktree) they're folder SYMLINKS into one shared content repo.
   - It's `../spell-app-dev`, beside the main checkout:  an ordinary git repo, local only.
-  - Where it is comes from `.epic/config.json5` (`contentFolder`), the repo's epic settings (epic `epic-eject` P4):
+  - Where it is:  `contentFolder`, in [the repo's epic settings](.epic/config.json5) (epic `epic-eject` P4).
     `epic config contentFolder` prints it.
   - So every worktree sees every edit at once:  no per-branch copy, and these files never conflict on merge.
   - Folders, never single-file links:  Claude's Edit refuses to write through a link to a file.
@@ -401,7 +405,7 @@ ui -> util
   - Reading and tools (`epic`, the page server) use the links as usual.
 - The manifest has two parts:
   - the root `package.json`'s `"shared": { "links" }`
-    (its `"dir"` is `.epic/config.json5`'s `contentFolder` since epic `epic-eject` P4)
+    (its old `"dir"` is the epic settings' `contentFolder` since epic `epic-eject` P4)
   - the `# shared:start` ... `# shared:end` block in `.gitignore`
   - A checkout's links are its OWN branch's manifest's:
     `epic shared link` after merging a manifest change.
@@ -514,16 +518,20 @@ ui -> util
 ### spell-epic
 
 - The epic tooling has a repo of its own beside this one, `../spell-epic` (epic `epic-eject` P6, 2026-10-17).
-  - A Claude Code plugin:  the epics package, the `epic` command (`bin/epic`), the hooks, the window script,
-    the epic skills and every template.
+  - A Claude Code plugin, holding:
+    - the epics package, and the `epic` command (`bin/epic`)
+    - the hooks and the window script
+    - the epic skills and every template
   - It takes `ui`, `server`, `assembler`, `util` and `spell-solid` from a spell-app checkout (`portal:`).
   - Its README says how it's laid out and installed.
-- NOT live yet:  this repo's own copies still run in every session
-  (`packages/epics`, `tests/epics`, `scripts/window.mjs`, `.claude/hooks`, the epic skills).
+- NOT live yet:  this repo's own copies still run in every session.
+  - [the epics package](packages/epics/) and [its tests](tests/epics/)
+  - [the window script](scripts/window.mjs) and [the hooks](.claude/hooks/)
+  - the epic skills
   - What blocks the switch:  `epic-eject` I5.
   - Until then, make epic changes HERE, as before:  spell-epic is a snapshot, brought up to date at the switch.
-- The generated files `epic worktree merge-main` rebuilds are this repo's own list, each branch's:
-  [.epic/generators.json5](.epic/generators.json5) (T4).
+- The generated files `epic worktree merge-main` rebuilds are this repo's own list, each branch's own:
+  [the generators list](.epic/generators.json5) (T4).
 
 ## Solid 2
 

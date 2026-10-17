@@ -68,10 +68,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - This package keeps only its entry, [epicMain.ts](src/epicMain.ts), run by [epic.mjs](bin/epic.mjs).
       - `epic --help` lists it, under headings;  `epic --version` says which checkout's code runs.
       - Why there:  P6 lifts the epic code into a repo of its own, the command with it.
-    - It starts LEAN:  no verb loads the `$/cli` barrel or spell;  the `epic` tool loads only when a page verb runs.
-      [epicProgram.test.ts](../../tests/cli/src/epicProgram.test.ts) checks it, import by import.
-    - ONE copy of the code:  every verb runs the code of the `epic` that was called (the one on the `PATH` is the
-      main checkout's), on the caller's checkout's data.
+    - It starts LEAN:
+      - no verb loads the `$/cli` barrel or spell
+      - the `epic` tool loads only when a page verb runs
+      - [epicProgram.test.ts](../../tests/cli/src/epicProgram.test.ts) checks it, import by import
+    - ONE copy of the code:  every verb runs the code of the `epic` that was called,
+      on the caller's checkout's data.
+      - The `epic` on the `PATH` is the main checkout's.
     - The verb groups:
 
       ```
@@ -82,11 +85,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       ```
 
     - An epic page's verbs run the `epic` tool in this process (`EpicTools.runPlanDoc()`).
-      - First `planDocArgs()` turns `seo#J3` into the tool's own arguments (`close seo J3`).
-      - The tool's order typed to `epic` (`epic close seo J3`) is REFUSED, spelled right in the message (epic
-        `epic-workflow` P19):  run silently, it taught agents the old shape.
+      - First `planDocArgs()` turns the address into the tool's own arguments:
+        `seo#J3` becomes `close seo J3`.
+      - The tool's own order, typed to `epic` (`epic close seo J3`), is REFUSED:
+        - the message spells it the right way
+        - run silently, it taught agents the old shape (epic `epic-workflow` P19)
     - Every verb's help:  its usage, what it does, an example (`epic close --help`).
-      - A group's verbs are listed for theirs in `GROUP_VERBS` (`epic ask new --help`);
+      - A group's verbs (`epic ask new --help`) take theirs from their lines in `GROUP_VERBS`:
         a verb not listed there is refused before the tool runs.
       - Exit codes:  0;  1 a failure, or an unknown verb (listing the verbs);  2 a usage error.
     - The old spellings still run the same code, until no caller is left:
@@ -130,8 +135,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `TOOLS`, in [passThrough.ts](src/dev/passThrough.ts), says how each tool runs:
       a child node process, under `tsx` when it needs aliases.
   - The `epic` tool is lean, but no pass-through:  it runs IN this process (epic `epic-components`).
-    - It's `epic`'s page verbs, and `spell dev plan-doc`:  `EpicTools.planDoc()`, in the epic code,
-      loading `$/epics/tool/PlanDocCommands` on first use.
+    - It runs `epic`'s page verbs, and `spell dev plan-doc`.
+    - The code:  `EpicTools.planDoc()`, in the epic code,
+      which loads `$/epics/tool/PlanDocCommands` on first use.
   - `pack` is lean too, though it's ours, not a pass-through:  `(args, options) => Promise<exitCode>`.
     - That's [packCommand.ts](src/commands/packCommand.ts),
       on [packNew.ts](src/dev/packNew.ts) / [packBuild.ts](src/dev/packBuild.ts), which import no barrel.
@@ -168,7 +174,8 @@ As WWOD §20, plus:
     Compile with `--stdout`, or make a temp project, as `cli.test.ts` does.
 - [cli.test.ts](../../tests/cli/src/cli.test.ts) runs the real bin scripts (`spell.mjs`, `epic.mjs`),
   as separate processes, with no terminal.
-- `epicProgram.test.ts` proves the epic command starts lean:
-  nothing its entry, `epicMain.ts`, imports up front reaches the barrel or spell;  nor do `devProgram.ts`'s aliases.
+- [epicProgram.test.ts](../../tests/cli/src/epicProgram.test.ts) proves the epic command starts lean:
+  - nothing its entry ([epicMain.ts](src/epicMain.ts)) imports up front reaches the barrel or spell
+  - nor do the epic verbs' old spellings, in [devProgram.ts](src/devProgram.ts)
 - The epic command's own tests are the epic code's:  [tests/epics/src/command/](../../tests/epics/src/command/).
 - Screens render through `ink-testing-library`, at a fixed `size`.

@@ -67,8 +67,8 @@ const DOCS_KEEP = new Set([
 /**
  * Moved prefixes, first match wins:  `[old, new]`, repo-relative.
  * - where each one is NOW:  the docs tools' later move into `packages/epics/tools/` included
- * - the docs package's end (`docsEndPath()`) and the generic `packages/docs/<entry>` ->
- *   `packages/docs/content/<entry>` rule are in `movedPath()`
+ * - in `movedPath()`:  the docs package's end (`docsEndPath()`),
+ *   and the generic `packages/docs/<entry>` -> `packages/docs/content/<entry>` rule
  */
 const PREFIXES = [
   ["packages/docs/scripts", "packages/epics/tools"],
@@ -82,8 +82,8 @@ const PREFIXES = [
 ]
 
 /**
- * Where repo path `path` went in the CONTENT move (posix, repo-relative, no leading `/`), or `undefined` when it
- * didn't move.
+ * Where repo path `path` went in the CONTENT move (posix, repo-relative, no leading `/`),
+ * or `undefined` when it didn't move.
  * - `packages/docs` itself (a link to the docs folder) means its pages:  `packages/docs/content`
  * - what the docs package kept, its tools and its own files, is where the docs package's end put it (`docsEndPath()`)
  */
@@ -107,7 +107,8 @@ export function movedPath(path) {
  */
 export const CONTENT_MOVE = {
   moved: movedPath,
-  // a page already in `content/` that didn't move links the new way:  re-mapping would send `../app/` into content
+  // a page already in `content/` that didn't move links the new way:
+  // re-mapping would send `../app/` into content
   settled: (file) => file.startsWith("packages/docs/content/")
 }
 
@@ -117,8 +118,9 @@ function isRelative(link) {
 }
 
 /**
- * `link`, written in a file that was at `oldFile` and is now at `newFile` (both repo-relative), pointing where its
- * target is now after `move` (default:  the content move).  Unchanged when it isn't relative.
+ * `link`, written in a file that was at `oldFile` and is now at `newFile` (both repo-relative),
+ * pointing where its target is now after `move` (default:  the content move).
+ * - unchanged when it isn't relative
  * - a target outside the repo (`../outstanding/x.md`) keeps pointing there:  re-relativized when the file moved
  */
 export function relocateLink(link, oldFile, newFile, move = CONTENT_MOVE) {
@@ -142,8 +144,9 @@ export function relocateLink(link, oldFile, newFile, move = CONTENT_MOVE) {
 }
 
 /**
- * `text` of a file moved from `oldFile` to `newFile` (or not moved:  the same path), with every relative link
- * relocated after `move`:  HTML `href` / `src` / the site header's `root`, and markdown `](...)` links.
+ * `text` of a file moved from `oldFile` to `newFile` (or not moved, at the same path),
+ * with every relative link relocated after `move`:
+ * HTML `href` / `src` / the site header's `root`, and markdown `](...)` links.
  */
 export function relocateLinks(text, oldFile, newFile, move = CONTENT_MOVE) {
   return text
@@ -155,11 +158,11 @@ export function relocateLinks(text, oldFile, newFile, move = CONTENT_MOVE) {
 }
 
 /**
- * `text` of page `file` (repo-relative) with each relative link that points nowhere re-read as if written at the
- * page's old place, when that finds a file.
- * - for edits made against an old layout and merged in afterwards (a worktree, `main` before the cutover), or
- *   written by older code through an old-path link:  their links are relative to the old place, the rest of the
- *   page's to the new
+ * `text` of page `file` (repo-relative) with each relative link that points nowhere
+ * re-read as if written at the page's old place, when that finds a file.
+ * - for edits whose links are relative to the old place, the rest of the page's to the new:
+ *   - made against an old layout and merged in afterwards (a worktree, `main` before the cutover)
+ *   - or written by older code through an old-path link
  * - `exists(repoPath)` -- whether a repo-relative path exists
  * - `oldPlace(file)` -- where `file` was before `move`, or `undefined`
  *   - default the content move's:  `packages/docs/content/<x>` was `packages/docs/<x>`
@@ -180,8 +183,9 @@ export function repairLinks(
     if (!path || exists(current)) return all
     const fixed = relocateLink(link, oldFile, file, move)
     const target = posix.normalize(posix.join(posix.dirname(file), fixed.replace(/[?#].*$/, "")))
-    // a target that isn't there yet (code on another branch) still counts when the link as it stands leaves the repo
-    // and the old reading stays inside:  an old-depth link, three folders too deep for its new place
+    // a target that isn't there yet (code on another branch) still counts
+    // when the link as it stands leaves the repo and the old reading stays inside:
+    // an old-depth link, three folders too deep for its new place
     const escapes = current.startsWith("..") && !target.startsWith("..")
     return fixed !== link && (exists(target) || escapes) ? `${attr}="${fixed}"` : all
   })
@@ -192,8 +196,8 @@ const MENTION =
   /(?<![\w./-])(packages\/docs\/[\w.-]+(?:\/[\w.*-]+)*|goals\/(?:_tools|_skills|tsconfig\.json)(?:\/[\w.*-]+)*|(?:PAPERCUTS|SUSPECTED-BUGS|CODE-DEBT)\.md)/g
 
 /**
- * `text` with every repo path it mentions (`packages/docs/solid/solid-2.md`, `goals/_tools/goals.js`,
- * `PAPERCUTS.md`) updated to where the CONTENT move put it.
+ * `text` with every repo path it mentions updated to where the CONTENT move put it:
+ * `packages/docs/solid/solid-2.md`, `goals/_tools/goals.js`, `PAPERCUTS.md`.
  * - only whole paths from the repo root:  `../_assets/x.css` is a link, for `relocateLinks()`
  */
 export function relocateMentions(text) {
@@ -219,8 +223,10 @@ const REORG = new Map([
 export const REORG_ROOTS = ["epics", "templates", "guides", "pages"]
 
 /**
- * Where top-level entry `name` of the old content folder went:  `epics` and `templates` to the root,
- * `details` and `index.html` into `pages/`, anything else into `guides/`.
+ * Where top-level entry `name` of the old content folder went:
+ * - `epics` and `templates` to the root
+ * - `details` and `index.html` into `pages/`
+ * - anything else into `guides/`
  */
 export function reorgEntry(name) {
   return REORG.get(name) ?? `guides/${name}`
@@ -263,8 +269,8 @@ export function reorgMentions(text, guides) {
 }
 
 /**
- * `text` of page `file` (repo-relative, in a reorg folder) with its site header's `root` (the path up to the
- * checkout's root) right for its depth.
+ * `text` of page `file` (repo-relative, in a reorg folder)
+ * with its site header's `root` (the path up to the checkout's root) right for its depth.
  */
 export function headerRoot(text, file) {
   const root = "../".repeat(file.split("/").length - 1).replace(/\/$/, "") || "."
@@ -329,9 +335,10 @@ export function reorgShared(dir, checkout, { dryRun = false, allMentions = false
 const SHARED_ROOTS = new Set([...REORG_ROOTS, "goals", "agents", "brand", "ui"])
 
 /**
- * Where repo path `path` went when Spell UI's pages left `packages/ui/site/` for the shared `ui/` (claude-design P6,
- * 2026-10-05), or `undefined`:  every entry but the built half, `_src/`, `_assets/` and `_data/`, which stayed
- * (`_data/search.json` moved too:  it's built from the pages).
+ * Where repo path `path` went when Spell UI's pages left `packages/ui/site/` for the shared `ui/`
+ * (claude-design P6, 2026-10-05), or `undefined`.
+ * - every entry moved but the built half, `_src/`, `_assets/` and `_data/`, which stayed
+ *   (`_data/search.json` moved too:  it's built from the pages)
  * - the folder itself stays:  it still holds the build
  * - SAME split as `packages/server`'s `UI_SITE` and `packages/ui`'s `SITE_PAGES` / `SITE_BUILD`
  */
@@ -452,7 +459,10 @@ function textFiles(dir, prefix = "") {
   return found.sort((a, b) => a.localeCompare(b))
 }
 
-/** The epic page `file` (repo-relative) is, or is a part of (`epics/<n>/parts/<id>.html` or `.htm`);  else `undefined`. */
+/**
+ * The epic page `file` (repo-relative) is, or is a part of (`epics/<n>/parts/<id>.html` or `.htm`);
+ * else `undefined`.
+ */
 function planDocOf(file) {
   if (/\.plan\.html$/.test(file)) return file
   const part = /^((?:.*\/)?epics\/([^/]+))\/parts\/[^/]+\.html?$/.exec(file)
@@ -460,8 +470,8 @@ function planDocOf(file) {
 }
 
 /**
- * Is `file` (repo-relative) an epic page's part:  a `.html` / `.htm` in a `parts/` folder?  Never a page, whatever its
- * extension (`pages.js` `SKIP_DIRS` skips the folder too).
+ * Is `file` (repo-relative) an epic page's part:  a `.html` / `.htm` in a `parts/` folder?
+ * - never a page, whatever its extension (`pages.js` `SKIP_DIRS` skips the folder too)
  */
 function isPart(file) {
   return /(?:^|\/)parts\/[^/]+\.html?$/.test(file)
@@ -479,8 +489,8 @@ function planDocsIn(dir) {
 }
 
 /**
- * Run `fn` holding every `<file>.lock` of `files`, as `SRV.FileLock` takes them (`open(wx)`);  waits up to 30s for
- * each, takes over one older than a minute (a crashed holder's).
+ * Run `fn` holding every `<file>.lock` of `files`, as `SRV.FileLock` takes them (`open(wx)`).
+ * - waits up to 30s for each, and takes over one older than a minute (a crashed holder's)
  * - plain node:  this script runs without the alias table, so it can't import `$/server`
  */
 export function withLocks(files, fn) {
@@ -514,11 +524,13 @@ export function withLocks(files, fn) {
 ////////////////
 
 /**
- * The brand's hand-written pages, moved from `packages/brand/` into the shared `brand/` folder (epic `claude-design`,
- * P11, 2026-10-05), as Spell UI's site pages moved into `ui/` (Q4:  pages move, code and build outputs stay tracked).
- * - moved:  the Brand index (`index.html`, merged into P5's `brand/index.html`), `compare.html`, Claude Design's
- *   export (`spell-design-system/`, its `.spell.html` copies included), `leonardo/`, and the element docs pages
- *   (`components/*.html`)
+ * The brand's hand-written pages, moved from `packages/brand/` into the shared `brand/` folder
+ * (epic `claude-design`, P11, 2026-10-05), as Spell UI's site pages moved into `ui/`
+ * (Q4:  pages move, code and build outputs stay tracked).
+ * - moved:
+ *   - the Brand index (`index.html`, merged into P5's `brand/index.html`), `compare.html`
+ *   - Claude Design's export (`spell-design-system/`, its `.spell.html` copies included), `leonardo/`
+ *   - the element docs pages (`components/*.html`)
  * - stayed:  the elements' code (`components/<tag>/`), `src/`, `scripts/`, `_assets/`, `_data/`, configs
  * - git moved them once
  * - `relocateLinks(text, old, new, BRAND_MOVE)` rewrote their links, and the shared pages' links into them
@@ -540,9 +552,11 @@ export const BRAND_MOVE = { moved: brandPath, settled: () => false }
 ////////////////
 
 /**
- * What the docs package left when it went (epic `people-and-orgs`, P16, 2026-10-13), each to the same place in
- * `packages/epics/`:  its tools (`tools/`, with the `_assets` every page loads) and its own files.
- * - `AGENTS.md` was merged into epics' (Q23), whose sections keep their names;  the package files went with the tools
+ * What the docs package left when it went (epic `people-and-orgs`, P16, 2026-10-13),
+ * each to the same place in `packages/epics/`:
+ * its tools (`tools/`, with the `_assets` every page loads) and its own files.
+ * - `AGENTS.md` was merged into epics' (Q23), whose sections keep their names
+ * - the package files went with the tools
  */
 const DOCS_END =
   /^packages\/docs\/(tools(?:\/.*)?|AGENTS\.md|CLAUDE\.md|README\.md|package\.json|tsconfig\.json|vitest\.config\.ts)$/
@@ -561,8 +575,8 @@ export function docsEndPath(path) {
 export const DOCS_END_MOVE = { moved: docsEndPath, settled: () => false }
 
 /**
- * A path into what the docs package left, written out in prose or code (`packages/docs/tools/pages.js`,
- * `<code title="packages/docs/AGENTS.md">`):  `[1]` what follows `packages/docs/`.
+ * A path into what the docs package left, written out in prose or code:  `[1]` what follows `packages/docs/`.
+ * - e.g. `packages/docs/tools/pages.js`, `<code title="packages/docs/AGENTS.md">`
  * - never the tail of a longer path or a URL (`../packages/docs/tools/x`, `/packages/docs/tools/_assets/x`):
  *   a link is `relocateLinks()`'s, and a server path names the old URL
  */
@@ -570,14 +584,14 @@ const DOCS_END_MENTION =
   /(?<![\w./-])packages\/docs\/(tools(?:\/[\w.*{},<>-]+)*\/?|(?:AGENTS|CLAUDE|README)\.md|package\.json|tsconfig\.json|vitest\.config\.ts)(?![\w-])/g
 
 /**
- * A line telling the move's story:  it names the new places too ("from `packages/docs/tools/` to
- * `packages/epics/tools/`"), so its old paths stay.
+ * A line telling the move's story:  it names the new places too, so its old paths stay.
+ * - e.g. "from `packages/docs/tools/` to `packages/epics/tools/`"
  */
 const DOCS_END_HISTORY = /packages\/epics\/(?:tools\b|AGENTS\.md)/
 
 /**
- * `text` with every path it mentions into what the docs package left updated to its place in `packages/epics/`
- * (`packages/docs/tools/pages.js` -> `packages/epics/tools/pages.js`).
+ * `text` with every path it mentions into what the docs package left updated to its place in `packages/epics/`:
+ * `packages/docs/tools/pages.js` -> `packages/epics/tools/pages.js`.
  * - a line that names the new places too is the move's story, and stays (`DOCS_END_HISTORY`)
  */
 export function docsEndMentions(text) {
@@ -644,8 +658,8 @@ export function relinkDocsPackage(dir, { dryRun = false } = {}) {
 /**
  * Where a link's target went in the component sets' layout (epic `people-and-orgs` P18, 2026-10-13).
  * - each `[pattern, replacement]`, on the repo-relative path a link points at;  first match wins
- * - a set's PAGES are linked at their SERVED address, `components/<set>/<page>` (the page server's `COMPONENT_SETS`):
- *   a set's folder doesn't draw its pages at its own address, only there
+ * - a set's PAGES are linked at their SERVED address, `components/<set>/<page>`
+ *   (the page server's `COMPONENT_SETS`):  a set's folder doesn't draw its pages at its own address, only there
  *   - Spell UI's:  from the shared `ui/` (its component index is `components.html` now, its pages flat)
  *   - Epic UI's:  from `packages/epic-components/` or `epic-ui/`
  *   - App UI's:  from `packages/app/components/` or `app-ui/`
@@ -682,7 +696,8 @@ function codeMoves() {
   return [
     [/^packages\/ui\/src\/components(\/.*)?$/, "packages/ui/components$1"],
     [/^tests\/ui\/src\/components(\/.*)?$/, "tests/ui/components$1"],
-    // its design notes (`*.md`) and the folder itself:  never a page (`packages/ui/docs/x.html` is one, since P18)
+    // its design notes (`*.md`) and the folder itself:
+    // never a page (`packages/ui/docs/x.html` is one, since P18)
     [/^packages\/ui\/docs(\/(?:[\w.-]+\.md)?)?$/, "packages/ui/notes$1"],
     [/^packages\/ui\/site\/_data(\/.*)?$/, "packages/ui/docs/__data$1"],
     [/^packages\/brand\/_data(\/.*)?$/, "packages/brand/docs/__data$1"],
@@ -758,8 +773,9 @@ export function setsLink(link, file) {
 }
 
 /**
- * A path mentioned in prose or code that the sets' layout moved, whole from the repo root (or the shared `ui/` or
- * `brand/`), never the tail of a longer path or a URL:  `[0]` the path.
+ * A path mentioned in prose or code that the sets' layout moved:  `[0]` the path.
+ * - whole from the repo root (or the shared `ui/` or `brand/`)
+ * - never the tail of a longer path or a URL
  */
 const SETS_MENTION =
   /(?<![\w./$@-])(?:packages\/(?:ui\/src\/components|ui\/docs|ui\/site\/_data|brand\/_data|epics\/pack|epic-components|app\/components\/(?:_parts|_data|_images|_examples|[\w-]+\.html)|brand\/components\/ui-brand-[\w-]+)|tests\/(?:ui\/src\/components|brand\/components\/ui-brand-[\w-]+)|ui\/(?:components\/[\w.-]+\.html|_parts|_data|[\w.-]+\.html|examples|images)|brand\/components\/(?:ui-brand-[\w-]+|components\.spell)\.html)(?:\/[\w.*{},-]+)*\/?(?![\w-])/g
@@ -771,8 +787,8 @@ const SETS_ADDRESS = /(?<![\w.$*"'-])\/(ui|epic-ui|app-ui)(?=\/)/g
 const SETS_HOMES = { ui: "/components/ui", "epic-ui": "/components/epics", "app-ui": "/components/app" }
 
 /**
- * `text` with every path it mentions that the sets' layout moved updated (`setsMentionPath()`), and the old
- * addresses (`/ui/`, `/epic-ui/`, `/app-ui/`) the new ones.
+ * `text` with every path it mentions that the sets' layout moved updated (`setsMentionPath()`),
+ * and the old addresses (`/ui/`, `/epic-ui/`, `/app-ui/`) the new ones.
  * - a line naming the new places too is the move's story, and stays (`SETS_HISTORY`)
  *   - `original`:  the text as it was before its links were moved, line for line, to tell it by:
  *     a moved link is no story
@@ -814,8 +830,8 @@ const SET_FOLDERS = [
 ]
 
 /**
- * `text` of page `file` with the tab name (`target`) of each link it points into a moved place named for the file it
- * opens now, as `doc-links.js` names it (a set's page:  its file in the set's `docs/`).
+ * `text` of page `file` with the tab name (`target`) of each link it points into a moved place
+ * named for the file it opens now, as `doc-links.js` names it (a set's page:  its file in the set's `docs/`).
  */
 export function setsRetarget(text, file) {
   return text.replace(
@@ -892,8 +908,10 @@ export function relinkSets(dir, { dryRun = false } = {}) {
 }
 
 /**
- * Shared files `relinkSets()` leaves alone:  the folders that moved out (`ui/`, `brand/components/`), the old content
- * links, and Claude Design's export (everything under `brand/spell-design-system/` but the `.spell.html` copies).
+ * Shared files `relinkSets()` leaves alone:
+ * - the folders that moved out (`ui/`, `brand/components/`)
+ * - the old content links
+ * - Claude Design's export (everything under `brand/spell-design-system/` but the `.spell.html` copies)
  */
 const SETS_SKIP =
   /^(?:ui\/|brand\/components\/|packages\/docs\/content\/|brand\/spell-design-system\/(?!.*\.spell\.html$))/
@@ -910,7 +928,8 @@ const OLD_TOOLING = new Set(["scripts", "_assets", "templates", "epics-tools", "
 
 /**
  * Put checkout `root` right after a branch from before the CONTENT move merged `main`:  `epic shared repair`.
- * Returns what it did (or, `dryRun`, would do):  `{ moved, same, conflicts, linked, leftovers }`, repo-relative paths.
+ * - returns what it did (or, `dryRun`, would do), repo-relative paths:
+ *   `{ moved, same, conflicts, linked, leftovers }`
  *
  * 1. pages left at the top of `packages/docs` (`packages/docs/<x>`, not the package's own files):
  *    - each file goes to `packages/docs/content/<x>` with its links relocated (`moved`)
@@ -962,17 +981,20 @@ export function repairCheckout(root, { dryRun = false } = {}) {
 }
 
 /**
- * An epic page, repo-relative:  `epics/<name>/<name>.plan.html` (or `<name>.html`), at the root or under either old
- * place (`packages/docs/epics/`, `packages/docs/content/epics/`);  `[1]` its name.  Same as `doc-links.js` `PLAN_DOC`.
+ * An epic page, repo-relative:  `epics/<name>/<name>.plan.html` (or `<name>.html`);  `[1]` its name.
+ * - at the root, or under either old place (`packages/docs/epics/`, `packages/docs/content/epics/`)
+ * - the same as `doc-links.js` `PLAN_DOC`
  */
 const PLAN_DOC = /(?:^|\/)(?:packages\/docs\/(?:content\/)?)?epics\/([^/]+)\/\1(?:\.plan)?\.html$/
 
 /**
- * `text` of page `file` (repo-relative) with each local link's `target="src-..."` (its tab, `doc-links.js`
- * `targetFor()`) named for where the link points NOW:  a moved file kept its old name, so one file had two tabs.
- * - a link to an epic page gets the epic's name, as `targetFor()` gives it;  external targets (`ext-...`) and links
- *   already named otherwise are left alone
- * - `only`:  rename just the targets it matches (the reorg, in a page that stayed:  only `src-packages-docs-content-...`)
+ * `text` of page `file` (repo-relative) with each local link's `target="src-..."`
+ * (its tab, `doc-links.js` `targetFor()`) named for where the link points NOW.
+ * - why:  a moved file kept its old name, so one file had two tabs
+ * - a link to an epic page gets the epic's name, as `targetFor()` gives it
+ * - external targets (`ext-...`) and links already named otherwise are left alone
+ * - `only`:  rename just the targets it matches
+ *   (the reorg, in a page that stayed:  only `src-packages-docs-content-...`)
  */
 export function retarget(text, file, only = /^src-/) {
   return text.replace(
@@ -1043,8 +1065,8 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const shared = flag("--shared")
   const dryRun = args.includes("--dry-run")
   if (args[0] === "reorg" && shared) {
-    // the reorg alone, quietly:  `epic shared commit` runs it before every commit (while older checkouts may
-    // still write the old way:  claude-design T1 ends it), printing only what it changed
+    // the reorg alone, quietly:  `epic shared commit` runs it before every commit,
+    // printing only what it changed (while older checkouts may still write the old way:  claude-design T1 ends it)
     const report = reorgShared(resolve(shared), root, { dryRun })
     for (const path of [...report.moved, ...report.merged, ...report.conflicts, ...report.rewritten])
       console.log(`reorg:  ${path}`)

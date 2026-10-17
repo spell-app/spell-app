@@ -1,12 +1,12 @@
 /**
  * Barrel for the `spell` command-line tool's commands, one per file -- flattened into `$/cli`.
- * - Each is `(session, args, options) => Promise<exitCode>`, wired up in `main.ts`, or `devProgram.ts` for
- *   `spell dev`.
- * - NOT here:  the `epic` command's verbs, `$/epics/command/` (epic `epic-eject` P5);  `spell dev` keeps their
- *   old spellings as aliases, in `devProgram.ts`.
- * - NOTE: the pass-throughs (`docs`, `design`, `server`, `vscode`) are
- *   `(args) => Promise<exitCode>`, and import no barrel:  the lean `spell dev` entry, `devMain.ts`, loads them
- *   without spell.  So do `pack` and `bundles`, `(args, options) => Promise<exitCode>`.
+ * - Each is `(session, args, options) => Promise<exitCode>`,
+ *   wired up in `main.ts`, or `devProgram.ts` for `spell dev`.
+ * - NOT here:  the `epic` command's verbs, `$/epics/command/` (epic `epic-eject` P5).
+ *   `spell dev` keeps their old spellings as aliases, in `devProgram.ts`.
+ * - NOTE: the pass-throughs (`docs`, `design`, `server`, `vscode`) are `(args) => Promise<exitCode>`,
+ *   and import no barrel:  the lean `spell dev` entry, `devMain.ts`, loads them without spell.
+ *   - So do `pack` and `bundles`, `(args, options) => Promise<exitCode>`.
  */
 export * from "./compileCommand"
 export * from "./checkCommand"

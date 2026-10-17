@@ -2,10 +2,11 @@
  * A worktree's files on the MAIN checkout's page server, so every link points to one port.
  * - The main page server serves each worktree under `/worktrees/<w>/` (`$/server/page` `PageServer`).
  * - Used by `spell dev server url` and the VS Code doc preview;  either falls back to the worktree's own server.
- * - Shared content (`epics/`, `guides/` ...:  links into ONE shared repo, the same in every checkout) is served from
- *   the main checkout itself, `/epics/...`, not `/worktrees/<w>/epics/...`.
- *   - Why:  a page loads its scripts from the checkout it's served from, so a plan doc shown through an old
- *     worktree drew with that worktree's old `<epic-*>` elements (epic `epic-eject` P1).
+ * - Shared content is served from the main checkout itself:  `/epics/...`, not `/worktrees/<w>/epics/...`.
+ *   - shared content:  `epics/`, `guides/` ...:  links into ONE shared repo, the same in every checkout
+ *   - Why:  a page loads its scripts from the checkout it's served from,
+ *     so an epic page shown through an old worktree drew with that worktree's old `<epic-*>` elements
+ *     (epic `epic-eject` P1).
  */
 import { realpathSync } from "node:fs"
 import { join, relative, resolve, sep } from "node:path"
@@ -14,8 +15,9 @@ import { SRV } from "$/server"
 
 /**
  * `file`'s URL on the main checkout's page server;  else `undefined`.
- * - only when `file` is in a worktree of a main checkout (`SRV.checkoutOf()`:  `<main>/.claude/worktrees/<w>/...`),
+ * - only when `file` is in a worktree of a main checkout,
  *   and that server is running and serves worktrees
+ *   - in a worktree:  as `SRV.checkoutOf()` finds it, e.g. `<main>/.claude/worktrees/<w>/...`
  * - "serves worktrees":  its running epics answer (`RUNNING_EPICS_API`, epics' route module)
  *   - so a main server started before it learned to (an older checkout, not yet restarted)
  *     is never handed a URL it would 404

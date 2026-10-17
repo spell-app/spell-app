@@ -1,6 +1,6 @@
 /**
- * Tests of the details route module on a real page server, over HTTP, in a scratch checkout:  its own
- * `pages/details/`, an epic's `details/`, and a worktree's, as the main checkout's server serves them.
+ * Tests of the details route module on a real page server, over HTTP, in a scratch checkout:
+ * its own `pages/details/`, an epic's `details/`, and a worktree's, as the main checkout's server serves them.
  */
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"

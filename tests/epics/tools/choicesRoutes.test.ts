@@ -1,6 +1,7 @@
 /**
- * Tests of the syntax-choices route module on a real page server, over HTTP, in a scratch checkout:  a scratch
- * choices page, an epic's, a worktree's (as the main checkout's server serves it), and a details page beside them.
+ * Tests of the syntax-choices route module on a real page server, over HTTP, in a scratch checkout:
+ * - a scratch choices page, an epic's, a worktree's (as the main checkout's server serves it)
+ * - a details page beside them
  */
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"

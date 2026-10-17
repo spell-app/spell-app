@@ -109,7 +109,10 @@ describe("MainMerge.run()", () => {
   })
 })
 
-/** A repo's list as spell-app's `.epic/generators.json5` starts, in a throwaway checkout:  read as the merge reads it */
+/**
+ * A repo's list as spell-app's `.epic/generators.json5` starts, in a throwaway checkout:
+ * read as the merge reads it
+ */
 const REPO_GENERATORS = (() => {
   const dir = join(TEMP, "repo-generators")
   mkdirSync(join(dir, ".epic"), { recursive: true })
