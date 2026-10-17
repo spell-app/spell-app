@@ -113,7 +113,7 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
       "[verb]",
       "list (default) [--all] [--json] | gather [<page>... | --all] [--epic <name>] [--json] | working | answer"
     )
-    .argument("[args...]", "the verb's arguments, e.g. answer guides/x.html cm3 --file reply.html")
+    .argument("[args...]", "the verb's arguments, e.g. answer guides/x.html#M3 --file reply.html")
     .allowUnknownOption()
     .helpOption(false)
     .action(() => runLean(commentsCommand, rawArgs("comments")))

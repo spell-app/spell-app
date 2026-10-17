@@ -290,7 +290,7 @@ Longer notes on some of them follow the table.
 
   ```
   seo        the epic's page, epics/seo/seo.plan.html
-  seo#J3     an item:  J3 (a comment, seo#cm3, too)
+  seo#J3     an item:  J3 (a comment, seo#M3, too)
   seo#P3     a phase:  P3 (seo#3 too)
   seo#J      a new item of that kind, for add:  epic add seo#J "Title"
   ```

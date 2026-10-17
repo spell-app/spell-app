@@ -25,6 +25,21 @@ const OWEN = "Owen"
 /** A commit, as Claude names one under an answer (`answer()`):  7-40 hex digits. */
 const COMMIT = /^[0-9a-f]{7,40}$/
 
+/**
+ * A comment's id AS AN INBOX FILE KEYS IT:  `cm` and its number, `cm3`, as every checkout's code has written it since
+ * comments began (epic `airplane` P11).  Owen sees and types `M3` ("M" for mark;  Owen, 2026-10-10:  "use `M3` for
+ * mark 1"):  `label()`, `idOf()`.
+ * - why the files keep `cm3` (epic `epic-workflow` P23):  a checkout on older code reads these SHARED files too, and
+ *   finds a comment by its key as it is;  written as `m3`, its `epic inbox <epic>#cm3 done`, its page server and its
+ *   next new comment (`cm1` again, next to an `m1`) would all go wrong
+ * - the switch to `m3` keys, once every checkout has this code:  change this one prefix.  Nothing else changes, since
+ *   every reader already takes either key (`migrate()`)
+ */
+const STORED = "cm"
+
+/** Any way an id may be typed, or keyed in a file:  `M3`, `m3`, the old `cm3`;  any case, a `#` before it aside. */
+const ANY_ID = /^#?c?m(\d+)$/i
+
 /** Characters that draw nothing and that `trim()` keeps:  zero-width spaces, joiners, the word joiner. */
 const INVISIBLE = /[​-‍⁠]/g
 
@@ -47,6 +62,9 @@ CommentsError.prototype.name = "CommentsError"
  * ### `CommentList`
  * COMMENTS Owen leaves on a page's blocks (epic `airplane`, P11), as an inbox file holds them:
  * `{ cm1: {...}, cm2: {...} }`, edited in place.
+ * - IDS (epic `epic-workflow` P23):  shown `M1`, `M2` ... (`label()`);  every method taking an id takes `M3`, `m3` or
+ *   `cm3` (`idOf()`).  The file keys them `cm3` still (`STORED`), and a key spelt the other way (`m3`, from a checkout
+ *   once the keys switch) is read as one (`migrate()`)
  * - two homes, one shape:
  *   - a docs page's own inbox file, `<page>.inbox.json5` (`GuideInbox`)
  *   - an epic page's review inbox, its `comments` (`ReviewInbox`)
@@ -70,8 +88,60 @@ CommentsError.prototype.name = "CommentsError"
  * - pure:  no files;  the owner reads and writes them under its lock
  ****************/
 export class CommentList {
-  /** - `comments`:  the inbox's record, by id;  edited IN PLACE */
-  constructor(readonly comments: Record<string, Comment>) {}
+  /** - `comments`:  the inbox's record, by id;  edited IN PLACE, any key spelt the other way respelt first (`migrate()`) */
+  constructor(readonly comments: Record<string, Comment>) {
+    CommentList.migrate(comments)
+  }
+
+  ////////////////
+  // ## Ids
+  ////////////////
+
+  /**
+   * Comment id `id` as the file keys it (`cm3`), however it's typed:  `M3`, `m3`, `cm3`, any case, a `#` before it
+   * aside;  anything else as it is, so a lookup says there's no such comment.
+   */
+  static idOf(this: void, id: string): string {
+    const number = typeof id === "string" ? ANY_ID.exec(id.trim())?.[1] : undefined
+    return number === undefined ? id : `${STORED}${Number(number)}`
+  }
+
+  /** Comment id `id` as Owen sees it, on the page and in every command's output:  `M3` (from `cm3`, `m3` alike). */
+  static label(this: void, id: string): string {
+    const number = typeof id === "string" ? ANY_ID.exec(id.trim())?.[1] : undefined
+    return number === undefined ? id : `M${Number(number)}`
+  }
+
+  /** Is `id` a comment's id (`M3`, `m3`, `cm3`), not an item's? */
+  static isCommentId(this: void, id: string): boolean {
+    return typeof id === "string" && ANY_ID.test(id.trim())
+  }
+
+  /**
+   * Respell the keys of `comments` (an inbox's record) that aren't the file's spelling (`m3` while it's `cm3`:
+   * `STORED`) IN PLACE;  returns `comments`.
+   * - why:  so the switch to `m3` keys, one day, breaks no checkout on this code:  it reads them as its own
+   * - a number both ways (`cm3` AND `m3`, from two checkouts):  the respelt one takes the next free number
+   * - the order kept:  by number, as `all` reads them
+   */
+  static migrate(this: void, comments: Record<string, Comment>): Record<string, Comment> {
+    if (!comments || typeof comments !== "object") return comments
+    // spelt as the file keys it, or no comment id at all
+    const keyed = (id: string) => CommentList.idOf(id) === id
+    if (Object.keys(comments).every(keyed)) return comments
+    const entries = Object.entries(comments)
+    for (const id of Object.keys(comments)) delete comments[id]
+    for (const [id, comment] of entries) if (keyed(id)) comments[id] = comment
+    for (const [id, comment] of entries) {
+      if (keyed(id)) continue
+      const wanted = CommentList.idOf(id)
+      comments[Object.hasOwn(comments, wanted) ? nextFree(comments) : wanted] = comment
+    }
+    const ordered = Object.entries(comments).sort(([a], [b]) => numberOf(a) - numberOf(b))
+    for (const [id] of ordered) delete comments[id]
+    for (const [id, comment] of ordered) comments[id] = comment
+    return comments
+  }
 
   ////////////////
   // ## Reading
@@ -147,16 +217,12 @@ export class CommentList {
       .reduce((latest, each) => (Date.parse(each) > Date.parse(latest) ? each : latest))
   }
 
-  /** Comment `id`;  throws a 404 `CommentsError` when there's none. */
+  /** Comment `id` (`M3`, `m3`, `cm3`);  throws a 404 `CommentsError` when there's none. */
   comment(id: string): Comment {
-    const comment = Object.hasOwn(this.comments, id) ? this.comments[id] : undefined
-    if (!comment) throw new CommentsError(`no comment ${id} here`, { cause: { status: 404 } })
+    const key = CommentList.idOf(id)
+    const comment = Object.hasOwn(this.comments, key) ? this.comments[key] : undefined
+    if (!comment) throw new CommentsError(`no comment ${CommentList.label(id)} here`, { cause: { status: 404 } })
     return comment
-  }
-
-  /** Is `id` a comment's id (`cm3`), not an item's? */
-  static isCommentId(id: string): boolean {
-    return /^cm\d+$/.test(id)
   }
 
   ////////////////
@@ -164,7 +230,7 @@ export class CommentList {
   ////////////////
 
   /**
-   * Add a comment on the block at `where`;  returns its id (`cm3`).
+   * Add a comment on the block at `where`;  returns its id, as the file keys it (`cm3`).
    * - throws on a bad anchor or kind, or blank text
    */
   add(where: CommentPlace, text: string, now = new Date()): string {
@@ -199,7 +265,7 @@ export class CommentList {
   /** Delete comment `id`;  only while it's `new`. */
   remove(id: string): void {
     this.unseen(id)
-    delete this.comments[id]
+    delete this.comments[CommentList.idOf(id)]
   }
 
   /**
@@ -208,7 +274,7 @@ export class CommentList {
    */
   clear(id: string): void {
     this.comment(id)
-    delete this.comments[id]
+    delete this.comments[CommentList.idOf(id)]
   }
 
   /**
@@ -241,8 +307,9 @@ export class CommentList {
     const thread = Array.isArray(replies) ? replies.flatMap((reply) => restoredReply(reply, back.at)) : []
     if (thread.length) back.replies = thread
     if (done && RESOLUTIONS.includes(done.how)) back.done = { how: done.how, at: stamp(done.at) ?? back.at }
-    const free = CommentList.isCommentId(id) && !Object.hasOwn(this.comments, id)
-    const restored = free ? id : this.nextId()
+    const wanted = CommentList.idOf(id)
+    const free = CommentList.isCommentId(id) && !Object.hasOwn(this.comments, wanted)
+    const restored = free ? wanted : this.nextId()
     this.comments[restored] = back
     return restored
   }
@@ -314,7 +381,7 @@ export class CommentList {
 
   /**
    * Claude is thinking about comment `id` (`on`), or stopped (`!on`):  the page shows a "Claude: thinking…" stub at
-   * the end of its thread meanwhile (`epic comments working`, `epic inbox <name>#cm3 working on`).
+   * the end of its thread meanwhile (`epic comments working`, `epic inbox <name>#M3 working on`).
    * - `working`:  since when;  set again, it keeps the first time
    * - `answer()` turns it off
    */
@@ -345,14 +412,14 @@ export class CommentList {
 
   /** The id a new comment gets:  one past the highest (`cm3` after `cm2`). */
   private nextId(): string {
-    return `cm${Math.max(0, ...Object.keys(this.comments).map(numberOf)) + 1}`
+    return nextFree(this.comments)
   }
 
   /** Comment `id`, while it's `new`;  throws a 409 once Claude has it. */
   private unseen(id: string): Comment {
     const comment = this.comment(id)
     if (comment.status !== "new")
-      throw new CommentsError(`comment ${id} is ${comment.status}:  Claude has it, so add a new comment instead`, {
+      throw new CommentsError(`comment ${CommentList.label(id)} is ${comment.status}:  Claude has it, so add a new comment instead`, {
         cause: { status: 409 }
       })
     return comment
@@ -450,9 +517,14 @@ function stamp(value: unknown): string | undefined {
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
 }
 
-/** A comment id's number:  `cm12` -> 12;  0 for anything else. */
+/** A comment id's number:  `cm12` (`m12`, `M12`) -> 12;  0 for anything else. */
 function numberOf(id: string): number {
-  return Number(/^cm(\d+)$/.exec(id)?.[1] ?? 0)
+  return Number(ANY_ID.exec(id)?.[1] ?? 0)
+}
+
+/** The id one past the highest of `comments`' (`cm3` after `cm2`, or after an `m2`;  `cm1` for none). */
+function nextFree(comments: Record<string, Comment>): string {
+  return `${STORED}${Math.max(0, ...Object.keys(comments).map(numberOf)) + 1}`
 }
 
 /**

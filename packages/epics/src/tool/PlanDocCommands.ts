@@ -1003,8 +1003,8 @@ export const USAGE = `usage:  spell dev plan-doc <command> <name> ...    (doc:  
                                                    urgency (an id chip clicked:  calm or not), to the doc, clear
                                                    them;  prints each, and what it left (revisits, a pick with a
                                                    revisit:  to talk over);  --all:  sent or not (/airplane land)
-  inbox <name> working <id> on|off                 the page's spinner on an item;  a comment (cm3):  its
-                                                   thread's "Claude: thinking…" (done cm3 turns it off)
+  inbox <name> working <id> on|off                 the page's spinner on an item;  a comment (M3):  its
+                                                   thread's "Claude: thinking…" (done M3 turns it off)
   inbox <name> done <id>...                        an agent finished an item:  its mark and spinner go (a mark
                                                    Owen changed meanwhile stays)
   inbox <name> clear <id>...                       drop marks (a revisit talked over)

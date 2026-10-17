@@ -959,13 +959,13 @@ Each kind of page has ONE name, written everywhere a person reads it.
   - A new todo or question asked for from the page (epic `airplane` P2):  a mark under its own key, `new1` ...
     - `setNew()`:  `{ action: "new", kind, title, note?, near? }`
     - `epic inbox <name> apply` makes the item.
-  - `comments`:  Owen's comments on the doc's blocks, and on selected text (P11, see "Comments"):  `cm1` ...
+  - `comments`:  Owen's comments on the doc's blocks, and on selected text (P11, see "Comments"):  `M1` ...
     - Written through the comments route.
     - Sent with Send, as marks are (Owen, 2026-10-10:  he keeps Send as the way comments reach Claude).
       - Unsent (`unsentComments`):  waiting for Claude, and Owen's last words on the thread newer than `sent`.
       - A new comment, or his reply on a thread, turns Send blue;  its tooltip counts both ("2 marks, 1 comment").
       - `wait` hands each over once (`takeWork()`'s `sent.comments`), until Owen speaks on its thread again.
-    - Waiting until answered (`epic inbox <name>#cm3 done`).
+    - Waiting until answered (`epic inbox <name>#M3 done`).
   - `listening.seen`:  the session's heartbeat (`LISTEN_HEARTBEAT_MS`, 30s, from `wait`).
     - Older than `LISTEN_STALE_MS` (90s), the session is gone:  `liveListener()` returns `null`.
   - `woken`:  the page server's last WAKE of the epic (epic `epic-workflow` P16), `{ at, state, did, message }`.
@@ -1326,7 +1326,13 @@ Each kind of page has ONE name, written everywhere a person reads it.
     - [GuideInbox.ts](src/tool/GuideInbox.ts), in the `epic` tool since P13:  the tool's `wait` reads it
   - an epic page's:  the epic's review inbox, under `comments` (`ReviewInbox`, see "Review inbox")
   - One shape for both, and every change:  [`CommentList`](src/tool/CommentList.ts).
-  - ids `cm1`, `cm2` ... (`c1` is a caveat's)
+  - IDS (epic `epic-workflow` P23):  shown `M1`, `M2` ... ("M" for mark;  Owen, 2026-10-10:  "use `M3` for mark 1")
+    - small and muted in each thread's header, before its summary
+    - every tool prints `M3`, and takes `M3`, `m3` or the old `cm3` (`CommentList.idOf()`, `label()`)
+    - the inbox files still KEY them `cm1`, `cm2` ...:  a checkout on older code reads these shared files, and finds a
+      comment by its key as it is.  Every reader takes an `m3` key too (`CommentList.migrate()`), so the switch to
+      writing `m3` is one constant (`STORED`), once every checkout has this code
+    - `c1` is a caveat's
 - Where a comment is:  its ANCHOR ([BlockAnchors.js](tools/BlockAnchors.js), shared by the runtime and the tools).
   - the block's id, else `<nearest section or plan part id>#<kind>-<n>`
     - e.g. `memory#table-2`, `p3#field-2`, `p3#update-1`
@@ -1391,10 +1397,10 @@ Each kind of page has ONE name, written everywhere a person reads it.
 - Claude's side, for epic pages:  `epic inbox <name>` lists them, and Owen's replies under them.
   - They reach Claude with the page's SEND, as marks do (see "Review inbox"):
     a send with only comments wakes `wait`, which prints them.
-  - `epic inbox <name>#cm3 working on | off`:  the thinking stub, as `comments working`.
+  - `epic inbox <name>#M3 working on | off`:  the thinking stub, as `comments working`.
     With an item's id:  its spinner, as before.
   - Answered like a revisit's note, then:
-    - `epic inbox <name>#cm3 done [--file <html>] [--commit <sha>]`, or `<name>#cm3 clear`
+    - `epic inbox <name>#M3 done [--file <html>] [--commit <sha>]`, or `<name>#M3 clear`
     - `done` turns `working` off.
   - `--file`:  the answer on the thread too.  Without it, "Answered in the epic page".
 

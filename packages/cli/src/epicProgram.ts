@@ -457,12 +457,12 @@ function rawArgs(verb: string): string[] {
 const EPIC_HELP = `
 Naming what a verb acts on:
   seo                 the epic's page, epics/seo/seo.plan.html
-  seo#J3              an item:  J3 (a comment on the page, seo#cm3, too)
+  seo#J3              an item:  J3 (a comment on the page, seo#M3, too;  m3, cm3 read the same)
   seo#P3              a phase:  P3, or by its id, seo#p-epic-migrate;  phase, updated and file take its name
                       too:  seo#epic-migrate, "seo#Epic Migrate"
   seo#J               a new item of that kind, for add:  epic add seo#J "Title"
   SAGA:/epics         a saga's page, sagas/epics/epics.saga.html:  epic add SAGA:/epics#T "Title"
-  guides/x.html#cm3   a comment on a docs page, for epic comments (and a page note, guides/x.html#n3)
+  guides/x.html#M3    a comment on a docs page, for epic comments (and a page note, guides/x.html#n3)
 
 Examples:
   epic summary seo
@@ -533,6 +533,6 @@ Examples:
   epic inbox seo listen           this session waits on the inbox;  unlisten:  stopped
   epic inbox seo wait             block until there's work, print it, exit 0 (run it in the background)
   epic inbox seo apply [ids...]   apply the sent approve / pick / todo marks to the page;  --all:  sent or not
-  epic inbox seo#J3 working on    the page's spinner on an item (or a comment, seo#cm3);  off:  stopped
+  epic inbox seo#J3 working on    the page's spinner on an item (or a comment, seo#M3);  off:  stopped
   epic inbox seo#J3 done          an agent finished the item:  its mark and spinner go
   epic inbox seo#J3 clear         drop its marks (a revisit talked over)`

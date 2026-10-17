@@ -127,7 +127,7 @@ describe("AirplaneInbox.gather()", () => {
       "epic demo:  2 marks (1 not sent), 1 new item, 1 draft, 1 for now, 1 comment",
       "new epic idea:  idea title",
       expect.stringMatching(/^note guides\/guide\.html n1 \(.*\):  Is this still true\?$/),
-      "guide comment guides/guide.html cm1 (1. Intro):  Too long?",
+      "guide comment guides/guide.html M1 (1. Intro):  Too long?",
       expect.stringMatching(/^details epics\/demo\/details\/onboard\.html:  answered /)
     ])
   })

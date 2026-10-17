@@ -9,6 +9,7 @@ import { afterAll, beforeAll, expect, test, vi } from "vite-plus/test"
 
 import { PageServer } from "$/server/page"
 import { ask } from "$/server/test/serve"
+import { CommentList } from "$/epics/tool/CommentList"
 import { GuideInbox } from "$/epics/tool/GuideInbox"
 import { ReviewInbox } from "$/epics/tool/ReviewInbox"
 
@@ -314,7 +315,7 @@ test("WAIT:  `epic comments wait <page>` exits with a comment new since it start
     const { id } = (await post({ page, action: "add", ...ON_TABLE, text: "Provide more details here." })).answer
     expect(await waiting).toBe(0)
     const printed = log.mock.calls.map(([line]) => String(line)).join("\n")
-    expect(printed).toContain(`${id}  table`)
+    expect(printed).toContain(`#${CommentList.label(id)}  table`)
     expect(printed).toContain("Provide more details here.")
     expect(printed).not.toContain("Already here")
     await post({ page, action: "clear", id })

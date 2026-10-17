@@ -120,13 +120,13 @@ export const GROUP_VERBS: Record<GroupName, GroupVerb[]> = {
       name: "working",
       usage: "<page>#<id> on | off",
       description: 'Claude is thinking about the comment (on), or stopped:  its thread shows "Claude: thinking…"',
-      example: "epic comments working guides/solid/solid-2.html#cm3 on"
+      example: "epic comments working guides/solid/solid-2.html#M3 on"
     },
     {
       name: "answer",
       usage: "<page>#<id> --file <reply.html> [--commit <sha>]",
       description: "Claude's answer on the comment's thread;  --commit:  the commit it was built in",
-      example: "epic comments answer guides/solid/solid-2.html#cm3 --file reply.html"
+      example: "epic comments answer guides/solid/solid-2.html#M3 --file reply.html"
     }
   ],
   notes: [

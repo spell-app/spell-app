@@ -4,7 +4,8 @@
  */
 import { describe, expect, test } from "vite-plus/test"
 
-import { CommentList, CommentsError } from "$/epics/tool/CommentList"
+import { CommentList, CommentsError, type Comment } from "$/epics/tool/CommentList"
+import { GuideInbox } from "$/epics/tool/GuideInbox"
 import { ReviewInbox } from "$/epics/tool/ReviewInbox"
 
 /** A comment's place:  the second field of phase 3. */
@@ -230,6 +231,84 @@ describe("CommentList", () => {
     comments.reply(id, "Say more", later(3))
     comments.reply(id, "Say more, please", later(4))
     expect(CommentList.lastWordsAt(comments.comment(id))).toBe(later(4).toISOString())
+  })
+})
+
+describe("ids:  shown M3, typed M3 / m3 / cm3, keyed cm3 (epic `epic-workflow` P23)", () => {
+  /** A comment as a file holds it, with text `text`. */
+  const held = (text: string): Comment => ({ ...ON_FIELD, text, at: NOW.toISOString(), status: "new" })
+
+  test("idOf():  every way an id is typed, as the file keys it;  anything else as it is", () => {
+    expect(["M3", "m3", "cm3", "CM3", "#M3", " m03 "].map(CommentList.idOf)).toEqual([
+      "cm3",
+      "cm3",
+      "cm3",
+      "cm3",
+      "cm3",
+      "cm3"
+    ])
+    expect(["j3", "c3", "m", "mm3", "p-epic-migrate"].map(CommentList.idOf)).toEqual([
+      "j3",
+      "c3",
+      "m",
+      "mm3",
+      "p-epic-migrate"
+    ])
+  })
+
+  test("label():  as Owen sees it, M3;  isCommentId():  every spelling, never a caveat's or an item's", () => {
+    expect(["cm3", "m3", "M3", "#cm12"].map(CommentList.label)).toEqual(["M3", "M3", "M3", "M12"])
+    expect(CommentList.label("j3")).toBe("j3")
+    expect(["M3", "m3", "cm3", "CM3"].every(CommentList.isCommentId)).toBe(true)
+    expect(["c3", "j3", "q1", "mm3", "m"].some(CommentList.isCommentId)).toBe(false)
+  })
+
+  test("every method takes M3 or m3 for the comment the file keys cm3", () => {
+    const comments = new CommentList({})
+    const id = comments.add(ON_FIELD, "one", NOW)
+    expect(id).toBe("cm1")
+    comments.edit("M1", "one, better", NOW)
+    comments.setWorking("m1", true, NOW)
+    expect(comments.comment("M1")).toMatchObject({ text: "one, better", working: NOW.toISOString() })
+    comments.answer("M1", "<p>Yes.</p>", NOW)
+    comments.reply("m1", "Thanks", NOW)
+    comments.resolve("M1", "good", NOW)
+    expect(Object.keys(comments.comments)).toEqual(["cm1"])
+    comments.clear("M1")
+    expect(comments.comments).toEqual({})
+    expect(() => comments.comment("M9")).toThrow(/no comment M9 here/)
+  })
+
+  test("Undo under M3 comes back keyed cm3", () => {
+    const comments = new CommentList({})
+    const id = comments.add(ON_FIELD, "one", NOW)
+    const before = comments.all[0]!
+    comments.remove(id)
+    expect(comments.restore("M1", before)).toBe("cm1")
+  })
+
+  test("migrate():  a key spelt m3 (a checkout once the keys switch) is read as cm3;  a clash takes the next number", () => {
+    const record: Record<string, Comment> = { m2: held("two"), cm1: held("one"), cm2: held("clash"), m5: held("five") }
+    const comments = new CommentList(record)
+    expect(Object.keys(record)).toEqual(["cm1", "cm2", "cm3", "cm5"])
+    expect(comments.comment("M3").text).toBe("two")
+    expect(comments.comment("M2").text).toBe("clash")
+    expect(comments.comment("M5").text).toBe("five")
+    expect(comments.add(ON_FIELD, "next", NOW)).toBe("cm6")
+  })
+
+  test("migrate():  a file keyed cm3 already, or with no comments, is left as it is (the same object, same order)", () => {
+    const record: Record<string, Comment> = { cm2: held("two"), cm1: held("one") }
+    expect(Object.keys(CommentList.migrate(record))).toEqual(["cm2", "cm1"])
+    expect(CommentList.migrate({})).toEqual({})
+  })
+
+  test("both inboxes read an m3 key as cm3, so their writes keep the file's spelling", () => {
+    const review = new ReviewInbox({ comments: { m1: held("on an epic page") } })
+    expect(Object.keys(review.comments)).toEqual(["cm1"])
+    const guide = new GuideInbox({ comments: { m4: held("on a guide") } })
+    expect(Object.keys(guide.comments)).toEqual(["cm4"])
+    expect(guide.commentList.comment("M4").text).toBe("on a guide")
   })
 })
 

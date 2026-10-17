@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs"
 import { dirname, join, posix, relative } from "node:path"
 
-import type { IdentifiedComment } from "$/epics/tool/CommentList"
+import { CommentList, type IdentifiedComment } from "$/epics/tool/CommentList"
 import { GuideInbox } from "$/epics/tool/GuideInbox"
 import { PlanDocCommands } from "$/epics/tool/PlanDocCommands"
 import { PlanDocFiles } from "$/epics/tool/PlanDocFiles"
@@ -184,7 +184,7 @@ export class GuideChanges {
     // a reply on its thread since Claude answered:  his latest words are the work now
     const reply = comment.replies?.findLast((each) => each.by === "Owen" && each.text)
     const replied = reply ? `<p>Owen replied on the thread:</p>${htmlOf(reply.text!).join("")}` : ""
-    return `<li><a href="${this.hrefTo(page, targetOf(comment.anchor))}">${escape(where || comment.anchor)}</a>${about}, <code>${comment.id}</code>:  ${words}${replied}</li>`
+    return `<li><a href="${this.hrefTo(page, targetOf(comment.anchor))}">${escape(where || comment.anchor)}</a>${about}, <code>${CommentList.label(comment.id)}</code>:  ${words}${replied}</li>`
   }
 
   /** A page note (before P11), as its line in the phase's goal. */

@@ -125,8 +125,8 @@ Owen is back online.  Gather everything, work through it in the background, then
      - Never `done` (Owen, 2026-10-10:  a Done card means work was done).
      - The cards `apply --all` makes for picks, todos and new items are Noted already.
    - Each comment on an epic page (`epics[].comments`):  as `/epic review` answers one ("7.3", step 3b).
-     - First `epic inbox <name>#cm3 working on`:  his thread shows "Claude: thinking…" until the answer lands.
-     - Into the item or phase it's on, then `epic inbox <name>#cm3 done --file <answer.html>`:  the answer on
+     - First `epic inbox <name>#M3 working on`:  his thread shows "Claude: thinking…" until the answer lands.
+     - Into the item or phase it's on, then `epic inbox <name>#M3 done --file <answer.html>`:  the answer on
        his thread too, his turn (and the thinking stub gone).  A reply of his:  answer his latest words.
    - Page notes were gathered in 4b with the comments.
      One written into a page since:  read the page and the note, and answer under it
