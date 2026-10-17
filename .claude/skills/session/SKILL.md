@@ -6,12 +6,12 @@ argument-hint: "[<words> | <id> | name [<title>]]"
 
 # /session
 
-The command:  `spell dev session <verb>`, run from the session's folder.
+The command:  `epic session <verb>`, run from the session's folder.
 - It lists THAT repo's sessions:  main checkout, worktrees and package folders together.
 - `spell help dev` lists the verbs.
-- The logic:  [sessions.ts](packages/cli/src/dev/sessions.ts).
+- The logic:  [Sessions.ts](packages/epics/src/command/Sessions.ts).
 - History:  moved into the repo from `~/.claude/skills/session` on 2026-10-03,
-  its python ported to `spell dev session`.
+  its python ported to `epic session`.
   Naming split out as `/title` on 2026-10-04.
 
 ## 1. Arguments
@@ -22,7 +22,7 @@ The command:  `spell dev session <verb>`, run from the session's folder.
 
 ## 2. Ask which session
 
-- `spell dev session list --limit 12`:  newest first, this session left out.  Columns:
+- `epic session list --limit 12`:  newest first, this session left out.  Columns:
   - id (first 8), last active
   - `saved` / `running (<status>, <where>)`
   - title:  `*` = named by hand;  else Claude's own title, or the first prompt
@@ -35,11 +35,11 @@ The command:  `spell dev session <verb>`, run from the session's folder.
 
 ## 3. Find and open
 
-- `spell dev session list <words>` (`--all` if nothing matches here:  every project).
+- `epic session list <words>` (`--all` if nothing matches here:  every project).
   - One match:  open it.
   - Several:  the modal, as step 2.
   - None:  say so in one line.
-- `spell dev session open <id prefix>`.
+- `epic session open <id prefix>`.
   It opens the session in the Claude panel of the right VS Code window:
   - a RUNNING session (in VS Code):  revealed in the window it runs in.
     Say which, since it's not this one.

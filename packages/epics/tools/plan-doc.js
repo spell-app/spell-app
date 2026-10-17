@@ -3,7 +3,7 @@
  * `spell dev plan-doc` runs in its own process.  This file forwards:
  * - its API, for old imports (`shared.test.js`, other tools):  `PlanDoc` and its types, the files and git
  *   (`PlanDocFiles`;  `sharedDocLog()` as before), the command line (`PlanDocCommands`)
- * - its command line, for callers that still run THIS file (`yarn plan-doc` in `packages/epics`, `spell dev worktree`
+ * - its command line, for callers that still run THIS file (`yarn plan-doc` in `packages/epics`, `epic worktree`
  *   reading summaries, a checkout on older code):  under `tsx`, with this package's `tsconfig.json` for the aliases
  */
 import { pathToFileURL } from "node:url"

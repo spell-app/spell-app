@@ -1,8 +1,8 @@
 # Generated files:  each is a function of BOTH branches' source, so a line merge of two versions is never right.
 # - `linguist-generated`:  collapsed in GitHub's PR diffs ("Load diff")
 # - `merge=binary`:  changed on both sides => git keeps ours, marks it conflicted, and never interleaves the two;
-#   `spell dev worktree merge-main` then regenerates it from the merged source (its table:
-#   `packages/cli/src/dev/mergeMain.ts`, `GENERATORS`)
+#   `epic worktree merge-main` then regenerates it from the merged source (its table:
+#   `packages/epics/src/command/MainMerge.ts`, `GENERATORS`)
 # - `-diff`:  minified;  `git diff` says "Binary files differ" instead of printing megabytes of one line
 # NOT `merge=ours`:  it silently drops the other side's changes, flips meaning in a rebase, and GitHub ignores it.
 

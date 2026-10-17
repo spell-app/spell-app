@@ -75,7 +75,7 @@ Plan, then build, in worktree `<name>`, keeping the EPIC PAGE current the whole 
   - `resume`:  NOT a new epic either.
     Go to "8. Resume".
   - `color`:  `/epic color <look>` recolours the window it's typed in.
-    - That's `spell dev window color <look>`;  no look:  it lists the 12.
+    - That's `epic window color <look>`;  no look:  it lists the 12.
     - One line saying so, and nothing else.
   - `future`:  `/epic future <name> [text]` writes an idea down as a FUTURE epic, not planned yet.
     Go to "9. Future".
@@ -93,7 +93,7 @@ Plan, then build, in worktree `<name>`, keeping the EPIC PAGE current the whole 
   - Lower-kebab-cased:  `Docs Index` -> `docs-index`.
   - The rest, if any, is the plan:  the prompt that kicks it off.
   - No argument:  ask for a name.
-  - A look right after the name (`/epic new-thing -purple`, one of `spell dev window color`'s 12)
+  - A look right after the name (`/epic new-thing -purple`, one of `epic window color`'s 12)
     is the window's colour, NOT the plan's.
     - It's `open <name> --color purple` in "2. Session", or `color purple` when staying.
     - The prompt hook leaves it out of the text it saves (epic `windows-and-review` P5).
@@ -109,7 +109,7 @@ Plan, then build, in worktree `<name>`, keeping the EPIC PAGE current the whole 
     NOT a failure, and NOT this session's epic.
     Go to "From another worktree", and skip everything else.
   - In `<name>`'s OWN window, its worktree already made
-    (`spell dev window which`:  `workspaces/ongoing/<name>`):
+    (`epic window which`:  `workspaces/ongoing/<name>`):
     a session "From another worktree" launched.  See "Launched" there.
 - The kickoff prompt, SAFE before anything else:  the text after `<name>`, verbatim.
   - Write it to `~/.spell/prompts/<name>.md` at once, as the hook does when it blocks.
@@ -162,7 +162,7 @@ means "open a window for epic `<name>`" (Owen, 2026-10-07).
    - "New window `⎇ <name>`" (Recommended):  step 4
    - "Not now":  one line, where the text is saved,
      and that `/epic <name>` alone picks it up from any other window
-4. `spell dev window launch <name> [--color <look>]`, a look after the name as in "1. Name".
+4. `epic window launch <name> [--color <look>]`, a look after the name as in "1. Name".
    - It makes the worktree, opens its window,
      and starts a NEW session there with `/epic <name>` typed in.
    - One line:  "`⎇ <name>` is open:  press enter on `/epic <name>` there".
@@ -225,7 +225,7 @@ All in the FIRST turn, in this order, then the turn ends.
 7. Next turn, in the new window:  isolate's "Continue" step 1 (old tab), then "3. Plan".
 
 Staying in this window (step 0):  skip steps 4 and 6.
-- `spell dev window stay <name>` instead:  the window titled `⎇ <name>`, tinted (isolate's "Stay", step 0).
+- `epic window stay <name>` instead:  the window titled `⎇ <name>`, tinted (isolate's "Stay", step 0).
 - Step 5's `epic open` shows the doc in THIS window's side bar, at once.
 - Then go straight on to "3. Plan", in this turn.
   No plan yet:  the last line asks for it, here.
@@ -382,7 +382,7 @@ The filling goes to a background agent, `<name>-plan-doc`, as if Owen had typed 
      - Its own short doc pass comes first, in place of one Doc Review at the end:
        `/fussbudget` on the files the phase changed, and the guide brought in line, before the commit.
      - Then, no asking (the standing epic is the ask):
-       1. `main` moved (`git log --oneline HEAD..main` not empty):  `spell dev worktree merge-main`.
+       1. `main` moved (`git log --oneline HEAD..main` not empty):  `epic worktree merge-main`.
        2. `ExitWorktree` with `action: "keep"`:  a worktree session can't move `main`.
        3. `epic merge <name>`, in the main checkout:  checks it's on `main` and clean, then fast-forwards.
           It refuses, saying why (`main` moved again, uncommitted work there):  `add <name>#I`, and go on.
@@ -715,29 +715,29 @@ A NEW session picks up an epic whose own session is gone (closed, crashed, compa
 - The epic page is the memory:  read it, don't redo it.
 
 0. Already home:  this window or this session is ALREADY the epic's own (Owen, 2026-10-10):
-   - the window:  `spell dev window which` says `workspaces/ongoing/<name>`
+   - the window:  `epic window which` says `workspaces/ongoing/<name>`
    - or the session:  its folder is `.claude/worktrees/<name>`
    - and `<name>` has an epic page (`epics/<name>/`), and is the `<name>` typed, if one was.
    - Then that's the epic, and nothing is asked:
      no "Which epic?" modal (step 1), no new-window-or-stay modal (step 3).
-     - Step 3 is `EnterWorktree` with `path` (if not in it yet), then `spell dev window stay <name>`.
+     - Step 3 is `EnterWorktree` with `path` (if not in it yet), then `epic window stay <name>`.
    - One line says so:  "this window is `⎇ <name>`:  resuming it".
 1. Which epic:
    - `<name>` given:  that one.
      No epic page at `epics/<name>/`:  say so, then the list below.
    - none given:  the epics in progress, minus those with a running session.
      - `epic list --json`, status `in progress`
-     - the running sessions:  `spell dev worktree list`
+     - the running sessions:  `epic worktree list`
      - One:  use it, naming it in the reply.
      - Several:  AskUserQuestion "Which epic?", label `<name>`,
        description its next phase and checkout (`epic summary`).
    - Rename this session `<name>`, first.
      - A typed `/epic resume <name>` already was, by the prompt hook
        ([prompt-gate.mjs](.claude/hooks/prompt-gate.mjs)).
-     - Else `spell dev session title "🚧 <name>"`.
+     - Else `epic session title "🚧 <name>"`.
 2. Its own session still running (not this one):  as [the unpark skill](.claude/skills/unpark/SKILL.md), step 2.
    Tell it, or resume here.
-   - Found by `spell dev worktree status <name>`:  `sessions`, `running: true`.
+   - Found by `epic worktree status <name>`:  `sessions`, `running: true`.
 3. Where:  the epic page's checkout (`list --json`, `checkout`).
    - `main`:  no worktree;  work in the main checkout, this window.
    - `.claude/worktrees/<name>`:  as [the unpark skill](.claude/skills/unpark/SKILL.md), step 3.
@@ -753,7 +753,7 @@ A NEW session picks up an epic whose own session is gone (closed, crashed, compa
      - the active phase's part file, and the log's last lines
      - `git status --short` and `git log --oneline -5`
    - Behind `main` (`git log --oneline HEAD..main` not empty):
-     `spell dev worktree merge-main`, as [the park skill](.claude/skills/park/SKILL.md)'s "Resume", steps 2-4.
+     `epic worktree merge-main`, as [the park skill](.claude/skills/park/SKILL.md)'s "Resume", steps 2-4.
      - Resuming is the go-ahead for its merge commit.
    - No `node_modules/`:  `yarn install`.
    - `epic open <name> --review`.

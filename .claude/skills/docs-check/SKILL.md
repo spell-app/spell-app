@@ -75,7 +75,7 @@ From `decisions --json`, later beats earlier:
 
 ## Steps
 
-1. Is anyone else editing these?  As `/fussbudget`'s step 2:  `spell dev worktree list`, `epic agents list`.
+1. Is anyone else editing these?  As `/fussbudget`'s step 2:  `epic worktree list`, `epic agents list`.
    - Another session or agent working on the same docs:  say who, and STOP.
      A mixed diff can't be reviewed.
 2. The right checkout:  `epic list --json`, each epic's `checkout`.

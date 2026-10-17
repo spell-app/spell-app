@@ -23,10 +23,10 @@ Work in worktree `.claude/worktrees/<name>`, so this session's edits never colli
      - So `EnterWorktree` can't run, and ExitPlanMode would ask to APPROVE a half-made plan.
      - Ask the user to leave plan mode (shift+tab);  the plan file survives.
    - in another worktree:  the session's folder is under `.claude/worktrees/<other>`,
-     or its window is a worktree's (`spell dev window which`:  `workspace` under `workspaces/ongoing/`).
+     or its window is a worktree's (`epic window which`:  `workspace` under `workspaces/ongoing/`).
      - `<other>` isn't `<name>`:  stop, saying so in one line
        ("`/isolate done` first, or start from a package window").
-   - rename:  `spell dev session title "🚧 <name>"`.
+   - rename:  `epic session title "🚧 <name>"`.
      It lands on the next prompt, or when the session opens in its new window.
    - a saved prompt, `~/.spell/prompts/<name>.md`:  it's the task to carry on with once isolated.
      - The hook saved it while blocking an earlier `/isolate <name> ...`.
@@ -52,13 +52,13 @@ Work in worktree `.claude/worktrees/<name>`, so this session's edits never colli
 1. `<name>` is `$ARGUMENTS`, or the `<name>` in "isolate as <name>".
    - Lower-kebab-cased:  `Docs Index` -> `docs-index`.
    - No name:  propose one from the work so far in AskUserQuestion;  the user can type another.
-   - Then rename (step 0's `spell dev session title`), since the hook only renames a name it was given.
+   - Then rename (step 0's `epic session title`), since the hook only renames a name it was given.
 2. Collisions, from the repo root:
    - a worktree at `.claude/worktrees/<name>` (`git worktree list`)
    - a branch `<name>` or `worktree-<name>`
    - Any hit:  AskUserQuestion, options "Reuse `<name>`" and "Different name" (typed in "Other").
 
-2b. Where:  `spell dev window stay-check` prints `recommend stay|window`, and why.
+2b. Where:  `epic window stay-check` prints `recommend stay|window`, and why.
    - From `/epic`, add `--epic`.
    - AskUserQuestion "Where should `<name>` run?", its reasons in the question,
      the recommended option first, with "(Recommended)":
@@ -77,21 +77,21 @@ Work in worktree `.claude/worktrees/<name>`, so this session's edits never colli
      makes it on branch `<name>`, from local `main`.
    - It keeps this session listed in every window.
 4. Open it in its own window, from the worktree's root (the root `AGENTS.md`, "Worktrees"):
-   - `spell dev window open <name> [--color <look>]`:  a NEW window.
+   - `epic window open <name> [--color <look>]`:  a NEW window.
      - Its file:  `workspaces/ongoing/<name>.code-workspace`, in the main checkout, git-ignored.
-     - Its look:  this window's, or `<look>`'s, one of the 12 of `spell dev window color`
+     - Its look:  this window's, or `<look>`'s, one of the 12 of `epic window color`
        (`/isolate <name> -purple`, `/epic <name> -purple`;  epic `windows-and-review` P5).
      - Its folders:  the MAIN root (so every session is listed), then the worktree's root, `⎇ <name>`.
      - `<pkg>`:  this session's window's.
    - This isn't a package window (a worktree's ...):  `open` takes `spell-app`'s, the whole repo's window and its look.
      - Never ask which package (Owen, 2026-10-07).
      - `--pkg <pkg>` only when Owen names one.
-   - `spell dev window` works before the worktree's `yarn install`.
+   - `epic window` works before the worktree's `yarn install`.
      - The `spell` link runs the MAIN checkout's CLI, which has its packages.
      - `yarn window` didn't:  yarn runs no script before `yarn install`.
    - It fails otherwise:  say so in one line, skip step 5, and do "Continue" now, in this window.
      - NEVER `code --add` / `-r`:  they restart the Claude panel, or target the focused window.
-5. Move the session there:  `spell dev window handoff <name> --prompt continue`.
+5. Move the session there:  `epic window handoff <name> --prompt continue`.
    - When this turn ends:
      - the new window opens the session in an editor tab (never the sidebar)
      - `continue` is typed into its input
@@ -110,9 +110,9 @@ Work in worktree `.claude/worktrees/<name>`, so this session's edits never colli
 
 After step 3, when Owen picked "Stay in this window":  no `open`, no `handoff`, no turn end.
 
-0. `spell dev window stay <name>`:  the window says so at once.
+0. `epic window stay <name>`:  the window says so at once.
    - It's titled `⎇ <name>`, its title bar tinted:  no reload, the Claude panel untouched.
-   - `-<look>` given:  `spell dev window color <look>` too.
+   - `-<look>` given:  `epic window color <look>` too.
 1. "Continue" below, steps 2-4, at once, in this turn.
 2. One line:  "isolated in worktree `<name>` (branch `<name>`), staying in this window;
    its changes are in Source Control under `<name>`".
@@ -138,7 +138,7 @@ The turn after step 6, whatever Owen sends (`continue`, typed in by the move, or
 ## Session name
 
 The session MUST stay titled `🚧 <name>` while its work is under way.
-- Other icons:  `📅 <name>`, a future epic written down;  `✅ <name>`, merged (`spell dev session done`).
+- Other icons:  `📅 <name>`, a future epic written down;  `✅ <name>`, merged (`epic session done`).
   Owen, 2026-10-07.
 - Why:  the handoff finds its old tab by title,
   and Owen finds it in the panel's list by name, its icon saying where it stands.
@@ -149,12 +149,12 @@ The session MUST stay titled `🚧 <name>` while its work is under way.
   - each `/epic` phase start ("5. Each phase", step 1;  Doc Review is a phase too)
   - [the park skill](.claude/skills/park/SKILL.md)'s "Resume" (`/unpark`, `/wait-for`)
   - Owen reopening the session to carry on ("start P3", "continue")
-- How:  `spell dev session title "🚧 <name>"`.
+- How:  `epic session title "🚧 <name>"`.
   - It checks first:  already `🚧 <name>` (or queued), it does nothing.
   - Else it queues it, which lands on Owen's NEXT prompt.
   - The prompt hook titles a typed `/isolate`, `/epic` or `/unpark <name>` so by itself.
   - Renamed:  one line, "session renamed `🚧 <name>` (was "<old>");  shows on your next message".
-  - `spell dev session title` alone shows the current title, and any queued one.
+  - `epic session title` alone shows the current title, and any queued one.
 - `<name>`:  the worktree's (`.claude/worktrees/<name>`), which is the branch's and the epic page's.
 
 ## Merge, keep:  a standing epic
@@ -171,7 +171,7 @@ leaves its worktree:  NOT "Finish" below.
 0. Not in a worktree (the session's folder isn't under `.claude/worktrees/`):
    say so in one line, then offer to clean up.
    - Candidates:  each `.claude/worktrees/<name>` that
-     - no session is in:  under "No session in" from `spell dev worktree list`.
+     - no session is in:  under "No session in" from `epic worktree list`.
        Why:  a fresh worktree has nothing outside `main` either, but its session is still using it.
      - has nothing uncommitted:  `git -C .claude/worktrees/<name> status --short`, fine from the main checkout
      - has nothing outside `main`:  `git log --oneline main..<branch>` empty.
@@ -198,23 +198,23 @@ leaves its worktree:  NOT "Finish" below.
      ("Changelog" in the root's `AGENTS.md`).
      - It's shared content:  write it straight in, nothing to commit on the branch for it.
      - It's committed for you at the turn's end.
-   - A worktree cut before 2026-10-04 (`spell dev shared status` shows its folders `tracked`, not `ok`):
-     `spell dev shared migrate <name>` first.
+   - A worktree cut before 2026-10-04 (`epic shared status` shows its folders `tracked`, not `ok`):
+     `epic shared migrate <name>` first.
      - `--dry-run` shows what it moves.
      - Else merging `main` drags its old tracked copies of the docs, goals and logs into conflicts.
    - `git log --oneline HEAD..main` empty (`main` hasn't moved):  ready, go on to step 4.
    - Else `git merge-tree --write-tree --name-only main HEAD`, which merges without touching any files:
-     - exit 0, or conflicts ONLY in generated files:  `spell dev worktree merge-main`, then step 4.
+     - exit 0, or conflicts ONLY in generated files:  `epic worktree merge-main`, then step 4.
        - No asking (Owen, 2026-10-03);  say in one line what it regenerated.
        - Generated:  the root `.gitattributes`' `merge=binary` paths, and `yarn.lock`.
          Those paths are bundles, site and brand assets, snapshots.
        - `merge-main` rebuilds each one both sides changed, from the merged source,
-         with the command in `GENERATORS` ([mergeMain.ts](packages/cli/src/dev/mergeMain.ts)).
+         with the command in `GENERATORS` ([MainMerge.ts](packages/epics/src/command/MainMerge.ts)).
          Then it commits the merge ("Merge main into `<name>`").
        - Its `REVIEW` lines:  snapshot entries with a value NEITHER side had, i.e. new behaviour nobody looked at.
          Show each to Owen, in bold, in the summary.
        - It fails (a generator errors):  the merge is left in progress.
-         Fix the cause, then `spell dev worktree merge-main --continue`;
+         Fix the cause, then `epic worktree merge-main --continue`;
          or `git merge --abort` and step 3's "Can't fix them".
      - Other files conflict:  step 3.
    - Nothing unmerged:  skip this step and say "nothing to merge".
@@ -224,10 +224,10 @@ leaves its worktree:  NOT "Finish" below.
      - One in conflict means a worktree not migrated yet (step 2).
    - AskUserQuestion, listing the conflicting files, options:
      - "Fix conflicts, then merge":
-       - `spell dev worktree merge-main`:  it stops mid-merge, listing them
+       - `epic worktree merge-main`:  it stops mid-merge, listing them
        - resolve each file, keeping BOTH sides' intent, and `git add` it
        - run the checks of each package the conflicts touch (`yarn ts`, `yarn test` there), if installed
-       - `spell dev worktree merge-main --continue`:  regenerates the generated files and commits the merge
+       - `epic worktree merge-main --continue`:  regenerates the generated files and commits the merge
          (the answer counts as the ask), then step 4
      - "Exit anyway":  go on to step 4, unmerged
      - "Stay isolated":  stop here, still in the worktree
@@ -274,11 +274,11 @@ leaves its worktree:  NOT "Finish" below.
    - Why:  Owen (2026-10-03) "we don't need to go back into the originating window.
      That's just confusing things".
    - The worktree's window stays open for Owen to read the summary;  he closes it.
-   - Its file goes with `spell dev window close <name>` later, or `/worktrees` lists it.
+   - Its file goes with `epic window close <name>` later, or `/worktrees` lists it.
      That file:  `workspaces/ongoing/<name>.code-workspace`.
    - NEVER `handoff <name> --back` from here.
    - It STAYED in its window ("Stay" above):
-     `spell dev window stay --end` puts the window's title and title bar back.
+     `epic window stay --end` puts the window's title and title bar back.
      It says "nothing to put back" when there's nothing.
 6. `ExitWorktree` with `action: "keep"`:  the worktree and branch stay, and the session is back in the main checkout.
    - Never `remove` unasked.
@@ -291,7 +291,7 @@ leaves its worktree:  NOT "Finish" below.
    - `git merge --ff-only <name>`.
      - Refused (`main` moved since step 2):  say so, and don't merge.
      - `/isolate <name>` re-enters the worktree to merge `main` in again.
-   - Merged:  `spell dev session done`.
+   - Merged:  `epic session done`.
      - This session's name gets a ✅ (`✅ <name>`), so the Claude panel tells finished work from live work.
      - It shows after Owen's next message here:  a hook applies it, and nothing else can.
      - `/isolate <name>`, `/epic <name>` or `/unpark <name>` takes it off again (epic `windows-and-review` P6).

@@ -63,43 +63,45 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     epic ask new pick-layout
     ```
 
-    - Its tree:  [epicProgram.ts](src/epicProgram.ts);  `epic --help` lists it, under headings.
-    - It starts LEAN, as `spell dev` does:
-      [epicMain.ts](src/epicMain.ts) loads commander and `epicProgram.ts`, never the barrel.
-    - An epic page's verbs run the `epic` tool in this process (`planDocCommand()`).
-      - First [epicArgs.ts](src/epic/epicArgs.ts) turns `seo#J3` into the tool's own arguments (`close seo J3`).
-      - A thin translation, tested verb by verb.
+    - The command itself is the epic code's, not this package's (epic `epic-eject` P5):
+      `EpicProgram`, in [the epics package's command folder](../epics/src/command/), with a class per verb group.
+      - This package keeps only its entry, [epicMain.ts](src/epicMain.ts), run by [epic.mjs](bin/epic.mjs).
+      - `epic --help` lists it, under headings;  `epic --version` says which checkout's code runs.
+      - Why there:  P6 lifts the epic code into a repo of its own, the command with it.
+    - It starts LEAN:  no verb loads the `$/cli` barrel or spell;  the `epic` tool loads only when a page verb runs.
+      [epicProgram.test.ts](../../tests/cli/src/epicProgram.test.ts) checks it, import by import.
+    - ONE copy of the code:  every verb runs the code of the `epic` that was called (the one on the `PATH` is the
+      main checkout's), on the caller's checkout's data.
+    - The verb groups:
+
+      ```
+      send requests file home merge          Requests
+      worktree session park stock shared     Worktrees  Sessions  Parking  Stock  Shared
+      window server                          scripts passed through (EpicTools)
+      ask choices comments notes agents airplane   the docs tools passed through (EpicTools)
+      ```
+
+    - An epic page's verbs run the `epic` tool in this process (`EpicTools.runPlanDoc()`).
+      - First `planDocArgs()` turns `seo#J3` into the tool's own arguments (`close seo J3`).
       - The tool's order typed to `epic` (`epic close seo J3`) is REFUSED, spelled right in the message (epic
         `epic-workflow` P19):  run silently, it taught agents the old shape.
     - Every verb's help:  its usage, what it does, an example (`epic close --help`).
-      - A group's verbs are listed for theirs in [epicGroups.ts](src/epic/epicGroups.ts) (`epic ask new --help`);
+      - A group's verbs are listed for theirs in `GROUP_VERBS` (`epic ask new --help`);
         a verb not listed there is refused before the tool runs.
-      - Exit codes:  0;  1 a failure, or an unknown verb (listing the verbs);  2 a usage error (`EXIT`).
-    - The groups are pass-throughs, as below:
-
-      ```
-      ask  choices  comments  notes  agents  airplane
-      ```
-
-    - Five verbs need the barrel (session helpers), so they're handed over to `main.ts` as `spell epic <verb>`:
-
-      ```
-      send  requests  file  home  merge
-      ```
-
-      - and `add-request`, `file`'s old name, hidden
-      - That runs [epicCommand.ts](src/commands/epicCommand.ts), on [the epic folder](src/epic/).
-    - The old spellings still run the same tools, until no caller is left:
-      - `spell dev plan-doc <verb> <name> <id> ...` (and `spell dev details`, `choices` ...)
-        - hidden from `spell dev --help`
-        - the tool's own order, no `#`:  older checkouts and scripts call it
+      - Exit codes:  0;  1 a failure, or an unknown verb (listing the verbs);  2 a usage error.
+    - The old spellings still run the same code, until no caller is left:
+      - `spell dev plan-doc <verb> <name> <id> ...`:  the tool's own order, no `#`;  older checkouts and scripts call it
+      - `spell dev details`, `choices`, `comments`, `notes`, `agents`, `airplane`
+      - `spell dev window`, `worktree`, `park`, `session`, `stock`, `shared` (since P5)
+      - all hidden from `spell dev --help`, in [devProgram.ts](src/devProgram.ts)
       - `spell epic <verb>`, which [spell.mjs](bin/spell.mjs) sends to [epicMain.ts](src/epicMain.ts)
   - A new or renamed command:
     FIRST [the commands guide](../../guides/dev/commands/commands.md) (root `AGENTS.md`, "Commands").
     - Suggest where it belongs.
     - Then add it to the commands page's `commands.json5`, and run `spell dev commands check`.
   - `spell dev commands` reads the TEXT of the command trees, for each `<receiver>.command(...)` call.
-    - The files:  [main.ts](src/main.ts), [devProgram.ts](src/devProgram.ts), [epicProgram.ts](src/epicProgram.ts).
+    - The files:  [main.ts](src/main.ts), [devProgram.ts](src/devProgram.ts), and the epic code's
+      [EpicProgram.ts](../epics/src/command/EpicProgram.ts).
     - The calls:
 
       ```ts
@@ -110,12 +112,12 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `spell dev` starts LEAN:  the bin script runs [devMain.ts](src/devMain.ts).
     - That loads commander and [devProgram.ts](src/devProgram.ts) (the `dev` tree),
       never the `$/cli` barrel, which loads spell (~0.5s).
-    - A dev command that needs the barrel (`session`, `stock` ...) hands over to [main.ts](src/main.ts).
+    - A dev command that needs the barrel (`commands`, `wwod`) hands over to [main.ts](src/main.ts).
   - A pass-through is `(args) => Promise<exitCode>`.
     - The pass-throughs:
 
       ```
-      docs  details (epic ask)  server  window  vscode
+      docs  design  server  vscode
       ```
 
     - It imports what it needs DIRECTLY, never the barrel:
@@ -128,8 +130,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `TOOLS`, in [passThrough.ts](src/dev/passThrough.ts), says how each tool runs:
       a child node process, under `tsx` when it needs aliases.
   - The `epic` tool is lean, but no pass-through:  it runs IN this process (epic `epic-components`).
-    - It's `epic`'s page verbs, and `spell dev plan-doc`.
-    - That's [planDocCommand.ts](src/commands/planDocCommand.ts),
+    - It's `epic`'s page verbs, and `spell dev plan-doc`:  `EpicTools.planDoc()`, in the epic code,
       loading `$/epics/tool/PlanDocCommands` on first use.
   - `pack` is lean too, though it's ours, not a pass-through:  `(args, options) => Promise<exitCode>`.
     - That's [packCommand.ts](src/commands/packCommand.ts),
@@ -151,7 +152,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - The three entry points and the console guard:  importing any has side effects.
     - [main.ts](src/main.ts), [devMain.ts](src/devMain.ts), [epicMain.ts](src/epicMain.ts),
       [consoleGuard.ts](src/consoleGuard.ts)
-  - Nor `devProgram.ts` or `epicProgram.ts`:  the lean entries build on them, and they must load without the barrel.
+  - Nor `devProgram.ts`:  the lean entry builds on it, and it must load without the barrel.
 
 ## Tests
 
@@ -168,5 +169,6 @@ As WWOD §20, plus:
 - [cli.test.ts](../../tests/cli/src/cli.test.ts) runs the real bin scripts (`spell.mjs`, `epic.mjs`),
   as separate processes, with no terminal.
 - `epicProgram.test.ts` proves the epic command starts lean:
-  nothing its entry, `epicMain.ts`, imports up front reaches the barrel or spell.
+  nothing its entry, `epicMain.ts`, imports up front reaches the barrel or spell;  nor do `devProgram.ts`'s aliases.
+- The epic command's own tests are the epic code's:  [tests/epics/src/command/](../../tests/epics/src/command/).
 - Screens render through `ink-testing-library`, at a fixed `size`.

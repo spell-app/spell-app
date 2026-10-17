@@ -1,6 +1,6 @@
 /**
  * Tests of `ReviewStart.wake()` (epic `epic-workflow` P16):  who a wake reaches, on a fake window registry and bridge,
- * with `spell dev window launch` stubbed.  The routes' cases (Send, Do Now, the cooldown) are `reviewRoutes.test.ts`'s.
+ * with `epic window launch` stubbed.  The routes' cases (Send, Do Now, the cooldown) are `reviewRoutes.test.ts`'s.
  * - NEVER the real `~/.claude` or `~/.spell`:  a wake types into VS Code
  */
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
@@ -77,7 +77,7 @@ function worktree(name: string): string {
   return fakeWorktree(root, join(root, ".claude", "worktrees", name))
 }
 
-test("a worktree, its window closed:  `spell dev window launch <epic>`, from the main checkout, the command as its prompt", async () => {
+test("a worktree, its window closed:  `epic window launch <epic>`, from the main checkout, the command as its prompt", async () => {
   worktree("big")
   window([root])
   const wake = await starter().wake("big")

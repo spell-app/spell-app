@@ -70,10 +70,14 @@ export class PlanDocFiles {
   /** `pages/details/`:  scratch details pages (`epic ask new`), where the item picker's page lives */
   readonly details: string
 
-  /** `packages/epics`:  where the docs tools run (`index.js`, `check-spell.js`, `open.js`) */
+  /** `packages/epics` of `root`:  where the docs tools run (`index.js`, `check-spell.js`, `open.js`) */
   readonly docsPackage: string
 
-  /** `packages/epics/tools`:  the docs tools this runs as children, never imports */
+  /**
+   * `packages/epics/tools` beside THIS code:  the docs tools this runs as children, never imports.
+   * - ONE copy of the code (epic `epic-eject` P5):  the running `epic`'s own tools, whichever checkout `root` is;
+   *   they work on `root` through `toolEnv`'s `EPIC_CHECKOUT`
+   */
   readonly docsTools: string
 
   /** link targets for the checkout's pages:  its bare-name index is built once per process */
@@ -85,8 +89,13 @@ export class PlanDocFiles {
     this.template = template
     this.details = join(root, "pages", "details")
     this.docsPackage = join(root, "packages", "epics")
-    this.docsTools = join(this.docsPackage, "tools")
+    this.docsTools = DOCS_TOOLS
     this.linker = new AS.Linker(root)
+  }
+
+  /** The environment the docs tools run in:  this process's, with `root` as the checkout they work on. */
+  get toolEnv(): NodeJS.ProcessEnv {
+    return { ...process.env, EPIC_CHECKOUT: this.root }
   }
 
   ////////////////
@@ -382,7 +391,11 @@ export class PlanDocFiles {
     const pages = join(this.root, "pages")
     const shared = lstatSync(pages, { throwIfNoEntry: false })?.isSymbolicLink()
     if (!shared && EpicConfig.of(this.root).worktreeNameOf(pages)) return
-    const run = spawnSync("node", [join(this.docsTools, "index.js")], { cwd: this.docsPackage, encoding: "utf8" })
+    const run = spawnSync("node", [join(this.docsTools, "index.js")], {
+      cwd: this.docsPackage,
+      encoding: "utf8",
+      env: this.toolEnv
+    })
     if (run.status !== 0) process.stderr.write(`epic:  docs index not updated\n${run.stdout}${run.stderr}`)
   }
 
@@ -587,6 +600,9 @@ export type EpicStatus = (typeof EPIC_STATUSES)[number]
 
 /** The checkout this file is in (`packages/epics/src/tool/` is four folders down):  the default root. */
 const CHECKOUT = resolve(fileURLToPath(import.meta.url), "..", "..", "..", "..", "..")
+
+/** The docs tools beside this code:  `packages/epics/tools`. */
+const DOCS_TOOLS = fileURLToPath(new URL("../../tools", import.meta.url))
 
 /** The tool's own template, in `<epic-*>` markup:  `templates/plan.html` beside this file. */
 const TEMPLATE = fileURLToPath(new URL("templates/plan.html", import.meta.url))

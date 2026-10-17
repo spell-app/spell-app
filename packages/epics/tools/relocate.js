@@ -20,13 +20,13 @@
  *   - Spell UI's elements in `components/`, its notes in `notes/`
  *   - the packs in `components/__pack/`
  *   - the brand's tags `brand-`
- * - each ran once on everything;  since then by `spell dev shared repair`:
+ * - each ran once on everything;  since then by `epic shared repair`:
  *   after a branch from before a move merges `main`, or when older code wrote pages the old way
  *
  * The commands, `node tools/relocate.js <command>`:
  * - `repair [--root <checkout>] [--shared <dir>] [--dry-run] [--json]`:
  *   `repairCheckout()`, then, with `--shared`, `reorgShared()` and `relinkDocsPackage()`
- * - `reorg --shared <dir>`:  `reorgShared()` alone (`spell dev shared commit`, every turn)
+ * - `reorg --shared <dir>`:  `reorgShared()` alone (`epic shared commit`, every turn)
  * - `relink --shared <dir> [--root <checkout>] [--dry-run] [--json]`:  `relinkDocsPackage()` alone
  *   - once, when `people-and-orgs` merges into `main`
  * - `relink-sets --shared <dir> [--dry-run] [--json]`:  `relinkSets()`
@@ -272,7 +272,7 @@ export function headerRoot(text, file) {
 }
 
 /**
- * The reorg, run in shared repo `dir` (`spell dev shared repair --shared`;  once for real on 2026-10-05).
+ * The reorg, run in shared repo `dir` (`epic shared repair --shared`;  once for real on 2026-10-05).
  * - idempotent:  re-run, it moves only what older code wrote at the old paths since
  * - returns what it did (or, `dryRun`, would do), repo-relative:  `{ moved, merged, conflicts, links, rewritten }`
  *
@@ -427,7 +427,7 @@ function moveEntry(dir, name, report, movedFrom, dryRun) {
 
 /**
  * The shared repo's `.gitignore` lines for the new places:  scratch details pages, review inboxes.
- * - the old ones stay:  harmless, and an older `spell dev shared init` writes them
+ * - the old ones stay:  harmless, and an older `epic shared init` writes them
  */
 function ensureIgnores(dir) {
   const file = join(dir, ".gitignore")
@@ -601,7 +601,7 @@ const DOCS_END_KEEP = /^epics\/people-and-orgs\//
 
 /**
  * The docs package's end, in shared repo `dir`:  ONCE, when `people-and-orgs` merges into `main`.
- * - idempotent, so `spell dev shared repair` runs it too
+ * - idempotent, so `epic shared repair` runs it too
  * - returns what it did (or, `dryRun`, would do):
  *   `rewritten`, the files (repo-relative), and how many `links`, `targets` and `mentions` changed
  * - every `.html` / `.htm` / `.md`:
@@ -909,7 +909,7 @@ const SETS_SKIP =
 const OLD_TOOLING = new Set(["scripts", "_assets", "templates", "epics-tools", "tools"])
 
 /**
- * Put checkout `root` right after a branch from before the CONTENT move merged `main`:  `spell dev shared repair`.
+ * Put checkout `root` right after a branch from before the CONTENT move merged `main`:  `epic shared repair`.
  * Returns what it did (or, `dryRun`, would do):  `{ moved, same, conflicts, linked, leftovers }`, repo-relative paths.
  *
  * 1. pages left at the top of `packages/docs` (`packages/docs/<x>`, not the package's own files):
@@ -1043,7 +1043,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const shared = flag("--shared")
   const dryRun = args.includes("--dry-run")
   if (args[0] === "reorg" && shared) {
-    // the reorg alone, quietly:  `spell dev shared commit` runs it before every commit (while older checkouts may
+    // the reorg alone, quietly:  `epic shared commit` runs it before every commit (while older checkouts may
     // still write the old way:  claude-design T1 ends it), printing only what it changed
     const report = reorgShared(resolve(shared), root, { dryRun })
     for (const path of [...report.moved, ...report.merged, ...report.conflicts, ...report.rewritten])

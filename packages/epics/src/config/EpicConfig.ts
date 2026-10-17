@@ -28,7 +28,7 @@ import { checkoutOf } from "../../../server/src/checkout.ts"
  *   - Read here by `parse()`, not by `DataFile`, which needs the `json5` package:
  *     the hooks and the window script load this file with plain `node`, before a worktree's `yarn install`.
  *   - So `DataFile.write()` can write it later (`epic init`, epic `epic-eject` P9), keeping Owen's comments.
- * - Who reads it:  the CLI (`spell dev shared`, `stock`, `worktree` ...), the epic tool and the epics list,
+ * - Who reads it:  the CLI (`epic shared`, `stock`, `worktree` ...), the epic tool and the epics list,
  *   the hooks (`.claude/hooks/`), the window script (`scripts/window.mjs`), the running epics' route module.
  *   `epic config [key]` prints a value, for the skills.
  *   - Packages below epics never read it (the server, spaces):  they find the main checkout through git
@@ -220,9 +220,9 @@ export class EpicConfig {
 /**
  * What `.epic/config.json5` holds:  where a repo keeps its epic things.  Every key is optional in the file.
  * - `contentFolder`:  the shared content repo, relative to the main checkout (`../spell-app-dev`):
- *   the epics, guides, sagas and logs every checkout links in (`spell dev shared`, the turn-end commit hook)
+ *   the epics, guides, sagas and logs every checkout links in (`epic shared`, the turn-end commit hook)
  * - `baseBranch`:  the branch worktrees start from and merge into (`main`):
- *   the worktree hook, `spell dev worktree merge-main`, `epic merge`, the behind-main notice
+ *   the worktree hook, `epic worktree merge-main`, `epic merge`, the behind-main notice
  * - `worktreesFolder`:  where worktrees go, relative to the main checkout (`.claude/worktrees`), one folder each:
  *   the worktree hook, the window script, the epics list, the page server's `/worktrees/<w>/`
  * - `installCommand`:  what makes a new worktree ready to run (`yarn install`):  `/isolate`, `/epic`

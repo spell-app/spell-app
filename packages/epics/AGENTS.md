@@ -155,6 +155,23 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - so it reads its JSON5 itself (comments and trailing commas), not through `DataFile`, which needs `json5`
     - the page server never reads it:  the running epics' route module tells it where the worktrees are
       (`serveWorktrees()`, in the main checkout)
+  - `command/` -- the `epic` COMMAND itself (epic `epic-eject` P5):  `EpicProgram`, the commander tree, and a class
+    per verb group, a method per verb.
+    - `Requests` (`send`, `requests`, `file`, `home`, `merge`), `Worktrees` (`worktree`), `Sessions` (`session`),
+      `Parking` (`park`), `Stock` (`stock`), `Shared` (`shared`), with `MainMerge` (`worktree merge-main`) and
+      `SharedMigration` (`shared migrate`)
+    - `EpicTools`:  the scripts it passes through (`window`, `server`, the docs tools' groups) and the `epic` tool,
+      run in this process
+    - `PromptGate`:  the epic rules the `UserPromptSubmit` hook (`.claude/hooks/prompt-gate.mjs`) checks a prompt
+      against;  plain `node` loads it by path, with `command.types.ts`
+    - `Git`:  running git, and finding checkouts:  the main one, the caller's, the one this code is in
+    - ONE copy of the code:  every verb runs THIS checkout's code (the `epic` on the `PATH` is the main
+      checkout's), on the caller's checkout's data (`Git.nearestCheckout()`;  the tools get it as `EPIC_CHECKOUT`,
+      which `tools/pages.js` and `scripts/window.mjs` take as their root)
+    - the CLI package keeps only the entry (`packages/cli/src/epicMain.ts`) and the `spell dev` aliases;  this
+      folder NEVER imports `$/cli`, and loads no spell
+    - node only, NOT in the `$/epics` barrel:  imported by path, `$/epics/command/EpicProgram`
+    - its tests:  `tests/epics/src/command/`
   - `data/` -- `DataFile`:  the tooling's DATA FILES in the shared folders, as JSON5 (epic `epic-workflow` P21).
     - review inboxes, details pages' answers and drafts, choice pages' rows, running agents, the docs home's lists
       (`home.json5`, `favorites.json5`), the sagas' list, the commands page's data
@@ -1684,7 +1701,7 @@ In this order, from `packages/epics`:
       - `pagesFor()` lists every `details/` page for it
     - A step's `run(document, { file })` gets the page's path:  a choices page's rows file is beside it.
   - The shared-content repair (`relocate.js`) is NOT a step:  it moves files between folders, and
-    `spell dev shared commit` runs its reorg every turn.
+    `epic shared commit` runs its reorg every turn.
   - A change to a page kind's markup adds its step here, in the same commit.
 - [doc-links.js](tools/doc-links.js):  see "Links".
   - Text and regexes, not a DOM:  it edits only what it links.
@@ -1706,8 +1723,8 @@ In this order, from `packages/epics`:
 
   - the component sets' layout, 2026-10-13 (`people-and-orgs` P18;  `relinkSets()`):
     `relink-sets`, ONCE at that merge, after `relink`;  never by `repair` (the script's header says why)
-  - `spell dev shared repair` runs them all.
-  - `spell dev shared commit` runs the reorg's (`reorgShared()`):
+  - `epic shared repair` runs them all.
+  - `epic shared commit` runs the reorg's (`reorgShared()`):
     pages older code wrote at old paths move on, and old-style links are fixed (the old tools' too).
 - A @spell-app/ui problem:  fix it in `packages/ui` when it's a real `ui` bug (the same change may touch both).
   - Else work around it here.

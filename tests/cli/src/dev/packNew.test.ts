@@ -21,7 +21,7 @@ const ROOT_FILES = [
   "vitest.config.ts",
   "vite.lint.ts",
   ".gitattributes",
-  "packages/cli/src/dev/mergeMain.ts"
+  "packages/epics/src/command/MainMerge.ts"
 ]
 
 /** The commands page, cut down:  a check row naming `brand`'s scripts, and the pack rows. */
@@ -110,7 +110,7 @@ describe("CLI.newPack()", () => {
       "vitest.config.ts",
       "vite.lint.ts",
       ".gitattributes",
-      "packages/cli/src/dev/mergeMain.ts",
+      "packages/epics/src/command/MainMerge.ts",
       COMMANDS_JSON
     ])
     const json = JSON.parse(read("package.json"))
@@ -138,8 +138,8 @@ describe("CLI.newPack()", () => {
     expect(read(".gitattributes")).toMatch(
       /\n# my-pack:.*\npackages\/my-pack\/components\/__pack\/\*\* +linguist-generated merge=binary -diff\n$/
     )
-    const generator = /^ *\{ name: "my-pack pack",.*$/m.exec(read("packages/cli/src/dev/mergeMain.ts"))![0]
-    const yarnLock = /^ *\{ name: "yarn\.lock",.*$/m.exec(read("packages/cli/src/dev/mergeMain.ts"))![0]
+    const generator = /^ *\{ name: "my-pack pack",.*$/m.exec(read("packages/epics/src/command/MainMerge.ts"))![0]
+    const yarnLock = /^ *\{ name: "yarn\.lock",.*$/m.exec(read("packages/epics/src/command/MainMerge.ts"))![0]
     expect(generator.indexOf("outputs:")).toBe(yarnLock.indexOf("outputs:"))
     expect(generator).toContain(`run: ["yarn", "pack:build"] }`)
     const rows = JSON.parse(read(COMMANDS_JSON)).families[0].rows

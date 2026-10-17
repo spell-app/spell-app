@@ -77,7 +77,7 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 1. Read the rules WHOLE, first:  WWOD §6 and [writing.md](agents/wwod/writing.md).
    - Every pass, even a small one:  this skill exists because the rule, half-remembered, hasn't worked.
 2. Is anyone else editing it?
-   - `spell dev worktree list`:  another session (not this one, not the one that started you)
+   - `epic worktree list`:  another session (not this one, not the one that started you)
      working in this checkout.
    - `epic agents list`:  another agent whose task names these files.
      For an epic page:  any other epic-page agent (`<epic>-plan-doc`).

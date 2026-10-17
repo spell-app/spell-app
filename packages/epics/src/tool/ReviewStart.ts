@@ -16,7 +16,7 @@
  *   1. the ONE running session titled for the epic:  the command typed into its tab, as `start()` does
  *   2. the epic's worktree (`.claude/worktrees/<epic>`) has a window open:  a NEW session there, the command typed in,
  *      through that window's bridge (never `window launch`, which rewrites the window file and its colours:  J48)
- *   3. a worktree, its window closed:  `spell dev window launch <epic> --prompt ...`, as `/send` opens one (P4)
+ *   3. a worktree, its window closed:  `epic window launch <epic> --prompt ...`, as `/send` opens one (P4)
  *   4. no worktree (an epic run in the main checkout, a future epic, a goal):  a new session in a main window
  *   5. no VS Code window at all:  nothing;  the page gives the command to type
  * - Never:  a new worktree;  two wakes for one epic (the inbox's `woken`, `ReviewInbox.claimWake()`);
@@ -83,7 +83,7 @@ export type WokenInbox = PageInbox & { wake: WakeResult | null }
 
 /** What a `ReviewStart` may be given in place of the real world:  tests. */
 export type ReviewStartOptions = {
-  /** start `spell dev window launch` with `args`, in folder `cwd`, and let it run;  default:  detached `node` */
+  /** start `epic window launch` with `args`, in folder `cwd`, and let it run;  default:  detached `node` */
   launch?: (args: string[], cwd: string) => void
   /** is airplane mode on?  Default:  `AirplaneMode.isOn` */
   airplane?: () => boolean
@@ -302,7 +302,7 @@ export class ReviewStart {
 
   /**
    * The open window of epic `epic`'s worktree, else `undefined`:  the one opened from its window file
-   * (`workspaces/ongoing/<epic>.code-workspace`, `spell dev window open`), else one showing its folder.
+   * (`workspaces/ongoing/<epic>.code-workspace`, `epic window open`), else one showing its folder.
    */
   worktreeWindowOf(epic: string): WindowEntry | undefined {
     const file = real(join(this.mainRoot, "workspaces", "ongoing", `${epic}.code-workspace`))
@@ -390,7 +390,7 @@ export class ReviewStart {
   }
 
   /**
-   * Run `spell dev window launch` with `args`, from the main checkout, detached:  the request doesn't wait for the
+   * Run `epic window launch` with `args`, from the main checkout, detached:  the request doesn't wait for the
    * window to come up (up to 30s).
    * - its output goes to `wake.log` in the bridges' registry folder, where a failed launch can be read
    */

@@ -224,47 +224,6 @@ export type CommandsOptions = GlobalOptions & {
 }
 
 /**
- * `spell dev session` flags.
- * - `all`:  `list` every project's sessions, not just this repo's (the same flag as the global `--all`)
- * - `limit`:  `list` at most this many -- default 15
- * - `json`:  print the data as JSON
- */
-export type SessionOptions = GlobalOptions & {
-  limit?: string
-  json?: boolean
-  /** `icons`:  say what it would retitle, retitle nothing */
-  dryRun?: boolean
-}
-
-/**
- * `spell dev worktree` flags.
- * - `json`:  `list` and `merge-main` print the data as JSON (`status` always does)
- * - `continue`:  `merge-main` finishes a merge it stopped on other conflicts
- */
-export type WorktreeOptions = GlobalOptions & {
-  json?: boolean
-  continue?: boolean
-}
-
-/**
- * `spell dev park` flags.
- * - `every`:  `wait` polls this often, in seconds -- default 60
- * - `max`:  `wait` gives up after this many seconds -- default 7140, under a background Bash command's 2 hours
- */
-export type ParkOptions = GlobalOptions & {
-  every?: string
-  max?: string
-}
-
-/**
- * `spell dev stock` flags.
- * - `json`:  print the report as JSON
- */
-export type StockOptions = GlobalOptions & {
-  json?: boolean
-}
-
-/**
  * `spell static` flags.
  * - `output`:  `-o`:  the page to write, for one input;  a FOLDER to write into, for several
  * - `inline`:  the stylesheet in a `<style>` in the page, rather than a file beside it
@@ -436,22 +395,6 @@ export class CliError extends Error {
     super(message)
     this.exitCode = exitCode
   }
-}
-
-/**
- * `spell dev shared` flags.
- * - `json`:  `status` prints the data as JSON
- * - `import`:  `init` copies this checkout's folders into the new shared repo
- * - `all`:  `link` links every checkout, not just this one
- * - `session`:  `commit`'s `Session:` trailer;  `quiet`:  `commit` prints nothing (the `Stop` hook)
- * - `dryRun`:  `migrate` says what it would do, and changes nothing
- */
-export type SharedOptions = GlobalOptions & {
-  json?: boolean
-  import?: boolean
-  session?: string
-  quiet?: boolean
-  dryRun?: boolean
 }
 
 /**

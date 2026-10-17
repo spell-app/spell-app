@@ -1,8 +1,8 @@
 /**
  * Lets a Claude Code session (or any script it runs) talk to ITS OWN VS Code window:  add or remove a folder
  * (a worktree), show a doc in a side bar doc view, close the session's tab;  or to a worktree's window
- * (`spell dev window open`):  open the session there, close the window.  The client is the repo root's
- * `scripts/window.mjs` (`spell dev window`).
+ * (`epic window open`):  open the session there, close the window.  The client is the repo root's
+ * `scripts/window.mjs` (`epic window`).
  * - Why not a `vscode://` URI:  macOS hands it to whichever window is FOCUSED, often not the session's.
  * - How a session finds its window:  by PID.  A session's process tree is `claude` -> `Code Helper (Plugin)` (the
  *   window's EXTENSION HOST, one per window) -> `Code`, and this code runs in that extension host.  So
@@ -24,7 +24,7 @@
  *   - `open-session { sessionId?, prompt? }`:  open Claude Code session `sessionId` in an editor tab (never the
  *     sidebar), `prompt` typed into its input (not sent:  Owen presses enter);  `/isolate` hands its session to
  *     the worktree's window this way.  No `sessionId`:  a NEW session (`/epic <name>` from another epic's
- *     session starts its own this way:  `spell dev window launch`)
+ *     session starts its own this way:  `epic window launch`)
  *   - `close-session-tab { titles }`:  close the ONE Claude Code tab labelled with the first of `titles` that
  *     exactly one tab shows;  none (or only several-tab matches):  ok, `closed: false`, `matches` per title.
  *     Closing the tab ends that tab's `claude` process.  (`{ title }`, one title, still works.)
@@ -204,7 +204,7 @@ export class WindowBridge {
         setTimeout(() => void vscode.commands.executeCommand("workbench.action.closeWindow"), 200)
         return { closing: true }
       case "open-session": {
-        // no `sessionId`:  a NEW session (`spell dev window launch`)
+        // no `sessionId`:  a NEW session (`epic window launch`)
         const sessionId = body.sessionId === undefined ? undefined : String(body.sessionId)
         if (sessionId !== undefined && !SESSION_ID.test(sessionId)) {
           throw new BridgeError(400, `bad session id '${sessionId}'`)

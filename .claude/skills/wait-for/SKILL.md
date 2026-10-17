@@ -11,8 +11,8 @@ Another session is changing things this one depends on (e.g. moving packages).
 - Parking and resuming are [the park skill](.claude/skills/park/SKILL.md)'s:  read it.
 
 - Commands, from the repo root or a worktree:
-  - `spell dev worktree status <name>`
-  - `spell dev park candidates|wait`
+  - `epic worktree status <name>`
+  - `epic park candidates|wait`
 - Finished, any of:
   - `<name>`'s branch merged into `main`
   - its worktree removed
@@ -22,13 +22,13 @@ Another session is changing things this one depends on (e.g. moving packages).
 
 ## 1. Which one
 
-- `$ARGUMENTS` is `?` (or empty):  `spell dev park candidates`.
+- `$ARGUMENTS` is `?` (or empty):  `epic park candidates`.
   - none:  say so, and stop
   - else AskUserQuestion "Wait for which?", one option per candidate
     - labelled with its `name`, described by its `label`
     - 4 per question;  more in extra questions, or Owen types a name in "Other"
 - Else `<name>` is `$ARGUMENTS`.
-  - `spell dev worktree status <name>` gives nothing (no `worktree`, `branch`, `plan` or `sessions`):
+  - `epic worktree status <name>` gives nothing (no `worktree`, `branch`, `plan` or `sessions`):
     say so, and offer `/wait-for ?`.
 - `<name>` is this session's own worktree:  say so, and stop.
 
@@ -44,9 +44,9 @@ Another session is changing things this one depends on (e.g. moving packages).
 
 ## 3. Wait
 
-1. `spell dev worktree status <name>` already `finished`:  say why in one line, then step 4.
+1. `epic worktree status <name>` already `finished`:  say why in one line, then step 4.
 2. Else `Bash`, with `run_in_background: true`, `timeout: 7200000`:
-   `spell dev park wait <name>` (checks every 60s;  gives up after ~2h).
+   `epic park wait <name>` (checks every 60s;  gives up after ~2h).
 3. One line:
    "parked `<this>`;  waiting for `<name>` (checks every minute);  resumes on its own when it's <merged / done / ...>".
    - End the turn:  the poll's exit wakes this session.

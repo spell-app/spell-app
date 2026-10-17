@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * `spell dev window <command>`:  the VS Code windows Owen works in, one per package.
+ * `epic window <command>`:  the VS Code windows Owen works in, one per package.
  *
  * ## Window files
  * - `workspaces/<pkg>.code-workspace`:  open a package's window from it (`code workspaces/ui.code-workspace`).
@@ -127,8 +127,14 @@ import { fileURLToPath, pathToFileURL } from "node:url"
 
 import { EpicConfig } from "../packages/epics/src/config/EpicConfig.ts"
 
-/** The repo root:  a worktree's own, when run from one. */
-const ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
+/**
+ * The repo root:  a worktree's own, when run from one.
+ * - `EPIC_CHECKOUT` when set:  `epic window` runs ONE copy of this script (its own) for the caller's checkout, and
+ *   says which (`EpicTools.run()`, epic `epic-eject` P5)
+ */
+const ROOT = process.env.EPIC_CHECKOUT
+  ? resolve(process.env.EPIC_CHECKOUT)
+  : dirname(dirname(fileURLToPath(import.meta.url)))
 
 /** The repo's `.epic/config.json5`, the MAIN checkout's:  its folders and window names. */
 const CONFIG = EpicConfig.of(ROOT)
@@ -701,7 +707,7 @@ export class Window {
     return reply
   }
 
-  /** `spell dev window <argv>`:  run one command;  resolves to the exit code. */
+  /** `epic window <argv>`:  run one command;  resolves to the exit code. */
   static async main(argv) {
     const { positional, flags } = parseArgs(argv)
     const [command, target] = positional
@@ -881,7 +887,7 @@ const COMMANDS = [
 ]
 
 /** Usage, printed for a bad command. */
-const USAGE = `usage:  spell dev window <command>
+const USAGE = `usage:  epic window <command>
   init                         write each package's missing workspaces/<pkg>.code-workspace, and bring
                                every window file up to date (folders, files.exclude;  theme kept)
   which                        this session's VS Code window:  pid, workspace file, folders

@@ -15,7 +15,7 @@ Owen runs several epics at once:  one screen saying where each stands.
   - So any checkout lists every epic, and there's no "worktree copy" to prefer.
 - An epic's worktree and branch are both `<name>` (`.claude/worktrees/<name>`).
   It may have none:  planned on `main`, or merged and removed.
-- A worktree cut before 2026-10-04 that hasn't run `spell dev shared migrate <name>` still has its own old copy
+- A worktree cut before 2026-10-04 that hasn't run `epic shared migrate <name>` still has its own old copy
   (`packages/docs/epics/<name>/`).
   `epic` reads that one for it.
 
@@ -29,7 +29,7 @@ Owen runs several epics at once:  one screen saying where each stands.
        - `done`:  else
        - `future`:  written down with `/epic future`, not planned yet ([the epic skill](.claude/skills/epic/SKILL.md), "9. Future")
      - `checkout`:  where it runs:  `main`, or `.claude/worktrees/<name>`
-   - `spell dev worktree list --json`:  `{ sessions[] }`.
+   - `epic worktree list --json`:  `{ sessions[] }`.
      - Each with `name`, `branch`, `checkout`, `state` (`busy`, `waiting`, `idle` ...), `question`, `id`.
 2. Keep the open ones (`/epics all`:  every one):
    `in progress`, `future`, or `done` with a worktree whose branch has work not in `main`.
@@ -39,7 +39,7 @@ Owen runs several epics at once:  one screen saying where each stands.
      - Each summary has `phases[]` (`n`, `name`, `status`), `active`, `next`, and `open` (items by kind).
      - And `bedtime`:  the phases a `/bedtime` run is on, while it goes.
    - a worktree epic:
-     - `spell dev worktree status <name>`:  `ahead`, `merged`
+     - `epic worktree status <name>`:  `ahead`, `merged`
      - `git -C .claude/worktrees/<name> status --short`:  uncommitted files
      - a `PARKED-<name>.md` at its root (`/park`)
    - its sessions:  the ones whose `branch` or `name` is `<name>`

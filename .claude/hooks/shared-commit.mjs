@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Claude Code's `Stop` hook (`.claude/settings.json`):  after every turn, commit whatever changed in the shared
- * content repo (epic `shared-content`):  `spell dev shared commit`, run in the session's checkout.
+ * content repo (epic `shared-content`):  `epic shared commit`, run in the session's checkout.
  * - stdin `{ session_id, cwd, ... }`.  Exits at once when the shared repo doesn't exist (before the cutover, or a
  *   fresh clone without it).
  * - The commit runs DETACHED, its output appended to `<shared repo>/.git/spell-shared.log`:  the turn never waits
@@ -22,7 +22,8 @@ try {
   const dir = config.contentFolder
   if (existsSync(join(dir, ".git"))) {
     const log = openSync(join(dir, ".git", "spell-shared.log"), "a")
-    const args = [join(main, "packages/cli/bin/spell.mjs"), "dev", "shared", "commit", "--quiet"]
+    // the MAIN checkout's `epic`:  it has its packages installed, whichever checkout's turn ended
+    const args = [join(main, "packages/cli/bin/epic.mjs"), "shared", "commit", "--quiet"]
     if (session) args.push("--session", session)
     spawn(process.execPath, args, { cwd: cwd ?? main, detached: true, stdio: ["ignore", log, log] }).unref()
   }

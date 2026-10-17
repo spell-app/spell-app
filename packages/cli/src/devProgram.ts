@@ -3,15 +3,18 @@
  * the commander tree both entries build:  `main.ts` (so `spell --help` lists `dev`) and the lean `devMain.ts`.
  * - The plan for them, and every command the repo has:  `guides/dev/commands/commands.html`
  * - Each finds the nearest checkout from the current folder (`findCheckout()`), so it works in a worktree
- * - Two kinds:
- *   - pass-throughs (`docs`, `design`, `server`, `window`, `vscode`):  a repo tool run with its arguments verbatim,
+ * - Kinds:
+ *   - pass-throughs (`docs`, `design`, `server`, `vscode`):  a repo tool run with its arguments verbatim,
  *     `(args) => Promise<exitCode>`;  this file imports them directly, so they load no spell
- *   - the epic tools' OLD spellings (`plan-doc`, `details`, `choices`, `comments`, `notes`, `agents`, `airplane`):
- *     pass-throughs too, hidden from `spell dev --help`;  the `epic` command has them now (`epicProgram.ts`), and
- *     these run the same tools, unchanged, until no caller is left
+ *   - the epic verbs' OLD spellings, hidden from `spell dev --help`:  the `epic` command has them now
+ *     (`$/epics/command/`), and these run the same code, the epic code's, until no caller is left
+ *     - `plan-doc`:  the `epic` tool in its own order (`EpicTools.planDoc()`)
+ *     - `details` (`epic ask`), `choices`, `comments`, `notes`, `agents`, `airplane`, `window`:  its tools
+ *       (`EpicTools.run()`)
+ *     - `session`, `worktree`, `park`, `stock`, `shared` (epic `epic-eject` P5):  its classes
  *   - lean commands of our own (`pack`, `bundles`):
  *     `(args, options) => Promise<exitCode>`, imported directly the same way
- *   - the rest (`commands`, `session` ...):  `$/cli` commands, which load spell (`CliSession`);
+ *   - the rest (`commands`, `wwod`):  `$/cli` commands, which load spell (`CliSession`);
  *     run through the `runBarrel` each entry passes in
  * - NOTE: `commandsCommand` reads the `dev.command(...)` calls in this file's TEXT:  keep the receiver named `dev`
  * - NOT in the barrel:  it's how the entries start, and must stay importable without it.
@@ -20,22 +23,21 @@ import chalk from "chalk"
 import { Command } from "commander"
 
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
+import { EpicCommandError } from "$/epics/command/command.types"
+import { EpicTools, type EpicToolName } from "$/epics/command/EpicTools"
+import { Parking } from "$/epics/command/Parking"
+import { Sessions } from "$/epics/command/Sessions"
+import { Shared } from "$/epics/command/Shared"
+import { Stock } from "$/epics/command/Stock"
+import { Worktrees } from "$/epics/command/Worktrees"
 import { CliError, EXIT, type BundlesOptions, type GlobalOptions, type PackOptions } from "$/cli/cli.types"
 import { DESIGN_VERBS, DOCS_VERBS } from "$/cli/dev/passThrough"
-import { agentsCommand } from "$/cli/commands/agentsCommand"
-import { airplaneCommand } from "$/cli/commands/airplaneCommand"
 import { BUNDLES_VERBS, bundlesCommand } from "$/cli/commands/bundlesCommand"
 import { designCommand } from "$/cli/commands/designCommand"
-import { choicesCommand } from "$/cli/commands/choicesCommand"
-import { detailsCommand } from "$/cli/commands/detailsCommand"
 import { docsCommand } from "$/cli/commands/docsCommand"
-import { notesCommand } from "$/cli/commands/notesCommand"
-import { commentsCommand } from "$/cli/commands/commentsCommand"
 import { PACK_VERBS, packCommand } from "$/cli/commands/packCommand"
-import { planDocCommand } from "$/cli/commands/planDocCommand"
 import { serverCommand } from "$/cli/commands/serverCommand"
 import { vscodeCommand } from "$/cli/commands/vscodeCommand"
-import { windowCommand } from "$/cli/commands/windowCommand"
 
 /** The `spell` program, with the options every command takes:  each entry adds its commands. */
 export function spellProgram(): Command {
@@ -56,7 +58,7 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .addHelpText("after", MOVED_HELP)
 
   ////////////////
-  // ## The epic tools' old spellings:  `epic` has them now
+  // ## The epic verbs' old spellings:  `epic` has them now
   ////////////////
 
   dev
@@ -66,7 +68,7 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .allowUnknownOption()
     .helpOption(false)
     // everything after `plan-doc`, raw:  its `--goal` / `--estimate` ... are the tool's, not ours
-    .action(() => runLean(planDocCommand, rawArgs("plan-doc")))
+    .action(() => runLean(EpicTools.planDoc, rawArgs("plan-doc")))
 
   // goals is PARKED (epic `epic-workflow` P6):  its tool is in `packages/goals.zip`, rebuilt by epic `epic-goals`
   dev
@@ -81,60 +83,25 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
       process.exit(!args.length || args[0] === "help" ? EXIT.OK : EXIT.ERRORS)
     })
 
-  dev
-    .command("details", { hidden: true })
-    .description("old spelling of `epic ask`:  details pages in VS Code's side bar, and the answers on them")
-    .argument("[args...]", "a details command and its arguments")
-    .allowUnknownOption()
-    .helpOption(false)
-    .action(() => runLean(detailsCommand, rawArgs("details")))
+  oldTool(dev.command("details", { hidden: true }), "details", "epic ask:  details pages, and the answers on them")
+  oldTool(dev.command("choices", { hidden: true }), "choices", "epic choices:  choice pages, Owen's call on each name")
+  oldTool(dev.command("notes", { hidden: true }), "notes", "epic notes:  page notes Owen left on docs pages")
+  oldTool(dev.command("comments", { hidden: true }), "comments", "epic comments:  comments Owen leaves on docs pages")
+  oldTool(dev.command("agents", { hidden: true }), "agents", "epic agents:  the running-agents list")
+  oldTool(dev.command("airplane", { hidden: true }), "airplane", "epic airplane:  airplane mode")
+  oldTool(dev.command("window", { hidden: true }), "window", "epic window:  VS Code windows per package and worktree")
 
-  dev
-    .command("choices", { hidden: true })
-    .description("old spelling of `epic choices`:  choice pages, Owen's call on each name")
-    .argument("[args...]", "a choices command and its arguments")
-    .allowUnknownOption()
-    .helpOption(false)
-    .action(() => runLean(choicesCommand, rawArgs("choices")))
-
-  dev
-    .command("notes", { hidden: true })
-    .description("old spelling of `epic notes`:  page notes Owen leaves on docs pages")
-    .argument("[verb]", "list (default) [--all] [--json] | answer <page> <id> --file <html> | done <page> <id>")
-    .argument("[args...]", "the verb's arguments, e.g. answer guides/x.html n3 --file reply.html")
-    .allowUnknownOption()
-    .helpOption(false)
-    .action(() => runLean(notesCommand, rawArgs("notes")))
-
-  dev
-    .command("comments", { hidden: true })
-    .description("old spelling of `epic comments`:  comments Owen leaves on docs pages' blocks")
-    .argument(
-      "[verb]",
-      "list (default) [--all] [--json] | gather [<page>... | --all] [--epic <name>] [--json] | working | answer"
-    )
-    .argument("[args...]", "the verb's arguments, e.g. answer guides/x.html#M3 --file reply.html")
-    .allowUnknownOption()
-    .helpOption(false)
-    .action(() => runLean(commentsCommand, rawArgs("comments")))
-
-  dev
-    .command("agents", { hidden: true })
-    .description("old spelling of `epic agents`:  the running-agents list of this epic (else checkout)")
-    .argument("[verb]", "list (default) [--json] | add <name> <task> | set <name> | done <name> | wait | told <name>")
-    .argument("[args...]", 'the verb\'s arguments, e.g. add aaa "docstrings in string.ts"')
-    .allowUnknownOption()
-    .helpOption(false)
-    .action(() => runLean(agentsCommand, rawArgs("agents")))
-
-  dev
-    .command("airplane", { hidden: true })
-    .description("old spelling of `epic airplane`:  airplane mode, everything queued for /airplane land")
-    .argument("[verb]", "status (default) [--json] | on | off | check [--fix] [--json] | inbox [--json]")
-    .argument("[args...]", "the verb's flags")
-    .allowUnknownOption()
-    .helpOption(false)
-    .action(() => runLean(airplaneCommand, rawArgs("airplane")))
+  oldVerbs(dev.command("session", { hidden: true }), "epic session:  Claude Code sessions", (args) =>
+    new Sessions().run(args)
+  )
+  oldVerbs(
+    dev.command("worktree", { hidden: true }),
+    "epic worktree:  git worktrees and the sessions in them",
+    (args) => new Worktrees().run(args)
+  )
+  oldVerbs(dev.command("park", { hidden: true }), "epic park:  parked work", (args) => new Parking().run(args))
+  oldVerbs(dev.command("stock", { hidden: true }), "epic stock:  take stock", (args) => new Stock().run(args))
+  oldVerbs(dev.command("shared", { hidden: true }), "epic shared:  shared content", (args) => new Shared().run(args))
 
   ////////////////
   // ## Pass-throughs
@@ -170,14 +137,6 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .allowUnknownOption()
     .helpOption(false)
     .action(() => runLean(serverCommand, rawArgs("server")))
-
-  dev
-    .command("window")
-    .description("VS Code windows per package and worktree:  open, close, handoff, show ... (scripts/window.mjs)")
-    .argument("[args...]", "a window command and its arguments, e.g. open <name>")
-    .allowUnknownOption()
-    .helpOption(false)
-    .action(() => runLean(windowCommand, rawArgs("window")))
 
   dev
     .command("pack")
@@ -229,84 +188,6 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     )
 
   dev
-    .command("session")
-    .description(
-      "Claude Code sessions:  list, find, open in VS Code, title this one, mark finished ones ✅, digest a transcript"
-    )
-    .argument(
-      "[verb]",
-      "list (default) [words...] | find <name> | open <id|title> | title [title] | done [name] | icons | window [pid] | transcript <id>"
-    )
-    .argument("[args...]", "the verb's arguments")
-    .option("--limit <n>", "list:  at most this many (default 15)")
-    .option("--json", "list, find, transcript:  print the data as JSON")
-    .option("--dry-run", "icons:  say what it would retitle, retitle nothing")
-    .action((verb: string | undefined, args: string[], _options, command) =>
-      runBarrel("sessionCommand", verb ? [verb, ...args] : [], command.optsWithGlobals())
-    )
-
-  dev
-    .command("worktree")
-    .description(
-      "git worktrees:  list the live sessions and where they work, or where a worktree / plan / session stands"
-    )
-    .argument("[verb]", "list (default) | status <name> | merge-main [--continue]")
-    .argument("[name]", "status:  a worktree, branch, epic page or session name")
-    .option("--json", "list, merge-main:  print the data as JSON")
-    .option("--continue", "merge-main:  finish a merge it stopped on other conflicts, once they're resolved and added")
-    .action((verb: string | undefined, name: string | undefined, _options, command) =>
-      runBarrel(
-        "worktreeCommand",
-        [verb, name].filter((it) => it !== undefined),
-        command.optsWithGlobals()
-      )
-    )
-
-  dev
-    .command("park")
-    .description("parked work:  list the PARKED notes, what /wait-for could wait on, or wait for a name to finish")
-    .argument("<verb>", "list | candidates | wait <name>")
-    .argument("[name]", "wait:  a worktree, branch, epic page or session name")
-    .option("--every <seconds>", "wait:  poll this often (default 60)")
-    .option("--max <seconds>", "wait:  give up after this long, exiting 2 (default 7140)")
-    .action((verb: string, name: string | undefined, _options, command) =>
-      runBarrel(
-        "parkCommand",
-        [verb, name].filter((it) => it !== undefined),
-        command.optsWithGlobals()
-      )
-    )
-
-  dev
-    .command("stock")
-    .description("take stock:  worktrees, branches, sessions, parked work, plans -- in process, hung or parked, dead")
-    .option("--json", "print the report as JSON, with each action's shell lines")
-    .action((_options, command) => runBarrel("stockCommand", [], command.optsWithGlobals()))
-
-  dev
-    .command("shared")
-    .description(
-      "shared content:  docs pages, saga sets and logs in one repo beside the checkout, linked into every one"
-    )
-    .argument(
-      "[verb]",
-      "status (default) | init [--import] | link [--all] | commit [--session <id>] | migrate <worktree> [--dry-run] | repair [--dry-run]"
-    )
-    .argument("[name]", "migrate:  the worktree")
-    .option("--json", "status, migrate, repair:  print the data as JSON")
-    .option("--import", "init:  copy this checkout's folders into the new shared repo")
-    .option("--session <id>", "commit:  the Claude Code session, for the commit's trailer")
-    .option("--quiet", "commit:  print nothing")
-    .option("--dry-run", "migrate, repair:  say what it would do, change nothing")
-    .action((verb: string | undefined, name: string | undefined, _options, command) =>
-      runBarrel(
-        "sharedCommand",
-        [verb, name].filter((it) => it !== undefined),
-        command.optsWithGlobals()
-      )
-    )
-
-  dev
     .command("wwod")
     .description(
       "WWOD, the agents' rules:  check every citation and repo path in WWOD, AGENTS.md, CLAUDE.md and skills"
@@ -323,19 +204,50 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
 
 /**
  * Run pass-through `command` for `args`, then exit with the code it returns.
- * - A `CliError` prints just its message;  anything else is a crash, and prints its stack.
- * - Used for the `epic` command's verbs too (`epicProgram.ts`).
+ * - A `CliError` (or the epic code's `EpicCommandError`) prints just its message;  anything else is a crash, and
+ *   prints its stack.
  */
 export async function runLean(command: (args: string[]) => Promise<number>, args: string[]): Promise<never> {
   let exitCode: number
   try {
     exitCode = await command(args)
   } catch (error) {
-    const isCliError = error instanceof CliError
-    process.stderr.write(`${chalk.red(isCliError ? error.message : ((error as Error)?.stack ?? String(error)))}\n`)
-    exitCode = isCliError ? error.exitCode : EXIT.ERRORS
+    const known = error instanceof CliError || error instanceof EpicCommandError
+    process.stderr.write(`${chalk.red(known ? error.message : ((error as Error)?.stack ?? String(error)))}\n`)
+    exitCode = known ? error.exitCode : EXIT.ERRORS
   }
+  // let stdout drain first, e.g. into a pipe, or `process.exit()` cuts it short
+  await new Promise<void>((done) => process.stdout.write("", () => done()))
   process.exit(exitCode)
+}
+
+/**
+ * Make `command` the old spelling of an epic tool, `spell dev <noun>`:  the epic code's tool `tool` (`EpicTools`),
+ * its arguments verbatim;  hidden.
+ * - `description`:  where it went, `epic ask:  ...`
+ */
+function oldTool(command: Command, tool: EpicToolName, description: string): Command {
+  const noun = command.name()
+  return command
+    .description(`old spelling of ${description}`)
+    .argument("[args...]", "the tool's command and its arguments")
+    .allowUnknownOption()
+    .helpOption(false)
+    .action(() => runLean((args) => EpicTools.run(tool, args), rawArgs(noun)))
+}
+
+/**
+ * Make `command` the old spelling of an epic verb group, `spell dev <noun>`:  the epic code's class, run with the
+ * arguments verbatim (`run`);  hidden.  Its flags are the class's to read, as the `epic` command passes them.
+ */
+function oldVerbs(command: Command, description: string, run: (args: string[]) => Promise<number>): Command {
+  const noun = command.name()
+  return command
+    .description(`old spelling of ${description}`)
+    .argument("[args...]", "the verb and its arguments")
+    .allowUnknownOption()
+    .helpOption(false)
+    .action(() => runLean(run, rawArgs(noun)))
 }
 
 /**
@@ -350,7 +262,8 @@ export function rawArgs(noun: string): string[] {
 /** After `spell dev --help`'s nouns:  where the epic tools went. */
 const MOVED_HELP = `
 The epic tools moved to their own command, \`epic\` (epic --help):  plan-doc, details (now epic ask), choices,
-comments, notes, agents, airplane.  Their old spellings here still work, e.g. spell dev plan-doc summary seo.`
+comments, notes, agents, airplane;  and window, session, worktree, park, stock, shared (epic epic-eject P5).
+Their old spellings here still work, e.g. spell dev plan-doc summary seo, spell dev worktree list.`
 
 /** What `spell dev goals` says while goals is parked (epic `epic-workflow` P6, Owen 2026-10-11). */
 const GOALS_PARKED =
@@ -358,14 +271,7 @@ const GOALS_PARKED =
   "was);  epic epic-goals rebuilds it on the epic tools.  The saga pages still show, read only."
 
 /** A `$/cli` command `spell dev` runs by name:  each loads the whole barrel, spell included. */
-export type BarrelCommand =
-  | "commandsCommand"
-  | "sessionCommand"
-  | "worktreeCommand"
-  | "parkCommand"
-  | "stockCommand"
-  | "sharedCommand"
-  | "wwodCommand"
+export type BarrelCommand = "commandsCommand" | "wwodCommand"
 
 /** Runs `$/cli` command `name` for `args`, then exits with its code. */
 export type RunBarrel = (name: BarrelCommand, args: string[], options: GlobalOptions) => Promise<never>

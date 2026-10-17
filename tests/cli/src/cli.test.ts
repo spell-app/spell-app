@@ -199,9 +199,29 @@ describe("epic", () => {
     expect(spell(["dev", "plan-doc", "summary", "unified-server"]).stdout).toMatch(/^Unified Server\n/)
   })
 
-  test("a verb that needs spell (home) is handed to main.ts, and still answers", () => {
+  test("home, and every other verb, answers in the lean program (no hand-over to main.ts since epic-eject P5)", () => {
     const { status } = epic(["home"])
     expect(status).toBe(0)
+  })
+
+  // epic `epic-eject` P5:  the verbs that were `spell dev window | worktree | park | session | stock | shared`
+  test("worktree, session, park, shared, window, server:  their own headings, and their verbs' help", () => {
+    const { stdout } = epic(["--help"])
+    for (const heading of ["Worktrees, sessions and parked work:", "Shared content:", "Windows and the page server:"])
+      expect(stdout).toContain(heading)
+    for (const verb of ["worktree", "session", "park", "stock", "shared", "window", "server"])
+      expect(stdout).toMatch(new RegExp(`^ {2}${verb} `, "m"))
+    expect(epic(["worktree", "merge-main", "--help"]).stdout).toMatch(/^Usage: epic worktree merge-main \[--continue\]/)
+    const bogus = epic(["session", "bogus"])
+    expect(bogus.status).toBe(1)
+    expect(bogus.stderr).toContain("epic session bogus?  no such verb.")
+  })
+
+  test("worktree status:  where a name stands, as JSON;  --version:  which code runs", () => {
+    const { status, stdout } = epic(["worktree", "status", "no-such-name-at-all"])
+    expect(status).toBe(0)
+    expect(JSON.parse(stdout)).toMatchObject({ name: "no-such-name-at-all", branch: null, finished: false })
+    expect(epic(["--version"]).stdout).toMatch(/^epic [0-9a-f]+ \(.*\) \//)
   })
 })
 
@@ -209,11 +229,14 @@ describe("spell dev", () => {
   test("--help lists the plumbing, the pass-throughs too, and points to epic for the epic tools", () => {
     const { status, stdout } = spell(["dev", "--help"])
     expect(status).toBe(0)
-    for (const noun of ["docs", "server", "window", "vscode", "commands", "session"]) {
+    for (const noun of ["docs", "server", "vscode", "commands", "wwod"]) {
       expect(stdout).toMatch(new RegExp(`^ {2}${noun} `, "m"))
     }
     // the old spellings still run, but aren't listed
-    for (const noun of ["plan-doc", "goals", "details", "choices", "comments", "notes", "agents", "airplane"]) {
+    const moved = ["plan-doc", "goals", "details", "choices", "comments", "notes", "agents", "airplane"]
+    // epic `epic-eject` P5
+    moved.push("window", "session", "worktree", "park", "stock", "shared")
+    for (const noun of moved) {
       expect(stdout).not.toMatch(new RegExp(`^ {2}${noun} `, "m"))
     }
     expect(stdout).toContain("The epic tools moved to their own command, `epic` (epic --help)")
@@ -224,6 +247,15 @@ describe("spell dev", () => {
     expect(stdout).toMatch(/^ {2}dev /m)
     expect(stdout).toMatch(/^ {2}epic .*moved to their own command/m)
     expect(stdout).not.toMatch(/^ {2}plan-doc /m)
+  })
+
+  test("the epic verbs' old spellings run the epic code:  spell dev worktree status, spell dev session bogus", () => {
+    const { status, stdout } = spell(["dev", "worktree", "status", "no-such-name-at-all"], REPO_ROOT)
+    expect(status).toBe(0)
+    expect(JSON.parse(stdout)).toMatchObject({ name: "no-such-name-at-all", worktree: null })
+    const bogus = spell(["dev", "session", "bogus"])
+    expect(bogus.status).toBe(2)
+    expect(bogus.stderr).toContain("unknown verb 'bogus':  list, find, open, title")
   })
 
   test("a command that loads spell runs through main.ts, as before", () => {
@@ -245,6 +277,7 @@ describe("spell dev", () => {
 })
 
 describe("spell dev pass-throughs", () => {
+  // the epic tools (`window`, `details` ...) run the epic code's own copy:  `EpicTools.test.ts`, in tests/epics
   /** A fake checkout, each tool a script reporting what it got:  `{ tool, args, cwd, tsconfig }`, exiting 3. */
   const CHECKOUT = resolve(TEMP, "checkout")
   /** A folder inside it, to run from:  the tools must still be found. */
@@ -254,15 +287,10 @@ describe("spell dev pass-throughs", () => {
 process.exit(3)
 `
     for (const tool of [
-      "scripts/window.mjs",
       "scripts/serve.mjs",
       "packages/epics/tools/open.js",
       "packages/epics/tools/link.ts",
       "packages/epics/tools/fuss.ts",
-      "packages/epics/tools/details.js",
-      "packages/epics/tools/choices.js",
-      "packages/epics/tools/notes.ts",
-      "packages/epics/tools/comments.ts",
       "packages/server/src/page/cli.ts"
     ]) {
       mkdirSync(resolve(CHECKOUT, tool, ".."), { recursive: true })
@@ -279,14 +307,6 @@ process.exit(3)
     return { status, stderr, ...(stdout ? JSON.parse(stdout) : {}) }
   }
 
-  test("window:  the nearest checkout's script, args verbatim, in this folder, its exit code", () => {
-    // a checkout with no node_modules, as a worktree before its `yarn install`
-    const run = passThrough(["window", "open", "x", "--all", "--json"])
-    expect(run).toMatchObject({ status: 3, tool: "scripts/window.mjs", args: ["open", "x", "--all", "--json"] })
-    expect(realpathSync(run.cwd)).toBe(INSIDE)
-    expect(run.tsconfig).toBeUndefined()
-  })
-
   test("docs <verb>:  its tool, in packages/epics as yarn ran it;  open and link under tsx", () => {
     const open = passThrough(["docs", "open", "solid/solid-2", "--vs"])
     expect(open).toMatchObject({ status: 3, tool: "packages/epics/tools/open.js", args: ["solid/solid-2", "--vs"] })
@@ -302,50 +322,6 @@ process.exit(3)
     expect(fuss).toMatchObject({ status: 3, tool: "packages/epics/tools/fuss.ts", args: ["src", "--json"] })
     expect(realpathSync(fuss.cwd)).toBe(INSIDE)
     expect(fuss.tsconfig).toBe(resolve(CHECKOUT, "packages/epics/tsconfig.json"))
-  })
-
-  test("details, choices", () => {
-    expect(passThrough(["details", "list"])).toMatchObject({ status: 3, tool: "packages/epics/tools/details.js" })
-    const choices = passThrough(["choices", "new", "x", "--rows", "r.json"])
-    expect(choices).toMatchObject({
-      status: 3,
-      tool: "packages/epics/tools/choices.js",
-      args: ["new", "x", "--rows", "r.json"]
-    })
-    expect(realpathSync(choices.cwd)).toBe(resolve(CHECKOUT, "packages/epics"))
-  })
-
-  test("epic's groups pass through the same:  ask (details pages), choices, comments and notes list <epic>", () => {
-    const run = (args: string[]) => {
-      const { status, stdout } = epic(args, INSIDE)
-      return { status, ...(stdout ? JSON.parse(stdout) : {}) }
-    }
-    expect(run(["ask", "list"])).toMatchObject({ status: 3, tool: "packages/epics/tools/details.js", args: ["list"] })
-    for (const [group, tool] of [
-      ["ask", "details.js"],
-      ["choices", "choices.js"],
-      ["comments", "comments.ts"],
-      ["notes", "notes.ts"]
-    ]) {
-      expect(run([group!, "list", "seo"])).toMatchObject({
-        tool: `packages/epics/tools/${tool}`,
-        args: ["list", "seo"]
-      })
-    }
-    // no verb, or one after a flag the tool takes:  the tool's to read
-    expect(run(["comments", "--json"])).toMatchObject({ status: 3, args: ["--json"] })
-    expect(run(["notes", "done", "guides/x.html#n3"])).toMatchObject({ args: ["done", "guides/x.html#n3"] })
-  })
-
-  test("notes:  under tsx, in THIS folder, so `answer --file` is from here", () => {
-    const notes = passThrough(["notes", "answer", "guides/x.html", "n3", "--file", "reply.html"])
-    expect(notes).toMatchObject({
-      status: 3,
-      tool: "packages/epics/tools/notes.ts",
-      args: ["answer", "guides/x.html", "n3", "--file", "reply.html"]
-    })
-    expect(realpathSync(notes.cwd)).toBe(INSIDE)
-    expect(notes.tsconfig).toBe(resolve(CHECKOUT, "packages/epics/tsconfig.json"))
   })
 
   test("server <verb>:  the page server's cli, under tsx;  start --all:  serve.mjs", () => {

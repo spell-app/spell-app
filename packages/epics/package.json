@@ -33,6 +33,8 @@
   "dependencies": {
     "@spell-app/assembler": "workspace:*",
     "@spell-app/server": "workspace:*",
+    "chalk": "^5.6.0",
+    "commander": "^14",
     "json5": "^2.1.1",
     "linkedom": "^0.18.13"
   },

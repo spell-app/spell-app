@@ -203,7 +203,8 @@ export class MigrateCommands {
     const { files } = this
     const run = spawnSync(process.execPath, [join(files.docsTools, "migrate.js"), "--root", files.root, ...args], {
       cwd: files.docsPackage,
-      encoding: "utf8"
+      encoding: "utf8",
+      env: files.toolEnv
     })
     for (const line of (run.stdout ?? "").split("\n").filter(Boolean)) this.owner.print(line)
     for (const line of (run.stderr ?? "").split("\n").filter(Boolean)) this.owner.warn(line)

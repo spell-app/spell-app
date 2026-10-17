@@ -277,7 +277,7 @@ function solidVersion(root: string): string {
  * - `vitest.config.ts`:  the pack's `node` + `browser` projects (`SPECIAL`)
  * - `vite.lint.ts`:  `components/__pack/` out of lint and format
  * - `.gitattributes`:  `components/__pack/**` generated, `merge=binary -diff`
- * - `packages/cli/src/dev/mergeMain.ts`:  a `GENERATORS` entry, `yarn pack:build`
+ * - `packages/epics/src/command/MainMerge.ts`:  a `GENERATORS` entry, `yarn pack:build`
  * - `guides/dev/commands/commands.json5` (shared):  the pack's yarn scripts in the commands page's rows
  *   - a data file (`DataFile`, epic `epic-workflow` P21):  its old `commands.json` read while there's no `.json5`,
  *     and written as the `.json5`, its comments kept
@@ -397,12 +397,12 @@ function wiringSteps(pack: PackInfo): WiringStep[] {
       }
     },
     {
-      file: "packages/cli/src/dev/mergeMain.ts",
+      file: "packages/epics/src/command/MainMerge.ts",
       what: `GENERATORS:  ${name} pack`,
       edit: (text) =>
         text.includes(`"packages/${name}/${PACK_FOLDER}/**"`)
           ? undefined
-          : addToList(text, ["export const GENERATORS: Generator[] = ["], [generatorLine(text, name)])
+          : addToList(text, ["static readonly GENERATORS: Generator[] = ["], [generatorLine(text, name)])
     },
     {
       file: COMMANDS_JSON,
@@ -425,7 +425,7 @@ function addOnce(list: string[] | undefined, value: string): number {
  * `GENERATORS`' line for pack `name`, its columns lined up with the table's first one-line entry (`// oxfmt-ignore`).
  */
 function generatorLine(text: string, name: string): string {
-  const sample = /^ *(\{ name: .*?)$/m.exec(text.slice(text.indexOf("export const GENERATORS")))?.[1] ?? ""
+  const sample = /^ *(\{ name: .*?)$/m.exec(text.slice(text.indexOf("static readonly GENERATORS")))?.[1] ?? ""
   const columns = ["outputs:", "cwd:", "run:"].map((field) => sample.indexOf(field))
   const fields = [
     `{ name: ${JSON.stringify(`${name} pack`)},`,

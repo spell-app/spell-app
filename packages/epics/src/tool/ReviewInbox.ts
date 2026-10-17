@@ -956,7 +956,7 @@ export type InboxWoken = { at: string; state: "waking" | WokenState; did: string
  * What a wake did that's worth remembering for the cooldown (`ReviewStart.wake()`):
  * - `typed`:  `/epic review <epic>` typed into the epic's running session
  * - `opened`:  a new session opened in an open window (the epic's worktree's, or a main one), the command typed in
- * - `launched`:  the epic's worktree window opened (`spell dev window launch`), a new session in it, the command typed in
+ * - `launched`:  the epic's worktree window opened (`epic window launch`), a new session in it, the command typed in
  */
 export type WokenState = "typed" | "opened" | "launched"
 

@@ -35,7 +35,7 @@ Airplane mode:  Owen works on the pages ALONE, with no internet and no Claude (e
      - Run it from `main`, never a branch behind it:  it installs into VS Code.
      - Then ask Owen to reload the window (Developer:  Reload Window).
    - `waiting`:  marks already in the inboxes from before:  say which epics;  they'll be gathered at landing too
-2. Running sessions:  `spell dev worktree list`.
+2. Running sessions:  `epic worktree list`.
    - A session mid-work will stall offline:
      list them for Owen, one line each, and ask (modal, multi-select) which to `/park` first.
    - Nothing running:  skip.
@@ -88,8 +88,8 @@ Owen is back online.  Gather everything, work through it in the background, then
      "skip it") aren't.
    - Run it FIRST, while the switch is on:  its `since` is when the flight began, which picks the details answers.
 2. `epic airplane off`.
-2b. Bring every session back online:  `spell dev park list`, each entry still `parked`.
-   - Its session running (`spell dev worktree status <name>`, `running: true`):
+2b. Bring every session back online:  `epic park list`, each entry still `parked`.
+   - Its session running (`epic worktree status <name>`, `running: true`):
      `SendMessage` to it:  "Run `/unpark <name>` (asked by `/airplane land`)."
      This session itself:  unpark it here, as [the unpark skill](.claude/skills/unpark/SKILL.md) says, once the rest is done.
    - Not running:  list it in the reply, with `/session <name>` to reopen it, then `/unpark <name>` there.
@@ -140,7 +140,7 @@ Owen is back online.  Gather everything, work through it in the background, then
    - One option per epic:  its title for the label;  `<name>` and the prompt's first line for the description.
    - 4 per question, up to 4 questions.
      More than 16:  a details page with a `multiple` question instead.
-   - Each picked:  `spell dev window launch <name>`.
+   - Each picked:  `epic window launch <name>`.
      - Its own worktree and window, with a NEW session there, `/epic <name>` typed in.
      - That session plans the future epic where it is:  prompt kept.
      - One line per window.

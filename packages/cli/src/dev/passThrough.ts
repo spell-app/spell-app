@@ -1,10 +1,10 @@
-import { spawn } from "child_process"
-import { constants } from "os"
 import { join } from "path"
 import { pathToFileURL } from "url"
 
+import { EpicTools } from "$/epics/command/EpicTools"
+
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
-import { CliError, EXIT } from "$/cli/cli.types"
+import { CliError } from "$/cli/cli.types"
 import type { ToolSpec } from "$/cli/dev/dev.types"
 import { REPO_ROOT, findCheckout } from "$/cli/findCheckout"
 
@@ -15,20 +15,15 @@ import { REPO_ROOT, findCheckout } from "$/cli/findCheckout"
  * - `docs fuss`:  the writing checker, under `tsx`, in the caller's folder (its paths are from there)
  * - `docs offline`:  what docs pages load from the internet, likewise
  * - `server`:  `packages/server`'s `server` script;  `serve`:  root `yarn serve`, `spell dev server start --all`
- * - `window`:  root `yarn window`;  plain `node`, so it runs in a worktree before its `yarn install`
  * - `design build`:  `packages/ui`'s `design:build`, under `tsx`, in the caller's folder (so `--out` is relative to it)
  * - `design bundle` / `design check`:  `packages/epics`' `design:bundle` (`bundle-spell-ui.js --design`) / `design:check`
  * - `design sync`:  `packages/epics/tools/design.js`, its verb first (`pull`, `changed` ...), in the caller's folder
- * - `agents`:  the running-agents list (`packages/epics/tools/AgentList.ts`), in the caller's folder
- * - `airplane`:  airplane mode and its pre-flight check (`packages/epics/tools/airplane.ts`), in the caller's folder
- * - `notes`:  page notes (`packages/epics/tools/notes.ts`), in the caller's folder (`answer --file` is from there)
- * - `comments`:  comments on docs pages (`packages/epics/tools/comments.ts`), likewise
- * - NOTE: `vscode` runs yarn itself (`vscodeSteps()`);
- *   `plan-doc` runs in this process (`planDocCommand()`, epic `epic-components` P7)
+ * - NOTE: `vscode` runs yarn itself (`vscodeSteps()`)
+ * - NOT here:  the epic tools (`details`, `choices`, `notes`, `comments`, `agents`, `airplane`, `window`), which the
+ *   `epic` command runs from ITS OWN checkout, the caller's being the data (`$/epics/command/EpicTools`, epic
+ *   `epic-eject` P5).  These docs and server tools still run the nearest checkout's copy, as before.
  */
 export const TOOLS = {
-  agents: { tool: "packages/epics/tools/agents.ts", tsx: "packages/epics/tsconfig.json" },
-  airplane: { tool: "packages/epics/tools/airplane.ts", tsx: "packages/epics/tsconfig.json" },
   "docs update": { tool: "packages/epics/tools/update.js", cwd: "packages/epics" },
   "docs index": { tool: "packages/epics/tools/index.js", cwd: "packages/epics" },
   "docs new": { tool: "packages/epics/tools/new-page.js", cwd: "packages/epics" },
@@ -36,17 +31,12 @@ export const TOOLS = {
   "docs link": { tool: "packages/epics/tools/link.ts", tsx: "packages/epics/tsconfig.json", cwd: "packages/epics" },
   "docs fuss": { tool: "packages/epics/tools/fuss.ts", tsx: "packages/epics/tsconfig.json" },
   "docs offline": { tool: "packages/epics/tools/offline.ts", tsx: "packages/epics/tsconfig.json" },
-  details: { tool: "packages/epics/tools/details.js", cwd: "packages/epics" },
-  choices: { tool: "packages/epics/tools/choices.js", cwd: "packages/epics" },
-  notes: { tool: "packages/epics/tools/notes.ts", tsx: "packages/epics/tsconfig.json" },
-  comments: { tool: "packages/epics/tools/comments.ts", tsx: "packages/epics/tsconfig.json" },
   "design build": { tool: "packages/ui/scripts/design-build.ts", tsx: "packages/ui/scripts/tsconfig.json" },
   "design bundle": { tool: "packages/epics/tools/bundle-spell-ui.js", cwd: "packages/epics" },
   "design check": { tool: "packages/epics/tools/check-design-bundle.js", cwd: "packages/epics" },
   "design sync": { tool: "packages/epics/tools/design.js" },
   server: { tool: "packages/server/src/page/cli.ts", tsx: "packages/server/tsconfig.json" },
-  serve: { tool: "scripts/serve.mjs" },
-  window: { tool: "scripts/window.mjs" }
+  serve: { tool: "scripts/serve.mjs" }
 } satisfies Record<string, ToolSpec>
 
 /** A command `TOOLS` runs, e.g. `docs open`. */
@@ -88,40 +78,10 @@ export function toolArgs(spec: ToolSpec, root: string): string[] {
 export const TSX_LOADER = pathToFileURL(join(REPO_ROOT, "node_modules", "tsx", "dist", "loader.mjs")).href
 
 /**
- * Run `command` with `args` as a child, with this terminal attached, and resolve to its exit code.
- * - `Ctrl-C` reaches the child from the terminal itself, so this process ignores it until the child is done:
- *   a foreground server (`server serve`) gets to stop cleanly, and we exit with its code
- * - `SIGTERM` / `SIGHUP` sent to us alone are passed on
- * - killed by a signal:  `128 +` its number, as a shell reports it;  failed to start:  `EXIT.ERRORS`, saying why
+ * Run `command` with `args` as a child, with this terminal attached, and resolve to its exit code:
+ * `EpicTools.runChild()`, the one copy (signals passed on, `128 +` a signal's number).
  */
-export function runChild(
-  command: string,
-  args: string[],
-  options: { cwd?: string; env?: NodeJS.ProcessEnv } = {}
-): Promise<number> {
-  const child = spawn(command, args, { ...options, stdio: "inherit" })
-  const ignore = () => {}
-  const pass = (signal: NodeJS.Signals) => child.kill(signal)
-  process.on("SIGINT", ignore)
-  for (const signal of PASSED_SIGNALS) process.on(signal, pass)
-  return new Promise((done) => {
-    child.on("error", (error) => {
-      process.stderr.write(`${command}:  ${error.message}\n`)
-      finish(EXIT.ERRORS)
-    })
-    child.on("exit", (code, signal) => finish(code ?? 128 + (signal ? constants.signals[signal] : 0)))
-
-    /** Stop listening for signals, and resolve to `code`. */
-    function finish(code: number) {
-      process.off("SIGINT", ignore)
-      for (const signal of PASSED_SIGNALS) process.off(signal, pass)
-      done(code)
-    }
-  })
-}
-
-/** Signals `runChild()` passes on to its child:  they come to us alone, not from the terminal. */
-const PASSED_SIGNALS: NodeJS.Signals[] = ["SIGTERM", "SIGHUP"]
+export const runChild = EpicTools.runChild
 
 /**
  * The yarn runs `spell dev vscode [verb]` makes, in `packages/vscode` (its own yarn project, not a workspace):
@@ -150,6 +110,6 @@ export function behindMainError(branch: string, behind: number, main: string): s
   if (branch === main || behind <= 0) return undefined
   return (
     `${branch} is ${behind} commit${behind === 1 ? "" : "s"} behind ${main}:  building the extension from it would downgrade every window.  ` +
-    `Merge ${main} first (\`spell dev worktree merge-main\`), or pass --force.`
+    `Merge ${main} first (\`epic worktree merge-main\`), or pass --force.`
   )
 }

@@ -26,11 +26,11 @@ Owen has lost the thread:  hand it back in one screen.
 - The story so far:
   - this session:  the conversation itself
   - `<name>`:
-    - `spell dev session find <name>` lists its sessions, newest first.
-    - `spell dev session transcript <id>` digests one:
+    - `epic session find <name>` lists its sessions, newest first.
+    - `epic session transcript <id>` digests one:
       Owen's prompts, its last reply, a question still waiting for an answer.
     - Several sessions:  digest the newest, mention the others.
-    - Running or not:  `spell dev worktree list`.
+    - Running or not:  `epic worktree list`.
   - either way:
     - Owen's LAST stated intent (his words, not the plan's)
     - what's been done

@@ -32,7 +32,7 @@ try {
           additionalContext:
             `This worktree (branch ${branch}) is ${commits} behind ${main}, so its epic tools, skills' helpers and ` +
             `plan-doc pages are that old.  Tell Owen in one line, and offer (AskUserQuestion) to merge ${main} in ` +
-            `now:  \`spell dev worktree merge-main\`, "Merge ${main} now (Recommended)" / "Not now".`
+            `now:  \`epic worktree merge-main\`, "Merge ${main} now (Recommended)" / "Not now".`
         }
       })
     )

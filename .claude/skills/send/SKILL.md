@@ -10,7 +10,7 @@ Owen says what he wants where he is;  it goes to the epic that owns it, and this
 (epic `epic-workflow`, Owen, 2026-10-11).
 - The request is written FIRST, into the epic's shared folder:  nothing is lost if that epic's session is closed.
 - The epic's session turns it into a phase:  [the epic skill](.claude/skills/epic/SKILL.md), "12. Request".
-- The command:  `epic send` ([epicCommand.ts](packages/cli/src/commands/epicCommand.ts)).
+- The command:  `epic send` ([Requests.ts](packages/epics/src/command/Requests.ts)).
 
 ## When
 
@@ -51,7 +51,7 @@ Owen says what he wants where he is;  it goes to the epic that owns it, and this
      "New request `<rN>` for epic `<epic>`, from `<this session's title>`:  <his first line>.
      Run `/epic request <epic> <rN>`'s steps (`epics/<epic>/requests/<rN>/request.md`)."
    - `this session is <epic>'s own`:  do it here, as [the epic skill](.claude/skills/epic/SKILL.md), "12. Request".
-   - `no session of <epic> is running`:  run the `spell dev window launch ...` line it printed.
+   - `no session of <epic> is running`:  run the `epic window launch ...` line it printed.
      It opens the epic's window with `/epic request <epic> <rN>` typed in:  Owen presses Enter there.
    - The epic page's own Send and Do Now wake an epic the same way, from the page server (epic `epic-workflow` P16).
 7. Reply ONE line, then go back to this session's own work:

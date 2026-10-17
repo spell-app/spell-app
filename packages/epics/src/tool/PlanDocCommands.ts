@@ -686,7 +686,8 @@ export class PlanDocCommands {
     if (!noBrowser) {
       const run = spawnSync("node", [join(files.docsTools, "check-spell.js"), relative(files.docsPackage, file)], {
         cwd: files.docsPackage,
-        encoding: "utf8"
+        encoding: "utf8",
+        env: files.toolEnv
       })
       browserOk = run.status === 0
       process.stderr.write(run.stderr ?? "")
@@ -718,7 +719,8 @@ export class PlanDocCommands {
     const flag = view === "docs" ? "--vs" : "--review"
     spawnSync(process.execPath, [join(files.docsTools, "open.js"), flag, resolve(file)], {
       cwd: files.docsPackage,
-      stdio: "inherit"
+      stdio: "inherit",
+      env: files.toolEnv
     })
   }
 

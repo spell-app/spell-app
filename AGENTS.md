@@ -227,7 +227,7 @@ ui -> util
 ### Windows
 
 - Owen works in VS Code windows opened from `workspaces/<pkg>.code-workspace`.
-  - `spell dev window init` writes missing ones, and brings the rest up to date.
+  - `epic window init` writes missing ones, and brings the rest up to date.
   - Each has its own theme.
 - Each window shows the WHOLE branch:
   - folder 1 is the REPO ROOT, then the shared content repo
@@ -252,15 +252,15 @@ ui -> util
   - keeps the session saved at the root
     (Claude's own worktrees move it, and it drops out of every window's list)
 - New window, or stay?
-  - `spell dev window stay-check` recommends one, with reasons, and Owen picks in a modal
+  - `epic window stay-check` recommends one, with reasons, and Owen picks in a modal
     ([the isolate skill](.claude/skills/isolate/SKILL.md), "Start", step 2b).
   - Staying is fine when the session is its window's only one.
   - A session that stays:  same tab, only its folder changes.
     - Its changes show in Source Control,
       since every package window has `git.detectWorktrees` on (each worktree its own repo there).
-    - The window is titled `⎇ <name>` and its title bar tinted at once (`spell dev window stay <name>`).
+    - The window is titled `⎇ <name>` and its title bar tinted at once (`epic window stay <name>`).
     - Both are put back at `/isolate done`.
-  - NEVER add a worktree's folders to a package window (`spell dev window add`).
+  - NEVER add a worktree's folders to a package window (`epic window add`).
     - VS Code writes them into `workspaces/<pkg>.code-workspace`,
       and they stay there after the worktree is gone (three did, by 2026-10-03).
     - Nobody sees them:  those files are `skip-worktree` in the main checkout,
@@ -276,7 +276,7 @@ ui -> util
 
 ### A new window
 
-- Open it at once, from the worktree's root:  `spell dev window open <name>`.
+- Open it at once, from the worktree's root:  `epic window open <name>`.
 - On leaving (`/isolate done`), the session does NOT move back:  it stays in that window, which Owen closes.
   - `... close <name>` closes it and deletes its file.
 - Then `... handoff <name> --prompt continue`.
@@ -292,21 +292,21 @@ ui -> util
     saving their text to `~/.spell/prompts/<name>.md` first.
   - Except `/epic <name>` inside another worktree:  it means "open a window for `<name>`",
     so Claude offers one.
-    - `spell dev window launch <name>`:  a NEW session there.
+    - `epic window launch <name>`:  a NEW session there.
     - The epic skill's "From another worktree" has the steps.
 - The window's file is git-ignored:  `<name>.code-workspace`, in `workspaces/ongoing/`.
   - Its look:  that of the window it's opened from, or the one asked for.
-  - `/epic <name> -purple`:  Tomorrow Night Blue's look in one of 12 hues (`spell dev window color`).
+  - `/epic <name> -purple`:  Tomorrow Night Blue's look in one of 12 hues (`epic window color`).
   - `/epic color <look>` recolours the window you're in, live.
   - Its folders:  the MAIN repo root first (so its Claude panel lists every session),
     then the worktree's root (`⎇ <name>`), then the shared content repo.
   - The main root's files are hidden (above).
 - Why:  Owen reviews in VS Code;  edits a window doesn't show are invisible there.
-- `spell dev window` works in a fresh worktree, before its `yarn install`.
+- `epic window` works in a fresh worktree, before its `yarn install`.
   - The `spell` link runs the MAIN checkout's CLI, which has its packages.
   - `yarn window` couldn't:  yarn runs no script there before `yarn install`.
 - A doc shown while the move is pending waits, then shows beside the session in the window it moved to.
-  - That's `epic open <name> --review` or `spell dev window show`.
+  - That's `epic open <name> --review` or `epic window show`.
 - A running epic's epic page is shared (see "Shared content"):  ONE file, the same in every checkout.
   - So the MAIN checkout's page server shows it too,
     listed on the Epics list page with the merged ones.
@@ -314,13 +314,13 @@ ui -> util
 - NEVER `code --add` / `--remove`:
   they act on the focused window, and a one-folder window restarts its extensions, Claude panel included.
 - NEVER `code -r`:  it restarts the session.
-- `code <file>.code-workspace` only through `spell dev window open`.
+- `code <file>.code-workspace` only through `epic window open`.
 
 ### Leaving, merging, shelving
 
 - Leave with `ExitWorktree` `keep`.
   - The hook's `remove` never deletes uncommitted or unmerged work.
-- Merge main into a branch with `spell dev worktree merge-main`, never a bare `git merge main`.
+- Merge main into a branch with `epic worktree merge-main`, never a bare `git merge main`.
   - It REGENERATES each generated file both sides changed, from the merged source:
     bundles, site and brand data, snapshots, `yarn.lock`.
   - It stops on any other conflict;  `--continue` once they're resolved and added.
@@ -329,7 +329,7 @@ ui -> util
     - `-diff`, when minified
     - `linguist-generated`:  collapsed in GitHub's PR diffs
   - A new committed generated file:
-    add it there AND to `GENERATORS` in [mergeMain.ts](packages/cli/src/dev/mergeMain.ts).
+    add it there AND to `GENERATORS` in [MainMerge.ts](packages/epics/src/command/MainMerge.ts).
   - NOT committed at all (since 2026-10-07):  the bundles only the page server serves,
     whose hashed chunk names churned every diff.
     - Spell UI's docs site:  its `_assets/`, in [ui's site](packages/ui/site/)
@@ -401,7 +401,7 @@ ui -> util
     (its `"dir"` is `.epic/config.json5`'s `contentFolder` since epic `epic-eject` P4)
   - the `# shared:start` ... `# shared:end` block in `.gitignore`
   - A checkout's links are its OWN branch's manifest's:
-    `spell dev shared link` after merging a manifest change.
+    `epic shared link` after merging a manifest change.
 - Old paths last until every checkout has merged the reorg (claude-design T1).
   - The shared repo's old docs folder holds a link per old entry into the root folders,
     so older code still finds its files there:
@@ -414,14 +414,14 @@ ui -> util
   - The old URLs, `/packages/docs/content/<x>`, answer "not found":
     the page server redirects none since `people-and-orgs` P16 (Q30).
   - Older code writes old-style links, and pages at old paths.
-    - `spell dev shared commit` (every turn) runs the reorg's repair first.
-    - `spell dev shared repair` does it by hand
+    - `epic shared commit` (every turn) runs the reorg's repair first.
+    - `epic shared repair` does it by hand
       ([reorgShared()](packages/epics/tools/relocate.js)).
 
 ### Commits
 
 - The shared repo is committed by itself after every Claude turn.
-  - The `Stop` hook, [shared-commit.mjs](.claude/hooks/shared-commit.mjs), runs `spell dev shared commit`.
+  - The `Stop` hook, [shared-commit.mjs](.claude/hooks/shared-commit.mjs), runs `epic shared commit`.
   - Nobody commits those files by hand.
 - One commit per place the files live:
   - `auto: epic <name>`
@@ -443,12 +443,12 @@ ui -> util
 
 ### Commands and tips
 
-- `spell dev shared status | init | link | commit | migrate <worktree> | repair`
+- `epic shared status | init | link | commit | migrate <worktree> | repair`
   - `--dry-run` on the last two
 - A new worktree is linked by the `WorktreeCreate` hook.
-- A worktree cut before the cutover runs `spell dev shared migrate <name>` before it merges `main`.
+- A worktree cut before the cutover runs `epic shared migrate <name>` before it merges `main`.
   - First it merges `0fc52e02` (main just before the cutover), if it predates the docs move.
-- After merging a branch from before the docs move:  `spell dev shared repair`.
+- After merging a branch from before the docs move:  `epic shared repair`.
   - It moves pages the branch left in the old docs package's folder into their shared folders.
   - It fixes links (and their tab names) written for an old layout.
   - And the docs package's end (`people-and-orgs` P16):

@@ -21,7 +21,7 @@ describe("behindMainError()", () => {
     expect(CLI.behindMainError("epic-eject", 0, "main")).toBeUndefined()
     expect(CLI.behindMainError("epic-eject", 51, "main")).toBe(
       "epic-eject is 51 commits behind main:  building the extension from it would downgrade every window.  " +
-        "Merge main first (`spell dev worktree merge-main`), or pass --force."
+        "Merge main first (`epic worktree merge-main`), or pass --force."
     )
     expect(CLI.behindMainError("x", 1, "main")).toMatch(/^x is 1 commit behind main:/)
   })
@@ -34,7 +34,7 @@ describe("behindMainError()", () => {
 
 describe("toolArgs()", () => {
   test("plain node:  just the script, in the tool's checkout", () => {
-    expect(CLI.toolArgs(CLI.TOOLS.window, "/wt")).toEqual(["/wt/scripts/window.mjs"])
+    expect(CLI.toolArgs(CLI.TOOLS.serve, "/wt")).toEqual(["/wt/scripts/serve.mjs"])
   })
   test("tsx:  the CLI checkout's loader first", () => {
     expect(CLI.toolArgs(CLI.TOOLS["docs link"], "/wt")).toEqual([

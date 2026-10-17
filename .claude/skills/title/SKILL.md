@@ -6,19 +6,19 @@ argument-hint: "[<title>]"
 
 # /title
 
-The command:  `spell dev session title [<title>]` ([sessionCommand.ts](packages/cli/src/commands/sessionCommand.ts)).
+The command:  `epic session title [<title>]` ([Sessions.ts](packages/epics/src/command/Sessions.ts)).
 Other skills that rename a session (`/isolate`, `/park`, `/unpark`, `/session`) run the same command.
 
 ## 1. With a title:  `/title <title>`
 
-- `spell dev session title <title>`.  It checks first:
+- `epic session title <title>`.  It checks first:
   - this session already has `<title>` (or has it queued):  nothing to do
   - else it queues `<title>`
 - Reply in one line:  "titled `<title>` (was "<old>");  shows on your next message".
 
 ## 2. Without:  `/title`
 
-- `spell dev session title`:  the current title, and any title queued.
+- `epic session title`:  the current title, and any title queued.
   - `*` = set by hand;  else Claude's own, or the first prompt.
 - Offer 3 short titles in the AskUserQuestion modal:  2-4 words, the work's name, e.g. `session tools`.
   - The current one described in the question.

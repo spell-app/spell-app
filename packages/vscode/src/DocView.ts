@@ -82,7 +82,14 @@ const VIEWS: Record<DocViewName, { id: string; empty: string }> = {
   }
 }
 
-/** A checkout's own `spell` CLI, run from its root:  `restartServer()` runs it in a shell. */
+/** A checkout's own `epic` command, run from its root:  `restartServer()` runs it in a shell (epic `epic-eject` P5). */
+const EPIC = "node packages/cli/bin/epic.mjs"
+
+/**
+ * The same checkout's `spell` CLI:  `spell dev server`, for a checkout from before `epic server` (P5), which has no
+ * such verb.
+ * - TODO:  drop it once every worktree has merged P5
+ */
 const SPELL = "node packages/cli/bin/spell.mjs"
 
 /** Each view's title-bar commands, `<view id>.<name>`:  each listed in `package.json` for both views. */
@@ -322,7 +329,7 @@ export class DocView implements vscode.WebviewViewProvider {
    * Rebuild the view from scratch:  new html, so a new iframe, at the page in view (fresh `?t=` stamp), or at `to`;
    * resolves to that URL, `undefined` when the view hasn't been shown yet (nothing to rebuild).
    * - for a view gone wrong in a way a reload doesn't fix (clicks no longer reaching the page, PAPERCUTS `vscode`,
-   *   2026-10-06):  `spell dev window reload-view`.  The reload button only navigates the SAME iframe.
+   *   2026-10-06):  `epic window reload-view`.  The reload button only navigates the SAME iframe.
    * - NOT a fix for pages stuck on their placeholders (6 docs pages holding every connection to a host):
    *   live reload moved to websockets for that (`packages/server/src/webSocket.ts`)
    */
@@ -339,9 +346,12 @@ export class DocView implements vscode.WebviewViewProvider {
   /**
    * Restart the page server behind the page in view, then show the same page from it again.
    * - which checkout:  the server's own `/api/server` says (`root`)
-   * - runs `spell dev server stop`, then `spell dev server ensure`, in a LOGIN shell (`$SHELL -lc`):
+   * - runs `epic server stop`, then `epic server ensure`, in a LOGIN shell (`$SHELL -lc`):
    *   a GUI VS Code's own `PATH` may have no `node`
-   * - that checkout's own CLI (`node packages/cli/bin/spell.mjs`), never the `spell` on `PATH`:  another checkout's
+   *   - a checkout from before `epic server` (epic `epic-eject` P5):  `spell dev server stop` / `ensure` instead,
+   *     when `epic` refuses the verb
+   * - that checkout's own command (`node packages/cli/bin/epic.mjs`), never the `epic` on `PATH`:  the page server
+   *   is per checkout, and `epic server` runs the caller's copy of it
    * - its port may change (a worktree's server takes any free one):  the page comes back on the new `base`
    */
   async restartServer(): Promise<void> {
@@ -357,7 +367,15 @@ export class DocView implements vscode.WebviewViewProvider {
     }
     const output = await vscode.window.withProgress(
       { location: { viewId: this.id }, title: "Restarting the page server" },
-      () => run(process.env.SHELL || "/bin/zsh", ["-lc", `${SPELL} dev server stop; ${SPELL} dev server ensure`], root)
+      () =>
+        run(
+          process.env.SHELL || "/bin/zsh",
+          [
+            "-lc",
+            `(${EPIC} server stop || ${SPELL} dev server stop); (${EPIC} server ensure || ${SPELL} dev server ensure)`
+          ],
+          root
+        )
     )
     const base = output.match(/"base":\s*"([^"]+)"/)?.[1]
     if (!base) {

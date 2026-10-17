@@ -5,8 +5,8 @@
  * - Each command is `CLI.<name>Command(session, args, options)`, resolving to the exit code.
  * - `spell dev ...` starts in the lean `devMain.ts` instead, which loads no spell;
  *   its commands that need spell come back here.  Their tree:  `devProgram.ts`.
- * - `epic ...` (and its old spelling, `spell epic ...`) starts in the lean `epicMain.ts`;
- *   its verbs that need spell (`send`, `requests` ...) come back here, as `spell epic <verb>`.
+ * - `epic ...` (and its old spelling, `spell epic ...`) starts in the lean `epicMain.ts`:  the epic code's
+ *   `EpicProgram`, which loads no spell for any verb.
  */
 import "./consoleGuard"
 // Defines `__PACKAGE_VERSION__` -- the PARSER's, which `spell --version` prints -- before anything reads it
@@ -37,9 +37,6 @@ const PROJECTS_ARG = "spell files, project folders, or addresses -- default the 
 
 /** Help for `--seed`, which `spell run` and `spell test` share. */
 const SEED_HELP = "start the random numbers from this whole number (1 to 2147483646):  the same deal every run"
-
-/** The `epic` verbs that need the barrel (the session helpers), so `epicMain.ts` hands them to `main.ts`. */
-const EPIC_BARREL_VERBS = ["send", "requests", "file", "add-request", "home", "merge"]
 
 const program = spellProgram().version(globalThis.__PACKAGE_VERSION__).addHelpText("after", PROJECT_HELP)
 
@@ -223,18 +220,10 @@ program
   .description("the epic tools moved to their own command, `epic` (epic --help);  spell epic <verb> still runs them")
   .argument("[verb]", "an epic verb, e.g. send, summary, add")
   .argument("[args...]", 'the epic, then the verb\'s arguments, e.g. send epic-workflow --text "..." --images 1')
-  .option("--text <words>", "send:  Owen's words, verbatim")
-  .option("--file <file>", "send:  Owen's words, from a file (quotes and all);  file:  the request, as html")
-  .option("--images <count>", "send:  keep the newest <count> screenshots pasted into this session")
-  .option("--context <words>", "send:  what this session was looking at:  a page, a file, an item id")
-  .option("--from <session>", "send:  the sending session's id (default:  this one);  file:  who sent the request")
-  .option("--json", "print the result as JSON")
   .allowUnknownOption()
-  .action(async (verb: string | undefined, args: string[], _options, command) => {
-    // the verbs that need spell:  `epicMain.ts` hands them here
-    if (verb && EPIC_BARREL_VERBS.includes(verb))
-      return run(CLI.epicCommand, [verb, ...args], command.optsWithGlobals())
-    // any other (`spell --verbose epic summary seo`):  the lean `epic` program, as `epic <verb> ...`
+  .helpOption(false)
+  .action(async () => {
+    // `spell --verbose epic summary seo`:  the lean `epic` program, as `epic <verb> ...`
     process.argv.splice(2, process.argv.indexOf("epic", 2) - 1)
     await import("$/cli/epicMain")
   })

@@ -10,7 +10,7 @@
  *   - `answer-elements`:  `to-answer-elements.js`, a details or choice page (and the old shared templates of
  *     both) in the epics pack's elements, its old page script gone (epic `epic-workflow` P12)
  *   - NOT the shared-content repair (`relocate.js`):  it moves files between folders rather than fixing a page's
- *     markup, and `spell dev shared commit` runs its reorg every turn already
+ *     markup, and `epic shared commit` runs its reorg every turn already
  * - `DATA_FILES`, beside the steps:  the tooling's data files outside the epics' folders renamed `.json` -> `.json5`
  *   (epic `epic-workflow` P21;  `dataFileMoves()`), and every page's links to a data file by its old name, but an epic
  *   page's (`dataFileLinks()`).  Not a page kind's step:  it renames files, and touches only links.  An epic's own

@@ -101,7 +101,7 @@ export function commandSources(root: string, sources: CommandsData["sources"] = 
     }
   }
   for (const file of CLI_SOURCES) {
-    const path = join(root, "packages", "cli", "src", file)
+    const path = join(root, file)
     if (!existsSync(path)) continue
     for (const [, owner, name] of readFileSync(path, "utf8").matchAll(
       /\b(program|dev|epic)\s*\.command\("([\w-]+)"/g
@@ -127,12 +127,18 @@ export function commandSources(root: string, sources: CommandsData["sources"] = 
 }
 
 /**
- * The files in `packages/cli/src/` whose `program.command(...)` / `dev.command(...)` / `epic.command(...)` calls
+ * The files, from a checkout's root, whose `program.command(...)` / `dev.command(...)` / `epic.command(...)` calls
  * are the CLI's commands.
  * - `devProgram.ts`:  the `spell dev` tree, since 2026-10-04;  `main.ts` held it before
- * - `epicProgram.ts`:  the `epic` command's verbs (epic `epic-workflow` P9, 2026-10-12)
+ * - `EpicProgram.ts`:  the `epic` command's verbs, in the epic code since epic `epic-eject` P5
+ * - `epicProgram.ts`:  where they were before (epic `epic-workflow` P9, 2026-10-12), for a checkout on older code
  */
-const CLI_SOURCES = ["main.ts", "devProgram.ts", "epicProgram.ts"]
+const CLI_SOURCES = [
+  "packages/cli/src/main.ts",
+  "packages/cli/src/devProgram.ts",
+  "packages/epics/src/command/EpicProgram.ts",
+  "packages/cli/src/epicProgram.ts"
+]
 
 /** Each receiver's commands, as the page names them:  `program.command("compile")` is `spell compile`. */
 const OWNER_PREFIX = { program: "spell ", dev: "spell dev ", epic: "epic " }

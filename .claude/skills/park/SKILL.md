@@ -16,8 +16,8 @@ and make it cheap to pick back up.
   - First line `<!-- park: <state> -->`, `<state>` one of `parked`, `waiting:<target>`, `resumed`.
   - It's how a compacted or reopened session knows it's parked.
 - Status, from the repo root or a worktree (`spell help dev`):
-  - `spell dev worktree status <name>`:  JSON, where a worktree / branch / plan / session stands
-  - `spell dev park list|candidates|wait`
+  - `epic worktree status <name>`:  JSON, where a worktree / branch / plan / session stands
+  - `epic park list|candidates|wait`
 - Running `/park` IS Owen's go-ahead to commit the WIP commit:  no "stage, then ask".
   Nothing else gets committed.
 - Style:  caveman lite, as in `/epic`.
@@ -26,7 +26,7 @@ and make it cheap to pick back up.
 
 What `$ARGUMENTS` means:
 - empty, or the name of this session's worktree:  park THIS session
-- any other name that matches a session (`spell dev worktree status <name>` lists one in `sessions`):
+- any other name that matches a session (`epic worktree status <name>` lists one in `sessions`):
   "Park another session" below
 - matches nothing:  it's the name to park this session under
 
@@ -36,7 +36,7 @@ What `$ARGUMENTS` means:
    - in a worktree (the session's folder is under `.claude/worktrees/`):  that worktree's name
    - else `$ARGUMENTS`, lower-kebab-cased
    - none:  propose one from the work so far, in AskUserQuestion
-   - Then rename the session `<name>` at once, before step 2:  `spell dev session title "🚧 <name>"`.
+   - Then rename the session `<name>` at once, before step 2:  `epic session title "🚧 <name>"`.
      - Not done by the prompt hook:  `/park <name>` may name ANOTHER session.
 2. In the MAIN checkout:  move the work into worktree `<name>`,
    following [the isolate skill](.claude/skills/isolate/SKILL.md), "Start", with these changes:
@@ -108,7 +108,7 @@ What `$ARGUMENTS` means:
 
 ## Park another session:  `/park <other>`
 
-1. `spell dev worktree status <other>`:  its `sessions`.
+1. `epic worktree status <other>`:  its `sessions`.
 2. One running (`running: true`):  `SendMessage` to it:
    "Run `/park` now (asked by session `<this session's title or id>`).  Reply when parked, with the worktree name."
    - Several running:  AskUserQuestion, which.
@@ -122,16 +122,16 @@ Used by `/unpark` (after its window check), and by `/wait-for` when the wait end
 1. Read `PARKED-<name>.md`:  goal, where it stopped, next steps.
    Check the session's name ([the isolate skill](.claude/skills/isolate/SKILL.md), "Session name").
 2. Bring in the new `main`, the same way as [the isolate skill](.claude/skills/isolate/SKILL.md)'s "Finish", steps 2-3:
-   - A worktree cut before 2026-10-04 (`spell dev shared status` shows its folders `tracked`):
-     `spell dev shared migrate <name>` first.
+   - A worktree cut before 2026-10-04 (`epic shared status` shows its folders `tracked`):
+     `epic shared migrate <name>` first.
    - `git log --oneline HEAD..main` empty:  nothing new, go on to step 4.
-   - `spell dev worktree merge-main`:
+   - `epic worktree merge-main`:
      - merges `main`
      - regenerates the generated files both sides changed (bundles, snapshots ...)
      - commits ("Merge main into `<name>`";  parking was the go-ahead)
      - Its `REVIEW` lines (snapshot entries neither side had) go in the summary, in bold.
    - It stops on other conflicts:  resolve each file keeping BOTH sides' intent, and `git add` it.
-     Then `spell dev worktree merge-main --continue`.
+     Then `epic worktree merge-main --continue`.
      - Packages moved or renamed on `main` show up as rename / delete conflicts.
        Follow the move:  carry this branch's edits to the new path, and update its imports to the new aliases.
 3. Checks:

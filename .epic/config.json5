@@ -4,7 +4,7 @@
 // `epic config [key]` prints what's in force (`--json`:  all of it).
 {
   // The shared content repo:  epics, guides, sagas, pages, templates, brand, the logs.
-  // Every checkout links its folders in (`spell dev shared link`);  each turn's end commits it.
+  // Every checkout links its folders in (`epic shared link`);  each turn's end commits it.
   "contentFolder": "../spell-app-dev",
 
   // The branch worktrees start from and merge into.
@@ -16,7 +16,7 @@
   // What makes a new worktree ready to run, from its root (`/isolate`, `/epic`).
   "installCommand": "yarn install",
 
-  // The VS Code windows (`spell dev window`).
+  // The VS Code windows (`epic window`).
   "windows": {
     // The window a worktree's window is opened from when the session's isn't a package's:
     // `workspaces/<default>.code-workspace`, the whole repo's.

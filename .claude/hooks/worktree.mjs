@@ -21,7 +21,7 @@
  *   epic's) is named `<owner>-agent-<id>`, worktree and branch:  `git worktree list` says whose it is, and `remove`
  *   and `/isolate done` know its work is safe once it's in `<owner>`'s branch (Owen, 2026-10-05).
  * - Reuses `.claude/worktrees/<name>` when it's already a worktree, and branch `<name>` when it exists.
- * - Then links the shared content in (`spell dev shared link`, epic `shared-content`), when the shared repo exists:
+ * - Then links the shared content in (`epic shared link`, epic `shared-content`), when the shared repo exists:
  *   a failure there is a warning, never a failed hook
  *
  * ## remove
@@ -97,7 +97,7 @@ class Worktree {
   }
 
   /**
-   * Link the shared content into worktree `path`:  the main checkout's `spell dev shared link`, run in the worktree.
+   * Link the shared content into worktree `path`:  the main checkout's `epic shared link`, run in the worktree.
    * - only when the shared repo exists (`contentFolder` in `.epic/config.json5`):  before the cutover there's nothing
    *   to link
    * - its output goes to stderr (stdout is the worktree's path);  a failure is a warning
@@ -105,12 +105,12 @@ class Worktree {
   static linkShared(root, path, config) {
     if (!existsSync(join(config.contentFolder, ".git"))) return
     try {
-      execFileSync(process.execPath, [join(root, "packages/cli/bin/spell.mjs"), "dev", "shared", "link"], {
+      execFileSync(process.execPath, [join(root, "packages/cli/bin/epic.mjs"), "shared", "link"], {
         cwd: path,
         stdio: ["ignore", 2, 2]
       })
     } catch (error) {
-      console.error(`worktree hook:  shared content not linked (${error.message.split("\n")[0]});  run \`spell dev shared link\``)
+      console.error(`worktree hook:  shared content not linked (${error.message.split("\n")[0]});  run \`epic shared link\``)
     }
   }
 

@@ -1,11 +1,11 @@
 import { join } from "path"
 
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
+import { EpicConfig } from "$/epics/config/EpicConfig"
+import { Git } from "$/epics/command/Git"
 import { CliError, EXIT } from "$/cli/cli.types"
-import { git } from "$/cli/dev/git"
 import { behindMainError, runChild, vscodeSteps } from "$/cli/dev/passThrough"
 import { findCheckout } from "$/cli/findCheckout"
-import { EpicConfig } from "$/epics/config/EpicConfig"
 
 /** The extension, relative to a checkout's root:  its own yarn project, not a workspace. */
 const VSCODE = join("packages", "vscode")
@@ -24,8 +24,8 @@ export async function vscodeCommand(args: string[]): Promise<number> {
   const root = findCheckout(join(VSCODE, "package.json"))
   if (!force) {
     const base = EpicConfig.of(root).baseBranch
-    const branch = git(["rev-parse", "--abbrev-ref", "HEAD"], root).out
-    const behind = Number(git(["rev-list", "--count", `HEAD..${base}`], root).out || 0)
+    const branch = Git.run(["rev-parse", "--abbrev-ref", "HEAD"], root).out
+    const behind = Number(Git.run(["rev-list", "--count", `HEAD..${base}`], root).out || 0)
     const error = behindMainError(branch, behind, base)
     if (error) throw new CliError(error, EXIT.ERRORS)
   }

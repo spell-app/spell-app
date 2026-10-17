@@ -18,8 +18,13 @@ export const PACKAGE = dirname(TOOLS)
 /** `packages/epics/tools/_assets`:  what every page loads. */
 export const ASSETS = join(TOOLS, "_assets")
 
-/** The checkout this file is in:  the repo, or a worktree of it.  Page paths are relative to it. */
-export const ROOT = resolve(PACKAGE, "../..")
+/**
+ * The checkout the docs tools work on:  the repo, or a worktree of it.  Page paths are relative to it.
+ * - `EPIC_CHECKOUT` when set:  the `epic` command runs ONE copy of the tools (its own) on the caller's checkout,
+ *   and says which (`EpicTools.run()`, epic `epic-eject` P5)
+ * - else the checkout this file is in
+ */
+export const ROOT = process.env.EPIC_CHECKOUT ? resolve(process.env.EPIC_CHECKOUT) : resolve(PACKAGE, "../..")
 
 /*
  * The content folders, one per area, each a link at the checkout's root into the shared content repo,

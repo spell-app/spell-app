@@ -79,9 +79,9 @@ Longer notes on some of them follow the table.
 | `spell dev goals` | PARKED:  says the goals tools are in `packages/goals.zip` (epic `epic-goals` rebuilds them). |
 | `spell dev docs <verb> ...` | The docs tools:  `update`, `index`, `new`, `open`, `link` ... |
 | `spell dev server <verb> ...` | This checkout's page server, its own verbs as they are. |
-| `spell dev worktree merge-main [--continue]` | Merges `main` into this checkout's branch, regenerating every generated file both sides changed. |
+| `epic worktree merge-main [--continue]` | Merges `main` into this checkout's branch, regenerating every generated file both sides changed. |
 | `spell dev pack <verb> ...` | Component packs:  another package's custom elements (`<epic-*>` ...), which a page loads on demand through `<ui-root>`. |
-| `spell dev window <command> ...` | VS Code windows per package and worktree. |
+| `epic window <command> ...` | VS Code windows per package and worktree. |
 | `spell dev vscode [build\|install]` | The VS Code extension:  build it, install it, or (no verb) both. |
 | `spell icons [query]` | Finds `@spell-app/ui` icons by name, alias or keyword. |
 | `spell static <pages...>` | `@spell-app/ui` pages as plain HTML, for crawlers and no-JS readers. |
@@ -227,9 +227,11 @@ Longer notes on some of them follow the table.
   - `start --all`:  every web server of the checkout (page server, editor, Spell UI), and where each is.
     That's [`serve.mjs`](../../scripts/serve.mjs).
   - Root `yarn server`, `yarn serve`.
-- `dev worktree merge-main`:  `/isolate done` and park's Resume use it.
+  - `epic server` runs the same, the caller's checkout's copy:  the page server serves its own checkout.
+- `epic worktree merge-main` (was `dev worktree merge-main`, which still works):  `/isolate done` and park's Resume
+  use it.
   - The generated files it regenerates:  bundles, site and brand assets, snapshots, `yarn.lock`.
-    The table:  `GENERATORS` in [`mergeMain.ts`](src/dev/mergeMain.ts).
+    The table:  `GENERATORS` in [`MainMerge.ts`](../epics/src/command/MainMerge.ts), the epic code's.
   - Then commits "Merge main into `<branch>`".
   - Another file in conflict stops it mid-merge:  resolve, `git add`, then `--continue`.
   - Lists snapshot entries neither side had, to review.
@@ -247,7 +249,8 @@ Longer notes on some of them follow the table.
   - `check [<pack>]`:  exits 1 when `components/__pack/` is stale.  No pack:  every pack.
   - Making a pack or an element builds it too, unless `--no-build`.
   - `--json`.
-- `dev window`:  runs [`window.mjs`](../../scripts/window.mjs).
+- `epic window` (was `dev window`, which still works):  runs [`window.mjs`](../../scripts/window.mjs), the copy beside
+  the running `epic`, for the caller's checkout.
   - Its commands:
 
     ```
@@ -280,10 +283,11 @@ Longer notes on some of them follow the table.
   - A second bin of this package, [epic.mjs](bin/epic.mjs):  `yarn cli:install` links it beside `spell`.
     - Root `yarn epic` runs it too.
     - `yarn ask` runs `epic ask`.
-  - It starts LEAN, as `spell dev` does:  [epicMain.ts](src/epicMain.ts) loads no spell.
-    - Some verbs need spell's session helpers:  they hand over to `main.ts`, and take the usual half second.
-      They are `send`, `requests`, `file`, `home` and `merge`.
-  - Its tree:  [epicProgram.ts](src/epicProgram.ts).
+  - It starts LEAN, as `spell dev` does:  [epicMain.ts](src/epicMain.ts) loads no spell, for any verb.
+  - Its tree is the epic code's, `EpicProgram` ([the epics package's command folder](../epics/src/command/)),
+    a class per verb group (epic `epic-eject` P5).
+    - The worktree, session, park, stock, shared and window verbs were `spell dev ...`:  those still work.
+    - Every verb runs the code of the `epic` that was called, on the caller's checkout:  `epic --version` says which.
   - `epic --help` lists every verb, under headings.
   - `epic help <verb>` shows one verb's;  so does `epic <verb> --help`.
 - What a verb acts on:  `epic <verb> <epic>#<id>`.
@@ -304,7 +308,7 @@ Longer notes on some of them follow the table.
     epic update seo#P3 --goal "<p>...</p>" --estimate 2h
     ```
 
-  - [epicArgs.ts](src/epic/epicArgs.ts) turns `seo#J3` into the `epic` tool's own arguments (`close seo J3`).
+  - [epicArgs.ts](../epics/src/command/epicArgs.ts) turns `seo#J3` into the `epic` tool's own arguments (`close seo J3`).
   - A phase is written one way, `seo#P3` (the other spellings read the same, but nothing prints them);  an id
     always goes after the `#`.
     The tool's own order, `epic close seo J3`, is refused, the message spelling it right (`epic close seo#J3`).
@@ -441,7 +445,7 @@ Longer notes on some of them follow the table.
 
   ```
   package.json, tsconfig.base.json, vitest.config.ts, vite.lint.ts, .gitattributes,
-  src/dev/mergeMain.ts, and the shared commands page, guides/dev/commands/commands.json5
+  packages/epics/src/command/MainMerge.ts, and the shared commands page, guides/dev/commands/commands.json5
   ```
 
 - `dev pack build` writes the pack's `components/__pack/`.
@@ -598,7 +602,7 @@ Longer notes on some of them follow the table.
 - **Startup takes about half a second:**  `tsx` compiles their source on each run, and caches it.
   - `spell dev ...` and `epic ...` start in about a fifth of that:
     the bin scripts run [devMain.ts](src/devMain.ts) and [epicMain.ts](src/epicMain.ts), which load no spell.
-    - Then the tool, as a child `node`:  `spell dev window which` takes ~0.17s.
+    - Then the tool, as a child `node`:  `epic window which` takes ~0.17s.
     - Or the `epic` tool, in the same process:  `epic summary` takes ~0.4s.
   - Its commands that need spell (`session`, `stock` ...) take the usual half second.
 - **Ink is pinned at 5,** from when this lived in the parser, whose app is on React 18:  6+ needs React 19.

@@ -11,9 +11,9 @@ Owen has lots going at once:  show it all in one screen, sort it, and clean up w
 - It was `/whassup` plus the old global `/worktrees`, merged 2026-10-03.
 
 - The tools, from the repo root or any worktree.  Read-only.
-  - `spell dev stock [--json]`:  the whole report
-  - `spell dev worktree list`:  the sessions table alone
-  - What it looks at, and how it groups:  [stock.ts](packages/cli/src/dev/stock.ts).
+  - `epic stock [--json]`:  the whole report
+  - `epic worktree list`:  the sessions table alone
+  - What it looks at, and how it groups:  [Stock.ts](packages/epics/src/command/Stock.ts).
 - The sessions (`sessions[]`):  every LIVE session on the machine, in this repo or not.
   - Read from `~/.claude/sessions/<pid>.json`, dead pids skipped.
   - Each:
@@ -44,8 +44,8 @@ Owen has lots going at once:  show it all in one screen, sort it, and clean up w
 
 ## 1. Take stock
 
-1. Run `spell dev stock --json`.
-   - `/worktrees sessions`:  `spell dev worktree list` instead.
+1. Run `epic stock --json`.
+   - `/worktrees sessions`:  `epic worktree list` instead.
      Reply with step 2's table and its "worth acting on" lines, and stop.
 2. The sessions, as a markdown table:  drop empty columns;  mark this session "(this one)".
    - Then one line per thing worth acting on:
@@ -121,7 +121,7 @@ In the order Owen will want to see them:  quick looks (`wtf`, `open`, `answer`) 
     - `-D` there means its commits are already in `main` (squashed):
       run `git cherry main <branch>` first, and go on only if every line starts with `-`.
     - A merged one removed:
-      `spell dev session done <name>`, so its sessions read `✅ <name>` once each is next opened
+      `epic session done <name>`, so its sessions read `✅ <name>` once each is next opened
       (epic `windows-and-review` P6).
   - `discard`:  ALWAYS a second AskUserQuestion first, "Throw away `<name>`?", listing what goes:
     - `git log --oneline main..<branch>`
@@ -153,7 +153,7 @@ In the order Owen will want to see them:  quick looks (`wtf`, `open`, `answer`) 
 
 ## 5. Where we stand
 
-1. Run `spell dev stock --json` again.
+1. Run `epic stock --json` again.
 2. One line per item whose group changed, or that went away ("**worktree ui-import**:  dead -> gone").
    - Then the three groups again, as in step 1.
    - Commands refused in step 4:  listed last, ready to paste.
