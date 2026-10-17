@@ -165,8 +165,7 @@
   function headingRuns(statements) {
     const runs = []
     for (const statement of statements) {
-      const heading =
-        statement.of === "core" ? (statement.section ?? runs.at(-1)?.heading ?? "") : "imported by name"
+      const heading = statement.of === "core" ? (statement.section ?? runs.at(-1)?.heading ?? "") : "imported by name"
       if (runs.at(-1)?.heading !== heading) runs.push({ heading, rows: [] })
       runs.at(-1).rows.push(statement)
     }
