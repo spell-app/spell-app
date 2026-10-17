@@ -14,6 +14,19 @@ describe("vscodeSteps()", () => {
   })
 })
 
+describe("behindMainError()", () => {
+  test("main, or a branch with all of main in it, may build;  one BEHIND main is refused, saying how to fix it", () => {
+    expect(CLI.behindMainError("main", 0)).toBeUndefined()
+    expect(CLI.behindMainError("main", 3)).toBeUndefined()
+    expect(CLI.behindMainError("epic-eject", 0)).toBeUndefined()
+    expect(CLI.behindMainError("epic-eject", 51)).toBe(
+      "epic-eject is 51 commits behind main:  building the extension from it would downgrade every window.  " +
+        "Merge main first (`spell dev worktree merge-main`), or pass --force."
+    )
+    expect(CLI.behindMainError("x", 1)).toMatch(/^x is 1 commit behind main:/)
+  })
+})
+
 describe("toolArgs()", () => {
   test("plain node:  just the script, in the tool's checkout", () => {
     expect(CLI.toolArgs(CLI.TOOLS.window, "/wt")).toEqual(["/wt/scripts/window.mjs"])

@@ -148,6 +148,7 @@ In the order Owen will want to see them:  quick looks (`wtf`, `open`, `answer`) 
     - `drop` shows `git stash show -p <sha>` first.
     - Then it finds the entry's current `stash@{n}` by its sha (`git stash list --format='%H %gd'`), and drops that.
     - Never a bare `git stash pop`.
+- Page servers left by removed worktrees:  `spell dev server prune` (`--dry-run` first).
 - NEVER touch this session's own worktree, branch or window.
 
 ## 5. Where we stand

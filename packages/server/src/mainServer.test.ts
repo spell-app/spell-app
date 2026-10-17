@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { describe, expect, it } from "vite-plus/test"
@@ -37,6 +37,27 @@ describe("mainServerUrl()", () => {
     } finally {
       await server.stop()
       rmSync(root, { recursive: true, force: true })
+    }
+  })
+
+  it("serves shared content (a link both checkouts share) from the main checkout itself", async () => {
+    const top = mkdtempSync(join(tmpdir(), "srv-shared-"))
+    const root = join(top, "repo")
+    const shared = join(top, "repo-dev", "epics")
+    const worktree = join(root, ".claude", "worktrees", "seo")
+    mkdirSync(join(shared, "seo"), { recursive: true })
+    mkdirSync(worktree, { recursive: true })
+    writeFileSync(join(shared, "seo", "seo.plan.html"), "<p>plan</p>")
+    writeFileSync(join(root, "package.json"), "{}")
+    symlinkSync(shared, join(root, "epics"))
+    symlinkSync(shared, join(worktree, "epics"))
+    const server = await new PageServer({ root }).start({ port: 0, routes: false })
+    try {
+      const url = await SRV.mainServerUrl(join(worktree, "epics", "seo", "seo.plan.html"))
+      expect(url).toBe(`http://127.0.0.1:${server.info.port}/epics/seo/seo.plan.html`)
+    } finally {
+      await server.stop()
+      rmSync(top, { recursive: true, force: true })
     }
   })
 })

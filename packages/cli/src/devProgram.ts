@@ -141,7 +141,7 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
   dev
     .command("server")
     .description("this checkout's page server -- start --all:  every web server (page server, editor, Spell UI)")
-    .argument("[verb]", "serve | start [--all] | ensure | stop | status | url <file>")
+    .argument("[verb]", "serve | start [--all] | ensure | stop | status | url <file> | prune [--dry-run]")
     .argument("[args...]", "the verb's arguments, e.g. --port 4800")
     .allowUnknownOption()
     .helpOption(false)
@@ -204,7 +204,10 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .command("vscode")
     .description("the VS Code extension:  build its .vsix, install it into VS Code -- no verb does both")
     .argument("[verb]", "build | install -- default both")
-    .action((verb: string | undefined) => runLean(vscodeCommand, verb ? [verb] : []))
+    .option("--force", "build or install even from a branch behind main (which downgrades every window)")
+    .action((verb: string | undefined, options: { force?: boolean }) =>
+      runLean(vscodeCommand, [...(verb ? [verb] : []), ...(options.force ? ["--force"] : [])])
+    )
 
   ////////////////
   // ## Commands that load spell

@@ -3,7 +3,7 @@
  * the other docs tools (the plan-doc tool, `$/epics/tool`, has its own).
  */
 import { spawnSync } from "node:child_process"
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from "node:fs"
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
@@ -75,7 +75,8 @@ export const LIST_PAGES = [EPICS, GUIDES, TEMPLATES, BRAND].map((area) => join(a
 export const OLD_CONTENT = join(PACKAGE, "content")
 
 /**
- * The file a page argument means:  absolute as is, else the first that exists of
+ * The file a page argument means:  absolute as is (a shared repo's real path through this checkout's link to it),
+ * else the first that exists of
  * - from the checkout's root (`guides/solid/solid-2.html`, `epics/seo/seo.plan.html`)
  * - from each area (`solid/solid-2.html` is a guide, `index.html` the home)
  * - an old path (`packages/docs/content/solid/solid-2.html`, `content/...`) moved by the reorg
@@ -83,7 +84,7 @@ export const OLD_CONTENT = join(PACKAGE, "content")
  * - none:  from the root
  */
 export function pageFile(page, cwd = process.env.INIT_CWD ?? process.cwd()) {
-  if (isAbsolute(page)) return page
+  if (isAbsolute(page)) return throughLink(page)
   const old = page.replace(/^(?:packages\/docs\/)?content\//, "")
   const candidates = [
     resolve(ROOT, page),
@@ -92,6 +93,35 @@ export function pageFile(page, cwd = process.env.INIT_CWD ?? process.cwd()) {
     resolve(cwd, page)
   ]
   return candidates.find((each) => existsSync(each)) ?? resolve(ROOT, page)
+}
+
+/**
+ * `file` through this checkout's link to it, when it's a shared repo's REAL path
+ * (`/.../spell-app-dev/epics/seo/seo.plan.html` -> `<ROOT>/epics/seo/seo.plan.html`);  else `file` as is.
+ * - Why:  Claude edits shared pages at their real path, and a page server serves them only through a checkout's
+ *   link:  a link made from the real path pointed at `/spell-app-dev/...`, which no server has (epic `epic-eject` I1).
+ * - The links:  the root `package.json`'s `"shared".links`.
+ */
+export function throughLink(file) {
+  const path = resolve(file)
+  for (const link of sharedLinks()) {
+    try {
+      const real = realpathSync(join(ROOT, link))
+      if (path.startsWith(real + sep)) return join(ROOT, link, relative(real, path))
+    } catch {
+      // not linked in this checkout
+    }
+  }
+  return file
+}
+
+/** The root `package.json`'s `"shared".links`:  the shared repo's top folders, linked at the checkout's root. */
+function sharedLinks() {
+  try {
+    return JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).shared?.links ?? []
+  } catch {
+    return []
+  }
 }
 
 /** Where top-level entry `name` of the old content folder went (`relocate.js` `reorgEntry()`, kept in step). */
@@ -276,7 +306,7 @@ export function serverUrl(base, file) {
  */
 export async function openInVSCode(file, { hash, view = "docs" } = {}) {
   if (!Window.inVSCode) return openInChrome(file)
-  const path = resolve(file)
+  const path = resolve(throughLink(file))
   const served = ensurePageServer()
   const review = view === "review"
   try {
@@ -306,7 +336,8 @@ export async function openInVSCode(file, { hash, view = "docs" } = {}) {
  *   may still raise itself for a URL it's handed (seen 2026-10-01).
  * - NOTE: `key` is an AppleScript keyword:  the variable is `pageKey`.
  */
-export function openInChrome(file) {
+export function openInChrome(page) {
+  const file = throughLink(page)
   const served = ensurePageServer()
   const url = served ? serverUrl(served.base, file) : pathToFileURL(resolve(file)).href
   openUrlInChrome(url, `/${relative(ROOT, resolve(file)).split(sep).join("/")}`)

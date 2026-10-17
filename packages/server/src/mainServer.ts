@@ -2,8 +2,13 @@
  * A worktree's files on the MAIN checkout's page server, so every link points to one port.
  * - The main page server serves each worktree under `/worktrees/<w>/` (`$/server/page` `RunningEpics`).
  * - Used by `spell dev server url` and the VS Code doc preview;  either falls back to the worktree's own server.
+ * - Shared content (`epics/`, `guides/` ...:  links into ONE shared repo, the same in every checkout) is served from
+ *   the main checkout itself, `/epics/...`, not `/worktrees/<w>/epics/...`.
+ *   - Why:  a page loads its scripts from the checkout it's served from, so a plan doc shown through an old
+ *     worktree drew with that worktree's old `<epic-*>` elements (epic `epic-eject` P1).
  */
-import { resolve, sep } from "node:path"
+import { realpathSync } from "node:fs"
+import { join, resolve, sep } from "node:path"
 
 import { SRV } from "$/server"
 
@@ -26,7 +31,24 @@ export async function mainServerUrl(file: string): Promise<string | undefined> {
   } catch {
     return undefined
   }
-  return `${running.base}/worktrees/${encodeURIComponent(at.worktree)}/${at.path.map(encodeURIComponent).join("/")}`
+  const path = at.path.map(encodeURIComponent).join("/")
+  if (isShared(at)) return `${running.base}/${path}`
+  return `${running.base}/worktrees/${encodeURIComponent(at.worktree)}/${path}`
+}
+
+/**
+ * Whether `at`'s file is shared content:  its top folder in the worktree and in the main checkout
+ * are the same real folder (both links into the shared repo).
+ */
+function isShared(at: { main: string; worktree: string; path: string[] }): boolean {
+  const top = at.path[0]
+  if (!top || at.path.length < 2) return false
+  try {
+    const own = realpathSync(join(at.main, ".claude", "worktrees", at.worktree, top))
+    return own === realpathSync(join(at.main, top))
+  } catch {
+    return false
+  }
 }
 
 /**

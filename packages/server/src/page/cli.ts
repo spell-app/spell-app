@@ -8,6 +8,8 @@
  * - `url <file>` -- `ensure`, then print the URL that serves `file`
  *   - a worktree's file:  on the MAIN checkout's server (`/worktrees/<w>/...`),
  *     when that one runs and serves worktrees (`SRV.mainServerUrl()`)
+ * - `prune [--dry-run]` -- stop the page and vite servers whose checkout is gone (`pruneServers()`), on any checkout;
+ *   `--dry-run` only says which
  * - `--root <dir>`:  the checkout (default:  the one holding the folder `yarn` ran in, `INIT_CWD`)
  * - Runs under `tsx` with THIS package's `tsconfig.json`, so `$/...` aliases resolve.
  *   A background server is started the same way (`TSX_TSCONFIG_PATH`), whatever folder it's started from.
@@ -15,7 +17,7 @@
 import { relative, resolve, sep } from "node:path"
 
 import { SRV } from "$/server"
-import { DEFAULT_PORT, PageServer, findRoot } from "$/server/page"
+import { DEFAULT_PORT, PageServer, findRoot, pruneReport, pruneServers } from "$/server/page"
 
 await main(process.argv.slice(2))
 
@@ -58,8 +60,14 @@ async function main(args: string[]): Promise<void> {
       const path = relative(root, absolute)
       return console.log(`${base}/${path.split(sep).map(encodeURIComponent).join("/")}`)
     }
+    case "prune": {
+      const dryRun = rest.includes("--dry-run")
+      return console.log(pruneReport(pruneServers({ dryRun }), { dryRun }))
+    }
     default:
-      console.log(`usage:  spell dev server serve|start|ensure|stop|status|url <file>  [--root <dir>] [--port <n>]`)
+      console.log(
+        `usage:  spell dev server serve|start|ensure|stop|status|url <file>|prune [--dry-run]  [--root <dir>] [--port <n>]`
+      )
   }
 }
 

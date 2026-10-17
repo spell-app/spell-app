@@ -136,3 +136,17 @@ export function vscodeSteps(verb?: string): string[][] {
   if (verb === "install") return install
   throw new CliError(`unknown verb '${verb}':  build, install, or none for both`)
 }
+
+/**
+ * Why `spell dev vscode` refuses to run from `branch`, `behind` commits behind `main`;  `undefined` when it may.
+ * - `main` itself, or a branch with all of `main` in it, may
+ * - Why:  every VS Code window runs the ONE installed extension,
+ *   so one built from an older branch downgrades them all
+ */
+export function behindMainError(branch: string, behind: number): string | undefined {
+  if (branch === "main" || behind <= 0) return undefined
+  return (
+    `${branch} is ${behind} commit${behind === 1 ? "" : "s"} behind main:  building the extension from it would downgrade every window.  ` +
+    "Merge main first (`spell dev worktree merge-main`), or pass --force."
+  )
+}

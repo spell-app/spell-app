@@ -3,7 +3,8 @@ import { runTool } from "$/cli/dev/passThrough"
 
 /**
  * `spell dev server <verb> ...`:  the page server of the nearest checkout (`packages/server`'s `src/page/cli.ts`),
- * `args` verbatim:  `serve`, `start` / `ensure`, `stop`, `status`, `url <file>` -- its header has them.
+ * `args` verbatim:  `serve`, `start` / `ensure`, `stop`, `status`, `url <file>`, `prune [--dry-run]` -- its header
+ * has them.
  * - Root `yarn server` aliases it.
  * - `start --all`:  every web server of the checkout instead -- page server, editor, Spell UI -- and where each is:
  *   `scripts/serve.mjs`, root `yarn serve`
