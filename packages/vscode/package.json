@@ -23,9 +23,33 @@
   "contributes": {
     "commands": [
       {
+        "command": "spell.showCompiledTypeScript",
+        "title": "Show Compiled TypeScript",
+        "category": "Spell",
+        "icon": {
+          "light": "media/ts-light.svg",
+          "dark": "media/ts-dark.svg"
+        },
+        "enablement": "editorLangId == spell"
+      },
+      {
         "command": "spell.showCompiled",
         "title": "Show Compiled JavaScript",
         "category": "Spell",
+        "icon": {
+          "light": "media/js-light.svg",
+          "dark": "media/js-dark.svg"
+        },
+        "enablement": "editorLangId == spell"
+      },
+      {
+        "command": "spell.showCompiledPython",
+        "title": "Show Compiled Python",
+        "category": "Spell",
+        "icon": {
+          "light": "media/py-light.svg",
+          "dark": "media/py-dark.svg"
+        },
         "enablement": "editorLangId == spell"
       },
       {
@@ -75,7 +99,7 @@
       },
       {
         "command": "spell.docView.home",
-        "title": "Docs Index",
+        "title": "Home Page:  a fresh view at the docs' home page, for a page that stopped responding",
         "category": "Spell",
         "icon": "$(home)"
       },
@@ -119,7 +143,7 @@
       },
       {
         "command": "spell.reviewView.home",
-        "title": "Review:  Docs Index",
+        "title": "Review:  Home Page (a fresh view at the docs' home page)",
         "category": "Spell",
         "icon": "$(home)"
       },
@@ -215,7 +239,24 @@
       {
         "language": "spell",
         "scopeName": "source.spell",
-        "path": "./syntaxes/spell.tmLanguage.json"
+        "path": "./syntaxes/spell.tmLanguage.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.css": "css",
+          "meta.embedded.block.markdown": "markdown"
+        }
+      },
+      {
+        "scopeName": "inline.spell.css-template",
+        "path": "./syntaxes/css-template.tmLanguage.json",
+        "injectTo": [
+          "source.js",
+          "source.js.jsx",
+          "source.ts",
+          "source.tsx"
+        ],
+        "embeddedLanguages": {
+          "meta.embedded.block.css": "css"
+        }
       }
     ],
     "languages": [
@@ -241,14 +282,24 @@
       ],
       "editor/title": [
         {
+          "command": "spell.showCompiledTypeScript",
+          "when": "editorLangId == spell",
+          "group": "navigation@1"
+        },
+        {
           "command": "spell.showCompiled",
           "when": "editorLangId == spell",
-          "group": "navigation"
+          "group": "navigation@2"
+        },
+        {
+          "command": "spell.showCompiledPython",
+          "when": "editorLangId == spell",
+          "group": "navigation@3"
         },
         {
           "command": "spell.runProject",
           "when": "editorLangId == spell",
-          "group": "navigation"
+          "group": "navigation@4"
         }
       ],
       "view/title": [
@@ -268,14 +319,19 @@
           "group": "navigation@3"
         },
         {
-          "command": "spell.docView.restartServer",
+          "command": "spell.docView.home",
           "when": "view == spell.docView",
           "group": "navigation@4"
         },
         {
-          "command": "spell.docView.openExternal",
+          "command": "spell.docView.restartServer",
           "when": "view == spell.docView",
           "group": "navigation@5"
+        },
+        {
+          "command": "spell.docView.openExternal",
+          "when": "view == spell.docView",
+          "group": "navigation@6"
         },
         {
           "command": "spell.reviewView.back",
@@ -293,14 +349,19 @@
           "group": "navigation@3"
         },
         {
-          "command": "spell.reviewView.restartServer",
+          "command": "spell.reviewView.home",
           "when": "view == spell.reviewView",
           "group": "navigation@4"
         },
         {
-          "command": "spell.reviewView.openExternal",
+          "command": "spell.reviewView.restartServer",
           "when": "view == spell.reviewView",
           "group": "navigation@5"
+        },
+        {
+          "command": "spell.reviewView.openExternal",
+          "when": "view == spell.reviewView",
+          "group": "navigation@6"
         },
         {
           "command": "spell.reviewView.openEpic",
@@ -310,12 +371,12 @@
         {
           "command": "spell.docView.inspect",
           "when": "view == spell.docView || view == spell.reviewView",
-          "group": "navigation@6"
+          "group": "navigation@7"
         },
         {
           "command": "spell.docView.showConsole",
           "when": "view == spell.docView || view == spell.reviewView",
-          "group": "navigation@7"
+          "group": "navigation@8"
         }
       ],
       "webview/context": [

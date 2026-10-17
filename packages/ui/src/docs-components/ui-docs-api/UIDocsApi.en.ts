@@ -23,7 +23,7 @@ export const docsApiVocabulary = {
   noun: "api",
   description:
     "An API reference lists a tag's attributes, properties, events, slots, parts, states and texts as tables, from " +
-    "the site's generated data.",
+    "the site's generated data;  for a function component, its props and where it's drawn.",
   attributes: [
     {
       name: "tag",
@@ -72,6 +72,7 @@ export const docsApiVocabulary = {
     { name: "error", description: "The data couldn't be loaded, or has no such tag:  the message shows." }
   ],
   texts: [
+    { key: "props", text: "Props", description: "Title of a function component's props table." },
     { key: "attributes", text: "Attributes", description: "Title of the attributes table." },
     { key: "properties", text: "Properties", description: "Title of the rich-data properties table." },
     { key: "events", text: "Events", description: "Title of the events table." },
@@ -79,6 +80,7 @@ export const docsApiVocabulary = {
     { key: "parts", text: "Parts", description: "Title of the `::part()` table." },
     { key: "states", text: "States", description: "Title of the `:state()` table." },
     { key: "texts", text: "Texts", description: "Title of the translatable texts table." },
+    { key: "usedIn", text: "Used in", description: "Title of the table of where a function component is drawn." },
     {
       key: "propertiesNote",
       text: "Rich data:  set as JS properties, never as attributes.",
@@ -104,6 +106,15 @@ export const docsApiVocabulary = {
       text: "Every string the element shows, translatable through `UI.i18n`.",
       description: "Line under the texts title."
     },
+    {
+      key: "usedInNote",
+      text: "Every component that draws it, as the source shows.",
+      description: "Line under the used-in title."
+    },
+    { key: "prop", text: "Prop", description: "Column header." },
+    { key: "type", text: "Type", description: "Column header:  a prop's type, as written." },
+    { key: "component", text: "Component", description: "Column header of the used-in table." },
+    { key: "file", text: "File", description: "Column header of the used-in table." },
     { key: "attribute", text: "Attribute", description: "Column header." },
     { key: "property", text: "Property", description: "Column header." },
     { key: "event", text: "Event", description: "Column header." },
@@ -125,6 +136,7 @@ export const docsApiVocabulary = {
       description: "Note under a name:  its JS property, when that isn't the name in camelCase."
     },
     { key: "notReflected", text: "not reflected", description: "Note:  the property isn't written back." },
+    { key: "required", text: "required", description: "Note:  the caller must pass the prop." },
     { key: "cancelable", text: "cancelable", description: "Note:  `preventDefault()` vetoes the event." },
     { key: "valueSet", text: "set", description: "Note under values:  the shared value set they come from." },
     {

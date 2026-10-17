@@ -13,12 +13,14 @@
  * - stdin `{ prompt, cwd, session_id, permission_mode, ... }`
  * - Acts only on `/isolate <name>` (not `/isolate done`), `/epic <name> [plan]` (not `/epic review ...` or
  *   `/epic done`, which is `/isolate done`),
- *   `/epic resume <name>` and `/unpark <name>`.  `review`, `resume`, `color` and `future` are reserved epic names:  a
+ *   `/epic resume <name>` and `/unpark <name>`.  `review`, `resume`, `color` and `future` are reserved epic ids:  a
  *   review runs from any window, and keeps the session's name;  a resume, like `/unpark`, is only renamed (it picks
  *   its window itself);  `/epic color <look>` recolours the window it's typed in:  nothing to gate;
  *   `/epic future <name> ...` writes an idea down as a future epic (no worktree):  only renamed, `📅 <name>`.
  *   `phase` and `start` too (epic `skillz` P4):  `/epic phase [ids] ...` adds a phase to THIS session's epic,
  *   `/epic start <phase | ids> ...` works one:  nothing to gate, no rename.
+ *   `request` too (epic `epic-workflow`):  `/epic request <epic> <rN>` takes up a request sent from another session:
+ *   only renamed, `🚧 <epic>`, as a resume is;  refused in a session titled for another epic (step 0).
  *   A look right after the name (`/epic x -purple`, epic `windows-and-review` P5) is the window's, not the plan's:
  *   left out of the text saved below.
  *   `<name>` is lower-kebab-cased as the skills do (`"Docs Index"` -> `docs-index`).
@@ -37,6 +39,8 @@
  *    (its work merged, epic `windows-and-review` P6) isn't `<name>`, so reopening takes the ✅ off;  a ✅ still queued
  *    for it is dropped (`dropDoneTitle()`).  That's
  *    what lets the move to a worktree's window find the old tab by its label (`.claude/hooks/handoff.mjs`).
+ * 0. `/epic review <name>`, first:  blocked in a session titled for a DIFFERENT epic (`🚧 <other>`:  epic `airplane`
+ *    P12, Q10 B;  `reviewRefusal()`).  Any other review passes untouched.
  * - SIDE EFFECT:  before either block (and the note), any text after the name is saved to `<prompts>/<name>.md`, and quoted
  *   back in the reason, so it can be copied.  `/epic <name>` / `/isolate <name>` alone picks it up later.
  *   `<prompts>`:  `$SPELL_PROMPTS_DIR`, else `~/.spell/prompts`.  An older file is kept as `<name>.<time>.md`.
@@ -75,11 +79,19 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
  * - SIDE EFFECT:  saves the prompt's text before blocking it (`savePrompt()`)
  */
 export function gate(input, window) {
+  const refused = reviewRefusal(input)
+  if (refused) return { decision: "block", reason: refused }
   const command = parseCommand(input.prompt)
   if (!command) return null
   const { skill, name, text } = command
   // a future epic is only written down:  no worktree, so nothing to block;  its own icon
-  if (skill === "epic future") return rename(input, `${TITLE_ICONS.future} ${name}`)
+  // ... but never over another epic's session:  it keeps its title, the address its requests come to
+  // (epic `epic-workflow` I5:  `/epic future output-wasm` retitled `🚧 epic-workflow`)
+  if (skill === "epic future") {
+    const own = epicOfTitle(input.session_title)
+    if (own && own !== name) return null
+    return rename(input, `${TITLE_ICONS.future} ${name}`)
+  }
 
   if (skill === "isolate" || skill === "epic") {
     if (input.permission_mode === "plan") {
@@ -109,6 +121,32 @@ export function gate(input, window) {
   return rename(input, `${TITLE_ICONS.active} ${name}`)
 }
 
+
+/**
+ * Why `/epic review <name>` (or `/epic request <name> <rN>`) must not run in this session, or `null` (epic `airplane`
+ * P12, Q10 B;  `request`:  epic `epic-workflow`):  a session titled for a DIFFERENT epic refuses it.
+ * - "titled for an epic":  its title starts with one of `TITLE_ICONS` (`🚧 seo`);  the rest is the epic's name
+ * - an untitled session, or one titled some other way (a main session's own words):  allowed
+ * - `/epic review` alone (this session's own epic) is never refused
+ */
+export function reviewRefusal(input) {
+  const match = /^\s*\/epic\s+(review|request)\s+(?:(["'])(.+?)\2|(\S+))/.exec(input.prompt ?? "")
+  if (!match) return null
+  const [, verb] = match
+  const name = kebab(match[3] ?? match[4])
+  const epic = epicOfTitle(input.session_title)
+  if (!name || !epic || epic === name) return null
+  return `This session is titled for epic \`${epic}\`, not \`${name}\`:  run \`/epic ${verb} ${name}\` in ${name}'s own session (or a main one).`
+}
+
+/** The epic session title `title` names (`🚧 seo` -> `seo`), or `null` when it isn't an epic's title. */
+export function epicOfTitle(title) {
+  const text = String(title ?? "").trim()
+  for (const icon of Object.values(TITLE_ICONS)) {
+    if (text.startsWith(icon)) return kebab(text.slice(icon.length)) || null
+  }
+  return null
+}
 
 /**
  * Title the session `title` (`hookSpecificOutput.sessionTitle`), unless it already is;  `null`:  nothing to do.
@@ -164,6 +202,12 @@ export function parseCommand(prompt) {
   if (skill === "epic" && name === "future") {
     const later = parseCommand(`/unpark ${rest}`)
     return later && { ...later, skill: "epic future" }
+  }
+  // `/epic request <epic> <rN>`:  a request sent from another session (epic `epic-workflow`):  renamed `<epic>`, as a
+  // resume is, so later requests reach this session;  alone, this session's own epic's:  nothing to gate
+  if (skill === "epic" && name === "request") {
+    const asked = parseCommand(`/unpark ${rest}`)
+    return asked && { ...asked, skill: "epic request" }
   }
   // `/epic resume <name>`:  renamed `<name>`, as `/unpark <name>` is;  alone, it asks which epic
   if (skill === "epic" && name === "resume") {

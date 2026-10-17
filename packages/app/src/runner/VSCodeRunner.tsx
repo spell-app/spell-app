@@ -1,6 +1,7 @@
 import { Match, Show, Switch, createSignal, onCleanup, onSettled } from "solid-js"
 
 import type { LSP } from "$/lsp"
+import type { SP } from "$/spell"
 import type { FromRunnerMessage, ProjectSettings, RunnerPaneId, ToRunnerMessage } from "$/app/runner"
 // Import directly, NOT through the `$/app/solid` barrel, which pulls in the editor
 import { TypeExplorer } from "$/app/solid/TypeExplorer"
@@ -9,27 +10,32 @@ import { loadRuntime, type LoadedRuntime } from "./loadRuntime"
 import { RunnerSplit, DEFAULT_SPLIT } from "./RunnerSplit"
 import { RunnerPane, type RunnerTab } from "./RunnerPane"
 import { RunnerConsole } from "./RunnerConsole"
+import { wordsIn } from "./words"
 
 import "$/app/solid/AppContainer.css"
 import "./VSCodeRunner.css"
 
 /****************
  * ### `<VSCodeRunner>`
- * Runs a spell project inside the VS Code extension's "Run Project" webview:  a toolbar, then two panes, one above
- * the other, split by a bar you drag.
+ * Runs a spell project inside the VS Code extension's "Run Project" webview:
+ * a toolbar, then two panes, one above the other, split by a bar you drag.
  * - A program with an `app`:  the app on top, then, if the console's shown, a pane switching between
  *   "Type Explorer", "Thing Explorer" and "Program Output".
- * - One with NO `app` has nothing else to show:  "Program Output" on top, the explorers below, and no
- *   "Show Console" button.  See `hasApp`.  One that starts its app AFTER the run finished, e.g. from a timer,
- *   shows it once it draws.
- * - Runs whatever the extension sends in a `run` message, afresh each time, on its OWN copy of the spell runtime
- *   -- see `loadRuntime()`.  One sent before that's loaded runs once it is.
- * - The program draws with REACT (`App.start()` makes its own root) into `appRoot`, a `<div>` drawn once.
+ * - One with NO `app` has nothing else to show (see `hasApp`):
+ *   "Program Output" on top, the explorers below, and no "Show Console" button.
+ * - One that starts its app AFTER the run finished, e.g. from a timer, shows it once it draws.
+ * - Runs whatever the extension sends in a `run` message, on its OWN copy of the spell runtime -- see `loadRuntime()`.
+ *   - One sent before that's loaded runs once it is.
+ *   - Each run keeps the program's things, e.g. the game in progress:  only Restart starts afresh (see `run()`).
+ * - Its Thing Explorer shows things' members in spell's words, from the `words` message after each run:
+ *   the project's `<Project>.en.js` (`SP.SpellWords`).
+ * - The program draws with the page's Solid (`App.start()` makes its own root) into `appRoot`, a `<div>` drawn once.
  * - NEVER imports `$/core`:  it'd be bundled beside this, a second copy -- see `spellRuntime.ts`.
  * - Says `ready` once listening, so the extension knows to compile.  Messages sent before then are lost.
- * - How it's shown -- console, tab, split, the explorers' state -- comes from the extension, which remembers
- *   it in the project's `settings.json5`.  See `ProjectSettings`.
- * - `post` and `runtimeUrl` are read once.  Its `<ui-*>` tags are the caller's to define (`$/app/solid/loadUI`),
+ * - How it's shown comes from the extension, which remembers it in the project's `settings.json5`:
+ *   console, tab, split, the explorers' state.  See `ProjectSettings`.
+ * - `post` and `runtimeUrl` are read once.
+ * - Its `<ui-*>` tags are the caller's to define (`$/app/solid/loadUI`),
  *   with Fomantic's icon names (`<ui-root icons="fomantic">` in the webview's HTML).
  ****************/
 export function VSCodeRunner(props: VSCodeRunnerProps) {
@@ -43,10 +49,16 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
   // Does the program draw an app?  Assume so until a run says -- see `appIsMounted()`.
   const [hasApp, setHasApp] = createSignal(true)
   const [tree, setTree] = createSignal<LSP.ScopeNode>()
+  const [words, setWords] = createSignal<SP.SpellWordsData>()
+  // how many `words` messages came:  a slow load of an older one mustn't win
+  let wordsSent = 0
   // who's waiting for which details -- see `loadDetails()`
   const detailsWaiting = new Map<string, Array<(details: LSP.ScopeDetails | null) => void>>()
   // what the last `run` message sent, if it came before the runtime -- run once that's loaded
   let toRun: string | undefined
+  // Restart was pressed:  the `run` it brings starts afresh, a new deal.
+  // Every other run keeps the program's things.
+  let startAfresh = false
 
   // NOTE: the app's pane is ALWAYS first, just hidden without an app -- so its mount point is never redrawn.
   const appRoot = (<div class="App" />) as HTMLDivElement
@@ -89,7 +101,10 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
     <div class="VSCodeRunner">
       <VSCodeRunnerToolbar
         error={error()}
-        onRestart={() => post({ type: "restart" })}
+        onRestart={() => {
+          startAfresh = true
+          post({ type: "restart" })
+        }}
         showConsole={hasApp() ? showConsole() : undefined}
         onToggleConsole={() => save({ runner: { ...settings().runner, showConsole: !showConsole() } })}
       />
@@ -121,12 +136,17 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
     </div>
   )
 
-  /** Keep what a `run` message carries, to run -- or a `scopes` message's tree, or our settings ... */
+  /** Keep what a `run` message carries, to run -- or a `scopes` message's tree, a `words` message's words ... */
   function onMessage({ data }: MessageEvent<ToRunnerMessage>) {
     if (data?.type === "run") {
       const copy = loaded()
       if (copy) run(copy, data.compiled)
       else toRun = data.compiled
+    } else if (data?.type === "words") {
+      const sent = ++wordsSent
+      void (data.words === undefined ? Promise.resolve(undefined) : wordsIn(data.words)).then((loaded) => {
+        if (sent === wordsSent) setWords(loaded)
+      })
     } else if (data?.type === "scopes") setTree(data.tree)
     else if (data?.type === "settings") setSettings(data.settings)
     else if (data?.type === "details") {
@@ -136,9 +156,16 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
     }
   }
 
-  /** Run `compiled` afresh in `copy`, drawing into `appRoot`, and show how it went. */
+  /**
+   * Run `compiled` in `copy`, drawing into `appRoot`, and show how it went.
+   * - The panel's project compiled again:  its things carry over (epic `drawable-thing` P16), unless:
+   *   - Restart asked for a fresh start (Q25)
+   *   - or the edit changed its start (`runCompiled()`, P17)
+   */
   function run(copy: LoadedRuntime, compiled: string) {
-    void copy.runtime.runApp(compiled, { appRoot, coreUrl: copy.coreUrl }).then((problem) => {
+    const keepThings = !startAfresh
+    startAfresh = false
+    void copy.runtime.runApp(compiled, { appRoot, coreUrl: copy.coreUrl, keepThings }).then((problem) => {
       setError(problem)
       setHasApp(copy.runtime.appIsMounted())
     })
@@ -166,6 +193,7 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
         {(copy) => (
           <ThingExplorer
             things={copy.runtime.spellCore.things}
+            words={words()}
             state={settings().thingExplorer}
             onStateChange={(thingExplorer) => save({ thingExplorer })}
           />

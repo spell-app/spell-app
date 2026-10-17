@@ -5,16 +5,18 @@ import type { P } from "$/parser"
  * Writes a spell tree (`P.ASTNode`s) as one `Output` per node:  a target's code (`P.JSWriter`, `Output` a `string`),
  * or another view of the tree (`P.TreeWriter`, boxes for a diagram).
  * - ONE METHOD PER KIND OF NODE, named for its class:  `ASTIfStatement(node)` writes an `ASTIfStatement`.
- *   - a node with no method of its own is written by its nearest base class's, e.g. `ASTCoreMethodInvocation` by
- *     `ASTScopedMethodInvocation(node)`;  none at all:  `write()` throws -- unless the writer has `ASTNode(node)`,
- *     the root of every chain:  then that writes anything
+ *   - a node with no method of its own is written by its nearest base class's,
+ *     e.g. `ASTCoreMethodInvocation` by `ASTScopedMethodInvocation(node)`
+ *   - none at all:  `write()` throws -- unless the writer has `ASTNode(node)`, the root of every chain,
+ *     which then writes anything
  *   - a subclass writer (`TSWriter extends JSWriter`) overrides just the kinds it writes differently
- *   - write a child with `this.write(child)`, NEVER `child.compile()`:  that's always the `JSWriter`, so a subclass's
- *     overrides would never reach the child
- * - A class member written INSIDE its class's body has a second method, `<class>AsMember(node)`:  see
- *   `writeAsMember()`.
- * - NOTE: finds methods by CLASS NAME, so every build MUST keep class names (`keepNames`, as rule names already
- *   need:  `packages/parser/AGENTS.md`).  `JSWriter.test.ts` checks every AST class finds its method.
+ *   - write a child with `this.write(child)`, NEVER `child.compile()`:
+ *     that's always the `JSWriter`, so a subclass's overrides would never reach the child
+ * - A class member written INSIDE its class's body has a second method, `<class>AsMember(node)`:
+ *   see `writeAsMember()`.
+ * - NOTE: finds methods by CLASS NAME, so every build MUST keep class names
+ *   (`keepNames`, as rule names already need:  `packages/parser/AGENTS.md`).
+ *   `JSWriter.test.ts` checks every AST class finds its method.
  * - Knows nothing of a target's language:  that's all in the subclass.
  ****************/
 export abstract class Writer<Output = string> {
@@ -32,12 +34,40 @@ export abstract class Writer<Output = string> {
   }
 
   /**
-   * Write class member `member` as it reads in its class's body, e.g. `get title() {...}`:  our
-   * `<class>AsMember(node)` method.  Its plain `write()` patches it onto its class from outside.
+   * Write class member `member` as it reads in its class's body, e.g. `get title() {...}`:
+   * our `<class>AsMember(node)` method.
+   * - Its plain `write()` patches it onto its class from outside.
    * - throws if no `...AsMember` method writes `member`'s class or any class it extends
    */
   writeAsMember(member: P.ASTClassMember): Output {
     return this.methodFor(member, "AsMember").call(this, member)
+  }
+
+  ////////////////
+  // ## Whole projects
+  ////////////////
+
+  /**
+   * A writer for ONE project, whose files' statements are `files`.
+   * - This one, unless the target needs to see the whole project before writing any of it,
+   *   e.g. `TSWriter` (which names a getter by what the project declares).
+   * - Called once per compile by `SP.SpellProject.combineCompiled()`, with:
+   *   - each file's statements, members already moved into their classes
+   *   - the project's `scope` when there is one:  what it imports is in its import layer
+   * - NEVER changes this writer:  a writer that keeps something per project returns a NEW one.
+   * - `options`:  what the project's `project.json` says that changes the code, e.g. where its lists start.
+   */
+  forProject(files: P.ASTNode[][], scope?: P.Scope, options?: P.WriterOptions): this {
+    return this
+  }
+
+  /**
+   * The whole module's `code`, finished:  as is, unless the target changes it once every part is written,
+   * e.g. `TSWriter`'s imports, which name what its code uses.
+   * - `code` starts with `SP.SpellProject.importHeaderFor()`'s import lines.
+   */
+  module(code: string): string {
+    return code
   }
 
   /**

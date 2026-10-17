@@ -16,9 +16,9 @@ export type ConsoleLine = {
 }
 
 /**
- * A `group`/`groupCollapsed` console line -- besides its own `message`/`collapsed`, it also has its
- * own `lines` (nested log lines recorded while it's the active group), so it can render as a
- * collapsible tree in a UI.
+ * A `group`/`groupCollapsed` console line, which a UI can show as a collapsible tree.
+ * - Besides its own `message`/`collapsed`, it has its own `lines`:
+ *   nested log lines recorded while it's the active group.
  */
 export class SpellConsoleGroup extends Observable<
   { message: unknown[] },
@@ -49,16 +49,26 @@ export class SpellConsoleGroup extends Observable<
 
 /**
  * `spellCore.console` -- structured, observable console log backing spell's `print` statements.
- * - Tracks `lines` (and nested `groups`) as `ConsoleLine`s on top of also forwarding to the native
- *   `console`, so a UI can render the log reactively (e.g. a debug panel) while it still shows up
- *   in devtools.
+ * - Tracks `lines` (and nested `groups`) as `ConsoleLine`s, and also forwards each to the native `console`:
+ *   a UI can render the log reactively (e.g. a debug panel), and it still shows up in devtools.
  * - Compiles from spell `print` / `print warning` / `print error` / `print group` /
- *   `print collapsed group` / `end print group` (see `UI.ts`).
+ *   `print collapsed group` / `end print group` (see `rules/UI/`).
+ * - A line holding a DUMP, e.g. of a thing (`print the card`), goes through `printDump()`:
+ *   `spell run` sends it to stderr, so stdout holds only the program's data.
  */
 export class SpellConsole extends Observable<Record<string, unknown>, { lines: ConsoleLine[] }> {
   constructor(props: Partial<{ lines: ConsoleLine[] }> = {}) {
     super(props)
   }
+
+  /**
+   * Where `log()` and `info()` print a line holding a DUMP:  a value that isn't plain data,
+   * e.g. a thing or a spell list (`print the card`) -- see `isPlainValue()`.
+   * - Default:  the native `console.log()`, so a page shows it as any other line:  a browser's console has no streams.
+   * - `spell run` points it at stderr (`runProject.ts`), so stdout holds only text, numbers, yes / no and plain lists,
+   *   as Python's core prints them (epic page python-target, Q17).
+   */
+  printDump: (...message: unknown[]) => void = (...message) => console.log(...message)
 
   /**
    * Logged `lines` -- `group` lines have their own nested `lines`, not flattened in here.
@@ -74,8 +84,8 @@ export class SpellConsole extends Observable<Record<string, unknown>, { lines: C
   /**
    * Record `line` into whichever `lines` array is active (nested inside current group, if any),
    * stamp it with `logged`, and fire a `console-log` event.
-   * - SIDE EFFECT: pushes `line` onto `this.groups` if it's itself a `group` line, making it the new
-   *   active group for subsequent lines.
+   * - SIDE EFFECT: pushes `line` onto `this.groups` if it's itself a `group` line,
+   *   making it the new active group for subsequent lines.
    */
   _addLogLine(line: ConsoleLine | SpellConsoleGroup): void {
     ;(line as { logged?: number }).logged = Date.now()
@@ -88,16 +98,18 @@ export class SpellConsole extends Observable<Record<string, unknown>, { lines: C
     spellCore.trigger("console-log", line)
   }
 
-  /** Log at `debug` level. */
+  /** Log at `debug` level:  a dump through `printDump()`. */
   log(...message: unknown[]): void {
     this._addLogLine({ message, level: "debug" })
-    console.log(...message)
+    if (message.every(isPlainValue)) console.log(...message)
+    else this.printDump(...message)
   }
 
-  /** Log at `info` level. */
+  /** Log at `info` level:  a dump through `printDump()`. */
   info(...message: unknown[]): void {
     this._addLogLine({ message, level: "info" })
-    console.info(...message)
+    if (message.every(isPlainValue)) console.info(...message)
+    else this.printDump(...message)
   }
 
   /** Log at `warn` level. */
@@ -112,18 +124,31 @@ export class SpellConsole extends Observable<Record<string, unknown>, { lines: C
     console.error(...message)
   }
 
-  /** Log at `group` level -- subsequent log calls nest inside this group until `groupEnd()`. */
+  /**
+   * Log at `group` level -- subsequent log calls nest inside this group until `groupEnd()`.
+   * - A heading holding a dump goes through `printDump()`, before an unnamed group.
+   */
   group(...message: unknown[]): void {
     const group = new SpellConsoleGroup({ message })
     this._addLogLine(group)
-    console.group(...message)
+    if (message.every(isPlainValue)) {
+      console.group(...message)
+    } else {
+      this.printDump(...message)
+      console.group()
+    }
   }
 
   /** Log at `group` level, but collapsed -- same nesting as `group()`. */
   groupCollapsed(...message: unknown[]): void {
     const group = new SpellConsoleGroup({ message, collapsed: true })
     this._addLogLine(group)
-    console.groupCollapsed(...message)
+    if (message.every(isPlainValue)) {
+      console.groupCollapsed(...message)
+    } else {
+      this.printDump(...message)
+      console.groupCollapsed()
+    }
   }
 
   /** Close current group (opened by `group()`/`groupCollapsed()`), popping back to its parent. */
@@ -141,6 +166,21 @@ export class SpellConsole extends Observable<Record<string, unknown>, { lines: C
     spellCore.trigger("console-clear")
     // console.clear()
   }
+}
+
+/**
+ * Is `value` plain data, which a program prints as its output:  text, a number, yes / no, nothing,
+ * or a plain list or object (whatever is in it)?
+ * - Anything else is a DUMP, e.g. of a thing, a spell list, a function:  see `SpellConsole.printDump()`.
+ * - The same split as Python's core (`PLAIN_VALUES`, in `py/spell_core/console.py`).
+ */
+export function isPlainValue(value: unknown): boolean {
+  if (value === null || value === undefined || Array.isArray(value)) return true
+  const type = typeof value
+  if (type === "string" || type === "number" || type === "boolean" || type === "bigint") return true
+  if (type !== "object") return false
+  const prototype = Object.getPrototypeOf(value) as object | null
+  return prototype === Object.prototype || prototype === null
 }
 
 /** Assembled `spellCore.console` module -- a fresh `SpellConsole` instance shared by all consumers. */

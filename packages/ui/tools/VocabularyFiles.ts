@@ -2,11 +2,11 @@ import { existsSync, readdirSync } from "node:fs"
 import { join } from "node:path"
 import { pathToFileURL } from "node:url"
 
-import type { ComponentVocabulary } from "../src/vocabulary/vocabulary.types.ts"
+import type { ComponentVocabulary } from "$/spell-solid/vocabulary.types"
 
 /****************
  * ### `VocabularyFiles`
- * Every English vocabulary of a folder of families (`src/components/`, `src/docs-components/`), read from its
+ * Every English vocabulary of a folder of families (`components/`, `src/docs-components/`), read from its
  * `<Name>.en.ts` files in node:  what `RootCatalog` (`yarn gen:root`, `spell dev pack build`) and `yarn site:data`
  * (`SiteDataBuilder`) read.
  * - A vocabulary file is named for its component and its LANGUAGE:  `UIButton.en.ts`, a translation

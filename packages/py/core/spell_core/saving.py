@@ -1,0 +1,417 @@
+"""Saving things BY ID, each in an entry of its own, and loading them back as the same objects (`people-and-orgs` P2).
+
+```python
+saved = Saver().save(owen)
+# saved.root:  "Person#owen"
+# saved.entries:  "Person#owen" => {"$type": "Person", "id": "owen", "name": "Owen",
+#                                   "dates": [{"$type": "DatedEvent", "label": "birthday", ...}],
+#                                   "friends": [{"$ref": "Person#matt"}]}
+#                 "Person#matt" => {"$type": "Person", "id": "matt", ...}
+
+loader = Loader(entry_for=saved.entries.get)
+loader.load(saved.root)   # owen again;  his friend matt is loaded once, however many hold him
+```
+
+- A thing is saved INSIDE what holds it, by default (decision Q42):
+  - written whole the first time it's reached
+  - a REFERENCE after, `{"$ref": "Card#ace"}`:  so a card in two piles is one card, read back
+  - written whole with its `id` only when something else holds it too
+  - A reference from another entry names the entry it's written in, `{"$ref": "Card#ace", "$in": "Game#g"}`.
+  - A kind saved IN ITS OWN FILE gets an entry of its own, and what holds it writes a reference to that,
+    `{"$ref": "Person#matt"}`.
+    - Compiled from `a person is saved in its own file`, as `saved_in_file = True`.
+  - What `save()` is given always gets an entry, whatever its kind.
+  - A plain list a property holds (`its "dates" is a list of dated-events`) is its items alone, a JSON array:
+    it's part of its owner.
+    - A list TYPE (`a club is a list of people`) is a thing, inside like any other.
+- An entry is what `to_json()` writes:  `"$type"` first, then its `id`, then its other props, then a list's `"$items"`.
+  - Its props by Python's names, as `to_json()` and a page's state (`state.py`) write them:  `is_set_up`.
+  - Then its plain fields, what it was made with and doesn't declare, as a page's state writes them too.
+  - A date (`datetime`) as its ISO text, as JavaScript's `toISOString()` writes it:  `1970-01-01T00:00:00.000Z`.
+- What an entry's key and a reference say is `ref_of`'s, `"Person#matt"` by default.
+  - The people store (P9) names them by address instead, `"matt@spell"`.
+- A thing kept in ANOTHER place (`place_of`) is a reference with that place, `"Person#matt@three-degrees"`.
+  - It gets no entry:  its own place saves it.
+  - `parse_ref()` reads one, `ref_text()` writes one (P4, Q18).
+  - So an id may never hold an `@`:  saving one raises.
+- Where entries live is the caller's:  a dict here, one file each in the people store.
+- The twin of the JavaScript core's `Saver` and `Loader` (`saving.ts`):
+  both write `savedById.expected.json5`, with the JavaScript core's tests (`tests/core/`), and read it.
+- Not the same as a page's state (`state.py`):  that numbers things per page, and holds them in one message.
+"""
+
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from typing import Any
+
+from spell_core.lists import List
+from spell_core.state import plain_fields, set_prop_of
+from spell_core.things import ITEMS_KEY, TYPE_KEY, Prop, SpellObject, program_core, things
+
+# The key a reference names its thing under:  `{"$ref": "Person#matt"}`.
+REF_KEY = "$ref"
+
+# The key a reference to a thing written whole in ANOTHER entry names that entry under:
+# `{"$ref": "Card#ace", "$in": "Game#g"}` -- so a loader reads that entry first.
+IN_KEY = "$in"
+
+# An entry, as JSON:  `{"$type": "Person", "id": "owen", ...}`.
+Entry = dict[str, Any]
+
+
+@dataclass
+class Saved:
+    """What a save writes:  every entry it made, by its key, and the key of the thing it started from."""
+
+    # The key of the thing `save()` was given, e.g. `"Person#owen"`.
+    root: str
+    # Each entry by its key, in the order they were reached:  the root's first.
+    entries: dict[str, Entry]
+
+
+class Saver:
+    """Writes a thing, and every thing it reaches, as entries by id:  see the module's docs."""
+
+    def __init__(
+        self,
+        ref_of: Callable[[SpellObject], str] | None = None,
+        place_of: Callable[[SpellObject], str | None] | None = None,
+    ) -> None:
+        """A saver naming entries and references by `ref_of`:  `"<Class>#<id>"` by default, `"Person#owen"`.
+
+        - `place_of`:  where a thing is kept when it's NOT with what's being saved, e.g. `"three-degrees"`;
+          `None` when it's saved here.
+          - A thing kept elsewhere is a reference with its place, `{"$ref": "Person#matt@three-degrees"}`,
+            and gets no entry here.
+        """
+        self.ref_of = ref_of or default_ref_of
+        self.place_of = place_of or (lambda _thing: None)
+
+    def save(self, root: SpellObject) -> Saved:
+        """`root` as an entry, and every thing it reaches that's saved in its own file, each as an entry of its own.
+
+        - Every other thing is written inside what holds it.
+        - SIDE EFFECT:  reads the `id` of each entry, and of each kept-inside thing held twice:
+          one with none is given one now, and keeps it.
+        """
+        entries: dict[str, Entry] = {}
+        holds = self._holds_of(root)
+        waiting: list[SpellObject] = [root]
+        # by Python's `id()`:  things compare by identity, but a list's `==` isn't one we want here
+        queued = {id(root)}
+        # each thing kept inside, by the key of the entry it's written whole in
+        written: dict[int, str] = {}
+        current = ""
+
+        def reference(thing: SpellObject) -> object:
+            """A reference to `thing`, or `thing` written whole the first time -- see `_write()`."""
+            place = self.place_of(thing)
+            if place:
+                return {REF_KEY: ref_text(SavedRef(type(thing).__name__, thing.id, place))}
+            if id(thing) in queued or type(thing).saved_in_file:
+                if id(thing) not in queued:
+                    queued.add(id(thing))
+                    waiting.append(thing)
+                return {REF_KEY: self.ref_of(thing)}
+            where = written.get(id(thing))
+            if where is None:
+                written[id(thing)] = current
+                # its id only when something else holds it too, for that reference to find it
+                held_twice = holds.get(id(thing), 0) > 1
+                json: Entry = {TYPE_KEY: type(thing).__name__}
+                if held_twice:
+                    json["id"] = thing.id
+                return self._write_props(thing, json, reference, None if held_twice else "id")
+            ref = {REF_KEY: ref_text(SavedRef(type(thing).__name__, thing.id))}
+            return ref if where == current else {**ref, IN_KEY: where}
+
+        while waiting:
+            thing = waiting.pop(0)
+            # the key first:  it reads the thing's id, so one with none has it before its entry is written
+            current = self.ref_of(thing)
+            entries[current] = self._entry_of(thing, reference)
+        return Saved(self.ref_of(root), entries)
+
+    def _holds_of(self, root: SpellObject) -> dict[int, int]:
+        """How many places hold each thing `root` reaches, by Python's `id()`, for `save()`.
+
+        - Never past a thing kept in another place (`place_of`):  its own place saves it.
+        """
+        holds: dict[int, int] = {id(root): 1}
+
+        def visit(value: object) -> None:
+            if type(value) is List:
+                for item in value.items:
+                    visit(item)
+            elif isinstance(value, SpellObject):
+                holds[id(value)] = holds.get(id(value), 0) + 1
+                if holds[id(value)] == 1 and not self.place_of(value):
+                    visit_props(value)
+            elif isinstance(value, list | tuple):
+                for item in value:
+                    visit(item)
+            elif isinstance(value, dict):
+                for item in value.values():
+                    visit(item)
+
+        def visit_props(thing: SpellObject) -> None:
+            for value in [*thing._props.values(), *plain_fields(thing).values()]:
+                visit(value)
+            if isinstance(thing, List):
+                for item in thing.items:
+                    visit(item)
+
+        visit_props(root)
+        return holds
+
+    def _entry_of(self, thing: SpellObject, reference: Callable[[SpellObject], object]) -> Entry:
+        """`thing`'s own entry:  `"$type"`, `id`, its other props, a list's `"$items"`."""
+        entry: Entry = {TYPE_KEY: type(thing).__name__, "id": thing.id}
+        return self._write_props(thing, entry, reference)
+
+    def _write_props(
+        self,
+        thing: SpellObject,
+        json: Entry,
+        reference: Callable[[SpellObject], object],
+        leave_out: str | None = None,
+    ) -> Entry:
+        """`thing`'s props, its plain fields and its items, written into `json` -- all but `leave_out`'s."""
+        for key, value in [*thing._props.items(), *plain_fields(thing).items()]:
+            if key not in json and key != leave_out:
+                json[key] = self._write(value, reference)
+        if isinstance(thing, List):
+            json[ITEMS_KEY] = [self._write(item, reference) for item in thing.items]
+        return json
+
+    def _write(self, value: object, reference: Callable[[SpellObject], object]) -> object:
+        """`value` as an entry holds it.
+
+        - a plain list (exactly `List`, a property's list):  its items, as an array
+        - a thing or a list type saved in its own file:  a reference to its entry
+        - any other thing or list:  written whole, here, the first time it's reached;  a reference after
+        - lists, tuples and dicts:  each value written so
+        - a date:  its ISO text
+        - anything else:  as it is
+        """
+        if type(value) is List:
+            return [self._write(item, reference) for item in value.items]
+        if isinstance(value, SpellObject):
+            return reference(value)
+        if isinstance(value, list | tuple):
+            return [self._write(item, reference) for item in value]
+        if isinstance(value, datetime):
+            return iso_text(value)
+        if isinstance(value, dict):
+            return {key: self._write(item, reference) for key, item in value.items()}
+        return value
+
+
+class Loader:
+    """Reads entries a `Saver` wrote back as things:  each entry ONCE, however many references name it."""
+
+    def __init__(
+        self,
+        entry_for: Callable[[str], Entry | None],
+        class_named: Callable[[str], type[SpellObject] | None] | None = None,
+    ) -> None:
+        """A loader reading entries from `entry_for`, each made as the class `class_named` gives.
+
+        - `entry_for`:  the entry saved under a key, if there is one:  JSON as `Saver` wrote it.
+        - `class_named`:  the class an entry's `"$type"` names -- the program's, `things.class_named()`, by default.
+        """
+        self.entry_for = entry_for
+        self.class_named = class_named or things.class_named
+        # what it loaded, by key:  a second reference to one gets the same thing
+        self._loaded: dict[str, SpellObject] = {}
+        # the things written whole inside each entry it read, by their key, "Card#ace":  what a reference finds
+        self._inside: dict[str, Entry] = {}
+
+    def load(self, ref: str) -> Any:
+        """The thing saved under `ref`, made from its entry the first time, then the same thing every time.
+
+        - Nothing saved under `ref`:  `None`, with a warning on the program's console.
+        - Typed `Any`, as `core.from_json()`:  the caller knows what it saved, `Person`.
+        """
+        known = self._loaded.get(ref)
+        if known is not None:
+            return known
+        entry = None if ref in self._inside else self.entry_for(ref)
+        if entry is not None:
+            self._index(entry)
+        json = entry if entry is not None else self._inside.get(ref)
+        if json is None:
+            program_core().console.warn(f'Loader.load():  nothing is saved as "{ref}"')
+            return None
+        made = self._make(json, ref)
+        return made if isinstance(made, SpellObject) else None
+
+    def _follow(self, json: Entry) -> Any:
+        """The thing reference `json` names:  an entry, or a thing written whole inside one.
+
+        - The entry it's in (`"$in"`) is read first, when that's another one not read yet.
+        """
+        ref = json[REF_KEY]
+        where = json.get(IN_KEY)
+        if ref not in self._loaded and ref not in self._inside and isinstance(where, str):
+            self.load(where)
+        return self.load(ref)
+
+    def _index(self, json: object) -> None:
+        """Note each thing written whole inside `json` (an entry), by its key, for a reference to find."""
+        if isinstance(json, list):
+            for item in json:
+                self._index(item)
+        elif isinstance(json, dict):
+            kind, key_id = json.get(TYPE_KEY), json.get("id")
+            if isinstance(kind, str) and isinstance(key_id, str):
+                self._inside.setdefault(ref_text(SavedRef(kind, key_id)), json)
+            for value in json.values():
+                self._index(value)
+
+    def read(self, json: object) -> Any:
+        """`json` read back.
+
+        - a reference, loaded (`load()`)
+        - a thing saved inline, made
+        - lists and dicts, read through
+        - A reference to nothing saved is left out of a list:  the list holds what loaded.
+        """
+        if isinstance(json, list):
+            values = [(item, self.read(item)) for item in json]
+            return [value for item, value in values if not (value is None and _is_reference(item))]
+        if not isinstance(json, dict):
+            return json
+        if _is_reference(json):
+            return self._follow(json)
+        if isinstance(json.get(TYPE_KEY), str):
+            return self._make(json)
+        return {key: self.read(value) for key, value in json.items()}
+
+    def _make(self, json: Entry, ref: str | None = None) -> object:
+        """A thing made from `json`, an entry or a thing saved inline -- kept as `ref`'s, if it's an entry.
+
+        - Made with its plain values (text, numbers ...) through its class, so its `create()` sees them.
+        - Then its things and lists are set, once it's kept:  one of them may hold it back, a person's friend's friend.
+        - Its class unknown:  the entry read as a plain dict, its `"$type"` kept.
+        """
+        cls = self.class_named(str(json[TYPE_KEY]))
+        if cls is None:
+            return {key: self.read(value) for key, value in json.items()}
+        # a thing written whole with its id:  kept by its key, so the references to it get this one
+        if ref is None and isinstance(json.get("id"), str):
+            ref = ref_text(SavedRef(str(json[TYPE_KEY]), json["id"]))
+        if ref is not None and ref in self._loaded:
+            return self._loaded[ref]
+        # the file's own keys (`$type`, `$items`, `$version` ...) are never props
+        props = {key: value for key, value in json.items() if not key.startswith("$")}
+        plain = {key: _date_if_declared(cls, key, value) for key, value in props.items() if _is_plain_value(value)}
+        made = cls(**plain)
+        if ref is not None:
+            self._loaded[ref] = made
+        for key, value in props.items():
+            if not _is_plain_value(value):
+                self._set_read(made, key, value)
+        items = json.get(ITEMS_KEY)
+        if isinstance(made, List) and isinstance(items, list):
+            made.items = self.read(items)
+        return made
+
+    def _set_read(self, made: SpellObject, key: str, json: object) -> None:
+        """Set `made`'s `key` to `json` read back:  a property's list gets its items, else the value is set."""
+        value = self.read(json)
+        current = getattr(made, key) if isinstance(value, list) else None
+        if isinstance(current, List):
+            current.items = value
+        else:
+            set_prop_of(made, key, value)
+
+
+####################
+# ## Helpers
+####################
+
+
+@dataclass
+class SavedRef:
+    """A saved reference's parts:  `Person#matt@three-degrees` -- see `parse_ref()` and `ref_text()`."""
+
+    # The thing's kind, e.g. `Person`.
+    type: str
+    # Its id, e.g. `matt`:  never holds an `@`.
+    id: str
+    # Where it's kept, when that's not here:  an address, which may hold an `@` of its own.
+    place: str | None = None
+
+
+def parse_ref(text: str) -> SavedRef:
+    """A saved reference read:  `Person#matt@three-degrees` => `SavedRef("Person", "matt", "three-degrees")`.
+
+    - The type runs up to the `#`;  the id from there to the FIRST `@`.
+    - Everything after that `@` is the place, which may hold an `@` of its own
+      (`Card#26@matt@three-degrees:bubble-trouble`).
+    - No `@`:  no place, the thing is kept here, `Person#matt`.
+    - raises `ValueError` with no `#`, or nothing before or after it
+    """
+    hash_at = text.find("#")
+    at = text.find("@", hash_at + 1)
+    kind = text[:hash_at]
+    the_id = text[hash_at + 1 :] if at < 0 else text[hash_at + 1 : at]
+    if hash_at < 0 or not kind or not the_id:
+        raise ValueError(f'parse_ref():  "{text}" isn\'t a reference;  write it as Type#id, or Type#id@place')
+    return SavedRef(kind, the_id) if at < 0 else SavedRef(kind, the_id, text[at + 1 :])
+
+
+def ref_text(ref: SavedRef) -> str:
+    """`ref` written as a saved reference:  `Person#matt`, or with its place, `Person#matt@three-degrees`.
+
+    - raises `ValueError` if the id holds an `@`:  a reader couldn't tell where the id ends and the place begins
+    """
+    if "@" in ref.id:
+        raise ValueError(
+            f"ref_text():  {ref.type}'s id \"{ref.id}\" holds an @, which a saved reference can't;  give it another id"
+        )
+    return f"{ref.type}#{ref.id}@{ref.place}" if ref.place else f"{ref.type}#{ref.id}"
+
+
+def default_ref_of(thing: SpellObject) -> str:
+    """`"<Class>#<id>"`, e.g. `"Person#owen"`:  a thing's key, until the people store names things by address.
+
+    - raises if its id holds an `@` -- see `ref_text()`
+    """
+    return ref_text(SavedRef(type(thing).__name__, thing.id))
+
+
+def iso_text(date: datetime) -> str:
+    """`date` as JavaScript's `toISOString()` writes it:  in UTC, to the millisecond, `1970-01-01T00:00:00.000Z`.
+
+    - A date with no time zone is read as UTC, as JavaScript reads ISO text with none.
+    """
+    in_utc = date.replace(tzinfo=UTC) if date.tzinfo is None else date.astimezone(UTC)
+    return in_utc.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+def _is_plain_value(value: object) -> bool:
+    """Is `value` text, a number, yes or no, or nothing:  a value to make a thing with, before its references?"""
+    return not isinstance(value, dict | list)
+
+
+def _is_reference(json: object) -> bool:
+    """Is `json` a reference alone, `{"$ref": ...}`, perhaps with the entry it's in, `"$in"`?"""
+    return isinstance(json, dict) and isinstance(json.get(REF_KEY), str) and set(json) <= {REF_KEY, IN_KEY}
+
+
+def _date_if_declared(cls: type, key: str, value: object) -> object:
+    """`value` as a `datetime`, if `cls` declares `key` a date and `value` is its ISO text;  else `value`.
+
+    - Text with no time zone is read as UTC, as JavaScript reads ISO text with none.
+    """
+    declared = getattr(cls, key, None)
+    if not isinstance(value, str) or not isinstance(declared, Prop) or declared.type != "date":
+        return value
+    try:
+        date = datetime.fromisoformat(value)
+    except ValueError:
+        return value
+    return date.replace(tzinfo=UTC) if date.tzinfo is None else date

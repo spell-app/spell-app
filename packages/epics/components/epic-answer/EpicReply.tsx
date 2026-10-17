@@ -1,7 +1,7 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 
 import { PlanDates } from "$/epics/dates"
 // the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel (which would define it here)
@@ -12,6 +12,7 @@ import { BODY, BODY_ID, DATE, DATED, EMPTY, HEADER, HEADING_SEPARATOR, WHO, WHO_
 
 import answerCSS from "./EpicAnswer.css?inline"
 import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicReply`
@@ -29,7 +30,7 @@ import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 export class EpicReply extends E.UIComponent<typeof epicReplyVocabulary> {
   @E.proto static vocabulary = epicReplyVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-fold-button": foldCSS, "epic-answer": answerCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-fold-button": foldCSS, "epic-answer": answerCSS },
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
@@ -75,7 +76,12 @@ export class EpicReply extends E.UIComponent<typeof epicReplyVocabulary> {
           hidden={!this.who && !this.date}
         >
           <Show when={this.hasBody}>
-            {this.fold.button({ controls: BODY_ID, labelledBy: WHO_ID, part: this.partForName("toggle") })}
+            {this.fold.button({
+              controls: BODY_ID,
+              labelledBy: WHO_ID,
+              part: this.partForName("toggle"),
+              tips: { fold: this.translationForKey("foldTip"), unfold: this.translationForKey("unfoldTip") }
+            })}
           </Show>
           <span id={WHO_ID} class={WHO} part={this.partForName("who")}>
             {this.who}

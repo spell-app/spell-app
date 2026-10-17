@@ -1,6 +1,6 @@
 /**
  * A worktree's files on the MAIN checkout's page server, so every link points to one port.
- * - The main page server serves each worktree under `/worktrees/<w>/` (`$/server/page` `RunningEpics`).
+ * - The main page server serves each worktree under `/worktrees/<w>/` (`$/server/page` `PageServer`).
  * - Used by `spell dev server url` and the VS Code doc preview;  either falls back to the worktree's own server.
  * - Shared content (`epics/`, `guides/` ...:  links into ONE shared repo, the same in every checkout) is served from
  *   the main checkout itself, `/epics/...`, not `/worktrees/<w>/epics/...`.
@@ -16,9 +16,11 @@ import { SRV } from "$/server"
  * `file`'s URL on the main checkout's page server;  else `undefined`.
  * - only when `file` is in a worktree (`<main>/.claude/worktrees/<w>/...`),
  *   and that server is running and serves worktrees
- * - "serves worktrees":  `/_server/epics` answers
+ * - "serves worktrees":  its running epics answer (`RUNNING_EPICS_API`, epics' route module)
  *   - so a main server started before it learned to (an older checkout, not yet restarted)
  *     is never handed a URL it would 404
+ *   - NOTE:  `main`'s server answers it only once epic `people-and-orgs` merges;
+ *     until then, a worktree's file opens on the worktree's own server
  */
 export async function mainServerUrl(file: string): Promise<string | undefined> {
   const at = worktreePath(file)
@@ -26,7 +28,7 @@ export async function mainServerUrl(file: string): Promise<string | undefined> {
   const running = await new SRV.PidFile(at.main).status()
   if (!running) return undefined
   try {
-    const answer = await fetch(`${running.base}/_server/epics`, { signal: AbortSignal.timeout(1000) })
+    const answer = await fetch(`${running.base}${RUNNING_EPICS_API}`, { signal: AbortSignal.timeout(1000) })
     if (!answer.ok) return undefined
   } catch {
     return undefined
@@ -67,3 +69,9 @@ export function worktreePath(file: string): { main: string; worktree: string; pa
   }
   return undefined
 }
+
+/**
+ * Where the main page server lists the running epics:  epics' route module answers it (`$/epics/list/runningRoutes`).
+ * - here, not imported from epics:  this package is a leaf
+ */
+export const RUNNING_EPICS_API = "/api/epics/running"

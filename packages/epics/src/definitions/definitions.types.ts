@@ -1,21 +1,21 @@
 /**
  * Types of `$/epics/definitions`:  the ONE description of every `<epic-*>` element, shared by the browser elements
- * and the node tools (the converter, the plan-doc tool).
- * - An element's description IS its vocabulary, `components/<family>/<Name>.en.ts`:  Spell UI's
- *   `ComponentVocabulary`, plus what it lacks for a DOCUMENT format -- the children each element allows (its content
+ * and the node tools (the converter, the epic tool).
+ * - An element's description IS its vocabulary, `components/<family>/<Name>.en.ts`:  every set's
+ *   `ComponentVocabulary` (`$/spell-solid`), plus what it lacks for a DOCUMENT format -- the children each element allows (its content
  *   model), required attributes and value formats.
  * - Bottom of the folder's import graph:  `import type` only, so it loads anywhere (node, browser, a vocabulary).
  *   `definitions.types` <- `Definitions` <- `$/epics/markup`.
  */
 
-// NOTE:  Spell UI's vocabulary TYPES file, not `$/ui/core`:  core loads the element layer (JSX, Vite-only imports),
-// which a node tool's type check -- `docs`, through the plan-doc forwarders -- can't compile.
-import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary/vocabulary.types"
+// NOTE:  spell-solid's vocabulary TYPES file, not its barrel or `$/ui/core`:  those load the element layer (JSX,
+// Vite-only imports), which a node tool's type check -- the docs tools, through the epic-page forwarders -- can't compile.
+import type { AttributeSpec, ComponentVocabulary } from "$/spell-solid/vocabulary.types"
 
 import type { Definitions } from "./Definitions"
 
-/** `allow-additions` => `allowAdditions`, at the type level:  Spell UI's `CamelCase` (`$/ui/elements/elements.types`,
- * behind the element layer), restated here so the definitions stay node-safe. */
+/** `allow-additions` => `allowAdditions`, at the type level:  spell-solid's `CamelCase` (`$/spell-solid/elements.types`,
+ * beside the element layer), restated here so the definitions stay node-safe. */
 export type CamelCase<S extends string> = S extends `${infer Head}-${infer Tail}`
   ? `${Head}${Capitalize<CamelCase<Tail>>}`
   : S
@@ -124,23 +124,26 @@ export type AttributeTest = {
  * - `time` -- a date, or a date and time:  `2026-10-07 14:30`, or ISO with seconds and offset
  *   (`2026-10-06T09:28:23-04:00`), as the script stamps them
  * - `item id` -- `q7`, `j3`, `c1`, `i2`, `t4`, `v1`:  its letter is its kind (`ItemLetters`)
- * - `phase id` -- `p3`
+ * - `phase id` -- `p-epic-migrate`:  stable, made from its name (`PhaseIds`, epic `epic-workflow` P15);
+ *   an older page's `p3`, until the migration `stable-phase-ids`
  * - `anchor` -- any id a link may land on (`d7`, an old decision's, kept on its answer)
  * - `ids` -- anchors, space-separated (`data-part-ids` today)
  * - `sha` -- a git commit, 7 to 40 hex digits
  * - `letter` -- an option's letter, `A` to `Z`
  * - `epic name` -- the epic's folder name, `epic-components`
+ * - `saga id` -- a saga's id, one or two words:  `drawable-spell`, `epics` (`sagas/sagas.json5`;  epic `epic-workflow` P15)
  */
 export const Formats = {
   date: /^\d{4}-\d{2}-\d{2}$/,
   time: /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2})?([+-]\d{2}:\d{2}|Z)?)?$/,
   "item id": /^[qjcitv]\d+$/,
-  "phase id": /^p\d+$/,
+  "phase id": /^p(?:\d+|-[a-z0-9]+(?:-[a-z0-9]+)*)$/,
   anchor: /^[A-Za-z][\w-]*$/,
   ids: /^[A-Za-z][\w-]*( [A-Za-z][\w-]*)*$/,
   sha: /^[0-9a-f]{7,40}$/,
   letter: /^[A-Z]$/,
-  "epic name": /^[a-z0-9]+(-[a-z0-9]+)*$/
+  "epic name": /^[a-z0-9]+(-[a-z0-9]+)*$/,
+  "saga id": /^[a-z][a-z0-9]*(-[a-z0-9]+)?$/
 } as const
 
 /** A `Formats` name. */
@@ -155,8 +158,11 @@ export type FormatName = keyof typeof Formats
  * uses (`#decisions`:  "Questions" kept its old id).
  * - `overview-part`, the Overview's sub-sections, isn't here:  its ids are `o1`, `o2` ... (`OVERVIEW_PART_ID`);  nor
  *   `report` (`REPORT`), whose ids are its own.
+ * - `epics`:  a SAGA page's Epics (`<epic-page kind="saga">`, epic `epic-workflow` P15), the cards of the epics
+ *   serving it (`<epic-cards>`);  never on an epic page.
  */
 export const SectionIds = {
+  epics: "epics",
   phases: "phases",
   questions: "decisions",
   judgements: "judgements",

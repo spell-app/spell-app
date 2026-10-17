@@ -4,9 +4,11 @@
  * - The plan for them, and every command the repo has:  `guides/dev/commands/commands.html`
  * - Each finds the nearest checkout from the current folder (`findCheckout()`), so it works in a worktree
  * - Two kinds:
- *   - pass-throughs (`plan-doc`, `agents`, `goals`, `docs`, `details`, `choices`, `notes`, `comments`, `design`,
- *     `server`, `window`, `vscode`):  a repo tool run with its arguments verbatim, `(args) => Promise<exitCode>`;
- *     this file imports them directly, so they load no spell
+ *   - pass-throughs (`docs`, `design`, `server`, `window`, `vscode`):  a repo tool run with its arguments verbatim,
+ *     `(args) => Promise<exitCode>`;  this file imports them directly, so they load no spell
+ *   - the epic tools' OLD spellings (`plan-doc`, `details`, `choices`, `comments`, `notes`, `agents`, `airplane`):
+ *     pass-throughs too, hidden from `spell dev --help`;  the `epic` command has them now (`epicProgram.ts`), and
+ *     these run the same tools, unchanged, until no caller is left
  *   - lean commands of our own (`pack`, `bundles`):
  *     `(args, options) => Promise<exitCode>`, imported directly the same way
  *   - the rest (`commands`, `session` ...):  `$/cli` commands, which load spell (`CliSession`);
@@ -27,7 +29,6 @@ import { designCommand } from "$/cli/commands/designCommand"
 import { choicesCommand } from "$/cli/commands/choicesCommand"
 import { detailsCommand } from "$/cli/commands/detailsCommand"
 import { docsCommand } from "$/cli/commands/docsCommand"
-import { goalsCommand } from "$/cli/commands/goalsCommand"
 import { notesCommand } from "$/cli/commands/notesCommand"
 import { commentsCommand } from "$/cli/commands/commentsCommand"
 import { PACK_VERBS, packCommand } from "$/cli/commands/packCommand"
@@ -40,7 +41,7 @@ import { windowCommand } from "$/cli/commands/windowCommand"
 export function spellProgram(): Command {
   return new Command("spell")
     .description("Compile, check and explore spell projects.")
-    .option("--all", "a whole root, e.g. @library, means ALL its projects")
+    .option("--all", "a whole root, e.g. @spell/library, means ALL its projects")
     .option("--verbose", "show spell's own logging, on stderr")
 }
 
@@ -52,61 +53,53 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
   const dev = program
     .command("dev")
     .description("the repo's own tools -- worktrees, docs, servers ...:  guides/dev/commands")
+    .addHelpText("after", MOVED_HELP)
 
   ////////////////
-  // ## Pass-throughs
+  // ## The epic tools' old spellings:  `epic` has them now
   ////////////////
 
   dev
-    .command("plan-doc")
-    .description("edit a plan doc (epics/) -- `spell dev plan-doc` lists its commands")
+    .command("plan-doc", { hidden: true })
+    .description("old spelling of `epic <verb>`:  edit an epic page -- `spell dev plan-doc` alone lists its commands")
     .argument("[args...]", "a plan-doc command and its arguments, e.g. summary seo")
     .allowUnknownOption()
     .helpOption(false)
     // everything after `plan-doc`, raw:  its `--goal` / `--estimate` ... are the tool's, not ours
     .action(() => runLean(planDocCommand, rawArgs("plan-doc")))
 
+  // goals is PARKED (epic `epic-workflow` P6):  its tool is in `packages/goals.zip`, rebuilt by epic `epic-goals`
   dev
-    .command("goals")
-    .description("plans in goals/:  talk, add thoughts, update, open -- `spell dev goals help` lists its commands")
-    .argument("[args...]", "a goals command and its arguments, e.g. update spell/motivation")
+    .command("goals", { hidden: true })
+    .description("PARKED:  the goals tools are in packages/goals.zip, until epic epic-goals rebuilds them")
+    .argument("[args...]", "ignored")
     .allowUnknownOption()
     .helpOption(false)
-    // everything after `goals`, raw:  commander would take `--all` as the global option
-    .action(() => runLean(goalsCommand, rawArgs("goals")))
+    .action((args: string[]) => {
+      process.stderr.write(`${chalk.yellow(GOALS_PARKED)}\n`)
+      // asked for help (`spell dev goals help`), the message is the answer;  a goals command is a failure
+      process.exit(!args.length || args[0] === "help" ? EXIT.OK : EXIT.ERRORS)
+    })
 
   dev
-    .command("docs")
-    .description(
-      "the docs tools:  update, index, new, open, link a page, fuss over writing, offline check (packages/docs/tools)"
-    )
-    .argument("[verb]", DOCS_VERBS.join(" | "))
-    .argument("[args...]", "the tool's arguments, e.g. open solid/solid-2 --vs")
-    .allowUnknownOption()
-    .helpOption(false)
-    .action(() => runLean(docsCommand, rawArgs("docs")))
-
-  dev
-    .command("details")
-    .description("details pages in VS Code's side bar, and the answers on them (the /details skill's tool)")
+    .command("details", { hidden: true })
+    .description("old spelling of `epic ask`:  details pages in VS Code's side bar, and the answers on them")
     .argument("[args...]", "a details command and its arguments")
     .allowUnknownOption()
     .helpOption(false)
     .action(() => runLean(detailsCommand, rawArgs("details")))
 
   dev
-    .command("choices")
-    .description(
-      "syntax-choices pages:  names Claude recommends, one row each, Owen's call per name (new, show, wait ...)"
-    )
+    .command("choices", { hidden: true })
+    .description("old spelling of `epic choices`:  choice pages, Owen's call on each name")
     .argument("[args...]", "a choices command and its arguments")
     .allowUnknownOption()
     .helpOption(false)
     .action(() => runLean(choicesCommand, rawArgs("choices")))
 
   dev
-    .command("notes")
-    .description("page notes Owen leaves on docs pages, for Claude:  list the new ones, answer one, mark it done")
+    .command("notes", { hidden: true })
+    .description("old spelling of `epic notes`:  page notes Owen leaves on docs pages")
     .argument("[verb]", "list (default) [--all] [--json] | answer <page> <id> --file <html> | done <page> <id>")
     .argument("[args...]", "the verb's arguments, e.g. answer guides/x.html n3 --file reply.html")
     .allowUnknownOption()
@@ -114,18 +107,49 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .action(() => runLean(notesCommand, rawArgs("notes")))
 
   dev
-    .command("comments")
-    .description(
-      "comments Owen leaves on docs pages' blocks:  list them, gather them into epic guide-changes, answer one"
-    )
+    .command("comments", { hidden: true })
+    .description("old spelling of `epic comments`:  comments Owen leaves on docs pages' blocks")
     .argument(
       "[verb]",
-      "list (default) [--all] [--json] | gather [<page>... | --all] [--epic <name>] [--json] | answer"
+      "list (default) [--all] [--json] | gather [<page>... | --all] [--epic <name>] [--json] | working | answer"
     )
-    .argument("[args...]", "the verb's arguments, e.g. answer guides/x.html cm3 --file reply.html")
+    .argument("[args...]", "the verb's arguments, e.g. answer guides/x.html#M3 --file reply.html")
     .allowUnknownOption()
     .helpOption(false)
     .action(() => runLean(commentsCommand, rawArgs("comments")))
+
+  dev
+    .command("agents", { hidden: true })
+    .description("old spelling of `epic agents`:  the running-agents list of this epic (else checkout)")
+    .argument("[verb]", "list (default) [--json] | add <name> <task> | set <name> | done <name> | wait | told <name>")
+    .argument("[args...]", 'the verb\'s arguments, e.g. add aaa "docstrings in string.ts"')
+    .allowUnknownOption()
+    .helpOption(false)
+    .action(() => runLean(agentsCommand, rawArgs("agents")))
+
+  dev
+    .command("airplane", { hidden: true })
+    .description("old spelling of `epic airplane`:  airplane mode, everything queued for /airplane land")
+    .argument("[verb]", "status (default) [--json] | on | off | check [--fix] [--json] | inbox [--json]")
+    .argument("[args...]", "the verb's flags")
+    .allowUnknownOption()
+    .helpOption(false)
+    .action(() => runLean(airplaneCommand, rawArgs("airplane")))
+
+  ////////////////
+  // ## Pass-throughs
+  ////////////////
+
+  dev
+    .command("docs")
+    .description(
+      "the docs tools:  update, index, new, open, link a page, fuss over writing, offline check (packages/epics/tools)"
+    )
+    .argument("[verb]", DOCS_VERBS.join(" | "))
+    .argument("[args...]", "the tool's arguments, e.g. open solid/solid-2 --vs")
+    .allowUnknownOption()
+    .helpOption(false)
+    .action(() => runLean(docsCommand, rawArgs("docs")))
 
   dev
     .command("design")
@@ -183,24 +207,6 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     )
 
   dev
-    .command("agents")
-    .description("the running-agents list of this epic (else checkout):  what each background agent is doing")
-    .argument("[verb]", "list (default) [--json] | add <name> <task> | set <name> | done <name> | wait | told <name>")
-    .argument("[args...]", 'the verb\'s arguments, e.g. add aaa "docstrings in string.ts"')
-    .allowUnknownOption()
-    .helpOption(false)
-    .action(() => runLean(agentsCommand, rawArgs("agents")))
-
-  dev
-    .command("airplane")
-    .description("airplane mode:  working on the docs with no Claude, everything queued for /airplane land")
-    .argument("[verb]", "status (default) [--json] | on | off | check [--fix] [--json]")
-    .argument("[args...]", "the verb's flags")
-    .allowUnknownOption()
-    .helpOption(false)
-    .action(() => runLean(airplaneCommand, rawArgs("airplane")))
-
-  dev
     .command("vscode")
     .description("the VS Code extension:  build its .vsix, install it into VS Code -- no verb does both")
     .argument("[verb]", "build | install -- default both")
@@ -245,7 +251,7 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
       "git worktrees:  list the live sessions and where they work, or where a worktree / plan / session stands"
     )
     .argument("[verb]", "list (default) | status <name> | merge-main [--continue]")
-    .argument("[name]", "status:  a worktree, branch, plan doc or session name")
+    .argument("[name]", "status:  a worktree, branch, epic page or session name")
     .option("--json", "list, merge-main:  print the data as JSON")
     .option("--continue", "merge-main:  finish a merge it stopped on other conflicts, once they're resolved and added")
     .action((verb: string | undefined, name: string | undefined, _options, command) =>
@@ -260,7 +266,7 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .command("park")
     .description("parked work:  list the PARKED notes, what /wait-for could wait on, or wait for a name to finish")
     .argument("<verb>", "list | candidates | wait <name>")
-    .argument("[name]", "wait:  a worktree, branch, plan doc or session name")
+    .argument("[name]", "wait:  a worktree, branch, epic page or session name")
     .option("--every <seconds>", "wait:  poll this often (default 60)")
     .option("--max <seconds>", "wait:  give up after this long, exiting 2 (default 7140)")
     .action((verb: string, name: string | undefined, _options, command) =>
@@ -280,7 +286,7 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
   dev
     .command("shared")
     .description(
-      "shared content:  docs pages, goal sets and logs in one repo beside the checkout, linked into every one"
+      "shared content:  docs pages, saga sets and logs in one repo beside the checkout, linked into every one"
     )
     .argument(
       "[verb]",
@@ -318,7 +324,7 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
 /**
  * Run pass-through `command` for `args`, then exit with the code it returns.
  * - A `CliError` prints just its message;  anything else is a crash, and prints its stack.
- * - Used for the deprecated top-level `spell plan-doc` / `spell goals` too (`main.ts`).
+ * - Used for the `epic` command's verbs too (`epicProgram.ts`).
  */
 export async function runLean(command: (args: string[]) => Promise<number>, args: string[]): Promise<never> {
   let exitCode: number
@@ -340,6 +346,16 @@ export function rawArgs(noun: string): string[] {
   const argv = process.argv
   return argv.slice(argv.indexOf(noun, argv.indexOf("dev") + 1) + 1)
 }
+
+/** After `spell dev --help`'s nouns:  where the epic tools went. */
+const MOVED_HELP = `
+The epic tools moved to their own command, \`epic\` (epic --help):  plan-doc, details (now epic ask), choices,
+comments, notes, agents, airplane.  Their old spellings here still work, e.g. spell dev plan-doc summary seo.`
+
+/** What `spell dev goals` says while goals is parked (epic `epic-workflow` P6, Owen 2026-10-11). */
+const GOALS_PARKED =
+  "goals is parked:  its tools, skills and routes are in packages/goals.zip (guides/goals/goals.html says what it " +
+  "was);  epic epic-goals rebuilds it on the epic tools.  The saga pages still show, read only."
 
 /** A `$/cli` command `spell dev` runs by name:  each loads the whole barrel, spell included. */
 export type BarrelCommand =

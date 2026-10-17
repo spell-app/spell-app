@@ -1,4 +1,4 @@
-import { typeCase, instanceCase, snakeCase } from "$/util"
+import { instanceCase, snakeCase } from "$/util"
 import { P } from "$/parser"
 // Import directly to avoid circular import
 import { BlockScope } from "./BlockScope"
@@ -15,10 +15,16 @@ import { BlockScope } from "./BlockScope"
  *  - Member lookup walks the super-type chain:  `chain()`, `isA()`, `getMember()`.
  */
 export class TypeScope extends BlockScope {
-  /** Name of the type, which should be singular.  Will be normalized to Type_Case. */
+  /** Name of the type, which should be singular.  Will be normalized to PascalCase. */
   declare name: string
-  /** Name of superclass, which should be singular.  Will be normalized to Type_Case. */
+  /** Name of superclass, which should be singular.  Will be normalized to PascalCase. */
   declare superType?: string
+  /**
+   * Short name the type goes by too, e.g. `Account` for `a bank account aka account is a thing`.
+   * - `scope.types` finds the type by it, singular or plural -- after every type's own name.
+   * - Normalized to PascalCase, like `name`.
+   */
+  declare aka?: string
   /** If true, the type was created as a stub. */
   declare stub?: boolean
   /**
@@ -32,7 +38,7 @@ export class TypeScope extends BlockScope {
    * - e.g. `Suit`, from `"suits" as one of clubs, ...` in a deck's outline body:
    *   `{ values: ["'clubs'", ...], listOn: "Deck", listName: "Suits" }`
    * - Its values stay plain text or numbers when the code runs;  its properties are static methods of its class,
-   *   read as `Suit.color(value)` (plan doc `outline-spell`, Q10).  See spell's `value_kind`.
+   *   read as `Suit.color(value)` (epic page `outline-spell`, Q10).  See spell's `value_kind`.
    * - Set when declared (`claim()` for a stub), so journaled with it.
    */
   declare valueKind?: ValueKind
@@ -51,7 +57,7 @@ export class TypeScope extends BlockScope {
   /** Where it was declared, if IMPORTED -- so there's no `declaredBy`.  See `P.DeclaredAt`. */
   declare declaredAt?: P.DeclaredAt
 
-  /** Create with a string `typeName`, or `TypeScopeProps` object; normalizes `name`/`superType` to Type_Case. */
+  /** Create with a string `typeName`, or `TypeScopeProps` object; normalizes `name`/`superType` to PascalCase. */
   constructor(typeName: string)
   constructor(props: TypeScopeProps)
   constructor(input: string | TypeScopeProps) {
@@ -61,9 +67,10 @@ export class TypeScope extends BlockScope {
 
     if (!this.name) throw new TypeError("Types must be created with a 'name'")
 
-    // Make sure type `name` and `superType` are in `Type_Case`
-    this.name = typeCase(this.name)
-    if (this.superType) this.superType = typeCase(this.superType)
+    // Make sure type `name` and `superType` are in PascalCase
+    this.name = P.classCase(this.name)
+    if (this.superType) this.superType = P.classCase(this.superType)
+    if (this.aka) this.aka = P.classCase(this.aka)
   }
 
   ////////////////
@@ -83,21 +90,29 @@ export class TypeScope extends BlockScope {
   /**
    * `declaredBy` really declares us, with `superType`:  we were stubbed by an earlier mention (see `getOrStub()`),
    * or left by an earlier parse of the same statement (see `sameStatement()`).
-   * - Clears `stub`, takes `declaredBy`, `superType` and -- for a list type -- `itemType`.
+   * - Clears `stub`, takes `declaredBy`, `superType`, its short name (`aka`) and -- for a list type -- `itemType`.
    *   Journaled, so incremental parsing can take that back.
    * - Changes THIS object, NOT `types.replace()`:  matches parsed so far point at it (`data.scopeType`),
    *   and it may already hold property `classVariables`.
    * - `superType` MUST be right:  a project's declarations read it -- see `SP.SpellDeclarations`.
    */
-  claim(declaredBy: P.Match, superType?: string, { itemType, valueKind }: ClaimListOptions = {}): void {
+  claim(declaredBy: P.Match, superType?: string, { itemType, valueKind, aka }: ClaimListOptions = {}): void {
     const previous = {
       stub: this.stub,
       declaredBy: this.declaredBy,
       superType: this.superType,
       itemType: this.itemType,
-      valueKind: this.valueKind
+      valueKind: this.valueKind,
+      aka: this.aka
     }
-    const next = { stub: false, declaredBy, superType: superType && typeCase(superType), itemType, valueKind }
+    const next = {
+      stub: false,
+      declaredBy,
+      superType: superType && P.classCase(superType),
+      itemType,
+      valueKind,
+      aka: aka && P.classCase(aka)
+    }
     Object.assign(this, next)
     // now IT declares us -- see `ScopeList.noteDeclared()`
     P.ScopeList.noteDeclared(this)
@@ -218,7 +233,7 @@ export class TypeScope extends BlockScope {
 
   /** Are we `ancestor`, or a sub-type of it?  By record, or by name, e.g. `"thing"`. */
   isA(ancestor: TypeScope | string): boolean {
-    const name = typeof ancestor === "string" ? typeCase(ancestor) : undefined
+    const name = typeof ancestor === "string" ? P.classCase(ancestor) : undefined
     return this.chain().some((type) => (name ? type.name === name : type === ancestor))
   }
 
@@ -298,8 +313,10 @@ export class TypeScope extends BlockScope {
   }
 }
 
-/** What `TypeScope.claim()` takes for a list type or a value kind -- see `TypeScope.itemType`, `valueKind`. */
+/** What else `TypeScope.claim()` takes:  for a list type, a value kind, a short name -- each optional. */
 export type ClaimListOptions = {
+  /** See `TypeScope.aka`. */
+  aka?: string
   /** What it holds, e.g. `Card`. */
   itemType?: P.Datatype
   /** Its values, if it's a value kind. */
@@ -330,10 +347,12 @@ export type DeclarePropertyOptions = {
 
 /** Constructor props for `TypeScope`. */
 export type TypeScopeProps = {
-  /** Name of the type, which should be singular.  Will be normalized to Type_Case. */
+  /** Name of the type, which should be singular.  Will be normalized to PascalCase. */
   name: string
-  /** Name of superclass, which should be singular.  Will be normalized to Type_Case. */
+  /** Name of superclass, which should be singular.  Will be normalized to PascalCase. */
   superType?: string
+  /** See `TypeScope.aka`. */
+  aka?: string
   /** If true, the type was created as a stub. */
   stub?: boolean
   /** See `TypeScope.valueKind`. */

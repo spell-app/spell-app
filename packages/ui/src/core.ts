@@ -4,19 +4,19 @@
  *   so Rolldown puts all of it in `dist/core.js`,
  *   and each family entry holds only its own classes, sheet, vocabulary and fallback.
  * - Pulls in:
+ *   - `$/spell-solid`, whole:  the element bases every set's elements are written on (`UIComponent`, `DOMElement`,
+ *     `ElementDefinition`, the `Reactive` decorators, `Cell`, `SlotContent`, `PartContext`, `OwnerContext`, timing,
+ *     the vocabulary's types), so `E` holds all of them
  *   - `$/ui/util`, `$/ui/vocabulary` -- foundation JS (`proto`, `Warnings`, `ValueSets`, `Converters` ...)
  *   - `$/ui/components/components.types` as the namespace `UIT` (`UIT.FLUID`, `UIT.ToggleCommands`, `UIT.SelectValue` ...)
  *   - from `$/ui/elements`, what doesn't use Solid:
  *     - `elements.types` (the element core's shared types and constants)
- *     - `ClassBuilder`, `Shorthand`, `OwnerContext`
+ *     - `ClassBuilder`, `Shorthand`
  *     - `NativeFallback` (the fallbacks' base)
  *     - `StickyWatch` (`<ui-sticky>` and `<ui-section sticky>`)
- *   - from `$/ui/elements`, the Solid layer:
- *     - `Reactive`, the decorators:
- *       `state`, `controlled`, `derived`, `cssState`, `aria`, `onChange`, `whileConnected`,
- *       `watches`, `on`, `untracked`
- *     - `Cell`, `ElementDefinition`, `DOMElement`, `UIComponent`, `SlotContent`, `IconGlyph`
- *     - `PartContext` + `PartComponent` (owner context)
+ *   - from `$/ui/elements`, Spell UI's own on Solid:
+ *     - `SpellUISettings`:  what Spell UI hands `$/spell-solid` (a side effect, below)
+ *     - `IconGlyph`, `PartComponent` (the generic content parts)
  *     - `RootSettings`:  what each `<ui-root>` sets for its subtree (icon packs, emoji)
  *     - the elements that show a text file:
  *       `DOMLoadableElement` + `LoadableComponent`, `SourceMarkup`,
@@ -35,35 +35,32 @@
  *   - What a leaf reads while it EVALUATES (a base class, `@proto`, a static initializer)
  *     comes from its own file instead (WWOD §4 › "Circular imports").
  *   - The order below puts each such file before its readers.
- *   - `src/elements/barrel.test.ts` checks every export is live.
+ *   - `tests/ui/src/elements/barrel.test.ts` checks every export is live.
+ * - `$/spell-solid` (the element bases, what every set's elements are written on) is re-exported WHOLE.
+ *   - Its settings are installed as this module loads (`SpellUISettings`, a side effect).
+ *   - A tag defined before that waits.
  * - NOTE: `solid-js` and `@solidjs/web` are NOT re-exported:
  *   peer dependencies, external in the build (`vite.config.ts`).
- *   The custom-element layer is `ui`'s own code (`DOMElement`, `UIComponent`, `ShadowEvents`), bundled here.
+ *   The custom-element layer is `$/spell-solid` (`DOMElement`, `UIComponent`, `ShadowEvents`), bundled here.
  * - NOTE: nothing here may `import * as` a Solid package:  a namespace keeps every export alive,
  *   which pins ALL of Solid into any bundle (and any vendored copy) that includes `core`.
  *   The Solid host page's identity probe lives in that page (`tools/frameworks/solid/identity.js`).
  */
 
+export * from "$/spell-solid"
+import "$/ui/elements/SpellUISettings"
 export * from "$/ui/util"
 export * from "$/ui/vocabulary"
 export * from "$/ui/elements/elements.types"
 export * from "$/ui/elements/ClassBuilder"
 export * from "$/ui/elements/Shorthand"
-export * from "$/ui/elements/OwnerContext"
 export * from "$/ui/elements/NativeFallback"
 export * from "$/ui/elements/StickyWatch"
 export * from "$/ui/runtime"
 export * from "$/ui/icons"
 export * as UIT from "$/ui/components/components.types"
 
-export * from "$/ui/elements/Reactive"
-export * from "$/ui/elements/Cell"
-export * from "$/ui/elements/ElementDefinition"
-export * from "$/ui/elements/DOMElement"
-export * from "$/ui/elements/PartContext"
-export * from "$/ui/elements/UIComponent"
 export * from "$/ui/elements/PartComponent"
-export * from "$/ui/elements/SlotContent"
 export * from "$/ui/elements/RootSettings"
 export * from "$/ui/elements/IconGlyph"
 export * from "$/ui/elements/DOMLoadableElement"

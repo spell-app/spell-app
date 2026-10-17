@@ -1,7 +1,7 @@
 /**
  * Check the `<epic-*>` review controls in a real browser, as Owen uses them
  * (epic `epic-components` P9, the colour scheme and fill rule of P14, decision Q20).
- * - it clicks through every flow, has the plan-doc tool do Claude's side on the same copy, and reads the inbox back
+ * - it clicks through every flow, has the epic tool do Claude's side on the same copy, and reads the inbox back
  *
  * Usage (from the repo root):
  *   node packages/epics/demo/check-review-epics.mjs [--doc <name> [--from <folder>]] [outDir]
@@ -11,7 +11,7 @@
  *     (its skeleton and parts:  a doc in `<epic-page>` markup;  never its inbox or details)
  *   - or of `--from <folder>` (a converted copy:  `spell dev plan-doc convert <name> --out <folder>`)
  *   - copied to `demo/shots/epics/<name>/<name>.plan.html` (git-ignored):
- *     the review routes take plan docs only (`epics/<name>/<name>.plan.html`), its inbox file lands beside it,
+ *     the review routes take epic pages only (`epics/<name>/<name>.plan.html`), its inbox file lands beside it,
  *     and the tool finds it there (`PlanDocFiles({ root: demo/shots })`)
  * - the server:  a page server of its OWN on this checkout (`PageServer`, no pid file, a free port),
  *   so the routes are this branch's code as it is now;  stopped at the end
@@ -29,8 +29,8 @@
  *   - a pick on a judgement call's REPLY cards
  *     (I8:  picks work anywhere;  the call added to the copy, its text and a reply each holding cards):
  *     the mark names that set (`choices: 1`), its pill dashed, the text's untouched
- *   - Send:  the send bar's button unsent -> sent;  the marks outlined
- * - Claude's side, by the plan-doc tool on the copy (`PlanDocCommands`), the page reloaded after each:
+ *   - Send:  the header's button idle -> unsent -> sent;  the marks outlined
+ * - Claude's side, by the epic tool on the copy (`PlanDocCommands`), the page reloaded after each:
  *   - Do Now without a note on an item:
  *     - `inbox listen`, `inbox wait` takes it:  its button outlined, its icon turning (`data-busy`)
  *     - `status underway`:  a blue Underway card, the item `progress`
@@ -42,7 +42,12 @@
  *     - the pick approves its call (closed, the reply's set `chosen`, a Noted card `Chose C · ...:  recorded ...`),
  *       its pill SOLID
  *   - Review Now:  the revisit waiting asked now
- * - fails (exit 1) unless each shows on the page AND lands in the inbox (read back through `GET /api/review/inbox`)
+ *   - a COMMENT only (Owen, 2026-10-10:  "send button at top of page doesn't appear to be hooked up"):
+ *     written into the copy's inbox as the bullhorn would (the comments route takes only the shared folders' pages);
+ *     Send turns blue, a click sends it (the inbox's `sent` moves, `unsentComments` empties),
+ *     and `inbox wait` wakes with it, printing the comment
+ * - fails (exit 1) unless each shows on the page AND lands in the inbox
+ *   (read back through `GET /api/epics/review/inbox`)
  * - and at 280px and 900px, light and dark, unless:
  *   - no review control runs past the window, and none sits over its line's title
  *   - every button's glyph is centred in it (within 1px);  the page's round buttons too (Send, Review Now, git)
@@ -79,6 +84,7 @@ const { chromium } = await import("playwright")
 const { PageServer } = await import("../../server/src/page/PageServer.ts")
 const { PlanDocCommands } = await import("../src/tool/PlanDocCommands.ts")
 const { PlanDocFiles } = await import("../src/tool/PlanDocFiles.ts")
+const { ReviewInbox } = await import("../src/tool/ReviewInbox.ts")
 
 ////////////////
 // ## Settings
@@ -94,6 +100,7 @@ const NOBODY = /No Claude session/
 const NOTE = "check-review-epics:  why not reuse the details route?"
 const SKIP_NOTE = "check-review-epics:  nothing to do, the routes settle it"
 const SECTION_NOTE = "check-review-epics:  is the Overview part clear?"
+const COMMENT = "check-review-epics:  is Send hooked up?"
 const SESSION = "check-review-epics"
 const HOLD_MS = 900
 const problems = []
@@ -105,7 +112,7 @@ const summary = { doc: docName }
 
 const folder = join(SHOTS, "epics", docName)
 const file = join(folder, `${docName}.plan.html`)
-const inboxFile = join(folder, `${docName}.inbox.json`)
+const inboxFile = join(folder, `${docName}.inbox.json5`)
 if (existsSync(inboxFile)) {
   console.error(`check-review-epics:  ${inboxFile} exists (an earlier run's?):  delete it first`)
   process.exit(2)
@@ -115,7 +122,7 @@ copyDoc()
 // the tool links a doc's bare file names (`AS.Linker`) through its checkout's `packages/`:  shots/ has none
 mkdirSync(join(SHOTS, "packages"), { recursive: true })
 
-/** The plan-doc tool, on the copy:  what Claude runs, its output kept for the summary. */
+/** The epic tool, on the copy:  what Claude runs, its output kept for the summary. */
 const tool = new PlanDocCommands({ files: new PlanDocFiles({ root: SHOTS }) })
 const said = []
 tool.print = (text) => void said.push(text)
@@ -142,6 +149,7 @@ try {
   await browser.close()
   await server.stop()
   rmSync(inboxFile, { force: true })
+  rmSync(inboxFile.replace(/\.json5$/, ".json"), { force: true })
 }
 summary.tool = said
 console.log(JSON.stringify(summary, null, 2))
@@ -184,6 +192,14 @@ async function run() {
   page.on("pageerror", (error) => logs.push(`pageerror:  ${error.message}`))
   page.on("console", (message) => message.type() === "error" && logs.push(`console:  ${message.text()}`))
   await open(page)
+
+  // Send and Review Now:  in the page header from the start, grey with nothing marked (Owen, 2026-10-10)
+  expect("the header's buttons, nothing marked", await headerState(page), {
+    send: "idle",
+    now: "idle",
+    nobody: false,
+    inHeader: true
+  })
 
   // every item and Overview part:  the group (Approve, Revisit, Make Todo), then Do Now apart
   const ids = await page.evaluate(() =>
@@ -392,12 +408,22 @@ async function run() {
     ["choose", "choose", "dashed"]
   ])
 
-  // the send bar:  Send with unsent marks, its tooltip saying nobody listens;  a click sends;  the marks outlined
-  expect("the header's buttons, marks unsent", await headerState(page), { send: "unsent", now: "ready", nobody: true })
+  // the header's Send:  unsent marks, its tooltip saying nobody listens;  a click sends;  the marks outlined
+  expect("the header's buttons, marks unsent", await headerState(page), {
+    send: "unsent",
+    now: "ready",
+    nobody: true,
+    inHeader: true
+  })
   await page.locator("epic-page button.send").click()
   await waitInbox(page, (inbox) => !!inbox.sent, "Send:  the marks sent")
   await page.waitForTimeout(200)
-  expect("the header's buttons, marks sent", await headerState(page), { send: "sent", now: "ready", nobody: true })
+  expect("the header's buttons, marks sent", await headerState(page), {
+    send: "sent",
+    now: "ready",
+    nobody: true,
+    inHeader: true
+  })
   expect(`${approved}'s Approve, sent:  outlined`, (await buttonState(page, approved, "approve")).fill, "outline")
   expect(`${bare}'s Revisit, sent:  outlined`, (await buttonState(page, bare, "revisit")).fill, "outline")
   expect(`${pickCall}'s pick, sent:  outlined`, (await pickPills(page, pickCall))[1][2], "outline")
@@ -517,6 +543,26 @@ async function run() {
     (inbox) => inbox.now.some((each) => each.id === bare),
     `Review Now:  ${bare}'s revisit asked now`
   )
+
+  // a COMMENT only:  Claude takes what Review Now asked first, so only the comment waits for Send
+  await tool.run(["inbox", docName, "wait", "--timeout", "5", "--json"])
+  // as the bullhorn writes it:  the comments route takes only the shared folders' pages, never this copy
+  ReviewInbox.update(inboxFile, (box) => void box.commentList.add({ anchor: question, kind: "item" }, COMMENT))
+  await waitHeader(page, (state) => state.send === "unsent", "Send, with only a comment waiting:  blue (unsent)")
+  const unsent = await readInbox(page)
+  expect("the inbox:  the comment unsent", unsent.unsentComments, ["m1"])
+  await page.locator("epic-page button.send").click()
+  await waitInbox(
+    page,
+    (inbox) => inbox.sent !== unsent.sent && inbox.unsentComments.length === 0,
+    "Send, with only a comment:  sent"
+  )
+  await waitHeader(page, (state) => state.send !== "unsent", "Send, the comment sent:  no longer unsent")
+  const heard = said.length
+  const code = await tool.run(["inbox", docName, "wait", "--timeout", "5"])
+  const woke = said.slice(heard).join("\n")
+  expect("inbox wait:  woken by a send with only a comment", code ?? 0, 0)
+  expect("inbox wait:  prints the comment", woke.includes(COMMENT) && /1 comment\)/.test(woke), true)
   await tool.run(["inbox", docName, "unlisten"])
 
   await layouts(context)
@@ -593,7 +639,7 @@ function measure(width) {
         found.push(`${host.id}'s ${button.dataset.action} glyph off centre by ${dx.toFixed(1)}, ${dy.toFixed(1)}`)
     }
   }
-  // the page's round buttons (the send bar's Send and Review Now, the header's git toggle):  in the window, centred
+  // the header's round buttons (Send, Review Now, the git toggle):  in the window, centred
   const head = document.querySelector("epic-page")?.shadowRoot
   for (const button of head?.querySelectorAll("button.send, button.review-now, button.git") ?? []) {
     const outer = button.getBoundingClientRect()
@@ -788,7 +834,10 @@ function attribute(page, id, name) {
   return page.evaluate(({ id, name }) => document.getElementById(id).getAttribute(name), { id, name })
 }
 
-/** The page header's Send and Review Now, as drawn:  their states, and whether Send says nobody listens. */
+/**
+ * The page header's Send and Review Now, as drawn:  their states, whether Send says nobody listens,
+ * and whether both sit in the sticky header.
+ */
 function headerState(page) {
   return page.evaluate((nobody) => {
     const root = document.querySelector("epic-page").shadowRoot
@@ -797,7 +846,8 @@ function headerState(page) {
     return {
       send: send?.dataset.state ?? null,
       now: now?.dataset.state ?? null,
-      nobody: new RegExp(nobody).test(send?.title ?? "")
+      nobody: new RegExp(nobody).test(send?.title ?? ""),
+      inHeader: !!send?.closest("header") && !!now?.closest("header")
     }
   }, NOBODY.source)
 }
@@ -815,7 +865,7 @@ function boxHeight(page, id) {
 /** The inbox, as the page's routes answer it. */
 function readInbox(page) {
   return page.evaluate(
-    async (pagePath) => (await fetch(`/api/review/inbox?page=${encodeURIComponent(pagePath)}`)).json(),
+    async (pagePath) => (await fetch(`/api/epics/review/inbox?page=${encodeURIComponent(pagePath)}`)).json(),
     pagePath
   )
 }
@@ -827,6 +877,15 @@ async function waitInbox(page, test, what) {
     await page.waitForTimeout(100)
   }
   problems.push(`${what}:  not in the inbox`)
+}
+
+/** Wait (8s at most:  the page re-reads its inbox every 4s) for the header's buttons to pass `test`. */
+async function waitHeader(page, test, what) {
+  for (let tries = 0; tries < 80; tries++) {
+    if (test(await headerState(page))) return
+    await page.waitForTimeout(100)
+  }
+  problems.push(`${what}:  ${JSON.stringify(await headerState(page))}`)
 }
 
 /** Wait for `id`'s mark to be `mark` (`undefined`:  none). */
@@ -848,7 +907,7 @@ function expect(what, actual, wanted) {
 /** Have the next POST to `route` wait `HOLD_MS`. */
 async function holdNext(page, route) {
   let held = false
-  await page.route(`**/api/review/${route}`, async (request) => {
+  await page.route(`**/api/epics/review/${route}`, async (request) => {
     if (!held) {
       held = true
       await new Promise((resolve) => setTimeout(resolve, HOLD_MS))

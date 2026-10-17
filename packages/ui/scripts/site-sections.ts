@@ -1,6 +1,6 @@
 /**
  * `yarn site:sections [--check] [page ...]`:  turn the Spell UI site's flat pages into NESTED `<ui-section>`s, with
- * ids that spell out their nesting, written into the markup (plan doc ui-docs-rework, D8).
+ * ids that spell out their nesting, written into the markup (epic page ui-docs-rework, D8).
  * - Content roots:  each pane of a page's `<ui-tabs id="site-tabs">` (`<ui-tab value>`), else its
  *   `<article class="site-article">`.  Only their DIRECT children are read:  headers inside an example, a grid or a
  *   demo are content, never sections.
@@ -41,7 +41,7 @@ import { type GeneratedOutput, writeOrCheck } from "./generatedFiles.ts"
 /** `packages/ui/`. */
 const UI = path.resolve(import.meta.dirname, "..")
 
-/** The site's pages:  the shared `ui/` at the checkout's root (`SITE_PAGES`). */
+/** The site's pages:  `docs/` (`SITE_PAGES`). */
 const SITE = path.join(UI, SITE_PAGES)
 
 /****************
@@ -663,13 +663,11 @@ class HtmlParser {
 // ## Command line
 ////////////////
 
-/** Every page of the site:  `ui/*.html`, `ui/components/*.html`. */
+/** Every page of the site:  `docs/*.html`, in one folder. */
 function sitePages(): string[] {
-  const pages = (folder: string) =>
-    readdirSync(folder)
-      .filter((name) => name.endsWith(".html"))
-      .map((name) => path.join(folder, name))
-  return [...pages(SITE), ...pages(path.join(SITE, "components"))]
+  return readdirSync(SITE)
+    .filter((name) => name.endsWith(".html"))
+    .map((name) => path.join(SITE, name))
 }
 
 /**

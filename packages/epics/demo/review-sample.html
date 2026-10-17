@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Epic: Review Sample</title>
     <meta name="description" content="P9 demo:  the review controls on items and Overview sub-sections." />
-    <link rel="stylesheet" href="../../docs/tools/_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../epics/tools/_assets/spell-doc.css" />
   </head>
   <!--
     P9 demo (Review Buttons In):  items of every kind, one without details, an answered question Claude applied an
     approve to (`review-as`), and Overview sub-sections, which take the same controls (Q14).
     - The controls show ONLY while the page is reviewed:  served by the page server with a token, AND its inbox
-      answering.  The review routes take plan docs only (`epics/<name>/<name>.plan.html`), so this page itself never
+      answering.  The review routes take epic pages only (`epics/<name>/<name>.plan.html`), so this page itself never
       shows them:  `check-review-epics.mjs` copies it to `shots/epics/review-sample/review-sample.plan.html`
       (git-ignored), its inbox file landing beside it, and clicks through that copy.
   -->
@@ -113,6 +113,6 @@
         </ui-root>
       </main>
     </div>
-    <script src="../../docs/tools/_assets/spell-ui.js"></script>
+    <script src="../../epics/tools/_assets/spell-ui.js"></script>
   </body>
 </html>

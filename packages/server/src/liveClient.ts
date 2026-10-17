@@ -1,13 +1,16 @@
 /**
- * The browser side of a `WebServer` with live reload:  runs in every page it serves, from `/_server/live.js`.
+ * The browser side of a `WebServer` with live reload:  runs in every page it serves, from `/api/server/live.js`.
  * - MUST stay self-contained:  it's served as `(${liveClient})()`, so it can't use imports or module helpers
- *   - the one helper it calls, `forVsCode()`, is served beside it (`liveClientScript()`), so tests can call it too
+ *   - the helpers it calls (`forVsCode()`, `liveAction()`, `servedPath()`, `reloadGate()`) are served beside it
+ *     (`liveClientScript()`), so tests can call them too
  */
 
 /**
  * What a served page knows about its server:  `window.SPELL_SERVER`, injected before `</head>`.
  * - `token`:  this run's write token (see `Guard`)
  * - `events`:  URL path of the live-reload websocket (`LiveReload.events`)
+ * - `run`:  the server run that served the page (`LiveReload.run`):  a socket that says `hello` from another run
+ *   means the server restarted, and the page reloads
  * - `file`:  URL path of the FILE served, e.g. `/guides/solid/index.html` for `/guides/solid/`
  * - `etag`:  the file's `ETag` when served, for `If-Match` on edits
  * - `root`:  absolute folder served
@@ -23,6 +26,7 @@ export type ServerConfig = {
   port: number
   token: string
   events: string
+  run?: string
   file: string
   etag?: string
   root?: string
@@ -52,15 +56,15 @@ export type PageChange = { path: string; html: string; etag?: string; reload: ()
 
 /**
  * `detail` of `spell-server:file`, the event `liveClient()` fires on `window` when ANOTHER file changed:
- * not the page's own, not a stylesheet or a script.  Nothing reloads:  the page decides.
+ * not the page's own, not a stylesheet, not a script (`liveAction()`).  Nothing reloads:  the page decides.
  * - `path`:  its URL path, each segment URI-encoded, e.g. `/epics/x/parts/q2.html`
  * - e.g. a body the page loaded from a file (`<ui-section source>`):  the docs runtime re-fetches it in place
- *   (`spell-doc-runtime.js` `wireSourceBodies()`:  a split plan doc's parts)
+ *   (`spell-doc-runtime.js` `wireSourceBodies()`:  a split epic page's parts)
  */
 export type FileChange = { path: string }
 
 /**
- * One save of a whole file (`PUT /_server/page`), or of one element of a page (`fragment`:  its `id`, `PATCH`).
+ * One save of a whole file (`PUT /api/pages`), or of one element of a page (`fragment`:  its `id`, `PATCH`).
  * - `path`:  URL path of the file, e.g. `/guides/notes.md`
  * - `etag`:  the version it was edited from (the `ETag` it was fetched with);  REQUIRED by the server
  * - what `<ui-include>` / `<ui-code>` / `<ui-markdown>` save through (`UI.sources.saver`, set by the docs runtime)
@@ -68,7 +72,7 @@ export type FileChange = { path: string }
 export type FileSave = { path: string; text: string; etag?: string; fragment?: string }
 
 /**
- * One edit of the page's own file, through `PATCH /_server/page`.
+ * One edit of the page's own file, through `PATCH /api/pages`.
  * - `id`:  the element to replace
  * - `html`:  its new markup
  * - `inner`:  replace its content only
@@ -86,11 +90,20 @@ export type PageEditResult = { ok: boolean; status: number; etag?: string; error
  *   fetches the new version and offers it to the page (`spell-server:change`, `PageChange`)
  *   - a page that takes it updates itself in place, else it reloads
  * - a stylesheet the page uses (linked, or `@import`ed by one it links) changed:  swapped in place, no reload
- * - a script changed in the folder of one the page loads (`_assets/`:  the bundle and its lazy chunks):  reloads
+ * - a script the page loaded, or one beside it, changed (`liveAction()`):  HOT RELOAD, so the page runs the new code
+ *   - e.g. a merge rebuilt `spell-ui.js` and its lazy chunks, or `epics.pack.js`
+ *   - which scripts:  its `<script src>` tags, and every script it fetched (`performance`'s resource entries:
+ *     a lazy chunk, the pack `<ui-components source>` imported, an experiment's bundle)
+ *   - ONE reload, half a second after the last change (a build writes many files), through `reloadGate()`
+ *   - not while the reader types in a field:  a small "Updated:  reload" pill says a reload waits,
+ *     and it comes once focus leaves the field (or on a click on the pill)
  *   - any other `.js` (a repo tool) is none of the page's business
+ * - the server restarted (its socket says `hello` from another `run`):  reloads the same way,
+ *   for the new `/api/server/live.js` and write token
  * - any other file changed:  says so (`spell-server:file`, `FileChange`), and does nothing else
  *   - a page that loads it (a body from a file) re-fetches it
- * - keeps the scroll position across a reload (`sessionStorage`, when it works)
+ * - keeps its place across a reload:  the scroll position (`sessionStorage`, when it works);
+ *   the docs runtime keeps its folds and comment drafts itself (`localStorage`)
  * - in a frame (VS Code's "Spell Docs" view, `packages/vscode/src/DocView.ts`):
  *   - posts its place to the parent:  on every load and hash change, and on `spell-doc:place`
  *     (the docs runtime moved the address with `history.replaceState()`, which fires no `hashchange`)
@@ -131,10 +144,25 @@ export function liveClient(): void {
   }
   // how long the docs runtime takes to unfold and land on an id before a hidden match is selected, in ms
   const FIND_REVEAL_MS = 400
+  // the find bar's highlight, `::highlight(spell-find)`
+  const FIND_HIGHLIGHT = "spell-find"
+  // the match shown:  a highlight while the find bar is open, the selection once it closes (`showMatch()`)
+  let findShown: Range | undefined
+  // `::highlight(spell-find)`'s look, adopted by the document and by each shadow root a match is in
+  let findSheet: CSSStyleSheet | undefined
   // how soon after the page's own edit key VS Code's same command counts as that key again, in ms
   const EDIT_REPEAT_MS = 300
+  // how long a hot reload waits for quiet after the last script changed, in ms:  a build writes many files
+  const RELOAD_QUIET_MS = 500
+  // every script the page fetched, as served paths (`servedPath()`):  `performance` drops entries past its buffer
+  const fetched = new Set<string>()
+  // the small "Updated" pill, while a hot reload waits for the reader to finish typing
+  let pill: HTMLButtonElement | undefined
+  const gate = reloadGate({ wait: RELOAD_QUIET_MS, typing, reload, waiting: showPill })
 
   restoreScroll()
+  watchFetches()
+  addEventListener("focusout", () => gate.settle(), true)
   config.takeScroll = () => {
     const y = savedScroll
     savedScroll = undefined
@@ -168,7 +196,7 @@ export function liveClient(): void {
 
   let etag = config.etag
   config.editPage = async ({ id, html, inner, parent, etag: version = etag }) => {
-    const url = `${config.edit ?? "/_server/page"}?path=${encodeURIComponent(config.file)}`
+    const url = `${config.edit ?? "/api/pages"}?path=${encodeURIComponent(config.file)}`
     const answer = await fetch(url, {
       method: "PATCH",
       headers: {
@@ -184,7 +212,7 @@ export function liveClient(): void {
   }
 
   config.saveFile = async ({ path, text, etag: version, fragment }) => {
-    const url = `${config.edit ?? "/_server/page"}?path=${encodeURIComponent(path)}`
+    const url = `${config.edit ?? "/api/pages"}?path=${encodeURIComponent(path)}`
     const answer = await fetch(url, {
       method: fragment ? "PATCH" : "PUT",
       headers: {
@@ -208,11 +236,12 @@ export function liveClient(): void {
         // cross-origin:  it has its own connection
       }
     }
-    if (path === config!.file) updating = updating.then(updatePage).catch(reload)
-    else if (/\.css$/.test(path)) swapStyles(path)
-    else if (/\.m?js$/.test(path)) {
-      if (loadsFrom(path)) reload()
-    } else dispatchEvent(new CustomEvent("spell-server:file", { detail: { path } satisfies FileChange }))
+    const action = liveAction(path, { file: config!.file, scripts: scriptsLoaded() })
+    if (action === "page") updating = updating.then(updatePage).catch(reload)
+    else if (action === "style") swapStyles(path)
+    else if (action === "script") gate.request()
+    else if (action === "file")
+      dispatchEvent(new CustomEvent("spell-server:file", { detail: { path } satisfies FileChange }))
   }
 
   /**
@@ -232,8 +261,10 @@ export function liveClient(): void {
     let opened = false
     socket.addEventListener("open", () => (opened = true))
     socket.addEventListener("message", (message: MessageEvent<string>) => {
-      const { event, data } = JSON.parse(message.data) as { event: string; data: { path: string } }
-      if (event === "change") onChange(data.path)
+      const { event, data } = JSON.parse(message.data) as { event: string; data: { path?: string; run?: string } }
+      if (event === "change" && data.path) onChange(data.path)
+      // a server run other than the one that served the page:  it restarted, maybe on new code
+      if (event === "hello" && config!.run && data.run && data.run !== config!.run) gate.request()
     })
     socket.addEventListener("close", () => {
       const retry = opened ? 500 : wait
@@ -307,7 +338,7 @@ export function liveClient(): void {
 
   /** Does stylesheet `sheet` (at `href`) come from `path`, or `@import` it? */
   function usesSheet(sheet: CSSStyleSheet | null, href: string | null, path: string): boolean {
-    if (href && new URL(href, location.href).pathname === path) return true
+    if (href && servedPath(href, location.href) === path) return true
     try {
       for (const rule of Array.from(sheet?.cssRules ?? []))
         if (rule instanceof CSSImportRule && usesSheet(rule.styleSheet, rule.styleSheet?.href ?? rule.href, path))
@@ -318,14 +349,76 @@ export function liveClient(): void {
     return false
   }
 
-  /** Is `path` in the folder (or below) of a script this page loads from this server? */
-  function loadsFrom(path: string): boolean {
-    for (const script of document.querySelectorAll<HTMLScriptElement>("script[src]")) {
-      const url = new URL(script.src, location.href)
-      if (url.origin !== location.origin || url.pathname.startsWith("/_server/")) continue
-      if (path.startsWith(url.pathname.slice(0, url.pathname.lastIndexOf("/") + 1))) return true
+  /**
+   * The scripts this page loaded from this server, as served paths (`servedPath()`):
+   * its `<script src>` and `<link rel="modulepreload">` tags, and every script it fetched since (`watchFetches()`).
+   */
+  function scriptsLoaded(): string[] {
+    const found = new Set(fetched)
+    const tags = 'script[src], link[rel="modulepreload"][href]'
+    for (const tag of document.querySelectorAll<HTMLScriptElement | HTMLLinkElement>(tags)) {
+      const path = servedPath(tag instanceof HTMLScriptElement ? tag.src : tag.href, location.href)
+      if (path) found.add(path)
     }
-    return false
+    return [...found]
+  }
+
+  /**
+   * Keep every script the page fetches, as served paths, in `fetched`:
+   * `performance`'s resource entries, the ones already there and each one after (a lazy chunk, an imported pack).
+   * - a bigger entry buffer first:  an epic page fetches hundreds of files,
+   *   and past the buffer's 250 the browser keeps no more entries
+   */
+  function watchFetches() {
+    const keep = (entries: PerformanceEntryList) => {
+      for (const entry of entries) {
+        const path = /\.m?js([?#]|$)/.test(entry.name) ? servedPath(entry.name, location.href) : undefined
+        if (path) fetched.add(path)
+      }
+    }
+    try {
+      performance.setResourceTimingBufferSize(5000)
+      keep(performance.getEntriesByType("resource"))
+      new PerformanceObserver((list) => keep(list.getEntries())).observe({ type: "resource", buffered: true })
+    } catch {
+      // no resource timing:  the script tags alone
+    }
+  }
+
+  /**
+   * Is the reader typing in a field?  Then a hot reload waits (`reloadGate()`).
+   * - the focused element, through shadow roots (`ui-textarea`'s own textarea):
+   *   a text input, a textarea, rich text (contenteditable)
+   */
+  function typing(): boolean {
+    let focused = document.activeElement
+    while (focused?.shadowRoot?.activeElement) focused = focused.shadowRoot.activeElement
+    if (!(focused instanceof HTMLElement)) return false
+    if (focused.isContentEditable || focused instanceof HTMLTextAreaElement) return true
+    const notText = /^(button|checkbox|radio|range|reset|submit|color|file|image|hidden)$/
+    return focused instanceof HTMLInputElement && !notText.test(focused.type)
+  }
+
+  /**
+   * Show (`on`) or drop the "Updated:  reload" pill:  a hot reload waits for the reader to leave the field they type in.
+   * - bottom right, small;  a click reloads now
+   * - on `<body>`, outside `main`, and marked `data-spell-added`:  a live update in place never touches it
+   */
+  function showPill(on: boolean) {
+    if (!on) return pill?.remove()
+    if (pill?.isConnected) return
+    pill = document.createElement("button")
+    pill.dataset.spellAdded = ""
+    pill.type = "button"
+    pill.textContent = "Updated:  reload"
+    pill.title = "This page's code changed.  It reloads, keeping its place, once you leave the field you're typing in."
+    pill.style.cssText =
+      "position:fixed;bottom:12px;right:12px;z-index:2147483647;padding:4px 10px;border:0;border-radius:999px;" +
+      "background:#1e70bf;color:#fff;font:12px system-ui,sans-serif;cursor:pointer;box-shadow:0 2px 8px rgb(0 0 0 / 25%)"
+    // a click mustn't take the focus:  the field's `focusout` would start the reload's wait first
+    pill.addEventListener("mousedown", (event) => event.preventDefault())
+    pill.addEventListener("click", () => reload())
+    document.body.append(pill)
   }
 
   /**
@@ -348,7 +441,7 @@ export function liveClient(): void {
   /**
    * A link clicked in the frame:  send it where it should go.
    * - the frame may not open tabs:  docs links all name a `target`, and the view's sandbox blocks popups
-   * - a page on this server (`.html`, or a site page like `/ui/`):  here, in the frame, so back / forward work
+   * - a page on this server (`.html`, or a site page like `/components/ui/`):  here, in the frame, so back / forward work
    * - a source reference that isn't a page (`target="src-..."`, as `doc-links.js` names them):
    *   `{ spell: "open", url, kind: "file" }` to the parent, which opens it in VS Code (a folder:  in the Explorer)
    * - another site, or a link marked `data-spell-open="browser"` (the header's App):
@@ -475,16 +568,17 @@ export function liveClient(): void {
   }
 
   /**
-   * A right-click in the page while it's in VS Code's side-bar view:  sent to the view's wrapper,
-   * `{ spell: "menu", x, y, field, selection }`, which right-clicks again at the same place, where VS Code listens
-   * (`DocView.ts` `html()`), so VS Code shows the view's menu:  Cut, Copy, Paste, Select All, Back, Forward, Reload,
-   * Open in Browser, Inspect
+   * A right-click in the page while it's in VS Code's side-bar view:
+   * sent to the view's wrapper as `{ spell: "menu", x, y, field, selection }`.
+   * - The wrapper right-clicks again at the same place, where VS Code listens (`DocView.ts` `html()`),
+   *   so VS Code shows the view's menu:  Cut, Copy, Paste, Select All, Back, Forward, Reload, Open in Browser, Inspect
+   * - `field`:  in a text field (the menu offers Cut and Paste)
+   * - `selection`:  something is selected (Cut, Copy)
+   * - sent once every handler has had the click:
+   *   one the page took (`preventDefault()`:  its own menu) stays the page's
    * - why:  VS Code hears right-clicks on the view's own page only (`pre/index.html`, its `contextmenu` listener),
-   *   and this page is a frame inside it, from another origin:  right-click showed nothing (epic `airplane`,
-   *   2026-10-10)
-   * - `field`:  in a text field (the menu offers Cut and Paste);  `selection`:  something is selected (Cut, Copy)
-   * - sent once every handler has had the click:  one the page took (`preventDefault()`:  its own menu) stays the
-   *   page's
+   *   and this page is a frame inside it, from another origin.
+   *   Right-click showed nothing (epic `airplane`, 2026-10-10).
    */
   function forwardMenu(event: MouseEvent) {
     const { clientX: x, clientY: y } = event
@@ -512,13 +606,14 @@ export function liveClient(): void {
   /**
    * The page's FIND BAR, while framed (Cmd / Ctrl + F):  VS Code's side-bar views have none (Owen, 2026-10-10:
    * "Find with command-F doesn't work in the sidebar").
-   * - a small box at the top right, with "3 of 12";  each keystroke finds from the top, Enter or Cmd-G the next,
-   *   Shift the one before (wrapping), Escape closes it;  not found:  the box turns red
+   * - a small box at the top right, with "3 of 12" and a close button (×;  Owen, 2026-10-13);  each keystroke
+   *   finds from the top, Enter or Cmd-G the next, Shift the one before (wrapping), Escape or × closes it;  not
+   *   found:  the box turns red
    * - its own search (`findMatches()`), not `window.find()`:  that one also matched the box's own text, and never
-   *   looked inside the elements' shadow roots, where a plan doc draws its titles
-   * - a match inside something folded (most of a plan doc starts folded):  revealed through its nearest id, as a link
+   *   looked inside the elements' shadow roots, where an epic page draws its titles
+   * - a match inside something folded (most of an epic page starts folded):  revealed through its nearest id, as a link
    *   to it would be (`location.hash`:  the docs runtime unfolds what hides it and lands there), then selected
-   * - text not loaded yet (a split plan doc's body, until it's opened) isn't found
+   * - text not loaded yet (a split epic page's body, until it's opened) isn't found
    * - outside `main`'s patching:  a live update never touches it (`data-spell-added`)
    */
   function openFind() {
@@ -531,7 +626,7 @@ export function liveClient(): void {
         "padding:6px 8px;border-radius:8px;background:Canvas;color:CanvasText;box-shadow:0 2px 10px rgb(0 0 0 / 25%);" +
         "font:13px system-ui,sans-serif"
       const input = document.createElement("input")
-      input.type = "search"
+      // plain text, not "search":  its own clear (×) beside the close button read as two of the same
       input.placeholder = "Find in page"
       input.setAttribute("aria-label", "Find in page")
       input.style.cssText = "width:16em;padding:3px 6px;border:1px solid GrayText;border-radius:5px;font:inherit"
@@ -545,7 +640,16 @@ export function liveClient(): void {
       })
       const count = document.createElement("span")
       count.style.cssText = "min-width:5em;color:GrayText;font-variant-numeric:tabular-nums"
-      findBar.append(input, count)
+      const close = document.createElement("button")
+      close.type = "button"
+      close.textContent = "×"
+      close.title = "Close (Escape)"
+      close.setAttribute("aria-label", "Close find")
+      close.style.cssText =
+        "width:22px;height:22px;padding:0;border:none;border-radius:4px;background:none;color:GrayText;" +
+        "font:18px/1 system-ui,sans-serif;cursor:pointer"
+      close.addEventListener("click", closeFind)
+      findBar.append(input, count, close)
       document.body.append(findBar)
     }
     findBar.hidden = false
@@ -557,7 +661,8 @@ export function liveClient(): void {
   /**
    * Find the find bar's text again:  the next match, or the one before (`back`);  `fresh`, from the top of the page
    * (the text just changed).
-   * - the selection moves to the match, so focus goes back to the box for the next keystroke
+   * - the selection moves to the match, so focus goes back to the box for the next keystroke (`showMatch()` too, for
+   *   a match it selects later)
    */
   function findNext(back = false, fresh = false) {
     const input = findBar?.querySelector("input")
@@ -607,17 +712,19 @@ export function liveClient(): void {
   }
 
   /**
-   * Select a match and bring it into view;  first, when it's hidden (folded), land on its nearest id, as a link to
+   * Show a match and bring it into view;  first, when it's hidden (folded), land on its nearest id, as a link to
    * that id would, so the docs runtime unfolds what hides it.
+   * - HIGHLIGHTED (`CSS.highlights`, `highlight()`), not selected, while the bar is open:  selecting it moved the
+   *   page's caret out of the box, and each keystroke after the first went nowhere (Owen, 2026-10-13:  "every
+   *   keystroke exits the input");  closing the bar selects it (`closeFind()`)
    */
   function showMatch(match: { node: Text; offset: number }, length: number) {
     const select = () => {
       const range = document.createRange()
       range.setStart(match.node, match.offset)
       range.setEnd(match.node, match.offset + length)
-      const selection = getSelection()
-      selection?.removeAllRanges()
-      selection?.addRange(range)
+      findShown = range
+      highlight(range)
       match.node.parentElement?.scrollIntoView({ block: "center" })
     }
     const element = match.node.parentElement
@@ -641,11 +748,39 @@ export function liveClient(): void {
   /** Close the find bar, leaving the last match selected. */
   function closeFind() {
     if (findBar) findBar.hidden = true
+    CSS.highlights?.delete(FIND_HIGHLIGHT)
+    if (!findShown?.startContainer.isConnected) return
+    const selection = getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(findShown)
   }
 
   /**
-   * Is VS Code's `edit` message for `command` the page's own key again (`editKey()` just did it)?  Then it's
-   * dropped:  once is what was meant.
+   * Mark `range` as the find bar's match:  a yellow highlight, the page's caret left alone.
+   * - `::highlight()` is styled per tree, so the sheet goes into the match's shadow root too (an epic page's titles)
+   * - no Highlight API:  selected instead, as before
+   */
+  function highlight(range: Range) {
+    if (!CSS.highlights) {
+      const selection = getSelection()
+      selection?.removeAllRanges()
+      selection?.addRange(range)
+      return
+    }
+    if (!findSheet) {
+      findSheet = new CSSStyleSheet()
+      findSheet.replaceSync(`::highlight(${FIND_HIGHLIGHT}) { background: #ffd54f; color: #000; }`)
+      document.adoptedStyleSheets = [...document.adoptedStyleSheets, findSheet]
+    }
+    const root = range.startContainer.getRootNode()
+    if (root instanceof ShadowRoot && !root.adoptedStyleSheets.includes(findSheet))
+      root.adoptedStyleSheets = [...root.adoptedStyleSheets, findSheet]
+    CSS.highlights.set(FIND_HIGHLIGHT, new Highlight(range))
+  }
+
+  /**
+   * Is VS Code's `edit` message for `command` the page's own key again (`editKey()` just did it)?
+   * Then it's dropped:  once is what was meant.
    * - a paste:  the first one after the page asked is its answer;  another one right after it is the repeat
    */
   function isRepeat(command: string): boolean {
@@ -732,6 +867,95 @@ export type KeyPress = Pick<KeyboardEvent, "key" | "metaKey" | "ctrlKey" | "altK
 export type KeyPlace = { apple: boolean; field?: "text" | "rich" }
 
 /**
+ * What a changed file means to a page (`liveClient()` `onChange()`):
+ * - `"page"`:  the page's own file (`file`)
+ * - `"style"`:  a stylesheet:  swapped in place, if the page uses it
+ * - `"script"`:  a script the page loaded (`scripts`), or one in the same folder as one it loaded
+ *   (a rebuilt bundle's lazy chunks get new names):  HOT RELOAD
+ *   - never for the server's own scripts, under `/api/` (the live client)
+ * - `"ignore"`:  any other script (a repo tool)
+ * - `"file"`:  anything else:  the page decides (`spell-server:file`)
+ * - `path` and `scripts` are served paths (`servedPath()`)
+ * - MUST stay self-contained:  `liveClientScript()` serves it beside `liveClient()`
+ */
+export function liveAction(path: string, { file, scripts }: { file: string; scripts: string[] }): LiveAction {
+  if (path === file) return "page"
+  if (/\.css$/.test(path)) return "style"
+  if (!/\.m?js$/.test(path)) return "file"
+  for (const script of scripts) {
+    if (script.startsWith("/api/")) continue
+    if (path.startsWith(script.slice(0, script.lastIndexOf("/") + 1))) return "script"
+  }
+  return "ignore"
+}
+
+/** What `liveAction()` says a page does with a changed file. */
+export type LiveAction = "page" | "style" | "script" | "ignore" | "file"
+
+/**
+ * URL `url`, fetched by a page at `base`, as the server reports its changes;  `undefined` for another origin's.
+ * - the path, without query or hash
+ * - a worktree's file through the main server's `/worktrees/<w>/...`:  `/.claude/worktrees/<w>/...`,
+ *   its path from the main checkout (as `LiveReload` reports it, and as `SPELL_SERVER.file` names a worktree's page)
+ * - MUST stay self-contained:  `liveClientScript()` serves it beside `liveClient()`
+ */
+export function servedPath(url: string, base: string): string | undefined {
+  const at = new URL(url, base)
+  if (at.origin !== new URL(base).origin) return undefined
+  return at.pathname.replace(/^\/worktrees\//, "/.claude/worktrees/")
+}
+
+/**
+ * One hot reload for many changes:  `request()` reloads `wait` ms after the LAST request.
+ * - `typing()` by then:  the reload waits (`waiting(true)`) until `settle()` (focus left a field),
+ *   then `wait` ms more for quiet, and asks again
+ * - `waiting(false)` just before it reloads
+ * - MUST stay self-contained:  `liveClientScript()` serves it beside `liveClient()`
+ */
+export function reloadGate({ wait, typing, reload, waiting }: ReloadGateProps): ReloadGate {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  let held = false
+  const fire = () => {
+    timer = undefined
+    if (typing()) {
+      held = true
+      waiting?.(true)
+      return
+    }
+    held = false
+    waiting?.(false)
+    reload()
+  }
+  const later = () => {
+    clearTimeout(timer)
+    timer = setTimeout(fire, wait)
+  }
+  return {
+    request: later,
+    settle: () => {
+      if (held) later()
+    }
+  }
+}
+
+/**
+ * `reloadGate()` props.
+ * - `wait`:  ms of quiet before it reloads
+ * - `typing()`:  is the reader typing in a field now?
+ * - `reload()`:  reload the page
+ * - `waiting(on)`:  a reload waits for the reader (`true`), or doesn't any more
+ */
+export type ReloadGateProps = {
+  wait: number
+  typing: () => boolean
+  reload: () => void
+  waiting?: (on: boolean) => void
+}
+
+/** What `reloadGate()` returns:  `request()` a reload;  `settle()` when focus leaves a field. */
+export type ReloadGate = { request: () => void; settle: () => void }
+
+/**
  * What `liveClient()` keeps on `window`.
  * - `SPELL_SERVER`:  injected by the server (`ServerConfig`)
  * - `__spellLive`:  the client has run (once per page)
@@ -744,7 +968,8 @@ type LiveWindow = Window & {
 }
 
 /**
- * `liveClient` as a classic script, for `/_server/live.js`:  `forVsCode()` first, which it calls.
+ * `liveClient` as a classic script, for `/api/server/live.js`:  the helpers it calls first
+ * (`forVsCode()`, `liveAction()`, `servedPath()`, `reloadGate()`).
  * - HACK: `__name` is a no-op shim:  tsx / esbuild's `keepNames` wraps nested functions in `__name(fn, "fn")`,
  *   a helper that lives in the MODULE, not in the stringified function
  */
@@ -753,6 +978,9 @@ export function liveClientScript(): string {
     "// spell server:  live reload and page edits (packages/server/src/liveClient.ts)",
     "var __name = (fn) => fn;",
     forVsCode.toString(),
+    liveAction.toString(),
+    servedPath.toString(),
+    reloadGate.toString(),
     `(${liveClient.toString()})()`,
     ""
   ].join("\n")

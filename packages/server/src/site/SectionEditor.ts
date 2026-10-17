@@ -3,11 +3,11 @@ import { readEdit, serverConfig } from "$/server/site"
 /****************
  * ### `<spell-section-editor>`
  * Edit mode for pages the page server serves:  hover a section, click "edit", change its HTML source, save.
- * The page server writes the ORIGINAL file (`PATCH /_server/page`), and live reload shows the result.
+ * The page server writes the ORIGINAL file (`PATCH /api/pages`), and live reload shows the result.
  * - on while the site header's pencil is on (this tab);  `SectionEditor.mount()` adds the one instance to `<body>`
  * - what can be edited:
  *   - an element with an `id` (`EDITABLE`:  a docs page's `<ui-section>`, a plan item ...)
- *   - a `section` whose heading has one (the goals pages):
+ *   - a `section` whose heading has one (the saga pages):
  *     the section, found through its heading's `id` (`parent: "section"`)
  * - the source comes fresh from the server with its `ETag`:
  *   saving is refused (409) if the file changed since, and the dialog says to reload
@@ -108,7 +108,7 @@ export class SectionEditor extends HTMLElement {
       id: target.id,
       ...(target.parent && { parent: target.parent })
     })
-    const answer = await fetch(`${config.edit ?? "/_server/page"}?${query}`)
+    const answer = await fetch(`${config.edit ?? "/api/pages"}?${query}`)
     const body = (await answer.json()) as { html?: string; etag?: string; error?: string }
     const shadow = this.shadowRoot!
     if (!answer.ok || body.html === undefined || !body.etag)
@@ -126,7 +126,7 @@ export class SectionEditor extends HTMLElement {
     const editing = this.editing
     if (!config || !editing) return
     const html = this.shadowRoot!.querySelector("textarea")!.value
-    const answer = await fetch(`${config.edit ?? "/_server/page"}?path=${encodeURIComponent(config.file)}`, {
+    const answer = await fetch(`${config.edit ?? "/api/pages"}?path=${encodeURIComponent(config.file)}`, {
       method: "PATCH",
       headers: { "content-type": "application/json", "x-server-token": config.token, "if-match": editing.etag },
       body: JSON.stringify({ id: editing.id, parent: editing.parent, html })
@@ -148,7 +148,7 @@ export class SectionEditor extends HTMLElement {
   }
 }
 
-/** Elements editable by their own `id`:  `ui-section` is every docs page's section (the goals pages':  `section`). */
+/** Elements editable by their own `id`:  `ui-section` is every docs page's section (the saga pages':  `section`). */
 const EDITABLE =
   "ui-section, section, article, li, p, figure, blockquote, table, ui-segment, ui-message, ui-card, ui-table, ui-step"
 

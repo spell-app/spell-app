@@ -2,7 +2,7 @@ import { writeFileSync } from "fs"
 import { sep } from "path"
 import type { TextEdit } from "vscode-languageserver"
 
-import environment from "$/spell/node/environment"
+import environment from "$/spaces/server/node/environment"
 import { SP } from "$/spell"
 import { CLI } from "$/cli"
 
@@ -11,7 +11,7 @@ import { CLI } from "$/cli"
  * `SpellLanguageService.formatting()`, with `trimFinalNewlines` and `insertFinalNewline` on.
  * - A project:  each of its `.spell` files.  A `.spell` file:  just that one.
  * - Lists each file it changed -- or, with `--check`, each it WOULD change, writing nothing, and exits 1 if any.
- * - NEVER writes inside `projects/test/`:  test projects stay frozen.  `--check` may read them.
+ * - NEVER writes inside `tests/spaces/@spell/test/`:  test projects stay frozen.  `--check` may read them.
  * - Returns the exit code.
  */
 export async function formatCommand(
@@ -60,7 +60,7 @@ export async function formatCommand(
   return CLI.EXIT.OK
 }
 
-/** Is `path` inside a test project, `projects/test/...`? */
+/** Is `path` inside a test project, `tests/spaces/@spell/test/...`? */
 export function isTestProject(path: string): boolean {
   return path.startsWith(environment.testFilesRoot + sep)
 }

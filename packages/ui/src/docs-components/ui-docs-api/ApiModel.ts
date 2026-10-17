@@ -1,14 +1,23 @@
-import type { SiteAttribute, SiteEvent, SiteNamed, SiteTag, SiteText } from "$/ui/docs-components/docs-components.types"
+import type {
+  SiteAttribute,
+  SiteEvent,
+  SiteNamed,
+  SiteProp,
+  SiteTag,
+  SiteText,
+  SiteUse
+} from "$/ui/docs-components/docs-components.types"
 import { InlineCode } from "./InlineCode"
 import type { ApiCell, ApiNote, ApiRow, ApiSection } from "./UIDocsApi.types"
 
 /****************
  * ### `ApiModel`
  * A tag's API as tables (`ApiSection`s):  what `<ui-docs-api>` draws.
- * - Pure data in, pure data out:  a `SiteTag` from `components.json`;
+ * - Pure data in, pure data out:  a `SiteTag` from `components.json5`;
  *   titles and column headers as TEXT KEYS (the component translates them), cells as `ApiCell`s.
  * - Only the tables a tag has:  an empty one is left out.
  * - `json` attributes (rich data) are the `properties` table, not `attributes`:  they have no attribute.
+ * - A function component's props (`SiteTag.props`) come first, and where it's drawn (`SiteTag.usedIn`) last.
  * - Static and pure, so tests drive it directly.
  ****************/
 export class ApiModel {
@@ -17,6 +26,11 @@ export class ApiModel {
     const attributes = tag.attributes.filter((attribute) => attribute.kind !== JSON_KIND)
     const properties = tag.attributes.filter((attribute) => attribute.kind === JSON_KIND)
     const sections: ApiSection[] = [
+      {
+        id: "props",
+        columns: ["prop", "type", "description"],
+        rows: (tag.props ?? []).map((prop) => ApiModel.propRow(prop))
+      },
       {
         id: "attributes",
         columns: ["attribute", "kind", "values", "default", "description"],
@@ -52,6 +66,12 @@ export class ApiModel {
         note: "textsNote",
         columns: ["key", "english", "description"],
         rows: tag.texts.map((text) => ApiModel.textRow(text))
+      },
+      {
+        id: "usedIn",
+        note: "usedInNote",
+        columns: ["component", "file"],
+        rows: (tag.usedIn ?? []).map((use) => ApiModel.useRow(use))
       }
     ]
     return sections.filter((section) => section.rows.length)
@@ -99,6 +119,29 @@ export class ApiModel {
   ////////////////
   // ## Rows
   ////////////////
+
+  /** Prop name (`required` as a note), its type as code, description. */
+  private static propRow(prop: SiteProp): ApiRow {
+    return {
+      key: prop.name,
+      cells: [
+        { type: "name", code: prop.name, notes: prop.required ? [{ key: "required" }] : [] },
+        { type: "text", text: InlineCode.wrap(prop.type) },
+        { type: "text", text: prop.description }
+      ]
+    }
+  }
+
+  /** The component that draws it, its file as code. */
+  private static useRow(use: SiteUse): ApiRow {
+    return {
+      key: `${use.name} ${use.file}`,
+      cells: [
+        { type: "name", code: use.name, notes: [] },
+        { type: "text", text: InlineCode.wrap(use.file) }
+      ]
+    }
+  }
 
   /** Name, kind, values, default, description. */
   private static attributeRow(attribute: SiteAttribute): ApiRow {
@@ -187,7 +230,7 @@ const JSON_KIND = "json"
 
 /**
  * How each `AttributeKind` reads to an author, in the Kind column.
- * - NOTE: English only, like every description in `components.json`:  the site's data isn't translated.
+ * - NOTE: English only, like every description in `components.json5`:  the site's data isn't translated.
  */
 const KIND_LABELS: Readonly<Record<string, string>> = {
   keyOnly: "boolean",

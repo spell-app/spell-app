@@ -26,7 +26,7 @@ import { CLI, type LinkReport, type SharedConfig, type SharedStatus } from "$/cl
  * - `ui`:  Spell UI's hand-written docs pages (claude-design P6);  their bundle and data stay in each branch's
  *   `packages/ui/site/`
  * - before 2026-10-05 (epic `claude-design` P4) the docs were ONE link, `packages/docs/content`:  the shared repo keeps
- *   old-path links there for checkouts on older code (`packages/docs/tools/relocate.js` `reorgShared()`)
+ *   old-path links there for checkouts on older code (`packages/epics/tools/relocate.js` `reorgShared()`)
  * - the manifest:  the root `package.json`'s `"shared"` (`sharedConfig()`)
  * - only FOLDERS are linked:  Claude's Edit refuses to write through a link to a file
  * - the shared repo is committed by itself, after every turn (`commitShared()`, the `Stop` hook
@@ -224,7 +224,8 @@ export function commitShared(
 
 /**
  * The commit group of shared-repo path `path` (`commitShared()`):  what the commit's message names.
- * - `epics/<name>/...`:  `epic <name>`;  `goals/<set>/...`:  `goals/<set>`;  a file right under either:  the folder
+ * - `epics/<name>/...`:  `epic <name>`;  `sagas/<id>/...`:  `saga <id>`;  `goals/<set>/...`:  `goals/<set>`;
+ *   a file right under any of them (`sagas/sagas.json5`):  the folder (`sagas`)
  * - `guides/<x>`, `<x>` a folder or a file:  `guides/<x>`
  * - the other shared folders (`pages`, `templates`, `ui`, `brand`, `agents`):  the folder
  * - anything else (the repo's own files, old-path links):  `other`
@@ -233,6 +234,7 @@ export function sharedGroup(path: string): string {
   const [top, next, ...rest] = path.split("/")
   const inFolder = rest.length > 0
   if (top === "epics") return inFolder ? `epic ${next}` : top
+  if (top === "sagas") return inFolder ? `saga ${next}` : top
   if (top === "goals") return inFolder ? `goals/${next}` : top
   if (top === "guides") return next ? `guides/${next}` : top
   return next && WHOLE_FOLDERS.has(top) ? top : "other"
@@ -273,12 +275,15 @@ const GITIGNORE = `# written by \`spell dev shared init\`
 pages/details/
 # /epic review inboxes:  a review's pending marks, never committed
 epics/*/*.inbox.json*
-# comments on docs pages (\`<page>.inbox.json\`, epic airplane P11):  waiting work, never committed
+# comments on docs pages (\`<page>.inbox.json5\`, epic airplane P11):  waiting work, never committed
 guides/**/*.inbox.json*
 pages/**/*.inbox.json*
 epics/**/*.inbox.json*
-# an epic's running agents (\`spell dev agents\`):  what's running now, never committed
+# a saga page's review inbox (\`sagas/<id>/<id>.inbox.json5\`, epic epic-workflow P15)
+sagas/**/*.inbox.json*
+# an epic's running agents (\`spell dev agents\`):  what's running now, never committed;  \`.json\` before P21
 epics/*/agents.json
+epics/*/agents.json5
 `
 
 /** The shared repo's `README.md`. */

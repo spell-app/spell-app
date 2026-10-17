@@ -1,5 +1,5 @@
 /*
- * `<epic-item>` (EpicItem.tsx):  a plan doc's item.
+ * `<epic-item>` (EpicItem.tsx):  an epic page's item.
  * - its line:  chevron, id chip, title, review label, actions
  * - its details:  the light-DOM prose and parts, through the default slot
  * - Shared look from `<epic-page>`'s `:host` (custom properties inherit through shadow roots).
@@ -45,6 +45,8 @@
     /* the chip's colours, by state (below);  `open` until one applies:  yellow, its text DARK (white can't be read) */
     --_epic-state: var(--epic-state-open, var(--ui-yellow, #fbbd08));
     --_epic-state-on: var(--epic-state-open-on, var(--ui-yellow-on, #1b1c1d));
+    /* the state's readable ink on the line's band:  an outlined chip's letters (a mark in flight, `chipMark`) */
+    --_epic-state-text: var(--ui-yellow-text, #8a6d00);
   }
 
   /* ## The line:  its band fills the row, rule to rule, so the items read as rows */
@@ -348,28 +350,40 @@
   .item.attention {
     --_epic-state: var(--epic-state-attention, light-dark(var(--ui-red), var(--ui-red-on-light)));
     --_epic-state-on: var(--epic-state-attention-on, light-dark(var(--ui-red-on), var(--ui-ink-on-dark)));
+    --_epic-state-text: var(--ui-red-text, var(--_epic-state));
   }
   .item.replied {
     --_epic-state: var(--epic-state-replied, var(--ui-orange));
     --_epic-state-on: var(--epic-state-replied-on, var(--ui-orange-on));
+    --_epic-state-text: var(--ui-orange-text, var(--_epic-state));
   }
   .item.progress {
     --_epic-state: var(--epic-state-progress, var(--ui-blue));
     --_epic-state-on: var(--epic-state-progress-on, var(--ui-blue-on));
+    --_epic-state-text: var(--ui-blue-text, var(--_epic-state));
   }
   .item.recent {
     --_epic-state: var(--epic-state-recent, var(--ui-green));
     --_epic-state-on: var(--epic-state-recent-on, var(--ui-green-on));
+    --_epic-state-text: var(--ui-green-text, var(--_epic-state));
   }
   .item.old {
     --_epic-state: var(--epic-state-old, var(--ui-grey-background));
     --_epic-state-on: var(--epic-state-old-on, var(--ui-grey-text));
+    --_epic-state-text: var(--ui-grey-text, var(--_epic-state));
   }
   /*
-   * Owen's mark (`chipMark`):  the chip MATCHES the chosen review button (Owen, 2026-10-08).
-   * - its colour, and its fill (Q20):  dashed until sent, outlined once sent
+   * The chip's FILL says how far an answer got (Q20):  dashed until sent, outlined once sent.
+   * - Owen's own mark in flight keeps the item's STATE colour (no `data-color`), so the chip still matches the
+   *   section's counts:  a red item marked Revisit stays red, outlined (Owen, 2026-10-11, J3;  before:  the button's
+   *   colour, 2026-10-08)
+   * - work Claude still owes wears its own colour:  queued green, Claude working blue, a taken pick green
    * - the letters in the colour's readable ink, over the line's band
    */
+  .chip[data-fill]:not([data-color]) {
+    --_epic-mark: var(--_epic-state);
+    --_epic-mark-text: var(--_epic-state-text, var(--_epic-state));
+  }
   .chip[data-color="green"] {
     --_epic-mark: var(--ui-green, #00853a);
     --_epic-mark-text: var(--ui-green-text, var(--_epic-mark));

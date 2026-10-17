@@ -2,8 +2,9 @@
  * Loose types, constants, errors and small pure helpers of the page's server clients:
  * the review inbox's (`ReviewClient`), the running agents' (`AgentsClient`),
  * and the link both write through (`ServerLink`).
- * - The inbox's shapes are the route's own (`$/epics/tool/ReviewInbox`), imported as TYPES only:
- *   erased, so the node-only inbox never reaches the pack, and a reply can't drift from what the server writes.
+ * - The inbox's shapes are the route's own (`$/epics/tool/ReviewInbox`), and the running agents' the list's
+ *   (`tools/AgentList.ts`), imported as TYPES only:
+ *   erased, so the node-only files never reach the pack, and a reply can't drift from what the server writes.
  */
 
 import { PlanDates } from "$/epics/dates"
@@ -11,28 +12,46 @@ import type {
   InboxDraft,
   InboxListener,
   InboxMark,
-  InboxRecord,
   InboxUrgency,
+  InboxWoken,
   NewKind,
   NowAction,
   NowRequest,
+  PageInbox,
   PickFields,
   WorkingEntry
 } from "$/epics/tool/ReviewInbox"
+import type { WakeResult } from "$/epics/tool/ReviewStart"
+
+import type { Redirect, RunningAgent as ListedAgent } from "../../tools/AgentList"
 
 ////////////////
 // ## Constants
 ////////////////
 
 /** The review store's routes (`$/epics/tool/reviewRoutes.ts`):  every reply is the page's whole inbox. */
-export const REVIEW_API = "/api/review"
+export const REVIEW_API = "/api/epics/review"
 
 /**
- * The pages the routes review:  a plan doc's own path, `.../epics/<name>/<name>.plan.html` (`reviewRoutes.ts`
+ * The pages the routes review:  an epic page's own path, `.../epics/<name>/<name>.plan.html` (`reviewRoutes.ts`
  * `PLAN_DOC`, the same rule:  any other page gets a 403).
  * A copy anywhere else (`preview-epics/`) isn't reviewed, and doesn't ask.
  */
 export const PLAN_DOC_PAGE = /\/(?:packages\/docs\/content\/)?epics\/([^/]+)\/\1\.plan\.html$/
+
+/**
+ * A SAGA page's own path, `.../sagas/<id>/<id>.saga.html` (epic `epic-workflow` P15):  the routes review it too,
+ * its marks and comments in its own inbox beside it (`reviewRoutes.ts` `SAGA_PAGE`, the same rule).
+ */
+export const SAGA_PAGE = /\/sagas\/([^/]+)\/\1\.saga\.html$/
+
+/**
+ * How a saga page is NAMED to `/epic review` and the `epic` tool:  its short address, `SAGA:/<id>`
+ * (`/epic review SAGA:/drawable-spell`, `epic inbox SAGA:/drawable-spell wait`, `epic add SAGA:/drawable-spell#T`).
+ * - a saga id may be an epic's name too (`output-targets`):  the prefix says which page
+ * - REFACTOR:  one resolver for every `SAGA:/` address once epic `epic-workflow` P15's `<epic-link>` work lands
+ */
+export const SAGA_PREFIX = "SAGA:/"
 
 /** How often a VISIBLE page re-reads its inbox, so what Claude does to it shows. */
 export const REVIEW_POLL_MS = 4000
@@ -56,17 +75,19 @@ export const FOCUS_HOLD_MS = 3000
 export const REVISIT_KEY_PREFIX = "spell-revisit:"
 
 /**
- * What the page says when no Claude session waits on the inbox (plan doc `review-review`, D6):
+ * What the page says when no Claude session waits on the inbox (epic page `review-review`, D6):
  * `listening` null, which the routes also answer once a session's heartbeat stops (`ReviewInbox.forPage()`).
+ * - since epic `epic-workflow` P16, Send and Do Now wake the epic's session then (the page server types
+ *   `/epic review <epic>` into it, or opens one):  what a wake did is `ReviewClient.waitingWhy`
  */
 export const NOBODY_LISTENING = isAirplane()
   ? "Airplane mode:  queued for when you land (/airplane land)"
-  : "No Claude session is reviewing this doc:  this waits for the next /epic review"
+  : "No Claude session is reviewing this doc:  Send or Do Now wakes one"
 
 /**
  * Airplane mode is on (epic `airplane`):  Owen works with no Claude, and everything waits for `/airplane land`.
  * - the page server says so in `window.SPELL_SERVER.airplane`, as it serves the page (`AirplaneMode`):
- *   a page loaded before `spell dev airplane on` learns it on its next load
+ *   a page loaded before `epic airplane on` learns it on its next load
  * - `false` outside a browser
  */
 export function isAirplane(): boolean {
@@ -91,7 +112,7 @@ export type ReviewAction = (typeof REVIEW_ACTIONS)[number]
 export const SUMMARY_ID = "summary"
 
 /** What a new item from the page may be:  as `ReviewInbox`'s `NEW_KINDS` (a copy:  that module is node-only). */
-export const NEW_KINDS = ["todo", "question"] as const
+export const NEW_KINDS = ["todo", "question", "issue", "test"] as const
 
 /** The longest title a new item may have:  as `ReviewInbox`'s `MAX_TITLE` (a copy:  that module is node-only). */
 export const NEW_TITLE_MAX = 300
@@ -99,18 +120,34 @@ export const NEW_TITLE_MAX = 300
 /** The page's own reload of its HTML:  the server's current token, as it serves the page now. */
 export const SERVER_INFO = /window\.SPELL_SERVER = (\{.*?\})<\/script>/
 
-/** The running-agents routes (`packages/docs/tools/agentRoutes.ts`):  every reply is the epic's list, `{ agents }`. */
-export const AGENTS_API = "/api/agents"
+/** The running-agents routes (`packages/epics/tools/agentRoutes.ts`):  every reply is the epic's list, `{ agents }`. */
+export const AGENTS_API = "/api/epics/agents"
 
-/** The running-agents list's file, beside the plan doc (`AgentList.ts`):  the page server announces its changes. */
-export const AGENTS_FILE = "agents.json"
+/** The running-agents list's file, beside the epic page (`AgentList.ts`):  the page server announces its changes. */
+export const AGENTS_FILE = "agents.json5"
 
 ////////////////
 // ## Types
 ////////////////
 
-/** The inbox as the page keeps it:  every field a route's reply has that the page reads. */
-export type Inbox = Pick<InboxRecord, "marks" | "drafts" | "urgency" | "sent" | "now" | "working" | "listening">
+/**
+ * The inbox as the page keeps it:  every field a route's reply has that the page reads.
+ * - `unsentComments`:  the ids of the comments Send would hand over, as the routes work it out
+ *   (`ReviewInbox.forPage()`);  `[]` from a server started before Send took comments
+ * - `woken`:  the page server's wake of the epic (epic `epic-workflow` P16), while it counts and nobody listens;
+ *   `null` otherwise, or from a server started before it woke epics
+ */
+export type Inbox = Pick<
+  PageInbox,
+  "marks" | "drafts" | "urgency" | "sent" | "now" | "working" | "listening" | "unsentComments" | "woken"
+>
+
+/**
+ * What the page server's wake did, in a Send's or Do Now's answer (`wake`, epic `epic-workflow` P16):
+ * the route's `WakeResult` (`$/epics/tool/ReviewStart`), its type only.
+ * - `message`:  for the notice;  `null` (no `wake`) while a session listens
+ */
+export type WakeAnswer = WakeResult
 
 /** A mark to set, before the route stamps it. */
 export type MarkInput = Omit<InboxMark, "at">
@@ -165,37 +202,23 @@ export type WriteOptions = {
 }
 
 /**
- * One running agent, as the page shows it:  `AgentList.ts`'s `RunningAgent`, every field there (`agentsOf()`).
- * - a COPY of that shape:  `epics` never imports `docs`, which holds the list (the root's dependency rule)
+ * One running agent, as the page shows it.
+ * - the list's own `RunningAgent` (`tools/AgentList.ts`), every field filled in (`agentsOf()`)
+ * - `started`:  `""` for unknown
+ * - `redirects`:  `[]` for none
+ * - not `taskId`:  the page has no use for it
  */
-export type RunningAgent = {
-  /** its full name, prefixed:  `skillz-aaa` */
-  name: string
-  /** what it does, a sentence or less */
-  task: string
-  /** `active`, or `blocked on <name>` */
-  status: string
-  /** when it was added, ISO;  `""` for unknown */
-  started: string
-  /** Owen's notes to it so far, oldest first */
-  redirects: AgentRedirect[]
-}
+export type RunningAgent = Required<Omit<ListedAgent, "taskId" | "redirects">> & { redirects: AgentRedirect[] }
 
-/** A note Owen sent a running agent from the page. */
-export type AgentRedirect = {
-  /** what he typed */
-  note: string
-  /** when he sent it, ISO */
-  at: string
-  /** when a session passed it on, ISO;  `""`:  not yet */
-  told: string
-}
+/** A note Owen sent a running agent from the page:  the list's `Redirect`, `told` filled in (`""`:  not yet). */
+export type AgentRedirect = Required<Redirect>
 
 export type {
   InboxDraft,
   InboxListener,
   InboxMark,
   InboxUrgency,
+  InboxWoken,
   NewKind,
   NowAction,
   NowRequest,
@@ -228,8 +251,21 @@ export function inboxOf(reply: unknown): Inbox {
     sent: typeof record.sent === "string" ? record.sent : null,
     now: Array.isArray(record.now) ? (record.now as NowRequest[]) : [],
     working: isObject(record.working) ? (record.working as Inbox["working"]) : {},
-    listening: isObject(record.listening) ? (record.listening as InboxListener) : null
+    listening: isObject(record.listening) ? (record.listening as InboxListener) : null,
+    unsentComments: Array.isArray(record.unsentComments)
+      ? record.unsentComments.filter((id): id is string => typeof id === "string")
+      : [],
+    woken:
+      isObject(record.woken) && typeof (record.woken as InboxWoken).message === "string"
+        ? (record.woken as InboxWoken)
+        : null
   }
+}
+
+/** A Send's or Do Now's reply:  what the page server's wake did (`wake`), or `null` (a session listens, an older server). */
+export function wakeOf(reply: unknown): WakeAnswer | null {
+  const wake = (reply as { wake?: unknown } | null)?.wake
+  return isObject(wake) && typeof (wake as WakeAnswer).message === "string" ? (wake as WakeAnswer) : null
 }
 
 /** An empty inbox:  before the first read. */
@@ -327,4 +363,16 @@ export function sentence(message: string): string {
 /** A plain object (not null, not an array)? */
 function isObject(value: unknown): boolean {
   return !!value && typeof value === "object" && !Array.isArray(value)
+}
+
+/**
+ * The page server's answer to "start a review" (`POST /api/epics/review/start`, epic `airplane` P12):
+ * its `StartResult`.
+ * - `sent`:  typed into the one session titled for the epic;  `none` / `several` / `no-window`:  nothing sent
+ */
+export type StartAnswer = {
+  state: "sent" | "none" | "several" | "no-window"
+  command: string
+  sessions: string[]
+  message: string
 }

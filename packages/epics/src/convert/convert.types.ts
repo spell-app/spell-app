@@ -1,5 +1,5 @@
 /**
- * Types of `$/epics/convert`:  the converter from the old plan-doc markup (`ui-section`, `ui-item[data-status]` ...)
+ * Types of `$/epics/convert`:  the converter from the old epic-page markup (`ui-section`, `ui-item[data-status]` ...)
  * to `<epic-*>` markup, and the proof that it lost nothing.
  * - Bottom of the folder's import graph:  `import type` only, apart from these constants and the tool's types file.
  *   `convert.types` <- `DocReading` <- `OldReading` / `NewReading` <- `ConversionProof`;
@@ -19,7 +19,7 @@ import { ProseBlocks, ProseCounted } from "$/epics/tool/planDoc.types"
 
 /**
  * A doc the converter can't convert:  markup it doesn't know where a structure is expected (a phase section holding
- * something other than phases), or a layout from before 2026-10-02 (`spell dev plan-doc migrate` first).
+ * something other than phases), or a layout from before 2026-10-02 (`epic migrate` first).
  * - `cause.where`:  the element, in a few words
  */
 export class ConvertError extends Error {
@@ -165,7 +165,7 @@ export const Old = {
   partNote: ".plan-part-note"
 } as const
 
-/** Layouts from before 2026-10-02, which `spell dev plan-doc migrate <name>` brings up to date:  never read here. */
+/** Layouts from before 2026-10-02, which `epic migrate <name>` brings up to date:  never read here. */
 export const OLD_LAYOUTS = "section.s2, section.s3, ol.plan-items, main > #plan, .plan-items > ui-item[id^='d']"
 
 /** The ids of the meta lines' dates:  drawn by `<epic-page>` from `started` / `updated`. */
@@ -221,7 +221,7 @@ export function isScriptUpdate(message: Element): boolean {
  */
 export const EXCLUSIONS = [
   "page header:  `Epic: ` and the step label (drawn by <epic-page> from `title` and the phases)",
-  "meta lines:  `Plan doc for ... branch`, `Worktree:`, `Started ..., updated ...` and their ids and links (drawn from <epic-page> `branch`, `worktree`, `started`, `updated`);  the durable doc's link is kept",
+  "meta lines:  `Plan doc for ... branch`, `Worktree:`, `Started ..., updated ...` and their ids and links (drawn from <epic-page> `branch`, `worktree`, `started`, `updated`);  the guide's link is kept",
   "section titles (`3. Questions`), their icons and tooltips (drawn per kind);  an Overview sub-section's `1.3 ` and a phase's `P2 · ` (drawn from position and id)",
   "the Phases progress bar and its Plan changes box (drawn from the phases and their <epic-updated> lines)",
   "`Kickoff prompt`, `Estimate:`, `Choices`, `More Details`, `Original Discussion`, `As first written` / `As of ...` (drawn around their slots and elements)",
@@ -293,11 +293,11 @@ export const UPGRADE_EXCLUSIONS = [
 // ## The new page
 ////////////////
 
-/** The old plan-doc sheet's link, which a converted page drops (P14:  the elements style themselves). */
+/** The old epic-page sheet's link, which a converted page drops (P14:  the elements style themselves). */
 export const PLAN_DOC_CSS = 'head > link[href$="/plan-doc.css"]'
 
 /** The pack a converted page loads, from `epics/<name>/`:  `<ui-components source>`. */
-export const PACK_SOURCE = "../../packages/epics/pack/epics.pack.js"
+export const PACK_SOURCE = "../../packages/epics/components/__pack/epics.pack.js"
 
 /** `<body>` attributes that move onto `<epic-page>` (camelCase key there). */
 export const BODY_DATA = {

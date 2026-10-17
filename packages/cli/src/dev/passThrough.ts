@@ -10,39 +10,40 @@ import { REPO_ROOT, findCheckout } from "$/cli/findCheckout"
 
 /**
  * The repo tools `spell dev` passes straight through to, by command:  each as its yarn script ran it.
- * - `docs <verb>`:  `packages/docs/package.json`'s `docs:<verb>`, in `packages/docs` as `yarn workspace` ran them
+ * - `docs <verb>`:  `packages/epics/package.json`'s `docs:<verb>`, in `packages/epics` as `yarn workspace` ran them
+ *   - `open` and `link` under `tsx`:  a short address (`SAGA:/...`) is read by `$/epics/links`
  * - `docs fuss`:  the writing checker, under `tsx`, in the caller's folder (its paths are from there)
  * - `docs offline`:  what docs pages load from the internet, likewise
  * - `server`:  `packages/server`'s `server` script;  `serve`:  root `yarn serve`, `spell dev server start --all`
  * - `window`:  root `yarn window`;  plain `node`, so it runs in a worktree before its `yarn install`
  * - `design build`:  `packages/ui`'s `design:build`, under `tsx`, in the caller's folder (so `--out` is relative to it)
- * - `design bundle` / `design check`:  `packages/docs`' `design:bundle` (`bundle-spell-ui.js --design`) / `design:check`
- * - `design sync`:  `packages/docs/tools/design.js`, its verb first (`pull`, `changed` ...), in the caller's folder
- * - `agents`:  the running-agents list (`packages/docs/tools/AgentList.ts`), in the caller's folder
- * - `airplane`:  airplane mode and its pre-flight check (`packages/docs/tools/airplane.ts`), in the caller's folder
- * - `notes`:  page notes (`packages/docs/tools/notes.ts`), in the caller's folder (`answer --file` is from there)
- * - `comments`:  comments on docs pages (`packages/docs/tools/comments.ts`), likewise
- * - NOTE: `goals` has its own lookup (`goalsCommand()`);  `vscode` runs yarn itself (`vscodeSteps()`);
+ * - `design bundle` / `design check`:  `packages/epics`' `design:bundle` (`bundle-spell-ui.js --design`) / `design:check`
+ * - `design sync`:  `packages/epics/tools/design.js`, its verb first (`pull`, `changed` ...), in the caller's folder
+ * - `agents`:  the running-agents list (`packages/epics/tools/AgentList.ts`), in the caller's folder
+ * - `airplane`:  airplane mode and its pre-flight check (`packages/epics/tools/airplane.ts`), in the caller's folder
+ * - `notes`:  page notes (`packages/epics/tools/notes.ts`), in the caller's folder (`answer --file` is from there)
+ * - `comments`:  comments on docs pages (`packages/epics/tools/comments.ts`), likewise
+ * - NOTE: `vscode` runs yarn itself (`vscodeSteps()`);
  *   `plan-doc` runs in this process (`planDocCommand()`, epic `epic-components` P7)
  */
 export const TOOLS = {
-  agents: { tool: "packages/docs/tools/agents.ts", tsx: "packages/docs/tsconfig.json" },
-  airplane: { tool: "packages/docs/tools/airplane.ts", tsx: "packages/docs/tsconfig.json" },
-  "docs update": { tool: "packages/docs/tools/update.js", cwd: "packages/docs" },
-  "docs index": { tool: "packages/docs/tools/index.js", cwd: "packages/docs" },
-  "docs new": { tool: "packages/docs/tools/new-page.js", cwd: "packages/docs" },
-  "docs open": { tool: "packages/docs/tools/open.js", cwd: "packages/docs" },
-  "docs link": { tool: "packages/docs/tools/link.ts", tsx: "packages/docs/tsconfig.json", cwd: "packages/docs" },
-  "docs fuss": { tool: "packages/docs/tools/fuss.ts", tsx: "packages/docs/tsconfig.json" },
-  "docs offline": { tool: "packages/docs/tools/offline.ts", tsx: "packages/docs/tsconfig.json" },
-  details: { tool: "packages/docs/tools/details.js", cwd: "packages/docs" },
-  choices: { tool: "packages/docs/tools/choices.js", cwd: "packages/docs" },
-  notes: { tool: "packages/docs/tools/notes.ts", tsx: "packages/docs/tsconfig.json" },
-  comments: { tool: "packages/docs/tools/comments.ts", tsx: "packages/docs/tsconfig.json" },
+  agents: { tool: "packages/epics/tools/agents.ts", tsx: "packages/epics/tsconfig.json" },
+  airplane: { tool: "packages/epics/tools/airplane.ts", tsx: "packages/epics/tsconfig.json" },
+  "docs update": { tool: "packages/epics/tools/update.js", cwd: "packages/epics" },
+  "docs index": { tool: "packages/epics/tools/index.js", cwd: "packages/epics" },
+  "docs new": { tool: "packages/epics/tools/new-page.js", cwd: "packages/epics" },
+  "docs open": { tool: "packages/epics/tools/open.js", tsx: "packages/epics/tsconfig.json", cwd: "packages/epics" },
+  "docs link": { tool: "packages/epics/tools/link.ts", tsx: "packages/epics/tsconfig.json", cwd: "packages/epics" },
+  "docs fuss": { tool: "packages/epics/tools/fuss.ts", tsx: "packages/epics/tsconfig.json" },
+  "docs offline": { tool: "packages/epics/tools/offline.ts", tsx: "packages/epics/tsconfig.json" },
+  details: { tool: "packages/epics/tools/details.js", cwd: "packages/epics" },
+  choices: { tool: "packages/epics/tools/choices.js", cwd: "packages/epics" },
+  notes: { tool: "packages/epics/tools/notes.ts", tsx: "packages/epics/tsconfig.json" },
+  comments: { tool: "packages/epics/tools/comments.ts", tsx: "packages/epics/tsconfig.json" },
   "design build": { tool: "packages/ui/scripts/design-build.ts", tsx: "packages/ui/scripts/tsconfig.json" },
-  "design bundle": { tool: "packages/docs/tools/bundle-spell-ui.js", cwd: "packages/docs" },
-  "design check": { tool: "packages/docs/tools/check-design-bundle.js", cwd: "packages/docs" },
-  "design sync": { tool: "packages/docs/tools/design.js" },
+  "design bundle": { tool: "packages/epics/tools/bundle-spell-ui.js", cwd: "packages/epics" },
+  "design check": { tool: "packages/epics/tools/check-design-bundle.js", cwd: "packages/epics" },
+  "design sync": { tool: "packages/epics/tools/design.js" },
   server: { tool: "packages/server/src/page/cli.ts", tsx: "packages/server/tsconfig.json" },
   serve: { tool: "scripts/serve.mjs" },
   window: { tool: "scripts/window.mjs" }
@@ -57,15 +58,16 @@ export const DOCS_VERBS = ["update", "index", "new", "open", "link", "fuss", "of
 /**
  * `design`'s verbs (epic `claude-design`), in the order help lists them.
  * - `build`, `bundle`, `check`:  write the system's files, its bundle, and prove the bundle
- * - `pull`, `changed`, `pushed`, `state`:  `packages/docs/tools/design.js` (`design sync`), the local half of `/design`
+ * - `pull`, `changed`, `pushed`, `state`:  `packages/epics/tools/design.js` (`design sync`), the local half of `/design`
  */
 export const DESIGN_VERBS = ["build", "bundle", "check", "pull", "changed", "pushed", "state"] as const
 
 /**
- * Run tool `name` of the nearest checkout from the current folder (`findCheckout()`), with `args` verbatim and
- * this terminal attached.  Returns its exit code.
- * - a child `node`, under the CLI checkout's `tsx` when `tsx` is set:  the tool's own `tsconfig.json` then maps its
- *   `$/...` imports into the TOOL's checkout, which may be a worktree while `spell` runs from main
+ * Run tool `name` of the nearest checkout from the current folder (`findCheckout()`),
+ * with `args` verbatim and this terminal attached.  Returns its exit code.
+ * - a child `node`, under the CLI checkout's `tsx` when `tsx` is set:
+ *   the tool's own `tsconfig.json` then maps its `$/...` imports into the TOOL's checkout,
+ *   which may be a worktree while `spell` runs from main
  * - `env`:  added to this process's
  */
 export function runTool(name: ToolName, args: string[], env: NodeJS.ProcessEnv = {}): Promise<number> {
@@ -88,7 +90,7 @@ export const TSX_LOADER = pathToFileURL(join(REPO_ROOT, "node_modules", "tsx", "
 /**
  * Run `command` with `args` as a child, with this terminal attached, and resolve to its exit code.
  * - `Ctrl-C` reaches the child from the terminal itself, so this process ignores it until the child is done:
- *   a foreground server (`server serve`, `goals serve`) gets to stop cleanly, and we exit with its code
+ *   a foreground server (`server serve`) gets to stop cleanly, and we exit with its code
  * - `SIGTERM` / `SIGHUP` sent to us alone are passed on
  * - killed by a signal:  `128 +` its number, as a shell reports it;  failed to start:  `EXIT.ERRORS`, saying why
  */

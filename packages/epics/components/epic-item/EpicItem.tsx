@@ -57,6 +57,7 @@ import {
 
 import collapseAllCSS from "./CollapseAll.css?inline"
 import itemCSS from "./EpicItem.css?inline"
+import tooltipCSS from "./Tooltip.css?inline"
 
 /****************
  * ### `EpicItem`
@@ -92,8 +93,8 @@ import itemCSS from "./EpicItem.css?inline"
  *     - without details:  under its line once Revisit opens it, lined up with where details start;
  *       its chevron then shows, and folding closes the box
  *   - a marked note just above the box, with Edit, and Claude's status cards between the two
- *   - While it carries a mark (a button dashed or outlined, or a pick), its id chip MATCHES the chosen button:
- *     that button's colour and fill (`chipMark`, Owen, 2026-10-08);  without one, its state's colour, solid.
+ *   - While it carries a mark (a button dashed or outlined, or a pick), its id chip keeps its state's colour and
+ *     wears the mark's fill (`chipMark`, Owen, 2026-10-11);  without one, its state's colour, solid.
  *   - Once Claude has handled the mark, the buttons CLEAR (Owen's input, taken):  the chip carries the result.
  *   - The id chip of an item Owen may call urgent or not (`canCalm`) is a button:
  *     urgent <-> not urgent, through the inbox (`ReviewClient.toggleCalm()`).
@@ -120,7 +121,7 @@ import itemCSS from "./EpicItem.css?inline"
 export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   @E.proto static vocabulary = epicItemVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-item": itemCSS, "epic-collapse-all": collapseAllCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-item": itemCSS, "epic-collapse-all": collapseAllCSS },
     DOMElement: E.DOMLoadableBodyElement,
     // a container:  a click on its text must not jump to the fold button or a link inside
     delegatesFocus: false
@@ -222,8 +223,9 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   /**
    * Where Owen's answer on it stands, as its id chip wears it (Owen, 2026-10-10:  "leaning into outlines"):
    * the FILL says how far it got, so he sees at a glance what he already answered.
-   * - his live mark:  the chosen review button's colour (a pick's green), DASHED until sent, then OUTLINED
-   *   - the note box's x (`skip`, Owen, 2026-10-09) has no button on the line:  the chip alone shows it, grey
+   * - his live mark:  the item's OWN state colour, DASHED until sent, then OUTLINED (Owen, 2026-10-11:  a red item
+   *   marked Revisit turned blue, and the section's red count no longer matched any chip;  no `color` here)
+   *   - the note box's x (`skip`, Owen, 2026-10-09) has no button on the line:  the chip alone shows it
    * - a pick Claude took off the inbox, its `chosen` not on the page yet:  green, outlined
    * - answered, and the work still due:  OUTLINED
    *   - queued (`queued`:  a review said "do it", a todo's plane):  green
@@ -233,14 +235,15 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
    *   green decided or done, yellow still open, red needs Owen, orange Owen's turn to pick
    */
   readonly chipMark = createMemo((): ChipMark | undefined => {
+    // Owen's own mark in flight:  no colour, so the chip keeps its state's (the section's counts still match it)
     for (const spec of this.reviewButtons()) {
       const fill = this.reviewState.fillOf(spec.action)
-      if (fill === "dashed" || fill === "outline") return { color: spec.color, fill, label: spec.label }
+      if (fill === "dashed" || fill === "outline") return { fill, label: spec.label }
     }
     const mark = this.reviewState.mark()
     const fill = this.reviewState.isSent() ? "outline" : "dashed"
-    if (mark?.action === "skip") return { color: "grey", fill, label: "boxSkip" }
-    if (mark?.pick) return { color: "green", fill, label: { pick: mark.pick } }
+    if (mark?.action === "skip") return { fill, label: "boxSkip" }
+    if (mark?.pick) return { fill, label: { pick: mark.pick } }
     // read plainly:  the doc's `chosen` lands with the item's own attributes changing
     // (`reviewed`, `state` ...), which re-run this
     const taken = this.reviewState.takenPick()?.pick
@@ -656,6 +659,12 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   @E.untracked
   collapse(): boolean {
     return this.isOpen() ? this.toggle() : false
+  }
+
+  /** Open it, if folded and it has details, as a click on its line would (`toggle()`);  true when it opened.  Expand-all's. */
+  @E.untracked
+  expand(): boolean {
+    return !this.isOpen() && this.hasDetails() ? this.toggle() : false
   }
 
   /**

@@ -1,15 +1,17 @@
 /**
- * `yarn site:data [--check]`:  write the Spell UI site's data, `site/_data/components.json` and `icons.json` (the icon
- * browser's search terms), and keep `site/_data/pages.json` complete (see `tools/SiteDataBuilder.ts`);  and
- * `search.json` (every page's sections, for `<ui-docs-search>`) beside the shared pages it's read from,
- * `ui/_data/search.json`.
+ * `yarn site:data [--check]`:  write the Spell UI site's data, `docs/__data/components.json5` and `icons.json5`
+ * (the icon browser's search terms), and keep `docs/__data/pages.json5` complete (see `tools/SiteDataBuilder.ts`);  and
+ * `search.json5` (every page's sections, for `<ui-docs-search>`), read from the pages beside it.
  * - Also, from the same data, the editors' element descriptions (`tools/ElementManifests.ts`):
  *   `custom-elements.json` (a Custom Elements Manifest) and `html-custom-data.json` (VS Code's `html.customData`).
- * - All COMMITTED (`search.json`:  shared, so the shared repo's own commit):  the docs pages fetch them as they are,
- *   with no build step.  Rerun after changing a vocabulary, a family's sheet (its tokens), `pages.json` or a page's
+ * - All COMMITTED:  the docs pages fetch them as they are,
+ *   with no build step.  Rerun after changing a vocabulary, a family's sheet (its tokens), `pages.json5` or a page's
  *   sections;  `tools/SiteDataBuilder.test.ts` fails while stale.
  * - `--check`:  write nothing;  exit 1 (saying which) if any file would change.
- * - Formatting:  `JSON.stringify(..., 2)`;  oxfmt skips `site/_data/` (`vite.lint.ts`), so the bytes stay ours.
+ * - JSON5 (epic `epic-workflow` P20):  a comment written by hand into one of the `.json5` files stays when it's
+ *   rewritten (`writeOrCheck()`, through the assembler's `keepingCommentsIn()`).
+ * - Formatting:  `JSON.stringify(..., 2)`;  oxfmt skips every set's `docs/__data/` (`vite.lint.ts`), so the bytes stay
+ *   ours.
  */
 import path from "node:path"
 import { parseArgs } from "node:util"
@@ -28,7 +30,7 @@ const outputs: GeneratedOutput[] = [
   [builder.pagesFile, SiteDataBuilder.stringify(pages)],
   [builder.iconsFile, builder.iconsText()],
   [builder.searchFile, builder.searchText()],
-  ...new ElementManifests({ data, packageFolder: path.join(builder.dataFolder, "../..") }).outputs(builder.dataFolder)
+  ...new ElementManifests({ data, packageFolder: builder.root }).outputs(builder.dataFolder)
 ]
 
 const stale = writeOrCheck(outputs, { command: "site:data", isCheck: values.check })

@@ -8,7 +8,7 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
  * - Two entries, to FIXED names, so the extension's webview HTML can name them:
  *   - `runner.js` (+ `runner.css`):  the runner, from `src/runner/main.tsx`
  *   - `spell-runtime.js`:  what programs run on, which the runner loads a copy of -- see `spellRuntime.ts`
- * - What both use goes in ONE shared chunk, e.g. React.
+ * - What both use goes in ONE shared chunk.
  *   - `spellCore` MUST stay in `spell-runtime.js` alone -- pinned by `element.build.test.ts`.
  *   - As `vite.element.config.ts`, which builds `<spell-app>`.
  * - Solid and `@spell-app/ui` come from `spell-solid.js` / `spell-ui.js` beside it (`sharedSolid()`), as in

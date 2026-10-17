@@ -19,7 +19,7 @@
     "jsxImportSource": "@solidjs/web",
     "types": ["vite/client"]
   },
-  "include": ["src", "test", "tools", "site/_src"],
+  "include": ["src", "components", "test", "tools", "site/_src"],
   // `site/`:  only `site/_src` (the site bundle's entry);  the rest is pages, data and the committed bundle
   "exclude": ["site/_assets", "node_modules", "dist", "vendor", "tools/frameworks/solid/dist"]
 }

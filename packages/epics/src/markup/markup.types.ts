@@ -1,5 +1,5 @@
 /**
- * Types of `$/epics/markup`:  reading, writing and checking a plan doc's `<epic-*>` markup.
+ * Types of `$/epics/markup`:  reading, writing and checking an epic page's `<epic-*>` markup.
  * - Bottom of the folder's import graph:  `import type` only.  `markup.types` <- `MarkupCheck` <- `Markup`.
  */
 

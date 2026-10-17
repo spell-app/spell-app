@@ -6,7 +6,8 @@ import { findCheckout } from "$/cli/findCheckout"
 
 /**
  * `spell dev bundles <verb> [<name>...]`:  the bundles the page server serves, BUILT on demand instead of committed
- * (`AS.BUNDLES`:  `ui-site`, Spell UI's docs site;  `brand`, the brand pages).  The logic:  `$/assembler` `Bundle`.
+ * (the root `package.json`'s `"pageServer": { "bundles": [...] }`:  `ui-site`, Spell UI's docs site;  `brand`,
+ * the brand pages).  The logic:  `$/assembler` `Bundle`.
  * - `build [<name>...] [--stale]`:  build them (no name:  all);  `--stale`:  only those whose sources changed since
  *   their last build.  What the page server runs when it starts.
  * - `check [<name>...]`:  exits 1 when one is stale, and says why
@@ -68,7 +69,7 @@ function bundlesFor(root: string, names: string[]): AS.Bundle[] {
   try {
     return AS.Bundle.all(root, names)
   } catch (error) {
-    throw new CliError((error as Error).message.replace(/^Bundle\.all\(\):\s+/, ""))
+    throw new CliError((error as Error).message.replace(/^Bundle\.\w+\(\):\s+/, ""))
   }
 }
 

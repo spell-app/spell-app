@@ -11,6 +11,7 @@ import "./AppRoot.css"
  * The running program in the editor's pages:  an optional `<AppToolbar>` above an `<AppContainer>`.
  * - SIDE EFFECT:  its container is where `editor` runs programs (`editor.setAppRoot()`), until it goes
  *   (`editor.releaseAppRoot()`).
+ * - SEE:  its App UI components page, `packages/app/docs/AppRoot.html` (`/components/app/AppRoot.html`).
  ****************/
 export function AppRoot(props: AppRootProps) {
   let appElement: HTMLDivElement | undefined

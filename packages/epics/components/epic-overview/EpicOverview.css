@@ -1,5 +1,5 @@
 /*
- * `<epic-overview>` (EpicOverview.tsx):  a plan doc's Overview, on top of the fold (`EpicFold.css`):  the summary
+ * `<epic-overview>` (EpicOverview.tsx):  an epic page's Overview, on top of the fold (`EpicFold.css`):  the summary
  * as a lede, the Kickoff prompt folded on the brand's ivory, the estimate line.
  * - Public tokens (`--epic-overview-*`) are never declared here:  read through private aliases.
  */

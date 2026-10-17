@@ -1,10 +1,11 @@
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 
 import { epicQuestionVocabulary } from "./EpicQuestion.en"
 
 import questionCSS from "./EpicQuestion.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicQuestion`
@@ -19,7 +20,7 @@ import questionCSS from "./EpicQuestion.css?inline"
 export class EpicQuestion extends E.UIComponent<typeof epicQuestionVocabulary> {
   @E.proto static vocabulary = epicQuestionVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-question": questionCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-question": questionCSS },
     // `disabled`:  only a look (the sheet dims it), so the text stays findable;  `loading`:  the shared spinner
     disabled: "its own",
     loading: "loader"

@@ -1,19 +1,19 @@
 /**
- * Shows an `.html` doc (`packages/docs`, goals, epics) rendered:  in one of the right side bar's doc views
+ * Shows an `.html` doc (docs pages, goals, epics) rendered:  in one of the right side bar's doc views
  * (`DocView`), or in VS Code's Simple Browser beside the editor -- setting `spell.docPreview.location`.
  * - Which view:  `docs` (the "Spell Docs" tab, the default) or `review` (the "Review" tab:  `/epic review`).
  *   `review` is ALWAYS the side bar's "Review" tab:  the setting moves only `docs`.
  * - Opened by URI:  `vscode://spell-app.spell-language/doc-preview?file=<absolute path>[&view=review]` --
- *   what `packages/docs/tools/pages.js` `openInVSCode()` opens (`spell dev plan-doc open`, `spell dev plan-doc phase`).
+ *   what `packages/epics/tools/pages.js` `openInVSCode()` opens (`epic open`, `epic phase`).
  * - Or `?url=<http://127.0.0.1:port/...>`:  a page some local server already serves, shown as is --
  *   the page server's live pages (`/goals-open-vs`).  Loopback URLs only;
  *   with a `file` too, the file is the fallback when the URL isn't loopback.
  * - Simple Browser loads only http(s).
  *   For a `file`, the doc's checkout (git root:  the repo, or the worktree it's in) is served by:
  *   - its PAGE SERVER (`spell dev server`), when one runs:  found by its pid file, `<root>/.spell-server.json`.
- *     Live reload, page edits, goals' buttons, `/ui/`.
+ *     Live reload, page edits, goals' buttons, the component sets (`/components/<set>/`).
  *   - else a server of our own, in-process, on `127.0.0.1`, one per root, for as long as the extension runs:
- *     the same `$/server` `WebServer`, with live reload, but no route modules (no goals buttons, no `/ui/`)
+ *     the same `$/server` `WebServer`, with live reload, but no route modules (no goals buttons, no component sets)
  *   - NEVER starts the page server itself:  a GUI VS Code may have no `node` / `yarn` on its PATH.
  *     The scripts that open docs start it first (`pages.js` `ensurePageServer()`).
  * - Served from the ROOT, not the doc's folder:  docs link to source files all over the repo.
@@ -83,7 +83,7 @@ export class DocPreview {
   /**
    * `file`'s URL on its checkout's page server, else on a server of our own (started if need be).
    * - a worktree's file:  on the MAIN checkout's page server first, when it serves worktrees
-   *   (`SRV.mainServerUrl()`), so a running epic's plan doc shows on the one port every link uses
+   *   (`SRV.mainServerUrl()`), so a running epic's page shows on the one port every link uses
    */
   static async urlOf(file: string): Promise<string> {
     const main = await SRV.mainServerUrl(file)
@@ -152,4 +152,4 @@ async function start(root: string): Promise<SRV.WebServer> {
 }
 
 /** Folders our own server live-reloads, relative to the root:  docs areas, their bundle, goals. */
-const DOC_FOLDERS = ["epics", "guides", "pages", "templates", "packages/docs/tools/_assets", "goals"]
+const DOC_FOLDERS = ["epics", "guides", "pages", "templates", "packages/epics/tools/_assets", "goals"]

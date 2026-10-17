@@ -6,14 +6,14 @@ import { BODY_KEYWORDS, type StatementBodySpec } from "$/spell/spell.types"
 import { Block } from "./Block"
 
 /**
- * Base class for all spell statement rules.  In spell, we generally match `statements` across the
- * entire line.
- * - An exception is statements with a BODY (like `if` or `for each`):  an inline statement at the end of
- *   the line, or a nested block of statements indented under it.
- * - A body is declared by a body keyword at the END of `syntax` -- see `BODY_KEYWORDS`, e.g.
- *   `if {condition:expression} (then|:)? {statement_body}?`.
- *   - The keyword is taken OUT of `rules`:  a body can't be matched with the rest of the syntax, as it's
- *     parsed in `match.nestedScope`, which needs the statement's match to exist first.
+ * Base class for all spell statement rules.
+ * In spell, we generally match `statements` across the entire line.
+ * - An exception is statements with a BODY (like `if` or `for each`):
+ *   an inline statement at the end of the line, or a nested block of statements indented under it.
+ * - A body is declared by a body keyword at the END of `syntax` -- see `BODY_KEYWORDS`:
+ *   e.g. `if {condition:expression} (then|:)? {statement_body}?`.
+ *   - The keyword is taken OUT of `rules`:  a body can't be matched with the rest of the syntax,
+ *     as it's parsed in `match.nestedScope`, which needs the statement's match to exist first.
  *   - `parse()` then parses an inline body;  `commitStatement()` parses a nested one.
  */
 export class SpellStatement<
@@ -23,7 +23,7 @@ export class SpellStatement<
   /** What we take as a body, from the body keyword which ended our `syntax`.  `undefined` => no body. */
   declare bodySpec: StatementBodySpec | undefined
   /**
-   * `true`:  used INSIDE an expression, our LAST slot -- a trailing `{x:expression}` -- takes an `operand` instead,
+   * `true`:  used INSIDE an expression, our LAST slot (a trailing `{x:expression}`) takes an `operand` instead,
    * so it stops before an operator.
    * - As a statement it keeps the whole expression:
    *   - `notify x + y` => `notify(x + y)`, but `if double x is 4` => `double(x) == 4`
@@ -57,6 +57,19 @@ export class SpellStatement<
   }
 
   /**
+   * Is `match`, at a file's top level, part of the program's START?  `false` unless a rule says so.
+   * - A line of the start is skipped when an edit keeps the last run's things.
+   * - The start (epic `drawable-thing` P17, Q26):
+   *   - a call of one of the program's tests:  `test card setup` (`DynamicMethodRule`)
+   *   - starting its app:  `start the game` (`StartApp`)
+   * - `SP.Block` wraps such a line in a `P.ASTProgramStart`.
+   * - Reads only `match` and our statics:  `getAST()` may call it.
+   */
+  startsTheProgram(_match: P.Match): boolean {
+    return false
+  }
+
+  /**
    * If `rules` ends with a body keyword (or a choice of them), move it into `bodySpec` -- see `BODY_KEYWORDS`.
    * - A `leadIn` keyword stays in `rules` too:  it matches the words opening the body, e.g. `where:`.
    * - SIDE EFFECT: sets `rules` / `bodySpec`.  Only call before the rule is frozen, i.e. from the constructor.
@@ -72,8 +85,9 @@ export class SpellStatement<
   }
 
   /**
-   * Do we take the indented block after `match` as our body?  Whenever we take a body -- but after a `leadIn`
-   * keyword, only when it matched, e.g. `a card is a thing where:`, not `a card is a thing`.
+   * Do we take the indented block after `match` as our body?
+   * Whenever we take a body -- but after a `leadIn` keyword, only when it matched:
+   * e.g. `a card is a thing where:`, not `a card is a thing`.
    */
   takesNestedBody(match: P.Match): boolean {
     const { bodySpec } = this
@@ -86,8 +100,8 @@ export class SpellStatement<
   /**
    * A `parse_error` match in place of statement `match`, saying why spell won't take it,
    * e.g. a property declared on a built-in type.
-   * - For a `parse()` which understood what it read, but mustn't accept it:  return this, NOT `undefined`,
-   *   so the error says why, instead of "Don't understand ...".
+   * - For a `parse()` which understood what it read, but mustn't accept it:
+   *   return this, NOT `undefined`, so the error says why, instead of "Don't understand ...".
    * - `BlockLine` reports it as its line's error, and commits nothing:  the line compiles to the error.
    * - It competes with `match`'s priority (`P.Match.priority`):  a plainer rule which merely fits the same words
    *   can't take the line instead, e.g. `quoted_type_expression` taking `it "is a suit"` as an empty method.
@@ -106,29 +120,37 @@ export class SpellStatement<
 
   /**
    * `match`, a statement declaring `property` on `type` -- or, when `type` is one of spell's BUILT-IN types,
-   * e.g. `text` or `thing`, a parse error saying it can't be (plan doc caveat C9).
+   * e.g. `text` or `thing`, a parse error saying it can't be (epic page caveat C9).
    * - e.g. `the length of a text is: ...`
-   * - Why:  a built-in type's `P.TypeScope` is the shared root scope's, which every project parses against
-   *   and no project's journal records.  A property there would leak into every other project,
-   *   and outlive its edit.  Its members are spell's own, in `SP.BUILT_IN_TYPE_TABLE`.
+   * - Why:  a built-in type's `P.TypeScope` is the shared root scope's,
+   *   which every project parses against and no project's journal records.
+   *   - A property there would leak into every other project, and outlive its edit.
+   *   - Its members are spell's own, in `SP.BUILT_IN_TYPE_TABLE`.
    * - A METHOD of a built-in type is fine:  its record goes in the project's `methods` -- see `MethodDefinition`.
-   * - A lookup:  call it WHILE PARSING, e.g. from `define_property_has.parse()`.
+   * - ALSO refused:  a property every thing has built in, e.g. `a person has an id as text`
+   *   (epic `people-and-orgs`, Q9) -- see `SP.isBuiltInStoredMember()`.
+   * - A lookup:  call it WHILE PARSING, e.g. from `DefinePropertyHas.parse()`.
    */
   static refuseBuiltInType(match: P.Match, type: P.Match, property: P.Match | undefined): P.Match {
-    if (!SP.isBuiltInTypeScope(match.scope.types?.get(`${type.value}`))) return match
     const words = property ? `"${property.raw}"` : "a property"
     const typeName = SP.typeName(`${type.value}`)
-    return SpellStatement.refuse(
-      match,
-      `Can't add ${words} to ${typeName}:  it's built in, and every project shares it`
-    )
+    if (SP.isBuiltInTypeScope(match.scope.types?.get(`${type.value}`))) {
+      return SpellStatement.refuse(
+        match,
+        `Can't add ${words} to ${typeName}:  it's built in, and every project shares it`
+      )
+    }
+    if (property && SP.isBuiltInStoredMember(`${property.value}`)) {
+      return SpellStatement.refuse(match, `Can't add ${words} to ${typeName}:  every thing has one, built in`)
+    }
+    return match
   }
 
   /**
    * `match`, a statement adding to `type` -- or, when spell knows NO type of that name, a parse error saying so,
    * e.g. `the color of a suit is ...` with no `suit` declared anywhere in the project.
    * - Why:  it'd compile against a class nobody defines, `Suit.prototype`, and throw when run
-   *   (was `agents/SUSPECTED-BUGS.md`;  plan doc `outline-spell`, P2).
+   *   (was `agents/SUSPECTED-BUGS.md`;  epic page `outline-spell`, P2).
    * - A type declared further down is known:  every declaration is stubbed before a project parses.
    * - A lookup:  call it WHILE PARSING.
    */
@@ -163,8 +185,8 @@ export class SpellStatement<
    *   `commitStatement()` does that for the winner only.
    */
   parseInlineStatement(statement: P.Match, unparsed: P.Token[], parseAs: string): P.Match | undefined {
-    // NOTE: `Scope.parse()` is typed for string input only; call `parser.parse()` directly
-    // (exactly what `Scope.parse()` would do internally) so we can pass tokens instead.
+    // NOTE: `Scope.parse()` is typed for string input only;
+    // call `parser.parse()` directly (exactly what `Scope.parse()` would do internally) so we can pass tokens instead.
     const { nestedScope } = statement
     const inlineStatement = nestedScope.parser?.parse(unparsed, parseAs, nestedScope)
     if (inlineStatement) {
@@ -229,8 +251,8 @@ export class SpellStatement<
   /**
    * SIDE EFFECT hook:  change scope once our BODY has parsed, e.g. a method records what it returns.
    * - Run by `commitStatement()`, after `mutateScope()` and the body.  Default:  nothing.
-   * - Returns what it recorded, as a string, if anything:  `BlockLine.reparseBody()` compares it,
-   *   so an edit to the body which changes it re-parses what follows.
+   * - Returns what it recorded, as a string, if anything:
+   *   `BlockLine.reparseBody()` compares it, so an edit to the body which changes it re-parses what follows.
    */
   mutateScopeFromBody(_match: P.Match): string | undefined {
     return undefined
@@ -238,7 +260,7 @@ export class SpellStatement<
 
   /**
    * `match`, an outline body's line, as the sentence style would say it -- what editors show as "Reads as"
-   * (plan doc `outline-spell`, Q1:  hover teaches the long form).  `undefined` for any other line.
+   * (epic page `outline-spell`, Q1:  hover teaches the long form).  `undefined` for any other line.
    * - Default:  a line whose subject (its `type` group) is the body's `it` / `its`, with the subject spelled out:
    *   - `it has a deck` => `a card has a deck`
    *   - `its "color" is red if ...` => `the "color" of a card is red if ...`
@@ -270,8 +292,8 @@ export class SpellStatement<
   }
 
   /**
-   * `match`'s subject and property:  its `type` and `property` groups, or its `type_property`'s, e.g.
-   * `property_value_either`'s `its "color"`.
+   * `match`'s subject and property:
+   * its `type` and `property` groups, or its `type_property`'s, e.g. `property_value_either`'s `its "color"`.
    */
   static subjectOf(match: P.Match): { subject?: P.Match; property?: P.Match } {
     type Groups = { type?: P.Match; property?: P.Match; type_property?: P.Match }
@@ -376,9 +398,9 @@ export type SpellStatementProps = Prettify<
  *     -- see `P.IncrementalParse`
  *   - parse the body in its nested scope
  * - `mutateScopeFromBody()` on it, e.g. a method records what its body returns
- * - NOTE: this is the ONLY place a parsed statement changes scope.  Candidates which lose the line
- *   never do, so their types / rules / variables can't leak.  Call it for any statement you parse on
- *   its own and keep, e.g. a JSX `on...` handler.
+ * - NOTE: this is the ONLY place a parsed statement changes scope.
+ *   - Candidates which lose the line never do, so their types / rules / variables can't leak.
+ *   - Call it for any statement you parse on its own and keep, e.g. a JSX `on...` handler.
  */
 export function commitStatement(statement: P.Match, nextItem?: P.Token): CommittedStatement {
   statement.rule.mutateScope(statement)

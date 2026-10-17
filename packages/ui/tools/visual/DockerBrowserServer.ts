@@ -140,7 +140,7 @@ export class DockerBrowserServer {
     throw new VisualError(
       `Docker Desktop didn't start within ${DAEMON_TIMEOUT / 1000}s ` +
         "(`docker info` still fails).  Open Docker Desktop and look for an error or an update prompt, " +
-        'then run again.  See `docs/visual-testing.md`, "Troubleshooting".'
+        'then run again.  See `notes/visual-testing.md`, "Troubleshooting".'
     )
   }
 

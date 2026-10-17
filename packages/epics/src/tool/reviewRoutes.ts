@@ -1,63 +1,83 @@
 /**
- * Plan docs' review marks, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`), listed in the repo
+ * Epic pages' review marks, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`), listed in the repo
  * root's `package.json` `"pageServer": { "routes": [...] }`.
- * - Owen marks a plan doc's items ON the page (the elements' review controls, `$/epics/review`):
+ * - Owen marks an epic page's items ON the page (the elements' review controls, `$/epics/review`):
  *   approve, todo, details, revisit, pick an option card, an id chip's urgency.
- *   The marks wait in the doc's INBOX FILE, `<name>.inbox.json` beside `<name>.plan.html` (`ReviewInbox`),
- *   until a Claude session takes them (P6 of `review-review`, `spell dev plan-doc inbox`)
- * - `page`:  the plan doc's URL path, as it was served:
+ *   The marks wait in the doc's INBOX FILE, `<name>.inbox.json5` beside `<name>.plan.html` (`ReviewInbox`),
+ *   until a Claude session takes them (P6 of `review-review`, `epic inbox`)
+ * - `page`:  the epic page's URL path, as it was served:
  *   `/epics/x/x.plan.html`, or a worktree's `/worktrees/<w>/...` on the main checkout's server.
- *   ONLY a plan doc:  anything else is a 403
+ *   ONLY an epic page, or a SAGA page (`/sagas/x/x.saga.html`, epic `epic-workflow` P15):  anything else is a 403
+ *   - a saga page's marks and comments wait in its own inbox, `<id>.inbox.json5` beside it, the same shape;
+ *     the session that takes them is the one running `/epic review SAGA:/<id>` (`SAGA_PREFIX`)
  * - every answer is the whole inbox, as `ReviewInbox` keeps it (an empty one when there's no file),
  *   except a `listening` whose heartbeat stopped:
- *   `null` (`ReviewInbox.forPage()`), so the page warns nobody is reviewing
- * - `GET /api/review/inbox?page=<path>` -- the inbox;  the page polls it
- * - `POST /api/review/mark` `{ page, id, mark }` -- set item `id`'s mark, or remove it (`mark: null`)
+ *   `null` (`ReviewInbox.forPage()`), so the page warns nobody is reviewing;
+ *   plus `unsentComments`, the comments Send would hand over (their thread's rules are `CommentList`'s)
+ * - `GET /api/epics/review/inbox?page=<path>` -- the inbox;  the page polls it
+ * - `POST /api/epics/review/mark` `{ page, id, mark }` -- set item `id`'s mark, or remove it (`mark: null`)
  *   - the mark:  `{ action, when?, note?, pick?, choices? }`, `at` stamped here;
  *     a revisit may carry a `pick` letter too;  `choices`, the pick's card set by position (I8)
  *   - `id` must be an item, phase, Overview sub-section or the summary (`summary`) of that doc
  *     (400 otherwise:  `ReviewInbox.itemIds()`)
- * - `POST /api/review/new` `{ page, id?, entry }` -- a NEW todo or question asked for from the page
+ * - `POST /api/epics/review/new` `{ page, id?, entry }` -- a NEW todo or question asked for from the page
  *   (epic `airplane` P2):  `entry` `{ kind, title, note?, near? }` under key `id` (`new1` ...),
  *   or, without one, the next free key
  *   - `entry: null` removes it (`ReviewInbox.setNew()`)
  *   - `near`, when given, must be an id of that doc
- * - `POST /api/review/now` `{ page, id, action, note? }` -- an immediate request, queued on `now`,
+ * - `POST /api/epics/review/now` `{ page, id, action, note? }` -- an immediate request, queued on `now`,
  *   and the item's mark set:  `details`, or `revisit`, which keeps the item's pick
- * - `POST /api/review/cancel` `{ page, id }` -- "nevermind":
+ *   - nobody listening:  wakes the epic (below)
+ * - `POST /api/epics/review/cancel` `{ page, id }` -- "nevermind":
  *   call off item `id`'s immediate request, queued or being worked on (`ReviewInbox.cancelNow()`)
- * - `POST /api/review/draft` `{ page, id, action, note }` -- a note box's text as Owen types it
+ * - `POST /api/epics/review/draft` `{ page, id, action, note }` -- a note box's text as Owen types it
  *   (`revisit` or `todo`;  empty or `null` drops it):  kept until the mark that uses it (`ReviewInbox.setDraft()`)
- * - `POST /api/review/urgency` `{ page, id, calm }` -- Owen clicked an open judgement call's or issue's id chip:
+ * - `POST /api/epics/review/urgency` `{ page, id, calm }` -- Owen clicked an open judgement call's or issue's id chip:
  *   `calm` true, not urgent;  false, urgent;  `null` drops it (`ReviewInbox.setUrgency()`)
- * - `POST /api/review/send` `{ page, now? }` -- "send to Claude":  `sent` is now;
+ * - `POST /api/epics/review/send` `{ page, now? }` -- "send to Claude":  `sent` is now, for marks and comments alike;
  *   `now: true` is "Review Now" (epic `windows-and-review` P4):
  *   every revisit waiting becomes an immediate request too (`ReviewInbox.reviewNow()`)
+ *   - nobody listening:  wakes the epic (below)
+ * - WAKING (epic `epic-workflow` P16):  `send` and `now` with no session listening wake the epic, inside the request
+ *   (`ReviewStart.changeAndWake()`)
+ *   - `/epic review <epic>` typed into its session, or a new session in its window
+ *   - their answer is the inbox plus `wake`, what that did (`WakeResult`), for the page's notice;
+ *     `null` while a session listens
+ *   - once per epic per 10 minutes, or until a session listens (the inbox's `woken`)
+ * - `POST /api/epics/review/start` `{ page }` -- "start a review" (epic `airplane` P12):
+ *   types `/epic review <epic>` into the ONE running Claude session titled for the epic;
+ *   none or several:  sends nothing, says which it found (`ReviewStart`);  answers its `StartResult`, not the inbox
  * - writes:  under the inbox's lock, atomic (`ReviewInbox.updateAsync()`);
  *   each needs the page server's token (`x-server-token`) and its own origin (`SRV.Guard`)
  * - Loaded by the page server under `tsx` (`PageServer.loadRoutes()`), with `packages/server/tsconfig.json`'s aliases.
  *   Imports `ReviewInbox` only, never `PlanDoc`:  a request reads the doc's TEXT (`ReviewInbox.itemIds()`).
- * - From `packages/docs/tools/reviewRoutes.ts` (epic `epic-components`, P7).
+ * - From the docs tools' `reviewRoutes.ts` (epic `epic-components`, P7).
  */
 import { readFileSync } from "node:fs"
 
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
 
-import { InboxError, ReviewInbox, type InboxRecord } from "./ReviewInbox"
+import { SAGA_PREFIX } from "$/epics/review/review.types"
+
+import { InboxError, ReviewInbox, type PageInbox } from "./ReviewInbox"
+import { ReviewStart } from "./ReviewStart"
 
 /** Where the routes live. */
-const API = "/api/review"
+const API = "/api/epics/review"
 
 /** Biggest body accepted:  a revisit note is a few lines. */
 const MAX_BODY = 64 * 1024
 
-/** A plan doc's file:  `epics/<name>/<name>.plan.html` (before 2026-10-05 under `packages/docs/content/`). */
+/** An epic page's file:  `epics/<name>/<name>.plan.html` (before 2026-10-05 under `packages/docs/content/`). */
 const PLAN_DOC = /\/(?:packages\/docs\/content\/)?epics\/([^/]+)\/\1\.plan\.html$/
+
+/** A saga page's file:  `sagas/<id>/<id>.saga.html` (epic `epic-workflow` P15). */
+const SAGA_PAGE = /\/sagas\/([^/]+)\/\1\.saga\.html$/
 
 const reviewRoutes: RouteModule = {
   name: "review",
-  setup({ router, guard, web }) {
+  setup({ root, router, guard, web }) {
     const api = new SRV.Router()
     api.get("/inbox", (request, reply) => {
       const inbox = ReviewInbox.read(ReviewInbox.pathFor(planDoc(web.files, request.query.page)))
@@ -75,7 +95,9 @@ const reviewRoutes: RouteModule = {
       const body = request.body as { page?: unknown; id?: unknown; action?: unknown; note?: unknown }
       const file = planDoc(web.files, body.page)
       const id = itemOf(file, body.id)
-      reply.json(await update(file, (inbox) => inbox.requestNow(id, body.action, (body.note ?? "") as string)))
+      // a request queued is always something new to hand over
+      const ask = (inbox: ReviewInbox) => !!inbox.requestNow(id, body.action, (body.note ?? "") as string)
+      reply.json(await new ReviewStart(root).changeAndWake(file, epicOf(file), (inbox) => asHttp(() => ask(inbox))))
     })
     api.post("/cancel", async (request, reply) => {
       const body = request.body as { page?: unknown; id?: unknown }
@@ -106,7 +128,13 @@ const reviewRoutes: RouteModule = {
     api.post("/send", async (request, reply) => {
       const body = request.body as { page?: unknown; now?: unknown }
       const file = planDoc(web.files, body.page)
-      reply.json(await update(file, (inbox) => (body.now === true ? inbox.reviewNow() : inbox.markSent())))
+      const send = body.now === true ? sendNow : sendMarks
+      reply.json(await new ReviewStart(root).changeAndWake(file, epicOf(file), send))
+    })
+    api.post("/start", async (request, reply) => {
+      const body = request.body as { page?: unknown }
+      const file = planDoc(web.files, body.page)
+      reply.json(await new ReviewStart(root).start(epicOf(file)))
     })
     router.use(API, api)
   }
@@ -115,8 +143,8 @@ const reviewRoutes: RouteModule = {
 export default reviewRoutes
 
 /**
- * The plan doc file URL path `page` names, through the server's mounts.
- * - 400:  not a path;  404:  no such page;  403:  outside a mount, or not a plan doc
+ * The epic page (or saga page) file URL path `page` names, through the server's mounts.
+ * - 400:  not a path;  404:  no such page;  403:  outside a mount, or neither an epic page nor a saga page
  */
 export function planDoc(files: SRV.StaticHandler, page: unknown): string {
   if (typeof page !== "string" || !page.startsWith("/")) throw new SRV.HttpError(400, "no page")
@@ -124,14 +152,37 @@ export function planDoc(files: SRV.StaticHandler, page: unknown): string {
   if (!resolved) throw new SRV.HttpError(403, `not served here:  ${page}`)
   if ("redirect" in resolved) throw new SRV.HttpError(400, `a folder, not a page:  ${page}`)
   if ("status" in resolved) throw new SRV.HttpError(resolved.status, resolved.message)
-  if (!PLAN_DOC.test(resolved.file)) throw new SRV.HttpError(403, `not a plan doc:  ${page}`)
+  if (!PLAN_DOC.test(resolved.file) && !SAGA_PAGE.test(resolved.file))
+    throw new SRV.HttpError(403, `not an epic page:  ${page}`)
   return resolved.file
 }
 
 /**
- * `id` from a request, as the inbox keys it (lower-case);  400 unless plan doc `file` has it:
- * an item, an Overview sub-section (`o3`, Q14), a phase (`p3`) or the summary (`summary`:  epic `airplane` P2)
- * (`ReviewInbox.itemIds()`).
+ * Who reviews page `file`, as `/epic review` takes it:  an epic page's epic, its folder's name;  a saga page's
+ * `SAGA:/<id>` (`SAGA_PREFIX`), what a wake types (`/epic review SAGA:/drawable-spell`).
+ */
+function epicOf(file: string): string {
+  const saga = SAGA_PAGE.exec(file)?.[1]
+  return saga ? `${SAGA_PREFIX}${saga}` : PLAN_DOC.exec(file)![1]!
+}
+
+/** Send:  every mark so far is sent;  whether anything was new to hand over (a Send with nothing new wakes nobody). */
+function sendMarks(inbox: ReviewInbox): boolean {
+  const fresh = inbox.hasUnsent
+  inbox.markSent()
+  return fresh
+}
+
+/** Review Now:  sent, every revisit asked now;  whether anything was new (unsent, or a revisit asked now). */
+function sendNow(inbox: ReviewInbox): boolean {
+  const fresh = inbox.hasUnsent
+  return inbox.reviewNow().length > 0 || fresh
+}
+
+/**
+ * `id` from a request, as the inbox keys it (lower-case);  400 unless epic page `file` has it.
+ * - an item, an Overview sub-section (`o3`, Q14), a phase (`p3`), or the summary (`summary`:  epic `airplane` P2)
+ * - those ids:  `ReviewInbox.itemIds()`
  * - reads the doc each time:  an item added a moment ago (Claude, `plan-doc add`) is markable at once
  */
 function itemOf(file: string, id: unknown): string {
@@ -142,11 +193,11 @@ function itemOf(file: string, id: unknown): string {
 }
 
 /**
- * Change plan doc `file`'s inbox with `change`, under its lock;
+ * Change epic page `file`'s inbox with `change`, under its lock;
  * the inbox after, as the page reads it (`ReviewInbox.forPage()`).
  * - an `InboxError` (a bad mark, a bad action) is a 400
  */
-async function update(file: string, change: (inbox: ReviewInbox) => unknown): Promise<InboxRecord> {
+async function update(file: string, change: (inbox: ReviewInbox) => unknown): Promise<PageInbox> {
   const inbox = await ReviewInbox.updateAsync(ReviewInbox.pathFor(file), (each) => asHttp(() => change(each)))
   return inbox.forPage()
 }

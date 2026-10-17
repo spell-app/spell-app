@@ -6,7 +6,7 @@
 
 import type { JSX } from "@solidjs/web"
 
-import type { E } from "$/ui/core"
+import type { E } from "$/spell-solid"
 
 import type { epicPageVocabulary } from "./EpicPage.en"
 
@@ -27,8 +27,10 @@ export type PageSignals = {
 
 /** One phase, as the step label reads it. */
 export type PhaseLine = {
-  /** `p3` */
+  /** its stable id, `p-epic-migrate`:  where its step label links */
   id: string
+  /** its number as drawn, by its place:  `P3` */
+  label: string
   /** `todo`, `active`, `done` */
   status: string
   /** its title's text */
@@ -45,7 +47,7 @@ export type StepLabel = {
   words: string
   /** its tooltip */
   tip?: string
-  /** where it links (`#p4`) */
+  /** where it links (`#p-epic-migrate`) */
   href?: string
 }
 
@@ -76,8 +78,50 @@ export const HAS_COMMITS = "epic-commit, [commits]"
 export const HEAD = "head"
 export const HEADING = "heading"
 export const HEADING_COPY = "heading-copy"
-export const SUBHEAD = "subhead"
 export const META = "meta"
+export const SEE_ALSO = "see-also"
+
+/** One page in the See Also box, as the page server lists it (`GET /api/epics/pages`:  the tool's `SeeAlso`). */
+export type SeeAlsoLink = {
+  /** from the epic page's folder:  `details/analysis.html`, `../../guides/python-target.html` */
+  href: string
+  title: string
+  /** its guide, a guide it links, one of its details pages or choice pages */
+  kind: SeeAlsoKind
+  /** when it last changed, ISO */
+  updated: string
+}
+
+/**
+ * The saga an epic serves, as the page server answers it beside the See Also pages (`GET /api/epics/pages`'s `saga`;
+ * epic `epic-workflow` P15).
+ */
+export type SagaLink = {
+  /** its id:  `drawable-spell` */
+  id: string
+  /** "Drawable Spell" */
+  title: string
+  /** one line:  what it's for */
+  purpose: string
+  /** its saga page, from the epic page's folder:  `../../sagas/<id>/<id>.saga.html` */
+  href: string
+}
+
+/** A saga's page from an epic page's folder (`epics/<name>/`), until the page server says:  `SagaLink.href`'s. */
+export function sagaHref(id: string): string {
+  return `../../sagas/${id}/${id}.saga.html`
+}
+
+/** What a See Also page is to its epic. */
+export type SeeAlsoKind = "durable" | "guide" | "details" | "choices"
+
+/** Each See Also kind's icon, and the key of its word in the vocabulary. */
+export const SEE_ALSO_KINDS: Record<SeeAlsoKind, { icon: string; key: E.TextKey<EpicPageVocabulary> }> = {
+  durable: { icon: "book", key: "seeAlsoDurable" },
+  guide: { icon: "book open", key: "seeAlsoGuide" },
+  details: { icon: "circle question", key: "seeAlsoDetails" },
+  choices: { icon: "table columns", key: "seeAlsoChoices" }
+}
 export const STATUS = "status"
 export const GIT = "git"
 export const NOTICE = "notice"
@@ -88,26 +132,29 @@ export const REVIEW_NOW = "review-now"
 export const REVIEW_LINE = "review-line"
 
 /**
- * Classes of the toolbar's sticky bar (the new item form, then the toolbar), the toolbar row, its tools at the right,
- * the send bar and its pill (epic `airplane` P8).
+ * Classes of the toolbar's sticky bar (the new item form, then the toolbar), the toolbar row, its tools at the right
+ * (epic `airplane` P8), and the nobody-listening pill under the review line.
  */
 export const BAR = "bar"
 export const TOOLBAR = "toolbar"
 export const TOOLBAR_TOOLS = "toolbar-tools"
-export const SEND_BAR = "send-bar"
 export const PILL = "pill"
 
 /** The crumbs' class. */
 export const CRUMBS = "crumbs"
 
 /**
- * The crumbs' links, from the page's folder:  a plan doc is always `epics/<name>/<name>.plan.html`.
+ * The crumbs' links, from the page's folder:  an epic page is always `epics/<name>/<name>.plan.html`.
  * - `target`s name the VS Code side bar's tab, as the old crumbs did
  */
 export const CRUMB_LINKS = {
   docs: { href: "../../pages/index.html", target: "src-packages-docs-index-html" },
-  epics: { href: "../../epics/index.html", target: "src-epics-index-html" }
+  epics: { href: "../../epics/index.html", target: "src-epics-index-html" },
+  sagas: { href: "../../sagas/index.html", target: "src-sagas-index-html" }
 } as const
+
+/** `<epic-page kind>` of a saga page (epic `epic-workflow` P15). */
+export const SAGA_KIND = "saga"
 
 /**
  * The crumbs a doc may still hold before the page, from before P14 (`ui-breadcrumb.spell-crumbs` in `<main>`):
@@ -116,22 +163,32 @@ export const CRUMB_LINKS = {
  */
 export const OLD_CRUMBS = ":scope > .spell-crumbs"
 
+/** The toast saying something was copied (the heading's name, a meta line's code, the review line):  how long it shows, ms;  its id, so a second copy replaces it. */
+export const COPIED_TOAST_MS = 2500
+export const COPIED_TOAST_ID = "epic-copied"
+
 /** How long the review line flashes once copied, ms:  as the old runtime's (`FLASH_MS`). */
 export const FLASH_MS = 900
 
-/** The Send button's look:  no marks, some not sent, all sent. */
+/** The Send button's look:  no marks, some marks or comments not sent, all sent. */
 export type SendState = "idle" | "unsent" | "sent"
 
-/** What the send bar's buttons show:  from the review inbox, while the page is reviewed. */
+/** What the header's Send and Review Now show:  from the review inbox, while the page is reviewed. */
 export type HeaderMarks = {
   /** Send's look */
   send: SendState
-  /** marks not sent yet */
+  /** marks (and urgencies) not sent yet */
   unsent: number
+  /** comments waiting for Claude, not sent yet:  Owen's new words on a thread (`ReviewClient.unsentCommentCount`) */
+  comments: number
   /** marks Review Now would have Claude work through:  all but the requests already on their way */
   waiting: number
+  /** Do Now requests queued, not taken yet */
+  asked: number
   /** a Claude session is listening */
   listening: boolean
+  /** what the page server's wake did, while nobody listens (epic `epic-workflow` P16);  `""` for none */
+  woken: string
 }
 
 /** The kickoff prompt, which the `Plan hung?` aside offers to copy. */

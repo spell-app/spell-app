@@ -6,11 +6,13 @@ import { PART_COMMENT, PART_EXT, PART_SOURCE, PARTS_DIR, PlanParts, type PartRea
 
 /****************
  * ### `EpicParts`
- * A plan doc in `<epic-*>` markup, in PARTS:  the skeleton, `<name>.plan.html`, plus one body file per bulky host,
+ * An epic page in `<epic-*>` markup, in PARTS:  the skeleton, `<name>.plan.html`, plus one body file per bulky host,
  * `parts/<id>.html`, with the elements as hosts (`templates/epics/plan-doc.md`, "Parts";  the files and URLs:
  * `PlanParts`).
  * - hosts (`HOSTS`):  an Overview sub-section, a phase, an item with details, the log.  A host's body is every child
  *   but its slotted ones (`slot="title"`):  the title stays in the skeleton, so the line shows without the body
+ *   - but an older doc's plan changes (`<epic-updated slot="changes">`, until migrated) are body all the same;
+ *     a phase's `changes` count, in the skeleton, says it changed while it's folded
  * - in the skeleton a host carries `source="parts/<id>.html"`, `part-ids` (the ids inside, so a link to one loads the
  *   body first) and `commits` (its body lists commits):  set through `Markup`, never by hand.  No placeholder line:
  *   a `<p>` isn't allowed in a phase or the log, and the element loads its own body (Q12).
@@ -105,10 +107,16 @@ function setMarks(host: Element, marks: { source?: string; partIds?: string; com
   Markup.set(host, Object.fromEntries(known))
 }
 
-/** A host's body:  every child but its slotted ones. */
+/** A host's body:  every child but its slotted ones, a phase's plan changes aside (`BODY_SLOTS`). */
 function bodyNodes(host: Element): ChildNode[] {
-  return Array.from(host.childNodes).filter((node) => !(node.nodeType === 1 && (node as Element).hasAttribute("slot")))
+  return Array.from(host.childNodes).filter((node) => {
+    const slot = node.nodeType === 1 ? (node as Element).getAttribute("slot") : null
+    return slot === null || BODY_SLOTS.includes(slot)
+  })
 }
+
+/** Slots whose children are body all the same:  an older doc's plan changes (`<epic-updated slot="changes">`). */
+const BODY_SLOTS = ["changes"]
 
 /** Does `node` hold anything:  an element, or text that isn't only whitespace? */
 function hasContent(node: Node): boolean {

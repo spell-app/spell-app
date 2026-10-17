@@ -1,12 +1,12 @@
 /**
  * Shared types of the doc-only elements (`src/docs-components/`):
- * the shape of the site's generated data file, `site/_data/components.json`,
+ * the shape of the site's generated data file, `docs/__data/components.json5`,
  * which `<ui-docs-api>`, `<ui-docs-tokens>`, `<ui-docs-nav>` ... read through `SiteData`.
  * - Why a data file, not the vocabularies:  `ComponentDefinitions` imports every vocabulary (~325 KB of source);
  *   a docs element importing it would drag all of that into the site bundle
  *   (and into docs' `spell-ui.js`, whose `<ui-root>` glob reaches these families too).
  * - The file is written by `yarn site:data` (`scripts/site-data.ts`, built by `tools/SiteDataBuilder.ts`)
- *   and committed;  `tools/SiteDataBuilder.test.ts` fails while it's stale.
+ *   and committed;  its test (`tests/ui/tools/SiteDataBuilder.test.ts`) fails while it's stale.
  * - Also the JSX types of the `<ui-*>` tags the docs elements render in their shadow roots (`DocsJSXTags`).
  * - Runtime-light:
  *   types and constants only, plus the docs families' small pure helpers (`HeadingLevels`, `VocabularyTexts`).
@@ -63,7 +63,7 @@ export type DocsJSXTags = {
 // ## The data file
 ////////////////
 
-/** `site/_data/components.json`:  everything the docs pages know about the tags, generated. */
+/** `docs/__data/components.json5`:  everything the docs pages know about the tags, generated. */
 export type SiteDataFile = {
   /** what wrote it, and how to regenerate it */
   readonly $comment: string
@@ -87,13 +87,45 @@ export type SiteDataFile = {
    * its title and the families it touches (`tools/ThemeFamilies.ts`);  `<ui-docs-themes>` titles and filters by it
    */
   readonly themes: readonly SiteTheme[]
+  /**
+   * another site's own side-column links:
+   * a component set served with this site's bundle (Epic UI, `/components/epics/`)
+   * - absent:  Spell UI's (`TOP_PAGES`, `FOUNDATION_PAGES` in `<ui-docs-nav>`)
+   */
+  readonly nav?: SiteNav
+}
+
+/**
+ * A site's own links in `<ui-docs-nav>`, around its component list:  the start pages above, the "Foundation" ones
+ * below, and the bands' titles.
+ * - For a site other than Spell UI's that loads this site's bundle (`COMPONENT_SETS` in `$/server/page`).
+ */
+export type SiteNav = {
+  /** the links above the components (Spell UI:  Overview, Getting started ...) */
+  readonly start: readonly SiteNavPage[]
+  /** the links below them (Spell UI:  Theming, Utilities ...);  may be empty */
+  readonly foundation: readonly SiteNavPage[]
+  /** the bands' titles, where they aren't the vocabulary's ("Get started", "Components", "Foundation") */
+  readonly titles?: { readonly start?: string; readonly components?: string; readonly foundation?: string }
+}
+
+/** One of a site's own links in `<ui-docs-nav>`. */
+export type SiteNavPage = {
+  /** what `current` names it by:  its file name without `.html`, e.g. `index` */
+  readonly id: string
+  /** its file, relative to the site root;  may climb out of it, e.g. `../guides/x/x.html` */
+  readonly file: string
+  /** its row's text, e.g. `Overview` */
+  readonly label: string
+  /** its row's icon (the default `fa7-free` pack), e.g. `house` */
+  readonly icon: string
 }
 
 /** One theme sheet:  its title, and which families it restyles. */
 export type SiteTheme = {
   /** sheet name, as `UI.themes` knows it, e.g. `github` */
   readonly name: string
-  /** display title, from `pages.json` `themes`, e.g. `GitHub` */
+  /** display title, from `pages.json5` `themes`, e.g. `GitHub` */
   readonly title: string
   /**
    * folders of the families whose markup or `--ui-<tag>-*` tokens the sheet touches, A-Z, e.g. `["ui-button"]`
@@ -150,6 +182,34 @@ export type SiteTag = {
   readonly parts: readonly SiteNamed[]
   readonly states: readonly SiteNamed[]
   readonly texts: readonly SiteText[]
+  /**
+   * a FUNCTION component's props, in the order its props type declares them:
+   * the spell app's Solid components (`packages/app`'s App UI set, `yarn site:data` there);
+   * absent for a custom element, whose API is its attributes
+   */
+  readonly props?: readonly SiteProp[]
+  /** where it's drawn:  each component that draws it, and that component's file, A-Z;  absent for none found */
+  readonly usedIn?: readonly SiteUse[]
+}
+
+/** One prop of a function component, as its props type declares it. */
+export type SiteProp = {
+  /** e.g. `autoHide`;  `...ChooserModalProps` for a props type it takes whole, from another file */
+  readonly name: string
+  /** its type, as written, e.g. `boolean`, `(element: HTMLDivElement) => void` */
+  readonly type: string
+  /** `true`:  the caller must pass it (no `?`) */
+  readonly required?: boolean
+  /** its docstring */
+  readonly description: string
+}
+
+/** One place a component is drawn:  the component (or page) that draws it, and its file. */
+export type SiteUse = {
+  /** e.g. `RunnerPane`, `<spell-app>` */
+  readonly name: string
+  /** from the repo root, e.g. `packages/app/src/runner/RunnerPane.tsx` */
+  readonly file: string
 }
 
 /** One attribute of a tag, as its vocabulary declares it. */
@@ -227,7 +287,7 @@ export type SiteFamily = {
   readonly tokens: readonly SiteToken[]
 }
 
-/** A sub-tag's own docs page:  what its masthead, nav row and card say (`pages.json`'s `pages`). */
+/** A sub-tag's own docs page:  what its masthead, nav row and card say (`pages.json5`'s `pages`). */
 export type SiteTagPage = {
   /** page title, e.g. `Radio` */
   readonly title: string
@@ -272,9 +332,9 @@ export type SiteFoundationGroup = {
 ////////////////
 
 /**
- * `site/_data/pages.json`:  the hand-kept per-family facts the vocabularies don't hold --
+ * `docs/__data/pages.json5`:  the hand-kept per-family facts the vocabularies don't hold --
  * title, summary, status, the sub-tags with a page of their own, and how to read its tokens.
- * `yarn site:data` reads it and writes `components.json`.
+ * - `yarn site:data` reads it and writes `components.json5`.
  * - Seeded ONCE per new family from its vocabulary (`SiteDataBuilder`);  from then on THIS file is the source.
  * - Edit it by hand.
  * - The first seeds came from the old Astro site's MDX pages, deleted in epic `spell-ui-pages` P7.
@@ -328,8 +388,8 @@ export type SiteTokenSeed = {
 ////////////////
 
 /**
- * `site/_data/icons.json`:  what the icon browser (`ui/icons.html`) needs beyond the packs' own indexes,
- * which it loads through `UI.icons` like any page.
+ * `docs/__data/icons.json5`:  what the icon browser (`docs/icons.html`) needs beyond the packs' own indexes.
+ * - It loads those indexes through `UI.icons`, like any page.
  * - GENERATED by `yarn site:data` from `src/icons/data/search.json`.
  * - Fetched only on the first search:  ~100 KB.
  */
@@ -347,15 +407,15 @@ export type SiteIconsFile = {
 ////////////////
 
 /**
- * `_data/search.json` (the shared `ui/_data/search.json`, beside the hand-written pages):
- * every page of the site and its sections, for `<ui-docs-search>`'s jumps to OTHER pages
- * (the page shown is read live from its DOM).
+ * `docs/__data/search.json5`, beside the other data:
+ * every page of the site and its sections, for `<ui-docs-search>`'s jumps to OTHER pages.
+ * - The page shown is read live from its DOM.
  * - GENERATED by `yarn site:data` (`tools/SiteSearchBuilder.ts`) from the page files' markup.
- * - Fetched on the first search, beside `components.json`.
+ * - Fetched on the first search, beside `components.json5`.
  */
 export type SiteSearchFile = {
   readonly $comment: string
-  /** every page, the hand-written ones first, then the component pages A-Z */
+  /** every page, the hand-written ones first, then the components pages A-Z */
   readonly pages: readonly SiteSearchPage[]
 }
 
@@ -368,7 +428,7 @@ export type SiteSearchPage = {
   /** its `<meta name="description">` */
   readonly summary?: string
   /**
-   * a component page:  the tag it documents, its file name,
+   * a components page:  the tag it documents, its file name,
    * e.g. `ui-divider` (a family's main tag) or `ui-radio` (a sub-tag with its own page);
    * the search lists the page itself as that component, not as a page
    */
@@ -401,11 +461,11 @@ export const SITE_DATA_VERSION = 1
 /** Tag prefix of every doc-only element. */
 export const DOCS_TAG_PREFIX = "ui-docs-"
 
-/** Where the data file sits, relative to the site root (`packages/ui/site/`). */
-export const SITE_DATA_PATH = "_data/components.json"
+/** Where the data file sits, relative to the site root (a set's `docs/`:  `packages/ui/docs/`). */
+export const SITE_DATA_PATH = "__data/components.json5"
 
 /** Where the search file sits, relative to the site root:  beside the data file. */
-export const SITE_SEARCH_PATH = "_data/search.json"
+export const SITE_SEARCH_PATH = "__data/search.json5"
 
 /** `<meta name>` a page may point at its data file with (`SiteData`). */
 export const SITE_DATA_META = "ui-docs-data"
@@ -449,7 +509,7 @@ export const DOCS_SCHEME_SWITCHING = "ui-scheme-switching"
 /**
  * `localStorage` keys of the viewer's look (`ThemePreference`).
  * - `scheme`:  ONE key for every doc site:  `light` / `dark`, absent for `system` (follow the OS).
- *   `<spell-site-header>` on the docs, plan docs and goals reads and writes it too.
+ *   `<spell-site-header>` on the docs, epic pages and saga pages reads and writes it too.
  *   - MUST equal `SCHEME_KEY` in `packages/server/src/site/site.types.ts`:
  *     `ui` can't import it (the server package is a leaf `ui` stays clear of in shipped code);
  *     `UIDocsThemes.test.tsx` pins the two equal
@@ -461,7 +521,7 @@ export const DOCS_LOOK_KEYS = { scheme: "spell-site:scheme", theme: "spell-ui-si
 /**
  * The scheme keys used before there was one (2026-10-04):
  * read once when `DOCS_LOOK_KEYS.scheme` is absent, copied to it, then removed;  first valid one wins.
- * - `spell-site:theme`:  `<spell-site-header>`'s (docs, plan docs, goals)
+ * - `spell-site:theme`:  `<spell-site-header>`'s (docs, epic pages, saga pages)
  * - `spell-ui-site:scheme`:  Spell UI's site (and the Astro site before it)
  * - MUST equal `LEGACY_SCHEME_KEYS` in `packages/server/src/site/site.types.ts`
  */

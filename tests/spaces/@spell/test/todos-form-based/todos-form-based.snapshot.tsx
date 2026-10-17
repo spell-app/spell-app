@@ -1,0 +1,110 @@
+import { spellCore, Thing, List, App, Drawable, DrawableList, prop, derived, drawn } from "@spell/core"
+
+spellCore.heading("Todo app example")
+/** Todo app example */
+export class Task extends Thing {
+  @prop({ type: "text" }) accessor title!: string
+
+  @prop({ type: "choice" }) accessor completed!: boolean
+
+  get isComplete() {
+    return this.completed
+  }
+
+  get isActive() {
+    return !this.completed
+  }
+}
+
+const FILTERS = ["all", "active", "completed"] as const
+export type Filter = (typeof FILTERS)[number]
+
+export class TodosApp extends App {
+  @prop({ itemType: "Task", init: () => new List<Task>({ instanceType: "Task" }) }) accessor tasks!: List<Task>
+
+  @prop({ type: "text" }) accessor newTaskName!: string
+
+  static Filters = FILTERS
+  @prop({ oneOf: FILTERS }) accessor filter!: Filter
+
+  @derived
+  get shownTasks() {
+    if (this.filter == "active") return spellCore.filter(this.tasks, (task: Task) => task.isActive)
+    if (this.filter == "completed") return spellCore.filter(this.tasks, (task: Task) => task.isComplete)
+    return this.tasks
+  }
+
+  @drawn
+  draw() {
+    return (
+      <ui-container>
+        <ui-segment>
+          <ui-menu inverted={true} color="violet" borderless={true}>
+            <ui-item type="header">To Do:</ui-item>
+            <ui-menu position="right">
+              <ui-item>Show:</ui-item>
+              <ui-item onClick={() => (app.filter = "all")} prop:selected={app.filter == "all"}>All</ui-item>
+              <ui-item onClick={() => (app.filter = "active")} prop:selected={app.filter == "active"}>Active</ui-item>
+              <ui-item onClick={() => (app.filter = "completed")} prop:selected={app.filter == "completed"}>
+                Completed
+              </ui-item>
+            </ui-menu>
+          </ui-menu>
+          <ui-form debug={true} prop:value={app}>
+            <ui-repeat prop:items={app.shownTasks}>
+              <ui-fields>
+                <ui-field width="1">
+                  <ui-checkbox name="completed" aria-label="Done" />
+                </ui-field>
+                <ui-field width="10">
+                  <ui-input name="title" aria-label="Task" />
+                </ui-field>
+              </ui-fields>
+            </ui-repeat>
+            <ui-fields>
+              <ui-field width="11">
+                <ui-input name="newTaskName" placeholder="New task name" label="New task:" />
+              </ui-field>
+              <ui-field>
+                <ui-button prop:disabled={app.newTaskName === ""} onClick={() => createANewTask()}>Add Task</ui-button>
+              </ui-field>
+            </ui-fields>
+          </ui-form>
+          <br />
+          <br />
+          <ui-menu inverted={true} color="grey">
+            <ui-item type="header">Test:</ui-item>
+            <ui-item onClick={() => createANewTask({ title: "Moar" })}>Add Item</ui-item>
+            <ui-item onClick={() => spellCore.removeItemAt(app.tasks, 0)}>Remove Item</ui-item>
+            <ui-item onClick={() => (spellCore.getItemAt(app.tasks, 0)!.title = "New title")}>Change name</ui-item>
+            <ui-item onClick={() => spellCore.removeWhere(app.tasks, (item: Task) => item.isComplete)}>
+              Remove Completed
+            </ui-item>
+          </ui-menu>
+        </ui-segment>
+      </ui-container>
+    )
+  }
+}
+
+export const app = new TodosApp()
+app.filter = "all"
+app.newTaskName = ""
+
+export function createANewTask(props: { title?: string; completed?: boolean } = {}) {
+  let { title, completed } = props
+  if (title === undefined) {
+    if (app.newTaskName === "") return
+    title = app.newTaskName
+    app.newTaskName = ""
+  }
+  const it = new Task({ title: title, completed: completed || false })
+  spellCore.append(app.tasks, it)
+}
+
+createANewTask({ title: "Create todos app", completed: true })
+createANewTask({ title: "Teach it to draw" })
+createANewTask({ title: "Test app" })
+
+if (!spellCore.isCarryingOver) app.start()
+spellCore.console.log(app)

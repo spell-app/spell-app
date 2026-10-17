@@ -1,6 +1,6 @@
 ---
 name: fussbudget
-description: Rewrite the TEXT of code and docs so a reader new to it can follow -- docstrings, comments, READMEs, `AGENTS.md` files, docs pages, plan-doc prose -- to WWOD §6's writing rules, in place and uncommitted, the diff left for Owen to review.  Never code, names or generated files.  Use for `/fussbudget <path...>` (folders, a package, files), `/fussbudget epic <name>` (a plan doc), `/fussbudget branch` (what this branch changed), `/fussbudget` alone (asks what to cover), or when Owen says "clean up the docstrings", "make these comments readable", "fussbudget this folder", "fussbudget the plan doc".
+description: Rewrite the TEXT of code and docs so a reader new to it can follow -- docstrings, comments, READMEs, `AGENTS.md` files, docs pages, epic-page prose -- to WWOD §6's writing rules, in place and uncommitted, the diff left for Owen to review.  Never code, names or generated files.  Use for `/fussbudget <path...>` (folders, a package, files), `/fussbudget epic <name>` (an epic page), `/fussbudget branch` (what this branch changed), `/fussbudget` alone (asks what to cover), or when Owen says "clean up the docstrings", "make these comments readable", "fussbudget this folder", "fussbudget the plan doc".
 argument-hint: "[<path...> | epic <name> | branch]"
 ---
 
@@ -30,16 +30,16 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 
 ```
 /fussbudget <path...>       folders, a package, files:   /fussbudget packages/server/src
-/fussbudget epic <name>     a plan doc:                  /fussbudget epic skillz
+/fussbudget epic <name>     an epic page:                  /fussbudget epic skillz
 /fussbudget branch          what this branch changed since `main`, uncommitted work included
 /fussbudget                 asks what to cover
 ```
 
 - `<path...>`:  every file under each path, whole.
-- `epic <name>`:  the plan doc's prose:  Overview, phases, items' details.
+- `epic <name>`:  the epic page's prose:  Overview, phases, items' details.
   - Through its part files, at the shared REAL path:
     `/Users/owen/www/spell-app/spell-app-dev/epics/<name>/parts/<id>.html`.
-  - Never its structure:  no ids, no sections, no item lines, nothing `spell dev plan-doc` writes.
+  - Never its structure:  no ids, no sections, no item lines, nothing `epic` writes.
 - `branch`:  every file this branch changed or added since `main`, WHOLE.
   - The files:
     - `git diff --name-only main...HEAD` and `git diff --name-only HEAD`
@@ -49,7 +49,7 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 - Nothing after it:  AskUserQuestion, "What should /fussbudget cover?", options:
   - "This branch's changes" (Recommended):  as `branch`
   - "A folder or files":  Owen types the paths in "Other"
-  - "A plan doc":  the epic this session works on, if any, else Owen types its name in "Other"
+  - "An epic page":  the epic this session works on, if any, else Owen types its name in "Other"
   - Run by a background agent (no Owen to ask):  take `branch`, and say so in the report.
 - Doc Review names its scope in full (`branch`, `epic <name>`), so nothing asks.
 
@@ -59,15 +59,15 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
   - docstrings and comments, in code:  `.ts` / `.tsx`, `.js` / `.mjs`
   - READMEs, `AGENTS.md` files, other Markdown
   - docs pages (`guides/`, `ui/`, `pages/`):  their prose
-  - plan-doc prose, as "Forms" says
+  - epic-page prose, as "Forms" says
 - Never:
   - code, names, strings the code uses
   - marker words:  `NOTE:`, `HACK:`, `REFACTOR:` ...
   - generated files:
     - any file `git check-attr linguist-generated` marks
     - `vendor/`, bundles, snapshots, fixtures
-  - Owen's own words:  his quotes, a plan doc's kickoff prompt, `<epic-original>`, `<epic-answer>`
-  - dated records:  a plan doc's `log.html`, `<epic-updated>` lines, the changelog's old entries
+  - Owen's own words:  his quotes, an epic page's kickoff prompt, `<epic-original>`, `<epic-answer>`
+  - dated records:  an epic page's `log.html`, `<epic-updated>` lines, the changelog's old entries
 - Keeps every fact, number and caveat (WWOD §6).
   - Shorter is good;  less said is not.
   - Unsure whether a clause matters:  keep it, moved to the end.
@@ -79,14 +79,14 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 2. Is anyone else editing it?
    - `spell dev worktree list`:  another session (not this one, not the one that started you)
      working in this checkout.
-   - `spell dev agents list`:  another agent whose task names these files.
-     For a plan doc:  any other plan-doc agent (`<epic>-plan-doc`).
+   - `epic agents list`:  another agent whose task names these files.
+     For an epic page:  any other epic-page agent (`<epic>-plan-doc`).
    - Either:  say who, and STOP.  A mixed diff can't be reviewed.
 3. The scope, as "Forms" says:  a list of files.
    - Drop what "What it rewrites" says never to touch.
 4. The checker, for the mechanical list, and its count BEFORE:
    - `spell dev docs fuss <paths...> --json`, or `spell dev docs fuss --branch --json`
-   - a plan doc:  `spell dev docs fuss /Users/owen/www/spell-app/spell-app-dev/epics/<name>/parts --json`
+   - an epic page:  `spell dev docs fuss /Users/owen/www/spell-app/spell-app-dev/epics/<name>/parts --json`
    - In HTML it checks everything but `phrase-split`:  the formatter wraps those lines.
 5. Big scope:  fan out ("Fanning out").  Else the session does it itself.
 6. Each file, top to bottom:
@@ -100,8 +100,8 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 7. Write in place.  Stage NOTHING, commit NOTHING.
    - The diff IS the proposal:  Owen reviews it in Source Control,
      and discards a file or a hunk he doesn't like.
-   - A plan doc has no branch diff:  each turn's edits are one `auto:` commit in `spell-app-dev`,
-     which can be reverted whole.  Then `spell dev plan-doc check <name>`.
+   - An epic page has no branch diff:  each turn's edits are one `auto:` commit in `spell-app-dev`,
+     which can be reverted whole.  Then `epic check <name>`.
 8. The checker again:  the count AFTER.
    - A miss left on purpose (a false hit, a line that can't break better):  name it in the report.
 9. Report ("Report").
@@ -126,23 +126,23 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 - `code-dense`:  say what it MEANS, then one fact per bullet.
   - The exact settings and values go in a tooltip, or a folded code block:
     `<epic-code>` or `ui-accordion.spell-code` in a page, a fence in Markdown.
-  - Owen's before / after:  [writing.md](agents/wwod/writing.md), "A 'Built / Checked' line in a plan doc".
+  - Owen's before / after:  [writing.md](agents/wwod/writing.md), "A 'Built / Checked' line in an epic page".
   - A list of names that IS the point (the methods a class has):  bullets, one name each.
 - Never in Owen's own words, or in a dated record ("What it rewrites").
 
 ## Fanning out
 
-- One folder, a few files, or a plan doc:  no agents, the session does it.
+- One folder, a few files, or an epic page:  no agents, the session does it.
 - Several packages or folders:  one agent each, up to 5 in all.
   - Or fewer, when you were given a smaller budget (`/bg` with `n`).
   - More folders than agents:  group neighbours, one agent a group.
   - Why:  one voice per package, and the session stays free.
 - Each one NAMED and LISTED, as the root `CLAUDE.md`'s "Delegated work" says
   ([the bg skill](.claude/skills/bg/SKILL.md), "Names"):
-  - `spell dev agents add fussbudget-<folder> "<its task>"`:  prints its full name
+  - `epic agents add fussbudget-<folder> "<its task>"`:  prints its full name
   - an `Agent` call (`general-purpose`, `run_in_background: true`),
     its `description` starting with that full name
-  - `spell dev agents done fussbudget-<folder>` when it's back
+  - `epic agents done fussbudget-<folder>` when it's back
 - Its prompt carries:
   - its files, and the checker line for them
   - "Read `agents/wwod/WWOD.md` §6 and `agents/wwod/writing.md` WHOLE, first."
@@ -160,7 +160,7 @@ Short, in this order:
 3. The checker:  `<before> -> <after>` misses;  any left, and why.
 4. 2-3 before / afters for Owen to judge FIRST:  the boldest changes, where a fact moved or a name changed.
    - Each a short `before` / `after` pair, in fenced blocks.
-5. Where to review:  Source Control (code);  a plan doc:  its link, `spell dev docs link <plan doc> --review`.
+5. Where to review:  Source Control (code);  an epic page:  its link, `spell dev docs link <epic page> --review`.
 - Fanned out:  each agent's notice, as it arrives, gets a short reply,
   its first line bold, by itself:  `**Agent <full name> came back with:**` (the root `CLAUDE.md`).
   - The full report above comes once the last one is back.

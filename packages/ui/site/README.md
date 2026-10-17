@@ -1,19 +1,13 @@
-# `@spell-app/ui` docs site -- the built half
+# `@spell-app/ui` docs site -- the build
 
-What stays here is what each branch builds from its own code.
-- The site's PAGES left this folder on 2026-10-05 (epic `claude-design` P6).
-- They're shared content now:  `ui/` at the checkout's root, a link into `../spell-app-dev/ui/`.
-- [Their README](../../../ui/README.md) says how the site works and how pages are made.
+The site bundle every Spell UI docs page loads, and its entry.
+- The PAGES are in [the docs folder](../docs/README.md):  Spell UI's component set, served at `/components/ui/`.
+  - Since epic `people-and-orgs` P18;  from claude-design P6 until then, the shared `ui/`.
+- The page server lays this folder's `_assets/` over every set's pages, at `/components/<set>/_assets/`.
+  - `COMPONENT_SETS`, in the [page server](../../server/)
 
 | Path | What |
 | --- | --- |
-| `_src/` | the site bundle's entry (`site.ts`:  what's in it and why), its router, shell, sections, their shared constants (`site.types.ts`) and layout glue (`site.css`);  config `../vite.site.config.ts` |
-| `_assets/` | GENERATED, NOT committed (git-ignored since 2026-10-07:  its hashed chunk names churned every diff):  the bundle (`yarn site:bundle`), which the page server builds when it starts, if stale (`spell dev bundles build --stale`);  `icon-packs` is a symlink to `../../src/icons/icon-packs`.  NEVER edit |
-| `_data/` | GENERATED, committed (`yarn site:data`):  `components.json`, `icons.json`, `custom-elements.json`, `html-custom-data.json`;  and `pages.json`, the hand-kept per-family facts they're built from |
-| *(the pages, `_parts/`, `examples/`, `images/`)* | *the shared `ui/`* |
-| *(`_data/search.json`)* | *the shared `ui/_data/search.json`:  built from the shared pages, so it lives beside them* |
-
-The page server serves both halves at `/ui/`:
-- the shared pages
-- with this folder's `_assets/` and `_data/` laid over them
-- That's `UI_SITE`, in the [page server](../../server/).
+| `_src/` | the bundle's entry (`site.ts`:  what's in it and why), the component sets' entry (`sets.ts`), its router, shell, sections, their shared constants (`site.types.ts`) and layout glue (`site.css`);  config `../vite.site.config.ts` |
+| `_assets/` | GENERATED, NOT committed (git-ignored since 2026-10-07:  its hashed chunk names churned every diff):  the bundle (`yarn site:bundle`), which the page server builds when it starts, if stale (`spell dev bundles build --stale`);  `sets/` is the other sets' build;  `icon-packs` is a symlink to `../../src/icons/icon-packs`.  NEVER edit |
+| *(the data)* | *`../docs/__data/`:  `yarn site:data`* |

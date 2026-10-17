@@ -4,7 +4,7 @@ import { PAGE_MAIN } from "./site.types"
 
 /****************
  * ### `SiteShell`
- * Puts the page in the site's ONE layout (`_parts/layout.html`) on first load:  a page's own file holds only its
+ * Puts the page in the site's ONE layout (`__parts/layout.html`) on first load:  a page's own file holds only its
  * `<head>` and `<main id="main" class="site-main">`, so the chrome (top bar, nav, footer ...) is written once.
  * - Mounts BEFORE `<ui-root>` is defined (`site.ts`), so the root's `display="when-ready"` keeps the whole page
  *   hidden until the layout is in and every element in it is ready:  no flash of unstyled markup, no jump.
@@ -50,8 +50,9 @@ export class SiteShell {
   }
 
   /**
-   * Make every relative URL under `root` absolute against `base`:  same-origin ones as a path (`/ui/index.html`),
-   * others in full.  In-page links (`#id`) and URLs with a scheme stay.
+   * Make every relative URL under `root` absolute against `base`:
+   * same-origin ones as a path (`/components/ui/index.html`), others in full.
+   * In-page links (`#id`) and URLs with a scheme stay.
    */
   static absolutize(root: ParentNode, base: URL | string): void {
     for (const element of root.querySelectorAll(E.URL_SELECTOR)) {
@@ -76,7 +77,7 @@ export class SiteShell {
 }
 
 /** The layout, from the site's root. */
-const LAYOUT = "_parts/layout.html"
+const LAYOUT = "__parts/layout.html"
 
 /** Class on `<html>` once the shell is done (mounted or not):  `site.css` shows the page's `main` again. */
 const MOUNTED_CLASS = "site-mounted"

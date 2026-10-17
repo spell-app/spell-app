@@ -1,7 +1,8 @@
 /**
  * AST classes.  These do not necessarily correspond do anyone else's AST.
- * - They hold what was parsed;  a target's WRITER turns them into code -- `P.JSWriter` for javascript, which
- *   `compile()` calls.  NEVER write output here.
+ * - They hold what was parsed;  a target's WRITER turns them into code:
+ *   `P.JSWriter` for javascript, which `compile()` calls, and `P.TSWriter` for TypeScript.
+ * - NEVER write output here.
  */
 
 import { Assertable, OPTIONAL } from "$/util"
@@ -163,14 +164,23 @@ export class ASTNumericLiteral extends ASTLiteral {
   }
 }
 
+/**
+ * A position said with an ordinal word, e.g. `the first card` => `1`, `the last card` => `-1`.
+ * - Always counted from 1, whatever the project's lists start at:  "the first card" is the first either way.
+ *   A writer for a project counting from 0 writes it as such, e.g. `first` => `0` (epic `python-target` P2).
+ * - Otherwise a plain number:  writers with nothing to say about it write it as `ASTNumericLiteral`.
+ */
+export class ASTOrdinalLiteral extends ASTNumericLiteral {}
+
 /** A quote a text literal is written in:  double, single or a back tick. */
 export type ASTQuote = '"' | "'" | "`"
 
 /** StringLiteral type -- text.
- *  - `quote` set:  a text VALUE.  `value` is the text itself, plain;  a writer quotes it in `quote` -- or, given
- *    `raw` (how the spell source spelled it, e.g. `"a \"b\""`), may write that.
- *  - `quote` unset:  a FRAGMENT of output, `value` written as is -- e.g. inside an `ASTQuotedExpression`, which
- *    adds the quotes itself.
+ *  - `quote` set:  a text VALUE.
+ *    `value` is the text itself, plain;  a writer quotes it in `quote`,
+ *    or, given `raw` (how the spell source spelled it, e.g. `"a \"b\""`), may write that.
+ *  - `quote` unset:  a FRAGMENT of output, `value` written as is,
+ *    e.g. inside an `ASTQuotedExpression`, which adds the quotes itself.
  *  - `raw` (optional) is original input string.
  */
 export type ASTStringLiteralProps = Prettify<{ value: string; quote?: ASTQuote; raw?: string }>
@@ -194,6 +204,19 @@ export class ASTStringLiteral extends ASTLiteral {
 }
 
 /**
+ * TypeNameLiteral -- a type's name as TEXT in the compiled code, e.g. `"Pile"` in:
+ *   - a new list's item type:  `new List({ instanceType: "Pile" })`
+ *   - a declared property's type:  `declareProp('pile', { type: "Pile" })`
+ *   - a type check left to the runtime:  `spellCore.isOfType(x, "List")`
+ * - `value` is spell's name for the type;  each writer writes it as it writes a type's name,
+ *   e.g. `"bank_account"` for a language naming types in snake_case.
+ * - Why a node of its own:  the rules that write a type's name as text mark it,
+ *   so no writer has to guess which text is a type's name (epic `drawable-thing`, J29).
+ * - A text value like any other otherwise:  `instanceof ASTStringLiteral` holds.
+ */
+export class ASTTypeNameLiteral extends ASTStringLiteral {}
+
+/**
  * TemplateString -- text with values inside, e.g. spell's `"images/[rank]-of-[suit].png"`:
  * `` `images/${this.rank}-of-${this.suit}.png` ``.
  * - `parts` (required):  in order, each plain text (as written between the quotes, its escapes kept) or an
@@ -210,6 +233,23 @@ export class ASTTemplateString extends ASTExpression {
   constructor(match: P.AnyMatch, props: ASTTemplateStringProps) {
     super(match, props)
     this.assertArrayType("parts", ["string", ASTExpression])
+  }
+}
+
+/**
+ * TaggedTemplate -- a template handed to a function, its `tag`, e.g. a drawable type's style sheet:
+ * `` css`.red { color: crimson }` `` (epic `drawable-thing`, P10).
+ * - `tag` (required):  the function's name, e.g. `css`.
+ * - `parts`:  as `ASTTemplateString`'s.
+ * - What it is is up to its tag, e.g. `css` hands back text.
+ */
+export type ASTTaggedTemplateProps = Prettify<ASTTemplateStringProps & { tag: string }>
+
+export class ASTTaggedTemplate extends ASTTemplateString {
+  declare tag: string
+  constructor(match: P.AnyMatch, props: ASTTaggedTemplateProps) {
+    super(match, props)
+    this.assertType("tag", "string")
   }
 }
 
@@ -249,8 +289,9 @@ export class ASTRegExpLiteral extends ASTLiteral {
 }
 
 /**
- * MissingExpression -- stands in for an expression that didn't parse, beside the error saying why, e.g. a JSX
- * `{...}` with nothing usable in it.  `JSWriter` writes `null`.
+ * MissingExpression -- stands in for an expression that didn't parse, beside the error saying why,
+ * e.g. a JSX `{...}` with nothing usable in it.
+ * - `JSWriter` writes `null`.
  */
 export class ASTMissingExpression extends ASTLiteral {
   /*@readonly*/ /*@proto*/ get datatype(): string {
@@ -575,8 +616,8 @@ export class ASTDocComment extends ASTComment {
 }
 
 /** PreservedComment type -- a `/*! ... *\/` comment, which minifiers keep:  data for tools reading compiled output.
- *  - `lines` are its lines of text, without comment symbols -- `*\/` in them is escaped, so it can't end the
- *    comment early.
+ *  - `lines` are its lines of text, without comment symbols.
+ *    `*\/` in them is escaped, so it can't end the comment early.
  *  - Closes on its last line, to stay short.
  */
 export type ASTPreservedCommentProps = Prettify<{ lines: string[] }>
@@ -830,8 +871,9 @@ export class ASTScopedMethodInvocation extends ASTMethodInvocation {
 /** ConsoleMethodInvocation:  `spellCore.console.methodName(args)`.
  * - `methodName` is method name, e.g. `log` or `warn` -- defaults to `log`.
  * - `args` is array of expressions.
- * - `echoInTests` (overridable getter) is always `false` -- test-mode echo injection
- *   (see `rules/methods.ts`) skips console calls since they already print something.
+ * - `echoInTests` (overridable getter) is always `false`:
+ *   test-mode echo injection (see `rules/methods/MethodDefinition.ts`) skips console calls,
+ *   since they already print something.
  */
 export type ASTConsoleMethodInvocationProps = Prettify<{
   methodName?: string
@@ -885,38 +927,14 @@ export class ASTCoreMethodInvocation extends ASTScopedMethodInvocation {
   }
 }
 
-/** Create an `ASTExpression` that refers to `spellCore.RUNTIME`. */
-export class ASTRuntimeExpression extends ASTPropertyExpression {
-  constructor(match: P.AnyMatch) {
-    super(match, {
-      object: new ASTSpellCoreExpression(match),
-      property: "RUNTIME"
-    })
-  }
-}
-
-/**
- * RuntimeMethodInvocation:  calls a `spellCore.RUNTIME` `method`.  Used for output language independence.
- *  - `methodName` is spellcore method name.
- *  - `args` (optional) is a possibly empty list of Expressions.
- *  - `datatype` (optional) is return datatype as string, try to set if you can.
- */
-export type ASTRuntimeMethodInvocationProps = ASTMethodInvocationProps
-
-export class ASTRuntimeMethodInvocation extends ASTScopedMethodInvocation {
-  /** Builds `thing` as `spellCore.RUNTIME` -- caller only supplies `methodName`/`args`. */
-  constructor(match: P.AnyMatch, props: ASTRuntimeMethodInvocationProps) {
-    super(match, { ...props, thing: new ASTRuntimeExpression(match) })
-  }
-}
-
 /** ExpectMethodInvocation:  `spellCore.expect(...)` -- used to assert a value in generated test output.
  *  - `expression` is expression AST being tested.
  *  - `expressionString` is string for spell code used to generate `expression`, shown in assertion output.
  *  - `value` (optional) is expected value AST to match against.
  *  - `valueString` (optional) is string for spell code used to generate `value`, shown in assertion output.
- *  - `echoInTests` (overridable getter) is always `false` -- test-mode echo injection
- *    (see `rules/methods.ts`) skips `expect(...)` calls since they already print an assertion result.
+ *  - `echoInTests` (overridable getter) is always `false`:
+ *    test-mode echo injection (see `rules/methods/MethodDefinition.ts`) skips `expect(...)` calls,
+ *    since they already print an assertion result.
  */
 export type ASTExpectMethodInvocationProps = Prettify<{
   expression: ASTExpression
@@ -950,8 +968,9 @@ export class ASTExpectMethodInvocation extends ASTCoreMethodInvocation {
 /** EchoInvocation:  `spellCore.echo(...)` (or another named spellCore method) for test-mode logging.
  *  - `expression` is expression to output -- a bare `string` is wrapped as a backtick `ASTStringLiteral`.
  *  - `methodName` (optional) overrides which spellCore method to call, defaults to `"echo"`.
- *  - `echoInTests` (overridable getter) is always `false` -- test-mode echo injection
- *    (see `rules/methods.ts`) skips echo calls since they already print something.
+ *  - `echoInTests` (overridable getter) is always `false`:
+ *    test-mode echo injection (see `rules/methods/MethodDefinition.ts`) skips echo calls,
+ *    since they already print something.
  */
 export type ASTEchoInvocationProps = Prettify<{ expression: string | ASTExpression; methodName?: string }>
 
@@ -1051,10 +1070,23 @@ export class ASTPrototypeExpression extends ASTExpression {
  *  - `output` is constant string to output, including quotes.
  *  - `constant` is pointer to scope Constant, if there is one.
  */
-export type ASTConstantExpressionProps = Prettify<{ name: string; output: string; constant?: P.ScopeConstant }>
+export type ASTConstantExpressionProps = Prettify<{
+  name: string
+  /** Its value as spell says it, e.g. `up`, `2` -- default:  `output` unquoted (see `P.spellValueOf()`). */
+  value?: string | number
+  /** Its javascript, e.g. `'up'`:  only for older code and declarations -- writers read `value`. */
+  output?: string
+  constant?: P.ScopeConstant
+}>
 
+/**
+ * A constant, e.g. `up` in `set the direction of the card to up`.
+ * - `value` is spell's, with no quotes:  each writer quotes it its own way, e.g. javascript's `"up"`
+ *   (epic `python-target` P3, output-targets' T4).
+ */
 export class ASTConstantExpression extends ASTExpression {
   declare name: string
+  declare value: string | number
   declare output: string
   declare constant: P.ScopeConstant | undefined
   /*@readonly*/ /*@proto*/ get datatype(): string {
@@ -1066,6 +1098,8 @@ export class ASTConstantExpression extends ASTExpression {
   constructor(match: P.AnyMatch, props: ASTConstantExpressionProps) {
     super(match, props)
     this.assertType("name", "string")
+    if (this.value === undefined) this.value = this.output === undefined ? this.name : P.spellValueOf(this.output)
+    if (this.output === undefined) this.output = `'${this.value}'`
     this.assertType("output", "string")
   }
 }
@@ -1284,8 +1318,9 @@ export class ASTStatement extends ASTNode {}
 /** StatementGroup -- set of random statements which does NOT get indented with curly braces!
  *  - NOTE: you can use this interchangeably whenever something takes a single `ASTStatement`.
  *  - `statements` is a list of Statements.
- *  - `echoInTests` (overridable getter) is always `false` -- test-mode echo injection
- *    (see `rules/methods.ts`) skips groups since each inner statement is echoed individually.
+ *  - `echoInTests` (overridable getter) is always `false`:
+ *    test-mode echo injection (see `rules/methods/MethodDefinition.ts`) skips groups,
+ *    since each inner statement is echoed individually.
  */
 export type ASTStatementGroupProps = Prettify<{
   statements?: Array<ASTStatement | ASTExpression | ASTComment | ASTBlankLine>
@@ -1581,8 +1616,9 @@ export class ASTPropertyDefinition extends ASTClassMember {
  *   `get title() { return this.getProp('title') }` + `set title(value) { this.setProp('title', value) }`.
  * - `check` and `initializer` go in its class's SCHEMA, declared once, NOT passed on every get / set:
  *   `static { this.declareProp('title', { type: 'text' }) }`, or `Todo.declareProp(...)` from outside the class.
- *   The same runtime shape as a hand-written class's `@prop({ type: 'text' }) accessor title` -- compiled spell runs
- *   from a `blob:` URL, untranspiled, so it can't use decorators.  See `guides/solid/solid-2.md`.
+ * - The same runtime shape as a hand-written class's `@prop({ type: 'text' }) accessor title`:
+ *   compiled spell runs from a `blob:` URL, untranspiled, so it can't use decorators.
+ *   See `guides/solid/solid-2.md`.
  */
 export type ASTReactivePropertyProps = Prettify<{
   type: string | ASTTypeExpression
@@ -1636,8 +1672,8 @@ export class ASTStaticDefinition extends ASTClassMember {
  * - `method` (required) is its MethodDefinition:  its args and body.
  * - `getter` (optional):  a static GETTER, read when used, e.g. `static get instanceType() { return Card }` for a
  *   class defined below its list's.
- * - `static color(suit) {...}` in its class, else `Suit.color = function (suit) {...}` -- or for a getter
- *   `Object.defineProperty(Deck, 'instanceType', { get() {...}, configurable: true })`.
+ * - `static color(suit) {...}` in its class, else `Suit.color = function (suit) {...}`;
+ *   for a getter, `Object.defineProperty(Deck, 'instanceType', { get() {...}, configurable: true })`.
  */
 export type ASTStaticMethodProps = Prettify<{
   type: string | ASTTypeExpression
@@ -1665,7 +1701,7 @@ export class ASTStaticMethod extends ASTClassMember {
  * - `member` (required) is the ClassMember, compiled with its `compile()`.
  * - NOT a ClassMember itself, so `SP.hoistClassMembers()` leaves it where it is.
  *   - Why:  spell declares a property at its first `set` in the file which sets it,
- *     and that must never change another file's output -- see spell's `assignment_statement`.
+ *     and that must never change another file's output -- see spell's `AssignmentStatement`.
  */
 export type ASTPatchedMemberProps = Prettify<{ member: ASTClassMember }>
 
@@ -1693,8 +1729,8 @@ export type ASTIfStatementProps = Prettify<{
 export class ASTIfStatement extends ASTStatement {
   declare condition: ASTParenthesizedExpression
   declare statements: ASTStatementBlock
-  /** SIDE EFFECT: wraps `condition` in parens (unless already parenthesized) and normalizes `statements`
-   *  into an `ASTStatementBlock`. */
+  /** SIDE EFFECT: wraps `condition` in parens (unless already parenthesized),
+   *  and normalizes `statements` into an `ASTStatementBlock`. */
   constructor(match: P.AnyMatch, props: ASTIfStatementProps) {
     super(match, props)
     this.assertType("condition", ASTExpression)
@@ -1720,8 +1756,8 @@ export type ASTElseIfStatementProps = Prettify<{
 export class ASTElseIfStatement extends ASTStatement {
   declare condition: ASTParenthesizedExpression
   declare statements: ASTStatementBlock
-  /** SIDE EFFECT: wraps `condition` in parens (unless already parenthesized) and normalizes `statements`
-   *  into an `ASTStatementBlock`. */
+  /** SIDE EFFECT: wraps `condition` in parens (unless already parenthesized),
+   *  and normalizes `statements` into an `ASTStatementBlock`. */
   constructor(match: P.AnyMatch, props: ASTElseIfStatementProps) {
     super(match, props)
     this.assertType("condition", ASTExpression)
@@ -1745,6 +1781,35 @@ export class ASTElseStatement extends ASTStatement {
   constructor(match: P.AnyMatch, props?: ASTElseStatementProps) {
     super(match, props)
     this.statements = convertStatementsToBlock(this.match, this.statements)
+  }
+}
+
+/**
+ * ProgramStart:  a line of a program's START, which runs only when the program starts afresh:
+ * `if (!spellCore.isCarryingOver) game.start()`.
+ * - Its lines, at a file's top level (epic `drawable-thing` P17, Q26):
+ *   - a call of one of the file's tests:  `test card setup`
+ *   - starting its app:  `start the game`
+ *   - `SP.Block` wraps them.
+ * - Skipped when an edit keeps the last run's things (`spellCore.isCarryingOver`):
+ *   the tests don't print again, and the game in progress isn't started again.
+ *   - Every other line still runs.
+ * - It IS an `if`, so every writer writes it as one.
+ * - `statement`:  the line's own code, e.g. `game.start()`.
+ */
+export type ASTProgramStartProps = { statement: ASTStatement | ASTExpression }
+
+export class ASTProgramStart extends ASTIfStatement {
+  constructor(match: P.AnyMatch, { statement }: ASTProgramStartProps) {
+    const carryingOver = new ASTPropertyExpression(match, {
+      object: new ASTSpellCoreExpression(match),
+      property: "isCarryingOver"
+    })
+    super(match, {
+      condition: new ASTNotExpression(match, { expression: carryingOver }),
+      // a call is an expression:  a block holds either
+      statements: new ASTStatementBlock(match, { statements: [statement] })
+    })
   }
 }
 
@@ -1830,7 +1895,7 @@ export class ASTStopProcessInvocation extends ASTCoreMethodInvocation {
 // ## JSX
 ////////////////
 
-/** JSXElement -- e.g. `<div a={1}>text</div>`, compiled to `spellCore.element({...})`.
+/** JSXElement -- e.g. `<div a={1}>text</div>`, drawn in javascript as `h("div", { a: 1 }, "text")`.
  * - `tagName` is element tag name, e.g. `"div"`.
  * - `attrs` (optional) is array of JSXAttributes.
  * - `children` is array of child nodes -- JSXElement/JSXEndTag/JSXText/JSXExpression.
@@ -1852,50 +1917,31 @@ export class ASTJSXElement extends ASTExpression {
     this.assertArrayType("children", [ASTJSXElement, ASTJSXEndTag, ASTJSXText, ASTJSXExpression])
   }
   /**
-   * Builds -- and memoizes -- `spellCore.element({ tag, props, children })` CoreMethodInvocation that
-   * `P.JSWriter` writes it as.
-   * - `props` key only appears when there's at least one attr; `children` key only when there's at
-   *   least one child whose own `output` isn't falsy (e.g. `ASTJSXEndTag.output` is always `undefined`
-   *   and gets filtered out).
+   * Why `tag` can't be an element's -- `undefined` if it can.
+   * - An element's tag is a name, with dashes for a custom element (`div`, `ui-form`), no dots.
+   * - A dotted tag, `UI.Form`, is a compile error:  Solid's `h()` would draw it as a `<UI>` with class `Form`.
+   *   The React kits spell programs once named that way are gone (epic `output-targets` P11).
+   */
+  static tagError(tag: string): string | undefined {
+    if (/^[a-zA-Z][\w-]*$/.test(tag)) return undefined
+    return `<${tag}> isn't an element:  write Spell UI's own tag, e.g. <ui-form>`
+  }
+
+  /**
+   * Its children as the drawing takes them, in order -- memoized:
+   * - text as text (`"BBB"`), an element as is
+   * - `{expression}` as a live value when it can change (`ASTJSXLiveValue`), as is when it can't
+   * - nothing for its closing tag, or an empty `{}`
    */
   /*@memoize*/
-  get output(): ASTCoreMethodInvocation {
-    return this.derived("output", () => {
-      const properties: ASTObjectLiteralProperty[] = [
-        new ASTObjectLiteralProperty(this.match, {
-          property: "tag",
-          value: new ASTStringLiteral(this.match, { value: this.tagName, quote: '"' })
+  get childValues(): ASTExpression[] {
+    return this.derived("childValues", () => {
+      return (this.children ?? [])
+        .map((child) => {
+          if (child instanceof ASTJSXExpression) return liveValueOf(child.output)
+          return child instanceof ASTJSXElement ? child : child?.output
         })
-      ]
-
-      const attrs =
-        this.attrs &&
-        this.attrs.length &&
-        new ASTObjectLiteral(this.match, {
-          properties: this.attrs.map((attr) => attr.output)
-        })
-      if (attrs) {
-        properties.push(
-          new ASTObjectLiteralProperty(this.match, {
-            property: "props",
-            value: attrs
-          })
-        )
-      }
-      const items = this.children?.length && this.children.map((child) => child?.output).filter(Boolean)
-      if (items && items.length) {
-        properties.push(
-          new ASTObjectLiteralProperty(this.match, {
-            property: "children",
-            value: new ASTArrayLiteral(this.match, { items: items as ASTExpression[], wrap: true })
-          })
-        )
-      }
-
-      return new ASTCoreMethodInvocation(this.match, {
-        methodName: "element",
-        args: [new ASTObjectLiteral(this.match, { properties, wrap: (attrs && attrs.wrap) || false })]
-      })
+        .filter((child): child is ASTExpression => !!child)
     })
   }
 }
@@ -1918,31 +1964,18 @@ export class ASTJSXAttribute extends ASTExpression {
     this.assertType("error", ASTParseError, OPTIONAL)
   }
   /**
-   * Builds -- and memoizes -- this attribute as either an `ASTMethodDefinition` (when `value` is one,
-   * i.e. an inline method prop) or a plain `ASTObjectLiteralProperty`, for use inside `ASTJSXElement.output`'s
-   * `props` object.
-   * - If no `value`: `undefined` when there's a parse `error`, else `true` per JSX spec for an
-   *   empty/boolean attribute.
+   * Its value as the drawing takes it -- memoized:
+   * - a handler (`onClick={...}`) as is:  it's a function already, never a live value
+   * - a value that can change as a live value (`ASTJSXLiveValue`);  one that can't as is
+   * - no value:  `true`, as JSX reads a bare attribute (`hidden`) -- or nothing, when it didn't parse (`error`)
    */
   /*@memoize*/
-  get output(): ASTMethodDefinition | ASTObjectLiteralProperty {
-    return this.derived("output", () => {
-      // If we didn't get a value:
-      //  if we have a parse error, return `undefined`
-      //  otherwise return `true` as per spec for an empty attribute
+  get propValue(): ASTExpression {
+    return this.derived("propValue", () => {
       const value: ASTExpression =
         this.value || (this.error ? new ASTNothingLiteral(this.match) : new ASTBooleanLiteral(this.match, true))
-      if (value instanceof ASTMethodDefinition) {
-        value.asProperty = true
-        value.methodName = this.name
-        if (this.error) value.error = this.error
-        return value
-      }
-      return new ASTObjectLiteralProperty(this.match, {
-        property: this.name,
-        value,
-        error: this.error
-      })
+      if (value instanceof ASTMethodDefinition || this.name.startsWith("on")) return value
+      return liveValueOf(value)
     })
   }
 }
@@ -1958,7 +1991,7 @@ export class ASTJSXEndTag extends ASTExpression {
     super(match, props)
     this.assertType("tagName", "string")
   }
-  /** JSXEndTags never contribute to compiled output. */
+  /** Nothing:  a closing tag draws nothing, so `ASTJSXElement.childValues` leaves it out. */
   get output(): undefined {
     return undefined
   }
@@ -2002,8 +2035,8 @@ export class ASTJSXExpression extends ASTExpression {
     this.assertType("error", ASTParseError, OPTIONAL)
   }
   /**
-   * `expression` as-is normally; when there's an `error`, wraps it (or an `ASTMissingExpression` placeholder if
-   * `expression` is also missing) in an `ASTExpressionWithComment` so error surfaces in compiled output.
+   * `expression` as is -- or, with an `error`, an `ASTExpressionWithComment`, so the error shows in compiled output.
+   * - It wraps `expression`, or an `ASTMissingExpression` placeholder when that's missing too.
    */
   /*@memoize*/
   get output(): ASTExpression | ASTExpressionWithComment | undefined {
@@ -2018,6 +2051,41 @@ export class ASTJSXExpression extends ASTExpression {
       return this.expression
     })
   }
+}
+
+/** JSXLiveValue -- a JSX prop or child that can change, written as a function:  `() => this.shortSuit`.
+ * - The drawing (Solid, through its `h()`) calls it to read the value,
+ *   and again when what it read changes, updating only its own node.
+ * - A literal (`"suit"`, `1`) never changes, so it stays a plain value:  see `liveValueOf()`.
+ * - `expression` is the value's expression.
+ */
+export type ASTJSXLiveValueProps = Prettify<{ expression: ASTExpression }>
+
+export class ASTJSXLiveValue extends ASTExpression {
+  declare expression: ASTExpression
+  constructor(match: P.AnyMatch, props: ASTJSXLiveValueProps) {
+    super(match, props)
+    this.assertType("expression", ASTExpression)
+  }
+}
+
+/**
+ * `expression` as a JSX prop or child's value:
+ * wrapped in an `ASTJSXLiveValue` when it can change, as is when it can't (a literal, an element, an inline function).
+ * - `undefined` stays `undefined`:  a broken `{}` with no expression.
+ */
+function liveValueOf<T extends ASTExpression | undefined>(expression: T): T | ASTJSXLiveValue {
+  if (!expression || isFixedJSXValue(expression)) return expression
+  return new ASTJSXLiveValue(expression.match, { expression })
+}
+
+/** Can't JSX value `expression` change?  A literal (not a list, which holds expressions), an element, a function. */
+function isFixedJSXValue(expression: ASTExpression): boolean {
+  if (expression instanceof ASTArrayLiteral) return false
+  if (expression instanceof ASTExpressionWithComment) return isFixedJSXValue(expression.expression)
+  return (
+    expression instanceof ASTLiteral || expression instanceof ASTMethodDefinition || expression instanceof ASTJSXElement
+  )
 }
 
 /**

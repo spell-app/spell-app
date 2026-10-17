@@ -12,9 +12,10 @@ import { SpellLanguageFeatures } from "./SpellLanguageFeatures"
  * Spell in Monaco:  the `spell` language and its features, and the options every `<MonacoEditor>` starts with.
  * - `register()` once, before the first editor -- `<MonacoEditor>` and `models` both do.
  * - Language features come from `LSP.SpellLanguageService`, in-process -- see `SpellLanguageFeatures`.
- * - What to do when a file is edited, or another should be shown, is up to whoever shows editors -- the app,
- *   each `<spell-editor>` -- so SEVERAL can listen:  see `onEdit()`, `onOpen()`.
- * - Theme is Monaco's default `vs`.  Heading comments -- `#`, `##` ... -- are bold by decoration:  see `SpellHeadings`.
+ * - What to do when a file is edited, or another should be shown, is up to whoever shows editors:
+ *   the app, each `<spell-editor>`.  So SEVERAL can listen:  see `onEdit()`, `onOpen()`.
+ * - Theme is Monaco's default `vs`.
+ * - Heading comments -- `#`, `##` ... -- are bold by decoration:  see `SpellHeadings`.
  */
 export class SpellMonaco {
   /** Language id for spell source. */
@@ -86,8 +87,8 @@ export class SpellMonaco {
 
   /**
    * Let `opener` show another file, e.g. for "go to definition" in another file.
-   * - Asked latest first, until one says it did, by returning `true` -- e.g. a `<spell-editor>` only for its own
-   *   editor, `source`, while the app takes anything.
+   * - Asked latest first, until one says it did, by returning `true`.
+   *   e.g. a `<spell-editor>` only for its own editor, `source`, while the app takes anything.
    * - Returns what stops it.
    */
   static onOpen(opener: SpellMonacoOpener): () => void {
@@ -100,7 +101,10 @@ export class SpellMonaco {
   /** Everything `register()` made, once it has. */
   static #registered: SpellMonacoParts | undefined
 
-  /** Models of the files the editor works with -- see `SpellModels`.  SIDE EFFECT:  `register()`s. */
+  /**
+   * Models of the files the editor works with -- see `SpellModels`.
+   * - SIDE EFFECT:  `register()`s.
+   */
   static get models(): SpellModels {
     return SpellMonaco.register().models
   }
@@ -113,6 +117,11 @@ export class SpellMonaco {
     monaco.languages.register({ id: LANGUAGE, extensions: [".spell"], mimetypes: ["text/spell", "text/x-spell"] })
     monaco.languages.setLanguageConfiguration(LANGUAGE, SpellMonaco.CONFIGURATION)
     monaco.languages.setTokensProvider(LANGUAGE, new SpellTokensProvider())
+    // `<css>` and `<markdown>` blocks colour with Monaco's own colouring, which loads lazily:
+    // colour spell again once it has
+    void Promise.all([monaco.editor.colorize("", "css", {}), monaco.editor.colorize("", "markdown", {})])
+      .then(() => monaco.languages.setTokensProvider(LANGUAGE, new SpellTokensProvider()))
+      .catch((error) => console.warn("SpellMonaco.register():  CSS or markdown colouring didn't load", error))
 
     const addresses = new AppAddresses()
     const service = new LSP.SpellLanguageService(addresses)

@@ -1,16 +1,19 @@
 /**
  * Child process of `spell run` / `spell test`:  runs one compiled spell project under node.
- * - Started by `runCommand.ts` as `node --import tsx --import hooks.mjs runProject.ts`, with a `CLI.RunSpec` in
- *   env var `SPELL_RUN`.  A fresh process per run, so every run gets a fresh `spellCore`.
+ * - Started by `runCommand.ts` as `node --import tsx --import hooks.mjs runProject.ts`,
+ *   with a `CLI.RunSpec` in env var `SPELL_RUN`.
+ *   A fresh process per run, so every run gets a fresh `spellCore`.
  * - Headless:  what needs a browser does nothing, and says so -- see `headless()`.
- * - `run`:  loads the project, which runs its top-level statements.  Its `print`s go straight to the terminal.
- * - `test`:  loads it quietly, then calls each `test ...` function it exports which hasn't already run, and
- *   reports each one:  ✓, or ✗ with the checks that failed.  Exits 1 if any failed.
+ * - `run`:  loads the project, which runs its top-level statements.
+ *   Its `print`s go straight to the terminal:  its data to stdout, a dump of a thing (`print the card`) to stderr.
+ * - `test`:  loads it quietly, then calls each `test ...` function it exports which hasn't already run,
+ *   and reports each one:  ✓, or ✗ with the checks that failed.  Exits 1 if any failed.
  * - NEVER imports `$/cli`'s values:  this process needs only spell's runtime.
  */
 import chalk from "chalk"
 import { format } from "util"
 
+import { bridgeSolid } from "$/util"
 import { App, spellCore } from "$/core"
 import type { CLI } from "$/cli"
 
@@ -21,6 +24,11 @@ if (spec.dom) await fakeDom()
 else headless()
 // a fresh state bag + event hub for the project, e.g. for `on card-click` -- as the app's runners do
 spellCore.resetRuntime()
+// `--seed`, and the core contract:  the same random numbers every run, so a shuffle deals the same cards
+if (spec.seed !== undefined) spellCore.seedRandom(spec.seed)
+// a dump of a thing (`print the card`) to stderr, so stdout holds only the program's data
+// (epic page python-target, Q17);  at call time, so `quiet()` silences it too
+spellCore.console.printDump = (...message) => console.error(...message)
 // output piped into e.g. `head`, which closed it:  nothing more to say
 process.stdout.on("error", (error: NodeJS.ErrnoException) => error.code === "EPIPE" && process.exit(0))
 
@@ -33,10 +41,11 @@ else await testProject()
 
 /**
  * Load the project, running its top-level statements, then say if it wanted a browser.
- * - Started by `spell run`, with an IPC channel:  tells it what was skipped -- `{ skipped: [...] }` -- so it can
- *   open the project in a browser, and lets the channel go, so this process can end.
- * - Exits 1 if it threw.  Otherwise leaves the process to end on its own, so anything it started, e.g. a `pause`,
- *   gets to finish.
+ * - Started by `spell run`, with an IPC channel:
+ *   - tells it what was skipped (`{ skipped: [...] }`), so it can open the project in a browser
+ *   - lets the channel go, so this process can end
+ * - Exits 1 if it threw.
+ *   Otherwise leaves the process to end on its own, so anything it started, e.g. a `pause`, gets to finish.
  */
 async function runProject() {
   const loaded = await load()
@@ -50,8 +59,8 @@ async function runProject() {
 
 /**
  * Load the project quietly, then run each `test ...` function it exports, and report.
- * - Tests the project runs ITSELF as it loads count, and don't run again:  a second run would start
- *   from what the first left behind, e.g. a dealt deck.
+ * - Tests the project runs ITSELF as it loads count, and don't run again:
+ *   a second run would start from what the first left behind, e.g. a dealt deck.
  * - `spec.filter`:  only tests whose names contain it, e.g. `deck` -- ignoring case, and spaces ~== `-` ~== `_`.
  */
 async function testProject() {
@@ -63,7 +72,7 @@ async function testProject() {
 
   const wanted = (name: string) => !spec.filter || comparable(name).includes(comparable(spec.filter))
   const tests = Object.entries(module).filter(
-    ([name, value]) => name.startsWith("test_") && typeof value === "function" && wanted(name.slice(5))
+    ([name, value]) => /^test[A-Z_]/.test(name) && typeof value === "function" && wanted(name.replace(/^test_?/, ""))
   )
   for (const [name, test] of tests) {
     if (!all.some((result) => comparable(result.name) === comparable(name))) (test as () => void)()
@@ -86,9 +95,10 @@ async function testProject() {
   process.exit(failed ? 1 : 0)
 }
 
-/** A test's name or its function's, for comparing:  `test_deck_creation` ~== `test deck creation`. */
+/** A test's name or its function's, for comparing:  `testDeckCreation` ~== `test deck creation`. */
 function comparable(name: string): string {
   return name
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
     .toLowerCase()
     .replace(/[\s_-]+/g, " ")
     .trim()
@@ -166,11 +176,12 @@ function headless() {
 }
 
 /**
- * SIDE EFFECT:  a fake page for `spec.dom`, so what needs a browser runs:  linkedom's `document`, and `App.start()`
- * draws into it.  When the program is done, prints the page's `<body>`:  what it drew, to compare.
- * - `Math.random()` is SEEDED, so a shuffle comes out the same every run, on every target:  by `hooks.mjs`, before
- *   lodash loads and keeps its own reference to it.
+ * SIDE EFFECT:  a fake page for `spec.dom`, so what needs a browser runs:
+ * linkedom's `document`, and `App.start()` draws into it.
+ * - When the program is done, prints the page's `<body>`:  what it drew, to compare.
+ *   Each tag's attributes are sorted first (`withSortedAttributes()`).
  * - Only for the core contract test, `contract.test.ts`:  a real browser is `spell run`'s.
+ *   The contract seeds the random numbers too (`spec.seed`), so a shuffle deals the same cards on every target.
  */
 async function fakeDom() {
   const { parseHTML } = await import("linkedom")
@@ -183,13 +194,37 @@ async function fakeDom() {
     })
   }
   spellCore.installStyles = () => {}
-  // `tsx` compiles `core`'s `App.tsx` with classic JSX here, which reads a global `React`
-  Object.assign(globalThis, { React: await import("react") })
+  // Solid follows spell's values, as a runner's page does (`cellsBridge.ts`):  the hooks give us its browser build
+  const { enableExternalSource, flush } = await import("solid-js")
+  bridgeSolid({ enableExternalSource, flush })
   process.once("beforeExit", () => {
-    const drawn = page.document.body.innerHTML
+    spellCore.flush()
+    const drawn = withSortedAttributes(page.document.body.innerHTML)
     if (drawn) process.stdout.write(`\n${drawn}\n`)
   })
 }
+
+/**
+ * `html` with each tag's attributes in alphabetical order:  so two targets drawing the same element print it the same.
+ * - Why:  linkedom prints the two ways of setting attributes in different orders.
+ *   - set one by one (`setAttribute()`, as `h()` sets them):  LAST FIRST
+ *   - parsed (Solid's JSX templates):  in their order
+ *   - So `<th class="a" colspan="2">`, drawn either way, prints two ways.
+ *   - A browser prints both in the order they were set.
+ * - Reads linkedom's own output:  every value in double quotes, a `"` in one written `&quot;`.
+ */
+function withSortedAttributes(html: string): string {
+  return html.replace(START_TAG, (_tag, name: string, attributes: string, end: string) => {
+    const sorted = (attributes.match(ATTRIBUTE) ?? []).map((attribute) => attribute.trim()).sort()
+    return `<${name}${sorted.map((attribute) => ` ${attribute}`).join("")}${end}>`
+  })
+}
+
+/** A start tag, as linkedom writes one:  its name, its attributes, and `/` if it closes itself. */
+const START_TAG = /<([a-zA-Z][\w-]*)((?:\s+[^\s"'>/=]+(?:="[^"]*")?)*)\s*(\/?)>/g
+
+/** One attribute in a start tag:  `name="value"`, or a bare `name`. */
+const ATTRIBUTE = /\s+[^\s"'>/=]+(?:="[^"]*")?/g
 
 /** Silence `console.*` -- the project's `print`s -- unless `verbose`.  Returns how to put it back. */
 function quiet(): () => void {

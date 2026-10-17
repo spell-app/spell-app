@@ -50,7 +50,7 @@
  *     `.claude/hooks/prompt-gate.mjs`, sets it on `/isolate <name>`), else Claude's own.
  *     No single match (two sessions with one title):  it stays open, idle;  close it by hand.
  *   - Log:  `<registry>/handoffs/<session id>.log`.
- * - Docs shown while the move is pending (`show`, `spell dev plan-doc open`) wait for it, then show in the window the
+ * - Docs shown while the move is pending (`show`, `epic open`) wait for it, then show in the window the
  *   session moved to:  the window it's leaving is about to close its tab.
  * - Its file:  `workspaces/ongoing/<name>.code-workspace` in the main checkout, beside the package windows' files;
  *   git ignores `workspaces/ongoing/`.
@@ -600,7 +600,7 @@ export class Window {
 
   /**
    * `stay-check`:  the live facts for `stayAdvice()`, and its answer.
-   * - `epic`:  for `/epic`, whose plan doc takes the window's doc preview
+   * - `epic`:  for `/epic`, whose epic page takes the window's doc preview
    */
   static stayCheck({ epic = false } = {}) {
     const window = Window.current()
@@ -1232,7 +1232,7 @@ export function worktreeOf(cwd) {
  * Should a session isolating itself STAY in its window, or move to a worktree's window of its own?
  * - `window`:  its registry entry (`null`:  no bridge here)
  * - `others`:  the window's OTHER sessions, `{ pid, cwd }` each (`cwd` `null` when unknown)
- * - `epic`:  for `/epic`:  its plan doc takes the window's doc preview
+ * - `epic`:  for `/epic`:  its epic page takes the window's doc preview
  * - returns `{ recommend, others, reasons }`:  `recommend` `"stay"` or `"window"`;
  *   `others` `{ pid, worktree }` each (`worktree` `null`:  in the main checkout);  `reasons` sentences for the modal
  */
@@ -1244,7 +1244,7 @@ export function stayAdvice({ window, others = [], epic = false }) {
   }
   if (!listed.length) {
     const reasons = ["this session is the window's only one:  staying touches nothing else"]
-    if (epic) reasons.push("the plan doc shows in this window's side bar")
+    if (epic) reasons.push("the epic page shows in this window's side bar")
     return { recommend: "stay", others: listed, reasons }
   }
   const where = listed.map(({ worktree }) => (worktree ? `worktree \`${worktree}\`` : "the main checkout"))
@@ -1258,7 +1258,7 @@ export function stayAdvice({ window, others = [], epic = false }) {
   }
   reasons.push(
     epic
-      ? "the side bar's doc preview shows one doc:  the plan doc and the other sessions' docs would replace each other"
+      ? "the side bar's doc preview shows one doc:  the epic page and the other sessions' docs would replace each other"
       : "they share its doc preview (one doc at a time)"
   )
   return { recommend: "window", others: listed, reasons }

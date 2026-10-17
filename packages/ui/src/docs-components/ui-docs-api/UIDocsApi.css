@@ -13,7 +13,7 @@
  *     and `<ui-table part="table">` around a native `<table>`,
  *     whose row headers (`th[scope=row]`) hold the name and `<small class="ui-caption">` notes.
  * - Public tokens (`--ui-docs-api-*`) are never declared:  each is read through a private alias
- *   (`docs/theming.md` "Component tokens").
+ *   (`notes/theming.md` "Component tokens").
  */
 
 @layer ui.components.docs-api.types, ui.components.docs-api.content, ui.components.docs-api.variations, ui.components.docs-api.states;
@@ -69,7 +69,7 @@
   }
 
   /* A tag header's self-link keeps the header's colour
-     (a gap the plan doc records:  `<ui-header href>` isn't a heading). */
+     (a gap the epic page records:  `<ui-header href>` isn't a heading). */
   [part~="header"] > a {
     color: inherit;
     text-decoration-line: none;
@@ -91,7 +91,7 @@
     margin-block-start: 0;
   }
 
-  /* Inline code:  `ui-typography`'s look (a gap the plan doc records:  no widget, and that sheet is page-only). */
+  /* Inline code:  `ui-typography`'s look (a gap the epic page records:  no widget, and that sheet is page-only). */
   code {
     padding: 0.125em 0.375em;
     border-radius: var(--ui-radius-s);

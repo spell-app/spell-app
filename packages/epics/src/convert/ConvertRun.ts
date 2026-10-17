@@ -11,12 +11,12 @@ import { Upgrader } from "./Upgrader"
 
 /****************
  * ### `ConvertRun`
- * Converting the plan docs of ONE checkout, on disk:  finding them (`epics/<name>/<name>.plan.html`), converting
+ * Converting the epic pages of ONE checkout, on disk:  finding them (`epics/<name>/<name>.plan.html`), converting
  * each (`Converter`, the first pass;  `Upgrader`, the second, for a doc the first already converted), writing the
  * results ONLY under an output folder, and the report.
  * - NEVER writes into the checkout's `epics/` (the shared docs:  they change only at the switch, P12, with Owen):
  *   `write()` refuses an output folder inside it, through its links too.
- * - Node only (`node:fs`).  `convert.ts` is its command line;  `spell dev plan-doc convert` will be.
+ * - Node only (`node:fs`).  `convert.ts` is its command line;  `epic convert` will be.
  ****************/
 export class ConvertRun {
   /** The checkout whose `epics/` it reads:  STATIC for the run. */
@@ -26,12 +26,12 @@ export class ConvertRun {
     this.root = resolve(root)
   }
 
-  /** The checkout's `epics/`:  the shared plan docs. */
+  /** The checkout's `epics/`:  the shared epic pages. */
   get epics(): string {
     return join(this.root, "epics")
   }
 
-  /** Every plan doc's name, sorted:  each folder of `epics/` holding `<name>.plan.html`. */
+  /** Every epic page's name, sorted:  each folder of `epics/` holding `<name>.plan.html`. */
   get names(): string[] {
     if (!existsSync(this.epics)) return []
     return readdirSync(this.epics, { withFileTypes: true })
@@ -57,7 +57,7 @@ export class ConvertRun {
   async run({ names, out }: { names: string[]; out?: string }): Promise<RunResult[]> {
     for (const name of names)
       if (!existsSync(this.docFile(name)))
-        throw new TypeError(`ConvertRun.run():  no plan doc \`${name}\` in ${this.epics}`)
+        throw new TypeError(`ConvertRun.run():  no epic page \`${name}\` in ${this.epics}`)
     if (out) this.checkOut(out)
     const results: RunResult[] = []
     for (const name of names) {

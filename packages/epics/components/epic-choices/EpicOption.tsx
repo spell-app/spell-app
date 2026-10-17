@@ -4,8 +4,12 @@ import { Dynamic, type JSX } from "@solidjs/web"
 import { E } from "$/ui/core"
 
 import { NOBODY_LISTENING, ReviewClient, picks } from "$/epics/review"
+// Import directly:  the question's class, not its barrel (which would define `<epic-ask>` here)
+import { EpicAsk } from "$/epics/components/epic-ask/EpicAsk"
 import { Fold } from "$/epics/components/epic-item/Fold"
 import type { EpicItem } from "$/epics/components/epic-item/EpicItem"
+// an answering option's comment box:  its barrel first, so it's defined wherever the option is
+import "$/epics/components/epic-text-box"
 import { CLOSED_STATUSES } from "$/epics/components/epic-item/EpicItem.types"
 
 import { epicOptionVocabulary } from "./EpicOption.en"
@@ -13,6 +17,7 @@ import { EpicChoices } from "./EpicChoices"
 import { ITEM_TAG, ORIGINAL_TAG, TOGGLE, type CardSet } from "./EpicChoices.types"
 
 import choicesCSS from "./EpicChoices.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicOption`
@@ -46,11 +51,19 @@ import choicesCSS from "./EpicChoices.css?inline"
  *     only while it's revisited (its note box open, a draft, a revisit or a pick):  "pick B instead, because ..."
  *   - never in an Original Discussion (`<epic-original>`):  history, not a choice
  * - SIDE EFFECT:  the first one connected makes the page's `ReviewClient` (`forPage()`), which reads the inbox
+ *
+ * - ANSWERING, an option of an `<epic-ask>` (a page Owen answers on, epic `epic-workflow` P12):  a card, drawn
+ *   from its question (`ask`), which holds the picks.
+ *   - its header:  the fold chevron (when it has pros and cons), then its tick box labelled by `A · title` (a click
+ *     on the title ticks it), the thumbs-up, its `badge`;  at the end, the (?) of `more-details` and its state icon
+ *   - a comment box under it, always shown (`<epic-text-box>` for `<key>-<letter>`)
+ *   - ticked:  framed green;  `done`, under the question's Open:  hidden
+ *   - a tick, an untick or the (?) sends `ui-change`, which its question takes
  ****************/
 export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   @E.proto static vocabulary = epicOptionVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-choices": choicesCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-choices": choicesCSS },
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
@@ -82,6 +95,58 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   @E.cssState("chosen")
   get isChosen(): boolean {
     return !!this.letter && this.chosenLetter === this.letter
+  }
+
+  ////////////////
+  // ## Answering:  an option of an `<epic-ask>`
+  ////////////////
+
+  /** The `<epic-ask>` it's an option of, drawn;  `undefined` for an epic page's option.  Read again as it connects. */
+  @E.state accessor ask: EpicAsk | undefined = EpicOption.askFor(this.domElement)
+
+  /** An option of an `<epic-ask>`:  a tick box and a comment box. */
+  @E.cssState("answering")
+  get isAnswering(): boolean {
+    return !!this.ask
+  }
+
+  /** Ticked, in its question. */
+  @E.cssState("ticked")
+  get isTicked(): boolean {
+    return !!this.ask && this.ask.isPicked(this.letter ?? "")
+  }
+
+  /** "Provide more details" pressed on it, in its question. */
+  get wantsMore(): boolean {
+    return !!this.ask && this.ask.wantsMore(this.letter ?? "")
+  }
+
+  /** Hidden by its question's filter:  `done`, while the filter shows Open. */
+  @E.cssState("filtered")
+  get isFiltered(): boolean {
+    return !!this.ask?.hidesDone && !!this.done
+  }
+
+  /** Its state icon (`state-icon`). */
+  readonly stateGlyph = new E.IconGlyph({ owner: this, name: () => (this.ask ? this.stateIcon : undefined) })
+
+  /** The (?) of "Provide more details". */
+  readonly moreGlyph = new E.IconGlyph({
+    owner: this,
+    name: () => (this.ask?.moreDetails ? MORE_ICON : undefined)
+  })
+
+  /** The drawn `<epic-ask>` `element` is an option of, if any. */
+  private static askFor(element: Element): EpicAsk | undefined {
+    const host = EpicAsk.askOf(element) as E.DOMElement | null
+    return host?.component as EpicAsk | undefined
+  }
+
+  /** While connected, find its question again:  it may have moved. */
+  @E.whileConnected
+  protected findAsk() {
+    this.ask = EpicOption.askFor(this.domElement)
+    return undefined
   }
 
   ////////////////
@@ -165,7 +230,9 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
       this.questionIsAnswered ? PANEL : CARD,
       this.isChosen && CHOSEN_CLASS,
       this.isPicked && PICKED,
-      sent && SENT
+      sent && SENT,
+      this.isAnswering && ANSWERING,
+      this.isTicked && TICKED
     ]
     return classes.filter(Boolean).join(" ")
   }
@@ -191,42 +258,9 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   render(): JSX.Element {
     return (
       <div class={this.rootClass} part={this.partForName("base")}>
-        <div class={HEADER} part={this.partForName("header")}>
-          <Dynamic
-            component={this.canFold ? "button" : "span"}
-            type={this.canFold ? "button" : undefined}
-            class={TOGGLE}
-            part={this.partForName("toggle")}
-            aria-expanded={this.canFold ? (this.isOpen ? "true" : "false") : undefined}
-            aria-controls={this.canFold ? BODY_ID : undefined}
-            onClick={this.onHeaderClick}
-          >
-            <Show when={this.canFold}>{Fold.chevron()}</Show>
-            <Show when={this.isChosen && this.questionIsAnswered}>
-              <svg class={CHECK} part={this.partForName("check")} viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M2.5 8.5l3.5 3.5 7.5-8" />
-              </svg>
-            </Show>
-            <span class={TITLE} part={this.partForName("title")}>
-              {this.letter}
-              {LETTER_SEPARATOR}
-              <slot name={this.slotForName("title")}>{this.title}</slot>
-              <Show when={this.recommended}>
-                {" "}
-                <span
-                  class={RECOMMENDED}
-                  part={this.partForName("recommended")}
-                  role="img"
-                  aria-label={this.translationForKey("recommended")}
-                  title={this.translationForKey("recommended")}
-                >
-                  {this.thumbsUp.svg}
-                </span>
-              </Show>
-            </span>
-          </Dynamic>
-          <Show when={this.pill}>{(pill) => this.pillButton(pill)}</Show>
-        </div>
+        <Show when={this.ask} fallback={this.reviewHeader()}>
+          {(ask) => this.answeringHeader(ask)}
+        </Show>
         <div
           ref={this.fold.watch}
           id={BODY_ID}
@@ -236,6 +270,149 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
         >
           <slot />
         </div>
+        <Show when={this.ask}>
+          {(ask) => (
+            <epic-text-box
+              class={COMMENT}
+              part={this.partForName("comment")}
+              type="comment"
+              for={`${ask().key}-${this.letter ?? ""}`}
+              placeholder={this.translationForKey("commentOn", { letter: this.letter ?? "" })}
+              label={this.translationForKey("commentLabel", { letter: this.letter ?? "", title: this.title ?? "" })}
+            />
+          )}
+        </Show>
+      </div>
+    )
+  }
+
+  /**
+   * An answering option's header (`ask`, `<Show>`'s accessor):  the fold chevron (with pros and cons), the tick box
+   * labelled by `A · title` and the thumbs-up, the badge;  at its end the (?) and the state icon.
+   */
+  private answeringHeader(ask: Accessor<EpicAsk>): JSX.Element {
+    return (
+      <div class={HEADER} part={this.partForName("header")}>
+        <Show when={this.canFold}>
+          <button
+            type="button"
+            class={FOLD}
+            part={this.partForName("toggle")}
+            aria-expanded={this.isOpen ? "true" : "false"}
+            aria-controls={BODY_ID}
+            title={this.translationForKey(this.isOpen ? "foldTip" : "unfoldTip", { letter: this.letter ?? "" })}
+            onClick={this.fold.toggle}
+          >
+            {Fold.chevron()}
+          </button>
+        </Show>
+        <label class={PICK}>
+          <input
+            type={ask().multiple ? "checkbox" : "radio"}
+            class={TICK}
+            part={this.partForName("tick")}
+            checked={this.isTicked}
+            onChange={this.onTick}
+          />
+          <span class={TITLE} part={this.partForName("title")}>
+            {this.letter}
+            {LETTER_SEPARATOR}
+            <slot name={this.slotForName("title")}>{this.title}</slot>
+            {this.recommendedMark()}
+          </span>
+        </label>
+        <Show when={this.badge}>
+          <ui-label
+            class={BADGE}
+            part={this.partForName("badge")}
+            size="mini"
+            basic=""
+            color={this.badgeColor ?? "grey"}
+          >
+            {this.badge}
+          </ui-label>
+        </Show>
+        <span class={MARKS}>
+          <Show when={ask().moreDetails}>
+            <button
+              type="button"
+              class={MORE}
+              part={this.partForName("more")}
+              aria-pressed={this.wantsMore ? "true" : "false"}
+              aria-label={this.translationForKey("moreTip")}
+              title={this.translationForKey("moreTip")}
+              onClick={this.onMore}
+            >
+              {this.moreGlyph.svg}
+            </button>
+          </Show>
+          <Show when={this.stateIcon}>
+            <span
+              class={STATE_MARK}
+              part={this.partForName("state")}
+              data-color={this.stateColor ?? "grey"}
+              role="img"
+              aria-label={this.stateLabel ?? this.stateIcon}
+              title={this.stateLabel}
+            >
+              {this.stateGlyph.svg}
+            </span>
+          </Show>
+        </span>
+      </div>
+    )
+  }
+
+  /** The recommended one's thumbs-up, after its title:  violet, no word. */
+  private recommendedMark(): JSX.Element {
+    return (
+      <Show when={this.recommended}>
+        {" "}
+        <span
+          class={RECOMMENDED}
+          part={this.partForName("recommended")}
+          role="img"
+          aria-label={this.translationForKey("recommended")}
+          title={this.translationForKey("recommended")}
+        >
+          {this.thumbsUp.svg}
+        </span>
+      </Show>
+    )
+  }
+
+  /** An epic page's option's header:  the fold toggle (its whole title), the Choose pill while reviewed. */
+  private reviewHeader(): JSX.Element {
+    return (
+      <div class={HEADER} part={this.partForName("header")}>
+        <Dynamic
+          component={this.canFold ? "button" : "span"}
+          type={this.canFold ? "button" : undefined}
+          class={TOGGLE}
+          part={this.partForName("toggle")}
+          aria-expanded={this.canFold ? (this.isOpen ? "true" : "false") : undefined}
+          aria-controls={this.canFold ? BODY_ID : undefined}
+          title={
+            this.canFold
+              ? this.translationForKey(this.isOpen ? "foldTip" : "unfoldTip", { letter: this.letter ?? "" })
+              : undefined
+          }
+          onClick={this.onHeaderClick}
+        >
+          <Show when={this.canFold}>{Fold.chevron()}</Show>
+          <Show when={this.isChosen && this.questionIsAnswered}>
+            <svg class={CHECK} part={this.partForName("check")} viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M2.5 8.5l3.5 3.5 7.5-8" />
+            </svg>
+          </Show>
+          <span class={TITLE} part={this.partForName("title")}>
+            {this.letter}
+            {LETTER_SEPARATOR}
+            <slot name={this.slotForName("title")}>{this.title}</slot>
+            {this.recommendedMark()}
+          </span>
+        </Dynamic>
+        <Show when={this.pill}>{(pill) => this.pillButton(pill)}</Show>
       </div>
     )
   }
@@ -284,6 +461,18 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   ////////////////
   // ## Events
   ////////////////
+
+  /** Answering:  its tick box changed:  its question hears it (`ui-change`);  unticked, its (?) goes off too. */
+  private readonly onTick = (event: Event) => {
+    const selected = (event.currentTarget as HTMLInputElement).checked
+    this.send("ui-change", { letter: this.letter ?? "", selected, more: selected && this.wantsMore })
+  }
+
+  /** Answering:  its (?) pressed:  on, it's ticked too;  off, its tick stays as it is. */
+  private readonly onMore = () => {
+    const more = !this.wantsMore
+    this.send("ui-change", { letter: this.letter ?? "", selected: more || this.isTicked, more })
+  }
 
   /** A click on its header:  folds its card or panel (a card with no pros and cons has nothing to fold). */
   private readonly onHeaderClick = () => {
@@ -379,6 +568,25 @@ const SENT = "sent"
 
 /** Class word on the pill of its set's chosen option:  the pick applied, solid. */
 const APPLIED = "applied"
+
+/** Class words of an answering option (an `<epic-ask>`'s):  the box, ticked. */
+const ANSWERING = "answering"
+const TICKED = "ticked"
+
+/** Classes of an answering option's header:  its fold button, the label around tick and title, the tick box. */
+const FOLD = "fold"
+const PICK = "pick"
+const TICK = "tick"
+
+/** Classes of an answering option's badge, the box at its header's end, the (?), its state icon, its comment box. */
+const BADGE = "badge"
+const MARKS = "marks"
+const MORE = "more"
+const STATE_MARK = "state-mark"
+const COMMENT = "comment"
+
+/** The (?) of "Provide more details". */
+const MORE_ICON = "circle question"
 
 /** The body's class word with no pros and cons:  not drawn. */
 const EMPTY = "empty"

@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>TypeExplorer</title>
+    <meta name="description" content="The scopes a project parses in, as a tree, with the details of the one picked." />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="TypeExplorer">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../../packages/app/src/solid/TypeExplorer.tsx"
+              icon="code"
+              aria-label="Its code, TypeExplorer.tsx"
+              title="Its code, TypeExplorer.tsx"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            TypeExplorer
+            <ui-header>The scopes a project parses in, as a tree, with the details of the one picked.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <p class="lede">
+            The "Type Explorer" tab of a runner's debug pane: everything a project's code declares, and all it can use,
+            as a tree of scopes on the left, and the details of the one picked on the right. It's how you see what spell
+            made of your code: its types, their properties and actions, and the javascript each became.
+          </p>
+          <ui-list class="spell-meta">
+            <ui-item icon="user">Written for: anyone changing the runners' debug pane, or reading its code</ui-item>
+            <ui-item icon="play"
+              >Live: a real <code>&lt;spell-app&gt;</code>, its debug pane opened on this tab</ui-item
+            >
+          </ui-list>
+
+          <ui-section id="1-example" header="1. Example" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="eye"></ui-icon>
+            <p>
+              Solitaire, its debug pane open on "Type Explorer": the pane under the game IS this component. In the
+              "Scopes" tree, open Card.spell under Solitaire and click Card, to see its details beside it.
+            </p>
+            <ui-docs-example description="Solitaire, its debug pane on the Type Explorer tab.">
+              <spell-app project="@spell/examples/solitaire" toolbar debug="explorer" height="820px"></spell-app>
+            </ui-docs-example>
+            <p class="meta">
+              Live, from <code>/element/spell.pack.js</code> (<code>yarn build:element</code> in
+              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >), which this set's pages load.
+            </p>
+          </ui-section>
+
+          <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="code"></ui-icon>
+            <p>
+              Each runner draws one in its debug pane. VS Code's runner gives it the most: the scopes the extension
+              sends, and a way to save docstrings and refresh:
+            </p>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>VSCodeRunner.tsx · the Type Explorer tab · 14 lines</ui-title>
+              <ui-content>
+                <ui-code language="typescript"
+                  ><script type="text/plain">
+                    /** The Type Explorer, from the scopes the extension sends. */
+                    function explorer() {
+                      return (
+                        <TypeExplorer
+                          tree={tree()}
+                          onOpen={(href) => post({ type: "open", href })}
+                          onSaveDescription={(at, text) => post({ type: "setDescription", ...at, text })}
+                          loadDetails={loadDetails}
+                          onRefresh={() => post({ type: "refreshScopes" })}
+                          state={settings().typeExplorer}
+                          onStateChange={(typeExplorer) => save({ typeExplorer })}
+                        />
+                      )
+                    }
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+            <ul>
+              <li>
+                <code>tree</code> is the tree of scopes: from the language server in VS Code, or from the project's
+                scope pack in a
+                <a href="spell-app.html" target="src-packages-app-docs-spell-app-html"><code>&lt;spell-app&gt;</code></a
+                >, which needs no parser in the page.
+              </li>
+              <li>
+                A scope's details are asked for with <code>loadDetails()</code> the first time it's picked, and kept
+                until a new tree comes.
+              </li>
+              <li>
+                The right side is a
+                <a href="ScopeDetailsPane.html" target="src-packages-app-docs-scopedetailspane-html">ScopeDetailsPane</a
+                >, made afresh for each scope picked.
+              </li>
+              <li>
+                It lists things as they're declared, with a marker for each heading they're under, or in alphabetical
+                order: the buttons in its header switch.
+              </li>
+              <li>
+                What's picked and open is kept by each scope's path, so it stays put as new trees come in, after each
+                run. <code>state</code> and <code>onStateChange</code> remember it, else it's kept in the browser.
+              </li>
+              <li><code>readonly</code>, as in a <code>&lt;spell-app&gt;</code>: docstrings can't be edited.</li>
+              <li>
+                Each row of its tree is a <a href="#TreeRow">TreeRow</a>: its arrow opens and closes it, the rest picks
+                it. The
+                <a href="ThingExplorer.html" target="src-packages-app-docs-thingexplorer-html">ThingExplorer</a>'s tree
+                uses it too.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="3-props" header="3. Props, and where it's drawn" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="list check"></ui-icon>
+            <ui-docs-api family="TypeExplorer"></ui-docs-api>
+            <p class="meta">
+              From its code, by <code>yarn site:data</code> in
+              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="4-its-code" header="4. Its code" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="folder open"></ui-icon>
+            <ul>
+              <li>
+                <a
+                  href="../../packages/app/src/solid/TypeExplorer.tsx"
+                  target="src-packages-app-src-solid-typeexplorer-tsx"
+                  ><code title="packages/app/src/solid/TypeExplorer.tsx">TypeExplorer.tsx</code></a
+                >: the component and its props, its tree's rows, and <code>TreeRow</code>
+              </li>
+              <li>
+                <a
+                  href="../../packages/app/src/solid/TypeExplorer.css"
+                  target="src-packages-app-src-solid-typeexplorer-css"
+                  ><code title="packages/app/src/solid/TypeExplorer.css">TypeExplorer.css</code></a
+                >: its look, which the Thing Explorer shares
+              </li>
+              <li>
+                Its tests:
+                <a
+                  href="../../tests/app/src/solid/TypeExplorer.test.tsx"
+                  target="src-tests-app-src-solid-typeexplorer-test-tsx"
+                  ><code title="tests/app/src/solid/TypeExplorer.test.tsx">TypeExplorer.test.tsx</code></a
+                >,
+                <a
+                  href="../../tests/app/src/solid/TypeExplorer.browser.test.tsx"
+                  target="src-tests-app-src-solid-typeexplorer-browser-test-tsx"
+                  ><code title="tests/app/src/solid/TypeExplorer.browser.test.tsx"
+                    >TypeExplorer.browser.test.tsx</code
+                  ></a
+                >
+              </li>
+              <li>
+                Where the runners draw it:
+                <a
+                  href="../../packages/app/src/runner/SpellAppRunner.tsx"
+                  target="src-packages-app-src-runner-spellapprunner-tsx"
+                  ><code title="packages/app/src/runner/SpellAppRunner.tsx">SpellAppRunner.tsx</code></a
+                >,
+                <a
+                  href="../../packages/app/src/runner/VSCodeRunner.tsx"
+                  target="src-packages-app-src-runner-vscoderunner-tsx"
+                  ><code title="packages/app/src/runner/VSCodeRunner.tsx">VSCodeRunner.tsx</code></a
+                >
+              </li>
+            </ul>
+          </ui-section>
+
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">Last checked 2026-10-12 against branch <code>epic-workflow</code>.</p>
+          </footer>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

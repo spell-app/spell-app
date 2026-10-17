@@ -9,11 +9,11 @@
   "scripts": {
     "/////// CORRECTNESS": "",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
-    "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc && tsc -p tsconfig.node.json && echo '<< TSC PASSED\n'",
-    "lint": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT' && vp lint --report-unused-disable-directives --max-warnings 0 src && echo '<< OXLINT PASSED\n'",
-    "lint:fix": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT --fix' && vp lint --fix src && echo '<< OXLINT PASSED\n'",
-    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && vp fmt . && echo '<< OXFMT PASSED\n'",
-    "format:check": "vp fmt --check .",
+    "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc && tsc -p tsconfig.node.json && tsc -p ../../tests/util && echo '<< TSC PASSED\n'",
+    "lint": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT' && vp lint --report-unused-disable-directives --max-warnings 0 src && cd ../../tests/util && vp lint --report-unused-disable-directives --max-warnings 0 . && echo '<< OXLINT PASSED\n'",
+    "lint:fix": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT --fix' && vp lint --fix src && cd ../../tests/util && vp lint --fix . && echo '<< OXLINT PASSED\n'",
+    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && vp fmt . && cd ../../tests/util && vp fmt . && echo '<< OXFMT PASSED\n'",
+    "format:check": "vp fmt --check . && cd ../../tests/util && vp fmt --check .",
     "/////// TESTING": "",
     "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vp test run && echo '<< TESTS PASSED\n'",
     "test:watch": "vp test"
@@ -25,8 +25,7 @@
     "lodash": "^4.17.21",
     "node-storage-shim": "^2.0.1",
     "pluralize": "^8.0.0",
-    "query-string": "^6.12.1",
-    "react": "^18.2.0"
+    "query-string": "^6.12.1"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.17",

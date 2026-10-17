@@ -1,0 +1,300 @@
+<!doctype html>
+<!--
+  Brand UI's home:  the docs set of the `<brand-*>` elements (`packages/brand/docs/`, served at `/components/brand/`;
+  epic `people-and-orgs` P18), in Spell UI's page shape, inside the set's layout (`__parts/layout.html`).
+  - Every element, grouped as the side column groups them (`__data/pages.json5`), each linked to its page.
+  - The specimen at the end comes from the Brand tab's old specimen page (`brand/components/components.spell.html`),
+    its styles INSIDE `main`:  the site swaps only `main` between its pages.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>The Brand Elements</title>
+    <meta
+      name="description"
+      content="Every <brand-*> element the Brand tab's pages are built from, how to load them, and a page for each."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="The Brand Elements">
+      <style>
+        /* the specimen's rows:  layout only, every colour, font and radius from the theme */
+        .brand-home-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 16px;
+          align-items: start;
+        }
+      </style>
+
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../../packages/brand/components/"
+              icon="code"
+              aria-label="The elements' code"
+              title="The elements' code"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            The Brand Elements
+            <ui-header
+              >Every &lt;brand-*&gt; element the Brand tab's pages are built from, how to load them, and a page for
+              each.</ui-header
+            >
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <ui-list class="spell-meta">
+            <ui-item icon="user"
+              >Written for: anyone building a page in Spell's brand, or changing one of its elements</ui-item
+            >
+            <ui-item icon="flag"
+              >Status: <ui-label size="mini" color="green">built</ui-label> every tag in
+              <a
+                href="../../packages/brand/components/"
+                target="src-packages-brand-components"
+                title="packages/brand/components/"
+                ><code>components/</code></a
+              ></ui-item
+            >
+            <ui-item icon="swatchbook"
+              >The pages they're for:
+              <a href="../../brand/index.html" target="src-brand-index-html">the Brand tab</a></ui-item
+            >
+          </ui-list>
+
+          <ui-section id="1-loading-them" header="1. Loading them" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="box open"></ui-icon>
+            <ul>
+              <li>
+                They're a COMPONENT PACK:
+                <code title="packages/brand/components/__pack/brand.pack.js">brand.pack.js</code>, one script, built by
+                <code>spell dev pack build brand</code>.
+              </li>
+              <li>
+                A page names it in its <code>&lt;ui-root&gt;</code>, which loads it the first time a
+                <code>brand-</code> tag shows up, and draws each tag's skeleton until then.
+              </li>
+              <li>
+                Each element is a Spell UI element: it reads Spell UI's tokens, and the brand roles
+                (<code>--spell-*</code>) of the <code>spell-brand</code> theme where the page has it.
+              </li>
+            </ul>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>A page with the brand's elements · 4 lines</ui-title>
+              <ui-content>
+                <ui-code language="html"
+                  ><script type="text/plain">
+                    <ui-root>
+                      <ui-components source="/packages/brand/components/__pack/brand.pack.js"></ui-components>
+                      <brand-logo variant="lockup"></brand-logo>
+                    </ui-root>
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+            <p>
+              The Brand tab's own copies load the whole brand bundle instead (<code>brand-ui.js</code>, with the
+              <code>spell-brand</code> theme):
+              <a
+                href="../../packages/brand/AGENTS.md"
+                target="src-packages-brand-agents-md"
+                title="packages/brand/AGENTS.md"
+                >the brand package's notes</a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="2-colour" header="2. Colour" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="palette"></ui-icon>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tag</th>
+                    <th>What it is</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><a href="brand-color.html"><code>brand-color</code></a></td>
+                    <td>A square colour chip: a label inside, an AA mark, a selected ring, a details tip; click to copy.</td>
+                  </tr>
+                  <tr>
+                    <td><a href="brand-color-set.html"><code>brand-color-set</code></a></td>
+                    <td>Colour chips in a row or a grid; <code>selectable</code> makes it a radio group to pick one.</td>
+                  </tr>
+                  <tr>
+                    <td><a href="brand-color-range.html"><code>brand-color-range</code></a></td>
+                    <td>A 17-step ladder of shades made from one base colour, the base colour's step ringed.</td>
+                  </tr>
+                  <tr>
+                    <td><a href="brand-color-picker.html"><code>brand-color-picker</code></a></td>
+                    <td>Chooses a colour by lightness and colourfulness for a hue, or by typing its hex or OKLCH.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+
+          <ui-section id="3-fields-and-casting" header="3. Fields and casting" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="wand magic sparkles"></ui-icon>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tag</th>
+                    <th>What it is</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><a href="brand-field.html"><code>brand-field</code></a></td>
+                    <td>One control with its label, a value readout, action buttons, an info tip, help and errors.</td>
+                  </tr>
+                  <tr>
+                    <td><a href="brand-composer.html"><code>brand-composer</code></a></td>
+                    <td>
+                      The box where you describe an app in plain words and cast it: a serif text box, tool chips, a
+                      keyboard hint and a round Cast button.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+
+          <ui-section id="4-the-apps-pieces" header="4. The app's pieces" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="mobile screen"></ui-icon>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tag</th>
+                    <th>What it is</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><a href="brand-checklist.html"><code>brand-checklist</code></a></td>
+                    <td>
+                      A build's progress step by step, or a list of things to tick off, each with a round mark;  its
+                      lines are <code>brand-check</code>s.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><a href="brand-phone.html"><code>brand-phone</code></a></td>
+                    <td>Live app content framed as a phone: a status bar on top, the app below.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+
+          <ui-section id="5-page-art" header="5. Page art" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="feather"></ui-icon>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tag</th>
+                    <th>What it is</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><a href="brand-logo.html"><code>brand-logo</code></a></td>
+                    <td>The Spell logo: the hat mark, or the mark with the wordmark (and tagline), outlined, in one colour.</td>
+                  </tr>
+                  <tr>
+                    <td><a href="brand-flourish.html"><code>brand-flourish</code></a></td>
+                    <td>Generated page art (swoops, blobs, curls, sparkles) behind its parent's content.</td>
+                  </tr>
+                  <tr>
+                    <td><a href="brand-blob.html"><code>brand-blob</code></a></td>
+                    <td>One soft lavender shape tucked into a corner of its parent, never behind body text.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+
+          <ui-section id="6-specimen" header="6. Specimen" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="eye"></ui-icon>
+            <p>
+              Brand fields in Spell UI's panels, as the Theme Creator's inspector has them: an info tip, a value
+              readout, action buttons, help and an error.
+            </p>
+            <div class="brand-home-row">
+              <ui-panel header="Color Set" collapsible style="width: 380px">
+                <ui-input placeholder="Name, e.g. brand" aria-label="Name"></ui-input>
+                <brand-field
+                  label="Base color"
+                  value="#8E96B5"
+                  info="The color the set is built around.  Pick one, or paste a hex or OKLCH value."
+                >
+                  <ui-input value="#8E96B5"></ui-input>
+                </brand-field>
+                <ui-panel header="Tweak" collapsible>
+                  <brand-field
+                    label="Base color sits at"
+                    value="400"
+                    info="Which of the 17 steps the base color lands on.  Auto picks the step closest in lightness."
+                  >
+                    <ui-button slot="actions" size="mini" circular basic icon="check">Auto</ui-button>
+                    <ui-slider min="0" max="16" value="6" ticked></ui-slider>
+                  </brand-field>
+                  <brand-field label="Vibrancy" value="100%" info="How colourful the middle steps are.">
+                    <ui-button slot="actions" size="mini" circular basic icon="rotate left">Reset</ui-button>
+                    <ui-slider min="0" max="200" step="20" value="100" ticked></ui-slider>
+                  </brand-field>
+                </ui-panel>
+              </ui-panel>
+              <ui-panel header="A form" style="width: 320px">
+                <brand-field label="Email" required error="That doesn't look like an email.">
+                  <ui-input value="owen@" type="email"></ui-input>
+                </brand-field>
+                <brand-field label="App name" help="Shown on the home screen.">
+                  <ui-input value="Habit Tracker"></ui-input>
+                </brand-field>
+                <brand-field label="Notifications" inline>
+                  <ui-checkbox type="toggle" selected></ui-checkbox>
+                </brand-field>
+              </ui-panel>
+            </div>
+            <div class="brand-home-row">
+              <brand-logo variant="lockup" tone="purple"></brand-logo>
+              <brand-color-set selectable value="violet" aria-label="Presets">
+                <brand-color name="brand" value="#8E96B5"></brand-color>
+                <brand-color name="violet" value="#6550CA"></brand-color>
+                <brand-color name="teal" value="#14A39A"></brand-color>
+                <brand-color name="rose" value="#E8436A"></brand-color>
+              </brand-color-set>
+            </div>
+          </ui-section>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

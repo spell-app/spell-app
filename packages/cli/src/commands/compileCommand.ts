@@ -1,23 +1,37 @@
-import { basename } from "path"
+import { basename, resolve } from "path"
 import { fileURLToPath } from "url"
 
 import { describeTypecheckError, typecheck } from "$/spell/node/typecheck"
+import { describePyrightError, pyright } from "$/spell/node/pyright"
 import { SP } from "$/spell"
+import { buildFolderFor } from "$/spaces/server/node/projects/project-utils"
 import { CLI } from "$/cli"
 
 /**
  * `spell compile <project...>`:  compile each project (or lone spell file), showing progress and errors on stderr.
- * - A project:  writes `<Project>.compiled.js` and `<Project>.declarations.json`, as the app does, plus each other
- *   target's output, e.g. `<Project>.compiled.ts` -- see `SP.TARGETS` -- or, with `--stdout`, prints one and
- *   writes nothing.  `--target <name>`:  that target, this run, instead of `project.json`'s.
- *   A target checked by `tsc` (`ts/solid`) is checked once written:  its errors are listed, but don't fail the
- *   compile -- see `typecheckTargets()`.
- *   Compiled with no errors, it also writes `<Project>.scopes.js`, as the language server does -- see
- *   `SpellDiskWorkspace.writeScopes()`.
+ * - A project:  writes what the app does, plus each other target's output:
+ *   - `<Project>.spell.js`, `<Project>.declarations.json5`
+ *   - its words, `<Project>.en.js` (`SP.SpellWords`)
+ *   - each other target's, e.g. `<Project>.spell.tsx` -- see `SP.TARGETS`
+ *   - `--target <name>`:  that target, this run, instead of the project file's
+ *   - `--stdout`:  prints one (the target asked for, else the one that runs), and writes nothing
+ * - A target with a checker is checked once written:  `tsc` on `ts/solid` and a library (`ts/lib`), `pyright` on `py`.
+ *   Its errors are listed, but don't fail the compile -- see `typecheckTargets()`.
+ * - Compiled with no errors, it also writes `<Project>.scopes.js`, as the language server does:
+ *   see `SpellDiskWorkspace.writeScopes()`.
+ * - A library (`ts/lib`) compiled with no errors also gets each of its types' JSON Schema, for VS Code:
+ *   `<build folder>/schemas/Person.schema.json` (`CLI.writeSchemas()`, epic `people-and-orgs` P5).
  * - A `.spell` file:  prints its compiled javascript.  Writes nothing.
  * - Projects it imports that have never been compiled are compiled first -- see `CliSession.compileImports()`.
  *   `--force`:  ALL of them, even those already compiled.
+ * - `--stale`:  only the projects whose build is missing or out of date, and the same for what they import.
+ *   - the rest are listed as up to date
+ *   - what counts:  `CLI.staleBecause()`
+ *   - the page server runs it when it starts, for `@spell/examples` and `@spell/library`
+ *     (`ProjectBuild`, in `$/spaces`)
  * - Returns the exit code:  `EXIT.ERRORS` if anything had errors.
+ *   Warnings, e.g. a property with no type (`SP.SpellWarnings`), are listed under the errors, never counted:
+ *   a project with only warnings compiles clean, its scope pack too.
  * - NOTE: a line which doesn't parse doesn't stop the compile -- it compiles to a `PARSE ERROR` comment.
  */
 export async function compileCommand(
@@ -25,6 +39,8 @@ export async function compileCommand(
   args: string[],
   options: CLI.CompileOptions
 ): Promise<number> {
+  if (options.stale && options.stdout)
+    throw new CLI.CliError("--stale writes only what's out of date;  --stdout writes nothing")
   const resolvedProjects = await session.projects(args)
   const status = new CLI.StatusReporter(session.isInteractive)
   // printed once `status` is done, so the two don't interleave
@@ -54,12 +70,20 @@ async function compileProject(
   project: SP.SpellProject,
   status: CLI.StatusReporter,
   output: string[],
-  { stdout, force, target }: CLI.CompileOptions
+  { stdout, force, stale, target }: CLI.CompileOptions
 ): Promise<boolean> {
   const row = status.start(project.projectId)
   let targets: SP.Target[]
+  let why: string | undefined
   try {
-    await session.compileImports(project, status, force)
+    await session.compileImports(project, status, { force, stale })
+    if (stale) {
+      why = await CLI.staleBecause(project)
+      if (!why) {
+        status.done(row, "ok", "up to date")
+        return true
+      }
+    }
     await project.compile(undefined, { save: !stdout, targets: target ? [target] : undefined })
     targets = project.targets
   } catch (error) {
@@ -69,15 +93,20 @@ async function compileProject(
   // `--stdout`:  the target asked for, else the one that runs
   const printed = targets.find(({ name }) => name === target) ?? targets[0]!
   if (stdout) output.push(project.outputFileFor(printed).contents ?? "")
-  const files = [...targets.map((it) => project.outputFileFor(it)), project.declarationsFile]
+  const files = [...targets.map((it) => project.outputFileFor(it)), project.declarationsFile, project.wordsFile]
   const wrote = stdout ? [] : files.map((file) => file.location.serverPath)
   // a CLEAN compile writes its scope pack too, as the language server does
   if (!stdout && !session.problems(project).length) {
     wrote.push(await session.workspace.writeScopes(project, session.explorer))
   }
-  const checked = stdout ? { count: 0, details: [] } : typecheckTargets(session, project, targets)
+  const checked = stdout ? { counts: {}, details: [] } : typecheckTargets(session, project, targets)
+  const schemaProblem = stdout ? undefined : await writeLibrarySchemas(session, project, targets, wrote)
   const notes = [
-    checked.count && `${checked.count} tsc error${checked.count === 1 ? "" : "s"}`,
+    why,
+    schemaProblem,
+    ...Object.entries(checked.counts).map(
+      ([checker, count]) => count && `${count} ${checker} error${count === 1 ? "" : "s"}`
+    ),
     wrote.length && `wrote ${wrote.map((path) => session.relative(path)).join(", ")}`
   ]
   const note = notes.filter(Boolean).join(" · ") || undefined
@@ -85,28 +114,61 @@ async function compileProject(
 }
 
 /**
- * `tsc` on each of `project`'s targets checked by it (`ts/solid`), as just written:  its errors, as lines under the
- * project, e.g. `Solitaire.compiled.ts:135:18  TS18048 ...`.
- * - Shown, NOT counted as the project's errors:  most come from `@spell/core`'s loose types, not the spell (epic
- *   `output-targets`, C5) -- the exit code stays the spell's.
+ * A clean library's JSON Schemas, each type's, into its build folder's `schemas/` -- their paths added to `wrote`.
+ * - Returns what went wrong, as a note, if anything did;  a compile with errors, or no library target, writes none.
+ */
+async function writeLibrarySchemas(
+  session: CLI.CliSession,
+  project: SP.SpellProject,
+  targets: SP.Target[],
+  wrote: string[]
+): Promise<string | undefined> {
+  const library = targets.find(({ name }) => name === "ts/lib")
+  if (!library || session.problems(project).length) return undefined
+  try {
+    const projectFolder = new SP.SpellLocation(project.projectId).serverPath
+    const folder = resolve(buildFolderFor(projectFolder), "schemas")
+    wrote.push(...(await CLI.writeSchemas(project.outputFileFor(library).location.serverPath, folder)))
+    return undefined
+  } catch (error) {
+    return `no JSON Schemas:  ${error instanceof Error ? error.message : String(error)}`
+  }
+}
+
+/**
+ * Each of `project`'s targets' checker on it, as just written:
+ * `tsc` on `ts/solid`, `pyright` on `py` (epic `python-target` P13).
+ * - Returns its errors, as lines under the project, e.g. `Solitaire.spell.tsx:135:18  TS18048 ...`,
+ *   and how many, by checker.
+ * - Shown, NOT counted as the project's errors:
+ *   most come from the core's loose types, not the spell (epic `output-targets`, C5).
+ *   The exit code stays the spell's.
  */
 function typecheckTargets(
   session: CLI.CliSession,
   project: SP.SpellProject,
   targets: SP.Target[]
-): { count: number; details: string[] } {
+): { counts: Record<string, number>; details: string[] } {
   const details: string[] = []
+  const counts: Record<string, number> = {}
   const projects = Object.fromEntries(
     Object.entries(CLI.importedOutputs(project)).map(([id, url]) => [id, fileURLToPath(url)])
   )
-  for (const target of targets.filter((it) => it.checkedBy === "tsc")) {
+  for (const target of targets) {
+    const checker = target.checkedBy
+    if (!checker) continue
     const file = project.outputFileFor(target)
     const name = basename(file.location.serverPath)
-    const { errors } = typecheck({ [name]: file.contents ?? "" }, { projects })
     const path = session.relative(file.location.serverPath)
-    details.push(...errors[name]!.map((error) => `${path}:${describeTypecheckError(error)}`))
+    const code = { [name]: file.contents ?? "" }
+    const found =
+      checker === "pyright"
+        ? pyright(code).errors[name]!.map(describePyrightError)
+        : typecheck(code, { projects }).errors[name]!.map(describeTypecheckError)
+    counts[checker] = (counts[checker] ?? 0) + found.length
+    details.push(...found.map((error) => `${path}:${error}`))
   }
-  return { count: details.length, details }
+  return { counts, details }
 }
 
 /**

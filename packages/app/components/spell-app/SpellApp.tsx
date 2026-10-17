@@ -1,10 +1,12 @@
-import { Show, untrack } from "solid-js"
+import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 import { UIRoot, type RootVocabulary } from "$/ui/components/ui-root"
 // Import directly, NOT through the `$/spell` barrel, which would pull in the whole parser.
-import { SpellSetup } from "$/spell/SpellSetup"
+import { SpellUrls } from "$/spell/SpellUrls"
+// Import directly:  spell's project groups alone (for `@spell/examples/...`), without spaces' or spell's barrels
+import "$/spaces/models/projectGroups"
 // Import directly, NOT through the `$/app/runner` barrel, which would pull in `runCompiled()`, and so `spellCore`.
 import { SPELL_COMPILED_EVENT, type SpellCompiled } from "$/app/runner/runner.types"
 import { adoptShadowStyles } from "$/app/runner/shadowStyles"
@@ -92,8 +94,8 @@ const vocabulary = {
  * runs a compiled spell project in any page, in its own shadow root, with no editor.
  * It works out WHAT to run, and draws `<SpellAppRunner>` to run it.
  * - What to run, one of (see the vocabulary, `SpellApp.en.ts`):
- *   - `project="@system:examples:Solitaire"` (or `@examples/Solitaire`):  from the spell server's `/api`
- *   - `src="apps/Solitaire.compiled.js"`:  from anywhere, what goes with it beside it
+ *   - `project="@spell/examples/solitaire"`, a project's address:  from the spell server's `/api`
+ *   - `src="apps/Solitaire.spell.js"`:  from anywhere, what goes with it beside it
  *   - `editor="#ed"`:  what that `<spell-editor>` compiles (`SPELL_COMPILED_EVENT`), and what it compiled already
  *   - `run(compiled)`:  code pushed to us, e.g. by an editor whose `app` names us
  * - Code pushed (by `run()` or `editor`) wins over `project` / `src`,
@@ -108,9 +110,11 @@ const vocabulary = {
  *   - its `icons` default to `fomantic`:  the runner's icon names are Fomantic's.
  *     The page's own `ui-*` keep theirs
  *   - inside another root (a docs page, the editor demo), it's a nested root:  the outer one waits for it
- * - The PROGRAM draws with React;  Semantic UI's CSS is adopted into the shadow root (`adoptShadowStyles()`).
+ * - The PROGRAM draws with Solid too (Solid's own `h()`, from `@spell/core`), the page's one Solid;
+ *   Semantic UI's CSS is adopted into the shadow root (`adoptShadowStyles()`).
  * - `width` / `height` set our inline style, so page CSS works too.
  * - Leaving the page stops the app and lets go of its runtime, a microtask later:  a move in one go keeps it.
+ * - SEE:  its App UI components page, `packages/app/docs/spell-app.html` (`/components/app/spell-app.html`).
  ****************/
 export class SpellApp extends UIRoot<typeof vocabulary> {
   @E.proto static vocabulary = vocabulary
@@ -124,8 +128,8 @@ export class SpellApp extends UIRoot<typeof vocabulary> {
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
-    // where `assets` says as we join the page, else beside this script
-    const assets = new URL(untrack(() => this.assets) ?? BUNDLE, document.baseURI).href
+    // where `assets` says as we join the page, else beside this script (read once:  a component is built untracked)
+    const assets = new URL(this.assets ?? BUNDLE, document.baseURI).href
     void adoptShadowStyles(this.domElement.renderRoot, assets)
   }
 
@@ -272,6 +276,15 @@ export class SpellApp extends UIRoot<typeof vocabulary> {
     })
   }
 
+  /**
+   * Is the app laid out in markup inside us, e.g. `<spell-app><ui-row>...</ui-row></spell-app>`?
+   * - Then that markup is the app's drawing, and its `to draw` isn't drawn (epic `drawable-thing` P9, Q10).
+   * - Read as the runner starts:  markup added later doesn't switch a running app over.
+   */
+  get hasLayout(): boolean {
+    return this.domElement.children.length > 0
+  }
+
   /** The runner, or why there's nothing to run;  hidden while the root loads, if `display` says so. */
   protected content(): JSX.Element {
     return (
@@ -290,6 +303,7 @@ export class SpellApp extends UIRoot<typeof vocabulary> {
             <SpellAppRunner
               source={source()}
               toolbar={this.toolbar}
+              layout={this.hasLayout ? this.domElement : undefined}
               debug={this.debug}
               fluid={!cssSize(this.height)}
               runtimeUrl={new URL("spell-runtime.js", BUNDLE).href}
@@ -318,22 +332,34 @@ const BUNDLE = import.meta.url.slice(0, import.meta.url.lastIndexOf("/") + 1)
 /** Prefix of spell's own tags, which a `<spell-app>` loads from beside its script (`ownTagLoader()`). */
 const SPELL_TAG_PREFIX = "spell-"
 
-/** Where the spell server's API is:  the page's own. */
-const API = "/api/projects"
-
-/** What to run for `project="<projectId>"`:  from the spell server, sources and all. */
+/**
+ * What to run for `project="<projectId>"`:  from the spell server (the page's own), sources and all.
+ * - Every file by its URL, `/spaces/<project>/<file>` (`SpellUrls`):  a compiled file sits beside its source's.
+ */
 function projectSource(project: string): SpellAppSource {
-  const projectId = SpellSetup.expandAlias(project)
+  const projectId = project
   return {
-    name: projectId.slice(projectId.lastIndexOf(":") + 1),
-    compiledUrl: `${API}/compiled/${projectId}`,
-    declarationsUrl: `${API}/declarations/${projectId}`,
-    scopesUrl: `${API}/scopes/${projectId}`,
-    importUrl: (id) => `${API}/compiled/${SpellSetup.expandAlias(id)}`,
-    importDeclarationsUrl: (id) => `${API}/declarations/${SpellSetup.expandAlias(id)}`,
-    // `spell:/@system:examples:Solitaire/Card.spell` => its project id, then its file
-    sourceUrl: (uri) => `${API}/file/${decodeURI(uri.replace(/^spell:\//, ""))}`
+    name: nameOf(projectId),
+    compiledUrl: builtUrl(projectId, COMPILED_JS),
+    declarationsUrl: builtUrl(projectId, DECLARATIONS_JSON),
+    scopesUrl: builtUrl(projectId, SCOPES_JS),
+    importUrl: (id) => builtUrl(id, COMPILED_JS),
+    importDeclarationsUrl: (id) => builtUrl(id, DECLARATIONS_JSON),
+    wordsUrl: builtUrl(projectId, WORDS_JS),
+    importWordsUrl: (id) => builtUrl(id, WORDS_JS),
+    // `spell:/@spell/examples/solitaire/Card.spell` => its project id, then its file
+    sourceUrl: (uri) => SpellUrls.fileUrl(decodeURI(uri.replace(/^spell:\//, "")))
   }
+}
+
+/** Name of project `projectId`, e.g. `solitaire`:  its address's last part. */
+function nameOf(projectId: string): string {
+  return projectId.slice(projectId.lastIndexOf("/") + 1)
+}
+
+/** URL of project `projectId`'s `<project><suffix>`, e.g. `/spaces/@spell/examples/solitaire/solitaire.spell.js`. */
+function builtUrl(projectId: string, suffix: string): string {
+  return SpellUrls.fileUrl(`${projectId}/${nameOf(projectId)}${suffix}`)
 }
 
 /** What to run for `src="<url>"`:  from anywhere, with what goes with it beside it. */
@@ -344,10 +370,13 @@ function srcSource(src: string): SpellAppSource {
   return {
     name: isCompiled ? file.slice(0, -COMPILED_JS.length) : file,
     compiledUrl,
-    scopesUrl: isCompiled ? compiledUrl.replace(/\.compiled\.js(?=$|[?#])/, SCOPES_JS) : undefined,
-    declarationsUrl: isCompiled ? compiledUrl.replace(/\.compiled\.js(?=$|[?#])/, DECLARATIONS_JSON) : undefined,
-    importUrl: (id) => new URL(`${id.slice(id.lastIndexOf(":") + 1)}${COMPILED_JS}`, compiledUrl).href,
-    importDeclarationsUrl: (id) => new URL(`${id.slice(id.lastIndexOf(":") + 1)}${DECLARATIONS_JSON}`, compiledUrl).href
+    scopesUrl: isCompiled ? compiledUrl.replace(/\.spell\.js(?=$|[?#])/, SCOPES_JS) : undefined,
+    declarationsUrl: isCompiled ? compiledUrl.replace(/\.spell\.js(?=$|[?#])/, DECLARATIONS_JSON) : undefined,
+    wordsUrl: isCompiled ? compiledUrl.replace(/\.spell\.js(?=$|[?#])/, WORDS_JS) : undefined,
+    importUrl: (id) => new URL(`${id.slice(id.lastIndexOf("/") + 1)}${COMPILED_JS}`, compiledUrl).href,
+    importDeclarationsUrl: (id) =>
+      new URL(`${id.slice(id.lastIndexOf("/") + 1)}${DECLARATIONS_JSON}`, compiledUrl).href,
+    importWordsUrl: (id) => new URL(`${id.slice(id.lastIndexOf("/") + 1)}${WORDS_JS}`, compiledUrl).href
   }
 }
 
@@ -355,13 +384,16 @@ function srcSource(src: string): SpellAppSource {
  * End of a compiled project's file name:  `SP.COMPILED_JS_SUFFIX`.
  * - NOTE: copies, NOT imported:  `$/spell` would pull the whole parser into the bundle.
  */
-const COMPILED_JS = ".compiled.js"
+const COMPILED_JS = ".spell.js"
 
 /** End of a scope pack's file name:  `SP.SCOPES_JS_SUFFIX`. */
 const SCOPES_JS = ".scopes.js"
 
 /** End of a project's declarations file's name:  `SP.DECLARATIONS_JSON_SUFFIX`. */
-const DECLARATIONS_JSON = ".declarations.json"
+const DECLARATIONS_JSON = ".declarations.json5"
+
+/** End of a project's words file's name:  `SP.WORDS_JS_SUFFIX`. */
+const WORDS_JS = ".en.js"
 
 /** `width` / `height` attribute `value` as a CSS size:  `""` for `fluid`, or none. */
 function cssSize(value: string | null | undefined): string {

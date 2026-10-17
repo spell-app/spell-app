@@ -3,6 +3,8 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
+import { PhaseIds } from "$/epics/phases"
+
 // Import directly:  the page's signals, not its family's barrel (which would define `<epic-page>` here)
 import { EpicPage } from "$/epics/components/epic-page/EpicPage"
 // the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel
@@ -37,7 +39,7 @@ export class DOMEpicFoldElement extends E.DOMLoadableBodyElement<EpicFold<any>> 
 
 /****************
  * ### `EpicFold`
- * Base of the plan doc's FOLDING components -- `<epic-overview>`, `<epic-section>`, `<epic-phase>`:
+ * Base of the epic page's FOLDING components -- `<epic-overview>`, `<epic-section>`, `<epic-phase>`:
  * a title bar that sticks and folds, over the element's own children.
  * - The chrome is a `<ui-section sticky collapsible fold-icon="end">` in the shadow root (`renderFold()`):
  *   - its title bar drawn from the subclass's pieces
@@ -47,7 +49,7 @@ export class DOMEpicFoldElement extends E.DOMLoadableBodyElement<EpicFold<any>> 
  *     (its owner lookup climbs the flat tree)
  *   - the fold chevron
  *   - `hidden="until-found"`:  find-in-page and `#links` unfold it
- * - Folding:  `open` (page state, never in a doc:  plan docs open folded), `@controlled`.
+ * - Folding:  `open` (page state, never in a doc:  epic pages open folded), `@controlled`.
  *   - The inner section's own `ui-open` / `ui-close` are CANCELLED and stopped there:
  *     the DOM element announces its own (cancelable), then `open` changes and the inner section follows.
  *   - Find-in-page (`beforematch`, not cancelable) is adopted.
@@ -120,6 +122,12 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
   @E.untracked
   collapse(): boolean {
     return this.isOpen ? this.toggle() : false
+  }
+
+  /** Open it, if folded, as a click on its title would (`toggle()`);  true when it opened.  Expand-all's. */
+  @E.untracked
+  expand(): boolean {
+    return this.isOpen ? false : this.toggle()
   }
 
   /**
@@ -383,7 +391,8 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
    */
   @E.untracked
   private readonly followHash = () => {
-    const id = decodeURIComponent(location.hash.slice(1))
+    // an old phase address (`#p7`, from before stable ids) lands on the 7th phase (`PhaseIds.landing()`)
+    const id = PhaseIds.landing(document, decodeURIComponent(location.hash.slice(1)))
     if (!id) return
     const partIds = (this.foldAttrs.partIds ?? "").split(/\s+/)
     const element = document.getElementById(id)
@@ -392,21 +401,37 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
     void this.reveal().then(() => this.land(id))
   }
 
-  /** Scroll `id`'s element to just below the titles stuck over it, if this is the folding element holding it. */
+  /**
+   * Scroll `id`'s element to just below the titles stuck over it, if this is the folding element holding it.
+   * - the folds above it may still be opening (Spell UI animates them):
+   *   it follows the target until it stays put, for `LAND_MAX_FRAMES` at most
+   * - "stays put":  for `LAND_STILL_FRAMES`, it's at its line, or as near as the page lets it get
+   *   (a target near the page's end can't scroll up to its line)
+   * - stops at once when the reader does anything (`READER_INPUT`):  a click to fold, a wheel, a key
+   * - why (I7 of epic `airplane`):  it used to follow such a target for its whole second,
+   *   scrolling it back every frame, so a fold or a scroll in that second fought it, and the page jumped
+   */
   private land(id: string) {
     const target = document.getElementById(id)
     if (!target) return
     const holder = target === this.domElement ? this.domElement : target.parentElement?.closest(FOLD_TAGS)
     if (holder !== this.domElement) return
-    // the folds above it may still be opening (Spell UI animates them):  follow the target until it stays put
+    const reader = new AbortController()
+    for (const type of READER_INPUT)
+      window.addEventListener(type, () => reader.abort(), { once: true, passive: true, signal: reader.signal })
     let frames = 0
     let still = 0
     const step = () => {
+      if (reader.signal.aborted) return
       const line = target === this.domElement ? (this.inner?.stickTop ?? this.offset) : this.stack + LAND_GAP
       const off = target.getBoundingClientRect().top - line
-      if (Math.abs(off) >= 1) window.scrollTo({ top: window.scrollY + off })
-      still = Math.abs(off) < 1 ? still + 1 : 0
+      const before = window.scrollY
+      if (Math.abs(off) >= 1) window.scrollTo({ top: before + off, behavior: "instant" })
+      // in place, or as near as the page lets it get (the scroll went nowhere)
+      const put = Math.abs(off) < 1 || Math.abs(window.scrollY - before) < 1
+      still = put ? still + 1 : 0
       if (still < LAND_STILL_FRAMES && ++frames < LAND_MAX_FRAMES) E.beforeNextPaint(step)
+      else reader.abort()
     }
     E.beforeNextPaint(step)
   }
@@ -436,3 +461,6 @@ const LAND_STILL_FRAMES = 3
 
 /** Frames landing follows its target at most (~1s):  folds animating open above it. */
 const LAND_MAX_FRAMES = 60
+
+/** What the reader does that stops a landing:  he's moving on, from wherever it got to. */
+const READER_INPUT = ["pointerdown", "wheel", "touchstart", "keydown"] as const

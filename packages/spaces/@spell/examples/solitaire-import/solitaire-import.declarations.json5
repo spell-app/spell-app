@@ -1,0 +1,239 @@
+{
+  "spellVersion": "0.8.0",
+  "provides": [
+    "Game",
+    "StockPile",
+    "DiscardPile",
+    "Foundation",
+    "Tableau",
+    "debug_the_game",
+    "reset_the_stock_pile",
+    "play_from_the_stock_pile",
+    "deal_the_cards",
+    "auto_play",
+    "reset_the_game",
+    "cheat"
+  ],
+  "statements": [
+    {
+      "type": "Game",
+      "superType": "App",
+      "defined": "/Solitaire.spell:149-165"
+    },
+    {
+      "property": "score",
+      "of": "Game",
+      "datatype": "number",
+      "defined": "/Solitaire.spell:166-196"
+    },
+    {
+      "property": "state",
+      "of": "Game",
+      "datatype": "list of texts",
+      "defined": "/Solitaire.spell:2287-2422"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Game",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw a game",
+      "defined": "/Solitaire.spell:6853-8249"
+    },
+    {
+      "type": "StockPile",
+      "superType": "Pile",
+      "defined": "/Solitaire.spell:410-432"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "StockPile",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw a stock-pile",
+      "defined": "/Solitaire.spell:6548-6745"
+    },
+    {
+      "type": "DiscardPile",
+      "superType": "Pile",
+      "defined": "/Solitaire.spell:661-685"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "DiscardPile",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw a discard-pile",
+      "defined": "/Solitaire.spell:6747-6851"
+    },
+    {
+      "type": "Foundation",
+      "superType": "Pile",
+      "defined": "/Solitaire.spell:916-938"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Foundation",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw a foundation",
+      "defined": "/Solitaire.spell:6103-6448"
+    },
+    {
+      "type": "Tableau",
+      "superType": "Pile",
+      "defined": "/Solitaire.spell:1733-1752"
+    },
+    {
+      "syntax": "draw {thisArg:expression}",
+      "output": "draw",
+      "rule": "method_call",
+      "of": "Tableau",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "draw a tableau",
+      "defined": "/Solitaire.spell:6450-6546"
+    },
+    {
+      "syntax": "debug the game",
+      "output": "debug_the_game",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "defined": "/Solitaire.spell:2424-2498"
+    },
+    {
+      "syntax": "reset the stock pile",
+      "output": "reset_the_stock_pile",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "defined": "/Solitaire.spell:2500-2666"
+    },
+    {
+      "syntax": "play from the stock pile",
+      "output": "play_from_the_stock_pile",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "waits": true,
+      "defined": "/Solitaire.spell:2668-2855"
+    },
+    {
+      "syntax": "deal the cards",
+      "output": "deal_the_cards",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "waits": true,
+      "defined": "/Solitaire.spell:2857-3443"
+    },
+    {
+      "syntax": "play {thisArg:expression}",
+      "output": "play",
+      "rule": "method_call",
+      "of": "Card",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "method",
+      "name": "play a card",
+      "waits": true,
+      "defined": "/Solitaire.spell:3445-4437"
+    },
+    {
+      "syntax": "auto-play",
+      "output": "auto_play",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "waits": true,
+      "defined": "/Solitaire.spell:4481-5559"
+    },
+    {
+      "syntax": "reset the game",
+      "output": "reset_the_game",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "defined": "/Solitaire.spell:5561-5626"
+    },
+    {
+      "syntax": "cheat",
+      "output": "cheat",
+      "rule": "method_call",
+      "alias": [
+        "statement",
+        "expression"
+      ],
+      "kind": "function",
+      "returns": "nothing",
+      "waits": true,
+      "defined": "/Solitaire.spell:5628-6004"
+    }
+  ],
+  "codeLines": [
+    11,
+    12,
+    18,
+    24,
+    73,
+    78,
+    89,
+    94,
+    102,
+    118,
+    155,
+    165,
+    182,
+    186,
+    195,
+    211,
+    244,
+    279,
+    317,
+    322
+  ]
+}

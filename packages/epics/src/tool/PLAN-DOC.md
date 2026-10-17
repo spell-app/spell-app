@@ -1,7 +1,7 @@
-# Plan docs in `<epic-*>` markup
+# Epic pages in `<epic-*>` markup
 
-What the plan-doc tool (`spell dev plan-doc`) writes, and what's still DATA,
-once a plan doc is in the `<epic-*>` markup (epic `epic-components`, P8).
+What the `epic` tool (`epic`) writes, and what's still DATA,
+once an epic page is in the `<epic-*>` markup (epic `epic-components`, P8).
 - The elements -- tags, attributes, which children go where --
   are described ONCE, in [the definitions](../definitions/):  each family's `<Name>.en.ts`, under `components/<family>/`.
 - This file holds the rest.
@@ -9,7 +9,7 @@ once a plan doc is in the `<epic-*>` markup (epic `epic-components`, P8).
 - Since the switch (P12, 2026-10-08), every real doc is in this markup.
 - A doc still in the OLD `ui-*` markup is READ, and never edited:
   - read by `summary`, `summaries`, `list`, `items`, `check`, `open`, and the inbox's listings
-  - an edit says "convert it first (spell dev plan-doc convert)"
+  - an edit says "convert it first (epic convert)"
 - The template `new` copies:  [plan.html](templates/plan.html), beside this file.
   - The shared epics template (`templates/epics/plan.html`) retired at the switch.
 - How to WRITE a doc stays in [plan-doc.md](../../../../templates/epics/plan-doc.md).
@@ -25,7 +25,7 @@ once a plan doc is in the `<epic-*>` markup (epic `epic-components`, P8).
 
 ```html
 <ui-root>
-  <ui-components source="../../packages/epics/pack/epics.pack.js"></ui-components>
+  <ui-components source="../../packages/epics/components/__pack/epics.pack.js"></ui-components>
   <spell-site-header root="../.."></spell-site-header>
   <div class="spell-doc"><main class="spell-doc-main">
     <epic-page epic="seo" title="SEO" branch="seo" worktree="/.../seo" started="2026-10-01" updated="2026-10-07"
@@ -72,7 +72,7 @@ once a plan doc is in the `<epic-*>` markup (epic `epic-components`, P8).
     Written by `commit`, and by `commits --backfill`.
 - Sections are fixed:  each `kind` once, in that order, with its id.
   - `questions` keeps the id `#decisions`.
-  - Drawn:  their titles, icons, notes, counts, the progress bar and the Plan changes box.
+  - Drawn:  their titles, icons, notes, counts and the progress bar.
   - A REPORT (`kind="report"`, P14) is the one section that isn't fixed:
     - what a run wrote for Owen to read (an overnight `/bedtime` report)
     - its own `id` and `title`
@@ -83,6 +83,34 @@ once a plan doc is in the `<epic-*>` markup (epic `epic-components`, P8).
   - An older doc's summary and prompt still read the same, until the second conversion pass:
     - `<p slot="summary">`, `<blockquote slot="prompt">`
     - `prompt <name>` turns the old quote into an `<epic-prompt>`, where it stood.
+
+### A saga page
+
+A SAGA PAGE is an epic page of kind "saga" (epic `epic-workflow` P15):
+one saga's page, `sagas/<id>/<id>.saga.html`, in the same markup, so the tool edits it as any epic page.
+
+```html
+<epic-page kind="saga" saga="epics" title="Epic Tooling" started="2026-10-14" updated="2026-10-14">
+  <epic-overview id="overview">
+    <epic-summary>The saga's purpose, from sagas/sagas.json5.</epic-summary>
+    <epic-section id="o1" kind="overview-part" title="Done so far">...</epic-section>
+    <epic-section id="o2" kind="overview-part" title="Ideas not done yet">...</epic-section>
+  </epic-overview>
+  <epic-section id="epics" kind="epics"><epic-cards saga="epics"></epic-cards></epic-section>
+  <epic-section id="decisions" kind="questions">...</epic-section>
+  <epic-section id="todos" kind="todos">...</epic-section>
+  <epic-section id="log" kind="log">...</epic-section>
+</epic-page>
+```
+
+- `saga` names it;  no `epic`, `branch` or `worktree`, and no phases.
+- Made by `epic saga page <id> [--force]`, from the tool's `templates/saga.html`:  one file, not split.
+- Named to every verb by its short address:  `epic add SAGA:/epics#T "..."`, `epic inbox SAGA:/epics wait`,
+  `epic check SAGA:/epics`.
+- `<epic-section kind="epics">` is a saga page's alone:  its `<epic-cards>` draws the epics whose
+  `<epic-page saga>` names the saga, from the page server.
+- Its marks and comments wait in its own inbox, `<id>.inbox.json5` beside it;
+  `/epic review SAGA:/<id>` takes them.
 
 ## Ids
 
@@ -96,15 +124,32 @@ As `plan-doc.md`, "Ids":
 - An old decision's `d7` lives on as an `<epic-answer id="d7">` inside its question:
   - old `#d7` links land
   - `close d7` finds the question
+- A PHASE's id is STABLE (epic `epic-workflow` P15, I7 and J49):  made once from its name when it's added, and kept
+  for good.  Its number is only its place.
+  - `p-` and the name's slug:  "Epic Migrate" is `p-epic-migrate` (`PhaseIds`, in `$/epics/phases`).
+    - The slug:  lower case, words joined by `-`, anything else dropped;  an apostrophe joins its word (`owens`).
+    - A clash with any id on the page gets `-2`, `-3` ...
+  - A rename changes the title, never the id;  an insert changes numbers, never ids.
+    So links (`#p-epic-migrate`), comment anchors (`p-epic-migrate#field-1`), inbox marks and drafts, and the part
+    file (`parts/p-epic-migrate.html`) stay on their phase.
+  - "P7" is what people see and say:  the 7th phase, worked out as the page draws (`<epic-phase>`, the step label, the
+    Epics list page) and as the tool prints.
+  - The tool takes a phase as people name it, wherever it takes one:  `7`, `P7`, `seo#P7`, `#p7`, its id, its name or
+    slug (`"Epic Migrate"`, `epic-migrate`;  a renamed phase by its name today too).
+  - An older page's ids are numbers (`p7`):  they still read, until `stable-phase-ids` ("Migrations") converts them.
+    An old address, `#p7`, still lands on the 7th phase (`PhaseIds.landing()`, the docs runtime's `addressedId()`).
 
 ## Phases
 
 ```html
-<epic-phase id="p2" title="Short Name" status="active" estimate="1-2h">
+<epic-phase id="p-short-name" title="Short Name" status="active" estimate="1-2h" changes="1">
   <epic-field name="symptom">what's wrong today, one line</epic-field>
   <epic-field name="changes">what changes, two or three lines</epic-field>
-  <epic-updated at="2026-10-06 14:30" phase="3"><p>what changed in the plan, and why</p></epic-updated>
+  <epic-field name="requests"
+    ><epic-field label="r3 · 🚧 python (83d39e12)"><blockquote><p>Owen's words</p></blockquote> ...</epic-field
+  ></epic-field>
   <epic-field name="goal"><ul><li>a bullet per outcome</li></ul></epic-field>
+  <epic-update at="2026-10-06 14:30" phase="3" summary="Split in two"><p>what changed in the plan, and why</p></epic-update>
   <epic-field name="done"><ul><li>what was built</li></ul></epic-field>
   <epic-commit sha="2c71ac57...">one or two sentences</epic-commit>
   <epic-field name="files">...</epic-field>
@@ -113,27 +158,55 @@ As `plan-doc.md`, "Ids":
 </epic-phase>
 ```
 
+- `id`:  stable, from the name it was added under ("Ids");  `P2`, its place, is drawn.
 - `title`:  2-4 words, WITHOUT `P2 · ` (drawn).
 - `status`:  `todo`, `active` (one at a time), `done`.
 - Children in that order, always (the vocabulary's `childOrder: "listed"`):
   the tool puts each where it belongs.
+  - Owen's kept notes (`<epic-reply>`) after Requests, before Goal;  slotted children (status cards) at the end.
 - `add-phase`'s fields:
   - with `--symptom` / `--changes`:  Symptom, Changes, then Goal (optional), Files, Verify
   - without:  Goal, Files, Verify
   - A field not given reads `TBD`.
-- `add-phase ... --before N`:  inserted as PN.
-  - Every phase from N on moves down one, with what points at it:
-    - its `id`
-    - links:  `href="#pN"`, and the `PN` in their text
-    - `phase` / `of` on items, `<epic-update>` and `<epic-updated>`
-  - A split doc's parts follow (written under the new ids).
+- `add-phase ... --before N`:  inserted as PN (`N` any way the tool takes a phase:  `--before epic-migrate`).
+  - Every phase from N on moves down a NUMBER;  ids stay, so links, comments, marks and part files stay on them.
+    What says the number follows:
+    - the `PN` in the words of links to it (`<a href="#p-docs">P5 · Docs</a>` says `P6`)
+    - `phase` on items and `<epic-update>`s (and `of` on an older doc's `<epic-updated>` copies)
   - Prose naming a phase without a link isn't changed.
   - Refused while a phase from N on has started (done or active):  its commits and log say its number.
-- `<epic-updated>`:  one per change, oldest first.
-  - Written by `updated <name> <N> "<html>"`.
+- `update <name>#<P6 | id> --title "New title"` (epic `epic-workflow`):  a phase's or an item's new title.
+  - Its `title`, or its `slot="title"` child's words (the UPDATE markers in it stay).
+    `--html` (last):  the title has markup, so it's a title slot.
+  - Links to it whose words say the old title follow:  `P6 · Old` -> `P6 · New`, `Old` -> `New`.
+    Any other words stay (`P6`, "the next phase"), and so do links in an Original Discussion (history).
+  - A phase:  each item queued for it (`work="P6 · Old"`) follows too;  its id stays (made from its first name).
+  - An item is stamped and flagged UPDATE, as any change to it.
+  - Logged:  `P6 renamed:  "Old" -> "New" (2 links)`.
+- `<epic-page saga="<id>">` (epic `epic-workflow` P15):  the saga the epic serves, one of `sagas/sagas.json5`'s ids.
+  `saga set <name> <saga>` sets it (`--none` clears it), logged;  `new <name> --saga <id>` at birth;  refused for a
+  saga not in the list.  The page draws it in its meta lines, a link to the saga's page;  `summary --json` and
+  `list --json` carry it.  No migration step:  an epic with none simply names no saga.
+- `<epic-page standing>` (epic `epic-workflow`):  a STANDING epic, open for good;  each phase merges into `main` on its
+  own, and every phase done is NOT done (STANDING, not DONE).  `update <name> --standing [on|off]` sets it.
+- Requests (epic `epic-workflow`):  what Owen sent the phase from other sessions, one labelled block per request.
+  - Written by `epic file <epic>#P<N> <rN>` (the tool's `request <name> <N> <rN> --from "..." --file f`).
+  - The block:  his words quoted, what the sender was looking at, when, a link to `requests/<rN>/request.md`, and
+    each screenshot.
+  - Filing a request again replaces its block.
+- Plan changes:  `<epic-update at summary>` blocks, one per change to the phase's plan, oldest first (see "Updates").
+  - Written by `updated <name>#<N> "<html>" [--summary "..."]`.
+  - At the END of the phase's description (Owen, 2026-10-11:  "The updated blocks themselves go at the end of the
+    phase description"):  after Goal (and Owen's kept notes), before Done, the commits, Files, Verify, To review.
   - `phase`:  the phase active then.
-  - It stays once the phase is done.
-  - While the phase is to do, the Phases section lists it in its Plan changes box (drawn).
+  - They stay once the phase is done.
+  - No box around them (Owen, 2026-10-11:  "lose the "Plan changes" surround"):  each is its own block.
+  - The phase's `changes`:  how many, written by the tool on every edit, in the skeleton.
+    While the phase isn't done, its title shows an orange pen and that count, folded too (its part not loaded).
+  - Older docs:  `<epic-updated>` lines, in the phase's `changes` slot (P6, 2026-10-11) or in no slot, and COPIES of
+    the to-do phases' first in the Phases section (`<epic-updated slot="changes" of="N">`, T14).
+    - They still read, and draw:  slotted lines at the end of the phase's body, unboxed.
+    - The tool's next write migrates them (`updates-as-epic-update`, "Migrations").
 - `estimate`:  wall-clock time for Claude, agents included, Owen's review not.
   - E.g. `30m`, `2h`, `1h30m`, `1-2h`.
   - The Overview's `estimate` is the total, rewritten on every change:
@@ -173,20 +246,20 @@ As `plan-doc.md`, "Ids":
     - `Question` over the question as asked, "Original reply" over the text
     - every card's heading
 - A question's text as first asked is its `<epic-question>`, found by its tag, not its place:
-  - `add question`, and a rewrite of a question's text (`details --file`), put the lead of the HTML they're given
+  - `add <name>#Q`, and a rewrite of a question's text (`details --file`), put the lead of the HTML they're given
     in one, unless the HTML has one.
     - The lead:  the prose up to the first element or bold label line (`<p><b>The options:</b></p>`).
   - A rewrite moves the old one into the Original Discussion, with the rest of the old text.
   - `--append` never makes one.
 - `title`:  WITHOUT its id;  with markup, a `<span slot="title">` child instead.
-  - An UPDATE marker rides in the title:
+  - An UPDATE label rides in the title (a bare `<epic-update>`, "Updates"):
     `<span slot="title">Title <epic-update phase="2"></epic-update></span>`.
   - `phase 2 done` removes it, and a title left plain goes back to `title`.
 - Data, all attributes (the definitions check each value):
   - `status`:
     - `open`
     - `decided`:  an answered question.
-      Set by `decide`, or by `add ... decision`, born answered with `answered`.
+      Set by `decide`, or by `add <name>#D`, born answered with `answered`.
     - `done`:  closed (fixed, passed, accepted)
     - `canceled`:  made moot (struck through)
   - `state`:  the first row below that applies.
@@ -316,7 +389,7 @@ As `plan-doc.md`, "Ids":
   - Cards become the prose they said:  `Answer · Chrome`, `B · Chrome (recommended), chosen`.
   - The prose elements stay, an `<epic-question>` too.
   - Ids inside become `data-original-id`.
-  - `original <name> <id> --file` puts text recovered from git there (old markup welcome).
+  - `restore <name>#<id> --file` puts text recovered from git there (old markup welcome).
 - `--append`:
   - an `<epic-reply>` goes after the replies
   - other prose at the end of the item's text, after its option cards (they're prose too)
@@ -329,9 +402,9 @@ As `plan-doc.md`, "Ids":
   - todo makes a todo linking `#o3`
   - a kept note is a paragraph at its end
 - So do a phase and the summary (epic `airplane` P2):  Revisit, Make Todo and Do Now on the page;  no Approve.
-  - A phase (`p3`):
-    - todo makes `Follow up:  P3 · <title>`, linking `#p3`, and a Noted status card on the phase
-    - a kept note is Owen's `<epic-reply>` in the phase, under its `<epic-updated>` lines
+  - A phase (keyed by its id, `p-epic-migrate`;  a mark keyed `p3` from before `stable-phase-ids`:  the 3rd phase):
+    - todo makes `Follow up:  P3 · <title>`, linking `#p-epic-migrate`, and a Noted status card on the phase
+    - a kept note is Owen's `<epic-reply>` in the phase, after Requests (its plan changes come after Goal)
   - The summary, keyed `summary` in the inbox (it has no id):
     - todo makes `Follow up:  the summary`, linking `#overview`, and a Noted status card under the lede
     - a kept note is `<epic-reply slot="notes">` in `<epic-summary>`
@@ -345,7 +418,7 @@ As `plan-doc.md`, "Ids":
     Editable and removable until Claude makes it.
   - `inbox apply` makes each sent one as `add` does:
     - the note its details (a question's lead)
-    - `About <a href="#p3">P3</a>.` for `near`
+    - `About <a href="#p-epic-migrate">P3</a>.` for `near` (a phase by its id, or as typed:  `p3`)
     - a Noted status card, `Made from the page:  Owen's new todo, written <time>.`
     - one log line
   - `inbox clear new1` drops one;  its note is never kept as a reply.
@@ -367,8 +440,10 @@ The blocks prose used to shape by hand, now each an element (epic `epic-componen
 | `<epic-prompt>`               | `<epic-prompt><p>the prompt, as typed</p></epic-prompt>`:  folded under `Kickoff prompt`, once in the Overview |
 | `<epic-code>`                 | `<epic-code title="design.ts · 12 lines" language="ts"><pre>...</pre></epic-code>`:  folded, highlighted, ONE `<pre>` of text (`&lt;` for a `<`);  `open` to start open |
 | `<epic-aside>`                | `<epic-aside title="why not now"><p>...</p></epic-aside>`:  folded, headed `Aside:  why not now` |
-| `<epic-note>`                 | `<epic-note state="update" title="partly fixed by J9"><p>...</p></epic-note>`:  a small orange `UPDATE` (or green `DONE`, `state="done"`) note that stays, folding by its heading;  not `<epic-update>`, a phase's marker |
+| `<epic-note>`                 | `<epic-note state="update" title="partly fixed by J9"><p>...</p></epic-note>`:  a small orange `UPDATE` (or green `DONE`, `state="done"`) note that stays, folding by its heading;  not `<epic-update>` ("Updates") |
+| `<epic-update>`               | `<epic-update at="2026-10-11 14:30" summary="Q3's answer moved to B" phase="6"><p>...</p></epic-update>`:  an update, right AFTER the block it changed ("Updates") |
 | `<epic-choices>`              | as in "Items":  option cards, on any item kind                                            |
+| `<epic-link>`                 | `<epic-link saga="drawable-spell" epic="python-target" item="T1"></epic-link>`:  a link to a saga page (`saga` alone), an epic page (`epic`), or an item or phase on one (`item="T1"`, `phase="7"` or `phase="epic-migrate"`);  none of `saga` / `epic`:  the page it's in.  No text:  draws the short form (`python-target T1`, `T1` here, `P7 · Epic Migrate`), the target's title its tooltip ("Links") |
 | `<epic-field label>`          | `<epic-field label="Where"><p>the inbox file</p></epic-field>`:  a labelled block, `Where:` before its prose (`What should happen`, `Step`);  a phase's fields have `name` instead |
 | `<epic-section kind="report">` | `<epic-section id="overnight" kind="report" title="Overnight · 2026-10-04">...</epic-section>`:  a run's report, after the Overview (`The page`) |
 | the crumbs                    | none written:  `<epic-page>` draws `Docs › Epics › <title>` from its `title` (an older doc's `.spell-crumbs` before it:  it draws none) |
@@ -417,11 +492,11 @@ In Owen's words (2026-10-10):  "Claude Done entries are confusing ... you haven'
   A surprise, a choice made, something left undone.
 - A later mark on the same item:  a new card after the old ones, which stay, as the record.
 - Written by the tool only:
-  - `status <name> <id> underway "<reading>"`:  a new underway card, stamped now;  the page's spinner on.
-  - `status <name> <id> done ["<summary>"]`:  WORK was done.
+  - `status <name>#<id> underway "<reading>"`:  a new underway card, stamped now;  the page's spinner on.
+  - `status <name>#<id> done ["<summary>"]`:  WORK was done.
     - The LATEST underway card turns done (`done-at`), the reading kept;  spinner off.
     - Refused with no underway card.
-  - `status <name> <id> noted "<what>"`:  Claude only RECORDED Owen's choice.
+  - `status <name>#<id> noted "<what>"`:  Claude only RECORDED Owen's choice.
     - The latest underway card turns noted, `what` its summary.
     - None:  a card born noted (`at` alone).
     - Spinner off.
@@ -451,7 +526,7 @@ Drawn, never written:  one meaning per colour on every element (decision Q20, Ow
 | yellow | open, still undecided (DARK text on it)  | `open` chips;  a `to do` review label                                  |
 | blue   | do it now, or Claude is working on it    | `progress` chips (outlined);  Revisit, Do Now and Review Now (both the wand), Send;  Underway cards;  the active phase |
 | green  | decided or done (however long ago)       | `recent` chips;  Approve, Make Todo, a todo's plane (next phase), a pick, the chosen option;  Done cards (filled), Noted cards (outlined);  DONE |
-| orange | changed since Owen looked, or a warning;  an item Claude answered with options, waiting for Owen's pick (Owen, 2026-10-09) | UPDATE, the Updated fence, Plan changes;  "nobody is listening";  a blocked agent;  `replied` chips (DARK text on them), counted on the rail as needing Owen |
+| orange | changed since Owen looked, or a warning;  an item Claude answered with options, waiting for Owen's pick (Owen, 2026-10-09) | UPDATE labels, `<epic-update>` blocks, a phase's changed pen;  "nobody is listening";  a blocked agent;  `replied` chips (DARK text on them), counted on the rail as needing Owen |
 | violet | Claude's voice                           | his reply cards;  the bedtime label                                    |
 | ivory  | Owen's voice                             | his note box, marked note, reply cards, the answer card                |
 | grey   | no longer relevant, inactive, not chosen | `old` chips (canceled);  a todo's x (drop it);  the note box's x (skip this);  a phase to do;  FUTURE;  buttons at rest |
@@ -510,10 +585,10 @@ In Owen's words (2026-10-10):
 ## Folding
 
 EVERYTHING boxed in a section folds (Owen, 2026-10-08):  every card with a heading band folds from it, chevron first.
-- Newly folding:  a reply (Owen's and Claude's), the answer, a status card, an `<epic-note>`, an `<epic-update>` note,
-  an `<epic-updated>` fence, an open question's option card.
+- Newly folding:  a reply (Owen's and Claude's), the answer, a status card, an `<epic-note>`, an `<epic-update>` block,
+  an older doc's `<epic-updated>` fence, an open question's option card.
 - As these already did:
-  More Details, Choices, an aside, a code block, Original Discussion, Plan changes, Agents running.
+  More Details, Choices, an aside, a code block, Original Discussion, Agents running.
 - Open to start with:  the text being read.
   - An item and an aside start folded.
   - Page state, never written.
@@ -523,7 +598,122 @@ EVERYTHING boxed in a section folds (Owen, 2026-10-08):  every card with a headi
 The review buttons, at every step:  Approve, Revisit, Make Todo in one group, then Do Now apart.
 - Do Now is the wand:
   the inbox's `details` request, or a revisit now when the note box holds a note.
+  - Nobody listening:  it stays dashed, "waiting for a session",
+    and the page server wakes the epic (epic `epic-workflow` P16:  plan-doc.md, "Review inbox").
 - The note box's:  Revisit Later, then the x (skip this).
+
+## Updates
+
+ONE element for every update (Owen, 2026-10-11:  "Make these a new `<epic-update>` web component so we can restyle
+easily"), `components/epic-update/`:
+
+```html
+<epic-update at="2026-10-11 14:30" summary="Split in two" phase="6"><p>what changed, and why</p></epic-update>
+<span slot="title">Title <epic-update phase="6"></epic-update></span>
+```
+
+- A BLOCK:  it has a `summary`, an `at` or children.
+  - Drawn titled `**Update**: <summary>`, its date (`at`) at the right of the title row, as a comment thread's
+    message shows its time;  what changed under it.  Orange:  changed since Owen looked.
+  - It folds by its title row, open to start with.
+  - Owen comments on it with its own bullhorn (`BlockAnchors.js`, kind `update`), even inside an item or a field.
+  - `at`:  `YYYY-MM-DD HH:MM` (any form `PlanDates` reads).  `summary`:  one line, plain text.
+    The tool's `updated` without `--summary`:  the first sentence of what changed (`UpdateSummary`).
+  - Where it goes:
+    - a PLAN CHANGE:  at the end of its phase's description (`updated`;  "Phases")
+    - an update to PROSE (an agent's, by hand):  right AFTER the block it changed (Owen, 2026-10-11:  "or after the
+      section which they updated"):  after the paragraph, list or code block, inside its item, field or Overview
+      sub-section;  an update to a whole Overview sub-section goes last inside it
+    - Before 2026-10-11 a prose update was a NOTE placed BEFORE the block (`<epic-update phase>` with children, no
+      `at`):  migrated (below).
+- A bare LABEL:  no summary, no date, no children.  An orange `UPDATE` inline:  an item changed while a phase is active
+  (the tool puts it in the item's title), or a changed line of prose.
+- `phase`:  the phase active when it was written.
+  - `phase N done` removes phase N's bare labels and its updates OUTSIDE a phase (prose updates):  once the phase is
+    finished, those changes are just the plan.
+  - A phase's own plan changes (`epic-phase > epic-update`) stay for good:  the record of how the plan moved.
+
+## Migrations
+
+Named, dated, idempotent steps that bring an older page's markup up to today's, by page KIND
+(`migrations/`, `Migrations`;  epic `epic-workflow` P8, J44).
+- Each step names its kind (`epic` for every step here), the day it was added, and a one-line why.
+  - The epic page's steps:  `Migrations.all`, here.
+  - The other kinds' (guide, cheatsheet, commands page ...):  the docs tools' `packages/epics/tools/migrate.js`.
+  - The kinds:  `PAGE_KINDS` (`migrations.types.ts`), the names P14 proposes;  the docs tool's `KINDS` is the same list.
+- `epic migrate` runs them on command (`MigrateCommands`):
+
+  ```text
+  migrate [<kind>] [<epic>... | --all] [--file <page>] [--step <name>] [--dry-run] [--notify] [--list]
+  ```
+
+  - alone:  every kind, every page;  `<kind>`:  one kind;  `--file`:  one page (its kind found unless given)
+  - `<epic>...` or `--all`:  epic pages:  those, or every one `list` lists
+  - every step, oldest first (`--step`:  one), each page under its lock (`PlanDocFiles.migrate()`):
+    it waits for a writer, and works on the page as the writer left it
+  - a report per page:  `seo:  up to date`, or the steps that changed it and what each fixed or found;  then a total
+    by step.  The docs tool lists only the pages that changed, then a total per kind.
+  - `--dry-run`:  the same report, nothing written
+  - a migrated epic page is logged (`migrated:  links-agree`) and recoloured, but NOT stamped `updated`:
+    nobody worked on the epic
+  - a migration that would break the doc refuses that page, writing nothing, as any edit does
+  - `--notify` (J39):  an epic whose session is RUNNING (titled for it, found as `epic send` finds its receivers)
+    is only dry-run, and printed under `TELL:` with the one line to send it;  the idle ones are migrated there and then.
+    The command can't send a `SendMessage`:  the session that ran it sends each line (the epic skill's "Migrations").
+- Every edit also runs the cheap markup steps (`everyEdit`), first (`PlanDocFiles.edit()` -> `PlanDoc.migrate()`),
+  logged:  `migrated:  updates-as-epic-update`.  A step that reports, or rewrites more than markup, runs only on command.
+- The epic page's steps:
+  - `updates-as-epic-update` (2026-10-11, every edit):  every older update shape becomes `<epic-update at summary>`
+    - a phase's `<epic-updated>` lines (slotted or not) -> blocks at the end of its description, children kept
+    - their copies in the Phases section -> removed
+    - an UPDATE note before a block -> moved after it, dated (its item's `changed`, else the page's `updated`) and
+      summed up;  left where it is when the next sibling is a card with a fixed place
+    - a bare label -> left alone
+    - P8's goal named `plan-changes-in-phase` (P6's move of a phase's Plan changes into it):  no step of its own,
+      since this one takes every `<epic-updated>` line, wherever it is
+  - `owen-types-to-you-type` (2026-10-11, every edit):  prose says "You type" / "you type", not "Owen types":  the pages
+    speak to whoever reads them (Owen:  "so it's not me-specific").  Never in his quoted words, code, the log or the prompt.
+  - `links-agree` (2026-10-11, on command;  Owen on I7):  every `#id` link and comment anchor against today's ids and
+    titles (`LinksAgree`)
+    - fixes:  a link's words naming a title its target had before (the log's `renamed` lines say which), a phase link
+      naming another phase's title (`#p-docs P10 · Doc Review` -> `#p-doc-review P11 · Doc Review`), a phase link
+      saying an old number (an insert moved it down:  `#p-doc-review P10 · Doc Review` -> `P11 · Doc Review`), a comment
+      whose block only moved (found by its excerpt, `PlanAnchors`:  BlockAnchors.js's rules, copied), moved in the
+      inbox after the page
+    - reports, for Claude or Owen:  a link to an id that's gone, a comment or mark on one, a comment whose block's words
+      changed
+    - never the log, nor an Original Discussion:  history
+    - also run by `update --title` and `add-phase --before`, right after their change (what it says goes to stderr)
+    - a phase's number in its words is its place (`PhaseIds.labelOf()`);  a phase's `renamed` line names the phase
+      titled with its new name, else the one at that number
+  - `stable-phase-ids` (2026-10-14, on command;  P15, I7 and J49):  every phase's old id (`p7`) becomes a stable one
+    from its name (`p-epic-migrate`:  "Ids"), with everything that uses it (`StablePhaseIds`)
+    - the page:  each `<epic-phase id>`;  every link to it (`#p7`, or `<epic>.plan.html#p7`), the log's and Original
+      Discussions' too (their words stay;  they just land);  a stray `#p7` no element has, to the 7th phase
+    - the part files:  written under the new ids, the old ones removed (`PlanDocFiles.writeDoc()`:  a part the doc was
+      read from and no longer writes goes)
+    - the inbox, after the page (`context.renames`, `ReviewInbox.renameIds()`):  marks, drafts, urgency, agents at
+      work, called-off and immediate requests keyed `p7`, a new item's `near`, comment anchors (`p7`, `p7#field-1`)
+    - left:  links INTO the page from other pages (guides, details pages, other epics, the changelog):  `#p7` still
+      lands on the 7th phase;  what says a number as a RECORD (`phase="7"`, `taken: { phase: 7 }`, a request's
+      `filed: P7`, the log's words)
+    - reports:  `stable-phase-ids:  12 phase ids (p1 -> p-epic-migrate, ...), 40 links, 3 in the inbox`
+  - `json5-data-files` (2026-10-14, on command;  epic `epic-workflow` P21):  the epic's DATA FILES renamed `.json` ->
+    `.json5`, the name the tooling writes now (`Json5DataFiles`, `$/epics/data/DataFile`)
+    - the files:  its review inbox and running agents beside the page;  in `details/`, each page's answer (an archived
+      round's too), draft and rows
+    - renamed after the page, each under its new name's lock (`context.files`, `DataFile.rename()`);  one whose new
+      name is there too is LEFT, in the notes, for a person to merge
+    - the page's links to any data file by its old name take the new one (`DataFile.linkFor()`):  its only change to
+      the page
+    - every other page's links, and the data files outside the epics' folders (the docs home's lists, the sagas'
+      list, guides' and scratch details pages' files, the commands page's data):  the docs tool's data files pass
+      (`migrate.js` `DATA_FILES`), which `epic migrate` runs with every kind, or `--step json5-data-files` alone
+    - reports:  `json5-data-files:  3 links to .json5` and `json5-data-files:  12 to .json5 (agents.json, ...)`
+- A new step:  a class implementing `Migration` in `migrations/`, its instance added LAST to `Migrations.all`, in the
+  SAME commit as the markup change it follows (epics' `AGENTS.md`, "Rules").  Another kind's:  an entry in the docs
+  tool's `STEPS`, last.  Either way:  idempotent, every word kept, and a test (a before page becomes the after page,
+  and a second run changes nothing).
 
 ## Log
 
@@ -543,8 +733,32 @@ As `plan-doc.md`, "Parts", with the elements as hosts (`EpicParts`, beside this 
   - The tool reads and writes `.html` only.
     An old doc's `.htm` parts were read until every doc was converted;  no more since P15.
 
+## Links
+
+Pointing at a saga, an epic, a phase or an item, the same way everywhere (epic `epic-workflow` P15, J32).
+- In markup:  `<epic-link>` ("Prose elements"), written by what it points at, never by a path.
+  - On the page it points into, a `#id` link;  elsewhere, the page from the checkout's root and its `#id`,
+    the page server giving it the target's title and short form (`GET /api/epics/target`, [linkRoutes.ts](linkRoutes.ts)).
+  - `saga` with an `epic` isn't needed;  one the epic doesn't name still links (the check flags it).
+- A SHORT ADDRESS means the same, for a plain link or for Owen in chat:
+  - `SAGA:/drawable-spell` -- the saga page;  `SAGA:/drawable-spell#T3` -- item T3 on it
+  - `SAGA:/drawable-spell/python-target` -- the epic page;  `...#T1` -- item T1 on it
+  - the colon form, `SAGA:/drawable-spell:python-target#T1`, is read too;  the tools write the slash form
+  - ids in any case:  `#T1` lands on `t1`
+- Who reads them:
+  - the docs runtime:  `<a href="SAGA:/...">` becomes the page and its `#id`
+  - the page server:  a typed `/saga/<saga>[/<epic>]` redirects to the page, the `#id` kept
+  - the openers:  `spell dev docs open SAGA:/...`, `spell dev docs link SAGA:/...`
+  - the check:  below
+- The code:  `$/epics/links` (`EpicAddress`, `PageTargets`:  pure, browser and node), `EpicTargets` here (what's on
+  disk).
+- NOT a migration:  a new element, so no older page holds anything to change.
+
 ## Checking
 
 Every edit is checked against the definitions before it's written (`Markup.validate()`).
 - An edit that would break the markup is refused, and nothing is written.
 - `check` reports the same, plus ids, links and parts.
+  - Its links include short addresses and `<epic-link>`s (`EpicTargets.problemsIn()`):  a saga not in
+    `sagas/sagas.json5`, a page that isn't there, an id not on its page, and an epic under a saga it doesn't name
+    (its `<epic-page saga>`) are broken links, failing with `--links`.

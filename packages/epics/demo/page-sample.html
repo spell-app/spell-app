@@ -8,13 +8,13 @@
       name="description"
       content="P5 demo:  every state of the page, overview, section, phase, commit, log and UPDATE elements."
     />
-    <link rel="stylesheet" href="../../docs/tools/_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../epics/tools/_assets/spell-doc.css" />
   </head>
   <!--
-    P5 demo (Drawing Elements):  a whole plan doc in <epic-*> markup -- page header, Overview with sub-sections, 13
+    P5 demo (Drawing Elements):  a whole epic page in <epic-*> markup -- page header, Overview with sub-sections, 13
     phases in every status, every section kind, a log.  Items are plain <epic-item>s (another family).  Open it from the
-    page server (parts load) or from disk (the "Loads from ..." notes).  The shell is a plan doc's:  spell-doc.css, the
-    site header, `main.spell-doc-main`;  <epic-page> breaks out of its inline padding by itself (P14), and draws the
+    page server (parts load) or from disk (the "Loads from ..." notes).  The shell is an epic page's:  spell-doc.css,
+    the site header, `main.spell-doc-main`;  <epic-page> breaks out of its inline padding by itself (P14), and draws the
     crumbs.  P14's prose elements (<epic-note>, <epic-aside>, <epic-code>) are in the Overview's first part, a report
     section after the Overview.
   -->
@@ -118,11 +118,6 @@ export function design(name: string): string {
                     <epic-update phase="5"></epic-update>
                   </p>
                 </epic-field>
-                <epic-updated at="2026-10-07T01:59-04:00" phase="5">
-                  Owen's look notes (Q16): tidy freely; icons and text centred everywhere; a collapsed section has no
-                  gap below it and a grey rule along its bottom.
-                </epic-updated>
-                <epic-updated at="2026-10-07T03:10-04:00" phase="5">Split between two agents, by element.</epic-updated>
                 <epic-field name="goal">
                   <ul>
                     <li>the chrome in each element's shadow DOM; the prose stays the page's, through slots</li>
@@ -132,7 +127,14 @@ export function design(name: string): string {
                     <li>looks right light and dark, at 280px and wide</li>
                   </ul>
                 </epic-field>
-                <epic-update phase="5">
+                <epic-update at="2026-10-07T01:59-04:00" summary="Owen's look notes (Q16)" phase="5">
+                  Owen's look notes (Q16): tidy freely; icons and text centred everywhere; a collapsed section has no
+                  gap below it and a grey rule along its bottom.
+                </epic-update>
+                <epic-update at="2026-10-07T03:10-04:00" summary="Split between two agents, by element" phase="5"
+                  >Split between two agents, by element.</epic-update
+                >
+                <epic-update at="2026-10-07T04:20-04:00" summary="Commits of a phase under way" phase="5">
                   <p>The page header's git toggle now also shows the commits of a phase still under way.</p>
                 </epic-update>
                 <epic-field name="done">
@@ -238,6 +240,6 @@ export function design(name: string): string {
         </ui-root>
       </main>
     </div>
-    <script src="../../docs/tools/_assets/spell-ui.js"></script>
+    <script src="../../epics/tools/_assets/spell-ui.js"></script>
   </body>
 </html>

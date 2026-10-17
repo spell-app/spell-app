@@ -39,7 +39,7 @@
  * ## Skipped
  * `node_modules`, build output (`dist*`, `out`, `.cache`, `.astro`), `.yarn`, lockfiles, binary files,
  * `packages/spell/thoughts/**`, `packages/spell/graphify-out/**`, `agents/PAPERCUTS.md` (a dated log), this script and the
- * historical Phase 4 codemod (`move-packages.mjs`, `package-moves.json`).
+ * historical Phase 4 codemod (`move-packages.mjs`, `package-moves.json5`).
  */
 import { execFileSync } from "node:child_process"
 import { existsSync, lstatSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
@@ -57,7 +57,7 @@ const SKIP_FILE = new Set([
   "package-lock.json",
   "scripts/rename-aliases.mjs",
   "scripts/move-packages.mjs",
-  "scripts/package-moves.json"
+  "scripts/package-moves.json5"
 ])
 const MAX_BYTES = 4_000_000
 

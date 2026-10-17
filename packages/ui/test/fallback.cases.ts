@@ -1,6 +1,6 @@
 /**
- * Native-fallback test cases (`docs/fallback.md`):  when a `ui-*` element's render throws, it shows its family's
- * native fallback (`src/components/ui-<name>/UI<Name>.fallback.ts`), or a bare `<slot>` if it has none,
+ * Native-fallback test cases (`notes/fallback.md`):  when a `ui-*` element's render throws, it shows its family's
+ * native fallback (`components/ui-<name>/UI<Name>.fallback.ts`), or a bare `<slot>` if it has none,
  * and the page keeps working.
  * - Runtime-agnostic:  DOM, ARIA and forms only.  The Solid-specific parts come in through `FallbackAdapter`
  *   (how to mount and wait, how to make one element's render throw, axe), from `fallback.test.tsx`.
@@ -49,7 +49,7 @@ export const ERROR_EVENT = "ui-error"
 /**
  * Per family WITH a fallback:  markup of one element, and the selector of its fallback's root inside the shadow root.
  * - The root carries the family's `part`, like the real element's.
- * - Only the form controls keep a fallback (`docs/fallback.md`);  the rest show a bare `<slot>` when they break
+ * - Only the form controls keep a fallback (`notes/fallback.md`);  the rest show a bare `<slot>` when they break
  *   (the case "a family without a fallback ...").
  */
 export const FAMILY_FALLBACKS: readonly { family: string; html: string; root: string }[] = [

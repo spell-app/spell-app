@@ -7,11 +7,16 @@
       detail: "base type",
       description: "What your own types are made from -- `a card is a thing` makes a card.\n- Give it properties with `has`, e.g. `a card has a suit as one of clubs, diamonds, hearts, spades`.\n- Make one with `a new card` or `create a card`, optionally `with suit = hearts`.\n- Reactive:  change a property and whatever was drawn from it redraws.\n- Setting a property to the wrong sort of value warns in the console -- but it's set anyway.\n\n```spell\na task is a thing\na task has a name as text\nto draw (a task)\n  return <div>{its name}</div>\n\nit = a new task with name = \"Test Drawing\"\ndraw it\n```",
       rules: [
-        { name: "create_type", syntax: "(a|an) {type} is (a|an) {superType:type} {with_nested_statements}?" },
+        { name: "create_type", syntax: "(a|an) {type:type_words} (aka {aka:singular_type})? is (a|an) {superType:type} {with_nested_statements}?" },
         { name: "create_type", syntax: "(a|an) {type:quoted_type} is (a|an) {superType:type} {with_nested_statements}?" },
         { name: "new_thing", syntax: "a new {type:known_type} ((with|where|whose) {props:object_literal_properties})?" },
         { name: "create_thing", syntax: "create (a|an) {type:known_type} ((with|where|whose) {props:object_literal_properties})?" }
       ]
+    },
+    {
+      path: "type:Thing/property:id",
+      detail: "text",
+      description: "What names it among the others of its kind, e.g. `the id of the person`.\n- Every thing and list has one:  nobody declares it, and a type can't declare its own.\n- Made up the first time it's read, e.g. `person-k3x9q2mf`, unless you set it first:\n  `a new person with id = \"owen\"`, or `set the id of the person to \"owen\"`.\n- Saving uses it:  a thing saved in its own file is referred to by it."
     },
     {
       path: "type:Thing/method:(a thing) belongs to one (list)",
@@ -35,10 +40,15 @@
       description: "Things in order -- `a deck is a list of cards` makes a deck.\n- Counts from 1:  `card 1 of the deck` is the first.  Negative counts from the end, so\n  `card -1 of the deck` is the last -- as is `the last card of the deck`.\n- Reactive, like a thing:  add or remove an item and whatever drew the list redraws.\n- The word for its items is just for reading:  `number of cards in the deck`\n  ~== `number of items in the deck`.\n- Its actions also work on a plain list, e.g. `number of items in [1, 2, 3]`.\n\n```spell\na deck is a list of cards\nset the deck to a new deck\nadd a new card to the deck\nshuffle the deck\nfor each card in the deck\n  set the direction of the card to \"down\"\n```",
       rules: [
         { name: "create_list_type", syntax: "create a type (named|called) {type} as (a|an) list of {instanceType:type}" },
-        { name: "create_list_type", syntax: "(a|an) {type} is (a|an) list of {instanceType:type} {with_nested_statements}?" },
+        { name: "create_list_type", syntax: "(a|an) {type:type_words} (aka {aka:singular_type})? is (a|an) list of {instanceType:type} {with_nested_statements}?" },
         { name: "create_list_type", syntax: "(a|an) {type:quoted_type} is (a|an) list of {instanceType:type} {with_nested_statements}?" },
         { name: "new_list", syntax: "a new (list|List) of {instanceType:type}?" }
       ]
+    },
+    {
+      path: "type:List/property:id",
+      detail: "text",
+      description: "What names it among the others of its kind, e.g. `the id of the person`.\n- Every thing and list has one:  nobody declares it, and a type can't declare its own.\n- Made up the first time it's read, e.g. `person-k3x9q2mf`, unless you set it first:\n  `a new person with id = \"owen\"`, or `set the id of the person to \"owen\"`.\n- Saving uses it:  a thing saved in its own file is referred to by it."
     },
     {
       path: "type:List/property:length",
@@ -102,7 +112,7 @@
     },
     {
       path: "type:List/method:add (a thing) to (a list)",
-      description: "Add `thing` to the end -- or wherever you say:\n- `add the card to the deck`, or `... to the end of the deck`\n- `add the card to the start of the deck`, or `prepend the card to the deck`\n- `add the card to the deck before the ace`",
+      description: "Add `thing` to the end -- or wherever you say:\n- `add the card to the deck`, or `... to the end of the deck`\n- `add the card to the start of the deck`, or `prepend the card to the deck`\n- `add the card to the deck before the ace` (at the start if the ace isn't in it;  `after`:  at the end)",
       rules: [
         { name: "list_add", syntax: "add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {list:expression}" },
         { name: "list_prepend", syntax: "prepend {thing:expression} to {list:expression}" },
@@ -217,7 +227,7 @@
       super: "type:Thing",
       description: "A thing which is a whole program -- `a game is an app` makes a game.\n- Everything a thing has, plus `start`.\n- Write its `to draw (a game)` to lay out the page, then `start the game` to show it.\n\n```spell\na game is an app\nto draw (a game)\n  return <div>Hello</div>\n\nset the game to a new game\nstart the game\n```",
       rules: [
-        { name: "create_type", syntax: "(a|an) {type} is (a|an) {superType:type} {with_nested_statements}?" },
+        { name: "create_type", syntax: "(a|an) {type:type_words} (aka {aka:singular_type})? is (a|an) {superType:type} {with_nested_statements}?" },
         { name: "create_type", syntax: "(a|an) {type:quoted_type} is (a|an) {superType:type} {with_nested_statements}?" }
       ]
     },
@@ -227,6 +237,19 @@
       rules: [
         { name: "start_app", syntax: "start {app:expression}" }
       ]
+    },
+    {
+      path: "type:Drawable",
+      super: "type:Thing",
+      description: "A thing drawn as its own custom element -- `a card is a drawable thing` makes a card that is one.\n- Everything a thing has.\n- Its tag starts with the project's or library's name, made singular:  `<solitaire-card>` in a solitaire app.\n- `a drawable thing` and `a drawable` both say it.\n\n```spell\na card is a drawable thing\na card has a rank as a number\nto draw (a card)\n  return <div>{its rank}</div>\n```",
+      rules: [
+        { name: "create_type", syntax: "(a|an) {type:type_words} (aka {aka:singular_type})? is (a|an) {superType:type} {with_nested_statements}?" },
+        { name: "create_type", syntax: "(a|an) {type:quoted_type} is (a|an) {superType:type} {with_nested_statements}?" }
+      ]
+    },
+    {
+      path: "type:DrawableList",
+      super: "type:List"
     },
     {
       path: "type:Text",

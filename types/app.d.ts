@@ -33,24 +33,3 @@ type Prettify<T> = {
 type SplitString<List, Delimiter extends string = ":"> = List extends `${infer Head}${Delimiter}${infer Tail}`
   ? Head | SplitString<Tail, Delimiter>
   : List
-
-/**
- * Common React types available globally, so files don't need to import them individually.
- * Use e.g. `ReactNode` rather than `React.ReactNode`.
- */
-type ReactNode = import("react").ReactNode
-
-/**
- * Alias for `React.Component`.
- * - NOTE: empty `{}` defaults mirror upstream `React.Component`'s own `P = {}, S = {}`.
- */
-type ReactComponent<P = {}, S = {}> = import("react").Component<P, S>
-
-/**
- * Alias for `React.ComponentType`.
- * - NOTE: empty `{}` default mirrors upstream `React.ComponentType`'s own `P = {}`.
- */
-type ReactComponentType<P = {}> = import("react").ComponentType<P>
-
-/** Alias for `React.ReactElement`. */
-type ReactElement<P = any> = import("react").ReactElement<P>

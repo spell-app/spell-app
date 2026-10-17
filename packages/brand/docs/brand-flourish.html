@@ -1,0 +1,316 @@
+<!doctype html>
+<!--
+  A <brand-*> element's page in the brand's docs set (`packages/brand/docs/`, served at `/components/brand/`), in
+  Spell UI's component page shape:  masthead, then Examples / Usage / API / Theming tabs.
+  - The set's layout (`__parts/layout.html`) loads Spell UI's site bundle and the brand pack;  API and tokens come
+    from `__data/components.json5` (`yarn site:data` in `packages/brand`).
+  - Example ids:  `<tab>-<section>-<example>`, as Spell UI's pages.
+  - A flourish fills its positioned parent:  every example puts it in a `.stage` (the `<style>` at the top of `main`), a box that
+    is positioned and clips, as a page's hero or card is.
+  - What the examples need, styles and script, is INSIDE `main`:  the site swaps only `main` between its pages.
+    A script adds its listeners once (`window.<flag>`):  the site runs it again each time the page is shown.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Brand Flourish</title>
+    <meta
+      name="description"
+      content="<brand-flourish>:  generated page art (a swoop, blobs, edge curls, a sparkle trail, a rising wave) filling its parent, from a seed."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Brand Flourish">
+      <style>
+        /* the examples' boxes:  positioned and clipping, as a hero or a card is;  the text sits above the art */
+        .stage {
+          position: relative;
+          overflow: hidden;
+          height: 220px;
+          border-radius: 16px;
+          border: 1px solid var(--spell-border-subtle);
+          background: var(--ui-background);
+        }
+        .stage.small {
+          height: 160px;
+        }
+        .stage > p {
+          position: relative;
+          margin: 0;
+          padding: 20px 24px;
+          max-width: 280px;
+          font: var(--spell-type-h3);
+          color: var(--spell-text-strong);
+        }
+        .stage.inverse {
+          background: var(--spell-violet-900);
+        }
+        .stage.inverse > p {
+          color: var(--spell-violet-25);
+        }
+        .stage.warm {
+          background: var(--spell-surface-warm);
+        }
+
+        /* several small panels side by side (the Colors example) */
+        .brand-docs-row {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 16px;
+          align-items: start;
+        }
+      </style>
+
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../../packages/brand/components/brand-flourish/"
+              icon="code"
+              aria-label="Its code"
+              title="Its code"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Brand Flourish
+            <ui-label color="yellow" size="small">New</ui-label>
+            <ui-header>Generated page art behind the content: a swoop, blobs, curls, sparkles, a wave.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-swoop" header="Swoop" sticky collapsible dividing>
+                <ui-docs-example
+                  description='`variant="swoop"` (the default):  one line crossing the box, with one loop.  The marketing hero&apos;s flourish.'
+                >
+                  <div class="stage">
+                    <brand-flourish variant="swoop" seed="11" weight="1.8"></brand-flourish>
+                    <p>Write an app in a sentence.</p>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-blobs" header="Blobs" sticky collapsible dividing>
+                <ui-docs-example
+                  description='`variant="blobs"`:  soft shapes tucked into the corners, in `fill` and `fill2`.  Page corners and hero backgrounds;  never behind body copy.'
+                >
+                  <div class="stage">
+                    <brand-flourish variant="blobs" seed="3"></brand-flourish>
+                    <p>Shape the app as you go.</p>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-edge-curls" header="Edge curls" sticky collapsible dividing>
+                <ui-docs-example
+                  description='`variant="edge-curls"`:  thin lines curling in from the edges, and one small blob.  Docs pages.'
+                >
+                  <div class="stage">
+                    <brand-flourish variant="edge-curls" seed="5" weight="1.4"></brand-flourish>
+                    <p>Getting started.</p>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-sparkle-trail" header="Sparkle trail" sticky collapsible dividing>
+                <ui-docs-example
+                  description='`variant="sparkle-trail"`:  a dotted trail rising to three four-point sparkles.  Empty states, loading, “ready” moments.'
+                >
+                  <div class="stage warm">
+                    <brand-flourish variant="sparkle-trail" seed="8" weight="2.2"></brand-flourish>
+                    <p>Building your app…</p>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-rising-wave" header="Rising wave" sticky collapsible dividing>
+                <ui-docs-example
+                  description='`variant="rising-wave"`:  a filled wave rising to the right, with a line echoing it.  Inverse call-to-action panels and social tiles;  it takes no seed (the same wave every time).'
+                >
+                  <div class="stage inverse">
+                    <brand-flourish
+                      variant="rising-wave"
+                      stroke="var(--spell-violet-300)"
+                      fill="var(--spell-violet-300)"
+                    ></brand-flourish>
+                    <p>Magical tech to realize your visions.</p>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-seed" header="Seed" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`seed`:  which one of the variant.  The same seed draws the same flourish, at any size;  another seed, another one.  Default `7`."
+                >
+                  <div class="brand-docs-row">
+                    <div class="stage small"><brand-flourish variant="swoop" seed="1"></brand-flourish></div>
+                    <div class="stage small"><brand-flourish variant="swoop" seed="2"></brand-flourish></div>
+                    <div class="stage small"><brand-flourish variant="swoop" seed="3"></brand-flourish></div>
+                  </div>
+                  <div class="brand-docs-row">
+                    <div class="stage small"><brand-flourish variant="blobs" seed="1"></brand-flourish></div>
+                    <div class="stage small"><brand-flourish variant="blobs" seed="2"></brand-flourish></div>
+                    <div class="stage small"><brand-flourish variant="blobs" seed="3"></brand-flourish></div>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example
+                  description="The flourish fills its parent, and redraws when the parent changes size:  the same seed in a wide box and a narrow one."
+                >
+                  <div class="brand-docs-row">
+                    <div class="stage" style="height: 120px">
+                      <brand-flourish variant="edge-curls" seed="5"></brand-flourish>
+                    </div>
+                    <div class="stage" style="height: 260px">
+                      <brand-flourish variant="edge-curls" seed="5"></brand-flourish>
+                    </div>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-colors" header="Colours" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`stroke` (lines and sparkles), `fill` and `fill2` (shapes):  any CSS colour, `var()` too.  Unset, they follow the theme:  `--spell-line-flourish`, `--spell-blob`, `--spell-blob-2`, so dark mode follows."
+                >
+                  <div class="brand-docs-row">
+                    <div class="stage small">
+                      <brand-flourish variant="blobs" seed="4"></brand-flourish>
+                    </div>
+                    <div class="stage small">
+                      <brand-flourish
+                        variant="blobs"
+                        seed="4"
+                        fill="var(--spell-accent-150)"
+                        fill2="var(--spell-violet-150)"
+                      ></brand-flourish>
+                    </div>
+                    <div class="stage small">
+                      <brand-flourish
+                        variant="sparkle-trail"
+                        seed="4"
+                        stroke="var(--spell-accent)"
+                      ></brand-flourish>
+                    </div>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-weight" header="Weight" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`weight`:  the line's width, px.  Default `1.6`;  the sparkle trail's dots space out with it."
+                >
+                  <div class="brand-docs-row">
+                    <div class="stage small">
+                      <brand-flourish variant="swoop" seed="9" weight="1"></brand-flourish>
+                    </div>
+                    <div class="stage small"><brand-flourish variant="swoop" seed="9"></brand-flourish></div>
+                    <div class="stage small">
+                      <brand-flourish variant="swoop" seed="9" weight="4"></brand-flourish>
+                    </div>
+                  </div>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Page art for a hero, a card or an empty state. Put it FIRST in a box that is positioned and clips,
+                  and give the content above it a position too, so it paints over the art.
+
+                  - It fills the box (`position: absolute; inset: 0`) and ignores the pointer.
+                  - Pick a `variant` for the place (see Types), a `seed` for the one you like.
+                  - Leave the colours to the theme unless the surface needs others (an aubergine panel takes lilac).
+                  - Never behind body copy: a headline, a lede, a call to action.
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <style>
+                    .hero { position: relative; overflow: hidden; }
+                    .hero > h1 { position: relative; }
+                  </style>
+                  <section class="hero">
+                    <brand-flourish variant="swoop" seed="11"></brand-flourish>
+                    <h1>Write an app in a sentence.</h1>
+                  </section>
+                </script>
+              </ui-code>
+            </ui-section>
+            <ui-section id="usage-reseed" header="Reseeding" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Change `seed` and it redraws: the Flourishes page reseeds a card on a click.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const flourish = document.querySelector("brand-flourish")
+                  flourish.setAttribute("seed", String(Number(flourish.getAttribute("seed")) + 1))
+                </script>
+              </ui-code>
+            </ui-section>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Decorative: the art is hidden from screen readers (`aria-hidden`) and takes no clicks or focus.
+                  Keep text contrast against the box's own colour, not the art's: the art can sit under any letter.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <ui-docs-api family="brand-flourish"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Set a `--brand-flourish-*` token on the flourish, any ancestor or `:root`: the colour used where
+                  the matching attribute is unset. The defaults come from the `spell-brand` theme's art roles
+                  (`--spell-line-flourish`, `--spell-blob`, `--spell-blob-2`). Edit a value below to try it.
+                </script>
+              </ui-markdown>
+              <ui-docs-tokens family="brand-flourish" playground>
+                <div class="stage">
+                  <brand-flourish variant="blobs" seed="6"></brand-flourish>
+                  <brand-flourish variant="edge-curls" seed="6"></brand-flourish>
+                </div>
+              </ui-docs-tokens>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

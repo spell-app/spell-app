@@ -4,11 +4,12 @@ import { join } from "node:path"
 import { createInterface } from "node:readline"
 
 import type { Handler } from "$/server"
-import { BUNDLE_FOLDERS, BUNDLE_WAIT_MS, uiBuildPath } from "$/server/page"
+import { BUNDLE_WAIT_MS, componentSetPath, pageServerSettings } from "$/server/page"
 
 /**
  * Builds the bundles the page server serves, when the server starts.
- * - the bundles (`BUNDLE_FOLDERS`):  the Spell UI docs site's, the brand pages';  built on demand, never committed
+ * - the bundles:  the Spell UI docs site's, the brand pages';  built on demand, never committed
+ *   - `folders`:  the root `package.json`'s `"pageServer": { "bundles": [...] }`
  * - `start()`:  runs `spell dev bundles build --stale` in the background, with the checkout's OWN CLI
  *   - it builds only the bundles whose sources changed since their last build (the logic:  `$/assembler` `Bundle`)
  *   - so a start with nothing changed builds nothing
@@ -25,6 +26,9 @@ export class BundleBuild {
   /** ms a request waits for the build */
   readonly timeout: number
 
+  /** the bundles' folders, relative to `root`:  its settings' `bundles` (`pageServerSettings()`), read once */
+  readonly folders: readonly string[]
+
   /** starts the child:  `node:child_process`'s `spawn`, or a test's stub */
   private spawn: SpawnBuild
 
@@ -38,6 +42,7 @@ export class BundleBuild {
     this.root = root
     this.timeout = timeout
     this.spawn = spawn
+    this.folders = pageServerSettings(root).bundles ?? []
   }
 
   /** Is the build running? */
@@ -119,7 +124,8 @@ export class BundleBuild {
    * The router handler:  while the build runs, a request for a missing file in a bundle's folder waits for it.
    * - this checkout's own bundles only, not `/worktrees/<w>/...`:
    *   - `/packages/brand/_assets/ui/...`
-   *   - `/packages/ui/site/_assets/...`, and the same laid over the pages at `/ui/_assets/...` (`uiBuildPath()`)
+   *   - `/packages/ui/site/_assets/...`, and the same laid over a component set's pages at
+   *     `/components/<set>/_assets/...` (`componentSetPath()`)
    */
   wait: Handler = async (request, _reply, next) => {
     if (!this.child || (request.method !== "GET" && request.method !== "HEAD")) return next()
@@ -128,15 +134,15 @@ export class BundleBuild {
     next()
   }
 
-  /** The file in a bundle's folder URL path `path` names, through the `/ui/` overlay;  else `undefined`. */
+  /** The file in a bundle's folder URL path `path` names, through the sets' overlay;  else `undefined`. */
   bundleFileFor(path: string): string | undefined {
     let served: string
     try {
-      served = decodeURIComponent(uiBuildPath(path) ?? path)
+      served = decodeURIComponent(componentSetPath(path) ?? path)
     } catch {
       return undefined
     }
-    const folder = BUNDLE_FOLDERS.find((each) => served.startsWith(`/${each}/`))
+    const folder = this.folders.find((each) => served.startsWith(`/${each}/`))
     if (!folder || served.split("/").includes("..")) return undefined
     return join(this.root, served)
   }

@@ -19,7 +19,7 @@ export const FOLD_OPEN_ATTRIBUTE = {
   name: "open",
   kind: "boolean",
   description:
-    "Unfolded:  PAGE state, never written in a doc (plan docs open folded).  A click on the title, a link to it " +
+    "Unfolded:  PAGE state, never written in a doc (epic pages open folded).  A click on the title, a link to it " +
     "(or into it) and find-in-page set it;  set it from code to open it."
 } as const
 
@@ -169,6 +169,7 @@ export type FoldAttributes = {
  * `overview-part` has neither:  its title is its own.
  */
 export const SECTION_LOOKS = {
+  epics: { icon: "map", title: "epicsTitle" },
   phases: { icon: "layer group", title: "phasesTitle" },
   questions: { icon: "file circle question", title: "questionsTitle" },
   judgements: { icon: "gavel", title: "judgementsTitle" },
@@ -303,9 +304,10 @@ export type SectionCount = {
   attention: number
 }
 
-/** Classes of the filter's chips and its "hidden" line;  the Plan changes box and its heading. */
+/** Classes of the filter's chips and its "hidden" line. */
 export const FILTER = "filter"
 export const CHIP = "chip"
 export const HIDDEN_NOTE = "hidden-note"
-export const CHANGES = "changes"
-export const CHANGES_HEAD = "changes-head"
+
+/** Class of an item section's new button, on its title (`newButton()`). */
+export const NEW_HERE = "new-here"

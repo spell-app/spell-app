@@ -1,0 +1,69 @@
+/*
+ * `<epic-send>` (`EpicSend.tsx`):  a details page's Send, at the right of its sticky header.
+ * - Where the answer stands, the draft's save (muted;  orange, a warning, when it can't reach the page server),
+ *   then the round Send;  an error, when there is one, on its own line under them.
+ * - Send's fill, the colour scheme's fill rule:  `rest` a grey outline;  `sent` a blue outline;  `pending` DASHED
+ *   blue.  A `basic` button draws its edge as an inset shadow, which can't dash:  a dashed outline replaces it.
+ * - Public tokens (`--epic-send-*`) are never declared here:  read through private aliases.
+ */
+
+@layer ui.components.epic-send.types;
+
+@layer ui.components.epic-send.types {
+  :host {
+    display: block;
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-inline-start: auto;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .state {
+    overflow: hidden;
+    color: var(--ui-text-muted, GrayText);
+    font: 600 0.8rem var(--ui-font-family, inherit);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .state[data-color="green"] {
+    color: var(--ui-green-text, #1a7f37);
+  }
+  .state[data-color="blue"] {
+    color: var(--ui-blue-text, #1a69a4);
+  }
+  .draft {
+    overflow: hidden;
+    flex: 0 1 auto;
+    min-width: 0;
+    color: var(--ui-text-muted, GrayText);
+    font: 0.75rem var(--ui-font-family, inherit);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .draft[data-error] {
+    color: var(--ui-orange-text, var(--ui-orange, #f2711c));
+  }
+  .send {
+    flex: none;
+  }
+  .send[data-fill="pending"]::part(button) {
+    box-shadow: none;
+    outline: 1.5px dashed var(--ui-blue, #2185d0);
+    outline-offset: -1.5px;
+  }
+  .error {
+    max-width: 32em;
+    margin: 4px 0 0;
+    color: var(--ui-error-text, var(--ui-red, #db2828));
+    font-size: 0.8rem;
+    line-height: 1.35;
+    text-align: end;
+  }
+}

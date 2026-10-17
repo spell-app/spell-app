@@ -7,7 +7,7 @@ argument-hint: "[push | pull <design link> [page] | new \"<title>\" | page <page
 # /design
 
 Spell's claude.ai DESIGN SYSTEM is generated from the code, so Claude Design draws with the real `<ui-*>` elements.
-- Epic `claude-design`;  [its plan doc](epics/claude-design/claude-design.plan.html).
+- Epic `claude-design`;  [its epic page](epics/claude-design/claude-design.plan.html).
 - Claude Design can't reach this laptop.
   This skill carries things across with the Artifact tool, and `spell dev design ...` does the local half.
 
@@ -83,7 +83,7 @@ Spell's claude.ai DESIGN SYSTEM is generated from the code, so Claude Design dra
    - It prints what it couldn't carry:
      holes from `renderVals()`, handlers, unwrapped `<sc-if>` / `<sc-for>`.
    - Fix those by hand:  real text for holes, a small script for behaviour.
-4. Finish:  as [docs' AGENTS.md](packages/docs/AGENTS.md), "Finishing a page".
+4. Finish:  as [epics' AGENTS.md](packages/epics/AGENTS.md), "Finishing a page".
    - `doc-links`, `vp fmt`, `check-spell`, and LOOK at the screenshots.
    - Then show it:  `spell dev docs link <page> --show`.
    - It's shared content:  committed for you.

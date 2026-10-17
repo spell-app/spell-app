@@ -4,7 +4,7 @@ import { SRV } from "$/server"
 
 /**
  * A lock on one file, held as `<file>.lock`, so tools that write the same file take turns:
- * the page server's page edits, `spell dev plan-doc`, `spell dev goals`, the app's saves.
+ * the page server's page edits, `epic`, `spell dev goals`, the app's saves.
  * - created with `open(wx)`:  atomic, so exactly one holder
  * - waits up to `wait` ms (default 20s), then throws a `FileLockError`
  * - a lock older than `stale` ms (default 60s) is a crashed holder's, and is taken over

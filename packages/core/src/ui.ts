@@ -1,30 +1,13 @@
-import React from "react"
-import _get from "lodash/get"
-
 import { spellCore } from "./core"
 import { defineSpellCoreModule } from "./spellCore.types"
 
-/** Registry of known React elements, addressable by (possibly dotted) name. */
-export type KnownElementsMap = Record<string, unknown>
-
-/** Spec accepted by `spellCore.element()`. */
-export type ElementSpec = {
-  /** Component/HTML tag, or a `knownElements` key (possibly dotted, e.g. `"UI.Button"`) to look one up. */
-  tag?: ReactComponentType | string
-  /** Passed through to `React.createElement()` as-is. */
-  props?: Record<string, unknown> | null
-  /** Child elements/values, spread as `React.createElement()`'s rest args. */
-  children?: ReactNode[]
-}
-
 /**
- * Assembled `spellCore` UI-interaction methods -- time (`pauseFor`), React element creation
- * (`element`/`registerElements`) and stylesheet installation (`installStyles`).
- * TODO: these are maybe not core, since they're tied into particular UI???
- * NOTE: sibling user-facing I/O statements `notify`/`alert`/`confirm`/`prompt` (see `UI.ts` rules)
- * compile to `spellCore.notify()`/`.alert()`/`.confirm()`/`.prompt()`, but none of those methods are
- * implemented anywhere in `spellCore` yet.
- * TODO: implement them, or drop the rules?
+ * Assembled `spellCore` UI-interaction methods:
+ * - time (`pauseFor`)
+ * - talking to the person running the program:  `notify`, `alert`, `confirm`, `prompt` (spell's `rules/UI/`), on
+ *   Spell UI's toasts and dialogs
+ * - stylesheet installation (`installStyles`)
+ * - Drawing (`h()`, `drawThing()` ...) is `drawing.ts`.
  */
 export const uiMethods = defineSpellCoreModule({
   ////////////////
@@ -48,9 +31,13 @@ export const uiMethods = defineSpellCoreModule({
   /**
    * Return promise which resolves after `number` `units` have elapsed.
    * - `units` looked up in `TIME_UNITS_MAP`; unrecognized `units` fall back to seconds.
-   * - Compiles from spell `pause for {number} {units}` (see `async.ts`); caller `await`s it.
+   * - Compiles from spell `pause for {number} {units}` (see `rules/async/Pause.ts`); caller `await`s it.
+   * - NEVER resolves while a recompiled program loads to take over the last run's things (`isCarryingOver`):
+   *   - what its top level sets going stops at its first pause, e.g. `reset the game`'s new deal
+   *   - and the game in progress carries on instead
    */
   pauseFor(number: number, units = "seconds"): Promise<void> {
+    if (spellCore.isCarryingOver) return new Promise(() => {})
     const multiplier = spellCore.TIME_UNITS_MAP[units] || 1000
     // default to 0 if `isNaN`
     const delay = Math.round(number * multiplier) || 0
@@ -58,40 +45,66 @@ export const uiMethods = defineSpellCoreModule({
   },
 
   ////////////////
-  // ## Components
+  // ## Talking to the person
+  //
+  // On the page's Spell UI (its runtime, one per page):  a toast, or a dialog.
+  // With no Spell UI -- under node, `spell run` -- each prints on the program's console instead,
+  // and a question takes its default answer.
   ////////////////
 
-  /** Map of `{ <key>: <elements map> }` for known elements. */
-  knownElements: {} as KnownElementsMap,
+  /**
+   * Show `message` for a moment, in a toast -- compiled from `notify "Saved!"`.
+   * - `closeText`:  `notify "..." with "Got it"` -- the toast stays until it's closed.
+   * - Shown once Spell UI's runtime has loaded:  NOT awaited, as `notify` isn't.
+   */
+  notify(message: unknown, closeText?: string): void {
+    const ui = pageUI()
+    if (!ui) return spellCore.console.info(String(message))
+    void ui
+      .load()
+      .then((loaded) => loaded.toast({ message: String(message), displayTime: closeText ? 0 : "auto" }))
+      .catch((error) => spellCore.console.error("notify:  can't show a toast", error))
+  },
 
-  /** Register a suite of React elements so they can be used in Spell Projects by name. */
-  registerElements(componentMap: KnownElementsMap): void {
-    Object.assign(spellCore.knownElements, componentMap)
+  /** Show `message` in a dialog, and wait until it's closed -- compiled from `alert "Yo!"` (`await`ed). */
+  async alert(message: unknown, okText?: string): Promise<void> {
+    const ui = pageUI()
+    if (!ui) return spellCore.console.info(String(message))
+    await (await ui.load()).modals.alert({ message: String(message), okText })
   },
 
   /**
-   * Create a react element (ala `React.createElement()`).
-   * - String `tag` first tries `knownElements` (registered via `registerElements()`) by name --
-   *   falls back to `tag` itself (e.g. a plain HTML tag like `"div"`) if not found there.
-   * - Compiles from spell JSX, e.g. `<div foo=1>{expr}</div>` =>
-   *   `spellCore.element({ tag: "div", props: { foo: 1 }, children: [expr] })` (see `JSX.ts`).
+   * Ask a yes / no question in a dialog:  `true` for ok -- compiled from `confirm "Delete?"` (`await`ed).
+   * - No Spell UI:  `true`, printed with the question.
    */
-  element({ tag, props, children = [] }: ElementSpec = {}): ReactElement {
-    if (typeof tag === "string") {
-      tag = (_get(spellCore.knownElements, tag) as ReactComponentType | string | undefined) || tag
-      if (typeof tag === "string" && tag.includes(".")) {
-        console.warn(`spellCore.element(): Don't recognize tag '${tag}'`)
-      }
-    }
-    return React.createElement(tag as ReactComponentType | string, props, ...children)
+  async confirm(message: unknown, okText?: string, cancelText?: string): Promise<boolean> {
+    const ui = pageUI()
+    if (!ui) return (spellCore.console.info(`${String(message)} (yes)`), true)
+    return (await ui.load()).modals.confirm({ message: String(message), okText, cancelText })
   },
+
+  /**
+   * Ask for some text in a dialog:  what was typed, or `undefined` if cancelled.
+   * - Compiled from `prompt "Name?" with "Untitled"` (`await`ed), `value` its starting text.
+   * - No Spell UI:  `value`, printed with the question.
+   */
+  async prompt(message: unknown, value?: string): Promise<string | undefined> {
+    const ui = pageUI()
+    if (!ui) return (spellCore.console.info(`${String(message)} (${value ?? ""})`), value)
+    return (await ui.load()).modals.prompt({ message: String(message), value })
+  },
+
+  ////////////////
+  // ## Styles
+  ////////////////
 
   /**
    * Create/initialize a `name`d stylesheet with specified `css` text.
    * - If you call this a second time with same `name`, it'll replace the element with that `name`.
-   * - Compiles from a bare (unquoted) CSS text literal, e.g. a spell `.css` file's contents; newlines
-   *   in `css` arrive escaped as `¬` (see `css` rule in `UI.ts`), since they survived being embedded
-   *   in a backtick template literal -- unmunged back to `\n` here before use.
+   * - Compiles from a bare (unquoted) CSS text literal, e.g. a spell `.css` file's contents.
+   * - Newlines in `css` arrive escaped as `¬` (see the `css` rule, `rules/UI/CSSStyles.ts`),
+   *   since they survived being embedded in a backtick template literal:
+   *   unmunged back to `\n` here before use.
    * - Goes in `spellCore.domRoot()`:  the app's shadow root if it's in one, so its styles stay inside it --
    *   else `document`'s `<head>`.
    */
@@ -115,3 +128,31 @@ export const uiMethods = defineSpellCoreModule({
   }
 })
 Object.assign(spellCore, uiMethods)
+
+/**
+ * What core uses of the page's Spell UI runtime (`UI`, `@spell-app/ui`):  typed here, as core never imports `ui`.
+ * - Its `modals` work once the `ui-modal` family is defined:  a runner's page defines every family.
+ */
+type PageUI = {
+  /** resolves with the runtime once its services are in:  `UI.load()` */
+  load(): Promise<PageUI>
+  /** a toast:  `UI.toast()` */
+  toast(options: { message: string; displayTime?: number | "auto" }): unknown
+  /** dialogs that answer with a promise:  `UI.modals` */
+  modals: {
+    alert(options: { message: string; okText?: string }): Promise<void>
+    confirm(options: { message: string; okText?: string; cancelText?: string }): Promise<boolean>
+    prompt(options: { message: string; value?: string }): Promise<string | undefined>
+  }
+}
+
+/**
+ * The page's Spell UI runtime, if there is one -- `undefined` under node, or on a page without Spell UI.
+ * - Where Spell UI keeps it, so every bundle on the page shares it (`RUNTIME_KEY`, `ui`'s `runtime.types.ts`).
+ */
+function pageUI(): PageUI | undefined {
+  return (globalThis as Record<symbol, PageUI | undefined>)[UI_RUNTIME_KEY]
+}
+
+/** Spell UI's `RUNTIME_KEY`:  a copy, as core never imports `ui`. */
+const UI_RUNTIME_KEY = Symbol.for("@spell-app/ui:runtime")

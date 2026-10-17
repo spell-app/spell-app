@@ -27,8 +27,8 @@ export type Datatype = string
  * - The root scope has a `TypeScope` for each -- see `SpellParser.rootScope`.
  * - Their members, e.g. `the length of the name`, are spell's:  in its `BUILT_IN_TYPE_TABLE`,
  *   loaded into these `TypeScope`s.  The parser only knows their names.
- * - NOTE: `list`, `thing` and `app` are runtime classes too (`List`, `Thing`, `App`),
- *   which compiled code names in Type_Case.  The rest are plain javascript values.
+ * - NOTE: `list`, `thing`, `app`, `drawable` and `drawable list` are runtime classes too (`List`, `Thing` ...),
+ *   which compiled code names by `BUILT_IN_CLASS_NAMES`.  The rest are plain javascript values.
  */
 export const BUILT_IN_TYPES: Record<Datatype, Datatype | undefined> = {
   text: undefined,
@@ -41,14 +41,39 @@ export const BUILT_IN_TYPES: Record<Datatype, Datatype | undefined> = {
   list: undefined,
   thing: undefined,
   app: "thing",
+  // a thing drawn as its own custom element -- `a card is a drawable thing` (epic `drawable-thing`)
+  drawable: "thing",
+  "drawable list": "list",
   nothing: undefined
 }
 
 /**
- * Built-in types which are classes at runtime, so compiled code names them in Type_Case, e.g. `extends List`.
+ * Built-in types which are classes at runtime, by datatype:  the name compiled code gives each, e.g. `extends List`.
  * - Every other built-in is a plain javascript value, named in spell's words, e.g. `isOfType(x, 'text')`.
+ * - A name of two words is one class, NOT one word per part:  `drawable list` => `DrawableList` -- see `classCase()`.
  */
-export const BUILT_IN_CLASSES: Datatype[] = ["list", "thing", "app"]
+export const BUILT_IN_CLASS_NAMES: Record<Datatype, string> = {
+  list: "List",
+  thing: "Thing",
+  app: "App",
+  drawable: "Drawable",
+  "drawable list": "DrawableList"
+}
+
+/** Built-in types which are classes at runtime -- see `BUILT_IN_CLASS_NAMES`. */
+export const BUILT_IN_CLASSES: Datatype[] = Object.keys(BUILT_IN_CLASS_NAMES)
+
+/** The class names in `BUILT_IN_CLASS_NAMES`, e.g. `DrawableList`. */
+const BUILT_IN_CLASS_NAME_SET = new Set(Object.values(BUILT_IN_CLASS_NAMES))
+
+/**
+ * Name of the class for type `name`, as compiled code and `scope.types` name it.
+ * - a built-in class by its datatype, e.g. `drawable list` => `DrawableList`;  its class name stays as it is
+ * - anything else in PascalCase (`typeCase()`), e.g. `bank-accounts` => `BankAccount`
+ */
+export function classCase(name: string): string {
+  return BUILT_IN_CLASS_NAMES[`${name}`.toLowerCase()] ?? (BUILT_IN_CLASS_NAME_SET.has(name) ? name : typeCase(name))
+}
 
 /**
  * Datatype for a type name as a user WROTE it -- THE one normaliser.
@@ -58,7 +83,7 @@ export const BUILT_IN_CLASSES: Datatype[] = ["list", "thing", "app"]
  * - Plurals are singularized before lookup, e.g. `numbers` => `number`.
  * - A list of something:  `list of cards` / `array of Card` => `list of cards`,
  *   when its first word names a `list` -- see `listOf()`.
- * - Anything else is a user's type, Type_Case and singular, as its `TypeScope` is named:  `cards` => `Card`.
+ * - Anything else is a user's type, PascalCase and singular, as its `TypeScope` is named:  `cards` => `Card`.
  * - NOTE: a language wraps this with its vocabulary, e.g. `SP.typeName()`:  the parser knows no language's words.
  */
 export function typeName(written: string, typeWords: TypeWords = {}): Datatype {
@@ -289,10 +314,17 @@ export type SpeedTestResults = Omit<TestResults, "time"> & {
   max: number
 }
 
-/** A single rule test: `[input, expectedOutput]` tuple or an object with the same. */
+/**
+ * A single rule test:  an `[input, js, ts?]` tuple, or an object with the same, `{ input, js, ts }`.
+ * - `input`:  what's parsed, as the block's `compileAs` rule;  an array is its lines.
+ * - `js`:  what the javascript writer writes for it, `P.JSWriter`;  `undefined` if it mustn't parse.
+ * - `ts`:  what the TypeScript writer writes, `P.TSWriter` -- left out where it's the same as `js`.
+ *   `BLESS_RULE_TESTS=1` writes it in:  see `unitTestModuleRules()`.
+ * - `js` / `ts` as an array:  its lines.
+ */
 export type RuleTest =
-  | [input: string | string[], output: unknown]
-  | { title?: string; input: string | string[]; output: unknown; skip?: boolean }
+  | [input: string | string[], js: unknown, ts?: unknown]
+  | { title?: string; input: string | string[]; js: unknown; ts?: unknown; skip?: boolean }
 
 /** Block of rule tests, optionally compiled as a different rule (`compileAs`). */
 export type RuleTestBlock = {
@@ -313,18 +345,24 @@ export type RuleTestBlock = {
 /** Array of `RuleTestBlock`s, e.g. `rule.tests`. */
 export type RuleTests = RuleTestBlock[]
 
-/** Normalize a `RuleTest` tuple or object to a consistent object, joining array `input`/`output` with newlines. */
+/**
+ * Normalize a `RuleTest` tuple or object to a consistent object, joining array `input` / `js` / `ts` with newlines.
+ * - `ts` left out:  the same as `js`.
+ */
 export function normalizeRuleTest(test: RuleTest) {
   const {
     input,
-    output,
+    js,
+    ts = js,
     skip = false,
     title
-  } = Array.isArray(test) ? { input: test[0], output: test[1], skip: false, title: undefined } : test
-  return {
-    input: Array.isArray(input) ? input.join("\n") : input,
-    output: Array.isArray(output) ? output.join("\n") : output,
-    skip,
-    title
-  }
+  } = Array.isArray(test) ? { input: test[0], js: test[1], ts: test[2], skip: false, title: undefined } : test
+  return { input: joinLines(input), js: joinLines(js), ts: joinLines(ts), skip, title }
+}
+
+/** `value`'s lines joined with newlines, if it's an array;  else as is. */
+function joinLines(value: string | string[]): string
+function joinLines(value: unknown): unknown
+function joinLines(value: unknown): unknown {
+  return Array.isArray(value) ? value.join("\n") : value
 }

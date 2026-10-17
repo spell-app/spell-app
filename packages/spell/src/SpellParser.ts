@@ -1,7 +1,7 @@
-import { getDerived, singularize, typeCase } from "$/util"
+import { getDerived, singularize } from "$/util"
 import { P } from "$/parser"
-// Import directly, NOT through the `$/core` barrel:  the parser MUST NOT load `spellCore` itself -- each
-// runner runs its own copy.  See `spellRuntime.ts`.
+// Import directly, NOT through the `$/core` barrel:  the parser MUST NOT load `spellCore` itself.
+// Each runner runs its own copy:  see `spellRuntime.ts`.
 import { SPELL_BASE_TYPES } from "$/core/spellCore.types"
 import { SP } from "$/spell"
 
@@ -10,15 +10,17 @@ import "$/parser/rulex"
 
 /**
  * `P.Parser` subclass for the spell language.
- * - Holds spell's `tokenizer` (double-quote strings only, `LEADING_ONLY` whitespace so indentation stays
- *   significant) plus a `tokenize()` override that re-groups tokens into indented blocks for the `"block"`
- *   rule.
- * - `SpellParser.rootScope` is the single shared root every project/file scope descends from -- it carries
- *   spell's base types; see `getScope()` / `SpellFile.getScope()` / `SpellProject.getScope()` for how
- *   project-specific parsers `clone()` off of it.
- * - `SP.spellParser` (see `./rules`) is the actual shared instance used by both the client UI and the
- *   server's `compileFile()` (`src/server/project-utils.ts`) -- keep this class free of browser-only
- *   globals at module-evaluation time.
+ * - Holds spell's `tokenizer`:
+ *   - double-quote strings only
+ *   - `LEADING_ONLY` whitespace, so indentation stays significant
+ * - Its `tokenize()` re-groups tokens into indented blocks, for the `"block"` rule.
+ * - `SpellParser.rootScope` is the single shared root every project/file scope descends from:
+ *   it carries spell's base types.
+ *   - How project-specific parsers `clone()` off of it:
+ *     `getScope()`, `SpellFile.getScope()`, `SpellProject.getScope()`.
+ * - `SP.spellParser` (see `./rules`) is the actual shared instance,
+ *   used by both the client UI and the server's `compileFile()` (`src/server/project-utils.ts`).
+ *   - So keep this class free of browser-only globals at module-evaluation time.
  */
 export class SpellParser extends P.Parser {
   /**
@@ -43,7 +45,10 @@ export class SpellParser extends P.Parser {
           // TODO: backtick as alternative quote, for embedding double quotes?
           quoteSymbols: [`"`],
           // Remove "normal" whitespace (leaving newlines and indents) when parsing
-          whitespacePolicy: P.WhitespacePolicy.LEADING_ONLY
+          whitespacePolicy: P.WhitespacePolicy.LEADING_ONLY,
+          // never read as spell:  a drawable type's own styles (`css_block`),
+          // and formatted text (`markdown_block`, `markdown_description`)
+          rawTextTags: ["css", "markdown"]
         })
     )
   }
@@ -77,7 +82,7 @@ export class SpellParser extends P.Parser {
    * - The expression (so an `operand`):  a twin whose LAST slot is an operand,
    *   its `statementRule` pointing back at the statement.
    * - e.g. `to notify (message)` declares a call rule with syntax `notify {message:expression}`, which we make:
-   *   - the statement `notify {message:expression}`:  a LINE takes the whole expression after it,
+   *   - the statement `notify {message:expression}`:  a LINE takes the whole expression after it:
    *     `notify "hi " + name` => `notify_$message("hi " + name)`
    *   - the twin `notify {message:operand}`:  INSIDE an expression it takes one operand,
    *     so the rest stays the outer expression's:  `if notify x is 4` => `if (notify_$message(x) == 4)`
@@ -127,8 +132,8 @@ export class SpellParser extends P.Parser {
   static EXPRESSION_RULES = ["expression", "operand"]
 
   /**
-   * Every rule aliased `expression` is registered as an `operand` instead -- except `expression` itself,
-   * `compound_expression`, which is an operand plus any operators after it.
+   * Every rule aliased `expression` is registered as an `operand` instead.
+   * - Except `expression` itself, `CompoundExpression`, which is an operand plus any operators after it.
    * - So `{expression}` is a whole expression, operators and all.
    * - `{operand}` is what an operator acts on:  one expression with no operator at its top,
    *   e.g. `5`, `the first card of the deck`, `(x + 1)`.
@@ -168,7 +173,7 @@ export class SpellParser extends P.Parser {
       for (const [name, superType] of Object.entries(P.BUILT_IN_TYPES)) {
         const existing = scope.types.get(name, "LOCAL_ONLY")
         if (!existing) scope.types.add({ name, superType })
-        else if (superType) existing.superType = typeCase(superType)
+        else if (superType) existing.superType = P.classCase(superType)
       }
       // their members, docs and item types -- see `BUILT_IN_TYPE_TABLE`
       SP.loadBuiltInTypes(scope)
@@ -190,8 +195,8 @@ export class SpellParser extends P.Parser {
   }
 
   /**
-   * Tokenize `input`, then re-group into indented blocks when `ruleName` is `"block"` -- spell's
-   * significant-whitespace block structure isn't just a flat token stream.
+   * Tokenize `input`, then re-group into indented blocks when `ruleName` is `"block"`.
+   * - Why:  spell's significant-whitespace block structure isn't just a flat token stream.
    */
   tokenize(input: string, ruleName: string) {
     const tokens = super.tokenize(input)
@@ -209,7 +214,7 @@ export class SpellParser extends P.Parser {
    *   so the editor keeps its last good version rather than re-parsing everything.
    *   See `P.IncrementalProject.update()`.
    * - A value kind too, `- "suits" as one of ...` declares `suit` (`value_kind`):  so a card above the deck
-   *   can say `its "suit" is a suit` (plan doc `outline-spell`, issue I3).
+   *   can say `its "suit" is a suit` (epic page `outline-spell`, issue I3).
    */
   declaredTypes(text: string): string[] {
     const types = [...text.matchAll(SpellParser.TYPE_DECLARATION)].map(([, type, created]) => (type ?? created)!)

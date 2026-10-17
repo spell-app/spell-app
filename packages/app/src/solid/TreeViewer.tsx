@@ -59,6 +59,7 @@ export function TreeToolbar() {
  * - No line there (or nothing parsed yet):  a hint instead.
  * - Errors:  the tree is worked out in RENDER, so `<ErrorBoundary>` catches a throwing `getAST()`, tells
  *   `showError`, and heals on the next move.
+ * - SEE:  its App UI components page, `packages/app/docs/TreeViewer.html` (`/components/app/TreeViewer.html`).
  ****************/
 export function TreeViewer(props: TreeViewerProps) {
   const tree = createMemo(() => {

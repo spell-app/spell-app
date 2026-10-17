@@ -1,5 +1,5 @@
 /**
- * Types, tables and the error class of the plan-doc tool:
+ * Types, tables and the error class of the epic tool:
  * `PlanReader` (reading a doc), `PlanDoc` (editing one in `<epic-*>` markup) and the command line.
  * Rules, ids and what's data:  `PLAN-DOC.md` beside this.
  * - At the BOTTOM of the tool folder's import graph:  `import type` only, apart from `$/epics`' definitions (data),
@@ -26,7 +26,7 @@ PlanDocError.prototype.name = "PlanDocError"
 // ## Page
 ////////////////
 
-/** What a plan doc's `<title>` starts with, before its title:  `Epic: Review Review`;  `<epic-page>` draws the h1. */
+/** What an epic page's `<title>` starts with, before its title:  `Epic: Review Review`;  `<epic-page>` draws the h1. */
 export const TITLE_PREFIX = "Epic: "
 
 ////////////////
@@ -55,8 +55,10 @@ export type PhaseField = (typeof PHASE_FIELDS)[number]
 
 /** One phase, as `PlanReader.phases` reads it. */
 export type Phase = {
-  /** its number:  `p3` is 3 */
+  /** its number:  its place in the list, from 1 (P15:  never its id) */
   n: number
+  /** its id:  stable, made from its name when it was added (`p-epic-migrate`;  an older page's `p3`) */
+  id: string
   /** its short name, without `P3 · ` */
   name: string
   /** `todo`, `active` or `done`;  any other text is a broken doc (`PlanReader.check()`) */
@@ -73,7 +75,7 @@ export type AddPhaseOptions = Prettify<
   PhaseFieldValues & {
     /** wall-clock estimate (`1-2h`):  `<epic-phase estimate>` */
     estimate?: string
-    /** inserted as this phase, the to-do phases from it on moving down one (`add-phase --before N`);  default last */
+    /** inserted as this phase, the to-do phases from it on moving down a number (`add-phase --before N`);  default last */
     before?: number
   }
 >
@@ -230,7 +232,7 @@ export type AddItemOptions = {
   details?: string
   /** `title` is HTML, not text:  with markup, it's a `slot="title"` child */
   titleHTML?: boolean
-  /** not urgent (`calm`):  a judgement call or issue that simply follows WWOD;  `--calm` */
+  /** not urgent (`calm`):  a judgement call or issue that wouldn't surprise Owen;  `--calm` */
   calm?: boolean
 }
 
@@ -242,6 +244,23 @@ export type DecideOptions = {
   option?: string
   /** which card set `option` is in, by position (`PlanItem.choiceSets()`, I8);  none:  the question's own */
   choices?: number
+}
+
+/**
+ * What `PlanDoc.renameEntry()` did:  the phase's or item's `id` and `label`, the title it `was`, its `title` now (the
+ * words drawn), and how many `links` to it it rewrote.
+ */
+export type RenameResult = {
+  /** its id:  `j3`, `p-epic-migrate` (a phase keeps its id) */
+  id: string
+  /** how it's named:  `J3`, `P6` (a phase by its place) */
+  label: string
+  /** its title before */
+  was: string
+  /** its title now */
+  title: string
+  /** how many links' words were rewritten */
+  links: number
 }
 
 /**
@@ -564,6 +583,10 @@ export type PlanSummary = {
   bedtime: string | null
   /** a future epic:  not planned yet */
   future: boolean
+  /** a standing epic:  open for good, never done (epic `epic-workflow`) */
+  standing: boolean
+  /** the saga it serves, its id (epic `epic-workflow` P15);  `null` for none */
+  saga: string | null
   /** each kind's open items, in `OPEN_KINDS`' order */
   open: Record<OpenKind, ItemSummary[]>
 }

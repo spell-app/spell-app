@@ -1,0 +1,222 @@
+<!doctype html>
+<!--
+  A <brand-*> element's page in the brand's docs set (`packages/brand/docs/`, served at `/components/brand/`), in
+  Spell UI's component page shape:  masthead, then Examples / Usage / API / Theming tabs.
+  - The set's layout (`__parts/layout.html`) loads Spell UI's site bundle and the brand pack;  API and tokens come
+    from `__data/components.json5` (`yarn site:data` in `packages/brand`).
+  - Example ids:  `<tab>-<section>-<example>`, as Spell UI's pages.
+  - Grounds:  `<ui-segment>` (light) and `<ui-segment inverted>` (dark), so each tone sits on one it reads on.
+  - What the examples need, styles and script, is INSIDE `main`:  the site swaps only `main` between its pages.
+    A script adds its listeners once (`window.<flag>`):  the site runs it again each time the page is shown.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Brand Logo</title>
+    <meta
+      name="description"
+      content="<brand-logo>:  the Spell logo, outlined (no font needed):  the hat mark or a lockup, in one colour."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Brand Logo">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../../packages/brand/components/brand-logo/"
+              icon="code"
+              aria-label="Its code"
+              title="Its code"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Brand Logo
+            <ui-label color="yellow" size="small">New</ui-label>
+            <ui-header>The Spell logo, outlined: the hat mark, or the mark with the wordmark, in one colour.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-mark" header="Mark" sticky collapsible dividing>
+                <ui-docs-example
+                  description='`variant="mark"` (the default):  the hat alone.  For app icons, favicons and anywhere the name is already on screen.'
+                >
+                  <brand-logo></brand-logo>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-lockup" header="Lockup" sticky collapsible dividing>
+                <ui-docs-example
+                  description='`variant="lockup"`:  the hat and “Spell”, the hat centred on the capitals.  Headers and small spaces.'
+                >
+                  <brand-logo variant="lockup"></brand-logo>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-tagline" header="Lockup with tagline" sticky collapsible dividing>
+                <ui-docs-example
+                  description='`variant="tagline"`:  the primary logo, “All magic, no fuss.” under the word, exactly as wide as it.  Give it room:  it wants about twice the lockup&apos;s height.'
+                >
+                  <brand-logo variant="tagline" style="--brand-logo-height: 4em"></brand-logo>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-app" header="App lockup" sticky collapsible dividing>
+                <ui-docs-example description='`variant="app"`:  the hat and “Spell App”.'>
+                  <brand-logo variant="app"></brand-logo>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-tone-light" header="Tone, on light" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`tone`:  `ink` (the default:  the theme's strongest text), `aubergine` and `purple`, for light grounds.  `ink` and `purple` follow the scheme (`ui-light` holds this ground light);  `aubergine` never changes."
+                >
+                  <ui-segment class="ui-light">
+                    <div style="display: flex; gap: 2em">
+                      <brand-logo variant="lockup" tone="ink"></brand-logo>
+                      <brand-logo variant="lockup" tone="aubergine"></brand-logo>
+                      <brand-logo variant="lockup" tone="purple"></brand-logo>
+                    </div>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-tone-dark" header="Tone, on dark" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`white` and `lilac`, for aubergine and dark grounds (and dark photos).  Both are fixed colours."
+                >
+                  <ui-segment inverted>
+                    <div style="display: flex; gap: 2em">
+                      <brand-logo variant="lockup" tone="white"></brand-logo>
+                      <brand-logo variant="lockup" tone="lilac"></brand-logo>
+                    </div>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-current" header="Current colour" sticky collapsible dividing>
+                <ui-docs-example
+                  description='`tone="current"`:  the logo takes the colour of the text around it, e.g. inside a button, a label or a link.'
+                >
+                  <ui-button primary>
+                    <brand-logo tone="current" label="" style="--brand-logo-height: 1.25em"></brand-logo>
+                    Open Spell
+                  </ui-button>
+                  <ui-label color="pink">
+                    <brand-logo tone="current" label="" style="--brand-logo-height: 1.2em"></brand-logo>
+                    Made with Spell
+                  </ui-label>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`--brand-logo-height` sets the height;  the width follows the logo's proportions.  The default, `2em`, scales with the font size around it."
+                >
+                  <brand-logo variant="lockup" style="--brand-logo-height: 16px"></brand-logo>
+                  <brand-logo variant="lockup" style="--brand-logo-height: 24px"></brand-logo>
+                  <brand-logo variant="lockup"></brand-logo>
+                  <brand-logo variant="lockup" style="--brand-logo-height: 64px"></brand-logo>
+                </ui-docs-example>
+                <ui-docs-example description="In a heading, `1em` sets the mark on the text's height.">
+                  <ui-header level="2">
+                    <brand-logo tone="purple" label="" style="--brand-logo-height: 1em"></brand-logo>
+                    Cast your first spell
+                  </ui-header>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-decorative" header="Decorative" sticky collapsible dividing>
+                <ui-docs-example
+                  description='`label=""`:  hidden from screen readers, when the text beside it already says “Spell”.  Any other `label` renames it.'
+                >
+                  <ui-header level="3">
+                    <brand-logo label="" style="--brand-logo-height: 1.2em"></brand-logo>
+                    Spell
+                  </ui-header>
+                  <brand-logo variant="lockup" label="Spell home"></brand-logo>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The logo, drawn from outlines: it looks the same everywhere, with no font to install. Use it
+                  rather than an `<img>` of the files in `spell-design-system/assets/logo/`; link those files only
+                  where people download them.
+
+                  - `variant` picks the drawing: the hat (`mark`), the hat and the word (`lockup`), with the tagline
+                    (`tagline`), or `app`.
+                  - `tone` picks one flat colour from the palette; pick the tone for the ground, as the Logo page
+                    shows. `current` follows the text colour.
+                  - Size it with `--brand-logo-height`; never stretch it.
+                  - The brand's rules: keep clear space round it equal to the height of the hat's brim; never rotate
+                    it, add a gradient or an effect, fade it, or set it on a busy, low-contrast ground.
+                  - The outlines load on first use (one shared module, about 58 KB): the logo appears a frame later.
+                </script>
+              </ui-markdown>
+            </ui-section>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - An image (`role="img"`) named “Spell” (“Spell App” for `app`), or its `label`.
+                  - `label=""` makes it decorative (`aria-hidden`): use it when text beside it already names Spell,
+                    so the name isn't read twice.
+                  - Without its script, it shows the name as text in the heading font.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <ui-docs-api family="brand-logo"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Set a `--brand-logo-*` token on the logo, any ancestor or `:root`. The colours come from the
+                  `spell-brand` theme's roles, with plain Spell UI tokens under any other theme. Edit a value below to
+                  try it.
+                </script>
+              </ui-markdown>
+              <ui-docs-tokens family="brand-logo" playground>
+                <brand-logo></brand-logo>
+                <brand-logo variant="tagline"></brand-logo>
+              </ui-docs-tokens>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

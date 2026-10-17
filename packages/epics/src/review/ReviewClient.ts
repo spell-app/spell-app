@@ -22,6 +22,8 @@ import {
   type ReviewAction,
   type ReviewClientOptions,
   type Running,
+  type StartAnswer,
+  wakeOf,
   type WriteOptions
 } from "./review.types"
 import { ServerLink } from "./ServerLink"
@@ -34,6 +36,8 @@ import { ServerLink } from "./ServerLink"
  * - Who uses it:
  *   - the review controls (`<epic-review>`, drawn by `<epic-item>`, `<epic-section>` ...) draw from it
  *   - P10's Send, Review Now and Choose pills call it (`send()`, `choose()`), and an item's id chip (`toggleCalm()`)
+ *   - Send hands over Owen's comments too (the docs runtime's bullhorns write them, in the same inbox file):
+ *     the routes say which wait for it (`inbox.unsentComments`)
  * - REVIEWING only when the page is served with a token (`window.SPELL_SERVER`) and its inbox answers:
  *   never from `file://`, nor from a server without the routes (`reviewing` stays false, and nothing is drawn)
  * - every route's reply is the whole inbox:  a write's answer replaces what's shown;
@@ -167,7 +171,7 @@ export class ReviewClient {
    * Read the inbox;  if it answers, the page is being reviewed:  backups handed over, drafts' boxes reopened.
    * - true when reviewing
    * - once per client
-   * - only a page the routes review (`PLAN_DOC_PAGE`), served with a token:  else it never asks
+   * - only a page the routes review (`PLAN_DOC_PAGE`, `SAGA_PAGE`), served with a token:  else it never asks
    * - NEVER throws
    */
   start(): Promise<boolean> {
@@ -177,7 +181,7 @@ export class ReviewClient {
 
   /** `start()`'s work. */
   private async begin(): Promise<boolean> {
-    if (!this.link.servesPlanDoc || !(await this.load())) return false
+    if (!this.link.servesReviews || !(await this.load())) return false
     this.reviewing = true
     await this.adoptBackups()
     // a note being written reopens where it was, from any address
@@ -194,7 +198,7 @@ export class ReviewClient {
    *   never a connection of our own, each holds one of Chrome's 6 per host)
    */
   watch(window: Window): () => void {
-    const inboxFile = this.link.file.replace(/(?:\.plan)?\.html$/, ".inbox.json")
+    const inboxFile = this.link.file.replace(/(?:\.plan|\.saga)?\.html$/, ".inbox.json5")
     return this.link.watch(window, inboxFile, () => void this.refresh())
   }
 
@@ -249,6 +253,14 @@ export class ReviewClient {
   /** Is a Claude session waiting on the inbox? */
   get listening(): boolean {
     return !!this.inbox.listening
+  }
+
+  /**
+   * Why work waits, with nobody listening:  what the page server's wake did
+   * (`Typed /epic review x into 🚧 x:  press Enter there`, epic `epic-workflow` P16), else `NOBODY_LISTENING`.
+   */
+  get waitingWhy(): string {
+    return this.inbox.woken?.message.replace(/\.$/, "") ?? NOBODY_LISTENING
   }
 
   /**
@@ -310,9 +322,23 @@ export class ReviewClient {
       .sort((a, b) => newNumber(a.id) - newNumber(b.id))
   }
 
-  /** How many marks and urgencies wait for "Send to Claude". */
+  /** Everything waiting for "Send to Claude":  marks, urgencies and comments. */
   get unsentCount(): number {
+    return this.unsentMarkCount + this.unsentCommentCount
+  }
+
+  /** How many marks and urgencies wait for "Send to Claude". */
+  get unsentMarkCount(): number {
     return this.unsentMarks().length + this.unsentUrgency().length
+  }
+
+  /**
+   * How many comments wait for "Send to Claude":  Claude's turn on the thread, and Owen's words newer than the last
+   * send (Owen, 2026-10-10:  Send is how comments reach Claude).
+   * - the routes count them (`inbox.unsentComments`):  the threads' rules are the server's
+   */
+  get unsentCommentCount(): number {
+    return this.inbox.unsentComments.length
   }
 
   ////////////////
@@ -480,23 +506,25 @@ export class ReviewClient {
   /**
    * Ask Claude to act on item `id` NOW (`details` | `revisit`):  queued in the inbox's `now`.
    * - a revisit keeps the item's pick (the route does too:  `ReviewInbox.requestNow()`)
-   * - nobody listening:  says so
+   * - nobody listening:  the page server wakes the epic (epic `epic-workflow` P16), and the notice says how
+   *   (its answer's `wake`), or that nobody is reviewing
    */
   async askNow(id: string, action: NowAction, note?: string): Promise<boolean> {
     const pick = pickOf(this.inbox.marks[id])
     const at = new Date().toISOString()
     this.inbox.marks[id] =
       action === "revisit" ? { action, when: "now", note: note ?? "", ...pick, at } : { action, at }
-    const request = this.write("now", note === undefined ? { id, action } : { id, action, note })
-    this.asking.set(id, request)
+    const request = this.post("now", note === undefined ? { id, action } : { id, action, note })
+    const written = request.then((reply) => reply !== undefined)
+    this.asking.set(id, written)
     this.changed()
-    const written = await request
+    const reply = await request
     this.asking.delete(id)
     // called off on its way:  `cancel()` takes it from here
-    if (this.calling.has(id)) return written
+    if (this.calling.has(id)) return reply !== undefined
     this.changed()
-    if (written && !this.inbox.listening) this.notify(NOBODY_LISTENING)
-    return written
+    if (reply !== undefined && !this.inbox.listening) this.notify(wakeOf(reply)?.message ?? NOBODY_LISTENING)
+    return reply !== undefined
   }
 
   /**
@@ -531,7 +559,10 @@ export class ReviewClient {
 
   /**
    * "Send to Claude" (`now`:  Review Now, every revisit waiting asked now too);
-   * says what went, or why nothing did (P10's Send and Review Now, in the page's send bar).
+   * says what went, or why nothing did (P10's Send and Review Now, in the page header).
+   * - hands over the unsent marks, urgencies AND comments (`unsentCommentCount`):
+   *   a comment or a reply on a thread wakes a listening session only through a send
+   * - nobody listening:  the page server wakes the epic (epic `epic-workflow` P16), and the notice says how
    */
   async send({ now = false }: { now?: boolean } = {}): Promise<boolean> {
     const marks = Object.values(this.inbox.marks)
@@ -539,26 +570,46 @@ export class ReviewClient {
       ...(now ? marks.filter((mark) => !isImmediate(mark)) : this.unsentMarks()),
       ...this.unsentUrgency()
     ]
-    if (!waiting.length) {
+    const comments = this.unsentCommentCount
+    if (!waiting.length && !comments) {
       this.notify(
         now
-          ? "Nothing to work through:  mark an item first"
+          ? "Nothing to work through:  mark an item or leave a comment first"
           : marks.length
             ? "Sent already:  waiting for Claude"
-            : "Nothing to send:  mark an item first"
+            : "Nothing to send:  mark an item or leave a comment first"
       )
       return false
     }
-    if (!(await this.write("send", now ? { now: true } : {}))) return false
-    const count = waiting.length
+    const reply = await this.post("send", now ? { now: true } : {})
+    if (reply === undefined) return false
+    const what = countWords(waiting.length, comments)
     this.notify(
       !this.inbox.listening
-        ? `Saved.  ${NOBODY_LISTENING}`
+        ? `Saved.  ${wakeOf(reply)?.message ?? NOBODY_LISTENING}`
         : now
-          ? `Claude is working through ${count} now:  answers land in the items`
-          : `Sent ${count} to Claude`
+          ? `Claude is working through ${what} now:  answers land in the items`
+          : `Sent ${what} to Claude`
     )
     return true
+  }
+
+  /**
+   * "Start a review" (epic `airplane` P12):  ask the page server to type `/epic review <epic>` into the ONE running
+   * Claude session titled for the epic (`POST /api/epics/review/start`);  says what came of it (a notice).
+   * - its answer, or `undefined` when the server couldn't be asked (the notice says why)
+   * - NEVER throws
+   */
+  async startReview(): Promise<StartAnswer | undefined> {
+    try {
+      const answer = (await this.link.post(`${REVIEW_API}/start`, { page: this.options.page })) as StartAnswer
+      this.notify(answer.message)
+      return answer
+    } catch (failure) {
+      const error = (failure as Error).message
+      this.notify(`${error[0]!.toUpperCase()}${error.slice(1)}.`)
+      return undefined
+    }
   }
 
   /**
@@ -696,14 +747,23 @@ export class ReviewClient {
    *   and re-reads the inbox, undoing what was shown early
    * - a 403 on the token:  the link takes the server's new token and tries once more (`ServerLink.post()`)
    */
-  private async write(route: string, body: object, { quiet = false, keepalive = false }: WriteOptions = {}) {
+  private async write(route: string, body: object, options: WriteOptions = {}): Promise<boolean> {
+    return (await this.post(route, body, options)) !== undefined
+  }
+
+  /** `write()`, answering the route's whole reply (a Send's `wake` too), or `undefined` when it failed. */
+  private async post(
+    route: string,
+    body: object,
+    { quiet = false, keepalive = false }: WriteOptions = {}
+  ): Promise<unknown> {
     this.writing++
     let error = ""
     try {
       const reply = await this.link.post(`${REVIEW_API}/${route}`, { page: this.options.page, ...body }, { keepalive })
       this.replaceInbox(inboxOf(reply))
       this.changed()
-      return true
+      return reply ?? {}
     } catch (failure) {
       error = (failure as Error).message
     } finally {
@@ -713,12 +773,21 @@ export class ReviewClient {
     if (!quiet) this.notify(`${error[0]!.toUpperCase()}${error.slice(1)}.`)
     await this.load()
     this.changed()
-    return false
+    return undefined
   }
 }
 
 /** The summary's tag:  how the page finds it, having no id. */
 const SUMMARY_TAG = "epic-summary"
+
+/** `marks` marks and `comments` comments, in words:  `2 marks, 1 comment`;  either left out at 0. */
+function countWords(marks: number, comments: number): string {
+  const counted = [
+    marks ? `${marks} mark${marks === 1 ? "" : "s"}` : "",
+    comments ? `${comments} comment${comments === 1 ? "" : "s"}` : ""
+  ]
+  return counted.filter(Boolean).join(", ")
+}
 
 /** A new item key's number:  `new12` -> 12, for their order. */
 function newNumber(id: string): number {

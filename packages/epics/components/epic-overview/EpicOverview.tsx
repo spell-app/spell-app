@@ -12,10 +12,11 @@ import { epicOverviewVocabulary } from "./EpicOverview.en"
 import collapseAllCSS from "$/epics/components/epic-item/CollapseAll.css?inline"
 import foldCSS from "$/epics/components/epic-section/EpicFold.css?inline"
 import overviewCSS from "./EpicOverview.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicOverview`
- * The component behind `<epic-overview>`:  a plan doc's Overview --
+ * The component behind `<epic-overview>`:  an epic page's Overview --
  * `1. Overview`, a fold (`EpicFold`), its lightbulb icon.
  * - Inside, in order:
  *   - the summary (`<epic-summary>`, a lede)
@@ -32,7 +33,12 @@ import overviewCSS from "./EpicOverview.css?inline"
 export class EpicOverview extends EpicFold<typeof epicOverviewVocabulary> {
   @E.proto static vocabulary = epicOverviewVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-fold": foldCSS, "epic-collapse-all": collapseAllCSS, "epic-overview": overviewCSS }
+    styleSheets: {
+      "epic-tooltip": tooltipCSS,
+      "epic-fold": foldCSS,
+      "epic-collapse-all": collapseAllCSS,
+      "epic-overview": overviewCSS
+    }
   } satisfies Partial<E.ElementSetup>
 
   /** Light-DOM slot occupancy:  is there a kickoff prompt? */
@@ -72,7 +78,7 @@ export class EpicOverview extends EpicFold<typeof epicOverviewVocabulary> {
           <slot name={this.slotForName("summary")} />
           <Show when={this.slots.hasContent(this.slotForName("prompt"))}>
             <details class={PROMPT} part={this.partForName("prompt")}>
-              <summary>
+              <summary title={this.translationForKey("promptTip")}>
                 <span class="chevron" aria-hidden="true">
                   {this.icons.chevron.svg}
                 </span>

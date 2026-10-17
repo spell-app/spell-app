@@ -1,18 +1,22 @@
-import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
-
 import { SRV } from "$/server"
 
-import { CommentList, type Comment } from "./CommentList"
+import { DataFile } from "$/epics/data/DataFile"
+
+import { CommentList, type Comment, type IdentifiedComment } from "./CommentList"
 
 /****************
  * ### `ReviewInbox`
- * A plan doc's REVIEW INBOX:  the marks Owen leaves on its items from the page, waiting for Claude.
- * - the file:  `epics/<name>/<name>.inbox.json`, beside `<name>.plan.html` (decision D1 of `review-review`);
+ * An epic page's REVIEW INBOX:  the marks Owen leaves on its items from the page, waiting for Claude.
+ * - the file:  `epics/<name>/<name>.inbox.json5`, beside `<name>.plan.html` (decision D1 of `review-review`);
  *   absent until the first mark, and deleted again once nothing is in it (`isEmpty`)
+ *   - JSON5, saved keeping any comment added by hand (`DataFile`, epic `epic-workflow` P21);  its old name,
+ *     `<name>.inbox.json5`, is read while there's no `.json5`, and removed by the next write
+ *   - a SAGA page keeps one the same way (epic `epic-workflow` P15):  `sagas/<id>/<id>.inbox.json5`, beside
+ *     `<id>.saga.html`, its marks and comments in this same shape
  * - per machine, NOT committed (`.gitignore`):  pending notes and session state, not the record;
- *   what Claude makes of a mark lands in the plan doc itself
+ *   what Claude makes of a mark lands in the epic page itself
  * - writers:  the page server's route module (`reviewRoutes.ts`, the page's clicks)
- *   and `spell dev plan-doc inbox ...` (Claude taking the marks:  `listen`, `wait`, `apply`, `done`, `clear`).
+ *   and `epic inbox ...` (Claude taking the marks:  `listen`, `wait`, `apply`, `done`, `clear`).
  *   Both go through `ReviewInbox.update()` / `updateAsync()`:
  *   under the file's lock (`SRV.FileLock`), written atomically (a temp file renamed over it),
  *   so neither clobbers the other and a reader never sees half a file
@@ -22,8 +26,8 @@ import { CommentList, type Comment } from "./CommentList"
  * - Shape (`version: 1`):
  *   - `marks`:
  *     `{ [id]: { action, at, when?, note?, pick?, choices? } }`, one per item id (lower-case), the latest wins
- *     - what takes a mark (`itemIds()`):  an item, an Overview sub-section (`o3`), a phase (`p3`), and the summary,
- *       keyed `summary` (it has no id of its own;  epic `airplane` P2)
+ *     - what takes a mark (`itemIds()`):  an item, an Overview sub-section (`o3`), a phase (its stable id,
+ *       `p-epic-migrate`), and the summary, keyed `summary` (it has no id of its own;  epic `airplane` P2)
  *     - a NEW item Owen asks for from the page (epic `airplane` P2), `{ action: "new", kind, title, note?, near? }`
  *       - under a key of its own, `new1`, `new2` ... (`setNew()`), so several wait at once
  *       - `kind`:  `todo` or `question`;  `near`:  the id of what it's about
@@ -53,14 +57,22 @@ import { CommentList, type Comment } from "./CommentList"
  *       `liveListener()` is `null`, and the routes answer `listening: null` (`forPage()`)
  *   - `handedOver`:  the `sent` time a waiting session last took (`takeWork()`), else `null`:
  *     so a second `plan-doc inbox wait` doesn't hand the same send over again
- *   - `comments`:  `{ [cm1 ...]: comment }`, Owen's comments on the page's blocks and on selected text
+ *   - `comments`:  `{ [m1 ...]: comment }` (shown `M1`;  `cm1` in an older file:  `CommentList.label()`), Owen's comments on the page's blocks and on selected text
  *     (epic `airplane` P11), in the shape a guide's inbox holds them (`CommentList`)
  *     - waiting until Claude answers them like a revisit's note (`/epic review`, `/airplane land`),
- *       then `answered` (`plan-doc inbox done cm3`)
- *     - never sent:  a saved comment is waiting
+ *       then `answered` (`epic inbox <name>#M3 done`)
+ *     - Send hands them over, as it does marks (Owen, 2026-10-10:  he keeps Send as the way comments reach Claude):
+ *       a waiting comment whose last words are newer than `sent` is unsent (`unsentComments`);
+ *       a waiting session takes it with the send (`takeWork()`), once, until Owen speaks on its thread again
+ *   - `woken`:  `{ at, state, did, message }`, the last time the page server WOKE the epic (epic `epic-workflow`
+ *     P16:  a Send or Do Now with nobody listening typed `/epic review <epic>` somewhere), else `null`
+ *     - so one epic is woken once:  a second Send inside `WAKE_COOLDOWN_MS` says what the first one did
+ *       (`claimWake()`), from the epic page or any page that wakes the same epic
+ *     - `state` `waking` while the wake is under way, claimed under the lock:  two Sends at once wake once
+ *     - gone once a session listens (`setListening()`), or `WAKE_COOLDOWN_MS` after `at` (`liveWoken()`)
  * - Node only (`node:fs`, `$/server`'s lock):  NOT in the `$/epics` barrel, imported by path.
  *   Imports no other file of the tool but `CommentList` (its comments).
- * - From `packages/docs/tools/inbox.js` (epic `epic-components`, P7), which now forwards here.
+ * - From the docs tools' `inbox.js` (epic `epic-components`, P7), which now forwards here.
  ****************/
 export class ReviewInbox {
   /** the format this writes;  a file without one is read as this */
@@ -83,15 +95,19 @@ export class ReviewInbox {
   listening: InboxListener | null = null
   /** the `sent` time a waiting session last took, else `null` */
   handedOver: string | null = null
-  /** Owen's comments on the page's blocks, by id (`cm1` ...):  `CommentList` */
+  /** Owen's comments on the page's blocks, by id (`m1` ...;  `cm1` in an older file):  `CommentList` */
   comments: Record<string, Comment> = {}
+  /** the page server's last wake of the epic (P16), else `null` */
+  woken: InboxWoken | null = null
 
   /**
    * An inbox:  empty, or the fields of `record` (a file's JSON) over an empty one's.
    * - a field the record lacks keeps its empty value, so readers never check;  a key it adds is kept, after them
+   * - a comment key spelt the other way (`m3`) respelt (`CommentList.migrate()`)
    */
   constructor(record: Partial<InboxRecord> & Record<string, unknown> = {}) {
     Object.assign(this, record)
+    CommentList.migrate(this.comments)
   }
 
   /** The comments, to read or change (in place). */
@@ -104,40 +120,55 @@ export class ReviewInbox {
   ////////////////
 
   /**
-   * The inbox file of the plan doc at `planDoc`:  `<name>.inbox.json` beside it.
-   * - an old plan doc's name (`<name>.html`, before the `.plan.html` rename) gives the same file
+   * The inbox file of the epic page at `planDoc`:  `<name>.inbox.json5` beside it.
+   * - a saga page's too (`sagas/<id>/<id>.saga.html`, epic `epic-workflow` P15):  `<id>.inbox.json5`, the same shape
+   * - an old epic page's name (`<name>.html`, before the `.plan.html` rename) gives the same file
    * - STATIC, as every file helper here:  they work on paths, before any inbox is read
    */
   static pathFor(planDoc: string): string {
-    return planDoc.replace(/(\.plan)?\.html$/, ".inbox.json")
+    return planDoc.replace(/(\.plan|\.saga)?\.html$/, `.inbox${DataFile.SUFFIX}`)
   }
 
   /**
    * The inbox in `file`;  an empty one when there's no file.
    * - fills in missing fields, so readers never check:  an older or hand-edited file still reads
-   * - NEVER throws on a missing file;  a file that isn't JSON throws an `InboxError` naming it
+   * - its old `.json` name when there's no `.json5` (`DataFile.read()`)
+   * - NEVER throws on a missing file;  a file that isn't JSON5 throws an `InboxError` naming it
    */
   static read(file: string): ReviewInbox {
-    if (!existsSync(file)) return new ReviewInbox()
-    let raw: Record<string, unknown>
+    let raw: Record<string, unknown> | undefined
     try {
-      raw = JSON.parse(readFileSync(file, "utf8"))
+      raw = DataFile.read<Record<string, unknown>>(file)
     } catch (error) {
-      throw new InboxError(`${file} is not JSON:  ${(error as Error).message}`)
+      throw new InboxError(`${file} is not JSON5:  ${(error as Error).message}`)
     }
+    if (!raw) return new ReviewInbox()
     return new ReviewInbox({ ...raw, version: (raw.version as number | undefined) ?? INBOX_VERSION })
   }
 
   /**
    * Write this inbox to `file`, atomically;  delete the file instead when the inbox is empty (`isEmpty`).
    * - a temp file (`<file>.tmp`) renamed over it:  readers (the page's poll, `plan-doc inbox`) never see half of it
+   * - a comment added to the file by hand stays (`DataFile.write()`);  its old `.json` goes
    * - call it under the lock (`update()`), or two writers may lose each other's changes
+   * - sync, for the command line's `update()`;  the page server's `updateAsync()` writes through `writeAsync()`
    * - SIDE EFFECT:  writes or removes `file`
    */
   writeTo(file: string): void {
-    if (this.isEmpty) return rmSync(file, { force: true })
-    writeFileSync(`${file}.tmp`, `${JSON.stringify(this, null, 2)}\n`)
-    renameSync(`${file}.tmp`, file)
+    if (this.isEmpty) return DataFile.remove(file)
+    DataFile.write(file, this)
+  }
+
+  /**
+   * `writeTo()` for a server:  through the page server's one atomic write (`SRV.FileOperations.writeAtomic()`).
+   * - NOT `SRV.FileOperations.save()`:  an empty inbox deletes its file, which a save can't
+   * - call it under the lock (`updateAsync()`)
+   * - SIDE EFFECT:  writes or removes `file`
+   */
+  private async writeAsync(file: string): Promise<void> {
+    if (this.isEmpty) return DataFile.remove(file)
+    await SRV.FileOperations.writeAtomic(file, DataFile.textFor(DataFile.text(file) ?? "", this))
+    DataFile.removeOld(file)
   }
 
   /**
@@ -157,21 +188,23 @@ export class ReviewInbox {
   /**
    * `update()` for a server:  waits for the lock with timers, so it keeps serving meanwhile.
    * - `change` runs synchronously, under the lock
-   * - SIDE EFFECT:  writes `file` (or removes it)
+   * - SIDE EFFECT:  writes `file` (or removes it:  `writeAsync()`)
    */
   static updateAsync(file: string, change: (inbox: ReviewInbox) => unknown): Promise<ReviewInbox> {
     return SRV.FileLock.runAsync(file, async () => {
       const inbox = ReviewInbox.read(file)
       change(inbox)
-      inbox.writeTo(file)
+      await inbox.writeAsync(file)
       return inbox
     })
   }
 
   /**
    * Is there nothing in this inbox worth a file?
-   * No marks, no drafts, no urgency, no requests, no agents at work, nobody listening.
+   * No marks, no drafts, no urgency, no requests, no agents at work, nobody listening, no wake still cooling down.
    * - `sent` and `handedOver` alone don't count:  they only date marks, and there are none
+   * - a wake does while it counts (`liveWoken()`):  a guide's Send wakes its epic through this file (P16),
+   *   and the record must outlast a write
    */
   get isEmpty(): boolean {
     return (
@@ -182,7 +215,8 @@ export class ReviewInbox {
       !Object.keys(this.working).length &&
       !Object.keys(this.canceled).length &&
       !Object.keys(this.comments).length &&
-      !this.listening
+      !this.listening &&
+      !this.liveWoken()
     )
   }
 
@@ -387,7 +421,7 @@ export class ReviewInbox {
     return ReviewInbox.toItemId(id) in this.canceled
   }
 
-  /** Owen pressed "send to Claude":  every mark so far is sent. */
+  /** Owen pressed "send to Claude":  every mark so far is sent, and every waiting comment (`unsentComments`). */
   markSent(at = isoTime()): this {
     this.sent = at
     return this
@@ -428,6 +462,23 @@ export class ReviewInbox {
     if (!this.sent) return []
     const sent = Date.parse(this.sent)
     return this.markList.filter((mark) => !ReviewInbox.isImmediate(mark) && Date.parse(mark.at) <= sent)
+  }
+
+  /**
+   * Comments waiting for Owen's "send to Claude":  Claude's turn on the thread, not taken
+   * (`CommentList.waiting`), and Owen's last words newer than `sent` (all of them before the first send).
+   * - a new comment, or his reply on a thread, waits for the send as a mark does
+   */
+  get unsentComments(): IdentifiedComment[] {
+    return this.commentList.unsentSince(this.sent)
+  }
+
+  /**
+   * Comments a "send to Claude" handed over and Claude hasn't taken up yet:
+   * waiting (`CommentList.waiting`), with Owen's last words at or before `sent`;  none before the first send.
+   */
+  get sentComments(): IdentifiedComment[] {
+    return this.commentList.sentBy(this.sent)
   }
 
   /** Every mark as `[{ id, ...mark }]`, oldest first. */
@@ -500,6 +551,8 @@ export class ReviewInbox {
    */
   setListening(session: string | null, at = isoTime()): InboxListener | null {
     this.listening = session === null ? null : { session, since: at, seen: at }
+    // a session took over:  the wake did its job, and the next Send with nobody listening may wake again
+    if (session !== null) this.woken = null
     return this.listening
   }
 
@@ -528,10 +581,20 @@ export class ReviewInbox {
   /**
    * The inbox as the page reads it (every route's answer):
    * the whole inbox, but `listening` `null` once stale (`liveListener()`), so the page keeps no clock rule of its own.
+   * - plus `unsentComments`, the ids of the comments Send would hand over (`unsentComments`):
+   *   the threads' rules stay here, in `CommentList`
    * - a plain copy:  this inbox is untouched
    */
-  forPage(now = Date.now()): InboxRecord {
-    return { ...this.toRecord(), listening: this.liveListener(now) }
+  forPage(now = Date.now()): PageInbox {
+    const listening = this.liveListener(now)
+    const woken = listening ? null : this.liveWoken(now)
+    return {
+      ...this.toRecord(),
+      listening,
+      // a wake under way has nothing to say yet
+      woken: woken?.state === "waking" ? null : woken,
+      unsentComments: this.unsentComments.map((comment) => comment.id)
+    }
   }
 
   /**
@@ -562,10 +625,12 @@ export class ReviewInbox {
    * - `now`:  the queued immediate requests (`takeNow()`)
    *   - each item marked `working` (the page's spinner) until Claude's agent is done (`plan-doc inbox done`)
    *   - their marks stay till then
-   * - `sent`:  `{ at, marks, urgency }` for a send not handed over yet (`hasNewSend`), else `null`
+   * - `sent`:  `{ at, marks, urgency, comments }` for a send not handed over yet (`hasNewSend`), else `null`
    *   - every sent mark (`sentMarks`), each `again: true` when an earlier send already handed it over
    *     (a revisit still being talked over)
    *   - and the sent urgency (`sentUrgency`)
+   *   - and the comments this send handed over (`sentComments`):  only those Owen spoke on since the last send
+   *     a session took, so a comment goes over once, until he replies again
    *   - `handedOver` becomes `sent`, so a send is taken once
    *   - a send with nothing left (all applied) is taken quietly:  nothing to wake for
    * - `canceled`:  "nevermind"s for work a session took:  stop those agents (`cancelNow()`)
@@ -579,8 +644,9 @@ export class ReviewInbox {
       const before = this.handedOver ? Date.parse(this.handedOver) : -Infinity
       const marks = this.sentMarks.map((mark) => ({ ...mark, again: Date.parse(mark.at) <= before }))
       const urgency = this.sentUrgency
+      const comments = this.sentComments.filter((comment) => Date.parse(CommentList.lastWordsAt(comment)) > before)
       this.handedOver = this.sent
-      if (marks.length || urgency.length) sent = { at: this.sent!, marks, urgency }
+      if (marks.length || urgency.length || comments.length) sent = { at: this.sent!, marks, urgency, comments }
     }
     const canceled = Object.entries(this.canceled)
       .filter(([, each]) => !each.told)
@@ -603,6 +669,99 @@ export class ReviewInbox {
       cleared.push(key)
     }
     return cleared
+  }
+
+  ////////////////
+  // ## Waking the epic (epic `epic-workflow` P16)
+  ////////////////
+
+  /**
+   * Is there anything a Send would hand over that it hasn't yet?
+   * A mark or urgency newer than `sent`, or a comment Owen spoke on since (`unsentMarks` ...).
+   * - read BEFORE the send:  a Send with nothing new wakes nobody (J47)
+   */
+  get hasUnsent(): boolean {
+    return this.unsentMarks.length > 0 || this.unsentUrgency.length > 0 || this.unsentComments.length > 0
+  }
+
+  /**
+   * The last wake, while it still counts:  `woken`, until `WAKE_COOLDOWN_MS` after its `at`;  else `null`.
+   * - a claim whose wake never finished (the server stopped) runs out the same way
+   */
+  liveWoken(now = Date.now()): InboxWoken | null {
+    const woken = this.woken
+    if (!woken) return null
+    return now - Date.parse(woken.at) >= WAKE_COOLDOWN_MS ? null : woken
+  }
+
+  /**
+   * A Send or Do Now just landed (`fresh`:  it handed over something new):  should the page server wake the epic?
+   * Call it under the lock, in the same change as the request, so two at once claim one wake.
+   * - `listening`:  a session is listening (`liveListener()`):  it takes the work as always, nothing to wake
+   * - `airplane`:  airplane mode is on (`airplane`):  everything waits for `/airplane land`
+   * - `nothing-new`:  the request handed over nothing new (only drafts, or marks sent already)
+   * - `already`:  woken inside `WAKE_COOLDOWN_MS`, nobody listening since:  `woken` says how
+   * - `due`:  wake it.  SIDE EFFECT:  `woken` is claimed, `{ at, state: "waking" }`;
+   *   `recordWake()` with the same `at` says what came of it
+   */
+  claimWake({ fresh, airplane = false }: { fresh: boolean; airplane?: boolean }, now = new Date()): WakeClaim {
+    if (this.liveListener(now.getTime())) return { state: "listening" }
+    if (airplane) return { state: "airplane" }
+    if (!fresh) return { state: "nothing-new" }
+    const woken = this.liveWoken(now.getTime())
+    if (woken) return { state: "already", woken }
+    const at = isoTime(now)
+    this.woken = { at, state: "waking", did: "", message: "" }
+    return { state: "due", at }
+  }
+
+  /**
+   * What wake `at` (`claimWake()`'s) did:  `done` when it typed or opened something, kept for the cooldown;
+   * `null` when it did nothing (no window, several sessions ...):  the claim goes, so the next Send tries again.
+   * - a claim no longer there (a session listened meanwhile) stays gone
+   */
+  recordWake(at: string, done: Omit<InboxWoken, "at"> | null): InboxWoken | null {
+    if (this.woken?.at !== at) return null
+    this.woken = done && { at, ...done }
+    return this.woken
+  }
+
+  /**
+   * Every entry keyed by an id in `renames` moves to its new id (`stable-phase-ids`, epic `epic-workflow` P15:
+   * `p7` => `p-epic-migrate`);  returns how many entries moved.
+   * - marks, drafts, urgency, agents at work, called-off requests:  their key;  an immediate request:  its `id`
+   * - a new item about one (`near`), and a comment's anchor on one:  `p7`, `p7#field-1`
+   * - an entry already under the new id wins:  the old one goes
+   */
+  renameIds(renames: Record<string, string>): number {
+    let moved = 0
+    const rename = (entries: Record<string, unknown>) => {
+      for (const [from, to] of Object.entries(renames)) {
+        if (!(from in entries)) continue
+        if (!(to in entries)) entries[to] = entries[from]!
+        delete entries[from]
+        moved++
+      }
+    }
+    const keyed: Record<string, unknown>[] = [this.marks, this.drafts, this.urgency, this.working, this.canceled]
+    for (const entries of keyed) rename(entries)
+    for (const request of this.now) {
+      if (!(request.id in renames)) continue
+      request.id = renames[request.id]!
+      moved++
+    }
+    for (const mark of Object.values(this.marks)) {
+      if (!mark.near || !(mark.near in renames)) continue
+      mark.near = renames[mark.near]!
+      moved++
+    }
+    for (const comment of Object.values(this.comments)) {
+      const [container, place] = comment.anchor.split("#")
+      if (!(container! in renames)) continue
+      comment.anchor = place === undefined ? renames[container!]! : `${renames[container!]}#${place}`
+      moved++
+    }
+    return moved
   }
 
   ////////////////
@@ -679,7 +838,7 @@ export class ReviewInbox {
   }
 
   /**
-   * The ids a review mark may name in plan doc `html` (a skeleton:  every item's line is in it):
+   * The ids a review mark may name in epic page `html` (a skeleton:  every item's line is in it):
    * - every `<epic-item id>`, and every Overview sub-section, `<epic-section kind="overview-part" id>`
    *   (Q14:  they take review notes too)
    * - every phase, `<epic-phase id>`, and the summary, `summary` while the doc has an `<epic-summary>`
@@ -724,7 +883,14 @@ export type InboxRecord = {
   listening: InboxListener | null
   handedOver: string | null
   comments: Record<string, Comment>
+  woken: InboxWoken | null
 }
+
+/**
+ * The inbox as the routes answer (`ReviewInbox.forPage()`):
+ * the file's JSON, plus `unsentComments`, the ids of the comments the page's Send would hand over.
+ */
+export type PageInbox = InboxRecord & { unsentComments: string[] }
 
 /** One item's mark, as stored:  checked (`ReviewInbox.toMark()`) and stamped. */
 export type InboxMark = CheckedMark & { at: string }
@@ -778,10 +944,37 @@ export type InboxCancel = { action: NowAction; at: string; told: boolean }
 /** The session waiting on the inbox:  `seen` its last heartbeat (missing in an old file). */
 export type InboxListener = { session: string; since: string; seen?: string }
 
+/**
+ * The page server's wake of the epic (`ReviewInbox.claimWake()`, epic `epic-workflow` P16).
+ * - `state`:  `waking` while under way;  then what it did (`WokenState`)
+ * - `did`:  what it did, as words to follow "Already ":  `typed /epic review x into 🚧 x`
+ * - `message`:  the page's notice and pill:  `Typed /epic review x into 🚧 x:  press Enter there`
+ */
+export type InboxWoken = { at: string; state: "waking" | WokenState; did: string; message: string }
+
+/**
+ * What a wake did that's worth remembering for the cooldown (`ReviewStart.wake()`):
+ * - `typed`:  `/epic review <epic>` typed into the epic's running session
+ * - `opened`:  a new session opened in an open window (the epic's worktree's, or a main one), the command typed in
+ * - `launched`:  the epic's worktree window opened (`spell dev window launch`), a new session in it, the command typed in
+ */
+export type WokenState = "typed" | "opened" | "launched"
+
+/** `ReviewInbox.claimWake()`'s answer:  wake now (`due`, the claim's `at`), or why not. */
+export type WakeClaim =
+  | { state: "due"; at: string }
+  | { state: "already"; woken: InboxWoken }
+  | { state: "listening" | "airplane" | "nothing-new" }
+
 /** What `ReviewInbox.takeWork()` hands a waiting session. */
 export type TakenWork = {
   now: NowRequest[]
-  sent: { at: string; marks: (ListedMark & { again: boolean })[]; urgency: ListedUrgency[] } | null
+  sent: {
+    at: string
+    marks: (ListedMark & { again: boolean })[]
+    urgency: ListedUrgency[]
+    comments: IdentifiedComment[]
+  } | null
   canceled: { id: string; action: NowAction; at: string }[]
 }
 
@@ -810,7 +1003,7 @@ export const ACTIONS = ["approve", "todo", "next", "drop", "skip", "details", "r
 export type MarkAction = (typeof ACTIONS)[number]
 
 /** What a new item from the page may be (`setNew()`):  `plan-doc add`'s kinds Owen asks for. */
-export const NEW_KINDS = ["todo", "question"] as const
+export const NEW_KINDS = ["todo", "question", "issue", "test"] as const
 /** One of `NEW_KINDS`. */
 export type NewKind = (typeof NEW_KINDS)[number]
 
@@ -841,14 +1034,23 @@ export const LISTEN_HEARTBEAT_MS = 30_000
  */
 export const LISTEN_STALE_MS = 90_000
 
+/**
+ * How long one wake of an epic stands (`claimWake()`), unless a session listens first:  10 minutes (J46).
+ * Long enough to find the window and press Enter;  short enough that a forgotten tab doesn't block the next Send long.
+ */
+export const WAKE_COOLDOWN_MS = 10 * 60_000
+
 /** An option card's letter. */
 const OPTION_LETTER = /^[A-Z]$/
 
 /** The highest card set position a pick may name:  a sanity bound, far above any item's count. */
 const MAX_CHOICES = 99
 
-/** An item id:  a letter or two and a number (`q7`, `j12`;  a phase's `p3`, an Overview sub-section's `o3`). */
-const ITEM_ID = /^[a-z]{1,2}\d+$/
+/**
+ * What a mark may be keyed by:  an item id, a letter or two and a number (`q7`, `j12`;  an Overview sub-section's
+ * `o3`), or a phase's id (`p-epic-migrate`, stable since P15;  an older page's `p3`).
+ */
+const ITEM_ID = /^(?:[a-z]{1,2}\d+|p-[a-z0-9]+(?:-[a-z0-9]+)*)$/
 
 /** A new item's key (`setNew()`):  `new1`, `new2` ... */
 const NEW_PREFIX = "new"

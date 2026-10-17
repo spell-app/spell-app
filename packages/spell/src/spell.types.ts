@@ -1,9 +1,9 @@
 /**
- * Shared types for spell language layer.
- * - `import type` only, per `AGENTS.md` -- the `$/parser/rulex` registration this file used to carry
- *   now lives in `SpellParser.ts`, which every rule module imports anyway.
- * - NOTE: `rules/Statement.ts` imports `BODY_KEYWORDS` from here directly, so this MUST stay free of
- *   runtime imports.
+ * Shared types for the spell language layer.
+ * - `import type` only, per `AGENTS.md`.
+ * - NOTE: `rules/Statement.ts` imports `BODY_KEYWORDS` from here directly,
+ *   so this MUST stay free of runtime imports.
+ * - The `$/parser/rulex` registration is in `SpellParser.ts`, which every rule module imports anyway.
  */
 
 import type { P } from "$/parser"
@@ -23,42 +23,102 @@ export type CompilableSpellFile = SpellFile | SpellCSSFile
 // ## SpellProject
 
 /**
- * Name of the file in a project's folder saying what it is and what it imports -- see `ProjectFileJSON`
- * in `src/server/server.types.ts`.  Its folder IS the project, e.g. for `locationForDiskPath()`.
+ * Name of the file in a project's folder saying what it is and what it imports, e.g. its title, imports and targets.
+ * - Its folder IS the project, e.g. for `locationForDiskPath()`.
+ * - Its shape:  `ProjectFileJSON`, in `$/spaces/server/node/projects/server.types`.
+ * - JSON5, a comment kept when spell saves it.
+ * - One of spaces' own `__` names, so no file list shows it (epic `people-and-orgs` P12, Q33).
+ * - It was `project.json` before:  read still, never written (`OLD_PROJECT_FILES`).
  */
-export const PROJECT_FILE = "project.json"
+export const PROJECT_FILE = "__project.json5"
 
 /**
- * End of a project's compiled output file's name, e.g. `Solitaire.compiled.js` -- see `SpellProject.outputFile`.
+ * A project file's old names, read while a project still has one, newest first.
+ * - A save writes `PROJECT_FILE`, and removes the old one.
+ */
+export const OLD_PROJECT_FILES = ["project.json"] as const
+
+/** Every name a project file goes by, `PROJECT_FILE` first:  the order a reader looks for them in. */
+export const PROJECT_FILES = [PROJECT_FILE, ...OLD_PROJECT_FILES] as const
+
+/** Is `name` (a file's name, no folder) a project file, by its name today or an old one? */
+export function isProjectFile(name: string): boolean {
+  return (PROJECT_FILES as readonly string[]).includes(name)
+}
+
+/**
+ * End of a project's compiled output file's name, e.g. `Solitaire.spell.js` -- see `SpellProject.outputFile`.
  * - NEVER one of a project's own files:  the server leaves it out of the manifest.
+ * - In the project's build folder, `build/` at the repo root, not beside its source:
+ *   `buildFolderFor()`, in `$/spaces/server/node/projects/project-utils`.
+ * - It was `.compiled.js` until epic `people-and-orgs` P11.
+ *   The server leaves those out of the manifest too:  `isManifestFile()`, in the same file.
  */
-export const COMPILED_JS_SUFFIX = ".compiled.js"
+export const COMPILED_JS_SUFFIX = ".spell.js"
 
 /**
- * End of a project's declarations file's name, e.g. `Solitaire.declarations.json`:  what it offers importers, beside
- * its compiled output -- see `SpellProject.declarationsFile`, `SP.SpellDeclarationsData`.
+ * End of a project's compiled TypeScript file's name, for the `ts/solid` target, e.g. `Solitaire.spell.tsx`.
+ * - In the project's build folder, as `COMPILED_JS_SUFFIX`.
+ * - It was `.compiled.tsx` until epic `people-and-orgs` P11.
+ */
+export const COMPILED_TSX_SUFFIX = ".spell.tsx"
+
+/**
+ * End of a project's compiled Python file's name, for the `py` target, e.g. `Solitaire.spell.py`.
+ * - In the project's build folder, as `COMPILED_JS_SUFFIX`.
+ * - It was `.compiled.py` until epic `people-and-orgs` P11.
+ */
+export const COMPILED_PY_SUFFIX = ".spell.py"
+
+/**
+ * End of a project's declarations file's name, e.g. `Solitaire.declarations.json5`.
+ * - The file:  what it offers importers, committed beside its source.
+ *   See `SpellProject.declarationsFile`.
+ * - Its shape:  `SP.SpellDeclarationsData`.
  * - NEVER one of a project's own files:  the server lists only `.spell`, `.css`, `.js` and `.jsx`.
  */
-export const DECLARATIONS_JSON_SUFFIX = ".declarations.json"
+export const DECLARATIONS_JSON_SUFFIX = ".declarations.json5"
 
 /**
- * End of a test fixture's snapshot file's name, e.g. `Solitaire.snapshot.js` -- its compiled output, which
- * `$/spell/test`'s `fixtures.test.ts` checks against.
+ * End of a test fixture's snapshot file's name, e.g. `Solitaire.snapshot.js`:
+ * its compiled output, which `$/spell/test`'s `fixtures.test.ts` checks against.
  * - NEVER one of a project's own files:  the server leaves it out of the manifest, as `COMPILED_JS_SUFFIX`.
  */
 export const SNAPSHOT_JS_SUFFIX = ".snapshot.js"
 
 /**
- * End of a project's scope pack file's name, e.g. `Solitaire.scopes.js` -- what its Type Explorer shows, for pages
- * which run it without the parser, e.g. `<spell-app>`.  See `LSP.ScopePack`.
+ * End of a Python program's page file's name, e.g. `Solitaire.elements.spell.js` (epic `python-target` P19).
+ * - The file:  its drawing half in javascript, for a page that mirrors it (`PY.ElementsWriter`).
+ *   See `SP.Target.elementsSuffix`.
  * - NEVER one of a project's own files:  the server leaves it out of the manifest, as `COMPILED_JS_SUFFIX`.
+ * - In the project's build folder, as `COMPILED_JS_SUFFIX`.
+ * - It was `.elements.js` until epic `people-and-orgs` P11.
+ */
+export const ELEMENTS_JS_SUFFIX = ".elements.spell.js"
+
+/**
+ * End of a project's scope pack file's name, e.g. `Solitaire.scopes.js`.
+ * - The file:  what its Type Explorer shows, for pages which run it without the parser, e.g. `<spell-app>`.
+ *   See `LSP.ScopePack`.
+ * - NEVER one of a project's own files:  the server leaves it out of the manifest, as `COMPILED_JS_SUFFIX`.
+ * - In the project's build folder, as `COMPILED_JS_SUFFIX`.
  */
 export const SCOPES_JS_SUFFIX = ".scopes.js"
 
 /**
- * Start of the ES module specifier for another project's compiled JS, e.g. `@spell/project/@system:library:cards`.
- * - A runner fetches that project's compiled JS from the server's `/api/projects/compiled/<projectId>`, and points
- *   the specifier at it -- see `runCompiled()` in `src/app/runner/`.
+ * End of a project's words file's name, in English, e.g. `Solitaire.en.js`:
+ * spell's wording of each member of its types, by the name its compiled code uses.
+ * - See `SpellProject.wordsFile`, `SP.SpellWords`.
+ * - NEVER one of a project's own files:
+ *   the server leaves any language's out of the manifest (`SP.SpellWords.isWordsFile()`).
+ */
+export const WORDS_JS_SUFFIX = ".en.js"
+
+/**
+ * Start of the ES module specifier for another project's compiled JS, e.g. `@spell/project/@spell/library/cards`.
+ * - A runner fetches that project's compiled JS from the server, at its file's URL,
+ *   `/spaces/<project>/<Project>.spell.js` (`SpellUrls.fileUrl()`), and points the specifier at it.
+ * - See `runCompiled()` in `$/app/runner/runCompiled`.
  */
 export const SPELL_PROJECT_MODULE = "@spell/project/"
 
@@ -68,12 +128,23 @@ export type ProjectManifestJSON5 = {
   manifest: Record<string, ProjectManifestEntry>
   /** Ordered list of files to compile, synced against `manifest` -- plus other projects it imports. */
   imports: ProjectManifestImport[]
-  /** This project's semver, from its `project.json` -- stamped on its declarations. */
+  /** Its name for people, from its project file, when its folder's name can't say it:  see `SpellProject.title`. */
+  title?: string
+  /** This project's semver, from its project file -- stamped on its declarations. */
   version?: string
-  /** Names it offers importers, from its `project.json` -- default:  everything it declares. */
+  /** Names it offers importers, from its project file -- default:  everything it declares. */
   exports?: string[]
-  /** Targets it compiles to, from its `project.json`, e.g. `["ts/solid"]` -- `js/solid` always:  see `SP.TARGETS`. */
+  /** Targets it compiles to, from its project file, e.g. `["ts/solid"]` -- `js/solid` always:  see `SP.TARGETS`. */
   targets?: string[]
+  /** Where its lists start counting, from its project file:  `1` (the default) or `0` -- see `P.WriterOptions`. */
+  listsStartAt?: 0 | 1
+  /**
+   * Where the server puts what compiling builds, e.g. `Solitaire.spell.py`, inside the checkout's `build/`.
+   * - e.g. `spaces/@spell/examples/solitaire`, for a project under `packages/` (epic `people-and-orgs` J33)
+   * - Not there:  beside its source.
+   * - Only a Python program's web app needs it so far, to find the program:  `PY.QuartAppSpec.outputs`.
+   */
+  buildFolder?: string
 }
 
 /** A single entry in `contents.manifest`, augmented with `path`/`location`/`file` once loaded. */
@@ -94,12 +165,13 @@ export type ProjectManifestEntry = {
 
 /**
  * A single entry in `contents.imports`, as read/written to `project.json` on the server.
- * - A FILE of ours, e.g. `/Card.spell`, or ANOTHER PROJECT, e.g. `@library/cards` -- see `SpellProject.projectImports`.
+ * - A FILE of ours, e.g. `/Card.spell`
+ * - or ANOTHER PROJECT, e.g. `@spell/library/cards`:  see `SpellProject.projectImports`
  */
 export type ProjectManifestImport = {
   /**
    * Local `filePath`, e.g. `/Card.spell`.
-   * - Or another project:  `@library/<name>` (~== `@system:library:<name>`) or a full `@owner:domain:name`.
+   * - Or another project, by its address:  `@spell/library/cards` (see `SpellProject.projectIdForImport()`).
    */
   path: string
   /** `true` if file should be included when compiling the project. */
@@ -116,9 +188,9 @@ export type ProjectManifestImport = {
 
 /** Another project a project imports -- see `SpellProject.projectImports`. */
 export type ProjectImport = {
-  /** Its `imports` entry's `path` as written, e.g. `@library/cards` -- named in errors, and `P.ImportScope.origins`. */
+  /** Its `imports` entry's `path` as written, e.g. `@spell/library/cards` -- named in errors, and `P.ImportScope.origins`. */
   from: string
-  /** Its project id, e.g. `@system:library:cards`. */
+  /** Its project id, e.g. `@spell/library/cards`. */
   projectId: string
   /** Names to import -- see `DeclarationsImport.import`. */
   import?: string[]
@@ -140,30 +212,52 @@ export type ProjectImportRef = {
   file: AnySpellFile
 }
 
-/** Contents of a `SpellProjectRoot`: list of project paths, e.g. `@user:projects:Foo`. */
+/** Contents of a `SpellProjectRoot`:  each project's address, e.g. `owen@spell/errors`, and its title if it has one. */
+export type ProjectList = ProjectListEntry[]
+
+/**
+ * One project of a group's list:  `{ path: "@spell/examples/todos-form-based", title: "Todos - Form Based" }`.
+ * - `title` only when its project file has one (decision Q45):  else `SpellProject.title` makes it from the name.
+ */
+export type ProjectListEntry = { path: string; title?: string }
+
+/** List of project addresses, e.g. `owen@spell/errors`:  a `ProjectList`'s paths. */
 export type ProjectPathList = string[]
 
 // ## SpellProjectRoot
 
-/** The BUILT-IN project root `path`s, e.g. `@user:projects` -- `SpellSetup.projectRoots` starts with these. */
-export const ProjectRootPaths = ["@user:projects", "@system:examples", "@system:guides"] as const
 /**
- * A project root `path`, `@owner:domain`:  one of `ProjectRootPaths`,
- * or one added at runtime with `SpellSetup.addProjectRoot()`, e.g. `@workspace:my-folder`.
+ * Which folder an address's `SpellUrls.folderFor()` path is under.
+ * Spaces' `environment` says where each one is:
+ * - `builtins`:  the repo's built-in projects, `packages/spaces/` (`@spell/examples/...`)
+ * - `tests`:  the repo's test projects, `tests/spaces/` (`@spell/test/...`)
+ * - `spaces`:  every person's and org's space, spell-spaces beside the main checkout (`@spell/owen@/...`)
  */
-export type ProjectRootPath = `@${string}:${string}`
+export type SpaceFolderBase = "builtins" | "tests" | "spaces"
 
 /**
- * One entry in the set of "roots" a project can live under.
- * - Describes an `@owner:domain` pair plus the display strings the UI needs for it.
+ * A project group's ADDRESS, what its projects' addresses start with (epic `people-and-orgs` P4).
+ * - one of spaces' groups (`SPACES.PROJECT_GROUPS`), e.g. `@spell/examples`, `owen@spell`
+ * - or one added at runtime with `SpellSetup.addProjectRoot()`, e.g. `@local/my-folder`
+ */
+export type ProjectRootPath = `${string}@${string}`
+
+/**
+ * One entry in the set of "roots" a project can live under:  a project GROUP.
+ * - Its address, plus the display strings the UI needs for it.
  * - `Type`/`type` are both kept so callers can concatenate without case-munging at the call site.
  */
 export type ProjectRootSpec = {
-  /** Full path, e.g. `@user:projects`. */
+  /**
+   * Its address, e.g. `@spell/examples` or `owen@spell`.
+   * - Each of its projects' is that, a slash and the project's name:  `@spell/examples/solitaire`, `owen@spell/errors`.
+   * - A project's URLs and folder come from it:  `SpellUrls.fileUrl()`, `SpellUrls.folderFor()`.
+   * - A runtime group's is `@local/<folder name>`:  it has no folder of its own, so it says `serverPath`.
+   */
   path: ProjectRootPath
-  /** Owner of project, as `@user` or `@system`. */
-  owner: string
-  /** Domain of project, as `projects`, `examples` or `guides`. */
+  /** The space it's in:  `@spell`, `owen@spell`, `@local`. */
+  space: string
+  /** Its short name, as `projects`, `examples` or `guides`:  what the `spell` command and the editor call it. */
   domain: string
   /** User-friendly title of project. */
   title: string
@@ -174,24 +268,12 @@ export type ProjectRootSpec = {
   /** User friendly description of project. */
   description: string
   /**
-   * Folder on disk holding this root's projects (one sub-folder each) -- SERVER ONLY.
-   * - Built-in roots leave it out:  `project-utils.ts` derives theirs from `environment` and `folder`.
+   * Folder on disk holding this group's projects (one sub-folder each) -- NODE ONLY.
+   * - Spaces' groups leave it out:  their folder comes from their address (`SpellUrls.folderFor()`).
    */
   serverPath?: string
-  /**
-   * Built-in root's folder under its owner's files root, e.g. `examples` -- default its `domain`.
-   * - `""` ~== the files root itself, e.g. `@user:projects` in `projects/user`.
-   * - See `serverPathForRoot()` in `project-utils.ts`.
-   */
-  folder?: string
-  /** Shown in the app's UI only in dev, e.g. `@test:fixtures` -- it's there in every build, just not listed. */
+  /** Shown in the app's UI only in dev, e.g. `@spell/test` -- it's there in every build, just not listed. */
   devOnly?: boolean
-  /**
-   * Short name for paths in this root:  `<alias>/<project>...` ~== `<path>:<project>...`, e.g. `@test/FizzBuzz`
-   * ~== `@test:fixtures:FizzBuzz`.  See `SpellSetup.expandAlias()`.
-   * - Only ever written:  a `SpellLocation` stores the full path.
-   */
-  alias?: `@${string}`
   /** Semantic UI icon of project. */
   icon: string
 }
@@ -208,8 +290,9 @@ export type StatementBodySpec = {
   syntaxRule: P.Rule
   /**
    * `true`:  the keyword is ALSO a registered rule, matching the words which open the body at the end of our line,
-   * e.g. `{with_nested_statements}` matching `where:`.  It stays in `rules`, and we take a nested body only when it
-   * matched -- see `SpellStatement.takesNestedBody()`.
+   * e.g. `{with_nested_statements}` matching `where:`.
+   * - It stays in `rules`.
+   * - We take a nested body only when it matched -- see `SpellStatement.takesNestedBody()`.
    */
   leadIn?: boolean
 }
@@ -230,7 +313,8 @@ export const BODY_KEYWORDS: Record<string, Omit<StatementBodySpec, "syntaxRule">
   nested_statements: { nestedAs: "block" },
   /**
    * `where:`, `with:` or `:` ending the line, then an indented block, e.g. a type's outline body.
-   * - A registered rule matching those words (`classes.ts`), so it stays in `rules` -- see `leadIn`.
+   * - A registered rule matching those words (`rules/classes/WithNestedStatements.ts`),
+   *   so it stays in `rules` -- see `leadIn`.
    */
   with_nested_statements: { nestedAs: "block", leadIn: true },
 
@@ -248,7 +332,7 @@ export const BODY_KEYWORDS: Record<string, Omit<StatementBodySpec, "syntaxRule">
 
 /**
  * A property `set the X of Y to ...` declared at its first set, as `Y`'s type never did.
- * - Noted on that `set`'s match as `data.autoDeclared` (see `assignment_statement`), for its FILE to compile once:
+ * - Noted on that `set`'s match as `data.autoDeclared` (see `AssignmentStatement`), for its FILE to compile once:
  *   `Card.declareProp('pile', { type: 'Pile' })` + `Object.defineProperty(Card.prototype, 'pile', ...)`.
  * - See `SP.Block.autoDeclarations()`.
  */
@@ -263,13 +347,27 @@ export type AutoDeclaredProperty = {
   typeDeclaredBy: P.Match
 }
 
+// ## Warnings
+
+/**
+ * Something a program should say, but which doesn't stop it parsing or running,
+ * e.g. what a property is:  `a calculator has an input` => "Say what "input" is, e.g. ...".
+ * - Noted by the rule which spotted it, on its match, while parsing -- see `SP.SpellWarnings`.
+ */
+export type SpellWarning = {
+  /** What to say, e.g. `Say what "input" is, e.g. "a calculator has an input as text"`. */
+  message: string
+  /** What it's about:  editors show it under this match's text, e.g. `(digit)` in a method's signature. */
+  at: P.Match
+}
+
 // ## Built-in types
 
 /**
  * One built-in type in `SP.BUILT_IN_TYPE_TABLE`:  what it is, and its members.
  * - DATA, read by the parser, editors and the Type Explorer's pack.  See `builtinTypes.ts`.
  * - Why data, not a `.spell` file or statics on runtime classes:  nothing to parse at startup,
- *   and the parser never imports runtime code (plan doc D25).
+ *   and the parser never imports runtime code (epic page D25).
  */
 export type BuiltInType = {
   /** Its datatype, in spell's words, e.g. `text`, `list` -- one of `P.BUILT_IN_TYPES`. */
@@ -296,6 +394,8 @@ export type BuiltInType = {
  *   - loaded into its type's `TypeScope` as a `P.ScopeVariable`, so `TypeScope.getMember()` finds it
  * - With `rules` (and no `readAs`):  docs for what built-in rules already say, e.g. `shuffle (a list)`.
  *   - Their rules compile them;  NOT loaded into scope -- see `loadBuiltInTypes()`.
+ * - `stored`:  a property every one of the type HAS, read and set like a declared one, e.g. `the id of the card`.
+ *   - Loaded into its type's `TypeScope`, so reads find it and nobody declares it again.
  */
 export type BuiltInMember = {
   /**
@@ -317,6 +417,12 @@ export type BuiltInMember = {
    * - Pinned to a real property or method by `builtinTypes.test.ts`.  See `parseReadAsTemplate()`.
    */
   readAs?: string
+  /**
+   * A property the runtime class keeps, read and set as `{it}.name`, e.g. `id`:  `the id of the card` => `card.id`.
+   * - Unlike `readAs`, a `set` of it is allowed.
+   * - Pinned to a real property of the runtime class by `builtinTypes.test.ts`.
+   */
+  stored?: true
   /** Built-in rules which spell it, by name, e.g. `list_shuffle` -- their syntax shows in the Type Explorer. */
   rules?: string[]
   /** Its docs, as markdown. */
@@ -343,8 +449,8 @@ export type ReadAsTemplate = {
 
 /**
  * Semver of the spell LANGUAGE and its compiler -- stamped on every project's declarations as `spellVersion`.
- * - Set by hand, NOT from `package.json`:  the app's version (`PACKAGE_VERSION` in `$/util`) changes for
- *   reasons that don't touch what compiled projects can read.
+ * - Set by hand, NOT from `package.json`:
+ *   the app's version (`PACKAGE_VERSION` in `$/util`) changes for reasons that don't touch what compiled projects can read.
  * - Bump the MAJOR when declarations' shape, or generated-name mangling (e.g. `frobnicate_$thing`), changes:
  *   declarations from another major are refused.
  */
@@ -352,8 +458,8 @@ export const SPELL_VERSION = "0.8.0"
 
 /**
  * Everything a project added to scope while parsing, as plain data -- see `SpellDeclarations`.
- * - Lives in `<Project>.declarations.json`, beside its compiled output, so another project can import it WITHOUT
- *   re-parsing its `.spell` files -- whatever language that output is in.
+ * - Lives in `<Project>.declarations.json5`, beside its compiled output,
+ *   so another project can import it WITHOUT re-parsing its `.spell` files -- whatever language that output is in.
  * - JSON:  no `Match`es, classes or functions.
  */
 export type SpellDeclarationsData = {
@@ -369,17 +475,33 @@ export type SpellDeclarationsData = {
   /** What each declaring statement declared, in source order. */
   statements: SpellDeclaration[]
   /**
-   * Where each of `statements` starts in the compiled output:  its line, from 0 -- so a Type Explorer can show a
-   * declaration's code.  Missing in declarations read from an older compiled `.js`.
+   * Where each of `statements` starts in the compiled output:  its line, from 0.
+   * - So a Type Explorer can show a declaration's code.
+   * - Missing in declarations read from an older compiled `.js`.
    */
   codeLines?: number[]
 }
 
 /**
- * What ONE statement declared, flat -- a `/*! SPELL: DECLARES {...} *\/` comment, e.g.
- * `{ property: "suit", classVariable: "Suits", of: "Card", enumeration: [...] }`.
- * - Only what can't be worked out from the rest, e.g. `constants` are left out when they're just
- *   `enumeration`'s strings.
+ * A project's words in one language:  spell's wording of each member of its types,
+ * by the name its compiled code uses.
+ * - What `<Project>.en.js` exports as `words`.  See `SpellWords`.
+ * - e.g. `{ lang: "en", types: { Card: { moveToPile: "move (a card) to (a pile)", isSetUp: "is-set-up" } } }`
+ * - Another language is another file of the same shape, e.g. `Solitaire.es.js`.
+ * - A target with words of its own writes the same shape as JSON, by its names:  Python's `<Project>.py.en.json5`.
+ */
+export type SpellWordsData = {
+  /** Its language, e.g. `en`. */
+  lang: string
+  /** Each type's members' words, by the type's class name, then each member's compiled name. */
+  types: Record<string, Record<string, string>>
+}
+
+/**
+ * What ONE statement declared, flat:  a `/*! SPELL: DECLARES {...} *\/` comment.
+ * - e.g. `{ property: "suit", classVariable: "Suits", of: "Card", enumeration: [...] }`
+ * - Only what can't be worked out from the rest:
+ *   e.g. `constants` are left out when they're just `enumeration`'s strings.
  * - Keys are shared by what it declared:  `of` is both a property's type and its rules' owner.
  */
 export type SpellDeclaration = {
@@ -387,6 +509,8 @@ export type SpellDeclaration = {
   type?: string
   /** `type`'s supertype, e.g. `Thing`. */
   superType?: string
+  /** `type`'s short name, e.g. `Account` for `a bank account aka account` -- see `P.TypeScope.aka`. */
+  aka?: string
   /**
    * What `type` holds, if it's a list type, e.g. `Card` for `a deck is a list of cards`.
    * - See `P.TypeScope.itemType`.
@@ -423,6 +547,8 @@ export type SpellDeclaration = {
   params?: P.ScopeParam[]
   /** What a method returns, if known -- see `P.ScopeMethod.returns`. */
   returns?: string
+  /** A method that waits, e.g. `pause for 50 msec`:  `true`, else left out -- see `P.ScopeMethod.waits`. */
+  waits?: boolean
   /** `property`'s compiled initial value. */
   initializer?: string
   /** `classVariable`'s values as parsed, e.g. `["'clubs'", "'diamonds'"]`. */
@@ -432,9 +558,9 @@ export type SpellDeclaration = {
   /** Compiled output of any `constants` NOT output as just their name, quoted. */
   constantOutputs?: Record<string, string>
   /**
-   * `importableAs` name of the class its rule was `specialize()`d from, e.g. `"method_call"` -- see
-   * `P.Rule.importableRule()`.
+   * `importableAs` name of the class its rule was `specialize()`d from, e.g. `"method_call"`.
    * - Its OTHER keys here are what that class's `specialize()` takes, e.g. `output` + `alias`.
+   * - See `P.Rule.importableRule()`.
    */
   rule?: string
   /**
@@ -462,7 +588,7 @@ export type SpellDeclaration = {
  * One project another imports, for `SpellDeclarations.importScope()` -- from a `project.json` `imports` entry.
  */
 export type DeclarationsImport = {
-  /** Where it came from, e.g. `@library/cards` -- recorded in `P.ImportScope.origins`, and named in errors. */
+  /** Where it came from, e.g. `@spell/library/cards` -- recorded in `P.ImportScope.origins`, and named in errors. */
   from: string
   /** Its declarations. */
   declarations: SpellDeclarationsData
@@ -473,14 +599,14 @@ export type DeclarationsImport = {
    */
   import?: string[]
   /**
-   * Its project id, e.g. `@system:library:cards` -- what loaded records' `declaredAt` paths start with.
+   * Its project id, e.g. `@spell/library/cards` -- what loaded records' `declaredAt` paths start with.
    * - Default `from`.
    */
   projectId?: string
   /** Semver range its `version` must satisfy, e.g. `"^1.2"`. */
   version?: string
   /**
-   * ES module specifier its compiled JS is imported by at runtime, e.g. `@spell/project/@system:library:cards`.
+   * ES module specifier its compiled JS is imported by at runtime, e.g. `@spell/project/@spell/library/cards`.
    * - Recorded with the names loaded in `P.ImportScope.modules`, so the importer's compiled output imports them.
    */
   module?: string

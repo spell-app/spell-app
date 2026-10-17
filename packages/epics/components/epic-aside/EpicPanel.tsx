@@ -1,13 +1,13 @@
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 
 // the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel (which would define it here)
 import { Fold } from "$/epics/components/epic-item/Fold"
 
 /****************
  * ### `EpicPanel`
- * Base of the plan doc's folded PANELS in prose -- `<epic-aside>`, `<epic-code>`:  a heading that folds a body.
+ * Base of the epic page's folded PANELS in prose -- `<epic-aside>`, `<epic-code>`:  a heading that folds a body.
  * - nothing else:  no sticky line, no contents entry (that's `EpicFold`'s, for sections and phases)
  * - The heading is a `<button>`:  the fold chevron, then `heading()`.
  *   The body (`body()`:  the element's children by default) is hidden `until-found` while folded,
@@ -58,6 +58,7 @@ export abstract class EpicPanel<V extends E.ComponentVocabulary> extends E.UICom
           part={this.partForName("toggle" as never)}
           aria-expanded={this.isOpen ? "true" : "false"}
           aria-controls={BODY_ID}
+          title={this.translationForKey((this.isOpen ? "foldTip" : "unfoldTip") as never)}
           onClick={this.fold.toggle}
         >
           {Fold.chevron()}

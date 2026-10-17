@@ -32,7 +32,7 @@
  *   `--ui-brown-*` (Polished Ivory in the Spell theme), `--ui-primary-*`, `--ui-text-*`.
  *   Only the panel's ivory fill has no theme token.
  * - Public tokens (`--ui-docs-nav-*`) are never declared:  each is read through a private alias
- *   (`docs/theming.md` "Component tokens").
+ *   (`notes/theming.md` "Component tokens").
  */
 
 @layer ui.components.docs-nav.types, ui.components.docs-nav.content, ui.components.docs-nav.variations, ui.components.docs-nav.states;

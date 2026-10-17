@@ -32,9 +32,46 @@ export const epicOptionVocabulary = {
       required: "or slot",
       description: "The option in a few words, WITHOUT its letter (`A named palette`)."
     },
-    { name: "recommended", kind: "boolean", description: "The one Claude recommends." }
+    { name: "recommended", kind: "boolean", description: "The one Claude recommends." },
+
+    // an option of an `<epic-ask>`, on a page Owen answers on (epic `epic-workflow` P12)
+    {
+      name: "selected",
+      kind: "boolean",
+      description:
+        "In an `<epic-ask>`:  ticked to start with, until Owen picks (the review's item picker ticks what isn't " +
+        "reviewed yet).  The tick itself is page state, its question's."
+    },
+    {
+      name: "done",
+      kind: "boolean",
+      description: "In an `<epic-ask filter>`:  hidden while the filter shows Open."
+    },
+    { name: "badge", kind: "string", description: "In an `<epic-ask>`:  a small label after its title (`deferred`)." },
+    {
+      name: "badge-color",
+      kind: "string",
+      description: "Its badge's colour, a Spell UI hue (`blue`, `orange` ...);  none:  grey."
+    },
+    {
+      name: "state-icon",
+      kind: "string",
+      description:
+        "In an `<epic-ask>`:  an icon at the end of its header saying where it stands (the item picker's " +
+        "`circle check`:  reviewed), from the page's icons."
+    },
+    { name: "state-color", kind: "string", description: "Its state icon's colour, a Spell UI hue;  none:  grey." },
+    { name: "state-label", kind: "string", description: "Its state icon's words:  its tooltip, and its name." }
   ],
-  events: [],
+  events: [
+    {
+      name: "ui-change",
+      detail: "{ letter: string, selected: boolean, more: boolean }",
+      description:
+        "In an `<epic-ask>`:  Owen ticked or unticked it (`selected`), or pressed its (?) (`more`).  Its question " +
+        "takes it, and draws the result."
+    }
+  ],
   slots: [
     { name: "", description: "Its pros and cons." },
     { name: "title", description: "A title with markup, in place of `title`." }
@@ -61,7 +98,15 @@ export const epicOptionVocabulary = {
         "The Choose pill (`<button aria-pressed>`):  marks its letter as the item's pick in the page's review inbox;  " +
         "on the chosen option, solid and `aria-disabled`:  the pick applied."
     },
-    { name: "body", description: "Its pros and cons;  hidden (`until-found`) while folded." }
+    { name: "body", description: "Its pros and cons;  hidden (`until-found`) while folded." },
+    { name: "tick", description: "In an `<epic-ask>`:  its tick box (round for pick one), labelled by its title." },
+    { name: "badge", description: "In an `<epic-ask>`:  its `badge`, a small `<ui-label>`." },
+    { name: "more", description: "In an `<epic-ask more-details>`:  the (?) `<button aria-pressed>`." },
+    { name: "state", description: "In an `<epic-ask>`:  its state icon, `state-label` its tooltip." },
+    {
+      name: "comment",
+      description: "In an `<epic-ask>`:  the comment box under it, an `<epic-text-box>` for `<key>-<letter>`."
+    }
   ],
   states: [
     { name: "answered", description: "Its question is answered:  a panel under Choices." },
@@ -75,9 +120,15 @@ export const epicOptionVocabulary = {
       description:
         "Its letter is the item's pick in the review inbox, in its card set, not applied yet:  framed green:  " +
         "dashed until sent, then outlined."
-    }
+    },
+    { name: "answering", description: "An option of an `<epic-ask>`:  a tick box, a comment box." },
+    { name: "ticked", description: "In an `<epic-ask>`:  ticked, framed green (a pick is a decision)." },
+    { name: "filtered", description: "In an `<epic-ask filter>`:  `done`, and hidden while it shows Open." }
   ],
   texts: [
+    { key: "foldTip", text: "Fold option {letter}", description: "Tooltip of its fold button while open." },
+    { key: "unfoldTip", text: "Unfold option {letter}", description: "Tooltip of its fold button while folded." },
+
     {
       key: "recommended",
       text: "Recommended",
@@ -99,6 +150,13 @@ export const epicOptionVocabulary = {
       key: "tipApplied",
       text: "{letter} is the chosen option",
       description: "The chosen option's pill's tooltip:  the pick applied."
+    },
+    { key: "moreTip", text: "Provide more details", description: "In an `<epic-ask>`:  the (?)'s tooltip." },
+    { key: "commentOn", text: "Comment on {letter}", description: "In an `<epic-ask>`:  its comment box's hint." },
+    {
+      key: "commentLabel",
+      text: "Comment on {letter} · {title}",
+      description: "In an `<epic-ask>`:  its comment box's name, for a screen reader."
     }
   ],
   children: [

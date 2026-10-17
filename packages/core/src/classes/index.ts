@@ -1,7 +1,7 @@
 /**
  * Master import file for the classes `spellCore` exposes to compiled spell code.
- * - Re-exported from `$/core`'s own barrel (`export * from "./classes"`) so `Thing`/`List`/`App`
- *   are available alongside the rest of `spellCore`.
+ * - Re-exported from `$/core`'s own barrel (`export * from "./classes"`) so `Thing`/`List`/`App`/`Drawable`/
+ *   `DrawableList` are available alongside the rest of `spellCore`.
  *
  * NOTE: imports reach into `$/core/core` and `$/core/SpellCore` directly rather than
  * the `$/core` barrel -- this file helps BUILD that barrel, so going through it would
@@ -13,19 +13,22 @@ import { defineSpellCoreModule, SPELL_BASE_TYPES } from "$/core/spellCore.types"
 import { Thing } from "./Thing"
 import { App } from "./App"
 import { List } from "./List"
+import { Drawable } from "./Drawable"
+import { DrawableList } from "./DrawableList"
 
-/** Anything with a `.Component` to render, e.g. a `Thing`. */
-export type Drawable = {
-  /** React component that renders this thing -- optional so a non-`Drawable` can still be checked safely. */
-  Component?: ReactComponentType
-}
-
-/** Base-type registry plus safer `draw*` wrappers for `Thing`/`List`/`App`. */
+/** Base-type registry, and where an app mounts.  Drawing is `../drawing.ts`. */
 export const classesMethods = defineSpellCoreModule({
   /** Base types known to the `spell` language/parser -- see `SPELL_BASE_TYPES`. */
   BASE_TYPES: [...SPELL_BASE_TYPES] as string[],
 
-  /** DOM `id` for the react root element for `App` components. */
+  /**
+   * Is the app's page laid out in markup, around the program?  Then `App.start()` draws nothing:
+   * the markup is the app's drawing, and its tags find their things (epic `drawable-thing` P9).
+   * - Set by the runner for each run, e.g. a `<spell-app>` with markup inside it.
+   */
+  appLayout: false,
+
+  /** DOM `id` of the element an `App` mounts into when the host set no `appRoot`. */
   REACT_APP_ROOT_ID: "spell-app-root",
 
   /**
@@ -47,30 +50,10 @@ export const classesMethods = defineSpellCoreModule({
   domRoot(): Document | ShadowRoot {
     const root = spellCore.appRoot?.getRootNode()
     return typeof ShadowRoot !== "undefined" && root instanceof ShadowRoot ? root : document
-  },
-
-  /**
-   * Safer `drawThing()` routine -- returns `null` instead of throwing when `drawable` doesn't
-   * implement `.Component` (e.g. wasn't a `Thing`/`Drawable`), unlike calling `.Component` directly.
-   * - Compiles from `draw the card` -- see `draw.ts`.
-   * - Takes ANYTHING, as it checks:  compiled spell draws what TypeScript can't type, e.g. the last card of a pile.
-   */
-  drawThing(drawable?: unknown): ReactElement | null {
-    const thing = drawable as Drawable | undefined
-    if (!thing?.Component) return null
-    return spellCore.element({ tag: thing.Component })
-  },
-
-  /**
-   * Safer `drawItems()` routine, which won't barf if not called on a list.
-   * - Compiles from `draw each card in the deck` / `draw cards of the deck` -- see `draw.ts`.
-   */
-  drawItems(list: List): ReactNode | null {
-    if (!list.drawItems) return null
-    return list.drawItems()
   }
 })
 Object.assign(spellCore, classesMethods)
 
-// Compiled spell imports these -- `import { spellCore, Thing, List, App } from "@spell/core"`.  No globals.
-export { Thing, List, App }
+// Compiled spell imports these -- `import { spellCore, Thing, List, App, ... } from "@spell/core"`.  No globals.
+export { Thing, List, App, Drawable, DrawableList }
+export type { ListCallback } from "./List"

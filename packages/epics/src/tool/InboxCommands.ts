@@ -1,10 +1,11 @@
-import { existsSync } from "node:fs"
-import { relative } from "node:path"
+import { existsSync, readFileSync } from "node:fs"
+import { join, relative, resolve } from "node:path"
 import { setTimeout as sleep } from "node:timers/promises"
 
 import { PlanDocError, type ItemDescription, type KeptNote, type MarkResult, type OptionCard } from "./planDoc.types"
 
-import { CommentList } from "./CommentList"
+import { CommentList, CommentsError, type IdentifiedComment } from "./CommentList"
+import { GuideInbox, type GuideSend } from "./GuideInbox"
 import type { PlanDoc } from "./PlanDoc"
 import type { PlanReader } from "./PlanReader"
 import type { Flags, PlanDocCommands } from "./PlanDocCommands"
@@ -19,10 +20,11 @@ import {
   type ListedUrgency,
   type TakenWork
 } from "./ReviewInbox"
+import { SeeAlso } from "./SeeAlso"
 
 /****************
  * ### `InboxCommands`
- * `spell dev plan-doc inbox <name> [<what> ...]`:  the review inbox of an epic's doc (`ReviewInbox`),
+ * `epic inbox <name> [<what> ...]`:  the review inbox of an epic's doc (`ReviewInbox`),
  * from Claude's side;  `<what>` none prints it.
  * - every inbox write goes through `ReviewInbox.update()` (the inbox's lock);
  *   doc edits through `PlanDocCommands.edit()` (the doc's)
@@ -30,7 +32,7 @@ import {
  *   a session busy between `wait`s still counts as listening
  * - the loop, step by step:  `templates/epics/plan-doc.md`, "Review inbox"
  * - Prints through its owner (`PlanDocCommands`), whose files and edits it uses:  NOT a command line of its own.
- * - From `packages/docs/tools/plan-doc.js` `inbox()`, `printInbox()`, `waitForWork()`, `printWork()`,
+ * - From the docs tools' `plan-doc.js` `inbox()`, `printInbox()`, `waitForWork()`, `printWork()`,
  *   `applyInbox()` (epic `epic-components`, P7).
  ****************/
 export class InboxCommands {
@@ -50,7 +52,7 @@ export class InboxCommands {
     const path = ReviewInbox.pathFor(file)
     switch (what) {
       case undefined:
-        return this.print(this.owner.read(file), file, Boolean(flags.json))
+        return this.print(name, this.owner.read(file), file, Boolean(flags.json))
       case "listen": {
         const session = typeof flags.session === "string" ? flags.session : process.env.CLAUDE_CODE_SESSION_ID
         if (!session) throw new PlanDocError("listen as which session?  --session <id> (no $CLAUDE_CODE_SESSION_ID)")
@@ -71,11 +73,11 @@ export class InboxCommands {
         const on = this.owner.need(args[1], "on | off")
         if (!["on", "off"].includes(on)) throw new PlanDocError(`working ${id} on | off, not '${on}'`)
         this.setWorking(file, id, on === "on")
-        return this.owner.print(`${id.toUpperCase()} working:  ${on}`)
+        return this.owner.print(`${shown(id)} working:  ${on}`)
       }
       case "done":
       case "clear":
-        return this.finish(file, what, args)
+        return this.finish(file, what, args, flags)
       default:
         throw new PlanDocError(`inbox what?  listen | unlisten | wait | apply | working | done | clear (not '${what}')`)
     }
@@ -84,12 +86,15 @@ export class InboxCommands {
   /**
    * The page's spinner on item `id` of the doc at `file`, on or off (`inbox working`;  `status` too):
    * the inbox's `working` entry, and the session's heartbeat.
+   * - a comment's id (`M3`;  `m3`, `cm3` too):  its thread's "Claude: thinking…" stub instead
+   *   (`CommentList.setWorking()`);  `done` turns it off too.  Throws when there's no such comment.
    * - SIDE EFFECT:  writes the inbox, under its lock
    */
   setWorking(file: string, id: string, on: boolean): void {
     const key = ReviewInbox.toItemId(id)
     ReviewInbox.update(ReviewInbox.pathFor(file), (box) => {
-      box.setWorking(key, on ? workOf(box.marks[key]) : null)
+      if (CommentList.isCommentId(key)) box.commentList.setWorking(key, on)
+      else box.setWorking(key, on ? workOf(box.marks[key]) : null)
       box.touchListening()
     })
   }
@@ -105,10 +110,13 @@ export class InboxCommands {
    *   an immediate one, `details` or revisit `now`, counts as sent:  `unsentMarks`)
    * - an item gone from the doc since it was marked:  title `null`, "(no such item)"
    * - a new item (`new1`, epic `airplane` P2):  `new todo:  <its title>`, its note and what it's about after it
+   * - the comments waiting on the pages the epic owns (epic `epic-workflow` P13), by page, each `unsent` until the
+   *   page's Send:  `guides` in the JSON (`GuideSends.waiting()`)
    */
-  private print(plan: PlanReader, file: string, json: boolean): void {
+  private print(name: string, plan: PlanReader, file: string, json: boolean): void {
     const path = ReviewInbox.pathFor(file)
     const inbox = ReviewInbox.read(path)
+    const guides = new GuideSends(this.owner.files.root, name).waiting()
     const unsent = new Set(inbox.unsentMarks.map((mark) => mark.id))
     const unsentUrgency = new Set(inbox.unsentUrgency.map((entry) => entry.id))
     const marks = Object.fromEntries(ACTIONS.map((action) => [action, [] as PrintedMark[]]))
@@ -118,6 +126,7 @@ export class InboxCommands {
       file: path,
       sent: inbox.sent,
       unsent: unsent.size,
+      unsentComments: inbox.unsentComments.map((comment) => comment.id),
       marks,
       now: inbox.now,
       working: inbox.working,
@@ -125,7 +134,8 @@ export class InboxCommands {
       comments: inbox.commentList.waiting,
       urgency: inbox.urgencyList.map((entry) => ({ ...entry, sent: !unsentUrgency.has(entry.id) })),
       // `live:  false`:  its heartbeat stopped (`liveListener()`):  the session is gone, the page says nobody
-      listening: inbox.listening && { ...inbox.listening, live: !!inbox.liveListener() }
+      listening: inbox.listening && { ...inbox.listening, live: !!inbox.liveListener() },
+      guides
     }
     if (json) return this.owner.print(JSON.stringify(report, null, 2))
     const lines = [`inbox:  ${relative(this.owner.files.root, path)}${existsSync(path) ? "" : "  (none:  no marks)"}`]
@@ -137,7 +147,8 @@ export class InboxCommands {
           ? `listening:  session ${listening.session}, since ${listening.since}`
           : `listening:  nobody (session ${listening.session} last seen ${listening.seen ?? listening.since}, over ${LISTEN_STALE_MS / 1000}s ago:  gone without \`unlisten\`)`
     )
-    lines.push(`sent:  ${inbox.sent ?? "never"};  ${unsent.size + unsentUrgency.size} unsent`)
+    const unsentCount = unsent.size + unsentUrgency.size + inbox.unsentComments.length
+    lines.push(`sent:  ${inbox.sent ?? "never"};  ${unsentCount} unsent`)
     for (const action of ACTIONS) {
       if (!marks[action].length) continue
       lines.push(`${action} (${marks[action].length}):`)
@@ -166,12 +177,18 @@ export class InboxCommands {
     for (const [id, { action, note, at }] of drafts)
       lines.push(`  - ${id.toUpperCase()}  ${action}  "${note.trim()}"  (${at})`)
     const comments = inbox.commentList.waiting
+    const unsentComments = new Set(inbox.unsentComments.map((comment) => comment.id))
     if (comments.length) lines.push(`comments, waiting for an answer (${comments.length}):`)
-    for (const comment of comments)
-      lines.push(
-        `  - ${comment.id.toUpperCase()}  on ${comment.anchor} (${comment.kind})` +
-          `${comment.quote ? `  quoting "${comment.quote.slice(0, 60)}"` : ""}  "${comment.text.slice(0, 120)}"  (${comment.at})`
-      )
+    for (const comment of comments) lines.push(...commentLines(comment, "  ", unsentComments.has(comment.id)))
+    if (guides.length) {
+      const count = guides.reduce((total, guide) => total + guide.comments.length, 0)
+      lines.push(`comments on the pages ${name} owns, waiting for an answer (${count}):`)
+      for (const guide of guides) {
+        lines.push(`  ${guide.page}  (sent ${guide.sent ?? "never"})`)
+        for (const comment of guide.comments)
+          lines.push(...commentLines(comment, "    ", guide.unsent.includes(comment.id)))
+      }
+    }
     this.owner.print(lines.join("\n"))
 
     /** A mark's own fields after its title:  the pick, a revisit's when and note, unsent. */
@@ -199,17 +216,21 @@ export class InboxCommands {
    * - the poll reads without the lock (atomic writes:  never half a file);  only taking locks
    * - the session's HEARTBEAT:  stamps `listening.seen` at the start and every `LISTEN_HEARTBEAT_MS`
    *   (`touchListening()`, one locked write), so a session killed mid-wait goes stale on the page (`liveListener()`)
+   * - the epic's GUIDES too (epic `epic-workflow` P13, J27):  a Send on any page the epic owns (`SeeAlso.ownerOf()`)
+   *   wakes it, its comments taken from the page's inbox (`GuideSends`), printed under the page they're on
    */
   private async waitForWork(name: string, file: string, { timeout = "3300", json }: Flags): Promise<number | void> {
     const path = ReviewInbox.pathFor(file)
     const seconds = Number(timeout)
     if (!(seconds > 0)) throw new PlanDocError(`--timeout in seconds, not '${timeout}'`)
     const end = Date.now() + seconds * 1000
+    const guides = new GuideSends(this.owner.files.root, name)
     let beat = 0
     for (;;) {
       let work = null as TakenWork | null
       if (peek(path).hasWork) ReviewInbox.update(path, (box) => (work = box.takeWork()))
-      if (work) return this.printWork(name, this.owner.read(file), work, Boolean(json))
+      const sent = guides.take()
+      if (work || sent.length) return this.printWork(name, this.owner.read(file), work ?? NO_WORK, sent, Boolean(json))
       if (Date.now() >= end) break
       if (Date.now() - beat >= LISTEN_HEARTBEAT_MS) {
         beat = Date.now()
@@ -217,7 +238,7 @@ export class InboxCommands {
       }
       await sleep(1000)
     }
-    if (json) this.owner.print(JSON.stringify({ timeout: seconds, now: [], sent: null }))
+    if (json) this.owner.print(JSON.stringify({ timeout: seconds, now: [], sent: null, guides: [] }))
     else this.owner.print(`nothing to do:  no send and no request in ${seconds}s`)
     return 2
 
@@ -248,30 +269,33 @@ export class InboxCommands {
   /**
    * Print the work `wait` took (`takeWork()`'s `{ now, sent, canceled }`), each mark with its item (`describeItem()`):
    * id, kind, status, title, the mark, the note, a pick's option card.
+   * - a send's comments too (Send hands them over, Owen 2026-10-10):  where each is, its words, his latest reply
    * - plain lines for Claude to read, then what to run next
-   * - `json`:  `{ now, sent, canceled }` with `item` (and `option`) on each
+   * - `guides`:  the sends taken from the epic's guides (P13), each page's comments under it, with the commands that
+   *   answer them one at a time (`epic comments working` / `answer`)
+   * - `json`:  `{ now, sent, canceled, guides }` with `item` (and `option`) on each mark;  `sent.comments` and each
+   *   guide's `comments` as the inboxes have them
    */
-  private printWork(name: string, plan: PlanReader, work: TakenWork, json: boolean): void {
+  private printWork(name: string, plan: PlanReader, work: TakenWork, guides: GuideWork[], json: boolean): void {
     const now = work.now.map((each) => withItem(each))
     const sent = work.sent && {
       at: work.sent.at,
       marks: work.sent.marks.map((mark) => withItem(mark)),
-      urgency: (work.sent.urgency ?? []).map((entry) => withItem(entry))
+      urgency: (work.sent.urgency ?? []).map((entry) => withItem(entry)),
+      comments: work.sent.comments ?? []
     }
     const canceled = (work.canceled ?? []).map((each) => withItem(each))
-    if (json) return this.owner.print(JSON.stringify({ now, sent, canceled }, null, 2))
+    if (json) return this.owner.print(JSON.stringify({ now, sent, canceled, guides }, null, 2))
     const lines: string[] = []
     if (canceled.length) {
       lines.push(
         `canceled (${canceled.length}):  Owen said "nevermind":  stop each one's background agent (TaskStop), then ` +
-          `\`yarn plan-doc inbox ${name} done <id>\``
+          `\`epic inbox ${name}#<id> done\``
       )
       for (const each of canceled) lines.push(`  - ${line(each)}  (${each.action})`)
     }
     if (now.length) {
-      lines.push(
-        `now (${now.length}):  start a background agent for each;  \`yarn plan-doc inbox ${name} done <id>\` after`
-      )
+      lines.push(`now (${now.length}):  start a background agent for each;  \`epic inbox ${name}#<id> done\` after`)
       for (const each of now) {
         lines.push(`  - ${line(each)}`)
         if (each.action === "details") lines.push("      Add Details")
@@ -282,7 +306,8 @@ export class InboxCommands {
     }
     if (sent) {
       const urgency = sent.urgency.length ? `, ${sent.urgency.length} urgency` : ""
-      lines.push(`sent ${sent.at} (${sent.marks.length} mark${sent.marks.length === 1 ? "" : "s"}${urgency}):`)
+      const comments = sent.comments.length ? `, ${plural(sent.comments.length, "comment")}` : ""
+      lines.push(`sent ${sent.at} (${plural(sent.marks.length, "mark")}${urgency}${comments}):`)
       for (const action of ACTIONS) {
         const marks = sent.marks.filter((mark) => mark.action === action)
         if (!marks.length) continue
@@ -301,15 +326,35 @@ export class InboxCommands {
       }
       if (sent.urgency.length) lines.push(`  urgency, from the id chips (${sent.urgency.length}):`)
       for (const entry of sent.urgency) lines.push(`    - ${line(entry)}  · ${calmWords(entry.calm)}`)
+      if (sent.comments.length) lines.push(`  comments, to answer on their threads (${sent.comments.length}):`)
+      for (const comment of sent.comments) lines.push(...commentLines(comment, "    "))
       const talk = sent.marks.filter((mark) => mark.action === "revisit")
-      lines.push(
-        `next:  \`yarn plan-doc inbox ${name} apply\` (approve, pick, todo, a todo's next phase or drop, skip, new, ` +
-          `urgency)`
-      )
+      if (sent.marks.length || sent.urgency.length)
+        lines.push(
+          `next:  \`epic inbox ${name} apply\` (approve, pick, todo, a todo's next phase or drop, skip, new, ` +
+            `urgency)`
+        )
       if (talk.length)
         lines.push(
-          `then talk over ${talk.map((mark) => mark.id).join(", ")} in the chat;  \`yarn plan-doc inbox ${name} clear <id>\` after each`
+          `then talk over ${talk.map((mark) => mark.id).join(", ")} in the chat;  \`epic inbox ${name}#<id> clear\` after each`
         )
+      if (sent.comments.length)
+        lines.push(
+          `then each comment:  \`epic inbox ${name}#<M id> working on\`, answer it in the doc, ` +
+            `then \`epic inbox ${name}#<M id> done --file <answer.html>\``
+        )
+    }
+    if (guides.length) {
+      const count = guides.reduce((total, guide) => total + guide.comments.length, 0)
+      lines.push(`sent from the pages ${name} owns (${plural(count, "comment")}):`)
+      for (const guide of guides) {
+        lines.push(`  ${guide.page}  (sent ${guide.at}):`)
+        for (const comment of guide.comments) lines.push(...commentLines(comment, "    "))
+      }
+      lines.push(
+        "then each one, on its page:  `epic comments working <page>#<M id> on`, work it into the page (or say why " +
+          "not), then `epic comments answer <page>#<M id> --file <answer.html> [--commit <sha>]`"
+      )
     }
     this.owner.print(lines.join("\n"))
 
@@ -386,9 +431,7 @@ export class InboxCommands {
     for (const id of want ?? [])
       if (!marks.some((mark) => mark.id === id) && !urgency.some((entry) => entry.id === id))
         lines.push(`  ${id.toUpperCase()}:  no sent mark`)
-    this.owner.print(
-      lines.length ? lines.join("\n") : `nothing to apply:  no sent marks (\`yarn plan-doc inbox ${name}\`)`
-    )
+    this.owner.print(lines.length ? lines.join("\n") : `nothing to apply:  no sent marks (\`epic inbox ${name}\`)`)
   }
 
   /**
@@ -405,10 +448,10 @@ export class InboxCommands {
    *   - unless the set has a `chosen` already (a `decide --option` after the talk)
    *   - once Owen picked, the card shows Chosen (Owen, 2026-10-10, epic `airplane` P8)
    */
-  private async finish(file: string, what: "done" | "clear", given: string[]): Promise<void> {
+  private async finish(file: string, what: "done" | "clear", given: string[], flags: Flags = {}): Promise<void> {
     if (!given.length) throw new PlanDocError(`${what} which items?  ids`)
     const comments = given.map(ReviewInbox.toItemId).filter(CommentList.isCommentId)
-    if (comments.length) this.finishComments(file, what, comments)
+    if (comments.length) this.finishComments(file, what, comments, flags)
     const ids = given.filter((id) => !CommentList.isCommentId(ReviewInbox.toItemId(id)))
     if (!ids.length) return
     // before the inbox changes:  a note it drops must land in the doc, which an old-markup doc refuses
@@ -464,24 +507,106 @@ export class InboxCommands {
   }
 
   /**
-   * `done` / `clear` comments `ids` (`cm3`, epic `airplane` P11).
-   * - `done`:  answered (Claude answered it in the doc;  the page's card turns solid, "Answered")
+   * `done` / `clear` comments `ids` (`M3`, `m3` or `cm3`;  epic `airplane` P11).
+   * - `done`:  answered;  Owen's turn on the page's thread
+   *   - `--file <html>`:  the answer, on the thread (its markup, as is);  none:  answered in the doc
+   *   - `--commit <sha>`:  the commit it was built in (the thread's Done line shows it)
    * - `clear`:  gone from the inbox
-   * - throws when one isn't there
+   * - throws when one isn't there, or the file can't be read
    * - SIDE EFFECT:  writes the inbox, under its lock
    */
-  private finishComments(file: string, what: "done" | "clear", ids: string[]): void {
+  private finishComments(file: string, what: "done" | "clear", ids: string[], flags: Flags): void {
+    const html = typeof flags.file === "string" ? readFileSync(resolve(flags.file), "utf8") : ""
+    const commit = typeof flags.commit === "string" ? flags.commit : undefined
     ReviewInbox.update(ReviewInbox.pathFor(file), (box) => {
       for (const id of ids) {
         box.commentList.comment(id)
-        if (what === "done") box.commentList.answer(id)
-        else delete box.comments[id]
+        if (what === "done") box.commentList.answer(id, html, new Date(), commit)
+        else box.commentList.clear(id)
       }
       box.touchListening()
     })
     this.owner.print(`comments ${what === "done" ? "answered" : "cleared"}:  ${upper(ids)}`)
   }
 }
+
+/****************
+ * ### `GuideSends`
+ * The pages an epic owns (`SeeAlso.ownedBy()`:  its details pages, the guides its See Also claims), and the comments
+ * Owen sent from them (epic `epic-workflow` P13, J27):  how `inbox <name> wait` hears a guide's Send.
+ * - the pages are found again every `GUIDES_FOUND_MS`, so a guide linked mid-wait is heard
+ * - each page's inbox read without its lock (atomic writes);  only taking a send locks it (`GuideInbox.takeSent()`)
+ ****************/
+class GuideSends {
+  /** the checkout's root */
+  readonly root: string
+  /** the epic's name */
+  readonly name: string
+  /** the pages it owns, from the root, as last found */
+  private pages: string[] = []
+  /** when they were found, ms */
+  private foundAt = -Infinity
+
+  constructor(root: string, name: string) {
+    this.root = root
+    this.name = name
+  }
+
+  /** Take every send not taken yet from the epic's pages:  each page with its comments;  `[]` for none. */
+  take(): GuideWork[] {
+    return this.owned().flatMap((page): GuideWork[] => {
+      const file = this.inboxOf(page)
+      if (!this.peek(file)?.hasNewSend) return []
+      const taken = GuideInbox.update(file, (_comments, inbox) => inbox.takeSent())
+      return taken ? [{ page, ...taken }] : []
+    })
+  }
+
+  /** The comments waiting on the epic's pages, by page:  when last sent, and which a Send would hand over. */
+  waiting(): GuideWaiting[] {
+    return this.owned().flatMap((page): GuideWaiting[] => {
+      const inbox = this.peek(this.inboxOf(page))
+      const comments = inbox?.commentList.waiting ?? []
+      if (!inbox || !comments.length) return []
+      return [{ page, sent: inbox.sent, unsent: inbox.unsentComments.map((comment) => comment.id), comments }]
+    })
+  }
+
+  /** The pages the epic owns, found again once `GUIDES_FOUND_MS` has passed. */
+  private owned(): string[] {
+    if (Date.now() - this.foundAt < GUIDES_FOUND_MS) return this.pages
+    this.pages = new SeeAlso(this.root).ownedBy(this.name)
+    this.foundAt = Date.now()
+    return this.pages
+  }
+
+  /** Page `page`'s inbox file. */
+  private inboxOf(page: string): string {
+    return join(this.root, GuideInbox.fileFor(page))
+  }
+
+  /** The inbox in `file`;  `undefined` while it can't be read (hand-edited mid-poll):  the next poll tries again. */
+  private peek(file: string): GuideInbox | undefined {
+    try {
+      return GuideInbox.read(file)
+    } catch (error) {
+      if (error instanceof CommentsError) return undefined
+      throw error
+    }
+  }
+}
+
+/** A send `wait` took from one of the epic's pages:  the page (from the checkout's root), when, its comments. */
+type GuideWork = { page: string } & GuideSend
+
+/** The comments waiting on one of the epic's pages, as `inbox` prints them. */
+type GuideWaiting = { page: string; sent: string | null; unsent: string[]; comments: IdentifiedComment[] }
+
+/** How often `wait` finds the epic's pages again, ms:  reading every epic's links is the slow part. */
+const GUIDES_FOUND_MS = 30_000
+
+/** No work in the review inbox:  `wait` woke for a guide's send alone. */
+const NO_WORK: TakenWork = { now: [], sent: null, canceled: [] }
 
 /** A sent mark's heading in `wait`'s print, where its action alone doesn't say it. */
 const SENT_HEADINGS: Partial<Record<string, string>> = {
@@ -537,7 +662,33 @@ function workOf(mark: { action: string } | undefined): "revisit" | "details" {
   return mark?.action === "revisit" ? "revisit" : "details"
 }
 
-/** `["q7", "i2"]` -> `Q7, I2` */
+/**
+ * Comment `comment`'s lines, as `inbox` and `wait` print it, each starting `indent`:
+ * its id, where it is, the quote, Owen's words and when;  then his latest reply on the thread, the work now.
+ * - `unsent`:  says so, waiting for Send
+ */
+function commentLines(comment: IdentifiedComment, indent: string, unsent = false): string[] {
+  const quote = comment.quote ? `  quoting "${comment.quote.slice(0, 60)}"` : ""
+  const lines = [
+    `${indent}- ${CommentList.label(comment.id)}  on ${comment.anchor} (${comment.kind})${quote}  ` +
+      `"${comment.text.slice(0, 120)}"  (${comment.at})${unsent ? "  · unsent" : ""}`
+  ]
+  const reply = comment.replies?.findLast((each) => each.by === "Owen")
+  if (reply) lines.push(`${indent}  Owen replied:  "${reply.text!.slice(0, 160)}"  (${reply.at})`)
+  return lines
+}
+
+/** `count` `noun`s:  `1 mark`, `2 marks`. */
+function plural(count: number, noun: string): string {
+  return `${count} ${noun}${count === 1 ? "" : "s"}`
+}
+
+/** `["q7", "i2", "m3"]` -> `Q7, I2, M3` */
 function upper(ids: string[]): string {
-  return ids.map((id) => id.toUpperCase()).join(", ")
+  return ids.map(shown).join(", ")
+}
+
+/** An item's id as Owen reads it:  `q7` -> `Q7`;  a comment's, `M3` (`cm3`, `m3`:  `CommentList.label()`). */
+function shown(id: string): string {
+  return CommentList.isCommentId(id) ? CommentList.label(id) : id.toUpperCase()
 }

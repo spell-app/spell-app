@@ -3,7 +3,7 @@
  * embossed edges), `@layer ui.theme`.  Renamed:  our `classic.css` is Fomantic's DEFAULT look, which this sits on.
  * - Applied ON TOP of `classic.css` (`ThemeSheets.apply("fomantic-classic")`):  only the differences live here.
  * - Two halves:  tokens on `:root` (they inherit into shadow roots), then class-grammar overrides, which reach
- *   component markup because the theme is adopted into every shadow root too (`docs/theming.md` "Themes").
+ *   component markup because the theme is adopted into every shadow root too (`notes/theming.md` "Themes").
  * - Touches:  button, header, table, progress, card.
  * - Loads no font:  headers ask for Open Sans;  add it yourself, or the stack falls back to Arial.
  * - Dark scheme:  Fomantic had none.  Fills are `light-dark()` pairs whose dark half keeps the default recipe;

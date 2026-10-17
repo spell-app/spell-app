@@ -6,6 +6,8 @@
 import { existsSync, statSync, type Stats } from "node:fs"
 import { isAbsolute, join, relative, resolve, sep } from "node:path"
 
+import { SRV } from "$/server"
+
 /**
  * Where a URL path led:
  * - `file`:  serve it (`stat` is its stats)
@@ -34,24 +36,13 @@ export type ResolveOptions = { dotFiles?: boolean; index?: string | false }
  */
 export function resolveInside(root: string, urlPath: string, options: ResolveOptions = {}): Resolved {
   const { dotFiles = false, index = "index.html" } = options
-  const segments: string[] = []
-  for (const raw of urlPath.split("/")) {
-    if (raw === "") continue
-    let segment: string
-    try {
-      segment = decodeURIComponent(raw)
-    } catch {
-      return { status: 400, message: `bad path:  ${urlPath}` }
-    }
-    if (/[/\\\0]/.test(segment)) return { status: 400, message: `bad path:  ${urlPath}` }
-    if (segment === "." || segment === "..") return { status: 403, message: `outside the root:  ${urlPath}` }
-    if (!dotFiles && segment.startsWith(".")) return { status: 403, message: `hidden file:  ${urlPath}` }
-    segments.push(segment)
+  let file: string
+  try {
+    file = fileInside(root, urlPath, { dotFiles })
+  } catch (error) {
+    if (!(error instanceof SRV.HttpError)) throw error
+    return { status: error.status as 400 | 403, message: error.message }
   }
-
-  const base = resolve(root)
-  const file = resolve(base, ...segments)
-  if (!isInside(base, file)) return { status: 403, message: `outside the root:  ${urlPath}` }
   const stat = statSync(file, { throwIfNoEntry: false })
   if (!stat) return { status: 404, message: `not found:  ${urlPath}` }
   if (stat.isFile()) return { file, stat }
@@ -61,6 +52,35 @@ export function resolveInside(root: string, urlPath: string, options: ResolveOpt
   const indexStat = existsSync(indexFile) ? statSync(indexFile) : undefined
   if (!indexStat?.isFile()) return { status: 404, message: `no ${index} in:  ${urlPath}` }
   return { file: indexFile, stat: indexStat }
+}
+
+/**
+ * The path under `root` that URL path `urlPath` names, by `resolveInside()`'s rules, whether or not it's there:
+ * what `FileOperations` creates, or moves something to.
+ * - NEVER follows links (`path.resolve()`, not `realpath()`):
+ *   a folder linked in from elsewhere (the shared content folders) is still inside
+ * - NEVER touches the disk
+ * - throws `HttpError(400)` for a bad encoding, `HttpError(403)` for `..`, `.` or a dot file (unless `dotFiles`)
+ */
+export function fileInside(root: string, urlPath: string, { dotFiles = false }: { dotFiles?: boolean } = {}): string {
+  const segments: string[] = []
+  for (const raw of urlPath.split("/")) {
+    if (raw === "") continue
+    let segment: string
+    try {
+      segment = decodeURIComponent(raw)
+    } catch {
+      throw new SRV.HttpError(400, `bad path:  ${urlPath}`)
+    }
+    if (/[/\\\0]/.test(segment)) throw new SRV.HttpError(400, `bad path:  ${urlPath}`)
+    if (segment === "." || segment === "..") throw new SRV.HttpError(403, `outside the root:  ${urlPath}`)
+    if (!dotFiles && segment.startsWith(".")) throw new SRV.HttpError(403, `hidden file:  ${urlPath}`)
+    segments.push(segment)
+  }
+  const base = resolve(root)
+  const file = resolve(base, ...segments)
+  if (!isInside(base, file)) throw new SRV.HttpError(403, `outside the root:  ${urlPath}`)
+  return file
 }
 
 /** Whether `file` is `root` or under it;  both absolute and resolved. */

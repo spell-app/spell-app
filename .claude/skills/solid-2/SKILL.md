@@ -27,5 +27,6 @@ Distrust patterns from both.
   `node_modules/solid-js/skills/reactivity-diagnostics/SKILL.md` (repo root).
 - Unsure how Solid behaves?  Test it, don't guess:
   - copy a script in `guides/solid/experiments/`
-  - run `node solid/experiments/<file> dev` from `packages/docs`
+  - run it from a copy in `packages/epics` (`node <file> dev`):  the shared repo has no `node_modules`
+    ([epics' AGENTS.md](packages/epics/AGENTS.md), "Experiments")
 - `@spell-app/ui` elements:  [ui's AGENTS.md](packages/ui/AGENTS.md) ("Solid authoring").

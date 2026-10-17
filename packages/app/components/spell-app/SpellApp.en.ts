@@ -8,7 +8,7 @@
  * - Pure data:  `import type` only, so node can read it (the component pack's catalog, `vite.element.config.ts`).
  */
 
-import type { E } from "$/ui/core"
+import type { E } from "$/spell-solid"
 
 /****************
  * ### `<spell-app>`
@@ -30,15 +30,16 @@ export const spellAppVocabulary = {
       name: "project",
       kind: "string",
       description:
-        "What to run, from the spell server's `/api`, sources and all:  `@system:examples:Solitaire`, or " +
-        "`@examples/Solitaire`.  The Type Explorer shows each declaration's spell and compiled code."
+        "What to run, from the spell server's `/api`, sources and all:  `@spell/examples/solitaire`, or " +
+        "`@spell/examples/solitaire`.  The Type Explorer shows each declaration's spell and compiled code."
     },
     {
       name: "src",
       kind: "string",
       description:
-        "What to run, from anywhere:  `apps/Solitaire.compiled.js`.  Its scope pack (`Solitaire.scopes.js`), " +
-        "declarations (`Solitaire.declarations.json`) and the projects it imports (`Cards.compiled.js`) are beside it."
+        "What to run, from anywhere:  `apps/Solitaire.spell.js`.  Its scope pack (`Solitaire.scopes.js`), " +
+        "declarations (`Solitaire.declarations.json5`), words (`Solitaire.en.js`) and the projects it imports " +
+        "(`Cards.spell.js`) are beside it."
     },
     { name: "scopes", kind: "string", description: "Where its scope pack is, if not where `project` / `src` says." },
     { name: "name", kind: "string", description: "Its name in the toolbar;  default, its project's." },
@@ -107,7 +108,7 @@ export const spellAppVocabulary = {
       detail: "{ href: string }",
       description:
         "A Type Explorer link was clicked:  `href` is the spell source it points at, e.g. " +
-        "`spell:/@system:examples:Solitaire/Card.spell#L12`."
+        "`spell:/@spell/examples/solitaire/Card.spell#L12`."
     }
   ],
   slots: [],

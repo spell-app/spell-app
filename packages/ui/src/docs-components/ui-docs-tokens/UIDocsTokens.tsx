@@ -26,7 +26,7 @@ import tokensCSS from "./UIDocsTokens.css?inline"
  * or the foundation's (`global`, one table per group),
  * with their name, default, description, and a LIVE swatch for colours.
  *
- * - Data:  `components.json` through `SiteData` (`families[folder].tokens`, `foundation`);
+ * - Data:  `components.json5` through `SiteData` (`families[folder].tokens`, `foundation`);
  *   NEVER the sheets or the vocabularies.  The rows come from `TokenRows`.
  * - Swatches are `<ui-label circular empty>` painted with `--ui-label-background: var(<token>, <default>)`:
  *   they resolve where they're drawn, so they follow the theme, the scheme (dark mode) and anything the page sets.

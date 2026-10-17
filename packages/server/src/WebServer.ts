@@ -9,14 +9,15 @@ import { APPLE_TOUCH_ICON_PNG, FAVICON_PNG_32, FAVICON_SVG } from "$/server/site
 /**
  * A local web server:  `node:http` + `Guard` + `Router` + `StaticHandler` (+ `LiveReload`), in that order.
  * - requests go:
- *   host check -> `/_server/live.js` (when `live`) -> Spell's favicon (`FAVICONS`) -> `router`
- *   -> static files -> `/favicon.ico` -> `fallback` (e.g. an SPA's `index.html`) -> 404
- * - websocket upgrades go:  host check -> `/_server/events` (when `live`:  live reload) -> `upgrade()`'s, in order
+ *   host check -> `/api/server/live.js` (when `live`) -> `router`
+ *   -> static files -> Spell's favicon (`FAVICONS`, `/favicon.ico`) -> `fallback` (e.g. an SPA's `index.html`) -> 404
+ * - websocket upgrades go:  host check -> `/api/server/live` (when `live`:  live reload) -> `upgrade()`'s, in order
  * - `live`:  watches nothing by itself -- call `live.watch(dir)`
  *   - every `.html` page gets, before `</head>`:  Spell's favicon links (unless it links its own icon),
  *     `window.SPELL_SERVER` and the live client
- * - Spell's favicon on EVERY server, live or not
- *   - `/favicon.ico` is its 32px PNG, after the static files, so a folder's own `favicon.ico` wins
+ * - Spell's favicon on EVERY server, live or not, at the root:
+ *   `/favicon.svg`, `/favicon-32.png`, `/apple-touch-icon.png`, and `/favicon.ico` (its 32px PNG)
+ *   - after the static files, so a folder's own icons win
  * - loopback only (`127.0.0.1`) unless `listen()` says otherwise
  */
 export class WebServer {
@@ -69,13 +70,14 @@ export class WebServer {
     if (checkHost) top.use(this.guard.hostCheck)
     if (this.live) {
       this.upgrade(LIVE_EVENTS, this.live.events)
-      top.get("/_server/live.js", (_request, reply) =>
+      top.get(LIVE_SCRIPT, (_request, reply) =>
         reply.type("text/javascript; charset=utf-8").set("Cache-Control", "no-store").send(SRV.liveClientScript())
       )
     }
-    for (const [path, icon] of Object.entries(FAVICONS)) top.get(path, (_request, reply) => sendIcon(reply, icon))
-    const favicon = new SRV.Router().get("/favicon.ico", (_request, reply) => sendIcon(reply, FAVICONS[FAVICON_PNG]!))
-    top.use(this.router, this.files.handle, favicon, this.fallback)
+    const favicons = new SRV.Router()
+    for (const [path, icon] of Object.entries(FAVICONS)) favicons.get(path, (_request, reply) => sendIcon(reply, icon))
+    favicons.get("/favicon.ico", (_request, reply) => sendIcon(reply, FAVICONS[FAVICON_PNG]!))
+    top.use(this.router, this.files.handle, favicons, this.fallback)
     this.server = createServer(SRV.toListener(top.handle, { onError: onError ?? logError }))
     this.server.on("upgrade", (raw: IncomingMessage, socket: Duplex, head: Buffer) => this.onUpgrade(raw, socket, head))
   }
@@ -139,6 +141,7 @@ export class WebServer {
       port: this.port,
       token: this.guard.token,
       events: LIVE_EVENTS,
+      run: this.live?.run,
       file,
       ...this.configure?.(served)
     }
@@ -154,7 +157,7 @@ export class WebServer {
     const config = JSON.stringify(this.config(served)).replace(/</g, "\\u003c")
     const head = page.search(/<\/head>/i)
     const icons = HAS_ICON.test(head < 0 ? "" : page.slice(0, head)) ? "" : FAVICON_LINKS
-    const tags = `${icons}<script>window.SPELL_SERVER = ${config}</script>\n<script src="/_server/live.js" defer></script>\n`
+    const tags = `${icons}<script>window.SPELL_SERVER = ${config}</script>\n<script src="${LIVE_SCRIPT}" defer></script>\n`
     return head < 0 ? tags + page : page.slice(0, head) + tags + page.slice(head)
   }
 }
@@ -184,20 +187,32 @@ export type WebServerProps = {
 /** Answers a websocket upgrade:  takes over `socket`. */
 export type UpgradeHandler = (raw: IncomingMessage, socket: Duplex, head: Buffer) => unknown
 
+/**
+ * The page server's own calls, under `/api/` like every call (epic `people-and-orgs`, P16).
+ * - `GET /api/server`:  the page server's `ServerInfo` (which checkout, branch and port)
+ *   - what the openers ask
+ *   - `PageServer` answers it;  a plain `WebServer` doesn't
+ * - `/api/server/live` (`LIVE_EVENTS`) and `/api/server/live.js` (`LIVE_SCRIPT`):  live reload, on any live `WebServer`
+ */
+export const SERVER_API = "/api/server"
+
 /** Where a live page opens its live-reload websocket (`LiveReload.events`). */
-export const LIVE_EVENTS = "/_server/events"
+export const LIVE_EVENTS = `${SERVER_API}/live`
+
+/** Where a live page loads its live client from (`liveClientScript()`). */
+export const LIVE_SCRIPT = `${SERVER_API}/live.js`
 
 /** Where the 32px PNG favicon is;  `/favicon.ico` answers with it too. */
-export const FAVICON_PNG = "/_server/favicon-32.png"
+export const FAVICON_PNG = "/favicon-32.png"
 
 /**
  * Spell's favicon (`$/server/site/favicon`, made by `yarn favicon`) by path:  content type and bytes.
  * - the SVG for every browser that takes one, the PNG for those that don't, the touch icon for iOS home screens
  */
 export const FAVICONS: Record<string, { type: string; body: Buffer }> = {
-  "/_server/favicon.svg": { type: "image/svg+xml", body: Buffer.from(FAVICON_SVG) },
+  "/favicon.svg": { type: "image/svg+xml", body: Buffer.from(FAVICON_SVG) },
   [FAVICON_PNG]: { type: "image/png", body: Buffer.from(FAVICON_PNG_32, "base64") },
-  "/_server/apple-touch-icon.png": { type: "image/png", body: Buffer.from(APPLE_TOUCH_ICON_PNG, "base64") }
+  "/apple-touch-icon.png": { type: "image/png", body: Buffer.from(APPLE_TOUCH_ICON_PNG, "base64") }
 }
 
 /**
@@ -206,8 +221,8 @@ export const FAVICONS: Record<string, { type: string; body: Buffer }> = {
  */
 export const FAVICON_LINKS =
   `<link rel="icon" href="${FAVICON_PNG}" sizes="32x32" type="image/png">\n` +
-  `<link rel="icon" href="/_server/favicon.svg" type="image/svg+xml">\n` +
-  `<link rel="apple-touch-icon" href="/_server/apple-touch-icon.png">\n`
+  `<link rel="icon" href="/favicon.svg" type="image/svg+xml">\n` +
+  `<link rel="apple-touch-icon" href="/apple-touch-icon.png">\n`
 
 /** Whether a page links its own icon:  `<link rel="icon">` or `"shortcut icon"`, any attribute order. */
 const HAS_ICON = /<link\b[^>]*\brel\s*=\s*["']?(?:shortcut\s+)?icon\b/i

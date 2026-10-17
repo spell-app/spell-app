@@ -15,8 +15,8 @@ import type { SP } from "$/spell"
 export type FileAddresses = {
   /** `SpellFile` for document `uri`, or `undefined` if it isn't a spell file we can place in a project. */
   fileFor(uri: string): SP.SpellFile | undefined
-  /** Editor's URI for `file`, e.g. a project's compiled javascript. */
-  uriFor(file: SP.SpellFile | SP.SpellJSFile): string
+  /** Editor's URI for `file`, e.g. a project's compiled javascript;  for a project, its folder. */
+  uriFor(file: SP.SpellFile | SP.SpellJSFile | SP.SpellProject): string
 }
 
 /** What happened to a file on disk, from the editor's file watcher. */
@@ -39,7 +39,7 @@ export type FileMatch = {
 export type SpellSymbol = {
   /** Symbol as sent to the editor. */
   symbol: DocumentSymbol
-  /** Type_Case name of the type a property / method is declared on, e.g. `Card`. */
+  /** PascalCase name of the type a property / method is declared on, e.g. `Card`. */
   typeName?: string
 }
 
@@ -104,28 +104,37 @@ export type HighlightSpan = {
 
 /** Answer to `spell/project`:  a project's spell files in parse order, with their error counts. */
 export type ProjectInfo = {
-  /** Project id, e.g. `@system:examples:Solitaire`. */
+  /** Project id, e.g. `@spell/examples/solitaire`. */
   project: string
   /** Active spell files, in the order they parse. */
   files: Array<{ uri: string; file: string; errors: number }>
   /** Why the last full parse crashed, if it did. */
   problem?: string
-  /** URI of its compiled javascript, `<Project>.compiled.js` -- whether or not it's been compiled yet. */
+  /** URI of its compiled javascript, `<Project>.spell.js` -- whether or not it's been compiled yet. */
   compiledUri: string
+  /**
+   * URI of its folder, where its spell files are, e.g. for its runner's `settings.json5`.
+   * - NOT necessarily where its compiled javascript is:  ask for that by `compiledUri`.
+   */
+  folderUri: string
+  /** URI of its words, `<Project>.en.js`, beside its spell files -- whether or not it's been compiled yet. */
+  wordsUri: string
 }
 
 /**
  * Answer to `spell/scopes`:  the live scope tree a project parses in, for a scope explorer -- see `ScopeExplorer`.
  * - Plain JSON:  the editor's side can't reach parser objects.
- * - Built from flat `ScopeEntry`s by `buildScopeTree()` -- the same whether they come from a live parse or
- *   a scope pack.
+ * - Built from flat `ScopeEntry`s by `buildScopeTree()`,
+ *   the same whether they come from a live parse or a scope pack.
  * - Root, projects and files hold what's declared in them;  a type holds its properties and methods.
  * - Just what the TREE shows:  a node's details come separately, when shown -- see `ScopeDetails`.
  */
 export type ScopeNode = {
   /**
-   * Where it is in the tree -- unique, and stable while names are, e.g.
-   * `project:Solitaire/file:Card.spell/type:Card`.  `""` for the root.  See `scopePath()`.
+   * Where it is in the tree, e.g. `project:Solitaire/file:Card.spell/type:Card`.
+   * - unique, and stable while names are
+   * - `""` for the root
+   * - see `scopePath()`
    */
   path: string
   /** Name, e.g. `Card`, `Solitaire`, `Card.spell`, `suit` -- the last segment of `path`. */
@@ -176,8 +185,9 @@ export type ScopeDetails = {
 }
 
 /**
- * Line something's on in its file, counted from 1, as people do:  one line, e.g. `7`, or its first and last,
- * e.g. `[7, 9]`.
+ * Line something's on in its file, counted from 1, as people do.
+ * - one line, e.g. `7`
+ * - or its first and last, e.g. `[7, 9]`
  */
 export type ScopeLine = number | [number, number]
 
@@ -207,7 +217,7 @@ export type ScopeMember = {
   kind: "type" | "property" | "enumeration" | "method" | "function" | "constant" | "variable"
   /** One-line summary, e.g. its datatype. */
   detail?: string
-  /** Type_Case name of the super-type it came from, if not its node's own. */
+  /** PascalCase name of the super-type it came from, if not its node's own. */
   inheritedFrom?: string
   /** Heading it's under in its file -- see `ScopeEntry.section`. */
   section?: string
@@ -239,11 +249,27 @@ export type SetDescriptionParams = {
   text: string
 }
 
+/**
+ * Which code `spell/compiled` shows a spell file as:  a short name for one of spell's targets (`SP.TARGETS`).
+ * - `js`:  javascript, `js/solid`, what the editor and the runners run -- the default
+ * - `ts`:  TypeScript on Solid, `ts/solid`, as a person writes it
+ * - `py`:  Python on `spell_core`, `py`
+ */
+export type CompiledTarget = "js" | "ts" | "py"
+
+/** Params of `spell/compiled`:  the code spell file `uri` compiles to, for `target`. */
+export type CompiledParams = {
+  /** Spell file to show. */
+  uri: string
+  /** Which code:  javascript if left out. */
+  target?: CompiledTarget
+}
+
 /** Sent as `spell/projectCompiled` after a project compiles, e.g. from `spell/compileProject`. */
 export type ProjectCompiled = {
   /** Project id, as `ProjectInfo.project`. */
   project: string
-  /** Project's javascript, EXACTLY as written to its `<Project>.compiled.js` -- see `ProjectInfo.compiledUri`. */
+  /** Project's javascript, EXACTLY as written to its `<Project>.spell.js` -- see `ProjectInfo.compiledUri`. */
   compiled: string
 }
 
@@ -251,11 +277,13 @@ export type ProjectCompiled = {
 
 /**
  * One thing in a scope tree, flat:  its `path` says where it is, and what it is -- see `scopePath()`.
- * - A list of them, in tree order, is a whole tree -- see `buildScopeTree()`, which works out the nesting,
- *   names, kinds and members.  So a scope pack diffs one declaration per entry.
- * - Siblings come in DOCUMENT order:  the order they're declared in, by file then line -- except a project's
- *   files, in parse order, and what has no source, e.g. a compiled import's, after the rest, alphabetical.
- *   An explorer sorts them alphabetically itself, if asked.
+ * - A list of them, in tree order, is a whole tree:
+ *   `buildScopeTree()` works out the nesting, names, kinds and members.
+ *   So a scope pack diffs one declaration per entry.
+ * - Siblings come in DOCUMENT order:  the order they're declared in, by file then line.
+ *   - except a project's files:  in parse order
+ *   - and what has no source, e.g. a compiled import's:  after the rest, alphabetical
+ *   - An explorer sorts them alphabetically itself, if asked.
  * - In a scope pack, each holds its details too -- `ScopeDetails`, but for `spell` and `compiled`.
  *   Live, they're fetched when shown.
  */
@@ -275,14 +303,17 @@ export type ScopeEntry = ScopeDetails & {
    */
   detail?: string
   /**
-   * Nearest heading comment above where it's declared, in that file, without its `#`s -- e.g. `actions` for
-   * `## actions`.  Explorers show it as a marker, in document order.
+   * Nearest heading comment above where it's declared, in that file, without its `#`s:
+   * e.g. `actions` for `## actions`.
+   * - Explorers show it as a marker, in document order.
    * - NOT the file's docstring's headings -- that's the file's description.
    */
   section?: string
   /**
-   * URI of the file it's in:  a file's own -- anything below it is in it too -- or, for anything else, of the
-   * file it's declared in if that's NOT its file's.  See `ScopeDetails.uri`.
+   * URI of the file it's in.
+   * - a file:  its own, and anything below it is in it too
+   * - anything else:  the file it's declared in, if that's NOT its file's
+   * - See `ScopeDetails.uri`.
    */
   uri?: string
 }
@@ -318,14 +349,17 @@ export function parentScopePath(path: string): string {
 }
 
 /**
- * Tree of `entries` -- in tree order, each after the one it's below -- under a "Spell" root, working out what
- * the entries leave out:
- * - `name` and `kind`, from each `path` -- `name` from the entry itself, if it says one
- * - `uri`, from the nearest ancestor that has one
- * - a type's `detail`, from its `super`:  `is a <Super>`
- * - `members`:  a type's own children, then what it inherits from each `super` in turn -- one it re-declares
- *   shows once, as its own.  Anything else's are its children -- a project's, except its files.  The root's are
- *   its types, the built-ins.  All in document order, as the entries come -- see `ScopeEntry`.
+ * Tree of `entries` under a "Spell" root.
+ * - `entries` in tree order:  each after the one it's below
+ * - It works out what the entries leave out:
+ *   - `name` and `kind`, from each `path` -- `name` from the entry itself, if it says one
+ *   - `uri`, from the nearest ancestor that has one
+ *   - a type's `detail`, from its `super`:  `is a <Super>`
+ *   - `members`, all in document order, as the entries come (see `ScopeEntry`):
+ *     - a type's:  its own children, then what it inherits from each `super` in turn;
+ *       one it re-declares shows once, as its own
+ *     - anything else's:  its children -- a project's, except its files
+ *     - the root's:  its types, the built-ins
  * - An entry whose parent isn't there goes at the top.
  */
 export function buildScopeTree(entries: ScopeEntry[]): ScopeNode {
@@ -391,17 +425,18 @@ const MEMBER_KINDS = SCOPE_MEMBER_GROUPS.flatMap(({ kinds }) => kinds)
 // ## Scope packs
 
 /**
- * A flat part of a Type Explorer's tree, with the details of everything in it -- for pages which show a project's
- * scopes WITHOUT the parser, e.g. `<spell-app>`.  See `scopeTreeFromPacks()`.
- * - Plain data:  NOT tied to the parser, so one can be written by hand, e.g. to document `Thing` or `List`,
- *   which are javascript.
+ * A flat part of a Type Explorer's tree, with the details of everything in it.
+ * - For pages which show a project's scopes WITHOUT the parser, e.g. `<spell-app>`.
+ *   See `scopeTreeFromPacks()`.
+ * - Plain data:  NOT tied to the parser, so one can be written by hand,
+ *   e.g. to document `Thing` or `List`, which are javascript.
  * - Written as a classic script, `<Project>.scopes.js` -- see `scopePackScript()`.
  * - Packs share one tree:  a project's type whose `super` is `type:Thing` inherits from the built-ins' pack.
  */
 export type ScopePack = {
   /** Version of this FILE FORMAT, for readers -- NOT of the project.  `undefined` === 1. */
   format?: 1
-  /** What it describes, e.g. `@system:examples:Solitaire`, or `@spell/core` for the built-in types. */
+  /** What it describes, e.g. `@spell/examples/solitaire`, or `@spell/core` for the built-in types. */
   id: string
   /** What it adds to the tree, in tree order, each with its details -- e.g. its project and those it imports. */
   entries: ScopeEntry[]
@@ -411,8 +446,8 @@ export type ScopePack = {
 export const SCOPE_PACK_GLOBAL = "SPELL_SCOPES"
 
 /**
- * `pack` as a classic script, as `<Project>.scopes.js` holds it -- NOT JSON, so a `<script src>` can load it from
- * anywhere, with no CORS.
+ * `pack` as a classic script, as `<Project>.scopes.js` holds it.
+ * - NOT JSON, so a `<script src>` can load it from anywhere, with no CORS.
  * - A javascript literal, laid out so a committed pack's diffs are readable -- see `packEntryLiteral()`:
  *   ```
  *   {

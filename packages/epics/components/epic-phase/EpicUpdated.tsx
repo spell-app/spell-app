@@ -12,22 +12,24 @@ import { ICON, LABEL, TEXT } from "./EpicPhase.types"
 
 import fieldCSS from "./EpicField.css?inline"
 import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicUpdated`
  * The component behind `<epic-updated>`:
- * one dated change to a phase's plan, FENCED under its Symptom / Changes (a dashed orange box).
+ * RETIRED (2026-10-11):  an older doc's dated change to a phase's plan, FENCED (a dashed orange box);
+ * `<epic-update>` replaces it, and the epic tool's next write migrates it (`updates-as-epic-update`).
  * - its heading:  the fold chevron, its icon, `Updated` and the time (`at`, to the minute), the phase under way then
  * - under them:  what changed (its children)
  * - Folds by its heading row (Owen, 2026-10-08:  everything in a section box folds):
  *   open to start with;  page state, never written;  folded, what changed is `hidden="until-found"`.
  * - Kept once the phase is done:  the record of how the plan moved.
- * - A copy in the Phases section's Plan changes box (`of`, the phase it changes) leads with a `P5` link to it.
+ * - An older doc's copy in the Phases section (`of`, T14) isn't drawn:  that section has no slot for it now.
  ****************/
 export class EpicUpdated extends E.UIComponent<typeof epicUpdatedVocabulary> {
   @E.proto static vocabulary = epicUpdatedVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-fold-button": foldCSS, "epic-field": fieldCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-fold-button": foldCSS, "epic-field": fieldCSS },
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
@@ -63,20 +65,18 @@ export class EpicUpdated extends E.UIComponent<typeof epicUpdatedVocabulary> {
         <div ref={this.fold.heading} class={[HEAD, { [FOLDS]: this.hasBody }]}>
           <span class={FOLD_CELL}>
             <Show when={this.hasBody}>
-              {this.fold.button({ controls: BODY_ID, labelledBy: LABEL_ID, part: this.partForName("toggle") })}
+              {this.fold.button({
+                controls: BODY_ID,
+                labelledBy: LABEL_ID,
+                part: this.partForName("toggle"),
+                tips: { fold: this.translationForKey("foldTip"), unfold: this.translationForKey("unfoldTip") }
+              })}
             </Show>
           </span>
           <span class={ICON} part={this.partForName("icon")} aria-hidden="true">
             {this.glyph.svg}
           </span>
           <span id={LABEL_ID} class={[TEXT, LABEL]} part={this.partForName("label")}>
-            <Show when={this.of}>
-              {(of) => (
-                <a class="of" href={`#p${of()}`}>
-                  {this.translationForKey("of", { phase: of() })}
-                </a>
-              )}
-            </Show>
             <b>{this.translationForKey("updated")}</b> <time datetime={this.at}>{this.shownTime}</time>
             <Show when={this.phase}>
               {(phase) => <span class="during">{this.translationForKey("during", { phase: phase() })}</span>}

@@ -118,10 +118,10 @@ function fold(worktree: string, base: string, file: string, config: SharedConfig
  */
 const BUILT = new Set(["packages/docs/content/index.html"])
 
-/** `yarn docs:index`, from the main checkout:  the docs home lists every epic now in the shared repo. */
+/** `yarn docs:index`, from the main checkout:  the home page lists every epic now in the shared repo. */
 function rebuildDocsIndex(config: SharedConfig): void {
-  const run = spawnSync(process.execPath, [join(config.main, "packages/docs/tools/index.js")], {
-    cwd: join(config.main, "packages/docs"),
+  const run = spawnSync(process.execPath, [join(config.main, "packages/epics/tools/index.js")], {
+    cwd: join(config.main, "packages/epics"),
     encoding: "utf8"
   })
   if (run.status !== 0) throw new CLI.CliError(`docs:index failed:  ${(run.stderr ?? "").trim()}`)

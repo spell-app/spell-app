@@ -5,9 +5,10 @@
 
 /**
  * One PROPERTY of the site:  a part with its own home page, switched between in the site header.
- * - `path`:  home page, relative to the repo root (`pages/index.html`), or server-absolute (`/ui/`)
+ * - `path`:  home page, relative to the repo root (`pages/index.html`), or server-absolute (`/components/ui/`)
  * - `serverOnly`:  only exists when served by the page server
- *   - `/ui/`:  the shared pages with the branch's built bundle laid over them (`UI_SITE`)
+ *   - `/components/<set>/`:  a component set's `docs/` folder,
+ *     with Spell UI's site bundle laid over it (`COMPONENT_SETS`)
  *   - `/editor/`:  the app
  * - `ownTab`:  always opens in its own browser tab (`target`), never in place
  *   - the app is a whole program, too big for VS Code's side bar
@@ -23,40 +24,77 @@ export type SiteProperty = {
 }
 
 /**
- * The docs home, relative to the repo root:  a routing page, a card per property (claude-design P5).
+ * The home page, relative to the repo root:  a routing page, a card per property (claude-design P5).
  * - the header's Spell logo goes there;  no tab is lit on it
  */
 export const SITE_HOME = "pages/index.html"
 
 /**
- * Every property, in header order (Owen, 2026-10-05, Q6 of epic `claude-design`):
- * Epics · Guides · Brand · Spell UI · Templates · Goals · App.
- * - the home's cards are in the same order (`packages/docs/tools/index.js` `areaCards()`)
+ * Every property, in header order (Owen, 2026-10-11, epic `epic-workflow` J40):
+ * Guides · Sagas · Epics · Epic/UI · Spell/UI · App · App/UI · Brand · Templates.
+ * - Sagas was Goals until epic `epic-workflow` P15 (Owen, 2026-10-13:  "saga means roughly epic of epics");
+ *   it opens the Sagas list page, and lights on the saga pages and on the parked goal sets (`goals/`) too
+ * - Owen's words:  "Docs toolbar:  Guides Goals Epics Epic/UI Spell/UI App App/UI";
+ *   asked where Brand and Templates go, "At the end"
+ * - the slashed names are the tab labels as he typed them (J41):  "the UI set of Epic", "of Spell", "of the app";
+ *   prose keeps "Epic UI", "Spell UI", "App UI"
+ * - (before, claude-design Q6, 2026-10-05:  Epics · Guides · Brand · Spell UI · Templates · Goals · App)
+ * - the home's cards are in the same order (`packages/epics/tools/index.js` `areaCards()`)
  * - each docs area's tab lights on its own pages (`docsArea()`):
- *   - a plan doc:  Epics
+ *   - an epic page:  Epics
  *   - a guide:  Guides
  *   - a template (the plan template under `templates/epics/` too):  Templates
  *   - the home and the scratch details pages:  none
  * - each area's list page is its tab's home (`<area>/index.html`)
+ * - the component sets light on their address and on their `docs/` folder's long one (`componentSet()`)
+ *   - `COMPONENT_SETS` in `$/server/page`, served at `/components/<set>/` (epic `people-and-orgs` P18)
+ *   - the brand's set has no tab of its own:  it lights Brand, beside the Brand tab's own pages
+ * - App means the editor, opened in its own browser tab
  */
 export const PROPERTIES: SiteProperty[] = [
-  { name: "Epics", path: "epics/index.html", match: (path) => docsArea(path) === "epics" },
   { name: "Guides", path: "guides/index.html", match: (path) => docsArea(path) === "guides" },
-  // Brand:  the shared `brand/` pages, moved from `packages/brand` (claude-design P11);  its home is the Brand index
-  { name: "Brand", path: "brand/index.html", match: (path) => docsArea(path) === "brand" },
   {
-    name: "Spell UI",
-    path: "/ui/",
-    serverOnly: true,
-    match: (path) => /^(?:\/worktrees\/[^/]+)?\/ui(\/|$)|\/packages\/ui\/site\//.test(path)
+    name: "Sagas",
+    path: "sagas/index.html",
+    match: (path) => docsArea(path) === "sagas" || docsArea(path) === "goals"
   },
-  { name: "Templates", path: "templates/index.html", match: (path) => docsArea(path) === "templates" },
-  { name: "Goals", path: "goals/index.html", match: (path) => docsArea(path) === "goals" },
-  { name: "App", path: "/editor/", serverOnly: true, ownTab: true, match: (path) => /^\/editor(\/|$)/.test(path) }
+  { name: "Epics", path: "epics/index.html", match: (path) => docsArea(path) === "epics" },
+  { name: "Epic/UI", path: "/components/epics/", serverOnly: true, match: (path) => componentSet(path) === "epics" },
+  // Spell UI's site bundle's own folder too (`packages/ui/site/`)
+  {
+    name: "Spell/UI",
+    path: "/components/ui/",
+    serverOnly: true,
+    match: (path) => componentSet(path) === "ui" || /\/packages\/ui\/site\//.test(path)
+  },
+  { name: "App", path: "/editor/", serverOnly: true, ownTab: true, match: (path) => /^\/editor(\/|$)/.test(path) },
+  { name: "App/UI", path: "/components/app/", serverOnly: true, match: (path) => componentSet(path) === "app" },
+  // Brand:  the shared `brand/` pages, moved from `packages/brand` (claude-design P11);  its home is the Brand index.
+  // And the brand's element set, `/components/brand/`
+  {
+    name: "Brand",
+    path: "brand/index.html",
+    match: (path) => docsArea(path) === "brand" || componentSet(path) === "brand"
+  },
+  { name: "Templates", path: "templates/index.html", match: (path) => docsArea(path) === "templates" }
 ]
 
+/**
+ * Which component set page path `path` is in (`location.pathname`);  `undefined` for anything else.
+ * - by its served address, `/components/<set>/` (a worktree's too, `/worktrees/<w>/components/<set>/`)
+ * - or by its folder's long one, `packages/<package>/docs/` (a `file://` page too)
+ * - the sets:  `ui`, `epics`, `app`, `brand`, as `COMPONENT_SETS` in `$/server/page` names them
+ *   (its prefixes' tails, and their packages:  `docs/` of `packages/ui`, `packages/epics` ...)
+ */
+export function componentSet(path: string): string | undefined {
+  return (
+    /^(?:\/worktrees\/[^/]+)?\/components\/([^/]+)(?:\/|$)/.exec(path)?.[1] ??
+    /\/packages\/(ui|epics|app|brand)\/docs\//.exec(path)?.[1]
+  )
+}
+
 /** A docs area:  a root folder of the checkout (each a link into the shared content repo) with a tab of its own. */
-export type DocsArea = "epics" | "guides" | "brand" | "templates" | "goals"
+export type DocsArea = "epics" | "guides" | "brand" | "templates" | "sagas" | "goals"
 
 /**
  * Which docs area page path `path` is in (`location.pathname`:  served, or a `file://` path).
@@ -83,8 +121,9 @@ export function docsArea(path: string): DocsArea | undefined {
     if (!first || first === "index.html" || first === "details" || first === "tools") return undefined
     return "guides"
   }
-  if (/\/packages\//.test(inside)) return undefined
-  return /\/(epics|guides|brand|templates|goals)\//.exec(inside)?.[1] as DocsArea | undefined
+  // a component set's address (`/components/epics/`) or folder:  its own tab (`componentSet()`)
+  if (/\/packages\//.test(inside) || /^\/components\//.test(inside)) return undefined
+  return /\/(epics|guides|brand|templates|sagas|goals)\//.exec(inside)?.[1] as DocsArea | undefined
 }
 
 /**

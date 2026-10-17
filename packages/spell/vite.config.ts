@@ -20,7 +20,6 @@ export default defineConfig({
       "graphify-out",
       "thoughts",
       "static",
-      "projects",
       "vscode-extension/out"
     ]
   })

@@ -1,7 +1,7 @@
 import type { Accessor } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 
 /****************
  * ### `Fold`
@@ -70,12 +70,13 @@ export class Fold {
    * - The cards:
    *   `<epic-reply>`, `<epic-answer>`, `<epic-status>`, `<epic-note>`, an `<epic-update>` note, `<epic-updated>`
    * - A `<button>`, named by the heading's words (`labelledBy`:  ids in the same shadow root),
-   *   its `aria-expanded` as the fold stands
+   *   its `aria-expanded` as the fold stands,
+   *   its tooltip (`tips`) what a click does
    * - The chevron turns down while open (`Fold.css`, which each card adopts).
    * - No click handler of its own:  its band's (`heading`) takes a click on it, Enter and Space too,
    *   and a click on the rest of the band.
    */
-  button({ controls, labelledBy, part }: FoldButtonOptions): JSX.Element {
+  button({ controls, labelledBy, part, tips }: FoldButtonOptions): JSX.Element {
     return (
       <button
         type="button"
@@ -84,6 +85,7 @@ export class Fold {
         aria-expanded={this.isOpen() ? "true" : "false"}
         aria-controls={controls}
         aria-labelledby={labelledBy}
+        title={this.isOpen() ? tips.fold : tips.unfold}
       >
         {Fold.chevron()}
       </button>
@@ -120,6 +122,17 @@ export class Fold {
       <button type="button" class={COLLAPSE_ALL} part={part} aria-label={label} title={label} onClick={onCollapse}>
         <svg class={CHEVRONS} viewBox="0 0 16 16" aria-hidden="true">
           <path d="M4 8.5 8 4.5 12 8.5M4 12.5 8 8.5 12 12.5" />
+        </svg>
+      </button>
+    )
+  }
+
+  /** Expand-all's button, the page toolbar's:  collapse-all's look, its double chevron pointing down. */
+  static expandAllButton({ label, part, onCollapse: onExpand }: CollapseAllOptions): JSX.Element {
+    return (
+      <button type="button" class={COLLAPSE_ALL} part={part} aria-label={label} title={label} onClick={onExpand}>
+        <svg class={CHEVRONS} viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M4 3.5 8 7.5 12 3.5M4 7.5 8 11.5 12 7.5" />
         </svg>
       </button>
     )
@@ -179,6 +192,24 @@ export function foldAllUnder(root: Element): number {
   return folded
 }
 
+/**
+ * Open everything under `root`:  the page toolbar's expand-all (Owen, 2026-10-13:  "Add expand all button next to
+ * collapse all").
+ * - every section, phase and item inside it, through their own `expand()`:  the cancelable `ui-open`, as a click's
+ * - NOT the cards and panels inside them (asides, code, replies ...):  those stay as the reader left them, so an
+ *   opened page reads as a list of items, not every aside at once
+ * - returns how many it opened
+ */
+export function expandAllUnder(root: Element): number {
+  let opened = 0
+  for (const element of root.querySelectorAll("*")) {
+    if (!element.localName.startsWith(EPIC_PREFIX)) continue
+    const component = (element as Partial<E.DOMElement>).component as { expand?: () => boolean } | undefined
+    if (component?.expand?.()) opened++
+  }
+  return opened
+}
+
 /** What `foldAllUnder()` folds:  a component that folds itself (`collapse()`), or one with a box that folds (`fold`). */
 type Collapsible = {
   /** fold it as a click would;  true when it was open */
@@ -194,7 +225,7 @@ type Collapsible = {
 export const FOLDING_CARDS =
   "epic-aside, epic-code, epic-answer, epic-more, epic-reply, epic-status, epic-original, epic-choices, epic-update, epic-note"
 
-/** Tag prefix of the plan doc's elements:  only those fold. */
+/** Tag prefix of the epic page's elements:  only those fold. */
 const EPIC_PREFIX = "epic-"
 
 /** What `Fold.collapseAllButton()` takes. */
@@ -215,6 +246,16 @@ export type FoldButtonOptions = {
   labelledBy: string
   /** its `part`:  `toggle` in every card's vocabulary */
   part: string
+  /** its tooltip while open (`fold`) and while folded (`unfold`):  the card's `foldTip` / `unfoldTip` texts */
+  tips: FoldTips
+}
+
+/** A fold button's tooltips, from its card's vocabulary. */
+export type FoldTips = {
+  /** while open:  `Fold this reply` */
+  fold: string
+  /** while folded:  `Unfold this reply` */
+  unfold: string
 }
 
 /** Class of a card's fold button (`fold.button()`):  a click on it always folds. */

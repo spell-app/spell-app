@@ -85,7 +85,7 @@ export type PendingQuestion = {
  * Where session / worktree / plan `name` stands -- `nameStatus()`.
  * - `ahead`:  commits on branch `name` not in `main`
  * - `merged`:  the branch had commits of its own (its reflog moved past "Created") and all are in `main` now
- * - `plan`:  its plan doc folder;  `planDone`:  every phase done
+ * - `plan`:  its epic page folder;  `planDone`:  every phase done
  * - `finished`:  `merged` or `planDone`, `why` saying which (`park wait` adds "worktree removed", "session exited")
  */
 export type NameStatus = {
@@ -102,7 +102,7 @@ export type NameStatus = {
 }
 
 /**
- * A plan doc's summary, from the plan-doc tool's `summaries` (`summary --json` per file);  `error` when it couldn't
+ * An epic page's summary, from the `epic` tool's `summaries` (`summary --json` per file);  `error` when it couldn't
  * read the doc.  Only the fields read here.
  */
 export type PlanSummary = {
@@ -219,6 +219,12 @@ export type LiveSession = {
   this: boolean
   used: boolean
 }
+
+/**
+ * The commands page's data, from a checkout's root (`spell dev commands`, `spell dev pack new`):  a data file
+ * (`DataFile`, epic `epic-workflow` P21), JSON5, its old `commands.json` read while there's no `.json5`.
+ */
+export const COMMANDS_JSON = "guides/dev/commands/commands.json5"
 
 /** Entrypoints of LOCAL sessions:  web, cloud and SDK sessions are left out. */
 export const LOCAL_ENTRYPOINTS = new Set(["cli", "claude-vscode", "claude-desktop"])
@@ -350,7 +356,8 @@ export type MergeMainOptions = {
  * - `tool`:  the script, relative to a checkout's root
  * - `tsx`:  the `tsconfig.json` it runs under `tsx` with, relative to a checkout's root;  none:  plain `node`
  * - `cwd`:  the folder it runs in, relative to a checkout's root;  none:  the caller's
- *   - `yarn workspace @spell-app/docs` ran the docs tools in `packages/docs`, and they print paths relative to it
+ *   - the docs tools run in `packages/epics` (as `yarn workspace` ran them in the docs package), and print paths
+ *     relative to it
  */
 export type ToolSpec = { tool: string; tsx?: string; cwd?: string }
 

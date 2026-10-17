@@ -16,7 +16,7 @@ import { VisualSettings } from "./VisualSettings.ts"
  * - `linux`:  `connectOptions` points every project at the browser server in Docker;  `exposeNetwork:
  *   "<loopback>"` tunnels the page's `localhost` requests back to this machine's dev server, so pixels are
  *   rendered by Linux while our (macOS-native) toolchain stays on the host.
- * - No retries:  a flaky capture is fixed at its source (`docs/visual-testing.md`, "Troubleshooting").
+ * - No retries:  a flaky capture is fixed at its source (`notes/visual-testing.md`, "Troubleshooting").
  */
 const { os, ws, workers, baseUrl } = environment.visual
 const folder = VisualSettings.osFolder(os)

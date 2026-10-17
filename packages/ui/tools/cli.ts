@@ -6,13 +6,14 @@
  *   in `vendor/` + `vendor/importmap.json`, tree-shaken to what `dist/` and the smoke pages import
  * - `measure` -- `BundleMeasure`:
  *   `tools/results/measure-results.json` (library / core / forms / own per family / scenarios / checks)
- * - `smoke` -- `SmokeRunner`:  `dist/` + `vendor/` through an import map, the framework host pages (the Solid 2 app
- *   on the SAME vendored Solid as the components) + the extra pages, headless chromium;
- *   `tools/results/smoke-results.json`
+ * - `smoke` -- `SmokeRunner`, in headless chromium:  `tools/results/smoke-results.json`
+ *   - `dist/` + `vendor/`, through an import map
+ *   - the framework host pages (the Solid 2 app on the SAME vendored Solid as the components)
+ *   - the extra pages
  * - `declarations` -- `DeclarationCheck`:  `dist/**.d.ts` resolve for a consumer (no `$/` alias, nothing outside `dist/`)
  * - `serve` -- the same pages and import map for a person:  prints the URLs, runs until killed
- * - `loc` / `report` -- `LocCount` (`loc-results.json`),
- *   then `ReportTables` rewrites `docs/report.md`'s generated tables
+ * - `loc` / `report` -- `LocCount` writes `loc-results.json`;
+ *   `ReportTables` then rewrites `notes/report.md`'s generated tables
  * - `icons:pack <folder> --id <id> [--label <text>] [--license <text>] [--sanitize]
  *   [--skip-unsafe | --allow-unsafe] [--force]` -- `IconPackBuilder`:
  *   verify a folder of SVGs and write its `pack.js` (keeps hand edits of an existing one)
@@ -121,23 +122,18 @@ function loc() {
     name: PACKAGE.name,
     root: PACKAGE.root,
     groups: {
-      "element core": ["src/elements/*.{ts,tsx}", "src/core.ts", "src/forms.ts", "!src/elements/*.test.{ts,tsx}"],
+      "element core": ["src/elements/*.{ts,tsx}", "src/core.ts", "src/forms.ts"],
       components: [
-        "src/components/*/UI*.{ts,tsx}",
-        "src/components/*/index.ts",
-        "src/components/ui-dropdown/SlottedItems.ts",
-        "!src/components/**/*.test.{ts,tsx}",
+        "components/*/UI*.{ts,tsx}",
+        "components/*/index.ts",
+        "components/ui-dropdown/SlottedItems.ts",
         // a family's other files are named for its component too (`UIButton.en.ts`):  counted below
-        "!src/components/*/*.{[a-z][a-z],fallback,types}.ts"
+        "!components/*/*.{[a-z][a-z],fallback,types}.ts"
       ],
-      "vocabularies & fallbacks": ["src/components/*/*.[a-z][a-z].ts", "src/components/*/*.fallback.ts"],
-      foundation: [
-        "src/{util,vocabulary,runtime,styles,icons}/*.ts",
-        "src/components/*.ts",
-        "src/index.ts",
-        "!src/**/*.test.ts"
-      ],
-      tests: ["src/**/*.test.{ts,tsx}", "test/**/*.{ts,tsx}"],
+      "vocabularies & fallbacks": ["components/*/*.[a-z][a-z].ts", "components/*/*.fallback.ts"],
+      foundation: ["src/{util,vocabulary,runtime,styles,icons}/*.ts", "components/*.ts", "src/index.ts"],
+      // the tests live in the repo's tests/ folder;  their helpers in test/
+      tests: ["../../tests/ui/**/*.{ts,tsx}", "test/**/*.{ts,tsx}"],
       tooling: ["tools/**/*.{ts,tsx,js,html}", "vite.config.ts", "vitest.config.ts"]
     }
   }).count()

@@ -12,7 +12,7 @@ import { dirname, join } from "node:path"
 import { after, beforeEach, test } from "node:test"
 import { fileURLToPath } from "node:url"
 
-import { dropDoneTitle, gate, kebab, otherWorktree, parseCommand } from "./prompt-gate.mjs"
+import { dropDoneTitle, epicOfTitle, gate, kebab, otherWorktree, parseCommand } from "./prompt-gate.mjs"
 
 /** The temp folders. */
 const prompts = mkdtempSync(join(tmpdir(), "spell-prompts-"))
@@ -209,4 +209,45 @@ test("dropDoneTitle:  a queued ✅ title goes when the work reopens;  any other 
     delete process.env.SPELL_SESSION_TITLES_DIR
     rmSync(dir, { recursive: true, force: true })
   }
+})
+
+test("gate:  `/epic review <name>` in a session titled for ANOTHER epic is refused (airplane P12, Q10 B)", () => {
+  const review = (prompt, session_title) => gate({ prompt, cwd: ROOT, session_title }, PACKAGE_WINDOW)
+  const refused = review("/epic review seo", "🚧 airplane")
+  assert.equal(refused.decision, "block")
+  assert.match(refused.reason, /titled for epic `airplane`, not `seo`/)
+  assert.equal(review("/epic review seo", "⏸️ airplane").decision, "block")
+  // its own epic, `/epic review` alone, an untitled or main session:  through
+  assert.equal(review("/epic review airplane", "🚧 airplane"), null)
+  assert.equal(review("/epic review", "🚧 airplane"), null)
+  assert.equal(review("/epic review seo", undefined), null)
+  assert.equal(review("/epic review seo", "Claude performance across top 10 languages"), null)
+  assert.equal(epicOfTitle("✅ output-targets"), "output-targets")
+  assert.equal(epicOfTitle("main work"), null)
+})
+
+test("gate:  `/epic future <name>` in a session titled for ANOTHER epic leaves its title alone (epic-workflow I5)", () => {
+  const future = (session_title) => gate({ prompt: "/epic future wasm an idea", cwd: ROOT, session_title }, PACKAGE_WINDOW)
+  assert.equal(future("🚧 epic-workflow"), null)
+  assert.equal(future(undefined).hookSpecificOutput.sessionTitle, "📅 wasm")
+  assert.equal(future("some main work").hookSpecificOutput.sessionTitle, "📅 wasm")
+})
+
+test("gate:  `/epic request <epic> <rN>` renames the session for the epic, never blocks;  refused in another epic's", () => {
+  assert.deepEqual(parseCommand("/epic request epic-workflow r3"), {
+    skill: "epic request",
+    name: "epic-workflow",
+    text: "r3",
+    color: null
+  })
+  assert.equal(parseCommand("/epic request"), null)
+  const asked = (prompt, session_title, extra = {}) =>
+    gate({ prompt, cwd: ROOT, session_title, ...extra }, OTHER_WINDOW)
+  // a launched session (untitled), even in plan mode or another worktree's window:  only renamed
+  const launched = asked("/epic request tooling r3", undefined, { permission_mode: "plan" })
+  assert.equal(launched.hookSpecificOutput.sessionTitle, "🚧 tooling")
+  assert.equal(asked("/epic request tooling r3", "🚧 tooling"), null)
+  const refused = asked("/epic request tooling r3", "🚧 python")
+  assert.equal(refused.decision, "block")
+  assert.match(refused.reason, /titled for epic `python`, not `tooling`:  run `\/epic request tooling`/)
 })

@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>AppContainer</title>
+    <meta name="description" content="The box a compiled spell program draws in." />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="AppContainer">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../../packages/app/src/solid/AppContainer.tsx"
+              icon="code"
+              aria-label="Its code, AppContainer.tsx"
+              title="Its code, AppContainer.tsx"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            AppContainer
+            <ui-header>The box a compiled spell program draws in.</ui-header>
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <article class="site-article">
+          <p class="lede">
+            An empty box the running program draws itself into. The app draws the box once and never touches what's
+            inside it: that belongs to the program.
+          </p>
+          <ui-list class="spell-meta">
+            <ui-item icon="user">Written for: anyone changing how the spell app runs programs</ui-item>
+            <ui-item icon="image">A picture, not live: the box with Solitaire drawn in it</ui-item>
+          </ui-list>
+
+          <ui-section id="1-what-it-looks-like" header="1. What it looks like" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="image"></ui-icon>
+            <p>
+              The editor's App pane without its toolbar: the white, padded, scrolling box, with the Solitaire example
+              drawn in it.
+            </p>
+            <ui-image
+              src="_images/AppContainer.png"
+              alt="A white box holding a game of Klondike Solitaire"
+              bordered
+              rounded
+            ></ui-image>
+            <p class="meta">
+              A picture, taken by <code>yarn site:pictures</code> in
+              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="2-using-it" header="2. Using it" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="code"></ui-icon>
+            <p>
+              Only <a href="AppRoot.html" target="src-packages-app-docs-approot-html">AppRoot</a> draws one, and hands
+              its box to the editor:
+            </p>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>AppRoot.tsx · the program's box · 8 lines</ui-title>
+              <ui-content>
+                <ui-code language="typescript"
+                  ><script type="text/plain">
+                    <AppContainer
+                      scrolling={props.scrolling ?? true}
+                      padded={props.padded ?? true}
+                      appRef={(element) => {
+                        appElement = element
+                        editor.setAppRoot(element)
+                      }}
+                    />
+                  </script></ui-code
+                >
+              </ui-content>
+            </ui-accordion>
+            <ul>
+              <li><code>appRef</code> is told which element the program draws in, once it's on the page.</li>
+              <li>
+                The program draws with its own Solid root on that element, when it starts: the app's Solid draws the
+                element once and leaves what's inside alone.
+              </li>
+              <li>
+                The element's id is <code>spell-app-root</code>: where a program draws when no one has said where. The
+                id is written out, not imported, because the app must never load the program's runtime itself.
+              </li>
+              <li>
+                It imports nothing from the app's other components, so a runner could use it without pulling in the
+                editor. The VS Code runner draws a box with the same class and look, but not this component.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="3-props" header="3. Props, and where it's drawn" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="list check"></ui-icon>
+            <ui-docs-api family="AppContainer"></ui-docs-api>
+            <p class="meta">
+              From its code, by <code>yarn site:data</code> in
+              <a href="../../packages/app/" target="src-packages-app"><code>packages/app</code></a
+              >.
+            </p>
+          </ui-section>
+
+          <ui-section id="4-its-code" header="4. Its code" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="folder open"></ui-icon>
+            <ul>
+              <li>
+                <a
+                  href="../../packages/app/src/solid/AppContainer.tsx"
+                  target="src-packages-app-src-solid-appcontainer-tsx"
+                  ><code title="packages/app/src/solid/AppContainer.tsx">AppContainer.tsx</code></a
+                >: the component, and its props
+              </li>
+              <li>
+                <a
+                  href="../../packages/app/src/solid/AppContainer.css"
+                  target="src-packages-app-src-solid-appcontainer-css"
+                  ><code title="packages/app/src/solid/AppContainer.css">AppContainer.css</code></a
+                >: its look, shared with the VS Code runner's box
+              </li>
+              <li>
+                In the app's Solid components, <code>$/app/solid</code>:
+                <a href="../../packages/app/src/solid/" target="src-packages-app-src-solid"
+                  ><code title="packages/app/src/solid/">src/solid/</code></a
+                >
+              </li>
+            </ul>
+          </ui-section>
+
+          <footer class="site-page-footer">
+            <ui-divider></ui-divider>
+            <p class="meta">Last checked 2026-10-12 against branch <code>epic-workflow</code>.</p>
+          </footer>
+        </article>
+      </ui-container>
+    </main>
+  </body>
+</html>

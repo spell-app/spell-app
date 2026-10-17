@@ -97,9 +97,14 @@ export class SpellJSFile extends TextFile {
     return true
   }
 
-  /** URL to serve the file. */
+  /** URL to read the file:  `/spaces/<project>/<file>` (`SP.SpellUrls.fileUrl()`). */
   get url(): string {
-    return `/api/projects/file/${this.projectId}${this.filePath}`
+    return SP.SpellUrls.fileUrl(this.path)
+  }
+
+  /** Saved by a call, not to `url`:  `POST /api/projects/file/<project>/<file>` (`SP.SpellUrls.saveUrl()`). */
+  get saveParams() {
+    return { ...super.saveParams, url: SP.SpellUrls.saveUrl(this.path) }
   }
 
   ////////////////

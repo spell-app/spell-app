@@ -3,7 +3,7 @@
  * - The BOTTOM of `$/ui/icons`' import graph, and runtime-light:  no imports, so node tooling
  *   (`tools/IconPackBuilder.ts`, `scripts/gen-icons.ts`) can import it by relative path, and the runtime service
  *   (`UI.icons`) by `$/ui/icons`.
- * - See `docs/icons.md` for the format and how names resolve.
+ * - See `notes/icons.md` for the format and how names resolve.
  */
 
 ////////////////

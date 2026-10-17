@@ -1,6 +1,6 @@
 ---
 name: docs-check
-description: Make the docs an epic wrote (besides its plan doc) agree with what was chosen and built, then with each other -- its durable doc, guides, AGENTS.md / README files, skills, templates, its changelog entry -- fixed in place, uncommitted, the diff left for Owen to review;  what it can't decide goes into the plan doc as judgement calls.  Use for `/docs-check <epic...>`, `/docs-check` alone (asks which epics), or when Owen says "check the docs for <epic>", "make the docs consistent", "are the docs true to what we chose?", "check the docs before I fly".
+description: Make the docs an epic wrote (besides its epic page) agree with what was chosen and built, then with each other -- its guide, other guides, AGENTS.md / README files, skills, templates, its changelog entry -- fixed in place, uncommitted, the diff left for Owen to review;  what it can't decide goes into the epic page as judgement calls.  Use for `/docs-check <epic...>`, `/docs-check` alone (asks which epics), or when Owen says "check the docs for <epic>", "make the docs consistent", "are the docs true to what we chose?", "check the docs before I fly".
 argument-hint: "<epic...>"
 ---
 
@@ -11,23 +11,23 @@ Owen's words (epic `airplane`, P10, 2026-10-10):
 what we chose,  then goes through all of those docs as a group, and makes sure things are internally consistent."
 
 - Two passes, in that order:
-  1. each doc against the plan doc's DECISIONS:  a statement that contradicts what was chosen or built is fixed
+  1. each doc against the epic page's DECISIONS:  a statement that contradicts what was chosen or built is fixed
   2. all the epic's docs read TOGETHER:  names, commands, flags, behaviours, numbers made to agree
-- Its lists come from `spell dev plan-doc` ([`EpicDocs`](packages/epics/src/tool/EpicDocs.ts)):
-  - `spell dev plan-doc docs <name> [--json]`:  the docs, each with why it's listed, in four groups
+- Its lists come from `epic` ([`EpicDocs`](packages/epics/src/tool/EpicDocs.ts)):
+  - `epic docs <name> [--json]`:  the docs, each with why it's listed, in four groups
     - `wrote`:
-      - its durable doc (`<a slot="durable">`) and the pages in its folder
+      - its guide (`<a slot="durable">`) and the pages in its folder
       - the docs its commits changed
       - the shared pages its turns changed whose path has its name
     - `related`:  docs that name it ("epic `airplane`", "airplane P3"),
-      and shared pages its turns changed that the plan doc links to
-    - `linked`:  docs the plan doc only links to:  often ones it read, not wrote
+      and shared pages its turns changed that the epic page links to
+    - `linked`:  docs the epic page only links to:  often ones it read, not wrote
     - `swept`:  other shared pages its turns changed.  Skipped.
       - A turn commits every session's edits,
         and a tool run over every page (`docs offline --fix`) changes them all.
       - Counted;  only `--json` lists them.
     - and its changelog entry:  the `<name>` section of [the changelog](guides/changelog.html)
-  - `spell dev plan-doc decisions <name> [--json]`:  what the docs must agree with
+  - `epic decisions <name> [--json]`:  what the docs must agree with
     - each phase:  its Done list (what was built) and its Updated notes (how the plan changed)
     - each item:  its status, its chosen option, its answer;  `--json` adds its whole current text
 - Not `/fussbudget`:  that one fixes how text READS (WWOD §6);  this one fixes what it SAYS.
@@ -43,7 +43,7 @@ what we chose,  then goes through all of those docs as a group, and makes sure t
 
 - Nothing after it:  AskUserQuestion, "Which epics' docs should /docs-check go through?", multi-select:
   - the epics merged since the last flight, or done in the last week, newest first
-    - from `spell dev plan-doc list --json`:  those with `status` `done`
+    - from `epic list --json`:  those with `status` `done`
     - at most 4 options, "Other" for names
   - Run by a background agent (no Owen to ask):  the epic this session works on, and say so in the report.
 - Several epics:  pass 1 per epic, then pass 2 over ALL their docs together (a doc two epics touched is read once).
@@ -65,26 +65,26 @@ From `decisions --json`, later beats earlier:
 
 ## What it never touches
 
-- the plan doc itself:  it's the record.  A contradiction INSIDE it goes into the report as a judgement call.
+- the epic page itself:  it's the record.  A contradiction INSIDE it goes into the report as a judgement call.
 - code, names, strings the code uses
 - Owen's own words:  his quotes, kickoff prompts, `<epic-answer>` text
 - dated records:  the logs in `agents/`, other epics' changelog entries, `<epic-updated>` lines
 - generated files:
-  - the docs home (`pages/index.html`), list pages, bundles
+  - the docs' home page (`pages/index.html`), list pages, bundles
   - anything `git check-attr linguist-generated` marks
 
 ## Steps
 
-1. Is anyone else editing these?  As `/fussbudget`'s step 2:  `spell dev worktree list`, `spell dev agents list`.
+1. Is anyone else editing these?  As `/fussbudget`'s step 2:  `spell dev worktree list`, `epic agents list`.
    - Another session or agent working on the same docs:  say who, and STOP.
      A mixed diff can't be reviewed.
-2. The right checkout:  `spell dev plan-doc list --json`, each epic's `checkout`.
+2. The right checkout:  `epic list --json`, each epic's `checkout`.
    - Merged (`main`):  run from the main checkout.
    - Not merged:  from its worktree, `.claude/worktrees/<name>`, where its code and its tracked docs are.
    - Elsewhere:  say so in one line, and stop.
 3. The lists, per epic, saved to the scratchpad:
-   - `spell dev plan-doc docs <name> --json > <scratch>/<name>.docs.json`
-   - `spell dev plan-doc decisions <name> --json > <scratch>/<name>.decisions.json`
+   - `epic docs <name> --json > <scratch>/<name>.docs.json`
+   - `epic decisions <name> --json > <scratch>/<name>.decisions.json`
    - The docs to read:
      - every `wrote` and `related` one
      - a `linked` one only where it describes this epic's work:
@@ -100,13 +100,13 @@ From `decisions --json`, later beats earlier:
    - a list of the facts the docs state (command names, flags, paths, element and option names, numbers,
      behaviours), each with the docs that state it and how
    - where two docs disagree:  the one that matches the decisions and the code wins;  fix the others
-   - the same thing called two names:  the name the code (or the durable doc) uses, everywhere
+   - the same thing called two names:  the name the code (or the epic's guide) uses, everywhere
    - the changelog entry lists everything the phases' Done lists say was shipped, and nothing they don't
-7. What it couldn't decide (two readings both defensible, or the plan doc contradicting itself):
-   ONE judgement call per question, in the epic's plan doc, never one per fix:
+7. What it couldn't decide (two readings both defensible, or the epic page contradicting itself):
+   ONE judgement call per question, in the epic's epic page, never one per fix:
 
    ```sh
-   spell dev plan-doc add <epic> judgement "Docs:  <the question, short>" --details "<p>what the docs say, where;
+   epic add <epic>#J "Docs:  <the question, short>" --details "<p>what the docs say, where;
    what the decisions say</p><epic-net-effect><ul><li>what this run did meanwhile</li></ul></epic-net-effect>"
    ```
 
@@ -116,7 +116,7 @@ From `decisions --json`, later beats earlier:
      (the root `AGENTS.md`, "Shared content").
      - That's `/Users/owen/www/spell-app/spell-app-dev/<path>`.
      - The turn's end commits them (`auto: guides/...`), one commit per folder, which Owen can revert whole.
-   - An edited docs page:  [docs' AGENTS.md](packages/docs/AGENTS.md), "Finishing a page", steps 2-4
+   - An edited docs page:  [epics' AGENTS.md](packages/epics/AGENTS.md), "Finishing a page", steps 2-4
      (format, links, check-spell).
 9. Report ("Report").
 
@@ -126,10 +126,10 @@ From `decisions --json`, later beats earlier:
   Pass 2 waits for every one, and is the session's.
 - Each one NAMED and LISTED, as the root `CLAUDE.md`'s "Delegated work" says
   ([the bg skill](.claude/skills/bg/SKILL.md), "Names"):
-  - `spell dev agents add docs-check-<n> "<its docs>"`:  prints its full name
+  - `epic agents add docs-check-<n> "<its docs>"`:  prints its full name
   - an `Agent` call (`general-purpose`, `run_in_background: true`),
     its `description` starting with that full name
-  - `spell dev agents done docs-check-<n>` when it's back
+  - `epic agents done docs-check-<n>` when it's back
 - Its prompt carries:
   - its docs (checkout paths, and the REAL path for shared ones), and the decisions file's path
   - this skill's "What's binding" and "What it never touches", word for word
@@ -150,4 +150,4 @@ Short, per epic, in this order:
 5. Where to review:
    - Source Control (tracked docs)
    - the shared docs' `auto:` commits in `spell-app-dev`
-   - the plan doc's link, `spell dev docs link <plan doc> --review`
+   - the epic page's link, `spell dev docs link <epic page> --review`

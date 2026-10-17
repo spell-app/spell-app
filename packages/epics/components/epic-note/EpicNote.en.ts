@@ -8,7 +8,7 @@ import type { EpicVocabulary } from "$/epics/definitions"
 
 /****************
  * ### `<epic-note>`
- * A small UPDATE or DONE note in a plan doc's prose.
+ * A small UPDATE or DONE note in an epic page's prose.
  ****************/
 export const epicNoteVocabulary = {
   tag: "epic-note",
@@ -47,6 +47,9 @@ export const epicNoteVocabulary = {
   ],
   states: [{ name: "open", description: "Unfolded:  it starts so (page state, never written)." }],
   texts: [
+    { key: "foldTip", text: "Fold this note", description: "Tooltip of its fold button while open." },
+    { key: "unfoldTip", text: "Unfold this note", description: "Tooltip of its fold button while folded." },
+
     { key: "update", text: "UPDATE", description: "The label of an `update` note." },
     { key: "done", text: "DONE", description: "The label of a `done` note." }
   ],

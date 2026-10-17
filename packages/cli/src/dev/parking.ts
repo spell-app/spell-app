@@ -15,7 +15,7 @@ export function waitCandidates(main = CLI.mainRoot()): CLI.WaitCandidate[] {
     const status = CLI.nameStatus(name, [], main)
     if (status.finished || !(status.ahead || status.worktree)) continue
     const ahead = status.ahead ? `${status.ahead} commits not in main` : "nothing committed yet"
-    const bits = [status.branch ? ahead : null, status.plan ? "plan doc" : null].filter(Boolean)
+    const bits = [status.branch ? ahead : null, status.plan ? "epic page" : null].filter(Boolean)
     found.push({ name, label: bits.join(", ") || "worktree" })
   }
   const mine = CLI.ancestorPids()
@@ -64,7 +64,7 @@ export async function waitFor(
 ): Promise<{ code: number; status?: CLI.NameStatus; message?: string }> {
   const first = CLI.nameStatus(name)
   if (!(first.worktree || first.branch || first.plan || first.sessions.length)) {
-    return { code: 3, message: `nothing named ${name}:  no worktree, branch, plan doc or session` }
+    return { code: 3, message: `nothing named ${name}:  no worktree, branch, epic page or session` }
   }
   const ids = first.sessions.map((it) => it.id)
   const hadWorktree = !!first.worktree

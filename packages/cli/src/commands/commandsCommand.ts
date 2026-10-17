@@ -4,13 +4,14 @@ import { homedir } from "os"
 import { join } from "path"
 
 import { CLI } from "$/cli"
+import { COMMANDS_JSON } from "$/cli/dev/dev.types"
+import { DataFile } from "$/epics/data/DataFile"
 
-/** The commands page's data, relative to a checkout's root. */
-export const COMMANDS_JSON = join("guides", "dev", "commands", "commands.json")
+export { COMMANDS_JSON }
 
 /**
  * `spell dev commands [list|check]`:  every command the repo has -- yarn scripts, `spell` commands, skills -- against
- * the commands page's `commands.json` (`guides/dev/commands/`), which maps each to the operations it does.
+ * the commands page's `commands.json5` (`guides/dev/commands/`), which maps each to the operations it does.
  * - `list` (default):  every command, with whether the page names it (`✓` / `✗`)
  * - `check`:  just the problems:  commands the page never names, and names on the page no command has;  exits 1
  *   if there are any.  Run it after adding, renaming or removing a command (root `yarn commands:check`).
@@ -25,10 +26,10 @@ export async function commandsCommand(
 ): Promise<number> {
   const [verb = "list"] = args
   if (verb !== "list" && verb !== "check") throw new CLI.CliError(`unknown verb '${verb}':  list or check`)
-  const root = CLI.findCheckout(COMMANDS_JSON)
+  const root = CLI.findCheckout(join("guides", "dev", "commands"))
   const file = join(root, COMMANDS_JSON)
-  if (!existsSync(file)) throw new CLI.CliError(`no ${COMMANDS_JSON} in ${root}`)
-  const data = JSON.parse(readFileSync(file, "utf8")) as CommandsData
+  const data = DataFile.read<CommandsData>(file)
+  if (!data) throw new CLI.CliError(`no ${COMMANDS_JSON} in ${root}`)
   const commands = commandSources(root, data.sources)
   const named = pageNames(data)
   const missing = commands.filter((command) => !named.has(command.name)).map((command) => command.name)
@@ -58,7 +59,7 @@ export async function commandsCommand(
       session.err(chalk.dim(`(${elsewhere.length} rows for packages this checkout doesn't have:  ${packages})`))
     }
     if (ok) session.err(chalk.green(`${commands.length} commands, every one on the commands page`))
-    else session.err(`fix:  ${join(root, COMMANDS_JSON)} (rows' cli / skill / yarn names)`)
+    else session.err(`fix:  ${DataFile.found(file)} (rows' cli / skill / yarn names)`)
   }
   return verb === "check" && !ok ? CLI.EXIT.ERRORS : CLI.EXIT.OK
 }
@@ -72,19 +73,19 @@ function packageNames(root: string): Set<string> {
   return names
 }
 
-/** A yarn command's page name, `<package> <script>`:  not a skill (`/name`) or a `spell` command. */
+/** A yarn command's page name, `<package> <script>`:  not a skill (`/name`), a `spell` or an `epic` command. */
 function isYarnName(name: string): boolean {
-  return !name.startsWith("/") && !name.startsWith("spell ")
+  return !name.startsWith("/") && !name.startsWith("spell ") && !name.startsWith("epic ")
 }
 
 /**
  * Every command in checkout `root`, sorted by surface then name, each in the page's name form.
  * - yarn:  `<package> <script>` for the root's `package.json` (`root`), each `packages/*` one (its folder's name)
  *   and `packages/ui/site`'s (`ui-site`);  keys starting with `/` are section labels, not scripts
- * - CLI:  `spell <command>` / `spell dev <command>`, read from `CLI_SOURCES`' `program.command(...)` /
- *   `dev.command(...)` calls.  NOTE: the SOURCE, not this process's commander program:
- *   the checkout checked may not be the one `spell` runs from.
- * - skills:  `/<name>` for each `SKILL.md` in `.claude/skills/*` and `packages/docs/tools/goals/skills/*`, plus
+ * - CLI:  `spell <command>` / `spell dev <command>` / `epic <verb>`, read from `CLI_SOURCES`'
+ *   `program.command(...)` / `dev.command(...)` / `epic.command(...)` calls.  NOTE: the SOURCE, not this process's
+ *   commander program:  the checkout checked may not be the one `spell` runs from.
+ * - skills:  `/<name>` for each `SKILL.md` in `.claude/skills/*`, plus
  *   `sources.userSkills` found in `~/.claude/skills`;  minus `sources.ignore`
  */
 export function commandSources(root: string, sources: CommandsData["sources"] = {}, home = homedir()): CommandSource[] {
@@ -102,11 +103,13 @@ export function commandSources(root: string, sources: CommandsData["sources"] = 
   for (const file of CLI_SOURCES) {
     const path = join(root, "packages", "cli", "src", file)
     if (!existsSync(path)) continue
-    for (const [, owner, name] of readFileSync(path, "utf8").matchAll(/\b(program|dev)\s*\.command\("([\w-]+)"/g)) {
-      found.push({ surface: "cli", name: owner === "dev" ? `spell dev ${name}` : `spell ${name}` })
+    for (const [, owner, name] of readFileSync(path, "utf8").matchAll(
+      /\b(program|dev|epic)\s*\.command\("([\w-]+)"/g
+    )) {
+      found.push({ surface: "cli", name: `${OWNER_PREFIX[owner as keyof typeof OWNER_PREFIX]}${name}` })
     }
   }
-  const skillFolders = [join(root, ".claude", "skills"), join(root, "packages", "docs", "tools", "goals", "skills")]
+  const skillFolders = [join(root, ".claude", "skills")]
   for (const folder of skillFolders) {
     if (!existsSync(folder)) continue
     for (const name of readdirSync(folder)) {
@@ -124,10 +127,15 @@ export function commandSources(root: string, sources: CommandsData["sources"] = 
 }
 
 /**
- * The files in `packages/cli/src/` whose `program.command(...)` / `dev.command(...)` calls are the CLI's commands.
+ * The files in `packages/cli/src/` whose `program.command(...)` / `dev.command(...)` / `epic.command(...)` calls
+ * are the CLI's commands.
  * - `devProgram.ts`:  the `spell dev` tree, since 2026-10-04;  `main.ts` held it before
+ * - `epicProgram.ts`:  the `epic` command's verbs (epic `epic-workflow` P9, 2026-10-12)
  */
-const CLI_SOURCES = ["main.ts", "devProgram.ts"]
+const CLI_SOURCES = ["main.ts", "devProgram.ts", "epicProgram.ts"]
+
+/** Each receiver's commands, as the page names them:  `program.command("compile")` is `spell compile`. */
+const OWNER_PREFIX = { program: "spell ", dev: "spell dev ", epic: "epic " }
 
 /** Every command name the page's rows give, in any surface's `names`. */
 export function pageNames(data: CommandsData): Set<string> {
@@ -141,7 +149,7 @@ export function pageNames(data: CommandsData): Set<string> {
 }
 
 /**
- * The parts of `commands.json` this reads;  its full shape:  `packages/docs/tools/_assets/commands.js`'s header.
+ * The parts of `commands.json5` this reads;  its full shape:  `packages/epics/tools/_assets/commands.js`'s header.
  * - `sources.userSkills`:  skills in `~/.claude/skills` that count, e.g. `session`
  * - `sources.ignore`:  commands that need no row, e.g. `/solid-2` (reference only, runs nothing)
  */

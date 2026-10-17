@@ -6,7 +6,7 @@
  *   [--grep <family>[,<family>/<example>...]] [--parity] [--static] [--workers <n|n%>]`
  * - Defaults:  `--os linux --browsers all`;  with `--static`, `--os local`.  `chrome` ~== chromium;  browsers may be
  *   a comma list.
- * - Validates the flags, then hands them to `VisualRunner`.  See `docs/visual-testing.md`.
+ * - Validates the flags, then hands them to `VisualRunner`.  See `notes/visual-testing.md`.
  */
 
 import { parseArgs } from "node:util"
@@ -35,7 +35,7 @@ const USAGE = `Usage:  yarn test:visual [options]
   --workers <n|n%>           Playwright workers (default 50%)
   --help                     this text
 
-See docs/visual-testing.md.`
+See notes/visual-testing.md.`
 
 try {
   const { values } = parseArgs({

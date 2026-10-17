@@ -1,7 +1,5 @@
-import { readdirSync, readFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
-import react from "@vitejs/plugin-react"
 import solid from "@solidjs/vite-plugin"
 import type { Plugin, PluginOption, UserConfig } from "vite"
 
@@ -10,26 +8,10 @@ import { packageVersion } from "../../vite.packageVersion.ts"
 import { CSS_TARGETS, SOLID_DEDUPE, emitIconPacks } from "../ui/vite.config.ts"
 
 /**
- * Config every `vite*.config.ts` and `vitest.config.ts` here shares, for React and Solid side by side.
- * - Solid is the DEFAULT JSX:  `@spell-app/ui`'s source (`$/ui`) and new app files are Solid.
- *   - A React file says so on its first line, `/** @jsxImportSource react *\/`:
- *     `tsconfig.json` type-checks it as React from that,
- *     and `reactFiles()` hands it to the React plugin instead of Solid's.
- *   - ONE marker, read by both.
- * - The app's own UI is all Solid (P6-P9):
- *   only what compiled spell draws with keeps the marker (`core`'s classes, spell's forms `F`).
- *   See `agents/CODE-DEBT.md` "app:  React for spell programs, beside the app's Solid".
- * - NOTE: the file list is read when the config loads:  restart `vite` after adding or removing a marker.
+ * Config every `vite*.config.ts` and `vitest.config.ts` here shares.
+ * - Every `.tsx` is Solid:  the app, `@spell-app/ui`'s source (`$/ui`), and what compiled spell draws with
+ *   (`core`'s `drawing.ts`, epic `output-targets` P10).  React left with P11.
  */
-
-/** Packages whose `src/` may hold React `.tsx`:  `app`'s own, and what it compiles from source. */
-const REACT_DIRS = ["app/src", "core/src"]
-
-/** First-line marker of a React file, as TypeScript reads it. */
-const REACT_MARKER = "@jsxImportSource react"
-
-/** `packages/`, absolute. */
-const PACKAGES = fileURLToPath(new URL("..", import.meta.url))
 
 /**
  * `node_modules`, which the Solid plugin leaves alone --
@@ -52,13 +34,7 @@ const NOT_SOLID_SOURCE = /\/node_modules\/(?!@solidjs\/router\/)/
  *   Vite's default targets lower `light-dark()` and break `ui-dark` subtrees (see `packages/ui/vite.config.ts`).
  */
 export function appConfig({ iconPacks }: { iconPacks?: boolean } = {}) {
-  const reactOnly = reactFiles()
-  const plugins: PluginOption[] = [
-    standardDecorators(),
-    packageVersion(),
-    solid({ exclude: [...reactOnly, NOT_SOLID_SOURCE] }),
-    react({ include: reactOnly })
-  ]
+  const plugins: PluginOption[] = [standardDecorators(), packageVersion(), solid({ exclude: [NOT_SOLID_SOURCE] })]
   if (iconPacks) plugins.push(iconPacksBesideBuiltIns())
   return {
     plugins,
@@ -80,28 +56,6 @@ export function appConfig({ iconPacks }: { iconPacks?: boolean } = {}) {
   } satisfies UserConfig
 }
 
-/**
- * Every `.tsx` under `REACT_DIRS` whose source carries `REACT_MARKER`, as exact-path patterns.
- * - Read once per config load.
- */
-export function reactFiles(): RegExp[] {
-  const files: RegExp[] = []
-  for (const dir of REACT_DIRS) {
-    const root = path.join(PACKAGES, dir)
-    for (const entry of readdirSync(root, { recursive: true, withFileTypes: true })) {
-      if (!entry.isFile() || !entry.name.endsWith(".tsx")) continue
-      const file = path.join(entry.parentPath, entry.name)
-      if (readFileSync(file, "utf8").slice(0, 200).includes(REACT_MARKER)) files.push(exactPath(file))
-    }
-  }
-  return files
-}
-
-/** A pattern matching `file` exactly, with or without a `?query`. */
-function exactPath(file: string): RegExp {
-  return new RegExp(`^${file.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\?.*)?$`)
-}
-
 ////////////////
 // ## One Solid per page
 ////////////////
@@ -113,7 +67,8 @@ function exactPath(file: string): RegExp {
  * - `solid`:  `solid-js`, `@solidjs/web` (`@solidjs/signals` under them),
  *   `@spell-app/ui`'s element core, `$/ui/core`, and its root family, `$/ui/components/ui-root`, each whole:
  *   `<spell-app>` and `<spell-editor>` are Spell UI components (`UIComponent`), defined as their scripts run,
- *   and `<spell-app>` is a root (`UIRoot`)
+ *   and `<spell-app>` is a root (`UIRoot`);
+ *   and `@solidjs/h` (as `h`), which compiled spell draws with (`spell-runtime.js`)
  * - `shared`:  what the other bundles import instead of `solid`, written by `vite.solid.config.ts`:
  *   the same names, taken from the PAGE when it has them (a docs page's `SpellUI.packModules`), else from `solid`
  * - `ui`:  `@spell-app/ui`'s barrel, `$/ui`, which the app imports LAZILY (`loadUI.ts`);
@@ -133,10 +88,16 @@ const SHARED_ID = "spell-shared-solid:"
  * - `$/ui/core` and `$/ui/components/ui-root` are in `spell-solid.js`, not `spell-ui.js`:
  *   `<spell-app>` and `<spell-editor>` define themselves on them as their scripts run, before the rest of `ui` loads.
  * - Each through `spell-solid-shared.js`:  the page's copy when it has one (`SHARED_SPECIFIERS`).
+ * - `@solidjs/h` (compiled spell's, in `spell-runtime.js`) has only a default export:
+ *   `sharedSolid()` imports it through a module of its own (`SHARED_H`).
  */
 const FROM_SHARED_SOLID = new Map<string, string>([
   ["solid-js", SHARED_SOLID.shared],
   ["@solidjs/web", SHARED_SOLID.shared],
+  ["@solidjs/h", SHARED_SOLID.shared],
+  // spell-solid, which `<spell-app>` and `<spell-editor>` are written on:  `$/ui/core` carries all of it, and its
+  // `E` holds every name spell-solid's does, so it comes BEFORE `$/ui/core` (a page's module, `spell-solid-shared.js`)
+  ["$/spell-solid", SHARED_SOLID.shared],
   ["$/ui/core", SHARED_SOLID.shared],
   ["$/ui/components/ui-root", SHARED_SOLID.shared],
   ["$/ui", SHARED_SOLID.ui]
@@ -144,14 +105,28 @@ const FROM_SHARED_SOLID = new Map<string, string>([
 
 /**
  * The specifiers `spell-solid-shared.js` takes from the page when the page has them all:
- * keys of `globalThis.SpellUI.packModules`, the docs bundle's (`packages/docs/tools/_assets/spell-ui.entry.js`).
+ * keys of `globalThis.SpellUI.packModules`, the docs bundle's (`packages/epics/tools/_assets/spell-ui.entry.js`).
  */
 export const SHARED_SPECIFIERS = [...FROM_SHARED_SOLID]
   .filter(([, file]) => file === SHARED_SOLID.shared)
   .map(([id]) => id)
 
+/** Solid's hyperscript, `h()`:  what compiled spell draws with, through `core`'s export (epic `output-targets` P20). */
+const H_PACKAGE = "@solidjs/h"
+
+/**
+ * Shared specifiers with only a DEFAULT export, by the name `spell-solid.js` and `spell-solid-shared.js` export it as:
+ * `@solidjs/h`'s `h`.
+ * - The page's `SpellUI.packModules` holds the module as it is (`{ default: h }`), as a component pack imports it:
+ *   `spell-solid-shared.js` renames it.
+ */
+export const SHARED_DEFAULTS: Readonly<Record<string, string>> = { [H_PACKAGE]: "h" }
+
+/** Virtual module `sharedSolid()` resolves `H_PACKAGE` to:  `spell-solid-shared.js`'s `h`, as a default export. */
+const SHARED_H = "\0spell-shared-h"
+
 /** Any other import from Solid's or `ui`'s packages:  `sharedSolid()` refuses it, as the shared files may lack it. */
-const SOLID_FAMILY = /^(solid-js|@solidjs\/[^/]+|@spell-app\/ui)(\/|$)|^\$\/ui\//
+const SOLID_FAMILY = /^(solid-js|@solidjs\/[^/]+|@spell-app\/(ui|spell-solid))(\/|$)|^\$\/(ui|spell-solid)\//
 
 /**
  * For a build that takes Solid and `@spell-app/ui` from `SHARED_SOLID`'s files beside it, instead of bundling its own:
@@ -171,13 +146,17 @@ export function sharedSolid(): Plugin {
     apply: "build",
     enforce: "pre",
     resolveId(source) {
+      if (source === H_PACKAGE) return SHARED_H
       const file = FROM_SHARED_SOLID.get(source)
       if (file) return { id: `${SHARED_ID}${file}`, external: true }
+      if (source.startsWith(SHARED_ID)) return { id: source, external: true }
       if (SOLID_FAMILY.test(source)) {
         this.error(`"${source}" can't come from ${Object.values(SHARED_SOLID).join(" / ")}:  see sharedSolid()`)
       }
       return null
     },
+    // `@solidjs/h` has only a DEFAULT export, which `spell-solid-shared.js` re-exports as `h`
+    load: (id) => (id === SHARED_H ? `export { h as default } from "${SHARED_ID}${SHARED_SOLID.shared}"` : null),
     outputOptions(options) {
       return { ...options, paths: (id: string) => (id.startsWith(SHARED_ID) ? `./${id.slice(SHARED_ID.length)}` : id) }
     }

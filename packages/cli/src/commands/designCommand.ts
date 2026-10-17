@@ -7,10 +7,10 @@ import { DESIGN_VERBS, runTool } from "$/cli/dev/passThrough"
  * tools, `args` verbatim.  Claude's `/design` skill does the claude.ai half (publish, read) with its Artifact tool.
  * - `build [--out <dir>]`:  `packages/ui`'s `yarn design:build` (`scripts/design-build.ts`), which writes the system's
  *   files to `<dir>/project/` (default `packages/ui/build/design-system/`)
- * - `bundle [--out <dir>] [--skip-ui-build]`:  `packages/docs`' `yarn design:bundle`, the system's `bundle.js`
- * - `check [bundle] [outDir]`:  `packages/docs`' `yarn design:check`, the bundle proved inlined and on a Design board
- * - `pull <board.dc.html> <page.html>`, `changed`, `pushed`, `state`:  `packages/docs/tools/design.js`
- * - Runs in the current folder (`bundle` / `check` in `packages/docs`):  a relative path is relative to it.
+ * - `bundle [--out <dir>] [--skip-ui-build]`:  `packages/epics`' `yarn design:bundle`, the system's `bundle.js`
+ * - `check [bundle] [outDir]`:  `packages/epics`' `yarn design:check`, the bundle proved inlined and on a Design board
+ * - `pull <board.dc.html> <page.html>`, `changed`, `pushed`, `state`:  `packages/epics/tools/design.js`
+ * - Runs in the current folder (`bundle` / `check` in `packages/epics`):  a relative path is relative to it.
  * - Throws `CliError` for no verb, or another one.
  * - Returns the tool's exit code.
  */

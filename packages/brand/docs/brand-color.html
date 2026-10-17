@@ -1,0 +1,253 @@
+<!doctype html>
+<!--
+  A <brand-*> element's page in the brand's docs set (`packages/brand/docs/`, served at `/components/brand/`), in
+  Spell UI's component page shape:  masthead, then Examples / Usage / API / Theming tabs.
+  - The set's layout (`__parts/layout.html`) loads Spell UI's site bundle and the brand pack;  API and tokens come
+    from `__data/components.json5` (`yarn site:data` in `packages/brand`).
+  - Example ids:  `<tab>-<section>-<example>`, as Spell UI's pages.
+  - What the examples need, styles and script, is INSIDE `main`:  the site swaps only `main` between its pages.
+    A script adds its listeners once (`window.<flag>`):  the site runs it again each time the page is shown.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Brand Color</title>
+    <meta
+      name="description"
+      content="<brand-color>:  a square colour chip, with a label inside, an AA mark, a selected ring and a details tip;  click to copy."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (Spell UI's `ThemePreference.HEAD_SCRIPT`).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var l = localStorage,
+          d = document.documentElement,
+          s = l.getItem("spell-site:scheme") || l.getItem("spell-site:theme") || l.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") {
+          d.classList.add("ui-" + s)
+          d.style.colorScheme = s
+        }
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="_assets/site.css" />
+    <script type="module" src="_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <main id="main" class="site-main" data-toc-header="Brand Color">
+      <ui-segment vertical class="site-masthead">
+        <ui-container>
+          <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+            <ui-item
+              href="../../packages/brand/components/brand-color/"
+              icon="code"
+              aria-label="Its code"
+              title="Its code"
+            ></ui-item>
+          </ui-menu>
+          <ui-header level="1" class="site-title">
+            Brand Color
+            <ui-label color="yellow" size="small">New</ui-label>
+            <ui-header
+              >A square colour chip: a label inside, an AA mark, a ring, a details tip; click to copy.</ui-header
+            >
+          </ui-header>
+        </ui-container>
+      </ui-segment>
+
+      <ui-container class="site-body">
+        <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+          <ui-tab value="examples" label="Examples">
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-chip" header="Chip" sticky collapsible dividing>
+                <ui-docs-example
+                  description="One colour, always square.  `name` names it for screen readers (with the colour);  `value` takes `#RRGGBB`, `#RGB`, `R G B` or `oklch(...)`."
+                >
+                  <brand-color value="#8E96B5" name="brand-500"></brand-color>
+                  <brand-color value="#F1E7D4" name="accent-150"></brand-color>
+                  <brand-color value="101 80 202" name="violet-600"></brand-color>
+                  <brand-color value="oklch(25.8% 0.099 286)" name="violet-925"></brand-color>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-swatch" header="Palette swatch" sticky collapsible dividing>
+                <ui-docs-example
+                  description="The Color Palette page's swatch:  its hex inside, in white or ink (whichever reads better);  `copy` makes it a button that copies the colour."
+                >
+                  <brand-color value="#8E96B5" name="brand-500" label="hex" copy selected></brand-color>
+                  <brand-color value="#767D9A" name="brand-600" label="hex" copy></brand-color>
+                  <brand-color value="#6550CA" name="violet-600" label="hex" copy></brand-color>
+                  <brand-color value="#00B9A6" name="teal-500" label="hex" copy></brand-color>
+                  <brand-color value="#F69E00" name="amber-500" label="hex" copy></brand-color>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-labels" header="Labels" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`label`:  `hex`, `oklch` (L % · C · H°, as the Color Palette page), `name`, or `step` (the name's last number)."
+                >
+                  <brand-color value="#6550CA" name="violet-600" label="hex" size="large"></brand-color>
+                  <brand-color value="#6550CA" name="violet-600" label="oklch" size="large"></brand-color>
+                  <brand-color value="#6550CA" name="violet-600" label="name" size="large"></brand-color>
+                  <brand-color value="#6550CA" name="violet-600" label="step" size="large"></brand-color>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-contrast" header="Contrast mark" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`contrast`:  `AA` on shades that white or ink text reads clearly on (4.5:1);  a middle shade, like violet-500, gets none."
+                >
+                  <brand-color value="#EAEAFF" name="violet-100" contrast></brand-color>
+                  <brand-color value="#968AFF" name="violet-400" contrast></brand-color>
+                  <brand-color value="#7B68E9" name="violet-500" contrast></brand-color>
+                  <brand-color value="#6550CA" name="violet-600" contrast></brand-color>
+                  <brand-color value="#3E2D86" name="violet-800" contrast></brand-color>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-details" header="Details tip" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`details`:  hover or tab to a chip for its name, hex, OKLCH, contrast against white and ink, and what the shade is good for."
+                >
+                  <brand-color value="#8E96B5" name="brand-500" details label="step"></brand-color>
+                  <brand-color value="#6550CA" name="violet-600" details label="step" contrast></brand-color>
+                  <brand-color value="#F1E7D4" name="accent-150" details label="step" contrast></brand-color>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-content-copy" header="What it copies" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`copy`:  `hex` (bare `copy` too), `oklch`, `token` (`var(--violet-600)`) or `css` (`--violet-600: #6550CA;`).  Each dispatches `ui-copy` and shows a check for a moment."
+                >
+                  <brand-color
+                    value="#6550CA"
+                    name="violet-600"
+                    copy="hex"
+                    label="hex"
+                    size="large"
+                  ></brand-color>
+                  <brand-color
+                    value="#6550CA"
+                    name="violet-600"
+                    copy="oklch"
+                    label="oklch"
+                    size="large"
+                  ></brand-color>
+                  <brand-color
+                    value="#6550CA"
+                    name="violet-600"
+                    copy="token"
+                    label="name"
+                    size="large"
+                  ></brand-color>
+                  <brand-color
+                    value="#6550CA"
+                    name="violet-600"
+                    copy="css"
+                    label="step"
+                    size="large"
+                  ></brand-color>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-selected" header="Selected" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`selected`:  the Color Set Chooser's double ring, a gap in the surface's colour, then the ring.  A set marks its chosen chip this way."
+                >
+                  <brand-color value="#8E96B5" name="brand"></brand-color>
+                  <brand-color value="#6550CA" name="violet" selected></brand-color>
+                  <brand-color value="#00B9A6" name="teal"></brand-color>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example
+                  description="`size`:  `mini` to `massive`;  the chip, its text and its mark scale together.  `--brand-color-size` sets any size."
+                >
+                  <brand-color value="#6550CA" size="mini"></brand-color>
+                  <brand-color value="#6550CA" size="tiny"></brand-color>
+                  <brand-color value="#6550CA" size="small"></brand-color>
+                  <brand-color value="#6550CA" label="step" name="violet-600"></brand-color>
+                  <brand-color value="#6550CA" size="large" label="step" name="violet-600"></brand-color>
+                  <brand-color value="#6550CA" size="big" label="step" name="violet-600"></brand-color>
+                  <brand-color value="#6550CA" size="huge" label="step" name="violet-600"></brand-color>
+                  <brand-color value="#6550CA" size="massive" label="step" name="violet-600"></brand-color>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="usage" label="Usage">
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  One colour as a chip. Give it a `value`, and a `name` when the colour has one (a token, a step).
+
+                  - `label` puts text inside: the hex, OKLCH, the name or the step.
+                  - `contrast` marks the shades text reads clearly on; `details` explains each one in a tip.
+                  - `copy` copies the colour on a click, in the format you pick, and dispatches `ui-copy`.
+                  - Many chips: `<brand-color-set>` lays them out and lets people pick one;
+                    `<brand-color-range>` draws a whole 17-step ladder from one colour.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  document.addEventListener("ui-copy", (event) => {
+                    if (event.target.localName === "brand-color") console.log("copied", event.detail.value)
+                  })
+                </script>
+              </ui-code>
+            </ui-section>
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A `copy` chip is a button: Tab to it, Enter or Space copies. A `details` chip without `copy` is a Tab
+                  stop too, so its tip shows on keyboard focus. In a `selectable` set, the set moves focus with the
+                  arrow keys.
+                </script>
+              </ui-markdown>
+            </ui-section>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - A plain chip is an image named by its name and colour ("brand-500 #8E96B5", plus "AA" when the mark
+                    shows); a `copy` chip is a button named "Copy brand-500".
+                  - "Copied …" is announced (a status line) after a copy.
+                  - The details tip describes the chip it belongs to.
+                  - In a `selectable` set, the chip's HOST is a radio, checked when chosen; the chip inside draws no
+                    button, so nothing interactive nests in the radio.
+                </script>
+              </ui-markdown>
+            </ui-section>
+          </ui-tab>
+
+          <ui-tab value="api" label="API">
+            <ui-docs-api family="brand-color"></ui-docs-api>
+          </ui-tab>
+
+          <ui-tab value="theming" label="Theming">
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Set a `--brand-color-*` token on the chip, any ancestor or `:root`. The defaults come from the
+                  `spell-brand` theme's roles, with plain Spell UI tokens under any other theme. Edit a value below to
+                  try it.
+                </script>
+              </ui-markdown>
+              <ui-docs-tokens family="brand-color" playground>
+                <brand-color value="#8E96B5" name="brand-500" label="hex" details></brand-color>
+                <brand-color value="#6550CA" name="violet-600" label="hex" contrast selected></brand-color>
+              </ui-docs-tokens>
+            </ui-section>
+          </ui-tab>
+        </ui-tabs>
+      </ui-container>
+    </main>
+  </body>
+</html>

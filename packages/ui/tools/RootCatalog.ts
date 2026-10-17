@@ -1,5 +1,5 @@
 import { SkeletonText } from "../src/vocabulary/SkeletonText.ts"
-import type { SkeletonSpec } from "../src/vocabulary/vocabulary.types.ts"
+import type { SkeletonSpec } from "$/spell-solid/vocabulary.types"
 
 import { VocabularyFiles } from "./VocabularyFiles.ts"
 

@@ -11,17 +11,17 @@ import { PlanMarkup } from "./PlanMarkup"
 
 /****************
  * ### `EpicDocs`
- * The docs an epic wrote besides its plan doc, and what its plan doc settled:
+ * The docs an epic wrote besides its epic page, and what its epic page settled:
  * the two lists `/docs-check` works from (epic `airplane`, P10).
- * - `find()`:  `spell dev plan-doc docs <name>`, every doc the epic wrote or touched, each with why it's listed
- *   - `wrote`:  the durable doc (and the files in its own folder), the docs its commits changed,
+ * - `find()`:  `epic docs <name>`, every doc the epic wrote or touched, each with why it's listed
+ *   - `wrote`:  the guide (and the files in its own folder), the docs its commits changed,
  *     and the shared pages its turns changed whose path has its name (`guides/epic-components/...`)
  *   - `related`:  a doc that names the epic ("epic `airplane`", "airplane P3", `epics/airplane/`),
- *     or a shared page its turns changed that the plan doc links to
- *   - `linked`:  a doc the plan doc links to, and nothing else:  often one it only read
+ *     or a shared page its turns changed that the epic page links to
+ *   - `linked`:  a doc the epic page links to, and nothing else:  often one it only read
  *   - `swept`:  any other shared page its turns changed (a turn commits every session's edits:  maybe not its own)
  *   - and its changelog entry, `guides/changelog.html#<name>`
- * - `decisions()`:  `spell dev plan-doc decisions <name>`, what the docs must agree with:
+ * - `decisions()`:  `epic decisions <name>`, what the docs must agree with:
  *   each phase's Done list and Updated notes, and every item with its status, its chosen option and answer
  * - Why several ways to find docs:  the shared folders (`guides/`, `templates/`, `ui/`) aren't in spell-app's git,
  *   so a commit can't show them;  the shared repo's own commits name the checkout whose turn swept them up
@@ -29,16 +29,16 @@ import { PlanMarkup } from "./PlanMarkup"
  * - Node only (git, `node:fs`):  NOT in the `$/epics` barrel, imported by path.  Reads, never writes.
  ****************/
 export class EpicDocs {
-  /** the checkout's plan docs, and its git */
+  /** the checkout's epic pages, and its git */
   readonly files: PlanDocFiles
 
   /** the epic's name:  `airplane` */
   readonly name: string
 
-  /** its plan doc's path */
+  /** its epic page's path */
   readonly file: string
 
-  /** its plan doc, read whole (a split doc assembled) */
+  /** its epic page, read whole (a split doc assembled) */
   readonly plan: PlanDoc
 
   constructor({ files, name }: { files: PlanDocFiles; name: string }) {
@@ -53,11 +53,11 @@ export class EpicDocs {
   ////////////////
 
   /**
-   * Every doc epic `name` wrote or touched besides its plan doc, `wrote` first, then `related`, then `linked`;
+   * Every doc epic `name` wrote or touched besides its epic page, `wrote` first, then `related`, then `linked`;
    * and its changelog entry.
    * - only files that exist now, in this checkout:  a doc renamed since is listed under its new name only when a
    *   later commit or a mention finds it
-   * - never the plan doc's own folder, nor any other plan doc (`epics/`), nor generated pages:  `isDocPath()`
+   * - never the epic page's own folder, nor any other epic page (`epics/`), nor generated pages:  `isDocPath()`
    */
   find(): EpicDocList {
     const { root } = this.files
@@ -92,14 +92,14 @@ export class EpicDocs {
     }
   }
 
-  /** The durable doc(s) the plan doc names, `<a slot="durable" href>`, as checkout paths. */
+  /** The guide(s) the epic page names, `<a slot="durable" href>`, as checkout paths. */
   durablePaths(): string[] {
     const links = this.plan.document.querySelectorAll('epic-page > a[slot="durable"][href]')
     return Array.from(links, (link) => this.pathOf(link.getAttribute("href")!)).filter((path) => path !== undefined)
   }
 
   /**
-   * The other pages in a durable doc's OWN folder:  `guides/seo/seo.html` has `guides/seo/*`;
+   * The other pages in a guide's OWN folder:  `guides/seo/seo.html` has `guides/seo/*`;
    * a page alone in a shared folder (`guides/airplane.html`) has none.
    */
   besideDurable(path: string): string[] {
@@ -113,7 +113,7 @@ export class EpicDocs {
 
   /**
    * The files each of the epic's commits changed, by sha:
-   * the commits its plan doc lists (`<epic-commit sha>`), and the ones its history names (`PlanDocFiles.docLog()`).
+   * the commits its epic page lists (`<epic-commit sha>`), and the ones its history names (`PlanDocFiles.docLog()`).
    * - a history commit another epic's doc lists is that epic's:  `P6:  Doc Review -- ...` reads the same for every
    *   epic with a P6 called Doc Review
    * - one `git log --no-walk` for them all, in the doc's checkout;  a sha git doesn't have is skipped
@@ -141,7 +141,7 @@ export class EpicDocs {
     return EpicDocs.parseNameLog(raw)
   }
 
-  /** Every commit the OTHER epics' plan docs list (`<epic-commit sha>`), skeletons and parts:  full shas. */
+  /** Every commit the OTHER epics' pages list (`<epic-commit sha>`), skeletons and parts:  full shas. */
   otherEpicsCommits(): Set<string> {
     const own = dirname(this.file)
     const shas = new Set<string>()
@@ -189,7 +189,7 @@ export class EpicDocs {
     })
   }
 
-  /** The checkout paths the plan doc links to (`<a href>`), anywhere in it:  its Files fields, items, log. */
+  /** The checkout paths the epic page links to (`<a href>`), anywhere in it:  its Files fields, items, log. */
   linkedPaths(): string[] {
     const links = this.plan.document.querySelectorAll("a[href]")
     return [...new Set(Array.from(links, (link) => this.pathOf(link.getAttribute("href")!)))].filter(
@@ -206,7 +206,7 @@ export class EpicDocs {
   }
 
   ////////////////
-  // ## What the plan doc settled
+  // ## What the epic page settled
   ////////////////
 
   /**
@@ -224,7 +224,8 @@ export class EpicDocs {
         name,
         status,
         done: done ? PlanMarkup.squeeze(done.textContent ?? "") : null,
-        updates: Array.from(phase.querySelectorAll(":scope > epic-updated"), (update) => ({
+        // its plan changes:  `<epic-update>` blocks (an older doc's `<epic-updated>` lines, until migrated)
+        updates: Array.from(phase.querySelectorAll(":scope > epic-update[at], :scope > epic-updated"), (update) => ({
           at: update.getAttribute("at") ?? "",
           text: PlanMarkup.squeeze(update.textContent ?? "")
         }))
@@ -255,8 +256,8 @@ export class EpicDocs {
   /**
    * Does checkout path `path` (`/`-separated) hold a doc a person reads?
    * - yes:  any `.md` (`AGENTS.md`, `README.md`, a skill's `SKILL.md`, notes beside code);
-   *   in the shared doc folders (`SHARED_DOC_DIRS`) also `.html` pages and `.json` page data
-   * - no:  plan docs (`epics/`), the docs home (`pages/`), the logs (`agents/*.md`), the changelog (listed apart),
+   *   in the shared doc folders (`SHARED_DOC_DIRS`) also `.html` pages and `.json5` page data (`.json`, its old name)
+   * - no:  epic pages (`epics/`), the home page (`pages/`), the logs (`agents/*.md`), the changelog (listed apart),
    *   a shared folder's generated `index.html`, a session's own notes (`PARKED-*.md`, `MORNING-*.md`),
    *   fixtures, assets, dependencies
    * - STATIC:  pure
@@ -266,7 +267,7 @@ export class EpicDocs {
     const top = path.split("/")[0]!
     if (SHARED_DOC_DIRS.some((dir) => path.startsWith(`${dir}/`))) {
       if (path === `${top}/index.html`) return false
-      return /\.(html|md|json)$/.test(path)
+      return /\.(html|md|json5?)$/.test(path)
     }
     return path.endsWith(".md")
   }
@@ -292,7 +293,7 @@ export class EpicDocs {
    * Doc `doc`'s group, for epic `name`:
    * - `wrote`:  a reason in `WROTE`, or a `shared-turn` page whose path has the name (`guides/airplane.html`,
    *   `guides/epic-components/tool.html`)
-   * - `related`:  a `mention`, or a `shared-turn` page the plan doc links to
+   * - `related`:  a `mention`, or a `shared-turn` page the epic page links to
    * - `linked`:  a `link` alone
    * - `swept`:  a `shared-turn` page alone:  a turn commits every session's edits, and a tool run over every page
    *   (`docs offline --fix`) changes them all, so most of these are noise.  Counted, listed only by `--json`.
@@ -306,7 +307,7 @@ export class EpicDocs {
     return turn ? "swept" : "linked"
   }
 
-  /** The commits plan-doc markup `html` lists, `<epic-commit sha="...">`, in order, once each.  STATIC:  pure. */
+  /** The commits epic-page markup `html` lists, `<epic-commit sha="...">`, in order, once each.  STATIC:  pure. */
   static commitShas(html: string): string[] {
     return [...new Set(Array.from(html.matchAll(/<epic-commit\b[^>]*\bsha="([0-9a-f]{7,40})"/g), (m) => m[1]!))]
   }
@@ -331,7 +332,7 @@ export class EpicDocs {
   }
 
   /**
-   * Link `href`, written in the plan doc's folder, as a checkout path;  `undefined` for a link out of the checkout,
+   * Link `href`, written in the epic page's folder, as a checkout path;  `undefined` for a link out of the checkout,
    * to another site, or within the page.
    */
   private pathOf(href: string): string | undefined {
@@ -355,9 +356,9 @@ export class EpicDocs {
 
 /** Why a doc is on `EpicDocs.find()`'s list. */
 export type DocReason =
-  /** the plan doc's durable doc, `<a slot="durable">` */
+  /** the epic page's guide, `<a slot="durable">` */
   | "durable"
-  /** a page in the durable doc's own folder */
+  /** a page in the guide's own folder */
   | "beside-durable"
   /** one of the epic's commits changed it */
   | "commit"
@@ -365,7 +366,7 @@ export type DocReason =
   | "shared-turn"
   /** it names the epic */
   | "mention"
-  /** the plan doc links to it */
+  /** the epic page links to it */
   | "link"
 
 /** How sure `EpicDocs.find()` is that the epic wrote a doc, most sure first:  `GROUPS`. */
@@ -397,7 +398,7 @@ export type ChangelogEntry = {
 export type EpicDocList = {
   /** the epic's name */
   epic: string
-  /** its plan doc, as a checkout path */
+  /** its epic page, as a checkout path */
   planDoc: string
   /** the docs, `wrote` first */
   docs: EpicDoc[]
@@ -443,7 +444,7 @@ export type SettledItem = {
 export type EpicDecisions = {
   /** the epic's name */
   epic: string
-  /** its plan doc, as a checkout path */
+  /** its epic page, as a checkout path */
   planDoc: string
   /** its phases, in order */
   phases: SettledPhase[]
@@ -454,7 +455,7 @@ export type EpicDecisions = {
 /** `EpicDoc`'s groups, most sure first. */
 export const GROUPS = ["wrote", "related", "linked", "swept"] as const
 
-/** The shared folders whose pages are docs:  searched for mentions, and their `.html` / `.json` listed. */
+/** The shared folders whose pages are docs:  searched for mentions, and their `.html` / `.json5` listed. */
 export const SHARED_DOC_DIRS = ["guides", "templates", "ui", "agents/wwod"]
 
 /** The changelog:  listed apart, as `changelog`, never as a doc. */

@@ -8,22 +8,22 @@
  * - Which families:  `StaticFamilies`.  Every listed class is defined once, for every page.
  */
 
-import type { UIComponentClass } from "$/ui/elements"
+import type { UIComponentClass } from "$/spell-solid"
 import { ServerRuntime, StaticRender, StaticStylesheet } from "$/ui/static"
 
 import { StaticFamilies } from "./StaticFamilies.ts"
 
 /** Element examples, by path;  lazy, a page renders one. */
-const ELEMENTS = import.meta.glob<string>("/src/components/*/examples/elements/*.html", {
+const ELEMENTS = import.meta.glob<string>("/components/*/examples/elements/*.html", {
   query: "?raw",
   import: "default"
 })
 
 /** Component class files (`UIButton.tsx`), by path;  lazy, only `StaticFamilies`' are loaded. */
 const CLASSES = import.meta.glob<Record<string, unknown>>([
-  "/src/components/*/UI*.{ts,tsx}",
+  "/components/*/UI*.{ts,tsx}",
   // a family's other files are named for its component too (`UIButton.types.ts`, `UIButton.test.tsx`)
-  "!/src/components/*/UI*.*.{ts,tsx}"
+  "!/components/*/UI*.*.{ts,tsx}"
 ])
 
 /****************
@@ -47,7 +47,7 @@ export class StaticFixture {
       throw new Error(
         `StaticFixture.example():  "${family}" isn't compared statically;  add it to tools/visual/StaticFamilies.ts`
       )
-    const load = ELEMENTS[`/src/components/${family}/examples/elements/${name}.html`]
+    const load = ELEMENTS[`/components/${family}/examples/elements/${name}.html`]
     if (!load) throw new Error(`StaticFixture.example():  no element example "${id}"`)
     const source = await load()
     await StaticRender.prepare(source)

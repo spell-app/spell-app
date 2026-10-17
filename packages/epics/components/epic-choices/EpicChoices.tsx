@@ -18,6 +18,7 @@ import {
 } from "./EpicChoices.types"
 
 import choicesCSS from "./EpicChoices.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicChoices`
@@ -34,7 +35,7 @@ import choicesCSS from "./EpicChoices.css?inline"
 export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
   @E.proto static vocabulary = epicChoicesVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-choices": choicesCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-choices": choicesCSS },
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
@@ -45,6 +46,12 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
 
   /** Its `chosen` letter, followed as it changes;  `undefined` while none is. */
   @E.state accessor chosenLetter = EpicChoices.chosenFor(this.domElement)
+
+  /** The options of an `<epic-ask>` (a page Owen answers on, epic `epic-workflow` P12):  one card a row. */
+  @E.cssState("answering")
+  get isAnswering(): boolean {
+    return this.domElement.parentElement?.localName === ASK_TAG
+  }
 
   /** Its options' box:  folded until the reader opens it. */
   readonly fold = new Fold(() => false)
@@ -96,6 +103,7 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
             part={this.partForName("toggle")}
             aria-expanded={this.isOpen ? "true" : "false"}
             aria-controls={PANELS_ID}
+            title={this.translationForKey(this.isOpen ? "foldTip" : "unfoldTip")}
             onClick={this.fold.toggle}
           >
             {Fold.chevron()}
@@ -146,7 +154,7 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
    * - `index`:  its position among the item's sets in page order, never counting one in its Original Discussion
    * - `own`:  it's the item's own (its first child set, else its first), what a pick from before I8 meant
    * - `undefined` outside an item, or in an Original
-   * - the plan-doc tool counts the same way (`PlanItem.choiceSets()` / `choiceSet()`):  a pick's `choices`
+   * - the epic tool counts the same way (`PlanItem.choiceSets()` / `choiceSet()`):  a pick's `choices`
    */
   static setOf(element: Element): CardSet | undefined {
     const choices = element.closest(CHOICES_TAG)
@@ -182,6 +190,9 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
 
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface EpicChoices extends E.AttributeValues<typeof epicChoicesVocabulary> {}
+
+/** The question an answering page's choices sit in. */
+const ASK_TAG = "epic-ask"
 
 /** Class of the answered options' box. */
 const PANELS = "panels"

@@ -9,8 +9,11 @@ import { ParseError } from "./ParseError"
  * Blank line, compiling to `P.ASTBlankLine` -- generic `P.BlankLine` has no `getAST()` of its own,
  * and spell always converts to AST before compiling.
  * - Subclass rather than patching `P.BlankLine.prototype`, which would change it for every language.
+ * - Class named `SpellBlankLine`, so it doesn't read as the parser's `P.BlankLine`.
  */
-export class blank_line extends P.BlankLine {
+export class SpellBlankLine extends P.BlankLine {
+  static ruleName = "blank_line"
+
   getAST(match: P.MatchFor<this>) {
     return new P.ASTBlankLine(match)
   }
@@ -24,7 +27,7 @@ export class blank_line extends P.BlankLine {
  *   statement attempt to parse that next line as well -- see `commitStatement()`.
  */
 export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
-  /** Registered as `line` -- class name isn't rule case. */
+  /** Registered as `line`:  the class name would give `block_line`. */
   static ruleName = "line"
 
   /**
@@ -165,7 +168,7 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
 
   /**
    * Do `tokens` start with an outline's bullet:  a `-` with a space after it, and more after that?
-   * - e.g. `- it has a deck`, in an outline-style type's body (plan doc `outline-spell`) -- or any line:
+   * - e.g. `- it has a deck`, in an outline-style type's body (epic page `outline-spell`) -- or any line:
    *   a statement never starts `- `.
    * - NOT `-5`, nor a lone `-`.
    */
@@ -176,7 +179,7 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
 
   /**
    * Is `tokens` an outline body's line, e.g. `it has a deck` or `its "suit" is ...`, NOT in a type's body -- so it
-   * didn't parse?  Its error then says where it belongs (plan doc `outline-spell`, P6).
+   * didn't parse?  Its error then says where it belongs (epic page `outline-spell`, P6).
    * - `it` / `its`, then a quoted name or phrase, or `has` / `belongs`.
    */
   static isOutlineLineOutsideBody(scope: P.Scope, tokens: P.Token[]): boolean {

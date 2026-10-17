@@ -1,7 +1,8 @@
 # AGENTS.md
 
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
-when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
+when working with code in this package, `@spell-app/spell`.
+- Code imports it as `$/spell`;  its namespace is `SP`.
 
 **READ the repo root's `AGENTS.md` and [WWOD](../../agents/wwod/WWOD.md) FIRST:**
 - the root's:  the repo's layout
@@ -11,51 +12,133 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
 
 ## Overview
 
-- This package is the spell LANGUAGE:  `src/` (`SP`) is spell's rules, `SpellParser`, `SpellProject` and friends,
-  on the generic parser.
+- This package is the spell LANGUAGE, on the generic parser.
+  Its `src/` (namespace `SP`) holds:
+  - spell's rules
+  - `SpellParser`, `SpellProject` and friends
 - The pieces around it are packages of their own, beside this one:
-  - `../parser` (`$/parser`, `P`):  the generic rule-based parser.
+  - [parser](../parser/AGENTS.md), `$/parser` (`P`):  the generic rule-based parser.
     [PARSING.md](PARSING.md), here, maps its pipeline.
-  - `../core` (`$/core`, `SC`):  the runtime compiled spell runs on.
-  - `../util` (`$/util`):  utilities.
-  - `../lsp` (`$/lsp`, `LSP`):  spell's language server.
-    See "Language server" in `PARSING.md`.
+  - [core](../core/AGENTS.md), `$/core` (`SC`):  the runtime compiled spell runs on.
+  - [util](../util/AGENTS.md), `$/util`:  utilities.
+  - [lsp](../lsp/AGENTS.md), `$/lsp` (`LSP`):  spell's language server.
+    See "Language server" in [PARSING.md](PARSING.md).
   - `../vscode`:  the VS Code extension that runs it.
     Its own yarn project, NOT a workspace.
-  - `../app` (`$/app`):  the web app, its server, the runner, and `<spell-app>` / `<spell-editor>`.
-    `yarn start` is run THERE.
-  - `../cli`:  the `spell` command line, which runs this package's SOURCE (and the others') through `tsx`.
+  - [app](../app/AGENTS.md), `$/app`:  the web app.
+    - Also the runner, and the `<spell-app>` / `<spell-editor>` elements.
+    - `yarn start` is run THERE.
+  - [spaces](../spaces/AGENTS.md), `$/spaces`:  where projects live, and the editor's server.
+    - Spell's project groups (`@spell/examples`, `owen@spell` ...), their lists, and a project's file edits.
+    - The built-in projects and the test projects, and reading and writing projects on disk.
+    - This package NEVER imports it (see "Projects live in spaces" below).
+  - [cli](../cli/AGENTS.md):  the `spell` command line.
+    It runs this package's SOURCE (and the others') through `tsx`.
 - `src/rules/`:  spell's rule modules (see "Parser rules" below).
-- `src/parserTests/`:  parser tests that need the spell grammar.
-  The generic ones are in `../parser`.
+- Tests live in the repo's `tests/spell/`, at the same paths as the code they test:
+  [SpellProject.ts](src/SpellProject.ts) => [SpellProject.test.ts](../../tests/spell/src/SpellProject.test.ts).
+  - `yarn test` here runs them (`vitest.config.ts` points there).
+  - Their helpers stay here, in `src/test/` (`$/spell/test`).
+  - The projects they read are spaces' test projects, `tests/spaces/@spell/test/`
+    (see "Projects live in spaces" below).
+  - `tests/spell/src/parserTests/`:  parser tests that need the spell grammar.
+    The generic ones are in `../parser`.
 - `src/node/` (`$/spell/node/...`) is NODE-ONLY.
   - Its files:
-    `environment`, `packageVersion.node`, `disk-fetch`, `file-utils`, `project-utils`, `response-utils`, `server.types`
+    - `packageVersion.node`
+  - And for the targets beyond javascript:
+    - `typecheck`:  `tsc` on the TypeScript target
+      - Also the code folders compiled spell is checked against, `CODE_FOLDERS`:
+        spell's `src/`, the repo's `packages/`, and `core`'s `src/`
+    - `buildTsx`:  the TypeScript target's build
+    - `pyright`:  pyright on the Python target
+  - And the spell syntax table (see "Parser rules"):
+    - `spellSyntax`
+    - `writeSpellSyntax`, the script behind `yarn gen:syntax`
+  - Projects on disk are NOT here:  they're spaces' (`$/spaces/server/node/...`).
   - The barrel NEVER exports it.
   - Other packages may import these files by name:  one of the deep-import exceptions
     (WWOD §4 › "Package aliases, never `../`").
-    The app's server does.
+    Spaces, the language server and the `spell` command do.
   - Nothing reachable from `$/spell`'s barrel may import it (WWOD §8 › "Barrels").
-- `src/highlight/`:  `SpellHighlighter` (`SP.SpellHighlighter.spans(text)`).
+- `src/highlight/`:  `SpellHighlighter`.
   - It colours a snippet without a project, for `<ui-code language="spell">`.
+  - Call it as `SP.SpellHighlighter.spans(text)`.
   - [The browser entry](src/highlight/browser.ts) is what `@spell-app/ui`'s `yarn gen:spell` bundles.
   - After changing the grammar, run it there, so `ui`'s committed bundle follows.
-- `src/test/` (`$/spell/test`):  the test helpers, e.g. `loadFixtureProject()`, `fixturePath()`, `fixtureProjectId()`.
-- `projects/` holds every spell project, OUTSIDE `src/`.
-  - Its folders are the `@system:examples` etc roots:
-    `system/examples/`, `system/library/`, `system/guides/`, `user/` and `test/`.
-  - See "Projects" in `PARSING.md`.
-  - Tests read ONLY `projects/test/`:  frozen projects, never the live examples, which get edited.
-    - Its root:  `@test:fixtures` ~== `@test/<Project>`, listed in the app in dev only.
-    - Use `loadFixtureProject()`, `fixturePath()`, `fixtureProjectId()`, from `$/spell/test`.
+- [targets.ts](src/targets.ts):  the TARGETS spell compiles to, `SP.TARGETS`.
+  Each is a language, the runtime its code runs on, and the writer that writes it:
+  - `js/solid`:  ALWAYS compiled, as the editor, the runners and `spell run` run it
+  - `ts/solid`:  TypeScript on Solid, checked by `tsc`
+  - `py`:  Python on `spell_core`, checked by pyright
+    - on asyncio:  a function that waits is `async def`
+    - with a words file of its own, by Python's names:  `<Project>.py.en.json5`
+    - a program that draws also gets two more files:
+      - its page file, `<Project>.elements.spell.js`:  its drawing half, in javascript
+        - its suffix `elementsSuffix`, its writer `PY.ElementsWriter`
+      - its web app on Quart, `<Project>.app.py`
+        - Each compile rewrites it only while nobody has edited it.
+        - `appSuffix`, and `$/py`'s [quartApp.ts](../py/ts/quartApp.ts)
+  - `ts/lib`:  a LIBRARY, the project's classes alone, for the repo's code to import (epic `people-and-orgs` P3)
+    - `<Project>.lib.ts`, one file with its own types:  no drawing, none of its top-level steps, the core with no Solid
+    - checked by `tsc`, as `ts/solid` is
+    - committed beside its source, and marked generated in the root's `.gitattributes`:  a merge recompiles `@spell/library`
+  - What a target builds goes in the project's build folder, `build/` at the repo root, never committed.
+    - That's its compiled code, and the scope pack, `.scopes.js`:
+
+      ```text
+      <Project>.spell.js  .spell.tsx  .spell.py  .elements.spell.js  .scopes.js
+      ```
+
+    - The rest goes beside its source:  declarations, words, `.lib.ts`, `.app.py`.
+    - See "Projects" in [PARSING.md](PARSING.md).
+    - Built when needed:
+      - the page server compiles `@spell/examples` and `@spell/library` as it starts
+      - spaces' API compiles a project whose built file is missing
+      - by hand:  `spell compile --stale`
+  - A project lists the others it wants in `project.json`'s `"targets"`.
+    `spell compile --target <name>` picks one for a single run.
+  - The writers are `$/parser`'s:  "Compile" in [PARSING.md](PARSING.md).
+- `src/test/` (`$/spell/test`):  the test helpers, e.g. the fixture helpers below.
+- Projects live in spaces, not here:  this package reads and compiles them, but holds none.
+  - Spell's project groups (`@spell/examples` ...) are spaces' `SPACES.PROJECT_GROUPS`.
+    - Spell's registry, `SP.SpellSetup`, starts EMPTY:  loading spaces' groups registers them there.
+    - So every program that reads a spell path loads them first, through `$/spaces`,
+      spaces' disk reader, or `$/spaces/models/projectGroups` alone.
+    - Spell NEVER imports spaces.
+  - Where each group's projects are:
+    - [spaces' built-ins](../spaces/@spell/), committed:
+      `@spell/examples`, `@spell/library`, `@spell/guides`
+    - `@spell/test`:  the test projects, [tests/spaces/@spell/test/](../../tests/spaces/@spell/test/), committed
+    - `owen@spell`:  Owen's own, in spell-spaces beside the main checkout, outside git
+  - A project's URLs and folder come from ONE function, [SpellUrls](src/SpellUrls.ts) (`SP.SpellUrls`).
+  - See "Projects" in [PARSING.md](PARSING.md).
+  - Tests read ONLY the test projects:  frozen projects, never the live examples, which get edited.
+    - Their group:  `@spell/test`, e.g. `@spell/test/solitaire`, listed in the app in dev only.
+    - Read them with the helpers from `$/spell/test`:
+      - `loadFixtureProject()`
+      - `fixturePath()`
+      - `fixtureProjectId()`
     - NEVER update a fixture to follow its example.
-  - Each fixture's compiled output is checked against the `<Project>.snapshot.js` beside it
-    ([fixtures.test.ts](src/test/fixtures.test.ts)).
+  - Each fixture's compiled output is checked against the snapshots beside it
+    ([fixtures.test.ts](../../tests/spell/src/test/fixtures.test.ts)):
+    - `<Project>.snapshot.js`:  the javascript target
+    - `<Project>.snapshot.declarations.json5`:  its declarations
+    - `<Project>.en.snapshot.js`:  its words (`SP.SpellWords`)
+      - Its name ends as a snapshot's does, which keeps it out of the project's files.
+    - `<Project>.snapshot.tsx`:  the TypeScript target
+    - `<Project>.snapshot.tsc.txt`:  what `tsc` says of it ([typescript.test.ts](../../tests/spell/src/test/typescript.test.ts))
+    - `<Project>.snapshot.py`:  the Python target
+    - `<Project>.snapshot.pyright.txt`:  what pyright says of the Python ([python.test.ts](../../tests/spell/src/test/python.test.ts))
+    - `<Project>.elements.snapshot.js`:  the Python targets' page file, for a fixture that draws
+    - `<Project>.lib.snapshot.ts`:  the library target, for the fixtures in `LIBRARY_FIXTURES`
+    - The Python ones only for the fixtures in `PYTHON_FIXTURES`:  every fixture but `todos-form-based`, so far.
+      The Python writer can't write its method's named arguments yet.
     - Add a fixture by copying a project in.
     - After a deliberate change, `yarn test:fixtures:bless`, and read the diff.
 - [readme.md](readme.md) is the project's front page.
-  Docs live in `packages/docs/` (see "Creating docs").
-- [The barrel](src/index.ts) is loaded in browsers AND the app's server (WWOD §8 › "Barrels").
+  Docs live in the shared root folders, their tooling in [epics' tools](../epics/tools/) (see "Creating docs").
+- [The barrel](src/index.ts) is loaded in browsers AND the editor's server, in spaces (WWOD §8 › "Barrels").
   - It imports `$/core`'s TYPES only, never its code.
 
 ## How parsing works
@@ -67,36 +150,67 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
   - Read it BEFORE digging into parser internals.
 - MUST keep it up to date, in the same change, whenever the parsing mechanism changes:
   - the generic `Parser`, `SpellParser`, scopes
-  - the `Block` / `BlockLine` / `SpellStatement` machinery
+  - how a file becomes blocks, lines and statements:
+    - `Block`
+    - `BlockLine`
+    - `SpellStatement`
 
 ## Creating docs
 
-- Docs for people (design notes, research, references) live in `packages/docs/` (`@spell-app/docs`),
-  for every package.
-- How to write one:  [docs' AGENTS.md](../docs/AGENTS.md).
+- Docs for people (design notes, research, references), for every package, live in the shared root folders:
+  `guides/` mostly (root `AGENTS.md`, "Shared content").
+  - Their tooling is [epics' tools](../epics/tools/), in `@spell-app/epics`.
+- How to write one:  [epics' AGENTS.md](../epics/AGENTS.md), "Writing a page".
 
 ## Parser rules
 
-- A rule is a CLASS (behaviour AND what the rule is), plus its `syntax` + `tests`, passed when registering it:
-  `parser.addRule(RuleClass, { syntax, tests })`.
+- A rule is a CLASS (behaviour AND what the rule is), plus its `syntax` and `tests`.
+  - Those two are passed when registering it:  `parser.addRule(RuleClass, { syntax, tests })`.
   - Everything else goes ON THE CLASS, as `@proto static` (from `$/util`).
     - e.g. `alias`, `priority`, `declares`, `highlightAs`, `datatype`, `tokenType`, `pattern` ...
     - e.g. `@proto static alias = "expression"`
     - Why:  the class is the rule, reusable by other languages' parsers with their own `syntax`.
     - As WWOD §12 › "`@proto static` defaults" (declared props only;  inherited), plus:
-      `syntax`, `tests` and `ruleName` are NOT inherited.
-      Share syntax with a constant, e.g. `VARIABLE_SYNTAX`.
+      - NOT inherited:  `syntax`, `tests` and `ruleName`.
+      - Share syntax with a constant, e.g. `VARIABLE_SYNTAX`.
   - `priority` and `precedence` are different:
-    - `priority` (from the `Priority` table, `rules.types.ts`) only breaks a tie between rules matching the SAME words
-    - `precedence` (from the `Precedence` table) is how tightly an operator binds
-    - A new expression or operator:  `PARSING.md`, "Adding an expression rule".
-  - Class name IS the rule name.
-    - Use plain `static ruleName = "if"` only for reserved words (`class _if`),
-      or when the class name isn't rule case (`class Block` => `"block"`).
+    - `priority` only breaks a tie between rules matching the SAME words.
+      Its values:  the `Priority` table, in [rules.types.ts](src/rules/rules.types.ts).
+    - `precedence` is how tightly an operator binds.
+      Its values:  the `Precedence` table.
+    - A new expression or operator:  [PARSING.md](PARSING.md), "Adding an expression rule".
+  - Rule CLASSES are PascalCase;  rule NAMES are snake_case, worked out from the class name.
+    - `P.Rule.ruleNameFor()` works it out, e.g.:
+      - `class ListAddRelative` => `list_add_relative`
+      - `class If` => `if`
+    - The rule name is what everything else says:
+      - `syntax`:  `{list_add_relative}`
+      - `parser.rules`, declarations, error messages
+      - the `__snapshots__`
+    - A plain `static ruleName = "..."`, only where the class name doesn't give it:
+      - `class BlockLine` => `"line"`
+      - `class SpellJSXText` => `"jsxText"`
+      - Also where the PascalCase name would hide a javascript or DOM global, or reads as a parser class.
+        - Then:  a fuller class name, keeping the rule name,
+          e.g. `class NumberLiteral` + `static ruleName = "number"`.
+        - the globals:  `Number`, `Boolean`, `Text`, `Comment` ...
+        - a parser class:  `Keyword`
     - So the prod build keeps class names:  [parser's AGENTS.md](../parser/AGENTS.md), `keepNames`.
+    - [ruleNames.test.ts](../../tests/spell/src/rules/ruleNames.test.ts) pins every rule's name, module and registration order:
+      a renamed class that changes a rule's name fails it.
+  - The SPELL SYNTAX TABLE, [spellSyntax.json](spellSyntax.json):  every rule class, by module, with
+    - each syntax it's registered with
+    - an example of each from its tests, compiled by the javascript, TypeScript and Python writers
+      (comments left out)
+    - its aliases
+    - its docstring's first sentence
+    - What [the spell syntax guide](../../guides/spell-syntax/spell-syntax.html) draws.
+    - Generated:  `yarn gen:syntax`, after adding, renaming or changing a rule, its class docstring or its tests.
+      [spellSyntax.test.ts](../../tests/spell/src/node/spellSyntax.test.ts) fails until you do.
+    - So a class docstring's first sentence says what the rule is FOR, in plain words:  it's the guide's Purpose.
   - ONE `syntax` per registration.
-    - A rule with several calls `addRule()` once per syntax, each with the `tests` for that syntax,
-      e.g. `assignment_statement`.
+    - A rule with several calls `addRule()` once per syntax, each with the `tests` for that syntax.
+      - e.g. `assignment` (`AssignmentStatement`)
     - Instances merge into a `P.Group`, under the rule's name.
   - Put a prop on a base class when EVERY subclass wants the same value.
     - e.g. `SpellExpression`'s `alias = "expression"`
@@ -104,10 +218,11 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
     - A subclass just states its own value, for an exception.
   - Constructor defaults also work, for what every rule of a base class has in common.
     - e.g. `super({ pattern, blacklist, ...props })`:  see `SpellIdentifier`
-  - The finished shape:  [variables.ts](src/rules/variables.ts).
+  - The finished shape:  [events/](src/rules/events/), one rule per file (see "Rule module layout" below).
     All the ways to make a rule:  the top docstring in [Rule.ts](../parser/src/rules/Rule.ts).
-  - `SpellParser.addRule()` and `scope.addRule()` only TYPE `{ syntax, tests }` (`P.SyntaxAndTests`).
-    So a stray `alias` there is a compile error.
+  - The methods that register a rule TYPE their definition as `{ syntax, tests }` only (`P.SyntaxAndTests`).
+    - They're `SpellParser.addRule()` and `scope.addRule()`.
+    - So a stray `alias` there is a compile error.
   - Rules built WHILE PARSING (`scope.addRule()`) are a named class, `specialize()`d with plain-data statics.
     - e.g. `DynamicMethodRule.specialize({ output: "play_fizzbuzz", alias })`
     - The definition is still just `{ syntax }`.
@@ -122,7 +237,7 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
     - Its `static declarationProps(declared, syntax)` says what goes in the declaration:  tune output there.
   - A class or rule name is NOT a stable identifier (WWOD §3 › "Names aren't identifiers").
     - Here, the explicit property is e.g. `@proto static importableAs = "quoted_property"`.
-  - A word with negated forms is a `Negatable` rule (`expressions.ts`).
+  - A word with negated forms is a [`Negatable`](src/rules/expressions/Negatable.ts) rule.
     - `{operator:is}` matches `is`, `is not`, `isn't` and `isnt`.
     - `Negatable.isNegated(operator)` says which.
     - Plain `is` matches just the word.
@@ -135,15 +250,19 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
 
 - A rule which is a statement AND an expression, ending in a whole `{x:expression}` (a method call, `wait for`):
   - `@proto static operandInExpressions = true` makes that last slot an `operand` when used INSIDE an expression.
-  - So `if double x is 4` => `double(x) == 4`, while the statement `notify x + y` keeps `notify(x + y)`.
-  - `SpellParser.addRule()` registers the statement and an expression twin:  see "Expressions" in `PARSING.md`.
+  - So:
+    - `if double x is 4` => `double(x) == 4`
+    - while the statement `notify x + y` keeps `notify(x + y)`
+  - `SpellParser.addRule()` registers the statement and an expression twin:
+    see "Expressions" in [PARSING.md](PARSING.md).
 - A statement with a BODY (an inline statement, or an indented block under it) says so with a body keyword,
   at the END of its `syntax`.
   - e.g. `if {condition:expression} (then|:)? {statement_body}?`
   - `{statement_body}` ~== `({inline_statement}|{nested_statements})`
   - `{expression_body}` ~== `({inline_expression}|{nested_statements})`
   - the rest:  `BODY_KEYWORDS`, in `Statement.ts`
-  - Read the parsed body with `this.getBody(match)`, NEVER `match.groups.body`:  see `SpellStatement`.
+  - Read the parsed body with `this.getBody(match)`, NEVER `match.groups.body`.
+    See `SpellStatement`.
 - A statement that DECLARES something says so with `@proto static declares`, for editors' symbol lists.
   - something:  a type, property, method, variable, event handler
   - It names the groups that hold the name and the owning type,
@@ -155,58 +274,95 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
   - Base classes set it for their family, so most rules need nothing:
     - `SpellIdentifier` => `"variable"`
     - `Keyword` => `"keyword"`
-- Rule module layout, top to bottom:
-  - header docstring, imports
-  - `export const <module> = new SpellParser({ module: "<module>" })`, at the TOP:
-    classes can't be hoisted to it
-  - then for EACH rule, in tie-break order (when two rules tie on `priority` and length, the EARLIER wins):
-    - a group header naming the rule and showing what it matches, exactly this shape:
+- Rule module layout:  a module is a FOLDER, one rule class per file (epic `output-targets` P18).
+  - The model:  [events/](src/rules/events/).
+    Every module has this layout now:
 
-      ```
-      ////////////////
-      // ## `known_variable` rule
-      //    e.g. "the thing", if `thing` is in scope
-      ////////////////
-      ```
+    ```text
+    rules/<module>/
+      <module>.parser.ts    the module's parser
+      <RuleClass>.ts        one rule class each
+      <module>.shared.ts    what several of its rule files share, if anything
+      index.ts              exports every file, in tie-break order
 
-      - `e.g.` is indented 4, so it lines up under the rule name.
-      - The example comes from the rule's own `tests`, so it stays true.
-      - A base class which is never registered gets `` // ## `SpellIdentifier` base class ``.
-      - A rule whose class name differs gets `` // ## `number` rule (class `numeric`) ``.
-      - A broad SECTION spanning several rules uses a wider banner, one level up:
-        `// # Various flavors of whitespace`.
-    - constants the rule's registration reads (`VARIABLE_SYNTAX`)
-      - The header goes ABOVE these:  it marks where the rule starts, not where its class starts.
-      - They MUST precede `addRule()`:  a `const` isn't hoisted.
-    - docstring + `class known_variable extends ... {}`
-      - exported only if something outside the file needs it
-      - its `@proto static` props FIRST in the class body
-    - `<module>.addRule(known_variable, { syntax, tests })`, immediately after the class, once per syntax
-    - THEN types and helper functions only this rule uses (`type VariableMatchData`, `setup_assignment_statement()`)
-      - Types and function declarations are hoisted, so they can follow what uses them.
-  - Types and helpers SHARED by several rules go in a section at the BOTTOM of the module, e.g. `// ## Shared types`.
-    So none sits above a rule that needs it.
-  - Test setup shared by a rule's registrations:  `setup_<rule_class>()`, returning `{ compileAs, beforeEach }`.
-    - It's spread into each block:  `{ ...setup_assignment_statement(), tests: [...] }`.
+    tests/spell/src/rules/<module>/   (from the repo root)
+      <module>.test.ts      its tests
+      __snapshots__/        its group specs
+    ```
+
+  - `<module>.parser.ts`:  the module's parser, and nothing else.
+    - `export const <module> = new SpellParser({ module: "<module>" })`
+    - A file of its own, so each rule file can import it without importing its siblings.
+  - `<RuleClass>.ts`:  ONE rule class, the file named for it, e.g. [Trigger.ts](src/rules/events/Trigger.ts).
+    - Top to bottom:
+      - imports:  `./<module>.parser`, peer files (a base class), `$/spell/rules/<other module>` for another's
+      - constants the class or its registration reads:  a `const` isn't hoisted
+        - e.g. `LOWER_INITIAL_WORD`, in [Property.ts](src/rules/properties/Property.ts)
+      - docstring + `export class Trigger extends ... {}`, its `@proto static` props FIRST in the body
+      - `<module>.addRule(Trigger, { syntax, tests })`, right after the class, once per syntax
+      - THEN the types and helpers only this rule uses (`type VariableMatchData`, `setupAssignmentStatement()`)
+        - Types and function declarations are hoisted, so they can follow what uses them.
+    - The class docstring's first line starts with the RULE name,
+      so a search for `{list_add_relative}` finds it:
+      - `` `list_add_relative` rule:  adds an item before or after another ``
+      - then `- e.g. ...` bullets, from its own `tests`
+    - Every rule class is exported:  one exported class per file (WWOD §8).
+    - A base class shared by several rules (registered or not):  a file of its own, named for it.
+  - `<module>.shared.ts`:  types, constants and helper functions SHARED by several of its rule files.
+    - Only if there are any.
+      What one rule alone uses stays in that rule's file.
+    - e.g. `VARIABLE_SYNTAX`, in [variables.shared.ts](src/rules/variables/variables.shared.ts):
+      two rule files read it.
+    - Why `.shared`:  rule helpers build AST nodes (`new P.AST...`).
+      A `.types.ts` file mustn't import values like those, so it isn't `.types`.
+  - `index.ts`:  `export * from` each file, in TIE-BREAK order.
+    - When two rules tie on `priority` and length, the one registered FIRST wins (`Choice.getBestMatch()`).
+      Each rule registers as its file loads, so this list IS the registration order:  keep the module's old order.
+    - `./<module>.parser` first, then `./<module>.shared`, then the rule files.
+    - A rule file that imports a peer (its base class) loads it first:
+      fine as long as the base came first in the old order too.
+    - Other modules and [the rules' own index](src/rules/index.ts) import the folder, as before:
+      `$/spell/rules/<module>`, or `./<module>` from that index.
+  - `<module>.test.ts`:  MUST call `unitTestModuleRules()`, or its tests never run.
+    - The call:  `unitTestModuleRules(spellParser, "<module>", ...)`, from `$/spell/test`.
+    - It lives in `tests/spell/src/rules/<module>/`, its `__snapshots__` (the group specs) beside it.
+    - Blessing finds the module's source from there:  the same module's folder in [src/rules/](src/rules/).
+- A rule's `tests`, each a `P.RuleTest`:
+  - `{ input, js, ts }`, or a tuple `[input, js, ts?]`
+  - `js`:  what the javascript writer writes;  `ts`:  what the TypeScript writer writes.
+    Leave `ts` out where it's the same as `js`.
+  - `input` is parsed ONCE, then written by both:  a change to either writer fails the rule's own tests.
+  - A rule alone has no project around it, only its test's scope.
+    So its `js` and `ts` show what the writers do without one, e.g. a type they can't know.
+  - `yarn test:rules:bless` writes each test's `js` and `ts` into the source.
+    - It sets `BLESS_RULE_TESTS=1`, then runs `vp fmt`.
+    - Read the diff after:  it's the review.
+    - It finds each test by its `input` and old `js`;  one it can't place fails the run, saying why.
+  - Test setup shared by a rule's registrations:  `setup<RuleClass>()`, returning `{ compileAs, beforeEach }`.
+    - It's spread into each block:  `{ ...setupAssignmentStatement(), tests: [...] }`.
   - Tests need no type annotations there.
-  - Each module needs a sibling `<module>.test.ts` calling `unitTestModuleRules()` (from `$/parser/test`),
-    or its tests never run.
-- Type arguments:  `Rule<Props, Groups, MatchData>`, all defaulted, so bare `P.Rule` / `P.Sequence` / `P.Match` work.
-  - Rule base classes fix `Props`, so authors write `SpellStatement<"type|property|specifier?", { ruleComment?: ... }>`.
-  - `rule.matchGroup` (was `argument`) is the name a rule's match goes under in `match.groups`,
-    e.g. `{thing:expression}`.
+  - `yarn test:rules` runs every rule module's tests, and `ruleNames.test.ts`.
+- Type arguments:  `Rule<Props, Groups, MatchData>`, all defaulted.
+  - So the bare classes work:  `P.Rule`, `P.Sequence`, `P.Match`.
+  - Rule base classes fix `Props`.
+    So authors write `SpellStatement<"type|property|specifier?", { ruleComment?: ... }>`.
+  - `rule.matchGroup` is the name a rule's match goes under in `match.groups`.
+    - e.g. `{thing:expression}`
+    - It was `argument`.
   - `Groups` is a `P.GroupsFor` spec:
     - `name` required, `name?` optional, `name[]` array
-    - Copy it from the module's `__snapshots__` file, which is computed from real `syntax` (`rule.groupSpec`).
+    - Copy it from the module's `__snapshots__` file.
+      It's computed from real `syntax` (`rule.groupSpec`).
     - Use an object type when `getGroupsForMatch()` derives non-`Match` values.
   - `MatchData` is what a rule stashes on its matches, read as `match.data.foo`.
   - Hooks take `match: P.MatchFor<this>`.
-    To read another rule's match, narrow with `match.is(other_rule)`.
+    To read another rule's match, narrow with `match.is(OtherRule)`.
 - `match.groups` holds ONLY what the syntax matched (`Match | Match[]`).
   - Anything a rule works out for itself goes in `match.data`, typically via a caching method:
     `getBits(match) { return (match.data.bits ??= ...) }`.
   - NEVER override `getGroupsForMatch()` to add derived values.
-- In `match.data`, use `NONE` (from `$/util`) for "looked, not found", rather than `null`.
+- "Looked, not found" in `match.data` is `NONE`, from `$/util`.
+  - Use it rather than `null`.
   - Name scope lookups `scopeVar` / `scopeConstant` / `scopeType`.
 - ONLY `mutateScope()` changes scope.
   - And `mutateScopeFromBody()`, for what a statement knows only once its BODY has parsed,
@@ -217,7 +373,8 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
     - Look up what the AST needs WHILE PARSING, into `match.data`.
 - What a statement's `mutateScope()` changes, for incremental parsing:  `@proto static changesScope`.
   - Or override `getScopeChanges(match)`, when only SOME matches change what later lines see.
-  - It reads only `match.data`, e.g. `assignment_statement` is `"global"` only when it auto-declared a property.
+  - It reads only `match.data`.
+    - e.g. `AssignmentStatement` is `"global"` only when it auto-declared a property.
   - See "Incremental parsing" in `PARSING.md`.
 - A slot NAMING a member (a property's declaration, a read of one) is `{property:member_words}`:
   several words, blacklisted ones too, up to a structural word.
@@ -229,8 +386,8 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
   - Add one there, with the real `spellCore` method or javascript property its `readAs` names.
   - Then `yarn scopes --builtins`, in `../lsp`.
   - See "Built-in types" in `PARSING.md`.
-- A `parse()` which understood a statement but mustn't take it returns `SpellStatement.refuse(match, "why")`,
-  NOT `undefined`:  the line's error then says why.
+- A `parse()` which understood a statement but mustn't take it REFUSES it, NOT returns `undefined`.
+  - `return SpellStatement.refuse(match, "why")`:  the line's error then says why.
   - e.g. a property declared on a built-in type
 - A rule built WHILE PARSING goes through `scope.addRule(RuleClass, definition, match)`.
   - Never `parser.addRule()` directly.
@@ -238,25 +395,24 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
 - A `mutateScope()` that adds a scope record passes `declaredBy: match`, so editors can find where it was declared.
   - a record:  a variable, constant, type, rule or `ScopeMethod`
   - for `scope.addRule()`, it's the third argument
-- What a rule's match IS:  `match.datatype`, in spell's words (`text`, `Card`, `list of cards`;  see `P.Datatype`).
-  - `@proto static datatype`, or override `getDatatype(match)`, which reads ONLY `match.data` and child matches.
+- What a rule's match IS:  `match.datatype`, in spell's words (see `P.Datatype`).
+  - e.g. `text`, `Card`, `list of cards`
+  - Set it with `@proto static datatype`, or override `getDatatype(match)`.
+    That reads ONLY `match.data` and child matches.
   - A scope lookup it needs (a member, a list's item type) happens in `parse()`, into `match.data`.
   - Type names a user WRITES go through `SP.typeName()`.
   - See "Datatypes" in `PARSING.md`.
 - Rules are IMMUTABLE (frozen on registration), and shared by every parse.
   - NEVER store per-parse state on a rule.
   - NEVER add ad hoc fields to a `Match`:  use `match.data`.
-- An exception to "one exported class per file":  a rule module holds many snake_case rule classes.
-  - Export ONLY what something outside the file needs:
-    a base class to subclass, or a rule to narrow with `match.is()`.
-  - Leaf rules stay unexported.
-    Other modules reach them by NAME, through `syntax` / `parser.rules`.
+- Other modules reach a rule by NAME, through `syntax` / `parser.rules`.
+  - By its CLASS only to subclass it, or to narrow a match with `match.is()`.
 - A base rule class for a category of spell things is `Spell<Thing>`, paired with the lowercase rule it fathers.
   - `SpellConstant` / `constant`
   - `SpellType` / `type`
   - `SpellIdentifier` / `identifier`
 - Name rules for what they MATCH, not just what they mean.
-  - In `variables.ts`, `identifier` / `singular_identifier` / `plural_identifier` match a bare word.
+  - In [variables/](src/rules/variables/), `identifier` / `singular_identifier` / `plural_identifier` match a bare word.
   - `variable` / `known_variable` also allow a leading `the`.
   - A family sharing a prefix should share its shape.
 
@@ -269,8 +425,11 @@ As WWOD §12, plus:
 ## Imports
 
 - As WWOD §4, with our own `src/` as `$/spell` / `$/spell/*`.
-- Imports `$/parser` (`P`), `$/core` (types only) and `$/util`.
-  - NEVER import `$/lsp`, `$/app` or `$/cli`.
+- It imports:
+  - `$/parser` (`P`)
+  - `$/core`, types only
+  - `$/util`
+  - NEVER `$/lsp`, `$/spaces`, `$/app` or `$/cli`.
 - A rule module imports the generic parser's rule classes from `$/parser`, and registers on `SpellParser` here.
 
 ## Types / Exports
@@ -283,4 +442,4 @@ The other namespaces live in their own packages:
 - `P`:  `../parser`
 - `SC`:  `../core`
 - `LSP`:  `../lsp`
-- `UI` / `F`:  `../app`
+- `UI`:  `../app`

@@ -1,6 +1,6 @@
 ---
 name: worktrees
-description: Take stock of every running Claude session (which worktree, branch and folder each is in) and everything open in this repo -- worktrees, branches, `/park`ed and `/bedtime` work, plan docs with phases left -- sorted into what's in process, what's hung or parked, and what's dead but still hanging on;  then let Owen pick which groups to deal with, do the picked actions (remove, merge, end, open, unpark ...) and take stock again.  Use for `/worktrees`, `/worktrees sessions` (the table alone), or when Owen asks "what's open?", "what worktree is X in", "which sessions are running where", "what did I leave running?", "clean up the worktrees", or can't find a session.  Epics alone:  `/epics`.
+description: Take stock of every running Claude session (which worktree, branch and folder each is in) and everything open in this repo -- worktrees, branches, `/park`ed and `/bedtime` work, epic pages with phases left -- sorted into what's in process, what's hung or parked, and what's dead but still hanging on;  then let Owen pick which groups to deal with, do the picked actions (remove, merge, end, open, unpark ...) and take stock again.  Use for `/worktrees`, `/worktrees sessions` (the table alone), or when Owen asks "what's open?", "what worktree is X in", "which sessions are running where", "what did I leave running?", "clean up the worktrees", or can't find a session.  Epics alone:  `/epics`.
 argument-hint: "[sessions]"
 ---
 
@@ -78,9 +78,9 @@ ONE details page asks about every item instead (Owen, 2026-10-03):
   - then "Leave it"
 - Skip this session's own item, as below.
 - Make it, show it, and END THE TURN with the page's link pair (`spell dev docs link <page>`):
-  - `spell dev details new <slug> --from <spec.json>`:  the spec in the scratchpad.
-    Its shape:  `DetailsSpec`, in [details.js](packages/docs/tools/details.js).
-  - Then `spell dev details show <slug> --wait`, with Bash `run_in_background: true`.
+  - `epic ask new <slug> --from <spec.json>`:  the spec in the scratchpad.
+    Its shape:  `DetailsSpec`, in [details.js](packages/epics/tools/details.js).
+  - Then `epic ask show <slug> --wait`, with Bash `run_in_background: true`.
   - Owen's Send wakes the session with the answers as text.
     See [the details skill](.claude/skills/details/SKILL.md);  write it as "Writing for Owen" there says.
 - Woken:  each answer is that item's pick, then step 4.

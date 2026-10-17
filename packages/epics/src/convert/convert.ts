@@ -1,6 +1,6 @@
 /**
- * `convert.ts` -- converts plan docs to `<epic-*>` markup, and proves each lost nothing (`ConvertRun`, `Converter`);
- * a doc already converted takes the second pass, to P14's elements (`Upgrader`).  `spell dev plan-doc convert` runs
+ * `convert.ts` -- converts epic pages to `<epic-*>` markup, and proves each lost nothing (`ConvertRun`, `Converter`);
+ * a doc already converted takes the second pass, to P14's elements (`Upgrader`).  `epic convert` runs
  * the same;  or run it from the checkout's root:
  *
  *   yarn tsx --tsconfig packages/epics/tsconfig.json packages/epics/src/convert/convert.ts <name> | --all

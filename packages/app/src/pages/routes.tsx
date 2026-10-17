@@ -8,20 +8,20 @@ import { SpellEditorRoute } from "./SpellEditor"
 import { SpellRunnerRoute } from "./SpellRunner"
 
 /**
- * The app's routes (`@solidjs/router`):  the same URLs `@reach/router`'s had.
- * - `/edit/:domain[/:project[/*filePath]]`:  `<SpellEditor>`
- * - `/run/:domain[/:project[/*filePath]]`:  `<SpellRunner>`
+ * The app's routes (`@solidjs/router`):  `/edit/` or `/run/`, then an address (decision Q40, epic `people-and-orgs` P4).
+ * - `/edit/<address>`:  `<SpellEditor>`, e.g. `/edit/@spell/examples/solitaire/Card.spell`
+ * - `/run/<address>`:  `<SpellRunner>`, e.g. `/run/owen@spell/errors`
  * - anything else:  `<ProjectChooser>`
- * - Each page's three URLs are ONE route (a `path` array):  it stays mounted while only the params change, e.g.
+ * - Each page is ONE route:  it stays mounted while only its address changes, e.g.
  *   moving between files, and follows them (`followRoute()`).
  */
 export const ROUTES = defineRoutes([
   {
-    path: ["/edit/:domain", "/edit/:domain/:project", "/edit/:domain/:project/*filePath"],
+    path: "/edit/*address",
     component: SpellEditorRoute
   },
   {
-    path: ["/run/:domain", "/run/:domain/:project", "/run/:domain/:project/*filePath"],
+    path: "/run/*address",
     component: SpellRunnerRoute
   },
   { path: "*", component: ProjectChooser }

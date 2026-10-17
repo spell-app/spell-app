@@ -11,8 +11,8 @@ import { findCheckout } from "$/cli/findCheckout"
  * - `new <name> [--prefix x-]`:  `packages/<name>/` from the templates (missing files only), wired into the checkout,
  *   then built
  * - `element <pack> <tag>`:  one element family, `components/<tag>/`, then the pack rebuilt
- * - `build <pack>`:  `pack/`:  the catalog from the vocabularies, the entry, the classic script
- * - `check [<pack>]`:  exits 1 when a pack's `pack/` is stale;  no pack:  every pack in the checkout
+ * - `build <pack>`:  `components/__pack/`:  the catalog from the vocabularies, the entry, the classic script
+ * - `check [<pack>]`:  exits 1 when a pack's `components/__pack/` is stale;  no pack:  every pack in the checkout
  * - `--no-build` (`new`, `element`):  write the files only;  `--json`:  the report as JSON
  * - Runs on the lean `spell dev` entry:  no spell.  In the nearest checkout (`findCheckout()`).
  * - Throws `CliError` for a missing or unknown verb or name.

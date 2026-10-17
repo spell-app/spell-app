@@ -2,6 +2,16 @@
   // Linting is oxlint, via Vite+ (the `lint` block of the root's `vite.config.ts`, from `vite.lint.ts`);
   // the ESLint extension is no longer used here.
   "oxc.enable": true,
+  // Spell's `.json5` files open as "JSON with comments":  VS Code has no JSON5 mode, and checks a file against its
+  // JSON Schema only in its JSON modes (epic `people-and-orgs` P5).  Spell writes keys and text in double quotes, so
+  // its files read cleanly there;  a bare key typed by hand gets one squiggle, and the schema check still runs.
+  "files.associations": { "*.json5": "jsonc" },
+  // A person's and an org's file checked against their type, the people library's:  made by `spell compile`, into
+  // its build folder (epic `people-and-orgs` P7, J91).  Missing until that compile has run in this checkout.
+  "json.schemas": [
+    { "fileMatch": ["__me.json5"], "url": "./build/spaces/@spell/library/people/schemas/Person.schema.json" },
+    { "fileMatch": ["__org.json5"], "url": "./build/spaces/@spell/library/people/schemas/Org.schema.json" }
+  ],
   // Read ONLY the root's `vite.config.ts`, as `vp check` does (Vite+'s editor setup):  a package's own
   // `lint` / `fmt` block is for `vp lint` / `vp fmt` run in that package, and says the same.
   "oxc.disableNestedConfig": true,
@@ -33,11 +43,11 @@
 
   // Autocomplete and hover docs for every `<ui-*>` tag, attribute and value in `.html` files:  Spell UI's vocabularies
   // as VS Code HTML custom data, written by `yarn site:data` (packages/ui, `tools/ElementManifests.ts`);  the brand's
-  // `<ui-brand-*>` too, by its own `yarn site:data` (packages/brand).  Every package window's FIRST folder is this repo
+  // `<brand-*>` too, by its own `yarn site:data` (packages/brand).  Every package window's FIRST folder is this repo
   // root, so this file reaches them all.
   "html.customData": [
-    "./packages/ui/site/_data/html-custom-data.json",
-    "./packages/brand/_data/html-custom-data.json"
+    "./packages/ui/docs/__data/html-custom-data.json",
+    "./packages/brand/docs/__data/html-custom-data.json"
   ],
 
   // Quick Open (Cmd+P) and Find in Files skip these;  Explorer still shows them.  Generated files (the root's
@@ -51,8 +61,8 @@
     "packages/ui/src/icons/**": true,
     "packages/ui/test/visual/**": true,
     "packages/ui/src/languages/spell.*": true,
-    "packages/ui/src/components/ui-markdown/md.bundle.*": true,
-    "packages/ui/src/components/ui-emoji/data/**": true,
+    "packages/ui/components/ui-markdown/md.bundle.*": true,
+    "packages/ui/components/ui-emoji/data/**": true,
     "packages/app/static/semantic-ui-css/**": true,
     "yarn.lock": true
   },

@@ -2,14 +2,58 @@
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
   "name": "Spell",
   "scopeName": "source.spell",
-  "comment": "Coarse colouring until the language server's semantic tokens arrive:  comments, strings, numbers, statement words.",
+  "comment": "Coarse colouring until the language server's semantic tokens arrive:  comments, strings, numbers, statement words;  a type's <css> block, coloured as CSS, and a <markdown> block, coloured as markdown, for good (the language server leaves their insides alone).",
   "patterns": [
+    { "include": "#css" },
+    { "include": "#css-close" },
+    { "include": "#markdown" },
+    { "include": "#markdown-close" },
     { "include": "#comment" },
     { "include": "#string" },
     { "include": "#number" },
     { "include": "#keyword" }
   ],
   "repository": {
+    "css": {
+      "comment": "A <css> line opens a block that lasts while lines aren't </css>:  a `while` rule, so an unclosed `{` in the CSS can't swallow the </css>.",
+      "begin": "^\\s*(<)(css)(>)\\s*$",
+      "beginCaptures": {
+        "1": { "name": "punctuation.definition.tag.begin.spell" },
+        "2": { "name": "entity.name.tag.spell" },
+        "3": { "name": "punctuation.definition.tag.end.spell" }
+      },
+      "while": "^(?!\\s*</css>\\s*$)",
+      "contentName": "meta.embedded.block.css",
+      "patterns": [{ "include": "source.css" }]
+    },
+    "css-close": {
+      "match": "^\\s*(</)(css)(>)\\s*$",
+      "captures": {
+        "1": { "name": "punctuation.definition.tag.begin.spell" },
+        "2": { "name": "entity.name.tag.spell" },
+        "3": { "name": "punctuation.definition.tag.end.spell" }
+      }
+    },
+    "markdown": {
+      "comment": "A <markdown> line opens a block that lasts while lines aren't </markdown>:  each line is coloured past the block's indent and one more, so a # heading or a > quote counts as markdown's.",
+      "begin": "^(\\s*)(<)(markdown)(>)\\s*$",
+      "beginCaptures": {
+        "2": { "name": "punctuation.definition.tag.begin.spell" },
+        "3": { "name": "entity.name.tag.spell" },
+        "4": { "name": "punctuation.definition.tag.end.spell" }
+      },
+      "while": "^(?!\\s*</markdown>\\s*$)(?:\\1\\s?)?",
+      "contentName": "meta.embedded.block.markdown",
+      "patterns": [{ "include": "text.html.markdown" }]
+    },
+    "markdown-close": {
+      "match": "^\\s*(</)(markdown)(>)\\s*$",
+      "captures": {
+        "1": { "name": "punctuation.definition.tag.begin.spell" },
+        "2": { "name": "entity.name.tag.spell" },
+        "3": { "name": "punctuation.definition.tag.end.spell" }
+      }
+    },
     "comment": {
       "patterns": [
         { "name": "comment.line.double-slash.spell", "match": "//.*$" },

@@ -4,7 +4,7 @@ import { basename, join } from "node:path"
 
 /****************
  * ### `ReviewBackfill`
- * `spell dev plan-doc backfill <name> | --all [--apply]`:  the one-off walk through an epic's past sessions, finding
+ * `epic backfill <name> | --all [--apply]`:  the one-off walk through an epic's past sessions, finding
  * the items Owen already went through before `/epic review` kept marks (`epics/epic-review`, P3).
  * - EVIDENCE:  in a session of the epic, Owen named the item's id in his own message, or answered a modal whose
  *   question or answer named it (Claude asked about it, he picked)
@@ -15,8 +15,8 @@ import { basename, join } from "node:path"
  *   evidence, and logs each (`PlanDocCommands`)
  * - from then on every `/epic` session marks what it talks through (`.claude/skills/epic/SKILL.md`), so this runs
  *   once per old epic
- * - Reads Claude Code's transcripts only:  knows nothing of plan docs, imports no other file of the tool.
- * - From `packages/docs/tools/review-backfill.js` (epic `epic-components`, P7), which now forwards here.
+ * - Reads Claude Code's transcripts only:  knows nothing of epic pages, imports no other file of the tool.
+ * - From `packages/epics/tools/review-backfill.js` (epic `epic-components`, P7), which now forwards here.
  ****************/
 export class ReviewBackfill {
   /**
@@ -201,7 +201,7 @@ function quoteAround(text: string, id: string): string {
 }
 
 /**
- * An ISO timestamp's LOCAL date, `YYYY-MM-DD`, as the plan doc's dates are;  `null` without one.
+ * An ISO timestamp's LOCAL date, `YYYY-MM-DD`, as the epic page's dates are;  `null` without one.
  * - transcripts stamp UTC:  an evening's answer would otherwise land on tomorrow
  */
 function localDate(timestamp: string | undefined): string | null {

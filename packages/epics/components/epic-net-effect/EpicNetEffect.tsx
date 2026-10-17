@@ -1,11 +1,12 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 
 import { epicNetEffectVocabulary } from "./EpicNetEffect.en"
 
 import netEffectCSS from "./EpicNetEffect.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicNetEffect`
@@ -21,7 +22,7 @@ import netEffectCSS from "./EpicNetEffect.css?inline"
 export class EpicNetEffect extends E.UIComponent<typeof epicNetEffectVocabulary> {
   @E.proto static vocabulary = epicNetEffectVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-net-effect": netEffectCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-net-effect": netEffectCSS },
     // `disabled`:  only a look (the sheet dims it), so the text stays findable;  `loading`:  the shared spinner
     disabled: "its own",
     loading: "loader"

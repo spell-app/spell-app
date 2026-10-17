@@ -52,24 +52,39 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - A sub-folder, not loose files:
     - `string.ts` / `DOM.ts` would clash with the generic `string.ts` / `dom.ts` (macOS is case-insensitive)
     - and nothing in `ui` may import it
-  - Its dependencies (lodash, `chalk`, `pluralize`, `react` ...) are `util`'s `dependencies`.
+  - Its dependencies (lodash, `chalk`, `pluralize` ...) are `util`'s `dependencies`.
     - `ui` bundles none of them:  `yarn measure` and `yarn smoke` (declarations) prove it.
 - Files in `src/spell/` import the generic helpers by deep path (`$/util/class`).
   - NEVER the `$/util` barrel:  it re-exports this folder, so that's a cycle.
 - NOTE: [ResponseErrors.ts](src/spell/ResponseErrors.ts) is deliberately NOT in [the folder's barrel](src/spell/index.ts)
   -- see its header.
-- Reactivity here is spell CELLS (P11).  It's Solid work:  READ the root's Solid 2 pointer first.
-  - `cells.ts`:  the page-wide context, tracking, `flushCells()`
-  - `Cell`, `Derived`, `Reaction`, `Observable`
-  - `Schema`:  per-class prop types
-  - `extend.ts`:  records, plus `getProp` / `setProp` / `getState` ...
-  - `spellDecorators.ts`:  `@prop` / `@derived` / `@thing`
-  - `bridges.ts`:  `bridgeSolid()`, which the HOST calls (this package never imports Solid), and `observe()`
-  - `view.ts`:  the React bridge
+- Spell's layer of reactivity:  `Observable`, and [spellDecorators.ts](src/spell/spellDecorators.ts) (`@thing`).
+  - The engine under it is `src/reactive/` (below).
 - Tests:
+  - they live in the repo's `tests/util/`, at the same paths as the code (`tests/util/src/spell/...`)
   - the generic ones run in a real browser (`util:browser`)
-  - `src/spell/**` runs in node (`util:spell`)
+  - `src/spell/**` and `src/reactive/**` run in node (`util:spell`)
   - `vitest.config.ts` exports `utilProjects()` for the root run
+
+## The reactive engine (`src/reactive/`)
+
+- `$/util/reactive`:  the ONE reactive engine every reactive class shares (epic `output-targets` P10, Q20).
+  - Flattened into the `$/util` barrel too.
+  - spell CELLS:  `cells.ts` (the page-wide context, tracking, `flushCells()`), `Cell`, `Derived`, `Reaction`
+  - the records, [extend.ts](src/reactive/extend.ts):
+    - `getProp` / `setProp`, `getState` / `setState`, `derive()`
+    - `typedJSON()`:  an object's props, its class's name first, `"$type"` (what a spell object's JSON says)
+  - `Schema`:  per-class prop types
+  - the decorators, [decorators.ts](src/reactive/decorators.ts):  `@prop`, `@state`, `@derived`
+    - `{ equals }` on the last two
+    - the same names and options as Spell UI's `Reactive.ts`
+  - `bridges.ts`:  `bridgeSolid()`, which the HOST calls with its Solid (this package never imports Solid), and `observe()`
+- GENERIC, like the files beside `index.ts`:  no lodash, no Solid, nothing spell-specific.
+  - So Spell UI may import it file by file, once it moves onto spell cells
+    (caveat C12 of `output-targets`;  epic `spell-element`, which that waited on, is in `main`).
+- Its files import each other as peers.
+  - `src/spell/` imports it as `$/util/reactive`, never through `$/util`.
+- It's Solid work:  READ the root's Solid 2 pointer first.
 
 ## Decorators
 

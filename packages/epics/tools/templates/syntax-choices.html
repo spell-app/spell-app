@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Choice Page Template</title>
+    <meta
+      name="description"
+      content="Template for a choice page:  names Claude recommends, one row per use site, each one Owen's call."
+    />
+    <link rel="stylesheet" href="../packages/epics/tools/_assets/spell-doc.css" />
+  </head>
+  <body class="spell-doc-page spell-choices-page">
+    <ui-root>
+      <ui-components source="../packages/epics/components/__pack/epics.pack.js"></ui-components>
+      <spell-site-header root=".."></spell-site-header>
+      <div class="spell-doc">
+        <main class="spell-doc-main">
+          <!--
+            TEMPLATE:  a CHOICE PAGE, the tool's own (tracked with each branch, as its elements are).  NEVER
+            copy by hand:  `epic choices new <slug> --rows <rows.json>` (`packages/epics/tools/choices.js`;  how-to:
+            `guides/syntax-choices.html`).
+            - Written in the epics pack's elements (epic `epic-workflow` P12):  `new` writes one `<ui-section>` per
+              section of the rows where the example section is, each holding an `<epic-choice-rows>` of
+              `<epic-choice-row>`s;  the rows stay beside the page too, `<slug>.rows.json`, for `answer` / `wait`.
+            - `<epic-choices-bar>` at the end:  the feedback and "Do it";  what's typed saves itself as a draft
+              (`<slug>.draft.json`) through the page server, so saving and sending need it.
+            - `new` fills the title, lede, "Asked by", the date and the "Where we are" box;  everything else stays.
+          -->
+          <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+            <ui-breadcrumb-section href="../pages/index.html" target="src-packages-docs-index-html"
+              >Docs</ui-breadcrumb-section
+            >
+            <ui-breadcrumb-section active>Short Title</ui-breadcrumb-section>
+          </ui-breadcrumb>
+          <ui-sticky class="spell-h1"
+            ><header class="spell-page-head"><h1>Short Title</h1></header></ui-sticky
+          >
+          <p class="lede">One sentence: which names these are, and what your calls decide.</p>
+          <div class="spell-details-meta">
+            <epic-field label="Asked by" data-details-by>session <code>name</code>, while doing what</epic-field>
+            <epic-field label="Asked" data-choices-asked>2026-01-01</epic-field>
+            <epic-field label="Rows" data-choices-rows><code>short-title.rows.json</code>, beside this page</epic-field>
+          </div>
+
+          <ui-message class="spell-where" state="info" header="Where we are">
+            <epic-field label="Epic"><code>name</code> -- what that work is for, in one line.</epic-field>
+            <epic-field label="Just now">what happened that led to these calls.</epic-field>
+            <epic-field label="This decides">what changes for you once you press Do it.</epic-field>
+          </ui-message>
+
+          <ui-section id="how" header="How to answer" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="circle question"></ui-icon>
+            <ul>
+              <li>
+                Each row is one name, where it's declared. <b>File</b> opens it at that line in VS Code;
+                <b>Current</b> is how the code reads today; <b>Recommended</b> is Claude's call, already filled in.
+              </li>
+              <li>
+                Agree: leave the box as it is. Disagree: type what you'd write instead. A changed box is marked; its
+                round button puts the recommendation back.
+              </li>
+              <li>
+                What you type is saved every few seconds (the bar says when it can't): a reload or a closed tab keeps
+                it.
+              </li>
+              <li>
+                <b>Do it</b> sends every box and your feedback to Claude. Change anything after and press it again: the
+                new answer replaces the old one.
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="q1" header="Q1 · Short question" sticky collapsible dividing collapsed>
+            <ui-icon slot="icon" name="list check"></ui-icon>
+            <p class="spell-choices-rule">Which question this answers, and the recommended rule.</p>
+            <epic-choice-rows>
+              <epic-choice-row
+                name="q1-example-1"
+                file="packages/example/src/Example.ts"
+                line="1"
+                purpose="an example"
+                current="this.open"
+                recommended="this.isOpen"
+              ></epic-choice-row>
+            </epic-choice-rows>
+          </ui-section>
+
+          <epic-choices-bar></epic-choices-bar>
+          <!-- no footer:  the bar is the page's bottom;  the date is up top ("Asked") -->
+        </main>
+      </div>
+    </ui-root>
+    <script src="../packages/epics/tools/_assets/highlight.min.js"></script>
+    <script src="../packages/epics/tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

@@ -11,7 +11,7 @@ import { PANEL_PARTS, PANEL_STATES } from "$/epics/components/epic-aside/EpicPan
 
 /****************
  * ### `<epic-code>`
- * A folded, highlighted code block in a plan doc's prose.
+ * A folded, highlighted code block in an epic page's prose.
  ****************/
 export const epicCodeVocabulary = {
   tag: "epic-code",
@@ -51,7 +51,11 @@ export const epicCodeVocabulary = {
     { name: "code", description: "The `<ui-code>` that draws the code, highlighted, with its copy button." }
   ],
   states: [...PANEL_STATES],
-  texts: [{ key: "code", text: "Code", description: "The heading, without a title." }],
+  texts: [
+    { key: "foldTip", text: "Fold this code", description: "Tooltip of its fold button while open." },
+    { key: "unfoldTip", text: "Unfold this code", description: "Tooltip of its fold button while folded." },
+    { key: "code", text: "Code", description: "The heading, without a title." }
+  ],
   children: [
     {
       tag: "flow",

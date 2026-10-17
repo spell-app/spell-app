@@ -1,0 +1,463 @@
+/**
+ * Where the docs are, how scripts find, tidy and open pages -- shared by `update.js`, `index.js`, `open.js` and
+ * the other docs tools (the `epic` tool, `$/epics/tool`, has its own).
+ */
+import { spawnSync } from "node:child_process"
+import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from "node:fs"
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path"
+import { fileURLToPath, pathToFileURL } from "node:url"
+
+import { Window } from "../../../scripts/window.mjs"
+
+/** `packages/epics/tools`:  the docs scripts, `_assets`, the goals tooling. */
+export const TOOLS = dirname(fileURLToPath(import.meta.url))
+
+/** `packages/epics`:  the package the docs tools are in (`package.json`, where `yarn` runs their scripts). */
+export const PACKAGE = dirname(TOOLS)
+
+/** `packages/epics/tools/_assets`:  what every page loads. */
+export const ASSETS = join(TOOLS, "_assets")
+
+/** The checkout this file is in:  the repo, or a worktree of it.  Page paths are relative to it. */
+export const ROOT = resolve(PACKAGE, "../..")
+
+/*
+ * The content folders, one per area, each a link at the checkout's root into the shared content repo,
+ * `../spell-app-dev` (epics `shared-content` and `claude-design` P4;  before 2026-10-05 all of them were
+ * `packages/docs/content/`, where old-path links stay for older checkouts:  `relocate.js` `reorgShared()`).
+ */
+
+/** `epics/`:  epic pages, `epics/<name>/<name>.plan.html`, their inboxes and details pages. */
+export const EPICS = join(ROOT, "epics")
+
+/** `templates/`:  one starting point per kind of page. */
+export const TEMPLATES = join(ROOT, "templates")
+
+/** `guides/`:  every other docs page, with its `.md`, `.json`, `experiments/` and `examples/` beside it. */
+export const GUIDES = join(ROOT, "guides")
+
+/** `pages/`:  the home page (`HOME`) and the scratch details pages (`DETAILS`). */
+export const PAGES = join(ROOT, "pages")
+
+/** `pages/index.html`:  the home page, a routing page:  a card per area (`index.js`, claude-design P5). */
+export const HOME = join(PAGES, "index.html")
+
+/** `pages/details/`:  scratch details pages (`epic ask new`, no `--epic`). */
+export const DETAILS = join(PAGES, "details")
+
+/**
+ * `brand/`:  the brand pages (the pony ...) and the design system's push record.
+ * - NOT in `AREAS`:  its pages come from Claude Design, not the docs' templates, so `docs update` doesn't check
+ *   them;  `index.js` lists them on `brand/index.html`
+ */
+export const BRAND = join(ROOT, "brand")
+
+/**
+ * `goals/`:  the goal sets, `goals/<set>/index.html`:  the first sagas, PARKED (epic `epic-workflow` P6).
+ * - their tooling:  `tools/goals/`
+ */
+export const GOALS = join(ROOT, "goals")
+
+/**
+ * `sagas/`:  the sagas (epic `epic-workflow` P15):  their list in Owen's order, `sagas/sagas.json5`, each saga's page
+ * in its folder (`sagas/<id>/<id>.saga.html`), and the Sagas list page (`index.js` writes it from the list).
+ * - NOT in `AREAS`:  the Sagas list page lists the sagas from `sagas.json5`, not from the pages found
+ */
+export const SAGAS = join(ROOT, "sagas")
+
+/** Every folder `findPages()` walks:  the home first, then the areas. */
+export const AREAS = [PAGES, GUIDES, EPICS, TEMPLATES]
+
+/**
+ * Each area's list page, `<area>/index.html`, written by `index.js` (claude-design P5).
+ * - every epic, guide, template and brand page, and every saga
+ * - never listed themselves
+ */
+export const LIST_PAGES = [EPICS, GUIDES, TEMPLATES, BRAND, SAGAS].map((area) => join(area, "index.html"))
+
+/** The old content folder (a link in checkouts cut before 2026-10-05, into the old-path links):  never walked. */
+export const OLD_CONTENT = join(PACKAGE, "content")
+
+/**
+ * The file a page argument means:  absolute as is (a shared repo's real path through this checkout's link to it),
+ * else the first that exists of
+ * - from the checkout's root (`guides/solid/solid-2.html`, `epics/seo/seo.plan.html`)
+ * - from each area (`solid/solid-2.html` is a guide, `index.html` the home)
+ * - an old path (`packages/docs/content/solid/solid-2.html`, `content/...`) moved by the reorg
+ * - from `cwd`
+ * - none:  from the root
+ */
+export function pageFile(page, cwd = process.env.INIT_CWD ?? process.cwd()) {
+  if (isAbsolute(page)) return throughLink(page)
+  const old = page.replace(/^(?:packages\/docs\/)?content\//, "")
+  const candidates = [
+    resolve(ROOT, page),
+    ...AREAS.map((area) => resolve(area, page)),
+    ...(old !== page ? [resolve(ROOT, reorgEntry(old.split("/")[0]), ...old.split("/").slice(1))] : []),
+    resolve(cwd, page)
+  ]
+  return candidates.find((each) => existsSync(each)) ?? resolve(ROOT, page)
+}
+
+/**
+ * `file` through this checkout's link to it, when it's a shared repo's REAL path
+ * (`/.../spell-app-dev/epics/seo/seo.plan.html` -> `<ROOT>/epics/seo/seo.plan.html`);  else `file` as is.
+ * - Why:  Claude edits shared pages at their real path, and a page server serves them only through a checkout's
+ *   link:  a link made from the real path pointed at `/spell-app-dev/...`, which no server has (epic `epic-eject` I1).
+ * - The links:  the root `package.json`'s `"shared".links`.
+ */
+export function throughLink(file) {
+  const path = resolve(file)
+  for (const link of sharedLinks()) {
+    try {
+      const real = realpathSync(join(ROOT, link))
+      if (path.startsWith(real + sep)) return join(ROOT, link, relative(real, path))
+    } catch {
+      // not linked in this checkout
+    }
+  }
+  return file
+}
+
+/** The root `package.json`'s `"shared".links`:  the shared repo's top folders, linked at the checkout's root. */
+function sharedLinks() {
+  try {
+    return JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).shared?.links ?? []
+  } catch {
+    return []
+  }
+}
+
+/**
+ * A comment or note on a docs page named as one word, `guides/x.html#M3`, as one on an epic page is (`seo#M3`):
+ * `[page, id, ...rest]`, the page and the id as the tools take them (epic `epic-workflow` P19).
+ * - the two words, `guides/x.html M3`, read the same:  passed through as they are
+ * @param {string[]} words  the verb's words after the verb:  `["guides/x.html#M3", "on"]`
+ * @returns {string[]}
+ */
+export function pageAndId([page, ...rest]) {
+  const hash = page?.lastIndexOf("#") ?? -1
+  if (hash <= 0) return page === undefined ? rest : [page, ...rest]
+  return [page.slice(0, hash), page.slice(hash + 1), ...rest]
+}
+
+/** Where top-level entry `name` of the old content folder went (`relocate.js` `reorgEntry()`, kept in step). */
+function reorgEntry(name) {
+  return (
+    { epics: "epics", templates: "templates", details: "pages/details", "index.html": "pages/index.html" }[name] ??
+    `guides/${name}`
+  )
+}
+
+/**
+ * Folders that hold no pages.
+ * - `examples`:  fragments a page includes (`ui-import/examples/part.html`), not pages:  no sections, no contents
+ * - `details`:  details pages (`epic ask`), questions for one session
+ *   - not in the index, not checked with the docs
+ *   - scratch `details/`, and an epic's `epics/<name>/details/`
+ *   - NOT the `details` epic's own folder, `epics/details/` (`findPages()`)
+ * - `parts`:  a split epic page's bodies (`epics/<name>/parts/<id>.html`, `PlanParts`), fragments its page loads
+ *   - told from pages by this folder alone, since they're `.html` (Q12 of `epic-components`;  `.htm` before)
+ */
+const SKIP_DIRS = new Set(["node_modules", "experiments", "examples", "details", "parts"])
+
+/**
+ * Epic `name`'s epic page in folder `dir` (`epics/<name>/`):  `<name>.plan.html`, else `<name>.html`.
+ * - `<name>.html` only when that is an epic page:  `<body class="... plan-doc">`, or an `<epic-page>`
+ * - `undefined` when there's neither
+ * - why both names:  epic pages were renamed `<name>.plan.html` on 2026-10-04 (`review-review` P4), and a worktree
+ *   cut before then still has `<name>.html` until it merges `main`
+ * - `packages/epics/src/tool/PlanDocFiles.ts` `planDocIn()` is the same:  change both
+ */
+export function planDocIn(dir, name) {
+  const file = join(dir, `${name}.plan.html`)
+  if (existsSync(file)) return file
+  const old = join(dir, `${name}.html`)
+  if (!existsSync(old)) return undefined
+  const html = readFileSync(old, "utf8")
+  return /<body\b[^>]*\bclass="[^"]*\bplan-doc\b/.test(html) || /<epic-page\b/.test(html) ? old : undefined
+}
+
+/**
+ * Every `.html` page under `dir`, sorted, skipping tooling folders.
+ * - `dir`:  a folder, or several;  default:  every area, `AREAS`
+ * - follows a link to a folder (each area is one, into the shared content repo):  the page keeps the link's path
+ * - a missing folder has no pages
+ */
+export function findPages(dir = AREAS) {
+  if (Array.isArray(dir)) return dir.flatMap((each) => findPages(each))
+  if (!existsSync(dir)) return []
+  const found = []
+  for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    const path = join(dir, entry.name)
+    if (entry.isDirectory() || (entry.isSymbolicLink() && statSync(path, { throwIfNoEntry: false })?.isDirectory())) {
+      // the `details` EPIC's folder (`epics/details/`) holds an epic page:  only details PAGES' folders are skipped
+      const epic = entry.name === "details" && basename(dir) === "epics"
+      if (!SKIP_DIRS.has(entry.name) || epic) found.push(...findPages(path))
+    } else if (entry.name.endsWith(".html")) found.push(path)
+  }
+  return found
+}
+
+/**
+ * The file holding the epic page at `file`'s log:  its part, `parts/log.html`, when the doc is split
+ * (`PlanParts`), else the doc itself.  For the browser checks, which add a log line and take it out again by hand.
+ * - the log's host says `source="parts/log.html"` (`<epic-section kind="log">`)
+ */
+export function planLogFile(file) {
+  const source = /\bsource="(parts\/log\.html)"/.exec(readFileSync(file, "utf8"))?.[1]
+  const part = source && join(dirname(file), source)
+  return part && existsSync(part) ? part : file
+}
+
+/**
+ * Tidy `files` (absolute, or relative to the checkout's root) the way a page must be committed:  link targets, then
+ * oxfmt (`vp fmt`).
+ * - `doc-links.js` first:  it may add attributes oxfmt then wraps
+ * - returns whether both succeeded;  their output is echoed
+ * - run from `PACKAGE`, never a content folder:  each is a link, and a process started in one is in the shared repo,
+ *   outside this yarn workspace
+ * - every path goes ABSOLUTE:  from `PACKAGE` a page is `../../guides/...`, and oxfmt refuses `..`
+ */
+export function tidy(files) {
+  const paths = files.map((file) => resolve(ROOT, file))
+  for (const { command, args, env } of [docLinksRun(paths), { command: "yarn", args: ["vp", "fmt", ...paths] }]) {
+    const run = spawnSync(command, args, { cwd: PACKAGE, encoding: "utf8", env })
+    if (run.status !== 0) {
+      process.stderr.write(`${run.stdout ?? ""}${run.stderr ?? ""}`)
+      return false
+    }
+  }
+  return true
+}
+
+/**
+ * How to run `doc-links.js` with `args` as a child `node`, for `spawnSync(command, args, { env })`.
+ * - under `tsx`, which maps its `$/assembler` import through this package's `tsconfig.json`,
+ *   from whatever folder it runs in
+ * - the one way the tools run it (`tidy()`, `update.js`, goals' check, its own test)
+ */
+export function docLinksRun(args) {
+  return {
+    command: process.execPath,
+    args: ["--import", "tsx", join(TOOLS, "doc-links.js"), ...args],
+    env: { ...process.env, TSX_TSCONFIG_PATH: join(PACKAGE, "tsconfig.json") }
+  }
+}
+
+/** Opens a doc in VS Code's doc preview:  the spell extension's URI handler (`packages/vscode/src/DocPreview.ts`). */
+const VSCODE_PREVIEW = "vscode://spell-app.spell-language/doc-preview"
+
+/**
+ * This checkout's page server (`spell dev server`), started in the background if it isn't running.
+ * - returns `{ base, port }`, or `undefined` if it can't start (the caller falls back to `file://`)
+ * - runs `packages/server/src/page/cli.ts ensure` under `tsx`, with that package's `tsconfig.json` for its aliases
+ * - ~1s when it has to start, ~0.3s when it runs
+ * - `SPELL_NO_SERVER=1`:  never starts it
+ */
+export function ensurePageServer() {
+  if (process.env.SPELL_NO_SERVER) return undefined
+  const run = spawnSync(
+    process.execPath,
+    ["--import", "tsx", join(ROOT, "packages/server/src/page/cli.ts"), "ensure", "--root", ROOT],
+    {
+      cwd: ROOT,
+      encoding: "utf8",
+      env: { ...process.env, TSX_TSCONFIG_PATH: join(ROOT, "packages/server/tsconfig.json") }
+    }
+  )
+  if (run.status !== 0) {
+    console.error(`page server didn't start (${(run.stderr ?? String(run.error)).trim().split("\n").at(-1)})`)
+    return undefined
+  }
+  try {
+    return JSON.parse(run.stdout)
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * A template's `html` fixed for a page `depth` folders below the checkout's root (`guides/glossary.html` is 1,
+ * `epics/a/a.plan.html` 2).
+ * - rewrites whatever depth the template assumed, `<up>` being the path up to the root:
+ *   - `_assets` paths:  `<up>packages/epics/tools/_assets/`
+ *   - the home page's paths:  `<up>pages/index.html`
+ *   - the areas' list pages:  `<up>epics/index.html` ...
+ *   - the site header's `root`:  `<up>`
+ *   - a component pack's script (`<ui-components source>`):  `<up>packages/<name>/components/__pack/`
+ *     - the epics pack, on epic, details and choice pages
+ *     - from its old folder, `packages/<name>/pack/`, too
+ *   - `_assets` from wherever the template had them:
+ *     `tools/_assets/`, `packages/epics/tools/_assets/`, or the docs package's old `packages/docs/tools/_assets/`
+ *     (before epic `people-and-orgs` P16)
+ * - drops the template's `TEMPLATE:` how-to comment
+ * - `docs:new`, `details new`, and the plan-doc tool's `epic new` (`PlanDocCommands`)
+ */
+export function atDepth(html, depth) {
+  const up = "../".repeat(depth)
+  return (
+    html
+      // a component pack's script (`<ui-components source>`:  the epics pack, on epic, details and choice pages)
+      .replace(
+        /(\bsource=")(?:\.\.\/)*packages\/([\w-]+)\/(?:components\/__)?pack\//g,
+        `$1${up}packages/$2/components/__pack/`
+      )
+      .replace(
+        /((?:href|src)=")(?:\.\.\/)*(?:packages\/(?:docs|epics)\/)?(?:tools\/)?_assets\//g,
+        `$1${up}packages/epics/tools/_assets/`
+      )
+      .replace(/((?:href|src)=")(?:\.\.\/)*(?:pages\/)?index\.html/g, `$1${up}pages/index.html`)
+      .replace(/((?:href|src)=")(?:\.\.\/)*(epics|guides|templates|brand)\/index\.html/g, `$1${up}$2/index.html`)
+      .replace(/(<spell-site-header\b[^>]*?\broot=")[^"]*"/, `$1${up.replace(/\/$/, "") || "."}"`)
+      .replace(/\n\s*<!--\s*TEMPLATE:[\s\S]*?-->/, "")
+  )
+}
+
+/** URL of `file` on the page server at `base`, e.g. `http://127.0.0.1:4747/pages/index.html`. */
+export function serverUrl(base, file) {
+  return `${base}/${relative(ROOT, resolve(file)).split(sep).map(encodeURIComponent).join("/")}`
+}
+
+/**
+ * Show `file` rendered in VS Code's doc preview.
+ * - for `epic open <name>`, `epic phase`, `/spell-docs`
+ * - starts this checkout's page server first (`ensurePageServer()`), so the page live-reloads
+ * - the spell extension (`spell dev vscode`) finds the server by its pid file,
+ *   and shows the page in a tab of the right side bar (or Simple Browser, `spell.docPreview.location`)
+ *   - the page already in that tab isn't reloaded:  it updates itself
+ * - first asks THIS session's window, through the extension's window bridge (the repo root's `scripts/window.mjs`);
+ *   a `vscode://` URI goes to whichever window is focused
+ * - NOT run from VS Code (`Window.inVSCode`:  a CLI session in another terminal):
+ *   `openInChrome()` instead, `hash` kept and `view` dropped
+ * - `hash`:  an id on the page to land on, e.g. a goal `g1`
+ * - `view`:  which side bar tab;  each keeps its own page
+ *   - `"docs"`:  "Spell Docs", the default
+ *   - `"review"`:  "Review" (`/epic review`, `spell dev docs open <page> --review`)
+ * - the session is moving to a worktree's window (`/isolate`, `/epic`:  a pending handoff):
+ *   shown THERE once it has moved, not in the window it's leaving
+ * - no bridge (extension not reloaded, or not run from a VS Code window), or it failed:  the `vscode://` URI
+ * - `open` can't fail (macOS):  without the extension, VS Code says it can't handle the URI
+ * - `open` itself failed (not macOS):  falls back to Chrome
+ * - async for the bridge's http request;  never rejects
+ */
+export async function openInVSCode(file, { hash, view = "docs" } = {}) {
+  if (!Window.inVSCode) return openInChrome(file, { hash })
+  const path = resolve(throughLink(file))
+  const served = ensurePageServer()
+  const review = view === "review"
+  try {
+    const { window, later } = await Window.show(path, { hash, view: review ? "review" : undefined })
+    if (later) return console.log(`${path} shows in ${later} once this session moves there`)
+    return console.log(`opened ${path} in VS Code (window ${window.pid})`)
+  } catch (error) {
+    if (!/^no window/.test(error.message)) console.error(`${error.message}:  falling back to the vscode:// URI`)
+  }
+  const url = served && `${serverUrl(served.base, path)}${hash ? `#${hash}` : ""}`
+  const query = new URLSearchParams({ ...(url && { url }), file: path, ...(review && { view: "review" }) })
+  const run = spawnSync("open", [`${VSCODE_PREVIEW}?${query}`], { encoding: "utf8" })
+  if (run.status === 0) return console.log(`opened ${path} in VS Code`)
+  console.error(`VS Code via \`open\` failed (${(run.stderr ?? String(run.error)).trim()}):  falling back to Chrome`)
+  openInChrome(file)
+}
+
+/**
+ * Show `file` in Chrome, in ONE tab per page, IN THE BACKGROUND:  `spell dev docs open <page>`;  `openInVSCode()`'s fallback.
+ * - from this checkout's page server (live reload), started if need be;  `file://` if it can't start
+ * - The tab is keyed by the page's path from the root (`/epics/<name>/<name>.plan.html`), not its full URL.
+ *   - so the same page from another checkout (a worktree) reuses it:  re-pointed if the URL differs, else reloaded
+ *   - the page names its tab the same way (`spell-doc-runtime.js` `window.name`;  links use that `target`)
+ * - `hash`:  an id on the page to land on (`spell dev docs open SAGA:/saga/epic#T1`)
+ * - Never brings Chrome or its window forward:  the tab is made active in ITS window only.
+ *   - a new tab goes in the front window
+ *   - `openUrlInChrome()` with `front` does bring it forward, for a link Owen clicked
+ * - Chrome not running, or AppleScript refused:  `open -g -a "Google Chrome"`, which can't reuse a tab.
+ *   Chrome may still raise itself for a URL it's handed (seen 2026-10-01).
+ * - NOTE: `key` is an AppleScript keyword:  the variable is `pageKey`.
+ */
+export function openInChrome(page, { hash } = {}) {
+  const file = throughLink(page)
+  const served = ensurePageServer()
+  const url = served ? serverUrl(served.base, file) : pathToFileURL(resolve(file)).href
+  openUrlInChrome(`${url}${hash ? `#${hash}` : ""}`, `/${relative(ROOT, resolve(file)).split(sep).join("/")}`)
+}
+
+/**
+ * Show `url` in Chrome, reusing the tab whose URL contains `key` (see `openInChrome()`).
+ * - `front`:  bring Chrome and that tab's window forward -- a link Owen clicked (`showRoutes.ts`)
+ * - else in the background
+ */
+export function openUrlInChrome(url, key, { front = false } = {}) {
+  const script = `
+set target to ${JSON.stringify(url)}
+set pageKey to ${JSON.stringify(key)}
+if application "Google Chrome" is not running then return "launch"
+tell application "Google Chrome"
+  repeat with w in windows
+    set i to 0
+    repeat with t in tabs of w
+      set i to i + 1
+      if (URL of t) contains pageKey then
+        if (URL of t) starts with target then
+          tell t to reload
+        else
+          set URL of t to target
+        end if
+        set active tab index of w to i
+        ${front ? "set index of w to 1\n        activate" : ""}
+        return "reused"
+      end if
+    end repeat
+  end repeat
+  if (count of windows) is 0 then make new window
+  tell front window to make new tab with properties {URL:target}
+  ${front ? "activate" : ""}
+  return "new tab"
+end tell`
+  const where = front ? "in front" : "in the background"
+  const run = spawnSync("osascript", ["-e", script], { encoding: "utf8" })
+  const how = run.stdout.trim()
+  if (run.status === 0 && how !== "launch") return console.log(`opened ${url} (${how}, ${where})`)
+  if (run.status !== 0) console.error(`Chrome via AppleScript failed (${run.stderr.trim()}):  falling back to \`open\``)
+  spawnSync("open", [...(front ? [] : ["-g"]), "-a", "Google Chrome", url])
+  console.log(`opened ${url} (Chrome launched ${where})`)
+}
+
+/**
+ * A parsed (linkedom) document as page HTML, ready to write.
+ * - `<!doctype html>` lowercase, and boolean attributes bare (`styled`, not `styled=""`), as written by hand and by
+ *   oxfmt.  Repeated until stable:  one pass fixes one attribute per tag, and `ui-table` has four.
+ */
+export function serialize(document) {
+  return serializeHTML(document.toString().replace(/^<!DOCTYPE html>/i, "<!doctype html>"))
+}
+
+/**
+ * Serialized `html` (a document's, or a fragment's `innerHTML`) with boolean attributes bare (`styled`, not
+ * `styled=""`), as `serialize()` writes a page;  an epic page's part files too (`PlanParts`).
+ */
+export function serializeHTML(html) {
+  for (let before; before !== html;) {
+    before = html
+    html = html.replace(/(<[a-z][\w-]*\b[^<>]*?) ([a-z][\w-]*)=""(?=[\s/>])/g, "$1 $2")
+  }
+  return html
+}
+
+/**
+ * A tool's command line:  `--key value` flags (a bare `--show` is `true`), and everything else in order.
+ * - `parseArgs(["open", "x.html", "--hash", "p2", "--show"])` -> `{ positional: ["open", "x.html"], flags: { hash:
+ *   "p2", show: true } }`
+ * @returns {{ positional: string[], flags: Record<string, string | true> }}
+ */
+export function parseArgs(argv) {
+  const positional = []
+  /** @type {Record<string, string | true>} */
+  const flags = {}
+  for (let i = 0; i < argv.length; i++) {
+    if (!argv[i].startsWith("--")) positional.push(argv[i])
+    else if (i + 1 < argv.length && !argv[i + 1].startsWith("--")) flags[argv[i].slice(2)] = argv[++i]
+    else flags[argv[i].slice(2)] = true
+  }
+  return { positional, flags }
+}

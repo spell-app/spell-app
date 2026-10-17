@@ -34,7 +34,7 @@ import { PlanTime } from "./PlanTime"
 
 /****************
  * ### `PlanReader`
- * A parsed plan doc, READ:  its phases, its items and where their reviews stand, a summary of what's open.
+ * A parsed epic page, READ:  its phases, its items and where their reviews stand, a summary of what's open.
  * What `summary`, `list`, `items`, `check` and the inbox's listings need.
  * - ABSTRACT:  the markup is its subclass's, `PlanDoc` (`<epic-*>`, which also edits):  it says what an item is
  *   (`facts()`, `textOf()` ...);  the reckoning on top -- an item's state, its review state, the review lists, the
@@ -44,7 +44,7 @@ import { PlanTime } from "./PlanTime"
  * - Imports the tool's types and its markup-free helpers only:  never `PlanDoc`.
  ****************/
 export abstract class PlanReader {
-  /** linkedom (or browser) document of the plan doc */
+  /** linkedom (or browser) document of the epic page */
   readonly document: Document
 
   /**
@@ -88,6 +88,12 @@ export abstract class PlanReader {
 
   /** A FUTURE epic (`/epic future <name>`):  an idea written down, not planned yet. */
   abstract get future(): boolean
+
+  /** A STANDING epic (epic `epic-workflow`):  open for good, each phase merging on its own;  never done. */
+  abstract get standing(): boolean
+
+  /** The saga this epic serves, its id (epic `epic-workflow` P15);  `null` when it names none. */
+  abstract get saga(): string | null
 
   /** The phases a `/bedtime` run is on (`P3-P6`);  `null` when none is. */
   abstract get bedtimeRun(): string | null
@@ -186,6 +192,8 @@ export abstract class PlanReader {
       estimate: this.estimate,
       bedtime: this.bedtimeRun,
       future: this.future,
+      standing: this.standing,
+      saga: this.saga,
       open
     }
   }
@@ -205,7 +213,7 @@ export abstract class PlanReader {
    * - Claude answered it last, with options nothing is picked in yet (`PlanItem.awaitsPick()`):  `replied`, Owen's
    *   turn to pick (Owen, 2026-10-09);  a pick, a newer reply from Owen, or closing it ends that
    * - waiting on Owen:  `attention`:  an open question;  an open judgement call or issue not reviewed, unless it's
-   *   `calm` (not urgent:  it simply follows WWOD, or Owen said so from its id chip):  then `open`
+   *   `calm` (not urgent:  it wouldn't surprise Owen, or he said so from its id chip):  then `open`
    * - settled by a review, though still open (`SETTLED_AS`:  approved, made a todo):  `recent`
    * - else `open`:  a revisit or Do Now Claude answered leaves it open, yellow (J10)
    */

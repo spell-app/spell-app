@@ -9,7 +9,6 @@ import {
   SemanticTokensBuilder,
   SymbolKind,
   type CodeAction,
-  type CodeLens,
   type CompletionItem,
   type Diagnostic,
   type DocumentHighlight,
@@ -36,7 +35,7 @@ import { instanceCase, typeCase } from "$/util"
 import { P } from "$/parser"
 import { MD, type InlineNode } from "$/markdown"
 import { SP } from "$/spell"
-import type { LSP } from "$/lsp"
+import { LSP } from "$/lsp"
 
 /**
  * Answers editor questions about parsed spell files, in Language Server Protocol shapes -- one method per request.
@@ -54,6 +53,8 @@ export class SpellLanguageService {
   #tokenBuilders = new WeakMap<SP.SpellFile, SemanticTokensBuilder>()
   /** Docstrings of each file's declarations, by statement -- keyed by the file's `match`, so one per parse. */
   #docsCache = new WeakMap<P.Match, Map<P.Match, SP.DocComment>>()
+  /** The `<css>` blocks in each file, answered as CSS -- see `LSP.SpellCSS`. */
+  css = new LSP.SpellCSS()
 
   constructor(addresses: LSP.FileAddresses) {
     this.addresses = addresses
@@ -111,7 +112,10 @@ export class SpellLanguageService {
   ////////////////
 
   /**
-   * Problems to show in `file`:  its parse errors, each under the text it couldn't make sense of.
+   * Problems to show in `file`:
+   * - its parse errors, each under the text it couldn't make sense of
+   * - then its warnings, each under what it's about, e.g. a property with no type -- see `SP.SpellWarnings`
+   * - then the CSS mistakes in its `<css>` blocks -- see `LSP.SpellCSS`
    * - A file its project doesn't parse, or a project whose parse crashed, gets ONE diagnostic saying so, at the top.
    */
   diagnostics(file: SP.SpellFile): Diagnostic[] {
@@ -127,13 +131,18 @@ export class SpellLanguageService {
     }
     if (!file.match) return []
 
-    return (SP.Block.getParseErrors(file.match) ?? []).flatMap((error) => {
+    const text = file.parseText
+    const errors = (SP.Block.getParseErrors(file.match) ?? []).flatMap((error): Diagnostic[] => {
       const range = this.rangeOf(file, error)
       if (!range) return []
-      const text = file.parseText.slice(error.start, error.end)
-      const message = error.message || `Don't understand "${text}"`
+      const message = error.message || `Don't understand "${text.slice(error.start, error.end)}"`
       return [{ range, severity: DiagnosticSeverity.Error, source: "spell", message }]
     })
+    const warnings = SP.SpellWarnings.in(file.match).flatMap(({ at, message }): Diagnostic[] => {
+      const range = this.rangeOf(file, at)
+      return range ? [{ range, severity: DiagnosticSeverity.Warning, source: "spell", message }] : []
+    })
+    return [...errors, ...warnings, ...this.css.diagnostics(text)]
   }
 
   ////////////////
@@ -162,6 +171,7 @@ export class SpellLanguageService {
     })
     for (const [startLine, endLine] of this.runsOf(commentLines))
       ranges.push({ startLine, endLine, kind: FoldingRangeKind.Comment })
+    for (const region of this.css.regionsIn(file.parseText)) this.addFold(file, ranges, region.start, region.end)
     return ranges
   }
 
@@ -236,7 +246,7 @@ export class SpellLanguageService {
   /**
    * Symbol for `statement` on `line`, if it declares something -- asks its rule (`getDeclaration()`).
    * - `range` covers the whole line and any body;  `selectionRange` just the name.
-   * - Type names show in Type_Case, as the compiled classes are named.
+   * - Type names show in PascalCase, as the compiled classes are named.
    */
   private symbolFor(file: SP.SpellFile, line: P.Match, statement: P.Match): LSP.SpellSymbol | undefined {
     const declaration = statement.rule.getDeclaration(statement)
@@ -277,10 +287,11 @@ export class SpellLanguageService {
   /**
    * Semantic token legend, sent on `initialize`.  Modifier bits:  `declaration` = 1, `defaultLibrary` = 2,
    * then `heading1` = 4 ... `heading4` = 32, then `bold` = 64, `italic` = 128, `link` = 256, `strikethrough` = 512.
-   * - `heading<N>` are ours, for a heading comment with N `#`s -- `##` => `heading2`, and 4 or more => `heading4`.
-   *   A modifier is a flag, not a value, so one per level.  The VS Code extension declares them, and shows them bold.
-   * - `bold` ... `strikethrough` are ours too:  markdown inside a comment (`commentSpans()`), which the extension
-   *   styles to match.
+   * - `heading<N>` are ours, for a heading comment with N `#`s:  `##` => `heading2`, and 4 or more => `heading4`.
+   *   - A modifier is a flag, not a value, so one per level.
+   *   - The VS Code extension declares them, and shows them bold.
+   * - `bold` ... `strikethrough` are ours too:  markdown inside a comment (`commentSpans()`),
+   *   which the extension styles to match.
    */
   static TOKEN_LEGEND: SemanticTokensLegend = {
     tokenTypes: SpellLanguageService.HIGHLIGHT_KINDS,
@@ -376,6 +387,7 @@ export class SpellLanguageService {
    *   - something built in, e.g. the `thing` type, is `defaultLibrary`
    *   - a name where it's declared, e.g. `card` in `a card is a thing`, is a `declaration`
    * - JSX tag names are `type`s, attribute names `property`s.
+   * - Nothing in a `<css>` block:  editors colour it as CSS themselves.
    */
   highlightSpans(file: SP.SpellFile): LSP.HighlightSpan[] {
     if (!file.match) return []
@@ -413,7 +425,10 @@ export class SpellLanguageService {
       }
     })
     spans.sort((a, b) => a.start - b.start)
-    return spans.filter((span, index) => index === 0 || span.start >= spans[index - 1]!.end)
+    return spans.filter(
+      (span, index) =>
+        (index === 0 || span.start >= spans[index - 1]!.end) && !this.css.isInBlock(file.parseText, span.start)
+    )
   }
 
   /**
@@ -543,17 +558,22 @@ export class SpellLanguageService {
 
   /**
    * What to show when hovering over `position`:
+   * - in a `<css>` block:  the CSS service's hover, e.g. a property's docs -- see `LSP.SpellCSS`
    * - the rule that matched there, its syntax and an example from its tests
    * - what the word refers to and where that was declared, e.g. a variable's kind and output name
    * - the javascript its statement compiles to
-   * - TODO: tune for who's reading.  The rule + javascript sections are for parser developers, and for a method
-   *   call the rule's syntax repeats `describeSubject()`'s.  Idea:  a `spell.hover` setting, read like
-   *   `compileOnSave` -- `"simple"` shows only `describeSubject()`, in plain words;  `"full"` is today's.
-   *   Or show a rule's `description` (none set yet) instead of its raw syntax.
+   * - TODO: tune for who's reading.
+   *   - The rule + javascript sections are for parser developers,
+   *     and for a method call the rule's syntax repeats `describeSubject()`'s.
+   *   - Idea:  a `spell.hover` setting, read like `compileOnSave`:
+   *     `"simple"` shows only `describeSubject()`, in plain words;  `"full"` is today's.
+   *   - Or show a rule's `description` (none set yet) instead of its raw syntax.
    */
   hover(file: SP.SpellFile, position: Position): Hover | null {
-    const stack = this.matchesAt(file, position)
     const offset = this.offsetAt(file, position)
+    const cssHover = this.css.hover(file.parseText, offset, position)
+    if (cssHover !== undefined) return cssHover
+    const stack = this.matchesAt(file, position)
     const described = [...stack]
       .reverse()
       .find((match) => match.rule.name && match.start !== undefined && match.start <= offset && offset <= match.end!)
@@ -670,8 +690,8 @@ export class SpellLanguageService {
   }
 
   /**
-   * Edits making `text` the docstring of what the statement starting on `line` of `file`, from 1, declares -- see
-   * `SP.Block.getDocComments()`.  `null` if no declaring statement starts there.
+   * Edits making `text` the docstring of what the statement starting on `line` of `file`, from 1, declares:
+   * see `SP.Block.getDocComments()`.  `null` if no declaring statement starts there.
    * - `text` is markdown, as `docMarkdown()` gives:  a `#`, `##` ... line becomes that heading comment,
    *   any other line a `// ` comment -- indented like the statement.  Empty `text` removes the docstring.
    * - Replaces the comment lines above it -- a heading directly above included -- or else the comment at the end
@@ -807,19 +827,36 @@ export class SpellLanguageService {
    * Docstring of what `subject` names:  the comments documenting its declaration -- see `SP.Block.getDocComments()`.
    * - Only if that declaration really names it:  an argument's `declaredBy` is its METHOD, whose docs aren't its own.
    * - Properties only when we know which type they're on.
+   * - A type with no comments:  the `<markdown>` block in its outline, if it has one -- see `outlineDescriptionOf()`.
    */
   docsOf(subject: LSP.SpellSubject): string | undefined {
     const builtIn = SpellLanguageService.builtInDoc(subject)
     if (builtIn) return builtIn
-    return subject.record && this.docsOfRecord(subject.record, subject.kind === "method")
+    if (!subject.record) return undefined
+    return this.docsOfRecord(subject.record, subject.kind === "method") ?? this.outlineDescriptionOf(subject.record)
   }
 
-  /** Docstring of what `subject` names, as markdown -- see `docMarkdown()`. */
+  /** Docstring of what `subject` names, as markdown -- see `docMarkdown()`, and `docsOf()` for a type's. */
   docMarkdownOf(subject: LSP.SpellSubject): string | undefined {
     const builtIn = SpellLanguageService.builtInDoc(subject)
     if (builtIn) return builtIn
-    const doc = subject.record && this.docCommentOfRecord(subject.record, subject.kind === "method")
-    return doc && SpellLanguageService.docMarkdown(doc)
+    if (!subject.record) return undefined
+    const doc = this.docCommentOfRecord(subject.record, subject.kind === "method")
+    return doc ? SpellLanguageService.docMarkdown(doc) : this.outlineDescriptionOf(subject.record)
+  }
+
+  /**
+   * The `<markdown>` description in type `record`'s outline, if it has one -- see `SP.MarkdownDescription`.
+   * - `undefined` for anything but a type.
+   */
+  private outlineDescriptionOf(record: { name: string; declaredBy?: P.Match }): string | undefined {
+    if (!(record instanceof P.TypeScope) || !record.declaredBy) return undefined
+    let description: string | undefined
+    this.walk(record.declaredBy, (match) => {
+      if (description === undefined && match.is(SP.MarkdownDescription) && match.data.typeName === record.name)
+        description = SP.MarkdownDescription.descriptionOf(match)
+    })
+    return description
   }
 
   /**
@@ -1172,15 +1209,35 @@ export class SpellLanguageService {
   // ## Custom requests
   ////////////////
 
-  /** `spell/compiled`:  the javascript `file` compiles to, or a comment saying why it can't. */
-  compiled(file: SP.SpellFile): string {
-    if (!file.match) return `// ${file.file} hasn't been parsed`
-    return SpellLanguageService.compileQuietly(file.match) ?? `// ${file.file} couldn't be compiled`
+  /**
+   * `spell/compiled`:  the code `file` compiles to for `target`, javascript by default --
+   * or a comment saying why it can't, in that language.
+   * - Written by that target's writer (`SP.TARGETS`), as `spell compile --target` writes it.
+   */
+  compiled(file: SP.SpellFile, target: LSP.CompiledTarget = "js"): string {
+    const { name, comment } = SpellLanguageService.COMPILED_TARGETS[target]
+    if (!file.match) return `${comment} ${file.file} hasn't been parsed`
+    const { writer } = SP.targetFor(name)
+    return (
+      SpellLanguageService.compileQuietly(file.match, writer) ??
+      `${comment} ${file.file} couldn't be compiled to ${name}`
+    )
   }
 
   /**
-   * `spell/lineTree`:  the spell tree of line `line` (0-based) of `file`, as `<ui-tree-diagram>` draws it -- `null`
-   * if no line parsed there, e.g. a blank line.
+   * What each of `spell/compiled`'s short names stands for -- see `LSP.CompiledTarget`:
+   * - `name`:  its target
+   * - `comment`:  how its language starts a line comment
+   */
+  static COMPILED_TARGETS: Record<LSP.CompiledTarget, { name: string; comment: string }> = {
+    js: { name: SP.RUNNING_TARGET, comment: "//" },
+    ts: { name: "ts/solid", comment: "//" },
+    py: { name: "py", comment: "#" }
+  }
+
+  /**
+   * `spell/lineTree`:  the spell tree of line `line` (0-based) of `file`, as `<ui-tree-diagram>` draws it.
+   * - `null` if no line parsed there, e.g. a blank line.
    * - From the file as last parsed, so unsaved edits show.
    */
   lineTree(file: SP.SpellFile, line: number): P.TreeNode | null {
@@ -1201,7 +1258,9 @@ export class SpellLanguageService {
         errors: (it.match && SP.Block.getParseErrors(it.match)?.length) ?? 0
       })),
       problem: project.parseError,
-      compiledUri: this.addresses.uriFor(project.outputFile)
+      compiledUri: this.addresses.uriFor(project.outputFile),
+      folderUri: this.addresses.uriFor(project),
+      wordsUri: this.addresses.uriFor(project.wordsFile)
     }
   }
 
@@ -1211,6 +1270,8 @@ export class SpellLanguageService {
 
   /**
    * What could be typed at `position`:
+   * - in a `<css>` block:  CSS, e.g. `color` for `col` -- see `LSP.SpellCSS`
+   * - typing a JSX tag (`<chi`):  spell's own tags, e.g. `children` -- see `tagItems()`
    * - mid-statement:  what can come NEXT, if the parser can say -- see `expectedNext()`
    * - otherwise, names visible there:  variables declared before it, types, constants
    * - at the start of a statement:  the first words of every kind of statement (`to`, `if`, `set`...),
@@ -1218,10 +1279,14 @@ export class SpellLanguageService {
    * - mid-statement, if `expectedNext()` has nothing:  calls to methods usable as expressions
    */
   completion(file: SP.SpellFile, position: Position): CompletionItem[] {
-    if (!file.match) return []
     const offset = this.offsetAt(file, position)
     const text = file.parseText
+    const cssItems = this.css.completion(text, offset, position)?.items
+    if (cssItems) return cssItems
+    if (!file.match) return []
     const lineText = text.slice(text.lastIndexOf("\n", offset - 1) + 1, offset)
+    const tagItems = this.tagItems(lineText)
+    if (tagItems) return tagItems
     const atStatementStart = /^\s*[\w-]*$/.test(lineText)
     if (!atStatementStart) {
       const expected = this.expectedNext(file, position)
@@ -1243,8 +1308,23 @@ export class SpellLanguageService {
   }
 
   /**
-   * What can come NEXT in the statement being typed at `position`, e.g. `to` after `set x` -- `[]` if nothing
-   * is typed yet, or the parser can't say.
+   * Spell's own JSX tags, while one is being typed at the end of `lineText` -- `undefined` if no tag is.
+   * - e.g. `children` for `return <div><chi`:  spell's word for the web's `<slot>` (`SP.SPELL_TAG_NAMES`).
+   * - The web's own tags aren't offered.
+   * - A tag is a `<` right before a word:  `x < y` isn't one.
+   */
+  private tagItems(lineText: string): CompletionItem[] | undefined {
+    if (!JSX_TAG_TYPED.test(lineText)) return undefined
+    return [...SP.SPELL_TAG_NAMES].map(([tag, webTag]) => ({
+      label: tag,
+      kind: CompletionItemKind.Keyword,
+      detail: `spell's word for <${webTag}>`
+    }))
+  }
+
+  /**
+   * What can come NEXT in the statement being typed at `position`, e.g. `to` after `set x`.
+   * - `[]` if nothing is typed yet, or the parser can't say.
    * - Parses the line up to the cursor in expecting mode -- see `P.Parser.expectedAfter()`.
    *   A word the cursor is touching is still being typed:  it's what the editor filters by, NOT input.
    * - Each expectation offers:
@@ -1252,10 +1332,10 @@ export class SpellLanguageService {
    *   - the names that fit it, by the `highlightAs` of the rules it can start with -- see `firstKinds()`:
    *     `{type}` => types, `{expression}` => variables, constants, methods...
    *   - the words it can start with, e.g. `to`, or `the` / `a` / `its`... for an `{expression}`
-   * - What only EXTENDS something complete (`continues`), e.g. an operator after `x`, only if the word being
-   *   typed starts it:  `if x a` => `and`, but `if x ` offers no operators.
-   * - Ranked by `sortText`:  what's needed before what continues, shallower before deeper, then snippet, names,
-   *   words.
+   * - What only EXTENDS something complete (`continues`), e.g. an operator after `x`,
+   *   only if the word being typed starts it:  `if x a` => `and`, but `if x ` offers no operators.
+   * - Ranked by `sortText`:  what's needed before what continues, shallower before deeper,
+   *   then snippet, names, words.
    */
   expectedNext(file: SP.SpellFile, position: Position): CompletionItem[] {
     if (!file.match) return []
@@ -1369,8 +1449,9 @@ export class SpellLanguageService {
    * the argument being typed -- or next -- as `activeParameter`.  `null` if not in one.
    * - Parses the line up to the cursor in expecting mode, as `expectedNext()` does, then takes the INNERMOST
    *   method call rule anything was waiting in:  what comes next in it, or what we're partway `within`.
-   * - Its arguments are the call rule's `{subrules}`, in order:  the signature's arguments,
-   *   `(a card)` or paren-free `a card`, where its `method_signature` found them -- see `argRanges()`.
+   * - Its arguments are the call rule's `{subrules}`, in order:
+   *   the signature's arguments, `(a card)` or paren-free `a card`, where its `method_signature` found them.
+   *   See `argRanges()`.
    */
   signatureHelp(file: SP.SpellFile, position: Position): SignatureHelp | null {
     if (!file.match) return null
@@ -1425,53 +1506,6 @@ export class SpellLanguageService {
   }
 
   ////////////////
-  // ## Code lens
-  ////////////////
-
-  /**
-   * Command a code lens runs to show references, with arguments `uri`, `position`, `locations`.
-   * - The EDITOR defines it:  `vscode-extension/src/extension.ts`, `SpellLanguageFeatures` in the app.
-   */
-  static SHOW_REFERENCES = "spell.showReferences"
-
-  /** Kinds of declaration that get a code lens. */
-  static LENS_KINDS: P.DeclarationKind[] = ["type", "method", "function"]
-
-  /**
-   * An "N references" lens above each type and method `file` declares, on its name.
-   * - Unresolved:  no count yet -- `resolveCodeLens()` counts, so an editor only pays for the lenses on screen.
-   *   Counting walks every file of the project.
-   * - `data` carries what resolving needs:  the file's URI, and the name's position.
-   */
-  codeLens(file: SP.SpellFile): CodeLens[] {
-    if (!file.match) return []
-    const uri = this.addresses.uriFor(file)
-    const lenses: CodeLens[] = []
-    this.walk(file.match, (match) => {
-      const declaration = match.rule.getDeclaration(match)
-      if (!declaration || !SpellLanguageService.LENS_KINDS.includes(declaration.kind)) return
-      const range = this.rangeOf(file, declaration.nameMatch)
-      if (range) lenses.push({ range, data: { uri, position: range.start } satisfies CodeLensData })
-    })
-    return lenses
-  }
-
-  /** `lens` from `codeLens()`, with its count:  "3 references", which shows them when clicked. */
-  resolveCodeLens(file: SP.SpellFile, lens: CodeLens): CodeLens {
-    const { uri, position } = lens.data as CodeLensData
-    const locations = this.references(file, position, false)
-    const count = locations.length
-    return {
-      ...lens,
-      command: {
-        title: `${count} reference${count === 1 ? "" : "s"}`,
-        command: SpellLanguageService.SHOW_REFERENCES,
-        arguments: [uri, position, locations]
-      }
-    }
-  }
-
-  ////////////////
   // ## Code actions
   ////////////////
 
@@ -1505,7 +1539,9 @@ export class SpellLanguageService {
       if (this.isUnfinished(words, scope)) continue
       const signature = this.methodSignatureFor(words, scope)
       const at = this.topLevelLineStart(file, start)
-      const diagnostic = this.diagnostics(file).find((it) => this.offsetAt(file, it.range.start) === start)
+      const diagnostic = this.diagnostics(file).find(
+        (it) => it.severity === DiagnosticSeverity.Error && this.offsetAt(file, it.range.start) === start
+      )
       if (!signature || at === undefined) continue
       const newText = `${signature}:\n\t// TODO\n\n`
       const position = this.positionAt(file, at)
@@ -2066,8 +2102,8 @@ export class SpellLanguageService {
 
   /**
    * Kinds of name `rule` can start with, e.g. `{type}` => `type`, `{expression}` => `variable`, `enumMember`...
-   * - By the `highlightAs` of the rules it can start with -- NOT by rule names -- through sequences, choices,
-   *   repeats and subrules, categories too.
+   * - By the `highlightAs` of the rules it can start with -- NOT by rule names --
+   *   through sequences, choices, repeats and subrules, categories too.
    */
   static firstKinds(rule: P.Rule, parser: P.Parser, visited: Set<P.Rule>, kinds = new Set<P.HighlightKind>()) {
     if (visited.has(rule)) return kinds
@@ -2114,10 +2150,14 @@ export class SpellLanguageService {
     )
   }
 
-  /** `match` compiled to javascript, or `undefined` if that throws, e.g. for a half-typed statement. */
-  static compileQuietly(match: P.Match): string | undefined {
+  /**
+   * `match` compiled by `writer`, javascript's by default, naming things as its project does
+   * (`P.ProgramWriter.writeMatch()`).
+   * - `undefined` if that throws, e.g. for a half-typed statement.
+   */
+  static compileQuietly(match: P.Match, writer: P.ProgramWriter = P.JSWriter.instance): string | undefined {
     try {
-      const compiled = match.compile()
+      const compiled = writer.writeMatch(match)
       // declaration markers are for the declarations file, not for people -- see `SP.SpellDeclarations`
       return typeof compiled === "string" ? SP.SpellDeclarations.stripComments(compiled) : undefined
     } catch {
@@ -2179,14 +2219,6 @@ export class SpellLanguageService {
   }
 }
 
-/** What a code lens from `codeLens()` carries until it's resolved. */
-type CodeLensData = {
-  /** URI of the file it's in. */
-  uri: string
-  /** Where the declared name starts. */
-  position: Position
-}
-
 /**
  * Generated rules to their records -- see `SpellLanguageService.generatedRules()`.
  * - A call rule's expression twin (`SP.SpellStatement.operandInExpressions`) finds its statement rule's record:
@@ -2213,3 +2245,6 @@ type CommentStyle = {
   /** In a code span:  coloured as a `string`. */
   code?: boolean
 }
+
+/** A JSX tag being typed at the end of a line:  `<` right before a word, after a space, `>`, `(` or `{`, e.g. `<div><chi`. */
+const JSX_TAG_TYPED = /(?:^|[\s>({])<[a-z][\w-]*$/

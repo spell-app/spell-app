@@ -71,14 +71,14 @@ What `$ARGUMENTS` means:
 
    - Nothing to commit:  skip, and say so.
    - BEFORE step 4, so the note can't be swept into the commit.
-   - Shared content (the plan doc, logs, docs pages) is never in it:  committed for you, in `../spell-app-dev`.
+   - Shared content (the epic page, logs, docs pages) is never in it:  committed for you, in `../spell-app-dev`.
 4. Write `PARKED-<name>.md` at the worktree root:
 
    ```
    <!-- park: parked -->
    # Parked:  <name>
 
-   Branch `<name>` (worktree `.claude/worktrees/<name>`).  Plan doc:  [<name>](<link>) (or "none").
+   Branch `<name>` (worktree `.claude/worktrees/<name>`).  Epic page:  [<name>](<link>) (or "none").
    Parked <YYYY-MM-DD HH:MM>, session `<session id>`.
 
    ## Goal
@@ -100,9 +100,9 @@ What `$ARGUMENTS` means:
    ```
 
    - The note must stand on its own:  a new session reading only it, plus the diff, can carry on.
-5. Plan doc (`epics/<name>/`, shared by every checkout):
-   `spell dev plan-doc log <name> "Parked at <hash>:  <one line>;  next:  <step 1>"`.
-   - No plan doc, or no `node_modules/`:  skip.
+5. Epic page (`epics/<name>/`, shared by every checkout):
+   `epic log <name> "Parked at <hash>:  <one line>;  next:  <step 1>"`.
+   - No epic page, or no `node_modules/`:  skip.
 6. One line:
    "parked `<name>` at `<hash>`;  pick it up with `/unpark <name>`, or `/wait-for <other>` to resume when <other> is done".
 
@@ -144,7 +144,7 @@ Used by `/unpark` (after its window check), and by `/wait-for` when the wait end
 5. Otherwise:
    - set line 1 to `<!-- park: resumed -->`
    - add `Resumed <YYYY-MM-DD HH:MM>, merged main at <hash>` under "Where it stopped"
-   - log it in the plan doc, as in step 5 above
+   - log it in the epic page, as in step 5 above
    - carry on with "Next steps"
    - Leave the WIP commit as it is (a merge sits on top now):  squash later if Owen wants.
 6. One line:  "resumed `<name>`:  merged main (<n> conflicts fixed), checks <pass/fail>;  now on:  <next step>".

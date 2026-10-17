@@ -1,14 +1,14 @@
 <!-- bedtime: active -->
 # Morning plan:  vite-plus
 
-Plan doc:  `packages/docs/content/epics/vite-plus/vite-plus.html`.  Branch `vite-plus`, worktree `.claude/worktrees/vite-plus`.
+Epic page:  `packages/docs/content/epics/vite-plus/vite-plus.html`.  Branch `vite-plus`, worktree `.claude/worktrees/vite-plus`.
 
 ## 1. Summary
 
 - All 4 phases done, 0 WIP, 0 skipped.  Branch `vite-plus`, NOT merged.
 - Verdict:  adopt.  Every package's checks as on `main`;  `yarn ts` 6.0s -> 3.1s;  tests ~15% faster;  dev/build
   same.  Biggest catch:  `vp run --cache` is unsafe here (I1).
-- Durable doc:  `packages/docs/content/vite-plus.html`.
+- Guide:  `packages/docs/content/vite-plus.html`.
 - Commits (`git log --oneline main..HEAD`):
   - `36eae09f` P4:  Doc Review
   - `149549f8` P3:  Rollout
@@ -16,7 +16,7 @@ Plan doc:  `packages/docs/content/epics/vite-plus/vite-plus.html`.  Branch `vite
   - `7eea0c8e` format:  oxfmt 0.70 churn (4 files)
   - `ad9e894d` P1:  imports -> `vite-plus/test*`
   - `078b2a76` P1:  Spike Migrate
-  - `8dd687d9` plan doc
+  - `8dd687d9` epic page
 
 ## 2. Phases
 
@@ -41,8 +41,8 @@ Plan doc:  `packages/docs/content/epics/vite-plus/vite-plus.html`.  Branch `vite
   hand-edited instead).
 - J5:  `engines.node` `>=24.11` in all 12 `package.json`s;  CI `node-version: 24`.
 - J6:  `yarn oxfmt` / `yarn oxlint` no longer work in a package (migrate dropped them as direct deps;  `yarn vitest`
-  still works).  Broke `yarn plan-doc add` (tidy step).  Fixed `packages/docs/tools/pages.js` `tidy()` and
-  `packages/docs/AGENTS.md` to `yarn vp fmt`.  Alternative:  re-add both as catalog deps.
+  still works).  Broke `yarn plan-doc add` (tidy step).  Fixed `packages/epics/tools/pages.js` `tidy()` and
+  the docs package's `AGENTS.md` (now epics') to `yarn vp fmt`.  Alternative:  re-add both as catalog deps.
 - Checks:  per package ts / lint / format:check / test == baseline (same pre-existing failures, nothing new);
   app `build` + `build:element` ok;  `yarn vscode` ok (installed from this branch).  Root `yarn test`:  4 cli 5s
   timeouts under load (pass alone, C7);  app cold-cache failures (pass warm, C6).
@@ -71,7 +71,7 @@ Plan doc:  `packages/docs/content/epics/vite-plus/vite-plus.html`.  Branch `vite
 
 ### P4 · Doc Review
 
-- `packages/docs/content/vite-plus.html` (check-spell ok, screenshots looked at), docs index;  plan doc:  C1 closed, summary
+- `packages/docs/content/vite-plus.html` (check-spell ok, screenshots looked at), docs' home page;  epic page:  C1 closed, summary
   rewritten.  Worktree NOT left (bedtime).  `36eae09f`.
 
 ## 3. Problems

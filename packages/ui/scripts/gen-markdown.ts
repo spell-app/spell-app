@@ -1,5 +1,5 @@
 /**
- * `yarn gen:markdown`:  write `src/components/ui-markdown/md.bundle.js` (+ `.d.ts`, + the `MDBundle.ts` wrapper), the
+ * `yarn gen:markdown`:  write `components/ui-markdown/md.bundle.js` (+ `.d.ts`, + the `MDBundle.ts` wrapper), the
  * PRE-COMPILED markdown engine (`@spell-app/markdown`, on the parser) `<ui-markdown>` can load.
  * - Run after changing `packages/markdown` (or the parser under it);  the files are committed, so `ui` builds and
  *   tests without building markdown.
@@ -21,7 +21,7 @@ import { REACT_DOM_STUB, buildBundle, declarationFile, wrapperFile } from "./bro
 const COMMAND = "gen:markdown"
 
 /** Where the bundle goes. */
-const OUTPUT = fileURLToPath(new URL("../src/components/ui-markdown/", import.meta.url))
+const OUTPUT = fileURLToPath(new URL("../components/ui-markdown/", import.meta.url))
 
 /** The bundle's file name, beside its wrapper. */
 const BUNDLE = "md.bundle.js"

@@ -3,9 +3,10 @@
  * - The webview's code is `app`'s runner bundle (`yarn build:runner` => `dist-runner/`,
  *   from `src/app/runner/`), with Semantic UI + Lato straight from its `static/`.
  * - Server compiles, NOT us:  `spell/compileProject`, answered by `spell/projectCompiled` with the javascript.
- * - Also re-runs when the project's `<Project>.compiled.js` changes on disk, e.g. compiled by the web app.
+ * - Also re-runs when the project's `<Project>.spell.js` changes on disk, e.g. compiled by the web app.
+ * - Sends its words, `<Project>.en.js` beside its source, after each run:  the Thing Explorer's labels.
  */
-import { existsSync } from "fs"
+import { existsSync, mkdirSync } from "fs"
 import JSON5 from "json5"
 import { resolve } from "path"
 import * as vscode from "vscode"
@@ -17,11 +18,11 @@ import type { LanguageClient } from "vscode-languageclient/node"
  * - Webview says `ready`, or Restart is pressed:  ask the server to compile.
  * - Every `spell/projectCompiled` for its project:  post `run` to the webview, with the javascript.
  * - Saving one of the project's spell files compiles too, unless `spell.compileOnSave` already does.
- * - `<Project>.compiled.js` changing on disk runs it too, unless it has parse errors -- see `compiledChanged()`.
+ * - `<Project>.spell.js` changing on disk runs it too, unless it has parse errors -- see `compiledChanged()`.
  * - A failed compile sends nothing, so the last good app keeps running.
  * - Runs the same javascript only ONCE, unless asked to -- a compile both notifies AND rewrites the file.
- * - Remembers how the runner shows the project -- console, tab, Type Explorer -- in the project's
- *   `settings.json5`, and sends it back on `ready`.  See `readSettings()`.
+ * - Remembers how the runner shows the project (console, tab, Type Explorer)
+ *   in the project's `settings.json5`, and sends it back on `ready`.  See `readSettings()`.
  ****************/
 export class RunnerPanel {
   /** Open panels, by project id. */
@@ -35,8 +36,10 @@ export class RunnerPanel {
   declare project: string
   /** One of the project's spell files, to name the project in requests. */
   declare uri: string
-  /** The project's `settings.json5`, beside its `project.json` -- see `readSettings()`. */
+  /** The project's `settings.json5`, beside its project file -- see `readSettings()`. */
   declare settingsUri: vscode.Uri
+  /** The project's words, `<Project>.en.js`, beside its spell files -- see `sendWords()`. */
+  declare wordsUri: vscode.Uri
   /** Its settings, as last read or saved. */
   #settings: ProjectSettings = {}
   /** Pending write of `#settings` -- see `saveSettings()`. */
@@ -50,13 +53,13 @@ export class RunnerPanel {
     this.client = client
     this.project = info.project
     this.uri = uri
-    // the compiled file is in the project's folder too
-    this.settingsUri = vscode.Uri.joinPath(vscode.Uri.parse(info.compiledUri), "..", SETTINGS_FILE)
+    this.settingsUri = vscode.Uri.joinPath(vscode.Uri.parse(info.folderUri), SETTINGS_FILE)
+    this.wordsUri = vscode.Uri.parse(info.wordsUri)
     const runner = vscode.Uri.file(resolve(repoRoot, "packages/app/dist-runner"))
     const statics = vscode.Uri.file(resolve(repoRoot, "packages/app/static"))
     this.panel = vscode.window.createWebviewPanel(
       "spell.runner",
-      `Run ${info.project.split(":").pop()}`,
+      `Run ${info.project.split("/").pop()}`,
       { viewColumn: vscode.ViewColumn.Beside, preserveFocus: true },
       { enableScripts: true, retainContextWhenHidden: true, localResourceRoots: [runner, statics] }
     )
@@ -151,10 +154,10 @@ export class RunnerPanel {
   }
 
   /**
-   * Our `<Project>.compiled.js` at `uri` changed on disk:  run it, unless it has parse errors.
+   * Our `<Project>.spell.js` at `uri` changed on disk:  run it, unless it has parse errors.
    * - Catches compiles from anywhere, e.g. the web app.  Our own compiles rewrite it too -- `run()` skips those.
-   * - NOTE: spots parse errors by the `PARSE ERROR` comment they compile to -- whoever compiled it,
-   *   that's all the file can tell us.
+   * - NOTE: spots parse errors by the `PARSE ERROR` comment they compile to.
+   *   Whoever compiled it, that's all the file can tell us.
    */
   async compiledChanged(uri: vscode.Uri): Promise<void> {
     const compiled = new TextDecoder().decode(await vscode.workspace.fs.readFile(uri))
@@ -163,14 +166,28 @@ export class RunnerPanel {
   }
 
   /**
-   * Run `compiled`, the project's javascript, afresh in the webview -- then send its Type Explorer the scopes.
+   * Run `compiled`, the project's javascript, in the webview -- then send its Type Explorer the scopes.
+   * - The webview keeps the program's things across runs, e.g. the game in progress:  only its Restart starts afresh.
    * - Skipped if it's what we last ran, unless `force`.
    */
   run(compiled: string, force = false): void {
     if (!force && compiled === this.#lastRun) return
     this.#lastRun = compiled
     this.post({ type: "run", compiled })
+    void this.sendWords()
     void this.sendScopes()
+  }
+
+  /**
+   * Send the webview the project's words, as text:  `<Project>.en.js`, which compiling wrote beside its spell files.
+   * - None, e.g. compiled before words had a file:  sends none, and the Thing Explorer shows names as they are.
+   */
+  async sendWords(): Promise<void> {
+    const words = await vscode.workspace.fs.readFile(this.wordsUri).then(
+      (bytes) => new TextDecoder().decode(bytes),
+      () => undefined
+    )
+    this.post({ type: "words", words })
   }
 
   /** Send the webview the project's live scope tree, from the server's `spell/scopes`, for its Type Explorer. */
@@ -255,10 +272,13 @@ export class RunnerPanel {
 
   /**
    * Watch file `uri`, even outside the workspace's folders.
+   * - SIDE EFFECT: makes its folder if there's none yet, since a watcher on a missing folder never fires:
+   *   compiled output goes in `build/` at the repo root (epic `people-and-orgs` P11), which a fresh checkout hasn't got.
    * - SIDE EFFECT: caller MUST `dispose()` it.
    */
   static watch(uri: vscode.Uri): vscode.FileSystemWatcher {
     const folder = vscode.Uri.joinPath(uri, "..")
+    mkdirSync(folder.fsPath, { recursive: true })
     const name = uri.path.split("/").pop()!
     return vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(folder, name))
   }
@@ -266,15 +286,16 @@ export class RunnerPanel {
   /**
    * Webview HTML:  Semantic UI + Lato from `statics`, then the runner bundle from `runner`.
    * - The runner draws in Solid on `@spell-app/ui`;  programs still draw with React + Semantic UI, so its CSS stays.
-   * - `<ui-root icons="fomantic">` around `#runner-root`:  the runner's icon names are Fomantic's (as the web app's
-   *   `index.html`).  Its packs load from `runner`'s `icon-packs/`, beside `@spell-app/ui`'s chunks.
+   * - `<ui-root icons="fomantic">` around `#runner-root`:
+   *   the runner's icon names are Fomantic's (as the web app's `index.html`).
+   *   Its packs load from `runner`'s `icon-packs/`, beside `@spell-app/ui`'s chunks.
    * - CSP allows, all from `runner` (inside `localResourceRoots`):
    *   - `blob:` scripts:  how the runner imports its copy of the spell runtime and the project's javascript
-   *   - scripts:  the bundle's lazy chunks -- `@spell-app/ui`'s families and runtime, emoji data, each icon pack's
-   *     `pack.js`
+   *   - scripts:  the bundle's lazy chunks
+   *     - `@spell-app/ui`'s families and runtime, emoji data, each icon pack's `pack.js`
    *   - fetching:  the runtime's source, for its copy, and the icons' SVG files
-   *   - inline styles:  `spellCore.installStyles()` adds them, and `<ui-*>` elements set inline styles (their sheets
-   *     are constructable, adopted by their shadow roots)
+   *   - inline styles:  `spellCore.installStyles()` adds them, and `<ui-*>` elements set inline styles
+   *     (their sheets are constructable, adopted by their shadow roots)
    * - NOTE: `semantic.min.css` `@import`s Lato from Google, which the CSP blocks -- harmless, we load our own.
    */
   static html(webview: vscode.Webview, runner: vscode.Uri, statics: vscode.Uri): string {
@@ -326,10 +347,14 @@ const PARSE_ERROR_MARKER = "/* PARSE ERROR:"
 
 /** Answer to `spell/project`, as `LSP.ProjectInfo` -- just what we read. */
 type ProjectInfo = {
-  /** Project id, e.g. `@system:examples:Solitaire`. */
+  /** Project id, e.g. `@spell/examples/solitaire`. */
   project: string
-  /** URI of its compiled javascript, `<Project>.compiled.js`. */
+  /** URI of its compiled javascript, `<Project>.spell.js`. */
   compiledUri: string
+  /** URI of its folder, where its spell files and `settings.json5` are. */
+  folderUri: string
+  /** URI of its words, `<Project>.en.js`. */
+  wordsUri: string
 }
 
 /** `spell/projectCompiled` notification, as `LSP.ProjectCompiled`. */
@@ -346,6 +371,7 @@ type ProjectCompiled = {
  */
 type ToRunnerMessage =
   | { type: "run"; compiled: string }
+  | { type: "words"; words?: string }
   | { type: "scopes"; tree: unknown }
   | { type: "settings"; settings: ProjectSettings }
   | { type: "details"; path: string; details: unknown }
@@ -364,12 +390,12 @@ type FromRunnerMessage =
 type SetDescriptionParams = { uri: string; line?: number; file?: boolean; text: string }
 
 /**
- * A project's `settings.json5`, as `ProjectSettings` in `src/app/runner/runner.types.ts` -- its top-level sections,
- * which we just hold and write, NOT read.
+ * A project's `settings.json5`, as `ProjectSettings` in app's `runner.types.ts`:
+ * its top-level sections, which we just hold and write, NOT read.
  */
 type ProjectSettings = Record<string, unknown>
 
-/** Name of a project's settings file, beside its `project.json`.  Git-ignored, and not one of its files in the editor. */
+/** Name of a project's settings file, beside its project file.  Git-ignored, and not one of its files in the editor. */
 const SETTINGS_FILE = "settings.json5"
 
 /** First line of `settings.json5`, saying what it is. */

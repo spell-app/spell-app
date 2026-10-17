@@ -12,25 +12,37 @@ import { FILTER_TEXTS } from "$/epics/components/epic-section/EpicSection.types"
 
 /****************
  * ### `<epic-page>`
- * A plan doc:  one epic's page.
+ * An epic page:  one epic's page.  Or, `kind="saga"`, a SAGA page (epic `epic-workflow` P15):  one saga's page,
+ * built of the same elements.
  ****************/
 export const epicPageVocabulary = {
   tag: "epic-page",
   topics: ["documentation", "layout", "containers"],
-  aka: ["plan doc", "epic", "plan", "project plan"],
+  aka: ["epic page", "plan doc", "epic", "plan", "project plan"],
   skeleton: "header, 4 line paragraph",
   noun: "page",
   ui: false,
   description:
-    "A plan doc:  one epic's page -- its crumbs, header and meta lines, the Overview, then its sections in a fixed " +
-    "order.  Runs edge to edge:  it breaks out of the docs' `<main>` padding (`--spell-doc-pad-inline`).",
+    "An epic page:  one epic's page -- its crumbs, header and meta lines, the Overview, then its sections in a fixed " +
+    "order.  Runs edge to edge:  it breaks out of the docs' `<main>` padding (`--spell-doc-pad-inline`).  With " +
+    '`kind="saga"`, a saga page:  the saga\'s crumbs and header, its Overview, Epics, Questions, Todos and Log.',
   attributes: [
     {
       name: "epic",
       kind: "string",
-      required: true,
       format: "epic name",
-      description: "The epic's name:  its folder in `epics/`, and its branch's (`epic-components`)."
+      description:
+        "The epic's name:  its folder in `epics/`, and its branch's (`epic-components`).  On every epic page;  " +
+        'absent on a saga page (`kind="saga"`), which `saga` names instead.'
+    },
+    {
+      name: "kind",
+      // a string, not an enum:  `<epic-section kind>`'s enum and this one would type `EpicData` of any tag as never
+      kind: "string",
+      description:
+        "What kind of page:  absent, an epic page;  `saga`, a SAGA page (epic `epic-workflow` P15), " +
+        "`sagas/<id>/<id>.saga.html`:  `saga` names it, its crumbs say `Docs / Sagas`, its review command is " +
+        "`/epic review SAGA:/<id>`, and it has no phases, branch, worktree or step label."
     },
     {
       name: "title",
@@ -38,8 +50,8 @@ export const epicPageVocabulary = {
       kind: "string",
       required: true,
       description:
-        "The epic's title (`Windows and Review`):  the subhead under the h1, which reads `/epic <name>`;  the " +
-        "crumbs' last."
+        "The epic's title (`Windows and Review`):  the page's `<title>` and the Epics list's;  not drawn on the page, " +
+        "whose h1 is the epic's name."
     },
     { name: "branch", kind: "string", description: "Its git branch;  absent for a future epic." },
     {
@@ -47,7 +59,7 @@ export const epicPageVocabulary = {
       kind: "string",
       description: "Its worktree's folder, absolute;  absent for a future epic, or once the worktree is gone."
     },
-    { name: "started", kind: "string", format: "date", description: "The day the plan doc was made." },
+    { name: "started", kind: "string", format: "date", description: "The day the epic page was made." },
     { name: "updated", kind: "string", format: "date", description: "The day a command last changed it." },
     {
       name: "future",
@@ -55,6 +67,21 @@ export const epicPageVocabulary = {
       description:
         "A FUTURE epic (`/epic future`):  an idea written down, not planned yet;  its open questions are on " +
         "`details/analysis.html`."
+    },
+    {
+      name: "standing",
+      kind: "boolean",
+      description:
+        "A STANDING epic (epic `epic-workflow`):  open for good, a home that requests from other sessions keep " +
+        "adding phases to;  each phase merges into `main` on its own, and every phase done is NOT done."
+    },
+    {
+      name: "saga",
+      kind: "string",
+      format: "saga id",
+      description:
+        "The saga this epic serves, by id (`drawable-spell`;  epic `epic-workflow` P15):  one of `sagas/sagas.json5`'s, " +
+        "set by `epic saga set`.  Drawn in the meta lines, a link to its saga page;  absent:  no saga."
     },
     {
       name: "bedtime",
@@ -91,12 +118,12 @@ export const epicPageVocabulary = {
     {
       name: "durable",
       description:
-        'A link to the durable doc, once Doc Review wrote one:  `<a slot="durable" href="../../guides/x.html">X</a>`.'
+        'A link to the guide, once Doc Review wrote one:  `<a slot="durable" href="../../guides/x.html">X</a>`.'
     },
     {
       name: "toolbar",
       description:
-        "The sticky bar's last row:  the section toolbar the docs runtime adds to a plan doc " +
+        "The sticky bar's last row:  the section toolbar the docs runtime adds to an epic page " +
         '(`<nav slot="toolbar" class="spell-toolbar">`, `spell-doc-runtime.js` `buildToolbar()`);  never in a doc.'
     }
   ],
@@ -105,16 +132,20 @@ export const epicPageVocabulary = {
     {
       name: "crumbs",
       description:
-        "Above the header:  `Docs › Epics › <title>`, the docs' eyebrow.  None while the doc still holds its old " +
-        "`ui-breadcrumb.spell-crumbs` before the page."
+        "In the h1, before the epic's name:  `Docs / Epics /`, the docs' eyebrow.  None narrow, nor while the doc " +
+        "still holds its old `ui-breadcrumb.spell-crumbs` before the page."
     },
     {
       name: "header",
       description:
-        "The sticky page header:  the h1, then at its right the step label (the state in it) and the git toggle."
+        "The sticky page header:  the h1, then at its right Send and Review Now (while reviewed), the bedtime label, " +
+        "the step label (the state in it) and the git toggle."
     },
-    { name: "heading", description: "The h1, `/epic <name>`:  a click copies it." },
-    { name: "subhead", description: "Under the header:  the epic's title, NOT sticky:  it scrolls away." },
+    {
+      name: "heading",
+      description:
+        "The h1:  the crumbs, then the epic's name in their type, twice their size and bold;  a click on the name copies `/epic resume <name>`."
+    },
     {
       name: "bar",
       description:
@@ -134,29 +165,35 @@ export const epicPageVocabulary = {
     },
     { name: "collapse-all", description: "The toolbar's double chevron:  folds everything on the page." },
     {
-      name: "send-bar",
-      description:
-        "Stuck to the window's bottom while the page is reviewed and anything waits to be sent or asked now:  the " +
-        "pill, then Send (the paper plane:  grey, blue with unsent marks, outlined once sent) and Review Now (the " +
-        "wand:  blue while there's anything for Claude to work through)."
-    },
-    {
       name: "pill",
       description:
-        "In the send bar, when nobody can take the marks:  no Claude session reviewing (orange), or airplane mode;  " +
-        "a click copies the review line's command."
+        "Under the review line, while marks, comments or Do Now requests wait and nobody can take them:  no Claude " +
+        "session reviewing (orange), or airplane mode;  once a Send or Do Now woke the epic, what the wake did " +
+        "(`Typed /epic review <name> into 🚧 <name>:  press Enter there`).  A click copies the review line's command."
     },
-    { name: "send", description: "The Send button:  every unsent mark to Claude." },
-    { name: "review-now", description: "The Review Now button:  every mark sent, each revisit asked now." },
+    {
+      name: "send",
+      description:
+        "In the header while the page is reviewed, the paper plane:  every unsent mark and comment to Claude.  A " +
+        "grey outline with nothing to send, dashed blue with unsent marks or comments, outlined blue once sent."
+    },
+    {
+      name: "review-now",
+      description:
+        "In the header while the page is reviewed, the wand:  every mark sent, each revisit asked now.  Outlined " +
+        "blue while there's anything for Claude to work through, else grey."
+    },
     { name: "git", description: "The git toggle:  shows or hides every commit (only when the doc has some)." },
     {
       name: "status",
-      description: "The header's right side:  the bedtime label, the step label, the git toggle."
+      description:
+        "The header's right side:  Send and Review Now (while reviewed), the bedtime label, the step label, the git " +
+        "toggle."
     },
     {
       name: "state",
       description:
-        "The step label while the epic has a state, its icon and colour the state's (`$/server/site/EpicState`):  " +
+        "The step label while the epic has a state, its icon and colour the state's (`$/epics/list/EpicState`):  " +
         "in progress (blue half circle), errors (red:  every phase done, items need you), paused (grey:  phases " +
         "left, untouched for days);  why on hover.  None for a future epic or a done one:  FUTURE or DONE says so."
     },
@@ -166,24 +203,18 @@ export const epicPageVocabulary = {
         "Under the header:  `To review this doc, type /epic review <name>` (airplane mode:  `/airplane land`), " +
         "copied on click."
     },
-    { name: "meta", description: "The meta lines:  branch, worktree, dates, durable doc." },
+    { name: "meta", description: "The meta lines:  branch, worktree, dates, saga, guide." },
     { name: "notice", description: "A future epic's notice:  not planned yet." },
     {
       name: "hung",
       description:
         "A doc still planning (no phases, not future):  the folded `Plan hung?` aside, with the prompt to copy."
     },
+    { name: "expand-all", description: "The toolbar's expand-all button:  opens every section, phase and item." },
     {
-      name: "new-button",
+      name: "see-also",
       description:
-        "The toolbar's New todo or question (comment dots, epic `airplane` P2):  opens the form.  Only while the page " +
-        "is reviewed."
-    },
-    {
-      name: "new-form",
-      description:
-        "The new todo or question form the toolbar button opened (an `<epic-new-item open>`):  a row of its own " +
-        "across the header."
+        "Above the blocks:  the pages the epic made for itself (its `details/` folder), each a link;  none, no box."
     },
     {
       name: "agents",
@@ -196,16 +227,34 @@ export const epicPageVocabulary = {
     { name: "commits", description: "Every commit shows (the git toggle is on)." }
   ],
   texts: [
-    { key: "copyHeading", text: "Copy {command}", description: "The h1's tooltip." },
     {
-      key: "newButton",
-      text: "New todo or question",
-      description: "The toolbar's new item button (comment dots):  its name and tooltip."
+      key: "hungTip",
+      text: "Fold or unfold:  how to restart a hung session",
+      description: "Plan hung?:  its tooltip."
+    },
+
+    { key: "copyHeading", text: "Copy {command}", description: "The h1's name:  its tooltip." },
+    {
+      key: "copiedText",
+      text: "Copied {text}",
+      description:
+        "The toast once something is copied (the h1's name, a meta line's code):  what went onto the clipboard."
     },
     { key: "crumbs", text: "Breadcrumb", description: "The crumbs, spoken." },
-    { key: "crumbDocs", text: "Docs", description: "The crumbs' first:  the docs home." },
-    { key: "crumbEpics", text: "Epics", description: "The crumbs' second:  the epics' index." },
-    { key: "planDoc", text: "Plan doc for", description: "Meta line:  `Plan doc for /epic x, branch x`." },
+    { key: "seeAlso", text: "See Also", description: "The See Also box's title." },
+    { key: "seeAlsoDurable", text: "guide", description: "A See Also page's kind:  the epic's guide." },
+    { key: "seeAlsoGuide", text: "guide", description: "A See Also page's kind:  a guide the epic page links to." },
+    { key: "seeAlsoDetails", text: "details", description: "A See Also page's kind:  a details page." },
+    { key: "seeAlsoChoices", text: "choice", description: "A See Also page's kind:  a choice page." },
+    { key: "crumbDocs", text: "Docs", description: "The crumbs' first:  the docs' home page." },
+    { key: "crumbEpics", text: "Epics", description: "The crumbs' second:  the Epics list page." },
+    { key: "crumbSagas", text: "Sagas", description: "A saga page's crumbs' second:  the Sagas list page." },
+    {
+      key: "sagaPage",
+      text: "Saga page:",
+      description: "A saga page's meta line, before its short address (`SAGA:/drawable-spell`, copied on click)."
+    },
+    { key: "planDoc", text: "Epic page for", description: "Meta line:  `Epic page for /epic x, branch x`." },
     { key: "branch", text: "branch", description: "Meta line:  before the branch's name." },
     { key: "futureEpic", text: "Future epic:", description: "Meta line of a future epic." },
     { key: "noBranch", text: "no branch yet", description: "Meta line of a future epic." },
@@ -213,9 +262,20 @@ export const epicPageVocabulary = {
     { key: "noWorktree", text: "none yet", description: "Meta line:  no worktree." },
     { key: "started", text: "Started", description: "Meta line:  `Started 10/6/26, updated 10/7/26`." },
     { key: "updated", text: "updated", description: "Meta line:  before the last change's day." },
-    { key: "durable", text: "Durable doc:", description: "Meta line:  before the durable doc's link." },
+    { key: "durable", text: "Guide:", description: "Meta line:  before the guide's link." },
+    { key: "saga", text: "Saga:", description: "Meta line:  before the link to the saga the epic serves." },
+    {
+      key: "sagaTip",
+      text: "The saga this epic serves:  {purpose}",
+      description: "The saga link's tooltip, once the page server has said what the saga is for."
+    },
     { key: "done", text: "DONE", description: "Step label:  every phase is done." },
     { key: "future", text: "FUTURE", description: "Step label:  a future epic." },
+    {
+      key: "standing",
+      text: "STANDING",
+      description: "Step label:  a standing epic with every phase done:  open for requests."
+    },
     { key: "next", text: "Next:  ", description: "Step label's tooltip, before the next phase." },
     { key: "bedtime", text: "Bedtime {phases}", description: "The bedtime label:  a `/bedtime` run is on." },
     {
@@ -229,29 +289,36 @@ export const epicPageVocabulary = {
     {
       key: "futureBody",
       text:
-        "No worktree, no phases yet.  Its high-level open questions are on its analysis page, answered in the side " +
+        "No worktree, no phases yet.  Its high-level open questions are on its review page, answered in the side " +
         "bar's Review tab;  the answers land here as decided questions.",
       description: "A future epic's notice."
     },
-    { key: "analysisPage", text: "Open its analysis page", description: "The notice's link." },
+    { key: "analysisPage", text: "Open its review page", description: "The notice's link." },
     { key: "futurePlan", text: "plans it.", description: "The notice's last line, after `/epic <name>`." },
-    { key: "sendOne", text: "Send 1 mark to Claude", description: "Send, one mark unsent." },
-    { key: "sendMany", text: "Send {count} marks to Claude", description: "Send, marks unsent." },
-    { key: "sent", text: "Sent:  waiting for Claude", description: "Send, every mark sent." },
+    {
+      key: "send",
+      text: "Send {what} to Claude",
+      description: "Send, marks or comments unsent;  `what` counts them (`marksOne` ..., `2 marks, 1 comment`)."
+    },
+    { key: "sent", text: "Sent:  waiting for Claude", description: "Send, every mark and comment sent." },
     {
       key: "sendIdle",
-      text: "Nothing to send:  mark an item first (its buttons)",
-      description: "Send, no marks."
+      text: "Nothing to send:  mark an item (its buttons) or leave a comment (its bullhorn)",
+      description: "Send, no marks or comments."
     },
+    { key: "marksOne", text: "1 mark", description: "Send's and Review Now's count:  one mark." },
+    { key: "marksMany", text: "{count} marks", description: "Send's and Review Now's count:  marks." },
+    { key: "commentsOne", text: "1 comment", description: "Send's and Review Now's count:  one comment." },
+    { key: "commentsMany", text: "{count} comments", description: "Send's and Review Now's count:  comments." },
     {
       key: "reviewNowOne",
-      text: "Review Now:  Claude works through 1 mark at once, answers in its item",
-      description: "Review Now, one mark to work through."
+      text: "Review Now:  Claude works through {what} at once, answers in its item",
+      description: "Review Now, one mark or comment to work through;  `what` counts it."
     },
     {
       key: "reviewNowMany",
-      text: "Review Now:  Claude works through {count} marks at once, answers in their items",
-      description: "Review Now, marks to work through."
+      text: "Review Now:  Claude works through {what} at once, answers in their items",
+      description: "Review Now, marks or comments to work through;  `what` counts them."
     },
     {
       key: "reviewNowIdle",
@@ -262,14 +329,18 @@ export const epicPageVocabulary = {
     {
       key: "nobodyPill",
       text: "No Claude session is reviewing:  start one with",
-      description: "The send bar's pill while nobody listens, before the command it copies."
+      description: "The pill while nobody listens, before the command it copies."
     },
     {
       key: "airplanePill",
       text: "Airplane mode:  this waits for",
-      description: "The send bar's pill in airplane mode, before `/airplane land`."
+      description: "The pill in airplane mode, before `/airplane land`."
     },
-    { key: "sendBar", text: "Send to Claude", description: "The send bar's region, spoken." },
+    {
+      key: "expandAll",
+      text: "Open every section, phase and item",
+      description: "The toolbar's expand-all button:  its name and tooltip."
+    },
     {
       key: "collapseAll",
       text: "Fold everything on the page",
@@ -282,18 +353,30 @@ export const epicPageVocabulary = {
       description: "The review line in airplane mode (no Claude), before `/airplane land`."
     },
     { key: "copyCommand", text: "Copy the command", description: "The review line's tooltip." },
+    {
+      key: "startReview",
+      text: "Start the review in this epic's Claude session (and copy the command)",
+      description: "The nobody-listening pill's tooltip:  a click types the command into the epic's session."
+    },
     { key: "copied", text: "copied", description: "The review line, just copied." },
     { key: "hung", text: "Plan hung?", description: "The planning aside's title." },
     { key: "hungBefore", text: "Close its Claude tab, then run", description: "The aside, before `/epic <name>`." },
     { key: "hungAfter", text: "and pick \u201cReuse\u201d.", description: "The aside, after `/epic <name>`." }
   ],
   children: [
-    { tag: "flow", slot: "durable", max: 1, description: "The durable doc's link." },
+    { tag: "flow", slot: "durable", max: 1, description: "The guide's link." },
     { tag: "epic-overview", min: 1, max: 1, description: "1. Overview." },
     {
       tag: "epic-section",
       where: { attribute: "kind", values: ["report"] },
       description: "Reports a run wrote (an overnight `/bedtime` report), after the Overview:  unnumbered."
+    },
+    {
+      tag: "epic-section",
+      where: { attribute: "kind", values: ["epics"] },
+      when: { attribute: "kind", values: ["saga"] },
+      max: 1,
+      description: "A saga page's Epics, after its Overview:  the cards of the epics serving it."
     },
     { tag: "epic-section", where: { attribute: "kind", values: ["phases"] }, max: 1, description: "2. Phases." },
     {

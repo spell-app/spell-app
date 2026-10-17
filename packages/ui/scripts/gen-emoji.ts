@@ -1,5 +1,5 @@
 /**
- * `yarn gen:emoji`:  write `src/components/ui-emoji/data/<set>/<chunk>.json`, emoji NAMES => native Unicode emoji, one
+ * `yarn gen:emoji`:  write `components/ui-emoji/data/<set>/<chunk>.json`, emoji NAMES => native Unicode emoji, one
  * JSON file per first letter of the name, per NAME SET, which `EmojiData` loads lazily.
  * - Two sets, never merged (`EmojiData.use()` picks one, `<ui-root emoji>` does it per subtree).  Sources are read
  *   at generation time only (NOTHING new ships at runtime;  `emojibase-data` is a devDependency):
@@ -28,7 +28,7 @@ import { Terminal } from "../tools/Terminal.ts"
 
 /****************
  * ### `EmojiGenerator`
- * Builds every file under `src/components/ui-emoji/data/`:  one folder per name set.
+ * Builds every file under `components/ui-emoji/data/`:  one folder per name set.
  * - `run()` reads both sources, turns each emoji into its character, builds each set, groups by chunk and writes.
  ****************/
 class EmojiGenerator {
@@ -174,7 +174,7 @@ const PACKAGE_ROOT = fileURLToPath(new URL("../", import.meta.url))
 const SOURCE = path.join(PACKAGE_ROOT, "reference/Fomantic-UI/src/themes/default/elements/emoji.variables")
 
 /** Output directory;  emptied first, so a dropped emoji or set doesn't linger. */
-const OUTPUT = path.join(PACKAGE_ROOT, "src/components/ui-emoji/data")
+const OUTPUT = path.join(PACKAGE_ROOT, "components/ui-emoji/data")
 
 /** Variation selector 16:  "show as an emoji". */
 const VS16 = 0xfe0f

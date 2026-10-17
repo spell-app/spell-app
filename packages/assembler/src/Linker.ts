@@ -7,19 +7,31 @@ import { parseHTML } from "linkedom"
 import type { AS } from "$/assembler"
 
 /**
- * Links source references in a page of the spell-app checkout at `root`:  one named target per destination, so
- * re-clicks reuse a tab.  Rules:  `packages/docs/AGENTS.md`, "Links".
- * - `link()`:  `<code>path</code>` outside `<pre>` / `<a>` / `<head>` becomes a link when the path resolves to a real
- *   file or folder;  an existing `<a href>` without a target gets one (external:  per URL;  sibling docs:  per file)
+ * Links source references in a page of the spell-app checkout at `root`:
+ * one named target per destination, so re-clicks reuse a tab.
+ * - Rules:  `packages/epics/AGENTS.md`, "Links".
+ * - `link()`:  `<code>path</code>` outside `<pre>` / `<a>` / `<head>` becomes a link,
+ *   when the path resolves to a real file or folder
+ *   - an existing `<a href>` without a target gets one (external:  per URL;  sibling docs:  per file)
  *   - a name with its path as its tooltip, `<code title="path">name</code>`, links to that path the same way
- * - `check()`:  every local href resolves INSIDE the repo, every non-anchor link has a target, one target per
- *   destination (`target="_self"`, a same-tab link, is exempt from the last)
- *   - a missing target version control IGNORES is fine:  runtime files and local clones exist only on some
- *     machines, or while a server runs (`isGitIgnored()`)
+ * - `check()`:
+ *   - every local href resolves INSIDE the repo
+ *   - every non-anchor link has a target
+ *   - one target per destination (`target="_self"`, a same-tab link, is exempt)
+ *   - a SHORT ADDRESS (`href="SAGA:/drawable-spell/python-target#T1"`, epic `epic-workflow` P15) is neither linked
+ *     nor checked here:  the docs runtime turns it into the page, and the epics tool, which knows the sagas, checks it
+ *     (`EpicTargets.problemsIn()`, run beside this by `doc-links.js --check` and `epic check`)
+ *   - a missing target version control IGNORES is fine:
+ *     runtime files and local clones exist only on some machines, or while a server runs (`isGitIgnored()`)
  * - Works on the page's TEXT with regexes, never a parsed DOM:  the edits touch only what they link, byte for byte.
- * - Knows the checkout's LAYOUT (`packages/*`, the shared areas `pages/`, `guides/`, `epics/`, `templates/`) as
- *   folder names only:  imports no other package, so `docs` and `epics` both import it.
- * - From `packages/docs/tools/doc-links.js` (epic `epic-components`, P7), which now runs its command line on this.
+ * - Knows the checkout's LAYOUT as folder names only:
+ *   `packages/*`, and the shared areas `pages/`, `guides/`, `epics/`, `templates/`.
+ *   It imports no other package, so the docs tools and the `epic` tool (`epics`) both import it.
+ * - SERVED folders (`served`, epic `epic-workflow` P10):  a folder the page server serves at another address.
+ *   - E.g. a component set:  `packages/epics/docs/` at `/components/epics/`.
+ *   - Its pages' links are written as from that address, so they hold under `/worktrees/<w>/` too.
+ *   - Give such a page `servedDir()` of its folder as its `pageDir`:  links then resolve, and are written, from there.
+ * - From `packages/epics/tools/doc-links.js` (epic `epic-components`, P7), which now runs its command line on this.
  */
 export class Linker {
   /** the checkout's root:  links resolve inside it, and a target is a slug of the path relative to it */
@@ -31,7 +43,7 @@ export class Linker {
   /** `packages/ui` */
   readonly ui: string
 
-  /** the docs home's folder, `pages/`:  what `resolve()` resolves against when no page folder is given */
+  /** the home page's folder, `pages/`:  what `resolve()` resolves against when no page folder is given */
   readonly home: string
 
   /** where `solid-js/...` references are looked up */
@@ -40,11 +52,23 @@ export class Linker {
   /** code spans that aren't paths but still have a home:  text -> path or URL */
   readonly special: Map<string, string>
 
+  /**
+   * the served folders, absolute, each `[address folder, the folder it serves]`
+   * - e.g. `[<root>/components/epics, <root>/packages/epics/docs]`
+   */
+  readonly served: readonly (readonly [string, string])[]
+
   /** basename -> paths under `indexRoots`, built on first use (`fileIndex`) */
   private index?: Map<string, string[]>
 
-  constructor(root: string) {
+  /**
+   * - `served`:  the address folder => the folder it serves, both relative to `root`,
+   *   e.g. `{ "components/epics": "packages/epics/docs" }`
+   *   (`COMPONENT_SETS` in `$/server/page`, which this package can't import)
+   */
+  constructor(root: string, { served = {} }: { served?: Readonly<Record<string, string>> } = {}) {
     this.root = root
+    this.served = Object.entries(served).map(([address, dir]) => [join(root, address), join(root, dir)] as const)
     this.packages = join(root, "packages")
     this.ui = join(this.packages, "ui")
     this.home = join(root, "pages")
@@ -84,8 +108,8 @@ export class Linker {
         if (path.includes("/") || PATH_LIKE.test(path.trim())) unresolved.add(path)
         continue
       }
-      // `|| "."`:  the page's own folder
-      let href = URL_START.test(dest) ? dest : relative(pageDir, dest) || "."
+      // `|| "."`:  the page's own folder;  a served page's links are written from where it's served
+      let href = URL_START.test(dest) ? dest : relative(pageDir, this.virtual(dest)) || "."
       if (isDir(dest) && !href.endsWith("/")) href += "/"
       out.push(text.slice(last, m.index))
       out.push(`<a href="${escapeAttribute(href)}" target="${this.targetFor(dest)}">${m[0]}</a>`)
@@ -100,7 +124,8 @@ export class Linker {
   /**
    * The tab name for `dest`, an absolute path or URL:  re-clicks reuse that tab.
    * - URLs:  `ext-<slug>`
-   * - a plan doc:  its `<name>`, since the page sets `window.name` to it and `spell dev plan-doc open <name>` reuses it
+   * - an epic page:  its `<name>`, since the page sets `window.name` to it,
+   *   and `spell dev plan-doc open <name>` reuses it
    * - anything else:  `src-<slug of the repo-relative path>`
    * - at most 80 characters after the prefix
    */
@@ -114,12 +139,12 @@ export class Linker {
 
   /**
    * `tag`, an `<a href>` in a page in `pageDir`, with a target:
-   * - in-page anchors (`#id`) are left alone
-   * - a tag with a target keeps it, except a plan doc's:  renamed to its `<name>` (pre-2026-10-01 targets)
+   * - in-page anchors (`#id`) and short addresses (`SAGA:/...`) are left alone
+   * - a tag with a target keeps it, except an epic page's:  renamed to its `<name>` (pre-2026-10-01 targets)
    */
   private addTarget(tag: string, href: string, pageDir: string): string {
-    if (href.startsWith("#")) return tag
-    const dest = URL_START.test(href) ? href : resolvePath(pageDir, href.split("#")[0])
+    if (href.startsWith("#") || SAGA_ADDRESS.test(href)) return tag
+    const dest = URL_START.test(href) ? href : this.real(resolvePath(pageDir, href.split("#")[0]))
     if (tag.includes("target=")) {
       if (URL_START.test(dest) || !PLAN_DOC.test(relative(this.root, dest))) return tag
       return tag.replace(/target="[^"]*"/g, () => `target="${this.targetFor(dest)}"`)
@@ -128,14 +153,50 @@ export class Linker {
   }
 
   ////////////////
+  // ## Served folders
+  ////////////////
+
+  /**
+   * The folder a page in `dir` is SERVED from:  in a served folder, its place under the address folder
+   * (`<root>/packages/epics/docs` => `<root>/components/epics`);  else `dir`.
+   * - What to pass `link()` / `check()` as a page's folder.
+   */
+  servedDir(dir: string): string {
+    return this.swap(resolvePath(dir), 1, 0)
+  }
+
+  /** `path`, resolved from a served place, as the file it is:  `<root>/components/epics/x` => `<root>/packages/epics/docs/x`. */
+  private real(path: string): string {
+    return this.swap(path, 0, 1)
+  }
+
+  /** `path`, a file, as the place it's served at:  `real()` turned round. */
+  private virtual(path: string): string {
+    return this.swap(path, 1, 0)
+  }
+
+  /** `path` with the first served pair's side `from` at its start swapped for side `to`;  else `path`. */
+  private swap(path: string, from: 0 | 1, to: 0 | 1): string {
+    for (const pair of this.served) {
+      if (path === pair[from]) return pair[to]
+      if (path.startsWith(`${pair[from]}/`)) return pair[to] + path.slice(pair[from].length)
+    }
+    return path
+  }
+
+  ////////////////
   // ## Resolving
   ////////////////
 
   /**
    * A code span's text -> an existing absolute path or `https://` URL, else `undefined`.
-   * - tries, in order:  `special`, `solid-js/...` in `nodeModules`, `solidjs.com` pages,
-   *   then the path against the page's folder, its `experiments/`, the repo root, `packages/`,
-   *   the docs home's folder (`pages/`) and UI;  a bare file name last, when ONE file outside a `test/` folder has it
+   * - tries, in order:
+   *   - `special`
+   *   - `solid-js/...` in `nodeModules`
+   *   - `solidjs.com` pages
+   *   - the path against the page's folder, its `experiments/`, the repo root, `packages/`,
+   *     the home page's folder (`pages/`) and UI
+   *   - a bare file name last, when ONE file outside a `test/` folder has it
    * - `file.ts:75` drops its line number
    * - NOTE:  the alias form is `#name/...`, from before the `$/` aliases:  a `$/name/...` span never resolves
    */
@@ -157,7 +218,9 @@ export class Linker {
     const bases = path.startsWith("node_modules/")
       ? [this.root, this.ui]
       : [this.root, this.packages, this.home, this.ui]
-    const candidates = [pageDir, join(pageDir, "experiments"), ...bases].map((base) => resolvePath(base, path))
+    const candidates = [pageDir, join(pageDir, "experiments"), ...bases].map((base) =>
+      this.real(resolvePath(base, path))
+    )
     const found = candidates.find((candidate) => existsSync(candidate))
     if (found) return found
     if (!path.replace(/\/+$/, "").includes("/")) {
@@ -169,17 +232,20 @@ export class Linker {
 
   /**
    * Where bare file names (`withSolid.ts`) are looked up:
-   * - every package's `src/`
-   * - the docs' pages (every area:  `pages/`, `guides/`, `epics/`, `templates/`) and tools, and UI's `docs/`
+   * - every package's `src/`, and its `components/` (a component set's elements:  `UIButton.tsx`)
+   * - the repo's `tests/`, where every package's tests live (`List.test.ts`)
+   * - the docs' pages (every area:  `pages/`, `guides/`, `epics/`, `templates/`) and tools
+   * - UI's design notes, `notes/`
    */
   private get indexRoots(): string[] {
     return [
       ...readdirSync(this.packages)
-        .map((name) => join(this.packages, name, "src"))
+        .flatMap((name) => [join(this.packages, name, "src"), join(this.packages, name, "components")])
         .filter(isDir),
+      ...[join(this.root, "tests")].filter(isDir),
       ...AREAS.map((area) => join(this.root, area)),
-      join(this.packages, "docs", "tools"),
-      join(this.ui, "docs")
+      join(this.packages, "epics", "tools"),
+      join(this.ui, "notes")
     ]
   }
 
@@ -199,8 +265,11 @@ export class Linker {
   /**
    * The links of `text` (a page in `pageDir`), outside `<pre>`:
    * - `destinations`:  how many distinct destinations the targeted links have
-   * - `problems`:  nested links, missing or outside-the-repo files, links with no target, a destination with several
-   *   targets, a target shared by several destinations
+   * - `problems`:
+   *   - nested links
+   *   - missing or outside-the-repo files
+   *   - links with no target
+   *   - a destination with several targets, or a target shared by several destinations
    * - SIDE EFFECT:  runs `git check-ignore` once per missing local file
    */
   check(text: string, pageDir: string): AS.LinkCheck {
@@ -213,10 +282,10 @@ export class Linker {
       const attrs = m[1]
       const hrefMatch = /href="([^"]+)"/.exec(attrs)
       const target = /target="([^"]+)"/.exec(attrs)?.[1]
-      if (!hrefMatch || hrefMatch[1].startsWith("#")) continue
+      if (!hrefMatch || hrefMatch[1].startsWith("#") || SAGA_ADDRESS.test(hrefMatch[1])) continue
       const href = decodeEntities(hrefMatch[1])
       const local = !URL_START.test(href)
-      const dest = local ? resolvePath(pageDir, href.split("#")[0]) : href
+      const dest = local ? this.real(resolvePath(pageDir, href.split("#")[0])) : href
       if (local && !existsSync(dest)) {
         if (!this.isGitIgnored(dest + (href.split("#")[0].endsWith("/") ? "/" : ""))) problems.push(`missing:  ${href}`)
       } else if (local && !this.isInside(dest)) problems.push(`outside repo:  ${href}`)
@@ -225,7 +294,7 @@ export class Linker {
         continue
       }
       // `_self`:  a page that reads like a site (the master plan) navigates in place, on purpose.
-      // `github`:  a plan doc's commit links (`<epic-commit>`) share ONE GitHub tab,
+      // `github`:  an epic page's commit links (`<epic-commit>`) share ONE GitHub tab,
       // on purpose (P3 of `review-review`)
       if (target === "_self" || target === SHARED_TAB) continue
       if (!byDest.has(dest)) byDest.set(dest, new Set())
@@ -241,8 +310,8 @@ export class Linker {
   }
 
   /**
-   * Whether version control ignores `path`:  a local-only or runtime file (`.spell-server.json`, a local clone in
-   * `packages/ui/reference/`), fine to be missing here.
+   * Whether version control ignores `path`:  a local-only or runtime file, fine to be missing here.
+   * - e.g. `.spell-server.json`, a local clone in `packages/ui/reference/`
    * - a folder MUST keep its trailing `/`:  a missing path can't match a folder-only rule (`ongoing/`) without it
    */
   private isGitIgnored(path: string): boolean {
@@ -278,22 +347,29 @@ const SKIP_DIRS = new Set([
 ])
 
 /**
- * A plan doc, `epics/<name>/<name>.plan.html` (before 2026-10-04 `<name>.html`;
- * before 2026-10-05 under `packages/docs/content/` or `packages/docs/`), relative to the repo root:  `[1]` is its name.
- * - same as `packages/docs/tools/relocate.js` `PLAN_DOC`
+ * An epic page, `epics/<name>/<name>.plan.html`, relative to the repo root:  `[1]` is its name.
+ * - and its old places:  `<name>.html` before 2026-10-04;
+ *   under `packages/docs/content/` or `packages/docs/` before 2026-10-05
+ * - same as `packages/epics/tools/relocate.js` `PLAN_DOC`
  */
 const PLAN_DOC = /(?:^|\/)(?:packages\/docs\/(?:content\/)?)?epics\/([^/]+)\/\1(?:\.plan)?\.html$/
 
-/** The one target several destinations may share:  a plan doc's commits, each opened in the same GitHub tab. */
+/** The one target several destinations may share:  an epic page's commits, each opened in the same GitHub tab. */
 const SHARED_TAB = "github"
 
 /** An absolute URL. */
 const URL_START = /^https?:\/\//
 
 /**
+ * A short address, `SAGA:/<saga>[/<epic>][#<id>]`:  the epics tool's (`$/epics/links` `SAGA_SCHEME`), which this
+ * package can't import.
+ */
+const SAGA_ADDRESS = /^saga:\//i
+
+/**
  * A code span:  `[2]` its text;
- * `[1]` its `title`, when that's its only attribute:  a name with its path as its tooltip (WWOD §6 › "Plain text,
- * plain paths")
+ * `[1]` its `title`, when that's its only attribute:
+ * a name with its path as its tooltip (WWOD §6 › "Plain text, plain paths")
  */
 const CODE_SPAN = /<code(?:\s+title="([^"]+)")?\s*>([^<]+)<\/code\s*>/g
 

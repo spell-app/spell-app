@@ -1,7 +1,7 @@
 import { For, Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 
 import { DRAFT_SAVE_MS, FOCUS_HOLD_MS, NOBODY_LISTENING, clockOf, isImmediate, type InboxMark } from "$/epics/review"
 
@@ -34,6 +34,7 @@ import {
 } from "./EpicReview.types"
 
 import reviewCSS from "./EpicReview.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicReview`
@@ -62,7 +63,7 @@ import reviewCSS from "./EpicReview.css?inline"
 export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
   @E.proto static vocabulary = epicReviewVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-review": reviewCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-review": reviewCSS },
     // a click on a marked note's words must not jump to its Edit button
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
@@ -121,7 +122,8 @@ export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
    *   - grey:  no longer relevant (a todo's x)
    * - work on its way or under way (`ReviewState.busyButton()`):
    *   - that button's icon turns while Claude is on it (`data-busy`)
-   *   - queued with nobody listening, it stays dashed
+   *   - queued with nobody listening, it stays dashed, "waiting for a session" (and what the page server's wake did:
+   *     epic `epic-workflow` P16)
    *   - clicked then:  "nevermind"
    * - Revisit takes the reader to the note box (`takeToNote()`);
    *   Do Now takes the note in it along (`ReviewClient.press()`)
@@ -207,17 +209,23 @@ export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
     return this.review.fillOf(spec.action)
   }
 
-  /** A button's plain tooltip:  its name, then the element's review label (`Approve · reviewed 10/7/26`). */
+  /**
+   * A button's tooltip:  its name, what a click does or where its mark stands, then the element's review label
+   * (`Approve:  Fine as it is · reviewed 10/7/26`).
+   */
   private tipOf(spec: ReviewButtonSpec): string {
-    const label = this.translationForKey(spec.label)
-    return this.tip ? `${label} · ${this.tip}` : label
+    const said = this.translationForKey("buttonTip", {
+      label: this.translationForKey(spec.label),
+      what: this.stateOf(spec)
+    })
+    return this.tip ? `${said} · ${this.tip}` : said
   }
 
   /** A button's state, for a screen reader. */
   private stateOf(spec: ReviewButtonSpec): string {
     const review = this.review
     if (review.busyButton() === spec.action) {
-      if (review.running()?.queued) return this.translationForKey("waiting", { why: NOBODY_LISTENING })
+      if (review.running()?.queued) return this.translationForKey("waiting", { why: review.waitingWhy() })
       return this.translationForKey(review.workedOn() ? "working" : "asked")
     }
     const fill = this.fillOf(spec)
@@ -319,7 +327,7 @@ export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
         type="button"
         data-how={spec.how}
         data-color={spec.color}
-        title={this.translationForKey(spec.label)}
+        title={this.translationForKey(spec.tip)}
         aria-label={this.translationForKey(spec.tip)}
         onClick={() => this.use(spec.how)}
       >
@@ -466,7 +474,7 @@ export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
             <button
               type="button"
               class={SAID_EDIT}
-              title={this.translationForKey("edit")}
+              title={this.translationForKey("editTip")}
               aria-label={this.translationForKey("edit")}
               onClick={() => this.takeToNote(this.review.mark()?.note)}
             >

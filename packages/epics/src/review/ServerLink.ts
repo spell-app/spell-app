@@ -1,6 +1,7 @@
 import {
   PLAN_DOC_PAGE,
   REVIEW_POLL_MS,
+  SAGA_PAGE,
   SERVER_INFO,
   ServerWriteError,
   type ServerInfo,
@@ -9,7 +10,7 @@ import {
 
 /****************
  * ### `ServerLink`
- * A plan doc's LINK to the page server, as its clients use it:  the review inbox's (`ReviewClient`) and the running
+ * An epic page's LINK to the page server, as its clients use it:  the review inbox's (`ReviewClient`) and the running
  * agents' (`AgentsClient`), one link each.
  * - writes:  `post()`, with the server's write token (`x-server-token`, `SRV.Guard`);  a 403 on the token (the page
  *   server restarted since the page loaded) takes the server's new token from the page as it's served now, and
@@ -39,11 +40,20 @@ export class ServerLink {
   }
 
   /**
-   * Do the page server's plan-doc routes answer this page?  A plan doc's own path (`PLAN_DOC_PAGE`:  any other page
+   * Do the page server's epic-page routes answer this page?  An epic page's own path (`PLAN_DOC_PAGE`:  any other page
    * gets a 403), served with a token, never from `file://`.  Else a client never asks.
    */
   get servesPlanDoc(): boolean {
     return !!this.info?.token && this.options.protocol !== "file:" && PLAN_DOC_PAGE.test(this.options.page)
+  }
+
+  /**
+   * Do the page server's REVIEW routes answer this page?  An epic page, as `servesPlanDoc`, or a saga page's own path
+   * (`SAGA_PAGE`, epic `epic-workflow` P15):  its marks and comments wait in its own inbox.
+   */
+  get servesReviews(): boolean {
+    if (this.servesPlanDoc) return true
+    return !!this.info?.token && this.options.protocol !== "file:" && SAGA_PAGE.test(this.options.page)
   }
 
   /** The page's file, as the page server announces changes (`spell-server:file`'s `path`). */
@@ -85,9 +95,12 @@ export class ServerLink {
    * Keep a client fresh on `window`'s page:  `refresh()` every `REVIEW_POLL_MS` while visible, when the page becomes
    * visible, and when the page server says `file` changed (`spell-server:file`, the page's live client:  never a
    * connection of our own, each holds one of Chrome's 6 per host).  Returns the undo.
+   * - a data file (`<name>.json5`) by its old name too, `<name>.json`:  a checkout on older code writes that
+   *   (epic `epic-workflow` P21)
    */
   watch(window: Window, file: string, refresh: () => void): () => void {
     const { document } = window
+    const names = [file, file.replace(/\.json5$/, ".json")]
     const timer = window.setInterval(() => {
       if (document.visibilityState === "visible") refresh()
     }, REVIEW_POLL_MS)
@@ -95,7 +108,7 @@ export class ServerLink {
       if (document.visibilityState === "visible") refresh()
     }
     const onFile = (event: Event) => {
-      if ((event as CustomEvent<{ path?: string }>).detail?.path === file) refresh()
+      if (names.includes((event as CustomEvent<{ path?: string }>).detail?.path ?? "")) refresh()
     }
     document.addEventListener("visibilitychange", onVisible)
     window.addEventListener("spell-server:file", onFile)

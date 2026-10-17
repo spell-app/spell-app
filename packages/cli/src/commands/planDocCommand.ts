@@ -2,26 +2,32 @@
 import { findCheckout } from "$/cli/findCheckout"
 
 /**
- * `spell dev plan-doc <command> <name> ...`:  the tool that edits a plan doc
+ * `spell dev plan-doc <command> <name> ...`:  the tool that edits an epic page
  * (`epics/<name>/<name>.plan.html`), as the `/epic` skill uses it.  `spell dev plan-doc` alone
  * lists its commands, e.g. `spell dev plan-doc summary seo`, `spell dev plan-doc phase seo 2 done`.
  * - Root `yarn plan-doc` aliases it;  `spell plan-doc` too, until skills stop calling it (deprecated).
  * - Which checkout:  the nearest one from the current folder up (a worktree's, when run in one), else this
  *   checkout's (`findCheckout()`):  its `epics/`, templates and docs tools.  The CODE is this checkout's.
  * - Runs the tool IN this process:  `$/epics/tool/PlanDocCommands` (epic `epic-components`, P7;  it was a child
- *   `node` running `packages/docs/tools/plan-doc.js`, since nothing may import `docs`).
+ *   `node` running `packages/epics/tools/plan-doc.js`, since nothing may import `docs`).
  * - Lean, like every `spell dev` command:  `args` only, no `CliSession` (which loads spell);  the tool loads on
  *   first use (a dynamic `import()`), so other `spell dev` commands don't pay for linkedom and oxfmt.
  * - Returns the tool's exit code, once its output is written:  `runLean()` exits at once, and a pipe on macOS takes
  *   its writes asynchronously.
+ * - Gives the tool an epic's RUNNING sessions (`sessionsOf()`), for `migrate --notify` (epic `epic-workflow` P8):
+ *   the sessions are the CLI's to find, and `epics` may not import the CLI
  */
 export async function planDocCommand(args: string[]): Promise<number> {
   const [{ PlanDocCommands }, { PlanDocFiles }] = (await Promise.all([import(COMMANDS), import(FILES)])) as [
-    { PlanDocCommands: new (props: { files: unknown }) => { run(argv: string[]): Promise<number> } },
+    {
+      PlanDocCommands: new (props: { files: unknown; sessionsOf: typeof sessionsOf }) => {
+        run(argv: string[]): Promise<number>
+      }
+    },
     { PlanDocFiles: new (props: { root: string }) => unknown }
   ]
   const files = new PlanDocFiles({ root: findCheckout(CHECKOUT_MARKER) })
-  const exitCode = await new PlanDocCommands({ files }).run(args)
+  const exitCode = await new PlanDocCommands({ files, sessionsOf }).run(args)
   await flushed()
   return exitCode
 }
@@ -46,7 +52,7 @@ const FILES = "$/epics/tool/PlanDocFiles"
  * What marks a checkout the tool can work on (`findCheckout()`):  its docs tools, as when the tool ran from there.
  * - a worktree cut before P7 of `epic-components` has it too:  its docs are the shared ones either way
  */
-const CHECKOUT_MARKER = "packages/docs/tools/plan-doc.js"
+const CHECKOUT_MARKER = "packages/epics/tools/plan-doc.js"
 
 /** Resolves once everything written to stdout and stderr so far is out:  an empty write's callback comes after. */
 function flushed(): Promise<void> {
@@ -54,4 +60,19 @@ function flushed(): Promise<void> {
   return Promise.all(streams.map((stream) => new Promise<void>((done) => stream.write("", () => done())))).then(
     () => undefined
   )
+}
+
+/**
+ * The running Claude sessions working on epic `epic`, as `epic send` finds its receivers (`epicSessions()`:
+ * titled `<epic>`, with or without its icon):  each one's `name`, the address `SendMessage` takes, and its id.
+ * - loaded on first use:  `requests.ts` reaches the `$/cli` barrel, which loads spell;  `consoleGuard` first, as
+ *   `main.ts` loads it, so spell's logging stays off the terminal (the tool itself never writes through `console`)
+ */
+async function sessionsOf(epic: string): Promise<{ name: string; sessionId: string }[]> {
+  await import("$/cli/consoleGuard")
+  const { epicSessions } = await import("$/cli/epic/requests")
+  return epicSessions(epic).map((session) => ({
+    name: session.name ?? session.sessionId,
+    sessionId: session.sessionId
+  }))
 }

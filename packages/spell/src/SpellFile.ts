@@ -80,7 +80,7 @@ export class SpellFile extends TextFile {
     return this.derived("project", () => new SP.SpellProject(this.projectId))
   }
 
-  /** Does our project parse us, i.e. are we active in its `project.json`? */
+  /** Does our project parse us, i.e. are we active in its project file? */
   get isActive(): boolean {
     return this.project.spellFiles.includes(this)
   }
@@ -170,8 +170,8 @@ export class SpellFile extends TextFile {
 
   /**
    * Load our content and attempt to parse it -- returns a `Match` (also available as `this.match`).
-   * - NOTE: if `this.match` is already set, we assume that's fine and return it as-is.  Call
-   *   `spellFile.resetCompiled()` first to force a re-parse.
+   * - NOTE: if `this.match` is already set, we assume that's fine and return it as-is.
+   *   Call `spellFile.resetCompiled()` first to force a re-parse.
    * - Pass explicit `parentScope` if this file is, e.g. building on other files.
    */
   async parse(parentScope?: P.Scope): Promise<P.Match | undefined> {
@@ -212,8 +212,8 @@ export class SpellFile extends TextFile {
   /**
    * Where parse errors are logged as files parse -- none by default:  the parser has no console of its own.
    * - The app points it at the console of the runtime its programs run on, so they show in "Program Output".
-   * - NOT `spellCore.console`:  the parser MUST NOT load `spellCore` -- each runner runs its own copy.  See
-   *   `spellRuntime.ts`.
+   * - NOT `spellCore.console`:  the parser MUST NOT load `spellCore`, as each runner runs its own copy.
+   *   See `spellRuntime.ts`.
    */
   static errorConsole?: { error(...args: unknown[]): void }
 
@@ -239,7 +239,7 @@ export class SpellFile extends TextFile {
    */
   async compile(parentScope?: P.Scope): Promise<string | undefined> {
     const match = await this.parse(parentScope)
-    const compiled = match?.compile()
+    const compiled = P.JSWriter.instance.writeMatch(match)
     batch(() => {
       this.setState("AST", match?.AST)
       this.setState("compiled", typeof compiled === "string" ? SP.SpellDeclarations.stripComments(compiled) : undefined)
@@ -256,9 +256,14 @@ export class SpellFile extends TextFile {
     return true
   }
 
-  /** URL to serve the file. */
+  /** URL to read the file:  `/spaces/<project>/<file>` (`SP.SpellUrls.fileUrl()`). */
   get url(): string {
-    return `/api/projects/file/${this.projectId}${this.filePath}`
+    return SP.SpellUrls.fileUrl(this.path)
+  }
+
+  /** Saved by a call, not to `url`:  `POST /api/projects/file/<project>/<file>` (`SP.SpellUrls.saveUrl()`). */
+  get saveParams() {
+    return { ...super.saveParams, url: SP.SpellUrls.saveUrl(this.path) }
   }
 
   ////////////////

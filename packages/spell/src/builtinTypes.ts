@@ -6,10 +6,11 @@
  *   - `the length of the deck` => `spellCore.itemCountOf(deck)`
  * - Editors read it:  hover and completion show its members' docs, and the Type Explorer lists its types.
  *   - `LSP.ScopeExplorer`'s `yarn scopes --builtins` GENERATES `core`'s `src/spellCore.scopes.js` from it.
- * - Why data (plan doc D25):  no `.spell` file to parse at startup, and no statics on runtime classes --
+ * - Why data (epic page D25):  no `.spell` file to parse at startup, and no statics on runtime classes --
  *   the parser never imports `spellCore`'s code.
  * - Adding a member:  one entry here, and the `spellCore` method or javascript property its `readAs` names.
- *   `builtinTypes.test.ts` pins each one.  See "Built-in types" in `PARSING.md`.
+ *   - `builtinTypes.test.ts` pins each one.
+ *   - See "Built-in types" in `PARSING.md`.
  * - NOTE:  a type's NAME and super-type are `P.BUILT_IN_TYPES`' (the parser's vocabulary):
  *   `superType` here MUST agree, which the test checks.
  *   - A built-in type with no entry here, e.g. `number`, has no members yet.
@@ -20,9 +21,21 @@ import { P } from "$/parser"
 import { SP } from "$/spell"
 
 /**
+ * The docs of `id`, which every thing and list has (epic `people-and-orgs`, Q9):
+ * nobody declares it, and saving refers to a thing by it.
+ */
+const ID_DOCSTRING = md(
+  "What names it among the others of its kind, e.g. `the id of the person`.",
+  "- Every thing and list has one:  nobody declares it, and a type can't declare its own.",
+  "- Made up the first time it's read, e.g. `person-k3x9q2mf`, unless you set it first:",
+  '  `a new person with id = "owen"`, or `set the id of the person to "owen"`.',
+  "- Saving uses it:  a thing saved in its own file is referred to by it."
+)
+
+/**
  * Spell's built-in types, in the order the Type Explorer lists them -- see `SP.BuiltInType`.
  * - TODO:  members still to add:
- *   - `number`'s `absolute value` and `round`:  their rules (`math.ts`) compile to `spellCore` methods
+ *   - `number`'s `absolute value` and `round`:  their rules (`math/`) compile to `spellCore` methods
  *     which don't exist yet
  *   - a `date`'s `month` (javascript counts months from 0)
  *   - a text's `words`
@@ -50,6 +63,13 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
     ),
     rules: ["create_type", "new_thing", "create_thing"],
     members: [
+      {
+        words: "id",
+        kind: "property",
+        datatype: "text",
+        stored: true,
+        docstring: ID_DOCSTRING
+      },
       {
         words: "(a thing) belongs to one (list)",
         kind: "method",
@@ -99,6 +119,13 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
     ),
     rules: ["create_list_type", "new_list"],
     members: [
+      {
+        words: "id",
+        kind: "property",
+        datatype: "text",
+        stored: true,
+        docstring: ID_DOCSTRING
+      },
       {
         words: "length",
         kind: "property",
@@ -185,7 +212,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
           "Add `thing` to the end -- or wherever you say:",
           "- `add the card to the deck`, or `... to the end of the deck`",
           "- `add the card to the start of the deck`, or `prepend the card to the deck`",
-          "- `add the card to the deck before the ace`"
+          "- `add the card to the deck before the ace` (at the start if the ace isn't in it;  `after`:  at the end)"
         )
       },
       {
@@ -347,6 +374,40 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
     ]
   },
   {
+    name: "drawable",
+    superType: "thing",
+    docstring: md(
+      "A thing drawn as its own custom element -- `a card is a drawable thing` makes a card that is one.",
+      "- Everything a thing has.",
+      "- Its tag starts with the project's or library's name, made singular:  `<solitaire-card>` in a solitaire app.",
+      "- `a drawable thing` and `a drawable` both say it.",
+      "",
+      "```spell",
+      "a card is a drawable thing",
+      "a card has a rank as a number",
+      "to draw (a card)",
+      "  return <div>{its rank}</div>",
+      "```"
+    ),
+    rules: ["create_type"],
+    members: []
+  },
+  {
+    name: "drawable list",
+    superType: "list",
+    docstring: md(
+      "A list drawn as its own custom element, its items inside it -- `a pile is a drawable list of cards`.",
+      "- Everything a list has.",
+      "- Its `to draw` draws its outside;  each item draws itself, inside it.",
+      "",
+      "```spell",
+      "a pile is a drawable list of cards",
+      "```"
+    ),
+    rules: ["create_drawable_list_type"],
+    members: []
+  },
+  {
     name: "text",
     itemType: "character",
     docstring: md(
@@ -467,6 +528,12 @@ export const TYPE_WORDS: P.TypeWords = {
   array: "list",
   thing: "thing",
   app: "app",
+  // two words, so `a card is a drawable thing` leaves none over -- see `P.BUILT_IN_CLASS_NAMES`
+  drawable: "drawable",
+  "drawable thing": "drawable",
+  "drawable-thing": "drawable",
+  "drawable list": "drawable list",
+  "drawable-list": "drawable list",
   nothing: "nothing",
   undefined: "nothing",
   null: "nothing"
@@ -481,7 +548,7 @@ export const TYPE_WORDS: P.TypeWords = {
  *   - `fraction` => `number`
  *   - `char` => `character`
  * - A list of something:  `list of cards` / `array of Card` => `list of cards`.
- * - Anything else is a user's type, Type_Case and singular:  `cards` => `Card`.
+ * - Anything else is a user's type, PascalCase and singular:  `cards` => `Card`.
  */
 export function typeName(written: string): P.Datatype {
   return P.typeName(written, TYPE_WORDS)
@@ -496,7 +563,8 @@ export function typeName(written: string): P.Datatype {
  * - Each type's `itemType`, e.g. `character` for `text`, so `the first character of the name` is a `character`.
  * - Each member with a `readAs` template, as a `P.ScopeVariable` holding it:
  *   `TypeScope.getMember()` finds it, for `the X of Y` / `its X`, and editors list it.
- *   - A member only built-in RULES spell is docs alone.
+ *   - A `stored` member too, with no template:  it reads and sets like a declared property, e.g. `id`.
+ *   - A member spelled only by built-in RULES (no `readAs`) is docs alone.
  * - Throws for a type the scope doesn't have, or a template `parseReadAsTemplate()` can't read.
  * - SIDE EFFECT:  changes the shared root's types, once -- `SpellParser.rootScope` calls it as it builds.
  */
@@ -506,6 +574,11 @@ export function loadBuiltInTypes(scope: P.RootScope): void {
     if (!type) throw new TypeError(`Built-in type '${entry.name}' isn't in the root scope:  see P.BUILT_IN_TYPES`)
     if (entry.itemType) type.itemType = entry.itemType
     for (const member of entry.members) {
+      if (member.stored) {
+        const { words, datatype, docstring } = member
+        type.variables.add({ name: builtInMemberName(words), datatype, docstring })
+        continue
+      }
       if (!member.readAs) continue
       if (!parseReadAsTemplate(member.readAs)) {
         throw new TypeError(`Built-in ${entry.name}'s '${member.words}':  can't read template '${member.readAs}'`)
@@ -547,6 +620,17 @@ const READ_AS_TEMPLATE =
 // ## Lookups
 ////////////////
 
+/**
+ * Built-in docs `text`, for a project whose lists start at `startAt` (its project file's `"listsStartAt"`).
+ * - Counting from 0:  "counts from 1" says 0, and `card 1 of the deck` says `card 0`.
+ * - Counting from 1:  `text` as it is.
+ * - Epic `python-target` P2.
+ */
+export function docsCountingFrom(text: string, startAt: 0 | 1 = 1): string {
+  if (startAt !== 0) return text
+  return text.replace(/([Cc])ounts from 1/g, "$1ounts from 0").replace(/`card 1 of the deck`/g, "`card 0 of the deck`")
+}
+
 /** Table entry of built-in type `name`, however written, e.g. `List` or `list` -- `undefined` if it has none. */
 export function builtInTypeEntry(name: string): SP.BuiltInType | undefined {
   const datatype = typeName(name)
@@ -570,6 +654,17 @@ export function builtInMembersOfRule(ruleName: string): Array<{ type: SP.BuiltIn
  */
 export function isBuiltInTypeScope(type: P.TypeScope | undefined): boolean {
   return !!type && SP.SpellParser.rootScope.types.get(type.name, "LOCAL_ONLY") === type
+}
+
+/**
+ * Is `name` a property every thing or list has, built in (a `stored` member), e.g. `id`?
+ * - So no type may declare its own:  `a person has an id as text` is refused -- see `SpellStatement.refuseBuiltInType()`.
+ */
+export function isBuiltInStoredMember(name: string): boolean {
+  const memberName = builtInMemberName(name)
+  return BUILT_IN_TYPE_TABLE.some((entry) =>
+    entry.members.some((member) => member.stored && builtInMemberName(member.words) === memberName)
+  )
 }
 
 ////////////////

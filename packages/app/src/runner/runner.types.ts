@@ -8,13 +8,18 @@ import type { UI } from "$/app/ui"
 
 /**
  * Message from the extension to the runner webview.
- * - `run`:  run `compiled`, the project's javascript, afresh
+ * - `run`:  run `compiled`, the project's javascript
+ *   - keeping the program's things, unless it answers our `restart` -- see `<VSCodeRunner>`'s `run()`
  * - `scopes`:  live scope tree to show in the Type Explorer, as the language server's `spell/scopes`
  * - `settings`:  the project's `settings.json5`, as the extension read it -- sent on `ready`, before anything else
  * - `details`:  answer to our `details` -- as the language server's `spell/scopeDetails`
+ * - `words`:  the project's words file, `<Project>.en.js`, as text -- for the Thing Explorer's labels
+ *   - see `SP.SpellWords`
+ *   - sent after each `run`;  `undefined` if it has none
  */
 export type ToRunnerMessage =
   | { type: "run"; compiled: string }
+  | { type: "words"; words?: string }
   | { type: "scopes"; tree: LSP.ScopeNode }
   | { type: "settings"; settings: ProjectSettings }
   | { type: "details"; path: string; details: LSP.ScopeDetails | null }
@@ -39,9 +44,9 @@ export type FromRunnerMessage =
   | { type: "refreshScopes" }
 
 /**
- * How a project is shown, remembered in its `settings.json5` -- beside its `project.json`, git-ignored, and NOT one
- * of its files in the editor.  The extension reads and writes it:  NOT the webview's own storage, which may not
- * outlive the panel.
+ * How a project is shown, remembered in its `settings.json5`:
+ * beside its `project.json`, git-ignored, and NOT one of its files in the editor.
+ * - The extension reads and writes it:  NOT the webview's own storage, which may not outlive the panel.
  * - Each top-level section is written whole, so a section's props needn't be merged.
  * - NOTE: more to come;  every prop is optional, so a missing or older file just starts afresh.
  */
@@ -76,16 +81,49 @@ export const SPELL_COMPILED_EVENT = "spell-compiled"
 
 /**
  * What a `<spell-editor>` compiled, for `<spell-app>`s to run -- see `SPELL_COMPILED_EVENT`.
- * - A NEW object per compile:  an app runs each one once, however it hears of it -- its `editor` attribute AND the
- *   editor's `app` attribute can both name it.
+ * - A NEW object per compile:  an app runs each one once, however it hears of it.
+ *   Its `editor` attribute AND the editor's `app` attribute can both name it.
  */
 export type SpellCompiled = {
-  /** Project compiled, e.g. `@system:examples:Solitaire` -- where its imports and sources come from. */
+  /** Project compiled, e.g. `@spell/examples/solitaire` -- where its imports and sources come from. */
   projectId: string
-  /** Its javascript, as `<Project>.compiled.js` holds it. */
+  /** Its javascript, as `<Project>.spell.js` holds it. */
   compiled: string
   /** Its scope pack, for the Type Explorer -- fresh, where the one on the server may be stale. */
   scopes?: LSP.ScopePack
   /** Its declarations, for the Type Explorer's code -- see `SP.SpellDeclarationsData`. */
   declarations?: SP.SpellDeclarationsData
+  /** Its words, for the Thing Explorer's labels -- see `SP.SpellWords`. */
+  words?: SP.SpellWordsData
+}
+
+////////////////
+// ## Spell in a layout
+//  what `<spell-app>`'s layout may hold (epic `drawable-thing` P9) -- here, so the runner can tell
+//  WITHOUT loading `LayoutSpell`, which holds the parser
+////////////////
+
+/** The tag of a block of spell in a layout:  `<spell> when clicked ... </spell>`. */
+export const LAYOUT_SPELL_TAG = "spell"
+
+/** The tag of formatted text in a layout, drawn by `<ui-markdown>`:  `<markdown> ## Rules </markdown>`. */
+export const LAYOUT_MARKDOWN_TAG = "markdown"
+
+/** A hole in a layout's text:  `{...}`, no braces inside. */
+export const LAYOUT_HOLE = /\{[^{}]+\}/
+
+/** An attribute that's all one hole, `{...}`, its spell captured. */
+export const LAYOUT_WHOLE_HOLE = /^\s*\{([\s\S]+)\}\s*$/
+
+/**
+ * Does `root`'s layout have spell in it:  a hole, an action, a handler, a `<spell>` block or a `<markdown>` block?
+ * - See `LayoutSpell`.
+ */
+export function layoutHasSpell(root: Element): boolean {
+  if (root.querySelector(`${LAYOUT_SPELL_TAG}, ${LAYOUT_MARKDOWN_TAG}`)) return true
+  if (LAYOUT_HOLE.test(root.textContent ?? "")) return true
+  return [...root.querySelectorAll("*")].some((element) =>
+    // a hole written without quotes starts one, `on-click={play a song}`, but ends in a later attribute's name
+    [...element.attributes].some((attribute) => /^\s*\{/.test(attribute.value))
+  )
 }

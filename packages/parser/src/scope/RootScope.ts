@@ -1,4 +1,4 @@
-import { typeCase, snakeCase } from "$/util"
+import { snakeCase } from "$/util"
 import { P } from "$/parser"
 
 import { BlockScope } from "./BlockScope"
@@ -9,8 +9,9 @@ import { BlockScope } from "./BlockScope"
  */
 export class RootScope extends BlockScope {
   /**
-   * Named `TypeScope`s known in this scope, keyed by (Type_Case-normalized) name.
-   * New entries get wrapped in `TypeScope` and parented here.
+   * Named `TypeScope`s known in this scope, keyed by class name (`P.classCase()`), e.g. `Card`, `DrawableList`.
+   * - A type's short name finds it too:  `account` for `a bank account aka account` -- see `TypeScope.aka`.
+   * - New entries get wrapped in `TypeScope` and parented here.
    */
   get types(): P.ScopeList<P.TypeScope, string | P.TypeScope | P.TypeScopeProps> {
     return this.derived(
@@ -20,7 +21,8 @@ export class RootScope extends BlockScope {
           target: this,
           keyProp: "name",
           parentProp: "parentScope.types",
-          normalizeKey: typeCase,
+          normalizeKey: P.classCase,
+          aliasProp: "aka",
           transformer(item) {
             if (!(item instanceof P.TypeScope)) item = new P.TypeScope(item)
             item.parentScope = this.target

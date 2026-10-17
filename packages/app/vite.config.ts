@@ -1,7 +1,7 @@
 import { defineConfig } from "vite-plus"
 
 import { fmtConfig, packageLint } from "../../vite.lint.ts"
-import environment from "../spell/src/node/environment.ts"
+import environment from "../spaces/src/server/node/environment.ts"
 import { appConfig } from "./vite.shared.ts"
 
 /** Name of the runtime's entry in a build:  `dist/spell-runtime.js` -- see `editor.loadRuntime()`. */
@@ -9,7 +9,7 @@ const RUNTIME_ENTRY = "spell-runtime"
 
 /**
  * The editor app:  `yarn start:dev` / `yarn build` => `dist/`.
- * - Plugins, aliases, dedupe and CSS:  `appConfig()` (React and Solid side by side).
+ * - Plugins, aliases, dedupe and CSS:  `appConfig()`.
  * - `iconPacks`:  `@spell-app/ui`'s built-in icon packs go beside the chunk holding `BuiltInPacks` (`assets/`), where
  *   it looks;  the app's Solid UI draws Fomantic names from them (`$/app/solid`'s `loadUI.ts`).
  * - ONE page, so it bundles its own Solid and `ui`:  `spell-solid.js` is the elements' and the runner's.
@@ -18,16 +18,21 @@ export default defineConfig({
   // `vp lint` / `vp fmt`:  the repo root's `vite.lint.ts`
   fmt: fmtConfig,
   lint: packageLint({
-    react: true,
+    name: "app",
     ignorePatterns: ["build", "dist", ".cache", "dist-runner", "dist-element", "static"]
   }),
   ...appConfig({ iconPacks: true }),
   server: {
     port: environment.vitePort,
     host: "0.0.0.0",
-    // the page server's:  the API, and the elements' bundles for the demo pages (`appRoutes.ts`)
+    // the page server's:  the API, a project's files, and the elements' bundles for the demo pages (`appRoutes.ts`)
     proxy: {
       "/api": {
+        target: `http://${environment.api_server}:${environment.expressPort}`,
+        changeOrigin: true
+      },
+      // a project's files, by their URL:  `/spaces/<project>/<file>` (`SP.SpellUrls`)
+      "/spaces": {
         target: `http://${environment.api_server}:${environment.expressPort}`,
         changeOrigin: true
       },
@@ -50,10 +55,7 @@ export default defineConfig({
         entryFileNames: (chunk) => (chunk.name === RUNTIME_ENTRY ? `${RUNTIME_ENTRY}.js` : "assets/[name]-[hash].js"),
         // MUST stay on:  rules defined as classes register under their class name (`Rule.instantiate()`),
         // so minifying class names away would silently break every grammar.  See `build.test.ts`.
-        keepNames: true,
-        manualChunks(id: string) {
-          if (id.includes("/node_modules/react/") || id.includes("/node_modules/react-dom/")) return "vendor"
-        }
+        keepNames: true
       }
     }
   },

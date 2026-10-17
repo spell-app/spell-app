@@ -2,6 +2,7 @@
  * Monaco, loaded once for the app:  import `monaco` from HERE, never from `monaco-editor` directly.
  * - The editor core and all its features, but only the languages we show:  spell (see `SpellMonaco`), plus
  *   Monarch colouring for `.js` / `.css` / markdown, none of which need a language worker.
+ *   - spell's `<css>` blocks colour with the CSS one too (`SpellTokensProvider`).
  * - Its one worker, `editor.worker`, comes through Vite's `?worker`.
  * - NOTE: paths are `monaco-editor/<path under esm/vs>` -- see `exports` in its `package.json`.
  * - SIDE EFFECT:  sets `self.MonacoEnvironment`.

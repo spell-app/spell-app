@@ -1,24 +1,28 @@
 import { spawnSync } from "child_process"
-import { basename, dirname, join, matchesGlob } from "path"
+import { basename, dirname, join, matchesGlob, relative } from "path"
 
 import { CLI, type Generator, type MergeMainOptions, type MergeMainReport, type SnapshotReview } from "$/cli"
 
 /**
- * `spell dev worktree merge-main`:  merge `main` into this checkout's branch, REGENERATING every generated file both
- * sides changed instead of merging it.  `/isolate done`, `/unpark` and `/wait-for` use it.
- * - Why:  a generated file (a bundle, a snapshot) is a function of BOTH branches' source, so neither side's copy, and
- *   no line merge of the two, is right.  Its generator, run on the merged source, is.
- * - The root `.gitattributes` marks the same files `merge=binary`, so git never interleaves two versions:  it keeps
- *   ours and marks the file conflicted.  `-diff` and `linguist-generated` there keep them out of diffs and PRs.
- * - "Both sides changed", not just "conflicted":  a bundle with hashed chunk names leaves each side's chunks behind in
- *   a clean merge, and only its generator, which clears the folder, removes them.
- * - Generated output one side no longer commits (the bundles the page server builds since 2026-10-07:  `spell dev
- *   bundles`):  a file `main` changed, or in conflict, that the merged `.gitignore` ignores and one side's tree lacks
+ * `spell dev worktree merge-main`:  merge `main` into this checkout's branch,
+ * REGENERATING every generated file both sides changed instead of merging it.
+ * - `/isolate done`, `/unpark` and `/wait-for` use it.
+ * - Why:  a generated file (a bundle, a snapshot) is a function of BOTH branches' source.
+ *   So neither side's copy, and no line merge of the two, is right:  its generator, run on the merged source, is.
+ * - The root `.gitattributes` marks the same files `merge=binary`, so git never interleaves two versions:
+ *   it keeps ours and marks the file conflicted.
+ *   `-diff` and `linguist-generated` there keep them out of diffs and PRs.
+ * - "Both sides changed", not just "conflicted":
+ *   a bundle with hashed chunk names leaves each side's chunks behind in a clean merge,
+ *   and only its generator, which clears the folder, removes them.
+ * - Generated output one side no longer commits:
+ *   a file `main` changed, or in conflict, that the merged `.gitignore` ignores and one side's tree lacks,
  *   leaves the index and stays on disk (`untracked`).
- * - Snapshots are regenerated with `vp test run --update`, then each entry is compared to both sides:  one NEITHER
- *   side had is new behaviour nobody reviewed, so it's reported (`review`), never hidden.
- * - Any OTHER file in conflict stops it mid-merge:  Claude resolves those, `git add`s them, and runs it again with
- *   `--continue`.
+ *   - e.g. the bundles the page server builds since 2026-10-07 (`spell dev bundles`)
+ * - Snapshots are regenerated with `vp test run --update`, then each entry is compared to both sides:
+ *   one NEITHER side had is new behaviour nobody reviewed, so it's reported (`review`), never hidden.
+ * - Any OTHER file in conflict stops it mid-merge:
+ *   Claude resolves those, `git add`s them, and runs it again with `--continue`.
  * - Node built-ins and git only:  no spell.
  */
 export function mergeMain(root: string, options: MergeMainOptions = {}): MergeMainReport {
@@ -56,8 +60,9 @@ export function mergeMain(root: string, options: MergeMainOptions = {}): MergeMa
   }
 
   ////////
-  // Generated output one side no longer commits (the page server's bundles, since 2026-10-07):  a file `main` changed
-  // or in conflict, that the merged `.gitignore` ignores and ONE side's tree lacks, leaves the index, kept on disk.
+  // Generated output one side no longer commits (the page server's bundles, since 2026-10-07):
+  // a file `main` changed or in conflict, that the merged `.gitignore` ignores and ONE side's tree lacks,
+  // leaves the index, kept on disk.
   // (A file both sides track, though ignored, stays:  the `workspaces/*.code-workspace` files)
   const base = gitOut(root, ["merge-base", "HEAD", "MERGE_HEAD"])
   const conflicted = gitLines(root, ["diff", "--name-only", "--diff-filter=U"])
@@ -119,8 +124,15 @@ export function mergeMain(root: string, options: MergeMainOptions = {}): MergeMa
 /** The branch merged in. */
 const MAIN = "main"
 
-/** A Vitest snapshot file:  its test is `<dir>/../<name>` less `.snap`. */
-const SNAPSHOT = "packages/*/**/__snapshots__/*.snap"
+/**
+ * A Vitest snapshot file:  its test is `<dir>/../<name>` less `.snap`.
+ * - Under `tests/<package>/`, where each package's tests live (epic `people-and-orgs` P10);
+ *   or under `packages/`, for a branch from before that move.
+ */
+const SNAPSHOTS = ["tests/*/**/__snapshots__/*.snap", "packages/*/**/__snapshots__/*.snap"]
+
+/** Is `file` a Vitest snapshot file -- see `SNAPSHOTS`? */
+const isSnapshot = (file: string) => SNAPSHOTS.some((glob) => matchesGlob(file, glob))
 
 /** The command that updates the snapshots of `tests` (relative to their package), run in the package.
  * - `--update` AFTER the files:  it takes an optional value, so before them it swallows the first one
@@ -132,8 +144,11 @@ const SNAPSHOT_UPDATE = (tests: string[]) => ["yarn", "vp", "test", "run", ...te
  * - The docs bundle builds UI first, whose `<ui-code>` loads the spell highlighter, so `gen:spell` comes before it.
  * - Snapshots aren't here:  `generatorsFor()` makes one per package, after these.
  * - The same paths are `merge=binary` in the root `.gitattributes`:  keep the two in step.
- * - NOT here:  `pages.json` (hand-kept), emoji data (`gen:emoji` needs a reference clone), and the bundles the page
- *   server builds on demand (Spell UI's site, the brand pages:  `spell dev bundles`), which aren't committed.
+ * - NOT here:
+ *   - `pages.json5` (hand-kept)
+ *   - emoji data (`gen:emoji` needs a reference clone)
+ *   - the bundles the page server builds on demand, which aren't committed:
+ *     Spell UI's site and the brand pages (`spell dev bundles`)
  */
 // oxfmt-ignore
 export const GENERATORS: Generator[] = [
@@ -141,34 +156,60 @@ export const GENERATORS: Generator[] = [
   { name: "spell highlighter",        outputs: ["packages/ui/src/languages/spell.*"],                   cwd: "packages/ui",     run: ["yarn", "gen:spell"] },
   {
     name: "markdown bundle",
-    outputs: ["packages/ui/src/components/ui-markdown/md.bundle.*", "packages/ui/src/components/ui-markdown/MDBundle.ts"],
+    outputs: ["packages/ui/components/ui-markdown/md.bundle.*", "packages/ui/components/ui-markdown/MDBundle.ts"],
     cwd: "packages/ui",
     run: ["yarn", "gen:markdown"]
   },
   {
     name: "Spell UI site data",
-    outputs: ["packages/ui/site/_data/{components,icons,custom-elements,html-custom-data}.json"],
+    outputs: [
+      "packages/ui/docs/__data/{components,icons,search}.json5",
+      "packages/ui/docs/__data/{custom-elements,html-custom-data}.json"
+    ],
     cwd: "packages/ui",
     run: ["yarn", "site:data"]
   },
   {
     name: "docs bundle",
-    outputs: ["packages/docs/tools/_assets/spell-ui.js", "packages/docs/tools/_assets/{emoji,lazy}/**"],
-    cwd: "packages/docs",
+    outputs: ["packages/epics/tools/_assets/spell-ui.js", "packages/epics/tools/_assets/{emoji,lazy}/**"],
+    cwd: "packages/epics",
     run: ["node", "tools/bundle-spell-ui.js"]
   },
   {
     name: "brand data",
-    outputs: ["packages/brand/_data/{components,custom-elements,html-custom-data}.json"],
+    outputs: [
+      "packages/brand/docs/__data/{components,search}.json5",
+      "packages/brand/docs/__data/{custom-elements,html-custom-data}.json"
+    ],
     cwd: "packages/brand",
     run: ["yarn", "site:data"]
   },
-  { name: "epics pack",               outputs: ["packages/epics/pack/**"],                              cwd: "packages/epics",  run: ["yarn", "pack:build"] }
+  { name: "epics pack",               outputs: ["packages/epics/components/__pack/**"],                 cwd: "packages/epics",  run: ["yarn", "pack:build"] },
+  {
+    name: "spell libraries",
+    outputs: ["packages/spaces/@spell/library/**/*.lib.ts"],
+    cwd: ".",
+    run: ["node", "packages/cli/bin/spell.mjs", "compile", "@spell/library"]
+  },
+  {
+    name: "Epic UI data",
+    outputs: ["packages/epics/docs/__data/{components,search}.json5"],
+    cwd: "packages/epics",
+    run: ["yarn", "site:data"]
+  },
+  {
+    name: "App UI data",
+    outputs: ["packages/app/docs/__data/{components,search}.json5"],
+    cwd: "packages/app",
+    run: ["yarn", "site:data"]
+  },
+  { name: "spell syntax table",       outputs: ["packages/spell/spellSyntax.json"],                     cwd: "packages/spell",  run: ["yarn", "gen:syntax"] },
+  { name: "brand pack",               outputs: ["packages/brand/components/__pack/**"],                 cwd: "packages/brand",  run: ["yarn", "pack:build"] }
 ]
 
 /**
- * The generators `files` need, in run order, each with the files it covers:  the table's, then one snapshot update
- * per package.
+ * The generators `files` need, in run order, each with the files it covers:
+ * the table's, then one snapshot update per package.
  * - a file no generator covers isn't in any step
  */
 export function generatorsFor(
@@ -179,14 +220,15 @@ export function generatorsFor(
   const steps = generators
     .map((generator) => ({ generator, files: files.filter((file) => matchesAny(file, generator.outputs)) }))
     .filter((step) => step.files.length)
-  // By package, `packages/<name>`:  one run each
+  // By package, run in `packages/<name>` (a snapshot under `tests/<name>/` is that package's):  one run each
   const snapshots = new Map<string, string[]>()
-  for (const snap of files.filter((file) => matchesGlob(file, SNAPSHOT))) {
-    const cwd = snap.split("/").slice(0, 2).join("/")
+  for (const snap of files.filter(isSnapshot)) {
+    const cwd = `packages/${snap.split("/")[1]}`
     snapshots.set(cwd, [...(snapshots.get(cwd) ?? []), snap])
   }
   for (const [cwd, snaps] of snapshots) {
-    const tests = snaps.map((snap) => join(dirname(dirname(snap)), basename(snap, ".snap")).slice(cwd.length + 1))
+    // each test's path from the package:  `src/x.test.ts`, or `../../tests/<name>/src/x.test.ts`
+    const tests = snaps.map((snap) => relative(cwd, join(dirname(dirname(snap)), basename(snap, ".snap"))))
     const generator = { name: `${basename(cwd)} snapshots`, outputs: snaps, cwd, run: snapshotUpdate(tests) }
     steps.push({ generator, files: snaps })
   }
@@ -199,7 +241,7 @@ export function generatorsFor(
  */
 function reviewSnapshots(root: string, files: string[]): SnapshotReview[] {
   return files
-    .filter((file) => matchesGlob(file, SNAPSHOT))
+    .filter(isSnapshot)
     .map((file) => {
       const ours = snapshotEntries(CLI.git(["show", `HEAD:${file}`], root).out)
       const theirs = snapshotEntries(CLI.git(["show", `MERGE_HEAD:${file}`], root).out)

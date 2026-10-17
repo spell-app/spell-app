@@ -7,12 +7,12 @@ import { PlanMarkup } from "./PlanMarkup"
 
 /****************
  * ### `ItemPicker`
- * `/epic review`'s item picker (`spell dev plan-doc items --section <s> --spec <file>`):  a details page spec, for
- * `spell dev details new --from`, that asks Owen which of a section's items to go through.
+ * `/epic review`'s item picker (`epic items --section <s> --spec <file>`):  a details page spec, for
+ * `epic ask new --from`, that asks Owen which of a section's items to go through.
  * - STATIC and instance-free on purpose:  one pure function of a parsed doc, with its two helpers
- * - knows the details page's SPEC shape (`packages/docs/tools/details.js` `DetailsSpec`) as data only:  `epics` may
+ * - knows the details page's SPEC shape (`packages/epics/tools/details.js` `DetailsSpec`) as data only:  `epics` may
  *   not import `docs`
- * - From `packages/docs/tools/plan-doc.js` `pickerSpec()` (epic `epic-components`, P7).
+ * - From `packages/epics/tools/plan-doc.js` `pickerSpec()` (epic `epic-components`, P7).
  ****************/
 export class ItemPicker {
   /**
@@ -20,7 +20,7 @@ export class ItemPicker {
    * (`reviewSections()`'s, filter `open`), the not-reviewed ones ticked.
    * - each option's letter is the item's id (`I4`), so the answer names the ids
    * - written for Owen coming cold ("Writing for Owen" in the details skill):  where reviews stand, and each item's
-   *   WHOLE text, as the plan doc has it (the page clamps long ones, "Show more"), its state a badge
+   *   WHOLE text, as the epic page has it (its card folds by its chevron), its state an icon
    * - the page:  no site header (`bare`), "Select all / none", "Open | All" (Open:  only the not-reviewed)
    * - `pageDir`:  where the page will live (the scratch `pages/details/`), so the item's links still work from there
    */
@@ -34,7 +34,7 @@ export class ItemPicker {
       : "This epic hasn't been reviewed before."
     return {
       bare: true,
-      lede: `Tick the ${label} to go through.  Each comes up in chat, one at a time, and what you decide goes into the plan doc.`,
+      lede: `Tick the ${label} to go through.  Each comes up in chat, one at a time, and what you decide goes into the epic page.`,
       askedBy: `<code>/epic review ${name}</code>`,
       where: {
         epic: `${PlanMarkup.text(title)} (<code>${name}</code>)`,
@@ -53,7 +53,7 @@ export class ItemPicker {
             letter: item.id,
             // "Review:  ..." is how some docs file their review notes;  on a review page it says nothing
             title: item.title.replace(/^review:\s*/i, ""),
-            body: ItemPicker.rehome(item.detailsHtml, file, pageDir) || "<p><i>No details in the plan doc.</i></p>",
+            body: ItemPicker.rehome(item.detailsHtml, file, pageDir) || "<p><i>No details in the epic page.</i></p>",
             state: ItemPicker.stateOf(item),
             checked: item.state === "outstanding" || item.state === "deferred",
             done: item.state === "reviewed" || item.state === "queued"
@@ -67,7 +67,7 @@ export class ItemPicker {
    * A picker option's review state, as the icon under its tick box:  `{ icon, color, label }` (`label` on hover).
    * - the icon says the review state:  not reviewed, an empty circle;  deferred, a pause;  reviewed, a check;  to
    *   do, a list
-   * - the color is the item's on the plan doc (`docState`, `STATE_COLORS`):  red waits on Owen, blue Claude is on
+   * - the color is the item's on the epic page (`docState`, `STATE_COLORS`):  red waits on Owen, blue Claude is on
    *   it, yellow open, green recent, grey older
    * - every icon in `bundle-spell-ui.js` `ICONS`
    */
@@ -83,8 +83,8 @@ export class ItemPicker {
   }
 
   /**
-   * `html` from the plan doc at `file`, its links made to work from `pageDir` instead:
-   * - `#c3` -> the plan doc's `#c3`
+   * `html` from the epic page at `file`, its links made to work from `pageDir` instead:
+   * - `#c3` -> the epic page's `#c3`
    * - a relative `href` / `src` -> the same file, relative to `pageDir`
    * - absolute ones (`https:`, `/x`) as they are
    */

@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 
 import { Fold } from "$/epics/components/epic-item/Fold"
 
@@ -8,6 +8,7 @@ import { epicMoreVocabulary } from "./EpicMore.en"
 import { BODY } from "./EpicAnswer.types"
 
 import answerCSS from "./EpicAnswer.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicMore`
@@ -18,7 +19,7 @@ import answerCSS from "./EpicAnswer.css?inline"
 export class EpicMore extends E.UIComponent<typeof epicMoreVocabulary> {
   @E.proto static vocabulary = epicMoreVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-answer": answerCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-answer": answerCSS },
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
@@ -40,6 +41,7 @@ export class EpicMore extends E.UIComponent<typeof epicMoreVocabulary> {
           part={this.partForName("toggle")}
           aria-expanded={this.isOpen ? "true" : "false"}
           aria-controls={BODY_ID}
+          title={this.translationForKey(this.isOpen ? "foldTip" : "unfoldTip")}
           onClick={this.fold.toggle}
         >
           {Fold.chevron()}

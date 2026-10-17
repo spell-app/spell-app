@@ -25,7 +25,8 @@ import {
 
 /****************
  * ### `<epic-section>`
- * One section of a plan doc:  Phases, Questions ... Log, one of the Overview's sub-sections, or a report.
+ * One section of an epic page:  Phases, Questions ... Log, one of the Overview's sub-sections, or a report;
+ * on a saga page, its Epics too.
  ****************/
 export const epicSectionVocabulary = {
   tag: "epic-section",
@@ -34,9 +35,10 @@ export const epicSectionVocabulary = {
   noun: "section",
   ui: false,
   description:
-    "One section of a plan doc, by `kind`:  its phases, its items or its log;  or, inside `<epic-overview>`, one " +
+    "One section of an epic page, by `kind`:  its phases, its items or its log;  or, inside `<epic-overview>`, one " +
     "of the Overview's sub-sections (`overview-part`), which gets review notes as items do;  or a report a run " +
-    "wrote (`report`:  an overnight `/bedtime` report), after the Overview, unnumbered.",
+    "wrote (`report`:  an overnight `/bedtime` report), after the Overview, unnumbered;  or a saga page's Epics " +
+    "(`epics`:  the cards of the epics serving it, an `<epic-cards>`).",
   attributes: [
     {
       name: "id",
@@ -53,6 +55,7 @@ export const epicSectionVocabulary = {
       kind: "enum",
       values: [
         "overview-part",
+        "epics",
         "phases",
         "questions",
         "judgements",
@@ -66,7 +69,7 @@ export const epicSectionVocabulary = {
       required: true,
       description:
         "What it holds:  `phases` its `<epic-phase>`s;  `questions` ... `tests` its `<epic-item>`s;  `log` its " +
-        "`<epic-event>`s;  `overview-part` and `report` prose."
+        "`<epic-event>`s;  `overview-part` and `report` prose;  `epics` (a saga page's) its `<epic-cards>`."
     },
     {
       name: "title",
@@ -106,9 +109,8 @@ export const epicSectionVocabulary = {
     {
       name: "changes",
       description:
-        "The Phases section's Plan changes:  a copy of each `<epic-updated>` of a phase still to do " +
-        '(`<epic-updated slot="changes" of="3" at="...">`), written by the plan-doc tool on every edit;  drawn as a ' +
-        "box above the phases.  None:  no box."
+        "An OLDER doc's Plan changes copies in the Phases section (T14, until 2026-10-11).  NOT drawn:  no slot of " +
+        "the shadow root takes them, since each phase draws its own;  the epic tool removes them on its next write."
     },
     {
       name: "status",
@@ -132,14 +134,18 @@ export const epicSectionVocabulary = {
         "state's items show, outlined while hidden."
     },
     { name: "hidden-note", description: 'Under a filtered list:  "3 hidden · show all".' },
-    { name: "changes", description: "The Phases section's Plan changes box, above its phases." },
     { name: "empty", description: 'An item section with no items:  "None yet".' },
     ...REVIEW_PARTS,
     {
       name: "new-item",
       description:
-        "A Todos or Questions section's New todo / New question (an `<epic-new-item>`, epic `airplane` P2), at its " +
-        "end:  the button, or the form in its place.  Only while the page is reviewed."
+        "A Todos, Questions, Issues or Tests section's New todo / question / issue / test (an `<epic-new-item>`, epic " +
+        "`airplane` P2), at its end:  the button, or the form in its place.  Only while the page is reviewed."
+    },
+    {
+      name: "new-button",
+      description:
+        "The same sections' comment-dots button, on the title:  opens the section, then that form.  Only while reviewed."
     },
     {
       name: "new-list",
@@ -151,7 +157,14 @@ export const epicSectionVocabulary = {
     { name: "tools", description: "Its title has tools:  the Phases toggles, or a state filter (items in it)." }
   ],
   texts: [
+    {
+      key: "hiddenTip",
+      text: "Show everything:  clear the filter",
+      description: "The note under a filtered list:  its tooltip."
+    },
+
     ...FOLD_TEXTS,
+    { key: "epicsTitle", text: "Epics" },
     { key: "phasesTitle", text: "Phases" },
     { key: "questionsTitle", text: "Questions" },
     { key: "judgementsTitle", text: "Judgement calls" },
@@ -168,7 +181,11 @@ export const epicSectionVocabulary = {
     { key: "count", text: "{open} open of {total}", description: "The count badge's tooltip:  `3/7` in words." },
     ...FILTER_TEXTS,
     { key: "hiddenNote", text: "{count} hidden · show all", description: "Under a filtered list;  a click shows all." },
-    { key: "changesTitle", text: "Plan changes", description: "The Phases section's box of changes to phases to do." },
+    {
+      key: "addNew",
+      text: "New {kind}",
+      description: "An item section's comment-dots button on its title:  its name and tooltip."
+    },
     ...NEW_KIND_TEXTS,
     ...NEW_LIST_TEXTS
   ],
@@ -179,8 +196,8 @@ export const epicSectionVocabulary = {
       slot: "changes",
       when: { attribute: "kind", values: ["phases"] },
       description:
-        "The Plan changes:  a copy of each `<epic-updated>` of a phase still to do, its phase in `of`;  the tool " +
-        "rewrites them on every edit."
+        "An OLDER doc's Plan changes (T14, until 2026-10-11):  a copy of each `<epic-updated>` of a phase still to " +
+        "do, its phase in `of`.  Never drawn:  each phase draws its own now;  the tool removes them on its next write."
     },
     {
       tag: "flow",
@@ -199,6 +216,17 @@ export const epicSectionVocabulary = {
       when: { attribute: "kind", values: ["questions", "judgements", "caveats", "todos", "issues", "tests"] },
       description: "The items, their id's letter the section's (`q` in Questions)."
     },
-    { tag: "epic-event", when: { attribute: "kind", values: ["log"] }, description: "The log, oldest first." }
+    { tag: "epic-event", when: { attribute: "kind", values: ["log"] }, description: "The log, oldest first." },
+    {
+      tag: "epic-cards",
+      when: { attribute: "kind", values: ["epics"] },
+      max: 1,
+      description: "A saga page's Epics:  the cards of the epics serving the saga, drawn from the page server."
+    },
+    {
+      tag: "flow",
+      when: { attribute: "kind", values: ["epics"] },
+      description: "A saga page's Epics:  a line or two before the cards, if any."
+    }
   ]
 } as const satisfies EpicVocabulary

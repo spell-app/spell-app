@@ -4,14 +4,13 @@ import type { EditorStore } from "$/app/editor"
 
 // ## Routing
 
-/** Params parsed out of the `edit/:domain/:project/*filePath` routes. */
+/** Params parsed out of the `/edit/*address` and `/run/*address` routes. */
 export type SpellRouteParams = {
-  /** `domain` segment of path, e.g. `"projects"`/`"examples"`/`"guides"`  -- see `SpellLocation`. */
-  domain: string
-  /** `projectName` segment of path. */
-  project: string
-  /** Rest of path after `domain`/`project`, identifying file within project. */
-  filePath: string
+  /**
+   * The address, as the router has it:  each part still encoded, e.g. `@spell/examples/solitaire/a%20b.spell` --
+   * `SP.SpellLocation.addressForUrl()` reads it.
+   */
+  address: string
 }
 
 /** Which page shows a project:  `editor.projectPage`, set by `followRoute()`. */

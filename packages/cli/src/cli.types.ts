@@ -17,9 +17,9 @@ import type {
 /**
  * What one command-line argument names -- see `resolveProject()`.
  * - `arg`:  what was typed, for messages.
- * - `project`:  one spell project, e.g. `@library/cards`, a project folder, `@workspace`.
+ * - `project`:  one spell project, e.g. `@spell/library/cards`, a project folder, `@here`.
  * - `file`:  one `.spell` file, inside its project.
- * - `root`:  a whole project root, e.g. `@library` -- commands turn it into projects with `CliSession.projectsFor()`.
+ * - `root`:  a whole project root, e.g. `@spell/library` -- commands turn it into projects with `CliSession.projectsFor()`.
  */
 export type CliProject =
   | { kind: "project"; arg: string; project: SP.SpellProject }
@@ -45,13 +45,15 @@ export type GlobalOptions = {
 
 /**
  * `spell compile` flags.
- * - `stdout`:  print a project's compiled output rather than writing `<Project>.compiled.js`.
+ * - `stdout`:  print a project's compiled output rather than writing `<Project>.spell.js`.
  * - `force`:  recompile the projects it imports, too, even those already compiled
+ * - `stale`:  compile only the projects whose build is missing or out of date -- see `CLI.staleBecause()`
  */
 export type CompileOptions = GlobalOptions & {
   stdout?: boolean
   force?: boolean
-  /** Compile to this target, this run, instead of `project.json`'s -- see `SP.TARGETS`. */
+  stale?: boolean
+  /** Compile to this target, this run, instead of the project file's -- see `SP.TARGETS`. */
   target?: string
 }
 
@@ -76,11 +78,13 @@ export type CheckOptions = GlobalOptions & {
 }
 
 /**
- * `name` for comparing as people would:  lower case, with spaces, `-` and `_` all one space --
- * so `stock pile` finds `Stock_Pile`, and `short-suit` finds `short_suit`.
+ * `name` for comparing as people would:  lower case, with spaces, `-`, `_` and a word's capital all one space.
+ * - So `stock pile` finds `StockPile` (a type's name since epic `drawable-thing` P11),
+ *   and `short-suit` finds `short_suit` and `shortSuit`.
  */
 export function normalizedName(name: string): string {
   return name
+    .replace(/(?<=[a-z0-9])(?=[A-Z])/g, " ")
     .toLowerCase()
     .replace(/[\s_-]+/g, " ")
     .trim()
@@ -100,21 +104,39 @@ export type WatchOptions = GlobalOptions & {
 
 /**
  * `spell run` flags.
- * - `browser`:  `true` opens the project in a browser even if it shows no UI;  `false` never does.  Left out:  only
- *   if it tried to show one.
+ * - `browser`:
+ *   - `true` opens the project in a browser even if it shows no UI
+ *   - `false` never does
+ *   - left out:  only if it tried to show one
+ * - `seed`:  see `SeedOptions`
  */
-export type RunOptions = GlobalOptions & {
-  browser?: boolean
-}
+export type RunOptions = GlobalOptions &
+  SeedOptions & {
+    browser?: boolean
+    /** `ts` or `py` (or a target's full name):  run as that target compiles it -- see `runTarget()` */
+    target?: string
+  }
 
 /**
  * `spell test` flags.
  * - `name`:  only tests whose names contain it, e.g. `deck` -- ignoring case, and spaces ~== `-` ~== `_`
  * - `watch`:  run them again whenever the project changes -- `spell watch --test`
+ * - `seed`:  see `SeedOptions`
  */
-export type TestOptions = GlobalOptions & {
-  name?: string
-  watch?: boolean
+export type TestOptions = GlobalOptions &
+  SeedOptions & {
+    name?: string
+    watch?: boolean
+  }
+
+/**
+ * The flag `spell run` and `spell test` share.
+ * - `seed`:  start the program's random numbers from it, so every run deals the same cards --
+ *   a whole number from 1 to 2147483646, see `spellCore.seedRandom()`.
+ *   Left out:  a different deal each run.
+ */
+export type SeedOptions = {
+  seed?: number
 }
 
 /**
@@ -148,7 +170,7 @@ export type FormatOptions = GlobalOptions & {
 /**
  * `spell parse` flags.
  * - `rule`:  parse as this rule only, e.g. `expression`
- * - `in`:  parse inside this project's scope, e.g. `@test/Solitaire`
+ * - `in`:  parse inside this project's scope, e.g. `@spell/test/solitaire`
  * - `json`:  print the result as JSON
  * - `tree`:  print the spell tree (what it means), not the match tree
  * - `html`:  with `tree`, print it as a `<ui-tree-diagram>` for a docs page
@@ -163,7 +185,7 @@ export type ParseOptions = GlobalOptions & {
 
 /**
  * `spell explain` flags.
- * - `in`:  look in this project, too, e.g. `@test/Solitaire`
+ * - `in`:  look in this project, too, e.g. `@spell/test/solitaire`
  * - `json`:  print what was found as JSON
  */
 export type ExplainOptions = GlobalOptions & {
@@ -258,7 +280,7 @@ export type StaticOptions = GlobalOptions & {
 
 /**
  * `spell new` flags.
- * - `in`:  make the project in this folder -- default `@user`'s, `projects/user/`
+ * - `in`:  make the project in this folder -- default `owen@spell`'s, your space's (`<spell-spaces>/@spell/owen@/`)
  */
 export type NewOptions = GlobalOptions & {
   in?: string
@@ -269,16 +291,18 @@ export type NewOptions = GlobalOptions & {
 ////////////////
 
 /**
- * What `runProject.ts` -- the child process `spell run` / `spell test` start -- is to do.  Passed as JSON,
- * in env var `SPELL_RUN`.
+ * What `runProject.ts` -- the child process `spell run` / `spell test` start -- is to do.
+ * - Passed as JSON, in env var `SPELL_RUN`.
  * - `mode`:  `run` the project, or run its `test ...` functions and report
  * - `name`:  the project's, for messages
  * - `entry`:  URL of its compiled javascript -- a temp file, never in the project
- * - `projects`:  URL of each project it imports' `<Project>.compiled.js`, by id -- for `@spell/project/<id>`
+ * - `projects`:  URL of each project it imports' `<Project>.spell.js`, by id -- for `@spell/project/<id>`
  * - `spellCore`:  URL of `core`'s `src/index.ts`, for `@spell/core`
  * - `verbose`:  `test` shows every check, and anything printed, not just failures
  * - `filter`:  `test` runs only tests whose names contain it -- see `runProject.ts`
  * - `dom`:  run in a fake page, drawing what it draws, and print it -- see `fakeDom()` in `runProject.ts`
+ * - `seed`:  start its random numbers from it, before it loads -- see `spellCore.seedRandom()`.
+ *   Left out:  random, as in a browser.
  */
 export type RunSpec = {
   mode: "run" | "test"
@@ -289,6 +313,7 @@ export type RunSpec = {
   verbose?: boolean
   filter?: string
   dom?: boolean
+  seed?: number
 }
 
 /**
@@ -300,8 +325,9 @@ export type RunReport = {
 }
 
 /**
- * One shared stylesheet of a `spell static` job:  where it goes, the pages that link it (indices in the job), and
- * what the sheet already there covered (its first line), for the build to keep.
+ * One shared stylesheet of a `spell static` job:
+ * where it goes, the pages that link it (indices in the job),
+ * and what the sheet already there covered (its first line), for the build to keep.
  */
 export type StaticSheetJob = {
   path: string
@@ -312,8 +338,8 @@ export type StaticSheetJob = {
 /**
  * What `spell static` and its child process, `runner/renderStatic.ts`, say to each other over IPC, in order:
  * - `ready`:  child to parent, once its Vite server is up
- * - `job`:  parent to child, once:  each page's HTML and stylesheet options, and the shared stylesheets (`sheets`)
- *   to build afterwards, `minify`d or not
+ * - `job`:  parent to child, once:  each page's HTML and stylesheet options,
+ *   and the shared stylesheets (`sheets`) to build afterwards, `minify`d or not
  * - `page`:  child to parent, one per page in `job` order (`index`):  its `result`, or the `error` that stopped it
  * - `stylesheet`:  child to parent, after the pages, one per `sheets` entry (`path`)
  * - `done`, or `failed` with the error that stopped the whole job
@@ -351,9 +377,11 @@ export type DeclaredAt = {
 
 /**
  * One error in the spell, as `spell check` reports it -- see `CliSession.problems()`.
+ * - Or a warning, which says so in `severity` -- see `CliSession.warnings()`.
  * - `project`:  its project's id
  * - `path`:  absolute path of the file it's in -- none if the whole parse crashed
  * - `line`, `column`:  where, from 1
+ * - `severity`:  `"warning"` for a warning;  none for an error
  */
 export type Problem = {
   project: string
@@ -361,6 +389,7 @@ export type Problem = {
   line?: number
   column?: number
   message: string
+  severity?: "warning"
 }
 
 ////////////////
@@ -373,7 +402,7 @@ export type StatusState = "running" | "ok" | "errors" | "failed"
 /**
  * One line of progress in a `StatusReporter`, e.g. one project compiling.
  * - `label`:  what's being worked on, e.g. a project id
- * - `note`:  short outcome after the label, e.g. `3 errors · wrote Foo.compiled.js`
+ * - `note`:  short outcome after the label, e.g. `3 errors · wrote Foo.spell.js`
  * - `details`:  lines listed under it, e.g. each error
  */
 export type StatusRow = {

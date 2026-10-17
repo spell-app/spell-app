@@ -6,8 +6,8 @@ import { DocReading, type ElementReading } from "./DocReading"
 
 /****************
  * ### `NewReading`
- * A plan doc in `<epic-*>` markup, read for `ConversionProof`:  its ids, links and visible text, the text the elements
- * draw from their attributes included (an item's `title`, a reply's `from` / `at` / `re` ...).
+ * An epic page in `<epic-*>` markup, read for `ConversionProof`:  its ids, links and visible text,
+ * the text the elements draw from their attributes included (an item's `title`, a reply's `from` / `at` / `re` ...).
  * - Reads an ASSEMBLED doc (`EpicParts.assemble()`).
  * - Draws only what the old markup wrote as text:  not a phase's status icon, nor a chip's `Q7` (the old reading
  *   leaves those out too);  the links it draws are the chips' (`#q7`) and the commits' (`<repo>/commit/<sha>`).
@@ -51,9 +51,15 @@ export class NewReading extends DocReading {
       case "epic-reply":
         return { pieces: [text("from"), text("at"), text("re")] }
       case "epic-updated":
-        // a Plan changes copy (T14):  chrome, as the old box was (`OldReading` skips it)
-        if (element.getAttribute("slot") === "changes") return { children: false }
+        // an older doc's Plan changes copy in the Phases section (T14):  chrome, as the old box was (`OldReading`
+        // skips it);  a line in its phase's `changes` slot is the line itself
+        if (element.getAttribute("slot") === "changes" && element.parentElement?.localName === "epic-section")
+          return { children: false }
         return { pieces: [text("at")] }
+      case "epic-update":
+        // a phase's plan change keeps its old Updated line's time;  a note's `at` and any `summary` are made from
+        // the doc (its dates, its first sentence), so they're not words the old doc had
+        return { pieces: [element.parentElement?.localName === "epic-phase" ? text("at") : undefined] }
       case "epic-event":
         return { pieces: [shownTime(text("at"))] }
       default:

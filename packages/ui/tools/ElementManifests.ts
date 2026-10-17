@@ -4,20 +4,25 @@ import { join } from "node:path"
 import type { SiteAttribute, SiteDataFile, SiteTag } from "../src/docs-components/docs-components.types.ts"
 import type { CustomElementsManifest, HtmlCustomData } from "./tools.types.ts"
 
+import { FamilyFiles } from "./FamilyFiles.ts"
+
 /****************
  * ### `ElementManifests`
- * The two STANDARD element descriptions, from the site data (`site/_data/components.json`, every vocabulary):
- * - `custom-elements.json`:  a Custom Elements Manifest (schema 2.1), what web-component tools read (Storybook, linters,
- *   IDE plugins, Claude);  `package.json`'s `customElements` points at it
- * - `html-custom-data.json`:  VS Code's HTML custom data (`html.customData`):  autocomplete and hover docs for every
- *   `<ui-*>` tag, attribute and value in any `.html` file;  the repo's `.vscode/settings.json` loads it
- * - Written by `yarn site:data` beside `components.json` (committed:  editors read them with no build);
- *   `tools/DesignExport.test.ts` fails while they're stale.
+ * The two STANDARD element descriptions, from the site data (`docs/__data/components.json5`, every vocabulary):
+ * - `custom-elements.json`:  a Custom Elements Manifest (schema 2.1),
+ *   what web-component tools read (Storybook, linters, IDE plugins, Claude)
+ *   - `package.json`'s `customElements` points at it
+ * - `html-custom-data.json`:  VS Code's HTML custom data (`html.customData`),
+ *   autocomplete and hover docs for every `<ui-*>` tag, attribute and value in any `.html` file
+ *   - the repo's `.vscode/settings.json` loads it
+ * - Written by `yarn site:data` beside `components.json5`, and committed:  editors read them with no build.
+ *   - `tests/ui/tools/DesignExport.test.ts` fails while they're stale.
  * - Both list COMPONENT tags only, not the doc-only `<ui-docs-*>`.
- * - Why not the `custom-elements-manifest analyze` script (`yarn manifest`):  it reads classes, and our attributes,
- *   events and slots live in the vocabulary objects, which it can't see.
- * - Another package's elements written the same way (the brand's `<ui-brand-*>`):  its own `yarn site:data` makes
- *   one of these with its own folders (`packages/brand/scripts/site-data.ts`), beside ITS site data.
+ * - Why not the `custom-elements-manifest analyze` script (`yarn manifest`):
+ *   it reads classes, and our attributes, events and slots live in the vocabulary objects, which it can't see.
+ * - Another package's elements written the same way (the brand's `<brand-*>`):
+ *   its own `yarn site:data` makes one of these with its own folders, beside ITS site data
+ *   (`packages/brand/scripts/site-data.ts`).
  * - Pure data in, text out:  reads only the family barrels' file names (`className()`).
  ****************/
 export class ElementManifests {
@@ -25,17 +30,12 @@ export class ElementManifests {
   readonly data: SiteDataFile
   /** the package folder (`packages/ui`, `packages/brand`), absolute:  where element class files are looked up */
   readonly packageFolder: string
-  /** family folders, relative to `packageFolder`:  `src/components` (Spell UI), `components` (the brand) */
+  /** family folders, relative to `packageFolder`:  `components`, as every set lays them out (Spell UI's, the brand's) */
   readonly componentsPath: string
   /** the manifest's `readme` line */
   readonly readme: string
 
-  constructor({
-    data,
-    packageFolder,
-    componentsPath = "src/components",
-    readme = SPELL_UI_README
-  }: ElementManifestsProps) {
+  constructor({ data, packageFolder, componentsPath = "components", readme = SPELL_UI_README }: ElementManifestsProps) {
     this.data = data
     this.packageFolder = packageFolder
     this.componentsPath = componentsPath
@@ -43,8 +43,8 @@ export class ElementManifests {
   }
 
   /**
-   * Both files as `yarn site:data` writes them, `[path, text]`, into `dataFolder` (`site/_data/`).
-   * - `JSON.stringify(..., 2)`:  oxfmt skips `site/_data/`, so the bytes stay ours and the staleness test can compare.
+   * Both files as `yarn site:data` writes them, `[path, text]`, into `dataFolder` (`docs/__data/`).
+   * - `JSON.stringify(..., 2)`:  oxfmt skips a set's `docs/__data/`, so the bytes stay ours and the staleness test can compare.
    */
   outputs(dataFolder: string): [file: string, text: string][] {
     return [
@@ -155,16 +155,20 @@ export class ElementManifests {
   }
 
   /**
-   * `tag`'s class name:  `UI<Name>` by convention (`ui-breadcrumb-section` => `UIBreadcrumbSection`), checked against
-   * its family folder;  else the class the family barrel names ending in `<Name>` (`ui-event` => `UIFeedEvent`).
+   * `tag`'s class name, by `FamilyFiles.stem()`'s rule (`ui-breadcrumb-section` => `UIBreadcrumbSection`,
+   * `brand-blob` => `BrandBlob`), checked against its family folder;  else the class the family barrel names ending in
+   * `<Name>` (`ui-event` => `UIFeedEvent`).
    */
   className(tag: SiteTag): string {
-    const name = `UI${ElementManifests.pascal(tag.tag)}`
+    const name = FamilyFiles.stem(tag.tag)
     const folder = join(this.packageFolder, this.componentsPath, tag.folder)
     if ([".tsx", ".ts"].some((extension) => existsSync(join(folder, name + extension)))) return name
     const barrel = join(folder, "index.ts")
     if (!existsSync(barrel)) return name
-    const found = readFileSync(barrel, "utf8").match(new RegExp(`\\bUI\\w*${ElementManifests.pascal(tag.tag)}\\b`))
+    const first = tag.tag.startsWith("ui-") ? "UI" : ""
+    const found = readFileSync(barrel, "utf8").match(
+      new RegExp(`\\b${first}\\w*${ElementManifests.pascal(tag.tag)}\\b`)
+    )
     return found?.[0] ?? name
   }
 
@@ -270,7 +274,7 @@ export type ElementManifestsProps = {
   data: SiteDataFile
   /** the package folder, absolute */
   packageFolder: string
-  /** family folders, relative to the package folder;  default `src/components` (Spell UI's) */
+  /** family folders, relative to the package folder;  default `components` (Spell UI's) */
   componentsPath?: string
   /** the Custom Elements Manifest's `readme` line;  default Spell UI's */
   readme?: string

@@ -40,7 +40,7 @@ const WHITESPACE_CHAR = /^[ \t\n\x0b\x0c\x0d]/
  *   `~` runs (paired up afterwards by `processEmphasis()`) and a BRACKET stack for `[` / `![` (closed by `]`).
  * - Hand-written, not rulex:  emphasis pairing (flanking runs, the rule of 3), "a code span ends at a backtick run
  *   of the SAME length", link-text brackets that must balance, and which construct wins where they overlap are
- *   character-level rules with precedence, not a grammar -- see the plan doc's judgement J4.
+ *   character-level rules with precedence, not a grammar -- see the epic page's judgement J4.
  * - Also reads link reference definitions (`parseReference()`), for `MD.extractReferences()`.
  */
 export class InlineParser {

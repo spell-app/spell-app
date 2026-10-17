@@ -12,19 +12,33 @@ __pycache__/
 .spell-server.*.json
 
 
-# bundles the page server builds when it starts, if stale (`spell dev bundles build --stale`;  `$/assembler` `BUNDLES`):
+# bundles the page server builds when it starts, if stale (`spell dev bundles build --stale`;  the root package.json's
+# `pageServer.bundles`, each built as `$/assembler`'s `BUNDLES` says):
 # never committed, since their chunk names carry content hashes:  every Spell UI change deleted and re-added most of
 # their files in every diff and merge (epic epic-components, 2026-10-07)
 /packages/ui/site/_assets/
 /packages/brand/_assets/ui/
 
+# what spell compiles for each project under `packages/`, at its path there (epic people-and-orgs P11):  never
+# committed, rebuilt by `spell compile`.  Which files:  "Projects" in packages/spell/PARSING.md
+/build/
+
 # `/park`'s note on where parked work stopped:  never committed
 PARKED-*.md
-# a checkout's running agents when it has no epic (`spell dev agents`;  an epic's:  `epics/<epic>/agents.json`)
+# a checkout's running agents when it has no epic (`spell dev agents`;  an epic's:  `epics/<epic>/agents.json5`);
+# `.json` was its name before epic `epic-workflow` P21
 /.spell-agents.json
+/.spell-agents.json5
 .vitest/
 
-# `/details` scratch pages and review inboxes (`pages/details/`, `epics/*/*.inbox.json`):  ignored by the shared
+# the component sets' waiting comments (`<page>.inbox.json5` beside a page, and its lock;  the comment route, epic
+# epic-workflow P10 / P11):  per machine, never the record, as the shared pages' are
+/packages/epics/docs/**/*.inbox.json*
+/packages/app/docs/**/*.inbox.json*
+/packages/ui/docs/**/*.inbox.json*
+/packages/brand/docs/**/*.inbox.json*
+
+# `/details` scratch pages and review inboxes (`pages/details/`, `epics/*/*.inbox.json5`):  ignored by the shared
 # content repo's own `.gitignore` (`../spell-app-dev`);  here the whole folders are ignored (`# shared:` block below)
 
 # shared:start  (epics shared-content, claude-design P4 / P6:  links into ../spell-app-dev, the shared content repo;  never tracked)
@@ -35,12 +49,13 @@ PARKED-*.md
 /brand
 /ui
 /goals
+/sagas
 /agents
 # the old content link, in checkouts cut before 2026-10-05:  remove with the old-path links (claude-design T1)
 /packages/docs/content
 # shared:end
 
-# preview copies of the shared plan docs in <epic-*> markup (`spell dev plan-doc convert --all --out preview-epics`,
+# preview copies of the shared epic pages in <epic-*> markup (`spell dev plan-doc convert --all --out preview-epics`,
 # epic epic-components):  at the root so a copy's `../../packages/...` and `../../guides/...` links resolve
 /preview-epics/
 # the MAIN checkout's marker:  worktree windows hide its folder's files (scripts/window.mjs `filesExclude()`)

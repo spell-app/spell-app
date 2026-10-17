@@ -1,7 +1,6 @@
-import { untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 import { SP } from "$/spell"
 import { LSP } from "$/lsp"
 import type * as UIT from "$/app/ui/ui.types"
@@ -55,21 +54,23 @@ export interface DOMSpellEditorElement extends E.AttributeValues<typeof spellEdi
 
 /****************
  * ### `SpellEditor`
- * The component behind `<spell-editor>`:  edits a spell project in any page, in Monaco, and feeds `<spell-app>`s on
- * the page what it compiles.
- * - `project="@system:examples:Solitaire"` (or `@examples/Solitaire`):  from the spell server's `/api`, as
- *   `<spell-app project>`.  Edits SAVE back to it:  every compile saves the files edited since, and Cmd+S saves.
+ * The component behind `<spell-editor>`:  edits a spell project in any page, in Monaco,
+ * and feeds `<spell-app>`s on the page what it compiles.
+ * - `project="@spell/examples/solitaire"` (or `@spell/examples/solitaire`):
+ *   from the spell server's `/api`, as `<spell-app project>`.
+ *   - Edits SAVE back to it:  every compile saves the files edited since, and Cmd+S saves.
  * - Compiles when it opens the project, `COMPILE_DELAY` after typing stops, and at once on Cmd+Enter.
  *   After each compile with no parse errors:
  *   - `compiled` holds what it made, a `SpellCompiled`
  *   - sends `spell-compiled` (`SPELL_COMPILED_EVENT`), bubbling out of the shadow root, with it as `detail`
  *   - hands it to each app `app` names:  `run(compiled)` (`pushToApps()`)
  * - Compiles WITHOUT Monaco, so apps run straight away.  Monaco, most of our code, loads after, for the view.
- * - Several may edit several projects on a page (`SpellModels.use()`).  Two of ONE project share its files, so
- *   typing in one shows in the other.
- * - Draws `<SpellEditorPane>` (no `<ui-*>`):  plain tabs and status line, styled by `spell-editor.css`, adopted
- *   from `assets` (default, beside its script).
+ * - Several may edit several projects on a page (`SpellModels.use()`).
+ *   Two of ONE project share its files, so typing in one shows in the other.
+ * - Draws `<SpellEditorPane>` (no `<ui-*>`):  plain tabs and status line.
+ *   Styled by `spell-editor.css`, adopted from `assets` (default, beside its script).
  * - Leaving the page lets go of the project, a microtask later:  a move in one go keeps it.
+ * - SEE:  its App UI components page, `packages/app/docs/spell-editor.html` (`/components/app/spell-editor.html`).
  ****************/
 export class SpellEditor extends E.UIComponent<typeof spellEditorVocabulary> {
   @E.proto static vocabulary = spellEditorVocabulary
@@ -83,8 +84,8 @@ export class SpellEditor extends E.UIComponent<typeof spellEditorVocabulary> {
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
-    // where `assets` says as we join the page, else beside this script
-    const assets = new URL(untrack(() => this.assets) ?? BUNDLE, document.baseURI).href
+    // where `assets` says as we join the page, else beside this script (read once:  a component is built untracked)
+    const assets = new URL(this.assets ?? BUNDLE, document.baseURI).href
     void adoptShadowStyles(this.domElement.renderRoot, assets, EDITOR_CSS)
     this.domElement.addReleaseCallback(() => this.closeProject())
   }
@@ -195,6 +196,8 @@ export class SpellEditor extends E.UIComponent<typeof spellEditorVocabulary> {
     const detail: SpellCompiled = { projectId: project.projectId, compiled }
     const declarations = SP.SpellDeclarations.read(project.declarationsFile.contents ?? "")
     if (declarations) detail.declarations = declarations
+    const words = SP.SpellWords.read(project.wordsFile.contents ?? "")
+    if (words) detail.words = words
     const scopes = await this.scopesOf(project).catch((error: unknown) => {
       console.warn("<spell-editor> couldn't make its scope pack -- apps show the server's:", error)
       return undefined
@@ -305,9 +308,10 @@ export class SpellEditor extends E.UIComponent<typeof spellEditorVocabulary> {
   }
 
   /** The file our `file` attribute names in `project`, else its first spell file. */
+  @E.untracked
   private namedFile(project: SP.SpellProject): SP.SpellFile | undefined {
     const files = project.spellFiles
-    const name = untrack(() => this.file)
+    const name = this.file
     return files.find((file) => file.file === name || file.path === name) ?? files[0]
   }
 
@@ -417,8 +421,9 @@ export class SpellEditor extends E.UIComponent<typeof spellEditorVocabulary> {
    * Our text `key`, in the page's language once the runtime has loaded;  its English before, as we may open and
    * compile a project before then.
    */
+  @E.untracked
   private textFor(key: E.TextKey<typeof spellEditorVocabulary>): string {
-    if (untrack(() => this.isReady)) return this.translationForKey(key)
+    if (this.isReady) return this.translationForKey(key)
     return spellEditorVocabulary.texts.find((text) => text.key === key)!.text
   }
 

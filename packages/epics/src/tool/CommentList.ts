@@ -13,6 +13,32 @@ const MAX_QUOTE = 2_000
 /** Longest label or excerpt kept, in characters. */
 const MAX_LABEL = 200
 
+/** A comment's statuses (`Comment.status`). */
+const STATUSES: readonly string[] = ["new", "taken", "answered"]
+
+/** How Owen closes a thread (`resolve()`):  "that's good", or "skip it". */
+const RESOLUTIONS: readonly string[] = ["good", "skip"]
+
+/** Who writes Owen's replies (`reply()`):  the name on them. */
+const OWEN = "Owen"
+
+/** A commit, as Claude names one under an answer (`answer()`):  7-40 hex digits. */
+const COMMIT = /^[0-9a-f]{7,40}$/
+
+/**
+ * A comment's id AS AN INBOX FILE KEYS IT:  `m` and its number, `m3` (`cm3` from comments' start, epic `airplane`
+ * P11, until epic `epic-workflow` P23).  Owen sees and types `M3` ("M" for mark;  Owen, 2026-10-10:  "use `M3` for
+ * mark 1"):  `label()`, `idOf()`.
+ * - the files key them `m3` (Owen, 2026-10-17, J178:  "Switch to m3 now");  an older file's `cm3` is read as `m3`
+ *   and written so at its next write (`migrate()`)
+ * - a checkout on older code reads these SHARED files too, and finds a comment by its key as it is:  until it merges
+ *   `main`, its `epic inbox <epic>#cm3` commands and its page server miss the comments written since
+ */
+const STORED = "m"
+
+/** Any way an id may be typed, or keyed in a file:  `M3`, `m3`, the old `cm3`;  any case, a `#` before it aside. */
+const ANY_ID = /^#?c?m(\d+)$/i
+
 /** Characters that draw nothing and that `trim()` keeps:  zero-width spaces, joiners, the word joiner. */
 const INVISIBLE = /[​-‍⁠]/g
 
@@ -34,21 +60,87 @@ CommentsError.prototype.name = "CommentsError"
 /****************
  * ### `CommentList`
  * COMMENTS Owen leaves on a page's blocks (epic `airplane`, P11), as an inbox file holds them:
- * `{ cm1: {...}, cm2: {...} }`, edited in place.
+ * `{ m1: {...}, m2: {...} }`, edited in place.
+ * - IDS (epic `epic-workflow` P23):  shown `M1`, `M2` ... (`label()`);  every method taking an id takes `M3`, `m3` or
+ *   `cm3` (`idOf()`).  The file keys them `m3` (`STORED`), and an older file's `cm3` is read as one (`migrate()`)
  * - two homes, one shape:
- *   - a docs page's own inbox file, `<page>.inbox.json` (`GuideInbox`, `packages/docs/tools`)
- *   - a plan doc's review inbox, its `comments` (`ReviewInbox`)
+ *   - a docs page's own inbox file, `<page>.inbox.json5` (`GuideInbox`)
+ *   - an epic page's review inbox, its `comments` (`ReviewInbox`)
  * - each comment:  where it is (`anchor`, `kind`, `label`, `excerpt`, and for a comment on selected text its
- *   `quote` and `offset`:  `packages/docs/tools/BlockAnchors.js`), Owen's text, when, and its status:
+ *   `quote` and `offset`:  `packages/epics/tools/BlockAnchors.js`), Owen's text, when, and its status:
  *   - `new`:  saved, waiting for Claude;  Owen may edit or delete it
  *   - any status:  Owen may CLEAR it (`clear()`):  gone from the inbox, its highlight with it
+ *   - deleted or cleared:  the page's Undo puts it back as it was (`restore()`)
  *   - `taken`:  Claude took it:  a guide's into epic `guide-changes` (`taken`:  which phase)
- *   - `answered`:  Claude answered it (a plan doc's:  in the doc;  `replies` may hold the answer)
+ *   - `answered`:  Claude answered it (an epic page's:  in the doc;  `replies` may hold the answer)
+ * - a THREAD (Owen, 2026-10-10:  "the entire comment thread should be in one collapsable pane"):  the comment, then
+ *   `replies` in order, Claude's (`answer()`) and Owen's (`reply()`), then maybe `done` (`resolve()`)
+ *   - WHOSE TURN (`turnOf()`):  Owen's once Claude spoke last;  Claude's while Owen did;  nobody's once done
+ *   - WAITING (`waiting`):  Claude's turn, and he hasn't taken it yet.  So a reply on a thread is new work, as a
+ *     new comment is (`/epic review`, `/airplane land`, `epic comments gather`)
+ *     - an epic page's waiting comment goes to Claude with its page's Send, as a mark does:
+ *       `ReviewInbox.unsentComments`, by Owen's last words (`lastWordsAt()`)
+ *   - WORKING (`setWorking()`):  Claude is thinking about it now;  the page shows a "Claude: thinking…" stub at the
+ *     thread's end until his answer lands (`answer()` turns it off).  What Owen said before it counts as read:  not
+ *     waiting any more, and his last reply no longer his to change (a new one goes after it)
  * - pure:  no files;  the owner reads and writes them under its lock
  ****************/
 export class CommentList {
-  /** - `comments`:  the inbox's record, by id;  edited IN PLACE */
-  constructor(readonly comments: Record<string, Comment>) {}
+  /** - `comments`:  the inbox's record, by id;  edited IN PLACE, any key spelt the other way respelt first (`migrate()`) */
+  constructor(readonly comments: Record<string, Comment>) {
+    CommentList.migrate(comments)
+  }
+
+  ////////////////
+  // ## Ids
+  ////////////////
+
+  /**
+   * Comment id `id` as the file keys it (`m3`), however it's typed:  `M3`, `m3`, `cm3`, any case, a `#` before it
+   * aside;  anything else as it is, so a lookup says there's no such comment.
+   */
+  static idOf(this: void, id: string): string {
+    const number = typeof id === "string" ? ANY_ID.exec(id.trim())?.[1] : undefined
+    return number === undefined ? id : `${STORED}${Number(number)}`
+  }
+
+  /** Comment id `id` as Owen sees it, on the page and in every command's output:  `M3` (from `cm3`, `m3` alike). */
+  static label(this: void, id: string): string {
+    const number = typeof id === "string" ? ANY_ID.exec(id.trim())?.[1] : undefined
+    return number === undefined ? id : `M${Number(number)}`
+  }
+
+  /** Is `id` a comment's id (`M3`, `m3`, `cm3`), not an item's? */
+  static isCommentId(this: void, id: string): boolean {
+    return typeof id === "string" && ANY_ID.test(id.trim())
+  }
+
+  /**
+   * Respell the keys of `comments` (an inbox's record) that aren't the file's spelling (`STORED`:  an older file's
+   * `cm3` is `m3`) IN PLACE;  returns `comments`.
+   * - so an inbox written before epic `epic-workflow` P23 reads as one written since, and is written so next time
+   * - a number both ways (`cm3` AND `m3`:  a checkout on older code added one since):  the respelt one takes the next
+   *   free number
+   * - the order kept:  by number, as `all` reads them
+   */
+  static migrate(this: void, comments: Record<string, Comment>): Record<string, Comment> {
+    if (!comments || typeof comments !== "object") return comments
+    // spelt as the file keys it, or no comment id at all
+    const keyed = (id: string) => CommentList.idOf(id) === id
+    if (Object.keys(comments).every(keyed)) return comments
+    const entries = Object.entries(comments)
+    for (const id of Object.keys(comments)) delete comments[id]
+    for (const [id, comment] of entries) if (keyed(id)) comments[id] = comment
+    for (const [id, comment] of entries) {
+      if (keyed(id)) continue
+      const wanted = CommentList.idOf(id)
+      comments[Object.hasOwn(comments, wanted) ? nextFree(comments) : wanted] = comment
+    }
+    const ordered = Object.entries(comments).sort(([a], [b]) => numberOf(a) - numberOf(b))
+    for (const [id] of ordered) delete comments[id]
+    for (const [id, comment] of ordered) comments[id] = comment
+    return comments
+  }
 
   ////////////////
   // ## Reading
@@ -61,21 +153,75 @@ export class CommentList {
       .sort((a, b) => numberOf(a.id) - numberOf(b.id))
   }
 
-  /** The comments still waiting for Claude (`new`). */
+  /**
+   * The comments waiting for Claude:  new ones, and threads Owen replied on since Claude last answered or took them
+   * (`isWaiting()`).
+   */
   get waiting(): IdentifiedComment[] {
-    return this.all.filter((comment) => comment.status === "new")
+    return this.all.filter((comment) => CommentList.isWaiting(comment))
   }
 
-  /** Comment `id`;  throws a 404 `CommentsError` when there's none. */
+  /**
+   * The waiting comments a Send at `sent` (ISO;  `null`:  never sent) has NOT handed over:
+   * Owen's last words newer than it (`lastWordsAt()`), all of them before the first send.
+   * - an epic page's Send (`ReviewInbox.unsentComments`) and a guide's (`GuideInbox.unsentComments`) alike
+   */
+  unsentSince(sent: string | null): IdentifiedComment[] {
+    const since = sent ? Date.parse(sent) : -Infinity
+    return this.waiting.filter((comment) => Date.parse(CommentList.lastWordsAt(comment)) > since)
+  }
+
+  /**
+   * The waiting comments a Send at `sent` handed over:  Owen's last words at or before it;  none before the first
+   * send (`sent` `null`).
+   */
+  sentBy(sent: string | null): IdentifiedComment[] {
+    if (!sent) return []
+    const at = Date.parse(sent)
+    return this.waiting.filter((comment) => Date.parse(CommentList.lastWordsAt(comment)) <= at)
+  }
+
+  /**
+   * Whose turn it is on `comment`'s thread:
+   * - `done`:  Owen closed it (`resolve()`)
+   * - `owen`:  Claude spoke last.  Also an epic page's comment answered in the doc, with no words here.
+   * - `claude`:  Owen spoke last (the comment, or his reply).  Claude may have TAKEN it, but hasn't answered yet.
+   */
+  static turnOf(comment: Comment): Turn {
+    if (comment.done) return "done"
+    const last = comment.replies?.at(-1)
+    if (last) return last.by === OWEN ? "claude" : "owen"
+    return comment.status === "answered" ? "owen" : "claude"
+  }
+
+  /** Is `comment` new work for Claude:  his turn, and not taken (nor being worked on) since Owen last spoke? */
+  static isWaiting(comment: Comment): boolean {
+    if (CommentList.turnOf(comment) !== "claude") return false
+    const spoke = comment.replies?.findLast((reply) => reply.by === OWEN)?.at ?? comment.at
+    const held = heldSince(comment)
+    return !held || held < spoke
+  }
+
+  /**
+   * When Owen last changed his words on `comment`'s thread, ISO:
+   * the latest of the comment, his replies, and their edits.
+   * - what an epic page's Send compares with its `sent` (`ReviewInbox.unsentComments`):
+   *   words newer than the last send haven't gone to Claude yet
+   */
+  static lastWordsAt(comment: Comment): string {
+    const times = [comment.at, comment.edited]
+    for (const reply of comment.replies ?? []) if (reply.by === OWEN) times.push(reply.at, reply.edited)
+    return times
+      .filter((each): each is string => !!each)
+      .reduce((latest, each) => (Date.parse(each) > Date.parse(latest) ? each : latest))
+  }
+
+  /** Comment `id` (`M3`, `m3`, `cm3`);  throws a 404 `CommentsError` when there's none. */
   comment(id: string): Comment {
-    const comment = Object.hasOwn(this.comments, id) ? this.comments[id] : undefined
-    if (!comment) throw new CommentsError(`no comment ${id} here`, { cause: { status: 404 } })
+    const key = CommentList.idOf(id)
+    const comment = Object.hasOwn(this.comments, key) ? this.comments[key] : undefined
+    if (!comment) throw new CommentsError(`no comment ${CommentList.label(id)} here`, { cause: { status: 404 } })
     return comment
-  }
-
-  /** Is `id` a comment's id (`cm3`), not an item's? */
-  static isCommentId(id: string): boolean {
-    return /^cm\d+$/.test(id)
   }
 
   ////////////////
@@ -83,14 +229,14 @@ export class CommentList {
   ////////////////
 
   /**
-   * Add a comment on the block at `where`;  returns its id (`cm3`).
+   * Add a comment on the block at `where`;  returns its id, as the file keys it (`m3`).
    * - throws on a bad anchor or kind, or blank text
    */
   add(where: CommentPlace, text: string, now = new Date()): string {
     const { anchor, kind, quote, offset } = where
     if (typeof anchor !== "string" || !ANCHOR.test(anchor)) throw new CommentsError(`"${anchor}" isn't an anchor`)
     if (typeof kind !== "string" || !KIND.test(kind)) throw new CommentsError(`"${kind}" isn't a kind of block`)
-    const id = `cm${Math.max(0, ...Object.keys(this.comments).map(numberOf)) + 1}`
+    const id = this.nextId()
     const comment: Comment = {
       anchor,
       kind,
@@ -118,7 +264,7 @@ export class CommentList {
   /** Delete comment `id`;  only while it's `new`. */
   remove(id: string): void {
     this.unseen(id)
-    delete this.comments[id]
+    delete this.comments[CommentList.idOf(id)]
   }
 
   /**
@@ -127,7 +273,98 @@ export class CommentList {
    */
   clear(id: string): void {
     this.comment(id)
-    delete this.comments[id]
+    delete this.comments[CommentList.idOf(id)]
+  }
+
+  /**
+   * Put back comment `comment`, deleted or cleared a moment ago, as it was:  its place, text, dates, status, the
+   * phase it went into and Claude's answers (the page's Undo, Owen 2026-10-10:  "didn't know it needed two clicks").
+   * Returns its id:  `id` again, unless a new comment took it meanwhile;  then the next free one.
+   * - throws on what `add()` refuses (a bad anchor or kind, blank text), or a status that isn't one
+   */
+  restore(id: string, comment: Comment): string {
+    const { anchor, kind, quote, offset, status, taken, replies, edited, done } = comment ?? ({} as Comment)
+    if (typeof anchor !== "string" || !ANCHOR.test(anchor)) throw new CommentsError(`"${anchor}" isn't an anchor`)
+    if (typeof kind !== "string" || !KIND.test(kind)) throw new CommentsError(`"${kind}" isn't a kind of block`)
+    if (!STATUSES.includes(status)) throw new CommentsError(`"${status}" isn't a comment's status`)
+    const back: Comment = {
+      anchor,
+      kind,
+      label: short(comment.label),
+      excerpt: short(comment.excerpt),
+      text: checkedText(comment.text),
+      at: stamp(comment.at) ?? new Date().toISOString(),
+      status
+    }
+    if (typeof quote === "string" && quote.trim()) {
+      back.quote = quote.trim().slice(0, MAX_QUOTE)
+      back.offset = Number.isInteger(offset) && Number(offset) >= 0 ? Number(offset) : 0
+    }
+    if (stamp(edited)) back.edited = stamp(edited)
+    if (taken && typeof taken.epic === "string" && Number.isInteger(taken.phase))
+      back.taken = { epic: taken.epic, phase: taken.phase, at: stamp(taken.at) ?? back.at }
+    const thread = Array.isArray(replies) ? replies.flatMap((reply) => restoredReply(reply, back.at)) : []
+    if (thread.length) back.replies = thread
+    if (done && RESOLUTIONS.includes(done.how)) back.done = { how: done.how, at: stamp(done.at) ?? back.at }
+    const wanted = CommentList.idOf(id)
+    const free = CommentList.isCommentId(id) && !Object.hasOwn(this.comments, wanted)
+    const restored = free ? wanted : this.nextId()
+    this.comments[restored] = back
+    return restored
+  }
+
+  ////////////////
+  // ## Owen's thread (the page's threads)
+  ////////////////
+
+  /**
+   * Owen's reply on comment `id`'s thread (Revisit:  saved as he types).
+   * - his PENDING reply (the last entry, his, not taken since) takes `text`;  else a new one goes at the end
+   * - reopens a closed thread
+   * - `text` blank:  the pending reply goes (emptied, as a comment is);  with none pending, refused:  a reply needs
+   *   words
+   */
+  reply(id: string, text: string, now = new Date()): void {
+    const comment = this.comment(id)
+    const pending = this.pendingReply(comment)
+    const blank = typeof text !== "string" || !text.replace(INVISIBLE, "").trim()
+    if (blank && pending) {
+      comment.replies = comment.replies!.slice(0, -1)
+      if (!comment.replies.length) delete comment.replies
+      return
+    }
+    const words = checkedText(text)
+    delete comment.done
+    if (pending) {
+      pending.text = words
+      pending.edited = now.toISOString()
+    } else comment.replies = [...(comment.replies ?? []), { by: OWEN, at: now.toISOString(), text: words }]
+  }
+
+  /**
+   * Close comment `id`'s thread:  `good` ("that's good":  done) or `skip` ("skip it":  nothing more to do).
+   * - throws a 400 for any other `how`
+   */
+  resolve(id: string, how: string, now = new Date()): void {
+    const comment = this.comment(id)
+    if (!RESOLUTIONS.includes(how)) throw new CommentsError(`a thread closes as "good" or "skip", not "${how}"`)
+    comment.done = { how: how as Resolution, at: now.toISOString() }
+  }
+
+  /** Open comment `id`'s thread again:  the page's Undo after "that's good" or "skip it", and its Reopen. */
+  reopen(id: string): void {
+    delete this.comment(id).done
+  }
+
+  /**
+   * Owen's pending reply on `comment`:  the last entry, his, not taken since, nor being worked on;  else
+   * `undefined`.
+   */
+  private pendingReply(comment: Comment): CommentReply | undefined {
+    const last = comment.replies?.at(-1)
+    if (last?.by !== OWEN) return undefined
+    const held = heldSince(comment)
+    return held && held >= last.at ? undefined : last
   }
 
   ////////////////
@@ -142,23 +379,51 @@ export class CommentList {
   }
 
   /**
-   * Comment `id` answered:  `html` (as is:  a `<p>` or more) under it, after any before it;
-   * none:  answered elsewhere (a plan doc's comment, in the doc).
+   * Claude is thinking about comment `id` (`on`), or stopped (`!on`):  the page shows a "Claude: thinking…" stub at
+   * the end of its thread meanwhile (`epic comments working`, `epic inbox <name>#M3 working on`).
+   * - `working`:  since when;  set again, it keeps the first time
+   * - `answer()` turns it off
    */
-  answer(id: string, html = "", now = new Date()): void {
+  setWorking(id: string, on: boolean, now = new Date()): void {
+    const comment = this.comment(id)
+    if (!on) delete comment.working
+    else comment.working ??= now.toISOString()
+  }
+
+  /**
+   * Comment `id` answered:  `html` (as is:  a `<p>` or more) on its thread, after any before it.
+   * - none:  answered elsewhere (an epic page's comment, in the doc).  An entry with no words still goes on the
+   *   thread, so it's Owen's turn, unless Claude spoke last already.
+   * - `commit`:  the commit the answer was built in (the thread's Done line shows it);  throws a 400 when it isn't one
+   * - Claude's done thinking about it:  its `working` goes
+   */
+  answer(id: string, html = "", now = new Date(), commit?: string): void {
     const comment = this.comment(id)
     const markup = String(html ?? "").trim()
-    if (markup) comment.replies = [...(comment.replies ?? []), { by: "Claude", at: now.toISOString(), html: markup }]
+    if (commit !== undefined && !COMMIT.test(commit)) throw new CommentsError(`"${commit}" isn't a commit`)
+    const reply: CommentReply = { by: "Claude", at: now.toISOString(), html: markup }
+    if (commit) reply.commit = commit
+    if (markup || commit || CommentList.turnOf(comment) === "claude")
+      comment.replies = [...(comment.replies ?? []), reply]
     if (comment.status === "new") comment.status = "answered"
+    delete comment.working
+  }
+
+  /** The id a new comment gets:  one past the highest (`m3` after `m2`). */
+  private nextId(): string {
+    return nextFree(this.comments)
   }
 
   /** Comment `id`, while it's `new`;  throws a 409 once Claude has it. */
   private unseen(id: string): Comment {
     const comment = this.comment(id)
     if (comment.status !== "new")
-      throw new CommentsError(`comment ${id} is ${comment.status}:  Claude has it, so add a new comment instead`, {
-        cause: { status: 409 }
-      })
+      throw new CommentsError(
+        `comment ${CommentList.label(id)} is ${comment.status}:  Claude has it, so add a new comment instead`,
+        {
+          cause: { status: 409 }
+        }
+      )
     return comment
   }
 }
@@ -192,16 +457,76 @@ export type Comment = Required<Omit<CommentPlace, "quote" | "offset">> &
     status: "new" | "taken" | "answered"
     /** the phase it went into, and when */
     taken?: { epic: string; phase: number; at: string }
-    /** Claude's answers under it */
-    replies?: { by: string; at: string; html: string }[]
+    /** its thread after Owen's first words, in order:  Claude's answers, Owen's replies */
+    replies?: CommentReply[]
+    /** Owen closed the thread:  "that's good" (`good`) or "skip it" (`skip`), and when */
+    done?: { how: Resolution; at: string }
+    /** Claude is thinking about it (`setWorking()`):  since when, ISO */
+    working?: string
   }
 
-/** A comment with its id (`cm3`). */
+/**
+ * One entry of a comment's thread:
+ * - Claude's (`by` not `Owen`):  `html`, as is (`""`:  answered elsewhere, an epic page's in the doc), and `commit`,
+ *   the commit it was built in
+ * - Owen's (`by: "Owen"`):  `text`, as typed (plain, as a comment's), and `edited`, when he last changed it
+ */
+export type CommentReply = { by: string; at: string; html?: string; text?: string; commit?: string; edited?: string }
+
+/** How Owen closed a thread:  "that's good", or "skip it". */
+export type Resolution = "good" | "skip"
+
+/** Whose turn it is on a thread (`CommentList.turnOf()`). */
+export type Turn = "owen" | "claude" | "done"
+
+/** A comment with its id (`m3`). */
 export type IdentifiedComment = Comment & { id: string }
 
-/** A comment id's number:  `cm12` -> 12;  0 for anything else. */
+/** When Claude last took `comment`, ISO;  `taken` with no record of it:  when written;  never taken:  `undefined`. */
+function takenAt(comment: Comment): string | undefined {
+  return comment.taken?.at ?? (comment.status === "taken" ? comment.at : undefined)
+}
+
+/**
+ * Since when Claude has held `comment`, ISO:  the later of when he took it (`takenAt()`) and when he started thinking
+ * about it (`working`);  `undefined` for neither.
+ */
+function heldSince(comment: Comment): string | undefined {
+  const times = [takenAt(comment), comment.working].filter((each): each is string => !!each)
+  return times.sort().at(-1)
+}
+
+/** `reply` as `restore()` keeps it:  one entry;  none when it's neither Claude's answer nor Owen's words. */
+function restoredReply(reply: CommentReply, fallback: string): CommentReply[] {
+  if (typeof reply?.by !== "string") return []
+  const at = stamp(reply.at) ?? fallback
+  if (reply.by === OWEN) {
+    if (typeof reply.text !== "string" || !reply.text.trim()) return []
+    const kept: CommentReply = { by: OWEN, at, text: checkedText(reply.text) }
+    if (stamp(reply.edited)) kept.edited = stamp(reply.edited)
+    return [kept]
+  }
+  if (typeof reply.html !== "string") return []
+  const kept: CommentReply = { by: reply.by, at, html: reply.html }
+  if (typeof reply.commit === "string" && COMMIT.test(reply.commit)) kept.commit = reply.commit
+  return [kept]
+}
+
+/** `value` as an ISO date, when it's a date;  else `undefined`. */
+function stamp(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
+}
+
+/** A comment id's number:  `m12` (`M12`, the old `cm12`) -> 12;  0 for anything else. */
 function numberOf(id: string): number {
-  return Number(/^cm(\d+)$/.exec(id)?.[1] ?? 0)
+  return Number(ANY_ID.exec(id)?.[1] ?? 0)
+}
+
+/** The id one past the highest of `comments`' (`m3` after `m2`, or after an old `cm2`;  `m1` for none). */
+function nextFree(comments: Record<string, Comment>): string {
+  return `${STORED}${Math.max(0, ...Object.keys(comments).map(numberOf)) + 1}`
 }
 
 /**

@@ -17,7 +17,7 @@ Another session is changing things this one depends on (e.g. moving packages).
   - `<name>`'s branch merged into `main`
   - its worktree removed
   - every running session of `<name>` exited
-  - every phase of its plan doc done
+  - every phase of its epic page done
   - NEVER "idle":  a session goes idle whenever it waits for Owen.
 
 ## 1. Which one

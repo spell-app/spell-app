@@ -15,7 +15,7 @@ import {
 /****************
  * ### `SearchIndex`
  * What `<ui-docs-search>` searches, and how it ranks:  every component tag, every attribute, every page and every
- * page's sections, built once from the site's data (`components.json` + `search.json`);  the page shown's sections
+ * page's sections, built once from the site's data (`components.json5` + `search.json5`);  the page shown's sections
  * come live, per search (`PageOutline`).
  * - Matching is blind to case and accents.  The WHOLE query is tried against the title (exact, start,
  *   a word's start, inside), then against each term (a tag, another name, a topic ...);  failing those,
@@ -302,9 +302,9 @@ export class SearchIndex {
 
 /** What a `SearchIndex` is built from:  the site's files that loaded. */
 export type SearchIndexProps = {
-  /** `components.json`:  tags and their attributes */
+  /** `components.json5`:  tags and their attributes */
   data?: SiteDataFile
-  /** `search.json`:  pages and their sections */
+  /** `search.json5`:  pages and their sections */
   search?: SiteSearchFile
 }
 

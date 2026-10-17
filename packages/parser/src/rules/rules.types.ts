@@ -191,7 +191,7 @@ export type Declaration = {
  * - NOTE: that project's sources may not be there, e.g. a library shipped compiled.
  */
 export type DeclaredAt = {
-  /** Full path of its file, e.g. `@system:library:cards/Card.spell`. */
+  /** Full path of its file, e.g. `@spell/library/cards/Card.spell`. */
   path: string
   /** Character offset in that file where its declaring statement starts. */
   start: number
@@ -208,7 +208,7 @@ export type ImportedRuleDeclared = {
   owner: string
   /**
    * What its statement declared, as its rule's `getDeclaration()` said -- bar `nameMatch`:  there's no match.
-   * - `of` is Type_Case, e.g. `Card`, where `getDeclaration()` gives source text, e.g. `cards`.
+   * - `of` is PascalCase, e.g. `Card`, where `getDeclaration()` gives source text, e.g. `cards`.
    */
   declaration?: Omit<Declaration, "nameMatch">
   /** Where its statement was, if written down. */

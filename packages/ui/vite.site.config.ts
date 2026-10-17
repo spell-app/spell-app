@@ -13,11 +13,20 @@ export const SITE_ASSETS = `${ROOT}site/_assets`
 export const SITE_ENTRY = `${ROOT}site/_src/site.ts`
 
 /**
+ * The component sets' build (mode `sets`):  `site/_src/sets.ts` => `site/_assets/sets/`, the same site plus
+ * `SitePacks` for the packs their examples use (epic `epic-workflow` P10;  `COMPONENT_SETS` in `$/server/page`).
+ * - Its own build, so Spell UI's pages never load the whole modules a pack may need.
+ */
+export const SETS_MODE = "sets"
+export const SETS_ASSETS = `${SITE_ASSETS}/sets`
+export const SETS_ENTRY = `${ROOT}site/_src/sets.ts`
+
+/**
  * The Spell UI site's bundle (`yarn site:bundle`, run by `scripts/site-bundle.ts`):
  * `site/_src/site.ts` => `site/_assets/site.js` + `site.css` + lazy chunks.  See the entry for what's in it.
  * - `baseConfig()`:  the library's own plugins (decorators BEFORE Solid), Solid dedupe, Lightning CSS targets.
  * - An APP build of one JS entry (not lib mode):  code-split, with Vite's preload helper for the lazy chunks.
- * - `base: "./"`:  chunk URLs relative to the chunk that imports them, so `_assets/` works under `/ui/` at any page
+ * - `base: "./"`:  chunk URLs relative to the chunk that imports them, so `_assets/` works under `/components/ui/` at any page
  *   depth.  The default `/` asks the server ROOT for `/<chunk>.js` (`agents/PAPERCUTS.md`, app, 2026-10-02).
  * - Stable names where the tree is stable, so a rebuild's diff is small:  `site.js`, `site.css`,
  *   one `<family>.js` per family barrel (`ui-button.js`, `ui-docs-example.js`), emoji data under `emoji/<set>/`;
@@ -25,9 +34,11 @@ export const SITE_ENTRY = `${ROOT}site/_src/site.ts`
  * - Minified, no sourcemaps:  as a deploy would ship it.  `emptyOutDir: false`:
  *   `scripts/site-bundle.ts` clears the folder itself, keeping the `icon-packs` link.
  * - Aliases set here as well:  `site/` is outside `tsconfig.json`'s files, where `tsconfigPaths` may not apply.
+ * - Mode `sets` (`SETS_MODE`):  the component sets' build instead, `site/_src/sets.ts` => `site/_assets/sets/`.
  */
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
   const base = baseConfig()
+  const isSets = mode === SETS_MODE
   return {
     ...base,
     root: ROOT,
@@ -38,6 +49,8 @@ export default defineConfig(() => {
       ...base.resolve,
       alias: [
         { find: /^\$\/ui$/, replacement: `${ROOT}src/index.ts` },
+        // the elements sit beside `src/`, as every set's do (epic `people-and-orgs` P18):  before `$/ui/`
+        { find: /^\$\/ui\/components\//, replacement: `${ROOT}components/` },
         { find: /^\$\/ui\//, replacement: `${ROOT}src/` },
         { find: /^\$\/util$/, replacement: `${ROOT}../util/src/index.ts` },
         { find: /^\$\/util\//, replacement: `${ROOT}../util/src/` },
@@ -46,7 +59,7 @@ export default defineConfig(() => {
       ]
     },
     build: {
-      outDir: SITE_ASSETS,
+      outDir: isSets ? SETS_ASSETS : SITE_ASSETS,
       emptyOutDir: false,
       sourcemap: false,
       minify: true,
@@ -58,7 +71,7 @@ export default defineConfig(() => {
       // `brands.json`-sized icon data and highlight.js's languages are lazy chunks, loaded only when used
       chunkSizeWarningLimit: 700,
       rolldownOptions: {
-        input: { site: SITE_ENTRY },
+        input: { site: isSets ? SETS_ENTRY : SITE_ENTRY },
         preserveEntrySignatures: "allow-extension",
         output: {
           // custom element class names are read by dev-time warnings and the manifest (see `vite.config.ts`)
@@ -85,8 +98,8 @@ function siteChunkName(chunk: { facadeModuleId: string | null; moduleIds: readon
   return "[name]-[hash].js"
 }
 
-/** A family barrel:  `src/components/ui-button/index.ts`, `src/docs-components/ui-docs-example/index.ts`. */
-const FAMILY_BARREL = /\/src\/(?:docs-)?components\/(ui-[\w-]+)\/index\.ts$/
+/** A family barrel:  `components/ui-button/index.ts`, `src/docs-components/ui-docs-example/index.ts`. */
+const FAMILY_BARREL = /\/(?:src\/docs-)?components\/(ui-[\w-]+)\/index\.ts$/
 
 /** An emoji name-data module:  its set and chunk letter. */
 const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/

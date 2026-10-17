@@ -21,7 +21,7 @@
  * - Colours come from the THEME's tokens, so it reads in every theme, light and dark:
  *   `--ui-background`, `--ui-border-color`, `--ui-surface`, `--ui-primary-*`, `--ui-text-*`, `--ui-shadow-floating`.
  * - Public tokens (`--ui-docs-search-*`) are never declared:  each is read through a private alias
- *   (`docs/theming.md` "Component tokens").
+ *   (`notes/theming.md` "Component tokens").
  */
 
 @layer ui.components.docs-search.types, ui.components.docs-search.content, ui.components.docs-search.variations, ui.components.docs-search.states;

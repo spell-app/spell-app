@@ -1,6 +1,6 @@
 import { isServer } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 
 import {
   NOTICE_MS,
@@ -94,6 +94,12 @@ export class ReviewState {
 
   /** Is a Claude session listening?  The page's, so read with or without an id. */
   readonly listening = (): boolean => this.readPage((client) => client.listening) ?? false
+
+  /**
+   * Why work waits with nobody listening:  what the page server's wake did, else that nobody is reviewing
+   * (`ReviewClient.waitingWhy`).  The page's, so read with or without an id.
+   */
+  readonly waitingWhy = (): string => this.readPage((client) => client.waitingWhy) ?? ""
 
   /** Its note box open by itself, or being written in. */
   readonly boxOpen = (): boolean => this.read((client, id) => client.isBoxOpen(id)) ?? false

@@ -1,6 +1,6 @@
 ---
 name: epics
-description: List the open epics -- every `/epic` plan doc (`epics/<name>/`, shared by `main` and every worktree) with phases left, still planning, or done but not merged -- with each one's phase, worktree, session, what's waiting on Owen, and links to its plan doc.  List only:  changes nothing.  Use for `/epics` (open ones), `/epics all` (finished ones too), or when Owen asks "what epics are open?", "which plans are running?", "where are my epics at?".  Everything else open (sessions, worktrees, clean-up):  `/worktrees`.
+description: List the open epics -- every epic page (`epics/<name>/`, shared by `main` and every worktree) with phases left, still planning, or done but not merged -- with each one's phase, worktree, session, what's waiting on Owen, and links to its epic page.  List only:  changes nothing.  Use for `/epics` (open ones), `/epics all` (finished ones too), or when Owen asks "what epics are open?", "which plans are running?", "where are my epics at?".  Everything else open (sessions, worktrees, clean-up):  `/worktrees`.
 argument-hint: "[all]"
 ---
 
@@ -10,19 +10,19 @@ Owen runs several epics at once:  one screen saying where each stands.
 - Read-only:  it lists, Owen acts.
 - His next steps:  `/wtf <name>`, `/epic <name>`, `/unpark <name>`, `/worktrees` to clean up.
 
-- Every plan doc is shared content:  ONE copy, in `../spell-app-dev`, linked into every checkout as `epics`.
+- Every epic page is shared content:  ONE copy, in `../spell-app-dev`, linked into every checkout as `epics`.
   - On code from before 2026-10-05, the link is `packages/docs/content/epics`.
   - So any checkout lists every epic, and there's no "worktree copy" to prefer.
 - An epic's worktree and branch are both `<name>` (`.claude/worktrees/<name>`).
   It may have none:  planned on `main`, or merged and removed.
 - A worktree cut before 2026-10-04 that hasn't run `spell dev shared migrate <name>` still has its own old copy
   (`packages/docs/epics/<name>/`).
-  `plan-doc` reads that one for it.
+  `epic` reads that one for it.
 
 ## Steps
 
 1. Gather, in parallel (one Bash call each, from the repo root or any worktree):
-   - `spell dev plan-doc list --json`:  every epic once, in progress first.
+   - `epic list --json`:  every epic once, in progress first.
      - Each:  `{ name, title, status, checkout, notReviewed, total, file }`.
      - `status`:
        - `in progress`:  while any phase isn't done (or there are none yet)
@@ -34,7 +34,7 @@ Owen runs several epics at once:  one screen saying where each stands.
 2. Keep the open ones (`/epics all`:  every one):
    `in progress`, `future`, or `done` with a worktree whose branch has work not in `main`.
    Then, for those:
-   - `spell dev plan-doc summaries <file> ...`, every `file` in one call.
+   - `epic summaries <file> ...`, every `file` in one call.
      - It gives JSON `{ <file>: summary }`, or `{ error }`.
      - Each summary has `phases[]` (`n`, `name`, `status`), `active`, `next`, and `open` (items by kind).
      - And `bedtime`:  the phases a `/bedtime` run is on, while it goes.
@@ -46,20 +46,20 @@ Owen runs several epics at once:  one screen saying where each stands.
 3. Its STATE, from those:
    - `future`:  written down, not planned (`status` `future`).
      - Listed after the others, in a group of its own, "Future epics".
-     - Each with `/epic <name>` to plan it, and its analysis page (`epics/<name>/details/analysis.html`).
+     - Each with `/epic <name>` to plan it, and its review page (`epics/<name>/details/analysis.html`).
    - `planning`:  no phases yet
    - `working`:  a phase `active`, or a session on it `busy` / `waiting`
    - `stalled`:  phases left, nothing working on it
    - `unmerged`:  every phase done, but its branch has commits not in `main` (`ahead` > 0)
    - `done`:  every phase done, nothing left outside `main` (`all` only)
    - `unreadable`:  `summaries` gave an `error` (`all` only, unless it's in a worktree)
-4. Links:  each listed epic's plan doc, `spell dev docs link <file> --text "<name>"`.
+4. Links:  each listed epic's epic page, `spell dev docs link <file> --text "<name>"`.
    - One Bash call for all of them, one line each;  no `--show`.
-   - It gives the side bar link, and the `(_browser_)` link.
+   - It gives the side bar link, and the `🌐` (browser) link after it:  `Title • 🌐`.
 5. Reply:
    - one line:  "<n> open epics" (`all`:  "<n> epics, <m> open")
    - a markdown table, open first, in `list`'s order:
-     - **epic**:  the side bar link, then `(_browser_)`, as `docs:link` printed them
+     - **epic**:  the side bar link, then `• 🌐` (browser), as `docs:link` printed them
      - **state**:  step 3's
      - **phase**:  `P3 · Name` active, or `next P3 · Name`, with `2/5`;  "planning" when there are no phases
      - **where**:  worktree / branch `<name>`, or `main`;  commits not in `main`, uncommitted files
@@ -81,7 +81,7 @@ Owen runs several epics at once:  one screen saying where each stands.
 
 ## Notes
 
-- A plan doc `plan-doc` can't read shows as `unreadable`, with its error:  say so, don't guess its state.
-- State comes from the plan doc's phase statuses (`spell dev plan-doc phase`),
+- An epic page `epic` can't read shows as `unreadable`, with its error:  say so, don't guess its state.
+- State comes from the epic page's phase statuses (`epic phase`),
   so a phase nobody marked done reads as not done.
   Doubt it:  `/wtf <name>` reads the session.

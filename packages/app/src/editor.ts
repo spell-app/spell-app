@@ -2,6 +2,7 @@ import { UIError, Observable, prop, setPrefKey, getPref, setPref, CONFIRM } from
 
 import { P } from "$/parser"
 import { SP } from "$/spell"
+import { SPACES } from "$/spaces"
 import type { SpellConsole } from "$/core/console"
 import type { SpellRuntime } from "$/app/runner"
 import type * as UIT from "$/app/ui/ui.types"
@@ -18,8 +19,10 @@ setPrefKey("spellEditor:")
 
 /**
  * The editor:  what the app shows -- project root, project, file, selection, notices -- and everything it does.
- * - Its state is spell cells (`@prop`):  `editor.x = y` anywhere, and Solid code reading `editor.x` re-runs (through
- *   the cells bridge, `$/app/solid/cellsBridge`).  A read right after a write sees it.
+ * - Its state is spell cells (`@prop`):
+ *   `editor.x = y` anywhere, and Solid code reading `editor.x` re-runs
+ *   (through the cells bridge, `$/app/solid/cellsBridge`).
+ *   A read right after a write sees it.
  * - ONE instance, `editor`, below.
  * - NOTE: methods say `editor.x`, NEVER `this`:  they're handed around unbound, e.g. `setTimeout(editor.compileApp)`.
  * - NOTE: a plain field (`compileAppSoonTimer`, the `last...For...()` helpers) is NOT reactive.
@@ -30,11 +33,11 @@ export class EditorStore extends Observable {
   ////////////////
 
   /**
-   * `SP.SpellProjectRoot` shown in `SpellEditor`.
-   * Update with `editor.showEditor()
+   * `SPACES.SpellProjectRoot` shown in `SpellEditor`.
+   * - Update with `editor.showEditor()`.
    */
   @prop()
-  accessor projectRoot: SP.SpellProjectRoot | undefined
+  accessor projectRoot: SPACES.SpellProjectRoot | undefined
   /** Get/save last viewed `projectPath` for `projectRootPath`. */
   lastProjectForRoot = lastProjectForRoot
   /** Human-readable type of current `projectRoot`, e.g. `"Example"` -- falls back to `"Project"` if none selected. */
@@ -44,7 +47,7 @@ export class EditorStore extends Observable {
 
   /**
    * Current `SP.SpellProject` shown in `SpellEditor`.
-   * Update with `editor.showEditor()`
+   * - Update with `editor.showEditor()`.
    */
   @prop()
   accessor project: SP.SpellProject | undefined
@@ -53,7 +56,7 @@ export class EditorStore extends Observable {
 
   /**
    * `SpellFile` etc shown in `SpellEditor`.
-   * Update with `editor.showEditor()`
+   * - Update with `editor.showEditor()`.
    */
   @prop()
   accessor file: EditorFile | undefined
@@ -65,7 +68,10 @@ export class EditorStore extends Observable {
     navigate("/")
   }
 
-  /** Show `<SpellEditor>` for a `path` by updating the URL, which will eventually call `selectPath` */
+  /**
+   * Show `<SpellEditor>` for `path` (default:  current file), and compile.
+   * - Updates the URL, whose route calls `selectPath()`.
+   */
   showEditor(path?: string, selection?: UIT.EditorSelection): void {
     if (!path) path = editor.file?.path
     // TODO: selection!!!!
@@ -77,7 +83,10 @@ export class EditorStore extends Observable {
     }
   }
 
-  /** Show `<SpellRunner>` for a `path` by updating the URL, which will eventually call `selectPath` */
+  /**
+   * Show `<SpellRunner>` for `path` (default:  current file), and compile.
+   * - Updates the URL, whose route calls `selectPath()`.
+   */
   async showRunner(path?: string): Promise<void> {
     if (!path) path = editor.file?.path
     try {
@@ -105,9 +114,18 @@ export class EditorStore extends Observable {
   showHelp(): void {
     console.warn("TODO: editor.showHelp() not yet implemented")
   }
-  /** Log the user in. TODO: not yet implemented. */
-  logIn(): void {
-    console.warn("TODO: editor.logIn() not yet implemented")
+  /**
+   * Show the "You" panel (`openYouPanel()`, epic `people-and-orgs` P9):
+   * this machine's person to change, and their orgs.
+   * - Save writes their `__me.json5`.
+   * - An error reading or saving them shows as the editor's error.
+   */
+  async showYou(): Promise<void> {
+    try {
+      await (await dialogs()).openYouPanel()
+    } catch (error) {
+      editor.showError(error)
+    }
   }
   /** Publish the current `project`. TODO: not yet implemented. */
   publishApp(): void {
@@ -115,15 +133,15 @@ export class EditorStore extends Observable {
   }
 
   /**
-   * Last project page we were showing: "editor" or "runner".
-   * Set by `<SpellEditor>` or `<SpellRunner>`
+   * Last project page shown:  `"editor"` or `"runner"`.
+   * - Set by `<SpellEditor>` or `<SpellRunner>`.
    */
   @prop({ type: "text", default: "editor" })
   accessor projectPage!: "editor" | "runner"
 
   /**
    * Select a `path` to show in the `<SpellEditor/>` or `<SpellRunner>`.
-   * Pass `selection` as `{ line, ch }` to set the cursor in the file.
+   * - Pass `selection` (its `anchor` and `head`) to set the cursor in the file.
    */
   async selectPath(path: string, selection?: UIT.EditorSelection): Promise<void> {
     let location: SP.SpellLocation
@@ -132,11 +150,11 @@ export class EditorStore extends Observable {
     } catch {
       console.warn(`editor.selectPath('${path}'): invalid path`)
       // default to user projects if `new SP.SpellLocation()` throws
-      location = new SP.SpellLocation("@user:projects")
+      location = new SP.SpellLocation("owen@spell")
     }
     console.info("editor.selectPath", { path, location })
 
-    const projectRoot = new SP.SpellProjectRoot(location.projectRoot)
+    const projectRoot = new SPACES.SpellProjectRoot(location.projectRoot)
     const sameRoot = editor.projectRoot === projectRoot
     if (!sameRoot) {
       console.info("selecting projectRoot", projectRoot)
@@ -205,8 +223,8 @@ export class EditorStore extends Observable {
   }
 
   /**
-   * Given a `match`, attempt to show it and put the cursor in the right spot.
-   * This may not be accurate if text has changed since
+   * Show `match` in its file, with the cursor on it.
+   * - May be off if the text has changed since it matched.
    */
   async showMatch(match: P.Match): Promise<void> {
     const path = match.getScopeOfType(P.FileScope)?.path
@@ -224,10 +242,10 @@ export class EditorStore extends Observable {
   }
 
   /**
-   * Create an app for the specified `projectRoot`.
-   * `projectId` is optional, if you don't specify we'll ask the user for one.
+   * Create an app in `projectRoot` (default:  the current one), and show it.
+   * - No `projectId`:  asks the user for one.
    */
-  async createApp(projectRoot?: SP.SpellProjectRoot, projectId?: string): Promise<void> {
+  async createApp(projectRoot?: SPACES.SpellProjectRoot, projectId?: string): Promise<void> {
     // NOTE: defaulted here, NOT in the signature -- a default referencing `editor` would make
     // `typeof EDITOR_DEFAULTS` circular, since defaults are part of the member's type.
     projectRoot ??= editor.projectRoot!
@@ -235,7 +253,7 @@ export class EditorStore extends Observable {
       const project = await projectRoot.createApp(projectId)
       if (project) {
         editor.showEditor(project.path)
-        editor.showNotice(`Created ${project.type} ${project.projectName}.`)
+        editor.showNotice(`Created ${project.type} ${project.title}.`)
       }
     } catch (e) {
       editor.showError(e)
@@ -317,9 +335,28 @@ export class EditorStore extends Observable {
   }
 
   /**
-   * Run already-`compiled` current `project` afresh, on the runtime programs run on -- logging how it went to
-   * `runtimeConsole()`.  See `runCompiled()`.
-   * - Runs what it wrote to `<Project>.compiled.js`:  its declarations are in `<Project>.declarations.json`.
+   * Compile current `project` and run it afresh, on purpose:  the Restart button, a new deal (Q25).
+   * - Every other compile keeps the program's things, e.g. the game in progress -- see `executeCompiledApp()`.
+   */
+  async restartApp(): Promise<void> {
+    editor.startAfresh = true
+    await editor.compileApp()
+  }
+
+  /** Does the next run start afresh?  Set by `restartApp()`, and cleared as the run starts. */
+  startAfresh = false
+
+  /** Path of the project run last:  a compile of the same project keeps its things. */
+  lastExecutedPath: string | undefined = undefined
+
+  /**
+   * Run current `project`, already `compiled`, on the runtime programs run on.
+   * - Logs how it went to `runtimeConsole()`.  See `runCompiled()`.
+   * - The project run last, compiled again:  its things carry over, e.g. the game in progress
+   *   (epic `drawable-thing` P16), unless:
+   *   - `restartApp()` asked for a fresh start
+   *   - or the edit changed the program's start (`runCompiled()`, P17)
+   * - Runs what it wrote to `<Project>.spell.js`:  its declarations are in `<Project>.declarations.json5`.
    * - Each project it imports is fetched afresh, so a recompiled library shows at once.
    * - An error's stack goes to devtools too -- `runCompiled()` logs it.
    */
@@ -330,10 +367,14 @@ export class EditorStore extends Observable {
     const runtime = await editor.loadRuntime()
     const output = runtime.spellCore.console
     output.group(`Executing ${project.type}`)
+    const keepThings = !editor.startAfresh && editor.lastExecutedPath === project.path
+    editor.startAfresh = false
+    editor.lastExecutedPath = project.path
     const error = await runtime.runApp(compiled, {
       appRoot,
       coreUrl: runtimeUrl(),
       keepConsole: true,
+      keepThings,
       loadImport: fetchCompiled
     })
     output.groupEnd()
@@ -368,10 +409,11 @@ export class EditorStore extends Observable {
   accessor runtimeLoaded!: boolean
 
   /**
-   * The runtime programs run on, loaded the first time it's asked for -- ONE for the page:  the editor runs one
-   * program at a time.
-   * - dev:  `src/runner/spellRuntime.ts`, as vite serves it;  a build:  its own `spell-runtime.js`, see
-   *   `vite.config.ts`.  See `runtimeUrl()`.
+   * The runtime programs run on, loaded the first time it's asked for.
+   * - ONE for the page:  the editor runs one program at a time.
+   * - Where it's loaded from (see `runtimeUrl()`):
+   *   - dev:  `src/runner/spellRuntime.ts`, as vite serves it
+   *   - a build:  its own `spell-runtime.js`, see `vite.config.ts`
    * - SIDE EFFECT:  parse errors show on its console, as program output does -- see `SP.SpellFile.errorConsole`.
    */
   loadRuntime(): Promise<SpellRuntime> {
@@ -384,7 +426,10 @@ export class EditorStore extends Observable {
     return loadingRuntime
   }
 
-  /** Where the running app draws -- `<AppRoot>` hands it over, as a ref.  NOT spell state. */
+  /**
+   * Set where the running app draws:  `<AppRoot>` hands it over, as a ref.
+   * - NOT spell state.
+   */
   setAppRoot(element: HTMLElement | null): void {
     appRoot = element ?? undefined
   }
@@ -400,25 +445,25 @@ export class EditorStore extends Observable {
   ////////////////
   // ## Projects actions
   ////////////////
-  /** Create a new project under `SP.SpellProjectRoot.projects`. */
+  /** Create a new project under `SPACES.SpellProjectRoot.projects`. */
   createProject(projectId?: string): Promise<void> {
-    return editor.createApp(SP.SpellProjectRoot.projects, projectId)
+    return editor.createApp(SPACES.SpellProjectRoot.projects, projectId)
   }
 
   ////////////////
   // ## Examples actions
   ////////////////
-  /** Create a new example under `SP.SpellProjectRoot.examples`. */
+  /** Create a new example under `SPACES.SpellProjectRoot.examples`. */
   async createExample(projectId?: string): Promise<void> {
-    return editor.createApp(SP.SpellProjectRoot.examples, projectId)
+    return editor.createApp(SPACES.SpellProjectRoot.examples, projectId)
   }
 
   ////////////////
   // ## Guides actions
   ////////////////
-  /** Create a new guide under `SP.SpellProjectRoot.guides`. */
+  /** Create a new guide under `SPACES.SpellProjectRoot.guides`. */
   async createGuide(projectId?: string): Promise<void> {
-    return editor.createApp(SP.SpellProjectRoot.guides, projectId)
+    return editor.createApp(SPACES.SpellProjectRoot.guides, projectId)
   }
 
   ////////////////
@@ -443,7 +488,7 @@ export class EditorStore extends Observable {
   async createFile(filePath?: string, contents?: string): Promise<void> {
     editor.clearCompileAppSoon()
     try {
-      const newFile = await editor.project!.createFile(filePath, contents)
+      const newFile = await new SPACES.ProjectFiles(editor.project!).create(filePath, contents)
       if (newFile) {
         editor.showEditor(newFile.path)
         editor.showNotice("File created.")
@@ -456,7 +501,7 @@ export class EditorStore extends Observable {
   async duplicateFile(newPath?: string): Promise<void> {
     editor.clearCompileAppSoon()
     try {
-      const newFile = await editor.project!.duplicateFile(editor.file!.filePath!, newPath)
+      const newFile = await new SPACES.ProjectFiles(editor.project!).duplicate(editor.file!.filePath!, newPath)
       if (newFile) {
         editor.showEditor(newFile.path)
         editor.showNotice("File duplicated.")
@@ -469,7 +514,7 @@ export class EditorStore extends Observable {
   async renameFile(newPath?: string): Promise<void> {
     editor.clearCompileAppSoon()
     try {
-      const renamedFile = await editor.project!.renameFile(editor.file!.filePath!, newPath)
+      const renamedFile = await new SPACES.ProjectFiles(editor.project!).rename(editor.file!.filePath!, newPath)
       if (renamedFile) {
         editor.showEditor(renamedFile.path)
         editor.showNotice("File renamed.")
@@ -489,7 +534,7 @@ export class EditorStore extends Observable {
       const fileIndex = files.indexOf(file)
       const nextFile = files[fileIndex + (fileIndex === files.length - 1 ? -1 : 1)]
       // actually remove the file
-      const removed = await project.deleteFile(file.filePath!, CONFIRM)
+      const removed = await new SPACES.ProjectFiles(project).delete(file.filePath!, CONFIRM)
       if (removed) {
         // select the nextFile, or the project (which will select another file)
         editor.showEditor(nextFile?.path || project.path)
@@ -512,16 +557,15 @@ export class EditorStore extends Observable {
 
   /**
    * Get the user's answer to some question:  a `<ui-modal>` (`$/app/solid/modals`, on `@spell-app/ui`).
-   * `props`:
-   *  - `message` (required) Message to show.
-   *  - `header` (optional) Header for the dialog.  Default is no header.
-   *  - `ok` (optional) OK button text.  Default is `"OK"`.
-   *  - `cancel` (optional) Cancel button text.  Default is `"Cancel"`.
-   * Instead of passing `props`, you can simply pass string `message` to use other defaults.
-   *
-   * `alert()` always resolves `undefined` (there's only an OK button).
-   * `confirm()` resolves `true`/`false` for the OK/Cancel buttons (Escape is Cancel).
-   * `prompt()`/`promptForNumber()` resolve the field's string value, or `undefined` if cancelled or empty.
+   * - `props`, or just the `message` string, for the other defaults:
+   *   - `message` (required):  message to show
+   *   - `header` (optional):  header for the dialog;  default:  no header
+   *   - `ok` (optional):  OK button text;  default `"OK"`
+   *   - `cancel` (optional):  Cancel button text;  default `"Cancel"`
+   * - What each resolves:
+   *   - `alert()`:  always `undefined` (there's only an OK button)
+   *   - `confirm()`:  `true` / `false` for the OK / Cancel buttons (Escape is Cancel)
+   *   - `prompt()` / `promptForNumber()`:  the field's string value, or `undefined` if cancelled or empty
    */
   alert(props: string | Modals.AlertModalProps): Promise<undefined> {
     return dialogs().then((modals) => modals.alert(props))
@@ -586,15 +630,16 @@ export class EditorStore extends Observable {
     if (inputEditorInstance === inputEditor) inputEditorInstance = undefined
   }
 
-  /** Handle cursor move or scroll in our inputEditor, remembering the `selection`  */
+  /** Cursor, selection and scroll in `inputEditor`, kept by `onInputCursor()`. */
   @prop()
   accessor selection: UIT.EditorSelection | undefined
   /** Track cursor/scroll position in `inputEditor` -- see `onInputCursor()` below. */
   onInputCursor = onInputCursor
 
   /**
-   * Called from a `useEffect()` hook in our `<InputEditor />`:  if `editor.file.initialSelection` is set and
-   * things are ready to go, scroll `inputEditor` and select it.
+   * Scroll `inputEditor` to `editor.file.initialSelection` and select it, if it's set and things are ready.
+   * - `<InputEditor />` calls it once its editor is made,
+   *   and again when the file, its `isLoaded` or its `initialSelection` change.
    * - Prefers each position's `offset` over its `line` / `ch`, which go stale as the text changes.
    * - SIDE EFFECT:  clears `initialSelection`, so we only do it once, and focuses `inputEditor`.
    */
@@ -671,10 +716,10 @@ export class EditorStore extends Observable {
   // ## UI
   ////////////////
 
-  /** Single `notice` display. */
+  /** Text of the notice banner, if one's showing. */
   @prop({ type: "text" })
   accessor notice: string | undefined
-  /** Show `notice` banner with `notice` text. */
+  /** Show the notice banner, with `notice` as its text. */
   showNotice(notice: string): void {
     console.info("showNotice:", notice)
     editor.notice = notice
@@ -684,7 +729,7 @@ export class EditorStore extends Observable {
     editor.notice = undefined
   }
 
-  /** Single error display. */
+  /** Error shown in the error banner, if any. */
   @prop()
   accessor error: Error | undefined
   /** Show an error to the user. */
@@ -830,9 +875,14 @@ function runtimeUrl(): string {
   return new URL(path, location.href).href
 }
 
-/** Compiled javascript of project `projectId`, which the program imports -- fetched afresh, from the server. */
+/**
+ * Compiled javascript of project `projectId`, which the program imports -- fetched afresh, from the server:
+ * its `<Project>.spell.js`, at `/spaces/<project>/<Project>.spell.js` (`SP.SpellUrls`).
+ */
 async function fetchCompiled(projectId: string): Promise<string> {
-  const response = await fetch(`/api/projects/compiled/${projectId}`, { cache: "no-cache" })
+  const { projectName } = new SP.SpellLocation(projectId)
+  const url = SP.SpellUrls.fileUrl(SP.SpellLocation.join(projectId, `${projectName}${SP.COMPILED_JS_SUFFIX}`))
+  const response = await fetch(url, { cache: "no-cache" })
   if (!response.ok) throw new Error(`Couldn't load project '${projectId}':  ${response.status} ${response.statusText}`)
   return response.text()
 }

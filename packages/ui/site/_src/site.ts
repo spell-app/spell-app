@@ -3,27 +3,32 @@
  * - Built by `yarn site:bundle` (`scripts/site-bundle.ts`, config `vite.site.config.ts`) into `site/_assets/`, NOT
  *   committed:  the page server builds it when it starts, if stale (`spell dev bundles`).  Edit THIS (and the
  *   library source), never `_assets/`.
- * - A page loads it as (paths relative to the page;  `../` from `components/`):
+ * - A page loads it as (paths relative to the page:  every page sits in its set's one folder):
  *     <link rel="stylesheet" href="_assets/site.css">
  *     <script type="module" src="_assets/site.js"></script>
  * - What it holds, in import order (ES modules evaluate top to bottom):
  *   1. `./snapshot`:  every `<ui-docs-example>`'s markup, kept before anything upgrades
  *   2. the page CSS:  `@spell-app/ui`'s foundation (`ui.css`:  layers, tokens, reset, typography, native markup) +
  *      the site's layout glue (`./site.css`) -- extracted to `_assets/site.css`, which the page links
- *   3. `SiteData`, `BuiltInPacks`:  pointed at `_data/components.json` and `_assets/icon-packs/` from THIS file's
+ *   3. `SiteData`, `BuiltInPacks`:  pointed at `__data/components.json5` and `_assets/icon-packs/` from THIS file's
  *      URL, so a page at any depth finds them;  `DocsFamilies.add()`:  `<ui-root>` may load the `<ui-docs-*>`
  *      families (the library's root knows only the library's;  their skeletons are in its catalog already)
  *   4. `ThemePreference.restore()`:  the viewer's theme and colour scheme, re-applied (the scheme already was, by
  *      the page's inline `<head>` script, `ThemePreference.HEAD_SCRIPT`);  Spell unless the viewer picked another
  *   5. `defineSite()`:  the `<spell-site-header>` bar shared by every page the page server serves
- *   6. `SiteShell.mount()`:  the page's `main` into the ONE layout, `_parts/layout.html` (fetched)
+ *   6. `SiteShell.mount()`:  the page's `main` into the ONE layout, `__parts/layout.html` (fetched)
  *   7. THEN `<ui-root>` (`import()`):  defined only once the layout AND the theme's sheet are in, so its
  *      `display="when-ready"` shows the whole page at once, already themed;  every OTHER family, `<ui-docs-*>`
  *      included, is a lazy chunk it imports on first use
  *   8. `SiteRouter`:  links to other pages swap only the `main`, the layout stays
+ * - The component sets' pages (Epic UI, App UI) load this through `sets.ts`, their own build, which sets
+ *   `globalThis.SpellUI` first (`SitePacks`) for the component packs their examples use;  the root's module joins its
+ *   `packModules` here, once imported
  * - Lazy, by `import()`:  families, the runtime, icon packs (`_assets/icon-packs/`), emoji names, `<ui-code>`'s and
  *   `<ui-markdown>`'s engines, spell's highlighter, the Temporal polyfill.
  * - `window.UI`:  the runtime (`UI.load()` works at once;  the rest after it), for poking in DevTools.
+ * - `window.SiteData`:  the site's data reader, for a page's own script:
+ *   the icon browser reads `__data/icons.json5` with `SiteData.json()` (JSON5, so a comment written into it reads too).
  */
 import "./snapshot"
 
@@ -41,13 +46,17 @@ import { SiteShell } from "./SiteShell"
 /** This bundle's folder, `.../_assets/`:  a string slice, NOT `new URL(".", import.meta.url)` (Vite would inline it). */
 const ASSETS = import.meta.url.slice(0, import.meta.url.lastIndexOf("/") + 1)
 
-/** The site's root (`/ui/`):  the folder above `_assets/`. */
+/**
+ * The site's root (`/components/ui/`):  the folder above `_assets/`.
+ * - Every set served with this bundle laid over it (`/components/epics/`:  `COMPONENT_SETS` in `$/server/page`) is its
+ *   own root:  its layout (`__parts/`), its data (`__data/`), its routable pages
+ */
 const SITE_ROOT = new URL("../", ASSETS)
 
 E.BuiltInPacks.base = ASSETS
-SiteData.url ??= `${ASSETS}../_data/components.json`
+SiteData.url ??= `${ASSETS}../__data/components.json5`
 DocsFamilies.add()
-Object.assign(globalThis, { UI })
+Object.assign(globalThis, { UI, SiteData })
 
 // the viewer's theme + scheme (`<ui-docs-themes>`):  started NOW, beside the layout's fetch;  `<ui-root>` waits for it
 const theme = ThemePreference.restore().catch((error: unknown) =>
@@ -69,6 +78,9 @@ void SiteShell.mount(SITE_ROOT).then(async (content) => {
   router?.land(new URL(location.href), { isFirst: true })
   // the theme's sheet in place BEFORE the root shows the page:  no restyle (and reflow) after first paint
   await theme
-  await import("$/ui/components/ui-root")
+  const root = await import("$/ui/components/ui-root")
+  // a component set's page (`sets.ts`):  a pack's script may share the root's module too (`SitePacks`)
+  const packModules = (globalThis as { SpellUI?: { packModules?: Record<string, unknown> } }).SpellUI?.packModules
+  if (packModules) packModules["$/ui/components/ui-root"] = root
   router?.start()
 })

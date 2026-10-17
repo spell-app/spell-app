@@ -1,0 +1,191 @@
+{
+  "version": "1.0.0",
+  "spellVersion": "0.8.0",
+  "provides": [
+    "Person",
+    "DatedEvent",
+    "Note",
+    "Relationship",
+    "FriendList",
+    "Org",
+    "Membership"
+  ],
+  "statements": [
+    {
+      "type": "Person",
+      "superType": "Thing",
+      "defined": "/People.spell:429-696"
+    },
+    {
+      "property": "names",
+      "of": "Person",
+      "datatype": "text",
+      "defined": "/People.spell:459-479"
+    },
+    {
+      "property": "nickname",
+      "of": "Person",
+      "datatype": "text",
+      "defined": "/People.spell:483-508"
+    },
+    {
+      "property": "emails",
+      "of": "Person",
+      "datatype": "list of texts",
+      "defined": "/People.spell:512-542"
+    },
+    {
+      "property": "dates",
+      "of": "Person",
+      "datatype": "list of datedevents",
+      "defined": "/People.spell:546-583"
+    },
+    {
+      "property": "friend_lists",
+      "asWritten": "friend-lists",
+      "of": "Person",
+      "datatype": "list of friendlists",
+      "defined": "/People.spell:587-631"
+    },
+    {
+      "property": "notes",
+      "of": "Person",
+      "datatype": "list of notes",
+      "defined": "/People.spell:635-665"
+    },
+    {
+      "type": "DatedEvent",
+      "superType": "Thing",
+      "defined": "/People.spell:721-804"
+    },
+    {
+      "property": "label",
+      "of": "DatedEvent",
+      "datatype": "text",
+      "defined": "/People.spell:756-778"
+    },
+    {
+      "property": "day",
+      "of": "DatedEvent",
+      "datatype": "date",
+      "defined": "/People.spell:782-804"
+    },
+    {
+      "type": "Note",
+      "superType": "Thing",
+      "defined": "/People.spell:806-855"
+    },
+    {
+      "property": "body",
+      "of": "Note",
+      "datatype": "text",
+      "defined": "/People.spell:834-855"
+    },
+    {
+      "type": "Relationship",
+      "superType": "Thing",
+      "defined": "/People.spell:857-979"
+    },
+    {
+      "property": "kind",
+      "of": "Relationship",
+      "datatype": "text",
+      "defined": "/People.spell:893-914"
+    },
+    {
+      "property": "person",
+      "of": "Relationship",
+      "datatype": "Person",
+      "defined": "/People.spell:918-945"
+    },
+    {
+      "property": "notes",
+      "of": "Relationship",
+      "datatype": "list of notes",
+      "defined": "/People.spell:949-979"
+    },
+    {
+      "type": "FriendList",
+      "superType": "Thing",
+      "defined": "/People.spell:981-1087"
+    },
+    {
+      "property": "name",
+      "of": "FriendList",
+      "datatype": "text",
+      "defined": "/People.spell:1016-1037"
+    },
+    {
+      "property": "relationships",
+      "of": "FriendList",
+      "datatype": "list of relationships",
+      "defined": "/People.spell:1041-1087"
+    },
+    {
+      "type": "Org",
+      "superType": "Thing",
+      "defined": "/People.spell:1281-1407"
+    },
+    {
+      "property": "name",
+      "of": "Org",
+      "datatype": "text",
+      "defined": "/People.spell:1309-1330"
+    },
+    {
+      "property": "memberships",
+      "of": "Org",
+      "datatype": "list of memberships",
+      "defined": "/People.spell:1334-1376"
+    },
+    {
+      "type": "Membership",
+      "superType": "Thing",
+      "defined": "/People.spell:1409-1521"
+    },
+    {
+      "property": "person",
+      "of": "Membership",
+      "datatype": "Person",
+      "defined": "/People.spell:1443-1470"
+    },
+    {
+      "property": "role",
+      "classVariable": "Roles",
+      "of": "Membership",
+      "enumeration": [
+        "member",
+        "admin",
+        "spell-admin"
+      ],
+      "defined": "/People.spell:1474-1521"
+    }
+  ],
+  "codeLines": [
+    11,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    41,
+    42,
+    46,
+    51,
+    52,
+    57,
+    58,
+    62,
+    66,
+    71,
+    72,
+    76,
+    89,
+    90,
+    94,
+    101,
+    102,
+    106
+  ]
+}

@@ -1,7 +1,7 @@
 import { For, Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 
 import { AgentsClient, ageOf, clockOf, sentence, type RunningAgent } from "$/epics/review"
 // the fold every `<epic-*>` fold shares:  its file, not `epic-item`'s barrel
@@ -11,6 +11,7 @@ import { STACK_PROPERTY } from "$/epics/components/epic-page/EpicPage.types"
 import { epicAgentsVocabulary } from "./EpicAgents.en"
 
 import agentsCSS from "./EpicAgents.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicAgents`
@@ -20,7 +21,7 @@ import agentsCSS from "./EpicAgents.css?inline"
  * - then a row per agent, each with a note box that REDIRECTS it
  * - it FOLDS from its title, like every titled box (Owen, 2026-10-08);  open to start with:  it's live news
  * - shown ONLY while an agent runs and the page's `AgentsClient` is `listed`
- *   (a plan doc served with a token, the list answering)
+ *   (an epic page served with a token, the list answering)
  * - in the page's shadow root, NOT a section:
  *   the contents, the rail and the counts never see it (they read the light DOM)
  * - one row per agent, KEYED by name (`row()`):
@@ -32,7 +33,7 @@ import agentsCSS from "./EpicAgents.css?inline"
 export class EpicAgents extends E.UIComponent<typeof epicAgentsVocabulary> {
   @E.proto static vocabulary = epicAgentsVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-agents": agentsCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-agents": agentsCSS },
     // a panel:  a click on its words must not jump to its first button
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
@@ -106,6 +107,7 @@ export class EpicAgents extends E.UIComponent<typeof epicAgentsVocabulary> {
               class={AGENTS_TITLE}
               aria-expanded={this.fold.isOpen() ? "true" : "false"}
               aria-controls={AGENTS_LIST}
+              title={this.translationForKey(this.fold.isOpen() ? "foldTip" : "unfoldTip")}
               onClick={this.fold.toggle}
             >
               {Fold.chevron()}
@@ -194,6 +196,7 @@ export class EpicAgents extends E.UIComponent<typeof epicAgentsVocabulary> {
             size="mini"
             disabled={redirect.canSend ? undefined : ""}
             loading={redirect.isSending ? "" : undefined}
+            title={this.translationForKey("agentSendTip", { name })}
             onClick={() => redirect.sendNote()}
           >
             {this.translationForKey("agentSend")}

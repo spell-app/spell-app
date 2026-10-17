@@ -1,13 +1,14 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E } from "$/spell-solid"
 
 import { PlanDates } from "$/epics/dates"
 
 import { epicVersionVocabulary } from "./EpicVersion.en"
 
 import originalCSS from "./EpicOriginal.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicVersion`
@@ -20,7 +21,7 @@ import originalCSS from "./EpicOriginal.css?inline"
 export class EpicVersion extends E.UIComponent<typeof epicVersionVocabulary> {
   @E.proto static vocabulary = epicVersionVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-original": originalCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-original": originalCSS },
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 

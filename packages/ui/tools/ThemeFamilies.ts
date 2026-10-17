@@ -23,7 +23,7 @@ import type { SiteFamily, SiteTag, SiteTheme, SiteThemeSeed } from "../src/docs-
  *   is not global.
  * - A small rule walker, not a CSS parser:  comments and `@keyframes` blocks are dropped, `{` / `}` / `;` split
  *   preludes from declarations.  Good enough for our own sheets;  `SiteDataBuilder.test.ts` pins known answers.
- * - Titles:  `pages.json` `themes` (hand-kept), seeded once per new sheet from its header (`GitHub theme:`).
+ * - Titles:  `pages.json5` `themes` (hand-kept), seeded once per new sheet from its header (`GitHub theme:`).
  * - Node only;  given the tags and families (`SiteDataBuilder`), it reads nothing but the sheets.
  ****************/
 export class ThemeFamilies {

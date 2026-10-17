@@ -1,17 +1,19 @@
 import { Match, Show, Switch, createEffect, createSignal, onSettled, untrack } from "solid-js"
 
 import type { LSP } from "$/lsp"
+import type { SP } from "$/spell"
 import type { ThingExplorerState, TypeExplorerState } from "$/app/ui/ui.types"
 // Import directly, NOT through the `$/app/solid` barrel, which pulls in the editor
 import { TypeExplorer } from "$/app/solid/TypeExplorer"
 import { ThingExplorer } from "$/app/solid/ThingExplorer"
 import { loadRuntime, type LoadedRuntime } from "./loadRuntime"
 import { fetchJSON, fetchText } from "./fetchFresh"
+import { mergedWords, wordsAt } from "./words"
 import { loadScopePack, scopesFromPacks, type CompiledDeclarations, type ScopesSource } from "$/lsp/ScopesSource"
 import { RunnerSplit, DEFAULT_SPLIT } from "./RunnerSplit"
 import { RunnerPane, type RunnerTab } from "./RunnerPane"
 import { RunnerConsole } from "./RunnerConsole"
-import type { SpellCompiled } from "./runner.types"
+import { layoutHasSpell, type SpellCompiled } from "./runner.types"
 
 import "./SpellAppRunner.css"
 
@@ -21,14 +23,20 @@ import "./SpellAppRunner.css"
  * an optional toolbar, the app, and a "debug" pane below it --
  * the Type Explorer, the Thing Explorer, and the program's console.
  * - Runs on its OWN copy of the spell runtime -- see `loadRuntime()` -- so many can run on a page at once.
- * - Runs `source` when the runtime's loaded, again when `source` changes -- a NEW object -- and on Restart.
- *   Restart fetches the program afresh, so a recompiled one shows -- or runs `source.compiled` again, if set.
- * - The program draws with REACT (`App.start()` makes its own root):
+ * - Runs `source`:
+ *   - when the runtime's loaded
+ *   - again when `source` changes (a NEW object)
+ *   - and on Restart, which fetches the program afresh, so a recompiled one shows
+ *     -- or runs `source.compiled` again, if set
+ * - The program draws with Solid (`App.start()` mounts its own root, `spellCore.mountApp()`):
  *   we only hand it `appRoot`, a `<div>` drawn once and never touched again.
- *   Its React root is unmounted with us.
+ *   The app it mounted is unmounted with us.
  * - A program with NO app shows its console on top instead, and the explorers below.
  *   One that starts its app AFTER the run finished, e.g. from a timer, shows it once it draws.
  * - The Type Explorer is read-only, and shows only if there's a scope pack -- see `ScopesSource`.
+ * - The Thing Explorer shows things' members in spell's words,
+ *   if the program and what it imports have words files -- see `SP.SpellWords`.
+ *   They're loaded afresh after each run, as its imports are.
  * - `debug` and `fluid` are read once, to start;  `runtimeUrl` once per copy loaded.
  * - Its `<ui-*>` tags are the caller's to define, with Fomantic's icon names:
  *   `<spell-app>` is a root that loads them as they appear;  the VS Code runner imports `$/app/solid/loadUI`.
@@ -44,15 +52,33 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
   const [pane, setPane] = createSignal<DebugPane>(untrack(() => props.debug) ?? "explorer")
   const [split, setSplit] = createSignal(untrack(() => props.fluid) ? DEFAULT_DEBUG_HEIGHT : DEFAULT_SPLIT)
   const [scopes, setScopes] = createSignal<ScopesSource>()
+  const [words, setWords] = createSignal<SP.SpellWordsData>()
   // the explorers' state, kept here so it outlives switching tabs:  each reads it once, as it mounts
   let explorerState: TypeExplorerState = {}
   let thingsState: ThingExplorerState = {}
   // compiled javascript of each project the last run loaded, by id -- for the Type Explorer's "Compiled Output"
   const compiledRef: CompiledRef = { current: new Map() }
 
+  // what takes back the last run's layout spell -- see `bindLayout()`.
+  // Declared up here:  a run may start before this function reaches its end.
+  let unbindLayout: (() => void) | undefined
+  /** What we ran last:  a new compile of the same program keeps its things;  an older run's late words aren't shown. */
+  let lastSource: SpellAppSource | undefined
+
+  // what takes back the last run's `in="header"` slots -- see `slotsFromIn()`.  Up here, as above.
+  let unslot: (() => void) | undefined
+
   // NOTE: ALWAYS here, just hidden without an app -- so its mount point is never redrawn
   const appRoot = (<div class="App" />) as HTMLDivElement
-  const appPane = <div class={["SpellAppApp", { hidden: !hasApp() }]}>{appRoot}</div>
+  // a layout in markup is the app's drawing:  shown through a slot, its `to draw` not drawn (epic `drawable-thing` P9)
+  const appPane = (
+    <div class={["SpellAppApp", { hidden: !hasApp() && !props.layout }]}>
+      <Show when={props.layout}>
+        <slot />
+      </Show>
+      {appRoot}
+    </div>
+  )
 
   // this app's own copy of the runtime, for as long as we're here -- and its app, unmounted with us
   createEffect(
@@ -66,17 +92,19 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
       )
       return () => {
         gone = true
-        ;(appRoot as AppElement).REACT_ROOT?.unmount()
+        unbindLayout?.()
+        ;(appRoot as AppElement).spellRoot?.unmount()
         copy?.release()
       }
     }
   )
 
-  // run the program -- once the runtime's loaded, and again for each new `source`
+  // run the program -- once the runtime's loaded, and again for each new `source`:
+  // a new compile of the same program keeps its things, e.g. the game in progress (epic `drawable-thing` P16)
   createEffect(
     () => [loaded(), props.source] as const,
     ([copy, source]) => {
-      if (copy) void run(copy, source)
+      if (copy) void run(copy, source, "keep things")
     }
   )
 
@@ -153,18 +181,42 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
     return tabs.includes(pane()) ? pane() : tabs[0]!
   }
 
-  /** Run the program again, afresh -- once the runtime's loaded. */
+  /** Run the program again, afresh, on purpose:  a new deal (Q25) -- once the runtime's loaded. */
   function restart() {
     const copy = loaded()
-    if (copy) void run(copy, props.source)
+    if (copy) void run(copy, props.source, "afresh")
   }
 
-  /** Run `source` afresh in `copy` -- see `runProgram()` -- and show how it went. */
-  async function run(copy: LoadedRuntime, source: SpellAppSource) {
-    const ran = await runProgram(copy, source, appRoot)
+  /**
+   * Run `source` in `copy` -- see `runProgram()` -- and show how it went.
+   * - `keep things`:  when it's the program that ran last, its things carry over;  else it starts afresh.
+   */
+  async function run(copy: LoadedRuntime, source: SpellAppSource, how: "afresh" | "keep things") {
+    unbindLayout?.()
+    unbindLayout = undefined
+    unslot?.()
+    unslot = undefined
+    // read props before waiting:  by then, whoever handed them to us may be gone (`<spell-app>` dropping its source)
+    const layout = props.layout
+    if (layout) unslot = slotsFromIn(layout)
+    const keepThings = how === "keep things" && isSameProgram(lastSource, source)
+    lastSource = source
+    const ran = await runProgram(copy, source, appRoot, { layout: !!layout, keepThings })
     compiledRef.current = ran.compiled
     setError(ran.error)
     setHasApp(ran.hasApp)
+    if (layout && !ran.error && layoutHasSpell(layout)) {
+      bindLayout(copy, source, layout).then(
+        (unbind) => (unbindLayout = unbind),
+        (problem: unknown) => setError(messageOf(problem))
+      )
+    }
+    const loaded = await loadWords(
+      source,
+      [...ran.compiled.keys()].filter((id) => id !== MAIN_PROJECT)
+    )
+    // a newer source's run may have started meanwhile:  its words are its own
+    if (source === lastSource) setWords(loaded)
   }
 
   /** The Type Explorer, read-only, if there's a scope pack. */
@@ -192,6 +244,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
         {(copy) => (
           <ThingExplorer
             things={copy.runtime.spellCore.things}
+            words={words()}
             state={thingsState}
             onStateChange={(state) => (thingsState = state)}
           />
@@ -219,6 +272,12 @@ export type SpellAppRunnerProps = {
   source: SpellAppSource
   /** Show the toolbar? */
   toolbar: boolean
+  /**
+   * The element whose markup lays the app out, inside its `<spell-app>`:  the `<spell-app>` itself, if it has some.
+   * - That markup shows, through a slot, and the app's `to draw` isn't drawn -- see `spellCore.appLayout`.
+   * - Its spell (holes, actions, `<spell>` blocks) is compiled in the page, after each run -- see `LayoutSpell`.
+   */
+  layout?: Element
   /** Open the debug pane to start, on this tab -- else it starts closed. */
   debug?: DebugPane
   /** As tall as it needs to be, NOT a fixed height -- see `<RunnerSplit unit>`. */
@@ -227,7 +286,7 @@ export type SpellAppRunnerProps = {
   runtimeUrl: string
   /** URL of the built-in types' scope pack, `spellCore.scopes.js`. */
   builtInsUrl: string
-  /** A Type Explorer link clicked, e.g. `spell:/@system:examples:Solitaire/Card.spell#L12`. */
+  /** A Type Explorer link clicked, e.g. `spell:/@spell/examples/solitaire/Card.spell#L12`. */
   onOpen: (href: string) => void
   /** Hand over what the element can do to us, e.g. `restart()` -- every render. */
   onControls?: (controls: SpellAppControls) => void
@@ -236,7 +295,8 @@ export type SpellAppRunnerProps = {
 /**
  * Where a `<spell-app>`'s program, and what's around it, come from --
  * worked out from its attributes, or from code a `<spell-editor>` pushed to it.  See `pushedSource()`.
- * - NOTE: `compiled` and `scopes` are in memory, the rest are URLs.  An in-memory one wins over its URL.
+ * - NOTE: `compiled`, `scopes`, `declarations` and `words` are in memory, the rest are URLs.
+ *   An in-memory one wins over its URL.
  */
 export type SpellAppSource = {
   /** Name for the toolbar, e.g. `Solitaire`. */
@@ -252,7 +312,7 @@ export type SpellAppSource = {
   scopesUrl?: string
   /** Its scope pack, in memory -- used instead of loading `scopesUrl`, e.g. fresh from an editor. */
   scopes?: LSP.ScopePack
-  /** URL of its declarations, `<Project>.declarations.json`, if it may have them:  where the Type Explorer finds code. */
+  /** URL of its declarations, `<Project>.declarations.json5`, if it may have them:  where the Type Explorer finds code. */
   declarationsUrl?: string
   /** Its declarations, in memory -- used instead of loading `declarationsUrl`, e.g. fresh from an editor. */
   declarations?: CompiledDeclarations
@@ -260,7 +320,13 @@ export type SpellAppSource = {
   importUrl: (projectId: string) => string
   /** URL of the declarations of project `projectId`, which it imports -- if it may have them. */
   importDeclarationsUrl?: (projectId: string) => string
-  /** URL of spell file `uri`, e.g. `spell:/@system:examples:Solitaire/Card.spell` -- if its sources can be had. */
+  /** URL of its words, `<Project>.en.js`, if it may have them:  the Thing Explorer's labels -- see `SP.SpellWords`. */
+  wordsUrl?: string
+  /** Its words, in memory -- used instead of loading `wordsUrl`, e.g. fresh from an editor. */
+  words?: SP.SpellWordsData
+  /** URL of the words of project `projectId`, which it imports -- if it may have them. */
+  importWordsUrl?: (projectId: string) => string
+  /** URL of spell file `uri`, e.g. `spell:/@spell/examples/solitaire/Card.spell` -- if its sources can be had. */
   sourceUrl?: (uri: string) => string
 }
 
@@ -321,19 +387,27 @@ type SpellAppToolbarProps = {
 ////////////////
 
 /**
- * Run `source`'s program afresh in runtime copy `copy`, drawing into `appRoot`:
+ * Run `source`'s program in runtime copy `copy`, drawing into `appRoot`:
  * fetched again, with each project it imports.
+ * - Afresh, unless `keepThings`:  then the last run's things carry over (`runCompiled()`).
  * - NOTE: its own javascript is NOT fetched if it's in memory, `source.compiled` -- its imports still are.
  * - Answers how it went, and the compiled javascript it loaded, by project id --
  *   the program's own under `MAIN_PROJECT` -- for the Type Explorer's "Compiled Output".
  */
-async function runProgram(copy: LoadedRuntime, source: SpellAppSource, appRoot: HTMLElement): Promise<Ran> {
+async function runProgram(
+  copy: LoadedRuntime,
+  source: SpellAppSource,
+  appRoot: HTMLElement,
+  { layout, keepThings }: { layout: boolean; keepThings: boolean }
+): Promise<Ran> {
   const compiled = new Map<string, string>()
   try {
     const text = source.compiled ?? (await fetchText(source.compiledUrl))
     compiled.set(MAIN_PROJECT, text)
     const error = await copy.runtime.runApp(text, {
       appRoot,
+      layout,
+      keepThings,
       coreUrl: copy.coreUrl,
       loadImport: async (projectId) => {
         const imported = await fetchText(source.importUrl(projectId))
@@ -345,6 +419,28 @@ async function runProgram(copy: LoadedRuntime, source: SpellAppSource, appRoot: 
   } catch (problem) {
     return { error: messageOf(problem), hasApp: false, compiled }
   }
+}
+
+/**
+ * Compile and run the spell in `root`'s layout, against `source`'s program as it ran in `copy` -- see `LayoutSpell`.
+ * - Loads `LayoutSpell`, and so spell's parser, only now:  a layout with spell in it is the only thing that needs it.
+ * - Answers what takes it back.
+ */
+async function bindLayout(copy: LoadedRuntime, source: SpellAppSource, root: Element): Promise<() => void> {
+  const [{ LayoutSpell }, declarations] = await Promise.all([
+    import("./LayoutSpell"),
+    source.declarations ?? fetchJSON(source.declarationsUrl)
+  ])
+  const { spellCore } = copy.runtime
+  return new LayoutSpell({ root, projectId: source.name, declarations, spellCore }).bind()
+}
+
+/**
+ * Is `source` the same program as `last`, compiled again?  The same name, from the same place.
+ * - `undefined` (nothing ran yet):  no.
+ */
+function isSameProgram(last: SpellAppSource | undefined, source: SpellAppSource): boolean {
+  return !!last && last.name === source.name && last.compiledUrl === source.compiledUrl
 }
 
 /** How a run went -- see `runProgram()`. */
@@ -384,6 +480,22 @@ async function loadScopes(
   })
 }
 
+/**
+ * The Thing Explorer's words for `source`, as one:  its own, then those of each project it imported (`importIds`).
+ * - Its own:  `source.words` if set, else loaded from `source.wordsUrl`.
+ * - `undefined` if none of them has any.
+ * - NEVER throws:  words are optional, as a scope pack is.
+ */
+async function loadWords(source: SpellAppSource, importIds: string[]): Promise<SP.SpellWordsData | undefined> {
+  const { importWordsUrl } = source
+  return mergedWords(
+    await Promise.all([
+      source.words ?? wordsAt(source.wordsUrl),
+      ...importIds.map((id) => wordsAt(importWordsUrl?.(id)))
+    ])
+  )
+}
+
 ////////////////
 // ## Fed by an editor
 //  what a `<spell-app editor="<selector>">` decides --
@@ -391,8 +503,9 @@ async function loadScopes(
 ////////////////
 
 /**
- * What a `<spell-app>` runs for `pushed`, code an editor compiled:  `base` -- its project's source, for its imports
- * and sources -- with `pushed`'s javascript and scope pack in memory.
+ * What a `<spell-app>` runs for `pushed`, code an editor compiled.
+ * - `base` (its project's source, for its imports and sources),
+ *   with `pushed`'s javascript, scope pack, declarations and words in memory.
  * - A NEW object, so `<SpellAppRunner>` re-runs it.
  * - `name`, the app's `name` attribute, wins over `base`'s, if set.
  */
@@ -402,13 +515,14 @@ export function pushedSource(base: SpellAppSource, pushed: SpellCompiled, name?:
     name: name || base.name,
     compiled: pushed.compiled,
     ...(pushed.scopes ? { scopes: pushed.scopes } : {}),
-    ...(pushed.declarations ? { declarations: pushed.declarations } : {})
+    ...(pushed.declarations ? { declarations: pushed.declarations } : {}),
+    ...(pushed.words ? { words: pushed.words } : {})
   }
 }
 
 /**
- * What code pushed to a `<spell-app>` was pushed FOR:  the app's `project`, `src`, `scopes`, `name` and `editor` then
- * (`PUSHED_FOR`), as one string.
+ * What code pushed to a `<spell-app>` was pushed FOR, as one string:
+ * the app's `PUSHED_FOR` attributes then -- `project`, `src`, `scopes`, `name` and `editor`.
  * - Pushed code counts only while the app's are the same:
  *   a change of what it runs, or of which editor feeds it, drops it.
  * - NOT `toolbar`, `debug`, `width`, `height`, `assets`:  they change how it looks, and NEVER re-run it.
@@ -485,8 +599,22 @@ function messageOf(problem: unknown): string {
   return problem instanceof Error ? problem.message : String(problem)
 }
 
-/** The app's mount point, with the React root `App.start()` leaves on it. */
-type AppElement = HTMLElement & { REACT_ROOT?: { unmount(): void } }
+/** The app's mount point, with the mounted app `App.start()` leaves on it (`spellCore.mountApp()`). */
+type AppElement = HTMLElement & { spellRoot?: { unmount(): void } }
 
 /** Compiled javascript the last run loaded, by project id -- a box, so the Type Explorer reads the latest. */
 type CompiledRef = { current: Map<string, string> }
+
+/**
+ * Spell's `in="header"` on a layout's tags, written the web's way:  `slot="header"` (Q21 B, J35).
+ * - So a child the page writes by hand lands in its frame's `<children name="header"/>`.
+ * - A tag with a `slot` of its own keeps it.
+ * - Returns what takes the slots back.
+ */
+export function slotsFromIn(root: Element): () => void {
+  const slotted = [...root.querySelectorAll("[in]")].filter((element) => !element.hasAttribute("slot"))
+  for (const element of slotted) element.setAttribute("slot", element.getAttribute("in")!)
+  return () => {
+    for (const element of slotted) element.removeAttribute("slot")
+  }
+}

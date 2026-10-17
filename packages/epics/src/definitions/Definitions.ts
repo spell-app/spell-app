@@ -1,14 +1,20 @@
 import { epicAgentsVocabulary } from "$/epics/components/epic-agents/EpicAgents.en"
 import { epicAnswerVocabulary } from "$/epics/components/epic-answer/EpicAnswer.en"
+import { epicAskVocabulary } from "$/epics/components/epic-ask/EpicAsk.en"
 import { epicMoreVocabulary } from "$/epics/components/epic-answer/EpicMore.en"
 import { epicReplyVocabulary } from "$/epics/components/epic-answer/EpicReply.en"
 import { epicAsideVocabulary } from "$/epics/components/epic-aside/EpicAside.en"
+import { epicCardsVocabulary } from "$/epics/components/epic-cards/EpicCards.en"
+import { epicChoiceRowVocabulary } from "$/epics/components/epic-choice-rows/EpicChoiceRow.en"
+import { epicChoiceRowsVocabulary } from "$/epics/components/epic-choice-rows/EpicChoiceRows.en"
 import { epicChoicesVocabulary } from "$/epics/components/epic-choices/EpicChoices.en"
+import { epicChoicesBarVocabulary } from "$/epics/components/epic-choices-bar/EpicChoicesBar.en"
 import { epicOptionVocabulary } from "$/epics/components/epic-choices/EpicOption.en"
 import { epicCodeVocabulary } from "$/epics/components/epic-code/EpicCode.en"
 import { epicCommitVocabulary } from "$/epics/components/epic-commit/EpicCommit.en"
 import { epicEventVocabulary } from "$/epics/components/epic-event/EpicEvent.en"
 import { epicItemVocabulary } from "$/epics/components/epic-item/EpicItem.en"
+import { epicLinkVocabulary } from "$/epics/components/epic-link/EpicLink.en"
 import { epicNetEffectVocabulary } from "$/epics/components/epic-net-effect/EpicNetEffect.en"
 import { epicNewItemVocabulary } from "$/epics/components/epic-new-item/EpicNewItem.en"
 import { epicNoteVocabulary } from "$/epics/components/epic-note/EpicNote.en"
@@ -23,8 +29,10 @@ import { epicPromptVocabulary } from "$/epics/components/epic-prompt/EpicPrompt.
 import { epicQuestionVocabulary } from "$/epics/components/epic-question/EpicQuestion.en"
 import { epicReviewVocabulary } from "$/epics/components/epic-review/EpicReview.en"
 import { epicSectionVocabulary } from "$/epics/components/epic-section/EpicSection.en"
+import { epicSendVocabulary } from "$/epics/components/epic-send/EpicSend.en"
 import { epicStatusVocabulary } from "$/epics/components/epic-status/EpicStatus.en"
 import { epicSummaryVocabulary } from "$/epics/components/epic-summary/EpicSummary.en"
+import { epicTextBoxVocabulary } from "$/epics/components/epic-text-box/EpicTextBox.en"
 import { epicUpdateVocabulary } from "$/epics/components/epic-update/EpicUpdate.en"
 
 import { Formats, type EpicAttributeSpec, type EpicTag, type EpicVocabulary } from "./definitions.types"
@@ -46,6 +54,8 @@ export class Definitions {
     "epic-summary": epicSummaryVocabulary,
     "epic-prompt": epicPromptVocabulary,
     "epic-section": epicSectionVocabulary,
+    // a saga page's Epics (epic `epic-workflow` P15)
+    "epic-cards": epicCardsVocabulary,
     "epic-phase": epicPhaseVocabulary,
     "epic-field": epicFieldVocabulary,
     "epic-updated": epicUpdatedVocabulary,
@@ -66,6 +76,15 @@ export class Definitions {
     "epic-note": epicNoteVocabulary,
     "epic-aside": epicAsideVocabulary,
     "epic-code": epicCodeVocabulary,
+    // a link to a saga, an epic, a phase or an item (epic `epic-workflow` P15), anywhere prose goes
+    "epic-link": epicLinkVocabulary,
+    // the pages Claude makes for Owen to answer ON (epic `epic-workflow` P12):  details and choice pages
+    "epic-ask": epicAskVocabulary,
+    "epic-text-box": epicTextBoxVocabulary,
+    "epic-send": epicSendVocabulary,
+    "epic-choice-rows": epicChoiceRowsVocabulary,
+    "epic-choice-row": epicChoiceRowVocabulary,
+    "epic-choices-bar": epicChoicesBarVocabulary,
     // drawn only inside other elements' shadow roots, never written in a doc
     "epic-review": epicReviewVocabulary,
     "epic-new-item": epicNewItemVocabulary,

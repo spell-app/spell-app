@@ -1,5 +1,5 @@
 /**
- * A test component pack (`src/components/ui-components/ComponentPacks.test.ts`) whose `define()` LOADS its families
+ * A test component pack (`components/ui-components/ComponentPacks.test.ts`) whose `define()` LOADS its families
  * first, as one built on ES modules does (`import()`):  it returns a promise, and defines `<later-card>` only when it
  * settles, well after the script ran.
  * - `<later-card>`:  a `DOMElement` (the page's own class), ready at once.

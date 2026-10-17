@@ -1,3 +1,5 @@
+import { resolve } from "node:path"
+
 import { defineConfig, type TestProjectConfiguration } from "vite-plus"
 import { playwright } from "vite-plus/test/browser-playwright"
 
@@ -9,7 +11,8 @@ import { packageVersion } from "../../vite.packageVersion.ts"
  * - `browser` -- the generic helpers' tests, in a REAL browser (Vitest browser mode + Playwright, chromium):
  *   `dom.test.ts` needs shadow roots and a custom element registry, and `decorators.test.ts` proves `@proto` after
  *   esbuild lowers standard decorators.
- * - `spell` -- the tests of `src/spell/` (spell's utilities), in node:  fetch, tasks, constants.
+ * - `spell` -- the tests of `src/spell/` (spell's utilities) and `src/reactive/` (spell cells), in node:  fetch,
+ *   tasks, constants, cells.
  * - `standardDecorators()` is what lowers decorators:  Vite 8's own transform (oxc) doesn't.  See `AGENTS.md`.
  * - Aliases (`$/util` ...) come from the repo root's `tsconfig.base.json`, through `resolve.tsconfigPaths`.
  * - `prefix` / `root`:  the repo root's `vitest.config.ts` lists these with `util:` names and `root` set to this
@@ -26,8 +29,10 @@ export function utilProjects({
       ...(root && { root }),
       test: {
         name: `${prefix}browser`,
+        // the tests live in the repo's tests/ folder, at the same paths as the code
+        dir: resolve(import.meta.dirname, "../../tests/util"),
         include: ["src/**/*.test.ts"],
-        exclude: ["**/node_modules/**", "src/spell/**"],
+        exclude: ["**/node_modules/**", "src/spell/**", "src/reactive/**"],
         browser: {
           enabled: true,
           provider: playwright(),
@@ -43,7 +48,8 @@ export function utilProjects({
       test: {
         name: `${prefix}spell`,
         environment: "node",
-        include: ["src/spell/**/*.test.ts"]
+        dir: resolve(import.meta.dirname, "../../tests/util"),
+        include: ["src/spell/**/*.test.ts", "src/reactive/**/*.test.ts"]
       }
     }
   ]

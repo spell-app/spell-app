@@ -1,0 +1,296 @@
+import { E } from "$/spell-solid"
+
+/****************
+ * ### `ElementDefinition`
+ * Everything ONE registered tag needs from its `ComponentVocabulary` (+ an optional translation `Dictionary`),
+ * so a component never spells an attribute, event, slot or part name.
+ * - `attributes`:  one `ResolvedAttribute` per vocabulary attribute, with
+ *   - its camelCase CANONICAL key (what the component reads, `this.allowAdditions`)
+ *   - its (localized) attribute and property names
+ *   - then the shared attributes the vocabulary doesn't declare, under their English names on a translated tag too
+ *     (`disabled`, `loading`, `visible`, `animation`:  Spell UI's `SharedVocabulary`)
+ * - The DOM element (`DOMElement`) does the rest:  a property per attribute, the upgrade step, reflection.
+ * - ONE conversion per kind of value, each way:
+ *   - `convert()`:  attribute text or property value => value
+ *   - `attributeText()`:  value => attribute text
+ * - Values:  localized values (`rojo`) are canonicalized on the way IN, from attributes and property writes alike,
+ *   so the class-grammar `builder` and the component only ever see canonical English (`red`);
+ *   reflection writes them localized again.
+ * - One instance per tag;  the canonical tag and each translated alias get their own.
+ * - The vocabulary layer itself is the page's runtime's:  Spell UI's, reached through `SpellSolid.settings.words`.
+ *   - the registry of names, the value sets, the converters, the class words
+ * - No Solid, no DOM:  so the server render (`$/ui/static`) builds one in node.
+ ****************/
+export class ElementDefinition {
+  /** Canonical vocabulary. */
+  readonly vocabulary: E.ComponentVocabulary
+
+  /** Names under this tag's prefix + dictionary. */
+  readonly localized: E.LocalizedVocabulary
+
+  /** Tag this definition registers, e.g. `ui-button` or `ie-boton`. */
+  readonly tag: string
+
+  /** Class-grammar builder for the canonical vocabulary. */
+  readonly builder: E.ClassMaker
+
+  /** Every attribute, in vocabulary order. */
+  readonly attributes: readonly E.ResolvedAttribute[]
+
+  /** Resolved attribute by canonical name (`allow-additions`). */
+  private readonly byName = new Map<string, E.ResolvedAttribute>()
+
+  /** Resolved attribute by the (localized) name authors write (`permitir-adiciones`). */
+  private readonly byAttribute = new Map<string, E.ResolvedAttribute>()
+
+  /** The vocabulary layer:  the page's runtime's (`SpellSolid.settings.words`). */
+  private readonly words = E.SpellSolid.settings.words
+
+  /** Private registry, so `canonicalValue()` can map multi-word values for THIS tag without the page's registry. */
+  private readonly names = this.words.names()
+
+  constructor(vocabulary: E.ComponentVocabulary, { tag, dictionary }: ElementDefinitionProps = {}) {
+    this.vocabulary = vocabulary
+    const prefix = tag ? tag.slice(0, tag.indexOf("-")) : undefined
+    this.names.register(vocabulary)
+    const localized = this.names.define(prefix, dictionary).get(vocabulary.tag)!
+    this.localized = localized
+    // a tag the dictionary doesn't name (an English alias, `ui-later`) is fine:  names still resolve by prefix;
+    // no tag and no dictionary is the vocabulary's OWN tag, whatever its prefix (`x-item-owner` in tests)
+    this.tag = tag ?? (dictionary ? localized.tag : vocabulary.tag)
+    this.builder = this.words.classes(vocabulary)
+    // the vocabulary's own, then the shared ones it doesn't declare (`disabled`, `loading`, `visible`, `animation`)
+    this.attributes = this.words.attributesFor(vocabulary).map((spec) => {
+      const attribute = localized.names.attributes.get(spec.name) ?? spec.name
+      const key = E.camelCase(spec.name)
+      const property = attribute === spec.name ? (spec.property ?? key) : E.camelCase(attribute)
+      const resolved: E.ResolvedAttribute = {
+        spec,
+        attribute,
+        key,
+        property,
+        reflect: spec.kind !== "json" && spec.reflect !== false
+      }
+      this.byName.set(spec.name, resolved)
+      this.byAttribute.set(attribute, resolved)
+      return resolved
+    })
+  }
+
+  ////////////////
+  // ## Names
+  ////////////////
+
+  /**
+   * Attribute resolved from canonical `name`.
+   * - Throws a `TypeError` on a name the vocabulary doesn't have:  a component's typo, caught on first render.
+   */
+  attribute(name: string): E.ResolvedAttribute {
+    const attribute = this.byName.get(name)
+    if (!attribute) {
+      throw new TypeError(
+        `ElementDefinition.attribute():  <${this.tag}> has no attribute ${JSON.stringify(name)};  ` +
+          `pass a canonical name from its vocabulary`
+      )
+    }
+    return attribute
+  }
+
+  /**
+   * Does this tag take the SHARED attribute `name` (Spell UI's `SharedVocabulary`)?
+   * - False when its vocabulary declares its own of that name:  `<ui-sidebar>`'s `visible` starts hidden.
+   */
+  takesShared(name: string): boolean {
+    return this.words.takesShared(this.vocabulary, name)
+  }
+
+  /**
+   * Attribute resolved from the name authors write (`permitir-adiciones` on `<ie-desplegable>`);
+   * `undefined` for one outside the vocabulary.
+   * - The name DOM API `attributeChangedCallback()` hands the DOM element.
+   */
+  attributeNamed(attributeName: string): E.ResolvedAttribute | undefined {
+    return this.byAttribute.get(attributeName)
+  }
+
+  /**
+   * The attribute authors write for `name`:  a vocabulary attribute's localized name (`value` => `valor`),
+   * else `name` itself (`aria-label`, an alias, an already-localized name).
+   */
+  localAttribute(name: string): string {
+    return this.byName.get(name)?.attribute ?? name
+  }
+
+  /** Localized event name, e.g. `ui-change` => `ie-cambio`. */
+  event(name: string): string {
+    return this.localized.names.events.get(name) ?? name
+  }
+
+  /** Localized slot name;  `""` stays the default slot. */
+  slot(name: string): string {
+    return this.localized.names.slots.get(name) ?? name
+  }
+
+  /** `part` attribute value:  the canonical part, plus the localized one when it differs (see `PartSpec`). */
+  part(name: string): string {
+    const localized = this.localized.names.parts.get(name) ?? name
+    return localized === name ? name : `${name} ${localized}`
+  }
+
+  ////////////////
+  // ## Classes
+  ////////////////
+
+  /**
+   * What `builder` builds a component's class string from:
+   * one getter per attribute (by canonical name), each calling `read(name)`.
+   * - Getters, so a class string reacts only to the attributes its class words actually read.
+   * - `read` is the component's `classValue()`:  usually the attribute's value, sometimes state (`isActive`).
+   */
+  classInput(read: (name: string) => unknown): E.ClassInput {
+    const input: Record<string, unknown> = {}
+    for (const { spec } of this.attributes) {
+      Object.defineProperty(input, spec.name, { get: () => read(spec.name), enumerable: true })
+    }
+    return input
+  }
+
+  ////////////////
+  // ## Values
+  ////////////////
+
+  /**
+   * Raw attribute text / property value => canonical, typed value, per `spec.kind`.
+   * - absent => `spec.default` (converted), else the kind's empty value
+   * - SIDE EFFECT (dev only):  enum converters warn about unknown values, with a suggestion
+   */
+  convert(attribute: E.ResolvedAttribute, raw: unknown): unknown {
+    const { spec } = attribute
+    const value = this.canonicalValue(attribute, raw ?? spec.default)
+    const where = { attribute: attribute.attribute, tag: this.tag }
+    switch (spec.kind) {
+      case "keyOnly":
+      case "boolean":
+        return this.words.converters.boolean(value as string | boolean | null | undefined, attribute.attribute)
+      case "keyOrValueAndKey":
+        return this.words.converters.keyOrValue(
+          value as string | boolean | null | undefined,
+          this.words.valuesFor(spec),
+          where
+        )
+      case "size":
+      case "color":
+      case "valueOnly":
+      case "enum":
+      case "valueAndKey":
+      case "textAlign":
+      case "verticalAlign": {
+        const set = this.words.valuesFor(spec)
+        if (value == null || value === "") return undefined
+        return set
+          ? this.words.converters.enumValue(ElementDefinition.text(value), set, where)
+          : ElementDefinition.text(value)
+      }
+      case "number":
+        return this.words.converters.number(value as string | number | null | undefined)
+      case "json":
+        return this.words.converters.json(value)
+      case "icon":
+        return this.words.converters.icon(value, spec.default)
+      case "width":
+      case "multiple":
+        return value == null || value === "" ? undefined : (value as string | number)
+      default:
+        return value == null ? undefined : Array.isArray(value) ? value : ElementDefinition.text(value)
+    }
+  }
+
+  /**
+   * `attribute`'s value before anything set it:  its default, converted.
+   * - An array or object default is copied (shallow), so no two elements share one.
+   */
+  startingValue(attribute: E.ResolvedAttribute): unknown {
+    const value = this.convert(attribute, undefined)
+    if (Array.isArray(value)) return value.slice()
+    if (value && typeof value === "object") return { ...value }
+    return value
+  }
+
+  /**
+   * Is an element of this tag shown, by its markup alone?
+   * (`visible` and the platform's `hidden`, one fact:  `DOMElement`, "Shown or hidden")
+   * 1. `hidden` written, any value (`until-found` too):  no, whatever `visible` says
+   * 2. else `visible` written:  its value (`"false"` => no)
+   * 3. else the family's `startsVisible` (`elementSetup.visible`)
+   * - `attributeText(name)`:  an attribute's text, `null` when absent (DOM API `getAttribute()`).
+   * - Shared by the DOM element (before its first connect) and the static render.
+   */
+  visibleInMarkup(attributeText: (name: string) => string | null, startsVisible: E.StartsVisible): boolean {
+    if (attributeText("hidden") !== null) return false
+    const visible = this.byName.get(VISIBLE)
+    const text = visible && attributeText(visible.attribute)
+    if (visible && text !== null && text !== undefined) return this.convert(visible, text) === true
+    return startsVisible === "shown"
+  }
+
+  /** Localized value => canonical (`rojo` => `red`, `movil tableta` => `mobile tablet`);  others unchanged. */
+  private canonicalValue(attribute: E.ResolvedAttribute, value: unknown): unknown {
+    if (typeof value !== "string" || !this.localized.values.has(attribute.spec.name)) return value
+    return this.names.canonicalize(this.localized.tag, attribute.attribute, value)?.value ?? value
+  }
+
+  /**
+   * Attribute text for a canonical `value`, or `null` to remove it.
+   * - Booleans:  `""` or removed (NEVER `"true"`);  `"false"` only for off over a `true` default (`visible`).
+   * - `keyOrValueAndKey`:  `""` for bare, else the value.
+   * - Arrays:  comma-joined (`a,b`);  one holding anything but strings, numbers and booleans as JSON (`[{"a":1}]`).
+   * - Canonical values are written LOCALIZED (`red` => `rojo` on `<ie-boton>`).
+   */
+  attributeText(attribute: E.ResolvedAttribute, value: unknown): string | null {
+    const { spec } = attribute
+    if (spec.kind === "keyOnly" || spec.kind === "boolean") {
+      const isOn = this.words.converters.boolean(value as string | boolean | null | undefined)
+      // off over a TRUE default (`visible`, `closable`) reflects as `"false"`:  removed, it would be the default again
+      if (!isOn && spec.default === true) return "false"
+      return this.words.converters.booleanToAttribute(isOn)
+    }
+    // an `icon` turned off over its default reflects as `"false"`:  removing it would bring the default back
+    if (spec.kind === "icon" && value == null && typeof spec.default === "string") return "false"
+    if (value == null || value === false) return null
+    if (value === true) return ""
+    // an array of objects as JSON (`[{"a":1}]`):  comma-joined, each would read `[object Object]`
+    if (Array.isArray(value) && value.every((item) => ElementDefinition.isPrimitive(item))) return value.join(",")
+    const text = ElementDefinition.text(value)
+    return this.localized.names.values.get(spec.name)?.get(text) ?? text
+  }
+
+  ////////////////
+  // ## Statics
+  ////////////////
+
+  /**
+   * A primitive as attribute / class text;  anything else as JSON (never `[object Object]`).
+   * - Static:  pure, no definition state.
+   */
+  private static text(value: unknown): string {
+    if (typeof value === "string") return value
+    if (ElementDefinition.isPrimitive(value)) return String(value)
+    return JSON.stringify(value)
+  }
+
+  /** `value` is a string, number or boolean:  text as it is, no JSON needed. */
+  private static isPrimitive(value: unknown): value is string | number | boolean {
+    return typeof value === "string" || typeof value === "number" || typeof value === "boolean"
+  }
+}
+
+/** The shared `visible` attribute's canonical name (`SharedVocabulary`). */
+const VISIBLE = "visible"
+
+/** Constructor props for `ElementDefinition`. */
+export type ElementDefinitionProps = {
+  /** Tag to register;  default the vocabulary's.  Its prefix (`ie`) also prefixes events. */
+  tag?: string
+  /** Translation;  default English identity. */
+  dictionary?: E.Dictionary
+}

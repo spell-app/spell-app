@@ -9,8 +9,8 @@ import type { DesignExample, DesignFamily, DesignSource } from "./tools.types.ts
  * ### `DesignComponents`
  * The component half of the design-system export (`DesignExport`):  for each family (one card per MAIN tag), its
  * `components/<Comp>/README.md` and `preview.html`, plus `components/index.d.ts` for every tag.
- * - All from the site data (`components.json`:  every vocabulary) and the families' element examples
- *   (`src/components/<folder>/examples/elements/*.html`), so nothing about a tag is guessed.
+ * - All from the site data (`components.json5`:  every vocabulary) and the families' element examples
+ *   (`components/<folder>/examples/elements/*.html`), so nothing about a tag is guessed.
  * - Card groups:  a small fixed set (`GROUPS`), picked from each main tag's topics, in its own topic order.
  * - `sources`:  cards from outside Spell UI (the brand's `<ui-brand-*>`, `DesignBrand`):  their site data merged into
  *   `data`, every family of one in that source's group (after `GROUPS`), its examples and styles from the source.
@@ -361,7 +361,7 @@ export class DesignComponents {
   examples(folder: string): DesignExample[] {
     const cached = this.sections.get(folder)
     if (cached) return cached
-    const dir = join(this.uiFolder, "src/components", folder, "examples/elements")
+    const dir = join(this.uiFolder, "components", folder, "examples/elements")
     const files = existsSync(dir) ? readdirSync(dir).filter((file) => file.endsWith(".html")) : []
     files.sort((a, b) => Number(b === "types.html") - Number(a === "types.html") || a.localeCompare(b))
     const result: DesignExample[] = []
@@ -387,7 +387,7 @@ export class DesignComponents {
 
   /** Every family folder with element examples. */
   private allFolders(): string[] {
-    const root = join(this.uiFolder, "src/components")
+    const root = join(this.uiFolder, "components")
     return readdirSync(root).filter((folder) => existsSync(join(root, folder, "examples/elements")))
   }
 

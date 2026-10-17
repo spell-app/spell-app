@@ -1,6 +1,6 @@
 /**
  * Barrel for `$/ui/docs-components` -- the DOC-ONLY elements:
- * `<ui-docs-*>` widgets the Spell UI docs site (its pages:  the shared `ui/*.html`) is built from,
+ * `<ui-docs-*>` widgets Spell UI's docs site (its pages:  the shared `ui/*.html`) is built from,
  * on top of the real components.
  * - What they are:  element families written EXACTLY like a component family,
  *   but for documenting the library, not for apps.
@@ -9,11 +9,11 @@
  *   - `<ui-docs-example>` -- a live example plus its source (Fomantic's `.example`)
  *   - `<ui-docs-api>`, `<ui-docs-tokens>`, `<ui-docs-nav>`, `<ui-docs-themes>` --
  *     a tag's API / token tables, the sidebar, the theme picker:
- *     built from the site's generated data, `site/_data/components.json`
+ *     built from the site's generated data, `docs/__data/components.json5`
  *     (`SiteData`;  its shape is `docs-components.types.ts`)
  *   - `<ui-docs-search>` -- the site search (in the nav's header band):
  *     the page shown's sections, components, attributes and every page's sections
- *     (`_data/search.json`, its own `SearchData`)
+ *     (`__data/search.json5`, its own `SearchData`)
  *   - `<ui-docs-inspector for>` -- a live view of another element's attributes, properties and `:state()`s
  *     (the custom elements guide, `guides/custom-elements/`, loads it in its own script)
  * - NOT components:  `ComponentDefinitions.all`, the component list and the lib build's entries leave them out

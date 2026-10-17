@@ -12,6 +12,10 @@
  *   The element core is also flat in `@spell-app/ui/core`.
  */
 
+// Spell UI's settings for `$/spell-solid` (a side effect), here too:  `core`'s import of it is dropped by a bundler
+// that finds nothing of `core` itself used (`SpellUISettings`)
+import "$/ui/elements/SpellUISettings"
+
 export * from "$/ui/util"
 export * from "$/ui/runtime"
 export * from "$/ui/styles"
