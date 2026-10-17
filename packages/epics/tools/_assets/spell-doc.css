@@ -1229,6 +1229,14 @@ pre code {
   border-radius: 999px;
   background: var(--spell-bg);
 }
+/*
+ * a folding block's title row (`<epic-code>`, `<epic-aside>`) is its fold button, the row's whole width:  it ends
+ * short of the bullhorn over its corner, so the two sit side by side, never one on the other (Owen, 2026-10-17:
+ * "the bullhorn appears to be overlapping with the collapse button")
+ */
+.spell-doc-main .spell-comment-mark.at-block + :is(epic-code, epic-aside)::part(toggle) {
+  width: calc(100% - 34px);
+}
 .spell-doc-main .spell-comment-mark:not(.at-block) {
   position: relative;
 }
