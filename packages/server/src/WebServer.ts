@@ -141,6 +141,7 @@ export class WebServer {
       port: this.port,
       token: this.guard.token,
       events: LIVE_EVENTS,
+      run: this.live?.run,
       file,
       ...this.configure?.(served)
     }

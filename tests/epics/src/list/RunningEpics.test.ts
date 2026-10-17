@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
-import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
+import { afterAll, beforeAll, describe, expect, it, vi } from "vite-plus/test"
 
 import { PageServer } from "$/server/page"
 import { ask } from "$/server/test/serve"
@@ -129,6 +129,21 @@ describe("RunningEpics", () => {
     const doc = await ask(port, "GET", "/worktrees/seo/epics/seo/seo.plan.html")
     const config = JSON.parse(/window\.SPELL_SERVER = (.*?)<\/script>/.exec(doc.text)![1]!) as { worktree?: string }
     expect(config.worktree).toBe("seo")
+  })
+
+  it("reports a worktree's rebuilt page assets, so its pages here hot-reload;  not its other code", async () => {
+    const changed = vi.spyOn(server.web.live!, "changed")
+    const worktree = join(root, ".claude/worktrees/seo")
+    const assets = ["packages/epics/tools/_assets/spell-ui.js", "packages/epics/components/__pack/epics.pack.js"]
+    put(worktree, "packages/epics/src/list/RunningEpics.ts", "// code\n")
+    for (const asset of assets) put(worktree, asset, "// rebuilt\n")
+    await vi.waitFor(() =>
+      expect(changed.mock.calls.map(([file]) => file)).toEqual(
+        expect.arrayContaining(assets.map((asset) => join(worktree, asset)))
+      )
+    )
+    expect(changed.mock.calls.some(([file]) => file.endsWith(".ts"))).toBe(false)
+    changed.mockRestore()
   })
 
   it("still refuses dot paths inside a worktree", async () => {

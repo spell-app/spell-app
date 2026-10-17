@@ -10,7 +10,7 @@ import { SRV, type ServerInfo } from "$/server"
  * - running means:  the file's server answers `/api/server` (`SERVER_API`) for THIS root
  *   - a pid file left by a crash, or by a server on another checkout's root, is not running
  * - `ensure()` starts one detached if none runs, or restarts one older than its `sources`
- * - `stop()` sends it `SIGTERM`
+ * - `stop()` sends it `SIGTERM`, and waits for its process to end (`SIGKILL` after 10s)
  * - From the goals tools' `launch.js` (`ensureServer`, `serverStatus`, `stopServer`).
  */
 export class PidFile {
@@ -96,12 +96,19 @@ export class PidFile {
     throw new SRV.HttpError(503, `the server for ${this.root} didn't start in ${timeout / 1000}s:  see its log`)
   }
 
-  /** stop the running server, if any, and wait for it to go;  returns whether one was stopped */
-  async stop(): Promise<boolean> {
+  /**
+   * Stop the running server, if any, and wait for its PROCESS to end;  returns whether one was stopped.
+   * - `SIGTERM`, then `SIGKILL` if it's still there after `wait` ms (`STOP_WAIT_MS`, 10s);  see `endProcess()`
+   * - why the process, not its answers:  it stops answering before it lets go of its port
+   *   (its route modules stop first, and the bundles' build).
+   *   `ensure()` started the new one while the old one still held the port,
+   *   so the new one took ANOTHER port, and every open page on the usual one found the server down
+   *   (epic `airplane`, 2026-10-10:  the log shows a start on port 54516)
+   */
+  async stop({ wait = STOP_WAIT_MS }: { wait?: number } = {}): Promise<boolean> {
     const running = await this.status()
     if (!running) return false
-    process.kill(running.pid, "SIGTERM")
-    for (let tries = 0; tries < 50 && (await this.status()); tries++) await new Promise((done) => setTimeout(done, 100))
+    await endProcess(running.pid, wait)
     return true
   }
 
@@ -118,13 +125,37 @@ export class PidFile {
     if (!info || resolve(info.root) !== this.root || !isAlive(info.pid)) return
     try {
       await fetch(`http://127.0.0.1:${info.port}/`, { signal: AbortSignal.timeout(1000), redirect: "manual" })
-      process.kill(info.pid, "SIGTERM")
-      for (let tries = 0; tries < 50 && isAlive(info.pid); tries++) await new Promise((done) => setTimeout(done, 100))
     } catch {
       // nothing on its port:  no server to stop
+      return
     }
+    await endProcess(info.pid, STOP_WAIT_MS)
   }
 }
+
+/**
+ * End process `pid`, and wait until it's gone:  `SIGTERM`, then `SIGKILL` if it's still there after `wait` ms.
+ * - gone means `isAlive()` says so, not that it stopped answering:  its port is free then
+ * - NEVER throws (it may end between the checks)
+ */
+async function endProcess(pid: number, wait: number): Promise<void> {
+  const signal = (name: NodeJS.Signals) => {
+    try {
+      process.kill(pid, name)
+    } catch {
+      // gone already
+    }
+  }
+  signal("SIGTERM")
+  const deadline = Date.now() + wait
+  while (isAlive(pid) && Date.now() < deadline) await new Promise((done) => setTimeout(done, 100))
+  if (!isAlive(pid)) return
+  signal("SIGKILL")
+  for (let tries = 0; tries < 40 && isAlive(pid); tries++) await new Promise((done) => setTimeout(done, 50))
+}
+
+/** How long `stop()` lets a server end by itself before `SIGKILL`, in ms. */
+const STOP_WAIT_MS = 10_000
 
 /** Whether process `pid` is alive:  signal 0 checks without sending anything;  `EPERM`:  alive, not ours. */
 function isAlive(pid: number): boolean {

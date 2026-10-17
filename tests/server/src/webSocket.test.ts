@@ -31,14 +31,15 @@ describe("LiveReload.events", () => {
     rmSync(root, { recursive: true, force: true })
   })
 
-  test("hands every open page each message, short or long", async () => {
+  test("says hello (the server's run), then hands every open page each message, short or long", async () => {
     const pages = await Promise.all([open(server.port), open(server.port)])
     const long = "/" + "x".repeat(70_000)
     server.live!.send("change", { path: "/a.html" })
     server.live!.send("change", { path: long })
     for (const page of pages) {
-      await vi.waitFor(() => expect(page.messages).toHaveLength(2))
+      await vi.waitFor(() => expect(page.messages).toHaveLength(3))
       expect(page.messages).toEqual([
+        { event: "hello", data: { run: server.live!.run } },
         { event: "change", data: { path: "/a.html" } },
         { event: "change", data: { path: long } }
       ])
