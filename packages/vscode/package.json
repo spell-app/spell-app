@@ -23,9 +23,33 @@
   "contributes": {
     "commands": [
       {
+        "command": "spell.showCompiledTypeScript",
+        "title": "Show Compiled TypeScript",
+        "category": "Spell",
+        "icon": {
+          "light": "media/ts-light.svg",
+          "dark": "media/ts-dark.svg"
+        },
+        "enablement": "editorLangId == spell"
+      },
+      {
         "command": "spell.showCompiled",
         "title": "Show Compiled JavaScript",
         "category": "Spell",
+        "icon": {
+          "light": "media/js-light.svg",
+          "dark": "media/js-dark.svg"
+        },
+        "enablement": "editorLangId == spell"
+      },
+      {
+        "command": "spell.showCompiledPython",
+        "title": "Show Compiled Python",
+        "category": "Spell",
+        "icon": {
+          "light": "media/py-light.svg",
+          "dark": "media/py-dark.svg"
+        },
         "enablement": "editorLangId == spell"
       },
       {
@@ -258,14 +282,24 @@
       ],
       "editor/title": [
         {
+          "command": "spell.showCompiledTypeScript",
+          "when": "editorLangId == spell",
+          "group": "navigation@1"
+        },
+        {
           "command": "spell.showCompiled",
           "when": "editorLangId == spell",
-          "group": "navigation"
+          "group": "navigation@2"
+        },
+        {
+          "command": "spell.showCompiledPython",
+          "when": "editorLangId == spell",
+          "group": "navigation@3"
         },
         {
           "command": "spell.runProject",
           "when": "editorLangId == spell",
-          "group": "navigation"
+          "group": "navigation@4"
         }
       ],
       "view/title": [

@@ -1209,10 +1209,30 @@ export class SpellLanguageService {
   // ## Custom requests
   ////////////////
 
-  /** `spell/compiled`:  the javascript `file` compiles to, or a comment saying why it can't. */
-  compiled(file: SP.SpellFile): string {
-    if (!file.match) return `// ${file.file} hasn't been parsed`
-    return SpellLanguageService.compileQuietly(file.match) ?? `// ${file.file} couldn't be compiled`
+  /**
+   * `spell/compiled`:  the code `file` compiles to for `target`, javascript by default --
+   * or a comment saying why it can't, in that language.
+   * - Written by that target's writer (`SP.TARGETS`), as `spell compile --target` writes it.
+   */
+  compiled(file: SP.SpellFile, target: LSP.CompiledTarget = "js"): string {
+    const { name, comment } = SpellLanguageService.COMPILED_TARGETS[target]
+    if (!file.match) return `${comment} ${file.file} hasn't been parsed`
+    const { writer } = SP.targetFor(name)
+    return (
+      SpellLanguageService.compileQuietly(file.match, writer) ??
+      `${comment} ${file.file} couldn't be compiled to ${name}`
+    )
+  }
+
+  /**
+   * What each of `spell/compiled`'s short names stands for -- see `LSP.CompiledTarget`:
+   * - `name`:  its target
+   * - `comment`:  how its language starts a line comment
+   */
+  static COMPILED_TARGETS: Record<LSP.CompiledTarget, { name: string; comment: string }> = {
+    js: { name: SP.RUNNING_TARGET, comment: "//" },
+    ts: { name: "ts/solid", comment: "//" },
+    py: { name: "py", comment: "#" }
   }
 
   /**
@@ -2131,12 +2151,13 @@ export class SpellLanguageService {
   }
 
   /**
-   * `match` compiled to javascript, naming things as its project does (`P.JSWriter.writeMatch()`).
+   * `match` compiled by `writer`, javascript's by default, naming things as its project does
+   * (`P.ProgramWriter.writeMatch()`).
    * - `undefined` if that throws, e.g. for a half-typed statement.
    */
-  static compileQuietly(match: P.Match): string | undefined {
+  static compileQuietly(match: P.Match, writer: P.ProgramWriter = P.JSWriter.instance): string | undefined {
     try {
-      const compiled = P.JSWriter.instance.writeMatch(match)
+      const compiled = writer.writeMatch(match)
       // declaration markers are for the declarations file, not for people -- see `SP.SpellDeclarations`
       return typeof compiled === "string" ? SP.SpellDeclarations.stripComments(compiled) : undefined
     } catch {

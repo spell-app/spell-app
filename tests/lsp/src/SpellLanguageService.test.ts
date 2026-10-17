@@ -771,8 +771,45 @@ describe("SpellLanguageService", () => {
     ).toBeNull()
   })
 
+  test("custom requests:  compiled TypeScript, by the `ts/solid` target's writer", () => {
+    const compiled = service.compiled(card, "ts")
+    expect(compiled).toBe(LSP.SpellLanguageService.compileQuietly(card.match!, SP.targetFor("ts/solid").writer))
+    expect(compiled).toContain("export class Card extends Thing {\n")
+    // TypeScript's own:  a decorated, typed property
+    expect(compiled).toMatch(/@prop\(.*\) accessor \w+!?: /)
+    expect(compiled).not.toBe(service.compiled(card, "js"))
+  })
+
+  test("custom requests:  compiled Python, by the `py` target's writer", () => {
+    const compiled = service.compiled(card, "py")
+    expect(compiled).toBe(LSP.SpellLanguageService.compileQuietly(card.match!, SP.targetFor("py").writer))
+    expect(compiled).toContain("class Card(Thing):\n")
+    // the declaration markers are for the declarations file, not for people
+    expect(compiled).not.toContain("SPELL: DECLARES")
+  })
+
+  test("custom requests:  a file that can't be compiled says why, naming its target", () => {
+    const unparsed = Object.create(card, { match: { value: undefined } }) as SP.SpellFile
+    expect(service.compiled(unparsed, "ts")).toBe("// Card.spell hasn't been parsed")
+    const throws = Object.create(card, {
+      match: {
+        value: {
+          rule: { getAST: true },
+          get AST(): never {
+            throw new Error("half-typed")
+          }
+        }
+      }
+    }) as SP.SpellFile
+    expect(service.compiled(throws, "ts")).toBe("// Card.spell couldn't be compiled to ts/solid")
+    expect(service.compiled(throws)).toBe("// Card.spell couldn't be compiled to js/solid")
+    // in its language's comments
+    expect(service.compiled(throws, "py")).toBe("# Card.spell couldn't be compiled to py")
+  })
+
   test("custom requests:  compiled javascript, and the project's files", () => {
     expect(service.compiled(card)).toContain("export class Card extends Thing {\n")
+    expect(service.compiled(card)).toBe(service.compiled(card, "js"))
     expect(service.projectInfo(card).files.map(({ file, errors }) => `${file} ${errors}`)).toEqual([
       "Card.spell 0",
       "Deck.spell 0",

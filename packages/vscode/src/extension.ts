@@ -1,5 +1,6 @@
 /**
- * VS Code extension for spell:  runs the spell parser's language server, and shows a file's compiled javascript.
+ * VS Code extension for spell:  runs the spell parser's language server, and shows the code a file compiles to:
+ *   javascript, TypeScript or Python, from the editor's title bar.
  * - Also shows docs pages rendered, in the right side bar's "Spell Docs" and "Review" tabs (`DocView`),
  *   when opened by URI or through the bridge -- see `DocPreview`.
  * - And lets a Claude Code session reach ITS window (add a worktree folder, show a doc) -- see `WindowBridge`.
@@ -24,8 +25,24 @@ import { DocPreview } from "./DocPreview"
 import { RunnerPanel } from "./RunnerPanel"
 import { WindowBridge } from "./WindowBridge"
 
-/** Scheme of the read-only documents showing a spell file's compiled javascript -- see `CompiledProvider`. */
+/** Scheme of the read-only documents showing a spell file's compiled code -- see `CompiledProvider`. */
 const COMPILED_SCHEME = "spell-compiled"
+
+/**
+ * The code a spell file can be shown as, by the language server's short name for its target
+ * (`LSP.CompiledTarget`):
+ * - `language`:  VS Code's language id, which highlights it
+ * - `comment`:  how that language starts a line comment
+ * - The compiled view's address ends with the short name, `Card.spell.ts`, so each can be open at once.
+ */
+const COMPILED_TARGETS = {
+  js: { language: "javascript", comment: "//" },
+  ts: { language: "typescript", comment: "//" },
+  py: { language: "python", comment: "#" }
+} as const
+
+/** A short name for a target:  `js`, `ts` or `py` -- see `COMPILED_TARGETS`. */
+type CompiledTarget = keyof typeof COMPILED_TARGETS
 
 /** How long to wait after the last edit before refreshing an open compiled view, in msec. */
 const REFRESH_DELAY = 300
@@ -91,7 +108,9 @@ async function startLanguageServer(context: vscode.ExtensionContext): Promise<vo
     client,
     vscode.workspace.registerTextDocumentContentProvider(COMPILED_SCHEME, compiled),
     vscode.workspace.onDidChangeTextDocument(({ document }) => compiled.sourceChanged(document.uri)),
-    vscode.commands.registerCommand("spell.showCompiled", () => showCompiled())
+    vscode.commands.registerCommand("spell.showCompiled", () => showCompiled("js")),
+    vscode.commands.registerCommand("spell.showCompiledTypeScript", () => showCompiled("ts")),
+    vscode.commands.registerCommand("spell.showCompiledPython", () => showCompiled("py"))
   )
   await client.start()
 }
@@ -124,12 +143,12 @@ function findTsx(repoRoot: string): string | undefined {
   }
 }
 
-/** Open the active spell file's compiled javascript beside it, read-only. */
-async function showCompiled(): Promise<void> {
+/** Open the code the active spell file compiles to for `target` beside it, read-only, highlighted as its language. */
+async function showCompiled(target: CompiledTarget): Promise<void> {
   const editor = vscode.window.activeTextEditor
   if (!editor || editor.document.languageId !== "spell") return
-  const document = await vscode.workspace.openTextDocument(CompiledProvider.uriFor(editor.document.uri))
-  await vscode.languages.setTextDocumentLanguage(document, "javascript")
+  const document = await vscode.workspace.openTextDocument(CompiledProvider.uriFor(editor.document.uri, target))
+  await vscode.languages.setTextDocumentLanguage(document, COMPILED_TARGETS[target].language)
   await vscode.window.showTextDocument(document, {
     viewColumn: vscode.ViewColumn.Beside,
     preview: false,
@@ -139,9 +158,10 @@ async function showCompiled(): Promise<void> {
 
 /****************
  * ### `CompiledProvider`
- * Read-only documents holding a spell file's compiled javascript, from the server's `spell/compiled` request.
- * - The document's URI carries the spell file's URI in its query -- see `uriFor()`.
- * - Refreshes an open one a moment after its spell file changes.
+ * Read-only documents holding the code a spell file compiles to, from the server's `spell/compiled` request.
+ * - One per target:  javascript, TypeScript, Python (`COMPILED_TARGETS`).
+ * - The document's URI ends with its target, and carries the spell file's URI in its query -- see `uriFor()`.
+ * - Refreshes each open one a moment after its spell file changes.
  ****************/
 class CompiledProvider implements vscode.TextDocumentContentProvider {
   /** Client to ask. */
@@ -156,29 +176,41 @@ class CompiledProvider implements vscode.TextDocumentContentProvider {
     this.client = client
   }
 
-  /** URI of the compiled view of spell file `source`, e.g. `spell-compiled:/…/Card.spell.js?file:///…/Card.spell`. */
-  static uriFor(source: vscode.Uri): vscode.Uri {
-    return vscode.Uri.from({ scheme: COMPILED_SCHEME, path: `${source.path}.js`, query: source.toString() })
+  /**
+   * URI of spell file `source`'s compiled view for `target`,
+   * e.g. `spell-compiled:/…/Card.spell.ts?file:///…/Card.spell`.
+   */
+  static uriFor(source: vscode.Uri, target: CompiledTarget): vscode.Uri {
+    return vscode.Uri.from({ scheme: COMPILED_SCHEME, path: `${source.path}.${target}`, query: source.toString() })
   }
 
-  /** Compiled javascript for the spell file `uri` shows. */
+  /** The target compiled view `uri` shows, from the end of its path -- see `uriFor()`. */
+  static targetOf(uri: vscode.Uri): CompiledTarget {
+    const ending = uri.path.slice(uri.path.lastIndexOf(".") + 1)
+    return ending in COMPILED_TARGETS ? (ending as CompiledTarget) : "js"
+  }
+
+  /** The code compiled view `uri` shows:  its spell file's, for its target. */
   async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
-    const compiled = await this.client.sendRequest<string | null>("spell/compiled", { uri: uri.query })
-    return compiled ?? "// Not a spell file in a spell project"
+    const target = CompiledProvider.targetOf(uri)
+    const compiled = await this.client.sendRequest<string | null>("spell/compiled", { uri: uri.query, target })
+    return compiled ?? `${COMPILED_TARGETS[target].comment} Not a spell file in a spell project`
   }
 
-  /** Spell file `source` changed:  refresh its compiled view, if it's open, once edits pause. */
+  /** Spell file `source` changed:  refresh each of its compiled views that's open, once edits pause. */
   sourceChanged(source: vscode.Uri): void {
-    const compiledUri = CompiledProvider.uriFor(source)
-    const isOpen = vscode.workspace.textDocuments.some(({ uri }) => uri.toString() === compiledUri.toString())
-    if (!isOpen) return
+    const open = new Set(vscode.workspace.textDocuments.map(({ uri }) => uri.toString()))
+    const views = Object.keys(COMPILED_TARGETS)
+      .map((target) => CompiledProvider.uriFor(source, target as CompiledTarget))
+      .filter((uri) => open.has(uri.toString()))
+    if (!views.length) return
     const key = source.toString()
     clearTimeout(this.#timers.get(key))
     this.#timers.set(
       key,
       setTimeout(() => {
         this.#timers.delete(key)
-        this.#changed.fire(compiledUri)
+        for (const uri of views) this.#changed.fire(uri)
       }, REFRESH_DELAY)
     )
   }

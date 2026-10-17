@@ -131,6 +131,27 @@ describe("spell language server over stdio", () => {
     expect(wordsUri).toMatch(/\/Runs\/Runs\.en\.js$/)
   }, 30_000)
 
+  test("`spell/compiled` answers a file's code for its target:  javascript by default, TypeScript, Python", async () => {
+    const projectDir = resolve(mkdtempSync(resolve(tmpdir(), "spell-stdio-")), "Shown")
+    mkdirSync(projectDir)
+    writeFileSync(
+      resolve(projectDir, "project.json"),
+      JSON.stringify({ imports: [{ path: "/main.spell", active: true }] })
+    )
+    const text = "a card is a thing\na card has a direction as either up or down"
+    writeFileSync(resolve(projectDir, "main.spell"), text)
+    const uri = pathToFileURL(resolve(projectDir, "main.spell")).href
+    await connection.sendNotification("textDocument/didOpen", {
+      textDocument: { uri, languageId: "spell", version: 1, text }
+    })
+
+    const js = await connection.sendRequest("spell/compiled", { uri })
+    expect(js).toContain("class Card extends Thing")
+    expect(await connection.sendRequest("spell/compiled", { uri, target: "js" })).toBe(js)
+    expect(await connection.sendRequest("spell/compiled", { uri, target: "ts" })).toMatch(/accessor direction!?: /)
+    expect(await connection.sendRequest("spell/compiled", { uri, target: "py" })).toContain("class Card(Thing):")
+  }, 30_000)
+
   test("`spell/scopes` answers the project's live scope tree", async () => {
     const projectDir = resolve(mkdtempSync(resolve(tmpdir(), "spell-stdio-")), "Scoped")
     mkdirSync(projectDir)

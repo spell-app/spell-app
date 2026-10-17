@@ -249,6 +249,22 @@ export type SetDescriptionParams = {
   text: string
 }
 
+/**
+ * Which code `spell/compiled` shows a spell file as:  a short name for one of spell's targets (`SP.TARGETS`).
+ * - `js`:  javascript, `js/solid`, what the editor and the runners run -- the default
+ * - `ts`:  TypeScript on Solid, `ts/solid`, as a person writes it
+ * - `py`:  Python on `spell_core`, `py`
+ */
+export type CompiledTarget = "js" | "ts" | "py"
+
+/** Params of `spell/compiled`:  the code spell file `uri` compiles to, for `target`. */
+export type CompiledParams = {
+  /** Spell file to show. */
+  uri: string
+  /** Which code:  javascript if left out. */
+  target?: CompiledTarget
+}
+
 /** Sent as `spell/projectCompiled` after a project compiles, e.g. from `spell/compileProject`. */
 export type ProjectCompiled = {
   /** Project id, as `ProjectInfo.project`. */
