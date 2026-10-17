@@ -1,6 +1,6 @@
 import { spawnSync } from "child_process"
 import { createHash } from "crypto"
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "fs"
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from "fs"
 import { dirname, join, relative } from "path"
 import { pathToFileURL } from "url"
 
@@ -260,6 +260,9 @@ const HASH_RECORD = /\bsources: {2}([0-9a-f]{16})\b/
 /** Spell UI's Vite config, for `baseConfig()`:  relative to a checkout's root. */
 const UI_VITE_CONFIG = "packages/ui/vite.config.ts"
 
+/** The same file in a repo that links Spell UI in from a spell-app checkout (`portal:`):  spell-epic (epic `epic-eject` P6). */
+const LINKED_UI_VITE_CONFIG = "node_modules/@spell-app/ui/vite.config.ts"
+
 /** A pack's generated files, absolute. */
 function packFiles(pack: PackInfo) {
   const folder = join(pack.dir, PACK_FOLDER)
@@ -334,9 +337,14 @@ SpellUI.registerPack({
  */
 async function bundle(root: string, pack: PackInfo, hash: string): Promise<string[]> {
   const { build } = await import("vite-plus")
-  const config = join(root, UI_VITE_CONFIG)
-  if (!existsSync(config)) throw new CliError(`pack build:  no ${UI_VITE_CONFIG} in ${root}`, EXIT.ERRORS)
-  const { baseConfig } = (await import(pathToFileURL(config).href)) as { baseConfig: () => Record<string, any> }
+  // the checkout's own Spell UI, else the one it links in;  by its real path, so ITS imports resolve where it is
+  const config = [UI_VITE_CONFIG, LINKED_UI_VITE_CONFIG]
+    .map((file) => join(root, file))
+    .find((file) => existsSync(file))
+  if (!config) throw new CliError(`pack build:  no ${UI_VITE_CONFIG} in ${root}`, EXIT.ERRORS)
+  const { baseConfig } = (await import(pathToFileURL(realpathSync(config)).href)) as {
+    baseConfig: () => Record<string, any>
+  }
   const base = baseConfig()
   const folder = join(pack.dir, PACK_FOLDER)
   const files = packFiles(pack)
