@@ -2555,7 +2555,10 @@ function openJumpPrompt(go, canGo) {
   let target = ""
   let thread = ""
   input.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") approve.click()
+    if (event.key !== "Enter") return
+    // its default would press what has the focus by then:  a comment's thread takes it to its fold, which folds it
+    event.preventDefault()
+    approve.click()
   })
   input.addEventListener("input", () => (miss.hidden = true))
   modal.addEventListener("ui-approve", (event) => {
@@ -3564,12 +3567,12 @@ class PageComments {
    * the next thread waiting on you"):  at the right of the page's toolbar (`nav.spell-toolbar`, an epic page's and a
    * guide's alike), an orange count of the threads waiting on Owen;  hidden when none.
    * - made again whenever the toolbar is (a live update builds it anew, then draws the comments again)
-   * - kept last in the row:  after a page's own tools there (the spell syntax guide's Expand all and Collapse all)
+   * - where it goes:  `waitingHome()`, the one place to change to move it
    */
   drawWaiting() {
-    const toolbar = document.querySelector("nav.spell-toolbar")
-    if (!toolbar) return
-    let box = toolbar.querySelector(":scope > .spell-toolbar-waiting")
+    const home = this.waitingHome()
+    if (!home) return
+    let box = home.querySelector(":scope > .spell-toolbar-waiting")
     if (!box) {
       box = document.createElement("div")
       box.className = "spell-toolbar-waiting"
@@ -3580,7 +3583,7 @@ class PageComments {
       button.addEventListener("click", () => this.nextWaiting())
       box.append(button)
     }
-    if (toolbar.lastElementChild !== box) toolbar.append(box)
+    if (home.lastElementChild !== box) home.append(box)
     const button = box.firstElementChild
     const count = this.waitingInPageOrder().length
     const tip = `${count} ${count === 1 ? "thread waits" : "threads wait"} on you:  jump to the next`
@@ -3595,7 +3598,15 @@ class PageComments {
     if (box.hidden === !count) return
     box.hidden = !count
     // a guide's titles share the row with it:  fitted again
-    if (toolbar.classList.contains("spell-toolbar-titled")) fitTitles(toolbar)
+    if (home.classList.contains("spell-toolbar-titled")) fitTitles(home)
+  }
+
+  /**
+   * Where the toolbar's bullhorn goes:  the page's toolbar (`nav.spell-toolbar`), last in its row, after a page's own
+   * tools there (the spell syntax guide's Expand all and Collapse all);  none without a toolbar.
+   */
+  waitingHome() {
+    return document.querySelector("nav.spell-toolbar")
   }
 
   /**
@@ -4636,7 +4647,9 @@ function commentLabel(id) {
 
 /** The first line of `words`, cut to a short line with `…`. */
 function firstWords(words) {
-  const line = String(words ?? "").split("\n")[0].trim()
+  const line = String(words ?? "")
+    .split("\n")[0]
+    .trim()
   return line.length > 60 ? `${line.slice(0, 60).trimEnd()}…` : line
 }
 

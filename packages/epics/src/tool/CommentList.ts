@@ -419,9 +419,12 @@ export class CommentList {
   private unseen(id: string): Comment {
     const comment = this.comment(id)
     if (comment.status !== "new")
-      throw new CommentsError(`comment ${CommentList.label(id)} is ${comment.status}:  Claude has it, so add a new comment instead`, {
-        cause: { status: 409 }
-      })
+      throw new CommentsError(
+        `comment ${CommentList.label(id)} is ${comment.status}:  Claude has it, so add a new comment instead`,
+        {
+          cause: { status: 409 }
+        }
+      )
     return comment
   }
 }

@@ -654,6 +654,16 @@ In `tools/`:
       the page's state filter, collapse-all, the new item button.
     - Cmd / Ctrl + K asks which item to jump to (`J7`, `q3`, any id), and lands there as a link would.
       - An id that isn't there:  the dialog says so, and stays open (`wireJumpKey()`).
+      - A comment's id too, `M3`:  see "Jumping to comments" below.
+  - JUMPING TO COMMENTS (epic `epic-workflow` P23;  Owen, 2026-10-10:  "⌘K taking comment ids", "Is there a way to
+    jump to comments in replies?"), on every page that takes comments (an epic page's and a guide's alike):
+    - a BULLHORN at the right of the toolbar, an orange badge counting the threads waiting on Owen (Claude spoke last)
+      - each click lands on the next, in page order, round again after the last:  opened, below the stuck titles
+      - hidden while none waits;  `PageComments.drawWaiting()`, its place in `waitingHome()`
+    - Cmd / Ctrl + K takes a comment's id (`M3`, `m3` or the old `cm3`) and lands on its thread, opened
+      - under its box, the threads waiting on Owen, a line each, "M3 · his first words", that lands there
+      - a guide's dialog asks "Jump to which comment?", and takes any other id on the page too
+    - [check-comment-jump.mjs](demo/check-comment-jump.mjs) checks both, on stubbed comments
   - Sticky titles:  each top-level section's title sticks below the page header.
     - Nested ones stack below their parents'.
     - The runtime sets the top-level `offset`s.
@@ -1213,6 +1223,7 @@ Each kind of page has ONE name, written everywhere a person reads it.
     - Its header:
       - a chevron
       - the bullhorn (a green check circle once done)
+      - its id, `M3`:  small and muted, an outline and no fill (epic `epic-workflow` P23)
       - the pane's summary (`headline()`):  the quote's first words, else the block's;  its tooltip the full place
       - No date:  each message has its time.
     - Then OWEN'S ANSWER, while it's his turn:  an epic page item's review pills
@@ -1626,6 +1637,11 @@ In this order, from `packages/epics`:
     - the state filter
     - each phase's title pen and plan changes (`<epic-update>` blocks, no box)
     - at 280 / 900px, light and dark
+  - `node packages/epics/demo/check-comment-jump.mjs [--guide <page>] [--doc <epic>] [outDir]`, from the root:
+    - comment ids (`M1` ...), the toolbar's bullhorn and its count, Cmd-K on a comment's id and its waiting list,
+      on a guide and an epic page (epic `epic-workflow` P23)
+    - their comments stubbed in the browser, every POST aborted:  no inbox read or written, nobody woken
+    - Run it after touching the comments' runtime, the toolbar or the jump dialog.
   - `node packages/epics/demo/check-fold-epics.mjs [--doc <name>] [--item <id>] [--guide <path>] [outDir]`, from the root:
     - A fold never moves what was clicked:  the line or title stays put, within 1px, for 1.5s after the click.
     - Items a link landed on (at once, mid window, near the page's end), one opened by a click,
