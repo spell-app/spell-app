@@ -1,6 +1,6 @@
 /**
  * `yarn site:new <tag|page> [--title "Title"] [--summary "One line."] [--force]`:
- * write a page of Spell UI's docs site from the template, `templates/spell-ui-docs.html`:
+ * write a page of Spell UI's docs site from the template, `templates/spell-ui-docs.html` (spell-epic's):
  * a components page or a components guide page.
  * - Pages land in the site's one folder, `docs/` (`SITE_PAGES`).
  * - A TAG (`ui-button`, `button`, `ui-or`:  any tag of a family) writes `docs/<main tag>.html`, the component layout:
@@ -42,10 +42,13 @@ import { SiteSections } from "./site-sections.ts"
 /** `packages/ui/`. */
 const UI = path.resolve(import.meta.dirname, "..")
 
-/** The template, in the shared content's `templates/` (linked at the checkout's root). */
-const TEMPLATE = path.resolve(UI, "../../templates/spell-ui-docs.html")
+/**
+ * The template, in spell-epic's `templates/` (epic `epic-eject` T11:  every template is the engine's), through the
+ * checkout's `spell-epic` link;  served at `/templates/spell-ui-docs.html`.
+ */
+const TEMPLATE = path.resolve(UI, "../../spell-epic/templates/spell-ui-docs.html")
 
-/** The template's own path prefix to the site's pages (it lives in `templates/`, beside `ui/`). */
+/** The template's own path prefix to the site's pages (it's served at `/templates/`, beside `/components/`). */
 const TEMPLATE_SITE = /\.\.\/(?:components\/)?ui\//g
 
 /** Fomantic's docs pages, by group folder. */

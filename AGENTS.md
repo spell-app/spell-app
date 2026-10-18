@@ -104,8 +104,10 @@ More on some of them:
 - spell-epic:  the docs pages' tooling too, since the docs package went into the epics package
   (epic `people-and-orgs` P16, Q23), and that into spell-epic (epic `epic-eject` I5).
   - The pages themselves are SHARED root folders, tracked by no package (see "Shared content").
-  - `epics/`, `guides/`, `templates/`
+  - `epics/`, `guides/`
   - `pages/`:  [the docs' home page](pages/index.html)
+  - NOT the templates (epic `epic-eject` T11):  spell-epic's own `templates/`, through the `spell-epic` link,
+    served at `/templates/` (an engine route);  `epic pages template <name>` prints one's path.
   - Its route modules answer under `/api/epics/` (review, agents, running, favorite, new) and `/api/docs/`
     (details, choices, comments, show):  the root `package.json`'s `"pageServer"` names them through the link.
 - server:  static folders, an Express-shaped router, live reload, ports, openers, a file lock.
@@ -369,7 +371,6 @@ ui -> util
   - `epics/` -- epic pages, `epics/<name>/<name>.plan.html`, with their inboxes and details pages
   - `guides/` -- every other docs page ([the Solid 2 guide](guides/solid/solid-2.html), say),
     with its Markdown, JSON and `experiments/`
-  - `templates/` -- one starting point per kind of page
   - `pages/` -- [the docs' home page](pages/index.html), and the scratch details pages, `pages/details/`
   - `ui/` -- Spell UI's hand-written docs pages (claude-design P6), LEFT for the other checkouts.
     - Since epic `people-and-orgs` P18 they're in [ui's docs/](packages/ui/docs/), served at `/components/ui/`.
@@ -437,7 +438,7 @@ ui -> util
   - `auto: epic <name>`
   - `auto: guides/<folder or file>`
   - `auto: goals/<set>`
-  - `auto: agents`, and likewise for pages, templates, ui and brand
+  - `auto: agents`, and likewise for pages, ui and brand
   - else `auto: other`
 - Trailers:
   - `Turn-end: <checkout>`:  whose turn swept them up, NOT their author.

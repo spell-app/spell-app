@@ -111,7 +111,7 @@ yarn site:new ui-card                                         # => packages/ui/d
 yarn site:new getting-started --title "Getting started" --summary "One line."   # => packages/ui/docs/getting-started.html
 ```
 
-- From [the template](../../../templates/spell-ui-docs.html).
+- From [the template](../../../spell-epic/templates/spell-ui-docs.html), spell-epic's (every template is the engine's).
   - Title / summary / status from [the pages data](__data/pages.json5):  fix a summary THERE, then `yarn site:data`.
   - It refuses to overwrite (`--force`).
 - A sub-tag gets a page of its own once its family's entry in `pages.json5` lists it under `pages`

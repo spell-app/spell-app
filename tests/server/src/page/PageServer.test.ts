@@ -304,6 +304,17 @@ describe("PageServer", () => {
     expect(engineRoutePath("/epics/x.html")).toBeUndefined()
   })
 
+  // epic-eject T11:  every template is the engine's, spell-epic's `templates/`
+  it("serves the templates (/templates/) from spell-epic, from a worktree's address too (engineRoutePath())", async () => {
+    mkdirSync(join(engine, "templates"), { recursive: true })
+    writeFileSync(join(engine, "templates", "durable.html"), "<title>Guide Template</title>\n")
+    expect((await ask(port, "GET", "/templates/durable.html")).text).toContain("<title>Guide Template</title>")
+    expect((await ask(port, "GET", "/templates/missing.html")).status).toBe(404)
+    expect(engineRoutePath("/templates/goals/index.html")).toBe("/spell-epic/templates/goals/index.html")
+    expect(engineRoutePath("/worktrees/seo/templates/durable.html")).toBe("/spell-epic/templates/durable.html")
+    expect(engineRoutePath("/worktrees/seo/guides/x.html")).toBeUndefined()
+  })
+
   it('answers "not found" at the sets\' old addresses:  no redirect (Q30)', async () => {
     for (const old of ["/ui/button.html", "/ui/", "/ui", "/brand/components/x.html", "/epic-ui/", "/app-ui/x.html"])
       expect((await ask(port, "GET", old)).status, old).toBe(404)

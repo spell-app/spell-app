@@ -8,7 +8,7 @@
 //   - spell-epic's README, "Switching a repo over", says which values change, and in what order.
 //   - Until then, today's layout.
 {
-  // The shared content repo:  epics, guides, sagas, pages, templates, brand, the logs.
+  // The shared content repo:  epics, guides, sagas, pages, brand, the logs (not the templates:  spell-epic's).
   // - Every checkout links its folders in (`epic shared link`).
   // - Each turn's end commits it.
   // Morning:  `epic shared rename spell-app.epics` writes the new name here itself (and `windows.contentName`).

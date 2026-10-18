@@ -86,7 +86,6 @@
       "epics",
       "guides",
       "pages",
-      "templates",
       "brand",
       "spell-epic/src/tools/_assets",
       "packages/brand",
@@ -97,7 +96,6 @@
       "epics",
       "guides",
       "pages",
-      "templates",
       "brand"
     ],
     "bundles": [
@@ -110,7 +108,6 @@
       "epics",
       "guides",
       "pages",
-      "templates",
       "brand",
       "ui",
       "goals",

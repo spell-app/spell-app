@@ -45,7 +45,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - every one needs `Guard`'s strong write check (this run's token, same origin)
       - ONLY inside the writable folders, the shared content ones;  anything else:  403
         - the list:  `"writable"`, in the page server's settings (below)
-        - today:  `epics`, `guides`, `pages`, `templates`, `brand`
+        - today:  `epics`, `guides`, `pages`, `brand`
+          (not `templates` since epic `epic-eject` T11:  they're spell-epic's, at the engine route `/templates/`)
       - The page editor's writes are held to the same list (`FileOperations.writableFile()`).
       - Those folders are links into the shared repo:
         paths are resolved (`fileInside()`), never followed, so they stay "inside".

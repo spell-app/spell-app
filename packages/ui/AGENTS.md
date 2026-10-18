@@ -433,7 +433,8 @@ In a family's folder, `ui-<name>/`, every file is named for its component:
   - Not watched:  `site:data` / `site:index` / `site:kitchen`.
   - A watch rebuild leaves stale hashed chunks:  harmless, they're not committed.
     The page server's next start rebuilds the bundle clean.
-- `yarn site:new`:  a site page, from [the template](../../templates/spell-ui-docs.html) ([its script](scripts/site-new.ts)).
+- `yarn site:new`:  a site page, from [the template](../../spell-epic/templates/spell-ui-docs.html), spell-epic's
+  ([its script](scripts/site-new.ts)).
 
   ```sh
   yarn site:new <tag|page> [--title ...] [--summary ...] [--force]

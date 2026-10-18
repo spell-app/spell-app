@@ -46,6 +46,8 @@ import {
  * - `/_epic/assets/...`, `/_epic/pack/...` -> the engine's files (`engineRoutePath()`, epic `epic-eject` P7)
  *   - at the routes spell-epic's server serves them at, which the pages load
  *   - from spell-epic, through the checkout's `spell-epic` link (epic `epic-eject` I5)
+ *   - and `/templates/...` -> spell-epic's `templates/` (epic `epic-eject` T11):  every template is the engine's;
+ *     at `/worktrees/<w>/templates/...` too, where a worktree's pages' `../templates/` leads
  * - NO redirects for old URLs (epic `people-and-orgs`, Q30):  an old address answers "not found"
  *   - two bridges for the SHARED pages, which every checkout shows:
  *     - the engine's old folders still serve from spell-epic (`movedFolderPath()`):  a safety net
@@ -372,7 +374,7 @@ const COMPONENTS_HOME = `${COMPONENT_SETS[0].prefix}/`
 const UNWATCHED = /(^|\/)scripts\/|(^|\/)experiments\/(?!(.*\/)?[^/]+\.bundle\.js$)/
 
 /** Folders the page server live-reloads when the root `package.json` names none:  the docs areas and their bundle. */
-const DEFAULT_WATCH = ["epics", "guides", "pages", "templates", "brand", "spell-epic/src/tools/_assets"]
+const DEFAULT_WATCH = ["epics", "guides", "pages", "brand", "spell-epic/src/tools/_assets"]
 
 /**
  * The URL path a component set's address serves (`COMPONENT_SETS`, epic `people-and-orgs` P18);  else `undefined`.
@@ -430,6 +432,8 @@ const MOVED_FOLDERS: readonly (readonly [from: string, to: string])[] = [
  * The URL path an ENGINE ROUTE serves from in this checkout;  else `undefined`.
  * - `/_epic/assets/<x>` => `/spell-epic/src/tools/_assets/<x>`
  * - `/_epic/pack/<x>` => `/spell-epic/src/components/__pack/<x>`
+ * - `/templates/<x>` => `/spell-epic/templates/<x>` (epic `epic-eject` T11), from a worktree's address too
+ *   (`/worktrees/<w>/templates/<x>`):  ONE engine, the main checkout's link's
  * - the engine is spell-epic, through the checkout's `spell-epic` link (epic `epic-eject` I5)
  * - the routes spell-epic's one page server per machine serves the engine at (epic `epic-eject` P7):
  *   the shared pages load the engine from them (`engine-asset-routes`), and this server draws them too
@@ -437,13 +441,16 @@ const MOVED_FOLDERS: readonly (readonly [from: string, to: string])[] = [
  */
 export function engineRoutePath(path: string): string | undefined {
   const route = ENGINE_ROUTES.find(([prefix]) => path.startsWith(prefix))
-  return route && `${route[1]}${path.slice(route[0].length)}`
+  if (route) return `${route[1]}${path.slice(route[0].length)}`
+  const inWorktree = /^\/worktrees\/[^/]+(\/templates\/.*)$/.exec(path)?.[1]
+  return inWorktree && engineRoutePath(inWorktree)
 }
 
 /** The engine's routes (`engineRoutePath()`):  each URL prefix, and the folder it is in this checkout, as a URL path. */
 const ENGINE_ROUTES: readonly (readonly [route: string, folder: string])[] = [
   ["/_epic/assets/", "/spell-epic/src/tools/_assets/"],
-  ["/_epic/pack/", "/spell-epic/src/components/__pack/"]
+  ["/_epic/pack/", "/spell-epic/src/components/__pack/"],
+  ["/templates/", "/spell-epic/templates/"]
 ]
 
 /**
