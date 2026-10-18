@@ -235,6 +235,9 @@ export function commentsPage(files: SRV.StaticHandler, page: unknown): string {
   if (!resolved) throw new SRV.HttpError(403, `not served here:  ${page}`)
   if ("redirect" in resolved) throw new SRV.HttpError(400, `a folder, not a page:  ${page}`)
   if ("status" in resolved) throw new SRV.HttpError(resolved.status, resolved.message)
+  // an epic or saga page is never answered on the page, whatever its prose names:  `epic-workflow`'s item titles name
+  // `<epic-ask>`, and it took no comments (epic `epic-workflow` P25)
+  if (PLAN_DOC.test(resolved.file)) return resolved.file
   if (ANSWERED_ON_PAGE.test(readFileSync(resolved.file, "utf8")) || DataFile.exists(rowsFile(resolved.file)))
     throw new SRV.HttpError(403, `${page} is answered on the page, not with comments`)
   return resolved.file

@@ -127,6 +127,60 @@
                 (red needs Owen, yellow open, green decided). Click a chip to hide that state's items.
               </li>
             </ul>
+            <ui-section
+              id="epic-section-actions"
+              header="With buttons in its title row"
+              sticky
+              collapsible
+              dividing
+              collapsed
+            >
+              <p>
+                A page's own buttons go in its title row:
+                <code>&lt;ui-button slot=&quot;actions&quot;&gt;</code> children (epic <code>epic-workflow</code> P25).
+              </p>
+              <ul>
+                <li>
+                  They sit after the title, before its tools (the Phases toggles, an item section's state filter, an
+                  Overview sub-section's review buttons), collapse-all and the fold chevron.
+                </li>
+                <li>A click on one never folds or unfolds it.</li>
+                <li>The docs runtime puts the block's bullhorn there too, so it never sits over a button.</li>
+                <li>
+                  The count badge (the Phases section's) stays just after the title, where Spell UI's section draws it.
+                </li>
+              </ul>
+              <epic-section id="todos-example" kind="todos">
+                <epic-item
+                  id="t43"
+                  title="Show the slot on every element's page"
+                  status="open"
+                  state="open"
+                ></epic-item>
+                <ui-button
+                  slot="actions"
+                  circular
+                  basic
+                  size="mini"
+                  icon="copy"
+                  title="Copy a link to it"
+                  aria-label="Copy a link to it"
+                ></ui-button>
+              </epic-section>
+              <ui-accordion class="spell-code" styled>
+                <ui-title>The example above · 4 lines</ui-title>
+                <ui-content>
+                  <ui-code language="html"
+                    ><script type="text/plain">
+                      <epic-section id="todos-example" kind="todos">
+                        <epic-item id="t43" title="Show the slot on every element's page" status="open" state="open"></epic-item>
+                        <ui-button slot="actions" circular basic size="mini" icon="copy" title="Copy a link to it" aria-label="Copy a link to it"></ui-button>
+                      </epic-section>
+                    </script></ui-code
+                  >
+                </ui-content>
+              </ui-accordion>
+            </ui-section>
           </ui-section>
 
           <ui-section id="2-markup" header="2. Markup" sticky collapsible dividing collapsed>
@@ -524,6 +578,15 @@
                         >, P13): at the end of its body, above the note box.
                       </td>
                     </tr>
+                    <tr>
+                      <td><code>actions</code></td>
+                      <td>
+                        Buttons of the page's own in its title row (<code
+                          >&lt;ui-button slot=&quot;actions&quot;&gt;</code
+                        >): after the title, before its own buttons; a click on one never folds it. The docs runtime
+                        puts the block's bullhorn here too.
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </ui-table>
@@ -562,8 +625,9 @@
                     <tr>
                       <td><code>tools</code></td>
                       <td>
-                        At the title's end: the Phases section's Files / Verify toggles; an item section's state filter;
-                        an Overview sub-section's review buttons.
+                        At the title's end: the page's own buttons (the <code>actions</code> slot), then the Phases
+                        section's Files / Verify toggles; an item section's state filter; an Overview sub-section's
+                        review buttons.
                       </td>
                     </tr>
                     <tr>
@@ -676,6 +740,11 @@
           <ui-section id="5-how-it-looks" header="5. How it looks" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="palette"></ui-icon>
             <ul>
+              <li>
+                Its title: folded, ONE line cut with “…”, the full title its tooltip; open, as many lines as it needs.
+                Everything in its title row sits on the title's first line, so nothing moves as it switches (Owen,
+                2026-10-18).
+              </li>
               <li>
                 <b>Its title:</b> numbered by its place among the page's blocks (<code>3. Questions</code>); an Overview
                 sub-section by its parent's (<code>1.2 Why</code>); a report not at all, so the sections after it keep

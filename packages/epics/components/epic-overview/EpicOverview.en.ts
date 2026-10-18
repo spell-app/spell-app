@@ -1,11 +1,13 @@
 /**
  * Every name `<epic-overview>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type`, plus the fold pieces (`FOLD_*`) from `epic-section`'s types file, data too.
+ * - Pure data:  `import type`, plus the fold pieces (`FOLD_*`) from `epic-section`'s types file, and the `actions`
+ *   slot (`ACTIONS_*`) from the folds', data too.
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
 
+import { ACTIONS_CHILD, ACTIONS_SLOT_SPEC } from "$/epics/components/epic-item/Fold.types"
 // the fold pieces every folding block shares
 import {
   FOLD_EVENTS,
@@ -63,7 +65,8 @@ export const epicOverviewVocabulary = {
       description:
         'The prompt in older docs:  `<blockquote slot="prompt">`, drawn folded;  `<epic-prompt>` since P14, which ' +
         "folds itself."
-    }
+    },
+    ACTIONS_SLOT_SPEC
   ],
   parts: [
     ...FOLD_PARTS,
@@ -84,6 +87,7 @@ export const epicOverviewVocabulary = {
     { key: "estimate", text: "Estimate:", description: "Before the estimate." }
   ],
   children: [
+    ACTIONS_CHILD,
     { tag: "flow", slot: "summary", max: 1, description: "The summary, in older docs." },
     { tag: "flow", slot: "prompt", max: 1, description: "The kickoff prompt, in older docs." },
     { tag: "epic-summary", max: 1, description: "The summary, two sentences." },

@@ -1,7 +1,7 @@
 /**
  * Every name `<epic-section>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
  * - Pure data:  `import type`, plus other data:
- *   - the fold pieces (`FOLD_*`), from its types file
+ *   - the fold pieces (`FOLD_*`), from its types file;  the `actions` slot (`ACTIONS_*`), from the folds'
  *   - the parts of the `<epic-review>`s an Overview sub-section draws (Q14)
  *   - the new-item texts of Todos and Questions
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
@@ -10,6 +10,7 @@
 
 import type { EpicVocabulary } from "$/epics/definitions"
 
+import { ACTIONS_CHILD, ACTIONS_SLOT_SPEC } from "$/epics/components/epic-item/Fold.types"
 // the review controls an Overview sub-section draws, as `<epic-item>` does;  the waiting new items of Todos and Questions
 import { NEW_KIND_TEXTS, NEW_LIST_TEXTS } from "$/epics/components/epic-new-item/EpicNewItem.types"
 import { REVIEW_PARTS } from "$/epics/components/epic-review/EpicReview.types"
@@ -106,6 +107,7 @@ export const epicSectionVocabulary = {
   slots: [
     { name: "", description: "Its phases, items, log events or prose." },
     { name: "title", description: "A title with markup, in place of `title`." },
+    ACTIONS_SLOT_SPEC,
     {
       name: "changes",
       description:
@@ -124,8 +126,8 @@ export const epicSectionVocabulary = {
     {
       name: "tools",
       description:
-        "At the title's end:  the Phases section's Files / Verify toggles;  an item section's state filter;  an " +
-        "Overview sub-section's review buttons."
+        "At the title's end:  the page's own buttons (the `actions` slot), then the Phases section's Files / " +
+        "Verify toggles;  an item section's state filter;  an Overview sub-section's review buttons."
     },
     {
       name: "filter",
@@ -191,6 +193,7 @@ export const epicSectionVocabulary = {
   ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },
+    ACTIONS_CHILD,
     {
       tag: "epic-updated",
       slot: "changes",

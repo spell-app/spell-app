@@ -138,6 +138,49 @@
                 >, cut short.
               </li>
             </ul>
+            <ui-section
+              id="epic-overview-actions"
+              header="With buttons in its title row"
+              sticky
+              collapsible
+              dividing
+              collapsed
+            >
+              <p>
+                A page's own buttons go in its title row:
+                <code>&lt;ui-button slot=&quot;actions&quot;&gt;</code> children (epic <code>epic-workflow</code> P25).
+              </p>
+              <ul>
+                <li>They sit after the title, before collapse-all and the fold chevron.</li>
+                <li>A click on one never folds or unfolds it.</li>
+                <li>The docs runtime puts the block's bullhorn there too, so it never sits over a button.</li>
+              </ul>
+              <epic-overview id="overview-example">
+                <epic-summary>Every folding element's title row takes the page's own buttons.</epic-summary>
+                <ui-button
+                  slot="actions"
+                  circular
+                  basic
+                  size="mini"
+                  icon="copy"
+                  title="Copy a link to it"
+                  aria-label="Copy a link to it"
+                ></ui-button>
+              </epic-overview>
+              <ui-accordion class="spell-code" styled>
+                <ui-title>The example above · 4 lines</ui-title>
+                <ui-content>
+                  <ui-code language="html"
+                    ><script type="text/plain">
+                      <epic-overview id="overview-example">
+                        <epic-summary>Every folding element's title row takes the page's own buttons.</epic-summary>
+                        <ui-button slot="actions" circular basic size="mini" icon="copy" title="Copy a link to it" aria-label="Copy a link to it"></ui-button>
+                      </epic-overview>
+                    </script></ui-code
+                  >
+                </ui-content>
+              </ui-accordion>
+            </ui-section>
           </ui-section>
 
           <ui-section id="2-markup" header="2. Markup" sticky collapsible dividing collapsed>
@@ -358,6 +401,15 @@
                         <code>&lt;epic-prompt&gt;</code> since P14, which folds itself.
                       </td>
                     </tr>
+                    <tr>
+                      <td><code>actions</code></td>
+                      <td>
+                        Buttons of the page's own in its title row (<code
+                          >&lt;ui-button slot=&quot;actions&quot;&gt;</code
+                        >): after the title, before its own buttons; a click on one never folds it. The docs runtime
+                        puts the block's bullhorn here too.
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </ui-table>
@@ -480,6 +532,10 @@
           <ui-section id="5-how-it-looks" header="5. How it looks" sticky collapsible dividing collapsed>
             <ui-icon slot="icon" name="palette"></ui-icon>
             <ul>
+              <li>
+                Its title, <code>1. Overview</code>: folded, one line, its words the tooltip; open, it wraps if it must
+                (Owen, 2026-10-18).
+              </li>
               <li>
                 <b>Its title bar:</b> <code>1. Overview</code> and a lightbulb, on the section band, sticking under the
                 page header while you read inside it.

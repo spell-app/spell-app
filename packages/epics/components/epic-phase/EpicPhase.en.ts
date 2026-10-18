@@ -1,13 +1,14 @@
 /**
  * Every name `<epic-phase>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
  * - Pure data:  `import type`, plus two types files' data:
- *   - the fold pieces (`FOLD_*`), from `epic-section`'s
+ *   - the fold pieces (`FOLD_*`), from `epic-section`'s;  the `actions` slot (`ACTIONS_*`), from the folds'
  *   - the review controls' parts (`REVIEW_PARTS`), from `epic-review`'s:  a phase takes review notes (epic `airplane` P2)
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
 
+import { ACTIONS_CHILD, ACTIONS_SLOT_SPEC } from "$/epics/components/epic-item/Fold.types"
 // the review controls a phase draws, as `<epic-item>` does
 import { REVIEW_PARTS } from "$/epics/components/epic-review/EpicReview.types"
 // the fold pieces every folding block shares
@@ -91,6 +92,7 @@ export const epicPhaseVocabulary = {
   slots: [
     { name: "", description: "Its fields, Owen's kept notes, its plan changes and commits." },
     { name: "title", description: "A title with markup, in place of `title`." },
+    ACTIONS_SLOT_SPEC,
     {
       name: "changes",
       description:
@@ -111,7 +113,12 @@ export const epicPhaseVocabulary = {
       name: "changed",
       description: "In its title, while it isn't done:  its plan changed, an orange pen and how many times (`changes`)."
     },
-    { name: "tools", description: "At the title's end:  its review buttons, while the page is reviewed." },
+    {
+      name: "tools",
+      description:
+        "At the title's end:  the page's own buttons (the `actions` slot), then its review buttons, while the page " +
+        "is reviewed."
+    },
     ...REVIEW_PARTS
   ],
   states: [...FOLD_STATES],
@@ -129,6 +136,7 @@ export const epicPhaseVocabulary = {
   ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },
+    ACTIONS_CHILD,
     {
       tag: "epic-field",
       where: { attribute: "name", values: ["symptom"] },

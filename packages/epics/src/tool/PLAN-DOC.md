@@ -241,6 +241,10 @@ As `plan-doc.md`, "Ids":
   3. the answer, More Details, replies, Original Discussion, commits
   - Claude's status cards (`<epic-status slot="status">`, "Status cards" below) are slotted,
     so at the end, out of the order.
+  - So are buttons for its line (`<ui-button slot="actions">`, epic `epic-workflow` P25):
+    after its title, before its own buttons.
+    - Every element with a title row takes them:  sections, the Overview, phases, items, asides, code, updates.
+    - The tool never writes one;  the docs runtime puts each block's bullhorn there, never in the file.
   - The element draws:
     - the chip (`Q3`, in its state's colour) and the review label
     - `Question` over the question as asked, "Original reply" over the text

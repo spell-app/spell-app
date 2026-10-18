@@ -16,6 +16,7 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  * The component behind `<epic-code>`:  a folded code block in prose (an `EpicPanel`).
  * - the brand's code well, its heading the `title` in mono, the code inside on a card, highlighted
  * - The code is the element's OWN text:  its `<pre>` child's (else its whole text), which stays in the doc as written.
+ *   - never the text of what's slotted in its title row (`slot="actions"`, `EpicPanel`)
  *   - Spell UI's `<ui-code>` in the shadow root draws it:  the colours (`language`, else guessed), the copy button
  *   - the `<pre>` itself isn't slotted, so the code shows once
  *   - followed:  a live update or a part loading changes what's drawn
@@ -44,7 +45,7 @@ export class EpicCode extends EpicPanel<typeof epicCodeVocabulary> {
   }
 
   /** Its `title`, or `Code`. */
-  protected heading(): JSX.Element {
+  protected heading(): string {
     return this.title || this.translationForKey("code")
   }
 
@@ -57,9 +58,14 @@ export class EpicCode extends EpicPanel<typeof epicCodeVocabulary> {
     )
   }
 
-  /** The code in `element`:  its `<pre>` child's text, else all of its text. */
+  /** The code in `element`:  its `<pre>` child's text, else all of its text but its slotted buttons' (`actions`). */
   private static codeOf(element: Element): string {
-    return (element.querySelector(":scope > pre") ?? element).textContent ?? ""
+    const pre = element.querySelector(":scope > pre")
+    if (pre) return pre.textContent ?? ""
+    return Array.from(element.childNodes)
+      .filter((node) => node.nodeType !== Node.ELEMENT_NODE || !(node as Element).hasAttribute("slot"))
+      .map((node) => node.textContent ?? "")
+      .join("")
   }
 }
 

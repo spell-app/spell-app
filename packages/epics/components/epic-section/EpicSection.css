@@ -21,6 +21,8 @@
   :host([kind="overview-part"]) ui-section {
     --ui-section-title-padding: 8px var(--epic-inset, 16px);
     --ui-section-content-padding: 8px var(--epic-inset, 16px) 0;
+    /* its title is an h3:  the line everything in its title row centres on (`EpicFold.css`) */
+    --_epic-fold-line: calc(var(--ui-font-size, 16px) * var(--ui-section-h3) * var(--ui-section-title-line-height));
   }
   /* the phases' own bands reach edge to edge:  their section's content keeps no inset of its own around them */
   :host([kind="phases"]) ui-section {
@@ -109,6 +111,13 @@
     }
     ui-section::part(actions) {
       margin-inline-start: 0;
+    }
+    /* on a row of their own, under the title:  centred on that row, not on the title's line */
+    :host(:state(tools)) ui-section::part(badge),
+    :host(:state(tools)) ui-section::part(actions),
+    :host(:state(tools)) ui-section::part(fold-icon) {
+      align-self: center;
+      translate: none;
     }
   }
 

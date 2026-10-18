@@ -68,6 +68,11 @@ export class DOMEpicFoldElement extends E.DOMLoadableBodyElement<EpicFold<any>> 
  * - Links:  the page's `#hash` naming it, an element inside it, or an id in its `part-ids`
  *   opens it (loading its part), then lands there, below the stuck titles --
  *   unless a deeper folding element holds the target, which lands it itself.
+ * - The page's own buttons for its title (`slot="actions"`, `Fold.types.ts`):  first at the title's end, before its
+ *   own tools (the badge, a phase's estimate, stays just after the title, where `<ui-section>` draws it).
+ *   A click on one never folds:  `<ui-section>`'s actions never do.
+ * - Its title (Owen, 2026-10-18:  "ellipsis when collapsed, wrap when expanded"):  folded, ONE line cut with "…", its
+ *   full text the tooltip (`titleTip()`);  open, as many lines as it needs.  The buttons stay put either way.
  * - The DOM element's own `title` (a phase's, a sub-section's) would be a browser tooltip over all its content:
  *   the wrapper's EMPTY `title` stops it there (T8).
  * - The rail:  its DOM element's `contentsEntry` (`DOMEpicFoldElement`) is what the page's rail shows for it
@@ -83,6 +88,9 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
     // a container:  a click on its text must not jump to the fold button or a link inside
     delegatesFocus: false
   }
+
+  /** Light-DOM slot occupancy:  its children, its `actions` slot's buttons, a subclass's own slots. */
+  readonly slots = new E.SlotContent(this.domElement)
 
   ////////////////
   // ## Folding
@@ -288,9 +296,12 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
 
   /**
    * The fold:  the inner `<ui-section>` around the subclass's title pieces, the part note and the children.
-   * - `title`:  the header's content (`slot="header"` of the inner section)
+   * - `title`:  the header's content (`slot="header"` of the inner section):  one line cut with "…" while folded,
+   *   wrapping while open
+   * - `mark`:  after the title, never cut (a phase's plan-changed pen)
    * - `icon`:  its icon
-   * - `tools`:  what goes at the title's end (`slot="actions"`)
+   * - `tools`:  what goes at the title's end (`slot="actions"` of the inner section), after the page's own buttons
+   *   (its `actions` slot)
    * - `badge`:  its badge text
    * - `before`:  content above the children (the Overview's summary)
    */
@@ -314,11 +325,15 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
               {pieces.icon!()}
             </span>
           </Show>
-          <span slot="header" class="header">
-            {pieces.title()}
+          {/* folded:  ONE line, cut with "…", its full text the tooltip;  open:  it wraps (EpicFold.css) */}
+          <span slot="header" class="header" title={this.isOpen ? undefined : this.titleTip()}>
+            <span class="words">{pieces.title()}</span>
+            {pieces.mark?.()}
           </span>
-          <Show when={pieces.tools || this.isOpen}>
+          <Show when={pieces.tools || this.isOpen || this.hasActions}>
             <span slot="actions" class="tools" part={this.partForName("tools" as never)}>
+              {/* the page's own buttons first, then its tools */}
+              <slot name={this.slotForName("actions" as never)} />
               {pieces.tools?.()}
               {/* last, so it sits beside the fold chevron */}
               <Show when={this.isOpen}>
@@ -343,6 +358,21 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
         </ui-section>
       </div>
     )
+  }
+
+  /**
+   * The folded title's tooltip:  its title as the page's rail shows it (`3. Questions`, `P5 · Drawing Elements`),
+   * since one line may cut it.
+   * - reads `title`, so a live update's new title follows
+   */
+  protected titleTip(): string {
+    void (this as unknown as { title?: string }).title
+    return this.contentsEntry().label
+  }
+
+  /** Buttons in its `actions` slot (the page's own)? */
+  get hasActions(): boolean {
+    return this.slots.hasContent(this.slotForName("actions" as never))
   }
 
   /** Inline style of the base box:  custom properties its children inherit;  none by default. */
@@ -439,8 +469,10 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
 
 /** What a subclass draws in its fold (`EpicFold.renderFold()`);  each a function, read where it's drawn. */
 export type FoldPieces = {
-  /** The title:  number, id and text. */
+  /** The title:  number, id and text;  cut with "…" while folded. */
   title: () => JSX.Element
+  /** After the title, never cut:  a phase's plan-changed pen. */
+  mark?: () => JSX.Element
   /** The icon before it. */
   icon?: () => JSX.Element
   /** Controls at the title's end. */

@@ -59,6 +59,23 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       `fold.button()` and `Fold.chevron()`.
       - The button is named by ids in the card's own shadow root.
       - The chevron shows in the first frame.
+  - Every element with a TITLE ROW has an `actions` slot in it (epic `epic-workflow` P25):
+    `<epic-section>`, `<epic-overview>`, `<epic-phase>`, `<epic-item>`, `<epic-aside>`, `<epic-code>`, `<epic-update>`.
+    - What a page puts there (`<ui-button slot="actions">`) sits after the title, before the element's own buttons.
+    - The title (Owen, 2026-10-18, J183:  "ellipsis when collapsed, wrap when expanded"):
+      - folded:  ONE line, cut with "…", its full text the tooltip (`title`)
+      - open (or an item with nothing to unfold):  as many lines as it needs
+      - a phase's plan-changed pen comes after it, never cut (`FoldPieces.mark`)
+      - everything in the row sits on the title's FIRST line, so neither the title's first line nor a button moves
+        as it switches (`--_epic-fold-line` in `EpicFold.css`;  the item's line was one-line cells already)
+      - collapse-all still shows only while open, before the chevron, as it did:  it moves the buttons before it
+      - NOT `<ui-section>` on guides:  their titles are short labels, and the tooltip would mean reaching into
+        Spell UI's shadow root
+    - A click on it never folds:  `CONTROLS` in `Fold.tsx` takes the slot and its box (`Fold.actions()`).
+    - The slot, its child spec and its part:  [Fold.types.ts](components/epic-item/Fold.types.ts), which each
+      vocabulary imports.
+    - The docs runtime puts a block's bullhorn there (see "Comments").
+    - NOT the cards with a heading band (a reply, a status card, a note ...):  nothing needs it there yet.
 - `src/` (`$/epics`, `EP`) -- code the elements and the node tools share.
   - Its test, [pack.test.ts](../../tests/epics/src/pack.test.ts), runs `spell dev pack check epics`.
   - `definitions/` -- the ONE description of every element:
@@ -1150,12 +1167,20 @@ Each kind of page has ONE name, written everywhere a person reads it.
       - Before 2026-10-10 a block with comments showed "📢 N" always, sitting at the end of its thread's header row,
         with an orange dot for news;  its click listed them (`openPicker()`, gone).
       - The toolbar's signals stay as they were.
-    - It makes room rather than cover what's there (`makeRoom()`;  Owen, 2026-10-10:  "Overlap in bullhorn buttons"):
-      - an epic page item's own review pills and Do Now:  it moves left of them, over the end of the item's title,
-        as a text block's does
-      - an update's date:  the same (its `time` part, `MAKES_ROOM`)
-      - a thread right under a short block (a folded item), which it would cover:
-        the thread leaves room on its header's right
+    - WHERE it sits (epic `epic-workflow` P25;  Owen, 2026-10-17:  "an `actions` slot which puts additional buttons
+      in the right spot, to the left of the 'default' buttons like collapse"):
+      - a block with a TITLE ROW:  in that row, its `actions` slot, never over a button
+        - a docs section:  `<ui-section>`'s own slot (`.at-section`)
+        - an epic page's item, update (with a date), aside and code block (`.at-title`, `TITLE_ROW_BLOCKS`):
+          after the title, before the block's own buttons (review pills, Do Now, the date, the fold)
+        - every epic element with a title row has the slot:  [Fold.types.ts](components/epic-item/Fold.types.ts)
+      - a block with NO title row (a paragraph, a table, a list, a message, cards, a phase's field, the summary):
+        a line of no height just before it, the button over its top right corner (`.at-block`)
+      - the page header:  in it (`.at-page`)
+    - A corner bullhorn makes room rather than cover what's there (`makeRoom()`;  Owen, 2026-10-10:  "Overlap in
+      bullhorn buttons"):  a thread right under a short block, which it would cover, leaves room on its header's right.
+      - Before P25 it also moved an item's corner bullhorn left of its review pills, and an update's left of its date
+        (`MAKES_ROOM`, gone);  and a CSS rule shortened an aside's or code block's fold button by 34px (28e350907).
     - A click on a comment's highlighted quote opens its thread.
   - Or on SELECTED TEXT:  ⌘ / Ctrl I, or the bullhorn floating beside the selection.
     - The comment keeps the quote, highlighted softly on the page while the comment exists.

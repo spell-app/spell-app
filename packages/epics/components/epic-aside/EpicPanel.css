@@ -1,7 +1,9 @@
 /*
  * The shape of every folded panel in prose (`EpicPanel.tsx`):  `<epic-aside>`, `<epic-code>`, each adopting this
  * sheet beside its own (the fill and the heading's type, through the private `--_epic-panel-*` below).
- * - The heading:  a full-width `<button>`, the fold chevron then the words, the chevron turned down while open.
+ * - The title row (`head`):  the heading, a `<button>` (the fold chevron then the words, the chevron turned down while
+ *   open), filling the row up to the `actions` slot's box at its end (the page's own buttons, the bullhorn).
+ *   The words never run under the buttons:  folded, one line cut with "…";  open, they wrap in their own column.
  * - The body, folded:  `hidden="until-found"` (find-in-page reveals it), drawn as nothing.
  * - Shared look from `<epic-page>`'s `:host`, each with a fallback:  `--epic-part-gap`, `--epic-accent`.
  */
@@ -32,12 +34,19 @@
     background: var(--_epic-panel-fill);
     color: var(--_epic-panel-ink);
   }
+  /* everything on the heading's FIRST line, so nothing moves as it wraps (open) or goes back to one line (folded) */
+  .head {
+    display: flex;
+    align-items: flex-start;
+    min-width: 0;
+  }
   .toggle {
     display: flex;
-    align-items: center;
+    flex: 1 1 auto;
+    align-items: flex-start;
     gap: 8px;
     box-sizing: border-box;
-    width: 100%;
+    min-width: 0;
     padding: var(--_epic-panel-heading-padding);
     border: none;
     border-radius: var(--_epic-panel-radius);
@@ -55,8 +64,39 @@
     min-width: 0;
     overflow-wrap: anywhere;
   }
+  /*
+   * FOLDED, the heading is ONE line, cut with "…", its words the tooltip;  OPEN, it wraps (Owen, 2026-10-18:  "ellipsis
+   * when collapsed, wrap when expanded").  Its first line never moves as it switches.
+   */
+  :host(:not(:state(open))) .heading {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  /* the `actions` slot's box:  the page's own buttons, the bullhorn;  the heading's inset on its right */
+  .slotted-actions {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 4px;
+    padding-inline-end: 8px;
+  }
+  /* as tall as the heading's first line, padding and all:  its buttons centre on that line */
+  .slotted-actions::before {
+    content: "\200b";
+    width: 0;
+    padding: var(--_epic-panel-heading-padding);
+    padding-inline: 0;
+    margin-inline-end: -4px;
+    font: var(--_epic-panel-heading-font);
+  }
+  .slotted-actions[hidden] {
+    display: none;
+  }
   .chevron {
     flex: none;
+    /* centred on the heading's first line (`1lh`:  the heading's line height, which it inherits) */
+    translate: 0 calc((1lh - 100%) / 2);
     width: 12px;
     height: 12px;
     fill: none;

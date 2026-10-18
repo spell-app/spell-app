@@ -71,7 +71,7 @@ describe("<epic-item>", () => {
     )
     expect([chip.textContent, chip.getAttribute("href")]).toEqual(["Q1", "#q1"])
     expect(title.textContent).toBe("Which colour names?")
-    expect(slotNames(host)).toEqual(["title", "", "status"])
+    expect(slotNames(host)).toEqual(["title", "actions", "", "status"])
     expect(host.querySelector("p")!.assignedSlot!.getAttribute("name")).toBeNull()
     expect(chip.title).toBe("Needs attention · not reviewed yet")
     await expectAccessible(host)
@@ -349,5 +349,93 @@ describe("<epic-item source>", () => {
     expect(host.matches(":state(error)")).toBe(true)
     expect(errors).toHaveBeenCalled()
     expect(error()).toBe(`Couldn't load ${PART}.`)
+  })
+})
+
+// epic `epic-workflow` P25:  the page's own buttons in the title row, where the docs runtime puts the bullhorn too
+describe("<epic-item> actions slot", () => {
+  // P25:  the page's own buttons in the line, where the docs runtime puts the bullhorn too
+  test('`slot="actions"`:  after the title, BEFORE its own buttons;  a click on one (or on the box) never folds it', async () => {
+    const { host, line, title } = await item(
+      `<epic-item id="c3" title="A caveat" status="open" overnight><p>Why</p>` +
+        `<button slot="actions" aria-label="Copy">C</button><span slot="actions" class="tag">tag</span></epic-item>`
+    )
+    const button = host.querySelector<HTMLElement>("button[slot=actions]")!
+    const tag = host.querySelector<HTMLElement>("span[slot=actions]")!
+    const bed = host.shadowRoot!.querySelector<HTMLElement>("[part~='overnight']")!
+    expect(button.assignedSlot?.getAttribute("name")).toBe("actions")
+    expect(line.contains(button.assignedSlot)).toBe(true)
+    const [b, t, own, words] = [button, tag, bed, title].map((each) => each.getBoundingClientRect())
+    expect([words.right <= b.left + 0.5, b.right <= t.left + 0.5, t.right <= own.left + 0.5]).toEqual([
+      true,
+      true,
+      true
+    ])
+    // one row:  the slotted buttons on the title's line
+    expect(Math.abs(b.top + b.height / 2 - (own.top + own.height / 2))).toBeLessThan(4)
+    button.click()
+    tag.click()
+    await ElementFixture.tick()
+    expect(host.open).toBe(false)
+    line.click()
+    await ElementFixture.tick()
+    expect(host.open).toBe(true)
+    // the slotted buttons aren't details:  an item with only them has nothing to fold
+    const bare = await item(
+      `<epic-item id="c4" title="Bare" status="open"><button slot="actions">C</button></epic-item>`
+    )
+    expect(bare.toggle()).toBeNull()
+    expect(bare.host.shadowRoot!.querySelector("[part~='actions']")!.hasAttribute("hidden")).toBe(false)
+    await expectAccessible(host)
+  })
+})
+
+// epic `epic-workflow` P25, J183 (Owen, 2026-10-18:  "ellipsis when collapsed, wrap when expanded")
+
+describe("<epic-item> title, folded and open", () => {
+  test("folded:  ONE line cut with …, its full text the tooltip;  open:  it wraps;  the buttons and the first line stay put", async () => {
+    const wrap = await ElementFixture.render(
+      `<div style="width: 320px"><epic-item id="c5" title="A long title that cannot fit on one line of the narrow side bar, so folded it is cut and open it wraps" status="open" overnight><p>Why</p>` +
+        `<button slot="actions" aria-label="Copy">C</button></epic-item></div>`
+    )
+    const host = wrap.querySelector("epic-item") as ItemHost
+    const root = host.shadowRoot!
+    const title = root.querySelector<HTMLElement>("[part~='title']")!
+    const line = root.querySelector<HTMLElement>("[part~='line']")!
+    const button = host.querySelector<HTMLElement>("button[slot=actions]")!
+    const bed = root.querySelector<HTMLElement>("[part~='overnight']")!
+    const lineHeight = parseFloat(getComputedStyle(title).lineHeight)
+    const folded = {
+      top: title.getBoundingClientRect().top,
+      button: button.getBoundingClientRect(),
+      bed: bed.getBoundingClientRect()
+    }
+    expect(title.getBoundingClientRect().height).toBeLessThan(lineHeight * 1.5)
+    expect(title.scrollWidth).toBeGreaterThan(title.clientWidth)
+    expect(getComputedStyle(title).textOverflow).toBe("ellipsis")
+    expect(title.title).toBe(
+      "A long title that cannot fit on one line of the narrow side bar, so folded it is cut and open it wraps"
+    )
+    // the pointer finds the tooltip:  the title itself, not a child of it
+    const box = title.getBoundingClientRect()
+    expect(root.elementFromPoint(box.left + 20, box.top + box.height / 2)?.closest("[title]")).toBe(title)
+    line.click()
+    await ElementFixture.tick()
+    expect(host.open).toBe(true)
+    expect(title.getBoundingClientRect().height).toBeGreaterThan(lineHeight * 1.5)
+    expect(title.hasAttribute("title")).toBe(false)
+    expect(title.getBoundingClientRect().top).toBeCloseTo(folded.top, 0)
+    expect(button.getBoundingClientRect().left).toBeCloseTo(folded.button.left, 0)
+    expect(button.getBoundingClientRect().top).toBeCloseTo(folded.button.top, 0)
+    expect(bed.getBoundingClientRect().left).toBeCloseTo(folded.bed.left, 0)
+    // nothing to unfold:  it never opens, so it always wraps
+    const bare = await ElementFixture.render(
+      `<div style="width: 320px"><epic-item id="c6" title="A long title that cannot fit on one line of the narrow side bar, so folded it is cut and open it wraps" status="open"></epic-item></div>`
+    )
+    const bareTitle = bare.querySelector("epic-item")!.shadowRoot!.querySelector<HTMLElement>("[part~='title']")!
+    expect([bareTitle.getBoundingClientRect().height > lineHeight * 1.5, bareTitle.hasAttribute("title")]).toEqual([
+      true,
+      false
+    ])
   })
 })

@@ -41,9 +41,6 @@ export class EpicOverview extends EpicFold<typeof epicOverviewVocabulary> {
     }
   } satisfies Partial<E.ElementSetup>
 
-  /** Light-DOM slot occupancy:  is there a kickoff prompt? */
-  readonly slots = new E.SlotContent(this.domElement)
-
   /** Its icons:  the title's, the prompt's chevron, the estimate's. */
   readonly icons = {
     title: new E.IconGlyph({ owner: this, name: () => TITLE_ICON }),

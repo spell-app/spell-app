@@ -139,9 +139,6 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   // ## State
   ////////////////
 
-  /** Light-DOM slot occupancy:  has it children (items, phases ...)? */
-  readonly slots = new E.SlotContent(this.domElement)
-
   /** The Phases section's toggles:  which fields show. */
   @E.state accessor shown: Record<string, boolean> = EpicSection.savedToggles()
 

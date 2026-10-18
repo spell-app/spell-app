@@ -151,6 +151,10 @@
         {
           "name": "",
           "description": "The aside."
+        },
+        {
+          "name": "actions",
+          "description": "Buttons of the page's own in its title row (`<ui-button slot=\"actions\">`):  after the title, before its own buttons;  a click on one never folds it.  The docs runtime puts the block's bullhorn here too."
         }
       ],
       "events": [],
@@ -158,6 +162,10 @@
         {
           "name": "base",
           "description": "The panel."
+        },
+        {
+          "name": "head",
+          "description": "Its title row:  `toggle`, then `actions`."
         },
         {
           "name": "toggle",
@@ -170,6 +178,10 @@
         {
           "name": "body",
           "description": "What it folds;  hidden (`until-found`) while folded."
+        },
+        {
+          "name": "actions",
+          "description": "In its title row, after the title and before its own buttons:  the `actions` slot."
         }
       ],
       "states": [
@@ -929,6 +941,10 @@
         {
           "name": "",
           "description": "The code:  ONE `<pre>`, its text the code (never drawn itself)."
+        },
+        {
+          "name": "actions",
+          "description": "Buttons of the page's own in its title row (`<ui-button slot=\"actions\">`):  after the title, before its own buttons;  a click on one never folds it.  The docs runtime puts the block's bullhorn here too."
         }
       ],
       "events": [],
@@ -936,6 +952,10 @@
         {
           "name": "base",
           "description": "The panel."
+        },
+        {
+          "name": "head",
+          "description": "Its title row:  `toggle`, then `actions`."
         },
         {
           "name": "toggle",
@@ -948,6 +968,10 @@
         {
           "name": "body",
           "description": "What it folds;  hidden (`until-found`) while folded."
+        },
+        {
+          "name": "actions",
+          "description": "In its title row, after the title and before its own buttons:  the `actions` slot."
         },
         {
           "name": "code",
@@ -1360,6 +1384,10 @@
           "description": "A title with markup, in place of `title`."
         },
         {
+          "name": "actions",
+          "description": "Buttons of the page's own in its title row (`<ui-button slot=\"actions\">`):  after the title, before its own buttons;  a click on one never folds it.  The docs runtime puts the block's bullhorn here too."
+        },
+        {
           "name": "status",
           "description": "Claude's status cards (`<epic-status slot=\"status\">`, P13):  drawn last in its details, under Owen's marked note, above the note box."
         }
@@ -1428,7 +1456,7 @@
         },
         {
           "name": "actions",
-          "description": "The box at the end of the line:  the git icon, the review label, then the review buttons."
+          "description": "The box at the end of the line:  the `actions` slot (the page's own buttons, the bullhorn), then the git icon, the review label, the review buttons and collapse-all."
         },
         {
           "name": "details",
@@ -2344,6 +2372,10 @@
         {
           "name": "prompt",
           "description": "The prompt in older docs:  `<blockquote slot=\"prompt\">`, drawn folded;  `<epic-prompt>` since P14, which folds itself."
+        },
+        {
+          "name": "actions",
+          "description": "Buttons of the page's own in its title row (`<ui-button slot=\"actions\">`):  after the title, before its own buttons;  a click on one never folds it.  The docs runtime puts the block's bullhorn here too."
         }
       ],
       "events": [
@@ -3093,6 +3125,10 @@
           "description": "A title with markup, in place of `title`."
         },
         {
+          "name": "actions",
+          "description": "Buttons of the page's own in its title row (`<ui-button slot=\"actions\">`):  after the title, before its own buttons;  a click on one never folds it.  The docs runtime puts the block's bullhorn here too."
+        },
+        {
           "name": "changes",
           "description": "An OLDER doc's plan changes (`<epic-updated slot=\"changes\">`, 2026-10-11, P6):  drawn at the end of its body, unboxed, until the epic tool migrates them to `<epic-update>` blocks (`updates-as-epic-update`)."
         },
@@ -3157,7 +3193,7 @@
         },
         {
           "name": "tools",
-          "description": "At the title's end:  its review buttons, while the page is reviewed."
+          "description": "At the title's end:  the page's own buttons (the `actions` slot), then its review buttons, while the page is reviewed."
         },
         {
           "name": "review-buttons",
@@ -3494,6 +3530,10 @@
           "description": "A title with markup, in place of `title`."
         },
         {
+          "name": "actions",
+          "description": "Buttons of the page's own in its title row (`<ui-button slot=\"actions\">`):  after the title, before its own buttons;  a click on one never folds it.  The docs runtime puts the block's bullhorn here too."
+        },
+        {
           "name": "changes",
           "description": "An OLDER doc's Plan changes copies in the Phases section (T14, until 2026-10-11).  NOT drawn:  no slot of the shadow root takes them, since each phase draws its own;  the epic tool removes them on its next write."
         },
@@ -3555,7 +3595,7 @@
         },
         {
           "name": "tools",
-          "description": "At the title's end:  the Phases section's Files / Verify toggles;  an item section's state filter;  an Overview sub-section's review buttons."
+          "description": "At the title's end:  the page's own buttons (the `actions` slot), then the Phases section's Files / Verify toggles;  an item section's state filter;  an Overview sub-section's review buttons."
         },
         {
           "name": "filter",
@@ -4257,6 +4297,10 @@
         {
           "name": "",
           "description": "What changed, and why;  none for a bare label."
+        },
+        {
+          "name": "actions",
+          "description": "Buttons of the page's own in its title row (`<ui-button slot=\"actions\">`):  after the title, before its own buttons;  a click on one never folds it.  The docs runtime puts the block's bullhorn here too."
         }
       ],
       "events": [],
@@ -4267,7 +4311,7 @@
         },
         {
           "name": "header",
-          "description": "A block's title row:  the fold chevron, the title, the date."
+          "description": "A block's title row:  the fold chevron, the title, `actions`, the date."
         },
         {
           "name": "toggle",
@@ -4280,6 +4324,10 @@
         {
           "name": "time",
           "description": "A block's date (`at`), at the right of its title row."
+        },
+        {
+          "name": "actions",
+          "description": "In its title row, after the title and before its own buttons:  the `actions` slot."
         },
         {
           "name": "body",

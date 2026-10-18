@@ -90,6 +90,11 @@
           "title": "1. Example"
         },
         {
+          "id": "epic-aside-actions",
+          "title": "With buttons in its title row",
+          "parent": 0
+        },
+        {
           "id": "2-markup",
           "title": "2. Markup"
         },
@@ -104,17 +109,17 @@
         {
           "id": "slots",
           "title": "Slots",
-          "parent": 3
+          "parent": 4
         },
         {
           "id": "parts",
           "title": "Parts",
-          "parent": 3
+          "parent": 4
         },
         {
           "id": "states",
           "title": "States",
-          "parent": 3
+          "parent": 4
         },
         {
           "id": "5-how-it-looks",
@@ -399,6 +404,11 @@
           "title": "1. Example"
         },
         {
+          "id": "epic-code-actions",
+          "title": "With buttons in its title row",
+          "parent": 0
+        },
+        {
           "id": "2-markup",
           "title": "2. Markup"
         },
@@ -413,17 +423,17 @@
         {
           "id": "slots",
           "title": "Slots",
-          "parent": 3
+          "parent": 4
         },
         {
           "id": "parts",
           "title": "Parts",
-          "parent": 3
+          "parent": 4
         },
         {
           "id": "states",
           "title": "States",
-          "parent": 3
+          "parent": 4
         },
         {
           "id": "5-how-it-looks",
@@ -582,6 +592,11 @@
           "title": "1. Example"
         },
         {
+          "id": "epic-item-actions",
+          "title": "With buttons in its title row",
+          "parent": 0
+        },
+        {
           "id": "2-markup",
           "title": "2. Markup"
         },
@@ -596,22 +611,22 @@
         {
           "id": "epic-item-slots",
           "title": "Slots",
-          "parent": 3
+          "parent": 4
         },
         {
           "id": "epic-item-parts",
           "title": "Parts",
-          "parent": 3
+          "parent": 4
         },
         {
           "id": "epic-item-states",
           "title": "States",
-          "parent": 3
+          "parent": 4
         },
         {
           "id": "epic-item-events",
           "title": "Events",
-          "parent": 3
+          "parent": 4
         },
         {
           "id": "5-how-it-looks",
@@ -620,17 +635,17 @@
         {
           "id": "item-chip",
           "title": "The id chip",
-          "parent": 8
+          "parent": 9
         },
         {
           "id": "item-review",
           "title": "The review buttons",
-          "parent": 8
+          "parent": 9
         },
         {
           "id": "item-folding",
           "title": "Folding",
-          "parent": 8
+          "parent": 9
         },
         {
           "id": "6-written-by",
@@ -926,6 +941,11 @@
           "title": "1. Example"
         },
         {
+          "id": "epic-overview-actions",
+          "title": "With buttons in its title row",
+          "parent": 0
+        },
+        {
           "id": "2-markup",
           "title": "2. Markup"
         },
@@ -936,12 +956,12 @@
         {
           "id": "epic-overview-parents",
           "title": "Its parents",
-          "parent": 2
+          "parent": 3
         },
         {
           "id": "epic-overview-children",
           "title": "Its children",
-          "parent": 2
+          "parent": 3
         },
         {
           "id": "4-attributes",
@@ -950,22 +970,22 @@
         {
           "id": "epic-overview-slots",
           "title": "Slots",
-          "parent": 5
+          "parent": 6
         },
         {
           "id": "epic-overview-parts",
           "title": "Parts",
-          "parent": 5
+          "parent": 6
         },
         {
           "id": "epic-overview-states",
           "title": "States",
-          "parent": 5
+          "parent": 6
         },
         {
           "id": "epic-overview-events",
           "title": "Events",
-          "parent": 5
+          "parent": 6
         },
         {
           "id": "5-how-it-looks",
@@ -1049,6 +1069,11 @@
           "title": "1. Example"
         },
         {
+          "id": "epic-phase-actions",
+          "title": "With buttons in its title row",
+          "parent": 0
+        },
+        {
           "id": "2-markup",
           "title": "2. Markup"
         },
@@ -1059,12 +1084,12 @@
         {
           "id": "epic-phase-parents",
           "title": "Its parents",
-          "parent": 2
+          "parent": 3
         },
         {
           "id": "epic-phase-children",
           "title": "Its children",
-          "parent": 2
+          "parent": 3
         },
         {
           "id": "4-attributes",
@@ -1073,22 +1098,22 @@
         {
           "id": "epic-phase-slots",
           "title": "Slots",
-          "parent": 5
+          "parent": 6
         },
         {
           "id": "epic-phase-parts",
           "title": "Parts",
-          "parent": 5
+          "parent": 6
         },
         {
           "id": "epic-phase-states",
           "title": "States",
-          "parent": 5
+          "parent": 6
         },
         {
           "id": "epic-phase-events",
           "title": "Events",
-          "parent": 5
+          "parent": 6
         },
         {
           "id": "5-how-it-looks",
@@ -1252,6 +1277,11 @@
           "title": "1. Example"
         },
         {
+          "id": "epic-section-actions",
+          "title": "With buttons in its title row",
+          "parent": 0
+        },
+        {
           "id": "2-markup",
           "title": "2. Markup"
         },
@@ -1262,12 +1292,12 @@
         {
           "id": "epic-section-parents",
           "title": "Its parents",
-          "parent": 2
+          "parent": 3
         },
         {
           "id": "epic-section-children",
           "title": "Its children",
-          "parent": 2
+          "parent": 3
         },
         {
           "id": "4-attributes",
@@ -1276,22 +1306,22 @@
         {
           "id": "epic-section-slots",
           "title": "Slots",
-          "parent": 5
+          "parent": 6
         },
         {
           "id": "epic-section-parts",
           "title": "Parts",
-          "parent": 5
+          "parent": 6
         },
         {
           "id": "epic-section-states",
           "title": "States",
-          "parent": 5
+          "parent": 6
         },
         {
           "id": "epic-section-events",
           "title": "Events",
-          "parent": 5
+          "parent": 6
         },
         {
           "id": "5-how-it-looks",
@@ -1497,6 +1527,11 @@
           "title": "1. Example"
         },
         {
+          "id": "epic-update-actions",
+          "title": "With buttons in its title row",
+          "parent": 0
+        },
+        {
           "id": "2-markup",
           "title": "2. Markup"
         },
@@ -1511,17 +1546,17 @@
         {
           "id": "slots",
           "title": "Slots",
-          "parent": 3
+          "parent": 4
         },
         {
           "id": "parts",
           "title": "Parts",
-          "parent": 3
+          "parent": 4
         },
         {
           "id": "states",
           "title": "States",
-          "parent": 3
+          "parent": 4
         },
         {
           "id": "5-how-it-looks",

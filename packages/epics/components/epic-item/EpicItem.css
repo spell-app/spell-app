@@ -158,15 +158,36 @@
     min-width: 0;
     overflow-wrap: anywhere;
   }
+  /*
+   * FOLDED (with details to unfold), the title is ONE line, cut with "…", its full text the tooltip;  OPEN, it wraps
+   * (Owen, 2026-10-18:  "ellipsis when collapsed, wrap when expanded")
+   * - its basis stays `10em` either way, so the buttons after it wrap (or not) the same, folded or open
+   * - its first line never moves:  only the lines under it come and go
+   */
+  .item.has-details:not(.unfolded) .title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  /* cut, it carries the tooltip:  the pointer lands on it, not on what's inside (`Tooltip.css`) */
+  .title[title] ::slotted(*) {
+    pointer-events: none;
+  }
   /* a title with markup:  its links read as text, as today's */
   ::slotted(a) {
     color: inherit;
   }
 
-  /* the end of the line:  the review label, then P9's buttons;  wraps under the title, at the right, when narrow */
+  /*
+   * the end of the line:  the page's own buttons (`slot="actions"`, the bullhorn), the review label, then P9's
+   * buttons;  wraps under the title, at the right, when narrow
+   */
   .extras {
     gap: 4px;
     margin-inline-start: auto;
+  }
+  ::slotted([slot="actions"]) {
+    flex: none;
   }
   .extras[hidden] {
     display: none;

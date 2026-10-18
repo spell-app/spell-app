@@ -1,10 +1,12 @@
 /**
  * Every name `<epic-aside>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type`, plus the panel's parts and states from its types file, which is data too.
+ * - Pure data:  `import type`, the `actions` slot (`Fold.types.ts`), plus the panel's parts and states from its types file, which is data too.
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
+
+import { ACTIONS_CHILD, ACTIONS_SLOT_SPEC } from "$/epics/components/epic-item/Fold.types"
 
 import { PANEL_PARTS, PANEL_STATES } from "./EpicPanel.types"
 
@@ -31,7 +33,7 @@ export const epicAsideVocabulary = {
     }
   ],
   events: [],
-  slots: [{ name: "", description: "The aside." }],
+  slots: [{ name: "", description: "The aside." }, ACTIONS_SLOT_SPEC],
   parts: [...PANEL_PARTS],
   states: [...PANEL_STATES],
   texts: [
@@ -41,6 +43,6 @@ export const epicAsideVocabulary = {
     { key: "aside", text: "Aside", description: "The heading, without a title." },
     { key: "heading", text: "Aside:  {title}", description: "The heading, with a title." }
   ],
-  children: [{ tag: "flow", description: "The aside." }],
+  children: [{ tag: "flow", description: "The aside." }, ACTIONS_CHILD],
   flow: true
 } as const satisfies EpicVocabulary
