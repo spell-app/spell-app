@@ -4,7 +4,6 @@ import { defineConfig, type TestProjectConfiguration } from "vite-plus"
 
 import { appProjects } from "./packages/app/vitest.config.ts"
 import { brandProjects } from "./packages/brand/vitest.config.ts"
-import { epicsProjects } from "./packages/epics/vitest.config.ts"
 import { uiProjects } from "./packages/ui/vitest.config.ts"
 import { utilProjects } from "./packages/util/vitest.config.ts"
 
@@ -27,14 +26,12 @@ const PACKAGES_DIR = resolve(import.meta.dirname, "packages")
  * - `util`:  `browser` (generic helpers) and `spell` (node, `src/spell/`).
  * - `ui`:  `ssr` MUST run before `browser` (it writes `.cache/ssr-button.html`, which `test/dsd.test.ts` imports),
  *   so `uiProjects` sets `sequence.groupOrder`.  See there.
- * - `epics`:  a component pack (`spell dev pack`):  `node` (`src/`) and `browser` (`components/`).
  * - `brand`:  a component pack (`spell dev pack`):  `node` (`src/`) and `browser` (`components/`).
  */
 const SPECIAL: Record<string, TestProjectConfiguration[]> = {
   app: appProjects({ prefix: "app:", root: resolve(PACKAGES_DIR, "app") }),
   ui: uiProjects({ prefix: "ui:", root: resolve(PACKAGES_DIR, "ui") }),
   util: utilProjects({ prefix: "util:", root: resolve(PACKAGES_DIR, "util") }),
-  epics: epicsProjects({ prefix: "epics:", root: resolve(PACKAGES_DIR, "epics") }),
   brand: brandProjects({ prefix: "brand:", root: resolve(PACKAGES_DIR, "brand") })
 }
 

@@ -37,7 +37,8 @@ export const __vocab__Vocabulary = {
   tag: "__tag__",
 ```
 
-is written to `packages/epics/components/epic-page/EpicPage.en.ts` as:
+is written to the pack's `components/epic-page/EpicPage.en.ts` (spell-epic's `src/components/`:  a pack that is a whole
+checkout) as:
 
 ```ts
 export const epicPageVocabulary = {

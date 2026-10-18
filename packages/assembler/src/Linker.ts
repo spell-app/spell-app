@@ -9,7 +9,7 @@ import type { AS } from "$/assembler"
 /**
  * Links source references in a page of the spell-app checkout at `root`:
  * one named target per destination, so re-clicks reuse a tab.
- * - Rules:  `packages/epics/AGENTS.md`, "Links".
+ * - Rules:  spell-epic's `src/AGENTS.md`, "Links".
  * - `link()`:  `<code>path</code>` outside `<pre>` / `<a>` / `<head>` becomes a link,
  *   when the path resolves to a real file or folder
  *   - an existing `<a href>` without a target gets one (external:  per URL;  sibling docs:  per file)
@@ -26,12 +26,13 @@ import type { AS } from "$/assembler"
  * - Works on the page's TEXT with regexes, never a parsed DOM:  the edits touch only what they link, byte for byte.
  * - Knows the checkout's LAYOUT as folder names only:
  *   `packages/*`, and the shared areas `pages/`, `guides/`, `epics/`, `templates/`.
- *   It imports no other package, so the docs tools and the `epic` tool (`epics`) both import it.
+ *   It imports no other package, so spell-epic's docs tools and its `epic` tool both import it.
  * - SERVED folders (`served`, epic `epic-workflow` P10):  a folder the page server serves at another address.
- *   - E.g. a component set:  `packages/epics/docs/` at `/components/epics/`.
+ *   - E.g. a component set:  `packages/ui/docs/` at `/components/ui/`.
  *   - Its pages' links are written as from that address, so they hold under `/worktrees/<w>/` too.
  *   - Give such a page `servedDir()` of its folder as its `pageDir`:  links then resolve, and are written, from there.
- * - From `packages/epics/tools/doc-links.js` (epic `epic-components`, P7), which now runs its command line on this.
+ * - From the docs tools' `doc-links.js` (epic `epic-components`, P7;  spell-epic's `src/tools/` now), which runs its
+ *   command line on this.
  */
 export class Linker {
   /** the checkout's root:  links resolve inside it, and a target is a slug of the path relative to it */
@@ -54,7 +55,7 @@ export class Linker {
 
   /**
    * the served folders, absolute, each `[address folder, the folder it serves]`
-   * - e.g. `[<root>/components/epics, <root>/packages/epics/docs]`
+   * - e.g. `[<root>/components/ui, <root>/packages/ui/docs]`
    */
   readonly served: readonly (readonly [string, string])[]
 
@@ -63,7 +64,7 @@ export class Linker {
 
   /**
    * - `served`:  the address folder => the folder it serves, both relative to `root`,
-   *   e.g. `{ "components/epics": "packages/epics/docs" }`
+   *   e.g. `{ "components/ui": "packages/ui/docs" }`
    *   (`COMPONENT_SETS` in `$/server/page`, which this package can't import)
    */
   constructor(root: string, { served = {} }: { served?: Readonly<Record<string, string>> } = {}) {
@@ -158,14 +159,14 @@ export class Linker {
 
   /**
    * The folder a page in `dir` is SERVED from:  in a served folder, its place under the address folder
-   * (`<root>/packages/epics/docs` => `<root>/components/epics`);  else `dir`.
+   * (`<root>/packages/ui/docs` => `<root>/components/ui`);  else `dir`.
    * - What to pass `link()` / `check()` as a page's folder.
    */
   servedDir(dir: string): string {
     return this.swap(resolvePath(dir), 1, 0)
   }
 
-  /** `path`, resolved from a served place, as the file it is:  `<root>/components/epics/x` => `<root>/packages/epics/docs/x`. */
+  /** `path`, resolved from a served place, as the file it is:  `<root>/components/ui/x` => `<root>/packages/ui/docs/x`. */
   private real(path: string): string {
     return this.swap(path, 0, 1)
   }
@@ -234,7 +235,9 @@ export class Linker {
    * Where bare file names (`withSolid.ts`) are looked up:
    * - every package's `src/`, and its `components/` (a component set's elements:  `UIButton.tsx`)
    * - the repo's `tests/`, where every package's tests live (`List.test.ts`)
-   * - the docs' pages (every area:  `pages/`, `guides/`, `epics/`, `templates/`) and tools
+   * - the docs' pages (every area:  `pages/`, `guides/`, `epics/`, `templates/`)
+   * - the epic engine's code, its docs tools included:  spell-epic's `src/`, through the checkout's `spell-epic` link
+   *   (epic `epic-eject` I5), when the checkout has it
    * - UI's design notes, `notes/`
    */
   private get indexRoots(): string[] {
@@ -244,7 +247,7 @@ export class Linker {
         .filter(isDir),
       ...[join(this.root, "tests")].filter(isDir),
       ...AREAS.map((area) => join(this.root, area)),
-      join(this.packages, "epics", "tools"),
+      ...[join(this.root, "spell-epic", "src")].filter(isDir),
       join(this.ui, "notes")
     ]
   }
@@ -350,7 +353,7 @@ const SKIP_DIRS = new Set([
  * An epic page, `epics/<name>/<name>.plan.html`, relative to the repo root:  `[1]` is its name.
  * - and its old places:  `<name>.html` before 2026-10-04;
  *   under `packages/docs/content/` or `packages/docs/` before 2026-10-05
- * - same as `packages/epics/tools/relocate.js` `PLAN_DOC`
+ * - same as the docs tools' `relocate.js` `PLAN_DOC` (spell-epic's `src/tools/`)
  */
 const PLAN_DOC = /(?:^|\/)(?:packages\/docs\/(?:content\/)?)?epics\/([^/]+)\/\1(?:\.plan)?\.html$/
 
@@ -361,8 +364,8 @@ const SHARED_TAB = "github"
 const URL_START = /^https?:\/\//
 
 /**
- * A short address, `SAGA:/<saga>[/<epic>][#<id>]`:  the epics tool's (`$/epics/links` `SAGA_SCHEME`), which this
- * package can't import.
+ * A short address, `SAGA:/<saga>[/<epic>][#<id>]`:  the epics tool's (spell-epic's `$/epics/links` `SAGA_SCHEME`),
+ * which this package can't import.
  */
 const SAGA_ADDRESS = /^saga:\//i
 

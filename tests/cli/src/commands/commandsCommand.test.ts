@@ -18,7 +18,9 @@ write(ROOT, "packages/parser/package.json", { scripts: { test: "vitest run" } })
 write(ROOT, "packages/ui/site/package.json", { scripts: { dev: "astro dev" } })
 write(ROOT, "packages/cli/src/main.ts", 'program\n  .command("compile")\nprogram\n  .command("plan-doc")\n')
 write(ROOT, "packages/cli/src/devProgram.ts", 'const dev = program\n  .command("dev")\ndev\n  .command("commands")\n')
-write(ROOT, "packages/cli/src/epicProgram.ts", 'epic\n  .command("send")\npage(epic.command("close"), "close")\n')
+// the `epic` command's verbs and the plugin's skills:  spell-epic's, through the checkout's link (epic `epic-eject` I5)
+write(ROOT, "spell-epic/src/command/EpicProgram.ts", 'epic\n  .command("send")\npage(epic.command("close"), "close")\n')
+write(ROOT, "spell-epic/skills/epic/SKILL.md", "---\nname: epic\n---")
 write(ROOT, ".claude/skills/isolate/SKILL.md", "---\nname: isolate\n---")
 write(ROOT, ".claude/skills/solid-2/SKILL.md", "---\nname: solid-2\n---")
 write(HOME, ".claude/skills/session/SKILL.md", "---\nname: session\n---")
@@ -35,6 +37,7 @@ describe("commandSources()", () => {
       "spell dev",
       "spell dev commands",
       "spell plan-doc",
+      "/epic",
       "/isolate",
       "/session",
       "parser test",

@@ -1,6 +1,7 @@
 /**
- * `yarn cli:install`:  put `spell` and `epic` on your `PATH`, as symlinks to `bin/spell.mjs` and `bin/epic.mjs` in
- * this checkout (the package's `bin`).
+ * `yarn cli:install`:  put `spell` on your `PATH`, as a symlink to `bin/spell.mjs` in this checkout (the package's
+ * `bin`).
+ * - NOT `epic`:  spell-epic's own (its `bin/epic`;  its README's "Install"), since epic `epic-eject` I5.
  * - Links into the first of these that's on your `PATH` and writable:
  *   - `~/.local/bin`
  *   - npm's global `bin` (`npm prefix -g`) -- NOT on `PATH` under volta, which only puts its shims there
@@ -32,13 +33,13 @@ const onPath = (process.env.PATH ?? "").split(delimiter)
 const localBin = resolve(homedir(), ".local", "bin")
 const binDir = process.env.SPELL_BIN_DIR ?? chooseBinDir()
 
-/** The commands to link, by name:  the package's `bin`, `{ spell: "bin/spell.mjs", epic: "bin/epic.mjs" }`. */
+/** The commands to link, by name:  the package's `bin`, `{ spell: "bin/spell.mjs" }`. */
 const COMMANDS = JSON.parse(readFileSync(resolve(packageRoot, "package.json"), "utf8")).bin
 
 mkdirSync(binDir, { recursive: true })
 for (const [name, file] of Object.entries(COMMANDS)) linkCommand(name, resolve(packageRoot, file))
 if (!onPath.includes(binDir)) {
-  console.log(`NOTE: ${binDir} isn't on your PATH -- add it to use \`spell\` and \`epic\`.`)
+  console.log(`NOTE: ${binDir} isn't on your PATH -- add it to use \`spell\`.`)
 }
 
 /**

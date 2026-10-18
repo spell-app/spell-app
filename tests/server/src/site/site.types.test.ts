@@ -56,6 +56,9 @@ describe("the site header's tabs", () => {
     ["/components/epics/epic-item.html", "Epic/UI"],
     ["/worktrees/w/components/epics/epic-item.html", "Epic/UI"],
     ["/packages/epics/docs/epic-item.html", "Epic/UI"],
+    // spell-epic's, through the checkout's link (epic `epic-eject` I5)
+    ["/spell-epic/src/docs/epic-item.html", "Epic/UI"],
+    ["/Users/owen/www/spell-app/spell-epic/src/docs/index.html", "Epic/UI"],
     ["/Users/owen/www/spell-app/spell-app/packages/epics/docs/index.html", "Epic/UI"],
     ["/components/app/", "App/UI"],
     ["/components/app/spell-app.html", "App/UI"],

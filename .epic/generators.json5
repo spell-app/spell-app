@@ -2,7 +2,6 @@
 // - Read by `epic worktree merge-main` (`MainMerge.generatorsOf()`), from the checkout being merged:
 //   a branch that adds a generated file adds its line here, and its merge already knows it.
 // - IN ORDER:  a later one may read an earlier one's output.
-//   - The docs bundle builds UI first, whose `<ui-code>` loads the spell highlighter, so `gen:spell` comes before it.
 // - Each line's keys:
 //   - `outputs`:  globs, from the checkout's root
 //   - `cwd`:  where `run` runs, from the checkout's root
@@ -13,6 +12,8 @@
 //   - emoji data (`gen:emoji` needs a reference clone)
 //   - the bundles the page server builds on demand, which aren't committed:
 //     Spell UI's site and the brand pages (`spell dev bundles`)
+//   - the epic engine's (the docs bundle, the epics pack, Epic UI's data):  spell-epic's own, built there
+//     (epic `epic-eject` I5)
 // - A new component pack's line is added by `spell dev pack new`.
 {
   "generators": [
@@ -39,12 +40,6 @@
       "run": ["yarn", "site:data"]
     },
     {
-      "name": "docs bundle",
-      "outputs": ["packages/epics/tools/_assets/spell-ui.js", "packages/epics/tools/_assets/{emoji,lazy}/**"],
-      "cwd": "packages/epics",
-      "run": ["node", "tools/bundle-spell-ui.js"]
-    },
-    {
       "name": "brand data",
       "outputs": [
         "packages/brand/docs/__data/{components,search}.json5",
@@ -54,22 +49,10 @@
       "run": ["yarn", "site:data"]
     },
     {
-      "name": "epics pack",
-      "outputs": ["packages/epics/components/__pack/**"],
-      "cwd": "packages/epics",
-      "run": ["yarn", "pack:build"]
-    },
-    {
       "name": "spell libraries",
       "outputs": ["packages/spaces/@spell/library/**/*.lib.ts"],
       "cwd": ".",
       "run": ["node", "packages/cli/bin/spell.mjs", "compile", "@spell/library"]
-    },
-    {
-      "name": "Epic UI data",
-      "outputs": ["packages/epics/docs/__data/{components,search}.json5"],
-      "cwd": "packages/epics",
-      "run": ["yarn", "site:data"]
     },
     {
       "name": "App UI data",

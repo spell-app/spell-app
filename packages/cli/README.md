@@ -7,7 +7,7 @@ Compile, check, describe, explore, watch, run and test spell projects from a ter
 The code is in `src/`, imported as `$/cli`.
 - Its namespace is `CLI`.
 - It's started by [spell.mjs](bin/spell.mjs), in `bin/`.
-  - Its second command, `epic` (the epic tools), by [epic.mjs](bin/epic.mjs):  see "The `epic` command".
+- The `epic` command (the epic tools) is spell-epic's, its own repo (epic `epic-eject` I5):  see "The `epic` command".
 - See the header of [`main.ts`](src/main.ts).
 
 This package holds ONLY the command line.
@@ -40,14 +40,14 @@ packages/
 
 ```sh
 yarn               # once, anywhere in the monorepo:  installs every package
-yarn cli:install   # links `spell` and `epic` into the first writable folder on your PATH:  ~/.local/bin,
+yarn cli:install   # links `spell` into the first writable folder on your PATH:  ~/.local/bin,
                    # npm's global bin, /usr/local/bin, /opt/homebrew/bin.  Or:  SPELL_BIN_DIR=/some/dir yarn cli:install
 spell --help
-epic --help
 ```
 
-The links point at this checkout's [spell.mjs](bin/spell.mjs) and [epic.mjs](bin/epic.mjs):  the package's `bin`.
-Edit the source, and the next `spell` or `epic` runs the new code.
+The link points at this checkout's [spell.mjs](bin/spell.mjs):  the package's `bin`.
+Edit the source, and the next `spell` runs the new code.
+`epic` is spell-epic's `bin/epic`, linked by its own README's "Install".
 
 ### Naming what to work on
 
@@ -211,7 +211,7 @@ Longer notes on some of them follow the table.
   - Exits 1 on a broken one.  `--json`.
 - `dev goals`:  PARKED (epic `epic-workflow` P6):  a stub that says so.
   - The goals tool, its skills and routes are in `packages/goals.zip`;  epic `epic-goals` rebuilds them.
-- `dev docs`:  each verb runs as the root's `yarn docs:<verb>` did, in the docs tools' package, [epics](../epics/).
+- `dev docs`:  each verb is `epic pages <verb>`, spell-epic's docs tools ([its tools folder](../../spell-epic/src/tools/)).
   - Arguments are passed as they are, e.g. `spell dev docs open solid/solid-2 --vs`.
 - `dev server`:  this checkout's page server.
   - Its verbs:
@@ -251,7 +251,8 @@ Longer notes on some of them follow the table.
   - `check [<pack>]`:  exits 1 when `components/__pack/` is stale.  No pack:  every pack.
   - Making a pack or an element builds it too, unless `--no-build`.
   - `--json`.
-- `epic window`:  runs [`window.mjs`](../../scripts/window.mjs) for the caller's checkout.
+- `epic window`:  runs spell-epic's window script ([`window.mjs`](../../spell-epic/src/window.mjs)) for the caller's
+  checkout.
   - The copy it runs:  the one beside the running `epic`.
   - Its old spelling, `dev window`, still works.
   - Its commands:
@@ -283,11 +284,12 @@ Longer notes on some of them follow the table.
 
 - `epic` is the epic tools' own command (epic `epic-workflow` P9):
   epic pages, the pages Owen answers on, agents, airplane mode.
-  - A second bin of this package, [epic.mjs](bin/epic.mjs):  `yarn cli:install` links it beside `spell`.
+  - NOT this package's:  spell-epic's `bin/epic` (epic `epic-eject` I5), on every Claude Code session's `PATH` while
+    its plugin is on;  in a terminal, its README's "Install" links it.
     - Root `yarn epic` runs it too.
     - `yarn ask` runs `epic ask`.
-  - It starts LEAN, as `spell dev` does:  [epicMain.ts](src/epicMain.ts) loads no spell, for any verb.
-  - Its tree is the epic code's, `EpicProgram` ([the epics package's command folder](../epics/src/command/)),
+  - It starts LEAN, as `spell dev` does:  it loads no spell, for any verb.
+  - Its tree is spell-epic's `EpicProgram` ([its command folder](../../spell-epic/src/command/)),
     a class per verb group (epic `epic-eject` P5).
     - The worktree, session, park, stock, shared and window verbs were `spell dev ...`:  those still work.
     - Every verb runs the code of the `epic` that was called, on the caller's checkout:  `epic --version` says which.
@@ -311,7 +313,7 @@ Longer notes on some of them follow the table.
     epic update seo#P3 --goal "<p>...</p>" --estimate 2h
     ```
 
-  - [epicArgs.ts](../epics/src/command/epicArgs.ts) turns the address into the `epic` tool's own arguments:
+  - [epicArgs.ts](../../spell-epic/src/command/epicArgs.ts) turns the address into the `epic` tool's own arguments:
     `seo#J3` becomes `close seo J3`.
   - A phase is written one way, `seo#P3`:
     the other spellings read the same, but nothing prints them.
@@ -321,11 +323,16 @@ Longer notes on some of them follow the table.
   - Every verb's help has its usage, what it does and an example, a group's verbs too (`epic ask new --help`).
     - An unknown verb exits 1, listing the verbs.
     - A usage error exits 2.
-- The OLD spellings still work, until no caller is left:
+- The OLD spellings still work, until no caller is left:  this package hands each on to `epic`, verbatim
+  (`runEpic()`, in [passThrough.ts](src/dev/passThrough.ts);  the nearest checkout's `spell-epic/bin/epic`, else the
+  `PATH`'s).
   - `spell dev plan-doc <command> <name> <id> ...`:  the tool's own order, older checkouts' and scripts'
-  - `spell dev details | choices | comments | notes | agents | airplane`
-    - These two are hidden from `spell dev --help`.
+    (`epic plan-doc`, hidden)
+  - `spell dev details | choices | comments | notes | agents | airplane` (`details` is `epic ask`)
+  - `spell dev window | worktree | park | session | stock | shared`
+    - These are hidden from `spell dev --help`.
       Root `yarn plan-doc` and `yarn details` still run them.
+  - `spell dev docs <verb>`:  `epic pages <verb>`
   - `spell epic <verb>`.
   - `epic add-request <epic>#P7 <rN> --from ... --file f`:  `epic file`'s old name, hidden.
   - `spell plan-doc` is GONE:  it was deprecated, and its callers moved.
@@ -333,8 +340,8 @@ Longer notes on some of them follow the table.
   - `new`, `summary`, `phase`, `add`, `close`, `inbox` ...
   - Works in the nearest checkout:  a worktree's, when run in one.
   - The `epic` tool runs in this process:  `epic summary seo` takes ~0.4s.
-- `ask`:  details pages, the `/details` skill's tool.  Runs [`details.js`](../epics/tools/details.js).
-- `choices`:  runs [`choices.js`](../epics/tools/choices.js).
+- `ask`:  details pages, the `/details` skill's tool.  Runs [`details.js`](../../spell-epic/src/tools/details.js).
+- `choices`:  runs [`choices.js`](../../spell-epic/src/tools/choices.js).
   - Its verbs:
 
     ```
@@ -347,14 +354,14 @@ Longer notes on some of them follow the table.
 
   - Owen sends a page with "Do it".
   - What they are:  [the choice-page guide](../../guides/syntax-choices.html).
-- `notes`:  runs [`notes.ts`](../epics/tools/notes.ts), in the caller's folder.
+- `notes`:  runs [`notes.ts`](../../spell-epic/src/tools/notes.ts), in the caller's folder.
   The notes are written into the pages.
   - `list [<epic>] [--all] [--json]`, the default:  every `new` note in the shared folders.
     - An epic's:  the notes on the pages it owns.
   - `answer <page>#<id> --file <html>`:  Claude's reply under the note, which is then `answered`.
   - `done <page>#<id>`.
   - A note is named as an epic page's comment is, `guides/x.html#n3` (the two words, `guides/x.html n3`, still read).
-- `comments`:  runs [`comments.ts`](../epics/tools/comments.ts):  comments Owen leaves on docs pages.
+- `comments`:  runs [`comments.ts`](../../spell-epic/src/tools/comments.ts):  comments Owen leaves on docs pages.
   - Its verbs:
 
     ```
@@ -364,7 +371,7 @@ Longer notes on some of them follow the table.
     answer <page>#<id> --file <html>
     ```
 - `agents`:  for the `/bg` skill, and every agent Claude starts.
-  Runs [`agents.ts`](../epics/tools/agents.ts).
+  Runs [`agents.ts`](../../spell-epic/src/tools/agents.ts).
   - The list:  this checkout's epic's, else the checkout's.  Both git-ignored.
     - an epic's:  `agents.json5`, in its `epics/<epic>/` folder
     - a checkout's:  `.spell-agents.json5`, at its root
@@ -384,7 +391,7 @@ Longer notes on some of them follow the table.
   - Names get a prefix:  the epic's, else the worktree's, else `main`.
     E.g. `add aaa` in epic skillz makes `skillz-aaa`.
   - An entry leaves when its agent finishes;  the file goes when empty.
-- `airplane`:  runs [airplane.ts](../epics/tools/airplane.ts).
+- `airplane`:  runs [airplane.ts](../../spell-epic/src/tools/airplane.ts).
   - Its verbs:
 
     ```
@@ -608,7 +615,7 @@ Longer notes on some of them follow the table.
   - And `yarn ts` here reports their type errors too.
 - **Startup takes about half a second:**  `tsx` compiles their source on each run, and caches it.
   - `spell dev ...` and `epic ...` start in about a fifth of that:
-    the bin scripts run [devMain.ts](src/devMain.ts) and [epicMain.ts](src/epicMain.ts), which load no spell.
+    `spell.mjs` runs [devMain.ts](src/devMain.ts), and spell-epic's `bin/epic` its own lean entry:  no spell.
     - Then the tool, as a child `node`:  `epic window which` takes ~0.17s.
     - Or the `epic` tool, in the same process:  `epic summary` takes ~0.4s.
   - Its commands that need spell (`session`, `stock` ...) take the usual half second.

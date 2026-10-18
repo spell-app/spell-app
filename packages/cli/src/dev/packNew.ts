@@ -5,7 +5,7 @@ import { dirname, join, relative } from "path"
 
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
 import { CliError, EXIT } from "$/cli/cli.types"
-import { DataFile } from "$/epics/data/DataFile"
+import { DataFile } from "$/assembler/DataFile"
 import { COMMANDS_JSON, type PackInfo, type PackScaffoldReport } from "$/cli/dev/dev.types"
 import { PACK_FOLDER, buildPack, packPrefix, readPack } from "$/cli/dev/packBuild"
 import { REPO_ROOT } from "$/cli/findCheckout"
@@ -593,5 +593,5 @@ type RootPackageJson = {
   resolutions?: Record<string, string>
 }
 
-/** The parts of the commands page's JSON edited here;  its full shape:  `packages/epics/tools/_assets/commands.js`. */
+/** The parts of the commands page's JSON edited here;  its full shape:  spell-epic's `src/tools/_assets/commands.js`. */
 type CommandsJson = { families?: { rows?: { id?: string; yarn?: { names?: string | string[] } }[] }[] }

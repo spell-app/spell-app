@@ -5,7 +5,7 @@ import { join } from "path"
 
 import { CLI } from "$/cli"
 import { COMMANDS_JSON } from "$/cli/dev/dev.types"
-import { DataFile } from "$/epics/data/DataFile"
+import { DataFile } from "$/assembler/DataFile"
 
 export { COMMANDS_JSON }
 
@@ -87,8 +87,8 @@ function isYarnName(name: string): boolean {
  * - CLI:  `spell <command>` / `spell dev <command>` / `epic <verb>`, read from `CLI_SOURCES`'
  *   `program.command(...)` / `dev.command(...)` / `epic.command(...)` calls.  NOTE: the SOURCE, not this process's
  *   commander program:  the checkout checked may not be the one `spell` runs from.
- * - skills:  `/<name>` for each `SKILL.md` in `.claude/skills/*`, plus
- *   `sources.userSkills` found in `~/.claude/skills`;  minus `sources.ignore`
+ * - skills:  `/<name>` for each `SKILL.md` in `SKILL_FOLDERS` (the repo's `.claude/skills/*`, spell-epic's
+ *   `skills/*`), plus `sources.userSkills` found in `~/.claude/skills`;  minus `sources.ignore`
  */
 export function commandSources(root: string, sources: CommandsData["sources"] = {}, home = homedir()): CommandSource[] {
   const found: CommandSource[] = []
@@ -111,8 +111,7 @@ export function commandSources(root: string, sources: CommandsData["sources"] = 
       found.push({ surface: "cli", name: `${OWNER_PREFIX[owner as keyof typeof OWNER_PREFIX]}${name}` })
     }
   }
-  const skillFolders = [join(root, ".claude", "skills")]
-  for (const folder of skillFolders) {
+  for (const folder of SKILL_FOLDERS.map((each) => join(root, each))) {
     if (!existsSync(folder)) continue
     for (const name of readdirSync(folder)) {
       if (existsSync(join(folder, name, "SKILL.md"))) found.push({ surface: "skill", name: `/${name}` })
@@ -132,15 +131,20 @@ export function commandSources(root: string, sources: CommandsData["sources"] = 
  * The files, from a checkout's root, whose `program.command(...)` / `dev.command(...)` / `epic.command(...)` calls
  * are the CLI's commands.
  * - `devProgram.ts`:  the `spell dev` tree, since 2026-10-04;  `main.ts` held it before
- * - `EpicProgram.ts`:  the `epic` command's verbs, in the epic code since epic `epic-eject` P5
- * - `epicProgram.ts`:  where they were before (epic `epic-workflow` P9, 2026-10-12), for a checkout on older code
+ * - `EpicProgram.ts`:  the `epic` command's verbs, spell-epic's, through the checkout's `spell-epic` link
+ *   (epic `epic-eject` I5;  `packages/epics/src/command/` since P5, `packages/cli/src/epicProgram.ts` before)
  */
 const CLI_SOURCES = [
   "packages/cli/src/main.ts",
   "packages/cli/src/devProgram.ts",
-  "packages/epics/src/command/EpicProgram.ts",
-  "packages/cli/src/epicProgram.ts"
+  "spell-epic/src/command/EpicProgram.ts"
 ]
+
+/**
+ * The folders, from a checkout's root, whose `<name>/SKILL.md` are skills:  the repo's own, and the epic skills,
+ * spell-epic's plugin's, through the checkout's `spell-epic` link (epic `epic-eject` I5).
+ */
+const SKILL_FOLDERS = [join(".claude", "skills"), join("spell-epic", "skills")]
 
 /** Each receiver's commands, as the page names them:  `program.command("compile")` is `spell compile`. */
 const OWNER_PREFIX = { program: "spell ", dev: "spell dev ", epic: "epic " }
@@ -157,7 +161,7 @@ export function pageNames(data: CommandsData): Set<string> {
 }
 
 /**
- * The parts of `commands.json5` this reads;  its full shape:  `packages/epics/tools/_assets/commands.js`'s header.
+ * The parts of `commands.json5` this reads;  its full shape:  spell-epic's `src/tools/_assets/commands.js`'s header.
  * - `sources.userSkills`:  skills in `~/.claude/skills` that count, e.g. `session`
  * - `sources.ignore`:  commands that need no row, e.g. `/solid-2` (reference only, runs nothing)
  */

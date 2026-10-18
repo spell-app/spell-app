@@ -1,41 +1,33 @@
+import { spawn } from "child_process"
+import { existsSync, realpathSync } from "fs"
+import { constants } from "os"
 import { join } from "path"
 import { pathToFileURL } from "url"
 
-import { EpicTools } from "$/epics/command/EpicTools"
-
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
-import { CliError } from "$/cli/cli.types"
+import { CliError, EXIT } from "$/cli/cli.types"
 import type { ToolSpec } from "$/cli/dev/dev.types"
 import { REPO_ROOT, findCheckout } from "$/cli/findCheckout"
 
 /**
  * The repo tools `spell dev` passes straight through to, by command:  each as its yarn script ran it.
- * - `docs <verb>`:  `packages/epics/package.json`'s `docs:<verb>`, in `packages/epics` as `yarn workspace` ran them
- *   - `open` and `link` under `tsx`:  a short address (`SAGA:/...`) is read by `$/epics/links`
- * - `docs fuss`:  the writing checker, under `tsx`, in the caller's folder (its paths are from there)
- * - `docs offline`:  what docs pages load from the internet, likewise
  * - `server`:  `packages/server`'s `server` script;  `serve`:  root `yarn serve`, `spell dev server start --all`
  * - `design build`:  `packages/ui`'s `design:build`, under `tsx`, in the caller's folder (so `--out` is relative to it)
- * - `design bundle` / `design check`:  `packages/epics`' `design:bundle` (`bundle-spell-ui.js --design`) / `design:check`
- * - `design sync`:  `packages/epics/tools/design.js`, its verb first (`pull`, `changed` ...), in the caller's folder
+ * - `design bundle` / `design check`:  the epic engine's `design:bundle` (`bundle-spell-ui.js --design`) /
+ *   `design:check`, in spell-epic, through the checkout's `spell-epic` link (`ENGINE`)
+ * - `design sync`:  the engine's `src/tools/design.js`, its verb first (`pull`, `changed` ...), in the caller's folder
  * - NOTE: `vscode` runs yarn itself (`vscodeSteps()`)
- * - NOT here:  the epic tools (`details`, `choices`, `notes`, `comments`, `agents`, `airplane`, `window`).
- *   - The `epic` command runs those from ITS OWN checkout, the caller's being the data
- *     (`$/epics/command/EpicTools`, epic `epic-eject` P5).
- *   - These docs and server tools still run the nearest checkout's copy, as before.
+ * - NOT here:  the epic tools, the docs tools (`spell dev docs`) among them.
+ *   - They're spell-epic's (epic `epic-eject` I5), run by the `epic` command (`epicBin()`):
+ *     `spell dev docs <verb>` is `epic pages <verb>`, `spell dev details` is `epic ask` ... (`devProgram.ts`).
+ *   - The design tools above are the exception, for now:  `epic` has no verb for them, so they run straight from
+ *     spell-epic's folder (a later move to `ui`, with the design system's own build).
  */
 export const TOOLS = {
-  "docs update": { tool: "packages/epics/tools/update.js", cwd: "packages/epics" },
-  "docs index": { tool: "packages/epics/tools/index.js", cwd: "packages/epics" },
-  "docs new": { tool: "packages/epics/tools/new-page.js", cwd: "packages/epics" },
-  "docs open": { tool: "packages/epics/tools/open.js", tsx: "packages/epics/tsconfig.json", cwd: "packages/epics" },
-  "docs link": { tool: "packages/epics/tools/link.ts", tsx: "packages/epics/tsconfig.json", cwd: "packages/epics" },
-  "docs fuss": { tool: "packages/epics/tools/fuss.ts", tsx: "packages/epics/tsconfig.json" },
-  "docs offline": { tool: "packages/epics/tools/offline.ts", tsx: "packages/epics/tsconfig.json" },
   "design build": { tool: "packages/ui/scripts/design-build.ts", tsx: "packages/ui/scripts/tsconfig.json" },
-  "design bundle": { tool: "packages/epics/tools/bundle-spell-ui.js", cwd: "packages/epics" },
-  "design check": { tool: "packages/epics/tools/check-design-bundle.js", cwd: "packages/epics" },
-  "design sync": { tool: "packages/epics/tools/design.js" },
+  "design bundle": { tool: "spell-epic/src/tools/bundle-spell-ui.js", cwd: "spell-epic" },
+  "design check": { tool: "spell-epic/src/tools/check-design-bundle.js", cwd: "spell-epic" },
+  "design sync": { tool: "spell-epic/src/tools/design.js" },
   server: { tool: "packages/server/src/page/cli.ts", tsx: "packages/server/tsconfig.json" },
   serve: { tool: "scripts/serve.mjs" }
 } satisfies Record<string, ToolSpec>
@@ -43,13 +35,13 @@ export const TOOLS = {
 /** A command `TOOLS` runs, e.g. `docs open`. */
 export type ToolName = keyof typeof TOOLS
 
-/** `docs`' verbs, in the order help lists them. */
+/** `docs`' verbs, in the order help lists them:  `epic pages`' (`spell dev docs <verb>` hands each on to it). */
 export const DOCS_VERBS = ["update", "index", "new", "open", "link", "fuss", "offline"] as const
 
 /**
  * `design`'s verbs (epic `claude-design`), in the order help lists them.
  * - `build`, `bundle`, `check`:  write the system's files, its bundle, and prove the bundle
- * - `pull`, `changed`, `pushed`, `state`:  `packages/epics/tools/design.js` (`design sync`), the local half of `/design`
+ * - `pull`, `changed`, `pushed`, `state`:  the engine's `src/tools/design.js` (`design sync`), the local half of `/design`
  */
 export const DESIGN_VERBS = ["build", "bundle", "check", "pull", "changed", "pushed", "state"] as const
 
@@ -66,13 +58,41 @@ export function runTool(name: ToolName, args: string[], env: NodeJS.ProcessEnv =
   const root = findCheckout(spec.tool)
   return runChild(process.execPath, [...toolArgs(spec, root), ...args], {
     cwd: spec.cwd ? join(root, spec.cwd) : process.cwd(),
-    env: { ...process.env, ...(spec.tsx ? { TSX_TSCONFIG_PATH: join(root, spec.tsx) } : {}), ...env }
+    env: {
+      ...process.env,
+      ...(spec.tsx ? { TSX_TSCONFIG_PATH: join(root, spec.tsx) } : {}),
+      ...(spec.tool.startsWith(`${ENGINE}/`) ? engineEnv(root) : {}),
+      ...env
+    }
   })
 }
 
-/** `node`'s arguments before the tool's own, for `spec` in checkout `root`:  the `tsx` loader if any, the script. */
+/**
+ * What an engine tool run through checkout `root`'s `spell-epic` link needs to work on THAT checkout, as `epic` tells
+ * its tools:  `EPIC_CHECKOUT`, its data;  `SPELL_UI_DIR`, its Spell UI (the design bundle's, not spell-epic's own
+ * `.spell-app`'s).
+ */
+export function engineEnv(root: string): NodeJS.ProcessEnv {
+  return { EPIC_CHECKOUT: root, SPELL_UI_DIR: join(root, "packages", "ui") }
+}
+
+/**
+ * `node`'s arguments before the tool's own, for `spec` in checkout `root`:  the `tsx` loader if any, the script.
+ * - the script by its REAL path:  one through the `spell-epic` link runs only when it's its own `argv[1]`
+ *   (`import.meta.url`, which node gives as the real path, against `process.argv[1]`)
+ */
 export function toolArgs(spec: ToolSpec, root: string): string[] {
-  return spec.tsx ? ["--import", TSX_LOADER, join(root, spec.tool)] : [join(root, spec.tool)]
+  const script = realOrSelf(join(root, spec.tool))
+  return spec.tsx ? ["--import", TSX_LOADER, script] : [script]
+}
+
+/** `path` with its links resolved;  as given when it isn't there. */
+function realOrSelf(path: string): string {
+  try {
+    return realpathSync(path)
+  } catch {
+    return path
+  }
 }
 
 /** The CLI checkout's own `tsx` loader:  a worktree's tool runs before the worktree has a `node_modules`. */
@@ -80,9 +100,71 @@ export const TSX_LOADER = pathToFileURL(join(REPO_ROOT, "node_modules", "tsx", "
 
 /**
  * Run `command` with `args` as a child, with this terminal attached, and resolve to its exit code.
- * - the one copy is `EpicTools.runChild()`:  signals passed on, `128 +` a signal's number
+ * - `Ctrl-C` reaches the child from the terminal itself, so this process ignores it until the child is done:
+ *   a foreground server (`server serve`) gets to stop cleanly, and we exit with its code
+ * - `SIGTERM` / `SIGHUP` sent to us alone are passed on
+ * - killed by a signal:  `128 +` its number, as a shell reports it;  failed to start:  `EXIT.ERRORS`, saying why
+ * - as spell-epic's `EpicTools.runChild()`, which this package can't import (no spell-app source imports the engine)
  */
-export const runChild = EpicTools.runChild
+export function runChild(
+  command: string,
+  args: string[],
+  options: { cwd?: string; env?: NodeJS.ProcessEnv } = {}
+): Promise<number> {
+  const child = spawn(command, args, { ...options, stdio: "inherit" })
+  const ignore = () => {}
+  const pass = (signal: NodeJS.Signals) => child.kill(signal)
+  process.on("SIGINT", ignore)
+  for (const signal of PASSED_SIGNALS) process.on(signal, pass)
+  return new Promise((done) => {
+    child.on("error", (error) => {
+      process.stderr.write(`${command}:  ${error.message}\n`)
+      finish(EXIT.ERRORS)
+    })
+    child.on("exit", (code, signal) => finish(code ?? 128 + (signal ? constants.signals[signal] : 0)))
+
+    /** Stop listening for signals, and resolve to `code`. */
+    function finish(code: number) {
+      process.off("SIGINT", ignore)
+      for (const signal of PASSED_SIGNALS) process.off(signal, pass)
+      done(code)
+    }
+  })
+}
+
+/** The signals `runChild()` passes on to its child (`SIGINT` reaches it from the terminal). */
+const PASSED_SIGNALS: NodeJS.Signals[] = ["SIGTERM", "SIGHUP"]
+
+////////////////
+// ## The `epic` command
+////////////////
+
+/**
+ * The epic engine's link at a checkout's root:  spell-epic (`engineFolder` in `.epic/config.json5`, made by
+ * `epic shared link`;  epic `epic-eject` I5).
+ */
+export const ENGINE = "spell-epic"
+
+/**
+ * The `epic` command to run:  spell-epic's `bin/epic`, through the `spell-epic` link of the nearest checkout that has
+ * one (`findCheckout()`, else this one);  else plain `epic`, on the `PATH`.
+ * - `from`:  where to look from, default the current folder
+ */
+export function epicBin(from = process.cwd()): string {
+  const bin = join(ENGINE, "bin", "epic")
+  const linked = join(findCheckout(bin, from), bin)
+  return existsSync(linked) ? linked : existsSync(join(REPO_ROOT, bin)) ? join(REPO_ROOT, bin) : "epic"
+}
+
+/**
+ * Run `epic <args>`, with this terminal attached;  resolves to its exit code.
+ * - what every old spelling of an epic verb hands on to (`spell dev plan-doc`, `spell dev docs`, `spell epic` ...):
+ *   spell-epic's command, which runs ITS code on the caller's checkout's data
+ * - `bin`:  which `epic` (`epicBin()`);  a path runs under this `node`, plain `epic` from the `PATH`
+ */
+export function runEpic(args: string[], bin = epicBin()): Promise<number> {
+  return bin === "epic" ? runChild(bin, args) : runChild(process.execPath, [bin, ...args])
+}
 
 /**
  * The yarn runs `spell dev vscode [verb]` makes, in `packages/vscode` (its own yarn project, not a workspace):

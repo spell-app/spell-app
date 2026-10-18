@@ -171,21 +171,6 @@ const ALLOWED: readonly Allowed[] = [
     file: "packages/ui/src/docs-components/ui-docs-toc/UIDocsToc.tsx",
     rule: "no-mutation-observer",
     reason: "watches the FOLLOWED content, another element"
-  },
-  {
-    file: "packages/epics/components/epic-choices/EpicChoices.tsx",
-    rule: "no-mutation-observer",
-    reason: "watches ANCESTORS (`<epic-choices>`, `<epic-item>`)"
-  },
-  {
-    file: "packages/epics/components/epic-original/EpicVersion.tsx",
-    rule: "no-mutation-observer",
-    reason: "watches its PARENT, another element (above)"
-  },
-  {
-    file: "packages/epics/components/epic-page/EpicPage.tsx",
-    rule: "no-mutation-observer",
-    reason: "only while connected and drawn;  bumps a page signal"
   }
 ]
 

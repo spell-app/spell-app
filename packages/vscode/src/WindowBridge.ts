@@ -2,13 +2,14 @@
  * Lets a Claude Code session (or any script it runs) talk to a VS Code window.
  * - to ITS OWN window:  add or remove a folder (a worktree), show a doc in a side bar doc view, close the session's tab
  * - to a worktree's window (`epic window open`):  open the session there, close the window
- * - The client is the repo root's `scripts/window.mjs` (`epic window`).
+ * - The client is spell-epic's window script, `src/window.mjs` (`epic window`);  spell-epic's own extension has its
+ *   own bridge and registry (epic `epic-eject` P7).
  * - Why not a `vscode://` URI:  macOS hands it to whichever window is FOCUSED, often not the session's.
  * - How a session finds its window:  by PID.
  *   - A session's process tree is `claude` -> `Code Helper (Plugin)` -> `Code`,
  *     the middle one being the window's EXTENSION HOST, one per window, where this code runs.
  *   - So `process.pid` here is an ancestor of every command the window's sessions run.
- *   - `scripts/window.mjs` walks up its parent pids until one has a registry file.
+ *   - the window script walks up its parent pids until one has a registry file.
  * - Registry file:  `~/.spell/windows/<process.pid>.json` (`SPELL_WINDOWS_DIR` overrides the folder, for tests)
  *   ~== `{ pid, port, token, workspaceFile, folders }`
  *   - folder 700, file 600, since `token` is the password
@@ -299,7 +300,7 @@ export class WindowBridge {
   }
 }
 
-/** A window's registry file, `~/.spell/windows/<pid>.json`:  what `scripts/window.mjs` reads. */
+/** A window's registry file, `~/.spell/windows/<pid>.json`:  what the window script reads. */
 export type WindowEntry = {
   /** The window's extension host:  an ancestor of every process its sessions run. */
   pid: number

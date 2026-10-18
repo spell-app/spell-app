@@ -2,7 +2,7 @@
 # - `linguist-generated`:  collapsed in GitHub's PR diffs ("Load diff")
 # - `merge=binary`:  changed on both sides => git keeps ours, marks it conflicted, and never interleaves the two;
 #   `epic worktree merge-main` then regenerates it from the merged source (its table:
-#   `packages/epics/src/command/MainMerge.ts`, `GENERATORS`)
+#   `.epic/generators.json5`, read by spell-epic's `MainMerge`)
 # - `-diff`:  minified;  `git diff` says "Binary files differ" instead of printing megabytes of one line
 # NOT `merge=ours`:  it silently drops the other side's changes, flips meaning in a rebase, and GitHub ignores it.
 
@@ -24,18 +24,9 @@ packages/ui/docs/__data/search.json5                          linguist-generated
 packages/ui/docs/__data/custom-elements.json                  linguist-generated merge=binary
 packages/ui/docs/__data/html-custom-data.json                 linguist-generated merge=binary
 
-# the component sets' data (`yarn site:data` in packages/epics and packages/app);  `pages.json5` is hand-kept
-packages/epics/docs/__data/components.json5                   linguist-generated merge=binary
-packages/epics/docs/__data/search.json5                       linguist-generated merge=binary
+# the component sets' data (`yarn site:data` in packages/app;  Epic UI's is spell-epic's);  `pages.json5` is hand-kept
 packages/app/docs/__data/components.json5                     linguist-generated merge=binary
 packages/app/docs/__data/search.json5                         linguist-generated merge=binary
-
-# docs:  the single-file bundle for docs pages (`node tools/bundle-spell-ui.js`)
-packages/epics/tools/_assets/spell-ui.js                       linguist-generated merge=binary -diff
-packages/epics/tools/_assets/emoji/**                          linguist-generated merge=binary -diff
-packages/epics/tools/_assets/lazy/**                           linguist-generated merge=binary -diff
-# docs:  highlight.js 11.9.0, vendored as cdnjs serves it, so pages load offline (epic `airplane` P1)
-packages/epics/tools/_assets/highlight.min.js                  linguist-vendored -diff
 
 # brand:  its docs set's data (`yarn site:data`);  `pages.json5` is hand-kept.  Its bundle, `_assets/ui/`, isn't
 # committed:  the page server builds it (root `.gitignore`)
@@ -64,9 +55,6 @@ packages/core/core.declarations.json5                    linguist-generated
 
 # spell:  its compiled libraries, the `ts/lib` target (`spell compile @library`)
 packages/spaces/@spell/library/**/*.lib.ts                    linguist-generated merge=binary
-
-# epics:  its component pack (`spell dev pack build epics`)
-packages/epics/components/__pack/**                           linguist-generated merge=binary -diff
 
 # brand:  its component pack (`spell dev pack build brand`)
 packages/brand/components/__pack/**                           linguist-generated merge=binary -diff

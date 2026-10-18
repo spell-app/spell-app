@@ -44,12 +44,12 @@ import {
  *   and a request for one of their files waits while that runs
  * - route modules (`RouteModule`) from the root `package.json`'s `"pageServer"` add the rest, e.g. the running epics
  * - `/_epic/assets/...`, `/_epic/pack/...` -> the engine's files (`engineRoutePath()`, epic `epic-eject` P7)
- *   - at the routes spell-epic's server serves them at, which migrated pages load
+ *   - at the routes spell-epic's server serves them at, which the pages load
+ *   - from spell-epic, through the checkout's `spell-epic` link (epic `epic-eject` I5)
  * - NO redirects for old URLs (epic `people-and-orgs`, Q30):  an old address answers "not found"
- *   - until `people-and-orgs` merges into `main`, two temporary bridges
- *     for the SHARED pages, which every checkout shows:
- *     - folders this branch moved still serve from their new place (`movedFolderPath()`)
- *     - folders it moved out of the shared content answer "not found" here,
+ *   - two bridges for the SHARED pages, which every checkout shows:
+ *     - the engine's old folders still serve from spell-epic (`movedFolderPath()`):  a safety net
+ *     - folders moved out of the shared content answer "not found" here,
  *       though the shared repo still holds them (`MOVED_OUT`)
  * - port:  `DEFAULT_PORT` (4747) if free, else any
  *   - the real one goes in `<root>/.spell-server.json`, where `spell dev server ensure` and the openers find it
@@ -372,7 +372,7 @@ const COMPONENTS_HOME = `${COMPONENT_SETS[0].prefix}/`
 const UNWATCHED = /(^|\/)scripts\/|(^|\/)experiments\/(?!(.*\/)?[^/]+\.bundle\.js$)/
 
 /** Folders the page server live-reloads when the root `package.json` names none:  the docs areas and their bundle. */
-const DEFAULT_WATCH = ["epics", "guides", "pages", "templates", "brand", "packages/epics/tools/_assets"]
+const DEFAULT_WATCH = ["epics", "guides", "pages", "templates", "brand", "spell-epic/src/tools/_assets"]
 
 /**
  * The URL path a component set's address serves (`COMPONENT_SETS`, epic `people-and-orgs` P18);  else `undefined`.
@@ -394,11 +394,10 @@ export function componentSetPath(path: string): string | undefined {
 }
 
 /**
- * The URL path a folder this branch MOVED serves from its new place;  else `undefined`.
+ * The URL path a folder that MOVED serves from its new place;  else `undefined`.
  * - the folders:  `MOVED_FOLDERS`, and the same under `/worktrees/<w>/`
- * - TEMPORARY (epic `people-and-orgs`, P16 J49, P18):
- *   the shared pages, which every checkout shows, keep linking the old folders until this branch merges into `main`.
- *   Then a script rewrites their links (`relocate.js relink`, `relink-sets`) and this overlay goes (the epic's T3).
+ * - the engine's old checkout paths (epic `people-and-orgs` P16 J49, P18;  `epic-eject` I5):  a safety net for a page
+ *   that still links them
  * - a `StaticHandler` overlay:  served only when the file is there
  */
 export function movedFolderPath(path: string): string | undefined {
@@ -410,23 +409,30 @@ export function movedFolderPath(path: string): string | undefined {
 }
 
 /**
- * TEMPORARY (until the merge, T3):  folders this branch moved, as URL paths:  old => new.
- * - the docs assets (P16, J49), into `$/epics`
- * - the epics pack (P18), into its components' `__pack/`:  every shared epic page loads it
+ * Folders the engine's files were in before, as URL paths:  old => where they are now.
+ * - a safety net for a page that still loads the engine from a checkout path, not its routes (`/_epic/...`):
+ *   the shared pages were migrated (`epic migrate --step engine-asset-routes`, epic `epic-eject` T13),
+ *   but a page made or restored from an older copy may not be
+ * - the docs assets:  `packages/docs/tools/_assets` (until `people-and-orgs` P16), `packages/epics/tools/_assets`
+ *   (until the switch to spell-epic, `epic-eject` I5), now spell-epic's `src/tools/_assets`
+ * - the epics pack:  `packages/epics/pack` (until `people-and-orgs` P18), `packages/epics/components/__pack`,
+ *   now spell-epic's `src/components/__pack`
+ * - through the checkout's `spell-epic` link (`engineFolder` in `.epic/config.json5`)
  */
 const MOVED_FOLDERS: readonly (readonly [from: string, to: string])[] = [
-  ["/packages/docs/tools/_assets", "/packages/epics/tools/_assets"],
-  ["/packages/epics/pack", "/packages/epics/components/__pack"]
+  ["/packages/docs/tools/_assets", "/spell-epic/src/tools/_assets"],
+  ["/packages/epics/tools/_assets", "/spell-epic/src/tools/_assets"],
+  ["/packages/epics/pack", "/spell-epic/src/components/__pack"],
+  ["/packages/epics/components/__pack", "/spell-epic/src/components/__pack"]
 ]
 
 /**
  * The URL path an ENGINE ROUTE serves from in this checkout;  else `undefined`.
- * - `/_epic/assets/<x>` => `/packages/epics/tools/_assets/<x>`
- * - `/_epic/pack/<x>` => `/packages/epics/components/__pack/<x>`
- * - the routes spell-epic's one page server per machine serves the engine at (epic `epic-eject` P7)
- *   - the shared pages load the engine from them once migrated (`engine-asset-routes`),
- *     and this server must draw them too
- * - TEMPORARY:  until spell-app's pages are served by spell-epic's server (the switch, I5 of `epic-eject`)
+ * - `/_epic/assets/<x>` => `/spell-epic/src/tools/_assets/<x>`
+ * - `/_epic/pack/<x>` => `/spell-epic/src/components/__pack/<x>`
+ * - the engine is spell-epic, through the checkout's `spell-epic` link (epic `epic-eject` I5)
+ * - the routes spell-epic's one page server per machine serves the engine at (epic `epic-eject` P7):
+ *   the shared pages load the engine from them (`engine-asset-routes`), and this server draws them too
  * - a `StaticHandler` overlay:  served only when the file is there
  */
 export function engineRoutePath(path: string): string | undefined {
@@ -436,8 +442,8 @@ export function engineRoutePath(path: string): string | undefined {
 
 /** The engine's routes (`engineRoutePath()`):  each URL prefix, and the folder it is in this checkout, as a URL path. */
 const ENGINE_ROUTES: readonly (readonly [route: string, folder: string])[] = [
-  ["/_epic/assets/", "/packages/epics/tools/_assets/"],
-  ["/_epic/pack/", "/packages/epics/components/__pack/"]
+  ["/_epic/assets/", "/spell-epic/src/tools/_assets/"],
+  ["/_epic/pack/", "/spell-epic/src/components/__pack/"]
 ]
 
 /**

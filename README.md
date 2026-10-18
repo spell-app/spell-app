@@ -41,7 +41,10 @@ Around the language are the tools to write and run it:
 | [`packages/ui`](packages/ui/README.md)                       | `@spell-app/ui`            | Fomantic UI's vocabulary as modern-CSS web components on Solid 2, for any framework or plain HTML                |
 | [`packages/cli`](packages/cli/README.md)                     | `@spell-app/cli`           | The `spell` command line:  compile, check, explore, watch, run and test spell projects                           |
 | [`packages/util`](packages/util/README.md)                   | `@spell-app/util`          | Small generic helpers shared by the others (`@proto`, class, string and DOM utilities);  imported as `$/util`    |
-| [`packages/epics`](packages/epics/README.md)                 | `@spell-app/epics`         | Epic pages' `<epic-*>` elements and their tool, and every docs page's tooling;  the pages are shared root folders |
+
+The epic engine -- epic pages' `<epic-*>` elements, the `epic` command, every docs page's tooling, and the Claude Code
+plugin of hooks and skills -- is NOT a package here:  it's spell-epic, a repo of its own beside this one
+(`../spell-epic`), which every checkout links in at its root as `spell-epic`.  [AGENTS.md](AGENTS.md), "spell-epic".
 
 Each package has its own README or `AGENTS.md` (how it's built).
 - Imports use one alias per package, `$/parser`, `$/core` ...:

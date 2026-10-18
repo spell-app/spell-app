@@ -69,7 +69,7 @@ Each folder links to its own `AGENTS.md`:  read it before working there.
 | [spell-solid](packages/spell-solid/AGENTS.md) | `@spell-app/spell-solid` | `$/spell-solid` | `E` | what makes a custom element on Solid, for EVERY set's elements (Spell UI's, the epics', the app's, the brand's):  the component and DOM element bases, the reactive members' decorators, shadow events, hot reloading;  Spell UI's `core` carries it (below) |
 | [ui](packages/ui/AGENTS.md) | `@spell-app/ui` | `$/ui` | | Fomantic UI reborn as `ui-*` custom elements, on Solid 2, written on `$/spell-solid` |
 | [cli](packages/cli/AGENTS.md) | `@spell-app/cli` | `$/cli` | `CLI` | the `spell` command-line tool, running the spell-family packages' SOURCE through `tsx`;  see its [README](packages/cli/README.md) too |
-| [epics](packages/epics/AGENTS.md) | `@spell-app/epics` | `$/epics` | `EP` | epic pages' `<epic-*>` elements (a component pack), their docs pages (Epic UI, `docs/`, at `/components/epics/`) and their tool, `epic`;  AND every docs page's tooling:  `tools/`, the docs scripts and the `_assets` every page loads (tracked, versioned per branch) |
+| [spell-epic](spell-epic/src/AGENTS.md) (NOT a package here) | `@spell-app/epics` | `$/epics` | `EP` | the epic engine, its own repo (below, "spell-epic"):  epic pages' `<epic-*>` elements (a component pack), Epic UI (at `/components/epics/`), the `epic` command, the hooks and epic skills;  AND every docs page's tooling:  the docs tools and the `_assets` every page loads (`/_epic/assets/`) |
 | [server](packages/server/AGENTS.md) | `@spell-app/server` | `$/server` | `SRV` | serving pages locally (below) |
 | [assembler](packages/assembler/AGENTS.md) | `@spell-app/assembler` | `$/assembler` | `AS` | assembling pages, for every tool that writes them (below) |
 | [brand](packages/brand/AGENTS.md) | `@spell-app/brand` | `$/brand` | | Spell's brand, the site header's Brand tab (below);  its `<brand-*>` elements (a component pack) and their docs pages (Brand UI, `docs/`, at `/components/brand/`) |
@@ -88,10 +88,12 @@ More on some of them:
     - The list:  `COMPONENT_SETS` ([server's AGENTS.md](packages/server/AGENTS.md)).
   - The sets:
     - Spell UI:  [ui's docs/](packages/ui/docs/), at `/components/ui/`
-    - Epic UI:  [epics' docs/](packages/epics/docs/), at `/components/epics/`
+    - Epic UI:  [spell-epic's docs/](spell-epic/src/docs/), at `/components/epics/`:  spell-epic's, through the
+      checkout's `spell-epic` link (below)
     - App UI:  [app's docs/](packages/app/docs/), at `/components/app/`
     - Brand UI:  [brand's docs/](packages/brand/docs/), at `/components/brand/`
-  - A set that's a component PACK (epics, brand) is built by `spell dev pack build`.
+  - A set that's a component PACK (epics, brand) is built by `spell dev pack build`:  the epics' in spell-epic
+    (its `yarn pack:build`).
     - It writes the pack, `components/__pack/`, and the set's `docs/__data/` too.
   - The top bar's Spell/UI, Epic/UI and App/UI tabs;  the brand's set lights the Brand tab.
   - The old addresses (`/ui/`, `/epic-ui/`, `/app-ui/`, `/brand/components/`) answer "not found" (Q30).
@@ -99,12 +101,13 @@ More on some of them:
   its own `package.json` and `yarn.lock`.
   - `spell dev vscode` builds and installs it.
   - Or its two steps:  `spell dev vscode build`, then `install`.
-- epics:  the docs pages' tooling, since the docs package went into it (epic `people-and-orgs` P16, Q23).
+- spell-epic:  the docs pages' tooling too, since the docs package went into the epics package
+  (epic `people-and-orgs` P16, Q23), and that into spell-epic (epic `epic-eject` I5).
   - The pages themselves are SHARED root folders, tracked by no package (see "Shared content").
   - `epics/`, `guides/`, `templates/`
   - `pages/`:  [the docs' home page](pages/index.html)
   - Its route modules answer under `/api/epics/` (review, agents, running, favorite, new) and `/api/docs/`
-    (details, choices, comments, show).
+    (details, choices, comments, show):  the root `package.json`'s `"pageServer"` names them through the link.
 - server:  static folders, an Express-shaped router, live reload, ports, openers, a file lock.
   - And the ONE page server per checkout (`spell dev server`),
     which serves docs, epics, the parked saga pages and Spell UI's docs site.
@@ -133,7 +136,7 @@ More on some of them:
 One change may touch several packages, but dependencies flow ONE way:
 
 ```text
-epics -> anything         (its docs tools, and the guides' experiments:  any package;  only cli imports epics)
+spell-epic -> ui / server / assembler / util / spell-solid   (the engine, its own repo:  NO package here imports it)
 cli -> app -> lsp -> spaces -> spell -> parser / core -> util
 app / cli -> spaces       (the app:  spaces' models only, never server/node)
 lsp -> spaces             (its node files:  projects on disk, in `SpellDiskWorkspace`)
@@ -204,7 +207,7 @@ ui -> util
   - Write these, in docs, skills, comments, labels and messages:
     epic page, saga page, details page, review page, choice page, guide, cheatsheet, commands page,
     components page, components guide, brand page, home page, list page, changelog, template.
-  - What each one is, and where it lives:  "Page kinds" in [epics' AGENTS.md](packages/epics/AGENTS.md).
+  - What each one is, and where it lives:  "Page kinds" in [spell-epic's AGENTS.md](spell-epic/src/AGENTS.md).
 - Owen still says the older words.  Read them as the new ones, but write the new ones:
   - "plan doc", "epic doc" -- the epic page
   - "epic name" -- the epic id (its folder, `epics/<epic-id>/`)
@@ -222,7 +225,7 @@ ui -> util
   - Resolve one with the openers, which take an address:
     `spell dev docs open SAGA:/...` shows it, `spell dev docs link SAGA:/... --show` gives its links.
   - In pages, write `<epic-link epic="python-target" item="T1"></epic-link>`, not a path;
-    a plain `<a href="SAGA:/...">` works too.  The rules:  [epics' AGENTS.md](packages/epics/AGENTS.md), "Links".
+    a plain `<a href="SAGA:/...">` works too.  The rules:  [spell-epic's AGENTS.md](spell-epic/src/AGENTS.md), "Links".
 
 ## Worktrees
 
@@ -239,7 +242,7 @@ ui -> util
   - So sessions start at the repo root:  read the package's `AGENTS.md` before working in a package.
 - Each file shows ONCE in Explorer and Quick Open:
   - The window's `files.exclude` shows the shared links only under `spell-app-dev`
-    ([filesExclude()](scripts/window.mjs) writes it).
+    ([filesExclude()](spell-epic/src/window.mjs) writes it).
   - A worktree's window hides the main root's files (beside its git-ignored `.spell-main` marker).
   - `search.exclude` in [the repo's VS Code settings](.vscode/settings.json)
     keeps generated files, icons and screenshots out of Quick Open and Find.
@@ -247,7 +250,7 @@ ui -> util
 ### Entering one
 
 - Enter a worktree with `/isolate <name>` (`/epic` does it too), or with Claude's own `EnterWorktree`.
-- The `WorktreeCreate` hook ([worktree.mjs](.claude/hooks/worktree.mjs)):
+- The `WorktreeCreate` hook ([worktree.mjs](spell-epic/hooks/worktree.mjs), spell-epic's plugin's):
   - makes the worktree `.claude/worktrees/<name>` on its own branch, `<name>`, from local main
     - which folder and branch:  `worktreesFolder` and `baseBranch` in [the repo's epic settings](.epic/config.json5)
       (`EpicConfig`;  `epic config` prints them)
@@ -255,7 +258,7 @@ ui -> util
     (Claude's own worktrees move it, and it drops out of every window's list)
 - New window, or stay?
   - `epic window stay-check` recommends one, with reasons, and Owen picks in a modal
-    ([the isolate skill](.claude/skills/isolate/SKILL.md), "Start", step 2b).
+    ([the isolate skill](spell-epic/skills/isolate/SKILL.md), "Start", step 2b).
   - Staying is fine when the session is its window's only one.
   - A session that stays:  same tab, only its folder changes.
     - Its changes show in Source Control,
@@ -285,10 +288,10 @@ ui -> util
   When the turn ends:
   - the session moves to that window, in an editor tab (never the sidebar)
   - `continue` is typed into it
-  - its old tab closes (the `Stop` hook, [handoff.mjs](.claude/hooks/handoff.mjs))
+  - its old tab closes (the `Stop` hook, [handoff.mjs](spell-epic/hooks/handoff.mjs))
 - So END THE TURN right after `handoff`:  the rest (`yarn install` ...) happens in the new window.
 - The old tab is found by the session's title.
-  - The `UserPromptSubmit` hook, [prompt-gate.mjs](.claude/hooks/prompt-gate.mjs), renames the session
+  - The `UserPromptSubmit` hook, [prompt-gate.mjs](spell-epic/hooks/prompt-gate.mjs), renames the session
     on `/isolate <name>`, `/epic <name>` and `/unpark <name>`.
   - The hook also blocks those prompts in plan mode or inside another worktree,
     saving their text to `~/.spell/prompts/<name>.md` first.
@@ -423,12 +426,12 @@ ui -> util
   - Older code writes old-style links, and pages at old paths.
     - `epic shared commit` (every turn) runs the reorg's repair first.
     - `epic shared repair` does it by hand
-      ([reorgShared()](packages/epics/tools/relocate.js)).
+      ([reorgShared()](spell-epic/src/tools/relocate.js)).
 
 ### Commits
 
 - The shared repo is committed by itself after every Claude turn.
-  - The `Stop` hook, [shared-commit.mjs](.claude/hooks/shared-commit.mjs), runs `epic shared commit`.
+  - The `Stop` hook, [shared-commit.mjs](spell-epic/hooks/shared-commit.mjs), runs `epic shared commit`.
   - Nobody commits those files by hand.
 - One commit per place the files live:
   - `auto: epic <name>`
@@ -459,7 +462,8 @@ ui -> util
   - It moves pages the branch left in the old docs package's folder into their shared folders.
   - It fixes links (and their tab names) written for an old layout.
   - And the docs package's end (`people-and-orgs` P16):
-    the shared pages' links into its old tools folder point into [epics' tools/](packages/epics/tools/),
+    the shared pages' links into its old tools folder point into the epics package's `tools/` (spell-epic's
+    [src/tools/](spell-epic/src/tools/) since `epic-eject` I5),
     once, when that epic merges into main (`relocate.js relink`).
 - Shared docs may link code another branch has and this one doesn't yet:
   `doc-links.js --check` reports those as missing in this checkout.
@@ -489,7 +493,7 @@ ui -> util
     - the guide
     - the branch
   - Then EVERYTHING it shipped, one bullet each, by phase when there are phases -- not a summary.
-- Then finish the page as [epics' AGENTS.md](packages/epics/AGENTS.md) says ("Finishing a page"),
+- Then finish the page as [spell-epic's AGENTS.md](spell-epic/src/AGENTS.md) says ("Finishing a page"),
   and bump its footer's date.
 
 ## Commands
@@ -510,28 +514,52 @@ ui -> util
   - `commands.json5` and `commands.md` are shared, but the check reads each branch's CLI.
   - So a branch adding a command can make main's check fail until it merges
     ([the code-debt log](agents/CODE-DEBT.md), "docs").
-- Tools are TypeScript (or node JS in [the docs tools](packages/epics/tools/)), never python:  one language.
+- Tools are TypeScript (or node JS in [the docs tools](spell-epic/src/tools/)), never python:  one language.
 - Skills reach them as `spell dev ...`.
   - `spell` is the link `yarn cli:install` makes, once per machine.
   - Without it:  `node packages/cli/bin/spell.mjs dev ...` from a checkout's root.
 
 ### spell-epic
 
-- The epic tooling has a repo of its own beside this one, `../spell-epic` (epic `epic-eject` P6, 2026-10-17).
+- The epic engine is a repo of its own beside this one, `../spell-epic` (epic `epic-eject` P6, 2026-10-17).
   - A Claude Code plugin, holding:
-    - the epics package, and the `epic` command (`bin/epic`)
-    - the hooks and the window script
-    - the epic skills and every template
-  - It takes `ui`, `server`, `assembler`, `util` and `spell-solid` from a spell-app checkout (`portal:`).
-  - Its README says how it's laid out and installed.
-- NOT live yet:  this repo's own copies still run in every session.
-  - [the epics package](packages/epics/) and [its tests](tests/epics/)
-  - [the window script](scripts/window.mjs) and [the hooks](.claude/hooks/)
-  - the epic skills
-  - What blocks the switch:  `epic-eject` I5.
-  - Until then, make epic changes HERE, as before:  spell-epic is a snapshot, brought up to date at the switch.
+    - the epics package (`@spell-app/epics`, one package laid out as a repo:  `src/`, `tests/`), and the `epic`
+      command (`bin/epic`)
+    - the hooks (`hooks/hooks.json`) and the window script (`src/window.mjs`)
+    - the epic skills (`/epic`, `/isolate`, `/details`, `/bg`, `/send` ... 17 of them) and every template
+  - It takes `ui`, `server`, `assembler`, `util` and `spell-solid` from spell-app's main checkout (`portal:`,
+    through its own `.spell-app` link).
+  - Its README says how it's laid out and installed;  its [AGENTS.md](spell-epic/AGENTS.md) and
+    [src/AGENTS.md](spell-epic/src/AGENTS.md) hold its rules.
+- LIVE since the switch (epic `epic-eject` I5, 2026-10-18):  this repo carries no copy of the engine.
+  - Gone from here:  the epics package and its tests, the window script, the hooks and the epic skills.
+  - Make epic changes IN spell-epic, with its own checks (`yarn ts`, `yarn test`, `yarn lint`), and commit there.
+  - Claude Code runs its hooks and skills as the installed plugin (`spell-epic@spell-epic`), and puts its `bin/epic`
+    on every session's `PATH`;  [the repo's Claude settings](.claude/settings.json) hold no hooks.
+- How this repo reaches it:  a git-ignored link at every checkout's root, `spell-epic`, to the spell-epic checkout.
+  - Where it points:  `engineFolder` in [the repo's epic settings](.epic/config.json5) (`../spell-epic`, from the
+    main checkout).
+  - `epic shared link` makes it (the worktree hook runs that for every new worktree), only in a checkout whose
+    `.gitignore` ignores `spell-epic`:  a branch cut before the switch runs its own copy.
+  - The main checkout:  `ln -s ../spell-epic spell-epic`, once (or `epic shared link` there).
+  - Through it:
+    - the `$/epics` aliases ([tsconfig.base.json](tsconfig.base.json));  NO spell-app source imports them
+    - the page server's epic route modules and the folders it watches (the root `package.json`'s `"pageServer"`)
+    - the engine's routes, `/_epic/assets/` and `/_epic/pack/`, and Epic UI at `/components/epics/`
+      (`ENGINE_ROUTES`, `COMPONENT_SETS`, [server's AGENTS.md](packages/server/AGENTS.md))
+    - the commands page's check (`spell dev commands`):  `epic`'s verbs and the plugin's skills
+  - A checkout without the link (CI) loads no epic routes;  the tests that need the engine skip themselves.
+- `spell dev` keeps the old spellings, hidden, each handed on to `epic` (`runEpic()` in the CLI's `passThrough.ts`):
+  - `spell dev plan-doc <tool order>` is `epic plan-doc`;  `spell dev details` is `epic ask`
+  - `spell dev docs <verb>` is `epic pages <verb>`
+  - `choices`, `comments`, `notes`, `agents`, `airplane`, `window`, `session`, `worktree`, `park`, `stock`, `shared`:
+    the same verb of `epic`;  and `spell epic <verb>` is `epic <verb>`
+  - `spell dev design bundle | check | <sync verb>` run the engine's design tools straight from the link.
 - The generated files `epic worktree merge-main` rebuilds are this repo's own list, each branch's own:
   [the generators list](.epic/generators.json5) (T4).
+  - The engine's own (the docs bundle, the epics pack, Epic UI's data) are spell-epic's to build.
+- Its page bundles are built in spell-epic from spell-app's MAIN checkout:  a worktree's change to Spell UI shows on
+  the epic pages only once it's merged and the bundle rebuilt there (`yarn pack:build`, the docs bundle).
 
 ## Solid 2
 

@@ -137,7 +137,7 @@ when working with code in this package, `@spell-app/spell`.
     - Add a fixture by copying a project in.
     - After a deliberate change, `yarn test:fixtures:bless`, and read the diff.
 - [readme.md](readme.md) is the project's front page.
-  Docs live in the shared root folders, their tooling in [epics' tools](../epics/tools/) (see "Creating docs").
+  Docs live in the shared root folders, their tooling in [spell-epic's tools](../../spell-epic/src/tools/) (see "Creating docs").
 - [The barrel](src/index.ts) is loaded in browsers AND the editor's server, in spaces (WWOD §8 › "Barrels").
   - It imports `$/core`'s TYPES only, never its code.
 
@@ -159,8 +159,8 @@ when working with code in this package, `@spell-app/spell`.
 
 - Docs for people (design notes, research, references), for every package, live in the shared root folders:
   `guides/` mostly (root `AGENTS.md`, "Shared content").
-  - Their tooling is [epics' tools](../epics/tools/), in `@spell-app/epics`.
-- How to write one:  [epics' AGENTS.md](../epics/AGENTS.md), "Writing a page".
+  - Their tooling is [spell-epic's tools](../../spell-epic/src/tools/), in `@spell-app/epics`, its own repo.
+- How to write one:  [spell-epic's AGENTS.md](../../spell-epic/src/AGENTS.md), "Writing a page".
 
 ## Parser rules
 

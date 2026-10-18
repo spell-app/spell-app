@@ -1,8 +1,8 @@
 /**
  * Types for `spell dev`'s repo tools (`src/dev/`):  the pass-throughs, the WWOD check, component packs.
  * - Runtime-light:  types and constants only.
- * - The `epic` command's verb groups (sessions, worktrees, parked work, shared content) have their own:
- *   `$/epics/command/command.types`.
+ * - The `epic` command's verb groups (sessions, worktrees, parked work, shared content) are spell-epic's, with
+ *   their own types (epic `epic-eject` I5).
  */
 
 ////////////////
@@ -25,8 +25,7 @@ export const COMMANDS_JSON = "guides/dev/commands/commands.json5"
  * - `tool`:  the script, relative to a checkout's root
  * - `tsx`:  the `tsconfig.json` it runs under `tsx` with, relative to a checkout's root;  none:  plain `node`
  * - `cwd`:  the folder it runs in, relative to a checkout's root;  none:  the caller's
- *   - the docs tools run in `packages/epics` (as `yarn workspace` ran them in the docs package),
- *     and print paths relative to it
+ *   - the engine's design tools run in spell-epic (`spell-epic`, the checkout's link), as its scripts run them
  */
 export type ToolSpec = { tool: string; tsx?: string; cwd?: string }
 

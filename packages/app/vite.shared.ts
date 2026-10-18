@@ -105,7 +105,7 @@ const FROM_SHARED_SOLID = new Map<string, string>([
 
 /**
  * The specifiers `spell-solid-shared.js` takes from the page when the page has them all:
- * keys of `globalThis.SpellUI.packModules`, the docs bundle's (`packages/epics/tools/_assets/spell-ui.entry.js`).
+ * keys of `globalThis.SpellUI.packModules`, the docs bundle's (`spell-epic/src/tools/_assets/spell-ui.entry.js`).
  */
 export const SHARED_SPECIFIERS = [...FROM_SHARED_SOLID]
   .filter(([, file]) => file === SHARED_SOLID.shared)

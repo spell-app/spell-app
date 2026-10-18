@@ -773,15 +773,14 @@ describe("Reactive:  elementSetup.cssStates, @aria and elementSetup.aria", () =>
 
 describe("Reactive:  vocabulary getters vs base members", () => {
   /**
-   * Every set's English vocabularies:  Spell UI's components and docs elements, the epics', the brand's, the app's,
-   * all written on `UIComponent`.
+   * Every set's English vocabularies:  Spell UI's components and docs elements, the brand's, the app's, all written on
+   * `UIComponent` (the epics' are spell-epic's, epic `epic-eject` I5).
    */
   const vocabularies = Object.values(
     import.meta.glob<Record<string, unknown>>(
       [
         "../../../packages/ui/components/*/*.en.ts",
         "../../../packages/ui/src/docs-components/*/*.en.ts",
-        "../../../packages/epics/components/*/*.en.ts",
         "../../../packages/brand/components/*/*.en.ts",
         "../../../packages/app/components/*/*.en.ts"
       ],

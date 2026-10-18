@@ -4,13 +4,11 @@
   "description": "`spell` command line:  compile, check, describe, explore, watch, run and test spell projects",
   "license": "MIT",
   "bin": {
-    "epic": "bin/epic.mjs",
     "spell": "bin/spell.mjs"
   },
   "type": "module",
   "scripts": {
     "spell": "node bin/spell.mjs",
-    "epic": "node bin/epic.mjs",
     "cli:install": "node scripts/install-cli.mjs",
     "/////// CORRECTNESS": "",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
@@ -25,7 +23,6 @@
   },
   "dependencies": {
     "@inkjs/ui": "^2",
-    "@spell-app/epics": "workspace:*",
     "@spell-app/server": "workspace:*",
     "@spell-app/spaces": "workspace:*",
     "@spell-app/spell": "workspace:*",

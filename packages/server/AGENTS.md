@@ -110,38 +110,41 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - It mounts every worktree's files at `/worktrees/<w>/`, once a route module says where they are:
       `serveWorktrees(dir)` (epic `epic-eject` P4).
       - The running epics' route module does, in the main checkout:
-        [runningRoutes.ts](../epics/src/list/runningRoutes.ts), which also answers `/api/epics/running`.
+        [runningRoutes.ts](../../spell-epic/src/list/runningRoutes.ts) (spell-epic's), which also answers
+        `/api/epics/running`.
       - Why:  the worktrees' folder is in the repo's epic settings (`.epic/config.json5`, read by epics' `EpicConfig`),
         and this package imports no other.
       - It then tells the folder:
         - to `/api/server` and pages:  `worktrees`
         - to pages, its URL path too:  `worktreesPath`
-    - It serves the ENGINE ROUTES too, from this checkout's epics package (`engineRoutePath()`, epic `epic-eject` P7):
+    - It serves the ENGINE ROUTES too (`engineRoutePath()`, epic `epic-eject` P7):
       - the routes:  `/_epic/assets/` and `/_epic/pack/`
-      - where spell-epic's one server per machine serves the engine, and where migrated pages load it from
-      - TEMPORARY:  until spell-app's pages are served by spell-epic's server (I5 of `epic-eject`).
+      - from spell-epic, through the checkout's `spell-epic` link (`ENGINE_ROUTES`, epic `epic-eject` I5)
+      - where spell-epic's one server per machine serves the engine too, and where the pages load it from
+      - a checkout without the link answers "not found" there, and loads no epic route module
     - Route modules add to every page's `window.SPELL_SERVER`:  `addPageConfig()`.
-      - e.g. epics' airplane mode ([airplaneRoutes.ts](../epics/tools/airplaneRoutes.ts)),
+      - e.g. epics' airplane mode ([airplaneRoutes.ts](../../spell-epic/src/tools/airplaneRoutes.ts)),
         whose switch, `AirplaneMode`, moved to epics in `epic-eject` P4.
     - Tests set a route module up by hand with `server.routeContext()`.
     - Every call is under `/api/`, one prefix per package that answers it.
       The old paths answer "not found" (no redirects, Q30 of `people-and-orgs`).
     - It may use deps (`parse5`).
     - It serves the repo at `/`.
-      - TEMPORARY until `people-and-orgs` merges into `main` (its T3), for the SHARED pages every checkout shows:
-        - folders this branch moved still serve from their new place (`movedFolderPath()`):
-          - the docs assets' old folder, `/packages/docs/tools/_assets/<x>` (J49)
-          - the epics pack's, `/packages/epics/pack/<x>` (P18)
+      - For the SHARED pages every checkout shows:
+        - the engine's old folders still serve from spell-epic (`movedFolderPath()`), a safety net for a page that
+          still links them (the shared pages load `/_epic/...` since `epic-eject` T13):
+          - the docs assets' old folders, `/packages/docs/tools/_assets/<x>` (J49), `/packages/epics/tools/_assets/<x>`
+          - the epics pack's, `/packages/epics/pack/<x>` (P18), `/packages/epics/components/__pack/<x>`
         - what it moved OUT of the shared folders answers "not found" (`MOVED_OUT`),
           though the shared repo still holds it for the other checkouts
           - `/ui/` and `/brand/components/`
-        - At the merge, a script relinks the shared pages, and both go.
+        - Once every page and checkout is past them, both go.
     - And the COMPONENT SETS:  the docs of each set of elements, in Spell UI's page shape, in its package's `docs/`.
       - The list:  `COMPONENT_SETS`, in [page.types.ts](src/page/page.types.ts).
       - Since epic `epic-workflow` P10 / P11;  one layout since `people-and-orgs` P18.
       - Each at `/components/<set>/`.  A new set is one more entry.
         - Spell UI:  [ui's docs/](../ui/docs/), at `/components/ui/`
-        - Epic UI:  [epics' docs/](../epics/docs/), at `/components/epics/`
+        - Epic UI:  [spell-epic's docs/](../../spell-epic/src/docs/), at `/components/epics/`, through the link
         - App UI:  [app's docs/](../app/docs/), at `/components/app/`
         - the brand's:  [brand's docs/](../brand/docs/), at `/components/brand/`
       - No dev server:  the pages are static, loading Spell UI's site bundle.

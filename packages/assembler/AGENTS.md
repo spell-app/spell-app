@@ -12,7 +12,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - ASSEMBLING pages:  `$/assembler` (`AS`).
   The steps between a page's content and its file on disk, for every tool that writes pages.
   - Born in epic `epic-components` P7 (Owen, Q15 / I1).
-    The `epic` tool moved into `packages/epics`, which then could not import the docs package,
+    The `epic` tool moved into the epics package, which then could not import the docs package,
     so what both need to write a page lives here (they're one package since `people-and-orgs` P16;  it stays).
   - `Linker` -- a page's links:
     - `<code>path</code>` references become links
@@ -56,8 +56,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     so other assembly tools can be built on it (e.g. a redone goals package).
     - Grow it by capability:  one class per file, its types in `assembler.types.ts`.
 - Node only:  it uses node's file system and child processes, `git`, oxfmt, linkedom and json5-writer.
-  - It imports NO other package:  `epics` (its docs tools too) and any other node-side package or tool may import it.
-  - NEVER make it import `epics`:  it imports this.
+  - It imports NO other package:  spell-epic (its docs tools too) and any other node-side package or tool may import it.
+  - NEVER make it import spell-epic's code:  spell-epic imports this.
+  - `DataFile` (`$/assembler/DataFile`):  the tooling's JSON5 data files, here since epic `epic-eject` I5, so the CLI
+    reads the commands page's data without the engine.
 - It knows the checkout's LAYOUT as folder names, never as imports:  `Linker` takes the checkout's root.
   - The folder names:
     - `packages/*/src`, and `packages/*/components` (a component set's elements)
@@ -67,7 +69,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
       - `guides/`
       - `epics/`
       - `templates/`
-    - the docs tools, [in epics](../epics/tools/)
+    - the epic engine's code, docs tools included:  spell-epic's `src/`, through the checkout's `spell-epic` link
 - Commands, the usual five (node tests):
 
   ```sh
@@ -80,9 +82,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 - As WWOD §4, plus ONE climb:  `format.ts` imports the repo root's lint settings (`fmtConfig`).
   - As `../../../vite.lint.ts`, since no alias reaches the root (every `vite.config.ts` does the same).
-- The docs tools are JavaScript:  [doc-links.js](../epics/tools/doc-links.js) imports `$/assembler` statically.
+- The docs tools are JavaScript:  [doc-links.js](../../spell-epic/src/tools/doc-links.js) imports `$/assembler`
+  statically.
   - So it runs under `tsx`, never plain node:
-    `docLinksRun()`, in the docs tools' [pages.js](../epics/tools/pages.js).
+    `docLinksRun()`, in the docs tools' [pages.js](../../spell-epic/src/tools/pages.js).
 
 ## Types / Exports
 

@@ -5,8 +5,8 @@
  * - Each command is `CLI.<name>Command(session, args, options)`, resolving to the exit code.
  * - `spell dev ...` starts in the lean `devMain.ts` instead, which loads no spell;
  *   its commands that need spell come back here.  Their tree:  `devProgram.ts`.
- * - `epic ...` (and its old spelling, `spell epic ...`) starts in the lean `epicMain.ts`:
- *   the epic code's `EpicProgram`, which loads no spell for any verb.
+ * - `spell epic ...`, the old spelling of the `epic` command (spell-epic's), starts in `devMain.ts` too:
+ *   `devProgram.ts` hands it on to `epic`.
  */
 import "./consoleGuard"
 // Defines `__PACKAGE_VERSION__` -- the PARSER's, which `spell --version` prints -- before anything reads it
@@ -214,19 +214,6 @@ program
   .description("a pony in Spell's wizard hat, saying something -- yours, or one of its own")
   .argument("[words...]", "what the pony says")
   .action((words: string[], _options, command) => run(CLI.ponyCommand, words, command.optsWithGlobals()))
-
-program
-  .command("epic")
-  .description("the epic tools moved to their own command, `epic` (epic --help);  spell epic <verb> still runs them")
-  .argument("[verb]", "an epic verb, e.g. send, summary, add")
-  .argument("[args...]", 'the epic, then the verb\'s arguments, e.g. send epic-workflow --text "..." --images 1')
-  .allowUnknownOption()
-  .helpOption(false)
-  .action(async () => {
-    // `spell --verbose epic summary seo`:  the lean `epic` program, as `epic <verb> ...`
-    process.argv.splice(2, process.argv.indexOf("epic", 2) - 1)
-    await import("$/cli/epicMain")
-  })
 
 // our own `help`, not commander's:  an unknown command is a mistake, not a reason to print the general help
 program.helpCommand(false)

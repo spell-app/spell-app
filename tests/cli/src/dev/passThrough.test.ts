@@ -1,4 +1,7 @@
-import { describe, expect, test } from "vite-plus/test"
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
+import { afterAll, describe, expect, test } from "vite-plus/test"
 
 import { CLI } from "$/cli"
 import { rawArgs } from "$/cli/devProgram"
@@ -37,11 +40,30 @@ describe("toolArgs()", () => {
     expect(CLI.toolArgs(CLI.TOOLS.serve, "/wt")).toEqual(["/wt/scripts/serve.mjs"])
   })
   test("tsx:  the CLI checkout's loader first", () => {
-    expect(CLI.toolArgs(CLI.TOOLS["docs link"], "/wt")).toEqual([
+    expect(CLI.toolArgs(CLI.TOOLS.server, "/wt")).toEqual([
       "--import",
       CLI.TSX_LOADER,
-      "/wt/packages/epics/tools/link.ts"
+      "/wt/packages/server/src/page/cli.ts"
     ])
+  })
+  test("the engine's design tools:  spell-epic's, through the checkout's link", () => {
+    expect(CLI.toolArgs(CLI.TOOLS["design bundle"], "/wt")).toEqual(["/wt/spell-epic/src/tools/bundle-spell-ui.js"])
+  })
+})
+
+describe("epicBin()", () => {
+  // a checkout with the engine's link (a folder, here), and a folder inside it
+  const temp = realpathSync(mkdtempSync(join(tmpdir(), "epic-bin-")))
+  afterAll(() => rmSync(temp, { recursive: true, force: true }))
+  mkdirSync(join(temp, "repo", "spell-epic", "bin"), { recursive: true })
+  mkdirSync(join(temp, "repo", "packages", "x"), { recursive: true })
+  writeFileSync(join(temp, "repo", "spell-epic", "bin", "epic"), "")
+
+  test("the nearest checkout's spell-epic link:  its bin/epic", () => {
+    expect(CLI.epicBin(join(temp, "repo", "packages", "x"))).toBe(join(temp, "repo", "spell-epic", "bin", "epic"))
+  })
+  test("none there:  this checkout's link, else plain epic, from the PATH", () => {
+    expect(CLI.epicBin(temp)).toMatch(/(^epic|\/spell-epic\/bin\/epic)$/)
   })
 })
 

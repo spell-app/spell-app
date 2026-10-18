@@ -1,16 +1,15 @@
 // Import directly, not through `$/cli`:  the barrel loads spell, and `spell dev` must start fast (`devMain.ts`)
 import { CliError } from "$/cli/cli.types"
-import { DOCS_VERBS, runTool, type ToolName } from "$/cli/dev/passThrough"
+import { DOCS_VERBS, runEpic } from "$/cli/dev/passThrough"
 
 /**
- * `spell dev docs <verb> ...`:  the docs tools in `packages/epics/tools`, the nearest checkout's, `args` verbatim.
+ * `spell dev docs <verb> ...`:  the old spelling of `epic pages <verb> ...`, the docs tools, `args` verbatim.
+ * - The tools are spell-epic's (epic `epic-eject` I5):  `epic` runs its own copy on the caller's checkout.
  * - `update`, `index`, `new`, `open`, `link`:  root `yarn docs:<verb>` aliases each;  the tools' usage is in their
  *   headers, e.g. `spell dev docs open solid/solid-2 --vs`, `spell dev docs link <page> --hash <id> --show`
  * - `fuss`:  the writing checker, `spell dev docs fuss <paths...> | --branch [--json]`
  * - `offline`:  what docs pages load from the internet, `spell dev docs offline [paths...] [--fix] [--json]`
- * - Runs each as `packages/epics/package.json`'s script does (`TOOLS` in `dev/passThrough.ts`):
- *   in `packages/epics`, under `node`, `link` under `tsx`
- * - `fuss` and `offline` run under `tsx` in the caller's folder, so their paths are from there.
+ * - `fuss` and `offline` run in the caller's folder, so their paths are from there.
  * - Throws `CliError` for no verb, or another one.
  * - Returns the tool's exit code.
  */
@@ -20,5 +19,5 @@ export function docsCommand(args: string[]): Promise<number> {
     const what = verb === undefined ? "which docs tool?" : `unknown verb '${verb}':`
     throw new CliError(`${what}  ${DOCS_VERBS.join(", ")}`)
   }
-  return runTool(`docs ${verb}` as ToolName, rest)
+  return runEpic(["pages", verb!, ...rest])
 }

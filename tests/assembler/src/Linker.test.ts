@@ -8,8 +8,8 @@ import { AS } from "$/assembler"
 /** The checkout these tests run in:  its real files are what links resolve to. */
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..")
 
-/** `packages/epics/tools`:  one of the folders bare file names are looked up in. */
-const TOOLS = join(ROOT, "packages/epics/tools")
+/** `packages/ui/tools`:  a package's folder outside its `src/`. */
+const TOOLS = join(ROOT, "packages/ui/tools")
 
 /** `epics/`:  epic pages. */
 const EPICS = join(ROOT, "epics")
@@ -36,17 +36,17 @@ function linked(body: string) {
 
 describe("Linker.link()", () => {
   test("links a code span naming a real file, relative to the page, with its own target", () => {
-    expect(linked("<p><code>packages/epics/tools/pages.js</code></p>")).toBe(
-      '<p><a href="../../packages/epics/tools/pages.js" target="src-packages-epics-tools-pages-js">' +
-        "<code>packages/epics/tools/pages.js</code></a></p>"
+    expect(linked("<p><code>packages/ui/tools/SiteCheck.ts</code></p>")).toBe(
+      '<p><a href="../../packages/ui/tools/SiteCheck.ts" target="src-packages-ui-tools-sitecheck-ts">' +
+        "<code>packages/ui/tools/SiteCheck.ts</code></a></p>"
     )
   })
 
   test("links a name with its path as its tooltip to that path, keeping the tooltip;  idempotent", () => {
-    const span = '<code title="packages/epics/tools/pages.js:12">ROOT</code>'
+    const span = '<code title="packages/ui/tools/SiteCheck.ts:12">ROOT</code>'
     const result = link(`<p>From ${span}.</p>`)
     expect(/<body>([\s\S]*)<\/body>/.exec(result.text)?.[1]).toBe(
-      `<p>From <a href="../../packages/epics/tools/pages.js" target="src-packages-epics-tools-pages-js">${span}</a>.</p>`
+      `<p>From <a href="../../packages/ui/tools/SiteCheck.ts" target="src-packages-ui-tools-sitecheck-ts">${span}</a>.</p>`
     )
     expect(LINKER.link(result.text, PAGE_DIR).text).toBe(result.text)
     // the title is the path:  a name that's no file, under a title that's missing, is reported by its title
@@ -57,8 +57,8 @@ describe("Linker.link()", () => {
   })
 
   test("links a folder with a trailing slash", () => {
-    expect(linked("<code>packages/epics/tools</code>")).toBe(
-      '<a href="../../packages/epics/tools/" target="src-packages-epics-tools"><code>packages/epics/tools</code></a>'
+    expect(linked("<code>packages/ui/tools</code>")).toBe(
+      '<a href="../../packages/ui/tools/" target="src-packages-ui-tools"><code>packages/ui/tools</code></a>'
     )
     expect(linked("<code>guides/spell-docs</code>")).toBe(
       '<a href="./" target="src-guides-spell-docs"><code>guides/spell-docs</code></a>'
@@ -66,7 +66,7 @@ describe("Linker.link()", () => {
   })
 
   test("NEVER links inside head, pre, script, style or an existing link", () => {
-    const span = "<code>packages/epics/AGENTS.md</code>"
+    const span = "<code>packages/ui/AGENTS.md</code>"
     const page = `<html><head><title>t</title>${span}</head><body><pre>${span}</pre><script>"${span}"</script><style>/*${span}*/</style></body></html>`
     expect(LINKER.link(page, PAGE_DIR)).toEqual({ text: page, linked: 0, unresolved: [] })
     expect(linked(`<a href="#x">${span}</a>`)).toBe(`<a href="#x">${span}</a>`)
@@ -101,7 +101,7 @@ describe("Linker.link()", () => {
 
   test("is idempotent:  a second run changes nothing", () => {
     const first = link(
-      '<code>packages/epics/AGENTS.md</code> <code>packages/epics/tools</code> <a href="../index.html">i</a> <code>zz/x.ts</code>'
+      '<code>packages/ui/AGENTS.md</code> <code>packages/ui/tools</code> <a href="../index.html">i</a> <code>zz/x.ts</code>'
     )
     expect(first.linked).toBe(2)
     const second = LINKER.link(first.text, PAGE_DIR)
@@ -114,11 +114,11 @@ describe("Linker.resolve()", () => {
   test("resolves against the page's folder, the repo root, `packages/`, `#name/` aliases and bare file names", () => {
     expect(LINKER.resolve("spell-docs.md", PAGE_DIR)).toBe(join(PAGE_DIR, "spell-docs.md"))
     expect(LINKER.resolve("tsconfig.base.json")).toBe(join(ROOT, "tsconfig.base.json"))
-    expect(LINKER.resolve("epics/tools/pages.js")).toBe(join(TOOLS, "pages.js"))
-    expect(LINKER.resolve("#epics/../tools/pages.js")).toBe(join(TOOLS, "pages.js"))
-    expect(LINKER.resolve("doc-links.js")).toBe(join(TOOLS, "doc-links.js"))
-    expect(LINKER.resolve("packages/epics/tools/pages.js:12")).toBe(join(TOOLS, "pages.js"))
-    expect(LINKER.resolve("packages&#47;epics/tools/pages.js")).toBe(join(TOOLS, "pages.js"))
+    expect(LINKER.resolve("ui/tools/SiteCheck.ts")).toBe(join(TOOLS, "SiteCheck.ts"))
+    expect(LINKER.resolve("#ui/../tools/SiteCheck.ts")).toBe(join(TOOLS, "SiteCheck.ts"))
+    expect(LINKER.resolve("PageServer.ts")).toBe(join(ROOT, "packages/server/src/page/PageServer.ts"))
+    expect(LINKER.resolve("packages/ui/tools/SiteCheck.ts:12")).toBe(join(TOOLS, "SiteCheck.ts"))
+    expect(LINKER.resolve("packages&#47;ui/tools/SiteCheck.ts")).toBe(join(TOOLS, "SiteCheck.ts"))
   })
 
   test("names special spans and solidjs.com pages, and leaves operators, words and unknown files alone", () => {
@@ -144,7 +144,7 @@ describe("Linker.targetFor()", () => {
 describe("Linker.check()", () => {
   test("passes linked pages, `_self` links and anything inside <pre>", () => {
     const page = link(
-      '<code>packages/epics/AGENTS.md</code> <a href="../../pages/index.html" target="_self">i</a> <pre><a href="nope.html">x</a></pre>'
+      '<code>packages/ui/AGENTS.md</code> <a href="../../pages/index.html" target="_self">i</a> <pre><a href="nope.html">x</a></pre>'
     ).text
     expect(LINKER.check(page, PAGE_DIR)).toEqual({ destinations: 1, problems: [] })
   })
@@ -189,12 +189,12 @@ describe("Linker served folders", () => {
 
   test("writes its links as from its address:  out of the folder through the root, inside it as siblings", () => {
     const { text } = served.link(
-      "<p><code>packages/epics/tools/pages.js</code> <code>packages/server/src/page/PageServer.ts</code></p>",
+      "<p><code>packages/ui/tools/SiteCheck.ts</code> <code>packages/server/src/page/PageServer.ts</code></p>",
       dir
     )
     expect(text).toBe(
-      '<p><a href="../../packages/epics/tools/pages.js" target="src-packages-epics-tools-pages-js">' +
-        "<code>packages/epics/tools/pages.js</code></a> " +
+      '<p><a href="../../packages/ui/tools/SiteCheck.ts" target="src-packages-ui-tools-sitecheck-ts">' +
+        "<code>packages/ui/tools/SiteCheck.ts</code></a> " +
         '<a href="PageServer.ts" target="src-packages-server-src-page-pageserver-ts">' +
         "<code>packages/server/src/page/PageServer.ts</code></a></p>"
     )

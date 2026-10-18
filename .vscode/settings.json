@@ -52,7 +52,7 @@
 
   // Quick Open (Cmd+P) and Find in Files skip these;  Explorer still shows them.  Generated files (the root's
   // `.gitattributes` `linguist-generated` list), Spell UI's 2,000+ icon SVGs and visual-test screenshots, graphify's
-  // output.  A window's `files.exclude` (scripts/window.mjs `filesExclude()`) keeps each file to ONE folder.
+  // output.  A window's `files.exclude` (spell-epic's window script, `filesExclude()`) keeps each file to ONE folder.
   "search.exclude": {
     "**/__snapshots__/**": true,
     "**/_assets/**": true,

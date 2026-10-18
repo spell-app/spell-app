@@ -207,7 +207,7 @@ export default defineConfig(() => {
  * goes to `emoji/<set>/<letter>-[hash].js`, so the two name sets' chunks are told apart:
  * - by a reader of `dist/`
  * - by the docs' single-file bundler, which loads them lazily instead of inlining them
- *   (`packages/epics/tools/bundle-spell-ui.js`)
+ *   (`spell-epic/src/tools/bundle-spell-ui.js`)
  */
 function emojiChunkNames(chunk: { facadeModuleId: string | null; moduleIds: readonly string[] }): string {
   const data = EMOJI_DATA.exec(chunk.facadeModuleId ?? chunk.moduleIds[0] ?? "")

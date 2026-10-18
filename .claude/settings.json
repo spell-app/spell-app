@@ -7,6 +7,7 @@
       "Bash(git restore *)",
       "Bash(yarn *)",
       "Bash(spell dev *)",
+      "Bash(epic *)",
       "Bash(node packages/cli/bin/spell.mjs dev *)",
       "Bash(npx *)",
       "Bash(git *)",
@@ -14,79 +15,6 @@
     ],
     "additionalDirectories": [
       "/Users/owen/www/spell-app/spell-app-dev"
-    ]
-  },
-  "hooks": {
-    "WorktreeCreate": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/worktree.mjs\" create"
-          }
-        ]
-      }
-    ],
-    "WorktreeRemove": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/worktree.mjs\" remove"
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/behind-main.mjs\"",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "EnterWorktree",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/behind-main.mjs\"",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/prompt-gate.mjs\""
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/handoff.mjs\""
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/shared-commit.mjs\""
-          }
-        ]
-      }
     ]
   }
 }

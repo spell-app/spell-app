@@ -11,7 +11,7 @@ defines them all.  Written exactly like Spell UI's own element families, on its 
 </ui-root>
 ```
 
-The page must load Spell UI's docs bundle (`packages/epics/tools/_assets/spell-ui.js`) first:  the pack registers
+The page must load Spell UI's docs bundle (`/_epic/assets/spell-ui.js`, spell-epic's) first:  the pack registers
 there (`SpellUI.registerPack()`) and takes Solid and Spell UI's shared code from it (`SpellUI.packModules`).
 
 ## The DRY rule (one of each)

@@ -19,8 +19,7 @@
     "packages/spaces",
     "packages/spell-solid",
     "packages/ui",
-    "packages/util",
-    "packages/epics"
+    "packages/util"
   ],
   "type": "module",
   "scripts": {
@@ -36,8 +35,8 @@
     "docs:index": "node packages/cli/bin/spell.mjs dev docs index",
     "docs:new": "node packages/cli/bin/spell.mjs dev docs new",
     "docs:open": "node packages/cli/bin/spell.mjs dev docs open",
-    "epic": "node packages/cli/bin/epic.mjs",
-    "ask": "node packages/cli/bin/epic.mjs ask",
+    "epic": "epic",
+    "ask": "epic ask",
     "plan-doc": "node packages/cli/bin/spell.mjs dev plan-doc",
     "details": "node packages/cli/bin/spell.mjs dev details",
     "docs:link": "node packages/cli/bin/spell.mjs dev docs link",
@@ -71,16 +70,16 @@
   "packageManager": "yarn@4.18.0",
   "pageServer": {
     "routes": [
-      "packages/epics/tools/detailsRoutes.ts",
-      "packages/epics/tools/choicesRoutes.ts",
-      "packages/epics/tools/commentsRoutes.ts",
-      "packages/epics/src/tool/reviewRoutes.ts",
-      "packages/epics/src/tool/epicRoutes.ts",
-      "packages/epics/src/tool/linkRoutes.ts",
-      "packages/epics/src/list/runningRoutes.ts",
-      "packages/epics/tools/agentRoutes.ts",
-      "packages/epics/tools/showRoutes.ts",
-      "packages/epics/tools/airplaneRoutes.ts",
+      "spell-epic/src/tools/detailsRoutes.ts",
+      "spell-epic/src/tools/choicesRoutes.ts",
+      "spell-epic/src/tools/commentsRoutes.ts",
+      "spell-epic/src/tool/reviewRoutes.ts",
+      "spell-epic/src/tool/epicRoutes.ts",
+      "spell-epic/src/tool/linkRoutes.ts",
+      "spell-epic/src/list/runningRoutes.ts",
+      "spell-epic/src/tools/agentRoutes.ts",
+      "spell-epic/src/tools/showRoutes.ts",
+      "spell-epic/src/tools/airplaneRoutes.ts",
       "packages/spaces/src/server/node/routes/appRoutes.ts"
     ],
     "watch": [
@@ -89,9 +88,9 @@
       "pages",
       "templates",
       "brand",
-      "packages/epics/tools/_assets",
+      "spell-epic/src/tools/_assets",
       "packages/brand",
-      "packages/epics/components/__pack",
+      "spell-epic/src/components/__pack",
       "packages/brand/components/__pack"
     ],
     "writable": [

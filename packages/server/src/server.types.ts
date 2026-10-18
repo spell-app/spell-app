@@ -95,14 +95,6 @@ export type ServerInfo = {
   worktreesFolders?: string[]
 }
 
-/**
- * A git checkout, as `SRV.checkoutOf()` finds it.
- * - `root`:  the checkout's own folder
- * - `main`:  the MAIN checkout's folder:  `root` itself, unless `root` is a worktree
- * - `worktree`:  the worktree's folder name, in a worktree only
- */
-export type Checkout = { root: string; main: string; worktree?: string }
-
 ////////////////
 // ## Errors
 ////////////////

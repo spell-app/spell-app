@@ -4,7 +4,7 @@ import { dirname, join } from "path"
 import { afterAll, beforeEach, describe, expect, test } from "vite-plus/test"
 
 import { CLI } from "$/cli"
-import { DataFile } from "$/epics/data/DataFile"
+import { DataFile } from "$/assembler/DataFile"
 
 /**
  * A throwaway checkout per test:

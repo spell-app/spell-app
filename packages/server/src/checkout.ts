@@ -1,8 +1,6 @@
 import { existsSync, readFileSync, statSync } from "node:fs"
 import { basename, dirname, join, resolve } from "node:path"
 
-import type { Checkout } from "./server.types"
-
 /**
  * The git checkout `path` is in:  its root, the MAIN checkout's root, and the worktree's name in a worktree;
  * `undefined` outside git.
@@ -50,3 +48,13 @@ function worktreeAt(root: string, git: string): Checkout | undefined {
     return undefined
   }
 }
+
+/**
+ * A git checkout, as `SRV.checkoutOf()` finds it.
+ * - `root`:  the checkout's own folder
+ * - `main`:  the MAIN checkout's folder:  `root` itself, unless `root` is a worktree
+ * - `worktree`:  the worktree's folder name, in a worktree only
+ * - here, not in `server.types.ts`:  this file imports nothing of the package's, so a tsconfig without the alias table
+ *   (app's `tsconfig.node.json`, through spaces' `environment.ts`) still compiles it
+ */
+export type Checkout = { root: string; main: string; worktree?: string }

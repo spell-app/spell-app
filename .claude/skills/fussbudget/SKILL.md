@@ -24,7 +24,7 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
     - `path-in-prose`:  a file path in a page's or Markdown's running text
     - `code-dense`:  a sentence of 3+ code spans, in a page or Markdown
   - It can't see the rest:  that's what the reading pass is for.
-- Every epic's Doc Review runs it:  [the epic skill](.claude/skills/epic/SKILL.md), "6. Doc Review".
+- Every epic's Doc Review runs it:  [the epic skill](spell-epic/skills/epic/SKILL.md), "6. Doc Review".
 
 ## Forms
 
@@ -139,7 +139,7 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
   - More folders than agents:  group neighbours, one agent a group.
   - Why:  one voice per package, and the session stays free.
 - Each one NAMED and LISTED, as the root `CLAUDE.md`'s "Delegated work" says
-  ([the bg skill](.claude/skills/bg/SKILL.md), "Names"):
+  ([the bg skill](spell-epic/skills/bg/SKILL.md), "Names"):
   - `epic agents add fussbudget-<folder> "<its task>"`:  prints its full name
   - an `Agent` call:  type `general-purpose`, in the background (`run_in_background: true`),
     its `description` starting with that full name

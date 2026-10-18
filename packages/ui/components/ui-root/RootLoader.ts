@@ -6,7 +6,7 @@ import type { RootCatalogEntry } from "./UIRoot.types"
  * Every family's barrel, loaded on demand (`import.meta.glob`, lazy):  `../ui-card/index.ts` => `import()` of it.
  * - A LITERAL glob, so each becomes a literal `import()`:
  *   the lib build reuses each family's own entry chunk (`ui-card.js`),
- *   and the docs' single-file bundle (`packages/epics/tools/bundle-spell-ui.js`) inlines them.
+ *   and the docs' single-file bundle (`spell-epic/src/tools/bundle-spell-ui.js`) inlines them.
  * - Relative on purpose, the one `../` in `ui`'s components:
  *   Vite resolves a glob's literal pattern, not an alias,
  *   and its keys (`../ui-card/index.ts`) are what `load()` looks up.

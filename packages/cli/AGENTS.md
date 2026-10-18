@@ -9,11 +9,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## Overview
 
-- This package is the `spell` command-line tool, and its second command, `epic`, and nothing else.
+- This package is the `spell` command-line tool, and nothing else.
   - [spell.mjs](bin/spell.mjs), in `bin/`, runs [main.ts](src/main.ts) through `tsx`.
-  - For `spell dev ...` it runs [devMain.ts](src/devMain.ts) instead (see below).
-  - [epic.mjs](bin/epic.mjs) runs [epicMain.ts](src/epicMain.ts):  the epic tools (see below).
-  - `yarn cli:install` links both onto your PATH:  the package's `bin`.
+  - For `spell dev ...` (and `spell epic ...`) it runs [devMain.ts](src/devMain.ts) instead (see below).
+  - `yarn cli:install` links it onto your PATH:  the package's `bin`.
+  - The `epic` command is spell-epic's (its `bin/epic`), since epic `epic-eject` I5.
   - [The README](README.md) has instructions, caveats and TODO.
 - Spell itself is NOT here.
   - It's the spell-family packages beside this one:  lsp, spaces, spell, parser, core, util.
@@ -55,58 +55,29 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - the repo's own tools, `spell dev <noun> <verb>`:  `spell dev commands`.
     Each finds the nearest checkout with `CLI.findCheckout()`.
   - `epic <verb> <epic>#<id> ...`:  the epic tools, a command of their own (epic `epic-workflow` P9).
-    E.g.:
-
-    ```sh
-    epic close seo#J3
-    epic update seo#P3 --goal ...
-    epic ask new pick-layout
-    ```
-
-    - The command itself is the epic code's, not this package's (epic `epic-eject` P5):
-      `EpicProgram`, in [the epics package's command folder](../epics/src/command/), with a class per verb group.
-      - This package keeps only its entry, [epicMain.ts](src/epicMain.ts), run by [epic.mjs](bin/epic.mjs).
-      - `epic --help` lists it, under headings;  `epic --version` says which checkout's code runs.
-      - Why there:  P6 lifts the epic code into a repo of its own, the command with it.
-    - It starts LEAN:
-      - no verb loads the `$/cli` barrel or spell
-      - the `epic` tool loads only when a page verb runs
-      - [epicProgram.test.ts](../../tests/cli/src/epicProgram.test.ts) checks it, import by import
-    - ONE copy of the code:  every verb runs the code of the `epic` that was called,
-      on the caller's checkout's data.
-      - The `epic` on the `PATH` is the main checkout's.
-    - The verb groups:
-
-      ```
-      send requests file home merge          Requests
-      worktree session park stock shared     Worktrees  Sessions  Parking  Stock  Shared
-      window server                          scripts passed through (EpicTools)
-      ask choices comments notes agents airplane   the docs tools passed through (EpicTools)
-      ```
-
-    - An epic page's verbs run the `epic` tool in this process (`EpicTools.runPlanDoc()`).
-      - First `planDocArgs()` turns the address into the tool's own arguments:
-        `seo#J3` becomes `close seo J3`.
-      - The tool's own order, typed to `epic` (`epic close seo J3`), is REFUSED:
-        - the message spells it the right way
-        - run silently, it taught agents the old shape (epic `epic-workflow` P19)
-    - Every verb's help:  its usage, what it does, an example (`epic close --help`).
-      - A group's verbs (`epic ask new --help`) take theirs from their lines in `GROUP_VERBS`:
-        a verb not listed there is refused before the tool runs.
-      - Exit codes:  0;  1 a failure, or an unknown verb (listing the verbs);  2 a usage error.
-    - The old spellings still run the same code, until no caller is left:
-      - `spell dev plan-doc <verb> <name> <id> ...`:  the tool's own order, no `#`;  older checkouts and scripts call it
-      - `spell dev details`, `choices`, `comments`, `notes`, `agents`, `airplane`
+    - NOT this package's:  spell-epic's, its own repo, with its own tests (epic `epic-eject` P5, I5;
+      the root `AGENTS.md`, "spell-epic").  `epic --help` lists its verbs.
+    - Its old spellings here hand their arguments on to it, verbatim, until no caller is left
+      (`runEpic()`, in [passThrough.ts](src/dev/passThrough.ts)):
+      - `spell dev plan-doc <verb> <name> <id> ...`:  the tool's own order, no `#` (`epic plan-doc`, hidden);
+        older checkouts and scripts call it
+      - `spell dev details` (`epic ask`), `choices`, `comments`, `notes`, `agents`, `airplane`
       - `spell dev window`, `worktree`, `park`, `session`, `stock`, `shared` (since P5)
-      - all hidden from `spell dev --help`, in [devProgram.ts](src/devProgram.ts)
-      - `spell epic <verb>`, which [spell.mjs](bin/spell.mjs) sends to [epicMain.ts](src/epicMain.ts)
+      - `spell dev docs <verb>` (`epic pages <verb>`), still listed in `spell dev --help`:  the skills call it
+      - the rest hidden from `spell dev --help`, in [devProgram.ts](src/devProgram.ts)
+      - `spell epic <verb>`:  [spell.mjs](bin/spell.mjs) sends it to [devMain.ts](src/devMain.ts), so it starts lean
+    - Which `epic`:  the nearest checkout's `spell-epic` link's `bin/epic` (`epicBin()`), else the one on the `PATH`.
+    - NEVER import the engine (`$/epics/...`):  a checkout without spell-epic (CI) must still compile,
+      and one copy of `$/server` must run.
+      [devMain.test.ts](../../tests/cli/src/devMain.test.ts) checks it, import by import.
   - A new or renamed command:
     FIRST [the commands guide](../../guides/dev/commands/commands.md) (root `AGENTS.md`, "Commands").
     - Suggest where it belongs.
     - Then add it to the commands page's `commands.json5`, and run `spell dev commands check`.
   - `spell dev commands` reads the TEXT of the command trees, for each `<receiver>.command(...)` call.
-    - The files:  [main.ts](src/main.ts), [devProgram.ts](src/devProgram.ts), and the epic code's
-      [EpicProgram.ts](../epics/src/command/EpicProgram.ts).
+    - The files:  [main.ts](src/main.ts), [devProgram.ts](src/devProgram.ts), and spell-epic's
+      [EpicProgram.ts](../../spell-epic/src/command/EpicProgram.ts), through the checkout's `spell-epic` link.
+    - The skills:  this repo's `.claude/skills/`, and the plugin's, `spell-epic/skills/`.
     - The calls:
 
       ```ts
@@ -122,7 +93,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - The pass-throughs:
 
       ```
-      docs  design  server  vscode
+      design  server  vscode
       ```
 
     - It imports what it needs DIRECTLY, never the barrel:
@@ -134,10 +105,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - Importing `$/cli` there would load spell into every `spell dev` call.
     - `TOOLS`, in [passThrough.ts](src/dev/passThrough.ts), says how each tool runs:
       a child node process, under `tsx` when it needs aliases.
-  - The `epic` tool is lean, but no pass-through:  it runs IN this process (epic `epic-components`).
-    - It runs `epic`'s page verbs, and `spell dev plan-doc`.
-    - The code:  `EpicTools.planDoc()`, in the epic code,
-      which loads `$/epics/tool/PlanDocCommands` on first use.
+      - `design bundle`, `check` and its sync verbs:  the engine's design tools, through the `spell-epic` link.
   - `pack` is lean too, though it's ours, not a pass-through:  `(args, options) => Promise<exitCode>`.
     - That's [packCommand.ts](src/commands/packCommand.ts),
       on [packNew.ts](src/dev/packNew.ts) / [packBuild.ts](src/dev/packBuild.ts), which import no barrel.
@@ -155,9 +123,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   ```
 
 - NOT in the barrel (WWOD §8 › "Barrels"):
-  - The three entry points and the console guard:  importing any has side effects.
-    - [main.ts](src/main.ts), [devMain.ts](src/devMain.ts), [epicMain.ts](src/epicMain.ts),
-      [consoleGuard.ts](src/consoleGuard.ts)
+  - The two entry points and the console guard:  importing any has side effects.
+    - [main.ts](src/main.ts), [devMain.ts](src/devMain.ts), [consoleGuard.ts](src/consoleGuard.ts)
   - Nor `devProgram.ts`:  the lean entry builds on it, and it must load without the barrel.
 
 ## Tests
@@ -172,10 +139,11 @@ As WWOD §20, plus:
   See "Projects live in spaces" in [spell's AGENTS.md](../spell/AGENTS.md).
   - NEVER write into one, nor into its build folder (`build/spaces/@spell/test/...`).
     Compile with `--stdout`, or make a temp project, as `cli.test.ts` does.
-- [cli.test.ts](../../tests/cli/src/cli.test.ts) runs the real bin scripts (`spell.mjs`, `epic.mjs`),
+- [cli.test.ts](../../tests/cli/src/cli.test.ts) runs the real bin script (`spell.mjs`),
   as separate processes, with no terminal.
-- [epicProgram.test.ts](../../tests/cli/src/epicProgram.test.ts) proves the epic command starts lean:
-  - nothing its entry ([epicMain.ts](src/epicMain.ts)) imports up front reaches the barrel or spell
-  - nor do the epic verbs' old spellings, in [devProgram.ts](src/devProgram.ts)
-- The epic command's own tests are the epic code's:  [tests/epics/src/command/](../../tests/epics/src/command/).
+  - What it hands on to `epic`:  a fake `spell-epic/bin/epic` in a temp checkout, reporting what it got.
+  - The tests that need the real engine (`spell dev plan-doc summary ...`) skip themselves without it (CI).
+- [devMain.test.ts](../../tests/cli/src/devMain.test.ts) proves `spell dev` starts lean:
+  nothing [devMain.ts](src/devMain.ts) imports up front reaches the barrel, spell or the epic engine.
+- The epic command's own tests are spell-epic's (`tests/command/`, `EpicProgram.test.ts`).
 - Screens render through `ink-testing-library`, at a fixed `size`.

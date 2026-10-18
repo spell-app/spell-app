@@ -243,7 +243,7 @@ export function packFamilies(pack: PackInfo): string[] {
  * - Any other `$/ui...`, `$/spell-solid/...`, Solid or `@spell-app/...` import fails the build:
  *   a second copy of spell-solid, Spell UI's core or Solid on a page breaks them.
  * - Another one:  add it here AND to Spell UI's `packModules`, AND to the guides' copy
- *   (`packages/epics/tools/bundle-experiment.ts`, which builds a guide's live elements the same way).
+ *   (spell-epic's `src/tools/bundle-experiment.ts`, which builds a guide's live elements the same way).
  */
 export const PACK_MODULES = ["solid-js", "@solidjs/web", "$/spell-solid", "$/ui/core", "$/ui/forms"]
 

@@ -39,7 +39,7 @@ export const SITE_HOME = "pages/index.html"
  * - the slashed names are the tab labels as he typed them (J41):  "the UI set of Epic", "of Spell", "of the app";
  *   prose keeps "Epic UI", "Spell UI", "App UI"
  * - (before, claude-design Q6, 2026-10-05:  Epics · Guides · Brand · Spell UI · Templates · Goals · App)
- * - the home's cards are in the same order (`packages/epics/tools/index.js` `areaCards()`)
+ * - the home's cards are in the same order (spell-epic's `src/tools/index.js` `areaCards()`)
  * - each docs area's tab lights on its own pages (`docsArea()`):
  *   - an epic page:  Epics
  *   - a guide:  Guides
@@ -82,14 +82,16 @@ export const PROPERTIES: SiteProperty[] = [
 /**
  * Which component set page path `path` is in (`location.pathname`);  `undefined` for anything else.
  * - by its served address, `/components/<set>/` (a worktree's too, `/worktrees/<w>/components/<set>/`)
- * - or by its folder's long one, `packages/<package>/docs/` (a `file://` page too)
+ * - or by its folder's long one, `packages/<package>/docs/` (a `file://` page too);  Epic UI's,
+ *   `spell-epic/src/docs/` (epic `epic-eject` I5)
  * - the sets:  `ui`, `epics`, `app`, `brand`, as `COMPONENT_SETS` in `$/server/page` names them
- *   (its prefixes' tails, and their packages:  `docs/` of `packages/ui`, `packages/epics` ...)
+ *   (its prefixes' tails, and their folders:  `docs/` of `packages/ui`, `packages/app` ..., `spell-epic/src/docs/`)
  */
 export function componentSet(path: string): string | undefined {
   return (
     /^(?:\/worktrees\/[^/]+)?\/components\/([^/]+)(?:\/|$)/.exec(path)?.[1] ??
-    /\/packages\/(ui|epics|app|brand)\/docs\//.exec(path)?.[1]
+    /\/packages\/(ui|epics|app|brand)\/docs\//.exec(path)?.[1] ??
+    (/\/spell-epic\/src\/docs\//.test(path) ? "epics" : undefined)
   )
 }
 

@@ -6,7 +6,7 @@ import type { SRV, ServedFile, ServerInfo } from "$/server"
 
 /**
  * A ROUTE MODULE:  a file that adds routes to the page server, e.g. goals' buttons, the app's `/api`.
- * - listed in the repo root's `package.json`, `"pageServer": { "routes": ["packages/epics/tools/goals/goalsRoutes.ts"] }`
+ * - listed in the repo root's `package.json`, `"pageServer": { "routes": ["spell-epic/src/tools/detailsRoutes.ts"] }`
  * - its DEFAULT export is this;  `setup()` runs once, before the server listens
  */
 export type RouteModule = {
@@ -96,7 +96,8 @@ export const SETS_BUNDLE = `${SITE_BUNDLE}/sets`
  * - `name`:  what prose calls it, e.g. `Epic UI`
  * - `prefix`:  the address it's served at, `/components/<set>`
  *   (and `/worktrees/<w>/components/<set>` for a worktree's)
- * - `dir`:  its pages' folder, relative to the checkout, e.g. `packages/epics/docs`
+ * - `dir`:  its pages' folder, relative to the checkout, e.g. `packages/ui/docs`
+ *   - Epic UI's is spell-epic's, through the checkout's `spell-epic` link (epic `epic-eject` I5)
  * - `assets`:  the site bundle its pages load as `_assets/`, relative to the checkout:
  *   `SITE_BUNDLE` for Spell UI's own, `SETS_BUNDLE` for every other set
  */
@@ -124,7 +125,7 @@ export type ComponentSet = {
  */
 export const COMPONENT_SETS = [
   { name: "Spell UI", prefix: `${COMPONENTS_PREFIX}/ui`, dir: "packages/ui/docs", assets: SITE_BUNDLE },
-  { name: "Epic UI", prefix: `${COMPONENTS_PREFIX}/epics`, dir: "packages/epics/docs", assets: SETS_BUNDLE },
+  { name: "Epic UI", prefix: `${COMPONENTS_PREFIX}/epics`, dir: "spell-epic/src/docs", assets: SETS_BUNDLE },
   { name: "App UI", prefix: `${COMPONENTS_PREFIX}/app`, dir: "packages/app/docs", assets: SETS_BUNDLE },
   { name: "Brand", prefix: `${COMPONENTS_PREFIX}/brand`, dir: "packages/brand/docs", assets: SETS_BUNDLE }
 ] as const satisfies readonly ComponentSet[]
@@ -141,10 +142,10 @@ export const BUNDLE_WAIT_MS = 120_000
  * - `cdn`:  the tag older pages still carry;  a plain, blocking `<script>`
  *   - so a hanging network (plane wifi asking to pay first) held up `spell-ui.js` behind it,
  *     and the page showed raw markup for tens of seconds
- * - `local`:  the same file (11.9.0), committed
+ * - `local`:  the same file (11.9.0), committed in spell-epic, at its engine route (`/_epic/assets/`)
  *   - the page server serves pages with `cdn` swapped for it (`localHighlight()`), so they load with no network at all
  */
 export const HIGHLIGHT_JS = {
   cdn: "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js",
-  local: "/packages/epics/tools/_assets/highlight.min.js"
+  local: "/_epic/assets/highlight.min.js"
 } as const

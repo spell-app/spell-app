@@ -6,7 +6,8 @@
  *   while relative paths on the command line still resolve against the caller's.
  * - `spell dev ...` runs `src/devMain.ts` instead:  it loads no spell, so a repo tool starts in a fraction of
  *   the time.
- * - `spell epic ...`, the old spelling of the `epic` command (`bin/epic.mjs`), runs its lean `src/epicMain.ts`.
+ * - `spell epic ...`, the old spelling of the `epic` command (spell-epic's), runs `src/devMain.ts` too, which hands
+ *   it on to `epic`.
  * - Install on your `PATH` with `yarn cli:install` -- see `scripts/install-cli.mjs`.
  * - NOTE: a symlink to this file works:  node runs the real path, so `import.meta.url` is in the repo.
  */
@@ -15,7 +16,7 @@ import { fileURLToPath, pathToFileURL } from "node:url"
 import { register } from "tsx/esm/api"
 
 /** The lean entries, by first word:  they load no spell. */
-const LEAN = { dev: "src/devMain.ts", epic: "src/epicMain.ts" }
+const LEAN = { dev: "src/devMain.ts", epic: "src/devMain.ts" }
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 register({ tsconfig: resolve(repoRoot, "tsconfig.json") })

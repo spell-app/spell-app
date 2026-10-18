@@ -83,7 +83,7 @@ Spell's claude.ai DESIGN SYSTEM is generated from the code, so Claude Design dra
    - It prints what it couldn't carry:
      holes from `renderVals()`, handlers, unwrapped `<sc-if>` / `<sc-for>`.
    - Fix those by hand:  real text for holes, a small script for behaviour.
-4. Finish:  as [epics' AGENTS.md](packages/epics/AGENTS.md), "Finishing a page".
+4. Finish:  as [spell-epic's AGENTS.md](spell-epic/src/AGENTS.md), "Finishing a page".
    - `doc-links`, `vp fmt`, `check-spell`, and LOOK at the screenshots.
    - Then show it:  `spell dev docs link <page> --show`.
    - It's shared content:  committed for you.
