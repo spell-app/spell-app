@@ -4,30 +4,26 @@
 //   every worktree reads the main checkout's copy of this file.
 // - A key left out takes its default:  these are the defaults.
 // - `epic config [key]` prints what's in force (`--json`:  all of it).
-// - "Morning:" below:  the folders move (epic `epic-eject` P8), a job for after the switch to spell-epic (I5).
-//   - spell-epic's README, "Switching a repo over", says which values change, and in what order.
-//   - Until then, today's layout.
+// - The folders moved on 2026-10-18 (epic `epic-eject` P8, the switch to spell-epic):  content folder renamed,
+//   new worktrees beside the repo, their session folders linked, their packages installed first.
 {
   // The shared content repo:  epics, guides, sagas, pages, brand, the logs (not the templates:  spell-epic's).
   // - Every checkout links its folders in (`epic shared link`).
   // - Each turn's end commits it.
-  // Morning:  `epic shared rename spell-app.epics` writes the new name here itself (and `windows.contentName`).
-  "contentFolder": "../spell-app-dev",
+  // - Renamed from spell-app-dev by `epic shared rename spell-app.epics`, which left a spell-app-dev link behind.
+  "contentFolder": "../spell-app.epics",
 
   // The branch worktrees start from and merge into.
   "baseBranch": "main",
 
-  // Where NEW worktrees go:  one folder each, `<worktreesFolder>/<name>`, on branch `<name>`.
-  // Morning:  "../spell-app.worktrees", beside the repo.
-  // The old ones in .claude/worktrees are still found.
-  "worktreesFolder": ".claude/worktrees",
+  // Where NEW worktrees go:  one folder each, `<worktreesFolder>/<name>`, on branch `<name>`, beside the repo.
+  // The old ones in .claude/worktrees are still found, until they move (`epic worktree move`) or end.
+  "worktreesFolder": "../spell-app.worktrees",
 
   // What makes a new worktree ready to run, from its root (`/isolate`, `/epic`).
   "installCommand": "yarn install",
-  // Two more keys (P8):
-  // - "installOnCreate": true makes the worktree hook run it BEFORE the window opens (I2)
-  // - "installTimeout" (seconds, 600) bounds it
-  // - both left out:  off, and the skills run the install
+  // The worktree hook runs it BEFORE the window opens (I2), within "installTimeout" seconds (600 left out).
+  "installOnCreate": true,
 
   // The VS Code windows (`epic window`).
   "windows": {
@@ -37,7 +33,7 @@
     // The repo root's folder name in every window.
     "repoName": "spell-app",
     // The content repo's folder name in every window.
-    "contentName": "spell-app-dev"
+    "contentName": "spell-app.epics"
     // And (P8):  "worktreeOnly": true gives EVERY worktree a window of just two folders,
     // its own and the content folder.
     // - A worktree beside the repo gets that window anyway.
@@ -45,8 +41,10 @@
 
   // Whether the worktree hook links each NEW worktree's saved-session folder to the main checkout's,
   // so every window's Claude panel lists every session.
-  // Morning:  true, with the worktrees beside the repo.
-  "linkSessionFolders": false,
+  "linkSessionFolders": true,
+
+  // The content folder's folders every checkout links in at its root (`epic shared link`).
+  "sharedFolders": ["epics", "guides", "pages", "brand", "ui", "goals", "sagas", "agents"],
 
   // The epic engine:  the spell-epic checkout, which every checkout links in at its root as `spell-epic`
   // (`epic shared link`, and the worktree hook through it;  only where `.gitignore` ignores `spell-epic`).

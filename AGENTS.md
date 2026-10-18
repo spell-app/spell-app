@@ -243,7 +243,7 @@ ui -> util
     so every window lists every session.
   - So sessions start at the repo root:  read the package's `AGENTS.md` before working in a package.
 - Each file shows ONCE in Explorer and Quick Open:
-  - The window's `files.exclude` shows the shared links only under `spell-app-dev`
+  - The window's `files.exclude` shows the shared links only under `spell-app.epics`
     ([filesExclude()](spell-epic/src/window.mjs) writes it).
   - A worktree's window hides the main root's files (beside its git-ignored `.spell-main` marker).
   - `search.exclude` in [the repo's VS Code settings](.vscode/settings.json)
@@ -395,14 +395,14 @@ ui -> util
 ### How they're linked
 
 - In EVERY checkout (main and each worktree) they're folder SYMLINKS into one shared content repo.
-  - It's `../spell-app-dev`, beside the main checkout:  an ordinary git repo, local only.
+  - It's `../spell-app.epics`, beside the main checkout:  an ordinary git repo, local only.
   - Where it is:  `contentFolder`, in [the repo's epic settings](.epic/config.json5) (epic `epic-eject` P4).
     `epic config contentFolder` prints it.
   - So every worktree sees every edit at once:  no per-branch copy, and these files never conflict on merge.
   - Folders, never single-file links:  Claude's Edit refuses to write through a link to a file.
 - Claude edits shared files at their REAL path, from main or any worktree.
-  - That's `/Users/owen/www/spell-app/spell-app-dev/<path>`:  `$(epic config contentFolder)/<path>`.
-  - E.g. `.../spell-app-dev/agents/PAPERCUTS.md`.
+  - That's `/Users/owen/www/spell-app/spell-app.epics/<path>`:  `$(epic config contentFolder)/<path>`.
+  - E.g. `.../spell-app.epics/agents/PAPERCUTS.md`.
   - A worktree session's Edit / Write refuses a path through the links, before any hook could step in.
     It says "Edit the worktree copy of this file instead of the shared-checkout path":
     there is no worktree copy.
@@ -468,11 +468,11 @@ ui -> util
     once, when that epic merges into main (`relocate.js relink`).
 - Shared docs may link code another branch has and this one doesn't yet:
   `doc-links.js --check` reports those as missing in this checkout.
-- Package windows show `spell-app-dev` as a folder, with its own Source Control:  the auto commits.
+- Package windows show `spell-app.epics` as a folder, with its own Source Control:  the auto commits.
 - Searching:  the links are git-ignored.
   - `grep -R` follows them (`grep -r` doesn't).
   - `rg` needs `-L --no-ignore-vcs`.
-  - Or search `../spell-app-dev`.
+  - Or search `../spell-app.epics`.
 - Plan-doc item fixes carry the epic's name:  `<epic> I3:  ...`.
   - Phase commits stay `P3:  <phase name> -- ...`.
 
