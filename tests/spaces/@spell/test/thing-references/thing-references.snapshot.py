@@ -12,6 +12,7 @@ from spell_core import core, Thing, List, prop
 class Pile(List):
     item_type = Thing
 
+    # a pile has a name as text
     name = prop(type="text")
 
 

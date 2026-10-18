@@ -118,7 +118,7 @@ export function declareInMetadata(metadata: DecoratorMetadataObject, name: strin
 
 /**
  * Spell's name for `value`'s type:  `number`, `text`, `choice`, `list`, `action`, a class name, or `nothing`.
- * - The runtime's names, as `spellCore.typeOf()` gives them (`choice`, not `boolean`).
+ * - The runtime's names, as `core.typeOf()` gives them (`choice`, not `boolean`).
  */
 export function spellTypeOf(value: unknown): string {
   if (value === null || value === undefined) return "nothing"

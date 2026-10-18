@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList, h, sendCall } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, h, sendCall } from "@spell/core"
 import { Card, Deck, Pile } from "@spell/project/@spell/test/cards"
 
 //////////////////////////////////
@@ -10,6 +10,7 @@ import { Card, Deck, Pile } from "@spell/project/@spell/test/cards"
 export class Game extends App {
   static description = "A game of **Klondike**:  its piles, and its score."
 
+  // a game has a score as a number
   static { this.declareProp("score", { type: "number" }) }
   get score() { return this.getProp("score") }
   set score(value) { this.setProp("score", value) }
@@ -18,7 +19,7 @@ export class Game extends App {
 
   get state() {
     const state = []
-    allPiles.forEach((pile) => spellCore.append(state, pile.state))
+    allPiles.forEach((pile) => core.append(state, pile.state))
     return state
   }
 
@@ -38,22 +39,22 @@ export class Game extends App {
           ),
           h("tbody",
             h("tr",
-              h("td", () => spellCore.drawThing(stock)),
-              h("td", () => spellCore.drawThing(discards)),
+              h("td", () => core.drawThing(stock)),
+              h("td", () => core.drawThing(discards)),
               h("td"),
-              h("td", () => spellCore.drawThing(foundations.firstItem)),
-              h("td", () => spellCore.drawThing(foundations.getItem(1))),
-              h("td", () => spellCore.drawThing(foundations.getItem(2))),
-              h("td", () => spellCore.drawThing(foundations.getItem(3)))
+              h("td", () => core.drawThing(foundations.firstItem)),
+              h("td", () => core.drawThing(foundations.getItem(1))),
+              h("td", () => core.drawThing(foundations.getItem(2))),
+              h("td", () => core.drawThing(foundations.getItem(3)))
             ),
             h("tr",
-              h("td", () => spellCore.drawThing(tableaus.firstItem)),
-              h("td", () => spellCore.drawThing(tableaus.getItem(1))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(2))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(3))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(4))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(5))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(6)))
+              h("td", () => core.drawThing(tableaus.firstItem)),
+              h("td", () => core.drawThing(tableaus.getItem(1))),
+              h("td", () => core.drawThing(tableaus.getItem(2))),
+              h("td", () => core.drawThing(tableaus.getItem(3))),
+              h("td", () => core.drawThing(tableaus.getItem(4))),
+              h("td", () => core.drawThing(tableaus.getItem(5))),
+              h("td", () => core.drawThing(tableaus.getItem(6)))
             )
           )
         )
@@ -82,7 +83,7 @@ export class StockPile extends Pile {
   draw() {
     return h("div", { class: "Pile Stock stacked" },
       h("div", { class: "Placeholder ui button basic compact fluid", onClick: () => playFromTheStockPile() }),
-      () => spellCore.drawThing(this.lastItem)
+      () => core.drawThing(this.lastItem)
     )
   }
 }
@@ -95,7 +96,7 @@ export class DiscardPile extends Pile {
   }
 
   draw() {
-    return h("div", { class: "Pile Discards stacked" }, () => spellCore.drawThing(this.lastItem))
+    return h("div", { class: "Pile Discards stacked" }, () => core.drawThing(this.lastItem))
   }
 }
 export let discards
@@ -123,7 +124,7 @@ export class Foundation extends Pile {
       h("div", { class: () => `Placeholder ui button basic compact fluid ${color} ${this.name}` },
         h("div", { class: () => `suit ${this.name}` }, () => this.symbol)
       ),
-      () => spellCore.drawThing(this.lastItem)
+      () => core.drawThing(this.lastItem)
     )
   }
 }
@@ -144,7 +145,7 @@ export class Tableau extends Pile {
   }
 
   draw() {
-    return h("div", { class: "Pile Tableau staggered" }, () => spellCore.drawItems(this))
+    return h("div", { class: "Pile Tableau staggered" }, () => core.drawItems(this))
   }
 }
 
@@ -170,26 +171,26 @@ export function dealTheCards(...args) {
 
 Card.prototype.play = async function () {
   const startPile = this.pile
-  if (!spellCore.canGiveUp(startPile, this)) return false
+  if (!core.canGiveUp(startPile, this)) return false
 
   if (startPile === stock) {
     playFromTheStockPile()
     return
   }
 
-  const endPile = allPiles.filter((pile) => pile.droppable && spellCore.canTake(pile, this)).firstItem
+  const endPile = allPiles.filter((pile) => pile.droppable && core.canTake(pile, this)).firstItem
   if (endPile === undefined) return false
 
   const cardsToMove = startPile.startingWith(this)
   cardsToMove.name = startPile.name
-  spellCore.console.log(`moving (${cardsToMove.state}) to (${endPile.state})`)
+  core.console.log(`moving (${cardsToMove.state}) to (${endPile.state})`)
 
-  cardsToMove.forEach((card) => spellCore.move(card, endPile))
+  cardsToMove.forEach((card) => core.move(card, endPile))
 
   if (startPile instanceof Tableau && !startPile.isEmpty) {
-    await spellCore.pauseFor(200, "msec")
+    await core.pauseFor(200, "msec")
     const it = startPile.lastItem
-    spellCore.console.log(`turning over (${startPile.name}: ${it?.state})`)
+    core.console.log(`turning over (${startPile.name}: ${it?.state})`)
     it?.turnFaceUp()
   }
 
@@ -211,7 +212,7 @@ export function cheat(...args) {
 }
 
 // -----------
-spellCore.installStyles(undefined, `/* File styles.css */¬.Card {¬	position: relative;¬	height: 30px;¬}¬¬.Card .suit {¬	position: relative;¬	font-size: 1.5rem;¬	padding-left: 1px;¬	vertical-align: top;¬	top: -0.15rem;¬}¬¬.Pile {¬	position: relative;¬	min-height: 30px;¬}¬¬.Pile.Tableau {¬	min-height: 500px;¬}¬¬.Pile.stacked .Card {¬	position: absolute;¬	left: 0;¬	top: 0;¬}¬¬.Pile.staggered .Card {¬	margin-bottom: 8px !important;¬}¬¬.Pile > .Placeholder {¬	position: relative;¬	height: 30px;¬}¬¬.Pile > .Placeholder .suit {¬	position: relative;¬	font-size: 1.6rem;¬}¬¬.Pile > .Placeholder .suit.diamonds,¬.Pile > .Placeholder .suit.spades {¬	font-size: 1.75rem;¬	top: -0.1rem;¬}`)
+core.installStyles(undefined, `/* File styles.css */¬.Card {¬	position: relative;¬	height: 30px;¬}¬¬.Card .suit {¬	position: relative;¬	font-size: 1.5rem;¬	padding-left: 1px;¬	vertical-align: top;¬	top: -0.15rem;¬}¬¬.Pile {¬	position: relative;¬	min-height: 30px;¬}¬¬.Pile.Tableau {¬	min-height: 500px;¬}¬¬.Pile.stacked .Card {¬	position: absolute;¬	left: 0;¬	top: 0;¬}¬¬.Pile.staggered .Card {¬	margin-bottom: 8px !important;¬}¬¬.Pile > .Placeholder {¬	position: relative;¬	height: 30px;¬}¬¬.Pile > .Placeholder .suit {¬	position: relative;¬	font-size: 1.6rem;¬}¬¬.Pile > .Placeholder .suit.diamonds,¬.Pile > .Placeholder .suit.spades {¬	font-size: 1.75rem;¬	top: -0.1rem;¬}`)
 
 /** Binds each thing the program keeps, from Python's state. */
 export function adopt(state) {

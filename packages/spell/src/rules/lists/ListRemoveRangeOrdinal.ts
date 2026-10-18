@@ -6,7 +6,7 @@ import { lists } from "./lists.parser"
 
 /**
  * `list_remove_range_ordinal` rule:  remove range of items from list using ordinal words for both ends,
- * e.g. `remove first to third cards of the deck` => `spellCore.removeRangeBetween(deck, 0, 3)`.
+ * e.g. `remove first to third cards of the deck` => `core.removeRangeBetween(deck, 0, 3)`.
  * - `{arg}` (e.g. `cards`) captured for readability only, unused in output.
  */
 export class ListRemoveRangeOrdinal extends SpellStatement<"start|end|arg|list"> {
@@ -28,7 +28,7 @@ lists.addRule(ListRemoveRangeOrdinal, {
       beforeEach(scope: P.Scope) {
         scope.variables?.add("deck")
       },
-      tests: [["remove first to third cards of the deck", "spellCore.removeRangeBetween(deck, 0, 3)"]]
+      tests: [["remove first to third cards of the deck", "core.removeRangeBetween(deck, 0, 3)"]]
     }
   ]
 })

@@ -18,7 +18,7 @@ core.filter(words, lambda word: len(word) > 3)
   `lambda card: card.rank == "queen"` is called with the card alone.
 - A collection that's `None` warns on `core.console`, and gives nothing, `False` or `0`, as the JavaScript core does.
 - The twins of the JavaScript core's `collection-core.ts` and `collection-other.ts`, in snake_case:
-  `spellCore.getItemAt()` is `core.get_item_at()`.
+  `core.getItemAt()` is `core.get_item_at()`.
 """
 
 import inspect
@@ -43,7 +43,7 @@ Key = Any
 class CollectionMethods:
     """`core`'s list words:  `get_item_at()`, `filter()`, `range_between()`, `randomize()` ..."""
 
-    # where a bad call warns:  `SpellCore` sets it
+    # where a bad call warns:  `Core` sets it
     console: "SpellConsole"
 
     ################
@@ -640,7 +640,7 @@ class CollectionMethods:
                 continue
         return best
 
-    # from `TypeMethods` and `RandomMethods`, which `SpellCore` mixes in beside us
+    # from `TypeMethods` and `RandomMethods`, which `Core` mixes in beside us
     if TYPE_CHECKING:
 
         def is_array_like(self, thing: object) -> bool: ...

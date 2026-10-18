@@ -8,7 +8,7 @@
  * export class CardElement extends SpellElement<Card> {
  *   @E.proto static vocabulary = SpellElement.vocabularyFor("solitaire-card", "card", [...])
  * }
- * spellCore.useElement(Card, CardElement)
+ * core.useElement(Card, CardElement)
  * ```
  *
  * - `SpellElement`:  the element every drawable thing draws as, which the class builds on.

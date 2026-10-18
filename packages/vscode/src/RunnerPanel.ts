@@ -294,7 +294,7 @@ export class RunnerPanel {
    *   - scripts:  the bundle's lazy chunks
    *     - `@spell-app/ui`'s families and runtime, emoji data, each icon pack's `pack.js`
    *   - fetching:  the runtime's source, for its copy, and the icons' SVG files
-   *   - inline styles:  `spellCore.installStyles()` adds them, and `<ui-*>` elements set inline styles
+   *   - inline styles:  `core.installStyles()` adds them, and `<ui-*>` elements set inline styles
    *     (their sheets are constructable, adopted by their shadow roots)
    * - NOTE: `semantic.min.css` `@import`s Lato from Google, which the CSP blocks -- harmless, we load our own.
    */

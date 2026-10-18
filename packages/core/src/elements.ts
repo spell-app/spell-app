@@ -1,28 +1,28 @@
 /**
  * A drawable thing's own custom element:  `a card is a drawable thing` in a solitaire app is `<solitaire-card>`.
  * - A drawable class defines its element as it's declared, in a static field spell writes in it:
- *   `static elementTag = spellCore.defineElement(this, "Solitaire")` -- so before the program draws anything.
+ *   `static elementTag = core.defineElement(this, "Solitaire")` -- so before the program draws anything.
  * - Core only names the tag and keeps it on the class.
  *   - The element itself is Spell UI's, made by the page running the program.
- *   - The page plugs in through `spellCore.elementDefiner`, which app's `SpellElement.tsx` fills in.
+ *   - The page plugs in through `core.elementDefiner`, which app's `SpellElement.tsx` fills in.
  *   - Why:  core never imports Spell UI.
  *   - No definer (a runner without Spell UI, a test):  the tag is named, nothing is defined.
  * - Compiled TypeScript also writes each type's element class, and hands it over (P10):
- *   `spellCore.useElement(Card, CardElement)`.
+ *   `core.useElement(Card, CardElement)`.
  *   The page builds the tag on that class.
- * - Part of `spellCore`:  imported by `$/core`'s barrel for its side effect.
+ * - Part of `core`:  imported by `$/core`'s barrel for its side effect.
  */
 
 import { elementTagFor, instanceCase, schemaOf, type Schema } from "$/util"
 
-import { spellCore } from "./core"
-import { defineSpellCoreModule } from "./spellCore.types"
+import { core } from "./core"
+import { defineCoreModule } from "./core.types"
 import { Drawable } from "./classes/Drawable"
 import { DrawableList } from "./classes/DrawableList"
 import { List } from "./classes/List"
 
-/** `spellCore`'s methods for drawable things' elements. */
-export const elementsMethods = defineSpellCoreModule({
+/** `core`'s methods for drawable things' elements. */
+export const elementsMethods = defineCoreModule({
   /**
    * How the page defines the element for a drawable class -- `undefined` until the page running programs sets it.
    * - app's `SpellElement.tsx` sets it, for every runner:  it builds a Spell UI component for the tag.
@@ -33,7 +33,7 @@ export const elementsMethods = defineSpellCoreModule({
   /**
    * Name the element of drawable class `Class`, in project `project`, e.g. `<solitaire-card>` -- its tag.
    * - What a drawable class's static field calls as it's declared:
-   *   `static elementTag = spellCore.defineElement(this, "Solitaire")`.
+   *   `static elementTag = core.defineElement(this, "Solitaire")`.
    * - The page's `elementDefiner` hears of it once its class is whole:
    *   when one of its things is first drawn (`elementFor()`), else in a microtask.
    *   Not now:  the class's later statics, e.g. its `css`, aren't set yet.
@@ -51,7 +51,7 @@ export const elementsMethods = defineSpellCoreModule({
   /**
    * Hand the page `ElementClass`, the element class compiled TypeScript writes for drawable class `Class`
    * (epic `drawable-thing` P10, J41):
-   * `spellCore.useElement(Card, CardElement)`, right after `class CardElement extends SpellElement<Card>`.
+   * `core.useElement(Card, CardElement)`, right after `class CardElement extends SpellElement<Card>`.
    * - The page's `elementDefiner` builds `Class`'s tag on it, instead of on a bare element of its own.
    *   So the page stays the ONE place a tag is defined:  the compiled class never calls `define()`.
    * - Must come before the page's definer hears of `Class`:
@@ -83,8 +83,8 @@ export const elementsMethods = defineSpellCoreModule({
    * - SIDE EFFECT:  the page's `elementDefiner` hears of its class, if it hasn't yet.
    */
   elementFor(drawable: unknown): string | undefined {
-    const tag = spellCore.elementTagOf(drawable)
-    if (!tag || !spellCore.elementDefiner) return undefined
+    const tag = core.elementTagOf(drawable)
+    if (!tag || !core.elementDefiner) return undefined
     tellDefiner((drawable as object).constructor, tag)
     return tag
   },
@@ -140,8 +140,8 @@ export const elementsMethods = defineSpellCoreModule({
    * - Reads the registry's `version`:  a reader re-runs as things are made.
    */
   thingFor(Class: Function, id?: string): object | undefined {
-    if (id !== undefined) return spellCore.thingCalled(Class as abstract new () => object, id)
-    const things = spellCore.things.all().filter((thing) => thing.constructor === Class)
+    if (id !== undefined) return core.thingCalled(Class as abstract new () => object, id)
+    const things = core.things.all().filter((thing) => thing.constructor === Class)
     return things.length === 1 ? things[0] : undefined
   },
 
@@ -151,7 +151,7 @@ export const elementsMethods = defineSpellCoreModule({
     return (drawable.constructor as { [ELEMENT_TAG]?: string })[ELEMENT_TAG]
   }
 })
-Object.assign(spellCore, elementsMethods)
+Object.assign(core, elementsMethods)
 
 // where every side names a drawable type's tag alike:  core, app's `SpellElement`, the TypeScript writer
 export { elementTagFor }
@@ -186,7 +186,7 @@ export function css(strings: TemplateStringsArray, ...values: unknown[]): string
 }
 
 /**
- * What a drawable class shows on the outside of its element -- see `spellCore.elementApiOf()`.
+ * What a drawable class shows on the outside of its element -- see `core.elementApiOf()`.
  */
 export type ElementApi = {
   /**
@@ -214,13 +214,13 @@ export type ElementApi = {
  *   - exclusive, the root of its family:  `Pile.exclusive = true`
  *   - for items of `Class`, or of a type it extends:  `Pile.instanceType = Card`
  *   - read by a getter on `Class`'s things, named as spell names it:  `pile`
- * - Only the list classes the program's registry knows of so far (`spellCore.things.knownClasses()`):
+ * - Only the list classes the program's registry knows of so far (`core.things.knownClasses()`):
  *   a class is known once one of its things is made, or the program has run.
  *   - A drawable class's element asks once the program's code has run, so in practice they're all known.
  */
 function ownerPropertiesOf(Class: Function): ElementApi["properties"] {
   const owners: ElementApi["properties"] = []
-  for (const ListClass of spellCore.things.knownClasses()) {
+  for (const ListClass of core.things.knownClasses()) {
     const { exclusive, instanceType } = ListClass as unknown as { exclusive?: boolean; instanceType?: unknown }
     if (!(ListClass.prototype instanceof List) || !Object.hasOwn(ListClass, "exclusive") || !exclusive) continue
     if (typeof instanceType !== "function") continue
@@ -251,9 +251,9 @@ const DEFINED = new WeakSet<Function>()
 
 /** Tell the page's `elementDefiner` of drawable class `Class`, as tag `tag` -- once. */
 function tellDefiner(Class: Function, tag: string): void {
-  if (DEFINED.has(Class) || !spellCore.elementDefiner) return
+  if (DEFINED.has(Class) || !core.elementDefiner) return
   DEFINED.add(Class)
-  spellCore.elementDefiner(tag, Class)
+  core.elementDefiner(tag, Class)
 }
 
 /** Is `value` a class of drawable things:  `Drawable`, `DrawableList`, or below them? */
@@ -264,7 +264,7 @@ function isDrawableClass(value: unknown): value is Function {
 }
 
 /**
- * How the page defines the element for drawable class `Class`, as tag `tag` -- see `spellCore.elementDefiner`.
+ * How the page defines the element for drawable class `Class`, as tag `tag` -- see `core.elementDefiner`.
  * - Called again for the same tag when a program runs again:  the new class takes the tag over.
  */
 export type ElementDefiner = (tag: string, Class: Function) => void

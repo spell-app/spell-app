@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach } from "vite-plus/test"
 import { renderToString } from "@solidjs/web"
 
-import { spellCore, Thing, List } from "$/core"
+import { core, Thing, List } from "$/core"
 import type { ThingOrder } from "$/app/ui/ui.types"
 import type { SP } from "$/spell"
 import { ThingExplorer, memberWords } from "$/app/solid/ThingExplorer"
@@ -52,11 +52,9 @@ class Pile extends List {
 /** A sub-type of it. */
 class Foundation extends Pile {}
 
-/** `<ThingExplorer>` of the page's `spellCore.things`, drawn as HTML -- with `words`, if given. */
+/** `<ThingExplorer>` of the page's `core.things`, drawn as HTML -- with `words`, if given. */
 function draw(order: ThingOrder, selected?: string, open = ["top", "all", "type:Pile"], words?: SP.SpellWordsData) {
-  return renderToString(() => (
-    <ThingExplorer things={spellCore.things} words={words} state={{ order, open, selected }} />
-  ))
+  return renderToString(() => <ThingExplorer things={core.things} words={words} state={{ order, open, selected }} />)
 }
 
 /** Card's and Pile's words, as their `<Project>.en.js` would hold them -- see `SP.SpellWords`. */
@@ -83,7 +81,7 @@ function treeLines(html: string): string[] {
 
 describe("<ThingExplorer> (Solid)", () => {
   beforeEach(() => {
-    spellCore.resetRuntime()
+    core.resetRuntime()
   })
 
   test("says to run the project, before it's made anything", () => {
@@ -93,7 +91,7 @@ describe("<ThingExplorer> (Solid)", () => {
   test("document order:  top-level things, then all of them in the order made -- type and name, no number", () => {
     const clubs = new Foundation({ name: "clubs" })
     new Card({ rank: "queen", pile: clubs })
-    spellCore.things.setTopLevel({ clubs, all_piles: new List({}) })
+    core.things.setTopLevel({ clubs, all_piles: new List({}) })
     expect(treeLines(draw("document"))).toEqual([
       "Top level (2)",
       "Foundation clubs",
@@ -106,10 +104,10 @@ describe("<ThingExplorer> (Solid)", () => {
 
   test("document order:  a marker for each heading whose code made them -- NOT by type", () => {
     new Card({ rank: "queen" })
-    spellCore.heading("set up all piles")
+    core.heading("set up all piles")
     new Pile({ name: "stock" })
     new Foundation({ name: "clubs" })
-    spellCore.heading("deal")
+    core.heading("deal")
     new Card({ rank: "king" })
     const markers = (html: string) => [...html.matchAll(/class="SectionMarker[^"]*"[^>]*>([^<]*)</g)].map((it) => it[1])
     expect(markers(draw("document"))).toEqual(["set up all piles", "deal"])

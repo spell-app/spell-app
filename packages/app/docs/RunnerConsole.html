@@ -80,7 +80,7 @@
                     function output() {
                       return (
                         <Show when={loaded()} keyed>
-                          {(copy) => <RunnerConsole console={copy.runtime.spellCore.console} />}
+                          {(copy) => <RunnerConsole console={copy.runtime.core.console} />}
                         </Show>
                       )
                     }

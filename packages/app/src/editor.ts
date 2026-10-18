@@ -308,7 +308,7 @@ export class EditorStore extends Observable {
     const { project, file } = editor
     if (!project || !file) return
 
-    const output = (await editor.loadRuntime()).spellCore.console
+    const output = (await editor.loadRuntime()).core.console
     output.clear()
     try {
       output.group("Compiling", project)
@@ -365,7 +365,7 @@ export class EditorStore extends Observable {
     const compiled = project?.outputFile.contents ?? project?.compiled
     if (!project || !compiled) return
     const runtime = await editor.loadRuntime()
-    const output = runtime.spellCore.console
+    const output = runtime.core.console
     output.group(`Executing ${project.type}`)
     const keepThings = !editor.startAfresh && editor.lastExecutedPath === project.path
     editor.startAfresh = false
@@ -403,7 +403,7 @@ export class EditorStore extends Observable {
 
   /**
    * Has the runtime programs run on loaded?  See `loadRuntime()`.
-   * - The runtime itself is NOT spell state:  read it with `runtimeSpellCore()` / `runtimeConsole()`.
+   * - The runtime itself is NOT spell state:  read it with `runtimeCore()` / `runtimeConsole()`.
    */
   @prop({ type: "choice", default: false })
   accessor runtimeLoaded!: boolean
@@ -419,7 +419,7 @@ export class EditorStore extends Observable {
   loadRuntime(): Promise<SpellRuntime> {
     loadingRuntime ??= (import(/* @vite-ignore */ runtimeUrl()) as Promise<SpellRuntime>).then((runtime) => {
       appRuntime = runtime
-      SP.SpellFile.errorConsole = runtime.spellCore.console
+      SP.SpellFile.errorConsole = runtime.core.console
       editor.runtimeLoaded = true
       return runtime
     })
@@ -751,18 +751,18 @@ let loadingRuntime: Promise<SpellRuntime> | undefined
 let appRoot: HTMLElement | undefined
 
 /**
- * `spellCore` of the runtime programs run on -- `undefined` until it's loaded, see `editor.loadRuntime()`.
+ * `core` of the runtime programs run on -- `undefined` until it's loaded, see `editor.loadRuntime()`.
  * - NOT an import of `$/core`:  the app MUST NOT load one of its own, see `spellRuntime.ts`.
  * - A function, NOT a getter on `editor`:  callers outside the editor read it too.
  * - Reads `editor.runtimeLoaded`, so a reader calling it re-runs once it's loaded.
  */
-export function runtimeSpellCore(): SpellRuntime["spellCore"] | undefined {
-  return editor.runtimeLoaded ? appRuntime?.spellCore : undefined
+export function runtimeCore(): SpellRuntime["core"] | undefined {
+  return editor.runtimeLoaded ? appRuntime?.core : undefined
 }
 
-/** Console programs print to -- where the editor says what it's compiling, too.  See `runtimeSpellCore()`. */
+/** Console programs print to -- where the editor says what it's compiling, too.  See `runtimeCore()`. */
 export function runtimeConsole(): SpellConsole | undefined {
-  return runtimeSpellCore()?.console
+  return runtimeCore()?.console
 }
 
 /** Monaco editor of our `<InputEditor>`, if one's mounted -- NOT spell state, see `editor.getInputEditor()`. */

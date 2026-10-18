@@ -6,7 +6,7 @@ import { expressions } from "./expressions.parser"
 
 /**
  * `exists` rule:  `{lhs} exists`/`does not exist` postfix, e.g. `thing exists`.
- * - Same underlying `spellCore.isDefined()` as `is_defined`, just different surface syntax.
+ * - Same underlying `core.isDefined()` as `is_defined`, just different surface syntax.
  */
 export class Exists extends PostfixOperatorSuffix {
   @proto static precedence = Precedence.comparison

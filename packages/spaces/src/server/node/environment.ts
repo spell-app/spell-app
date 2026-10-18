@@ -18,8 +18,8 @@ const repoDir = resolve(packagesDir, "..")
 const buildDir = process.env.SPELL_BUILD_DIR ? resolve(process.env.SPELL_BUILD_DIR) : resolve(repoDir, "build")
 /** `spell`'s `src/`. */
 const srcDir = resolve(packagesDir, "spell", "src")
-/** `core`'s `src/`:  the runtime, and its built-in types' scope pack (`spellCore.scopes.js`). */
-const spellCoreDir = resolve(packagesDir, "core", "src")
+/** `core`'s `src/`:  the runtime, and its built-in types' scope pack (`core.scopes.js`). */
+const coreDir = resolve(packagesDir, "core", "src")
 /** `app`'s `static/`:  fonts and css the app serves. */
 const staticDir = resolve(packagesDir, "app", "static")
 
@@ -69,7 +69,7 @@ const environment = {
   packagesDir,
   repoDir,
   buildDir,
-  spellCoreDir,
+  coreDir,
   staticDir,
   spellSpacesDir,
   spaceFolders,

@@ -33,8 +33,8 @@ UI.addRule(Prompt, {
     {
       compileAs: "statement",
       tests: [
-        [`prompt "Name for the new baby?"`, `await spellCore.prompt("Name for the new baby?")`],
-        [`prompt "File name:" with "Untitled"`, `await spellCore.prompt("File name:", "Untitled")`]
+        [`prompt "Name for the new baby?"`, `await core.prompt("Name for the new baby?")`],
+        [`prompt "File name:" with "Untitled"`, `await core.prompt("File name:", "Untitled")`]
       ]
     }
   ]
@@ -47,7 +47,7 @@ UI.addRule(Prompt, {
 //       name: "choose_one",
 //       alias: "statement",
 //       syntax: "choose ((a|an)? {singular_identifier} (from|of)|one of) {collection:expression} with (prompt|message)? {message:expression}",
-//          => `await spellCore.chooseOne(message, list, defaultValue)`
+//          => `await core.chooseOne(message, list, defaultValue)`
 //     },
 
 // Chose one or more items from `collection` (of strings???)
@@ -57,5 +57,5 @@ UI.addRule(Prompt, {
 //       name: "choose_multiple",
 //       alias: "statement",
 //       syntax: "choose multiple {plural_identifier} (of|from) {collection:expression} with (prompt|message)? {message:expression}",
-//          => `await spellCore.chooseMultiple(message, list, defaultValues)`
+//          => `await core.chooseMultiple(message, list, defaultValues)`
 //     }

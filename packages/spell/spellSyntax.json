@@ -763,10 +763,10 @@
               "example": "thing is the same type as other",
               "outputs": {
                 "js": {
-                  "code": "spellCore.matchesType(thing, other)"
+                  "code": "core.matchesType(thing, other)"
                 },
                 "ts": {
-                  "code": "spellCore.matchesType(thing, other)"
+                  "code": "core.matchesType(thing, other)"
                 },
                 "py": {
                   "code": "core.matches_type(thing, other)"
@@ -789,10 +789,10 @@
               "example": "thing is in theList",
               "outputs": {
                 "js": {
-                  "code": "spellCore.includes(theList, thing)"
+                  "code": "core.includes(theList, thing)"
                 },
                 "ts": {
-                  "code": "spellCore.includes(theList, thing)"
+                  "code": "core.includes(theList, thing)"
                 },
                 "py": {
                   "code": "core.includes(the_list, thing)"
@@ -804,10 +804,10 @@
               "example": "thing is green or blue",
               "outputs": {
                 "js": {
-                  "code": "spellCore.includes([\"green\", \"blue\"], thing)"
+                  "code": "core.includes([\"green\", \"blue\"], thing)"
                 },
                 "ts": {
-                  "code": "spellCore.includes([\"green\", \"blue\"], thing)"
+                  "code": "core.includes([\"green\", \"blue\"], thing)"
                 },
                 "py": {
                   "code": "thing in [\"green\", \"blue\"]"
@@ -830,10 +830,10 @@
               "example": "theList includes thing",
               "outputs": {
                 "js": {
-                  "code": "spellCore.includes(theList, thing)"
+                  "code": "core.includes(theList, thing)"
                 },
                 "ts": {
-                  "code": "spellCore.includes(theList, thing)"
+                  "code": "core.includes(theList, thing)"
                 },
                 "py": {
                   "code": "core.includes(the_list, thing)"
@@ -856,10 +856,10 @@
               "example": "theList does not include thing",
               "outputs": {
                 "js": {
-                  "code": "!spellCore.includes(theList, thing)"
+                  "code": "!core.includes(theList, thing)"
                 },
                 "ts": {
-                  "code": "!spellCore.includes(theList, thing)"
+                  "code": "!core.includes(theList, thing)"
                 },
                 "py": {
                   "code": "not core.includes(the_list, thing)"
@@ -934,10 +934,10 @@
               "example": "thing is empty",
               "outputs": {
                 "js": {
-                  "code": "spellCore.isEmpty(thing)"
+                  "code": "core.isEmpty(thing)"
                 },
                 "ts": {
-                  "code": "spellCore.isEmpty(thing)"
+                  "code": "core.isEmpty(thing)"
                 },
                 "py": {
                   "code": "core.is_empty(thing)"
@@ -1081,10 +1081,10 @@
               "example": "the absolute value of the difference",
               "outputs": {
                 "js": {
-                  "code": "spellCore.absoluteValue(difference)"
+                  "code": "core.absoluteValue(difference)"
                 },
                 "ts": {
-                  "code": "spellCore.absoluteValue(difference)"
+                  "code": "core.absoluteValue(difference)"
                 },
                 "py": {
                   "code": "core.absolute_value(difference)"
@@ -1107,10 +1107,10 @@
               "example": "largest of the prices",
               "outputs": {
                 "js": {
-                  "code": "spellCore.largestOf(prices)"
+                  "code": "core.largestOf(prices)"
                 },
                 "ts": {
-                  "code": "spellCore.largestOf(prices)"
+                  "code": "core.largestOf(prices)"
                 },
                 "py": {
                   "code": "core.largest_of(prices)"
@@ -1133,10 +1133,10 @@
               "example": "smallest of prices",
               "outputs": {
                 "js": {
-                  "code": "spellCore.smallestOf(prices)"
+                  "code": "core.smallestOf(prices)"
                 },
                 "ts": {
-                  "code": "spellCore.smallestOf(prices)"
+                  "code": "core.smallestOf(prices)"
                 },
                 "py": {
                   "code": "core.smallest_of(prices)"
@@ -1382,10 +1382,10 @@
               "example": "get a new card\nprint its short rank",
               "outputs": {
                 "js": {
-                  "code": "const it = new Card()\nspellCore.console.log(it.shortRank)"
+                  "code": "const it = new Card()\ncore.console.log(it.shortRank)"
                 },
                 "ts": {
-                  "code": "const it = new Card()\nspellCore.console.log(it.shortRank)"
+                  "code": "const it = new Card()\ncore.console.log(it.shortRank)"
                 },
                 "py": {
                   "code": "it = Card()\ncore.console.log(it.short_rank)"
@@ -1434,10 +1434,10 @@
               "example": "its third foo",
               "outputs": {
                 "js": {
-                  "code": "spellCore.getItemAt(it, 2)"
+                  "code": "core.getItemAt(it, 2)"
                 },
                 "ts": {
-                  "code": "spellCore.getItemAt(it, 2)"
+                  "code": "core.getItemAt(it, 2)"
                 },
                 "py": {
                   "code": "core.get_item_at(it, 2)"
@@ -1606,17 +1606,17 @@
           "internal": false,
           "file": "packages/spell/src/rules/lists/CopyList.ts",
           "line": 12,
-          "purpose": "Duplicate a list, e.g. `a copy of the piles` => `spellCore.duplicateList(piles)`.",
+          "purpose": "Duplicate a list, e.g. `a copy of the piles` => `core.duplicateList(piles)`.",
           "syntaxes": [
             {
               "syntax": "a (copy|duplicate) of list? {expression:operand} (as (a|an) {type:known_type})?",
               "example": "a copy of the piles",
               "outputs": {
                 "js": {
-                  "code": "spellCore.duplicateList(piles)"
+                  "code": "core.duplicateList(piles)"
                 },
                 "ts": {
-                  "code": "spellCore.duplicateList(piles)"
+                  "code": "core.duplicateList(piles)"
                 },
                 "py": {
                   "code": "core.duplicate_list(piles)"
@@ -1632,17 +1632,17 @@
           "internal": false,
           "file": "packages/spell/src/rules/lists/MergeLists.ts",
           "line": 12,
-          "purpose": "Merge a set of lists together, e.g. `merge the piles` => `spellCore.mergeLists(piles)`.",
+          "purpose": "Merge a set of lists together, e.g. `merge the piles` => `core.mergeLists(piles)`.",
           "syntaxes": [
             {
               "syntax": "merge lists? {expression:operand} ((as|into) (a|an) new? {type:known_type})?",
               "example": "merge the piles",
               "outputs": {
                 "js": {
-                  "code": "spellCore.mergeLists(piles)"
+                  "code": "core.mergeLists(piles)"
                 },
                 "ts": {
-                  "code": "spellCore.mergeLists(piles)"
+                  "code": "core.mergeLists(piles)"
                 },
                 "py": {
                   "code": "core.merge_lists(piles)"
@@ -1658,17 +1658,17 @@
           "internal": false,
           "file": "packages/spell/src/rules/lists/ListLength.ts",
           "line": 19,
-          "purpose": "Return length of a list, e.g. `number of items in my-list` => `spellCore.itemCountOf(myList)`.",
+          "purpose": "Return length of a list, e.g. `number of items in my-list` => `core.itemCountOf(myList)`.",
           "syntaxes": [
             {
               "syntax": "the? number of {arg:plural_identifier} (in|of) {list:operand}",
               "example": "number of items in my-list",
               "outputs": {
                 "js": {
-                  "code": "spellCore.itemCountOf(myList)"
+                  "code": "core.itemCountOf(myList)"
                 },
                 "ts": {
-                  "code": "spellCore.itemCountOf(myList)"
+                  "code": "core.itemCountOf(myList)"
                 },
                 "py": {
                   "code": "core.item_count_of(my_list)"
@@ -1680,10 +1680,10 @@
               "example": "the number of items in my-list where its id > 1",
               "outputs": {
                 "js": {
-                  "code": "spellCore.itemCountOf(spellCore.filter(myList, (item) => item.id > 1))"
+                  "code": "core.itemCountOf(core.filter(myList, (item) => item.id > 1))"
                 },
                 "ts": {
-                  "code": "spellCore.itemCountOf(spellCore.filter(myList, (item) => item.id > 1))"
+                  "code": "core.itemCountOf(core.filter(myList, (item) => item.id > 1))"
                 },
                 "py": {
                   "code": "core.item_count_of(core.filter(my_list, lambda item: item.id > 1))"
@@ -1699,17 +1699,17 @@
           "internal": false,
           "file": "packages/spell/src/rules/lists/ListCount.ts",
           "line": 15,
-          "purpose": "Length of something KNOWN to be a list, without naming its items, e.g. `the number of card suits` => `spellCore.itemCountOf(Card.Suits)`.",
+          "purpose": "Length of something KNOWN to be a list, without naming its items, e.g. `the number of card suits` => `core.itemCountOf(Card.Suits)`.",
           "syntaxes": [
             {
               "syntax": "the? number of {list:operand}",
               "example": "the number of card suits",
               "outputs": {
                 "js": {
-                  "code": "spellCore.itemCountOf(Card.Suits)"
+                  "code": "core.itemCountOf(Card.Suits)"
                 },
                 "ts": {
-                  "code": "spellCore.itemCountOf(Card.Suits)"
+                  "code": "core.itemCountOf(Card.Suits)"
                 },
                 "py": {
                   "code": "core.item_count_of(Card.SUITS)"
@@ -1758,10 +1758,10 @@
               "example": "item 1 of my-list",
               "outputs": {
                 "js": {
-                  "code": "spellCore.getItemAt(myList, 0)"
+                  "code": "core.getItemAt(myList, 0)"
                 },
                 "ts": {
-                  "code": "spellCore.getItemAt(myList, 0)"
+                  "code": "core.getItemAt(myList, 0)"
                 },
                 "py": {
                   "code": "core.get_item_at(my_list, 0)"
@@ -1784,10 +1784,10 @@
               "example": "the first item of my-list",
               "outputs": {
                 "js": {
-                  "code": "spellCore.getItemAt(myList, 0)"
+                  "code": "core.getItemAt(myList, 0)"
                 },
                 "ts": {
-                  "code": "spellCore.getItemAt(myList, 0)"
+                  "code": "core.getItemAt(myList, 0)"
                 },
                 "py": {
                   "code": "core.get_item_at(my_list, 0)"
@@ -1810,10 +1810,10 @@
               "example": "a random item of my-list",
               "outputs": {
                 "js": {
-                  "code": "spellCore.randomItemOf(myList)"
+                  "code": "core.randomItemOf(myList)"
                 },
                 "ts": {
-                  "code": "spellCore.randomItemOf(myList)"
+                  "code": "core.randomItemOf(myList)"
                 },
                 "py": {
                   "code": "core.random_item_of(my_list)"
@@ -1836,10 +1836,10 @@
               "example": "2 random items of my-list",
               "outputs": {
                 "js": {
-                  "code": "spellCore.randomItemsOf(myList, 2)"
+                  "code": "core.randomItemsOf(myList, 2)"
                 },
                 "ts": {
-                  "code": "spellCore.randomItemsOf(myList, 2)"
+                  "code": "core.randomItemsOf(myList, 2)"
                 },
                 "py": {
                   "code": "core.random_items_of(my_list, 2)"
@@ -1855,17 +1855,17 @@
           "internal": false,
           "file": "packages/spell/src/rules/lists/RangeBetweenExpression.ts",
           "line": 14,
-          "purpose": "Range expression: e.g. `item 1 to 2 of my-list` => `spellCore.rangeBetween(myList, 0, 2)`.",
+          "purpose": "Range expression: e.g. `item 1 to 2 of my-list` => `core.rangeBetween(myList, 0, 2)`.",
           "syntaxes": [
             {
               "syntax": "{arg:variable} {start:expression} to {end:expression} (of|in|from) {list:operand}",
               "example": "item 1 to 2 of my-list",
               "outputs": {
                 "js": {
-                  "code": "spellCore.rangeBetween(myList, 0, 2)"
+                  "code": "core.rangeBetween(myList, 0, 2)"
                 },
                 "ts": {
-                  "code": "spellCore.rangeBetween(myList, 0, 2)"
+                  "code": "core.rangeBetween(myList, 0, 2)"
                 },
                 "py": {
                   "code": "core.range_between(my_list, 0, 2)"
@@ -1888,10 +1888,10 @@
               "example": "items in my-list starting with thing",
               "outputs": {
                 "js": {
-                  "code": "spellCore.rangeStartingAt(myList, position(spellPosition(positionOf(myList, thing))))"
+                  "code": "core.rangeStartingAt(myList, position(spellPosition(positionOf(myList, thing))))"
                 },
                 "ts": {
-                  "code": "spellCore.rangeStartingAt(myList, position(spellPosition(positionOf(myList, thing))))"
+                  "code": "core.rangeStartingAt(myList, position(spellPosition(positionOf(myList, thing))))"
                 },
                 "py": {
                   "code": "core.range_starting_at(\n    my_list,\n    position(spell_position(core.position_of(my_list, thing))),\n)"
@@ -1914,10 +1914,10 @@
               "example": "top 2 items of my-list",
               "outputs": {
                 "js": {
-                  "code": "spellCore.rangeStartingAt(myList, 0, 2)"
+                  "code": "core.rangeStartingAt(myList, 0, 2)"
                 },
                 "ts": {
-                  "code": "spellCore.rangeStartingAt(myList, 0, 2)"
+                  "code": "core.rangeStartingAt(myList, 0, 2)"
                 },
                 "py": {
                   "code": "core.range_starting_at(my_list, 0, 2)"
@@ -1940,10 +1940,10 @@
               "example": "words in \"a word list\" where",
               "outputs": {
                 "js": {
-                  "code": "spellCore.filter(\"a word list\", () => {})"
+                  "code": "core.filter(\"a word list\", () => {})"
                 },
                 "ts": {
-                  "code": "spellCore.filter(\"a word list\", () => {})"
+                  "code": "core.filter(\"a word list\", () => {})"
                 },
                 "py": {
                   "code": "core.filter(\"a word list\", _each_1)"
@@ -1969,10 +1969,10 @@
               "example": "move card to tableau",
               "outputs": {
                 "js": {
-                  "code": "spellCore.move(card, tableau)"
+                  "code": "core.move(card, tableau)"
                 },
                 "ts": {
-                  "code": "spellCore.move(card, tableau)"
+                  "code": "core.move(card, tableau)"
                 },
                 "py": {
                   "code": "core.move(card, tableau)"
@@ -1995,10 +1995,10 @@
               "example": "repeat 1 time:",
               "outputs": {
                 "js": {
-                  "code": "spellCore.map(spellCore.countTo(1), () => {})"
+                  "code": "core.map(core.countTo(1), () => {})"
                 },
                 "ts": {
-                  "code": "spellCore.map(spellCore.countTo(1), () => {})"
+                  "code": "core.map(core.countTo(1), () => {})"
                 },
                 "py": {
                   "code": "for number in core.count_to(1):\n    pass"
@@ -2021,10 +2021,10 @@
               "example": "for each card in deck:",
               "outputs": {
                 "js": {
-                  "code": "spellCore.map(deck, () => {})"
+                  "code": "core.map(deck, () => {})"
                 },
                 "ts": {
-                  "code": "spellCore.map(deck, () => {})"
+                  "code": "core.map(deck, () => {})"
                 },
                 "py": {
                   "code": "for card in deck:\n    pass"
@@ -2118,17 +2118,17 @@
           "internal": false,
           "file": "packages/spell/src/rules/lists/StartsWith.ts",
           "line": 12,
-          "purpose": "Does list start with some value, e.g. `my-list starts with thing` => `spellCore.startsWith(myList, thing)`.",
+          "purpose": "Does list start with some value, e.g. `my-list starts with thing` => `core.startsWith(myList, thing)`.",
           "syntaxes": [
             {
               "syntax": "(operator:starts with|does not start with|doesnt start with|doesn't start with) {expression:operand}",
               "example": "my-list starts with thing",
               "outputs": {
                 "js": {
-                  "code": "spellCore.startsWith(myList, thing)"
+                  "code": "core.startsWith(myList, thing)"
                 },
                 "ts": {
-                  "code": "spellCore.startsWith(myList, thing)"
+                  "code": "core.startsWith(myList, thing)"
                 },
                 "py": {
                   "code": "core.starts_with(my_list, thing)"
@@ -2144,17 +2144,17 @@
           "internal": false,
           "file": "packages/spell/src/rules/lists/EndsWith.ts",
           "line": 11,
-          "purpose": "Does list end with some value, e.g. `my-list ends with thing` => `spellCore.endsWith(myList, thing)`.",
+          "purpose": "Does list end with some value, e.g. `my-list ends with thing` => `core.endsWith(myList, thing)`.",
           "syntaxes": [
             {
               "syntax": "(operator:ends with|does not end with|doesnt end with|doesn't end with) {expression:operand}",
               "example": "my-list ends with thing",
               "outputs": {
                 "js": {
-                  "code": "spellCore.endsWith(myList, thing)"
+                  "code": "core.endsWith(myList, thing)"
                 },
                 "ts": {
-                  "code": "spellCore.endsWith(myList, thing)"
+                  "code": "core.endsWith(myList, thing)"
                 },
                 "py": {
                   "code": "core.ends_with(my_list, thing)"
@@ -2202,10 +2202,10 @@
               "example": "my-list has items where",
               "outputs": {
                 "js": {
-                  "code": "spellCore.any(myList, () => {})"
+                  "code": "core.any(myList, () => {})"
                 },
                 "ts": {
-                  "code": "spellCore.any(myList, () => {})"
+                  "code": "core.any(myList, () => {})"
                 },
                 "py": {
                   "code": "core.any(my_list, _each_1)"
@@ -2228,10 +2228,10 @@
               "example": "add thing to the start of my-list",
               "outputs": {
                 "js": {
-                  "code": "spellCore.prepend(myList, thing)"
+                  "code": "core.prepend(myList, thing)"
                 },
                 "ts": {
-                  "code": "spellCore.prepend(myList, thing)"
+                  "code": "core.prepend(myList, thing)"
                 },
                 "py": {
                   "code": "core.prepend(my_list, thing)"
@@ -2247,17 +2247,17 @@
           "internal": false,
           "file": "packages/spell/src/rules/lists/ListPrepend.ts",
           "line": 8,
-          "purpose": "Prepend to list, e.g. `prepend thing to my-list` => `spellCore.prepend(myList, thing)`.",
+          "purpose": "Prepend to list, e.g. `prepend thing to my-list` => `core.prepend(myList, thing)`.",
           "syntaxes": [
             {
               "syntax": "prepend {thing:expression} to {list:expression}",
               "example": "prepend thing to my-list",
               "outputs": {
                 "js": {
-                  "code": "spellCore.prepend(myList, thing)"
+                  "code": "core.prepend(myList, thing)"
                 },
                 "ts": {
-                  "code": "spellCore.prepend(myList, thing)"
+                  "code": "core.prepend(myList, thing)"
                 },
                 "py": {
                   "code": "core.prepend(my_list, thing)"
@@ -2273,17 +2273,17 @@
           "internal": false,
           "file": "packages/spell/src/rules/lists/ListAppend.ts",
           "line": 8,
-          "purpose": "Append to list, e.g. `append thing to my-list` => `spellCore.append(myList, thing)`.",
+          "purpose": "Append to list, e.g. `append thing to my-list` => `core.append(myList, thing)`.",
           "syntaxes": [
             {
               "syntax": "append {thing:expression} to {list:expression}",
               "example": "append thing to my-list",
               "outputs": {
                 "js": {
-                  "code": "spellCore.append(myList, thing)"
+                  "code": "core.append(myList, thing)"
                 },
                 "ts": {
-                  "code": "spellCore.append(myList, thing)"
+                  "code": "core.append(myList, thing)"
                 },
                 "py": {
                   "code": "core.append(my_list, thing)"
@@ -2306,10 +2306,10 @@
               "example": "add thing to my-list before other-thing",
               "outputs": {
                 "js": {
-                  "code": "spellCore.addBefore(myList, otherThing, thing)"
+                  "code": "core.addBefore(myList, otherThing, thing)"
                 },
                 "ts": {
-                  "code": "spellCore.addBefore(myList, otherThing, thing)"
+                  "code": "core.addBefore(myList, otherThing, thing)"
                 },
                 "py": {
                   "code": "core.add_before(my_list, other_thing, thing)"
@@ -2325,17 +2325,17 @@
           "internal": false,
           "file": "packages/spell/src/rules/lists/ListEmpty.ts",
           "line": 11,
-          "purpose": "Empty a list in-place, e.g. `empty my-list` => `spellCore.clear(myList)`.",
+          "purpose": "Empty a list in-place, e.g. `empty my-list` => `core.clear(myList)`.",
           "syntaxes": [
             {
               "syntax": "(empty|clear) {list:expression}",
               "example": "empty my-list",
               "outputs": {
                 "js": {
-                  "code": "spellCore.clear(myList)"
+                  "code": "core.clear(myList)"
                 },
                 "ts": {
-                  "code": "spellCore.clear(myList)"
+                  "code": "core.clear(myList)"
                 },
                 "py": {
                   "code": "core.clear(my_list)"
@@ -2351,17 +2351,17 @@
           "internal": false,
           "file": "packages/spell/src/rules/lists/ListRemoveOrdinal.ts",
           "line": 12,
-          "purpose": "Remove one item from list by ordinal position, e.g. `remove last card of deck` => `spellCore.removeItemAt(deck, -1)`.",
+          "purpose": "Remove one item from list by ordinal position, e.g. `remove last card of deck` => `core.removeItemAt(deck, -1)`.",
           "syntaxes": [
             {
               "syntax": "remove the? {position:ordinal} {arg:singular_identifier} of {list:expression}",
               "example": "remove last card of deck",
               "outputs": {
                 "js": {
-                  "code": "spellCore.removeItemAt(deck, -1)"
+                  "code": "core.removeItemAt(deck, -1)"
                 },
                 "ts": {
-                  "code": "spellCore.removeItemAt(deck, -1)"
+                  "code": "core.removeItemAt(deck, -1)"
                 },
                 "py": {
                   "code": "core.remove_item_at(deck, -1)"
@@ -2384,10 +2384,10 @@
               "example": "remove item 4 of my-list",
               "outputs": {
                 "js": {
-                  "code": "spellCore.removeItemAt(myList, 3)"
+                  "code": "core.removeItemAt(myList, 3)"
                 },
                 "ts": {
-                  "code": "spellCore.removeItemAt(myList, 3)"
+                  "code": "core.removeItemAt(myList, 3)"
                 },
                 "py": {
                   "code": "core.remove_item_at(my_list, 3)"
@@ -2410,10 +2410,10 @@
               "example": "remove items 2 to 4 of my-list",
               "outputs": {
                 "js": {
-                  "code": "spellCore.removeRangeBetween(myList, 1, 4)"
+                  "code": "core.removeRangeBetween(myList, 1, 4)"
                 },
                 "ts": {
-                  "code": "spellCore.removeRangeBetween(myList, 1, 4)"
+                  "code": "core.removeRangeBetween(myList, 1, 4)"
                 },
                 "py": {
                   "code": "core.remove_range_between(my_list, 1, 4)"
@@ -2429,17 +2429,17 @@
           "internal": false,
           "file": "packages/spell/src/rules/lists/ListRemoveRangeOrdinal.ts",
           "line": 12,
-          "purpose": "Remove range of items from list using ordinal words for both ends, e.g. `remove first to third cards of the deck` => `spellCore.removeRangeBetween(deck, 0, 3)`.",
+          "purpose": "Remove range of items from list using ordinal words for both ends, e.g. `remove first to third cards of the deck` => `core.removeRangeBetween(deck, 0, 3)`.",
           "syntaxes": [
             {
               "syntax": "remove {start:ordinal} to {end:ordinal} {arg:plural_identifier} of {list:expression}",
               "example": "remove first to third cards of the deck",
               "outputs": {
                 "js": {
-                  "code": "spellCore.removeRangeBetween(deck, 0, 3)"
+                  "code": "core.removeRangeBetween(deck, 0, 3)"
                 },
                 "ts": {
-                  "code": "spellCore.removeRangeBetween(deck, 0, 3)"
+                  "code": "core.removeRangeBetween(deck, 0, 3)"
                 },
                 "py": {
                   "code": "core.remove_range_between(deck, 0, 3)"
@@ -2462,10 +2462,10 @@
               "example": "remove thing from my-list",
               "outputs": {
                 "js": {
-                  "code": "spellCore.remove(myList, thing)"
+                  "code": "core.remove(myList, thing)"
                 },
                 "ts": {
-                  "code": "spellCore.remove(myList, thing)"
+                  "code": "core.remove(myList, thing)"
                 },
                 "py": {
                   "code": "core.remove(my_list, thing)"
@@ -2488,10 +2488,10 @@
               "example": "remove items from my-list where",
               "outputs": {
                 "js": {
-                  "code": "spellCore.removeWhere(myList, () => {})"
+                  "code": "core.removeWhere(myList, () => {})"
                 },
                 "ts": {
-                  "code": "spellCore.removeWhere(myList, () => {})"
+                  "code": "core.removeWhere(myList, () => {})"
                 },
                 "py": {
                   "code": "core.remove_where(my_list, _each_1)"
@@ -2514,10 +2514,10 @@
               "example": "tableau can take card",
               "outputs": {
                 "js": {
-                  "code": "spellCore.canTake(tableau, card)"
+                  "code": "core.canTake(tableau, card)"
                 },
                 "ts": {
-                  "code": "spellCore.canTake(tableau, card)"
+                  "code": "core.canTake(tableau, card)"
                 },
                 "py": {
                   "code": "core.can_take(tableau, card)"
@@ -2540,10 +2540,10 @@
               "example": "stock can give up card",
               "outputs": {
                 "js": {
-                  "code": "spellCore.canGiveUp(stock, card)"
+                  "code": "core.canGiveUp(stock, card)"
                 },
                 "ts": {
-                  "code": "spellCore.canGiveUp(stock, card)"
+                  "code": "core.canGiveUp(stock, card)"
                 },
                 "py": {
                   "code": "core.can_give_up(stock, card)"
@@ -2559,17 +2559,17 @@
           "internal": false,
           "file": "packages/spell/src/rules/lists/ListReverse.ts",
           "line": 8,
-          "purpose": "Reverse list in-place, e.g. `reverse my-list` => `spellCore.reverse(myList)`.",
+          "purpose": "Reverse list in-place, e.g. `reverse my-list` => `core.reverse(myList)`.",
           "syntaxes": [
             {
               "syntax": "reverse (the? {arg:plural_identifier} (in|of))? {list:expression}",
               "example": "reverse the cards of the deck",
               "outputs": {
                 "js": {
-                  "code": "spellCore.reverse(deck)"
+                  "code": "core.reverse(deck)"
                 },
                 "ts": {
-                  "code": "spellCore.reverse(deck)"
+                  "code": "core.reverse(deck)"
                 },
                 "py": {
                   "code": "core.reverse(deck)"
@@ -2585,17 +2585,17 @@
           "internal": false,
           "file": "packages/spell/src/rules/lists/ListShuffle.ts",
           "line": 11,
-          "purpose": "Shuffle (randomize) list in-place: e.g. `shuffle my-list` => `spellCore.randomize(myList)`.",
+          "purpose": "Shuffle (randomize) list in-place: e.g. `shuffle my-list` => `core.randomize(myList)`.",
           "syntaxes": [
             {
               "syntax": "(randomize|shuffle) (the? {arg:plural_identifier} (in|of))? {list:expression}",
               "example": "shuffle cards of deck",
               "outputs": {
                 "js": {
-                  "code": "spellCore.randomize(deck)"
+                  "code": "core.randomize(deck)"
                 },
                 "ts": {
-                  "code": "spellCore.randomize(deck)"
+                  "code": "core.randomize(deck)"
                 },
                 "py": {
                   "code": "core.randomize(deck)"
@@ -2618,10 +2618,10 @@
               "example": "for each number from 1 to 10:",
               "outputs": {
                 "js": {
-                  "code": "spellCore.getRange(1, 10).forEach(() => {})"
+                  "code": "core.getRange(1, 10).forEach(() => {})"
                 },
                 "ts": {
-                  "code": "spellCore.getRange(1, 10).forEach(() => {})"
+                  "code": "core.getRange(1, 10).forEach(() => {})"
                 },
                 "py": {
                   "code": "for number in range(1, 11):\n    pass"
@@ -2648,10 +2648,10 @@
               "example": "\"\"",
               "outputs": {
                 "js": {
-                  "code": "spellCore.installStyles(undefined, `\"\"`)"
+                  "code": "core.installStyles(undefined, `\"\"`)"
                 },
                 "ts": {
-                  "code": "spellCore.installStyles(undefined, `\"\"`)"
+                  "code": "core.installStyles(undefined, `\"\"`)"
                 },
                 "py": {
                   "code": "core.install_styles(None, f\"{\"\"}\")"
@@ -2674,10 +2674,10 @@
               "example": "print \"Yo!\"",
               "outputs": {
                 "js": {
-                  "code": "spellCore.console.log(\"Yo!\")"
+                  "code": "core.console.log(\"Yo!\")"
                 },
                 "ts": {
-                  "code": "spellCore.console.log(\"Yo!\")"
+                  "code": "core.console.log(\"Yo!\")"
                 },
                 "py": {
                   "code": "print(\"Yo!\")"
@@ -2700,10 +2700,10 @@
               "example": "end print group\"",
               "outputs": {
                 "js": {
-                  "code": "spellCore.console.groupEnd()"
+                  "code": "core.console.groupEnd()"
                 },
                 "ts": {
-                  "code": "spellCore.console.groupEnd()"
+                  "code": "core.console.groupEnd()"
                 },
                 "py": {
                   "code": "core.console.group_end()"
@@ -2726,10 +2726,10 @@
               "example": "notify \"Yo!\"",
               "outputs": {
                 "js": {
-                  "code": "spellCore.notify(\"Yo!\")"
+                  "code": "core.notify(\"Yo!\")"
                 },
                 "ts": {
-                  "code": "spellCore.notify(\"Yo!\")"
+                  "code": "core.notify(\"Yo!\")"
                 },
                 "py": {
                   "code": "core.notify(\"Yo!\")"
@@ -2752,10 +2752,10 @@
               "example": "alert \"Yo!\"",
               "outputs": {
                 "js": {
-                  "code": "await spellCore.alert(\"Yo!\")"
+                  "code": "await core.alert(\"Yo!\")"
                 },
                 "ts": {
-                  "code": "await spellCore.alert(\"Yo!\")"
+                  "code": "await core.alert(\"Yo!\")"
                 },
                 "py": {
                   "code": "core.alert(\"Yo!\")"
@@ -2778,10 +2778,10 @@
               "example": "warn \"Yo!\"",
               "outputs": {
                 "js": {
-                  "code": "await spellCore.warn(\"Yo!\")"
+                  "code": "await core.warn(\"Yo!\")"
                 },
                 "ts": {
-                  "code": "await spellCore.warn(\"Yo!\")"
+                  "code": "await core.warn(\"Yo!\")"
                 },
                 "py": {
                   "code": "core.warn(\"Yo!\")"
@@ -2804,10 +2804,10 @@
               "example": "confirm \"Yo!\"",
               "outputs": {
                 "js": {
-                  "code": "await spellCore.confirm(\"Yo!\")"
+                  "code": "await core.confirm(\"Yo!\")"
                 },
                 "ts": {
-                  "code": "await spellCore.confirm(\"Yo!\")"
+                  "code": "await core.confirm(\"Yo!\")"
                 },
                 "py": {
                   "code": "core.confirm(\"Yo!\")"
@@ -2830,10 +2830,10 @@
               "example": "prompt \"Name for the new baby?\"",
               "outputs": {
                 "js": {
-                  "code": "await spellCore.prompt(\"Name for the new baby?\")"
+                  "code": "await core.prompt(\"Name for the new baby?\")"
                 },
                 "ts": {
-                  "code": "await spellCore.prompt(\"Name for the new baby?\")"
+                  "code": "await core.prompt(\"Name for the new baby?\")"
                 },
                 "py": {
                   "code": "core.prompt(\"Name for the new baby?\")"
@@ -2985,10 +2985,10 @@
               "example": "tableau T1",
               "outputs": {
                 "js": {
-                  "code": "spellCore.thingNamed(Tableau, \"T1\")"
+                  "code": "core.thingNamed(Tableau, \"T1\")"
                 },
                 "ts": {
-                  "code": "spellCore.thingNamed(Tableau, \"T1\")"
+                  "code": "core.thingNamed(Tableau, \"T1\")"
                 },
                 "py": {
                   "code": "core.thing_named(Tableau, \"T1\")"
@@ -3000,10 +3000,10 @@
               "example": "foundation \"clubs\"",
               "outputs": {
                 "js": {
-                  "code": "spellCore.thingNamed(Foundation, \"clubs\")"
+                  "code": "core.thingNamed(Foundation, \"clubs\")"
                 },
                 "ts": {
-                  "code": "spellCore.thingNamed(Foundation, \"clubs\")"
+                  "code": "core.thingNamed(Foundation, \"clubs\")"
                 },
                 "py": {
                   "code": "core.thing_named(Foundation, \"clubs\")"
@@ -3026,10 +3026,10 @@
               "example": "the first tableau",
               "outputs": {
                 "js": {
-                  "code": "spellCore.thingAtPlace(Tableau, 1)"
+                  "code": "core.thingAtPlace(Tableau, 1)"
                 },
                 "ts": {
-                  "code": "spellCore.thingAtPlace(Tableau, 1)"
+                  "code": "core.thingAtPlace(Tableau, 1)"
                 },
                 "py": {
                   "code": "core.thing_at_place(Tableau, 1)"
@@ -3175,10 +3175,10 @@
               "example": "a pile is a drawable list of cards",
               "outputs": {
                 "js": {
-                  "code": "export class Pile extends DrawableList {\n  static instanceType = Card\n  static elementTag = spellCore.defineElement(this, \"syntax_statement\")\n}"
+                  "code": "export class Pile extends DrawableList {\n  static instanceType = Card\n  static elementTag = core.defineElement(this, \"syntax_statement\")\n}"
                 },
                 "ts": {
-                  "code": "export class Pile extends DrawableList<Card> {\n  static instanceType = Card\n  static elementTag = spellCore.defineElement(this, \"syntax_statement\")\n}\n\nexport class PileElement extends SpellElement<Pile> {\n  @E.proto static vocabulary = SpellElement.vocabularyFor(\"syntax-statement-pile\", \"pile\", [])\n}\nspellCore.useElement(Pile, PileElement)"
+                  "code": "export class Pile extends DrawableList<Card> {\n  static instanceType = Card\n  static elementTag = core.defineElement(this, \"syntax_statement\")\n}\n\nexport class PileElement extends SpellElement<Pile> {\n  @E.proto static vocabulary = SpellElement.vocabularyFor(\"syntax-statement-pile\", \"pile\", [])\n}\ncore.useElement(Pile, PileElement)"
                 },
                 "py": {
                   "code": "class Pile(DrawableList):\n    item_type = Card"
@@ -3200,10 +3200,10 @@
               "example": "a card is a drawable thing:\n\t<css>\n\t\t.red { color: crimson }\n\t</css>",
               "outputs": {
                 "js": {
-                  "code": "export class Card extends Drawable {\n  static elementTag = spellCore.defineElement(this, \"syntax_block\")\n\n  static css = css`\n    .red { color: crimson }\n  `\n}"
+                  "code": "export class Card extends Drawable {\n  static elementTag = core.defineElement(this, \"syntax_block\")\n\n  static css = css`\n    .red { color: crimson }\n  `\n}"
                 },
                 "ts": {
-                  "code": "export class Card extends Drawable {\n  static elementTag = spellCore.defineElement(this, \"syntax_block\")\n\n  static css = css`\n    .red { color: crimson }\n  `\n}\n\nexport class CardElement extends SpellElement<Card> {\n  @E.proto static vocabulary = SpellElement.vocabularyFor(\"syntax-block-card\", \"card\", [])\n  @E.protoMerged static elementSetup = {\n    styleSheets: { \"syntax-block-card\": Card.css }\n  } satisfies Partial<E.ElementSetup>\n}\nspellCore.useElement(Card, CardElement)"
+                  "code": "export class Card extends Drawable {\n  static elementTag = core.defineElement(this, \"syntax_block\")\n\n  static css = css`\n    .red { color: crimson }\n  `\n}\n\nexport class CardElement extends SpellElement<Card> {\n  @E.proto static vocabulary = SpellElement.vocabularyFor(\"syntax-block-card\", \"card\", [])\n  @E.protoMerged static elementSetup = {\n    styleSheets: { \"syntax-block-card\": Card.css }\n  } satisfies Partial<E.ElementSetup>\n}\ncore.useElement(Card, CardElement)"
                 },
                 "py": {
                   "code": "class Card(Drawable):\n    css = \"\\n  .red { color: crimson }\\n\""
@@ -3796,10 +3796,10 @@
               "example": "the color of a card is red if its suit is either diamonds or hearts",
               "outputs": {
                 "js": {
-                  "code": "Object.defineProperty(Card.prototype, \"color\", {\n  get() {\n    if (spellCore.includes([\"diamonds\", \"hearts\"], this.suit)) return \"red\"\n  },\n  configurable: true\n})"
+                  "code": "Object.defineProperty(Card.prototype, \"color\", {\n  get() {\n    if (core.includes([\"diamonds\", \"hearts\"], this.suit)) return \"red\"\n  },\n  configurable: true\n})"
                 },
                 "ts": {
-                  "code": "export interface Card { readonly color: any }\nObject.defineProperty(Card.prototype, \"color\", {\n  get(this: Card) {\n    if (spellCore.includes([\"diamonds\", \"hearts\"], this.suit)) return \"red\"\n  },\n  configurable: true\n})"
+                  "code": "export interface Card { readonly color: any }\nObject.defineProperty(Card.prototype, \"color\", {\n  get(this: Card) {\n    if (core.includes([\"diamonds\", \"hearts\"], this.suit)) return \"red\"\n  },\n  configurable: true\n})"
                 },
                 "py": {
                   "code": "@Card.add_property(\"color\")\ndef _card_color(self) -> Any:\n    if self.suit in [\"diamonds\", \"hearts\"]:\n        return \"red\""
@@ -4024,10 +4024,10 @@
               "example": "animation dealing is running",
               "outputs": {
                 "js": {
-                  "code": "spellCore.processIsRunning(\"dealing\")"
+                  "code": "core.processIsRunning(\"dealing\")"
                 },
                 "ts": {
-                  "code": "spellCore.processIsRunning(\"dealing\")"
+                  "code": "core.processIsRunning(\"dealing\")"
                 },
                 "py": {
                   "code": "core.process_is_running(\"dealing\")"
@@ -4050,10 +4050,10 @@
               "example": "pause for 2 seconds\"",
               "outputs": {
                 "js": {
-                  "code": "await spellCore.pauseFor(2, \"seconds\")"
+                  "code": "await core.pauseFor(2, \"seconds\")"
                 },
                 "ts": {
-                  "code": "await spellCore.pauseFor(2, \"seconds\")"
+                  "code": "await core.pauseFor(2, \"seconds\")"
                 },
                 "py": {
                   "code": "await core.pause_for(2, \"seconds\")"
@@ -4076,10 +4076,10 @@
               "example": "start process dealing",
               "outputs": {
                 "js": {
-                  "code": "spellCore.startProcess(\"dealing\")"
+                  "code": "core.startProcess(\"dealing\")"
                 },
                 "ts": {
-                  "code": "spellCore.startProcess(\"dealing\")"
+                  "code": "core.startProcess(\"dealing\")"
                 },
                 "py": {
                   "code": "core.start_process(\"dealing\")"
@@ -4102,10 +4102,10 @@
               "example": "stop animation dealing",
               "outputs": {
                 "js": {
-                  "code": "spellCore.stopProcess(\"dealing\")"
+                  "code": "core.stopProcess(\"dealing\")"
                 },
                 "ts": {
-                  "code": "spellCore.stopProcess(\"dealing\")"
+                  "code": "core.stopProcess(\"dealing\")"
                 },
                 "py": {
                   "code": "core.stop_process(\"dealing\")"
@@ -4147,7 +4147,7 @@
               "example": "draw each card in the deck",
               "outputs": {
                 "js": {
-                  "code": "spellCore.drawItems(deck)"
+                  "code": "core.drawItems(deck)"
                 },
                 "ts": {
                   "code": "<For each={deck.items}>{(item) => item.draw()}</For>"
@@ -4613,17 +4613,17 @@
           "internal": false,
           "file": "packages/spell/src/rules/statements/DoNothing.ts",
           "line": 8,
-          "purpose": "A no-op statement -- compiles to `spellCore.doNothing()`.",
+          "purpose": "A no-op statement -- compiles to `core.doNothing()`.",
           "syntaxes": [
             {
               "syntax": "do nothing",
               "example": "do nothing\"",
               "outputs": {
                 "js": {
-                  "code": "spellCore.doNothing()"
+                  "code": "core.doNothing()"
                 },
                 "ts": {
-                  "code": "spellCore.doNothing()"
+                  "code": "core.doNothing()"
                 },
                 "py": {
                   "code": "core.do_nothing()"
@@ -4786,10 +4786,10 @@
               "example": "print 1 if bar else 2",
               "outputs": {
                 "js": {
-                  "code": "spellCore.console.log(bar ? 1 : 2)"
+                  "code": "core.console.log(bar ? 1 : 2)"
                 },
                 "ts": {
-                  "code": "spellCore.console.log(bar ? 1 : 2)"
+                  "code": "core.console.log(bar ? 1 : 2)"
                 },
                 "py": {
                   "code": "core.console.log(1 if bar else 2)"
@@ -4935,10 +4935,10 @@
               "example": "animation deal the cards",
               "outputs": {
                 "js": {
-                  "code": "export async function dealTheCards() {\n  if (spellCore.processIsRunning(\"deal_the_cards\")) return\n  spellCore.startProcess(\"deal_the_cards\", \"EXCLUSIVE\")\n  try {}\n  finally {\n    spellCore.stopProcess(\"deal_the_cards\")\n  }\n}"
+                  "code": "export async function dealTheCards() {\n  if (core.processIsRunning(\"deal_the_cards\")) return\n  core.startProcess(\"deal_the_cards\", \"EXCLUSIVE\")\n  try {}\n  finally {\n    core.stopProcess(\"deal_the_cards\")\n  }\n}"
                 },
                 "ts": {
-                  "code": "export async function dealTheCards() {\n  if (spellCore.processIsRunning(\"deal_the_cards\")) return\n  spellCore.startProcess(\"deal_the_cards\", \"EXCLUSIVE\")\n  try {}\n  finally {\n    spellCore.stopProcess(\"deal_the_cards\")\n  }\n}"
+                  "code": "export async function dealTheCards() {\n  if (core.processIsRunning(\"deal_the_cards\")) return\n  core.startProcess(\"deal_the_cards\", \"EXCLUSIVE\")\n  try {}\n  finally {\n    core.stopProcess(\"deal_the_cards\")\n  }\n}"
                 },
                 "py": {
                   "code": "async def deal_the_cards() -> None:\n    if core.process_is_running(\"deal_the_cards\"):\n        return\n    core.start_process(\"deal_the_cards\", \"EXCLUSIVE\")\n    try:\n        pass\n    finally:\n        core.stop_process(\"deal_the_cards\")"
@@ -5109,10 +5109,10 @@
               "example": "expect the rank of it to be \"queen\"",
               "outputs": {
                 "js": {
-                  "code": "spellCore.expect(it.rank, `the rank of it`, \"queen\", `\"queen\"`)"
+                  "code": "core.expect(it.rank, `the rank of it`, \"queen\", `\"queen\"`)"
                 },
                 "ts": {
-                  "code": "spellCore.expect(it.rank, `the rank of it`, \"queen\", `\"queen\"`)"
+                  "code": "core.expect(it.rank, `the rank of it`, \"queen\", `\"queen\"`)"
                 },
                 "py": {
                   "code": "core.expect(it.rank, \"the rank of it\", \"queen\", \"\\\"queen\\\"\")"
@@ -5124,10 +5124,10 @@
               "example": "its rank should be queen",
               "outputs": {
                 "js": {
-                  "code": "spellCore.expect(it.rank, `its rank`, \"queen\", `queen`)"
+                  "code": "core.expect(it.rank, `its rank`, \"queen\", `queen`)"
                 },
                 "ts": {
-                  "code": "spellCore.expect(it.rank, `its rank`, \"queen\", `queen`)"
+                  "code": "core.expect(it.rank, `its rank`, \"queen\", `queen`)"
                 },
                 "py": {
                   "code": "core.expect(it.rank, \"its rank\", \"queen\", \"queen\")"
@@ -5150,10 +5150,10 @@
               "example": "echo 1",
               "outputs": {
                 "js": {
-                  "code": "spellCore.echo(1)"
+                  "code": "core.echo(1)"
                 },
                 "ts": {
-                  "code": "spellCore.echo(1)"
+                  "code": "core.echo(1)"
                 },
                 "py": {
                   "code": "core.echo(1)"

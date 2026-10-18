@@ -540,7 +540,7 @@ In `tools/`:
     - Then it loads `spell-ui.js` itself, as `commands.js` does.
   - `core-reference.js`:  [the core reference page](../../guides/targets/core-reference.html), epic `python-target` P29.
     - It draws one table per core file, from two lists:
-      - core's [spellCore.declarations.json5](../core/spellCore.declarations.json5)
+      - core's [core.declarations.json5](../core/core.declarations.json5)
       - py's [not_ported_yet.json5](../py/core/not_ported_yet.json5)
     - Both are read from the checkout serving the page, so each branch shows its own core.
     - Then it loads `spell-ui.js` itself, as `commands.js` does.

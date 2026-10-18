@@ -1,6 +1,6 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList, prop } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, prop } from "@spell/core"
 
-spellCore.heading("People, and what they keep about each other (epic `people-and-orgs`, P1)")
+core.heading("People, and what they keep about each other (epic `people-and-orgs`, P1)")
 //////////////////////////////////////////////////////////////////////////////
 // ## People, and what they keep about each other (epic `people-and-orgs`, P1)
 //////////////////////////////////////////////////////////////////////////////
@@ -9,49 +9,73 @@ spellCore.heading("People, and what they keep about each other (epic `people-and
 // `it is saved inline` keeps a small thing inside what holds it instead.
 
 export class Person extends Thing {
-  @prop({ type: "text" }) accessor name!: string
+  // - it has a name as text
+  @prop({ type: "text" })
+  accessor name!: string
 
-  @prop({ type: "text" }) accessor nickname!: string
+  // - it has a nickname as text
+  @prop({ type: "text" })
+  accessor nickname!: string
 
-  @prop({ itemType: "text", init: () => new List<string>({ instanceType: "text" }) }) accessor emails!: List<string>
+  // - its "emails" is a list of text
+  @prop({ itemType: "text", init: () => new List<string>({ instanceType: "text" }) })
+  accessor emails!: List<string>
 
-  @prop({ itemType: "DatedEvent", init: () => new List<DatedEvent>({ instanceType: "DatedEvent" }) }) accessor dates!: List<DatedEvent>
+  // - its "dates" is a list of dated-events
+  @prop({ itemType: "DatedEvent", init: () => new List<DatedEvent>({ instanceType: "DatedEvent" }) })
+  accessor dates!: List<DatedEvent>
 }
 
 export class DatedEvent extends Thing {
-  @prop({ type: "text" }) accessor label!: string
-
-  @prop({ type: "date" }) accessor day!: Date
-
   static savedInline = true
+
+  // - it has a label as text
+  @prop({ type: "text" })
+  accessor label!: string
+
+  // - it has a day as a date
+  @prop({ type: "date" })
+  accessor day!: Date
 }
 
 export class Note extends Thing {
-  @prop({ type: "text" }) accessor body!: string
+  // - it has a body as text
+  @prop({ type: "text" })
+  accessor body!: string
 }
 
 export class Relationship extends Thing {
-  @prop({ type: "text" }) accessor kind!: string
+  // - it has a kind as text
+  @prop({ type: "text" })
+  accessor kind!: string
 
-  @prop({ type: "Person" }) accessor person!: Person
+  // - it has a person as a person
+  @prop({ type: "Person" })
+  accessor person!: Person
 
-  @prop({ itemType: "Note", init: () => new List<Note>({ instanceType: "Note" }) }) accessor notes!: List<Note>
+  // - its "notes" is a list of notes
+  @prop({ itemType: "Note", init: () => new List<Note>({ instanceType: "Note" }) })
+  accessor notes!: List<Note>
 }
 
 export class FriendList extends Thing {
-  @prop({ type: "text" }) accessor name!: string
+  // - it has a name as text
+  @prop({ type: "text" })
+  accessor name!: string
 
-  @prop({ itemType: "Relationship", init: () => new List<Relationship>({ instanceType: "Relationship" }) }) accessor relationships!: List<Relationship>
+  // - its "relationships" is a list of relationships
+  @prop({ itemType: "Relationship", init: () => new List<Relationship>({ instanceType: "Relationship" }) })
+  accessor relationships!: List<Relationship>
 }
 
-spellCore.heading("Using them")
+core.heading("Using them")
 /** Using them */
 export const owen = new Person({ id: "owen", name: "Owen" })
 export const matt = new Person({ id: "matt", name: "Matt" })
 matt.nickname = "Matty"
 
 export const family = new FriendList({ name: "family" })
-spellCore.append(family.relationships, new Relationship({ kind: "brother", person: matt }))
+core.append(family.relationships, new Relationship({ kind: "brother", person: matt }))
 
-spellCore.console.log(owen.id)
-spellCore.map(family.relationships, (relationship: Relationship) => spellCore.console.log(relationship.person.id))
+core.console.log(owen.id)
+core.map(family.relationships, (relationship: Relationship) => core.console.log(relationship.person.id))

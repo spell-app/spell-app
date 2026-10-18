@@ -1,13 +1,13 @@
 import { describe, test, expect } from "vite-plus/test"
 
 import { P } from "$/parser"
-import { spellCore, List, Thing } from "$/core"
+import { core, List, Thing } from "$/core"
 import { SP } from "$/spell"
 
 /**
  * `SP.BUILT_IN_TYPE_TABLE` -- spell's built-in types' members, as data.
  * - Pins each member's `readAs` template to something REAL:
- *   a `spellCore` helper, or a javascript property or method of a sample value of its type.
+ *   a `core` helper, or a javascript property or method of a sample value of its type.
  *   - Reads it off that value, to check it's what the member says.
  * - Pins each `rules` name to a live rule, and each type to the root scope's.
  */
@@ -22,7 +22,7 @@ describe("built-in type table", () => {
     }
   })
 
-  test("each member's `readAs` template reads a REAL `spellCore` helper or javascript member -- of its datatype", () => {
+  test("each member's `readAs` template reads a REAL `core` helper or javascript member -- of its datatype", () => {
     const read: string[] = []
     for (const entry of SP.BUILT_IN_TYPE_TABLE) {
       for (const member of entry.members.filter((it) => it.readAs)) {
@@ -89,8 +89,8 @@ describe("built-in type table", () => {
   test("a template that's none of the forms is refused", () => {
     expect(SP.parseReadAsTemplate("{it}.length")).toEqual({ form: "property", name: "length" })
     expect(SP.parseReadAsTemplate("{it}.getFullYear()")).toEqual({ form: "method", name: "getFullYear" })
-    expect(SP.parseReadAsTemplate("spellCore.itemCountOf({it})")).toEqual({ form: "spellCore", name: "itemCountOf" })
-    expect(SP.parseReadAsTemplate("spellCore.getItemAt({it}, 1)")).toBeUndefined()
+    expect(SP.parseReadAsTemplate("core.itemCountOf({it})")).toEqual({ form: "core", name: "itemCountOf" })
+    expect(SP.parseReadAsTemplate("core.getItemAt({it}, 1)")).toBeUndefined()
     expect(SP.parseReadAsTemplate("it.length")).toBeUndefined()
   })
 })
@@ -132,10 +132,10 @@ const SAMPLES: Record<string, unknown> = {
  * - Throws if there's no such helper, property or method.
  */
 function readMember({ form, name }: SP.ReadAsTemplate, sample: unknown): unknown {
-  if (form === "spellCore") {
-    const helper = (spellCore as unknown as Record<string, unknown>)[name]
-    if (typeof helper !== "function") throw new Error(`no spellCore.${name}()`)
-    return (helper as (it: unknown) => unknown).call(spellCore, sample)
+  if (form === "core") {
+    const helper = (core as unknown as Record<string, unknown>)[name]
+    if (typeof helper !== "function") throw new Error(`no core.${name}()`)
+    return (helper as (it: unknown) => unknown).call(core, sample)
   }
   const object = Object(sample) as Record<string, unknown>
   if (!(name in object)) throw new Error(`no '${name}' on ${String(sample)}`)
@@ -152,8 +152,8 @@ function readMember({ form, name }: SP.ReadAsTemplate, sample: unknown): unknown
  */
 function isA(value: unknown, datatype: P.Datatype | undefined): boolean {
   if (!datatype) return true
-  if (P.itemTypeOf(datatype)) return spellCore.isArrayLike(value)
-  return spellCore.isOfType(value, datatype)
+  if (P.itemTypeOf(datatype)) return core.isArrayLike(value)
+  return core.isOfType(value, datatype)
 }
 
 describe("SP.docsCountingFrom()", () => {

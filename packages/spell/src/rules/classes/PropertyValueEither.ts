@@ -81,7 +81,7 @@ classes.addRule(PropertyValueEither, {
           [
             'Object.defineProperty(Card.prototype, "color", {',
             "  get() {",
-            '    if (spellCore.includes(["diamonds", "hearts"], this.suit)) return "red"',
+            '    if (core.includes(["diamonds", "hearts"], this.suit)) return "red"',
             "  },",
             "  configurable: true",
             "})"
@@ -90,7 +90,7 @@ classes.addRule(PropertyValueEither, {
             "export interface Card { readonly color: any /* spell: type unknown */ }",
             'Object.defineProperty(Card.prototype, "color", {',
             "  get(this: Card) {",
-            '    if (spellCore.includes(["diamonds", "hearts"], this.suit)) return "red"',
+            '    if (core.includes(["diamonds", "hearts"], this.suit)) return "red"',
             "  },",
             "  configurable: true",
             "})"
@@ -101,7 +101,7 @@ classes.addRule(PropertyValueEither, {
           [
             'Object.defineProperty(Card.prototype, "color", {',
             "  get() {",
-            '    if (spellCore.includes(["clubs", "spades"], this.suit)) return "black"',
+            '    if (core.includes(["clubs", "spades"], this.suit)) return "black"',
             '    return "red"',
             "  },",
             "  configurable: true",
@@ -111,7 +111,7 @@ classes.addRule(PropertyValueEither, {
             "export interface Card { readonly color: string }",
             'Object.defineProperty(Card.prototype, "color", {',
             "  get(this: Card) {",
-            '    if (spellCore.includes(["clubs", "spades"], this.suit)) return "black"',
+            '    if (core.includes(["clubs", "spades"], this.suit)) return "black"',
             '    return "red"',
             "  },",
             "  configurable: true",

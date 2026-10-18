@@ -1,10 +1,10 @@
 import { describe, test, expect } from "vite-plus/test"
 import { describeWarnings, unitTestModuleRules } from "$/spell/test"
 import { spellParser } from "$/spell"
-import { spellCore } from "$/core"
+import { core } from "$/core"
 
 describe("testing spell module assignment", () => {
-  unitTestModuleRules(spellParser, "assignment", spellCore.resetRuntime)
+  unitTestModuleRules(spellParser, "assignment", core.resetRuntime)
 
   describe("`get` declares a new `it` each time", () => {
     test("leaves the old `it` as it was -- its `datatype` too", () => {

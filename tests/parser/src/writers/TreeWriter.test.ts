@@ -53,7 +53,7 @@ describe("TreeWriter", () => {
     expect(write(call)).toEqual({ label: "Call go", children: [{ label: "Number 1", slot: "args" }] })
   })
 
-  test("a `spellCore` call is `Core <method>`, its `spellCore` left out;  a quoted word is one `Text` box", () => {
+  test("a `core` call is `Core <method>`, its `core` left out;  a quoted word is one `Text` box", () => {
     const call = new P.ASTCoreMethodInvocation(match, {
       methodName: "isOfType",
       args: [new P.ASTQuotedExpression(match, "integer")]

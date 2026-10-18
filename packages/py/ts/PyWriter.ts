@@ -253,5 +253,5 @@ export class PyWriter extends PyBaseWriter {
   }
 }
 
-/** `spellCore`'s loops, which call their function for each item right there -- see `PyWriter.callsWaiting()`. */
+/** `core`'s loops, which call their function for each item right there -- see `PyWriter.callsWaiting()`. */
 const LOOPS = new Set(["map", "forEach", "forEachSequential"])

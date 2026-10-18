@@ -8,7 +8,7 @@ import { lists } from "./lists.parser"
  * e.g. `items in my-list starting with thing`.
  * - `{arg}` (e.g. `items`) captured for readability only, unused in output.
  * - Returns a new list.
- * - Compiles to `spellCore.rangeStartingAt(myList, positionOf(myList, thing))`:
+ * - Compiles to `core.rangeStartingAt(myList, positionOf(myList, thing))`:
  *   looks up `thing`'s position first, then takes range from there to end.
  * - If item is not found, returns an empty list. (???)
  */
@@ -41,11 +41,11 @@ lists.addRule(RangeStartingWithExpression, {
       tests: [
         [
           "items in my-list starting with thing",
-          "spellCore.rangeStartingAt(myList, position(spellPosition(positionOf(myList, thing))))"
+          "core.rangeStartingAt(myList, position(spellPosition(positionOf(myList, thing))))"
         ],
         [
           `words in "some words" starting with "some"`,
-          'spellCore.rangeStartingAt("some words", position(spellPosition(positionOf("some words", "some"))))'
+          'core.rangeStartingAt("some words", position(spellPosition(positionOf("some words", "some"))))'
         ]
       ]
     }

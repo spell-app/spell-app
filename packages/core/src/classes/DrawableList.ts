@@ -15,7 +15,7 @@ import { List } from "./List"
  *   - A second, named place, `<children name="header"/>`, is filled by children written `in="header"`
  *     (`slot="header"` on the page).
  *   - The list's own items always go in the unnamed one.
- * - The element comes from `spellCore.defineElement()`, as a `Drawable`'s does.
+ * - The element comes from `core.defineElement()`, as a `Drawable`'s does.
  * - Everything else as a `List`.
  */
 export class DrawableList<T = unknown> extends List<T> {
@@ -23,7 +23,7 @@ export class DrawableList<T = unknown> extends List<T> {
    * Its outside, with a `<slot>` where its items show -- just the slot, by default.
    * - Override it, e.g. `to draw a pile:  return <div className="pile"><children/></div>`:
    *   spell's `<children/>` is the web's `<slot>`, compiled to `h("slot")`.
-   * - Its items are NOT drawn here:  they're its element's children -- see `spellCore.drawThing()`.
+   * - Its items are NOT drawn here:  they're its element's children -- see `core.drawThing()`.
    */
   draw(): Drawing {
     return (h("slot") as unknown as () => Drawing)()

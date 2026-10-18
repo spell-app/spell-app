@@ -1,12 +1,12 @@
-import { spellCore } from "./core"
+import { core } from "./core"
 import { Eventful, type EventCallback, type SpellEvent } from "./SpellEvent"
-import { defineSpellCoreModule } from "./spellCore.types"
+import { defineCoreModule } from "./core.types"
 
 /**
- * Class backing `spellCore.RUNTIME` -- a live per-project state bag (see `SpellRuntimeState`) that's
+ * Class backing `core.RUNTIME` -- a live per-project state bag (see `SpellRuntimeState`) that's
  * also eventful:  a program's events are ITS runtime's, so they end with it.
  * - Reach them through `on()` / `trigger()` (below), which find the CURRENT runtime.
- * - Programs compiled before those still call `spellCore.RUNTIME.on(...)` / `.trigger(...)` -- the same lists.
+ * - Programs compiled before those still call `core.RUNTIME.on(...)` / `.trigger(...)` -- the same lists.
  */
 export class SpellRuntime extends Eventful() {}
 
@@ -15,7 +15,7 @@ export class SpellRuntime extends Eventful() {}
  * - `Payload`:  what the event brings, e.g. `on<{ card: Card }>("card-click", ({ card }) => card.play())`.
  *   Types only:  nothing checks it.
  * - `eventType` is case-insensitive.
- * - On the CURRENT `spellCore.RUNTIME`, found as it's called:  a new one is made each time a program starts, so a
+ * - On the CURRENT `core.RUNTIME`, found as it's called:  a new one is made each time a program starts, so a
  *   listener ends with its run.
  * - throws if no program is running (`resetRuntime()` not called yet).
  */
@@ -25,7 +25,7 @@ export function on<Payload extends object = object>(eventType: string, callback:
 
 /** Stop calling `callback` for `eventType` -- see `on()`.  Nothing running:  nothing to stop. */
 export function off<Payload extends object = object>(eventType: string, callback: EventCallback<Payload>): void {
-  spellCore.RUNTIME?.off(eventType, callback)
+  core.RUNTIME?.off(eventType, callback)
 }
 
 /** Call `callback` the NEXT time the running program triggers `eventType`, then forget it -- see `on()`. */
@@ -38,28 +38,28 @@ export function once<Payload extends object = object>(eventType: string, callbac
  * `trigger("card-click", { card: this })`.
  * - `props` are copied onto the event, so a listener reads `event.card`.
  * - Returns what each listener returned, in the order they were added.
- * - Nothing running:  nobody hears it, `[]`.  NEVER throws:  `spellCore.console` triggers its lines before then.
+ * - Nothing running:  nobody hears it, `[]`.  NEVER throws:  `core.console` triggers its lines before then.
  */
 export function trigger(event: SpellEvent | string, props?: object): unknown[] {
-  return spellCore.RUNTIME?.trigger(event, props) ?? []
+  return core.RUNTIME?.trigger(event, props) ?? []
 }
 
-/** `spellCore.RUNTIME`, for `on()` / `once()` -- throws, naming `method`, if no program is running. */
+/** `core.RUNTIME`, for `on()` / `once()` -- throws, naming `method`, if no program is running. */
 function runtimeFor(method: string): SpellRuntimeState {
-  if (!spellCore.RUNTIME) {
-    throw new TypeError(`${method}():  no program is running;  call spellCore.resetRuntime() first`)
+  if (!core.RUNTIME) {
+    throw new TypeError(`${method}():  no program is running;  call core.resetRuntime() first`)
   }
-  return spellCore.RUNTIME
+  return core.RUNTIME
 }
 
-/** `spellCore.RUNTIME`: the `SpellRuntime` instance, used as a dynamic keyed state bag. */
+/** `core.RUNTIME`: the `SpellRuntime` instance, used as a dynamic keyed state bag. */
 export type SpellRuntimeState = SpellRuntime & { [key: string]: unknown }
 
 /** Per-process running flags: `"!"` means "running exclusively", a number is a running count. */
 export type ProcessFlags = Record<string, number | "!" | undefined>
 
-export const runtimeMethods = defineSpellCoreModule({
-  /** Set to `true` to show debug messages for `spellCore.RUNTIME` actions. */
+export const runtimeMethods = defineCoreModule({
+  /** Set to `true` to show debug messages for `core.RUNTIME` actions. */
   DEBUG_RUNTIME: false, // !isNode,
   /** Set to `true` to show debug messages for process start/stop actions. */
   DEBUG_PROCESSES: false, // !isNode,
@@ -68,13 +68,13 @@ export const runtimeMethods = defineSpellCoreModule({
   // ## Events -- the running program's, on `RUNTIME`
   ////////////////
 
-  /** `spellCore.on(...)`:  compiled JavaScript's spelling of `on()` -- see `on()`. */
+  /** `core.on(...)`:  compiled JavaScript's spelling of `on()` -- see `on()`. */
   on,
-  /** `spellCore.off(...)` -- see `off()`. */
+  /** `core.off(...)` -- see `off()`. */
   off,
-  /** `spellCore.once(...)` -- see `once()`. */
+  /** `core.once(...)` -- see `once()`. */
   once,
-  /** `spellCore.trigger(...)` -- see `trigger()`. */
+  /** `core.trigger(...)` -- see `trigger()`. */
   trigger,
 
   ////////////////
@@ -84,27 +84,27 @@ export const runtimeMethods = defineSpellCoreModule({
   /**
    * Global runtime state root.
    * - Typed as always set:  every runner calls `resetRuntime()` before a program runs (`runCompiled()`, the
-   *   `cli`'s `runProject.ts`, tests), so compiled spell reads it bare, e.g. `spellCore.RUNTIME.trigger(...)`.
+   *   `cli`'s `runProject.ts`, tests), so compiled spell reads it bare, e.g. `core.RUNTIME.trigger(...)`.
    * - NOTE:  `undefined` until then, or after `clearRuntime()`:  `getRuntimeState()` / `clearRuntimeState()` check.
    */
   RUNTIME: undefined as unknown as SpellRuntimeState,
 
   /**
-   * Reset `spellCore.RUNTIME`, e.g. when a project starts or a test is run.
+   * Reset `core.RUNTIME`, e.g. when a project starts or a test is run.
    * Returns the new runtime.
-   * - SIDE EFFECT:  forgets the last run's things too -- see `spellCore.things`.
+   * - SIDE EFFECT:  forgets the last run's things too -- see `core.things`.
    */
   resetRuntime(): SpellRuntimeState {
-    if (spellCore.DEBUG_RUNTIME) console.info("Resetting spellCore.RUNTIME")
-    spellCore.things.clear()
-    spellCore.RUNTIME = new SpellRuntime() as SpellRuntimeState
-    return spellCore.RUNTIME
+    if (core.DEBUG_RUNTIME) console.info("Resetting core.RUNTIME")
+    core.things.clear()
+    core.RUNTIME = new SpellRuntime() as SpellRuntimeState
+    return core.RUNTIME
   },
 
-  /** Clear `spellCore.RUNTIME`:  unset again, as before the first `resetRuntime()` -- see `RUNTIME`. */
+  /** Clear `core.RUNTIME`:  unset again, as before the first `resetRuntime()` -- see `RUNTIME`. */
   clearRuntime(): void {
-    if (spellCore.DEBUG_RUNTIME) console.info("Clearing spellCore.RUNTIME")
-    spellCore.RUNTIME = undefined as unknown as SpellRuntimeState
+    if (core.DEBUG_RUNTIME) console.info("Clearing core.RUNTIME")
+    core.RUNTIME = undefined as unknown as SpellRuntimeState
   },
 
   /**
@@ -114,14 +114,14 @@ export const runtimeMethods = defineSpellCoreModule({
    * If RUNTIME is not set up, warns and runs `initializer` each time.
    */
   getRuntimeState<T>(name: string, initializer: () => T): T {
-    if (!spellCore.RUNTIME) {
-      if (spellCore.DEBUG_RUNTIME) console.warn(`spellCore.getRuntimeState(${name}): spellCore.RUNTIME is not set up!`)
+    if (!core.RUNTIME) {
+      if (core.DEBUG_RUNTIME) console.warn(`core.getRuntimeState(${name}): core.RUNTIME is not set up!`)
       return initializer()
     }
-    const runtime = spellCore.RUNTIME
+    const runtime = core.RUNTIME
     if (!(name in runtime)) {
       runtime[name] = initializer()
-      if (spellCore.DEBUG_RUNTIME) console.info(`spellCore.getRuntimeState(${name}): reset state to `, runtime[name])
+      if (core.DEBUG_RUNTIME) console.info(`core.getRuntimeState(${name}): reset state to `, runtime[name])
     }
     return runtime[name] as T
   },
@@ -132,11 +132,10 @@ export const runtimeMethods = defineSpellCoreModule({
    */
 
   clearRuntimeState(name: string): void {
-    if (!spellCore.RUNTIME) {
-      if (spellCore.DEBUG_RUNTIME)
-        console.warn(`spellCore.clearRuntimeState(${name}): spellCore.RUNTIME is not set up!`)
+    if (!core.RUNTIME) {
+      if (core.DEBUG_RUNTIME) console.warn(`core.clearRuntimeState(${name}): core.RUNTIME is not set up!`)
     } else {
-      delete spellCore.RUNTIME[name]
+      delete core.RUNTIME[name]
     }
   },
 
@@ -145,14 +144,14 @@ export const runtimeMethods = defineSpellCoreModule({
   ////////////////
 
   /**
-   * Initialize and return process flags for the current `spellCore.RUNTIME`.
+   * Initialize and return process flags for the current `core.RUNTIME`.
    * If `RUNTIME` is not set up, warns and returns a new object each time.
    */
   getProcessFlags(): ProcessFlags {
     function initializer(): ProcessFlags {
       return {}
     }
-    return spellCore.getRuntimeState("processFlags", initializer)
+    return core.getRuntimeState("processFlags", initializer)
   },
 
   /**
@@ -164,13 +163,13 @@ export const runtimeMethods = defineSpellCoreModule({
    * - Non-exclusive calls instead bump a running count.
    */
   startProcess(name: string, exclusively?: "EXCLUSIVE"): void {
-    const flags = spellCore.getProcessFlags()
+    const flags = core.getProcessFlags()
     const wasRunning = flags[name]
     if (exclusively) flags[name] = "!"
     // NOTE: `flags[name]++ || 1` in the original always reassigns the PRE-increment value,
     // so the increment's side effect is immediately overwritten -- this is the equivalent.
     else flags[name] = Number(flags[name]) || 1
-    if (spellCore.DEBUG_PROCESSES)
+    if (core.DEBUG_PROCESSES)
       console.warn("startProcess", { name, wasRunning, isRunning: flags[name], flags: { ...flags } })
   },
 
@@ -181,9 +180,9 @@ export const runtimeMethods = defineSpellCoreModule({
    * TODO: second `exclusively` parameter so we can tell if it's running exclusively?
    */
   processIsRunning(name: string): boolean {
-    const flags = spellCore.getProcessFlags()
+    const flags = core.getProcessFlags()
     const isRunning = flags[name] === "!" || (typeof flags[name] === "number" && (flags[name] as number) > 0)
-    if (spellCore.DEBUG_PROCESSES) console.warn("processIsRunning", { name, isRunning, flags: { ...flags } })
+    if (core.DEBUG_PROCESSES) console.warn("processIsRunning", { name, isRunning, flags: { ...flags } })
     return isRunning
   },
 
@@ -194,16 +193,16 @@ export const runtimeMethods = defineSpellCoreModule({
    * - Returns `true` if process is still running (non-exclusive counter still `> 0`).
    */
   stopProcess(name: string): boolean {
-    const flags = spellCore.getProcessFlags()
+    const flags = core.getProcessFlags()
     const wasRunning = !!flags[name]
     if (wasRunning) {
       if (flags[name] === "!") delete flags[name]
       // BUGFIX: was `flag[name]` (undefined global) instead of `flags[name]`, which threw a ReferenceError.
       else if (typeof flags[name] === "number" && (flags[name] as number) > 0) flags[name] = (flags[name] as number) - 1
     }
-    if (spellCore.DEBUG_PROCESSES)
+    if (core.DEBUG_PROCESSES)
       console.warn("stopProcess", { name, wasRunning, isRunning: flags[name], flags: { ...flags } })
     return !!flags[name]
   }
 })
-Object.assign(spellCore, runtimeMethods)
+Object.assign(core, runtimeMethods)

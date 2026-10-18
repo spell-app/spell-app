@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from spell_core import List, Thing
-from spell_core.core import SpellCore
+from spell_core.core import Core
 
 
 class Tile(Thing):
@@ -15,7 +15,7 @@ class BlankTile(Tile):
     """A tile of its own kind."""
 
 
-def test_a_things_words_come_from_its_class_and_those_it_extends(core: SpellCore, tmp_path: Path) -> None:
+def test_a_things_words_come_from_its_class_and_those_it_extends(core: Core, tmp_path: Path) -> None:
     words = tmp_path / "Cards.py.en.json5"
     words.write_text(
         json.dumps(

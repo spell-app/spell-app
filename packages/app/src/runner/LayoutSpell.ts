@@ -3,7 +3,7 @@ import { createEffect, createRoot } from "solid-js"
 import { camelCase, snakeCase } from "$/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
-import type { SpellCore } from "$/core"
+import type { Core } from "$/core"
 import { SpellElement } from "./SpellElement"
 import {
   LAYOUT_HOLE as HOLE,
@@ -71,14 +71,14 @@ export class LayoutSpell {
 
   constructor(options: LayoutSpellOptions) {
     this.options = options
-    const { root, declarations, projectId, spellCore } = options
+    const { root, declarations, projectId, core } = options
     const data = SP.SpellDeclarations.read(JSON.stringify(declarations))
     const imports = SP.SpellDeclarations.importScope(
       SP.SpellParser.rootScope,
       data ? [{ from: projectId, declarations: data }] : []
     )
     this.programScope = new P.BlockScope({ name: "program", parentScope: imports, parser: imports.parser })
-    const exported = spellCore.things.exported
+    const exported = core.things.exported
     for (const [name, value] of Object.entries(exported)) {
       this.names.set(name, () => exported[name])
       if (!value || typeof value !== "object") continue
@@ -354,9 +354,9 @@ export class LayoutSpell {
     const names = [...this.names.keys()].filter((name) => name !== IT && P.jsText.isLegalIdentifier(name))
     const body = rule === "expression" ? `return (${javascript})` : javascript
     const Maker = rule === "expression" ? Function : AsyncFunction
-    const fn = new Maker(IT, "spellCore", ...names, body) as (...args: unknown[]) => unknown
-    const { spellCore } = this.options
-    return (it) => fn(it, spellCore, ...names.map((name) => this.names.get(name)!()))
+    const fn = new Maker(IT, "core", ...names, body) as (...args: unknown[]) => unknown
+    const { core } = this.options
+    return (it) => fn(it, core, ...names.map((name) => this.names.get(name)!()))
   }
 
   /**
@@ -416,7 +416,7 @@ export class LayoutSpell {
 
   /** One line on the program's console:  the layout's spell went wrong. */
   private report(message: string, error?: unknown): void {
-    this.options.spellCore.console.error(`layout:  ${message}`, ...(error === undefined ? [] : [error]))
+    this.options.core.console.error(`layout:  ${message}`, ...(error === undefined ? [] : [error]))
   }
 
   /** `value` set as `element`'s attribute `name`:  an object as a property, nothing / `false` as no attribute. */
@@ -431,7 +431,7 @@ export class LayoutSpell {
   private textOf(value: unknown): string {
     if (value === undefined || value === null) return ""
     if (typeof value !== "object") return `${value as string | number | boolean}`
-    const { things } = this.options.spellCore
+    const { things } = this.options.core
     return things.isThing(value) ? things.labelOf(value) : JSON.stringify(value)
   }
 
@@ -451,7 +451,7 @@ export type LayoutSpellOptions = {
   /** Its project's declarations, as its `.declarations.json5` holds them. */
   declarations: unknown
   /** The runtime its program ran on. */
-  spellCore: SpellCore
+  core: Core
 }
 
 /** The attribute a click runs. */

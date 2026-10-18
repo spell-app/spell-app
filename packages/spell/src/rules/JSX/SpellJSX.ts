@@ -121,8 +121,8 @@ JSX.addRule(SpellJSX, {
         ],
         [
           ["<ui-button ", "\thidden={1} ", "\tonPress={print 2}", "\t/>"],
-          'h("ui-button", { hidden: 1, onPress: () => spellCore.console.log(2) })',
-          "<ui-button hidden={1} onPress={() => spellCore.console.log(2)} />"
+          'h("ui-button", { hidden: 1, onPress: () => core.console.log(2) })',
+          "<ui-button hidden={1} onPress={() => core.console.log(2)} />"
         ],
         [
           '<input attrOnly text="text" number=1 boolean={yes} expression={1 + 1} onClick={print the value of the target of the event} />',
@@ -133,10 +133,10 @@ JSX.addRule(SpellJSX, {
             "  number: 1,",
             "  boolean: true,",
             "  expression: () => 1 + 1,",
-            "  onClick: (event) => spellCore.console.log(event.target.value)",
+            "  onClick: (event) => core.console.log(event.target.value)",
             "})"
           ],
-          '<input attronly={true} text="text" number={1} boolean={true} expression={1 + 1} onClick={(event) => spellCore.console.log(event.target.value)} />'
+          '<input attronly={true} text="text" number={1} boolean={true} expression={1 + 1} onClick={(event) => core.console.log(event.target.value)} />'
         ]
       ]
     },
@@ -166,8 +166,8 @@ JSX.addRule(SpellJSX, {
         // DO parse a statement as an attribute expression
         [
           `<div on-click={print 1024}/>`,
-          'h("div", { "on-click": () => spellCore.console.log(1024) })',
-          "<div on-click={() => spellCore.console.log(1024)} />"
+          'h("div", { "on-click": () => core.console.log(1024) })',
+          "<div on-click={() => core.console.log(1024)} />"
         ],
         // don't match attribute expressions that don't eat the entire text
         [

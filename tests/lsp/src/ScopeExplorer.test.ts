@@ -376,9 +376,9 @@ describe("ScopeExplorer scope packs", () => {
     ])
   })
 
-  test("`core`'s `src/spellCore.scopes.js` is what `yarn scopes --builtins` generates from the table -- run it", () => {
-    const path = resolve(environment.spellCoreDir, "spellCore.scopes.js")
-    const shipped = runPackScript(readFileSync(path, "utf8"), "spellCore.scopes.js")
+  test("`core`'s `src/core.scopes.js` is what `yarn scopes --builtins` generates from the table -- run it", () => {
+    const path = resolve(environment.coreDir, "core.scopes.js")
+    const shipped = runPackScript(readFileSync(path, "utf8"), "core.scopes.js")
     expect(shipped).toEqual(builtIns)
   })
 })

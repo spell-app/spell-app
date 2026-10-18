@@ -13,7 +13,7 @@ import { methods } from "./methods.parser"
  *   and wraps its body in `StartProcessInvocation` (`exclusive: true`)
  *   and `try { ... } finally { StopProcessInvocation }`.
  *   - That makes re-invoking a running animation a no-op
- *     (see `spellCore.processIsRunning()` in the compiled output).
+ *     (see `core.processIsRunning()` in the compiled output).
  *   - And it always stops the process on the way out.
  */
 export class CreateAnimation extends MethodDefinition<"asAnimation|signature|body?"> {
@@ -39,11 +39,11 @@ methods.addRule(CreateAnimation, {
           input: "animation deal the cards",
           js: [
             "export async function dealTheCards() {",
-            '  if (spellCore.processIsRunning("deal_the_cards")) return',
-            '  spellCore.startProcess("deal_the_cards", "EXCLUSIVE")',
+            '  if (core.processIsRunning("deal_the_cards")) return',
+            '  core.startProcess("deal_the_cards", "EXCLUSIVE")',
             "  try {}",
             "  finally {",
-            '    spellCore.stopProcess("deal_the_cards")',
+            '    core.stopProcess("deal_the_cards")',
             "  }",
             "}"
           ]
@@ -52,13 +52,13 @@ methods.addRule(CreateAnimation, {
           input: ["animation deal the cards", "\tpause for 10 seconds"],
           js: [
             "export async function dealTheCards() {",
-            '  if (spellCore.processIsRunning("deal_the_cards")) return',
-            '  spellCore.startProcess("deal_the_cards", "EXCLUSIVE")',
+            '  if (core.processIsRunning("deal_the_cards")) return',
+            '  core.startProcess("deal_the_cards", "EXCLUSIVE")',
             "  try {",
-            '    await spellCore.pauseFor(10, "seconds")',
+            '    await core.pauseFor(10, "seconds")',
             "  }",
             "  finally {",
-            '    spellCore.stopProcess("deal_the_cards")',
+            '    core.stopProcess("deal_the_cards")',
             "  }",
             "}"
           ]

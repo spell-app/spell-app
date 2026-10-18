@@ -8,8 +8,8 @@ import { properties } from "./properties.parser"
  * `its_ordinal` rule:  `its {ordinal} {arg}` -- possessive-plus-ordinal shorthand, e.g. `its third card`.
  * - Tracks `it`:  `get it` / `put its foo in the bar`.
  * - Synonym for `this` if `it` is not (yet) defined in scope.
- * - Compiles to `spellCore.getItemAt(object, index)` rather than a plain property access:
- *   `its third card` => `spellCore.getItemAt(it, 2)`.
+ * - Compiles to `core.getItemAt(object, index)` rather than a plain property access:
+ *   `its third card` => `core.getItemAt(it, 2)`.
  */
 export class ItsOrdinal extends SpellExpression<"ordinal|arg", ItsMatchData & { itemType?: P.Datatype }> {
   /** Note `it`, and what it holds, while we can look them up. */
@@ -42,8 +42,8 @@ properties.addRule(ItsOrdinal, {
         scope.variables?.add({ name: "it", output: "it" })
       },
       tests: [
-        ["its third foo", "spellCore.getItemAt(it, 2)"],
-        ["its last card", "spellCore.getItemAt(it, -1)"]
+        ["its third foo", "core.getItemAt(it, 2)"],
+        ["its last card", "core.getItemAt(it, -1)"]
       ]
     },
     {
@@ -52,8 +52,8 @@ properties.addRule(ItsOrdinal, {
       tests: [
         [
           ["get a new thing", "print its last item"],
-          ["const it = new Thing()", "spellCore.console.log(spellCore.getItemAt(it, -1))"],
-          ["const it = new Thing()", "spellCore.console.log(spellCore.getItemAt(it, -1)!)"]
+          ["const it = new Thing()", "core.console.log(core.getItemAt(it, -1))"],
+          ["const it = new Thing()", "core.console.log(core.getItemAt(it, -1)!)"]
         ]
       ]
     },
@@ -63,12 +63,12 @@ properties.addRule(ItsOrdinal, {
       beforeEach(scope: P.Scope) {
         scope.variables?.add({ name: "it", output: "other" })
       },
-      tests: [["its third thing", "spellCore.getItemAt(other, 2)"]]
+      tests: [["its third thing", "core.getItemAt(other, 2)"]]
     },
     {
       title: "maps to `this` when `it` is not defined",
       compileAs: "expression",
-      tests: [["its third thing", "spellCore.getItemAt(this, 2)"]]
+      tests: [["its third thing", "core.getItemAt(this, 2)"]]
     }
   ]
 })

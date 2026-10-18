@@ -98,7 +98,7 @@ describe("diskFetch", () => {
 
       const file = new SP.SpellFile(location.path)
       await file.project.parse()
-      expect(file.match?.compile()).toBe("export const foo = 1\nspellCore.console.log(foo)")
+      expect(file.match?.compile()).toBe("export const foo = 1\ncore.console.log(foo)")
 
       await file.save({ contents: "set foo to 2" })
       expect(readFileSync(resolve(projectDir, "a.spell"), "utf8")).toBe("set foo to 2")

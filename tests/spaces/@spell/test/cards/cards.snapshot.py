@@ -13,10 +13,12 @@ class Card(Thing):
     # ## properties of cards
     ########################
     # card ranks
+    # cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
     RANKS = ("ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king")
     rank = prop(one_of=RANKS)
 
     # card suits
+    # cards have a suit as one of clubs, diamonds, hearts or spades
     SUITS = ("clubs", "diamonds", "hearts", "spades")
     suit = prop(one_of=SUITS)
 
@@ -33,6 +35,7 @@ class Card(Thing):
         return spell_position(core.position_of(Card.RANKS, self.rank))
 
     # card direction:  up or down
+    # a card has a direction as either up or down
     DIRECTIONS = ("up", "down")
     direction = prop(one_of=DIRECTIONS)
 
@@ -238,6 +241,7 @@ class Deck(List):
             card_names.append(card.short_name)
         core.echo(f"deck: {card_names}")
 
+    # set the is-set-up of the deck to yes
     is_set_up = prop(type="choice")
 
 

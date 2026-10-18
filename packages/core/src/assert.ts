@@ -5,7 +5,7 @@
 
 import isArrayLikeObject from "lodash/isArrayLikeObject"
 // Import directly, never through the barrel:  `$/core/model` loads this file, and must not load drawing (Solid)
-import { spellCore } from "./core"
+import { core } from "./core"
 
 /** Callable `assert` function, plus extra assertion helpers hung off of it. */
 export type Assert = {
@@ -28,7 +28,7 @@ export type Assert = {
  *   not spread -- and returns `false`.
  */
 function assertCondition(condition: unknown, ...message: unknown[]): boolean {
-  if (spellCore.isTruthy(condition)) return true
+  if (core.isTruthy(condition)) return true
   assert.failed(message)
   return false
 }
@@ -45,9 +45,9 @@ export const assert: Assert = Object.assign(assertCondition, {
     console.warn(...message)
   },
 
-  /** Assert that `thing` is "equal to" `otherThing` according to `spellCore.equals()`. */
+  /** Assert that `thing` is "equal to" `otherThing` according to `core.equals()`. */
   equals(thing: unknown, otherThing: unknown, ...message: unknown[]): boolean {
-    const condition = spellCore.equals(thing, otherThing)
+    const condition = core.equals(thing, otherThing)
     return assert(condition, ...message)
   },
 

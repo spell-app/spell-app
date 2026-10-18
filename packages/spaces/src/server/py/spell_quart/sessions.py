@@ -28,7 +28,7 @@ from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import Any, Protocol
 
-from spell_core.core import SpellCore, using_core
+from spell_core.core import Core, using_core
 from spell_core.page import PageSession
 from spell_core.run import run_program
 
@@ -56,7 +56,7 @@ class Socket(Protocol):
 class Visit:
     """One visitor's game:  their core, the program's top level as it ran for them, and their pages."""
 
-    def __init__(self, core: SpellCore, names: dict[str, Any]) -> None:
+    def __init__(self, core: Core, names: dict[str, Any]) -> None:
         """A visit to the program that ran on `core`, its top level `names`."""
         self.core = core
         self.names = names
@@ -91,7 +91,7 @@ class SpellSessions:
         """`visitor`'s game:  the program, run for them the first time they come."""
         visit = self.visits.get(visitor)
         if visit is None:
-            core = SpellCore()
+            core = Core()
             with using_core(core):
                 # in a thread:  the program's top level may run `asyncio.run()`, which this loop can't;
                 # its pauses skipped:  no page is drawing it yet, so its opening (Solitaire's deal) would only

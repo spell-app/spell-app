@@ -12,7 +12,7 @@ import { getWhereScope, getWhereMethod } from "./lists.shared"
  *   parsed in a nested `MethodScope` where singularized `{arg}` (e.g. `word`
  *   for `words`) and `it` both map to current item.
  * - `Priority.specific` -- preferred over lower-priority expression rules when tokens are ambiguous.
- * - Compiles to `spellCore.filter(list, (item) => { ... })`.
+ * - Compiles to `core.filter(list, (item) => { ... })`.
  */
 export class ListFilter extends SpellExpression<"arg|list|body?"> {
   @proto static priority = Priority.specific
@@ -44,15 +44,15 @@ lists.addRule(ListFilter, {
         scope.variables?.add("my-list")
       },
       tests: [
-        [`words in "a word list" where`, 'spellCore.filter("a word list", () => {})'],
+        [`words in "a word list" where`, 'core.filter("a word list", () => {})'],
         [
           `words in "a word list" where word starts with "a"`,
-          'spellCore.filter("a word list", (word) => spellCore.startsWith(word, "a"))',
-          'spellCore.filter("a word list", (word: string) => spellCore.startsWith(word, "a"))'
+          'core.filter("a word list", (word) => core.startsWith(word, "a"))',
+          'core.filter("a word list", (word: string) => core.startsWith(word, "a"))'
         ],
-        ["the items in my-list where the id of the item > 1", "spellCore.filter(myList, (item) => item.id > 1)"],
-        ["the items in my-list where the id of it > 1", "spellCore.filter(myList, (item) => item.id > 1)"],
-        ["the items in my-list where its id > 1", "spellCore.filter(myList, (item) => item.id > 1)"]
+        ["the items in my-list where the id of the item > 1", "core.filter(myList, (item) => item.id > 1)"],
+        ["the items in my-list where the id of it > 1", "core.filter(myList, (item) => item.id > 1)"],
+        ["the items in my-list where its id > 1", "core.filter(myList, (item) => item.id > 1)"]
       ]
     }
   ]

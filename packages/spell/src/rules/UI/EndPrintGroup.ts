@@ -20,7 +20,7 @@ UI.addRule(EndPrintGroup, {
   tests: [
     {
       compileAs: "statement",
-      tests: [[`end print group"`, `spellCore.console.groupEnd()`]]
+      tests: [[`end print group"`, `core.console.groupEnd()`]]
     }
   ]
 })

@@ -29,8 +29,8 @@ UI.addRule(Notify, {
     {
       compileAs: "statement",
       tests: [
-        [`notify "Yo!"`, `spellCore.notify("Yo!")`],
-        [`notify "Yo!" with "gotcha"`, `spellCore.notify("Yo!", "gotcha")`]
+        [`notify "Yo!"`, `core.notify("Yo!")`],
+        [`notify "Yo!" with "gotcha"`, `core.notify("Yo!", "gotcha")`]
       ]
     }
   ]

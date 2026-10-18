@@ -1,20 +1,20 @@
-import { spellCore } from "./core"
-import { defineSpellCoreModule } from "./spellCore.types"
+import { core } from "./core"
+import { defineCoreModule } from "./core.types"
 
 /**
- * Assembled `spellCore` UI-interaction methods:
+ * Assembled `core` UI-interaction methods:
  * - time (`pauseFor`)
  * - talking to the person running the program:  `notify`, `alert`, `confirm`, `prompt` (spell's `rules/UI/`), on
  *   Spell UI's toasts and dialogs
  * - stylesheet installation (`installStyles`)
  * - Drawing (`h()`, `drawThing()` ...) is `drawing.ts`.
  */
-export const uiMethods = defineSpellCoreModule({
+export const uiMethods = defineCoreModule({
   ////////////////
   // ## Time
   ////////////////
 
-  /** Multiplier from a unit name to milliseconds, e.g. `spellCore.TIME_UNITS_MAP.tick`. */
+  /** Multiplier from a unit name to milliseconds, e.g. `core.TIME_UNITS_MAP.tick`. */
   TIME_UNITS_MAP: {
     second: 1000,
     seconds: 1000,
@@ -37,8 +37,8 @@ export const uiMethods = defineSpellCoreModule({
    *   - and the game in progress carries on instead
    */
   pauseFor(number: number, units = "seconds"): Promise<void> {
-    if (spellCore.isCarryingOver) return new Promise(() => {})
-    const multiplier = spellCore.TIME_UNITS_MAP[units] || 1000
+    if (core.isCarryingOver) return new Promise(() => {})
+    const multiplier = core.TIME_UNITS_MAP[units] || 1000
     // default to 0 if `isNaN`
     const delay = Math.round(number * multiplier) || 0
     return new Promise((resolve) => setTimeout(resolve, delay))
@@ -59,17 +59,17 @@ export const uiMethods = defineSpellCoreModule({
    */
   notify(message: unknown, closeText?: string): void {
     const ui = pageUI()
-    if (!ui) return spellCore.console.info(String(message))
+    if (!ui) return core.console.info(String(message))
     void ui
       .load()
       .then((loaded) => loaded.toast({ message: String(message), displayTime: closeText ? 0 : "auto" }))
-      .catch((error) => spellCore.console.error("notify:  can't show a toast", error))
+      .catch((error) => core.console.error("notify:  can't show a toast", error))
   },
 
   /** Show `message` in a dialog, and wait until it's closed -- compiled from `alert "Yo!"` (`await`ed). */
   async alert(message: unknown, okText?: string): Promise<void> {
     const ui = pageUI()
-    if (!ui) return spellCore.console.info(String(message))
+    if (!ui) return core.console.info(String(message))
     await (await ui.load()).modals.alert({ message: String(message), okText })
   },
 
@@ -79,7 +79,7 @@ export const uiMethods = defineSpellCoreModule({
    */
   async confirm(message: unknown, okText?: string, cancelText?: string): Promise<boolean> {
     const ui = pageUI()
-    if (!ui) return (spellCore.console.info(`${String(message)} (yes)`), true)
+    if (!ui) return (core.console.info(`${String(message)} (yes)`), true)
     return (await ui.load()).modals.confirm({ message: String(message), okText, cancelText })
   },
 
@@ -90,7 +90,7 @@ export const uiMethods = defineSpellCoreModule({
    */
   async prompt(message: unknown, value?: string): Promise<string | undefined> {
     const ui = pageUI()
-    if (!ui) return (spellCore.console.info(`${String(message)} (${value ?? ""})`), value)
+    if (!ui) return (core.console.info(`${String(message)} (${value ?? ""})`), value)
     return (await ui.load()).modals.prompt({ message: String(message), value })
   },
 
@@ -105,7 +105,7 @@ export const uiMethods = defineSpellCoreModule({
    * - Newlines in `css` arrive escaped as `¬` (see the `css` rule, `rules/UI/CSSStyles.ts`),
    *   since they survived being embedded in a backtick template literal:
    *   unmunged back to `\n` here before use.
-   * - Goes in `spellCore.domRoot()`:  the app's shadow root if it's in one, so its styles stay inside it --
+   * - Goes in `core.domRoot()`:  the app's shadow root if it's in one, so its styles stay inside it --
    *   else `document`'s `<head>`.
    */
   installStyles(name = "anonymous-css", safeCSS = ""): void {
@@ -117,7 +117,7 @@ export const uiMethods = defineSpellCoreModule({
     newElement.id = id
     newElement.type = "text/css"
     newElement.appendChild(document.createTextNode(css))
-    const root = spellCore.domRoot()
+    const root = core.domRoot()
     const oldElement = root.getElementById(id)
     if (oldElement) {
       oldElement.parentNode!.replaceChild(newElement, oldElement)
@@ -127,7 +127,7 @@ export const uiMethods = defineSpellCoreModule({
     }
   }
 })
-Object.assign(spellCore, uiMethods)
+Object.assign(core, uiMethods)
 
 /**
  * What core uses of the page's Spell UI runtime (`UI`, `@spell-app/ui`):  typed here, as core never imports `ui`.

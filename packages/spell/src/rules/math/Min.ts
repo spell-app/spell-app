@@ -30,8 +30,8 @@ math.addRule(Min, {
         scope.variables?.add("prices")
       },
       tests: [
-        ["smallest of prices", "spellCore.smallestOf(prices)"],
-        ["smallest value in prices", "spellCore.smallestOf(prices)"]
+        ["smallest of prices", "core.smallestOf(prices)"],
+        ["smallest value in prices", "core.smallestOf(prices)"]
       ]
     }
   ]

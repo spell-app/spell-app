@@ -138,7 +138,7 @@ async function runProjectAs(
 
 /**
  * Throw if `seed`, from `--seed`, isn't a whole number from 1 to 2,147,483,646:
- * the seeds `spellCore.seedRandom()` gives a stream of random numbers for.
+ * the seeds `core.seedRandom()` gives a stream of random numbers for.
  * - Left out is fine:  random, as in a browser.
  */
 function checkSeed(seed: number | undefined): void {
@@ -146,7 +146,7 @@ function checkSeed(seed: number | undefined): void {
   throw new CLI.CliError(`--seed takes a whole number from 1 to ${LARGEST_SEED}, not ${seed}`)
 }
 
-/** The largest seed `spellCore.seedRandom()` takes:  one under its generator's modulus, 2 ** 31 - 1. */
+/** The largest seed `core.seedRandom()` takes:  one under its generator's modulus, 2 ** 31 - 1. */
 const LARGEST_SEED = 2147483646
 
 /**
@@ -213,7 +213,7 @@ export async function runCode(
       name,
       entry: pathToFileURL(entry).href,
       projects,
-      spellCore: pathToFileURL(resolve(environment.spellCoreDir, "index.ts")).href,
+      core: pathToFileURL(resolve(environment.coreDir, "index.ts")).href,
       verbose: options.verbose,
       filter: options.name,
       dom,

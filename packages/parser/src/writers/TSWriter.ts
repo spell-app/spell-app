@@ -35,7 +35,7 @@ import { forEachNode, listNamedBy, typeCaseOf, type TSUndeclared, type WriterPro
  *   - `@derived get state()`
  *   - `@thing`
  *   - `@drawn` on `draw()`:  each drawn thing in its own error boundary,
- *     as `spellCore.drawThing()` does for compiled javascript
+ *     as `core.drawThing()` does for compiled javascript
  * - Types where spell knows them:  parameters, properties, lists `as const`.
  *   - A type spell DOESN'T know is written `UNKNOWN`, `any /* spell: type unknown *\/`, never a bare `any`:
  *     so every gap shows, and can be counted (epic `output-targets`, Q16).
@@ -47,8 +47,8 @@ import { forEachNode, listNamedBy, typeCaseOf, type TSUndeclared, type WriterPro
  *   - a value kind's parameter, from its values:  `static color(suit: (typeof SUITS)[number])` (`valueKindType()`)
  * - A drawable type's element class, after its class -- see `elementClassFor()`:
  *   `class CardElement extends SpellElement<Card>`,
- *   handed to the page with `spellCore.useElement(Card, CardElement)`.
- * - Spell's own built-ins stay `spellCore` calls, so both targets print the same:
+ *   handed to the page with `core.useElement(Card, CardElement)`.
+ * - Spell's own built-ins stay `core` calls, so both targets print the same:
  *   `getItemAt(rank, 1)` counts from 1 (the core contract, `contract.test.ts` in `$/cli`).
  * - Sees the whole project first (`forProject()`, a `P.WriterProject`).
  *   `TSWriter.instance` alone knows nothing of it, e.g. writing one node in a test.
@@ -186,7 +186,7 @@ export class TSWriter extends JSWriter {
    * A call's `(args)`, for a method or function of the program's own.
    * - An argument that may be nothing (an item read from a list) is passed as found, as spell passes it:
    *   `moveToPile(tableaus.getItem(column)!)`.  A typed parameter can't take it otherwise.
-   * - `spellCore`'s helpers take anything:  see `ASTInvocationArgs()`.
+   * - `core`'s helpers take anything:  see `ASTInvocationArgs()`.
    */
   argsOf(node: P.ASTMethodInvocation): string {
     const previous = this.passedAsFound
@@ -222,7 +222,7 @@ export class TSWriter extends JSWriter {
   }
 
   ////////////////
-  // ## `spellCore`'s helpers, as TypeScript says them
+  // ## `core`'s helpers, as TypeScript says them
   ////////////////
 
   /** As javascript's (`JSWriter.coreCall()`), plus drawing:  `card.draw()`, `<For>` -- see `drawThing()`, `drawItems()`. */
@@ -385,9 +385,9 @@ export class TSWriter extends JSWriter {
 
   /**
    * An arrow's parameter:  typed when spell knows its type (`(card: Card) =>`), else bare, for TypeScript to type
-   * from what it's passed to, e.g. `spellCore.map(spellCore.getRange(1, 7), (number) => ...)`:  a `number`.
+   * from what it's passed to, e.g. `core.map(core.getRange(1, 7), (number) => ...)`:  a `number`.
    * - So no `UNKNOWN` marker:  unlike a method's own parameter,
-   *   an arrow is always passed somewhere that says what it gets (a `spellCore` helper, a handler).
+   *   an arrow is always passed somewhere that says what it gets (a `core` helper, a handler).
    */
   arrowParam(arg: P.ASTVariableExpression): string {
     const type = this.untypedItems
@@ -414,8 +414,8 @@ export class TSWriter extends JSWriter {
   /**
    * A new variable:  `const` unless it's set again (`let`).
    * - Typed when spell knows its datatype, e.g. `let count: number = 0`.
-   * - Set from a `spellCore` call, which returns `unknown`:
-   *   `const pile = spellCore.randomItemOf(piles) as Pile`, or `UNKNOWN` when spell doesn't know either.
+   * - Set from a `core` call, which returns `unknown`:
+   *   `const pile = core.randomItemOf(piles) as Pile`, or `UNKNOWN` when spell doesn't know either.
    * - Otherwise unknown:  as javascript, TypeScript works it out, e.g. `const game = new Game()`.
    */
   ASTAssignmentStatement(node: P.ASTAssignmentStatement): string {
@@ -427,14 +427,14 @@ export class TSWriter extends JSWriter {
     if (isCoreCall(inner)) {
       const written = this.bare(value)
       // a list's own method types what it gives by itself, e.g. `startPile.lastItem` is a `Card | undefined`
-      if (!written.startsWith("spellCore.")) return `${declared} = ${written}`
+      if (!written.startsWith("core.")) return `${declared} = ${written}`
       // what spell read it as, e.g. `Card` for `the last card of discards`:  its match says, while parsing
       const datatype = inner.datatype ?? inner.match?.datatype
       const type = typeof datatype === "string" && !datatype.startsWith("list") ? this.typeFor(datatype) : undefined
       if (!type) return `${declared} = ${written}`
-      // an item read says its type as a type argument, still maybe nothing:  `spellCore.getItemAt<Card>(...)`
+      // an item read says its type as a type argument, still maybe nothing:  `core.getItemAt<Card>(...)`
       if (JSWriter.ITEM_READS.has((inner as P.ASTScopedMethodInvocation).methodName)) {
-        return `${declared} = ${written.replace(/^spellCore\.(\w+)\(/, `spellCore.$1<${type}>(`)}`
+        return `${declared} = ${written.replace(/^core\.(\w+)\(/, `core.$1<${type}>(`)}`
       }
       return `${declared} = ${written} as ${type}`
     }
@@ -624,7 +624,7 @@ export class TSWriter extends JSWriter {
   ASTStaticDefinitionAsMember(node: P.ASTStaticDefinition): string {
     const list = [...this.project.lists.values()].find((it) => it.definition === node)
     if (!list) return super.ASTStaticDefinitionAsMember(node)
-    return `static ${this.nameOf(node.name)} = ${list.constant}`
+    return this.withSpell(node, `static ${this.nameOf(node.name)} = ${list.constant}`)
   }
 
   ////////////////
@@ -640,9 +640,9 @@ export class TSWriter extends JSWriter {
     const name = this.nameOf(node.property.value)
     if (node.get) {
       const getter = this.methodNamed(node.get, `get ${name}`)
-      return loopsOverAList(node.get) ? `@derived\n${getter}` : getter
+      return loopsOverAList(node.get) ? `@derived ${getter}` : getter
     }
-    if (name === "draw") return `@drawn\n${this.drawMethod(node.method!)}`
+    if (name === "draw") return `@drawn ${this.drawMethod(node.method!)}`
     return this.methodNamed(node.method!, name)
   }
 
@@ -655,7 +655,10 @@ export class TSWriter extends JSWriter {
     // TypeScript won't let an `accessor` do that, so the pair javascript writes
     if (this.project.isInherited(node.typeName, node.property.value)) return super.ASTReactivePropertyAsMember(node)
     const info = this.propInfo(node)
-    return `@prop(${info ?? ""}) accessor ${this.write(node.property)}!: ${this.propertyType(node) ?? TSWriter.UNKNOWN}`
+    // a decorator with arguments on its own line, one without on its member's (Owen, epic `people-and-orgs` P19)
+    const decorator = info ? `@prop(${info})${jsText.NEWLINE}` : "@prop() "
+    const accessor = `accessor ${this.write(node.property)}!: ${this.propertyType(node) ?? TSWriter.UNKNOWN}`
+    return [this.spellComment(node), `${decorator}${accessor}`].filter(Boolean).join(jsText.NEWLINE)
   }
 
   /** What `@prop()` declares:  `node`'s `check`, `init` for its `initializer`, a hoisted list by its constant. */
@@ -795,7 +798,7 @@ export class TSWriter extends JSWriter {
 
   /**
    * The element class of drawable class `node`, written after it, and the line handing it to the page --
-   * `undefined` for a class that isn't drawable (no `static elementTag = spellCore.defineElement(...)`).
+   * `undefined` for a class that isn't drawable (no `static elementTag = core.defineElement(...)`).
    *
    * ```ts
    * export class CardElement extends SpellElement<Card> {
@@ -810,7 +813,7 @@ export class TSWriter extends JSWriter {
    *     return this.currentThing?.turnOver()
    *   }
    * }
-   * spellCore.useElement(Card, CardElement)
+   * core.useElement(Card, CardElement)
    * ```
    * - Built on the runtime's own element, `SpellElement`, from `@spell/elements`,
    *   which does what every drawable thing's element does:
@@ -821,7 +824,7 @@ export class TSWriter extends JSWriter {
    *   - an attribute per property the type declares (`elementAttributes()`)
    *   - its sheet, the type's own `<css>`, when it has one
    *   - a method per method of the type's, calling its thing's (`elementMethods()`)
-   * - The page defines the tag with it (`spellCore.useElement()`):
+   * - The page defines the tag with it (`core.useElement()`):
    *   the class never calls `define()`, so a tag is never defined twice.
    * - What it leaves out, e.g. a super-type's properties, the page adds, as it does for javascript:
    *   both targets draw the same element.
@@ -850,13 +853,13 @@ export class TSWriter extends JSWriter {
     const docstring = [
       "/**",
       ` * \`<${tag}>\`:  ${a(words)} ${words}, drawn in its own element, e.g. by \`draw the ${words}\`.`,
-      ` * - The page defines its tag with this class:  \`spellCore.useElement()\`, below.`,
+      ` * - The page defines its tag with this class:  \`core.useElement()\`, below.`,
       ` * - Its attributes are its ${words}'s properties;  its methods call its ${words}'s.`,
       ` * - What every drawable thing's element does, e.g. drawing its ${words}, is \`SpellElement\`'s.`,
       " */"
     ].join("\n")
     const declaration = `export class ${name} extends SpellElement<${typeName}> {\n${indented(body)}\n}`
-    return `${docstring}\n${declaration}\nspellCore.useElement(${typeName}, ${name})`
+    return `${docstring}\n${declaration}\ncore.useElement(${typeName}, ${name})`
   }
 
   /** Name of the element class of class `typeName`, e.g. `CardElement` -- one the project's types don't have. */
@@ -1047,7 +1050,7 @@ export class TSWriter extends JSWriter {
 
   /**
    * A list says what it holds:  `a deck is a list of cards` => `class Deck extends List<Card>`, from its
-   * `static instanceType = Card`.  So `spellCore.getItemAt(deck, 1)` is a `Card | undefined`.
+   * `static instanceType = Card`.  So `core.getItemAt(deck, 1)` is a `Card | undefined`.
    * - A drawable list too:  `class Pile extends DrawableList<Card>`.
    */
   superTypeOf(node: P.ASTClassDeclaration): string {

@@ -11,8 +11,8 @@ import { type MethodBody, type ItemVariableData } from "./lists.shared"
  * - Optional `{position}` (`for item, index in ...`) adds a numeric index arg alongside `{item}`.
  * - Both a `statement` and an `expression`:  usable inline or as a block.
  * - Body runs as nested block or inline statement;  `{item}`'s value is also aliased from `it`.
- * - Builds `spellCore.map(list, (item, position?) => { ... })`,
- *   or `await spellCore.forEachSequential(...)` if its body contains an `await`.
+ * - Builds `core.map(list, (item, position?) => { ... })`,
+ *   or `await core.forEachSequential(...)` if its body contains an `await`.
  * - How javascript writes it (`JSWriter`):
  *   - as the list's own method, where it knows the value is a list
  *   - as a `for...of` loop, when its body waits
@@ -87,53 +87,53 @@ lists.addRule(ListIteration, {
         scope.variables?.add("messages")
       },
       tests: [
-        ["for each card in deck:", "spellCore.map(deck, () => {})"],
-        ["for item, index in my-list:", "spellCore.map(myList, () => {})"],
+        ["for each card in deck:", "core.map(deck, () => {})"],
+        ["for item, index in my-list:", "core.map(myList, () => {})"],
         [
           `for each card in deck: set the direction of the card to "down"`,
-          'spellCore.map(deck, (card) => (card.direction = "down"))'
+          'core.map(deck, (card) => (card.direction = "down"))'
         ],
         [
           `for each card in deck: set the direction of it to "down"`,
-          'spellCore.map(deck, (card) => (card.direction = "down"))'
+          'core.map(deck, (card) => (card.direction = "down"))'
         ],
         [
           "for message, index in messages: add message + index to messages",
-          "spellCore.map(messages, withSpellPositions((message, index) => spellCore.append(messages, message + index)))",
-          "spellCore.map(messages, withSpellPositions((message, index: number) => spellCore.append(messages, message + index)))"
+          "core.map(messages, withSpellPositions((message, index) => core.append(messages, message + index)))",
+          "core.map(messages, withSpellPositions((message, index: number) => core.append(messages, message + index)))"
         ],
         [
           "for message, index in messages: add it + index to messages",
-          "spellCore.map(messages, withSpellPositions((message, index) => spellCore.append(messages, message + index)))",
-          "spellCore.map(messages, withSpellPositions((message, index: number) => spellCore.append(messages, message + index)))"
+          "core.map(messages, withSpellPositions((message, index) => core.append(messages, message + index)))",
+          "core.map(messages, withSpellPositions((message, index: number) => core.append(messages, message + index)))"
         ],
         [
           "for message, index in messages: set its list to messages",
-          "spellCore.map(messages, (message) => (message.list = messages))"
+          "core.map(messages, (message) => (message.list = messages))"
         ],
 
         [
           `for each card in deck:\n\tset the direction of the card to "down"`,
-          'spellCore.map(deck, (card) => (card.direction = "down"))'
+          'core.map(deck, (card) => (card.direction = "down"))'
         ],
         [
           [`for each card in deck:`, `\tset the direction of it to "down"`],
-          'spellCore.map(deck, (card) => (card.direction = "down"))'
+          'core.map(deck, (card) => (card.direction = "down"))'
         ],
         [
           [`for each card in deck:`, `\tset the direction of the card to "down"`, `\tset the value of the card to 10`],
-          [`spellCore.map(deck, (card) => {`, `  card.direction = "down"`, `  card.value = 10`, `})`]
+          [`core.map(deck, (card) => {`, `  card.direction = "down"`, `  card.value = 10`, `})`]
         ],
         [
           ["for message and index in messages:", "\tif index is greater than 2 add message to messages"],
           [
-            "spellCore.map(messages, withSpellPositions((message, index) => {",
-            "  if (index > 2) spellCore.append(messages, message)",
+            "core.map(messages, withSpellPositions((message, index) => {",
+            "  if (index > 2) core.append(messages, message)",
             "}))"
           ],
           [
-            "spellCore.map(messages, withSpellPositions((message, index: number) => {",
-            "  if (index > 2) spellCore.append(messages, message)",
+            "core.map(messages, withSpellPositions((message, index: number) => {",
+            "  if (index > 2) core.append(messages, message)",
             "}))"
           ]
         ]

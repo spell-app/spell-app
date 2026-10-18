@@ -8,7 +8,7 @@
  * - NOTE: its project groups are spaces' (`$/spaces`):  load them before reading a path -- see `SpellSetup`.
  *   - So nothing reachable from here can rely on browser-only globals at module-evaluation time.
  *   - Methods that only run client-side are fine:  the server just never calls them.
- * - NOTE: nothing here imports `spellCore`'s code -- only its types file.
+ * - NOTE: nothing here imports `core`'s code -- only its types file.
  *   - Programs run on a runner's own copy of it, see `spellRuntime.ts`,
  *     so a second copy here would be one no program runs on.
  */

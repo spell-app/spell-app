@@ -1,9 +1,9 @@
 import { describe } from "vite-plus/test"
 import { unitTestModuleRules } from "$/spell/test"
 import { spellParser } from "$/spell"
-import { spellCore } from "$/core"
+import { core } from "$/core"
 
 describe("testing spell module draw", () => {
-  unitTestModuleRules(spellParser, "draw", spellCore.resetRuntime)
+  unitTestModuleRules(spellParser, "draw", core.resetRuntime)
   // describe("integration tests", () => {})
 })

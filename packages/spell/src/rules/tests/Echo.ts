@@ -20,9 +20,9 @@ tests.addRule(Echo, {
   tests: [
     {
       tests: [
-        [`echo 1`, `spellCore.echo(1)`],
-        [`echo "foo"`, `spellCore.echo("foo")`],
-        ["echo the rank of a new thing", "spellCore.echo((new Thing()).rank)"]
+        [`echo 1`, `core.echo(1)`],
+        [`echo "foo"`, `core.echo("foo")`],
+        ["echo the rank of a new thing", "core.echo((new Thing()).rank)"]
       ]
     }
   ]

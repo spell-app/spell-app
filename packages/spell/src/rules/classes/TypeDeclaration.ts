@@ -18,7 +18,7 @@ import { SpellType } from "$/spell/rules/types/SpellType"
  *   - Either name finds the type afterwards, e.g. `the accounts`, `a new bank account`.
  *   - A name some other type already goes by is refused -- see `refuseTakenNames()`.
  * - A DRAWABLE type (`a card is a drawable thing`, or a sub-type of one) defines its element as its class is declared,
- *   in a static field:  `static elementTag = spellCore.defineElement(this, "Solitaire")` -- see `elementMember()`.
+ *   in a static field:  `static elementTag = core.defineElement(this, "Solitaire")` -- see `elementMember()`.
  */
 export class TypeDeclaration<
   Groups extends string,
@@ -92,15 +92,15 @@ export class TypeDeclaration<
   /**
    * The member that defines a drawable type's element as its class is declared, in project `project` --
    * `undefined` for a type that isn't drawable (no `project`).
-   * - `static elementTag = spellCore.defineElement(this, "Solitaire")`:  a static field runs as the class is made,
-   *   so before the program draws anything.  See `spellCore.defineElement()`, in core's `elements.ts`.
+   * - `static elementTag = core.defineElement(this, "Solitaire")`:  a static field runs as the class is made,
+   *   so before the program draws anything.  See `core.defineElement()`, in core's `elements.ts`.
    */
   elementMember(match: P.Match, type: P.ASTTypeExpression, project: string | undefined): P.ASTClassMember | undefined {
     if (project === undefined) return undefined
     return new P.ASTStaticDefinition(match, {
       type,
       name: "elementTag",
-      value: new P.ASTStringLiteral(match, `spellCore.defineElement(this, ${JSON.stringify(project)})`)
+      value: new P.ASTStringLiteral(match, `core.defineElement(this, ${JSON.stringify(project)})`)
     })
   }
 

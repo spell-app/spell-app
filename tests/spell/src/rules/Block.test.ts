@@ -85,11 +85,13 @@ describe("compiling docstrings and headings", () => {
     // in a class body too
     const property = compile("a card is a thing\n\n// card ranks\ncards have a rank as one of ace or king")
     const propertyDoc = property.indexOf("  /** card ranks */")
-    expect(property.slice(propertyDoc, propertyDoc + 5)).toEqual([
+    // its code starts with the spell that made it (epic `people-and-orgs` P19)
+    expect(property.slice(propertyDoc, propertyDoc + 6)).toEqual([
       "  /** card ranks */",
       "  /*! SPELL: DECLARES {",
       '    property: "rank", classVariable: "Ranks", of: "Card", enumeration: ["ace", "king"],',
       "  } */",
+      "  // cards have a rank as one of ace or king",
       '  static Ranks = ["ace", "king"]'
     ])
   })
@@ -111,13 +113,13 @@ describe("compiling docstrings and headings", () => {
       "// ## Setup",
       "///////////",
       "// print it",
-      "spellCore.console.log(1)"
+      "core.console.log(1)"
     ])
   })
 
   test("a comment that documents nothing compiles as it was", () => {
-    expect(compile("// just printing\nprint 1")).toEqual(["// just printing", "spellCore.console.log(1)"])
-    expect(compile("## Cards\n\nprint 1")).toEqual(["//## Cards", "", "spellCore.console.log(1)"])
+    expect(compile("// just printing\nprint 1")).toEqual(["// just printing", "core.console.log(1)"])
+    expect(compile("## Cards\n\nprint 1")).toEqual(["//## Cards", "", "core.console.log(1)"])
   })
 })
 
@@ -142,26 +144,28 @@ describe("class members go in their class's body", () => {
     ]
     expect(code(text.join("\n"))).toEqual([
       "export class Task extends Thing {",
+      "  // a task has a title as text",
       '  static { this.declareProp("title", { type: "text" }) }',
       '  get title() { return this.getProp("title") }',
       '  set title(value) { this.setProp("title", value) }',
       "",
       "  /** draw it */",
       "  draw() {",
-      "    return spellCore.console.log(1)",
+      "    return core.console.log(1)",
       "  }",
       "}",
       "",
       "export const task = new Task()",
-      "spellCore.console.log(task)",
+      "core.console.log(task)",
       "",
-      "spellCore.console.log(2)"
+      "core.console.log(2)"
     ])
   })
 
   test("a member declared ABOVE its class", () => {
     expect(code("cards have a rank as text\na card is a thing")).toEqual([
       "export class Card extends Thing {",
+      "  // cards have a rank as text",
       '  static { this.declareProp("rank", { type: "text" }) }',
       '  get rank() { return this.getProp("rank") }',
       '  set rank(value) { this.setProp("rank", value) }',
@@ -187,12 +191,13 @@ describe("class members go in their class's body", () => {
       "  ////////////////",
       "  // of cards",
       "",
+      "  // cards have a rank as text",
       '  static { this.declareProp("rank", { type: "text" }) }',
       '  get rank() { return this.getProp("rank") }',
       '  set rank(value) { this.setProp("rank", value) }',
       "}",
       "",
-      "spellCore.console.log(1)"
+      "core.console.log(1)"
     ])
   })
 
@@ -210,6 +215,7 @@ describe("class members go in their class's body", () => {
       "  }",
       "}",
       "export class Joker extends Card {",
+      "  // jokers have a color as either red or black",
       '  static Colors = ["red", "black"]',
       '  static { this.declareProp("color", { oneOf: Joker.Colors }) }',
       '  get color() { return this.getProp("color") }',
@@ -228,21 +234,21 @@ describe("class members go in their class's body", () => {
     expect(combined.split("\n")).toEqual([
       "export class Card extends Thing {",
       "  flip() {",
-      "    return spellCore.console.log(2)",
+      "    return core.console.log(2)",
       "  }",
       "}",
-      "spellCore.console.log(1)",
+      "core.console.log(1)",
       "// -----------",
       "export class Pile extends List {",
       "  static instanceType = Card",
       "}",
-      "spellCore.console.log(3)"
+      "core.console.log(3)"
     ])
     expect(cardAST.compile()).toBe(cardBefore)
   })
 })
 
-describe("headings, as the program runs:  `spellCore.heading()`", () => {
+describe("headings, as the program runs:  `core.heading()`", () => {
   /** `text` compiled as a FILE's top level -- no `SPELL: DECLARES` comments -- as lines. */
   function fileCode(text: string): string[] {
     const scope = new P.FileScope({ name: "Cards.spell", parentScope: spellParser.getScope("headings") })
@@ -252,19 +258,19 @@ describe("headings, as the program runs:  `spellCore.heading()`", () => {
 
   test("each heading at a file's top level, above its own lines -- NOT a `#####` rule", () => {
     expect(fileCode(["## Set up", "deck = 1", "", "##########", "## Play", "print deck"].join("\n"))).toEqual([
-      'spellCore.heading("Set up")',
+      'core.heading("Set up")',
       "/** Set up */",
       "export const deck = 1",
       "",
       "//##########",
-      'spellCore.heading("Play")',
+      'core.heading("Play")',
       "//## Play",
-      "spellCore.console.log(deck)"
+      "core.console.log(deck)"
     ])
   })
 
   test("NOT in a plain block, e.g. a rule test's", () => {
-    expect(compile("## Set up\ndeck = 1").join("\n")).not.toContain("spellCore.heading")
+    expect(compile("## Set up\ndeck = 1").join("\n")).not.toContain("core.heading")
   })
 
   test("its comments still go with the member below -- the call stays, and one with nothing after it goes", () => {
@@ -286,14 +292,15 @@ describe("headings, as the program runs:  `spellCore.heading()`", () => {
       "  // ## Properties",
       "  ////////////////",
       "  /** of cards */",
+      "  // cards have a rank as text",
       '  static { this.declareProp("rank", { type: "text" }) }',
       '  get rank() { return this.getProp("rank") }',
       '  set rank(value) { this.setProp("rank", value) }',
       "}",
       "",
-      'spellCore.heading("Dealing")',
+      'core.heading("Dealing")',
       "//## Dealing",
-      "spellCore.console.log(1)"
+      "core.console.log(1)"
     ])
   })
 })
@@ -311,15 +318,15 @@ describe("the program's start:  skipped when an edit keeps its things (epic `dra
   test("starting its app, and calling a test, at a file's top level:  each runs only when it starts afresh", () => {
     const text = [...GAME, "to test the game", '\tprint "testing"', "test the game", "start the game"]
     const code = fileCode(text.join("\n"))
-    expect(code).toContain("if (!spellCore.isCarryingOver) testTheGame()")
-    expect(code).toContain("if (!spellCore.isCarryingOver) game.start()")
+    expect(code).toContain("if (!core.isCarryingOver) testTheGame()")
+    expect(code).toContain("if (!core.isCarryingOver) game.start()")
   })
 
   test("NOT any other line:  a print, a call of the program's own function, making a thing", () => {
     const text = [...GAME, "to reset the game", "\tprint 1", "reset the game", 'print "hello"']
     const code = fileCode(text.join("\n"))
     expect(code).toContain("resetTheGame()")
-    expect(code).toContain('spellCore.console.log("hello")')
+    expect(code).toContain('core.console.log("hello")')
     expect(code.join("\n")).not.toContain("isCarryingOver")
   })
 
@@ -331,7 +338,7 @@ describe("the program's start:  skipped when an edit keeps its things (epic `dra
 
   test("a comment at the line's end stays below it", () => {
     expect(fileCode([...GAME, "start the game // off we go"].join("\n")).slice(-2)).toEqual([
-      "if (!spellCore.isCarryingOver) game.start()",
+      "if (!core.isCarryingOver) game.start()",
       "// off we go"
     ])
   })

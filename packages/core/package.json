@@ -18,7 +18,7 @@
     "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vp test run && echo '<< TESTS PASSED\n'",
     "test:watch": "vp test",
     "/////// GENERATED FILES": "",
-    "gen:declarations": "node --import tsx src/writeCoreDeclarations.ts && vp fmt spellCore.declarations.json5"
+    "gen:declarations": "node --import tsx src/writeCoreDeclarations.ts && vp fmt core.declarations.json5"
   },
   "dependencies": {
     "@solidjs/h": "2.0.0-rc.13",

@@ -26,7 +26,7 @@ Spell
 Compiled
   Object.defineProperty(Card.prototype, "color", {
     get() {
-      if (spellCore.includes(["diamonds", "hearts"], this.suit)) return "red"
+      if (core.includes(["diamonds", "hearts"], this.suit)) return "red"
       return "black"
     },
     configurable: true

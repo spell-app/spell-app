@@ -11,7 +11,7 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
  *   - `spell-app.js`:  the element, for pages to load -- see `components/spell-app/index.ts`
  *   - `spell-runtime.js`:  what ONE app runs on, loaded afresh per element -- see `spellRuntime.ts`
  * - What both use goes in shared chunks.
- *   `spellCore` MUST stay in `spell-runtime.js` alone -- pinned by `element.build.test.ts`.
+ *   `core` MUST stay in `spell-runtime.js` alone -- pinned by `element.build.test.ts`.
  * - Solid, `ui`'s element core and `@spell-app/ui` are NOT bundled:
  *   they come from `spell-solid.js` / `spell-ui.js` beside it, which `<spell-editor>` imports too --
  *   one Solid per page.
@@ -22,7 +22,7 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
  * - Fixed names, no hashes:  the element finds the runtime, styles and scope packs beside itself.
  * - One `spell-app.css`, which the element puts in each shadow root -- see `shadowStyles.ts`.
  * - `static/` is copied in, so Semantic UI and Lato sit beside the bundle --
- *   and the built-in types' scope pack, `spellCore.scopes.js`, see `builtInsPack()`.
+ *   and the built-in types' scope pack, `core.scopes.js`, see `builtInsPack()`.
  * - And the component pack of both elements, `spell.pack.js`:  see `componentPack()`.
  * - Plugins, aliases, dedupe and CSS:  `appConfig()`, as `vite.config.ts`.
  *   `keepNames` MUST stay on -- see `parser/build.test.ts`.
@@ -66,7 +66,7 @@ export default defineConfig({
 })
 
 /**
- * Copy the built-in types' scope pack, `core`'s `src/spellCore.scopes.js`, beside the bundle --
+ * Copy the built-in types' scope pack, `core`'s `src/core.scopes.js`, beside the bundle --
  * where `<spell-app>` looks for it.  See `LSP.ScopePack`.
  */
 function builtInsPack(): Plugin {
@@ -74,8 +74,8 @@ function builtInsPack(): Plugin {
     name: "spell-built-ins-pack",
     apply: "build",
     generateBundle() {
-      const source = readFileSync(`${environment.spellCoreDir}/spellCore.scopes.js`, "utf8")
-      this.emitFile({ type: "asset", fileName: "spellCore.scopes.js", source })
+      const source = readFileSync(`${environment.coreDir}/core.scopes.js`, "utf8")
+      this.emitFile({ type: "asset", fileName: "core.scopes.js", source })
     }
   }
 }

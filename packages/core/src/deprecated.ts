@@ -1,18 +1,18 @@
 /**
- * `spellCore`'s old names, kept for programs compiled before they changed -- nothing recompiles a saved program.
+ * `core`'s old names, kept for programs compiled before they changed -- nothing recompiles a saved program.
  * - NOT the core contract:  another target's core (Python's, later) needs only the new names.
  * - Epic `output-targets` P16 (Q47):
  *   core says "position" where it means a position, and "item" only for an element of a list.
- *   - e.g. `spellCore.itemOf(pile, card)` was always a POSITION (3), not an item:  now `spellCore.positionOf()`.
+ *   - e.g. `core.itemOf(pile, card)` was always a POSITION (3), not an item:  now `core.positionOf()`.
  *   - Each old name is the SAME function as its new one, so the two never drift apart.
  *   - Programs compiled before P16 still run:  `cli`'s `contract.test.ts` runs one.
  */
-import { spellCore } from "./core"
+import { core } from "./core"
 import { collectionCoreMethods, positionOf } from "./collection-core"
 import { collectionOtherMethods } from "./collection-other"
-import { defineSpellCoreModule } from "./spellCore.types"
+import { defineCoreModule } from "./core.types"
 
-export const deprecatedMethods = defineSpellCoreModule({
+export const deprecatedMethods = defineCoreModule({
   /** @deprecated  `positionOf()`, since epic `output-targets` P16. */
   itemOf: positionOf,
   /** @deprecated  `getItemAt()`, since epic `output-targets` P16. */
@@ -30,7 +30,7 @@ export const deprecatedMethods = defineSpellCoreModule({
   /** @deprecated  `mergeListsInto()`, since epic `output-targets` P16. */
   mergeCollectionsInto: collectionOtherMethods.mergeListsInto
 })
-Object.assign(spellCore, deprecatedMethods)
+Object.assign(core, deprecatedMethods)
 
 /**
  * @deprecated  `positionOf()`, since epic `output-targets` P16:  TypeScript compiled before it imports

@@ -38,7 +38,7 @@ from spell_core.events import Eventful
 from spell_core.kinds import is_same
 
 if TYPE_CHECKING:
-    from spell_core.core import SpellCore
+    from spell_core.core import Core
 
 # The key a spell object's JSON names its class under:  `{"$type": "Card", ...}`.
 TYPE_KEY = "$type"
@@ -435,7 +435,7 @@ def to_json_value(value: object) -> object:
     return value
 
 
-def program_core() -> "SpellCore":
+def program_core() -> "Core":
     """The program's `core`, where a thing's warnings go:  imported when first asked for, as `core.py` imports us."""
     from spell_core.core import core
 

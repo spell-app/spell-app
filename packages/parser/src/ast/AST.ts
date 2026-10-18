@@ -207,7 +207,7 @@ export class ASTStringLiteral extends ASTLiteral {
  * TypeNameLiteral -- a type's name as TEXT in the compiled code, e.g. `"Pile"` in:
  *   - a new list's item type:  `new List({ instanceType: "Pile" })`
  *   - a declared property's type:  `declareProp('pile', { type: "Pile" })`
- *   - a type check left to the runtime:  `spellCore.isOfType(x, "List")`
+ *   - a type check left to the runtime:  `core.isOfType(x, "List")`
  * - `value` is spell's name for the type;  each writer writes it as it writes a type's name,
  *   e.g. `"bank_account"` for a language naming types in snake_case.
  * - Why a node of its own:  the rules that write a type's name as text mark it,
@@ -868,7 +868,7 @@ export class ASTScopedMethodInvocation extends ASTMethodInvocation {
   }
 }
 
-/** ConsoleMethodInvocation:  `spellCore.console.methodName(args)`.
+/** ConsoleMethodInvocation:  `core.console.methodName(args)`.
  * - `methodName` is method name, e.g. `log` or `warn` -- defaults to `log`.
  * - `args` is array of expressions.
  * - `echoInTests` (overridable getter) is always `false`:
@@ -895,25 +895,25 @@ export class ASTConsoleMethodInvocation extends ASTScopedMethodInvocation {
   set echoInTests(echoInTests: boolean) {
     this.override("echoInTests", echoInTests)
   }
-  /** Builds `thing` as `spellCore.console` -- caller only supplies `methodName`/`args`. */
+  /** Builds `thing` as `core.console` -- caller only supplies `methodName`/`args`. */
   constructor(match: P.AnyMatch, props: ASTConsoleMethodInvocationProps) {
     const thing = new ASTPropertyExpression(match, {
-      object: new ASTSpellCoreExpression(match),
+      object: new ASTCoreExpression(match),
       property: "console"
     })
     super(match, { ...props, methodName: props.methodName as string, thing })
   }
 }
 
-/** Create an `ASTExpression` that refers to `spellCore`. */
-export class ASTSpellCoreExpression extends ASTVariableExpression {
+/** Create an `ASTExpression` that refers to `core`. */
+export class ASTCoreExpression extends ASTVariableExpression {
   constructor(match: P.AnyMatch) {
-    super(match, { name: "spellCore", type: "global" })
+    super(match, { name: "core", type: "global" })
   }
 }
 
 /**
- * CoreMethodInvocation:  calls a `spellCore` `method`.  Used for output language independence.
+ * CoreMethodInvocation:  calls a `core` `method`.  Used for output language independence.
  *  - `methodName` is spellcore method name.
  *  - `args` (optional) is a possibly empty list of Expressions.
  *  - `datatype` (optional) is return datatype as string, try to set if you can.
@@ -921,13 +921,13 @@ export class ASTSpellCoreExpression extends ASTVariableExpression {
 export type ASTCoreMethodInvocationProps = ASTMethodInvocationProps
 
 export class ASTCoreMethodInvocation extends ASTScopedMethodInvocation {
-  /** Builds `thing` as `spellCore` -- caller only supplies `methodName`/`args`. */
+  /** Builds `thing` as `core` -- caller only supplies `methodName`/`args`. */
   constructor(match: P.AnyMatch, props: ASTCoreMethodInvocationProps) {
-    super(match, { ...props, thing: new ASTSpellCoreExpression(match) })
+    super(match, { ...props, thing: new ASTCoreExpression(match) })
   }
 }
 
-/** ExpectMethodInvocation:  `spellCore.expect(...)` -- used to assert a value in generated test output.
+/** ExpectMethodInvocation:  `core.expect(...)` -- used to assert a value in generated test output.
  *  - `expression` is expression AST being tested.
  *  - `expressionString` is string for spell code used to generate `expression`, shown in assertion output.
  *  - `value` (optional) is expected value AST to match against.
@@ -965,9 +965,9 @@ export class ASTExpectMethodInvocation extends ASTCoreMethodInvocation {
   }
 }
 
-/** EchoInvocation:  `spellCore.echo(...)` (or another named spellCore method) for test-mode logging.
+/** EchoInvocation:  `core.echo(...)` (or another named core method) for test-mode logging.
  *  - `expression` is expression to output -- a bare `string` is wrapped as a backtick `ASTStringLiteral`.
- *  - `methodName` (optional) overrides which spellCore method to call, defaults to `"echo"`.
+ *  - `methodName` (optional) overrides which core method to call, defaults to `"echo"`.
  *  - `echoInTests` (overridable getter) is always `false`:
  *    test-mode echo injection (see `rules/methods/MethodDefinition.ts`) skips echo calls,
  *    since they already print something.
@@ -990,7 +990,7 @@ export class ASTEchoInvocation extends ASTCoreMethodInvocation {
 }
 
 /**
- * HeadingInvocation:  `spellCore.heading("set up all piles")` -- a heading at a file's top level, said as the
+ * HeadingInvocation:  `core.heading("set up all piles")` -- a heading at a file's top level, said as the
  * program runs, so the Thing Explorer knows which heading's code made each thing.  See `SP.Block.getAST()`.
  * - `heading` is the heading's text, without its `#`s.
  * - `SP.hoistClassMembers()` leaves it where it is -- but comments on either side of it still go with the member
@@ -1033,7 +1033,7 @@ export class ASTTypeExpression extends ASTExpression {
   }
 
   /**
-   * Name our type's class has when the code runs -- for a runtime type check, e.g. `spellCore.isOfType()`.
+   * Name our type's class has when the code runs -- for a runtime type check, e.g. `core.isOfType()`.
    * - Differs from `name` for a type imported renamed, e.g. `Card` for `Playingcard` -- see `P.TypeScope.runtimeName`.
    */
   get runtimeName(): string {
@@ -1786,12 +1786,12 @@ export class ASTElseStatement extends ASTStatement {
 
 /**
  * ProgramStart:  a line of a program's START, which runs only when the program starts afresh:
- * `if (!spellCore.isCarryingOver) game.start()`.
+ * `if (!core.isCarryingOver) game.start()`.
  * - Its lines, at a file's top level (epic `drawable-thing` P17, Q26):
  *   - a call of one of the file's tests:  `test card setup`
  *   - starting its app:  `start the game`
  *   - `SP.Block` wraps them.
- * - Skipped when an edit keeps the last run's things (`spellCore.isCarryingOver`):
+ * - Skipped when an edit keeps the last run's things (`core.isCarryingOver`):
  *   the tests don't print again, and the game in progress isn't started again.
  *   - Every other line still runs.
  * - It IS an `if`, so every writer writes it as one.
@@ -1802,7 +1802,7 @@ export type ASTProgramStartProps = { statement: ASTStatement | ASTExpression }
 export class ASTProgramStart extends ASTIfStatement {
   constructor(match: P.AnyMatch, { statement }: ASTProgramStartProps) {
     const carryingOver = new ASTPropertyExpression(match, {
-      object: new ASTSpellCoreExpression(match),
+      object: new ASTCoreExpression(match),
       property: "isCarryingOver"
     })
     super(match, {

@@ -1,14 +1,14 @@
 /**
- * Master import file for the classes `spellCore` exposes to compiled spell code.
+ * Master import file for the classes `core` exposes to compiled spell code.
  * - Re-exported from `$/core`'s own barrel (`export * from "./classes"`) so `Thing`/`List`/`App`/`Drawable`/
- *   `DrawableList` are available alongside the rest of `spellCore`.
+ *   `DrawableList` are available alongside the rest of `core`.
  *
- * NOTE: imports reach into `$/core/core` and `$/core/SpellCore` directly rather than
+ * NOTE: imports reach into `$/core/core` and `$/core/Core` directly rather than
  * the `$/core` barrel -- this file helps BUILD that barrel, so going through it would
  * re-enter it circularly.
  */
-import { spellCore } from "$/core/core"
-import { defineSpellCoreModule, SPELL_BASE_TYPES } from "$/core/spellCore.types"
+import { core } from "$/core/core"
+import { defineCoreModule, SPELL_BASE_TYPES } from "$/core/core.types"
 
 import { Thing } from "./Thing"
 import { App } from "./App"
@@ -17,7 +17,7 @@ import { Drawable } from "./Drawable"
 import { DrawableList } from "./DrawableList"
 
 /** Base-type registry, and where an app mounts.  Drawing is `../drawing.ts`. */
-export const classesMethods = defineSpellCoreModule({
+export const classesMethods = defineCoreModule({
   /** Base types known to the `spell` language/parser -- see `SPELL_BASE_TYPES`. */
   BASE_TYPES: [...SPELL_BASE_TYPES] as string[],
 
@@ -40,7 +40,7 @@ export const classesMethods = defineSpellCoreModule({
 
   /** Element the app mounts into:  `appRoot`, else `#spell-app-root` in `document` -- `null` if neither. */
   appElement(): HTMLElement | null {
-    return spellCore.appRoot ?? document.getElementById(spellCore.REACT_APP_ROOT_ID)
+    return core.appRoot ?? document.getElementById(core.REACT_APP_ROOT_ID)
   },
 
   /**
@@ -48,12 +48,12 @@ export const classesMethods = defineSpellCoreModule({
    * - Look elements up and add styles HERE, NOT on `document` -- which can't see into a shadow root.
    */
   domRoot(): Document | ShadowRoot {
-    const root = spellCore.appRoot?.getRootNode()
+    const root = core.appRoot?.getRootNode()
     return typeof ShadowRoot !== "undefined" && root instanceof ShadowRoot ? root : document
   }
 })
-Object.assign(spellCore, classesMethods)
+Object.assign(core, classesMethods)
 
-// Compiled spell imports these -- `import { spellCore, Thing, List, App, ... } from "@spell/core"`.  No globals.
+// Compiled spell imports these -- `import { core, Thing, List, App, ... } from "@spell/core"`.  No globals.
 export { Thing, List, App, Drawable, DrawableList }
 export type { ListCallback } from "./List"

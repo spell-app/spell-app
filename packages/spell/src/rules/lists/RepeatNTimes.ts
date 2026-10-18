@@ -10,8 +10,8 @@ import { type MethodBody } from "./lists.shared"
  * - Both a `statement` and an `expression` -- usable inline or as a block.
  * - Body runs as a nested block or inline statement (`{statement_body}?`);
  *   current iteration number, from 1, is available as `number` (also aliased from `it`).
- * - Compiles to `spellCore.map(spellCore.countTo(number), (number) => { ... })`, or
- *   `await spellCore.forEachSequential(...)` if body contains an `await` (`method.isAsync`).
+ * - Compiles to `core.map(core.countTo(number), (number) => { ... })`, or
+ *   `await core.forEachSequential(...)` if body contains an `await` (`method.isAsync`).
  */
 export class RepeatNTimes extends SpellStatement<"number|body?"> {
   @proto static alias = ["statement", "expression"]
@@ -57,23 +57,23 @@ lists.addRule(RepeatNTimes, {
         {
           title: "No statements",
           input: "repeat 1 time:",
-          js: "spellCore.map(spellCore.countTo(1), () => {})"
+          js: "core.map(core.countTo(1), () => {})"
         },
         {
           title: "Inline statement",
           input: "repeat 3 times: print the number",
-          js: "spellCore.map(spellCore.countTo(3), (number) => spellCore.console.log(number))"
+          js: "core.map(core.countTo(3), (number) => core.console.log(number))"
         },
         {
           title: "Nested block statement",
           input: ["repeat 3 times:", "\tprint it"],
-          js: "spellCore.map(spellCore.countTo(3), (number) => spellCore.console.log(number))"
+          js: "core.map(core.countTo(3), (number) => core.console.log(number))"
         },
         {
           title: "Error if nested block and inline statement",
           input: ["repeat 3 times: print 1", "\tprint it"],
           js: [
-            "spellCore.map(spellCore.countTo(3), (number) => spellCore.console.log(number))",
+            "core.map(core.countTo(3), (number) => core.console.log(number))",
             "/* PARSE ERROR: Got both inline statement and nested block */"
           ]
         }

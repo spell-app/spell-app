@@ -1,7 +1,7 @@
 import { expect } from "vite-plus/test"
 
 import {
-  spellCore,
+  core,
   Thing,
   List,
   App,
@@ -25,7 +25,7 @@ import { parseSpellProject } from "./parseSpellProject"
  * - Returns a function that runs it and hands back the top-level variables `names` lists, by spell's names:
  *   `run("deck, first_pile")` => `{ deck, first_pile }`.
  * - Each run is a fresh program:  its classes and things are new.
- * - Its things don't register in `spellCore.things` (`quietly()`).
+ * - Its things don't register in `core.things` (`quietly()`).
  * - Fails the test if the file has parse errors.
  */
 export function runSpell(lines: string[]): (names: string) => Record<string, unknown> {
@@ -48,8 +48,8 @@ export function runSpell(lines: string[]): (names: string) => Record<string, unk
     // `@spell/core`'s helpers it imports by name, e.g. `trigger()`, as the import it lost would give them
     const imported = { on, off, once, trigger, positionOf, position, spellPosition, endPosition, withSpellPositions }
     // oxlint-disable-next-line no-implied-eval -- running compiled spell, as a runner does, is the test
-    const fn = new Function("spellCore", "Thing", "List", "App", ...Object.keys(imported), body)
-    const run = () => fn(spellCore, Thing, List, App, ...Object.values(imported))
-    return spellCore.things.quietly(run) as Record<string, unknown>
+    const fn = new Function("core", "Thing", "List", "App", ...Object.keys(imported), body)
+    const run = () => fn(core, Thing, List, App, ...Object.values(imported))
+    return core.things.quietly(run) as Record<string, unknown>
   }
 }

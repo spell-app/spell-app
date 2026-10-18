@@ -6,29 +6,29 @@
  *   - We rewrite them onto URLs -- the runtime's own, and a `blob:` URL per project -- see `linkModule()`.
  *   - NO import map:  a page has one, but each runner needs its own `@spell/core`.
  * - Part of `spell-runtime.js`, NOT the runners themselves:
- *   it runs on the `spellCore` of the runtime copy it's in -- see `spellRuntime.ts`'s `runApp()`.
+ *   it runs on the `core` of the runtime copy it's in -- see `spellRuntime.ts`'s `runApp()`.
  */
 
-import { spellCore, SPELL_CORE_MODULE, SPELL_ELEMENTS_MODULE } from "$/core"
+import { core, SPELL_CORE_MODULE, SPELL_ELEMENTS_MODULE } from "$/core"
 
 /**
  * Run `compiled` spell javascript.
- * - First:  previous app unmounted, new `spellCore.RUNTIME`, empty console -- unless `keepConsole`.
+ * - First:  previous app unmounted, new `core.RUNTIME`, empty console -- unless `keepConsole`.
  * - Afresh, unless `keepThings` (epic `drawable-thing` P16, P17):
- *   then the last run's things carry over into the new one, e.g. the game in progress -- see `spellCore.carryOver()`.
- *   - The program's start is skipped:  its top-level test calls, and starting its app (`spellCore.isCarryingOver`).
+ *   then the last run's things carry over into the new one, e.g. the game in progress -- see `core.carryOver()`.
+ *   - The program's start is skipped:  its top-level test calls, and starting its app (`core.isCarryingOver`).
  *     Its app starts again as the last run had it.
  *   - Afresh after all, saying why on the console, when:
  *     - the edit changed the program's start:  the file that starts its app -- see `startChanged()`
- *     - one of the last run's things can't come over, e.g. its type changed -- see `spellCore.carryProblems()`
+ *     - one of the last run's things can't come over, e.g. its type changed -- see `core.carryProblems()`
  * - Imports it as a module from a NEW `blob:` URL each time -- the browser caches modules by URL,
  *   so re-importing one would hand back the old module without running anything.
  * - Each project it imports comes from `options.loadImport()`, linked onto its own `blob:` URL:
  *   once per run, however many import it, deepest first.
  *   Without `loadImport`, a project which imports another won't run.
- * - SIDE EFFECT:  hands its top-level things to `spellCore.things`, for the Thing Explorer --
+ * - SIDE EFFECT:  hands its top-level things to `core.things`, for the Thing Explorer --
  *   NOT those of the projects it imports.
- *   Its classes AND theirs too, so `spellCore.fromJSON()` finds them by name.
+ *   Its classes AND theirs too, so `core.fromJSON()` finds them by name.
  * - Answers the error message if it threw, else `undefined`.
  */
 export async function runCompiled(compiled: string, options: RunCompiledOptions): Promise<string | undefined> {
@@ -38,10 +38,9 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions)
   const previous = isNewStart ? undefined : last
   carryAfterFailure = undefined
   unmountApp()
-  spellCore.resetRuntime()
-  if (!options.keepConsole) spellCore.console.clear()
-  if (isNewStart)
-    spellCore.console.info(`Started afresh:  the program's start changed, in the file that starts its app.`)
+  core.resetRuntime()
+  if (!options.keepConsole) core.console.clear()
+  if (isNewStart) core.console.info(`Started afresh:  the program's start changed, in the file that starts its app.`)
   // what's on the console now:  put back if the run starts again afresh, below
   const restoreConsole = consoleRestorer()
 
@@ -57,25 +56,25 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions)
     // NOTE: the URL first, THEN `import()` it:  vite wraps `import(...)` in an arrow for its preloading,
     // so an `await` in its argument would end up in a function that isn't `async` -- a syntax error in the bundle
     const url = await link(compiled, [])
-    spellCore.isCarryingOver = !!previous
+    core.isCarryingOver = !!previous
     let program: Record<string, unknown>
     try {
       program = (await import(/* @vite-ignore */ url)) as Record<string, unknown>
     } finally {
-      spellCore.isCarryingOver = false
+      core.isCarryingOver = false
     }
-    // the classes of each project it imports, e.g. Solitaire's `Card`, for `spellCore.fromJSON()` and carrying over:
+    // the classes of each project it imports, e.g. Solitaire's `Card`, for `core.fromJSON()` and carrying over:
     // the program imported them already, so this runs nothing again
     for (const projectUrl of linked.values()) {
       const project = await projectUrl
-      spellCore.things.addClasses((await import(/* @vite-ignore */ project)) as Record<string, unknown>)
+      core.things.addClasses((await import(/* @vite-ignore */ project)) as Record<string, unknown>)
     }
-    spellCore.things.setTopLevel(program)
-    const problems = previous ? spellCore.carryProblems(previous.things, program) : []
+    core.things.setTopLevel(program)
+    const problems = previous ? core.carryProblems(previous.things, program) : []
     if (problems.length) {
       // with its start skipped, a thing that starts afresh by itself would miss what the start does to it
       restoreConsole()
-      spellCore.console.info(`Started afresh:  ${problems.join(";  ")}.`)
+      core.console.info(`Started afresh:  ${problems.join(";  ")}.`)
       const problem = await runCompiled(compiled, { ...options, keepThings: false, keepConsole: true })
       if (problem) carryAfterFailure = previous
       return problem
@@ -118,7 +117,7 @@ export type RunCompiledOptions = {
   /**
    * URL of the module compiled spell's `@spell/core` import is pointed at:  the runtime copy it runs on.
    * - See `loadRuntime()`.
-   * - MUST be the copy this `runCompiled()` is from, so the program's `spellCore` is ours.
+   * - MUST be the copy this `runCompiled()` is from, so the program's `core` is ours.
    */
   coreUrl: string
   /** Compiled javascript of project `projectId`, which the program imports. */
@@ -137,18 +136,18 @@ export type RunCompiledOptions = {
  * - After a run that threw:  the run before it's, kept in `carryAfterFailure`.
  */
 function lastRun(): LastRun | undefined {
-  const things = spellCore.things.topLevel()
+  const things = core.things.topLevel()
   if (!things.length || lastCompiled === undefined) return carryAfterFailure
-  const app = (spellCore.appElement() as AppElement | null)?.spellRoot?.app
+  const app = (core.appElement() as AppElement | null)?.spellRoot?.app
   return { things, app, compiled: lastCompiled }
 }
 
 /**
- * Put `previous`'s things in place of what `program` made -- see `spellCore.carryOver()`.
+ * Put `previous`'s things in place of what `program` made -- see `core.carryOver()`.
  * - Its app, as it was:  started now, since the program's start, which would have started it, was skipped.
  */
 function carryOver(previous: LastRun, program: Record<string, unknown>) {
-  const kept = spellCore.carryOver(previous.things, program)
+  const kept = core.carryOver(previous.things, program)
   if (!previous.app || appIsMounted()) return
   const name = previous.things.find(({ thing }) => thing === previous.app)?.name
   const app = name && kept.includes(name) ? (program[name] as { start?: () => void }) : undefined
@@ -161,7 +160,7 @@ function carryOver(previous: LastRun, program: Record<string, unknown>) {
  * - Lines are replaced, never changed in place (`SpellConsole.lines`):  the old array is what was there.
  */
 function consoleRestorer(): () => void {
-  const { console: output } = spellCore
+  const { console: output } = core
   const groups = [...output.groups]
   const into = groups[0] ?? output
   const { lines } = into
@@ -174,7 +173,7 @@ function consoleRestorer(): () => void {
 /** What a run left, for the next to carry over -- see `lastRun()`. */
 type LastRun = {
   /** Its top-level things, by name. */
-  things: ReturnType<typeof spellCore.things.topLevel>
+  things: ReturnType<typeof core.things.topLevel>
   /** The app it drew, if any. */
   app?: object
   /** The javascript it ran, to tell whether the next changes the program's start -- see `startChanged()`. */
@@ -228,18 +227,18 @@ function startLinesOf(files: string[][]): string[] {
 
 /**
  * How a line of the program's start begins, as compiled -- `P.ASTProgramStart`:
- * `if (!spellCore.isCarryingOver) game.start()`.
+ * `if (!core.isCarryingOver) game.start()`.
  * - NOTE: a copy, NOT imported:  `$/parser` would pull the whole parser into the runner bundle.
  */
-const START_LINE = "if (!spellCore.isCarryingOver) "
+const START_LINE = "if (!core.isCarryingOver) "
 
-/** A line of the program's start that starts its app:  `if (!spellCore.isCarryingOver) game.start()`. */
-const APP_START_LINE = /^if \(!spellCore\.isCarryingOver\) .+\??\.start\(\)$/
+/** A line of the program's start that starts its app:  `if (!core.isCarryingOver) game.start()`. */
+const APP_START_LINE = /^if \(!core\.isCarryingOver\) .+\??\.start\(\)$/
 
 /** A line that only installs a stylesheet:  a `.css` file's code. */
-const STYLES_LINE = /^spellCore\.installStyles\(/
+const STYLES_LINE = /^core\.installStyles\(/
 
-/** A line importing from the runtime, `import { spellCore, ... } from "@spell/core"`. */
+/** A line importing from the runtime, `import { core, ... } from "@spell/core"`. */
 const RUNTIME_IMPORT_LINE = /^import .* from "@spell\/(core|elements)"$/
 
 /**
@@ -250,16 +249,16 @@ const FILE_SEPARATOR = "\n// -----------\n"
 
 /** Take down the app the last run started, if any -- e.g. before showing another project. */
 export function unmountApp() {
-  const element = spellCore.appElement() as AppElement | null
+  const element = core.appElement() as AppElement | null
   element?.spellRoot?.unmount()
 }
 
 /**
- * Did the last run start an app?  `App.start()` leaves it on the mount point (`spellCore.mountApp()`).
+ * Did the last run start an app?  `App.start()` leaves it on the mount point (`core.mountApp()`).
  * - An app started later, e.g. from a timer, isn't there yet -- a runner should watch for it drawing.
  */
 export function appIsMounted(): boolean {
-  return !!(spellCore.appElement() as AppElement | null)?.spellRoot
+  return !!(core.appElement() as AppElement | null)?.spellRoot
 }
 
 /**

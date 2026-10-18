@@ -22,7 +22,7 @@ export type PersonView = {
 export type PersonChanges = Partial<Pick<PersonView, "names" | "nickname" | "emails" | "dates">>
 
 /** A role in an org, as the people library's `Membership` has it. */
-export type Role = "member" | "admin" | "spell-admin"
+export type Role = "guest" | "member" | "admin" | "spell-admin"
 
 /** One of a person's orgs, and their role in it:  `{ id: "spell", name: "Spell", role: "spell-admin" }`. */
 export type OrgRole = { id: string; name: string; role: Role }

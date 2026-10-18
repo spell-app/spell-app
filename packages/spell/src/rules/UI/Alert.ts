@@ -32,8 +32,8 @@ UI.addRule(Alert, {
     {
       compileAs: "statement",
       tests: [
-        [`alert "Yo!"`, `await spellCore.alert("Yo!")`],
-        [`alert "Yo!" with "yep"`, `await spellCore.alert("Yo!", "yep")`]
+        [`alert "Yo!"`, `await core.alert("Yo!")`],
+        [`alert "Yo!" with "yep"`, `await core.alert("Yo!", "yep")`]
       ]
     }
   ]

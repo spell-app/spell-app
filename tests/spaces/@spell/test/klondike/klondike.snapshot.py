@@ -18,6 +18,7 @@ class Game(App):
 
     description = "A game of **Klondike**:  its piles, and its score."
 
+    # a game has a score as a number
     score = prop(type="number")
 
     # actions

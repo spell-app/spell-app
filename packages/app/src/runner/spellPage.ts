@@ -22,7 +22,7 @@
 import "$/app/solid/cellsBridge"
 import "$/app/solid/loadUI"
 import {
-  spellCore,
+  core,
   Thing,
   List,
   App,
@@ -47,10 +47,10 @@ import {
 import { installSpellElements } from "./SpellElement"
 
 // a drawable thing's element, e.g. `<solitaire-card>`:  Spell UI's, which core can't make itself
-installSpellElements(spellCore)
+installSpellElements(core)
 
 export {
-  spellCore,
+  core,
   Thing,
   List,
   App,

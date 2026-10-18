@@ -4,7 +4,7 @@ import { P } from "$/parser"
 import { SpellStatement } from "$/spell/rules/Statement"
 import { statements } from "./statements.parser"
 
-/** `do_nothing` rule:  a no-op statement -- compiles to `spellCore.doNothing()`. */
+/** `do_nothing` rule:  a no-op statement -- compiles to `core.doNothing()`. */
 export class DoNothing extends SpellStatement {
   @proto static alias = "statement"
 
@@ -17,7 +17,7 @@ statements.addRule(DoNothing, {
   tests: [
     {
       compileAs: "statement",
-      tests: [[`do nothing"`, `spellCore.doNothing()`]]
+      tests: [[`do nothing"`, `core.doNothing()`]]
     }
   ]
 })

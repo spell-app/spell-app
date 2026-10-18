@@ -86,7 +86,7 @@ describe("PyWriter", () => {
 
   test("the imports:  spell_core's `core`, then other projects';  only what the code uses;  two blank lines after", () => {
     const header = writer.importsHeader([
-      { module: "@spell/core", names: ["spellCore", "Thing", "List"] },
+      { module: "@spell/core", names: ["core", "Thing", "List"] },
       { module: "@spell/project/@spell/test/cards", names: ["Card", "Deck"] }
     ])
     expect(header).toBe("from spell_core import core, Thing, List\nfrom cards import Card, Deck\n\n\n")

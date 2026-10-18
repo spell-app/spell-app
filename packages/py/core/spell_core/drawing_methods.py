@@ -47,7 +47,7 @@ class DrawingMethods:
     # DOM `id` of the element an app mounts into when the host set no `app_root`:  `<div id="spell-app-root">`
     REACT_APP_ROOT_ID = "spell-app-root"
 
-    # where a drawing that fails says so:  `SpellCore` sets it
+    # where a drawing that fails says so:  `Core` sets it
     console: "SpellConsole"
 
     # the page this core draws on:  `reset_page()` makes it

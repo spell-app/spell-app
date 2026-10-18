@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList, h, positionOf, spellPosition, sendTrigger, sendCall } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, h, positionOf, spellPosition, sendTrigger, sendCall } from "@spell/core"
 
 /** definition of a Card with nice english aliases for working with it */
 export class Card extends Thing {
@@ -6,12 +6,14 @@ export class Card extends Thing {
   // ## properties of cards
   /////////////////////////
   /** card ranks */
+  // cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
   static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"]
   static { this.declareProp("rank", { oneOf: Card.Ranks }) }
   get rank() { return this.getProp("rank") }
   set rank(value) { this.setProp("rank", value) }
 
   /** card suits */
+  // cards have a suit as one of clubs, diamonds, hearts or spades
   static Suits = ["clubs", "diamonds", "hearts", "spades"]
   static { this.declareProp("suit", { oneOf: Card.Suits }) }
   get suit() { return this.getProp("suit") }
@@ -19,7 +21,7 @@ export class Card extends Thing {
 
   /** color as derivation of suit */
   get color() {
-    if (spellCore.includes(["diamonds", "hearts"], this.suit)) return "red"
+    if (core.includes(["diamonds", "hearts"], this.suit)) return "red"
     return "black"
   }
 
@@ -29,6 +31,7 @@ export class Card extends Thing {
   }
 
   /** card direction:  up or down */
+  // a card has a direction as either up or down
   static Directions = ["up", "down"]
   static { this.declareProp("direction", { oneOf: Card.Directions }) }
   get direction() { return this.getProp("direction") }
@@ -48,7 +51,7 @@ export class Card extends Thing {
 
   /** `card is a face card` */
   get isAFaceCard() {
-    return spellCore.includes(["jack", "queen", "king"], this.rank)
+    return core.includes(["jack", "queen", "king"], this.rank)
   }
 
   /** "card is a spade", "...is a club" etc */
@@ -82,7 +85,7 @@ export class Card extends Thing {
   get shortRank() {
     if (this.rank === undefined) return "?"
     if (typeof this.rank === "number") return `${this.rank}`
-    return `${spellCore.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
+    return `${core.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
   }
 
   get shortDirection() {
@@ -106,12 +109,12 @@ export class Card extends Thing {
    */
   async turnFaceUp() {
     this.direction = "up"
-    await spellCore.pauseFor(50, "msec")
+    await core.pauseFor(50, "msec")
   }
 
   async turnFaceDown() {
     this.direction = "down"
-    await spellCore.pauseFor(50, "msec")
+    await core.pauseFor(50, "msec")
   }
 
   /**
@@ -121,7 +124,7 @@ export class Card extends Thing {
   async turnOver() {
     if (this.direction == "up") this.turnFaceDown()
     else this.turnFaceUp()
-    await spellCore.pauseFor(50, "msec")
+    await core.pauseFor(50, "msec")
   }
 
   draw() {
@@ -146,7 +149,7 @@ export class Card extends Thing {
     if (this.pile !== undefined) this.pile.remove(this)
     this.pile = pile
     pile.append(this)
-    await spellCore.pauseFor(50, "msec")
+    await core.pauseFor(50, "msec")
   }
 
   async play() {
@@ -164,14 +167,14 @@ export class Card extends Thing {
 
     const cardsToMove = startPile.startingWith(this)
     cardsToMove.name = startPile.name
-    spellCore.console.log(`moving (${cardsToMove.state}) to (${endPile.state})`)
+    core.console.log(`moving (${cardsToMove.state}) to (${endPile.state})`)
 
     cardsToMove.forEach((card) => card.moveToPile(endPile))
 
     if (startPile instanceof Tableau && !startPile.isEmpty) {
-      await spellCore.pauseFor(200, "msec")
+      await core.pauseFor(200, "msec")
       const it = startPile.lastItem
-      spellCore.console.log(`turning over (${startPile.name}: ${it?.state})`)
+      core.console.log(`turning over (${startPile.name}: ${it?.state})`)
       it?.turnFaceUp()
     }
 
@@ -180,6 +183,7 @@ export class Card extends Thing {
     return true
   }
 
+  // set the pile of the card to the pile
   static { this.declareProp("pile", { type: "Pile" }) }
   get pile() { return this.getProp("pile") }
   set pile(value) { this.setProp("pile", value) }
@@ -207,9 +211,10 @@ export class Deck extends List {
   display() {
     const cardNames = new List()
     this.forEach((card) => cardNames.append(card.shortName))
-    spellCore.echo(`deck: ${cardNames}`)
+    core.echo(`deck: ${cardNames}`)
   }
 
+  // set the is-set-up of the deck to yes
   static { this.declareProp("isSetUp", { type: "choice" }) }
   get isSetUp() { return this.getProp("isSetUp") }
   set isSetUp(value) { this.setProp("isSetUp", value) }
@@ -239,6 +244,7 @@ export class Pile extends List {
     return state
   }
 
+  // set the name of cards-to-move to the name of the start-pile
   get name() { return this.getProp("name") }
   set name(value) { this.setProp("name", value) }
 }
@@ -250,6 +256,7 @@ export class Pile extends List {
 
 /** Game bits */
 export class Game extends App {
+  // a game has a score as a number
   static { this.declareProp("score", { type: "number" }) }
   get score() { return this.getProp("score") }
   set score(value) { this.setProp("score", value) }
@@ -258,7 +265,7 @@ export class Game extends App {
 
   get state() {
     let state = []
-    allPiles.forEach((pile) => spellCore.append(state, pile.state))
+    allPiles.forEach((pile) => core.append(state, pile.state))
     return state
   }
 
@@ -278,22 +285,22 @@ export class Game extends App {
           ),
           h("tbody",
             h("tr",
-              h("td", () => spellCore.drawThing(stock)),
-              h("td", () => spellCore.drawThing(discards)),
+              h("td", () => core.drawThing(stock)),
+              h("td", () => core.drawThing(discards)),
               h("td"),
-              h("td", () => spellCore.drawThing(foundations.firstItem)),
-              h("td", () => spellCore.drawThing(foundations.getItem(1))),
-              h("td", () => spellCore.drawThing(foundations.getItem(2))),
-              h("td", () => spellCore.drawThing(foundations.getItem(3)))
+              h("td", () => core.drawThing(foundations.firstItem)),
+              h("td", () => core.drawThing(foundations.getItem(1))),
+              h("td", () => core.drawThing(foundations.getItem(2))),
+              h("td", () => core.drawThing(foundations.getItem(3)))
             ),
             h("tr",
-              h("td", () => spellCore.drawThing(tableaus.firstItem)),
-              h("td", () => spellCore.drawThing(tableaus.getItem(1))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(2))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(3))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(4))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(5))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(6)))
+              h("td", () => core.drawThing(tableaus.firstItem)),
+              h("td", () => core.drawThing(tableaus.getItem(1))),
+              h("td", () => core.drawThing(tableaus.getItem(2))),
+              h("td", () => core.drawThing(tableaus.getItem(3))),
+              h("td", () => core.drawThing(tableaus.getItem(4))),
+              h("td", () => core.drawThing(tableaus.getItem(5))),
+              h("td", () => core.drawThing(tableaus.getItem(6)))
             )
           )
         )
@@ -317,7 +324,7 @@ export class StockPile extends Pile {
   draw() {
     return h("div", { class: "Pile Stock stacked" },
       h("div", { class: "Placeholder ui button basic compact fluid", onClick: () => playFromTheStockPile() }),
-      () => spellCore.drawThing(this.lastItem)
+      () => core.drawThing(this.lastItem)
     )
   }
 }
@@ -330,7 +337,7 @@ export class DiscardPile extends Pile {
   }
 
   draw() {
-    return h("div", { class: "Pile Discards stacked" }, () => spellCore.drawThing(this.lastItem))
+    return h("div", { class: "Pile Discards stacked" }, () => core.drawThing(this.lastItem))
   }
 }
 export let discards
@@ -356,7 +363,7 @@ export class Foundation extends Pile {
       h("div", { class: () => `Placeholder ui button basic compact fluid ${color} ${this.name}` },
         h("div", { class: () => `suit ${this.name}` }, () => this.symbol)
       ),
-      () => spellCore.drawThing(this.lastItem)
+      () => core.drawThing(this.lastItem)
     )
   }
 }
@@ -377,7 +384,7 @@ export class Tableau extends Pile {
   }
 
   draw() {
-    return h("div", { class: "Pile Tableau staggered" }, () => spellCore.drawItems(this))
+    return h("div", { class: "Pile Tableau staggered" }, () => core.drawItems(this))
   }
 }
 
@@ -414,7 +421,7 @@ export function cheat(...args) {
 }
 
 // -----------
-spellCore.installStyles(undefined, `/* File styles.css */¬.Card {¬	position: relative;¬	height: 30px;¬}¬¬.Card .suit {¬	position: relative;¬	font-size: 1.5rem;¬	padding-left: 1px;¬	vertical-align: top;¬	top: -0.15rem;¬}¬¬.Pile {¬	position: relative;¬	min-height: 30px;¬}¬¬.Pile.Tableau {¬	min-height: 500px;¬}¬¬.Pile.stacked .Card {¬	position: absolute;¬	left: 0;¬	top: 0;¬}¬¬.Pile.staggered .Card {¬	margin-bottom: 8px !important;¬}¬¬.Pile > .Placeholder {¬	position: relative;¬	height: 30px;¬}¬¬.Pile > .Placeholder .suit {¬	position: relative;¬	font-size: 1.6rem;¬}¬¬.Pile > .Placeholder .suit.diamonds,¬.Pile > .Placeholder .suit.spades {¬	font-size: 1.75rem;¬	top: -0.1rem;¬}`)
+core.installStyles(undefined, `/* File styles.css */¬.Card {¬	position: relative;¬	height: 30px;¬}¬¬.Card .suit {¬	position: relative;¬	font-size: 1.5rem;¬	padding-left: 1px;¬	vertical-align: top;¬	top: -0.15rem;¬}¬¬.Pile {¬	position: relative;¬	min-height: 30px;¬}¬¬.Pile.Tableau {¬	min-height: 500px;¬}¬¬.Pile.stacked .Card {¬	position: absolute;¬	left: 0;¬	top: 0;¬}¬¬.Pile.staggered .Card {¬	margin-bottom: 8px !important;¬}¬¬.Pile > .Placeholder {¬	position: relative;¬	height: 30px;¬}¬¬.Pile > .Placeholder .suit {¬	position: relative;¬	font-size: 1.6rem;¬}¬¬.Pile > .Placeholder .suit.diamonds,¬.Pile > .Placeholder .suit.spades {¬	font-size: 1.75rem;¬	top: -0.1rem;¬}`)
 
 /** Binds each thing the program keeps, from Python's state. */
 export function adopt(state) {

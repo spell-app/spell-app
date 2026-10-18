@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList, h, positionOf, sendTrigger, sendCall } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, h, positionOf, sendTrigger, sendCall } from "@spell/core"
 
 /** definition of a Card with nice english aliases for working with it */
 export class Card extends Thing {
@@ -6,12 +6,14 @@ export class Card extends Thing {
   // ## properties of cards
   /////////////////////////
   /** card ranks */
+  // cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
   static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"]
   static { this.declareProp("rank", { oneOf: Card.Ranks }) }
   get rank() { return this.getProp("rank") }
   set rank(value) { this.setProp("rank", value) }
 
   /** card suits */
+  // cards have a suit as one of clubs, diamonds, hearts or spades
   static Suits = ["clubs", "diamonds", "hearts", "spades"]
   static { this.declareProp("suit", { oneOf: Card.Suits }) }
   get suit() { return this.getProp("suit") }
@@ -19,7 +21,7 @@ export class Card extends Thing {
 
   /** color as derivation of suit */
   get color() {
-    if (spellCore.includes(["diamonds", "hearts"], this.suit)) return "red"
+    if (core.includes(["diamonds", "hearts"], this.suit)) return "red"
     return "black"
   }
 
@@ -29,6 +31,7 @@ export class Card extends Thing {
   }
 
   /** card direction:  up or down */
+  // a card has a direction as either up or down
   static Directions = ["up", "down"]
   static { this.declareProp("direction", { oneOf: Card.Directions }) }
   get direction() { return this.getProp("direction") }
@@ -48,7 +51,7 @@ export class Card extends Thing {
 
   /** `card is a face card` */
   get isAFaceCard() {
-    return spellCore.includes(["jack", "queen", "king"], this.rank)
+    return core.includes(["jack", "queen", "king"], this.rank)
   }
 
   /** "card is a spade", "...is a club" etc */
@@ -82,7 +85,7 @@ export class Card extends Thing {
   get shortRank() {
     if (this.rank === undefined) return "?"
     if (typeof this.rank === "number") return `${this.rank}`
-    return `${spellCore.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
+    return `${core.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
   }
 
   get shortDirection() {
@@ -106,12 +109,12 @@ export class Card extends Thing {
    */
   async turnFaceUp() {
     this.direction = "up"
-    await spellCore.pauseFor(50, "msec")
+    await core.pauseFor(50, "msec")
   }
 
   async turnFaceDown() {
     this.direction = "down"
-    await spellCore.pauseFor(50, "msec")
+    await core.pauseFor(50, "msec")
   }
 
   /**
@@ -121,7 +124,7 @@ export class Card extends Thing {
   async turnOver() {
     if (this.direction == "up") this.turnFaceDown()
     else this.turnFaceUp()
-    await spellCore.pauseFor(50, "msec")
+    await core.pauseFor(50, "msec")
   }
 
   draw() {
@@ -164,9 +167,10 @@ export class Deck extends List {
   display() {
     const cardNames = new List()
     this.forEach((card) => cardNames.append(card.shortName))
-    spellCore.echo(`deck: ${cardNames}`)
+    core.echo(`deck: ${cardNames}`)
   }
 
+  // set the is-set-up of the deck to yes
   static { this.declareProp("isSetUp", { type: "choice" }) }
   get isSetUp() { return this.getProp("isSetUp") }
   set isSetUp(value) { this.setProp("isSetUp", value) }

@@ -383,7 +383,7 @@ when working with code in this package, `@spell-app/spell`.
   - See "Members" in `PARSING.md`.
 - A built-in type's members (`the length of the name`) are DATA in `SP.BUILT_IN_TYPE_TABLE`, NOT rules.
   - The table:  [builtinTypes.ts](src/builtinTypes.ts).
-  - Add one there, with the real `spellCore` method or javascript property its `readAs` names.
+  - Add one there, with the real `core` method or javascript property its `readAs` names.
   - Then `yarn scopes --builtins`, in `../lsp`.
   - See "Built-in types" in `PARSING.md`.
 - A `parse()` which understood a statement but mustn't take it REFUSES it, NOT returns `undefined`.

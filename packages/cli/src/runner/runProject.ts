@@ -2,7 +2,7 @@
  * Child process of `spell run` / `spell test`:  runs one compiled spell project under node.
  * - Started by `runCommand.ts` as `node --import tsx --import hooks.mjs runProject.ts`,
  *   with a `CLI.RunSpec` in env var `SPELL_RUN`.
- *   A fresh process per run, so every run gets a fresh `spellCore`.
+ *   A fresh process per run, so every run gets a fresh `core`.
  * - Headless:  what needs a browser does nothing, and says so -- see `headless()`.
  * - `run`:  loads the project, which runs its top-level statements.
  *   Its `print`s go straight to the terminal:  its data to stdout, a dump of a thing (`print the card`) to stderr.
@@ -14,7 +14,7 @@ import chalk from "chalk"
 import { format } from "util"
 
 import { bridgeSolid } from "$/util"
-import { App, spellCore } from "$/core"
+import { App, core } from "$/core"
 import type { CLI } from "$/cli"
 
 const spec = JSON.parse(process.env.SPELL_RUN!) as CLI.RunSpec
@@ -23,12 +23,12 @@ const skipped = new Set<string>()
 if (spec.dom) await fakeDom()
 else headless()
 // a fresh state bag + event hub for the project, e.g. for `on card-click` -- as the app's runners do
-spellCore.resetRuntime()
+core.resetRuntime()
 // `--seed`, and the core contract:  the same random numbers every run, so a shuffle deals the same cards
-if (spec.seed !== undefined) spellCore.seedRandom(spec.seed)
+if (spec.seed !== undefined) core.seedRandom(spec.seed)
 // a dump of a thing (`print the card`) to stderr, so stdout holds only the program's data
 // (epic page python-target, Q17);  at call time, so `quiet()` silences it too
-spellCore.console.printDump = (...message) => console.error(...message)
+core.console.printDump = (...message) => console.error(...message)
 // output piped into e.g. `head`, which closed it:  nothing more to say
 process.stdout.on("error", (error: NodeJS.ErrnoException) => error.code === "EPIPE" && process.exit(0))
 
@@ -66,7 +66,7 @@ async function runProject() {
 async function testProject() {
   const restore = quiet()
   const all: TestResult[] = []
-  spellCore.test = (message: unknown, testMethod: () => void) => runTest(message, testMethod, all)
+  core.test = (message: unknown, testMethod: () => void) => runTest(message, testMethod, all)
   const module = await load()
   if (!module) process.exit(1)
 
@@ -109,19 +109,19 @@ function comparable(name: string): string {
 ////////////////
 
 /**
- * Stand-in for `spellCore.test()`:  run `testMethod` as test `message`, into `results`.
- * - As `spellCore.test()`, but a test which THROWS fails, with why -- rather than being silently swallowed.
+ * Stand-in for `core.test()`:  run `testMethod` as test `message`, into `results`.
+ * - As `core.test()`, but a test which THROWS fails, with why -- rather than being silently swallowed.
  */
 function runTest(message: unknown, testMethod: () => void, results: TestResult[]) {
-  spellCore.startTest(message, true)
-  const test = spellCore.ACTIVE_TEST!
+  core.startTest(message, true)
+  const test = core.ACTIVE_TEST!
   let threw: unknown
   try {
     testMethod()
   } catch (error) {
     threw = error
   }
-  spellCore.ACTIVE_TEST = undefined
+  core.ACTIVE_TEST = undefined
   results.push({ name: String(message), passed: !threw && test.result !== false, output: test.output, threw })
 }
 
@@ -139,7 +139,7 @@ function report({ name, passed, output, threw }: TestResult) {
 
 /**
  * How one test went.
- * - `output`:  what it logged -- each `expect` a `[icon, ...words]` array, see `spellCore.expect()`
+ * - `output`:  what it logged -- each `expect` a `[icon, ...words]` array, see `core.expect()`
  * - `threw`:  what it threw, if it didn't finish
  */
 type TestResult = {
@@ -166,13 +166,13 @@ async function load(): Promise<Record<string, unknown> | undefined> {
 /**
  * SIDE EFFECT:  make what needs a browser do nothing, noting it in `skipped` instead.
  * - `App.start()`:  draws the app into the page, e.g. `start the game`
- * - `spellCore.installStyles()`:  adds a project's `.css` to the page
+ * - `core.installStyles()`:  adds a project's `.css` to the page
  */
 function headless() {
   App.prototype.start = function start() {
     skipped.add(`start the ${this.constructor.name.toLowerCase()}`)
   }
-  spellCore.installStyles = () => {}
+  core.installStyles = () => {}
 }
 
 /**
@@ -193,12 +193,12 @@ async function fakeDom() {
       writable: true
     })
   }
-  spellCore.installStyles = () => {}
+  core.installStyles = () => {}
   // Solid follows spell's values, as a runner's page does (`cellsBridge.ts`):  the hooks give us its browser build
   const { enableExternalSource, flush } = await import("solid-js")
   bridgeSolid({ enableExternalSource, flush })
   process.once("beforeExit", () => {
-    spellCore.flush()
+    core.flush()
     const drawn = withSortedAttributes(page.document.body.innerHTML)
     if (drawn) process.stdout.write(`\n${drawn}\n`)
   })

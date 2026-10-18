@@ -48,11 +48,11 @@ properties.addRule(ItsKnownProperty, {
       tests: [
         [
           ["get a new card", "print its short rank"],
-          ["const it = new Card()", "spellCore.console.log(it.shortRank)"]
+          ["const it = new Card()", "core.console.log(it.shortRank)"]
         ],
         [
           ["get a new card", "print its short rank + 1"],
-          ["const it = new Card()", "spellCore.console.log(it.shortRank + 1)"]
+          ["const it = new Card()", "core.console.log(it.shortRank + 1)"]
         ]
       ]
     }

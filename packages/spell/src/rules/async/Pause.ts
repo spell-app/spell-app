@@ -6,7 +6,7 @@ import { _async } from "./async.parser"
 
 /**
  * `pause` rule:  delay for a certain amount of time, e.g. `pause for 2 seconds`.
- * - Compiles to `await spellCore.pauseFor(number, 'units')`.
+ * - Compiles to `await core.pauseFor(number, 'units')`.
  * - TODO: "a second", "a little bit", "a while", "a noticeable amount".
  */
 export class Pause extends SpellStatement<"number|units"> {
@@ -28,10 +28,10 @@ _async.addRule(Pause, {
     {
       compileAs: "statement",
       tests: [
-        [`pause for 2 seconds"`, 'await spellCore.pauseFor(2, "seconds")'],
-        [`pause for 500 msec"`, 'await spellCore.pauseFor(500, "msec")'],
-        [`pause for 10 ticks"`, 'await spellCore.pauseFor(10, "ticks")'],
-        [`pause for (10 + 10) sec`, 'await spellCore.pauseFor(10 + 10, "sec")']
+        [`pause for 2 seconds"`, 'await core.pauseFor(2, "seconds")'],
+        [`pause for 500 msec"`, 'await core.pauseFor(500, "msec")'],
+        [`pause for 10 ticks"`, 'await core.pauseFor(10, "ticks")'],
+        [`pause for (10 + 10) sec`, 'await core.pauseFor(10 + 10, "sec")']
       ]
     }
   ]

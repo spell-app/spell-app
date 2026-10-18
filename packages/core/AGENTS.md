@@ -12,14 +12,14 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - The runtime compiled spell runs on, `$/core` (`SC`):
   - the core classes, collections, `Thing` registry
   - console, assertions
-  - `spellCore.scopes.js`
+  - `core.scopes.js`
   - Compiled programs link against a bundled copy of it, `spell-runtime.js`, NOT this source directly.
 - Its Python twin is `spell_core`, what spell compiled to Python imports ("The Python core", below).
-- [spellCore.scopes.js](src/spellCore.scopes.js) is GENERATED:  the built-in types' docs, for pages with no parser.
+- [core.scopes.js](src/core.scopes.js) is GENERATED:  the built-in types' docs, for pages with no parser.
   - Built from spell's table of built-in types, `BUILT_IN_TYPE_TABLE` ([builtinTypes.ts](../spell/src/builtinTypes.ts)).
   - By `yarn scopes --builtins`, in `../lsp`.
   - NEVER edit it by hand:  edit the table, run that.
-- [spellCore.declarations.json5](spellCore.declarations.json5) is GENERATED too:
+- [core.declarations.json5](core.declarations.json5) is GENERATED too:
   the core's method list, what another target's core must have (Python's `spell_core`, say).
   - Read from the running core by [`coreDeclarations()`](src/coreDeclarations.ts).
   - Each name's `section` and `description` come from the lead of its docstring, in the module's source.
@@ -28,19 +28,19 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - A name with no docstring fails `coreDeclarations.test.ts`.
   - Written by `yarn gen:declarations` ([writeCoreDeclarations.ts](src/writeCoreDeclarations.ts)).
   - [coreDeclarations.test.ts](../../tests/core/src/coreDeclarations.test.ts) fails until you run it,
-    after adding, renaming or removing anything on `spellCore`.
+    after adding, renaming or removing anything on `core`.
   - Python's [test_core_declarations.py](../../tests/py/core/tests/test_core_declarations.py) checks `spell_core` against it:
     a new name fails there too,
     until it's ported or listed in py's [not_ported_yet.json5](../py/core/not_ported_yet.json5).
 - Random numbers come from the core's own generator, [`ParkMiller`](src/ParkMiller.ts), NEVER `Math.random()`:
-  - `spellCore.seedRandom(n)` makes everything random after it repeat;  unseeded, each run differs.
-  - `spellCore.shuffled()` is lodash's shuffle, step for step.
+  - `core.seedRandom(n)` makes everything random after it repeat;  unseeded, each run differs.
+  - `core.shuffled()` is lodash's shuffle, step for step.
   - Python's core deals the same from the same seed:
     both read [seededRandom.expected.json5](../../tests/core/seededRandom.expected.json5) in their tests.
 - Positions count from where a project's lists start:  1, spell's own, or 0 (the project file's `"listsStartAt": 0`).
   - The helpers that convert:  [positions.ts](src/positions.ts), used by `List` and the collection helpers.
   - Negative positions count from the end either way:  `-1` is the last item.
-- The console sends a DUMP (a thing, a spell list ...) through `spellCore.console.printDump()`:
+- The console sends a DUMP (a thing, a spell list ...) through `core.console.printDump()`:
   the page's console by default, stderr under `spell run`.
 - Depends only on `$/util`.
   NEVER import `$/spell` / `$/parser`, or anything above.
@@ -53,14 +53,14 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Compiled javascript draws with Solid's own `h()`, imported from `@spell/core`.
     - Since epic `output-targets` P20.
     - `h()` returns a thunk:  the error boundary makes it, once, and a throw while it's made shows the stand-in.
-    - `spellCore.element()`, what it called before, is gone (epic `output-targets` P22):
+    - `core.element()`, what it called before, is gone (epic `output-targets` P22):
       every committed example is recompiled, and a program compiled before P20 no longer draws.
 - A drawable thing's own element, e.g. `<solitaire-card>`:
   - [elements.ts](src/elements.ts) names its tag.
-  - The page makes the element, through `spellCore.elementDefiner`:
+  - The page makes the element, through `core.elementDefiner`:
     app's [SpellElement.tsx](../app/src/runner/SpellElement.tsx) sets it.
   - Compiled TypeScript hands the page its own element class too (epic `drawable-thing` P10):
-    `spellCore.useElement(Card, CardElement)`, which the page builds the tag on.
+    `core.useElement(Card, CardElement)`, which the page builds the tag on.
     - It imports that class's base as `@spell/elements` (`SPELL_ELEMENTS_MODULE`), not from core.
   - Core never imports Spell UI.
 - A thing's REFERENCE names one thing of the program in text, its type then its name or place
@@ -90,7 +90,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Programs run on the runtime bundle built from it, `spell-runtime.js`, NEVER the page's own `core`.
     Each runner loads its own copy, so apps on a page don't share one.
   - Everyone else reads only:
-    - its types:  `import type` from `$/core/spellCore.types`
+    - its types:  `import type` from `$/core/core.types`
     - or the runtime's own API, e.g. `runtimeConsole()`
   - Pinned by two of app's tests:
     [element.build.test.ts](../../tests/app/src/runner/element.build.test.ts) and [build.test.ts](../../tests/app/src/build.test.ts).
@@ -102,10 +102,10 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - So the server and the app may value-import it, through a library:
     its things are plain data, belonging to no program, so a copy of its own is fine.
   - Code it loads NEVER imports the barrel, and asks `programThings()` for the running program's things,
-    never `spellCore.things` itself.
+    never `core.things` itself.
 - It runs in a shadow root, so NEVER `document`:
-  - `spellCore.appRoot` is where an app mounts
-  - `spellCore.domRoot()` is where to look elements up, and add styles
+  - `core.appRoot` is where an app mounts
+  - `core.domRoot()` is where to look elements up, and add styles
 
 ## Membership and guards
 
@@ -125,7 +125,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `clear`, and the `items` setter
   - a new mutator that writes `setState("items", ...)` itself bypasses the owners
 - Collection helpers' results are SCRATCH, and own nothing:  or filtering a pile would steal its cards.
-  - Made by `List.asScratch()`, `spellCore.newScratch()`.
+  - Made by `List.asScratch()`, `core.newScratch()`.
   - The helpers:
     - `map()`, `filter()`
     - ranges
@@ -136,13 +136,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Compiled spell overrides them, e.g. in `Tableau`:
     - `a tableau can take a card if: ...`
     - compiles to `canTake(card) {...}`
-  - ONLY a move asks:  `spellCore.move(item, list)` => `list.moveHere(item)`.
+  - ONLY a move asks:  `core.move(item, list)` => `list.moveHere(item)`.
     - The list of its family holding it gives it up, then `list` takes it;  else nothing changes.
     - Returns whether it moved.
   - Dealing and gathering cards back never ask:
     - `add`, `remove`
     - `clear`
-  - `spellCore.canTake()` / `canGiveUp()` ask without moving.
+  - `core.canTake()` / `canGiveUp()` ask without moving.
   - A plain array has no guards.
 - Tests:
   - [List.test.ts](../../tests/core/src/classes/List.test.ts)
@@ -156,20 +156,20 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `{ "$type": "Pile", "name": "stock", "$items": [...] }`
   - written by `$/util`'s `typedJSON()`
   - Neither key is ever a prop:  what the Thing Explorer lists (`keys()`) doesn't have them.
-- `spellCore.fromJSON()` ([json.ts](src/json.ts)) reads it back, each object as its class.
-  - It finds a class by name, `spellCore.things.classNamed()`.
+- `core.fromJSON()` ([json.ts](src/json.ts)) reads it back, each object as its class.
+  - It finds a class by name, `core.things.classNamed()`.
   - That knows a class once one of its things is made,
     or once a runner hands it the program's modules (`addClasses()`).
   - A list's items are SET (`writeItems()`), so a pile owns its cards.
   - An unknown `"$type"`:  a plain object.
-- `spellCore.carryOver()` ([carry.ts](src/carry.ts)) does the same for a recompile:
+- `core.carryOver()` ([carry.ts](src/carry.ts)) does the same for a recompile:
   the game in progress stays when the program changes (epic `drawable-thing` P16).
   - The last run's things come over as the new program's classes.
   - Object to object, not through JSON text, so each thing keeps its identity.
   - The runner asks for it on every recompile but Restart:  `runCompiled()`'s `keepThings`.
   - While the new program loads (`isCarryingOver`, P17):
     - its start is skipped:  its top-level test calls, and starting its app
-      - compiled as `if (!spellCore.isCarryingOver) game.start()`
+      - compiled as `if (!core.isCarryingOver) game.start()`
     - `pause for ...` never ends:
       what the rest of its top level sets going, e.g. a new deal, stops there
   - `carryProblems()` says first which things can't come over:
@@ -231,7 +231,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - Its Python twin, `spell_core`, is in the py package ([py's AGENTS.md](../py/AGENTS.md), epic `python-target` P21).
   - The four files both cores read stay in the JavaScript core:
     its method list here, the three expected files with its tests (`tests/core/`):
-    - [spellCore.declarations.json5](spellCore.declarations.json5)
+    - [core.declarations.json5](core.declarations.json5)
     - [seededRandom.expected.json5](../../tests/core/seededRandom.expected.json5)
     - [stateById.expected.json5](../../tests/core/stateById.expected.json5)
     - [savedById.expected.json5](../../tests/core/savedById.expected.json5)

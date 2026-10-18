@@ -6,7 +6,7 @@ import { expressions } from "./expressions.parser"
 
 /**
  * `does_not_include` rule:  `{lhs} does not include`/`contain {rhs}`, e.g. `theList does not include thing`.
- * - Always negates via `shouldNegateOutput()`, then delegates to same `spellCore.includes()` as `includes`.
+ * - Always negates via `shouldNegateOutput()`, then delegates to same `core.includes()` as `includes`.
  */
 export class DoesNotInclude extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.comparison
@@ -31,8 +31,8 @@ expressions.addRule(DoesNotInclude, {
         scope.variables?.add("thing")
       },
       tests: [
-        ["theList does not include thing", "!spellCore.includes(theList, thing)"],
-        ["theList does not contain thing", "!spellCore.includes(theList, thing)"]
+        ["theList does not include thing", "!core.includes(theList, thing)"],
+        ["theList does not contain thing", "!core.includes(theList, thing)"]
       ]
     }
   ]

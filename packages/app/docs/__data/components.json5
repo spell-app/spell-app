@@ -2029,7 +2029,7 @@
         "runner"
       ],
       "aka": [],
-      "description": "A `spellCore.console`, e.g. what `print` statements say.",
+      "description": "A `core.console`, e.g. what `print` statements say.",
       "noun": "RunnerConsole",
       "attributes": [],
       "slots": [],
@@ -2042,7 +2042,7 @@
           "name": "console",
           "type": "SpellConsole",
           "required": true,
-          "description": "Console to show, e.g. `spellCore.console`."
+          "description": "Console to show, e.g. `core.console`."
         }
       ],
       "usedIn": [
@@ -2891,7 +2891,7 @@
           "name": "things",
           "type": "ThingRegistry",
           "required": true,
-          "description": "Registry of the things to show -- the running program's `spellCore.things`."
+          "description": "Registry of the things to show -- the running program's `core.things`."
         },
         {
           "name": "words",

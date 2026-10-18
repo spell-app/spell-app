@@ -14,8 +14,8 @@ import "./ThingExplorer.css"
  * ### `<ThingExplorer>`
  * Things the running program has made:  a tree of them on the left -- its top-level things, then all of them --
  * and the selected thing's properties and actions on the right, live as the program changes them.
- * - `things` is the registry of the runtime copy the program runs on, e.g. `loaded.runtime.spellCore.things` --
- *   NEVER the page's own `spellCore`, see `spellRuntime.ts`.  Only a TYPE import here, so it stays out of
+ * - `things` is the registry of the runtime copy the program runs on, e.g. `loaded.runtime.core.things` --
+ *   NEVER the page's own `core`, see `spellRuntime.ts`.  Only a TYPE import here, so it stays out of
  *   the runner's bundle.  A different registry starts the tree afresh (state kept).
  * - Lists all of them in the order they were made, or under each type they are -- the buttons in its header
  *   switch.  See `UI.ThingOrder`.
@@ -28,7 +28,7 @@ import "./ThingExplorer.css"
  *   - the tree's lists:  the registry's `version` (things made and dropped), through `tracked()`
  *   - each row's label;  each property's value;  a list's items:  through `tracked()` too.  Reading them runs the
  *     PROGRAM's code, e.g. a card's computed `name`:  Solid re-reads on its own schedule, never mid-write -- a
- *     microtask after the change, or `spellCore.flush()`
+ *     microtask after the change, or `core.flush()`
  *   - NEVER a Solid store:  a store would wrap the things in proxies, and `===` breaks.
  * - (React's version re-read a whole snapshot in a microtask, `watchLive()`, and redrew it all.)
  * - NOTE: imports its peers directly, NOT the `$/app/solid` barrel:  a runner's bundle would get the whole editor
@@ -54,7 +54,7 @@ export function ThingExplorer(props: ThingExplorerProps) {
 
 /** Props for `<ThingExplorer>`. */
 export type ThingExplorerProps = {
-  /** Registry of the things to show -- the running program's `spellCore.things`. */
+  /** Registry of the things to show -- the running program's `core.things`. */
   things: ThingRegistry
   /** Spell's words for the members of the program's types, and those it imports -- see `SP.SpellWords`. */
   words?: SP.SpellWordsData

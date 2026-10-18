@@ -16,10 +16,10 @@ import type { carryMethods } from "./carry"
 import type { classesMethods } from "./classes"
 import type { deprecatedMethods } from "./deprecated"
 
-// ## Importing spellCore
+// ## Importing core
 
 /**
- * ES module specifier compiled spell imports its runtime from:  `import { spellCore, Thing } from "@spell/core"`.
+ * ES module specifier compiled spell imports its runtime from:  `import { core, Thing } from "@spell/core"`.
  * - Every runner -- the app, VS Code's, `<spell-app>` -- points it at the copy of the runtime the program runs on,
  *   by rewriting it:  see `linkModule()` in app's `runner/runCompiled.ts`.
  * - No import map.
@@ -38,36 +38,36 @@ export const SPELL_CORE_MODULE = "@spell/core"
 export const SPELL_ELEMENTS_MODULE = "@spell/elements"
 
 /**
- * Spell's own classes, from `spellCore/classes`:  what a project's types are made from, e.g. `a card is a thing`.
+ * Spell's own classes, from `core/classes`:  what a project's types are made from, e.g. `a card is a thing`.
  * - What a Type Explorer lists as built in -- see `LSP.ScopeExplorer`.
  */
 export const SPELL_CLASSES = ["Thing", "List", "App", "Drawable", "DrawableList"]
 
-/** Names every compiled project imports from `SPELL_CORE_MODULE`:  `spellCore`, and spell's classes. */
-export const SPELL_CORE_NAMES = ["spellCore", ...SPELL_CLASSES]
+/** Names every compiled project imports from `SPELL_CORE_MODULE`:  `core`, and spell's classes. */
+export const SPELL_CORE_NAMES = ["core", ...SPELL_CLASSES]
 
 /**
- * Types built into spell, which every project starts with -- `spellCore.BASE_TYPES`.
+ * Types built into spell, which every project starts with -- `core.BASE_TYPES`.
  * - Spell's classes, plus javascript's own `Object`, so spell can say `create an object` and `a list of objects`.
  *   NOT a spell class, so a Type Explorer leaves it out.
- * - Here, so the parser can read them WITHOUT importing `spellCore`,
+ * - Here, so the parser can read them WITHOUT importing `core`,
  *   whose code must stay in the runtime's own bundle entry -- see `spellRuntime.ts`.
  */
 export const SPELL_BASE_TYPES = ["Object", ...SPELL_CLASSES]
 
 /**
- * The type of the `spellCore` singleton:  every module's methods, together.
- * - Built by accretion:  each module below does `Object.assign(spellCore, { ...methods })` at runtime,
+ * The type of the `core` singleton:  every module's methods, together.
+ * - Built by accretion:  each module below does `Object.assign(core, { ...methods })` at runtime,
  *   so this is the intersection of every module's methods.
  *   `index.ts` has the side-effect imports, in order.
  * - It's the CORE CONTRACT too:  what another target's core must have (Python's `spell_core`, in `py/`).
  *   - What it must print is pinned by the `cli`'s `contract.test.ts`.
  *   - Except `deprecatedMethods`:  old names, for programs compiled before they changed.
  *     A new core has none.
- *   - Listed by name, for another core to check itself against, in `spellCore.declarations.json5`:
+ *   - Listed by name, for another core to check itself against, in `core.declarations.json5`:
  *     see `coreDeclarations()`.  A module added here goes in its `CORE_MODULES` too.
  */
-export type SpellCore = typeof coreMethods &
+export type Core = typeof coreMethods &
   typeof collectionCoreMethods &
   typeof collectionOtherMethods &
   typeof stringMethods &
@@ -90,10 +90,10 @@ export type SpellCore = typeof coreMethods &
 /**
  * What a compiled property setter checks a new value against -- warns, NEVER rejects.
  * - e.g. `set title(value) { this.setProp('title', value, { type: 'text' }) }`
- * - see `spellCore.checkProp()`
+ * - see `core.checkProp()`
  */
 export type PropCheck = {
-  /** type name, e.g. `text`, `choice`, `Card` -- see `spellCore.isOfType()` */
+  /** type name, e.g. `text`, `choice`, `Card` -- see `core.isOfType()` */
   type?: string
   /**
    * legal values, e.g. `Card.Suits` -- or a function returning them, read when a value is set,
@@ -105,12 +105,12 @@ export type PropCheck = {
 // ## Modules
 
 /**
- * Wrap a module's methods object, returning it as is:  marks it as part of `spellCore`.
- * - Module method bodies call sibling methods through the imported `spellCore` singleton, NOT `this`.
- * - NOTE: this intentionally does NOT try to type `this` as `SpellCore` (e.g. via `ThisType<SpellCore>`):
- *   `SpellCore` is itself assembled from `typeof <module>Methods` for every module,
- *   so a signature here that mentions `SpellCore` would make every module's methods type circularly depend on itself.
+ * Wrap a module's methods object, returning it as is:  marks it as part of `core`.
+ * - Module method bodies call sibling methods through the imported `core` singleton, NOT `this`.
+ * - NOTE: this intentionally does NOT try to type `this` as `Core` (e.g. via `ThisType<Core>`):
+ *   `Core` is itself assembled from `typeof <module>Methods` for every module,
+ *   so a signature here that mentions `Core` would make every module's methods type circularly depend on itself.
  */
-export function defineSpellCoreModule<T extends object>(methods: T): T {
+export function defineCoreModule<T extends object>(methods: T): T {
   return methods
 }

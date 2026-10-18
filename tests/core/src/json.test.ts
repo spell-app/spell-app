@@ -1,9 +1,9 @@
 import { describe, test, expect } from "vite-plus/test"
 
-import { spellCore, Thing, List, App } from "$/core"
+import { core, Thing, List, App } from "$/core"
 
 /**
- * `spellCore.fromJSON()` (epic `output-targets`, P15, Q49):  a spell object's JSON read back as what it was.
+ * `core.fromJSON()` (epic `output-targets`, P15, Q49):  a spell object's JSON read back as what it was.
  * - The classes below are what spell compiles from a Solitaire-like program:
  *   - `a card is a thing` + `a card has a rank as one of ...`, `a suit as text`, `a direction as one of up or down`
  *   - `a pile is a list of cards` + `a pile has a name as text` + `a card belongs to one pile`
@@ -89,11 +89,11 @@ function dealtBoard(): Board {
 // ## Tests
 ////////////////
 
-describe("spellCore.fromJSON()", () => {
+describe("core.fromJSON()", () => {
   test("a board's JSON reads back as the board:  the same classes, props, and cards in each pile", () => {
     const board = dealtBoard()
     const json = JSON.stringify(board)
-    const read = spellCore.fromJSON(json) as Board
+    const read = core.fromJSON(json) as Board
     expect(JSON.stringify(read)).toBe(json)
     expect(read).toBeInstanceOf(Board)
     expect(read).not.toBe(board)
@@ -108,7 +108,7 @@ describe("spellCore.fromJSON()", () => {
   })
 
   test("each pile OWNS its cards:  they're added as a program adds them", () => {
-    const read = spellCore.fromJSON(JSON.stringify(dealtBoard())) as Board
+    const read = core.fromJSON(JSON.stringify(dealtBoard())) as Board
     const [stock, discards] = [...read.piles]
     expect(stock!.items.map((card) => card.pile)).toEqual([stock, stock])
     expect(discards!.firstItem!.pile).toBe(discards)
@@ -119,20 +119,20 @@ describe("spellCore.fromJSON()", () => {
   })
 
   test('takes what `JSON.parse()` answered, too;  a value with no `"$type"` stays as it is', () => {
-    const read = spellCore.fromJSON(JSON.parse(JSON.stringify({ top: new Card({ rank: 3 }), count: 1 })))
+    const read = core.fromJSON(JSON.parse(JSON.stringify({ top: new Card({ rank: 3 }), count: 1 })))
     expect(read).toEqual({ top: expect.any(Card), count: 1 })
     expect((read as { top: Card }).top.rank).toBe(3)
-    expect(spellCore.fromJSON('[1, "two", null]')).toEqual([1, "two", null])
+    expect(core.fromJSON('[1, "two", null]')).toEqual([1, "two", null])
   })
 
   test("a plain list:  `List`, with its items", () => {
-    const read = spellCore.fromJSON('{ "$type": "List", "$items": [1, 2, 3] }') as List<number>
+    const read = core.fromJSON('{ "$type": "List", "$items": [1, 2, 3] }') as List<number>
     expect(read.constructor).toBe(List)
     expect([...read]).toEqual([1, 2, 3])
   })
 
   test('an unknown `"$type"`:  a plain object, its `"$type"` kept, what it holds read back as usual', () => {
-    const read = spellCore.fromJSON(
+    const read = core.fromJSON(
       '{ "$type": "Spaceship", "name": "Zork", "crew": [{ "$type": "Card", "rank": "ace" }] }'
     ) as Record<string, unknown>
     expect(Object.getPrototypeOf(read)).toBe(Object.prototype)
@@ -142,9 +142,9 @@ describe("spellCore.fromJSON()", () => {
   test("a class is found once one of its things is made, or it's added -- e.g. a project the program imports", () => {
     class Joker extends Card {}
     const json = '{ "$type": "Joker", "rank": "ace" }'
-    expect(spellCore.fromJSON(json)).toEqual({ $type: "Joker", rank: "ace" })
-    spellCore.things.addClasses({ Joker, notAClass: 3, Thing })
-    expect(spellCore.fromJSON(json)).toBeInstanceOf(Joker)
+    expect(core.fromJSON(json)).toEqual({ $type: "Joker", rank: "ace" })
+    core.things.addClasses({ Joker, notAClass: 3, Thing })
+    expect(core.fromJSON(json)).toBeInstanceOf(Joker)
   })
 
   test("made as `new` makes it:  `create()` runs, and the JSON's items replace what it added", () => {
@@ -154,19 +154,19 @@ describe("spellCore.fromJSON()", () => {
       }
     }
     void new Hand()
-    const read = spellCore.fromJSON('{ "$type": "Hand", "name": "mine", "$items": [{ "$type": "Card", "rank": 3 }] }')
+    const read = core.fromJSON('{ "$type": "Hand", "name": "mine", "$items": [{ "$type": "Card", "rank": 3 }] }')
     expect((read as Hand).items.map((card) => card.rank)).toEqual([3])
   })
 
   test("a prop with no setter is still a prop", () => {
     const card = new Card({ rank: "ace" })
     ;(card as unknown as { setProp(name: string, value: unknown): void }).setProp("nickname", "Lucky")
-    const read = spellCore.fromJSON(JSON.stringify(card)) as Card
+    const read = core.fromJSON(JSON.stringify(card)) as Card
     expect(read.keys()).toEqual(["rank", "nickname"])
     expect(read.toJSON()).toEqual({ $type: "Card", rank: "ace", nickname: "Lucky" })
   })
 
   test("throws on text that isn't JSON", () => {
-    expect(() => spellCore.fromJSON("{ not json")).toThrow(SyntaxError)
+    expect(() => core.fromJSON("{ not json")).toThrow(SyntaxError)
   })
 })

@@ -9,7 +9,7 @@
  * //     { "$type": "Card", "$id": "3", "rank": "ace" }] }], "top": { "$id": "3" } }
  *
  * const mirror = new StateMirror()
- * mirror.read(state)   // the first time:  made, as `spellCore.fromJSON()` makes them
+ * mirror.read(state)   // the first time:  made, as `core.fromJSON()` makes them
  * mirror.read(later)   // after that:  the SAME things, changed in place, so what draws them redraws
  * ```
  *
@@ -117,9 +117,9 @@ export class StateMirror {
    * `state` read back:  each thing with an id we hold changed in place, each new one made and kept.
    * - A thing we hold:  its props set to the state's, and any it no longer has unset;
    *   a list's items set to the state's.
-   * - A new one:  made as `spellCore.fromJSON()` makes one, through its setters, then its `create()`.
+   * - A new one:  made as `core.fromJSON()` makes one, through its setters, then its `create()`.
    * - `{ "$id": ... }` alone:  the thing with that id.
-   * - JSON with no ids (`toJSON()`'s) reads as `spellCore.fromJSON()` reads it:  a new thing each time.
+   * - JSON with no ids (`toJSON()`'s) reads as `core.fromJSON()` reads it:  a new thing each time.
    */
   read(state: unknown): unknown {
     if (Array.isArray(state)) return state.map((item) => this.read(item))

@@ -29,7 +29,7 @@ BASE_TYPES = ["Object", "Thing", "List", "App", "Drawable", "DrawableList"]
 class ThingMethods:
     """`core`'s side of things:  `check_prop()`, `things`, `from_json()`."""
 
-    # where a failed check warns:  `SpellCore` sets it
+    # where a failed check warns:  `Core` sets it
     console: "SpellConsole"
     # the types every spell project starts with
     base_types = BASE_TYPES
@@ -71,7 +71,7 @@ class ThingMethods:
         """
         return StateMirror().read(json.loads(data) if isinstance(data, str) else data)
 
-    # from `TypeMethods`, which `SpellCore` mixes in beside us
+    # from `TypeMethods`, which `Core` mixes in beside us
     if TYPE_CHECKING:
 
         def is_of_type(self, thing: object, type_name: str) -> bool: ...

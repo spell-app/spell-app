@@ -61,7 +61,7 @@ export class ScopeVariable {
   /**
    * A built-in member's READ template:  javascript which reads it,
    * `{it}` standing for the value it's read from.
-   * - e.g. `{it}.length`, `{it}.getFullYear()` or `spellCore.itemCountOf({it})`
+   * - e.g. `{it}.length`, `{it}.getFullYear()` or `core.itemCountOf({it})`
    * - `undefined`:  a read compiles as plain `<object>.<name>`.
    * - From spell's table of built-in types -- see spell's `BUILT_IN_TYPE_TABLE`.
    * - The ONE statement that sets it:  a VALUE kind's property, `Suit.color({it})`, as a value is plain text with

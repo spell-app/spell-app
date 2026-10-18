@@ -13,7 +13,7 @@ from typing import Any
 
 import pytest
 
-from spell_core import List, SpellCore
+from spell_core import Core, List
 from spell_core import core as program_core
 
 # What each seed must give:  shared with the JavaScript core's tests.
@@ -39,18 +39,18 @@ def seeded_core() -> Iterator[None]:
     [(0, "a"), (2, "c"), (3, None), (-1, "c"), (-3, "a"), (-4, None), (2.0, "c"), (1.5, None), (None, None),
      (float("nan"), None)],
 )  # fmt: skip
-def test_get_item_at_an_index_from_0(core: SpellCore, index: float | None, expected: object) -> None:
+def test_get_item_at_an_index_from_0(core: Core, index: float | None, expected: object) -> None:
     for collection in (["a", "b", "c"], ("a", "b", "c"), "abc", List("abc")):
         assert core.get_item_at(collection, index) == expected
 
 
-def test_get_item_at_a_dict_or_a_thing_by_key(core: SpellCore) -> None:
+def test_get_item_at_a_dict_or_a_thing_by_key(core: Core) -> None:
     assert core.get_item_at({"a": 1}, "a") == 1
     assert core.get_item_at({"a": 1}, "b") is None
     assert core.get_item_at(List(), "anything") is None
 
 
-def test_set_item_at_an_index_growing_past_the_end(core: SpellCore) -> None:
+def test_set_item_at_an_index_growing_past_the_end(core: Core) -> None:
     items = ["a", "b"]
     assert core.set_item_at(items, 0, "A") == "A"
     core.set_item_at(items, -1, "B")
@@ -63,7 +63,7 @@ def test_set_item_at_an_index_growing_past_the_end(core: SpellCore) -> None:
     assert record == {"a": 1}
 
 
-def test_remove_item_at_an_index(core: SpellCore) -> None:
+def test_remove_item_at_an_index(core: Core) -> None:
     items = ["a", "b", "c", "d", "e"]
     core.remove_item_at(items, 0)
     core.remove_item_at(items, -1)
@@ -76,7 +76,7 @@ def test_remove_item_at_an_index(core: SpellCore) -> None:
     assert record == {"b": 2}
 
 
-def test_position_of_an_index_from_0_never_minus_1(core: SpellCore) -> None:
+def test_position_of_an_index_from_0_never_minus_1(core: Core) -> None:
     ranks = ["ace", 2, 3, "queen"]
     assert core.position_of(ranks, "queen") == 3
     assert core.position_of(ranks, "king") is None
@@ -87,7 +87,7 @@ def test_position_of_an_index_from_0_never_minus_1(core: SpellCore) -> None:
     assert core.position_of(List(["x"]), "x") == 0
 
 
-def test_counting_and_emptiness(core: SpellCore) -> None:
+def test_counting_and_emptiness(core: Core) -> None:
     assert [core.item_count_of(it) for it in ([1, 2], "abc", {"a": 1}, List([1]), 7)] == [2, 3, 1, 1, 0]
     assert [core.is_empty(it) for it in ([], "", {}, List(), [0], float("nan"), 0)] == [
         True, True, True, True, False, True, False
@@ -97,7 +97,7 @@ def test_counting_and_emptiness(core: SpellCore) -> None:
     assert core.values_of({"x": 1}) == [1]
 
 
-def test_nothing_warns_and_gives_nothing(core: SpellCore, capsys: pytest.CaptureFixture[str]) -> None:
+def test_nothing_warns_and_gives_nothing(core: Core, capsys: pytest.CaptureFixture[str]) -> None:
     assert core.get_item_at(None, 1) is None
     assert core.is_empty(None) is True
     assert core.includes(None, 1) is False
@@ -112,7 +112,7 @@ def test_nothing_warns_and_gives_nothing(core: SpellCore, capsys: pytest.Capture
 ####################
 
 
-def test_append_prepend_add_before_after(core: SpellCore) -> None:
+def test_append_prepend_add_before_after(core: Core) -> None:
     items = [2]
     core.append(items, 3, 4)
     core.prepend(items, 1)
@@ -123,7 +123,7 @@ def test_append_prepend_add_before_after(core: SpellCore) -> None:
     assert items == ["front", 1, 2, "before 3", 3, "after 3", 4, "end"]
 
 
-def test_add_at_position_as_insert_negative_and_past_the_end(core: SpellCore) -> None:
+def test_add_at_position_as_insert_negative_and_past_the_end(core: Core) -> None:
     items = [1, 2]
     core.add_at_position(items, 0, "front")
     core.add_at_position(items, 2, "at 2")
@@ -133,7 +133,7 @@ def test_add_at_position_as_insert_negative_and_past_the_end(core: SpellCore) ->
     assert items == ["no index:  the front", "front", 1, "at 2", "before last", 2, "end"]
 
 
-def test_remove_everywhere_and_remove_where(core: SpellCore) -> None:
+def test_remove_everywhere_and_remove_where(core: Core) -> None:
     items = [1, 2, 1, 3]
     core.remove(items, 1, 9)
     assert items == [2, 3]
@@ -144,7 +144,7 @@ def test_remove_everywhere_and_remove_where(core: SpellCore) -> None:
     assert record == {"a": 1}
 
 
-def test_ranges_as_a_slice_end_not_included(core: SpellCore) -> None:
+def test_ranges_as_a_slice_end_not_included(core: Core) -> None:
     items = ["a", "b", "c", "d"]
     assert core.range_between(items, 1, 3) == ["b", "c"] == items[1:3]
     assert core.range_between(items, 2, 9) == ["c", "d"]
@@ -163,7 +163,7 @@ def test_ranges_as_a_slice_end_not_included(core: SpellCore) -> None:
     assert items == ["d"]
 
 
-def test_starts_ends_with_reverse_set_items(core: SpellCore) -> None:
+def test_starts_ends_with_reverse_set_items(core: Core) -> None:
     items = [1, 2, 3]
     assert [core.starts_with(items, 1), core.starts_with(items, 3), core.starts_with(items, None)] == [
         True, False, False
@@ -180,7 +180,7 @@ def test_starts_ends_with_reverse_set_items(core: SpellCore) -> None:
 ####################
 
 
-def test_for_each_map_filter_with_indexes_from_0(core: SpellCore) -> None:
+def test_for_each_map_filter_with_indexes_from_0(core: Core) -> None:
     seen: list[object] = []
     core.for_each(["a", "b"], lambda value, index: seen.append((value, index)))
     assert seen == [("a", 0), ("b", 1)]
@@ -191,7 +191,7 @@ def test_for_each_map_filter_with_indexes_from_0(core: SpellCore) -> None:
     assert core.filter("hello", lambda letter: letter == "l") == ["l", "l"]
 
 
-def test_all_and_any_javascripts_yes(core: SpellCore) -> None:
+def test_all_and_any_javascripts_yes(core: Core) -> None:
     assert core.all([1, 2], lambda n: n > 0)
     assert core.all([]) is False
     assert core.all([[], "x"]) is True
@@ -202,7 +202,7 @@ def test_all_and_any_javascripts_yes(core: SpellCore) -> None:
     assert core.includes_any([1, 2, 3], 9, 3)
 
 
-def test_smallest_and_largest(core: SpellCore) -> None:
+def test_smallest_and_largest(core: Core) -> None:
     assert [core.smallest_of([3, 1, 2]), core.largest_of([3, 1, 2])] == [1, 3]
     assert core.largest_of(["b", "c", "a"]) == "c"
     assert core.largest_of([]) is None
@@ -213,7 +213,7 @@ def test_smallest_and_largest(core: SpellCore) -> None:
 ####################
 
 
-def test_copies_and_merges(core: SpellCore) -> None:
+def test_copies_and_merges(core: Core) -> None:
     items = [1, 2]
     copy = core.duplicate_list(items)
     assert copy == items
@@ -226,7 +226,7 @@ def test_copies_and_merges(core: SpellCore) -> None:
     assert core.new_thing_like((1, 2)) == []
 
 
-def test_a_plain_list_has_no_guards(core: SpellCore) -> None:
+def test_a_plain_list_has_no_guards(core: Core) -> None:
     items: list[object] = []
     assert core.move("card", items) is True
     assert items == ["card"]
@@ -251,7 +251,7 @@ def test_randomize_deals_what_the_javascript_core_deals(seeded_core: None, expec
     assert plain == expected["shuffled"]
 
 
-def test_random_items_each_at_most_once(core: SpellCore) -> None:
+def test_random_items_each_at_most_once(core: Core) -> None:
     picked = core.random_items_of([1, 2, 3, 4], 2)
     assert len(set(picked)) == 2
     assert set(picked) <= {1, 2, 3, 4}

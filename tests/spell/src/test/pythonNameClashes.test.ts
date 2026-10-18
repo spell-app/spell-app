@@ -16,7 +16,7 @@ import { parseSpellProject } from "$/spell/test"
  *   - every spell project, each compiled to Python:
  *     - the `@spell` space's built-ins (examples, library, `packages/spaces/@spell/`)
  *     - the test projects (`tests/spaces/@spell/test/`)
- *   - the core's own methods, `spellCore.declarations.json5`, as Python names them
+ *   - the core's own methods, `core.declarations.json5`, as Python names them
  * - Pinned in `pythonNameClashes.snapshot.json5`, beside this:  a new clash is a diff to read.
  * - The guide's "PEP 8's names" table lists them for Owen to decide each.
  */
@@ -84,9 +84,9 @@ describe("Python's name clashes in today's spell", () => {
       SP.SpellProject.combineCompiled(parts, writer, "", scope)
     }
     // the core's own methods, as Python names them
-    naming.where = "the core's methods (spellCore.declarations.json5)"
+    naming.where = "the core's methods (core.declarations.json5)"
     const core = JSON.parse(
-      readFileSync(resolve(import.meta.dirname, "../../../../packages/core/spellCore.declarations.json5"), "utf8")
+      readFileSync(resolve(import.meta.dirname, "../../../../packages/core/core.declarations.json5"), "utf8")
     ) as { statements: Array<{ kind: string; name: string }> }
     for (const { kind, name } of core.statements) if (kind === "method") naming.nameOf(name, "method")
 

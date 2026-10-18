@@ -1,10 +1,10 @@
 /**
- * `spellCore.carryOver()`:  a recompiled program takes over the last run's things (epic `drawable-thing` P16, Q25).
+ * `core.carryOver()`:  a recompiled program takes over the last run's things (epic `drawable-thing` P16, Q25).
  * - An edit in the editor runs the program again:  without this, Drawable Solitaire deals a new game each time.
  * - With it, each of the last run's top-level things is matched to the new run's of the same name and type,
  *   e.g. `stock`, and its state copied over:  the game in progress stays, drawn the new way.
  * - Everything it holds comes over as the NEW class of the same name, as reading saved JSON back does
- *   (`spellCore.fromJSON()`):  an old `Card` becomes a new `Card`.
+ *   (`core.fromJSON()`):  an old `Card` becomes a new `Card`.
  *   - Unlike JSON, it keeps identity:  a card held by the deck AND a pile comes over as ONE card.
  * - The hard cases:
  *   - a property the new type adds:  the new thing's own starting value
@@ -15,24 +15,24 @@
  *   - Nor when the edit changed the program's start, the file that starts its app (P17).
  *   - Nor when one of its things can't come over (`carryProblems()`).
  *   - Either way the program starts afresh too.
- * - Part of `spellCore`:  imported by `$/core`'s barrel for its side effect.
+ * - Part of `core`:  imported by `$/core`'s barrel for its side effect.
  */
 import { getProps, schemaOf, setProp, type PropInfo } from "$/util"
 
-import { spellCore } from "./core"
-import { defineSpellCoreModule } from "./spellCore.types"
+import { core } from "./core"
+import { defineCoreModule } from "./core.types"
 // Import directly to avoid circular import
 import { Thing } from "./classes/Thing"
 import { List } from "./classes/List"
 import type { NamedThing, ThingClass, ThingLike } from "./things"
 
-export const carryMethods = defineSpellCoreModule({
+export const carryMethods = defineCoreModule({
   /**
    * Is a recompiled program loading, to take over the last run's things?
    * - Set by the runner around the load.
    * - While it is:
    *   - the program's start is skipped:  its top-level test calls, and starting its app
-   *     (`if (!spellCore.isCarryingOver) game.start()`, epic `drawable-thing` P17)
+   *     (`if (!core.isCarryingOver) game.start()`, epic `drawable-thing` P17)
    *   - a `pause for ...` never ends:
    *     what the rest of its top level sets going stops at its first pause,
    *     e.g. Drawable Solitaire's `reset the game` deals a card, then stops
@@ -49,22 +49,22 @@ export const carryMethods = defineSpellCoreModule({
    *   the new program's own variables, e.g. `stock`, keep pointing at it.
    * - The things they hold come over as new things of the new classes, each once.
    * - SIDE EFFECTS:
-   *   - the new run's things that were replaced are forgotten by `spellCore.things`
+   *   - the new run's things that were replaced are forgotten by `core.things`
    *   - the new run's processes are stopped:  they stopped at their first pause (`isCarryingOver`)
    *   - one console line says what was kept, and one per thing that starts afresh, and why
    * - Answers the names of the things kept.
    * - NEVER throws:  a thing that can't come over starts afresh.
    */
   carryOver(previous: NamedThing[], exports: Record<string, unknown>): string[] {
-    const flags = spellCore.getProcessFlags()
+    const flags = core.getProcessFlags()
     for (const name of Object.keys(flags)) delete flags[name]
     try {
       const kept = new CarryOver().run(previous, exports)
-      if (kept.length) spellCore.console.info(`Kept ${kept.join(", ")} from the last run:  Restart starts afresh.`)
+      if (kept.length) core.console.info(`Kept ${kept.join(", ")} from the last run:  Restart starts afresh.`)
       return kept
     } catch (error) {
       // e.g. a new class's `create()` that throws:  what came over so far stays
-      spellCore.console.error("Couldn't keep the last run's things:", error)
+      core.console.error("Couldn't keep the last run's things:", error)
       return []
     }
   },
@@ -82,10 +82,10 @@ export const carryMethods = defineSpellCoreModule({
     return new CarryOver().problems(previous, exports).map(({ name, problem }) => `${name}:  ${problem}`)
   }
 })
-Object.assign(spellCore, carryMethods)
+Object.assign(core, carryMethods)
 
 /**
- * One carry-over, from the last run's things to the new run's classes -- see `spellCore.carryOver()`.
+ * One carry-over, from the last run's things to the new run's classes -- see `core.carryOver()`.
  * - Holds which old thing became which new one, so each comes over once.
  */
 class CarryOver {
@@ -95,7 +95,7 @@ class CarryOver {
   /** What the new run's top-level things held before they took the old state:  forgotten, unless carried over. */
   private replaced: ThingLike[] = []
 
-  /** Carry `previous` over into `exports` -- see `spellCore.carryOver()`;  answers the names kept. */
+  /** Carry `previous` over into `exports` -- see `core.carryOver()`;  answers the names kept. */
   run(previous: NamedThing[], exports: Record<string, unknown>): string[] {
     const targets: Array<[ThingLike, ThingLike]> = []
     const problems = new Map(this.problems(previous, exports).map(({ name, problem }) => [name, problem]))
@@ -104,7 +104,7 @@ class CarryOver {
       if (!isThingLike(target)) continue
       const problem = problems.get(name)
       if (problem) {
-        spellCore.console.warn(`${name} starts afresh:  ${problem}`)
+        core.console.warn(`${name} starts afresh:  ${problem}`)
         continue
       }
       this.carried.set(thing, target)
@@ -145,7 +145,7 @@ class CarryOver {
     if (isPlainObject(value)) return firstOf(Object.values(value), (field) => this.problemIn(field, seen))
     if (!isThingLike(value)) return undefined
     const type = value.constructor.name
-    const Class = spellCore.things.classNamed(type)
+    const Class = core.things.classNamed(type)
     if (!Class) return `type ${type} is gone`
     const props = getProps(value)
     for (const [name, prop] of Object.entries(props)) {
@@ -165,7 +165,7 @@ class CarryOver {
     if (!isThingLike(value)) return value
     const known = this.carried.get(value)
     if (known) return known
-    const Class = spellCore.things.classNamed(value.constructor.name)!
+    const Class = core.things.classNamed(value.constructor.name)!
     // made with its plain values, as `new Card({ rank, suit })`;  what it holds once it's known, for a cycle back to it
     const plain = Object.fromEntries(
       Object.entries(getProps(value)).filter(
@@ -204,7 +204,7 @@ class CarryOver {
     for (let thing = this.replaced.pop(); thing; thing = this.replaced.pop()) {
       if (kept.has(thing) || seen.has(thing)) continue
       seen.add(thing)
-      spellCore.things.forget(thing)
+      core.things.forget(thing)
       this.replaced.push(...heldBy(thing))
     }
   }

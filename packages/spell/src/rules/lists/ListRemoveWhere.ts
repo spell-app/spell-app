@@ -9,7 +9,7 @@ import { getWhereScope, getWhereMethod } from "./lists.shared"
  * `list_remove_where` rule:  remove all items from list where condition is true:
  * e.g. `remove items from my-list where item is not "ace"`.
  * - Trailing `where` expects an inline expression as predicate (`{inline_expression}?`) -- see `getWhereScope()`.
- * - Compiles to `spellCore.removeWhere(list, (item) => { ... })`.
+ * - Compiles to `core.removeWhere(list, (item) => { ... })`.
  */
 export class ListRemoveWhere extends SpellStatement<"arg|list|body?"> {
   @proto static alias = "statement"
@@ -39,17 +39,17 @@ lists.addRule(ListRemoveWhere, {
         scope.constants?.add("clubs")
       },
       tests: [
-        ["remove items from my-list where", "spellCore.removeWhere(myList, () => {})"],
-        [`remove items from my-list where item is not "ace"`, 'spellCore.removeWhere(myList, (item) => item != "ace")'],
+        ["remove items from my-list where", "core.removeWhere(myList, () => {})"],
+        [`remove items from my-list where item is not "ace"`, 'core.removeWhere(myList, (item) => item != "ace")'],
         [
           "remove cards in deck where the suit of the card is clubs",
-          'spellCore.removeWhere(deck, (card) => card.suit == "clubs")'
+          'core.removeWhere(deck, (card) => card.suit == "clubs")'
         ],
         [
           "remove cards in deck where the suit of it is clubs",
-          'spellCore.removeWhere(deck, (card) => card.suit == "clubs")'
+          'core.removeWhere(deck, (card) => card.suit == "clubs")'
         ],
-        ["remove cards in deck where its suit is clubs", 'spellCore.removeWhere(deck, (card) => card.suit == "clubs")']
+        ["remove cards in deck where its suit is clubs", 'core.removeWhere(deck, (card) => card.suit == "clubs")']
       ]
     }
   ]

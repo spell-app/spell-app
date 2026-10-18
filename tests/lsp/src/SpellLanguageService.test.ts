@@ -776,7 +776,7 @@ describe("SpellLanguageService", () => {
     expect(compiled).toBe(LSP.SpellLanguageService.compileQuietly(card.match!, SP.targetFor("ts/solid").writer))
     expect(compiled).toContain("export class Card extends Thing {\n")
     // TypeScript's own:  a decorated, typed property
-    expect(compiled).toMatch(/@prop\(.*\) accessor \w+!?: /)
+    expect(compiled).toMatch(/@prop\(.*\)\n\s*accessor \w+!?: /)
     expect(compiled).not.toBe(service.compiled(card, "js"))
   })
 

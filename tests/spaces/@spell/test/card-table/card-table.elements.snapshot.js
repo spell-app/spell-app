@@ -1,10 +1,11 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList, h } from "@spell/core"
+import { core, Thing, List, App, Drawable, DrawableList, h } from "@spell/core"
 
 //## A card table:  a drawable list whose frame has a named place, filled by a child that says it goes there
 
 export class Card extends Drawable {
-  static elementTag = spellCore.defineElement(this, "test-project")
+  static elementTag = core.defineElement(this, "test-project")
 
+  // a card has a rank as text
   static { this.declareProp("rank", { type: "text" }) }
   get rank() { return this.getProp("rank") }
   set rank(value) { this.setProp("rank", value) }
@@ -17,8 +18,9 @@ export class Card extends Drawable {
 /** its frame:  a header place, then where its cards show */
 export class Pile extends DrawableList {
   static instanceType = Card
-  static elementTag = spellCore.defineElement(this, "test-project")
+  static elementTag = core.defineElement(this, "test-project")
 
+  // a pile has a name as text
   static { this.declareProp("name", { type: "text" }) }
   get name() { return this.getProp("name") }
   set name(value) { this.setProp("name", value) }
@@ -38,7 +40,7 @@ export class Table extends App {
    */
   draw() {
     return h("div", { class: "table" },
-      () => spellCore.drawThing(pile),
+      () => core.drawThing(pile),
       h("test-project-pile", h("h3", { slot: "header" }, "Discards"))
     )
   }
